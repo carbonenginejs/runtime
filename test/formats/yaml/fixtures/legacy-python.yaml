@@ -1,0 +1,6 @@
+tuple: !!python/tuple [1, 2, 3]
+unicode: !!python/unicode capsuleer
+decal: !!python/object:paperDoll.ProjectedDecal
+  texturePath: res:/texture/decal.dds
+metadata: !!python/object:paperDoll.AvatarPartMetaData
+  category: hair

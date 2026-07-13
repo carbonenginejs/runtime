@@ -1,0 +1,25 @@
+# Dependencies / generated package output
+node_modules/
+npm/
+coverage/
+.scratch/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Agent / tool scratch - nested repositories do not inherit the org ignore file
+.agent/
+.agents/
+agents/
+.claude/
+.codex/
+.skill/
+.skills/
+review/
+_review/
+
+# Internal project notes are local knowledge, not public package source
+carbonenginejs.md
+resource-kb.md

@@ -1,0 +1,185 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+import { transformAsync } from "@babel/core";
+
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const sourceRoots = [ "src", "scripts", "test" ];
+const publicDocuments = [
+  "README.md",
+  "FORMAT-PROVENANCE.md",
+  "resource-lifecycle.md"
+];
+
+/**
+ * Collects files with one of the requested extensions in deterministic order.
+ */
+async function GetFiles(directory, extensions)
+{
+  const entries = await fs.readdir(directory, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name)))
+  {
+    const entryPath = path.join(directory, entry.name);
+
+    if (entry.isDirectory())
+    {
+      files.push(...await GetFiles(entryPath, extensions));
+    }
+    else if (entry.isFile() && extensions.has(path.extname(entry.name)))
+    {
+      files.push(entryPath);
+    }
+  }
+
+  return files;
+}
+
+/**
+ * Parses authoring and test modules with the package decorator configuration.
+ */
+async function CheckJavaScript(file, errors)
+{
+  const relativeFile = path.relative(root, file).replaceAll(path.sep, "/");
+  const source = await fs.readFile(file, "utf8");
+
+  if (/[ \t]+$/mu.test(source))
+  {
+    errors.push(`${relativeFile}: contains trailing whitespace`);
+  }
+
+  if (/^\/\/ Ported from CarbonEngine/mu.test(source))
+  {
+    errors.push(`${relativeFile}: use exact // Source: <Carbon path> provenance`);
+  }
+
+  if (
+    relativeFile.startsWith("src/generated/") &&
+    !relativeFile.endsWith("/index.js") &&
+    !relativeFile.endsWith("/enums.js") &&
+    !source.startsWith("// Source:")
+  )
+  {
+    errors.push(`${relativeFile}: generated Carbon source requires an exact source header`);
+  }
+
+  try
+  {
+    await transformAsync(source, {
+      filename: file,
+      sourceType: "module",
+      babelrc: false,
+      configFile: false,
+      code: false,
+      ast: false,
+      plugins: [
+        [ "@babel/plugin-proposal-decorators", { version: "2023-11" } ]
+      ]
+    });
+  }
+  catch (error)
+  {
+    errors.push(`${relativeFile}:${error.loc?.line ?? 1}: ${error.message}`);
+  }
+}
+
+/**
+ * Rejects filesystem links outside this package and broken relative links.
+ */
+async function CheckDocument(name, errors)
+{
+  const file = path.join(root, name);
+  const source = await fs.readFile(file, "utf8");
+  const linkPattern = /!?\[[^\]]*\]\(([^)]+)\)/gu;
+
+  for (const match of source.matchAll(linkPattern))
+  {
+    const target = match[1].trim().split(/\s+/u, 1)[0];
+
+    if (!target || target.startsWith("#") || /^(?:https?:|mailto:)/iu.test(target))
+    {
+      continue;
+    }
+
+    if (/^(?:file:|[a-z]:[\\/]|[\\/]{1,2})/iu.test(target))
+    {
+      errors.push(`${name}: external filesystem link is not allowed: ${target}`);
+      continue;
+    }
+
+    const linkPath = target.split("#", 1)[0];
+    const resolved = path.resolve(path.dirname(file), linkPath);
+    const relative = path.relative(root, resolved);
+
+    if (relative.startsWith("..") || path.isAbsolute(relative))
+    {
+      errors.push(`${name}: link escapes the package: ${target}`);
+      continue;
+    }
+
+    try
+    {
+      await fs.access(resolved);
+    }
+    catch
+    {
+      errors.push(`${name}: broken relative link: ${target}`);
+    }
+  }
+}
+
+/**
+ * Ensures the authoring and publish manifests describe one standalone package.
+ */
+async function CheckManifests(errors)
+{
+  const authoring = JSON.parse(await fs.readFile(path.join(root, "package.json"), "utf8"));
+  const published = JSON.parse(await fs.readFile(path.join(root, "npm.package.json"), "utf8"));
+
+  if (authoring.name !== published.name || authoring.version !== published.version)
+  {
+    errors.push("package.json and npm.package.json must have matching names and versions");
+  }
+
+  for (const [name, version] of Object.entries(authoring.dependencies ?? {}))
+  {
+    if (/^(?:file:|link:)/iu.test(version))
+    {
+      errors.push(`package.json: dependency ${name} links outside the package`);
+    }
+  }
+}
+
+const errors = [];
+const JavaScriptExtensions = new Set([ ".js", ".mjs" ]);
+
+for (const sourceRoot of sourceRoots)
+{
+  const files = await GetFiles(path.join(root, sourceRoot), JavaScriptExtensions);
+
+  for (const file of files)
+  {
+    await CheckJavaScript(file, errors);
+  }
+}
+
+for (const document of publicDocuments)
+{
+  await CheckDocument(document, errors);
+}
+
+await CheckManifests(errors);
+
+if (errors.length)
+{
+  console.error(errors.join("\n"));
+  console.error(`\n${errors.length} package lint error(s)`);
+  process.exitCode = 1;
+}
+else
+{
+  console.log("runtime-resource package lint passed");
+}
