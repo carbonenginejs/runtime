@@ -1,5 +1,8 @@
 import "./formats/black/public-api.test.mjs";
+import "./formats/bnk/format.test.js";
+import "./formats/cmf/gr2Anim.test.mjs";
 import "./formats/cmf/minimal.test.mjs";
+import "./formats/cmf/writer.test.mjs";
 import "./formats/dds/format.test.js";
 import "./formats/fbx/format.test.js";
 import "./formats/flac/format.test.js";
@@ -17,4 +20,5 @@ import "./formats/tga/format.test.js";
 import "./formats/wav/format.test.js";
 import "./formats/webm/format.test.js";
 import "./formats/webp/format.test.js";
+import "./formats/wem/format.test.js";
 import "./formats/yaml/public-api.test.mjs";

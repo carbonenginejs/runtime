@@ -902,20 +902,9 @@ export class CjsBlackReader
 
     ResolveClass(kind)
     {
-        const registry = this.options.registry || null;
-        if (registry)
-        {
-            if (typeof registry.GetConstructor === "function") return registry.GetConstructor(kind) || null;
-            if (typeof registry.ResolveClass === "function") return registry.ResolveClass(kind) || null;
-            if (typeof registry.resolve === "function") return registry.resolve(kind) || null;
-            if (registry[kind]) return registry[kind];
-        }
-
         const classes = this.options.classes || {};
-        return classes[kind] ||
-            CjsSchema.getClass(kind, this.options.family) ||
-            CjsSchema.getClass(kind) ||
-            null;
+        const Schema = this.options.registry || CjsSchema;
+        return classes[kind] || Schema.GetConstructor(kind);
     }
 
     ResetReadState()

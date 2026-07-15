@@ -8,7 +8,7 @@ export * from "./generated/resources/index.js";
 export * from "./format/CjsResourceProbe.js";
 export * from "./format/payloadContract.js";
 export * from "./CjsFormat.js";
-export { CjsEventEmitter, CjsEventEmitterScope } from "@carbonenginejs/core-types/model";
+export { CjsEventEmitter } from "@carbonenginejs/core-types/model";
 export * from "./CjsMotherLode.js";
 export * from "./CjsResourceSource.js";
 export * from "./CjsResMan.js";

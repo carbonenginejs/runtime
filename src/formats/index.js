@@ -1,4 +1,5 @@
 export { CjsBlackFormat } from "./black/index.js";
+export { CjsBnkFormat } from "./bnk/index.js";
 export { CjsCmfFormat } from "./cmf/index.js";
 export { CjsDdsFormat } from "./dds/index.js";
 export { CjsFbxFormat } from "./fbx/index.js";
@@ -17,4 +18,5 @@ export { CjsTgaFormat } from "./tga/index.js";
 export { CjsWavFormat } from "./wav/index.js";
 export { CjsWebmFormat } from "./webm/index.js";
 export { CjsWebpFormat } from "./webp/index.js";
+export { CjsWemFormat } from "./wem/index.js";
 export { CjsYamlFormat } from "./yaml/index.js";

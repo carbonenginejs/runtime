@@ -49,6 +49,67 @@ unpublished `format-carbon` export. `format-carbon` remains the build-time
 authority for future schema regeneration; an updated snapshot must record its
 new source revision and digest here.
 
+## Native additions
+
+Formats below were authored directly in `runtime-resource` and have no legacy
+donor package. Their `format-notices/<format>/` entries record third-party
+format attribution rather than fork provenance.
+
+| Format | Runtime class | Runtime import | Notes |
+|---|---|---|---|
+| Wwise soundbank (`.bnk`) | `CjsBnkFormat` | `@carbonenginejs/runtime-resource/formats/bnk` | Original code; chunk layout from public community documentation (ww2ogg, vgmstream, wwiser), no code copied. Also carries the SoundbanksInfo JSON helpers (`parseSoundbanksInfo`, `buildSoundbanksCatalog`, `joinSoundbanksInfo`) and `wwiseIdFromName` (FNV-1 32 of the lowercased name, verified against EVE bank/language ids). |
+| Wwise media (`.wem`) | `CjsWemFormat` | `@carbonenginejs/runtime-resource/formats/wem` | Original code; container/codec-tag behavior from public community documentation (ww2ogg, vgmstream, wwiser), no code copied. Includes a Wwise-Vorbis→Ogg repacker (`emit: "ogg"`), an original reimplementation of the ww2ogg algorithm with inline granule computation (no revorb pass needed). |
+
+## Post-fork additions inside copied formats
+
+- `formats/cmf` gained a **binary CMF v1 writer** (2026-07-15,
+  `src/formats/cmf/core/writer.js`, `CjsCmfFormat.write`/`writeAsync` and
+  `Write`/`WriteAsync`): original code implementing CarbonEngine's
+  `cmf::BuildFile` behavior — tagged self-relative span flattening with leaf
+  chunk dedup, BufferView→section remapping in first-encounter order,
+  meshoptimizer vertex/index compression (index compression canonicalizes
+  triangle rotation, matching the engine's own writer test expectations), and
+  the post-crc32 file checksum. Verified by write→read roundtrips against the
+  runtime reader; `E:\carbonengine\mesh\{include,src}\cmf` was the behavioral
+  reference, no code copied. `writeShared`/`writeSharedAsync` plus
+  `core/pack.js` (channel interleaving, index packing, unique buffer-index
+  assignment) serialize shared geometry directly, enabling GR2/OBJ/glTF→CMF —
+  verified against real EVE `.gr2` models fetched via
+  `@carbonenginejs/runtime-source` (positions exact, triangles equivalent).
+- `formats/cmf` also gained the **GR2 skeleton/animation converter**
+  (2026-07-15, `src/formats/cmf/core/gr2Anim.js`, applied automatically by
+  `writeShared`): GR2-shaped skeletons (root list or `models[].skeleton`)
+  convert to CMF bones/parents/rest transforms with inverse binds rebuilt
+  from the rest hierarchy; decoded Granny curves convert to CMF Step/Linear
+  channels — degree ≤ 1 exactly, degree 2 via adaptive de Boor resampling
+  with discontinuities snapped to one float32 ULP. Consumes only decoded
+  `{knots, controls}` data so the MIT runtime stays independent of the GR2
+  package. Validated on EVE ships (cde3_t3, gde3_t3, cfaux1_t1, mfaux1_t1:
+  3,377 channels ≤ 8.3e-4 positional / ≤ 0.14° rotational vs the GR2 runtime
+  sampler; 9 Granny curve formats) and characters (basicfemale: 132-bone
+  skeleton, exact skin weights).
+- `formats/ogg` gained a pure-JS **Ogg Vorbis PCM decoder** (2026-07-15,
+  `src/formats/ogg/core/{vorbis.js,imdct.js}`, `emit: "pcm"`/`"audio"`):
+  original code implementing the Vorbis I specification (floor 1, residues
+  0/1/2, square-polar coupling, FFT-based IMDCT, windowed overlap-add).
+  stb_vorbis (public domain) was consulted as a behavioral reference and is
+  the source of the spec's floor1 `inverse_db_table` constants; no licensed
+  code was copied. Validated bit-comparable to ffmpeg (max diff ~3e-8) and
+  vgmstream (±1 int16 LSB) across the EVE Vorbis corpus.
+
+## Wem packed-codebook snapshot
+
+The wem Ogg repacker ships a package-owned copy of the aoTuV 6.03 packed
+Vorbis codebook library at
+`src/formats/wem/core/packedCodebooksAotuv603.js` (base64 module). It was
+copied byte-identically from `packed_codebooks_aoTuV_603.bin` in the ww2ogg
+distribution (`github.com/hcs64/ww2ogg`), 74,387 bytes, SHA-256
+`00a93eab267d281401b1efd54e888a2e183299b9e6c446c48d09f701a89d9d27`, retrieved
+2026-07-15. The data is BSD-licensed (Xiph.org Foundation, Adam Gashlin);
+attribution and the full license terms are recorded in
+`format-notices/wem/NOTICE` and `format-notices/wem/LICENSE`. An updated
+snapshot must record its new source and digest here.
+
 ## Deliberately not copied
 
 - `format-gr2` is the intended runtime-resource owner target, but its current

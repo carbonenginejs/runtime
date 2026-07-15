@@ -12,6 +12,7 @@
     "./formats/black/schema": "./src/formats/black/core/blackSchema.js",
     "./formats/black/enums": "./src/formats/black/core/blackEnums.js",
     "./formats/black/version": "./src/formats/black/core/blackVersion.js",
+    "./formats/bnk": "./src/formats/bnk/index.js",
     "./formats/cmf": "./src/formats/cmf/index.js",
     "./formats/dds": "./src/formats/dds/index.js",
     "./formats/fbx": "./src/formats/fbx/index.js",
@@ -31,6 +32,7 @@
     "./formats/wav": "./src/formats/wav/index.js",
     "./formats/webm": "./src/formats/webm/index.js",
     "./formats/webp": "./src/formats/webp/index.js",
+    "./formats/wem": "./src/formats/wem/index.js",
     "./formats/yaml": "./src/formats/yaml/index.js"
   },
   "sideEffects": false,
@@ -53,7 +55,7 @@
   },
   "dependencies": {
     "@carbonenginejs/core-math": "^0.1.3",
-    "@carbonenginejs/core-types": "^0.4.6",
+    "@carbonenginejs/core-types": "^0.5.0",
     "meshoptimizer": "^1.2.0",
     "yaml": "^2.4.0"
   },

@@ -13,7 +13,10 @@ This package owns the GPU-free resource layer:
 - `CjsResMan` semantic resource construction, registered-format selection,
   layered source/read/resource deduplication, object loader dispatch, and
   prefetch.
-- `CjsEventEmitter` from `core-types/model` for manager/runtime events without requiring `CjsModel` inheritance. `CjsEventEmitterScope` is the explicit cleanup ledger for cross-emitter relationships; owner-side `ListenTo` helpers are not part of the current contract.
+- Raw `CjsEventEmitter` from `core-types/model` for manager/runtime events
+  without requiring `CjsModel` inheritance. External listeners unregister
+  directly with `OffEvent`; listener scopes, owner-side `ListenTo` helpers,
+  and a separate resource notification layer are not part of the contract.
 - Path normalization and extension helpers.
 - Source adapters for memory and `fetch`.
 - Optional DTO payload carriers for decoded format output under `src/dto`.

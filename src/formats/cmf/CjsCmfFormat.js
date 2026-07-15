@@ -6,6 +6,10 @@
  * data by default.
  */
 
+import { convertGr2SkeletonsAndAnimations } from "./core/gr2Anim.js";
+import { packGraphBuffers } from "./core/pack.js";
+import { buildCmfFromShared } from "./core/shared.js";
+import { writeCmf, writeCmfAsync } from "./core/writer.js";
 import {
     CLASS_KEYS,
     DEFAULT_VALUES,
@@ -266,6 +270,64 @@ export class CjsCmfFormat
     }
 
     /**
+     * Serialize a CMF-native graph to binary .cmf bytes without compression.
+     *
+     * Use WriteAsync for meshoptimizer-compressed GPU sections. The graph
+     * shape matches Read output: meshes/skeletons/animations plus optional
+     * metadata and a `buffers` list supplying uncompressed bytes per
+     * BufferView index.
+     *
+     * @param {object} graph CMF-native graph.
+     * @param {object} [options] Writer options (`compress`).
+     * @returns {Uint8Array} Complete .cmf file bytes.
+     */
+    Write(graph, options = {})
+    {
+        return writeCmf(graph, options);
+    }
+
+    /**
+     * Serialize a CMF-native graph to binary .cmf bytes with meshoptimizer
+     * compression enabled by default.
+     *
+     * @param {object} graph CMF-native graph.
+     * @param {object} [options] Writer options (`compress`, default true).
+     * @returns {Promise<Uint8Array>} Complete .cmf file bytes.
+     */
+    async WriteAsync(graph, options = {})
+    {
+        return writeCmfAsync(graph, options);
+    }
+
+    /**
+     * Serialize shared CarbonEngineJS geometry (e.g. from the GR2/OBJ/glTF
+     * readers) straight to binary .cmf bytes without compression.
+     *
+     * Channels are interleaved into GPU buffers per the generated
+     * declaration. Skeletons/animations must already be CMF-native shaped.
+     *
+     * @param {object} input Shared geometry root or mesh.
+     * @param {object} [options] Writer options (`compress`).
+     * @returns {Uint8Array} Complete .cmf file bytes.
+     */
+    WriteShared(input, options = {})
+    {
+        return CjsCmfFormat.writeShared(input, options);
+    }
+
+    /**
+     * Serialize shared CarbonEngineJS geometry to compressed .cmf bytes.
+     *
+     * @param {object} input Shared geometry root or mesh.
+     * @param {object} [options] Writer options (`compress`, default true).
+     * @returns {Promise<Uint8Array>} Complete .cmf file bytes.
+     */
+    async WriteSharedAsync(input, options = {})
+    {
+        return CjsCmfFormat.writeSharedAsync(input, options);
+    }
+
+    /**
      * Static one-shot read. Static methods use camelCase by convention.
      *
      * @param {Uint8Array|Buffer|ArrayBuffer|object} input Raw .cmf bytes or an existing raw read result.
@@ -382,6 +444,65 @@ export class CjsCmfFormat
     static toJSON(value)
     {
         return toJsonValue(value);
+    }
+
+    /**
+     * Static one-shot binary write without compression.
+     *
+     * @param {object} graph CMF-native graph.
+     * @param {object} [options] Writer options (`compress`).
+     * @returns {Uint8Array} Complete .cmf file bytes.
+     */
+    static write(graph, options = {})
+    {
+        return writeCmf(graph, options);
+    }
+
+    /**
+     * Static one-shot binary write with meshoptimizer compression enabled by
+     * default.
+     *
+     * @param {object} graph CMF-native graph.
+     * @param {object} [options] Writer options (`compress`, default true).
+     * @returns {Promise<Uint8Array>} Complete .cmf file bytes.
+     */
+    static async writeAsync(graph, options = {})
+    {
+        return writeCmfAsync(graph, options);
+    }
+
+    /**
+     * Static one-shot shared-geometry write without compression.
+     *
+     * Equivalent to `loadShared` + buffer packing + `write`; this is the
+     * GR2/OBJ/glTF → CMF conversion entry point.
+     *
+     * @param {object} input Shared geometry root or mesh.
+     * @param {object} [options] Writer options (`compress`).
+     * @returns {Uint8Array} Complete .cmf file bytes.
+     */
+    static writeShared(input, options = {})
+    {
+        const root = input && input.meshes ? input : { meshes: [ input ] };
+        const converted = convertGr2SkeletonsAndAnimations(root, options);
+        const packed = packGraphBuffers(buildCmfFromShared(converted));
+        return writeCmf({ ...packed.graph, buffers: packed.buffers }, options);
+    }
+
+    /**
+     * Static one-shot shared-geometry write with meshoptimizer compression
+     * enabled by default.
+     *
+     * @param {object} input Shared geometry root or mesh.
+     * @param {object} [options] Writer options (`compress`, default true).
+     * @returns {Promise<Uint8Array>} Complete .cmf file bytes.
+     */
+    static async writeSharedAsync(input, options = {})
+    {
+        const root = input && input.meshes ? input : { meshes: [ input ] };
+        const converted = convertGr2SkeletonsAndAnimations(root, options);
+        const packed = packGraphBuffers(buildCmfFromShared(converted));
+        return writeCmfAsync({ ...packed.graph, buffers: packed.buffers }, options);
     }
 
     static OUTPUT_JSON = OUTPUT_JSON;

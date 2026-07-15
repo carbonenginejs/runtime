@@ -221,53 +221,53 @@ Open design questions:
 - Should `KeepAlive()` reload purged resources, or should reload be an explicit
   `Reload()` call to avoid surprising browser/network work?
 
-ccpwgl's event emitter shape is good. The part we should avoid copying is the
+ccpwgl's raw event emitter shape is useful. The part we should not copy is the
 separate resource notification/callback compatibility layer that sits beside
-events. That layer carries historical compatibility surface and is awkward to
-debug. The CarbonEngineJS version should expose a small event-emitter API on the
-resource manager and resources, but should avoid very short generic names such
-as `On`, `Once`, `Off`, and `Emit` on Carbon-shaped classes. Those names may
-collide with Carbon method exports now or later. Prefer ccpwgl's more explicit
-event method names. `CjsEventEmitter` is a separate base class so non-model
-runtime services can extend it without extending `CjsModel`; `CjsResMan`
-already uses that path. Cross-emitter relationships currently use explicit
-`CjsEventEmitterScope` instances for deterministic relationship cleanup.
-Owner-side helpers such as `ListenTo()`, `ListenOnceTo()`, and
-`StopListening()` are deferred until model/event composition is implemented and
-tested.
+events. CarbonEngineJS exposes one small event-emitter API and avoids short
+generic names such as `On`, `Once`, `Off`, and `Emit` on Carbon-shaped classes.
+`CjsEventEmitter` is a separate base class so non-model runtime services can
+extend it without extending `CjsModel`; `CjsResMan` already uses that path.
 
-- `OnEvent(eventName, listener, context?)`
-- `OnceEvent(eventName, listener, context?)`
-- `OffEvent(eventName, listener?)`
+The API stays deliberately direct:
+
+- `AddEvents(events)`
+- `OnEvent(eventName, listener, source?)`
+- `OnceEvent(eventName, listener, source?)`
+- `OffEvent(eventName = "*", listener?, source?)`
 - `EmitEvent(eventName, ...args)`
-- `CjsEventEmitterScope.OnEvent(emitter, eventName, listener, context?)`
-- `CjsEventEmitterScope.OnceEvent(emitter, eventName, listener, context?)`
-- `CjsEventEmitterScope.OffEvent(emitter?, eventName?, listener?, context?)`
-- possibly `HasEvent(eventName, listener?)` and `ClearEvent(eventName?)`
+- `HasEvent(eventName = "*", listener?, source?)`
+- `ClearEvent(eventName = "*")`
+- `GetEventNames()` and `GetEventListenerCount(eventName = "*")`
 
-Lifecycle events should be forced to lowercase and include names such as
-`requested`, `loaded`, `prepared`, `failed`, `unloaded`, and `purged`.
+The optional `source` is the callback's `this` value and an explicit matching
+identity for removal. Mutating event methods return the emitter for chaining.
+There are no listener scopes, subscription handles, owner-side `ListenTo()`
+helpers, or parallel resource notification callbacks.
 
-Event memory rules matter as much as event names. ccpwgl stores event maps in a
-`WeakMap`, which means private event storage disappears when the emitter itself
-is unreachable. That does not make listeners weak. As long as an emitter is
-reachable, its event map strongly references listener functions and listener
-contexts, and those listeners can keep whole scene/resource graphs alive.
+Event names are normalized to lowercase and dispatched by exact match. Resource
+classes may emit their own state or domain events, but the emitter does not
+invent a resource lifecycle contract.
+
+Event memory rules matter as much as event names. Event storage is the optional
+`events` member of the emitter's non-enumerable `__state` object. It is created
+only when the first listener is registered and deleted when the last record is
+removed. That does not make listeners weak. As long as an emitter is reachable,
+its event map strongly references listener functions and sources, and those
+listeners can keep whole scene/resource graphs alive.
 
 CarbonEngineJS event emitters should therefore follow these rules:
 
 - `OnceEvent()` should remove the listener before or immediately after the first
   callback, even if the callback throws.
-- `OffEvent(eventName, listener)` must remove the exact listener/context entry.
-- `ClearEvent("*")` should be called from resource `Unload()`/`Purge()` or an
-  explicit `Destroy()` path when an object is no longer usable.
+- `OffEvent(eventName, listener, source)` must remove the exact listener/source
+  entry.
+- an external party that no longer observes a target must call `OffEvent()`;
+  `target.OffEvent("*", null, source)` removes all of that source's records.
+- `Unload()` and `Purge()` are resource state/cache operations, not an implied
+  listener-destruction lifecycle.
 - `OnEvent()` returns the emitter, ccpwgl-style. It does not return unsubscribe
   closures because those closures create another reference path.
-- cross-object subscriptions should use an explicit shared
-  `CjsEventEmitterScope`. The scope creates listener records and allows either
-  endpoint to clear the relationship deterministically.
-- lifecycle events should avoid storing long-lived event payload history unless
-  explicitly requested for diagnostics.
+- event payload history is not stored.
 - we should prefer deterministic cleanup over `WeakRef`/`FinalizationRegistry`;
   those can help diagnostics, but they are not a lifecycle contract.
 
@@ -277,47 +277,45 @@ who unsubscribes, and which cleanup phase clears all remaining listeners.
 The event data model is deliberately small:
 
 ```text
-Emitter
-  eventName -> Set<listenerRecord>
-  eventScopes -> Set<scope>
-
-Scope
-  owner
-  Set<listenerRecord>
+emitter.__state (non-enumerable, allocated only when some subsystem needs it)
+  events -> eventName -> Set<listenerRecord>
 
 listenerRecord
   emitter
   eventName
   listener
-  context
+  source
   once
-  scope
 ```
 
-The emitter owns dispatch buckets and the hidden scopes it participates in. The
-scope owns relationship cleanup. Multiple listeners on the same event are
-allowed because each event bucket is a set of records. Clearing one scope removes
-only that scope's records and leaves other listeners on the same event alone.
+The event map is allocated only when the first listener is registered. If the
+emitter becomes unreachable, its state and event records can be collected with
+it. While the emitter remains reachable, listener functions and sources are
+strongly retained until `OffEvent()`, `ClearEvent()`, once dispatch, or emitter
+collection. Multiple listeners on the same event are allowed because each event
+bucket is a set of records. A raw `CjsEventEmitter` does not gain model-owned
+`dirty` or `rebuild` state.
 
 This is as far as the event system should go for now:
 
 - lowercase exact event names only.
 - no wildcard listener dispatch.
+- wildcard names are accepted only by lookup and cleanup methods.
+- no listener scope or subscription-object layer.
+- no separate resource notification/callback compatibility layer.
 - no `family.event` or ancestor routing.
 - no event history by default.
 - no global master event manager.
 - debugging introspection should stay limited to counts and names unless a real
   use case appears.
 
-`CjsModel` does not currently provide event emitters. It has internal dirty-state
-helpers (`MarkDirty`, `ClearDirty`, `ConsumeDirty`, `GetDirtyNotifications`) for
-model invalidation. `SetValues()` compares incoming values with the current
-field values and only marks dirty when a value actually changes. A plain
-`MarkDirty()` means "something changed; rebuild broadly". A keyed dirty mark,
-usually driven by `@io.notify`, means "this known field or dependency changed".
-That is useful for rebuild/invalidation decisions, but it is not a resource
-lifecycle event system. Resource lifecycle events should therefore be a
-resource/resman concern, not a hidden behavior inherited by every `CjsModel`.
+`CjsModel` has dirty-state helpers (`MarkDirty`, `ClearDirty`, `ConsumeDirty`,
+`GetDirtyNotifications`) for model invalidation. `SetValues()` compares incoming
+values with the current field values and only marks dirty when a value actually
+changes. A plain `MarkDirty()` means broad dirty invalidation; it does not request
+a rebuild. Deferred rebuild reasons belong to the independent
+`model.__state.rebuild` set. This is not a resource lifecycle event system.
+Resource lifecycle events should therefore remain a resource/resman concern.
 
 ## Why We Diverge
 

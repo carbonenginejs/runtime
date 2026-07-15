@@ -7,7 +7,6 @@ export const DEFAULT_VALUES = Object.freeze({
     emit: OUTPUT_JSON,
     schema: null,
     registry: null,
-    family: null,
     firstId: 1,
     parse: null,
     adapter: null,
@@ -56,7 +55,6 @@ function cloneValues(values)
         emit: values.emit,
         schema: values.schema ?? null,
         registry: values.registry ?? null,
-        family: values.family ?? null,
         firstId: values.firstId ?? 1,
         parse: values.parse ?? null,
         adapter: values.adapter ?? null,
@@ -114,7 +112,6 @@ export function normalizeValues(base, options, classKeys, readerName)
     if (hasOwn(options, "emit")) values.emit = normalizeEmit(options.emit, readerName);
     if (hasOwn(options, "schema")) values.schema = options.schema ?? null;
     if (hasOwn(options, "registry")) values.registry = options.registry ?? null;
-    if (hasOwn(options, "family")) values.family = options.family ?? null;
     if (hasOwn(options, "firstId")) values.firstId = options.firstId ?? 1;
     if (hasOwn(options, "parse"))
     {

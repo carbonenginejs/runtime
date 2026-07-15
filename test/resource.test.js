@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsSchema } from "@carbonenginejs/core-types/schema";
+import * as runtimeResource from "../npm/dist/index.js";
 import {
   CjsMemoryResourceSource,
   CjsAudioDTO,
@@ -10,7 +11,6 @@ import {
   CjsTextureDTO,
   CjsVideoDTO,
   CjsEventEmitter,
-  CjsEventEmitterScope,
   Tr2EffectRes,
   Tr2ImageRes,
   TriGeometryRes,
@@ -33,9 +33,14 @@ import {
   normalizeResourcePath
 } from "../npm/dist/index.js";
 
-test("CjsEventEmitter supports explicit lifecycle subscriptions", () => {
+test("runtime-resource does not export an event scope layer", () => {
+  assert.equal(runtimeResource.CjsEventEmitter, CjsEventEmitter);
+  assert.equal("CjsEventEmitterScope" in runtimeResource, false);
+});
+
+test("CjsEventEmitter supports direct source subscriptions", () => {
   const emitter = new CjsEventEmitter();
-  const context = { count: 0 };
+  const source = { count: 0 };
   const seen = [];
 
   function listener(value) {
@@ -43,17 +48,20 @@ test("CjsEventEmitter supports explicit lifecycle subscriptions", () => {
     seen.push(value);
   }
 
-  assert.equal(emitter.OnEvent("Loaded", listener, context), emitter);
+  assert.equal(Object.prototype.hasOwnProperty.call(emitter, "__state"), false);
+  assert.equal(emitter.OnEvent("Loaded", listener, source), emitter);
 
-  assert.equal(emitter.HasEvent("loaded", listener, context), true);
+  assert.equal(emitter.__state.events instanceof Map, true);
+  assert.equal(emitter.HasEvent("loaded", listener, source), true);
   assert.deepEqual(emitter.GetEventNames(), ["loaded"]);
 
   emitter.EmitEvent("LOADED", 2);
 
   assert.deepEqual(seen, [2]);
-  assert.equal(context.count, 2);
+  assert.equal(source.count, 2);
 
-  emitter.OffEvent("LoAdEd", listener, context);
+  emitter.OffEvent("LoAdEd", listener, source);
+  assert.equal(Object.prototype.hasOwnProperty.call(emitter.__state, "events"), false);
   emitter.EmitEvent("loaded", 2);
 
   assert.deepEqual(seen, [2]);
@@ -81,7 +89,7 @@ test("CjsEventEmitter once listeners are removed before callback completion", ()
 test("CjsEventEmitter clears event groups and supports AddEvents once suffix", () => {
   const emitter = new CjsEventEmitter();
   const values = [];
-  const context = { value: 3 };
+  const source = { value: 3 };
 
   assert.equal(emitter.AddEvents({
     changed(value) {
@@ -89,7 +97,7 @@ test("CjsEventEmitter clears event groups and supports AddEvents once suffix", (
     },
     "changed.once": [function(value) {
       values.push(value + this.value);
-    }, context]
+    }, source]
   }), emitter);
 
   emitter.EmitEvent("changed", 4);
@@ -103,9 +111,9 @@ test("CjsEventEmitter clears event groups and supports AddEvents once suffix", (
   assert.equal(emitter.HasEvent("*"), false);
 });
 
-test("CjsEventEmitterScope owns cross-emitter listener records", () => {
-  const ship = new CjsEventEmitter();
-  const scene = new CjsEventEmitter();
+test("CjsEventEmitter independently removes external listener sources", () => {
+  const ship = {};
+  const scene = {};
   const resource = new CjsEventEmitter();
   const shipValues = [];
   const sceneValues = [];
@@ -118,92 +126,28 @@ test("CjsEventEmitterScope owns cross-emitter listener records", () => {
     sceneValues.push(value);
   }
 
-  const shipScope = new CjsEventEmitterScope(ship, resource);
-  const sceneScope = new CjsEventEmitterScope(scene, resource);
-
-  shipScope.OnEvent(resource, "loaded", onShipLoaded, ship);
-  sceneScope.OnEvent(resource, "loaded", onSceneLoaded, scene);
+  resource.OnEvent("loaded", onShipLoaded, ship);
+  resource.OnEvent("loaded", onSceneLoaded, scene);
 
   assert.equal(resource.GetEventListenerCount("loaded"), 2);
-  assert.equal(shipScope.GetEventListenerCount(), 1);
-  assert.equal(sceneScope.GetEventListenerCount(), 1);
 
   resource.EmitEvent("loaded", 7);
 
   assert.deepEqual(shipValues, [7]);
   assert.deepEqual(sceneValues, [7]);
 
-  shipScope.Clear();
+  resource.OffEvent("loaded", null, ship);
   resource.EmitEvent("loaded", 9);
 
   assert.deepEqual(shipValues, [7]);
   assert.deepEqual(sceneValues, [7, 9]);
   assert.equal(resource.GetEventListenerCount("loaded"), 1);
-  assert.equal(shipScope.GetEventListenerCount(), 0);
 
-  resource.ClearEventScopes();
+  resource.ClearEvent("*");
   resource.EmitEvent("loaded", 11);
 
   assert.deepEqual(sceneValues, [7, 9]);
   assert.equal(resource.HasEvent("loaded"), false);
-  assert.equal(sceneScope.GetEventListenerCount(), 0);
-});
-
-test("CjsEventEmitter owner-side listening helpers are deferred until model/event composition lands", { skip: "CjsModel/CjsEventEmitter owner-side ListenTo helpers are not part of the current local lifecycle contract." }, () => {
-  const ship = new CjsEventEmitter();
-  const resource = new CjsEventEmitter();
-  const values = [];
-
-  function onLoaded(value) {
-    values.push([this, value]);
-  }
-
-  assert.equal(ship.ListenTo(resource, "Loaded", onLoaded), ship);
-
-  resource.EmitEvent("loaded", 1);
-
-  assert.deepEqual(values, [[ship, 1]]);
-  assert.equal(resource.GetEventListenerCount("loaded"), 1);
-
-  ship.StopListening(resource, "LOADED", onLoaded, ship);
-  resource.EmitEvent("loaded", 2);
-
-  assert.deepEqual(values, [[ship, 1]]);
-  assert.equal(resource.HasEvent("loaded"), false);
-});
-
-test("CjsEventEmitter owner-side once helpers are deferred until model/event composition lands", { skip: "CjsModel/CjsEventEmitter owner-side ListenOnceTo helpers are not part of the current local lifecycle contract." }, () => {
-  const owner = new CjsEventEmitter();
-  const resource = new CjsEventEmitter();
-  let count = 0;
-
-  assert.equal(owner.ListenOnceTo(resource, "Loaded", () => {
-    count += 1;
-  }), owner);
-
-  resource.EmitEvent("loaded");
-  resource.EmitEvent("loaded");
-
-  assert.equal(count, 1);
-  assert.equal(resource.HasEvent("loaded"), false);
-  assert.equal(owner.StopListening(resource), owner);
-});
-
-test("CjsEventEmitterScope once records are removed from emitter and scope", () => {
-  const owner = new CjsEventEmitter();
-  const resource = new CjsEventEmitter();
-  const scope = new CjsEventEmitterScope(owner, resource);
-  let count = 0;
-
-  scope.OnceEvent(resource, "failed", () => {
-    count += 1;
-    throw new Error("scoped boom");
-  });
-
-  assert.throws(() => resource.EmitEvent("failed"), /scoped boom/u);
-  assert.equal(count, 1);
-  assert.equal(resource.HasEvent("failed"), false);
-  assert.equal(scope.GetEventListenerCount(), 0);
 });
 
 test("resource path helpers normalize Carbon-style paths", () => {
@@ -229,9 +173,9 @@ test("runtime-owned Carbon resource classes are canonical CjsResource implementa
   assert.equal(gstate.GetDTO(), dto);
   assert.equal("models" in dto, false);
 
-  assert.equal(CjsSchema.getClass("TriGrannyRes", "resources"), TriGrannyRes);
-  assert.equal(CjsSchema.getClass("Tr2GrannyStateRes", "resources"), Tr2GrannyStateRes);
-  assert.equal(CjsSchema.getClass("Tr2LightProfileRes", "resources"), Tr2LightProfileRes);
+  assert.equal(CjsSchema.GetConstructor("TriGrannyRes"), TriGrannyRes);
+  assert.equal(CjsSchema.GetConstructor("Tr2GrannyStateRes"), Tr2GrannyStateRes);
+  assert.equal(CjsSchema.GetConstructor("Tr2LightProfileRes"), Tr2LightProfileRes);
 
   const resMan = new CjsResMan().RegisterResourceType(TriGrannyRes);
   assert.equal(
@@ -275,7 +219,10 @@ test("CjsResource exposes Carbon-style lifecycle methods and schema", () => {
   });
 
   assert.equal(resource instanceof CjsEventEmitter, true);
-  assert.equal(Object.prototype.hasOwnProperty.call(resource, "__dirty"), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(resource, "__state"), true);
+  assert.equal(resource.__state.events instanceof Map, true);
+  assert.equal(Object.prototype.hasOwnProperty.call(resource.__state, "dirty"), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(resource.__state, "rebuild"), false);
   assert.equal(resource.GetPath(), "res:/texture/ship.dds");
   assert.equal(resource.GetExt(), "dds");
   assert.equal(resource.state, CjsResource.State.EMPTY);
@@ -291,7 +238,7 @@ test("CjsResource exposes Carbon-style lifecycle methods and schema", () => {
   ]);
   assert.equal(CjsResource.State.GOOD, undefined);
   assert.throws(() => resource.SetState("cooked"), /Invalid CjsResource state/u);
-  assert.equal(CjsSchema.getClass("CjsResource", "resource"), CjsResource);
+  assert.equal(CjsSchema.GetConstructor("CjsResource"), CjsResource);
   assert.equal(CjsSchema.getField(CjsResource, "path").type.kind, "path");
   assert.equal(resource.GetValues().path, "res:/texture/ship.dds");
 });
@@ -332,7 +279,7 @@ test("CjsTextureArrayRes exposes texture parameter proxies backed by one parent"
   assert.equal(detail1.resource, textureArray);
   assert.equal(detail1.GetResource(), textureArray);
   assert.deepEqual(detail1.GetResources(), [ textureArray ]);
-  assert.equal(CjsSchema.getClass("CjsTextureArrayRes", "resource"), CjsTextureArrayRes);
+  assert.equal(CjsSchema.GetConstructor("CjsTextureArrayRes"), CjsTextureArrayRes);
 
   const initial = textureArray.ConsumeUpdateRequest();
   assert.deepEqual(initial.paths, [
@@ -639,7 +586,7 @@ test("CjsObjectDTO and CjsGeometryDTO carry payload contracts", () => {
   assert.equal(CjsGeometryDTO.payload, "geometry");
   assert.equal(geometry.sourceFormat, "cmf");
   assert.equal(geometry.meshes.length, 1);
-  assert.equal(CjsSchema.getClass("CjsGeometryDTO", "resource"), CjsGeometryDTO);
+  assert.equal(CjsSchema.GetConstructor("CjsGeometryDTO"), CjsGeometryDTO);
   assert.equal(CjsSchema.getField(CjsGeometryDTO, "resourceData"), null);
   assert.deepEqual(geometry.GetValues().meshes, [ { name: "body" } ]);
 });
@@ -906,7 +853,7 @@ test("TriTextureRes and TriGeometryRes are resource DTOs", () => {
   assert.equal(texture.HasDTO(), true);
   assert.equal(texture.GetDTO().sourceFormat, "dds");
   assert.equal(TriTextureRes.payload, "texture");
-  assert.equal(CjsSchema.getClass("TriTextureRes", "resources"), TriTextureRes);
+  assert.equal(CjsSchema.GetConstructor("TriTextureRes"), TriTextureRes);
   assert.equal(CjsSchema.getField(TriTextureRes, "variants"), null);
   assert.equal(CjsSchema.getMethod(TriTextureRes, "PrepareResources").carbon.method, true);
   assert.equal(CjsSchema.getMethod(TriTextureRes, "Save").impl.status, "notImplemented");
@@ -967,7 +914,7 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
   assert.equal(effect.HasDTO(), true);
   assert.deepEqual(effect.GetPermutationDescription(), [ { name: "QUALITY", value: "HIGH" } ]);
   assert.equal(Tr2EffectRes.payload, "shader");
-  assert.equal(CjsSchema.getClass("Tr2EffectRes", "resources"), Tr2EffectRes);
+  assert.equal(CjsSchema.GetConstructor("Tr2EffectRes"), Tr2EffectRes);
   assert.equal(CjsSchema.getField(Tr2EffectRes, "permutations"), null);
 
   assert.equal(image.HasDTO(), true);

@@ -49,7 +49,7 @@ export class Tr2TextureLodManager extends CjsModel
   @impl.notImplemented
   GetManagedTextures(...args)
   {
-    throw CjsModel.notImplemented("Tr2TextureLodManager", "GetManagedTextures", args);
+    throw new Error("Tr2TextureLodManager.GetManagedTextures is not implemented in CarbonEngineJS.");
   }
 
 }

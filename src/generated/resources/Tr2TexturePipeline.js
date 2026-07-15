@@ -23,7 +23,7 @@ export class Tr2TexturePipeline extends CjsModel
   @impl.notImplemented
   Execute(...args)
   {
-    throw CjsModel.notImplemented("Tr2TexturePipeline", "Execute", args);
+    throw new Error("Tr2TexturePipeline.Execute is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method GetResourceDependencies -> GetResourceDependenciesFromScript (MAP_METHOD_AND_WRAP). */
@@ -31,7 +31,7 @@ export class Tr2TexturePipeline extends CjsModel
   @impl.notImplemented
   GetResourceDependencies(...args)
   {
-    throw CjsModel.notImplemented("Tr2TexturePipeline", "GetResourceDependencies", args);
+    throw new Error("Tr2TexturePipeline.GetResourceDependencies is not implemented in CarbonEngineJS.");
   }
 
 }

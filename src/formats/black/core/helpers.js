@@ -11,7 +11,6 @@ export const DEFAULT_VALUES = Object.freeze({
     schema: blackDefinitions,
     registry: null,
     sourceShapes: null,
-    family: null,
     rootName: "default",
     firstId: 1,
     metadata: null,
@@ -77,7 +76,6 @@ function cloneValues(values)
         schema: values.schema ?? null,
         registry: values.registry ?? null,
         sourceShapes: values.sourceShapes ?? null,
-        family: values.family ?? null,
         rootName: values.rootName ?? "default",
         firstId: values.firstId ?? 1,
         metadata: values.metadata ?? null,
@@ -156,7 +154,6 @@ export function normalizeValues(base, options, classKeys, readerName)
     if (hasOwn(options, "schema")) values.schema = options.schema ?? null;
     if (hasOwn(options, "registry")) values.registry = options.registry ?? null;
     if (hasOwn(options, "sourceShapes")) values.sourceShapes = options.sourceShapes ?? null;
-    if (hasOwn(options, "family")) values.family = options.family ?? null;
     if (hasOwn(options, "rootName")) values.rootName = options.rootName ?? "default";
     if (hasOwn(options, "firstId")) values.firstId = options.firstId ?? 1;
     if (hasOwn(options, "metadata")) values.metadata = options.metadata ?? null;

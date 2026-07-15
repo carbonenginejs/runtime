@@ -1,5 +1,9 @@
+import { decodeVorbis } from "./vorbis.js";
+
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
+export const OUTPUT_PCM = "pcm";
+export const OUTPUT_AUDIO = "audio";
 
 export const DEFAULT_VALUES = Object.freeze({
     emit: OUTPUT_RAW,
@@ -69,7 +73,13 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
                 pcmDecodeSupported: false,
                 frameDecodeSupported: false
             },
-            { kind: "pcm", payloadType: "pcm", codec: "pcm", supported: false, reason: "OGG Vorbis/Opus PCM decode is not implemented yet." }
+            {
+                kind: "pcm",
+                payloadType: "pcm",
+                codec: metadata.codec === "vorbis" ? "float32" : "pcm",
+                supported: metadata.codec === "vorbis",
+                reason: metadata.codec === "vorbis" ? "" : "Only Ogg Vorbis PCM decode is implemented."
+            }
         ];
         if (metadata.mediaType === "video")
         {
@@ -81,13 +91,16 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
                 reason: "OGG Theora frame decode is not implemented yet."
             });
         }
+        const pcmSupported = metadata.codec === "vorbis";
         return {
             format: "ogg",
             source: values.source || "buffer",
             supported: "partial",
             confidence: 1,
-            preferred: metadata.sourceFormat ? "ogg" : "",
-            reason: "Ogg pages and codec headers are recognized; PCM decode remains a backend/decoder task.",
+            preferred: pcmSupported ? "pcm" : (metadata.sourceFormat ? "ogg" : ""),
+            reason: pcmSupported
+                ? "Ogg Vorbis recognized; PCM decode is supported."
+                : "Ogg pages and codec headers are recognized; raw Ogg passthrough is available.",
             metadata,
             variants,
             warnings: [],
@@ -130,6 +143,46 @@ export function readWithValues(input, values = DEFAULT_VALUES)
         };
     }
     if (values.emit === OUTPUT_JSON || values.emit === "oggJson") return metadata;
+    if (values.emit === OUTPUT_PCM || values.emit === OUTPUT_AUDIO)
+    {
+        if (metadata.codec !== "vorbis")
+        {
+            const error = new Error(`ogg: PCM decode supports Vorbis only (found ${metadata.codec})`);
+            error.code = "CJS_FORMAT_OUTPUT_NOT_SUPPORTED";
+            throw error;
+        }
+        const decoded = decodeVorbis(bytes);
+        const data = new Float32Array(decoded.sampleCount * decoded.channels);
+        for (let channel = 0; channel < decoded.channels; channel++)
+        {
+            const samples = decoded.channelData[channel];
+            for (let i = 0; i < decoded.sampleCount; i++)
+            {
+                data[i * decoded.channels + channel] = samples[i];
+            }
+        }
+        return {
+            payloadType: values.emit === OUTPUT_AUDIO ? OUTPUT_AUDIO : OUTPUT_PCM,
+            sourceFormat: "ogg",
+            codec: "vorbis",
+            containerOnly: false,
+            isDecoded: true,
+            pcmDecodeSupported: true,
+            audioFormat: "float32",
+            sampleFormat: "float32",
+            sampleRate: decoded.sampleRate,
+            channels: decoded.channels,
+            interleaving: "interleaved",
+            frameCount: decoded.sampleCount,
+            durationSeconds: decoded.sampleRate ? decoded.sampleCount / decoded.sampleRate : 0,
+            vendor: decoded.vendor,
+            comments: decoded.comments,
+            loop: decoded.loop,
+            channelData: decoded.channelData,
+            metadata,
+            data
+        };
+    }
     const error = new Error(`ogg: emit "${values.emit}" is not implemented yet`);
     error.code = "CJS_FORMAT_OUTPUT_NOT_IMPLEMENTED";
     throw error;

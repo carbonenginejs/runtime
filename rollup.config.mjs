@@ -16,6 +16,7 @@ export default {
     "src/formats/black/core/blackSchema.js",
     "src/formats/black/core/blackEnums.js",
     "src/formats/black/core/blackVersion.js",
+    "src/formats/bnk/index.js",
     "src/formats/cmf/index.js",
     "src/formats/dds/index.js",
     "src/formats/fbx/index.js",
@@ -35,6 +36,7 @@ export default {
     "src/formats/wav/index.js",
     "src/formats/webm/index.js",
     "src/formats/webp/index.js",
+    "src/formats/wem/index.js",
     "src/formats/yaml/index.js"
   ],
   external,

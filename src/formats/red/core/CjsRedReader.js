@@ -220,16 +220,8 @@ export class CjsRedReader
     {
         if (!type) return null;
 
-        const registry = this.options.registry;
-        if (registry)
-        {
-            if (typeof registry.GetConstructor === "function") return registry.GetConstructor(type) || null;
-            if (typeof registry.ResolveClass === "function") return registry.ResolveClass(type) || null;
-            if (typeof registry.resolve === "function") return registry.resolve(type) || null;
-            if (registry[type]) return registry[type];
-        }
-
         const classes = this.options.classes || {};
-        return classes[type] || null;
+        const Schema = this.options.registry || null;
+        return classes[type] || (Schema ? Schema.GetConstructor(type) : null);
     }
 }

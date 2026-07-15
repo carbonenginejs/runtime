@@ -1,6 +1,8 @@
 import {
     DEFAULT_VALUES,
+    OUTPUT_AUDIO,
     OUTPUT_JSON,
+    OUTPUT_PCM,
     OUTPUT_RAW,
     inspectWithValues,
     isOGG,
@@ -98,12 +100,14 @@ export class CjsOggFormat
     static OUTPUT_RAW = OUTPUT_RAW;
     static OUTPUT_JSON = OUTPUT_JSON;
     static OUTPUT_OGG_JSON = "oggJson";
+    static OUTPUT_PCM = OUTPUT_PCM;
+    static OUTPUT_AUDIO = OUTPUT_AUDIO;
     static type = Object.freeze([ "audio", "video" ]);
     static mediaTypes = Object.freeze([ "audio", "video" ]);
     static inputTypes = Object.freeze([ "ogg", "oga", "ogv" ]);
-    static outputTypes = Object.freeze([]);
+    static outputTypes = Object.freeze([ OUTPUT_PCM, OUTPUT_AUDIO ]);
     static debugOutputTypes = Object.freeze([ "oggJson", OUTPUT_RAW ]);
-    static implementationStatus = "metadata-only";
+    static implementationStatus = "vorbis-pcm";
 }
 
 export default CjsOggFormat;
