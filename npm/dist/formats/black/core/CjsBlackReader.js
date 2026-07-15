@@ -1,0 +1,760 @@
+import { resolveHydrationAdapter, CjsCarbonDocument, normalizeCarbonTypeDescriptor, CARBON_TYPE, normalizeCarbonValue, CjsSchema } from '@carbonenginejs/core-types';
+import { CJS_BLACK_FOURCC, CJS_BLACK_VERSION, CJS_BLACK_FORMAT_ID } from './blackConstants.js';
+import { CjsBlackBinaryReader } from './CjsBlackBinaryReader.js';
+import { CjsBlackPropertyReaders } from './CjsBlackPropertyReaders.js';
+import { CjsBlackSchemaRegistry } from './CjsBlackSchemaRegistry.js';
+
+class CjsBlackReader {
+  constructor(input, options = {}) {
+    this.options = {
+      ...options
+    };
+    this.reader = CjsBlackBinaryReader.from(input, this);
+    this.schemaShapes = CjsBlackSchemaRegistry.createShapeMap(options.schema);
+    this.references = new Map();
+    this.nodes = [];
+    this.reports = [];
+    this.nextNodeId = 1;
+    this.info = null;
+    this.readMode = "payload";
+    this.payloadDepth = 0;
+    this.payloadRootFields = null;
+    this.hydrationAdapter = resolveHydrationAdapter(options);
+    this.hydrationOptions = {
+      ...options,
+      markDirty: false,
+      skipUpdate: true,
+      skipEvents: true
+    };
+    this.runtimeInstances = [];
+  }
+  Inspect() {
+    if (this.info) return this.info;
+    const reader = this.reader;
+    reader.ExpectU32(CJS_BLACK_FOURCC, "Invalid Black FOURCC");
+    const version = reader.ReadU32();
+    if (version !== CJS_BLACK_VERSION) {
+      throw new RangeError(`Unsupported Black version: ${version}`);
+    }
+    const strings = CjsBlackReader.readStringTable(reader);
+    const wideStrings = CjsBlackReader.readWideStringTable(reader);
+    this.info = {
+      format: {
+        id: CJS_BLACK_FORMAT_ID,
+        version
+      },
+      byteLength: reader.data.byteLength,
+      dataOffset: reader.offset,
+      strings,
+      wideStrings
+    };
+    return this.info;
+  }
+  Read() {
+    return this.ReadPayload();
+  }
+  ReadDocument() {
+    const info = this.Inspect();
+    this.ResetReadState();
+    this.readMode = "document";
+    this.reader.offset = info.dataOffset;
+    const rootRef = this.ReadObject(this.reader);
+    if (!CjsCarbonDocument.isRef(rootRef)) {
+      throw new TypeError("Black root object is null");
+    }
+    this.reader.ExpectEnd("Black object graph did not read to end");
+    const includeRefIndex = this.ShouldIncludeRefIndex();
+    const refs = {};
+    if (includeRefIndex) {
+      for (const node of this.nodes) {
+        refs[String(node.id)] = {
+          kind: node.kind
+        };
+      }
+    }
+    return CjsCarbonDocument.create({
+      format: info.format,
+      roots: [{
+        name: this.options.rootName || "default",
+        ref: rootRef
+      }],
+      nodes: this.nodes,
+      refs: includeRefIndex ? refs : null,
+      metadata: this.CreateDocumentMetadata(info),
+      reports: this.reports
+    });
+  }
+  ReadRuntime() {
+    const info = this.Inspect();
+    this.ResetReadState();
+    this.readMode = "runtime";
+    this.reader.offset = info.dataOffset;
+    const root = this.ReadObject(this.reader);
+    if (root === null) {
+      throw new TypeError("Black root object is null");
+    }
+    this.reader.ExpectEnd("Black object graph did not read to end");
+
+    // Phase 3: the whole graph is constructed and valued (references
+    // resolved), so run the adapter's post-graph init once per instance.
+    // Instances are collected in completion order, so children finalize
+    // before their parents.
+    for (const record of this.runtimeInstances) {
+      this.hydrationAdapter.finalize(record.instance, {
+        kind: record.kind,
+        shape: record.shape
+      });
+    }
+    return {
+      root,
+      format: info.format,
+      reports: this.reports
+    };
+  }
+  ReadPayload() {
+    const info = this.Inspect();
+    this.ResetReadState();
+    this.readMode = "payload";
+    this.reader.offset = info.dataOffset;
+    const object = this.ReadObject(this.reader);
+    if (object === null) {
+      throw new TypeError("Black root object is null");
+    }
+    this.reader.ExpectEnd("Black object graph did not read to end");
+    const payload = {
+      comments: this.reports,
+      object
+    };
+    if (this.ShouldIncludeDocumentMetadata()) {
+      payload.metadata = this.CreateDocumentMetadata(info);
+    }
+    return payload;
+  }
+  ReadObject(reader) {
+    if (this.readMode === "runtime") return this.ReadRuntimeObject(reader);
+    if (this.readMode === "payload") return this.ReadPayloadObject(reader);
+    const blackReference = reader.ReadU32();
+    if (blackReference === 0) return null;
+    const existing = this.references.get(blackReference);
+    if (existing) return CjsCarbonDocument.createRef(existing);
+    return this.ReadObjectPayload(reader, {
+      blackReference,
+      embedded: false
+    });
+  }
+  ReadEmbeddedObject(reader) {
+    if (this.readMode === "runtime") return this.ReadRuntimeObjectPayload(reader, {
+      blackReference: null,
+      embedded: true
+    });
+    if (this.readMode === "payload") return this.ReadPayloadObjectPayload(reader, {
+      blackReference: null,
+      embedded: true
+    });
+    return this.ReadObjectPayload(reader, {
+      blackReference: null,
+      embedded: true
+    });
+  }
+  ReadObjectPayload(reader, options) {
+    const payloadSize = reader.ReadU32();
+    const objectReader = reader.ReadBinaryReader(payloadSize);
+    const kind = objectReader.ReadStringRef();
+    const shape = this.ResolveSourceShape(kind);
+    const includeClassMetadata = this.ShouldIncludeClassMetadata();
+    const includeFieldTrace = this.ShouldIncludeFieldTrace();
+    const node = {
+      id: this.nextNodeId++,
+      kind,
+      fields: {},
+      ...(includeClassMetadata ? {
+        source: shape?.source || {},
+        meta: {
+          family: shape?.family || null,
+          hashes: shape?.hashes || null,
+          blue: shape?.blue || null
+        }
+      } : {}),
+      ...(includeFieldTrace ? {
+        meta: {
+          ...(includeClassMetadata ? {
+            family: shape?.family || null,
+            hashes: shape?.hashes || null,
+            blue: shape?.blue || null
+          } : {}),
+          black: {
+            reference: options.blackReference,
+            embedded: options.embedded,
+            payloadSize,
+            fields: {}
+          }
+        }
+      } : {}),
+      raw: null
+    };
+    this.nodes.push(node);
+    if (options.blackReference !== null) {
+      this.references.set(options.blackReference, node.id);
+    }
+    let previousBlackName = null;
+    while (!objectReader.AtEnd()) {
+      const blackName = objectReader.ReadStringRef();
+      const target = this.ResolveFieldTargetWithContext(kind, shape, blackName, previousBlackName);
+      const value = this.ReadFieldValueWithContext(objectReader, kind, blackName, target);
+      this.AssignFieldValue(node, target, value);
+      previousBlackName = blackName;
+    }
+    objectReader.ExpectEnd(`${kind} did not read to end`);
+    return CjsCarbonDocument.createRef(node.id);
+  }
+  ReadRuntimeObject(reader) {
+    const blackReference = reader.ReadU32();
+    if (blackReference === 0) return null;
+    if (this.references.has(blackReference)) {
+      return this.references.get(blackReference);
+    }
+    return this.ReadRuntimeObjectPayload(reader, {
+      blackReference,
+      embedded: false
+    });
+  }
+  ReadRuntimeObjectPayload(reader, options) {
+    const payloadSize = reader.ReadU32();
+    const objectReader = reader.ReadBinaryReader(payloadSize);
+    const kind = objectReader.ReadStringRef();
+    const shape = this.ResolveSourceShape(kind);
+    const target = this.CreateRuntimeTarget(kind, shape);
+    if (options.blackReference !== null) {
+      this.references.set(options.blackReference, target);
+    }
+
+    // Accumulate this object's fields into a plain values map, then hand
+    // the whole map to the hydration adapter. The adapter (default:
+    // Object.assign) decides how the caller's class receives its values -
+    // direct assignment, SetValues, etc. The target instance is already
+    // registered above, so back-references resolve to it while its values
+    // are still being collected (the adapter must mutate in place).
+    const values = {};
+    let previousBlackName = null;
+    while (!objectReader.AtEnd()) {
+      const blackName = objectReader.ReadStringRef();
+      const fieldTarget = this.ResolveFieldTargetWithContext(kind, shape, blackName, previousBlackName);
+      const value = this.ReadFieldValueWithContext(objectReader, kind, blackName, fieldTarget);
+      this.AssignRuntimeFieldValue(values, fieldTarget, value);
+      previousBlackName = blackName;
+    }
+    objectReader.ExpectEnd(`${kind} did not read to end`);
+    this.hydrationAdapter.applyValues(target, values, {
+      kind,
+      shape,
+      options: this.hydrationOptions
+    });
+    this.runtimeInstances.push({
+      instance: target,
+      kind,
+      shape
+    });
+    return target;
+  }
+  ReadPayloadObject(reader) {
+    const blackReference = reader.ReadU32();
+    if (blackReference === 0) return null;
+    if (this.references.has(blackReference)) {
+      return this.CreatePayloadReference(this.references.get(blackReference), blackReference);
+    }
+    return this.ReadPayloadObjectPayload(reader, {
+      blackReference,
+      embedded: false
+    });
+  }
+  ReadPayloadObjectPayload(reader, options) {
+    const payloadSize = reader.ReadU32();
+    const objectReader = reader.ReadBinaryReader(payloadSize);
+    const kind = objectReader.ReadStringRef();
+    const shape = this.ResolveSourceShape(kind);
+    const target = this.CreatePayloadTarget(kind);
+    if (options.blackReference !== null) {
+      this.references.set(options.blackReference, target);
+    }
+    this.payloadDepth++;
+    try {
+      let previousBlackName = null;
+      while (!objectReader.AtEnd()) {
+        const blackName = objectReader.ReadStringRef();
+        const fieldTarget = this.ResolveFieldTargetWithContext(kind, shape, blackName, previousBlackName);
+        if (this.ShouldSkipPayloadField(fieldTarget)) {
+          this.SkipFieldValue(objectReader, fieldTarget);
+          previousBlackName = blackName;
+          continue;
+        }
+        const value = this.ReadFieldValueWithContext(objectReader, kind, blackName, fieldTarget);
+        this.AssignPayloadFieldValue(target, fieldTarget, value);
+        previousBlackName = blackName;
+      }
+    } finally {
+      this.payloadDepth--;
+    }
+    objectReader.ExpectEnd(`${kind} did not read to end`);
+    return target;
+  }
+  CreateRuntimeTarget(kind, shape) {
+    const built = this.hydrationAdapter.construct(kind, {
+      kind,
+      shape,
+      options: this.options
+    });
+    if (built !== undefined) return built;
+    const ClassConstructor = this.ResolveClass(kind);
+    if (ClassConstructor) {
+      return new ClassConstructor();
+    }
+    return {
+      _sourceClassName: kind,
+      _sourceShape: shape || null
+    };
+  }
+  CreatePayloadTarget(kind) {
+    const typeField = this.GetPayloadTypeField();
+    return typeField ? {
+      [typeField]: kind
+    } : {};
+  }
+  CreateSkippedPayloadTarget() {
+    return {};
+  }
+  CreatePayloadReference(targetObject, blackReference) {
+    const idField = this.GetPayloadIdField();
+    const referenceField = this.GetPayloadReferenceField();
+    if (idField && !Object.hasOwn(targetObject, idField)) {
+      targetObject[idField] = blackReference;
+    }
+    return referenceField ? {
+      [referenceField]: blackReference
+    } : targetObject;
+  }
+  GetPayloadTypeField() {
+    return this.options.payloadTypeField === false ? null : this.options.payloadTypeField || "_type";
+  }
+  GetPayloadIdField() {
+    return this.options.payloadIdField === false ? null : this.options.payloadIdField || "_id";
+  }
+  GetPayloadReferenceField() {
+    return this.options.payloadReferenceField === false ? null : this.options.payloadReferenceField || "_reference";
+  }
+  GetPayloadRootFields() {
+    if (this.payloadRootFields !== null) return this.payloadRootFields;
+    const fields = this.options.payloadRootFields ?? this.options.rootFields ?? null;
+    if (!fields) {
+      this.payloadRootFields = false;
+      return this.payloadRootFields;
+    }
+    this.payloadRootFields = new Set((Array.isArray(fields) ? fields : [fields]).map(String));
+    return this.payloadRootFields;
+  }
+  ShouldSkipPayloadField(target) {
+    if (this.readMode !== "payload" || this.payloadDepth !== 1) return false;
+    const rootFields = this.GetPayloadRootFields();
+    if (!rootFields) return false;
+    const fieldName = target.unknown ? target.blackName : target.field.name;
+    return !rootFields.has(fieldName);
+  }
+  SkipFieldValue(reader, target) {
+    if (target.unknown) {
+      this.ReadUnknownFieldValue(reader, null, target.blackName);
+      return;
+    }
+    CjsBlackPropertyReaders.skipValue(reader, target.field);
+  }
+  SkipObject(reader) {
+    const blackReference = reader.ReadU32();
+    if (blackReference === 0) return;
+    if (this.references.has(blackReference)) return;
+    this.references.set(blackReference, this.CreateSkippedPayloadTarget());
+    this.SkipObjectPayload(reader);
+  }
+  SkipEmbeddedObject(reader) {
+    this.SkipObjectPayload(reader);
+  }
+  SkipObjectPayload(reader) {
+    const payloadSize = reader.ReadU32();
+    const objectReader = reader.ReadBinaryReader(payloadSize);
+    const kind = objectReader.ReadStringRef();
+    const shape = this.ResolveSourceShape(kind);
+    while (!objectReader.AtEnd()) {
+      const blackName = objectReader.ReadStringRef();
+      const fieldTarget = this.ResolveFieldTarget(kind, shape, blackName);
+      this.SkipFieldValue(objectReader, fieldTarget);
+    }
+    objectReader.ExpectEnd(`${kind} did not read to end`);
+  }
+  ShouldIncludeClassMetadata() {
+    return Boolean(this.options.includeClassMetadata || this.options.trace || this.options.debug);
+  }
+  ShouldIncludeFieldTrace() {
+    return Boolean(this.options.includeFieldTrace || this.options.trace || this.options.debug);
+  }
+  ShouldIncludeDocumentMetadata() {
+    return Boolean(this.options.includeMetadata || this.options.trace || this.options.debug || this.options.metadata);
+  }
+  ShouldIncludeRefIndex() {
+    return Boolean(this.options.includeRefIndex || this.options.trace || this.options.debug);
+  }
+  CreateDocumentMetadata(info) {
+    if (!this.ShouldIncludeDocumentMetadata()) return this.options.metadata || null;
+    return {
+      black: {
+        stringCount: info.strings.length,
+        wideStringCount: info.wideStrings.length,
+        wideStrings: info.wideStrings.slice()
+      },
+      ...(this.options.metadata || {})
+    };
+  }
+  ResolveFieldTargetWithContext(kind, shape, blackName, previousBlackName = null) {
+    try {
+      return this.ResolveFieldTarget(kind, shape, blackName);
+    } catch (error) {
+      error.message = `${kind}.${blackName} after ${previousBlackName || "<start>"}: ${error.message}`;
+      throw error;
+    }
+  }
+  ReadFieldValueWithContext(reader, kind, blackName, target) {
+    try {
+      return target.unknown ? this.ReadUnknownFieldValue(reader, kind, blackName) : CjsBlackPropertyReaders.readValue(reader, target.field);
+    } catch (error) {
+      error.message = `${kind}.${blackName}: ${error.message}`;
+      throw error;
+    }
+  }
+  AssignFieldValue(node, target, value) {
+    if (target.unknown) {
+      node.raw = node.raw || {};
+      node.raw[target.blackName] = value;
+      this.AssignFieldTrace(node, target);
+      return;
+    }
+    if (target.indexed) {
+      let current = node.fields[target.field.name];
+      if (!current || typeof current !== "object" || CjsCarbonDocument.isRef(current)) {
+        current = Number.isInteger(target.index) ? [] : {};
+        node.fields[target.field.name] = current;
+      }
+      current[target.key] = value;
+    } else {
+      node.fields[target.field.name] = value;
+    }
+    this.AssignFieldTrace(node, target);
+  }
+  AssignFieldTrace(node, target) {
+    if (!this.ShouldIncludeFieldTrace()) return;
+    node.meta.black.fields[target.blackName] = {
+      field: target.field.name,
+      cppName: target.field.cppName || null,
+      member: target.member,
+      indexed: target.indexed,
+      indexToken: target.indexToken,
+      key: target.key
+    };
+  }
+  AssignRuntimeFieldValue(targetObject, target, value) {
+    if (target.unknown) {
+      targetObject[target.blackName] = value;
+      return;
+    }
+    if (target.indexed) {
+      let current = targetObject[target.field.name];
+      if (!current || typeof current !== "object") {
+        current = Number.isInteger(target.index) ? [] : {};
+        targetObject[target.field.name] = current;
+      }
+      current[target.key] = this.NormalizeRuntimeFieldValue(value, target.field);
+      return;
+    }
+    targetObject[target.field.name] = this.NormalizeRuntimeFieldValue(value, target.field);
+  }
+  AssignPayloadFieldValue(targetObject, target, value) {
+    if (target.unknown) {
+      targetObject[target.blackName] = value;
+      return;
+    }
+    if (target.indexed) {
+      let current = targetObject[target.field.name];
+      if (!current || typeof current !== "object") {
+        current = Number.isInteger(target.index) ? [] : {};
+        targetObject[target.field.name] = current;
+      }
+      current[target.key] = value;
+      return;
+    }
+    targetObject[target.field.name] = value;
+  }
+  NormalizeRuntimeFieldValue(value, field) {
+    if (!field) return value;
+
+    // In runtime mode, object-graph fields already hold constructed class
+    // instances (or arrays/dicts of them) produced by ReadObject. Passing
+    // those back through normalizeCarbonValue would deep-clone and flatten
+    // them into plain objects, dropping the constructed classes. Preserve
+    // them - matching CjsDocumentHydrator.hydrateFieldValue - and only
+    // normalize scalar/math leaf values.
+    const descriptor = normalizeCarbonTypeDescriptor(field);
+    const kind = descriptor.kind;
+    if (kind === CARBON_TYPE.ARRAY && Array.isArray(value)) return value;
+    if ((kind === CARBON_TYPE.OBJECT_REF || kind === CARBON_TYPE.STRUCT || kind === CARBON_TYPE.RAW_STRUCT || kind === CARBON_TYPE.UNKNOWN) && value && typeof value === "object") {
+      return value;
+    }
+    if (CjsBlackReader.isShapeIncompatibleMathArray(value, descriptor)) return value;
+    return normalizeCarbonValue(value, field);
+  }
+  ResolveFieldTarget(kind, shape, blackName) {
+    if (!shape) {
+      throw new TypeError(`No source shape registered for Black type ${kind}`);
+    }
+    const fields = shape.fields || [];
+    const blackField = (shape.black?.fields || []).find(item => CjsBlackSchemaRegistry.matchesBlackFieldName(item, blackName));
+    if (blackField) {
+      return this.ResolveBlackFieldTarget(blackName, blackField, fields);
+    }
+    const field = fields.find(item => item.name === blackName || item.cppName === blackName);
+    if (field) {
+      return {
+        blackName,
+        field,
+        member: blackName,
+        indexed: false,
+        indexToken: null,
+        index: null,
+        key: null
+      };
+    }
+    const indexed = CjsBlackReader.parseIndexedMember(blackName);
+    if (indexed) {
+      const indexedField = fields.find(item => item.cppName === indexed.member || item.name === CjsBlackReader.toJsFieldName(indexed.member));
+      if (indexedField) {
+        const key = CjsBlackReader.normalizeIndexedKey(indexed.indexToken, indexedField);
+        return {
+          blackName,
+          field: indexedField,
+          member: blackName,
+          indexed: true,
+          indexToken: indexed.indexToken,
+          index: Number.isInteger(key) ? key : null,
+          key
+        };
+      }
+    }
+    if (this.ShouldCaptureUnknownField(blackName, kind, shape)) {
+      return this.ResolveUnknownFieldTarget(kind, shape, blackName);
+    }
+    throw new TypeError(`Unknown Black property ${blackName} for ${kind}`);
+  }
+  ReadUnknownFieldValue(reader, kind, blackName) {
+    const readers = this.GetUnknownFieldReaders(blackName);
+    const errors = [];
+    for (const readValue of readers) {
+      const startOffset = reader.offset;
+      try {
+        return readValue(reader);
+      } catch (error) {
+        reader.offset = startOffset;
+        errors.push(error);
+      }
+    }
+    this.reports.push({
+      level: "warning",
+      code: "unknown-black-property-unreadable",
+      kind,
+      blackName
+    });
+    throw errors[0] || new TypeError(`Unable to read unknown Black field ${blackName} for ${kind}`);
+  }
+  GetUnknownFieldReaders(blackName) {
+    const readers = [];
+    const readByKind = (kind, options = null) => {
+      const field = options ? {
+        ...options,
+        kind
+      } : {
+        kind
+      };
+      readers.push(streamReader => CjsBlackPropertyReaders.readValue(streamReader, field));
+    };
+    const readByDescriptor = (descriptor = {}) => {
+      readers.push(streamReader => CjsBlackPropertyReaders.readValue(streamReader, descriptor));
+    };
+    if (this.options.allowUnknownStringFallback) {
+      readByKind("string");
+      readByKind("path");
+    }
+    const name = String(blackName || "");
+    if (name.endsWith(".dds") || name.endsWith(".png") || name.endsWith(".jpg") || /^res:\//.test(name)) {
+      readers.unshift(streamReader => CjsBlackPropertyReaders.readValue(streamReader, {
+        kind: "path"
+      }));
+      readByKind("uint32");
+      readByKind("float32");
+    }
+    if (!this.options.allowUnknownStringFallback) {
+      readByKind("path");
+      readByKind("string");
+    }
+    readByKind("objectRef");
+    readByKind("boolean");
+    readByKind("float32");
+    readByKind("float64");
+    readByKind("int32");
+    readByKind("uint32");
+    readByKind("int16");
+    readByKind("uint16");
+    readByKind("int8");
+    readByKind("uint8");
+    readByDescriptor({
+      kind: "vector3"
+    });
+    readByDescriptor({
+      kind: "vector4"
+    });
+    readByDescriptor({
+      kind: "array",
+      elementType: {
+        kind: "uint32"
+      }
+    });
+    return readers;
+  }
+  ResolveBlackFieldTarget(blackName, blackField, fields) {
+    const sourceField = fields.find(item => item.name === blackField.fieldName || item.name === blackField.name || item.cppName === blackField.cppName || item.cppName === blackField.memberPath || item.cppName === blackField.memberRoot);
+    const fieldName = blackField.fieldName || sourceField?.name || blackField.name || CjsBlackReader.toJsFieldName(blackName);
+    Boolean(blackField.name && blackField.name !== blackField.fieldName);
+    const field = {
+      ...(sourceField || {}),
+      name: fieldName,
+      cppName: blackField.cppName || sourceField?.cppName || null,
+      cppType: blackField.cppType || sourceField?.cppType || null,
+      black: blackField
+    };
+    const hasIndex = Boolean(blackField.indexToken || blackField.indexKey !== undefined);
+    const storageKey = hasIndex ? blackField.indexKey ?? CjsBlackReader.normalizeIndexedKey(blackField.indexToken, field) : null;
+    const indexed = Boolean(hasIndex);
+    return {
+      blackName,
+      field,
+      member: blackField.member || blackName,
+      indexed,
+      indexToken: blackField.indexToken || null,
+      index: Number.isInteger(storageKey) ? storageKey : null,
+      key: storageKey
+    };
+  }
+  ResolveUnknownFieldTarget(_kind, _shape, blackName) {
+    return {
+      blackName,
+      field: {
+        name: "__blackUnknown",
+        cppName: null,
+        cppType: null,
+        black: {
+          fieldName: "__blackUnknown",
+          name: blackName,
+          memberPath: blackName,
+          memberRoot: blackName,
+          beType: "UNKNOWN"
+        }
+      },
+      member: blackName,
+      indexed: false,
+      indexToken: null,
+      index: null,
+      key: blackName,
+      unknown: true
+    };
+  }
+  ShouldCaptureUnknownField(blackName, _kind, shape) {
+    if (this.options.captureUnknownBlackFields) return true;
+    if (this.options.captureUnknownResourceFields && /^res:\//.test(String(blackName || ""))) return true;
+    if (this.options.captureUnknownWhenNoBlackFields && (!shape?.black || !shape.black.fields || !shape.black.fields.length)) return true;
+    return false;
+  }
+  ResolveSourceShape(kind) {
+    const registry = this.options.registry || null;
+    if (registry?.GetSourceShape) return registry.GetSourceShape(kind);
+    const sourceShapes = this.options.sourceShapes || null;
+    if (sourceShapes?.GetSourceShape) return sourceShapes.GetSourceShape(kind);
+    if (sourceShapes) {
+      const shape = sourceShapes instanceof Map ? sourceShapes.get(kind) : sourceShapes[kind];
+      if (shape) return CjsBlackSchemaRegistry.normalizeShape(shape);
+    }
+    return this.schemaShapes.get(kind) || null;
+  }
+  ResolveClass(kind) {
+    const classes = this.options.classes || {};
+    const Schema = this.options.registry || CjsSchema;
+    return classes[kind] || Schema.GetConstructor(kind);
+  }
+  ResetReadState() {
+    this.references = new Map();
+    this.nodes = [];
+    this.reports = [];
+    this.nextNodeId = this.options.firstId || 1;
+    this.payloadDepth = 0;
+    this.payloadRootFields = null;
+    this.runtimeInstances = [];
+  }
+  TransformPath(value) {
+    const handler = this.options.pathHandler;
+    return typeof handler === "function" ? handler(value) : value;
+  }
+  static readStringTable(reader) {
+    const stringsReader = reader.ReadBinaryReader(reader.ReadU32());
+    const count = stringsReader.ReadU16();
+    const strings = [];
+    for (let i = 0; i < count; i++) {
+      strings[i] = stringsReader.ReadCString();
+    }
+    stringsReader.ExpectEnd("Black string table did not read to end");
+    return strings;
+  }
+  static readWideStringTable(reader) {
+    const wideStringsReader = reader.ReadBinaryReader(reader.ReadU32());
+    const count = wideStringsReader.ReadU16();
+    const wideStrings = [];
+    for (let i = 0; i < count; i++) {
+      wideStrings[i] = wideStringsReader.ReadCWString();
+    }
+    wideStringsReader.ExpectEnd("Black wide string table did not read to end");
+    return wideStrings;
+  }
+  static normalizeIndexedKey(indexToken, field) {
+    const number = Number(indexToken);
+    if (Number.isInteger(number) && String(indexToken).trim() === String(number)) return number;
+    let text = String(indexToken || "").trim();
+    text = text.replace(/^.*::/, "");
+    text = text.replace(/^TYPE_/, "");
+    const pascal = text.split(/[^A-Za-z0-9]+/).filter(Boolean).map(part => CJS_BLACK_INDEX_TOKEN_NAMES[part] || (part === "FX" ? "FX" : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())).join("");
+    if (field?.jsType?.kind === "objectRef") {
+      return pascal ? pascal.charAt(0).toLowerCase() + pascal.slice(1) : text;
+    }
+    return pascal || text;
+  }
+  static parseIndexedMember(value) {
+    const match = String(value || "").match(/^(.+)\[([^\]]+)\]$/);
+    if (!match) return null;
+    return {
+      member: match[1],
+      indexToken: match[2]
+    };
+  }
+  static toJsFieldName(value) {
+    return String(value || "").replace(/^m_/, "");
+  }
+  static isShapeIncompatibleMathArray(value, descriptor) {
+    const expectedLength = descriptor?.length;
+    return Array.isArray(value) && Number.isInteger(expectedLength) && value.length !== expectedLength;
+  }
+}
+const CJS_BLACK_INDEX_TOKEN_NAMES = Object.freeze({
+  SIMPLEPRIMARY: "SimplePrimary"
+});
+
+export { CjsBlackReader };
+//# sourceMappingURL=CjsBlackReader.js.map

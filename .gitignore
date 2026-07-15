@@ -1,6 +1,5 @@
 # Dependencies / generated package output
 node_modules/
-npm/
 coverage/
 .scratch/
 *.log

@@ -1,0 +1,17 @@
+formats/bnk
+
+Copyright (c) CarbonEngineJS contributors.
+CarbonEngine source material, formats, class names, and schema semantics remain
+copyright their original CarbonEngine authors.
+Fenris Creations (CCP Games) source material, tools, assets, shader behavior,
+and EVE-related data remain copyright their original holders.
+Wwise and the Wwise soundbank format are property of Audiokinetic Inc.
+
+This reader is original CarbonEngineJS code authored directly in
+runtime-resource; no legacy package was copied. The soundbank chunk layout was
+implemented from publicly documented community knowledge of the format
+(ww2ogg, vgmstream, wwiser documentation); no code was copied from those
+projects and no Audiokinetic SDK material was used.
+Audiokinetic, CarbonEngine, and Fenris Creations (CCP Games) are mentioned for
+interoperability, provenance, and future migration context only. This package
+is not affiliated with or endorsed by Audiokinetic Inc. or CCP Games.

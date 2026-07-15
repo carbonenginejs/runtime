@@ -1,0 +1,21 @@
+carbonenginejs/format-stl
+=========================
+
+A pure-JavaScript format package for STL triangle meshes. It exposes read,
+write, and printability inspection helpers for the shared CarbonEngineJS JSON
+geometry schema.
+
+Contains no CarbonEngine or Fenris Creations (CCP Games) code. STL itself is
+not a CarbonEngine or CCP format; CarbonEngine and Fenris Creations (CCP Games)
+are named here because this package's JSON input/output shape is designed for
+CarbonEngineJS interoperability.
+
+No CarbonEngine or Fenris Creations (CCP Games) source files, tooling,
+proprietary documentation, shaders, or assets are included in this repository.
+
+This package is not affiliated with or endorsed by CCP Games.
+
+CarbonEngineJS-facing code is copyright cppctamber / CarbonEngineJS
+contributors.
+
+Repository license: MIT. See LICENSE.
