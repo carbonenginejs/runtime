@@ -75,7 +75,7 @@ format attribution rather than fork provenance.
   `core/pack.js` (channel interleaving, index packing, unique buffer-index
   assignment) serialize shared geometry directly, enabling GR2/OBJ/glTF→CMF —
   verified against real EVE `.gr2` models fetched via
-  `@carbonenginejs/runtime-source` (positions exact, triangles equivalent).
+  `@carbonenginejs/tool-index` (positions exact, triangles equivalent).
 - `formats/cmf` also gained the **GR2 skeleton/animation converter**
   (2026-07-15, `src/formats/cmf/core/gr2Anim.js`, applied automatically by
   `writeShared`): GR2-shaped skeletons (root list or `models[].skeleton`)
