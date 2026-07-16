@@ -329,7 +329,7 @@ export class CjsBlackSchemaRegistry
                 return CjsBlackSchemaRegistry.compactBlackType("IROOT", { kind: "map" }, { container: "dict" });
             case "object":
                 return CjsBlackSchemaRegistry.compactBlackType("IROOTPTR", { kind: "objectRef" });
-            case "rawObject":
+            case "rawStruct":
                 return CjsBlackSchemaRegistry.compactBlackType("IROOT", { kind: "rawStruct" });
             case "structList":
                 return CjsBlackSchemaRegistry.compactBlackType("IROOT", { kind: "array" }, {

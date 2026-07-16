@@ -1,13 +1,14 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { type } from '@carbonenginejs/core-types/schema';
 import { CjsResource as _CjsResource } from '../CjsResource.js';
+import { AssertResourcePayloadObject, ResourcePayloadError } from './resourceBoundary.js';
 
 let _initClass;
 
 /**
  * Runtime-owned Granny resource.
  *
- * The attached semantic DTO carries decoded Granny/CMF data. This resource
+ * The attached plain payload carries decoded Granny data. This resource
  * owns lifecycle identity; reader and engine-specific behavior stays outside.
  */
 let _TriGrannyRes;
@@ -18,6 +19,18 @@ new class extends _identity {
         className: "TriGrannyRes",
         family: "resources"
       })], [], 0, void 0, _CjsResource).c;
+    }
+    SetPayload(payload = null) {
+      if (payload === null) {
+        super.SetPayload(null);
+        return this;
+      }
+      AssertResourcePayloadObject("TriGrannyRes", payload);
+      if (!Array.isArray(payload.models) && !Array.isArray(payload.meshes)) {
+        throw ResourcePayloadError("TriGrannyRes", "Expected a models or meshes array.", "models");
+      }
+      super.SetPayload(payload);
+      return this;
     }
   }];
   payload = "granny";

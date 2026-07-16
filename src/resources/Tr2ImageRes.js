@@ -3,6 +3,8 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
 import { carbon, impl, io, type } from "@carbonenginejs/core-types/schema";
 import { CjsResource } from "../CjsResource.js";
+import { validateRgbaPayload } from "../format/payloadContract.js";
+import { ValidateResourcePayload } from "./resourceBoundary.js";
 
 /**
  * Tr2ImageRes resource record.
@@ -32,22 +34,25 @@ export class Tr2ImageRes extends CjsResource
   }
 
   /**
-   * Attach an image DTO and mirror Carbon-exposed metadata.
+   * Attach a plain canonical RGBA payload and mirror Carbon-exposed metadata.
    *
-   * @param {object|null} dto
+   * @param {object|null} payload
    * @param {object|null} options
    * @returns {Tr2ImageRes}
    */
-  SetDTO(dto = null, options = null)
+  SetPayload(payload = null, options = null)
   {
-    super.SetDTO(dto);
-    const values = { ...(options || {}) };
-    if (dto && typeof dto === "object") {
-      if (dto.width !== undefined) values.width = dto.width;
-      if (dto.height !== undefined) values.height = dto.height;
+    if (payload === null)
+    {
+      super.SetPayload(null);
+      return this;
     }
+    ValidateResourcePayload("Tr2ImageRes", payload, validateRgbaPayload);
+    const values = { ...(options || {}) };
+    values.width = payload.width;
+    values.height = payload.height;
+    super.SetPayload(payload);
     this.SetValues(values);
-    Object.assign(this, values);
     return this;
   }
 
@@ -86,9 +91,13 @@ export class Tr2ImageRes extends CjsResource
   @impl.adapted
   GetPixelColor(x = 0, y = 0)
   {
-    const pixels = this.GetDTO()?.pixels;
-    if (!Array.isArray(pixels)) return null;
-    return pixels[y]?.[x] ?? null;
+    const payload = this.GetPayload();
+    if (!payload || !Number.isInteger(x) || !Number.isInteger(y)
+      || x < 0 || y < 0 || x >= payload.width || y >= payload.height) return null;
+
+    const elementsPerRow = payload.strideBytes / payload.data.BYTES_PER_ELEMENT;
+    const offset = y * elementsPerRow + x * 4;
+    return Array.from(payload.data.subarray(offset, offset + 4));
   }
 
   /**

@@ -1,13 +1,14 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { type } from '@carbonenginejs/core-types/schema';
 import { CjsResource as _CjsResource } from '../CjsResource.js';
+import { AssertResourcePayloadObject } from './resourceBoundary.js';
 
 let _initClass;
 
 /**
  * Runtime-owned light-profile resource.
  *
- * The attached semantic DTO may be richer than the data retained by the
+ * The attached plain payload may be richer than the data retained by the
  * resource or active engine adapter.
  */
 let _Tr2LightProfileRes;
@@ -18,6 +19,15 @@ new class extends _identity {
         className: "Tr2LightProfileRes",
         family: "resources"
       })], [], 0, void 0, _CjsResource).c;
+    }
+    SetPayload(payload = null) {
+      if (payload === null) {
+        super.SetPayload(null);
+        return this;
+      }
+      AssertResourcePayloadObject("Tr2LightProfileRes", payload);
+      super.SetPayload(payload);
+      return this;
     }
   }];
   payload = "light-profile";

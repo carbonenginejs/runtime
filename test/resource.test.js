@@ -4,12 +4,6 @@ import { CjsSchema } from "@carbonenginejs/core-types/schema";
 import * as runtimeResource from "../npm/dist/index.js";
 import {
   CjsMemoryResourceSource,
-  CjsAudioDTO,
-  CjsGeometryDTO,
-  CjsImageDTO,
-  CjsShaderDTO,
-  CjsTextureDTO,
-  CjsVideoDTO,
   CjsEventEmitter,
   Tr2EffectRes,
   Tr2ImageRes,
@@ -36,6 +30,17 @@ import {
 test("runtime-resource does not export an event scope layer", () => {
   assert.equal(runtimeResource.CjsEventEmitter, CjsEventEmitter);
   assert.equal("CjsEventEmitterScope" in runtimeResource, false);
+  for (const name of [
+    "CjsObjectDTO",
+    "CjsGeometryDTO",
+    "CjsImageDTO",
+    "CjsTextureDTO",
+    "CjsVideoDTO",
+    "CjsShaderDTO",
+    "CjsAudioDTO"
+  ]) {
+    assert.equal(name in runtimeResource, false);
+  }
 });
 
 test("CjsEventEmitter supports direct source subscriptions", () => {
@@ -168,10 +173,10 @@ test("runtime-owned Carbon resource classes are canonical CjsResource implementa
   assert.equal(Tr2GrannyStateRes.payload, "granny-state");
   assert.equal(Tr2LightProfileRes.payload, "light-profile");
 
-  const dto = { skeleton: { bones: [] }, additiveAnimations: [] };
-  gstate.SetDTO(dto);
-  assert.equal(gstate.GetDTO(), dto);
-  assert.equal("models" in dto, false);
+  const payload = { skeleton: { bones: [] }, additiveAnimations: [] };
+  gstate.SetPayload(payload);
+  assert.equal(gstate.GetPayload(), payload);
+  assert.equal("models" in payload, false);
 
   assert.equal(CjsSchema.GetConstructor("TriGrannyRes"), TriGrannyRes);
   assert.equal(CjsSchema.GetConstructor("Tr2GrannyStateRes"), Tr2GrannyStateRes);
@@ -575,45 +580,6 @@ test("CjsTextureArrayRes readiness follows generation failure and adapter loss",
   assert.deepEqual(lost.dirtyLayers, [ 0 ]);
 });
 
-test("CjsObjectDTO and CjsGeometryDTO carry payload contracts", () => {
-  const geometry = new CjsGeometryDTO({
-    sourceFormat: "cmf",
-    meshes: [ { name: "body" } ],
-    animations: [ { name: "idle" } ],
-    bounds: { min: [ 0, 0, 0 ] }
-  });
-
-  assert.equal(CjsGeometryDTO.payload, "geometry");
-  assert.equal(geometry.sourceFormat, "cmf");
-  assert.equal(geometry.meshes.length, 1);
-  assert.equal(CjsSchema.GetConstructor("CjsGeometryDTO"), CjsGeometryDTO);
-  assert.equal(CjsSchema.getField(CjsGeometryDTO, "resourceData"), null);
-  assert.deepEqual(geometry.GetValues().meshes, [ { name: "body" } ]);
-});
-
-test("CjsTextureDTO exposes texture/image intent fields", () => {
-  const texture = new CjsTextureDTO({
-    width: 64,
-    height: 32,
-    channels: 4,
-    pixelFormat: "RGBA8",
-    dimension: "2d",
-    arraySize: 1,
-    mipCount: 2,
-    subresources: [ { mip: 0, layer: 0, offset: 0, byteLength: 16 } ],
-    hasMipMaps: true,
-    isCompressed: true
-  });
-
-  assert.equal(texture.width, 64);
-  assert.equal(texture.height, 32);
-  assert.equal(texture.dimension, "2d");
-  assert.equal(texture.arraySize, 1);
-  assert.equal(texture.subresources.length, 1);
-  assert.deepEqual(texture.GetValues().pixelFormat, "RGBA8");
-  assert.equal(CjsTextureDTO.payload, "texture");
-});
-
 test("resource payload validators enforce canonical typed media shapes", () => {
   const rgba = validateRgbaPayload({
     payloadType: ResourcePayloadType.RGBA,
@@ -760,114 +726,96 @@ test("CjsResourceProbe.from normalizes plain reports without dropping handoff me
   assert.equal(probe.variants[0].rgbaDecodeSupported, false);
 });
 
-test("CjsVideoDTO carries sparse video facts for texture resources", () => {
-  const video = new CjsVideoDTO({
+test("TriTextureRes accepts a plain video payload and preserves it on invalid replacement", () => {
+  const video = {
+    payloadType: ResourcePayloadType.VIDEO,
     sourceFormat: "webm",
-    sourceKind: "bytes",
-    sourceUri: "res:/video/intro.webm",
+    duration: 2000,
+    durationTimescale: 1000,
+    tracks: [],
     durationSeconds: 2,
-    frameRate: 30,
-    seekable: true,
-    codec: "vp9",
     width: 1920,
     height: 1080,
-    duration: 123000000n,
-    hasAlpha: true,
-    looped: true,
-    state: "playing"
-  });
+    sourceBytes: new Uint8Array([ 1, 2, 3 ])
+  };
   const texture = new TriTextureRes().Initialize("dynamic:/video/hangar");
 
-  texture.SetDTO(video);
+  texture.SetPayload(video);
 
-  assert.equal(CjsVideoDTO.payload, "video");
   assert.equal(video.width, 1920);
-  assert.equal(video.hasAlpha, true);
-  assert.equal(video.sourceKind, "bytes");
   assert.equal(video.durationSeconds, 2);
-  assert.equal(video.seekable, true);
-  assert.equal(texture.HasDTO(), true);
-  assert.equal(texture.GetDTO(), video);
-  assert.equal(texture.GetDTO().sourceFormat, "webm");
+  assert.equal(texture.HasPayload(), true);
+  assert.equal(texture.GetPayload(), video);
+  assert.equal(texture.GetPayload().sourceFormat, "webm");
+  assert.throws(
+    () => texture.SetPayload({ payloadType: ResourcePayloadType.VIDEO }),
+    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID"
+  );
+  assert.equal(texture.GetPayload(), video);
 });
 
-test("CjsAudioDTO and CjsShaderDTO accept typed payloads", () => {
-  const audio = new CjsAudioDTO({
-    sampleRate: 48000,
-    channels: 2,
-    duration: 1.25,
-    audioFormat: "wav"
-  });
-  const shader = new CjsShaderDTO({
-    techniques: [ "base" ],
-    passes: [ "forward" ],
-    permutations: [ "quality=high" ],
-    signature: { inputs: 3 }
-  });
-
-  assert.equal(audio.sampleRate, 48000);
-  assert.equal(shader.passes.length, 1);
-  assert.equal(audio.duration > 1, true);
-});
-
-test("CjsImageDTO hydrates image metadata through SetValues", () => {
-  const image = new CjsImageDTO({ width: 1, height: 1 });
-  image.SetValues({
-    width: 4,
-    height: 2,
-    channels: 3,
-    pixelFormat: "RGB8",
-    colorSpace: "sRGB",
-    strideInfo: { row: 12 }
-  });
-
-  assert.equal(image.width, 4);
-  assert.equal(image.colorSpace, "sRGB");
-});
-
-test("TriTextureRes and TriGeometryRes are resource DTOs", () => {
+test("TriTextureRes and TriGeometryRes consume validated plain payloads", () => {
   const texture = new TriTextureRes().Initialize("res:/texture/ship.dds");
-  const textureDTO = new CjsTextureDTO({
+  const texturePayload = {
+    payloadType: ResourcePayloadType.TEXTURE,
     sourceFormat: "dds",
-    width: 128,
-    height: 64,
-    pixelFormat: "BC7",
-    mipCount: 4,
-    variants: [ { kind: "compressed", codec: "bc7", supported: true } ],
+    width: 4,
+    height: 4,
+    dimension: "2d",
+    arraySize: 1,
+    pixelFormat: "bc1-rgba-unorm",
+    mipCount: 1,
     isCompressed: true,
-    hasMipMaps: true
-  });
-  texture.SetDTO(textureDTO);
+    data: new Uint8Array(8),
+    subresources: [ {
+      mip: 0,
+      layer: 0,
+      offset: 0,
+      byteLength: 8,
+      width: 4,
+      height: 4,
+      rowPitch: 8,
+      slicePitch: 8
+    } ]
+  };
+  texture.SetPayload(texturePayload);
 
   const geometry = new TriGeometryRes().Initialize("res:/geometry/ship.cmf");
-  const geometryDTO = new CjsGeometryDTO({
+  const geometryPayload = {
+    version: 1,
     sourceFormat: "cmf",
     meshes: [ { name: "body", areas: [ { name: "hull" } ] } ],
-    skeletons: [ { name: "skeleton" } ]
-  });
-  geometry.SetDTO(geometryDTO);
+    skeletons: [ { name: "skeleton" } ],
+    animations: []
+  };
+  geometry.SetPayload(geometryPayload);
 
   assert.equal(texture.GetPath(), "res:/texture/ship.dds");
-  assert.equal(texture.width, 128);
-  assert.equal(texture.GetMipCount(), 4);
-  assert.equal(texture.HasDTO(), true);
-  assert.equal(texture.GetDTO().sourceFormat, "dds");
+  assert.equal(texture.width, 4);
+  assert.equal(texture.GetMipCount(), 1);
+  assert.equal(texture.HasPayload(), true);
+  assert.equal(texture.GetPayload().sourceFormat, "dds");
   assert.equal(TriTextureRes.payload, "texture");
   assert.equal(CjsSchema.GetConstructor("TriTextureRes"), TriTextureRes);
   assert.equal(CjsSchema.getField(TriTextureRes, "variants"), null);
   assert.equal(CjsSchema.getMethod(TriTextureRes, "PrepareResources").carbon.method, true);
   assert.equal(CjsSchema.getMethod(TriTextureRes, "Save").impl.status, "notImplemented");
   assert.equal(CjsSchema.getMethod(TriTextureRes, "CreateEmptyTexture").impl.status, "notSupported");
-  assert.equal(CjsSchema.getMethod(TriTextureRes, "SetDTO"), null);
+  assert.equal(CjsSchema.getMethod(TriTextureRes, "SetPayload"), null);
 
   assert.equal(geometry.GetMeshCount(), 1);
   assert.equal(geometry.GetAnimationCount(), 0);
   assert.equal(geometry.GetMeshAreaCount(0), 1);
   assert.equal(geometry.GetMeshAreaName(0, 0), "hull");
-  assert.equal(geometry.HasDTO(), true);
+  assert.equal(geometry.HasPayload(), true);
   assert.equal(TriGeometryRes.payload, "geometry");
   assert.equal(CjsSchema.getField(TriGeometryRes, "meshes"), null);
   assert.equal(CjsSchema.getMethod(TriGeometryRes, "GetMeshCount").impl.status, "adapted");
+  assert.throws(
+    () => geometry.SetPayload({ animations: [] }),
+    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID" && error.field === "meshes"
+  );
+  assert.equal(geometry.GetPayload(), geometryPayload);
 });
 
 test("CjsResource can hold opaque engine-owned subobjects", () => {
@@ -892,32 +840,37 @@ test("CjsResource can hold opaque engine-owned subobjects", () => {
 
 test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
   const effect = new Tr2EffectRes().Initialize("res:/shader/ship.sm_hi");
-  const shaderDTO = new CjsShaderDTO({
+  const shaderPayload = {
+    payloadType: "shader",
     sourceFormat: "cewgpu",
     techniques: [ "Main" ],
     passes: [ "Forward" ],
     permutations: [ { name: "QUALITY", value: "HIGH" } ]
-  });
-  effect.SetDTO(shaderDTO);
+  };
+  effect.SetPayload(shaderPayload);
 
   const image = new Tr2ImageRes().Initialize("res:/image/icon.png");
-  const imageDTO = new CjsImageDTO({
+  const imagePayload = {
+    payloadType: ResourcePayloadType.RGBA,
     sourceFormat: "png",
     width: 2,
     height: 1,
-    channels: 4,
-    pixelFormat: "RGBA8",
-    pixels: [ [ [ 255, 255, 255, 255 ], [ 0, 0, 0, 0 ] ] ]
-  });
-  image.SetDTO(imageDTO);
+    pixelFormat: "rgba8unorm",
+    data: new Uint8Array([ 255, 255, 255, 255, 0, 0, 0, 0 ]),
+    strideBytes: 8,
+    origin: "top-left",
+    colorSpace: "srgb",
+    alphaMode: "straight"
+  };
+  image.SetPayload(imagePayload);
 
-  assert.equal(effect.HasDTO(), true);
+  assert.equal(effect.HasPayload(), true);
   assert.deepEqual(effect.GetPermutationDescription(), [ { name: "QUALITY", value: "HIGH" } ]);
   assert.equal(Tr2EffectRes.payload, "shader");
   assert.equal(CjsSchema.GetConstructor("Tr2EffectRes"), Tr2EffectRes);
   assert.equal(CjsSchema.getField(Tr2EffectRes, "permutations"), null);
 
-  assert.equal(image.HasDTO(), true);
+  assert.equal(image.HasPayload(), true);
   assert.equal(image.width, 2);
   assert.equal(image.GetWidth(), 2);
   assert.equal(image.GetHeight(), 1);
@@ -925,6 +878,11 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
   assert.equal(image.IsPixelOpaque(1, 0), false);
   assert.equal(Tr2ImageRes.payload, "image");
   assert.equal(CjsSchema.getField(Tr2ImageRes, "pixels"), null);
+  assert.throws(
+    () => image.SetPayload({ payloadType: ResourcePayloadType.RGBA, width: 2, height: 1 }),
+    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID"
+  );
+  assert.equal(image.GetPayload(), imagePayload);
 });
 
 test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource loaded", async () => {
@@ -991,14 +949,14 @@ test("registered formats and resource readiness share one object operation", asy
   assert.equal(resource.object, bytes);
 });
 
-test("semantic resource readiness resolves the resource without separately pinning its DTO", async () =>
+test("semantic resource readiness resolves the resource and retains its plain payload", async () =>
 {
   const bytes = new Uint8Array([ 4, 3, 2, 1 ]);
   class CjsTestFormat
   {
     static inputTypes = [ "semantic" ];
     static outputTypes = [ "semantic" ];
-    static read(input) { return input; }
+    static read(input) { return { payloadType: "semantic", data: input }; }
   }
   class CjsTestResource extends CjsResource
   {
@@ -1019,9 +977,9 @@ test("semantic resource readiness resolves the resource without separately pinni
   assert.equal(resource.GetRequirement(), "semantic");
   assert.equal(await first, resource);
   assert.equal(resource.object, resource);
-  assert.equal(resource.GetDTO(), bytes);
-  assert.equal(resource.ReleaseDTO(), resource);
-  assert.equal(resource.HasDTO(), false);
+  assert.equal(resource.GetPayload().data, bytes);
+  assert.equal(resource.ReleasePayload(), resource);
+  assert.equal(resource.HasPayload(), false);
 });
 
 test("different outcomes use distinct resources while sharing source bytes", async () =>

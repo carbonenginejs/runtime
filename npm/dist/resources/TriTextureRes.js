@@ -1,7 +1,8 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/core-types/schema';
 import { CjsResource as _CjsResource } from '../CjsResource.js';
-import { CarbonStubError, ResourceBoundaryError } from './resourceBoundary.js';
+import { validateVideoPayload, validateTexturePayload, validateRgbaPayload, ResourcePayloadType } from '../format/payloadContract.js';
+import { ResourcePayloadError, ValidateResourcePayload, CarbonStubError, ResourceBoundaryError } from './resourceBoundary.js';
 
 let _initProto, _initClass, _init_format, _init_extra_format, _init_type, _init_extra_type, _init_averageColor, _init_extra_averageColor, _init_depth, _init_extra_depth, _init_cutoutHeight, _init_extra_cutoutHeight, _init_height, _init_extra_height, _init_lodEnabled, _init_extra_lodEnabled, _init_cpuMip, _init_extra_cpuMip, _init_gpuMip, _init_extra_gpuMip, _init_wrappedRenderTarget, _init_extra_wrappedRenderTarget, _init_originalResolution, _init_extra_originalResolution, _init_name, _init_extra_name, _init_arraySize, _init_extra_arraySize, _init_cutoutWidth, _init_extra_cutoutWidth, _init_width, _init_extra_width, _init_cutoutX, _init_extra_cutoutX, _init_cutoutY, _init_extra_cutoutY;
 
@@ -50,28 +51,39 @@ new class extends _identity {
     }
 
     /**
-     * Attach a texture DTO and mirror Carbon-exposed metadata.
+     * Attach a plain texture, RGBA, or video payload and mirror Carbon-exposed
+     * metadata. Invalid payloads are rejected before replacing the current one.
      *
-     * @param {object|null} dto
+     * @param {object|null} payload
      * @param {object|null} options
      * @returns {TriTextureRes}
      */
-    SetDTO(dto = null, options = null) {
-      super.SetDTO(dto);
+    SetPayload(payload = null, options = null) {
+      if (payload === null) {
+        super.SetPayload(null);
+        return this;
+      }
+      const validator = {
+        [ResourcePayloadType.RGBA]: validateRgbaPayload,
+        [ResourcePayloadType.TEXTURE]: validateTexturePayload,
+        [ResourcePayloadType.VIDEO]: validateVideoPayload
+      }[payload?.payloadType];
+      if (!validator) {
+        throw ResourcePayloadError("TriTextureRes", 'Expected payloadType "rgba", "texture", or "video".', "payloadType");
+      }
+      ValidateResourcePayload("TriTextureRes", payload, validator);
       const values = {
         ...(options || {})
       };
-      if (dto && typeof dto === "object") {
-        if (dto.pixelFormat !== undefined || dto.format !== undefined) values.format = dto.pixelFormat || dto.format;
-        if (dto.width !== undefined) values.width = dto.width;
-        if (dto.height !== undefined) values.height = dto.height;
-        if (dto.depth !== undefined) values.depth = dto.depth;
-        if (Array.isArray(dto.faces)) values.arraySize = dto.faces.length;
-        if (dto.mipCount !== undefined) values.cpuMip = dto.mipCount;
-        values.originalResolution = Math.max(dto.width || 0, dto.height || 0, this.originalResolution || 0);
-      }
+      if (payload.pixelFormat !== undefined || payload.format !== undefined) values.format = payload.pixelFormat || payload.format;
+      if (payload.width !== undefined) values.width = payload.width;
+      if (payload.height !== undefined) values.height = payload.height;
+      if (payload.depth !== undefined) values.depth = payload.depth;
+      if (payload.arraySize !== undefined) values.arraySize = payload.arraySize;else if (Array.isArray(payload.faces)) values.arraySize = payload.faces.length;
+      if (payload.mipCount !== undefined) values.cpuMip = payload.mipCount;else if (payload.payloadType === ResourcePayloadType.RGBA) values.cpuMip = 1;
+      values.originalResolution = Math.max(payload.width || 0, payload.height || 0, this.originalResolution || 0);
+      super.SetPayload(payload);
       this.SetValues(values);
-      Object.assign(this, values);
       return this;
     }
 
@@ -81,7 +93,7 @@ new class extends _identity {
      * @returns {number}
      */
     GetMipCount() {
-      return this.GetDTO()?.mipCount || this.cpuMip || 0;
+      return this.GetPayload()?.mipCount || this.cpuMip || 0;
     }
 
     /**

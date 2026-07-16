@@ -2,6 +2,11 @@ import { CjsMotherLode } from "./CjsMotherLode.js";
 import { CjsEventEmitter } from "@carbonenginejs/core-types/model";
 import { CjsResource } from "./CjsResource.js";
 import {
+  CjsResManQueue,
+  CjsResManWorkQueue,
+  NormalizeCjsResManQueue
+} from "./CjsResManQueue.js";
+import {
   getResourceExtension,
   normalizeResourceExtension,
   normalizeResourcePath
@@ -18,7 +23,26 @@ export class CjsResMan extends CjsEventEmitter
     this.formats = new Map();
     this.objectOperations = new WeakMap();
     this.sourceOperations = new WeakMap();
+    this.queuedSourceOperations = new WeakMap();
     this.formatOperations = new WeakMap();
+    this.preparePipelines = new Map();
+    this.defaultPreparePipeline = "";
+    this.maxConcurrentLoads = 8;
+    this.maxPrepareTime = 0.005;
+    this.maxPrepareItemsPerTick = 0;
+    this.autoPumpMainThreadQueue = true;
+    this.queueScheduler = DefaultQueueScheduler;
+    this.urgentResourceLoads = false;
+    this._backgroundPumpScheduled = false;
+    this._mainThreadPumpScheduled = false;
+    this._loadQueue = new CjsResManWorkQueue(CjsResManQueue.BACKGROUND, {
+      concurrency: this.maxConcurrentLoads,
+      onReady: () => this.ScheduleBackgroundQueue()
+    });
+    this._prepareQueue = new CjsResManWorkQueue(CjsResManQueue.MAIN, {
+      concurrency: 1,
+      onReady: () => this.ScheduleMainThreadQueue()
+    });
 
     this.Register(options);
   }
@@ -45,6 +69,50 @@ export class CjsResMan extends CjsEventEmitter
     {
       this.SetSource(options.source);
     }
+    if (Object.prototype.hasOwnProperty.call(options, "maxConcurrentLoads"))
+    {
+      AssertPositiveInteger(options.maxConcurrentLoads, "maxConcurrentLoads");
+      this.maxConcurrentLoads = options.maxConcurrentLoads;
+      this._loadQueue.SetConcurrency(this.maxConcurrentLoads);
+    }
+    if (Object.prototype.hasOwnProperty.call(options, "maxPrepareTime"))
+    {
+      AssertNonNegativeNumber(options.maxPrepareTime, "maxPrepareTime");
+      this.maxPrepareTime = options.maxPrepareTime;
+    }
+    if (Object.prototype.hasOwnProperty.call(options, "maxPrepareItemsPerTick"))
+    {
+      AssertNonNegativeInteger(options.maxPrepareItemsPerTick, "maxPrepareItemsPerTick");
+      this.maxPrepareItemsPerTick = options.maxPrepareItemsPerTick;
+    }
+    if (Object.prototype.hasOwnProperty.call(options, "autoPumpMainThreadQueue"))
+    {
+      this.autoPumpMainThreadQueue = Boolean(options.autoPumpMainThreadQueue);
+    }
+    if (Object.prototype.hasOwnProperty.call(options, "queueScheduler"))
+    {
+      if (options.queueScheduler !== null && typeof options.queueScheduler !== "function")
+      {
+        throw new TypeError("CjsResMan queueScheduler must be a function or null.");
+      }
+      this.queueScheduler = options.queueScheduler || DefaultQueueScheduler;
+    }
+    if (Object.prototype.hasOwnProperty.call(options, "urgentResourceLoads"))
+    {
+      this.SetUrgentResourceLoads(options.urgentResourceLoads);
+    }
+
+    for (const [ name, entry ] of NormalizePreparePipelineEntries(options.preparePipelines))
+    {
+      const stages = Array.isArray(entry) ? entry : entry.stages;
+      this.RegisterPreparePipeline(name, stages, {
+        default: !Array.isArray(entry) && entry.default === true
+      });
+    }
+    if (Object.prototype.hasOwnProperty.call(options, "defaultPreparePipeline"))
+    {
+      this.SetDefaultPreparePipeline(options.defaultPreparePipeline);
+    }
 
     for (const entry of NormalizeRegistrationEntries(options.formats))
     {
@@ -65,6 +133,172 @@ export class CjsResMan extends CjsEventEmitter
 
   SetSource(source) {
     this.source = source || null;
+    return this;
+  }
+
+  RegisterPreparePipeline(name, stages, options = {}) {
+    const key = NormalizePipelineName(name);
+    if (!key) throw new TypeError("CjsResMan.RegisterPreparePipeline requires a name.");
+    this.preparePipelines.set(key, Object.freeze(NormalizePrepareStages(stages)));
+    if (options.default === true) this.defaultPreparePipeline = key;
+    return this;
+  }
+
+  SetDefaultPreparePipeline(name = "") {
+    const key = NormalizePipelineName(name);
+    if (key && !this.preparePipelines.has(key)) {
+      throw new Error(`Unknown CjsResMan prepare pipeline: ${key}`);
+    }
+    this.defaultPreparePipeline = key;
+    return this;
+  }
+
+  GetPreparePipeline(name) {
+    return [ ...(this.preparePipelines.get(NormalizePipelineName(name)) || []) ];
+  }
+
+  ResolvePrepareStages(options = {}) {
+    const requested = options.preparePipeline ?? options.pipeline ?? this.defaultPreparePipeline;
+    const key = NormalizePipelineName(requested);
+    if (key && !this.preparePipelines.has(key)) {
+      const error = new Error(`Unknown CjsResMan prepare pipeline: ${key}`);
+      error.code = "CJS_RESOURCE_PREPARE_PIPELINE_MISSING";
+      error.pipeline = key;
+      throw error;
+    }
+    const stages = key ? this.GetPreparePipeline(key) : [];
+    return [ ...stages, ...NormalizePrepareStages(options.prepareStages || []) ];
+  }
+
+  AddToQueue(queue, callback, context = null, flags = 0) {
+    const task = this.QueueTask(queue, callback, context, { flags });
+    task.promise.catch(error => {
+      this.EmitEvent?.("queueerror", this, task.queue, task.id, error);
+    });
+    return task.id;
+  }
+
+  CancelFromQueue(queue, id, reason = "") {
+    return this.GetWorkQueue(queue).Cancel(id, reason);
+  }
+
+  GetNextIdForQueue(queue) {
+    return this.GetWorkQueue(queue).GetNextId();
+  }
+
+  PumpMainThreadQueue(options = {}) {
+    const urgent = options.urgent === true || this.urgentResourceLoads;
+    const result = this._prepareQueue.Pump({
+      maxItems: urgent ? 0 : (options.maxItems ?? this.maxPrepareItemsPerTick),
+      maxTime: urgent ? 0 : (options.maxTime ?? this.maxPrepareTime) * 1000,
+      now: options.now
+    });
+    if (result.queued > 0 && result.active === 0) this.ScheduleMainThreadQueue();
+    return result.processed > 0;
+  }
+
+  PumpBackgroundQueue(options = {}) {
+    const result = this._loadQueue.Pump({
+      maxItems: options.maxItems ?? 0,
+      maxTime: options.maxTime === undefined ? 0 : options.maxTime * 1000,
+      now: options.now
+    });
+    return result.processed > 0;
+  }
+
+  PauseQueue(queue) {
+    this.GetWorkQueue(queue).Pause();
+    return this;
+  }
+
+  ResumeQueue(queue) {
+    const name = NormalizeCjsResManQueue(queue);
+    this.GetWorkQueue(name).Resume();
+    if (name === CjsResManQueue.MAIN) this.ScheduleMainThreadQueue();
+    else this.ScheduleBackgroundQueue();
+    return this;
+  }
+
+  GetPendingLoads() {
+    return this._loadQueue.GetPendingCount();
+  }
+
+  GetPendingPrepares() {
+    return this._prepareQueue.GetPendingCount();
+  }
+
+  GetQueueStats(queue = null) {
+    if (queue !== null && queue !== undefined) return this.GetWorkQueue(queue).GetStats();
+    return Object.freeze({
+      loads: this._loadQueue.GetStats(),
+      prepares: this._prepareQueue.GetStats()
+    });
+  }
+
+  SetUrgentResourceLoads(value) {
+    this.urgentResourceLoads = Boolean(value);
+    return this;
+  }
+
+  IsUrgentResourceLoads() {
+    return this.urgentResourceLoads;
+  }
+
+  IsLoading() {
+    return this.GetPendingLoads() + this.GetPendingPrepares() > 0;
+  }
+
+  Update(options = {}) {
+    const loaded = this.PumpBackgroundQueue(options.background || {});
+    const prepared = this.PumpMainThreadQueue(options.prepare || options);
+    return loaded || prepared;
+  }
+
+  Tick(options = {}) {
+    return this.Update(options);
+  }
+
+  async Wait(options = {}) {
+    const yieldQueue = typeof options.yield === "function" ? options.yield : DefaultQueueYield;
+    while (this.IsLoading()) {
+      if (options.pump !== false) this.Update(options);
+      await yieldQueue();
+    }
+    return this;
+  }
+
+  GetWorkQueue(queue) {
+    return NormalizeCjsResManQueue(queue) === CjsResManQueue.MAIN
+      ? this._prepareQueue
+      : this._loadQueue;
+  }
+
+  QueueTask(queue, callback, context = null, metadata = null) {
+    return this.GetWorkQueue(queue).Add(callback, context, metadata);
+  }
+
+  ScheduleBackgroundQueue() {
+    if (this._backgroundPumpScheduled || this._loadQueue.IsPaused()) return this;
+    this._backgroundPumpScheduled = true;
+    Promise.resolve().then(() => {
+      this._backgroundPumpScheduled = false;
+      this.PumpBackgroundQueue();
+    });
+    return this;
+  }
+
+  ScheduleMainThreadQueue() {
+    if (!this.autoPumpMainThreadQueue || this._mainThreadPumpScheduled || this._prepareQueue.IsPaused()) return this;
+    this._mainThreadPumpScheduled = true;
+    try {
+      this.queueScheduler(() => {
+        this._mainThreadPumpScheduled = false;
+        this.PumpMainThreadQueue();
+      });
+    } catch (error) {
+      this._mainThreadPumpScheduled = false;
+      throw error;
+    }
     return this;
   }
 
@@ -166,7 +400,7 @@ export class CjsResMan extends CjsEventEmitter
       return existing.promise;
     }
 
-    const promise = this.LoadResourceObject(resource, options);
+    const promise = this.QueueResourceObject(resource, options);
     this.objectOperations.set(resource, { promise });
     return promise;
   }
@@ -201,45 +435,125 @@ export class CjsResMan extends CjsEventEmitter
 
     try {
       const bytes = await this.ReadResource(resource.GetPath(), options);
-      const explicitLoader = this.GetObjectLoader(resource.GetExt());
-      let object;
-
-      if (explicitLoader)
-      {
-        object = await explicitLoader(bytes, {
-          ...options,
-          path: resource.GetPath(),
-          ext: resource.GetExt(),
-          resource,
-          resMan: this
-        });
-      }
-      else
-      {
-        const descriptor = this.ResolveFormatDescriptor(resource.GetExt(), {
-          ...options,
-          bytes
-        });
-        object = await this.ReadFormatOnce(resource, descriptor, bytes, options);
-      }
-
-      let result = object;
-      if (resource.constructor !== CjsResource && typeof resource.SetDTO === "function")
-      {
-        resource.SetDTO(object, options);
-        resource.object = resource;
-        result = resource;
-      }
-      else
-      {
-        resource.object = object;
-      }
-      resource.MarkLoaded();
-      return result;
+      return await this.PrepareResourceObject(resource, bytes, options);
     } catch (error) {
       resource.SetError(error);
       throw error;
     }
+  }
+
+  QueueResourceObject(resource, options = {}) {
+    resource.MarkRequested();
+    const load = this.QueueReadResource(resource.GetPath(), options);
+
+    return load
+      .then(bytes => {
+        resource.MarkLoading();
+        return this.PrepareResourceObjectQueued(resource, bytes, options);
+      })
+      .catch(error => {
+        resource.SetError(error);
+        throw error;
+      });
+  }
+
+  QueueReadResource(path, options = {}) {
+    const source = options.source || this.source;
+    if (!source || typeof source.Read !== "function") {
+      return Promise.reject(new TypeError("CjsResMan requires a source with Read(path, options) to load objects."));
+    }
+
+    const key = normalizeResourcePath(path);
+    if (options.reload === true || options.cacheSource === false) {
+      return this.QueueTask(CjsResManQueue.BACKGROUND, () => this.ReadResource(key, options), source, {
+        kind: "load",
+        path: key
+      }).promise;
+    }
+
+    let operations = this.queuedSourceOperations.get(source);
+    if (!operations) {
+      operations = new Map();
+      this.queuedSourceOperations.set(source, operations);
+    }
+
+    const existing = operations.get(key);
+    if (existing) return existing;
+
+    const operation = this.QueueTask(CjsResManQueue.BACKGROUND, () => this.ReadResource(key, options), source, {
+      kind: "load",
+      path: key
+    }).promise;
+    operations.set(key, operation);
+    operation.then(() => {
+      if (operations.get(key) === operation) operations.delete(key);
+    }, () => {
+      if (operations.get(key) === operation) operations.delete(key);
+    });
+    return operation;
+  }
+
+  async PrepareResourceObject(resource, bytes, options = {}) {
+    let object = await this.ReadResourceObjectPayload(resource, bytes, options);
+    for (const stage of this.ResolvePrepareStages(options)) {
+      const next = await stage.prepare(object, CreatePrepareContext(this, resource, bytes, options, stage.name));
+      if (next !== undefined) object = next;
+    }
+    return this.PublishResourceObject(resource, object, options);
+  }
+
+  async PrepareResourceObjectQueued(resource, bytes, options = {}) {
+    const stages = [
+      Object.freeze({
+        name: "read",
+        prepare: () => this.ReadResourceObjectPayload(resource, bytes, options)
+      }),
+      ...this.ResolvePrepareStages(options),
+      Object.freeze({
+        name: "publish",
+        prepare: object => this.PublishResourceObject(resource, object, options)
+      })
+    ];
+    let object = bytes;
+
+    for (const stage of stages) {
+      const task = this.QueueTask(CjsResManQueue.MAIN, () =>
+        stage.prepare(object, CreatePrepareContext(this, resource, bytes, options, stage.name)), resource, {
+        kind: "prepare",
+        stage: stage.name,
+        path: resource.GetPath()
+      });
+      const next = await task.promise;
+      if (next !== undefined) object = next;
+    }
+    return object;
+  }
+
+  async ReadResourceObjectPayload(resource, bytes, options = {}) {
+    const explicitLoader = this.GetObjectLoader(resource.GetExt());
+    if (explicitLoader) {
+      return explicitLoader(bytes, CreatePrepareContext(this, resource, bytes, options, "read"));
+    }
+
+    const descriptor = this.ResolveFormatDescriptor(resource.GetExt(), {
+      ...options,
+      bytes
+    });
+    return this.ReadFormatOnce(resource, descriptor, bytes, options);
+  }
+
+  PublishResourceObject(resource, object, options = {}) {
+    let result = object;
+    if (resource.constructor !== CjsResource && typeof resource.SetPayload === "function") {
+      resource.SetPayload(object, options);
+      resource.object = resource;
+      result = resource;
+    }
+    else {
+      resource.object = object;
+    }
+    if (!resource.IsPrepared?.()) resource.MarkLoaded();
+    return result;
   }
 
   async Prefetch(paths, options = {}) {
@@ -357,9 +671,12 @@ export class CjsResMan extends CjsEventEmitter
   }
 
   Clear() {
+    this._loadQueue.Clear();
+    this._prepareQueue.Clear();
     this.motherLode.Clear();
     this.objectOperations = new WeakMap();
     this.sourceOperations = new WeakMap();
+    this.queuedSourceOperations = new WeakMap();
     this.formatOperations = new WeakMap();
     return this;
   }
@@ -484,7 +801,18 @@ function StableSerialize(value, seen = new WeakSet())
 function GetIdentityOptions(options = {})
 {
   const identity = {};
-  for (const key of [ "requirement", "payload", "emit", "mediaType", "format", "classes", "formatOptions" ])
+  for (const key of [
+    "requirement",
+    "payload",
+    "emit",
+    "mediaType",
+    "format",
+    "classes",
+    "formatOptions",
+    "pipeline",
+    "preparePipeline",
+    "prepareStages"
+  ])
   {
     if (options[key] !== undefined) identity[key] = options[key];
   }
@@ -496,6 +824,85 @@ function NormalizeRequirement(value)
   return value === null || value === undefined
     ? ""
     : String(value).trim().toLowerCase();
+}
+
+function NormalizePipelineName(value)
+{
+  return value === null || value === undefined
+    ? ""
+    : String(value).trim().toLowerCase();
+}
+
+function NormalizePrepareStages(value)
+{
+  if (value === null || value === undefined) return [];
+  const entries = Array.isArray(value) ? value : [ value ];
+  return entries.map((entry, index) => {
+    const prepare = typeof entry === "function"
+      ? entry
+      : entry?.prepare || entry?.run || entry?.handler;
+    if (typeof prepare !== "function") {
+      throw new TypeError("CjsResMan prepare stages require a function or prepare/run/handler method.");
+    }
+    const name = typeof entry === "function"
+      ? entry.name || `stage${index + 1}`
+      : entry.name || prepare.name || `stage${index + 1}`;
+    return Object.freeze({ name: String(name), prepare });
+  });
+}
+
+function NormalizePreparePipelineEntries(value)
+{
+  if (value === null || value === undefined) return [];
+  if (value instanceof Map) return [ ...value.entries() ];
+  if (typeof value !== "object" || Array.isArray(value)) {
+    throw new TypeError("CjsResMan preparePipelines must be an object or Map.");
+  }
+  return Object.entries(value);
+}
+
+function CreatePrepareContext(resMan, resource, bytes, options, stage)
+{
+  return Object.freeze({
+    ...options,
+    stage,
+    bytes,
+    path: resource.GetPath(),
+    ext: resource.GetExt(),
+    resource,
+    resMan
+  });
+}
+
+function AssertPositiveInteger(value, name)
+{
+  if (!Number.isInteger(value) || value < 1) {
+    throw new TypeError(`CjsResMan ${name} must be a positive integer.`);
+  }
+}
+
+function AssertNonNegativeInteger(value, name)
+{
+  if (!Number.isInteger(value) || value < 0) {
+    throw new TypeError(`CjsResMan ${name} must be a non-negative integer.`);
+  }
+}
+
+function AssertNonNegativeNumber(value, name)
+{
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    throw new TypeError(`CjsResMan ${name} must be a non-negative finite number.`);
+  }
+}
+
+function DefaultQueueScheduler(callback)
+{
+  return setTimeout(callback, 0);
+}
+
+function DefaultQueueYield()
+{
+  return new Promise(resolve => setTimeout(resolve, 0));
 }
 
 function NormalizeRegistrationEntries(value, keyed = false)

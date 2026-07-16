@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { carbon, impl, type } from '@carbonenginejs/core-types/schema';
 import { CjsResource as _CjsResource } from '../CjsResource.js';
+import { AssertResourcePayloadObject, AssertResourcePayloadArray } from './resourceBoundary.js';
 
 let _initProto, _initClass;
 
@@ -32,14 +33,20 @@ new class extends _identity {
     }
 
     /**
-     * Attach a shader/effect DTO.
+     * Attach a plain shader/effect payload.
      *
-     * @param {object|null} dto
+     * @param {object|null} payload
      * @param {object|null} options
      * @returns {Tr2EffectRes}
      */
-    SetDTO(dto = null, options = null) {
-      super.SetDTO(dto);
+    SetPayload(payload = null, options = null) {
+      if (payload === null) {
+        super.SetPayload(null);
+        return this;
+      }
+      AssertResourcePayloadObject("Tr2EffectRes", payload);
+      AssertResourcePayloadArray("Tr2EffectRes", payload, "permutations");
+      super.SetPayload(payload);
       this.SetValues(options || {});
       return this;
     }
@@ -50,7 +57,7 @@ new class extends _identity {
      * @returns {Array<*>}
      */
     GetPermutationDescription() {
-      const permutations = this.GetDTO()?.permutations;
+      const permutations = this.GetPayload()?.permutations;
       return Array.isArray(permutations) ? permutations : [];
     }
   }];

@@ -1,7 +1,6 @@
 export * from "./resourceStates.js";
 export * from "./resourcePath.js";
 export * from "./CjsResource.js";
-export * from "./dto/index.js";
 export * from "./resources/index.js";
 export * from "./texture/index.js";
 export * from "./generated/resources/index.js";
@@ -11,4 +10,5 @@ export * from "./CjsFormat.js";
 export { CjsEventEmitter } from "@carbonenginejs/core-types/model";
 export * from "./CjsMotherLode.js";
 export * from "./CjsResourceSource.js";
+export { CjsResManQueue } from "./CjsResManQueue.js";
 export * from "./CjsResMan.js";

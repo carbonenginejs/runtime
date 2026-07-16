@@ -1,6 +1,8 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/core-types/schema';
 import { CjsResource as _CjsResource } from '../CjsResource.js';
+import { validateRgbaPayload } from '../format/payloadContract.js';
+import { ValidateResourcePayload } from './resourceBoundary.js';
 
 let _initProto, _initClass, _init_width, _init_extra_width, _init_height, _init_extra_height;
 
@@ -34,23 +36,25 @@ new class extends _identity {
     }
 
     /**
-     * Attach an image DTO and mirror Carbon-exposed metadata.
+     * Attach a plain canonical RGBA payload and mirror Carbon-exposed metadata.
      *
-     * @param {object|null} dto
+     * @param {object|null} payload
      * @param {object|null} options
      * @returns {Tr2ImageRes}
      */
-    SetDTO(dto = null, options = null) {
-      super.SetDTO(dto);
+    SetPayload(payload = null, options = null) {
+      if (payload === null) {
+        super.SetPayload(null);
+        return this;
+      }
+      ValidateResourcePayload("Tr2ImageRes", payload, validateRgbaPayload);
       const values = {
         ...(options || {})
       };
-      if (dto && typeof dto === "object") {
-        if (dto.width !== undefined) values.width = dto.width;
-        if (dto.height !== undefined) values.height = dto.height;
-      }
+      values.width = payload.width;
+      values.height = payload.height;
+      super.SetPayload(payload);
       this.SetValues(values);
-      Object.assign(this, values);
       return this;
     }
 
@@ -80,9 +84,11 @@ new class extends _identity {
      * @returns {*}
      */
     GetPixelColor(x = 0, y = 0) {
-      const pixels = this.GetDTO()?.pixels;
-      if (!Array.isArray(pixels)) return null;
-      return pixels[y]?.[x] ?? null;
+      const payload = this.GetPayload();
+      if (!payload || !Number.isInteger(x) || !Number.isInteger(y) || x < 0 || y < 0 || x >= payload.width || y >= payload.height) return null;
+      const elementsPerRow = payload.strideBytes / payload.data.BYTES_PER_ELEMENT;
+      const offset = y * elementsPerRow + x * 4;
+      return Array.from(payload.data.subarray(offset, offset + 4));
     }
 
     /**

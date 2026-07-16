@@ -3,6 +3,7 @@
 // Source: trinity/trinity/Resources/Tr2EffectRes_Blue.cpp
 import { carbon, impl, io, type } from "@carbonenginejs/core-types/schema";
 import { CjsResource } from "../CjsResource.js";
+import { AssertResourcePayloadArray, AssertResourcePayloadObject } from "./resourceBoundary.js";
 
 /**
  * Tr2EffectRes resource record.
@@ -25,15 +26,22 @@ export class Tr2EffectRes extends CjsResource
   }
 
   /**
-   * Attach a shader/effect DTO.
+   * Attach a plain shader/effect payload.
    *
-   * @param {object|null} dto
+   * @param {object|null} payload
    * @param {object|null} options
    * @returns {Tr2EffectRes}
    */
-  SetDTO(dto = null, options = null)
+  SetPayload(payload = null, options = null)
   {
-    super.SetDTO(dto);
+    if (payload === null)
+    {
+      super.SetPayload(null);
+      return this;
+    }
+    AssertResourcePayloadObject("Tr2EffectRes", payload);
+    AssertResourcePayloadArray("Tr2EffectRes", payload, "permutations");
+    super.SetPayload(payload);
     this.SetValues(options || {});
     return this;
   }
@@ -47,7 +55,7 @@ export class Tr2EffectRes extends CjsResource
   @impl.adapted
   GetPermutationDescription()
   {
-    const permutations = this.GetDTO()?.permutations;
+    const permutations = this.GetPayload()?.permutations;
     return Array.isArray(permutations) ? permutations : [];
   }
 

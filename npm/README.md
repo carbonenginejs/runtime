@@ -11,16 +11,17 @@ This package owns the GPU-free resource layer:
   parameter behavior.
 - `CjsMotherLode` cache lookup/insert/delete/stats.
 - `CjsResMan` semantic resource construction, registered-format selection,
-  layered source/read/resource deduplication, object loader dispatch, and
-  prefetch.
+  concurrency-limited source loading, staged prepare queues, layered
+  source/read/resource deduplication, object loader dispatch, and prefetch.
 - Raw `CjsEventEmitter` from `core-types/model` for manager/runtime events
   without requiring `CjsModel` inheritance. External listeners unregister
   directly with `OffEvent`; listener scopes, owner-side `ListenTo` helpers,
   and a separate resource notification layer are not part of the contract.
 - Path normalization and extension helpers.
 - Source adapters for memory and `fetch`.
-- Optional DTO payload carriers for decoded format output under `src/dto`.
-- Canonical Carbon resource classes that hold DTO payloads privately:
+- Plain reader/converter payload objects with focused shared validators.
+- Canonical Carbon resource classes that validate and hold CPU payloads
+  privately:
   `TriTextureRes`, `TriGeometryRes`, `Tr2EffectRes`, `Tr2ImageRes`,
   `TriGrannyRes`, `Tr2GrannyStateRes`, and `Tr2LightProfileRes`.
 - Opaque engine-owned subobject slots for backend adapters.
@@ -57,6 +58,63 @@ const resMan = new CjsResMan().Register({
 const resource = resMan.GetResource("res:/video/intro.mp4");
 const video = await resource.Ready();
 ```
+
+Formats return plain payload objects. Semantic resource classes apply them
+through `SetPayload()`, validate their own required fields, and throw
+`CJS_RESOURCE_PAYLOAD_INVALID` before replacing a previously valid payload.
+`GetPayload()`, `HasPayload()`, and `ReleasePayload()` manage transient CPU
+retention without introducing a parallel DTO class hierarchy.
+
+## Queued load and staged prepare
+
+`GetObject()`, `LoadObject()`, and resource `Ready()` use two manager-owned
+queues:
+
+```text
+BACKGROUND: deduplicated source load, limited by maxConcurrentLoads
+MAIN:       read -> configured prepare stages -> resource publication
+```
+
+Each main-queue stage is a separate item. `maxPrepareTime` is a per-pump budget
+in seconds, and `maxPrepareItemsPerTick` can add an item-count limit. The
+default scheduler keeps promise-based calls working; a `CjsLibrary` or direct
+caller can provide its frame scheduler and default build behavior:
+
+```js
+const resMan = new CjsResMan({
+  source,
+  maxConcurrentLoads: 8,
+  maxPrepareTime: 0.005,
+  queueScheduler: callback => requestAnimationFrame(callback),
+  preparePipelines: {
+    cmf_test: {
+      default: true,
+      stages: [
+        {
+          name: "convert",
+          prepare: (payload, context) => convertToCmf(payload, context)
+        }
+      ]
+    }
+  }
+});
+
+await resMan.FetchResource("res:/model/ship.gr2", {
+  requirement: "geometry",
+  preparePipeline: "cmf_test"
+});
+```
+
+The library chooses the named pipeline from registered behavior and detected
+capabilities. `CjsResMan` executes that request; it does not inspect WebGL,
+WebGPU, texture, geometry, or codec support to select one. A request may
+override the default with `preparePipeline` or append direct `prepareStages`.
+
+Blue-compatible queue controls are exposed directly on `CjsResMan`:
+`AddToQueue`, `CancelFromQueue`, `GetNextIdForQueue`,
+`PumpMainThreadQueue`, `PauseQueue`, `ResumeQueue`, `GetPendingLoads`, and
+`GetPendingPrepares`. `Update()`/`Tick()` pump work, while `Wait()` is the
+method-level queue fence; no separate fence object is required.
 
 Format classes own input extensions. Resource classes are registered by a
 semantic requirement, never by file extension:

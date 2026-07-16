@@ -41,7 +41,7 @@ The Black and Red readers use the package-owned generated definition snapshot
 at `src/formats/black/core/black-schema-v1-2026-07-11.json`. It was copied from
 `format-carbon` revision `d2a3c67cf3d46e8ba78ca19e66558d868178ec24`
 with SHA-256
-`EA85977A187B6CA086CB1F52257CAB20421206130D915CBDA45DA56C203AB9E7`.
+`008ECB29E670EFC678B471A6EFF099600A29C2907912FC42B854995904604691`.
 
 This retained generated artifact keeps the published readers deterministic and
 browser-safe without a runtime dependency on a sibling checkout or an

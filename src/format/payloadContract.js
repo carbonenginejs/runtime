@@ -49,6 +49,10 @@ export function validateRgbaPayload(payload, options = null)
     {
         throw new RangeError("RGBA payload.data is shorter than the declared image rows.");
     }
+    if (value.strideBytes % value.data.BYTES_PER_ELEMENT !== 0)
+    {
+        throw new RangeError("RGBA payload.strideBytes must align to its typed-array elements.");
+    }
     assertEnum(value.origin, ResourcePayloadValues.imageOrigins, "RGBA payload.origin");
     assertEnum(value.colorSpace, ResourcePayloadValues.colorSpaces, "RGBA payload.colorSpace");
     assertEnum(value.alphaMode, ResourcePayloadValues.alphaModes, "RGBA payload.alphaMode");
@@ -79,7 +83,7 @@ export function validateTexturePayload(payload)
     }
     for (const [ index, subresource ] of value.subresources.entries())
     {
-        validateTextureSubresource(subresource, index);
+        validateTextureSubresource(subresource, index, value.data.byteLength);
     }
     return value;
 }
@@ -114,7 +118,7 @@ export function validateVideoPayload(payload)
     return value;
 }
 
-function validateTextureSubresource(value, index)
+function validateTextureSubresource(value, index, dataByteLength)
 {
     const prefix = `Texture payload.subresources[${index}]`;
     assertObject(value, prefix);
@@ -126,6 +130,10 @@ function validateTextureSubresource(value, index)
     assertPositiveOrZeroInteger(value.height, `${prefix}.height`);
     assertPositiveOrZeroInteger(value.rowPitch, `${prefix}.rowPitch`);
     assertPositiveOrZeroInteger(value.slicePitch, `${prefix}.slicePitch`);
+    if (value.offset + value.byteLength > dataByteLength)
+    {
+        throw new RangeError(`${prefix} exceeds Texture payload.data.`);
+    }
 }
 
 function assertObject(value, label)

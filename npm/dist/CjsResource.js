@@ -16,7 +16,7 @@ new class extends _identity {
         family: "resource"
       })], [[[type, type.path], 16, "path"], [[type, type.string], 16, "ext"], [[type, type.string], 16, "requirement"], [[type, type.string], 16, "state"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetPath"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetExt"], [[carbon, carbon.method, impl, impl.adapted], 18, "IsLoading"], [[carbon, carbon.method, impl, impl.adapted], 18, "HasLoaded"], [[carbon, carbon.method, impl, impl.adapted], 18, "IsPrepared"], [[carbon, carbon.method, impl, impl.adapted], 18, "IsGood"], [[carbon, carbon.method, impl, impl.adapted], 18, "IsFailed"]], 0, void 0, CjsEventEmitter));
     }
-    #dto = (_initProto(this), null);
+    #payload = (_initProto(this), null);
     path = _init_path(this, "");
     ext = (_init_extra_path(this), _init_ext(this, ""));
     requirement = (_init_extra_ext(this), _init_requirement(this, ""));
@@ -193,40 +193,42 @@ new class extends _identity {
     }
 
     /**
-     * Store the semantic DTO associated with this resource.
+     * Store the plain CPU payload associated with this resource.
+     * Concrete resource classes validate the fields they require before calling
+     * this method.
      *
-     * @param {*} dto
+     * @param {*} payload
      * @returns {CjsResource}
      */
-    SetDTO(dto = null) {
-      this.#dto = dto;
+    SetPayload(payload = null) {
+      this.#payload = payload;
       return this;
     }
 
     /**
-     * Read the semantic DTO associated with this resource.
+     * Read the plain CPU payload associated with this resource.
      *
      * @returns {*}
      */
-    GetDTO() {
-      return this.#dto;
+    GetPayload() {
+      return this.#payload;
     }
 
     /**
-     * Returns true when a DTO has been explicitly assigned.
+     * Returns true when a payload has been explicitly assigned.
      *
      * @returns {boolean}
      */
-    HasDTO() {
-      return !!this.#dto;
+    HasPayload() {
+      return this.#payload !== null && this.#payload !== undefined;
     }
 
     /**
-     * Release the complete DTO reference after consumers have retained the
+     * Release the complete payload reference after consumers have retained the
      * scalars and typed-array views they require.
      */
-    ReleaseDTO() {
-      this.#dto = null;
+    ReleasePayload() {
+      this.#payload = null;
       return this;
     }
 

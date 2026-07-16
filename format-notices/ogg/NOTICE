@@ -6,9 +6,23 @@ copyright their original CarbonEngine authors.
 Fenris Creations (CCP Games) source material, tools, assets, shader behavior,
 and EVE-related data remain copyright their original holders.
 
-This package is a standalone CarbonEngineJS-facing reader for Ogg container
-data. It contains original project code only unless this notice is expanded
-with third-party attribution.
+This package is a standalone CarbonEngineJS-facing reader and decoder for Ogg
+Vorbis data. Its implementation is original CarbonEngineJS project code except
+for the specifically attributed reference material below.
 CarbonEngine and Fenris Creations (CCP Games) are mentioned for
 interoperability, provenance, and future migration context only. This package is
 not affiliated with or endorsed by CCP Games.
+
+Third-party reference material
+------------------------------
+
+stb_vorbis
+Repository: https://github.com/nothings/stb/blob/master/stb_vorbis.c
+Author: Sean Barrett
+License: public domain or MIT, at the user's option
+
+The pure-JavaScript Vorbis decoder was implemented independently from the
+Vorbis I specification. `stb_vorbis` was consulted as a behavioral reference
+and is the source of the specification's floor1 `inverse_db_table` constants.
+No `stb_vorbis` implementation code is vendored or translated into this
+package.

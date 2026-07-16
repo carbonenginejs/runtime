@@ -1963,11 +1963,11 @@
       },
       "intensity": "float",
       "Enabled": {
-        "type": "rawObject",
+        "type": "rawStruct",
         "field": "enabled"
       },
       "#NAME": {
-        "type": "rawObject",
+        "type": "rawStruct",
         "field": "settings"
       },
       "volumes": "array"
@@ -2037,10 +2037,10 @@
         "enum": "OverrideInfo"
       },
       "intensity": "float",
-      "sunColor": "rawObject",
-      "sunIntensity": "rawObject",
-      "backgroundIntensity": "rawObject",
-      "reflectionIntensity": "rawObject",
+      "sunColor": "vector4",
+      "sunIntensity": "float",
+      "backgroundIntensity": "float",
+      "reflectionIntensity": "float",
       "volumes": "array"
     },
     "EveChildLineSet": {
@@ -2214,7 +2214,7 @@
       "name": "string",
       "display": "boolean",
       "effect": "object",
-      "color": "rawObject",
+      "color": "vector4",
       "brightness": "float",
       "rotation": "quaternion",
       "translation": "vector3",
@@ -2495,10 +2495,10 @@
       "secondaryLightingEmissiveColor": "color"
     },
     "EveEllipseDefinition": {
-      "center": "float",
+      "center": "vector3",
       "semiMajor": "float",
       "semiMinor": "float",
-      "planeNormal": "float",
+      "planeNormal": "vector3",
       "rotationDegrees": "float"
     },
     "EveEllipseSet": {
@@ -3702,7 +3702,7 @@
       "damage": "object",
       "hullDamage": "object",
       "swarm": "object",
-      "bannerShader": "rawObject",
+      "bannerShader": "rawStruct",
       "genericWreckMaterial": "object",
       "variants": "array",
       "visibilityGroups": "array",
@@ -5522,13 +5522,13 @@
       "value": "vector3"
     },
     "Tr2BoneMatrixCurve": {
-      "name": "rawObject",
-      "length": "rawObject",
-      "cycle": "rawObject",
-      "reversed": "rawObject",
-      "startValue": "rawObject",
-      "endValue": "rawObject",
-      "keys": "rawObject",
+      "name": "string",
+      "length": "float",
+      "cycle": "boolean",
+      "reversed": "boolean",
+      "startValue": "matrix4",
+      "endValue": "matrix4",
+      "keys": "array",
       "transform": "matrix4"
     },
     "Tr2BoundingLineSet": {
@@ -5875,7 +5875,7 @@
         "type": "enum",
         "enum": "PixelFormat"
       },
-      "creationFlags": "rawObject"
+      "creationFlags": "uint"
     },
     "Tr2GpuParticleSystem": {
       "emit": "object",
@@ -5991,7 +5991,7 @@
     "Tr2GpuStructuredBuffer": {
       "count": "uint",
       "stride": "uint",
-      "creationFlags": "rawObject"
+      "creationFlags": "uint"
     },
     "Tr2GpuUniqueEmitter": {
       "name": "string",
@@ -6150,7 +6150,7 @@
       "nodename": "string"
     },
     "Tr2HostBitmap": {
-      "name": "unknown"
+      "name": "string"
     },
     "Tr2ImageRes": {},
     "Tr2ImpostorManager": {
@@ -6239,9 +6239,9 @@
       "worldTransformUpdater": "object",
       "visualModel": "object",
       "transform": "object",
-      "lowDetailModel": "rawObject",
-      "mediumDetailModel": "rawObject",
-      "highDetailModel": "rawObject",
+      "lowDetailModel": "rawStruct",
+      "mediumDetailModel": "rawStruct",
+      "highDetailModel": "rawStruct",
       "useExplicitBounds": "boolean",
       "explicitMinBounds": "vector3",
       "explicitMaxBounds": "vector3",
@@ -6314,8 +6314,8 @@
       "value": "matrix4"
     },
     "Tr2MatrixKey": {
-      "time": "unknown",
-      "value": "unknown"
+      "time": "float",
+      "value": "matrix4"
     },
     "Tr2Mesh": {
       "name": "string",
@@ -6429,7 +6429,7 @@
       "forces": "array",
       "constraints": "array",
       "useSimTimeRebase": "boolean",
-      "maxParticleCount": "rawObject"
+      "maxParticleCount": "uint"
     },
     "Tr2ParticleTurbulenceForce": {
       "amplitude": "vector3",
@@ -6549,31 +6549,31 @@
         "token": "5"
       },
       "step1Tint": {
-        "type": "float",
+        "type": "vector4",
         "token": "0"
       },
       "step2Tint": {
-        "type": "float",
+        "type": "vector4",
         "index": 1,
         "token": "1"
       },
       "step3Tint": {
-        "type": "float",
+        "type": "vector4",
         "index": 2,
         "token": "2"
       },
       "step4Tint": {
-        "type": "float",
+        "type": "vector4",
         "index": 3,
         "token": "3"
       },
       "step5Tint": {
-        "type": "float",
+        "type": "vector4",
         "index": 4,
         "token": "4"
       },
       "step6Tint": {
-        "type": "float",
+        "type": "vector4",
         "index": 5,
         "token": "5"
       }
@@ -6677,7 +6677,7 @@
     },
     "Tr2PPTaaEffect": {},
     "Tr2PPTonemappingEffect": {
-      "method": "float",
+      "method": "int",
       "slope": "float",
       "toe": "float",
       "shoulder": "float",
@@ -6685,7 +6685,7 @@
       "whiteClip": "float",
       "scale": "float",
       "blueCorrection": "float",
-      "useSweeteners": "float",
+      "useSweeteners": "boolean",
       "shoulderStrength": "float",
       "linearStrength": "float",
       "linearAngle": "float",
@@ -6877,9 +6877,9 @@
       "worldTransformUpdater": "object",
       "visualModel": "object",
       "transform": "object",
-      "lowDetailModel": "rawObject",
-      "mediumDetailModel": "rawObject",
-      "highDetailModel": "rawObject",
+      "lowDetailModel": "rawStruct",
+      "mediumDetailModel": "rawStruct",
+      "highDetailModel": "rawStruct",
       "useExplicitBounds": "boolean",
       "explicitMinBounds": "vector3",
       "explicitMaxBounds": "vector3"
@@ -7106,10 +7106,10 @@
     "Tr2SSAO": {
       "zoomLevel": "float",
       "radius": "float",
-      "shadowMultiplier": "rawObject",
-      "shadowPower": "rawObject",
-      "shadowClamp": "rawObject",
-      "sharpness": "rawObject",
+      "shadowMultiplier": "float",
+      "shadowPower": "float",
+      "shadowClamp": "float",
+      "sharpness": "float",
       "cortaoEnabled": "boolean",
       "cortaoBentNormal": "boolean"
     },
@@ -7282,9 +7282,9 @@
     "Tr2VisibilityResults": {},
     "Tr2VolumetricsRenderer": {},
     "TriColor": {
-      "r": "object",
-      "g": "object",
-      "b": "object",
+      "r": "float",
+      "g": "float",
+      "b": "float",
       "a": "float"
     },
     "TriColorSequencer": {
@@ -7316,12 +7316,12 @@
         "type": "enum",
         "enum": "SwapEffect"
       },
-      "multiSampleType": "rawObject",
+      "multiSampleType": "uint",
       "presentationInterval": {
         "type": "enum",
         "enum": "Tr2PresentParametersAL"
       },
-      "multiSampleQuality": "rawObject",
+      "multiSampleQuality": "uint",
       "viewport": "object",
       "curveSets": "array"
     },
@@ -7350,21 +7350,21 @@
     "TriLineSet": {},
     "TriMatrix": {
       "_11": "float",
-      "_12": "rawObject",
-      "_13": "rawObject",
-      "_14": "rawObject",
-      "_21": "rawObject",
-      "_22": "rawObject",
-      "_23": "rawObject",
-      "_24": "rawObject",
-      "_31": "rawObject",
-      "_32": "rawObject",
-      "_33": "rawObject",
-      "_34": "rawObject",
-      "_41": "rawObject",
-      "_42": "rawObject",
-      "_43": "rawObject",
-      "_44": "rawObject"
+      "_12": "float",
+      "_13": "float",
+      "_14": "float",
+      "_21": "float",
+      "_22": "float",
+      "_23": "float",
+      "_24": "float",
+      "_31": "float",
+      "_32": "float",
+      "_33": "float",
+      "_34": "float",
+      "_41": "float",
+      "_42": "float",
+      "_43": "float",
+      "_44": "float"
     },
     "TriObserverLocal": {
       "name": "string",
@@ -7387,10 +7387,10 @@
     },
     "TriProjection": {},
     "TriQuaternion": {
-      "x": "rawObject",
-      "y": "rawObject",
-      "z": "rawObject",
-      "w": "rawObject"
+      "x": "float",
+      "y": "float",
+      "z": "float",
+      "w": "float"
     },
     "TriRect": {
       "left": "int",
@@ -7692,9 +7692,9 @@
       "variableName": "string"
     },
     "TriVector": {
-      "x": "vector3",
-      "y": "vector3",
-      "z": "vector3"
+      "x": "float",
+      "y": "float",
+      "z": "float"
     },
     "TriVector4": {
       "data": "vector4"

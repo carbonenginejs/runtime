@@ -47,20 +47,163 @@ LOADED -> PREPARING -> PREPARED
 Current state meanings:
 
 - `EMPTY`: resource identity exists, but no payload has been read.
-- `REQUESTED`: reserved for queued or scheduled load work.
-- `LOADING`: source read and format/object loading is active.
-- `LOADED`: CPU payload, DTO, or hydrated object graph exists.
+- `REQUESTED`: the resource is waiting on a queued or shared source load.
+- `LOADING`: source bytes are available and staged object preparation is active.
+- `LOADED`: CPU payload or hydrated object graph exists.
 - `PREPARING`: an engine adapter is realizing backend-owned resources.
 - `PREPARED`: preparation completed successfully and the resource is usable.
 - `FAILED`: load or prepare failed.
 - `UNLOADED`: resource payload was released.
 - `PURGED`: resource was purged from active ownership.
 
-`CjsResMan.LoadObject()` currently performs source reads immediately and does not
-yet implement ccpwgl-style queued raw loads or prepare budgets. For that reason
-it moves a resource from `LOADING` to `LOADED`, then stops. It must not mark the
-resource `PREPARED` or `GOOD`, because no engine adapter has performed backend
-preparation.
+`CjsResMan.LoadObject()` now queues one deduplicated background source operation
+per source/path and limits active source operations with `maxConcurrentLoads`.
+After bytes arrive, object construction is split into separate main-queue
+items:
+
+```text
+read -> registered/requested prepare stage 1 -> stage 2 -> ... -> publish
+```
+
+`maxPrepareTime` limits seconds spent starting synchronous main-queue work in
+one pump, and `maxPrepareItemsPerTick` can add a count limit. Promise-returning
+stages remain in flight without blocking the JavaScript event loop. Publication
+moves the resource to `LOADED`, then stops. It must not mark the resource
+`PREPARED` or `GOOD` unless an explicitly supplied preparation stage has
+actually completed backend realization and marked it accordingly.
+
+Named pipelines are registration/configuration, not capability policy.
+`CjsLibrary` or a direct caller determines the required output and selects a
+registered `preparePipeline`; `CjsResMan` executes the supplied stages without
+probing device support. Per-request `prepareStages` are explicit overrides.
+
+The Blue method names remain the public queue vocabulary: `AddToQueue`,
+`CancelFromQueue`, `GetNextIdForQueue`, `PumpMainThreadQueue`, `PauseQueue`,
+`ResumeQueue`, `GetPendingLoads`, and `GetPendingPrepares`. `Update()`/`Tick()`
+pump queues. `Wait()` provides a method-level fence until both queues become
+idle, rather than introducing a runtime fence resource.
+
+## CjsLibrary resource-path workflow
+
+The normal direct resource-path flow is:
+
+```text
+Application / runtime object
+        |
+        | requests "res:/model/ship.gr2"
+        | with optional per-request overrides
+        v
++-----------------------------------------------+
+| CjsLibrary                                    |
+|                                               |
+| - starts from registered default behavior     |
+| - considers registered capability reports     |
+| - chooses requirement / emit / pipeline       |
+| - applies explicit request overrides          |
++-----------------------------------------------+
+        |
+        | path + resolved request options
+        v
++-----------------------------------------------+
+| CjsResMan.GetResource(path, options)          |
+|                                               |
+| - normalize path and extension                |
+| - calculate requested resource variant        |
++-----------------------------------------------+
+        |
+        v
++-----------------------------------------------+
+| CjsMotherLode.Lookup(path, variant)            |
++-----------------------------------------------+
+        |
+        +--- cache hit ------------------------------+
+        |                                             |
+        |    reuse the CjsResource and any active     |
+        |    load/build operation                     |
+        |                                             |
+        `--- cache miss -----------------------------+
+              |                                       |
+              | resolve class from requirement        |
+              | construct + Initialize()              |
+              | insert into CjsMotherLode              |
+              v                                       |
+        new CjsResource -------------------------------+
+        |
+        | Ready() / GetObject()
+        v
++===============================================+
+| BACKGROUND LOAD QUEUE                         |
+|                                               |
+| - mark resource REQUESTED                     |
+| - share one source operation per source/path  |
+| - obey maxConcurrentLoads                     |
+| - source.Read(path)                           |
++===============================================+
+        |
+        | source bytes
+        v
++===============================================+
+| MAIN PREPARE QUEUE                            |
+|                                               |
+| every box below is a separately budgeted item |
++===============================================+
+        |
+        v
++-----------------------------------------------+
+| Read stage                                    |
+|                                               |
+| registered object loader for extension?       |
+|   yes -> call it                              |
+|   no  -> resolve registered format by         |
+|          extension + request options          |
++-----------------------------------------------+
+        |
+        | plain payload / hydrated object
+        v
++-----------------------------------------------+
+| Optional configured prepare stages            |
+|                                               |
+| stage 1 -> stage 2 -> ...                     |
+| examples: normalize, convert, adapt           |
++-----------------------------------------------+
+        |
+        | no configured stages skips this box
+        v
++-----------------------------------------------+
+| Publish stage                                 |
+|                                               |
+| semantic resource -> SetPayload(payload)      |
+| generic resource  -> resource.object = value  |
++-----------------------------------------------+
+        |
+        +--- validation failure --------------------+
+        |                                            |
+        |    resource -> FAILED                      |
+        |    Ready() rejects                         |
+        |                                            |
+        `--- publication succeeds -----------------+
+                    |
+                    | resource -> LOADED
+                    v
+             CjsLibrary returns
+             the built CjsResource/object
+```
+
+Device realization is a separate continuation selected outside ResMan:
+
+```text
+CjsResource LOADED
+        |
+        | selected engine adapter
+        v
+PREPARING -> attach opaque adapter resource -> PREPARED
+```
+
+With no named or direct prepare stages, the main queue reduces to:
+
+```text
+extension object-loader/format read -> validate -> publish
+```
 
 ## Texture Array Generations
 
@@ -101,15 +244,15 @@ topology after destroying an unusable adapter allocation. Topology snapshots
 report an explicit `topologyChanged` flag and contain only valid current dirty
 layer indices.
 
-## Missing Runtime Manager Work
+## Remaining Runtime Manager Work
 
-`CjsResMan` and `CjsMotherLode` are intentionally thin today. They do not yet
-cover several browser/runtime concerns that ccpwgl handles:
+The first load/prepare queue slice is implemented. `CjsResMan` and
+`CjsMotherLode` still do not cover several browser/runtime concerns that
+ccpwgl handles:
 
-- queued source/object loading
-- max concurrent load limits
-- per-frame prepare budgets
-- pending-load tracking
+- prepare priority and starvation policy
+- cancellation/abort propagation for work that has already started
+- queue-time and stage-time telemetry
 - `KeepAlive()` style active-frame updates
 - automatic purge windows for inactive resources
 - reload policy
@@ -150,7 +293,8 @@ or shader graph can be expensive even before an engine adapter prepares it.
 Runtime-resource should therefore support separate retention policy for:
 
 - resource identity: path, extension, state, error summary, lightweight metadata.
-- CPU payload: DTOs, hydrated object graphs, decoded typed arrays.
+- CPU payload: plain reader/converter objects, hydrated object graphs, decoded
+  typed arrays.
 - adapter payload: WebGL/WebGPU textures, buffers, shader modules, pipelines.
 
 A sane default would keep resource identity and lightweight metadata while
@@ -159,55 +303,59 @@ adapters should own adapter-resource destruction, but `runtime-resource` can
 provide lifecycle hooks and opaque adapter slots so the adapter has a consistent
 place to clean up.
 
-### DTO Retention Contract
+### Payload Retention Contract
 
-DTOs are transient semantic payloads, not the resource itself. A DTO may contain
-more decoded data than a particular resource or engine adapter needs. The
-resource should retain the scalars and references it requires; an adapter may
-retain additional references in adapter-owned state. Referencing DTO-owned typed
-arrays is valid and preferable to copying them merely to change ownership.
+Reader and converter outputs are plain transient payload objects, not resource
+classes or DTO models. A payload may contain more decoded data than a particular
+resource or engine adapter needs. Each concrete resource validates the fields
+it requires before publishing the payload and retains the scalars and references
+it needs. An adapter may retain additional references in adapter-owned state.
+Referencing payload-owned typed arrays is valid and preferable to copying them
+merely to change ownership.
 
-The target lifecycle treats resource residency and DTO residency independently:
+The lifecycle treats resource residency and payload residency independently:
 
 ```text
 resource.KeepAlive()
     -> renew resource/cache residency
 
-resource.KeepDTOAlive()
-    -> renew the attached DTO lease
+resource.KeepPayloadAlive()
+    -> renew the attached payload lease
 
-resource.ReleaseDTO()
-    -> explicitly release the full DTO reference
+resource.ReleasePayload()
+    -> explicitly release the full payload reference
 ```
 
-`ReleaseDTO()` is implemented; `KeepDTOAlive()` remains target behavior.
-`GetDTO()` and `HasDTO()` should remain pure queries; reading the DTO
+`ReleasePayload()` is implemented; `KeepPayloadAlive()` remains target
+behavior. `GetPayload()` and `HasPayload()` are pure queries; reading the payload
 must not implicitly renew its lease.
 
-The processor preparing a resource decides when the full DTO can be released:
+The processor preparing a resource decides when the full payload can be
+released:
 
 ```text
-format reader -> DTO -> resource apply + adapter prepare
-                            |
-                            +-> resource retains required values/references
-                            +-> adapter retains adapter-specific state/references
-                            +-> release DTO after successful preparation
-                            `-> or renew its lease for deferred/further work
+format reader -> plain payload -> resource validation + adapter prepare
+                                   |
+                                   +-> resource retains required values/references
+                                   +-> adapter retains adapter-specific state/references
+                                   +-> release payload after successful preparation
+                                   `-> or renew its lease for deferred/further work
 ```
 
-A time-based lease is a fallback against abandoned DTOs. An owner performing
-deferred work can renew the lease. If the DTO has expired and is required again,
-the manager reloads the source and reconstructs it. Dynamic or non-reloadable
-resources must retain or be able to recreate any payload they still require.
+A time-based lease is a fallback against abandoned payloads. An owner performing
+deferred work can renew the lease. If the payload has expired and is required
+again, the manager reloads the source and reconstructs it. Dynamic or
+non-reloadable resources must retain or be able to recreate any payload they
+still require.
 
-DTO references are shared read-only by default. Preparing WebGL and WebGPU
-adapters side by side should normally pass the same DTO to both consumers and
-retain it until both have finished. Copying is an explicit consumer operation,
-justified when a consumer must mutate data, transfer and detach an `ArrayBuffer`,
-or retain an independently writable snapshot. The consumer should copy only the
-fields it requires; runtime-resource should not automatically deep-clone entire
-DTOs or typed-array bundles. Any full-copy operation should be DTO/format-aware
-rather than a generic resource-side clone.
+Payload references are shared read-only by default. Preparing WebGL and WebGPU
+adapters side by side should normally pass the same payload to both consumers
+and retain it until both have finished. Copying is an explicit consumer
+operation, justified when a consumer must mutate data, transfer and detach an
+`ArrayBuffer`, or retain an independently writable snapshot. The consumer
+should copy only the fields it requires; runtime-resource should not
+automatically deep-clone entire payload or typed-array bundles. Any full-copy
+operation should be format-aware rather than a generic resource-side clone.
 
 Open design questions:
 
@@ -327,8 +475,9 @@ stopping before GPU work:
   directly hydrate the requested runtime class or return another requested
   outcome.
 - `runtime-resource` stores lifecycle state, cache entries, and loaded object
-  payloads. DTOs are normally transient prepare inputs; the resource or adapter
-  retains only what it requires, by reference or by explicit copy.
+  payloads. Plain reader results are normally transient prepare inputs; the
+  resource or adapter retains only what it requires, by reference or by
+  explicit copy.
 - Frozen standalone non-shader `format-*` packages remain compatibility
   distributions. GR2 and all shader formats remain separate packages for now.
 - engine packages create WebGL/WebGPU textures, buffers, shader modules,

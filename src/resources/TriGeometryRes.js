@@ -3,7 +3,12 @@
 // Source: trinity/trinity/Resources/TriGeometryRes_Blue.cpp
 import { carbon, impl, io, type } from "@carbonenginejs/core-types/schema";
 import { CjsResource } from "../CjsResource.js";
-import { CarbonStubError } from "./resourceBoundary.js";
+import {
+  AssertResourcePayloadArray,
+  AssertResourcePayloadObject,
+  CarbonStubError,
+  ResourcePayloadError
+} from "./resourceBoundary.js";
 
 /**
  * TriGeometryRes resource record.
@@ -38,15 +43,29 @@ export class TriGeometryRes extends CjsResource
   }
 
   /**
-   * Attach a geometry DTO.
+   * Attach a plain geometry payload.
    *
-   * @param {object|null} dto
+   * @param {object|null} payload
    * @param {object|null} options
    * @returns {TriGeometryRes}
    */
-  SetDTO(dto = null, options = null)
+  SetPayload(payload = null, options = null)
   {
-    super.SetDTO(dto);
+    if (payload === null)
+    {
+      super.SetPayload(null);
+      return this;
+    }
+    AssertResourcePayloadObject("TriGeometryRes", payload);
+    AssertResourcePayloadArray("TriGeometryRes", payload, "meshes");
+    for (const field of [ "skeletons", "animations" ])
+    {
+      if (payload[field] !== undefined && !Array.isArray(payload[field]))
+      {
+        throw ResourcePayloadError("TriGeometryRes", "Expected an array when provided.", field);
+      }
+    }
+    super.SetPayload(payload);
     this.SetValues(options || {});
     return this;
   }
@@ -60,11 +79,11 @@ export class TriGeometryRes extends CjsResource
   @impl.adapted
   GetMeshCount()
   {
-    return this.GetDTO()?.meshes?.length || 0;
+    return this.GetPayload()?.meshes?.length || 0;
   }
 
   /**
-   * Get animation count from the CPU geometry DTO.
+   * Get animation count from the CPU geometry payload.
    *
    * @returns {number}
    */
@@ -72,7 +91,7 @@ export class TriGeometryRes extends CjsResource
   @impl.adapted
   GetAnimationCount()
   {
-    return this.GetDTO()?.animations?.length || 0;
+    return this.GetPayload()?.animations?.length || 0;
   }
 
   /**
@@ -85,7 +104,7 @@ export class TriGeometryRes extends CjsResource
   @impl.adapted
   GetMeshAreaCount(meshIndex = 0)
   {
-    const mesh = this.GetDTO()?.meshes?.[meshIndex];
+    const mesh = this.GetPayload()?.meshes?.[meshIndex];
     return mesh?.areas?.length || 0;
   }
 
@@ -99,7 +118,7 @@ export class TriGeometryRes extends CjsResource
   @impl.adapted
   GetMeshName(meshIndex = 0)
   {
-    return this.GetDTO()?.meshes?.[meshIndex]?.name || "";
+    return this.GetPayload()?.meshes?.[meshIndex]?.name || "";
   }
 
   /**
@@ -113,7 +132,7 @@ export class TriGeometryRes extends CjsResource
   @impl.adapted
   GetMeshAreaName(meshIndex = 0, areaIndex = 0)
   {
-    return this.GetDTO()?.meshes?.[meshIndex]?.areas?.[areaIndex]?.name || "";
+    return this.GetPayload()?.meshes?.[meshIndex]?.areas?.[areaIndex]?.name || "";
   }
 
   /**
@@ -127,7 +146,7 @@ export class TriGeometryRes extends CjsResource
   @impl.adapted
   GetAreaBoundingBox(meshIndex = 0, areaIndex = 0)
   {
-    return this.GetDTO()?.meshes?.[meshIndex]?.areas?.[areaIndex]?.bounds || null;
+    return this.GetPayload()?.meshes?.[meshIndex]?.areas?.[areaIndex]?.bounds || null;
   }
 
   /**
@@ -141,7 +160,7 @@ export class TriGeometryRes extends CjsResource
   @impl.adapted
   GetBoundingBox(meshIndex = 0)
   {
-    return this.GetDTO()?.meshes?.[meshIndex]?.bounds || this.GetDTO()?.bounds || null;
+    return this.GetPayload()?.meshes?.[meshIndex]?.bounds || this.GetPayload()?.bounds || null;
   }
 
   /**
@@ -155,7 +174,7 @@ export class TriGeometryRes extends CjsResource
   @impl.adapted
   GetBoundingSphere(meshIndex = 0)
   {
-    return this.GetDTO()?.meshes?.[meshIndex]?.sphere || this.GetDTO()?.sphere || null;
+    return this.GetPayload()?.meshes?.[meshIndex]?.sphere || this.GetPayload()?.sphere || null;
   }
 
   /**
@@ -227,7 +246,7 @@ export class TriGeometryRes extends CjsResource
   @impl.adapted
   GetMeshVertexElements(meshIndex = 0)
   {
-    return this.GetDTO()?.meshes?.[meshIndex]?.vertexElements || [];
+    return this.GetPayload()?.meshes?.[meshIndex]?.vertexElements || [];
   }
 
   /**

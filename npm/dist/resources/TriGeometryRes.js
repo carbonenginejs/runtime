@@ -1,7 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/core-types/schema';
 import { CjsResource as _CjsResource } from '../CjsResource.js';
-import { CarbonStubError } from './resourceBoundary.js';
+import { AssertResourcePayloadObject, AssertResourcePayloadArray, ResourcePayloadError, CarbonStubError } from './resourceBoundary.js';
 
 let _initProto, _initClass, _init_forceLod, _init_extra_forceLod, _init_forcedLodIndex, _init_extra_forcedLodIndex, _init_name, _init_extra_name;
 
@@ -36,14 +36,25 @@ new class extends _identity {
     }
 
     /**
-     * Attach a geometry DTO.
+     * Attach a plain geometry payload.
      *
-     * @param {object|null} dto
+     * @param {object|null} payload
      * @param {object|null} options
      * @returns {TriGeometryRes}
      */
-    SetDTO(dto = null, options = null) {
-      super.SetDTO(dto);
+    SetPayload(payload = null, options = null) {
+      if (payload === null) {
+        super.SetPayload(null);
+        return this;
+      }
+      AssertResourcePayloadObject("TriGeometryRes", payload);
+      AssertResourcePayloadArray("TriGeometryRes", payload, "meshes");
+      for (const field of ["skeletons", "animations"]) {
+        if (payload[field] !== undefined && !Array.isArray(payload[field])) {
+          throw ResourcePayloadError("TriGeometryRes", "Expected an array when provided.", field);
+        }
+      }
+      super.SetPayload(payload);
       this.SetValues(options || {});
       return this;
     }
@@ -54,16 +65,16 @@ new class extends _identity {
      * @returns {number}
      */
     GetMeshCount() {
-      return this.GetDTO()?.meshes?.length || 0;
+      return this.GetPayload()?.meshes?.length || 0;
     }
 
     /**
-     * Get animation count from the CPU geometry DTO.
+     * Get animation count from the CPU geometry payload.
      *
      * @returns {number}
      */
     GetAnimationCount() {
-      return this.GetDTO()?.animations?.length || 0;
+      return this.GetPayload()?.animations?.length || 0;
     }
 
     /**
@@ -73,7 +84,7 @@ new class extends _identity {
      * @returns {number}
      */
     GetMeshAreaCount(meshIndex = 0) {
-      const mesh = this.GetDTO()?.meshes?.[meshIndex];
+      const mesh = this.GetPayload()?.meshes?.[meshIndex];
       return mesh?.areas?.length || 0;
     }
 
@@ -84,7 +95,7 @@ new class extends _identity {
      * @returns {string}
      */
     GetMeshName(meshIndex = 0) {
-      return this.GetDTO()?.meshes?.[meshIndex]?.name || "";
+      return this.GetPayload()?.meshes?.[meshIndex]?.name || "";
     }
 
     /**
@@ -95,7 +106,7 @@ new class extends _identity {
      * @returns {string}
      */
     GetMeshAreaName(meshIndex = 0, areaIndex = 0) {
-      return this.GetDTO()?.meshes?.[meshIndex]?.areas?.[areaIndex]?.name || "";
+      return this.GetPayload()?.meshes?.[meshIndex]?.areas?.[areaIndex]?.name || "";
     }
 
     /**
@@ -106,7 +117,7 @@ new class extends _identity {
      * @returns {*}
      */
     GetAreaBoundingBox(meshIndex = 0, areaIndex = 0) {
-      return this.GetDTO()?.meshes?.[meshIndex]?.areas?.[areaIndex]?.bounds || null;
+      return this.GetPayload()?.meshes?.[meshIndex]?.areas?.[areaIndex]?.bounds || null;
     }
 
     /**
@@ -117,7 +128,7 @@ new class extends _identity {
      * @returns {*}
      */
     GetBoundingBox(meshIndex = 0) {
-      return this.GetDTO()?.meshes?.[meshIndex]?.bounds || this.GetDTO()?.bounds || null;
+      return this.GetPayload()?.meshes?.[meshIndex]?.bounds || this.GetPayload()?.bounds || null;
     }
 
     /**
@@ -128,7 +139,7 @@ new class extends _identity {
      * @returns {*}
      */
     GetBoundingSphere(meshIndex = 0) {
-      return this.GetDTO()?.meshes?.[meshIndex]?.sphere || this.GetDTO()?.sphere || null;
+      return this.GetPayload()?.meshes?.[meshIndex]?.sphere || this.GetPayload()?.sphere || null;
     }
 
     /**
@@ -183,7 +194,7 @@ new class extends _identity {
      * @returns {Array<*>}
      */
     GetMeshVertexElements(meshIndex = 0) {
-      return this.GetDTO()?.meshes?.[meshIndex]?.vertexElements || [];
+      return this.GetPayload()?.meshes?.[meshIndex]?.vertexElements || [];
     }
 
     /**

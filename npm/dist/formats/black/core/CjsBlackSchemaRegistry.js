@@ -305,7 +305,7 @@ class CjsBlackSchemaRegistry {
         return CjsBlackSchemaRegistry.compactBlackType("IROOTPTR", {
           kind: "objectRef"
         });
-      case "rawObject":
+      case "rawStruct":
         return CjsBlackSchemaRegistry.compactBlackType("IROOT", {
           kind: "rawStruct"
         });

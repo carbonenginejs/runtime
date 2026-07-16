@@ -1,13 +1,6 @@
 export { CjsResourceState, isTerminalResourceState } from './resourceStates.js';
 export { getResourceExtension, normalizeResourceExtension, normalizeResourcePath } from './resourcePath.js';
 export { CjsResource } from './CjsResource.js';
-export { CjsObjectDTO } from './dto/CjsObjectDTO.js';
-export { CjsGeometryDTO } from './dto/CjsGeometryDTO.js';
-export { CjsImageDTO } from './dto/CjsImageDTO.js';
-export { CjsTextureDTO } from './dto/CjsTextureDTO.js';
-export { CjsVideoDTO } from './dto/CjsVideoDTO.js';
-export { CjsShaderDTO } from './dto/CjsShaderDTO.js';
-export { CjsAudioDTO } from './dto/CjsAudioDTO.js';
 export { TriTextureRes } from './resources/TriTextureRes.js';
 export { TriGeometryRes } from './resources/TriGeometryRes.js';
 export { Tr2EffectRes } from './resources/Tr2EffectRes.js';
@@ -54,5 +47,6 @@ export { CjsFormat, ValidateFormatContract } from './format/CjsFormat.js';
 export { CjsEventEmitter } from '@carbonenginejs/core-types/model';
 export { CjsMotherLode } from './CjsMotherLode.js';
 export { CjsFetchResourceSource, CjsMemoryResourceSource } from './CjsResourceSource.js';
+export { CjsResManQueue } from './CjsResManQueue.js';
 export { CjsResMan } from './CjsResMan.js';
 //# sourceMappingURL=index.js.map
