@@ -9,7 +9,8 @@ This package owns the GPU-free resource layer:
 - `CjsTextureArrayRes` and `CjsTextureParameterProxy` for material-facing,
   frame-coalesced texture-array inputs without changing ordinary texture
   parameter behavior.
-- `CjsMotherLode` cache lookup/insert/delete/stats.
+- `CjsMotherLode` canonical identity, explicit replacement results, activity
+  and lock metadata, deterministic payload/adapter cleanup, and cache stats.
 - `CjsResMan` semantic resource construction, registered-format selection,
   concurrency-limited source loading, staged prepare queues, layered
   source/read/resource deduplication, object loader dispatch, and prefetch.
@@ -73,6 +74,145 @@ so remap the marker options when those names are real data. Disabling the
 reference marker preserves actual JavaScript identity; cyclic output in that
 mode is intentionally not JSON-serializable.
 
+## STL export
+
+`CjsStlFormat` writes shared geometry directly to binary or ASCII STL. The
+writer consumes `mesh.vertex.position` and triangular `mesh.indices[].faces`;
+multiple meshes and index groups are flattened in encounter order because STL
+does not carry portable scene, material, skin, or animation structure.
+
+```js
+import { CjsStlFormat } from "@carbonenginejs/runtime-resource/formats/stl";
+
+const bytes = CjsStlFormat.write(sharedGeometry, {
+  binary: true,
+  solidName: "ship_hull",
+  scale: 1000,
+  requireWatertight: true
+});
+```
+
+Writes do not mutate the shared input. Facet normals are recalculated from
+winding by default; set `recalculateNormals: false` to average valid vertex
+normals. Degenerate triangles are skipped by default. Index values must be safe
+integers within the position channel, and binary output rejects coordinates
+outside float32 range instead of silently emitting infinities. The
+`requireWatertight` option rejects open, non-manifold, inconsistently wound, or
+degenerate output.
+
+## MotherLode ownership
+
+`CjsResMan` resolves each normalized path and build variant to one canonical
+MotherLode key. `Insert(key, resource, options)` reports `{ inserted, replaced,
+displaced }`; replacement, deletion, clearing, and shutdown destroy attached
+adapter allocations and release the complete CPU payload by default. Callers
+that deliberately retain ownership may pass `{ cleanup: false }` and keep the
+returned displaced resource. If replacement cleanup fails, insertion throws a
+contextual error and leaves the existing owner registered. These ordinary
+ownership removals preserve the handle's last resource state; `PURGED` is
+reserved for successful inactivity-based identity expiry.
+
+`Startup()` and `Shutdown()` are idempotent. `HasKey`, `Lookup`, `Delete`,
+`GetKeys`, `GetValues`, `GetSize`, `SetCacheSize`, `GetCacheSize`, `GetStats`,
+`Clear`, and `ClearCached` provide the Carbon-shaped cache vocabulary. The old
+`Has`, `GetCount`, and `DeleteAll` names remain temporary compatibility aliases.
+
+`CjsResMan` binds resource-facing `KeepAlive`, `KeepPayloadAlive`, `Lock`, and
+`Unlock` operations to the canonical key. Publishing a non-null payload renews
+its independent lease; `GetPayload()`, `HasPayload()`, `IsGood()`, and other
+queries remain pure. `PurgeInactive(options)` performs an explicit deterministic
+sweep using independent identity and payload frame/time limits. Locks skip both
+forms of eviction. Identity expiry cleans adapters and payloads, detaches the
+handle, marks it `PURGED`, and removes it; payload expiry releases only the CPU
+payload. A sweep never fetches, prepares, or reloads a resource.
+
+Generic/base reader results participate in the same payload ownership: the
+manager stores the complete result through `SetPayload()` and mirrors it on the
+compatibility `object` property. Payload release clears that alias only while
+it still identifies the released value. Concurrent object/readiness calls
+share only their in-flight operation; settled promises are removed so evicted
+graphs are collectible and failed operations can be explicitly retried. A
+resident payload returns without rereading, while a released payload is rebuilt
+only by an explicit `GetObject()` or `Ready()` call.
+
+Source and parsed-format caches use explicit provenance. `sourceRevision` is an
+opaque caller/source-supplied string or finite number identifying source
+content for one source object and normalized path. It scopes read caches only;
+it does not alter MotherLode/build identity, and changing it does not replace a
+resident payload without `reload: true`.
+
+`cacheSource` and `cacheFormat` are tri-state per-call policies:
+
+- omitted: share in-flight or explicitly retained work, then drop a newly
+  completed record;
+- `true`: share and retain success; a joining caller upgrades the record;
+- `false`: bypass sharing and retention.
+
+Failures are never retained. Format records are additionally isolated by
+selected source object, frozen registration descriptor, revision, and effective
+format options. Re-registering a format with new defaults therefore cannot
+reuse an old descriptor's parse. Registered defaults are copied into deeply
+frozen plain-object/array snapshots. Material format options that cannot be
+represented safely (for example class instances with hidden mutable state)
+bypass format-cache sharing instead of risking a false match; functions and
+byte views use cache-local identity plus visible byte content where applicable.
+
+`reload: true` synchronously detaches every queued/source/format read record for
+the selected source/path before fresh work starts. Existing consumers keep
+their detached promises; reload does not abort them. Fresh success repopulates
+only caches explicitly requested with `cacheSource: true` or
+`cacheFormat: true`. `InvalidateReadCache(path, { source, sourceRevision })`
+provides the same no-abort invalidation explicitly; omitting `sourceRevision`
+removes all revisions for that source/path. `Delete()` remains canonical
+resource-identity-only, while `Clear()` resets all read ledgers.
+
+A resource loader retains the effective selected source and `sourceRevision`
+for reconstruction, including the manager default selected at creation, but
+not cache flags or one-shot reload. `FetchResource({ reload: true })` consumes
+reload at its initial replacement and returns that current canonical handle.
+Every queued, direct, and standalone resource preparation captures the exact
+MotherLode, canonical key, resource handle, and manager-local ownership
+generation. Delete, Clear, reload replacement, or handle reinsertion makes old
+work stale before it can enter another state/stage or publish. Otherwise-
+successful obsolete work rejects with `CJS_RESMAN_STALE_RESOURCE_OPERATION`;
+an obsolete source/stage failure preserves its original rejection while
+suppressing `SetError()` on the detached handle.
+
+MotherLode replacement is synchronous configuration and rejects with
+`CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS` while queued or direct mutations are
+active. `Wait()` drains queued roots; callers must separately await direct load
+or direct prepare promises before retrying replacement. Started work is not yet
+aborted, arbitrary stage candidates have no generic external cleanup hook, and
+reload still replaces the canonical handle before its new load succeeds, so
+candidate-first atomic reload remains open.
+
+Automatic scheduling is available only when a caller supplies
+`autoPurgePolicy` to the constructor/`Register()` or calls
+`SetAutoPurgePolicy()`. It is disabled by default and deliberately accepts only
+millisecond limits: MotherLode activity frames count explicit observations and
+are not renderer frames. `Update()`/`Tick()` run a due sweep after queue pumps;
+`{ purge: false }` skips it for one call. The first pump after configuration is
+due immediately, then `intervalMilliseconds` limits cadence. Manager-owned
+queued and direct resource work holds a balanced purge lock until completion.
+
+```js
+const resMan = new CjsResMan({
+  source,
+  autoPurgePolicy: {
+    intervalMilliseconds: 1000,
+    maxIdleMilliseconds: 60_000,
+    payloadMaxIdleMilliseconds: 10_000
+  }
+});
+
+resMan.Update();
+```
+
+Automatic sweeps retain the manual sweep's strict no-reload rule. Application
+defaults, byte-budget eviction, and explicit reload/recovery policy remain
+later work. Configuring `cacheSize` records diagnostics only and does not
+currently trigger eviction.
+
 ## Queued load and staged prepare
 
 `GetObject()`, `LoadObject()`, and resource `Ready()` use two manager-owned
@@ -121,8 +261,23 @@ override the default with `preparePipeline` or append direct `prepareStages`.
 Blue-compatible queue controls are exposed directly on `CjsResMan`:
 `AddToQueue`, `CancelFromQueue`, `GetNextIdForQueue`,
 `PumpMainThreadQueue`, `PauseQueue`, `ResumeQueue`, `GetPendingLoads`, and
-`GetPendingPrepares`. `Update()`/`Tick()` pump work, while `Wait()` is the
-method-level queue fence; no separate fence object is required.
+`GetPendingPrepares`. `Update()`/`Tick()` pump work. `Wait()` synchronously
+captures queued resource-operation roots and low-level queue tasks that already
+exist when it is called. Captured resource roots include
+prepare descendants enqueued later; unrelated later roots/tasks do not postpone
+the fence. Failure and queued cancellation count as settlement and remain
+observable through their original operation promises.
+
+By default `Wait()` pumps the two queues directly within their ordinary budgets
+and never runs automatic purge housekeeping. It preserves pause state;
+`{ pump: false }` leaves all progress to an external driver. A standalone
+canonical `PrepareResourceObjectQueued()` call is a queued root. Direct
+`LoadResourceObject()`, direct `PrepareResourceObject()`, standalone
+`ReadResource()`, and standalone `ReadFormatOnce()` calls bypass both queues
+and are outside this fence unless they own a captured queue task, although
+direct resource mutations are still tracked for safe MotherLode replacement.
+`WaitUrgent()` remains deferred until the queue has real per-item priority and
+urgent-membership semantics.
 
 Format classes own input extensions. Resource classes are registered by a
 semantic requirement, never by file extension:

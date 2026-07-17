@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { CjsMotherLode } from "../npm/dist/CjsMotherLode.js";
 import { CjsResMan } from "../npm/dist/CjsResMan.js";
+import { CjsResource } from "../npm/dist/CjsResource.js";
 import { CjsResManQueue as RootCjsResManQueue } from "../npm/dist/index.js";
 import {
   CjsResManQueue,
@@ -193,9 +195,558 @@ test("resource variants share one queued source-load slot", async () => {
   assert.equal(reads, 1);
 });
 
+test("Wait captures dynamic resource descendants and excludes later queue tasks", async () => {
+  const stageReleases = [];
+  let releaseLaterTask;
+  const resMan = new CjsResMan({
+    autoPumpMainThreadQueue: false,
+    maxConcurrentLoads: 2,
+    source: { Read() { return new Uint8Array([ 5 ]); } },
+    preparePipelines: {
+      waited: {
+        default: true,
+        stages: [ "first", "second" ].map(name => ({
+          name,
+          prepare(value) {
+            return new Promise(resolve => stageReleases.push(() => resolve({ ...value, [name]: true })));
+          }
+        }))
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("bin", bytes => ({ bytes }));
+
+  const operation = resMan.LoadObject("res:/queue/wait-lineage.bin");
+  let waitSettled = false;
+  const fence = resMan.Wait().then(value => {
+    waitSettled = true;
+    return value;
+  });
+  const laterTask = resMan.QueueTask(CjsResManQueue.BACKGROUND, () =>
+    new Promise(resolve => { releaseLaterTask = resolve; }));
+
+  await WaitUntil(() => stageReleases.length === 1 && typeof releaseLaterTask === "function");
+  assert.equal(waitSettled, false);
+  stageReleases.shift()();
+  await WaitUntil(() => stageReleases.length === 1);
+  assert.equal(waitSettled, false);
+  stageReleases.shift()();
+
+  assert.equal(await fence, resMan);
+  const value = await operation;
+  assert.equal(value.first, true);
+  assert.equal(value.second, true);
+  assert.equal(waitSettled, true);
+  assert.equal(resMan.GetQueueStats(CjsResManQueue.BACKGROUND).active, 1);
+
+  releaseLaterTask();
+  await laterTask.promise;
+});
+
+test("concurrent Wait calls preserve distinct task snapshot boundaries", async () => {
+  const releases = [];
+  const resMan = new CjsResMan({ autoPumpMainThreadQueue: false });
+  const first = resMan.QueueTask(CjsResManQueue.MAIN, () =>
+    new Promise(resolve => releases.push(resolve)));
+  const firstFence = resMan.Wait({ pump: false });
+  const second = resMan.QueueTask(CjsResManQueue.MAIN, () =>
+    new Promise(resolve => releases.push(resolve)));
+  let secondFenceSettled = false;
+  const secondFence = resMan.Wait({ pump: false }).then(value => {
+    secondFenceSettled = true;
+    return value;
+  });
+
+  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1 }), true);
+  releases.shift()();
+  await first.promise;
+  assert.equal(await firstFence, resMan);
+  assert.equal(secondFenceSettled, false);
+  assert.equal(resMan.GetQueueStats(CjsResManQueue.MAIN).queued, 1);
+
+  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1 }), true);
+  releases.shift()();
+  await second.promise;
+  assert.equal(await secondFence, resMan);
+});
+
+test("Wait treats captured queue failure and cancellation as settlement", async () => {
+  const resMan = new CjsResMan({ autoPumpMainThreadQueue: false });
+  const failing = resMan.QueueTask(CjsResManQueue.MAIN, () => {
+    throw new Error("expected wait failure");
+  });
+  const cancelled = resMan.QueueTask(CjsResManQueue.MAIN, () => "not run");
+  const failingAssertion = assert.rejects(failing.promise, /expected wait failure/u);
+  const cancelledAssertion = assert.rejects(
+    cancelled.promise,
+    error => error.code === "CJS_RESMAN_QUEUE_CANCELLED"
+  );
+  const fence = resMan.Wait({ pump: false });
+
+  assert.equal(resMan.CancelFromQueue(CjsResManQueue.MAIN, cancelled.id, "wait test"), true);
+  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1 }), true);
+  await Promise.all([ failingAssertion, cancelledAssertion ]);
+  assert.equal(await fence, resMan);
+});
+
+test("Wait resolves after a captured resource lineage fails", async () => {
+  const resMan = new CjsResMan({
+    autoPumpMainThreadQueue: false,
+    source: { Read() { return new Uint8Array([ 1 ]); } }
+  });
+  resMan.RegisterObjectLoader("bin", () => {
+    throw new Error("expected resource-stage failure");
+  });
+
+  const operation = resMan.LoadObject("res:/queue/wait-failure.bin");
+  const operationFailure = assert.rejects(operation, /expected resource-stage failure/u);
+  const fence = resMan.Wait();
+  await operationFailure;
+  assert.equal(await fence, resMan);
+  assert.equal(resMan.Lookup("res:/queue/wait-failure.bin").IsFailed(), true);
+});
+
+test("Clear cancellation settles an already captured resource lineage", async () => {
+  const resMan = new CjsResMan({
+    autoPumpMainThreadQueue: false,
+    source: { Read() { return new Uint8Array([ 1 ]); } }
+  });
+  resMan.PauseQueue(CjsResManQueue.BACKGROUND);
+  const operation = resMan.LoadObject("res:/queue/wait-clear.bin");
+  const resource = resMan.Lookup("res:/queue/wait-clear.bin");
+  const operationFailure = assert.rejects(
+    operation,
+    error => error.code === "CJS_RESMAN_QUEUE_CANCELLED"
+  );
+  const fence = resMan.Wait({ pump: false });
+
+  resMan.Clear();
+  await operationFailure;
+  assert.equal(await fence, resMan);
+  assert.equal(resource.state, "requested");
+  assert.equal(resource.error, null);
+  assert.equal(resource.HasPayload(), false);
+});
+
+test("Wait excludes direct LoadResourceObject work that bypasses both queues", async () => {
+  let releaseSource;
+  let directSettled = false;
+  const resMan = new CjsResMan({
+    source: {
+      Read()
+      {
+        return new Promise(resolve => { releaseSource = resolve; });
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("bin", bytes => bytes);
+  const resource = resMan.GetResource("res:/queue/direct-wait.bin");
+  const direct = resMan.LoadResourceObject(resource).then(value => {
+    directSettled = true;
+    return value;
+  });
+
+  assert.equal(await resMan.Wait(), resMan);
+  await WaitUntil(() => typeof releaseSource === "function");
+  assert.equal(directSettled, false);
+  releaseSource(new Uint8Array([ 9 ]));
+  assert.deepEqual(await direct, new Uint8Array([ 9 ]));
+});
+
+test("Wait pump false relies on an external queue driver", async () => {
+  const resMan = new CjsResMan({ autoPumpMainThreadQueue: false });
+  let ran = false;
+  const task = resMan.QueueTask(CjsResManQueue.MAIN, () => { ran = true; });
+  let waitSettled = false;
+  const fence = resMan.Wait({ pump: false }).then(value => {
+    waitSettled = true;
+    return value;
+  });
+
+  await FlushMicrotasks();
+  assert.equal(ran, false);
+  assert.equal(waitSettled, false);
+  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1 }), true);
+  await task.promise;
+  assert.equal(await fence, resMan);
+});
+
+test("Wait does not resume a paused queue", async () => {
+  const resMan = new CjsResMan({ autoPumpMainThreadQueue: false });
+  let ran = false;
+  const task = resMan.QueueTask(CjsResManQueue.MAIN, () => { ran = true; });
+  resMan.PauseQueue(CjsResManQueue.MAIN);
+  let waitSettled = false;
+  const fence = resMan.Wait().then(value => {
+    waitSettled = true;
+    return value;
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(ran, false);
+  assert.equal(waitSettled, false);
+  assert.equal(resMan.GetQueueStats(CjsResManQueue.MAIN).paused, true);
+
+  resMan.ResumeQueue(CjsResManQueue.MAIN);
+  assert.equal(await fence, resMan);
+  await task.promise;
+  assert.equal(ran, true);
+});
+
+test("Wait awaits every captured task under background concurrency", async () => {
+  const releases = [];
+  const resMan = new CjsResMan({ maxConcurrentLoads: 2 });
+  const first = resMan.QueueTask(CjsResManQueue.BACKGROUND, () =>
+    new Promise(resolve => releases.push(resolve)));
+  const second = resMan.QueueTask(CjsResManQueue.BACKGROUND, () =>
+    new Promise(resolve => releases.push(resolve)));
+  let waitSettled = false;
+  const fence = resMan.Wait().then(value => {
+    waitSettled = true;
+    return value;
+  });
+
+  await WaitUntil(() => releases.length === 2);
+  releases.shift()();
+  await first.promise;
+  assert.equal(waitSettled, false);
+  releases.shift()();
+  await second.promise;
+  assert.equal(await fence, resMan);
+});
+
+test("Clear during an active source read prevents late loading, preparation, and failure publication", async () => {
+  let releaseSource;
+  let loaderCalls = 0;
+  const resMan = new CjsResMan({
+    autoPumpMainThreadQueue: false,
+    source: {
+      Read()
+      {
+        return new Promise(resolve => { releaseSource = resolve; });
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("bin", bytes => {
+    loaderCalls += 1;
+    return bytes;
+  });
+
+  const operation = resMan.LoadObject("res:/queue/stale-clear.bin");
+  const resource = resMan.Lookup("res:/queue/stale-clear.bin");
+  const operationFailure = assert.rejects(
+    operation,
+    error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
+      && error.phase === "queue:loading"
+  );
+  const fence = resMan.Wait({ pump: false });
+
+  assert.equal(resMan.PumpBackgroundQueue(), true);
+  await WaitUntil(() => typeof releaseSource === "function");
+  resMan.Clear();
+  releaseSource(new Uint8Array([ 1 ]));
+
+  await operationFailure;
+  assert.equal(await fence, resMan);
+  assert.equal(resMan.Lookup("res:/queue/stale-clear.bin"), null);
+  assert.equal(resource.state, "requested");
+  assert.equal(resource.error, null);
+  assert.equal(resource.HasPayload(), false);
+  assert.equal(loaderCalls, 0);
+  assert.equal(resMan.GetPendingPrepares(), 0);
+});
+
+test("Delete during an active asynchronous prepare stage drops the candidate before publication", async () => {
+  let releaseStage;
+  let publishEvents = 0;
+  const resMan = new CjsResMan({
+    autoPumpMainThreadQueue: false,
+    source: { Read() { return new Uint8Array([ 7 ]); } },
+    preparePipelines: {
+      held: {
+        default: true,
+        stages: [ {
+          name: "hold",
+          prepare(value)
+          {
+            return new Promise(resolve => {
+              releaseStage = () => resolve({ ...value, held: true });
+            });
+          }
+        } ]
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("bin", bytes => ({ bytes }));
+
+  const path = "res:/queue/stale-prepare.bin";
+  const operation = resMan.LoadObject(path);
+  const resource = resMan.Lookup(path);
+  resource.OnEvent?.("loaded", () => { publishEvents += 1; });
+  const operationFailure = assert.rejects(
+    operation,
+    error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
+      && error.phase === "queue-stage:hold:settled"
+  );
+
+  assert.equal(resMan.PumpBackgroundQueue(), true);
+  await WaitUntil(() => resMan.GetQueueStats(CjsResManQueue.MAIN).queued === 1);
+  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
+  await WaitUntil(() => resMan.GetQueueStats(CjsResManQueue.MAIN).queued === 1);
+  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
+  await WaitUntil(() => typeof releaseStage === "function");
+
+  assert.equal(resMan.Delete(path), true);
+  releaseStage();
+  await operationFailure;
+
+  assert.equal(resMan.Lookup(path), null);
+  assert.equal(resource.state, "loading");
+  assert.equal(resource.error, null);
+  assert.equal(resource.HasPayload(), false);
+  assert.equal(publishEvents, 0);
+  assert.equal(resMan.GetPendingPrepares(), 0);
+});
+
+test("stale direct loads preserve their source rejection without marking the detached resource failed", async () => {
+  let rejectSource;
+  const expected = new Error("expected stale direct source failure");
+  const resMan = new CjsResMan({
+    source: {
+      Read()
+      {
+        return new Promise((resolve, reject) => { rejectSource = reject; });
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("bin", bytes => bytes);
+  const path = "res:/queue/stale-direct.bin";
+  const resource = resMan.GetResource(path);
+  const operation = resMan.LoadResourceObject(resource);
+  const operationFailure = assert.rejects(operation, error => error === expected);
+
+  await WaitUntil(() => typeof rejectSource === "function");
+  assert.equal(resMan.Delete(path), true);
+  rejectSource(expected);
+  await operationFailure;
+
+  assert.equal(resource.state, "loading");
+  assert.equal(resource.error, null);
+  assert.equal(resource.HasPayload(), false);
+});
+
+test("a reload generation remains canonical when an older source operation settles last", async () => {
+  const sourceReleases = [];
+  const resMan = new CjsResMan({
+    autoPumpMainThreadQueue: false,
+    maxConcurrentLoads: 2,
+    source: {
+      Read()
+      {
+        return new Promise(resolve => sourceReleases.push(resolve));
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  resMan.PauseQueue(CjsResManQueue.BACKGROUND);
+
+  const path = "res:/queue/reload-generation.json";
+  const oldOperation = resMan.LoadObject(path);
+  const oldResource = resMan.Lookup(path);
+  const oldFailure = assert.rejects(
+    oldOperation,
+    error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
+  );
+  const replacementOperation = resMan.LoadObject(path, { reload: true });
+  const replacement = resMan.Lookup(path);
+
+  assert.notEqual(replacement, oldResource);
+  resMan.ResumeQueue(CjsResManQueue.BACKGROUND);
+  assert.equal(resMan.PumpBackgroundQueue(), true);
+  await WaitUntil(() => sourceReleases.length === 2);
+
+  sourceReleases[1]("{\"revision\":2}");
+  await WaitUntil(() => resMan.GetPendingPrepares() === 1);
+  for (let stage = 0; stage < 2; stage++)
+  {
+    assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
+    await FlushMicrotasks();
+  }
+  assert.deepEqual(await replacementOperation, { revision: 2 });
+
+  sourceReleases[0]("{\"revision\":1}");
+  await oldFailure;
+  assert.equal(resMan.Lookup(path), replacement);
+  assert.deepEqual(replacement.GetPayload(), { revision: 2 });
+  assert.equal(replacement.state, "loaded");
+  assert.equal(oldResource.state, "requested");
+  assert.equal(oldResource.error, null);
+  assert.equal(oldResource.HasPayload(), false);
+});
+
+test("reinserting the same JavaScript resource handle does not reuse its obsolete object operation", async () => {
+  const sourceReleases = [];
+  const sharedResource = new CjsResource();
+  function SingletonResource()
+  {
+    return sharedResource;
+  }
+
+  const resMan = new CjsResMan({
+    autoPumpMainThreadQueue: false,
+    maxConcurrentLoads: 2,
+    source: {
+      Read()
+      {
+        return new Promise(resolve => sourceReleases.push(resolve));
+      }
+    }
+  });
+  resMan.RegisterResourceType("singleton", SingletonResource);
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  resMan.PauseQueue(CjsResManQueue.BACKGROUND);
+
+  const path = "res:/queue/reinsert-generation.json";
+  const options = { requirement: "singleton", cacheSource: false };
+  const oldOperation = resMan.LoadObject(path, options);
+  const oldFailure = assert.rejects(
+    oldOperation,
+    error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
+  );
+  assert.equal(resMan.Delete(path, options), true);
+  const replacementOperation = resMan.LoadObject(path, options);
+
+  assert.notEqual(replacementOperation, oldOperation);
+  assert.equal(resMan.Lookup(path, options), sharedResource);
+  resMan.ResumeQueue(CjsResManQueue.BACKGROUND);
+  assert.equal(resMan.PumpBackgroundQueue(), true);
+  await WaitUntil(() => sourceReleases.length === 2);
+
+  sourceReleases[1]("{\"revision\":2}");
+  await WaitUntil(() => resMan.GetQueueStats(CjsResManQueue.MAIN).queued === 1);
+  for (let stage = 0; stage < 2; stage++)
+  {
+    assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
+    await FlushMicrotasks();
+  }
+  assert.deepEqual(await replacementOperation, { revision: 2 });
+
+  sourceReleases[0]("{\"revision\":1}");
+  await oldFailure;
+  assert.deepEqual(sharedResource.GetPayload(), { revision: 2 });
+  assert.equal(sharedResource.state, "loaded");
+  assert.equal(sharedResource.error, null);
+});
+
+test("MotherLode replacement rejects active queued and direct resource mutations", async () => {
+  const queuedManager = new CjsResMan({
+    autoPumpMainThreadQueue: false,
+    source: { Read() { return new Uint8Array([ 1 ]); } }
+  });
+  queuedManager.RegisterObjectLoader("bin", bytes => bytes);
+  queuedManager.PauseQueue(CjsResManQueue.BACKGROUND);
+  const queuedOperation = queuedManager.LoadObject("res:/queue/replace-owner.bin");
+  const queuedFailure = assert.rejects(
+    queuedOperation,
+    error => error.code === "CJS_RESMAN_QUEUE_CANCELLED"
+  );
+  const queuedFence = queuedManager.Wait({ pump: false });
+  const queuedOwner = queuedManager.motherLode;
+  const queuedReplacement = new CjsMotherLode();
+
+  assert.equal(queuedManager.Register({ motherLode: queuedOwner }), queuedManager);
+  assert.throws(
+    () => queuedManager.Register({ motherLode: queuedReplacement }),
+    error => error.code === "CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS"
+      && error.activeOperations === 1
+  );
+  assert.equal(queuedManager.motherLode, queuedOwner);
+  assert.equal(queuedOwner.IsStarted(), true);
+
+  queuedManager.Clear();
+  await queuedFailure;
+  assert.equal(await queuedFence, queuedManager);
+  assert.equal(queuedManager.Register({ motherLode: queuedReplacement }), queuedManager);
+  assert.equal(queuedManager.motherLode, queuedReplacement);
+
+  let releaseDirect;
+  const directManager = new CjsResMan({
+    source: {
+      Read()
+      {
+        return new Promise(resolve => { releaseDirect = resolve; });
+      }
+    }
+  });
+  directManager.RegisterObjectLoader("bin", bytes => bytes);
+  const directResource = directManager.GetResource("res:/queue/replace-direct-owner.bin");
+  const directOperation = directManager.LoadResourceObject(directResource);
+  const directOwner = directManager.motherLode;
+  const directReplacement = new CjsMotherLode();
+
+  assert.throws(
+    () => directManager.Register({ motherLode: directReplacement }),
+    error => error.code === "CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS"
+      && error.activeOperations === 1
+  );
+  assert.equal(directManager.motherLode, directOwner);
+  assert.equal(await directManager.Wait(), directManager);
+  await WaitUntil(() => typeof releaseDirect === "function");
+  releaseDirect(new Uint8Array([ 9 ]));
+  assert.deepEqual(await directOperation, new Uint8Array([ 9 ]));
+  assert.equal(directManager.Register({ motherLode: directReplacement }), directManager);
+  assert.equal(directManager.motherLode, directReplacement);
+});
+
+test("standalone direct preparation cannot publish after its canonical identity is deleted", async () => {
+  let releaseStage;
+  const resMan = new CjsResMan({
+    preparePipelines: {
+      held: {
+        default: true,
+        stages: [ {
+          name: "hold",
+          prepare(value)
+          {
+            return new Promise(resolve => {
+              releaseStage = () => resolve({ ...value, held: true });
+            });
+          }
+        } ]
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("bin", bytes => ({ bytes }));
+  const path = "res:/queue/standalone-prepare.bin";
+  const resource = resMan.GetResource(path);
+  const operation = resMan.PrepareResourceObject(resource, new Uint8Array([ 4 ]));
+  const operationFailure = assert.rejects(
+    operation,
+    error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
+      && error.phase === "prepare:hold:settled"
+  );
+
+  await WaitUntil(() => typeof releaseStage === "function");
+  assert.equal(resMan.Delete(path), true);
+  releaseStage();
+  await operationFailure;
+
+  assert.equal(resource.state, "empty");
+  assert.equal(resource.error, null);
+  assert.equal(resource.HasPayload(), false);
+});
+
 async function FlushMicrotasks() {
   await Promise.resolve();
   await Promise.resolve();
   await Promise.resolve();
   await Promise.resolve();
+}
+
+async function WaitUntil(predicate) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    if (predicate()) return;
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+  assert.fail("Timed out waiting for the expected queue state.");
 }

@@ -28,6 +28,41 @@ import {
 const FORMAT_NAME = "CjsStlFormat";
 
 /**
+ * Shared mesh accepted by the STL writer. STL exports only `vertex.position`
+ * and triangular `indices[].faces`; all other shared channels are ignored.
+ *
+ * @typedef {object} CjsStlSharedMesh
+ * @property {string} [name] Diagnostic mesh name; `solidName` controls the STL header.
+ * @property {{position: ArrayLike<number>, normal?: ArrayLike<number>}} vertex Shared vertex channels.
+ * @property {Array<{name?: string, faces: ArrayLike<number>}>} indices Triangle index groups.
+ */
+
+/**
+ * Shared geometry root accepted by the STL writer.
+ *
+ * @typedef {object} CjsStlSharedRoot
+ * @property {Array<CjsStlSharedMesh>} meshes Meshes flattened into one STL solid.
+ * @property {string} [grannyFileSource] Optional source label used by inspection.
+ */
+
+/**
+ * Reusable STL read, write, and inspection options.
+ *
+ * @typedef {object} CjsStlFormatOptions
+ * @property {"shared"|"stlJson"|"json"|"gr2"|"cmf"} [emit="stlJson"] Read output contract.
+ * @property {string} [source="memory"] Source label stored in read/inspection output.
+ * @property {boolean} [binary=true] Whether writes return binary bytes instead of ASCII text.
+ * @property {string} [solidName="carbonenginejs"] Sanitized ASCII solid name and binary header label.
+ * @property {number} [scale=1] Positive finite multiplier applied to exported positions.
+ * @property {boolean} [recalculateNormals=true] Derive facet normals from winding instead of vertex normals.
+ * @property {boolean} [weldVertices=false] Weld equal positions while reading STL.
+ * @property {number} [weldTolerance=1e-5] Non-negative read/inspection position tolerance.
+ * @property {boolean} [skipDegenerate=true] Omit degenerate shared triangles during writes.
+ * @property {boolean} [requireWatertight=false] Reject writes with printability topology issues.
+ * @property {Record<string, Function>} [classes] Caller constructors used for read hydration.
+ */
+
+/**
  * CarbonEngineJS-facing STL format surface.
  *
  * The Cjs prefix marks this as a JavaScript format/construction boundary.
@@ -52,7 +87,11 @@ export class CjsStlFormat
     /**
      * Create a reusable format profile.
      *
-     * @param {object} [options] Default format values.
+     * The instance stores only normalized options; each `Read`, `Write`, or
+     * `Inspect` call may provide non-mutating overrides.
+     *
+     * @param {CjsStlFormatOptions} [options={}] Default format values.
+     * @throws {TypeError} If an option, output mode, numeric value, or class map is invalid.
      */
     constructor(options = {})
     {
@@ -62,8 +101,9 @@ export class CjsStlFormat
     /**
      * Set format values for this reusable profile.
      *
-     * @param {object} [options] Values to merge into the profile.
+     * @param {CjsStlFormatOptions} [options={}] Values to merge into the profile.
      * @returns {CjsStlFormat} This format profile.
+     * @throws {TypeError} If an option, output mode, numeric value, or class map is invalid.
      */
     SetValues(options = {})
     {
@@ -87,8 +127,9 @@ export class CjsStlFormat
     /**
      * Get this profile's current values, optionally with per-call overrides.
      *
-     * @param {object} [options] Optional values to merge into a copy.
-     * @returns {object} A copy of the effective values.
+     * @param {CjsStlFormatOptions} [options={}] Optional values to merge into a copy.
+     * @returns {CjsStlFormatOptions} A validated copy of the effective values.
+     * @throws {TypeError} If an override is invalid.
      */
     GetValues(options = {})
     {
@@ -178,9 +219,15 @@ export class CjsStlFormat
     /**
      * Write shared JSON geometry as STL with this profile's values.
      *
-     * @param {object} input Shared JSON root or mesh.
-     * @param {object} [options] Per-call value overrides.
+     * Multiple meshes and index groups are flattened in encounter order because
+     * STL has no portable material or scene hierarchy. Degenerate triangles are
+     * skipped by default. Binary output validates that every coordinate is
+     * representable as float32 rather than silently writing infinities.
+     *
+     * @param {CjsStlSharedRoot|CjsStlSharedMesh} input Shared JSON root or mesh.
+     * @param {CjsStlFormatOptions} [options={}] Per-call writer overrides.
      * @returns {string|Uint8Array} ASCII STL text or binary STL bytes.
+     * @throws {TypeError|RangeError|Error} If geometry, indices, coordinates, topology, or options are invalid.
      */
     Write(input, options = {})
     {
@@ -225,9 +272,13 @@ export class CjsStlFormat
     /**
      * Static one-shot write.
      *
-     * @param {object} input Shared JSON root or mesh.
-     * @param {object} [options] Format values.
+     * The call is one-shot and does not mutate `input`. Multiple meshes and
+     * index groups are flattened into a single STL solid in encounter order.
+     *
+     * @param {CjsStlSharedRoot|CjsStlSharedMesh} input Shared JSON root or mesh.
+     * @param {CjsStlFormatOptions} [options={}] Writer values.
      * @returns {string|Uint8Array} ASCII STL text or binary STL bytes.
+     * @throws {TypeError|RangeError|Error} If geometry, indices, coordinates, topology, or options are invalid.
      */
     static write(input, options = {})
     {
@@ -279,10 +330,14 @@ export class CjsStlFormat
     /**
      * Node-only convenience: writes an STL file to disk.
      *
+     * The file is encoded entirely in memory before the Node-only filesystem
+     * write starts. Browser bundles do not include the filesystem module.
+     *
      * @param {string} path Path to write.
-     * @param {object} input Shared JSON root or mesh.
-     * @param {object} [options] Format values.
+     * @param {CjsStlSharedRoot|CjsStlSharedMesh} input Shared JSON root or mesh.
+     * @param {CjsStlFormatOptions} [options={}] Writer values.
      * @returns {Promise<string>} The written path.
+     * @throws {TypeError|RangeError|Error} If the path, geometry, topology, or options are invalid, or writing fails.
      */
     static async writeFile(path, input, options = {})
     {

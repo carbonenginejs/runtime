@@ -21,12 +21,47 @@ function assertFiniteNumber(value, feature) {
   }
   return value;
 }
+
+/**
+ * Validate one shared-geometry triangle index before converting it to a byte
+ * offset. Fractional, unsafe, negative, and out-of-range values are rejected
+ * with the mesh and index-group context retained.
+ *
+ * @param {*} value Candidate vertex index.
+ * @param {number} vertexCount Number of position triples in the mesh.
+ * @param {number} meshIndex Zero-based mesh index in the shared root.
+ * @param {string} groupName Source index-group name.
+ * @returns {number} Valid non-negative vertex index.
+ * @throws {RangeError} If the value cannot address a complete mesh vertex.
+ */
+function assertTriangleIndex(value, vertexCount, meshIndex, groupName) {
+  if (!Number.isSafeInteger(value) || value < 0 || value >= vertexCount) {
+    throw new RangeError(`CjsStlFormat: mesh #${meshIndex} index group ${JSON.stringify(groupName)} ` + `contains invalid vertex index ${String(value)} for ${vertexCount} vertices`);
+  }
+  return value;
+}
 function cloneVertex(vertex, scale = 1) {
-  return [assertFiniteNumber(vertex[0], "vertex") * scale, assertFiniteNumber(vertex[1], "vertex") * scale, assertFiniteNumber(vertex[2], "vertex") * scale];
+  const result = [];
+  for (let component = 0; component < 3; component++) {
+    const value = assertFiniteNumber(vertex[component], "vertex") * scale;
+    result.push(assertFiniteNumber(value, "scaled vertex"));
+  }
+  return result;
 }
 function sanitizeSolidName(name) {
   const value = String(name || DEFAULT_SOLID_NAME).replace(/\s+/g, "_").replace(/[^\w.-]/g, "_");
   return value || DEFAULT_SOLID_NAME;
+}
+
+/**
+ * Recover the caller's solid name from this writer's binary provenance header
+ * while retaining compatibility with arbitrary third-party STL headers.
+ *
+ * @param {string} header Decoded and null-trimmed 80-byte binary STL header.
+ * @returns {string} Sanitized shared-mesh name.
+ */
+function readBinarySolidName(header) {
+  return sanitizeSolidName(header.replace(/^CarbonEngineJS\s+/u, "") || DEFAULT_SOLID_NAME);
 }
 function formatNumber(value) {
   if (!Number.isFinite(value)) return "0";
@@ -46,6 +81,37 @@ function readFloat32(view, offset) {
 }
 function isZeroNormal(normal) {
   return Math.hypot(normal[0], normal[1], normal[2]) <= 1e-20;
+}
+
+/**
+ * Return a finite unit facet normal, preferring an explicit non-zero normal
+ * and otherwise deriving it from triangle winding.
+ *
+ * @param {object} triangle Triangle record with three vertices and optional normal.
+ * @returns {number[]} Finite xyz unit normal.
+ * @throws {TypeError} If normal calculation produces a non-finite component.
+ */
+function resolveTriangleNormal(triangle) {
+  const normal = triangle.normal && !isZeroNormal(triangle.normal) ? normalize([0, 0, 0], triangle.normal) : triangleNormal(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2]);
+  return [assertFiniteNumber(normal[0], "facet normal"), assertFiniteNumber(normal[1], "facet normal"), assertFiniteNumber(normal[2], "facet normal")];
+}
+
+/**
+ * Store one finite binary STL float without silently overflowing to infinity.
+ *
+ * @param {DataView} view Destination byte view.
+ * @param {number} offset Byte offset of the little-endian float.
+ * @param {number} value Numeric component to encode.
+ * @param {string} feature Context included in validation errors.
+ * @returns {void}
+ * @throws {TypeError|RangeError} If the value is non-finite or exceeds float32 range.
+ */
+function writeFloat32(view, offset, value, feature) {
+  const floatValue = Math.fround(assertFiniteNumber(value, feature));
+  if (!Number.isFinite(floatValue)) {
+    throw new RangeError(`CjsStlFormat: ${feature} exceeds binary STL float32 range`);
+  }
+  view.setFloat32(offset, floatValue, true);
 }
 function triangleWithNormal(vertices, normal) {
   const fallback = triangleNormal(vertices[0], vertices[1], vertices[2]);
@@ -186,9 +252,12 @@ function parseAsciiStl(text) {
 
 /**
  * Parse binary STL bytes into triangle records.
+ * Headers written as `CarbonEngineJS <solidName>` retain their provenance in
+ * the file while exposing `<solidName>` as parsed mesh metadata.
  *
  * @param {Uint8Array} bytes Binary STL bytes.
- * @returns {object} Parsed STL payload.
+ * @returns {object} Parsed format/name metadata and triangle records.
+ * @throws {Error} If byte length/count disagree or no triangles are present.
  */
 function parseBinaryStl(bytes) {
   if (!isBinaryStl(bytes)) {
@@ -214,7 +283,7 @@ function parseBinaryStl(bytes) {
   }
   return {
     format: "binary",
-    name: sanitizeSolidName(header || DEFAULT_SOLID_NAME),
+    name: readBinarySolidName(header),
     triangles
   };
 }
@@ -300,10 +369,14 @@ function trianglesToJson(triangles, values, source = {}) {
 
 /**
  * Gather triangle records from the shared JSON geometry schema.
+ * Meshes and index groups are flattened in encounter order. Coordinates are
+ * copied and scaled, so the caller's shared graph remains unchanged. Only
+ * positions, optional normals, and triangular indices participate in STL.
  *
  * @param {object} input Shared JSON graph or mesh record.
  * @param {object} values Normalized format values.
- * @returns {object[]} Triangle records.
+ * @returns {object[]} Scaled triangle records ready for inspection/encoding.
+ * @throws {TypeError|RangeError|Error} If geometry, coordinates, or indices are invalid.
  */
 function jsonToTriangles(input, values) {
   const root = input && input.meshes ? input : {
@@ -323,16 +396,15 @@ function jsonToTriangles(input, values) {
     for (const group of mesh.indices || []) {
       const faces = group && group.faces;
       if (!faces) continue;
+      const groupName = group.name || "default";
       if (faces.length % 3 !== 0) {
-        throw new Error(`CjsStlFormat: mesh #${meshIndex} index group ${JSON.stringify(group.name || "default")} is not triangular`);
+        throw new Error(`CjsStlFormat: mesh #${meshIndex} index group ${JSON.stringify(groupName)} is not triangular`);
       }
       for (let i = 0; i < faces.length; i += 3) {
-        const ia = faces[i] * 3,
-          ib = faces[i + 1] * 3,
-          ic = faces[i + 2] * 3;
-        if (ia < 0 || ib < 0 || ic < 0 || ia + 2 >= positions.length || ib + 2 >= positions.length || ic + 2 >= positions.length) {
-          throw new Error(`CjsStlFormat: mesh #${meshIndex} contains an out-of-range triangle index`);
-        }
+        const vertexCount = positions.length / 3,
+          ia = assertTriangleIndex(faces[i], vertexCount, meshIndex, groupName) * 3,
+          ib = assertTriangleIndex(faces[i + 1], vertexCount, meshIndex, groupName) * 3,
+          ic = assertTriangleIndex(faces[i + 2], vertexCount, meshIndex, groupName) * 3;
         const vertices = [cloneVertex([positions[ia], positions[ia + 1], positions[ia + 2]], values.scale), cloneVertex([positions[ib], positions[ib + 1], positions[ib + 2]], values.scale), cloneVertex([positions[ic], positions[ic + 1], positions[ic + 2]], values.scale)];
         if (values.skipDegenerate && isDegenerateTriangle(vertices[0], vertices[1], vertices[2])) {
           continue;
@@ -383,15 +455,18 @@ function trianglesFromInput(input, values) {
 
 /**
  * Write triangle records as ASCII STL text.
+ * Solid names and numeric components are normalized deterministically. The
+ * function does not mutate triangle records.
  *
  * @param {object[]} triangles Triangle records.
  * @param {string} solidName STL solid name.
  * @returns {string} ASCII STL text.
+ * @throws {TypeError} If a facet normal cannot be represented as finite text.
  */
 function writeAsciiStl(triangles, solidName) {
   const lines = [`solid ${sanitizeSolidName(solidName)}`];
   for (const triangle of triangles) {
-    const normal = triangle.normal && !isZeroNormal(triangle.normal) ? normalize([0, 0, 0], triangle.normal) : triangleNormal(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2]);
+    const normal = resolveTriangleNormal(triangle);
     lines.push(`  facet normal ${formatNumber(normal[0])} ${formatNumber(normal[1])} ${formatNumber(normal[2])}`);
     lines.push("    outer loop");
     for (const vertex of triangle.vertices) {
@@ -406,12 +481,20 @@ function writeAsciiStl(triangles, solidName) {
 
 /**
  * Write triangle records as binary STL bytes.
+ * Output uses the standard 80-byte header, little-endian uint32 triangle
+ * count, 50-byte triangle records, and zero attribute words. The header keeps
+ * a `CarbonEngineJS` provenance prefix. Every numeric component is checked for
+ * finite float32 representation before storage.
  *
  * @param {object[]} triangles Triangle records.
  * @param {string} solidName STL solid name.
  * @returns {Uint8Array} Binary STL bytes.
+ * @throws {TypeError|RangeError} If count or numeric components exceed binary STL's representable domain.
  */
 function writeBinaryStl(triangles, solidName) {
+  if (triangles.length > 0xffffffff) {
+    throw new RangeError("CjsStlFormat: binary STL cannot contain more than 4294967295 triangles");
+  }
   const bytes = new Uint8Array(BINARY_HEADER_BYTES + BINARY_COUNT_BYTES + triangles.length * BINARY_TRIANGLE_BYTES),
     view = new DataView(bytes.buffer),
     header = makeEncoder().encode(`CarbonEngineJS ${sanitizeSolidName(solidName)}`);
@@ -419,12 +502,14 @@ function writeBinaryStl(triangles, solidName) {
   view.setUint32(BINARY_HEADER_BYTES, triangles.length, true);
   let offset = BINARY_HEADER_BYTES + BINARY_COUNT_BYTES;
   for (const triangle of triangles) {
-    const normal = triangle.normal && !isZeroNormal(triangle.normal) ? normalize([0, 0, 0], triangle.normal) : triangleNormal(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2]);
-    for (let c = 0; c < 3; c++) view.setFloat32(offset + c * 4, normal[c], true);
+    const normal = resolveTriangleNormal(triangle);
+    for (let c = 0; c < 3; c++) {
+      writeFloat32(view, offset + c * 4, normal[c], "facet normal");
+    }
     for (let v = 0; v < 3; v++) {
       const vertex = triangle.vertices[v];
       for (let c = 0; c < 3; c++) {
-        view.setFloat32(offset + 12 + v * 12 + c * 4, vertex[c], true);
+        writeFloat32(view, offset + 12 + v * 12 + c * 4, vertex[c], "vertex coordinate");
       }
     }
     view.setUint16(offset + 48, 0, true);

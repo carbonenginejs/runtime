@@ -107,8 +107,76 @@ test("writes and reads binary STL", () =>
     assert.equal(CjsStlFormat.isBinaryStl(bytes), true);
 
     const json = CjsStlFormat.read(bytes, { source: "binary.stl", weldVertices: true });
+    assert.equal(json.meshes[0].name, "tetra");
     assert.equal(json.meshes[0].vertex.position.length, 12);
     assert.equal(json.meshes[0].indices[0].faces.length, 12);
+});
+
+test("profile writer flattens index groups and applies scale without mutating input", () =>
+{
+    const mesh = {
+        ...TETRA.meshes[0],
+        indices: [
+            { name: "first", faces: [ 0, 2, 1 ] },
+            { name: "second", faces: [ 0, 1, 3 ] }
+        ]
+    };
+    const positionsBefore = [ ...mesh.vertex.position ];
+    const format = new CjsStlFormat({ binary: false, scale: 2, solidName: "two groups" });
+    const text = format.Write(mesh);
+    const report = CjsStlFormat.inspect(text);
+    const roundTrip = CjsStlFormat.read(text, { weldVertices: true });
+
+    assert.match(text, /^solid two_groups/u);
+    assert.equal(report.triangleCount, 2);
+    assert.deepEqual(roundTrip.meshes[0].maxBounds, [ 2, 2, 2 ]);
+    assert.deepEqual(mesh.vertex.position, positionsBefore);
+});
+
+test("writer preserves requested normals and rejects lossy numeric output", () =>
+{
+    const mesh = {
+        vertex: {
+            position: [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ],
+            normal: [ 0, 0, -1, 0, 0, -1, 0, 0, -1 ]
+        },
+        indices: [ { name: "face", faces: [ 0, 1, 2 ] } ]
+    };
+    const text = CjsStlFormat.write(mesh, { binary: false, recalculateNormals: false });
+    assert.match(text, /facet normal 0 0 -1/u);
+
+    const fractional = {
+        ...mesh,
+        indices: [ { name: "fractional", faces: [ 0, 1, 1.5 ] } ]
+    };
+    assert.throws(
+        () => CjsStlFormat.write(fractional),
+        /index group "fractional" contains invalid vertex index 1\.5/u
+    );
+
+    const tooLarge = {
+        ...mesh,
+        vertex: {
+            ...mesh.vertex,
+            position: [ 0, 0, 0, 1e39, 0, 0, 0, 1, 0 ]
+        }
+    };
+    assert.throws(
+        () => CjsStlFormat.write(tooLarge, { binary: true, recalculateNormals: false }),
+        /vertex coordinate exceeds binary STL float32 range/u
+    );
+
+    const scaleOverflow = {
+        ...mesh,
+        vertex: {
+            ...mesh.vertex,
+            position: [ 0, 0, 0, 2, 0, 0, 0, 1, 0 ]
+        }
+    };
+    assert.throws(
+        () => CjsStlFormat.write(scaleOverflow, { binary: false, scale: Number.MAX_VALUE }),
+        /scaled vertex must contain finite numbers/u
+    );
 });
 
 test("inspects closed tetrahedron as printable", () =>

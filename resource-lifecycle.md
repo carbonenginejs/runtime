@@ -54,7 +54,9 @@ Current state meanings:
 - `PREPARED`: preparation completed successfully and the resource is usable.
 - `FAILED`: load or prepare failed.
 - `UNLOADED`: resource payload was released.
-- `PURGED`: resource was purged from active ownership.
+- `PURGED`: an inactivity identity sweep purged the resource from active
+  ownership. Ordinary replacement, `Delete()`, `Clear()`, and shutdown clean
+  owned payloads/adapters but preserve the detached handle's last valid state.
 
 `CjsResMan.LoadObject()` now queues one deduplicated background source operation
 per source/path and limits active source operations with `maxConcurrentLoads`.
@@ -80,8 +82,20 @@ probing device support. Per-request `prepareStages` are explicit overrides.
 The Blue method names remain the public queue vocabulary: `AddToQueue`,
 `CancelFromQueue`, `GetNextIdForQueue`, `PumpMainThreadQueue`, `PauseQueue`,
 `ResumeQueue`, `GetPendingLoads`, and `GetPendingPrepares`. `Update()`/`Tick()`
-pump queues. `Wait()` provides a method-level fence until both queues become
-idle, rather than introducing a runtime fence resource.
+pump queues. `Wait()` snapshots queued resource-operation roots and already
+submitted low-level queue tasks before its first await. Captured roots remain
+open through dynamically enqueued descendant stages, publication/failure, and
+lock release; later unrelated roots/tasks are excluded. Failure and queued
+cancellation cross the fence without making `Wait()` reject.
+
+The default wait pumps only the two queues, never automatic retention sweeps,
+and honors existing pause state and budgets. `{ pump: false }` requires an
+external driver. A standalone canonical `PrepareResourceObjectQueued()` call
+opens a queued root. Direct `LoadResourceObject()`, direct
+`PrepareResourceObject()`, and standalone source/format reads bypass both
+queues and are outside the fence. They are still tracked as active mutations
+so synchronous MotherLode replacement cannot detach them. `WaitUrgent()`
+remains open until real per-item priority and urgent membership exist.
 
 ## CjsLibrary resource-path workflow
 
@@ -113,7 +127,7 @@ Application / runtime object
         |
         v
 +-----------------------------------------------+
-| CjsMotherLode.Lookup(path, variant)            |
+| CjsMotherLode.Lookup(resolved key)             |
 +-----------------------------------------------+
         |
         +--- cache hit ------------------------------+
@@ -173,7 +187,8 @@ Application / runtime object
 | Publish stage                                 |
 |                                               |
 | semantic resource -> SetPayload(payload)      |
-| generic resource  -> resource.object = value  |
+| generic resource  -> SetPayload(value)        |
+|                      object aliases payload   |
 +-----------------------------------------------+
         |
         +--- validation failure --------------------+
@@ -252,10 +267,12 @@ ccpwgl handles:
 
 - prepare priority and starvation policy
 - cancellation/abort propagation for work that has already started
+- `WaitUrgent()` after real priority and bounded fairness
 - queue-time and stage-time telemetry
-- `KeepAlive()` style active-frame updates
-- automatic purge windows for inactive resources
-- reload policy
+- immutable/versioned build identity
+- application-level default retention policy selection
+- byte estimation and byte-budgeted eviction
+- explicit reload/recovery policy for purged resources
 - browser-aware source behavior such as fetch response type selection
 
 ## Memory Retention and Purging
@@ -274,18 +291,18 @@ enough. It then marks them purged and removes them from the cache. In ccpwgl,
 `IsGood()` also calls `KeepAlive()`, so many read/check paths implicitly keep
 resources resident.
 
-That model works for ccpwgl, but CarbonEngineJS should be more explicit:
+That model works for ccpwgl, but CarbonEngineJS is deliberately more explicit:
 
-- `IsGood()`, `IsPrepared()`, and `HasLoaded()` should stay pure state checks.
-- `KeepAlive()` or `Touch()` should be the explicit liveness operation.
-- `Lock()` / `Unlock()` should prevent automatic purge, probably with a lock
-  count rather than a boolean.
-- resources should track `lastUsedFrame` or `lastUsedTime`, not rely on boolean
-  state alone.
-- `CjsMotherLode` should support purge scanning without forcing all resources to
-  be held forever by accidental cache references.
+- `IsGood()`, `IsPrepared()`, and `HasLoaded()` remain pure state checks.
+- `KeepAlive()` and `KeepPayloadAlive()` are the explicit liveness operations.
+- `Lock()` / `Unlock()` maintain a non-underflowing count and prevent identity
+  and payload eviction during a sweep.
+- MotherLode tracks separate identity and CPU-payload frame/time observations.
+- `CjsMotherLode.PurgeInactive()` itself scans only when explicitly requested
+  and never infers JavaScript reachability. `CjsResMan.Update()` may request it
+  only under an explicitly configured automatic policy.
 - `Unload()` should release engine adapter resources and optionally CPU payloads.
-- `Purge()` should remove the resource from the cache after unload/cleanup.
+- A resource-level `Purge()`/`Reload()` vocabulary remains future policy work.
 
 The JS/browser split adds one more axis that ccpwgl blurs: CPU payload memory and
 GPU/device memory are different budgets. A large decoded image, geometry buffer,
@@ -326,9 +343,96 @@ resource.ReleasePayload()
     -> explicitly release the full payload reference
 ```
 
-`ReleasePayload()` is implemented; `KeepPayloadAlive()` remains target
-behavior. `GetPayload()` and `HasPayload()` are pure queries; reading the payload
-must not implicitly renew its lease.
+`CjsResMan` binds resource-facing `KeepAlive()`, `KeepPayloadAlive()`, `Lock()`,
+and `Unlock()` to the resource's canonical MotherLode key. `SetPayload()` renews
+both identity and payload activity when it publishes a non-null payload.
+`GetPayload()` and `HasPayload()` are pure queries; reading the payload does not
+implicitly renew its lease. Detached and purged handles retain deterministic
+no-op liveness methods rather than silently starting work.
+
+Both semantic and generic/base resource results use that payload slot. A base
+resource also mirrors its payload on the compatibility `object` property;
+`ReleasePayload()` clears the alias only when it still references that exact
+payload. Semantic resources continue to expose `object === resource` while
+holding their validated plain payload privately.
+
+Object-operation promises are retained only while in flight. Concurrent
+`GetObject()`/`Ready()` calls share one operation; a resident result is returned
+without source work and renews the explicit payload lease. Settlement removes
+the operation record so its result graph can be reclaimed and a failure can be
+retried. After payload release, only a new explicit object/readiness call
+reconstructs it; queries, lease calls, and purge sweeps do not.
+
+Read-cache provenance is explicit and separate from resource/build identity.
+For a selected source object and normalized path, `sourceRevision` is an opaque
+caller/source-supplied string or finite-number content token. Source and format
+records do not share across revisions. Format records are additionally isolated
+by source object, frozen registration descriptor, and effective format options,
+so another source or a re-registered default cannot reuse a stale parse.
+Registered defaults are deeply snapshotted for supported plain-object/array
+configuration. Requests containing option values that cannot be represented
+safely bypass parsed-format sharing instead of accepting an ambiguous key.
+
+`cacheSource` and `cacheFormat` use the same per-call tri-state contract:
+omitted shares existing in-flight/retained work but drops a newly completed
+record; `true` retains success and upgrades joined work; `false` bypasses both
+sharing and retention. Failures are never retained. Resource loaders capture
+the effective selected source (including the creation-time manager default)
+and revision for later reconstruction, but do not capture cache flags or
+one-shot reload.
+
+`reload: true` detaches all queued/source/format records for the selected
+source/path before fresh work begins. `InvalidateReadCache()` exposes explicit
+path invalidation, optionally restricted to one revision. Detachment never
+aborts or rejects existing consumers and never touches MotherLode or payloads.
+`Delete()` remains resource-identity-only; `Clear()` resets all read ledgers.
+`FetchResource()` consumes one-shot reload before readiness so it returns the
+replacement now stored in MotherLode. Reload still replaces the current
+canonical handle before its new work succeeds.
+
+Every canonical queued/direct/standalone preparation captures an immutable
+publication authority: exact MotherLode, canonical key, resource handle, and a
+manager-local ownership generation. The manager validates that authority
+before and after state changes, every asynchronous stage, and publication.
+Delete, Clear, reload replacement, or exact-handle reinsertion therefore makes
+older work reject with `CJS_RESMAN_STALE_RESOURCE_OPERATION` before it can
+publish. If stale work independently rejects, its original source/stage error
+is preserved and `SetError()` is suppressed on the detached handle.
+
+`Register({ motherLode })` rejects with
+`CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS` while queued or direct mutations are
+active. Normal `Wait()` drains queued roots only; a direct caller must await its
+own load/prepare promise before retrying replacement. This is generation-safe
+late-publication rejection, not started-work abort or candidate-first atomic
+reload. Arbitrary stage-returned candidates are dropped for GC because no
+generic external-resource cleanup hook exists yet.
+
+An explicit `PurgeInactive()` sweep accepts separate frame/time limits for
+identity and payload residency. Identity expiry destroys adapter resources,
+releases the payload, detaches lifecycle callbacks, marks compatible handles
+`PURGED`, and removes the canonical key. Payload expiry calls
+`ReleasePayload()` while retaining identity and adapter allocations. Locks skip
+both operations, and candidate failures are aggregated after the sweep has
+continued over other entries.
+
+`CjsResMan` also exposes opt-in automatic scheduling through
+`SetAutoPurgePolicy()` or the `autoPurgePolicy` registration option. It is
+disabled by default. Automatic policy is time-only because MotherLode's current
+activity frame counts observations rather than renderer frames. A policy must
+set at least one of `maxIdleMilliseconds` or
+`payloadMaxIdleMilliseconds`; `intervalMilliseconds` defaults to 1000. The
+first `PumpAutoPurge()`/`Update()` after configuration sweeps immediately, then
+the interval sets the minimum cadence. `Update({ purge: false })` suppresses a
+sweep for one update without changing cadence. A regressing clock rebases and
+skips one pump; custom deterministic clocks should be shared with MotherLode.
+
+Both queued `QueueResourceObject()` work and direct `LoadResourceObject()` work
+hold one manager-owned lock from request/loading publication through success or
+failure. The lock is balanced independently of caller locks, so automatic or
+manual sweeps cannot detach a handle while its read/prepare operation is still
+active. Lock release is conditional on the same captured ownership generation,
+so stale work cannot decrement a newly rebound handle's lock. Scheduling and
+active-work protection do not fetch or reload data.
 
 The processor preparing a resource decides when the full payload can be
 released:
@@ -342,11 +446,11 @@ format reader -> plain payload -> resource validation + adapter prepare
                                    `-> or renew its lease for deferred/further work
 ```
 
-A time-based lease is a fallback against abandoned payloads. An owner performing
-deferred work can renew the lease. If the payload has expired and is required
-again, the manager reloads the source and reconstructs it. Dynamic or
-non-reloadable resources must retain or be able to recreate any payload they
-still require.
+A time- or frame-based lease is a fallback against abandoned payloads. An owner
+performing deferred work can renew the lease. If an expired payload is required
+again, the caller must explicitly request reconstruction; lease renewal and
+purging never fetch or reload source data. Dynamic or non-reloadable resources
+must remain locked, retain the required payload, or be able to recreate it.
 
 Payload references are shared read-only by default. Preparing WebGL and WebGPU
 adapters side by side should normally pass the same payload to both consumers
@@ -366,8 +470,8 @@ Open design questions:
   be memory-budget based instead of only time/frame based?
 - Should manually attached/dynamic resources default to locked, like ccpwgl's
   manual shader resources use `doNotPurge`?
-- Should `KeepAlive()` reload purged resources, or should reload be an explicit
-  `Reload()` call to avoid surprising browser/network work?
+- What explicit `Reload()`/reconstruction API should restore purged resources
+  without introducing surprising browser or network work?
 
 ccpwgl's raw event emitter shape is useful. The part we should not copy is the
 separate resource notification/callback compatibility layer that sits beside

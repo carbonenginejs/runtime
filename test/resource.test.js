@@ -9,6 +9,7 @@ import {
   Tr2ImageRes,
   TriGeometryRes,
   TriTextureRes,
+  CjsMotherLode,
   CjsResMan,
   CjsResource,
   CjsResourceProbe,
@@ -23,6 +24,7 @@ import {
   CjsTextureArrayRes,
   CjsTextureParameterProxy,
   TriGrannyRes,
+  getMotherLodeKey,
   getResourceExtension,
   normalizeResourcePath
 } from "../npm/dist/index.js";
@@ -256,6 +258,408 @@ test("CjsMotherLode cache is reused through CjsResMan.GetResource", () => {
   assert.equal(a, b);
   assert.equal(resMan instanceof CjsEventEmitter, true);
   assert.equal(resMan.motherLode.GetCount(), 1);
+});
+
+test("CjsMotherLode exposes canonical identity and activity diagnostics", () =>
+{
+  let time = 100;
+  const motherLode = new CjsMotherLode({
+    cacheSize: 4096,
+    now: () => time++
+  });
+  const resource = new CjsResource().Initialize("RES:/Texture/Ship.DDS");
+  const key = getMotherLodeKey(resource.GetPath(), "texture/native@1");
+  const result = motherLode.Insert(key, resource, { bytes: 256 });
+
+  assert.equal(result.key, key);
+  assert.equal(result.resource, resource);
+  assert.equal(result.inserted, true);
+  assert.equal(result.replaced, false);
+  assert.equal(result.displaced, null);
+  assert.equal(motherLode.IsStarted(), true);
+  assert.equal(motherLode.HasKey(key), true);
+  assert.equal(motherLode.Has(resource.GetPath(), "texture/native@1"), true);
+  assert.equal(motherLode.Lookup(key), resource);
+  assert.equal(motherLode.GetSize(), 1);
+  assert.equal(motherLode.GetCount(), 1);
+  assert.equal(motherLode.GetCacheSize(), 4096);
+  assert.deepEqual(motherLode.GetKeys(), [ key ]);
+  assert.deepEqual(motherLode.GetValues(), [ resource ]);
+  assert.deepEqual([ ...motherLode.Entries() ], [ [ key, resource ] ]);
+
+  assert.equal(motherLode.Lock(key), 1);
+  assert.equal(motherLode.Lock(key), 2);
+  motherLode.Insert(key, resource, { cached: true });
+  assert.equal(motherLode.Unlock(key), 1);
+  assert.equal(motherLode.KeepAlive(key), resource);
+
+  const stats = motherLode.GetStats();
+  assert.equal(stats.count, 1);
+  assert.equal(stats.size, 1);
+  assert.equal(stats.live, 1);
+  assert.equal(stats.cached, 0);
+  assert.equal(stats.locked, 1);
+  assert.equal(stats.bytes, 256);
+  assert.equal(stats.cacheSize, 4096);
+  assert.equal(stats.states.empty, 1);
+  assert.deepEqual(stats.paths, [ "res:/texture/ship.dds" ]);
+  assert.ok(stats.activityFrame >= 4);
+});
+
+test("CjsMotherLode replacement and removal clean displaced resource ownership", () =>
+{
+  const motherLode = new CjsMotherLode();
+  const key = getMotherLodeKey("res:/data/value.bin", "raw@1");
+  const first = new CjsResource().Initialize("res:/data/value.bin");
+  const blocked = new CjsResource().Initialize("res:/data/value.bin");
+  const replacement = new CjsResource().Initialize("res:/data/value.bin");
+  let firstDestroyed = 0;
+  let replacementDestroyed = 0;
+
+  first.SetPayload({ value: 1 });
+  first.SetAdapterResource("test", { destroy() { firstDestroyed += 1; } });
+  replacement.SetPayload({ value: 2 });
+  replacement.SetAdapterResource("test", { destroy() { replacementDestroyed += 1; } });
+
+  motherLode.Insert(key, first);
+  const refused = motherLode.Insert(key, blocked, { replace: false });
+
+  assert.equal(refused.resource, first);
+  assert.equal(refused.inserted, false);
+  assert.equal(refused.replaced, false);
+  assert.equal(motherLode.Lookup(key), first);
+  assert.equal(first.HasPayload(), true);
+
+  const replaced = motherLode.Insert(key, replacement);
+
+  assert.equal(replaced.resource, replacement);
+  assert.equal(replaced.inserted, true);
+  assert.equal(replaced.replaced, true);
+  assert.equal(replaced.displaced, first);
+  assert.equal(firstDestroyed, 1);
+  assert.equal(first.HasAdapterResource("test"), false);
+  assert.equal(first.HasPayload(), false);
+  assert.equal(motherLode.Lookup(key), replacement);
+
+  assert.equal(motherLode.Delete(key), true);
+  assert.equal(replacementDestroyed, 1);
+  assert.equal(replacement.HasPayload(), false);
+  assert.equal(motherLode.Delete(key), false);
+
+  const retainedKey = getMotherLodeKey("res:/data/retained.bin");
+  const retained = new CjsResource().Initialize("res:/data/retained.bin");
+  const retainedReplacement = new CjsResource().Initialize("res:/data/retained.bin");
+  let retainedDestroyed = 0;
+  retained.SetPayload({ retained: true });
+  retained.SetAdapterResource("test", { destroy() { retainedDestroyed += 1; } });
+  motherLode.Insert(retainedKey, retained);
+
+  const retainedResult = motherLode.Insert(retainedKey, retainedReplacement, { cleanup: false });
+
+  assert.equal(retainedResult.displaced, retained);
+  assert.equal(retainedDestroyed, 0);
+  assert.equal(retained.HasAdapterResource("test"), true);
+  assert.equal(retained.HasPayload(), true);
+  assert.equal(motherLode.Delete(retainedKey), true);
+
+  const failingKey = getMotherLodeKey("res:/data/failing-cleanup.bin");
+  const failingOwner = {
+    ReleasePayload()
+    {
+      throw new Error("expected cleanup failure");
+    }
+  };
+  const rejectedReplacement = {};
+  motherLode.Insert(failingKey, failingOwner);
+
+  assert.throws(
+    () => motherLode.Insert(failingKey, rejectedReplacement),
+    error => error.code === "CJS_MOTHERLODE_CLEANUP_FAILED"
+      && error.operation === "replace"
+      && error.resource === failingOwner
+  );
+  assert.equal(motherLode.Lookup(failingKey), failingOwner);
+  assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
+});
+
+test("CjsMotherLode clears explicit cached entries and shuts down idempotently", () =>
+{
+  const motherLode = new CjsMotherLode();
+  const live = new CjsResource().Initialize("res:/data/live.bin");
+  const cached = new CjsResource().Initialize("res:/data/cached.bin");
+  let cachedDestroyed = 0;
+
+  cached.SetPayload({ cached: true });
+  cached.SetAdapterResource("test", { destroy() { cachedDestroyed += 1; } });
+  motherLode.Insert(getMotherLodeKey(live.GetPath()), live);
+  motherLode.Insert(getMotherLodeKey(cached.GetPath()), cached, { cached: true, bytes: 64 });
+
+  assert.equal(motherLode.GetStats().cached, 1);
+  assert.equal(motherLode.ClearCached(), 1);
+  assert.equal(cachedDestroyed, 1);
+  assert.equal(cached.HasPayload(), false);
+  assert.equal(motherLode.GetSize(), 1);
+
+  motherLode.Shutdown();
+  motherLode.Shutdown();
+
+  assert.equal(motherLode.IsStarted(), false);
+  assert.equal(motherLode.GetSize(), 0);
+  assert.throws(
+    () => motherLode.Insert(getMotherLodeKey("res:/data/rejected.bin"), {}),
+    error => error.code === "CJS_MOTHERLODE_INACTIVE"
+  );
+
+  motherLode.Startup();
+  const restarted = new CjsResource().Initialize("res:/data/restarted.bin");
+  const restartedResult = motherLode.Insert(restarted, restarted.GetPath(), "legacy");
+  assert.equal(restartedResult.inserted, true);
+  assert.equal(restartedResult.key, getMotherLodeKey(restarted.GetPath(), "legacy"));
+  assert.equal(motherLode.Has(restarted.GetPath(), "legacy"), true);
+});
+
+test("CjsResMan reload, delete, and clear use MotherLode cleanup", () =>
+{
+  const resMan = new CjsResMan();
+  const first = resMan.GetResource("res:/data/reload.bin");
+  let firstDestroyed = 0;
+  first.SetPayload({ value: 1 });
+  first.SetAdapterResource("test", { destroy() { firstDestroyed += 1; } });
+
+  const replacement = resMan.GetResource("res:/data/reload.bin", { reload: true });
+
+  assert.notEqual(replacement, first);
+  assert.equal(firstDestroyed, 1);
+  assert.equal(first.HasPayload(), false);
+  assert.equal(resMan.Lookup("res:/data/reload.bin"), replacement);
+
+  let replacementDestroyed = 0;
+  replacement.SetPayload({ value: 2 });
+  replacement.SetAdapterResource("test", { destroy() { replacementDestroyed += 1; } });
+  assert.equal(resMan.Delete("res:/data/reload.bin"), true);
+  assert.equal(replacementDestroyed, 1);
+  assert.equal(replacement.HasPayload(), false);
+
+  const cleared = resMan.GetResource("res:/data/clear.bin");
+  let clearedDestroyed = 0;
+  cleared.SetAdapterResource("test", { destroy() { clearedDestroyed += 1; } });
+  resMan.Clear();
+  assert.equal(clearedDestroyed, 1);
+  assert.equal(resMan.motherLode.GetSize(), 0);
+});
+
+test("CjsResMan binds explicit resource and payload leases for deterministic purge", () =>
+{
+  let time = 0;
+  const motherLode = new CjsMotherLode({ now: () => time });
+  const resMan = new CjsResMan({ motherLode });
+  const resource = resMan.GetResource("res:/data/leased.bin");
+  let destroyed = 0;
+  resource.SetAdapterResource("test", { destroy() { destroyed += 1; } });
+
+  resource.SetLifecycleController(null);
+  assert.equal(resMan.Lookup(resource.GetPath()), resource);
+
+  time = 10;
+  resource.SetPayload({ revision: 1 });
+  assert.equal(motherLode.GetStats().payloads, 1);
+
+  resource.GetPayload();
+  resource.HasPayload();
+  time = 20;
+  const payloadSweep = resMan.PurgeInactive({
+    time,
+    maxIdleMilliseconds: 50,
+    payloadMaxIdleMilliseconds: 5
+  });
+
+  assert.equal(payloadSweep.purged, 0);
+  assert.equal(payloadSweep.payloadsReleased, 1);
+  assert.deepEqual(payloadSweep.payloadKeys, [ getMotherLodeKey(resource.GetPath()) ]);
+  assert.equal(resource.HasPayload(), false);
+  assert.equal(resource.HasAdapterResource("test"), true);
+  assert.equal(resource.IsPurged(), false);
+
+  resource.SetPayload({ revision: 2 });
+  assert.equal(resource.Lock(), 1);
+  time = 100;
+  const lockedSweep = resMan.PurgeInactive({
+    time,
+    maxIdleMilliseconds: 1,
+    payloadMaxIdleMilliseconds: 1
+  });
+
+  assert.equal(lockedSweep.locked, 1);
+  assert.equal(lockedSweep.purged, 0);
+  assert.equal(lockedSweep.payloadsReleased, 0);
+  assert.equal(resource.HasPayload(), true);
+  assert.equal(resource.Unlock(), 0);
+
+  resource.KeepAlive({ time });
+  time = 101;
+  const separatePayloadSweep = resMan.PurgeInactive({
+    time,
+    maxIdleMilliseconds: 50,
+    payloadMaxIdleMilliseconds: 50
+  });
+  assert.equal(separatePayloadSweep.purged, 0);
+  assert.equal(separatePayloadSweep.payloadsReleased, 1);
+  assert.equal(resource.HasAdapterResource("test"), true);
+
+  resource.SetPayload({ revision: 3 });
+  time = 200;
+  const identitySweep = resMan.PurgeInactive({ time, maxIdleMilliseconds: 50 });
+
+  assert.equal(identitySweep.purged, 1);
+  assert.deepEqual(identitySweep.purgedKeys, [ getMotherLodeKey(resource.GetPath()) ]);
+  assert.equal(destroyed, 1);
+  assert.equal(resource.HasPayload(), false);
+  assert.equal(resource.HasAdapterResource("test"), false);
+  assert.equal(resource.IsPurged(), true);
+  assert.equal(resMan.Lookup(resource.GetPath()), null);
+  assert.equal(resource.Lock(), 0);
+});
+
+test("CjsResMan automatic purge is opt-in and follows deterministic time cadence", () =>
+{
+  let time = 0;
+  const motherLode = new CjsMotherLode({ now: () => time });
+  const resMan = new CjsResMan({
+    motherLode,
+    autoPurgePolicy: {
+      intervalMilliseconds: 10,
+      maxIdleMilliseconds: 20,
+      payloadMaxIdleMilliseconds: 5,
+      now: () => time
+    }
+  });
+  const policy = resMan.GetAutoPurgePolicy();
+  const resource = resMan.GetResource("res:/data/automatic-purge.bin");
+  resource.SetPayload({ revision: 1 });
+
+  assert.equal(resMan.IsAutoPurgeEnabled(), true);
+  assert.equal(Object.isFrozen(policy), true);
+  assert.equal(policy.intervalMilliseconds, 10);
+  assert.equal(policy.destroyAdapters, true);
+  assert.equal(policy.releasePayload, true);
+  assert.throws(
+    () => resMan.SetAutoPurgePolicy({ intervalMilliseconds: 1 }),
+    /requires an identity or payload inactivity limit/u
+  );
+  assert.throws(
+    () => resMan.SetAutoPurgePolicy({ maxIdleFrames: 1 }),
+    /does not support: maxIdleFrames/u
+  );
+  assert.equal(resMan.GetAutoPurgePolicy(), policy);
+
+  const initialSweep = resMan.PumpAutoPurge({ time });
+  assert.equal(initialSweep.purged, 0);
+  assert.equal(initialSweep.payloadsReleased, 0);
+
+  time = 5;
+  assert.equal(resMan.Update({ purge: { time } }), false);
+  assert.equal(resource.HasPayload(), true);
+
+  time = 10;
+  assert.equal(resMan.Update({ purge: false }), false);
+  assert.equal(resource.HasPayload(), true);
+  assert.equal(resMan.Update({ purge: { time } }), true);
+  assert.equal(resource.HasPayload(), false);
+  assert.equal(resource.IsPurged(), false);
+
+  time = 20;
+  assert.equal(resMan.Tick({ purge: { time } }), true);
+  assert.equal(resource.IsPurged(), true);
+  assert.equal(resMan.Lookup(resource.GetPath()), null);
+
+  time = 15;
+  assert.equal(resMan.PumpAutoPurge({ time }), null);
+  time = 24;
+  assert.equal(resMan.PumpAutoPurge({ time }), null);
+  time = 25;
+  assert.equal(resMan.PumpAutoPurge({ time }).purged, 0);
+
+  assert.equal(resMan.SetAutoPurgePolicy(false), resMan);
+  assert.equal(resMan.IsAutoPurgeEnabled(), false);
+  assert.equal(resMan.GetAutoPurgePolicy(), null);
+  assert.equal(resMan.PumpAutoPurge({ time }), null);
+});
+
+test("CjsResMan automatic purge protects queued resource work with a balanced lock", async () =>
+{
+  let time = 0;
+  let sourceReads = 0;
+  let releaseRead;
+  const read = new Promise(resolve => { releaseRead = resolve; });
+  const motherLode = new CjsMotherLode({ now: () => time });
+  const resMan = new CjsResMan({
+    motherLode,
+    source: {
+      Read()
+      {
+        sourceReads += 1;
+        return read;
+      }
+    },
+    autoPurgePolicy: {
+      intervalMilliseconds: 0,
+      maxIdleMilliseconds: 0,
+      now: () => time
+    }
+  });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+
+  const operation = resMan.GetObject("res:/data/active-load.json");
+  const resource = resMan.Lookup("res:/data/active-load.json");
+  assert.equal(motherLode.GetStats().locked, 1);
+
+  time = 10;
+  const protectedSweep = resMan.PumpAutoPurge({ time });
+  assert.equal(protectedSweep.locked, 1);
+  assert.equal(protectedSweep.purged, 0);
+  assert.equal(resource.IsPurged(), false);
+
+  releaseRead("{\"loaded\":true}");
+  assert.deepEqual(await operation, { loaded: true });
+  assert.equal(sourceReads, 1);
+  assert.equal(motherLode.GetStats().locked, 0);
+
+  time = 11;
+  const completedSweep = resMan.PumpAutoPurge({ time });
+  assert.equal(completedSweep.locked, 0);
+  assert.equal(completedSweep.purged, 1);
+  assert.equal(resource.IsPurged(), true);
+  assert.equal(sourceReads, 1);
+});
+
+test("CjsMotherLode inactivity purge preserves failed owners and continues", () =>
+{
+  let time = 0;
+  const motherLode = new CjsMotherLode({ now: () => time });
+  const failingKey = getMotherLodeKey("res:/data/failing-purge.bin");
+  const goodKey = getMotherLodeKey("res:/data/good-purge.bin");
+  const failing = new CjsResource().Initialize("res:/data/failing-purge.bin");
+  const good = new CjsResource().Initialize("res:/data/good-purge.bin");
+  failing.SetAdapterResource("test", { destroy() { throw new Error("expected purge failure"); } });
+  good.SetPayload({ good: true });
+  motherLode.Insert(failingKey, failing);
+  motherLode.Insert(goodKey, good);
+
+  time = 10;
+  assert.throws(
+    () => motherLode.PurgeInactive({ time, maxIdleMilliseconds: 1 }),
+    error => error instanceof AggregateError
+      && error.code === "CJS_MOTHERLODE_PURGE_FAILED"
+      && error.result.purged === 1
+      && error.result.purgedKeys[0] === goodKey
+      && error.errors[0].code === "CJS_MOTHERLODE_CLEANUP_FAILED"
+  );
+
+  assert.equal(motherLode.Lookup(failingKey), failing);
+  assert.equal(motherLode.Lookup(goodKey), null);
+  assert.equal(failing.IsPurged(), false);
+  assert.equal(good.IsPurged(), true);
+  assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
 });
 
 test("CjsTextureArrayRes exposes texture parameter proxies backed by one parent", () =>
@@ -947,6 +1351,604 @@ test("registered formats and resource readiness share one object operation", asy
   assert.equal(sourceReads, 1);
   assert.equal(formatReads, 1);
   assert.equal(resource.object, bytes);
+});
+
+test("generic payloads release and reconstruct only on explicit object use", async () =>
+{
+  let time = 0;
+  let sourceReads = 0;
+  const motherLode = new CjsMotherLode({ now: () => time });
+  const resMan = new CjsResMan({
+    motherLode,
+    source: {
+      Read()
+      {
+        sourceReads += 1;
+        return `{\"revision\":${sourceReads}}`;
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+
+  const path = "res:/data/reconstruct.json";
+  const resource = resMan.GetResource(path);
+  const first = resource.Ready();
+  const concurrent = resMan.GetObject(path);
+
+  assert.equal(first, concurrent);
+  const firstObject = await first;
+  assert.deepEqual(firstObject, { revision: 1 });
+  assert.equal(resource.GetPayload(), firstObject);
+  assert.equal(resource.object, firstObject);
+  assert.equal(motherLode.GetStats().payloads, 1);
+
+  const resident = resMan.GetObject(path);
+  assert.notEqual(resident, first);
+  assert.equal(await resident, firstObject);
+  assert.equal(sourceReads, 1);
+
+  time = 10;
+  const payloadSweep = resMan.PurgeInactive({
+    time,
+    maxIdleMilliseconds: 100,
+    payloadMaxIdleMilliseconds: 1
+  });
+  assert.equal(payloadSweep.payloadsReleased, 1);
+  assert.equal(resource.HasPayload(), false);
+  assert.equal(resource.GetPayload(), null);
+  assert.equal(resource.object, null);
+  assert.equal(sourceReads, 1);
+
+  resource.HasLoaded();
+  resource.GetPayload();
+  resource.KeepAlive({ time });
+  assert.equal(sourceReads, 1);
+
+  const reconstructed = await resource.Ready();
+  assert.deepEqual(reconstructed, { revision: 2 });
+  assert.equal(resMan.Lookup(path), resource);
+  assert.equal(resource.GetPayload(), reconstructed);
+  assert.equal(resource.object, reconstructed);
+  assert.equal(sourceReads, 2);
+
+  time = 20;
+  const identitySweep = resMan.PurgeInactive({ time, maxIdleMilliseconds: 1 });
+  assert.equal(identitySweep.purged, 1);
+  assert.equal(resource.IsPurged(), true);
+  assert.equal(resource.object, null);
+
+  const replacementObject = await resource.Ready();
+  const replacement = resMan.Lookup(path);
+  assert.notEqual(replacement, resource);
+  assert.deepEqual(replacementObject, { revision: 3 });
+  assert.equal(resource.IsPurged(), true);
+  assert.equal(resource.object, null);
+  assert.equal(replacement.object, replacementObject);
+  assert.equal(sourceReads, 3);
+});
+
+test("failed object operations are removed so explicit retry can succeed", async () =>
+{
+  let attempts = 0;
+  const path = "res:/data/retry.json";
+  const resMan = new CjsResMan({
+    source: {
+      Read()
+      {
+        attempts += 1;
+        if (attempts === 1) throw new Error("expected source failure");
+        return "{\"recovered\":true}";
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+
+  await assert.rejects(resMan.GetObject(path), /expected source failure/u);
+  const resource = resMan.Lookup(path);
+  assert.equal(resource.IsFailed(), true);
+
+  const recovered = await resource.Ready();
+  assert.deepEqual(recovered, { recovered: true });
+  assert.equal(attempts, 2);
+  assert.equal(resource.state, CjsResource.State.LOADED);
+  assert.equal(resource.error, null);
+  assert.equal(resource.GetPayload(), recovered);
+  assert.equal(resource.object, recovered);
+});
+
+test("reload replaces retained source and format results for later reconstruction", async () =>
+{
+  let revision = 1;
+  let sourceReads = 0;
+  let formatReads = 0;
+  const source = {
+    Read()
+    {
+      sourceReads += 1;
+      return new Uint8Array([ revision ]);
+    }
+  };
+
+  class CjsReloadCacheFormat
+  {
+    static inputTypes = [ "reloadcache" ];
+    static outputTypes = [ "raw" ];
+
+    static read(bytes)
+    {
+      formatReads += 1;
+      return { revision: bytes[0] };
+    }
+  }
+
+  const path = "res:/data/value.reloadcache";
+  const resMan = new CjsResMan({ source }).RegisterFormat(CjsReloadCacheFormat);
+  const firstObject = await resMan.GetObject(path, {
+    emit: "raw",
+    sourceRevision: "r1",
+    cacheSource: true,
+    cacheFormat: true
+  });
+  const firstResource = resMan.Lookup(path, { emit: "raw" });
+  assert.deepEqual(firstObject, { revision: 1 });
+
+  revision = 2;
+  const replacementObject = await resMan.GetObject(path, {
+    emit: "raw",
+    sourceRevision: "r2",
+    cacheSource: true,
+    cacheFormat: true,
+    reload: true
+  });
+  const replacement = resMan.Lookup(path, { emit: "raw" });
+  assert.deepEqual(replacementObject, { revision: 2 });
+  assert.notEqual(replacement, firstResource);
+  assert.equal(firstResource.HasPayload(), false);
+  assert.equal(firstResource.object, null);
+  assert.equal(sourceReads, 2);
+  assert.equal(formatReads, 2);
+
+  replacement.ReleasePayload();
+  assert.equal(replacement.object, null);
+  assert.equal(await replacement.Ready(), replacementObject);
+  assert.equal(sourceReads, 2);
+  assert.equal(formatReads, 2);
+});
+
+test("FetchResource consumes reload once and returns the current canonical handle", async () =>
+{
+  let revision = 1;
+  let sourceReads = 0;
+  const source = {
+    Read()
+    {
+      sourceReads += 1;
+      return `{"revision":${revision}}`;
+    }
+  };
+  const path = "res:/data/fetch-reload.json";
+  const resMan = new CjsResMan({ source });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+
+  const first = await resMan.FetchResource(path);
+  revision = 2;
+  const replacement = await resMan.FetchResource(path, { reload: true });
+
+  assert.notEqual(replacement, first);
+  assert.equal(replacement, resMan.Lookup(path));
+  assert.deepEqual(replacement.GetPayload(), { revision: 2 });
+  assert.equal(sourceReads, 2);
+});
+
+test("source revision scopes shared source and parsed format operations", async () =>
+{
+  let sourceReads = 0;
+  let formatReads = 0;
+  const source = {
+    Read(path, options)
+    {
+      sourceReads += 1;
+      return new Uint8Array([ options.sourceRevision ]);
+    }
+  };
+
+  class CjsRevisionCacheFormat
+  {
+    static inputTypes = [ "revisioncache" ];
+    static outputTypes = [ "raw" ];
+
+    static read(bytes)
+    {
+      formatReads += 1;
+      return { revision: bytes[0] };
+    }
+  }
+
+  const path = "res:/data/value.revisioncache";
+  const resMan = new CjsResMan({ source }).RegisterFormat(CjsRevisionCacheFormat);
+  const revisionOneA = await resMan.GetObject(path, {
+    requirement: "one-a",
+    emit: "raw",
+    sourceRevision: 1,
+    cacheSource: true,
+    cacheFormat: true
+  });
+  const revisionOneB = await resMan.GetObject(path, {
+    requirement: "one-b",
+    emit: "raw",
+    sourceRevision: 1
+  });
+  const revisionTwo = await resMan.GetObject(path, {
+    requirement: "two",
+    emit: "raw",
+    sourceRevision: 2,
+    cacheSource: true,
+    cacheFormat: true
+  });
+
+  assert.equal(revisionOneB, revisionOneA);
+  assert.deepEqual(revisionTwo, { revision: 2 });
+  assert.equal(sourceReads, 2);
+  assert.equal(formatReads, 2);
+});
+
+test("format caches isolate source objects and registration descriptors", async () =>
+{
+  let sourceAReads = 0;
+  let sourceBReads = 0;
+  let formatReads = 0;
+  const sourceA = { Read() { sourceAReads += 1; return new Uint8Array([ 2 ]); } };
+  const sourceB = { Read() { sourceBReads += 1; return new Uint8Array([ 7 ]); } };
+
+  class CjsDescriptorCacheFormat
+  {
+    static inputTypes = [ "descriptorcache" ];
+    static outputTypes = [ "raw" ];
+
+    static read(bytes, options)
+    {
+      formatReads += 1;
+      return { value: bytes[0] * options.multiplier, formatRead: formatReads };
+    }
+  }
+
+  const path = "res:/data/value.descriptorcache";
+  const resMan = new CjsResMan({ source: sourceA })
+    .RegisterFormat(CjsDescriptorCacheFormat, { multiplier: 1 });
+  const fromA = await resMan.GetObject(path, {
+    source: sourceA,
+    requirement: "source-a",
+    emit: "raw",
+    sourceRevision: 1,
+    cacheSource: true,
+    cacheFormat: true
+  });
+  const fromB = await resMan.GetObject(path, {
+    source: sourceB,
+    requirement: "source-b",
+    emit: "raw",
+    sourceRevision: 1,
+    cacheSource: true,
+    cacheFormat: true
+  });
+  assert.deepEqual(fromA, { value: 2, formatRead: 1 });
+  assert.deepEqual(fromB, { value: 7, formatRead: 2 });
+
+  resMan.RegisterFormat(CjsDescriptorCacheFormat, { multiplier: 3 });
+  const reregistered = await resMan.GetObject(path, {
+    source: sourceA,
+    requirement: "descriptor-v2",
+    emit: "raw",
+    sourceRevision: 1,
+    cacheFormat: true
+  });
+  const bypassed = await resMan.GetObject(path, {
+    source: sourceA,
+    requirement: "descriptor-bypass",
+    emit: "raw",
+    sourceRevision: 1,
+    cacheFormat: false
+  });
+  const retained = await resMan.GetObject(path, {
+    source: sourceA,
+    requirement: "descriptor-retained",
+    emit: "raw",
+    sourceRevision: 1
+  });
+
+  assert.deepEqual(reregistered, { value: 6, formatRead: 3 });
+  assert.deepEqual(bypassed, { value: 6, formatRead: 4 });
+  assert.equal(retained, reregistered);
+  assert.equal(sourceAReads, 1);
+  assert.equal(sourceBReads, 1);
+  assert.equal(formatReads, 4);
+});
+
+test("format cache identity distinguishes same-named class constructors", async () =>
+{
+  let sourceReads = 0;
+  let formatReads = 0;
+  const source = {
+    Read()
+    {
+      sourceReads += 1;
+      return new Uint8Array([ 1 ]);
+    }
+  };
+  const ClassA = class SharedName {};
+  const ClassB = class SharedName {};
+
+  class CjsClassIdentityFormat
+  {
+    static inputTypes = [ "classidentity" ];
+    static outputTypes = [ "raw" ];
+
+    static read(bytes, options)
+    {
+      formatReads += 1;
+      return { Constructor: options.classes.Root, byte: bytes[0] };
+    }
+  }
+
+  const path = "res:/data/classes.classidentity";
+  const resMan = new CjsResMan({ source }).RegisterFormat(CjsClassIdentityFormat);
+  const first = await resMan.GetObject(path, {
+    requirement: "class-a",
+    emit: "raw",
+    classes: { Root: ClassA },
+    sourceRevision: 1,
+    cacheSource: true,
+    cacheFormat: true
+  });
+  const second = await resMan.GetObject(path, {
+    requirement: "class-b",
+    emit: "raw",
+    classes: { Root: ClassB },
+    sourceRevision: 1,
+    cacheFormat: true
+  });
+
+  assert.equal(first.Constructor, ClassA);
+  assert.equal(second.Constructor, ClassB);
+  assert.notEqual(first, second);
+  assert.equal(sourceReads, 1);
+  assert.equal(formatReads, 2);
+});
+
+test("non-canonical format options bypass retained format sharing", async () =>
+{
+  let sourceReads = 0;
+  let formatReads = 0;
+  const source = { Read() { sourceReads += 1; return new Uint8Array([ 3 ]); } };
+
+  class CjsNonCanonicalCacheFormat
+  {
+    static inputTypes = [ "noncanonical" ];
+    static outputTypes = [ "raw" ];
+
+    static read(bytes)
+    {
+      formatReads += 1;
+      return { byte: bytes[0], formatRead: formatReads };
+    }
+  }
+
+  const path = "res:/data/options.noncanonical";
+  const formatOptions = { timestamp: new Date(0) };
+  const resMan = new CjsResMan({ source }).RegisterFormat(CjsNonCanonicalCacheFormat);
+  const first = await resMan.GetObject(path, {
+    requirement: "noncanonical-a",
+    emit: "raw",
+    formatOptions,
+    sourceRevision: 1,
+    cacheSource: true,
+    cacheFormat: true
+  });
+  const second = await resMan.GetObject(path, {
+    requirement: "noncanonical-b",
+    emit: "raw",
+    formatOptions,
+    sourceRevision: 1,
+    cacheFormat: true
+  });
+
+  assert.deepEqual(first, { byte: 3, formatRead: 1 });
+  assert.deepEqual(second, { byte: 3, formatRead: 2 });
+  assert.equal(sourceReads, 1);
+  assert.equal(formatReads, 2);
+});
+
+test("registered format defaults are deeply snapshotted", async () =>
+{
+  const defaults = {
+    transform: { multiplier: 2 },
+    offsets: [ 1, { value: 3 } ]
+  };
+
+  class CjsDefaultSnapshotFormat
+  {
+    static inputTypes = [ "defaultsnapshot" ];
+    static outputTypes = [ "raw" ];
+
+    static read(bytes, options)
+    {
+      return bytes[0] * options.transform.multiplier
+        + options.offsets[0]
+        + options.offsets[1].value;
+    }
+  }
+
+  const path = "res:/data/defaults.defaultsnapshot";
+  const resMan = new CjsResMan({
+    source: { Read() { return new Uint8Array([ 4 ]); } }
+  }).RegisterFormat(CjsDefaultSnapshotFormat, defaults);
+  defaults.transform.multiplier = 20;
+  defaults.offsets[0] = 10;
+  defaults.offsets[1].value = 30;
+
+  const descriptor = resMan.GetFormatDescriptors("defaultsnapshot")[0];
+  assert.equal(Object.isFrozen(descriptor.defaults), true);
+  assert.equal(Object.isFrozen(descriptor.defaults.transform), true);
+  assert.equal(Object.isFrozen(descriptor.defaults.offsets), true);
+  assert.equal(Object.isFrozen(descriptor.defaults.offsets[1]), true);
+  assert.equal(await resMan.GetObject(path, { emit: "raw" }), 12);
+});
+
+test("joined cache retention upgrades and cache false bypasses source sharing", async () =>
+{
+  let sourceReads = 0;
+  let releaseFirst;
+  const source = {
+    Read()
+    {
+      sourceReads += 1;
+      if (sourceReads === 1)
+      {
+        return new Promise(resolve => { releaseFirst = resolve; });
+      }
+      return new Uint8Array([ sourceReads ]);
+    }
+  };
+  const resMan = new CjsResMan({ source });
+  const path = "res:/data/source-cache.bin";
+  const first = resMan.ReadResource(path, { sourceRevision: 4 });
+  const upgraded = resMan.ReadResource(path, { sourceRevision: 4, cacheSource: true });
+  assert.equal(first, upgraded);
+  await Promise.resolve();
+  assert.equal(sourceReads, 1);
+  releaseFirst(new Uint8Array([ 1 ]));
+  await first;
+
+  const retained = resMan.ReadResource(path, { sourceRevision: 4 });
+  assert.equal(retained, first);
+  const bypassed = resMan.ReadResource(path, { sourceRevision: 4, cacheSource: false });
+  assert.notEqual(bypassed, first);
+  assert.deepEqual(await bypassed, new Uint8Array([ 2 ]));
+  assert.equal(sourceReads, 2);
+
+  const invalidated = resMan.InvalidateReadCache(path, { sourceRevision: 4 });
+  assert.equal(invalidated.source, 1);
+  assert.deepEqual(await resMan.ReadResource(path, { sourceRevision: 4 }), new Uint8Array([ 3 ]));
+  assert.equal(sourceReads, 3);
+});
+
+test("late invalidated source settlement cannot displace a newer retained record", async () =>
+{
+  const resolvers = [];
+  let sourceReads = 0;
+  const source = {
+    Read()
+    {
+      sourceReads += 1;
+      return new Promise(resolve => resolvers.push(resolve));
+    }
+  };
+  const resMan = new CjsResMan({ source });
+  const path = "res:/data/late-cache.bin";
+  const oldOperation = resMan.ReadResource(path, { sourceRevision: "same", cacheSource: true });
+  await Promise.resolve();
+  assert.equal(resMan.InvalidateReadCache(path, { sourceRevision: "same" }).source, 1);
+  const newOperation = resMan.ReadResource(path, { sourceRevision: "same", cacheSource: true });
+  await Promise.resolve();
+  assert.equal(sourceReads, 2);
+
+  resolvers[0](new Uint8Array([ 1 ]));
+  await oldOperation;
+  resolvers[1](new Uint8Array([ 2 ]));
+  assert.deepEqual(await newOperation, new Uint8Array([ 2 ]));
+  assert.equal(resMan.ReadResource(path, { sourceRevision: "same" }), newOperation);
+});
+
+test("late invalidated format settlement cannot displace a newer retained record", async () =>
+{
+  const resolvers = [];
+  let formatReads = 0;
+  const source = { Read() { return new Uint8Array([ 0 ]); } };
+
+  class CjsLateFormatCache
+  {
+    static inputTypes = [ "lateformat" ];
+    static outputTypes = [ "raw" ];
+
+    static readAsync(bytes)
+    {
+      formatReads += 1;
+      return new Promise(resolve => resolvers.push(() => resolve({ revision: bytes[0] })));
+    }
+  }
+
+  const path = "res:/data/late.lateformat";
+  const options = {
+    emit: "raw",
+    sourceRevision: "same",
+    cacheFormat: true
+  };
+  const resMan = new CjsResMan({ source }).RegisterFormat(CjsLateFormatCache);
+  const resource = resMan.GetResource(path, options);
+  const descriptor = resMan.ResolveFormatDescriptor("lateformat", options);
+  const oldOperation = resMan.ReadFormatOnce(resource, descriptor, new Uint8Array([ 1 ]), options);
+  await Promise.resolve();
+  assert.equal(resMan.InvalidateReadCache(path, { sourceRevision: "same" }).format, 1);
+  const newOperation = resMan.ReadFormatOnce(resource, descriptor, new Uint8Array([ 2 ]), options);
+  await Promise.resolve();
+  assert.equal(formatReads, 2);
+
+  resolvers[0]();
+  assert.deepEqual(await oldOperation, { revision: 1 });
+  resolvers[1]();
+  assert.deepEqual(await newOperation, { revision: 2 });
+  assert.equal(
+    resMan.ReadFormatOnce(resource, descriptor, new Uint8Array([ 9 ]), options),
+    newOperation
+  );
+});
+
+test("Delete preserves retained reads while Clear resets every read ledger", async () =>
+{
+  let sourceReads = 0;
+  const source = { Read() { sourceReads += 1; return new Uint8Array([ sourceReads ]); } };
+  const resMan = new CjsResMan({ source });
+  const path = "res:/data/delete-cache.bin";
+  const retained = resMan.ReadResource(path, { sourceRevision: 1, cacheSource: true });
+  await retained;
+  resMan.GetResource(path);
+  assert.equal(resMan.Delete(path), true);
+  assert.equal(resMan.ReadResource(path, { sourceRevision: 1 }), retained);
+  assert.equal(sourceReads, 1);
+
+  resMan.Clear();
+  assert.deepEqual(await resMan.ReadResource(path, { sourceRevision: 1 }), new Uint8Array([ 2 ]));
+  assert.equal(sourceReads, 2);
+});
+
+test("released resources retain source provenance but not cache policy", async () =>
+{
+  let originalReads = 0;
+  let laterDefaultReads = 0;
+  const originalSource = { Read() { originalReads += 1; return "{\"source\":\"original\"}"; } };
+  const laterDefaultSource = { Read() { laterDefaultReads += 1; return "{\"source\":\"later\"}"; } };
+  const resMan = new CjsResMan({ source: originalSource });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  const path = "res:/data/provenance.json";
+  const resource = resMan.GetResource(path, {
+    sourceRevision: "original-v1"
+  });
+  await resource.Ready({ cacheSource: true });
+  assert.equal(originalReads, 1);
+  resMan.SetSource(laterDefaultSource);
+  assert.equal(resMan.InvalidateReadCache(path, {
+    source: originalSource,
+    sourceRevision: "original-v1"
+  }).source, 1);
+
+  resource.ReleasePayload();
+  assert.deepEqual(await resource.Ready(), { source: "original" });
+  assert.equal(originalReads, 2);
+  assert.equal(laterDefaultReads, 0);
+  assert.equal(resMan.InvalidateReadCache(path, {
+    source: originalSource,
+    sourceRevision: "original-v1"
+  }).source, 0);
 });
 
 test("semantic resource readiness resolves the resource and retains its plain payload", async () =>

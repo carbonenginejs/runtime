@@ -1,4 +1,4 @@
-import { CjsMotherLode } from "./CjsMotherLode.js";
+import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
 import { CjsEventEmitter } from "@carbonenginejs/core-types/model";
 import { CjsResource } from "./CjsResource.js";
 import {
@@ -12,8 +12,136 @@ import {
   normalizeResourcePath
 } from "./resourcePath.js";
 
+/** @type {WeakMap<object, CjsResourceReadContext>} */
+const READ_CONTEXTS = new WeakMap();
+
+/** @type {WeakMap<object, { resMan: CjsResMan, path: string }>} */
+const RELOAD_INVALIDATIONS = new WeakMap();
+
+/** @type {WeakMap<object|Function, number>} */
+const FORMAT_CACHE_IDENTITIES = new WeakMap();
+let nextFormatCacheIdentity = 1;
+
+/**
+ * Immutable source provenance used by one read/format operation chain.
+ *
+ * `sourceRevision` is caller/source-provided opaque content identity. It scopes
+ * read caches only and never becomes part of MotherLode build identity.
+ *
+ * @typedef {object} CjsResourceReadContext
+ * @property {CjsResMan} resMan Owning manager.
+ * @property {object|Function} source Selected source implementation.
+ * @property {string} path Normalized Carbon-style source path.
+ * @property {string|number|undefined} sourceRevision Caller content token.
+ * @property {string} revisionKey Type-stable internal form of the content token.
+ */
+
+/**
+ * Mutable record retained in a source or format operation ledger.
+ *
+ * @typedef {object} CjsResourceReadOperationRecord
+ * @property {Promise<*>} promise Shared operation promise.
+ * @property {string} path Normalized source path used for explicit invalidation.
+ * @property {string} revisionKey Type-stable source revision key.
+ * @property {boolean} retain Whether any joined caller requested settled retention.
+ */
+
+/**
+ * Source provenance and tri-state read-cache controls.
+ *
+ * Omitted cache flags share in-flight or explicitly retained work but do not
+ * retain a newly completed operation. `true` retains success, while `false`
+ * bypasses sharing and retention. Failures are never retained.
+ *
+ * @typedef {object} CjsResManReadCacheOptions
+ * @property {object|Function} [source] Source override providing `Read(path, options)`.
+ * @property {string|number} [sourceRevision] Opaque caller/source content token; finite numbers only.
+ * @property {boolean} [reload=false] Invalidate this source/path and begin fresh work once.
+ * @property {boolean} [cacheSource] Source operation sharing/retention policy.
+ * @property {boolean} [cacheFormat] Parsed-format operation sharing/retention policy.
+ */
+
+/**
+ * Opt-in time-based inactivity policy run by {@link CjsResMan#Update}.
+ *
+ * Automatic policy deliberately uses elapsed milliseconds rather than
+ * MotherLode activity frames: the latter count explicit activity observations
+ * and are not guaranteed to match renderer frames. At least one identity or
+ * payload limit is required. The policy is disabled by default.
+ *
+ * @typedef {object} CjsResManAutoPurgePolicy
+ * @property {number} [intervalMilliseconds=1000] Minimum elapsed milliseconds between automatic sweeps; `0` permits every update.
+ * @property {number} [maxIdleMilliseconds] Elapsed milliseconds after which an unlocked canonical identity is removed and cleaned.
+ * @property {number} [payloadMaxIdleMilliseconds] Elapsed milliseconds after which an unlocked CPU payload is released.
+ * @property {boolean} [destroyAdapters=true] Whether identity cleanup destroys adapter allocations.
+ * @property {boolean} [releasePayload=true] Whether sweeps may release CPU payloads.
+ * @property {false|Function} [cleanup] `false` retains owned state; a function replaces default identity cleanup.
+ * @property {() => number} [now=Date.now] Cadence clock. Use the MotherLode activity clock when supplying a custom clock.
+ */
+
+/**
+ * Per-call controls for {@link CjsResMan#PumpAutoPurge}.
+ *
+ * @typedef {object} CjsResManAutoPurgePumpOptions
+ * @property {number} [time] Explicit non-negative timestamp in milliseconds for deterministic pumping and sweeping.
+ */
+
+/**
+ * Queue and automatic-purge controls accepted by {@link CjsResMan#Update}.
+ * Top-level queue options remain a compatibility form for the prepare pump.
+ *
+ * @typedef {object} CjsResManUpdateOptions
+ * @property {object} [background] Background queue pump options.
+ * @property {object} [prepare] Main-thread prepare queue pump options.
+ * @property {false|CjsResManAutoPurgePumpOptions} [purge] `false` skips this update's automatic sweep; otherwise supplies its timestamp.
+ */
+
+/**
+ * Snapshot-fence controls accepted by {@link CjsResMan#Wait}.
+ *
+ * The default pump uses the manager's ordinary queue budgets and honors queue
+ * pause state. `pump: false` leaves all progress to an external driver. The
+ * yield callback is used only while this call is pumping and may return either
+ * a promise or an immediate value.
+ *
+ * @typedef {object} CjsResManWaitOptions
+ * @property {boolean} [pump=true] Whether this call pumps the two queues while awaiting its snapshot.
+ * @property {object} [background] Options forwarded to `PumpBackgroundQueue`.
+ * @property {object} [prepare] Options forwarded to `PumpMainThreadQueue`.
+ * @property {() => (*|Promise<*>)} [yield] Cooperative wait between pump attempts.
+ */
+
+/**
+ * Immutable authority captured by asynchronous work that may mutate a
+ * canonical resource. A generation changes whenever ResMan removes and later
+ * rebinds the same JavaScript handle, even when owner and key are reused.
+ *
+ * @typedef {object} CjsResourceOwnership
+ * @property {number} generation Manager-local ownership generation.
+ * @property {CjsMotherLode} owner Exact registry that owns the resource.
+ * @property {string} key Exact canonical registry identity.
+ * @property {object|Function} resource Canonical resource handle.
+ */
+
 export class CjsResMan extends CjsEventEmitter
 {
+
+  #autoPurgePolicy = null;
+  #activeResourceOperations = 0;
+  #invalidResourceOwnership = new WeakSet();
+  #lastAutoPurgeTime = null;
+  #nextResourceOwnershipGeneration = 1;
+  #nextResourceOperationId = 1;
+  #queueOperations = new Map();
+  #resourceOwnership = new WeakMap();
+  #resourceOperations = new Map();
+
+  /**
+   * Create a GPU-free resource manager and apply its initial registration.
+   *
+   * @param {object} [options={}] Configuration forwarded to {@link CjsResMan#Register}.
+   * @throws {TypeError} If registration, queue, source, or format options are invalid.
+   */
   constructor(options = {}) {
     super();
     this.motherLode = new CjsMotherLode();
@@ -53,6 +181,16 @@ export class CjsResMan extends CjsEventEmitter
    * The same options object can be forwarded unchanged by CjsLibrary. Format
    * classes continue to own their input extensions; resource types are keyed
    * by semantic requirements such as "texture", "image", or "geometry".
+   * Replacing MotherLode shuts down and cleans the former owner before the new
+   * registry is activated. Replacement is rejected while queued or direct
+   * resource mutations are active so a synchronous configuration call cannot
+   * detach ownership underneath asynchronous publication. Normal `Wait()`
+   * drains queued roots only; direct callers must await their own promises.
+   *
+   * @param {object} [options={}] Additive source, registry, queue, format, and resource-type settings.
+   * @returns {CjsResMan} This resource manager.
+   * @throws {TypeError} If options or any configured component are invalid.
+   * @throws {Error|AggregateError} If resource mutations are active or replacing MotherLode cannot clean its resources.
    */
   Register(options = {})
   {
@@ -63,7 +201,25 @@ export class CjsResMan extends CjsEventEmitter
 
     if (Object.prototype.hasOwnProperty.call(options, "motherLode"))
     {
-      this.motherLode = options.motherLode || new CjsMotherLode();
+      const nextMotherLode = options.motherLode || new CjsMotherLode();
+      if (nextMotherLode !== this.motherLode)
+      {
+        if (this.#activeResourceOperations > 0)
+        {
+          throw ActiveResourceOperationsError(this.#activeResourceOperations);
+        }
+        const previousMotherLode = this.motherLode;
+        this.#InvalidateMotherLodeOwnership(previousMotherLode);
+        previousMotherLode?.Shutdown?.();
+        this.motherLode = nextMotherLode;
+        this.motherLode.Startup?.();
+        this.#BindMotherLodeResources();
+        this.#lastAutoPurgeTime = null;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(options, "autoPurgePolicy"))
+    {
+      this.SetAutoPurgePolicy(options.autoPurgePolicy);
     }
     if (Object.prototype.hasOwnProperty.call(options, "source"))
     {
@@ -248,22 +404,108 @@ export class CjsResMan extends CjsEventEmitter
     return this.GetPendingLoads() + this.GetPendingPrepares() > 0;
   }
 
+  /**
+   * Pump background and main-thread work, then run a due automatic inactivity
+   * sweep when one has been explicitly configured. Queue work is processed
+   * before purging, and manager-owned active loads/prepares hold purge locks.
+   * No sweep fetches, prepares, or reloads source data.
+   *
+   * @param {CjsResManUpdateOptions} [options={}] Queue budgets and optional automatic-purge controls.
+   * @returns {boolean} Whether queue work ran or a sweep released a payload or canonical identity.
+   * @throws {TypeError} If queue options, purge timing, or the configured MotherLode policy are invalid.
+   * @throws {AggregateError} If a due sweep cannot clean one or more inactive resources.
+   */
   Update(options = {}) {
     const loaded = this.PumpBackgroundQueue(options.background || {});
     const prepared = this.PumpMainThreadQueue(options.prepare || options);
-    return loaded || prepared;
+    const purgeOptions = options.purge === true || options.purge === undefined
+      ? {}
+      : options.purge;
+    const purgeResult = options.purge === false
+      ? null
+      : this.PumpAutoPurge(purgeOptions);
+    const purged = Boolean(purgeResult
+      && (purgeResult.purged > 0 || purgeResult.payloadsReleased > 0));
+    return loaded || prepared || purged;
   }
 
+  /**
+   * Compatibility alias for {@link CjsResMan#Update}. It uses the same queue
+   * budgets, opt-in purge cadence, return value, and error behavior.
+   *
+   * @param {CjsResManUpdateOptions} [options={}] Queue budgets and optional automatic-purge controls.
+   * @returns {boolean} Whether queue work ran or a sweep released owned state.
+   * @throws {TypeError|AggregateError} If update options or a due purge fail.
+   */
   Tick(options = {}) {
     return this.Update(options);
   }
 
-  async Wait(options = {}) {
-    const yieldQueue = typeof options.yield === "function" ? options.yield : DefaultQueueYield;
-    while (this.IsLoading()) {
-      if (options.pump !== false) this.Update(options);
-      await yieldQueue();
+  /**
+   * Wait for the manager work that exists when this method is called.
+   * The snapshot contains active queued resource load/prepare roots and direct
+   * queue tasks. A captured resource root includes every prepare descendant it
+   * enqueues later, while unrelated roots/tasks submitted after the call do
+   * not postpone this fence. Shared-source joins do not merge distinct roots.
+   *
+   * Failure and queued cancellation count as terminal settlement: callers
+   * observe those errors through the original operation promises, while this
+   * method resolves after every captured promise settles. By default it pumps
+   * background and main queues directly, so waiting never triggers automatic
+   * retention sweeps. Paused queues remain paused. With `pump: false`, an
+   * external driver must resume/pump queues or the returned promise may remain
+   * pending.
+   *
+   * A standalone canonical `PrepareResourceObjectQueued()` call opens a
+   * resource root. Direct `LoadResourceObject()`, direct
+   * `PrepareResourceObject()`, standalone `ReadResource()`, and standalone
+   * `ReadFormatOnce()` calls bypass the two queues and are not resource roots
+   * unless they also own a captured queue task. `WaitUrgent()` remains absent
+   * until per-item priority and urgent membership exist.
+   *
+   * @param {CjsResManWaitOptions} [options={}] Snapshot pumping and cooperative-yield controls.
+   * @returns {Promise<CjsResMan>} This manager after all captured work settles.
+   * @throws {TypeError} If options, `pump`, or `yield` are invalid.
+   * @throws {Error} If a queue pump or custom yield callback itself fails.
+   */
+  async Wait(options = {})
+  {
+    if (!options || typeof options !== "object" || Array.isArray(options))
+    {
+      throw new TypeError("CjsResMan.Wait options must be an object.");
     }
+    if (options.pump !== undefined && typeof options.pump !== "boolean")
+    {
+      throw new TypeError("CjsResMan.Wait pump must be a boolean when supplied.");
+    }
+    if (options.yield !== undefined && typeof options.yield !== "function")
+    {
+      throw new TypeError("CjsResMan.Wait yield must be a function when supplied.");
+    }
+
+    const snapshot = new Set([
+      ...this.#resourceOperations.values(),
+      ...this.#queueOperations.values()
+    ]);
+    if (snapshot.size === 0) return this;
+
+    const fence = Promise.allSettled([ ...snapshot ]);
+    if (options.pump === false)
+    {
+      await fence;
+      return this;
+    }
+
+    const yieldQueue = options.yield || DefaultQueueYield;
+    let settled = false;
+    fence.then(() => { settled = true; });
+    while (!settled)
+    {
+      this.PumpBackgroundQueue(options.background || {});
+      this.PumpMainThreadQueue(options.prepare || {});
+      if (!settled) await Promise.race([ fence, Promise.resolve().then(yieldQueue) ]);
+    }
+    await fence;
     return this;
   }
 
@@ -273,8 +515,22 @@ export class CjsResMan extends CjsEventEmitter
       : this._loadQueue;
   }
 
-  QueueTask(queue, callback, context = null, metadata = null) {
-    return this.GetWorkQueue(queue).Add(callback, context, metadata);
+  /**
+   * Add one low-level task to a manager queue and retain its promise only while
+   * pending so a contemporaneous {@link CjsResMan#Wait} snapshot can include
+   * it. This does not assign resource lineage to tasks the callback may submit
+   * later; callers should return/await such work or use the resource pipeline.
+   *
+   * @param {string} queue Queue name or compatibility alias.
+   * @param {Function} callback Queue callback receiving immutable task metadata.
+   * @param {*} [context=null] `this` value used to invoke the callback.
+   * @param {object|null} [metadata=null] Opaque diagnostics retained on the task.
+   * @returns {object} Queue task record containing id, queue, state, metadata, and promise.
+   * @throws {TypeError} If the queue or callback is invalid.
+   */
+  QueueTask(queue, callback, context = null, metadata = null)
+  {
+    return this.#TrackQueueTask(this.GetWorkQueue(queue).Add(callback, context, metadata));
   }
 
   ScheduleBackgroundQueue() {
@@ -338,11 +594,16 @@ export class CjsResMan extends CjsEventEmitter
   /**
    * Register a reusable format facade for each accepted input extension.
    * Multiple candidates may share an extension and are resolved by requested
-   * output/media type or by their support probes.
+   * output/media type or by their support probes. Defaults are copied into a
+   * deeply frozen plain-object/array snapshot, so later caller mutation cannot
+   * change the behavior represented by the descriptor identity. Functions are
+   * retained by identity; unsupported class instances, accessors, symbol keys,
+   * and byte buffers are rejected instead of being described as immutable.
    *
-   * @param {Function} Format
-   * @param {object} defaults
-   * @returns {CjsResMan}
+   * @param {Function} Format Format facade declaring at least one `inputTypes` extension.
+   * @param {object} [defaults={}] Plain reader-option defaults to snapshot for this registration.
+   * @returns {CjsResMan} This resource manager.
+   * @throws {TypeError} If the format declaration or immutable defaults snapshot is invalid.
    */
   RegisterFormat(Format, defaults = {})
   {
@@ -355,7 +616,7 @@ export class CjsResMan extends CjsEventEmitter
       throw new TypeError(`${Format.name || "Format"} must declare non-empty inputTypes.`);
     }
 
-    const descriptor = Object.freeze({ Format, defaults: Object.freeze({ ...defaults }) });
+    const descriptor = Object.freeze({ Format, defaults: SnapshotFormatDefaults(defaults) });
     for (const inputType of Format.inputTypes)
     {
       const key = normalizeResourceExtension(inputType);
@@ -378,30 +639,110 @@ export class CjsResMan extends CjsEventEmitter
     return this.ResolveFormatDescriptor(inputType, options).Format;
   }
 
+  /**
+   * Return the immediate canonical resource handle for a path and resolved
+   * build outcome. Cache hits explicitly renew MotherLode activity.
+   * `reload: true` synchronously detaches reusable read records for the
+   * selected source/path, then immediately displaces and cleans the former
+   * canonical handle. This is not yet candidate-first atomic reload: a later
+   * load/prepare failure does not restore the former good handle.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {object} [options={}] Semantic requirement, output, format, pipeline, identity, source provenance, and reload settings.
+   * @returns {CjsResource} Canonical resource handle for the resolved identity.
+   * @throws {TypeError} If the path, identity settings, or resource constructor are invalid.
+   * @throws {Error} If MotherLode is inactive or displaced-resource cleanup fails.
+   */
   GetResource(path, options = {}) {
     const key = normalizeResourcePath(path);
+    if (options.reload === true)
+    {
+      this.InvalidateReadCache(key, { source: options.source || this.source });
+      const invalidation = { resMan: this, path: key };
+      RELOAD_INVALIDATIONS.set(options, invalidation);
+      Promise.resolve().then(() =>
+      {
+        if (RELOAD_INVALIDATIONS.get(options) === invalidation)
+        {
+          RELOAD_INVALIDATIONS.delete(options);
+        }
+      });
+    }
     const variant = this.GetResourceVariant(options);
-    const existing = this.motherLode.Lookup(key, variant);
-    if (existing && options.reload !== true) return existing;
+    const cacheKey = getMotherLodeKey(key, variant);
+    const existing = this.motherLode.Lookup(cacheKey);
+    if (existing && options.reload !== true)
+    {
+      this.#BindResourceLifecycle(cacheKey, existing);
+      this.motherLode.KeepAlive?.(cacheKey);
+      return existing;
+    }
 
     const ext = normalizeResourceExtension(options.ext || getResourceExtension(key));
     const Constructor = this.ResolveResourceConstructor(options);
     const resource = this.CreateResource(Constructor, key, ext, options);
-    this.motherLode.Insert(resource, key, variant);
-    return resource;
+    const insertion = this.motherLode.Insert(cacheKey, resource, { replace: true });
+    const canonical = insertion?.resource || resource;
+    if (insertion?.displaced && insertion.displaced !== canonical)
+    {
+      this.#InvalidateResourceOwnership(insertion.displaced);
+    }
+    else if (existing && existing !== canonical
+      && this.motherLode.Lookup(cacheKey) !== existing)
+    {
+      this.#InvalidateResourceOwnership(existing);
+    }
+    this.#BindResourceLifecycle(cacheKey, canonical);
+    this.motherLode.KeepAlive?.(cacheKey);
+    return canonical;
   }
 
+  /**
+   * Resolve one object outcome for a canonical resource identity. Concurrent
+   * callers share only the active operation. Once settled, a resident payload
+   * is returned without rereading source data and its explicit payload lease is
+   * renewed. If the payload was released, calling this method explicitly starts
+   * reconstruction; liveness queries and purge operations never do so.
+   * `sourceRevision` selects read-cache provenance but does not replace a
+   * resident payload by itself—use one-shot `reload: true` for replacement.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {object} [options={}] Identity, source, format, loader, and prepare-stage options.
+   * @returns {Promise<*>} In-flight, resident, or reconstructed object outcome.
+   * @throws {TypeError|Error} If path, identity, source, format, or prepare configuration is invalid.
+   */
   GetObject(path, options = {})
   {
     const resource = this.GetResource(path, options);
+    const ownership = this.#RequireResourceOwnership(resource, "object:begin");
     const existing = this.objectOperations.get(resource);
-    if (existing)
+    if (existing?.ownership === ownership)
     {
       return existing.promise;
     }
 
+    if (resource.HasPayload?.())
+    {
+      resource.KeepPayloadAlive?.();
+      return Promise.resolve(GetPublishedResourceObject(resource));
+    }
+
     const promise = this.QueueResourceObject(resource, options);
-    this.objectOperations.set(resource, { promise });
+    const operation = { promise, ownership };
+    this.objectOperations.set(resource, operation);
+    promise.then(() =>
+    {
+      if (this.objectOperations.get(resource) === operation)
+      {
+        this.objectOperations.delete(resource);
+      }
+    }, () =>
+    {
+      if (this.objectOperations.get(resource) === operation)
+      {
+        this.objectOperations.delete(resource);
+      }
+    });
     return promise;
   }
 
@@ -415,10 +756,25 @@ export class CjsResMan extends CjsEventEmitter
     return this.GetObject(path, options);
   }
 
+  /**
+   * Resolve and prepare one canonical resource handle. One-shot reload is
+   * consumed by the initial canonical replacement; readiness receives
+   * `reload: false` so it cannot replace that new handle a second time.
+   * A later replacement invalidates this operation's publication generation;
+   * candidate-first atomic reload remains a separate contract.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {object} [options={}] Resource identity, source provenance, reload, format, and prepare options.
+   * @returns {Promise<CjsResource>} Prepared canonical resource selected by this operation.
+   * @throws {TypeError|Error} If identity, source, format, preparation, or cleanup fails.
+   */
   async FetchResource(path, options = {})
   {
     const resource = this.GetResource(path, options);
-    await resource.Ready(options);
+    const readinessOptions = options.reload === true
+      ? { ...options, reload: false }
+      : options;
+    await resource.Ready(readinessOptions);
     return resource;
   }
 
@@ -429,80 +785,212 @@ export class CjsResMan extends CjsEventEmitter
       : this.FetchObject(path, options);
   }
 
-  async LoadResourceObject(resource, options)
+  /**
+   * Read and prepare an existing resource immediately, outside the manager
+   * queues. One balanced purge lock protects the canonical handle for the
+   * complete asynchronous operation; any caller-owned locks remain intact.
+   * Failure is published to the resource before rejection only while its
+   * captured ownership generation remains canonical. A detached operation
+   * preserves its original failure without changing the old handle.
+   *
+   * @param {CjsResource} resource Existing manager-bound resource handle.
+   * @param {object} [options={}] Source, format, semantic outcome, and prepare-stage options.
+   * @returns {Promise<*>} Prepared object, or the semantic resource when it owns the payload.
+   * @throws {TypeError|Error} If the resource, source, format, options, or canonical ownership are invalid.
+   */
+  async LoadResourceObject(resource, options = {})
   {
-    resource.MarkLoading();
+    const read = this.#BeginReadOperation(resource.GetPath(), options);
+    const ownership = this.#RequireResourceOwnership(resource, "direct-load:begin");
+    const releaseLock = this.#AcquireResourcePurgeLock(ownership);
+    const finishOperation = this.#BeginResourceOperation(false);
 
     try {
-      const bytes = await this.ReadResource(resource.GetPath(), options);
-      return await this.PrepareResourceObject(resource, bytes, options);
+      this.#AssertResourceOwnership(ownership, "direct-load:loading");
+      resource.error = null;
+      resource.MarkLoading();
+      this.#AssertResourceOwnership(ownership, "direct-load:loading-settled");
+      const bytes = await this.#ReadResource(read.context, read.options);
+      this.#AssertResourceOwnership(ownership, "direct-load:source-settled");
+      return await this.#PrepareResourceObject(resource, bytes, read.options, ownership);
     } catch (error) {
-      resource.SetError(error);
+      if (this.#IsResourceOwnershipCurrent(ownership)) resource.SetError(error);
+      throw error;
+    } finally {
+      releaseLock();
+      finishOperation();
+    }
+  }
+
+  /**
+   * Queue a resource source read and staged prepare operation. One balanced
+   * purge lock is acquired before request publication and released only after
+   * success or failure, preventing inactivity sweeps from detaching an active
+   * handle. The lock does not reload data and does not consume caller locks.
+   *
+   * @param {CjsResource} resource Existing manager-bound resource handle.
+   * @param {object} [options={}] Source, format, queue, semantic outcome, and prepare-stage options.
+   * @returns {Promise<*>} Promise for the prepared object or semantic resource.
+   * @throws {TypeError} If the resource cannot be queued or its options are invalid.
+   */
+  QueueResourceObject(resource, options = {}) {
+    const read = this.#BeginReadOperation(resource.GetPath(), options);
+    const ownership = this.#RequireResourceOwnership(resource, "queue:begin");
+    const releaseLock = this.#AcquireResourcePurgeLock(ownership);
+    const finishOperation = this.#BeginResourceOperation(true);
+    let load;
+
+    try {
+      this.#AssertResourceOwnership(ownership, "queue:requested");
+      resource.error = null;
+      resource.MarkRequested();
+      this.#AssertResourceOwnership(ownership, "queue:requested-settled");
+      load = this.#QueueReadResource(read.context, read.options);
+    } catch (error) {
+      releaseLock();
+      finishOperation();
       throw error;
     }
-  }
 
-  QueueResourceObject(resource, options = {}) {
-    resource.MarkRequested();
-    const load = this.QueueReadResource(resource.GetPath(), options);
-
-    return load
+    const operation = load
       .then(bytes => {
+        this.#AssertResourceOwnership(ownership, "queue:loading");
         resource.MarkLoading();
-        return this.PrepareResourceObjectQueued(resource, bytes, options);
+        this.#AssertResourceOwnership(ownership, "queue:loading-settled");
+        return this.#PrepareResourceObjectQueued(resource, bytes, read.options, ownership);
       })
       .catch(error => {
-        resource.SetError(error);
+        if (this.#IsResourceOwnershipCurrent(ownership)) resource.SetError(error);
         throw error;
-      });
-  }
-
-  QueueReadResource(path, options = {}) {
-    const source = options.source || this.source;
-    if (!source || typeof source.Read !== "function") {
-      return Promise.reject(new TypeError("CjsResMan requires a source with Read(path, options) to load objects."));
-    }
-
-    const key = normalizeResourcePath(path);
-    if (options.reload === true || options.cacheSource === false) {
-      return this.QueueTask(CjsResManQueue.BACKGROUND, () => this.ReadResource(key, options), source, {
-        kind: "load",
-        path: key
-      }).promise;
-    }
-
-    let operations = this.queuedSourceOperations.get(source);
-    if (!operations) {
-      operations = new Map();
-      this.queuedSourceOperations.set(source, operations);
-    }
-
-    const existing = operations.get(key);
-    if (existing) return existing;
-
-    const operation = this.QueueTask(CjsResManQueue.BACKGROUND, () => this.ReadResource(key, options), source, {
-      kind: "load",
-      path: key
-    }).promise;
-    operations.set(key, operation);
-    operation.then(() => {
-      if (operations.get(key) === operation) operations.delete(key);
-    }, () => {
-      if (operations.get(key) === operation) operations.delete(key);
-    });
+      })
+      .finally(releaseLock);
+    operation.then(finishOperation, finishOperation);
     return operation;
   }
 
-  async PrepareResourceObject(resource, bytes, options = {}) {
-    let object = await this.ReadResourceObjectPayload(resource, bytes, options);
-    for (const stage of this.ResolvePrepareStages(options)) {
-      const next = await stage.prepare(object, CreatePrepareContext(this, resource, bytes, options, stage.name));
-      if (next !== undefined) object = next;
-    }
-    return this.PublishResourceObject(resource, object, options);
+  /**
+   * Queue one source read under the selected source/path/revision identity.
+   * Cache policy is tri-state: omitted shares an in-flight or explicitly
+   * retained record, `true` additionally retains success, and `false` bypasses
+   * both sharing and retention. `reload: true` invalidates this source/path
+   * before the new task and does not cancel detached existing consumers.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {CjsResManReadCacheOptions} [options={}] Source, revision, reload, and cache controls forwarded to the read.
+   * @returns {Promise<*>} Promise for source bytes or source-compatible data.
+   * @throws {TypeError} If path, source, revision, or options are invalid.
+   */
+  QueueReadResource(path, options = {})
+  {
+    const read = this.#BeginReadOperation(path, options);
+    return this.#QueueReadResource(read.context, read.options);
   }
 
+  /**
+   * Immediately read, transform, and publish one resource payload outside the
+   * manager queues. Canonical resources capture their current ownership
+   * generation and cannot publish after deletion, clearing, or replacement;
+   * historically supported detached resource-like objects remain usable
+   * without manager ownership guards.
+   *
+   * @param {object|Function} resource Resource receiving the final payload.
+   * @param {*} bytes Source bytes or reader-compatible source data.
+   * @param {object} [options={}] Format, semantic outcome, and prepare-stage options.
+   * @returns {Promise<*>} Final plain payload or semantic resource handle.
+   * @throws {Error} If reading/preparation fails or canonical ownership becomes stale.
+   */
+  async PrepareResourceObject(resource, bytes, options = {}) {
+    const ownership = this.#GetResourceOwnership(resource, "direct-prepare:begin");
+    if (!ownership)
+    {
+      return this.#PrepareResourceObject(resource, bytes, options, null);
+    }
+
+    const releaseLock = this.#AcquireResourcePurgeLock(ownership);
+    const finishOperation = this.#BeginResourceOperation(false);
+    try
+    {
+      return await this.#PrepareResourceObject(resource, bytes, options, ownership);
+    }
+    finally
+    {
+      releaseLock();
+      finishOperation();
+    }
+  }
+
+  /**
+   * Queue reader, configured prepare, and publication stages on the main
+   * manager queue. A canonical standalone call becomes a queued resource root
+   * for `Wait()` and retains one balanced purge lock through settlement.
+   * Descendant stages validate the captured canonical generation before
+   * dispatch, after asynchronous settlement, and at publication.
+   *
+   * @param {object|Function} resource Resource receiving the final payload.
+   * @param {*} bytes Source bytes or reader-compatible source data.
+   * @param {object} [options={}] Format, semantic outcome, and prepare-stage options.
+   * @returns {Promise<*>} Final plain payload or semantic resource handle.
+   * @throws {Error} If queueing/preparation fails or canonical ownership becomes stale.
+   */
   async PrepareResourceObjectQueued(resource, bytes, options = {}) {
+    const ownership = this.#GetResourceOwnership(resource, "queued-prepare:begin");
+    if (!ownership)
+    {
+      return this.#PrepareResourceObjectQueued(resource, bytes, options, null);
+    }
+
+    const releaseLock = this.#AcquireResourcePurgeLock(ownership);
+    const finishOperation = this.#BeginResourceOperation(true);
+    try
+    {
+      return await this.#PrepareResourceObjectQueued(resource, bytes, options, ownership);
+    }
+    finally
+    {
+      releaseLock();
+      finishOperation();
+    }
+  }
+
+  /**
+   * Execute an immediate prepare chain with an optional hidden ownership
+   * authority. Stage-returned candidates are ordinary JavaScript values; stale
+   * candidates are dropped for GC because no generic external cleanup contract
+   * exists.
+   *
+   * @param {object|Function} resource Resource receiving the final payload.
+   * @param {*} bytes Source bytes or reader-compatible source data.
+   * @param {object} options Resolved prepare options.
+   * @param {CjsResourceOwnership|null} ownership Captured canonical authority.
+   * @returns {Promise<*>} Final plain payload or semantic resource handle.
+   */
+  async #PrepareResourceObject(resource, bytes, options, ownership) {
+    this.#AssertOptionalResourceOwnership(ownership, "prepare:read");
+    let object = await this.ReadResourceObjectPayload(resource, bytes, options);
+    this.#AssertOptionalResourceOwnership(ownership, "prepare:read-settled");
+    for (const stage of this.ResolvePrepareStages(options)) {
+      this.#AssertOptionalResourceOwnership(ownership, `prepare:${stage.name}:run`);
+      const next = await stage.prepare(
+        object,
+        CreatePrepareContext(this, resource, bytes, options, stage.name)
+      );
+      this.#AssertOptionalResourceOwnership(ownership, `prepare:${stage.name}:settled`);
+      if (next !== undefined) object = next;
+    }
+    return this.#PublishResourceObject(ownership, resource, object, options);
+  }
+
+  /**
+   * Execute a staged main-queue prepare chain with an optional hidden
+   * ownership authority.
+   *
+   * @param {object|Function} resource Resource receiving the final payload.
+   * @param {*} bytes Source bytes or reader-compatible source data.
+   * @param {object} options Resolved prepare options.
+   * @param {CjsResourceOwnership|null} ownership Captured canonical authority.
+   * @returns {Promise<*>} Final plain payload or semantic resource handle.
+   */
+  async #PrepareResourceObjectQueued(resource, bytes, options, ownership) {
     const stages = [
       Object.freeze({
         name: "read",
@@ -511,19 +999,27 @@ export class CjsResMan extends CjsEventEmitter
       ...this.ResolvePrepareStages(options),
       Object.freeze({
         name: "publish",
-        prepare: object => this.PublishResourceObject(resource, object, options)
+        prepare: object => this.#PublishResourceObject(ownership, resource, object, options)
       })
     ];
     let object = bytes;
 
     for (const stage of stages) {
+      this.#AssertOptionalResourceOwnership(ownership, `queue-stage:${stage.name}:enqueue`);
       const task = this.QueueTask(CjsResManQueue.MAIN, () =>
-        stage.prepare(object, CreatePrepareContext(this, resource, bytes, options, stage.name)), resource, {
+      {
+        this.#AssertOptionalResourceOwnership(ownership, `queue-stage:${stage.name}:run`);
+        return stage.prepare(
+          object,
+          CreatePrepareContext(this, resource, bytes, options, stage.name)
+        );
+      }, resource, {
         kind: "prepare",
         stage: stage.name,
         path: resource.GetPath()
       });
       const next = await task.promise;
+      this.#AssertOptionalResourceOwnership(ownership, `queue-stage:${stage.name}:settled`);
       if (next !== undefined) object = next;
     }
     return object;
@@ -542,7 +1038,66 @@ export class CjsResMan extends CjsEventEmitter
     return this.ReadFormatOnce(resource, descriptor, bytes, options);
   }
 
+  /**
+   * Publish the final CPU object outcome and loaded state. Every
+   * CjsResource-compatible handle owns the reader/converter result through
+   * `SetPayload`, making generic graphs visible to MotherLode retention policy.
+   * Base resources also expose the payload through the compatibility `object`
+   * alias; semantic subclasses continue to return and alias the resource while
+   * retaining their validated payload privately.
+   *
+   * @param {CjsResource} resource Target canonical resource handle.
+   * @param {*} object Final reader/converter or prepare-stage outcome.
+   * @param {object} [options={}] Semantic resource validation/publication options.
+   * @returns {*} Plain payload for a base resource, or the semantic resource handle.
+   * @throws {TypeError|Error} If ownership, semantic payload validation, or loaded-state publication fails.
+   */
   PublishResourceObject(resource, object, options = {}) {
+    const ownership = this.#GetResourceOwnership(resource, "publish:begin");
+    if (!ownership)
+    {
+      return this.#PublishResourceObjectValue(resource, object, options);
+    }
+
+    const finishOperation = this.#BeginResourceOperation(false);
+    try
+    {
+      return this.#PublishResourceObject(ownership, resource, object, options);
+    }
+    finally
+    {
+      finishOperation();
+    }
+  }
+
+  /**
+   * Publish only while the captured resource authority remains canonical.
+   * The post-publication check catches synchronous reentrant ownership changes
+   * from state listeners before the caller can treat obsolete work as success.
+   *
+   * @param {CjsResourceOwnership|null} ownership Captured canonical authority.
+   * @param {object|Function} resource Resource receiving the final payload.
+   * @param {*} object Final reader/converter outcome.
+   * @param {object} options Semantic resource publication options.
+   * @returns {*} Plain payload or semantic resource handle.
+   */
+  #PublishResourceObject(ownership, resource, object, options) {
+    this.#AssertOptionalResourceOwnership(ownership, "publish");
+    const result = this.#PublishResourceObjectValue(resource, object, options);
+    this.#AssertOptionalResourceOwnership(ownership, "publish-settled");
+    return result;
+  }
+
+  /**
+   * Apply the unguarded synchronous payload/state mutation after the caller
+   * has established any required canonical authority.
+   *
+   * @param {object|Function} resource Resource receiving the final payload.
+   * @param {*} object Final reader/converter outcome.
+   * @param {object} options Semantic resource publication options.
+   * @returns {*} Plain payload or semantic resource handle.
+   */
+  #PublishResourceObjectValue(resource, object, options) {
     let result = object;
     if (resource.constructor !== CjsResource && typeof resource.SetPayload === "function") {
       resource.SetPayload(object, options);
@@ -550,6 +1105,7 @@ export class CjsResMan extends CjsEventEmitter
       result = resource;
     }
     else {
+      resource.SetPayload?.(object, options);
       resource.object = object;
     }
     if (!resource.IsPrepared?.()) resource.MarkLoaded();
@@ -660,17 +1216,191 @@ export class CjsResMan extends CjsEventEmitter
     throw new TypeError(`${Format.name} does not expose a read operation.`);
   }
 
+  /**
+   * Look up and explicitly renew an existing canonical resource without
+   * creating, loading, or preparing a new handle.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {object} [options={}] Identity-defining resource outcome settings.
+   * @returns {CjsResource|null} Existing canonical handle, or `null` when absent.
+   * @throws {TypeError} If the path or identity settings cannot be normalized.
+   */
   Lookup(path, options = {}) {
-    return this.motherLode.Lookup(path, this.GetResourceVariant(options));
+    const key = getMotherLodeKey(path, this.GetResourceVariant(options));
+    const resource = this.motherLode.Lookup(key);
+    if (resource)
+    {
+      this.#BindResourceLifecycle(key, resource);
+      this.motherLode.KeepAlive?.(key);
+    }
+    return resource;
   }
 
+  /**
+   * Forget and clean canonical resources for a source path. Omitting options
+   * removes every resolved variant; supplying options removes only the exact
+   * identity derived from those outcome settings. Explicitly retained source
+   * and format records are independent and remain available; call
+   * {@link CjsResMan#InvalidateReadCache} when they must also be forgotten.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {object|null} [options=null] Exact identity settings, or `null` for all variants.
+   * @returns {boolean} Whether at least one canonical resource was removed.
+   * @throws {TypeError} If the path or identity settings cannot be normalized.
+   * @throws {Error|AggregateError} If cleanup fails after identities are forgotten.
+   */
   Delete(path, options = null) {
-    return options === null || options === undefined
-      ? this.motherLode.DeleteAll(path)
-      : this.motherLode.Delete(path, this.GetResourceVariant(options));
+    if (options !== null && options !== undefined)
+    {
+      const key = getMotherLodeKey(path, this.GetResourceVariant(options));
+      const resource = this.motherLode.Lookup(key);
+      try
+      {
+        return this.motherLode.Delete(key);
+      }
+      finally
+      {
+        if (resource && this.motherLode.Lookup(key) !== resource)
+        {
+          this.#InvalidateResourceOwnership(resource);
+        }
+      }
+    }
+
+    const normalizedPath = normalizeResourcePath(path);
+    const prefix = `${normalizedPath}\u0000`;
+    const entries = typeof this.motherLode?.Entries === "function"
+      ? [ ...this.motherLode.Entries() ].filter(([ key ]) =>
+        key === normalizedPath || key.startsWith(prefix))
+      : [];
+    try
+    {
+      return this.motherLode.DeleteAllVariants(normalizedPath);
+    }
+    finally
+    {
+      for (const [ key, resource ] of entries)
+      {
+        if (this.motherLode.Lookup(key) !== resource)
+        {
+          this.#InvalidateResourceOwnership(resource);
+        }
+      }
+    }
   }
 
+  /**
+   * Run one explicit deterministic identity/payload inactivity sweep.
+   * This delegates policy and cleanup to MotherLode; it never fetches or
+   * reloads a purged resource.
+   *
+   * @param {object} [options={}] MotherLode frame/time limits and cleanup policy.
+   * @returns {object} Immutable purge counts and affected canonical keys.
+   * @throws {TypeError} If the configured MotherLode lacks purge support or policy is invalid.
+   * @throws {AggregateError} If one or more candidate resources fail cleanup.
+   */
+  PurgeInactive(options = {})
+  {
+    if (typeof this.motherLode?.PurgeInactive !== "function")
+    {
+      throw new TypeError("CjsResMan MotherLode does not support PurgeInactive().");
+    }
+    return this.motherLode.PurgeInactive(options);
+  }
+
+  /**
+   * Replace or disable the opt-in automatic inactivity policy. Configuration
+   * resets cadence, so the first subsequent pump performs a sweep immediately.
+   * Frame-based limits are rejected because manager updates are not a reliable
+   * renderer-frame clock. The normalized policy is frozen and never reloads
+   * resources.
+   *
+   * @param {CjsResManAutoPurgePolicy|false|null} [policy=null] Time-based policy, or `false`/`null` to disable automatic sweeping.
+   * @returns {CjsResMan} This resource manager.
+   * @throws {TypeError} If the policy, threshold, cleanup control, or clock is invalid.
+   */
+  SetAutoPurgePolicy(policy = null)
+  {
+    this.#autoPurgePolicy = NormalizeAutoPurgePolicy(policy);
+    this.#lastAutoPurgeTime = null;
+    return this;
+  }
+
+  /**
+   * Return the immutable normalized automatic inactivity policy.
+   *
+   * @returns {Readonly<CjsResManAutoPurgePolicy>|null} Active policy, or `null` when automatic sweeping is disabled.
+   */
+  GetAutoPurgePolicy()
+  {
+    return this.#autoPurgePolicy;
+  }
+
+  /**
+   * Report whether {@link CjsResMan#Update} may run automatic inactivity
+   * sweeps. This is a pure query and does not advance cadence or activity.
+   *
+   * @returns {boolean} Whether an automatic purge policy is configured.
+   */
+  IsAutoPurgeEnabled()
+  {
+    return this.#autoPurgePolicy !== null;
+  }
+
+  /**
+   * Run the configured automatic sweep when its minimum time interval has
+   * elapsed. The first pump after configuration runs immediately. A regressing
+   * clock rebases cadence and skips that pump; failures consume the interval so
+   * repeated updates cannot form a cleanup-error storm. This method never
+   * creates, fetches, prepares, or reloads a resource.
+   *
+   * @param {CjsResManAutoPurgePumpOptions} [options={}] Optional deterministic timestamp.
+   * @returns {object|null} Immutable MotherLode purge result when due, otherwise `null`.
+   * @throws {TypeError} If options, the clock result, or MotherLode purge policy are invalid.
+   * @throws {AggregateError} If a due sweep cannot clean one or more inactive resources.
+   */
+  PumpAutoPurge(options = {})
+  {
+    const pump = NormalizeAutoPurgePumpOptions(options);
+    const policy = this.#autoPurgePolicy;
+    if (!policy) return null;
+
+    const time = pump.time === undefined ? policy.now() : pump.time;
+    AssertNonNegativeNumber(time, "automatic purge time");
+
+    if (this.#lastAutoPurgeTime !== null)
+    {
+      if (time < this.#lastAutoPurgeTime)
+      {
+        this.#lastAutoPurgeTime = time;
+        return null;
+      }
+      if (time - this.#lastAutoPurgeTime < policy.intervalMilliseconds)
+      {
+        return null;
+      }
+    }
+
+    this.#lastAutoPurgeTime = time;
+    return this.PurgeInactive({
+      time,
+      maxIdleMilliseconds: policy.maxIdleMilliseconds,
+      payloadMaxIdleMilliseconds: policy.payloadMaxIdleMilliseconds,
+      destroyAdapters: policy.destroyAdapters,
+      releasePayload: policy.releasePayload,
+      ...(policy.cleanup === undefined ? {} : { cleanup: policy.cleanup })
+    });
+  }
+
+  /**
+   * Cancel queued-but-not-started work, remove every canonical resource through
+   * MotherLode cleanup, and reset all in-flight deduplication ledgers.
+   *
+   * @returns {CjsResMan} This empty resource manager.
+   * @throws {AggregateError} If one or more canonical resources fail cleanup.
+   */
   Clear() {
+    this.#InvalidateMotherLodeOwnership(this.motherLode);
     this._loadQueue.Clear();
     this._prepareQueue.Clear();
     this.motherLode.Clear();
@@ -678,41 +1408,286 @@ export class CjsResMan extends CjsEventEmitter
     this.sourceOperations = new WeakMap();
     this.queuedSourceOperations = new WeakMap();
     this.formatOperations = new WeakMap();
+    this.#lastAutoPurgeTime = null;
     return this;
   }
 
-  async ReadResource(path, options = {}) {
+  /**
+   * Detach reusable source and parsed-format records for one source path.
+   * Omitting `sourceRevision` removes every revision for the selected source;
+   * supplying it removes only that string/finite-number revision. Existing
+   * consumers keep their promises: invalidation does not abort, reject, touch
+   * MotherLode/payload ownership, or perform source work.
+   *
+   * `Delete()` deliberately remains resource-identity-only. Use this method
+   * when explicitly retained read caches must also be forgotten; `Clear()`
+   * resets every read ledger.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {CjsResManReadCacheOptions} [options={}] Optional `source` and exact `sourceRevision` selection.
+   * @returns {Readonly<{path: string, queuedSource: number, source: number, format: number}>} Frozen detached-record counts.
+   * @throws {TypeError} If path, source, revision, or options are invalid.
+   */
+  InvalidateReadCache(path, options = {})
+  {
+    if (!options || typeof options !== "object" || Array.isArray(options))
+    {
+      throw new TypeError("CjsResMan.InvalidateReadCache options must be an object.");
+    }
+    const normalizedPath = normalizeResourcePath(path);
+    const hasRevision = Object.prototype.hasOwnProperty.call(options, "sourceRevision");
+    const revisionKey = hasRevision
+      ? NormalizeSourceRevision(options.sourceRevision)
+      : null;
     const source = options.source || this.source;
-    if (!source || typeof source.Read !== "function") {
+    if (!source)
+    {
+      return Object.freeze({
+        path: normalizedPath,
+        queuedSource: 0,
+        source: 0,
+        format: 0
+      });
+    }
+    if ((typeof source !== "object" && typeof source !== "function")
+      || typeof source.Read !== "function")
+    {
+      throw new TypeError("CjsResMan.InvalidateReadCache source must provide Read(path, options).");
+    }
+
+    return this.#InvalidateReadCache(source, normalizedPath, revisionKey);
+  }
+
+  /**
+   * Read source data under source/path/revision cache identity. Cache policy is
+   * tri-state: omitted shares in-flight or explicitly retained work, `true`
+   * retains success, and `false` bypasses sharing and retention. Failures are
+   * never retained. A joining `true` request upgrades the shared record.
+   *
+   * `reload: true` invalidates the selected source/path synchronously before
+   * beginning fresh work; it does not cancel already detached consumers.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {CjsResManReadCacheOptions} [options={}] Source, revision, reload, and cache controls forwarded to the source.
+   * @returns {Promise<*>} Promise for bytes or source-compatible data.
+   * @throws {TypeError} If path, source, revision, cache policy, or options are invalid.
+   */
+  ReadResource(path, options = {})
+  {
+    const read = this.#BeginReadOperation(path, options);
+    return this.#ReadResource(read.context, read.options);
+  }
+
+  /**
+   * Normalize one source provenance context and invalidate stale path records
+   * once at the outermost reload boundary.
+   *
+   * @param {string} path Source path.
+   * @param {object} options Read options.
+   * @returns {{context: Readonly<CjsResourceReadContext>, options: object}} Context and detached operation options.
+   * @throws {TypeError} If source provenance or options are invalid.
+   */
+  #BeginReadOperation(path, options)
+  {
+    if (!options || typeof options !== "object" || Array.isArray(options))
+    {
+      throw new TypeError("CjsResMan read options must be an object.");
+    }
+
+    const normalizedPath = normalizeResourcePath(path);
+    const inherited = READ_CONTEXTS.get(options);
+    if (inherited && inherited.resMan === this && inherited.path === normalizedPath)
+    {
+      return { context: inherited, options };
+    }
+
+    const source = options.source || this.source;
+    if (!source || (typeof source !== "object" && typeof source !== "function")
+      || typeof source.Read !== "function")
+    {
       throw new TypeError("CjsResMan requires a source with Read(path, options) to load objects.");
     }
+    const sourceRevision = options.sourceRevision;
+    const revisionKey = NormalizeSourceRevision(sourceRevision);
+    NormalizeCachePolicy(options.cacheSource, "cacheSource");
+    NormalizeCachePolicy(options.cacheFormat, "cacheFormat");
 
-    if (options.reload === true || options.cacheSource === false)
+    const operationOptions = { ...options };
+    const context = Object.freeze({
+      resMan: this,
+      source,
+      path: normalizedPath,
+      sourceRevision,
+      revisionKey
+    });
+    READ_CONTEXTS.set(operationOptions, context);
+
+    const priorInvalidation = RELOAD_INVALIDATIONS.get(options);
+    const alreadyInvalidated = priorInvalidation?.resMan === this
+      && priorInvalidation.path === normalizedPath;
+    if (alreadyInvalidated) RELOAD_INVALIDATIONS.delete(options);
+    if (options.reload === true && !alreadyInvalidated)
     {
-      return source.Read(path, options);
+      this.#InvalidateReadCache(source, normalizedPath, null);
+    }
+    return { context, options: operationOptions };
+  }
+
+  /**
+   * Queue one normalized source operation and deduplicate according to the
+   * caller's cache policy.
+   *
+   * @param {Readonly<CjsResourceReadContext>} context Normalized provenance.
+   * @param {object} options Detached read options.
+   * @returns {Promise<*>} Promise for source bytes/data.
+   */
+  #QueueReadResource(context, options)
+  {
+    const cachePolicy = NormalizeCachePolicy(options.cacheSource, "cacheSource");
+    const operations = GetOwnerOperations(this.queuedSourceOperations, context.source, true);
+    const key = GetReadOperationKey(context);
+    const bypassExisting = options.reload === true || cachePolicy === false;
+    const existing = bypassExisting ? null : operations.get(key);
+    if (existing)
+    {
+      if (cachePolicy === true)
+      {
+        existing.retain = true;
+        const sourceRecord = GetOwnerOperations(this.sourceOperations, context.source, false)?.get(key);
+        if (sourceRecord) sourceRecord.retain = true;
+      }
+      return existing.promise;
     }
 
-    let operations = this.sourceOperations.get(source);
-    if (!operations)
-    {
-      operations = new Map();
-      this.sourceOperations.set(source, operations);
-    }
+    /** @type {CjsResourceReadOperationRecord} */
+    const record = {
+      promise: null,
+      path: context.path,
+      revisionKey: context.revisionKey,
+      retain: cachePolicy === true
+    };
+    record.promise = this.QueueTask(
+      CjsResManQueue.BACKGROUND,
+      () => this.#ReadResource(context, options, record),
+      context.source,
+      { kind: "load", path: context.path }
+    ).promise;
+    if (cachePolicy !== false) operations.set(key, record);
 
-    const key = normalizeResourcePath(path);
-    const existing = operations.get(key);
-    if (existing) return existing;
-
-    const operation = Promise.resolve().then(() => source.Read(path, options));
-    operations.set(key, operation);
-    operation.then(() =>
+    record.promise.then(value =>
     {
-      if (options.cacheSource !== true && operations.get(key) === operation) operations.delete(key);
+      if (cachePolicy === false || operations.get(key) !== record) return;
+      if (record.retain) this.#RetainSourceResult(context, value);
+      operations.delete(key);
     }, () =>
     {
-      if (operations.get(key) === operation) operations.delete(key);
+      if (cachePolicy !== false && operations.get(key) === record) operations.delete(key);
     });
-    return operation;
+    return record.promise;
+  }
+
+  /**
+   * Run or join one normalized direct source operation.
+   *
+   * @param {Readonly<CjsResourceReadContext>} context Normalized provenance.
+   * @param {object} options Detached read options.
+   * @param {CjsResourceReadOperationRecord|null} [queuedRecord=null] Parent queued record whose retention may be promoted by a later join.
+   * @returns {Promise<*>} Promise for source bytes/data.
+   */
+  #ReadResource(context, options, queuedRecord = null)
+  {
+    const cachePolicy = NormalizeCachePolicy(options.cacheSource, "cacheSource");
+    const operations = GetOwnerOperations(this.sourceOperations, context.source, true);
+    const key = GetReadOperationKey(context);
+    const bypassExisting = options.reload === true || cachePolicy === false;
+    const existing = bypassExisting ? null : operations.get(key);
+    if (existing)
+    {
+      if (cachePolicy === true || queuedRecord?.retain) existing.retain = true;
+      return existing.promise;
+    }
+
+    /** @type {CjsResourceReadOperationRecord} */
+    const record = {
+      promise: null,
+      path: context.path,
+      revisionKey: context.revisionKey,
+      retain: cachePolicy === true || queuedRecord?.retain === true
+    };
+    record.promise = Promise.resolve().then(() => context.source.Read(context.path, options));
+    if (cachePolicy !== false) operations.set(key, record);
+    record.promise.then(() =>
+    {
+      if (cachePolicy !== false && !record.retain && operations.get(key) === record)
+      {
+        operations.delete(key);
+      }
+    }, () =>
+    {
+      if (cachePolicy !== false && operations.get(key) === record) operations.delete(key);
+    });
+    return record.promise;
+  }
+
+  /**
+   * Retain a settled source result when a queued caller upgraded cache policy
+   * after the direct source promise had already completed its cleanup reaction.
+   *
+   * @param {Readonly<CjsResourceReadContext>} context Normalized provenance.
+   * @param {*} value Settled source result.
+   * @returns {void}
+   */
+  #RetainSourceResult(context, value)
+  {
+    const operations = GetOwnerOperations(this.sourceOperations, context.source, true);
+    const key = GetReadOperationKey(context);
+    const existing = operations.get(key);
+    if (existing)
+    {
+      existing.retain = true;
+      return;
+    }
+    operations.set(key, {
+      promise: Promise.resolve(value),
+      path: context.path,
+      revisionKey: context.revisionKey,
+      retain: true
+    });
+  }
+
+  /**
+   * Remove future-reuse records matching one selected source and path.
+   * A null revision removes all revisions.
+   *
+   * @param {object|Function} source Selected source.
+   * @param {string} path Normalized source path.
+   * @param {string|null} revisionKey Exact revision key or `null` for all.
+   * @returns {Readonly<{path: string, queuedSource: number, source: number, format: number}>} Frozen detached counts.
+   */
+  #InvalidateReadCache(source, path, revisionKey)
+  {
+    const queuedSource = RemoveOperationRecords(
+      GetOwnerOperations(this.queuedSourceOperations, source, false),
+      path,
+      revisionKey
+    );
+    const sourceCount = RemoveOperationRecords(
+      GetOwnerOperations(this.sourceOperations, source, false),
+      path,
+      revisionKey
+    );
+    let format = 0;
+    const descriptors = this.formatOperations.get(source);
+    if (descriptors)
+    {
+      for (const [ descriptor, operations ] of descriptors)
+      {
+        format += RemoveOperationRecords(operations, path, revisionKey);
+        if (operations.size === 0) descriptors.delete(descriptor);
+      }
+      if (descriptors.size === 0) this.formatOperations.delete(source);
+    }
+    return Object.freeze({ path, queuedSource, source: sourceCount, format });
   }
 
   CreateResource(Constructor, path, ext, options = {}) {
@@ -723,7 +1698,7 @@ export class CjsResMan extends CjsEventEmitter
     resource.Initialize(path, ext, NormalizeRequirement(options.requirement || options.payload || ""));
     if (typeof resource.SetObjectLoader === "function")
     {
-      const identityOptions = GetIdentityOptions(options);
+      const identityOptions = GetResourceLoaderOptions(options, options.source || this.source);
       resource.SetObjectLoader(loadOptions => this.GetObject(path, {
         ...identityOptions,
         ...loadOptions
@@ -743,42 +1718,690 @@ export class CjsResMan extends CjsEventEmitter
     return CjsResource;
   }
 
+  /**
+   * Serialize the request fields that materially distinguish durable resource
+   * outcomes. The resulting stable string is the variant portion of the
+   * canonical MotherLode identity.
+   *
+   * @param {object} [options={}] Resource requirement, emit, format, class, and prepare-pipeline settings.
+   * @returns {string} Stable build variant, or an empty string for the default identity.
+   */
   GetResourceVariant(options = {})
   {
     const identity = GetIdentityOptions(options);
     return Object.keys(identity).length ? StableSerialize(identity) : "";
   }
 
-  ReadFormatOnce(resource, descriptor, bytes, options = {})
+  /**
+   * Retain a low-level queue task only until settlement so `Wait()` can take a
+   * synchronous snapshot without making completed values long-lived.
+   *
+   * @param {object} task Queue task returned by `CjsResManWorkQueue.Add()`.
+   * @returns {object} The supplied task.
+   */
+  #TrackQueueTask(task)
   {
-    const { Format } = descriptor;
-    let operations = this.formatOperations.get(Format);
-    if (!operations)
+    this.#queueOperations.set(task, task.promise);
+    task.promise.then(() =>
     {
-      operations = new Map();
-      this.formatOperations.set(Format, operations);
-    }
-
-    const key = `${resource.GetPath()}\u0000${StableSerialize({
-      emit: options.emit,
-      mediaType: options.mediaType,
-      classes: options.classes,
-      formatOptions: options.formatOptions
-    })}`;
-    const existing = operations.get(key);
-    if (existing) return existing;
-
-    const operation = Promise.resolve().then(() => this.ReadFormat(descriptor, bytes, options));
-    operations.set(key, operation);
-    operation.then(() =>
-    {
-      if (options.cacheFormat !== true && operations.get(key) === operation) operations.delete(key);
+      if (this.#queueOperations.get(task) === task.promise)
+      {
+        this.#queueOperations.delete(task);
+      }
     }, () =>
     {
-      if (operations.get(key) === operation) operations.delete(key);
+      if (this.#queueOperations.get(task) === task.promise)
+      {
+        this.#queueOperations.delete(task);
+      }
     });
-    return operation;
+    return task;
   }
+
+  /**
+   * Open one active resource-mutation record. Queued records additionally own
+   * a settlement promise visible to contemporaneous `Wait()` snapshots;
+   * direct records block unsafe MotherLode replacement but remain outside that
+   * two-queue fence.
+   *
+   * @param {boolean} queued Whether the operation belongs to the queued fence.
+   * @returns {() => void} Idempotent record completion callback.
+   */
+  #BeginResourceOperation(queued)
+  {
+    this.#activeResourceOperations += 1;
+    const id = queued ? this.#nextResourceOperationId++ : 0;
+    let resolveDone = Noop;
+    const done = queued
+      ? new Promise(resolve => { resolveDone = resolve; })
+      : null;
+    if (queued) this.#resourceOperations.set(id, done);
+    let finished = false;
+    return () =>
+    {
+      if (finished) return;
+      finished = true;
+      this.#activeResourceOperations = Math.max(0, this.#activeResourceOperations - 1);
+      if (queued && this.#resourceOperations.get(id) === done)
+      {
+        this.#resourceOperations.delete(id);
+      }
+      resolveDone();
+    };
+  }
+
+  /**
+   * Return the known canonical authority for a resource and reject a known
+   * stale generation. A never-bound resource returns `null` so historical
+   * detached prepare/publication helpers remain compatible.
+   *
+   * @param {object|Function} resource Candidate resource handle.
+   * @param {string} phase Operation phase used for stale diagnostics.
+   * @returns {CjsResourceOwnership|null} Current authority or `null` when never bound.
+   * @throws {Error} If a previously bound resource is no longer canonical.
+   */
+  #GetResourceOwnership(resource, phase)
+  {
+    const ownership = this.#resourceOwnership.get(resource) || null;
+    if (!ownership) return null;
+    this.#AssertResourceOwnership(ownership, phase);
+    return ownership;
+  }
+
+  /**
+   * Require a current manager-owned canonical resource authority.
+   *
+   * @param {object|Function} resource Candidate resource handle.
+   * @param {string} phase Operation phase used for diagnostics.
+   * @returns {CjsResourceOwnership} Current canonical authority.
+   * @throws {Error} If the resource is unknown or no longer canonical.
+   */
+  #RequireResourceOwnership(resource, phase)
+  {
+    const ownership = this.#GetResourceOwnership(resource, phase);
+    if (ownership) return ownership;
+    throw ResourceNotOwnedError(resource, phase);
+  }
+
+  /**
+   * Test whether an asynchronous operation still owns publication authority.
+   * Registry lookup failures are treated as stale ownership so they cannot
+   * replace an operation's more useful underlying source/stage rejection.
+   *
+   * @param {CjsResourceOwnership} ownership Captured authority.
+   * @returns {boolean} Whether the exact generation remains canonical.
+   */
+  #IsResourceOwnershipCurrent(ownership)
+  {
+    try
+    {
+      return Boolean(ownership
+        && this.motherLode === ownership.owner
+        && this.#resourceOwnership.get(ownership.resource) === ownership
+        && !this.#invalidResourceOwnership.has(ownership.resource)
+        && ownership.owner.Lookup(ownership.key) === ownership.resource
+        && !ownership.resource.IsPurged?.());
+    }
+    catch
+    {
+      return false;
+    }
+  }
+
+  /**
+   * Assert exact canonical publication authority for one operation phase.
+   *
+   * @param {CjsResourceOwnership} ownership Captured authority.
+   * @param {string} phase Human-readable operation phase.
+   * @returns {void}
+   * @throws {Error} Stable stale-operation error when ownership changed.
+   */
+  #AssertResourceOwnership(ownership, phase)
+  {
+    if (!this.#IsResourceOwnershipCurrent(ownership))
+    {
+      throw StaleResourceOperationError(ownership, phase);
+    }
+  }
+
+  /**
+   * Assert a captured authority when a compatibility path supplied one.
+   *
+   * @param {CjsResourceOwnership|null} ownership Optional captured authority.
+   * @param {string} phase Human-readable operation phase.
+   * @returns {void}
+   */
+  #AssertOptionalResourceOwnership(ownership, phase)
+  {
+    if (ownership) this.#AssertResourceOwnership(ownership, phase);
+  }
+
+  /**
+   * Invalidate the currently recorded generation for a removed resource.
+   *
+   * @param {object|Function} resource Removed or displaced resource.
+   * @returns {void}
+   */
+  #InvalidateResourceOwnership(resource)
+  {
+    if (resource && (typeof resource === "object" || typeof resource === "function"))
+    {
+      this.#invalidResourceOwnership.add(resource);
+    }
+  }
+
+  /**
+   * Invalidate every generation currently owned by one registry. This runs
+   * before Clear cancellation/cleanup so reentrant observers cannot retain
+   * authority after canonical ownership removal begins.
+   *
+   * @param {CjsMotherLode|null|undefined} owner Registry losing ownership.
+   * @returns {void}
+   */
+  #InvalidateMotherLodeOwnership(owner)
+  {
+    if (typeof owner?.Entries !== "function") return;
+    for (const [ , resource ] of owner.Entries())
+    {
+      const ownership = this.#resourceOwnership.get(resource);
+      if (ownership?.owner === owner) this.#invalidResourceOwnership.add(resource);
+    }
+  }
+
+  /**
+   * Add one operation-owned purge lock and release it only while the exact
+   * captured canonical record still exists. If removal/replacement made the
+   * operation stale, its former MotherLode record (and lock count) no longer
+   * exists, so releasing through a rebound resource would corrupt a new owner.
+   *
+   * @param {CjsResourceOwnership} ownership Captured canonical authority.
+   * @returns {() => void} Idempotent balanced release callback.
+   */
+  #AcquireResourcePurgeLock(ownership)
+  {
+    const { owner, key } = ownership;
+    if (typeof owner?.Lock !== "function" || typeof owner?.Unlock !== "function")
+    {
+      return Noop;
+    }
+
+    this.#AssertResourceOwnership(ownership, "lock:acquire");
+    owner.Lock(key);
+    let released = false;
+    return () =>
+    {
+      if (released) return;
+      released = true;
+      if (this.#IsResourceOwnershipCurrent(ownership)) owner.Unlock(key);
+    };
+  }
+
+  /**
+   * Bind resource-facing liveness methods to one canonical MotherLode key.
+   * The controller contains no loader/reload callback, so touching a detached
+   * or purged handle cannot start browser/network work.
+   *
+   * @param {string} key Canonical MotherLode identity.
+   * @param {object|Function} resource Canonical resource handle.
+   * @returns {object|Function} The supplied resource.
+   */
+  #BindResourceLifecycle(key, resource)
+  {
+    const owner = this.motherLode;
+    let ownership = this.#resourceOwnership.get(resource) || null;
+    if (!ownership
+      || ownership.owner !== owner
+      || ownership.key !== key
+      || ownership.resource !== resource
+      || !this.#IsResourceOwnershipCurrent(ownership))
+    {
+      ownership = Object.freeze({
+        generation: this.#nextResourceOwnershipGeneration++,
+        owner,
+        key,
+        resource
+      });
+      this.#resourceOwnership.set(resource, ownership);
+      this.#invalidResourceOwnership.delete(resource);
+    }
+
+    if (typeof resource?.SetLifecycleController !== "function") return resource;
+    resource.SetLifecycleController(Object.freeze({
+      keepAlive: options => this.#IsResourceOwnershipCurrent(ownership)
+        ? owner.KeepAlive?.(key, options)
+        : null,
+      keepPayloadAlive: options =>
+      {
+        if (!this.#IsResourceOwnershipCurrent(ownership)) return null;
+        if (typeof owner.KeepPayloadAlive === "function")
+        {
+          return owner.KeepPayloadAlive(key, options);
+        }
+        return owner.KeepAlive?.(key, options);
+      },
+      lock: () => this.#IsResourceOwnershipCurrent(ownership)
+        ? owner.Lock?.(key) || 0
+        : 0,
+      unlock: () => this.#IsResourceOwnershipCurrent(ownership)
+        ? owner.Unlock?.(key) || 0
+        : 0
+    }));
+    if (resource.HasPayload?.() && this.#IsResourceOwnershipCurrent(ownership))
+    {
+      owner.KeepPayloadAlive?.(key);
+    }
+    return resource;
+  }
+
+  /**
+   * Bind lifecycle callbacks for resources supplied by a configured custom
+   * MotherLode before CjsResMan begins serving them.
+   *
+   * @returns {CjsResMan} This resource manager.
+   */
+  #BindMotherLodeResources()
+  {
+    if (typeof this.motherLode?.Entries !== "function") return this;
+    for (const [ key, resource ] of this.motherLode.Entries())
+    {
+      this.#BindResourceLifecycle(key, resource);
+    }
+    return this;
+  }
+
+  /**
+   * Run or join one format read under source/path/revision, frozen descriptor,
+   * and effective output-option identity. Descriptor identity prevents a
+   * re-registration with different defaults from reusing an old parse, while
+   * source identity prevents same-path reads from different sources colliding.
+   *
+   * `cacheFormat` uses the same tri-state policy as source caching: omitted is
+   * in-flight by default, `true` retains success, and `false` bypasses sharing
+   * and retention. `reload: true` never joins a prior parse. Failures are never
+   * retained, and a joining `true` request upgrades a shared record. Requests
+   * with option instances that cannot be represented safely bypass format
+   * sharing regardless of cache policy.
+   *
+   * @param {CjsResource} resource Resource whose normalized path identifies the source data.
+   * @param {object} descriptor Frozen registered format descriptor.
+   * @param {*} bytes Source bytes or source-compatible reader input.
+   * @param {object} [options={}] Source provenance, reload, cacheFormat, emit, classes, and format options.
+   * @returns {Promise<*>} Promise for the parsed or converted format result.
+   * @throws {TypeError|Error} If resource, source, revision, descriptor, cache policy, or format execution is invalid.
+   */
+  ReadFormatOnce(resource, descriptor, bytes, options = {})
+  {
+    const read = this.#BeginReadOperation(resource.GetPath(), options);
+    const cachePolicy = NormalizeCachePolicy(read.options.cacheFormat, "cacheFormat");
+    const key = GetFormatOperationKey(read.context, read.options);
+    const cacheableOptions = key !== null && cachePolicy !== false;
+    const descriptorOperations = cacheableOptions
+      ? GetFormatDescriptorOperations(
+        this.formatOperations,
+        read.context.source,
+        descriptor,
+        true
+      )
+      : null;
+    const bypassExisting = read.options.reload === true
+      || !cacheableOptions;
+    const existing = bypassExisting ? null : descriptorOperations.get(key);
+    if (existing)
+    {
+      if (cachePolicy === true) existing.retain = true;
+      return existing.promise;
+    }
+
+    /** @type {CjsResourceReadOperationRecord} */
+    const record = {
+      promise: Promise.resolve().then(() => this.ReadFormat(descriptor, bytes, read.options)),
+      path: read.context.path,
+      revisionKey: read.context.revisionKey,
+      retain: cachePolicy === true
+    };
+    if (cacheableOptions) descriptorOperations.set(key, record);
+    record.promise.then(() =>
+    {
+      if (cacheableOptions
+        && !record.retain
+        && descriptorOperations.get(key) === record)
+      {
+        descriptorOperations.delete(key);
+      }
+    }, () =>
+    {
+      if (cacheableOptions
+        && descriptorOperations.get(key) === record)
+      {
+        descriptorOperations.delete(key);
+      }
+    });
+    return record.promise;
+  }
+}
+
+/**
+ * Copy supported registered format defaults into a deeply frozen snapshot.
+ * Plain objects and arrays may be cyclic. Functions and primitives are stable
+ * leaves; values with hidden mutable state are rejected because freezing their
+ * wrapper would not make the represented behavior immutable.
+ *
+ * @param {object} defaults Registered format defaults.
+ * @param {WeakMap<object, object>} [seen=new WeakMap()] Source-to-snapshot cycle map.
+ * @returns {Readonly<object>} Deeply frozen plain defaults snapshot.
+ * @throws {TypeError} If defaults contain unsupported objects, accessors, symbols, or byte buffers.
+ */
+function SnapshotFormatDefaults(defaults, seen = new WeakMap())
+{
+  if (!defaults || typeof defaults !== "object" || Array.isArray(defaults))
+  {
+    throw new TypeError("CjsResMan format defaults must be a plain object.");
+  }
+  return SnapshotFormatDefaultValue(defaults, seen, "defaults");
+}
+
+/**
+ * Snapshot one value in a registered format-default tree.
+ *
+ * @param {*} value Source value.
+ * @param {WeakMap<object, object>} seen Source-to-snapshot cycle map.
+ * @param {string} path Diagnostic property path.
+ * @returns {*} Frozen snapshot value or stable primitive/function leaf.
+ * @throws {TypeError} If the value cannot be made structurally immutable.
+ */
+function SnapshotFormatDefaultValue(value, seen, path)
+{
+  if (value === null || value === undefined) return value;
+  const type = typeof value;
+  if ([ "string", "number", "boolean", "bigint" ].includes(type)) return value;
+  if (type === "function") return value;
+  if (type !== "object" || ArrayBuffer.isView(value) || value instanceof ArrayBuffer)
+  {
+    throw new TypeError(`CjsResMan format ${path} cannot be snapshotted immutably.`);
+  }
+
+  const prior = seen.get(value);
+  if (prior) return prior;
+  if (Array.isArray(value))
+  {
+    const snapshot = [];
+    seen.set(value, snapshot);
+    for (let index = 0; index < value.length; index += 1)
+    {
+      if (!Object.prototype.hasOwnProperty.call(value, index))
+      {
+        throw new TypeError(`CjsResMan format ${path} must not contain sparse arrays.`);
+      }
+      snapshot.push(SnapshotFormatDefaultValue(value[index], seen, `${path}[${index}]`));
+    }
+    return Object.freeze(snapshot);
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null)
+  {
+    throw new TypeError(`CjsResMan format ${path} must contain only plain objects and arrays.`);
+  }
+  if (Object.getOwnPropertySymbols(value).length > 0)
+  {
+    throw new TypeError(`CjsResMan format ${path} must not contain symbol keys.`);
+  }
+
+  const snapshot = prototype === null ? Object.create(null) : {};
+  seen.set(value, snapshot);
+  for (const key of Object.getOwnPropertyNames(value))
+  {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor.enumerable || !("value" in descriptor))
+    {
+      throw new TypeError(`CjsResMan format ${path}.${key} must be an enumerable data property.`);
+    }
+    snapshot[key] = SnapshotFormatDefaultValue(descriptor.value, seen, `${path}.${key}`);
+  }
+  return Object.freeze(snapshot);
+}
+
+/**
+ * Normalize an opaque caller/source revision without interpreting content.
+ * String and number tokens remain type-distinct; finite numeric `-0` and `0`
+ * intentionally identify the same revision.
+ *
+ * @param {string|number|undefined} value Caller-provided source content token.
+ * @returns {string} Type-stable internal revision key.
+ * @throws {TypeError} If the token is neither a string nor finite number.
+ */
+function NormalizeSourceRevision(value)
+{
+  if (value === undefined) return "undefined";
+  if (typeof value === "string") return `string:${value}`;
+  if (typeof value === "number" && Number.isFinite(value))
+  {
+    return `number:${Object.is(value, -0) ? 0 : value}`;
+  }
+  throw new TypeError("CjsResMan sourceRevision must be a string or finite number.");
+}
+
+/**
+ * Validate tri-state source/format cache policy.
+ *
+ * @param {boolean|undefined} value Cache policy value.
+ * @param {string} name Option name used in failures.
+ * @returns {boolean|undefined} The validated policy.
+ * @throws {TypeError} If the value is not boolean or omitted.
+ */
+function NormalizeCachePolicy(value, name)
+{
+  if (value !== undefined && typeof value !== "boolean")
+  {
+    throw new TypeError(`CjsResMan ${name} must be a boolean when supplied.`);
+  }
+  return value;
+}
+
+/**
+ * Get the operation map owned by one source object.
+ *
+ * @param {WeakMap<object|Function, Map<string, CjsResourceReadOperationRecord>>} ledger Source-keyed ledger.
+ * @param {object|Function} owner Source owner.
+ * @param {boolean} create Whether a missing map should be allocated.
+ * @returns {Map<string, CjsResourceReadOperationRecord>|null} Owner map or `null`.
+ */
+function GetOwnerOperations(ledger, owner, create)
+{
+  let operations = ledger.get(owner);
+  if (!operations && create)
+  {
+    operations = new Map();
+    ledger.set(owner, operations);
+  }
+  return operations || null;
+}
+
+/**
+ * Get the source/path/revision operation key for one normalized read context.
+ *
+ * @param {Readonly<CjsResourceReadContext>} context Normalized provenance.
+ * @returns {string} Internal read-operation key.
+ */
+function GetReadOperationKey(context)
+{
+  return `${context.path}\u0000${context.revisionKey}`;
+}
+
+/**
+ * Get the descriptor-specific format operation map for a selected source.
+ * Frozen descriptor identity isolates changed registration defaults.
+ *
+ * @param {WeakMap<object|Function, Map<object, Map<string, CjsResourceReadOperationRecord>>>} ledger Format ledger.
+ * @param {object|Function} source Selected source owner.
+ * @param {object} descriptor Frozen registered descriptor.
+ * @param {boolean} create Whether missing maps should be allocated.
+ * @returns {Map<string, CjsResourceReadOperationRecord>|null} Descriptor map or `null`.
+ */
+function GetFormatDescriptorOperations(ledger, source, descriptor, create)
+{
+  let descriptors = ledger.get(source);
+  if (!descriptors && create)
+  {
+    descriptors = new Map();
+    ledger.set(source, descriptors);
+  }
+  if (!descriptors) return null;
+
+  let operations = descriptors.get(descriptor);
+  if (!operations && create)
+  {
+    operations = new Map();
+    descriptors.set(descriptor, operations);
+  }
+  return operations || null;
+}
+
+/**
+ * Build a descriptor-local format cache key from source provenance and the
+ * output options that materially affect the format reader result.
+ * Requests containing non-canonical mutable option objects bypass format-cache
+ * sharing instead of risking a false key match.
+ *
+ * @param {Readonly<CjsResourceReadContext>} context Normalized provenance.
+ * @param {object} options Format request options.
+ * @returns {string|null} Internal format-operation key, or `null` to bypass caching.
+ */
+function GetFormatOperationKey(context, options)
+{
+  const material = [
+    options.emit,
+    options.mediaType,
+    options.classes,
+    options.formatOptions
+  ];
+  if (!material.every(value => IsCanonicalFormatCacheValue(value))) return null;
+  return `${GetReadOperationKey(context)}\u0000${material
+    .map(value => SerializeFormatCacheValue(value))
+    .join("\u0001")}`;
+}
+
+/**
+ * Return true when a format cache option can be represented without guessing
+ * hidden mutable state. Plain objects/arrays, functions by identity, and
+ * byte-addressable buffers/views are supported. Other class instances bypass
+ * format-cache sharing.
+ *
+ * @param {*} value Candidate material format option.
+ * @param {WeakSet<object|Function>} [seen=new WeakSet()] Cycle guard.
+ * @returns {boolean} Whether deterministic cache serialization is supported.
+ */
+function IsCanonicalFormatCacheValue(value, seen = new WeakSet())
+{
+  if (value === null || value === undefined) return true;
+  if ([ "string", "number", "boolean", "bigint" ].includes(typeof value)) return true;
+  if (typeof value === "function") return true;
+  if (typeof value !== "object") return false;
+  if (ArrayBuffer.isView(value) || value instanceof ArrayBuffer) return true;
+  if (seen.has(value)) return true;
+  seen.add(value);
+  if (Array.isArray(value))
+  {
+    return value.every(entry => IsCanonicalFormatCacheValue(entry, seen));
+  }
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) return false;
+  if (Object.getOwnPropertySymbols(value).length > 0) return false;
+  return Object.getOwnPropertyNames(value).every(key =>
+  {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    return descriptor.enumerable
+      && "value" in descriptor
+      && IsCanonicalFormatCacheValue(descriptor.value, seen);
+  });
+}
+
+/**
+ * Serialize one supported material format option with process-local identity
+ * for objects and functions. Identity prevents same-named constructors and
+ * separate option graphs from colliding; visible plain-object/array/buffer
+ * contents ensure mutation changes the next operation key.
+ *
+ * @param {*} value Canonically supported format option.
+ * @param {WeakSet<object|Function>} [seen=new WeakSet()] Cycle guard.
+ * @returns {string} Deterministic cache-local representation.
+ */
+function SerializeFormatCacheValue(value, seen = new WeakSet())
+{
+  if (value === undefined) return "undefined";
+  if (value === null) return "null";
+  if (typeof value === "string") return `string:${JSON.stringify(value)}`;
+  if (typeof value === "number")
+  {
+    if (Number.isNaN(value)) return "number:NaN";
+    if (Object.is(value, -0)) return "number:-0";
+    return `number:${String(value)}`;
+  }
+  if (typeof value === "boolean") return `boolean:${value}`;
+  if (typeof value === "bigint") return `bigint:${value}`;
+  if (typeof value === "function") return `function:${GetFormatCacheIdentity(value)}`;
+
+  const identity = GetFormatCacheIdentity(value);
+  if (seen.has(value)) return `reference:${identity}`;
+  seen.add(value);
+  if (ArrayBuffer.isView(value))
+  {
+    const bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+    return `view:${identity}:${value.constructor.name}:${[ ...bytes ].join(",")}`;
+  }
+  if (value instanceof ArrayBuffer)
+  {
+    return `buffer:${identity}:${[ ...new Uint8Array(value) ].join(",")}`;
+  }
+  if (Array.isArray(value))
+  {
+    return `array:${identity}:[${value
+      .map(entry => SerializeFormatCacheValue(entry, seen))
+      .join(",")}]`;
+  }
+  return `object:${identity}:{${Object.keys(value)
+    .sort()
+    .map(key => `${JSON.stringify(key)}:${SerializeFormatCacheValue(value[key], seen)}`)
+    .join(",")}}`;
+}
+
+/**
+ * Return a process-local identity for a cache option object or function.
+ *
+ * @param {object|Function} value Candidate option identity owner.
+ * @returns {number} Stable identity for the life of the value.
+ */
+function GetFormatCacheIdentity(value)
+{
+  let identity = FORMAT_CACHE_IDENTITIES.get(value);
+  if (!identity)
+  {
+    identity = nextFormatCacheIdentity++;
+    FORMAT_CACHE_IDENTITIES.set(value, identity);
+  }
+  return identity;
+}
+
+/**
+ * Remove operation records matching a normalized path and optional revision.
+ * Detached promises continue for their existing consumers.
+ *
+ * @param {Map<string, CjsResourceReadOperationRecord>|null} operations Candidate operation map.
+ * @param {string} path Normalized source path.
+ * @param {string|null} revisionKey Exact revision or `null` for all revisions.
+ * @returns {number} Number of detached records.
+ */
+function RemoveOperationRecords(operations, path, revisionKey)
+{
+  if (!operations) return 0;
+  let removed = 0;
+  for (const [ key, record ] of operations)
+  {
+    if (record.path !== path) continue;
+    if (revisionKey !== null && record.revisionKey !== revisionKey) continue;
+    if (operations.delete(key)) removed += 1;
+  }
+  return removed;
 }
 
 function StableSerialize(value, seen = new WeakSet())
@@ -817,6 +2440,32 @@ function GetIdentityOptions(options = {})
     if (options[key] !== undefined) identity[key] = options[key];
   }
   return identity;
+}
+
+/**
+ * Capture the immutable outcome options plus effective source provenance
+ * needed to reconstruct a released resource payload. Cache policy and
+ * one-shot reload are intentionally not retained: callers may choose those
+ * independently for each reconstruction request. Retaining the effective
+ * source prevents an old revision token from being applied to a later manager
+ * default source.
+ *
+ * @param {object} [options={}] Resource identity and source provenance options.
+ * @param {object|Function|null} [effectiveSource=null] Source selected when the resource was created.
+ * @returns {object} Detached loader options safe to retain with the resource.
+ */
+function GetResourceLoaderOptions(options = {}, effectiveSource = null)
+{
+  const loaderOptions = GetIdentityOptions(options);
+  if (effectiveSource) loaderOptions.source = effectiveSource;
+  for (const key of [ "sourceRevision", "ext" ])
+  {
+    if (Object.prototype.hasOwnProperty.call(options, key))
+    {
+      loaderOptions[key] = options[key];
+    }
+  }
+  return loaderOptions;
 }
 
 function NormalizeRequirement(value)
@@ -874,6 +2523,21 @@ function CreatePrepareContext(resMan, resource, bytes, options, stage)
   });
 }
 
+/**
+ * Recover the public object result represented by a resident resource payload.
+ * The publication contract returns semantic subclasses as their resource
+ * handle and base resources as their plain payload.
+ *
+ * @param {CjsResource} resource Resource with an attached CPU payload.
+ * @returns {*} Resident public object outcome.
+ */
+function GetPublishedResourceObject(resource)
+{
+  return resource.constructor !== CjsResource
+    ? resource
+    : resource.GetPayload();
+}
+
 function AssertPositiveInteger(value, name)
 {
   if (!Number.isInteger(value) || value < 1) {
@@ -893,6 +2557,199 @@ function AssertNonNegativeNumber(value, name)
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
     throw new TypeError(`CjsResMan ${name} must be a non-negative finite number.`);
   }
+}
+
+/**
+ * Normalize and freeze an opt-in time-based automatic purge policy.
+ *
+ * @param {CjsResManAutoPurgePolicy|false|null} policy Caller policy or disable marker.
+ * @returns {Readonly<CjsResManAutoPurgePolicy>|null} Frozen normalized policy, or `null` when disabled.
+ * @throws {TypeError} If fields, limits, cleanup controls, or the cadence clock are invalid.
+ */
+function NormalizeAutoPurgePolicy(policy)
+{
+  if (policy === null || policy === undefined || policy === false) return null;
+  if (!policy || typeof policy !== "object" || Array.isArray(policy))
+  {
+    throw new TypeError("CjsResMan autoPurgePolicy must be an object, false, or null.");
+  }
+
+  const allowed = new Set([
+    "intervalMilliseconds",
+    "maxIdleMilliseconds",
+    "payloadMaxIdleMilliseconds",
+    "destroyAdapters",
+    "releasePayload",
+    "cleanup",
+    "now"
+  ]);
+  const unsupported = Object.keys(policy).filter(key => !allowed.has(key));
+  if (unsupported.length)
+  {
+    throw new TypeError(`CjsResMan autoPurgePolicy does not support: ${unsupported.join(", ")}.`);
+  }
+
+  const intervalMilliseconds = policy.intervalMilliseconds ?? 1000;
+  AssertNonNegativeNumber(intervalMilliseconds, "autoPurgePolicy.intervalMilliseconds");
+  for (const name of [ "maxIdleMilliseconds", "payloadMaxIdleMilliseconds" ])
+  {
+    if (policy[name] !== undefined)
+    {
+      AssertNonNegativeNumber(policy[name], `autoPurgePolicy.${name}`);
+    }
+  }
+  if (policy.maxIdleMilliseconds === undefined
+    && policy.payloadMaxIdleMilliseconds === undefined)
+  {
+    throw new TypeError("CjsResMan autoPurgePolicy requires an identity or payload inactivity limit.");
+  }
+  for (const name of [ "destroyAdapters", "releasePayload" ])
+  {
+    if (policy[name] !== undefined && typeof policy[name] !== "boolean")
+    {
+      throw new TypeError(`CjsResMan autoPurgePolicy.${name} must be a boolean.`);
+    }
+  }
+  if (policy.cleanup !== undefined
+    && policy.cleanup !== false
+    && typeof policy.cleanup !== "function")
+  {
+    throw new TypeError("CjsResMan autoPurgePolicy.cleanup must be a function or false.");
+  }
+  if (policy.now !== undefined && typeof policy.now !== "function")
+  {
+    throw new TypeError("CjsResMan autoPurgePolicy.now must be a function.");
+  }
+
+  return Object.freeze({
+    intervalMilliseconds,
+    maxIdleMilliseconds: policy.maxIdleMilliseconds,
+    payloadMaxIdleMilliseconds: policy.payloadMaxIdleMilliseconds,
+    destroyAdapters: policy.destroyAdapters ?? true,
+    releasePayload: policy.releasePayload ?? true,
+    ...(policy.cleanup === undefined ? {} : { cleanup: policy.cleanup }),
+    now: policy.now || DefaultAutoPurgeNow
+  });
+}
+
+/**
+ * Validate one automatic-purge pump request without advancing cadence.
+ *
+ * @param {CjsResManAutoPurgePumpOptions} options Per-call pump options.
+ * @returns {CjsResManAutoPurgePumpOptions} Validated options.
+ * @throws {TypeError} If options or an explicit timestamp are invalid.
+ */
+function NormalizeAutoPurgePumpOptions(options)
+{
+  if (!options || typeof options !== "object" || Array.isArray(options))
+  {
+    throw new TypeError("CjsResMan automatic purge options must be an object.");
+  }
+  const unsupported = Object.keys(options).filter(key => key !== "time");
+  if (unsupported.length)
+  {
+    throw new TypeError(`CjsResMan automatic purge options do not support: ${unsupported.join(", ")}.`);
+  }
+  if (options.time !== undefined)
+  {
+    AssertNonNegativeNumber(options.time, "automatic purge time");
+  }
+  return options;
+}
+
+/**
+ * Create the stable failure used when synchronous MotherLode replacement
+ * would detach ownership beneath active asynchronous resource mutation.
+ *
+ * @param {number} activeOperations Number of queued and direct mutations.
+ * @returns {Error} Contextual active-operation error.
+ */
+function ActiveResourceOperationsError(activeOperations)
+{
+  const error = new Error(
+    `CjsResMan cannot replace MotherLode while ${activeOperations} resource operation(s) are active.`
+  );
+  error.code = "CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS";
+  error.activeOperations = activeOperations;
+  return error;
+}
+
+/**
+ * Create the stable failure used when a manager-only load API receives a
+ * resource that was never bound to this manager.
+ *
+ * @param {*} resource Candidate resource.
+ * @param {string} phase Operation phase.
+ * @returns {Error} Contextual ownership error.
+ */
+function ResourceNotOwnedError(resource, phase)
+{
+  const path = GetResourceDiagnosticPath(resource);
+  const error = new Error(`CjsResMan does not own a canonical resource at ${path}.`);
+  error.code = "CJS_RESMAN_RESOURCE_NOT_OWNED";
+  error.resource = resource;
+  error.path = path;
+  error.phase = phase;
+  return error;
+}
+
+/**
+ * Create the stable failure used when otherwise-successful obsolete work
+ * reaches a canonical mutation boundary.
+ *
+ * @param {CjsResourceOwnership} ownership Captured stale authority.
+ * @param {string} phase Operation phase that detected staleness.
+ * @returns {Error} Contextual stale-operation error.
+ */
+function StaleResourceOperationError(ownership, phase)
+{
+  const path = GetResourceDiagnosticPath(ownership?.resource);
+  const error = new Error(
+    `CjsResMan resource operation became stale during ${phase}: ${path}.`
+  );
+  error.code = "CJS_RESMAN_STALE_RESOURCE_OPERATION";
+  error.resource = ownership?.resource || null;
+  error.path = path;
+  error.key = ownership?.key || null;
+  error.generation = ownership?.generation || 0;
+  error.phase = phase;
+  return error;
+}
+
+/**
+ * Read a resource path for diagnostics without allowing an unusual custom
+ * resource getter to hide the primary ownership error.
+ *
+ * @param {*} resource Candidate resource.
+ * @returns {string} Best-effort resource path label.
+ */
+function GetResourceDiagnosticPath(resource)
+{
+  try
+  {
+    return String(resource?.GetPath?.() || resource?.path || "<unknown>");
+  }
+  catch
+  {
+    return "<unknown>";
+  }
+}
+
+/**
+ * Perform no action for lifecycle-compatible optional operations.
+ *
+ * @returns {void}
+ */
+function Noop() {}
+
+/**
+ * Return the wall-clock timestamp used by default automatic purge cadence.
+ *
+ * @returns {number} Milliseconds since the Unix epoch.
+ */
+function DefaultAutoPurgeNow()
+{
+  return Date.now();
 }
 
 function DefaultQueueScheduler(callback)

@@ -2,6 +2,25 @@ import { CjsEventEmitter } from "@carbonenginejs/core-types/model";
 import { CjsSchema, carbon, impl, type } from "@carbonenginejs/core-types/schema";
 import { getResourceExtension, normalizeResourcePath } from "./resourcePath.js";
 
+/**
+ * Deterministic activity values accepted by resource-facing lease methods.
+ *
+ * @typedef {object} CjsResourceActivityOptions
+ * @property {number} [frame] Explicit non-negative activity frame.
+ * @property {number} [time] Explicit non-negative activity timestamp in milliseconds.
+ */
+
+/**
+ * Manager-owned callbacks attached while a resource has canonical ownership.
+ * The controller deliberately contains no load, fetch, prepare, or reload hook.
+ *
+ * @typedef {object} CjsResourceLifecycleController
+ * @property {Function} [keepAlive] Renews canonical identity activity.
+ * @property {Function} [keepPayloadAlive] Renews identity and CPU-payload activity.
+ * @property {Function} [lock] Adds one inactivity-purge lock and returns its count.
+ * @property {Function} [unlock] Releases one inactivity-purge lock and returns its count.
+ */
+
 @type.define({ className: "CjsResource", family: "resource" })
 /**
  * ResMan-owned runtime resource.
@@ -30,6 +49,13 @@ export class CjsResource extends CjsEventEmitter
     return true;
   }
 
+  /**
+   * Create a detached runtime resource with empty identity and payload state.
+   * Schema values are applied without attaching manager lifecycle callbacks;
+   * CjsResMan supplies those callbacks after canonical insertion.
+   *
+   * @param {object|null} [values=null] Initial decorated schema-field values.
+   */
   constructor(values = null) {
     super();
     Object.defineProperty(this, "__adapterResources", {
@@ -39,6 +65,12 @@ export class CjsResource extends CjsEventEmitter
       writable: true
     });
     Object.defineProperty(this, "__objectLoader", {
+      value: null,
+      enumerable: false,
+      configurable: true,
+      writable: true
+    });
+    Object.defineProperty(this, "__lifecycleController", {
       value: null,
       enumerable: false,
       configurable: true,
@@ -124,7 +156,12 @@ export class CjsResource extends CjsEventEmitter
     return this.ext;
   }
 
-  /** Return the semantic outcome requested from this source path. */
+  /**
+   * Return the normalized semantic outcome requested from this source path.
+   * This metadata query is pure and does not renew manager activity.
+   *
+   * @returns {string} Lowercase requirement name, or an empty string.
+   */
   GetRequirement() {
     return this.requirement;
   }
@@ -222,6 +259,28 @@ export class CjsResource extends CjsEventEmitter
     return this.MarkPrepared();
   }
 
+  /**
+   * Mark this detached resource handle as purged after its manager-owned
+   * adapter allocations and payload have been released.
+   *
+   * @returns {CjsResource} This purged resource.
+   */
+  MarkPurged()
+  {
+    return this.SetState(CjsResource.State.PURGED);
+  }
+
+  /**
+   * Return whether deterministic manager cleanup has purged this handle.
+   * This is a pure state query and never renews resource activity.
+   *
+   * @returns {boolean} `true` when the current state is `PURGED`.
+   */
+  IsPurged()
+  {
+    return this.state === CjsResource.State.PURGED;
+  }
+
   SetError(error) {
     this.error = error || null;
     return this.SetState(CjsResource.State.FAILED, this.error);
@@ -230,29 +289,39 @@ export class CjsResource extends CjsEventEmitter
   /**
    * Store the plain CPU payload associated with this resource.
    * Concrete resource classes validate the fields they require before calling
-   * this method.
+   * this method. If the compatibility `object` property still aliases the
+   * previous payload, it is updated to the replacement; semantic resources
+   * whose `object` points to the resource itself are unaffected. A non-null
+   * payload explicitly renews its manager-owned identity and payload leases;
+   * payload reads remain pure and do not renew either lease.
    *
-   * @param {*} payload
-   * @returns {CjsResource}
+   * @param {*} payload Plain reader/converter output, or `null` to clear it.
+   * @returns {CjsResource} This resource with the supplied payload reference.
    */
   SetPayload(payload = null) {
+    const previous = this.#payload;
     this.#payload = payload;
+    if (this.object === previous) this.object = payload;
+    if (this.HasPayload()) this.KeepPayloadAlive();
     return this;
   }
 
   /**
    * Read the plain CPU payload associated with this resource.
    *
-   * @returns {*}
+   * The query is pure and does not renew the payload lease.
+   *
+   * @returns {*} Current payload reference, or `null` after release.
    */
   GetPayload() {
     return this.#payload;
   }
 
   /**
-   * Returns true when a payload has been explicitly assigned.
+   * Return whether a payload has been explicitly assigned. This query is pure
+   * and does not renew the payload lease.
    *
-   * @returns {boolean}
+   * @returns {boolean} Whether a non-null payload is attached.
    */
   HasPayload() {
     return this.#payload !== null && this.#payload !== undefined;
@@ -260,11 +329,97 @@ export class CjsResource extends CjsEventEmitter
 
   /**
    * Release the complete payload reference after consumers have retained the
-   * scalars and typed-array views they require.
+   * scalars and typed-array views they require. When the compatibility
+   * `object` property still aliases that exact payload, it is cleared as part
+   * of the same ownership release. Semantic resources whose `object` property
+   * points to the resource itself are unaffected.
+   *
+   * @returns {CjsResource} This resource without its former payload reference.
    */
   ReleasePayload() {
+    const payload = this.#payload;
     this.#payload = null;
+    if (this.object === payload) this.object = null;
     return this;
+  }
+
+  /**
+   * Bind or detach the manager callbacks used by explicit resource-facing
+   * liveness operations. Runtime resources remain usable when unbound; their
+   * liveness methods then become deterministic no-ops.
+   *
+   * @param {CjsResourceLifecycleController|null} controller Manager callbacks, or `null` after canonical ownership ends.
+   * @returns {CjsResource} This resource.
+   * @throws {TypeError} If the controller or any supplied callback is invalid.
+   */
+  SetLifecycleController(controller = null)
+  {
+    if (controller !== null && (typeof controller !== "object" || Array.isArray(controller)))
+    {
+      throw new TypeError("CjsResource lifecycle controller must be an object or null.");
+    }
+    for (const name of [ "keepAlive", "keepPayloadAlive", "lock", "unlock" ])
+    {
+      if (controller?.[name] !== undefined && typeof controller[name] !== "function")
+      {
+        throw new TypeError(`CjsResource lifecycle controller ${name} must be a function.`);
+      }
+    }
+    this.__lifecycleController = controller;
+    return this;
+  }
+
+  /**
+   * Explicitly renew this resource's canonical identity activity.
+   * Unlike ccpwgl compatibility behavior, `IsGood()`, `HasLoaded()`, and other
+   * state queries never call this method implicitly. Renewal never fetches or
+   * reloads a purged resource.
+   *
+   * @param {CjsResourceActivityOptions} [options={}] Optional deterministic activity values.
+   * @returns {CjsResource} This resource, whether bound or detached.
+   * @throws {TypeError} If the bound manager rejects invalid activity values.
+   */
+  KeepAlive(options = {})
+  {
+    this.__lifecycleController?.keepAlive?.(options);
+    return this;
+  }
+
+  /**
+   * Explicitly renew both canonical identity activity and the attached CPU
+   * payload lease. Reading the payload through `GetPayload()` or
+   * `HasPayload()` remains pure.
+   *
+   * @param {CjsResourceActivityOptions} [options={}] Optional deterministic activity values.
+   * @returns {CjsResource} This resource, whether a payload exists or not.
+   * @throws {TypeError} If the bound manager rejects invalid activity values.
+   */
+  KeepPayloadAlive(options = {})
+  {
+    this.__lifecycleController?.keepPayloadAlive?.(options);
+    return this;
+  }
+
+  /**
+   * Add one explicit purge lock through the bound manager and renew identity
+   * activity. Locking never reloads or prepares a resource.
+   *
+   * @returns {number} New lock count, or `0` when this resource is detached.
+   */
+  Lock()
+  {
+    return this.__lifecycleController?.lock?.() || 0;
+  }
+
+  /**
+   * Release one explicit purge lock without allowing the count to underflow.
+   * Unlocking does not immediately purge or release a payload.
+   *
+   * @returns {number} Remaining lock count, or `0` when detached or unlocked.
+   */
+  Unlock()
+  {
+    return this.__lifecycleController?.unlock?.() || 0;
   }
 
   /**
@@ -284,10 +439,15 @@ export class CjsResource extends CjsEventEmitter
   }
 
   /**
-   * Return the manager-owned, deduplicated object operation.
+   * Return the manager-owned object outcome for this resource identity.
+   * Concurrent callers share one in-flight operation. A resident payload is
+   * returned without source work; after explicit payload release, this call is
+   * an explicit reconstruction request and may load/prepare through the bound
+   * manager. Detached or purged handles do not revive themselves: their loader
+   * resolves the manager's current canonical identity.
    *
-   * @param {object} options
-   * @returns {Promise<*>}
+   * @param {object} [options={}] Source, format, semantic outcome, and prepare options forwarded to the manager.
+   * @returns {Promise<*>} In-flight, resident, or reconstructed object outcome.
    */
   GetObject(options = {})
   {
@@ -301,10 +461,12 @@ export class CjsResource extends CjsEventEmitter
   }
 
   /**
-   * Promise-shaped readiness boundary for callers that already hold a resource.
+   * Promise-shaped alias for {@link CjsResource#GetObject}. Readiness shares an
+   * in-flight operation, returns resident payload without loading, and treats a
+   * call after payload release as an explicit reconstruction request.
    *
-   * @param {object} options
-   * @returns {Promise<*>}
+   * @param {object} [options={}] Source, format, semantic outcome, and prepare options forwarded to the manager.
+   * @returns {Promise<*>} In-flight, resident, or reconstructed object outcome.
    */
   Ready(options = {})
   {

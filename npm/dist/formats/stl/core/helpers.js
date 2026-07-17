@@ -177,10 +177,14 @@ function readWithValues(format, input, values) {
 
 /**
  * Write the shared JSON geometry schema to STL.
+ * The input is read-only. Meshes and index groups are flattened by
+ * {@link jsonToTriangles}; optional topology enforcement runs against that
+ * exact scaled triangle stream before encoding begins.
  *
  * @param {object} input Shared JSON root or mesh.
  * @param {object} values Normalized format values.
  * @returns {string|Uint8Array} ASCII STL text or binary STL bytes.
+ * @throws {TypeError|RangeError|Error} If geometry, numeric values, indices, topology, or binary range are invalid.
  */
 function writeWithValues(input, values) {
   const triangles = jsonToTriangles(input, values);

@@ -64,6 +64,12 @@ format attribution rather than fork provenance.
 
 ## Post-fork additions inside copied formats
 
+- `formats/stl` received a writer hardening pass (2026-07-18) without changing
+  its donor origin: binary provenance headers now round-trip the caller's solid
+  name, shared triangle indices are validated as in-range safe integers, scaled
+  coordinates must remain finite, and binary coordinates must fit float32
+  instead of silently becoming infinities. Writer JSDoc and ASCII/binary
+  round-trip/error coverage were expanded in the runtime-owned copy.
 - `formats/cmf` gained a **binary CMF v1 writer** (2026-07-15,
   `src/formats/cmf/core/writer.js`, `CjsCmfFormat.write`/`writeAsync` and
   `Write`/`WriteAsync`): original code implementing CarbonEngine's

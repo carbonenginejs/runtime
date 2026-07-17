@@ -45,7 +45,7 @@ export { CjsResourceProbe } from './format/CjsResourceProbe.js';
 export { ResourcePayloadType, ResourcePayloadValues, validateAudioPayload, validateRgbaPayload, validateTexturePayload, validateVideoPayload } from './format/payloadContract.js';
 export { CjsFormat, ValidateFormatContract } from './format/CjsFormat.js';
 export { CjsEventEmitter } from '@carbonenginejs/core-types/model';
-export { CjsMotherLode } from './CjsMotherLode.js';
+export { CjsMotherLode, getMotherLodeKey } from './CjsMotherLode.js';
 export { CjsFetchResourceSource, CjsMemoryResourceSource } from './CjsResourceSource.js';
 export { CjsResManQueue } from './CjsResManQueue.js';
 export { CjsResMan } from './CjsResMan.js';
