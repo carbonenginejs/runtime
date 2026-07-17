@@ -99,6 +99,24 @@ test("reader exposes the standard public profile API", () =>
     assert.equal(CjsRedFormat.id, "red");
 });
 
+test("reader profile exposes and persists payload identity markers", () =>
+{
+    const format = new CjsRedFormat();
+    assert.equal(format.GetValues().payloadTypeField, "_type");
+    assert.equal(format.GetValues().payloadIdField, "_id");
+    assert.equal(format.GetValues().payloadReferenceField, "_reference");
+    assert.equal(format.GetValues().payloadValuesField, "_values");
+
+    const shared = [ 7 ];
+    const payload = format
+        .SetValues({ payloadValuesField: "items" })
+        .ReadPayload({ type: "Root", left: shared, right: shared })
+        .object;
+    assert.deepEqual(payload.left.items, [ 7 ]);
+    assert.equal(payload.left._id, payload.right._reference);
+    assert.equal(format.GetValues().payloadValuesField, "items");
+});
+
 test("read emits a compact public payload and strips authoring-tool keys", () =>
 {
     const payload = CjsRedFormat.read(makeGraph());

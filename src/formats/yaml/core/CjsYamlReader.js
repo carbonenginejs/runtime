@@ -8,6 +8,7 @@ import {
     visit
 } from "yaml";
 
+import { CjsReader } from "../../../format/CjsReader.js";
 import { TAG_HANDLE, TAG_PRESERVE, TAG_REJECT, toJsonGraph } from "./helpers.js";
 
 const TAG_PREFIX = "tag:yaml.org,2002:";
@@ -43,17 +44,18 @@ function defineMappingValue(target, key, value)
     });
 }
 
-export class CjsYamlReader
+export class CjsYamlReader extends CjsReader
 {
     constructor(input, options = {})
     {
+        super(options);
+
         if (typeof input !== "string")
         {
             throw new TypeError("CjsYamlFormat input must be a YAML string");
         }
 
         this.source = input;
-        this.options = options;
         this.lineCounter = new LineCounter();
         this.document = parseDocument(input, {
             keepSourceTokens: true,

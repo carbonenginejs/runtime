@@ -1,4 +1,5 @@
 import { LineCounter, parseDocument, isMap, isSeq, isScalar, isAlias, visit } from 'yaml';
+import { CjsReader } from '../../../format/CjsReader.js';
 import { toJsonGraph, TAG_REJECT, TAG_HANDLE, TAG_PRESERVE } from './helpers.js';
 
 const TAG_PREFIX = "tag:yaml.org,2002:";
@@ -23,13 +24,13 @@ function defineMappingValue(target, key, value) {
     writable: true
   });
 }
-class CjsYamlReader {
+class CjsYamlReader extends CjsReader {
   constructor(input, options = {}) {
+    super(options);
     if (typeof input !== "string") {
       throw new TypeError("CjsYamlFormat input must be a YAML string");
     }
     this.source = input;
-    this.options = options;
     this.lineCounter = new LineCounter();
     this.document = parseDocument(input, {
       keepSourceTokens: true,

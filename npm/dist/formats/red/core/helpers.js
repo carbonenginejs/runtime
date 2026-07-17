@@ -13,6 +13,7 @@ const DEFAULT_VALUES = Object.freeze({
   payloadTypeField: "_type",
   payloadIdField: "_id",
   payloadReferenceField: "_reference",
+  payloadValuesField: "_values",
   classes: Object.freeze({})
 });
 const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
@@ -48,6 +49,7 @@ function cloneValues(values) {
     payloadTypeField: values.payloadTypeField,
     payloadIdField: values.payloadIdField,
     payloadReferenceField: values.payloadReferenceField,
+    payloadValuesField: values.payloadValuesField,
     classes: {
       ...classMap(values)
     }
@@ -98,6 +100,7 @@ function normalizeValues(base, options, classKeys, readerName) {
   if (hasOwn(options, "payloadTypeField")) values.payloadTypeField = options.payloadTypeField;
   if (hasOwn(options, "payloadIdField")) values.payloadIdField = options.payloadIdField;
   if (hasOwn(options, "payloadReferenceField")) values.payloadReferenceField = options.payloadReferenceField;
+  if (hasOwn(options, "payloadValuesField")) values.payloadValuesField = options.payloadValuesField;
   if (hasOwn(options, "classes")) mergeClasses(values, options.classes, classKeys, readerName);
   return values;
 }

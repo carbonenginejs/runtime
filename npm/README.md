@@ -65,6 +65,14 @@ through `SetPayload()`, validate their own required fields, and throw
 `GetPayload()`, `HasPayload()`, and `ReleasePayload()` manage transient CPU
 retention without introducing a parallel DTO class hierarchy.
 
+Red payload output reserves configurable type, ID, reference, and sequence
+values markers (`_type`, `_id`, `_reference`, and `_values` by default).
+Repeated or cyclic sequences use an ID-bearing values envelope; unique
+sequences remain arrays. Authored fields may not collide with active markers,
+so remap the marker options when those names are real data. Disabling the
+reference marker preserves actual JavaScript identity; cyclic output in that
+mode is intentionally not JSON-serializable.
+
 ## Queued load and staged prepare
 
 `GetObject()`, `LoadObject()`, and resource `Ready()` use two manager-owned

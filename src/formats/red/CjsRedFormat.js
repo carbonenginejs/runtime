@@ -22,6 +22,13 @@ const FORMAT_NAME = "CjsRedFormat";
  * Reads Red data - a type-discriminated, self-referential YAML object graph -
  * and emits a compact public payload by default, a neutral raw graph, or
  * caller-supplied runtime classes through the core-types hydration adapter.
+ * With payload IDs enabled, repeated sequences and typed tables use an
+ * ID-bearing object around a configurable `payloadValuesField` (default
+ * `_values`); unique sequences remain arrays. Active payload marker names must
+ * be distinct non-empty strings, and authored fields that collide with them
+ * are rejected. Remap the markers to preserve authored underscore fields.
+ * Disabling the reference marker preserves actual JavaScript identity; a
+ * cyclic result in that mode is intentionally not JSON-serializable.
  */
 export class CjsRedFormat
 {
@@ -63,6 +70,7 @@ export class CjsRedFormat
     GetValues(options = {})
     {
         return normalizeValues({
+            ...DEFAULT_VALUES,
             emit: this.#emit,
             schema: this.#schema,
             ...this.#readerOptions,

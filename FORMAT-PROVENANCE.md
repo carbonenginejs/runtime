@@ -37,8 +37,10 @@ copied runtime files are the deterministic retained snapshot.
 
 ## Black definition snapshot
 
-The Black and Red readers use the package-owned generated definition snapshot
-at `src/formats/black/core/black-schema-v1-2026-07-11.json`. It was copied from
+The Black reader uses the package-owned generated definition snapshot at
+`src/formats/black/core/black-schema-v1-2026-07-11.json`. The Red format exposes
+the same catalog for discovery, but its YAML reader currently accepts named
+fields without registry enforcement. The snapshot was copied from
 `format-carbon` revision `d2a3c67cf3d46e8ba78ca19e66558d868178ec24`
 with SHA-256
 `008ECB29E670EFC678B471A6EFF099600A29C2907912FC42B854995904604691`.
@@ -117,7 +119,8 @@ snapshot must record its new source and digest here.
   until that code is replaced or an explicit distribution-license decision is
   made. It has not been deprecated or relabeled as MIT.
 - `format-carbon` remains the schema emitter/generator and build-time schema
-  authority. Black and Red consume its published Black definitions.
+  authority. Black consumes its published definitions; Red exposes the copied
+  catalog but does not yet enforce it while reading YAML fields.
 - `format-dxbc`, `format-hlsl`, `format-webgl`, and `format-webgpu` are active
   shader work and were not copied, annotated, or otherwise modified by this
   migration.

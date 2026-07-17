@@ -1,11 +1,7 @@
-import {
-    CARBON_TYPE,
-    CjsCarbonDocument,
-    CjsSchema,
-    normalizeCarbonTypeDescriptor,
-    normalizeCarbonValue,
-    resolveHydrationAdapter
-} from "@carbonenginejs/core-types";
+import { CjsCarbonDocument } from "@carbonenginejs/core-types/document";
+import { CjsSchema } from "@carbonenginejs/core-types/schema";
+
+import { CjsBlueReader } from "../../../format/CjsBlueReader.js";
 
 import {
     CJS_BLACK_FORMAT_ID,
@@ -19,41 +15,30 @@ import { CjsBlackSchemaRegistry } from "./CjsBlackSchemaRegistry.js";
 /**
  * Reads a `.black` stream into a payload/document/runtime graph.
  *
- * Lifecycle: one-shot by construction. The input is bound in the constructor,
- * so an instance reads exactly one source and is meant to be used and dropped
- * (see `CjsBlackFormat.read*`, which invoke it as an unnamed temporary). There
- * is deliberately no `clear()`/`dispose()`: once a `Read*()` call returns, the
- * instance and its state (`data` buffer, `references`, `runtimeInstances`) are
- * unreachable and GC reclaims them — unlike the C++ `BlackReader::Cleanup()`,
- * which only exists to free hand-managed `CCP_MALLOC` buffers and refcounted
- * maps. `ResetReadState()` is the sole reset, so the same file can be re-read in
- * a different mode. Only add an explicit `dispose()` if a long-lived or pooled
- * reader is ever introduced (to release `data`/`references` early); it would be
- * optional cleanup, never required for correctness.
+ * This transport owns the binary buffer, string tables, numeric references,
+ * and binary read cursor. `ResetReadState()` clears only per-read graph state;
+ * each read entrypoint separately restores the cursor to `dataOffset`.
  */
-export class CjsBlackReader
+export class CjsBlackReader extends CjsBlueReader
 {
     constructor(input, options = {})
     {
-        this.options = { ...options };
+        super(options, {
+            schemaRegistry: CjsBlackSchemaRegistry,
+            defaultRegistry: CjsSchema,
+            includeShapeContext: true,
+            includeSourceShape: true,
+            includeEmptyPayloadType: true,
+            requirePayloadReferenceTarget: true
+        });
         this.reader = CjsBlackBinaryReader.from(input, this);
-        this.schemaShapes = CjsBlackSchemaRegistry.createShapeMap(options.schema);
         this.references = new Map();
         this.nodes = [];
-        this.reports = [];
         this.nextNodeId = 1;
         this.info = null;
         this.readMode = "payload";
         this.payloadDepth = 0;
         this.payloadRootFields = null;
-        this.hydrationAdapter = resolveHydrationAdapter(options);
-        this.hydrationOptions = {
-            ...options,
-            markDirty: false,
-            skipUpdate: true,
-            skipEvents: true
-        };
-        this.runtimeInstances = [];
     }
 
     Inspect()
@@ -143,17 +128,7 @@ export class CjsBlackReader
 
         this.reader.ExpectEnd("Black object graph did not read to end");
 
-        // Phase 3: the whole graph is constructed and valued (references
-        // resolved), so run the adapter's post-graph init once per instance.
-        // Instances are collected in completion order, so children finalize
-        // before their parents.
-        for (const record of this.runtimeInstances)
-        {
-            this.hydrationAdapter.finalize(record.instance, {
-                kind: record.kind,
-                shape: record.shape
-            });
-        }
+        this.FinalizeRuntimeInstances();
 
         return {
             root,
@@ -167,6 +142,7 @@ export class CjsBlackReader
         const info = this.Inspect();
         this.ResetReadState();
         this.readMode = "payload";
+        this.ValidatePayloadConfiguration();
         this.reader.offset = info.dataOffset;
 
         const object = this.ReadObject(this.reader);
@@ -330,8 +306,7 @@ export class CjsBlackReader
         }
 
         objectReader.ExpectEnd(`${kind} did not read to end`);
-        this.hydrationAdapter.applyValues(target, values, { kind, shape, options: this.hydrationOptions });
-        this.runtimeInstances.push({ instance: target, kind, shape });
+        this.ApplyRuntimeValues(target, values, kind, shape);
         return target;
     }
 
@@ -393,60 +368,9 @@ export class CjsBlackReader
         return target;
     }
 
-    CreateRuntimeTarget(kind, shape)
-    {
-        const built = this.hydrationAdapter.construct(kind, { kind, shape, options: this.options });
-        if (built !== undefined) return built;
-
-        const ClassConstructor = this.ResolveClass(kind);
-        if (ClassConstructor)
-        {
-            return new ClassConstructor();
-        }
-
-        return {
-            _sourceClassName: kind,
-            _sourceShape: shape || null
-        };
-    }
-
-    CreatePayloadTarget(kind)
-    {
-        const typeField = this.GetPayloadTypeField();
-        return typeField ? { [typeField]: kind } : {};
-    }
-
     CreateSkippedPayloadTarget()
     {
         return {};
-    }
-
-    CreatePayloadReference(targetObject, blackReference)
-    {
-        const idField = this.GetPayloadIdField();
-        const referenceField = this.GetPayloadReferenceField();
-
-        if (idField && !Object.hasOwn(targetObject, idField))
-        {
-            targetObject[idField] = blackReference;
-        }
-
-        return referenceField ? { [referenceField]: blackReference } : targetObject;
-    }
-
-    GetPayloadTypeField()
-    {
-        return this.options.payloadTypeField === false ? null : (this.options.payloadTypeField || "_type");
-    }
-
-    GetPayloadIdField()
-    {
-        return this.options.payloadIdField === false ? null : (this.options.payloadIdField || "_id");
-    }
-
-    GetPayloadReferenceField()
-    {
-        return this.options.payloadReferenceField === false ? null : (this.options.payloadReferenceField || "_reference");
     }
 
     GetPayloadRootFields()
@@ -622,81 +546,6 @@ export class CjsBlackReader
         };
     }
 
-    AssignRuntimeFieldValue(targetObject, target, value)
-    {
-        if (target.unknown)
-        {
-            targetObject[target.blackName] = value;
-            return;
-        }
-
-        if (target.indexed)
-        {
-            let current = targetObject[target.field.name];
-            if (!current || typeof current !== "object")
-            {
-                current = Number.isInteger(target.index) ? [] : {};
-                targetObject[target.field.name] = current;
-            }
-
-            current[target.key] = this.NormalizeRuntimeFieldValue(value, target.field);
-            return;
-        }
-
-        targetObject[target.field.name] = this.NormalizeRuntimeFieldValue(value, target.field);
-    }
-
-    AssignPayloadFieldValue(targetObject, target, value)
-    {
-        if (target.unknown)
-        {
-            targetObject[target.blackName] = value;
-            return;
-        }
-
-        if (target.indexed)
-        {
-            let current = targetObject[target.field.name];
-            if (!current || typeof current !== "object")
-            {
-                current = Number.isInteger(target.index) ? [] : {};
-                targetObject[target.field.name] = current;
-            }
-
-            current[target.key] = value;
-            return;
-        }
-
-        targetObject[target.field.name] = value;
-    }
-
-    NormalizeRuntimeFieldValue(value, field)
-    {
-        if (!field) return value;
-
-        // In runtime mode, object-graph fields already hold constructed class
-        // instances (or arrays/dicts of them) produced by ReadObject. Passing
-        // those back through normalizeCarbonValue would deep-clone and flatten
-        // them into plain objects, dropping the constructed classes. Preserve
-        // them - matching CjsDocumentHydrator.hydrateFieldValue - and only
-        // normalize scalar/math leaf values.
-        const descriptor = normalizeCarbonTypeDescriptor(field);
-        const kind = descriptor.kind;
-
-        if (kind === CARBON_TYPE.ARRAY && Array.isArray(value)) return value;
-        if ((kind === CARBON_TYPE.OBJECT_REF
-            || kind === CARBON_TYPE.STRUCT
-            || kind === CARBON_TYPE.RAW_STRUCT
-            || kind === CARBON_TYPE.UNKNOWN)
-            && value && typeof value === "object")
-        {
-            return value;
-        }
-        if (CjsBlackReader.isShapeIncompatibleMathArray(value, descriptor)) return value;
-
-        return normalizeCarbonValue(value, field);
-    }
-
     ResolveFieldTarget(kind, shape, blackName)
     {
         if (!shape)
@@ -716,6 +565,7 @@ export class CjsBlackReader
         {
             return {
                 blackName,
+                wireName: blackName,
                 field,
                 member: blackName,
                 indexed: false,
@@ -734,6 +584,7 @@ export class CjsBlackReader
                 const key = CjsBlackReader.normalizeIndexedKey(indexed.indexToken, indexedField);
                 return {
                     blackName,
+                    wireName: blackName,
                     field: indexedField,
                     member: blackName,
                     indexed: true,
@@ -857,6 +708,7 @@ export class CjsBlackReader
 
         return {
             blackName,
+            wireName: blackName,
             field,
             member: blackField.member || blackName,
             indexed,
@@ -870,6 +722,7 @@ export class CjsBlackReader
     {
         return {
             blackName,
+            wireName: blackName,
             field: {
                 name: "__blackUnknown",
                 cppName: null,
@@ -899,22 +752,6 @@ export class CjsBlackReader
         return false;
     }
 
-    ResolveSourceShape(kind)
-    {
-        const registry = this.options.registry || null;
-        if (registry?.GetSourceShape) return registry.GetSourceShape(kind);
-
-        const sourceShapes = this.options.sourceShapes || null;
-        if (sourceShapes?.GetSourceShape) return sourceShapes.GetSourceShape(kind);
-        if (sourceShapes)
-        {
-            const shape = sourceShapes instanceof Map ? sourceShapes.get(kind) : sourceShapes[kind];
-            if (shape) return CjsBlackSchemaRegistry.normalizeShape(shape);
-        }
-
-        return this.schemaShapes.get(kind) || null;
-    }
-
     ResolveClass(kind)
     {
         const classes = this.options.classes || {};
@@ -924,19 +761,12 @@ export class CjsBlackReader
 
     ResetReadState()
     {
+        super.ResetBlueReadState();
         this.references = new Map();
         this.nodes = [];
-        this.reports = [];
         this.nextNodeId = this.options.firstId || 1;
         this.payloadDepth = 0;
         this.payloadRootFields = null;
-        this.runtimeInstances = [];
-    }
-
-    TransformPath(value)
-    {
-        const handler = this.options.pathHandler;
-        return typeof handler === "function" ? handler(value) : value;
     }
 
     static readStringTable(reader)
@@ -1007,11 +837,6 @@ export class CjsBlackReader
         return String(value || "").replace(/^m_/, "");
     }
 
-    static isShapeIncompatibleMathArray(value, descriptor)
-    {
-        const expectedLength = descriptor?.length;
-        return Array.isArray(value) && Number.isInteger(expectedLength) && value.length !== expectedLength;
-    }
 }
 
 const CJS_BLACK_INDEX_TOKEN_NAMES = Object.freeze({

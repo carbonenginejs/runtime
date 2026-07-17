@@ -1,4 +1,4 @@
-import { resolveHydrationAdapter } from '@carbonenginejs/core-types/hydration';
+import { CjsBlueReader } from '../../../format/CjsBlueReader.js';
 import { parseRed, isTypedTable, decodeTypedTable, isStrippedKey } from './redGraph.js';
 
 /**
@@ -9,42 +9,36 @@ import { parseRed, isTypedTable, decodeTypedTable, isStrippedKey } from './redGr
  * one of three shapes, sharing repeated nodes and always stripping
  * authoring-tool keys (double-underscore prefixed).
  */
-class CjsRedReader {
+class CjsRedReader extends CjsBlueReader {
   constructor(input, options = {}) {
-    this.options = {
-      ...options
-    };
+    super(options, {
+      includePayloadValuesField: true,
+      validatePayloadReservedFields: true
+    });
     this.root = parseRed(input, options);
-    this.adapter = resolveHydrationAdapter(options);
-    this.hydrationOptions = {
-      ...options,
-      markDirty: false,
-      skipUpdate: true,
-      skipEvents: true
-    };
     this.mode = "payload";
     this.ResetReadState();
   }
   ResetReadState() {
+    super.ResetBlueReadState();
     this.refs = new Map(); // source object -> hydrated target
     this.ids = new Map(); // source object -> reference id
-    this.nextId = this.options.firstId || 1;
-    this.runtimeInstances = [];
-    this.reports = [];
+    this.payloadReferenceCounts = new WeakMap();
+    this.nextId = this.options.firstId ?? 1;
   }
   Inspect() {
     const typeCounts = {};
     const seen = new Set();
     let nodeCount = 0;
     const visit = node => {
+      if (!node || typeof node !== "object") return;
+      if (seen.has(node)) return;
+      seen.add(node);
       if (Array.isArray(node)) {
         node.forEach(visit);
         return;
       }
       if (isTypedTable(node)) return;
-      if (!node || typeof node !== "object") return;
-      if (seen.has(node)) return;
-      seen.add(node);
       if (typeof node.type === "string") {
         nodeCount++;
         typeCounts[node.type] = (typeCounts[node.type] || 0) + 1;
@@ -75,6 +69,8 @@ class CjsRedReader {
   ReadPayload() {
     this.mode = "payload";
     this.ResetReadState();
+    this.ValidatePayloadConfiguration();
+    this.CountPayloadReferences(this.root);
     const object = this.Hydrate(this.root);
     return {
       comments: this.reports,
@@ -85,14 +81,7 @@ class CjsRedReader {
     this.mode = "runtime";
     this.ResetReadState();
     const root = this.Hydrate(this.root);
-
-    // Phase 3: whole graph built and references resolved - finalize once
-    // per instance, children before parents (completion order).
-    for (const record of this.runtimeInstances) {
-      this.adapter.finalize(record.instance, {
-        kind: record.type
-      });
-    }
+    this.FinalizeRuntimeInstances();
     return {
       root,
       format: {
@@ -107,10 +96,10 @@ class CjsRedReader {
     return this.Hydrate(this.root);
   }
   Hydrate(node) {
-    if (Array.isArray(node)) return node.map(item => this.Hydrate(item));
-    if (isTypedTable(node)) return decodeTypedTable(node).map(row => this.Hydrate(row));
     if (node && typeof node === "object") {
       if (this.refs.has(node)) return this.MakeReference(node);
+      if (Array.isArray(node)) return this.HydrateSequence(node, node);
+      if (isTypedTable(node)) return this.HydrateSequence(node, decodeTypedTable(node));
       const type = typeof node.type === "string" ? node.type : null;
       const target = this.CreateTarget(type);
       this.refs.set(node, target);
@@ -125,41 +114,62 @@ class CjsRedReader {
     }
     return node;
   }
+  HydrateSequence(source, items) {
+    const values = [];
+    const shouldWrap = this.mode === "payload" && this.IsRepeatedPayloadNode(source) && Boolean(this.GetPayloadIdField());
+    const target = shouldWrap ? {
+      [this.GetPayloadValuesField()]: values
+    } : values;
+    this.refs.set(source, target);
+    for (const item of items) values.push(this.Hydrate(item));
+    return target;
+  }
+  CountPayloadReferences(root) {
+    const traversed = new WeakSet();
+    const visit = node => {
+      if (!node || typeof node !== "object") return;
+      this.payloadReferenceCounts.set(node, (this.payloadReferenceCounts.get(node) || 0) + 1);
+      if (traversed.has(node)) return;
+      traversed.add(node);
+      if (Array.isArray(node)) {
+        for (const item of node) visit(item);
+        return;
+      }
+      if (isTypedTable(node)) {
+        for (const row of decodeTypedTable(node)) visit(row);
+        return;
+      }
+      for (const key of Object.keys(node)) {
+        if (isStrippedKey(key) || key === "type") continue;
+        visit(node[key]);
+      }
+    };
+    visit(root);
+  }
+  IsRepeatedPayloadNode(node) {
+    return (this.payloadReferenceCounts.get(node) || 0) > 1;
+  }
   CreateTarget(type) {
     if (this.mode === "runtime") {
-      const built = this.adapter.construct(type, {
-        kind: type,
-        options: this.options
-      });
-      if (built !== undefined) return built;
-      const ClassConstructor = this.ResolveClass(type);
-      if (ClassConstructor) return new ClassConstructor();
-      return {
-        _sourceClassName: type || null
-      };
+      if (!type) return {};
+      return this.CreateRuntimeTarget(type);
     }
     if (this.mode === "raw") return {};
-    const typeField = this.GetPayloadField("payloadTypeField", "_type");
-    return typeField && type ? {
-      [typeField]: type
-    } : {};
+    return this.CreatePayloadTarget(type);
   }
   AssignValues(target, values, type) {
     if (this.mode === "runtime") {
-      // Untyped maps are value objects inside a typed Red graph. They do
-      // not participate in the runtime class lifecycle.
+      // Untyped maps are plain value objects inside a typed Red graph and
+      // do not participate in the runtime class lifecycle.
       if (!type) {
         Object.assign(target, values);
         return;
       }
-      this.adapter.applyValues(target, values, {
-        kind: type,
-        options: this.hydrationOptions
-      });
-      this.runtimeInstances.push({
-        instance: target,
-        type
-      });
+      this.ApplyRuntimeValues(target, values, type);
+      return;
+    }
+    if (this.mode === "payload") {
+      this.AssignPayloadValues(target, values);
       return;
     }
     Object.assign(target, values);
@@ -167,15 +177,8 @@ class CjsRedReader {
   MakeReference(node) {
     const target = this.refs.get(node);
     if (this.mode !== "payload") return target;
-    const idField = this.GetPayloadField("payloadIdField", "_id");
-    const referenceField = this.GetPayloadField("payloadReferenceField", "_reference");
     const id = this.IdFor(node);
-    if (idField && target && typeof target === "object" && !Object.prototype.hasOwnProperty.call(target, idField)) {
-      target[idField] = id;
-    }
-    return referenceField ? {
-      [referenceField]: id
-    } : target;
+    return this.CreatePayloadReference(target, id);
   }
   IdFor(node) {
     let id = this.ids.get(node);
@@ -184,16 +187,6 @@ class CjsRedReader {
       this.ids.set(node, id);
     }
     return id;
-  }
-  GetPayloadField(name, fallback) {
-    const value = this.options[name];
-    return value === false ? null : value || fallback;
-  }
-  ResolveClass(type) {
-    if (!type) return null;
-    const classes = this.options.classes || {};
-    const Schema = this.options.registry || null;
-    return classes[type] || (Schema ? Schema.GetConstructor(type) : null);
   }
 }
 

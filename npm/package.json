@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/runtime-resource",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CarbonEngineJS resource lifecycle, cache, source, and object loading contracts.",
   "type": "module",
   "exports": {

@@ -15,6 +15,7 @@ import "./formats/obj/format.test.js";
 import "./formats/ogg/format.test.js";
 import "./formats/png/format.test.js";
 import "./formats/red/public-api.test.mjs";
+import "./formats/shared-reader.test.mjs";
 import "./formats/stl/format.test.js";
 import "./formats/tga/format.test.js";
 import "./formats/wav/format.test.js";
