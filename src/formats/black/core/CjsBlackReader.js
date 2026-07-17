@@ -16,6 +16,21 @@ import { CjsBlackBinaryReader } from "./CjsBlackBinaryReader.js";
 import { CjsBlackPropertyReaders } from "./CjsBlackPropertyReaders.js";
 import { CjsBlackSchemaRegistry } from "./CjsBlackSchemaRegistry.js";
 
+/**
+ * Reads a `.black` stream into a payload/document/runtime graph.
+ *
+ * Lifecycle: one-shot by construction. The input is bound in the constructor,
+ * so an instance reads exactly one source and is meant to be used and dropped
+ * (see `CjsBlackFormat.read*`, which invoke it as an unnamed temporary). There
+ * is deliberately no `clear()`/`dispose()`: once a `Read*()` call returns, the
+ * instance and its state (`data` buffer, `references`, `runtimeInstances`) are
+ * unreachable and GC reclaims them — unlike the C++ `BlackReader::Cleanup()`,
+ * which only exists to free hand-managed `CCP_MALLOC` buffers and refcounted
+ * maps. `ResetReadState()` is the sole reset, so the same file can be re-read in
+ * a different mode. Only add an explicit `dispose()` if a long-lived or pooled
+ * reader is ever introduced (to release `data`/`references` early); it would be
+ * optional cleanup, never required for correctness.
+ */
 export class CjsBlackReader
 {
     constructor(input, options = {})
