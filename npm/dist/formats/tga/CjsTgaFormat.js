@@ -1,4 +1,4 @@
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isTGA, toBytes, OUTPUT_IMAGE, OUTPUT_RGBA, OUTPUT_RAW, OUTPUT_JSON } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isTGA, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, OUTPUT_IMAGE } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsTgaFormat";
 class CjsTgaFormat {
@@ -170,10 +170,16 @@ class CjsTgaFormat {
       return false;
     }
   }
-  static OUTPUT_IMAGE = OUTPUT_IMAGE;
-  static OUTPUT_RGBA = OUTPUT_RGBA;
-  static OUTPUT_RAW = OUTPUT_RAW;
-  static OUTPUT_JSON = OUTPUT_JSON;
+
+  /**
+   * Emit targets for this format (canonical frozen enum).
+   */
+  static Output = Object.freeze({
+    IMAGE: OUTPUT_IMAGE,
+    RGBA: OUTPUT_RGBA,
+    RAW: OUTPUT_RAW,
+    JSON: OUTPUT_JSON
+  });
   static OUTPUT_TGA_JSON = "tgaJson";
   static type = Object.freeze(["image"]);
   static mediaTypes = Object.freeze(["image"]);

@@ -97,8 +97,13 @@ export class CjsOggFormat
         }
     }
 
-    static OUTPUT_RAW = OUTPUT_RAW;
-    static OUTPUT_JSON = OUTPUT_JSON;
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        RAW: OUTPUT_RAW,
+        JSON: OUTPUT_JSON
+    });
     static OUTPUT_OGG_JSON = "oggJson";
     static OUTPUT_PCM = OUTPUT_PCM;
     static OUTPUT_AUDIO = OUTPUT_AUDIO;

@@ -95,14 +95,26 @@ export class CjsWebpFormat
         }
     }
 
-    static OUTPUT_RAW = OUTPUT_RAW;
-    static OUTPUT_JSON = OUTPUT_JSON;
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        RAW: OUTPUT_RAW,
+        JSON: OUTPUT_JSON
+    });
+
     static OUTPUT_WEBP_JSON = "webpJson";
+
     static type = Object.freeze([ "image" ]);
+
     static mediaTypes = Object.freeze([ "image" ]);
+
     static inputTypes = Object.freeze([ "webp" ]);
+
     static outputTypes = Object.freeze([]);
+
     static debugOutputTypes = Object.freeze([ "webpJson", OUTPUT_RAW ]);
+    
     static implementationStatus = "metadata-only";
 }
 

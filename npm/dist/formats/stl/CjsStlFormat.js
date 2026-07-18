@@ -1,4 +1,4 @@
-import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, writeWithValues, inspectWithValues, toJsonValue, importNodeModule, OUTPUT_JSON, OUTPUT_STL_JSON, OUTPUT_SHARED, OUTPUT_GR2, OUTPUT_CMF, CLASS_KEYS } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, writeWithValues, inspectWithValues, toJsonValue, importNodeModule, OUTPUT_CMF, OUTPUT_GR2, OUTPUT_SHARED, OUTPUT_STL_JSON, OUTPUT_JSON, CLASS_KEYS } from './core/helpers.js';
 import { isStl, isBinaryStl } from './core/stl.js';
 
 /**
@@ -342,11 +342,17 @@ class CjsStlFormat {
   static isBinaryStl(input) {
     return isBinaryStl(input);
   }
-  static OUTPUT_JSON = OUTPUT_JSON;
-  static OUTPUT_STL_JSON = OUTPUT_STL_JSON;
-  static OUTPUT_SHARED = OUTPUT_SHARED;
-  static OUTPUT_GR2 = OUTPUT_GR2;
-  static OUTPUT_CMF = OUTPUT_CMF;
+
+  /**
+   * Emit targets for this format (canonical frozen enum).
+   */
+  static Output = Object.freeze({
+    JSON: OUTPUT_JSON,
+    STL_JSON: OUTPUT_STL_JSON,
+    SHARED: OUTPUT_SHARED,
+    GR2: OUTPUT_GR2,
+    CMF: OUTPUT_CMF
+  });
   static CLASS_KEYS = CLASS_KEYS;
   static type = Object.freeze(["geometry"]);
   static mediaTypes = Object.freeze(["geometry"]);

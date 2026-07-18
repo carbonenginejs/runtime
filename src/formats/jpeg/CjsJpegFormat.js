@@ -207,10 +207,15 @@ export class CjsJpegFormat
         }
     }
 
-    static OUTPUT_IMAGE = OUTPUT_IMAGE;
-    static OUTPUT_RGBA = OUTPUT_RGBA;
-    static OUTPUT_RAW = OUTPUT_RAW;
-    static OUTPUT_JSON = OUTPUT_JSON;
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        IMAGE: OUTPUT_IMAGE,
+        RGBA: OUTPUT_RGBA,
+        RAW: OUTPUT_RAW,
+        JSON: OUTPUT_JSON
+    });
     static OUTPUT_JPEG_JSON = "jpegJson";
     static type = Object.freeze([ "image" ]);
     static mediaTypes = Object.freeze([ "image" ]);

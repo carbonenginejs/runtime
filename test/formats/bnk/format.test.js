@@ -26,17 +26,40 @@ test("inspects bank header, media index, hierarchy, and names", () =>
     assert.equal(info.media[1].available, true);
 
     assert.equal(info.hircCount, 2);
-    assert.deepEqual(info.hirc[0], {
-        type: 2,
-        typeName: "sound",
-        id: 0x1111,
-        offset: info.hirc[0].offset,
-        size: 4
-    });
+    assert.equal(info.hirc[0].type, 2);
+    assert.equal(info.hirc[0].typeName, "sound");
+    assert.equal(info.hirc[0].id, 0x1111);
+    assert.equal(info.hirc[0].size, 4);
+    // Body view excludes the leading u32 id; a body too short for its type's
+    // layout carries no typed fields.
+    assert.equal(info.hirc[0].payload.byteLength, 0);
+    assert.equal(info.hirc[0].sourceId, undefined);
     assert.equal(info.hirc[1].typeName, "event");
     assert.equal(info.hirc[1].id, 0x2222);
 
     assert.deepEqual(info.names, [ { bankId: 559876543, name: "init" } ]);
+});
+
+test("decodes typed HIRC fields for events, actions, sounds, and music tracks", () =>
+{
+    const info = CjsBnkFormat.inspect(makeGraphBnk());
+    const byId = new Map(info.hirc.map((entry) => [ entry.id, entry ]));
+
+    assert.deepEqual(byId.get(0x4001).actionIds, [ 0x5001, 0x5002 ]);
+
+    assert.equal(byId.get(0x5001).actionType, 0x0403);
+    assert.equal(byId.get(0x5001).targetId, 0x6001);
+    assert.equal(byId.get(0x5002).actionType, 0x0103);
+    assert.equal(byId.get(0x5002).targetId, 0x6001);
+
+    assert.equal(byId.get(0x6001).pluginId, 0x00040001);
+    assert.equal(byId.get(0x6001).streamType, 0);
+    assert.equal(byId.get(0x6001).sourceId, 901);
+    assert.equal(byId.get(0x6001).inMemoryMediaSize, 64);
+
+    assert.deepEqual(byId.get(0x7001).sources, [
+        { pluginId: 0x00040001, streamType: 1, sourceId: 902, inMemoryMediaSize: 16 }
+    ]);
 });
 
 test("extracts embedded media as views and flags wem payloads", () =>
@@ -120,13 +143,13 @@ test("detects and parses SoundbanksInfo documents", () =>
     const document = makeSoundbanksInfo();
     const text = JSON.stringify(document);
     const bytes = new TextEncoder().encode(text);
-    const parsed = CjsBnkFormat.parseSoundbanksInfo(bytes);
+    const parsed = CjsBnkFormat.wwise.parseSoundbanksInfo(bytes);
 
-    assert.equal(CjsBnkFormat.isSoundbanksInfo(document), true);
-    assert.equal(CjsBnkFormat.isSoundbanksInfo(text), true);
-    assert.equal(CjsBnkFormat.isSoundbanksInfo(bytes), true);
-    assert.equal(CjsBnkFormat.isSoundbanksInfo("{}"), false);
-    assert.equal(CjsBnkFormat.isSoundbanksInfo(new Uint8Array([ 1, 2 ])), false);
+    assert.equal(CjsBnkFormat.wwise.isSoundbanksInfo(document), true);
+    assert.equal(CjsBnkFormat.wwise.isSoundbanksInfo(text), true);
+    assert.equal(CjsBnkFormat.wwise.isSoundbanksInfo(bytes), true);
+    assert.equal(CjsBnkFormat.wwise.isSoundbanksInfo("{}"), false);
+    assert.equal(CjsBnkFormat.wwise.isSoundbanksInfo(new Uint8Array([ 1, 2 ])), false);
 
     assert.equal(parsed.platform, "Windows");
     assert.equal(parsed.soundBankVersion, "150");
@@ -140,14 +163,14 @@ test("detects and parses SoundbanksInfo documents", () =>
 
 test("builds catalogs and joins them with bank inspections", () =>
 {
-    const catalog = CjsBnkFormat.buildSoundbanksCatalog(makeSoundbanksInfo());
+    const catalog = CjsBnkFormat.wwise.buildSoundbanksCatalog(makeSoundbanksInfo());
 
     assert.equal(catalog.banksById["559876543"].shortName, "Effects");
     assert.equal(catalog.mediaById["101"].length, 2);
     assert.equal(catalog.mediaById["101"][0].bankName, "Effects");
     assert.equal(catalog.eventsByName["turret_fire_play"].id, "8738");
 
-    const joined = CjsBnkFormat.joinSoundbanksInfo(CjsBnkFormat.inspect(makeBnk()), catalog);
+    const joined = CjsBnkFormat.wwise.joinSoundbanksInfo(CjsBnkFormat.inspect(makeBnk()), catalog);
 
     assert.equal(joined.bank.shortName, "Effects");
     assert.equal(joined.media.length, 2);
@@ -161,16 +184,16 @@ test("builds catalogs and joins them with bank inspections", () =>
 
 test("rejects non-SoundbanksInfo input with a clear error", () =>
 {
-    assert.throws(() => CjsBnkFormat.parseSoundbanksInfo("not json"), /not valid JSON/u);
-    assert.throws(() => CjsBnkFormat.parseSoundbanksInfo({ SoundBanksInfo: {} }), /SoundBanksInfo\.SoundBanks/u);
+    assert.throws(() => CjsBnkFormat.wwise.parseSoundbanksInfo("not json"), /not valid JSON/u);
+    assert.throws(() => CjsBnkFormat.wwise.parseSoundbanksInfo({ SoundBanksInfo: {} }), /SoundBanksInfo\.SoundBanks/u);
 });
 
 test("computes Wwise ids as FNV-1 hashes of lowercased names", () =>
 {
-    assert.equal(CjsBnkFormat.wwiseIdFromName("SFX"), 393239870);
-    assert.equal(CjsBnkFormat.wwiseIdFromName("English(US)"), 684519430);
-    assert.equal(CjsBnkFormat.wwiseIdFromName("Voice"), 3170124113);
-    assert.equal(CjsBnkFormat.wwiseIdFromName("Common"), 2395677314);
+    assert.equal(CjsBnkFormat.wwise.wwiseIdFromName("SFX"), 393239870);
+    assert.equal(CjsBnkFormat.wwise.wwiseIdFromName("English(US)"), 684519430);
+    assert.equal(CjsBnkFormat.wwise.wwiseIdFromName("Voice"), 3170124113);
+    assert.equal(CjsBnkFormat.wwise.wwiseIdFromName("Common"), 2395677314);
 });
 
 test("join selects the language variant matching the BKHD languageId", () =>
@@ -190,14 +213,14 @@ test("join selects the language variant matching the BKHD languageId", () =>
             }
         ]
     });
-    const catalog = CjsBnkFormat.buildSoundbanksCatalog(document);
+    const catalog = CjsBnkFormat.wwise.buildSoundbanksCatalog(document);
     const bankInfo = {
         bankId: 777,
-        languageId: CjsBnkFormat.wwiseIdFromName("German"),
+        languageId: CjsBnkFormat.wwise.wwiseIdFromName("German"),
         media: [ { id: 101, length: 1, available: true } ],
         hirc: []
     };
-    const joined = CjsBnkFormat.joinSoundbanksInfo(bankInfo, catalog);
+    const joined = CjsBnkFormat.wwise.joinSoundbanksInfo(bankInfo, catalog);
 
     assert.equal(catalog.bankVariantsById["777"].length, 2);
     assert.equal(joined.bank.language, "German");
@@ -270,6 +293,72 @@ function makeBnk({ overflowSecondEntry = false, headerOnly = false } = {})
     {
         bytes.set(chunk, offset);
         offset += chunk.length;
+    }
+    return bytes;
+}
+
+// Bank whose HIRC exercises the typed field decode (layouts per bank
+// generator version 150): one event -> play + stop actions -> sound, plus a
+// streamed music track.
+function makeGraphBnk()
+{
+    const objects = [];
+    const pushObject = (type, id, body) =>
+    {
+        const bytes = new Uint8Array(5 + 4 + body.length);
+        bytes[0] = type;
+        writeU32LE(bytes, 1, 4 + body.length);
+        writeU32LE(bytes, 5, id);
+        bytes.set(body, 9);
+        objects.push(bytes);
+    };
+
+    const event = new Uint8Array(9);
+    event[0] = 2;
+    writeU32LE(event, 1, 0x5001);
+    writeU32LE(event, 5, 0x5002);
+    pushObject(4, 0x4001, event);
+
+    const play = new Uint8Array(8);
+    play[0] = 0x03; play[1] = 0x04;
+    writeU32LE(play, 2, 0x6001);
+    pushObject(3, 0x5001, play);
+
+    const stop = new Uint8Array(8);
+    stop[0] = 0x03; stop[1] = 0x01;
+    writeU32LE(stop, 2, 0x6001);
+    pushObject(3, 0x5002, stop);
+
+    const sound = new Uint8Array(14);
+    writeU32LE(sound, 0, 0x00040001);
+    sound[4] = 0;
+    writeU32LE(sound, 5, 901);
+    writeU32LE(sound, 9, 64);
+    pushObject(2, 0x6001, sound);
+
+    const track = new Uint8Array(19);
+    track[0] = 0;
+    writeU32LE(track, 1, 1);
+    writeU32LE(track, 5, 0x00040001);
+    track[9] = 1;
+    writeU32LE(track, 10, 902);
+    writeU32LE(track, 14, 16);
+    pushObject(11, 0x7001, track);
+
+    const hircBody = objects.reduce((sum, entry) => sum + entry.length, 4);
+    const bytes = new Uint8Array(8 + 20 + 8 + hircBody);
+    writeAscii(bytes, 0, "BKHD");
+    writeU32LE(bytes, 4, 20);
+    writeU32LE(bytes, 8, 150);
+    writeU32LE(bytes, 12, 123456);
+    writeAscii(bytes, 28, "HIRC");
+    writeU32LE(bytes, 32, hircBody);
+    writeU32LE(bytes, 36, objects.length);
+    let offset = 40;
+    for (const entry of objects)
+    {
+        bytes.set(entry, offset);
+        offset += entry.length;
     }
     return bytes;
 }

@@ -188,10 +188,15 @@ export class CjsMp3Format
         }
     }
 
-    static OUTPUT_AUDIO = OUTPUT_AUDIO;
-    static OUTPUT_PCM = OUTPUT_PCM;
-    static OUTPUT_RAW = OUTPUT_RAW;
-    static OUTPUT_JSON = OUTPUT_JSON;
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        AUDIO: OUTPUT_AUDIO,
+        PCM: OUTPUT_PCM,
+        RAW: OUTPUT_RAW,
+        JSON: OUTPUT_JSON
+    });
     static OUTPUT_MP3_JSON = "mp3Json";
     static type = Object.freeze([ "audio" ]);
     static mediaTypes = Object.freeze([ "audio" ]);

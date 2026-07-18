@@ -189,11 +189,16 @@ export class CjsDdsFormat
         }
     }
 
-    static OUTPUT_IMAGE = OUTPUT_IMAGE;
-    static OUTPUT_TEXTURE = OUTPUT_TEXTURE;
-    static OUTPUT_RGBA = OUTPUT_RGBA;
-    static OUTPUT_RAW = OUTPUT_RAW;
-    static OUTPUT_JSON = OUTPUT_JSON;
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        IMAGE: OUTPUT_IMAGE,
+        TEXTURE: OUTPUT_TEXTURE,
+        RGBA: OUTPUT_RGBA,
+        RAW: OUTPUT_RAW,
+        JSON: OUTPUT_JSON
+    });
     static OUTPUT_DDS_JSON = "ddsJson";
     static type = Object.freeze([ "texture", "image" ]);
     static mediaTypes = Object.freeze([ "texture", "image" ]);

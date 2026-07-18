@@ -185,11 +185,11 @@ function buildGlb(gltf, binary)
 
 test("default export and named export are the same CjsGltfFormat class", () => {
     assert.equal(CjsGltfFormat, NamedFormat);
-    assert.equal(CjsGltfFormat.OUTPUT_JSON, "json");
-    assert.equal(CjsGltfFormat.OUTPUT_GLTF_JSON, "gltfJson");
-    assert.equal(CjsGltfFormat.OUTPUT_SHARED, "shared");
-    assert.equal(CjsGltfFormat.OUTPUT_GR2, "gr2");
-    assert.equal(CjsGltfFormat.OUTPUT_CMF, "cmf");
+    assert.equal(CjsGltfFormat.Output.JSON, "json");
+    assert.equal(CjsGltfFormat.Output.GLTF_JSON, "gltfJson");
+    assert.equal(CjsGltfFormat.Output.SHARED, "shared");
+    assert.equal(CjsGltfFormat.Output.GR2, "gr2");
+    assert.equal(CjsGltfFormat.Output.CMF, "cmf");
     assert.deepEqual(CjsGltfFormat.outputTypes, [ "shared", "gr2", "cmf" ]);
     assert.deepEqual(CjsGltfFormat.debugOutputTypes, [ "json", "gltfJson" ]);
 });

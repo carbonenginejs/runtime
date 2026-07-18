@@ -505,13 +505,18 @@ export class CjsCmfFormat
         return writeCmfAsync({ ...packed.graph, buffers: packed.buffers }, options);
     }
 
-    static OUTPUT_JSON = OUTPUT_JSON;
-    static OUTPUT_CMF = OUTPUT_CMF;
-    static OUTPUT_CMF_JSON = OUTPUT_CMF_JSON;
-    static OUTPUT_GR2 = OUTPUT_GR2;
-    static OUTPUT_NATIVE = OUTPUT_NATIVE;
-    static OUTPUT_RAW = OUTPUT_RAW;
-    static OUTPUT_SHARED = OUTPUT_SHARED;
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        JSON: OUTPUT_JSON,
+        CMF: OUTPUT_CMF,
+        CMF_JSON: OUTPUT_CMF_JSON,
+        GR2: OUTPUT_GR2,
+        NATIVE: OUTPUT_NATIVE,
+        RAW: OUTPUT_RAW,
+        SHARED: OUTPUT_SHARED
+    });
     static CLASS_KEYS = CLASS_KEYS;
     static type = Object.freeze([ "geometry" ]);
     static mediaTypes = Object.freeze([ "geometry" ]);

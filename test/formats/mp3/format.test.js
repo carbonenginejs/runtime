@@ -7,7 +7,7 @@ test("exports default and named CjsMp3Format", () =>
     assert.equal(CjsMp3Format, NamedCjsMp3Format);
     assert.deepEqual(CjsMp3Format.inputTypes, [ "mp3" ]);
     assert.deepEqual(CjsMp3Format.outputTypes, []);
-    assert.deepEqual(CjsMp3Format.debugOutputTypes, [ "mp3Json", CjsMp3Format.OUTPUT_RAW ]);
+    assert.deepEqual(CjsMp3Format.debugOutputTypes, [ "mp3Json", CjsMp3Format.Output.RAW ]);
 });
 
 test("inspects mp3 id3 header", () =>

@@ -21,6 +21,7 @@ import {
     toBytes,
     toJsonValue
 } from "./core/helpers.js";
+import { eventMediaFromBanks } from "./core/graph.js";
 
 const FORMAT_NAME = "CjsBnkFormat";
 
@@ -28,9 +29,11 @@ const FORMAT_NAME = "CjsBnkFormat";
  * Reader for Audiokinetic Wwise soundbank (.bnk) containers.
  *
  * Inspection decodes the bank header, embedded media index, object hierarchy
- * listing, and referenced bank names without copying payloads. Read can emit
- * the raw bank, debug JSON, or the embedded media items undecoded; Wwise
- * event/graph semantics are deliberately out of scope for this reader.
+ * listing (with version-stable typed fields), and referenced bank names
+ * without copying payloads. Read can emit the raw bank, debug JSON, or the
+ * embedded media items undecoded. The read path stays a pure container
+ * reader; the Wwise-domain toolkit (SoundbanksInfo catalog helpers, id hash,
+ * event -> media graph resolution) is grouped under the `wwise` static.
  */
 export class CjsBnkFormat
 {
@@ -202,62 +205,6 @@ export class CjsBnkFormat
     }
 
     /**
-     * Test whether input looks like a Wwise SoundbanksInfo document.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView|string|object} input Candidate document.
-     * @returns {boolean} True when a SoundBanksInfo bank list is present.
-     */
-    static isSoundbanksInfo(input)
-    {
-        return isSoundbanksInfo(input);
-    }
-
-    /**
-     * Parse a SoundbanksInfo document into a normalized summary.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView|string|object} input SoundbanksInfo JSON bytes, text, or object.
-     * @returns {object} Normalized document summary with per-bank details.
-     */
-    static parseSoundbanksInfo(input)
-    {
-        return parseSoundbanksInfo(input);
-    }
-
-    /**
-     * Build id-keyed lookup tables from a SoundbanksInfo document.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView|string|object} input SoundbanksInfo JSON bytes, text, or object.
-     * @returns {object} Catalog with banksById, mediaById, eventsById, and eventsByName.
-     */
-    static buildSoundbanksCatalog(input)
-    {
-        return buildSoundbanksCatalog(input);
-    }
-
-    /**
-     * Join a bank inspection result with a SoundbanksInfo catalog.
-     *
-     * @param {object} bankInfo Inspect output for a soundbank.
-     * @param {object} catalog `buildSoundbanksCatalog` output.
-     * @returns {object} Bank/media/event annotations for the inspected bank.
-     */
-    static joinSoundbanksInfo(bankInfo, catalog)
-    {
-        return joinSoundbanksInfo(bankInfo, catalog);
-    }
-
-    /**
-     * Compute the Wwise 32-bit id for a bank, event, switch, or language name.
-     *
-     * @param {string} name Wwise object name.
-     * @returns {number} Unsigned 32-bit Wwise id (FNV-1 of the lowercased name).
-     */
-    static wwiseIdFromName(name)
-    {
-        return wwiseIdFromName(name);
-    }
-
-    /**
      * Test whether bytes look like a Wwise soundbank.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input Candidate soundbank bytes.
@@ -275,15 +222,49 @@ export class CjsBnkFormat
         }
     }
 
-    static OUTPUT_RAW = OUTPUT_RAW;
-    static OUTPUT_JSON = OUTPUT_JSON;
-    static OUTPUT_BNK_JSON = OUTPUT_BNK_JSON;
-    static OUTPUT_MEDIA = OUTPUT_MEDIA;
+    /**
+     * Wwise-domain toolkit, grouped apart from the container-reading statics -
+     * the single home for the SoundbanksInfo catalog helpers
+     * (`isSoundbanksInfo`, `parseSoundbanksInfo`, `buildSoundbanksCatalog`,
+     * `joinSoundbanksInfo`), the id hash (`wwiseIdFromName`, FNV-1 of the
+     * lowercased name), and event-graph resolution.
+     *
+     * `eventMediaFromBanks(inspections, options)` is graph interpretation over
+     * `inspect()` results, not a read path: banks may split events from their
+     * target objects (EVE keeps all events in one bank and their sounds in
+     * others), so always pass every related bank to one call. Returns
+     * `{ eventMedia: Map<eventObjectId, Set<wemId>>, diagnostics }`. See
+     * core/graph.js for the walk policy.
+     */
+    static wwise = Object.freeze({
+        isSoundbanksInfo,
+        parseSoundbanksInfo,
+        buildSoundbanksCatalog,
+        joinSoundbanksInfo,
+        wwiseIdFromName,
+        eventMediaFromBanks
+    });
+
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        RAW: OUTPUT_RAW,
+        JSON: OUTPUT_JSON,
+        BNK_JSON: OUTPUT_BNK_JSON,
+        MEDIA: OUTPUT_MEDIA
+    });
+
     static HIRC_TYPE_NAMES = HIRC_TYPE_NAMES;
+
     static type = Object.freeze([ "audio" ]);
+
     static mediaTypes = Object.freeze([ "audio" ]);
+
     static inputTypes = Object.freeze([ "bnk" ]);
+
     static outputTypes = Object.freeze([ OUTPUT_RAW, OUTPUT_MEDIA ]);
+    
     static debugOutputTypes = Object.freeze([ OUTPUT_BNK_JSON, OUTPUT_RAW ]);
 }
 

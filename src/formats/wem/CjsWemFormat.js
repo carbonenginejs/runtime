@@ -2,6 +2,7 @@ import {
     DEFAULT_VALUES,
     OUTPUT_JSON,
     OUTPUT_OGG,
+    OUTPUT_PCM,
     OUTPUT_RAW,
     OUTPUT_WEM_JSON,
     WEM_CODEC_NAMES,
@@ -212,15 +213,37 @@ export class CjsWemFormat
         return CjsWemFormat.read(input, { ...options, emit: OUTPUT_OGG });
     }
 
-    static OUTPUT_RAW = OUTPUT_RAW;
-    static OUTPUT_JSON = OUTPUT_JSON;
-    static OUTPUT_WEM_JSON = OUTPUT_WEM_JSON;
-    static OUTPUT_OGG = OUTPUT_OGG;
+    /**
+     * Decode wem audio data to per-channel float32 PCM (AudioBuffer-ready).
+     *
+     * Covers Wwise PTADPCM (0x8311) and uncompressed 16-bit PCM. Wwise Vorbis
+     * is not decoded here - repack it with `toOgg()` instead. Equivalent to
+     * `read(input, { emit: "pcm" })`.
+     *
+     * @param {Uint8Array|ArrayBuffer|DataView} input Wem bytes.
+     * @param {object} [options] Read options.
+     * @returns {object} PCM payload with channelData, sample rate, and timing.
+     */
+    static toPcm(input, options = {})
+    {
+        return CjsWemFormat.read(input, { ...options, emit: OUTPUT_PCM });
+    }
+
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        RAW: OUTPUT_RAW,
+        JSON: OUTPUT_JSON,
+        WEM_JSON: OUTPUT_WEM_JSON,
+        OGG: OUTPUT_OGG,
+        PCM: OUTPUT_PCM
+    });
     static CODEC_NAMES = WEM_CODEC_NAMES;
     static type = Object.freeze([ "audio" ]);
     static mediaTypes = Object.freeze([ "audio" ]);
     static inputTypes = Object.freeze([ "wem" ]);
-    static outputTypes = Object.freeze([ OUTPUT_RAW, OUTPUT_OGG ]);
+    static outputTypes = Object.freeze([ OUTPUT_RAW, OUTPUT_OGG, OUTPUT_PCM ]);
     static debugOutputTypes = Object.freeze([ OUTPUT_WEM_JSON, OUTPUT_RAW ]);
 }
 

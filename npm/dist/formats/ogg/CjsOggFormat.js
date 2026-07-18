@@ -1,4 +1,4 @@
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isOGG, toBytes, OUTPUT_RAW, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_AUDIO } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isOGG, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_PCM, OUTPUT_AUDIO } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsOggFormat";
 class CjsOggFormat {
@@ -65,8 +65,14 @@ class CjsOggFormat {
       return false;
     }
   }
-  static OUTPUT_RAW = OUTPUT_RAW;
-  static OUTPUT_JSON = OUTPUT_JSON;
+
+  /**
+   * Emit targets for this format (canonical frozen enum).
+   */
+  static Output = Object.freeze({
+    RAW: OUTPUT_RAW,
+    JSON: OUTPUT_JSON
+  });
   static OUTPUT_OGG_JSON = "oggJson";
   static OUTPUT_PCM = OUTPUT_PCM;
   static OUTPUT_AUDIO = OUTPUT_AUDIO;

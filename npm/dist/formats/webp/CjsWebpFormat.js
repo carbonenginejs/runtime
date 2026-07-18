@@ -1,4 +1,4 @@
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isWebP, toBytes, OUTPUT_RAW, OUTPUT_JSON } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isWebP, toBytes, OUTPUT_JSON, OUTPUT_RAW } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsWebpFormat";
 class CjsWebpFormat {
@@ -65,8 +65,14 @@ class CjsWebpFormat {
       return false;
     }
   }
-  static OUTPUT_RAW = OUTPUT_RAW;
-  static OUTPUT_JSON = OUTPUT_JSON;
+
+  /**
+   * Emit targets for this format (canonical frozen enum).
+   */
+  static Output = Object.freeze({
+    RAW: OUTPUT_RAW,
+    JSON: OUTPUT_JSON
+  });
   static OUTPUT_WEBP_JSON = "webpJson";
   static type = Object.freeze(["image"]);
   static mediaTypes = Object.freeze(["image"]);

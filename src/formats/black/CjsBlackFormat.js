@@ -277,11 +277,16 @@ export class CjsBlackFormat
         return toJsonValue(value);
     }
 
-    static OUTPUT_JSON = OUTPUT_JSON;
-    static OUTPUT_RAW = OUTPUT_RAW;
-    static OUTPUT_DOCUMENT = OUTPUT_DOCUMENT;
-    static OUTPUT_PAYLOAD = OUTPUT_PAYLOAD;
-    static OUTPUT_RUNTIME = OUTPUT_RUNTIME;
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        JSON: OUTPUT_JSON,
+        RAW: OUTPUT_RAW,
+        DOCUMENT: OUTPUT_DOCUMENT,
+        PAYLOAD: OUTPUT_PAYLOAD,
+        RUNTIME: OUTPUT_RUNTIME
+    });
     static CLASS_KEYS = CLASS_KEYS;
     static id = CJS_BLACK_FORMAT_ID;
     static extensions = Object.freeze([CJS_BLACK_EXTENSION]);

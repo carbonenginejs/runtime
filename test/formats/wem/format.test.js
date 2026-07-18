@@ -89,7 +89,63 @@ test("emit json returns metadata and unsupported emits fail cleanly", () =>
     const metadata = CjsWemFormat.read(bytes, { emit: "json" });
 
     assert.equal(metadata.codec, "wwise-vorbis");
-    assert.throws(() => CjsWemFormat.read(bytes, { emit: "pcm" }), /unknown emit value/u);
+    // pcm is a valid emit, but Vorbis routes through the ogg repack instead.
+    assert.throws(() => CjsWemFormat.read(bytes, { emit: "pcm" }), /pcm decode is not supported/u);
+    assert.throws(() => CjsWemFormat.read(bytes, { emit: "flac" }), /unknown emit value/u);
+});
+
+test("decodes a PTADPCM frame to the hand-computed sample vector", () =>
+{
+    // One mono frame, blockAlign 8 -> 8 samples: hist2=100, hist1=200,
+    // index=0, codes [15,0,7,7,8,8] (low nibble first). Prediction
+    // sample = step + 2*hist1 - hist2 walked by hand through the step table.
+    const bytes = makePtadpcmWem({
+        channels: 1,
+        blockAlign: 8,
+        frames: [ [ 100, 200, 0, 0x0f, 0x77, 0x88 ] ]
+    });
+    const pcm = CjsWemFormat.toPcm(bytes);
+
+    assert.equal(pcm.payloadType, "pcm");
+    assert.equal(pcm.sourceCodec, "wwise-ptadpcm");
+    assert.equal(pcm.channels, 1);
+    assert.equal(pcm.sampleCount, 8);
+    const expected = [ 100, 200, 314, 372, 422, 468, 516, 565 ];
+    const actual = [ ...pcm.channelData[0] ].map((value) => Math.round(value * 32768));
+    assert.deepEqual(actual, expected);
+});
+
+test("decodes interleaved stereo PTADPCM frames per channel", () =>
+{
+    // Two channels, one frame group: left all-zero codes hold a constant
+    // predictor line (2*h1 - h2 with h2 == h1 stays flat), right seeds a
+    // different history so the channels must not bleed into each other.
+    const bytes = makePtadpcmWem({
+        channels: 2,
+        blockAlign: 16,
+        frames: [
+            [ 1000, 1000, 0, 0x77, 0x77, 0x77 ],
+            [ -2000, -2000, 0, 0x77, 0x77, 0x77 ]
+        ]
+    });
+    const pcm = CjsWemFormat.toPcm(bytes);
+
+    assert.equal(pcm.channels, 2);
+    assert.equal(pcm.sampleCount, 8);
+    assert.ok(pcm.channelData[0].every((value) => Math.round(value * 32768) === 1000));
+    assert.ok(pcm.channelData[1].every((value) => Math.round(value * 32768) === -2000));
+});
+
+test("advertises the pcm variant for PTADPCM and prefers it over raw", () =>
+{
+    const support = CjsWemFormat.isSupported(makePtadpcmWem({
+        channels: 1,
+        blockAlign: 8,
+        frames: [ [ 0, 0, 0, 0x77, 0x77, 0x77 ] ]
+    }));
+
+    assert.equal(support.preferred, "pcm");
+    assert.equal(support.variants.find((variant) => variant.kind === "pcm").supported, true);
 });
 
 test("rejects non-wem bytes without throwing from probes", () =>
@@ -180,7 +236,7 @@ test("advertises the ogg variant for wwise vorbis input", () =>
     assert.equal(support.preferred, "ogg");
     assert.equal(oggVariant.supported, true);
     assert.equal(oggVariant.mimeType, "audio/ogg");
-    assert.deepEqual(CjsWemFormat.outputTypes, [ "raw", "ogg" ]);
+    assert.deepEqual(CjsWemFormat.outputTypes, [ "raw", "ogg", "pcm" ]);
 });
 
 test("does not advertise ogg for unsupported old Wwise Vorbis layouts", () =>
@@ -260,6 +316,39 @@ function makePcmWem(formatTag, { byteRate = 0, dataBytes = 0 } = {})
     writeU32LE(bytes, 28, byteRate);
     writeAscii(bytes, 36, "data");
     writeU32LE(bytes, 40, dataBytes);
+    return bytes;
+}
+
+// PTADPCM wem: frames are [hist2, hist1, index, ...nibbleBytes] per channel,
+// serialized as int16 LE + int16 LE + u8 + raw bytes; one frame per channel
+// in channel order forms one blockAlign-sized group.
+function makePtadpcmWem({ channels, blockAlign, frames })
+{
+    const frameSize = blockAlign / channels;
+    const dataBytes = frames.length * frameSize;
+    const bytes = new Uint8Array(12 + 8 + 16 + 8 + dataBytes);
+    writeAscii(bytes, 0, "RIFF");
+    writeU32LE(bytes, 4, bytes.length - 8);
+    writeAscii(bytes, 8, "WAVE");
+    writeAscii(bytes, 12, "fmt ");
+    writeU32LE(bytes, 16, 16);
+    writeU16LE(bytes, 20, 0x8311);
+    writeU16LE(bytes, 22, channels);
+    writeU32LE(bytes, 24, 48000);
+    writeU32LE(bytes, 28, 48000 * blockAlign);
+    writeU16LE(bytes, 32, blockAlign);
+    writeU16LE(bytes, 34, 4);
+    writeAscii(bytes, 36, "data");
+    writeU32LE(bytes, 40, dataBytes);
+    let offset = 44;
+    for (const [ hist2, hist1, index, ...codes ] of frames)
+    {
+        writeU16LE(bytes, offset, hist2 & 0xffff);
+        writeU16LE(bytes, offset + 2, hist1 & 0xffff);
+        bytes[offset + 4] = index;
+        bytes.set(codes, offset + 5);
+        offset += frameSize;
+    }
     return bytes;
 }
 

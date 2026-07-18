@@ -268,10 +268,15 @@ export class CjsRedFormat
         return copyReaderOptions(values);
     }
 
-    static OUTPUT_JSON = OUTPUT_JSON;
-    static OUTPUT_PAYLOAD = OUTPUT_PAYLOAD;
-    static OUTPUT_RUNTIME = OUTPUT_RUNTIME;
-    static OUTPUT_RAW = OUTPUT_RAW;
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        JSON: OUTPUT_JSON,
+        PAYLOAD: OUTPUT_PAYLOAD,
+        RUNTIME: OUTPUT_RUNTIME,
+        RAW: OUTPUT_RAW
+    });
     static CLASS_KEYS = CLASS_KEYS;
     static schema = blackDefinitions;
     static id = "red";

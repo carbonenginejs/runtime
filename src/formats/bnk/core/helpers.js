@@ -198,17 +198,82 @@ function readHircListing(bytes, dataOffset, size)
         const entrySize = readU32(bytes, offset + 1);
         const payloadOffset = offset + 5;
         if (entrySize < 4 || payloadOffset + entrySize > end) break;
-        entries.push({
+        const entry = {
             type,
             typeName: HIRC_TYPE_NAMES[type] || `hirc-type-${type}`,
             id: readU32(bytes, payloadOffset),
             offset: payloadOffset,
-            size: entrySize
-        });
+            size: entrySize,
+            // View over the object body AFTER the leading u32 id; not a copy.
+            payload: bytes.subarray(payloadOffset + 4, payloadOffset + entrySize)
+        };
+        decodeHircFields(entry);
+        entries.push(entry);
         offset = payloadOffset + entrySize;
     }
 
     return entries;
+}
+
+/**
+ * Decode the version-stable typed fields of common HIRC object types in
+ * place. Field layouts verified by hexdump against EVE soundbanks (bank
+ * generator version 150 / Wwise 2022.1); every read is bounds-checked, and a
+ * body too short for its type's layout simply keeps the raw payload only.
+ *
+ * - event (4): `u8 actionCount` + `actionCount x u32` -> `actionIds`.
+ * - event-action (3): `u16 actionType` (high byte = family: 0x04 play,
+ *   0x01 stop, 0x02 pause, 0x03 resume) + `u32 targetId`.
+ * - sound (2): `u32 pluginId, u8 streamType, u32 sourceId (wem id),
+ *   u32 inMemoryMediaSize` (streamType 0 = embedded, 1 = streamed).
+ * - music-track (11): `u8 flags, u32 sourceCount`, then per source the same
+ *   plugin/stream/source/size quad as sound -> `sources`.
+ *
+ * Deeper structures (container children, positioning, RTPC curves) remain
+ * undecoded; consumers interpret `payload` themselves.
+ */
+function decodeHircFields(entry)
+{
+    const body = entry.payload;
+    if (entry.type === 4 && body.byteLength >= 1)
+    {
+        const actionIds = [];
+        const actionCount = body[0];
+        for (let i = 0; i < actionCount && 1 + i * 4 + 4 <= body.byteLength; i++)
+        {
+            actionIds.push(readU32(body, 1 + i * 4));
+        }
+        entry.actionIds = actionIds;
+    }
+    else if (entry.type === 3 && body.byteLength >= 6)
+    {
+        entry.actionType = body[0] | (body[1] << 8);
+        entry.targetId = readU32(body, 2);
+    }
+    else if (entry.type === 2 && body.byteLength >= 13)
+    {
+        entry.pluginId = readU32(body, 0);
+        entry.streamType = body[4];
+        entry.sourceId = readU32(body, 5);
+        entry.inMemoryMediaSize = readU32(body, 9);
+    }
+    else if (entry.type === 11 && body.byteLength >= 5)
+    {
+        const sources = [];
+        const sourceCount = readU32(body, 1);
+        for (let i = 0; i < sourceCount; i++)
+        {
+            const at = 5 + i * 14;
+            if (at + 13 > body.byteLength) break;
+            sources.push({
+                pluginId: readU32(body, at),
+                streamType: body[at + 4],
+                sourceId: readU32(body, at + 5),
+                inMemoryMediaSize: readU32(body, at + 9)
+            });
+        }
+        entry.sources = sources;
+    }
 }
 
 function readNameTable(bytes, dataOffset, size)

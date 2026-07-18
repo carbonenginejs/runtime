@@ -1,4 +1,4 @@
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isMP4, toBytes, OUTPUT_VIDEO, OUTPUT_RAW, OUTPUT_JSON } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isMP4, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_VIDEO } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsMp4Format";
 class CjsMp4Format {
@@ -170,9 +170,15 @@ class CjsMp4Format {
       return false;
     }
   }
-  static OUTPUT_VIDEO = OUTPUT_VIDEO;
-  static OUTPUT_RAW = OUTPUT_RAW;
-  static OUTPUT_JSON = OUTPUT_JSON;
+
+  /**
+   * Emit targets for this format (canonical frozen enum).
+   */
+  static Output = Object.freeze({
+    VIDEO: OUTPUT_VIDEO,
+    RAW: OUTPUT_RAW,
+    JSON: OUTPUT_JSON
+  });
   static OUTPUT_MP4_JSON = "mp4Json";
   static type = Object.freeze(["audio", "video"]);
   static mediaTypes = Object.freeze(["audio", "video"]);

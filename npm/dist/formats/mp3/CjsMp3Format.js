@@ -1,4 +1,4 @@
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isMP3, toBytes, OUTPUT_AUDIO, OUTPUT_PCM, OUTPUT_RAW, OUTPUT_JSON } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isMP3, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_PCM, OUTPUT_AUDIO } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsMp3Format";
 class CjsMp3Format {
@@ -170,10 +170,16 @@ class CjsMp3Format {
       return false;
     }
   }
-  static OUTPUT_AUDIO = OUTPUT_AUDIO;
-  static OUTPUT_PCM = OUTPUT_PCM;
-  static OUTPUT_RAW = OUTPUT_RAW;
-  static OUTPUT_JSON = OUTPUT_JSON;
+
+  /**
+   * Emit targets for this format (canonical frozen enum).
+   */
+  static Output = Object.freeze({
+    AUDIO: OUTPUT_AUDIO,
+    PCM: OUTPUT_PCM,
+    RAW: OUTPUT_RAW,
+    JSON: OUTPUT_JSON
+  });
   static OUTPUT_MP3_JSON = "mp3Json";
   static type = Object.freeze(["audio"]);
   static mediaTypes = Object.freeze(["audio"]);

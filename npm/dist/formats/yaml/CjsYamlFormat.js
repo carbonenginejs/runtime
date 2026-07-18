@@ -1,5 +1,5 @@
 import { CjsYamlReader } from './core/CjsYamlReader.js';
-import { DEFAULT_VALUES, normalizeValues, toJsonGraph, OUTPUT_RAW, OUTPUT_DOCUMENT, OUTPUT_JSON, OUTPUT_PAYLOAD, TAG_PRESERVE, TAG_REJECT, TAG_HANDLE } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, toJsonGraph, OUTPUT_RAW, OUTPUT_DOCUMENT, OUTPUT_PAYLOAD, OUTPUT_JSON, TAG_PRESERVE, TAG_REJECT, TAG_HANDLE } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsYamlFormat";
 class CjsYamlFormat {
@@ -57,10 +57,16 @@ class CjsYamlFormat {
   static toJSON(value, options = {}) {
     return toJsonGraph(value, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
   }
-  static OUTPUT_JSON = OUTPUT_JSON;
-  static OUTPUT_PAYLOAD = OUTPUT_PAYLOAD;
-  static OUTPUT_RAW = OUTPUT_RAW;
-  static OUTPUT_DOCUMENT = OUTPUT_DOCUMENT;
+
+  /**
+   * Emit targets for this format (canonical frozen enum).
+   */
+  static Output = Object.freeze({
+    JSON: OUTPUT_JSON,
+    PAYLOAD: OUTPUT_PAYLOAD,
+    RAW: OUTPUT_RAW,
+    DOCUMENT: OUTPUT_DOCUMENT
+  });
   static TAG_PRESERVE = TAG_PRESERVE;
   static TAG_REJECT = TAG_REJECT;
   static TAG_HANDLE = TAG_HANDLE;

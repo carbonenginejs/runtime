@@ -21,5 +21,6 @@ import "./formats/tga/format.test.js";
 import "./formats/wav/format.test.js";
 import "./formats/webm/format.test.js";
 import "./formats/webp/format.test.js";
+import "./formats/bnk/graph.test.js";
 import "./formats/wem/format.test.js";
 import "./formats/yaml/public-api.test.mjs";

@@ -274,20 +274,22 @@ topology after destroying an unusable adapter allocation. Topology snapshots
 report an explicit `topologyChanged` flag and contain only valid current dirty
 layer indices.
 
-## Remaining Runtime Manager Work
+## Optional Runtime Manager Follow-up
 
-The first load/prepare queue slice is implemented. `CjsResMan` and
-`CjsMotherLode` still do not cover several browser/runtime concerns that
-ccpwgl handles:
+The runtime-resource 0.6.0 ResMan/MotherLode contract is complete. Future
+work should be driven by measured application needs rather than another
+resource preparation abstraction:
 
-- prepare priority and starvation policy
+- main-queue priority and starvation policy
 - cancellation/abort propagation for work that has already started
 - `WaitUrgent()` after real priority and bounded fairness
 - queue-time and reader/format-time telemetry
 - application-level default retention policy selection
 - automatic resource/payload byte estimation and separate CPU/adapter budgets
-- explicit purged-resource reconstruction and device-loss recovery policy
 - browser-aware source behavior such as fetch response type selection
+
+Explicit `Ready()`/`GetObject()` reconstructs released CPU payloads. Backend
+device-loss recovery belongs to the engine's realization operation.
 
 ## Memory Retention and Purging
 
@@ -442,7 +444,7 @@ The manager captures the exact MotherLode, key, former handle, former ownership
 generation, and a newest-request token. It purge-locks the former owner and
 tracks the candidate as a normal `Wait()` root. Reader, prepare, and publication
 stages mutate only the detached candidate and validate candidate authority
-before and after asynchronous boundaries. A fully prepared candidate commits
+before and after asynchronous boundaries. A fully loaded CPU candidate commits
 through `CjsMotherLode.ReplaceExpected()` only if the exact former owner and
 newest token still match. The final authority callback and exact-record check
 run immediately before the synchronous map switch, with no user cleanup or

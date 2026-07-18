@@ -260,11 +260,16 @@ export class CjsObjFormat
         }
     }
 
-    static OUTPUT_JSON = OUTPUT_JSON;
-    static OUTPUT_OBJ_JSON = OUTPUT_OBJ_JSON;
-    static OUTPUT_SHARED = OUTPUT_SHARED;
-    static OUTPUT_GR2 = OUTPUT_GR2;
-    static OUTPUT_CMF = OUTPUT_CMF;
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        JSON: OUTPUT_JSON,
+        OBJ_JSON: OUTPUT_OBJ_JSON,
+        SHARED: OUTPUT_SHARED,
+        GR2: OUTPUT_GR2,
+        CMF: OUTPUT_CMF
+    });
     static CLASS_KEYS = CLASS_KEYS;
     static type = Object.freeze([ "geometry" ]);
     static mediaTypes = Object.freeze([ "geometry" ]);

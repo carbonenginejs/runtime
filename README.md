@@ -74,6 +74,33 @@ so remap the marker options when those names are real data. Disabling the
 reference marker preserves actual JavaScript identity; cyclic output in that
 mode is intentionally not JSON-serializable.
 
+## Wwise soundbanks and media
+
+`formats/bnk` and `formats/wem` cover the Wwise audio pipeline end to end.
+`CjsBnkFormat.inspect()` decodes the chunk map, embedded media index, bank
+names, and the HIRC listing with version-stable typed fields (event action
+lists, action type/target, sound and music-track source ids; pinned against
+bank generator version 150). The Wwise-domain toolkit is grouped under the
+`CjsBnkFormat.wwise` static: the SoundbanksInfo catalog helpers, the FNV-1
+id hash, and event → media resolution:
+
+```js
+import { CjsBnkFormat } from "@carbonenginejs/runtime-resource/formats/bnk";
+import { CjsWemFormat } from "@carbonenginejs/runtime-resource/formats/wem";
+
+const inspections = bankByteArrays.map(bytes => CjsBnkFormat.inspect(bytes));
+const { eventMedia } = CjsBnkFormat.wwise.eventMediaFromBanks(inspections);
+// eventMedia: Map<eventObjectId, Set<wemId>> - banks may split events from
+// their target sounds, so pass every related bank to one call.
+
+const ogg = CjsWemFormat.toOgg(wemBytes);   // Wwise Vorbis -> Ogg (lossless)
+const pcm = CjsWemFormat.toPcm(wemBytes);   // PTADPCM / 16-bit PCM -> float32
+```
+
+The read/inspect path stays a pure container reader; `wwise.eventMediaFromBanks`
+is graph interpretation offered for consumers with their own engines — the
+resource lifecycle never calls it.
+
 ## STL export
 
 `CjsStlFormat` writes shared geometry directly to binary or ASCII STL. The
@@ -220,7 +247,7 @@ without changing ordinary lookup. `Ready()` on that candidate, `GetObject()` /
 1. purge-lock the exact former owner and invalidate reusable reads once;
 2. read, convert through the selected format, and publish payload state only on the detached candidate;
 3. require the newest per-key reload token and exact former ownership;
-4. compare-and-swap the fully prepared candidate into MotherLode;
+4. compare-and-swap the fully loaded CPU candidate into MotherLode;
 5. invalidate and clean the displaced handle after the lookup switch.
 
 Source, format, or publication failure therefore leaves the former handle, state,

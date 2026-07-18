@@ -187,9 +187,14 @@ export class CjsMp4Format
         }
     }
 
-    static OUTPUT_VIDEO = OUTPUT_VIDEO;
-    static OUTPUT_RAW = OUTPUT_RAW;
-    static OUTPUT_JSON = OUTPUT_JSON;
+    /**
+     * Emit targets for this format (canonical frozen enum).
+     */
+    static Output = Object.freeze({
+        VIDEO: OUTPUT_VIDEO,
+        RAW: OUTPUT_RAW,
+        JSON: OUTPUT_JSON
+    });
     static OUTPUT_MP4_JSON = "mp4Json";
     static type = Object.freeze([ "audio", "video" ]);
     static mediaTypes = Object.freeze([ "audio", "video" ]);

@@ -9,7 +9,7 @@ test("exports default and named CjsFbxFormat", () =>
 {
     assert.equal(CjsFbxFormat, NamedCjsFbxFormat);
     assert.deepEqual(CjsFbxFormat.inputTypes, [ "fbx" ]);
-    assert.equal(CjsFbxFormat.OUTPUT_GR2, "gr2");
+    assert.equal(CjsFbxFormat.Output.GR2, "gr2");
     assert.deepEqual(CjsFbxFormat.outputTypes, [ "gr2", "cmf" ]);
     assert.deepEqual(CjsFbxFormat.debugOutputTypes, [ "fbxJson", "raw" ]);
     assert.equal(CjsFbxFormat.CLASS_KEYS.includes("Mesh"), true);

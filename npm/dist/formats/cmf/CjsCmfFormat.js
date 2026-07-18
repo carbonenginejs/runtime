@@ -3,7 +3,7 @@ import { packGraphBuffers } from './core/pack.js';
 import { buildCmfFromShared } from './core/shared.js';
 import { writeCmf, writeCmfAsync } from './core/writer.js';
 import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, loadNativeWithValues, loadSharedWithValues, readWithValuesAsync, readRawInput, readRawInputAsync, inspectRawCmfResult, toJsonValue } from './core/helpers.js';
-import { OUTPUT_SHARED, OUTPUT_JSON, OUTPUT_CMF, OUTPUT_CMF_JSON, OUTPUT_GR2, OUTPUT_NATIVE, OUTPUT_RAW, CLASS_KEYS } from './core/constants.js';
+import { OUTPUT_SHARED, OUTPUT_RAW, OUTPUT_NATIVE, OUTPUT_GR2, OUTPUT_CMF_JSON, OUTPUT_CMF, OUTPUT_JSON, CLASS_KEYS } from './core/constants.js';
 
 /**
  * Exposed CarbonEngineJS-facing CMF format class.
@@ -472,13 +472,19 @@ class CjsCmfFormat {
       buffers: packed.buffers
     }, options);
   }
-  static OUTPUT_JSON = OUTPUT_JSON;
-  static OUTPUT_CMF = OUTPUT_CMF;
-  static OUTPUT_CMF_JSON = OUTPUT_CMF_JSON;
-  static OUTPUT_GR2 = OUTPUT_GR2;
-  static OUTPUT_NATIVE = OUTPUT_NATIVE;
-  static OUTPUT_RAW = OUTPUT_RAW;
-  static OUTPUT_SHARED = OUTPUT_SHARED;
+
+  /**
+   * Emit targets for this format (canonical frozen enum).
+   */
+  static Output = Object.freeze({
+    JSON: OUTPUT_JSON,
+    CMF: OUTPUT_CMF,
+    CMF_JSON: OUTPUT_CMF_JSON,
+    GR2: OUTPUT_GR2,
+    NATIVE: OUTPUT_NATIVE,
+    RAW: OUTPUT_RAW,
+    SHARED: OUTPUT_SHARED
+  });
   static CLASS_KEYS = CLASS_KEYS;
   static type = Object.freeze(["geometry"]);
   static mediaTypes = Object.freeze(["geometry"]);

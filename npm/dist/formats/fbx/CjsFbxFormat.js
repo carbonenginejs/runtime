@@ -1,4 +1,4 @@
-import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isFBX, toBytes, OUTPUT_CMF, OUTPUT_GR2, OUTPUT_RAW, OUTPUT_JSON, OUTPUT_FBX_JSON, CLASS_KEYS } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isFBX, toBytes, OUTPUT_FBX_JSON, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_GR2, OUTPUT_CMF, CLASS_KEYS } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsFbxFormat";
 
@@ -243,11 +243,17 @@ class CjsFbxFormat {
       return false;
     }
   }
-  static OUTPUT_CMF = OUTPUT_CMF;
-  static OUTPUT_GR2 = OUTPUT_GR2;
-  static OUTPUT_RAW = OUTPUT_RAW;
-  static OUTPUT_JSON = OUTPUT_JSON;
-  static OUTPUT_FBX_JSON = OUTPUT_FBX_JSON;
+
+  /**
+   * Emit targets for this format (canonical frozen enum).
+   */
+  static Output = Object.freeze({
+    CMF: OUTPUT_CMF,
+    GR2: OUTPUT_GR2,
+    RAW: OUTPUT_RAW,
+    JSON: OUTPUT_JSON,
+    FBX_JSON: OUTPUT_FBX_JSON
+  });
   static CLASS_KEYS = CLASS_KEYS;
   static type = Object.freeze(["geometry"]);
   static mediaTypes = Object.freeze(["geometry"]);

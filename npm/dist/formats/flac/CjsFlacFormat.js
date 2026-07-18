@@ -1,4 +1,4 @@
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isFLAC, toBytes, OUTPUT_RAW, OUTPUT_PCM, OUTPUT_JSON } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isFLAC, toBytes, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsFlacFormat";
 class CjsFlacFormat {
@@ -65,9 +65,15 @@ class CjsFlacFormat {
       return false;
     }
   }
-  static OUTPUT_RAW = OUTPUT_RAW;
-  static OUTPUT_PCM = OUTPUT_PCM;
-  static OUTPUT_JSON = OUTPUT_JSON;
+
+  /**
+   * Emit targets for this format (canonical frozen enum).
+   */
+  static Output = Object.freeze({
+    RAW: OUTPUT_RAW,
+    PCM: OUTPUT_PCM,
+    JSON: OUTPUT_JSON
+  });
   static OUTPUT_FLAC_JSON = "flacJson";
   static type = Object.freeze(["audio"]);
   static mediaTypes = Object.freeze(["audio"]);
