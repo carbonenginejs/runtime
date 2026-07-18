@@ -1,0 +1,35 @@
+{
+  "name": "@carbonenginejs/runtime-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GPU-free CarbonEngineJS composition root and runtime service registry.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "node --check src/index.js && node --check test/runtime-core.test.js"
+  },
+  "keywords": [
+    "carbonenginejs",
+    "runtime",
+    "library",
+    "composition"
+  ],
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
