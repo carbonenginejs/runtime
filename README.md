@@ -112,6 +112,25 @@ contextual error and leaves the existing owner registered. These ordinary
 ownership removals preserve the handle's last resource state; `PURGED` is
 reserved for successful policy eviction through inactivity or byte pressure.
 
+Build variants are immutable execution snapshots, not display-name hashes.
+When a handle is first requested, ResMan captures its selected resource
+constructor, direct object loader or format descriptors, defaults, and reader
+functions; named pipeline version/stages; and material request options. Plain
+objects and arrays are copied and frozen by value; functions, buffers, and
+opaque instances use collision-free process-local identity. `buildKey` and string/finite-number
+`buildVersion` let a caller name and advance a recipe whose retained functions
+or instances change behavior through external state.
+
+Re-registering a resource type, loader, format, or prepare pipeline therefore
+affects later requests only. A later request receives a different canonical
+handle when the resolved recipe changed, while an existing handle reconstructs
+a released payload with its original reader and stages. Register configuration
+before requesting handles; an existing handle intentionally does not adopt a
+later registration. Source selection, `sourceRevision`, read-cache policy,
+reload, and queue controls remain per operation and do not enter MotherLode
+build identity. CjsLibrary owns behavior/capability selection; ResMan only
+captures and executes the already-resolved recipe.
+
 `Startup()` and `Shutdown()` are idempotent. `HasKey`, `Lookup`, `Delete`,
 `GetKeys`, `GetValues`, `GetSize`, `SetCacheSize`, `GetCacheSize`, `GetStats`,
 `TrimCache`, `ReplaceExpected`, `Clear`, and `ClearCached` provide the
@@ -285,8 +304,11 @@ const resMan = new CjsResMan({
   preparePipelines: {
     cmf_test: {
       default: true,
+      version: 1,
       stages: [
         {
+          id: "convert-to-cmf",
+          version: 1,
           name: "convert",
           prepare: (payload, context) => convertToCmf(payload, context)
         }
@@ -305,6 +327,8 @@ The library chooses the named pipeline from registered behavior and detected
 capabilities. `CjsResMan` executes that request; it does not inspect WebGL,
 WebGPU, texture, geometry, or codec support to select one. A request may
 override the default with `preparePipeline` or append direct `prepareStages`.
+Advance a pipeline or stage version when the same retained function identity
+changes behavior through external state.
 
 Blue-compatible queue controls are exposed directly on `CjsResMan`:
 `AddToQueue`, `CancelFromQueue`, `GetNextIdForQueue`,

@@ -80,6 +80,24 @@ Named pipelines are registration/configuration, not capability policy.
 registered `preparePipeline`; `CjsResMan` executes the supplied stages without
 probing device support. Per-request `prepareStages` are explicit overrides.
 
+Every requested handle captures an immutable build plan before MotherLode
+lookup. The plan owns the selected resource constructor, direct loader or
+candidate format descriptors, defaults, and reader functions; named pipeline
+version and stages; and snapshotted material options. Plain objects/arrays use
+frozen value semantics; functions and opaque instances use process-local
+identity. `buildKey` and `buildVersion` are the explicit escape hatch for caller-owned recipes whose
+retained functions/instances change behavior without changing JavaScript
+identity. Registering a replacement reader or pipeline creates a different
+identity for later requests. Existing handles retain their former plan for
+payload reconstruction.
+
+This closes the immutable/versioned build-key part of the active plan with a
+smaller ownership seam than originally proposed: CjsLibrary keeps named
+behavior and capability selection, while CjsResMan snapshots only the resolved
+execution recipe. There is no second behavior registry in ResMan and no
+persistent/public arbitrary-object hash. Source/revision/cache/reload/queue
+controls stay per operation and outside build identity.
+
 The Blue method names remain the public queue vocabulary: `AddToQueue`,
 `CancelFromQueue`, `GetNextIdForQueue`, `PumpMainThreadQueue`, `PauseQueue`,
 `ResumeQueue`, `GetPendingLoads`, and `GetPendingPrepares`. `Update()`/`Tick()`
@@ -123,7 +141,8 @@ Application / runtime object
 | CjsResMan.GetResource(path, options)          |
 |                                               |
 | - normalize path and extension                |
-| - calculate requested resource variant        |
+| - snapshot constructor / reader / pipeline    |
+| - calculate immutable build variant           |
 +-----------------------------------------------+
         |
         v
@@ -167,10 +186,10 @@ Application / runtime object
 +-----------------------------------------------+
 | Read stage                                    |
 |                                               |
-| registered object loader for extension?       |
+| captured object loader for extension?         |
 |   yes -> call it                              |
-|   no  -> resolve registered format by         |
-|          extension + request options          |
+|   no  -> resolve within captured formats by   |
+|          bytes + request options               |
 +-----------------------------------------------+
         |
         | plain payload / hydrated object

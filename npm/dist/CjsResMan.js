@@ -7,9 +7,13 @@ import { normalizeResourceExtension, normalizeResourcePath, getResourceExtension
 /** @type {WeakMap<object, CjsResourceReadContext>} */
 const READ_CONTEXTS = new WeakMap();
 
-/** @type {WeakMap<object|Function, number>} */
-const FORMAT_CACHE_IDENTITIES = new WeakMap();
-let nextFormatCacheIdentity = 1;
+/** Hidden immutable build plan carried through option spreads. */
+const RESOLVED_BUILD_PLAN = Symbol("CjsResMan.resolvedBuildPlan");
+const BUILD_MATERIAL_OPTION_KEYS = Object.freeze(["buildKey", "buildVersion", "requirement", "payload", "emit", "mediaType", "format", "classes", "formatOptions", "values", "ext", "pipeline", "preparePipeline", "prepareStages"]);
+
+/** Process-local tokens shared by cache and resource-build serializers. */
+const LOCAL_VALUE_IDENTITIES = new WeakMap();
+let nextLocalValueIdentity = 1;
 
 /**
  * Immutable source provenance used by one read/format operation chain.
@@ -48,6 +52,36 @@ let nextFormatCacheIdentity = 1;
  * @property {boolean} [reload=false] Invalidate this source/path and begin fresh work once.
  * @property {boolean} [cacheSource] Source operation sharing/retention policy.
  * @property {boolean} [cacheFormat] Parsed-format operation sharing/retention policy.
+ */
+
+/**
+ * Material request options that form one durable resource build identity.
+ *
+ * Plain arrays and objects are snapshotted by value. Functions and opaque
+ * instances use process-local JavaScript identity. Callers whose opaque object
+ * changes behavior without changing identity must advance `buildVersion`.
+ *
+ * @typedef {object} CjsResManBuildIdentityOptions
+ * @property {string} [buildKey] Optional caller-owned stable recipe identifier.
+ * @property {string|number} [buildVersion] Optional caller-owned recipe version; numbers must be finite.
+ */
+
+/**
+ * Immutable execution and identity snapshot captured when a resource handle
+ * is selected. Registered loaders, format descriptors, and prepare stages are
+ * retained directly so later registration cannot rewrite reconstruction of an
+ * existing handle.
+ *
+ * @typedef {object} CjsResourceBuildPlan
+ * @property {CjsResMan} resMan Owning manager.
+ * @property {string} path Normalized source path.
+ * @property {string} ext Effective resource extension.
+ * @property {Function} Constructor Selected resource constructor.
+ * @property {Function|null} objectLoader Selected extension loader, if any.
+ * @property {readonly object[]} formatDescriptors Frozen candidate format descriptors used when no object loader exists.
+ * @property {readonly object[]} prepareStages Frozen registered and inline stage descriptors.
+ * @property {Readonly<object>} materialOptions Snapshotted build-affecting public options.
+ * @property {string} variant Precomputed canonical build variant.
  */
 
 /**
@@ -147,6 +181,7 @@ class CjsResMan extends CjsEventEmitter {
   #nextResourceOwnershipGeneration = 1;
   #nextResourceOperationId = 1;
   #queueOperations = new Map();
+  #resourceBuildPlans = new WeakMap();
   #resourceOwnership = new WeakMap();
   #resourceOperations = new Map();
   #reloadCandidates = new WeakMap();
@@ -267,7 +302,8 @@ class CjsResMan extends CjsEventEmitter {
     for (const [name, entry] of NormalizePreparePipelineEntries(options.preparePipelines)) {
       const stages = Array.isArray(entry) ? entry : entry.stages;
       this.RegisterPreparePipeline(name, stages, {
-        default: !Array.isArray(entry) && entry.default === true
+        default: !Array.isArray(entry) && entry.default === true,
+        version: Array.isArray(entry) ? 1 : entry.version ?? 1
       });
     }
     if (Object.prototype.hasOwnProperty.call(options, "defaultPreparePipeline")) {
@@ -284,17 +320,64 @@ class CjsResMan extends CjsEventEmitter {
     }
     return this;
   }
+
+  /**
+   * Replace the default source selected by later resource requests.
+   * Existing handles retain the effective source captured when they were
+   * created, so payload reconstruction does not silently move to this source.
+   *
+   * @param {object|Function|null} source Source exposing `Read(path, options)`, or a falsey value to clear the default.
+   * @returns {CjsResMan} This resource manager.
+   */
   SetSource(source) {
     this.source = source || null;
     return this;
   }
+
+  /**
+   * Register an immutable named prepare recipe.
+   *
+   * The normalized stage descriptors and explicit version become part of a
+   * resource's build identity. Re-registering a name affects later requests
+   * only; resources that already captured the former descriptor reconstruct
+   * with their original stages. Advance `version` when a retained stage
+   * function changes behavior through external state without changing its
+   * JavaScript identity.
+   *
+   * @param {string} name Stable pipeline name selected by request policy.
+   * @param {Function|object|readonly (Function|object)[]} stages Ordered prepare functions or descriptors.
+   * @param {object} [options={}] Pipeline version and default-selection policy.
+   * @param {boolean} [options.default=false] Select this pipeline when a request omits one.
+   * @param {string|number} [options.version=1] Stable recipe version; numbers must be finite.
+   * @returns {CjsResMan} This resource manager.
+   * @throws {TypeError} If the name, options, version, or stage descriptors are invalid.
+   */
   RegisterPreparePipeline(name, stages, options = {}) {
     const key = NormalizePipelineName(name);
     if (!key) throw new TypeError("CjsResMan.RegisterPreparePipeline requires a name.");
-    this.preparePipelines.set(key, Object.freeze(NormalizePrepareStages(stages)));
+    if (!options || typeof options !== "object" || Array.isArray(options)) {
+      throw new TypeError("CjsResMan prepare pipeline options must be an object.");
+    }
+    if (options.default !== undefined && typeof options.default !== "boolean") {
+      throw new TypeError("CjsResMan prepare pipeline default must be boolean.");
+    }
+    const descriptor = Object.freeze({
+      name: key,
+      version: NormalizeBuildVersion(options.version ?? 1, "prepare pipeline version"),
+      stages: Object.freeze(NormalizePrepareStages(stages))
+    });
+    this.preparePipelines.set(key, descriptor);
     if (options.default === true) this.defaultPreparePipeline = key;
     return this;
   }
+
+  /**
+   * Select the registered pipeline used when a request omits an override.
+   *
+   * @param {string} [name=""] Registered pipeline name, or an empty value to disable the default.
+   * @returns {CjsResMan} This resource manager.
+   * @throws {Error} If a non-empty pipeline name is not registered.
+   */
   SetDefaultPreparePipeline(name = "") {
     const key = NormalizePipelineName(name);
     if (key && !this.preparePipelines.has(key)) {
@@ -303,10 +386,29 @@ class CjsResMan extends CjsEventEmitter {
     this.defaultPreparePipeline = key;
     return this;
   }
+
+  /**
+   * Return a detached ordered snapshot of a named pipeline's stages.
+   *
+   * @param {string} name Registered pipeline name.
+   * @returns {object[]} Normalized immutable stage descriptors in execution order.
+   */
   GetPreparePipeline(name) {
-    return [...(this.preparePipelines.get(NormalizePipelineName(name)) || [])];
+    return [...(this.preparePipelines.get(NormalizePipelineName(name))?.stages || [])];
   }
+
+  /**
+   * Resolve registered and inline preparation stages for one request.
+   * Resolved build options return their captured snapshot so later pipeline
+   * registration cannot change an existing resource's reconstruction.
+   *
+   * @param {object} [options={}] Pipeline selection and optional inline stages.
+   * @returns {object[]} Detached normalized stage descriptors.
+   * @throws {Error|TypeError} If the requested pipeline or inline stages are invalid.
+   */
   ResolvePrepareStages(options = {}) {
+    const plan = GetResolvedBuildPlan(options, this);
+    if (plan) return [...plan.prepareStages];
     const requested = options.preparePipeline ?? options.pipeline ?? this.defaultPreparePipeline;
     const key = NormalizePipelineName(requested);
     if (key && !this.preparePipelines.has(key)) {
@@ -522,6 +624,20 @@ class CjsResMan extends CjsEventEmitter {
     }
     return this;
   }
+
+  /**
+   * Register a resource constructor or factory for one semantic outcome.
+   * The constructor is selected by `requirement`/`payload`, never by file
+   * extension, and becomes part of the resolved resource build identity.
+   * Re-registration affects later handle requests only.
+   *
+   * @param {string|Function} requirement Semantic outcome key, or a constructor declaring its own `payload`.
+   * @param {Function|object|null} [Constructor=null] Resource constructor/factory, or options when the first argument is the constructor.
+   * @param {object} [options={}] Registration aliases and optional requirement/payload override.
+   * @param {readonly string[]} [options.aliases=[]] Additional semantic keys mapped to the same constructor.
+   * @returns {CjsResMan} This resource manager.
+   * @throws {TypeError} If the semantic key or constructor/factory is invalid.
+   */
   RegisterResourceType(requirement, Constructor = null, options = {}) {
     if (typeof requirement === "function") {
       options = Constructor && typeof Constructor === "object" ? Constructor : {};
@@ -540,6 +656,18 @@ class CjsResMan extends CjsEventEmitter {
     }
     return this;
   }
+
+  /**
+   * Register the direct byte-to-object reader for one input extension.
+   * Direct loaders take precedence over registered format facades. The exact
+   * function is captured by later resource handles, so replacing it does not
+   * rewrite reconstruction behavior for existing handles.
+   *
+   * @param {string} ext Input extension with or without a leading dot.
+   * @param {Function} loader Reader receiving source bytes and an immutable preparation context.
+   * @returns {CjsResMan} This resource manager.
+   * @throws {TypeError} If the extension or loader is invalid.
+   */
   RegisterObjectLoader(ext, loader) {
     const key = normalizeResourceExtension(ext);
     if (!key) throw new TypeError("CjsResMan.RegisterObjectLoader requires an extension.");
@@ -553,9 +681,12 @@ class CjsResMan extends CjsEventEmitter {
    * Multiple candidates may share an extension and are resolved by requested
    * output/media type or by their support probes. Defaults are copied into a
    * deeply frozen plain-object/array snapshot, so later caller mutation cannot
-   * change the behavior represented by the descriptor identity. Functions are
-   * retained by identity; unsupported class instances, accessors, symbol keys,
-   * and byte buffers are rejected instead of being described as immutable.
+   * change the behavior represented by the descriptor identity. Static and
+   * instance reader/probe functions are captured at registration as well, so
+   * replacing methods on the facade cannot rewrite an existing handle.
+   * Functions are retained by identity; unsupported class instances,
+   * accessors, symbol keys, and byte buffers are rejected instead of being
+   * described as immutable.
    *
    * @param {Function} Format Format facade declaring at least one `inputTypes` extension.
    * @param {object} [defaults={}] Plain reader-option defaults to snapshot for this registration.
@@ -571,7 +702,12 @@ class CjsResMan extends CjsEventEmitter {
     }
     const descriptor = Object.freeze({
       Format,
-      defaults: SnapshotFormatDefaults(defaults)
+      defaults: SnapshotFormatDefaults(defaults),
+      isSupported: typeof Format.isSupported === "function" ? Format.isSupported : null,
+      readAsync: typeof Format.readAsync === "function" ? Format.readAsync : null,
+      read: typeof Format.read === "function" ? Format.read : null,
+      ReadAsync: typeof Format.prototype?.ReadAsync === "function" ? Format.prototype.ReadAsync : null,
+      Read: typeof Format.prototype?.Read === "function" ? Format.prototype.Read : null
     });
     for (const inputType of Format.inputTypes) {
       const key = normalizeResourceExtension(inputType);
@@ -583,9 +719,25 @@ class CjsResMan extends CjsEventEmitter {
     }
     return this;
   }
+
+  /**
+   * Return registered format facades for one normalized input extension.
+   *
+   * @param {string} inputType Input extension with or without a leading dot.
+   * @returns {Function[]} Detached format-class list in registration order.
+   */
   GetFormats(inputType) {
     return this.GetFormatDescriptors(inputType).map(descriptor => descriptor.Format);
   }
+
+  /**
+   * Select one registered format facade for an input and requested outcome.
+   *
+   * @param {string} inputType Input extension with or without a leading dot.
+   * @param {object} [options={}] Optional format, output, media type, and source-byte selectors.
+   * @returns {Function} Unambiguous selected format facade.
+   * @throws {Error} If no candidate matches or multiple candidates remain.
+   */
   ResolveFormat(inputType, options = {}) {
     return this.ResolveFormatDescriptor(inputType, options).Format;
   }
@@ -610,28 +762,33 @@ class CjsResMan extends CjsEventEmitter {
       throw new TypeError("CjsResMan.GetResource options must be an object.");
     }
     const key = normalizeResourcePath(path);
-    const variant = this.GetResourceVariant(options);
+    const buildOptions = this.#ResolveResourceBuildOptions(key, options);
+    const buildPlan = GetResolvedBuildPlan(buildOptions, this);
+    const variant = this.GetResourceVariant(buildOptions);
     const cacheKey = getMotherLodeKey(key, variant);
     const existing = this.motherLode.Lookup(cacheKey);
-    if (existing && options.reload !== true) {
+    if (existing && buildOptions.reload !== true) {
+      if (!this.#resourceBuildPlans.has(existing)) {
+        this.#resourceBuildPlans.set(existing, buildPlan);
+      }
       this.#BindResourceLifecycle(cacheKey, existing);
       this.motherLode.KeepAlive?.(cacheKey);
       return existing;
     }
-    if (!existing && options.reload === true) {
+    if (!existing && buildOptions.reload === true) {
       this.InvalidateReadCache(key, {
-        source: options.source || this.source
+        source: buildOptions.source || this.source
       });
     }
-    const ext = normalizeResourceExtension(options.ext || getResourceExtension(key));
-    const Constructor = this.ResolveResourceConstructor(options);
-    const resource = this.CreateResource(Constructor, key, ext, options, existing && options.reload === true ? existing : null);
-    if (existing && options.reload === true) {
+    const ext = buildPlan.ext;
+    const Constructor = buildPlan.Constructor;
+    const resource = this.CreateResource(Constructor, key, ext, buildOptions, existing && buildOptions.reload === true ? existing : null);
+    if (existing && buildOptions.reload === true) {
       this.#BindResourceLifecycle(cacheKey, existing);
       this.motherLode.KeepAlive?.(cacheKey);
       const expectedOwnership = this.#RequireResourceOwnership(existing, "reload-candidate:create");
       const generation = this.#nextResourceReloadGeneration++;
-      const loaderOptions = Object.freeze(GetResourceLoaderOptions(options, options.source || this.source));
+      const loaderOptions = Object.freeze(GetResourceLoaderOptions(buildOptions, buildOptions.source || this.source));
       const candidate = Object.freeze({
         reloadCandidate: true,
         generation,
@@ -646,7 +803,7 @@ class CjsResMan extends CjsEventEmitter {
       this.#reloadGenerations.set(cacheKey, generation);
       if (typeof resource.SetObjectLoader === "function") {
         const reloadOptions = {
-          ...options,
+          ...buildOptions,
           reload: true
         };
         resource.SetObjectLoader(loadOptions => this.#GetReloadCandidateObject(resource, {
@@ -667,6 +824,9 @@ class CjsResMan extends CjsEventEmitter {
       this.#InvalidateResourceOwnership(existing);
     }
     this.#BindResourceLifecycle(cacheKey, canonical);
+    if (!this.#resourceBuildPlans.has(canonical)) {
+      this.#resourceBuildPlans.set(canonical, buildPlan);
+    }
     this.motherLode.KeepAlive?.(cacheKey);
     return canonical;
   }
@@ -687,8 +847,9 @@ class CjsResMan extends CjsEventEmitter {
    */
   GetObject(path, options = {}) {
     const resource = this.GetResource(path, options);
+    const operationOptions = this.#GetResourceBuildOptions(resource, options);
     if (this.#reloadCandidates.has(resource)) {
-      return this.#GetReloadCandidateObject(resource, options);
+      return this.#GetReloadCandidateObject(resource, operationOptions);
     }
     const ownership = this.#RequireResourceOwnership(resource, "object:begin");
     const existing = this.objectOperations.get(resource);
@@ -699,7 +860,7 @@ class CjsResMan extends CjsEventEmitter {
       resource.KeepPayloadAlive?.();
       return Promise.resolve(GetPublishedResourceObject(resource));
     }
-    const promise = this.QueueResourceObject(resource, options);
+    const promise = this.QueueResourceObject(resource, operationOptions);
     const operation = {
       promise,
       ownership
@@ -757,10 +918,11 @@ class CjsResMan extends CjsEventEmitter {
    */
   async FetchResource(path, options = {}) {
     const resource = this.GetResource(path, options);
-    const readinessOptions = options.reload === true ? {
-      ...options,
+    const operationOptions = this.#GetResourceBuildOptions(resource, options);
+    const readinessOptions = operationOptions.reload === true ? {
+      ...operationOptions,
       reload: false
-    } : options;
+    } : operationOptions;
     await resource.Ready(readinessOptions);
     return resource;
   }
@@ -1011,6 +1173,7 @@ class CjsResMan extends CjsEventEmitter {
    * @throws {TypeError|Error} If the resource, source, format, options, or canonical ownership are invalid.
    */
   async LoadResourceObject(resource, options = {}) {
+    options = this.#GetResourceBuildOptions(resource, options);
     const read = this.#BeginReadOperation(resource.GetPath(), options);
     const ownership = this.#RequireResourceOwnership(resource, "direct-load:begin");
     const releaseLock = this.#AcquireResourcePurgeLock(ownership);
@@ -1044,6 +1207,7 @@ class CjsResMan extends CjsEventEmitter {
    * @throws {TypeError} If the resource cannot be queued or its options are invalid.
    */
   QueueResourceObject(resource, options = {}) {
+    options = this.#GetResourceBuildOptions(resource, options);
     const read = this.#BeginReadOperation(resource.GetPath(), options);
     const ownership = this.#RequireResourceOwnership(resource, "queue:begin");
     const releaseLock = this.#AcquireResourcePurgeLock(ownership);
@@ -1104,6 +1268,8 @@ class CjsResMan extends CjsEventEmitter {
    * @throws {Error} If reading/preparation fails or canonical ownership becomes stale.
    */
   async PrepareResourceObject(resource, bytes, options = {}) {
+    const buildPlan = this.#resourceBuildPlans.get(resource) || null;
+    if (buildPlan) options = ApplyResourceBuildPlan(options, buildPlan);
     const ownership = this.#GetResourceOwnership(resource, "direct-prepare:begin");
     if (!ownership) {
       return this.#PrepareResourceObject(resource, bytes, options, null);
@@ -1132,6 +1298,8 @@ class CjsResMan extends CjsEventEmitter {
    * @throws {Error} If queueing/preparation fails or canonical ownership becomes stale.
    */
   async PrepareResourceObjectQueued(resource, bytes, options = {}) {
+    const buildPlan = this.#resourceBuildPlans.get(resource) || null;
+    if (buildPlan) options = ApplyResourceBuildPlan(options, buildPlan);
     const ownership = this.#GetResourceOwnership(resource, "queued-prepare:begin");
     if (!ownership) {
       return this.#PrepareResourceObjectQueued(resource, bytes, options, null);
@@ -1206,12 +1374,28 @@ class CjsResMan extends CjsEventEmitter {
     }
     return object;
   }
+
+  /**
+   * Decode source bytes with the reader captured by a resource's immutable
+   * build plan. A direct extension loader wins over captured format candidates;
+   * byte support probes may disambiguate only within that captured set.
+   *
+   * @param {CjsResource} resource Resource whose reader outcome is requested.
+   * @param {*} bytes Source byte payload.
+   * @param {object} [options={}] Captured build options plus per-operation controls.
+   * @returns {Promise<*>} Direct-loader or registered-format reader outcome.
+   * @throws {Error|TypeError} If no captured reader matches or its read contract fails.
+   */
   async ReadResourceObjectPayload(resource, bytes, options = {}) {
-    const explicitLoader = this.GetObjectLoader(resource.GetExt());
+    const buildPlan = GetResolvedBuildPlan(options, this) || this.#resourceBuildPlans.get(resource) || null;
+    const explicitLoader = buildPlan ? buildPlan.objectLoader : this.GetObjectLoader(resource.GetExt());
     if (explicitLoader) {
       return explicitLoader(bytes, CreatePrepareContext(this, resource, bytes, options, "read"));
     }
-    const descriptor = this.ResolveFormatDescriptor(resource.GetExt(), {
+    const descriptor = buildPlan ? ResolveFormatDescriptorCandidates(buildPlan.formatDescriptors, buildPlan.ext, {
+      ...options,
+      bytes
+    }) : this.ResolveFormatDescriptor(resource.GetExt(), {
       ...options,
       bytes
     });
@@ -1289,84 +1473,82 @@ class CjsResMan extends CjsEventEmitter {
     const entries = Array.isArray(paths) ? paths : [paths];
     return Promise.all(entries.map(path => this.LoadObject(path, options)));
   }
+
+  /**
+   * Return the currently registered direct reader for an input extension.
+   *
+   * @param {string} ext Input extension with or without a leading dot.
+   * @returns {Function|null} Registered loader or `null`.
+   */
   GetObjectLoader(ext) {
     return this.objectLoaders.get(normalizeResourceExtension(ext)) || null;
   }
+
+  /**
+   * Return detached references to the current immutable format descriptors for
+   * one input extension. Each descriptor contains its facade, frozen defaults,
+   * and the reader/probe functions captured at registration.
+   *
+   * @param {string} inputType Input extension with or without a leading dot.
+   * @returns {object[]} Descriptor list in registration order.
+   */
   GetFormatDescriptors(inputType) {
     return [...(this.formats.get(normalizeResourceExtension(inputType)) || [])];
   }
+
+  /**
+   * Resolve one current format registration descriptor. Output/media filters
+   * run first; optional source bytes may then run support probes to disambiguate.
+   *
+   * @param {string} inputType Input extension with or without a leading dot.
+   * @param {object} [options={}] Format, output, media type, and optional byte selectors.
+   * @returns {object} Selected immutable registration descriptor.
+   * @throws {Error} If no candidate matches or multiple candidates remain.
+   */
   ResolveFormatDescriptor(inputType, options = {}) {
     const key = normalizeResourceExtension(inputType);
-    let candidates = this.GetFormatDescriptors(key);
-    if (options.format) {
-      candidates = candidates.filter(({
-        Format
-      }) => Format === options.format || Format.id === options.format || Format.name === options.format);
-    }
-    if (options.emit) {
-      candidates = candidates.filter(({
-        Format
-      }) => [...(Format.outputTypes || []), ...(Format.debugOutputTypes || [])].includes(options.emit));
-    }
-    if (options.mediaType) {
-      candidates = candidates.filter(({
-        Format
-      }) => (Format.mediaTypes || []).includes(options.mediaType));
-    }
-    if (candidates.length > 1 && options.bytes !== undefined) {
-      const supported = candidates.filter(({
-        Format,
-        defaults
-      }) => {
-        if (typeof Format.isSupported !== "function") return false;
-        const report = Format.isSupported(options.bytes, {
-          ...defaults,
-          ...(options.formatOptions || {})
-        });
-        return report && report.supported !== false;
-      });
-      if (supported.length === 1) candidates = supported;
-    }
-    if (candidates.length === 0) {
-      const error = new Error(`No format registered for .${key}`);
-      error.code = "CJS_RESOURCE_FORMAT_MISSING";
-      error.ext = key;
-      throw error;
-    }
-    if (candidates.length > 1) {
-      const error = new Error(`Ambiguous formats registered for .${key}`);
-      error.code = "CJS_RESOURCE_FORMAT_AMBIGUOUS";
-      error.ext = key;
-      error.formats = candidates.map(({
-        Format
-      }) => Format.name);
-      throw error;
-    }
-    return candidates[0];
+    const candidates = FilterFormatDescriptors(this.GetFormatDescriptors(key), options);
+    return ResolveFormatDescriptorCandidates(candidates, key, options);
   }
+
+  /**
+   * Invoke one format descriptor using its frozen registration defaults and
+   * the request's explicit format options. Static async/sync readers take
+   * precedence over instance `ReadAsync`/`Read` compatibility methods.
+   *
+   * @param {object} descriptor Selected immutable registration descriptor.
+   * @param {*} bytes Source bytes supplied to the format facade.
+   * @param {object} [options={}] Output, class, and `formatOptions` overrides.
+   * @returns {Promise<*>} Parsed format outcome.
+   * @throws {TypeError|Error} If the facade lacks a reader or reading fails.
+   */
   async ReadFormat(descriptor, bytes, options = {}) {
     const {
       Format,
       defaults
     } = descriptor;
+    const readAsync = Object.prototype.hasOwnProperty.call(descriptor, "readAsync") ? descriptor.readAsync : Format.readAsync;
+    const read = Object.prototype.hasOwnProperty.call(descriptor, "read") ? descriptor.read : Format.read;
+    const ReadAsync = Object.prototype.hasOwnProperty.call(descriptor, "ReadAsync") ? descriptor.ReadAsync : Format.prototype?.ReadAsync;
+    const Read = Object.prototype.hasOwnProperty.call(descriptor, "Read") ? descriptor.Read : Format.prototype?.Read;
     const formatOptions = {
       ...defaults,
       ...(options.formatOptions || {})
     };
     if (options.emit !== undefined) formatOptions.emit = options.emit;
     if (options.classes !== undefined) formatOptions.classes = options.classes;
-    if (typeof Format.readAsync === "function") {
-      return Format.readAsync(bytes, formatOptions);
+    if (typeof readAsync === "function") {
+      return readAsync.call(Format, bytes, formatOptions);
     }
-    if (typeof Format.read === "function") {
-      return Format.read(bytes, formatOptions);
+    if (typeof read === "function") {
+      return read.call(Format, bytes, formatOptions);
     }
     const reader = new Format(formatOptions);
-    if (typeof reader.ReadAsync === "function") {
-      return reader.ReadAsync(bytes, formatOptions);
+    if (typeof ReadAsync === "function") {
+      return ReadAsync.call(reader, bytes, formatOptions);
     }
-    if (typeof reader.Read === "function") {
-      return reader.Read(bytes, formatOptions);
+    if (typeof Read === "function") {
+      return Read.call(reader, bytes, formatOptions);
     }
     throw new TypeError(`${Format.name} does not expose a read operation.`);
   }
@@ -1381,7 +1563,9 @@ class CjsResMan extends CjsEventEmitter {
    * @throws {TypeError} If the path or identity settings cannot be normalized.
    */
   Lookup(path, options = {}) {
-    const key = getMotherLodeKey(path, this.GetResourceVariant(options));
+    const normalizedPath = normalizeResourcePath(path);
+    const buildOptions = this.#ResolveResourceBuildOptions(normalizedPath, options);
+    const key = getMotherLodeKey(normalizedPath, this.GetResourceVariant(buildOptions));
     const resource = this.motherLode.Lookup(key);
     if (resource) {
       this.#BindResourceLifecycle(key, resource);
@@ -1405,7 +1589,9 @@ class CjsResMan extends CjsEventEmitter {
    */
   Delete(path, options = null) {
     if (options !== null && options !== undefined) {
-      const key = getMotherLodeKey(path, this.GetResourceVariant(options));
+      const normalizedPath = normalizeResourcePath(path);
+      const buildOptions = this.#ResolveResourceBuildOptions(normalizedPath, options);
+      const key = getMotherLodeKey(normalizedPath, this.GetResourceVariant(buildOptions));
       const resource = this.motherLode.Lookup(key);
       try {
         return this.motherLode.Delete(key);
@@ -1808,6 +1994,8 @@ class CjsResMan extends CjsEventEmitter {
       throw ReloadCandidateAliasError(path, resource);
     }
     resource.Initialize(path, ext, NormalizeRequirement(options.requirement || options.payload || ""));
+    const buildPlan = GetResolvedBuildPlan(options, this);
+    if (buildPlan) this.#resourceBuildPlans.set(resource, buildPlan);
     if (typeof resource.SetObjectLoader === "function") {
       const identityOptions = GetResourceLoaderOptions(options, options.source || this.source);
       resource.SetObjectLoader(loadOptions => this.GetObject(path, {
@@ -1817,6 +2005,15 @@ class CjsResMan extends CjsEventEmitter {
     }
     return resource;
   }
+
+  /**
+   * Resolve the current resource constructor for a semantic request. Explicit
+   * requirement/payload selection precedes an emitted-output registration;
+   * otherwise the generic `CjsResource` handle is used.
+   *
+   * @param {object} [options={}] Semantic requirement, payload, and emit request.
+   * @returns {Function} Registered resource constructor or `CjsResource`.
+   */
   ResolveResourceConstructor(options = {}) {
     const requested = NormalizeRequirement(options.requirement || options.payload);
     if (requested && this.resourceTypes.has(requested)) return this.resourceTypes.get(requested);
@@ -1827,15 +2024,101 @@ class CjsResMan extends CjsEventEmitter {
 
   /**
    * Serialize the request fields that materially distinguish durable resource
-   * outcomes. The resulting stable string is the variant portion of the
-   * canonical MotherLode identity.
+   * outcomes. Resolved manager requests serialize their captured constructor,
+   * reader, format defaults, pipeline version/stages, and caller build
+   * key/version. Plain request material is compared by value; functions and
+   * opaque instances use collision-free process-local identity rather than
+   * their display names.
    *
-   * @param {object} [options={}] Resource requirement, emit, format, class, and prepare-pipeline settings.
+   * Calling this method directly with unresolved options serializes only their
+   * public material fields. `GetResource()` supplies the complete path-aware
+   * registration snapshot automatically.
+   *
+   * @param {CjsResManBuildIdentityOptions & object} [options={}] Resource outcome and optional explicit recipe identity.
    * @returns {string} Stable build variant, or an empty string for the default identity.
+   * @throws {TypeError} If material options contain accessors, symbols, cycles, or invalid explicit versions.
    */
   GetResourceVariant(options = {}) {
-    const identity = GetIdentityOptions(options);
-    return Object.keys(identity).length ? StableSerialize(identity) : "";
+    if (!options || typeof options !== "object" || Array.isArray(options)) {
+      throw new TypeError("CjsResMan resource variant options must be an object.");
+    }
+    const plan = GetResolvedBuildPlan(options, this);
+    if (plan) return plan.variant;
+    const identity = GetIdentityOptions(SnapshotBuildMaterialOptions(options));
+    return Object.keys(identity).length ? SerializeBuildIdentity(identity) : "";
+  }
+
+  /**
+   * Capture the exact build-affecting manager registrations and immutable
+   * public material for one normalized resource path.
+   *
+   * @param {string} path Normalized resource path.
+   * @param {object} options Caller request options.
+   * @returns {object} Detached operation options carrying a hidden immutable build plan.
+   */
+  #ResolveResourceBuildOptions(path, options) {
+    if (!options || typeof options !== "object" || Array.isArray(options)) {
+      throw new TypeError("CjsResMan resource build options must be an object.");
+    }
+    const existing = GetResolvedBuildPlan(options, this);
+    if (existing) {
+      if (existing.path !== path) {
+        throw new TypeError("CjsResMan resolved build plan cannot be reused for another path.");
+      }
+      return ApplyResourceBuildPlan(options, existing);
+    }
+    const materialOptions = Object.freeze(SnapshotBuildMaterialOptions(options));
+    const ext = normalizeResourceExtension(materialOptions.ext || getResourceExtension(path));
+    const requestedPipeline = materialOptions.preparePipeline ?? materialOptions.pipeline ?? this.defaultPreparePipeline;
+    const preparePipeline = NormalizePipelineName(requestedPipeline);
+    const pipelineDescriptor = preparePipeline ? this.preparePipelines.get(preparePipeline) || null : null;
+    if (preparePipeline && !pipelineDescriptor) {
+      const error = new Error(`Unknown CjsResMan prepare pipeline: ${preparePipeline}`);
+      error.code = "CJS_RESOURCE_PREPARE_PIPELINE_MISSING";
+      error.pipeline = preparePipeline;
+      throw error;
+    }
+    const prepareStages = Object.freeze([...(pipelineDescriptor?.stages || []), ...NormalizePrepareStages(materialOptions.prepareStages || [])]);
+    const objectLoader = this.GetObjectLoader(ext);
+    const formatDescriptors = Object.freeze(objectLoader ? [] : FilterFormatDescriptors(this.GetFormatDescriptors(ext), materialOptions));
+    const Constructor = this.ResolveResourceConstructor(materialOptions);
+    const identity = Object.freeze(CreateResourceBuildIdentity({
+      Constructor,
+      ext,
+      formatDescriptors,
+      materialOptions,
+      objectLoader,
+      preparePipeline,
+      preparePipelineVersion: pipelineDescriptor?.version ?? 0,
+      prepareStages
+    }));
+    const variant = Object.keys(identity).length ? SerializeBuildIdentity(identity) : "";
+    const plan = Object.freeze({
+      resMan: this,
+      path,
+      ext,
+      Constructor,
+      objectLoader,
+      formatDescriptors,
+      prepareStages,
+      materialOptions,
+      variant
+    });
+    return ApplyResourceBuildPlan(options, plan);
+  }
+
+  /**
+   * Apply the immutable plan owned by a selected handle while retaining only
+   * per-operation source, revision, cache, reload, and queue controls from the
+   * current call.
+   *
+   * @param {object|Function} resource Selected canonical or reload-candidate handle.
+   * @param {object} options Current operation options.
+   * @returns {object} Options bound to the handle's original build plan.
+   */
+  #GetResourceBuildOptions(resource, options) {
+    const plan = this.#resourceBuildPlans.get(resource) || GetResolvedBuildPlan(options, this);
+    return plan ? ApplyResourceBuildPlan(options, plan) : this.#ResolveResourceBuildOptions(resource.GetPath(), options);
   }
 
   /**
@@ -2379,8 +2662,8 @@ function SerializeFormatCacheValue(value, seen = new WeakSet()) {
   }
   if (typeof value === "boolean") return `boolean:${value}`;
   if (typeof value === "bigint") return `bigint:${value}`;
-  if (typeof value === "function") return `function:${GetFormatCacheIdentity(value)}`;
-  const identity = GetFormatCacheIdentity(value);
+  if (typeof value === "function") return `function:${GetLocalValueIdentity(value)}`;
+  const identity = GetLocalValueIdentity(value);
   if (seen.has(value)) return `reference:${identity}`;
   seen.add(value);
   if (ArrayBuffer.isView(value)) {
@@ -2397,16 +2680,16 @@ function SerializeFormatCacheValue(value, seen = new WeakSet()) {
 }
 
 /**
- * Return a process-local identity for a cache option object or function.
+ * Return a process-local identity for a cache/build object or function.
  *
  * @param {object|Function} value Candidate option identity owner.
  * @returns {number} Stable identity for the life of the value.
  */
-function GetFormatCacheIdentity(value) {
-  let identity = FORMAT_CACHE_IDENTITIES.get(value);
+function GetLocalValueIdentity(value) {
+  let identity = LOCAL_VALUE_IDENTITIES.get(value);
   if (!identity) {
-    identity = nextFormatCacheIdentity++;
-    FORMAT_CACHE_IDENTITIES.set(value, identity);
+    identity = nextLocalValueIdentity++;
+    LOCAL_VALUE_IDENTITIES.set(value, identity);
   }
   return identity;
 }
@@ -2430,23 +2713,242 @@ function RemoveOperationRecords(operations, path, revisionKey) {
   }
   return removed;
 }
-function StableSerialize(value, seen = new WeakSet()) {
-  if (value === undefined) return "undefined";
-  if (value === null || typeof value === "number" || typeof value === "boolean") return JSON.stringify(value);
-  if (typeof value === "string") return JSON.stringify(value);
-  if (typeof value === "function") return `[Function:${value.name || "anonymous"}]`;
-  if (ArrayBuffer.isView(value)) {
-    return `[${value.constructor.name}:${value.byteOffset}:${value.byteLength}]`;
+
+/**
+ * Snapshot only fields that can change a durable resource outcome. Plain
+ * arrays/objects are detached and frozen; functions and opaque instances are
+ * retained by identity. Cycles, accessors, and symbol-keyed material fail
+ * closed because their behavior cannot be represented by a stable build key.
+ *
+ * @param {object} options Caller request options.
+ * @returns {object} Detached build-affecting options.
+ */
+function SnapshotBuildMaterialOptions(options) {
+  if (Object.getOwnPropertySymbols(options).length) {
+    throw new TypeError("CjsResMan build identity does not support symbol-keyed material options.");
   }
-  if (value instanceof ArrayBuffer) return `[ArrayBuffer:${value.byteLength}]`;
-  if (seen.has(value)) return "[Circular]";
-  seen.add(value);
-  if (Array.isArray(value)) return `[${value.map(entry => StableSerialize(entry, seen)).join(",")}]`;
-  return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${StableSerialize(value[key], seen)}`).join(",")}}`;
+  const result = {};
+  for (const key of BUILD_MATERIAL_OPTION_KEYS) {
+    const descriptor = Object.getOwnPropertyDescriptor(options, key);
+    if (!descriptor) continue;
+    if (!descriptor.enumerable || !("value" in descriptor)) {
+      throw new TypeError("CjsResMan build identity requires enumerable data properties.");
+    }
+    const value = descriptor.value;
+    if (value === undefined) {
+      continue;
+    }
+    if (key === "buildKey") {
+      if (typeof value !== "string" || value.trim() === "") {
+        throw new TypeError("CjsResMan buildKey must be a non-empty string.");
+      }
+      result[key] = value;
+      continue;
+    }
+    if (key === "buildVersion") {
+      result[key] = NormalizeBuildVersion(value, "buildVersion");
+      continue;
+    }
+    result[key] = SnapshotBuildValue(value);
+  }
+  return result;
+}
+
+/**
+ * Recursively snapshot supported plain build material without invoking user
+ * accessors or guessing opaque instance state.
+ *
+ * @param {*} value Material value.
+ * @param {WeakSet<object>} [stack=new WeakSet()] Active recursion stack.
+ * @returns {*} Frozen detached plain value or retained opaque identity.
+ */
+function SnapshotBuildValue(value, stack = new WeakSet()) {
+  if (value === null || value === undefined) return value;
+  const type = typeof value;
+  if (["string", "number", "boolean", "bigint", "function"].includes(type)) return value;
+  if (type === "symbol") {
+    throw new TypeError("CjsResMan build identity does not support symbol values.");
+  }
+  if (type !== "object") return value;
+  if (ArrayBuffer.isView(value) || value instanceof ArrayBuffer) return value;
+  const prototype = Object.getPrototypeOf(value);
+  const isArray = Array.isArray(value);
+  const isPlain = isArray || prototype === Object.prototype || prototype === null;
+  if (!isPlain) return value;
+  if (stack.has(value)) {
+    throw new TypeError("CjsResMan build identity does not support circular material options.");
+  }
+  if (Object.getOwnPropertySymbols(value).length) {
+    throw new TypeError("CjsResMan build identity does not support symbol-keyed material options.");
+  }
+  stack.add(value);
+  try {
+    if (isArray) {
+      const result = new Array(value.length);
+      for (const key of Object.getOwnPropertyNames(value)) {
+        if (key === "length") continue;
+        const index = Number(key);
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+        if (!Number.isInteger(index) || index < 0 || index >= value.length || String(index) !== key || !descriptor.enumerable || !("value" in descriptor)) {
+          throw new TypeError("CjsResMan build identity requires plain array elements.");
+        }
+        result[index] = SnapshotBuildValue(descriptor.value, stack);
+      }
+      return Object.freeze(result);
+    }
+    const result = {};
+    for (const key of Object.getOwnPropertyNames(value)) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor.enumerable || !("value" in descriptor)) {
+        throw new TypeError("CjsResMan build identity requires enumerable data properties.");
+      }
+      result[key] = SnapshotBuildValue(descriptor.value, stack);
+    }
+    return Object.freeze(result);
+  } finally {
+    stack.delete(value);
+  }
+}
+
+/**
+ * Restore one captured build plan onto operation options. Material fields from
+ * the current call are removed before the immutable snapshot is applied, while
+ * source/cache/reload/queue controls remain per operation.
+ *
+ * @param {object} options Current caller options.
+ * @param {CjsResourceBuildPlan} plan Captured resource plan.
+ * @returns {object} Options bound to the plan.
+ */
+function ApplyResourceBuildPlan(options, plan) {
+  const result = {
+    ...options
+  };
+  for (const key of BUILD_MATERIAL_OPTION_KEYS) delete result[key];
+  Object.assign(result, plan.materialOptions);
+  result[RESOLVED_BUILD_PLAN] = plan;
+  return result;
+}
+
+/**
+ * Recover a manager-owned hidden plan from an option object.
+ *
+ * @param {*} options Candidate operation options.
+ * @param {CjsResMan} resMan Expected manager.
+ * @returns {CjsResourceBuildPlan|null} Matching plan or `null`.
+ */
+function GetResolvedBuildPlan(options, resMan) {
+  const plan = options && typeof options === "object" ? options[RESOLVED_BUILD_PLAN] : null;
+  return plan?.resMan === resMan ? plan : null;
+}
+
+/**
+ * Create canonical identity material from one resolved manager snapshot.
+ * Default no-reader/no-stage CjsResource requests retain the historical empty
+ * variant; registered implementations add only the material that can alter the
+ * built result.
+ *
+ * @param {object} build Resolved build parts.
+ * @returns {object} Canonical identity material.
+ */
+function CreateResourceBuildIdentity(build) {
+  const identity = GetIdentityOptions(build.materialOptions);
+  for (const key of ["format", "pipeline", "preparePipeline", "prepareStages"]) {
+    delete identity[key];
+  }
+  if (build.materialOptions.ext !== undefined) identity.ext = build.ext;
+  if (build.Constructor !== _CjsResource) identity.resourceConstructor = build.Constructor;
+  if (build.objectLoader) {
+    identity.reader = Object.freeze({
+      type: "object-loader",
+      ext: build.ext,
+      loader: build.objectLoader
+    });
+  } else if (build.formatDescriptors.length) {
+    identity.reader = Object.freeze({
+      type: "formats",
+      ext: build.ext,
+      descriptors: build.formatDescriptors
+    });
+  } else if (build.materialOptions.format !== undefined) {
+    identity.reader = Object.freeze({
+      type: "unresolved-format",
+      ext: build.ext,
+      format: build.materialOptions.format
+    });
+  }
+  if (build.preparePipeline || build.prepareStages.length) {
+    identity.prepare = Object.freeze({
+      pipeline: build.preparePipeline,
+      version: build.preparePipelineVersion,
+      stages: build.prepareStages
+    });
+  }
+  return identity;
+}
+
+/**
+ * Serialize canonical build material by plain value and opaque JavaScript
+ * identity. This is deterministic for the lifetime of the current process and
+ * collision-free for distinct functions/instances even when names match.
+ *
+ * @param {*} value Canonical build material.
+ * @param {WeakSet<object>} [stack=new WeakSet()] Active recursion stack.
+ * @returns {string} Type-stable identity string.
+ */
+function SerializeBuildIdentity(value, stack = new WeakSet()) {
+  if (value === undefined) return "undefined";
+  if (value === null) return "null";
+  if (typeof value === "string") return `string:${JSON.stringify(value)}`;
+  if (typeof value === "number") {
+    if (Number.isNaN(value)) return "number:NaN";
+    if (Object.is(value, -0)) return "number:-0";
+    return `number:${String(value)}`;
+  }
+  if (typeof value === "boolean") return `boolean:${value}`;
+  if (typeof value === "bigint") return `bigint:${value}`;
+  if (typeof value === "function") return `function:${GetLocalValueIdentity(value)}`;
+  if (typeof value !== "object") {
+    throw new TypeError(`CjsResMan cannot serialize ${typeof value} build identity material.`);
+  }
+  if (ArrayBuffer.isView(value)) {
+    return `view:${value.constructor.name}:${GetLocalValueIdentity(value)}`;
+  }
+  if (value instanceof ArrayBuffer) {
+    return `buffer:${GetLocalValueIdentity(value)}`;
+  }
+  const prototype = Object.getPrototypeOf(value);
+  const isArray = Array.isArray(value);
+  if (!isArray && prototype !== Object.prototype && prototype !== null) {
+    return `instance:${value.constructor?.name || "object"}:${GetLocalValueIdentity(value)}`;
+  }
+  if (stack.has(value)) {
+    throw new TypeError("CjsResMan build identity does not support circular material options.");
+  }
+  stack.add(value);
+  try {
+    if (isArray) {
+      const entries = [];
+      for (let index = 0; index < value.length; index++) {
+        const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+        if (!descriptor) {
+          entries.push("hole");
+          continue;
+        }
+        if (!descriptor.enumerable || !("value" in descriptor)) {
+          throw new TypeError("CjsResMan build identity requires plain array elements.");
+        }
+        entries.push(SerializeBuildIdentity(descriptor.value, stack));
+      }
+      return `array:${value.length}:[${entries.join(",")}]`;
+    }
+    return `object:{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${SerializeBuildIdentity(value[key], stack)}`).join(",")}}`;
+  } finally {
+    stack.delete(value);
+  }
 }
 function GetIdentityOptions(options = {}) {
   const identity = {};
-  for (const key of ["requirement", "payload", "emit", "mediaType", "format", "classes", "formatOptions", "pipeline", "preparePipeline", "prepareStages"]) {
+  for (const key of BUILD_MATERIAL_OPTION_KEYS) {
     if (options[key] !== undefined) identity[key] = options[key];
   }
   return identity;
@@ -2465,7 +2967,11 @@ function GetIdentityOptions(options = {}) {
  * @returns {object} Detached loader options safe to retain with the resource.
  */
 function GetResourceLoaderOptions(options = {}, effectiveSource = null) {
-  const loaderOptions = GetIdentityOptions(options);
+  const plan = options?.[RESOLVED_BUILD_PLAN] || null;
+  const loaderOptions = plan ? {
+    ...plan.materialOptions,
+    [RESOLVED_BUILD_PLAN]: plan
+  } : GetIdentityOptions(options);
   if (effectiveSource) loaderOptions.source = effectiveSource;
   for (const key of ["sourceRevision", "ext"]) {
     if (Object.prototype.hasOwnProperty.call(options, key)) {
@@ -2474,11 +2980,100 @@ function GetResourceLoaderOptions(options = {}, effectiveSource = null) {
   }
   return loaderOptions;
 }
+
+/**
+ * Filter registered format descriptors using only request material available
+ * before source bytes are read. Byte-dependent support probes are deliberately
+ * deferred while the candidate descriptor set itself is snapshotted.
+ *
+ * @param {readonly object[]} descriptors Registered descriptors for one extension.
+ * @param {object} options Format, output, and media selection.
+ * @returns {object[]} Matching descriptors in registration order.
+ */
+function FilterFormatDescriptors(descriptors, options) {
+  let candidates = [...descriptors];
+  if (options.format) {
+    candidates = candidates.filter(({
+      Format
+    }) => Format === options.format || Format.id === options.format || Format.name === options.format);
+  }
+  if (options.emit) {
+    candidates = candidates.filter(({
+      Format
+    }) => [...(Format.outputTypes || []), ...(Format.debugOutputTypes || [])].includes(options.emit));
+  }
+  if (options.mediaType) {
+    candidates = candidates.filter(({
+      Format
+    }) => (Format.mediaTypes || []).includes(options.mediaType));
+  }
+  return candidates;
+}
+
+/**
+ * Resolve one descriptor from an already captured candidate set. When bytes
+ * are present, support probes may disambiguate candidates without consulting
+ * later manager registration.
+ *
+ * @param {readonly object[]} descriptors Captured candidate descriptors.
+ * @param {string} ext Normalized resource extension.
+ * @param {object} options Effective format options and optional source bytes.
+ * @returns {object} Selected descriptor.
+ * @throws {Error} If the captured set is missing or remains ambiguous.
+ */
+function ResolveFormatDescriptorCandidates(descriptors, ext, options) {
+  let candidates = [...descriptors];
+  if (candidates.length > 1 && options.bytes !== undefined) {
+    const supported = candidates.filter(descriptor => {
+      const {
+        Format,
+        defaults
+      } = descriptor;
+      const isSupported = Object.prototype.hasOwnProperty.call(descriptor, "isSupported") ? descriptor.isSupported : Format.isSupported;
+      if (typeof isSupported !== "function") return false;
+      const report = isSupported.call(Format, options.bytes, {
+        ...defaults,
+        ...(options.formatOptions || {})
+      });
+      return report && report.supported !== false;
+    });
+    if (supported.length === 1) candidates = supported;
+  }
+  if (candidates.length === 0) {
+    const error = new Error(`No format registered for .${ext}`);
+    error.code = "CJS_RESOURCE_FORMAT_MISSING";
+    error.ext = ext;
+    throw error;
+  }
+  if (candidates.length > 1) {
+    const error = new Error(`Ambiguous formats registered for .${ext}`);
+    error.code = "CJS_RESOURCE_FORMAT_AMBIGUOUS";
+    error.ext = ext;
+    error.formats = candidates.map(({
+      Format
+    }) => Format.name);
+    throw error;
+  }
+  return candidates[0];
+}
 function NormalizeRequirement(value) {
   return value === null || value === undefined ? "" : String(value).trim().toLowerCase();
 }
 function NormalizePipelineName(value) {
   return value === null || value === undefined ? "" : String(value).trim().toLowerCase();
+}
+
+/**
+ * Validate a caller-owned stable recipe version.
+ *
+ * @param {*} value Candidate version.
+ * @param {string} label Error-message label.
+ * @returns {string|number} Validated version.
+ */
+function NormalizeBuildVersion(value, label) {
+  if (typeof value === "string" && value.trim() !== "") return value;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  throw new TypeError(`CjsResMan ${label} must be a non-empty string or finite number.`);
 }
 function NormalizePrepareStages(value) {
   if (value === null || value === undefined) return [];
@@ -2489,8 +3084,12 @@ function NormalizePrepareStages(value) {
       throw new TypeError("CjsResMan prepare stages require a function or prepare/run/handler method.");
     }
     const name = typeof entry === "function" ? entry.name || `stage${index + 1}` : entry.name || prepare.name || `stage${index + 1}`;
+    const id = typeof entry === "function" ? name : entry.id ?? name;
+    const version = typeof entry === "function" ? 1 : NormalizeBuildVersion(entry.version ?? 1, `prepare stage ${String(id)} version`);
     return Object.freeze({
+      id: String(id),
       name: String(name),
+      version,
       prepare
     });
   });

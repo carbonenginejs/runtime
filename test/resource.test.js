@@ -260,6 +260,210 @@ test("CjsMotherLode cache is reused through CjsResMan.GetResource", () => {
   assert.equal(resMan.motherLode.GetCount(), 1);
 });
 
+test("CjsResMan build identity separates same-named functions and explicit versions", () =>
+{
+  const resMan = new CjsResMan();
+  const FirstClass = function SharedClass() {};
+  const SecondClass = function SharedClass() {};
+  const path = "res:/data/build-identity.bin";
+  const firstOptions = {
+    buildKey: "payload-reader",
+    buildVersion: 1,
+    classes: { Root: FirstClass },
+    formatOptions: { quality: { level: 2 } }
+  };
+  const first = resMan.GetResource(path, firstOptions);
+  const equivalent = resMan.GetResource(path, {
+    buildKey: "payload-reader",
+    buildVersion: 1,
+    classes: { Root: FirstClass },
+    formatOptions: { quality: { level: 2 } }
+  });
+  const sameNamedClass = resMan.GetResource(path, {
+    ...firstOptions,
+    classes: { Root: SecondClass }
+  });
+  const nextVersion = resMan.GetResource(path, {
+    ...firstOptions,
+    buildVersion: 2
+  });
+
+  assert.equal(equivalent, first);
+  assert.notEqual(sameNamedClass, first);
+  assert.notEqual(nextVersion, first);
+  assert.equal(resMan.motherLode.GetSize(), 3);
+
+  const sparse = new Array(1);
+  assert.notEqual(
+    resMan.GetResourceVariant({ formatOptions: { items: [] } }),
+    resMan.GetResourceVariant({ formatOptions: { items: sparse } })
+  );
+
+  const accessorOptions = {};
+  Object.defineProperty(accessorOptions, "formatOptions", {
+    enumerable: true,
+    get: () => ({ quality: 1 })
+  });
+  assert.throws(
+    () => resMan.GetResourceVariant(accessorOptions),
+    /requires enumerable data properties/u
+  );
+
+  const accessorArray = [];
+  Object.defineProperty(accessorArray, "0", {
+    enumerable: true,
+    get: () => "hidden"
+  });
+  assert.throws(
+    () => resMan.GetResourceVariant({ formatOptions: { items: accessorArray } }),
+    /requires plain array elements/u
+  );
+
+  const circular = {};
+  circular.self = circular;
+  assert.throws(
+    () => resMan.GetResource(path, { formatOptions: circular }),
+    /does not support circular material options/u
+  );
+  assert.equal(resMan.motherLode.GetSize(), 3);
+});
+
+test("CjsResMan snapshots mutable plain build options for identity and reconstruction", async () =>
+{
+  const resMan = new CjsResMan({
+    source: { Read: () => new Uint8Array([ 1 ]) }
+  });
+  resMan.RegisterObjectLoader("bin", (bytes, context) => ({
+    bytes,
+    mode: context.formatOptions.mode
+  }));
+
+  const path = "res:/data/build-option-snapshot.bin";
+  const formatOptions = { mode: "first" };
+  const first = resMan.GetResource(path, { formatOptions });
+  formatOptions.mode = "second";
+  const second = resMan.GetResource(path, { formatOptions });
+
+  assert.notEqual(second, first);
+  assert.equal((await first.Ready()).mode, "first");
+  assert.equal((await second.Ready()).mode, "second");
+});
+
+test("CjsResMan snapshots loaders and versioned pipelines for existing resources", async () =>
+{
+  const resMan = new CjsResMan({
+    source: { Read: () => new Uint8Array([ 1 ]) }
+  });
+  const path = "res:/data/registered-build-snapshot.bin";
+  const firstStage = value => ({ ...value, pipeline: "first" });
+  const secondStage = value => ({ ...value, pipeline: "second" });
+
+  resMan.RegisterObjectLoader("bin", () => ({ loader: "first" }));
+  resMan.RegisterPreparePipeline("selected", firstStage, {
+    default: true,
+    version: 1
+  });
+  const first = resMan.GetResource(path);
+
+  resMan.RegisterObjectLoader("bin", () => ({ loader: "second" }));
+  resMan.RegisterPreparePipeline("selected", secondStage, {
+    default: true,
+    version: 2
+  });
+  const second = resMan.GetResource(path);
+
+  assert.notEqual(second, first);
+  assert.deepEqual(await first.Ready(), {
+    loader: "first",
+    pipeline: "first"
+  });
+  assert.deepEqual(await second.Ready(), {
+    loader: "second",
+    pipeline: "second"
+  });
+  assert.equal(resMan.Lookup(path), second);
+});
+
+test("CjsResMan snapshots registered format behavior and defaults", async () =>
+{
+  class CjsVersionedFormat
+  {
+    static inputTypes = [ "versioned" ];
+    static outputTypes = [ "raw" ];
+    static isSupported() { return true; }
+
+    static read(bytes, options)
+    {
+      return { bytes, mode: options.mode, reader: "first" };
+    }
+  }
+
+  class CjsAlternateFormat
+  {
+    static inputTypes = [ "versioned" ];
+    static outputTypes = [ "raw" ];
+    static isSupported() { return false; }
+
+    static read(bytes, options)
+    {
+      return { bytes, mode: options.mode, reader: "unused" };
+    }
+  }
+
+  const resMan = new CjsResMan({
+    source: { Read: () => new Uint8Array([ 1 ]) }
+  });
+  const path = "res:/data/format-snapshot.versioned";
+  resMan.RegisterFormat(CjsVersionedFormat, { mode: "first" });
+  resMan.RegisterFormat(CjsAlternateFormat, { mode: "unused" });
+  const first = resMan.GetResource(path, { emit: "raw" });
+
+  CjsVersionedFormat.isSupported = () => false;
+  CjsVersionedFormat.read = (bytes, options) => ({
+    bytes,
+    mode: options.mode,
+    reader: "changed"
+  });
+  CjsAlternateFormat.isSupported = () => true;
+  CjsAlternateFormat.read = (bytes, options) => ({
+    bytes,
+    mode: options.mode,
+    reader: "second"
+  });
+  resMan.RegisterFormat(CjsVersionedFormat, { mode: "changed" });
+  resMan.RegisterFormat(CjsAlternateFormat, { mode: "second" });
+  const second = resMan.GetResource(path, { emit: "raw" });
+
+  assert.notEqual(second, first);
+  assert.deepEqual(await first.Ready(), {
+    bytes: new Uint8Array([ 1 ]),
+    mode: "first",
+    reader: "first"
+  });
+  assert.deepEqual(await second.Ready(), {
+    bytes: new Uint8Array([ 1 ]),
+    mode: "second",
+    reader: "second"
+  });
+});
+
+test("CjsResMan snapshots semantic resource constructors", () =>
+{
+  class FirstResource extends CjsResource {}
+  class SecondResource extends CjsResource {}
+
+  const resMan = new CjsResMan();
+  const path = "res:/data/resource-type-snapshot.bin";
+  resMan.RegisterResourceType("versioned", FirstResource);
+  const first = resMan.GetResource(path, { requirement: "versioned" });
+  resMan.RegisterResourceType("versioned", SecondResource);
+  const second = resMan.GetResource(path, { requirement: "versioned" });
+
+  assert.equal(first instanceof FirstResource, true);
+  assert.equal(second instanceof SecondResource, true);
+  assert.notEqual(second, first);
+});
+
 test("CjsMotherLode exposes canonical identity and activity diagnostics", () =>
 {
   let time = 100;
