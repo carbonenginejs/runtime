@@ -83,7 +83,7 @@ test("CjsResMan exposes Blue-style queue controls", async () => {
   assert.equal(resMan.GetPendingPrepares(), 0);
 });
 
-test("CjsResMan queues load, named prepare stages, and publication separately", async () => {
+test("CjsResMan queues source load, CPU read, and publication separately", async () => {
   const calls = [];
   const bytes = new Uint8Array([ 1, 2, 3 ]);
   const resMan = new CjsResMan({
@@ -93,27 +93,6 @@ test("CjsResMan queues load, named prepare stages, and publication separately", 
       Read(path) {
         calls.push([ "load", path ]);
         return bytes;
-      }
-    },
-    preparePipelines: {
-      converted: {
-        default: true,
-        stages: [
-          {
-            name: "convert",
-            prepare(value, context) {
-              calls.push([ context.stage, context.path ]);
-              return { ...value, converted: true };
-            }
-          },
-          {
-            name: "finalize",
-            prepare(value, context) {
-              calls.push([ context.stage, context.path ]);
-              return { ...value, finalized: true };
-            }
-          }
-        ]
       }
     }
   });
@@ -132,7 +111,7 @@ test("CjsResMan queues load, named prepare stages, and publication separately", 
   assert.equal(resMan.GetPendingLoads(), 0);
   assert.equal(resMan.GetPendingPrepares(), 1);
 
-  for (const expectedStage of [ "read", "convert", "finalize", "publish" ]) {
+  for (const expectedStage of [ "read", "publish" ]) {
     const pending = resMan.GetQueueStats(CjsResManQueue.MAIN);
     assert.equal(pending.queued, 1, `${expectedStage} should be the sole queued stage`);
     assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
@@ -141,29 +120,28 @@ test("CjsResMan queues load, named prepare stages, and publication separately", 
 
   const object = await operation;
   assert.equal(object.bytes, bytes);
-  assert.equal(object.converted, true);
-  assert.equal(object.finalized, true);
   assert.equal(resource.object, object);
   assert.equal(resource.state, "loaded");
   assert.equal(resMan.GetPendingPrepares(), 0);
   assert.deepEqual(calls, [
     [ "load", "res:/queue/example.bin" ],
-    [ "read", "res:/queue/example.bin" ],
-    [ "convert", "res:/queue/example.bin" ],
-    [ "finalize", "res:/queue/example.bin" ]
+    [ "read", "res:/queue/example.bin" ]
   ]);
-});
-
-test("CjsResMan rejects unknown requested prepare pipelines", () => {
-  const resMan = new CjsResMan();
-  assert.throws(
-    () => resMan.ResolvePrepareStages({ preparePipeline: "missing" }),
-    error => error.code === "CJS_RESOURCE_PREPARE_PIPELINE_MISSING"
-  );
 });
 
 test("resource variants share one queued source-load slot", async () => {
   let reads = 0;
+  class CjsQueueVariantFormat
+  {
+    static inputTypes = [ "bin" ];
+    static outputTypes = [ "raw" ];
+    static debugOutputTypes = [ "json" ];
+
+    static read(value, options)
+    {
+      return { emit: options.emit, value };
+    }
+  }
   const resMan = new CjsResMan({
     autoPumpMainThreadQueue: false,
     maxConcurrentLoads: 1,
@@ -173,8 +151,7 @@ test("resource variants share one queued source-load slot", async () => {
         return new Uint8Array([ 7 ]);
       }
     }
-  });
-  resMan.RegisterObjectLoader("bin", (value, context) => ({ emit: context.emit, value }));
+  }).RegisterFormat(CjsQueueVariantFormat);
 
   const raw = resMan.LoadObject("res:/queue/shared.bin", { emit: "raw" });
   const json = resMan.LoadObject("res:/queue/shared.bin", { emit: "json" });
@@ -196,25 +173,16 @@ test("resource variants share one queued source-load slot", async () => {
 });
 
 test("Wait captures dynamic resource descendants and excludes later queue tasks", async () => {
-  const stageReleases = [];
+  let releaseRead;
   let releaseLaterTask;
   const resMan = new CjsResMan({
     autoPumpMainThreadQueue: false,
     maxConcurrentLoads: 2,
-    source: { Read() { return new Uint8Array([ 5 ]); } },
-    preparePipelines: {
-      waited: {
-        default: true,
-        stages: [ "first", "second" ].map(name => ({
-          name,
-          prepare(value) {
-            return new Promise(resolve => stageReleases.push(() => resolve({ ...value, [name]: true })));
-          }
-        }))
-      }
-    }
+    source: { Read() { return new Uint8Array([ 5 ]); } }
   });
-  resMan.RegisterObjectLoader("bin", bytes => ({ bytes }));
+  resMan.RegisterObjectLoader("bin", bytes => new Promise(resolve => {
+    releaseRead = () => resolve({ bytes });
+  }));
 
   const operation = resMan.LoadObject("res:/queue/wait-lineage.bin");
   let waitSettled = false;
@@ -225,17 +193,13 @@ test("Wait captures dynamic resource descendants and excludes later queue tasks"
   const laterTask = resMan.QueueTask(CjsResManQueue.BACKGROUND, () =>
     new Promise(resolve => { releaseLaterTask = resolve; }));
 
-  await WaitUntil(() => stageReleases.length === 1 && typeof releaseLaterTask === "function");
+  await WaitUntil(() => typeof releaseRead === "function" && typeof releaseLaterTask === "function");
   assert.equal(waitSettled, false);
-  stageReleases.shift()();
-  await WaitUntil(() => stageReleases.length === 1);
-  assert.equal(waitSettled, false);
-  stageReleases.shift()();
+  releaseRead();
 
   assert.equal(await fence, resMan);
   const value = await operation;
-  assert.equal(value.first, true);
-  assert.equal(value.second, true);
+  assert.deepEqual(value.bytes, new Uint8Array([ 5 ]));
   assert.equal(waitSettled, true);
   assert.equal(resMan.GetQueueStats(CjsResManQueue.BACKGROUND).active, 1);
 
@@ -456,28 +420,16 @@ test("Clear during an active source read prevents late loading, preparation, and
   assert.equal(resMan.GetPendingPrepares(), 0);
 });
 
-test("Delete during an active asynchronous prepare stage drops the candidate before publication", async () => {
-  let releaseStage;
+test("Delete during an active asynchronous CPU read drops the candidate before publication", async () => {
+  let releaseRead;
   let publishEvents = 0;
   const resMan = new CjsResMan({
     autoPumpMainThreadQueue: false,
-    source: { Read() { return new Uint8Array([ 7 ]); } },
-    preparePipelines: {
-      held: {
-        default: true,
-        stages: [ {
-          name: "hold",
-          prepare(value)
-          {
-            return new Promise(resolve => {
-              releaseStage = () => resolve({ ...value, held: true });
-            });
-          }
-        } ]
-      }
-    }
+    source: { Read() { return new Uint8Array([ 7 ]); } }
   });
-  resMan.RegisterObjectLoader("bin", bytes => ({ bytes }));
+  resMan.RegisterObjectLoader("bin", bytes => new Promise(resolve => {
+    releaseRead = () => resolve({ bytes });
+  }));
 
   const path = "res:/queue/stale-prepare.bin";
   const operation = resMan.LoadObject(path);
@@ -486,18 +438,16 @@ test("Delete during an active asynchronous prepare stage drops the candidate bef
   const operationFailure = assert.rejects(
     operation,
     error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
-      && error.phase === "queue-stage:hold:settled"
+      && error.phase === "queue-stage:read:settled"
   );
 
   assert.equal(resMan.PumpBackgroundQueue(), true);
   await WaitUntil(() => resMan.GetQueueStats(CjsResManQueue.MAIN).queued === 1);
   assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
-  await WaitUntil(() => resMan.GetQueueStats(CjsResManQueue.MAIN).queued === 1);
-  assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
-  await WaitUntil(() => typeof releaseStage === "function");
+  await WaitUntil(() => typeof releaseRead === "function");
 
   assert.equal(resMan.Delete(path), true);
-  releaseStage();
+  releaseRead();
   await operationFailure;
 
   assert.equal(resMan.Lookup(path), null);
@@ -838,36 +788,23 @@ test("MotherLode replacement rejects active queued and direct resource mutations
 });
 
 test("standalone direct preparation cannot publish after its canonical identity is deleted", async () => {
-  let releaseStage;
-  const resMan = new CjsResMan({
-    preparePipelines: {
-      held: {
-        default: true,
-        stages: [ {
-          name: "hold",
-          prepare(value)
-          {
-            return new Promise(resolve => {
-              releaseStage = () => resolve({ ...value, held: true });
-            });
-          }
-        } ]
-      }
-    }
-  });
-  resMan.RegisterObjectLoader("bin", bytes => ({ bytes }));
+  let releaseRead;
+  const resMan = new CjsResMan();
+  resMan.RegisterObjectLoader("bin", bytes => new Promise(resolve => {
+    releaseRead = () => resolve({ bytes });
+  }));
   const path = "res:/queue/standalone-prepare.bin";
   const resource = resMan.GetResource(path);
   const operation = resMan.PrepareResourceObject(resource, new Uint8Array([ 4 ]));
   const operationFailure = assert.rejects(
     operation,
     error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
-      && error.phase === "prepare:hold:settled"
+      && error.phase === "prepare:read-settled"
   );
 
-  await WaitUntil(() => typeof releaseStage === "function");
+  await WaitUntil(() => typeof releaseRead === "function");
   assert.equal(resMan.Delete(path), true);
-  releaseStage();
+  releaseRead();
   await operationFailure;
 
   assert.equal(resource.state, "empty");

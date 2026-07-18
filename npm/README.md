@@ -102,7 +102,7 @@ degenerate output.
 
 ## MotherLode ownership
 
-`CjsResMan` resolves each normalized path and build variant to one canonical
+`CjsResMan` resolves each normalized path and promised output to one canonical
 MotherLode key. `Insert(key, resource, options)` reports `{ inserted, replaced,
 displaced }`; replacement, deletion, clearing, and shutdown destroy attached
 adapter allocations and release the complete CPU payload by default. Callers
@@ -112,24 +112,28 @@ contextual error and leaves the existing owner registered. These ordinary
 ownership removals preserve the handle's last resource state; `PURGED` is
 reserved for successful policy eviction through inactivity or byte pressure.
 
-Build variants are immutable execution snapshots, not display-name hashes.
-When a handle is first requested, ResMan captures its selected resource
-constructor, direct object loader or format descriptors, defaults, and reader
-functions; named pipeline version/stages; and material request options. Plain
-objects and arrays are copied and frozen by value; functions, buffers, and
-opaque instances use collision-free process-local identity. `buildKey` and string/finite-number
-`buildVersion` let a caller name and advance a recipe whose retained functions
-or instances change behavior through external state.
+Canonical resource identity is the normalized source path plus its promised
+output tag. `variant` is the explicit tag; otherwise `emit`, `requirement`, or
+`payload` supplies it. Human-readable identities are written as
+`res:/ship.gr2@cmf`, although MotherLode uses an internal delimiter. Reader,
+constructor, and format-option implementations never enter the key. CjsLibrary
+chooses the promised output and ResMan executes the current setup-time format
+registration for it.
 
-Re-registering a resource type, loader, format, or prepare pipeline therefore
-affects later requests only. A later request receives a different canonical
-handle when the resolved recipe changed, while an existing handle reconstructs
-a released payload with its original reader and stages. Register configuration
-before requesting handles; an existing handle intentionally does not adopt a
-later registration. Source selection, `sourceRevision`, read-cache policy,
-reload, and queue controls remain per operation and do not enter MotherLode
-build identity. CjsLibrary owns behavior/capability selection; ResMan only
-captures and executes the already-resolved recipe.
+Output selection is case-insensitive for identity and matching, but format
+readers receive the canonical declared spelling (for example `cmfJson`). A
+legacy direct object loader exposes only its unforced default; named output
+variants belong on a format class. Unsupported `@output` requests fail before
+cache lookup, so a resident handle cannot bypass the declaration.
+
+A released CPU payload retains only the small request needed to reconstruct
+that same path/output from its source and `sourceRevision`. The retained
+promised-output fields and source provenance win over later
+`Ready()`/`GetObject()` overrides, while cache/reload policy remains per-call.
+Payload leases protect active consumers; an engine may release its own backend
+adapter without destroying shared CPU data. Change setup-time registrations
+only with an explicit resource reset (`Delete`/`Clear`) or a new manager. A
+changed output contract must use a new tag such as `@cmf2`.
 
 `Startup()` and `Shutdown()` are idempotent. `HasKey`, `Lookup`, `Delete`,
 `GetKeys`, `GetValues`, `GetSize`, `SetCacheSize`, `GetCacheSize`, `GetStats`,
@@ -175,7 +179,7 @@ only by an explicit `GetObject()` or `Ready()` call.
 Source and parsed-format caches use explicit provenance. `sourceRevision` is an
 opaque caller/source-supplied string or finite number identifying source
 content for one source object and normalized path. It scopes read caches only;
-it does not alter MotherLode/build identity, and changing it does not replace a
+it does not alter MotherLode resource identity, and changing it does not replace a
 resident payload without `reload: true`.
 
 `cacheSource` and `cacheFormat` are tri-state per-call policies:
@@ -214,12 +218,12 @@ without changing ordinary lookup. `Ready()` on that candidate, `GetObject()` /
 `ReloadResource()` helpers all run the same queued contract:
 
 1. purge-lock the exact former owner and invalidate reusable reads once;
-2. read, prepare, and publish payload state only on the detached candidate;
+2. read, convert through the selected format, and publish payload state only on the detached candidate;
 3. require the newest per-key reload token and exact former ownership;
 4. compare-and-swap the fully prepared candidate into MotherLode;
 5. invalidate and clean the displaced handle after the lookup switch.
 
-Source, format, or prepare failure therefore leaves the former handle, state,
+Source, format, or publication failure therefore leaves the former handle, state,
 payload, and adapters canonical; the failed candidate's attached payload and
 adapters are cleaned and its original error is retained. An otherwise-
 successful candidate that was superseded, deleted, cleared, or replaced rejects
@@ -238,9 +242,9 @@ displaced handle, while fresh lookup sees the committed candidate.
 Every queued, direct, standalone, and candidate resource preparation captures the exact
 MotherLode, canonical key, resource handle, and manager-local ownership
 generation. Delete, Clear, reload replacement, or handle reinsertion makes old
-work stale before it can enter another state/stage or publish. Otherwise-
+work stale before it can enter another state or publish. Otherwise-
 successful obsolete work rejects with `CJS_RESMAN_STALE_RESOURCE_OPERATION`;
-an obsolete source/stage failure preserves its original rejection while
+an obsolete source/format failure preserves its original rejection while
 suppressing `SetError()` on the detached handle.
 
 Candidate work is a normal `Wait()` root and blocks synchronous MotherLode
@@ -248,10 +252,9 @@ replacement while active. MotherLode replacement otherwise remains synchronous
 configuration and rejects with
 `CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS` while queued or direct mutations are
 active. `Wait()` drains queued roots; callers must separately await direct load
-or direct prepare promises before retrying replacement. Started work is not yet
-aborted, and arbitrary values returned by prepare stages still have no generic
-external cleanup hook; only resources/adapters attached to the staged candidate
-participate in deterministic candidate cleanup.
+or direct prepare promises before retrying replacement. Started source or
+format work is not yet aborted; deterministic cleanup applies to the staged
+candidate resource itself.
 
 Automatic scheduling is available only when a caller supplies
 `autoPurgePolicy` to the constructor/`Register()` or calls
@@ -280,64 +283,49 @@ rule. Application retention defaults, automatic resource/payload byte
 estimation, separate CPU/adapter budgets, and purged-resource/device-loss
 recovery policy remain later work.
 
-## Queued load and staged prepare
+## Queued CPU load and publication
 
 `GetObject()`, `LoadObject()`, and resource `Ready()` use two manager-owned
 queues:
 
 ```text
 BACKGROUND: deduplicated source load, limited by maxConcurrentLoads
-MAIN:       read -> configured prepare stages -> resource publication
+MAIN:       reader/format conversion -> resource publication
 ```
 
-Each main-queue stage is a separate item. `maxPrepareTime` is a per-pump budget
-in seconds, and `maxPrepareItemsPerTick` can add an item-count limit. The
-default scheduler keeps promise-based calls working; a `CjsLibrary` or direct
-caller can provide its frame scheduler and default build behavior:
+The main reader/format operation and publication are separate queue items.
+`maxPrepareTime` is a per-pump budget in seconds, and
+`maxPrepareItemsPerTick` can add an item-count limit. The default scheduler
+keeps promise-based calls working; a `CjsLibrary` or direct caller can provide
+its frame scheduler:
 
 ```js
 const resMan = new CjsResMan({
   source,
   maxConcurrentLoads: 8,
   maxPrepareTime: 0.005,
-  queueScheduler: callback => requestAnimationFrame(callback),
-  preparePipelines: {
-    cmf_test: {
-      default: true,
-      version: 1,
-      stages: [
-        {
-          id: "convert-to-cmf",
-          version: 1,
-          name: "convert",
-          prepare: (payload, context) => convertToCmf(payload, context)
-        }
-      ]
-    }
-  }
+  queueScheduler: callback => requestAnimationFrame(callback)
 });
 
 await resMan.FetchResource("res:/model/ship.gr2", {
   requirement: "geometry",
-  preparePipeline: "cmf_test"
+  emit: "cmf"
 });
 ```
 
-The library chooses the named pipeline from registered behavior and detected
-capabilities. `CjsResMan` executes that request; it does not inspect WebGL,
-WebGPU, texture, geometry, or codec support to select one. A request may
-override the default with `preparePipeline` or append direct `prepareStages`.
-Advance a pipeline or stage version when the same retained function identity
-changes behavior through external state.
+The selected format class owns conversion to the promised CPU output.
+`CjsResMan` does not inspect WebGL, WebGPU, texture, geometry, or codec support,
+and it does not run backend realization. An engine consumes the published CPU
+resource afterward through its own explicit operation.
 
 Blue-compatible queue controls are exposed directly on `CjsResMan`:
 `AddToQueue`, `CancelFromQueue`, `GetNextIdForQueue`,
 `PumpMainThreadQueue`, `PauseQueue`, `ResumeQueue`, `GetPendingLoads`, and
 `GetPendingPrepares`. `Update()`/`Tick()` pump work. `Wait()` synchronously
 captures queued resource-operation roots and low-level queue tasks that already
-exist when it is called. Captured resource roots include
-prepare descendants enqueued later; unrelated later roots/tasks do not postpone
-the fence. Failure and queued cancellation count as settlement and remain
+exist when it is called. Captured resource roots include publication work
+enqueued after an asynchronous read; unrelated later roots/tasks do not
+postpone the fence. Failure and queued cancellation count as settlement and remain
 observable through their original operation promises.
 
 By default `Wait()` pumps the two queues directly within their ordinary budgets

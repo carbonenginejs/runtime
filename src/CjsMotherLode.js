@@ -383,7 +383,7 @@ export class CjsMotherLode
    * Supplying `variant` retains compatibility with the former path-first API.
    *
    * @param {string} key Canonical resolved key, or normalized source path with `variant`.
-   * @param {string} [variant] Optional compatibility build variant.
+   * @param {string} [variant] Optional promised-output variant.
    * @returns {boolean} Whether the resolved identity is registered.
    * @throws {TypeError} If the identity cannot be normalized.
    */
@@ -397,7 +397,7 @@ export class CjsMotherLode
    * Supplying `variant` retains compatibility with the former path-first API.
    *
    * @param {string} key Canonical resolved key, or normalized source path with `variant`.
-   * @param {string} [variant] Optional compatibility build variant.
+   * @param {string} [variant] Optional promised-output variant.
    * @returns {object|Function|null} Registered resource, or `null` when absent.
    * @throws {TypeError} If the identity cannot be normalized.
    */
@@ -430,7 +430,7 @@ export class CjsMotherLode
   }
 
   /**
-   * Remove every resolved build variant for one normalized source path.
+   * Remove every promised-output variant for one normalized source path.
    * All matching identities are forgotten before cleanup begins.
    *
    * @param {string} path Source resource path whose canonical variants are removed.
@@ -550,7 +550,7 @@ export class CjsMotherLode
    * Locking an absent identity is a no-op.
    *
    * @param {string} key Canonical resolved key, or normalized source path with `variant`.
-   * @param {string} [variant] Optional compatibility build variant.
+   * @param {string} [variant] Optional promised-output variant.
    * @returns {number} New lock count, or `0` when the identity is absent.
    * @throws {TypeError} If the identity cannot be normalized.
    */
@@ -570,7 +570,7 @@ export class CjsMotherLode
    * Unlocking does not itself classify an entry as cached or evict it.
    *
    * @param {string} key Canonical resolved key, or normalized source path with `variant`.
-   * @param {string} [variant] Optional compatibility build variant.
+   * @param {string} [variant] Optional promised-output variant.
    * @returns {number} Remaining lock count, or `0` when absent or already unlocked.
    * @throws {TypeError} If the identity cannot be normalized.
    */
@@ -911,7 +911,7 @@ export class CjsMotherLode
    *
    * @deprecated Use `HasKey(getMotherLodeKey(path, variant))`.
    * @param {string} path Source resource path.
-   * @param {string} [variant] Optional build variant.
+   * @param {string} [variant] Optional promised-output variant.
    * @returns {boolean} Whether the resolved identity is registered.
    */
   Has(path, variant = undefined)
@@ -1144,7 +1144,7 @@ export class CjsMotherLode
 
 /**
  * Build the canonical normalized identity shared by CjsResMan and MotherLode.
- * The source path and build variant are separated with an internal null byte;
+ * The source path and promised-output variant are separated with an internal null byte;
  * variants therefore may not contain that delimiter.
  *
  * @param {string} path Source resource path normalized with Carbon path rules.

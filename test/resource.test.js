@@ -191,12 +191,13 @@ test("runtime-owned Carbon resource classes are canonical CjsResource implementa
   );
 });
 
-test("CjsResMan.Register adds formats and semantic resource types", () => {
+test("CjsResMan.Register adds formats and semantic resource types", async () => {
   class CjsTestFormat
   {
     static inputTypes = [ "foo", "bar" ];
     static outputTypes = [ "granny" ];
-    static read(input) { return input; }
+    static debugOutputTypes = [ "cmfJson" ];
+    static read(input, options) { return { input, emit: options.emit }; }
   }
 
   const source = { Read() { return new Uint8Array([ 1 ]); } };
@@ -209,12 +210,45 @@ test("CjsResMan.Register adds formats and semantic resource types", () => {
   assert.equal(resMan.source, source);
   assert.equal(resMan.ResolveFormat("foo", { emit: "granny" }), CjsTestFormat);
   assert.equal(resMan.ResolveFormat("bar", { emit: "granny" }), CjsTestFormat);
+  assert.equal(resMan.ResolveFormat("foo", { emit: "cmfjson" }), CjsTestFormat);
+  assert.deepEqual(
+    await resMan.ReadFormat(resMan.GetFormatDescriptors("foo")[0], 7, { emit: "cmfjson" }),
+    { input: 7, emit: "cmfJson" }
+  );
+  assert.throws(
+    () => resMan.ResolveFormat("foo", { emit: "cmf" }),
+    error => error.code === "CJS_RESOURCE_FORMAT_OUTPUT_MISSING"
+      && error.ext === "foo"
+      && error.emit === "cmf"
+  );
+  assert.throws(
+    () => resMan.GetResource("res:/character/value.foo", { emit: "cmf" }),
+    error => error.code === "CJS_RESOURCE_FORMAT_OUTPUT_MISSING"
+  );
+  resMan.GetResource("res:/character/cached.foo", { variant: "cmf" });
+  assert.throws(
+    () => resMan.GetResource("res:/character/cached.foo", {
+      variant: "cmf",
+      emit: "cmf"
+    }),
+    error => error.code === "CJS_RESOURCE_FORMAT_OUTPUT_MISSING"
+  );
   assert.equal(
     resMan.GetResource("res:/character/value.foo", { requirement: "granny" }) instanceof TriGrannyRes,
     true
   );
   assert.equal(resMan.Register({ formats: [ CjsTestFormat ] }), resMan);
   assert.deepEqual(resMan.GetFormats("foo"), [ CjsTestFormat ]);
+
+  resMan.RegisterObjectLoader("plain", value => value);
+  resMan.GetResource("res:/character/cached.plain", { variant: "cmf" });
+  assert.throws(
+    () => resMan.GetResource("res:/character/cached.plain", {
+      variant: "cmf",
+      emit: "cmf"
+    }),
+    error => error.code === "CJS_RESOURCE_FORMAT_OUTPUT_MISSING"
+  );
 });
 
 test("CjsResource exposes Carbon-style lifecycle methods and schema", () => {
@@ -260,208 +294,101 @@ test("CjsMotherLode cache is reused through CjsResMan.GetResource", () => {
   assert.equal(resMan.motherLode.GetCount(), 1);
 });
 
-test("CjsResMan build identity separates same-named functions and explicit versions", () =>
+test("CjsResMan identity is source path plus promised output", () =>
 {
   const resMan = new CjsResMan();
-  const FirstClass = function SharedClass() {};
-  const SecondClass = function SharedClass() {};
-  const path = "res:/data/build-identity.bin";
-  const firstOptions = {
-    buildKey: "payload-reader",
-    buildVersion: 1,
-    classes: { Root: FirstClass },
-    formatOptions: { quality: { level: 2 } }
-  };
-  const first = resMan.GetResource(path, firstOptions);
-  const equivalent = resMan.GetResource(path, {
-    buildKey: "payload-reader",
-    buildVersion: 1,
-    classes: { Root: FirstClass },
-    formatOptions: { quality: { level: 2 } }
+  const converted = resMan.GetResource("res:/ship.gr2", {
+    requirement: "geometry",
+    emit: "cmf",
+    formatOptions: { debug: false }
   });
-  const sameNamedClass = resMan.GetResource(path, {
-    ...firstOptions,
-    classes: { Root: SecondClass }
+  const equivalent = resMan.GetResource("RES:/SHIP.GR2", {
+    requirement: "geometry",
+    emit: "CMF",
+    formatOptions: { debug: true }
   });
-  const nextVersion = resMan.GetResource(path, {
-    ...firstOptions,
-    buildVersion: 2
-  });
+  const native = resMan.GetResource("res:/ship.gr2", { emit: "gr2" });
+  const packaged = resMan.GetResource("res:/ship.cmf", { emit: "cmf" });
 
-  assert.equal(equivalent, first);
-  assert.notEqual(sameNamedClass, first);
-  assert.notEqual(nextVersion, first);
+  assert.equal(equivalent, converted);
+  assert.notEqual(native, converted);
+  assert.notEqual(packaged, converted);
+  assert.equal(resMan.GetResourceVariant({ emit: "CMF" }), "cmf");
+  assert.equal(resMan.GetResourceVariant({ requirement: "Geometry" }), "geometry");
+  assert.equal(resMan.GetResourceVariant({ variant: "cmf2", emit: "cmf" }), "cmf2");
+  assert.equal(resMan.Lookup("res:/ship.gr2", { emit: "cmf" }), converted);
   assert.equal(resMan.motherLode.GetSize(), 3);
-
-  const sparse = new Array(1);
-  assert.notEqual(
-    resMan.GetResourceVariant({ formatOptions: { items: [] } }),
-    resMan.GetResourceVariant({ formatOptions: { items: sparse } })
-  );
-
-  const accessorOptions = {};
-  Object.defineProperty(accessorOptions, "formatOptions", {
-    enumerable: true,
-    get: () => ({ quality: 1 })
-  });
   assert.throws(
-    () => resMan.GetResourceVariant(accessorOptions),
-    /requires enumerable data properties/u
+    () => resMan.GetResourceVariant({ variant: {} }),
+    /variant must be a non-empty string/u
   );
-
-  const accessorArray = [];
-  Object.defineProperty(accessorArray, "0", {
-    enumerable: true,
-    get: () => "hidden"
-  });
   assert.throws(
-    () => resMan.GetResourceVariant({ formatOptions: { items: accessorArray } }),
-    /requires plain array elements/u
+    () => resMan.GetResourceVariant({ variant: "", emit: "cmf" }),
+    /variant must be a non-empty string/u
   );
-
-  const circular = {};
-  circular.self = circular;
-  assert.throws(
-    () => resMan.GetResource(path, { formatOptions: circular }),
-    /does not support circular material options/u
-  );
-  assert.equal(resMan.motherLode.GetSize(), 3);
 });
 
-test("CjsResMan snapshots mutable plain build options for identity and reconstruction", async () =>
+test("bound resource handles keep their promised output during reconstruction", async () =>
 {
-  const resMan = new CjsResMan({
-    source: { Read: () => new Uint8Array([ 1 ]) }
-  });
-  resMan.RegisterObjectLoader("bin", (bytes, context) => ({
-    bytes,
-    mode: context.formatOptions.mode
-  }));
-
-  const path = "res:/data/build-option-snapshot.bin";
-  const formatOptions = { mode: "first" };
-  const first = resMan.GetResource(path, { formatOptions });
-  formatOptions.mode = "second";
-  const second = resMan.GetResource(path, { formatOptions });
-
-  assert.notEqual(second, first);
-  assert.equal((await first.Ready()).mode, "first");
-  assert.equal((await second.Ready()).mode, "second");
-});
-
-test("CjsResMan snapshots loaders and versioned pipelines for existing resources", async () =>
-{
-  const resMan = new CjsResMan({
-    source: { Read: () => new Uint8Array([ 1 ]) }
-  });
-  const path = "res:/data/registered-build-snapshot.bin";
-  const firstStage = value => ({ ...value, pipeline: "first" });
-  const secondStage = value => ({ ...value, pipeline: "second" });
-
-  resMan.RegisterObjectLoader("bin", () => ({ loader: "first" }));
-  resMan.RegisterPreparePipeline("selected", firstStage, {
-    default: true,
-    version: 1
-  });
-  const first = resMan.GetResource(path);
-
-  resMan.RegisterObjectLoader("bin", () => ({ loader: "second" }));
-  resMan.RegisterPreparePipeline("selected", secondStage, {
-    default: true,
-    version: 2
-  });
-  const second = resMan.GetResource(path);
-
-  assert.notEqual(second, first);
-  assert.deepEqual(await first.Ready(), {
-    loader: "first",
-    pipeline: "first"
-  });
-  assert.deepEqual(await second.Ready(), {
-    loader: "second",
-    pipeline: "second"
-  });
-  assert.equal(resMan.Lookup(path), second);
-});
-
-test("CjsResMan snapshots registered format behavior and defaults", async () =>
-{
-  class CjsVersionedFormat
+  let reads = 0;
+  class CjsBoundOutputFormat
   {
-    static inputTypes = [ "versioned" ];
-    static outputTypes = [ "raw" ];
-    static isSupported() { return true; }
+    static inputTypes = [ "boundoutput" ];
+    static outputTypes = [ "cmf", "gr2" ];
 
-    static read(bytes, options)
+    static read(_bytes, options)
     {
-      return { bytes, mode: options.mode, reader: "first" };
+      reads += 1;
+      return { emit: options.emit, reads };
     }
   }
 
-  class CjsAlternateFormat
-  {
-    static inputTypes = [ "versioned" ];
-    static outputTypes = [ "raw" ];
-    static isSupported() { return false; }
-
-    static read(bytes, options)
-    {
-      return { bytes, mode: options.mode, reader: "unused" };
-    }
-  }
-
+  const path = "res:/ship.boundoutput";
   const resMan = new CjsResMan({
-    source: { Read: () => new Uint8Array([ 1 ]) }
+    source: { Read() { return new Uint8Array([ 1 ]); } }
+  }).RegisterFormat(CjsBoundOutputFormat);
+  const resource = resMan.GetResource(path, {
+    variant: "cmf",
+    emit: "cmf",
+    pipeline: "ignored",
+    preparePipeline: "ignored",
+    prepareStages: [ () => { throw new Error("must not be retained"); } ]
   });
-  const path = "res:/data/format-snapshot.versioned";
-  resMan.RegisterFormat(CjsVersionedFormat, { mode: "first" });
-  resMan.RegisterFormat(CjsAlternateFormat, { mode: "unused" });
-  const first = resMan.GetResource(path, { emit: "raw" });
 
-  CjsVersionedFormat.isSupported = () => false;
-  CjsVersionedFormat.read = (bytes, options) => ({
-    bytes,
-    mode: options.mode,
-    reader: "changed"
-  });
-  CjsAlternateFormat.isSupported = () => true;
-  CjsAlternateFormat.read = (bytes, options) => ({
-    bytes,
-    mode: options.mode,
-    reader: "second"
-  });
-  resMan.RegisterFormat(CjsVersionedFormat, { mode: "changed" });
-  resMan.RegisterFormat(CjsAlternateFormat, { mode: "second" });
-  const second = resMan.GetResource(path, { emit: "raw" });
-
-  assert.notEqual(second, first);
-  assert.deepEqual(await first.Ready(), {
-    bytes: new Uint8Array([ 1 ]),
-    mode: "first",
-    reader: "first"
-  });
-  assert.deepEqual(await second.Ready(), {
-    bytes: new Uint8Array([ 1 ]),
-    mode: "second",
-    reader: "second"
-  });
+  assert.equal(Object.isFrozen(resource.GetObjectRequest()), true);
+  assert.equal(resource.GetObjectRequest().variant, "cmf");
+  assert.equal(resource.GetObjectRequest().emit, "cmf");
+  assert.equal(Object.hasOwn(resource.GetObjectRequest(), "pipeline"), false);
+  assert.equal(Object.hasOwn(resource.GetObjectRequest(), "preparePipeline"), false);
+  assert.equal(Object.hasOwn(resource.GetObjectRequest(), "prepareStages"), false);
+  assert.deepEqual(await resource.Ready({ emit: "gr2" }), { emit: "cmf", reads: 1 });
+  resource.ReleasePayload();
+  assert.deepEqual(
+    await resMan.GetObject(path, { variant: "cmf", emit: "gr2" }),
+    { emit: "cmf", reads: 2 }
+  );
+  assert.equal(resMan.motherLode.GetSize(), 1);
 });
 
-test("CjsResMan snapshots semantic resource constructors", () =>
+test("registration changes do not create hidden resource identities", () =>
 {
   class FirstResource extends CjsResource {}
   class SecondResource extends CjsResource {}
 
   const resMan = new CjsResMan();
-  const path = "res:/data/resource-type-snapshot.bin";
-  resMan.RegisterResourceType("versioned", FirstResource);
-  const first = resMan.GetResource(path, { requirement: "versioned" });
-  resMan.RegisterResourceType("versioned", SecondResource);
-  const second = resMan.GetResource(path, { requirement: "versioned" });
+  const path = "res:/data/configured.bin";
+  resMan.RegisterResourceType("configured", FirstResource);
+  const first = resMan.GetResource(path, { requirement: "configured" });
 
-  assert.equal(first instanceof FirstResource, true);
-  assert.equal(second instanceof SecondResource, true);
-  assert.notEqual(second, first);
+  resMan.RegisterResourceType("configured", SecondResource);
+  const sameIdentity = resMan.GetResource(path, { requirement: "configured" });
+  assert.equal(sameIdentity, first);
+  assert.equal(sameIdentity instanceof FirstResource, true);
+
+  assert.equal(resMan.Delete(path, { requirement: "configured" }), true);
+  const afterExplicitReset = resMan.GetResource(path, { requirement: "configured" });
+  assert.notEqual(afterExplicitReset, first);
+  assert.equal(afterExplicitReset instanceof SecondResource, true);
 });
 
 test("CjsMotherLode exposes canonical identity and activity diagnostics", () =>
@@ -833,6 +760,7 @@ test("CjsResMan stages reload candidates and cleans displaced ownership only aft
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
   const path = "res:/data/reload.json";
   const first = resMan.GetResource(path);
+  assert.equal(first.IsCurrent(), true);
   let firstDestroyed = 0;
   first.SetPayload({ value: 1 });
   first.SetAdapterResource("test", { destroy() { firstDestroyed += 1; } });
@@ -848,12 +776,15 @@ test("CjsResMan stages reload candidates and cleans displaced ownership only aft
   assert.equal(firstDestroyed, 1);
   assert.equal(first.HasPayload(), false);
   assert.equal(resMan.Lookup(path), replacement);
+  assert.equal(first.IsCurrent(), false);
+  assert.equal(replacement.IsCurrent(), true);
 
   let replacementDestroyed = 0;
   replacement.SetAdapterResource("test", { destroy() { replacementDestroyed += 1; } });
   assert.equal(resMan.Delete(path), true);
   assert.equal(replacementDestroyed, 1);
   assert.equal(replacement.HasPayload(), false);
+  assert.equal(replacement.IsCurrent(), false);
 
   const cleared = resMan.GetResource("res:/data/clear.bin");
   let clearedDestroyed = 0;
@@ -891,36 +822,24 @@ test("failed reload source work preserves the exact good owner and cleans its ca
   assert.equal(candidate.IsFailed(), true);
 });
 
-test("failed reload preparation preserves the good owner and releases staged adapters", async () =>
+test("failed reload CPU read preserves the good owner and releases candidate adapters", async () =>
 {
-  const expectedError = new Error("expected reload prepare failure");
-  const path = "res:/data/reload-prepare-failure.json";
+  const expectedError = new Error("expected reload CPU read failure");
+  const path = "res:/data/reload-read-failure.json";
   let candidateDestroyed = 0;
   const resMan = new CjsResMan({
-    source: { Read: () => "{\"revision\":2}" },
-    preparePipelines: {
-      fail: {
-        default: true,
-        stages: [ {
-          name: "fail",
-          prepare(value, context)
-          {
-            context.resource.SetAdapterResource("candidate", {
-              destroy() { candidateDestroyed += 1; }
-            });
-            throw expectedError;
-          }
-        } ]
-      }
-    }
+    source: { Read: () => "{\"revision\":2}" }
   });
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  resMan.RegisterObjectLoader("json", () => { throw expectedError; });
   const current = resMan.GetResource(path);
   const currentPayload = { revision: 1 };
   current.SetPayload(currentPayload);
   current.MarkLoaded();
 
   const candidate = resMan.GetResource(path, { reload: true });
+  candidate.SetAdapterResource("candidate", {
+    destroy() { candidateDestroyed += 1; }
+  });
   await assert.rejects(candidate.Ready(), error => error === expectedError);
 
   assert.equal(resMan.Lookup(path), current);
@@ -2100,6 +2019,27 @@ test("ReloadResource consumes freshness once and returns the committed canonical
   assert.equal(sourceReads, 2);
 });
 
+test("reload candidates retain the source selected before delayed readiness", async () =>
+{
+  let sourceAReads = 0;
+  let sourceBReads = 0;
+  const sourceA = { Read() { sourceAReads += 1; return `{"source":"a","read":${sourceAReads}}`; } };
+  const sourceB = { Read() { sourceBReads += 1; return `{"source":"b","read":${sourceBReads}}`; } };
+  const path = "res:/data/delayed-reload-source.json";
+  const resMan = new CjsResMan({ source: sourceA });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+
+  await resMan.FetchResource(path);
+  const candidate = resMan.GetResource(path, { reload: true });
+  resMan.SetSource(sourceB);
+
+  assert.deepEqual(await candidate.Ready(), { source: "a", read: 2 });
+  candidate.ReleasePayload();
+  assert.deepEqual(await candidate.Ready(), { source: "a", read: 3 });
+  assert.equal(sourceAReads, 3);
+  assert.equal(sourceBReads, 0);
+});
+
 test("ReloadResource invalidates retained reads before creating a first canonical owner", async () =>
 {
   let revision = 1;
@@ -2151,6 +2091,7 @@ test("source revision scopes shared source and parsed format operations", async 
   const path = "res:/data/value.revisioncache";
   const resMan = new CjsResMan({ source }).RegisterFormat(CjsRevisionCacheFormat);
   const revisionOneA = await resMan.GetObject(path, {
+    variant: "revision-one-a",
     requirement: "one-a",
     emit: "raw",
     sourceRevision: 1,
@@ -2158,11 +2099,13 @@ test("source revision scopes shared source and parsed format operations", async 
     cacheFormat: true
   });
   const revisionOneB = await resMan.GetObject(path, {
+    variant: "revision-one-b",
     requirement: "one-b",
     emit: "raw",
     sourceRevision: 1
   });
   const revisionTwo = await resMan.GetObject(path, {
+    variant: "revision-two",
     requirement: "two",
     emit: "raw",
     sourceRevision: 2,
@@ -2200,6 +2143,7 @@ test("format caches isolate source objects and registration descriptors", async 
   const resMan = new CjsResMan({ source: sourceA })
     .RegisterFormat(CjsDescriptorCacheFormat, { multiplier: 1 });
   const fromA = await resMan.GetObject(path, {
+    variant: "source-a",
     source: sourceA,
     requirement: "source-a",
     emit: "raw",
@@ -2208,6 +2152,7 @@ test("format caches isolate source objects and registration descriptors", async 
     cacheFormat: true
   });
   const fromB = await resMan.GetObject(path, {
+    variant: "source-b",
     source: sourceB,
     requirement: "source-b",
     emit: "raw",
@@ -2220,6 +2165,7 @@ test("format caches isolate source objects and registration descriptors", async 
 
   resMan.RegisterFormat(CjsDescriptorCacheFormat, { multiplier: 3 });
   const reregistered = await resMan.GetObject(path, {
+    variant: "descriptor-v2",
     source: sourceA,
     requirement: "descriptor-v2",
     emit: "raw",
@@ -2227,6 +2173,7 @@ test("format caches isolate source objects and registration descriptors", async 
     cacheFormat: true
   });
   const bypassed = await resMan.GetObject(path, {
+    variant: "descriptor-bypass",
     source: sourceA,
     requirement: "descriptor-bypass",
     emit: "raw",
@@ -2234,6 +2181,7 @@ test("format caches isolate source objects and registration descriptors", async 
     cacheFormat: false
   });
   const retained = await resMan.GetObject(path, {
+    variant: "descriptor-v2",
     source: sourceA,
     requirement: "descriptor-retained",
     emit: "raw",
@@ -2277,6 +2225,7 @@ test("format cache identity distinguishes same-named class constructors", async 
   const path = "res:/data/classes.classidentity";
   const resMan = new CjsResMan({ source }).RegisterFormat(CjsClassIdentityFormat);
   const first = await resMan.GetObject(path, {
+    variant: "class-a",
     requirement: "class-a",
     emit: "raw",
     classes: { Root: ClassA },
@@ -2285,6 +2234,7 @@ test("format cache identity distinguishes same-named class constructors", async 
     cacheFormat: true
   });
   const second = await resMan.GetObject(path, {
+    variant: "class-b",
     requirement: "class-b",
     emit: "raw",
     classes: { Root: ClassB },
@@ -2321,6 +2271,7 @@ test("non-canonical format options bypass retained format sharing", async () =>
   const formatOptions = { timestamp: new Date(0) };
   const resMan = new CjsResMan({ source }).RegisterFormat(CjsNonCanonicalCacheFormat);
   const first = await resMan.GetObject(path, {
+    variant: "noncanonical-a",
     requirement: "noncanonical-a",
     emit: "raw",
     formatOptions,
@@ -2329,6 +2280,7 @@ test("non-canonical format options bypass retained format sharing", async () =>
     cacheFormat: true
   });
   const second = await resMan.GetObject(path, {
+    variant: "noncanonical-b",
     requirement: "noncanonical-b",
     emit: "raw",
     formatOptions,
@@ -2526,7 +2478,13 @@ test("released resources retain source provenance but not cache policy", async (
   }).source, 1);
 
   resource.ReleasePayload();
-  assert.deepEqual(await resource.Ready(), { source: "original" });
+  assert.deepEqual(
+    await resMan.GetObject(path, {
+      source: laterDefaultSource,
+      sourceRevision: "different-v2"
+    }),
+    { source: "original" }
+  );
   assert.equal(originalReads, 2);
   assert.equal(laterDefaultReads, 0);
   assert.equal(resMan.InvalidateReadCache(path, {

@@ -15,6 +15,7 @@ import { getResourceExtension, normalizeResourcePath } from "./resourcePath.js";
  * The controller deliberately contains no load, fetch, prepare, or reload hook.
  *
  * @typedef {object} CjsResourceLifecycleController
+ * @property {Function} [isCurrent] Tests exact canonical manager ownership without renewing activity.
  * @property {Function} [keepAlive] Renews canonical identity activity.
  * @property {Function} [keepPayloadAlive] Renews identity and CPU-payload activity.
  * @property {Function} [lock] Adds one inactivity-purge lock and returns its count.
@@ -65,6 +66,12 @@ export class CjsResource extends CjsEventEmitter
       writable: true
     });
     Object.defineProperty(this, "__objectLoader", {
+      value: null,
+      enumerable: false,
+      configurable: true,
+      writable: true
+    });
+    Object.defineProperty(this, "__objectRequest", {
       value: null,
       enumerable: false,
       configurable: true,
@@ -359,7 +366,7 @@ export class CjsResource extends CjsEventEmitter
     {
       throw new TypeError("CjsResource lifecycle controller must be an object or null.");
     }
-    for (const name of [ "keepAlive", "keepPayloadAlive", "lock", "unlock" ])
+    for (const name of [ "isCurrent", "keepAlive", "keepPayloadAlive", "lock", "unlock" ])
     {
       if (controller?.[name] !== undefined && typeof controller[name] !== "function")
       {
@@ -368,6 +375,20 @@ export class CjsResource extends CjsEventEmitter
     }
     this.__lifecycleController = controller;
     return this;
+  }
+
+  /**
+   * Return whether this handle is still the manager's canonical resource.
+   *
+   * Engine adapters use this immediately before synchronously attaching a
+   * completed backend candidate. Detached resources return `false`; the query
+   * never renews activity, reloads data, or mutates lifecycle state.
+   *
+   * @returns {boolean} Whether the bound manager still owns this exact handle.
+   */
+  IsCurrent()
+  {
+    return Boolean(this.__lifecycleController?.isCurrent?.());
   }
 
   /**
@@ -424,19 +445,41 @@ export class CjsResource extends CjsEventEmitter
   }
 
   /**
-   * Bind the manager-owned object operation for this shared resource handle.
+   * Bind the manager-owned object operation and compact reconstruction request
+   * for this shared resource handle. The request contains source provenance
+   * and requested-output defaults, not reader implementations or registry
+   * history.
    *
-   * @param {Function|null} loader
-   * @returns {CjsResource}
+   * @param {Function|null} loader Manager callback, or `null` to detach it.
+   * @param {object|null} [request=null] Compact reconstruction defaults retained with the handle.
+   * @returns {CjsResource} This resource with the supplied loader binding.
+   * @throws {TypeError} If the loader or reconstruction request is invalid.
    */
-  SetObjectLoader(loader = null)
+  SetObjectLoader(loader = null, request = null)
   {
     if (loader !== null && typeof loader !== "function")
     {
       throw new TypeError("CjsResource.SetObjectLoader requires a function or null.");
     }
+    if (request !== null && (!request || typeof request !== "object" || Array.isArray(request)))
+    {
+      throw new TypeError("CjsResource.SetObjectLoader request must be an object or null.");
+    }
     this.__objectLoader = loader;
+    this.__objectRequest = request === null ? null : Object.freeze({ ...request });
     return this;
+  }
+
+  /**
+   * Return the compact manager request retained for explicit reconstruction.
+   * This query is pure and exposes no reader, constructor, or implementation
+   * identity.
+   *
+   * @returns {Readonly<object>|null} Frozen reconstruction defaults, or `null` when unbound.
+   */
+  GetObjectRequest()
+  {
+    return this.__objectRequest;
   }
 
   /**
@@ -447,7 +490,11 @@ export class CjsResource extends CjsEventEmitter
    * manager. Detached or purged handles do not revive themselves: their loader
    * resolves the manager's current canonical identity.
    *
-   * @param {object} [options={}] Source, format, semantic outcome, and prepare options forwarded to the manager.
+   * Promised-output fields retained by the handle take precedence over fields
+   * supplied here; operation policy such as cache/reload controls may still be
+   * overridden.
+   *
+   * @param {object} [options={}] Source, format, semantic outcome, and queue options forwarded to the manager.
    * @returns {Promise<*>} In-flight, resident, or reconstructed object outcome.
    */
   GetObject(options = {})
@@ -466,7 +513,7 @@ export class CjsResource extends CjsEventEmitter
    * in-flight operation, returns resident payload without loading, and treats a
    * call after payload release as an explicit reconstruction request.
    *
-   * @param {object} [options={}] Source, format, semantic outcome, and prepare options forwarded to the manager.
+   * @param {object} [options={}] Source, format, semantic outcome, and queue options forwarded to the manager.
    * @returns {Promise<*>} In-flight, resident, or reconstructed object outcome.
    */
   Ready(options = {})

@@ -48,11 +48,11 @@ Current state meanings:
 
 - `EMPTY`: resource identity exists, but no payload has been read.
 - `REQUESTED`: the resource is waiting on a queued or shared source load.
-- `LOADING`: source bytes are available and staged object preparation is active.
+- `LOADING`: source bytes are available and CPU reader/format work is active.
 - `LOADED`: CPU payload or hydrated object graph exists.
 - `PREPARING`: an engine adapter is realizing backend-owned resources.
 - `PREPARED`: preparation completed successfully and the resource is usable.
-- `FAILED`: load or prepare failed.
+- `FAILED`: CPU loading, conversion, validation, or publication failed before a valid payload was published.
 - `UNLOADED`: resource payload was released.
 - `PURGED`: an inactivity or recorded-byte cache policy evicted the resource
   from active ownership. Ordinary replacement, `Delete()`, `Clear()`,
@@ -65,45 +65,48 @@ After bytes arrive, object construction is split into separate main-queue
 items:
 
 ```text
-read -> registered/requested prepare stage 1 -> stage 2 -> ... -> publish
+reader/format conversion -> publish
 ```
 
 `maxPrepareTime` limits seconds spent starting synchronous main-queue work in
 one pump, and `maxPrepareItemsPerTick` can add a count limit. Promise-returning
-stages remain in flight without blocking the JavaScript event loop. Publication
-moves the resource to `LOADED`, then stops. It must not mark the resource
-`PREPARED` or `GOOD` unless an explicitly supplied preparation stage has
-actually completed backend realization and marked it accordingly.
+format work remains in flight without blocking the JavaScript event loop.
+Publication moves the resource to `LOADED`, then stops. ResMan never performs
+backend realization or marks the resource `PREPARED`/`GOOD`.
 
-Named pipelines are registration/configuration, not capability policy.
-`CjsLibrary` or a direct caller determines the required output and selects a
-registered `preparePipeline`; `CjsResMan` executes the supplied stages without
-probing device support. Per-request `prepareStages` are explicit overrides.
+Format classes own conversion to the promised CPU output. Backend realization
+is a separate explicit engine operation after publication. A realization
+failure destroys its candidate and returns a current resource to `LOADED`
+without discarding the valid CPU payload; an existing usable adapter may remain
+`PREPARED`.
 
-Every requested handle captures an immutable build plan before MotherLode
-lookup. The plan owns the selected resource constructor, direct loader or
-candidate format descriptors, defaults, and reader functions; named pipeline
-version and stages; and snapshotted material options. Plain objects/arrays use
-frozen value semantics; functions and opaque instances use process-local
-identity. `buildKey` and `buildVersion` are the explicit escape hatch for caller-owned recipes whose
-retained functions/instances change behavior without changing JavaScript
-identity. Registering a replacement reader or pipeline creates a different
-identity for later requests. Existing handles retain their former plan for
-payload reconstruction.
+Every requested handle uses a normalized source path plus one promised output
+tag. `variant` is explicit; `emit`, `requirement`, and `payload` are fallbacks.
+The selected constructor, reader, and format defaults/options are setup-time
+execution details, not MotherLode identity. A changed
+registration does not create a hidden second resource; reset the affected
+identity or create a new manager. A changed output contract uses a new tag.
 
-This closes the immutable/versioned build-key part of the active plan with a
-smaller ownership seam than originally proposed: CjsLibrary keeps named
-behavior and capability selection, while CjsResMan snapshots only the resolved
-execution recipe. There is no second behavior registry in ResMan and no
-persistent/public arbitrary-object hash. Source/revision/cache/reload/queue
-controls stay per operation and outside build identity.
+Output matching is case-insensitive, then the canonical declaration spelling
+is passed to the format reader. Direct object loaders expose only their
+unforced default; multiple named outputs belong on a format class. Unsupported
+output is rejected before a MotherLode cache hit can return.
+
+Releasing an unlocked CPU payload keeps the lightweight handle and a small
+reconstruction request containing its path/output and source provenance. Its
+promised-output fields and retained source provenance remain pinned during
+`Ready()`/`GetObject()` so another output/source cannot silently replace the
+old identity. `Ready()` may re-read and rebuild it through current
+registrations. Queries, lease renewal, sweeps, and adapter cleanup never
+trigger that read. Engine adapters own their backend allocations and may
+release those independently.
 
 The Blue method names remain the public queue vocabulary: `AddToQueue`,
 `CancelFromQueue`, `GetNextIdForQueue`, `PumpMainThreadQueue`, `PauseQueue`,
 `ResumeQueue`, `GetPendingLoads`, and `GetPendingPrepares`. `Update()`/`Tick()`
 pump queues. `Wait()` snapshots queued resource-operation roots and already
 submitted low-level queue tasks before its first await. Captured roots remain
-open through dynamically enqueued descendant stages, publication/failure, and
+open through publication enqueued after an asynchronous read, failure, and
 lock release; later unrelated roots/tasks are excluded. Failure and queued
 cancellation cross the fence without making `Wait()` reject.
 
@@ -131,7 +134,7 @@ Application / runtime object
 |                                               |
 | - starts from registered default behavior     |
 | - considers registered capability reports     |
-| - chooses requirement / emit / pipeline       |
+| - chooses requirement / emit / format         |
 | - applies explicit request overrides          |
 +-----------------------------------------------+
         |
@@ -140,9 +143,8 @@ Application / runtime object
 +-----------------------------------------------+
 | CjsResMan.GetResource(path, options)          |
 |                                               |
-| - normalize path and extension                |
-| - snapshot constructor / reader / pipeline    |
-| - calculate immutable build variant           |
+| - normalize source path and extension         |
+| - resolve the promised output tag             |
 +-----------------------------------------------+
         |
         v
@@ -186,22 +188,13 @@ Application / runtime object
 +-----------------------------------------------+
 | Read stage                                    |
 |                                               |
-| captured object loader for extension?         |
+| current object loader for extension?          |
 |   yes -> call it                              |
-|   no  -> resolve within captured formats by   |
+|   no  -> resolve registered formats by        |
 |          bytes + request options               |
 +-----------------------------------------------+
         |
         | plain payload / hydrated object
-        v
-+-----------------------------------------------+
-| Optional configured prepare stages            |
-|                                               |
-| stage 1 -> stage 2 -> ...                     |
-| examples: normalize, convert, adapt           |
-+-----------------------------------------------+
-        |
-        | no configured stages skips this box
         v
 +-----------------------------------------------+
 | Publish stage                                 |
@@ -224,20 +217,22 @@ Application / runtime object
              the built CjsResource/object
 ```
 
-Device realization is a separate continuation selected outside ResMan:
+Device realization is a separate continuation selected outside ResMan. It can
+run again after adapter eviction or device loss while the CPU payload remains
+resident:
 
 ```text
 CjsResource LOADED
         |
         | selected engine adapter
         v
-PREPARING -> attach opaque adapter resource -> PREPARED
-```
+PREPARING
+        |
+        | create candidate -> verify current target -> synchronous attach
+        v
+PREPARED
 
-With no named or direct prepare stages, the main queue reduces to:
-
-```text
-extension object-loader/format read -> validate -> publish
+failure: destroy candidate -> LOADED (CPU payload retained)
 ```
 
 ## Texture Array Generations
@@ -288,8 +283,7 @@ ccpwgl handles:
 - prepare priority and starvation policy
 - cancellation/abort propagation for work that has already started
 - `WaitUrgent()` after real priority and bounded fairness
-- queue-time and stage-time telemetry
-- immutable/versioned build identity
+- queue-time and reader/format-time telemetry
 - application-level default retention policy selection
 - automatic resource/payload byte estimation and separate CPU/adapter budgets
 - explicit purged-resource reconstruction and device-loss recovery policy
@@ -408,7 +402,7 @@ the operation record so its result graph can be reclaimed and a failure can be
 retried. After payload release, only a new explicit object/readiness call
 reconstructs it; queries, lease calls, and purge sweeps do not.
 
-Read-cache provenance is explicit and separate from resource/build identity.
+Read-cache provenance is explicit and separate from path/output resource identity.
 For a selected source object and normalized path, `sourceRevision` is an opaque
 caller/source-supplied string or finite-number content token. Source and format
 records do not share across revisions. Format records are additionally isolated
@@ -457,7 +451,7 @@ run immediately before the synchronous map switch, with no user cleanup or
 After the switch, the displaced ownership generation is invalidated, the
 candidate receives ordinary lifecycle/reconstruction callbacks, and the former
 handle is cleaned exactly once. Existing JavaScript references are not
-retargeted; fresh lookup returns the new handle. Source, format, or prepare
+retargeted; fresh lookup returns the new handle. Source, format, or publication
 failure leaves the exact former state, payload, and adapters canonical, retains
 its original error, and cleans payload/adapters attached to the never-canonical
 candidate. An otherwise-successful candidate that was superseded, deleted,
@@ -471,8 +465,7 @@ the original preparation/stale error as
 canonical. A displaced-owner cleanup failure occurs after publication and
 rejects as `CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED` with a result where
 `committed === true`; the already-good candidate remains canonical.
-Started-work abort and a generic cleanup hook for arbitrary external values
-returned by stages remain separate work.
+Started source/format work abort remains separate work.
 
 This availability contract intentionally differs from Carbon.
 `BlueAsyncRes::Reload` cancels/joins work, releases dependent cached data, and
@@ -484,10 +477,10 @@ last published good handle until a distinct candidate has succeeded.
 Every canonical queued/direct/standalone preparation captures an immutable
 publication authority: exact MotherLode, canonical key, resource handle, and a
 manager-local ownership generation. The manager validates that authority
-before and after state changes, every asynchronous stage, and publication.
+before and after state changes, asynchronous reader/format work, and publication.
 Delete, Clear, successful reload commit, or exact-handle reinsertion therefore makes
 older work reject with `CJS_RESMAN_STALE_RESOURCE_OPERATION` before it can
-publish. If stale work independently rejects, its original source/stage error
+publish. If stale work independently rejects, its original source/format error
 is preserved and `SetError()` is suppressed on the detached handle.
 
 `Register({ motherLode })` rejects with
@@ -495,9 +488,8 @@ is preserved and `SetError()` is suppressed on the detached handle.
 active, including a reload candidate. Normal `Wait()` drains queued roots and
 candidate lineages; a direct caller must await its own load/prepare promise
 before retrying replacement. Canonical and candidate authority prevent late
-publication, but started-work abort remains separate. Arbitrary unattached
-stage-returned values are dropped for GC because no generic external-resource
-cleanup hook exists yet.
+publication, but started-work abort remains separate. Backend candidate
+cleanup belongs to the explicit engine realization operation.
 
 An explicit `PurgeInactive()` sweep accepts separate frame/time limits for
 identity and payload residency. Identity expiry destroys adapter resources,
