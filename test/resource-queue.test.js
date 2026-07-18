@@ -535,7 +535,7 @@ test("stale direct loads preserve their source rejection without marking the det
   assert.equal(resource.HasPayload(), false);
 });
 
-test("a reload generation remains canonical when an older source operation settles last", async () => {
+test("an atomic reload commits before an older canonical operation settles last", async () => {
   const sourceReleases = [];
   const resMan = new CjsResMan({
     autoPumpMainThreadQueue: false,
@@ -557,10 +557,11 @@ test("a reload generation remains canonical when an older source operation settl
     oldOperation,
     error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
   );
-  const replacementOperation = resMan.LoadObject(path, { reload: true });
-  const replacement = resMan.Lookup(path);
+  const replacement = resMan.GetResource(path, { reload: true });
+  const replacementOperation = replacement.Ready();
 
   assert.notEqual(replacement, oldResource);
+  assert.equal(resMan.Lookup(path), oldResource);
   resMan.ResumeQueue(CjsResManQueue.BACKGROUND);
   assert.equal(resMan.PumpBackgroundQueue(), true);
   await WaitUntil(() => sourceReleases.length === 2);
@@ -573,6 +574,7 @@ test("a reload generation remains canonical when an older source operation settl
     await FlushMicrotasks();
   }
   assert.deepEqual(await replacementOperation, { revision: 2 });
+  assert.equal(resMan.Lookup(path), replacement);
 
   sourceReleases[0]("{\"revision\":1}");
   await oldFailure;
@@ -582,6 +584,143 @@ test("a reload generation remains canonical when an older source operation settl
   assert.equal(oldResource.state, "requested");
   assert.equal(oldResource.error, null);
   assert.equal(oldResource.HasPayload(), false);
+});
+
+test("the newest concurrent reload candidate wins regardless of settlement order", async () => {
+  const sourceReleases = [];
+  const resMan = new CjsResMan({
+    autoPumpMainThreadQueue: false,
+    maxConcurrentLoads: 2,
+    source: {
+      Read()
+      {
+        return new Promise(resolve => sourceReleases.push(resolve));
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  resMan.PauseQueue(CjsResManQueue.BACKGROUND);
+
+  const path = "res:/queue/newest-reload-wins.json";
+  const current = resMan.GetResource(path);
+  current.SetPayload({ revision: 0 });
+  current.MarkLoaded();
+  const firstCandidate = resMan.GetResource(path, { reload: true });
+  let firstCandidateDestroyed = 0;
+  firstCandidate.SetAdapterResource("candidate", {
+    destroy() { firstCandidateDestroyed += 1; }
+  });
+  const firstOperation = firstCandidate.Ready();
+  const firstFailure = assert.rejects(
+    firstOperation,
+    error => error.code === "CJS_RESMAN_STALE_RELOAD_CANDIDATE"
+  );
+  const secondCandidate = resMan.GetResource(path, { reload: true });
+  const secondOperation = secondCandidate.Ready();
+
+  assert.equal(resMan.Lookup(path), current);
+  resMan.ResumeQueue(CjsResManQueue.BACKGROUND);
+  assert.equal(resMan.PumpBackgroundQueue(), true);
+  await WaitUntil(() => sourceReleases.length === 2);
+
+  sourceReleases[0]("{\"revision\":1}");
+  await firstFailure;
+  assert.equal(firstCandidateDestroyed, 1);
+  assert.equal(resMan.Lookup(path), current);
+  assert.deepEqual(current.GetPayload(), { revision: 0 });
+
+  sourceReleases[1]("{\"revision\":2}");
+  await WaitUntil(() => resMan.GetPendingPrepares() === 1);
+  for (let stage = 0; stage < 2; stage++)
+  {
+    assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
+    await FlushMicrotasks();
+  }
+  assert.deepEqual(await secondOperation, { revision: 2 });
+  assert.equal(resMan.Lookup(path), secondCandidate);
+  assert.deepEqual(secondCandidate.GetPayload(), { revision: 2 });
+  assert.equal(current.HasPayload(), false);
+});
+
+test("deleting the expected owner during reload prevents candidate resurrection", async () => {
+  let releaseSource;
+  const resMan = new CjsResMan({
+    autoPumpMainThreadQueue: false,
+    source: {
+      Read()
+      {
+        return new Promise(resolve => { releaseSource = resolve; });
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+
+  const path = "res:/queue/delete-during-reload.json";
+  const current = resMan.GetResource(path);
+  current.SetPayload({ revision: 1 });
+  current.MarkLoaded();
+  const candidate = resMan.GetResource(path, { reload: true });
+  let candidateDestroyed = 0;
+  candidate.SetAdapterResource("candidate", {
+    destroy() { candidateDestroyed += 1; }
+  });
+  const operation = candidate.Ready();
+  const failure = assert.rejects(
+    operation,
+    error => error.code === "CJS_RESMAN_STALE_RELOAD_CANDIDATE"
+  );
+
+  assert.equal(resMan.PumpBackgroundQueue(), true);
+  await WaitUntil(() => typeof releaseSource === "function");
+  assert.equal(resMan.Delete(path), true);
+  releaseSource("{\"revision\":2}");
+  await failure;
+
+  assert.equal(resMan.Lookup(path), null);
+  assert.equal(candidateDestroyed, 1);
+  assert.equal(candidate.HasPayload(), false);
+});
+
+test("Wait and MotherLode replacement account for an active reload candidate", async () => {
+  let releaseSource;
+  const resMan = new CjsResMan({
+    autoPumpMainThreadQueue: false,
+    source: {
+      Read()
+      {
+        return new Promise(resolve => { releaseSource = resolve; });
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+
+  const path = "res:/queue/wait-reload-candidate.json";
+  const current = resMan.GetResource(path);
+  current.SetPayload({ revision: 1 });
+  current.MarkLoaded();
+  const candidate = resMan.GetResource(path, { reload: true });
+  const operation = candidate.Ready();
+  const wait = resMan.Wait({ pump: false });
+
+  assert.throws(
+    () => resMan.Register({ motherLode: new CjsMotherLode() }),
+    error => error.code === "CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS"
+  );
+  assert.equal(resMan.Lookup(path), current);
+  assert.equal(resMan.PumpBackgroundQueue(), true);
+  await WaitUntil(() => typeof releaseSource === "function");
+  releaseSource("{\"revision\":2}");
+  await WaitUntil(() => resMan.GetPendingPrepares() === 1);
+  for (let stage = 0; stage < 2; stage++)
+  {
+    assert.equal(resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 }), true);
+    await FlushMicrotasks();
+  }
+
+  assert.deepEqual(await operation, { revision: 2 });
+  await wait;
+  assert.equal(resMan.Lookup(path), candidate);
+  assert.equal(resMan.IsLoading(), false);
 });
 
 test("reinserting the same JavaScript resource handle does not reuse its obsolete object operation", async () => {

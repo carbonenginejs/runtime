@@ -54,9 +54,10 @@ Current state meanings:
 - `PREPARED`: preparation completed successfully and the resource is usable.
 - `FAILED`: load or prepare failed.
 - `UNLOADED`: resource payload was released.
-- `PURGED`: an inactivity identity sweep purged the resource from active
-  ownership. Ordinary replacement, `Delete()`, `Clear()`, and shutdown clean
-  owned payloads/adapters but preserve the detached handle's last valid state.
+- `PURGED`: an inactivity or recorded-byte cache policy evicted the resource
+  from active ownership. Ordinary replacement, `Delete()`, `Clear()`,
+  `ClearCached()`, and shutdown clean owned payloads/adapters but preserve the
+  detached handle's last valid state.
 
 `CjsResMan.LoadObject()` now queues one deduplicated background source operation
 per source/path and limits active source operations with `maxConcurrentLoads`.
@@ -271,8 +272,8 @@ ccpwgl handles:
 - queue-time and stage-time telemetry
 - immutable/versioned build identity
 - application-level default retention policy selection
-- byte estimation and byte-budgeted eviction
-- explicit reload/recovery policy for purged resources
+- automatic resource/payload byte estimation and separate CPU/adapter budgets
+- explicit purged-resource reconstruction and device-loss recovery policy
 - browser-aware source behavior such as fetch response type selection
 
 ## Memory Retention and Purging
@@ -303,6 +304,31 @@ That model works for ccpwgl, but CarbonEngineJS is deliberately more explicit:
   only under an explicitly configured automatic policy.
 - `Unload()` should release engine adapter resources and optionally CPU payloads.
 - A resource-level `Purge()`/`Reload()` vocabulary remains future policy work.
+
+### Recorded-Byte Cache Contract
+
+Carbon can infer when only its cache retains a resource through weak-reference
+and refcount transitions. JavaScript cannot reproduce that ownership test
+reliably, so `CjsMotherLode` budgets only entries that a caller explicitly
+classifies with `{ cached: true, bytes }`. The byte value is an exact
+caller-supplied safe-integer eviction weight; runtime-resource does not walk
+arbitrary cyclic/shared object graphs or invoke payload getters to guess size.
+
+Explicit cached entries receive a monotonic admission sequence.
+With its default cleanup, `TrimCache(options)` destroys adapters, releases
+payloads, detaches lifecycle callbacks, marks compatible handles `PURGED`, and
+removes positive-byte entries oldest-first until `cacheBytes <= cacheSize`.
+Live, locked, non-cacheable, and zero-byte entries do not create byte pressure.
+`KeepAlive()` and `Lock()` promote a cached record to live; `Unlock()` does not
+silently re-admit it.
+
+`SetCacheSize(bytes, options)` installs and immediately enforces the new budget.
+`CjsResMan.Update()` / `Tick()` also run cache housekeeping after queue pumping;
+`{ cache: false }` skips one update without changing policy. Cleanup is
+transactional per identity: a failed candidate remains canonical, later
+candidates are still attempted, and the aggregate
+`CJS_MOTHERLODE_CACHE_TRIM_FAILED` error carries successful evictions and any
+remaining over-budget state. Trimming never reads, prepares, or reloads data.
 
 The JS/browser split adds one more axis that ccpwgl blurs: CPU payload memory and
 GPU/device memory are different budgets. A large decoded image, geometry buffer,
@@ -382,30 +408,77 @@ and revision for later reconstruction, but do not capture cache flags or
 one-shot reload.
 
 `reload: true` detaches all queued/source/format records for the selected
-source/path before fresh work begins. `InvalidateReadCache()` exposes explicit
-path invalidation, optionally restricted to one revision. Detachment never
-aborts or rejects existing consumers and never touches MotherLode or payloads.
-`Delete()` remains resource-identity-only; `Clear()` resets all read ledgers.
-`FetchResource()` consumes one-shot reload before readiness so it returns the
-replacement now stored in MotherLode. Reload still replaces the current
-canonical handle before its new work succeeds.
+source/path when fresh candidate work begins. `InvalidateReadCache()` exposes
+explicit path invalidation, optionally restricted to one revision. Detachment
+never aborts or rejects existing consumers and never touches MotherLode or the
+already-published canonical payload. `Delete()` remains resource-identity-only;
+`Clear()` resets all read ledgers. A failed reload preserves the former payload
+but does not restore reusable read-cache entries detached by its explicit
+freshness request.
+
+### Candidate-First Atomic Reload
+
+When an owner already exists, `GetResource(path, { reload: true })` constructs
+and initializes a distinct off-registry candidate. Ordinary `Lookup()` remains
+on the former resource. Calling `Ready()` on the candidate, using
+`GetObject()` / `FetchResource()` with `reload: true`, or calling the explicit
+`ReloadObject()` / `ReloadResource()` helpers starts one shared candidate
+operation.
+
+The manager captures the exact MotherLode, key, former handle, former ownership
+generation, and a newest-request token. It purge-locks the former owner and
+tracks the candidate as a normal `Wait()` root. Reader, prepare, and publication
+stages mutate only the detached candidate and validate candidate authority
+before and after asynchronous boundaries. A fully prepared candidate commits
+through `CjsMotherLode.ReplaceExpected()` only if the exact former owner and
+newest token still match. The final authority callback and exact-record check
+run immediately before the synchronous map switch, with no user cleanup or
+`await` between the comparison and publication.
+
+After the switch, the displaced ownership generation is invalidated, the
+candidate receives ordinary lifecycle/reconstruction callbacks, and the former
+handle is cleaned exactly once. Existing JavaScript references are not
+retargeted; fresh lookup returns the new handle. Source, format, or prepare
+failure leaves the exact former state, payload, and adapters canonical, retains
+its original error, and cleans payload/adapters attached to the never-canonical
+candidate. An otherwise-successful candidate that was superseded, deleted,
+cleared, or replaced rejects with `CJS_RESMAN_STALE_RELOAD_CANDIDATE` and cannot
+resurrect the key. Constructors that return the former singleton are rejected
+before `Initialize()` can mutate it because staging requires a distinct handle.
+
+Cleanup errors have explicit sides. Candidate cleanup failure aggregates with
+the original preparation/stale error as
+`CJS_RESMAN_RELOAD_CANDIDATE_CLEANUP_FAILED` while the former owner remains
+canonical. A displaced-owner cleanup failure occurs after publication and
+rejects as `CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED` with a result where
+`committed === true`; the already-good candidate remains canonical.
+Started-work abort and a generic cleanup hook for arbitrary external values
+returned by stages remain separate work.
+
+This availability contract intentionally differs from Carbon.
+`BlueAsyncRes::Reload` cancels/joins work, releases dependent cached data, and
+reloads the same canonical object in place; failure can therefore leave that
+stable handle bad. Carbon MotherLode replacement also switches immediately and
+has no prepare-success gate or rollback. Runtime-resource instead preserves the
+last published good handle until a distinct candidate has succeeded.
 
 Every canonical queued/direct/standalone preparation captures an immutable
 publication authority: exact MotherLode, canonical key, resource handle, and a
 manager-local ownership generation. The manager validates that authority
 before and after state changes, every asynchronous stage, and publication.
-Delete, Clear, reload replacement, or exact-handle reinsertion therefore makes
+Delete, Clear, successful reload commit, or exact-handle reinsertion therefore makes
 older work reject with `CJS_RESMAN_STALE_RESOURCE_OPERATION` before it can
 publish. If stale work independently rejects, its original source/stage error
 is preserved and `SetError()` is suppressed on the detached handle.
 
 `Register({ motherLode })` rejects with
 `CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS` while queued or direct mutations are
-active. Normal `Wait()` drains queued roots only; a direct caller must await its
-own load/prepare promise before retrying replacement. This is generation-safe
-late-publication rejection, not started-work abort or candidate-first atomic
-reload. Arbitrary stage-returned candidates are dropped for GC because no
-generic external-resource cleanup hook exists yet.
+active, including a reload candidate. Normal `Wait()` drains queued roots and
+candidate lineages; a direct caller must await its own load/prepare promise
+before retrying replacement. Canonical and candidate authority prevent late
+publication, but started-work abort remains separate. Arbitrary unattached
+stage-returned values are dropped for GC because no generic external-resource
+cleanup hook exists yet.
 
 An explicit `PurgeInactive()` sweep accepts separate frame/time limits for
 identity and payload residency. Identity expiry destroys adapter resources,
@@ -425,6 +498,8 @@ first `PumpAutoPurge()`/`Update()` after configuration sweeps immediately, then
 the interval sets the minimum cadence. `Update({ purge: false })` suppresses a
 sweep for one update without changing cadence. A regressing clock rebases and
 skips one pump; custom deterministic clocks should be shared with MotherLode.
+Recorded-byte cache trimming is separate from this opt-in inactivity policy and
+runs on ordinary updates unless `{ cache: false }` is supplied.
 
 Both queued `QueueResourceObject()` work and direct `LoadResourceObject()` work
 hold one manager-owned lock from request/loading publication through success or
@@ -466,8 +541,8 @@ Open design questions:
 - Should `Unload()` drop only adapter payloads by default, or CPU payloads too?
 - Should there be explicit `UnloadAdapterResources()`, `UnloadPayload()`, and
   `Purge()` phases?
-- Should loaded CPU payloads have a byte-size estimate so the purge policy can
-  be memory-budget based instead of only time/frame based?
+- Which format/resource-specific estimators should supply separate identity,
+  CPU-payload, and adapter byte weights without double-counting shared buffers?
 - Should manually attached/dynamic resources default to locked, like ccpwgl's
   manual shader resources use `doNotPurge`?
 - What explicit `Reload()`/reconstruction API should restore purged resources

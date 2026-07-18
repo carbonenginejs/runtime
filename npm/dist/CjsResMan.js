@@ -7,9 +7,6 @@ import { normalizeResourceExtension, normalizeResourcePath, getResourceExtension
 /** @type {WeakMap<object, CjsResourceReadContext>} */
 const READ_CONTEXTS = new WeakMap();
 
-/** @type {WeakMap<object, { resMan: CjsResMan, path: string }>} */
-const RELOAD_INVALIDATIONS = new WeakMap();
-
 /** @type {WeakMap<object|Function, number>} */
 const FORMAT_CACHE_IDENTITIES = new WeakMap();
 let nextFormatCacheIdentity = 1;
@@ -85,6 +82,7 @@ let nextFormatCacheIdentity = 1;
  * @typedef {object} CjsResManUpdateOptions
  * @property {object} [background] Background queue pump options.
  * @property {object} [prepare] Main-thread prepare queue pump options.
+ * @property {false|object} [cache] `false` skips recorded-byte housekeeping; otherwise supplies cache-cleanup policy.
  * @property {false|CjsResManAutoPurgePumpOptions} [purge] `false` skips this update's automatic sweep; otherwise supplies its timestamp.
  */
 
@@ -115,16 +113,45 @@ let nextFormatCacheIdentity = 1;
  * @property {object|Function} resource Canonical resource handle.
  */
 
+/**
+ * Immutable authority for one off-registry reload candidate.
+ *
+ * The newest generation for a canonical key is the only candidate permitted
+ * to commit. `expectedOwnership` keeps the former canonical handle protected
+ * by the same exact-owner generation checks used by ordinary asynchronous
+ * resource work.
+ *
+ * @typedef {object} CjsResourceReloadCandidate
+ * @property {true} reloadCandidate Distinguishes staged authority from canonical ownership.
+ * @property {number} generation Manager-local reload request generation.
+ * @property {CjsMotherLode} owner Exact registry expected to receive the candidate.
+ * @property {string} key Exact canonical registry identity.
+ * @property {object|Function} expected Former canonical resource preserved until commit.
+ * @property {CjsResourceOwnership} expectedOwnership Captured authority of the former owner.
+ * @property {object|Function} resource Off-registry candidate resource.
+ * @property {Readonly<object>} loaderOptions Durable identity/source options restored after commit.
+ */
+
+/**
+ * Hidden authority accepted by staged preparation helpers.
+ *
+ * @typedef {CjsResourceOwnership|CjsResourceReloadCandidate} CjsResourceMutationAuthority
+ */
+
 class CjsResMan extends CjsEventEmitter {
   #autoPurgePolicy = null;
   #activeResourceOperations = 0;
   #invalidResourceOwnership = new WeakSet();
   #lastAutoPurgeTime = null;
+  #nextResourceReloadGeneration = 1;
   #nextResourceOwnershipGeneration = 1;
   #nextResourceOperationId = 1;
   #queueOperations = new Map();
   #resourceOwnership = new WeakMap();
   #resourceOperations = new Map();
+  #reloadCandidates = new WeakMap();
+  #reloadGenerations = new Map();
+  #reloadOperations = new WeakMap();
 
   /**
    * Create a GPU-free resource manager and apply its initial registration.
@@ -177,6 +204,8 @@ class CjsResMan extends CjsEventEmitter {
    * drains queued roots only; direct callers must await their own promises.
    *
    * @param {object} [options={}] Additive source, registry, queue, format, and resource-type settings.
+   * @param {number} [options.cacheSize] Recorded-byte budget immediately installed on the active MotherLode.
+   * @param {object} [options.cacheCleanup] Cleanup policy used if a smaller configured budget evicts cached identities.
    * @returns {CjsResMan} This resource manager.
    * @throws {TypeError} If options or any configured component are invalid.
    * @throws {Error|AggregateError} If resource mutations are active or replacing MotherLode cannot clean its resources.
@@ -197,8 +226,12 @@ class CjsResMan extends CjsEventEmitter {
         this.motherLode = nextMotherLode;
         this.motherLode.Startup?.();
         this.#BindMotherLodeResources();
+        this.#reloadGenerations.clear();
         this.#lastAutoPurgeTime = null;
       }
+    }
+    if (Object.prototype.hasOwnProperty.call(options, "cacheSize")) {
+      this.motherLode.SetCacheSize(options.cacheSize, options.cacheCleanup || {});
     }
     if (Object.prototype.hasOwnProperty.call(options, "autoPurgePolicy")) {
       this.SetAutoPurgePolicy(options.autoPurgePolicy);
@@ -353,31 +386,36 @@ class CjsResMan extends CjsEventEmitter {
   }
 
   /**
-   * Pump background and main-thread work, then run a due automatic inactivity
-   * sweep when one has been explicitly configured. Queue work is processed
-   * before purging, and manager-owned active loads/prepares hold purge locks.
-   * No sweep fetches, prepares, or reloads source data.
+   * Pump background and main-thread work, enforce the recorded-byte cache
+   * budget, then run a due automatic inactivity sweep when one has been
+   * explicitly configured. Queue work is processed before housekeeping, and
+   * manager-owned active loads/prepares hold eviction locks. No housekeeping
+   * operation fetches, prepares, or reloads source data.
    *
    * @param {CjsResManUpdateOptions} [options={}] Queue budgets and optional automatic-purge controls.
-   * @returns {boolean} Whether queue work ran or a sweep released a payload or canonical identity.
-   * @throws {TypeError} If queue options, purge timing, or the configured MotherLode policy are invalid.
-   * @throws {AggregateError} If a due sweep cannot clean one or more inactive resources.
+   * @returns {boolean} Whether queue work ran or housekeeping released owned state.
+   * @throws {TypeError} If queue, cache, purge timing, or MotherLode policy options are invalid.
+   * @throws {AggregateError} If cache or inactivity housekeeping cannot clean one or more resources.
    */
   Update(options = {}) {
     const loaded = this.PumpBackgroundQueue(options.background || {});
     const prepared = this.PumpMainThreadQueue(options.prepare || options);
+    const cacheOptions = options.cache === true || options.cache === undefined ? {} : options.cache;
+    const cacheResult = options.cache === false ? null : this.motherLode.TrimCache?.(cacheOptions);
+    const trimmed = Boolean(cacheResult && cacheResult.evicted > 0);
     const purgeOptions = options.purge === true || options.purge === undefined ? {} : options.purge;
     const purgeResult = options.purge === false ? null : this.PumpAutoPurge(purgeOptions);
     const purged = Boolean(purgeResult && (purgeResult.purged > 0 || purgeResult.payloadsReleased > 0));
-    return loaded || prepared || purged;
+    return loaded || prepared || trimmed || purged;
   }
 
   /**
    * Compatibility alias for {@link CjsResMan#Update}. It uses the same queue
-   * budgets, opt-in purge cadence, return value, and error behavior.
+   * budgets, byte-cache housekeeping, opt-in purge cadence, return value, and
+   * error behavior.
    *
    * @param {CjsResManUpdateOptions} [options={}] Queue budgets and optional automatic-purge controls.
-   * @returns {boolean} Whether queue work ran or a sweep released owned state.
+   * @returns {boolean} Whether queue work ran or housekeeping released owned state.
    * @throws {TypeError|AggregateError} If update options or a due purge fail.
    */
   Tick(options = {}) {
@@ -554,35 +592,24 @@ class CjsResMan extends CjsEventEmitter {
 
   /**
    * Return the immediate canonical resource handle for a path and resolved
-   * build outcome. Cache hits explicitly renew MotherLode activity.
-   * `reload: true` synchronously detaches reusable read records for the
-   * selected source/path, then immediately displaces and cleans the former
-   * canonical handle. This is not yet candidate-first atomic reload: a later
-   * load/prepare failure does not restore the former good handle.
+   * build outcome. Cache hits explicitly renew MotherLode activity. When
+   * `reload: true` finds an existing owner, this synchronous method returns a
+   * distinct off-registry candidate and leaves the canonical handle untouched.
+   * Calling `Ready()` on that candidate, or using `ReloadResource()` /
+   * `ReloadObject()`, prepares it and conditionally commits it through the
+   * asynchronous atomic-reload contract.
    *
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] Semantic requirement, output, format, pipeline, identity, source provenance, and reload settings.
-   * @returns {CjsResource} Canonical resource handle for the resolved identity.
+   * @returns {CjsResource} Canonical handle, or an off-registry reload candidate.
    * @throws {TypeError} If the path, identity settings, or resource constructor are invalid.
    * @throws {Error} If MotherLode is inactive or displaced-resource cleanup fails.
    */
   GetResource(path, options = {}) {
-    const key = normalizeResourcePath(path);
-    if (options.reload === true) {
-      this.InvalidateReadCache(key, {
-        source: options.source || this.source
-      });
-      const invalidation = {
-        resMan: this,
-        path: key
-      };
-      RELOAD_INVALIDATIONS.set(options, invalidation);
-      Promise.resolve().then(() => {
-        if (RELOAD_INVALIDATIONS.get(options) === invalidation) {
-          RELOAD_INVALIDATIONS.delete(options);
-        }
-      });
+    if (!options || typeof options !== "object" || Array.isArray(options)) {
+      throw new TypeError("CjsResMan.GetResource options must be an object.");
     }
+    const key = normalizeResourcePath(path);
     const variant = this.GetResourceVariant(options);
     const cacheKey = getMotherLodeKey(key, variant);
     const existing = this.motherLode.Lookup(cacheKey);
@@ -591,9 +618,45 @@ class CjsResMan extends CjsEventEmitter {
       this.motherLode.KeepAlive?.(cacheKey);
       return existing;
     }
+    if (!existing && options.reload === true) {
+      this.InvalidateReadCache(key, {
+        source: options.source || this.source
+      });
+    }
     const ext = normalizeResourceExtension(options.ext || getResourceExtension(key));
     const Constructor = this.ResolveResourceConstructor(options);
-    const resource = this.CreateResource(Constructor, key, ext, options);
+    const resource = this.CreateResource(Constructor, key, ext, options, existing && options.reload === true ? existing : null);
+    if (existing && options.reload === true) {
+      this.#BindResourceLifecycle(cacheKey, existing);
+      this.motherLode.KeepAlive?.(cacheKey);
+      const expectedOwnership = this.#RequireResourceOwnership(existing, "reload-candidate:create");
+      const generation = this.#nextResourceReloadGeneration++;
+      const loaderOptions = Object.freeze(GetResourceLoaderOptions(options, options.source || this.source));
+      const candidate = Object.freeze({
+        reloadCandidate: true,
+        generation,
+        owner: this.motherLode,
+        key: cacheKey,
+        expected: existing,
+        expectedOwnership,
+        resource,
+        loaderOptions
+      });
+      this.#reloadCandidates.set(resource, candidate);
+      this.#reloadGenerations.set(cacheKey, generation);
+      if (typeof resource.SetObjectLoader === "function") {
+        const reloadOptions = {
+          ...options,
+          reload: true
+        };
+        resource.SetObjectLoader(loadOptions => this.#GetReloadCandidateObject(resource, {
+          ...reloadOptions,
+          ...loadOptions,
+          reload: true
+        }));
+      }
+      return resource;
+    }
     const insertion = this.motherLode.Insert(cacheKey, resource, {
       replace: true
     });
@@ -624,6 +687,9 @@ class CjsResMan extends CjsEventEmitter {
    */
   GetObject(path, options = {}) {
     const resource = this.GetResource(path, options);
+    if (this.#reloadCandidates.has(resource)) {
+      return this.#GetReloadCandidateObject(resource, options);
+    }
     const ownership = this.#RequireResourceOwnership(resource, "object:begin");
     const existing = this.objectOperations.get(resource);
     if (existing?.ownership === ownership) {
@@ -658,11 +724,31 @@ class CjsResMan extends CjsEventEmitter {
   }
 
   /**
-   * Resolve and prepare one canonical resource handle. One-shot reload is
-   * consumed by the initial canonical replacement; readiness receives
-   * `reload: false` so it cannot replace that new handle a second time.
-   * A later replacement invalidates this operation's publication generation;
-   * candidate-first atomic reload remains a separate contract.
+   * Prepare and atomically publish a distinct replacement object while the
+   * former canonical resource remains available. This is the explicit form of
+   * `GetObject(path, { reload: true })`.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {object} [options={}] Identity, source, format, queue, and prepare settings.
+   * @returns {Promise<*>} Published object outcome from the committed candidate.
+   * @throws {TypeError|Error|AggregateError} If candidate creation, preparation, conditional publication, or cleanup fails.
+   */
+  ReloadObject(path, options = {}) {
+    if (!options || typeof options !== "object" || Array.isArray(options)) {
+      throw new TypeError("CjsResMan.ReloadObject options must be an object.");
+    }
+    return this.GetObject(path, {
+      ...options,
+      reload: true
+    });
+  }
+
+  /**
+   * Resolve and prepare one canonical resource handle. One-shot reload creates
+   * a distinct candidate, keeps the former good handle canonical through every
+   * asynchronous stage, and returns only after an exact-owner conditional
+   * publication succeeds. Readiness receives `reload: false` because the
+   * candidate's private loader owns the one-shot freshness request.
    *
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] Resource identity, source provenance, reload, format, and prepare options.
@@ -677,6 +763,235 @@ class CjsResMan extends CjsEventEmitter {
     } : options;
     await resource.Ready(readinessOptions);
     return resource;
+  }
+
+  /**
+   * Prepare and atomically publish a distinct replacement resource while the
+   * former canonical handle remains available. This is the explicit form of
+   * `FetchResource(path, { reload: true })`.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {object} [options={}] Identity, source, format, queue, and prepare settings.
+   * @returns {Promise<CjsResource>} Fully prepared committed replacement.
+   * @throws {TypeError|Error|AggregateError} If candidate creation, preparation, conditional publication, or cleanup fails.
+   */
+  ReloadResource(path, options = {}) {
+    if (!options || typeof options !== "object" || Array.isArray(options)) {
+      throw new TypeError("CjsResMan.ReloadResource options must be an object.");
+    }
+    return this.FetchResource(path, {
+      ...options,
+      reload: true
+    });
+  }
+
+  /**
+   * Run or join one off-registry candidate operation. The returned promise
+   * resolves only after exact-owner publication and displaced-owner cleanup
+   * both succeed. A committed cleanup failure rejects with the new candidate
+   * still canonical and attached on the MotherLode error result.
+   *
+   * @param {object|Function} resource Candidate resource returned by `GetResource`.
+   * @param {object} options Reload source, format, queue, and prepare options.
+   * @returns {Promise<*>} Candidate object outcome after conditional publication.
+   */
+  #GetReloadCandidateObject(resource, options) {
+    const candidate = this.#reloadCandidates.get(resource) || null;
+    if (!candidate) {
+      return Promise.reject(ReloadCandidateUnavailableError(resource));
+    }
+    const existing = this.#reloadOperations.get(resource);
+    if (existing?.candidate === candidate) return existing.promise;
+    const operation = {
+      candidate,
+      promise: this.#RunReloadCandidate(candidate, options)
+    };
+    this.#reloadOperations.set(resource, operation);
+    operation.promise.then(() => {
+      if (this.#reloadOperations.get(resource) === operation) {
+        this.#reloadOperations.delete(resource);
+      }
+    }, () => {
+      if (this.#reloadOperations.get(resource) === operation) {
+        this.#reloadOperations.delete(resource);
+      }
+    });
+    return operation.promise;
+  }
+
+  /**
+   * Queue source/read/prepare stages against a detached candidate, then commit
+   * it only if its former exact owner and newest-request token remain current.
+   * Candidate work is a normal queued root visible to `Wait()` and holds one
+   * purge lock on the former good owner until settlement.
+   *
+   * @param {CjsResourceReloadCandidate} candidate Immutable candidate authority.
+   * @param {object} options Reload source, format, queue, and prepare options.
+   * @returns {Promise<*>} Published object outcome after a successful commit.
+   */
+  async #RunReloadCandidate(candidate, options) {
+    let committed = false;
+    let releaseLock = Noop;
+    const finishOperation = this.#BeginResourceOperation(true);
+    try {
+      this.#AssertReloadCandidate(candidate, "reload:begin");
+      releaseLock = this.#AcquireResourcePurgeLock(candidate.expectedOwnership);
+      const read = this.#BeginReadOperation(candidate.resource.GetPath(), {
+        ...options,
+        reload: true
+      });
+      this.#AssertReloadCandidate(candidate, "reload:requested");
+      candidate.resource.error = null;
+      candidate.resource.MarkRequested();
+      this.#AssertReloadCandidate(candidate, "reload:requested-settled");
+      const bytes = await this.#QueueReadResource(read.context, read.options);
+      this.#AssertReloadCandidate(candidate, "reload:loading");
+      candidate.resource.MarkLoading();
+      this.#AssertReloadCandidate(candidate, "reload:loading-settled");
+      const object = await this.#PrepareResourceObjectQueued(candidate.resource, bytes, read.options, candidate);
+      this.#AssertReloadCandidate(candidate, "reload:commit");
+      try {
+        const result = candidate.owner.ReplaceExpected(candidate.key, candidate.expected, candidate.resource, {
+          commitGuard: () => this.#IsReloadCandidateCurrent(candidate)
+        });
+        if (!result.committed) {
+          throw StaleReloadCandidateError(candidate, "reload:commit-compare");
+        }
+        committed = true;
+        this.#FinalizeCommittedReload(candidate);
+      } catch (error) {
+        if (error?.code === "CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED" && error.result?.committed === true && error.result.resource === candidate.resource) {
+          committed = true;
+          try {
+            this.#FinalizeCommittedReload(candidate);
+          } catch (finalizeError) {
+            const combined = new AggregateError([error, finalizeError], `CjsResMan reload committed with cleanup and finalization failures for ${candidate.key}.`);
+            combined.code = "CJS_RESMAN_RELOAD_COMMIT_FAILED";
+            combined.committed = true;
+            combined.resource = candidate.resource;
+            combined.result = error.result;
+            throw combined;
+          }
+        }
+        throw error;
+      }
+      return object;
+    } catch (error) {
+      if (!committed) {
+        throw this.#CreateReloadCandidateFailure(candidate, error);
+      }
+      throw error;
+    } finally {
+      releaseLock();
+      finishOperation();
+      if (this.#reloadGenerations.get(candidate.key) === candidate.generation) {
+        this.#reloadGenerations.delete(candidate.key);
+      }
+    }
+  }
+
+  /**
+   * Bind a successfully committed candidate and invalidate only the displaced
+   * handle's former publication generation. The resource loader is restored
+   * to ordinary canonical reconstruction behavior.
+   *
+   * @param {CjsResourceReloadCandidate} candidate Committed candidate authority.
+   * @returns {void}
+   */
+  #FinalizeCommittedReload(candidate) {
+    this.#InvalidateResourceOwnership(candidate.expected);
+    this.#reloadCandidates.delete(candidate.resource);
+    const errors = [];
+    try {
+      if (typeof candidate.resource.SetObjectLoader === "function") {
+        candidate.resource.SetObjectLoader(loadOptions => this.GetObject(candidate.resource.GetPath(), {
+          ...candidate.loaderOptions,
+          ...loadOptions
+        }));
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+    try {
+      this.#BindResourceLifecycle(candidate.key, candidate.resource);
+    } catch (error) {
+      errors.push(error);
+    }
+    try {
+      candidate.owner.KeepAlive?.(candidate.key);
+    } catch (error) {
+      errors.push(error);
+    }
+    if (errors.length) {
+      const error = new AggregateError(errors, `CjsResMan committed reload finalization failed for ${candidate.key}.`);
+      error.code = "CJS_RESMAN_RELOAD_COMMIT_FINALIZE_FAILED";
+      error.committed = true;
+      error.resource = candidate.resource;
+      throw error;
+    }
+  }
+
+  /**
+   * Mark and clean a failed or stale detached candidate. The original
+   * load/prepare/stale error remains the rejection when cleanup succeeds;
+   * state-publication or cleanup errors are aggregated without touching the
+   * preserved canonical owner.
+   *
+   * @param {CjsResourceReloadCandidate} candidate Failed candidate authority.
+   * @param {*} cause Original operation failure.
+   * @returns {*} Original error or a contextual AggregateError.
+   */
+  #CreateReloadCandidateFailure(candidate, cause) {
+    const errors = [cause];
+    try {
+      candidate.resource.SetError?.(cause);
+    } catch (error) {
+      errors.push(error);
+    }
+    try {
+      this.#CleanupReloadCandidate(candidate.resource);
+    } catch (error) {
+      errors.push(error);
+    }
+    if (errors.length === 1) return cause;
+    const error = new AggregateError(errors, `CjsResMan reload candidate cleanup failed for ${candidate.key}.`);
+    error.code = "CJS_RESMAN_RELOAD_CANDIDATE_CLEANUP_FAILED";
+    error.resource = candidate.resource;
+    error.cause = cause;
+    return error;
+  }
+
+  /**
+   * Release adapter and CPU-payload ownership accumulated by an off-registry
+   * candidate. This cleanup is idempotent for CjsResource-compatible handles
+   * and never marks the never-canonical candidate `PURGED`.
+   *
+   * @param {object|Function} resource Detached reload candidate.
+   * @returns {void}
+   * @throws {AggregateError} If adapter destruction, payload release, or lifecycle detachment fails.
+   */
+  #CleanupReloadCandidate(resource) {
+    const errors = [];
+    try {
+      resource.DestroyAdapterResources?.({
+        destroy: true
+      });
+    } catch (error) {
+      errors.push(error);
+    }
+    try {
+      resource.ReleasePayload?.();
+    } catch (error) {
+      errors.push(error);
+    }
+    try {
+      resource.SetLifecycleController?.(null);
+    } catch (error) {
+      errors.push(error);
+    }
+    if (errors.length) {
+      throw new AggregateError(errors, "CjsResMan reload candidate ownership cleanup failed.");
+    }
   }
   Fetch(path, options = {}) {
     return options.resource === true || options.requirement !== undefined || options.payload !== undefined ? this.FetchResource(path, options) : this.FetchObject(path, options);
@@ -840,7 +1155,7 @@ class CjsResMan extends CjsEventEmitter {
    * @param {object|Function} resource Resource receiving the final payload.
    * @param {*} bytes Source bytes or reader-compatible source data.
    * @param {object} options Resolved prepare options.
-   * @param {CjsResourceOwnership|null} ownership Captured canonical authority.
+   * @param {CjsResourceMutationAuthority|null} ownership Captured canonical or reload-candidate authority.
    * @returns {Promise<*>} Final plain payload or semantic resource handle.
    */
   async #PrepareResourceObject(resource, bytes, options, ownership) {
@@ -863,7 +1178,7 @@ class CjsResMan extends CjsEventEmitter {
    * @param {object|Function} resource Resource receiving the final payload.
    * @param {*} bytes Source bytes or reader-compatible source data.
    * @param {object} options Resolved prepare options.
-   * @param {CjsResourceOwnership|null} ownership Captured canonical authority.
+   * @param {CjsResourceMutationAuthority|null} ownership Captured canonical or reload-candidate authority.
    * @returns {Promise<*>} Final plain payload or semantic resource handle.
    */
   async #PrepareResourceObjectQueued(resource, bytes, options, ownership) {
@@ -935,7 +1250,7 @@ class CjsResMan extends CjsEventEmitter {
    * The post-publication check catches synchronous reentrant ownership changes
    * from state listeners before the caller can treat obsolete work as success.
    *
-   * @param {CjsResourceOwnership|null} ownership Captured canonical authority.
+   * @param {CjsResourceMutationAuthority|null} ownership Captured canonical or reload-candidate authority.
    * @param {object|Function} resource Resource receiving the final payload.
    * @param {*} object Final reader/converter outcome.
    * @param {object} options Semantic resource publication options.
@@ -1098,6 +1413,7 @@ class CjsResMan extends CjsEventEmitter {
         if (resource && this.motherLode.Lookup(key) !== resource) {
           this.#InvalidateResourceOwnership(resource);
         }
+        this.#reloadGenerations.delete(key);
       }
     }
     const normalizedPath = normalizeResourcePath(path);
@@ -1107,6 +1423,7 @@ class CjsResMan extends CjsEventEmitter {
       return this.motherLode.DeleteAllVariants(normalizedPath);
     } finally {
       for (const [key, resource] of entries) {
+        this.#reloadGenerations.delete(key);
         if (this.motherLode.Lookup(key) !== resource) {
           this.#InvalidateResourceOwnership(resource);
         }
@@ -1223,6 +1540,7 @@ class CjsResMan extends CjsEventEmitter {
     this.sourceOperations = new WeakMap();
     this.queuedSourceOperations = new WeakMap();
     this.formatOperations = new WeakMap();
+    this.#reloadGenerations.clear();
     this.#lastAutoPurgeTime = null;
     return this;
   }
@@ -1324,10 +1642,7 @@ class CjsResMan extends CjsEventEmitter {
       revisionKey
     });
     READ_CONTEXTS.set(operationOptions, context);
-    const priorInvalidation = RELOAD_INVALIDATIONS.get(options);
-    const alreadyInvalidated = priorInvalidation?.resMan === this && priorInvalidation.path === normalizedPath;
-    if (alreadyInvalidated) RELOAD_INVALIDATIONS.delete(options);
-    if (options.reload === true && !alreadyInvalidated) {
+    if (options.reload === true) {
       this.#InvalidateReadCache(source, normalizedPath, null);
     }
     return {
@@ -1471,10 +1786,26 @@ class CjsResMan extends CjsEventEmitter {
       format
     });
   }
-  CreateResource(Constructor, path, ext, options = {}) {
+
+  /**
+   * Construct and initialize one resource handle, optionally rejecting a
+   * singleton alias before `Initialize()` can mutate the protected owner.
+   *
+   * @param {Function} Constructor Resource constructor selected for the outcome.
+   * @param {string} path Normalized Carbon-style resource path.
+   * @param {string} ext Normalized resource extension.
+   * @param {object} [options={}] Constructor values, semantic requirement, identity, and source provenance.
+   * @param {object|Function|null} [disallowedAlias=null] Existing owner that a staged candidate must not reuse.
+   * @returns {CjsResource} Initialized resource-compatible handle.
+   * @throws {TypeError|Error} If construction, candidate identity, or initialization is invalid.
+   */
+  CreateResource(Constructor, path, ext, options = {}, disallowedAlias = null) {
     const resource = new Constructor(options.values);
     if (!resource || typeof resource.Initialize !== "function") {
       throw new TypeError("Resource constructor must create a CjsResource-compatible object.");
+    }
+    if (disallowedAlias && resource === disallowedAlias) {
+      throw ReloadCandidateAliasError(path, resource);
     }
     resource.Initialize(path, ext, NormalizeRequirement(options.requirement || options.payload || ""));
     if (typeof resource.SetObjectLoader === "function") {
@@ -1621,12 +1952,48 @@ class CjsResMan extends CjsEventEmitter {
   /**
    * Assert a captured authority when a compatibility path supplied one.
    *
-   * @param {CjsResourceOwnership|null} ownership Optional captured authority.
+   * @param {CjsResourceMutationAuthority|null} ownership Optional canonical or reload-candidate authority.
    * @param {string} phase Human-readable operation phase.
    * @returns {void}
    */
   #AssertOptionalResourceOwnership(ownership, phase) {
-    if (ownership) this.#AssertResourceOwnership(ownership, phase);
+    if (!ownership) return;
+    if (ownership.reloadCandidate === true) {
+      this.#AssertReloadCandidate(ownership, phase);
+      return;
+    }
+    this.#AssertResourceOwnership(ownership, phase);
+  }
+
+  /**
+   * Test the exact former owner plus newest-request token for an off-registry
+   * candidate. Lookup failures are treated as stale so detached work cannot
+   * resurrect a deleted, cleared, replaced, or superseded identity.
+   *
+   * @param {CjsResourceReloadCandidate} candidate Candidate authority.
+   * @returns {boolean} Whether this candidate alone may still commit.
+   */
+  #IsReloadCandidateCurrent(candidate) {
+    try {
+      return Boolean(candidate && candidate.reloadCandidate === true && this.motherLode === candidate.owner && this.#reloadCandidates.get(candidate.resource) === candidate && this.#reloadGenerations.get(candidate.key) === candidate.generation && this.#resourceOwnership.get(candidate.expected) === candidate.expectedOwnership && this.#IsResourceOwnershipCurrent(candidate.expectedOwnership) && candidate.owner.Lookup(candidate.key) === candidate.expected);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Assert that a staged candidate still owns newest-request publication
+   * authority for one operation phase.
+   *
+   * @param {CjsResourceReloadCandidate} candidate Candidate authority.
+   * @param {string} phase Human-readable operation phase.
+   * @returns {void}
+   * @throws {Error} Stable stale-candidate error when authority changed.
+   */
+  #AssertReloadCandidate(candidate, phase) {
+    if (!this.#IsReloadCandidateCurrent(candidate)) {
+      throw StaleReloadCandidateError(candidate, phase);
+    }
   }
 
   /**
@@ -2295,6 +2662,59 @@ function StaleResourceOperationError(ownership, phase) {
   error.path = path;
   error.key = ownership?.key || null;
   error.generation = ownership?.generation || 0;
+  error.phase = phase;
+  return error;
+}
+
+/**
+ * Reject a resource constructor that returns the protected canonical singleton
+ * when a distinct reload candidate is required.
+ *
+ * @param {string} path Requested resource path.
+ * @param {object|Function} resource Aliased canonical resource.
+ * @returns {Error} Stable candidate-alias error.
+ */
+function ReloadCandidateAliasError(path, resource) {
+  const error = new Error(`CjsResMan reload candidate aliases the canonical resource: ${path}.`);
+  error.code = "CJS_RESMAN_RELOAD_CANDIDATE_ALIAS";
+  error.path = path;
+  error.resource = resource;
+  return error;
+}
+
+/**
+ * Create the stable failure used when a candidate loader no longer has a
+ * staged authority record.
+ *
+ * @param {object|Function} resource Candidate resource.
+ * @returns {Error} Stable unavailable-candidate error.
+ */
+function ReloadCandidateUnavailableError(resource) {
+  const path = GetResourceDiagnosticPath(resource);
+  const error = new Error(`CjsResMan reload candidate is no longer available: ${path}.`);
+  error.code = "CJS_RESMAN_RELOAD_CANDIDATE_UNAVAILABLE";
+  error.path = path;
+  error.resource = resource;
+  return error;
+}
+
+/**
+ * Create the stable failure used when a deleted, cleared, replaced, or
+ * superseded reload candidate reaches a mutation or commit boundary.
+ *
+ * @param {CjsResourceReloadCandidate} candidate Captured candidate authority.
+ * @param {string} phase Operation phase that detected staleness.
+ * @returns {Error} Contextual stale-candidate error.
+ */
+function StaleReloadCandidateError(candidate, phase) {
+  const path = GetResourceDiagnosticPath(candidate?.resource);
+  const error = new Error(`CjsResMan reload candidate became stale during ${phase}: ${path}.`);
+  error.code = "CJS_RESMAN_STALE_RELOAD_CANDIDATE";
+  error.resource = candidate?.resource || null;
+  error.expected = candidate?.expected || null;
+  error.path = path;
+  error.key = candidate?.key || null;
+  error.generation = candidate?.generation || 0;
   error.phase = phase;
   return error;
 }

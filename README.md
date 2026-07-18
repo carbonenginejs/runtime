@@ -110,12 +110,30 @@ that deliberately retain ownership may pass `{ cleanup: false }` and keep the
 returned displaced resource. If replacement cleanup fails, insertion throws a
 contextual error and leaves the existing owner registered. These ordinary
 ownership removals preserve the handle's last resource state; `PURGED` is
-reserved for successful inactivity-based identity expiry.
+reserved for successful policy eviction through inactivity or byte pressure.
 
 `Startup()` and `Shutdown()` are idempotent. `HasKey`, `Lookup`, `Delete`,
 `GetKeys`, `GetValues`, `GetSize`, `SetCacheSize`, `GetCacheSize`, `GetStats`,
-`Clear`, and `ClearCached` provide the Carbon-shaped cache vocabulary. The old
-`Has`, `GetCount`, and `DeleteAll` names remain temporary compatibility aliases.
+`TrimCache`, `ReplaceExpected`, `Clear`, and `ClearCached` provide the
+Carbon-shaped cache vocabulary plus the exact-owner compare-and-swap required
+by staged JavaScript reload. The old `Has`, `GetCount`, and `DeleteAll` names
+remain temporary compatibility aliases.
+
+Byte budgeting applies only to records explicitly admitted with
+`{ cached: true, bytes }`; JavaScript reachability is never inferred. The byte
+value is a caller-supplied safe-integer eviction weight, not a heuristic walk of
+the resource graph. `TrimCache()` removes positive-byte cached identities in
+oldest-admission order until `cacheBytes <= cacheSize`. Live, locked,
+`cacheable: false`, and zero-byte entries do not create pressure. With default
+cleanup, successful pressure eviction performs the same deterministic
+payload/adapter cleanup as inactivity eviction and marks detached compatible
+handles `PURGED`.
+
+`SetCacheSize()` installs and immediately enforces a new budget. `Update()` and
+`Tick()` retry cache housekeeping after pumping queues; `{ cache: false }`
+skips it for one update. Cleanup failure leaves that candidate canonical,
+continues through later candidates, and throws
+`CJS_MOTHERLODE_CACHE_TRIM_FAILED` with a partial result.
 
 `CjsResMan` binds resource-facing `KeepAlive`, `KeepPayloadAlive`, `Lock`, and
 `Unlock` operations to the canonical key. Publishing a non-null payload renews
@@ -168,9 +186,37 @@ resource-identity-only, while `Clear()` resets all read ledgers.
 
 A resource loader retains the effective selected source and `sourceRevision`
 for reconstruction, including the manager default selected at creation, but
-not cache flags or one-shot reload. `FetchResource({ reload: true })` consumes
-reload at its initial replacement and returns that current canonical handle.
-Every queued, direct, and standalone resource preparation captures the exact
+not cache flags or one-shot reload.
+
+Reload is candidate-first. When an owner already exists,
+`GetResource(path, { reload: true })` returns a distinct off-registry candidate
+without changing ordinary lookup. `Ready()` on that candidate, `GetObject()` /
+`FetchResource()` with `reload: true`, and the explicit `ReloadObject()` /
+`ReloadResource()` helpers all run the same queued contract:
+
+1. purge-lock the exact former owner and invalidate reusable reads once;
+2. read, prepare, and publish payload state only on the detached candidate;
+3. require the newest per-key reload token and exact former ownership;
+4. compare-and-swap the fully prepared candidate into MotherLode;
+5. invalidate and clean the displaced handle after the lookup switch.
+
+Source, format, or prepare failure therefore leaves the former handle, state,
+payload, and adapters canonical; the failed candidate's attached payload and
+adapters are cleaned and its original error is retained. An otherwise-
+successful candidate that was superseded, deleted, cleared, or replaced rejects
+with `CJS_RESMAN_STALE_RELOAD_CANDIDATE` and cannot resurrect the key. Failed
+freshness attempts still invalidate reusable source/format records when their
+work begins; the already-published canonical payload is not dependent on those
+records. If displaced-owner cleanup fails after the swap,
+the promise rejects with `CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED`, whose result
+explicitly reports `committed: true`; the good candidate remains canonical.
+
+This deliberately differs from Carbon's `BlueAsyncRes::Reload`, which reloads
+one stable handle in place and releases its old data before success. Existing
+JavaScript references likewise are never silently retargeted: they keep the
+displaced handle, while fresh lookup sees the committed candidate.
+
+Every queued, direct, standalone, and candidate resource preparation captures the exact
 MotherLode, canonical key, resource handle, and manager-local ownership
 generation. Delete, Clear, reload replacement, or handle reinsertion makes old
 work stale before it can enter another state/stage or publish. Otherwise-
@@ -178,13 +224,15 @@ successful obsolete work rejects with `CJS_RESMAN_STALE_RESOURCE_OPERATION`;
 an obsolete source/stage failure preserves its original rejection while
 suppressing `SetError()` on the detached handle.
 
-MotherLode replacement is synchronous configuration and rejects with
+Candidate work is a normal `Wait()` root and blocks synchronous MotherLode
+replacement while active. MotherLode replacement otherwise remains synchronous
+configuration and rejects with
 `CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS` while queued or direct mutations are
 active. `Wait()` drains queued roots; callers must separately await direct load
 or direct prepare promises before retrying replacement. Started work is not yet
-aborted, arbitrary stage candidates have no generic external cleanup hook, and
-reload still replaces the canonical handle before its new load succeeds, so
-candidate-first atomic reload remains open.
+aborted, and arbitrary values returned by prepare stages still have no generic
+external cleanup hook; only resources/adapters attached to the staged candidate
+participate in deterministic candidate cleanup.
 
 Automatic scheduling is available only when a caller supplies
 `autoPurgePolicy` to the constructor/`Register()` or calls
@@ -208,10 +256,10 @@ const resMan = new CjsResMan({
 resMan.Update();
 ```
 
-Automatic sweeps retain the manual sweep's strict no-reload rule. Application
-defaults, byte-budget eviction, and explicit reload/recovery policy remain
-later work. Configuring `cacheSize` records diagnostics only and does not
-currently trigger eviction.
+Cache trimming and automatic inactivity sweeps retain the strict no-reload
+rule. Application retention defaults, automatic resource/payload byte
+estimation, separate CPU/adapter budgets, and purged-resource/device-loss
+recovery policy remain later work.
 
 ## Queued load and staged prepare
 

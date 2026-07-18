@@ -4,13 +4,14 @@ import { normalizeResourcePath } from './resourcePath.js';
 // Source: blue/src/MotherLode.h
 // Source: blue/src/MotherLode.cpp
 const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;
+const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
 
 /**
  * Construction options for {@link CjsMotherLode}.
  *
  * @typedef {object} CjsMotherLodeOptions
  * @property {() => number} [now] Returns a non-negative timestamp for activity diagnostics.
- * @property {number} [cacheSize] Initial future-cache byte budget; no automatic eviction is implied.
+ * @property {number} [cacheSize] Initial recorded-byte budget for explicitly cached entries.
  */
 
 /**
@@ -28,11 +29,18 @@ const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;
  * @typedef {CjsMotherLodeMutationOptions & object} CjsMotherLodeInsertOptions
  * @property {boolean} [replace=true] Whether an existing different resource may be displaced.
  * @property {string} [variant] Variant used only by the legacy resource-first insertion form.
- * @property {number} [bytes=0] Non-negative safe-integer estimate used by cache diagnostics.
- * @property {boolean} [cacheable=true] Whether later policy may classify the entry as cached.
- * @property {boolean} [cached=false] Explicitly classify the entry for `ClearCached()`.
+ * @property {number} [bytes=0] Caller-supplied non-negative safe-integer eviction weight.
+ * @property {boolean} [cacheable=true] Whether policy may explicitly admit the entry to the byte cache.
+ * @property {boolean} [cached=false] Admit the entry to oldest-first trimming and `ClearCached()`.
  * @property {number} [frame] Explicit non-negative activity frame; otherwise the counter advances.
  * @property {number} [time] Explicit non-negative activity timestamp; otherwise `now()` is called.
+ */
+
+/**
+ * Exact-owner conditional replacement options.
+ *
+ * @typedef {CjsMotherLodeInsertOptions & object} CjsMotherLodeConditionalReplaceOptions
+ * @property {() => boolean} [commitGuard] Final side-effect-free caller authority check performed immediately before the exact-record comparison.
  */
 
 /**
@@ -63,6 +71,25 @@ const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;
  */
 
 /**
+ * Immutable result from deterministic recorded-byte cache housekeeping.
+ *
+ * Only explicitly cached, cacheable, unlocked records contribute to the
+ * budget. Zero-byte records do not create pressure and are retained because
+ * removing them cannot reduce the recorded byte total.
+ *
+ * @typedef {object} CjsMotherLodeCacheTrimResult
+ * @property {number} cacheSize Configured recorded-byte budget.
+ * @property {number} beforeBytes Explicit cached bytes before housekeeping.
+ * @property {number} afterBytes Explicit cached bytes after housekeeping.
+ * @property {number} evictedBytes Recorded bytes removed successfully.
+ * @property {boolean} overBudget Whether retained cached records still exceed the budget.
+ * @property {number} evicted Number of complete canonical identities removed.
+ * @property {number} failed Number of candidate identities that reported cleanup or purge-state failure.
+ * @property {readonly string[]} evictedKeys Canonical identities removed oldest-first.
+ * @property {readonly string[]} failedKeys Canonical identities that reported a failure.
+ */
+
+/**
  * Activity-update options accepted by {@link CjsMotherLode#KeepAlive}.
  *
  * @typedef {object} CjsMotherLodeActivityOptions
@@ -82,6 +109,16 @@ const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;
  */
 
 /**
+ * Immutable result from an exact-owner conditional replacement.
+ *
+ * @typedef {object} CjsMotherLodeConditionalReplaceResult
+ * @property {string} key Canonical resolved identity key.
+ * @property {boolean} committed Whether the expected owner was replaced.
+ * @property {object|Function|null} resource Canonical resource after the compare-and-swap attempt.
+ * @property {object|Function|null} displaced Former exact owner when the replacement committed.
+ */
+
+/**
  * Immutable diagnostic snapshot returned by {@link CjsMotherLode#GetStats}.
  *
  * @typedef {object} CjsMotherLodeStats
@@ -91,9 +128,9 @@ const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;
  * @property {number} cached Number of explicitly cached entries.
  * @property {number} locked Number of entries with at least one eviction lock.
  * @property {number} payloads Number of entries currently retaining a CPU payload.
- * @property {number} bytes Total recorded byte estimate.
+ * @property {number} bytes Total caller-supplied eviction weight.
  * @property {number} cacheBytes Byte estimate for explicitly cached entries.
- * @property {number} cacheSize Configured future-cache byte budget.
+ * @property {number} cacheSize Configured recorded-byte cache budget.
  * @property {number} activityFrame Highest activity frame observed by this registry.
  * @property {Readonly<Record<string, number>>} states Resource count grouped by state name.
  * @property {readonly string[]} paths Unique resource paths in encounter order.
@@ -104,19 +141,21 @@ const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;
  *
  * Carbon can move resources between weak live registration and a strong LRU
  * cache. JavaScript ownership cannot reproduce that transition reliably, so
- * entries remain strongly owned until an explicit delete, clear, or shutdown.
+ * entries remain strongly owned until explicit ownership removal or an
+ * explicit inactivity/recorded-byte policy evicts them.
  */
 class CjsMotherLode {
   #active = false;
   #activityFrame = 0;
   #cacheSize = DEFAULT_CACHE_SIZE;
   #entries = new Map();
+  #nextCacheSequence = 1;
   #now = DefaultNow;
 
   /**
    * Create an active deterministic resource registry.
    *
-   * @param {CjsMotherLodeOptions} [options={}] Clock and diagnostic cache-budget configuration.
+   * @param {CjsMotherLodeOptions} [options={}] Clock and recorded-byte cache configuration.
    * @throws {TypeError} If options, the clock, or the cache byte budget are invalid.
    */
   constructor(options = {}) {
@@ -201,19 +240,94 @@ class CjsMotherLode {
     AssertResource(resource);
     const existing = this.#entries.get(key) || null;
     if (existing && existing.resource === resource) {
-      this.#UpdateRecord(existing, options);
-      this.#TouchRecord(existing, options);
+      const updated = {
+        ...existing
+      };
+      this.#UpdateRecord(updated, options);
+      this.#AssertRecordedBytesTotal(updated, existing);
+      this.#TouchRecord(updated, options);
+      Object.assign(existing, updated);
       return FreezeInsertResult(key, resource, false, false, null);
     }
     if (existing && options.replace === false) {
       return FreezeInsertResult(key, existing.resource, false, false, null);
     }
-    const record = this.#CreateRecord(key, resource, options);
+    const record = this.#CreateRecord(key, resource, options, existing);
     if (existing) {
       this.#CleanupRecord(existing, options, "replace", true);
     }
     this.#entries.set(key, record);
     return FreezeInsertResult(key, resource, true, Boolean(existing), existing?.resource || null);
+  }
+
+  /**
+   * Replace one exact canonical owner without running user cleanup between the
+   * final ownership comparison and registry publication.
+   *
+   * The prepared replacement becomes canonical first; displaced-owner cleanup
+   * then runs exactly once. A cleanup failure therefore cannot roll lookup
+   * ownership back to a partially cleaned former resource. Such a failure is
+   * reported as `CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED` with a committed
+   * result attached. When the expected owner is no longer current, no mutation
+   * or cleanup occurs and `committed` is `false`.
+   *
+   * Recorded bytes and cacheability inherit from the expected record unless
+   * explicitly supplied. The replacement is live by default because a
+   * successful staged reload is an activity observation.
+   *
+   * @param {string} key Canonical resolved identity key.
+   * @param {object|Function} expected Exact resource that must still own `key`.
+   * @param {object|Function} resource Fully prepared replacement resource.
+   * @param {CjsMotherLodeConditionalReplaceOptions} [options={}] Replacement metadata, authority guard, and displaced-owner cleanup policy.
+   * @returns {CjsMotherLodeConditionalReplaceResult} Immutable compare-and-swap outcome.
+   * @throws {TypeError} If the key, resources, metadata, or activity values are invalid.
+   * @throws {Error} If the registry is inactive or the prepared resource aliases the expected owner.
+   * @throws {AggregateError} After a committed swap when displaced-owner cleanup fails.
+   */
+  ReplaceExpected(key, expected, resource, options = {}) {
+    if (!this.#active) {
+      throw MotherLodeInactiveError();
+    }
+    const resolvedKey = NormalizeResolvedKey(key);
+    const policy = NormalizeOptions(options, "conditional replace");
+    if (policy.commitGuard !== undefined && typeof policy.commitGuard !== "function") {
+      throw new TypeError("CjsMotherLode conditional replace commitGuard must be a function.");
+    }
+    AssertResource(expected);
+    AssertResource(resource);
+    if (resource === expected) {
+      const error = new Error("CjsMotherLode conditional replacement requires a distinct resource.");
+      error.code = "CJS_MOTHERLODE_REPLACE_ALIAS";
+      throw error;
+    }
+    const existing = this.#entries.get(resolvedKey) || null;
+    if (!existing || existing.resource !== expected) {
+      return FreezeConditionalReplaceResult(resolvedKey, false, existing?.resource || null, null);
+    }
+    const recordOptions = {
+      ...policy,
+      bytes: policy.bytes === undefined ? existing.bytes : policy.bytes,
+      cacheable: policy.cacheable === undefined ? existing.cacheable : policy.cacheable,
+      cached: policy.cached === undefined ? false : policy.cached
+    };
+    const record = this.#CreateRecord(resolvedKey, resource, recordOptions, existing);
+
+    // Re-check after clock/metadata validation, then publish with no user code
+    // between the exact-record comparison and Map mutation.
+    if (policy.commitGuard && !policy.commitGuard() || this.#entries.get(resolvedKey) !== existing) {
+      return FreezeConditionalReplaceResult(resolvedKey, false, this.#entries.get(resolvedKey)?.resource || null, null);
+    }
+    this.#entries.set(resolvedKey, record);
+    const result = FreezeConditionalReplaceResult(resolvedKey, true, resource, expected);
+    try {
+      this.#CleanupRecord(existing, policy, "conditional replace");
+    } catch (cause) {
+      const error = new AggregateError([cause], `CjsMotherLode conditional replacement committed but cleanup failed for ${resolvedKey}.`);
+      error.code = "CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED";
+      error.result = result;
+      throw error;
+    }
+    return result;
   }
 
   /**
@@ -346,6 +460,7 @@ class CjsMotherLode {
     const record = this.#entries.get(resolvedKey);
     if (!record) return null;
     record.cached = false;
+    record.cacheSequence = 0;
     this.#TouchRecord(record, options);
     return record.resource;
   }
@@ -369,6 +484,7 @@ class CjsMotherLode {
     const record = this.#entries.get(resolvedKey);
     if (!record) return null;
     record.cached = false;
+    record.cacheSequence = 0;
     this.#TouchRecord(record, options);
     record.payloadLastUsedFrame = record.lastUsedFrame;
     record.payloadLastUsedTime = record.lastUsedTime;
@@ -389,6 +505,7 @@ class CjsMotherLode {
     if (!record) return 0;
     record.lockCount += 1;
     record.cached = false;
+    record.cacheSequence = 0;
     this.#TouchRecord(record, {});
     return record.lockCount;
   }
@@ -475,21 +592,92 @@ class CjsMotherLode {
   }
 
   /**
-   * Configure the byte budget reserved for later cache-eviction policy.
-   * Changing the value records policy only; it never evicts entries.
+   * Remove complete explicitly cached identities until their recorded byte
+   * total fits the configured budget.
+   *
+   * Candidates are ordered by explicit cache admission, oldest first. Lookup
+   * is intentionally pure; callers re-admit a live identity by inserting the
+   * same handle with `{ cached: true }`. Locks and `KeepAlive()` promote an
+   * entry to live and therefore remove it from byte-budget consideration.
+   *
+   * Cleanup is transactional per candidate. A failure leaves that candidate
+   * canonical, later candidates are still attempted, and the final aggregate
+   * error carries the partial immutable result. Successful pressure eviction
+   * destroys adapters, releases payloads, detaches lifecycle callbacks, marks
+   * compatible handles `PURGED` by default, and never fetches or reconstructs
+   * data. Explicit cleanup overrides retain their documented ownership.
+   *
+   * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for pressure-evicted identities.
+   * @returns {CjsMotherLodeCacheTrimResult} Immutable byte totals and affected canonical keys.
+   * @throws {TypeError} If cleanup options are invalid.
+   * @throws {AggregateError} If cleanup or purge-state publication fails for one or more candidates.
+   */
+  TrimCache(options = {}) {
+    const policy = NormalizeOptions(options, "cache trim");
+    const beforeBytes = this.#GetCacheBytes();
+    const evictedKeys = [];
+    const failedKeys = [];
+    const errors = [];
+    let evictedBytes = 0;
+    if (beforeBytes > this.#cacheSize) {
+      const candidates = [...this.#entries.values()].filter(record => record.cacheable && record.cached && record.lockCount === 0 && record.bytes > 0).sort((a, b) => a.cacheSequence - b.cacheSequence);
+      for (const record of candidates) {
+        if (this.#GetCacheBytes() <= this.#cacheSize) break;
+        if (this.#entries.get(record.key) !== record || !record.cacheable || !record.cached || record.lockCount > 0 || record.bytes <= 0) {
+          continue;
+        }
+        try {
+          this.#CleanupRecord(record, policy, "trim cache", true);
+        } catch (error) {
+          errors.push(error);
+          failedKeys.push(record.key);
+          continue;
+        }
+        if (this.#entries.get(record.key) === record) {
+          this.#entries.delete(record.key);
+        }
+        evictedKeys.push(record.key);
+        evictedBytes += record.bytes;
+        try {
+          record.resource?.MarkPurged?.();
+        } catch (cause) {
+          errors.push(MotherLodeCleanupError("mark cache eviction purged", record.key, record.resource, cause));
+          failedKeys.push(record.key);
+        }
+      }
+    }
+    const afterBytes = this.#GetCacheBytes();
+    const result = FreezeCacheTrimResult(this.#cacheSize, beforeBytes, afterBytes, evictedBytes, evictedKeys, failedKeys);
+    if (errors.length) {
+      const error = new AggregateError(errors, "CjsMotherLode cache trim failed.");
+      error.code = "CJS_MOTHERLODE_CACHE_TRIM_FAILED";
+      error.result = result;
+      throw error;
+    }
+    return result;
+  }
+
+  /**
+   * Configure and immediately enforce the recorded-byte budget for explicit
+   * cached entries. The new budget remains installed if partial cleanup fails,
+   * matching Carbon's policy-first `SetCacheSize` behavior.
    *
    * @param {number} bytes Non-negative safe-integer byte budget.
+   * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for entries displaced by the smaller budget.
    * @returns {CjsMotherLode} This registry.
-   * @throws {TypeError} If `bytes` is not a non-negative safe integer.
+   * @throws {TypeError} If `bytes` or cleanup options are invalid.
+   * @throws {AggregateError} If enforcing the new budget cannot clean one or more cached entries.
    */
-  SetCacheSize(bytes) {
+  SetCacheSize(bytes, options = {}) {
     AssertNonNegativeSafeInteger(bytes, "CjsMotherLode cache size");
+    const policy = NormalizeOptions(options, "set cache size");
     this.#cacheSize = bytes;
+    this.TrimCache(policy);
     return this;
   }
 
   /**
-   * Return the configured future-cache byte budget.
+   * Return the configured recorded-byte cache budget.
    *
    * @returns {number} Non-negative safe-integer byte budget.
    */
@@ -618,15 +806,17 @@ class CjsMotherLode {
    * @param {string} key Canonical resolved identity key.
    * @param {object|Function} resource Caller-supplied resource owner.
    * @param {CjsMotherLodeInsertOptions} options Validated insertion options.
+   * @param {object|null} [displaced=null] Existing record excluded from aggregate byte validation.
    * @returns {object} Mutable internal ownership record.
    */
-  #CreateRecord(key, resource, options) {
+  #CreateRecord(key, resource, options, displaced = null) {
     const record = {
       key,
       resource,
       bytes: 0,
       cacheable: true,
       cached: false,
+      cacheSequence: 0,
       lockCount: 0,
       lastUsedFrame: 0,
       lastUsedTime: 0,
@@ -634,6 +824,7 @@ class CjsMotherLode {
       payloadLastUsedTime: 0
     };
     this.#UpdateRecord(record, options);
+    this.#AssertRecordedBytesTotal(record, displaced);
     this.#TouchRecord(record, options);
     record.payloadLastUsedFrame = record.lastUsedFrame;
     record.payloadLastUsedTime = record.lastUsedTime;
@@ -653,9 +844,50 @@ class CjsMotherLode {
       record.bytes = options.bytes;
     }
     if (options.cacheable !== undefined) record.cacheable = Boolean(options.cacheable);
-    if (options.cached !== undefined) record.cached = record.cacheable && Boolean(options.cached);
-    if (!record.cacheable || record.lockCount > 0) record.cached = false;
+    if (options.cached !== undefined) {
+      record.cached = record.cacheable && record.lockCount === 0 && Boolean(options.cached);
+      record.cacheSequence = record.cached ? this.#nextCacheSequence++ : 0;
+    }
+    if (!record.cacheable || record.lockCount > 0) {
+      record.cached = false;
+      record.cacheSequence = 0;
+    }
     return record;
+  }
+
+  /**
+   * Reject metadata that would make aggregate recorded-byte arithmetic lose
+   * integer precision. This keeps trim results and diagnostics exact without
+   * attempting to measure JavaScript object graphs heuristically.
+   *
+   * @param {object} candidate New or updated record.
+   * @param {object|null} [excluded=null] Existing record replaced by the candidate.
+   * @returns {void}
+   * @throws {RangeError} If aggregate recorded bytes exceed the safe-integer range.
+   */
+  #AssertRecordedBytesTotal(candidate, excluded = null) {
+    let total = BigInt(candidate.bytes);
+    for (const record of this.#entries.values()) {
+      if (record === excluded) continue;
+      total += BigInt(record.bytes);
+      if (total > MAX_SAFE_INTEGER_BIGINT) {
+        throw new RangeError("CjsMotherLode aggregate recorded bytes exceed Number.MAX_SAFE_INTEGER.");
+      }
+    }
+  }
+
+  /**
+   * Sum exact byte weights for explicit cached entries.
+   * Aggregate safety is maintained at insertion/update time.
+   *
+   * @returns {number} Exact explicit-cache byte total.
+   */
+  #GetCacheBytes() {
+    let bytes = 0;
+    for (const record of this.#entries.values()) {
+      if (record.cacheable && record.cached) bytes += record.bytes;
+    }
+    return bytes;
   }
 
   /**
@@ -949,6 +1181,24 @@ function FreezeInsertResult(key, resource, inserted, replaced, displaced) {
 }
 
 /**
+ * Freeze one exact-owner compare-and-swap result.
+ *
+ * @param {string} key Canonical resolved identity key.
+ * @param {boolean} committed Whether publication replaced the expected owner.
+ * @param {object|Function|null} resource Canonical owner after the attempt.
+ * @param {object|Function|null} displaced Former owner when committed.
+ * @returns {CjsMotherLodeConditionalReplaceResult} Immutable replacement result.
+ */
+function FreezeConditionalReplaceResult(key, committed, resource, displaced) {
+  return Object.freeze({
+    key,
+    committed,
+    resource,
+    displaced
+  });
+}
+
+/**
  * Freeze one inactivity-sweep result and its affected-key snapshots.
  *
  * @param {number} frame Sweep frame.
@@ -967,6 +1217,31 @@ function FreezePurgeResult(frame, time, purgedKeys, payloadKeys, locked) {
     locked,
     purgedKeys: Object.freeze(purgedKeys),
     payloadKeys: Object.freeze(payloadKeys)
+  });
+}
+
+/**
+ * Freeze one byte-budget housekeeping result and its affected-key snapshots.
+ *
+ * @param {number} cacheSize Configured cache budget.
+ * @param {number} beforeBytes Cached bytes before housekeeping.
+ * @param {number} afterBytes Cached bytes after housekeeping.
+ * @param {number} evictedBytes Successfully removed cached bytes.
+ * @param {string[]} evictedKeys Successfully removed canonical identities.
+ * @param {string[]} failedKeys Candidate identities that reported failure.
+ * @returns {CjsMotherLodeCacheTrimResult} Immutable cache-housekeeping result.
+ */
+function FreezeCacheTrimResult(cacheSize, beforeBytes, afterBytes, evictedBytes, evictedKeys, failedKeys) {
+  return Object.freeze({
+    cacheSize,
+    beforeBytes,
+    afterBytes,
+    evictedBytes,
+    overBudget: afterBytes > cacheSize,
+    evicted: evictedKeys.length,
+    failed: failedKeys.length,
+    evictedKeys: Object.freeze(evictedKeys),
+    failedKeys: Object.freeze(failedKeys)
   });
 }
 function MotherLodeInactiveError() {

@@ -382,6 +382,46 @@ test("CjsMotherLode replacement and removal clean displaced resource ownership",
   assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
 });
 
+test("CjsMotherLode conditional replacement commits before displaced cleanup", () =>
+{
+  const motherLode = new CjsMotherLode();
+  const key = getMotherLodeKey("res:/data/conditional-replace.bin");
+  const expected = new CjsResource().Initialize(key);
+  const candidate = new CjsResource().Initialize(key);
+  const unexpected = new CjsResource().Initialize(key);
+  expected.SetPayload({ revision: 1 });
+  candidate.SetPayload({ revision: 2 });
+  motherLode.Insert(key, expected, { bytes: 32, cached: true });
+
+  const mismatch = motherLode.ReplaceExpected(key, unexpected, candidate);
+  assert.deepEqual(mismatch, {
+    key,
+    committed: false,
+    resource: expected,
+    displaced: null
+  });
+  assert.equal(motherLode.Lookup(key), expected);
+
+  assert.throws(
+    () => motherLode.ReplaceExpected(key, expected, candidate, {
+      cleanup(resource)
+      {
+        assert.equal(resource, expected);
+        assert.equal(motherLode.Lookup(key), candidate);
+        throw new Error("expected post-commit cleanup failure");
+      }
+    }),
+    error => error.code === "CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED"
+      && error.result.committed === true
+      && error.result.resource === candidate
+      && error.result.displaced === expected
+  );
+  assert.equal(motherLode.Lookup(key), candidate);
+  assert.equal(motherLode.GetStats().bytes, 32);
+  assert.equal(motherLode.GetStats().cached, 0);
+  assert.equal(candidate.HasPayload(), true);
+});
+
 test("CjsMotherLode clears explicit cached entries and shuts down idempotently", () =>
 {
   const motherLode = new CjsMotherLode();
@@ -418,25 +458,196 @@ test("CjsMotherLode clears explicit cached entries and shuts down idempotently",
   assert.equal(motherLode.Has(restarted.GetPath(), "legacy"), true);
 });
 
-test("CjsResMan reload, delete, and clear use MotherLode cleanup", () =>
+test("CjsMotherLode trims explicit cached identities oldest-first by recorded bytes", () =>
 {
-  const resMan = new CjsResMan();
-  const first = resMan.GetResource("res:/data/reload.bin");
+  let time = 0;
+  const motherLode = new CjsMotherLode({ cacheSize: 128, now: () => time });
+  const destroyed = [];
+
+  const createCached = (name, frame) =>
+  {
+    const path = `res:/data/${name}.bin`;
+    const key = getMotherLodeKey(path);
+    const resource = new CjsResource().Initialize(path);
+    resource.SetPayload({ name });
+    resource.SetAdapterResource("test", { destroy() { destroyed.push(name); } });
+    time = frame;
+    motherLode.Insert(key, resource, { cached: true, bytes: 64, frame, time });
+    return { key, resource };
+  };
+
+  const first = createCached("first", 1);
+  const second = createCached("second", 2);
+  const third = createCached("third", 3);
+  const trim = motherLode.TrimCache();
+
+  assert.deepEqual(trim, {
+    cacheSize: 128,
+    beforeBytes: 192,
+    afterBytes: 128,
+    evictedBytes: 64,
+    overBudget: false,
+    evicted: 1,
+    failed: 0,
+    evictedKeys: [ first.key ],
+    failedKeys: []
+  });
+  assert.deepEqual(destroyed, [ "first" ]);
+  assert.equal(first.resource.HasPayload(), false);
+  assert.equal(first.resource.IsPurged(), true);
+  assert.equal(motherLode.Lookup(first.key), null);
+  assert.equal(motherLode.Lookup(second.key), second.resource);
+  assert.equal(motherLode.Lookup(third.key), third.resource);
+  assert.equal(motherLode.TrimCache().evicted, 0);
+
+  assert.equal(motherLode.SetCacheSize(64), motherLode);
+  assert.deepEqual(destroyed, [ "first", "second" ]);
+  assert.equal(second.resource.IsPurged(), true);
+  assert.equal(motherLode.Lookup(third.key), third.resource);
+
+  motherLode.SetCacheSize(0);
+  assert.deepEqual(destroyed, [ "first", "second", "third" ]);
+  assert.equal(third.resource.IsPurged(), true);
+  assert.equal(motherLode.GetSize(), 0);
+});
+
+test("CjsMotherLode validates cache-size cleanup options before changing policy", () =>
+{
+  const motherLode = new CjsMotherLode({ cacheSize: 128 });
+
+  assert.throws(
+    () => motherLode.SetCacheSize(64, []),
+    /set cache size options must be an object/u
+  );
+  assert.equal(motherLode.GetCacheSize(), 128);
+});
+
+test("CjsMotherLode byte pressure excludes live, zero-byte, and promoted locked identities", () =>
+{
+  const motherLode = new CjsMotherLode({ cacheSize: 10 });
+  const liveKey = getMotherLodeKey("res:/data/live-weight.bin");
+  const zeroKey = getMotherLodeKey("res:/data/zero-weight.bin");
+  const lockedKey = getMotherLodeKey("res:/data/locked-weight.bin");
+  const pressureKey = getMotherLodeKey("res:/data/pressure-weight.bin");
+  const live = new CjsResource().Initialize(liveKey);
+  const zero = new CjsResource().Initialize(zeroKey);
+  const locked = new CjsResource().Initialize(lockedKey);
+  const pressure = new CjsResource().Initialize(pressureKey);
+
+  motherLode.Insert(liveKey, live, { bytes: 1000 });
+  motherLode.Insert(zeroKey, zero, { cached: true, bytes: 0 });
+  motherLode.Insert(lockedKey, locked, { cached: true, bytes: 20 });
+  assert.equal(motherLode.Lock(lockedKey), 1);
+  assert.equal(motherLode.Unlock(lockedKey), 0);
+  motherLode.Insert(pressureKey, pressure, { cached: true, bytes: 20 });
+
+  const trim = motherLode.TrimCache();
+
+  assert.deepEqual(trim.evictedKeys, [ pressureKey ]);
+  assert.equal(motherLode.Lookup(liveKey), live);
+  assert.equal(motherLode.Lookup(zeroKey), zero);
+  assert.equal(motherLode.Lookup(lockedKey), locked);
+  assert.equal(motherLode.Lookup(pressureKey), null);
+  assert.equal(motherLode.GetStats().cacheBytes, 0);
+  motherLode.SetCacheSize(0);
+  assert.equal(motherLode.Lookup(zeroKey), zero);
+  assert.equal(motherLode.ClearCached(), 1);
+  assert.equal(motherLode.Lookup(zeroKey), null);
+});
+
+test("CjsMotherLode cache trim preserves failed owners and reports partial pressure relief", () =>
+{
+  const motherLode = new CjsMotherLode({ cacheSize: 50 });
+  const failingKey = getMotherLodeKey("res:/data/failing-cache.bin");
+  const goodKey = getMotherLodeKey("res:/data/good-cache.bin");
+  const failing = new CjsResource().Initialize(failingKey);
+  const good = new CjsResource().Initialize(goodKey);
+  failing.SetPayload({ failing: true });
+  failing.SetAdapterResource("test", { destroy() { throw new Error("expected cache cleanup failure"); } });
+  good.SetPayload({ good: true });
+  motherLode.Insert(failingKey, failing, { cached: true, bytes: 80 });
+  motherLode.Insert(goodKey, good, { cached: true, bytes: 80 });
+
+  assert.throws(
+    () => motherLode.TrimCache(),
+    error => error instanceof AggregateError
+      && error.code === "CJS_MOTHERLODE_CACHE_TRIM_FAILED"
+      && error.result.beforeBytes === 160
+      && error.result.afterBytes === 80
+      && error.result.overBudget === true
+      && error.result.evicted === 1
+      && error.result.failed === 1
+      && error.result.evictedKeys[0] === goodKey
+      && error.result.failedKeys[0] === failingKey
+  );
+  assert.equal(motherLode.Lookup(failingKey), failing);
+  assert.equal(motherLode.Lookup(goodKey), null);
+  assert.equal(failing.IsPurged(), false);
+  assert.equal(good.IsPurged(), true);
+  assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
+});
+
+test("CjsMotherLode rejects unsafe aggregate byte weights before ownership changes", () =>
+{
+  const motherLode = new CjsMotherLode();
+  const firstKey = getMotherLodeKey("res:/data/max-safe.bin");
+  const rejectedKey = getMotherLodeKey("res:/data/unsafe-total.bin");
+  const first = new CjsResource().Initialize(firstKey);
+  const rejected = new CjsResource().Initialize(rejectedKey);
+  motherLode.Insert(firstKey, first, { bytes: Number.MAX_SAFE_INTEGER });
+
+  assert.throws(
+    () => motherLode.Insert(rejectedKey, rejected, { bytes: 1 }),
+    /aggregate recorded bytes exceed Number\.MAX_SAFE_INTEGER/u
+  );
+  assert.equal(motherLode.Lookup(firstKey), first);
+  assert.equal(motherLode.Lookup(rejectedKey), null);
+});
+
+test("CjsResMan Update enforces cache pressure unless one update skips it", () =>
+{
+  const motherLode = new CjsMotherLode({ cacheSize: 16 });
+  const resMan = new CjsResMan({ motherLode });
+  const resource = resMan.GetResource("res:/data/update-cache.bin");
+  const key = getMotherLodeKey(resource.GetPath());
+  resource.SetPayload({ cached: true });
+  motherLode.Insert(key, resource, { cached: true, bytes: 32 });
+
+  assert.equal(resMan.Update({ cache: false, purge: false }), false);
+  assert.equal(motherLode.Lookup(key), resource);
+  assert.equal(resMan.Update({ purge: false }), true);
+  assert.equal(resMan.Lookup(resource.GetPath()), null);
+  assert.equal(resource.HasPayload(), false);
+  assert.equal(resource.IsPurged(), true);
+});
+
+test("CjsResMan stages reload candidates and cleans displaced ownership only after commit", async () =>
+{
+  const resMan = new CjsResMan({
+    source: { Read: () => "{\"value\":2}" }
+  });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  const path = "res:/data/reload.json";
+  const first = resMan.GetResource(path);
   let firstDestroyed = 0;
   first.SetPayload({ value: 1 });
   first.SetAdapterResource("test", { destroy() { firstDestroyed += 1; } });
 
-  const replacement = resMan.GetResource("res:/data/reload.bin", { reload: true });
+  const replacement = resMan.GetResource(path, { reload: true });
 
   assert.notEqual(replacement, first);
+  assert.equal(firstDestroyed, 0);
+  assert.equal(first.HasPayload(), true);
+  assert.equal(resMan.Lookup(path), first);
+
+  assert.deepEqual(await replacement.Ready(), { value: 2 });
   assert.equal(firstDestroyed, 1);
   assert.equal(first.HasPayload(), false);
-  assert.equal(resMan.Lookup("res:/data/reload.bin"), replacement);
+  assert.equal(resMan.Lookup(path), replacement);
 
   let replacementDestroyed = 0;
-  replacement.SetPayload({ value: 2 });
   replacement.SetAdapterResource("test", { destroy() { replacementDestroyed += 1; } });
-  assert.equal(resMan.Delete("res:/data/reload.bin"), true);
+  assert.equal(resMan.Delete(path), true);
   assert.equal(replacementDestroyed, 1);
   assert.equal(replacement.HasPayload(), false);
 
@@ -446,6 +657,152 @@ test("CjsResMan reload, delete, and clear use MotherLode cleanup", () =>
   resMan.Clear();
   assert.equal(clearedDestroyed, 1);
   assert.equal(resMan.motherLode.GetSize(), 0);
+});
+
+test("failed reload source work preserves the exact good owner and cleans its candidate", async () =>
+{
+  const expectedError = new Error("expected reload source failure");
+  const path = "res:/data/reload-source-failure.json";
+  const resMan = new CjsResMan({
+    source: { Read() { throw expectedError; } }
+  });
+  const current = resMan.GetResource(path);
+  const currentPayload = { revision: 1 };
+  let currentDestroyed = 0;
+  let candidateDestroyed = 0;
+  current.SetPayload(currentPayload);
+  current.MarkLoaded();
+  current.SetAdapterResource("current", { destroy() { currentDestroyed += 1; } });
+
+  const candidate = resMan.GetResource(path, { reload: true });
+  candidate.SetAdapterResource("candidate", { destroy() { candidateDestroyed += 1; } });
+
+  await assert.rejects(candidate.Ready(), error => error === expectedError);
+  assert.equal(resMan.Lookup(path), current);
+  assert.equal(current.GetPayload(), currentPayload);
+  assert.equal(currentDestroyed, 0);
+  assert.equal(current.HasLoaded(), true);
+  assert.equal(candidateDestroyed, 1);
+  assert.equal(candidate.HasPayload(), false);
+  assert.equal(candidate.IsFailed(), true);
+});
+
+test("failed reload preparation preserves the good owner and releases staged adapters", async () =>
+{
+  const expectedError = new Error("expected reload prepare failure");
+  const path = "res:/data/reload-prepare-failure.json";
+  let candidateDestroyed = 0;
+  const resMan = new CjsResMan({
+    source: { Read: () => "{\"revision\":2}" },
+    preparePipelines: {
+      fail: {
+        default: true,
+        stages: [ {
+          name: "fail",
+          prepare(value, context)
+          {
+            context.resource.SetAdapterResource("candidate", {
+              destroy() { candidateDestroyed += 1; }
+            });
+            throw expectedError;
+          }
+        } ]
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  const current = resMan.GetResource(path);
+  const currentPayload = { revision: 1 };
+  current.SetPayload(currentPayload);
+  current.MarkLoaded();
+
+  const candidate = resMan.GetResource(path, { reload: true });
+  await assert.rejects(candidate.Ready(), error => error === expectedError);
+
+  assert.equal(resMan.Lookup(path), current);
+  assert.equal(current.GetPayload(), currentPayload);
+  assert.equal(current.HasLoaded(), true);
+  assert.equal(candidateDestroyed, 1);
+  assert.equal(candidate.HasAdapterResource("candidate"), false);
+  assert.equal(candidate.IsFailed(), true);
+});
+
+test("reload rejects singleton candidate aliasing before mutating the canonical handle", () =>
+{
+  const shared = new CjsResource();
+  function SingletonResource()
+  {
+    return shared;
+  }
+
+  const path = "res:/data/reload-singleton.bin";
+  const resMan = new CjsResMan({
+    resourceTypes: { singleton: SingletonResource }
+  });
+  const current = resMan.GetResource(path, { requirement: "singleton" });
+  current.SetPayload({ stable: true });
+
+  assert.throws(
+    () => resMan.GetResource(path, { requirement: "singleton", reload: true }),
+    error => error.code === "CJS_RESMAN_RELOAD_CANDIDATE_ALIAS"
+      && error.resource === current
+  );
+  assert.equal(resMan.Lookup(path, { requirement: "singleton" }), current);
+  assert.deepEqual(current.GetPayload(), { stable: true });
+});
+
+test("displaced cleanup failure reports a committed atomic reload", async () =>
+{
+  const path = "res:/data/reload-cleanup-failure.json";
+  const resMan = new CjsResMan({
+    source: { Read: () => "{\"revision\":2}" }
+  });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  const current = resMan.GetResource(path);
+  current.SetPayload({ revision: 1 });
+  current.SetAdapterResource("failing", {
+    destroy() { throw new Error("expected displaced cleanup failure"); }
+  });
+
+  const candidate = resMan.GetResource(path, { reload: true });
+  await assert.rejects(
+    candidate.Ready(),
+    error => error.code === "CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED"
+      && error.result.committed === true
+      && error.result.resource === candidate
+      && error.result.displaced === current
+  );
+
+  assert.equal(resMan.Lookup(path), candidate);
+  assert.deepEqual(candidate.GetPayload(), { revision: 2 });
+  assert.equal(candidate.HasLoaded(), true);
+  assert.equal(current.HasPayload(), false);
+});
+
+test("candidate cleanup failure is aggregated without replacing the good owner", async () =>
+{
+  const expectedError = new Error("expected reload failure");
+  const path = "res:/data/reload-candidate-cleanup-failure.bin";
+  const resMan = new CjsResMan({
+    source: { Read() { throw expectedError; } }
+  });
+  const current = resMan.GetResource(path);
+  current.SetPayload({ stable: true });
+  current.MarkLoaded();
+  const candidate = resMan.GetResource(path, { reload: true });
+  candidate.SetAdapterResource("failing", {
+    destroy() { throw new Error("expected candidate cleanup failure"); }
+  });
+
+  await assert.rejects(
+    candidate.Ready(),
+    error => error.code === "CJS_RESMAN_RELOAD_CANDIDATE_CLEANUP_FAILED"
+      && error.cause === expectedError
+      && error.errors[0] === expectedError
+  );
+  assert.equal(resMan.Lookup(path), current);
+  assert.deepEqual(current.GetPayload(), { stable: true });
+  assert.equal(current.HasLoaded(), true);
 });
 
 test("CjsResMan binds explicit resource and payload leases for deterministic purge", () =>
@@ -1493,12 +1850,11 @@ test("reload replaces retained source and format results for later reconstructio
   assert.deepEqual(firstObject, { revision: 1 });
 
   revision = 2;
-  const replacementObject = await resMan.GetObject(path, {
+  const replacementObject = await resMan.ReloadObject(path, {
     emit: "raw",
     sourceRevision: "r2",
     cacheSource: true,
-    cacheFormat: true,
-    reload: true
+    cacheFormat: true
   });
   const replacement = resMan.Lookup(path, { emit: "raw" });
   assert.deepEqual(replacementObject, { revision: 2 });
@@ -1515,7 +1871,7 @@ test("reload replaces retained source and format results for later reconstructio
   assert.equal(formatReads, 2);
 });
 
-test("FetchResource consumes reload once and returns the current canonical handle", async () =>
+test("ReloadResource consumes freshness once and returns the committed canonical handle", async () =>
 {
   let revision = 1;
   let sourceReads = 0;
@@ -1532,11 +1888,35 @@ test("FetchResource consumes reload once and returns the current canonical handl
 
   const first = await resMan.FetchResource(path);
   revision = 2;
-  const replacement = await resMan.FetchResource(path, { reload: true });
+  const replacement = await resMan.ReloadResource(path);
 
   assert.notEqual(replacement, first);
   assert.equal(replacement, resMan.Lookup(path));
   assert.deepEqual(replacement.GetPayload(), { revision: 2 });
+  assert.equal(sourceReads, 2);
+});
+
+test("ReloadResource invalidates retained reads before creating a first canonical owner", async () =>
+{
+  let revision = 1;
+  let sourceReads = 0;
+  const source = {
+    Read()
+    {
+      sourceReads += 1;
+      return `{"revision":${revision}}`;
+    }
+  };
+  const path = "res:/data/initial-reload.json";
+  const resMan = new CjsResMan({ source });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+
+  assert.equal(await resMan.ReadResource(path, { cacheSource: true }), "{\"revision\":1}");
+  revision = 2;
+  const resource = await resMan.ReloadResource(path, { cacheSource: true });
+
+  assert.equal(resource, resMan.Lookup(path));
+  assert.deepEqual(resource.GetPayload(), { revision: 2 });
   assert.equal(sourceReads, 2);
 });
 

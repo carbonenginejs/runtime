@@ -227,8 +227,9 @@ new class extends _identity {
     }
 
     /**
-     * Mark this detached resource handle as purged after its manager-owned
-     * adapter allocations and payload have been released.
+     * Mark this detached resource handle as purged after a successful
+     * manager-owned policy eviction, such as inactivity or recorded-byte cache
+     * pressure, released its adapter allocations and payload.
      *
      * @returns {CjsResource} This purged resource.
      */
