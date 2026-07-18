@@ -114,7 +114,7 @@ export class CjsWebpFormat
     static outputTypes = Object.freeze([]);
 
     static debugOutputTypes = Object.freeze([ "webpJson", OUTPUT_RAW ]);
-    
+
     static implementationStatus = "metadata-only";
 }
 

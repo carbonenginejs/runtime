@@ -205,7 +205,7 @@ export class CjsWebmFormat
     static inputTypes = Object.freeze([ "webm" ]);
 
     static outputTypes = Object.freeze([ OUTPUT_VIDEO ]);
-    
+
     static debugOutputTypes = Object.freeze([ "webmJson", OUTPUT_RAW ]);
 }
 

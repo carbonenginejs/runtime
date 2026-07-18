@@ -264,7 +264,7 @@ export class CjsBnkFormat
     static inputTypes = Object.freeze([ "bnk" ]);
 
     static outputTypes = Object.freeze([ OUTPUT_RAW, OUTPUT_MEDIA ]);
-    
+
     static debugOutputTypes = Object.freeze([ OUTPUT_BNK_JSON, OUTPUT_RAW ]);
 }
 
