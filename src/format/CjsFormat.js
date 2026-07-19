@@ -56,6 +56,30 @@ export class CjsFormat
     return this.isSupported(input, options);
   }
 
+  /**
+   * Content-verified type/route resolution (kb §5, optional per format).
+   *
+   * Where inspect()/isSupported() report what the container CLAIMS,
+   * resolveType() performs one bounded asynchronous content check (magic, a
+   * first frame/block, a setup header) and reports what the reader has
+   * evidence it can actually decode. Overrides return a CjsResourceProbe
+   * with `verified: true` and declared/resolved/mismatch evidence in
+   * `metadata`; `preferred` names the resolved decode route. A caller-forced
+   * emit always wins over a resolution, and this base implementation - the
+   * zero-extra-work path for formats without an override - delegates to
+   * isSupported() with `verified` false so an unverified result never
+   * changes a route.
+   *
+   * @param {*} input Bytes (or path where the format supports it).
+   * @param {object|null} options Format options.
+   * @returns {Promise<CjsResourceProbe>} Probe report; content-verified only when overridden.
+   */
+  static async resolveType(input, options = null) {
+    const report = CjsResourceProbe.from(this.isSupported(input, options));
+    report.verified = false;
+    return report;
+  }
+
   constructor(options = null) {
     this.options = { ...(options || {}) };
   }

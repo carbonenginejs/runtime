@@ -2,7 +2,7 @@ import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelH
 import { CjsModel } from '@carbonenginejs/core-types/model';
 import { io, type } from '@carbonenginejs/core-types/schema';
 
-let _initClass, _init_format, _init_extra_format, _init_source, _init_extra_source, _init_supported, _init_extra_supported, _init_confidence, _init_extra_confidence, _init_preferred, _init_extra_preferred, _init_reason, _init_extra_reason, _init_metadata, _init_extra_metadata, _init_variant, _init_extra_variant, _init_variants, _init_extra_variants, _init_warnings, _init_extra_warnings, _init_errors, _init_extra_errors;
+let _initClass, _init_format, _init_extra_format, _init_source, _init_extra_source, _init_supported, _init_extra_supported, _init_verified, _init_extra_verified, _init_confidence, _init_extra_confidence, _init_preferred, _init_extra_preferred, _init_reason, _init_extra_reason, _init_metadata, _init_extra_metadata, _init_variant, _init_extra_variant, _init_variants, _init_extra_variants, _init_warnings, _init_extra_warnings, _init_errors, _init_extra_errors;
 
 /**
  * Standard probe report for resource formats and a reusable base for format-specific probes.
@@ -19,17 +19,25 @@ let _CjsResourceProbe;
 class CjsResourceProbe extends CjsModel {
   static {
     ({
-      e: [_init_format, _init_extra_format, _init_source, _init_extra_source, _init_supported, _init_extra_supported, _init_confidence, _init_extra_confidence, _init_preferred, _init_extra_preferred, _init_reason, _init_extra_reason, _init_metadata, _init_extra_metadata, _init_variant, _init_extra_variant, _init_variants, _init_extra_variants, _init_warnings, _init_extra_warnings, _init_errors, _init_extra_errors],
+      e: [_init_format, _init_extra_format, _init_source, _init_extra_source, _init_supported, _init_extra_supported, _init_verified, _init_extra_verified, _init_confidence, _init_extra_confidence, _init_preferred, _init_extra_preferred, _init_reason, _init_extra_reason, _init_metadata, _init_extra_metadata, _init_variant, _init_extra_variant, _init_variants, _init_extra_variants, _init_warnings, _init_extra_warnings, _init_errors, _init_extra_errors],
       c: [_CjsResourceProbe, _initClass]
     } = _applyDecs2311(this, [type.define({
       className: "CjsResourceProbe",
       family: "resource"
-    })], [[[io, io.persist, type, type.string], 16, "format"], [[io, io.persist, type, type.string], 16, "source"], [[io, io.persist, type, type.string], 16, "supported"], [[io, io.persist, type, type.float64], 16, "confidence"], [[io, io.persist, type, type.string], 16, "preferred"], [[io, io.persist, type, type.string], 16, "reason"], [[io, io.persist, type, type.unknown], 16, "metadata"], [[io, io.persist, type, type.unknown], 16, "variant"], [[io, io.persist, void 0, type.list("unknown")], 16, "variants"], [[io, io.persist, void 0, type.list("string")], 16, "warnings"], [[io, io.persist, void 0, type.list("string")], 16, "errors"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.string], 16, "format"], [[io, io.persist, type, type.string], 16, "source"], [[io, io.persist, type, type.string], 16, "supported"], [[io, io.persist, type, type.boolean], 16, "verified"], [[io, io.persist, type, type.float64], 16, "confidence"], [[io, io.persist, type, type.string], 16, "preferred"], [[io, io.persist, type, type.string], 16, "reason"], [[io, io.persist, type, type.unknown], 16, "metadata"], [[io, io.persist, type, type.unknown], 16, "variant"], [[io, io.persist, void 0, type.list("unknown")], 16, "variants"], [[io, io.persist, void 0, type.list("string")], 16, "warnings"], [[io, io.persist, void 0, type.list("string")], 16, "errors"]], 0, void 0, CjsModel));
   }
   format = _init_format(this, "");
   source = (_init_extra_format(this), _init_source(this, ""));
   supported = (_init_extra_source(this), _init_supported(this, "none"));
-  confidence = (_init_extra_supported(this), _init_confidence(this, 0));
+
+  /**
+   * True when the report's variant flags are CONTENT-verified (a bounded
+   * resolveType() check ran), false when they are declaration-derived
+   * (inspect/isSupported). Declared/resolved/mismatch evidence rides in
+   * `metadata` per the kb §5 content-verified type resolution contract.
+   */
+  verified = (_init_extra_supported(this), _init_verified(this, false));
+  confidence = (_init_extra_verified(this), _init_confidence(this, 0));
   preferred = (_init_extra_confidence(this), _init_preferred(this, ""));
   reason = (_init_extra_preferred(this), _init_reason(this, ""));
   metadata = (_init_extra_reason(this), _init_metadata(this, null));

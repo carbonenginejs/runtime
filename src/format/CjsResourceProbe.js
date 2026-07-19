@@ -27,6 +27,16 @@ export class CjsResourceProbe extends CjsModel
   @type.string
   supported = "none";
 
+  /**
+   * True when the report's variant flags are CONTENT-verified (a bounded
+   * resolveType() check ran), false when they are declaration-derived
+   * (inspect/isSupported). Declared/resolved/mismatch evidence rides in
+   * `metadata` per the kb §5 content-verified type resolution contract.
+   */
+  @io.persist
+  @type.boolean
+  verified = false;
+
   @io.persist
   @type.float64
   confidence = 0;

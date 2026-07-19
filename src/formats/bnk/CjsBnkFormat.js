@@ -22,6 +22,13 @@ import {
     toJsonValue
 } from "./core/helpers.js";
 import { eventMediaFromBanks } from "./core/graph.js";
+import {
+    musicNodesFromBanks,
+    parseMusicPlaylist,
+    parseMusicSegment,
+    parseMusicSwitch,
+    parseMusicTrack
+} from "./core/musicNodes.js";
 
 const FORMAT_NAME = "CjsBnkFormat";
 
@@ -235,6 +242,12 @@ export class CjsBnkFormat
      * others), so always pass every related bank to one call. Returns
      * `{ eventMedia: Map<eventObjectId, Set<wemId>>, diagnostics }`. See
      * core/graph.js for the walk policy.
+     *
+     * The interactive-music decoders (`musicNodesFromBanks` and the per-type
+     * `parseMusicSegment/Track/Playlist/Switch`) turn the music-hierarchy
+     * entries (HIRC 10-13) into typed nodes - children, meter, cue markers,
+     * clips, playlist trees, decision trees, and transition rules. See
+     * core/musicNodes.js for the anchored, exact-end-validated parse.
      */
     static wwise = Object.freeze({
         isSoundbanksInfo,
@@ -242,7 +255,12 @@ export class CjsBnkFormat
         buildSoundbanksCatalog,
         joinSoundbanksInfo,
         wwiseIdFromName,
-        eventMediaFromBanks
+        eventMediaFromBanks,
+        musicNodesFromBanks,
+        parseMusicSegment,
+        parseMusicTrack,
+        parseMusicPlaylist,
+        parseMusicSwitch
     });
 
     /**

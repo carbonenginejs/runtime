@@ -1,4 +1,5 @@
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isWEM, toBytes, OUTPUT_OGG, OUTPUT_PCM, OUTPUT_WEM_JSON, OUTPUT_JSON, OUTPUT_RAW, WEM_CODEC_NAMES } from './core/helpers.js';
+import { resolveTypeWithValues } from './core/resolve.js';
 
 const FORMAT_NAME = "CjsWemFormat";
 
@@ -138,6 +139,24 @@ class CjsWemFormat {
    */
   static isSupported(input, options = {}) {
     return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
+  }
+
+  /**
+   * Content-verified codec/route resolution (kb §5 resolveType seam).
+   *
+   * Where `isSupported` trusts the fmt tag, this validates the declared
+   * codec against the container's actual structure (Vorbis sidecar,
+   * PTADPCM frame layout, PCM size consistency - bounded, no audio
+   * decode) and tries the other codecs when the declaration fails.
+   * The report carries `verified: true`, `preferred` = `ogg`/`pcm`/`raw`,
+   * and declared/resolved/mismatch evidence in `metadata`.
+   *
+   * @param {Uint8Array|ArrayBuffer|DataView} input Wem bytes.
+   * @param {object} [options] Probe options.
+   * @returns {Promise<object>} Content-verified probe report.
+   */
+  static async resolveType(input, options = {}) {
+    return resolveTypeWithValues(input, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
   }
 
   /**
