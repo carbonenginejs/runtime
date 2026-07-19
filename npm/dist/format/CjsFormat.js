@@ -1,3 +1,4 @@
+import { MediaType, PayloadType } from '@carbonenginejs/runtime-const/media';
 import { CjsResourceProbe as _CjsResourceProbe } from './CjsResourceProbe.js';
 
 class CjsFormat {
@@ -128,50 +129,39 @@ class CjsFormat {
   }
 
   /**
-   * Canonical package-family group names.
+   * Canonical package-family group names - the shared vocabulary object from
+   * runtime-const (kb: runtime-const owns cross-package media vocabulary).
+   * Same object identity as `@carbonenginejs/runtime-const/media` MediaType,
+   * so tokens can never drift between packages.
    */
-  static Type = Object.freeze({
-    AUDIO: "audio",
-    DATA: "data",
-    GEOMETRY: "geometry",
-    IMAGE: "image",
-    SCHEMA: "schema",
-    SHADER: "shader",
-    TEXTURE: "texture",
-    VIDEO: "video"
-  });
+  static Type = MediaType;
 
   /**
-   * Canonical media-type groups used by format registration.
+   * Canonical media-type groups used by format registration - the shared
+   * runtime-const MediaType object (see Type above).
    */
-  static MediaType = Object.freeze({
-    AUDIO: "audio",
-    DATA: "data",
-    GEOMETRY: "geometry",
-    IMAGE: "image",
-    SHADER: "shader",
-    SCHEMA: "schema",
-    TEXTURE: "texture",
-    VIDEO: "video"
-  });
+  static MediaType = MediaType;
 
   /**
-   * Canonical output-type tokens used by format emit contracts.
+   * Canonical output-type tokens used by format emit contracts. Shared
+   * payload ROLES come from runtime-const PayloadType; the remaining tokens
+   * (cmf/gr2/json/pcm/rgba/shared/objJson) are format-emit names owned by
+   * their formats and enumerated here for discoverability only.
    */
   static OutputType = Object.freeze({
-    AUDIO: "audio",
+    AUDIO: PayloadType.AUDIO,
     CMF: "cmf",
     GR2: "gr2",
-    IMAGE: "image",
+    IMAGE: PayloadType.IMAGE,
     JSON: "json",
     PCM: "pcm",
-    RAW: "raw",
+    RAW: PayloadType.RAW,
     RGBA: "rgba",
-    SCHEMA: "schema",
-    SHADER: "shader",
+    SCHEMA: PayloadType.SCHEMA,
+    SHADER: PayloadType.SHADER,
     SHARED: "shared",
-    TEXTURE: "texture",
-    VIDEO: "video",
+    TEXTURE: PayloadType.TEXTURE,
+    VIDEO: PayloadType.VIDEO,
     OBJ_JSON: "objJson"
   });
   static type = Object.freeze([]);
