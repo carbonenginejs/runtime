@@ -5,7 +5,6 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
-    "./generated/resources": "./dist/generated/resources/index.js",
     "./formats": "./dist/formats/index.js",
     "./formats/black": "./dist/formats/black/index.js",
     "./formats/black/schema": "./dist/formats/black/core/blackSchema.js",
@@ -40,7 +39,8 @@
   },
   "dependencies": {
     "@carbonenginejs/core-math": "^0.1.3",
-    "@carbonenginejs/core-types": "^0.5.0",
+    "@carbonenginejs/core-types": "^0.12.0",
+    "@carbonenginejs/runtime-const": "^0.1.0",
     "meshoptimizer": "^1.2.0",
     "yaml": "^2.4.0"
   },

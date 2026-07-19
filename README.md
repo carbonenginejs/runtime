@@ -25,6 +25,9 @@ This package owns the GPU-free resource layer:
   privately:
   `TriTextureRes`, `TriGeometryRes`, `Tr2EffectRes`, `Tr2ImageRes`,
   `TriGrannyRes`, `Tr2GrannyStateRes`, and `Tr2LightProfileRes`.
+- `Tr2TexturePipeline` for Carbon-shaped CPU-only load, limit-size, compress
+  validation, and channel-pack steps, plus `Tr2TextureLodManager` for explicit
+  texture-resource membership without device-memory policy.
 - Opaque engine-owned subobject slots for backend adapters.
 - Format policy, format class contracts, and load/prepare state mapping stay
   inside this package's implementation and public API rather than external
@@ -35,6 +38,12 @@ This package owns the GPU-free resource layer:
 It intentionally does not own WebGL/WebGPU realization. Engine packages should adapt prepared resources into backend objects.
 
 Authoring source is decorated JavaScript. Published/consumer output is built ESM in `npm/dist`.
+
+Completed Carbon data classes live with maintained source under
+`src/resources`; `src/generated` is reserved for unresolved active ports and is
+currently absent. Native shapes that JavaScript replaces or does not use are
+retained only under `src/dropped`, with their disposition documented there,
+and are never exported or bundled.
 
 ## Package relationships
 
@@ -73,6 +82,43 @@ sequences remain arrays. Authored fields may not collide with active markers,
 so remap the marker options when those names are real data. Disabling the
 reference marker preserves actual JavaScript identity; cyclic output in that
 mode is intentionally not JSON-serializable.
+
+## Texture CPU pipeline and LOD membership
+
+`Tr2TexturePipeline` is the Carbon texture-specific CPU bitmap pipeline, not a
+general resource prepare stage. `GetResourceDependencies()` returns the sorted
+unique paths required by load and channel-pack steps. `Execute()` resolves
+those inputs from an explicit `inputs` map/object, an async `load(path)`
+callback, or an injected `CjsResMan`, then returns a canonical plain
+`rgba8unorm` payload:
+
+```js
+import {
+  Tr2TexturePipeline,
+  Tr2TexturePipelineStepLoad,
+  Tr2TexturePipelineStepLimitSize
+} from "@carbonenginejs/runtime-resource";
+
+const load = new Tr2TexturePipelineStepLoad();
+load.path = "res:/texture/source.png";
+const limit = new Tr2TexturePipelineStepLimitSize();
+limit.maxWidth = 512;
+
+const pipeline = new Tr2TexturePipeline();
+pipeline.steps = [ load, limit ];
+const rgba = await pipeline.Execute(0, 0, { resMan });
+```
+
+The maintained runtime path currently accepts canonical `rgba8unorm` inputs.
+Load copies the source bitmap, limit-size repeatedly performs a 2x2 CPU
+downsample, pack builds logical RGBA channels from independent inputs, and
+Carbon's present compress step remains validation-only because the native
+method is itself a no-op. Unsupported step types fail explicitly.
+
+`Tr2TextureLodManager` owns only ordered resource membership through
+`RegisterTexture()`, `UnregisterTexture()`, and `GetManagedTextures()`. Engine
+packages continue to own GPU allocations, upload accounting, device budgets,
+capability limits, and device-loss recovery.
 
 ## Wwise soundbanks and media
 
