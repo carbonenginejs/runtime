@@ -182,32 +182,224 @@ test("decodes the legacy A32B32G32R32F DDS float fourCC", () =>
     assert.deepEqual(Array.from(rgba.data), [ 2, 1, 0.5, 1 ]);
 });
 
-test("reports BC6H as native-only until an HDR block decoder is available", () =>
+test("decodes unsigned BC6H to canonical float RGBA", () =>
 {
-    const bytes = makeDx10DdsHeader(4, 4, 95, new Uint8Array(16));
+    const bytes = makeDx10DdsHeader(4, 4, 95, makeBc6hMode11Block(0x200, 0x200));
     const support = CjsDdsFormat.isSupported(bytes);
+    const rgba = CjsDdsFormat.read(bytes, { emit: "rgba" });
 
     assert.equal(support.variants.find((variant) => variant.kind === "texture").supported, true);
-    assert.equal(support.variants.find((variant) => variant.kind === "rgba").supported, false);
-    assert.equal(support.variants.find((variant) => variant.kind === "compressed").nativeOnly, true);
-    assert.match(support.variants.find((variant) => variant.kind === "rgba").reason, /native compressed texture only/u);
-    assert.equal(CjsDdsFormat.inspect(bytes).nativeTextureOnly, true);
-    assert.throws(() => CjsDdsFormat.read(bytes, { emit: "rgba" }), /RGBA decode is not implemented/u);
+    assert.equal(support.variants.find((variant) => variant.kind === "rgba").supported, true);
+    assert.equal(support.variants.find((variant) => variant.kind === "compressed").nativeOnly, false);
+    assert.equal(CjsDdsFormat.inspect(bytes).nativeTextureOnly, false);
+    assert.equal(rgba.pixelFormat, "rgba32float");
+    assert.equal(rgba.strideBytes, 64);
+    assert.equal(rgba.colorSpace, "linear");
+    assert.ok(rgba.data instanceof Float32Array);
+    assert.deepEqual(Array.from(rgba.data.slice(0, 4)), [ 1.5146484375, 1.5146484375, 1.5146484375, 1 ]);
 });
 
-test("reports BC7 as native-only until a software block decoder is available", () =>
+test("decodes signed BC6H negative HDR values", () =>
 {
-    const bytes = makeDx10DdsHeader(4, 4, 98, new Uint8Array(16));
-    const support = CjsDdsFormat.isSupported(bytes);
+    const bytes = makeDx10DdsHeader(4, 4, 96, makeBc6hMode11Block(0x300, 0x300));
+    const rgba = CjsDdsFormat.read(bytes, { emit: "rgba" });
 
-    assert.equal(CjsDdsFormat.inspect(bytes).pixelFormat, "bc7-rgba-unorm");
-    assert.equal(support.variants.find((variant) => variant.kind === "texture").supported, true);
-    assert.equal(support.variants.find((variant) => variant.kind === "rgba").supported, false);
-    assert.equal(support.variants.find((variant) => variant.kind === "compressed").nativeOnly, true);
-    assert.match(support.variants.find((variant) => variant.kind === "rgba").reason, /native compressed texture only/u);
-    assert.equal(CjsDdsFormat.inspect(bytes).nativeTextureOnly, true);
-    assert.throws(() => CjsDdsFormat.read(bytes, { emit: "rgba" }), /RGBA decode is not implemented/u);
+    assert.equal(CjsDdsFormat.inspect(bytes).pixelFormat, "bc6h-rgb-float");
+    assert.deepEqual(Array.from(rgba.data.slice(0, 4)), [ -1.5302734375, -1.5302734375, -1.5302734375, 1 ]);
 });
+
+test("decodes BC6H endpoint interpolation and anchor-shortened indices", () =>
+{
+    const bytes = makeDx10DdsHeader(4, 4, 95, makeBc6hMode11Block(0, 0x3ff, [ 0, 15 ]));
+    const rgba = CjsDdsFormat.read(bytes, { emit: "rgba" });
+
+    assert.deepEqual(Array.from(rgba.data.slice(0, 4)), [ 0, 0, 0, 1 ]);
+    assert.deepEqual(Array.from(rgba.data.slice(4, 8)), [ 65504, 65504, 65504, 1 ]);
+});
+
+test("recognizes all fourteen BC6H modes and reserved opaque-black modes", () =>
+{
+    const validModes = [ 0x00, 0x01, 0x02, 0x06, 0x0a, 0x0e, 0x12, 0x16, 0x1a, 0x1e, 0x03, 0x07, 0x0b, 0x0f ];
+    const reservedModes = [ 0x13, 0x17, 0x1b, 0x1f ];
+
+    for (const mode of [ ...validModes, ...reservedModes ])
+    {
+        const block = new Uint8Array(16);
+        block[0] = mode;
+        const rgba = CjsDdsFormat.read(makeDx10DdsHeader(4, 4, 95, block), { emit: "rgba" });
+        for (let pixel = 0; pixel < 16; pixel++)
+        {
+            assert.deepEqual(Array.from(rgba.data.slice(pixel * 4, pixel * 4 + 4)), [ 0, 0, 0, 1 ], `BC6H mode 0x${mode.toString(16)}`);
+        }
+    }
+});
+
+test("decodes BC7 to canonical RGBA without requiring Node Buffer", () =>
+{
+    const bytes = makeDx10DdsHeader(4, 4, 98, new Uint8Array([
+        0xc0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ]));
+    const previousBuffer = globalThis.Buffer;
+    globalThis.Buffer = undefined;
+
+    try
+    {
+        const support = CjsDdsFormat.isSupported(bytes);
+        const rgba = CjsDdsFormat.read(bytes, { emit: "rgba" });
+
+        assert.equal(CjsDdsFormat.inspect(bytes).pixelFormat, "bc7-rgba-unorm");
+        assert.equal(support.variants.find((variant) => variant.kind === "texture").supported, true);
+        assert.equal(support.variants.find((variant) => variant.kind === "rgba").supported, true);
+        assert.equal(support.variants.find((variant) => variant.kind === "compressed").nativeOnly, false);
+        assert.equal(CjsDdsFormat.inspect(bytes).nativeTextureOnly, false);
+        assert.deepEqual(Array.from(rgba.data.slice(0, 4)), [ 254, 254, 254, 254 ]);
+    }
+    finally
+    {
+        globalThis.Buffer = previousBuffer;
+    }
+});
+
+test("decodes all eight BC7 block modes", () =>
+{
+    for (let mode = 0; mode < 8; mode++)
+    {
+        const bytes = makeDx10DdsHeader(4, 4, 98, makeSolidBc7Block(mode));
+        const rgba = CjsDdsFormat.read(bytes, { emit: "rgba" });
+
+        assert.deepEqual(Array.from(rgba.data), new Array(16 * 4).fill(255), `BC7 mode ${mode}`);
+    }
+});
+
+test("decodes BC7 partitions, anchor indices, dual indices, and channel rotation", () =>
+{
+    const partitioned = CjsDdsFormat.read(makeDx10DdsHeader(4, 4, 98, makeBc7Block(7, {
+        partition: 17,
+        endpoints: [
+            [ 31, 0, 0, 31 ],
+            [ 31, 0, 0, 31 ],
+            [ 0, 31, 0, 31 ],
+            [ 0, 31, 0, 31 ]
+        ],
+        pBits: [ 0, 0, 0, 0 ]
+    })), { emit: "rgba" });
+
+    assert.deepEqual(Array.from(partitioned.data.slice(0, 4)), [ 251, 0, 0, 251 ]);
+    assert.deepEqual(Array.from(partitioned.data.slice(4, 8)), [ 0, 251, 0, 251 ]);
+    assert.deepEqual(Array.from(partitioned.data.slice(7 * 4, 8 * 4)), [ 0, 251, 0, 251 ]);
+    assert.deepEqual(Array.from(partitioned.data.slice(8 * 4, 9 * 4)), [ 251, 0, 0, 251 ]);
+
+    const rotated = CjsDdsFormat.read(makeDx10DdsHeader(4, 4, 98, makeBc7Block(4, {
+        rotation: 1,
+        selection: 1,
+        endpoints: [ [ 0, 0, 0, 0 ], [ 31, 0, 0, 63 ] ],
+        secondaryIndices: [ 0, 7 ]
+    })), { emit: "rgba" });
+
+    assert.deepEqual(Array.from(rotated.data.slice(0, 4)), [ 0, 0, 0, 0 ]);
+    assert.deepEqual(Array.from(rotated.data.slice(4, 8)), [ 0, 0, 0, 255 ]);
+});
+
+test("decodes the reserved BC7 mode as transparent black", () =>
+{
+    const rgba = CjsDdsFormat.read(makeDx10DdsHeader(4, 4, 98, new Uint8Array(16)), { emit: "rgba" });
+    assert.deepEqual(Array.from(rgba.data), new Array(16 * 4).fill(0));
+});
+
+const BC7_MODES = Object.freeze([
+    { subsets: 3, partitionBits: 4, rotationBits: 0, selectionBits: 0, colorBits: 4, alphaBits: 0, endpointPBits: 1, sharedPBits: 0, indexBits: 3, secondaryIndexBits: 0 },
+    { subsets: 2, partitionBits: 6, rotationBits: 0, selectionBits: 0, colorBits: 6, alphaBits: 0, endpointPBits: 0, sharedPBits: 1, indexBits: 3, secondaryIndexBits: 0 },
+    { subsets: 3, partitionBits: 6, rotationBits: 0, selectionBits: 0, colorBits: 5, alphaBits: 0, endpointPBits: 0, sharedPBits: 0, indexBits: 2, secondaryIndexBits: 0 },
+    { subsets: 2, partitionBits: 6, rotationBits: 0, selectionBits: 0, colorBits: 7, alphaBits: 0, endpointPBits: 1, sharedPBits: 0, indexBits: 2, secondaryIndexBits: 0 },
+    { subsets: 1, partitionBits: 0, rotationBits: 2, selectionBits: 1, colorBits: 5, alphaBits: 6, endpointPBits: 0, sharedPBits: 0, indexBits: 2, secondaryIndexBits: 3 },
+    { subsets: 1, partitionBits: 0, rotationBits: 2, selectionBits: 0, colorBits: 7, alphaBits: 8, endpointPBits: 0, sharedPBits: 0, indexBits: 2, secondaryIndexBits: 2 },
+    { subsets: 1, partitionBits: 0, rotationBits: 0, selectionBits: 0, colorBits: 7, alphaBits: 7, endpointPBits: 1, sharedPBits: 0, indexBits: 4, secondaryIndexBits: 0 },
+    { subsets: 2, partitionBits: 6, rotationBits: 0, selectionBits: 0, colorBits: 5, alphaBits: 5, endpointPBits: 1, sharedPBits: 0, indexBits: 2, secondaryIndexBits: 0 }
+]);
+
+function makeBc6hMode11Block(endpoint0, endpoint1, indices = [])
+{
+    const bytes = new Uint8Array(16);
+    writeBitsAt(bytes, 0, 5, 0x03);
+    for (const offset of [ 5, 15, 25 ]) writeBitsAt(bytes, offset, 10, endpoint0);
+    for (const offset of [ 35, 45, 55 ]) writeBitsAt(bytes, offset, 10, endpoint1);
+    let offset = 65;
+    for (let pixel = 0; pixel < 16; pixel++)
+    {
+        const count = pixel === 0 ? 3 : 4;
+        writeBitsAt(bytes, offset, count, indices[pixel] ?? 0);
+        offset += count;
+    }
+    return bytes;
+}
+
+function writeBitsAt(bytes, offset, count, value)
+{
+    for (let bit = 0; bit < count; bit++)
+    {
+        bytes[(offset + bit) >>> 3] |= ((value >>> bit) & 1) << ((offset + bit) & 7);
+    }
+}
+
+function makeSolidBc7Block(mode)
+{
+    const info = BC7_MODES[mode];
+    const endpoints = Array.from({ length: info.subsets * 2 }, () => [
+        (1 << info.colorBits) - 1,
+        (1 << info.colorBits) - 1,
+        (1 << info.colorBits) - 1,
+        info.alphaBits ? (1 << info.alphaBits) - 1 : 255
+    ]);
+    return makeBc7Block(mode, { endpoints });
+}
+
+function makeBc7Block(mode, options = {})
+{
+    const info = BC7_MODES[mode];
+    const bytes = new Uint8Array(16);
+    let offset = 0;
+    const write = (value, bitCount) =>
+    {
+        for (let bit = 0; bit < bitCount; bit++)
+        {
+            bytes[offset >>> 3] |= ((value >>> bit) & 1) << (offset & 7);
+            offset++;
+        }
+    };
+
+    write(1 << mode, mode + 1);
+    write(options.partition ?? 0, info.partitionBits);
+    write(options.rotation ?? 0, info.rotationBits);
+    write(options.selection ?? 0, info.selectionBits);
+
+    const endpoints = options.endpoints;
+    for (let channel = 0; channel < 3; channel++)
+    {
+        for (const endpoint of endpoints) write(endpoint[channel], info.colorBits);
+    }
+    if (info.alphaBits)
+    {
+        for (const endpoint of endpoints) write(endpoint[3], info.alphaBits);
+    }
+
+    const pBitCount = info.endpointPBits ? info.subsets * 2 : (info.sharedPBits ? info.subsets : 0);
+    for (let i = 0; i < pBitCount; i++) write(options.pBits?.[i] ?? 1, 1);
+
+    if (info.secondaryIndexBits)
+    {
+        writeSingleSubsetIndices(options.primaryIndices ?? [], info.indexBits, write);
+        writeSingleSubsetIndices(options.secondaryIndices ?? [], info.secondaryIndexBits, write);
+    }
+
+    assert.ok(offset <= 128, `BC7 mode ${mode} fixture overflowed its block`);
+    return bytes;
+}
+
+function writeSingleSubsetIndices(indices, bitCount, write)
+{
+    for (let pixel = 0; pixel < 16; pixel++) write(indices[pixel] ?? 0, bitCount - (pixel === 0 ? 1 : 0));
+}
 
 function makeDdsHeader(width, height, fourCc, payload = [])
 {

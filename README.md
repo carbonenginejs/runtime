@@ -115,6 +115,17 @@ downsample, pack builds logical RGBA channels from independent inputs, and
 Carbon's present compress step remains validation-only because the native
 method is itself a no-op. Unsupported step types fail explicitly.
 
+Decoded DDS fallback currently has a narrower contract than native DDS texture
+output. `emit: "rgba"` returns one canonical 2D surface decoded from the first
+DDS subresource; it does not preserve stored mip levels, cube faces, array
+layers, or volume slices. Consumers may use it for ordinary 2D fallback when
+the engine owns any required mip generation, but must not infer decoded
+multi-subresource support from a successful RGBA probe. A future richer
+decoded-texture contract must be introduced explicitly rather than overloading
+the current RGBA fields. The software path includes BC1-BC5 and BC7 as RGBA8,
+plus signed and unsigned BC6H as linear `Float32Array` RGBA without clamping HDR
+values. These block decoders are implemented in-project with no codec package.
+
 `Tr2TextureLodManager` owns only ordered resource membership through
 `RegisterTexture()`, `UnregisterTexture()`, and `GetManagedTextures()`. Engine
 packages continue to own GPU allocations, upload accounting, device budgets,

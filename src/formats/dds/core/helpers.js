@@ -1,3 +1,6 @@
+import { decodeBc6h } from "./bc6h.js";
+import { decodeBc7 } from "./bc7.js";
+
 export const OUTPUT_IMAGE = "image";
 export const OUTPUT_TEXTURE = "texture";
 export const OUTPUT_RGBA = "rgba";
@@ -501,7 +504,11 @@ function canDecodeDdsToRgba(metadata)
         "bc4-r-unorm",
         "bc4-r-snorm",
         "bc5-rg-unorm",
-        "bc5-rg-snorm"
+        "bc5-rg-snorm",
+        "bc6h-rgb-ufloat",
+        "bc6h-rgb-float",
+        "bc7-rgba-unorm",
+        "bc7-rgba-unorm-srgb"
     ].includes(metadata.pixelFormat);
 }
 
@@ -527,9 +534,13 @@ function readDdsToRgba(bytes, metadata)
                     ? decodeBc4(source, metadata.width, metadata.height, subresource.rowPitch, metadata.pixelFormat.endsWith("-snorm"))
                     : metadata.pixelFormat.startsWith("bc5-")
                         ? decodeBc5(source, metadata.width, metadata.height, subresource.rowPitch, metadata.pixelFormat.endsWith("-snorm"))
-                        : isFloatPixelFormat(metadata.pixelFormat)
-                            ? decodeFloatUncompressed(source, metadata)
-                            : decodeUncompressed(source, metadata);
+                        : metadata.pixelFormat.startsWith("bc6h-")
+                            ? decodeBc6h(source, metadata.width, metadata.height, subresource.rowPitch, metadata.pixelFormat === "bc6h-rgb-float")
+                            : metadata.pixelFormat.startsWith("bc7-")
+                                ? decodeBc7(source, metadata.width, metadata.height, subresource.rowPitch)
+                                : isFloatPixelFormat(metadata.pixelFormat)
+                                    ? decodeFloatUncompressed(source, metadata)
+                                    : decodeUncompressed(source, metadata);
 
     const isFloat = isFloatPixelFormat(metadata.pixelFormat);
 
@@ -772,7 +783,8 @@ function decodeFloatUncompressed(source, metadata)
 
 function isFloatPixelFormat(pixelFormat)
 {
-    return [ "rgba32float", "rgb32float", "rgba16float", "rg32float", "r32float", "r16float" ].includes(pixelFormat);
+    return typeof pixelFormat === "string" && (pixelFormat.startsWith("bc6h-") ||
+        [ "rgba32float", "rgb32float", "rgba16float", "rg32float", "r32float", "r16float" ].includes(pixelFormat));
 }
 
 function halfToFloat(value)

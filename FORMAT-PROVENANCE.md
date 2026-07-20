@@ -64,6 +64,17 @@ format attribution rather than fork provenance.
 
 ## Post-fork additions inside copied formats
 
+- `formats/dds` gained original, dependency-free **BC6H and BC7 CPU decoders**
+  in `runtime-resource` 0.8.0 (2026-07-21). BC6H covers all fourteen modes,
+  signed and unsigned HDR, transformed endpoints, partition/anchor fixups,
+  interpolation, reserved opaque-black modes, and float RGBA output. BC7 covers
+  all eight modes,
+  two- and three-subset partitions, anchor fixups, P-bits, dual index streams,
+  channel rotation, edge blocks, and the reserved transparent mode. Fixed bit
+  layouts and tables follow the Khronos Data Format Specification and Microsoft
+  BC6H/BC7 documentation. Tests cover every mode and signed/unsigned fixtures;
+  BC7 was also checked against randomized valid-mode blocks and both decoders
+  were exercised on real EVE textures acquired through `tools-core`.
 - `formats/stl` received a writer hardening pass (2026-07-18) without changing
   its donor origin: binary provenance headers now round-trip the caller's solid
   name, shared triangle indices are validated as in-range safe integers, scaled

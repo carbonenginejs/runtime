@@ -1,3 +1,6 @@
+import { decodeBc6h } from './bc6h.js';
+import { decodeBc7 } from './bc7.js';
+
 const OUTPUT_IMAGE = "image";
 const OUTPUT_TEXTURE = "texture";
 const OUTPUT_RGBA = "rgba";
@@ -408,7 +411,7 @@ function readDdsTexture(bytes, metadata) {
   };
 }
 function canDecodeDdsToRgba(metadata) {
-  return ["rgba32float", "rgb32float", "rgba16float", "rg32float", "r32float", "r16float", "rgba8unorm", "rgba8unorm-srgb", "bgra8unorm", "bgra8unorm-srgb", "bgrx8unorm", "bgrx8unorm-srgb", "bgr8unorm", "rg8unorm", "r8unorm", "bc1-rgba-unorm", "bc1-rgba-unorm-srgb", "bc2-rgba-unorm", "bc2-rgba-unorm-srgb", "bc3-rgba-unorm", "bc3-rgba-unorm-srgb", "bc4-r-unorm", "bc4-r-snorm", "bc5-rg-unorm", "bc5-rg-snorm"].includes(metadata.pixelFormat);
+  return ["rgba32float", "rgb32float", "rgba16float", "rg32float", "r32float", "r16float", "rgba8unorm", "rgba8unorm-srgb", "bgra8unorm", "bgra8unorm-srgb", "bgrx8unorm", "bgrx8unorm-srgb", "bgr8unorm", "rg8unorm", "r8unorm", "bc1-rgba-unorm", "bc1-rgba-unorm-srgb", "bc2-rgba-unorm", "bc2-rgba-unorm-srgb", "bc3-rgba-unorm", "bc3-rgba-unorm-srgb", "bc4-r-unorm", "bc4-r-snorm", "bc5-rg-unorm", "bc5-rg-snorm", "bc6h-rgb-ufloat", "bc6h-rgb-float", "bc7-rgba-unorm", "bc7-rgba-unorm-srgb"].includes(metadata.pixelFormat);
 }
 function readDdsToRgba(bytes, metadata) {
   if (!canDecodeDdsToRgba(metadata)) {
@@ -419,7 +422,7 @@ function readDdsToRgba(bytes, metadata) {
   }
   const subresource = buildDdsSubresources(bytes, metadata)[0];
   const source = bytes.subarray(metadata.dataOffset + subresource.offset, metadata.dataOffset + subresource.offset + subresource.byteLength);
-  const rgba = metadata.pixelFormat.startsWith("bc1-") ? decodeBc1(source, metadata.width, metadata.height, subresource.rowPitch) : metadata.pixelFormat.startsWith("bc2-") ? decodeBc2(source, metadata.width, metadata.height, subresource.rowPitch) : metadata.pixelFormat.startsWith("bc3-") ? decodeBc3(source, metadata.width, metadata.height, subresource.rowPitch) : metadata.pixelFormat.startsWith("bc4-") ? decodeBc4(source, metadata.width, metadata.height, subresource.rowPitch, metadata.pixelFormat.endsWith("-snorm")) : metadata.pixelFormat.startsWith("bc5-") ? decodeBc5(source, metadata.width, metadata.height, subresource.rowPitch, metadata.pixelFormat.endsWith("-snorm")) : isFloatPixelFormat(metadata.pixelFormat) ? decodeFloatUncompressed(source, metadata) : decodeUncompressed(source, metadata);
+  const rgba = metadata.pixelFormat.startsWith("bc1-") ? decodeBc1(source, metadata.width, metadata.height, subresource.rowPitch) : metadata.pixelFormat.startsWith("bc2-") ? decodeBc2(source, metadata.width, metadata.height, subresource.rowPitch) : metadata.pixelFormat.startsWith("bc3-") ? decodeBc3(source, metadata.width, metadata.height, subresource.rowPitch) : metadata.pixelFormat.startsWith("bc4-") ? decodeBc4(source, metadata.width, metadata.height, subresource.rowPitch, metadata.pixelFormat.endsWith("-snorm")) : metadata.pixelFormat.startsWith("bc5-") ? decodeBc5(source, metadata.width, metadata.height, subresource.rowPitch, metadata.pixelFormat.endsWith("-snorm")) : metadata.pixelFormat.startsWith("bc6h-") ? decodeBc6h(source, metadata.width, metadata.height, subresource.rowPitch, metadata.pixelFormat === "bc6h-rgb-float") : metadata.pixelFormat.startsWith("bc7-") ? decodeBc7(source, metadata.width, metadata.height, subresource.rowPitch) : isFloatPixelFormat(metadata.pixelFormat) ? decodeFloatUncompressed(source, metadata) : decodeUncompressed(source, metadata);
   const isFloat = isFloatPixelFormat(metadata.pixelFormat);
   return {
     payloadType: OUTPUT_RGBA,
@@ -615,7 +618,7 @@ function decodeFloatUncompressed(source, metadata) {
   return rgba;
 }
 function isFloatPixelFormat(pixelFormat) {
-  return ["rgba32float", "rgb32float", "rgba16float", "rg32float", "r32float", "r16float"].includes(pixelFormat);
+  return typeof pixelFormat === "string" && (pixelFormat.startsWith("bc6h-") || ["rgba32float", "rgb32float", "rgba16float", "rg32float", "r32float", "r16float"].includes(pixelFormat));
 }
 function halfToFloat(value) {
   const sign = value & 0x8000 ? -1 : 1;
