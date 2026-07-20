@@ -21,7 +21,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "TriGeometryRes",
         family: "resources"
-      })], [[[io, io.readwrite, type, type.boolean], 16, "forceLod"], [[io, io.readwrite, type, type.int32], 16, "forcedLodIndex"], [[io, io.readwrite, type, type.string], 16, "name"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMeshCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetAnimationCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMeshAreaCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMeshName"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMeshAreaName"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetAreaBoundingBox"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoundingBox"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "CalculateBoundingBoxFromTransform"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "RecalculateBoundingSphere"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "Reload"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetIntersectionPointNormalBone"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetAreaIntersectionPointNormalBone"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMeshVertexElements"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "SaveMesh"]], 0, void 0, _CjsResource));
+      })], [[[io, io.readwrite, type, type.boolean], 16, "forceLod"], [[io, io.readwrite, type, type.int32], 16, "forcedLodIndex"], [[io, io.readwrite, type, type.string], 16, "name"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMeshCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetAnimationCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetSkeletonCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetSkeletonData"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMeshAreaCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMeshName"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMeshAreaName"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetAreaBoundingBox"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoundingBox"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "CalculateBoundingBoxFromTransform"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "RecalculateBoundingSphere"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "Reload"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetIntersectionPointNormalBone"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetAreaIntersectionPointNormalBone"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMeshVertexElements"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "SaveMesh"]], 0, void 0, _CjsResource));
     }
     forceLod = (_initProto(this), _init_forceLod(this, false));
     forcedLodIndex = (_init_extra_forceLod(this), _init_forcedLodIndex(this, -1));
@@ -75,6 +75,29 @@ new class extends _identity {
      */
     GetAnimationCount() {
       return this.GetPayload()?.animations?.length || 0;
+    }
+
+    /**
+     * Get skeleton count from the CPU geometry payload.
+     *
+     * @returns {number}
+     */
+    GetSkeletonCount() {
+      return this.GetPayload()?.skeletons?.length || 0;
+    }
+
+    /**
+     * Get one resource-owned skeleton from the CPU geometry payload.
+     *
+     * @param {number} skeletonIndex
+     * @returns {*}
+     */
+    GetSkeletonData(skeletonIndex = 0) {
+      const index = Number(skeletonIndex);
+      if (!Number.isInteger(index) || index < 0) {
+        return null;
+      }
+      return this.GetPayload()?.skeletons?.[index] || null;
     }
 
     /**

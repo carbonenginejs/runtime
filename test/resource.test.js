@@ -1689,12 +1689,18 @@ test("TriTextureRes and TriGeometryRes consume validated plain payloads", () => 
 
   assert.equal(geometry.GetMeshCount(), 1);
   assert.equal(geometry.GetAnimationCount(), 0);
+  assert.equal(geometry.GetSkeletonCount(), 1);
+  assert.equal(geometry.GetSkeletonData(0), geometryPayload.skeletons[0]);
+  assert.equal(geometry.GetSkeletonData(1), null);
+  assert.equal(geometry.GetSkeletonData(-1), null);
   assert.equal(geometry.GetMeshAreaCount(0), 1);
   assert.equal(geometry.GetMeshAreaName(0, 0), "hull");
   assert.equal(geometry.HasPayload(), true);
   assert.equal(TriGeometryRes.payload, "geometry");
   assert.equal(CjsSchema.getField(TriGeometryRes, "meshes"), null);
   assert.equal(CjsSchema.getMethod(TriGeometryRes, "GetMeshCount").impl.status, "adapted");
+  assert.equal(CjsSchema.getMethod(TriGeometryRes, "GetSkeletonCount").impl.status, "adapted");
+  assert.equal(CjsSchema.getMethod(TriGeometryRes, "GetSkeletonData").impl.status, "adapted");
   assert.throws(
     () => geometry.SetPayload({ animations: [] }),
     error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID" && error.field === "meshes"

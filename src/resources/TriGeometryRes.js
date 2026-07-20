@@ -95,6 +95,38 @@ export class TriGeometryRes extends CjsResource
   }
 
   /**
+   * Get skeleton count from the CPU geometry payload.
+   *
+   * @returns {number}
+   */
+  @carbon.method
+  @impl.adapted
+  GetSkeletonCount()
+  {
+    return this.GetPayload()?.skeletons?.length || 0;
+  }
+
+  /**
+   * Get one resource-owned skeleton from the CPU geometry payload.
+   *
+   * @param {number} skeletonIndex
+   * @returns {*}
+   */
+  @carbon.method
+  @impl.adapted
+  GetSkeletonData(skeletonIndex = 0)
+  {
+    const index = Number(skeletonIndex);
+
+    if (!Number.isInteger(index) || index < 0)
+    {
+      return null;
+    }
+
+    return this.GetPayload()?.skeletons?.[index] || null;
+  }
+
+  /**
    * Get mesh area count from a CPU geometry payload mesh.
    *
    * @param {number} meshIndex
