@@ -391,6 +391,61 @@ both identity and payload activity when it publishes a non-null payload.
 implicitly renew its lease. Detached and purged handles retain deterministic
 no-op liveness methods rather than silently starting work.
 
+#### Proposed pre-adoption lifecycle API cleanup (not implemented)
+
+No released consumer currently depends on the ccpwgl-compatible liveness names;
+the known ccpwgl format integrations are migration targets rather than a reason
+to preserve them. Before runtime-core or another public consumer adopts this
+contract, remove `KeepAlive()` and `KeepPayloadAlive()` instead of retaining or
+deprecating compatibility aliases.
+
+The public lifecycle should express caller intent directly:
+
+- `Ready()` obtains or reconstructs the CPU payload;
+- `AcquireLock()` returns a scoped hard-retention token;
+- `ReleasePayload()` explicitly drops the CPU payload; and
+- state queries remain pure.
+
+ResMan should update identity activity when a canonical resource is acquired and
+payload activity when it publishes or returns a ready payload. Those timestamps
+are cache-policy implementation details, not calls consumers should have to make.
+Cache admission and promotion must also be explicit manager operations: merely
+accessing a resource must not permanently move it from the byte-budget candidate
+set into an unbudgeted live set.
+
+Do not add `TouchIdentity()` or `TouchPayload()` to the initial public API unless
+a concrete soft-retention consumer appears. A consumer that needs a residency
+guarantee should acquire a lock; one that merely uses a resource should call
+`Ready()` and allow the configured cache policy to operate.
+
+Raw `Lock()` / `Unlock()` is easy to mis-pair across asynchronous success,
+failure, cancellation, and disposal. Prefer a JS-only acquired-lock API:
+
+```js
+const hold = resource.AcquireLock();
+try {
+  const payload = await resource.Ready();
+  await consume(payload);
+} finally {
+  hold.Release();
+}
+```
+
+The acquired token should add exactly one lock, capture the canonical key and
+ownership generation that received it, and release that exact lock at most
+once. `Release()` must be idempotent. If the original record has been deleted,
+replaced, purged, or rebound, releasing the stale token must not decrement a
+new owner's lock. Acquisition and release must never fetch, reconstruct,
+prepare, or release payload data themselves.
+
+The token is an async-safety replacement for exposing the existing raw lock
+count, not a new retention policy. For example, runtime-audio can hold source/PCM
+payload through decode and release the token once it owns the resulting
+WebAudio `AudioBuffer`; keeping the resource locked for the full playback or
+decoded-cache lifetime would unnecessarily retain both representations.
+Runtime-lifetime and group retention remain caller policy built from explicit
+tokens, not an implicit default on every loaded resource.
+
 Both semantic and generic/base resource results use that payload slot. A base
 resource also mirrors its payload on the compatibility `object` property;
 `ReleasePayload()` clears the alias only when it still references that exact
