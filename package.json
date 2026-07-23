@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/runtime-character",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "GPU-free, I/O-free character composition graph and data contracts for CarbonEngineJS.",
   "type": "module",
