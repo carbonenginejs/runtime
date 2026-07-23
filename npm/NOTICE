@@ -1,0 +1,23 @@
+@carbonenginejs/runtime-character
+==================================
+
+Copyright (c) 2026 CarbonEngineJS contributors.
+
+This package contains a JavaScript implementation of CarbonEngine character,
+interior, and world runtime classes alongside CarbonEngineJS-original
+character composition code. Ported coverage includes Trinity character core
+(Tr2Model, Tr2SkinnedModel, Tr2SkinnedObject, GState animation/parameters),
+interior scene/placeable/light classes, and the quarantined TriMatrix
+disposition; the CjsCharacter* composition graph is original CarbonEngineJS
+code.
+
+CarbonEngine and Fenris Creations (CCP Games) names, formats, class names, and
+class semantics remain the property of their respective owners. These names are
+used for interoperability and provenance context. Ported source files identify
+their relevant CarbonEngine source paths in file-level provenance comments.
+
+This project is not affiliated with, endorsed by, or sponsored by CCP Games or
+CCP ehf. "EVE Online" and related marks are the property of their respective
+owners. No game assets are redistributed in this package.
+
+License: MIT. See LICENSE.

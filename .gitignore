@@ -1,0 +1,19 @@
+# Dependencies / caches
+node_modules/
+coverage/
+.scratch/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Agent / tool scratch
+.agent/
+.agents/
+.claude/
+.codex/
+.skill/
+.skills/
+review/
+_review/
+agents/
