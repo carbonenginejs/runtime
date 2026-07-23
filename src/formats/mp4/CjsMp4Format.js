@@ -14,6 +14,11 @@ import {
 
 const FORMAT_NAME = "CjsMp4Format";
 
+/**
+ * MP4 container format profile that inspects box and track structure and
+ * emits raw bytes, debug JSON, or a container-only video payload with codec
+ * and duration summaries but no frame decoding.
+ */
 export class CjsMp4Format
 {
     #values = DEFAULT_VALUES;

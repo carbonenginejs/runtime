@@ -15,6 +15,10 @@ import {
 
 const FORMAT_NAME = "CjsGifFormat";
 
+/**
+ * GIF format profile that inspects header and frame metadata and reads GIF
+ * bytes into raw, debug JSON, or LZW-decoded RGBA frame payloads.
+ */
 export class CjsGifFormat
 {
     #values = DEFAULT_VALUES;

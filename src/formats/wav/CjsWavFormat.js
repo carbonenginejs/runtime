@@ -15,6 +15,11 @@ import {
 
 const FORMAT_NAME = "CjsWavFormat";
 
+/**
+ * WAV audio format profile that inspects RIFF chunk metadata and reads
+ * supported WAV bytes into PCM or audio payloads, alongside raw and debug
+ * JSON output.
+ */
 export class CjsWavFormat
 {
     #values = DEFAULT_VALUES;

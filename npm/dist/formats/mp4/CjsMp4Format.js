@@ -1,6 +1,12 @@
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isMP4, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_VIDEO } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsMp4Format";
+
+/**
+ * MP4 container format profile that inspects box and track structure and
+ * emits raw bytes, debug JSON, or a container-only video payload with codec
+ * and duration summaries but no frame decoding.
+ */
 class CjsMp4Format {
   #values = DEFAULT_VALUES;
 

@@ -15,6 +15,11 @@ import {
 
 const FORMAT_NAME = "CjsOggFormat";
 
+/**
+ * Ogg container format profile that inspects page and stream metadata and
+ * decodes Ogg Vorbis audio to PCM with the in-project pure-JS Vorbis
+ * decoder, alongside raw and debug JSON output.
+ */
 export class CjsOggFormat
 {
     #values = DEFAULT_VALUES;

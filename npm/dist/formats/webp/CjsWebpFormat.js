@@ -1,6 +1,11 @@
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isWebP, toBytes, OUTPUT_JSON, OUTPUT_RAW } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsWebpFormat";
+
+/**
+ * Metadata-only WebP format profile that inspects RIFF chunk headers and
+ * emits raw container bytes or debug JSON without decoding pixels.
+ */
 class CjsWebpFormat {
   #values = DEFAULT_VALUES;
   constructor(options = {}) {

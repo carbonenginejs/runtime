@@ -1,3 +1,7 @@
+/**
+ * Registry that normalizes caller-supplied schemas into per-class source
+ * shapes the Black reader uses to resolve persisted fields.
+ */
 export class CjsBlackSchemaRegistry
 {
     constructor(schema = null)

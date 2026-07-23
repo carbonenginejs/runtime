@@ -1,6 +1,12 @@
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isOGG, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_PCM, OUTPUT_AUDIO } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsOggFormat";
+
+/**
+ * Ogg container format profile that inspects page and stream metadata and
+ * decodes Ogg Vorbis audio to PCM with the in-project pure-JS Vorbis
+ * decoder, alongside raw and debug JSON output.
+ */
 class CjsOggFormat {
   #values = DEFAULT_VALUES;
   constructor(options = {}) {

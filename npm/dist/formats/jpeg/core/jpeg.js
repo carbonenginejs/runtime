@@ -34,6 +34,11 @@ function decodeJpegToRgba(bytes, metadata = {}) {
 function canDecodeJpeg(metadata = {}) {
   return metadata.sourceFormat === "jpeg" && metadata.precision === 8 && metadata.components >= 1 && metadata.components <= 3 && (metadata.marker === 0xc0 || metadata.marker === 0xc1) && metadata.progressive !== true;
 }
+
+/**
+ * Pure-JS baseline sequential JPEG decoder that parses markers, quantization
+ * and Huffman tables, and entropy-coded scans into RGBA pixels.
+ */
 class BaselineJpegDecoder {
   #bytes;
   #offset = 0;
@@ -282,6 +287,11 @@ class BaselineJpegDecoder {
     this.#offset += length - 2;
   }
 }
+
+/**
+ * Bit-level reader over JPEG entropy-coded data that handles byte stuffing
+ * and restart markers for the baseline decoder.
+ */
 class EntropyReader {
   #bytes;
   #offset;

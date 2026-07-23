@@ -121,7 +121,7 @@ function decodeBc7(source, width, height, rowPitch = Math.ceil(width / 4) * 16) 
 function decodeBc7Block(block) {
   if (block.byteLength < 16) throw new RangeError("BC7 block must contain 16 bytes");
   if (block[0] === 0) return new Uint8Array(16 * 4);
-  const reader = new BitReader(block);
+  const reader = new Bc7BitReader(block);
   let mode = 0;
   while (mode < 8 && reader.read(1) === 0) mode++;
   if (mode === 8) return new Uint8Array(16 * 4);
@@ -231,7 +231,12 @@ function copyBlock(block, output, width, height, blockX, blockY) {
     }
   }
 }
-class BitReader {
+
+/**
+ * LSB-first bit reader over a single 128-bit BC7 block bitstream for the
+ * software BC7 decoder.
+ */
+class Bc7BitReader {
   constructor(bytes) {
     this.bytes = bytes;
     this.offset = 0;

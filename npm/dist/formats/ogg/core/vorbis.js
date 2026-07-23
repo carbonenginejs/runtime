@@ -88,6 +88,11 @@ class PacketReader {
     return value >>> 0;
   }
 }
+
+/**
+ * Vorbis codebook that builds Huffman decode trees and VQ lookup vectors for
+ * scalar and vector packet decoding.
+ */
 class Codebook {
   constructor() {
     this.dimensions = 0;

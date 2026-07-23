@@ -1,6 +1,11 @@
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isGIF, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, OUTPUT_IMAGE } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsGifFormat";
+
+/**
+ * GIF format profile that inspects header and frame metadata and reads GIF
+ * bytes into raw, debug JSON, or LZW-decoded RGBA frame payloads.
+ */
 class CjsGifFormat {
   #values = DEFAULT_VALUES;
   constructor(options = {}) {

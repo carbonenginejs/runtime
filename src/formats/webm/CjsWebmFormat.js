@@ -14,6 +14,11 @@ import {
 
 const FORMAT_NAME = "CjsWebmFormat";
 
+/**
+ * WebM container format profile that inspects EBML segment and track
+ * structure and emits raw bytes, debug JSON, or a container-only video
+ * payload with codec and duration summaries but no frame decoding.
+ */
 export class CjsWebmFormat
 {
     #values = DEFAULT_VALUES;

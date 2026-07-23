@@ -1368,6 +1368,10 @@ function adler32(bytes)
     return (((b << 16) >>> 0) | a) >>> 0;
 }
 
+/**
+ * Bit reader over a zlib/deflate stream used to inflate compressed FBX
+ * property arrays.
+ */
 class DeflateBitReader
 {
     constructor(bytes)
@@ -1432,6 +1436,10 @@ class DeflateBitReader
     }
 }
 
+/**
+ * Canonical Huffman decode table built from deflate code lengths for
+ * inflating compressed FBX property arrays.
+ */
 class DeflateHuffmanTable
 {
     constructor(lengths)

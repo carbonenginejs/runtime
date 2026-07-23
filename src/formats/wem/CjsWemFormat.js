@@ -22,8 +22,9 @@ const FORMAT_NAME = "CjsWemFormat";
  * Reader for Audiokinetic Wwise media (.wem) containers.
  *
  * Inspection identifies the codec, channel/rate layout, and Vorbis duration
- * without decoding audio data. Read emits the container bytes untouched;
- * decode/transcode targets are deliberately out of scope for this reader.
+ * without decoding audio data. Read emits the container bytes untouched by
+ * default; `emit: "ogg"` repacks Wwise Vorbis into a standard Ogg stream and
+ * `emit: "pcm"` decodes PTADPCM / 16-bit PCM media to float32 samples.
  */
 export class CjsWemFormat
 {

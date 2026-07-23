@@ -60,8 +60,12 @@ packages realize that payload into backend objects.
   `Tr2TexturePipeline` CPU steps and `Tr2TextureLodManager` membership.
 - [reference/events.md](reference/events.md): the `CjsEventEmitter` contract
   and event memory rules.
+- [reference/classes/README.md](reference/classes/README.md): the searchable
+  one-sentence class-purpose catalog.
 - [formats/README.md](formats/README.md): format import map and per-format
   output notes.
+- [formats/gr2.md](formats/gr2.md): Granny GR2/GSF reading, output modes,
+  conversions, graph shape, and class hydration.
 - [formats/wwise.md](formats/wwise.md): Wwise soundbank and media readers.
 - [formats/stl.md](formats/stl.md): STL geometry export.
 - [formats/provenance.md](formats/provenance.md): format ownership, fork

@@ -1,6 +1,12 @@
 import { DEFAULT_VALUES, normalizeValues, readWithValues, readWithValuesAsync, inspectWithValues, isSupportedWithValues, toJsonValue, isPNG, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, OUTPUT_IMAGE } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsPngFormat";
+
+/**
+ * PNG format profile that synchronously inspects chunk and header metadata
+ * and emits raw bytes or debug JSON, with RGBA decoding available on the
+ * asynchronous read path.
+ */
 class CjsPngFormat {
   #values = DEFAULT_VALUES;
 

@@ -1,6 +1,12 @@
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isFLAC, toBytes, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsFlacFormat";
+
+/**
+ * Metadata-only FLAC format profile that validates the stream signature,
+ * inspects stream metadata, and emits raw container bytes or debug JSON
+ * without decoding PCM.
+ */
 class CjsFlacFormat {
   #values = DEFAULT_VALUES;
   constructor(options = {}) {

@@ -1,6 +1,11 @@
 import { MediaType, PayloadType } from "@carbonenginejs/runtime-const/media";
 import { CjsResourceProbe } from "./CjsResourceProbe.js";
 
+/**
+ * Base class for format readers that defines the static
+ * `read`/`readAsync`/`isSupported`/`resolveType` contract and instance
+ * option handling that concrete format packages implement.
+ */
 export class CjsFormat
 {
   options = {};

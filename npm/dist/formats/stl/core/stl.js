@@ -139,6 +139,11 @@ function addIssue(issues, key, count) {
 function rootSource(input) {
   return input && typeof input === "object" && typeof input.grannyFileSource === "string" ? input.grannyFileSource : null;
 }
+
+/**
+ * Union-find structure with path compression used to group edge-connected
+ * triangles during STL printability inspection.
+ */
 class DisjointSet {
   constructor(size) {
     this.parent = new Array(size);

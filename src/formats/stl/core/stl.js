@@ -195,6 +195,10 @@ function rootSource(input)
         : null;
 }
 
+/**
+ * Union-find structure with path compression used to group edge-connected
+ * triangles during STL printability inspection.
+ */
 class DisjointSet
 {
 

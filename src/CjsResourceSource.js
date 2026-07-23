@@ -1,5 +1,9 @@
 import { normalizeResourcePath } from "./resourcePath.js";
 
+/**
+ * In-memory resource source that maps normalized resource paths to preset
+ * values and serves them to reads without any I/O.
+ */
 export class CjsMemoryResourceSource
 {
   #records = new Map();
@@ -36,6 +40,10 @@ export class CjsMemoryResourceSource
   }
 }
 
+/**
+ * Resource source that resolves a normalized path against an optional base
+ * URL and reads response bytes through an injected fetch implementation.
+ */
 export class CjsFetchResourceSource
 {
   constructor(options = {}) {

@@ -20,6 +20,10 @@ export function asUint8Array(input)
     throw new TypeError("CMF input must be a Uint8Array, Buffer, ArrayBuffer, or typed-array view");
 }
 
+/**
+ * Bounds-checked little-endian offset reader over CMF file bytes, including
+ * 64-bit integer reads guarded against unsafe values.
+ */
 export class BinaryReader
 {
     constructor(bytes)

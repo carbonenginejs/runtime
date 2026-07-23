@@ -15,6 +15,10 @@ import {
 
 const FORMAT_NAME = "CjsTgaFormat";
 
+/**
+ * TGA format profile that inspects header metadata and reads TGA bytes into
+ * raw, debug JSON, or decoded RGBA image payloads.
+ */
 export class CjsTgaFormat
 {
     #values = DEFAULT_VALUES;

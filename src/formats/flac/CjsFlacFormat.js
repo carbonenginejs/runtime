@@ -14,6 +14,11 @@ import {
 
 const FORMAT_NAME = "CjsFlacFormat";
 
+/**
+ * Metadata-only FLAC format profile that validates the stream signature,
+ * inspects stream metadata, and emits raw container bytes or debug JSON
+ * without decoding PCM.
+ */
 export class CjsFlacFormat
 {
     #values = DEFAULT_VALUES;

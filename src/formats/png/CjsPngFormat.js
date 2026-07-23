@@ -16,6 +16,11 @@ import {
 
 const FORMAT_NAME = "CjsPngFormat";
 
+/**
+ * PNG format profile that synchronously inspects chunk and header metadata
+ * and emits raw bytes or debug JSON, with RGBA decoding available on the
+ * asynchronous read path.
+ */
 export class CjsPngFormat
 {
     #values = DEFAULT_VALUES;

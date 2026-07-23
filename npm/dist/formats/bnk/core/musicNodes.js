@@ -18,6 +18,10 @@
 // head (before NodeBaseParams) and the track's type block is tail-validated
 // the same way.
 
+/**
+ * Little-endian byte cursor over HIRC payload bytes used to decode Wwise
+ * interactive-music node payloads with exact-end validation.
+ */
 class MusicCursor {
   constructor(bytes, offset = 0) {
     this.view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);

@@ -1,6 +1,11 @@
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isTGA, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, OUTPUT_IMAGE } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsTgaFormat";
+
+/**
+ * TGA format profile that inspects header metadata and reads TGA bytes into
+ * raw, debug JSON, or decoded RGBA image payloads.
+ */
 class CjsTgaFormat {
   #values = DEFAULT_VALUES;
 

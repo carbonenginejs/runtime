@@ -173,6 +173,10 @@ class PacketReader
     }
 }
 
+/**
+ * Vorbis codebook that builds Huffman decode trees and VQ lookup vectors for
+ * scalar and vector packet decoding.
+ */
 class Codebook
 {
     constructor()

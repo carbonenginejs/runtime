@@ -3,6 +3,11 @@ import {
     normalizeCarbonTypeDescriptor
 } from "@carbonenginejs/core-types";
 
+/**
+ * Static set of read and skip routines that decode or skip individual Black
+ * property values (primitives, strings, arrays, structure lists,
+ * dictionaries, and binary blocks) from their type descriptors.
+ */
 export class CjsBlackPropertyReaders
 {
     static readValue(reader, field)

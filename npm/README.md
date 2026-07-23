@@ -57,7 +57,7 @@ matches between authoring source and built output. `npm test` additionally
 runs the complete GPU-free unit suite; it requires no private assets,
 credentials, network access, browser, or GPU after dependencies are installed.
 
-## License and provenance
+## License
 
 MIT. See [LICENSE](LICENSE) and [NOTICE](NOTICE). CarbonEngine and Fenris
 Creations (CCP Games) are named for interoperability and provenance context;

@@ -24,6 +24,8 @@ copied from `format-carbon` revision
 purpose are recorded in `docs/formats/provenance.md`; no CarbonEngine source file or
 game asset is embedded in that generated definition snapshot.
 
-The EUPL-1.2 `format-gr2` implementation is deliberately not included. GR2
-ownership migration remains deferred until its EUPL-derived BitKnit boundary
-is replaced or an explicit distribution-license decision is made.
+The GR2/GSF implementation is included under `formats/gr2`, migrated from
+`format-gr2` after its former EUPL-derived BitKnit2 decoder was replaced by a
+validated clean-room implementation and the package was relicensed MIT. Its
+retained license, provenance, and third-party notices live under
+`format-notices/gr2/` and `docs/formats/provenance.md`.

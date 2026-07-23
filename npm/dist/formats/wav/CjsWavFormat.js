@@ -1,6 +1,12 @@
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isWAV, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_PCM, OUTPUT_AUDIO } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsWavFormat";
+
+/**
+ * WAV audio format profile that inspects RIFF chunk metadata and reads
+ * supported WAV bytes into PCM or audio payloads, alongside raw and debug
+ * JSON output.
+ */
 class CjsWavFormat {
   #values = DEFAULT_VALUES;
 

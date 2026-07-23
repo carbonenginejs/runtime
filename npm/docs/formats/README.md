@@ -57,9 +57,10 @@ retention without introducing a parallel DTO class hierarchy.
 | Wwise media (`.wem`) | `CjsWemFormat` | `@carbonenginejs/runtime-resource/formats/wem` |
 | YAML (`.yaml`/`.yml`) | `CjsYamlFormat` | `@carbonenginejs/runtime-resource/formats/yaml` |
 
-Detailed pages: [Wwise soundbanks and media](wwise.md),
-[STL export](stl.md). Ownership history, retained snapshots, and donor
-licensing are recorded in [provenance.md](provenance.md).
+Detailed pages: [Granny GR2 and GSF](gr2.md),
+[Wwise soundbanks and media](wwise.md), and [STL export](stl.md). Ownership
+history, retained snapshots, and donor licensing are recorded in
+[provenance.md](provenance.md).
 
 ## Granny GR2/GSF
 
@@ -69,9 +70,9 @@ Oodle1, and the clean-room BitKnit2 decoder), reflected type-tree walking,
 GR2 JSON emission, optional curve decompression, CCP packed tangent-frame
 unpacking, and caller-class hydration (`emit: "gr2"`/`"cmf"` with a
 `classes` map). It was migrated from `@carbonenginejs/format-gr2` after that
-package's 2026-07-24 MIT relicense; the frozen donor repository documents
-the reader API and JSON graph in detail, and this copy preserves its
-behavior and test surface.
+package's 2026-07-24 MIT relicense, preserving its behavior and test
+surface; [gr2.md](gr2.md) documents the reader API, output modes, graph
+shape, and hydration contract.
 
 ## Red output markers
 

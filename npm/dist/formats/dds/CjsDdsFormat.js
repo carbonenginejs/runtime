@@ -1,6 +1,13 @@
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isDDS, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, OUTPUT_TEXTURE, OUTPUT_IMAGE } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsDdsFormat";
+
+/**
+ * DDS texture format profile that inspects header metadata, probes output
+ * support, and reads DDS bytes into raw, GPU-free texture, image, or
+ * software-decoded RGBA and float payloads (BC1-BC5, BC7, and BC6H
+ * included).
+ */
 class CjsDdsFormat {
   #values = DEFAULT_VALUES;
 

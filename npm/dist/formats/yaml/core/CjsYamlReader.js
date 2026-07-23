@@ -24,6 +24,12 @@ function defineMappingValue(target, key, value) {
     writable: true
   });
 }
+
+/**
+ * Construction-bound reader that parses one YAML source with the `yaml`
+ * library and produces the format's payload, raw, or document graphs while
+ * enforcing tag policy and alias limits.
+ */
 class CjsYamlReader extends CjsReader {
   constructor(input, options = {}) {
     super(options);

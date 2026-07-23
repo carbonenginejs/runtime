@@ -1,6 +1,11 @@
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isMP3, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_PCM, OUTPUT_AUDIO } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsMp3Format";
+
+/**
+ * MP3 audio format profile that inspects frame and tag metadata and emits
+ * raw container bytes or debug JSON, with PCM decoding not implemented.
+ */
 class CjsMp3Format {
   #values = DEFAULT_VALUES;
 

@@ -1,3 +1,7 @@
+/**
+ * Bounds-aware `DataView` cursor that provides the primitive reads and
+ * end-of-stream checks the Black transport decodes with.
+ */
 export class CjsBlackBinaryReader
 {
     constructor(dataView, context = null)

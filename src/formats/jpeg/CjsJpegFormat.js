@@ -16,6 +16,11 @@ import {
 
 const FORMAT_NAME = "CjsJpegFormat";
 
+/**
+ * JPEG format profile that inspects marker and header metadata and reads
+ * baseline JPEG bytes into raw, debug JSON, or RGBA payloads through the
+ * in-project baseline decoder.
+ */
 export class CjsJpegFormat
 {
     #values = DEFAULT_VALUES;

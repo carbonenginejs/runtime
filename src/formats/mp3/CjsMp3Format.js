@@ -15,6 +15,10 @@ import {
 
 const FORMAT_NAME = "CjsMp3Format";
 
+/**
+ * MP3 audio format profile that inspects frame and tag metadata and emits
+ * raw container bytes or debug JSON, with PCM decoding not implemented.
+ */
 export class CjsMp3Format
 {
     #values = DEFAULT_VALUES;

@@ -14,6 +14,11 @@ import {
 
 const FORMAT_NAME = "CjsYamlFormat";
 
+/**
+ * YAML format profile that parses YAML text into payload, JSON-graph, raw,
+ * or document output with configurable tag policies, alias limits, and
+ * identity/reference markers.
+ */
 export class CjsYamlFormat
 {
     #values = DEFAULT_VALUES;

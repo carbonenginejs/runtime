@@ -13,6 +13,10 @@ import {
 
 const FORMAT_NAME = "CjsWebpFormat";
 
+/**
+ * Metadata-only WebP format profile that inspects RIFF chunk headers and
+ * emits raw container bytes or debug JSON without decoding pixels.
+ */
 export class CjsWebpFormat
 {
     #values = DEFAULT_VALUES;

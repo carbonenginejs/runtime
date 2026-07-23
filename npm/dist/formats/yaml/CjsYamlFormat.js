@@ -2,6 +2,12 @@ import { CjsYamlReader } from './core/CjsYamlReader.js';
 import { DEFAULT_VALUES, normalizeValues, toJsonGraph, OUTPUT_RAW, OUTPUT_DOCUMENT, OUTPUT_PAYLOAD, OUTPUT_JSON, TAG_PRESERVE, TAG_REJECT, TAG_HANDLE } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsYamlFormat";
+
+/**
+ * YAML format profile that parses YAML text into payload, JSON-graph, raw,
+ * or document output with configurable tag policies, alias limits, and
+ * identity/reference markers.
+ */
 class CjsYamlFormat {
   #values = DEFAULT_VALUES;
   constructor(options = {}) {
