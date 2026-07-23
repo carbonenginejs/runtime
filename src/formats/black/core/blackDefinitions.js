@@ -1,4 +1,4 @@
-import definitions from "./black-schema-v1-2026-07-11.json" with { type: "json" };
+import definitions from "./black-schema-v1-2026-07-23.json" with { type: "json" };
 
 
 export const schema = definitions.schema;

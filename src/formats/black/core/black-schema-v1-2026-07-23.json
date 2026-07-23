@@ -1,40 +1,14 @@
 {
   "schema": "carbonenginejs.blackDefinitions",
   "version": 1,
-  "generatedAt": "2026-07-11T14:52:36.015Z",
+  "generatedAt": "2026-07-23T12:50:12.522Z",
   "enums": {
-    "AmbientOcclusionQuality": {
-      "Disabled": 0,
-      "Low": 1,
-      "Medium": 2,
-      "High": 3
-    },
     "AnimationChannelTargetType": {
       "BonePosition": 0,
       "BoneRotation": 1,
       "BoneScale": 2,
       "MorphTarget": 3,
       "Other": 4
-    },
-    "AntiAliasingQuality": {
-      "Disabled": 0,
-      "Low": 1,
-      "Medium": 2,
-      "High": 3
-    },
-    "AreaType": {
-      "TYPE_PRIMARY": 0,
-      "TYPE_GLASS": 1,
-      "TYPE_SAILS": 2,
-      "TYPE_REACTOR": 3,
-      "TYPE_DARKHULL": 4,
-      "TYPE_WRECK": 5,
-      "TYPE_ROCK": 6,
-      "TYPE_MONUMENT": 7,
-      "TYPE_ORNAMENT": 8,
-      "TYPE_SIMPLEPRIMARY": 9,
-      "TYPE_TURRET": 10,
-      "TYPE_MAX": 11
     },
     "AttributeType": {
       "SIGNAL_LOSS_INTENSITY": 0,
@@ -80,19 +54,23 @@
       "COLOR_OFFSET": 40,
       "POST_PROCESS_ATTRIBUTE_TYPE_COUNT": 41
     },
+    "Codec": {
+      "OTHER": 0,
+      "VP8": 1,
+      "VP9": 2
+    },
     "AudioOcclusionMeshGenerationMethod": {
       "Simplygon": 0
     },
-    "BackgroundRenderingReason": {
-      "BACKGROUND_RENDER_COLOR": 0,
-      "BACKGROUND_RENDER_REFLECTION": 1
+    "AudioState": {
+      "Uninitialized": 0,
+      "Disabled": 1,
+      "Enabled": 2
     },
-    "BlinkType": {
-      "TYPE_STATIC": 0,
-      "TYPE_BLINK": 1,
-      "TYPE_FADE_IN": 2,
-      "TYPE_FADE_OUT": 3,
-      "TYPE_CYCLE": 4
+    "LocatorType": {
+      "ELT_TRANSFORM": 0,
+      "ELT_JOINT": 1,
+      "ELT_COUNT": 2
     },
     "BloomDebugMode": {
       "BLOOM_DEBUG_NONE": 0,
@@ -129,18 +107,9 @@
       "EVE_BOUNDS_WITH_CHILDREN": 1
     },
     "BufferType": {
-      "Vertex": 0,
-      "Index": 1,
-      "Storage": 2,
-      "Undefined": 3
-    },
-    "BuildClass": {
-      "BUILDCLASS_SHIP": 0,
-      "BUILDCLASS_MOBILE": 1,
-      "BUILDCLASS_STATIONARY": 2,
-      "BUILDCLASS_SWARM": 3,
-      "BUILDCLASS_EXTENSION": 4,
-      "BUILDCLASS_COUNT": 5
+      "GPU": 0,
+      "CPU": 1,
+      "COUNT": 2
     },
     "CameraTrigger": {
       "CAMERA_TRIGGER_NONE": 0,
@@ -156,28 +125,6 @@
       "UNCHECKED": 0,
       "CHECKED": 1,
       "MIXED": -1
-    },
-    "Code": {
-      "OK": 0,
-      "UNRECOGNIZED_IMAGE_TYPE": 1,
-      "METHOD_NOT_SUPPORTED": 2,
-      "READ_FAILURE": 3,
-      "WRITE_FAILURE": 4,
-      "INVALID_HEADER": 5,
-      "HEADER_NOT_SUPPORTED": 6,
-      "INVALID_DATA": 7,
-      "ERROR_CREATING_BITMAP": 8,
-      "INVALID_BITMAP": 9,
-      "SAVE_NOT_SUPPORTED": 10,
-      "OUT_OF_MEMORY": 11,
-      "ERROR_CONVERTING_FORMAT": 12,
-      "ERROR_INITIALIZING_EXTERNAL_LIBRARY": 13,
-      "UNKNOWN_FAILURE": 14
-    },
-    "Codec": {
-      "OTHER": 0,
-      "VP8": 1,
-      "VP9": 2
     },
     "ColorType": {
       "TYPE_PRIMARY": 0,
@@ -230,21 +177,6 @@
       "NVTT": 0,
       "COMPRESSONATOR": 1
     },
-    "ConnectorType": {
-      "PointToPoint": 0,
-      "XZ_CircleStraight": 1,
-      "XZ_Circle": 2,
-      "StraightAnchor": 3,
-      "CurvedAnchor": 4,
-      "Orbit": 5,
-      "Circle": 6,
-      "Ellipse": 7
-    },
-    "CornerType": {
-      "CORNERTYPE_MITER": 0,
-      "CORNERTYPE_ROUND": 1,
-      "CORNERTYPE_NONE": 2
-    },
     "CubemapFace": {
       "CUBEMAP_FACE_POSITIVE_X": 0,
       "CUBEMAP_FACE_NEGATIVE_X": 1,
@@ -270,26 +202,9 @@
       "SCurve": 7,
       "InvSCurve": 8
     },
-    "Debug": {
-      "TAA_DEBUG_OFF": 0,
-      "TAA_DEBUG_MOTION_VECTORS": 1,
-      "TAA_DEBUG_EARLY_OUT_MASK": 2
-    },
     "DecoderError": {
       "DECODER_ERROR_OK": 0,
       "DECODER_ERROR_UNSUPPORTED_CODEC": 1
-    },
-    "DestinationType": {
-      "OWNER": 0,
-      "CHILD": 1
-    },
-    "DisplayQualityModifier": {
-      "SHADER_ALL": 5,
-      "SHADER_HIGHMID": 3,
-      "SHADER_LOWMID": 1,
-      "SHADER_HIGH": 4,
-      "SHADER_MED": 2,
-      "SHADER_LOW": 0
     },
     "DisplayScaling": {
       "DISPLAY_SCALING_UNSPECIFIED": 0,
@@ -303,31 +218,9 @@
       "KILL_AND_SPAWN_NEW_FROM_INITIAL_POSITION": 3,
       "KILL_AND_SPAWN_NEW_FROM_CURRENT_POSITION": 4
     },
-    "DistributionMethod": {
-      "RANDOM_INCLUCION": 0,
-      "PARENT_MATCH": 1,
-      "DEPLETION_COUNTER": 2,
-      "GRAPHIC_SETTING_MAP": 3
-    },
-    "DnaCommand": {
-      "CMD_INVALID": 0,
-      "CMD_MATERIAL": 1,
-      "CMD_MESH": 2,
-      "CMD_RESPATHINSERT": 3,
-      "CMD_VARIANT": 4,
-      "CMD_CLASS": 5,
-      "CMD_PATTERN": 6,
-      "CMD_LAYOUT": 7,
-      "CMD_MAX": 8
-    },
     "DocumentType": {
       "CSV": 0,
       "YAML": 1
-    },
-    "Effect": {
-      "Wireframe": 0,
-      "Solid": 1,
-      "Lit": 2
     },
     "ElementType": {
       "Float32": 0,
@@ -347,6 +240,215 @@
       "Rle7_5": 2,
       "Rle6": 3
     },
+    "Shape": {
+      "Disk": 0,
+      "Triangle": 1,
+      "Rectangle": 2,
+      "Pentagon": 3,
+      "Hexagon": 4,
+      "Heart": 5
+    },
+    "RenderType": {
+      "RENDER_SHIP": 0,
+      "RENDER_BOOSTER": 1,
+      "COUNT": 2
+    },
+    "DisplayQualityModifier": {
+      "SHADER_ALL": 5,
+      "SHADER_HIGHMID": 3,
+      "SHADER_LOWMID": 1,
+      "SHADER_HIGH": 4,
+      "SHADER_MED": 2,
+      "SHADER_LOW": 0
+    },
+    "PropagationType": {
+      "LOCAL_LOCATORS": 0,
+      "LOCATOR_SET_BY_REF": 1,
+      "RANDOM_SPREAD": 2
+    },
+    "TriggerType": {
+      "TRIGGER_SPHERE_CURVE": 0,
+      "INTERVAL_TRIGGERS": 1,
+      "INSTANT_PERMANENT": 2
+    },
+    "RotationalConstraints": {
+      "NONE": 0,
+      "BILLBOARD": 1,
+      "BILLBOARD_WITH_Z_LOCKED": 2
+    },
+    "lineSetType": {
+      "OBJECT_RENDER": 0,
+      "LINE_RENDER": 1,
+      "BOTH": 2
+    },
+    "Status": {
+      "Working": 0,
+      "StopRequested": 1,
+      "DataReady": 2,
+      "Aborted": 3
+    },
+    "ConnectorType": {
+      "PointToPoint": 0,
+      "XZ_CircleStraight": 1,
+      "XZ_Circle": 2,
+      "StraightAnchor": 3,
+      "CurvedAnchor": 4,
+      "Orbit": 5,
+      "Circle": 6,
+      "Ellipse": 7
+    },
+    "PlaneType": {
+      "X": 0,
+      "Y": 1,
+      "Z": 2
+    },
+    "LocalPositionBehavior": {
+      "POS_NONE": 0,
+      "POS_NEAREST_BOUNDING_POINT": 1,
+      "POS_CENTER_BOUNDING_POINT": 2,
+      "POS_TARGET_DMG_LOCATOR": 3,
+      "POS_TARGET_DMG_LOCATOR_IMPACT": 4,
+      "POS_OFFSET_POSITION": 5,
+      "POS_OFFSET_PLANE_ROTATION": 6,
+      "POS_NEAREST_FIRING_LOCATOR": 7,
+      "POS_ACTIVE_TURRET": 8,
+      "POS_COUNT": 9
+    },
+    "OverlayType": {
+      "TYPE_OPAQUEONLY": 0,
+      "TYPE_ALL": 1,
+      "TYPE_COUNT": 2
+    },
+    "State": {
+      "UNINITIALIZED": 0,
+      "PARSING_METADATA": 1,
+      "INITIAL_BUFFERING": 2,
+      "PLAYING": 3,
+      "BUFFERING": 4,
+      "FINISHING_BUFFERING": 5,
+      "DONE": 6
+    },
+    "StateChangeEvent": {
+      "EVT_SWITCH_TARGET": 0,
+      "EVT_EXPLODE": 1,
+      "EVT_NONE": 2
+    },
+    "ParameterType": {
+      "TYPE_EVESPACEOBJECT": 0,
+      "TYPE_EVEEFFECTROOT": 1,
+      "TYPE_ANYTHING": 2,
+      "TYPE_UNDEFINED": 3
+    },
+    "LifeTimeFormulas": {
+      "PER_INSTANCE_LIFETIME": 0,
+      "PER_MODIFIER_PLAYTIME": 1,
+      "STATIC": 2
+    },
+    "AreaType": {
+      "TYPE_PRIMARY": 0,
+      "TYPE_GLASS": 1,
+      "TYPE_SAILS": 2,
+      "TYPE_REACTOR": 3,
+      "TYPE_DARKHULL": 4,
+      "TYPE_WRECK": 5,
+      "TYPE_ROCK": 6,
+      "TYPE_MONUMENT": 7,
+      "TYPE_ORNAMENT": 8,
+      "TYPE_SIMPLEPRIMARY": 9,
+      "TYPE_TURRET": 10,
+      "TYPE_MAX": 11
+    },
+    "MaterialType": {
+      "MATERIAL1": 0,
+      "MATERIAL2": 1,
+      "MATERIAL3": 2,
+      "MATERIAL4": 3,
+      "MATERIAL_MAX": 4
+    },
+    "BlinkType": {
+      "TYPE_STATIC": 0,
+      "TYPE_BLINK": 1,
+      "TYPE_FADE_IN": 2,
+      "TYPE_FADE_OUT": 3,
+      "TYPE_CYCLE": 4
+    },
+    "BuildClass": {
+      "BUILDCLASS_SHIP": 0,
+      "BUILDCLASS_MOBILE": 1,
+      "BUILDCLASS_STATIONARY": 2,
+      "BUILDCLASS_SWARM": 3,
+      "BUILDCLASS_EXTENSION": 4,
+      "BUILDCLASS_COUNT": 5
+    },
+    "ImpactEffectType": {
+      "IMPACTEFFECT_NONE": 0,
+      "IMPACTEFFECT_ELLIPSOID": 1,
+      "IMPACTEFFECT_HULL": 2
+    },
+    "Usage": {
+      "Position": 0,
+      "Normal": 1,
+      "Tangent": 2,
+      "Binormal": 3,
+      "TexCoord": 4,
+      "Color": 5,
+      "BoneIndices": 6,
+      "BoneWeights": 7,
+      "PackedTangent": 8,
+      "PackedTangentLegacy": 9
+    },
+    "HazeType": {
+      "TYPE_SPHERICAL": 0,
+      "TYPE_HALFSPHERICAL": 1
+    },
+    "LIGHT_TYPE": {
+      "UNDEFINED_LIGHT": 0,
+      "POINT_LIGHT": 1,
+      "SPOT_LIGHT": 2,
+      "COUNT": 3
+    },
+    "LogoType": {
+      "TYPE_PRIMARY": 0,
+      "TYPE_SECONDARY": 1,
+      "TYPE_TERTIARY": 2,
+      "TYPE_MARKING_01": 3,
+      "TYPE_MARKING_02": 4,
+      "TYPE_MAX": 5
+    },
+    "DistributionMethod": {
+      "RANDOM_INCLUCION": 0,
+      "PARENT_MATCH": 1,
+      "DEPLETION_COUNTER": 2,
+      "GRAPHIC_SETTING_MAP": 3
+    },
+    "MaterialSource": {
+      "SOURCE_MATERIAL1": 0,
+      "SOURCE_MATERIAL2": 1,
+      "SOURCE_MATERIAL3": 2,
+      "SOURCE_MATERIAL4": 3,
+      "SOURCE_PATTERN1": 4,
+      "SOURCE_PATTERN2": 5
+    },
+    "ProjectionType": {
+      "PROJECTION_REPEAT": 0,
+      "PROJECTION_CLAMP": 1,
+      "PROJECTION_BORDER": 2
+    },
+    "DnaCommand": {
+      "CMD_INVALID": 0,
+      "CMD_MATERIAL": 1,
+      "CMD_MESH": 2,
+      "CMD_RESPATHINSERT": 3,
+      "CMD_VARIANT": 4,
+      "CMD_CLASS": 5,
+      "CMD_PATTERN": 6,
+      "CMD_LAYOUT": 7,
+      "CMD_MAX": 8
+    },
+    "BackgroundRenderingReason": {
+      "BACKGROUND_RENDER_COLOR": 0,
+      "BACKGROUND_RENDER_REFLECTION": 1
+    },
     "EveVisualizeMethod": {
       "VM_NONE": 0,
       "VM_TEXCOORD0": 1,
@@ -357,6 +459,63 @@
       "VW_LIGHT_COUNT": 6,
       "VM_COUNT": 7
     },
+    "VisualizerType": {
+      "PIXEL_SHADER_REPLACEMENT": 0,
+      "FULL_SCREEN_QUAD": 1,
+      "FULL_SCREEN_QUAD_OVERLAY": 2
+    },
+    "AmbientOcclusionQuality": {
+      "Disabled": 0,
+      "Low": 1,
+      "Medium": 2,
+      "High": 3
+    },
+    "AntiAliasingQuality": {
+      "Disabled": 0,
+      "Low": 1,
+      "Medium": 2,
+      "High": 3
+    },
+    "ReflectionQuality": {
+      "Disabled": 0,
+      "Low": 1,
+      "Medium": 2,
+      "High": 3,
+      "Ultra": 4
+    },
+    "StretchState": {
+      "STRETCH_STATE_UNDEFINED": 0,
+      "STRETCH_STATE_STARTING": 1,
+      "STRETCH_STATE_STARTED": 2,
+      "STRETCH_STATE_STOPPING": 3
+    },
+    "MaxMuzzleCount": {
+      "MUZZLECOUNT_MAX": 12
+    },
+    "LOD": {
+      "LOD_INVALID": 0,
+      "LOD_EMPTY": 1,
+      "LOD_HIGHEST": 2,
+      "LOD_DISABLED": 3
+    },
+    "SystemBones": {
+      "SYSBONE_INVALID": 0,
+      "SYSBONE_ROTATION": 1,
+      "SYSBONE_ROTATION01": 2,
+      "SYSBONE_ROTATION02": 3,
+      "SYSBONE_COUNTER_ROTATION": 4,
+      "SYSBONE_PITCH": 5,
+      "SYSBONE_PITCH1": 6,
+      "SYSBONE_PITCH2": 7,
+      "SYSBONE_SCALED_HEIGHT": 8,
+      "SYSBONE_SCALED_PITCH01": 9,
+      "SYSBONE_SCALED_PITCH02": 10,
+      "SYSBONE_SCALED_PITCH03": 11,
+      "SYSBONE_SCALED_PITCH04": 12,
+      "SYSBONE_SCALED_PITCH05": 13,
+      "SYSBONE_SCALED_PITCH06": 14,
+      "SYSBONE_MAX": 15
+    },
     "FadeType": {
       "FT_NONE": 0,
       "FT_BLINK": 1,
@@ -364,38 +523,34 @@
       "FT_FADEOUT": 3,
       "FT_FADEINOUT": 4
     },
-    "FilterType": {
-      "ONLY_OBJECTS_IN_LIST": 0,
-      "EXCLUDE_OBJECTS_IN_LIST": 1
+    "Mode": {
+      "READ": 0,
+      "WRITE": 1
     },
     "GrannyDeprecationLevel": {
       "DO_NOTHING": 0,
       "LOG_ERROR": 1,
       "LOG_ERROR_AND_ASSERT": 2
     },
-    "HazeType": {
-      "TYPE_SPHERICAL": 0,
-      "TYPE_HALFSPHERICAL": 1
+    "ProcessPriority": {
+      "LEAST_PRIORITY": 0,
+      "LESS_PRIORITY": 1,
+      "MORE_PRIORITY": 3,
+      "MOST_PRIORITY": 4,
+      "COUNT": 5
     },
-    "ImpactConfiguration": {
-      "IMPACT_INVALID": 0,
-      "IMPACT_SHIELD": 1,
-      "IMPACT_ARMOR": 2,
-      "IMPACT_HULL": 3
+    "TunnelGroupType": {
+      "EXIT_TUNNELS": 0,
+      "ENTRANCE_TUNNELS": 1,
+      "OTHER_TUNNELS": 2
     },
-    "ImpactEffectType": {
-      "IMPACTEFFECT_NONE": 0,
-      "IMPACTEFFECT_ELLIPSOID": 1,
-      "IMPACTEFFECT_HULL": 2
+    "Origin": {
+      "SPACE": 0,
+      "SOF": 1
     },
     "IndexType": {
       "UInt32": 0,
       "UInt16": 1
-    },
-    "InitializeState": {
-      "NONE": 0,
-      "INFO": 1,
-      "BLOCK": 2
     },
     "INPUTTYPE": {
       "IT_KBD": 0,
@@ -411,95 +566,42 @@
       "SPHERICAL_LINEAR": 4,
       "SPHERICAL_QUADRANGLE": 5
     },
-    "ResourceFlags": {
-      "RESOURCE_FLAG_NONE": 0,
-      "RESOURCE_FLAG_SRGB": 1
+    "Effect": {
+      "Wireframe": 0,
+      "Solid": 1,
+      "Lit": 2
     },
-    "PickComponent": {
-      "PICK_OBJECT": 1,
-      "PICK_AREA": 2,
-      "PICK_POSITION": 4,
-      "PICK_UV": 8
+    "PassType": {
+      "RP_BEGIN_RENDER": 0,
+      "RP_PRE_PASS": 1,
+      "RP_LIGHT_PASS": 2,
+      "RP_GATHER_PASS": 3,
+      "RP_FLARE_PASS": 4,
+      "RP_END_RENDER": 5,
+      "RP_BACKGROUND_RENDER": 6,
+      "RP_MAIN_RENDER": 7,
+      "RP_REFLECTION_RENDER": 8,
+      "RP_DEPTH_PASS": 9,
+      "RP_SET_PERFRAME_DATA": 10,
+      "RP_RENDER_UI": 11,
+      "RP_COUNT": 12
     },
-    "LifeTimeFormulas": {
-      "PER_INSTANCE_LIFETIME": 0,
-      "PER_MODIFIER_PLAYTIME": 1,
-      "STATIC": 2
+    "RenderPassResult": {
+      "PASS_RESULT_OK": 0,
+      "PASS_RESULT_TERMINATE": 1
     },
-    "LIGHT_TYPE": {
-      "POINT_LIGHT": 0,
-      "TEXTURED_POINT_LIGHT": 1,
-      "SPOT_LIGHT": 2
-    },
-    "lineSetType": {
-      "OBJECT_RENDER": 0,
-      "LINE_RENDER": 1,
-      "BOTH": 2
-    },
-    "LoadStatus": {
-      "FAILED": 0,
-      "SUCCESSFUL": 1,
-      "NOTHING_LOADED": 2
-    },
-    "LocalPositionBehavior": {
-      "POS_NONE": 0,
-      "POS_NEAREST_BOUNDING_POINT": 1,
-      "POS_CENTER_BOUNDING_POINT": 2,
-      "POS_TARGET_DMG_LOCATOR": 3,
-      "POS_TARGET_DMG_LOCATOR_IMPACT": 4,
-      "POS_OFFSET_POSITION": 5,
-      "POS_OFFSET_PLANE_ROTATION": 6,
-      "POS_NEAREST_FIRING_LOCATOR": 7,
-      "POS_ACTIVE_TURRET": 8,
-      "POS_COUNT": 9
-    },
-    "LocatorType": {
-      "LOCAL_LOCATORS": 0,
-      "PARENT_LOCATORS": 1,
-      "TARGET_LOCATORS": 2
-    },
-    "LOD": {
-      "LOD_INVALID": 0,
-      "LOD_EMPTY": 1,
-      "LOD_HIGHEST": 2,
-      "LOD_DISABLED": 3
+    "ImpactConfiguration": {
+      "IMPACT_INVALID": 0,
+      "IMPACT_SHIELD": 1,
+      "IMPACT_ARMOR": 2,
+      "IMPACT_HULL": 3
     },
     "LodGenerationMethod": {
       "Simplygon": 0
     },
-    "LogoType": {
-      "TYPE_PRIMARY": 0,
-      "TYPE_SECONDARY": 1,
-      "TYPE_TERTIARY": 2,
-      "TYPE_MARKING_01": 3,
-      "TYPE_MARKING_02": 4,
-      "TYPE_MAX": 5
-    },
-    "MaterialSource": {
-      "SOURCE_MATERIAL1": 0,
-      "SOURCE_MATERIAL2": 1,
-      "SOURCE_MATERIAL3": 2,
-      "SOURCE_MATERIAL4": 3,
-      "SOURCE_PATTERN1": 4,
-      "SOURCE_PATTERN2": 5
-    },
-    "MaterialType": {
-      "MATERIAL1": 0,
-      "MATERIAL2": 1,
-      "MATERIAL3": 2,
-      "MATERIAL4": 3,
-      "MATERIAL_MAX": 4
-    },
-    "MaxMuzzleCount": {
-      "MUZZLECOUNT_MAX": 12
-    },
     "MeshTopology": {
       "TriangleList": 0,
       "PointList": 1
-    },
-    "Mode": {
-      "READ": 0,
-      "WRITE": 1
     },
     "MorphTargetAnimationFilter": {
       "RUNTIME_EVALUATED": 0,
@@ -511,15 +613,6 @@
       "IO_ERROR": 1,
       "INVALID_GRID": 2,
       "INVALID_FORMAT": 3
-    },
-    "Origin": {
-      "SPACE": 0,
-      "SOF": 1
-    },
-    "OverlayType": {
-      "TYPE_OPAQUEONLY": 0,
-      "TYPE_ALL": 1,
-      "TYPE_COUNT": 2
     },
     "Parameter": {
       "CHUNK_SIZE": 0,
@@ -543,31 +636,10 @@
       "PREFIX": 18,
       "REMOVED_RESOURCE_RELATIVE_PATHS": 19
     },
-    "ParameterType": {
-      "TYPE_EVESPACEOBJECT": 0,
-      "TYPE_EVEEFFECTROOT": 1,
-      "TYPE_ANYTHING": 2,
-      "TYPE_UNDEFINED": 3
-    },
     "ParserError": {
       "PARSER_ERROR_OK": 0,
       "PARSER_ERROR_INVALID_STREAM": 1,
       "PARSER_ERROR_INVALID_DATA": 2
-    },
-    "PassType": {
-      "RP_BEGIN_RENDER": 0,
-      "RP_PRE_PASS": 1,
-      "RP_LIGHT_PASS": 2,
-      "RP_GATHER_PASS": 3,
-      "RP_FLARE_PASS": 4,
-      "RP_END_RENDER": 5,
-      "RP_BACKGROUND_RENDER": 6,
-      "RP_MAIN_RENDER": 7,
-      "RP_REFLECTION_RENDER": 8,
-      "RP_DEPTH_PASS": 9,
-      "RP_SET_PERFRAME_DATA": 10,
-      "RP_RENDER_UI": 11,
-      "RP_COUNT": 12
     },
     "PerLightShadowSetting": {
       "DISABLED": 0,
@@ -678,15 +750,6 @@
       "PIXEL_FORMAT_SENTINEL": 100,
       "PIXEL_FORMAT_FORCE_UINT": 4294967295
     },
-    "PlaneType": {
-      "X": 0,
-      "Y": 1,
-      "Z": 2
-    },
-    "PlayAction": {
-      "PLAY": 0,
-      "ENQUEUE_PLAY": 1
-    },
     "Priority": {
       "SCENE_DEFAULT_PRIORITY": 0,
       "LOW_PRIORITY": 1,
@@ -695,33 +758,14 @@
       "UI_PRIORITY": 4,
       "PRIORITY_COUNT": 5
     },
-    "ProcessPriority": {
-      "LEAST_PRIORITY": 0,
-      "LESS_PRIORITY": 1,
-      "MORE_PRIORITY": 3,
-      "MOST_PRIORITY": 4,
-      "COUNT": 5
-    },
     "PROJECTION_TYPE": {
       "PT_PERSPECTIVE": 0,
       "PT_ORTHOGONAL": 1,
       "PT_UNKNOWN": 2
     },
-    "ProjectionType": {
-      "PROJECTION_REPEAT": 0,
-      "PROJECTION_CLAMP": 1,
-      "PROJECTION_BORDER": 2
-    },
-    "PropagationType": {
-      "LOCAL_LOCATORS": 0,
-      "LOCATOR_SET_BY_REF": 1,
-      "RANDOM_SPREAD": 2
-    },
     "Quality": {
-      "LOW": 0,
-      "MEDIUM": 1,
-      "HIGH": 2,
-      "COUNT": 3
+      "L1": 0,
+      "L2": 1
     },
     "ReflectionMode": {
       "REFLECT_HIGH": 0,
@@ -729,55 +773,12 @@
       "REFLECT_LOW_MEDIUM_HIGH": 2,
       "REFLECT_NEVER": 3
     },
-    "ReflectionQuality": {
-      "Disabled": 0,
-      "Low": 1,
-      "Medium": 2,
-      "High": 3,
-      "Ultra": 4
-    },
     "ReflectionSetting": {
       "REFLECTION_SETTING_OFF": 0,
       "REFLECTION_SETTING_LOW": 1,
       "REFLECTION_SETTING_MEDIUM": 2,
       "REFLECTION_SETTING_HIGH": 3,
       "REFLECTION_SETTING_ULTRA": 4
-    },
-    "RenderBatchSortType": {
-      "RENDERBATCHSORTTYPE_NONE": 0,
-      "RENDERBATCHSORTTYPE_SORT": 1,
-      "RENDERBATCHSORTTYPE_STABLE_SORT": 2
-    },
-    "RenderingMode": {
-      "RM_ANY": 0,
-      "RM_OPAQUE": 1,
-      "RM_DECAL": 2,
-      "RM_DECAL_NO_DEPTH": 3,
-      "RM_ALPHA": 4,
-      "RM_ALPHA_ADDITIVE": 5,
-      "RM_DEPTH_ONLY": 6,
-      "RM_PICKING": 7,
-      "RM_FULLSCREEN": 8,
-      "RM_SPRITE2D": 9,
-      "RM_CULL": 10,
-      "RM_LIGHT": 11,
-      "RM_ERASE": 12,
-      "RM_PREPASS_COLOR": 13,
-      "RM_COUNT": 14
-    },
-    "RenderPassResult": {
-      "PASS_RESULT_OK": 0,
-      "PASS_RESULT_TERMINATE": 1
-    },
-    "RenderType": {
-      "RENDER_SHIP": 0,
-      "RENDER_BOOSTER": 1,
-      "COUNT": 2
-    },
-    "ResetBehavior": {
-      "OBJECT_CENTER": 0,
-      "LAST_DAMAGELOCATOR_HIT": 1,
-      "CUSTOM": 2
     },
     "ResourceDestinationType": {
       "LOCAL_RELATIVE": 0,
@@ -794,6 +795,23 @@
       "SUCCESS": 1,
       "FILE_NOT_FOUND": 2,
       "DOWNLOAD_ERROR": 3
+    },
+    "Code": {
+      "OK": 0,
+      "UNRECOGNIZED_IMAGE_TYPE": 1,
+      "METHOD_NOT_SUPPORTED": 2,
+      "READ_FAILURE": 3,
+      "WRITE_FAILURE": 4,
+      "INVALID_HEADER": 5,
+      "HEADER_NOT_SUPPORTED": 6,
+      "INVALID_DATA": 7,
+      "ERROR_CREATING_BITMAP": 8,
+      "INVALID_BITMAP": 9,
+      "SAVE_NOT_SUPPORTED": 10,
+      "OUT_OF_MEMORY": 11,
+      "ERROR_CONVERTING_FORMAT": 12,
+      "ERROR_INITIALIZING_EXTERNAL_LIBRARY": 13,
+      "UNKNOWN_FAILURE": 14
     },
     "ResultCode": {
       "BRC_OK": 0,
@@ -841,16 +859,6 @@
       "REQUIRED_INPUT_PARAMETER_NOT_SET": 36,
       "FAILED_TO_INITIALIZE_RESOURCE_FILTER": 37
     },
-    "RotationalConstraints": {
-      "NONE": 0,
-      "BILLBOARD": 1,
-      "BILLBOARD_WITH_Z_LOCKED": 2
-    },
-    "RotationSetting": {
-      "NO_ROTATION": 0,
-      "MODEL_ROTATION": 1,
-      "LOCATOR_ROTATION": 2
-    },
     "SectionCompression": {
       "None": 0,
       "MeshOptimizerVertexBuffer": 1,
@@ -860,17 +868,6 @@
       "Data": 0,
       "GpuBuffer": 1,
       "Metadata": 2
-    },
-    "ShadowQuality": {
-      "SHADOW_DISABLED": 0,
-      "SHADOW_LOW": 1,
-      "SHADOW_HIGH": 2,
-      "SHADOW_RAYTRACED": 3
-    },
-    "Shape": {
-      "STAR": 0,
-      "BOX": 1,
-      "SHAPE_COUNT": 2
     },
     "SimplygonHoleFilling": {
       "Disabled": 0,
@@ -885,34 +882,6 @@
       "UNLOADED": 3,
       "NOT_LOADED": 4
     },
-    "SSAOQuality": {
-      "HIGHEST": 0,
-      "HIGH": 1,
-      "MEDIUM": 2,
-      "LOW": 3,
-      "LOWEST": 4
-    },
-    "State": {
-      "STATE_DELAYED": 0,
-      "STATE_LAUNCH": 1,
-      "STATE_EJECTING": 2,
-      "STATE_START_TRACKING": 3,
-      "STATE_TRACKING_SPREAD": 4,
-      "STATE_TRACKING_FINAL": 5,
-      "STATE_EXPLODED": 6,
-      "STATE_DEAD": 7
-    },
-    "StateChangeEvent": {
-      "EVT_SWITCH_TARGET": 0,
-      "EVT_EXPLODE": 1,
-      "EVT_NONE": 2
-    },
-    "Status": {
-      "Working": 0,
-      "StopRequested": 1,
-      "DataReady": 2,
-      "Aborted": 3
-    },
     "StatusProgressType": {
       "UNBOUNDED": 0,
       "PERCENTAGE": 1,
@@ -920,48 +889,14 @@
       "START": 3,
       "END": 4
     },
-    "StopAction": {
-      "STOP": 0,
-      "ENQUEUE_STOP": 1,
-      "NONE": 2
-    },
     "StreamType": {
       "STREAM_AUDIO": 1,
       "STREAM_VIDEO": 2,
       "STREAM_AUDIO_VIDEO": 3
     },
-    "StretchState": {
-      "STRETCH_STATE_UNDEFINED": 0,
-      "STRETCH_STATE_STARTING": 1,
-      "STRETCH_STATE_STARTED": 2,
-      "STRETCH_STATE_STOPPING": 3
-    },
-    "SystemBones": {
-      "SYSBONE_INVALID": 0,
-      "SYSBONE_ROTATION": 1,
-      "SYSBONE_ROTATION01": 2,
-      "SYSBONE_ROTATION02": 3,
-      "SYSBONE_COUNTER_ROTATION": 4,
-      "SYSBONE_PITCH": 5,
-      "SYSBONE_PITCH1": 6,
-      "SYSBONE_PITCH2": 7,
-      "SYSBONE_SCALED_HEIGHT": 8,
-      "SYSBONE_SCALED_PITCH01": 9,
-      "SYSBONE_SCALED_PITCH02": 10,
-      "SYSBONE_SCALED_PITCH03": 11,
-      "SYSBONE_SCALED_PITCH04": 12,
-      "SYSBONE_SCALED_PITCH05": 13,
-      "SYSBONE_SCALED_PITCH06": 14,
-      "SYSBONE_MAX": 15
-    },
     "TangentCompression": {
       "PackedTangent": 0,
       "PackedTangentLegacy": 1
-    },
-    "TextureRepeat": {
-      "TR_Tile": 0,
-      "TR_Mirror": 1,
-      "TR_Clamp": 2
     },
     "TextureType": {
       "TEX_TYPE_1D": 1,
@@ -971,54 +906,49 @@
       "TEX_TYPE_TYPELESS": 5,
       "TEX_TYPE_INVALID": 6
     },
-    "Filtering": {
-      "FILTER_POINT": 0,
-      "FILTER_LINEAR": 1
+    "DestinationType": {
+      "OWNER": 0,
+      "CHILD": 1
     },
-    "LineType": {
-      "LINETYPE_INVALID": 0,
-      "LINETYPE_STRAIGHT": 1,
-      "LINETYPE_SPHERED": 2,
-      "LINETYPE_CURVED": 3,
-      "LINETYPE_PARTICLE": 4
+    "PlayAction": {
+      "PLAY": 0,
+      "ENQUEUE_PLAY": 1
+    },
+    "StopAction": {
+      "STOP": 0,
+      "ENQUEUE_STOP": 1,
+      "NONE": 2
+    },
+    "ResetBehavior": {
+      "OBJECT_CENTER": 0,
+      "LAST_DAMAGELOCATOR_HIT": 1,
+      "CUSTOM": 2
+    },
+    "Type": {
+      "FREE": 0,
+      "IN_USE": 1,
+      "IN_USE_NO_REF": 2
     },
     "Tr2DeviceCallbackTime": {
       "DEVICE_CALLBACK_FRAME_BEGIN": 0,
       "DEVICE_CALLBACK_FRAME_END": 1
     },
-    "Tr2DxtCompressionFormat": {
-      "TR2DXT_COMPRESS_RT_DXT1": 0,
-      "TR2DXT_COMPRESS_RT_DXT5": 1,
-      "TR2DXT_COMPRESS_RT_DXT5N": 2,
-      "TR2DXT_COMPRESS_RT_YCOCGDXT5": 3,
-      "TR2DXT_COMPRESS_RT_3DC": 4,
-      "TR2DXT_COMPRESS_SQUISH_DXT1": 5,
-      "TR2DXT_COMPRESS_SQUISH_DXT3": 6,
-      "TR2DXT_COMPRESS_SQUISH_DXT5": 7,
-      "TR2DXT_COMPRESS_SQUISH_KBC4": 8,
-      "TR2DXT_COMPRESS_SQUISH_KBC5": 9,
-      "TR2DXT_COMPRESS_COUNT": 10
-    },
-    "Tr2DxtCompressionSquishQuality": {
-      "TR2DXT_COMPRESS_SQ_ITER_CLUSTER_FIT": 0,
-      "TR2DXT_COMPRESS_SQ_CLUSTER_FIT": 1,
-      "TR2DXT_COMPRESS_SQ_RANGE_FIT": 2,
-      "TR2DXT_COMPRESS_SQ_COUNT": 3
-    },
-    "TermType": {
-      "VARIABLE": 0,
-      "FUNCTION": 1,
-      "STRING_FUNCTION": 2
-    },
-    "CreationFlag": {
-      "CPU_WRITABLE": 1,
-      "GPU_WRITABLE": 2,
-      "DRAW_INDIRECT": 4
-    },
-    "BoundsMethod": {
-      "STATIC": 0,
-      "DYNAMIC": 1,
-      "DYNAMIC_SCALED": 2
+    "RenderingMode": {
+      "RM_ANY": 0,
+      "RM_OPAQUE": 1,
+      "RM_DECAL": 2,
+      "RM_DECAL_NO_DEPTH": 3,
+      "RM_ALPHA": 4,
+      "RM_ALPHA_ADDITIVE": 5,
+      "RM_DEPTH_ONLY": 6,
+      "RM_PICKING": 7,
+      "RM_FULLSCREEN": 8,
+      "RM_SPRITE2D": 9,
+      "RM_CULL": 10,
+      "RM_LIGHT": 11,
+      "RM_ERASE": 12,
+      "RM_PREPASS_COLOR": 13,
+      "RM_COUNT": 14
     },
     "Tr2InteriorBatchGroup": {
       "WODINTBATCHGROUP_BEGIN": 0,
@@ -1026,6 +956,10 @@
       "WODINTBATCHGROUP_DECAL": 2,
       "WODINTBATCHGROUP_BLEND": 3,
       "WODINTBATCHGROUP_END": 4
+    },
+    "VisibilityQueryType": {
+      "PRIMARY_QUERY": 0,
+      "PICKING_QUERY": 1
     },
     "Tr2Lod": {
       "TR2_LOD_UNSPECIFIED": -1,
@@ -1035,47 +969,30 @@
       "TR2_LOD_ULTRA": 3,
       "TR2_LOD_COUNT": 4
     },
-    "StaticCap": {
-      "NON_SYNCHRONIZED_LOCKS": 0,
-      "BUFFER_SHADER_RESOURCES": 1,
-      "UNORDERED_ACCESS": 2,
-      "COMPUTE": 3,
-      "TEXTURE_ARRAYS": 4,
-      "MSAA_SAMPLE": 5,
-      "TAA": 6
+    "RotationSetting": {
+      "NO_ROTATION": 0,
+      "MODEL_ROTATION": 1,
+      "LOCATOR_ROTATION": 2
     },
-    "GetBatchesReason": {
-      "Draw": 0,
-      "Picking": 1
+    "Debug": {
+      "TAA_DEBUG_OFF": 0,
+      "TAA_DEBUG_MOTION_VECTORS": 1,
+      "TAA_DEBUG_EARLY_OUT_MASK": 2
     },
-    "ReflectionProbeRenderFrequency": {
-      "ONE_SIDE_PER_FRAME": 0,
-      "ALL_SIDES_PER_FRAME": 1
-    },
-    "Tr2RenderReason": {
-      "TR2RENDERREASON_NORMAL": 0,
-      "TR2RENDERREASON_REFLECTION": 1,
-      "TR2RENDERREASON_VOLUMETRIC": 2
-    },
-    "TR2SHADERMODEL": {
-      "TR2SM_1_1": 0,
-      "TR2SM_2_0_LO": 1,
-      "TR2SM_2_0_HI": 2,
-      "TR2SM_3_0_LO": 3,
-      "TR2SM_3_0_HI": 4,
-      "TR2SM_3_0_DEPTH": 5,
-      "TR2SM_AUTHORING": 6,
-      "TR2SM_COUNT": 7
-    },
-    "ShadowSplitMode": {
-      "STATIC": 0,
-      "DYNAMIC": 1,
-      "MANUAL": 2
+    "CornerType": {
+      "CORNERTYPE_MITER": 0,
+      "CORNERTYPE_ROUND": 1,
+      "CORNERTYPE_NONE": 2
     },
     "Tr2Sprite2dRenderEffect": {
       "S2D_RFX_COPY": 0,
       "S2D_RFX_BLUR": 1,
       "S2D_RFX_MODULATE": 2
+    },
+    "TextureRepeat": {
+      "TR_Tile": 0,
+      "TR_Mirror": 1,
+      "TR_Clamp": 2
     },
     "Tr2Sprite2dTextureSettings": {
       "S2D_TS_NONE": 0,
@@ -1122,75 +1039,10 @@
       "GLOW": 2,
       "COLOR_AND_GLOW": 3
     },
-    "Tr2StandardIlluminant": {
-      "TR2STANDARDILLUMINANT_A": 0,
-      "TR2STANDARDILLUMINANT_D50": 1,
-      "TR2STANDARDILLUMINANT_D55": 2,
-      "TR2STANDARDILLUMINANT_D65": 3,
-      "TR2STANDARDILLUMINANT_D75": 4,
-      "TR2STANDARDILLUMINANT_E": 5,
-      "TR2STANDARDILLUMINANT_F1": 6,
-      "TR2STANDARDILLUMINANT_F2": 7,
-      "TR2STANDARDILLUMINANT_F3": 8,
-      "TR2STANDARDILLUMINANT_F4": 9,
-      "TR2STANDARDILLUMINANT_F5": 10,
-      "TR2STANDARDILLUMINANT_F6": 11,
-      "TR2STANDARDILLUMINANT_F7": 12,
-      "TR2STANDARDILLUMINANT_F8": 13,
-      "TR2STANDARDILLUMINANT_F9": 14,
-      "TR2STANDARDILLUMINANT_F10": 15,
-      "TR2STANDARDILLUMINANT_F11": 16,
-      "TR2STANDARDILLUMINANT_F12": 17
-    },
     "Tr2StretchScaleBehavior": {
       "S2D_SSC_ALIGN_BOTTOMRIGHT": 0,
       "S2D_SSC_ALIGN_TOPLEFT": 1,
       "S2D_SSC_SCALE": 2
-    },
-    "RestartState": {
-      "NotRestarting": 0,
-      "WaitingToRestart": 1,
-      "WaitingForFrame": 2
-    },
-    "AtlasTextureType": {
-      "ATT_DEFAULT": 0,
-      "ATT_VIDEO": 1
-    },
-    "Tr2TransformModifier": {
-      "TR2TM_NONE": 0,
-      "TR2TM_BILLBOARD": 1,
-      "TR2TM_TRANSLATE_WITH_CAMERA": 2,
-      "TR2TM_LOOK_AT_CAMERA": 3,
-      "TR2TM_SIMPLE_HALO": 4,
-      "TR2TM_PRE_TRANSLATE_WITH_CAMERA": 5,
-      "TR2TM_EVE_CAMERA_ROTATION_ALIGNED": 100,
-      "TR2TM_EVE_BOOSTER": 101,
-      "TR2TM_EVE_SIMPLE_HALO": 102,
-      "TR2TM_EVE_CAMERA_ROTATION": 103,
-      "TR2TM_FORCE_DWORD": 4294967295
-    },
-    "Tr2VolumerticQuality": {
-      "Low": 0,
-      "Medium": 1,
-      "High": 2,
-      "Ultra": 3
-    },
-    "TriBatchType": {
-      "TRIBATCHTYPE_OPAQUE": 0,
-      "TRIBATCHTYPE_DECAL": 1,
-      "TRIBATCHTYPE_TRANSPARENT": 2,
-      "TRIBATCHTYPE_DEPTH": 3,
-      "TRIBATCHTYPE_ADDITIVE": 4,
-      "TRIBATCHTYPE_PICKING": 5,
-      "TRIBATCHTYPE_MIRROR": 6,
-      "TRIBATCHTYPE_DECALNORMAL": 7,
-      "TRIBATCHTYPE_DEPTHNORMAL": 8,
-      "TRIBATCHTYPE_OPAQUE_PREPASS": 9,
-      "TRIBATCHTYPE_DECAL_PREPASS": 10,
-      "TRIBATCHTYPE_GEOMETRY_ERASER": 11,
-      "TRIBATCHTYPE_FLARE": 12,
-      "TRIBATCHTYPE_DISTORTION": 13,
-      "TRIBATCHTYPE_COUNT_OF_BATCH_TYPES": 14
     },
     "TriDebugFont": {
       "TRI_DBG_FONT_SMALL": 0,
@@ -1205,68 +1057,21 @@
       "TRI_DFS_BOTTOM": 8,
       "TRI_DFS_VCENTER": 4
     },
-    "ApplicationActivation": {
-      "APP_ACTIVATED": 0,
-      "APP_DEACTIVATED": 1
-    },
-    "DeviceScreenType": {
-      "WINDOWED": 0,
-      "FULLSCREEN": 1,
-      "NO_ADAPTER": 2
-    },
-    "DeviceType": {
-      "DEVICE_TYPE_HARDWARE": 0,
-      "DEVICE_TYPE_SOFTWARE": 1
-    },
-    "ThrottlingReason": {
-      "WINDOW_OUT_OF_FOCUS": 1
-    },
-    "TriFrustumTestResult": {
-      "Outside": 0,
-      "Intersect": 1,
-      "Inside": 2
-    },
-    "TriggerType": {
-      "TRIGGER_SPHERE_CURVE": 0,
-      "INTERVAL_TRIGGERS": 1,
-      "INSTANT_PERMANENT": 2
-    },
     "TriRenderJobStatus": {
       "RJ_INIT": 0,
       "RJ_IN_PROGRESS": 1,
       "RJ_DONE": 2,
       "RJ_FAILED": 3
     },
+    "FilterType": {
+      "ONLY_OBJECTS_IN_LIST": 0,
+      "EXCLUDE_OBJECTS_IN_LIST": 1
+    },
     "TriStepResult": {
       "RS_OK": 0,
       "RS_FAILED": 1,
       "RS_IN_PROGRESS": 2,
       "RS_TERMINATE": 3
-    },
-    "TriVariableContentType": {
-      "TRIVARIABLE_INVALID": 0,
-      "TRIVARIABLE_UNKNOWN_FLOAT": 1,
-      "TRIVARIABLE_TEXTURE_RES": 2,
-      "TRIVARIABLE_INT": 3,
-      "TRIVARIABLE_FLOAT": 4,
-      "TRIVARIABLE_FLOAT2": 5,
-      "TRIVARIABLE_FLOAT3": 6,
-      "TRIVARIABLE_FLOAT4": 7,
-      "TRIVARIABLE_FLOAT4X4": 8,
-      "TRIVARIABLE_COLOR": 9,
-      "TRIVARIABLE_GPUBUFFER": 10,
-      "TRIVARIABLE_COUNT": 11
-    },
-    "TunnelGroupType": {
-      "EXIT_TUNNELS": 0,
-      "ENTRANCE_TUNNELS": 1,
-      "OTHER_TUNNELS": 2
-    },
-    "Type": {
-      "FLOAT": 0,
-      "INTEGER": 1,
-      "BOOLEAN": 2,
-      "ENUM": 3
     },
     "UIALIGN": {
       "UI_ALNONE": 0,
@@ -1385,6 +1190,11 @@
       "UI_STATECHANGE": 303,
       "UI_ACTIVE": 304
     },
+    "LoadStatus": {
+      "FAILED": 0,
+      "SUCCESSFUL": 1,
+      "NOTHING_LOADED": 2
+    },
     "UISTATE": {
       "UI_NORMAL": 0,
       "UI_DISABLED": 1,
@@ -1406,16 +1216,6 @@
     "UnlinkReason": {
       "UNLINKING": 0,
       "DELETING": 1
-    },
-    "Usage": {
-      "USAGE_STANDARD": 0,
-      "USAGE_SPACE_VIDEO": 2,
-      "USAGE_HANGAR_VIDEO": 3,
-      "USAGE_HAZE": 5
-    },
-    "VisibilityQueryType": {
-      "PRIMARY_QUERY": 0,
-      "PICKING_QUERY": 1
     },
     "VisualizeMethod": {
       "VM_NONE": 0,
@@ -1443,17 +1243,222 @@
       "VM_OCCLUSION": 22,
       "VM_COUNT": 23
     },
-    "VisualizerType": {
-      "PIXEL_SHADER_REPLACEMENT": 0,
-      "FULL_SCREEN_QUAD": 1,
-      "FULL_SCREEN_QUAD_OVERLAY": 2
+    "InitializeState": {
+      "NONE": 0,
+      "INFO": 1,
+      "BLOCK": 2
+    },
+    "ResourceFlags": {
+      "RESOURCE_FLAG_NONE": 0,
+      "RESOURCE_FLAG_SRGB": 1
+    },
+    "PickComponent": {
+      "PICK_OBJECT": 1,
+      "PICK_AREA": 2,
+      "PICK_POSITION": 4,
+      "PICK_UV": 8
+    },
+    "RenderBatchSortType": {
+      "RENDERBATCHSORTTYPE_NONE": 0,
+      "RENDERBATCHSORTTYPE_SORT": 1,
+      "RENDERBATCHSORTTYPE_STABLE_SORT": 2
+    },
+    "ShadowQuality": {
+      "SHADOW_DISABLED": 0,
+      "SHADOW_LOW": 1,
+      "SHADOW_HIGH": 2,
+      "SHADOW_RAYTRACED": 3
+    },
+    "SSAOQuality": {
+      "HIGHEST": 0,
+      "HIGH": 1,
+      "MEDIUM": 2,
+      "LOW": 3,
+      "LOWEST": 4
+    },
+    "Filtering": {
+      "FILTER_POINT": 0,
+      "FILTER_LINEAR": 1
+    },
+    "LineType": {
+      "LINETYPE_INVALID": 0,
+      "LINETYPE_STRAIGHT": 1,
+      "LINETYPE_SPHERED": 2,
+      "LINETYPE_CURVED": 3,
+      "LINETYPE_PARTICLE": 4
+    },
+    "Tr2DxtCompressionFormat": {
+      "TR2DXT_COMPRESS_RT_DXT1": 0,
+      "TR2DXT_COMPRESS_RT_DXT5": 1,
+      "TR2DXT_COMPRESS_RT_DXT5N": 2,
+      "TR2DXT_COMPRESS_RT_YCOCGDXT5": 3,
+      "TR2DXT_COMPRESS_RT_3DC": 4,
+      "TR2DXT_COMPRESS_SQUISH_DXT1": 5,
+      "TR2DXT_COMPRESS_SQUISH_DXT3": 6,
+      "TR2DXT_COMPRESS_SQUISH_DXT5": 7,
+      "TR2DXT_COMPRESS_SQUISH_KBC4": 8,
+      "TR2DXT_COMPRESS_SQUISH_KBC5": 9,
+      "TR2DXT_COMPRESS_COUNT": 10
+    },
+    "Tr2DxtCompressionSquishQuality": {
+      "TR2DXT_COMPRESS_SQ_ITER_CLUSTER_FIT": 0,
+      "TR2DXT_COMPRESS_SQ_CLUSTER_FIT": 1,
+      "TR2DXT_COMPRESS_SQ_RANGE_FIT": 2,
+      "TR2DXT_COMPRESS_SQ_COUNT": 3
+    },
+    "TermType": {
+      "VARIABLE": 0,
+      "FUNCTION": 1,
+      "STRING_FUNCTION": 2
+    },
+    "CreationFlag": {
+      "CPU_WRITABLE": 1,
+      "GPU_WRITABLE": 2
+    },
+    "BoundsMethod": {
+      "STATIC": 0,
+      "DYNAMIC": 1,
+      "DYNAMIC_SCALED": 2
+    },
+    "StaticCap": {
+      "NON_SYNCHRONIZED_LOCKS": 0,
+      "BUFFER_SHADER_RESOURCES": 1,
+      "UNORDERED_ACCESS": 2,
+      "COMPUTE": 3,
+      "TEXTURE_ARRAYS": 4,
+      "MSAA_SAMPLE": 5,
+      "TAA": 6
+    },
+    "GetBatchesReason": {
+      "Draw": 0,
+      "Picking": 1
+    },
+    "ReflectionProbeRenderFrequency": {
+      "ONE_SIDE_PER_FRAME": 0,
+      "ALL_SIDES_PER_FRAME": 1
+    },
+    "Tr2RenderReason": {
+      "TR2RENDERREASON_NORMAL": 0,
+      "TR2RENDERREASON_REFLECTION": 1,
+      "TR2RENDERREASON_VOLUMETRIC": 2
+    },
+    "TR2SHADERMODEL": {
+      "TR2SM_1_1": 0,
+      "TR2SM_2_0_LO": 1,
+      "TR2SM_2_0_HI": 2,
+      "TR2SM_3_0_LO": 3,
+      "TR2SM_3_0_HI": 4,
+      "TR2SM_3_0_DEPTH": 5,
+      "TR2SM_AUTHORING": 6,
+      "TR2SM_COUNT": 7
+    },
+    "ShadowSplitMode": {
+      "STATIC": 0,
+      "DYNAMIC": 1,
+      "MANUAL": 2
+    },
+    "Tr2StandardIlluminant": {
+      "TR2STANDARDILLUMINANT_A": 0,
+      "TR2STANDARDILLUMINANT_D50": 1,
+      "TR2STANDARDILLUMINANT_D55": 2,
+      "TR2STANDARDILLUMINANT_D65": 3,
+      "TR2STANDARDILLUMINANT_D75": 4,
+      "TR2STANDARDILLUMINANT_E": 5,
+      "TR2STANDARDILLUMINANT_F1": 6,
+      "TR2STANDARDILLUMINANT_F2": 7,
+      "TR2STANDARDILLUMINANT_F3": 8,
+      "TR2STANDARDILLUMINANT_F4": 9,
+      "TR2STANDARDILLUMINANT_F5": 10,
+      "TR2STANDARDILLUMINANT_F6": 11,
+      "TR2STANDARDILLUMINANT_F7": 12,
+      "TR2STANDARDILLUMINANT_F8": 13,
+      "TR2STANDARDILLUMINANT_F9": 14,
+      "TR2STANDARDILLUMINANT_F10": 15,
+      "TR2STANDARDILLUMINANT_F11": 16,
+      "TR2STANDARDILLUMINANT_F12": 17
+    },
+    "RestartState": {
+      "NotRestarting": 0,
+      "WaitingToRestart": 1,
+      "WaitingForFrame": 2
+    },
+    "AtlasTextureType": {
+      "ATT_DEFAULT": 0,
+      "ATT_VIDEO": 1
+    },
+    "Tr2TransformModifier": {
+      "TR2TM_NONE": 0,
+      "TR2TM_BILLBOARD": 1,
+      "TR2TM_TRANSLATE_WITH_CAMERA": 2,
+      "TR2TM_LOOK_AT_CAMERA": 3,
+      "TR2TM_SIMPLE_HALO": 4,
+      "TR2TM_PRE_TRANSLATE_WITH_CAMERA": 5,
+      "TR2TM_EVE_CAMERA_ROTATION_ALIGNED": 100,
+      "TR2TM_EVE_BOOSTER": 101,
+      "TR2TM_EVE_SIMPLE_HALO": 102,
+      "TR2TM_EVE_CAMERA_ROTATION": 103,
+      "TR2TM_FORCE_DWORD": 4294967295
+    },
+    "Tr2VolumerticQuality": {
+      "Low": 0,
+      "Medium": 1,
+      "High": 2,
+      "Ultra": 3
+    },
+    "TriBatchType": {
+      "TRIBATCHTYPE_OPAQUE": 0,
+      "TRIBATCHTYPE_DECAL": 1,
+      "TRIBATCHTYPE_TRANSPARENT": 2,
+      "TRIBATCHTYPE_DEPTH": 3,
+      "TRIBATCHTYPE_ADDITIVE": 4,
+      "TRIBATCHTYPE_PICKING": 5,
+      "TRIBATCHTYPE_MIRROR": 6,
+      "TRIBATCHTYPE_DECALNORMAL": 7,
+      "TRIBATCHTYPE_DEPTHNORMAL": 8,
+      "TRIBATCHTYPE_OPAQUE_PREPASS": 9,
+      "TRIBATCHTYPE_DECAL_PREPASS": 10,
+      "TRIBATCHTYPE_GEOMETRY_ERASER": 11,
+      "TRIBATCHTYPE_FLARE": 12,
+      "TRIBATCHTYPE_DISTORTION": 13,
+      "TRIBATCHTYPE_COUNT_OF_BATCH_TYPES": 14
+    },
+    "ApplicationActivation": {
+      "APP_ACTIVATED": 0,
+      "APP_DEACTIVATED": 1
+    },
+    "DeviceScreenType": {
+      "WINDOWED": 0,
+      "FULLSCREEN": 1,
+      "NO_ADAPTER": 2
+    },
+    "DeviceType": {
+      "DEVICE_TYPE_HARDWARE": 0,
+      "DEVICE_TYPE_SOFTWARE": 1
+    },
+    "ThrottlingReason": {
+      "WINDOW_OUT_OF_FOCUS": 1
+    },
+    "TriFrustumTestResult": {
+      "Outside": 0,
+      "Intersect": 1,
+      "Inside": 2
+    },
+    "TriVariableContentType": {
+      "TRIVARIABLE_INVALID": 0,
+      "TRIVARIABLE_UNKNOWN_FLOAT": 1,
+      "TRIVARIABLE_TEXTURE_RES": 2,
+      "TRIVARIABLE_INT": 3,
+      "TRIVARIABLE_FLOAT": 4,
+      "TRIVARIABLE_FLOAT2": 5,
+      "TRIVARIABLE_FLOAT3": 6,
+      "TRIVARIABLE_FLOAT4": 7,
+      "TRIVARIABLE_FLOAT4X4": 8,
+      "TRIVARIABLE_COLOR": 9,
+      "TRIVARIABLE_GPUBUFFER": 10,
+      "TRIVARIABLE_COUNT": 11
     }
   },
   "classes": {
-    "_className": {
-      "name": "unknown",
-      "value": "unknown"
-    },
     "Allign": {
       "behaviorPriority": "int",
       "enabled": "boolean",
@@ -1475,6 +1480,7 @@
       "scalingFactor": "float",
       "eventPrefix": "wstring",
       "eventName": "wstring",
+      "rotation": "quaternion",
       "normalizeAttenuationScaling": "boolean",
       "minNormalizedValue": "float",
       "maxNormalizedValue": "float",
@@ -1503,6 +1509,7 @@
       "eventPrefix": "wstring",
       "eventName": "wstring"
     },
+    "AudGeometry": {},
     "AudioCurveSetDriver": {
       "name": "wstring",
       "audioParameterName": "wstring",
@@ -1532,6 +1539,7 @@
       "scalingFactor": "float",
       "eventPrefix": "wstring",
       "eventName": "wstring",
+      "rotation": "quaternion",
       "normalizeAttenuationScaling": "boolean",
       "minNormalizedValue": "float",
       "maxNormalizedValue": "float",
@@ -1549,6 +1557,7 @@
       "scalingFactor": "float",
       "eventPrefix": "wstring",
       "eventName": "wstring",
+      "rotation": "quaternion",
       "normalizeAttenuationScaling": "boolean",
       "minNormalizedValue": "float",
       "maxNormalizedValue": "float",
@@ -1627,6 +1636,14 @@
       "behaviorWeight": "float",
       "visionRange": "float",
       "framesBetweenUpdates": "int"
+    },
+    "EveBannerItem": {
+      "angleX": "float",
+      "angleY": "float",
+      "bone": "int",
+      "position": "vector3",
+      "rotation": "quaternion",
+      "scaling": "vector3"
     },
     "EveBannerSet": {
       "name": "string",
@@ -1860,33 +1877,10 @@
     },
     "EveChildEffectPropagator": {
       "name": "string",
-      "display": "boolean",
-      "updateOnDisplay": "boolean",
-      "objects": "array",
-      "transformModifiers": "array",
-      "curveSets": "array",
-      "alwaysOn": "boolean",
-      "displayFilter": {
-        "type": "enum",
-        "enum": "DisplayQualityModifier"
-      },
-      "translation": "vector3",
-      "rotation": "quaternion",
-      "scaling": "vector3",
-      "localTransform": "matrix4",
-      "useSRT": "boolean",
-      "staticTransform": "boolean",
-      "useStaticRotation": "boolean",
-      "useStaticScale": "boolean",
-      "observers": "array",
-      "lights": "array",
-      "fxAttributes": "array",
-      "controllers": "array",
-      "inheritProperties": "object",
-      "attachments": "array",
       "effect": "object",
       "triggerSphereRadiusCurve": "object",
       "localLocators": "object",
+      "curveSets": "array",
       "propagationType": {
         "type": "enum",
         "enum": "PropagationType"
@@ -1917,30 +1911,6 @@
     },
     "EveChildExplosion": {
       "name": "string",
-      "display": "boolean",
-      "updateOnDisplay": "boolean",
-      "objects": "array",
-      "transformModifiers": "array",
-      "curveSets": "array",
-      "alwaysOn": "boolean",
-      "displayFilter": {
-        "type": "enum",
-        "enum": "DisplayQualityModifier"
-      },
-      "translation": "vector3",
-      "rotation": "quaternion",
-      "scaling": "vector3",
-      "localTransform": "matrix4",
-      "useSRT": "boolean",
-      "staticTransform": "boolean",
-      "useStaticRotation": "boolean",
-      "useStaticScale": "boolean",
-      "observers": "array",
-      "lights": "array",
-      "fxAttributes": "array",
-      "controllers": "array",
-      "inheritProperties": "object",
-      "attachments": "array",
       "localExplosion": "object",
       "localExplosions": "array",
       "localExplosionShared": "object",
@@ -1952,8 +1922,14 @@
       "globalExplosionDelay": "float",
       "localDuration": "float",
       "globalDuration": "float",
+      "translation": "vector3",
+      "rotation": "quaternion",
+      "scaling": "vector3",
       "localScaling": "vector3",
-      "globalScaling": "vector3"
+      "globalScaling": "vector3",
+      "localTransform": "matrix4",
+      "useSRT": "boolean",
+      "staticTransform": "boolean"
     },
     "EveChildFogVolume": {
       "name": "string",
@@ -1962,14 +1938,6 @@
         "enum": "FroxelFogSettings"
       },
       "intensity": "float",
-      "Enabled": {
-        "type": "rawStruct",
-        "field": "enabled"
-      },
-      "#NAME": {
-        "type": "rawStruct",
-        "field": "settings"
-      },
       "volumes": "array"
     },
     "EveChildInheritProperties": {},
@@ -1996,39 +1964,22 @@
     "EveChildInstanceMeshRenderer": {
       "name": "string",
       "display": "boolean",
-      "castShadow": "boolean",
-      "updateAnimation": "boolean",
-      "mesh": "object",
-      "animationUpdater": "object",
-      "lowestLodVisible": {
-        "type": "enum",
-        "enum": "Tr2Lod"
-      },
-      "minScreenSize": "float",
-      "rotation": "quaternion",
-      "translation": "vector3",
-      "scaling": "vector3",
-      "localTransform": "matrix4",
-      "useSRT": "boolean",
-      "staticTransform": "boolean",
-      "sortValueScale": "float",
-      "sortValueOffset": "float",
-      "transformModifiers": "array",
-      "decals": "array",
-      "attachments": "array",
-      "lights": "array",
-      "reflectionMode": {
-        "type": "enum",
-        "enum": "ReflectionMode"
-      },
       "distribution": "object",
+      "mesh": "object",
       "rotationConstraint": {
         "type": "enum",
         "enum": "RotationalConstraints"
       },
       "staticOffsetTranslation": "vector3",
       "staticOffsetRotation": "quaternion",
-      "staticOffsetScale": "vector3"
+      "staticOffsetScale": "vector3",
+      "minScreenSize": "float"
+    },
+    "EveChildInstanceTransform": {
+      "boneIndex": "int",
+      "rotation": "quaternion",
+      "scale": "vector3",
+      "translation": "vector3"
     },
     "EveChildLightingOverride": {
       "name": "string",
@@ -2214,7 +2165,7 @@
       "name": "string",
       "display": "boolean",
       "effect": "object",
-      "color": "vector4",
+      "color": "color",
       "brightness": "float",
       "rotation": "quaternion",
       "translation": "vector3",
@@ -2480,6 +2431,7 @@
       "rotationCurve": "object",
       "modelTranslationCurve": "object",
       "modelRotationCurve": "object",
+      "boundingSphereCenter": "vector4",
       "boundingSphereRadius": "vector4",
       "scaling": "vector3",
       "rotation": "quaternion",
@@ -2802,6 +2754,7 @@
       "rotationCurve": "object",
       "modelTranslationCurve": "object",
       "modelRotationCurve": "object",
+      "boundingSphereCenter": "vector4",
       "boundingSphereRadius": "vector4",
       "scaling": "vector3",
       "rotation": "quaternion",
@@ -2892,21 +2845,13 @@
       "distanceBasedScaleArg2": "float",
       "mesh": "object",
       "curveSets": "array",
-      "hideOnLowQuality": "boolean",
-      "visibilityThreshold": "float",
-      "children": "array",
-      "particleEmitters": "array",
-      "particleSystems": "array",
-      "observers": "array",
-      "useLodLevel": "boolean",
-      "meshLod": "object",
-      "overrideBoundsMin": "vector3",
-      "overrideBoundsMax": "vector3",
       "translationCurve": "object",
       "rotationCurve": "object",
       "modelRotationCurve": "object",
       "modelTranslationCurve": "object",
-      "boundingSphereRadius": "float"
+      "children": "array",
+      "boundingSphereRadius": "float",
+      "observers": "array"
     },
     "EveSceneStaticParticles": {},
     "EveShip2": {
@@ -2951,36 +2896,15 @@
       "boosters": "object"
     },
     "EveSmartLightAttributeModifierBucket": {
+      "name": "string",
+      "attributeModifiers": "array",
       "attributeMultiplier": "float",
       "active": "boolean",
-      "activationOverLifetime": "object",
-      "lifeTimeFormula": {
-        "type": "enum",
-        "enum": "LifeTimeFormulas"
-      },
-      "perInstanceOffset": "float",
-      "restartPlayTimeWhenInactive": "boolean",
       "startsActive": "boolean",
-      "delayedActivation": "float",
       "crossFadeDuration": "float",
-      "crossFadeIntensity": "float",
-      "name": "string",
-      "attributeModifiers": "array"
+      "crossFadeIntensity": "float"
     },
     "EveSmartLightAttributeModifierCameraDependency": {
-      "attributeMultiplier": "float",
-      "active": "boolean",
-      "activationOverLifetime": "object",
-      "lifeTimeFormula": {
-        "type": "enum",
-        "enum": "LifeTimeFormulas"
-      },
-      "perInstanceOffset": "float",
-      "restartPlayTimeWhenInactive": "boolean",
-      "startsActive": "boolean",
-      "delayedActivation": "float",
-      "crossFadeDuration": "float",
-      "crossFadeIntensity": "float",
       "name": "string",
       "attributeModifiers": "array",
       "minimumActivation": "float",
@@ -2996,6 +2920,7 @@
       "useCameraPlacement": "boolean",
       "inversePlacementFormula": "boolean",
       "placementIntensity": "float",
+      "attributeMultiplier": "float",
       "overwritePosition": "boolean",
       "overwriteObjectDirection": "boolean",
       "positionOverwrite": "vector3",
@@ -3024,44 +2949,21 @@
       "blendColor": "color"
     },
     "EveSmartLightAttributeModifierControllerVariableListener": {
-      "attributeMultiplier": "float",
-      "active": "boolean",
-      "activationOverLifetime": "object",
-      "lifeTimeFormula": {
-        "type": "enum",
-        "enum": "LifeTimeFormulas"
-      },
-      "perInstanceOffset": "float",
-      "restartPlayTimeWhenInactive": "boolean",
-      "startsActive": "boolean",
-      "delayedActivation": "float",
-      "crossFadeDuration": "float",
-      "crossFadeIntensity": "float",
-      "name": "string",
       "attributeModifiers": "array",
+      "name": "string",
       "variableName": "string",
       "value": "float",
       "defaultValue": "float",
-      "invertReceivedValue": "boolean"
+      "invertReceivedValue": "boolean",
+      "attributeMultiplier": "float",
+      "crossFadeDuration": "float",
+      "crossFadeIntensity": "float"
     },
     "EveSmartLightAttributeModifierExpressionBucket": {
-      "attributeMultiplier": "float",
-      "active": "boolean",
-      "activationOverLifetime": "object",
-      "lifeTimeFormula": {
-        "type": "enum",
-        "enum": "LifeTimeFormulas"
-      },
-      "perInstanceOffset": "float",
-      "restartPlayTimeWhenInactive": "boolean",
-      "startsActive": "boolean",
-      "delayedActivation": "float",
-      "crossFadeDuration": "float",
-      "crossFadeIntensity": "float",
       "name": "string",
-      "attributeModifiers": "array",
       "expression": "string",
-      "expressionInputs": "array"
+      "expressionInputs": "array",
+      "attributeModifiers": "array"
     },
     "EveSmartLightAttributeModifierNoise": {
       "attributeMultiplier": "float",
@@ -3114,32 +3016,8 @@
     "EveSmartLightMesh": {
       "name": "string",
       "display": "boolean",
-      "castShadow": "boolean",
-      "updateAnimation": "boolean",
       "mesh": "object",
-      "animationUpdater": "object",
-      "lowestLodVisible": {
-        "type": "enum",
-        "enum": "Tr2Lod"
-      },
-      "minScreenSize": "float",
-      "rotation": "quaternion",
-      "translation": "vector3",
-      "scaling": "vector3",
-      "localTransform": "matrix4",
-      "useSRT": "boolean",
-      "staticTransform": "boolean",
-      "sortValueScale": "float",
-      "sortValueOffset": "float",
-      "transformModifiers": "array",
-      "decals": "array",
-      "attachments": "array",
-      "lights": "array",
-      "reflectionMode": {
-        "type": "enum",
-        "enum": "ReflectionMode"
-      },
-      "distribution": "object",
+      "castShadows": "boolean",
       "rotationConstraint": {
         "type": "enum",
         "enum": "RotationalConstraints"
@@ -3147,12 +3025,12 @@
       "staticOffsetTranslation": "vector3",
       "staticOffsetRotation": "quaternion",
       "staticOffsetScale": "vector3",
+      "shaderParamColorName": "path",
       "useFactionColor": "boolean",
       "factionColor": "int",
       "customColor": "color",
-      "attributeModifiers": "array",
-      "castShadows": "boolean",
-      "shaderParamColorName": "path"
+      "minScreenSize": "float",
+      "attributeModifiers": "array"
     },
     "EveSmartLightPointLight": {
       "useFactionColor": "boolean",
@@ -3684,11 +3562,6 @@
       "resPathDefaultCeo": "path",
       "areaShaderLocation": "path",
       "decalShaderLocation": "path",
-      "decalMinScreenSize": {
-        "type": "float",
-        "index": "usageSc",
-        "token": "EveSOFDataHullDecalSetItem::USAGE_##sc"
-      },
       "shaderPrefix": "path",
       "shaderPrefixAnimated": "path",
       "turretAreaType": {
@@ -4065,16 +3938,6 @@
     },
     "EveSOFDataHullExtensionBucket": {
       "name": "string",
-      "enabled": "boolean",
-      "locatorSetName": "string",
-      "offset": "vector3",
-      "distribution": "object",
-      "distributionConditions": "array",
-      "descriptor": "object",
-      "isInstanced": "boolean",
-      "isShared": "boolean",
-      "extendsBoundingSphere": "boolean",
-      "extendsShieldEllipsoid": "boolean",
       "depletionCounters": "array",
       "placements": "array"
     },
@@ -4183,29 +4046,25 @@
       "flags": "ushort",
       "position": "vector3",
       "boneIndex": "int",
+      "rotation": "quaternion",
       "lightColor": {
         "type": "enum",
         "enum": "ColorType"
       },
       "radius": "float",
       "innerRadius": "float",
+      "innerAngle": "float",
+      "outerAngle": "float",
       "brightness": "float",
       "noiseAmplitude": "float",
       "noiseFrequency": "float",
-      "noiseOctaves": "int",
-      "rotation": "quaternion",
-      "innerAngle": "float",
-      "outerAngle": "float"
+      "noiseOctaves": "int"
     },
     "EveSOFDataHullLightSetTexturedPointLight": {
       "name": "string",
       "flags": "ushort",
       "position": "vector3",
       "boneIndex": "int",
-      "lightColor": {
-        "type": "enum",
-        "enum": "ColorType"
-      },
       "radius": "float",
       "innerRadius": "float",
       "brightness": "float",
@@ -4405,6 +4264,12 @@
     "EveSOFDataMaterial": {
       "name": "string",
       "parameters": "array"
+    },
+    "EveSofDataMeshInstance": {
+      "boneIndex": "int",
+      "rotation": "quaternion",
+      "scaling": "vector3",
+      "translation": "vector3"
     },
     "EveSOFDataMgr": {},
     "EveSOFDataMultiHullDecalIndexBuffers": {
@@ -4683,7 +4548,7 @@
       "sunDiffuseColor": "color",
       "sunDiffuseColorWithDynamicLights": "color",
       "useSunDiffuseColorWithDynamicLights": "boolean",
-      "sunDirection": "vector3",
+      "sunDirection": "rawStruct",
       "ambientColor": "color",
       "nebulaIntensity": "float",
       "backgroundReflectionIntensity": "float",
@@ -4956,30 +4821,30 @@
       "boosters": "object",
       "count": "int",
       "swarmingEnabled": "boolean",
-      "mass": "float",
-      "speedMultiplier": "float",
-      "speedMinimum": "float",
-      "maxDistance0": "float",
-      "maxDistance1": "float",
-      "maxTime": "float",
-      "agility": "float",
-      "speed0": "float",
-      "speed1": "float",
-      "weightFormation": "float",
-      "weightCohesion": "float",
-      "weightSeparation": "float",
-      "weightAlign": "float",
-      "weightWander": "float",
-      "weightAnchor": "float",
-      "anchorRadius0": "float",
-      "anchorRadius1": "float",
-      "weightDeceleration": "float",
-      "maxDeceleration": "float",
-      "separationDistance": "float",
-      "formationDistance": "float",
-      "wanderFluctuation": "float",
-      "wanderDistance": "float",
-      "wanderRadius": "float",
+      "mass": "rawStruct",
+      "speedMultiplier": "rawStruct",
+      "speedMinimum": "rawStruct",
+      "maxDistance0": "rawStruct",
+      "maxDistance1": "rawStruct",
+      "maxTime": "rawStruct",
+      "agility": "rawStruct",
+      "speed0": "rawStruct",
+      "speed1": "rawStruct",
+      "weightFormation": "rawStruct",
+      "weightCohesion": "rawStruct",
+      "weightSeparation": "rawStruct",
+      "weightAlign": "rawStruct",
+      "weightWander": "rawStruct",
+      "weightAnchor": "rawStruct",
+      "anchorRadius0": "rawStruct",
+      "anchorRadius1": "rawStruct",
+      "weightDeceleration": "rawStruct",
+      "maxDeceleration": "rawStruct",
+      "separationDistance": "rawStruct",
+      "formationDistance": "rawStruct",
+      "wanderFluctuation": "rawStruct",
+      "wanderDistance": "rawStruct",
+      "wanderRadius": "rawStruct",
       "debugShowForces": "boolean"
     },
     "EveSwarmRenderable": {},
@@ -5059,18 +4924,18 @@
       "firingPeakTime": "float",
       "isLoopFiring": "boolean",
       "boneName": "string",
-      "firingDelay1": "float",
-      "firingDelay2": "float",
-      "firingDelay3": "float",
-      "firingDelay4": "float",
-      "firingDelay5": "float",
-      "firingDelay6": "float",
-      "firingDelay7": "float",
-      "firingDelay8": "float",
-      "firingDelay9": "float",
-      "firingDelay10": "float",
-      "firingDelay11": "float",
-      "firingDelay12": "float",
+      "firingDelay1": "rawStruct",
+      "firingDelay2": "rawStruct",
+      "firingDelay3": "rawStruct",
+      "firingDelay4": "rawStruct",
+      "firingDelay5": "rawStruct",
+      "firingDelay6": "rawStruct",
+      "firingDelay7": "rawStruct",
+      "firingDelay8": "rawStruct",
+      "firingDelay9": "rawStruct",
+      "firingDelay10": "rawStruct",
+      "firingDelay11": "rawStruct",
+      "firingDelay12": "rawStruct",
       "stretch": "array",
       "scaleEffectTarget": "boolean",
       "minRadius": "float",
@@ -5323,7 +5188,31 @@
       "maxRotationSpeed": "float",
       "maxAcceleration": "float"
     },
+    "Locator": {
+      "boneIndex": "int",
+      "direction": "quaternion",
+      "position": "vector3",
+      "scale": "vector3"
+    },
+    "LocatorStructureWithScaleDef": {
+      "boneIndex": "unknown",
+      "direction": "unknown",
+      "position": "unknown",
+      "scale": "unknown"
+    },
     "NanoVDBGridMetadata": {},
+    "PlacementDataWithIdentifierDef": {
+      "additionalRotation": "unknown",
+      "additionalScale": "unknown",
+      "additionalTranslation": "unknown",
+      "boneIndex": "unknown",
+      "direction": "unknown",
+      "initialPlacementID": "unknown",
+      "lifeTime": "unknown",
+      "position": "unknown",
+      "scale": "unknown",
+      "uniqueID": "unknown"
+    },
     "PlayFX": {
       "behaviorPriority": "int",
       "enabled": "boolean",
@@ -5684,6 +5573,12 @@
         "enum": "Type"
       }
     },
+    "Tr2CurveQuaternionKeyDef": {
+      "id": "unknown",
+      "interpolation": "unknown",
+      "time": "unknown",
+      "value": "unknown"
+    },
     "Tr2CurveRandomAxisRotation": {
       "name": "string",
       "period": "float",
@@ -5711,6 +5606,15 @@
       "input2": "float",
       "input3": "float",
       "input4": "float"
+    },
+    "Tr2CurveScalarKeyDef": {
+      "id": "unknown",
+      "interpolation": "unknown",
+      "leftTangent": "unknown",
+      "rightTangent": "unknown",
+      "tangentType": "unknown",
+      "time": "unknown",
+      "value": "unknown"
     },
     "Tr2CurveSetRange": {
       "name": "string",
@@ -5807,6 +5711,10 @@
       "constParameters": "structList",
       "resources": "array",
       "samplerOverrides": "structList"
+    },
+    "Tr2EffectParameter": {
+      "name": "unknown",
+      "value": "unknown"
     },
     "Tr2EffectRes": {},
     "Tr2ElementBlendConstraint": {
@@ -6239,9 +6147,9 @@
       "worldTransformUpdater": "object",
       "visualModel": "object",
       "transform": "object",
-      "lowDetailModel": "rawStruct",
-      "mediumDetailModel": "rawStruct",
-      "highDetailModel": "rawStruct",
+      "lowDetailModel": "object",
+      "mediumDetailModel": "object",
+      "highDetailModel": "object",
       "useExplicitBounds": "boolean",
       "explicitMinBounds": "vector3",
       "explicitMaxBounds": "vector3",
@@ -6273,20 +6181,35 @@
     "Tr2MainWindowState": {
       "windowMode": {
         "type": "enum",
-        "enum": "Type"
+        "enum": "State"
       },
-      "adapter": "uint",
-      "width": "uint",
-      "height": "uint",
+      "adapter": {
+        "type": "enum",
+        "enum": "State"
+      },
+      "width": {
+        "type": "enum",
+        "enum": "State"
+      },
+      "height": {
+        "type": "enum",
+        "enum": "State"
+      },
       "presentInterval": {
         "type": "enum",
-        "enum": "PresentInterval"
+        "enum": "State"
       },
-      "left": "int",
-      "top": "int",
+      "left": {
+        "type": "enum",
+        "enum": "State"
+      },
+      "top": {
+        "type": "enum",
+        "enum": "State"
+      },
       "showState": {
         "type": "enum",
-        "enum": "Type"
+        "enum": "State"
       }
     },
     "Tr2ManipulationTool": {
@@ -6499,14 +6422,6 @@
       "priority": {
         "type": "enum",
         "enum": "Priority"
-      },
-      "Enabled": {
-        "type": "float",
-        "field": "enabled"
-      },
-      "#NAME": {
-        "type": "float",
-        "field": "nAME"
       }
     },
     "Tr2PostProcessRenderer": {},
@@ -6810,6 +6725,32 @@
       "texture": "object",
       "uavMipLevel": "uint"
     },
+    "Tr2SamplerOverride": {
+      "addressU": {
+        "type": "enum",
+        "enum": "TextureAddressMode"
+      },
+      "addressV": {
+        "type": "enum",
+        "enum": "TextureAddressMode"
+      },
+      "addressW": {
+        "type": "enum",
+        "enum": "TextureAddressMode"
+      },
+      "filter": {
+        "type": "enum",
+        "enum": "TextureFilter"
+      },
+      "lodBias": "float",
+      "maxAnisotropy": "uint",
+      "maxMipLevel": "uint",
+      "mipFilter": {
+        "type": "enum",
+        "enum": "TextureFilter"
+      },
+      "name": "string"
+    },
     "Tr2SBitWrapper": {},
     "Tr2ScalarExprKey": {
       "time": "float",
@@ -6847,6 +6788,10 @@
     },
     "Tr2Shader": {},
     "Tr2ShaderBuffer": {},
+    "Tr2ShaderOption": {
+      "name": "string",
+      "value": "string"
+    },
     "Tr2ShadowMap": {
       "shadowSplitMode": {
         "type": "enum",
@@ -6877,9 +6822,9 @@
       "worldTransformUpdater": "object",
       "visualModel": "object",
       "transform": "object",
-      "lowDetailModel": "rawStruct",
-      "mediumDetailModel": "rawStruct",
-      "highDetailModel": "rawStruct",
+      "lowDetailModel": "object",
+      "mediumDetailModel": "object",
+      "highDetailModel": "object",
       "useExplicitBounds": "boolean",
       "explicitMinBounds": "vector3",
       "explicitMaxBounds": "vector3"
@@ -7104,8 +7049,8 @@
       }
     },
     "Tr2SSAO": {
-      "zoomLevel": "float",
-      "radius": "float",
+      "zoomLevel": "rawStruct",
+      "radius": "rawStruct",
       "shadowMultiplier": "float",
       "shadowPower": "float",
       "shadowClamp": "float",
@@ -7173,13 +7118,13 @@
       "noiseAmplitude": "float",
       "noiseFrequency": "float",
       "noiseOctaves": "uint",
+      "texturePath": "wstring",
       "castsShadows": {
         "type": "enum",
         "enum": "PerLightShadowSetting"
       },
       "isVolumetric": "boolean",
-      "lightProfilePath": "wstring",
-      "texturePath": "wstring"
+      "lightProfilePath": "wstring"
     },
     "Tr2TexturedSpriteObject": {
       "pickState": {
@@ -7234,6 +7179,11 @@
       "timeScale": "float",
       "actions": "array",
       "entries": "structList"
+    },
+    "Tr2TimelineEntryDef": {
+      "endTime": "unknown",
+      "startTime": "unknown",
+      "trackID": "unknown"
     },
     "Tr2Transform": {
       "modifier": {

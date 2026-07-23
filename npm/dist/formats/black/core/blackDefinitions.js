@@ -1,4 +1,4 @@
-import definitions from './black-schema-v1-2026-07-11.json.js';
+import definitions from './black-schema-v1-2026-07-23.json.js';
 
 const schema = definitions.schema;
 const version = definitions.version;

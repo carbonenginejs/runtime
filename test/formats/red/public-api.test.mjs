@@ -76,7 +76,7 @@ test("published schema exposes the current Carbon class definitions", async () =
     const schema = await import("../../../npm/dist/formats/red/core/blackDefinitions.js");
     const canonical = await import("../../../npm/dist/formats/black/core/blackDefinitions.js");
 
-    assert.equal(schema.generatedAt, "2026-07-11T14:52:36.015Z");
+    assert.equal(schema.generatedAt, "2026-07-23T12:50:12.522Z");
     assert.equal(schema.default, canonical.default);
     assert.equal(CjsRedFormat.schema, schema.default);
     assert.deepEqual(schema.default.Tr2SkinnedModel, {

@@ -66,9 +66,9 @@ test("published schema subpaths import generated Black definitions", async () =>
     assert.equal(new CjsBlackFormat().GetValues().schema, canonical.default);
     assert.equal(canonical.schema, "carbonenginejs.blackDefinitions");
     assert.equal(canonical.version, 1);
-    assert.equal(canonical.generatedAt, "2026-07-11T14:52:36.015Z");
+    assert.equal(canonical.generatedAt, "2026-07-23T12:50:12.522Z");
     assert.equal(version.default.formatId, "black");
-    assert.equal(version.default.generatedAt, "2026-07-11T14:52:36.015Z");
+    assert.equal(version.default.generatedAt, "2026-07-23T12:50:12.522Z");
     assert.equal(version.default.version, 1);
     assert.equal(schema.default.EveSOFDataHull.boundingSphere, "vector4");
     assert.deepEqual(schema.default.EveSOFDataHull.buildClass, { type: "enum", enum: "BuildClass" });
