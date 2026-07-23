@@ -23,6 +23,7 @@ export { Tr2TextureLodUpdateRequest } from './resources/Tr2TextureLodUpdateReque
 export { Tr2TexturePackChannel } from './resources/Tr2TexturePackChannel.js';
 export { Tr2TexturePipelineParams } from './resources/Tr2TexturePipelineParams.js';
 export { Tr2TexturePipelineStepCompress } from './resources/Tr2TexturePipelineStepCompress.js';
+export { Tr2TexturePipelineStepGenerateMips } from './resources/Tr2TexturePipelineStepGenerateMips.js';
 export { Tr2TexturePipelineStepLimitSize } from './resources/Tr2TexturePipelineStepLimitSize.js';
 export { Tr2TexturePipelineStepLoad } from './resources/Tr2TexturePipelineStepLoad.js';
 export { Tr2TexturePipelineStepPack } from './resources/Tr2TexturePipelineStepPack.js';

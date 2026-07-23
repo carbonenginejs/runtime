@@ -20,6 +20,7 @@ export * from "./Tr2TextureLodUpdateRequest.js";
 export * from "./Tr2TexturePackChannel.js";
 export * from "./Tr2TexturePipelineParams.js";
 export * from "./Tr2TexturePipelineStepCompress.js";
+export * from "./Tr2TexturePipelineStepGenerateMips.js";
 export * from "./Tr2TexturePipelineStepLimitSize.js";
 export * from "./Tr2TexturePipelineStepLoad.js";
 export * from "./Tr2TexturePipelineStepPack.js";
