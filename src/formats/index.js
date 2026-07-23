@@ -6,6 +6,7 @@ export { CjsFbxFormat } from "./fbx/index.js";
 export { CjsFlacFormat } from "./flac/index.js";
 export { CjsGifFormat } from "./gif/index.js";
 export { CjsGltfFormat } from "./gltf/index.js";
+export { CjsGr2Format } from "./gr2/index.js";
 export { CjsJpegFormat } from "./jpeg/index.js";
 export { CjsMp3Format } from "./mp3/index.js";
 export { CjsMp4Format } from "./mp4/index.js";

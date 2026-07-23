@@ -1,5 +1,10 @@
 # Format ownership and fork provenance
 
+Status: Stable  
+Scope: `@carbonenginejs/runtime-resource/formats`  
+Audience: Users, integrators, and maintainers  
+Summary: Records where each format implementation came from, retained snapshots and digests, and what was deliberately not copied.
+
 On 2026-07-13, the non-shader runtime format implementations below were copied
 once into `runtime-resource`. Their standalone repositories remain frozen with
 their existing APIs and names; they are not upstreams for the runtime copies.
@@ -34,6 +39,20 @@ under `format-notices/<format>/`.
 The unborn donors had no commit-addressable `HEAD`; this document deliberately
 records them as working-tree snapshots rather than inventing a revision. Their
 copied runtime files are the deterministic retained snapshot.
+
+On 2026-07-24, following `format-gr2`'s MIT relicense (its EUPL-derived
+BitKnit decoder was replaced by a clean-room implementation written from the
+published specification in that package's `docs/formats/bitknit2.md`), the
+GR2/GSF reader joined the runtime copies:
+
+| Legacy package | Source revision/state | Runtime class | Runtime import |
+|---|---|---|---|
+| `format-gr2` | `fa64607de7a3a96ed3b1aec5288bf71057642043` (v0.2.0, MIT) | `CjsGr2Format` | `@carbonenginejs/runtime-resource/formats/gr2` |
+
+The copied engine keeps its donor class name (`CjsFormatGr2`, re-exported)
+under `formats/gr2/core/`; `CjsGr2Format` is the runtime-authored contract
+wrapper. Donor license and notice files are kept under
+`format-notices/gr2/`.
 
 ## Black definition snapshot
 
@@ -89,7 +108,7 @@ format attribution rather than fork provenance.
   meshoptimizer vertex/index compression (index compression canonicalizes
   triangle rotation, matching the engine's own writer test expectations), and
   the post-crc32 file checksum. Verified by write→read roundtrips against the
-  runtime reader; `E:\carbonengine\mesh\{include,src}\cmf` was the behavioral
+  runtime reader; CarbonEngine's `mesh` CMF sources were the behavioral
   reference, no code copied. `writeShared`/`writeSharedAsync` plus
   `core/pack.js` (channel interleaving, index packing, unique buffer-index
   assignment) serialize shared geometry directly, enabling GR2/OBJ/glTF→CMF —
@@ -131,10 +150,9 @@ snapshot must record its new source and digest here.
 
 ## Deliberately not copied
 
-- `format-gr2` is the intended runtime-resource owner target, but its current
-  BitKnit-derived implementation is EUPL-1.2. It remains separate and active
-  until that code is replaced or an explicit distribution-license decision is
-  made. It has not been deprecated or relabeled as MIT.
+- `format-gr2` migrated into `formats/gr2` on 2026-07-24 (see the dated
+  table above) after its EUPL constraint was resolved; its standalone
+  repository is now a frozen legacy distribution like the other donors.
 - `format-carbon` remains the schema emitter/generator and build-time schema
   authority. Black consumes its published definitions; Red exposes the copied
   catalog but does not yet enforce it while reading YAML fields.

@@ -1,60 +1,24 @@
 # @carbonenginejs/runtime-resource
 
 CarbonEngineJS resource lifecycle, cache, format selection, source, and object
-loading contracts.
+loading contracts — the GPU-free resource layer.
 
-This package owns the GPU-free resource layer:
+Use this package when you need Carbon-shaped resource loading (`res:/` paths,
+requirement/emit selection, `Ready()`/`GetObject()`) or one of the non-shader
+format readers, without choosing a GPU backend. It sits between source
+adapters and the engine packages that realize prepared resources. It does not
+own WebGL/WebGPU realization, device budgets, or shader formats.
 
-- `CjsResource` state and Carbon-style resource methods.
-- `CjsTextureArrayRes` and `CjsTextureParameterProxy` for material-facing,
-  frame-coalesced texture-array inputs without changing ordinary texture
-  parameter behavior.
-- `CjsMotherLode` canonical identity, explicit replacement results, activity
-  and lock metadata, deterministic payload/adapter cleanup, and cache stats.
-- `CjsResMan` semantic resource construction, registered-format selection,
-  concurrency-limited source loading, staged prepare queues, layered
-  source/read/resource deduplication, object loader dispatch, and prefetch.
-- Raw `CjsEventEmitter` from `core-types/model` for manager/runtime events
-  without requiring `CjsModel` inheritance. External listeners unregister
-  directly with `OffEvent`; listener scopes, owner-side `ListenTo` helpers,
-  and a separate resource notification layer are not part of the contract.
-- Path normalization and extension helpers.
-- Source adapters for memory and `fetch`.
-- Plain reader/converter payload objects with focused shared validators.
-- Canonical Carbon resource classes that validate and hold CPU payloads
-  privately:
-  `TriTextureRes`, `TriGeometryRes`, `Tr2EffectRes`, `Tr2ImageRes`,
-  `TriGrannyRes`, `Tr2GrannyStateRes`, and `Tr2LightProfileRes`.
-- `Tr2TexturePipeline` for Carbon-shaped CPU-only load, limit-size, compress
-  validation, and channel-pack steps, plus `Tr2TextureLodManager` for explicit
-  texture-resource membership without device-memory policy.
-- Opaque engine-owned subobject slots for backend adapters.
-- Format policy, format class contracts, and load/prepare state mapping stay
-  inside this package's implementation and public API rather than external
-  workspace notes.
-- Non-shader format implementations are owned as explicit tree-shakeable
-  subpaths under `@carbonenginejs/runtime-resource/formats/<name>`.
+## Install
 
-It intentionally does not own WebGL/WebGPU realization. Engine packages should adapt prepared resources into backend objects.
+```sh
+npm install @carbonenginejs/runtime-resource
+```
 
-Authoring source is decorated JavaScript. Published/consumer output is built ESM in `npm/dist`.
+## Quick start
 
-Completed Carbon data classes live with maintained source under
-`src/resources`; `src/generated` is reserved for unresolved active ports and is
-currently absent. Native shapes that JavaScript replaces or does not use are
-retained only under `src/dropped`, with their disposition documented there,
-and are never exported or bundled.
-
-## Package relationships
-
-- `runtime-core` may configure and expose a `CjsResMan`, but does not own its
-  implementation.
-- `runtime-trinity` and `runtime-sof` may request GPU-free objects and resources
-  without selecting an engine.
-- `engine-webgpu` and future WebGL engines consume loaded resources and own all
-  backend allocations, preparation, replacement, and destruction.
-
-Concrete formats are not imported or registered by the package root:
+Concrete formats are explicit tree-shakeable subpaths, never imported by the
+package root:
 
 ```js
 import { CjsResMan } from "@carbonenginejs/runtime-resource";
@@ -69,451 +33,17 @@ const resource = resMan.GetResource("res:/video/intro.mp4");
 const video = await resource.Ready();
 ```
 
-Formats return plain payload objects. Semantic resource classes apply them
-through `SetPayload()`, validate their own required fields, and throw
-`CJS_RESOURCE_PAYLOAD_INVALID` before replacing a previously valid payload.
-`GetPayload()`, `HasPayload()`, and `ReleasePayload()` manage transient CPU
-retention without introducing a parallel DTO class hierarchy.
-
-Red payload output reserves configurable type, ID, reference, and sequence
-values markers (`_type`, `_id`, `_reference`, and `_values` by default).
-Repeated or cyclic sequences use an ID-bearing values envelope; unique
-sequences remain arrays. Authored fields may not collide with active markers,
-so remap the marker options when those names are real data. Disabling the
-reference marker preserves actual JavaScript identity; cyclic output in that
-mode is intentionally not JSON-serializable.
-
-## Texture CPU pipeline and LOD membership
-
-`Tr2TexturePipeline` is the Carbon texture-specific CPU bitmap pipeline, not a
-general resource prepare stage. `GetResourceDependencies()` returns the sorted
-unique paths required by load and channel-pack steps. `Execute()` resolves
-those inputs from an explicit `inputs` map/object, an async `load(path)`
-callback, or an injected `CjsResMan`, then returns a canonical plain
-`rgba8unorm` payload:
-
-```js
-import {
-  Tr2TexturePipeline,
-  Tr2TexturePipelineStepLoad,
-  Tr2TexturePipelineStepLimitSize
-} from "@carbonenginejs/runtime-resource";
-
-const load = new Tr2TexturePipelineStepLoad();
-load.path = "res:/texture/source.png";
-const limit = new Tr2TexturePipelineStepLimitSize();
-limit.maxWidth = 512;
-
-const pipeline = new Tr2TexturePipeline();
-pipeline.steps = [ load, limit ];
-const rgba = await pipeline.Execute(0, 0, { resMan });
-```
-
-The maintained runtime path currently accepts canonical `rgba8unorm` inputs.
-Load copies the source bitmap, limit-size repeatedly performs a 2x2 CPU
-downsample, pack builds logical RGBA channels from independent inputs, and
-Carbon's present compress step remains validation-only because the native
-method is itself a no-op. Unsupported step types fail explicitly.
-
-Decoded DDS fallback currently has a narrower contract than native DDS texture
-output. `emit: "rgba"` returns one canonical 2D surface decoded from the first
-DDS subresource; it does not preserve stored mip levels, cube faces, array
-layers, or volume slices. Consumers may use it for ordinary 2D fallback when
-the engine owns any required mip generation, but must not infer decoded
-multi-subresource support from a successful RGBA probe. A future richer
-decoded-texture contract must be introduced explicitly rather than overloading
-the current RGBA fields. The software path includes BC1-BC5 and BC7 as RGBA8,
-plus signed and unsigned BC6H as linear `Float32Array` RGBA without clamping HDR
-values. These block decoders are implemented in-project with no codec package.
-
-`Tr2TextureLodManager` owns only ordered resource membership through
-`RegisterTexture()`, `UnregisterTexture()`, and `GetManagedTextures()`. Engine
-packages continue to own GPU allocations, upload accounting, device budgets,
-capability limits, and device-loss recovery.
-
-## Wwise soundbanks and media
-
-`formats/bnk` and `formats/wem` cover the Wwise audio pipeline end to end.
-`CjsBnkFormat.inspect()` decodes the chunk map, embedded media index, bank
-names, and the HIRC listing with version-stable typed fields (event action
-lists, action type/target, sound and music-track source ids; pinned against
-bank generator version 150). The Wwise-domain toolkit is grouped under the
-`CjsBnkFormat.wwise` static: the SoundbanksInfo catalog helpers, the FNV-1
-id hash, and event → media resolution:
-
-```js
-import { CjsBnkFormat } from "@carbonenginejs/runtime-resource/formats/bnk";
-import { CjsWemFormat } from "@carbonenginejs/runtime-resource/formats/wem";
-
-const inspections = bankByteArrays.map(bytes => CjsBnkFormat.inspect(bytes));
-const { eventMedia } = CjsBnkFormat.wwise.eventMediaFromBanks(inspections);
-// eventMedia: Map<eventObjectId, Set<wemId>> - banks may split events from
-// their target sounds, so pass every related bank to one call.
-
-const ogg = CjsWemFormat.toOgg(wemBytes);   // Wwise Vorbis -> Ogg (lossless)
-const pcm = CjsWemFormat.toPcm(wemBytes);   // PTADPCM / 16-bit PCM -> float32
-```
-
-The read/inspect path stays a pure container reader; `wwise.eventMediaFromBanks`
-is graph interpretation offered for consumers with their own engines — the
-resource lifecycle never calls it.
-
-## STL export
-
-`CjsStlFormat` writes shared geometry directly to binary or ASCII STL. The
-writer consumes `mesh.vertex.position` and triangular `mesh.indices[].faces`;
-multiple meshes and index groups are flattened in encounter order because STL
-does not carry portable scene, material, skin, or animation structure.
-
-```js
-import { CjsStlFormat } from "@carbonenginejs/runtime-resource/formats/stl";
-
-const bytes = CjsStlFormat.write(sharedGeometry, {
-  binary: true,
-  solidName: "ship_hull",
-  scale: 1000,
-  requireWatertight: true
-});
-```
-
-Writes do not mutate the shared input. Facet normals are recalculated from
-winding by default; set `recalculateNormals: false` to average valid vertex
-normals. Degenerate triangles are skipped by default. Index values must be safe
-integers within the position channel, and binary output rejects coordinates
-outside float32 range instead of silently emitting infinities. The
-`requireWatertight` option rejects open, non-manifold, inconsistently wound, or
-degenerate output.
-
-## MotherLode ownership
-
-`CjsResMan` resolves each normalized path and promised output to one canonical
-MotherLode key. `Insert(key, resource, options)` reports `{ inserted, replaced,
-displaced }`; replacement, deletion, clearing, and shutdown destroy attached
-adapter allocations and release the complete CPU payload by default. Callers
-that deliberately retain ownership may pass `{ cleanup: false }` and keep the
-returned displaced resource. If replacement cleanup fails, insertion throws a
-contextual error and leaves the existing owner registered. These ordinary
-ownership removals preserve the handle's last resource state; `PURGED` is
-reserved for successful policy eviction through inactivity or byte pressure.
-
-Canonical resource identity is the normalized source path plus its promised
-output tag. `variant` is the explicit tag; otherwise `emit`, `requirement`, or
-`payload` supplies it. Human-readable identities are written as
-`res:/ship.gr2@cmf`, although MotherLode uses an internal delimiter. Reader,
-constructor, and format-option implementations never enter the key. CjsLibrary
-chooses the promised output and ResMan executes the current setup-time format
-registration for it.
-
-Output selection is case-insensitive for identity and matching, but format
-readers receive the canonical declared spelling (for example `cmfJson`). A
-legacy direct object loader exposes only its unforced default; named output
-variants belong on a format class. Unsupported `@output` requests fail before
-cache lookup, so a resident handle cannot bypass the declaration.
-
-A released CPU payload retains only the small request needed to reconstruct
-that same path/output from its source and `sourceRevision`. The retained
-promised-output fields and source provenance win over later
-`Ready()`/`GetObject()` overrides, while cache/reload policy remains per-call.
-Payload leases protect active consumers; an engine may release its own backend
-adapter without destroying shared CPU data. Change setup-time registrations
-only with an explicit resource reset (`Delete`/`Clear`) or a new manager. A
-changed output contract must use a new tag such as `@cmf2`.
-
-`Startup()` and `Shutdown()` are idempotent. `HasKey`, `Lookup`, `Delete`,
-`GetKeys`, `GetValues`, `GetSize`, `SetCacheSize`, `GetCacheSize`, `GetStats`,
-`TrimCache`, `ReplaceExpected`, `Clear`, and `ClearCached` provide the
-Carbon-shaped cache vocabulary plus the exact-owner compare-and-swap required
-by staged JavaScript reload. The old `Has`, `GetCount`, and `DeleteAll` names
-remain temporary compatibility aliases.
-
-Byte budgeting applies only to records explicitly admitted with
-`{ cached: true, bytes }`; JavaScript reachability is never inferred. The byte
-value is a caller-supplied safe-integer eviction weight, not a heuristic walk of
-the resource graph. `TrimCache()` removes positive-byte cached identities in
-oldest-admission order until `cacheBytes <= cacheSize`. Live, locked,
-`cacheable: false`, and zero-byte entries do not create pressure. With default
-cleanup, successful pressure eviction performs the same deterministic
-payload/adapter cleanup as inactivity eviction and marks detached compatible
-handles `PURGED`.
-
-`SetCacheSize()` installs and immediately enforces a new budget. `Update()` and
-`Tick()` retry cache housekeeping after pumping queues; `{ cache: false }`
-skips it for one update. Cleanup failure leaves that candidate canonical,
-continues through later candidates, and throws
-`CJS_MOTHERLODE_CACHE_TRIM_FAILED` with a partial result.
-
-`CjsResMan` binds resource-facing `KeepAlive`, `KeepPayloadAlive`, `Lock`, and
-`Unlock` operations to the canonical key. Publishing a non-null payload renews
-its independent lease; `GetPayload()`, `HasPayload()`, `IsGood()`, and other
-queries remain pure. `PurgeInactive(options)` performs an explicit deterministic
-sweep using independent identity and payload frame/time limits. Locks skip both
-forms of eviction. Identity expiry cleans adapters and payloads, detaches the
-handle, marks it `PURGED`, and removes it; payload expiry releases only the CPU
-payload. A sweep never fetches, prepares, or reloads a resource.
-
-Generic/base reader results participate in the same payload ownership: the
-manager stores the complete result through `SetPayload()` and mirrors it on the
-compatibility `object` property. Payload release clears that alias only while
-it still identifies the released value. Concurrent object/readiness calls
-share only their in-flight operation; settled promises are removed so evicted
-graphs are collectible and failed operations can be explicitly retried. A
-resident payload returns without rereading, while a released payload is rebuilt
-only by an explicit `GetObject()` or `Ready()` call.
-
-Source and parsed-format caches use explicit provenance. `sourceRevision` is an
-opaque caller/source-supplied string or finite number identifying source
-content for one source object and normalized path. It scopes read caches only;
-it does not alter MotherLode resource identity, and changing it does not replace a
-resident payload without `reload: true`.
-
-`cacheSource` and `cacheFormat` are tri-state per-call policies:
-
-- omitted: share in-flight or explicitly retained work, then drop a newly
-  completed record;
-- `true`: share and retain success; a joining caller upgrades the record;
-- `false`: bypass sharing and retention.
-
-Failures are never retained. Format records are additionally isolated by
-selected source object, frozen registration descriptor, revision, and effective
-format options. Re-registering a format with new defaults therefore cannot
-reuse an old descriptor's parse. Registered defaults are copied into deeply
-frozen plain-object/array snapshots. Material format options that cannot be
-represented safely (for example class instances with hidden mutable state)
-bypass format-cache sharing instead of risking a false match; functions and
-byte views use cache-local identity plus visible byte content where applicable.
-
-`reload: true` synchronously detaches every queued/source/format read record for
-the selected source/path before fresh work starts. Existing consumers keep
-their detached promises; reload does not abort them. Fresh success repopulates
-only caches explicitly requested with `cacheSource: true` or
-`cacheFormat: true`. `InvalidateReadCache(path, { source, sourceRevision })`
-provides the same no-abort invalidation explicitly; omitting `sourceRevision`
-removes all revisions for that source/path. `Delete()` remains canonical
-resource-identity-only, while `Clear()` resets all read ledgers.
-
-A resource loader retains the effective selected source and `sourceRevision`
-for reconstruction, including the manager default selected at creation, but
-not cache flags or one-shot reload.
-
-Reload is candidate-first. When an owner already exists,
-`GetResource(path, { reload: true })` returns a distinct off-registry candidate
-without changing ordinary lookup. `Ready()` on that candidate, `GetObject()` /
-`FetchResource()` with `reload: true`, and the explicit `ReloadObject()` /
-`ReloadResource()` helpers all run the same queued contract:
-
-1. purge-lock the exact former owner and invalidate reusable reads once;
-2. read, convert through the selected format, and publish payload state only on the detached candidate;
-3. require the newest per-key reload token and exact former ownership;
-4. compare-and-swap the fully loaded CPU candidate into MotherLode;
-5. invalidate and clean the displaced handle after the lookup switch.
-
-Source, format, or publication failure therefore leaves the former handle, state,
-payload, and adapters canonical; the failed candidate's attached payload and
-adapters are cleaned and its original error is retained. An otherwise-
-successful candidate that was superseded, deleted, cleared, or replaced rejects
-with `CJS_RESMAN_STALE_RELOAD_CANDIDATE` and cannot resurrect the key. Failed
-freshness attempts still invalidate reusable source/format records when their
-work begins; the already-published canonical payload is not dependent on those
-records. If displaced-owner cleanup fails after the swap,
-the promise rejects with `CJS_MOTHERLODE_REPLACE_CLEANUP_FAILED`, whose result
-explicitly reports `committed: true`; the good candidate remains canonical.
-
-This deliberately differs from Carbon's `BlueAsyncRes::Reload`, which reloads
-one stable handle in place and releases its old data before success. Existing
-JavaScript references likewise are never silently retargeted: they keep the
-displaced handle, while fresh lookup sees the committed candidate.
-
-Every queued, direct, standalone, and candidate resource preparation captures the exact
-MotherLode, canonical key, resource handle, and manager-local ownership
-generation. Delete, Clear, reload replacement, or handle reinsertion makes old
-work stale before it can enter another state or publish. Otherwise-
-successful obsolete work rejects with `CJS_RESMAN_STALE_RESOURCE_OPERATION`;
-an obsolete source/format failure preserves its original rejection while
-suppressing `SetError()` on the detached handle.
-
-Candidate work is a normal `Wait()` root and blocks synchronous MotherLode
-replacement while active. MotherLode replacement otherwise remains synchronous
-configuration and rejects with
-`CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS` while queued or direct mutations are
-active. `Wait()` drains queued roots; callers must separately await direct load
-or direct prepare promises before retrying replacement. Started source or
-format work is not yet aborted; deterministic cleanup applies to the staged
-candidate resource itself.
-
-Automatic scheduling is available only when a caller supplies
-`autoPurgePolicy` to the constructor/`Register()` or calls
-`SetAutoPurgePolicy()`. It is disabled by default and deliberately accepts only
-millisecond limits: MotherLode activity frames count explicit observations and
-are not renderer frames. `Update()`/`Tick()` run a due sweep after queue pumps;
-`{ purge: false }` skips it for one call. The first pump after configuration is
-due immediately, then `intervalMilliseconds` limits cadence. Manager-owned
-queued and direct resource work holds a balanced purge lock until completion.
-
-```js
-const resMan = new CjsResMan({
-  source,
-  autoPurgePolicy: {
-    intervalMilliseconds: 1000,
-    maxIdleMilliseconds: 60_000,
-    payloadMaxIdleMilliseconds: 10_000
-  }
-});
-
-resMan.Update();
-```
-
-Cache trimming and automatic inactivity sweeps retain the strict no-reload
-rule. Application retention defaults, automatic resource/payload byte
-estimation, separate CPU/adapter budgets, and purged-resource/device-loss
-recovery policy remain later work.
-
-## Queued CPU load and publication
-
-`GetObject()`, `LoadObject()`, and resource `Ready()` use two manager-owned
-queues:
-
-```text
-BACKGROUND: deduplicated source load, limited by maxConcurrentLoads
-MAIN:       reader/format conversion -> resource publication
-```
-
-The main reader/format operation and publication are separate queue items.
-`maxPrepareTime` is a per-pump budget in seconds, and
-`maxPrepareItemsPerTick` can add an item-count limit. The default scheduler
-keeps promise-based calls working; a `CjsLibrary` or direct caller can provide
-its frame scheduler:
-
-```js
-const resMan = new CjsResMan({
-  source,
-  maxConcurrentLoads: 8,
-  maxPrepareTime: 0.005,
-  queueScheduler: callback => requestAnimationFrame(callback)
-});
-
-await resMan.FetchResource("res:/model/ship.gr2", {
-  requirement: "geometry",
-  emit: "cmf"
-});
-```
-
-The selected format class owns conversion to the promised CPU output.
-`CjsResMan` does not inspect WebGL, WebGPU, texture, geometry, or codec support,
-and it does not run backend realization. An engine consumes the published CPU
-resource afterward through its own explicit operation.
-
-Blue-compatible queue controls are exposed directly on `CjsResMan`:
-`AddToQueue`, `CancelFromQueue`, `GetNextIdForQueue`,
-`PumpMainThreadQueue`, `PauseQueue`, `ResumeQueue`, `GetPendingLoads`, and
-`GetPendingPrepares`. `Update()`/`Tick()` pump work. `Wait()` synchronously
-captures queued resource-operation roots and low-level queue tasks that already
-exist when it is called. Captured resource roots include publication work
-enqueued after an asynchronous read; unrelated later roots/tasks do not
-postpone the fence. Failure and queued cancellation count as settlement and remain
-observable through their original operation promises.
-
-By default `Wait()` pumps the two queues directly within their ordinary budgets
-and never runs automatic purge housekeeping. It preserves pause state;
-`{ pump: false }` leaves all progress to an external driver. A standalone
-canonical `PrepareResourceObjectQueued()` call is a queued root. Direct
-`LoadResourceObject()`, direct `PrepareResourceObject()`, standalone
-`ReadResource()`, and standalone `ReadFormatOnce()` calls bypass both queues
-and are outside this fence unless they own a captured queue task, although
-direct resource mutations are still tracked for safe MotherLode replacement.
-`WaitUrgent()` remains deferred until the queue has real per-item priority and
-urgent-membership semantics.
-
-Format classes own input extensions. Resource classes are registered by a
-semantic requirement, never by file extension:
-
-```js
-const resMan = new CjsResMan().Register({
-  source,
-  formats: [ CjsDdsFormat, CjsPngFormat ],
-  resourceTypes: [ TriTextureRes, Tr2ImageRes ]
-});
-
-const texture = resMan.GetResource("res:/image/ship.png", {
-  requirement: "texture",
-  emit: "image"
-});
-const image = resMan.GetResource("res:/image/ship.png", {
-  requirement: "image",
-  emit: "image"
-});
-```
-
-Those are distinct resource identities but share the normalized source-byte
-operation. The manager does not expose an extension-to-resource compatibility
-registry.
-
-Texture-array resources expose one ordinary-looking proxy per ordered layer:
-
-```js
-const textureArray = new CjsTextureArrayRes({
-  paths: [
-    "res:/detail1.dds",
-    "res:/detail2.dds",
-    "res:/detail3.dds"
-  ],
-  layerNames: [ "Detail1Map", "Detail2Map", "Detail3Map" ],
-  updateScheduler: resource => frameQueue.add(resource)
-});
-
-const detail2 = textureArray.GetLayerParameter(1);
-detail2.SetValue("res:/replacement.dds");
-
-detail2.textureRes === textureArray; // true
-```
-
-Proxy setters only update their source path and invalidate the parent. The
-parent is scheduled once even if several proxies change in the same frame.
-The next-frame consumer calls `Update()` or `ConsumeUpdateRequest()` to obtain
-one immutable ordered snapshot. Runtime-resource does not know which shader
-metadata caused the aggregate request; shader packages and engine adapters map
-public parameter names to layer indices.
-
-Public effect parameters remain separate from these internal proxies. Their
-authored paths and individual 2D source resources are not replaced by the
-aggregate. An engine-owned, non-persisted bridge mirrors public changes into
-the fixed internal layers.
-
-Consumed snapshots are explicit in-flight generations. An adapter either
-publishes the current candidate atomically, requeues retryable work, or records
-failure:
-
-```js
-const request = textureArray.ConsumeUpdateRequest();
-
-try {
-  const candidate = await adapter.PrepareTextureArray(request);
-  const result = textureArray.CommitPreparedAdapterRevision(
-    request.revision,
-    "webgpu",
-    candidate
-  );
-
-  // A rejected/stale candidate is destroyed by the commit method by default.
-  // The adapter owns disposal of a successfully displaced allocation.
-  result.displaced?.destroy();
-} catch (error) {
-  textureArray.FailUpdateRequest(request.revision, error, { retry: true });
-}
-
-await textureArray.Ready(); // the generation requested at call time
-```
-
-`SetLayerResource()` attaches a resolved source without rewriting the logical
-requested path. `TouchLayer()` invalidates an in-place source revision.
-`RetryUpdateRequest()` restores consumed work, and `HandleAdapterLoss()` drops
-an unusable adapter allocation and schedules a complete topology rebuild.
-Topology-changing snapshots set `topologyChanged: true` and report only valid
-current layer indices in `dirtyLayers`.
+## Documentation
+
+- [Package documentation](docs/README.md)
+- [Architecture and boundaries](docs/architecture.md)
+- [Resource lifecycle concepts](docs/concepts/resource-lifecycle.md)
+- [Format subpaths](docs/formats/README.md)
+- [Format ownership and fork provenance](docs/formats/provenance.md)
 
 ## Development
 
-Install dependencies and run the non-interactive baseline checks from the
-repository root:
+Non-interactive baseline checks run from the repository root:
 
 ```sh
 npm install
@@ -523,26 +53,15 @@ npm test
 ```
 
 `npm run check` builds the consumer package and proves that decorator metadata
-matches between authoring source and built output. `npm test` additionally runs
-the complete GPU-free unit suite; it requires no private assets, credentials,
-network access, browser, or GPU after dependencies are installed.
+matches between authoring source and built output. `npm test` additionally
+runs the complete GPU-free unit suite; it requires no private assets,
+credentials, network access, browser, or GPU after dependencies are installed.
 
-See [Runtime Resource Lifecycle](resource-lifecycle.md) for state, retention,
-and texture-array generation contracts. See
-[Format ownership and fork provenance](FORMAT-PROVENANCE.md) for copied-reader
-ownership, licenses, exclusions, and the deferred GR2 migration. Both documents
-ship with the published package.
+## License and provenance
 
-## Provenance
-
-CarbonEngine and Fenris Creations (CCP Games) are named for interoperability
-and provenance context. This package contains CarbonEngineJS original resource
-infrastructure, CarbonEngine-shaped resource ports, and maintained copies of
-the non-shader readers identified in `FORMAT-PROVENANCE.md`. It does not copy
-Fenris Creations game assets, proprietary documentation, or shader source.
-CarbonEngine and historical JavaScript implementations were used as the
-behavioral references described in the package notices.
-
-This project is not affiliated with, endorsed by, or sponsored by CCP Games or
-CCP ehf. EVE Online and related marks remain the property of their respective
-owners.
+MIT. See [LICENSE](LICENSE) and [NOTICE](NOTICE). CarbonEngine and Fenris
+Creations (CCP Games) are named for interoperability and provenance context;
+copied-reader ownership, licenses, and retained snapshots are recorded in
+[docs/formats/provenance.md](docs/formats/provenance.md). This project is not
+affiliated with, endorsed by, or sponsored by CCP Games or CCP ehf. EVE
+Online and related marks remain the property of their respective owners.

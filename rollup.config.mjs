@@ -22,6 +22,7 @@ export default {
     "src/formats/flac/index.js",
     "src/formats/gif/index.js",
     "src/formats/gltf/index.js",
+    "src/formats/gr2/index.js",
     "src/formats/jpeg/index.js",
     "src/formats/mp3/index.js",
     "src/formats/mp4/index.js",

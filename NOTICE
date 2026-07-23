@@ -21,7 +21,7 @@ yaml, and black-reader-js.
 The bundled Black definition JSON is a generated CarbonEngineJS schema artifact
 copied from `format-carbon` revision
 `d2a3c67cf3d46e8ba78ca19e66558d868178ec24`. Its exact digest and retention
-purpose are recorded in `FORMAT-PROVENANCE.md`; no CarbonEngine source file or
+purpose are recorded in `docs/formats/provenance.md`; no CarbonEngine source file or
 game asset is embedded in that generated definition snapshot.
 
 The EUPL-1.2 `format-gr2` implementation is deliberately not included. GR2

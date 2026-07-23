@@ -27,13 +27,19 @@ await fs.copyFile(path.join(root, "npm.package.json"), path.join(npmRoot, "packa
 for (const file of [
   "README.md",
   "LICENSE",
-  "NOTICE",
-  "FORMAT-PROVENANCE.md",
-  "resource-lifecycle.md"
+  "NOTICE"
 ])
 {
   await copyFileIfExists(file);
 }
+
+// Public documentation ships in the npm artifact by default; the docs tree
+// carries the normative format/provenance contracts.
+await fs.rm(path.join(npmRoot, "docs"), { recursive: true, force: true });
+await fs.cp(path.join(root, "docs"), path.join(npmRoot, "docs"), {
+  recursive: true,
+  force: true
+});
 
 await fs.cp(path.join(root, "format-notices"), path.join(npmRoot, "format-notices"), {
   recursive: true,

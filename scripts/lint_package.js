@@ -7,11 +7,22 @@ import { transformAsync } from "@babel/core";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoots = [ "src", "scripts", "test" ];
-const publicDocuments = [
-  "README.md",
-  "FORMAT-PROVENANCE.md",
-  "resource-lifecycle.md"
-];
+
+/**
+ * Collects the public documents: the package README plus the docs/ tree.
+ */
+async function GetPublicDocuments()
+{
+  const documents = [ "README.md" ];
+  const markdown = await GetFiles(path.join(root, "docs"), new Set([ ".md" ]));
+
+  for (const file of markdown)
+  {
+    documents.push(path.relative(root, file).replaceAll(path.sep, "/"));
+  }
+
+  return documents;
+}
 
 /**
  * Collects files with one of the requested extensions in deterministic order.
@@ -95,6 +106,23 @@ async function CheckDocument(name, errors)
   const source = await fs.readFile(file, "utf8");
   const linkPattern = /!?\[[^\]]*\]\(([^)]+)\)/gu;
 
+  // Every docs/ page carries the organization standard metadata header.
+  if (name.startsWith("docs/"))
+  {
+    if (!/^# .+/u.test(source))
+    {
+      errors.push(`${name}: must start with a "# Title" heading`);
+    }
+
+    for (const field of [ "Status:", "Scope:", "Audience:", "Summary:" ])
+    {
+      if (!source.includes(field))
+      {
+        errors.push(`${name}: missing standard header field ${field}`);
+      }
+    }
+  }
+
   for (const match of source.matchAll(linkPattern))
   {
     const target = match[1].trim().split(/\s+/u, 1)[0];
@@ -166,7 +194,7 @@ for (const sourceRoot of sourceRoots)
   }
 }
 
-for (const document of publicDocuments)
+for (const document of await GetPublicDocuments())
 {
   await CheckDocument(document, errors);
 }

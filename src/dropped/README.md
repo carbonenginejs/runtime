@@ -28,7 +28,7 @@ Replacement surfaces:
 
 - `src/CjsResMan.js` (`Wait`)
 - `src/CjsResManQueue.js`
-- `resource-lifecycle.md` snapshot-fence contract
+- `docs/reference/queues.md` snapshot-fence contract
 
 ## Tr2CmfContents and CmfVertexReader
 
