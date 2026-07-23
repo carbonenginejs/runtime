@@ -3,7 +3,7 @@ import { io, type, carbon, impl } from '@carbonenginejs/core-types/schema';
 import { CjsModel } from '@carbonenginejs/core-types/model';
 import { vec3 } from '@carbonenginejs/core-math/vec3';
 import { vec4 } from '@carbonenginejs/core-math/vec4';
-import { CjsCharacterRigBinding } from '../../CjsCharacterRigBinding.js';
+import { CjsCharacterRigBinding } from '../../controls/CjsCharacterRigBinding.js';
 import { Tr2SkinnedObjectLod } from './Tr2SkinnedObjectLod.js';
 
 let _initProto, _initClass, _init_frameDelay, _init_extra_frameDelay, _init_curveSets, _init_extra_curveSets, _init_explicitMaxBounds, _init_extra_explicitMaxBounds, _init_explicitMinBounds, _init_extra_explicitMinBounds, _init_updatePeriod, _init_extra_updatePeriod, _init_transform, _init_extra_transform, _init_visualModel, _init_extra_visualModel, _init_name, _init_extra_name, _init_animationUpdater, _init_extra_animationUpdater, _init_worldTransformUpdater, _init_extra_worldTransformUpdater, _init_highDetailModel, _init_extra_highDetailModel, _init_lowDetailModel, _init_extra_lowDetailModel, _init_mediumDetailModel, _init_extra_mediumDetailModel, _init_currentLod, _init_extra_currentLod, _init_renderRigBoneCount, _init_extra_renderRigBoneCount, _init_skinningMatrixCount, _init_extra_skinningMatrixCount, _init_useDynamicBounds, _init_extra_useDynamicBounds, _init_useExplicitBounds, _init_extra_useExplicitBounds, _init_estimatedPixelDiameter, _init_extra_estimatedPixelDiameter, _init_display, _init_extra_display;

@@ -5,7 +5,7 @@ import { carbon, impl, io, type } from "@carbonenginejs/core-types/schema";
 import { CjsModel } from "@carbonenginejs/core-types/model";
 import { vec3 } from "@carbonenginejs/core-math/vec3";
 import { vec4 } from "@carbonenginejs/core-math/vec4";
-import { CjsCharacterRigBinding } from "../../CjsCharacterRigBinding.js";
+import { CjsCharacterRigBinding } from "../../controls/CjsCharacterRigBinding.js";
 import { Tr2SkinnedObjectLod } from "./Tr2SkinnedObjectLod.js";
 
 /** Tr2SkinnedObject (trinityCore) - generated from schema shapeHash ad7ba330.... */
