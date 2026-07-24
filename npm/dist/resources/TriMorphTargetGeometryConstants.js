@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { type } from '@carbonenginejs/core-types/schema';
-import { CjsModel } from '@carbonenginejs/core-types/model';
+import { type } from '@carbonenginejs/runtime-utils/schema';
+import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_vertexBufferStride, _init_extra_vertexBufferStride, _init_positionOffset, _init_extra_positionOffset, _init_positionType, _init_extra_positionType, _init_tangentOffset, _init_extra_tangentOffset, _init_tangentType, _init_extra_tangentType, _init_vertexCount, _init_extra_vertexCount;
 

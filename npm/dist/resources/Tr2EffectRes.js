@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { carbon, impl, type } from '@carbonenginejs/core-types/schema';
+import { carbon, impl, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsResource as _CjsResource } from '../CjsResource.js';
 import { AssertResourcePayloadObject, AssertResourcePayloadArray } from './resourceBoundary.js';
 

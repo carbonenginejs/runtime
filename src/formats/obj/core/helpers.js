@@ -8,10 +8,10 @@ import {
     generateBiNormals,
     generateNormals,
     generateTangents
-} from "@carbonenginejs/core-math/mesh";
+} from "@carbonenginejs/runtime-utils/mesh";
 import {
     packTangentFrames
-} from "@carbonenginejs/core-math/tangent";
+} from "@carbonenginejs/runtime-utils/tangent";
 
 export const GR2_CLASS_KEYS = Object.freeze([
     "Root",

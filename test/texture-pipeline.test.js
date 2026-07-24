@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "@carbonenginejs/core-types/schema";
-import { PixelFormat as PayloadPixelFormat } from "@carbonenginejs/runtime-const/graphics";
-import { PixelFormat as CarbonPixelFormat } from "@carbonenginejs/runtime-const/render-context";
+import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
+import { PixelFormat as PayloadPixelFormat } from "@carbonenginejs/runtime-utils/graphics";
+import { PixelFormat as CarbonPixelFormat } from "@carbonenginejs/runtime-utils/render-context";
 import {
   Tr2TextureLodManager,
   Tr2TexturePackChannel,

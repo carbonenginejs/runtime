@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TriTextureRes.h
 // Source: trinity/trinity/Resources/TriTextureRes.cpp
 // Source: trinity/trinity/Resources/TriTextureRes_Blue.cpp
-import { carbon, impl, io, type } from "@carbonenginejs/core-types/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../CjsResource.js";
 import {
   ResourcePayloadType,

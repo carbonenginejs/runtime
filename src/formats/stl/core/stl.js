@@ -8,8 +8,8 @@ import {
     generateNormals,
     isDegenerateTriangle,
     triangleNormal
-} from "@carbonenginejs/core-math/mesh";
-import { normalize } from "@carbonenginejs/core-math/vec3";
+} from "@carbonenginejs/runtime-utils/mesh";
+import { normalize } from "@carbonenginejs/runtime-utils/vec3";
 
 const
     BINARY_HEADER_BYTES = 80,

@@ -1,5 +1,5 @@
-import { CjsModel } from "@carbonenginejs/core-types/model";
-import { io, type } from "@carbonenginejs/core-types/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 
 /**
  * Standard probe report for resource formats and a reusable base for format-specific probes.

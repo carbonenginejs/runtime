@@ -1,13 +1,13 @@
 /**
- * Tangent-frame helpers backed by @carbonenginejs/core-math.
+ * Tangent-frame helpers backed by @carbonenginejs/runtime-utils.
  */
 
 import {
     generateBiNormals,
     generateNormals,
     generateTangents
-} from "@carbonenginejs/core-math/mesh";
-import { clamp } from "@carbonenginejs/core-math/num";
+} from "@carbonenginejs/runtime-utils/mesh";
+import { clamp } from "@carbonenginejs/runtime-utils/num";
 import {
     TANGENT_PI,
     TANGENT_TAU,
@@ -17,11 +17,11 @@ import {
     isNullTangent,
     isPacked,
     unpackMeshTangents
-} from "@carbonenginejs/core-math/tangent";
+} from "@carbonenginejs/runtime-utils/tangent";
 import {
     cross as crossInto,
     dot
-} from "@carbonenginejs/core-math/vec3";
+} from "@carbonenginejs/runtime-utils/vec3";
 
 export {
     TANGENT_PI,

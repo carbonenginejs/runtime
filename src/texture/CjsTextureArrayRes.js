@@ -1,4 +1,4 @@
-import { type } from "@carbonenginejs/core-types/schema";
+import { type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../CjsResource.js";
 import { normalizeResourcePath } from "../resourcePath.js";
 import { CjsTextureParameterProxy } from "./CjsTextureParameterProxy.js";

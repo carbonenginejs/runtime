@@ -1,7 +1,7 @@
 import {
     CARBON_TYPE,
     normalizeCarbonTypeDescriptor
-} from "@carbonenginejs/core-types";
+} from "@carbonenginejs/runtime-utils/types";
 
 /**
  * Static set of read and skip routines that decode or skip individual Black

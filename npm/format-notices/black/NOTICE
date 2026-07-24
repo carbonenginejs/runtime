@@ -25,7 +25,7 @@ Local license notice: Copyright (c) 2023 @rawrafox and @cppctamber
 
 CarbonEngineJS uses black-reader-js as reference material for `.black` format
 behavior. The format-black package is implemented against CarbonEngineJS
-core-types/canonical schema definitions and emits CarbonEngineJS public
+runtime-utils/canonical schema definitions and emits CarbonEngineJS public
 Black payload data.
 
 Provenance and legal requirements

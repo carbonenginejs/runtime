@@ -7,7 +7,7 @@ Summary: Defines the `CjsEventEmitter` API surface used by resource managers and
 
 ## Purpose
 
-`CjsEventEmitter` (from `core-types/model`) is a separate base class so
+`CjsEventEmitter` (from `runtime-utils/model`) is a separate base class so
 non-model runtime services can emit events without extending `CjsModel`;
 `CjsResMan` uses that path. CarbonEngineJS exposes one small event-emitter API
 and avoids short generic names such as `On`, `Once`, `Off`, and `Emit` on

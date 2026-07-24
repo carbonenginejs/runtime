@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.h
 // Schema: format-carbon resources/Tr2TextureLodUpdateRequest.json; maintained by runtime-resource.
-import { type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
+import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** Tr2TextureLodUpdateRequest (resources) - maintained from schema shapeHash 7cfa47a1.... */
 @type.define({ className: "Tr2TextureLodUpdateRequest", family: "resources" })

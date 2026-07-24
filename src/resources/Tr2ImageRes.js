@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes.h
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
-import { carbon, impl, io, type } from "@carbonenginejs/core-types/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../CjsResource.js";
 import { validateRgbaPayload } from "../format/payloadContract.js";
 import { ValidateResourcePayload } from "./resourceBoundary.js";

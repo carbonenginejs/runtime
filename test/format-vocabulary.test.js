@@ -1,20 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MediaType, PayloadType } from "@carbonenginejs/runtime-const/media";
+import { MediaType, PayloadType } from "@carbonenginejs/runtime-utils/media";
 import * as formats from "../src/formats/index.js";
 // CjsFormat pulls in decorated probe code - test the consumer output.
 import { CjsFormat } from "../npm/dist/index.js";
 
-// Vocabulary conformance (kb §5.1): runtime-const owns the shared media
+// Vocabulary conformance (kb §5.1): runtime-utils owns the shared media
 // vocabulary; formats declare against it. This test pins the canonical set so
 // a format (including the dependency-free standalone packages mirrored here)
 // can never drift to an unshared token.
 
 const CANONICAL_MEDIA = new Set(Object.values(MediaType));
 
-test("CjsFormat exposes the runtime-const vocabulary objects by identity", () =>
+test("CjsFormat exposes the runtime-utils vocabulary objects by identity", () =>
 {
-  assert.equal(CjsFormat.MediaType, MediaType, "CjsFormat.MediaType is the runtime-const object, not a copy");
+  assert.equal(CjsFormat.MediaType, MediaType, "CjsFormat.MediaType is the runtime-utils object, not a copy");
   assert.equal(CjsFormat.Type, MediaType, "CjsFormat.Type shares the same object");
   assert.equal(CjsFormat.OutputType.AUDIO, PayloadType.AUDIO);
   assert.equal(CjsFormat.OutputType.RAW, PayloadType.RAW);

@@ -1,7 +1,7 @@
 import { hydrateJson } from './json.js';
 import { parseObjText } from './parser.js';
-import { generateNormals, generateTangents, generateBiNormals } from '@carbonenginejs/core-math/mesh';
-import { packTangentFrames } from '@carbonenginejs/core-math/tangent';
+import { generateNormals, generateTangents, generateBiNormals } from '@carbonenginejs/runtime-utils/mesh';
+import { packTangentFrames } from '@carbonenginejs/runtime-utils/tangent';
 
 /**
  * Internal read-pipeline glue for CjsObjFormat.

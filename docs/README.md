@@ -24,8 +24,8 @@ packages realize that payload into backend objects.
 
 ## Where it fits
 
-- Foundations consumed: `@carbonenginejs/core-types` (event emitter, model
-  contracts) and `@carbonenginejs/core-math` where formats need math values.
+- Foundations consumed: `@carbonenginejs/runtime-utils` (event emitter, model
+  contracts) and `@carbonenginejs/runtime-utils` where formats need math values.
 - Normal consumers: `runtime-core` (configures and exposes a `CjsResMan`),
   `runtime-trinity` and `runtime-sof` (request GPU-free objects), and engine
   packages (`engine-webgpu`, future WebGL engines) that realize prepared

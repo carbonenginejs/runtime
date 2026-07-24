@@ -1,6 +1,6 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from './_virtual/_rollupPluginBabelHelpers.js';
-import { CjsEventEmitter } from '@carbonenginejs/core-types/model';
-import { type, carbon, impl, CjsSchema } from '@carbonenginejs/core-types/schema';
+import { CjsEventEmitter } from '@carbonenginejs/runtime-utils/model';
+import { type, carbon, impl, CjsSchema } from '@carbonenginejs/runtime-utils/schema';
 import { normalizeResourcePath, getResourceExtension } from './resourcePath.js';
 
 let _initProto, _initClass, _init_path, _init_extra_path, _init_ext, _init_extra_ext, _init_requirement, _init_extra_requirement, _init_state, _init_extra_state;

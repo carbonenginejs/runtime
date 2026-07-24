@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { type } from '@carbonenginejs/core-types/schema';
-import { CjsModel } from '@carbonenginejs/core-types/model';
+import { type } from '@carbonenginejs/runtime-utils/schema';
+import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_indexBufferId, _init_extra_indexBufferId, _init_indexBufferStride, _init_extra_indexBufferStride, _init_indexOffset, _init_extra_indexOffset, _init_vertexBufferId, _init_extra_vertexBufferId, _init_vertexBufferStride, _init_extra_vertexBufferStride, _init_positionOffset, _init_extra_positionOffset, _init_positionType, _init_extra_positionType, _init_normalOffset, _init_extra_normalOffset, _init_normalType, _init_extra_normalType, _init_tangentOffset, _init_extra_tangentOffset, _init_tangentType, _init_extra_tangentType, _init_bitangentOffset, _init_extra_bitangentOffset, _init_bitangentType, _init_extra_bitangentType, _init_texCoord0Offset, _init_extra_texCoord0Offset, _init_texCoord0Type, _init_extra_texCoord0Type, _init_texCoord1Offset, _init_extra_texCoord1Offset, _init_texCoord1Type, _init_extra_texCoord1Type, _init_texCoord2Offset, _init_extra_texCoord2Offset, _init_texCoord2Type, _init_extra_texCoord2Type, _init_padding, _init_extra_padding;
 

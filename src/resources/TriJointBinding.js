@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriJointBinding.json; maintained by runtime-resource.
-import { type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
-import { vec3 } from "@carbonenginejs/core-math/vec3";
+import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
+import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 
 /** TriJointBinding (resources) - maintained from schema shapeHash 8459bced.... */
 @type.define({ className: "TriJointBinding", family: "resources" })

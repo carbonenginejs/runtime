@@ -1,4 +1,4 @@
-import { MediaType, PayloadType } from '@carbonenginejs/runtime-const/media';
+import { MediaType, PayloadType } from '@carbonenginejs/runtime-utils/media';
 import { CjsResourceProbe as _CjsResourceProbe } from './CjsResourceProbe.js';
 
 /**
@@ -135,21 +135,21 @@ class CjsFormat {
 
   /**
    * Canonical package-family group names - the shared vocabulary object from
-   * runtime-const (kb: runtime-const owns cross-package media vocabulary).
-   * Same object identity as `@carbonenginejs/runtime-const/media` MediaType,
+   * runtime-utils (kb: runtime-utils owns cross-package media vocabulary).
+   * Same object identity as `@carbonenginejs/runtime-utils/media` MediaType,
    * so tokens can never drift between packages.
    */
   static Type = MediaType;
 
   /**
    * Canonical media-type groups used by format registration - the shared
-   * runtime-const MediaType object (see Type above).
+   * runtime-utils MediaType object (see Type above).
    */
   static MediaType = MediaType;
 
   /**
    * Canonical output-type tokens used by format emit contracts. Shared
-   * payload ROLES come from runtime-const PayloadType; the remaining tokens
+   * payload ROLES come from runtime-utils PayloadType; the remaining tokens
    * (cmf/gr2/json/pcm/rgba/shared/objJson) are format-emit names owned by
    * their formats and enumerated here for discoverability only.
    */

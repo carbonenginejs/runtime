@@ -1,5 +1,5 @@
-import { triangleNormal, generateNormals, computeBoundsFromPositions, isDegenerateTriangle, computeBoundsFromTriangles } from '@carbonenginejs/core-math/mesh';
-import { normalize } from '@carbonenginejs/core-math/vec3';
+import { triangleNormal, generateNormals, computeBoundsFromPositions, isDegenerateTriangle, computeBoundsFromTriangles } from '@carbonenginejs/runtime-utils/mesh';
+import { normalize } from '@carbonenginejs/runtime-utils/vec3';
 
 /**
  * STL read/write and printability inspection helpers.

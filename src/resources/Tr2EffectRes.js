@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2EffectRes.h
 // Source: trinity/trinity/Resources/Tr2EffectRes.cpp
 // Source: trinity/trinity/Resources/Tr2EffectRes_Blue.cpp
-import { carbon, impl, io, type } from "@carbonenginejs/core-types/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../CjsResource.js";
 import { AssertResourcePayloadArray, AssertResourcePayloadObject } from "./resourceBoundary.js";
 

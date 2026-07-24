@@ -1,4 +1,4 @@
-import { generateTangents, generateBiNormals, generateNormals } from '@carbonenginejs/core-math/mesh';
+import { generateTangents, generateBiNormals, generateNormals } from '@carbonenginejs/runtime-utils/mesh';
 
 const OUTPUT_CMF = "cmf";
 const OUTPUT_GR2 = "gr2";

@@ -1,9 +1,9 @@
-import { resolveHydrationAdapter } from "@carbonenginejs/core-types/hydration";
+import { resolveHydrationAdapter } from "@carbonenginejs/runtime-utils/hydration";
 import {
     CARBON_TYPE,
     normalizeCarbonTypeDescriptor,
     normalizeCarbonValue
-} from "@carbonenginejs/core-types/types";
+} from "@carbonenginejs/runtime-utils/types";
 
 import { CjsReader } from "./CjsReader.js";
 

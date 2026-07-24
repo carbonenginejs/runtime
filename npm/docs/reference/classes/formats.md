@@ -380,7 +380,7 @@ PNG format profile that synchronously inspects chunk and header metadata and emi
 <!-- class:CjsRedFormat -->
 ## `CjsRedFormat`
 
-Red format profile that reads type-discriminated, self-referential Red YAML object graphs and emits a compact public payload, a neutral raw graph, or caller-supplied runtime classes through the core-types hydration adapter.
+Red format profile that reads type-discriminated, self-referential Red YAML object graphs and emits a compact public payload, a neutral raw graph, or caller-supplied runtime classes through the runtime-utils hydration adapter.
 
 - Export: `@carbonenginejs/runtime-resource/formats/red`
 - Source: `src/formats/red/CjsRedFormat.js`

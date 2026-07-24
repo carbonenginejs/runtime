@@ -5,8 +5,8 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLimitSize.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
-import { carbon, impl, io, type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
   ExecuteTexturePipeline,
   GetTexturePipelineDependencies

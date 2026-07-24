@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.h
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.cpp
 // Source: trinity/trinity/Resources/Tr2TextureLodManager_Blue.cpp
-import { carbon, impl, type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
+import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /**
  * CPU-side registry for texture resources participating in LOD management.

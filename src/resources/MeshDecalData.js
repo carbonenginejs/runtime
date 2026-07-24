@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/MeshDecalData.json; maintained by runtime-resource.
-import { type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
+import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** MeshDecalData (resources) - maintained from schema shapeHash edd09cef.... */
 @type.define({ className: "MeshDecalData", family: "resources" })

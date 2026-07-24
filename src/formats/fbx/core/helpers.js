@@ -2,7 +2,7 @@ import {
     generateBiNormals,
     generateNormals,
     generateTangents
-} from "@carbonenginejs/core-math/mesh";
+} from "@carbonenginejs/runtime-utils/mesh";
 
 export const OUTPUT_CMF = "cmf";
 export const OUTPUT_GR2 = "gr2";

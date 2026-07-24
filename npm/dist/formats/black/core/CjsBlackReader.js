@@ -1,5 +1,5 @@
-import { CjsCarbonDocument } from '@carbonenginejs/core-types/document';
-import { CjsSchema } from '@carbonenginejs/core-types/schema';
+import { CjsCarbonDocument } from '@carbonenginejs/runtime-utils/document';
+import { CjsSchema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsBlueReader } from '../../../format/CjsBlueReader.js';
 import { CJS_BLACK_FOURCC, CJS_BLACK_VERSION, CJS_BLACK_FORMAT_ID } from './blackConstants.js';
 import { CjsBlackBinaryReader } from './CjsBlackBinaryReader.js';

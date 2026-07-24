@@ -4,8 +4,8 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
 import { validateRgbaPayload } from "../format/payloadContract.js";
-import { PixelFormat as PayloadPixelFormat } from "@carbonenginejs/runtime-const/graphics";
-import { PixelFormat as CarbonPixelFormat } from "@carbonenginejs/runtime-const/render-context";
+import { PixelFormat as PayloadPixelFormat } from "@carbonenginejs/runtime-utils/graphics";
+import { PixelFormat as CarbonPixelFormat } from "@carbonenginejs/runtime-utils/render-context";
 
 const STEP_LOAD = "Tr2TexturePipelineStepLoad";
 const STEP_LIMIT_SIZE = "Tr2TexturePipelineStepLimitSize";

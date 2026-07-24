@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2EffectRes.h
 // Schema: format-carbon resources/Tr2ShaderPermutation.json; maintained by runtime-resource.
-import { type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
+import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** Tr2ShaderPermutation (resources) - maintained from schema shapeHash baf42e3d.... */
 @type.define({ className: "Tr2ShaderPermutation", family: "resources" })

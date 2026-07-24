@@ -1,4 +1,4 @@
-import { CjsEventEmitter } from '@carbonenginejs/core-types/model';
+import { CjsEventEmitter } from '@carbonenginejs/runtime-utils/model';
 
 /**
  * Runtime-only internal texture parameter facade for one array layer.

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepCompress.json; maintained by runtime-resource.
-import { io, schema, type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
+import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** Tr2TexturePipelineStepCompress (resources) - maintained from schema shapeHash 4d367f1c.... */
 @type.define({ className: "Tr2TexturePipelineStepCompress", family: "resources" })

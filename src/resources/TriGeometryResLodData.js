@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriGeometryResLodData.json; maintained by runtime-resource.
-import { type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
+import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** TriGeometryResLodData (resources) - maintained from schema shapeHash 92d97df7.... */
 @type.define({ className: "TriGeometryResLodData", family: "resources" })

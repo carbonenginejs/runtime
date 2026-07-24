@@ -42,7 +42,7 @@ historical mapping.
   source/read/resource deduplication, object loader dispatch, and prefetch.
 - `CjsTextureArrayRes` and `CjsTextureParameterProxy` for material-facing,
   frame-coalesced texture-array inputs.
-- Raw `CjsEventEmitter` (from `core-types/model`) for manager/runtime events
+- Raw `CjsEventEmitter` (from `runtime-utils/model`) for manager/runtime events
   without requiring `CjsModel` inheritance.
 - Path normalization, extension helpers, and source adapters for memory and
   `fetch`.

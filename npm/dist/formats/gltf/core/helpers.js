@@ -2,9 +2,9 @@ import { CLASS_KEYS as CLASS_KEYS$1, hydrateJson } from './json.js';
 import { CMF_CLASS_KEYS, hydrateCmf, buildCmfFromShared } from './targets.js';
 import { parseInput, parseGltfToJson, inspectGltf } from './parser.js';
 export { isGlb, toBytes } from './parser.js';
-import { generateNormals, generateTangents, generateBiNormals } from '@carbonenginejs/core-math/mesh';
-import { packTangentFrames } from '@carbonenginejs/core-math/tangent';
-import { normalize, cross } from '@carbonenginejs/core-math/vec3';
+import { generateNormals, generateTangents, generateBiNormals } from '@carbonenginejs/runtime-utils/mesh';
+import { packTangentFrames } from '@carbonenginejs/runtime-utils/tangent';
+import { normalize, cross } from '@carbonenginejs/runtime-utils/vec3';
 
 /**
  * Internal read-pipeline glue for CjsGltfFormat.

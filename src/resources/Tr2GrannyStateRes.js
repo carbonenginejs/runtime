@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
-import { type } from "@carbonenginejs/core-types/schema";
+import { type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../CjsResource.js";
 import { AssertResourcePayloadObject, ResourcePayloadError } from "./resourceBoundary.js";
 

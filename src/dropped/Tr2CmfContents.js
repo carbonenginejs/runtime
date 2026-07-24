@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Resources/Tr2CmfContent.h
 // Dropped reference shape. CjsCmfFormat replaces this native section-lifetime helper.
 // Verify fields against format-carbon resources/Tr2CmfContents.json.
-import { type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
+import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** Tr2CmfContents dropped reference shape (resources), schema shapeHash e7125c76.... */
 @type.define({ className: "Tr2CmfContents", family: "resources" })

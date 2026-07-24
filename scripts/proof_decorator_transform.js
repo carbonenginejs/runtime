@@ -14,7 +14,7 @@ const distEntry = path.join(scratch, "dist-entry.mjs");
 function entryText(kind) {
   const base = kind === "source" ? "../../src/index.js" : "../../npm/dist/index.js";
   return `
-import { CjsSchema } from "@carbonenginejs/core-types/schema";
+import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource, CjsResourceState } from "${base}";
 
 export function capture() {

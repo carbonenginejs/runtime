@@ -9,14 +9,14 @@ import {
     generateBiNormals,
     generateNormals,
     generateTangents
-} from "@carbonenginejs/core-math/mesh";
+} from "@carbonenginejs/runtime-utils/mesh";
 import {
     packTangentFrames
-} from "@carbonenginejs/core-math/tangent";
+} from "@carbonenginejs/runtime-utils/tangent";
 import {
     cross,
     normalize
-} from "@carbonenginejs/core-math/vec3";
+} from "@carbonenginejs/runtime-utils/vec3";
 
 export const CLASS_KEYS = Object.freeze(Array.from(new Set([
     ...GR2_CLASS_KEYS,

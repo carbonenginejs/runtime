@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import CjsBlackFormat, { CjsBlackFormat as NamedCjsBlackFormat } from "../../../npm/dist/formats/black/index.js";
-import { createLifecycleAdapter } from "@carbonenginejs/core-types";
+import { createLifecycleAdapter } from "@carbonenginejs/runtime-utils/hydration";
 
 class Root {}
 class ObjectNode {}

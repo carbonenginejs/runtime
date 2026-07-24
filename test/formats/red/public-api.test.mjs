@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import CjsRedFormat, { CjsRedFormat as NamedCjsRedFormat } from "../../../npm/dist/formats/red/index.js";
-import { createLifecycleAdapter } from "@carbonenginejs/core-types/hydration";
+import { createLifecycleAdapter } from "@carbonenginejs/runtime-utils/hydration";
 
 // A shared node referenced by identity models a YAML anchor/alias: the same
 // object appears in two places in the graph.

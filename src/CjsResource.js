@@ -1,5 +1,5 @@
-import { CjsEventEmitter } from "@carbonenginejs/core-types/model";
-import { CjsSchema, carbon, impl, type } from "@carbonenginejs/core-types/schema";
+import { CjsEventEmitter } from "@carbonenginejs/runtime-utils/model";
+import { CjsSchema, carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { getResourceExtension, normalizeResourcePath } from "./resourcePath.js";
 
 /**

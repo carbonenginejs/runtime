@@ -1,6 +1,6 @@
 import { validateRgbaPayload } from '../format/payloadContract.js';
-import { PixelFormat as PixelFormat$1 } from '@carbonenginejs/runtime-const/graphics';
-import { PixelFormat } from '@carbonenginejs/runtime-const/render-context';
+import { PixelFormat as PixelFormat$1 } from '@carbonenginejs/runtime-utils/graphics';
+import { PixelFormat } from '@carbonenginejs/runtime-utils/render-context';
 
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipeline.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLoad.cpp

@@ -1,14 +1,14 @@
-import { generateBiNormals, generateTangents, generateNormals } from '@carbonenginejs/core-math/mesh';
-export { generateBiNormals, generateNormals, generateTangents } from '@carbonenginejs/core-math/mesh';
-import { clamp } from '@carbonenginejs/core-math/num';
-export { clamp } from '@carbonenginejs/core-math/num';
-import { isPacked, unpackMeshTangents, encodeTangentFrame, decodeTangentFrame, isNullTangent, NULL_TANGENT_UNORM, TANGENT_PI, TANGENT_TAU } from '@carbonenginejs/core-math/tangent';
-export { NULL_TANGENT_UNORM, TANGENT_PI, TANGENT_TAU, decodeTangentFrame, encodeTangentFrame, isNullTangent, isPacked, unpackMeshTangents } from '@carbonenginejs/core-math/tangent';
-import { dot, cross as cross$1 } from '@carbonenginejs/core-math/vec3';
-export { dot } from '@carbonenginejs/core-math/vec3';
+import { generateBiNormals, generateTangents, generateNormals } from '@carbonenginejs/runtime-utils/mesh';
+export { generateBiNormals, generateNormals, generateTangents } from '@carbonenginejs/runtime-utils/mesh';
+import { clamp } from '@carbonenginejs/runtime-utils/num';
+export { clamp } from '@carbonenginejs/runtime-utils/num';
+import { isPacked, unpackMeshTangents, encodeTangentFrame, decodeTangentFrame, isNullTangent, NULL_TANGENT_UNORM, TANGENT_PI, TANGENT_TAU } from '@carbonenginejs/runtime-utils/tangent';
+export { NULL_TANGENT_UNORM, TANGENT_PI, TANGENT_TAU, decodeTangentFrame, encodeTangentFrame, isNullTangent, isPacked, unpackMeshTangents } from '@carbonenginejs/runtime-utils/tangent';
+import { dot, cross as cross$1 } from '@carbonenginejs/runtime-utils/vec3';
+export { dot } from '@carbonenginejs/runtime-utils/vec3';
 
 /**
- * Tangent-frame helpers backed by @carbonenginejs/core-math.
+ * Tangent-frame helpers backed by @carbonenginejs/runtime-utils.
  */
 
 

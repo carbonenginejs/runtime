@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { type } from '@carbonenginejs/core-types/schema';
-import { CjsModel } from '@carbonenginejs/core-types/model';
+import { type } from '@carbonenginejs/runtime-utils/schema';
+import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_mesh, _init_extra_mesh, _init_grannyMeshIndex, _init_extra_grannyMeshIndex, _init_name, _init_extra_name, _init_originalLodIndex, _init_extra_originalLodIndex, _init_maxScreenSize, _init_extra_maxScreenSize, _init_vertexCount, _init_extra_vertexCount, _init_primitiveCount, _init_extra_primitiveCount, _init_uvDensities, _init_extra_uvDensities, _init_areas, _init_extra_areas, _init_allocationsValid, _init_extra_allocationsValid, _init_vertexAllocation, _init_extra_vertexAllocation, _init_indexAllocation, _init_extra_indexAllocation, _init_morphTargetAllocation, _init_extra_morphTargetAllocation, _init_morphTargetNames, _init_extra_morphTargetNames, _init_morphTargetDeformationAmounts, _init_extra_morphTargetDeformationAmounts, _init_isBakedMorphTarget, _init_extra_isBakedMorphTarget, _init_morphVertexDeclaration, _init_extra_morphVertexDeclaration, _init_bytesPerMorphTargetVertex, _init_extra_bytesPerMorphTargetVertex, _init_reversedIndicesValid, _init_extra_reversedIndicesValid, _init_reversedIndexAllocation, _init_extra_reversedIndexAllocation;
 

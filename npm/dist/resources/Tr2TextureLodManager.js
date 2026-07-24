@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { type, carbon, impl } from '@carbonenginejs/core-types/schema';
-import { CjsModel } from '@carbonenginejs/core-types/model';
+import { type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
+import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initProto, _initClass, _init_gpuMemoryUsed, _init_extra_gpuMemoryUsed, _init_gpuMemoryAllocated, _init_extra_gpuMemoryAllocated, _init_cpuMemoryUsed, _init_extra_cpuMemoryUsed, _init_cpuMemoryAllocated, _init_extra_cpuMemoryAllocated, _init_gpuUploadSize, _init_extra_gpuUploadSize, _init_gpuMemorySize, _init_extra_gpuMemorySize, _init_cpuMemorySize, _init_extra_cpuMemorySize, _init_currentStats, _init_extra_currentStats, _init_lowDetailVtaFiles, _init_extra_lowDetailVtaFiles;
 

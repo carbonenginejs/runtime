@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Resources/TriGrannyRes.h
 // Dropped reference shape. JavaScript CMF channel decoding replaces this helper.
 // Verify fields against format-carbon resources/CmfVertexReader.json.
-import { type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
+import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** CmfVertexReader dropped reference shape (resources), schema shapeHash b28887e3.... */
 @type.define({ className: "CmfVertexReader", family: "resources" })

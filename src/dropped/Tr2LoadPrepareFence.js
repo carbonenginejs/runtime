@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Resources/Tr2LoadPrepareFence.h
 // Dropped reference shape. CjsResMan.Wait replaces this native two-queue fence.
 // Verify fields against format-carbon resources/Tr2LoadPrepareFence.json.
-import { type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
+import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** Tr2LoadPrepareFence dropped reference shape (resources), schema shapeHash ff002907.... */
 @type.define({ className: "Tr2LoadPrepareFence", family: "resources" })

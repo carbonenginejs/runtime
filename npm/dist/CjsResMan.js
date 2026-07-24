@@ -1,5 +1,5 @@
 import { CjsMotherLode, getMotherLodeKey } from './CjsMotherLode.js';
-import { CjsEventEmitter } from '@carbonenginejs/core-types/model';
+import { CjsEventEmitter } from '@carbonenginejs/runtime-utils/model';
 import { CjsResource as _CjsResource } from './CjsResource.js';
 import { CjsResManWorkQueue, CjsResManQueue, NormalizeCjsResManQueue } from './CjsResManQueue.js';
 import { normalizeResourceExtension, normalizeResourcePath, getResourceExtension } from './resourcePath.js';

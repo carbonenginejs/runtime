@@ -6,7 +6,7 @@ export * from "./texture/index.js";
 export * from "./format/CjsResourceProbe.js";
 export * from "./format/payloadContract.js";
 export * from "./CjsFormat.js";
-export { CjsEventEmitter } from "@carbonenginejs/core-types/model";
+export { CjsEventEmitter } from "@carbonenginejs/runtime-utils/model";
 export * from "./CjsMotherLode.js";
 export * from "./CjsResourceSource.js";
 export { CjsResManQueue } from "./CjsResManQueue.js";

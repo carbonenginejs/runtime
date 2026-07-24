@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Resources/Tr2AsyncSave.h
 // Dropped reference shape. Promise-based format writers replace this native callback base.
 // Verify fields against format-carbon resources/Tr2AsyncSave.json.
-import { type } from "@carbonenginejs/core-types/schema";
-import { CjsModel } from "@carbonenginejs/core-types/model";
+import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** Tr2AsyncSave dropped reference shape (resources), schema shapeHash 2d9b1936.... */
 @type.define({ className: "Tr2AsyncSave", family: "resources" })
