@@ -1,0 +1,58 @@
+{
+  "name": "@carbonenginejs/tools-browser",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser-facing CarbonEngineJS clients, remote readers, and application tools.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./fileindex": "./src/fileindex/index.js",
+    "./realtime": "./src/realtime/index.js"
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "lint": "node scripts/lint_package.js",
+    "test": "node --test",
+    "check": "npm run lint && npm test"
+  },
+  "dependencies": {
+    "@carbonenginejs/runtime-utils": "^0.1.0"
+  },
+  "devDependencies": {
+    "@carbonenginejs/format-dxbc": "^0.1.3",
+    "@carbonenginejs/format-hlsl": "^0.1.3",
+    "@carbonenginejs/format-webgl": "^0.1.6",
+    "@carbonenginejs/format-webgpu": "^0.4.1"
+  },
+  "keywords": [
+    "carbonenginejs",
+    "tools-browser",
+    "browser",
+    "fileindex",
+    "realtime",
+    "websocket"
+  ],
+  "files": [
+    "src",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carbonenginejs/tools-browser.git"
+  },
+  "homepage": "https://github.com/carbonenginejs/tools-browser#readme",
+  "bugs": {
+    "url": "https://github.com/carbonenginejs/tools-browser/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
