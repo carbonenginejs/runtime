@@ -70,8 +70,9 @@ stretch, and MIRV missile behavior:
 - `EveTransform`, `EveMissile`, and `EveMissileWarhead` own CPU transforms,
   launch/eject/tracking states, Carbon fixed-seed Perlin path offsets, target
   switching, impacts, explosion callbacks, particles, visibility, and dynamic
-  MIRV bounds. `EveMissileWarheadPerObjectData` publishes the portable matrix
-  and missile-size record.
+  MIRV bounds. Their per-object constant data (world plus missile size) is
+  published through the RawData store — `GetPerObjectData` Allocs the record by
+  name and Sets logical values, the store packs per the engine layout.
 - `EveEffectRoot2` and `EveRootTransform` own detached effect placement,
   controller/curve propagation, targetable sphere behavior, child update and
   renderable traversal, and authored effect LOD. This makes effect-root impact

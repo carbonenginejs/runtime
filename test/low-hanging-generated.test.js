@@ -53,8 +53,8 @@ import { SplineTunnelGroup } from "../npm/dist/generated/eve/child/behaviors/Spl
 import { Tr2ManipulationTool } from "../npm/dist/generated/trinityCore/Tr2ManipulationTool.js";
 import { EveSwarm } from "../npm/dist/generated/eve/spaceObject/swarm/EveSwarm.js";
 import { EveSwarmRenderable } from "../npm/dist/generated/eve/spaceObject/swarm/EveSwarmRenderable.js";
-import { EveSpaceObjectPSData } from "../npm/dist/eve/EveSpaceObjectPSData.js";
-import { EveSpaceObjectVSData } from "../npm/dist/eve/EveSpaceObjectVSData.js";
+import { EveSpaceObjectPSData } from "../npm/dist/eve/perObjectData/EveSpaceObjectPSData.js";
+import { EveSpaceObjectVSData } from "../npm/dist/eve/perObjectData/EveSpaceObjectVSData.js";
 import { Tr2ParticleSystem } from "../npm/dist/generated/particle/Tr2ParticleSystem.js";
 import { Tr2DynamicEmitter } from "../npm/dist/generated/particle/Tr2DynamicEmitter.js";
 import { Tr2StaticEmitter } from "../npm/dist/generated/particle/Tr2StaticEmitter.js";

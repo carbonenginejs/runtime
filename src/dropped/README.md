@@ -97,6 +97,30 @@ investigated on 2026-07-17 during the trinity CPU-completion pass:
 - The full TQ 3430261 `data.black` corpus (2,551 hulls) builds and hydrates
   with zero reports without any of these classes registered.
 
+## Superseded per-object-data payloads (RawData migration, 2026-07-24)
+
+Unlike the rest of this folder (native shapes never ported), these three were
+FULLY-PORTED `CjsModel` per-object-data payload classes that the RawData
+per-object-data system replaced. Payloads now flow through the engine-packed
+`RawDataStore` (`src/trinityCore/rawData/`): a renderable's `GetPerObjectData`
+calls `accumulator.Alloc("<StructName>").Set(name, logicalValue)` and the store
+transposes/packs per the engine layout, so the CjsModel payload class is no
+longer the vehicle. They are quarantined here (not deleted) as shape reference
+in case the packing contract must be re-derived.
+
+| File | Was | Replaced by |
+|---|---|---|
+| `EveBasicPerObjectData.js` | EveTransform world/worldLast/worldInverse record | `Alloc("EveBasicPerObjectData")` in `EveTransform.GetPerObjectData` |
+| `EveMissileWarheadPerObjectData.js` | Warhead world + missileSize record | `Alloc("EveMissileWarheadPerObjectData")` in `EveMissileWarhead.GetPerObjectData` |
+| `EveSceneStaticParticlesPerObjectData.js` | Static-particles world/lastWorld record (generator-emitted) | `Alloc("EveSceneStaticParticlesPerObjectData")` in `EveSceneStaticParticles.GetPerObjectData` |
+
+The struct DEFS (names/sizes/encodings) these classes documented now live
+engine-side, keyed by the SAME struct names (a stand-in packer for tests is in
+`test/helpers/perObjectStore.js`) — so the logical shape is preserved there, not
+here. These three keep their `export class` text like every other file in this
+folder, which is also what makes the generator skip re-emitting the one
+generated basename (`EveSceneStaticParticlesPerObjectData`).
+
 ## Mechanics
 
 - `tools-core` owns schema and class emission. Its output is reviewed before

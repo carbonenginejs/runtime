@@ -88,10 +88,6 @@ export { EveSpaceObjectFxAttributes } from './eve/fxAttributes/EveSpaceObjectFxA
 export { Tr2FactionLight } from './eve/lights/Tr2FactionLight.js';
 export { PerLightShadowSetting } from './eve/lights/enums.js';
 export { EveMeshOverlayEffect } from './eve/overlays/EveMeshOverlayEffect.js';
-export { EveBoosterSetPerObjectData } from './eve/perObjectData/EveBoosterSetPerObjectData.js';
-export { EveChildBulletStormPerObjectData } from './eve/perObjectData/EveChildBulletStormPerObjectData.js';
-export { EveDecalPerObjectData } from './eve/perObjectData/EveDecalPerObjectData.js';
-export { EveSceneStaticParticlesPerObjectData } from './eve/perObjectData/EveSceneStaticParticlesPerObjectData.js';
 export { LocalPositionBehavior, StretchState } from './eve/renderable/stretch/enums.js';
 export { EveComponentCollection } from './eve/scene/EveComponentCollection.js';
 export { EveComponentRegistry } from './eve/scene/EveComponentRegistry.js';

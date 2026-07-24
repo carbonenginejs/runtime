@@ -8,8 +8,8 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import { EveSpaceObjectPSData } from "../../../eve/EveSpaceObjectPSData.js";
-import { EveSpaceObjectVSData } from "../../../eve/EveSpaceObjectVSData.js";
+import { EveSpaceObjectPSData } from "../../../eve/perObjectData/EveSpaceObjectPSData.js";
+import { EveSpaceObjectVSData } from "../../../eve/perObjectData/EveSpaceObjectVSData.js";
 
 /** EveChildLink (eve/child) - generated from schema shapeHash 9d53a00b.... */
 @type.define({ className: "EveChildLink", family: "eve/child" })

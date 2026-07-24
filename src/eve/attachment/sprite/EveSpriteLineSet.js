@@ -1,0 +1,180 @@
+// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveSpriteLineSet.h
+// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveSpriteLineSet.cpp
+import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
+import { EveEntity } from "../../../generated/eve/EveEntity.js";
+import { EveSpriteLight } from "./EveSpriteLight.js";
+import { EveComponentType } from "../../EveComponentTypes.js";
+import { Blink } from "../EveSpaceObjectAttachmentUtils.js";
+import { Tr2Light } from "../../lights/Tr2Light.js";
+import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+
+
+@type.define({ className: "EveSpriteLineSet", family: "eve/attachment/sprites" })
+export class EveSpriteLineSet extends EveEntity
+{
+  @io.rebuild("packedGeometry")
+  @io.persist
+  @type.list("EveSpriteLineSetItem")
+  spriteLines = [];
+
+  @io.rebuild("packedGeometry")
+  @io.persist
+  @type.boolean
+  skinned = false;
+
+  @io.read
+  @type.uint32
+  effectHash = 0;
+
+  @io.rebuild("packedGeometry")
+  @io.persist
+  @type.objectRef("Tr2Effect")
+  effect = null;
+
+  @io.readwrite
+  @type.boolean
+  display = true;
+
+  @io.persist
+  @type.string
+  name = "";
+
+  @io.persist
+  @type.list("EveSpriteLight")
+  lights = [];
+
+  #rebuildRevision = 0;
+
+  /** Carbon m_activationStrength (ctor default 0, EveSpriteLineSet.cpp:26 -
+   * NOT 1: packed-set lights are BLACK until UpdateLights runs). */
+  #activationStrength = 0;
+
+  @carbon.method
+  @impl.adapted
+  Rebuild()
+  {
+    // Position expansion is available on each item, but packed quad data,
+    // effect hashes, bounds caches and registration belong to the adapter.
+    this.#rebuildRevision++;
+    this.__state.rebuild.add("packedGeometry");
+  }
+
+  @carbon.method
+  @impl.adapted
+  Initialize()
+  {
+    this.Rebuild();
+    return true;
+  }
+
+  @carbon.method
+  @impl.implemented
+  Setup(effect, isSkinned)
+  {
+    this.effect = effect ?? null;
+    this.skinned = !!isSkinned;
+  }
+
+  @carbon.method
+  @impl.implemented
+  Add(item)
+  {
+    this.spriteLines.push(item);
+  }
+
+  @carbon.method
+  @impl.adapted
+  SetShaderOption(name, value)
+  {
+    if (this.effect && typeof this.effect.SetOption === "function")
+    {
+      this.effect.SetOption(name, value);
+    }
+  }
+
+  @carbon.method
+  @impl.adapted
+  AddLightFromSOF(light)
+  {
+    this.lights.push(EveSpriteLight.FromSOF(light));
+  }
+
+  /** Carbon EveSpriteLineSet::RegisterComponents (cpp:349-356): LightOwner
+   * when lights are authored. */
+  @carbon.method
+  @impl.implemented
+  RegisterComponents()
+  {
+    const registry = this.GetComponentRegistry();
+    if (registry && this.lights.length)
+    {
+      registry.RegisterComponent(EveComponentType.LightOwner, this);
+    }
+  }
+
+  /** Carbon EveSpriteLineSet::UpdateLights (cpp:152-171): byte-identical to
+   * EveSpriteSet's - boneIndex > 0 only (bone 0 never drives a packed-set
+   * light), column-stride Float4x3 unpack, 4th column zeroed with [15] = 1,
+   * then boneMatrix *= parentTransform - Carbon row-vector, bone FIRST: the
+   * gl-matrix operands SWAP; else boneMatrix = parentTransform. Stamps the
+   * activation strength (boosterGain unused). */
+  @carbon.method
+  @impl.implemented
+  UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
+  {
+    for (const light of this.lights)
+    {
+      const boneIndex = light.lightData.boneIndex;
+      if (bones && boneIndex > 0 && boneIndex < boneCount)
+      {
+        MatrixCopyFrom3x4(light.boneMatrix, bones, boneIndex);
+        light.boneMatrix[3] = 0;
+        light.boneMatrix[7] = 0;
+        light.boneMatrix[11] = 0;
+        light.boneMatrix[15] = 1;
+        // Carbon (row-vector): boneMatrix * parentTransform - bone first.
+        mat4.multiply(light.boneMatrix, parentTransform, light.boneMatrix);
+      }
+      else
+      {
+        mat4.copy(light.boneMatrix, parentTransform);
+      }
+    }
+    this.#activationStrength = Number(activationStrength) || 0;
+  }
+
+  /** Carbon EveSpriteLineSet::GetLights (cpp:358-373): byte-identical to
+   * EveSpriteSet's (shared EveSpriteLight items) - point conversion on the
+   * bone matrix, Blink scales radius + innerRadius after conversion, no
+   * gates. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); profile-index packing is by-reference per lightConversion.js.")
+  GetLights(lightManager)
+  {
+    const features = EveSpriteLineSet.#features;
+    features.parentBrightness = this.#activationStrength;
+    features.parentScale = 1;
+    const time = lightManager?.GetAnimationTime?.() ?? 0;
+    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality?.() ?? 0;
+    const record = EveSpriteLineSet.#lightRecord;
+
+    for (const light of this.lights)
+    {
+      AsPerPointLightData(record, light.lightData, light.boneMatrix, features, quality);
+      const blinkScale = Blink(time, light.blinkRate, light.blinkPhase, light.minScale, light.maxScale);
+      record.radius *= blinkScale;
+      record.innerRadius *= blinkScale;
+      record.lightType = Tr2Light.POINT_LIGHT;
+      record.lightData = light.lightData;
+      record.lightProfile = light.lightProfile;
+      record.owner = this;
+      lightManager?.AddLight?.(record);
+    }
+  }
+
+  static #features = { parentBrightness: 0, parentScale: 1 };
+
+  static #lightRecord = CreateLightRecord();
+}

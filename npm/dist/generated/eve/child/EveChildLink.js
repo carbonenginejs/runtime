@@ -6,8 +6,8 @@ import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { sph3 } from '@carbonenginejs/runtime-utils/sph3';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
-import { EveSpaceObjectPSData as _EveSpaceObjectPSData } from '../../../eve/EveSpaceObjectPSData.js';
-import { EveSpaceObjectVSData as _EveSpaceObjectVSData } from '../../../eve/EveSpaceObjectVSData.js';
+import { EveSpaceObjectPSData as _EveSpaceObjectPSData } from '../../../eve/perObjectData/EveSpaceObjectPSData.js';
+import { EveSpaceObjectVSData as _EveSpaceObjectVSData } from '../../../eve/perObjectData/EveSpaceObjectVSData.js';
 
 let _initProto, _initClass, _init_linkStrengthCurves, _init_extra_linkStrengthCurves, _init_linkStrengthBindings, _init_extra_linkStrengthBindings, _init_linkBarrier, _init_extra_linkBarrier, _init_currentDistance, _init_extra_currentDistance, _init_currentDirection, _init_extra_currentDirection, _init_target, _init_extra_target, _init_linkStrength, _init_extra_linkStrength, _init_targetRadius, _init_extra_targetRadius;
 

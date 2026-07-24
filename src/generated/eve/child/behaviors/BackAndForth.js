@@ -6,7 +6,7 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { EveLocatorSets } from "../../../../eve/EveLocatorSets.js";
+import { EveLocatorSets } from "../../../../eve/locator/EveLocatorSets.js";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
 const Z_AXIS = vec3.fromValues(0, 0, 1);

@@ -10,8 +10,8 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 import { EveEntity } from "../../generated/eve/EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
-import { EveSpaceObjectPSData } from "../EveSpaceObjectPSData.js";
-import { EveSpaceObjectVSData } from "../EveSpaceObjectVSData.js";
+import { EveSpaceObjectPSData } from "../perObjectData/EveSpaceObjectPSData.js";
+import { EveSpaceObjectVSData } from "../perObjectData/EveSpaceObjectVSData.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 
 

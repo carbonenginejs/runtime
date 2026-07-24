@@ -8,7 +8,6 @@ export * from "./enums.js";
 export * from "./fxAttributes/index.js";
 export * from "./lights/index.js";
 export * from "./overlays/index.js";
-export * from "./perObjectData/index.js";
 export * from "./renderable/index.js";
 export * from "./scene/index.js";
 export * from "./smartLights/index.js";

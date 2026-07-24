@@ -16,7 +16,9 @@ import { ShadowQuality } from '../../generated/trinityCore/enums.js';
 // packing is a renderer-backend concern. Records are scratch; the manager
 // duck must copy (Carbon's Tr2LightManager::AddLight copies by value).
 
-/** Carbon Tr2LightManager light flags (Tr2LightManager.h:100-105). */
+/** Carbon Tr2LightManager light flags (Tr2LightManager.h:100-105).
+ * NOTE: these bit-flag constants should be modelled as an enum (a proper
+ * schema enum / bitfield), not loose exported consts. */
 const LIGHT_FLAG_AFFECTS_SURFACES = 1;
 const LIGHT_FLAG_AFFECTS_PARTICLES = 1 << 1;
 const LIGHT_FLAG_CASTS_SHADOWS = 1 << 2;

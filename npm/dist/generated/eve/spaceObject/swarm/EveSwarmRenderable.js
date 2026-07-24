@@ -6,8 +6,8 @@ import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
-import { EveSpaceObjectPSData as _EveSpaceObjectPSData } from '../../../../eve/EveSpaceObjectPSData.js';
-import { EveSpaceObjectVSData as _EveSpaceObjectVSData } from '../../../../eve/EveSpaceObjectVSData.js';
+import { EveSpaceObjectPSData as _EveSpaceObjectPSData } from '../../../../eve/perObjectData/EveSpaceObjectPSData.js';
+import { EveSpaceObjectVSData as _EveSpaceObjectVSData } from '../../../../eve/perObjectData/EveSpaceObjectVSData.js';
 import { Tr2PerObjectData } from '../../../../trinityCore/Tr2PerObjectData.js';
 import { Tr2RenderReason } from '../../../trinityCore/enums.js';
 

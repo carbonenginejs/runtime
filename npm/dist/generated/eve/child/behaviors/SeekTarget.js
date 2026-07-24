@@ -2,7 +2,7 @@ import { applyDecs2311 as _applyDecs2311 } from '../../../../_virtual/_rollupPlu
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
-import { EveLocatorSets as _EveLocatorSets } from '../../../../eve/EveLocatorSets.js';
+import { EveLocatorSets as _EveLocatorSets } from '../../../../eve/locator/EveLocatorSets.js';
 
 let _initProto, _initClass, _init_behaviorPriority, _init_extra_behaviorPriority, _init_behaviorWeight, _init_extra_behaviorWeight, _init_distFromOrigin, _init_extra_distFromOrigin, _init_arrivedRadius, _init_extra_arrivedRadius, _init_slowDownRadius, _init_extra_slowDownRadius, _init_target, _init_extra_target, _init_firstSpawnAtRandomPlaces, _init_extra_firstSpawnAtRandomPlaces, _init_onFirstDroneArrivedCallback, _init_extra_onFirstDroneArrivedCallback, _init_totalRepairTime, _init_extra_totalRepairTime, _init_secondsToTurn, _init_extra_secondsToTurn, _init_locatorSetName, _init_extra_locatorSetName, _init_locatorSet, _init_extra_locatorSet, _init_exit, _init_extra_exit, _init_repair, _init_extra_repair, _init_enabled, _init_extra_enabled;
 

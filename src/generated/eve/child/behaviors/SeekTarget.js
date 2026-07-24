@@ -4,7 +4,7 @@
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { EveLocatorSets } from "../../../../eve/EveLocatorSets.js";
+import { EveLocatorSets } from "../../../../eve/locator/EveLocatorSets.js";
 
 /** SeekTarget (eve/child/behaviors) - generated from schema shapeHash fb9a8388.... */
 @type.define({ className: "SeekTarget", family: "eve/child/behaviors" })

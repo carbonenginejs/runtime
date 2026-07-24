@@ -15,7 +15,9 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
 
-/** Carbon Tr2LightManager light flags (Tr2LightManager.h:100-105). */
+/** Carbon Tr2LightManager light flags (Tr2LightManager.h:100-105).
+ * NOTE: these bit-flag constants should be modelled as an enum (a proper
+ * schema enum / bitfield), not loose exported consts. */
 export const LIGHT_FLAG_AFFECTS_SURFACES = 1;
 export const LIGHT_FLAG_AFFECTS_PARTICLES = 1 << 1;
 export const LIGHT_FLAG_CASTS_SHADOWS = 1 << 2;

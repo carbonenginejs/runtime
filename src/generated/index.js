@@ -21,7 +21,6 @@ export * from "./eve/effect/index.js";
 export * from "./eve/fxAttributes/index.js";
 export * from "./eve/lights/index.js";
 export * from "./eve/overlays/index.js";
-export * from "./eve/perObjectData/index.js";
 export * from "./eve/renderable/index.js";
 export * from "./eve/renderable/stretch/index.js";
 export * from "./eve/scene/index.js";
