@@ -1,12 +1,16 @@
 // Ported from CarbonEngine trinity/trinity/UI/Tr2MainWindow.h/.cpp.
-import { PresentInterval, Tr2WindowMode, Tr2WindowShowState } from "@carbonenginejs/runtime-const/render-context";
+import { PresentInterval, Tr2WindowMode, Tr2WindowShowState } from "@carbonenginejs/runtime-utils/render-context";
 
+/**
+ * Carbon main-window state record for mode, size, position, and presentation settings.
+ */
 export class Tr2MainWindowState
 {
     static PresentInterval = PresentInterval;
     static Tr2WindowMode = Tr2WindowMode;
     static Tr2WindowShowState = Tr2WindowShowState;
 
+    /** Creates a main-window state record with Carbon-compatible defaults. */
     constructor(values = {})
     {
         this.adapter = 0;
@@ -20,6 +24,7 @@ export class Tr2MainWindowState
         this.SetValues(values);
     }
 
+    /** Applies recognized numeric state values and returns this record. */
     SetValues(values = {})
     {
         for (const key of [ "adapter", "presentInterval", "height", "width", "left", "showState", "windowMode", "top" ])
@@ -29,6 +34,7 @@ export class Tr2MainWindowState
         return this;
     }
 
+    /** Returns a detached main-window state record. */
     GetValues()
     {
         return {
@@ -43,11 +49,13 @@ export class Tr2MainWindowState
         };
     }
 
+    /** Returns an independent copy of this state. */
     Clone()
     {
         return new Tr2MainWindowState(this.GetValues());
     }
 
+    /** Reports whether applying another state requires device reconfiguration. */
     RequiresDeviceReset(other)
     {
         return this.windowMode !== other.windowMode || this.adapter !== other.adapter ||
@@ -55,6 +63,7 @@ export class Tr2MainWindowState
             this.presentInterval !== other.presentInterval;
     }
 
+    /** Returns the Carbon-style human-readable state description. */
     __str__()
     {
         let result = `${windowModeName(this.windowMode)} on adapter ${this.adapter} ${this.width}x${this.height}, present interval ${presentIntervalName(this.presentInterval)}`;
@@ -65,6 +74,7 @@ export class Tr2MainWindowState
         return result;
     }
 
+    /** Returns the human-readable state description. */
     toString()
     {
         return this.__str__();

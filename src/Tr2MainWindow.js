@@ -1,5 +1,5 @@
 // Browser adaptation of CarbonEngine trinity/trinity/UI/Tr2MainWindow.
-import { Tr2WindowMode, Tr2WindowShowState } from "@carbonenginejs/runtime-const/render-context";
+import { Tr2WindowMode, Tr2WindowShowState } from "@carbonenginejs/runtime-utils/render-context";
 import { GetUIScancode, UIScancode } from "./UIScancode.js";
 import { Tr2MainWindowState } from "./Tr2MainWindowState.js";
 import { Tr2MouseCursor } from "./Tr2MouseCursor.js";
@@ -11,8 +11,12 @@ const CALLBACK_FIELDS = Object.freeze([
     "onSetMarkedTextIME_MacOS", "onKeyboardLayoutChange_MacOS"
 ]);
 
+/**
+ * Browser adaptation of CarbonEngine's main-window state and input boundary.
+ */
 export class Tr2MainWindow
 {
+    /** Creates a browser main-window adapter and optionally attaches host listeners. */
     constructor(options = {})
     {
         for (const field of CALLBACK_FIELDS) this[field] = null;
@@ -47,6 +51,7 @@ export class Tr2MainWindow
     #closed = false;
     #backBufferFormat;
 
+    /** Attaches keyboard, pointer, window, and visibility listeners to injected hosts. */
     Attach(options = {})
     {
         this.Detach();
@@ -71,6 +76,7 @@ export class Tr2MainWindow
         return this;
     }
 
+    /** Removes attached host listeners and clears pressed-key state. */
     Detach()
     {
         for (const [ target, type, listener ] of this.#listeners) target.removeEventListener(type, listener);
@@ -79,21 +85,25 @@ export class Tr2MainWindow
         return this;
     }
 
+    /** Reports whether the adapted window is active. */
     IsActive()
     {
         return this.HasFocus();
     }
 
+    /** Reports whether the adapted document currently has focus. */
     HasFocus()
     {
         return !this.#closed && (typeof this.#document?.hasFocus === "function" ? this.#document.hasFocus() : true);
     }
 
+    /** Reports whether the adapted document or window state is hidden. */
     IsHidden()
     {
         return this.#document?.hidden === true || this.#state.showState === Tr2WindowShowState.MINIMIZED;
     }
 
+    /** Sets the minimum sanitized browser window dimensions. */
     SetMinimumSize(width, height)
     {
         this.#minimumSize.width = Math.max(0, Math.trunc(Number(width) || 0));
@@ -101,6 +111,7 @@ export class Tr2MainWindow
         return this;
     }
 
+    /** Applies a sanitized window state and emits swap-chain callbacks. */
     SetWindowState(state)
     {
         const next = state instanceof Tr2MainWindowState ? state.Clone() : new Tr2MainWindowState(state);
@@ -112,11 +123,13 @@ export class Tr2MainWindow
         return true;
     }
 
+    /** Returns a detached snapshot of the current window state. */
     GetWindowState()
     {
         return this.#state.Clone();
     }
 
+    /** Clamps a window state to browser and configured size limits. */
     SanitizeState(state)
     {
         if (!(state instanceof Tr2MainWindowState)) throw new TypeError("Tr2MainWindow.SanitizeState requires Tr2MainWindowState.");
@@ -130,6 +143,7 @@ export class Tr2MainWindow
         return state;
     }
 
+    /** Creates the default sanitized state for one window mode. */
     GetDefaultState(windowMode = Tr2WindowMode.FULL_SCREEN)
     {
         const state = new Tr2MainWindowState({ windowMode });
@@ -138,6 +152,7 @@ export class Tr2MainWindow
         return this.SanitizeState(state);
     }
 
+    /** Stores a detached state snapshot for its window mode. */
     StoreStateSettings(state)
     {
         const value = state instanceof Tr2MainWindowState ? state : new Tr2MainWindowState(state);
@@ -145,6 +160,7 @@ export class Tr2MainWindow
         return this;
     }
 
+    /** Returns unique browser window and screen size options. */
     GetWindowSizeOptions()
     {
         const sizes = [
@@ -155,6 +171,7 @@ export class Tr2MainWindow
         return sizes.filter(([ width, height ], index) => sizes.findIndex(item => item[0] === width && item[1] === height) === index);
     }
 
+    /** Sets the adapted document title when a document is available. */
     SetWindowTitle(title)
     {
         if (!this.#document) return false;
@@ -162,11 +179,13 @@ export class Tr2MainWindow
         return true;
     }
 
+    /** Returns the adapted document title. */
     GetWindowTitle()
     {
         return this.#document?.title ?? "";
     }
 
+    /** Applies or clears a Tr2MouseCursor on the event target. */
     SetMouseCursor(cursor)
     {
         if (cursor !== null && !(cursor instanceof Tr2MouseCursor)) throw new TypeError("Tr2MainWindow cursor must be a Tr2MouseCursor.");
@@ -174,11 +193,13 @@ export class Tr2MainWindow
         return cursor ? cursor.Apply(this.#target) : true;
     }
 
+    /** Returns the currently configured mouse cursor. */
     GetMouseCursor()
     {
         return this.#cursor;
     }
 
+    /** Requests browser pointer lock when supported. */
     ClipCursor()
     {
         if (typeof this.#target?.requestPointerLock !== "function") return false;
@@ -186,6 +207,7 @@ export class Tr2MainWindow
         return result && typeof result.then === "function" ? result.then(() => true) : true;
     }
 
+    /** Exits browser pointer lock when supported. */
     UnclipCursor()
     {
         if (typeof this.#document?.exitPointerLock !== "function") return false;
@@ -193,17 +215,20 @@ export class Tr2MainWindow
         return true;
     }
 
+    /** Returns the last observed pointer position. */
     GetCursorPos()
     {
         return [ ...this.#cursorPosition ];
     }
 
+    /** Reports unsupported because browsers cannot warp the system cursor. */
     SetCursorPos()
     {
         // Browsers deliberately do not allow scripts to warp the system cursor.
         return false;
     }
 
+    /** Reports whether one browser or Carbon key is currently pressed. */
     Key(value)
     {
         const scancode = GetUIScancode(value);
@@ -211,6 +236,7 @@ export class Tr2MainWindow
         return this.#pressed.has(code);
     }
 
+    /** Reports whether one toggle key is currently active. */
     IsKeyToggled(value)
     {
         const scancode = GetUIScancode(value);
@@ -218,50 +244,59 @@ export class Tr2MainWindow
         return this.#toggled.has(code);
     }
 
+    /** Returns the maintained display text for one key. */
     GetKeyNameText(value)
     {
         const scancode = GetUIScancode(value);
         return scancode?.mDescription ?? String(value ?? "");
     }
 
+    /** Returns the caller-supplied back-buffer format token. */
     GetBackBufferFormat()
     {
         return this.#backBufferFormat;
     }
 
+    /** Returns zero because browser windows expose no native HWND. */
     GetHwndAsLong()
     {
         return 0;
     }
 
+    /** Reports unsupported because browsers expose no Windows message filter. */
     SetWindowsMessageFilter()
     {
         return false;
     }
 
+    /** Returns the explicit unsupported Windows message-filter result. */
     GetWindowsMessageFilter()
     {
         return [ false, [] ];
     }
 
+    /** Reports whether the browser-owned event loop may continue processing. */
     ProcessMessages()
     {
         // The browser owns and drains its event loop.
         return !this.#closed;
     }
 
+    /** Requests browser fullscreen mode on the configured target. */
     RequestFullscreen(options)
     {
         if (typeof this.#target?.requestFullscreen !== "function") return false;
         return this.#target.requestFullscreen(options);
     }
 
+    /** Exits browser fullscreen mode when supported. */
     ExitFullscreen()
     {
         if (typeof this.#document?.exitFullscreen !== "function") return false;
         return this.#document.exitFullscreen();
     }
 
+    /** Marks the adapter closed, emits its callback, and detaches listeners. */
     Close()
     {
         if (this.#closed) return this;

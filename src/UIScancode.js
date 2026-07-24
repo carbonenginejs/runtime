@@ -83,8 +83,12 @@ for (const [ browserCode, virtualKey, name, description ] of [
     [ "IntlBackslash", 0xe2, "VK_OEM_102", "International backslash key" ]
 ]) define(browserCode, virtualKey, name, description);
 
+/**
+ * Carbon-compatible keyboard scancode record with browser code mapping.
+ */
 export class UIScancode
 {
+    /** Creates a Carbon-compatible keyboard scancode record. */
     constructor(mDIK = 0, mName = "", mDescription = "", browserCode = null)
     {
         this.mDIK = Number.isInteger(mDIK) ? mDIK & 0xff : 0;
@@ -93,6 +97,7 @@ export class UIScancode
         this.browserCode = browserCode ? String(browserCode) : null;
     }
 
+    /** Creates a scancode from a KeyboardEvent-like object. */
     static FromKeyboardEvent(event)
     {
         if (!event || typeof event !== "object") throw new TypeError("UIScancode requires a KeyboardEvent-like object.");
@@ -119,6 +124,7 @@ for (const scancode of SCANCODES)
 }
 const BY_CODE = new Map(SCANCODES.map(scancode => [ scancode.browserCode, scancode ]));
 
+/** Resolves a scancode by record, numeric value, browser code, or Carbon name. */
 export function GetUIScancode(value)
 {
     if (value instanceof UIScancode) return value;

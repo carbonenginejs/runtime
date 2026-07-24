@@ -9,8 +9,12 @@ const CSS_CURSOR_KEYWORDS = new Set([
     "zoom-in", "zoom-out"
 ]);
 
+/**
+ * Browser adaptation of CarbonEngine's mouse cursor using CSS cursor values.
+ */
 export class Tr2MouseCursor
 {
+    /** Creates an optional browser CSS cursor from one or more representations. */
     constructor(bitmap = null, hotspotX = 0, hotspotY = 0, representations = [])
     {
         this.cssCursor = null;
@@ -24,11 +28,13 @@ export class Tr2MouseCursor
 
     #objectUrl;
 
+    /** Initializes this cursor using Carbon's constructor-style method name. */
     __init__(bitmap, hotspotX = 0, hotspotY = 0, representations = [])
     {
         this.Create(bitmap, hotspotX, hotspotY, representations);
     }
 
+    /** Selects a usable representation and creates its CSS cursor value. */
     Create(bitmap, hotspotX = 0, hotspotY = 0, representations = [])
     {
         this.Destroy();
@@ -56,11 +62,13 @@ export class Tr2MouseCursor
         return true;
     }
 
+    /** Reports whether this cursor has a usable CSS value. */
     IsValid()
     {
         return typeof this.cssCursor === "string" && this.cssCursor.length > 0;
     }
 
+    /** Applies this cursor to a style-bearing browser target. */
     Apply(target = globalThis.document?.documentElement)
     {
         if (!this.IsValid() || !target?.style) return false;
@@ -68,6 +76,7 @@ export class Tr2MouseCursor
         return true;
     }
 
+    /** Releases any owned object URL and clears the cursor value. */
     Destroy()
     {
         if (this.#objectUrl && typeof globalThis.URL?.revokeObjectURL === "function")

@@ -1,32 +1,55 @@
 # @carbonenginejs/runtime-input
 
-Optional, swappable browser input subsystem: host-window, cursor, keyboard,
-mouse/touch, gamepad, spacemouse, and XR adapters.
+Browser host-window, keyboard, pointer, and cursor adapters for CarbonEngineJS.
 
-Part of the CarbonEngineJS JavaScript runtime/engine tier (browser-first,
-WebGPU-first). Ports and adapts CarbonEngine source; ccpwgl is consulted only
-as a secondary browser-shaped reference.
+Use this package to translate DOM window and input events into Carbon-shaped
+main-window callbacks and state. It can also run headlessly with injected
+host objects. Gamepad, touch gestures, spacemouse, IME composition, and WebXR
+input are not implemented by the current package.
 
-## Status
+## Install
 
-The first maintained slice owns Carbon's `Tr2MainWindow`,
-`Tr2MainWindowState`, `Tr2MouseCursor`, and `UIScancode` vocabulary. Native
-handles and message pumps are replaced with injected browser
-`window`/`document`/`screen`/element contracts, DOM events, CSS cursors,
-Pointer Lock, and Fullscreen APIs. The package remains importable headlessly.
+```sh
+npm install @carbonenginejs/runtime-input
+```
 
-Browser security boundaries are explicit: scripts cannot warp the system
-cursor, enumerate native display modes, read an HWND, or synchronously force
-pointer lock/fullscreen. Those methods return an unsupported result or expose
-the browser's asynchronous API instead of pretending Carbon's desktop call
-succeeded.
+## Quick start
 
-The package remains a leaf: it emits normalized events, poses, and rays and
-never intersects or mutates the Trinity graph. VR input belongs here; session,
-framebuffer, and presentation orchestration belongs to the client and engine.
+```js
+import { Tr2MainWindow } from "@carbonenginejs/runtime-input";
 
-## Provenance
+const mainWindow = new Tr2MainWindow({
+    window,
+    document,
+    target: document.documentElement
+});
 
-CarbonEngine and Fenris Creations (CCP Games) are named for interoperability
-and provenance context. This package is not affiliated with or endorsed by
-CCP Games.
+mainWindow.onKeyDown = (scancode, repeated, event) => {
+    console.log(scancode, repeated, event.code);
+};
+
+mainWindow.onMouseMove = (x, y, dx, dy) => {
+    console.log({ x, y, dx, dy });
+};
+```
+
+Call `Detach()` when the host no longer owns the listeners:
+
+```js
+mainWindow.Detach();
+```
+
+## Documentation
+
+- [Package documentation](docs/README.md)
+- [Architecture](docs/architecture.md)
+- [API reference](docs/reference/api.md)
+- [Browser capability boundaries](docs/reference/browser-boundaries.md)
+- [Class catalog](docs/reference/classes/README.md)
+
+## License
+
+MIT. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+CarbonEngine and CCP Games names are used for interoperability and provenance
+context. This project is not affiliated with or endorsed by CCP Games.
