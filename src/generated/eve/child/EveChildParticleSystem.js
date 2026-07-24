@@ -264,10 +264,20 @@ export class EveChildParticleSystem extends EveChildTransform
 
   /** Carbon method GetPerObjectData (EveChildParticleSystem.cpp:180-195). */
   @carbon.method
-  @impl.notImplemented
-  GetPerObjectData(..._args)
+  @impl.adapted
+  @impl.reason("Carbon's transient EveBasicPerObjectData fill (cpp:182-194): world/worldLast transposed, worldInverse = Inverse(world). Trinity Allocs the record from the accumulator's store and Sets logical values by name (the store transposes per the engine layout).")
+  GetPerObjectData(accumulator)
   {
-    throw new Error("EveChildParticleSystem.GetPerObjectData is not implemented in CarbonEngineJS.");
+    const data = accumulator.Alloc("EveBasicPerObjectData");
+
+    data.Set("world", this.worldTransform);
+    data.Set("worldLast", this.#worldTransformLast);
+
+    const inverse = mat4.create();
+    if (!mat4.invert(inverse, this.worldTransform)) mat4.identity(inverse);
+    data.Set("worldInverse", inverse);
+
+    return data;
   }
 
   /** Carbon's synchronous pass is empty (EveChildParticleSystem.cpp:197-199). */
