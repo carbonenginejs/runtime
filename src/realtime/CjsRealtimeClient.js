@@ -29,6 +29,7 @@ export class CjsRealtimeClient
     #running;
     #skipReconnectDelay;
     #socket;
+    #subscriptions;
     #subscriptionsById;
     #subscriptionsByService;
     #webSocketClass;
@@ -89,6 +90,7 @@ export class CjsRealtimeClient
         this.#random = random;
         this.#onStateChange = onStateChange;
         this.#onError = onError;
+        this.#subscriptions = new Set();
         this.#subscriptionsByService = new Map();
         this.#subscriptionsById = new Map();
         this.#pendingRequests = new Map();
@@ -176,15 +178,13 @@ export class CjsRealtimeClient
             ? options
             : new CjsRealtimeSubscription(options);
 
-        if (this.#subscriptionsByService.has(subscription.serviceId))
-        {
-            throw new CjsRealtimeError(
-                "subscription_exists",
-                `A realtime subscription already exists for ${subscription.serviceId}`
-            );
-        }
+        const serviceSubscriptions = this.#subscriptionsByService.get(
+            subscription.serviceId
+        ) ?? new Set();
 
-        this.#subscriptionsByService.set(subscription.serviceId, subscription);
+        serviceSubscriptions.add(subscription);
+        this.#subscriptionsByService.set(subscription.serviceId, serviceSubscriptions);
+        this.#subscriptions.add(subscription);
 
         if (this.state === "ready")
         {
@@ -196,35 +196,74 @@ export class CjsRealtimeClient
     }
 
     /** Removes one desired subscription and its current server subscription. */
-    async Unsubscribe(serviceId)
+    async Unsubscribe(value)
     {
-        CjsRealtimeProtocol.assertServiceId(serviceId);
-        const subscription = this.#subscriptionsByService.get(serviceId);
+        let subscription;
+
+        if (value instanceof CjsRealtimeSubscription)
+        {
+            subscription = this.#subscriptions.has(value) ? value : null;
+        }
+        else
+        {
+            CjsRealtimeProtocol.assertServiceId(value);
+            const subscriptions = this.#subscriptionsByService.get(value);
+
+            if (subscriptions?.size > 1)
+            {
+                throw new CjsRealtimeError(
+                    "subscription_ambiguous",
+                    `More than one realtime subscription exists for ${value}`
+                );
+            }
+
+            subscription = subscriptions?.values().next().value ?? null;
+        }
 
         if (!subscription)
         {
             return false;
         }
 
-        if (this.state === "ready" && subscription.GetSubscriptionId())
+        this.#subscriptions.delete(subscription);
+        const serviceSubscriptions = this.#subscriptionsByService.get(
+            subscription.serviceId
+        );
+
+        serviceSubscriptions?.delete(subscription);
+
+        if (serviceSubscriptions?.size === 0)
         {
-            await this.#QueueOperation(async () =>
+            this.#subscriptionsByService.delete(subscription.serviceId);
+        }
+
+        try
+        {
+            if (this.state === "ready")
             {
-                await this.#Request(requestId => CjsRealtimeProtocol.createUnsubscribe(
-                    requestId,
-                    subscription.GetSubscriptionId()
-                ));
-            });
+                await this.#QueueOperation(async () =>
+                {
+                    if (subscription.GetSubscriptionId())
+                    {
+                        await this.#Request(requestId =>
+                            CjsRealtimeProtocol.createUnsubscribe(
+                                requestId,
+                                subscription.GetSubscriptionId()
+                            ));
+                    }
+                });
+            }
         }
-
-        this.#subscriptionsByService.delete(serviceId);
-
-        if (subscription.GetSubscriptionId())
+        finally
         {
-            this.#subscriptionsById.delete(subscription.GetSubscriptionId());
+            if (subscription.GetSubscriptionId())
+            {
+                this.#subscriptionsById.delete(subscription.GetSubscriptionId());
+            }
+
+            subscription.Dispose();
         }
 
-        subscription.Dispose();
         return true;
     }
 
@@ -253,7 +292,22 @@ export class CjsRealtimeClient
     /** Returns one currently desired subscription or null. */
     GetSubscription(serviceId)
     {
-        return this.#subscriptionsByService.get(serviceId) ?? null;
+        CjsRealtimeProtocol.assertServiceId(serviceId);
+
+        return this.#subscriptionsByService.get(serviceId)?.values().next().value ?? null;
+    }
+
+    /** Returns desired subscriptions for one service or the whole client. */
+    GetSubscriptions(serviceId = null)
+    {
+        if (serviceId === null)
+        {
+            return Object.freeze([ ...this.#subscriptions ]);
+        }
+
+        CjsRealtimeProtocol.assertServiceId(serviceId);
+
+        return Object.freeze([ ...(this.#subscriptionsByService.get(serviceId) ?? []) ]);
     }
 
     /** Returns whether the socket, hello, and desired subscriptions are ready. */
@@ -506,7 +560,7 @@ export class CjsRealtimeClient
     {
         while (true)
         {
-            const subscription = [ ...this.#subscriptionsByService.values() ]
+            const subscription = [ ...this.#subscriptions ]
                 .find(item => item.GetSubscriptionId() === null);
 
             if (!subscription)
@@ -520,7 +574,8 @@ export class CjsRealtimeClient
 
     async #StartSubscription(subscription)
     {
-        if (subscription.GetSubscriptionId() !== null)
+        if (!this.#subscriptions.has(subscription)
+            || subscription.GetSubscriptionId() !== null)
         {
             return subscription;
         }
@@ -528,7 +583,8 @@ export class CjsRealtimeClient
         const result = await this.#Request(requestId => CjsRealtimeProtocol.createSubscribe(
             requestId,
             subscription.serviceId,
-            subscription.topics
+            subscription.topics,
+            subscription.target
         ));
         const data = result.data;
 
@@ -545,7 +601,29 @@ export class CjsRealtimeClient
             throw new CjsRealtimeError("invalid_result", "Realtime subscribe service does not match");
         }
 
-        subscription.Begin(data.subscriptionId, data.cursor);
+        if (subscription.target !== null && !CjsRealtimeProtocol.isRecord(data.target))
+        {
+            throw new CjsRealtimeError(
+                "invalid_result",
+                "Targeted realtime subscription result omitted its target"
+            );
+        }
+
+        if (!this.#subscriptions.has(subscription))
+        {
+            await this.#Request(requestId =>
+                CjsRealtimeProtocol.createUnsubscribe(
+                    requestId,
+                    data.subscriptionId
+                ));
+            return subscription;
+        }
+
+        subscription.Begin(
+            data.subscriptionId,
+            data.cursor,
+            data.target ?? null
+        );
         this.#subscriptionsById.set(data.subscriptionId, subscription);
 
         if (subscription.recovery === "snapshot")
@@ -739,7 +817,7 @@ export class CjsRealtimeClient
     {
         this.#subscriptionsById.clear();
 
-        for (const subscription of this.#subscriptionsByService.values())
+        for (const subscription of this.#subscriptions)
         {
             subscription.Reset();
         }

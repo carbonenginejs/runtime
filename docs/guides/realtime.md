@@ -43,8 +43,16 @@ await client.Connect();
 await subscription.WhenActive();
 ```
 
-Call `Subscribe` before or after `Connect`. One desired subscription per
-service ID is retained across connection generations.
+Call `Subscribe` before or after `Connect`. Several desired subscriptions may
+share one service ID and are retained independently across connection
+generations. Pass the subscription object to `Unsubscribe`; passing a service
+ID is supported only when exactly one desired subscription exists for it.
+
+## Provider-neutral chat
+
+The `./chat` facade builds targeted room listeners on this realtime client.
+See the [chat guide](chat.md) for hierarchy selectors, rich message assets,
+room cleanup, and browser-local block lists.
 
 ## Close the client
 
@@ -94,5 +102,6 @@ must not evolve the wire format independently.
 ## Related documentation
 
 - [Architecture and boundaries](../architecture.md)
+- [Chat guide](chat.md)
 - [API reference](../reference/api.md)
 - [Realtime class catalog](../reference/classes/realtime.md)

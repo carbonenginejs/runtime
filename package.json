@@ -7,6 +7,7 @@
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./chat": "./src/chat/index.js",
     "./fileindex": "./src/fileindex/index.js",
     "./realtime": "./src/realtime/index.js"
   },
@@ -32,6 +33,7 @@
     "carbonenginejs",
     "tools-browser",
     "browser",
+    "chat",
     "fileindex",
     "realtime",
     "websocket"

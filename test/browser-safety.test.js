@@ -41,7 +41,7 @@ test("published source has no Node-only imports or globals", async () =>
 
 test("every public subpath imports independently", async () =>
 {
-    for (const name of [ "fileindex", "realtime" ])
+    for (const name of [ "chat", "fileindex", "realtime" ])
     {
         const module = await import(`@carbonenginejs/tools-browser/${name}`);
 

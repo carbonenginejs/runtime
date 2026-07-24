@@ -7,6 +7,10 @@ import {
     CjsRealtimeSubscription,
     REALTIME_SUBPROTOCOL
 } from "@carbonenginejs/tools-browser/realtime";
+import {
+    CjsChatBlockList,
+    CjsChatClient
+} from "@carbonenginejs/tools-browser/chat";
 
 const SERVICE = Object.freeze({
     family: "synthetic.state",
@@ -266,6 +270,224 @@ test("buffers socket events while the authenticated snapshot request is pending"
     client.Close();
 });
 
+test("keeps multiple targeted chat rooms independent on one realtime service", async () =>
+{
+    CjsRealtimeTestSocket.Reset((socket, message) =>
+    {
+        if (message.type === "hello")
+        {
+            queueMicrotask(() => socket.ServerMessage(Hello("connection-chat")));
+        }
+
+        if (message.type === "subscribe-targeted")
+        {
+            const login = message.target.room.login;
+
+            queueMicrotask(() => socket.ServerMessage(SubscribeResult(message.requestId, {
+                subscriptionId: `subscription-${login}`,
+                cursor: ChatCursor("stream-chat", 0, 0),
+                target: {
+                    room: {
+                        ...message.target.room,
+                        id: login === "fenriscreations" ? "200" : "201",
+                        kind: "channel",
+                        displayName: login,
+                        assets: {
+                            icon: {
+                                id: `twitch-channel-${login}`,
+                                url: `https://example.test/${login}.png`,
+                                contentType: "image/png",
+                                animated: false
+                            }
+                        }
+                    }
+                }
+            })));
+        }
+
+        if (message.type === "unsubscribe")
+        {
+            queueMicrotask(() => socket.ServerMessage({
+                type: "result",
+                requestId: message.requestId,
+                status: "completed",
+                data: { subscriptionId: message.subscriptionId }
+            }));
+        }
+    });
+
+    const delivered = [];
+    const realtime = new CjsRealtimeClient({
+        url: "http://127.0.0.1:3000",
+        capability: "chat-capability",
+        webSocketClass: CjsRealtimeTestSocket,
+        reconnect: { minimumDelayMs: 0, maximumDelayMs: 0 }
+    });
+    const chat = new CjsChatClient({
+        realtimeClient: realtime,
+        serviceId: SERVICE.id,
+        blockList: {
+            terms: [ "blocked phrase" ],
+            users: [ {
+                provider: "twitch",
+                id: "ignored-user"
+            } ]
+        }
+    });
+
+    assert.equal(new CjsChatBlockList().IsEmpty(), true);
+    const fenris = chat.ListenRoom({
+        provider: "twitch",
+        login: "fenriscreations"
+    }, {
+        onMessage: message => delivered.push(message)
+    });
+    const caldari = chat.ListenRoom({
+        provider: "twitch",
+        kind: "channel",
+        login: "caldariprimeponyclub"
+    }, {
+        onMessage: message => delivered.push(message)
+    });
+
+    await realtime.Connect();
+    assert.equal(realtime.GetSubscriptions(SERVICE.id).length, 2);
+    assert.deepEqual(
+        CjsRealtimeTestSocket.sockets[0].sent
+            .filter(message => message.type === "subscribe-targeted")
+            .map(message => message.target.room.login),
+        [ "fenriscreations", "caldariprimeponyclub" ]
+    );
+    assert.equal(
+        fenris.GetRoom().assets.icon.url,
+        "https://example.test/fenriscreations.png"
+    );
+    CjsRealtimeTestSocket.sockets[0].ServerMessage(ChatEvent({
+        subscriptionId: "subscription-fenriscreations",
+        login: "fenriscreations",
+        messageId: "fenris-message"
+    }));
+    CjsRealtimeTestSocket.sockets[0].ServerMessage(ChatEvent({
+        subscriptionId: "subscription-caldariprimeponyclub",
+        login: "caldariprimeponyclub",
+        messageId: "caldari-message"
+    }));
+    await WaitFor(() => delivered.length === 2);
+    CjsRealtimeTestSocket.sockets[0].ServerMessage(ChatEvent({
+        subscriptionId: "subscription-fenriscreations",
+        login: "fenriscreations",
+        messageId: "ignored-message",
+        authorId: "ignored-user",
+        sequence: 2
+    }));
+    CjsRealtimeTestSocket.sockets[0].ServerMessage(ChatEvent({
+        subscriptionId: "subscription-fenriscreations",
+        login: "fenriscreations",
+        messageId: "blocked-term-message",
+        text: "A BLOCKED PHRASE appeared",
+        sequence: 3
+    }));
+    CjsRealtimeTestSocket.sockets[0].ServerMessage(ChatEvent({
+        subscriptionId: "subscription-fenriscreations",
+        login: "fenriscreations",
+        messageId: "emote-only-message",
+        text: "",
+        sequence: 4
+    }));
+    await WaitFor(() => delivered.length === 3);
+
+    assert.equal(delivered.length, 3);
+    assert.equal(delivered[0].fragments[1].type, "emote");
+    assert.equal(delivered[0].fragments[1].emote.id, "animated-one");
+    assert.deepEqual(delivered[0].fragments[1].emote.formats, [
+        "animated",
+        "static"
+    ]);
+    assert.equal(delivered[2].text, "");
+    await assert.rejects(
+        realtime.Unsubscribe(SERVICE.id),
+        error => error.code === "subscription_ambiguous"
+    );
+    assert.equal(await fenris.Close(), true);
+    assert.equal(fenris.IsActive(), false);
+    assert.equal(caldari.IsActive(), true);
+    assert.equal(realtime.GetSubscriptions(SERVICE.id).length, 1);
+    realtime.Close();
+});
+
+test("releases a targeted room closed while its server subscription activates", async () =>
+{
+    let pendingSubscribe = null;
+
+    CjsRealtimeTestSocket.Reset((socket, message) =>
+    {
+        if (message.type === "hello")
+        {
+            queueMicrotask(() => socket.ServerMessage(Hello("connection-cancel")));
+        }
+
+        if (message.type === "subscribe-targeted")
+        {
+            pendingSubscribe = { socket, message };
+        }
+
+        if (message.type === "unsubscribe")
+        {
+            queueMicrotask(() => socket.ServerMessage({
+                type: "result",
+                requestId: message.requestId,
+                status: "completed",
+                data: { subscriptionId: message.subscriptionId }
+            }));
+        }
+    });
+
+    const realtime = new CjsRealtimeClient({
+        url: "http://127.0.0.1:3000",
+        capability: "chat-capability",
+        webSocketClass: CjsRealtimeTestSocket,
+        reconnect: { minimumDelayMs: 0, maximumDelayMs: 0 }
+    });
+    const chat = new CjsChatClient({
+        realtimeClient: realtime,
+        serviceId: SERVICE.id
+    });
+    const room = chat.ListenRoom({
+        provider: "twitch",
+        kind: "channel",
+        login: "example-channel"
+    });
+    const connected = realtime.Connect();
+
+    await WaitFor(() => pendingSubscribe !== null);
+    assert.equal(await room.Close(), true);
+    pendingSubscribe.socket.ServerMessage(SubscribeResult(
+        pendingSubscribe.message.requestId,
+        {
+            subscriptionId: "subscription-cancelled",
+            cursor: ChatCursor("stream-chat", 0, 0),
+            target: {
+                room: {
+                    ...pendingSubscribe.message.target.room,
+                    id: "202",
+                    displayName: "Example Channel"
+                }
+            }
+        }
+    ));
+
+    await connected;
+    assert.equal(realtime.GetSubscriptions(SERVICE.id).length, 0);
+    assert.equal(room.IsActive(), false);
+    assert.equal(
+        pendingSubscribe.socket.sent.some(message =>
+            message.type === "unsubscribe"
+            && message.subscriptionId === "subscription-cancelled"),
+        true
+    );
+    realtime.Close();
+});
+
 function Hello(connectionId)
 {
     return {
@@ -281,13 +503,20 @@ function Hello(connectionId)
     };
 }
 
-function SubscribeResult(requestId, { subscriptionId, cursor })
+function SubscribeResult(requestId, { subscriptionId, cursor, target = null })
 {
+    const data = { subscriptionId, service: SERVICE, cursor };
+
+    if (target !== null)
+    {
+        data.target = target;
+    }
+
     return {
         type: "result",
         requestId,
         status: "completed",
-        data: { subscriptionId, service: SERVICE, cursor }
+        data
     };
 }
 
@@ -339,6 +568,100 @@ function Snapshot({ streamId = "stream-one", sequence, topicSequence })
             schema: "synthetic.state.snapshot",
             version: 1,
             data: { value: "current" }
+        }
+    };
+}
+
+function ChatCursor(streamId, sequence, topicSequence)
+{
+    return {
+        streamId,
+        sequence,
+        topicSequences: {
+            "chat.message.received": topicSequence,
+            "chat.status.changed": 0
+        }
+    };
+}
+
+function ChatEvent({
+    subscriptionId,
+    login,
+    messageId,
+    authorId = "viewer-one",
+    text = "hello Kappa",
+    sequence = 1
+})
+{
+    return {
+        type: "event",
+        subscriptionId,
+        eventId: `event-${messageId}`,
+        service: SERVICE,
+        streamId: "stream-chat",
+        sequence,
+        topic: "chat.message.received",
+        topicSequence: sequence,
+        occurredAt: "2026-07-23T00:00:00.000Z",
+        publishedAt: "2026-07-23T00:00:00.000Z",
+        actor: { id: "service", kind: "service" },
+        payload: {
+            schema: "chat.event",
+            version: 1,
+            data: {
+                id: messageId,
+                text,
+                room: {
+                    provider: "twitch",
+                    integrationId: null,
+                    space: null,
+                    id: login === "fenriscreations" ? "200" : "201",
+                    kind: "channel",
+                    parentRoomId: null,
+                    login,
+                    displayName: login,
+                    assets: {
+                        icon: {
+                            id: `twitch-channel-${login}`,
+                            url: `https://example.test/${login}.png`,
+                            contentType: "image/png",
+                            animated: false
+                        }
+                    }
+                },
+                author: {
+                    id: authorId,
+                    login: authorId,
+                    displayName: authorId,
+                    color: null,
+                    roles: []
+                },
+                fragments: [
+                    { type: "text", text: "hello " },
+                    {
+                        type: "emote",
+                        text: "Kappa",
+                        emote: {
+                            id: "animated-one",
+                            setId: null,
+                            ownerId: null,
+                            formats: [ "animated", "static" ],
+                            asset: {
+                                id: "twitch-emote-animated-one",
+                                url: "https://example.test/animated-one.gif",
+                                contentType: "image/gif",
+                                animated: true
+                            }
+                        }
+                    }
+                ],
+                extensions: {
+                    twitch: {
+                        transport: "irc",
+                        emoteAnimation: "animated"
+                    }
+                }
+            }
         }
     };
 }

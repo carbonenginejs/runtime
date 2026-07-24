@@ -79,8 +79,8 @@ export class CjsRealtimeProtocol
         });
     }
 
-    /** Constructs one exact service/topic subscription request. */
-    static createSubscribe(requestId, serviceId, topics)
+    /** Constructs one exact or targeted service/topic subscription request. */
+    static createSubscribe(requestId, serviceId, topics, target = null)
     {
         CjsRealtimeProtocol.assertRequestId(requestId);
         CjsRealtimeProtocol.assertServiceId(serviceId);
@@ -97,11 +97,22 @@ export class CjsRealtimeProtocol
             throw new CjsRealtimeError("invalid_request", "subscribe.topics must be unique");
         }
 
+        if (target !== null && !CjsRealtimeProtocol.isRecord(target))
+        {
+            throw new CjsRealtimeError(
+                "invalid_request",
+                "Targeted realtime subscriptions require an object target"
+            );
+        }
+
         return Object.freeze({
-            type: "subscribe",
+            type: target === null ? "subscribe" : "subscribe-targeted",
             requestId,
             serviceId,
-            topics: Object.freeze([ ...normalized ])
+            topics: Object.freeze([ ...normalized ]),
+            ...(target === null
+                ? {}
+                : { target: CjsRealtimeProtocol.freezeJson(target) })
         });
     }
 

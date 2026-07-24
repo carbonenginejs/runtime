@@ -1,7 +1,6 @@
 # @carbonenginejs/tools-browser
 
-Browser-facing clients, remote readers, demos, and usable application tools
-shared by CarbonEngineJS users.
+Browser-facing CarbonEngineJS clients, remote readers, and application tools.
 
 Use this package when a useful browser implementation does not belong in a
 runtime library. Shared primitives remain in
@@ -38,12 +37,14 @@ console.log(entry.location);
 ```
 
 The root export is available when an application consumes several tool
-families. Targeted `./fileindex` and `./realtime` imports remain available.
+families. Targeted `./chat`, `./fileindex`, and `./realtime` imports remain
+available.
 
 ## Documentation
 
 - [Package documentation](docs/README.md)
 - [Architecture and boundaries](docs/architecture.md)
+- [Chat guide](docs/guides/chat.md)
 - [File-index guide](docs/guides/file-indexes.md)
 - [Realtime guide](docs/guides/realtime.md)
 - [Current API reference](docs/reference/api.md)

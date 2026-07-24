@@ -36,6 +36,8 @@ The implemented package currently owns:
 
 - appfileindex and resfileindex parsing, discovery, immutable lookup, named
   overlays, and safe HTTP(S) source resolution;
+- provider-neutral chat-room selection, browser-local filtering, disposable
+  room listeners, and consumption of server-resolved presentation assets;
 - Carbon realtime v1 message validation, WebSocket consumption, exact
   subscriptions, reconnect, capability replacement, and snapshot recovery;
 - caller-injected WebSocket, Fetch, and related browser capabilities.
@@ -81,6 +83,11 @@ Realtime errors expose bounded, secret-safe records. Server authentication,
 grants, provider policy, hubs, gateways, and retained history remain outside
 this package.
 
+Chat filtering in this package is local to one browser facade. Server-side
+policy remains authoritative because blocked messages can be suppressed before
+they reach any browser. Provider credentials, upstream room sharing, supplier
+asset resolution, and moderation synchronization remain server concerns.
+
 ## Environment contract
 
 Source is side-effect-free by public subpath and uses standard ECMAScript plus
@@ -90,6 +97,7 @@ offline tests and compatible non-browser hosts.
 ## Related documentation
 
 - [Package documentation](README.md)
+- [Chat guide](guides/chat.md)
 - [File-index guide](guides/file-indexes.md)
 - [Realtime guide](guides/realtime.md)
 - [Class-purpose catalog](reference/classes/README.md)

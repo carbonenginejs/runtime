@@ -10,19 +10,26 @@ export class CjsRealtimeSubscription
     #onEvent;
     #onSnapshot;
     #ready;
+    #resolvedTarget;
     #subscriptionId;
     #topicSequences;
 
     constructor({
         serviceId,
         topics,
+        target = null,
         recovery = "live",
         maxBufferedEvents = 512,
         onEvent = null,
         onSnapshot = null
     })
     {
-        const request = CjsRealtimeProtocol.createSubscribe("subscription-validation", serviceId, topics);
+        const request = CjsRealtimeProtocol.createSubscribe(
+            "subscription-validation",
+            serviceId,
+            topics,
+            target
+        );
 
         if (![ "live", "snapshot" ].includes(recovery))
         {
@@ -46,12 +53,14 @@ export class CjsRealtimeSubscription
 
         this.serviceId = request.serviceId;
         this.topics = request.topics;
+        this.target = request.target ?? null;
         this.recovery = recovery;
         this.maxBufferedEvents = maxBufferedEvents;
         this.status = "idle";
         this.#onEvent = onEvent;
         this.#onSnapshot = onSnapshot;
         this.#subscriptionId = null;
+        this.#resolvedTarget = this.target;
         this.#cursor = null;
         this.#topicSequences = new Map();
         this.#buffer = [];
@@ -82,13 +91,23 @@ export class CjsRealtimeSubscription
         return this.#subscriptionId;
     }
 
+    /** Returns the server-resolved target, including presentation metadata. */
+    GetTarget()
+    {
+        return this.#resolvedTarget;
+    }
+
     /** Begins one connection generation at its atomic subscription cursor. */
-    Begin(subscriptionId, cursorValue)
+    Begin(subscriptionId, cursorValue, targetValue = this.target)
     {
         CjsRealtimeProtocol.assertString(subscriptionId, "subscriptionId", 1, 128);
         const cursor = CjsRealtimeProtocol.normalizeCursor(cursorValue);
+        const target = targetValue === null
+            ? null
+            : CjsRealtimeProtocol.freezeJson(targetValue);
 
         this.#subscriptionId = subscriptionId;
+        this.#resolvedTarget = target;
         this.#buffer.length = 0;
         this.#SetCursor(cursor);
         this.status = this.recovery === "snapshot" ? "reconciling" : "active";
@@ -179,6 +198,7 @@ export class CjsRealtimeSubscription
     {
         this.status = "idle";
         this.#subscriptionId = null;
+        this.#resolvedTarget = this.target;
         this.#cursor = null;
         this.#topicSequences.clear();
         this.#buffer.length = 0;

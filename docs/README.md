@@ -41,9 +41,9 @@ tools-browser
       +---- tools-core wrappers using injected Web APIs
 ```
 
-The current package depends only on `@carbonenginejs/runtime-utils`. Its first
-public families are remote file-index handling and the Carbon realtime v1
-client.
+The current package depends only on `@carbonenginejs/runtime-utils`. Its public
+families are provider-neutral chat, remote file-index handling, and the Carbon
+realtime v1 client.
 
 ## Start here
 
@@ -64,12 +64,22 @@ import {
 } from "@carbonenginejs/tools-browser/realtime";
 ```
 
+For a provider-neutral room listener over that realtime connection, start
+with:
+
+```js
+import {
+    CjsChatClient
+} from "@carbonenginejs/tools-browser/chat";
+```
+
 The package remains private until its dependency and consumer migrations are
 complete.
 
 ## Documentation map
 
 - [Architecture and boundaries](architecture.md)
+- [Chat guide](guides/chat.md)
 - [File-index guide](guides/file-indexes.md)
 - [Realtime guide](guides/realtime.md)
 - [Current API reference](reference/api.md)
