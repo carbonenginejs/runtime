@@ -54,7 +54,7 @@
     "rollup": "^4.62.2"
   },
   "dependencies": {
-    "@carbonenginejs/core-math": "^0.1.5",
+    "@carbonenginejs/core-math": "^0.2.0",
     "@carbonenginejs/core-types": "^0.12.0",
     "@carbonenginejs/runtime-const": "^0.1.0",
     "meshoptimizer": "^1.2.0",
