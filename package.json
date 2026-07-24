@@ -1,12 +1,12 @@
 {
   "name": "@carbonenginejs/runtime-core",
-  "version": "0.2.0",
-  "private": true,
+  "version": "0.3.0",
   "description": "GPU-free CarbonEngineJS composition root and runtime service registry.",
   "type": "module",
   "main": "src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./platform": "./src/platform/index.js"
   },
   "sideEffects": false,
   "engines": {
@@ -14,7 +14,7 @@
   },
   "scripts": {
     "test": "node --test",
-    "lint": "node --check src/index.js && node --check test/runtime-core.test.js"
+    "lint": "node --check src/index.js && node --check src/platform/browserHelpers.js && node --check src/platform/Tr2DisplayMode.js && node --check src/platform/Tr2PlatformInfo.js && node --check src/platform/Tr2VideoAdapter.js && node --check src/platform/Tr2VideoAdapters.js && node --check src/platform/Tr2VideoDriver.js && node --check test/runtime-core.test.js && node --check test/platform.test.js"
   },
   "keywords": [
     "carbonenginejs",
@@ -24,11 +24,20 @@
   ],
   "files": [
     "src",
+    "docs",
     "README.md",
     "LICENSE",
     "NOTICE"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carbonenginejs/runtime-core.git"
+  },
+  "homepage": "https://github.com/carbonenginejs/runtime-core#readme",
+  "bugs": {
+    "url": "https://github.com/carbonenginejs/runtime-core/issues"
+  },
   "publishConfig": {
     "access": "public"
   }

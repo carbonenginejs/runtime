@@ -6,6 +6,8 @@
  * supplied services.
  */
 
+export * from "./platform/index.js";
+
 export const CjsServiceKey = Object.freeze({
     RESOURCE_MANAGER: "resourceManager",
     SPACE_OBJECT_FACTORY: "spaceObjectFactory",
@@ -25,6 +27,9 @@ const OPTION_KEYS = new Set([
 
 const REQUEST_SELECTOR_KEYS = Object.freeze([ "behavior", "resourceBehavior" ]);
 
+/**
+ * GPU-free CarbonEngineJS composition root and runtime service registry.
+ */
 export class CjsLibrary
 {
     #services = new Map();
@@ -36,11 +41,13 @@ export class CjsLibrary
     #spaceObjectFactory = null;
     #initialized = false;
 
+    /** Creates a composition root from optional services, capabilities, and request policies. */
     constructor(options = {})
     {
         this.SetValues(options);
     }
 
+    /** Applies validated composition options and returns this library. */
     SetValues(options = {})
     {
         if (!options || typeof options !== "object" || Array.isArray(options))
@@ -143,6 +150,7 @@ export class CjsLibrary
         return this;
     }
 
+    /** Returns a snapshot of the configured services, capabilities, and request policies. */
     GetValues()
     {
         return {
@@ -156,6 +164,7 @@ export class CjsLibrary
         };
     }
 
+    /** Applies options and marks the composition root initialized. */
     Initialize(options = {})
     {
         this.SetValues(options);
@@ -163,6 +172,7 @@ export class CjsLibrary
         return this;
     }
 
+    /** Initializes the library and optionally loads SOF data through the configured factory. */
     async InitializeAsync(options = {})
     {
         const { dataPath, ...libraryOptions } = options || {};
@@ -181,12 +191,14 @@ export class CjsLibrary
         return this;
     }
 
+    /** Marks the composition root uninitialized without assuming ownership of its services. */
     Shutdown()
     {
         this.#initialized = false;
         return this;
     }
 
+    /** Registers or removes one named caller-owned service. */
     SetService(key, service)
     {
         const name = normalizeServiceKey(key);
@@ -205,37 +217,44 @@ export class CjsLibrary
         return this;
     }
 
+    /** Returns one named service, or null when it is not registered. */
     GetService(key)
     {
         return this.#services.get(normalizeServiceKey(key)) ?? null;
     }
 
+    /** Reports whether one named service is registered. */
     HasService(key)
     {
         return this.#services.has(normalizeServiceKey(key));
     }
 
+    /** Removes one named service and returns this library. */
     RemoveService(key)
     {
         this.SetService(key, null);
         return this;
     }
 
+    /** Registers the resource-manager service. */
     SetResourceManager(resourceManager)
     {
         return this.SetService(CjsServiceKey.RESOURCE_MANAGER, resourceManager);
     }
 
+    /** Returns the registered resource-manager service. */
     GetResourceManager()
     {
         return this.#resourceManager;
     }
 
+    /** Registers the space-object-factory service. */
     SetSpaceObjectFactory(spaceObjectFactory)
     {
         return this.SetService(CjsServiceKey.SPACE_OBJECT_FACTORY, spaceObjectFactory);
     }
 
+    /** Returns the registered space-object-factory service. */
     GetSpaceObjectFactory()
     {
         return this.#spaceObjectFactory;
@@ -249,6 +268,7 @@ export class CjsLibrary
         return this;
     }
 
+    /** Sets or removes one named runtime capability. */
     SetCapability(key, value)
     {
         const name = normalizeCapabilityKey(key);
@@ -257,27 +277,32 @@ export class CjsLibrary
         return this;
     }
 
+    /** Returns one named capability value. */
     GetCapability(key)
     {
         return this.#capabilities.get(normalizeCapabilityKey(key));
     }
 
+    /** Reports whether one named capability is registered. */
     HasCapability(key)
     {
         return this.#capabilities.has(normalizeCapabilityKey(key));
     }
 
+    /** Removes one named capability and returns this library. */
     RemoveCapability(key)
     {
         this.#capabilities.delete(normalizeCapabilityKey(key));
         return this;
     }
 
+    /** Returns an immutable snapshot of all registered capabilities. */
     GetCapabilities()
     {
         return Object.freeze(Object.fromEntries(this.#capabilities));
     }
 
+    /** Replaces the default options applied to resource requests. */
     SetResourceDefaults(options = {})
     {
         assertPlainObject(options, "CjsLibrary resource defaults");
@@ -285,6 +310,7 @@ export class CjsLibrary
         return this;
     }
 
+    /** Returns the immutable default resource-request options. */
     GetResourceDefaults()
     {
         return this.#resourceDefaults;
@@ -335,22 +361,26 @@ export class CjsLibrary
         return this;
     }
 
+    /** Returns one registered resource behavior, or null when absent. */
     GetResourceBehavior(name)
     {
         return this.#resourceBehaviors.get(normalizeBehaviorName(name))?.behavior ?? null;
     }
 
+    /** Reports whether one named resource behavior is registered. */
     HasResourceBehavior(name)
     {
         return this.#resourceBehaviors.has(normalizeBehaviorName(name));
     }
 
+    /** Removes one resource behavior and returns this library. */
     RemoveResourceBehavior(name)
     {
         this.#resourceBehaviors.delete(normalizeBehaviorName(name));
         return this;
     }
 
+    /** Returns an immutable name-to-behavior snapshot. */
     GetResourceBehaviors()
     {
         return Object.freeze(Object.fromEntries(
@@ -497,30 +527,35 @@ export class CjsLibrary
         });
     }
 
+    /** Resolves a request and obtains its resource handle synchronously. */
     GetResource(path, options = {})
     {
         const request = this.ResolveResourceRequest(path, options);
         return ForwardCall(this.#resourceManager, "GetResource", request.path, request.options);
     }
 
+    /** Resolves a request and obtains its decoded object synchronously. */
     GetObject(path, options = {})
     {
         const request = this.ResolveResourceRequest(path, options);
         return ForwardCall(this.#resourceManager, "GetObject", request.path, request.options);
     }
 
+    /** Resolves and asynchronously readies one resource handle. */
     FetchResource(path, options = {})
     {
         const request = this.ResolveResourceRequest(path, options);
         return FetchResolvedResource(this.#resourceManager, request);
     }
 
+    /** Resolves and asynchronously obtains one decoded object. */
     FetchObject(path, options = {})
     {
         const request = this.ResolveResourceRequest(path, options);
         return FetchResolvedObject(this.#resourceManager, request);
     }
 
+    /** Builds one SOF object from a DNA string through the configured factory. */
     FetchDNA(dna, options = {})
     {
         const sof = this.#spaceObjectFactory;
@@ -541,6 +576,7 @@ export class CjsLibrary
         return ForwardCall(sof, "BuildFromDNAAsync", dna, options);
     }
 
+    /** Fetches DNA, a resource, or a decoded object according to the request options. */
     Fetch(value, options = {})
     {
         if (options.kind === "dna" || IsDNAString(value)) return this.FetchDNA(value, options);
@@ -556,6 +592,7 @@ export class CjsLibrary
             : FetchResolvedObject(this.#resourceManager, request);
     }
 
+    /** Reports whether this composition root has been initialized. */
     IsInitialized()
     {
         return this.#initialized;
