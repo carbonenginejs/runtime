@@ -1,4 +1,4 @@
-import { io, type } from "@carbonenginejs/core-types/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsCharacterCapabilityRequirement } from "./CjsCharacterCapabilityRequirement.js";
 import { CjsCharacterNode } from "../CjsCharacterNode.js";
 

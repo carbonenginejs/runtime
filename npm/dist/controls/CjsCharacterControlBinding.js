@@ -1,4 +1,4 @@
-import { vec3 } from '@carbonenginejs/core-math/vec3';
+import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { CjsCharacterControlState as _CjsCharacterControlS } from './CjsCharacterControlState.js';
 
 /** Stateful full-snapshot binding from neutral character controls to a structural sink. */

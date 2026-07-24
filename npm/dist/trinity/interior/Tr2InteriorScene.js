@@ -1,8 +1,8 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/core-types/schema';
-import { CjsModel } from '@carbonenginejs/core-types/model';
-import { vec3 } from '@carbonenginejs/core-math/vec3';
-import { vec4 } from '@carbonenginejs/core-math/vec4';
+import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
+import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
 let _initProto, _initClass, _init_backgroundCubemapPath, _init_extra_backgroundCubemapPath, _init_visualizeMethod, _init_extra_visualizeMethod, _init_curveSets, _init_extra_curveSets, _init_renderShadows, _init_extra_renderShadows, _init_debugRenderShadowMaps, _init_extra_debugRenderShadowMaps, _init_shadowCount, _init_extra_shadowCount, _init_minFogDistance, _init_extra_minFogDistance, _init_maxFogDistance, _init_extra_maxFogDistance, _init_fogColor, _init_extra_fogColor, _init_dynamics, _init_extra_dynamics, _init_lights, _init_extra_lights, _init_maxFogAmount, _init_extra_maxFogAmount, _init_debugRenderer, _init_extra_debugRenderer, _init_visibilityResults, _init_extra_visibilityResults, _init_ambientColor, _init_extra_ambientColor, _init_optimizeShadows, _init_extra_optimizeShadows, _init_shadowSize, _init_extra_shadowSize, _init_lightRenderTargets, _init_extra_lightRenderTargets, _init_sunDiffuseColor, _init_extra_sunDiffuseColor, _init_sunDirection, _init_extra_sunDirection, _init_sunSpecularColor, _init_extra_sunSpecularColor, _init_backgroundCubemapRes, _init_extra_backgroundCubemapRes, _init_backgroundEffect, _init_extra_backgroundEffect;
 

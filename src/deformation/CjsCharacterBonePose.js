@@ -1,5 +1,5 @@
-import { io, type } from "@carbonenginejs/core-types/schema";
-import { vec3 } from "@carbonenginejs/core-math/vec3";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
+import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsCharacterNode } from "../CjsCharacterNode.js";
 
 @type.define({ className: "CjsCharacterBonePose", family: "character" })

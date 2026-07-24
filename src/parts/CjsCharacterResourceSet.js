@@ -1,4 +1,4 @@
-import { io, type } from "@carbonenginejs/core-types/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsCharacterNode } from "../CjsCharacterNode.js";
 
 @type.define({ className: "CjsCharacterResourceSet", family: "character" })

@@ -1,4 +1,4 @@
-import { mat4 } from "@carbonenginejs/core-math/mat4";
+import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 
 const IDENTITY_PALETTE = Object.freeze([
     1, 0, 0, 0,

@@ -1,4 +1,4 @@
-import { io, type } from "@carbonenginejs/core-types/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsCharacterControlLayer } from "../controls/CjsCharacterControlLayer.js";
 import { CjsCharacterCapabilityRequirement } from "../parts/CjsCharacterCapabilityRequirement.js";
 import { CjsCharacterGStateParameterSink } from "../controls/CjsCharacterGStateParameterSink.js";

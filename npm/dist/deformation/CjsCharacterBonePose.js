@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { type, io } from '@carbonenginejs/core-types/schema';
-import { vec3 } from '@carbonenginejs/core-math/vec3';
+import { type, io } from '@carbonenginejs/runtime-utils/schema';
+import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { CjsCharacterNode as _CjsCharacterNode } from '../CjsCharacterNode.js';
 
 let _initClass, _init_name, _init_extra_name, _init_orientation, _init_extra_orientation, _init_rotation, _init_extra_rotation, _init_translation, _init_extra_translation;

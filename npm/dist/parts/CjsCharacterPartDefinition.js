@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { type, io } from '@carbonenginejs/core-types/schema';
+import { type, io } from '@carbonenginejs/runtime-utils/schema';
 import { CjsCharacterNode as _CjsCharacterNode } from '../CjsCharacterNode.js';
 
 let _initClass, _init_id, _init_extra_id, _init_typeID, _init_extra_typeID, _init_name, _init_extra_name, _init_sex, _init_extra_sex, _init_category, _init_extra_category, _init_path, _init_extra_path, _init_resourceVersion, _init_extra_resourceVersion, _init_colorVariant, _init_extra_colorVariant, _init_metadataId, _init_extra_metadataId, _init_resourcePaths, _init_extra_resourcePaths, _init_lodBundles, _init_extra_lodBundles, _init_colorIds, _init_extra_colorIds, _init_projectionId, _init_extra_projectionId;

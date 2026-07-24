@@ -1,8 +1,8 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { type, impl } from '@carbonenginejs/core-types/schema';
-import { CjsModel } from '@carbonenginejs/core-types/model';
-import { mat4 } from '@carbonenginejs/core-math/mat4';
-import { vec4 } from '@carbonenginejs/core-math/vec4';
+import { type, impl } from '@carbonenginejs/runtime-utils/schema';
+import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
+import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { Tr2InteriorPerObjectLightData as _Tr2InteriorPerObject$1 } from './Tr2InteriorPerObjectLightData.js';
 
 let _initProto, _initClass, _init_lightCount, _init_extra_lightCount, _init_padding, _init_extra_padding, _init_pointLights, _init_extra_pointLights, _init_shadowCaster, _init_extra_shadowCaster, _init_shadowCaster2, _init_extra_shadowCaster2, _init_spotLights, _init_extra_spotLights;

@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/runtime-character",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "GPU-free, I/O-free character composition graph and data contracts for CarbonEngineJS.",
   "type": "module",
   "exports": {
@@ -11,8 +11,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@carbonenginejs/core-math": "^0.1.5",
-    "@carbonenginejs/core-types": "^0.13.0"
+    "@carbonenginejs/runtime-utils": "^0.1.0"
   },
   "license": "MIT",
   "publishConfig": {

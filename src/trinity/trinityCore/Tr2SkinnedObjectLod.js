@@ -1,6 +1,6 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Tr2SkinnedObjectLOD.h + Tr2SkinnedObjectLOD.cpp
-import { carbon, impl } from "@carbonenginejs/core-types/schema";
+import { carbon, impl } from "@carbonenginejs/runtime-utils/schema";
 
 const LOW_DETAIL_THRESHOLD = 150;
 const MEDIUM_DETAIL_THRESHOLD = 500;

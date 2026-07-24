@@ -2,7 +2,7 @@ import { CjsCharacterBlendshapeLimits as _CjsCharacterBlendsha } from '../deform
 import { CjsCharacterControlLayer as _CjsCharacterControlL } from './CjsCharacterControlLayer.js';
 import { CjsCharacterControlState as _CjsCharacterControlS } from './CjsCharacterControlState.js';
 import { CjsCharacterGraph as _CjsCharacterGraph } from '../library/CjsCharacterGraph.js';
-import { vec3 } from '@carbonenginejs/core-math/vec3';
+import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 
 const BLEND_MODES = new Set(["add", "replace"]);
 

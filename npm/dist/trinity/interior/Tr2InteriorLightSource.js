@@ -1,8 +1,8 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl } from '@carbonenginejs/core-types/schema';
-import { CjsModel } from '@carbonenginejs/core-types/model';
-import { vec3 } from '@carbonenginejs/core-math/vec3';
-import { vec4 } from '@carbonenginejs/core-math/vec4';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
+import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
+import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
 let _initProto, _initClass, _init_coneDirection, _init_extra_coneDirection, _init_coneAlphaInner, _init_extra_coneAlphaInner, _init_coneAlphaOuter, _init_extra_coneAlphaOuter, _init_specularIntensity, _init_extra_specularIntensity, _init_curveSets, _init_extra_curveSets, _init_primaryLighting, _init_extra_primaryLighting, _init_falloff, _init_extra_falloff, _init_kelvinColor, _init_extra_kelvinColor, _init_radius, _init_extra_radius, _init_position, _init_extra_position, _init_color, _init_extra_color, _init_name, _init_extra_name, _init_useKelvinColor, _init_extra_useKelvinColor;
 

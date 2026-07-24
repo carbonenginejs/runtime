@@ -1,5 +1,5 @@
-import { io, type } from "@carbonenginejs/core-types/schema";
-import { vec4 } from "@carbonenginejs/core-math/vec4";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
+import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { CjsCharacterNode } from "../CjsCharacterNode.js";
 
 @type.define({ className: "CjsCharacterRecipeEntry", family: "character" })

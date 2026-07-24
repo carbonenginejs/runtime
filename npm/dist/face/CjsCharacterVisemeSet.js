@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { type, io } from '@carbonenginejs/core-types/schema';
+import { type, io } from '@carbonenginejs/runtime-utils/schema';
 import { CjsCharacterControlLayer as _CjsCharacterControlL } from '../controls/CjsCharacterControlLayer.js';
 import { CjsCharacterCapabilityRequirement as _CjsCharacterCapabili } from '../parts/CjsCharacterCapabilityRequirement.js';
 import { CjsCharacterGStateParameterSink } from '../controls/CjsCharacterGStateParameterSink.js';

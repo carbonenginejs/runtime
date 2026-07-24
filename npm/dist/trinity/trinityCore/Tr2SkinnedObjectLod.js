@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { carbon, impl } from '@carbonenginejs/core-types/schema';
+import { carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto;
 const LOW_DETAIL_THRESHOLD = 150;

@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { type, io } from '@carbonenginejs/core-types/schema';
+import { type, io } from '@carbonenginejs/runtime-utils/schema';
 import { CjsCharacterNode as _CjsCharacterNode } from '../CjsCharacterNode.js';
 
 let _initClass, _init_schema, _init_extra_schema, _init_schemaVersion, _init_extra_schemaVersion, _init_sourceTarget, _init_extra_sourceTarget, _init_sourceGame, _init_extra_sourceGame, _init_sourceProvider, _init_extra_sourceProvider, _init_sourceBuild, _init_extra_sourceBuild, _init_generatedAt, _init_extra_generatedAt, _init_sourceRefs, _init_extra_sourceRefs, _init_sources, _init_extra_sources, _init_partMetadata, _init_extra_partMetadata, _init_parts, _init_extra_parts, _init_materials, _init_extra_materials, _init_projections, _init_extra_projections, _init_poses, _init_extra_poses, _init_presets, _init_extra_presets, _init_recipeLinks, _init_extra_recipeLinks, _init_sculptFields, _init_extra_sculptFields, _init_blendshapeLimits, _init_extra_blendshapeLimits, _init_uniqueCharacters, _init_extra_uniqueCharacters, _init_visemeSets, _init_extra_visemeSets, _init_modifierNames, _init_extra_modifierNames, _init_faceSetup, _init_extra_faceSetup, _init_partAuthoring, _init_extra_partAuthoring, _init_presentation, _init_extra_presentation;

@@ -1,7 +1,7 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl } from '@carbonenginejs/core-types/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2Model as _Tr2Model } from './Tr2Model.js';
-import { vec3 } from '@carbonenginejs/core-math/vec3';
+import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 
 let _initProto, _initClass, _init_geometryResPath, _init_extra_geometryResPath, _init_geometryRes, _init_extra_geometryRes, _init_skeletonName, _init_extra_skeletonName, _init_skinScale, _init_extra_skinScale;
 

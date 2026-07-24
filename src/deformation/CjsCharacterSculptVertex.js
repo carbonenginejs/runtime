@@ -1,6 +1,6 @@
-import { io, type } from "@carbonenginejs/core-types/schema";
-import { vec2 } from "@carbonenginejs/core-math/vec2";
-import { vec3 } from "@carbonenginejs/core-math/vec3";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
+import { vec2 } from "@carbonenginejs/runtime-utils/vec2";
+import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsCharacterNode } from "../CjsCharacterNode.js";
 
 @type.define({ className: "CjsCharacterSculptVertex", family: "character" })
