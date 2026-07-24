@@ -2,7 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern.
 import { type } from "@carbonenginejs/runtime-utils/schema";
-import { EveSocketParameterString } from "../../generated/eve/socket/EveSocketParameterString.js";
+import { EveSocketParameterString } from "./EveSocketParameterString.js";
 
 /**
  * EveSocketParameterFilePath (eve/socket) - Carbon derives it from

@@ -5,4 +5,3 @@ export * from "./EveSmartLightMesh.js";
 export * from "./EveSmartLightPointLight.js";
 export * from "./EveSmartLightQuad.js";
 export * from "./EveSmartLightSpotLight.js";
-export * from "./attributeModifiers/index.js";

@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { type } from '@carbonenginejs/runtime-utils/schema';
-import { EveSocketParameterString as _EveSocketParameterSt } from '../../generated/eve/socket/EveSocketParameterString.js';
+import { EveSocketParameterString as _EveSocketParameterSt } from './EveSocketParameterString.js';
 
 let _initClass;
 

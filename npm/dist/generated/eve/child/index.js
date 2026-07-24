@@ -43,13 +43,4 @@ export { EveChildModifierAttachToBone } from './modifiers/EveChildModifierAttach
 export { EveChildModifierBillboard3D } from './modifiers/EveChildModifierBillboard3D.js';
 export { EveChildModifierStretch } from './modifiers/EveChildModifierStretch.js';
 export { EveChildModifierTranslateWithCamera } from './modifiers/EveChildModifierTranslateWithCamera.js';
-export { EveChildProceduralContainer } from './procedural/EveChildProceduralContainer.js';
-export { EveProceduralMethodAttributeMap } from './procedural/selection/EveProceduralMethodAttributeMap.js';
-export { EveProceduralMethodAttributeMapParameter } from './procedural/selection/EveProceduralMethodAttributeMapParameter.js';
-export { EveProceduralMethodCycling } from './procedural/selection/EveProceduralMethodCycling.js';
-export { EveProceduralMethodCyclingParameter } from './procedural/selection/EveProceduralMethodCyclingParameter.js';
-export { EveProceduralMethodRandom } from './procedural/selection/EveProceduralMethodRandom.js';
-export { EveProceduralMethodRandomParameter } from './procedural/selection/EveProceduralMethodRandomParameter.js';
-export { EveProceduralMethodThresholdParameter } from './procedural/selection/EveProceduralMethodThresholdParameter.js';
-export { EveProceduralMethodThresholds } from './procedural/selection/EveProceduralMethodThresholds.js';
 //# sourceMappingURL=index.js.map

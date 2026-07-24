@@ -22,6 +22,7 @@ export * from "./child/index.js";
 export * from "./lights/index.js";
 export * from "./scene/index.js";
 export * from "./socket/index.js";
+export * from "./smartLights/index.js";
 export * from "./distribution/index.js";
 export * from "./volume/index.js";
 export * from "./spaceObject/index.js";

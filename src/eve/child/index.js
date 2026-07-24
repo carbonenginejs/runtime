@@ -13,3 +13,4 @@ export * from "./IEveSpaceObjectChild.js";
 export * from "./behaviors/index.js";
 export * from "./lineSetPaths/index.js";
 export * from "./modifiers/index.js";
+export * from "./procedural/index.js";

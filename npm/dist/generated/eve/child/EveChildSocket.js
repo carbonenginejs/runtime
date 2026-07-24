@@ -1,7 +1,7 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveChildTransform as _EveChildTransform } from '../../../eve/child/EveChildTransform.js';
-import { EveSocketParameterString as _EveSocketParameterSt } from '../socket/EveSocketParameterString.js';
+import { EveSocketParameterString as _EveSocketParameterSt } from '../../../eve/socket/EveSocketParameterString.js';
 
 let _initProto, _initClass, _init_resourceLoader, _init_extra_resourceLoader, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_parameters, _init_extra_parameters, _init_resPath, _init_extra_resPath, _init_plug, _init_extra_plug;
 
