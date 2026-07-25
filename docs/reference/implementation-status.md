@@ -67,8 +67,10 @@ classes. Eleven classes have 30 omitted methods:
 - Per-frame scene semantics remain engine-supplied because the Trinity graph
   does not own complete frame, history, jitter, shadow, and presentation
   state.
-- Generated classes with explicit gaps remain explicitly incomplete in the
-  generated intake even when other portable behavior is already implemented.
+- Generated classes may expose explicit obligations, but manual behavior
+  belongs in maintained source from the first substantive edit. Some legacy
+  generated files already contain portable implementations and are being
+  promoted without waiting for every native or backend gap to close.
 - The child reference and socket resource seam is synchronous and injected.
 - Socket parameter auto-creation currently covers the emitted string
   parameter type; additional types require corresponding schema emission.
@@ -77,12 +79,12 @@ classes. Eleven classes have 30 omitted methods:
 
 ## Planned completion gates
 
-The intended promotion gate reviews portable behavior, decorators, exports,
-enum ownership, and focused tests before moving a generated class. When later
-schema improvements reveal an inherited or interface obligation, the
-maintained class remains promoted and the parity audit keeps that new gap
-explicit. Backend-only methods remain explicit until an owning engine exposes
-a proven capability.
+Promotion occurs before the first substantive manual source change. Portable
+behavior, decorators, exports, enum ownership, and focused tests are then
+reviewed in the maintained home. When later schema improvements reveal an
+inherited or interface obligation, the maintained class remains promoted and
+the parity audit keeps that new gap explicit. Backend-only methods remain
+explicit until an owning engine exposes a proven capability.
 
 The public class-purpose catalog will be generated after reviewed descriptor
 metadata is available and documentation validation can exclude the dropped

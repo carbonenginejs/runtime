@@ -106,8 +106,9 @@ preserving observable graph order.
 - Package evaluation must not create a canvas, graphics context, audio
   context, network request, or filesystem dependency.
 - Persisted schema fields must not hold live backend handles.
-- A generated class remains schema intake until its portable behavior is
-  reviewed and promoted.
+- A generated class is generator-owned schema intake. It is promoted before
+  its first substantive manual source change, even when review leaves explicit
+  implementation gaps.
 - Backend-specific behavior must be injected through a narrow capability or
   remain with the owning engine.
 

@@ -13,10 +13,12 @@ hydrate, inspect, update, and collect renderer-neutral work from those graphs
 without creating a canvas, graphics context, or GPU device.
 
 The source contains generated schema intake and maintained implementations.
-Classes graduate from `src/generated` into source-area directories after their
-bounded portable behavior is reviewed. The parity audit can expose additional
-inherited or interface obligations after promotion; current exceptions remain
-explicit in the implementation-status reference.
+Classes leave `src/generated` before their first substantive manual source
+change and move into readable source-area directories. A promoted class may
+remain explicitly incomplete while its bounded portable behavior is reviewed.
+The parity audit can expose additional inherited or interface obligations
+after promotion; current exceptions remain explicit in the
+implementation-status reference.
 
 ## Use this package when
 
