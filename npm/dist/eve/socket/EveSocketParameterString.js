@@ -1,7 +1,7 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { Tr2ExternalParameter as _Tr2ExternalParameter } from '../../generated/trinityCore/Tr2ExternalParameter.js';
+import { Tr2ExternalParameter as _Tr2ExternalParameter } from '../../trinityCore/binding/Tr2ExternalParameter.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_value, _init_extra_value, _init_valueExposure, _init_extra_valueExposure, _init_externalParameters, _init_extra_externalParameters, _init_defaults, _init_extra_defaults;
 

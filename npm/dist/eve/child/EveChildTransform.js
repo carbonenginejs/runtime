@@ -3,7 +3,7 @@ import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../../generated/eve/EveEntity.js';
+import { EveEntity as _EveEntity } from '../EveEntity.js';
 
 let _initProto, _initClass, _init_translation, _init_extra_translation, _init_scaling, _init_extra_scaling, _init_rotation, _init_extra_rotation, _init_localTransform, _init_extra_localTransform, _init_worldTransform, _init_extra_worldTransform, _init_staticTransform, _init_extra_staticTransform, _init_useSRT, _init_extra_useSRT, _init_useStaticRotation, _init_extra_useStaticRotation, _init_useStaticScale, _init_extra_useStaticScale;
 

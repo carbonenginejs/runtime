@@ -1,11 +1,11 @@
 {
   "outRoot": "src/generated",
   "classes": {
-    "written": 307,
-    "skipped": 288
+    "written": 289,
+    "skipped": 306
   },
   "enums": {
-    "written": 17,
+    "written": 16,
     "skippedEntries": 7
   },
   "skipped": [
@@ -400,6 +400,16 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve",
+      "className": "EveCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/fxAttributes",
+      "className": "EveCameraFxAttributes",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "eve/child",
       "className": "EveChildContainer",
       "reason": "hand-maintained source exists"
@@ -426,7 +436,32 @@
     },
     {
       "family": "eve/child/modifiers",
+      "className": "EveChildModifierAttachToBone",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierBillboard3D",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
       "className": "EveChildModifierSRT",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierStretch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierTranslateWithCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildSpherePin",
       "reason": "hand-maintained source exists"
     },
     {
@@ -460,6 +495,11 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve",
+      "className": "EveEntity",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "eve/volume",
       "className": "EveEllipsoidVolume",
       "reason": "hand-maintained source exists"
@@ -472,6 +512,11 @@
     {
       "family": "eve/attachment/haze",
       "className": "EveHazeSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/haze",
+      "className": "EveHazeSetItem",
       "reason": "hand-maintained source exists"
     },
     {
@@ -505,6 +550,11 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve/overlays",
+      "className": "EveMeshOverlayEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "eve/spaceObject",
       "className": "EveMissile",
       "reason": "hand-maintained source exists"
@@ -520,6 +570,16 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve/effect",
+      "className": "EveMultiEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveMultiEffectParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "eve",
       "className": "EvePerObjectPSData",
       "reason": "hand-maintained source exists"
@@ -527,6 +587,11 @@
     {
       "family": "eve",
       "className": "EvePerObjectVSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EvePickingContext",
       "reason": "hand-maintained source exists"
     },
     {
@@ -555,6 +620,11 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve/scene",
+      "className": "EveSceneStaticParticles",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "eve/spaceObject",
       "className": "EveSpaceObject2",
       "reason": "hand-maintained source exists"
@@ -562,6 +632,11 @@
     {
       "family": "eve/attachment/decal",
       "className": "EveSpaceObjectDecal",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/fxAttributes",
+      "className": "EveSpaceObjectFxAttributes",
       "reason": "hand-maintained source exists"
     },
     {
@@ -605,6 +680,11 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve/attachment/spotlights",
+      "className": "EveSpotlightSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "eve/attachment/sprites",
       "className": "EveSpriteLight",
       "reason": "hand-maintained source exists"
@@ -625,6 +705,11 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve/attachment/sprites",
+      "className": "EveSpriteSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "eve/renderable/stretch",
       "className": "EveStretch",
       "reason": "hand-maintained source exists"
@@ -637,6 +722,11 @@
     {
       "family": "eve/renderable/stretch",
       "className": "EveStretch3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveTacticalOverlayTrackObject",
       "reason": "hand-maintained source exists"
     },
     {
@@ -791,6 +881,16 @@
     },
     {
       "family": "eve/child/behaviors",
+      "className": "CollisionAvoidance",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "InclusionVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
       "className": "InertiaData",
       "reason": "hand-maintained source exists"
     },
@@ -821,7 +921,17 @@
     },
     {
       "family": "eve/child/behaviors",
+      "className": "ProcessLifetime",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
       "className": "SeekTargetData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "Wander",
       "reason": "hand-maintained source exists"
     },
     {
@@ -997,6 +1107,16 @@
     {
       "family": "renderJob",
       "className": "TriRenderStep",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "TriShadowFrustum",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "TriShadowOrthoFrustum",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1301,7 +1421,17 @@
     },
     {
       "family": "trinityCore",
+      "className": "Tr2DynamicBinding",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "Tr2ExpressionTermInfo",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ExternalParameter",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1541,6 +1671,11 @@
     },
     {
       "family": "eve/child/behaviors",
+      "className": "SplineTunnelGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
       "className": "SplineTunnelPoint",
       "reason": "hand-maintained source exists"
     },
@@ -1612,6 +1747,11 @@
     {
       "family": "trinityCore",
       "className": "TriFloat",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriValueBinding",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1729,9 +1869,9 @@
       "enumsFile": true
     },
     "eve/child/behaviors": {
-      "exports": 22,
-      "classes": 21,
-      "enumsFile": true
+      "exports": 19,
+      "classes": 19,
+      "enumsFile": false
     },
     "eve/child/lineSetPaths": {
       "exports": 1,

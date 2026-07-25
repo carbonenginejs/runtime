@@ -5,7 +5,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveEntity } from "../../generated/eve/EveEntity.js";
+import { EveEntity } from "../EveEntity.js";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 
 /** Carbon EveInstancedMeshManager::InstanceFlags (EveInstancedMeshManager.h:

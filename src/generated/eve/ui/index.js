@@ -6,6 +6,5 @@ export * from "./EveProjectBracket.js";
 export * from "./EveSpherePin.js";
 export * from "./EveSprite2dBracketRenderer.js";
 export * from "./EveTacticalOverlay.js";
-export * from "./EveTacticalOverlayTrackObject.js";
 export * from "./EveTacticalTrails.js";
 export * from "./enums.js";

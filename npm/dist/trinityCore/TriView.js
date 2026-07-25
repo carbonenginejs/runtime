@@ -13,7 +13,7 @@ class TriView extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "TriView",
       family: "trinityCore"
-    })], [[[io, io.persist, type, type.mat4], 16, "transform"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLookAtPosition"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.mat4], 16, "transform"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetTransform"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Returns a detached matrix copy because JavaScript cannot expose Carbon's const Matrix reference safely.")], 18, "GetTransform"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLookAtPosition"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);
@@ -21,6 +21,12 @@ class TriView extends CjsModel {
   }
   /** m_transform (Matrix) [READWRITE, PERSIST] */
   transform = (_initProto(this), _init_transform(this, mat4.create()));
+  SetTransform(value) {
+    mat4.copy(this.transform, value);
+  }
+  GetTransform(out = mat4.create()) {
+    return mat4.copy(out, this.transform);
+  }
 
   /** Builds Carbon's right-handed look-at view transform. */
   SetLookAtPosition(eye, at, up) {

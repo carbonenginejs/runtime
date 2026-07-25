@@ -226,7 +226,7 @@ test("promoted Eve data classes expose source-backed metadata and defaults", asy
   assertMat4(decalVS.invWorldMatrix, mat4.create());
   assertMat4(decalVS.parentBoneMatrix, mat4.create());
   assertMat4(childSpherePin.worldMatrix, mat4.create());
-  assertQuat(childSpherePin.pinRotation, [0, 0, 0, 1]);
+  assertVec4(childSpherePin.pinRotation, [0, 0, 0, 0]);
   assertMat4(spherePin.worldMatrix, mat4.create());
   assertQuat(spherePin.pinRotation, [0, 0, 0, 1]);
   assertVec3(line.position1, [0, 0, 0]);

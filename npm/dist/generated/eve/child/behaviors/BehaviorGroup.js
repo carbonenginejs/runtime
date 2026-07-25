@@ -1,11 +1,11 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../../EveEntity.js';
+import { EveEntity as _EveEntity } from '../../../../eve/EveEntity.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
-import { ProcessPriority } from './enums.js';
+import { ProcessPriority } from '../../../../eve/child/behaviors/enums.js';
 import { EveKDdroneManagementTree as _EveKDdroneManagement } from './EveKDdroneManagementTree.js';
 import { EveComponentType } from '../../../../eve/EveComponentTypes.js';
 

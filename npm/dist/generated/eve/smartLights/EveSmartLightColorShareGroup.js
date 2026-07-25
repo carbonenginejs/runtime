@@ -1,6 +1,6 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../EveEntity.js';
+import { EveEntity as _EveEntity } from '../../../eve/EveEntity.js';
 import { resolveGroupColor } from './EveSmartLightBaseGroup.js';
 import { PlacementDataWithIdentifier as _PlacementDataWithIde } from '../../../eve/PlacementDataWithIdentifier.js';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';

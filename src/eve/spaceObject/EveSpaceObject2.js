@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\EveSpaceObject2.cpp
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\EveSpaceObject2_Blue.cpp
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveEntity } from "../../generated/eve/EveEntity.js";
+import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveChildInheritProperties } from "../child/EveChildInheritProperties.js";
 import { box3 } from "@carbonenginejs/runtime-utils/box3";
@@ -1097,7 +1097,7 @@ export class EveSpaceObject2 extends EveEntity
    * else -> TYPE_ALL). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Generated EveMeshOverlayEffect has no method surface yet, so the per-batch-type effect selection reads its fields here until the class is promoted; realized-LOD draw args defer to the engine.")
+  @impl.reason("Overlay selection is fully represented in the CPU graph; realized-LOD draw arguments remain engine-owned.")
   GetBatchesFromOverlayVector(batches, perObjectData, batchType, mesh)
   {
     const impactEffect = this.impactOverlay?.GetArmorDamageShader?.(batchType) ?? null;
@@ -1123,9 +1123,7 @@ export class EveSpaceObject2 extends EveEntity
       const effects = this.#OverlayEffectsFor(overlay, batchType);
       if (!effects) continue;
 
-      const overlayType = batchType === TriBatchType.TRIBATCHTYPE_OPAQUE
-        ? OVERLAY_TYPE_OPAQUEONLY
-        : OVERLAY_TYPE_ALL;
+      const overlayType = overlay.GetType(batchType);
       const blocks = this.#overlayMeshAreaBlocks[overlayType];
       for (const effect of effects)
       {
@@ -1150,28 +1148,15 @@ export class EveSpaceObject2 extends EveEntity
     batches.Commit(batch);
   }
 
-  // EveMeshOverlayEffect::GetEffects (display-gated, per batch type). Prefers a
-  // promoted method surface; falls back to the generated class's fields.
+  // EveMeshOverlayEffect::GetEffects (display-gated, per batch type).
   #OverlayEffectsFor(overlay, batchType)
   {
-    if (!overlay) return null;
-    if (typeof overlay.GetEffects === "function") return overlay.GetEffects(batchType) ?? null;
-    if (overlay.display === false) return null;
-
-    switch (batchType)
-    {
-      case TriBatchType.TRIBATCHTYPE_OPAQUE: return overlay.opaqueEffects ?? null;
-      case TriBatchType.TRIBATCHTYPE_DECAL: return overlay.decalEffects ?? null;
-      case TriBatchType.TRIBATCHTYPE_TRANSPARENT: return overlay.transparentEffects ?? null;
-      case TriBatchType.TRIBATCHTYPE_ADDITIVE: return overlay.additiveEffects ?? null;
-      case TriBatchType.TRIBATCHTYPE_DISTORTION: return overlay.distortionEffects ?? null;
-      default: return null;
-    }
+    return overlay?.GetEffects?.(batchType) ?? null;
   }
 
   @carbon.method
   @impl.adapted
-  @impl.reason("The overlay HasTransparentArea predicate reads the generated class's transparentEffects field until the class is promoted.")
+  @impl.reason("Portable mesh area access replaces Carbon's native mesh-area vectors.")
   HasTransparentBatches()
   {
     if (!this.mesh) return false;
@@ -1179,7 +1164,7 @@ export class EveSpaceObject2 extends EveEntity
 
     for (const overlay of this.overlayEffects)
     {
-      if (overlay?.HasTransparentArea?.() ?? ((overlay?.transparentEffects?.length ?? 0) > 0)) return true;
+      if (overlay?.HasTransparentArea?.()) return true;
     }
     return false;
   }
@@ -1335,6 +1320,14 @@ export class EveSpaceObject2 extends EveEntity
   GetLocalToWorldTransform()
   {
     return this.worldTransform;
+  }
+
+  /** Carbon's non-updating model-center query. */
+  @carbon.method
+  @impl.implemented
+  GetModelCenterWorldPosition(out)
+  {
+    vec3.transformMat4(out, this.boundingSphereCenter, this.worldTransform);
   }
 
   @carbon.method
@@ -1764,7 +1757,7 @@ export class EveSpaceObject2 extends EveEntity
     vec3.transformMat4(EveSpaceObject2.#rayOrigin, posPrev, this.inverseWorldTransform);
     vec3.transformMat4(EveSpaceObject2.#rayEnd, posNow, this.inverseWorldTransform);
     vec3.subtract(EveSpaceObject2.#rayDirection, EveSpaceObject2.#rayEnd, EveSpaceObject2.#rayOrigin);
-    this.#GetShapeEllipsoid(EveSpaceObject2.#ellipsoidCenter, EveSpaceObject2.#ellipsoidRadii);
+    this.GetShapeEllipsoid(EveSpaceObject2.#ellipsoidCenter, EveSpaceObject2.#ellipsoidRadii);
     const t = EveSpaceObject2.#IntersectEllipsoidRay(out, EveSpaceObject2.#ellipsoidCenter, EveSpaceObject2.#ellipsoidRadii, EveSpaceObject2.#rayOrigin, EveSpaceObject2.#rayDirection);
     if (t !== null && t >= -1 && t <= 1)
     {
@@ -2082,7 +2075,7 @@ export class EveSpaceObject2 extends EveEntity
   GetWorldBoundingBox(minBounds, maxBounds)
   {
     box3.fromBounds(EveSpaceObject2.#localBox, this.#localAabbMin, this.#localAabbMax);
-    EveSpaceObject2.#TransformBox(EveSpaceObject2.#worldBox, EveSpaceObject2.#localBox, this.worldTransform);
+    box3.transformMat4(EveSpaceObject2.#worldBox, EveSpaceObject2.#localBox, this.worldTransform);
     const min = minBounds ?? vec3.create();
     const max = maxBounds ?? vec3.create();
     vec3.set(min, EveSpaceObject2.#worldBox[0], EveSpaceObject2.#worldBox[1], EveSpaceObject2.#worldBox[2]);
@@ -2431,7 +2424,10 @@ export class EveSpaceObject2 extends EveEntity
     return out;
   }
 
-  #GetShapeEllipsoid(outCenter, outRadii)
+  /** Carbon's authored-or-derived local shape ellipsoid query. */
+  @carbon.method
+  @impl.implemented
+  GetShapeEllipsoid(outCenter, outRadii)
   {
     if (this.shapeEllipsoidRadius[0] > 0)
     {
@@ -2577,31 +2573,6 @@ export class EveSpaceObject2 extends EveEntity
     return sph3.set(out, center[0], center[1], center[2], radius);
   }
 
-  // Avoid box3.transformMat4's legacy all-components-sum empty sentinel: a
-  // valid symmetric box such as [-1,-1,-1,1,1,1] has that same sum.
-  static #TransformBox(out, bounds, transform)
-  {
-    out[0] = out[1] = out[2] = Infinity;
-    out[3] = out[4] = out[5] = -Infinity;
-    for (let index = 0; index < 8; index++)
-    {
-      vec3.set(
-        EveSpaceObject2.#boxCorner,
-        index & 1 ? bounds[3] : bounds[0],
-        index & 2 ? bounds[4] : bounds[1],
-        index & 4 ? bounds[5] : bounds[2]
-      );
-      vec3.transformMat4(EveSpaceObject2.#boxCorner, EveSpaceObject2.#boxCorner, transform);
-      out[0] = Math.min(out[0], EveSpaceObject2.#boxCorner[0]);
-      out[1] = Math.min(out[1], EveSpaceObject2.#boxCorner[1]);
-      out[2] = Math.min(out[2], EveSpaceObject2.#boxCorner[2]);
-      out[3] = Math.max(out[3], EveSpaceObject2.#boxCorner[0]);
-      out[4] = Math.max(out[4], EveSpaceObject2.#boxCorner[1]);
-      out[5] = Math.max(out[5], EveSpaceObject2.#boxCorner[2]);
-    }
-    return out;
-  }
-
   static #zero = Object.freeze([0, 0, 0]);
 
   static #unitY = Object.freeze([0, 1, 0]);
@@ -2624,7 +2595,6 @@ export class EveSpaceObject2 extends EveEntity
   static #worldSphere = sph3.create();
   static #localBox = box3.create();
   static #worldBox = box3.create();
-  static #boxCorner = vec3.create();
 
   static #identityRotation = Object.freeze([0, 0, 0, 1]);
 

@@ -2,7 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../..
 import { type, io, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
-import { TunnelGroupType } from './enums.js';
+import { TunnelGroupType } from '../../../../eve/child/behaviors/enums.js';
 
 let _initProto, _initClass, _init_privateTunnels, _init_extra_privateTunnels, _init_shouldReassignTunnelIDs, _init_extra_shouldReassignTunnelIDs, _init_behaviorPriority, _init_extra_behaviorPriority, _init_tunnelGroupType, _init_extra_tunnelGroupType, _init_splineTunnels, _init_extra_splineTunnels, _init_smoothPullFactor, _init_extra_smoothPullFactor, _init_behaviorWeight, _init_extra_behaviorWeight, _init_enabled, _init_extra_enabled, _init_cornerSmoothener, _init_extra_cornerSmoothener;
 
@@ -371,11 +371,7 @@ new class extends _identity {
       return force;
     }
   }];
-  TunnelGroupType = Object.freeze({
-    EXIT_TUNNELS: 0,
-    ENTRANCE_TUNNELS: 1,
-    OTHER_TUNNELS: 2
-  });
+  TunnelGroupType = TunnelGroupType;
   constructor() {
     super(_FollowASpline), _initClass();
   }

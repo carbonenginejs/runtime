@@ -1,6 +1,6 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../../../generated/eve/EveEntity.js';
+import { EveEntity as _EveEntity } from '../../EveEntity.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { getDeltaTime, getTime, translationMatrix } from '../../renderable/stretch/CjsStretchRuntime.js';
@@ -403,7 +403,10 @@ new class extends _identity {
       }
     }
   }];
-  MUZZLE_COUNT_MAX = 12;
+  MaxMuzzleCount = Object.freeze({
+    MUZZLECOUNT_MAX: 12
+  });
+  MUZZLE_COUNT_MAX = _EveTurretFiringFX.MaxMuzzleCount.MUZZLECOUNT_MAX;
   INVALID_INDEX = 0xffffffff;
   ImpactConfiguration = Object.freeze({
     IMPACT_INVALID: 0,

@@ -12,7 +12,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import { EveEntity } from "../../generated/eve/EveEntity.js";
+import { EveEntity } from "../EveEntity.js";
 import { EveComponentRegistry } from "../../generated/eve/scene/EveComponentRegistry.js";
 import { Tr2PostProcess2 } from "../../postProcess/Tr2PostProcess2.js";
 import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttributes.js";

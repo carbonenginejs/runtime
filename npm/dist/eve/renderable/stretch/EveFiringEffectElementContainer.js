@@ -2,7 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../..
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../../../generated/eve/EveEntity.js';
+import { EveEntity as _EveEntity } from '../../EveEntity.js';
 import { updateChildSync, updateChildAsync, collectRenderables } from './CjsStretchRuntime.js';
 
 let _initProto, _initClass, _init_element, _init_extra_element, _init_source, _init_extra_source, _init_sourceTransform, _init_extra_sourceTransform, _init_destination, _init_extra_destination, _init_useSourceTransform, _init_extra_useSourceTransform, _init_displayDestination, _init_extra_displayDestination, _init_displaySource, _init_extra_displaySource, _init_display, _init_extra_display, _init_destinationScale, _init_extra_destinationScale;

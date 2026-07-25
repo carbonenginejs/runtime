@@ -3,7 +3,7 @@
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveEntity } from "../../../generated/eve/EveEntity.js";
+import { EveEntity } from "../../EveEntity.js";
 import { collectRenderables, updateChildAsync, updateChildSync } from "./CjsStretchRuntime.js";
 
 

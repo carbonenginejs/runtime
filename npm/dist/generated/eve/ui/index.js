@@ -6,7 +6,6 @@ export { EveProjectBracket } from './EveProjectBracket.js';
 export { EveSpherePin } from './EveSpherePin.js';
 export { EveSprite2dBracketRenderer } from './EveSprite2dBracketRenderer.js';
 export { EveTacticalOverlay } from './EveTacticalOverlay.js';
-export { EveTacticalOverlayTrackObject } from './EveTacticalOverlayTrackObject.js';
 export { EveTacticalTrails } from './EveTacticalTrails.js';
 export { ConnectorType } from './enums.js';
 //# sourceMappingURL=index.js.map

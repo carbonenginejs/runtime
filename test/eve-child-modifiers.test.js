@@ -195,10 +195,12 @@ test("camera-dependent modifiers copy the transform through when no render conte
 
   const modifiers = [
     new EveChildModifierBillboard2D(),
+    new EveChildModifierBillboard3D(),
     new EveChildModifierBooster(),
     new EveChildModifierCameraOrientedRotationConstrained(),
     new EveChildModifierHalo(),
-    new EveChildModifierHaloInverted()
+    new EveChildModifierHaloInverted(),
+    new EveChildModifierTranslateWithCamera()
   ];
 
   for (const modifier of modifiers)
@@ -351,10 +353,12 @@ test("camera-dependent modifiers carry the carbon.contextual camera marker", () 
 {
   for (const Modifier of [
     EveChildModifierBillboard2D,
+    EveChildModifierBillboard3D,
     EveChildModifierBooster,
     EveChildModifierCameraOrientedRotationConstrained,
     EveChildModifierHalo,
-    EveChildModifierHaloInverted
+    EveChildModifierHaloInverted,
+    EveChildModifierTranslateWithCamera
   ])
   {
     const method = CjsSchema.getMethod(Modifier, "ApplyTransform");
@@ -413,6 +417,64 @@ test("EveChildModifierBillboard3D fixed mode builds the camera-facing basis", ()
   assert.ok(Math.abs(out[5] - 1) < EPSILON, "up preserved");
 });
 
+test("EveChildModifierBillboard3D fixed mode preserves Carbon composition with rotation and nonuniform scale", () =>
+{
+  const modifier = new EveChildModifierBillboard3D();
+  modifier.fixed = true;
+
+  const rotation = quat.setAxisAngle(
+    quat.create(),
+    vec3.normalize(vec3.create(), [0.2, 1, 0.3]),
+    0.65
+  );
+  const translation = [2, -1, 3];
+  const scale = [2, 3, 4];
+  const transform = mat4.fromRotationTranslationScale(
+    mat4.create(),
+    rotation,
+    translation,
+    scale
+  );
+  const context = contextAtCamera([9, 5, 13]);
+  const out = mat4.create();
+
+  modifier.ApplyTransform(context, transform, 0, null, out);
+
+  const toObject = vec3.normalize(
+    vec3.create(),
+    vec3.subtract(vec3.create(), [9, 5, 13], translation)
+  );
+  const right = vec3.normalize(
+    vec3.create(),
+    vec3.cross(vec3.create(), [0, 1, 0], toObject)
+  );
+  const up = vec3.normalize(
+    vec3.create(),
+    vec3.cross(vec3.create(), toObject, right)
+  );
+  const billboard = mat4.create();
+  billboard[0] = right[0];
+  billboard[1] = right[1];
+  billboard[2] = right[2];
+  billboard[4] = up[0];
+  billboard[5] = up[1];
+  billboard[6] = up[2];
+  billboard[8] = toObject[0];
+  billboard[9] = toObject[1];
+  billboard[10] = toObject[2];
+
+  const scaleMatrix = mat4.fromScaling(mat4.create(), scale);
+  const inverseScale = mat4.invert(mat4.create(), scaleMatrix);
+  const transformSansScale = mat4.multiply(mat4.create(), transform, inverseScale);
+  const expected = mat4.multiply(
+    mat4.create(),
+    mat4.multiply(mat4.create(), transformSansScale, billboard),
+    scaleMatrix
+  );
+
+  assertMatrixClose(out, Array.from(expected), "fixed billboard composition");
+});
+
 test("EveChildModifierStretch spans from the child to the destination", () =>
 {
   const modifier = new EveChildModifierStretch();
@@ -426,4 +488,48 @@ test("EveChildModifierStretch spans from the child to the destination", () =>
   assert.ok(Math.abs(out[10] - 10) < EPSILON, "z scale = stretch length");
   assert.ok(Math.abs(out[14] + 5) < EPSILON, "midpoint translation");
   assert.ok(Math.abs(out[0] - 1) < EPSILON, "x scale from source");
+});
+
+test("EveChildModifierStretch keeps source rotation first with nonuniform scale", () =>
+{
+  const modifier = new EveChildModifierStretch();
+  const destination = [-4, 6, -2];
+  modifier.SetDestPosition(destination);
+
+  const rotation = quat.setAxisAngle(
+    quat.create(),
+    vec3.normalize(vec3.create(), [1, 2, 0.5]),
+    0.6
+  );
+  const translation = [3, -2, 5];
+  const sourceScale = [2, 3, 4];
+  const transform = mat4.fromRotationTranslationScale(
+    mat4.create(),
+    rotation,
+    translation,
+    sourceScale
+  );
+  const out = mat4.create();
+
+  modifier.ApplyTransform(null, transform, 0, null, out);
+
+  const diff = vec3.subtract(vec3.create(), destination, translation);
+  const arcMatrix = mat4.arcFromForward(mat4.create(), diff);
+  const arcRotation = mat4.getRotation(quat.create(), arcMatrix);
+  const midpoint = vec3.scaleAndAdd(vec3.create(), translation, diff, 0.5);
+  const stretchTransform = mat4.fromRotationTranslationScale(
+    mat4.create(),
+    arcRotation,
+    midpoint,
+    [sourceScale[0], sourceScale[1], vec3.length(diff)]
+  );
+  const sourceRotation = mat4.fromQuat(mat4.create(), rotation);
+  const expected = mat4.multiply(mat4.create(), stretchTransform, sourceRotation);
+  const reversed = mat4.multiply(mat4.create(), sourceRotation, stretchTransform);
+
+  assertMatrixClose(out, Array.from(expected), "stretch composition");
+  assert.ok(
+    Array.from(out).some((value, index) => Math.abs(value - reversed[index]) > 1e-3),
+    "nontrivial fixture distinguishes reversed operand order"
+  );
 });

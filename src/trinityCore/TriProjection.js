@@ -20,34 +20,24 @@ export class TriProjection extends CjsModel
 
   static CUSTOM = 4;
 
-  @type.int8
   projectionType = 0;
 
-  @type.float32
   fov = 0;
 
-  @type.float32
   aspect = 0;
 
-  @type.float32
   left = 0;
 
-  @type.float32
   right = 0;
 
-  @type.float32
   bottom = 0;
 
-  @type.float32
   top = 0;
 
-  @type.float32
   zn = 0;
 
-  @type.float32
   zf = 0;
 
-  @type.mat4
   customTransform = mat4.create();
 
   @io.read
@@ -63,7 +53,7 @@ export class TriProjection extends CjsModel
     this.aspect = aspect;
     this.zn = zn;
     this.zf = zf;
-    TriProjection.#perspectiveFovLH(this.transform, fov, aspect, zn, zf);
+    TriProjection.#perspectiveFov(this.transform, fov, aspect, zn, zf);
   }
 
   @carbon.method
@@ -77,7 +67,7 @@ export class TriProjection extends CjsModel
     this.top = top;
     this.zn = zn;
     this.zf = zf;
-    TriProjection.#perspectiveOffCenterLH(this.transform, left, right, bottom, top, zn, zf);
+    TriProjection.#perspectiveOffCenter(this.transform, left, right, bottom, top, zn, zf);
   }
 
   @carbon.method
@@ -89,7 +79,7 @@ export class TriProjection extends CjsModel
     this.top = height;
     this.zn = front;
     this.zf = back;
-    TriProjection.#orthoLH(this.transform, width, height, front, back);
+    TriProjection.#ortho(this.transform, width, height, front, back);
   }
 
   @carbon.method
@@ -115,11 +105,11 @@ export class TriProjection extends CjsModel
     switch (this.projectionType)
     {
       case TriProjection.FOV:
-        return TriProjection.#perspectiveFovLH(out, this.fov, this.aspect, this.zn, this.zf);
+        return TriProjection.#perspectiveFov(out, this.fov, this.aspect, this.zn, this.zf);
       case TriProjection.OFF_CENTER:
-        return TriProjection.#perspectiveOffCenterLH(out, this.left, this.right, this.bottom, this.top, this.zn, this.zf);
+        return TriProjection.#perspectiveOffCenter(out, this.left, this.right, this.bottom, this.top, this.zn, this.zf);
       case TriProjection.ORTHO:
-        return TriProjection.#orthoLH(out, this.left, this.top, this.zn, this.zf);
+        return TriProjection.#ortho(out, this.left, this.top, this.zn, this.zf);
       case TriProjection.CUSTOM:
         return mat4.copy(out, this.customTransform);
       default:
@@ -135,38 +125,38 @@ export class TriProjection extends CjsModel
     return mat4.copy(out, this.transform);
   }
 
-  static #perspectiveFovLH(out, fov, aspect, zn, zf)
+  static #perspectiveFov(out, fov, aspect, zn, zf)
   {
     const yScale = 1 / Math.tan(fov * 0.5);
     const xScale = yScale / aspect;
     out.fill(0);
     out[0] = xScale;
     out[5] = yScale;
-    out[10] = zf / (zf - zn);
-    out[11] = 1;
+    out[10] = zf / (zn - zf);
+    out[11] = -1;
     out[14] = zn * zf / (zn - zf);
     return out;
   }
 
-  static #perspectiveOffCenterLH(out, left, right, bottom, top, zn, zf)
+  static #perspectiveOffCenter(out, left, right, bottom, top, zn, zf)
   {
     out.fill(0);
     out[0] = 2 * zn / (right - left);
-    out[5] = 2 * zn / (top - bottom);
-    out[8] = (left + right) / (left - right);
-    out[9] = (top + bottom) / (bottom - top);
-    out[10] = zf / (zf - zn);
-    out[11] = 1;
+    out[5] = -2 * zn / (bottom - top);
+    out[8] = 1 + 2 * left / (right - left);
+    out[9] = -1 - 2 * top / (bottom - top);
+    out[10] = zf / (zn - zf);
+    out[11] = -1;
     out[14] = zn * zf / (zn - zf);
     return out;
   }
 
-  static #orthoLH(out, width, height, zn, zf)
+  static #ortho(out, width, height, zn, zf)
   {
     mat4.identity(out);
     out[0] = 2 / width;
     out[5] = 2 / height;
-    out[10] = 1 / (zf - zn);
+    out[10] = 1 / (zn - zf);
     out[14] = zn / (zn - zf);
     return out;
   }

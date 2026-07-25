@@ -5,7 +5,7 @@
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { TunnelGroupType } from "./enums.js";
+import { TunnelGroupType } from "../../../../eve/child/behaviors/enums.js";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
 const DIST = vec3.create();
@@ -498,10 +498,6 @@ export class FollowASpline extends CjsModel
     return force;
   }
 
-  static TunnelGroupType = Object.freeze({
-    EXIT_TUNNELS: 0,
-    ENTRANCE_TUNNELS: 1,
-    OTHER_TUNNELS: 2,
-  });
+  static TunnelGroupType = TunnelGroupType;
 
 }

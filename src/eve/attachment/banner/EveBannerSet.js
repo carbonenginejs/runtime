@@ -4,7 +4,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveEntity } from "../../../generated/eve/EveEntity.js";
+import { EveEntity } from "../../EveEntity.js";
 import { EveBannerItem } from "./EveBannerItem.js";
 import { EveBannerLight } from "./EveBannerLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -78,6 +78,56 @@ export class EveBannerSet extends EveEntity
   GetReference(index)
   {
     return this.banners[index].reference;
+  }
+
+  /** Measures the generated banner surface exactly as Carbon does: flat
+   * banners use authored X/Y scale, while curved banners sum the same
+   * approximately five-degree transformed arc chords used by geometry
+   * generation. */
+  @carbon.method
+  @impl.implemented
+  static GetBannerAspectRatio(banner)
+  {
+    const flatX = banner.angleX <= 0;
+    const flatY = banner.angleY <= 0;
+    if (flatX && flatY)
+    {
+      return banner.scaling[0] / banner.scaling[1];
+    }
+
+    const transform = mat4.fromRotationTranslationScale(
+      EveBannerSet.#aspectTransform,
+      banner.rotation,
+      banner.position,
+      banner.scaling
+    );
+    if (flatX)
+    {
+      const angleY = EveBannerSet.#clampBannerAngle(banner.angleY);
+      const halfAngleY = angleY / 180 * Math.PI / 2;
+      const scaleY = 0.5 / Math.sin(halfAngleY);
+      const vLength = EveBannerSet.#measureVerticalArc(transform, angleY, halfAngleY, scaleY, scaleY);
+      return banner.scaling[0] / vLength;
+    }
+    if (flatY)
+    {
+      const angleX = EveBannerSet.#clampBannerAngle(banner.angleX);
+      const halfAngleX = angleX / 180 * Math.PI / 2;
+      const scaleX = 0.5 / Math.sin(halfAngleX);
+      const uLength = EveBannerSet.#measureHorizontalArc(transform, angleX, halfAngleX, scaleX, scaleX);
+      return uLength / banner.scaling[1];
+    }
+
+    const angleX = EveBannerSet.#clampBannerAngle(banner.angleX);
+    const angleY = EveBannerSet.#clampBannerAngle(banner.angleY);
+    const halfAngleX = angleX / 180 * Math.PI / 2;
+    const halfAngleY = angleY / 180 * Math.PI / 2;
+    const scaleX = 0.5 / Math.sin(halfAngleX);
+    const scaleY = 0.5 / Math.sin(halfAngleY);
+    const scaleZ = Math.min(scaleX, scaleY);
+    const uLength = EveBannerSet.#measureHorizontalArc(transform, angleX, halfAngleX, scaleX, scaleZ);
+    const vLength = EveBannerSet.#measureVerticalArc(transform, angleY, halfAngleY, scaleY, scaleZ);
+    return uLength / vLength;
   }
 
   @carbon.method
@@ -260,6 +310,65 @@ export class EveBannerSet extends EveEntity
   static #lightDataScratch = CreateLightDataScratch();
 
   static #averageColorScratch = new Float32Array(4);
+
+  static #aspectTransform = mat4.create();
+
+  static #aspectPosition = vec3.create();
+
+  static #aspectPreviousPosition = vec3.create();
+
+  static #clampBannerAngle(angle)
+  {
+    return Math.max(0, Math.min(Number(angle), 180));
+  }
+
+  static #measureHorizontalArc(transform, angle, halfAngle, scaleX, scaleZ)
+  {
+    const segments = 1 + Math.floor(angle / 5);
+    const position = EveBannerSet.#aspectPosition;
+    const previous = EveBannerSet.#aspectPreviousPosition;
+    let length = 0;
+
+    for (let index = 0; index <= segments; index++)
+    {
+      const value = index / segments;
+      const sampleAngle = -halfAngle + value * 2 * halfAngle;
+      vec3.set(
+        position,
+        Math.sin(sampleAngle) * scaleX,
+        0,
+        (Math.cos(sampleAngle) - 1) * scaleZ
+      );
+      vec3.transformMat4(position, position, transform);
+      if (index) length += vec3.distance(previous, position);
+      vec3.copy(previous, position);
+    }
+    return length;
+  }
+
+  static #measureVerticalArc(transform, angle, halfAngle, scaleY, scaleZ)
+  {
+    const segments = 1 + Math.floor(angle / 5);
+    const position = EveBannerSet.#aspectPosition;
+    const previous = EveBannerSet.#aspectPreviousPosition;
+    let length = 0;
+
+    for (let index = 0; index <= segments; index++)
+    {
+      const value = index / segments;
+      const sampleAngle = -halfAngle + value * 2 * halfAngle + Math.PI / 2;
+      vec3.set(
+        position,
+        0,
+        Math.cos(sampleAngle) * scaleY,
+        (Math.sin(sampleAngle) - 1) * scaleZ
+      );
+      vec3.transformMat4(position, position, transform);
+      if (index) length += vec3.distance(previous, position);
+      vec3.copy(previous, position);
+    }
+    return length;
+  }
 
   static #copyBanner(source)
   {

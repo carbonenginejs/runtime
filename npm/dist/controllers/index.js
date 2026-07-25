@@ -30,6 +30,6 @@ export { Tr2StateMachineTransition } from './Tr2StateMachineTransition.js';
 export { Tr2SyncToAnimation } from './Tr2SyncToAnimation.js';
 export { Tr2TimelineController } from './Tr2TimelineController.js';
 export { Tr2TimelineEntry } from './Tr2TimelineEntry.js';
-export { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds, GetControllerTimeSeconds, TR2_DIRTY_ALL, ToDirtyMask } from './contracts.js';
+export { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_LOADFINISHED, BELIST_LOADING, BELIST_REMOVED, BELIST_UNLOADSTART, GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds, GetControllerTimeSeconds, TR2_DIRTY_ALL, ToDirtyMask } from './contracts.js';
 export { DestinationType, PlayAction, ResetBehavior, StopAction, Type, UnlinkReason } from './enums.js';
 //# sourceMappingURL=index.js.map

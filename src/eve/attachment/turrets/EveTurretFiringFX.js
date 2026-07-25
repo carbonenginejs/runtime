@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\Turret\EveTurretFiringFX.cpp
 // Source: E:\carbonengine\trinity\trinity\Eve\Turret\EveTurretFiringFX_Blue.cpp
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveEntity } from "../../../generated/eve/EveEntity.js";
+import { EveEntity } from "../../EveEntity.js";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { getDeltaTime, getTime, translationMatrix } from "../../renderable/stretch/CjsStretchRuntime.js";
@@ -632,7 +632,11 @@ export class EveTurretFiringFX extends EveEntity
     }
   }
 
-  static MUZZLE_COUNT_MAX = 12;
+  static MaxMuzzleCount = Object.freeze({
+    MUZZLECOUNT_MAX: 12,
+  });
+
+  static MUZZLE_COUNT_MAX = EveTurretFiringFX.MaxMuzzleCount.MUZZLECOUNT_MAX;
 
   static INVALID_INDEX = 0xffffffff;
 

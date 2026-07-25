@@ -6,8 +6,6 @@ export { Tr2BoundingLineSet } from './Tr2BoundingLineSet.js';
 export { Tr2CurveLineSet } from './Tr2CurveLineSet.js';
 export { Tr2DebugRenderer } from './Tr2DebugRenderer.js';
 export { Tr2Denoiser } from './Tr2Denoiser.js';
-export { Tr2DynamicBinding } from './Tr2DynamicBinding.js';
-export { Tr2ExternalParameter } from './Tr2ExternalParameter.js';
 export { Tr2GpuProfiler } from './Tr2GpuProfiler.js';
 export { Tr2GpuStructuredBuffer } from './Tr2GpuStructuredBuffer.js';
 export { Tr2GrannyAnimation } from './Tr2GrannyAnimation.js';
@@ -44,6 +42,5 @@ export { Tr2TranslationTool } from './Tr2TranslationTool.js';
 export { Tr2VolumetricsRenderer } from './Tr2VolumetricsRenderer.js';
 export { TriLineSet } from './TriLineSet.js';
 export { TriRigidOrientation } from './TriRigidOrientation.js';
-export { TriValueBinding } from './TriValueBinding.js';
 export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriBatchType, TriFrustumTestResult, TriVariableContentType } from './enums.js';
 //# sourceMappingURL=index.js.map

@@ -272,9 +272,10 @@ new class extends _identity {
 
       // Carbon's DoUpdateAsyncronous overrides boneCount/bones from this
       // container's own animation controller here (Tr2GrannyAnimationUtils::
-      // GetBoneList, cpp:556-559) before folding modifiers. Deferred until the
-      // Granny bone-list API and the bone-consuming EveChildModifierAttachToBone
-      // are ported; no currently-ported modifier reads bones.
+      // GetBoneList, cpp:556-559) before folding modifiers. AttachToBone already
+      // consumes an explicitly threaded params palette; overriding that palette
+      // from the animation controller remains deferred until the Granny
+      // bone-list API is ported.
       const boneCount = params?.boneCount ?? 0;
       const bones = params?.bones ?? null;
       applyTransformModifiers(this, updateContext, boneCount, bones);

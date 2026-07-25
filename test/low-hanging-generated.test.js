@@ -6,6 +6,8 @@ import {
   EveChildEffectPropagator,
   EveBoosterSet2,
   EveLocator2,
+  EveMultiEffectParameter,
+  EveSceneStaticParticles,
   EveSocketParameterString,
   EveTurretFiringFX,
   EveUiObject,
@@ -35,21 +37,19 @@ import { EveChildRef } from "../npm/dist/generated/eve/child/EveChildRef.js";
 import { EveChildSocket } from "../npm/dist/generated/eve/child/EveChildSocket.js";
 import { EveChildProceduralContainer } from "../npm/dist/eve/child/procedural/EveChildProceduralContainer.js";
 import { EveLensflare } from "../npm/dist/generated/eve/effect/EveLensflare.js";
-import { EveMultiEffect } from "../npm/dist/generated/eve/effect/EveMultiEffect.js";
-import { EveMultiEffectParameter } from "../npm/dist/generated/eve/effect/EveMultiEffectParameter.js";
+import { EveMultiEffect } from "../npm/dist/eve/effect/multiEffect/EveMultiEffect.js";
 import { EveTacticalTrails } from "../npm/dist/generated/eve/ui/EveTacticalTrails.js";
 import { EveShip2 } from "../npm/dist/generated/eve/spaceObject/EveShip2.js";
-import { EveCamera } from "../npm/dist/generated/eve/EveCamera.js";
+import { EveCamera } from "../npm/dist/eve/camera/EveCamera.js";
 import { BackAndForth } from "../npm/dist/generated/eve/child/behaviors/BackAndForth.js";
 import { SeekTarget } from "../npm/dist/generated/eve/child/behaviors/SeekTarget.js";
 import { EveProceduralMethodCycling } from "../npm/dist/eve/child/procedural/selection/EveProceduralMethodCycling.js";
 import { Tr2CurveLineSet } from "../npm/dist/generated/trinityCore/Tr2CurveLineSet.js";
 import { EveChildBehaviorSystem } from "../npm/dist/generated/eve/child/EveChildBehaviorSystem.js";
 import { EveChildLineSet } from "../npm/dist/generated/eve/child/EveChildLineSet.js";
-import { EveSceneStaticParticles } from "../npm/dist/generated/eve/scene/EveSceneStaticParticles.js";
 import { FollowASpline } from "../npm/dist/generated/eve/child/behaviors/FollowASpline.js";
 import { SpawnDrones } from "../npm/dist/generated/eve/child/behaviors/SpawnDrones.js";
-import { SplineTunnelGroup } from "../npm/dist/generated/eve/child/behaviors/SplineTunnelGroup.js";
+import { SplineTunnelGroup } from "../npm/dist/index.js";
 import { Tr2ManipulationTool } from "../npm/dist/generated/trinityCore/Tr2ManipulationTool.js";
 import { EveSwarm } from "../npm/dist/generated/eve/spaceObject/swarm/EveSwarm.js";
 import { EveSwarmRenderable } from "../npm/dist/generated/eve/spaceObject/swarm/EveSwarmRenderable.js";
@@ -473,7 +473,7 @@ test("EveCamera restores Carbon constructor defaults and portable controls", () 
   assert.ok(camera.viewMatrix);
 
   camera.Dolly(5);
-  assert.equal(camera.translationFromParent[2], 25);
+  assert.equal(camera.translationFromParent, 25);
   camera.SetOrbit(Math.PI * 3, 0.4);
   assert.ok(Math.abs(camera.yaw - Math.PI) < 1e-6);
   assert.equal(camera.pitch, 0.4);

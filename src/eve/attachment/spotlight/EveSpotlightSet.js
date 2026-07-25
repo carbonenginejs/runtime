@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveSpotlightSet.cpp
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveEntity } from "../../../generated/eve/EveEntity.js";
+import { EveEntity } from "../../EveEntity.js";
 import { EveSpotlightLight } from "./EveSpotlightLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";

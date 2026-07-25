@@ -3,7 +3,8 @@ import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../../../generated/eve/EveEntity.js';
+import { BELIST_LOADING, BELIST_INSERTED, BELIST_REMOVED, BELIST_UNLOADSTART, BELIST_EVENTMASK } from '../../../controllers/contracts.js';
+import { EveEntity as _EveEntity } from '../../EveEntity.js';
 import { TriFloat as _TriFloat } from '../../../trinityCore/TriFloat.js';
 import { EveChildUpdateParams as _EveChildUpdateParams } from '../../EveChildUpdateParams.js';
 import { getTime, sampleVector, updateChildSync, translationMatrix, updateCurveSet, makeEndpointTransforms, updateChildAsync, makeStretchTransform, updateChildVisibility, collectRenderables, mergeSphere, getCurveDuration } from './CjsStretchRuntime.js';
@@ -19,7 +20,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveStretch3",
         family: "eve/renderable/stretch"
-      })], [[[io, io.read, type, type.vec3], 16, "sourcePosition"], [[io, io.read, type, type.vec3], 16, "destinationPosition"], [[io, io.notify, io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "source"], [[io, io.notify, io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "dest"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("TriFloat")], 16, "moveProgression"], [[io, io.persist, void 0, type.model("IStretchAudio")], 16, "stretchAudio"], [[io, io.persist, void 0, type.list("ITr2Controller")], 16, "controllers"], [[io, io.persist, void 0, type.list("TriCurveSet")], 16, "curveSets"], [[io, io.persist, void 0, type.model("TriFloat")], 16, "length"], [[io, io.persist, void 0, type.list("Tr2DynamicBinding")], 16, "dynamicBindings"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.boolean], 16, "update"], [[io, io.persistOnly, void 0, type.model("IEveSpaceObjectChild")], 16, "destObject"], [[io, io.persistOnly, void 0, type.model("IEveSpaceObjectChild")], 16, "sourceObject"], [[io, io.persistOnly, void 0, type.model("IEveSpaceObjectChild")], 16, "stretchObject"], [[io, io.read, type, type.float64], 16, "startTime"], [[io, io.persist, void 0, type.model("ITr2Audio")], 16, "audio"], [[io, io.persistOnly, void 0, type.model("IEveSpaceObjectChild")], 16, "moveObject"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Dynamic bindings are linked directly because JavaScript has no Carbon owner-interface registry.")], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSourceSpaceObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetSourceSpaceObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetDestSpaceObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDestSpaceObject"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Bindings receive this object and invoke their portable Link/Rebind hooks without a native Blue parameter map.")], 18, "Rebind"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's synchronous task phase is retained as a serial graph update in the browser runtime.")], 18, "UpdateSynchronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's asynchronous task phase is retained as a serial graph update in the browser runtime.")], 18, "UpdateAsynchronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Visibility transforms are computed here; renderer-specific LOD realization stays in runtime-engine.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Renderable collection is backend-neutral; draw-batch construction remains runtime-engine work.")], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDisplay"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Bounds are merged from child graph objects without Carbon's native BoundingSphere helper.")], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurveDuration"], [[carbon, carbon.method, impl, impl.implemented], 18, "StartFiring"], [[carbon, carbon.method, impl, impl.implemented], 18, "StopFiring"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetFiringTransform"], [[carbon, carbon.method, impl, impl.noop], 18, "DisplayEndPoints"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDestObjectScale"], [[carbon, carbon.method, impl, impl.noop], 18, "SetIntensity"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Controller ownership is represented by direct child/controller method forwarding.")], 18, "SetControllerVariable"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Controller ownership is represented by direct child/controller method forwarding.")], 18, "HandleControllerEvent"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Controller ownership is represented by direct child/controller method forwarding.")], 18, "StartControllers"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnRegisterComponents"]], 0, void 0, _EveEntity));
+      })], [[[io, io.read, type, type.vec3], 16, "sourcePosition"], [[io, io.read, type, type.vec3], 16, "destinationPosition"], [[io, io.notify, io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "source"], [[io, io.notify, io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "dest"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("TriFloat")], 16, "moveProgression"], [[io, io.persist, void 0, type.model("IStretchAudio")], 16, "stretchAudio"], [[io, io.persist, void 0, type.list("ITr2Controller")], 16, "controllers"], [[io, io.persist, void 0, type.list("TriCurveSet")], 16, "curveSets"], [[io, io.persist, void 0, type.model("TriFloat")], 16, "length"], [[io, io.persist, void 0, type.list("Tr2DynamicBinding")], 16, "dynamicBindings"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.boolean], 16, "update"], [[io, io.persistOnly, void 0, type.model("IEveSpaceObjectChild")], 16, "destObject"], [[io, io.persistOnly, void 0, type.model("IEveSpaceObjectChild")], 16, "sourceObject"], [[io, io.persistOnly, void 0, type.model("IEveSpaceObjectChild")], 16, "stretchObject"], [[io, io.read, type, type.float64], 16, "startTime"], [[io, io.persist, void 0, type.model("ITr2Audio")], 16, "audio"], [[io, io.persistOnly, void 0, type.model("IEveSpaceObjectChild")], 16, "moveObject"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Assigns portable dynamic-binding owners directly because JavaScript arrays do not provide Carbon IList parent locks.")], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSourceSpaceObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetSourceSpaceObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetDestSpaceObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDestSpaceObject"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Links portable bindings/controllers directly instead of using Carbon raw roots.")], 18, "Rebind"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Builds Carbon's unordered parameter map as a prototype-free JavaScript object.")], 18, "GetParameterMap"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBindingRoots"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Reproduces Carbon IList controller and dynamic-binding callbacks through explicit portable list-event arguments.")], 18, "OnListModified"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's synchronous task phase is retained as a serial graph update in the browser runtime.")], 18, "UpdateSynchronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's asynchronous task phase is retained as a serial graph update in the browser runtime.")], 18, "UpdateAsynchronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Visibility transforms are computed here; renderer-specific LOD realization stays in runtime-engine.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Renderable collection is backend-neutral; draw-batch construction remains runtime-engine work.")], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDisplay"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Bounds are merged from child graph objects without Carbon's native BoundingSphere helper.")], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurveDuration"], [[carbon, carbon.method, impl, impl.implemented], 18, "StartFiring"], [[carbon, carbon.method, impl, impl.implemented], 18, "StopFiring"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetFiringTransform"], [[carbon, carbon.method, impl, impl.noop], 18, "DisplayEndPoints"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDestObjectScale"], [[carbon, carbon.method, impl, impl.noop], 18, "SetIntensity"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Controller ownership is represented by direct child/controller method forwarding.")], 18, "SetControllerVariable"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Controller ownership is represented by direct child/controller method forwarding.")], 18, "HandleControllerEvent"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Controller ownership is represented by direct child/controller method forwarding.")], 18, "StartControllers"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnRegisterComponents"]], 0, void 0, _EveEntity));
     }
     sourcePosition = (_initProto(this), _init_sourcePosition(this, vec3.create()));
     destinationPosition = (_init_extra_sourcePosition(this), _init_destinationPosition(this, vec3.create()));
@@ -48,7 +49,10 @@ new class extends _identity {
     #isMuzzleEffect = false;
     #stretchState = _EveStretch.StretchState.STRETCH_STATE_UNDEFINED;
     Initialize() {
-      this.Rebind(false);
+      for (const controller of this.controllers) {
+        if (!controller?.IsLinked?.()) controller?.Link?.(this);
+      }
+      this.#InitializeBindings();
       return true;
     }
     GetSourceSpaceObject() {
@@ -56,21 +60,38 @@ new class extends _identity {
     }
     SetSourceSpaceObject(value) {
       this.#sourceSpaceObject = value ?? null;
-      this.Rebind(true);
+      this.#InitializeBindings();
     }
     GetDestSpaceObject() {
       return this.#destinationSpaceObject;
     }
     SetDestSpaceObject(value) {
       this.#destinationSpaceObject = value ?? null;
-      this.Rebind(true);
+      this.#InitializeBindings();
     }
     Rebind(onlyUpdateBindings = false) {
       for (const binding of this.dynamicBindings) {
-        binding?.SetOwner?.(this);
-        if (onlyUpdateBindings) binding?.Rebind?.();else binding?.Link?.();
+        binding?.Link?.();
+        binding?.Update?.(0);
       }
-      for (const component of this.#components()) component?.Rebind?.(onlyUpdateBindings);
+      if (!onlyUpdateBindings) {
+        for (const controller of this.controllers) controller?.Link?.(this);
+      }
+    }
+    GetParameterMap() {
+      const out = Object.create(null);
+      for (const curveSet of this.curveSets) {
+        const name = String(curveSet?.GetName?.() ?? curveSet?.name ?? "");
+        out[name] = curveSet?.GetRawRoot?.() ?? curveSet;
+      }
+      out.Owner = this;
+      if (this.#sourceSpaceObject) out.SourceSpaceObject = this.#sourceSpaceObject;
+      if (this.#destinationSpaceObject) out.DestSpaceObject = this.#destinationSpaceObject;
+      if (this.sourceObject) out.SourceObject = this.sourceObject?.GetRootObject?.() ?? this.sourceObject;
+      if (this.destObject) out.DestObject = this.destObject?.GetRootObject?.() ?? this.destObject;
+      if (this.moveObject) out.MoveObject = this.moveObject?.GetRootObject?.() ?? this.moveObject;
+      if (this.stretchObject) out.StretchObject = this.stretchObject?.GetRootObject?.() ?? this.stretchObject;
+      return out;
     }
     GetBindingRoots(out = {}) {
       out.Owner = this;
@@ -81,6 +102,22 @@ new class extends _identity {
       out.SourceSpaceObject = this.#sourceSpaceObject;
       out.DestSpaceObject = this.#destinationSpaceObject;
       return out;
+    }
+    OnListModified(event, _key = 0, _key2 = 0, value = null, list = null) {
+      if ((event & BELIST_LOADING) !== 0) return;
+      const maskedEvent = event & BELIST_EVENTMASK;
+      if (list === this.controllers) {
+        if (maskedEvent === BELIST_INSERTED) value?.Link?.(this);else if (maskedEvent === BELIST_REMOVED) value?.Unlink?.();else if (maskedEvent === BELIST_UNLOADSTART) {
+          for (const controller of this.controllers) controller?.Unlink?.();
+        }
+      } else if (list === this.dynamicBindings) {
+        if (maskedEvent === BELIST_INSERTED) {
+          value?.SetOwner?.(this);
+          value?.Link?.();
+        } else if (maskedEvent === BELIST_REMOVED) {
+          value?.SetOwner?.(null);
+        }
+      }
     }
     UpdateSynchronous(context) {
       if (!this.update) return true;
@@ -302,6 +339,12 @@ new class extends _identity {
     }
     #components() {
       return [this.sourceObject, this.destObject, this.stretchObject, this.moveObject].filter(Boolean);
+    }
+    #InitializeBindings() {
+      for (const binding of this.dynamicBindings) {
+        binding?.SetOwner?.(this);
+        binding?.Link?.();
+      }
     }
     #makeParams() {
       const params = new _EveChildUpdateParams();

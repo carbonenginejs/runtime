@@ -4,7 +4,14 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveEntity } from "../../../generated/eve/EveEntity.js";
+import {
+  BELIST_EVENTMASK,
+  BELIST_INSERTED,
+  BELIST_LOADING,
+  BELIST_REMOVED,
+  BELIST_UNLOADSTART
+} from "../../../controllers/contracts.js";
+import { EveEntity } from "../../EveEntity.js";
 import { TriFloat } from "../../../trinityCore/TriFloat.js";
 import { EveChildUpdateParams } from "../../EveChildUpdateParams.js";
 import {
@@ -55,10 +62,14 @@ export class EveStretch3 extends EveEntity
   #stretchState = EveStretch3.StretchState.STRETCH_STATE_UNDEFINED;
 
   @carbon.method @impl.adapted
-  @impl.reason("Dynamic bindings are linked directly because JavaScript has no Carbon owner-interface registry.")
+  @impl.reason("Assigns portable dynamic-binding owners directly because JavaScript arrays do not provide Carbon IList parent locks.")
   Initialize()
   {
-    this.Rebind(false);
+    for (const controller of this.controllers)
+    {
+      if (!controller?.IsLinked?.()) controller?.Link?.(this);
+    }
+    this.#InitializeBindings();
     return true;
   }
 
@@ -72,7 +83,7 @@ export class EveStretch3 extends EveEntity
   SetSourceSpaceObject(value)
   {
     this.#sourceSpaceObject = value ?? null;
-    this.Rebind(true);
+    this.#InitializeBindings();
   }
 
   @carbon.method @impl.implemented
@@ -85,22 +96,47 @@ export class EveStretch3 extends EveEntity
   SetDestSpaceObject(value)
   {
     this.#destinationSpaceObject = value ?? null;
-    this.Rebind(true);
+    this.#InitializeBindings();
   }
 
   @carbon.method @impl.adapted
-  @impl.reason("Bindings receive this object and invoke their portable Link/Rebind hooks without a native Blue parameter map.")
+  @impl.reason("Links portable bindings/controllers directly instead of using Carbon raw roots.")
   Rebind(onlyUpdateBindings = false)
   {
     for (const binding of this.dynamicBindings)
     {
-      binding?.SetOwner?.(this);
-      if (onlyUpdateBindings) binding?.Rebind?.();
-      else binding?.Link?.();
+      binding?.Link?.();
+      binding?.Update?.(0);
     }
-    for (const component of this.#components()) component?.Rebind?.(onlyUpdateBindings);
+    if (!onlyUpdateBindings)
+    {
+      for (const controller of this.controllers) controller?.Link?.(this);
+    }
   }
 
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Builds Carbon's unordered parameter map as a prototype-free JavaScript object.")
+  GetParameterMap()
+  {
+    const out = Object.create(null);
+    for (const curveSet of this.curveSets)
+    {
+      const name = String(curveSet?.GetName?.() ?? curveSet?.name ?? "");
+      out[name] = curveSet?.GetRawRoot?.() ?? curveSet;
+    }
+    out.Owner = this;
+    if (this.#sourceSpaceObject) out.SourceSpaceObject = this.#sourceSpaceObject;
+    if (this.#destinationSpaceObject) out.DestSpaceObject = this.#destinationSpaceObject;
+    if (this.sourceObject) out.SourceObject = this.sourceObject?.GetRootObject?.() ?? this.sourceObject;
+    if (this.destObject) out.DestObject = this.destObject?.GetRootObject?.() ?? this.destObject;
+    if (this.moveObject) out.MoveObject = this.moveObject?.GetRootObject?.() ?? this.moveObject;
+    if (this.stretchObject) out.StretchObject = this.stretchObject?.GetRootObject?.() ?? this.stretchObject;
+    return out;
+  }
+
+  @carbon.method
+  @impl.implemented
   GetBindingRoots(out = {})
   {
     out.Owner = this;
@@ -111,6 +147,36 @@ export class EveStretch3 extends EveEntity
     out.SourceSpaceObject = this.#sourceSpaceObject;
     out.DestSpaceObject = this.#destinationSpaceObject;
     return out;
+  }
+
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Reproduces Carbon IList controller and dynamic-binding callbacks through explicit portable list-event arguments.")
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    if ((event & BELIST_LOADING) !== 0) return;
+    const maskedEvent = event & BELIST_EVENTMASK;
+    if (list === this.controllers)
+    {
+      if (maskedEvent === BELIST_INSERTED) value?.Link?.(this);
+      else if (maskedEvent === BELIST_REMOVED) value?.Unlink?.();
+      else if (maskedEvent === BELIST_UNLOADSTART)
+      {
+        for (const controller of this.controllers) controller?.Unlink?.();
+      }
+    }
+    else if (list === this.dynamicBindings)
+    {
+      if (maskedEvent === BELIST_INSERTED)
+      {
+        value?.SetOwner?.(this);
+        value?.Link?.();
+      }
+      else if (maskedEvent === BELIST_REMOVED)
+      {
+        value?.SetOwner?.(null);
+      }
+    }
   }
 
   @carbon.method @impl.adapted
@@ -435,6 +501,15 @@ export class EveStretch3 extends EveEntity
   #components()
   {
     return [this.sourceObject, this.destObject, this.stretchObject, this.moveObject].filter(Boolean);
+  }
+
+  #InitializeBindings()
+  {
+    for (const binding of this.dynamicBindings)
+    {
+      binding?.SetOwner?.(this);
+      binding?.Link?.();
+    }
   }
 
   #makeParams()

@@ -5,7 +5,7 @@ import { sph3 } from '@carbonenginejs/runtime-utils/sph3';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, impl, carbon, schema } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../../generated/eve/EveEntity.js';
+import { EveEntity as _EveEntity } from '../EveEntity.js';
 import { EveChildUpdateParams as _EveChildUpdateParams } from '../EveChildUpdateParams.js';
 import { Tr2Lod } from '../EveLODHelper.js';
 import { EveSpaceObjectPSData as _EveSpaceObjectPSData } from '../perObjectData/EveSpaceObjectPSData.js';

@@ -3,7 +3,7 @@ import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../../../generated/eve/EveEntity.js';
+import { EveEntity as _EveEntity } from '../../EveEntity.js';
 import { EveBannerItem as _EveBannerItem } from './EveBannerItem.js';
 import { EveBannerLight as _EveBannerLight } from './EveBannerLight.js';
 import { EveComponentType } from '../../EveComponentTypes.js';
@@ -11,18 +11,19 @@ import { Saturate } from '../EveSpaceObjectAttachmentUtils.js';
 import { Tr2Light as _Tr2Light } from '../../lights/Tr2Light.js';
 import { MatrixCopyFrom3x4, CopyLightData, AsPerPointLightData, CreateLightRecord, CreateLightDataScratch } from '../../lights/lightConversion.js';
 
-let _initProto, _initClass, _init_banners, _init_extra_banners, _init_name, _init_extra_name, _init_effect, _init_extra_effect, _init_isPickable, _init_extra_isPickable, _init_display, _init_extra_display, _init_key, _init_extra_key, _init_lights, _init_extra_lights, _init_primaryTextureParameter, _init_extra_primaryTextureParameter;
+let _initProto, _initStatic, _initClass, _init_banners, _init_extra_banners, _init_name, _init_extra_name, _init_effect, _init_extra_effect, _init_isPickable, _init_extra_isPickable, _init_display, _init_extra_display, _init_key, _init_extra_key, _init_lights, _init_extra_lights, _init_primaryTextureParameter, _init_extra_primaryTextureParameter;
 let _EveBannerSet;
 new class extends _identity {
   static [class EveBannerSet extends _EveEntity {
     static {
       ({
-        e: [_init_banners, _init_extra_banners, _init_name, _init_extra_name, _init_effect, _init_extra_effect, _init_isPickable, _init_extra_isPickable, _init_display, _init_extra_display, _init_key, _init_extra_key, _init_lights, _init_extra_lights, _init_primaryTextureParameter, _init_extra_primaryTextureParameter, _initProto],
+        e: [_init_banners, _init_extra_banners, _init_name, _init_extra_name, _init_effect, _init_extra_effect, _init_isPickable, _init_extra_isPickable, _init_display, _init_extra_display, _init_key, _init_extra_key, _init_lights, _init_extra_lights, _init_primaryTextureParameter, _init_extra_primaryTextureParameter, _initProto, _initStatic],
         c: [_EveBannerSet, _initClass]
       } = _applyDecs2311(this, [type.define({
         className: "EveBannerSet",
         family: "eve/attachment/banners"
-      })], [[[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.list("EveBannerItem")], 16, "banners"], [[io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.persist, type, type.boolean], 16, "isPickable"], [[io, io.readwrite, type, type.boolean], 16, "display"], [[io, io.persist, type, type.int32], 16, "key"], [[io, io.persist, void 0, type.list("EveBannerLight")], 16, "lights"], [[io, io.persist, void 0, type.objectRef("TriTextureParameter")], 16, "primaryTextureParameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetReference"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddBanner"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetKey"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPickingID"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetPrimaryTextureParameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddLightFromSOF"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateLights"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The texture average color is a resource capability - read as a GetAverageColor duck on the parameter's resource, zero when absent.")], 18, "GetAverageColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The texture average color and profile packing follow the adapted ducks above.")], 18, "GetLights"]], 0, void 0, _EveEntity));
+      })], [[[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.list("EveBannerItem")], 16, "banners"], [[io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.persist, type, type.boolean], 16, "isPickable"], [[io, io.readwrite, type, type.boolean], 16, "display"], [[io, io.persist, type, type.int32], 16, "key"], [[io, io.persist, void 0, type.list("EveBannerLight")], 16, "lights"], [[io, io.persist, void 0, type.objectRef("TriTextureParameter")], 16, "primaryTextureParameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetReference"], [[carbon, carbon.method, impl, impl.implemented], 26, "GetBannerAspectRatio"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddBanner"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetKey"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPickingID"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetPrimaryTextureParameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddLightFromSOF"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateLights"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The texture average color is a resource capability - read as a GetAverageColor duck on the parameter's resource, zero when absent.")], 18, "GetAverageColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The texture average color and profile packing follow the adapted ducks above.")], 18, "GetLights"]], 0, void 0, _EveEntity));
+      _initStatic(this);
     }
     banners = (_initProto(this), _init_banners(this, []));
     name = (_init_extra_banners(this), _init_name(this, ""));
@@ -47,6 +48,43 @@ new class extends _identity {
     }
     GetReference(index) {
       return this.banners[index].reference;
+    }
+
+    /** Measures the generated banner surface exactly as Carbon does: flat
+     * banners use authored X/Y scale, while curved banners sum the same
+     * approximately five-degree transformed arc chords used by geometry
+     * generation. */
+    static GetBannerAspectRatio(banner) {
+      const flatX = banner.angleX <= 0;
+      const flatY = banner.angleY <= 0;
+      if (flatX && flatY) {
+        return banner.scaling[0] / banner.scaling[1];
+      }
+      const transform = mat4.fromRotationTranslationScale(_EveBannerSet.#aspectTransform, banner.rotation, banner.position, banner.scaling);
+      if (flatX) {
+        const angleY = _EveBannerSet.#clampBannerAngle(banner.angleY);
+        const halfAngleY = angleY / 180 * Math.PI / 2;
+        const scaleY = 0.5 / Math.sin(halfAngleY);
+        const vLength = _EveBannerSet.#measureVerticalArc(transform, angleY, halfAngleY, scaleY, scaleY);
+        return banner.scaling[0] / vLength;
+      }
+      if (flatY) {
+        const angleX = _EveBannerSet.#clampBannerAngle(banner.angleX);
+        const halfAngleX = angleX / 180 * Math.PI / 2;
+        const scaleX = 0.5 / Math.sin(halfAngleX);
+        const uLength = _EveBannerSet.#measureHorizontalArc(transform, angleX, halfAngleX, scaleX, scaleX);
+        return uLength / banner.scaling[1];
+      }
+      const angleX = _EveBannerSet.#clampBannerAngle(banner.angleX);
+      const angleY = _EveBannerSet.#clampBannerAngle(banner.angleY);
+      const halfAngleX = angleX / 180 * Math.PI / 2;
+      const halfAngleY = angleY / 180 * Math.PI / 2;
+      const scaleX = 0.5 / Math.sin(halfAngleX);
+      const scaleY = 0.5 / Math.sin(halfAngleY);
+      const scaleZ = Math.min(scaleX, scaleY);
+      const uLength = _EveBannerSet.#measureHorizontalArc(transform, angleX, halfAngleX, scaleX, scaleZ);
+      const vLength = _EveBannerSet.#measureVerticalArc(transform, angleY, halfAngleY, scaleY, scaleZ);
+      return uLength / vLength;
     }
     Initialize() {
       this.Rebuild();
@@ -169,6 +207,42 @@ new class extends _identity {
   #lightRecord = CreateLightRecord();
   #lightDataScratch = CreateLightDataScratch();
   #averageColorScratch = new Float32Array(4);
+  #aspectTransform = mat4.create();
+  #aspectPosition = vec3.create();
+  #aspectPreviousPosition = vec3.create();
+  #clampBannerAngle(angle) {
+    return Math.max(0, Math.min(Number(angle), 180));
+  }
+  #measureHorizontalArc(transform, angle, halfAngle, scaleX, scaleZ) {
+    const segments = 1 + Math.floor(angle / 5);
+    const position = _EveBannerSet.#aspectPosition;
+    const previous = _EveBannerSet.#aspectPreviousPosition;
+    let length = 0;
+    for (let index = 0; index <= segments; index++) {
+      const value = index / segments;
+      const sampleAngle = -halfAngle + value * 2 * halfAngle;
+      vec3.set(position, Math.sin(sampleAngle) * scaleX, 0, (Math.cos(sampleAngle) - 1) * scaleZ);
+      vec3.transformMat4(position, position, transform);
+      if (index) length += vec3.distance(previous, position);
+      vec3.copy(previous, position);
+    }
+    return length;
+  }
+  #measureVerticalArc(transform, angle, halfAngle, scaleY, scaleZ) {
+    const segments = 1 + Math.floor(angle / 5);
+    const position = _EveBannerSet.#aspectPosition;
+    const previous = _EveBannerSet.#aspectPreviousPosition;
+    let length = 0;
+    for (let index = 0; index <= segments; index++) {
+      const value = index / segments;
+      const sampleAngle = -halfAngle + value * 2 * halfAngle + Math.PI / 2;
+      vec3.set(position, 0, Math.cos(sampleAngle) * scaleY, (Math.sin(sampleAngle) - 1) * scaleZ);
+      vec3.transformMat4(position, position, transform);
+      if (index) length += vec3.distance(previous, position);
+      vec3.copy(previous, position);
+    }
+    return length;
+  }
   #copyBanner(source) {
     const banner = new _EveBannerItem();
     if (!source) return banner;

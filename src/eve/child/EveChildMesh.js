@@ -1095,6 +1095,14 @@ export class EveChildMesh extends EveChildTransform
     }
   }
 
+  /** Carbon EveChildMesh::GetID returns GetRawRoot(), i.e. this object. */
+  @carbon.method
+  @impl.implemented
+  GetID(_area = 0)
+  {
+    return this;
+  }
+
   /** Carbon EveChildMesh::GetPickingBatches (cpp:862-889) maps Tr2PickTypes
    * flags onto batch-type collections with transparent/additive special
    * casing; the pick-type flag enum is not yet ported, so the surface fails

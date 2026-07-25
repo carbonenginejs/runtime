@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../../_virtual/_rollupPluginBabelHelpers.js';
 import { type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { PlaneType } from '../../../../eve/child/behaviors/enums.js';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 
 let _initProto, _initClass, _init_tree, _init_extra_tree, _init_debugSquareSize, _init_extra_debugSquareSize, _init_updateTimeCounter, _init_extra_updateTimeCounter, _init_maxFoundPerAgent, _init_extra_maxFoundPerAgent, _init_timeBetweenUpdate, _init_extra_timeBetweenUpdate, _init_agentRefs, _init_extra_agentRefs, _init_groupSearchReturnInfoBlock, _init_extra_groupSearchReturnInfoBlock, _init_agents, _init_extra_agents, _init_behaviorNbr, _init_extra_behaviorNbr, _init_radius, _init_extra_radius, _init_agent, _init_extra_agent, _init_rangeBetween, _init_extra_rangeBetween, _init_planeType, _init_extra_planeType, _init_b, _init_extra_b, _init_e, _init_extra_e, _init_left, _init_extra_left, _init_right, _init_extra_right;
@@ -365,11 +366,7 @@ new class extends _identity {
         return _EveKDdroneManagement.PlaneType.X;
     }
   }
-  PlaneType = Object.freeze({
-    X: 0,
-    Y: 1,
-    Z: 2
-  });
+  PlaneType = PlaneType;
   constructor() {
     super(_EveKDdroneManagement), _initClass();
   }

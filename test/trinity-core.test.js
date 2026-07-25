@@ -682,11 +682,26 @@ test("TriProjection exposes its source-backed schema and identity default", () =
   assertEquals(CjsSchema.GetConstructor("TriProjection"), TriProjection);
   assertEquals(CjsSchema.getField(TriProjection, "transform")?.type.kind, "mat4");
   assertEquals(CjsSchema.getField(TriProjection, "transform")?.io?.read, true);
+  for (const privateField of [
+    "projectionType",
+    "fov",
+    "aspect",
+    "left",
+    "right",
+    "bottom",
+    "top",
+    "zn",
+    "zf",
+    "customTransform"
+  ])
+  {
+    assertEquals(CjsSchema.getField(TriProjection, privateField), null);
+  }
   assertEquals(projection.GetProjectionType(), 0);
   assertMatrixValues(projection.GetTransform(), mat4.create());
 });
 
-test("TriProjection constructs left-handed perspective and orthographic matrices", () =>
+test("TriProjection constructs Carbon's right-handed perspective and orthographic matrices", () =>
 {
   const projection = new TriProjection();
 
@@ -695,7 +710,7 @@ test("TriProjection constructs left-handed perspective and orthographic matrices
   assertMatrixValues(projection.GetTransform(), [
     0.5, 0, 0, 0,
     0, 1, 0, 0,
-    0, 0, 1.1, 1,
+    0, 0, -1.1, -1,
     0, 0, -1.1, 0
   ]);
 
@@ -704,7 +719,7 @@ test("TriProjection constructs left-handed perspective and orthographic matrices
   assertMatrixValues(projection.GetTransform(), [
     0.5, 0, 0, 0,
     0, 0.5, 0, 0,
-    -0.5, 0, 1.1, 1,
+    0.5, 0, -1.1, -1,
     0, 0, -1.1, 0
   ]);
 
@@ -713,7 +728,7 @@ test("TriProjection constructs left-handed perspective and orthographic matrices
   assertMatrixValues(projection.GetTransform(), [
     0.25, 0, 0, 0,
     0, 0.5, 0, 0,
-    0, 0, 0.1, 0,
+    0, 0, -0.1, 0,
     0, 0, -0.1, 1
   ]);
 });
@@ -741,7 +756,15 @@ test("TriView builds Carbon's right-handed look-at transform", () =>
 
   assertEquals(view.SetLookAtPosition([3, 4, 5], [0, 0, 0], [0, 1, 0]), undefined);
   assertMatrixValues(view.transform, expected);
+  const replacement = mat4.fromTranslation(mat4.create(), [7, 8, 9]);
+  view.SetTransform(replacement);
+  const detached = view.GetTransform();
+  assertMatrixValues(detached, replacement);
+  detached[12] = 100;
+  assertEquals(view.transform[12], 7);
   assertEquals(CjsSchema.getMethod(TriView, "SetLookAtPosition")?.impl?.status, "implemented");
+  assertEquals(CjsSchema.getMethod(TriView, "SetTransform")?.impl?.status, "implemented");
+  assertEquals(CjsSchema.getMethod(TriView, "GetTransform")?.impl?.status, "adapted");
   assertEquals(existsSync(new URL("../src/generated/trinityCore/TriView.js", import.meta.url)), false);
 });
 

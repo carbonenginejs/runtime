@@ -1,7 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../../../generated/eve/EveEntity.js';
+import { EveEntity as _EveEntity } from '../../EveEntity.js';
 import { EvePlaneLight as _EvePlaneLight } from './EvePlaneLight.js';
 import { EveComponentType } from '../../EveComponentTypes.js';
 import { Saturate, Fade } from '../EveSpaceObjectAttachmentUtils.js';

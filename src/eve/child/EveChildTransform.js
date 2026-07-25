@@ -4,7 +4,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveEntity } from "../../generated/eve/EveEntity.js";
+import { EveEntity } from "../EveEntity.js";
 
 
 // Carbon's registered space-object children multiple-inherit EveEntity

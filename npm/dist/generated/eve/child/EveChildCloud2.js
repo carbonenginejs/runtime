@@ -1,6 +1,6 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, impl, schema } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../EveEntity.js';
+import { EveEntity as _EveEntity } from '../../../eve/EveEntity.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';

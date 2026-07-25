@@ -29,11 +29,13 @@ new class extends _identity {
       this.view = view ?? null;
       this.camera = camera ?? null;
     }
-    Execute(_realTime, simTime, executor) {
+    Execute(realTime, simTime, executor) {
       if (this.view) {
         executor?.SetViewTransform?.(_TriStepSetView.#getTransform(this.view), this.view);
       } else if (this.camera) {
-        this.camera.Update?.(simTime);
+        const viewport = executor?.GetViewport?.();
+        const aspectRatio = viewport?.height ? viewport.width / viewport.height : 1;
+        this.camera.Update?.(simTime, aspectRatio, realTime);
         const viewMatrix = this.camera.GetViewMatrix?.() ?? this.camera.viewMatrix ?? null;
         executor?.SetViewTransform?.(_TriStepSetView.#getTransform(viewMatrix), this.camera);
       }

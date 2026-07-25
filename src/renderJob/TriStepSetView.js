@@ -33,7 +33,7 @@ export class TriStepSetView extends TriRenderStep
 
   @carbon.method
   @impl.implemented
-  Execute(_realTime, simTime, executor)
+  Execute(realTime, simTime, executor)
   {
     if (this.view)
     {
@@ -41,7 +41,9 @@ export class TriStepSetView extends TriRenderStep
     }
     else if (this.camera)
     {
-      this.camera.Update?.(simTime);
+      const viewport = executor?.GetViewport?.();
+      const aspectRatio = viewport?.height ? viewport.width / viewport.height : 1;
+      this.camera.Update?.(simTime, aspectRatio, realTime);
       const viewMatrix = this.camera.GetViewMatrix?.() ?? this.camera.viewMatrix ?? null;
       executor?.SetViewTransform?.(TriStepSetView.#getTransform(viewMatrix), this.camera);
     }

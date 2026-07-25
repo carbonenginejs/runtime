@@ -158,6 +158,7 @@ test("EveSceneStaticParticles.GetRenderables pushes itself iff visible; the frus
 test("EveSceneStaticParticles renderable surface: batches, shadow no-op, per-object matrices (cpp:137-168)", () =>
 {
   const particles = new EveSceneStaticParticles();
+  assert.equal(particles.Initialize(), true);
   particles.estimatedSize = 123;
   const calls = [];
   particles.mesh = { GetBatches: (...args) => (calls.push(args), true) };
@@ -178,4 +179,30 @@ test("EveSceneStaticParticles renderable surface: batches, shadow no-op, per-obj
   data.Copy("lastWorld", lastWorld);
   assertClose(world[3], 1, "transposed world");
   assertClose(lastWorld[7], 5, "transposed lastWorld");
+  assert.equal(particles.GetPerObjectData({ Alloc: () => null }), null);
+});
+
+test("EveSceneStaticParticles publishes and renders Carbon's bounding-sphere debug option", () =>
+{
+  const particles = new EveSceneStaticParticles();
+  particles.boundingSphere.set([1, 2, 3, 4]);
+  mat4.fromTranslation(particles.worldMatrix, [10, 20, 30]);
+
+  const options = particles.GetDebugOptions();
+  assert.deepEqual([...options], ["Bounding Sphere"]);
+
+  const calls = [];
+  const renderer = {
+    HasOption: (owner, option) => owner === particles && option === "Bounding Sphere",
+    DrawSphere: (...args) => calls.push(args),
+  };
+  particles.RenderDebugInfo(renderer);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][0], particles);
+  assert.deepEqual(Array.from(calls[0][1]), [11, 22, 33]);
+  assert.deepEqual(calls[0].slice(2), [4, 10, 0, 0xffffff00]);
+
+  calls.length = 0;
+  particles.RenderDebugInfo({ ...renderer, HasOption: () => false });
+  assert.equal(calls.length, 0);
 });

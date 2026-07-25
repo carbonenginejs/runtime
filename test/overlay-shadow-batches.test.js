@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  EveMeshOverlayEffect,
   EveSpaceObject2,
   Tr2Mesh,
   Tr2MeshArea,
@@ -90,7 +91,8 @@ test("overlay effects route per batch type with the display gate; impact overlay
   object.mesh = new Tr2Mesh();
   object.mesh.AddArea(OPAQUE, area(hullFx, { index: 0 }));
 
-  const overlay = { display: true, opaqueEffects: [ overlayFx ], transparentEffects: [] };
+  const overlay = new EveMeshOverlayEffect();
+  overlay.opaqueEffects.push(overlayFx);
   object.overlayEffects.push(overlay);
   object.impactOverlay = {
     GetArmorDamageShader()
@@ -121,7 +123,9 @@ test("HasTransparentBatches includes the overlay transparent contribution", () =
   object.mesh = new Tr2Mesh();
   assert.equal(object.HasTransparentBatches(), false);
 
-  object.overlayEffects.push({ transparentEffects: [ { id: "t" } ] });
+  const overlay = new EveMeshOverlayEffect();
+  overlay.transparentEffects.push({ id: "t" });
+  object.overlayEffects.push(overlay);
   assert.equal(object.HasTransparentBatches(), true, "overlay with transparent effects counts");
 });
 

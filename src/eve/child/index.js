@@ -7,6 +7,7 @@ export * from "./EveChildInstancedMeshes.js";
 export * from "./EveChildInstanceTransform.js";
 export * from "./EveChildLightingOverride.js";
 export * from "./EveChildMesh.js";
+export * from "./EveChildSpherePin.js";
 export * from "./EveChildTransform.js";
 export * from "./EveCloudVolumeBall.js";
 export * from "./IEveSpaceObjectChild.js";

@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { LocatorType } from '../../../../eve/child/behaviors/enums.js';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { EveLocatorSets as _EveLocatorSets } from '../../../../eve/locator/EveLocatorSets.js';
@@ -253,11 +254,7 @@ new class extends _identity {
       }
     }
   }];
-  LocatorType = Object.freeze({
-    LOCAL_LOCATORS: 0,
-    PARENT_LOCATORS: 1,
-    TARGET_LOCATORS: 2
-  });
+  LocatorType = LocatorType;
   constructor() {
     super(_BackAndForth), _initClass();
   }

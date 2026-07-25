@@ -16,6 +16,21 @@ export class TriView extends CjsModel
   @type.mat4
   transform = mat4.create();
 
+  @carbon.method
+  @impl.implemented
+  SetTransform(value)
+  {
+    mat4.copy(this.transform, value);
+  }
+
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Returns a detached matrix copy because JavaScript cannot expose Carbon's const Matrix reference safely.")
+  GetTransform(out = mat4.create())
+  {
+    return mat4.copy(out, this.transform);
+  }
+
   /** Builds Carbon's right-handed look-at view transform. */
   @carbon.method
   @impl.implemented

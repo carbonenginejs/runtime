@@ -1,6 +1,6 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../../../generated/eve/EveEntity.js';
+import { EveEntity as _EveEntity } from '../../EveEntity.js';
 import { EveComponentType } from '../../EveComponentTypes.js';
 import { EveTurretTarget as _EveTurretTarget } from './EveTurretTarget.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
@@ -831,6 +831,24 @@ new class extends _identity {
     LOD_EMPTY: 1,
     LOD_HIGHEST: 2,
     LOD_DISABLED: 3
+  });
+  SystemBones = Object.freeze({
+    SYSBONE_INVALID: 0,
+    SYSBONE_ROTATION: 1,
+    SYSBONE_ROTATION01: 2,
+    SYSBONE_ROTATION02: 3,
+    SYSBONE_COUNTER_ROTATION: 4,
+    SYSBONE_PITCH: 5,
+    SYSBONE_PITCH1: 6,
+    SYSBONE_PITCH2: 7,
+    SYSBONE_SCALED_HEIGHT: 8,
+    SYSBONE_SCALED_PITCH01: 9,
+    SYSBONE_SCALED_PITCH02: 10,
+    SYSBONE_SCALED_PITCH03: 11,
+    SYSBONE_SCALED_PITCH04: 12,
+    SYSBONE_SCALED_PITCH05: 13,
+    SYSBONE_SCALED_PITCH06: 14,
+    SYSBONE_MAX: 15
   });
   State = Object.freeze({
     STATE_INVALID: 0,
