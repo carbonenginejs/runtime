@@ -25,6 +25,13 @@
     "access": "public"
   }, 
   "version": "0.6.0",
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
   "dependencies": {
     "@carbonenginejs/runtime-utils": "^0.1.0"
   }, 

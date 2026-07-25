@@ -27,6 +27,7 @@ await fs.mkdir(npmRoot, {
   recursive: true
 });
 await fs.copyFile(path.join(root, "npm.package.json"), path.join(npmRoot, "package.json"));
+await fs.cp(path.join(root, "docs"), path.join(npmRoot, "docs"), { recursive: true });
 for (const file of ["README.md", "LICENSE", "NOTICE"])
 {
   await copyFileIfExists(file);

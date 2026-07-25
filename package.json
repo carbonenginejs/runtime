@@ -23,6 +23,13 @@
   "sideEffects": false,
   "private": true,
   "version": "0.6.0",
+  "files": [
+    "src",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
   "publishConfig": {
     "access": "public"
   },
