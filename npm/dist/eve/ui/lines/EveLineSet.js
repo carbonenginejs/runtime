@@ -6,7 +6,7 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
 let _initProto, _initClass, _init_lines, _init_extra_lines, _init_maxCurrentLineCount, _init_extra_maxCurrentLineCount, _init_currentSubmittedLineCount, _init_extra_currentSubmittedLineCount, _init_scaling, _init_extra_scaling, _init_name, _init_extra_name, _init_rotationCurve, _init_extra_rotationCurve, _init_effect, _init_extra_effect, _init_display, _init_extra_display, _init_renderTransparent, _init_extra_renderTransparent, _init_translationCurve, _init_extra_translationCurve;
 
-/** EveLineSet (eve/ui) - generated from schema shapeHash c858d211.... */
+/** Stores editable tactical line records before renderer submission. */
 let _EveLineSet;
 class EveLineSet extends CjsModel {
   static {
@@ -16,7 +16,7 @@ class EveLineSet extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveLineSet",
       family: "eve/ui"
-    })], [[type.list("EveLineData"), 0, "lines"], [[type, type.uint32], 16, "maxCurrentLineCount"], [[type, type.uint32], 16, "currentSubmittedLineCount"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("ITriQuaternionFunction")], 16, "rotationCurve"], [[io, io.notify, io, io.persist, void 0, type.model("Tr2Effect")], 16, "effect"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.boolean], 16, "renderTransparent"], [[io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "translationCurve"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddLine"], [[carbon, carbon.method, impl, impl.adapted], 18, "ChangeLineColor"], [[carbon, carbon.method, impl, impl.adapted], 18, "ChangeLine"], [[carbon, carbon.method, impl, impl.adapted], 18, "ChangeLinePosition"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearLines"], [[carbon, carbon.method, impl, impl.adapted], 18, "RemoveLine"], [[carbon, carbon.method, impl, impl.adapted], 18, "SubmitChanges"]], 0, void 0, CjsModel));
+    })], [[type.list("EveLineData"), 0, "lines"], [[type, type.uint32], 16, "maxCurrentLineCount"], [[type, type.uint32], 16, "currentSubmittedLineCount"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("ITriQuaternionFunction")], 16, "rotationCurve"], [[io, io.notify, io, io.persist, void 0, type.model("Tr2Effect")], 16, "effect"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.boolean], 16, "renderTransparent"], [[io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "translationCurve"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Stores Carbon's pending line data as renderer-neutral JavaScript records; buffer realization belongs to an engine package.")], 18, "AddLine"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")], 18, "ChangeLineColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")], 18, "ChangeLine"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")], 18, "ChangeLinePosition"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearLines"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Returns a Boolean for JavaScript callers while preserving Carbon's indexed CPU-line removal.")], 18, "RemoveLine"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Records submitted counts without creating Carbon's GPU vertex buffer; realization belongs to an engine package.")], 18, "SubmitChanges"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetPerObjectData"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);
@@ -105,6 +105,26 @@ class EveLineSet extends CjsModel {
     this.maxCurrentLineCount = Math.max(this.maxCurrentLineCount, this.lines.length);
     this.currentSubmittedLineCount = this.lines.length;
     return true;
+  }
+
+  /** Carbon EveLineSet::HasTransparentBatches is always true (cpp:161-164). */
+  HasTransparentBatches() {
+    return true;
+  }
+
+  /** Carbon EveLineSet::GetBatches submits its GPU-backed line vertex buffer (cpp:166-201). */
+  GetBatches(_accumulator, _batchType, _perObjectData, _reason) {
+    throw new Error("EveLineSet.GetBatches is not implemented in CarbonEngineJS.");
+  }
+
+  /** Carbon EveLineSet::GetSortValue reads renderer view state and the live world transform (cpp:203-208). */
+  GetSortValue() {
+    throw new Error("EveLineSet.GetSortValue is not implemented in CarbonEngineJS.");
+  }
+
+  /** Carbon EveLineSet::GetPerObjectData populates standard device constant buffers (cpp:210-231). */
+  GetPerObjectData(_accumulator) {
+    throw new Error("EveLineSet.GetPerObjectData is not implemented in CarbonEngineJS.");
   }
   static {
     _initClass();

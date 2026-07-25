@@ -2,11 +2,11 @@ import { applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPlugin
 import { impl, carbon, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { EveComponentCollection as _EveComponentCollecti } from './EveComponentCollection.js';
-import { EveComponentRequiredMethods } from '../../../eve/EveComponentTypes.js';
+import { EveComponentRequiredMethods } from '../../EveComponentTypes.js';
 
 let _initProto, _initClass, _init_componentCollectionLoopGuard, _init_extra_componentCollectionLoopGuard, _init_registeredEntities, _init_extra_registeredEntities;
 
-/** EveComponentRegistry (eve/scene) - generated from schema shapeHash abca1458.... */
+/** Indexes Eve entities and their component collections for scene processing. */
 let _EveComponentRegistry;
 class EveComponentRegistry extends CjsModel {
   static {

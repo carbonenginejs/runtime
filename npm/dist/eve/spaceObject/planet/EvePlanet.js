@@ -1,12 +1,12 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveEffectRoot2 as _EveEffectRoot } from '../../../eve/spaceObject/EveEffectRoot2.js';
+import { EveEffectRoot2 as _EveEffectRoot } from '../EveEffectRoot2.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
 let _initProto, _initClass, _init_zOnlyModel, _init_extra_zOnlyModel, _init_emissiveColor, _init_extra_emissiveColor, _init_minScreenSize, _init_extra_minScreenSize, _init_albedoColor, _init_extra_albedoColor, _init_estimatedPixelDiameter, _init_extra_estimatedPixelDiameter, _init_radius, _init_extra_radius;
 
-/** EvePlanet (eve/spaceObject) - generated from schema shapeHash 7149dce3.... */
+/** Represents a planet scene object with CPU-side visibility state for its depth-only child mesh. */
 let _EvePlanet;
 new class extends _identity {
   static [class EvePlanet extends _EveEffectRoot {

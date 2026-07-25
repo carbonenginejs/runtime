@@ -5,11 +5,14 @@ import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import {
   EveChildEffectPropagator,
   EveBoosterSet2,
+  EveLensflare,
+  EveLineSet,
   EveLocator2,
   EveMultiEffectParameter,
   EveSceneStaticParticles,
   EveSocketParameterString,
   EveTurretFiringFX,
+  EveTacticalTrails,
   EveUiObject,
   Tr2MaterialParameterStore,
   Tr2ExternalParameter,
@@ -27,7 +30,6 @@ import {
 } from "../npm/dist/index.js";
 import { Tr2ParticleDirectForce } from "../npm/dist/particle/Tr2ParticleDirectForce.js";
 import { TriBatchType } from "../npm/dist/generated/trinityCore/enums.js";
-import { EveLineSet } from "../npm/dist/generated/eve/ui/EveLineSet.js";
 import { EveChildBulletStorm } from "../npm/dist/generated/eve/child/EveChildBulletStorm.js";
 import { EveChildExplosion } from "../npm/dist/generated/eve/child/EveChildExplosion.js";
 import { EveChildInstanceContainer } from "../npm/dist/generated/eve/child/EveChildInstanceContainer.js";
@@ -36,9 +38,7 @@ import { EveChildParticleSphere } from "../npm/dist/generated/eve/child/EveChild
 import { EveChildRef } from "../npm/dist/generated/eve/child/EveChildRef.js";
 import { EveChildSocket } from "../npm/dist/generated/eve/child/EveChildSocket.js";
 import { EveChildProceduralContainer } from "../npm/dist/eve/child/procedural/EveChildProceduralContainer.js";
-import { EveLensflare } from "../npm/dist/generated/eve/effect/EveLensflare.js";
 import { EveMultiEffect } from "../npm/dist/eve/effect/multiEffect/EveMultiEffect.js";
-import { EveTacticalTrails } from "../npm/dist/generated/eve/ui/EveTacticalTrails.js";
 import { EveShip2 } from "../npm/dist/generated/eve/spaceObject/EveShip2.js";
 import { EveCamera } from "../npm/dist/eve/camera/EveCamera.js";
 import { BackAndForth } from "../npm/dist/generated/eve/child/behaviors/BackAndForth.js";
@@ -269,6 +269,10 @@ test("EveLineSet retains editable CPU lines before renderer submission", () =>
   lines.SubmitChanges();
   assert.equal(lines.currentSubmittedLineCount, 0);
   assert.equal(lines.maxCurrentLineCount, 1);
+  assert.equal(lines.HasTransparentBatches(), true);
+  assert.throws(() => lines.GetBatches(null, 0, null, 0), /not implemented/);
+  assert.throws(() => lines.GetSortValue(), /not implemented/);
+  assert.throws(() => lines.GetPerObjectData(null), /not implemented/);
 });
 
 test("EveChildBulletStorm rebuilds locator instances and transitions its clip sphere", () =>
@@ -397,7 +401,7 @@ test("generated child wrappers propagate Carbon controller and socket calls", ()
   assert.equal(target.label, "updated");
 });
 
-test("generated Eve effects propagate controllers, bindings, and named parameters", () =>
+test("Eve effects propagate controllers, bindings, and named parameters", () =>
 {
   const calls = [];
   const controller = {
@@ -411,6 +415,17 @@ test("generated Eve effects propagate controllers, bindings, and named parameter
   lensflare.SetControllerVariable("Brightness", 0.75);
   lensflare.StartControllers();
   assert.equal(calls.length, 2);
+  assert.equal(lensflare.HasTransparentBatches(), false);
+  assert.equal(lensflare.GetSortValue(), 1);
+  assert.throws(() => lensflare.GetPerObjectData(null), /not implemented/);
+
+  let batchArgs = null;
+  lensflare.mesh = {
+    GetAreas: batchType => [`area-${batchType}`],
+    GetBatches: (...args) => batchArgs = args
+  };
+  lensflare.GetBatches("batches", 3, "perObjectData", 9);
+  assert.deepEqual(batchArgs, ["batches", ["area-3"], "perObjectData"]);
 
   calls.length = 0;
   const effect = new EveMultiEffect();
@@ -446,6 +461,10 @@ test("EveTacticalTrails keeps Carbon-style weak tracked-object registrations", (
   assert.equal(trails.UnregisterObject(object), true);
   assert.equal(trails.trackedObjects[0].ball, null);
   assert.equal(trails.UnregisterObject(object), false);
+  assert.equal(trails.HasTransparentBatches(), true);
+  assert.equal(trails.GetSortValue(), 0);
+  assert.equal(trails.GetPerObjectData(null), null);
+  assert.throws(() => trails.GetBatches(null, 0, null, 0), /not implemented/);
 });
 
 test("EveShip2 rebuilds booster items from Carbon locator names", () =>
@@ -1195,6 +1214,12 @@ test("scaling and texture animation helpers retain portable CPU state", () =>
 test("low-hanging ports replace their generated staging files", () =>
 {
   const families = new Map([
+    ["EvePlanet", "eve/spaceObject"],
+    ["EveLensflare", "eve/effect"],
+    ["EveLineSet", "eve/ui"],
+    ["EveTacticalTrails", "eve/ui"],
+    ["EveComponentCollection", "eve/scene"],
+    ["EveComponentRegistry", "eve/scene"],
     ["EveTurretFiringFX", "eve/attachment/turrets"],
     ["EveUiObject", "eve/ui"],
     ["EveChildEffectPropagator", "eve/child"],

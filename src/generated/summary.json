@@ -1,8 +1,8 @@
 {
   "outRoot": "src/generated",
   "classes": {
-    "written": 289,
-    "skipped": 306
+    "written": 283,
+    "skipped": 312
   },
   "enums": {
     "written": 16,
@@ -485,6 +485,16 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve/scene",
+      "className": "EveComponentCollection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveComponentRegistry",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "eve/spaceObject",
       "className": "EveCustomMask",
       "reason": "hand-maintained source exists"
@@ -530,8 +540,18 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve/effect",
+      "className": "EveLensflare",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "eve/ui",
       "className": "EveLineData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveLineSet",
       "reason": "hand-maintained source exists"
     },
     {
@@ -607,6 +627,11 @@
     {
       "family": "eve/attachment/planes",
       "className": "EvePlaneSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EvePlanet",
       "reason": "hand-maintained source exists"
     },
     {
@@ -727,6 +752,11 @@
     {
       "family": "eve/ui",
       "className": "EveTacticalOverlayTrackObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveTacticalTrails",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1919,8 +1949,8 @@
       "enumsFile": false
     },
     "eve/effect": {
-      "exports": 5,
-      "classes": 5,
+      "exports": 4,
+      "classes": 4,
       "enumsFile": false
     },
     "eve/fxAttributes": {
@@ -1954,8 +1984,8 @@
       "enumsFile": true
     },
     "eve/scene": {
-      "exports": 10,
-      "classes": 10,
+      "exports": 8,
+      "classes": 8,
       "enumsFile": false
     },
     "eve/smartLights": {
@@ -1974,8 +2004,8 @@
       "enumsFile": false
     },
     "eve/spaceObject": {
-      "exports": 6,
-      "classes": 4,
+      "exports": 5,
+      "classes": 3,
       "enumsFile": true
     },
     "eve/spaceObject/swarm": {
@@ -1984,8 +2014,8 @@
       "enumsFile": false
     },
     "eve/ui": {
-      "exports": 14,
-      "classes": 13,
+      "exports": 12,
+      "classes": 11,
       "enumsFile": true
     },
     "font": {

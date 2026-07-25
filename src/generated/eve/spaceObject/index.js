@@ -1,4 +1,3 @@
-export * from "./EvePlanet.js";
 export * from "./EveShip2.js";
 export * from "./IEveSpaceObject2.js";
 export * from "./enums.js";

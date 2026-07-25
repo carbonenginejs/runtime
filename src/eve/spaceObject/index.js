@@ -9,3 +9,4 @@ export * from "./EveStation2.js";
 export * from "./createEveSpaceObjectMainPerObjectValues.js";
 export * from "./fxAttributes/index.js";
 export * from "./swarm/index.js";
+export * from "./planet/index.js";

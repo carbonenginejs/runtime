@@ -4,7 +4,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initProto, _initClass, _init_trackedObjects, _init_extra_trackedObjects, _init_segments, _init_extra_segments, _init_egoBall, _init_extra_egoBall, _init_trailEffect, _init_extra_trailEffect, _init_fadeOutTime, _init_extra_fadeOutTime;
 
-/** EveTacticalTrails (eve/ui) - generated from schema shapeHash e0ed0e70.... */
+/** Tracks tactical trail objects without requiring a graphics device. */
 let _EveTacticalTrails;
 class EveTacticalTrails extends CjsModel {
   static {
@@ -14,7 +14,7 @@ class EveTacticalTrails extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveTacticalTrails",
       family: "eve/ui"
-    })], [[type.list("EveTacticalTrailTrackedObject"), 0, "trackedObjects"], [[io, io.read, type, type.uint32], 16, "segments"], [[io, io.readwrite, void 0, type.objectRef("ITriVectorFunction")], 16, "egoBall"], [[io, io.persist, void 0, type.model("Tr2Effect")], 16, "trailEffect"], [[io, io.persist, type, type.float32], 16, "fadeOutTime"], [[carbon, carbon.method, impl, impl.adapted], 18, "RegisterObject"], [[carbon, carbon.method, impl, impl.adapted], 18, "UnregisterObject"]], 0, void 0, CjsModel));
+    })], [[type.list("EveTacticalTrailTrackedObject"), 0, "trackedObjects"], [[io, io.read, type, type.uint32], 16, "segments"], [[io, io.readwrite, void 0, type.objectRef("ITriVectorFunction")], 16, "egoBall"], [[io, io.persist, void 0, type.model("Tr2Effect")], 16, "trailEffect"], [[io, io.persist, type, type.float32], 16, "fadeOutTime"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Uses WeakRef when available to model Carbon's non-owning pointer and returns success for JavaScript callers.")], 18, "RegisterObject"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Clears the non-owning JavaScript reference and returns success for JavaScript callers.")], 18, "UnregisterObject"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPerObjectData"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);
@@ -52,6 +52,26 @@ class EveTacticalTrails extends CjsModel {
     if (!found) return false;
     found.ball = null;
     return true;
+  }
+
+  /** Carbon EveTacticalTrails::GetBatches submits its GPU-backed trail vertex buffer (cpp:299-317). */
+  GetBatches(_batches, _batchType, _perObjectData, _reason) {
+    throw new Error("EveTacticalTrails.GetBatches is not implemented in CarbonEngineJS.");
+  }
+
+  /** Carbon EveTacticalTrails::HasTransparentBatches is always true (cpp:319-322). */
+  HasTransparentBatches() {
+    return true;
+  }
+
+  /** Carbon EveTacticalTrails::GetSortValue is zero (cpp:324-327). */
+  GetSortValue() {
+    return 0;
+  }
+
+  /** Carbon EveTacticalTrails::GetPerObjectData returns null (cpp:329-332). */
+  GetPerObjectData(_accumulator) {
+    return null;
   }
   static {
     _initClass();

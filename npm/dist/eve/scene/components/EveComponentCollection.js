@@ -4,7 +4,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_bit, _init_extra_bit, _init_collection, _init_extra_collection;
 
-/** EveComponentCollection (eve/scene) - generated from schema shapeHash 8a69309e.... */
+/** Stores entities belonging to one Eve component type. */
 let _EveComponentCollecti;
 class EveComponentCollection extends CjsModel {
   static {

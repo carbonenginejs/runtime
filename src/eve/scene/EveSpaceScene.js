@@ -13,7 +13,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { EveEntity } from "../EveEntity.js";
-import { EveComponentRegistry } from "../../generated/eve/scene/EveComponentRegistry.js";
+import { EveComponentRegistry } from "./components/EveComponentRegistry.js";
 import { Tr2PostProcess2 } from "../../postProcess/Tr2PostProcess2.js";
 import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttributes.js";
 import { EveComponentType } from "../EveComponentTypes.js";

@@ -6,7 +6,7 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 
 let _initProto, _initClass, _init_translationCurve, _init_extra_translationCurve, _init_mesh, _init_extra_mesh, _init_name, _init_extra_name, _init_backgroundOccluders, _init_extra_backgroundOccluders, _init_occluders, _init_extra_occluders, _init_curveSets, _init_extra_curveSets, _init_distanceToEdgeCurves, _init_extra_distanceToEdgeCurves, _init_distanceToCenterCurves, _init_extra_distanceToCenterCurves, _init_radialAngleCurves, _init_extra_radialAngleCurves, _init_xDistanceToCenter, _init_extra_xDistanceToCenter, _init_yDistanceToCenter, _init_extra_yDistanceToCenter, _init_controllers, _init_extra_controllers, _init_bindings, _init_extra_bindings, _init_cameraFactor, _init_extra_cameraFactor, _init_position, _init_extra_position, _init_flares, _init_extra_flares, _init_update, _init_extra_update, _init_display, _init_extra_display;
 
-/** EveLensflare (eve/effect) - generated from schema shapeHash 7248f01b.... */
+/** Represents a lens-flare graph with CPU-side visibility and controller state. */
 let _EveLensflare;
 class EveLensflare extends CjsModel {
   static {
@@ -16,7 +16,7 @@ class EveLensflare extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveLensflare",
       family: "eve/effect"
-    })], [[[io, io.readwrite, void 0, type.objectRef("ITriVectorFunction")], 16, "translationCurve"], [[io, io.persist, void 0, type.model("Tr2Mesh")], 16, "mesh"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.list("EveOccluder")], 16, "backgroundOccluders"], [[io, io.persist, void 0, type.list("EveOccluder")], 16, "occluders"], [[io, io.persist, void 0, type.list("TriCurveSet")], 16, "curveSets"], [[io, io.persist, void 0, type.list("ITriFunction")], 16, "distanceToEdgeCurves"], [[io, io.persist, void 0, type.list("ITriFunction")], 16, "distanceToCenterCurves"], [[io, io.persist, void 0, type.list("ITriFunction")], 16, "radialAngleCurves"], [[io, io.persist, void 0, type.list("ITriFunction")], 16, "xDistanceToCenter"], [[io, io.persist, void 0, type.list("ITriFunction")], 16, "yDistanceToCenter"], [[io, io.persist, void 0, type.list("ITr2Controller")], 16, "controllers"], [[io, io.persist, void 0, type.list("ITr2ValueBinding")], 16, "bindings"], [[io, io.persist, type, type.float32], 16, "cameraFactor"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, void 0, type.list("EveTransform")], 16, "flares"], [[io, io.persist, type, type.boolean], 16, "update"], [[io, io.persist, type, type.boolean], 16, "display"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetControllerVariable"], [[carbon, carbon.method, impl, impl.implemented], 18, "StartControllers"]], 0, void 0, CjsModel));
+    })], [[[io, io.readwrite, void 0, type.objectRef("ITriVectorFunction")], 16, "translationCurve"], [[io, io.persist, void 0, type.model("Tr2Mesh")], 16, "mesh"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.list("EveOccluder")], 16, "backgroundOccluders"], [[io, io.persist, void 0, type.list("EveOccluder")], 16, "occluders"], [[io, io.persist, void 0, type.list("TriCurveSet")], 16, "curveSets"], [[io, io.persist, void 0, type.list("ITriFunction")], 16, "distanceToEdgeCurves"], [[io, io.persist, void 0, type.list("ITriFunction")], 16, "distanceToCenterCurves"], [[io, io.persist, void 0, type.list("ITriFunction")], 16, "radialAngleCurves"], [[io, io.persist, void 0, type.list("ITriFunction")], 16, "xDistanceToCenter"], [[io, io.persist, void 0, type.list("ITriFunction")], 16, "yDistanceToCenter"], [[io, io.persist, void 0, type.list("ITr2Controller")], 16, "controllers"], [[io, io.persist, void 0, type.list("ITr2ValueBinding")], 16, "bindings"], [[io, io.persist, type, type.float32], 16, "cameraFactor"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, void 0, type.list("EveTransform")], 16, "flares"], [[io, io.persist, type, type.boolean], 16, "update"], [[io, io.persist, type, type.boolean], 16, "display"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetControllerVariable"], [[carbon, carbon.method, impl, impl.implemented], 18, "StartControllers"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetPerObjectData"]], 0, void 0, CjsModel));
   }
   #controllerVariables = (_initProto(this), new Map());
 
@@ -118,6 +118,28 @@ class EveLensflare extends CjsModel {
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
   StartControllers() {
     for (const controller of this.controllers) controller?.Start?.();
+  }
+
+  /** Carbon EveLensflare::GetBatches delegates the selected mesh areas (cpp:381-387). */
+  GetBatches(batches, batchType, perObjectData, _reason) {
+    if (this.mesh) {
+      this.mesh.GetBatches?.(batches, this.mesh.GetAreas?.(batchType), perObjectData);
+    }
+  }
+
+  /** Carbon EveLensflare::HasTransparentBatches is always false (cpp:389-392). */
+  HasTransparentBatches() {
+    return false;
+  }
+
+  /** Carbon EveLensflare::GetSortValue is the constant one (cpp:394-397). */
+  GetSortValue() {
+    return 1;
+  }
+
+  /** Carbon EveLensflare::GetPerObjectData populates lensflare-specific device constants (cpp:399-410). */
+  GetPerObjectData(_accumulator) {
+    throw new Error("EveLensflare.GetPerObjectData is not implemented in CarbonEngineJS.");
   }
   static {
     _initClass();

@@ -25,7 +25,7 @@ properties in generated and maintained source. It excludes the deliberate
 
 The current source contains:
 
-- 146 explicit methods across 44 classes; and
+- 151 explicit methods across 47 classes; and
 - no unknown properties.
 
 The remaining methods are concentrated in native, GPU, font, bitmap/atlas,
@@ -45,7 +45,7 @@ The `CARBON_SCHEMA_ROOT` environment variable may provide the same location.
 The audit resolves JavaScript inheritance, checks `@carbon.method` exposure,
 and excludes deliberately quarantined classes.
 
-The current audit checks 336 promoted classes and excludes 19 quarantined
+The current audit checks 342 promoted classes and excludes 19 quarantined
 classes. Eleven classes have 30 omitted methods:
 
 | Contract | Classes | Omitted surface |
@@ -86,8 +86,9 @@ inherited or interface obligation, the maintained class remains promoted and
 the parity audit keeps that new gap explicit. Backend-only methods remain
 explicit until an owning engine exposes a proven capability.
 
-The public class-purpose catalog will be generated after reviewed descriptor
-metadata is available and documentation validation can exclude the dropped
+The public class-purpose catalog is populated as classes receive reviewed
+descriptors during promotion. Completing the remaining catalog still requires
+descriptor metadata and documentation validation that excludes the dropped
 quarantine.
 
 ## Related documentation

@@ -6,7 +6,7 @@ import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { EveEntity as _EveEntity } from '../EveEntity.js';
-import { EveComponentRegistry as _EveComponentRegistry } from '../../generated/eve/scene/EveComponentRegistry.js';
+import { EveComponentRegistry as _EveComponentRegistry } from './components/EveComponentRegistry.js';
 import { Tr2PostProcess2 as _Tr2PostProcess } from '../../postProcess/Tr2PostProcess2.js';
 import { Tr2PostProcessAttributes as _Tr2PostProcessAttrib } from '../../postProcess/Tr2PostProcessAttributes.js';
 import { EveComponentType } from '../EveComponentTypes.js';
