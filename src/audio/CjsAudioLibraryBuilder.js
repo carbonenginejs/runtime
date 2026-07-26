@@ -31,14 +31,14 @@ export class CjsAudioLibraryBuilder
     /** Normalizes audio rows from index text, a file index, or an iterable. */
     static parseIndexEntries(indexValue)
     {
-        return NormalizeIndexEntries(indexValue);
+        return normalizeIndexEntries(indexValue);
     }
 
     /** Projects inspected Wwise event edges onto canonical event names. */
     static createEventMediaTable(metadata, bankResults)
     {
         const namesByID = new Map();
-        for (const [ name, record ] of MetadataEntries(
+        for (const [ name, record ] of metadataEntries(
             metadata?.Events,
             "Audio metadata Events",
         ))
@@ -96,18 +96,18 @@ export class CjsAudioLibraryBuilder
 
         for (const inspection of inspections)
         {
-            const bankID = NormalizeUnsignedID(
+            const bankID = normalizeUnsignedID(
                 inspection?.bankId,
                 "Audio inspection bankId",
             );
-            const languageID = NormalizeUnsignedID(
+            const languageID = normalizeUnsignedID(
                 inspection?.languageId ?? 0,
                 `Audio inspection ${bankID} languageId`,
             );
             const group = groups.get(bankID) ?? [];
 
             if (group.some(value =>
-                NormalizeUnsignedID(value.languageId ?? 0, "Audio languageId")
+                normalizeUnsignedID(value.languageId ?? 0, "Audio languageId")
                     === languageID))
             {
                 throw new TypeError(
@@ -124,7 +124,7 @@ export class CjsAudioLibraryBuilder
 
         for (const group of groups.values())
         {
-            group.sort(CompareBankInspections);
+            group.sort(compareBankInspections);
 
             if (group.length === 1
                 && !String(group[0].language ?? "").trim())
@@ -141,7 +141,7 @@ export class CjsAudioLibraryBuilder
         {
             return [
                 CjsBnkFormat.wwise.eventMediaFromBanks(
-                    [ ...shared ].sort(CompareBankInspections),
+                    [ ...shared ].sort(compareBankInspections),
                     graphOptions,
                 ),
             ];
@@ -179,7 +179,7 @@ export class CjsAudioLibraryBuilder
 
         return [
             CjsBnkFormat.wwise.eventMediaFromBanks(
-                selected.sort(CompareBankInspections),
+                selected.sort(compareBankInspections),
                 graphOptions,
             ),
         ];
@@ -210,7 +210,7 @@ export class CjsAudioLibraryBuilder
 
         for (const inspection of inspections)
         {
-            const name = BankSourceName(inspection?.source);
+            const name = bankSourceName(inspection?.source);
 
             if (!name)
             {
@@ -226,8 +226,8 @@ export class CjsAudioLibraryBuilder
         }
 
         const requiredNames = [
-            ...musicBankNames.map(BankSourceName),
-            BankSourceName(eventBankName),
+            ...musicBankNames.map(bankSourceName),
+            bankSourceName(eventBankName),
         ];
 
         for (const name of requiredNames)
@@ -239,7 +239,7 @@ export class CjsAudioLibraryBuilder
         }
 
         const musicInspections = musicBankNames.map(name =>
-            byName.get(BankSourceName(name)));
+            byName.get(bankSourceName(name)));
         const musicEntries = musicInspections.flatMap(inspection =>
             (inspection.hirc ?? [])
                 .filter(entry => MUSIC_HIRC_TYPES.has(entry.type)));
@@ -293,10 +293,10 @@ export class CjsAudioLibraryBuilder
             nodes[id] = node;
         }
 
-        ValidateMusicNodeReferences(nodes, media, embeddedMedia);
+        validateMusicNodeReferences(nodes, media, embeddedMedia);
 
-        const eventProjection = CreateMusicEventProjection(
-            byName.get(BankSourceName(eventBankName)),
+        const eventProjection = createMusicEventProjection(
+            byName.get(bankSourceName(eventBankName)),
             metadata,
             nodes,
         );
@@ -304,7 +304,7 @@ export class CjsAudioLibraryBuilder
         return {
             schemaVersion: 1,
             generator: "@carbonenginejs/tools-browser/audio",
-            banks: musicBankNames.map(BankSourceName),
+            banks: musicBankNames.map(bankSourceName),
             nodes,
             ...eventProjection,
         };
@@ -313,7 +313,7 @@ export class CjsAudioLibraryBuilder
     /** Classifies embedded media by its four-byte container magic. */
     static mediaTypeFromMagic(bytes, offset = 0)
     {
-        const value = ToUint8Array(bytes);
+        const value = toUint8Array(bytes);
         const at = Number(offset);
 
         if (!Number.isSafeInteger(at) || at < 0 || at + 4 > value.byteLength)
@@ -353,17 +353,17 @@ export class CjsAudioLibraryBuilder
             );
         }
 
-        const metadata = CreateAudioMetadata({
+        const metadata = createAudioMetadata({
             metadata: library.metadata,
             enrichment,
         });
 
         return {
             ...library,
-            metadata: SortedKeys({
-                Events: SortedKeys(metadata.Events),
-                SoundBanks: SortedKeys(metadata.SoundBanks),
-                WemFileIDs: SortedKeys(metadata.WemFileIDs),
+            metadata: sortedKeys({
+                Events: sortedKeys(metadata.Events),
+                SoundBanks: sortedKeys(metadata.SoundBanks),
+                WemFileIDs: sortedKeys(metadata.WemFileIDs),
             }),
         };
     }
@@ -375,9 +375,9 @@ export class CjsAudioLibraryBuilder
      */
     static async buildFromBanks(options = {})
     {
-        const loadBank = NormalizeBankLoader(options);
-        const inspectBank = options.inspectBank ?? DefaultInspectBank;
-        const eventMediaLanguage = NormalizeEventMediaLanguage(
+        const loadBank = normalizeBankLoader(options);
+        const inspectBank = options.inspectBank ?? defaultInspectBank;
+        const eventMediaLanguage = normalizeEventMediaLanguage(
             options.language ?? "en-us",
         );
         const includeMusic = options.music === true;
@@ -389,7 +389,7 @@ export class CjsAudioLibraryBuilder
             throw new TypeError("Audio inspectBank must be a function");
         }
 
-        RequireMusicBanks(library, includeMusic);
+        requireMusicBanks(library, includeMusic);
 
         const inspections = [];
         const bankIdentities = {};
@@ -397,7 +397,7 @@ export class CjsAudioLibraryBuilder
 
         for (const [ sourceID, bank ] of Object.entries(library.banks))
         {
-            ThrowIfAborted(signal);
+            throwIfAborted(signal);
 
             let loaded;
 
@@ -416,10 +416,10 @@ export class CjsAudioLibraryBuilder
                 );
             }
 
-            ThrowIfAborted(signal);
+            throwIfAborted(signal);
 
-            const source = BankSourceName(bank.resPath);
-            const prepared = NormalizeLoadedBank(loaded, sourceID);
+            const source = bankSourceName(bank.resPath);
+            const prepared = normalizeLoadedBank(loaded, sourceID);
             const inspection = prepared.inspection ?? await inspectBank(
                 prepared.bytes,
                 {
@@ -429,7 +429,7 @@ export class CjsAudioLibraryBuilder
                     signal,
                 },
             );
-            const compact = CompactBankInspection(
+            const compact = compactBankInspection(
                 inspection,
                 source,
                 bank,
@@ -459,7 +459,7 @@ export class CjsAudioLibraryBuilder
                         )
                         : "unknown");
 
-                AddSourceRecord(embeddedMedia, id, {
+                addSourceRecord(embeddedMedia, id, {
                     sourceID: `embedded:${id}:${inspectedSourceID}`,
                     bank: inspectedSourceID,
                     offset: record.absoluteOffset,
@@ -495,7 +495,7 @@ export class CjsAudioLibraryBuilder
                     [
                         MUSIC_EVENT_BANK_NAME,
                         ...MUSIC_BANK_NAMES,
-                    ].includes(BankSourceName(inspection.source))),
+                    ].includes(bankSourceName(inspection.source))),
                 metadata: library.metadata,
                 media: library.media,
                 embeddedMedia: library.embeddedMedia ?? {},
@@ -530,29 +530,29 @@ export class CjsAudioLibraryBuilder
             generatedAt = null,
         } = options;
 
-        const source = NormalizeSourceIdentity({
+        const source = normalizeSourceIdentity({
             target: sourceTarget,
             game: sourceGame,
             provider: sourceProvider,
             build: sourceBuild,
         });
 
-        const entries = NormalizeIndexEntries(indexEntries);
+        const entries = normalizeIndexEntries(indexEntries);
 
-        const metadata = CreateAudioMetadata({
+        const metadata = createAudioMetadata({
             metadata: metadataInput,
             soundbanksInfo,
             enrichment,
         });
 
-        const authoredBanks = CreateAuthoredBankCatalog(
+        const authoredBanks = createAuthoredBankCatalog(
             soundbanksInfo,
             metadata,
         );
 
         const media = {};
 
-        const banks = CreateBankTable(
+        const banks = createBankTable(
             entries,
             authoredBanks,
             bankIdentities,
@@ -565,13 +565,13 @@ export class CjsAudioLibraryBuilder
             if (base.endsWith(".wem"))
             {
                 const id = base.slice(0, -4);
-                AddSourceRecord(media, id, {
+                addSourceRecord(media, id, {
                     resPath: entry.logicalPath,
                     storagePath: entry.storagePath,
                     byteLength: entry.byteLength,
                     checksum: entry.checksum,
                     essential: lower.includes("/essential_media/"),
-                    language: LanguageSegment(lower)
+                    language: languageSegment(lower)
                 });
             }
         }
@@ -579,18 +579,18 @@ export class CjsAudioLibraryBuilder
         const library = {
             schema: this.schema,
             schemaVersion: this.schemaVersion,
-            metadata: SortedKeys({
-                Events: SortedKeys(metadata.Events),
-                SoundBanks: SortedKeys(metadata.SoundBanks),
-                WemFileIDs: SortedKeys(metadata.WemFileIDs)
+            metadata: sortedKeys({
+                Events: sortedKeys(metadata.Events),
+                SoundBanks: sortedKeys(metadata.SoundBanks),
+                WemFileIDs: sortedKeys(metadata.WemFileIDs)
             }),
-            media: NormalizeSourceTable(media),
-            banks: SortedKeys(banks)
+            media: normalizeSourceTable(media),
+            banks: sortedKeys(banks)
         };
 
         if (eventMedia && Object.keys(eventMedia).length)
         {
-            library.eventMedia = SortedKeys(eventMedia);
+            library.eventMedia = sortedKeys(eventMedia);
             library.eventMediaLanguage = eventMediaLanguage === null
                 ? ""
                 : String(eventMediaLanguage);
@@ -598,17 +598,17 @@ export class CjsAudioLibraryBuilder
 
         if (embeddedMedia && Object.keys(embeddedMedia).length)
         {
-            library.embeddedMedia = NormalizeSourceTable(embeddedMedia);
+            library.embeddedMedia = normalizeSourceTable(embeddedMedia);
         }
 
         if (music !== null)
         {
-            ValidateMusicGraph(
+            validateMusicGraph(
                 music,
                 library.media,
                 library.embeddedMedia ?? {},
             );
-            library.music = NormalizeMusicGraph(music);
+            library.music = normalizeMusicGraph(music);
         }
 
         if (source)
@@ -629,7 +629,7 @@ export class CjsAudioLibraryBuilder
 
 }
 
-function NormalizeBankLoader(options)
+function normalizeBankLoader(options)
 {
     if (typeof options.loadBank === "function")
     {
@@ -671,17 +671,17 @@ function NormalizeBankLoader(options)
     );
 }
 
-function NormalizeLoadedBank(value, sourceID)
+function normalizeLoadedBank(value, sourceID)
 {
     if (value === null || value === undefined)
     {
         throw new Error(`Audio bank provider returned no data for ${sourceID}`);
     }
 
-    if (IsBytes(value))
+    if (isBytes(value))
     {
         return {
-            bytes: ToUint8Array(value),
+            bytes: toUint8Array(value),
             inspection: null,
         };
     }
@@ -694,7 +694,7 @@ function NormalizeLoadedBank(value, sourceID)
 
     const bytes = value.bytes === null || value.bytes === undefined
         ? null
-        : ToUint8Array(value.bytes);
+        : toUint8Array(value.bytes);
     const inspection = value.inspection ?? null;
 
     if (!bytes && !inspection)
@@ -707,13 +707,13 @@ function NormalizeLoadedBank(value, sourceID)
     return { bytes, inspection };
 }
 
-function IsBytes(value)
+function isBytes(value)
 {
     return value instanceof ArrayBuffer
         || ArrayBuffer.isView(value);
 }
 
-function DefaultInspectBank(bytes, { source })
+function defaultInspectBank(bytes, { source })
 {
     if (!bytes)
     {
@@ -723,18 +723,18 @@ function DefaultInspectBank(bytes, { source })
     return CjsBnkFormat.inspect(bytes, { source });
 }
 
-function CompactBankInspection(value, source, bank)
+function compactBankInspection(value, source, bank)
 {
     if (!value || typeof value !== "object" || Array.isArray(value))
     {
         throw new TypeError(`Audio bank inspection is invalid: ${bank.resPath}`);
     }
 
-    const bankId = Number(NormalizeUnsignedID(
+    const bankId = Number(normalizeUnsignedID(
         value.bankId,
         `Audio bank ${bank.resPath} inspected bankId`,
     ));
-    const languageId = Number(NormalizeUnsignedID(
+    const languageId = Number(normalizeUnsignedID(
         value.languageId ?? 0,
         `Audio bank ${bank.resPath} inspected languageId`,
     ));
@@ -751,7 +751,7 @@ function CompactBankInspection(value, source, bank)
             ...entry,
             ...(entry.payload === null || entry.payload === undefined
                 ? {}
-                : { payload: ToUint8Array(entry.payload).slice() }),
+                : { payload: toUint8Array(entry.payload).slice() }),
         };
     });
     const media = Array.from(value.media ?? [], entry =>
@@ -763,7 +763,7 @@ function CompactBankInspection(value, source, bank)
             );
         }
 
-        const id = NormalizeUnsignedID(
+        const id = normalizeUnsignedID(
             entry.id,
             `Audio bank ${bank.resPath} media ID`,
         );
@@ -804,7 +804,7 @@ function CompactBankInspection(value, source, bank)
     };
 }
 
-function RequireMusicBanks(library, enabled)
+function requireMusicBanks(library, enabled)
 {
     if (!enabled)
     {
@@ -813,7 +813,7 @@ function RequireMusicBanks(library, enabled)
 
     const names = new Set(
         Object.values(library.banks)
-            .map(bank => BankSourceName(bank.resPath)),
+            .map(bank => bankSourceName(bank.resPath)),
     );
     const missing = [
         MUSIC_EVENT_BANK_NAME,
@@ -828,7 +828,7 @@ function RequireMusicBanks(library, enabled)
     }
 }
 
-function NormalizeEventMediaLanguage(value)
+function normalizeEventMediaLanguage(value)
 {
     const language = String(value ?? "")
         .trim()
@@ -844,7 +844,7 @@ function NormalizeEventMediaLanguage(value)
     return language;
 }
 
-function ThrowIfAborted(signal)
+function throwIfAborted(signal)
 {
     if (!signal?.aborted)
     {
@@ -862,11 +862,11 @@ function ThrowIfAborted(signal)
     throw error;
 }
 
-function NormalizeIndexEntries(value)
+function normalizeIndexEntries(value)
 {
     if (typeof value === "string")
     {
-        return ParseIndexText(value);
+        return parseIndexText(value);
     }
 
     let input;
@@ -933,10 +933,10 @@ function NormalizeIndexEntries(value)
         });
     }
 
-    return entries.sort(CompareIndexEntries);
+    return entries.sort(compareIndexEntries);
 }
 
-function ParseIndexText(value)
+function parseIndexText(value)
 {
     const entries = [];
 
@@ -957,33 +957,33 @@ function ParseIndexText(value)
         });
     }
 
-    return NormalizeIndexEntries(entries);
+    return normalizeIndexEntries(entries);
 }
 
-function CompareIndexEntries(left, right)
+function compareIndexEntries(left, right)
 {
-    return CompareText(
+    return compareText(
         String(left.logicalPath).toLowerCase(),
         String(right.logicalPath).toLowerCase(),
-    ) || CompareText(left.storagePath, right.storagePath);
+    ) || compareText(left.storagePath, right.storagePath);
 }
 
-function CreateAudioMetadata({ metadata, soundbanksInfo, enrichment })
+function createAudioMetadata({ metadata, soundbanksInfo, enrichment })
 {
     let result;
 
     if (soundbanksInfo !== null && soundbanksInfo !== undefined)
     {
-        result = NormalizeAudioMetadata(
+        result = normalizeAudioMetadata(
             audioMetadataFromSoundbanksInfo(soundbanksInfo),
             "SoundbanksInfo metadata",
         );
 
         if (metadata !== null && metadata !== undefined)
         {
-            result = MergeAudioMetadata(
+            result = mergeAudioMetadata(
                 result,
-                NormalizeAudioMetadata(metadata, "audio metadata", {
+                normalizeAudioMetadata(metadata, "audio metadata", {
                     partial: true,
                 }),
             );
@@ -991,7 +991,7 @@ function CreateAudioMetadata({ metadata, soundbanksInfo, enrichment })
     }
     else if (metadata !== null && metadata !== undefined)
     {
-        result = NormalizeAudioMetadata(metadata, "audio metadata");
+        result = normalizeAudioMetadata(metadata, "audio metadata");
     }
     else
     {
@@ -1002,9 +1002,9 @@ function CreateAudioMetadata({ metadata, soundbanksInfo, enrichment })
 
     if (enrichment !== null && enrichment !== undefined)
     {
-        result = MergeAudioMetadata(
+        result = mergeAudioMetadata(
             result,
-            NormalizeAudioMetadata(enrichment, "audio metadata enrichment", {
+            normalizeAudioMetadata(enrichment, "audio metadata enrichment", {
                 partial: true,
             }),
         );
@@ -1013,7 +1013,7 @@ function CreateAudioMetadata({ metadata, soundbanksInfo, enrichment })
     return result;
 }
 
-function NormalizeAudioMetadata(value, label, { partial = false } = {})
+function normalizeAudioMetadata(value, label, { partial = false } = {})
 {
     if (!value || typeof value !== "object" || Array.isArray(value))
     {
@@ -1021,17 +1021,17 @@ function NormalizeAudioMetadata(value, label, { partial = false } = {})
     }
 
     return {
-        Events: NormalizeMetadataSection(
+        Events: normalizeMetadataSection(
             value.Events,
             `${label}.Events`,
             partial,
         ),
-        SoundBanks: NormalizeMetadataSection(
+        SoundBanks: normalizeMetadataSection(
             value.SoundBanks,
             `${label}.SoundBanks`,
             partial,
         ),
-        WemFileIDs: NormalizeMetadataSection(
+        WemFileIDs: normalizeMetadataSection(
             value.WemFileIDs,
             `${label}.WemFileIDs`,
             partial,
@@ -1039,7 +1039,7 @@ function NormalizeAudioMetadata(value, label, { partial = false } = {})
     };
 }
 
-function NormalizeMetadataSection(value, label, optional = false)
+function normalizeMetadataSection(value, label, optional = false)
 {
     let entries;
 
@@ -1063,7 +1063,7 @@ function NormalizeMetadataSection(value, label, optional = false)
     const result = {};
 
     for (const [ rawKey, rawRecord ] of entries.sort(([ left ], [ right ]) =>
-        CompareText(String(left), String(right))))
+        compareText(String(left), String(right))))
     {
         const key = String(rawKey);
 
@@ -1076,13 +1076,13 @@ function NormalizeMetadataSection(value, label, optional = false)
             throw new TypeError(`${label}.${key} must be an object`);
         }
 
-        result[key] = NormalizeJSONValue(rawRecord, `${label}.${key}`);
+        result[key] = normalizeJSONValue(rawRecord, `${label}.${key}`);
     }
 
     return result;
 }
 
-function NormalizeJSONValue(value, label)
+function normalizeJSONValue(value, label)
 {
     if (value === null
         || typeof value === "string"
@@ -1102,7 +1102,7 @@ function NormalizeJSONValue(value, label)
     if (Array.isArray(value))
     {
         return value.map((entry, index) =>
-            NormalizeJSONValue(entry, `${label}[${index}]`));
+            normalizeJSONValue(entry, `${label}[${index}]`));
     }
 
     const entries = value instanceof Map
@@ -1122,7 +1122,7 @@ function NormalizeJSONValue(value, label)
 
     for (const [ key, entry ] of entries)
     {
-        result[String(key)] = NormalizeJSONValue(
+        result[String(key)] = normalizeJSONValue(
             entry,
             `${label}.${String(key)}`,
         );
@@ -1131,7 +1131,7 @@ function NormalizeJSONValue(value, label)
     return result;
 }
 
-function MergeAudioMetadata(base, overlay)
+function mergeAudioMetadata(base, overlay)
 {
     const result = {
         Events: { ...base.Events },
@@ -1149,13 +1149,13 @@ function MergeAudioMetadata(base, overlay)
             };
         }
 
-        result[section] = SortedKeys(result[section]);
+        result[section] = sortedKeys(result[section]);
     }
 
     return result;
 }
 
-function CreateAuthoredBankCatalog(soundbanksInfo, metadata)
+function createAuthoredBankCatalog(soundbanksInfo, metadata)
 {
     if (soundbanksInfo !== null && soundbanksInfo !== undefined)
     {
@@ -1164,7 +1164,7 @@ function CreateAuthoredBankCatalog(soundbanksInfo, metadata)
 
     return Object.entries(metadata.SoundBanks).map(([ key, record ]) =>
     {
-        const sourceName = BankSourceName(key);
+        const sourceName = bankSourceName(key);
         const path = String(record.path ?? key);
         const shortName = String(
             record.shortName
@@ -1187,25 +1187,25 @@ function CreateAuthoredBankCatalog(soundbanksInfo, metadata)
             id,
             shortName,
             path,
-            language: AuthoredBankLanguage(record, path),
+            language: authoredBankLanguage(record, path),
         };
     });
 }
 
-function AuthoredBankLanguage(record, path)
+function authoredBankLanguage(record, path)
 {
     const explicit = record.authoredLanguage ?? record.language;
 
     if (explicit !== undefined && explicit !== null)
     {
-        return NormalizeAuthoredLanguage(explicit);
+        return normalizeAuthoredLanguage(explicit);
     }
 
     const parentName = record.parent?.name;
 
     if (parentName !== undefined && parentName !== null)
     {
-        return NormalizeAuthoredLanguage(parentName);
+        return normalizeAuthoredLanguage(parentName);
     }
 
     const segments = String(path).replaceAll("\\", "/")
@@ -1215,22 +1215,22 @@ function AuthoredBankLanguage(record, path)
 
     if (bankIndex >= 0 && bankIndex + 2 < segments.length)
     {
-        return NormalizeAuthoredLanguage(segments[bankIndex + 1]);
+        return normalizeAuthoredLanguage(segments[bankIndex + 1]);
     }
 
     return "";
 }
 
-function NormalizeAuthoredLanguage(value)
+function normalizeAuthoredLanguage(value)
 {
     const language = String(value ?? "").trim();
 
-    return NormalizeLanguageToken(language) === "sfx" ? "" : language;
+    return normalizeLanguageToken(language) === "sfx" ? "" : language;
 }
 
-function CreateBankTable(indexEntries, authoredBanks, bankIdentities)
+function createBankTable(indexEntries, authoredBanks, bankIdentities)
 {
-    const identities = NormalizeBankIdentities(bankIdentities);
+    const identities = normalizeBankIdentities(bankIdentities);
     const banks = {};
 
     for (const entry of indexEntries)
@@ -1243,7 +1243,7 @@ function CreateBankTable(indexEntries, authoredBanks, bankIdentities)
             continue;
         }
 
-        const authored = MatchAuthoredBank(logicalPath, authoredBanks);
+        const authored = matchAuthoredBank(logicalPath, authoredBanks);
 
         if (!authored)
         {
@@ -1253,20 +1253,20 @@ function CreateBankTable(indexEntries, authoredBanks, bankIdentities)
         }
 
         const override = identities.get(logicalPath.toLowerCase()) ?? null;
-        const bankID = NormalizeUnsignedID(
+        const bankID = normalizeUnsignedID(
             override?.bankID ?? authored.id,
             `Audio bank ${logicalPath} bankID`,
         );
         const authoredLanguageID = authored.language
             ? CjsBnkFormat.wwise.wwiseIdFromName(authored.language)
             : 0;
-        const languageID = NormalizeUnsignedID(
+        const languageID = normalizeUnsignedID(
             override?.languageID ?? authoredLanguageID,
             `Audio bank ${logicalPath} languageID`,
         );
 
         if (override?.bankID !== undefined
-            && String(bankID) !== String(NormalizeUnsignedID(
+            && String(bankID) !== String(normalizeUnsignedID(
                 authored.id,
                 `SoundbanksInfo bank ${authored.shortName} ID`,
             )))
@@ -1277,7 +1277,7 @@ function CreateBankTable(indexEntries, authoredBanks, bankIdentities)
             );
         }
         if (override?.languageID !== undefined
-            && String(languageID) !== String(NormalizeUnsignedID(
+            && String(languageID) !== String(normalizeUnsignedID(
                 authoredLanguageID,
                 `SoundbanksInfo bank ${authored.shortName} language ID`,
             )))
@@ -1302,7 +1302,7 @@ function CreateBankTable(indexEntries, authoredBanks, bankIdentities)
             sourceID,
             bankID,
             languageID,
-            language: AudioLanguageTag(authored.language),
+            language: audioLanguageTag(authored.language),
             authoredLanguage: String(authored.language ?? ""),
             shortName: String(authored.shortName ?? ""),
             resPath: logicalPath,
@@ -1312,12 +1312,12 @@ function CreateBankTable(indexEntries, authoredBanks, bankIdentities)
         };
     }
 
-    return SortedKeys(banks);
+    return sortedKeys(banks);
 }
 
-function MatchAuthoredBank(logicalPath, authoredBanks)
+function matchAuthoredBank(logicalPath, authoredBanks)
 {
-    const path = NormalizeBankPath(logicalPath);
+    const path = normalizeBankPath(logicalPath);
     const tail = path.replace(/^res:\/audio\//u, "");
     const base = tail.split("/").pop();
     const stem = base?.replace(/\.bnk$/u, "") ?? "";
@@ -1325,7 +1325,7 @@ function MatchAuthoredBank(logicalPath, authoredBanks)
 
     for (const bank of authoredBanks)
     {
-        const authoredPath = NormalizeBankPath(bank.path)
+        const authoredPath = normalizeBankPath(bank.path)
             .replace(/^soundbanks\//u, "");
         const authoredBase = authoredPath.split("/").pop()
             || `${String(bank.shortName).toLowerCase()}.bnk`;
@@ -1336,9 +1336,9 @@ function MatchAuthoredBank(logicalPath, authoredBanks)
         if (stem === String(bank.id)) score += 50;
         if (stem === String(bank.shortName).toLowerCase()) score += 50;
 
-        const language = NormalizeLanguageToken(bank.language);
+        const language = normalizeLanguageToken(bank.language);
 
-        if (language && NormalizeLanguageToken(tail).includes(language))
+        if (language && normalizeLanguageToken(tail).includes(language))
         {
             score += 20;
         }
@@ -1364,7 +1364,7 @@ function MatchAuthoredBank(logicalPath, authoredBanks)
     return scored[0].bank;
 }
 
-function NormalizeBankIdentities(value)
+function normalizeBankIdentities(value)
 {
     const identities = new Map();
 
@@ -1388,7 +1388,7 @@ function NormalizeBankIdentities(value)
     return identities;
 }
 
-function NormalizeUnsignedID(value, label)
+function normalizeUnsignedID(value, label)
 {
     const numeric = Number(value);
 
@@ -1400,20 +1400,20 @@ function NormalizeUnsignedID(value, label)
     return String(numeric >>> 0);
 }
 
-function NormalizeBankPath(value)
+function normalizeBankPath(value)
 {
     return String(value ?? "").trim().replaceAll("\\", "/").toLowerCase();
 }
 
-function CompareBankInspections(left, right)
+function compareBankInspections(left, right)
 {
-    return CompareText(
-        BankSourceName(left?.source),
-        BankSourceName(right?.source),
+    return compareText(
+        bankSourceName(left?.source),
+        bankSourceName(right?.source),
     )
-        || CompareText(
-            NormalizeBankPath(left?.resPath),
-            NormalizeBankPath(right?.resPath),
+        || compareText(
+            normalizeBankPath(left?.resPath),
+            normalizeBankPath(right?.resPath),
         )
         || (Number(left?.bankId ?? 0) >>> 0)
             - (Number(right?.bankId ?? 0) >>> 0)
@@ -1421,7 +1421,7 @@ function CompareBankInspections(left, right)
             - (Number(right?.languageId ?? 0) >>> 0);
 }
 
-function AddSourceRecord(table, key, record)
+function addSourceRecord(table, key, record)
 {
     const current = table[key];
 
@@ -1439,7 +1439,7 @@ function AddSourceRecord(table, key, record)
     }
 }
 
-function NormalizeSourceTable(table)
+function normalizeSourceTable(table)
 {
     const result = {};
 
@@ -1453,7 +1453,7 @@ function NormalizeSourceTable(table)
             unique.set(JSON.stringify(record), record);
         }
 
-        const records = [ ...unique.values() ].sort(CompareSourceRecords);
+        const records = [ ...unique.values() ].sort(compareSourceRecords);
 
         result[key] = records.length === 1 ? records[0] : records;
     }
@@ -1461,7 +1461,7 @@ function NormalizeSourceTable(table)
     return result;
 }
 
-function CompareSourceRecords(left, right)
+function compareSourceRecords(left, right)
 {
     const leftKey = [
         left?.sourceID,
@@ -1480,16 +1480,16 @@ function CompareSourceRecords(left, right)
         right?.byteLength,
     ].map(value => String(value ?? "")).join("\0");
 
-    return CompareText(leftKey, rightKey)
-        || CompareText(JSON.stringify(left), JSON.stringify(right));
+    return compareText(leftKey, rightKey)
+        || compareText(JSON.stringify(left), JSON.stringify(right));
 }
 
-function CompareText(left, right)
+function compareText(left, right)
 {
     return left < right ? -1 : left > right ? 1 : 0;
 }
 
-function ToUint8Array(value)
+function toUint8Array(value)
 {
     if (value instanceof Uint8Array)
     {
@@ -1509,12 +1509,12 @@ function ToUint8Array(value)
     throw new TypeError("Audio media classification requires bytes");
 }
 
-function NormalizeLanguageToken(value)
+function normalizeLanguageToken(value)
 {
     return String(value ?? "").toLowerCase().replace(/[^a-z0-9]+/gu, "");
 }
 
-function AudioLanguageTag(value)
+function audioLanguageTag(value)
 {
     const input = String(value ?? "").trim().replaceAll("_", "-").toLowerCase();
 
@@ -1536,14 +1536,14 @@ function AudioLanguageTag(value)
     return "";
 }
 
-function BankSourceName(value)
+function bankSourceName(value)
 {
     const normalized = String(value ?? "").trim().replaceAll("\\", "/");
 
     return normalized.split("/").pop().toLowerCase();
 }
 
-function ValidateMusicNodeReferences(nodes, media, embeddedMedia)
+function validateMusicNodeReferences(nodes, media, embeddedMedia)
 {
     for (const [ id, node ] of Object.entries(nodes))
     {
@@ -1576,7 +1576,7 @@ function ValidateMusicNodeReferences(nodes, media, embeddedMedia)
     }
 }
 
-function CreateMusicEventProjection(inspection, metadata, nodes)
+function createMusicEventProjection(inspection, metadata, nodes)
 {
     const actionsByID = new Map();
     const eventsByID = new Map();
@@ -1589,7 +1589,7 @@ function CreateMusicEventProjection(inspection, metadata, nodes)
 
     const eventNamesByID = new Map();
 
-    for (const [ name, record ] of MetadataEntries(
+    for (const [ name, record ] of metadataEntries(
         metadata?.Events,
         "Audio metadata Events",
     ))
@@ -1610,7 +1610,7 @@ function CreateMusicEventProjection(inspection, metadata, nodes)
             continue;
         }
 
-        for (const actionID of EventActionIDs(event))
+        for (const actionID of eventActionIDs(event))
         {
             const action = actionsByID.get(actionID);
 
@@ -1619,17 +1619,17 @@ function CreateMusicEventProjection(inspection, metadata, nodes)
                 continue;
             }
 
-            const fields = ActionFields(action);
+            const fields = actionFields(action);
 
             const family = (fields.actionType >> 8) & 0xff;
 
             if (family === 0x04 && nodes[fields.targetID])
             {
-                AddEventTarget(eventTargets, name, fields.targetID);
+                addEventTarget(eventTargets, name, fields.targetID);
             }
             else if (family === 0x01 && nodes[fields.targetID])
             {
-                AddEventTarget(eventStops, name, fields.targetID);
+                addEventTarget(eventStops, name, fields.targetID);
             }
             else if (family === 0x19 || family === 0x12)
             {
@@ -1662,13 +1662,13 @@ function CreateMusicEventProjection(inspection, metadata, nodes)
     }
 
     return {
-        eventTargets: NormalizeTargetTable(eventTargets),
-        eventStops: NormalizeTargetTable(eventStops),
-        switchSetters: NormalizeSetterTable(switchSetters),
+        eventTargets: normalizeTargetTable(eventTargets),
+        eventStops: normalizeTargetTable(eventStops),
+        switchSetters: normalizeSetterTable(switchSetters),
     };
 }
 
-function EventActionIDs(entry)
+function eventActionIDs(entry)
 {
     const actionIDs = entry.actionIds ?? entry.actions;
 
@@ -1682,7 +1682,7 @@ function EventActionIDs(entry)
     return actionIDs;
 }
 
-function ActionFields(entry)
+function actionFields(entry)
 {
     const payload = entry.payload instanceof Uint8Array ? entry.payload : null;
     const actionType = entry.actionType;
@@ -1702,12 +1702,12 @@ function ActionFields(entry)
     };
 }
 
-function AddEventTarget(table, name, targetID)
+function addEventTarget(table, name, targetID)
 {
     (table[name] ?? (table[name] = [])).push(targetID >>> 0);
 }
 
-function NormalizeTargetTable(table)
+function normalizeTargetTable(table)
 {
     const result = {};
 
@@ -1719,7 +1719,7 @@ function NormalizeTargetTable(table)
     return result;
 }
 
-function NormalizeSetterTable(table)
+function normalizeSetterTable(table)
 {
     const result = {};
 
@@ -1744,7 +1744,7 @@ function NormalizeSetterTable(table)
     return result;
 }
 
-function ValidateMusicGraph(music, media, embeddedMedia)
+function validateMusicGraph(music, media, embeddedMedia)
 {
     if (!music || typeof music !== "object" || Array.isArray(music))
     {
@@ -1768,7 +1768,7 @@ function ValidateMusicGraph(music, media, embeddedMedia)
         throw new TypeError("Audio library music banks must be an array");
     }
 
-    const bankNames = music.banks.map(BankSourceName);
+    const bankNames = music.banks.map(bankSourceName);
 
     if (bankNames.some(name => !name)
         || new Set(bankNames).size !== bankNames.length)
@@ -1785,7 +1785,7 @@ function ValidateMusicGraph(music, media, embeddedMedia)
             throw new TypeError(`Audio library music node ${id} must be an object`);
         }
 
-        if (!bankNames.includes(BankSourceName(node.bank)))
+        if (!bankNames.includes(bankSourceName(node.bank)))
         {
             throw new TypeError(
                 `Audio library music node ${id} references unknown bank: ${node.bank}`,
@@ -1793,7 +1793,7 @@ function ValidateMusicGraph(music, media, embeddedMedia)
         }
     }
 
-    ValidateMusicNodeReferences(music.nodes, media, embeddedMedia);
+    validateMusicNodeReferences(music.nodes, media, embeddedMedia);
 
     for (const field of [ "eventTargets", "eventStops" ])
     {
@@ -1870,20 +1870,20 @@ function ValidateMusicGraph(music, media, embeddedMedia)
     }
 }
 
-function NormalizeMusicGraph(music)
+function normalizeMusicGraph(music)
 {
     return {
         schemaVersion: 1,
         generator: String(music.generator ?? "@carbonenginejs/tools-browser/audio"),
-        banks: [ ...new Set((music.banks ?? []).map(BankSourceName)) ].sort(),
-        nodes: SortedKeys(music.nodes),
-        eventTargets: NormalizeTargetTable(music.eventTargets),
-        eventStops: NormalizeTargetTable(music.eventStops),
-        switchSetters: NormalizeSetterTable(music.switchSetters),
+        banks: [ ...new Set((music.banks ?? []).map(bankSourceName)) ].sort(),
+        nodes: sortedKeys(music.nodes),
+        eventTargets: normalizeTargetTable(music.eventTargets),
+        eventStops: normalizeTargetTable(music.eventStops),
+        switchSetters: normalizeSetterTable(music.switchSetters),
     };
 }
 
-function NormalizeSourceIdentity({ target, game, provider, build })
+function normalizeSourceIdentity({ target, game, provider, build })
 {
     const values = [ target, game, provider, build ];
 
@@ -1900,16 +1900,16 @@ function NormalizeSourceIdentity({ target, game, provider, build })
     }
 
     const normalized = {
-        target: NormalizeIdentityPart(target, "target"),
-        game: NormalizeIdentityPart(game, "game"),
-        provider: NormalizeIdentityPart(provider, "provider"),
-        build: NormalizeIdentityPart(build, "build"),
+        target: normalizeIdentityPart(target, "target"),
+        game: normalizeIdentityPart(game, "game"),
+        provider: normalizeIdentityPart(provider, "provider"),
+        build: normalizeIdentityPart(build, "build"),
     };
 
     return normalized;
 }
 
-function NormalizeIdentityPart(value, label)
+function normalizeIdentityPart(value, label)
 {
     const result = String(value ?? "").trim();
 
@@ -1923,17 +1923,17 @@ function NormalizeIdentityPart(value, label)
 
 // res:/audio/<language>/<id>.wem carries a language folder; Media/ and
 // Essential_Media/ do not, matching the authored AudPathResolver routing.
-function LanguageSegment(lowerPath)
+function languageSegment(lowerPath)
 {
     const segments = lowerPath.split("/");
     if (segments.length === 4 && segments[2] !== "media" && segments[2] !== "essential_media")
     {
-        return AudioLanguageTag(segments[2]);
+        return audioLanguageTag(segments[2]);
     }
     return "";
 }
 
-function SortedKeys(value)
+function sortedKeys(value)
 {
     const sorted = {};
     for (const key of Object.keys(value).sort())
@@ -1943,7 +1943,7 @@ function SortedKeys(value)
     return sorted;
 }
 
-function MetadataEntries(value, label)
+function metadataEntries(value, label)
 {
     if (value instanceof Map)
     {

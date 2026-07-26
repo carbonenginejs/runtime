@@ -125,7 +125,7 @@ export class CjsAudioLibrary
             ...options,
         };
 
-        ValidateAudioLibraryRegistration(next);
+        validateAudioLibraryRegistration(next);
 
         if (Object.hasOwn(options, "resMan"))
         {
@@ -146,7 +146,7 @@ export class CjsAudioLibrary
     GetDocument()
     {
         this.#RequireInitialized();
-        return NormalizeDocument(this.#document);
+        return normalizeDocument(this.#document);
     }
 
     /** Initializes and permanently locks one resolved or constructed library. */
@@ -261,10 +261,11 @@ export class CjsAudioLibrary
             );
         }
 
-        const apiBase = NormalizeAudioApiBase(
+        const apiBase = normalizeAudioApiBase(
             this.#options.audioApiResPath,
         );
-        const source = this.#source ?? this.#resMan?.source ?? null;
+        const resMan = this.#EnsureResMan();
+        const source = this.#source ?? resMan.source ?? null;
         const descriptor = this.#GetCapabilityProbeDescriptor(
             mediaID,
             bank,
@@ -275,7 +276,7 @@ export class CjsAudioLibrary
             || typeof source.Read !== "function"
             || !descriptor)
         {
-            const report = CreateUnavailableCapabilityReport({
+            const report = createUnavailableCapabilityReport({
                 apiBase,
                 descriptor,
                 hasSource: Boolean(source && typeof source.Read === "function"),
@@ -288,26 +289,32 @@ export class CjsAudioLibrary
         const individualPath = `${apiBase}id/${encodeURIComponent(descriptor.mediaID)}`;
         const offsetPath = `${apiBase}path/${encodeURIComponent(descriptor.physicalPath)}`;
         const [ individualResult, offsetResult ] = await Promise.allSettled([
-            source.Read(individualPath, readOptions),
-            source.Read(
+            resMan.QueueReadResource(individualPath, {
+                ...readOptions,
+                source,
+            }),
+            resMan.QueueReadResource(
                 offsetPath,
-                CreateRangeReadOptions(
-                    readOptions,
-                    descriptor.sourceOffset,
-                    descriptor.byteLength,
-                ),
+                {
+                    ...createRangeReadOptions(
+                        readOptions,
+                        descriptor.sourceOffset,
+                        descriptor.byteLength,
+                    ),
+                    source,
+                },
             ),
         ]);
-        const individual = CreateCapabilityProbeResult(
+        const individual = createCapabilityProbeResult(
             individualResult,
             descriptor.byteLength,
         );
-        const offset = CreateCapabilityProbeResult(
+        const offset = createCapabilityProbeResult(
             offsetResult,
             descriptor.byteLength,
         );
         const consistent = individual.bytes && offset.bytes
-            ? ByteViewsEqual(individual.bytes, offset.bytes)
+            ? byteViewsEqual(individual.bytes, offset.bytes)
             : null;
         const accepted = consistent !== false;
         const report = Object.freeze({
@@ -321,11 +328,11 @@ export class CjsAudioLibrary
                 accepted && individual.supported,
             audioApiResPathSupportsOffset:
                 accepted && offset.supported,
-            individualFiles: CreatePublicCapabilityProbeResult(
+            individualFiles: createPublicCapabilityProbeResult(
                 individual,
                 accepted,
             ),
-            offset: CreatePublicCapabilityProbeResult(offset, accepted),
+            offset: createPublicCapabilityProbeResult(offset, accepted),
         });
 
         this.#capabilities = report;
@@ -337,7 +344,7 @@ export class CjsAudioLibrary
     {
         this.#RequireConfigurationOpen();
 
-        if (!IsAudioSource(source))
+        if (!isAudioSource(source))
         {
             throw new TypeError(
                 "CjsAudioLibrary source must provide Read, ReadAudio, or ReadRange",
@@ -369,7 +376,7 @@ export class CjsAudioLibrary
     {
         this.#RequireInitialized();
 
-        const id = NormalizeMediaID(mediaID);
+        const id = normalizeMediaID(mediaID);
         const allCandidates = [
             ...(this.#media.get(id) ?? []),
             ...(this.#embeddedMedia.get(id) ?? []),
@@ -390,7 +397,7 @@ export class CjsAudioLibrary
 
         const candidates = allCandidates.filter(descriptor =>
             this.#SupportsDescriptor(descriptor));
-        const descriptor = SelectDescriptor(candidates, {
+        const descriptor = selectDescriptor(candidates, {
             mediaTypes,
             languages,
             defaultLanguage: this.#defaultLanguage,
@@ -420,7 +427,7 @@ export class CjsAudioLibrary
     {
         this.#RequireInitialized();
 
-        const normalized = NormalizeAudioPath(audioPath);
+        const normalized = normalizeAudioPath(audioPath);
         const allCandidates = this.#paths.get(normalized.key) ?? [];
 
         if (!allCandidates.length)
@@ -438,7 +445,7 @@ export class CjsAudioLibrary
 
         const candidates = allCandidates.filter(descriptor =>
             this.#SupportsDescriptor(descriptor));
-        const descriptor = SelectDescriptor(candidates, {
+        const descriptor = selectDescriptor(candidates, {
             mediaTypes,
             languages,
             defaultLanguage: this.#defaultLanguage,
@@ -569,7 +576,7 @@ export class CjsAudioLibrary
 
         if (hasMediaID)
         {
-            const id = NormalizeMediaID(mediaID);
+            const id = normalizeMediaID(mediaID);
 
             descriptors = descriptors.filter(candidate =>
                 candidate.mediaID === id);
@@ -592,7 +599,7 @@ export class CjsAudioLibrary
         {
             for (const id of ids)
             {
-                const key = NormalizeMediaID(id);
+                const key = normalizeMediaID(id);
 
                 mediaUsage.set(key, (mediaUsage.get(key) ?? 0) + 1);
             }
@@ -671,26 +678,26 @@ export class CjsAudioLibrary
     /** Resolves one registered prebuilt-library or sound-bank base. */
     async #ResolveRegisteredBase()
     {
-        if (HasRegistrationValue(this.#options, "libraryResFilePath"))
+        if (hasRegistrationValue(this.#options, "libraryResFilePath"))
         {
             return this.#LoadResourceDocument(
                 this.#options.libraryResFilePath,
                 "audio library",
             );
         }
-        if (HasRegistrationValue(this.#options, "library"))
+        if (hasRegistrationValue(this.#options, "library"))
         {
             return this.#ResolveLibraryInput(this.#options.library);
         }
-        if (HasRegistrationValue(this.#options, "document"))
+        if (hasRegistrationValue(this.#options, "document"))
         {
             return this.#ResolveLibraryInput(this.#options.document);
         }
 
-        const hasSoundBank = HasRegistrationValue(
+        const hasSoundBank = hasRegistrationValue(
             this.#options,
             "soundBank",
-        ) || HasRegistrationValue(this.#options, "soundBankResPath");
+        ) || hasRegistrationValue(this.#options, "soundBankResPath");
 
         if (!hasSoundBank)
         {
@@ -705,7 +712,7 @@ export class CjsAudioLibrary
             );
         }
 
-        const soundbanksInfo = HasRegistrationValue(
+        const soundbanksInfo = hasRegistrationValue(
             this.#options,
             "soundBank",
         )
@@ -725,14 +732,14 @@ export class CjsAudioLibrary
     /** Resolves optional metadata enrichment registered over either base form. */
     async #ResolveRegisteredEnrichment()
     {
-        if (HasRegistrationValue(this.#options, "enrichResPath"))
+        if (hasRegistrationValue(this.#options, "enrichResPath"))
         {
             return this.#LoadResourceDocument(
                 this.#options.enrichResPath,
                 "audio enrichment",
             );
         }
-        if (HasRegistrationValue(this.#options, "enrich"))
+        if (hasRegistrationValue(this.#options, "enrich"))
         {
             return this.#options.enrich;
         }
@@ -759,7 +766,7 @@ export class CjsAudioLibrary
                 source,
             });
 
-            return ParseJSONResourceValue(value, label);
+            return parseJSONResourceValue(value, label);
         }
         catch (cause)
         {
@@ -787,16 +794,16 @@ export class CjsAudioLibrary
             );
         }
 
-        const value = NormalizeDocument(document);
+        const value = normalizeDocument(document);
         const paths = new Map();
         const mediaMetadata = value.metadata?.WemFileIDs ?? {};
-        const banks = CreateBankIndex(value.banks, paths);
-        const media = CreateMediaIndex(
+        const banks = createBankIndex(value.banks, paths);
+        const media = createMediaIndex(
             value.media,
             paths,
             mediaMetadata,
         );
-        const embeddedMedia = CreateEmbeddedIndex(
+        const embeddedMedia = createEmbeddedIndex(
             value.embeddedMedia ?? {},
             banks,
             paths,
@@ -808,7 +815,7 @@ export class CjsAudioLibrary
         this.#banks = banks;
         this.#media = media;
         this.#embeddedMedia = embeddedMedia;
-        this.#defaultLanguage = NormalizeLanguage(
+        this.#defaultLanguage = normalizeLanguage(
             this.#options.defaultLanguage
             ?? value.eventMediaLanguage
             ?? "",
@@ -862,26 +869,26 @@ export class CjsAudioLibrary
         {
             return input;
         }
-        if (IsBuilderOptions(input))
+        if (isBuilderOptions(input))
         {
             return this.#BuildLibraryDocument(input);
         }
-        if (IsDocument(input))
+        if (isDocument(input))
         {
             return input;
         }
         if (typeof input === "string"
             && input.trimStart().startsWith("{"))
         {
-            return ParseJSON(input);
+            return parseJSON(input);
         }
-        if (IsResponseLike(input))
+        if (isResponseLike(input))
         {
-            return ReadResponseJSON(input);
+            return readResponseJSON(input);
         }
         if (input && typeof input.text === "function")
         {
-            return ParseJSON(await input.text());
+            return parseJSON(await input.text());
         }
 
         const fetchFunction = this.#options.fetch ?? globalThis.fetch;
@@ -899,7 +906,7 @@ export class CjsAudioLibrary
             this.#options.requestInit,
         );
 
-        return ReadResponseJSON(response, input);
+        return readResponseJSON(response, input);
     }
 
     /** Constructs one source or complete document from normalized builder options. */
@@ -912,7 +919,7 @@ export class CjsAudioLibrary
         delete options.buildFromBanks;
         delete options.complete;
 
-        if (complete && !HasBankLoader(options))
+        if (complete && !hasBankLoader(options))
         {
             const resMan = this.#EnsureResMan();
             const source = this.#source ?? resMan.source ?? null;
@@ -1025,7 +1032,7 @@ export class CjsAudioLibrary
             if (!hasLoader && !hasFormat
                 && typeof resMan.RegisterObjectLoader === "function")
             {
-                resMan.RegisterObjectLoader(extension, ReadRawAudioBytes);
+                resMan.RegisterObjectLoader(extension, readRawAudioBytes);
             }
         }
     }
@@ -1035,7 +1042,7 @@ export class CjsAudioLibrary
     {
         const resMan = this.#EnsureResMan();
         const source = this.#source ?? resMan.source ?? null;
-        const backing = ResolveBacking(
+        const backing = resolveBacking(
             descriptor,
             source,
             this.#GetRoutingOptions(),
@@ -1066,7 +1073,7 @@ export class CjsAudioLibrary
         if ((BROWSER_AUDIO_EXTENSIONS.has(extension) || hasFormat)
             && typeof resMan.RegisterObjectLoader === "function")
         {
-            resMan.RegisterObjectLoader(extension, ReadRawAudioBytes);
+            resMan.RegisterObjectLoader(extension, readRawAudioBytes);
         }
     }
 
@@ -1083,13 +1090,13 @@ export class CjsAudioLibrary
 
         const resMan = this.#EnsureResMan();
         const backing = this.#GetBufferResource(descriptor);
-        const info = CreateAudioInfo(descriptor);
+        const info = createAudioInfo(descriptor);
         const resource = resMan.GetResource(
             descriptor.resourcePath,
             {
                 requirement: AUDIO_RESOURCE_REQUIREMENT,
                 variant: `audio:${descriptor.selectionKey}`,
-                ext: MediaExtension(descriptor),
+                ext: mediaExtension(descriptor),
                 values: {
                     info,
                 },
@@ -1129,7 +1136,7 @@ export class CjsAudioLibrary
     {
         const resMan = this.#EnsureResMan();
         const source = this.#source ?? resMan.source ?? null;
-        const backing = ResolveBacking(
+        const backing = resolveBacking(
             descriptor,
             source,
             this.#GetRoutingOptions(),
@@ -1199,7 +1206,7 @@ export class CjsAudioLibrary
     /** Validates a document without retaining it. */
     static validate(document)
     {
-        ValidateDocument(document);
+        validateDocument(document);
         return true;
     }
 
@@ -1257,31 +1264,28 @@ const AudioSelectionSource = class
 
     #mode;
 
-    #path;
-
     #source;
 
     /** Creates a source adapter for one immutable audio selection. */
-    constructor(source, descriptor, mode, path = null)
+    constructor(source, descriptor, mode)
     {
         this.#source = source;
         this.#descriptor = descriptor;
         this.#mode = mode;
-        this.#path = path;
     }
 
     /** Reads one exact media item or one physical byte range. */
-    Read(_path, options = {})
+    Read(path, options = {})
     {
         if (this.#mode === "api-audio")
         {
-            return this.#source.Read(this.#path, options);
+            return this.#source.Read(path, options);
         }
         if (this.#mode === "api-range")
         {
             return this.#source.Read(
-                this.#path,
-                CreateRangeReadOptions(
+                path,
+                createRangeReadOptions(
                     options,
                     this.#descriptor.sourceOffset,
                     this.#descriptor.byteLength,
@@ -1292,7 +1296,7 @@ const AudioSelectionSource = class
         {
             const context = {
                 ...options,
-                descriptor: CreateAudioInfo(this.#descriptor),
+                descriptor: createAudioInfo(this.#descriptor),
                 record: this.#descriptor.record,
             };
 
@@ -1318,21 +1322,21 @@ const AudioSelectionSource = class
                 ...options,
                 offset: this.#descriptor.sourceOffset,
                 byteLength: this.#descriptor.byteLength,
-                descriptor: CreateAudioInfo(this.#descriptor),
+                descriptor: createAudioInfo(this.#descriptor),
                 record: this.#descriptor.record,
             },
         );
     }
 
     /** Describes an optional worker request for an exact item or byte range. */
-    CreateWorkerRequest(_path, options = {})
+    CreateWorkerRequest(path, options = {})
     {
         if ((this.#mode === "api-audio"
             || this.#mode === "api-range")
             && typeof this.#source.CreateWorkerRequest === "function")
         {
             const requestOptions = this.#mode === "api-range"
-                ? CreateRangeReadOptions(
+                ? createRangeReadOptions(
                     options,
                     this.#descriptor.sourceOffset,
                     this.#descriptor.byteLength,
@@ -1340,7 +1344,7 @@ const AudioSelectionSource = class
                 : options;
 
             return this.#source.CreateWorkerRequest(
-                this.#path,
+                path,
                 requestOptions,
             );
         }
@@ -1352,7 +1356,7 @@ const AudioSelectionSource = class
                 ?? this.#descriptor.resourcePath,
                 {
                     ...options,
-                    descriptor: CreateAudioInfo(this.#descriptor),
+                    descriptor: createAudioInfo(this.#descriptor),
                     record: this.#descriptor.record,
                 },
             );
@@ -1366,7 +1370,7 @@ const AudioSelectionSource = class
                     ...options,
                     offset: this.#descriptor.sourceOffset,
                     byteLength: this.#descriptor.byteLength,
-                    descriptor: CreateAudioInfo(this.#descriptor),
+                    descriptor: createAudioInfo(this.#descriptor),
                     record: this.#descriptor.record,
                 },
             );
@@ -1375,19 +1379,28 @@ const AudioSelectionSource = class
         return null;
     }
 
+    /**
+     * Reports whether API paths must be resolved by CjsResMan before reading.
+     */
+    get requiresUrl()
+    {
+        return (this.#mode === "api-audio" || this.#mode === "api-range")
+            && sourceRequiresUrl(this.#source);
+    }
+
 };
 
-function CreateBankIndex(banks, paths)
+function createBankIndex(banks, paths)
 {
     const index = new Map();
 
     for (const [ value, record ] of Object.entries(banks))
     {
-        RequireRecord(record, `Audio library bank ${value}`);
+        requireRecord(record, `Audio library bank ${value}`);
 
         const sourceID = String(record.sourceID ?? value);
-        const physical = NormalizeAudioPath(
-            SourceRecordPath(record, `Audio library bank ${value}`),
+        const physical = normalizeAudioPath(
+            sourceRecordPath(record, `Audio library bank ${value}`),
         );
         const descriptor = Object.freeze({
             kind: "bank",
@@ -1399,14 +1412,14 @@ function CreateBankIndex(banks, paths)
             physicalPath: physical.path,
             physicalPathKey: physical.key,
             sourceOffset: 0,
-            byteLength: OptionalByteLength(record.byteLength),
-            physicalByteLength: OptionalByteLength(record.byteLength),
-            checksum: NormalizeChecksum(record),
-            mediaType: NormalizeMediaType(
+            byteLength: optionalByteLength(record.byteLength),
+            physicalByteLength: optionalByteLength(record.byteLength),
+            checksum: normalizeChecksum(record),
+            mediaType: normalizeMediaType(
                 record.mediaType,
                 physical.path,
             ),
-            language: NormalizeLanguage(record.language),
+            language: normalizeLanguage(record.language),
             embedded: false,
             bank: null,
             metadata: null,
@@ -1415,29 +1428,29 @@ function CreateBankIndex(banks, paths)
 
         index.set(String(value), descriptor);
         index.set(sourceID, descriptor);
-        RegisterPath(paths, descriptor);
+        registerPath(paths, descriptor);
     }
 
     return index;
 }
 
-function CreateMediaIndex(media, paths, metadata)
+function createMediaIndex(media, paths, metadata)
 {
     const index = new Map();
 
     for (const [ value, mediaRecord ] of Object.entries(media))
     {
-        const mediaID = NormalizeMediaID(value);
-        const records = ExpandMediaRecords(mediaRecord);
+        const mediaID = normalizeMediaID(value);
+        const records = expandMediaRecords(mediaRecord);
         const descriptors = records.map((record, recordIndex) =>
         {
-            RequireRecord(record, `Audio media ${mediaID}`);
+            requireRecord(record, `Audio media ${mediaID}`);
 
             const sourceID = String(
                 record.sourceID ?? `media:${mediaID}:${recordIndex}`,
             );
-            const physical = NormalizeAudioPath(
-                SourceRecordPath(record, `Audio media ${mediaID}`),
+            const physical = normalizeAudioPath(
+                sourceRecordPath(record, `Audio media ${mediaID}`),
             );
 
             return Object.freeze({
@@ -1445,19 +1458,19 @@ function CreateMediaIndex(media, paths, metadata)
                 mediaID,
                 sourceID,
                 selectionKey: `media:${mediaID}:${sourceID}`,
-                sourceRank: IsPrepared(record) ? 0 : 1,
+                sourceRank: isPrepared(record) ? 0 : 1,
                 resourcePath: physical.path,
                 physicalPath: physical.path,
                 physicalPathKey: physical.key,
                 sourceOffset: 0,
-                byteLength: OptionalByteLength(record.byteLength),
-                physicalByteLength: OptionalByteLength(record.byteLength),
-                checksum: NormalizeChecksum(record),
-                mediaType: NormalizeMediaType(
+                byteLength: optionalByteLength(record.byteLength),
+                physicalByteLength: optionalByteLength(record.byteLength),
+                checksum: normalizeChecksum(record),
+                mediaType: normalizeMediaType(
                     record.mediaType,
                     physical.path,
                 ),
-                language: NormalizeLanguage(record.language),
+                language: normalizeLanguage(record.language),
                 embedded: false,
                 bank: null,
                 metadata: metadata[mediaID] ?? null,
@@ -1472,7 +1485,7 @@ function CreateMediaIndex(media, paths, metadata)
 
         for (const descriptor of descriptors)
         {
-            RegisterPath(paths, descriptor);
+            registerPath(paths, descriptor);
         }
 
         index.set(mediaID, descriptors);
@@ -1481,19 +1494,19 @@ function CreateMediaIndex(media, paths, metadata)
     return index;
 }
 
-function CreateEmbeddedIndex(embeddedMedia, banks, paths, metadata)
+function createEmbeddedIndex(embeddedMedia, banks, paths, metadata)
 {
     const index = new Map();
 
     for (const [ value, mediaRecord ] of Object.entries(embeddedMedia))
     {
-        const mediaID = NormalizeMediaID(value);
-        const records = ExpandMediaRecords(mediaRecord);
+        const mediaID = normalizeMediaID(value);
+        const records = expandMediaRecords(mediaRecord);
         const descriptors = [];
 
         for (let recordIndex = 0; recordIndex < records.length; recordIndex++)
         {
-            const record = RequireRecord(
+            const record = requireRecord(
                 records[recordIndex],
                 `Embedded audio media ${mediaID}`,
             );
@@ -1515,7 +1528,7 @@ function CreateEmbeddedIndex(embeddedMedia, banks, paths, metadata)
                 ?? record.logicalPath
                 ?? record.resPath
                 ?? `aud:/id/${mediaID}`;
-            const semantic = NormalizeAudioPath(resourcePath);
+            const semantic = normalizeAudioPath(resourcePath);
             const descriptor = Object.freeze({
                 kind: "media",
                 mediaID,
@@ -1525,21 +1538,21 @@ function CreateEmbeddedIndex(embeddedMedia, banks, paths, metadata)
                 resourcePath: semantic.path,
                 physicalPath: bank.physicalPath,
                 physicalPathKey: bank.physicalPathKey,
-                sourceOffset: NormalizeNonNegativeInteger(
+                sourceOffset: normalizeNonNegativeInteger(
                     record.offset,
                     `Embedded audio media ${mediaID} offset`,
                 ),
-                byteLength: NormalizePositiveInteger(
+                byteLength: normalizePositiveInteger(
                     record.byteLength,
                     `Embedded audio media ${mediaID} byteLength`,
                 ),
                 physicalByteLength: bank.byteLength,
-                checksum: NormalizeChecksum(record) || bank.checksum,
-                mediaType: NormalizeMediaType(
+                checksum: normalizeChecksum(record) || bank.checksum,
+                mediaType: normalizeMediaType(
                     record.mediaType ?? "wem",
                     semantic.path,
                 ),
-                language: NormalizeLanguage(
+                language: normalizeLanguage(
                     record.language ?? bank.language,
                 ),
                 embedded: true,
@@ -1549,7 +1562,7 @@ function CreateEmbeddedIndex(embeddedMedia, banks, paths, metadata)
             });
 
             descriptors.push(descriptor);
-            RegisterPath(paths, descriptor);
+            registerPath(paths, descriptor);
         }
 
         index.set(mediaID, descriptors);
@@ -1558,9 +1571,9 @@ function CreateEmbeddedIndex(embeddedMedia, banks, paths, metadata)
     return index;
 }
 
-function RegisterPath(paths, descriptor)
+function registerPath(paths, descriptor)
 {
-    const normalized = NormalizeAudioPath(descriptor.resourcePath);
+    const normalized = normalizeAudioPath(descriptor.resourcePath);
     const records = paths.get(normalized.key) ?? [];
 
     if (!records.some(value =>
@@ -1574,23 +1587,23 @@ function RegisterPath(paths, descriptor)
     }
 }
 
-function SelectDescriptor(candidates, {
+function selectDescriptor(candidates, {
     mediaTypes,
     languages,
     defaultLanguage,
 })
 {
-    const acceptedTypes = NormalizeMediaTypes(mediaTypes);
-    const acceptedLanguages = NormalizeLanguages(languages);
+    const acceptedTypes = normalizeMediaTypes(mediaTypes);
+    const acceptedLanguages = normalizeLanguages(languages);
 
     return candidates
         .map(candidate => ({
             candidate,
-            mediaTypeRank: MediaTypeRank(
+            mediaTypeRank: mediaTypeRank(
                 candidate.mediaType,
                 acceptedTypes,
             ),
-            languageRank: LanguageRank(
+            languageRank: languageRank(
                 candidate.language,
                 acceptedLanguages,
                 defaultLanguage,
@@ -1609,9 +1622,9 @@ function SelectDescriptor(candidates, {
             ))[0]?.candidate ?? null;
 }
 
-function ResolveBacking(descriptor, source, options = {})
+function resolveBacking(descriptor, source, options = {})
 {
-    const apiBase = NormalizeAudioApiBase(options.audioApiResPath);
+    const apiBase = normalizeAudioApiBase(options.audioApiResPath);
     const apiIndividual = Boolean(
         apiBase
         && descriptor.mediaID
@@ -1658,7 +1671,7 @@ function ResolveBacking(descriptor, source, options = {})
             key: `${mode}:${descriptor.selectionKey}`,
             sourceID: descriptor.sourceID,
             path,
-            extension: MediaExtension(descriptor),
+            extension: mediaExtension(descriptor),
             byteLength: descriptor.byteLength,
             checksum: descriptor.checksum,
             sourceRevision: descriptor.checksum || null,
@@ -1666,7 +1679,6 @@ function ResolveBacking(descriptor, source, options = {})
                 source,
                 descriptor,
                 mode,
-                path,
             ),
             offset: 0,
         });
@@ -1678,8 +1690,8 @@ function ResolveBacking(descriptor, source, options = {})
             ? `bank:${descriptor.bank}`
             : descriptor.sourceID,
         path: descriptor.physicalPath,
-        extension: PathExtension(descriptor.physicalPath)
-            || MediaExtension(descriptor),
+        extension: pathExtension(descriptor.physicalPath)
+            || mediaExtension(descriptor),
         byteLength: descriptor.physicalByteLength,
         checksum: descriptor.checksum,
         sourceRevision: descriptor.checksum || null,
@@ -1688,7 +1700,7 @@ function ResolveBacking(descriptor, source, options = {})
     });
 }
 
-function NormalizeAudioApiBase(value)
+function normalizeAudioApiBase(value)
 {
     if (value === undefined || value === null || value === "")
     {
@@ -1707,7 +1719,7 @@ function NormalizeAudioApiBase(value)
     return base.endsWith("/") ? base : `${base}/`;
 }
 
-function CreateRangeReadOptions(options, offset, byteLength)
+function createRangeReadOptions(options, offset, byteLength)
 {
     const end = offset + byteLength - 1;
     const range = `bytes=${offset}-${end}`;
@@ -1725,7 +1737,7 @@ function CreateRangeReadOptions(options, offset, byteLength)
     };
 }
 
-function CreateUnavailableCapabilityReport({
+function createUnavailableCapabilityReport({
     apiBase,
     descriptor,
     hasSource,
@@ -1760,7 +1772,7 @@ function CreateUnavailableCapabilityReport({
     });
 }
 
-function CreateCapabilityProbeResult(result, expectedByteLength)
+function createCapabilityProbeResult(result, expectedByteLength)
 {
     if (result.status === "rejected")
     {
@@ -1769,7 +1781,7 @@ function CreateCapabilityProbeResult(result, expectedByteLength)
             supported: false,
             byteLength: null,
             bytes: null,
-            error: NormalizeCapabilityError(result.reason),
+            error: normalizeCapabilityError(result.reason),
         };
     }
 
@@ -1806,12 +1818,12 @@ function CreateCapabilityProbeResult(result, expectedByteLength)
             supported: false,
             byteLength: null,
             bytes: null,
-            error: NormalizeCapabilityError(error),
+            error: normalizeCapabilityError(error),
         };
     }
 }
 
-function CreatePublicCapabilityProbeResult(result, accepted = true)
+function createPublicCapabilityProbeResult(result, accepted = true)
 {
     const consistencyError = accepted || !result.supported
         ? null
@@ -1828,7 +1840,7 @@ function CreatePublicCapabilityProbeResult(result, accepted = true)
     });
 }
 
-function NormalizeCapabilityError(error)
+function normalizeCapabilityError(error)
 {
     return Object.freeze({
         code: String(error?.code ?? "CJS_AUDIO_CAPABILITY_REQUEST_FAILED"),
@@ -1837,7 +1849,7 @@ function NormalizeCapabilityError(error)
     });
 }
 
-function ByteViewsEqual(left, right)
+function byteViewsEqual(left, right)
 {
     if (left.byteLength !== right.byteLength)
     {
@@ -1855,7 +1867,7 @@ function ByteViewsEqual(left, right)
     return true;
 }
 
-function CreateAudioInfo(descriptor)
+function createAudioInfo(descriptor)
 {
     return Object.freeze({
         mediaID: descriptor.mediaID,
@@ -1874,7 +1886,7 @@ function CreateAudioInfo(descriptor)
     });
 }
 
-function ValidateAudioLibraryRegistration(options)
+function validateAudioLibraryRegistration(options)
 {
     if (Object.hasOwn(options, "source")
         && Object.hasOwn(options, "resourceSource")
@@ -1885,16 +1897,16 @@ function ValidateAudioLibraryRegistration(options)
         );
     }
 
-    RequireExclusiveRegistration(options, [
+    requireExclusiveRegistration(options, [
         "library",
         "document",
         "libraryResFilePath",
     ], "prebuilt library");
-    RequireExclusiveRegistration(options, [
+    requireExclusiveRegistration(options, [
         "soundBank",
         "soundBankResPath",
     ], "sound-bank source");
-    RequireExclusiveRegistration(options, [
+    requireExclusiveRegistration(options, [
         "enrich",
         "enrichResPath",
     ], "enrichment source");
@@ -1903,11 +1915,11 @@ function ValidateAudioLibraryRegistration(options)
         "library",
         "document",
         "libraryResFilePath",
-    ].some(key => HasRegistrationValue(options, key));
+    ].some(key => hasRegistrationValue(options, key));
     const hasSoundBank = [
         "soundBank",
         "soundBankResPath",
-    ].some(key => HasRegistrationValue(options, key));
+    ].some(key => hasRegistrationValue(options, key));
 
     if (hasLibrary && hasSoundBank)
     {
@@ -1918,7 +1930,7 @@ function ValidateAudioLibraryRegistration(options)
 
     for (const key of [ "library", "document", "soundBank", "enrich" ])
     {
-        if (!HasRegistrationValue(options, key))
+        if (!hasRegistrationValue(options, key))
         {
             continue;
         }
@@ -1938,9 +1950,9 @@ function ValidateAudioLibraryRegistration(options)
         "enrichResPath",
     ])
     {
-        if (HasRegistrationValue(options, key))
+        if (hasRegistrationValue(options, key))
         {
-            NormalizeAudioPath(options[key]);
+            normalizeAudioPath(options[key]);
         }
     }
 
@@ -1989,7 +2001,7 @@ function ValidateAudioLibraryRegistration(options)
         }
     }
 
-    const apiBase = NormalizeAudioApiBase(options.audioApiResPath);
+    const apiBase = normalizeAudioApiBase(options.audioApiResPath);
 
     if (!apiBase
         && (options.audioApiResPathSupportsIndividualFiles
@@ -2001,9 +2013,9 @@ function ValidateAudioLibraryRegistration(options)
     }
 }
 
-function RequireExclusiveRegistration(options, keys, label)
+function requireExclusiveRegistration(options, keys, label)
 {
-    const supplied = keys.filter(key => HasRegistrationValue(options, key));
+    const supplied = keys.filter(key => hasRegistrationValue(options, key));
 
     if (supplied.length > 1)
     {
@@ -2013,34 +2025,34 @@ function RequireExclusiveRegistration(options, keys, label)
     }
 }
 
-function HasRegistrationValue(options, key)
+function hasRegistrationValue(options, key)
 {
     return Object.hasOwn(options, key)
         && options[key] !== null
         && options[key] !== undefined;
 }
 
-function IsBuilderOptions(value)
+function isBuilderOptions(value)
 {
     return Boolean(
         value
         && typeof value === "object"
         && !Array.isArray(value)
-        && !IsDocument(value)
+        && !isDocument(value)
         && ("metadata" in value
             || "soundbanksInfo" in value
             || "indexEntries" in value),
     );
 }
 
-function HasBankLoader(options)
+function hasBankLoader(options)
 {
     return typeof options.loadBank === "function"
         || options.bankProvider
         || options.bankData;
 }
 
-function IsAudioSource(value)
+function isAudioSource(value)
 {
     return Boolean(
         value
@@ -2052,12 +2064,18 @@ function IsAudioSource(value)
     );
 }
 
-function ReadRawAudioBytes(value)
+function sourceRequiresUrl(source)
+{
+    return source?.requiresUrl === true
+        || source?.constructor?.requiresUrl === true;
+}
+
+function readRawAudioBytes(value)
 {
     return value;
 }
 
-function SourceRecordPath(record, label)
+function sourceRecordPath(record, label)
 {
     const path = record.path ?? record.logicalPath ?? record.resPath;
 
@@ -2069,7 +2087,7 @@ function SourceRecordPath(record, label)
     return path;
 }
 
-function ExpandMediaRecords(value)
+function expandMediaRecords(value)
 {
     if (Array.isArray(value))
     {
@@ -2086,7 +2104,7 @@ function ExpandMediaRecords(value)
     return [ value ];
 }
 
-function NormalizeMediaID(value)
+function normalizeMediaID(value)
 {
     const mediaID = String(value ?? "").trim();
 
@@ -2100,7 +2118,7 @@ function NormalizeMediaID(value)
     return mediaID;
 }
 
-function NormalizeAudioPath(value)
+function normalizeAudioPath(value)
 {
     const path = String(value ?? "")
         .trim()
@@ -2124,7 +2142,7 @@ function NormalizeAudioPath(value)
     });
 }
 
-function NormalizeMediaType(value, path = "")
+function normalizeMediaType(value, path = "")
 {
     const aliases = {
         bnk: "audio/x-wwise-bank",
@@ -2137,7 +2155,7 @@ function NormalizeMediaType(value, path = "")
         plugin: OPAQUE_MEDIA_TYPE,
         unknown: OPAQUE_MEDIA_TYPE,
     };
-    const extension = PathExtension(path);
+    const extension = pathExtension(path);
     const input = String(value ?? aliases[extension] ?? OPAQUE_MEDIA_TYPE)
         .split(";", 1)[0]
         .trim()
@@ -2152,7 +2170,7 @@ function NormalizeMediaType(value, path = "")
     return mediaType;
 }
 
-function NormalizeMediaTypes(values)
+function normalizeMediaTypes(values)
 {
     if (!Array.isArray(values))
     {
@@ -2175,7 +2193,7 @@ function NormalizeMediaTypes(values)
     });
 }
 
-function MediaTypeRank(mediaType, accepted)
+function mediaTypeRank(mediaType, accepted)
 {
     if (!accepted.length)
     {
@@ -2199,7 +2217,7 @@ function MediaTypeRank(mediaType, accepted)
     return Number.POSITIVE_INFINITY;
 }
 
-function NormalizeLanguages(values)
+function normalizeLanguages(values)
 {
     if (!Array.isArray(values))
     {
@@ -2208,7 +2226,7 @@ function NormalizeLanguages(values)
 
     return values.map(value =>
     {
-        const language = NormalizeLanguage(value);
+        const language = normalizeLanguage(value);
 
         if (language !== "*"
             && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(language))
@@ -2222,13 +2240,13 @@ function NormalizeLanguages(values)
     });
 }
 
-function LanguageRank(language, accepted, defaultLanguage)
+function languageRank(language, accepted, defaultLanguage)
 {
     if (accepted.length)
     {
         for (let index = 0; index < accepted.length; index++)
         {
-            if (LanguageMatches(language, accepted[index]))
+            if (languageMatches(language, accepted[index]))
             {
                 return index;
             }
@@ -2238,7 +2256,7 @@ function LanguageRank(language, accepted, defaultLanguage)
     }
     if (defaultLanguage)
     {
-        if (LanguageMatches(language, defaultLanguage))
+        if (languageMatches(language, defaultLanguage))
         {
             return 0;
         }
@@ -2249,7 +2267,7 @@ function LanguageRank(language, accepted, defaultLanguage)
     return 0;
 }
 
-function LanguageMatches(language, accepted)
+function languageMatches(language, accepted)
 {
     if (accepted === "*")
     {
@@ -2261,7 +2279,7 @@ function LanguageMatches(language, accepted)
         || accepted.startsWith(`${language}-`);
 }
 
-function MediaExtension(descriptor)
+function mediaExtension(descriptor)
 {
     const mediaType = descriptor.mediaType;
     const extensions = {
@@ -2275,26 +2293,26 @@ function MediaExtension(descriptor)
     };
 
     return extensions[mediaType]
-        ?? PathExtension(descriptor.resourcePath)
-        ?? PathExtension(descriptor.physicalPath)
+        ?? pathExtension(descriptor.resourcePath)
+        ?? pathExtension(descriptor.physicalPath)
         ?? "wem";
 }
 
-function PathExtension(path)
+function pathExtension(path)
 {
     const match = /\.([a-z0-9]+)(?:[?#].*)?$/iu.exec(String(path ?? ""));
 
     return match?.[1]?.toLowerCase() ?? "";
 }
 
-function NormalizeChecksum(record)
+function normalizeChecksum(record)
 {
     return String(record.checksum ?? record.md5 ?? "")
         .trim()
         .toLowerCase();
 }
 
-function IsPrepared(record)
+function isPrepared(record)
 {
     const kind = String(record.sourceKind ?? record.kind ?? "")
         .trim()
@@ -2305,7 +2323,7 @@ function IsPrepared(record)
         || kind === "prepared";
 }
 
-function OptionalByteLength(value)
+function optionalByteLength(value)
 {
     if (value === undefined || value === null || value === "")
     {
@@ -2324,15 +2342,15 @@ function OptionalByteLength(value)
     return number;
 }
 
-function NormalizeDocument(value)
+function normalizeDocument(value)
 {
-    ValidateDocument(value);
-    return CloneJSONValue(value, "audio library");
+    validateDocument(value);
+    return cloneJSONValue(value, "audio library");
 }
 
-function ValidateDocument(value)
+function validateDocument(value)
 {
-    RequireRecord(value, "Audio library");
+    requireRecord(value, "Audio library");
 
     if (value.schema !== AUDIO_LIBRARY_SCHEMA)
     {
@@ -2348,25 +2366,25 @@ function ValidateDocument(value)
         );
     }
 
-    const metadata = RequireRecord(value.metadata, "Audio library metadata");
+    const metadata = requireRecord(value.metadata, "Audio library metadata");
 
-    RequireRecord(metadata.Events, "Audio library metadata.Events");
-    RequireRecord(metadata.SoundBanks, "Audio library metadata.SoundBanks");
-    RequireRecord(metadata.WemFileIDs, "Audio library metadata.WemFileIDs");
-    RequireRecord(value.media, "Audio library media");
-    RequireRecord(value.banks, "Audio library banks");
+    requireRecord(metadata.Events, "Audio library metadata.Events");
+    requireRecord(metadata.SoundBanks, "Audio library metadata.SoundBanks");
+    requireRecord(metadata.WemFileIDs, "Audio library metadata.WemFileIDs");
+    requireRecord(value.media, "Audio library media");
+    requireRecord(value.banks, "Audio library banks");
 
     if (value.schemaVersion === 2)
     {
-        ValidateBanks(value.banks);
-        ValidateEmbeddedMedia(value.embeddedMedia, value.banks);
-        ValidateEventMedia(
+        validateBanks(value.banks);
+        validateEmbeddedMedia(value.embeddedMedia, value.banks);
+        validateEventMedia(
             value.eventMedia,
             value.eventMediaLanguage,
             value.media,
             value.embeddedMedia ?? {},
         );
-        ValidateMusic(
+        validateMusic(
             value.music,
             value.media,
             value.embeddedMedia ?? {},
@@ -2374,18 +2392,18 @@ function ValidateDocument(value)
     }
 }
 
-function ValidateBanks(banks)
+function validateBanks(banks)
 {
     for (const [ sourceID, bank ] of Object.entries(banks))
     {
-        RequireRecord(bank, `Audio library bank ${sourceID}`);
+        requireRecord(bank, `Audio library bank ${sourceID}`);
 
-        const bankID = NormalizeUnsignedID(
+        const bankID = normalizeUnsignedID(
             bank.bankID,
             `Audio library bank ${sourceID} bankID`,
         );
 
-        const languageID = NormalizeUnsignedID(
+        const languageID = normalizeUnsignedID(
             bank.languageID,
             `Audio library bank ${sourceID} languageID`,
         );
@@ -2401,18 +2419,18 @@ function ValidateBanks(banks)
     }
 }
 
-function ValidateEmbeddedMedia(embeddedMedia, banks)
+function validateEmbeddedMedia(embeddedMedia, banks)
 {
     if (embeddedMedia === undefined)
     {
         return;
     }
 
-    RequireRecord(embeddedMedia, "Audio library embeddedMedia");
+    requireRecord(embeddedMedia, "Audio library embeddedMedia");
 
     for (const [ mediaID, value ] of Object.entries(embeddedMedia))
     {
-        NormalizePositiveID(
+        normalizePositiveID(
             mediaID,
             `Audio library embedded media ${mediaID}`,
         );
@@ -2428,7 +2446,7 @@ function ValidateEmbeddedMedia(embeddedMedia, banks)
 
         for (const record of records)
         {
-            RequireRecord(
+            requireRecord(
                 record,
                 `Audio library embedded media ${mediaID}`,
             );
@@ -2440,11 +2458,11 @@ function ValidateEmbeddedMedia(embeddedMedia, banks)
                 );
             }
 
-            NormalizeNonNegativeInteger(
+            normalizeNonNegativeInteger(
                 record.offset,
                 `Audio library embedded media ${mediaID} offset`,
             );
-            NormalizePositiveInteger(
+            normalizePositiveInteger(
                 record.byteLength,
                 `Audio library embedded media ${mediaID} byteLength`,
             );
@@ -2452,15 +2470,15 @@ function ValidateEmbeddedMedia(embeddedMedia, banks)
     }
 }
 
-function ValidateEventMedia(eventMedia, language, media, embeddedMedia)
+function validateEventMedia(eventMedia, language, media, embeddedMedia)
 {
     if (eventMedia === undefined)
     {
         return;
     }
 
-    RequireRecord(eventMedia, "Audio library eventMedia");
-    NormalizeLanguage(language ?? "");
+    requireRecord(eventMedia, "Audio library eventMedia");
+    normalizeLanguage(language ?? "");
 
     for (const [ eventName, values ] of Object.entries(eventMedia))
     {
@@ -2471,7 +2489,7 @@ function ValidateEventMedia(eventMedia, language, media, embeddedMedia)
             );
         }
 
-        const ids = values.map(value => NormalizePositiveID(
+        const ids = values.map(value => normalizePositiveID(
             value,
             `Audio library eventMedia.${eventName}`,
         ));
@@ -2495,14 +2513,14 @@ function ValidateEventMedia(eventMedia, language, media, embeddedMedia)
     }
 }
 
-function ValidateMusic(music, media, embeddedMedia)
+function validateMusic(music, media, embeddedMedia)
 {
     if (music === undefined)
     {
         return;
     }
 
-    RequireRecord(music, "Audio library music");
+    requireRecord(music, "Audio library music");
 
     if (music.schemaVersion !== 1)
     {
@@ -2516,11 +2534,11 @@ function ValidateMusic(music, media, embeddedMedia)
         throw new TypeError("Audio library music banks must be an array");
     }
 
-    const nodes = RequireRecord(
+    const nodes = requireRecord(
         music.nodes,
         "Audio library music nodes",
     );
-    const bankNames = music.banks.map(NormalizeBankName);
+    const bankNames = music.banks.map(normalizeBankName);
 
     if (new Set(bankNames).size !== bankNames.length)
     {
@@ -2529,10 +2547,10 @@ function ValidateMusic(music, media, embeddedMedia)
 
     for (const [ id, node ] of Object.entries(nodes))
     {
-        NormalizePositiveID(id, `Audio library music node ${id}`);
-        RequireRecord(node, `Audio library music node ${id}`);
+        normalizePositiveID(id, `Audio library music node ${id}`);
+        requireRecord(node, `Audio library music node ${id}`);
 
-        if (!bankNames.includes(NormalizeBankName(node.bank)))
+        if (!bankNames.includes(normalizeBankName(node.bank)))
         {
             throw new TypeError(
                 `Audio library music node ${id} references unknown bank ${node.bank}`,
@@ -2541,7 +2559,7 @@ function ValidateMusic(music, media, embeddedMedia)
 
         for (const childID of node.children ?? [])
         {
-            if (!nodes[NormalizePositiveID(
+            if (!nodes[normalizePositiveID(
                 childID,
                 `Audio library music node ${id} child`,
             )])
@@ -2556,7 +2574,7 @@ function ValidateMusic(music, media, embeddedMedia)
         {
             for (const source of node.sources ?? [])
             {
-                const sourceID = NormalizePositiveID(
+                const sourceID = normalizePositiveID(
                     source.sourceId,
                     `Audio library music track ${id} source`,
                 );
@@ -2573,7 +2591,7 @@ function ValidateMusic(music, media, embeddedMedia)
 
     for (const field of [ "eventTargets", "eventStops" ])
     {
-        const table = RequireRecord(
+        const table = requireRecord(
             music[field],
             `Audio library music ${field}`,
         );
@@ -2589,7 +2607,7 @@ function ValidateMusic(music, media, embeddedMedia)
 
             for (const value of values)
             {
-                const id = NormalizePositiveID(
+                const id = normalizePositiveID(
                     value,
                     `Audio library music ${field}.${name}`,
                 );
@@ -2604,15 +2622,15 @@ function ValidateMusic(music, media, embeddedMedia)
         }
     }
 
-    RequireRecord(
+    requireRecord(
         music.switchSetters,
         "Audio library music switchSetters",
     );
 }
 
-async function ReadResponseJSON(response, source = null)
+async function readResponseJSON(response, source = null)
 {
-    if (!IsResponseLike(response))
+    if (!isResponseLike(response))
     {
         throw new TypeError(
             "Audio-library fetch must return a Response-like value",
@@ -2638,7 +2656,7 @@ async function ReadResponseJSON(response, source = null)
     {
         return typeof response.json === "function"
             ? await response.json()
-            : ParseJSON(await response.text());
+            : parseJSON(await response.text());
     }
     catch (cause)
     {
@@ -2648,7 +2666,7 @@ async function ReadResponseJSON(response, source = null)
     }
 }
 
-function IsResponseLike(value)
+function isResponseLike(value)
 {
     return Boolean(
         value
@@ -2659,7 +2677,7 @@ function IsResponseLike(value)
     );
 }
 
-function IsDocument(value)
+function isDocument(value)
 {
     return Boolean(
         value
@@ -2669,7 +2687,7 @@ function IsDocument(value)
     );
 }
 
-function ParseJSONResourceValue(value, label)
+function parseJSONResourceValue(value, label)
 {
     const input = value
         && typeof value === "object"
@@ -2699,7 +2717,7 @@ function ParseJSONResourceValue(value, label)
     }
 }
 
-function ParseJSON(value)
+function parseJSON(value)
 {
     try
     {
@@ -2713,7 +2731,7 @@ function ParseJSON(value)
     }
 }
 
-function RequireRecord(value, label)
+function requireRecord(value, label)
 {
     if (!value || typeof value !== "object" || Array.isArray(value))
     {
@@ -2723,7 +2741,7 @@ function RequireRecord(value, label)
     return value;
 }
 
-function NormalizeUnsignedID(value, label)
+function normalizeUnsignedID(value, label)
 {
     const number = Number(value);
 
@@ -2735,9 +2753,9 @@ function NormalizeUnsignedID(value, label)
     return String(number >>> 0);
 }
 
-function NormalizePositiveID(value, label)
+function normalizePositiveID(value, label)
 {
-    const id = NormalizeUnsignedID(value, label);
+    const id = normalizeUnsignedID(value, label);
 
     if (id === "0")
     {
@@ -2747,7 +2765,7 @@ function NormalizePositiveID(value, label)
     return id;
 }
 
-function NormalizeNonNegativeInteger(value, label)
+function normalizeNonNegativeInteger(value, label)
 {
     const number = Number(value);
 
@@ -2759,9 +2777,9 @@ function NormalizeNonNegativeInteger(value, label)
     return number;
 }
 
-function NormalizePositiveInteger(value, label)
+function normalizePositiveInteger(value, label)
 {
-    const number = NormalizeNonNegativeInteger(value, label);
+    const number = normalizeNonNegativeInteger(value, label);
 
     if (number === 0)
     {
@@ -2771,7 +2789,7 @@ function NormalizePositiveInteger(value, label)
     return number;
 }
 
-function NormalizeLanguage(value)
+function normalizeLanguage(value)
 {
     const language = String(value ?? "")
         .trim()
@@ -2787,7 +2805,7 @@ function NormalizeLanguage(value)
     return language;
 }
 
-function NormalizeBankName(value)
+function normalizeBankName(value)
 {
     const name = String(value ?? "")
         .trim()
@@ -2804,7 +2822,7 @@ function NormalizeBankName(value)
     return name;
 }
 
-function CloneJSONValue(value, label)
+function cloneJSONValue(value, label)
 {
     if (value === null
         || typeof value === "string"
@@ -2824,7 +2842,7 @@ function CloneJSONValue(value, label)
     if (Array.isArray(value))
     {
         return Object.freeze(value.map((entry, index) =>
-            CloneJSONValue(entry, `${label}[${index}]`)));
+            cloneJSONValue(entry, `${label}[${index}]`)));
     }
     if (!value || typeof value !== "object")
     {
@@ -2835,7 +2853,7 @@ function CloneJSONValue(value, label)
 
     for (const key of Object.keys(value))
     {
-        result[key] = CloneJSONValue(value[key], `${label}.${key}`);
+        result[key] = cloneJSONValue(value[key], `${label}.${key}`);
     }
 
     return Object.freeze(result);

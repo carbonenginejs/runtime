@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-    CjsMemoryResourceSource,
+    CjsResManFetchProvider,
     CjsResMan,
 } from "@carbonenginejs/runtime-resource";
 import {
@@ -46,6 +46,23 @@ const INDEX_TEXT = [
     "res:/audio/media/777.wem,bb/777_hash.wem,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,2000",
     "res:/graphics/example.red,cc/example,cccccccccccccccccccccccccccccccc,10",
 ].join("\n");
+
+function createMemoryResourceSource(values)
+{
+    const records = new Map(Object.entries(values));
+
+    return {
+        Read(path)
+        {
+            if (!records.has(path))
+            {
+                throw new Error(`Missing test resource: ${path}`);
+            }
+
+            return records.get(path);
+        },
+    };
+}
 
 test("audio builder accepts browser file indexes and emits deterministic catalogs", () =>
 {
@@ -239,7 +256,7 @@ test("complete builds inspect every bank through one injected capability", async
                             type: 2,
                             id: 2,
                             sourceId: 9001,
-                            payload: Uint32Bytes(9001),
+                            payload: uint32Bytes(9001),
                         },
                     ],
                     media: [
@@ -356,8 +373,8 @@ test("complete builds honor cancellation before invoking a bank provider", async
 
 test("audio registration resolves documents, applies enrichment, and locks on initialize", async () =>
 {
-    const document = CreateRuntimeLibraryDocument();
-    const source = new CjsMemoryResourceSource({
+    const document = createRuntimeLibraryDocument();
+    const source = createMemoryResourceSource({
         "aud:/library.json": JSON.stringify(document),
         "res:/audio-enrich": JSON.stringify({
             Events: {
@@ -402,7 +419,7 @@ test("audio registration resolves documents, applies enrichment, and locks on in
 
 test("audio registration builds from sound-bank and enrichment resource paths", async () =>
 {
-    const source = new CjsMemoryResourceSource({
+    const source = createMemoryResourceSource({
         "res:/sound-bank-info": SOUNDBANKS_INFO,
         "res:/audio-enrich": {
             Events: {
@@ -437,7 +454,7 @@ test("audio registration builds from sound-bank and enrichment resource paths", 
 
 test("audio library resolves loose and embedded files through canonical audio resources", async () =>
 {
-    const source = new CjsMemoryResourceSource({
+    const source = createMemoryResourceSource({
         "res:/audio/100.wem": Uint8Array.from([ 10, 11, 12, 13 ]).buffer,
         "res:/audio/20.bnk": Uint8Array.from([
             0, 1, 2, 3,
@@ -449,7 +466,7 @@ test("audio library resolves loose and embedded files through canonical audio re
         source,
     });
 
-    await library.Initialize(CreateRuntimeLibraryDocument());
+    await library.Initialize(createRuntimeLibraryDocument());
 
     const loose = library.GetResByID(100);
     const embedded = library.GetResByID(200);
@@ -490,7 +507,7 @@ test("audio library resolves loose and embedded files through canonical audio re
 
 test("audio child locks participate in their shared backing lifetime", async () =>
 {
-    const source = new CjsMemoryResourceSource({
+    const source = createMemoryResourceSource({
         "res:/audio/100.wem": new ArrayBuffer(4),
         "res:/audio/20.bnk": new ArrayBuffer(12),
     });
@@ -498,7 +515,7 @@ test("audio child locks participate in their shared backing lifetime", async () 
         source,
     });
 
-    await library.Initialize(CreateRuntimeLibraryDocument());
+    await library.Initialize(createRuntimeLibraryDocument());
 
     const first = library.GetResByID(200);
     const second = library.GetResByID(201);
@@ -544,7 +561,7 @@ test("range-capable sources still materialize ordinary CjsAudioRes handles", asy
         source,
     });
 
-    await library.Initialize(CreateRuntimeLibraryDocument());
+    await library.Initialize(createRuntimeLibraryDocument());
 
     const resource = library.GetResByID(200);
     const result = await resource.GetBytes();
@@ -588,7 +605,7 @@ test("audio API options project individual and ranged backing requests", async (
         audioApiResPathSupportsIndividualFiles: true,
     });
 
-    await individual.Initialize(CreateRuntimeLibraryDocument());
+    await individual.Initialize(createRuntimeLibraryDocument());
 
     const individualResource = individual.GetResByID(200);
     const individualResult = await individualResource.GetBytes();
@@ -627,7 +644,7 @@ test("audio API options project individual and ranged backing requests", async (
         audioApiResPathSupportsOffset: true,
     });
 
-    await ranged.Initialize(CreateRuntimeLibraryDocument());
+    await ranged.Initialize(createRuntimeLibraryDocument());
 
     const rangeResource = ranged.GetResByID(200);
     const rangeResult = await rangeResource.GetBytes();
@@ -642,7 +659,7 @@ test("audio API options project individual and ranged backing requests", async (
     );
     assert.deepEqual(rangeCalls, [
         {
-            path: "aud:/path/res%3A%2Faudio%2F20.bnk",
+            path: "aud:/path/res%3a%2faudio%2f20.bnk",
             range: "bytes=4-7",
         },
     ]);
@@ -668,7 +685,7 @@ test("async capabilities compare individual and offset delivery for one known ba
             {
                 return bank.slice(4, 8).buffer;
             }
-            if (path === "aud:/path/res%3A%2Faudio%2F20.bnk")
+            if (path === "aud:/path/res%3a%2faudio%2f20.bnk")
             {
                 return bank.slice(4, 8).buffer;
             }
@@ -681,7 +698,7 @@ test("async capabilities compare individual and offset delivery for one known ba
         audioApiResPath: "aud:/",
     });
 
-    await library.Initialize(CreateRuntimeLibraryDocument());
+    await library.Initialize(createRuntimeLibraryDocument());
 
     const capabilities = await library.GetCapabilities({
         bank: "20:0",
@@ -702,7 +719,7 @@ test("async capabilities compare individual and offset delivery for one known ba
             range: null,
         },
         {
-            path: "aud:/path/res%3A%2Faudio%2F20.bnk",
+            path: "aud:/path/res%3a%2faudio%2f20.bnk",
             range: "bytes=4-7",
         },
     ]);
@@ -717,9 +734,79 @@ test("async capabilities compare individual and offset delivery for one known ba
     );
 });
 
+test("audio API providers receive ResMan-resolved URLs while resources keep canonical paths", async () =>
+{
+    const bytes = Uint8Array.from([ 20, 21, 22, 23 ]);
+    const calls = [];
+    const source = new CjsResManFetchProvider({
+        async fetch(url, options = {})
+        {
+            calls.push({
+                url,
+                range: new Headers(options.headers).get("Range"),
+            });
+
+            return {
+                ok: true,
+                status: 200,
+                statusText: "OK",
+                async arrayBuffer()
+                {
+                    return bytes.slice().buffer;
+                },
+            };
+        },
+    });
+    const library = new CjsAudioLibrary({
+        source,
+        audioApiResPath: "aud:/",
+        resManOptions: {
+            paths: {
+                aud: "https://audio.example.test/",
+            },
+        },
+    });
+
+    await library.Initialize(createRuntimeLibraryDocument());
+
+    const capabilities = await library.GetCapabilities({
+        bank: "20:0",
+    });
+
+    assert.equal(
+        capabilities.audioApiResPathSupportsIndividualFiles,
+        true,
+    );
+    assert.equal(capabilities.audioApiResPathSupportsOffset, true);
+    assert.deepEqual(calls, [
+        {
+            url: "https://audio.example.test/id/200",
+            range: null,
+        },
+        {
+            url: "https://audio.example.test/path/res%3a%2faudio%2f20.bnk",
+            range: "bytes=4-7",
+        },
+    ]);
+
+    calls.length = 0;
+
+    const resource = library.GetResByID(200);
+    const result = await resource.GetBytes();
+
+    assert.equal(resource.GetBackingResource().GetPath(), "aud:/id/200");
+    assert.deepEqual([ ...new Uint8Array(result.bytes) ], [ 20, 21, 22, 23 ]);
+    assert.deepEqual(calls, [
+        {
+            url: "https://audio.example.test/id/200",
+            range: null,
+        },
+    ]);
+});
+
 test("async capabilities automatically favor the most event-used bank", async () =>
 {
-    const document = CreateRuntimeLibraryDocument();
+    const document = createRuntimeLibraryDocument();
 
     document.banks["30:0"] = {
         sourceID: "30:0",
@@ -771,7 +858,7 @@ test("async capabilities automatically favor the most event-used bank", async ()
             range: null,
         },
         {
-            path: "aud:/path/res%3A%2Faudio%2F30.bnk",
+            path: "aud:/path/res%3a%2faudio%2f30.bnk",
             range: "bytes=0-1",
         },
     ]);
@@ -779,7 +866,7 @@ test("async capabilities automatically favor the most event-used bank", async ()
 
 test("audio library can adapt an injected CjsResMan and select prepared media", async () =>
 {
-    const source = new CjsMemoryResourceSource({
+    const source = createMemoryResourceSource({
         "res:/audio/100.wem": Uint8Array.from([ 1 ]).buffer,
         "res:/audio/20.bnk": new ArrayBuffer(12),
         "res:/audio/prepared/300.ogg": Uint8Array.from([ 3 ]).buffer,
@@ -790,7 +877,7 @@ test("audio library can adapt an injected CjsResMan and select prepared media", 
     });
 
     resMan.RegisterFormat(CjsWemFormat);
-    const document = CreateRuntimeLibraryDocument();
+    const document = createRuntimeLibraryDocument();
 
     document.media["300"] = {
         sources: [
@@ -828,7 +915,7 @@ test("audio library can adapt an injected CjsResMan and select prepared media", 
     );
 });
 
-function Uint32Bytes(value)
+function uint32Bytes(value)
 {
     const bytes = new Uint8Array(4);
 
@@ -836,7 +923,7 @@ function Uint32Bytes(value)
     return bytes;
 }
 
-function CreateRuntimeLibraryDocument()
+function createRuntimeLibraryDocument()
 {
     return {
         schema: "carbonenginejs.audioLibrary",

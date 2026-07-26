@@ -61,13 +61,22 @@ Adapt a prepared document to an existing resource manager, or let the library
 create an audio-only manager:
 
 ```js
+import {
+    CjsResManFetchProvider
+} from "@carbonenginejs/runtime-resource";
+
 const audio = new CjsAudioLibrary({
-    source: resourceSource,
+    source: new CjsResManFetchProvider(),
+    resManOptions: {
+        paths: {
+            aud: "https://audio.example.invalid/",
+            res: "https://resources.example.invalid/"
+        }
+    },
     libraryResFilePath: "aud:/library.json",
     enrichResPath: "res:/audio/enrich.json"
 });
 
-audio.SetResMan(cjs.resMan);
 await audio.Initialize();
 
 const capabilities = await audio.GetCapabilities({
@@ -85,6 +94,10 @@ Successful initialization locks the configuration.
 lookup. It probes individual-file and offset delivery concurrently with one
 known bank member; pass a preferred bank or media ID when the service's common
 bank is known.
+`CjsResMan` alone maps canonical resource paths to URLs. URL-backed providers
+receive that resolved URL, while custom structural sources continue to receive
+the normalized resource path. An injected manager must register the same
+prefix mappings itself.
 
 `GetResByPath()` returns the same canonical `CjsAudioRes` when the path and ID
 select the same representation. Embedded resources share one bank backing and

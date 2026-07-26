@@ -53,6 +53,9 @@ offset options declare transport availability; they do not assert browser
 decode support. Async `GetCapabilities()` can instead test both API delivery
 modes concurrently with one bank-owned media record before the first resource
 lookup.
+Canonical-to-URL mapping remains exclusively in CjsResMan. URL-backed
+providers receive resolved URLs; structural sources receive normalized
+resource paths.
 The returned `CjsAudioRes` and backing `CjsAudioBufferRes` classes are owned
 and exported by `@carbonenginejs/runtime-resource/audio`.
 

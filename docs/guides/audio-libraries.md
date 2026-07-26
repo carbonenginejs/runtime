@@ -102,16 +102,21 @@ the prepared document:
 import {
     CjsAudioLibrary
 } from "@carbonenginejs/tools-browser/audio";
+import {
+    CjsResManFetchProvider
+} from "@carbonenginejs/runtime-resource";
 
 const audio = new CjsAudioLibrary({
-    source: resourceSource,
+    source: new CjsResManFetchProvider(),
+    resManOptions: {
+        paths: {
+            aud: "https://audio.example.invalid/"
+        }
+    },
     defaultLanguage: "en-us",
     mediaTypes: [ "audio/ogg", "audio/x-wem" ],
     libraryResFilePath: "aud:/library.json"
 });
-
-// Optional. Without this call, Initialize creates an audio-only CjsResMan.
-audio.SetResMan(cjs.resMan);
 
 await audio.Initialize();
 
@@ -135,6 +140,11 @@ Optional `enrichResPath` or `enrich` metadata applies after either base resolves
 Paths load through the configured CjsResMan resource queue. `buildOptions` may
 request complete bank inspection, language selection, music construction, and
 source identity without redefining the registered documents.
+When using `CjsResManFetchProvider`, register each resource-prefix URL base
+through `resManOptions.paths` or on an injected manager. Only `CjsResMan`
+converts a canonical resource path into a URL; custom structural sources that
+do not declare URL requirements continue to receive the normalized resource
+path.
 
 `Initialize(input)` also accepts a prepared document or `CjsAudioLibrary`, JSON
 text, Blob/File-like value, Response-like value, URL, fallback array, or
@@ -168,6 +178,8 @@ Individual-file support projects media to `id/<mediaID>`. Offset support can
 project an embedded bank window to `path/<encoded-resource-path>` with a Range
 request. These are declared transport capabilities, not proof that the browser
 can decode the returned media.
+Both projected paths are sent back through `CjsResMan`, so fetch providers
+receive resolved URLs without the audio adapter duplicating path policy.
 
 To verify delivery instead of trusting declarations, call the asynchronous
 probe after initialization and before the first resource lookup:
