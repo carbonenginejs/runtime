@@ -5,9 +5,10 @@ import { sph3 } from '@carbonenginejs/runtime-utils/sph3';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveLODHelper, Tr2Lod } from '../EveLODHelper.js';
+import { EveLODHelper } from '../EveLODHelper.js';
 import { EveSpaceObject2 as _EveSpaceObject } from './EveSpaceObject2.js';
 import { EveMissileWarhead as _EveMissileWarhead } from './EveMissileWarhead.js';
+import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 
 let _initProto, _initClass, _init_warheads, _init_extra_warheads, _init_updateWarheads, _init_extra_updateWarheads, _init_target, _init_extra_target, _init_targetRadius, _init_extra_targetRadius, _init_explosionCallback, _init_extra_explosionCallback;
 

@@ -6,7 +6,7 @@ import { sph3 } from '@carbonenginejs/runtime-utils/sph3';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
-import { Tr2Lod } from '../../../eve/EveLODHelper.js';
+import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 import { ShouldReflect, EveComponentType } from '../../../eve/EveComponentTypes.js';
 
 let _initProto, _initClass, _init_reflectionMode, _init_extra_reflectionMode, _init_particleEmitters, _init_extra_particleEmitters, _init_particleSystems, _init_extra_particleSystems, _init_transformModifiers, _init_extra_transformModifiers, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_mesh, _init_extra_mesh, _init_lodClampLow, _init_extra_lodClampLow, _init_lodSphereRadius, _init_extra_lodSphereRadius, _init_useDynamicLod, _init_extra_useDynamicLod, _init_lodFactorLow, _init_extra_lodFactorLow, _init_lodFactorMedium, _init_extra_lodFactorMedium, _init_minScreenSize, _init_extra_minScreenSize, _init_currentScreenSize, _init_extra_currentScreenSize;

@@ -1,5 +1,5 @@
-// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\EveMissile.h
-// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\EveMissile.cpp
+// Source: trinity/trinity/Eve/SpaceObject/EveMissile.h
+// Source: trinity/trinity/Eve/SpaceObject/EveMissile.cpp
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";

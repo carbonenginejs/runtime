@@ -1,16 +1,9 @@
-// Source: E:\carbonengine\trinity\trinity\Eve\EveLODHelper.h
-// Source: E:\carbonengine\trinity\trinity\Eve\EveLODHelper.cpp
-// Source: E:\carbonengine\trinity\trinity\Eve\EveSpaceScene.cpp
-// Source: E:\carbonengine\trinity\trinity\Resources\Tr2LodResource.h
+import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
+export { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 
-const Tr2Lod = Object.freeze({
-  TR2_LOD_UNSPECIFIED: -1,
-  TR2_LOD_LOW: 0,
-  TR2_LOD_MEDIUM: 1,
-  TR2_LOD_HIGH: 2,
-  TR2_LOD_ULTRA: 3,
-  TR2_LOD_COUNT: 4
-});
+// Source: trinity/trinity/Eve/EveLODHelper.h
+// Source: trinity/trinity/Eve/EveLODHelper.cpp
+// Source: trinity/trinity/Eve/EveSpaceScene.cpp
 
 /** Carbon's stateless LOD decision helper. */
 class EveLODHelper {
@@ -61,5 +54,5 @@ class EveLODHelper {
   }
 }
 
-export { EveLODHelper, Tr2Lod };
+export { EveLODHelper };
 //# sourceMappingURL=EveLODHelper.js.map

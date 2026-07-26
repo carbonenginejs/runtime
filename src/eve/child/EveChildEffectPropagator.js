@@ -1,6 +1,6 @@
-// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Children\EveChildEffectPropagator.h
-// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Children\EveChildEffectPropagator.cpp
-// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Children\EveChildEffectPropagator_Blue.cpp
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { quat } from "@carbonenginejs/runtime-utils/quat";

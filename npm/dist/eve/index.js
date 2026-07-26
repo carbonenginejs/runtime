@@ -13,7 +13,7 @@ export { InertiaData } from './InertiaData.js';
 export { PlacementDataWithIdentifier } from './PlacementDataWithIdentifier.js';
 export { PlayFXData } from './PlayFXData.js';
 export { SeekTargetData } from './SeekTargetData.js';
-export { EveLODHelper, Tr2Lod } from './EveLODHelper.js';
+export { EveLODHelper } from './EveLODHelper.js';
 export { EveDistanceField } from './EveDistanceField.js';
 export { EveEntity } from './EveEntity.js';
 export { EveCamera } from './camera/EveCamera.js';
@@ -224,4 +224,5 @@ export { EveTurretSetVSData } from './perObjectData/EveTurretSetVSData.js';
 export { MergeMorphsConstantBuffer } from './perObjectData/MergeMorphsConstantBuffer.js';
 export { AudioGameObject } from './AudioGameObject.js';
 export { ReflectionMode, ReflectionSetting } from '../generated/eve/enums.js';
+export { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 //# sourceMappingURL=index.js.map

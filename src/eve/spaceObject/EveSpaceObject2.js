@@ -1,6 +1,6 @@
-// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\EveSpaceObject2.h
-// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\EveSpaceObject2.cpp
-// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\EveSpaceObject2_Blue.cpp
+// Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h
+// Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
+// Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";

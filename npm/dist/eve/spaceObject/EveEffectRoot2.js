@@ -7,7 +7,7 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, impl, carbon, schema } from '@carbonenginejs/runtime-utils/schema';
 import { EveEntity as _EveEntity } from '../EveEntity.js';
 import { EveChildUpdateParams as _EveChildUpdateParams } from '../EveChildUpdateParams.js';
-import { Tr2Lod } from '../EveLODHelper.js';
+import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 import { EveSpaceObjectPSData as _EveSpaceObjectPSData } from '../perObjectData/EveSpaceObjectPSData.js';
 import { EveSpaceObjectVSData as _EveSpaceObjectVSData } from '../perObjectData/EveSpaceObjectVSData.js';
 import { EveComponentType } from '../EveComponentTypes.js';

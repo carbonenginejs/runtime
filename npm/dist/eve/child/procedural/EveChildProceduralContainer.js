@@ -5,7 +5,7 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { EveChildTransform as _EveChildTransform, applyTransformModifiers } from '../EveChildTransform.js';
 import { EveChildUpdateParams as _EveChildUpdateParams } from '../../EveChildUpdateParams.js';
-import { Tr2Lod } from '../../EveLODHelper.js';
+import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 
 let _initProto, _initClass, _init_transformModifiers, _init_extra_transformModifiers, _init_selectedObject, _init_extra_selectedObject, _init_name, _init_extra_name, _init_display, _init_extra_display, _init_selectionMethod, _init_extra_selectionMethod;
 

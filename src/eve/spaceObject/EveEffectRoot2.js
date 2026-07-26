@@ -1,6 +1,6 @@
-// Source: E:\carbonengine\trinity\trinity\Eve\EveEffectRoot2.h
-// Source: E:\carbonengine\trinity\trinity\Eve\EveEffectRoot2.cpp
-// Source: E:\carbonengine\trinity\trinity\Eve\EveEffectRoot2_Blue.cpp
+// Source: trinity/trinity/Eve/EveEffectRoot2.h
+// Source: trinity/trinity/Eve/EveEffectRoot2.cpp
+// Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";

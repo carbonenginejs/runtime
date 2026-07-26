@@ -1,6 +1,6 @@
-// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Children\EveChildContainer.h
-// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Children\EveChildContainer.cpp
-// Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Children\EveChildContainer_Blue.cpp
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
+// Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";

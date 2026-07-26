@@ -1,5 +1,5 @@
-// Source: E:\carbonengine\trinity\trinity\Eve\EveTransform.h
-// Source: E:\carbonengine\trinity\trinity\Eve\EveTransform.cpp
+// Source: trinity/trinity/Eve/EveTransform.h
+// Source: trinity/trinity/Eve/EveTransform.cpp
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";

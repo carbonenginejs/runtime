@@ -1,4 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
+import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
@@ -421,14 +422,7 @@ new class extends _identity {
       }
     }
   }];
-  Tr2Lod = Object.freeze({
-    TR2_LOD_UNSPECIFIED: -1,
-    TR2_LOD_LOW: 0,
-    TR2_LOD_MEDIUM: 1,
-    TR2_LOD_HIGH: 2,
-    TR2_LOD_ULTRA: 3,
-    TR2_LOD_COUNT: 4
-  });
+  Tr2Lod = Tr2Lod;
   #identity = mat4.create();
   #sourceMatrix = mat4.create();
   #destinationMatrix = mat4.create();

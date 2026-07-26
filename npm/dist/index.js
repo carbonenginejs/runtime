@@ -88,7 +88,7 @@ export { InertiaData } from './eve/InertiaData.js';
 export { PlacementDataWithIdentifier } from './eve/PlacementDataWithIdentifier.js';
 export { PlayFXData } from './eve/PlayFXData.js';
 export { SeekTargetData } from './eve/SeekTargetData.js';
-export { EveLODHelper, Tr2Lod } from './eve/EveLODHelper.js';
+export { EveLODHelper } from './eve/EveLODHelper.js';
 export { EveDistanceField } from './eve/EveDistanceField.js';
 export { EveEntity } from './eve/EveEntity.js';
 export { EveCamera } from './eve/camera/EveCamera.js';
@@ -633,4 +633,5 @@ export { INPUTTYPE, UIALIGN, UIANCHOR, UIBOX, UICONTROLTYPE, UICURSOR, UID, UIFO
 export { Float4x3 } from './generated/utilities/Float4x3.js';
 export { Obb } from './generated/utilities/Obb.js';
 export { Tr2MaterialBoundsAdjustment } from './generated/utilities/Tr2MaterialBoundsAdjustment.js';
+export { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 //# sourceMappingURL=index.js.map
