@@ -33,15 +33,15 @@ test("published source has no Node-only imports or globals", async () =>
         assert.doesNotMatch(source, /\bBuffer\b|\bprocess\b|\brequire\s*\(/u, file);
         assert.doesNotMatch(
             source,
-            /@carbonenginejs\/(?!runtime-utils(?:\/|["']))/u,
-            `${file} imports outside the allowed runtime-utils boundary.`
+            /(?:from|import\s*\()\s*["']@carbonenginejs\/(?!runtime-(?:audio|resource|utils)(?:\/|["']))/u,
+            `${file} imports outside the allowed browser runtime boundary.`
         );
     }
 });
 
 test("every public subpath imports independently", async () =>
 {
-    for (const name of [ "chat", "fileindex", "realtime" ])
+    for (const name of [ "audio", "chat", "fileindex", "realtime" ])
     {
         const module = await import(`@carbonenginejs/tools-browser/${name}`);
 

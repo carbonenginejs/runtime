@@ -41,11 +41,21 @@ tools-browser
       +---- tools-core wrappers using injected Web APIs
 ```
 
-The current package depends only on `@carbonenginejs/runtime-utils`. Its public
-families are provider-neutral chat, remote file-index handling, and the Carbon
+The package uses narrow browser-safe runtime subpaths when a domain tool needs
+an owning schema or reader. Its public families are audio-library construction
+and loading, provider-neutral chat, remote file-index handling, and the Carbon
 realtime v1 client.
 
 ## Start here
+
+For deterministic audio-library construction or loading, start with:
+
+```js
+import {
+    CjsAudioLibrary,
+    CjsAudioLibraryBuilder
+} from "@carbonenginejs/tools-browser/audio";
+```
 
 For file-index parsing and safe HTTP(S) resolution, start with:
 
@@ -79,6 +89,7 @@ complete.
 ## Documentation map
 
 - [Architecture and boundaries](architecture.md)
+- [Audio-library guide](guides/audio-libraries.md)
 - [Chat guide](guides/chat.md)
 - [File-index guide](guides/file-indexes.md)
 - [Realtime guide](guides/realtime.md)

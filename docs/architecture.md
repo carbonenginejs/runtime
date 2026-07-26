@@ -15,25 +15,27 @@ user-facing implementation.
 ## Dependency direction
 
 ```text
-Web-standard or injected APIs
-              ^
-              |
-        runtime-utils
-              ^
-              |
-        tools-browser
-          ^       ^
-          |       |
- applications   tools-core wrappers
+ runtime-utils   runtime-audio/audioMetadata   runtime-resource formats
+        ^                   ^                            ^
+        |                   |                            |
+        +---------------- tools-browser -----------------+
+                             ^
+                             |
+             browser applications and Node wrappers
 ```
 
-Published source imports only browser-safe `runtime-utils` primitives and local
-modules. Tests may use Node facilities, but no Node built-in enters `src/`.
+Published source imports browser-safe runtime primitives, the dependency-free
+audio metadata adapter, selected resource formats, and local modules. Tests may
+use Node facilities, but no Node built-in enters `src/`.
 
 ## Owned responsibilities
 
 The implemented package currently owns:
 
+- deterministic schema-v2 audio-library construction from caller-supplied
+  metadata, file-index values, and injected bank access;
+- validation and loading of prebuilt audio-library JSON through objects,
+  browser files, responses, or Fetch;
 - appfileindex and resfileindex parsing, discovery, immutable lookup, named
   overlays, and safe HTTP(S) source resolution;
 - provider-neutral chat-room selection, browser-local filtering, disposable
@@ -66,6 +68,10 @@ subpath, tests, documentation, and owned security boundary.
   mechanics belong in `@carbonenginejs/runtime-utils`.
 - Runtime graph objects and domain readers belong in their owning
   `runtime-*` packages.
+- Audio event, bank, media-selection, decode-cache, and playback semantics
+  belong in `@carbonenginejs/runtime-audio`.
+- BNK/WEM parsing and conversion belong in
+  `@carbonenginejs/runtime-resource`.
 - Node filesystems, acquisition caches, provider credentials, servers,
   command-line interfaces, and build orchestration belong in
   `@carbonenginejs/tools-core`.
@@ -88,6 +94,11 @@ policy remains authoritative because blocked messages can be suppressed before
 they reach any browser. Provider credentials, upstream room sharing, supplier
 asset resolution, and moderation synchronization remain server concerns.
 
+Audio-library construction accepts metadata values and bank capabilities
+directly. It does not discover installation paths, cache layouts, provider
+credentials, or service roots. Complete builds read every bank through one
+injected capability and support cancellation.
+
 ## Environment contract
 
 Source is side-effect-free by public subpath and uses standard ECMAScript plus
@@ -97,6 +108,7 @@ offline tests and compatible non-browser hosts.
 ## Related documentation
 
 - [Package documentation](README.md)
+- [Audio-library guide](guides/audio-libraries.md)
 - [Chat guide](guides/chat.md)
 - [File-index guide](guides/file-indexes.md)
 - [Realtime guide](guides/realtime.md)

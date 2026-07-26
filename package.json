@@ -7,6 +7,7 @@
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./audio": "./src/audio/index.js",
     "./chat": "./src/chat/index.js",
     "./fileindex": "./src/fileindex/index.js",
     "./realtime": "./src/realtime/index.js"
@@ -21,6 +22,8 @@
     "check": "npm run lint && npm test"
   },
   "dependencies": {
+    "@carbonenginejs/runtime-audio": "^0.1.2",
+    "@carbonenginejs/runtime-resource": "^0.9.2",
     "@carbonenginejs/runtime-utils": "^0.1.0"
   },
   "devDependencies": {
@@ -33,6 +36,7 @@
     "carbonenginejs",
     "tools-browser",
     "browser",
+    "audio",
     "chat",
     "fileindex",
     "realtime",

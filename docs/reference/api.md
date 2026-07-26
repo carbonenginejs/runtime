@@ -11,6 +11,7 @@ The package root re-exports all current browser tool families:
 
 ```js
 import {
+    CjsAudioLibrary,
     CjsChatClient,
     CjsFileIndex,
     CjsRealtimeClient
@@ -30,6 +31,7 @@ import {
 | Subpath | Purpose | Exports |
 | --- | --- | --- |
 | `.` | Aggregates all current browser tool families. | All exports below. |
+| [`./audio`](../../src/audio/index.js) | Builds, validates, and loads deterministic browser audio libraries. | `CjsAudioLibrary`, `CjsAudioLibraryBuilder` |
 | [`./chat`](../../src/chat/index.js) | Requests and optionally filters provider-neutral chat rooms over one realtime client. | `CHAT_TOPICS`, `CjsChatBlockList`, `CjsChatClient`, `CjsChatContract`, `CjsChatRoomSubscription` |
 | [`./fileindex`](../../src/fileindex/index.js) | Parses, loads, layers, and safely resolves appfileindex and resfileindex data. | `CjsFileIndex`, `CjsFileIndexEntry`, `CjsFileIndexLibrary`, `CjsFileIndexOverlay`, `CjsFileIndexSource` |
 | [`./realtime`](../../src/realtime/index.js) | Consumes Carbon realtime v1 with validation, reconnect, subscriptions, and snapshot recovery. | `CjsRealtimeClient`, `CjsRealtimeError`, `CjsRealtimeProtocol`, `CjsRealtimeSubscription`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
@@ -37,11 +39,16 @@ import {
 ## Environment contract
 
 Published source uses browser-standard or injected Web APIs and imports no Node
-built-ins. File-index loading requires Fetch-compatible responses. Realtime
-consumption requires WebSocket and uses Fetch for snapshot recovery when
-configured.
+built-ins. Audio-library and file-index loading require Fetch-compatible
+responses when a URL is supplied. Complete audio builds require injected bank
+access and may inject worker-backed bank inspection. Realtime consumption
+requires WebSocket and uses Fetch for snapshot recovery when configured.
 
 ## Errors
+
+Audio-library helpers throw labelled `TypeError`, `SyntaxError`, or `Error`
+instances for invalid documents, incomplete source identity, missing bank
+capabilities, failed HTTP responses, and rejected bank inspection.
 
 File-index helpers throw labelled `TypeError`, `RangeError`, or `Error`
 instances for malformed declarations, unsafe locations, ambiguous layers,
@@ -53,6 +60,7 @@ details.
 
 ## Related documentation
 
+- [Audio-library guide](../guides/audio-libraries.md)
 - [File-index guide](../guides/file-indexes.md)
 - [Realtime guide](../guides/realtime.md)
 - [Class-purpose catalog](classes/README.md)

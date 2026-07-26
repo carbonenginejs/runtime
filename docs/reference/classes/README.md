@@ -7,6 +7,7 @@ Summary: Indexes one-sentence purpose descriptors for every maintained browser-t
 
 ## Catalogs
 
+- [Audio classes](audio.md)
 - [Chat classes](chat.md)
 - [File-index classes](fileindex.md)
 - [Realtime classes](realtime.md)
