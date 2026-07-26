@@ -43,6 +43,8 @@ import { RawData, RawDataType } from './RawData.js';
 // write-what-you-rely-on).
 //
 // Design: PER-OBJECT-DATA-DESIGN-2026-07-24.md
+
+/** Registers constant-data struct shapes and leases packed payloads from a per-engine arena. */
 class RawDataStore {
   /** The engine's packer (physical offsets/padding). Required. */
   #packer = null;

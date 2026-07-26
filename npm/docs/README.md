@@ -77,6 +77,8 @@ family. The root entry aggregates the complete public runtime.
 - [Eve runtime behavior](concepts/eve-runtime-behavior.md)
 - [Generated-class lifecycle](concepts/generated-class-lifecycle.md)
 - [Implementation status and audits](reference/implementation-status.md)
+- [Eve runtime classes](reference/classes/eve-runtime.md)
+- [Trinity core classes](reference/classes/trinity-core.md)
 
 A complete class-purpose catalog is planned after generated classes carry
 reviewed descriptor metadata and the shared documentation checker supports the

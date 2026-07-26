@@ -44,6 +44,7 @@
 import { RawData, RawDataType } from "./RawData.js";
 
 
+/** Registers constant-data struct shapes and leases packed payloads from a per-engine arena. */
 export class RawDataStore
 {
   /** The engine's packer (physical offsets/padding). Required. */

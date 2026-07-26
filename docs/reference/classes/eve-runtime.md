@@ -64,3 +64,43 @@ Indexes Eve entities and their component collections for scene processing.
 - Source: `src/eve/scene/components/EveComponentRegistry.js`
 - Visibility: Public
 - Kind: CarbonEngine
+
+<!-- class:EveShip2 -->
+## `EveShip2`
+
+A ship space object: booster drive, speed state, and ship shader data.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/spaceObject/EveShip2.js`
+- Visibility: Public
+- Kind: CarbonEngine
+
+<!-- class:EveSpherePin -->
+## `EveSpherePin`
+
+A UI sphere pin: authored SRT placement plus the pin constant record.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/ui/EveSpherePin.js`
+- Visibility: Public
+- Kind: CarbonEngine
+
+<!-- class:EveChildBulletStorm -->
+## `EveChildBulletStorm`
+
+Locator-driven bullet-storm child: instances, target blobs, and the clip-sphere state machine.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/child/EveChildBulletStorm.js`
+- Visibility: Public
+- Kind: CarbonEngine
+
+<!-- class:IEveSpaceObject2ParentData -->
+## `IEveSpaceObject2ParentData`
+
+The per-frame parent state a space object hands to its attachments.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/spaceObject/IEveSpaceObject2ParentData.js`
+- Visibility: Public
+- Kind: CarbonEngine

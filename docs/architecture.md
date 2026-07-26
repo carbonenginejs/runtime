@@ -93,6 +93,36 @@ The active engine supplies complete per-frame values such as previous
 matrices, shadow state, resolution, jitter, presentation policy, and other
 backend-owned semantics before serialization or upload.
 
+### Constant-data ownership
+
+Trinity owns the LOGICAL shape of a constant-data struct: field names, element
+counts, and an encoding kind that says what the packer must do with each value.
+An engine owns the PHYSICAL layout. It supplies a packer that resolves every
+registered struct to byte offsets and a stride, so the same logical shape can
+produce different memory in different backends. A struct the packer does not
+cover fails at registration rather than at draw time.
+
+`RawDataStore` leases payloads from a per-engine arena; `RawData` is the
+write-mostly view over one slice. Values are written through the encoding
+(matrices transposed, integers bit-cast), never read back, and the arena is
+rewound rather than freed per payload. Declared defaults are re-applied on
+lease; an unwritten field otherwise retains the previous tenant's bytes, which
+preserves the source engine's own contract that a fill writes every field it
+relies on.
+
+A renderable returns whichever shape its constant data actually has:
+
+- one payload, when a single buffer is bound;
+- a `{ vs, ps }` record, when the vertex and pixel stages take DIFFERENT
+  payloads and are therefore two separate buffers;
+- a marker carrying the object, when the fill depends on engine-owned state and
+  must be deferred to realization;
+- `null`, when the renderable consumes its parent's data instead.
+
+A struct declares the stages it binds to, so one payload bound to several
+stages stays one payload rather than being duplicated per stage. The batch
+pipeline threads whichever shape it receives without inspecting it.
+
 ## Post-process graph
 
 `Tr2PostProcess2` and `Tr2PostProcessAttributes` own device-free activation,
