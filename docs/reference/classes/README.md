@@ -5,6 +5,26 @@ Scope: `@carbonenginejs/runtime-utils` class exports
 Audience: Runtime authors and integrators
 Summary: Catalogs maintained named classes in the consolidated runtime foundation.
 
+<!-- class:CjsError -->
+## `CjsError`
+
+Represents one structured operational failure with a stable CarbonEngineJS code.
+
+- Export: `@carbonenginejs/runtime-utils/errors`
+- Source: `src/errors/CjsError.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCancellationError -->
+## `CjsCancellationError`
+
+Represents one cancelled operation using Web-compatible abort identity.
+
+- Export: `@carbonenginejs/runtime-utils/errors`
+- Source: `src/errors/CjsError.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCarbonDocument -->
 ## `CjsCarbonDocument`
 

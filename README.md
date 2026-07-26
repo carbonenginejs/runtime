@@ -5,7 +5,7 @@ Browser-safe foundations shared across CarbonEngineJS packages.
 The package owns:
 
 - neutral arrays, bytes, compression, JSON, lookup, paths, text, predicates,
-  and validation;
+  validation, and structured operational errors;
 - scalar, vector, quaternion, matrix, geometry, mesh, tangent, curve, and
   noise math;
 - shared media, graphics, render-context, audio, shader, D3D, and WebGPU
@@ -29,6 +29,7 @@ Prefer direct subpaths so unrelated families are not initialized:
 
 ```js
 import { normalizePath } from "@carbonenginejs/runtime-utils/path";
+import { CjsError } from "@carbonenginejs/runtime-utils/errors";
 import { cross, normalize } from "@carbonenginejs/runtime-utils/vec3";
 import { PixelFormat } from "@carbonenginejs/runtime-utils/graphics";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";

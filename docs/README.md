@@ -33,6 +33,8 @@ currently released.
 
 The package has no organization dependencies. It uses `gl-matrix` for the math
 families; its subpaths remain side-effect-free and independently importable.
+The `/errors` family supplies coded operational failures without defining
+logging, transport, HTTP, or retry policy.
 
 ```text
 runtime libraries       tools-browser (planned; unreleased)

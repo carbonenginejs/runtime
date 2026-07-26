@@ -25,6 +25,7 @@
     "./d3d": "./src/d3d/index.js",
     "./webgpu": "./src/webgpu/index.js",
     "./document": "./src/document/index.js",
+    "./errors": "./src/errors/index.js",
     "./hydration": "./src/document/hydrationAdapter.js",
     "./lifecycle": "./src/lifecycle/index.js",
     "./schema": "./src/schema/index.js",
@@ -99,6 +100,7 @@
     "constants",
     "schema",
     "types",
+    "errors",
     "geometry",
     "tangent",
     "browser"

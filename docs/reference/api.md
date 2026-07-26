@@ -35,6 +35,7 @@ import { encodeUtf8 } from "@carbonenginejs/runtime-utils/text";
 | [`./arrays`](../../src/arrays.js) | Normalizes nullable values and mutates writable array-like targets. | `toArray`, `copyArrayLike`, `fillArrayLike` |
 | [`./bytes`](../../src/bytes.js) | Creates byte views, owned copies, exact buffers, and prefix checks. | `asUint8Array`, `copyBytes`, `toArrayBuffer`, `hasBytePrefix` |
 | [`./compression`](../../src/compression.js) | Detects and decompresses gzip through Web-standard streams. | `isGzip`, `decompressBytes`, `decompressGzip`, `decompressGzipIfNeeded` |
+| [`./errors`](../../src/errors/index.js) | Represents coded operational failures and Web-compatible cancellation without logging or transport policy. | `CjsError`, `CjsCancellationError`, `CJS_OPERATION_CANCELLED` |
 | [`./is`](../../src/is.js) | Provides shared literal-boolean value predicates. | `isTypedArray`, `isArrayLike`, `isFunction`, `isNullish`, `isObject`, `isObjectLike`, `isPlainObject`, `isPromiseLike` |
 | [`./json`](../../src/json.js) | Encodes and decodes JSON with explicit UTF-8 behavior. | `encodeJson`, `decodeJson` |
 | [`./lookup`](../../src/lookup.js) | Supplies stable string ordering and duplicate-safe map construction. | `compareCodeUnits`, `sortStrings`, `indexBy` |
@@ -55,6 +56,47 @@ available. `render-context` stays out of the root because its numeric
 
 Carbon foundation families use `./types`, `./schema`, `./model`,
 `./document`, `./hydration`, and `./lifecycle`.
+
+## Operational error contract
+
+`CjsError` represents an operation that failed after valid input reached a
+runtime boundary. Package owners define their own stable uppercase `CJS_*`
+codes; this family does not maintain a central code registry.
+
+```js
+import { CjsError } from "@carbonenginejs/runtime-utils/errors";
+
+throw new CjsError(
+    "CJS_EXAMPLE_PROVIDER_FAILED",
+    "The example provider could not resolve the requested item.",
+    {
+        cause,
+        details: {
+            itemId,
+            provider
+        }
+    }
+);
+```
+
+The optional `cause` retains its original identity. Optional `details` must be
+a plain record containing JSON-safe values; the constructor clones and deeply
+freezes it. It does not redact details, so callers must exclude credentials,
+private payloads, and other sensitive values.
+
+Use native `TypeError`, `RangeError`, and `SyntaxError` for programmer-contract
+violations. An expected `Find*` miss may return `null`; use a coded operational
+error when acquisition, provider, state, or resolution work actually fails.
+Native `AggregateError` remains the aggregate mechanism.
+
+`CjsCancellationError` has stable code `CJS_OPERATION_CANCELLED`, uses the
+Web-compatible name `AbortError`, and accepts the same cause/details options.
+`CjsCancellationError.is(error)` also recognizes platform abort errors.
+`CjsError.hasCode(error, code)` works with both `CjsError` and legacy errors
+that expose a stable `code`.
+
+These classes do not log, serialize, choose HTTP status, prescribe retries, or
+translate errors for user interfaces.
 
 ## Environment contract
 

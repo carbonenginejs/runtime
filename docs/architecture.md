@@ -64,6 +64,7 @@ subpath owner.
 The implemented package currently owns:
 
 - neutral array, byte, text, JSON, lookup, and path mechanics;
+- structured operational errors without logging or transport policy;
 - shared `isSomething` predicates and small validation assertions;
 - browser-standard gzip decompression helpers;
 - scalar, vector, quaternion, matrix, geometry, mesh, tangent, noise, and curve

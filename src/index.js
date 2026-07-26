@@ -21,6 +21,8 @@ export {
     assertNonEmptyString,
     assertSupportedVersion
 } from "./validation.js";
+export * as errors from "./errors/index.js";
+export * from "./errors/index.js";
 
 export * as constants from "./constants/index.js";
 export * from "./constants/index.js";
