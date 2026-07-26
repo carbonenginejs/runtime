@@ -9,6 +9,7 @@
 // are omitted. Matrix element mapping: Carbon row-major _rc lands at flat
 // index (r-1)*4+(c-1), which is the SAME flat index in the shared gl-matrix
 // byte layout, so every _rc below is ported as m[(r-1)*4+(c-1)] unchanged.
+import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
@@ -220,10 +221,10 @@ export class TriFrustum
   }
 
   /**
-   * Carbon's two IsBoxVisible overloads (cpp:187-232): (boundsMin, boundsMax)
-   * or a single AABB duck ({ min, max }; a missing/uninitialized box is not
-   * visible). Frustum-AABB test via the positive vertex; may return false
-   * positives, never false negatives.
+   * Carbon's two IsBoxVisible overloads (cpp:187-232): (boundsMin, boundsMax),
+   * a packed core-math box3, or an AABB duck ({ min, max }; a missing or
+   * uninitialized box is not visible). Frustum-AABB test via the positive
+   * vertex; may return false positives, never false negatives.
    * @param {Float32Array|Object} boundsMinOrBox
    * @param {Float32Array} [boundsMax]
    * @returns {Boolean}
@@ -235,12 +236,24 @@ export class TriFrustum
     if (!boundsMax)
     {
       const box = boundsMinOrBox;
-      if (!box?.min || !box?.max)
+      if (box?.length === 6)
+      {
+        if (box3.isEmpty(box))
+        {
+          return false;
+        }
+        min = box3.$min(box);
+        max = box3.$max(box);
+      }
+      else if (box?.min && box?.max)
+      {
+        min = box.min;
+        max = box.max;
+      }
+      else
       {
         return false;
       }
-      min = box.min;
-      max = box.max;
     }
 
     for (let i = 0; i < TriFrustum.PLANE_COUNT; i++)
@@ -285,15 +298,15 @@ export class TriFrustum
       // Carbon (cpp:295-298): the Sphere overload calls GetPixelSizeAccrossEst.
       return this.#GetPixelSizeAccrossEstCenterRadius(value.center, value.radius);
     }
-    if (value?.min && value?.max)
+    if (value?.length === 6)
     {
       // Carbon (cpp:300-307): Sphere(box) - center of the box, half-diagonal radius.
-      const min = value.min;
-      const max = value.max;
-      TriFrustum.#boxCenterScratch[0] = (min[0] + max[0]) * 0.5;
-      TriFrustum.#boxCenterScratch[1] = (min[1] + max[1]) * 0.5;
-      TriFrustum.#boxCenterScratch[2] = (min[2] + max[2]) * 0.5;
-      const boxRadius = Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]) * 0.5;
+      const boxRadius = box3.toPositionRadius(value, TriFrustum.#boxCenterScratch);
+      return this.#GetPixelSizeAccrossEstCenterRadius(TriFrustum.#boxCenterScratch, boxRadius);
+    }
+    if (value?.min && value?.max)
+    {
+      const boxRadius = box3.bounds.toPositionRadius(value.min, value.max, TriFrustum.#boxCenterScratch);
       return this.#GetPixelSizeAccrossEstCenterRadius(TriFrustum.#boxCenterScratch, boxRadius);
     }
     return 0;

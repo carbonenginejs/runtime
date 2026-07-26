@@ -1,5 +1,6 @@
 import { applyDecs2311 as _applyDecs2311, identity as _identity } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
+import { sph3 } from '@carbonenginejs/runtime-utils/sph3';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
@@ -50,7 +51,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveBoosterSet2",
         family: "eve/attachment/boosters"
-      })], [[[io, io.notify, io, io.readwrite, type, type.boolean], 16, "flareLodEnabled"], [[void 0, io.flag("staticTrailOffsets"), io, io.notify, io, io.persist, type, type.float32], 16, "staticTrailLength"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets0"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets1"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets2"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets3"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets4"], [[io, io.persist, type, type.float32], 16, "lightOffset"], [[io, io.persist, type, type.float32], 16, "lightFlickerAmplitude"], [[io, io.persist, type, type.float32], 16, "lightFlickerFrequency"], [[io, io.persist, type, type.float32], 16, "lightRadius"], [[io, io.persist, type, type.color], 16, "lightColor"], [[io, io.persist, type, type.float32], 16, "lightWarpRadius"], [[io, io.persist, type, type.color], 16, "lightWarpColor"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.float32], 16, "alwaysOnIntensity"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "warpGlowColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "glowColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "haloColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "warpHaloColor"], [[io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effectFar"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.read, void 0, type.list("EveBoosterSet2Renderable")], 16, "instances"], [[io, io.readwrite, type, type.float32], 16, "maxVel"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "glowScale"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "symHaloScale"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "haloScaleX"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "haloScaleY"], [[io, io.persist, type, type.float32], 16, "trailsSmoothing"], [[io, io.persist, void 0, type.objectRef("EveSpriteSet")], 16, "glows"], [[io, io.read, type, type.float32], 16, "maxSize"], [[io, io.read, type, type.vec3], 16, "boosterBoundingSphereCenter"], [[io, io.read, type, type.float32], 16, "boosterBoundingSphereRadius"], [[io, io.readwrite, type, type.float32], 16, "warpIntensity"], [[io, io.persist, type, type.boolean], 16, "physicsUpdate"], [[io, io.persist, type, type.boolean], 16, "destinyUpdate"], [[io, io.persist, type, type.boolean], 16, "alwaysOn"], [[io, io.persist, void 0, type.objectRef("EveTrailsSet")], 16, "trails"], [[void 0, io.flag("items"), void 0, io.rebuild("packedGeometry"), io, io.notify, io, io.persist, void 0, type.list("EveBoosterSet2Item")], 16, "items"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "OnModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "UpdateTrails"], [[carbon, carbon.method, impl, impl.adapted], 18, "Clear"], [[carbon, carbon.method, impl, impl.adapted], 18, "Add"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetData"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLightData"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetGlow"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetTrail"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoosterIntensity"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoosterData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRevision"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("EveSpriteSet.UpdateVisibility is unported; an absent test falls back to visible instead of culling.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's mutable member read becomes an accessor; the quad renderer that consumes it is engine-owned.")], 18, "GetGlowsVisible"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); the g_lightNoise table is module state filled with Math.random (Carbon fills it with rand()/RAND_MAX - random either way).")], 18, "GetLights"]], 0, void 0, _EveEntity));
+      })], [[[io, io.notify, io, io.readwrite, type, type.boolean], 16, "flareLodEnabled"], [[void 0, io.flag("staticTrailOffsets"), io, io.notify, io, io.persist, type, type.float32], 16, "staticTrailLength"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets0"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets1"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets2"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets3"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets4"], [[io, io.persist, type, type.float32], 16, "lightOffset"], [[io, io.persist, type, type.float32], 16, "lightFlickerAmplitude"], [[io, io.persist, type, type.float32], 16, "lightFlickerFrequency"], [[io, io.persist, type, type.float32], 16, "lightRadius"], [[io, io.persist, type, type.color], 16, "lightColor"], [[io, io.persist, type, type.float32], 16, "lightWarpRadius"], [[io, io.persist, type, type.color], 16, "lightWarpColor"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.float32], 16, "alwaysOnIntensity"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "warpGlowColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "glowColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "haloColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "warpHaloColor"], [[io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effectFar"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.read, void 0, type.list("EveBoosterSet2Renderable")], 16, "instances"], [[io, io.readwrite, type, type.float32], 16, "maxVel"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "glowScale"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "symHaloScale"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "haloScaleX"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "haloScaleY"], [[io, io.persist, type, type.float32], 16, "trailsSmoothing"], [[io, io.persist, void 0, type.objectRef("EveSpriteSet")], 16, "glows"], [[io, io.read, type, type.float32], 16, "maxSize"], [[io, io.read, type, type.vec3], 16, "boosterBoundingSphereCenter"], [[io, io.read, type, type.float32], 16, "boosterBoundingSphereRadius"], [[io, io.readwrite, type, type.float32], 16, "warpIntensity"], [[io, io.persist, type, type.boolean], 16, "physicsUpdate"], [[io, io.persist, type, type.boolean], 16, "destinyUpdate"], [[io, io.persist, type, type.boolean], 16, "alwaysOn"], [[io, io.persist, void 0, type.objectRef("EveTrailsSet")], 16, "trails"], [[void 0, io.flag("items"), void 0, io.rebuild("packedGeometry"), io, io.notify, io, io.persist, void 0, type.list("EveBoosterSet2Item")], 16, "items"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "OnModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "UpdateTrails"], [[carbon, carbon.method, impl, impl.adapted], 18, "Clear"], [[carbon, carbon.method, impl, impl.adapted], 18, "Add"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetData"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLightData"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetGlow"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetTrail"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoosterIntensity"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Set-level aggregate with no Carbon counterpart; sph3.union replaces a hand-rolled merge.")], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoosterData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRevision"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("EveSpriteSet.UpdateVisibility is unported; an absent test falls back to visible instead of culling.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's mutable member read becomes an accessor; the quad renderer that consumes it is engine-owned.")], 18, "GetGlowsVisible"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); the g_lightNoise table is module state filled with Math.random (Carbon fills it with rand()/RAND_MAX - random either way).")], 18, "GetLights"]], 0, void 0, _EveEntity));
       _ClearRuntimeItems = function (owner) {
         owner.#singleBoosters.length = 0;
         owner.glows?.Clear?.();
@@ -336,12 +337,21 @@ new class extends _identity {
       }
       return intensity / this.instances.length;
     }
-    GetBoundingSphere() {
-      const result = vec4.create();
+
+    /** The union of every renderable's world bounding sphere. Carbon has no
+     * set-level equivalent (each renderable answers for itself); `out` is
+     * required so a caller can keep its own scratch. An empty set leaves `out`
+     * empty (sph3 radius -1) rather than reporting a zero-radius sphere at the
+     * origin. */
+    GetBoundingSphere(out) {
+      sph3.empty(out);
       for (const renderable of this.instances) {
-        _EveBoosterSet.#MergeSphere(result, renderable?.GetBoundingSphere?.());
+        if (renderable?.GetBoundingSphere) {
+          renderable.GetBoundingSphere(_EveBoosterSet.#sphereScratch);
+          sph3.union(out, out, _EveBoosterSet.#sphereScratch);
+        }
       }
-      return result;
+      return out;
     }
     GetBoosterData() {
       return this.#singleBoosters.map(booster => ({
@@ -527,33 +537,7 @@ new class extends _identity {
       vec3.set(offsets[index], 0, 0, -step * index);
     }
   }
-  #MergeSphere(target, source) {
-    if (!source || source.length !== 4) {
-      return target;
-    }
-    const targetRadius = target[3];
-    const sourceRadius = source[3];
-    const delta = vec3.fromValues(source[0] - target[0], source[1] - target[1], source[2] - target[2]);
-    const distance = vec3.length(delta);
-    if (targetRadius >= distance + sourceRadius) {
-      return target;
-    }
-    if (sourceRadius >= distance + targetRadius) {
-      vec4.copy(target, source);
-      return target;
-    }
-    if (!distance) {
-      target[3] = Math.max(targetRadius, sourceRadius);
-      return target;
-    }
-    const radius = 0.5 * (distance + targetRadius + sourceRadius);
-    const factor = (radius - targetRadius) / distance;
-    target[0] += delta[0] * factor;
-    target[1] += delta[1] * factor;
-    target[2] += delta[2] * factor;
-    target[3] = radius;
-    return target;
-  }
+  #sphereScratch = sph3.create();
   #zero = Object.freeze([0, 0, 0]);
   #identityRotation = Object.freeze([0, 0, 0, 1]);
   #defaultFunctionality = Object.freeze([0, 1, 1, 1]);

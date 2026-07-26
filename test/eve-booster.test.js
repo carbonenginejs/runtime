@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
+import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import {
@@ -307,7 +308,7 @@ test("EveBoosterSet2Renderable.UpdateVisibility applies the booster gates at 2x 
 {
   const frustum = MakeBoosterFrustum();
   const { renderable } = MakeBoosterAt(-2000);
-  const boosterLod = 2 * frustum.GetPixelSizeAccross(renderable.GetBoundingSphere());
+  const boosterLod = 2 * frustum.GetPixelSizeAccross(renderable.GetBoundingSphere(sph3.create()));
   assert.ok(boosterLod > 0);
 
   const Context = (low, medium) => ({
@@ -333,7 +334,7 @@ test("EveBoosterSet2Renderable.UpdateVisibility keeps trails alive well past the
 {
   const frustum = MakeBoosterFrustum();
   const { renderable } = MakeBoosterAt(-2000);
-  const boosterLod = 2 * frustum.GetPixelSizeAccross(renderable.GetBoundingSphere());
+  const boosterLod = 2 * frustum.GetPixelSizeAccross(renderable.GetBoundingSphere(sph3.create()));
 
   // Same sphere radius, 7.5x instead of 2x, so a threshold between the two
   // scales hides the boosters while the trail still draws.

@@ -2,6 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\EveBoosterSet2.cpp
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
+import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
@@ -347,7 +348,9 @@ export class EveBoosterSet2Renderable extends CjsModel
       return false;
     }
 
-    const boundingSphere = this.GetBoundingSphere();
+    const boundingSphere = this.GetBoundingSphere(
+      EveBoosterSet2Renderable.#visibilitySphere
+    );
     const lowDetailThreshold = updateContext.GetLowDetailThreshold();
 
     const boosterLod = 2 * frustum.GetPixelSizeAccross(boundingSphere);
@@ -368,13 +371,12 @@ export class EveBoosterSet2Renderable extends CjsModel
       }
     }
 
-    const closest = this.#trailsControlPositions[closestIndex];
-    const trailsLod = 7.5 * frustum.GetPixelSizeAccross(vec4.fromValues(
-      closest[0],
-      closest[1],
-      closest[2],
-      boundingSphere[3]
-    ));
+    const trailsSphere = sph3.fromPositionRadius(
+      EveBoosterSet2Renderable.#trailsSphere,
+      this.#trailsControlPositions[closestIndex],
+      sph3.radius(boundingSphere)
+    );
+    const trailsLod = 7.5 * frustum.GetPixelSizeAccross(trailsSphere);
     this.trailsVisible = trailsLod > lowDetailThreshold;
 
     this.isVisible = frustum.IsSphereVisible(boundingSphere) ||
@@ -408,24 +410,29 @@ export class EveBoosterSet2Renderable extends CjsModel
     return this.#parentTransform;
   }
 
+  /** Carbon EveBoosterSet2Renderable::GetBoundingSphere (cpp:295-303): the
+   * authored sphere pushed back half a radius to cover the exhaust glow, its
+   * centre transformed into world space, and its radius DOUBLED. The radius is
+   * set outright rather than run through sph3.transformMat4, because Carbon
+   * transforms only the centre (TransformCoord) and never scales w.
+   *
+   * `out` is required, as in Carbon (`Vector4&`) - this is called per frame and
+   * must not allocate. */
   @carbon.method
-  @impl.adapted
-  GetBoundingSphere()
+  @impl.implemented
+  GetBoundingSphere(out)
   {
     const boosterSet = this.#boosterSet;
     if (!boosterSet)
     {
-      return vec4.create();
+      return sph3.empty(out);
     }
-    const center = vec3.clone(boosterSet.boosterBoundingSphereCenter);
-    center[2] -= 0.5 * boosterSet.boosterBoundingSphereRadius;
-    vec3.transformMat4(center, center, this.#parentTransform);
-    return vec4.fromValues(
-      center[0],
-      center[1],
-      center[2],
-      2 * boosterSet.boosterBoundingSphereRadius
-    );
+    const position = sph3.$position(out);
+    vec3.copy(position, boosterSet.boosterBoundingSphereCenter);
+    position[2] -= 0.5 * boosterSet.boosterBoundingSphereRadius;
+    vec3.transformMat4(position, position, this.#parentTransform);
+    out[3] = 2 * boosterSet.boosterBoundingSphereRadius;
+    return out;
   }
 
   #CalculateSplineData(deltaTime)
@@ -581,7 +588,9 @@ export class EveBoosterSet2Renderable extends CjsModel
 
     vec3.set(this.trailsBoundsMin, Infinity, Infinity, Infinity);
     vec3.set(this.trailsBoundsMax, -Infinity, -Infinity, -Infinity);
-    const radius = this.GetBoundingSphere()[3];
+    const radius = sph3.radius(
+      this.GetBoundingSphere(EveBoosterSet2Renderable.#boundsSphere)
+    );
     for (const position of this.#trailsControlPositions)
     {
       for (let axis = 0; axis < 3; axis++)
@@ -709,5 +718,12 @@ export class EveBoosterSet2Renderable extends CjsModel
   static #trailMaxLengthFade = 20000;
 
   static #floatMax = 3.4028234663852886e38;
+
+  /** Per-frame visibility scratch - UpdateVisibility must not allocate. */
+  static #visibilitySphere = sph3.create();
+
+  static #trailsSphere = sph3.create();
+
+  static #boundsSphere = sph3.create();
 
 }

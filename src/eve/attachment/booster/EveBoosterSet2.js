@@ -2,6 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\EveBoosterSet2.cpp
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\EveBoosterSet2_Blue.cpp
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
+import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
@@ -571,16 +572,26 @@ export class EveBoosterSet2 extends EveEntity
     return intensity / this.instances.length;
   }
 
+  /** The union of every renderable's world bounding sphere. Carbon has no
+   * set-level equivalent (each renderable answers for itself); `out` is
+   * required so a caller can keep its own scratch. An empty set leaves `out`
+   * empty (sph3 radius -1) rather than reporting a zero-radius sphere at the
+   * origin. */
   @carbon.method
   @impl.adapted
-  GetBoundingSphere()
+  @impl.reason("Set-level aggregate with no Carbon counterpart; sph3.union replaces a hand-rolled merge.")
+  GetBoundingSphere(out)
   {
-    const result = vec4.create();
+    sph3.empty(out);
     for (const renderable of this.instances)
     {
-      EveBoosterSet2.#MergeSphere(result, renderable?.GetBoundingSphere?.());
+      if (renderable?.GetBoundingSphere)
+      {
+        renderable.GetBoundingSphere(EveBoosterSet2.#sphereScratch);
+        sph3.union(out, out, EveBoosterSet2.#sphereScratch);
+      }
     }
-    return result;
+    return out;
   }
 
   @carbon.method
@@ -851,38 +862,7 @@ export class EveBoosterSet2 extends EveEntity
     }
   }
 
-  static #MergeSphere(target, source)
-  {
-    if (!source || source.length !== 4)
-    {
-      return target;
-    }
-    const targetRadius = target[3];
-    const sourceRadius = source[3];
-    const delta = vec3.fromValues(source[0] - target[0], source[1] - target[1], source[2] - target[2]);
-    const distance = vec3.length(delta);
-    if (targetRadius >= distance + sourceRadius)
-    {
-      return target;
-    }
-    if (sourceRadius >= distance + targetRadius)
-    {
-      vec4.copy(target, source);
-      return target;
-    }
-    if (!distance)
-    {
-      target[3] = Math.max(targetRadius, sourceRadius);
-      return target;
-    }
-    const radius = 0.5 * (distance + targetRadius + sourceRadius);
-    const factor = (radius - targetRadius) / distance;
-    target[0] += delta[0] * factor;
-    target[1] += delta[1] * factor;
-    target[2] += delta[2] * factor;
-    target[3] = radius;
-    return target;
-  }
+  static #sphereScratch = sph3.create();
 
   static #zero = Object.freeze([0, 0, 0]);
 

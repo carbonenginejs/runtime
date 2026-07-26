@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
+import { sph3 } from '@carbonenginejs/runtime-utils/sph3';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
@@ -17,7 +18,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveBoosterSet2Renderable",
         family: "eve/attachment/boosters"
-      })], [[[io, io.read, type, type.float32], 16, "trailIntensity"], [[io, io.read, type, type.float32], 16, "trailsTotalLength"], [[io, io.read, type, type.boolean], 16, "isVisible"], [[io, io.read, type, type.boolean], 16, "trailsVisible"], [[io, io.read, type, type.boolean], 16, "boostersVisible"], [[io, io.persist, type, type.float32], 16, "trailsTimeDelta"], [[io, io.read, type, type.boolean], 16, "boosterHighLod"], [[io, io.read, type, type.vec3], 16, "trailsBoundsMax"], [[io, io.read, type, type.vec3], 16, "trailsBoundsMin"], [[io, io.read, type, type.float32], 16, "overallIntensity"], [[io, io.readwrite, type, type.quat], 16, "parentRotation"], [[io, io.readwrite, type, type.float32], 16, "parentSpeed"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetBoosterSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "CalculateIntensity"], [[carbon, carbon.method, impl, impl.implemented], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "UpdateTrails"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetTrailSplineData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetIntensity"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPerObjectData"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's direct member access becomes an accessor; JS has no protected fields.")], 18, "GetParentTransform"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoundingSphere"]], 0, void 0, CjsModel));
+      })], [[[io, io.read, type, type.float32], 16, "trailIntensity"], [[io, io.read, type, type.float32], 16, "trailsTotalLength"], [[io, io.read, type, type.boolean], 16, "isVisible"], [[io, io.read, type, type.boolean], 16, "trailsVisible"], [[io, io.read, type, type.boolean], 16, "boostersVisible"], [[io, io.persist, type, type.float32], 16, "trailsTimeDelta"], [[io, io.read, type, type.boolean], 16, "boosterHighLod"], [[io, io.read, type, type.vec3], 16, "trailsBoundsMax"], [[io, io.read, type, type.vec3], 16, "trailsBoundsMin"], [[io, io.read, type, type.float32], 16, "overallIntensity"], [[io, io.readwrite, type, type.quat], 16, "parentRotation"], [[io, io.readwrite, type, type.float32], 16, "parentSpeed"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetBoosterSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "CalculateIntensity"], [[carbon, carbon.method, impl, impl.implemented], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "UpdateTrails"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetTrailSplineData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetIntensity"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPerObjectData"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's direct member access becomes an accessor; JS has no protected fields.")], 18, "GetParentTransform"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingSphere"]], 0, void 0, CjsModel));
     }
     /** m_trailIntensity (float) [READ] */
     trailIntensity = (_initProto(this), _init_trailIntensity(this, 0));
@@ -213,7 +214,7 @@ new class extends _identity {
       if (!frustum || !this.#boosterSet) {
         return false;
       }
-      const boundingSphere = this.GetBoundingSphere();
+      const boundingSphere = this.GetBoundingSphere(_EveBoosterSet2Render.#visibilitySphere);
       const lowDetailThreshold = updateContext.GetLowDetailThreshold();
       const boosterLod = 2 * frustum.GetPixelSizeAccross(boundingSphere);
       this.boosterHighLod = boosterLod > updateContext.GetMediumDetailThreshold() * 1.5;
@@ -229,8 +230,8 @@ new class extends _identity {
           closestIndex = index;
         }
       }
-      const closest = this.#trailsControlPositions[closestIndex];
-      const trailsLod = 7.5 * frustum.GetPixelSizeAccross(vec4.fromValues(closest[0], closest[1], closest[2], boundingSphere[3]));
+      const trailsSphere = sph3.fromPositionRadius(_EveBoosterSet2Render.#trailsSphere, this.#trailsControlPositions[closestIndex], sph3.radius(boundingSphere));
+      const trailsLod = 7.5 * frustum.GetPixelSizeAccross(trailsSphere);
       this.trailsVisible = trailsLod > lowDetailThreshold;
       this.isVisible = frustum.IsSphereVisible(boundingSphere) || frustum.IsBoxVisible(this.trailsBoundsMin, this.trailsBoundsMax);
       return this.isVisible;
@@ -252,15 +253,26 @@ new class extends _identity {
     GetParentTransform() {
       return this.#parentTransform;
     }
-    GetBoundingSphere() {
+
+    /** Carbon EveBoosterSet2Renderable::GetBoundingSphere (cpp:295-303): the
+     * authored sphere pushed back half a radius to cover the exhaust glow, its
+     * centre transformed into world space, and its radius DOUBLED. The radius is
+     * set outright rather than run through sph3.transformMat4, because Carbon
+     * transforms only the centre (TransformCoord) and never scales w.
+     *
+     * `out` is required, as in Carbon (`Vector4&`) - this is called per frame and
+     * must not allocate. */
+    GetBoundingSphere(out) {
       const boosterSet = this.#boosterSet;
       if (!boosterSet) {
-        return vec4.create();
+        return sph3.empty(out);
       }
-      const center = vec3.clone(boosterSet.boosterBoundingSphereCenter);
-      center[2] -= 0.5 * boosterSet.boosterBoundingSphereRadius;
-      vec3.transformMat4(center, center, this.#parentTransform);
-      return vec4.fromValues(center[0], center[1], center[2], 2 * boosterSet.boosterBoundingSphereRadius);
+      const position = sph3.$position(out);
+      vec3.copy(position, boosterSet.boosterBoundingSphereCenter);
+      position[2] -= 0.5 * boosterSet.boosterBoundingSphereRadius;
+      vec3.transformMat4(position, position, this.#parentTransform);
+      out[3] = 2 * boosterSet.boosterBoundingSphereRadius;
+      return out;
     }
     #CalculateSplineData(deltaTime) {
       const elapsed = Number(deltaTime);
@@ -331,7 +343,7 @@ new class extends _identity {
       }
       vec3.set(this.trailsBoundsMin, Infinity, Infinity, Infinity);
       vec3.set(this.trailsBoundsMax, -Infinity, -Infinity, -Infinity);
-      const radius = this.GetBoundingSphere()[3];
+      const radius = sph3.radius(this.GetBoundingSphere(_EveBoosterSet2Render.#boundsSphere));
       for (const position of this.#trailsControlPositions) {
         for (let axis = 0; axis < 3; axis++) {
           this.trailsBoundsMin[axis] = Math.min(this.trailsBoundsMin[axis], position[axis] - radius);
@@ -359,6 +371,8 @@ new class extends _identity {
         this.#trailsSequenceLength[index] = this.trailsTotalLength ? length / this.trailsTotalLength : 0;
       }
     }
+
+    /** Per-frame visibility scratch - UpdateVisibility must not allocate. */
   }];
   #GetStaticOffsets(boosterSet) {
     return [boosterSet.trailsStaticOffsets0, boosterSet.trailsStaticOffsets1, boosterSet.trailsStaticOffsets2, boosterSet.trailsStaticOffsets3, boosterSet.trailsStaticOffsets4];
@@ -389,6 +403,9 @@ new class extends _identity {
   #trailMaxLength = 50000;
   #trailMaxLengthFade = 20000;
   #floatMax = 3.4028234663852886e38;
+  #visibilitySphere = sph3.create();
+  #trailsSphere = sph3.create();
+  #boundsSphere = sph3.create();
   constructor() {
     super(_EveBoosterSet2Render), _initClass();
   }

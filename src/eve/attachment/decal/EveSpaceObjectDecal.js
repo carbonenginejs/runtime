@@ -1,6 +1,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\EveSpaceObjectDecal.h
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\EveSpaceObjectDecal.cpp
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\EveSpaceObjectDecal_Blue.cpp
+import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
@@ -365,44 +366,66 @@ export class EveSpaceObjectDecal extends CjsModel
 
     // Carbon (row-vector): m_parentBoneMatrix * parentData->transform - the
     // bone applies first, so the gl operands swap.
-    const worldDecalMatrix = mat4.multiply(mat4.create(), parentData.transform, this.#parentBoneMatrix);
-    const min = vec3.fromValues(-1, -1, -1);
-    const max = vec3.fromValues(1, 1, 1);
+    const worldDecalMatrix = mat4.multiply(
+      EveSpaceObjectDecal.#worldDecalScratch,
+      parentData.transform,
+      this.#parentBoneMatrix
+    );
+    const bounds = box3.set(EveSpaceObjectDecal.#boundsScratch, -1, -1, -1, 1, 1, 1);
 
     if (this.#instanceData)
     {
       // Instanced decals measure the geometry mesh bounds instead of the unit
-      // cube (cpp:135-155).
-      vec3.transformMat4(min, this.#minBounds, worldDecalMatrix);
-      vec3.transformMat4(max, this.#maxBounds, worldDecalMatrix);
+      // cube (cpp:135-155). Carbon transforms only the two CORNERS here (not
+      // the eight, as it does below), so this is vec3, not box3.transformMat4.
+      // Carbon transforms only the two CORNERS here (not the eight, as it does
+      // below). A mirroring transform swaps them, which Carbon leaves inverted
+      // and box3 would read as EMPTY, so the pair is accumulated as points -
+      // ordering it. The eight-corner transform below is indifferent to order,
+      // so this only affects the mirrored-decal early-outs (parity note
+      // divergence 7).
+      const corner = EveSpaceObjectDecal.#pointScratch;
+      box3.empty(bounds);
+      vec3.transformMat4(corner, this.#minBounds, worldDecalMatrix);
+      box3.addPoint(bounds, bounds, corner);
+      vec3.transformMat4(corner, this.#maxBounds, worldDecalMatrix);
+      box3.addPoint(bounds, bounds, corner);
 
-      if (EveSpaceObjectDecal.#BoundingBoxIsInside(min, max, frustum.viewPos))
+      if (box3.containsPoint(bounds, frustum.viewPos))
       {
         this.#isVisible = 1;
         this.#CopyParentData(parentData);
         return true;
       }
 
-      if (!frustum.IsBoxVisible?.({ min, max }))
+      if (!frustum.IsBoxVisible?.(bounds))
       {
         return false;
       }
 
       // Measure from the closest point of the box rather than its centre, so a
       // long box does not lod out while one end is near the camera.
-      const closest = EveSpaceObjectDecal.#ClosestPointToBoundingBox(min, max, frustum.viewPos);
-      const offset = vec3.subtract(vec3.create(), closest, frustum.viewPos);
-      mat4.multiply(worldDecalMatrix, mat4.fromTranslation(mat4.create(), offset), worldDecalMatrix);
+      const offset = box3.getClampedPoint(
+        EveSpaceObjectDecal.#pointScratch,
+        bounds,
+        frustum.viewPos
+      );
+      vec3.subtract(offset, offset, frustum.viewPos);
+      mat4.multiply(
+        worldDecalMatrix,
+        mat4.fromTranslation(EveSpaceObjectDecal.#offsetScratch, offset),
+        worldDecalMatrix
+      );
     }
 
     // Carbon: m_decalMatrix * worldDecalMatrix - the decal applies first.
     mat4.multiply(worldDecalMatrix, worldDecalMatrix, this.#decalMatrix);
-    EveSpaceObjectDecal.#TransformBoundingBox(min, max, worldDecalMatrix);
+    box3.transformMat4(bounds, bounds, worldDecalMatrix);
 
     // Carbon's sphere is the box's circumscribing sphere: the centre of the
     // transformed box and HALF ITS FULL DIAGONAL (cpp:159-160).
-    const center = vec3.scale(vec3.create(), vec3.add(vec3.create(), min, max), 0.5);
-    const radius = vec3.distance(min, max) * 0.5;
+    const center = EveSpaceObjectDecal.#pointScratch;
+    const radius = box3.toPositionRadius(bounds, center);
     const pixelSize = frustum.GetPixelSizeAccrossEst(center, radius);
     const modifiedMinScreen = this.minScreenSize * (updateContext?.GetLodFactor?.() ?? 1);
 
@@ -420,49 +443,6 @@ export class EveSpaceObjectDecal extends CjsModel
   GetVisibility()
   {
     return this.#isVisible;
-  }
-
-  /** Carbon BoundingBoxIsInside - whether a point lies within the box. */
-  static #BoundingBoxIsInside(min, max, point)
-  {
-    return point[0] >= min[0] && point[0] <= max[0]
-      && point[1] >= min[1] && point[1] <= max[1]
-      && point[2] >= min[2] && point[2] <= max[2];
-  }
-
-  /** Carbon ClosestPointToBoundingBox - the point clamped into the box. */
-  static #ClosestPointToBoundingBox(min, max, point)
-  {
-    return vec3.fromValues(
-      Math.min(Math.max(point[0], min[0]), max[0]),
-      Math.min(Math.max(point[1], min[1]), max[1]),
-      Math.min(Math.max(point[2], min[2]), max[2])
-    );
-  }
-
-  /** Carbon BoundingBoxTransform - the axis-aligned bounds of the transformed
-   * box, rebuilt from all eight transformed corners. */
-  static #TransformBoundingBox(min, max, transform)
-  {
-    const sourceMin = vec3.clone(min);
-    const sourceMax = vec3.clone(max);
-    const corner = vec3.create();
-
-    vec3.set(min, Infinity, Infinity, Infinity);
-    vec3.set(max, -Infinity, -Infinity, -Infinity);
-
-    for (let index = 0; index < 8; index++)
-    {
-      vec3.set(
-        corner,
-        (index & 1) ? sourceMax[0] : sourceMin[0],
-        (index & 2) ? sourceMax[1] : sourceMin[1],
-        (index & 4) ? sourceMax[2] : sourceMin[2]
-      );
-      vec3.transformMat4(corner, corner, transform);
-      vec3.min(min, min, corner);
-      vec3.max(max, max, corner);
-    }
   }
 
   /** Carbon EveSpaceObjectDecal::HasTransparentBatches (cpp:241-244). */
@@ -577,6 +557,15 @@ export class EveSpaceObjectDecal extends CjsModel
     mat4.fromRotationTranslationScale(this.#decalMatrix, this.rotation, this.position, this.scaling);
     return !!mat4.invert(this.#inverseDecalMatrix, this.#decalMatrix);
   }
+
+  /** Per-frame scratch - UpdateVisibility must not allocate. */
+  static #boundsScratch = box3.create();
+
+  static #worldDecalScratch = mat4.create();
+
+  static #offsetScratch = mat4.create();
+
+  static #pointScratch = vec3.create();
 
   static #zero = vec3.create();
 
