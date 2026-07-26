@@ -31,7 +31,12 @@ import {
     wrapDegrees,
     wrapRadians
 } from "@carbonenginejs/runtime-utils/math/scalar";
-import { normalizePath } from "@carbonenginejs/runtime-utils/path";
+import {
+    getResourceExtension,
+    normalizePath,
+    normalizeResourceExtension,
+    normalizeResourcePath
+} from "@carbonenginejs/runtime-utils/path";
 import { decodeUtf8, encodeUtf8 } from "@carbonenginejs/runtime-utils/text";
 import {
     assertNonEmptyString,
@@ -143,6 +148,15 @@ test("path normalization preserves schemes and leaves domain policy to callers",
     );
     assert.equal(normalizePath("https://example.test//a\\b"), "https://example.test/a/b");
     assert.equal(normalizePath("a/../b"), "a/../b");
+    assert.equal(
+        normalizeResourcePath(" RES:\\Texture\\Ship.DDS "),
+        "res:/texture/ship.dds"
+    );
+    assert.equal(
+        getResourceExtension("res:/texture/ship.dds?variant=1"),
+        "dds"
+    );
+    assert.equal(normalizeResourceExtension(" .WEM "), "wem");
 });
 
 test("lookup helpers use explicit stable ordering and reject duplicates", () =>

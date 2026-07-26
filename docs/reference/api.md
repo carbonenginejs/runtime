@@ -41,7 +41,7 @@ import { encodeUtf8 } from "@carbonenginejs/runtime-utils/text";
 | [`./lookup`](../../src/lookup.js) | Supplies stable string ordering and duplicate-safe map construction. | `compareCodeUnits`, `sortStrings`, `indexBy` |
 | [`./math`](../../src/math/index.js) | Aggregates scalar and container math. | Scalar exports plus math namespaces. |
 | [`./math/scalar`](../../src/math/scalar.js) | Supplies scalar limits, interpolation, angle conversion, wrapping, and smooth steps. | `defaultEpsilon`, `tau`, `clamp`, `saturate`, `lerp`, `approximatelyEqual`, `degreesToRadians`, `radiansToDegrees`, `wrapDegrees`, `wrapRadians`, `cubicHermite`, `cubicHermiteDerivative`, `smoothStep`, `smootherStep` |
-| [`./path`](../../src/path.js) | Normalizes slash direction without filesystem access or dot-segment resolution. | `normalizePath` |
+| [`./path`](../../src/path.js) | Normalizes generic and case-insensitive resource paths without filesystem access or dot-segment resolution. | `normalizePath`, `normalizeResourcePath`, `getResourceExtension`, `normalizeResourceExtension` |
 | [`./text`](../../src/text.js) | Encodes and decodes UTF-8 through Web-standard codecs. | `encodeUtf8`, `decodeUtf8` |
 | [`./validation`](../../src/validation.js) | Provides small labelled assertions for shared input contracts. | `isPlainObject`, `assertPlainObject`, `assertNonEmptyString`, `assertSupportedVersion` |
 
