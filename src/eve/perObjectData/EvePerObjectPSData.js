@@ -4,6 +4,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Minimal pixel-stage per-object record carrying only the world matrix, matching
+ * Carbon's shared Eve constant-buffer format.
+ */
 @type.define({
   className: "EvePerObjectPSData",
   family: "eve"

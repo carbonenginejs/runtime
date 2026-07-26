@@ -6,6 +6,12 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Combined per-object record for a space object covering both stages -
+ * transforms, clip sphere, ellipsoid, custom masks, bone offsets and
+ * spherical-harmonic lighting coefficients - as values a renderer packs into a
+ * constant buffer, never as GPU resources.
+ */
 @type.define({
   className: "EveSpacePerObjectData",
   family: "eve/perObjectData"
@@ -79,6 +85,11 @@ export class EveSpacePerObjectData extends CjsModel
   @type.float32
   clipSphereFactor = 0;
 
+  /**
+   * Applies a value bag, first padding or truncating boneOffsets, the
+   * custom-mask arrays and shLighting to their declared counts so the record
+   * always matches the constant-buffer layout.
+   */
   SetValues(values = {}, options = {})
   {
     const normalized = { ...values };
@@ -92,11 +103,19 @@ export class EveSpacePerObjectData extends CjsModel
     return super.SetValues(normalized, options);
   }
 
+  /**
+   * Builds a fixed-length array of owned mat4 copies, substituting identity for
+   * any entry that is not a 16-element matrix.
+   */
   static #mat4Array(values, count)
   {
     return Array.from({ length: count }, (_, index) => values?.[index]?.length === 16 ? mat4.copy(mat4.create(), values[index]) : mat4.create());
   }
 
+  /**
+   * Builds a fixed-length array of owned vec4 copies, coercing each component to
+   * a number and defaulting missing ones to zero.
+   */
   static #vec4Array(values, count)
   {
     return Array.from({ length: count }, (_, index) => {
@@ -105,6 +124,10 @@ export class EveSpacePerObjectData extends CjsModel
     });
   }
 
+  /**
+   * Builds a fixed-length array of unsigned 32-bit integers, coercing missing or
+   * non-numeric entries to zero.
+   */
   static #uintArray(values, count)
   {
     return Array.from({ length: count }, (_, index) => Number(values?.[index] || 0) >>> 0);

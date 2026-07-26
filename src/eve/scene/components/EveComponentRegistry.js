@@ -22,6 +22,10 @@ export class EveComponentRegistry extends CjsModel
   @type.list("EveEntity")
   registeredEntities = [];
 
+  /**
+   * Empties every component collection and detaches all registered entities,
+   * resetting their registry link and component state.
+   */
   @impl.implemented
   Clear()
   {
@@ -41,6 +45,10 @@ export class EveComponentRegistry extends CjsModel
     this.registeredEntities.length = 0;
   }
 
+  /**
+   * Removes the entity from this registry and adds it back, moving it to the end
+   * of the registration order.
+   */
   @impl.implemented
   ReRegister(entity)
   {
@@ -48,6 +56,10 @@ export class EveComponentRegistry extends CjsModel
     entity.Register(this);
   }
 
+  /**
+   * Adds an entity to the registry and records its index, returning false if the
+   * entity is already registered anywhere.
+   */
   @impl.implemented
   Register(entity)
   {
@@ -61,6 +73,11 @@ export class EveComponentRegistry extends CjsModel
     return true;
   }
 
+  /**
+   * Removes an entity by swapping the last registered entity into its slot,
+   * keeping the entity list dense, and returns false if the entity is not
+   * registered here.
+   */
   @impl.implemented
   UnRegister(entity)
   {
@@ -82,6 +99,10 @@ export class EveComponentRegistry extends CjsModel
     return true;
   }
 
+  /**
+   * Drops the entity from every component collection while leaving it registered
+   * in the entity list.
+   */
   @impl.implemented
   UnRegisterAllComponents(entity)
   {
@@ -91,12 +112,22 @@ export class EveComponentRegistry extends CjsModel
     }
   }
 
+  /**
+   * Returns the collection for a component name, or null when no collection has
+   * been created for it yet.
+   */
   @impl.implemented
   GetComponentCollection(componentName)
   {
     return this.#componentCollections.find(collection => collection.name === componentName) ?? null;
   }
 
+  /**
+   * Adds an entity to the named component's collection, creating the collection
+   * on demand, and throws if the entity is missing any method the component
+   * interface requires - the fail-closed stand-in for Carbon's compile-time
+   * RegisterComponent<T> constraint.
+   */
   @impl.adapted
   @impl.reason("JavaScript passes Carbon's compile-time component name explicitly because it has no C++ template specialization.")
   RegisterComponent(componentName, entity)
@@ -124,6 +155,10 @@ export class EveComponentRegistry extends CjsModel
     return this.AddToCollection(collection, entity);
   }
 
+  /**
+   * Removes an entity from the named component's collection, returning false
+   * when no such collection exists.
+   */
   @impl.adapted
   @impl.reason("JavaScript passes Carbon's compile-time component name explicitly because it has no C++ template specialization.")
   UnRegisterComponent(componentName, entity)
@@ -132,6 +167,11 @@ export class EveComponentRegistry extends CjsModel
     return collection ? this.RemoveFromCollection(collection, entity) : false;
   }
 
+  /**
+   * Creates a collection for a component name and assigns it the next free bit;
+   * throws once 32 collections exist because the entity component mask is 32
+   * bits wide.
+   */
   @impl.implemented
   AddCollection(componentName)
   {
@@ -146,6 +186,11 @@ export class EveComponentRegistry extends CjsModel
     return collection;
   }
 
+  /**
+   * Appends an entity to a collection and stores the resulting index on the
+   * entity under the collection's bit, returning false if it is already a
+   * member.
+   */
   @impl.implemented
   AddToCollection(collection, entity)
   {
@@ -158,6 +203,11 @@ export class EveComponentRegistry extends CjsModel
     return true;
   }
 
+  /**
+   * Removes an entity from a collection by swapping the back element into its
+   * slot and fixing up the moved entity's stored index, returning false if it
+   * was not a member.
+   */
   @impl.implemented
   RemoveFromCollection(collection, entity)
   {
@@ -176,12 +226,21 @@ export class EveComponentRegistry extends CjsModel
     return true;
   }
 
+  /**
+   * Returns the live entity array backing the named component collection, or an
+   * empty array when the collection does not exist; the array is borrowed and
+   * changes as entities register.
+   */
   @impl.implemented
   GetComponents(componentName)
   {
     return this.GetComponentCollection(componentName)?.collection ?? [];
   }
 
+  /**
+   * Returns how many entities are in the named component collection, or 0 when
+   * the collection does not exist.
+   */
   @impl.implemented
   ComponentCount(componentName)
   {

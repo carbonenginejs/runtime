@@ -5,6 +5,12 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Vertex-stage per-object values for a space object - world/inverse-world
+ * transforms, clip and ellipsoid data, custom-mask matrices, bone and
+ * morph-target offsets - held as plain values a renderer packs into a constant
+ * buffer, never as GPU resources.
+ */
 @type.define({ className: "EveSpaceObjectVSData", family: "eve/spaceObject" })
 export class EveSpaceObjectVSData extends CjsModel
 {
@@ -57,6 +63,11 @@ export class EveSpaceObjectVSData extends CjsModel
   @type.vec4
   customData = vec4.create();
 
+  /**
+   * Applies a value bag, first padding or truncating the fixed-length
+   * customMaskMatrix, customMaskData and boneOffsets arrays to their declared
+   * counts so the record always matches the constant-buffer layout.
+   */
   SetValues(values = {}, options = {})
   {
     const normalized = { ...values };
@@ -66,11 +77,19 @@ export class EveSpaceObjectVSData extends CjsModel
     return super.SetValues(normalized, options);
   }
 
+  /**
+   * Builds a fixed-length array of owned mat4 copies, substituting identity for
+   * any entry that is not a 16-element matrix.
+   */
   static #mat4Array(values, count)
   {
     return Array.from({ length: count }, (_, index) => values?.[index]?.length === 16 ? mat4.copy(mat4.create(), values[index]) : mat4.create());
   }
 
+  /**
+   * Builds a fixed-length array of owned vec4 copies, coercing each component to
+   * a number and defaulting missing ones to zero.
+   */
   static #vec4Array(values, count)
   {
     return Array.from({ length: count }, (_, index) => {
@@ -79,6 +98,10 @@ export class EveSpaceObjectVSData extends CjsModel
     });
   }
 
+  /**
+   * Builds a fixed-length array of unsigned 32-bit integers, coercing missing or
+   * non-numeric entries to zero.
+   */
   static #uintArray(values, count)
   {
     return Array.from({ length: count }, (_, index) => Number(values?.[index] || 0) >>> 0);

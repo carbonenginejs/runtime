@@ -4,6 +4,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Vertex-stage per-object matrices for a space-object decal - the hull world
+ * transform, the decal projection transform and the parent bone transform, each
+ * paired with its inverse - as values a renderer packs into a constant buffer.
+ */
 @type.define({
   className: "DecalVSPerObjectData",
   family: "eve/perObjectData"

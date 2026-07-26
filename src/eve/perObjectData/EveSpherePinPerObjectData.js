@@ -6,6 +6,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Per-object values for a standalone UI sphere pin - world matrix plus the pin's
+ * position, orientation quaternion, colour, threshold, precalculated radius and
+ * UV - as values a renderer packs into a constant buffer.
+ */
 @type.define({
   className: "EveSpherePinPerObjectData",
   family: "eve/perObjectData"

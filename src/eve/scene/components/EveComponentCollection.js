@@ -21,6 +21,10 @@ export class EveComponentCollection extends CjsModel
   @type.list("T")
   collection = [];
 
+  /**
+   * Appends an entity and returns the index it was stored at, which the registry
+   * records on the entity.
+   */
   @impl.implemented
   Add(entity)
   {
@@ -29,6 +33,11 @@ export class EveComponentCollection extends CjsModel
     return index;
   }
 
+  /**
+   * Removes the entry at an index by moving the last element into its place and
+   * returns that moved entity so the caller can fix up its stored index, or null
+   * when nothing moved or the index is out of range.
+   */
   @impl.implemented
   SwapWithBack(index)
   {
@@ -47,18 +56,27 @@ export class EveComponentCollection extends CjsModel
     return swappedEntity;
   }
 
+  /**
+   * Drops all entities from the collection without touching their stored
+   * component state.
+   */
   @impl.implemented
   Clear()
   {
     this.collection.length = 0;
   }
 
+  /**
+   * Returns the single mask bit the registry assigned to this collection, used
+   * as the key for an entity's per-component index.
+   */
   @impl.implemented
   GetBit()
   {
     return this.bit;
   }
 
+  /** Returns the number of entities currently in the collection. */
   @impl.implemented
   Size()
   {

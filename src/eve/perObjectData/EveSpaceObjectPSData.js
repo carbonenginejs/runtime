@@ -6,6 +6,12 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Pixel-stage per-object values for a space object - transforms, clip sphere,
+ * impact offset, spherical-harmonic lighting, custom-mask material IDs and
+ * targets, and screen size - as values a renderer packs into a constant buffer,
+ * never as GPU resources.
+ */
 @type.define({
   className: "EveSpaceObjectPSData",
   family: "eve/spaceObject"
@@ -64,6 +70,11 @@ export class EveSpaceObjectPSData extends CjsModel
   @type.vec4
   customData = vec4.create();
 
+  /**
+   * Applies a value bag, first padding or truncating shLightingCoefficients,
+   * customMaskMaterialIDs and customMaskTargets to their declared counts so the
+   * record always matches the constant-buffer layout.
+   */
   SetValues(values = {}, options = {})
   {
     const normalized = { ...values };
@@ -73,6 +84,10 @@ export class EveSpaceObjectPSData extends CjsModel
     return super.SetValues(normalized, options);
   }
 
+  /**
+   * Builds a fixed-length array of owned vec4 copies, coercing each component to
+   * a number and defaulting missing ones to zero.
+   */
   static #vec4Array(values, count)
   {
     return Array.from({ length: count }, (_, index) => {
