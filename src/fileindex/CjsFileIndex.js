@@ -8,6 +8,14 @@ export class CjsFileIndex
 
     #entriesByPath;
 
+    /**
+     * Freezes the entries and indexes them by logical path, rejecting a duplicate
+     * logical path or an entry whose root disagrees with the index root; entries
+     * keep their declaration order and plain objects are upgraded to entries.
+     * @param {Iterable} entries CjsFileIndexEntry instances or entry option objects.
+     * @param {object} options root (default "res"), kind, name and sourceURL; name
+     * defaults to "app" for an app root and "main" otherwise.
+     */
     constructor(entries, options = {})
     {
         this.root = CjsFileIndexEntry.normalizeRoot(options.root ?? "res");
@@ -40,6 +48,11 @@ export class CjsFileIndex
         Object.freeze(this);
     }
 
+    /**
+     * Normalizes the path against this index root first, so a rootless,
+     * backslashed or mixed-case path still matches; returns null when the index
+     * does not declare it.
+     */
     Find(logicalPath)
     {
         return this.#entriesByPath.get(
@@ -47,6 +60,10 @@ export class CjsFileIndex
         ) ?? null;
     }
 
+    /**
+     * Reports whether this index alone declares the path, without consulting
+     * overlays or any other index.
+     */
     Has(logicalPath)
     {
         return this.Find(logicalPath) !== null;
@@ -57,6 +74,10 @@ export class CjsFileIndex
         return this.entries[Symbol.iterator]();
     }
 
+    /**
+     * Parses file-index text as one entry per non-empty line, numbering lines
+     * from 1 so a malformed row is reported against its source line.
+     */
     static parse(text, options = {})
     {
         if (typeof text !== "string")
@@ -78,6 +99,10 @@ export class CjsFileIndex
         return new CjsFileIndex(entries, { ...options, root });
     }
 
+    /**
+     * Parses text as the app-rooted appfileindex, which is the only index that
+     * declares which resfileindexes a build has.
+     */
     static parseAppFileIndex(text, options = {})
     {
         return CjsFileIndex.parse(text, {
@@ -88,16 +113,26 @@ export class CjsFileIndex
         });
     }
 
+    /**
+     * Parses text as a res-rooted resfileindex; pass options.name to distinguish
+     * it from the other resfileindexes of the same build.
+     */
     static parseResFileIndex(text, options = {})
     {
         return CjsFileIndex.parse(text, { ...options, root: "res", kind: "resfileindex" });
     }
 
+    /**
+     * Decodes caller-supplied UTF-8 bytes in fatal mode, so malformed input
+     * fails instead of silently producing replacement characters, then parses
+     * them.
+     */
     static decode(bytes, options = {})
     {
         return CjsFileIndex.parse(decodeUtf8(bytes, { fatal: true }), options);
     }
 
+    /** Decodes UTF-8 bytes as the app-rooted appfileindex. */
     static decodeAppFileIndex(bytes, options = {})
     {
         return CjsFileIndex.decode(bytes, {
@@ -108,11 +143,21 @@ export class CjsFileIndex
         });
     }
 
+    /** Decodes UTF-8 bytes as a res-rooted resfileindex. */
     static decodeResFileIndex(bytes, options = {})
     {
         return CjsFileIndex.decode(bytes, { ...options, root: "res", kind: "resfileindex" });
     }
 
+    /**
+     * Fetches and decodes one index from a caller-supplied URL; it discovers
+     * nothing, and the fetch implementation itself may be injected for tests or
+     * non-browser hosts. Failures carry a code: CJS_FILEINDEX_FETCH_UNSUPPORTED
+     * when no fetch exists, CJS_FILEINDEX_HTTP_ERROR for a non-ok response.
+     * @param {string|object} source Anything the injected fetch accepts.
+     * @param {object} options fetch, requestInit, root, kind and name; the
+     * resolved response URL becomes the index sourceURL.
+     */
     static async load(source, options = {})
     {
         const fetchFunction = options.fetch ?? globalThis.fetch;
@@ -150,6 +195,7 @@ export class CjsFileIndex
         });
     }
 
+    /** Fetches one URL and decodes it as the app-rooted appfileindex. */
     static loadAppFileIndex(source, options = {})
     {
         return CjsFileIndex.load(source, {
@@ -160,11 +206,17 @@ export class CjsFileIndex
         });
     }
 
+    /** Fetches one URL and decodes it as a res-rooted resfileindex. */
     static loadResFileIndex(source, options = {})
     {
         return CjsFileIndex.load(source, { ...options, root: "res", kind: "resfileindex" });
     }
 
+    /**
+     * Reads the app:/resfileindex[_<name>].txt rows already present in an
+     * appfileindex, naming the unsuffixed one "main"; this reads declarations
+     * rather than probing any host, and rejects a duplicate or malformed name.
+     */
     static discoverResFileIndexes(appFileIndex)
     {
         if (!(appFileIndex instanceof CjsFileIndex) || appFileIndex.root !== "app")
@@ -195,6 +247,13 @@ export class CjsFileIndex
         return Object.freeze(declarations);
     }
 
+    /**
+     * Loads every resfileindex an appfileindex declares, in parallel, and returns
+     * frozen { name, declaration, index } records. It never guesses where the
+     * declared files are hosted, so one of baseURL or resolveURL is required.
+     * @param {object} options baseURL or resolveURL(entry, name), plus the fetch
+     * and requestInit forwarded to each load.
+     */
     static async loadDeclaredResFileIndexes(appFileIndex, options = {})
     {
         const declarations = CjsFileIndex.discoverResFileIndexes(appFileIndex);
@@ -221,6 +280,11 @@ export class CjsFileIndex
         return Object.freeze(loaded);
     }
 
+    /**
+     * Joins one entry storage location onto a base URL through a throwaway
+     * source, so the containment check that stops a location escaping its base
+     * still applies.
+     */
     static resolveLocationURL(baseURL, location)
     {
         return new CjsFileIndexSource({

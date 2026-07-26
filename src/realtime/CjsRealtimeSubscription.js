@@ -14,6 +14,15 @@ export class CjsRealtimeSubscription
     #subscriptionId;
     #topicSequences;
 
+    /**
+     * Validates the request eagerly by building a throwaway subscribe message, then
+     * holds desired state only - it touches no connection, so it may be built
+     * before the client connects and survives every reconnect.
+     * @param {string} recovery "live" activates immediately; "snapshot" buffers
+     * events until a cursor-stamped snapshot has been installed.
+     * @param {number} maxBufferedEvents Ceiling on events held during snapshot
+     * recovery; an overflow forces a resync rather than dropping events.
+     */
     constructor({
         serviceId,
         topics,
@@ -225,6 +234,11 @@ export class CjsRealtimeSubscription
         }
     }
 
+    /**
+     * Creates the pre-caught deferred backing WhenActive; unlike the client's
+     * version its resolve and reject are not idempotent, so callers guard the
+     * settled flag themselves.
+     */
     static createDeferred()
     {
         const value = { settled: false };
@@ -238,6 +252,10 @@ export class CjsRealtimeSubscription
         return value;
     }
 
+    /**
+     * Builds the resync_required error that tells the client this generation is
+     * unrecoverable: retryable, connection unusable, close code 4409.
+     */
     static resyncError(message)
     {
         return new CjsRealtimeError("resync_required", message, {
@@ -247,6 +265,12 @@ export class CjsRealtimeSubscription
         });
     }
 
+    /**
+     * Applies one event in order: events at or below the cursor are ignored as
+     * duplicates, a per-topic sequence that does not advance by exactly one
+     * forces a resync, then the cursor advances and onEvent runs. Returns
+     * whether it was applied.
+     */
     async #ApplyEvent(event)
     {
         if (event.streamId !== this.#cursor.streamId)
@@ -283,6 +307,11 @@ export class CjsRealtimeSubscription
         return true;
     }
 
+    /**
+     * Requires the event to carry this subscription ID, service and a subscribed
+     * topic; a mismatch means routing is wrong, so it forces a resync instead of
+     * silently filtering.
+     */
     #AssertMatchingEvent(event)
     {
         if (event.subscriptionId !== this.#subscriptionId
@@ -293,6 +322,11 @@ export class CjsRealtimeSubscription
         }
     }
 
+    /**
+     * Awaits a consumer callback and rewraps anything it throws as
+     * consumer_callback_failed, keeping application faults distinguishable from
+     * protocol faults.
+     */
     async #Invoke(callback, value)
     {
         try
@@ -309,6 +343,10 @@ export class CjsRealtimeSubscription
         }
     }
 
+    /**
+     * Settles the activation wait at most once per connection generation; Reset
+     * installs a fresh one.
+     */
     #ResolveReady()
     {
         if (!this.#ready.settled)
@@ -318,12 +356,20 @@ export class CjsRealtimeSubscription
         }
     }
 
+    /**
+     * Adopts a normalized cursor and rebuilds the per-topic sequence map from
+     * it, discarding any sequences tracked for the previous cursor.
+     */
     #SetCursor(cursor)
     {
         this.#cursor = cursor;
         this.#topicSequences = new Map(Object.entries(cursor.topicSequences));
     }
 
+    /**
+     * Builds a frozen, validated cursor from a stream ID, stream sequence and
+     * the live per-topic sequence map.
+     */
     static createCursor(streamId, sequence, topicSequences)
     {
         return CjsRealtimeProtocol.normalizeCursor({

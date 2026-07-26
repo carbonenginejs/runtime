@@ -2,6 +2,15 @@
 export class CjsRealtimeError extends Error
 {
 
+    /**
+     * Sanitizes a failure so it is safe to hand across the wire boundary: an
+     * invalid code becomes "internal_error", the message loses its newlines and
+     * is cut to 256 characters, and statusCode and closeCode are dropped unless
+     * they are valid.
+     * @param {boolean} retryable Whether the caller may repeat the operation.
+     * @param {boolean} connectionUsable False tells the client to close the socket.
+     * @param {number|null} closeCode WebSocket close code used when it does.
+     */
     constructor(code, message, {
         retryable = false,
         connectionUsable = true,

@@ -2,6 +2,13 @@
 export class CjsFileIndexEntry
 {
 
+    /**
+     * Normalizes and freezes one row: the root and logical path first, then the
+     * storage location, an optional 32-hex checksum and non-negative sizes.
+     * @param {string} sourceLogicalPath The path exactly as written in the file,
+     * retained for diagnostics; logicalPath is the normalized lookup key.
+     * @param {number|null} lineNumber Source row, used only to locate errors.
+     */
     constructor({
         logicalPath,
         sourceLogicalPath = logicalPath,
@@ -31,6 +38,11 @@ export class CjsFileIndexEntry
         Object.freeze(this);
     }
 
+    /**
+     * Parses one comma-separated row of 2 to 6 columns - logical path, storage
+     * location, checksum, uncompressed size, compressed size, binary operation -
+     * of which only the first two are required.
+     */
     static parse(line, lineNumber = 1, root = "res")
     {
         if (typeof line !== "string")
@@ -65,6 +77,11 @@ export class CjsFileIndexEntry
         });
     }
 
+    /**
+     * Lowercases, converts backslashes and prefixes the root when the value
+     * carries none, rejecting empty, ".", ".." and any path outside the given
+     * root.
+     */
     static normalizeLogicalPath(value, root = "res")
     {
         const normalizedRoot = CjsFileIndexEntry.normalizeRoot(root);
@@ -92,6 +109,11 @@ export class CjsFileIndexEntry
         return `${normalizedRoot}:/${segments.join("/")}`;
     }
 
+    /**
+     * Normalizes a storage location, preserving an optional lowercase "source:/"
+     * prefix, and rejects an absolute path, query, fragment, URL scheme or
+     * traversal segment so a location can never escape its source base URL.
+     */
     static normalizeLocation(value)
     {
         const text = String(value ?? "").trim().replaceAll("\\", "/");
@@ -120,6 +142,7 @@ export class CjsFileIndexEntry
         return `${sourcePrefix}${segments.join("/")}`;
     }
 
+    /** Lowercases and validates a scheme-like index root such as "res" or "app". */
     static normalizeRoot(value)
     {
         const root = String(value ?? "").trim().toLowerCase();

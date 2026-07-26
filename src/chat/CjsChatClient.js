@@ -9,6 +9,12 @@ export class CjsChatClient
 
     #realtime;
 
+    /**
+     * Binds the chat surface to an already-connected-or-connectable
+     * CjsRealtimeClient, which it requires rather than constructs, and to one
+     * chat service ID; a plain object block list is coerced into a
+     * CjsChatBlockList.
+     */
     constructor({
         realtimeClient,
         serviceId = "primary-chat",

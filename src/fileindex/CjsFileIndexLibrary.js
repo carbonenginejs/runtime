@@ -11,6 +11,15 @@ export class CjsFileIndexLibrary
     #resFileIndexesByName;
     #sourcesByID;
 
+    /**
+     * Composes one build's appfileindex, its loaded resfileindexes and any manual
+     * overlays into a frozen resolver. A "default" source built from the provider
+     * res base URL is always prepended, overlay and index names share one
+     * namespace, and duplicate layer names or source IDs are rejected.
+     * @param {object} buildReference Result of resolveBuild; its build field
+     * becomes the library build.
+     * @param {Array} resFileIndexes { name, index, declaration, sourceID } records.
+     */
     constructor({ provider, buildReference, appIndex, resFileIndexes, overlays = [], sources = [] })
     {
         if (!(appIndex instanceof CjsFileIndex) || appIndex.root !== "app")
@@ -71,26 +80,47 @@ export class CjsFileIndexLibrary
         Object.freeze(this);
     }
 
+    /**
+     * Returns the official index loaded under that layer name, or null; the
+     * unsuffixed resfileindex is named "main".
+     */
     GetResFileIndex(name)
     {
         return this.#resFileIndexesByName.get(normalizeName(name))?.index ?? null;
     }
 
+    /**
+     * Reports whether an official index was loaded under that layer name;
+     * overlays do not count.
+     */
     HasResFileIndex(name)
     {
         return this.GetResFileIndex(name) !== null;
     }
 
+    /**
+     * Returns the named manual overlay, or null; overlay names never collide
+     * with official index names.
+     */
     GetOverlay(name)
     {
         return this.#overlaysByName.get(normalizeName(name)) ?? null;
     }
 
+    /** Reports whether a manual overlay was registered under that name. */
     HasOverlay(name)
     {
         return this.GetOverlay(name) !== null;
     }
 
+    /**
+     * Resolves a logical path through the layer precedence override overlays,
+     * then the official resfileindexes, then fallback overlays, and returns a
+     * frozen record { logicalPath, indexName, overlay, mode, sourceID,
+     * sourceURL, entry } or null when no layer declares it.
+     * @param {object} options indexName pins the lookup to one named overlay or
+     * official index and skips precedence entirely.
+     */
     Resolve(logicalPath, options = {})
     {
         const normalizedPath = CjsFileIndexEntry.normalizeLogicalPath(logicalPath, "res");
@@ -115,6 +145,11 @@ export class CjsFileIndexLibrary
         return fallback ? this.#resolveLayer(normalizedPath, fallback, true) : null;
     }
 
+    /**
+     * Returns a new library over the same build and loaded indexes with a
+     * different overlay set, dropping the implicit "default" source so the
+     * constructor re-adds it.
+     */
     WithOverlays(overlays)
     {
         return new CjsFileIndexLibrary({
@@ -127,6 +162,10 @@ export class CjsFileIndexLibrary
         });
     }
 
+    /**
+     * Returns the last official resfileindex declaring the path, since a later
+     * index clobbers earlier records of the same logical path.
+     */
     #findOfficial(logicalPath)
     {
         // Official resfileindexes layer in declaration order: a later index
@@ -137,6 +176,11 @@ export class CjsFileIndexLibrary
         return matches.at(-1) ?? null;
     }
 
+    /**
+     * Returns the one overlay of the given mode that declares the path, throwing
+     * when two overlays of that mode make it ambiguous rather than picking a
+     * winner.
+     */
     #findSingleOverlay(logicalPath, mode)
     {
         const matches = this.overlays.filter(item => item.mode === mode && item.Has(logicalPath));
@@ -144,6 +188,11 @@ export class CjsFileIndexLibrary
         return matches[0] ?? null;
     }
 
+    /**
+     * Turns one layer hit into the frozen resolution record, taking the source
+     * from the location prefix, else the layer sourceID, else "default", and
+     * failing on an unknown source ID.
+     */
     #resolveLayer(logicalPath, layer, isOverlay)
     {
         const entry = layer.index.Find(logicalPath);
@@ -170,6 +219,14 @@ export class CjsFileIndexLibrary
         });
     }
 
+    /**
+     * Resolves a build reference to an exact build number. A numeric reference
+     * short-circuits with no network at all; "latest" reads each configured
+     * client's remote metadata and keeps the highest build, and a client name
+     * reads only that client. Passing both client and a named build is rejected.
+     * @returns {object} Frozen { buildRef, build, client, metadataToken,
+     * metadataURL, metadata, source } where source records how it was decided.
+     */
     static async resolveBuild(providerValue, options = {})
     {
         const provider = normalizeProvider(providerValue);
@@ -223,6 +280,12 @@ export class CjsFileIndexLibrary
         });
     }
 
+    /**
+     * Loads a whole library for one provider: resolves the build, fetches
+     * eveonline_<build>.txt as the appfileindex, then loads every resfileindex
+     * it declares - all through the injected fetch and the provider's declared
+     * base URLs.
+     */
     static async load(providerValue, options = {})
     {
         const provider = normalizeProvider(providerValue);

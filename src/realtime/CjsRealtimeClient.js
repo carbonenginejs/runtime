@@ -34,6 +34,20 @@ export class CjsRealtimeClient
     #subscriptionsByService;
     #webSocketClass;
 
+    /**
+     * Binds the client to one normalized WebSocket/HTTP endpoint pair and holds
+     * the capability in memory only; every environment dependency is injected,
+     * and no socket is opened until Connect is called.
+     * @param {string} url WebSocket or HTTP(S) endpoint; http(s) is upgraded and
+     * the query and fragment are dropped so a capability never rides the URL.
+     * @param {string} httpURL Endpoint for snapshot and discovery requests;
+     * defaults to the WebSocket endpoint expressed as HTTP(S).
+     * @param {string} capability Bearer secret sent in hello and in the
+     * Authorization header; it is never persisted.
+     * @param {Function} webSocketClass Standards-compatible WebSocket class.
+     * @param {Function} fetch Standards-compatible fetch used for HTTP work.
+     * @param {Function} random Source of jitter, injectable for deterministic tests.
+     */
     constructor({
         url,
         httpURL = null,
@@ -316,6 +330,12 @@ export class CjsRealtimeClient
         return this.state === "ready";
     }
 
+    /**
+     * Derives the frozen socket and HTTP endpoint pair from caller URLs, upgrading
+     * http(s) to ws(s), applying the default realtime route to an empty path, and
+     * stripping the query and fragment so no capability can travel in a URL.
+     * @returns {{webSocketURL: string, httpURL: string}} Frozen endpoint pair.
+     */
     static normalizeEndpoints(value, httpValue = null)
     {
         const input = new URL(String(value));
@@ -350,11 +370,19 @@ export class CjsRealtimeClient
         return Object.freeze({ webSocketURL: socket.href, httpURL: http.href });
     }
 
+    /**
+     * Substitutes the default realtime route for an empty or root pathname and
+     * otherwise strips trailing slashes.
+     */
     static normalizeRoute(pathname)
     {
         return !pathname || pathname === "/" ? REALTIME_ROUTE : pathname.replace(/\/+$/u, "");
     }
 
+    /**
+     * Fills the backoff policy defaults (250 ms to 10 s, factor 2, jitter 0.2)
+     * and rejects an internally inconsistent policy.
+     */
     static normalizeReconnect(value)
     {
         const result = {
@@ -376,6 +404,11 @@ export class CjsRealtimeClient
         return Object.freeze(result);
     }
 
+    /**
+     * Creates a deferred whose resolve and reject are idempotent and whose
+     * promise is pre-caught, so a rejection nobody awaits never surfaces as
+     * unhandled.
+     */
     static createDeferred()
     {
         const value = { settled: false };
@@ -403,6 +436,10 @@ export class CjsRealtimeClient
         return value;
     }
 
+    /**
+     * Computes one backoff delay in milliseconds for the given zero-based
+     * attempt, spread by the policy jitter using the injected random source.
+     */
     static reconnectDelay(policy, attempt, random)
     {
         const base = Math.min(
@@ -413,6 +450,11 @@ export class CjsRealtimeClient
         return Math.max(0, base - spread + random() * spread * 2);
     }
 
+    /**
+     * Reconnects until Close, resetting the attempt counter after a connection
+     * that reached ready, and reporting each failure through onError rather than
+     * throwing.
+     */
     async #RunConnectionLoop()
     {
         let attempt = 0;
@@ -459,6 +501,11 @@ export class CjsRealtimeClient
         this.#connectLoop = null;
     }
 
+    /**
+     * Runs one whole socket generation: sends hello, activates every desired
+     * subscription, publishes the ready state, and only settles once the socket
+     * closes.
+     */
     async #OpenConnection()
     {
         if (typeof this.#webSocketClass !== "function")
@@ -556,6 +603,11 @@ export class CjsRealtimeClient
         }
     }
 
+    /**
+     * Starts every desired subscription that has no server subscription ID yet,
+     * one at a time, re-scanning after each so subscriptions added
+     * mid-activation are included.
+     */
     async #ActivateSubscriptions()
     {
         while (true)
@@ -572,6 +624,12 @@ export class CjsRealtimeClient
         }
     }
 
+    /**
+     * Subscribes one desired subscription on the current connection, verifies
+     * the server echoed the requested service and target, unsubscribes again if
+     * the caller removed it while the request was in flight, and installs the
+     * HTTP snapshot when recovery is "snapshot".
+     */
     async #StartSubscription(subscription)
     {
         if (!this.#subscriptions.has(subscription)
@@ -639,6 +697,11 @@ export class CjsRealtimeClient
         return subscription;
     }
 
+    /**
+     * Sends one request carrying a generation-scoped request ID and resolves
+     * with the matching result frame; request IDs restart at 1 on every new
+     * connection.
+     */
     #Request(createMessage)
     {
         if (!this.#socket)
@@ -669,6 +732,10 @@ export class CjsRealtimeClient
         return pending.promise;
     }
 
+    /**
+     * Dispatches one validated server frame (hello, result, error or event); it
+     * runs on a serialized lane, so events reach a subscription in wire order.
+     */
     async #ReceiveMessage(text)
     {
         const parsed = CjsRealtimeProtocol.parseText(text, { maxBytes: this.#maxMessageBytes });
@@ -743,6 +810,11 @@ export class CjsRealtimeClient
         }
     }
 
+    /**
+     * Reports a message-lane failure and closes the socket unless it came from a
+     * consumer callback, which is an application fault rather than a protocol
+     * fault.
+     */
     #HandleMessageFailure(failure)
     {
         const error = CjsRealtimeError.from(failure);
@@ -755,6 +827,10 @@ export class CjsRealtimeClient
         }
     }
 
+    /**
+     * Reports an operation-lane failure and closes the socket when the failure
+     * left the connection unusable or demands a resync.
+     */
     #HandleOperationFailure(failure)
     {
         const error = CjsRealtimeError.from(failure);
@@ -767,6 +843,11 @@ export class CjsRealtimeClient
         }
     }
 
+    /**
+     * Performs an authenticated GET through the injected fetch, sending the
+     * capability as a bearer header with no store caching, and validates the
+     * JSON body against the protocol structural limits.
+     */
     async #FetchJson(url, { signal = null } = {})
     {
         if (typeof this.#fetch !== "function")
@@ -803,6 +884,10 @@ export class CjsRealtimeClient
         return value;
     }
 
+    /**
+     * Serializes one message onto the current socket, throwing
+     * connection_unavailable when there is none.
+     */
     #Send(message)
     {
         if (!this.#socket || typeof this.#socket.send !== "function")
@@ -813,6 +898,11 @@ export class CjsRealtimeClient
         this.#socket.send(JSON.stringify(message));
     }
 
+    /**
+     * Drops all connection-scoped state - subscription IDs, cursors and pending
+     * requests - while retaining the desired subscription set for the next
+     * connection.
+     */
     #ResetGeneration(code)
     {
         this.#subscriptionsById.clear();
@@ -830,6 +920,10 @@ export class CjsRealtimeClient
         this.#RejectPendingRequests(failure);
     }
 
+    /**
+     * Throws a retryable connection_unavailable error unless the client is in
+     * the ready state.
+     */
     #RequireReady()
     {
         if (this.state !== "ready")
@@ -840,6 +934,10 @@ export class CjsRealtimeClient
         }
     }
 
+    /**
+     * Registers a waiter resolved with the hello record on the next ready state
+     * and rejected when the client is closed.
+     */
     #WaitForReady()
     {
         const ready = CjsRealtimeClient.createDeferred();
@@ -847,6 +945,10 @@ export class CjsRealtimeClient
         return ready.promise;
     }
 
+    /**
+     * Settles and clears every outstanding Connect waiter with the current
+     * connection.
+     */
     #ResolveReadyWaiters(connection)
     {
         for (const ready of this.#readyWaiters)
@@ -857,6 +959,10 @@ export class CjsRealtimeClient
         this.#readyWaiters.clear();
     }
 
+    /**
+     * Fails and clears every outstanding Connect waiter; used for a deliberate
+     * close, not for a retryable connection loss.
+     */
     #RejectReadyWaiters(failure)
     {
         for (const ready of this.#readyWaiters)
@@ -867,6 +973,10 @@ export class CjsRealtimeClient
         this.#readyWaiters.clear();
     }
 
+    /**
+     * Fails every in-flight request, because request IDs are only meaningful
+     * within the connection generation that issued them.
+     */
     #RejectPendingRequests(failure)
     {
         for (const pending of this.#pendingRequests.values())
@@ -877,6 +987,11 @@ export class CjsRealtimeClient
         this.#pendingRequests.clear();
     }
 
+    /**
+     * Serializes caller operations on one lane so subscribe, unsubscribe and
+     * command never interleave; the lane itself absorbs rejections and never
+     * stalls.
+     */
     #QueueOperation(operation)
     {
         const result = this.#operationLane.then(operation);
@@ -884,6 +999,10 @@ export class CjsRealtimeClient
         return result;
     }
 
+    /**
+     * Records a changed state and notifies onStateChange, converting a throwing
+     * observer into a reported consumer_callback_failed error.
+     */
     #SetState(state)
     {
         if (this.state === state)
@@ -910,6 +1029,10 @@ export class CjsRealtimeClient
         }
     }
 
+    /**
+     * Delivers an error to onError and swallows anything the observer throws,
+     * keeping error reporting isolated from protocol and reconnect state.
+     */
     #ReportError(error)
     {
         if (!this.#onError)

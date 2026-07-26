@@ -4,6 +4,11 @@ import { CjsChatContract } from "./CjsChatContract.js";
 export class CjsChatBlockList
 {
 
+    /**
+     * Normalizes both selector lists into frozen, de-duplicated,
+     * deterministically ordered arrays; both default to empty, so an
+     * unconfigured block list never filters anything.
+     */
     constructor({ terms = [], users = [] } = {})
     {
         this.terms = CjsChatBlockList.normalizeList(

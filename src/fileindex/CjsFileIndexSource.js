@@ -4,6 +4,11 @@ import { CjsFileIndexEntry } from "./CjsFileIndexEntry.js";
 export class CjsFileIndexSource
 {
 
+    /**
+     * Binds a compact source ID to a plain HTTP(S) base URL - credentials, query
+     * and fragment are refused and the trailing slash is stripped - then freezes
+     * the pair so every later Resolve shares one containment boundary.
+     */
     constructor({ id, baseURL })
     {
         this.id = CjsFileIndexSource.normalizeID(id);
@@ -12,6 +17,11 @@ export class CjsFileIndexSource
         Object.freeze(this);
     }
 
+    /**
+     * Turns one storage location into an absolute URL beneath this source's
+     * base, rejecting a location addressed to a different source ID or one that
+     * resolves to another origin or above the base path.
+     */
     Resolve(location)
     {
         const parsed = CjsFileIndexSource.parseLocation(location);
@@ -35,6 +45,10 @@ export class CjsFileIndexSource
         return resolved.href;
     }
 
+    /**
+     * Lowercases and validates a compact source ID; "default" is the ID the
+     * library reserves for the provider's own res base URL.
+     */
     static normalizeID(value)
     {
         const id = String(value ?? "").trim().toLowerCase();
@@ -47,6 +61,10 @@ export class CjsFileIndexSource
         return id;
     }
 
+    /**
+     * Normalizes a location and splits it into a frozen { sourceID, path }
+     * record, where sourceID is null when the location names no source.
+     */
     static parseLocation(value)
     {
         const location = CjsFileIndexEntry.normalizeLocation(value);

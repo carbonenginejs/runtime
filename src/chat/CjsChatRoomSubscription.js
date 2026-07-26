@@ -10,6 +10,11 @@ export class CjsChatRoomSubscription
 
     #subscription;
 
+    /**
+     * Pairs the requested room selector with the realtime subscription the
+     * client already created; constructing the handle subscribes to nothing and
+     * it starts open, so Close is the only state transition.
+     */
     constructor({ client, room, subscription })
     {
         this.room = room;

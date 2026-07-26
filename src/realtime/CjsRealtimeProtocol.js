@@ -402,6 +402,11 @@ export class CjsRealtimeProtocol
         return prototype === Object.prototype || prototype === null;
     }
 
+    /**
+     * Requires a lowercase identifier of at most 64 characters and returns it,
+     * so it can be asserted inline; a violation is an invalid_request realtime
+     * error.
+     */
     static assertServiceId(value)
     {
         if (typeof value !== "string" || !IDENTIFIER_PATTERN.test(value))
@@ -412,6 +417,10 @@ export class CjsRealtimeProtocol
         return value;
     }
 
+    /**
+     * Requires a letter-led topic or action name of at most 128 characters,
+     * naming the offending field with label in the error message.
+     */
     static assertName(value, label)
     {
         if (typeof value !== "string" || !NAME_PATTERN.test(value))
@@ -422,6 +431,10 @@ export class CjsRealtimeProtocol
         return value;
     }
 
+    /**
+     * Requires a bounded request correlation ID; the pattern also allows a colon
+     * so callers can namespace their own IDs.
+     */
     static assertRequestId(value)
     {
         if (typeof value !== "string" || !REQUEST_PATTERN.test(value))
@@ -432,6 +445,11 @@ export class CjsRealtimeProtocol
         return value;
     }
 
+    /**
+     * Requires the lowercase snake_case error-code shape used by
+     * CjsRealtimeError, so a server-supplied code cannot smuggle arbitrary text
+     * into an observer.
+     */
     static assertErrorCode(value)
     {
         if (typeof value !== "string" || !/^[a-z][a-z0-9_]{0,63}$/u.test(value))
@@ -442,6 +460,10 @@ export class CjsRealtimeProtocol
         return value;
     }
 
+    /**
+     * Requires a string whose length lies within the inclusive bounds, keeping
+     * unbounded caller text such as a capability off the wire.
+     */
     static assertString(value, label, minimum, maximum)
     {
         if (typeof value !== "string" || value.length < minimum || value.length > maximum)
@@ -452,6 +474,10 @@ export class CjsRealtimeProtocol
         return value;
     }
 
+    /**
+     * Requires a safe integer of at least 1, used for wire sequences that start
+     * counting at one.
+     */
     static assertPositiveInteger(value, label)
     {
         if (!Number.isSafeInteger(value) || value < 1)
@@ -462,6 +488,10 @@ export class CjsRealtimeProtocol
         return value;
     }
 
+    /**
+     * Requires a safe integer of at least 0, used for cursor positions that may
+     * legitimately be zero.
+     */
     static assertNonNegativeInteger(value, label)
     {
         if (!Number.isSafeInteger(value) || value < 0)
@@ -472,6 +502,10 @@ export class CjsRealtimeProtocol
         return value;
     }
 
+    /**
+     * Deep-freezes in place and returns the same value, not a copy; the seen set
+     * makes it safe over shared references and cycles.
+     */
     static freezeValue(value, seen = new Set())
     {
         if (!value || typeof value !== "object" || seen.has(value))
@@ -489,6 +523,11 @@ export class CjsRealtimeProtocol
         return Object.freeze(value);
     }
 
+    /**
+     * Recursive worker behind validateJson: counts nodes and depth against the
+     * caller limits and rejects non-finite numbers, non-plain objects and
+     * cycles.
+     */
     static validateJsonValue(value, depth, maxDepth, maxNodes, state)
     {
         state.nodes++;
