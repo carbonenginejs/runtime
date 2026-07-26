@@ -16,7 +16,7 @@ export class CjsResManMainThreadLoader
    */
   Read(source, path, options = {})
   {
-    AssertResourceSource(source);
+    assertResourceSource(source);
     return source.Read(path, options);
   }
 
@@ -97,7 +97,7 @@ function readFormatOnCurrentThread(
   throw new TypeError(`${Format.name} does not expose a read operation.`);
 }
 
-function AssertResourceSource(source)
+function assertResourceSource(source)
 {
   if (!source || (typeof source !== "object" && typeof source !== "function")
     || typeof source.Read !== "function")

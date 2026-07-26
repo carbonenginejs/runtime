@@ -7,7 +7,6 @@ import {
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import * as runtimeResource from "../npm/dist/index.js";
 import {
-  CjsMemoryResourceSource,
   CjsEventEmitter,
   Tr2EffectRes,
   Tr2ImageRes,
@@ -26,7 +25,7 @@ import {
   Tr2LightProfileRes,
   Tr2MaterialRes,
   CjsTextureArrayRes,
-  CjsTextureParameterProxy,
+  CjsTextureArrayResParameterProxy,
   TriGrannyRes,
   getMotherLodeKey
 } from "../npm/dist/index.js";
@@ -271,10 +270,10 @@ test("CjsResource exposes Carbon-style lifecycle methods and schema", () => {
   assert.equal(resource.GetPath(), "res:/texture/ship.dds");
   assert.equal(resource.GetExt(), "dds");
   assert.equal(resource.state, CjsResource.State.EMPTY);
-  assert.equal(CjsResource.IsValidState(CjsResource.State.EMPTY), true);
-  assert.equal(CjsResource.IsTerminalState(CjsResource.State.EMPTY), false);
-  assert.equal(CjsResource.IsTerminalState(CjsResource.State.PREPARED), true);
-  assert.equal(CjsResource.IsTerminalState(CjsResource.State.FAILED), true);
+  assert.equal(CjsResource.isValidState(CjsResource.State.EMPTY), true);
+  assert.equal(CjsResource.isTerminalState(CjsResource.State.EMPTY), false);
+  assert.equal(CjsResource.isTerminalState(CjsResource.State.PREPARED), true);
+  assert.equal(CjsResource.isTerminalState(CjsResource.State.FAILED), true);
   assert.equal(resource.IsPrepared(), false);
   assert.equal(resource.IsGood(), false);
   assert.equal(resource.HasLoaded(), false);
@@ -1167,7 +1166,7 @@ test("CjsTextureArrayRes exposes texture parameter proxies backed by one parent"
   assert.equal(scheduled.length, 1);
 
   const detail1 = textureArray.GetLayerParameter(0);
-  assert.equal(detail1 instanceof CjsTextureParameterProxy, true);
+  assert.equal(detail1 instanceof CjsTextureArrayResParameterProxy, true);
   assert.equal(detail1.GetParameterName(), "Detail1Map");
   assert.equal(detail1.GetLayerIndex(), 0);
   assert.equal(detail1.GetValue(), "res:/texture/detail1.dds");
@@ -1220,7 +1219,7 @@ test("CjsTextureArrayRes coalesces proxy changes into the next frame request", (
   assert.equal(textureArray.NeedsUpdate(), false);
 });
 
-test("CjsTextureParameterProxy can attach a source while keeping the array as textureRes", () =>
+test("CjsTextureArrayResParameterProxy can attach a source while keeping the array as textureRes", () =>
 {
   const textureArray = new CjsTextureArrayRes({ layerCount: 2 });
   textureArray.ConsumeUpdateRequest();
@@ -1294,7 +1293,7 @@ test("CjsTextureArrayRes reports topology shrink with only valid current layers"
   assert.throws(() => textureArray.GetLayerResource(2), /out of range/u);
 });
 
-test("CjsTextureParameterProxy exposes source attachment and same-source revision changes", () =>
+test("CjsTextureArrayResParameterProxy exposes source attachment and same-source revision changes", () =>
 {
   let scheduled = 0;
   const textureArray = new CjsTextureArrayRes({
@@ -1658,6 +1657,10 @@ test("TriTextureRes and TriGeometryRes consume validated plain payloads", () => 
     pixelFormat: "bc1-rgba-unorm",
     mipCount: 1,
     isCompressed: true,
+    multiSampleType: 4,
+    multiSampleQuality: 2,
+    hadLodRequests: true,
+    originalMemoryUsage: 64,
     data: new Uint8Array(8),
     subresources: [ {
       mip: 0,
@@ -1676,7 +1679,19 @@ test("TriTextureRes and TriGeometryRes consume validated plain payloads", () => 
   const geometryPayload = {
     version: 1,
     sourceFormat: "cmf",
-    meshes: [ { name: "body", areas: [ { name: "hull" } ] } ],
+    meshes: [ {
+      name: "body",
+      bounds: { min: [ 0, 0, 0 ], max: [ 1, 1, 0 ] },
+      areas: [ {
+        name: "hull",
+        bounds: { min: [ 0, 0, 0 ], max: [ 1, 1, 0 ] }
+      } ],
+      vertex: {
+        position: [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ],
+        blendIndices: [ 7, 0, 0, 0, 8, 0, 0, 0, 9, 0, 0, 0 ]
+      },
+      indices: [ { name: "hull", faces: [ 0, 1, 2 ] } ]
+    } ],
     skeletons: [ { name: "skeleton" } ],
     animations: []
   };
@@ -1685,13 +1700,17 @@ test("TriTextureRes and TriGeometryRes consume validated plain payloads", () => 
   assert.equal(texture.GetPath(), "res:/texture/ship.dds");
   assert.equal(texture.width, 4);
   assert.equal(texture.GetMipCount(), 1);
+  assert.equal(texture.GetMsaaType(), 4);
+  assert.equal(texture.GetMsaaQuality(), 2);
+  assert.equal(texture.HadLodRequests(), true);
+  assert.equal(texture.GetOriginalMemoryUsage(), 64);
   assert.equal(texture.HasPayload(), true);
   assert.equal(texture.GetPayload().sourceFormat, "dds");
   assert.equal(TriTextureRes.payload, "texture");
   assert.equal(CjsSchema.GetConstructor("TriTextureRes"), TriTextureRes);
   assert.equal(CjsSchema.getField(TriTextureRes, "variants"), null);
   assert.equal(CjsSchema.getMethod(TriTextureRes, "PrepareResources").carbon.method, true);
-  assert.equal(CjsSchema.getMethod(TriTextureRes, "Save").impl.status, "notImplemented");
+  assert.equal(CjsSchema.getMethod(TriTextureRes, "Save").impl.status, "notSupported");
   assert.equal(CjsSchema.getMethod(TriTextureRes, "CreateEmptyTexture").impl.status, "notSupported");
   assert.equal(CjsSchema.getMethod(TriTextureRes, "SetPayload"), null);
 
@@ -1703,6 +1722,37 @@ test("TriTextureRes and TriGeometryRes consume validated plain payloads", () => 
   assert.equal(geometry.GetSkeletonData(-1), null);
   assert.equal(geometry.GetMeshAreaCount(0), 1);
   assert.equal(geometry.GetMeshAreaName(0, 0), "hull");
+  const boundsMin = new Float32Array(3);
+  const boundsMax = new Float32Array(3);
+  assert.equal(geometry.GetBoundingBox(0, boundsMin, boundsMax), true);
+  assert.deepEqual(Array.from(boundsMin), [ 0, 0, 0 ]);
+  assert.deepEqual(Array.from(boundsMax), [ 1, 1, 0 ]);
+  assert.deepEqual(
+    geometry.CalculateBoundingBoxFromTransform(0, [
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      3, 4, 5, 1
+    ]),
+    { min: [ 3, 4, 5 ], max: [ 4, 5, 5 ] }
+  );
+  assert.equal(geometry.RecalculateBoundingSphere(), true);
+  const sphere = new Float32Array(4);
+  assert.equal(geometry.GetBoundingSphere(0, sphere), true);
+  assert.deepEqual(Array.from(sphere.subarray(0, 3)), [ 0.5, 0.5, 0 ]);
+  assert.ok(Math.abs(sphere[3] - Math.SQRT1_2) < 1e-6);
+  assert.deepEqual(
+    geometry.GetIntersectionPointNormalBone([ 0.25, 0.25, 1 ], [ 0, 0, -1 ]),
+    {
+      hit: true,
+      boneIndex: 7,
+      point: [ 0.25, 0.25, 0 ],
+      normal: [ 0, 0, 1 ],
+      distance: 1,
+      meshIndex: 0,
+      areaIndex: 0
+    }
+  );
   assert.equal(geometry.HasPayload(), true);
   assert.equal(TriGeometryRes.payload, "geometry");
   assert.equal(CjsSchema.getField(TriGeometryRes, "meshes"), null);
@@ -1784,9 +1834,15 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
 });
 
 test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource loaded", async () => {
-  const source = new CjsMemoryResourceSource({
-    "res:/data/example.json": "{\"name\":\"example\"}"
-  });
+  const records = new Map([
+    [ "res:/data/example.json", "{\"name\":\"example\"}" ]
+  ]);
+  const source = {
+    Read(path)
+    {
+      return records.get(normalizeResourcePath(path));
+    }
+  };
   const resMan = new CjsResMan({ source });
 
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));

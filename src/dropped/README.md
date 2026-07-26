@@ -15,7 +15,7 @@ is not needed.
 Replacement surfaces:
 
 - `src/formats/*` writer methods, including CMF and STL writers
-- `src/resources/TriTextureRes.js` save/status compatibility methods
+- `src/resource/texture/TriTextureRes.js` save/status compatibility methods
 
 ## Tr2LoadPrepareFence
 
@@ -27,7 +27,7 @@ Carbon helper must not be exported as a second fence model.
 Replacement surfaces:
 
 - `src/CjsResMan.js` (`Wait`)
-- `src/CjsResManQueue.js`
+- `src/CjsResManWorkQueue.js`
 - `docs/reference/queues.md` snapshot-fence contract
 
 ## Tr2CmfContents and CmfVertexReader

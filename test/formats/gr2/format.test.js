@@ -5,7 +5,7 @@ import CjsGr2Format, {
     CjsFormatGr2
 } from "../../../src/formats/gr2/index.js";
 // CjsFormat pulls in decorated probe code - test the consumer output.
-import { ValidateFormatContract } from "../../../npm/dist/index.js";
+import { CjsFormat } from "../../../npm/dist/index.js";
 
 const MAGIC_32 = "29de6cc0baa4532b25f5b7a5f666e2ee";
 
@@ -55,7 +55,7 @@ test("exports default and named CjsGr2Format plus the migrated CjsFormatGr2 engi
 
 test("satisfies the runtime-resource format contract", () =>
 {
-    ValidateFormatContract(CjsGr2Format);
+    CjsFormat.validateContract(CjsGr2Format);
     assert.deepEqual([ ...CjsGr2Format.inputTypes ], [ "gr2", "gsf" ]);
     assert.deepEqual([ ...CjsGr2Format.mediaTypes ], [ "geometry" ]);
     assert.equal(typeof CjsGr2Format.read, "function");

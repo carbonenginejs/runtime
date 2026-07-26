@@ -1,7 +1,7 @@
 # Core class catalog
 
 Status: Evolving  
-Scope: `@carbonenginejs/runtime-resource` classes under `src/` and `src/format/`  
+Scope: `@carbonenginejs/runtime-resource` classes under `src/`, `src/resource`, and `src/format/`
 Audience: Users, maintainers, and automated readers  
 Summary: Provides one-sentence purpose descriptors for the resource manager, registry, resource, source, and format/probe base classes.
 
@@ -31,7 +31,7 @@ GPU-free resource manager that resolves paths through registered sources and for
 Small FIFO executor used inside `CjsResMan` that tracks item ids, pause state, concurrency, cancellation, and sync/async completion while queue policy stays in the manager.
 
 - Export: None
-- Source: `src/CjsResManQueue.js`
+- Source: `src/CjsResManWorkQueue.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
@@ -41,7 +41,7 @@ Small FIFO executor used inside `CjsResMan` that tracks item ids, pause state, c
 Base runtime resource handle that carries normalized path/extension/requirement identity, load state, and an attached CPU payload, with manager lifecycle callbacks supplied by `CjsResMan` after canonical insertion.
 
 - Export: `@carbonenginejs/runtime-resource`
-- Source: `src/CjsResource.js`
+- Source: `src/resource/CjsResource.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -75,23 +75,13 @@ Static browser-worker host that owns its operation/message vocabulary, executes 
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
-<!-- class:CjsMemoryResourceSource -->
-## `CjsMemoryResourceSource`
+<!-- class:CjsResManFetchProvider -->
+## `CjsResManFetchProvider`
 
-In-memory resource source that maps normalized resource paths to preset values and serves them to reads without any I/O.
-
-- Export: `@carbonenginejs/runtime-resource`
-- Source: `src/CjsResourceSource.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsFetchResourceSource -->
-## `CjsFetchResourceSource`
-
-Resource source that resolves a normalized path against an optional base URL, reads response bytes through an injected fetch implementation, and describes cloneable worker fetch requests when eligible.
+`CjsResMan` provider that fetches an already-resolved URL on the caller thread or through the resource worker.
 
 - Export: `@carbonenginejs/runtime-resource`
-- Source: `src/CjsResourceSource.js`
+- Source: `src/CjsResManFetchProvider.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 

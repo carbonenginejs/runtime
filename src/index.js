@@ -1,14 +1,11 @@
-export * from "./CjsResource.js";
-export * from "./resources/index.js";
-export * from "./audio/index.js";
-export * from "./texture/index.js";
+export * from "./resource/index.js";
 export * from "./format/CjsResourceProbe.js";
 export * from "./format/payloadContract.js";
 export * from "./format/CjsFormat.js";
 export { CjsEventEmitter } from "@carbonenginejs/runtime-utils/model";
 export * from "./CjsMotherLode.js";
-export * from "./CjsResourceSource.js";
+export * from "./CjsResManFetchProvider.js";
 export * from "./worker/CjsResManMainThreadLoader.js";
 export * from "./worker/CjsResManWorkerLoader.js";
-export { CjsResManQueue } from "./CjsResManQueue.js";
+export { CjsResManQueue } from "./CjsResManWorkQueue.js";
 export * from "./CjsResMan.js";

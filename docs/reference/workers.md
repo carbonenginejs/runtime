@@ -12,13 +12,16 @@ the worker lazily on the first eligible source or format read:
 
 ```js
 import {
-  CjsFetchResourceSource,
+  CjsResManFetchProvider,
   CjsResMan
 } from "@carbonenginejs/runtime-resource";
 import { CjsWemFormat } from "@carbonenginejs/runtime-resource/formats/wem";
 
 const resMan = new CjsResMan({
-  source: new CjsFetchResourceSource(),
+  paths: {
+    res: "https://cdn.example.invalid/resources/"
+  },
+  source: new CjsResManFetchProvider(),
   formats: [ CjsWemFormat ]
 });
 ```
@@ -50,7 +53,7 @@ to that worker, disables it, and leaves future reads able to fall back.
 A source opts into worker execution by implementing:
 
 ```js
-CreateWorkerRequest(path, options) {
+CreateWorkerRequest(sourcePath, options) {
   return {
     operation: "source.fetch",
     payload,
@@ -61,15 +64,18 @@ CreateWorkerRequest(path, options) {
 ```
 
 Returning `null` selects the main-thread fallback for that read.
-`CjsFetchResourceSource` implements this contract for its normal global
-`fetch` path and returns `ArrayBuffer` data using transfer ownership. An
-injected fetch implementation remains on the caller thread unless its source
-is explicitly created with `{ worker: true }`.
+`CjsResMan` resolves the resource path to a URL before invoking a URL-backed
+provider. `CjsResManFetchProvider` implements the worker contract for its
+normal global `fetch` path and returns `ArrayBuffer` data using transfer
+ownership. An injected fetch implementation remains on the caller thread
+unless its provider is explicitly created with `{ worker: true }`.
+Structural sources that do not declare `requiresUrl` continue to receive the
+normalized resource path.
 
 Fetch request options may include ordinary headers, including an HTTP `Range`
 header. Range capability, status interpretation, and the identity of an
-offset-backed logical resource remain source/provider policy; `CjsResMan`
-does not invent offset semantics.
+offset-backed logical resource remain provider policy; `CjsResMan` does not
+invent offset semantics.
 
 ## Format reads
 

@@ -5,8 +5,8 @@ loading contracts — the GPU-free resource layer.
 
 Use this package when you need Carbon-shaped resource loading (`res:/` paths,
 requirement/emit selection, `Ready()`/`GetObject()`) or one of the non-shader
-format readers, without choosing a GPU backend. It sits between source
-adapters and the engine packages that realize prepared resources. It does not
+format readers, without choosing a GPU backend. It sits between resource
+providers and the engine packages that realize prepared resources. It does not
 own WebGL/WebGPU realization, device budgets, or shader formats.
 
 ## Install
@@ -21,11 +21,17 @@ Concrete formats are explicit tree-shakeable subpaths, never imported by the
 package root:
 
 ```js
-import { CjsResMan } from "@carbonenginejs/runtime-resource";
+import {
+  CjsResMan,
+  CjsResManFetchProvider
+} from "@carbonenginejs/runtime-resource";
 import { CjsMp4Format } from "@carbonenginejs/runtime-resource/formats/mp4";
 
 const resMan = new CjsResMan().Register({
-  source,
+  paths: {
+    res: "https://cdn.example.invalid/resources/"
+  },
+  source: new CjsResManFetchProvider(),
   formats: [ CjsMp4Format ]
 });
 

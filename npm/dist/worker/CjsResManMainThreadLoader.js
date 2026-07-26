@@ -14,7 +14,7 @@ class CjsResManMainThreadLoader {
    * @returns {*} Source result or promise.
    */
   Read(source, path, options = {}) {
-    AssertResourceSource(source);
+    assertResourceSource(source);
     return source.Read(path, options);
   }
 
@@ -77,7 +77,7 @@ function readFormatOnCurrentThread(descriptor, input, formatOptions = {}) {
   }
   throw new TypeError(`${Format.name} does not expose a read operation.`);
 }
-function AssertResourceSource(source) {
+function assertResourceSource(source) {
   if (!source || typeof source !== "object" && typeof source !== "function" || typeof source.Read !== "function") {
     throw new TypeError("Resource source must provide Read(path, options).");
   }

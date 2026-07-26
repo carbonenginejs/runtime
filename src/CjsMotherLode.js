@@ -152,7 +152,7 @@ export class CjsMotherLode
   #cacheSize = DEFAULT_CACHE_SIZE;
   #entries = new Map();
   #nextCacheSequence = 1;
-  #now = DefaultNow;
+  #now = defaultNow;
 
   /**
    * Create an active deterministic resource registry.
@@ -245,15 +245,15 @@ export class CjsMotherLode
   {
     if (!this.#active)
     {
-      throw MotherLodeInactiveError();
+      throw motherLodeInactiveError();
     }
 
-    const { key, resource, options } = NormalizeInsertArguments(
+    const { key, resource, options } = normalizeInsertArguments(
       keyOrResource,
       resourceOrPath,
       optionsOrVariant
     );
-    AssertResource(resource);
+    assertResource(resource);
 
     const existing = this.#entries.get(key) || null;
     if (existing && existing.resource === resource)
@@ -263,11 +263,11 @@ export class CjsMotherLode
       this.#AssertRecordedBytesTotal(updated, existing);
       this.#TouchRecord(updated, options);
       Object.assign(existing, updated);
-      return FreezeInsertResult(key, resource, false, false, null);
+      return freezeInsertResult(key, resource, false, false, null);
     }
     if (existing && options.replace === false)
     {
-      return FreezeInsertResult(key, existing.resource, false, false, null);
+      return freezeInsertResult(key, existing.resource, false, false, null);
     }
 
     const record = this.#CreateRecord(key, resource, options, existing);
@@ -278,7 +278,7 @@ export class CjsMotherLode
     }
     this.#entries.set(key, record);
 
-    return FreezeInsertResult(key, resource, true, Boolean(existing), existing?.resource || null);
+    return freezeInsertResult(key, resource, true, Boolean(existing), existing?.resource || null);
   }
 
   /**
@@ -309,17 +309,17 @@ export class CjsMotherLode
   {
     if (!this.#active)
     {
-      throw MotherLodeInactiveError();
+      throw motherLodeInactiveError();
     }
 
-    const resolvedKey = NormalizeResolvedKey(key);
-    const policy = NormalizeOptions(options, "conditional replace");
+    const resolvedKey = normalizeResolvedKey(key);
+    const policy = normalizeOptions(options, "conditional replace");
     if (policy.commitGuard !== undefined && typeof policy.commitGuard !== "function")
     {
       throw new TypeError("CjsMotherLode conditional replace commitGuard must be a function.");
     }
-    AssertResource(expected);
-    AssertResource(resource);
+    assertResource(expected);
+    assertResource(resource);
     if (resource === expected)
     {
       const error = new Error("CjsMotherLode conditional replacement requires a distinct resource.");
@@ -330,7 +330,7 @@ export class CjsMotherLode
     const existing = this.#entries.get(resolvedKey) || null;
     if (!existing || existing.resource !== expected)
     {
-      return FreezeConditionalReplaceResult(
+      return freezeConditionalReplaceResult(
         resolvedKey,
         false,
         existing?.resource || null,
@@ -351,7 +351,7 @@ export class CjsMotherLode
     if ((policy.commitGuard && !policy.commitGuard())
       || this.#entries.get(resolvedKey) !== existing)
     {
-      return FreezeConditionalReplaceResult(
+      return freezeConditionalReplaceResult(
         resolvedKey,
         false,
         this.#entries.get(resolvedKey)?.resource || null,
@@ -360,7 +360,7 @@ export class CjsMotherLode
     }
     this.#entries.set(resolvedKey, record);
 
-    const result = FreezeConditionalReplaceResult(resolvedKey, true, resource, expected);
+    const result = freezeConditionalReplaceResult(resolvedKey, true, resource, expected);
     try
     {
       this.#CleanupRecord(existing, policy, "conditional replace");
@@ -389,7 +389,7 @@ export class CjsMotherLode
    */
   HasKey(key, variant = undefined)
   {
-    return this.#entries.has(NormalizeLookupKey(key, variant));
+    return this.#entries.has(normalizeLookupKey(key, variant));
   }
 
   /**
@@ -403,7 +403,7 @@ export class CjsMotherLode
    */
   Lookup(key, variant = undefined)
   {
-    return this.#entries.get(NormalizeLookupKey(key, variant))?.resource || null;
+    return this.#entries.get(normalizeLookupKey(key, variant))?.resource || null;
   }
 
   /**
@@ -420,7 +420,7 @@ export class CjsMotherLode
    */
   Delete(key, variantOrOptions = undefined, maybeOptions = undefined)
   {
-    const { resolvedKey, options } = NormalizeDeleteArguments(key, variantOrOptions, maybeOptions);
+    const { resolvedKey, options } = normalizeDeleteArguments(key, variantOrOptions, maybeOptions);
     const record = this.#entries.get(resolvedKey);
     if (!record) return false;
 
@@ -441,7 +441,7 @@ export class CjsMotherLode
    */
   DeleteAllVariants(path, options = {})
   {
-    const normalizedPath = NormalizePath(path);
+    const normalizedPath = normalizePath(path);
     const prefix = `${normalizedPath}\u0000`;
     const records = [];
 
@@ -512,7 +512,7 @@ export class CjsMotherLode
    */
   KeepAlive(key, variantOrOptions = undefined, maybeOptions = undefined)
   {
-    const { resolvedKey, options } = NormalizeActivityArguments(key, variantOrOptions, maybeOptions);
+    const { resolvedKey, options } = normalizeActivityArguments(key, variantOrOptions, maybeOptions);
     const record = this.#entries.get(resolvedKey);
     if (!record) return null;
     record.cached = false;
@@ -534,7 +534,7 @@ export class CjsMotherLode
    */
   KeepPayloadAlive(key, variantOrOptions = undefined, maybeOptions = undefined)
   {
-    const { resolvedKey, options } = NormalizeActivityArguments(key, variantOrOptions, maybeOptions);
+    const { resolvedKey, options } = normalizeActivityArguments(key, variantOrOptions, maybeOptions);
     const record = this.#entries.get(resolvedKey);
     if (!record) return null;
     record.cached = false;
@@ -556,7 +556,7 @@ export class CjsMotherLode
    */
   Lock(key, variant = undefined)
   {
-    const record = this.#entries.get(NormalizeLookupKey(key, variant));
+    const record = this.#entries.get(normalizeLookupKey(key, variant));
     if (!record) return 0;
     record.lockCount += 1;
     record.cached = false;
@@ -576,7 +576,7 @@ export class CjsMotherLode
    */
   Unlock(key, variant = undefined)
   {
-    const record = this.#entries.get(NormalizeLookupKey(key, variant));
+    const record = this.#entries.get(normalizeLookupKey(key, variant));
     if (!record) return 0;
     if (record.lockCount > 0) record.lockCount -= 1;
     return record.lockCount;
@@ -602,7 +602,7 @@ export class CjsMotherLode
    */
   PurgeInactive(options = {})
   {
-    const policy = NormalizePurgeOptions(options, this.#activityFrame, this.#now);
+    const policy = normalizePurgeOptions(options, this.#activityFrame, this.#now);
     this.#activityFrame = Math.max(this.#activityFrame, policy.frame);
 
     const purgedKeys = [];
@@ -618,7 +618,7 @@ export class CjsMotherLode
         continue;
       }
 
-      if (IsInactive(
+      if (isInactive(
         record.lastUsedFrame,
         record.lastUsedTime,
         policy.frame,
@@ -645,14 +645,14 @@ export class CjsMotherLode
         }
         catch (cause)
         {
-          errors.push(MotherLodeCleanupError("mark purged", key, record.resource, cause));
+          errors.push(motherLodeCleanupError("mark purged", key, record.resource, cause));
         }
         continue;
       }
 
       if (policy.releasePayload !== false
-        && HasOwnedPayload(record.resource)
-        && IsInactive(
+        && hasOwnedPayload(record.resource)
+        && isInactive(
           record.payloadLastUsedFrame,
           record.payloadLastUsedTime,
           policy.frame,
@@ -668,12 +668,12 @@ export class CjsMotherLode
         }
         catch (cause)
         {
-          errors.push(MotherLodeCleanupError("release inactive payload", key, record.resource, cause));
+          errors.push(motherLodeCleanupError("release inactive payload", key, record.resource, cause));
         }
       }
     }
 
-    const result = FreezePurgeResult(policy.frame, policy.time, purgedKeys, payloadKeys, locked);
+    const result = freezePurgeResult(policy.frame, policy.time, purgedKeys, payloadKeys, locked);
     if (errors.length)
     {
       const error = new AggregateError(errors, "CjsMotherLode inactivity purge failed.");
@@ -707,7 +707,7 @@ export class CjsMotherLode
    */
   TrimCache(options = {})
   {
-    const policy = NormalizeOptions(options, "cache trim");
+    const policy = normalizeOptions(options, "cache trim");
     const beforeBytes = this.#GetCacheBytes();
     const evictedKeys = [];
     const failedKeys = [];
@@ -759,14 +759,14 @@ export class CjsMotherLode
         }
         catch (cause)
         {
-          errors.push(MotherLodeCleanupError("mark cache eviction purged", record.key, record.resource, cause));
+          errors.push(motherLodeCleanupError("mark cache eviction purged", record.key, record.resource, cause));
           failedKeys.push(record.key);
         }
       }
     }
 
     const afterBytes = this.#GetCacheBytes();
-    const result = FreezeCacheTrimResult(
+    const result = freezeCacheTrimResult(
       this.#cacheSize,
       beforeBytes,
       afterBytes,
@@ -797,8 +797,8 @@ export class CjsMotherLode
    */
   SetCacheSize(bytes, options = {})
   {
-    AssertNonNegativeSafeInteger(bytes, "CjsMotherLode cache size");
-    const policy = NormalizeOptions(options, "set cache size");
+    assertNonNegativeSafeInteger(bytes, "CjsMotherLode cache size");
+    const policy = normalizeOptions(options, "set cache size");
     this.#cacheSize = bytes;
     this.TrimCache(policy);
     return this;
@@ -870,9 +870,9 @@ export class CjsMotherLode
         cacheBytes += record.bytes;
       }
       if (record.lockCount > 0) locked += 1;
-      if (HasOwnedPayload(record.resource)) payloads += 1;
+      if (hasOwnedPayload(record.resource)) payloads += 1;
 
-      const path = record.resource?.GetPath?.() || record.resource?.path || GetKeyPath(record.key);
+      const path = record.resource?.GetPath?.() || record.resource?.path || getKeyPath(record.key);
       if (path) paths.add(path);
 
       const state = typeof record.resource?.state === "string" ? record.resource.state : "unknown";
@@ -986,7 +986,7 @@ export class CjsMotherLode
   {
     if (options.bytes !== undefined)
     {
-      AssertNonNegativeSafeInteger(options.bytes, "CjsMotherLode entry bytes");
+      assertNonNegativeSafeInteger(options.bytes, "CjsMotherLode entry bytes");
       record.bytes = options.bytes;
     }
     if (options.cacheable !== undefined) record.cacheable = Boolean(options.cacheable);
@@ -1054,7 +1054,7 @@ export class CjsMotherLode
   #TouchRecord(record, options)
   {
     const frame = options.frame === undefined ? this.#activityFrame + 1 : options.frame;
-    AssertNonNegativeSafeInteger(frame, "CjsMotherLode activity frame");
+    assertNonNegativeSafeInteger(frame, "CjsMotherLode activity frame");
     this.#activityFrame = Math.max(this.#activityFrame, frame);
     record.lastUsedFrame = frame;
 
@@ -1082,9 +1082,9 @@ export class CjsMotherLode
     let cleanupComplete = false;
     try
     {
-      CleanupOwnedResource(record.resource, options);
+      cleanupOwnedResource(record.resource, options);
       cleanupComplete = true;
-      DetachResourceLifecycle(record.resource);
+      detachResourceLifecycle(record.resource);
     }
     catch (cause)
     {
@@ -1092,14 +1092,14 @@ export class CjsMotherLode
       {
         try
         {
-          DetachResourceLifecycle(record.resource);
+          detachResourceLifecycle(record.resource);
         }
         catch (detachCause)
         {
           cause = new AggregateError([ cause, detachCause ], "Resource cleanup and detach failed.");
         }
       }
-      throw MotherLodeCleanupError(operation, record.key, record.resource, cause);
+      throw motherLodeCleanupError(operation, record.key, record.resource, cause);
     }
   }
 
@@ -1119,19 +1119,19 @@ export class CjsMotherLode
     {
       try
       {
-        CleanupOwnedResource(record.resource, options);
+        cleanupOwnedResource(record.resource, options);
       }
       catch (cause)
       {
-        errors.push(MotherLodeCleanupError(operation, record.key, record.resource, cause));
+        errors.push(motherLodeCleanupError(operation, record.key, record.resource, cause));
       }
       try
       {
-        DetachResourceLifecycle(record.resource);
+        detachResourceLifecycle(record.resource);
       }
       catch (cause)
       {
-        errors.push(MotherLodeCleanupError(`${operation} detach`, record.key, record.resource, cause));
+        errors.push(motherLodeCleanupError(`${operation} detach`, record.key, record.resource, cause));
       }
     }
     if (errors.length)
@@ -1154,7 +1154,7 @@ export class CjsMotherLode
  */
 export function getMotherLodeKey(path, variant = "")
 {
-  const normalizedPath = NormalizePath(path);
+  const normalizedPath = normalizePath(path);
   if (variant === null || variant === undefined || variant === "") return normalizedPath;
 
   const normalizedVariant = String(variant);
@@ -1165,61 +1165,61 @@ export function getMotherLodeKey(path, variant = "")
   return `${normalizedPath}\u0000${normalizedVariant}`;
 }
 
-function NormalizeInsertArguments(keyOrResource, resourceOrPath, optionsOrVariant)
+function normalizeInsertArguments(keyOrResource, resourceOrPath, optionsOrVariant)
 {
   if (typeof keyOrResource === "string")
   {
     return {
-      key: NormalizeResolvedKey(keyOrResource),
+      key: normalizeResolvedKey(keyOrResource),
       resource: resourceOrPath,
-      options: NormalizeOptions(optionsOrVariant, "insert")
+      options: normalizeOptions(optionsOrVariant, "insert")
     };
   }
 
   const resource = keyOrResource;
   const path = resourceOrPath ?? resource?.GetPath?.() ?? resource?.path;
   const isOptions = optionsOrVariant && typeof optionsOrVariant === "object" && !Array.isArray(optionsOrVariant);
-  const options = isOptions ? NormalizeOptions(optionsOrVariant, "insert") : {};
+  const options = isOptions ? normalizeOptions(optionsOrVariant, "insert") : {};
   const variant = isOptions ? options.variant || "" : optionsOrVariant;
   return { key: getMotherLodeKey(path, variant), resource, options };
 }
 
-function NormalizeDeleteArguments(key, variantOrOptions, maybeOptions)
+function normalizeDeleteArguments(key, variantOrOptions, maybeOptions)
 {
   if (variantOrOptions && typeof variantOrOptions === "object" && !Array.isArray(variantOrOptions))
   {
     return {
-      resolvedKey: NormalizeResolvedKey(key),
-      options: NormalizeOptions(variantOrOptions, "delete")
+      resolvedKey: normalizeResolvedKey(key),
+      options: normalizeOptions(variantOrOptions, "delete")
     };
   }
   return {
-    resolvedKey: NormalizeLookupKey(key, variantOrOptions),
-    options: NormalizeOptions(maybeOptions || {}, "delete")
+    resolvedKey: normalizeLookupKey(key, variantOrOptions),
+    options: normalizeOptions(maybeOptions || {}, "delete")
   };
 }
 
-function NormalizeActivityArguments(key, variantOrOptions, maybeOptions)
+function normalizeActivityArguments(key, variantOrOptions, maybeOptions)
 {
   if (variantOrOptions && typeof variantOrOptions === "object" && !Array.isArray(variantOrOptions))
   {
     return {
-      resolvedKey: NormalizeResolvedKey(key),
-      options: NormalizeOptions(variantOrOptions, "activity")
+      resolvedKey: normalizeResolvedKey(key),
+      options: normalizeOptions(variantOrOptions, "activity")
     };
   }
   return {
-    resolvedKey: NormalizeLookupKey(key, variantOrOptions),
-    options: NormalizeOptions(maybeOptions || {}, "activity")
+    resolvedKey: normalizeLookupKey(key, variantOrOptions),
+    options: normalizeOptions(maybeOptions || {}, "activity")
   };
 }
 
-function NormalizeLookupKey(key, variant)
+function normalizeLookupKey(key, variant)
 {
-  return variant === undefined ? NormalizeResolvedKey(key) : getMotherLodeKey(key, variant);
+  return variant === undefined ? normalizeResolvedKey(key) : getMotherLodeKey(key, variant);
 }
 
-function NormalizeResolvedKey(key)
+function normalizeResolvedKey(key)
 {
   if (typeof key !== "string" || !key)
   {
@@ -1231,14 +1231,14 @@ function NormalizeResolvedKey(key)
     : getMotherLodeKey(key.slice(0, separator), key.slice(separator + 1));
 }
 
-function NormalizePath(path)
+function normalizePath(path)
 {
   const normalizedPath = normalizeResourcePath(path);
   if (!normalizedPath) throw new TypeError("CjsMotherLode requires a resource path.");
   return normalizedPath;
 }
 
-function NormalizeOptions(options, operation)
+function normalizeOptions(options, operation)
 {
   if (options === null || options === undefined) return {};
   if (!options || typeof options !== "object" || Array.isArray(options))
@@ -1256,27 +1256,27 @@ function NormalizeOptions(options, operation)
  * @param {() => number} now Registry clock.
  * @returns {CjsMotherLodePurgeOptions & {frame: number, time: number}} Validated sweep policy.
  */
-function NormalizePurgeOptions(options, activityFrame, now)
+function normalizePurgeOptions(options, activityFrame, now)
 {
-  const policy = NormalizeOptions(options, "purge");
+  const policy = normalizeOptions(options, "purge");
   const frame = policy.frame === undefined ? activityFrame + 1 : policy.frame;
-  AssertNonNegativeSafeInteger(frame, "CjsMotherLode purge frame");
+  assertNonNegativeSafeInteger(frame, "CjsMotherLode purge frame");
 
   const time = policy.time === undefined ? now() : policy.time;
-  AssertNonNegativeFiniteNumber(time, "CjsMotherLode purge time");
+  assertNonNegativeFiniteNumber(time, "CjsMotherLode purge time");
 
   for (const name of [ "maxIdleFrames", "payloadMaxIdleFrames" ])
   {
     if (policy[name] !== undefined)
     {
-      AssertNonNegativeSafeInteger(policy[name], `CjsMotherLode ${name}`);
+      assertNonNegativeSafeInteger(policy[name], `CjsMotherLode ${name}`);
     }
   }
   for (const name of [ "maxIdleMilliseconds", "payloadMaxIdleMilliseconds" ])
   {
     if (policy[name] !== undefined)
     {
-      AssertNonNegativeFiniteNumber(policy[name], `CjsMotherLode ${name}`);
+      assertNonNegativeFiniteNumber(policy[name], `CjsMotherLode ${name}`);
     }
   }
 
@@ -1294,7 +1294,7 @@ function NormalizePurgeOptions(options, activityFrame, now)
  * @param {number|undefined} maxMilliseconds Optional millisecond limit.
  * @returns {boolean} Whether at least one configured limit has elapsed.
  */
-function IsInactive(lastFrame, lastTime, frame, time, maxFrames, maxMilliseconds)
+function isInactive(lastFrame, lastTime, frame, time, maxFrames, maxMilliseconds)
 {
   const frameExpired = maxFrames !== undefined
     && frame >= lastFrame
@@ -1311,7 +1311,7 @@ function IsInactive(lastFrame, lastTime, frame, time, maxFrames, maxMilliseconds
  * @param {object|Function} resource Candidate resource.
  * @returns {boolean} Whether `ReleasePayload()` can remove an attached payload.
  */
-function HasOwnedPayload(resource)
+function hasOwnedPayload(resource)
 {
   return typeof resource?.HasPayload === "function"
     && typeof resource?.ReleasePayload === "function"
@@ -1324,12 +1324,12 @@ function HasOwnedPayload(resource)
  * @param {object|Function} resource Removed resource.
  * @returns {void}
  */
-function DetachResourceLifecycle(resource)
+function detachResourceLifecycle(resource)
 {
   resource?.SetLifecycleController?.(null);
 }
 
-function CleanupOwnedResource(resource, options)
+function cleanupOwnedResource(resource, options)
 {
   if (options.cleanup === false) return;
   if (typeof options.cleanup === "function")
@@ -1367,7 +1367,7 @@ function CleanupOwnedResource(resource, options)
   }
 }
 
-function AssertResource(resource)
+function assertResource(resource)
 {
   if ((typeof resource !== "object" && typeof resource !== "function") || resource === null)
   {
@@ -1375,7 +1375,7 @@ function AssertResource(resource)
   }
 }
 
-function AssertNonNegativeSafeInteger(value, label)
+function assertNonNegativeSafeInteger(value, label)
 {
   if (!Number.isSafeInteger(value) || value < 0)
   {
@@ -1390,7 +1390,7 @@ function AssertNonNegativeSafeInteger(value, label)
  * @param {string} label Error-message field name.
  * @returns {void}
  */
-function AssertNonNegativeFiniteNumber(value, label)
+function assertNonNegativeFiniteNumber(value, label)
 {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0)
   {
@@ -1398,7 +1398,7 @@ function AssertNonNegativeFiniteNumber(value, label)
   }
 }
 
-function FreezeInsertResult(key, resource, inserted, replaced, displaced)
+function freezeInsertResult(key, resource, inserted, replaced, displaced)
 {
   return Object.freeze({ key, resource, inserted, replaced, displaced });
 }
@@ -1412,7 +1412,7 @@ function FreezeInsertResult(key, resource, inserted, replaced, displaced)
  * @param {object|Function|null} displaced Former owner when committed.
  * @returns {CjsMotherLodeConditionalReplaceResult} Immutable replacement result.
  */
-function FreezeConditionalReplaceResult(key, committed, resource, displaced)
+function freezeConditionalReplaceResult(key, committed, resource, displaced)
 {
   return Object.freeze({ key, committed, resource, displaced });
 }
@@ -1427,7 +1427,7 @@ function FreezeConditionalReplaceResult(key, committed, resource, displaced)
  * @param {number} locked Number of locked entries skipped.
  * @returns {CjsMotherLodePurgeResult} Immutable sweep result.
  */
-function FreezePurgeResult(frame, time, purgedKeys, payloadKeys, locked)
+function freezePurgeResult(frame, time, purgedKeys, payloadKeys, locked)
 {
   return Object.freeze({
     frame,
@@ -1451,7 +1451,7 @@ function FreezePurgeResult(frame, time, purgedKeys, payloadKeys, locked)
  * @param {string[]} failedKeys Candidate identities that reported failure.
  * @returns {CjsMotherLodeCacheTrimResult} Immutable cache-housekeeping result.
  */
-function FreezeCacheTrimResult(
+function freezeCacheTrimResult(
   cacheSize,
   beforeBytes,
   afterBytes,
@@ -1473,14 +1473,14 @@ function FreezeCacheTrimResult(
   });
 }
 
-function MotherLodeInactiveError()
+function motherLodeInactiveError()
 {
   const error = new Error("CjsMotherLode is shut down. Call Startup() before inserting resources.");
   error.code = "CJS_MOTHERLODE_INACTIVE";
   return error;
 }
 
-function MotherLodeCleanupError(operation, key, resource, cause)
+function motherLodeCleanupError(operation, key, resource, cause)
 {
   const error = new Error(`CjsMotherLode ${operation} cleanup failed for ${key}.`, { cause });
   error.code = "CJS_MOTHERLODE_CLEANUP_FAILED";
@@ -1490,13 +1490,13 @@ function MotherLodeCleanupError(operation, key, resource, cause)
   return error;
 }
 
-function GetKeyPath(key)
+function getKeyPath(key)
 {
   const separator = key.indexOf("\u0000");
   return separator === -1 ? key : key.slice(0, separator);
 }
 
-function DefaultNow()
+function defaultNow()
 {
   return Date.now();
 }

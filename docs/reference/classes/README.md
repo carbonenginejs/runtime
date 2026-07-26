@@ -21,14 +21,14 @@ documentation check against the actual source tree.
 
 ## Catalog pages
 
-- [core.md](core.md): the resource manager, MotherLode cache, resource and
-  source classes, and the format/probe bases.
+- [core.md](core.md): the resource manager, MotherLode cache, fetch provider,
+  core resource class, and the format/probe bases.
 - [audio.md](audio.md): raw audio-byte owners and individually addressable
   audio resource views.
 - [resources.md](resources.md): the Carbon-shaped semantic resource and data
-  classes under `src/resources`.
+  classes in the `src/resource` family tree.
 - [texture.md](texture.md): texture-array aggregation classes under
-  `src/texture`.
+  `src/resource/texture`.
 - [formats.md](formats.md): format entry classes and their internal reader
   machinery under `src/formats`.
 - [dropped.md](dropped.md): retained native shapes under `src/dropped` that

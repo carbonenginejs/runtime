@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   CjsAudioBufferRes,
   CjsAudioRes
-} from "../npm/dist/audio/index.js";
+} from "../npm/dist/resource/audio/index.js";
 import {
   CjsAudioBufferRes as RootCjsAudioBufferRes,
   CjsAudioRes as RootCjsAudioRes

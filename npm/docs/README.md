@@ -9,7 +9,7 @@ Summary: Documentation home for the GPU-free resource lifecycle, cache, format, 
 
 `@carbonenginejs/runtime-resource` owns the GPU-free resource layer of
 CarbonEngineJS: resource identity and state, the MotherLode cache, semantic
-resource classes, registered format readers, source adapters, and the queued
+resource classes, registered format readers, fetch providers, and the queued
 CPU load/publication pipeline. It stops at a published CPU payload; engine
 packages realize that payload into backend objects.
 

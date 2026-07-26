@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as RuntimeResource from "../npm/dist/index.js";
 import {
-  CjsFetchResourceSource,
+  CjsResManFetchProvider,
   CjsResManMainThreadLoader,
   CjsResManWorkerLoader,
   CjsResMan,
@@ -151,13 +151,13 @@ test("worker loader aborts requests and rejects every request on fatal worker fa
   assert.equal(loader.IsAvailable(), false);
 });
 
-test("fetch sources describe worker reads without serializing ResMan-only options", () => {
-  const source = new CjsFetchResourceSource({
-    baseUrl: "https://example.invalid/base/",
+test("fetch providers consume resolved URLs without serializing ResMan-only options", () => {
+  const source = new CjsResManFetchProvider({
     fetchOptions: { credentials: "include" }
   });
   const signal = new AbortController().signal;
-  const request = source.CreateWorkerRequest("res:/audio/test.wem", {
+  const request = source.CreateWorkerRequest("https://example.invalid/base/audio/test.wem", {
+    resourcePath: "res:/audio/test.wem",
     emit: "pcm",
     cacheSource: true,
     headers: { Range: "bytes=4-12" },
@@ -165,7 +165,8 @@ test("fetch sources describe worker reads without serializing ResMan-only option
   });
 
   assert.equal(request.operation, CjsResManWorker.Operation.FETCH);
-  assert.equal(request.payload.url, "res:/audio/test.wem");
+  assert.equal(request.payload.url, "https://example.invalid/base/audio/test.wem");
+  assert.equal(request.payload.path, "res:/audio/test.wem");
   assert.deepEqual(request.payload.options, {
     credentials: "include",
     headers: { Range: "bytes=4-12" }
@@ -174,21 +175,54 @@ test("fetch sources describe worker reads without serializing ResMan-only option
   assert.equal("emit" in request.payload.options, false);
   assert.equal("cacheSource" in request.payload.options, false);
 
-  const customFetch = new CjsFetchResourceSource({ fetch() {} });
-  assert.equal(customFetch.CreateWorkerRequest("res:/custom.bin"), null);
+  const customFetch = new CjsResManFetchProvider({ fetch() {} });
+  assert.equal(customFetch.CreateWorkerRequest("https://example.invalid/custom.bin"), null);
 
-  const headerSource = new CjsFetchResourceSource({
+  const headerSource = new CjsResManFetchProvider({
     fetchOptions: { headers: new Map([[ "Accept", "application/octet-stream" ]]) }
   });
   assert.deepEqual(
-    headerSource.CreateWorkerRequest("res:/headers.bin").payload.options.headers,
+    headerSource.CreateWorkerRequest("https://example.invalid/headers.bin").payload.options.headers,
     [[ "Accept", "application/octet-stream" ]]
   );
 });
 
-test("CjsResMan loads fetch-source files through its default worker strategy", async () => {
+test("CjsResMan is the only built-in resource-path-to-URL resolver", () =>
+{
+  const resMan = new CjsResMan({
+    paths: {
+      res: "https://cdn.example.invalid/assets"
+    }
+  });
+
+  assert.equal(resMan.HasPath("RES:/"), true);
+  assert.equal(
+    resMan.GetPath("res"),
+    "https://cdn.example.invalid/assets/"
+  );
+  assert.equal(
+    resMan.BuildUrl("RES:/Texture/Ship.DDS"),
+    "https://cdn.example.invalid/assets/texture/ship.dds"
+  );
+  assert.equal(
+    resMan.BuildUrl("https://example.invalid/Case/File.bin"),
+    "https://example.invalid/Case/File.bin"
+  );
+  assert.throws(
+    () => resMan.BuildUrl("aud:/bank/music.bnk"),
+    error => error.code === "CJS_RESMAN_PATH_PREFIX_UNREGISTERED"
+  );
+
+  resMan.SetPathResolver(path => `https://proxy.example.invalid/${encodeURIComponent(path)}`);
+  assert.equal(
+    resMan.BuildUrl("aud:/bank/music.bnk"),
+    "https://proxy.example.invalid/aud%3A%2Fbank%2Fmusic.bnk"
+  );
+});
+
+test("CjsResMan loads fetch-provider files through its default worker strategy", async () => {
   const worker = new FakeWorker();
-  const source = new CjsFetchResourceSource({
+  const source = new CjsResManFetchProvider({
     fetch() {
       throw new Error("main-thread fetch should not run");
     },
@@ -197,6 +231,9 @@ test("CjsResMan loads fetch-source files through its default worker strategy", a
   const resMan = new CjsResMan({
     autoPumpMainThreadQueue: false,
     source,
+    paths: {
+      res: "https://example.invalid/resources/"
+    },
     workerLoader: { worker }
   });
   resMan.RegisterObjectLoader("bin", input => new Uint8Array(input));
@@ -207,6 +244,10 @@ test("CjsResMan loads fetch-source files through its default worker strategy", a
   const request = worker.messages[0].message;
   assert.equal(request.operation, CjsResManWorker.Operation.FETCH);
   assert.equal(request.payload.path, "res:/worker/default.bin");
+  assert.equal(
+    request.payload.url,
+    "https://example.invalid/resources/worker/default.bin"
+  );
 
   const buffer = new Uint8Array([ 6, 7 ]).buffer;
   worker.Emit("message", {
@@ -232,7 +273,7 @@ test("CjsResMan loads fetch-source files through its default worker strategy", a
 
 test("worker operation host executes fetch and dynamic format modules", async () => {
   const bytes = new Uint8Array([ 3, 4, 5 ]);
-  const fetched = await CjsResManWorker.Execute(
+  const fetched = await CjsResManWorker.execute(
     CjsResManWorker.Operation.FETCH,
     {
       url: "https://example.invalid/data.bin",
@@ -253,7 +294,7 @@ test("worker operation host executes fetch and dynamic format modules", async ()
   );
   assert.equal(fetched, bytes.buffer);
 
-  const formatted = await CjsResManWorker.Execute(
+  const formatted = await CjsResManWorker.execute(
     CjsResManWorker.Operation.FORMAT_READ,
     {
       module: workerFormatUrl,
@@ -283,7 +324,7 @@ test("worker entry installs the execute/result message envelope", async () => {
       responses.push({ message, transfer });
     }
   };
-  const uninstall = CjsResManWorker.Install(scope);
+  const uninstall = CjsResManWorker.install(scope);
 
   await onMessage({
     data: {
@@ -312,7 +353,7 @@ test("worker helpers collect unique buffers and serialize cloneable errors", () 
   const first = new Uint8Array([ 1, 2 ]);
   const second = new ArrayBuffer(3);
   assert.deepEqual(
-    CjsResManWorker.CollectTransferables({
+    CjsResManWorker.collectTransferables({
       first,
       alias: new Uint8Array(first.buffer),
       nested: [ second ]
@@ -324,7 +365,7 @@ test("worker helpers collect unique buffers and serialize cloneable errors", () 
   failure.code = "TEST_WORKER";
   failure.path = "res:/bad.bin";
   assert.deepEqual(
-    CjsResManWorker.SerializeError(failure, "test"),
+    CjsResManWorker.serializeError(failure, "test"),
     {
       name: "Error",
       message: "bad worker operation",

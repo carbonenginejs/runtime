@@ -27,6 +27,31 @@ resource preparation abstraction:
 - purged-resource/device-loss recovery policy (backend device-loss recovery
   belongs to the engine's realization operation).
 
+## Browser shader formats
+
+The HLSL, DXBC, WebGL, and WebGPU format packages are expected to migrate into
+runtime-resource as independently exported format entry points. HLSL and DXBC
+remain directly usable; WebGL and WebGPU may compose them to read DX11/DX12
+effect inputs and translate them in the browser.
+
+Browser-targeted production modules must not import or require Node-only
+shader libraries. A format package may use local Node libraries as development
+or test dependencies for fixtures, comparison, and conformance checks, but
+those libraries must not ship and must not be runtime dependencies.
+
+ccpwgl currently preserves an authored `.fx` path while `Tw2Device` maps it to
+a backend-specific remote namespace such as `effect.gles2` or `effect.webgl2`
+and appends the selected shader-model extension. The migrated resource/format
+contract must retain both use cases:
+
+- resolve and load a pretranslated backend artifact from a remote resource
+  provider or tools-core cache; and
+- fall back to the authored effect input and translate it in the browser.
+
+The authored effect path should remain the stable identity. Backend profile,
+shader model, translated cache path, and translation capabilities are
+resolution facts rather than changes a caller must make to its source path.
+
 ## Pre-adoption lifecycle API cleanup (approved, not implemented)
 
 No released consumer currently depends on the ccpwgl-compatible liveness

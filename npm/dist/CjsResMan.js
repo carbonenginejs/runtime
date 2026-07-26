@@ -1,8 +1,9 @@
 import { CjsMotherLode, getMotherLodeKey } from './CjsMotherLode.js';
 import { CjsEventEmitter } from '@carbonenginejs/runtime-utils/model';
-import { normalizeResourceExtension, normalizeResourcePath, getResourceExtension } from '@carbonenginejs/runtime-utils/path';
-import { CjsResource as _CjsResource } from './CjsResource.js';
-import { CjsResManWorkQueue, CjsResManQueue, NormalizeCjsResManQueue } from './CjsResManQueue.js';
+import { hasOwnThen } from '@carbonenginejs/runtime-utils/object';
+import { normalizeResourcePath, normalizePath, normalizeResourceExtension, getResourceExtension } from '@carbonenginejs/runtime-utils/path';
+import { CjsResource as _CjsResource } from './resource/CjsResource.js';
+import { CjsResManWorkQueue, CjsResManQueue } from './CjsResManWorkQueue.js';
 import { CjsResManMainThreadLoader } from './worker/CjsResManMainThreadLoader.js';
 import { CjsResManWorkerLoader } from './worker/CjsResManWorkerLoader.js';
 
@@ -32,6 +33,7 @@ let nextLocalValueIdentity = 1;
  * @property {CjsResMan} resMan Owning manager.
  * @property {object|Function} source Selected source implementation.
  * @property {string} path Normalized Carbon-style source path.
+ * @property {string} sourcePath Resource path or URL passed to the selected source.
  * @property {string|number|undefined} sourceRevision Caller content token.
  * @property {string} revisionKey Type-stable internal form of the content token.
  */
@@ -174,6 +176,8 @@ class CjsResMan extends CjsEventEmitter {
     super();
     this.motherLode = new CjsMotherLode();
     this.source = null;
+    this.paths = new Map();
+    this.pathResolver = null;
     this.resourceTypes = new Map();
     this.objectLoaders = new Map();
     this.formats = new Map();
@@ -190,7 +194,7 @@ class CjsResMan extends CjsEventEmitter {
     this.maxPrepareTime = 0.005;
     this.maxPrepareItemsPerTick = 0;
     this.autoPumpMainThreadQueue = true;
-    this.queueScheduler = DefaultQueueScheduler;
+    this.queueScheduler = defaultQueueScheduler;
     this.urgentResourceLoads = false;
     this._backgroundPumpScheduled = false;
     this._mainThreadPumpScheduled = false;
@@ -221,6 +225,8 @@ class CjsResMan extends CjsEventEmitter {
    * @param {number} [options.cacheSize] Recorded-byte budget immediately installed on the active MotherLode.
    * @param {object} [options.cacheCleanup] Cleanup policy used if a smaller configured budget evicts cached identities.
    * @param {object} [options.mainThreadLoader] Direct execution strategy.
+   * @param {object|Map<string,string>} [options.paths] Resource-prefix URL bases.
+   * @param {Function|null} [options.pathResolver] Optional complete resource-path-to-URL resolver.
    * @param {object} [options.workerLoader] Worker loader instance or construction options.
    * @param {boolean} [options.useWorkerLoading=true] Whether worker-backed execution is selected.
    * @returns {CjsResMan} This resource manager.
@@ -231,69 +237,59 @@ class CjsResMan extends CjsEventEmitter {
     if (!options || typeof options !== "object" || Array.isArray(options)) {
       throw new TypeError("CjsResMan.Register options must be an object.");
     }
-    if (Object.prototype.hasOwnProperty.call(options, "motherLode")) {
-      const nextMotherLode = options.motherLode || new CjsMotherLode();
-      if (nextMotherLode !== this.motherLode) {
-        if (this.#activeResourceOperations > 0) {
-          throw ActiveResourceOperationsError(this.#activeResourceOperations);
+    hasOwnThen(options, {
+      motherLode: value => {
+        const nextMotherLode = value || new CjsMotherLode();
+        if (nextMotherLode !== this.motherLode) {
+          if (this.#activeResourceOperations > 0) {
+            throw activeResourceOperationsError(this.#activeResourceOperations);
+          }
+          const previousMotherLode = this.motherLode;
+          this.#InvalidateMotherLodeOwnership(previousMotherLode);
+          previousMotherLode?.Shutdown?.();
+          this.motherLode = nextMotherLode;
+          this.motherLode.Startup?.();
+          this.#BindMotherLodeResources();
+          this.#reloadGenerations.clear();
+          this.#lastAutoPurgeTime = null;
         }
-        const previousMotherLode = this.motherLode;
-        this.#InvalidateMotherLodeOwnership(previousMotherLode);
-        previousMotherLode?.Shutdown?.();
-        this.motherLode = nextMotherLode;
-        this.motherLode.Startup?.();
-        this.#BindMotherLodeResources();
-        this.#reloadGenerations.clear();
-        this.#lastAutoPurgeTime = null;
-      }
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "cacheSize")) {
-      this.motherLode.SetCacheSize(options.cacheSize, options.cacheCleanup || {});
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "autoPurgePolicy")) {
-      this.SetAutoPurgePolicy(options.autoPurgePolicy);
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "source")) {
-      this.SetSource(options.source);
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "mainThreadLoader")) {
-      this.SetMainThreadLoader(options.mainThreadLoader);
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "workerLoader")) {
-      this.SetWorkerLoader(options.workerLoader);
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "useWorkerLoading")) {
-      this.UseWorkerLoading(options.useWorkerLoading);
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "maxConcurrentLoads")) {
-      AssertPositiveInteger(options.maxConcurrentLoads, "maxConcurrentLoads");
-      this.maxConcurrentLoads = options.maxConcurrentLoads;
-      this._loadQueue.SetConcurrency(this.maxConcurrentLoads);
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "maxPrepareTime")) {
-      AssertNonNegativeNumber(options.maxPrepareTime, "maxPrepareTime");
-      this.maxPrepareTime = options.maxPrepareTime;
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "maxPrepareItemsPerTick")) {
-      AssertNonNegativeInteger(options.maxPrepareItemsPerTick, "maxPrepareItemsPerTick");
-      this.maxPrepareItemsPerTick = options.maxPrepareItemsPerTick;
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "autoPumpMainThreadQueue")) {
-      this.autoPumpMainThreadQueue = Boolean(options.autoPumpMainThreadQueue);
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "queueScheduler")) {
-      if (options.queueScheduler !== null && typeof options.queueScheduler !== "function") {
-        throw new TypeError("CjsResMan queueScheduler must be a function or null.");
-      }
-      this.queueScheduler = options.queueScheduler || DefaultQueueScheduler;
-    }
-    if (Object.prototype.hasOwnProperty.call(options, "urgentResourceLoads")) {
-      this.SetUrgentResourceLoads(options.urgentResourceLoads);
-    }
-    for (const entry of NormalizeRegistrationEntries(options.formats)) {
+      },
+      cacheSize: value => this.motherLode.SetCacheSize(value, options.cacheCleanup || {}),
+      autoPurgePolicy: this.SetAutoPurgePolicy,
+      source: this.SetSource,
+      paths: this.SetPaths,
+      pathResolver: this.SetPathResolver,
+      mainThreadLoader: this.SetMainThreadLoader,
+      workerLoader: this.SetWorkerLoader,
+      useWorkerLoading: this.UseWorkerLoading,
+      maxConcurrentLoads: value => {
+        assertPositiveInteger(value, "maxConcurrentLoads");
+        this.maxConcurrentLoads = value;
+        this._loadQueue.SetConcurrency(value);
+      },
+      maxPrepareTime: value => {
+        assertNonNegativeNumber(value, "maxPrepareTime");
+        this.maxPrepareTime = value;
+      },
+      maxPrepareItemsPerTick: value => {
+        assertNonNegativeInteger(value, "maxPrepareItemsPerTick");
+        this.maxPrepareItemsPerTick = value;
+      },
+      autoPumpMainThreadQueue: value => {
+        this.autoPumpMainThreadQueue = Boolean(value);
+      },
+      queueScheduler: value => {
+        if (value !== null && typeof value !== "function") {
+          throw new TypeError("CjsResMan queueScheduler must be a function or null.");
+        }
+        this.queueScheduler = value || defaultQueueScheduler;
+      },
+      urgentResourceLoads: this.SetUrgentResourceLoads
+    }, this);
+    for (const entry of normalizeRegistrationEntries(options.formats)) {
       if (typeof entry === "function") this.RegisterFormat(entry);else this.RegisterFormat(entry.Format || entry.format, entry.defaults || {});
     }
-    for (const entry of NormalizeRegistrationEntries(options.resourceTypes, true)) {
+    for (const entry of normalizeRegistrationEntries(options.resourceTypes, true)) {
       if (typeof entry === "function") this.RegisterResourceType(entry);else this.RegisterResourceType(entry.requirement || entry.payload || entry.key, entry.Constructor || entry.Resource || entry.resourceType, entry);
     }
     for (const [ext, loader] of Object.entries(options.objectLoaders || {})) {
@@ -316,6 +312,105 @@ class CjsResMan extends CjsEventEmitter {
   }
 
   /**
+   * Add or replace one resource-prefix URL base.
+   *
+   * @param {string} prefix Resource scheme without `:/`.
+   * @param {string} urlBase URL base ending at the scheme root.
+   * @returns {CjsResMan} This resource manager.
+   */
+  SetPath(prefix, urlBase) {
+    const key = normalizePathPrefix(prefix);
+    const value = normalizeUrlBase(urlBase);
+    this.paths.set(key, value);
+    return this;
+  }
+
+  /**
+   * Add or replace resource-prefix URL bases from an object or Map.
+   *
+   * @param {object|Map<string,string>} paths Prefix/base entries.
+   * @returns {CjsResMan} This resource manager.
+   */
+  SetPaths(paths) {
+    if (!paths || typeof paths !== "object" && !(paths instanceof Map) || Array.isArray(paths)) {
+      throw new TypeError("CjsResMan paths must be an object or Map.");
+    }
+    const entries = paths instanceof Map ? paths.entries() : Object.entries(paths);
+    for (const [prefix, urlBase] of entries) {
+      this.SetPath(prefix, urlBase);
+    }
+    return this;
+  }
+
+  /**
+   * Reports whether a resource-prefix URL base is registered.
+   *
+   * @param {string} prefix Resource scheme without `:/`.
+   * @returns {boolean}
+   */
+  HasPath(prefix) {
+    return this.paths.has(normalizePathPrefix(prefix));
+  }
+
+  /**
+   * Returns one registered resource-prefix URL base.
+   *
+   * @param {string} prefix Resource scheme without `:/`.
+   * @returns {string|null}
+   */
+  GetPath(prefix) {
+    return this.paths.get(normalizePathPrefix(prefix)) || null;
+  }
+
+  /**
+   * Replaces the complete resource-path-to-URL resolver.
+   *
+   * @param {Function|null} resolver Resolver called as `(resourcePath, resMan)`.
+   * @returns {CjsResMan} This resource manager.
+   */
+  SetPathResolver(resolver) {
+    if (resolver !== null && resolver !== undefined && typeof resolver !== "function") {
+      throw new TypeError("CjsResMan pathResolver must be a function or null.");
+    }
+    this.pathResolver = resolver || null;
+    return this;
+  }
+
+  /**
+   * Builds the URL used by URL-backed providers while preserving the resource
+   * path as the canonical resource identity.
+   *
+   * @param {string} path Resource path or direct HTTP(S) URL.
+   * @returns {string} Resolved URL.
+   */
+  BuildUrl(path) {
+    const normalized = normalizeResourcePath(path);
+    if (!normalized) {
+      throw new TypeError("CjsResMan resource path must be a non-empty string.");
+    }
+    if (this.pathResolver) {
+      return normalizeResolvedUrl(this.pathResolver(normalized, this));
+    }
+    const prefixIndex = normalized.indexOf(":/");
+    if (prefixIndex === -1) {
+      return normalizePath(path);
+    }
+    const prefix = normalized.slice(0, prefixIndex);
+    if (prefix === "http" || prefix === "https") {
+      return normalizePath(path);
+    }
+    const urlBase = this.paths.get(prefix);
+    if (!urlBase) {
+      const error = new Error(`CjsResMan resource path prefix is not registered: ${prefix}`);
+      error.code = "CJS_RESMAN_PATH_PREFIX_UNREGISTERED";
+      error.path = normalized;
+      error.prefix = prefix;
+      throw error;
+    }
+    return `${urlBase}${normalized.slice(prefixIndex + 2)}`;
+  }
+
+  /**
    * Replace the direct execution strategy used by unsupported worker
    * operations and whenever worker loading is not selected.
    *
@@ -323,7 +418,7 @@ class CjsResMan extends CjsEventEmitter {
    * @returns {CjsResMan} This resource manager.
    */
   SetMainThreadLoader(loader) {
-    AssertResourceLoader(loader, "mainThreadLoader");
+    assertResourceLoader(loader, "mainThreadLoader");
     const wasSelected = this.resourceLoader === this.mainThreadLoader;
     this.mainThreadLoader = loader;
     this.workerLoader?.SetFallback?.(loader);
@@ -347,11 +442,11 @@ class CjsResMan extends CjsEventEmitter {
       if (wasSelected) this.resourceLoader = this.mainThreadLoader;
       return this;
     }
-    const resolved = IsResourceLoader(loader) ? loader : new CjsResManWorkerLoader({
+    const resolved = isResourceLoader(loader) ? loader : new CjsResManWorkerLoader({
       ...(loader || {}),
       fallback: loader?.fallback || this.mainThreadLoader
     });
-    AssertResourceLoader(resolved, "workerLoader");
+    assertResourceLoader(resolved, "workerLoader");
     this.workerLoader = resolved;
     if (wasSelected) this.resourceLoader = resolved;
     return this;
@@ -463,7 +558,7 @@ class CjsResMan extends CjsEventEmitter {
    * manager.
    */
   ResumeQueue(queue) {
-    const name = NormalizeCjsResManQueue(queue);
+    const name = CjsResManWorkQueue.normalizeName(queue);
     this.GetWorkQueue(name).Resume();
     if (name === CjsResManQueue.MAIN) this.ScheduleMainThreadQueue();else this.ScheduleBackgroundQueue();
     return this;
@@ -603,7 +698,7 @@ class CjsResMan extends CjsEventEmitter {
       await fence;
       return this;
     }
-    const yieldQueue = options.yield || DefaultQueueYield;
+    const yieldQueue = options.yield || defaultQueueYield;
     let settled = false;
     fence.then(() => {
       settled = true;
@@ -622,7 +717,7 @@ class CjsResMan extends CjsEventEmitter {
    * resource manager.
    */
   GetWorkQueue(queue) {
-    return NormalizeCjsResManQueue(queue) === CjsResManQueue.MAIN ? this._prepareQueue : this._loadQueue;
+    return CjsResManWorkQueue.normalizeName(queue) === CjsResManQueue.MAIN ? this._prepareQueue : this._loadQueue;
   }
 
   /**
@@ -692,14 +787,14 @@ class CjsResMan extends CjsEventEmitter {
       Constructor = requirement;
       requirement = options.requirement || options.payload || Constructor.payload;
     }
-    const key = NormalizeRequirement(requirement);
+    const key = normalizeRequirement(requirement);
     if (!key) throw new TypeError("CjsResMan.RegisterResourceType requires a semantic requirement.");
     if (typeof Constructor !== "function") {
       throw new TypeError("CjsResMan.RegisterResourceType requires a constructor or factory.");
     }
     this.resourceTypes.set(key, Constructor);
     for (const alias of options.aliases || []) {
-      const aliasKey = NormalizeRequirement(alias);
+      const aliasKey = normalizeRequirement(alias);
       if (aliasKey) this.resourceTypes.set(aliasKey, Constructor);
     }
     return this;
@@ -747,7 +842,7 @@ class CjsResMan extends CjsEventEmitter {
     }
     const descriptor = Object.freeze({
       Format,
-      defaults: SnapshotFormatDefaults(defaults)
+      defaults: snapshotFormatDefaults(defaults)
     });
     for (const inputType of Format.inputTypes) {
       const key = normalizeResourceExtension(inputType);
@@ -807,12 +902,12 @@ class CjsResMan extends CjsEventEmitter {
     if (options.emit !== undefined) {
       const objectLoader = this.GetObjectLoader(ext);
       if (objectLoader) {
-        throw CreateObjectLoaderOutputMissingError(ext, options.emit);
+        throw createObjectLoaderOutputMissingError(ext, options.emit);
       } else {
         const descriptors = this.GetFormatDescriptors(ext);
-        const candidates = FilterFormatDescriptors(descriptors, options);
+        const candidates = filterFormatDescriptors(descriptors, options);
         if (descriptors.length > 0 && candidates.length === 0) {
-          throw CreateFormatOutputMissingError(ext, options.emit, descriptors);
+          throw createFormatOutputMissingError(ext, options.emit, descriptors);
         }
       }
     }
@@ -835,7 +930,7 @@ class CjsResMan extends CjsEventEmitter {
       this.motherLode.KeepAlive?.(cacheKey);
       const expectedOwnership = this.#RequireResourceOwnership(existing, "reload-candidate:create");
       const generation = this.#nextResourceReloadGeneration++;
-      const loaderOptions = Object.freeze(GetResourceLoaderOptions(options, options.source || this.source));
+      const loaderOptions = Object.freeze(getResourceLoaderOptions(options, options.source || this.source));
       const candidate = Object.freeze({
         reloadCandidate: true,
         generation,
@@ -854,7 +949,7 @@ class CjsResMan extends CjsEventEmitter {
           reload: true
         };
         resource.SetObjectLoader(loadOptions => this.#GetReloadCandidateObject(resource, {
-          ...MergeResourceLoaderOptions(reloadOptions, loadOptions),
+          ...mergeResourceLoaderOptions(reloadOptions, loadOptions),
           reload: true
         }), reloadOptions);
       }
@@ -890,7 +985,7 @@ class CjsResMan extends CjsEventEmitter {
    */
   GetObject(path, options = {}) {
     const resource = this.GetResource(path, options);
-    const operationOptions = MergeResourceLoaderOptions(resource.GetObjectRequest?.() || {}, options);
+    const operationOptions = mergeResourceLoaderOptions(resource.GetObjectRequest?.() || {}, options);
     if (this.#reloadCandidates.has(resource)) {
       return this.#GetReloadCandidateObject(resource, operationOptions);
     }
@@ -901,7 +996,7 @@ class CjsResMan extends CjsEventEmitter {
     }
     if (resource.HasPayload?.()) {
       resource.KeepPayloadAlive?.();
-      return Promise.resolve(GetPublishedResourceObject(resource));
+      return Promise.resolve(getPublishedResourceObject(resource));
     }
     const promise = this.QueueResourceObject(resource, operationOptions);
     const operation = {
@@ -1012,7 +1107,7 @@ class CjsResMan extends CjsEventEmitter {
   #GetReloadCandidateObject(resource, options) {
     const candidate = this.#reloadCandidates.get(resource) || null;
     if (!candidate) {
-      return Promise.reject(ReloadCandidateUnavailableError(resource));
+      return Promise.reject(reloadCandidateUnavailableError(resource));
     }
     const existing = this.#reloadOperations.get(resource);
     if (existing?.candidate === candidate) return existing.promise;
@@ -1045,7 +1140,7 @@ class CjsResMan extends CjsEventEmitter {
    */
   async #RunReloadCandidate(candidate, options) {
     let committed = false;
-    let releaseLock = Noop;
+    let releaseLock = noop;
     const finishOperation = this.#BeginResourceOperation(true);
     try {
       this.#AssertReloadCandidate(candidate, "reload:begin");
@@ -1069,7 +1164,7 @@ class CjsResMan extends CjsEventEmitter {
           commitGuard: () => this.#IsReloadCandidateCurrent(candidate)
         });
         if (!result.committed) {
-          throw StaleReloadCandidateError(candidate, "reload:commit-compare");
+          throw staleReloadCandidateError(candidate, "reload:commit-compare");
         }
         committed = true;
         this.#FinalizeCommittedReload(candidate);
@@ -1118,7 +1213,7 @@ class CjsResMan extends CjsEventEmitter {
     const errors = [];
     try {
       if (typeof candidate.resource.SetObjectLoader === "function") {
-        candidate.resource.SetObjectLoader(loadOptions => this.GetObject(candidate.resource.GetPath(), MergeResourceLoaderOptions(candidate.loaderOptions, loadOptions)), candidate.loaderOptions);
+        candidate.resource.SetObjectLoader(loadOptions => this.GetObject(candidate.resource.GetPath(), mergeResourceLoaderOptions(candidate.loaderOptions, loadOptions)), candidate.loaderOptions);
       }
     } catch (error) {
       errors.push(error);
@@ -1394,7 +1489,7 @@ class CjsResMan extends CjsEventEmitter {
   async #PrepareResourceObjectQueued(resource, bytes, options, ownership) {
     let object = bytes;
     const resolved = this.#ResolveResourceObjectRead(resource, bytes, options);
-    const formatOptions = resolved.descriptor ? CreateFormatReadOptions(resolved.descriptor, options) : null;
+    const formatOptions = resolved.descriptor ? createFormatReadOptions(resolved.descriptor, options) : null;
     const runInWorker = Boolean(resolved.descriptor && typeof this.resourceLoader?.CanReadFormat === "function" && this.resourceLoader.CanReadFormat(resolved.descriptor, formatOptions));
     let read;
     if (runInWorker) {
@@ -1457,7 +1552,7 @@ class CjsResMan extends CjsEventEmitter {
     const explicitLoader = this.GetObjectLoader(resource.GetExt());
     if (explicitLoader) {
       if (options.emit !== undefined) {
-        throw CreateObjectLoaderOutputMissingError(resource.GetExt(), options.emit);
+        throw createObjectLoaderOutputMissingError(resource.GetExt(), options.emit);
       }
       return {
         loader: explicitLoader,
@@ -1484,7 +1579,7 @@ class CjsResMan extends CjsEventEmitter {
    */
   #ReadResolvedResourceObjectPayload(resource, bytes, options, resolved) {
     if (resolved.loader) {
-      return resolved.loader(bytes, CreatePrepareContext(this, resource, bytes, options, "read"));
+      return resolved.loader(bytes, createPrepareContext(this, resource, bytes, options, "read"));
     }
     return this.ReadFormatOnce(resource, resolved.descriptor, bytes, options);
   }
@@ -1599,11 +1694,11 @@ class CjsResMan extends CjsEventEmitter {
   ResolveFormatDescriptor(inputType, options = {}) {
     const key = normalizeResourceExtension(inputType);
     const descriptors = this.GetFormatDescriptors(key);
-    const candidates = FilterFormatDescriptors(descriptors, options);
+    const candidates = filterFormatDescriptors(descriptors, options);
     if (descriptors.length > 0 && candidates.length === 0 && options.emit !== undefined) {
-      throw CreateFormatOutputMissingError(key, options.emit, descriptors);
+      throw createFormatOutputMissingError(key, options.emit, descriptors);
     }
-    return ResolveFormatDescriptorCandidates(candidates, key, options);
+    return resolveFormatDescriptorCandidates(candidates, key, options);
   }
 
   /**
@@ -1618,7 +1713,7 @@ class CjsResMan extends CjsEventEmitter {
    * @throws {TypeError|Error} If the facade lacks a reader or reading fails.
    */
   async ReadFormat(descriptor, bytes, options = {}) {
-    return this.resourceLoader.ReadFormat(descriptor, bytes, CreateFormatReadOptions(descriptor, options));
+    return this.resourceLoader.ReadFormat(descriptor, bytes, createFormatReadOptions(descriptor, options));
   }
 
   /**
@@ -1712,7 +1807,7 @@ class CjsResMan extends CjsEventEmitter {
    * @throws {TypeError} If the policy, threshold, cleanup control, or clock is invalid.
    */
   SetAutoPurgePolicy(policy = null) {
-    this.#autoPurgePolicy = NormalizeAutoPurgePolicy(policy);
+    this.#autoPurgePolicy = normalizeAutoPurgePolicy(policy);
     this.#lastAutoPurgeTime = null;
     return this;
   }
@@ -1749,11 +1844,11 @@ class CjsResMan extends CjsEventEmitter {
    * @throws {AggregateError} If a due sweep cannot clean one or more inactive resources.
    */
   PumpAutoPurge(options = {}) {
-    const pump = NormalizeAutoPurgePumpOptions(options);
+    const pump = normalizeAutoPurgePumpOptions(options);
     const policy = this.#autoPurgePolicy;
     if (!policy) return null;
     const time = pump.time === undefined ? policy.now() : pump.time;
-    AssertNonNegativeNumber(time, "automatic purge time");
+    assertNonNegativeNumber(time, "automatic purge time");
     if (this.#lastAutoPurgeTime !== null) {
       if (time < this.#lastAutoPurgeTime) {
         this.#lastAutoPurgeTime = time;
@@ -1818,8 +1913,8 @@ class CjsResMan extends CjsEventEmitter {
       throw new TypeError("CjsResMan.InvalidateReadCache options must be an object.");
     }
     const normalizedPath = normalizeResourcePath(path);
-    const hasRevision = Object.prototype.hasOwnProperty.call(options, "sourceRevision");
-    const revisionKey = hasRevision ? NormalizeSourceRevision(options.sourceRevision) : null;
+    const hasRevision = hasOwn(options, "sourceRevision");
+    const revisionKey = hasRevision ? normalizeSourceRevision(options.sourceRevision) : null;
     const source = options.source || this.source;
     if (!source) {
       return Object.freeze({
@@ -1880,9 +1975,9 @@ class CjsResMan extends CjsEventEmitter {
       throw new TypeError("CjsResMan requires a source with Read(path, options) to load objects.");
     }
     const sourceRevision = options.sourceRevision;
-    const revisionKey = NormalizeSourceRevision(sourceRevision);
-    NormalizeCachePolicy(options.cacheSource, "cacheSource");
-    NormalizeCachePolicy(options.cacheFormat, "cacheFormat");
+    const revisionKey = normalizeSourceRevision(sourceRevision);
+    normalizeCachePolicy(options.cacheSource, "cacheSource");
+    normalizeCachePolicy(options.cacheFormat, "cacheFormat");
     const operationOptions = {
       ...options
     };
@@ -1890,6 +1985,7 @@ class CjsResMan extends CjsEventEmitter {
       resMan: this,
       source,
       path: normalizedPath,
+      sourcePath: sourceRequiresUrl(source) ? this.BuildUrl(normalizedPath) : normalizedPath,
       sourceRevision,
       revisionKey
     });
@@ -1912,15 +2008,15 @@ class CjsResMan extends CjsEventEmitter {
    * @returns {Promise<*>} Promise for source bytes/data.
    */
   #QueueReadResource(context, options) {
-    const cachePolicy = NormalizeCachePolicy(options.cacheSource, "cacheSource");
-    const operations = GetOwnerOperations(this.queuedSourceOperations, context.source, true);
-    const key = GetReadOperationKey(context);
+    const cachePolicy = normalizeCachePolicy(options.cacheSource, "cacheSource");
+    const operations = getOwnerOperations(this.queuedSourceOperations, context.source, true);
+    const key = getReadOperationKey(context);
     const bypassExisting = options.reload === true || cachePolicy === false;
     const existing = bypassExisting ? null : operations.get(key);
     if (existing) {
       if (cachePolicy === true) {
         existing.retain = true;
-        const sourceRecord = GetOwnerOperations(this.sourceOperations, context.source, false)?.get(key);
+        const sourceRecord = getOwnerOperations(this.sourceOperations, context.source, false)?.get(key);
         if (sourceRecord) sourceRecord.retain = true;
       }
       return existing.promise;
@@ -1957,9 +2053,9 @@ class CjsResMan extends CjsEventEmitter {
    * @returns {Promise<*>} Promise for source bytes/data.
    */
   #ReadResource(context, options, queuedRecord = null) {
-    const cachePolicy = NormalizeCachePolicy(options.cacheSource, "cacheSource");
-    const operations = GetOwnerOperations(this.sourceOperations, context.source, true);
-    const key = GetReadOperationKey(context);
+    const cachePolicy = normalizeCachePolicy(options.cacheSource, "cacheSource");
+    const operations = getOwnerOperations(this.sourceOperations, context.source, true);
+    const key = getReadOperationKey(context);
     const bypassExisting = options.reload === true || cachePolicy === false;
     const existing = bypassExisting ? null : operations.get(key);
     if (existing) {
@@ -1974,7 +2070,10 @@ class CjsResMan extends CjsEventEmitter {
       revisionKey: context.revisionKey,
       retain: cachePolicy === true || queuedRecord?.retain === true
     };
-    record.promise = Promise.resolve().then(() => this.resourceLoader.Read(context.source, context.path, options));
+    record.promise = Promise.resolve().then(() => this.resourceLoader.Read(context.source, context.sourcePath, {
+      ...options,
+      resourcePath: context.path
+    }));
     if (cachePolicy !== false) operations.set(key, record);
     record.promise.then(() => {
       if (cachePolicy !== false && !record.retain && operations.get(key) === record) {
@@ -1995,8 +2094,8 @@ class CjsResMan extends CjsEventEmitter {
    * @returns {void}
    */
   #RetainSourceResult(context, value) {
-    const operations = GetOwnerOperations(this.sourceOperations, context.source, true);
-    const key = GetReadOperationKey(context);
+    const operations = getOwnerOperations(this.sourceOperations, context.source, true);
+    const key = getReadOperationKey(context);
     const existing = operations.get(key);
     if (existing) {
       existing.retain = true;
@@ -2020,13 +2119,13 @@ class CjsResMan extends CjsEventEmitter {
    * @returns {Readonly<{path: string, queuedSource: number, source: number, format: number}>} Frozen detached counts.
    */
   #InvalidateReadCache(source, path, revisionKey) {
-    const queuedSource = RemoveOperationRecords(GetOwnerOperations(this.queuedSourceOperations, source, false), path, revisionKey);
-    const sourceCount = RemoveOperationRecords(GetOwnerOperations(this.sourceOperations, source, false), path, revisionKey);
+    const queuedSource = removeOperationRecords(getOwnerOperations(this.queuedSourceOperations, source, false), path, revisionKey);
+    const sourceCount = removeOperationRecords(getOwnerOperations(this.sourceOperations, source, false), path, revisionKey);
     let format = 0;
     const descriptors = this.formatOperations.get(source);
     if (descriptors) {
       for (const [descriptor, operations] of descriptors) {
-        format += RemoveOperationRecords(operations, path, revisionKey);
+        format += removeOperationRecords(operations, path, revisionKey);
         if (operations.size === 0) descriptors.delete(descriptor);
       }
       if (descriptors.size === 0) this.formatOperations.delete(source);
@@ -2057,12 +2156,12 @@ class CjsResMan extends CjsEventEmitter {
       throw new TypeError("Resource constructor must create a CjsResource-compatible object.");
     }
     if (disallowedAlias && resource === disallowedAlias) {
-      throw ReloadCandidateAliasError(path, resource);
+      throw reloadCandidateAliasError(path, resource);
     }
-    resource.Initialize(path, ext, NormalizeRequirement(options.requirement || options.payload || ""));
+    resource.Initialize(path, ext, normalizeRequirement(options.requirement || options.payload || ""));
     if (typeof resource.SetObjectLoader === "function") {
-      const loaderOptions = GetResourceLoaderOptions(options, options.source || this.source);
-      resource.SetObjectLoader(loadOptions => this.GetObject(path, MergeResourceLoaderOptions(loaderOptions, loadOptions)), loaderOptions);
+      const loaderOptions = getResourceLoaderOptions(options, options.source || this.source);
+      resource.SetObjectLoader(loadOptions => this.GetObject(path, mergeResourceLoaderOptions(loaderOptions, loadOptions)), loaderOptions);
     }
     return resource;
   }
@@ -2076,9 +2175,9 @@ class CjsResMan extends CjsEventEmitter {
    * @returns {Function} Registered resource constructor or `CjsResource`.
    */
   ResolveResourceConstructor(options = {}) {
-    const requested = NormalizeRequirement(options.requirement || options.payload);
+    const requested = normalizeRequirement(options.requirement || options.payload);
     if (requested && this.resourceTypes.has(requested)) return this.resourceTypes.get(requested);
-    const emitted = NormalizeRequirement(options.emit);
+    const emitted = normalizeRequirement(options.emit);
     if (emitted && this.resourceTypes.has(emitted)) return this.resourceTypes.get(emitted);
     return _CjsResource;
   }
@@ -2099,13 +2198,13 @@ class CjsResMan extends CjsEventEmitter {
     if (!options || typeof options !== "object" || Array.isArray(options)) {
       throw new TypeError("CjsResMan resource variant options must be an object.");
     }
-    if (Object.prototype.hasOwnProperty.call(options, "variant") && options.variant !== undefined) {
+    if (hasOwn(options, "variant") && options.variant !== undefined) {
       if (typeof options.variant !== "string" || options.variant.trim() === "") {
         throw new TypeError("CjsResMan explicit resource variant must be a non-empty string.");
       }
-      return NormalizeResourceVariant(options.variant);
+      return normalizeResourceVariant(options.variant);
     }
-    return NormalizeResourceVariant(options.emit ?? options.requirement ?? options.payload ?? "");
+    return normalizeResourceVariant(options.emit ?? options.requirement ?? options.payload ?? "");
   }
 
   /**
@@ -2141,7 +2240,7 @@ class CjsResMan extends CjsEventEmitter {
   #BeginResourceOperation(queued) {
     this.#activeResourceOperations += 1;
     const id = queued ? this.#nextResourceOperationId++ : 0;
-    let resolveDone = Noop;
+    let resolveDone = noop;
     const done = queued ? new Promise(resolve => {
       resolveDone = resolve;
     }) : null;
@@ -2186,7 +2285,7 @@ class CjsResMan extends CjsEventEmitter {
   #RequireResourceOwnership(resource, phase) {
     const ownership = this.#GetResourceOwnership(resource, phase);
     if (ownership) return ownership;
-    throw ResourceNotOwnedError(resource, phase);
+    throw resourceNotOwnedError(resource, phase);
   }
 
   /**
@@ -2215,7 +2314,7 @@ class CjsResMan extends CjsEventEmitter {
    */
   #AssertResourceOwnership(ownership, phase) {
     if (!this.#IsResourceOwnershipCurrent(ownership)) {
-      throw StaleResourceOperationError(ownership, phase);
+      throw staleResourceOperationError(ownership, phase);
     }
   }
 
@@ -2262,7 +2361,7 @@ class CjsResMan extends CjsEventEmitter {
    */
   #AssertReloadCandidate(candidate, phase) {
     if (!this.#IsReloadCandidateCurrent(candidate)) {
-      throw StaleReloadCandidateError(candidate, phase);
+      throw staleReloadCandidateError(candidate, phase);
     }
   }
 
@@ -2309,7 +2408,7 @@ class CjsResMan extends CjsEventEmitter {
       key
     } = ownership;
     if (typeof owner?.Lock !== "function" || typeof owner?.Unlock !== "function") {
-      return Noop;
+      return noop;
     }
     this.#AssertResourceOwnership(ownership, "lock:acquire");
     owner.Lock(key);
@@ -2399,10 +2498,10 @@ class CjsResMan extends CjsEventEmitter {
    */
   ReadFormatOnce(resource, descriptor, bytes, options = {}) {
     const read = this.#BeginReadOperation(resource.GetPath(), options);
-    const cachePolicy = NormalizeCachePolicy(read.options.cacheFormat, "cacheFormat");
-    const key = GetFormatOperationKey(read.context, read.options);
+    const cachePolicy = normalizeCachePolicy(read.options.cacheFormat, "cacheFormat");
+    const key = getFormatOperationKey(read.context, read.options);
     const cacheableOptions = key !== null && cachePolicy !== false;
-    const descriptorOperations = cacheableOptions ? GetFormatDescriptorOperations(this.formatOperations, read.context.source, descriptor, true) : null;
+    const descriptorOperations = cacheableOptions ? getFormatDescriptorOperations(this.formatOperations, read.context.source, descriptor, true) : null;
     const bypassExisting = read.options.reload === true || !cacheableOptions;
     const existing = bypassExisting ? null : descriptorOperations.get(key);
     if (existing) {
@@ -2442,11 +2541,11 @@ class CjsResMan extends CjsEventEmitter {
  * @returns {Readonly<object>} Deeply frozen plain defaults snapshot.
  * @throws {TypeError} If defaults contain unsupported objects, accessors, symbols, or byte buffers.
  */
-function SnapshotFormatDefaults(defaults, seen = new WeakMap()) {
+function snapshotFormatDefaults(defaults, seen = new WeakMap()) {
   if (!defaults || typeof defaults !== "object" || Array.isArray(defaults)) {
     throw new TypeError("CjsResMan format defaults must be a plain object.");
   }
-  return SnapshotFormatDefaultValue(defaults, seen, "defaults");
+  return snapshotFormatDefaultValue(defaults, seen, "defaults");
 }
 
 /**
@@ -2458,7 +2557,7 @@ function SnapshotFormatDefaults(defaults, seen = new WeakMap()) {
  * @returns {*} Frozen snapshot value or stable primitive/function leaf.
  * @throws {TypeError} If the value cannot be made structurally immutable.
  */
-function SnapshotFormatDefaultValue(value, seen, path) {
+function snapshotFormatDefaultValue(value, seen, path) {
   if (value === null || value === undefined) return value;
   const type = typeof value;
   if (["string", "number", "boolean", "bigint"].includes(type)) return value;
@@ -2472,10 +2571,10 @@ function SnapshotFormatDefaultValue(value, seen, path) {
     const snapshot = [];
     seen.set(value, snapshot);
     for (let index = 0; index < value.length; index += 1) {
-      if (!Object.prototype.hasOwnProperty.call(value, index)) {
+      if (!hasOwn(value, index)) {
         throw new TypeError(`CjsResMan format ${path} must not contain sparse arrays.`);
       }
-      snapshot.push(SnapshotFormatDefaultValue(value[index], seen, `${path}[${index}]`));
+      snapshot.push(snapshotFormatDefaultValue(value[index], seen, `${path}[${index}]`));
     }
     return Object.freeze(snapshot);
   }
@@ -2493,7 +2592,7 @@ function SnapshotFormatDefaultValue(value, seen, path) {
     if (!descriptor.enumerable || !("value" in descriptor)) {
       throw new TypeError(`CjsResMan format ${path}.${key} must be an enumerable data property.`);
     }
-    snapshot[key] = SnapshotFormatDefaultValue(descriptor.value, seen, `${path}.${key}`);
+    snapshot[key] = snapshotFormatDefaultValue(descriptor.value, seen, `${path}.${key}`);
   }
   return Object.freeze(snapshot);
 }
@@ -2507,7 +2606,7 @@ function SnapshotFormatDefaultValue(value, seen, path) {
  * @returns {string} Type-stable internal revision key.
  * @throws {TypeError} If the token is neither a string nor finite number.
  */
-function NormalizeSourceRevision(value) {
+function normalizeSourceRevision(value) {
   if (value === undefined) return "undefined";
   if (typeof value === "string") return `string:${value}`;
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -2524,7 +2623,7 @@ function NormalizeSourceRevision(value) {
  * @returns {boolean|undefined} The validated policy.
  * @throws {TypeError} If the value is not boolean or omitted.
  */
-function NormalizeCachePolicy(value, name) {
+function normalizeCachePolicy(value, name) {
   if (value !== undefined && typeof value !== "boolean") {
     throw new TypeError(`CjsResMan ${name} must be a boolean when supplied.`);
   }
@@ -2539,7 +2638,7 @@ function NormalizeCachePolicy(value, name) {
  * @param {boolean} create Whether a missing map should be allocated.
  * @returns {Map<string, CjsResourceReadOperationRecord>|null} Owner map or `null`.
  */
-function GetOwnerOperations(ledger, owner, create) {
+function getOwnerOperations(ledger, owner, create) {
   let operations = ledger.get(owner);
   if (!operations && create) {
     operations = new Map();
@@ -2554,7 +2653,7 @@ function GetOwnerOperations(ledger, owner, create) {
  * @param {Readonly<CjsResourceReadContext>} context Normalized provenance.
  * @returns {string} Internal read-operation key.
  */
-function GetReadOperationKey(context) {
+function getReadOperationKey(context) {
   return `${context.path}\u0000${context.revisionKey}`;
 }
 
@@ -2568,7 +2667,7 @@ function GetReadOperationKey(context) {
  * @param {boolean} create Whether missing maps should be allocated.
  * @returns {Map<string, CjsResourceReadOperationRecord>|null} Descriptor map or `null`.
  */
-function GetFormatDescriptorOperations(ledger, source, descriptor, create) {
+function getFormatDescriptorOperations(ledger, source, descriptor, create) {
   let descriptors = ledger.get(source);
   if (!descriptors && create) {
     descriptors = new Map();
@@ -2593,10 +2692,10 @@ function GetFormatDescriptorOperations(ledger, source, descriptor, create) {
  * @param {object} options Format request options.
  * @returns {string|null} Internal format-operation key, or `null` to bypass caching.
  */
-function GetFormatOperationKey(context, options) {
+function getFormatOperationKey(context, options) {
   const material = [options.emit, options.mediaType, options.classes, options.formatOptions];
-  if (!material.every(value => IsCanonicalFormatCacheValue(value))) return null;
-  return `${GetReadOperationKey(context)}\u0000${material.map(value => SerializeFormatCacheValue(value)).join("\u0001")}`;
+  if (!material.every(value => isCanonicalFormatCacheValue(value))) return null;
+  return `${getReadOperationKey(context)}\u0000${material.map(value => serializeFormatCacheValue(value)).join("\u0001")}`;
 }
 
 /**
@@ -2609,7 +2708,7 @@ function GetFormatOperationKey(context, options) {
  * @param {WeakSet<object|Function>} [seen=new WeakSet()] Cycle guard.
  * @returns {boolean} Whether deterministic cache serialization is supported.
  */
-function IsCanonicalFormatCacheValue(value, seen = new WeakSet()) {
+function isCanonicalFormatCacheValue(value, seen = new WeakSet()) {
   if (value === null || value === undefined) return true;
   if (["string", "number", "boolean", "bigint"].includes(typeof value)) return true;
   if (typeof value === "function") return true;
@@ -2618,14 +2717,14 @@ function IsCanonicalFormatCacheValue(value, seen = new WeakSet()) {
   if (seen.has(value)) return true;
   seen.add(value);
   if (Array.isArray(value)) {
-    return value.every(entry => IsCanonicalFormatCacheValue(entry, seen));
+    return value.every(entry => isCanonicalFormatCacheValue(entry, seen));
   }
   const prototype = Object.getPrototypeOf(value);
   if (prototype !== Object.prototype && prototype !== null) return false;
   if (Object.getOwnPropertySymbols(value).length > 0) return false;
   return Object.getOwnPropertyNames(value).every(key => {
     const descriptor = Object.getOwnPropertyDescriptor(value, key);
-    return descriptor.enumerable && "value" in descriptor && IsCanonicalFormatCacheValue(descriptor.value, seen);
+    return descriptor.enumerable && "value" in descriptor && isCanonicalFormatCacheValue(descriptor.value, seen);
   });
 }
 
@@ -2639,7 +2738,7 @@ function IsCanonicalFormatCacheValue(value, seen = new WeakSet()) {
  * @param {WeakSet<object|Function>} [seen=new WeakSet()] Cycle guard.
  * @returns {string} Deterministic cache-local representation.
  */
-function SerializeFormatCacheValue(value, seen = new WeakSet()) {
+function serializeFormatCacheValue(value, seen = new WeakSet()) {
   if (value === undefined) return "undefined";
   if (value === null) return "null";
   if (typeof value === "string") return `string:${JSON.stringify(value)}`;
@@ -2650,8 +2749,8 @@ function SerializeFormatCacheValue(value, seen = new WeakSet()) {
   }
   if (typeof value === "boolean") return `boolean:${value}`;
   if (typeof value === "bigint") return `bigint:${value}`;
-  if (typeof value === "function") return `function:${GetLocalValueIdentity(value)}`;
-  const identity = GetLocalValueIdentity(value);
+  if (typeof value === "function") return `function:${getLocalValueIdentity(value)}`;
+  const identity = getLocalValueIdentity(value);
   if (seen.has(value)) return `reference:${identity}`;
   seen.add(value);
   if (ArrayBuffer.isView(value)) {
@@ -2662,9 +2761,9 @@ function SerializeFormatCacheValue(value, seen = new WeakSet()) {
     return `buffer:${identity}:${[...new Uint8Array(value)].join(",")}`;
   }
   if (Array.isArray(value)) {
-    return `array:${identity}:[${value.map(entry => SerializeFormatCacheValue(entry, seen)).join(",")}]`;
+    return `array:${identity}:[${value.map(entry => serializeFormatCacheValue(entry, seen)).join(",")}]`;
   }
-  return `object:${identity}:{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${SerializeFormatCacheValue(value[key], seen)}`).join(",")}}`;
+  return `object:${identity}:{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${serializeFormatCacheValue(value[key], seen)}`).join(",")}}`;
 }
 
 /**
@@ -2673,7 +2772,7 @@ function SerializeFormatCacheValue(value, seen = new WeakSet()) {
  * @param {object|Function} value Candidate option identity owner.
  * @returns {number} Stable identity for the life of the value.
  */
-function GetLocalValueIdentity(value) {
+function getLocalValueIdentity(value) {
   let identity = LOCAL_VALUE_IDENTITIES.get(value);
   if (!identity) {
     identity = nextLocalValueIdentity++;
@@ -2691,7 +2790,7 @@ function GetLocalValueIdentity(value) {
  * @param {string|null} revisionKey Exact revision or `null` for all revisions.
  * @returns {number} Number of detached records.
  */
-function RemoveOperationRecords(operations, path, revisionKey) {
+function removeOperationRecords(operations, path, revisionKey) {
   if (!operations) return 0;
   let removed = 0;
   for (const [key, record] of operations) {
@@ -2710,7 +2809,7 @@ function RemoveOperationRecords(operations, path, revisionKey) {
  * @param {object} [options={}] Original resource request.
  * @returns {object} Shallow reconstruction request without cache/reload policy.
  */
-function GetResourceRequestOptions(options = {}) {
+function getResourceRequestOptions(options = {}) {
   const request = {};
   for (const key of RESOURCE_REQUEST_OPTION_KEYS) {
     if (options[key] !== undefined) request[key] = options[key];
@@ -2728,11 +2827,11 @@ function GetResourceRequestOptions(options = {}) {
  * @param {object|Function|null} [effectiveSource=null] Source selected when the resource was created.
  * @returns {object} Detached loader options safe to retain with the resource.
  */
-function GetResourceLoaderOptions(options = {}, effectiveSource = null) {
-  const loaderOptions = GetResourceRequestOptions(options);
+function getResourceLoaderOptions(options = {}, effectiveSource = null) {
+  const loaderOptions = getResourceRequestOptions(options);
   if (effectiveSource) loaderOptions.source = effectiveSource;
   for (const key of ["sourceRevision", "ext"]) {
-    if (Object.prototype.hasOwnProperty.call(options, key)) {
+    if (hasOwn(options, key)) {
       loaderOptions[key] = options[key];
     }
   }
@@ -2751,15 +2850,15 @@ function GetResourceLoaderOptions(options = {}, effectiveSource = null) {
  * @param {object} [overrides={}] Per-call operation controls.
  * @returns {object} Merged request with stable promised-output fields.
  */
-function MergeResourceLoaderOptions(base, overrides = {}) {
+function mergeResourceLoaderOptions(base, overrides = {}) {
   const result = {
     ...base,
     ...overrides
   };
-  const pinsOutput = RESOURCE_OUTPUT_OPTION_KEYS.some(key => Object.prototype.hasOwnProperty.call(base, key) && base[key] !== undefined);
+  const pinsOutput = RESOURCE_OUTPUT_OPTION_KEYS.some(key => hasOwn(base, key) && base[key] !== undefined);
   if (pinsOutput) {
     for (const key of RESOURCE_OUTPUT_OPTION_KEYS) {
-      if (Object.prototype.hasOwnProperty.call(base, key) && base[key] !== undefined) {
+      if (hasOwn(base, key) && base[key] !== undefined) {
         result[key] = base[key];
       } else {
         delete result[key];
@@ -2767,7 +2866,7 @@ function MergeResourceLoaderOptions(base, overrides = {}) {
     }
   }
   for (const key of RESOURCE_PROVENANCE_OPTION_KEYS) {
-    if (Object.prototype.hasOwnProperty.call(base, key)) result[key] = base[key];
+    if (hasOwn(base, key)) result[key] = base[key];
   }
   return result;
 }
@@ -2780,7 +2879,7 @@ function MergeResourceLoaderOptions(base, overrides = {}) {
  * @param {object} options Format, output, and media selection.
  * @returns {object[]} Matching descriptors in registration order.
  */
-function FilterFormatDescriptors(descriptors, options) {
+function filterFormatDescriptors(descriptors, options) {
   let candidates = [...descriptors];
   if (options.format) {
     candidates = candidates.filter(({
@@ -2790,7 +2889,7 @@ function FilterFormatDescriptors(descriptors, options) {
   if (options.emit !== undefined) {
     candidates = candidates.filter(({
       Format
-    }) => FindDeclaredOutput(GetFormatOutputs(Format), options.emit) !== null);
+    }) => findDeclaredOutput(getFormatOutputs(Format), options.emit) !== null);
   }
   if (options.mediaType) {
     candidates = candidates.filter(({
@@ -2806,7 +2905,7 @@ function FilterFormatDescriptors(descriptors, options) {
  * @param {Function} Format Registered format facade.
  * @returns {Array<*>} Declared output values in selection order.
  */
-function GetFormatOutputs(Format) {
+function getFormatOutputs(Format) {
   return [...(Format.outputTypes || []), ...(Format.debugOutputTypes || [])];
 }
 
@@ -2819,11 +2918,11 @@ function GetFormatOutputs(Format) {
  * @param {*} requested Requested output selector.
  * @returns {string|null} Canonical declaration, or `null` when unsupported.
  */
-function FindDeclaredOutput(outputs, requested) {
-  const normalized = NormalizeResourceVariant(requested);
+function findDeclaredOutput(outputs, requested) {
+  const normalized = normalizeResourceVariant(requested);
   for (const output of outputs) {
     if (typeof output !== "string") continue;
-    if (NormalizeResourceVariant(output) === normalized) return output;
+    if (normalizeResourceVariant(output) === normalized) return output;
   }
   return null;
 }
@@ -2837,7 +2936,7 @@ function FindDeclaredOutput(outputs, requested) {
  * @param {readonly object[]} descriptors Registered input-format descriptors.
  * @returns {Error} Contextual unsupported-output error.
  */
-function CreateFormatOutputMissingError(ext, emit, descriptors) {
+function createFormatOutputMissingError(ext, emit, descriptors) {
   const error = new Error(`No format registered for .${ext} emits ${JSON.stringify(emit)}.`);
   error.code = "CJS_RESOURCE_FORMAT_OUTPUT_MISSING";
   error.ext = ext;
@@ -2856,7 +2955,7 @@ function CreateFormatOutputMissingError(ext, emit, descriptors) {
  * @param {*} emit Requested output tag.
  * @returns {Error} Contextual unsupported-output error.
  */
-function CreateObjectLoaderOutputMissingError(ext, emit) {
+function createObjectLoaderOutputMissingError(ext, emit) {
   const error = new Error(`Direct loader for .${ext} exposes only its unforced default; it does not emit ${JSON.stringify(emit)}.`);
   error.code = "CJS_RESOURCE_FORMAT_OUTPUT_MISSING";
   error.ext = ext;
@@ -2875,7 +2974,7 @@ function CreateObjectLoaderOutputMissingError(ext, emit) {
  * @returns {object} Selected descriptor.
  * @throws {Error} If the candidate set is missing or remains ambiguous.
  */
-function ResolveFormatDescriptorCandidates(descriptors, ext, options) {
+function resolveFormatDescriptorCandidates(descriptors, ext, options) {
   let candidates = [...descriptors];
   if (candidates.length > 1 && options.bytes !== undefined) {
     const supported = candidates.filter(descriptor => {
@@ -2910,7 +3009,7 @@ function ResolveFormatDescriptorCandidates(descriptors, ext, options) {
   }
   return candidates[0];
 }
-function NormalizeRequirement(value) {
+function normalizeRequirement(value) {
   return value === null || value === undefined ? "" : String(value).trim().toLowerCase();
 }
 
@@ -2921,7 +3020,7 @@ function NormalizeRequirement(value) {
  * @returns {string} Trimmed lowercase tag, or an empty string.
  * @throws {TypeError} If a non-empty tag is not a string or contains the internal key delimiter.
  */
-function NormalizeResourceVariant(value) {
+function normalizeResourceVariant(value) {
   if (value === null || value === undefined || value === "") return "";
   if (typeof value !== "string") {
     throw new TypeError("CjsResMan resource variant must be a string.");
@@ -2932,7 +3031,7 @@ function NormalizeResourceVariant(value) {
   }
   return normalized;
 }
-function CreatePrepareContext(resMan, resource, bytes, options, stage) {
+function createPrepareContext(resMan, resource, bytes, options, stage) {
   return Object.freeze({
     ...options,
     stage,
@@ -2952,20 +3051,20 @@ function CreatePrepareContext(resMan, resource, bytes, options, stage) {
  * @param {CjsResource} resource Resource with an attached CPU payload.
  * @returns {*} Resident public object outcome.
  */
-function GetPublishedResourceObject(resource) {
+function getPublishedResourceObject(resource) {
   return resource.constructor !== _CjsResource ? resource : resource.GetPayload();
 }
-function AssertPositiveInteger(value, name) {
+function assertPositiveInteger(value, name) {
   if (!Number.isInteger(value) || value < 1) {
     throw new TypeError(`CjsResMan ${name} must be a positive integer.`);
   }
 }
-function AssertNonNegativeInteger(value, name) {
+function assertNonNegativeInteger(value, name) {
   if (!Number.isInteger(value) || value < 0) {
     throw new TypeError(`CjsResMan ${name} must be a non-negative integer.`);
   }
 }
-function AssertNonNegativeNumber(value, name) {
+function assertNonNegativeNumber(value, name) {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
     throw new TypeError(`CjsResMan ${name} must be a non-negative finite number.`);
   }
@@ -2978,7 +3077,7 @@ function AssertNonNegativeNumber(value, name) {
  * @returns {Readonly<CjsResManAutoPurgePolicy>|null} Frozen normalized policy, or `null` when disabled.
  * @throws {TypeError} If fields, limits, cleanup controls, or the cadence clock are invalid.
  */
-function NormalizeAutoPurgePolicy(policy) {
+function normalizeAutoPurgePolicy(policy) {
   if (policy === null || policy === undefined || policy === false) return null;
   if (!policy || typeof policy !== "object" || Array.isArray(policy)) {
     throw new TypeError("CjsResMan autoPurgePolicy must be an object, false, or null.");
@@ -2989,10 +3088,10 @@ function NormalizeAutoPurgePolicy(policy) {
     throw new TypeError(`CjsResMan autoPurgePolicy does not support: ${unsupported.join(", ")}.`);
   }
   const intervalMilliseconds = policy.intervalMilliseconds ?? 1000;
-  AssertNonNegativeNumber(intervalMilliseconds, "autoPurgePolicy.intervalMilliseconds");
+  assertNonNegativeNumber(intervalMilliseconds, "autoPurgePolicy.intervalMilliseconds");
   for (const name of ["maxIdleMilliseconds", "payloadMaxIdleMilliseconds"]) {
     if (policy[name] !== undefined) {
-      AssertNonNegativeNumber(policy[name], `autoPurgePolicy.${name}`);
+      assertNonNegativeNumber(policy[name], `autoPurgePolicy.${name}`);
     }
   }
   if (policy.maxIdleMilliseconds === undefined && policy.payloadMaxIdleMilliseconds === undefined) {
@@ -3018,7 +3117,7 @@ function NormalizeAutoPurgePolicy(policy) {
     ...(policy.cleanup === undefined ? {} : {
       cleanup: policy.cleanup
     }),
-    now: policy.now || DefaultAutoPurgeNow
+    now: policy.now || defaultAutoPurgeNow
   });
 }
 
@@ -3029,7 +3128,7 @@ function NormalizeAutoPurgePolicy(policy) {
  * @returns {CjsResManAutoPurgePumpOptions} Validated options.
  * @throws {TypeError} If options or an explicit timestamp are invalid.
  */
-function NormalizeAutoPurgePumpOptions(options) {
+function normalizeAutoPurgePumpOptions(options) {
   if (!options || typeof options !== "object" || Array.isArray(options)) {
     throw new TypeError("CjsResMan automatic purge options must be an object.");
   }
@@ -3038,7 +3137,7 @@ function NormalizeAutoPurgePumpOptions(options) {
     throw new TypeError(`CjsResMan automatic purge options do not support: ${unsupported.join(", ")}.`);
   }
   if (options.time !== undefined) {
-    AssertNonNegativeNumber(options.time, "automatic purge time");
+    assertNonNegativeNumber(options.time, "automatic purge time");
   }
   return options;
 }
@@ -3050,7 +3149,7 @@ function NormalizeAutoPurgePumpOptions(options) {
  * @param {number} activeOperations Number of queued and direct mutations.
  * @returns {Error} Contextual active-operation error.
  */
-function ActiveResourceOperationsError(activeOperations) {
+function activeResourceOperationsError(activeOperations) {
   const error = new Error(`CjsResMan cannot replace MotherLode while ${activeOperations} resource operation(s) are active.`);
   error.code = "CJS_RESMAN_ACTIVE_RESOURCE_OPERATIONS";
   error.activeOperations = activeOperations;
@@ -3065,8 +3164,8 @@ function ActiveResourceOperationsError(activeOperations) {
  * @param {string} phase Operation phase.
  * @returns {Error} Contextual ownership error.
  */
-function ResourceNotOwnedError(resource, phase) {
-  const path = GetResourceDiagnosticPath(resource);
+function resourceNotOwnedError(resource, phase) {
+  const path = getResourceDiagnosticPath(resource);
   const error = new Error(`CjsResMan does not own a canonical resource at ${path}.`);
   error.code = "CJS_RESMAN_RESOURCE_NOT_OWNED";
   error.resource = resource;
@@ -3083,8 +3182,8 @@ function ResourceNotOwnedError(resource, phase) {
  * @param {string} phase Operation phase that detected staleness.
  * @returns {Error} Contextual stale-operation error.
  */
-function StaleResourceOperationError(ownership, phase) {
-  const path = GetResourceDiagnosticPath(ownership?.resource);
+function staleResourceOperationError(ownership, phase) {
+  const path = getResourceDiagnosticPath(ownership?.resource);
   const error = new Error(`CjsResMan resource operation became stale during ${phase}: ${path}.`);
   error.code = "CJS_RESMAN_STALE_RESOURCE_OPERATION";
   error.resource = ownership?.resource || null;
@@ -3103,7 +3202,7 @@ function StaleResourceOperationError(ownership, phase) {
  * @param {object|Function} resource Aliased canonical resource.
  * @returns {Error} Stable candidate-alias error.
  */
-function ReloadCandidateAliasError(path, resource) {
+function reloadCandidateAliasError(path, resource) {
   const error = new Error(`CjsResMan reload candidate aliases the canonical resource: ${path}.`);
   error.code = "CJS_RESMAN_RELOAD_CANDIDATE_ALIAS";
   error.path = path;
@@ -3118,8 +3217,8 @@ function ReloadCandidateAliasError(path, resource) {
  * @param {object|Function} resource Candidate resource.
  * @returns {Error} Stable unavailable-candidate error.
  */
-function ReloadCandidateUnavailableError(resource) {
-  const path = GetResourceDiagnosticPath(resource);
+function reloadCandidateUnavailableError(resource) {
+  const path = getResourceDiagnosticPath(resource);
   const error = new Error(`CjsResMan reload candidate is no longer available: ${path}.`);
   error.code = "CJS_RESMAN_RELOAD_CANDIDATE_UNAVAILABLE";
   error.path = path;
@@ -3135,8 +3234,8 @@ function ReloadCandidateUnavailableError(resource) {
  * @param {string} phase Operation phase that detected staleness.
  * @returns {Error} Contextual stale-candidate error.
  */
-function StaleReloadCandidateError(candidate, phase) {
-  const path = GetResourceDiagnosticPath(candidate?.resource);
+function staleReloadCandidateError(candidate, phase) {
+  const path = getResourceDiagnosticPath(candidate?.resource);
   const error = new Error(`CjsResMan reload candidate became stale during ${phase}: ${path}.`);
   error.code = "CJS_RESMAN_STALE_RELOAD_CANDIDATE";
   error.resource = candidate?.resource || null;
@@ -3155,7 +3254,7 @@ function StaleReloadCandidateError(candidate, phase) {
  * @param {*} resource Candidate resource.
  * @returns {string} Best-effort resource path label.
  */
-function GetResourceDiagnosticPath(resource) {
+function getResourceDiagnosticPath(resource) {
   try {
     return String(resource?.GetPath?.() || resource?.path || "<unknown>");
   } catch {
@@ -3168,7 +3267,7 @@ function GetResourceDiagnosticPath(resource) {
  *
  * @returns {void}
  */
-function Noop() {}
+function noop() {}
 
 /**
  * Validate a resource execution strategy.
@@ -3177,8 +3276,8 @@ function Noop() {}
  * @param {string} name Configuration field name.
  * @returns {void}
  */
-function AssertResourceLoader(loader, name) {
-  if (!IsResourceLoader(loader)) {
+function assertResourceLoader(loader, name) {
+  if (!isResourceLoader(loader)) {
     throw new TypeError(`CjsResMan ${name} must provide Read and ReadFormat.`);
   }
 }
@@ -3189,7 +3288,7 @@ function AssertResourceLoader(loader, name) {
  * @param {*} loader Candidate loader.
  * @returns {boolean}
  */
-function IsResourceLoader(loader) {
+function isResourceLoader(loader) {
   return Boolean(loader && typeof loader.Read === "function" && typeof loader.ReadFormat === "function");
 }
 
@@ -3200,7 +3299,7 @@ function IsResourceLoader(loader) {
  * @param {object} options Resource read options.
  * @returns {object} Effective format reader options.
  */
-function CreateFormatReadOptions(descriptor, options) {
+function createFormatReadOptions(descriptor, options) {
   const {
     Format,
     defaults
@@ -3210,10 +3309,74 @@ function CreateFormatReadOptions(descriptor, options) {
     ...(options.formatOptions || {})
   };
   if (options.emit !== undefined) {
-    formatOptions.emit = FindDeclaredOutput(GetFormatOutputs(Format), options.emit) ?? options.emit;
+    formatOptions.emit = findDeclaredOutput(getFormatOutputs(Format), options.emit) ?? options.emit;
   }
   if (options.classes !== undefined) formatOptions.classes = options.classes;
   return formatOptions;
+}
+
+/**
+ * Reports whether a source requires CjsResMan to build a URL before reading.
+ *
+ * @param {*} source Selected source/provider.
+ * @returns {boolean}
+ */
+function sourceRequiresUrl(source) {
+  return source?.requiresUrl === true || source?.constructor?.requiresUrl === true;
+}
+
+/**
+ * Tests whether an object owns one property.
+ *
+ * @param {*} object Candidate object.
+ * @param {string|number|symbol} property Property key.
+ * @returns {boolean}
+ */
+function hasOwn(object, property) {
+  return Object.prototype.hasOwnProperty.call(object, property);
+}
+
+/**
+ * Normalizes one resource-path scheme key.
+ *
+ * @param {*} value Candidate scheme.
+ * @returns {string}
+ */
+function normalizePathPrefix(value) {
+  const prefix = String(value ?? "").trim().replace(/:\/?$/u, "").toLowerCase();
+  if (!/^[a-z][a-z0-9+.-]*$/u.test(prefix)) {
+    throw new TypeError("CjsResMan path prefixes must be URI scheme names.");
+  }
+  return prefix;
+}
+
+/**
+ * Normalizes one registered URL base without altering case-sensitive path
+ * content.
+ *
+ * @param {*} value Candidate URL base.
+ * @returns {string}
+ */
+function normalizeUrlBase(value) {
+  const url = normalizePath(value);
+  if (!url || url.includes("\0")) {
+    throw new TypeError("CjsResMan path URL bases must be non-empty strings.");
+  }
+  return url.endsWith("/") ? url : `${url}/`;
+}
+
+/**
+ * Validates a URL returned by an injected path resolver.
+ *
+ * @param {*} value Resolver output.
+ * @returns {string}
+ */
+function normalizeResolvedUrl(value) {
+  const url = normalizePath(value);
+  if (!url || url.includes("\0")) {
+    throw new TypeError("CjsResMan pathResolver must return a non-empty URL string.");
+  }
+  return url;
 }
 
 /**
@@ -3221,16 +3384,16 @@ function CreateFormatReadOptions(descriptor, options) {
  *
  * @returns {number} Milliseconds since the Unix epoch.
  */
-function DefaultAutoPurgeNow() {
+function defaultAutoPurgeNow() {
   return Date.now();
 }
-function DefaultQueueScheduler(callback) {
+function defaultQueueScheduler(callback) {
   return setTimeout(callback, 0);
 }
-function DefaultQueueYield() {
+function defaultQueueYield() {
   return new Promise(resolve => setTimeout(resolve, 0));
 }
-function NormalizeRegistrationEntries(value, keyed = false) {
+function normalizeRegistrationEntries(value, keyed = false) {
   if (value === null || value === undefined) return [];
   if (Array.isArray(value)) return value;
   if (typeof value === "function") return [value];

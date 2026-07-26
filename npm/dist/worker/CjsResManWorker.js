@@ -23,12 +23,12 @@ class CjsResManWorker {
    * @param {object} [context={}] Optional fetch and abort context.
    * @returns {Promise<*>} Operation result.
    */
-  static async Execute(operation, payload, context = {}) {
+  static async execute(operation, payload, context = {}) {
     switch (operation) {
       case Operation.FETCH:
-        return FetchResource(payload, context);
+        return fetchResource(payload, context);
       case Operation.FORMAT_READ:
-        return ReadFormat(payload);
+        return readFormat(payload);
       default:
         {
           const error = new Error(`Unknown resource worker operation: ${operation}`);
@@ -45,7 +45,7 @@ class CjsResManWorker {
    * @param {WorkerGlobalScope|object} scope Worker global.
    * @returns {() => void} Uninstall callback.
    */
-  static Install(scope = globalThis) {
+  static install(scope = globalThis) {
     if (!scope || typeof scope.postMessage !== "function") {
       throw new TypeError("Resource worker scope must provide postMessage.");
     }
@@ -61,7 +61,7 @@ class CjsResManWorker {
       const controller = typeof AbortController === "function" ? new AbortController() : null;
       if (controller) controllers.set(message.id, controller);
       try {
-        const result = await CjsResManWorker.Execute(message.operation, message.payload, {
+        const result = await CjsResManWorker.execute(message.operation, message.payload, {
           signal: controller?.signal
         });
         scope.postMessage({
@@ -69,13 +69,13 @@ class CjsResManWorker {
           id: message.id,
           ok: true,
           result
-        }, CjsResManWorker.CollectTransferables(result));
+        }, CjsResManWorker.collectTransferables(result));
       } catch (error) {
         scope.postMessage({
           type: Message.RESULT,
           id: message.id,
           ok: false,
-          error: CjsResManWorker.SerializeError(error, message.operation)
+          error: CjsResManWorker.serializeError(error, message.operation)
         });
       } finally {
         controllers.delete(message.id);
@@ -101,7 +101,7 @@ class CjsResManWorker {
    * @param {*} value Result graph.
    * @returns {ArrayBuffer[]} Transfer list.
    */
-  static CollectTransferables(value) {
+  static collectTransferables(value) {
     const buffers = new Set();
     const seen = new Set();
     const visit = entry => {
@@ -133,7 +133,7 @@ class CjsResManWorker {
    * @param {string} [operation] Operation name.
    * @returns {object} Cloneable error data.
    */
-  static SerializeError(value, operation = undefined) {
+  static serializeError(value, operation = undefined) {
     return {
       name: value?.name || "CjsResManWorkerError",
       message: value?.message || String(value),
@@ -145,7 +145,7 @@ class CjsResManWorker {
     };
   }
 }
-async function FetchResource(payload, context) {
+async function fetchResource(payload, context) {
   if (!payload || typeof payload.url !== "string") {
     throw new TypeError("Worker fetch requires a URL.");
   }
@@ -185,7 +185,7 @@ async function FetchResource(payload, context) {
       }
   }
 }
-async function ReadFormat(payload) {
+async function readFormat(payload) {
   if (!payload || typeof payload.module !== "string" || payload.module === "") {
     throw new TypeError("Worker format read requires a module URL.");
   }
@@ -210,8 +210,8 @@ async function ReadFormat(payload) {
   }
   throw new TypeError(`${Format.name} does not expose a read operation.`);
 }
-const IsWorkerScope = typeof WorkerGlobalScope !== "undefined" && globalThis instanceof WorkerGlobalScope;
-if (IsWorkerScope) CjsResManWorker.Install(globalThis);
+const isWorkerScope = typeof WorkerGlobalScope !== "undefined" && globalThis instanceof WorkerGlobalScope;
+if (isWorkerScope) CjsResManWorker.install(globalThis);
 
 export { CjsResManWorker };
 //# sourceMappingURL=CjsResManWorker.js.map

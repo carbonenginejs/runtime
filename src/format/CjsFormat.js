@@ -186,21 +186,26 @@ export class CjsFormat
    * and optional clone-safe output restrictions.
    */
   static worker = null;
-}
 
-/**
- * Shared utility for asserting required format metadata exists.
- */
-export function ValidateFormatContract(Constructor) {
-  if (!Constructor) {
-    throw new TypeError("ValidateFormatContract requires a format class.");
-  }
-  const hasOutput = Array.isArray(Constructor.outputTypes) && Constructor.outputTypes.length > 0;
-  const hasInput = Array.isArray(Constructor.inputTypes) && Constructor.inputTypes.length > 0;
-  const hasMedia = Array.isArray(Constructor.mediaTypes) && Constructor.mediaTypes.length > 0;
-  const hasType = Array.isArray(Constructor.type) && Constructor.type.length > 0;
-  const hasDebug = Array.isArray(Constructor.debugOutputTypes) && Constructor.debugOutputTypes.length > 0;
-  if (!hasType || !hasMedia || !hasInput || !hasOutput || !hasDebug) {
-    throw new TypeError(`Format contract missing metadata: type:${hasType} mediaTypes:${hasMedia} inputTypes:${hasInput} outputTypes:${hasOutput} debugOutputTypes:${hasDebug}`);
+  /**
+   * Asserts that a format class declares the metadata required for
+   * registration and routing.
+   *
+   * @param {typeof CjsFormat} Constructor
+   * @returns {void}
+   */
+  static validateContract(Constructor)
+  {
+    if (!Constructor) {
+      throw new TypeError("CjsFormat.validateContract requires a format class.");
+    }
+    const hasOutput = Array.isArray(Constructor.outputTypes) && Constructor.outputTypes.length > 0;
+    const hasInput = Array.isArray(Constructor.inputTypes) && Constructor.inputTypes.length > 0;
+    const hasMedia = Array.isArray(Constructor.mediaTypes) && Constructor.mediaTypes.length > 0;
+    const hasType = Array.isArray(Constructor.type) && Constructor.type.length > 0;
+    const hasDebug = Array.isArray(Constructor.debugOutputTypes) && Constructor.debugOutputTypes.length > 0;
+    if (!hasType || !hasMedia || !hasInput || !hasOutput || !hasDebug) {
+      throw new TypeError(`Format contract missing metadata: type:${hasType} mediaTypes:${hasMedia} inputTypes:${hasInput} outputTypes:${hasOutput} debugOutputTypes:${hasDebug}`);
+    }
   }
 }

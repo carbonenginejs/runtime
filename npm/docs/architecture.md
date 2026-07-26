@@ -42,14 +42,18 @@ historical mapping.
   source/read/resource deduplication, object loader dispatch, and prefetch.
 - Main-thread and browser-worker resource execution strategies, including
   transferable fetch results and declared worker-safe CPU readers.
-- `CjsTextureArrayRes` and `CjsTextureParameterProxy` for material-facing,
+- `CjsTextureArrayRes` and `CjsTextureArrayResParameterProxy` for material-facing,
   frame-coalesced texture-array inputs.
 - `CjsAudioBufferRes` for physical audio-byte ownership and `CjsAudioRes` for
   complete or windowed individually addressable audio files.
 - Raw `CjsEventEmitter` (from `runtime-utils/model`) for manager/runtime events
   without requiring `CjsModel` inheritance.
-- Path normalization, extension helpers, and source adapters for memory and
-  `fetch`.
+- Resource-path normalization and URL resolution, including prefix bases and
+  an injectable complete resolver, with fetch execution delegated to a
+  URL-only provider.
+- Resource-specific geometry traversal and payload adaptation, composed with
+  shared vector, matrix, bounds, sphere, ray, and mesh math from
+  `runtime-utils` rather than maintaining another math implementation here.
 - Plain reader/converter payload objects with focused shared validators.
 - Canonical Carbon resource classes that validate and hold CPU payloads
   privately: `TriTextureRes`, `TriGeometryRes`, `Tr2EffectRes`, `Tr2ImageRes`,
@@ -57,15 +61,15 @@ historical mapping.
 - `Tr2TexturePipeline` CPU-only texture steps and `Tr2TextureLodManager`
   membership.
 - Opaque engine-owned subobject slots for backend adapters.
-- Non-shader format implementations as explicit tree-shakeable subpaths under
+- Format implementations as explicit tree-shakeable subpaths under
   `@carbonenginejs/runtime-resource/formats/<name>`.
 
 ## What the package does not own
 
 - WebGL/WebGPU realization, allocations, upload accounting, device budgets,
   capability limits, and device-loss recovery (engine packages).
-- Shader formats (`format-dxbc`, `format-hlsl`, `format-webgl`,
-  `format-webgpu` remain separate packages).
+- Shader compilation and backend runtime objects. The current shader-format
+  packages remain separate until their readers and translators migrate here.
 - AudioBuffer construction, playback, or audio manager behavior.
 - Audio-library document construction, enrichment, media-ID interpretation,
   and delivery-route selection.
@@ -87,9 +91,9 @@ explicit registrations; see [browser worker execution](reference/workers.md).
 ## Source layout
 
 Authoring source is decorated JavaScript; published output is built ESM in
-`npm/dist`. Completed Carbon data classes live with maintained source under
-`src/resources`; original audio resource owners live under `src/audio`;
-worker execution and its message protocol live under `src/worker`;
+`npm/dist`. Resource owners and their direct Carbon data records live under
+`src/resource`, grouped as `audio`, `geometry`, `geometry/granny`, `shader`,
+and `texture`; worker execution and its message protocol live under `src/worker`;
 `src/generated` is reserved for unresolved active ports and is currently
 absent. Native shapes that JavaScript replaces or does not use are retained
 only under `src/dropped`, with their disposition documented there, and are

@@ -34,8 +34,8 @@ class CjsResManWorkerLoader {
       throw new TypeError("CjsResManWorkerLoader options must be an object.");
     }
     this.fallback = options.fallback || new CjsResManMainThreadLoader();
-    AssertResourceLoader(this.fallback, "fallback");
-    this.workerFactory = options.workerFactory || DefaultWorkerFactory;
+    assertResourceLoader(this.fallback, "fallback");
+    this.workerFactory = options.workerFactory || defaultWorkerFactory;
     if (typeof this.workerFactory !== "function") {
       throw new TypeError("CjsResManWorkerLoader workerFactory must be a function.");
     }
@@ -94,9 +94,9 @@ class CjsResManWorkerLoader {
     this.enabled = false;
     this.failed = reason !== null && reason !== undefined;
     if (this.#pending.size) {
-      const error = NormalizeWorkerError(reason || CreateWorkerUnavailableError("Resource worker was disabled."));
+      const error = normalizeWorkerError(reason || createWorkerUnavailableError("Resource worker was disabled."));
       for (const request of this.#pending.values()) {
-        CleanupPendingRequest(request);
+        cleanupPendingRequest(request);
         request.reject(error);
       }
       this.#pending.clear();
@@ -122,7 +122,7 @@ class CjsResManWorkerLoader {
    * @returns {CjsResManWorkerLoader} This loader.
    */
   SetFallback(fallback) {
-    AssertResourceLoader(fallback, "fallback");
+    assertResourceLoader(fallback, "fallback");
     this.fallback = fallback;
     return this;
   }
@@ -146,11 +146,11 @@ class CjsResManWorkerLoader {
    * @returns {Promise<*>|*} Source result.
    */
   Read(source, path, options = {}) {
-    AssertResourceSource(source);
+    assertResourceSource(source);
     if (typeof source.CreateWorkerRequest !== "function") {
       return this.fallback.Read(source, path, options);
     }
-    const request = NormalizeWorkerRequest(source.CreateWorkerRequest(path, options));
+    const request = normalizeWorkerRequest(source.CreateWorkerRequest(path, options));
     if (!request || !this.IsAvailable()) {
       return this.fallback.Read(source, path, options);
     }
@@ -168,8 +168,8 @@ class CjsResManWorkerLoader {
    * @returns {boolean}
    */
   CanReadFormat(descriptor, formatOptions = {}) {
-    const declaration = NormalizeFormatWorkerDeclaration(descriptor);
-    return Boolean(declaration && IsWorkerFormatOutputSupported(declaration, formatOptions) && CanCloneWorkerValue(formatOptions) && this.IsAvailable());
+    const declaration = normalizeFormatWorkerDeclaration(descriptor);
+    return Boolean(declaration && isWorkerFormatOutputSupported(declaration, formatOptions) && canCloneWorkerValue(formatOptions) && this.IsAvailable());
   }
 
   /**
@@ -185,11 +185,11 @@ class CjsResManWorkerLoader {
    * @returns {Promise<*>} Format result.
    */
   ReadFormat(descriptor, input, formatOptions = {}) {
-    const declaration = NormalizeFormatWorkerDeclaration(descriptor);
-    if (!declaration || !IsWorkerFormatOutputSupported(declaration, formatOptions) || !CanCloneWorkerValue(formatOptions) || !this.IsAvailable()) {
+    const declaration = normalizeFormatWorkerDeclaration(descriptor);
+    if (!declaration || !isWorkerFormatOutputSupported(declaration, formatOptions) || !canCloneWorkerValue(formatOptions) || !this.IsAvailable()) {
       return this.fallback.ReadFormat(descriptor, input, formatOptions);
     }
-    const transfer = declaration.transferInput ? GetExclusiveInputTransferables(input) : [];
+    const transfer = declaration.transferInput ? getExclusiveInputTransferables(input) : [];
     return this.Execute(Operation.FORMAT_READ, {
       module: declaration.module,
       exportName: declaration.exportName,
@@ -213,10 +213,10 @@ class CjsResManWorkerLoader {
       return Promise.reject(new TypeError("Worker operation must be a non-empty string."));
     }
     if (!this.IsAvailable()) {
-      return Promise.reject(CreateWorkerUnavailableError());
+      return Promise.reject(createWorkerUnavailableError());
     }
     const signal = options.signal || null;
-    if (signal?.aborted) return Promise.reject(CreateAbortError(signal.reason));
+    if (signal?.aborted) return Promise.reject(createAbortError(signal.reason));
     const id = this.#nextId++;
     let resolve;
     let reject;
@@ -234,7 +234,7 @@ class CjsResManWorkerLoader {
     if (signal && typeof signal.addEventListener === "function") {
       request.onAbort = () => {
         if (!this.#pending.delete(id)) return;
-        CleanupPendingRequest(request);
+        cleanupPendingRequest(request);
         try {
           this.worker?.postMessage({
             type: Message.CANCEL,
@@ -243,7 +243,7 @@ class CjsResManWorkerLoader {
         } catch {
           // The local abort remains authoritative if the worker is already gone.
         }
-        reject(CreateAbortError(signal.reason));
+        reject(createAbortError(signal.reason));
       };
       signal.addEventListener("abort", request.onAbort, {
         once: true
@@ -256,10 +256,10 @@ class CjsResManWorkerLoader {
         id,
         operation,
         payload
-      }, NormalizeTransferList(options.transfer));
+      }, normalizeTransferList(options.transfer));
     } catch (error) {
       this.#pending.delete(id);
-      CleanupPendingRequest(request);
+      cleanupPendingRequest(request);
       reject(error);
     }
     return promise;
@@ -307,8 +307,8 @@ class CjsResManWorkerLoader {
     const request = this.#pending.get(data.id);
     if (!request) return;
     this.#pending.delete(data.id);
-    CleanupPendingRequest(request);
-    if (data.ok) request.resolve(data.result);else request.reject(NormalizeWorkerError(data.error));
+    cleanupPendingRequest(request);
+    if (data.ok) request.resolve(data.result);else request.reject(normalizeWorkerError(data.error));
   }
 
   /** Disable worker execution after a fatal worker or message failure. */
@@ -317,23 +317,23 @@ class CjsResManWorkerLoader {
     this.Disable(reason);
   }
 }
-function AssertResourceSource(source) {
+function assertResourceSource(source) {
   if (!source || typeof source !== "object" && typeof source !== "function" || typeof source.Read !== "function") {
     throw new TypeError("Resource source must provide Read(path, options).");
   }
 }
-function AssertResourceLoader(loader, name = "loader") {
+function assertResourceLoader(loader, name = "loader") {
   if (!loader || typeof loader.Read !== "function" || typeof loader.ReadFormat !== "function") {
     throw new TypeError(`CjsResManWorkerLoader ${name} must provide Read and ReadFormat.`);
   }
 }
-function DefaultWorkerFactory(url, options) {
+function defaultWorkerFactory(url, options) {
   if (typeof Worker === "undefined") {
     throw new ReferenceError("Browser Worker is not available.");
   }
   return new Worker(url, options);
 }
-function NormalizeWorkerRequest(request) {
+function normalizeWorkerRequest(request) {
   if (request === null || request === undefined || request === false) return null;
   if (!request || typeof request !== "object" || Array.isArray(request)) {
     throw new TypeError("CreateWorkerRequest must return an object or null.");
@@ -345,10 +345,10 @@ function NormalizeWorkerRequest(request) {
     operation: request.operation,
     payload: request.payload,
     signal: request.signal || null,
-    transfer: NormalizeTransferList(request.transfer)
+    transfer: normalizeTransferList(request.transfer)
   };
 }
-function NormalizeFormatWorkerDeclaration(descriptor) {
+function normalizeFormatWorkerDeclaration(descriptor) {
   const Format = descriptor?.Format;
   const declaration = descriptor?.worker || Format?.worker;
   if (!declaration) return null;
@@ -364,26 +364,26 @@ function NormalizeFormatWorkerDeclaration(descriptor) {
     transferInput: value.transferInput === true
   });
 }
-function IsWorkerFormatOutputSupported(declaration, formatOptions) {
+function isWorkerFormatOutputSupported(declaration, formatOptions) {
   if (!declaration.outputTypes) return true;
   const output = formatOptions.emit ?? declaration.defaultOutput;
   return output !== undefined && declaration.outputTypes.includes(String(output));
 }
-function NormalizeTransferList(value) {
+function normalizeTransferList(value) {
   if (value === null || value === undefined) return [];
   if (!Array.isArray(value)) {
     throw new TypeError("Worker transfer list must be an array.");
   }
   return value;
 }
-function GetExclusiveInputTransferables(input) {
+function getExclusiveInputTransferables(input) {
   if (input instanceof ArrayBuffer) return [input];
   if (ArrayBuffer.isView(input) && input.byteOffset === 0 && input.byteLength === input.buffer.byteLength) {
     return [input.buffer];
   }
   return [];
 }
-function CanCloneWorkerValue(value, seen = new Set()) {
+function canCloneWorkerValue(value, seen = new Set()) {
   if (value === null || value === undefined) return true;
   const type = typeof value;
   if (type === "string" || type === "number" || type === "boolean" || type === "bigint") {
@@ -396,31 +396,31 @@ function CanCloneWorkerValue(value, seen = new Set()) {
   if (seen.has(value)) return false;
   seen.add(value);
   if (Array.isArray(value)) {
-    return value.every(entry => CanCloneWorkerValue(entry, seen));
+    return value.every(entry => canCloneWorkerValue(entry, seen));
   }
   const prototype = Object.getPrototypeOf(value);
   if (prototype !== Object.prototype && prototype !== null) return false;
-  return Object.values(value).every(entry => CanCloneWorkerValue(entry, seen));
+  return Object.values(value).every(entry => canCloneWorkerValue(entry, seen));
 }
-function CleanupPendingRequest(request) {
+function cleanupPendingRequest(request) {
   if (request.signal && request.onAbort && typeof request.signal.removeEventListener === "function") {
     request.signal.removeEventListener("abort", request.onAbort);
   }
 }
-function CreateWorkerUnavailableError(message = "Resource worker is unavailable.") {
+function createWorkerUnavailableError(message = "Resource worker is unavailable.") {
   const error = new Error(message);
   error.name = "CjsResManWorkerUnavailableError";
   error.code = "CJS_RESOURCE_WORKER_UNAVAILABLE";
   return error;
 }
-function CreateAbortError(reason) {
+function createAbortError(reason) {
   if (reason instanceof Error) return reason;
   const error = new Error(reason === undefined ? "Resource worker request was aborted." : String(reason));
   error.name = "AbortError";
   error.code = "ABORT_ERR";
   return error;
 }
-function NormalizeWorkerError(value) {
+function normalizeWorkerError(value) {
   if (value instanceof Error) return value;
   const error = new Error(value?.message || "Resource worker operation failed.");
   error.name = value?.name || "CjsResManWorkerError";

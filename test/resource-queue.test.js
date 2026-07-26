@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsMotherLode } from "../npm/dist/CjsMotherLode.js";
 import { CjsResMan } from "../npm/dist/CjsResMan.js";
-import { CjsResource } from "../npm/dist/CjsResource.js";
+import { CjsResource } from "../npm/dist/resource/CjsResource.js";
 import { CjsResManQueue as RootCjsResManQueue } from "../npm/dist/index.js";
 import {
   CjsResManQueue,
   CjsResManWorkQueue
-} from "../npm/dist/CjsResManQueue.js";
+} from "../npm/dist/CjsResManWorkQueue.js";
 
 test("CjsResManWorkQueue preserves ids, pause state, and queued cancellation", async () => {
   assert.equal(RootCjsResManQueue, CjsResManQueue);

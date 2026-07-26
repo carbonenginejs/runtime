@@ -116,7 +116,8 @@ Application / runtime object
 | - mark resource REQUESTED                     |
 | - share one source operation per source/path  |
 | - obey maxConcurrentLoads                     |
-| - source.Read(path)                           |
+| - CjsResMan builds URL when provider needs it |
+| - provider.Read(sourcePath)                   |
 +===============================================+
         |
         | source bytes
