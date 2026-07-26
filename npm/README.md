@@ -49,7 +49,7 @@ Raw audio resource ownership is available from an explicit subpath:
 import {
   CjsAudioBufferRes,
   CjsAudioRes
-} from "@carbonenginejs/runtime-resource/audio";
+} from "@carbonenginejs/runtime-resource/resource/audio";
 ```
 
 `CjsAudioRes` always represents one addressable audio file. Its backing may be

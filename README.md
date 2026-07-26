@@ -55,8 +55,6 @@ import {
 `CjsAudioRes` always represents one addressable audio file. Its backing may be
 a complete loose file, an individually served response, or a window within a
 shared `CjsAudioBufferRes` bank payload.
-The shorter `@carbonenginejs/runtime-resource/audio` export remains a
-compatibility alias; new code should use the resource-family path above.
 
 ## Documentation
 

@@ -12,7 +12,6 @@
     "./resource/geometry/granny": "./src/resource/geometry/granny/index.js",
     "./resource/shader": "./src/resource/shader/index.js",
     "./resource/texture": "./src/resource/texture/index.js",
-    "./audio": "./src/resource/audio/index.js",
     "./worker": "./src/worker/CjsResManWorker.js",
     "./formats": "./src/formats/index.js",
     "./formats/black": "./src/formats/black/index.js",
