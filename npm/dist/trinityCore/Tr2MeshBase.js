@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2MeshBase",
         family: "trinityCore"
-      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.readwrite, type, type.boolean], 16, "display"], [[void 0, io.rebuild("batches"), io, io.notify, io, io.persist, type, type.int32], 16, "meshIndex"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "opaqueAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "decalAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "depthAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "transparentAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "additiveAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "pickableAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "mirrorAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "decalNormalAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "depthNormalAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "opaquePrepassAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "decalPrepassAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "geometryEraserAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "distortionAreas"], [io.rebuild("batches"), 0, "flareAreas"], [[io, io.read, io, io.persist, type, type.float32], 16, "maxVertexScale"], [[io, io.read, io, io.persist, type, type.float32], 16, "maxVertexDisplacement"], [[io, io.read, io, io.persist, type, type.boolean], 16, "rotatesVertices"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAreas"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddArea"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAllAreas"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMaterialBoundsAdjustment"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetMaterialBoundsAdjustment"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetGeometryResPath"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("GPU-free descriptor batches: geometry buffers and final draw args are resolved by the engine at dispatch")], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("GPU-free: emits a geometry source descriptor instead of realized Tr2BufferAL allocations")], 18, "CreateGeometryBatch"], [[carbon, carbon.method, impl, impl.implemented], 18, "CollectAreaBlocks"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Material grouping uses reference identity in place of Carbon's effect hash values.")], 18, "CollectAreaBlocksWithSharedMaterials"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.readwrite, type, type.boolean], 16, "display"], [[void 0, io.rebuild("batches"), io, io.notify, io, io.persist, type, type.int32], 16, "meshIndex"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "opaqueAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "decalAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "depthAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "transparentAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "additiveAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "pickableAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "mirrorAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "decalNormalAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "depthNormalAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "opaquePrepassAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "decalPrepassAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "geometryEraserAreas"], [[void 0, io.rebuild("batches"), io, io.persist, void 0, type.list("Tr2MeshArea")], 16, "distortionAreas"], [io.rebuild("batches"), 0, "flareAreas"], [[io, io.read, io, io.persist, type, type.float32], 16, "maxVertexScale"], [[io, io.read, io, io.persist, type, type.float32], 16, "maxVertexDisplacement"], [[io, io.read, io, io.persist, type, type.boolean], 16, "rotatesVertices"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAreas"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddArea"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAllAreas"], [[carbon, carbon.method, impl, impl.implemented], 18, "UseWithScreenSize"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMaterialBoundsAdjustment"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetMaterialBoundsAdjustment"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetGeometryResPath"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("GPU-free descriptor batches: geometry buffers and final draw args are resolved by the engine at dispatch")], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("GPU-free: emits a geometry source descriptor instead of realized Tr2BufferAL allocations")], 18, "CreateGeometryBatch"], [[carbon, carbon.method, impl, impl.implemented], 18, "CollectAreaBlocks"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Material grouping uses reference identity in place of Carbon's effect hash values.")], 18, "CollectAreaBlocksWithSharedMaterials"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);
@@ -56,6 +56,36 @@ new class extends _identity {
     }
     GetAllAreas() {
       return _Tr2MeshBase.#areaProperties.flatMap(property => this[property]);
+    }
+
+    /**
+     * Carbon Tr2MeshBase::UseWithScreenSize (Tr2MeshBase.cpp:589-610): reports the
+     * on-screen size this mesh is being drawn at to every area material, so the
+     * texture streamer can request a matching mip level. The LOD the size resolves
+     * to supplies the uv densities the material needs to turn a pixel size into a
+     * texture resolution.
+     *
+     * Callers pass a screen size already scaled by the LOD factor
+     * (EveSpaceObject2, EveTransform, EveChildMesh, BehaviorGroup).
+     */
+    UseWithScreenSize(screenSize, worldRadius) {
+      const geometry = this.GetGeometryResource?.() ?? null;
+      if (!geometry) return false;
+      const lod = geometry.GetMeshLod?.(this.meshIndex, screenSize) ?? null;
+      if (!lod) return false;
+
+      // Carbon reads m_uvDensities off the resolved LOD; a resource that exposes
+      // none yields an empty list, which the material treats as "no LOD data" and
+      // requests the full resolution.
+      const uvDensities = lod.uvDensities ?? lod.m_uvDensities ?? [];
+      let reported = false;
+      for (const area of this.GetAllAreas()) {
+        const material = area?.GetMaterialInterface?.();
+        if (!material?.UsedWithScreenSize) continue;
+        material.UsedWithScreenSize(screenSize, worldRadius, uvDensities);
+        reported = true;
+      }
+      return reported;
     }
     SetShaderOption(name, value) {
       let updated = false;

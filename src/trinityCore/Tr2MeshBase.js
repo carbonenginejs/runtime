@@ -134,6 +134,44 @@ export class Tr2MeshBase extends CjsModel
     return Tr2MeshBase.#areaProperties.flatMap(property => this[property]);
   }
 
+  /**
+   * Carbon Tr2MeshBase::UseWithScreenSize (Tr2MeshBase.cpp:589-610): reports the
+   * on-screen size this mesh is being drawn at to every area material, so the
+   * texture streamer can request a matching mip level. The LOD the size resolves
+   * to supplies the uv densities the material needs to turn a pixel size into a
+   * texture resolution.
+   *
+   * Callers pass a screen size already scaled by the LOD factor
+   * (EveSpaceObject2, EveTransform, EveChildMesh, BehaviorGroup).
+   */
+  @carbon.method
+  @impl.implemented
+  UseWithScreenSize(screenSize, worldRadius)
+  {
+    const geometry = this.GetGeometryResource?.() ?? null;
+    if (!geometry) return false;
+
+    const lod = geometry.GetMeshLod?.(this.meshIndex, screenSize) ?? null;
+    if (!lod) return false;
+
+    // Carbon reads m_uvDensities off the resolved LOD; a resource that exposes
+    // none yields an empty list, which the material treats as "no LOD data" and
+    // requests the full resolution.
+    const uvDensities = lod.uvDensities ?? lod.m_uvDensities ?? [];
+    let reported = false;
+
+    for (const area of this.GetAllAreas())
+    {
+      const material = area?.GetMaterialInterface?.();
+      if (!material?.UsedWithScreenSize) continue;
+
+      material.UsedWithScreenSize(screenSize, worldRadius, uvDensities);
+      reported = true;
+    }
+
+    return reported;
+  }
+
   @carbon.method
   @impl.adapted
   SetShaderOption(name, value)
