@@ -9,7 +9,8 @@ import {
   EveBoosterSet2Item,
   EveBoosterSet2Renderable,
   EveSpriteSet,
-  EveTrailsSet
+  EveTrailsSet,
+  TriFrustum
 } from "../npm/dist/index.js";
 
 
@@ -276,4 +277,129 @@ test("maintained booster and trail classes replace generated fallbacks", () =>
   const skipped = summary.skipped.filter(entry => classNames.includes(entry.className));
   assert.deepEqual(skipped.map(entry => entry.className).sort(), classNames.slice().sort());
   assert.equal(skipped.every(entry => entry.reason === "hand-maintained source exists"), true);
+});
+
+
+// A frustum at the origin looking down -Z, square viewport, 90 degree fov.
+function MakeBoosterFrustum(viewportWidth = 1024)
+{
+  const frustum = new TriFrustum();
+  const view = mat4.lookAt(mat4.create(), [0, 0, 0], [0, 0, -1], [0, 1, 0]);
+  const projection = mat4.perspective(mat4.create(), Math.PI / 2, 1, 0.1, 100000);
+  frustum.DeriveFrustum(view, [0, 0, 0], projection, { width: viewportWidth, height: viewportWidth });
+  return frustum;
+}
+
+// A set with one renderable parked `distance` units down -Z, trails resolved.
+function MakeBoosterAt(distance)
+{
+  const set = new EveBoosterSet2();
+  set.boosterBoundingSphereRadius = 10;
+  set.SetCount(1);
+  const renderable = set.instances[0];
+  const parentMatrix = mat4.fromTranslation(mat4.create(), [0, 0, distance]);
+  renderable.Update(1 / 60, 0, parentMatrix, 0, [0, 0, 0], [0, 0, 0, 1]);
+  renderable.UpdateTrails(1 / 60, 0);
+  return { set, renderable };
+}
+
+test("EveBoosterSet2Renderable.UpdateVisibility applies the booster gates at 2x pixel size (cpp:315-318)", () =>
+{
+  const frustum = MakeBoosterFrustum();
+  const { renderable } = MakeBoosterAt(-2000);
+  const boosterLod = 2 * frustum.GetPixelSizeAccross(renderable.GetBoundingSphere());
+  assert.ok(boosterLod > 0);
+
+  const Context = (low, medium) => ({
+    GetFrustum: () => frustum,
+    GetLowDetailThreshold: () => low,
+    GetMediumDetailThreshold: () => medium
+  });
+
+  // Strictly greater-than on both gates.
+  renderable.UpdateVisibility(Context(boosterLod * 0.9, boosterLod));
+  assert.equal(renderable.boostersVisible, true);
+  renderable.UpdateVisibility(Context(boosterLod, boosterLod));
+  assert.equal(renderable.boostersVisible, false, "gate is >, not >=");
+
+  // High lod needs 1.5x the medium threshold, not the medium threshold.
+  renderable.UpdateVisibility(Context(0, boosterLod / 1.5 * 0.99));
+  assert.equal(renderable.boosterHighLod, true);
+  renderable.UpdateVisibility(Context(0, boosterLod / 1.5 * 1.01));
+  assert.equal(renderable.boosterHighLod, false, "medium * 1.5 is the high-lod bar");
+});
+
+test("EveBoosterSet2Renderable.UpdateVisibility keeps trails alive well past the boosters (cpp:320-335)", () =>
+{
+  const frustum = MakeBoosterFrustum();
+  const { renderable } = MakeBoosterAt(-2000);
+  const boosterLod = 2 * frustum.GetPixelSizeAccross(renderable.GetBoundingSphere());
+
+  // Same sphere radius, 7.5x instead of 2x, so a threshold between the two
+  // scales hides the boosters while the trail still draws.
+  renderable.UpdateVisibility({
+    GetFrustum: () => frustum,
+    GetLowDetailThreshold: () => boosterLod * 2,
+    GetMediumDetailThreshold: () => 0
+  });
+  assert.equal(renderable.boostersVisible, false);
+  assert.equal(renderable.trailsVisible, true, "trails use the 7.5x scale");
+
+  renderable.UpdateVisibility({
+    GetFrustum: () => frustum,
+    GetLowDetailThreshold: () => boosterLod * 10,
+    GetMediumDetailThreshold: () => 0
+  });
+  assert.equal(renderable.trailsVisible, false);
+});
+
+test("EveBoosterSet2Renderable visibility is the sphere OR the trail bounds (cpp:337)", () =>
+{
+  const frustum = MakeBoosterFrustum();
+  const context = {
+    GetFrustum: () => frustum,
+    GetLowDetailThreshold: () => 0,
+    GetMediumDetailThreshold: () => 0
+  };
+
+  const inFront = MakeBoosterAt(-2000).renderable;
+  inFront.UpdateVisibility(context);
+  assert.equal(inFront.isVisible, true);
+  assert.deepEqual(inFront.GetRenderables(), [inFront]);
+
+  const behind = MakeBoosterAt(2000).renderable;
+  behind.UpdateVisibility(context);
+  assert.equal(behind.isVisible, false, "behind the camera, sphere and trail box both fail");
+  assert.deepEqual(behind.GetRenderables(), []);
+});
+
+test("EveBoosterSet2.UpdateVisibility gates on display and reports glow visibility (cpp:1096-1116)", () =>
+{
+  const frustum = MakeBoosterFrustum();
+  const context = {
+    GetFrustum: () => frustum,
+    GetLowDetailThreshold: () => 0,
+    GetMediumDetailThreshold: () => 0
+  };
+  const { set, renderable } = MakeBoosterAt(-2000);
+  set.effect = {};
+
+  set.display = false;
+  assert.equal(set.UpdateVisibility(context), false);
+  assert.equal(set.GetGlowsVisible(), false, "display off clears the flag before anything else");
+  assert.deepEqual(set.GetRenderables(), [], "display gates GetRenderables too");
+
+  set.display = true;
+  set.glows = new EveSpriteSet();
+  // Unported EveSpriteSet.UpdateVisibility: the fallback keeps the glow.
+  assert.equal(set.UpdateVisibility(context), true);
+  assert.equal(renderable.isVisible, true, "renderables were updated");
+  assert.deepEqual(set.GetRenderables(), [renderable]);
+
+  // A sprite set that answers is believed.
+  set.glows.UpdateVisibility = () => false;
+  assert.equal(set.UpdateVisibility(context), false);
+
+  set.effect = null;
+  assert.deepEqual(set.GetRenderables(), [], "no effect, no batches");
 });

@@ -277,6 +277,9 @@ export class EveBoosterSet2 extends EveEntity
 
   #revision = 0;
 
+  /** m_glowsVisible (cpp:682) - starts visible, recomputed by UpdateVisibility. */
+  #glowsVisible = true;
+
   @carbon.method
   @impl.adapted
   Initialize()
@@ -601,6 +604,83 @@ export class EveBoosterSet2 extends EveEntity
   GetRevision()
   {
     return this.#revision;
+  }
+
+  /** Carbon EveBoosterSet2::UpdateVisibility (cpp:1096-1116): a display gate,
+   * then per-renderable LOD, then ONE glow test - the loop breaks on the first
+   * renderable whose glow sprite set is on screen, so `glowsVisible` is a
+   * whole-set flag, not per booster.
+   *
+   * EveSpriteSet::UpdateVisibility (its own transformed-AABB frustum test) is
+   * not ported yet. When the sprite set cannot answer, this keeps Carbon's
+   * constructor default of visible rather than inventing a cull - the flare is
+   * separately gated per renderable by `boostersVisible` (cpp:1264). */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("EveSpriteSet.UpdateVisibility is unported; an absent test falls back to visible instead of culling.")
+  UpdateVisibility(updateContext)
+  {
+    this.#glowsVisible = false;
+    if (!this.display)
+    {
+      return false;
+    }
+
+    for (const renderable of this.instances)
+    {
+      renderable?.UpdateVisibility?.(updateContext);
+    }
+
+    if (this.glows)
+    {
+      for (const renderable of this.instances)
+      {
+        const transform = renderable?.GetParentTransform?.();
+        if (!transform)
+        {
+          continue;
+        }
+        const visible = this.glows.UpdateVisibility
+          ? this.glows.UpdateVisibility(updateContext, transform, null, 0)
+          : true;
+        if (visible)
+        {
+          this.#glowsVisible = true;
+          break;
+        }
+      }
+    }
+
+    return this.#glowsVisible;
+  }
+
+  /** Whether any booster glow sprite passed the last UpdateVisibility. Carbon
+   * reads m_glowsVisible directly in AddToQuadRenderer (cpp:1257); the quad
+   * renderer is engine-side here, so the flag is exposed instead. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon's mutable member read becomes an accessor; the quad renderer that consumes it is engine-owned.")
+  GetGlowsVisible()
+  {
+    return this.#glowsVisible;
+  }
+
+  /** Carbon EveBoosterSet2::GetRenderables (cpp:1130-1145): gated on display
+   * AND on the set owning an effect, then delegated to each renderable's own
+   * visibility. */
+  @carbon.method
+  @impl.implemented
+  GetRenderables(out = [])
+  {
+    if (!this.display || !this.effect)
+    {
+      return out;
+    }
+    for (const renderable of this.instances)
+    {
+      renderable?.GetRenderables?.(out);
+    }
+    return out;
   }
 
   /** Carbon EveBoosterSet2::RegisterComponents (cpp:1272-1279): unconditional

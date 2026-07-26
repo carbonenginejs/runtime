@@ -323,6 +323,79 @@ export class EveBoosterSet2Renderable extends CjsModel
     return { vs, ps };
   }
 
+  /** Carbon EveBoosterSet2Renderable::UpdateVisibility (cpp:307-337). Three
+   * independent gates, all off the SAME bounding-sphere radius:
+   * - boosters: `2 * pixelSize(sphere)`; HIGH lod above `medium * 1.5`, drawn at
+   *   all above `low`. `boosterHighLod` picks the effect at batch time
+   *   (cpp:208 - `effectFar` when low, unless the set has none), and
+   *   `boostersVisible` also gates the glow flare (cpp:1264).
+   * - trails: the CLOSEST spline control point to the camera, given the
+   *   booster sphere's radius, scaled `7.5x`; drawn above `low`.
+   * - `isVisible`: frustum sphere test OR the trail bounds box - a booster whose
+   *   hull is off-screen still renders while its trail crosses the view.
+   *
+   * The sphere is passed as a packed vec4, which is Carbon's `Vector4*` overload
+   * and therefore the DEPTH pixel-size formula, not the Est one.
+   * No lodFactor is applied anywhere here; Carbon does not apply one either. */
+  @carbon.method
+  @impl.implemented
+  UpdateVisibility(updateContext)
+  {
+    const frustum = updateContext?.GetFrustum?.();
+    if (!frustum || !this.#boosterSet)
+    {
+      return false;
+    }
+
+    const boundingSphere = this.GetBoundingSphere();
+    const lowDetailThreshold = updateContext.GetLowDetailThreshold();
+
+    const boosterLod = 2 * frustum.GetPixelSizeAccross(boundingSphere);
+    this.boosterHighLod = boosterLod > updateContext.GetMediumDetailThreshold() * 1.5;
+    this.boostersVisible = boosterLod > lowDetailThreshold;
+
+    const viewPos = frustum.viewPos;
+    let closestIndex = 0;
+    let closestSqDistance = Infinity;
+    for (let index = 0; index < EveBoosterSet2Renderable.#controlPointCount; index++)
+    {
+      const position = this.#trailsControlPositions[index];
+      const sqDistance = vec3.squaredDistance(position, viewPos);
+      if (sqDistance < closestSqDistance)
+      {
+        closestSqDistance = sqDistance;
+        closestIndex = index;
+      }
+    }
+
+    const closest = this.#trailsControlPositions[closestIndex];
+    const trailsLod = 7.5 * frustum.GetPixelSizeAccross(vec4.fromValues(
+      closest[0],
+      closest[1],
+      closest[2],
+      boundingSphere[3]
+    ));
+    this.trailsVisible = trailsLod > lowDetailThreshold;
+
+    this.isVisible = frustum.IsSphereVisible(boundingSphere) ||
+      frustum.IsBoxVisible(this.trailsBoundsMin, this.trailsBoundsMax);
+
+    return this.isVisible;
+  }
+
+  /** Carbon EveBoosterSet2Renderable::GetRenderables (cpp:349-356): submits
+   * itself only when UpdateVisibility left it visible. */
+  @carbon.method
+  @impl.implemented
+  GetRenderables(out = [])
+  {
+    if (this.isVisible)
+    {
+      out.push(this);
+    }
+    return out;
+  }
+
   /** Protected-equivalent read of Carbon's m_parentTransform
    * (EveBoosterSet2.h:132) - the owning set's GetLights transforms each
    * booster light position by it (cpp:1305/1314). Returns the live buffer;

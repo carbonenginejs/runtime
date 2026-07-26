@@ -50,7 +50,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveBoosterSet2",
         family: "eve/attachment/boosters"
-      })], [[[io, io.notify, io, io.readwrite, type, type.boolean], 16, "flareLodEnabled"], [[void 0, io.flag("staticTrailOffsets"), io, io.notify, io, io.persist, type, type.float32], 16, "staticTrailLength"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets0"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets1"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets2"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets3"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets4"], [[io, io.persist, type, type.float32], 16, "lightOffset"], [[io, io.persist, type, type.float32], 16, "lightFlickerAmplitude"], [[io, io.persist, type, type.float32], 16, "lightFlickerFrequency"], [[io, io.persist, type, type.float32], 16, "lightRadius"], [[io, io.persist, type, type.color], 16, "lightColor"], [[io, io.persist, type, type.float32], 16, "lightWarpRadius"], [[io, io.persist, type, type.color], 16, "lightWarpColor"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.float32], 16, "alwaysOnIntensity"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "warpGlowColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "glowColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "haloColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "warpHaloColor"], [[io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effectFar"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.read, void 0, type.list("EveBoosterSet2Renderable")], 16, "instances"], [[io, io.readwrite, type, type.float32], 16, "maxVel"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "glowScale"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "symHaloScale"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "haloScaleX"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "haloScaleY"], [[io, io.persist, type, type.float32], 16, "trailsSmoothing"], [[io, io.persist, void 0, type.objectRef("EveSpriteSet")], 16, "glows"], [[io, io.read, type, type.float32], 16, "maxSize"], [[io, io.read, type, type.vec3], 16, "boosterBoundingSphereCenter"], [[io, io.read, type, type.float32], 16, "boosterBoundingSphereRadius"], [[io, io.readwrite, type, type.float32], 16, "warpIntensity"], [[io, io.persist, type, type.boolean], 16, "physicsUpdate"], [[io, io.persist, type, type.boolean], 16, "destinyUpdate"], [[io, io.persist, type, type.boolean], 16, "alwaysOn"], [[io, io.persist, void 0, type.objectRef("EveTrailsSet")], 16, "trails"], [[void 0, io.flag("items"), void 0, io.rebuild("packedGeometry"), io, io.notify, io, io.persist, void 0, type.list("EveBoosterSet2Item")], 16, "items"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "OnModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "UpdateTrails"], [[carbon, carbon.method, impl, impl.adapted], 18, "Clear"], [[carbon, carbon.method, impl, impl.adapted], 18, "Add"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetData"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLightData"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetGlow"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetTrail"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoosterIntensity"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoosterData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRevision"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); the g_lightNoise table is module state filled with Math.random (Carbon fills it with rand()/RAND_MAX - random either way).")], 18, "GetLights"]], 0, void 0, _EveEntity));
+      })], [[[io, io.notify, io, io.readwrite, type, type.boolean], 16, "flareLodEnabled"], [[void 0, io.flag("staticTrailOffsets"), io, io.notify, io, io.persist, type, type.float32], 16, "staticTrailLength"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets0"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets1"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets2"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets3"], [[io, io.persist, type, type.vec3], 16, "trailsStaticOffsets4"], [[io, io.persist, type, type.float32], 16, "lightOffset"], [[io, io.persist, type, type.float32], 16, "lightFlickerAmplitude"], [[io, io.persist, type, type.float32], 16, "lightFlickerFrequency"], [[io, io.persist, type, type.float32], 16, "lightRadius"], [[io, io.persist, type, type.color], 16, "lightColor"], [[io, io.persist, type, type.float32], 16, "lightWarpRadius"], [[io, io.persist, type, type.color], 16, "lightWarpColor"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.float32], 16, "alwaysOnIntensity"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "warpGlowColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "glowColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "haloColor"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.color], 16, "warpHaloColor"], [[io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effectFar"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.read, void 0, type.list("EveBoosterSet2Renderable")], 16, "instances"], [[io, io.readwrite, type, type.float32], 16, "maxVel"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "glowScale"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "symHaloScale"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "haloScaleX"], [[void 0, io.flag("flares"), io, io.notify, io, io.persist, type, type.float32], 16, "haloScaleY"], [[io, io.persist, type, type.float32], 16, "trailsSmoothing"], [[io, io.persist, void 0, type.objectRef("EveSpriteSet")], 16, "glows"], [[io, io.read, type, type.float32], 16, "maxSize"], [[io, io.read, type, type.vec3], 16, "boosterBoundingSphereCenter"], [[io, io.read, type, type.float32], 16, "boosterBoundingSphereRadius"], [[io, io.readwrite, type, type.float32], 16, "warpIntensity"], [[io, io.persist, type, type.boolean], 16, "physicsUpdate"], [[io, io.persist, type, type.boolean], 16, "destinyUpdate"], [[io, io.persist, type, type.boolean], 16, "alwaysOn"], [[io, io.persist, void 0, type.objectRef("EveTrailsSet")], 16, "trails"], [[void 0, io.flag("items"), void 0, io.rebuild("packedGeometry"), io, io.notify, io, io.persist, void 0, type.list("EveBoosterSet2Item")], 16, "items"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "OnModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "UpdateTrails"], [[carbon, carbon.method, impl, impl.adapted], 18, "Clear"], [[carbon, carbon.method, impl, impl.adapted], 18, "Add"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetData"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLightData"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetGlow"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetTrail"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoosterIntensity"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoosterData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRevision"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("EveSpriteSet.UpdateVisibility is unported; an absent test falls back to visible instead of culling.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's mutable member read becomes an accessor; the quad renderer that consumes it is engine-owned.")], 18, "GetGlowsVisible"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); the g_lightNoise table is module state filled with Math.random (Carbon fills it with rand()/RAND_MAX - random either way).")], 18, "GetLights"]], 0, void 0, _EveEntity));
       _ClearRuntimeItems = function (owner) {
         owner.#singleBoosters.length = 0;
         owner.glows?.Clear?.();
@@ -204,6 +204,9 @@ new class extends _identity {
     items = (_init_extra_trails(this), _init_items(this, []));
     #singleBoosters = (_init_extra_items(this), []);
     #revision = 0;
+
+    /** m_glowsVisible (cpp:682) - starts visible, recomputed by UpdateVisibility. */
+    #glowsVisible = true;
     Initialize() {
       _EveBoosterSet.#RebuildItems(this);
       for (const renderable of this.instances) {
@@ -354,6 +357,59 @@ new class extends _identity {
     }
     GetRevision() {
       return this.#revision;
+    }
+
+    /** Carbon EveBoosterSet2::UpdateVisibility (cpp:1096-1116): a display gate,
+     * then per-renderable LOD, then ONE glow test - the loop breaks on the first
+     * renderable whose glow sprite set is on screen, so `glowsVisible` is a
+     * whole-set flag, not per booster.
+     *
+     * EveSpriteSet::UpdateVisibility (its own transformed-AABB frustum test) is
+     * not ported yet. When the sprite set cannot answer, this keeps Carbon's
+     * constructor default of visible rather than inventing a cull - the flare is
+     * separately gated per renderable by `boostersVisible` (cpp:1264). */
+    UpdateVisibility(updateContext) {
+      this.#glowsVisible = false;
+      if (!this.display) {
+        return false;
+      }
+      for (const renderable of this.instances) {
+        renderable?.UpdateVisibility?.(updateContext);
+      }
+      if (this.glows) {
+        for (const renderable of this.instances) {
+          const transform = renderable?.GetParentTransform?.();
+          if (!transform) {
+            continue;
+          }
+          const visible = this.glows.UpdateVisibility ? this.glows.UpdateVisibility(updateContext, transform, null, 0) : true;
+          if (visible) {
+            this.#glowsVisible = true;
+            break;
+          }
+        }
+      }
+      return this.#glowsVisible;
+    }
+
+    /** Whether any booster glow sprite passed the last UpdateVisibility. Carbon
+     * reads m_glowsVisible directly in AddToQuadRenderer (cpp:1257); the quad
+     * renderer is engine-side here, so the flag is exposed instead. */
+    GetGlowsVisible() {
+      return this.#glowsVisible;
+    }
+
+    /** Carbon EveBoosterSet2::GetRenderables (cpp:1130-1145): gated on display
+     * AND on the set owning an effect, then delegated to each renderable's own
+     * visibility. */
+    GetRenderables(out = []) {
+      if (!this.display || !this.effect) {
+        return out;
+      }
+      for (const renderable of this.instances) {
+        renderable?.GetRenderables?.(out);
+      }
+      return out;
     }
 
     /** Carbon EveBoosterSet2::RegisterComponents (cpp:1272-1279): unconditional
