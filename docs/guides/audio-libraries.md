@@ -20,6 +20,21 @@ runtime-required event, bank, and media fields retain their canonical names.
 
 The builder never discovers an installation, cache, endpoint, or credential.
 
+## Import only the builder
+
+A consumer that builds a library but plays it through its own audio stack should
+import the builder entry rather than the family:
+
+```js
+import { CjsAudioLibraryBuilder } from "@carbonenginejs/tools-browser/audio/builder";
+```
+
+The family entry also exports `CjsAudioLibrary`, whose media resolution runs
+through `@carbonenginejs/runtime-resource`. Importing the family therefore pulls
+that consumption path into the dependency graph even when only the builder is
+used, which a bundler reports as unresolved externals. The builder entry has no
+such reach: it takes values in and returns a document.
+
 ## Build a source catalog
 
 Use `build()` when the application needs indexed loose media and bank

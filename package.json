@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/tools-browser",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Browser-facing CarbonEngineJS clients, remote readers, and application tools.",
   "type": "module",
@@ -8,6 +8,7 @@
   "exports": {
     ".": "./src/index.js",
     "./audio": "./src/audio/index.js",
+    "./audio/builder": "./src/audio/CjsAudioLibraryBuilder.js",
     "./chat": "./src/chat/index.js",
     "./fileindex": "./src/fileindex/index.js",
     "./realtime": "./src/realtime/index.js"
