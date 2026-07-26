@@ -31,7 +31,7 @@ import {
 | Subpath | Purpose | Exports |
 | --- | --- | --- |
 | `.` | Aggregates all current browser tool families. | All exports below. |
-| [`./audio`](../../src/audio/index.js) | Builds, validates, and loads deterministic browser audio libraries. | `CjsAudioLibrary`, `CjsAudioLibraryBuilder` |
+| [`./audio`](../../src/audio/index.js) | Builds, loads, and adapts deterministic audio libraries to CjsResMan. | `CjsAudioLibrary`, `CjsAudioLibraryBuilder` |
 | [`./chat`](../../src/chat/index.js) | Requests and optionally filters provider-neutral chat rooms over one realtime client. | `CHAT_TOPICS`, `CjsChatBlockList`, `CjsChatClient`, `CjsChatContract`, `CjsChatRoomSubscription` |
 | [`./fileindex`](../../src/fileindex/index.js) | Parses, loads, layers, and safely resolves appfileindex and resfileindex data. | `CjsFileIndex`, `CjsFileIndexEntry`, `CjsFileIndexLibrary`, `CjsFileIndexOverlay`, `CjsFileIndexSource` |
 | [`./realtime`](../../src/realtime/index.js) | Consumes Carbon realtime v1 with validation, reconnect, subscriptions, and snapshot recovery. | `CjsRealtimeClient`, `CjsRealtimeError`, `CjsRealtimeProtocol`, `CjsRealtimeSubscription`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
@@ -41,14 +41,26 @@ import {
 Published source uses browser-standard or injected Web APIs and imports no Node
 built-ins. Audio-library and file-index loading require Fetch-compatible
 responses when a URL is supplied. Complete audio builds require injected bank
-access and may inject worker-backed bank inspection. Realtime consumption
+access and may inject worker-backed bank inspection. Audio resource access
+accepts a CjsResMan or creates an audio-only manager and consumes structural
+whole-file, exact-media, or range source capabilities. Realtime consumption
 requires WebSocket and uses Fetch for snapshot recovery when configured.
+
+Audio configuration is registered before `Initialize()`. A prebuilt
+`libraryResFilePath`/`library` replaces the sound-bank build inputs, while
+`enrichResPath`/`enrich` overlays either form. API base, individual-file, and
+offset options declare transport availability; they do not assert browser
+decode support. Async `GetCapabilities()` can instead test both API delivery
+modes concurrently with one bank-owned media record before the first resource
+lookup.
+The returned `CjsAudioRes` and backing `CjsAudioBufferRes` classes are owned
+and exported by `@carbonenginejs/runtime-resource/audio`.
 
 ## Errors
 
-Audio-library helpers throw labelled `TypeError`, `SyntaxError`, or `Error`
-instances for invalid documents, incomplete source identity, missing bank
-capabilities, failed HTTP responses, and rejected bank inspection.
+Audio-library programmer-contract failures use `TypeError`, `RangeError`, or
+`SyntaxError`. Operational lookup, source, HTTP, backing-window, and resource
+registration failures use `CjsError` with stable `CJS_AUDIO_*` codes.
 
 File-index helpers throw labelled `TypeError`, `RangeError`, or `Error`
 instances for malformed declarations, unsafe locations, ambiguous layers,

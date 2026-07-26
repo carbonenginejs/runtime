@@ -57,6 +57,42 @@ const audioLibraryDocument = library.GetDocument();
 injected capability, so an application may use worker-backed resource loading,
 an API, or caller-selected local data without changing the library builder.
 
+Adapt a prepared document to an existing resource manager, or let the library
+create an audio-only manager:
+
+```js
+const audio = new CjsAudioLibrary({
+    source: resourceSource,
+    libraryResFilePath: "aud:/library.json",
+    enrichResPath: "res:/audio/enrich.json"
+});
+
+audio.SetResMan(cjs.resMan);
+await audio.Initialize();
+
+const capabilities = await audio.GetCapabilities({
+    bank: "20:0"
+});
+const resource = audio.GetResByID(777);
+const { bytes, mediaType, metadata } = await resource.GetBytes();
+```
+
+`library` and `enrich` accept already materialized JavaScript objects instead.
+To build in the browser, register `soundBank` or `soundBankResPath` together
+with `indexEntries`; enrichment applies over either a loaded or built base.
+Successful initialization locks the configuration.
+`GetCapabilities()` is asynchronous and should run before the first resource
+lookup. It probes individual-file and offset delivery concurrently with one
+known bank member; pass a preferred bank or media ID when the service's common
+bank is known.
+
+`GetResByPath()` returns the same canonical `CjsAudioRes` when the path and ID
+select the same representation. Embedded resources share one bank backing and
+delegate `Lock()` / `Unlock()` to that backing.
+Both resource-owner classes come from
+`@carbonenginejs/runtime-resource/audio`; this package owns their library
+registration and delivery-route projection.
+
 The root export is available when an application consumes several tool
 families. Targeted `./audio`, `./chat`, `./fileindex`, and `./realtime` imports
 remain available.

@@ -343,6 +343,31 @@ export class CjsAudioLibraryBuilder
         return "unknown";
     }
 
+    /** Applies additive audio metadata enrichment over a built library. */
+    static applyEnrichment(library, enrichment)
+    {
+        if (!library || typeof library !== "object" || Array.isArray(library))
+        {
+            throw new TypeError(
+                "Audio-library enrichment requires a library object",
+            );
+        }
+
+        const metadata = CreateAudioMetadata({
+            metadata: library.metadata,
+            enrichment,
+        });
+
+        return {
+            ...library,
+            metadata: SortedKeys({
+                Events: SortedKeys(metadata.Events),
+                SoundBanks: SortedKeys(metadata.SoundBanks),
+                WemFileIDs: SortedKeys(metadata.WemFileIDs),
+            }),
+        };
+    }
+
     /**
      * Builds a complete library by reading every indexed bank through one
      * caller-supplied capability. The capability may delegate acquisition and
@@ -504,23 +529,29 @@ export class CjsAudioLibraryBuilder
             sourceBuild = null,
             generatedAt = null,
         } = options;
+
         const source = NormalizeSourceIdentity({
             target: sourceTarget,
             game: sourceGame,
             provider: sourceProvider,
             build: sourceBuild,
         });
+
         const entries = NormalizeIndexEntries(indexEntries);
+
         const metadata = CreateAudioMetadata({
             metadata: metadataInput,
             soundbanksInfo,
             enrichment,
         });
+
         const authoredBanks = CreateAuthoredBankCatalog(
             soundbanksInfo,
             metadata,
         );
+
         const media = {};
+
         const banks = CreateBankTable(
             entries,
             authoredBanks,
@@ -556,6 +587,7 @@ export class CjsAudioLibraryBuilder
             media: NormalizeSourceTable(media),
             banks: SortedKeys(banks)
         };
+
         if (eventMedia && Object.keys(eventMedia).length)
         {
             library.eventMedia = SortedKeys(eventMedia);
@@ -563,10 +595,12 @@ export class CjsAudioLibraryBuilder
                 ? ""
                 : String(eventMediaLanguage);
         }
+
         if (embeddedMedia && Object.keys(embeddedMedia).length)
         {
             library.embeddedMedia = NormalizeSourceTable(embeddedMedia);
         }
+
         if (music !== null)
         {
             ValidateMusicGraph(
@@ -576,6 +610,7 @@ export class CjsAudioLibraryBuilder
             );
             library.music = NormalizeMusicGraph(music);
         }
+
         if (source)
         {
             library.sourceTarget = source.target;
@@ -583,10 +618,12 @@ export class CjsAudioLibraryBuilder
             library.sourceProvider = source.provider;
             library.sourceBuild = source.build;
         }
+
         if (generatedAt !== null)
         {
             library.generatedAt = String(generatedAt);
         }
+
         return library;
     }
 

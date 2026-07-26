@@ -36,6 +36,11 @@ The implemented package currently owns:
   metadata, file-index values, and injected bank access;
 - validation and loading of prebuilt audio-library JSON through objects,
   browser files, responses, or Fetch;
+- adaptation of prepared audio-library records into runtime-resource-owned,
+  individually addressable `CjsAudioRes` handles backed by loose files,
+  exact-media APIs, ranges, or shared `CjsAudioBufferRes` bank payloads;
+- registration and one-time initialization of prebuilt-library or sound-bank
+  inputs, with optional metadata enrichment applied over either base;
 - appfileindex and resfileindex parsing, discovery, immutable lookup, named
   overlays, and safe HTTP(S) source resolution;
 - provider-neutral chat-room selection, browser-local filtering, disposable
@@ -68,8 +73,12 @@ subpath, tests, documentation, and owned security boundary.
   mechanics belong in `@carbonenginejs/runtime-utils`.
 - Runtime graph objects and domain readers belong in their owning
   `runtime-*` packages.
-- Audio event, bank, media-selection, decode-cache, and playback semantics
-  belong in `@carbonenginejs/runtime-audio`.
+- Audio event interpretation, decoded-buffer caching, scheduling, and playback
+  semantics belong in `@carbonenginejs/runtime-audio`.
+- Physical audio-byte ownership, logical audio resource views, shared backing
+  locks, and payload retention belong in `@carbonenginejs/runtime-resource`.
+- Browser media-representation selection and the rules that project physical
+  sources or byte windows into CjsResMan resources belong in this package.
 - BNK/WEM parsing and conversion belong in
   `@carbonenginejs/runtime-resource`.
 - Node filesystems, acquisition caches, provider credentials, servers,
@@ -98,6 +107,11 @@ Audio-library construction accepts metadata values and bank capabilities
 directly. It does not discover installation paths, cache layouts, provider
 credentials, or service roots. Complete builds read every bank through one
 injected capability and support cancellation.
+
+Audio resource adaptation does not make CjsResMan or MotherLode understand
+audio. The adapter registers path/variant resources and wires child liveness
+to shared backing resources; the resource packages continue to provide only
+neutral loading, canonical ownership, queueing, and retention behavior.
 
 ## Environment contract
 

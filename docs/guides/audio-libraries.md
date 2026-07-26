@@ -93,13 +93,133 @@ Blob/File-like value. HTTP compression is transparent when the server supplies
 the correct content encoding. Local compressed files must be decompressed by
 the caller before passing JSON text.
 
+## Adapt resources to CjsResMan
+
+Use an instance when callers need individual audio resources rather than only
+the prepared document:
+
+```js
+import {
+    CjsAudioLibrary
+} from "@carbonenginejs/tools-browser/audio";
+
+const audio = new CjsAudioLibrary({
+    source: resourceSource,
+    defaultLanguage: "en-us",
+    mediaTypes: [ "audio/ogg", "audio/x-wem" ],
+    libraryResFilePath: "aud:/library.json"
+});
+
+// Optional. Without this call, Initialize creates an audio-only CjsResMan.
+audio.SetResMan(cjs.resMan);
+
+await audio.Initialize();
+
+const resource = audio.GetResByID(777);
+const sameResource = audio.GetResByPath(resource.GetAudioInfo().path);
+const result = await audio.GetBytesByID(777);
+```
+
+`GetResByID()` selects prepared, loose, or embedded records by accepted media
+type, language, source rank, and stable source ID. `GetResByPath()` resolves an
+exact registered path. Both return canonical `CjsAudioRes` handles; neither
+method reads bytes.
+
+Construction and `Register()` only accumulate configuration. The base input is
+one of:
+
+- `libraryResFilePath` or an already materialized `library` object; or
+- `soundBankResPath` or a `soundBank` object, together with `indexEntries`.
+
+Optional `enrichResPath` or `enrich` metadata applies after either base resolves.
+Paths load through the configured CjsResMan resource queue. `buildOptions` may
+request complete bank inspection, language selection, music construction, and
+source identity without redefining the registered documents.
+
+`Initialize(input)` also accepts a prepared document or `CjsAudioLibrary`, JSON
+text, Blob/File-like value, Response-like value, URL, fallback array, or
+structural builder options directly. Successful initialization permanently
+locks configuration. Before it completes, resource and byte lookups throw
+`CJS_AUDIO_LIBRARY_NOT_INITIALIZED`; lookups never initialize implicitly.
+
+## Resource ingress
+
+The configured source may provide one or more structural capabilities:
+
+- `Read(path, options)` for ordinary loose files and complete banks;
+- `ReadAudio(mediaID, context)` or `FetchAudio(path, record, context)` when an
+  API already serves one split media item;
+- `ReadRange(path, { offset, byteLength, ...options })` when a server supports
+  byte-window reads; and
+- matching `CreateAudioWorkerRequest` or `CreateRangeWorkerRequest` methods
+  when those exact operations can be described to CjsResMan's worker loader.
+
+An HTTP-style audio service can instead be described during registration:
+
+```js
+audio.Register({
+    audioApiResPath: "aud:/",
+    audioApiResPathSupportsIndividualFiles: true,
+    audioApiResPathSupportsOffset: true
+});
+```
+
+Individual-file support projects media to `id/<mediaID>`. Offset support can
+project an embedded bank window to `path/<encoded-resource-path>` with a Range
+request. These are declared transport capabilities, not proof that the browser
+can decode the returned media.
+
+To verify delivery instead of trusting declarations, call the asynchronous
+probe after initialization and before the first resource lookup:
+
+```js
+const capabilities = await audio.GetCapabilities({
+    bank: "20:0"
+});
+```
+
+The probe selects one media ID known to belong to the preferred bank and sends
+the individual-ID and offset requests concurrently. When both succeed, their
+lengths and bytes must match before either route is accepted. A caller may pass
+an exact `mediaID` instead. Without an override, the library favors the bank
+referenced by the most event media, then the bank with the most cataloged
+members, and finally the smaller bank.
+
+A range or split response still becomes an ordinary `CjsAudioRes`. With a
+whole-bank source, one `CjsAudioBufferRes` owns the physical BNK payload and
+every embedded child stores only its offset and length.
+
+Both resource classes are owned and exported by
+`@carbonenginejs/runtime-resource/audio`; this package creates and registers
+them according to the audio-library document and selected delivery route.
+
+MP3, Ogg, WAV, and FLAC are retained as browser-native bytes. A private manager
+registers only the BNK and WEM container formats needed by this adapter, while
+an injected manager remains authoritative for additional format support. Media
+decode and playback capability checks belong to runtime-audio and its backend.
+
+## Retention
+
+MotherLode remains a path/variant registry and CjsResMan remains the loading
+and lifecycle coordinator. The audio adapter provides the relationship:
+
+- a child `CjsAudioRes.Lock()` also locks its shared backing resource;
+- `Unlock()` releases both locks;
+- `KeepAlive()` renews both identities;
+- `KeepPayloadAlive()` renews the physical payload lease; and
+- `GetBytes()` takes a temporary lock and returns a detached copy of only the
+  selected media window.
+
+Consequently, retaining a child keeps the shared bank payload available, while
+an unretained byte result cannot accidentally keep the complete bank alive.
+
 ## Runtime boundary
 
-This package constructs and transports the document. Runtime audio owns event
-semantics, language/media selection, decoding, buffer retention, emitters,
-music scheduling, and playback. Resource formats own BNK/WEM parsing and
-conversion. Node tooling may wrap this builder with provider, cache, CLI, and
-server policy.
+This package constructs and transports the document, selects browser delivery
+representations, and adapts them to CjsResMan resources. Runtime audio owns
+event interpretation, decoding, decoded-buffer policy, emitters, music
+scheduling, and playback. Resource formats own BNK/WEM parsing and conversion.
+Node tooling may wrap this builder with provider, cache, CLI, and server policy.
 
 ## Related documentation
 

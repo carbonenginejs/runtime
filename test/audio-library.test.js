@@ -2,6 +2,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+    CjsMemoryResourceSource,
+    CjsResMan,
+} from "@carbonenginejs/runtime-resource";
+import {
+    CjsAudioBufferRes,
+    CjsAudioRes,
+} from "@carbonenginejs/runtime-resource/audio";
+import { CjsWemFormat } from "@carbonenginejs/runtime-resource/formats/wem";
+
+import {
     CjsAudioLibrary,
     CjsAudioLibraryBuilder,
 } from "../src/audio/index.js";
@@ -268,8 +278,8 @@ test("audio library loads validated objects, JSON text, and Fetch responses", as
         indexEntries: INDEX_TEXT,
         soundbanksInfo: SOUNDBANKS_INFO,
     });
-    const fromObject = CjsAudioLibrary.from(document);
-    const fromText = CjsAudioLibrary.from(JSON.stringify(document));
+    const fromObject = await CjsAudioLibrary.from(document);
+    const fromText = await CjsAudioLibrary.from(JSON.stringify(document));
     const fromBlob = await CjsAudioLibrary.load(
         new Blob([ JSON.stringify(document) ], {
             type: "application/json",
@@ -296,8 +306,8 @@ test("audio library loads validated objects, JSON text, and Fetch responses", as
     assert.deepEqual(fromText.GetDocument(), document);
     assert.deepEqual(fromBlob.GetDocument(), document);
     assert.deepEqual(fromFetch.GetDocument(), document);
-    assert.throws(
-        () => CjsAudioLibrary.from({
+    await assert.rejects(
+        CjsAudioLibrary.from({
             ...document,
             schema: "invalid",
         }),
@@ -344,10 +354,536 @@ test("complete builds honor cancellation before invoking a bank provider", async
     assert.equal(called, false);
 });
 
+test("audio registration resolves documents, applies enrichment, and locks on initialize", async () =>
+{
+    const document = CreateRuntimeLibraryDocument();
+    const source = new CjsMemoryResourceSource({
+        "aud:/library.json": JSON.stringify(document),
+        "res:/audio-enrich": JSON.stringify({
+            Events: {
+                engine_loop: {
+                    eventID: 11,
+                    isLoop: 1,
+                },
+            },
+        }),
+    });
+    const audio = new CjsAudioLibrary({
+        source,
+    });
+
+    audio.Register({
+        libraryResFilePath: "aud:/library.json",
+        enrichResPath: "res:/audio-enrich",
+    });
+
+    assert.throws(
+        () => audio.GetResByID(100),
+        error => error.code === "CJS_AUDIO_LIBRARY_NOT_INITIALIZED",
+    );
+
+    await audio.Initialize();
+
+    assert.equal(
+        audio.GetDocument().metadata.Events.engine_loop.isLoop,
+        1,
+    );
+    assert.throws(
+        () => audio.Register({
+            defaultLanguage: "de",
+        }),
+        error => error.code === "CJS_AUDIO_LIBRARY_CONFIGURATION_LOCKED",
+    );
+    assert.throws(
+        () => audio.SetSource(source),
+        error => error.code === "CJS_AUDIO_LIBRARY_CONFIGURATION_LOCKED",
+    );
+});
+
+test("audio registration builds from sound-bank and enrichment resource paths", async () =>
+{
+    const source = new CjsMemoryResourceSource({
+        "res:/sound-bank-info": SOUNDBANKS_INFO,
+        "res:/audio-enrich": {
+            Events: {
+                engine_loop: {
+                    isLoop: 1,
+                },
+            },
+        },
+    });
+    const audio = new CjsAudioLibrary({
+        source,
+    }).Register({
+        soundBankResPath: "res:/sound-bank-info",
+        enrichResPath: "res:/audio-enrich",
+        indexEntries: INDEX_TEXT,
+    });
+
+    await audio.Initialize();
+
+    const document = audio.GetDocument();
+
+    assert.equal(document.metadata.Events.engine_loop.isLoop, 1);
+    assert.equal(
+        document.media["777"].resPath,
+        "res:/audio/media/777.wem",
+    );
+    assert.equal(
+        document.banks["524:0"].resPath,
+        "res:/audio/524.bnk",
+    );
+});
+
+test("audio library resolves loose and embedded files through canonical audio resources", async () =>
+{
+    const source = new CjsMemoryResourceSource({
+        "res:/audio/100.wem": Uint8Array.from([ 10, 11, 12, 13 ]).buffer,
+        "res:/audio/20.bnk": Uint8Array.from([
+            0, 1, 2, 3,
+            20, 21, 22, 23,
+            30, 31, 32, 33,
+        ]).buffer,
+    });
+    const library = new CjsAudioLibrary({
+        source,
+    });
+
+    await library.Initialize(CreateRuntimeLibraryDocument());
+
+    const loose = library.GetResByID(100);
+    const embedded = library.GetResByID(200);
+    const sibling = library.GetResByID(201);
+
+    assert.ok(loose instanceof CjsAudioRes);
+    assert.ok(embedded instanceof CjsAudioRes);
+    assert.ok(embedded.GetBackingResource() instanceof CjsAudioBufferRes);
+    assert.equal(
+        embedded,
+        library.GetResByPath("aud:/id/200"),
+    );
+    assert.equal(
+        embedded.GetBackingResource(),
+        sibling.GetBackingResource(),
+        "embedded files share one physical bank resource",
+    );
+    assert.equal(
+        embedded.GetBackingResource().GetPath(),
+        "res:/audio/20.bnk",
+    );
+
+    assert.deepEqual(
+        [ ...new Uint8Array((await loose.GetBytes()).bytes) ],
+        [ 10, 11, 12, 13 ],
+    );
+    assert.deepEqual(
+        [ ...new Uint8Array((await library.GetBytesByID(200)).bytes) ],
+        [ 20, 21, 22, 23 ],
+    );
+    assert.deepEqual(
+        [ ...new Uint8Array((await sibling.GetBytes()).bytes) ],
+        [ 30, 31, 32, 33 ],
+    );
+    assert.equal((await embedded.GetBytes()).embedded, true);
+    assert.equal((await embedded.GetBytes()).metadata.IsEssential, 1);
+});
+
+test("audio child locks participate in their shared backing lifetime", async () =>
+{
+    const source = new CjsMemoryResourceSource({
+        "res:/audio/100.wem": new ArrayBuffer(4),
+        "res:/audio/20.bnk": new ArrayBuffer(12),
+    });
+    const library = new CjsAudioLibrary({
+        source,
+    });
+
+    await library.Initialize(CreateRuntimeLibraryDocument());
+
+    const first = library.GetResByID(200);
+    const second = library.GetResByID(201);
+    const backing = first.GetBackingResource();
+
+    assert.equal(first.Lock(), 1);
+    assert.equal(second.Lock(), 1);
+    assert.equal(
+        backing.Lock(),
+        3,
+        "two child locks were delegated to the shared bank",
+    );
+    assert.equal(backing.Unlock(), 2);
+    assert.equal(first.Unlock(), 0);
+    assert.equal(second.Unlock(), 0);
+    assert.equal(backing.Lock(), 1);
+    assert.equal(backing.Unlock(), 0);
+});
+
+test("range-capable sources still materialize ordinary CjsAudioRes handles", async () =>
+{
+    const bank = Uint8Array.from([
+        0, 1, 2, 3,
+        20, 21, 22, 23,
+        30, 31, 32, 33,
+    ]);
+    const calls = [];
+    const source = {
+        async ReadRange(path, options)
+        {
+            calls.push({
+                path,
+                options,
+            });
+
+            return bank.slice(
+                options.offset,
+                options.offset + options.byteLength,
+            ).buffer;
+        },
+    };
+    const library = new CjsAudioLibrary({
+        source,
+    });
+
+    await library.Initialize(CreateRuntimeLibraryDocument());
+
+    const resource = library.GetResByID(200);
+    const result = await resource.GetBytes();
+
+    assert.ok(resource instanceof CjsAudioRes);
+    assert.equal(resource.GetBackingResource().GetPath(), "aud:/id/200");
+    assert.deepEqual([ ...new Uint8Array(result.bytes) ], [ 20, 21, 22, 23 ]);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].path, "res:/audio/20.bnk");
+    assert.equal(calls[0].options.offset, 4);
+    assert.equal(calls[0].options.byteLength, 4);
+});
+
+test("audio API options project individual and ranged backing requests", async () =>
+{
+    const bank = Uint8Array.from([
+        0, 1, 2, 3,
+        20, 21, 22, 23,
+        30, 31, 32, 33,
+    ]);
+    const individualCalls = [];
+    const individualSource = {
+        async Read(path, options)
+        {
+            individualCalls.push({
+                path,
+                options,
+            });
+
+            if (path === "aud:/id/200")
+            {
+                return bank.slice(4, 8).buffer;
+            }
+
+            throw new Error(`Unexpected individual API path: ${path}`);
+        },
+    };
+    const individual = new CjsAudioLibrary({
+        source: individualSource,
+        audioApiResPath: "aud:/",
+        audioApiResPathSupportsIndividualFiles: true,
+    });
+
+    await individual.Initialize(CreateRuntimeLibraryDocument());
+
+    const individualResource = individual.GetResByID(200);
+    const individualResult = await individualResource.GetBytes();
+
+    assert.equal(
+        individualResource.GetBackingResource().GetPath(),
+        "aud:/id/200",
+    );
+    assert.deepEqual(
+        [ ...new Uint8Array(individualResult.bytes) ],
+        [ 20, 21, 22, 23 ],
+    );
+    assert.equal(individualCalls.length, 1);
+
+    const rangeCalls = [];
+    const rangeSource = {
+        async Read(path, options)
+        {
+            const range = options.headers.get("Range");
+
+            rangeCalls.push({
+                path,
+                range,
+            });
+
+            const match = /^bytes=(\d+)-(\d+)$/u.exec(range);
+            const start = Number(match[1]);
+            const end = Number(match[2]) + 1;
+
+            return bank.slice(start, end).buffer;
+        },
+    };
+    const ranged = new CjsAudioLibrary({
+        source: rangeSource,
+        audioApiResPath: "aud:/",
+        audioApiResPathSupportsOffset: true,
+    });
+
+    await ranged.Initialize(CreateRuntimeLibraryDocument());
+
+    const rangeResource = ranged.GetResByID(200);
+    const rangeResult = await rangeResource.GetBytes();
+
+    assert.equal(
+        rangeResource.GetBackingResource().GetPath(),
+        "aud:/path/res%3a%2faudio%2f20.bnk",
+    );
+    assert.deepEqual(
+        [ ...new Uint8Array(rangeResult.bytes) ],
+        [ 20, 21, 22, 23 ],
+    );
+    assert.deepEqual(rangeCalls, [
+        {
+            path: "aud:/path/res%3A%2Faudio%2F20.bnk",
+            range: "bytes=4-7",
+        },
+    ]);
+});
+
+test("async capabilities compare individual and offset delivery for one known bank member", async () =>
+{
+    const bank = Uint8Array.from([
+        0, 1, 2, 3,
+        20, 21, 22, 23,
+        30, 31, 32, 33,
+    ]);
+    const calls = [];
+    const source = {
+        async Read(path, options = {})
+        {
+            calls.push({
+                path,
+                range: options.headers?.get("Range") ?? null,
+            });
+
+            if (path === "aud:/id/200")
+            {
+                return bank.slice(4, 8).buffer;
+            }
+            if (path === "aud:/path/res%3A%2Faudio%2F20.bnk")
+            {
+                return bank.slice(4, 8).buffer;
+            }
+
+            throw new Error(`Unexpected capability path: ${path}`);
+        },
+    };
+    const library = new CjsAudioLibrary({
+        source,
+        audioApiResPath: "aud:/",
+    });
+
+    await library.Initialize(CreateRuntimeLibraryDocument());
+
+    const capabilities = await library.GetCapabilities({
+        bank: "20:0",
+    });
+
+    assert.equal(capabilities.verified, true);
+    assert.equal(capabilities.consistent, true);
+    assert.equal(capabilities.probeMediaID, "200");
+    assert.equal(capabilities.probeBank, "20:0");
+    assert.equal(
+        capabilities.audioApiResPathSupportsIndividualFiles,
+        true,
+    );
+    assert.equal(capabilities.audioApiResPathSupportsOffset, true);
+    assert.deepEqual(calls, [
+        {
+            path: "aud:/id/200",
+            range: null,
+        },
+        {
+            path: "aud:/path/res%3A%2Faudio%2F20.bnk",
+            range: "bytes=4-7",
+        },
+    ]);
+
+    const resource = library.GetResByID(200);
+    const result = await resource.GetBytes();
+
+    assert.equal(resource.GetBackingResource().GetPath(), "aud:/id/200");
+    assert.deepEqual(
+        [ ...new Uint8Array(result.bytes) ],
+        [ 20, 21, 22, 23 ],
+    );
+});
+
+test("async capabilities automatically favor the most event-used bank", async () =>
+{
+    const document = CreateRuntimeLibraryDocument();
+
+    document.banks["30:0"] = {
+        sourceID: "30:0",
+        bankID: 30,
+        languageID: 0,
+        resPath: "res:/audio/30.bnk",
+        byteLength: 2,
+    };
+    document.embeddedMedia["300"] = {
+        sourceID: "embedded:300:30:0",
+        bank: "30:0",
+        offset: 0,
+        byteLength: 2,
+        mediaType: "wem",
+    };
+    document.metadata.WemFileIDs["300"] = {};
+    document.eventMedia = {
+        "1": [ "300" ],
+        "2": [ "300" ],
+        "3": [ "200" ],
+    };
+    document.eventMediaLanguage = "";
+
+    const calls = [];
+    const source = {
+        async Read(path, options = {})
+        {
+            calls.push({
+                path,
+                range: options.headers?.get("Range") ?? null,
+            });
+            return Uint8Array.from([ 50, 51 ]).buffer;
+        },
+    };
+    const library = new CjsAudioLibrary({
+        source,
+        audioApiResPath: "aud:/",
+    });
+
+    await library.Initialize(document);
+
+    const capabilities = await library.GetCapabilities();
+
+    assert.equal(capabilities.probeBank, "30:0");
+    assert.equal(capabilities.probeMediaID, "300");
+    assert.deepEqual(calls, [
+        {
+            path: "aud:/id/300",
+            range: null,
+        },
+        {
+            path: "aud:/path/res%3A%2Faudio%2F30.bnk",
+            range: "bytes=0-1",
+        },
+    ]);
+});
+
+test("audio library can adapt an injected CjsResMan and select prepared media", async () =>
+{
+    const source = new CjsMemoryResourceSource({
+        "res:/audio/100.wem": Uint8Array.from([ 1 ]).buffer,
+        "res:/audio/20.bnk": new ArrayBuffer(12),
+        "res:/audio/prepared/300.ogg": Uint8Array.from([ 3 ]).buffer,
+        "res:/audio/media/300.wem": Uint8Array.from([ 4 ]).buffer,
+    });
+    const resMan = new CjsResMan({
+        source,
+    });
+
+    resMan.RegisterFormat(CjsWemFormat);
+    const document = CreateRuntimeLibraryDocument();
+
+    document.media["300"] = {
+        sources: [
+            {
+                sourceID: "wem:300",
+                resPath: "res:/audio/media/300.wem",
+                mediaType: "wem",
+            },
+            {
+                sourceID: "prepared:300",
+                resPath: "res:/audio/prepared/300.ogg",
+                mediaType: "audio/ogg",
+                prepared: true,
+            },
+        ],
+    };
+    document.metadata.WemFileIDs["300"] = {};
+
+    const library = new CjsAudioLibrary({
+        resMan,
+    });
+
+    await library.Initialize(document);
+
+    assert.equal(library.GetResMan(), resMan);
+    assert.equal(
+        library.GetResByID(300).GetAudioInfo().sourceID,
+        "prepared:300",
+    );
+    assert.equal(
+        library.GetResByID(300, {
+            mediaTypes: [ "audio/x-wem" ],
+        }).GetAudioInfo().sourceID,
+        "wem:300",
+    );
+});
+
 function Uint32Bytes(value)
 {
     const bytes = new Uint8Array(4);
 
     new DataView(bytes.buffer).setUint32(0, value, true);
     return bytes;
+}
+
+function CreateRuntimeLibraryDocument()
+{
+    return {
+        schema: "carbonenginejs.audioLibrary",
+        schemaVersion: 2,
+        metadata: {
+            Events: {},
+            SoundBanks: {},
+            WemFileIDs: {
+                "100": {},
+                "200": {
+                    IsEssential: 1,
+                },
+                "201": {},
+            },
+        },
+        media: {
+            "100": {
+                sourceID: "loose:100",
+                resPath: "res:/audio/100.wem",
+                byteLength: 4,
+                mediaType: "wem",
+            },
+        },
+        banks: {
+            "20:0": {
+                sourceID: "20:0",
+                bankID: 20,
+                languageID: 0,
+                resPath: "res:/audio/20.bnk",
+                byteLength: 12,
+            },
+        },
+        embeddedMedia: {
+            "200": {
+                sourceID: "embedded:200:20:0",
+                bank: "20:0",
+                offset: 4,
+                byteLength: 4,
+                mediaType: "wem",
+            },
+            "201": {
+                sourceID: "embedded:201:20:0",
+                bank: "20:0",
+                offset: 8,
+                byteLength: 4,
+                mediaType: "wem",
+            },
+        },
+    };
 }

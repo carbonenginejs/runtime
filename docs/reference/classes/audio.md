@@ -8,14 +8,15 @@ Summary: Catalogs browser-safe audio-library construction and transport classes.
 <!-- class:CjsAudioLibrary -->
 ## `CjsAudioLibrary`
 
-Immutable, browser-loadable view of one prepared audio-library document.
+Browser audio-library adapter for construction, loading, and CjsResMan access.
 
 - Export: `@carbonenginejs/tools-browser/audio`
 - Source: `src/audio/CjsAudioLibrary.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
-- Notes: Loads plain objects, JSON text, Blob/File-like values, Response-like
-  values, and URLs through injected or global Fetch.
+- Notes: Registers configuration before one async initialization permanently
+  locks it, loads or builds a prepared document, applies optional enrichment,
+  and hides loose, split-API, full-bank, and range ingress from callers.
 
 <!-- class:CjsAudioLibraryBuilder -->
 ## `CjsAudioLibraryBuilder`
@@ -33,3 +34,5 @@ Stateless construction of deterministic audio-library artifacts.
 
 - [Audio-library guide](../../guides/audio-libraries.md)
 - [Browser tools API](../api.md)
+- Audio resource ownership:
+  `@carbonenginejs/runtime-resource/docs/reference/classes/audio.md`
