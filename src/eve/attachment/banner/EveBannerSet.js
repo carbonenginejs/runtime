@@ -1,6 +1,8 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveBannerSet.h
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveBannerSet.cpp
+import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
+import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
@@ -10,6 +12,8 @@ import { EveBannerLight } from "./EveBannerLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Saturate } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
+import { FLOAT_MAX } from "../../../trinityCore/TriFrustum.js";
+import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import {
   AsPerPointLightData,
   CopyLightData,
@@ -60,6 +64,19 @@ export class EveBannerSet extends EveEntity
 
   #rebuildRevision = 0;
 
+  /** m_aabb (h) - the union of every banner that rides the parent transform. */
+  #staticBounds = box3.create();
+
+  /** m_skinnedBoxes (cpp:403) - [{ boneIndex, bounds }], ascending. */
+  #boneBounds = [];
+
+  /** m_maxBannerRadius (cpp:421) - the largest single banner half-diagonal,
+   * which is the radius the LOD test measures rather than the whole set. */
+  #maxBannerRadius = 0;
+
+  /** m_isVisible - the result of the last UpdateVisibility. */
+  #isVisible = false;
+
   /** Carbon m_activationStrength (ctor 0, EveBannerSet.cpp:94). Lights are
    * BLACK until UpdateLights runs. */
   #activationStrength = 0;
@@ -68,9 +85,230 @@ export class EveBannerSet extends EveEntity
   @impl.adapted
   Rebuild()
   {
-    // Physical geometry, buffers, bounds and batches are backend work.
+    // Physical geometry, buffers and batches are backend work; the bounds are
+    // not. Carbon rebuilds both together (cpp:397-431).
     this.#rebuildRevision++;
     this.__state.rebuild.add("packedGeometry");
+
+    box3.empty(this.#staticBounds);
+    this.#boneBounds.length = 0;
+    this.#maxBannerRadius = 0;
+
+    // Carbon bails before building ANY bounds when the set has no effect
+    // (cpp:406-409) - an effectless banner set is invisible, not unbounded.
+    if (!this.effect)
+    {
+      return;
+    }
+
+    // Carbon inlines the shared grouping here, and never gates it on a skinned
+    // flag: any banner with a bone of its own gets its own box (cpp:424).
+    CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, true, this.banners);
+
+    for (const banner of this.banners)
+    {
+      banner.GetBounds(EveBannerSet.#bannerScratch);
+      this.#maxBannerRadius = Math.max(
+        this.#maxBannerRadius,
+        box3.radius(EveBannerSet.#bannerScratch)
+      );
+    }
+  }
+
+  /** Carbon EveBannerSet::GetAabb (cpp:392-395): the item-set bounds. The bone
+   * count is forwarded ungated - a banner set has no skinned flag. */
+  @carbon.method
+  @impl.implemented
+  GetAabb(out, bones = null, boneCount = 0)
+  {
+    return GetItemSetAabb(out, this.#staticBounds, this.#boneBounds, bones, boneCount);
+  }
+
+  /** The largest single banner half-diagonal, as measured by the last Rebuild. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon reads the m_maxBannerRadius member directly; JavaScript exposes it through an accessor.")
+  GetMaxBannerRadius()
+  {
+    return this.#maxBannerRadius;
+  }
+
+  /** The result of the last UpdateVisibility (Carbon m_isVisible). */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon reads the m_isVisible member directly; JavaScript exposes it through an accessor.")
+  GetVisibility()
+  {
+    return this.#isVisible;
+  }
+
+  /**
+   * Carbon EveBannerSet::UpdateVisibility (cpp:117-161). The frustum test is the
+   * usual transformed item-set box, but the LOD gate is unlike any other set:
+   *
+   * - It measures the CLOSEST POINT ON THE SET SPHERE to the camera, carrying
+   *   the largest SINGLE banner radius. A row of banners therefore lods out on
+   *   how big one banner looks, not on how big the row is.
+   * - A camera INSIDE the set sphere skips the gate entirely and leaves the
+   *   screen size at FLT_MAX, which is also what the effect is then told.
+   * - The bar is HALF the visibility threshold, not the threshold.
+   *
+   * The effect is told the screen size on EVERY path, culled or not, because it
+   * drives texture streaming rather than drawing.
+   */
+  @carbon.method
+  @impl.implemented
+  UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
+  {
+    const aabb = this.GetAabb(EveBannerSet.#aabbScratch, bones, boneCount);
+    if (box3.isEmpty(aabb))
+    {
+      this.#isVisible = false;
+      return false;
+    }
+
+    box3.transformMat4(aabb, aabb, parentTransform);
+
+    const frustum = updateContext?.GetFrustum?.() ?? null;
+    this.#isVisible = !!frustum?.IsBoxVisible(aabb);
+
+    let isLoddedOut = true;
+    let screenSize = FLOAT_MAX;
+
+    if (frustum)
+    {
+      // Carbon BoundingSphereFromBox: the box centre with half its full
+      // diagonal. The centre is written into the sphere in place, so the radius
+      // is assigned after - never inside a sph3.set that would clear it.
+      const sphere = EveBannerSet.#sphereScratch;
+      sphere[3] = box3.toPositionRadius(aabb, sph3.$position(sphere));
+
+      if (sph3.containsPoint(sphere, frustum.viewPos))
+      {
+        isLoddedOut = false;
+      }
+      else
+      {
+        // The point on the set sphere nearest the camera, given the largest
+        // single banner as the thing being measured.
+        const closest = vec3.subtract(EveBannerSet.#closestScratch, frustum.viewPos, sph3.$position(sphere));
+        vec3.normalize(closest, closest);
+        vec3.scaleAndAdd(closest, sph3.$position(sphere), closest, sph3.radius(sphere));
+
+        const element = sph3.fromPositionRadius(EveBannerSet.#elementScratch, closest, this.#maxBannerRadius);
+        screenSize = frustum.GetPixelSizeAccrossEst(element);
+        if (screenSize > (updateContext.GetVisibilityThreshold?.() ?? 0) * 0.5)
+        {
+          isLoddedOut = false;
+        }
+      }
+    }
+
+    this.effect?.UsedWithScreenSize?.(screenSize, this.#maxBannerRadius, EveBannerSet.#uvDensities);
+
+    if (isLoddedOut)
+    {
+      this.#isVisible = false;
+    }
+    return this.#isVisible;
+  }
+
+  /** Carbon EveBannerSet::GetDebugOptions (cpp:219-224). */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Tr2DebugRendererOptions is an engine-owned set; a Set (add) or an insert duck is accepted.")
+  GetDebugOptions(options = new Set())
+  {
+    for (const option of EveBannerSet.DebugOptions)
+    {
+      if (options?.add) options.add(option);
+      else options?.insert?.(option);
+    }
+    return options;
+  }
+
+  /**
+   * Carbon EveBannerSet::RenderDebugInfo (cpp:226-311): three independent
+   * options, each emitting draw intents onto the injected debug renderer.
+   *
+   * "Banner Sets" draws every banner TWICE - wireframe then solid - as a
+   * near-flat box (z +/- 0.005), NOT the half-open bounds box the LOD uses. A
+   * banner whose bone index is out of range is drawn RED instead of blue, which
+   * is how a missing bone shows up on screen.
+   *
+   * "Banner Sets Bounds" draws the item-set box in the parent space, and
+   * "Banner Sets Lights" draws each light twice, inner then outer radius, with
+   * the saturated authored color - or the texture average color when a primary
+   * texture parameter is attached, exactly as GetLights decides it.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("ITr2DebugRenderer2 and Tr2DebugObjectReference are engine-owned; the reference collapses to (owner, index) arguments and the Effect enum to its ordinal.")
+  RenderDebugInfo(renderer, parentTransform, bones = null, boneCount = 0)
+  {
+    if (!renderer) return false;
+
+    if (renderer.HasOption?.(this, "Banner Sets"))
+    {
+      const transform = EveBannerSet.#debugTransform;
+      for (let index = 0; index < this.banners.length; index++)
+      {
+        const banner = this.banners[index];
+        mat4.fromRotationTranslationScale(transform, banner.rotation, banner.position, banner.scaling);
+
+        let color = EveBannerSet.#debugBannerColor;
+        if (banner.bone >= 0)
+        {
+          if (bones && banner.bone < boneCount)
+          {
+            MatrixCopyFrom3x4(EveBannerSet.#debugBone, bones, banner.bone);
+            // Carbon (row-vector): t * boneTF - the banner applies first.
+            mat4.multiply(transform, EveBannerSet.#debugBone, transform);
+          }
+          else
+          {
+            color = EveBannerSet.#debugMissingBoneColor;
+          }
+        }
+        mat4.multiply(transform, parentTransform, transform);
+
+        renderer.DrawBox?.(this, index, transform, EveBannerSet.#debugBoxMin, EveBannerSet.#debugBoxMax, EveBannerSet.DebugEffect.Wireframe, color);
+        renderer.DrawBox?.(this, index, transform, EveBannerSet.#debugBoxMin, EveBannerSet.#debugBoxMax, EveBannerSet.DebugEffect.Solid, 0);
+      }
+    }
+
+    if (renderer.HasOption?.(this, "Banner Sets Bounds"))
+    {
+      const aabb = this.GetAabb(EveBannerSet.#debugBounds, bones, boneCount);
+      renderer.DrawBox?.(this, -1, parentTransform, box3.$min(aabb), box3.$max(aabb), EveBannerSet.DebugEffect.Wireframe, 0xff00ff00);
+    }
+
+    if (renderer.HasOption?.(this, "Banner Sets Lights"))
+    {
+      const color = EveBannerSet.#debugLightColor;
+      for (const light of this.lights)
+      {
+        const transform = mat4.fromTranslation(EveBannerSet.#debugTransform, light.lightData.position);
+        // Carbon (row-vector): TranslationMatrix(position) * boneMatrix.
+        mat4.multiply(transform, light.boneMatrix, transform);
+
+        if (this.primaryTextureParameter)
+        {
+          this.GetAverageColor(color);
+        }
+        else
+        {
+          Saturate(color, light.lightData.color, light.saturation);
+        }
+
+        color[3] = 0.5;
+        renderer.DrawSphere?.(this, light.index, transform, light.lightData.innerRadius, 10, EveBannerSet.DebugEffect.Solid, color);
+        color[3] = 0.3;
+        renderer.DrawSphere?.(this, light.index, transform, light.lightData.radius, 10, EveBannerSet.DebugEffect.Solid, color);
+      }
+    }
+
+    return true;
   }
 
   @carbon.method
@@ -302,6 +540,42 @@ export class EveBannerSet extends EveEntity
       lightManager?.AddLight?.(record);
     }
   }
+
+  /** Carbon ITr2DebugRenderer2::Effect (Include/ITr2DebugRenderer2.h:134-139). */
+  static DebugEffect = Object.freeze({ Wireframe: 0, Solid: 1, Lit: 2 });
+
+  /** The option names this set publishes (cpp:221-223). */
+  static DebugOptions = Object.freeze(["Banner Sets", "Banner Sets Bounds", "Banner Sets Lights"]);
+
+  static #debugTransform = mat4.create();
+
+  static #debugBone = mat4.create();
+
+  static #debugBounds = box3.create();
+
+  static #debugLightColor = new Float32Array(4);
+
+  static #debugBoxMin = Object.freeze([-0.5, -0.5, -0.005]);
+
+  static #debugBoxMax = Object.freeze([0.5, 0.5, 0.005]);
+
+  static #debugBannerColor = Object.freeze([0.1, 0.1, 0.7, 0.5]);
+
+  static #debugMissingBoneColor = Object.freeze([0.7, 0.1, 0.1, 0.5]);
+
+  /** Per-frame scratch - UpdateVisibility must not allocate. */
+  static #aabbScratch = box3.create();
+
+  static #sphereScratch = sph3.create();
+
+  static #elementScratch = sph3.create();
+
+  static #closestScratch = vec3.create();
+
+  static #bannerScratch = box3.create();
+
+  /** Carbon passes a single 1.0 density (cpp:154) - a banner is one flat quad. */
+  static #uvDensities = Object.freeze([1]);
 
   static #features = { parentBrightness: 0, parentScale: 1 };
 
