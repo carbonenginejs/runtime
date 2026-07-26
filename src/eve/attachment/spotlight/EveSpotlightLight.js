@@ -6,6 +6,10 @@ import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
 
 
+/**
+ * The spot light one spotlight item contributes, carrying its booster-gain
+ * influence flag, light profile and the bone matrix resolved for it each frame.
+ */
 @type.define({ className: "EveSpotlightLight", family: "eve/attachment/spotlights" })
 export class EveSpotlightLight extends CjsModel
 {
@@ -28,6 +32,11 @@ export class EveSpotlightLight extends CjsModel
   @type.string
   lightProfilePath = "";
 
+  /**
+   * Builds a spotlight light from a SOF-authored description, taking the light
+   * profile path from the description or, failing that, from the light data's
+   * texture path.
+   */
   static FromSOF(value)
   {
     const values = value ?? {};

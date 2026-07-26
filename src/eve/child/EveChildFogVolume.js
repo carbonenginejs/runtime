@@ -10,6 +10,11 @@ import { EveChildTransform } from "./EveChildTransform.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 
 
+/**
+ * Space-object child that contributes a prioritized froxel fog settings
+ * override, its strength driven by how deeply the camera sits inside the volumes
+ * it owns.
+ */
 @type.define({ className: "EveChildFogVolume", family: "eve/child" })
 export class EveChildFogVolume extends EveChildTransform
 {
@@ -128,6 +133,11 @@ export class EveChildFogVolume extends EveChildTransform
   @type.boolean
   fogNoiseFrequencyEnabled = false;
 
+  /**
+   * Recomputes the local bounding sphere as the union of the child volumes'
+   * spheres, skipping volumes with a missing centre or a non-finite/negative
+   * radius; returns whether any volume contributed.
+   */
   @impl.adapted
   RebuildBoundingSphere()
   {
@@ -150,26 +160,45 @@ export class EveChildFogVolume extends EveChildTransform
     return initialized;
   }
 
+  /**
+   * The authored name, persisted with the volume and used to identify it in the
+   * parent graph.
+   */
   GetName()
   {
     return this.name;
   }
 
+  /** Sets the authored volume name, coercing nullish to the empty string. */
   SetName(name)
   {
     this.name = String(name ?? "");
   }
 
+  /**
+   * Copies the cached local-space bounding sphere into out and always reports success, even before any volume has contributed (in which case it is the zero-radius sphere at the origin).
+   * @param {Float32Array} [out] - caller-owned; receives (x, y, z, radius)
+   * @returns {Boolean} always true
+   */
   GetBoundingSphere(out = vec4.create())
   {
     vec4.set(out, this.boundingSphereCenter[0], this.boundingSphereCenter[1], this.boundingSphereCenter[2], this.boundingSphereRadius);
     return true;
   }
 
+  /** No-op: a fog volume carries no sync-side frame work. */
   UpdateSyncronous(_updateContext, _params)
   {
   }
 
+  /**
+   * Rebuilds the world transform and bounding sphere, then resolves the fog
+   * intensity for the frame: with no volumes the authored intensity applies
+   * directly; otherwise the camera is moved into local space and, only while it
+   * is inside the bounding sphere, the strongest volume intensity there
+   * (short-circuiting at 1) is scaled by the authored intensity - a camera
+   * outside leaves the intensity at zero.
+   */
   @impl.adapted
   UpdateAsyncronous(updateContext, params = {})
   {
@@ -195,21 +224,35 @@ export class EveChildFogVolume extends EveChildTransform
     this.#fogIntensity *= this.intensity;
   }
 
+  /**
+   * Copies the child's world transform, as rebuilt by the last async update.
+   * @param {Float32Array} [out] - caller-owned; allocated when omitted
+   * @returns {Float32Array} out
+   */
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this.worldTransform);
   }
 
+  /**
+   * Applies the authored scale/rotation/translation through the shared child
+   * transform setup.
+   */
   Setup(scale, rotation, translation, lowestLodVisible)
   {
     return super.Setup(scale, rotation, translation, lowestLodVisible);
   }
 
+  /** Returns true unconditionally - a fog volume reports itself as always on. */
   IsAlwaysOn()
   {
     return true;
   }
 
+  /**
+   * Builds the initial bounding sphere from the authored volumes so the first
+   * frame can already reject an outside camera.
+   */
   Initialize()
   {
     this.RebuildBoundingSphere();
@@ -231,6 +274,12 @@ export class EveChildFogVolume extends EveChildTransform
     }
   }
 
+  /**
+   * Returns this child's contribution to the froxel fog system: its priority,
+   * the intensity resolved by the last async update, and every optional
+   * attribute as a {value, enabled} pair so the consumer can tell an override
+   * from a default.
+   */
   @impl.adapted
   GetFroxelFogSettings()
   {
@@ -252,14 +301,17 @@ export class EveChildFogVolume extends EveChildTransform
     };
   }
 
+  /** No-op: a fog volume is not renderable and keeps no visibility state. */
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
+  /** No-op: a fog volume contributes settings, never renderables. */
   GetRenderables(_renderables)
   {
   }
 
+  /** No-op: a fog volume has no LOD levels. */
   ChangeLOD(_lod)
   {
   }
@@ -273,6 +325,11 @@ export class EveChildFogVolume extends EveChildTransform
     PRIORITY_COUNT: 5
   });
 
+  /**
+   * Grows the accumulated bounding sphere so it also encloses the given sphere,
+   * short-circuiting when either sphere already contains the other and handling
+   * coincident centres.
+   */
   #UnionSphere(sphere)
   {
     const delta = vec3.subtract(vec3.create(), sphere.center, this.boundingSphereCenter);

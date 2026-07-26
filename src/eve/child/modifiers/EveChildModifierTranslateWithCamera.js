@@ -5,6 +5,10 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
+/**
+ * Transform modifier that moves a child with the camera, either pinning its
+ * translation to the view position or offsetting it by the view position.
+ */
 @type.define({ className: "EveChildModifierTranslateWithCamera", family: "eve/child/modifiers" })
 export class EveChildModifierTranslateWithCamera extends CjsModel
 {

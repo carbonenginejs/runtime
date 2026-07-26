@@ -6,6 +6,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { TriValueBinding } from "./TriValueBinding.js";
 
 
+/**
+ * A value binding described by object paths: it resolves both endpoints against
+ * its owner's parameter map, builds a weak TriValueBinding and starts copying
+ * after a configured delay.
+ */
 @type.define({ className: "Tr2DynamicBinding", family: "trinityCore" })
 export class Tr2DynamicBinding extends CjsModel
 {
@@ -74,6 +79,10 @@ export class Tr2DynamicBinding extends CjsModel
   @type.objectRef("TriValueBinding")
   binding = null;
 
+  /**
+   * Redefines the read-only source and destination fields as getters over the
+   * weakly held endpoint references, and records the initial link signature.
+   */
   constructor()
   {
     super();
@@ -90,6 +99,12 @@ export class Tr2DynamicBinding extends CjsModel
     this.#lastLinkSignature = this.#GetLinkSignature();
   }
 
+  /**
+   * Unlinks, resolves both object paths against the owner's parameter map and
+   * builds a weak binding between the two attributes, scheduling the first copy
+   * bindingDelay milliseconds after the current frame time; returns false
+   * without an owner or when either endpoint fails to resolve.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Resolves Carbon Blue paths through the portable JavaScript graph and accepts current frame time explicitly instead of reading BeOS.")
@@ -130,6 +145,10 @@ export class Tr2DynamicBinding extends CjsModel
     return false;
   }
 
+  /**
+   * Tears down the binding, clears both endpoint references and validity flags
+   * and resets the pending binding time.
+   */
   @carbon.method
   @impl.implemented
   Unlink()
@@ -143,6 +162,10 @@ export class Tr2DynamicBinding extends CjsModel
     this.#bindingTime = 0;
   }
 
+  /**
+   * Sets the object whose GetParameterMap supplies the roots that Link resolves
+   * paths against; without it Link always fails.
+   */
   @carbon.method
   @impl.implemented
   SetOwner(owner)
@@ -150,6 +173,10 @@ export class Tr2DynamicBinding extends CjsModel
     this.#owner = owner ?? null;
   }
 
+  /**
+   * Records the current frame time and copies the bound value once the binding
+   * delay has elapsed; returns whether a copy took place.
+   */
   @carbon.method
   @impl.implemented
   Update(time)
@@ -162,6 +189,10 @@ export class Tr2DynamicBinding extends CjsModel
     return false;
   }
 
+  /**
+   * Shifts the pending binding time and the cached frame time by the clock
+   * delta, so rebasing the simulation clock neither skips nor stalls the delay.
+   */
   @carbon.method
   @impl.implemented
   OnSimClockRebase(oldTime, newTime)
@@ -171,6 +202,10 @@ export class Tr2DynamicBinding extends CjsModel
     this.#currentFrameTime += adjustment;
   }
 
+  /**
+   * Re-checks that the weakly held destination is still alive and refreshes the
+   * read-only flag.
+   */
   @carbon.method
   @impl.implemented
   IsDestinationValid()
@@ -179,6 +214,10 @@ export class Tr2DynamicBinding extends CjsModel
     return this.isDestinationValid;
   }
 
+  /**
+   * Re-checks that the weakly held source is still alive and refreshes the
+   * read-only flag.
+   */
   @carbon.method
   @impl.implemented
   IsSourceValid()
@@ -187,6 +226,11 @@ export class Tr2DynamicBinding extends CjsModel
     return this.isSourceValid;
   }
 
+  /**
+   * Relinks when any of Carbon's five notify fields (both paths, both attributes
+   * and the scale) changed; without an owner it only unlinks and records the new
+   * signature.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Compares only Carbon's five NOTIFY fields because CjsModel's cooperative settle hook does not receive a Be::Var pointer.")
@@ -205,6 +249,10 @@ export class Tr2DynamicBinding extends CjsModel
     return true;
   }
 
+  /**
+   * A JSON digest of the five link-defining fields, compared to detect that a
+   * relink is required.
+   */
   #GetLinkSignature()
   {
     return JSON.stringify([
@@ -216,12 +264,20 @@ export class Tr2DynamicBinding extends CjsModel
     ]);
   }
 
+  /**
+   * Looks a named root up in the owner's parameter map, which may be a Map or a
+   * plain object.
+   */
   static #GetRoot(roots, name)
   {
     if (roots instanceof Map) return roots.get(name) ?? null;
     return roots && Object.prototype.hasOwnProperty.call(roots, name) ? roots[name] : null;
   }
 
+  /**
+   * Selects an element of an array or of a GetSize/GetAt list, either by index
+   * (negative counts from the end) or by matching an element's name.
+   */
   static #GetListElement(value, selector)
   {
     const length = Array.isArray(value) ? value.length : Number(value?.GetSize?.());
@@ -240,6 +296,11 @@ export class Tr2DynamicBinding extends CjsModel
     return null;
   }
 
+  /**
+   * Walks a path of the form root.attribute[0]["name"] through the parameter
+   * map, returning the object only when the whole path was consumed and the
+   * result is a reference.
+   */
   static #ResolveReference(reference, roots)
   {
     const value = String(reference ?? "");
@@ -279,12 +340,17 @@ export class Tr2DynamicBinding extends CjsModel
     return offset === value.length && Tr2DynamicBinding.#IsReference(object) ? object : null;
   }
 
+  /**
+   * Wraps a reference in a WeakRef, or in a strong deref shim where WeakRef is
+   * unavailable; null for anything that is not a reference.
+   */
   static #MakeWeakRef(value)
   {
     if (!value || (typeof value !== "object" && typeof value !== "function")) return null;
     return typeof WeakRef === "function" ? new WeakRef(value) : { deref: () => value };
   }
 
+  /** Whether a value can be held by WeakRef, i.e. an object or a function. */
   static #IsReference(value)
   {
     return value !== null && (typeof value === "object" || typeof value === "function");

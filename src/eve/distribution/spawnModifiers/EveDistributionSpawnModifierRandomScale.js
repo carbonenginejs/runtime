@@ -38,6 +38,10 @@ export class EveDistributionSpawnModifierRandomScale extends CjsModel
   @type.boolean
   overrideScale = false;
 
+  /**
+   * Reseeds the random stream from the wall clock, so scales differ between runs
+   * unless consistentRandom pins them to the placement id.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -46,6 +50,11 @@ export class EveDistributionSpawnModifierRandomScale extends CjsModel
     return true;
   }
 
+  /**
+   * Draws a random scale between minScale and maxScale - per axis, or with one
+   * shared factor when uniformScale is set - and either replaces the placement's
+   * initial scale or multiplies into it.
+   */
   @carbon.method
   @impl.adapted
   ProcessSpawnModifier(placement, _numPlacements)

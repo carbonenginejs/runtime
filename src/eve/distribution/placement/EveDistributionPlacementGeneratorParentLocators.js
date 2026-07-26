@@ -28,6 +28,12 @@ export class EveDistributionPlacementGeneratorParentLocators extends CjsModel
   @type.string
   locatorSetName = "damage";
 
+  /**
+   * Appends one placement per locator of the parent space object's named locator set, copying position, direction, scale and bone index; appends nothing until an update has resolved that set.
+   *
+   * @param placements Caller-owned pool array that is appended to.
+   * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
+   */
   @carbon.method
   @impl.adapted
   GetInitialPlacements(placements, trackingID)
@@ -54,6 +60,10 @@ export class EveDistributionPlacementGeneratorParentLocators extends CjsModel
     }
   }
 
+  /**
+   * Reports whether a locator set has just been resolved from the parent and the
+   * pool therefore needs rebuilding.
+   */
   @carbon.method
   @impl.implemented
   IsRequestingRegeneration()
@@ -61,6 +71,11 @@ export class EveDistributionPlacementGeneratorParentLocators extends CjsModel
     return this.#requestRegeneration;
   }
 
+  /**
+   * Resolves the named locator set from the space-object parent carried by the
+   * update params, re-resolving whenever the parent or the set name changes, and
+   * requests regeneration once locators are found.
+   */
   @carbon.method
   @impl.adapted
   UpdateSyncronous(_updateContext, params, _owner)
@@ -87,6 +102,10 @@ export class EveDistributionPlacementGeneratorParentLocators extends CjsModel
     }
   }
 
+  /**
+   * Invalidates the resolved locator set after an authored change so the next
+   * update re-reads it.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -95,6 +114,10 @@ export class EveDistributionPlacementGeneratorParentLocators extends CjsModel
     return true;
   }
 
+  /**
+   * Invalidates the resolved locator set so the next update re-reads it from the
+   * parent.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("JavaScript retains explicit invalidation state in place of native structure-list notifier ownership.")

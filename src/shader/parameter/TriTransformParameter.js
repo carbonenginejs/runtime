@@ -49,6 +49,7 @@ export class TriTransformParameter extends CjsParameter
   @type.mat4
   worldTransform = mat4.create();
 
+  /** The shader constant name the composed transform matrix is uploaded to. */
   @carbon.method
   @impl.implemented
   GetParameterName()

@@ -415,6 +415,11 @@ export class EveCamera extends CjsModel
     return out;
   }
 
+  /**
+   * Recovers the vertical field of view in radians from a projection matrix
+   * produced by CalculateProjectionMatrix, undoing the aspect clamp that method
+   * applies above 1.6.
+   */
   @carbon.method
   @impl.implemented
   static CalculateFovFromProjection(transform)
@@ -424,6 +429,11 @@ export class EveCamera extends CjsModel
     return 2 * Math.atan(aspectAdjustment / transform[5]);
   }
 
+  /**
+   * Rebuilds a projection matrix with new near and far clip distances,
+   * preserving the field of view, aspect ratio and centre offsets recovered from
+   * the original.
+   */
   @carbon.method
   @impl.implemented
   static ModifyClipPlanes(original, nearClip, farClip, out = mat4.create())
@@ -441,6 +451,11 @@ export class EveCamera extends CjsModel
     );
   }
 
+  /**
+   * Rebuilds a projection matrix with extra normalized x and y centre offsets
+   * added to those the original already carries, used to shift the view frustum
+   * without moving the camera.
+   */
   @carbon.method
   @impl.implemented
   static AddCenterOffset(original, xOffset, yOffset, nearClip, farClip, out = mat4.create())
@@ -458,6 +473,10 @@ export class EveCamera extends CjsModel
     );
   }
 
+  /**
+   * Returns the camera's TriView wrapper, whose transform is rewritten by each
+   * successful update; it is live storage, not a copy.
+   */
   @carbon.method
   @impl.implemented
   GetViewMatrix()
@@ -465,6 +484,10 @@ export class EveCamera extends CjsModel
     return this.viewMatrix;
   }
 
+  /**
+   * Returns the camera's TriProjection wrapper, whose transform is rebuilt from
+   * the field of view and clip planes on each update.
+   */
   @carbon.method
   @impl.implemented
   GetProjection()
@@ -472,6 +495,10 @@ export class EveCamera extends CjsModel
     return this.projectionMatrix;
   }
 
+  /**
+   * Returns the world position resolved by the last update; the vector is the
+   * camera's own storage and is overwritten next update.
+   */
   @carbon.method
   @impl.implemented
   GetPosition()
@@ -816,6 +843,11 @@ export class EveCamera extends CjsModel
     return !failed;
   }
 
+  /**
+   * Re-derives yaw and pitch when the parent-orbit rotation quaternion changes,
+   * and re-evaluates interest tracking (clearing the interest orbit speeds) when
+   * the interest object changes.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Caches the last notified values because CjsModel's cooperative notification hook does not receive Carbon's Be::Var pointer.")
@@ -875,6 +907,10 @@ export class EveCamera extends CjsModel
     fromYawPitchRoll(this.rotationOfInterest, this.#yawInt, this.#pitchInt, 0);
   }
 
+  /**
+   * Clamps pitch into the authored min/max range, and yaw as well but only when
+   * a yaw range is configured, that is when minYaw and maxYaw differ.
+   */
   #CapPitchAndYaw()
   {
     this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch));
@@ -884,6 +920,10 @@ export class EveCamera extends CjsModel
     }
   }
 
+  /**
+   * Extracts the view, up and right basis vectors out of a view transform into
+   * the supplied vectors.
+   */
   static #CopyViewBasis(transform, view, up, right)
   {
     vec3.set(view, transform[2], transform[6], transform[10]);

@@ -7,6 +7,10 @@ import { TriPerlinCurve } from "../../../curves/TriPerlinCurve.js";
 import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourFloatBase.js";
 
 
+/**
+ * Float behaviour that adds a Perlin-noise wobble to a scalar camera value such
+ * as field of view or roll.
+ */
 @type.define({
   className: "EveVirtualCameraBehaviourFloatNoise",
   family: "eve/virtualCamera/behaviour"
@@ -33,6 +37,10 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
 
   #phase = EveVirtualCameraBehaviourFloatNoise.#allocatePhase();
 
+  /**
+   * Creates the default magnitude envelope curve and names the behaviour
+   * "Shake".
+   */
   constructor()
   {
     super();
@@ -40,6 +48,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
     this.SetName("Shake");
   }
 
+  /** Sets the behaviour name and renames the owned magnitude curve to match. */
   @carbon.method
   @impl.implemented
   SetName(name)
@@ -48,6 +57,11 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
     this.magnitudeCurve?.SetName?.(`${this.name} - Magnitude Curve`);
   }
 
+  /**
+   * Returns the authored magnitude scaled by a 1D Perlin sample of the
+   * phase-offset local time (rate set by perlineScale, detail by octaves) and by
+   * the magnitude envelope at normalized timeline time.
+   */
   @carbon.method
   @impl.adapted
   Update(camera, _current, _deltaTime, localElapsedTime)
@@ -67,6 +81,11 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
     return offset;
   }
 
+  /**
+   * Builds the default envelope over normalized time: a near-instant ramp to
+   * full magnitude by 0.1, then a linear fade to zero at the end of the
+   * timeline.
+   */
   static #createMagnitudeCurve()
   {
     const curve = new Tr2CurveScalar();
@@ -78,6 +97,10 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
     return curve;
   }
 
+  /**
+   * Hands each new instance a distinct noise phase from a rolling 12-bit
+   * counter, keeping simultaneous noise behaviours from moving in lockstep.
+   */
   static #allocatePhase()
   {
     const phase = EveVirtualCameraBehaviourFloatNoise.#nextPhase & 0xfff;

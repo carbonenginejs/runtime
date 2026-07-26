@@ -177,6 +177,11 @@ export class EveTurretFiringFX extends EveEntity
 
   #impactConfiguration = EveTurretFiringFX.ImpactConfiguration.IMPACT_INVALID;
 
+  /**
+   * Allocates the twelve per-muzzle records and resolves the firing duration,
+   * preferring a non-negative firingDurationOverride and otherwise the longest
+   * stretch-element curve.
+   */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -191,6 +196,11 @@ export class EveTurretFiringFX extends EveEntity
     return true;
   }
 
+  /**
+   * Stops firing and runs one asynchronous then one synchronous update so the
+   * stretch elements settle into their stopped state before the effect is
+   * discarded.
+   */
   @carbon.method
   @impl.implemented
   CleanUp(context = { currentTime: 0, deltaTime: 0 })
@@ -200,6 +210,10 @@ export class EveTurretFiringFX extends EveEntity
     this.UpdateSynchronous(context);
   }
 
+  /**
+   * Recomputes the firing duration after a property change, taking the override
+   * when it is non-negative and the longest element curve otherwise.
+   */
   @carbon.method
   @impl.implemented
   OnModified()
@@ -208,6 +222,10 @@ export class EveTurretFiringFX extends EveEntity
     return true;
   }
 
+  /**
+   * Binds a muzzle slot to a parent bone id; a muzzle id outside the
+   * twelve-muzzle range is ignored rather than reported.
+   */
   @carbon.method
   @impl.implemented
   SetMuzzleBoneID(muzzleID, boneID)
@@ -216,6 +234,10 @@ export class EveTurretFiringFX extends EveEntity
     if (muzzleID >= 0 && muzzleID < EveTurretFiringFX.MUZZLE_COUNT_MAX) this.#perMuzzleData[muzzleID].muzzlePositionBoneID = Number(boneID) >>> 0;
   }
 
+  /**
+   * Copies a world muzzle transform into a muzzle slot; a muzzle id outside the
+   * twelve-muzzle range is ignored rather than reported.
+   */
   @carbon.method
   @impl.implemented
   SetMuzzleTransform(muzzleID, transform)
@@ -224,6 +246,12 @@ export class EveTurretFiringFX extends EveEntity
     if (muzzleID >= 0 && muzzleID < EveTurretFiringFX.MUZZLE_COUNT_MAX) mat4.copy(this.#perMuzzleData[muzzleID].muzzleTransform, transform);
   }
 
+  /**
+   * Reads a muzzle slot's world transform, falling back to identity for a slot that was never populated.
+   * @param {number} muzzleID Muzzle slot to read.
+   * @param {mat4} [out] Caller-owned matrix to fill; a fresh one is allocated when omitted.
+   * @returns {mat4} out.
+   */
   @carbon.method
   @impl.implemented
   GetMuzzleTransform(muzzleID, out = mat4.create())
@@ -232,6 +260,10 @@ export class EveTurretFiringFX extends EveEntity
     return mat4.copy(out, this.#perMuzzleData[muzzleID]?.muzzleTransform ?? EveTurretFiringFX.#identity);
   }
 
+  /**
+   * Sets the world point every stretch element extends towards, which is the
+   * impact end of the shot.
+   */
   @carbon.method
   @impl.implemented
   SetEndPosition(value)
@@ -239,6 +271,12 @@ export class EveTurretFiringFX extends EveEntity
     vec3.copy(this.endPosition, value);
   }
 
+  /**
+   * Scales each stretch element's destination object between minScale and
+   * maxScale by where the target radius falls in the minRadius..maxRadius band,
+   * and hands the raw radius to the destination observer as an audio attenuation
+   * factor; does nothing unless scaleEffectTarget is authored.
+   */
   @carbon.method
   @impl.implemented
   SetScaleByRadius(radius)
@@ -251,6 +289,10 @@ export class EveTurretFiringFX extends EveEntity
     this.destinationObserver?.GetObserver?.()?.SetAttenuationScalingFactor?.(Number(radius));
   }
 
+  /**
+   * Restarts a looping burst by telling every stretch element to move again,
+   * without resetting the per-muzzle delays that PrepareFiring establishes.
+   */
   @carbon.method
   @impl.implemented
   PrepareFiringEffectMoveObjects()
@@ -259,6 +301,12 @@ export class EveTurretFiringFX extends EveEntity
     this.isFiring = true;
   }
 
+  /**
+   * Arms the muzzles for a burst: selected muzzles start after delay plus their authored constant delay, every other muzzle is pushed out of reach with a maximal delay.
+   * @param {number} delay Common start delay added to each muzzle's authored constant delay.
+   * @param {number} [muzzleID] First muzzle of the firing group; INVALID_INDEX arms every muzzle.
+   * @param {number} [muzzleCount] Number of consecutive muzzles in the group.
+   */
   @carbon.method
   @impl.implemented
   PrepareFiring(delay, muzzleID = EveTurretFiringFX.INVALID_INDEX, muzzleCount = EveTurretFiringFX.INVALID_INDEX)
@@ -276,6 +324,10 @@ export class EveTurretFiringFX extends EveEntity
     this.isFiring = true;
   }
 
+  /**
+   * The longest curve duration across the stretch elements, which is what the
+   * firing duration falls back to when no override is authored.
+   */
   @carbon.method
   @impl.implemented
   GetCurveDuration()
@@ -285,6 +337,11 @@ export class EveTurretFiringFX extends EveEntity
     return duration;
   }
 
+  /**
+   * Averages the translation of every started muzzle transform, which is the point the shot is heard and seen to leave from.
+   * @param {vec3} [out] Caller-owned vector filled with the averaged position.
+   * @returns {boolean} False when the effect is not firing or no muzzle has started, in which case out is left untouched.
+   */
   @carbon.method
   @impl.implemented
   GetStartPosition(out = vec3.create())
@@ -306,6 +363,10 @@ export class EveTurretFiringFX extends EveEntity
     return true;
   }
 
+  /**
+   * The firing duration in force: the override when non-negative, otherwise the
+   * duration resolved at Initialize.
+   */
   @carbon.method
   @impl.implemented
   GetFiringDuration()
@@ -313,6 +374,10 @@ export class EveTurretFiringFX extends EveEntity
     return this.firingDurationOverride >= 0 ? this.firingDurationOverride : this.firingDuration;
   }
 
+  /**
+   * The authored offset into the burst at which the shot is considered to land,
+   * used to time the target's impact.
+   */
   @carbon.method
   @impl.implemented
   GetFiringPeakTime()
@@ -320,6 +385,10 @@ export class EveTurretFiringFX extends EveEntity
     return this.firingPeakTime;
   }
 
+  /**
+   * The name of the bone muzzle locators are resolved under, Pos_Fire unless
+   * authored otherwise.
+   */
   @carbon.method
   @impl.implemented
   GetFiringBoneName()
@@ -327,6 +396,11 @@ export class EveTurretFiringFX extends EveEntity
     return this.boneName;
   }
 
+  /**
+   * Starts one muzzle: its stretch element begins firing, the start curve set
+   * plays backdated by the muzzle's remaining delay and the stop curve set is
+   * halted; returns false when the muzzle has no record or no element.
+   */
   @carbon.method
   @impl.implemented
   StartMuzzleEffect(muzzleID)
@@ -342,6 +416,11 @@ export class EveTurretFiringFX extends EveEntity
     return true;
   }
 
+  /**
+   * Stops every stretch element, clears all per-muzzle timers, halts the start
+   * curve set and plays the stop curve set; does nothing when the effect is not
+   * firing.
+   */
   @carbon.method
   @impl.implemented
   StopFiring()
@@ -358,6 +437,10 @@ export class EveTurretFiringFX extends EveEntity
     this.isFiring = false;
   }
 
+  /**
+   * Whether any muzzle has run its delay down but not yet started, and is still
+   * inside the firing duration or belongs to a looping effect.
+   */
   @carbon.method
   @impl.implemented
   ReadyToFire()
@@ -367,6 +450,12 @@ export class EveTurretFiringFX extends EveEntity
       (data.elapsedTime < this.firingDuration || this.isLoopFiring) && !data.started && data.readyToStart);
   }
 
+  /**
+   * Advances each muzzle's delay and elapsed time, starts the muzzles whose
+   * delay expired, pushes the muzzle and end transforms into their stretch
+   * elements, then updates the active curve set and both observers; returns
+   * whether a muzzle started firing on this call.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon's task update is serial in the browser; firing elements retain their explicit async phase.")
@@ -414,6 +503,10 @@ export class EveTurretFiringFX extends EveEntity
     return justFired;
   }
 
+  /**
+   * Runs the synchronous element update for every muzzle still inside the firing
+   * duration, or for all of them when the effect loops.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon's task update is serial in the browser; firing elements retain their explicit sync phase.")
@@ -428,6 +521,10 @@ export class EveTurretFiringFX extends EveEntity
     return true;
   }
 
+  /**
+   * Runs the asynchronous then synchronous phase in order and reports whether a
+   * muzzle started firing.
+   */
   @carbon.method
   @impl.implemented
   Update(context)
@@ -437,6 +534,12 @@ export class EveTurretFiringFX extends EveEntity
     return fired;
   }
 
+  /**
+   * Updates visibility on every started element and, when several bone-free
+   * muzzles fire at once, merges them by shifting the whole set's intensity onto
+   * the first element as the muzzle cluster shrinks below the frustum's LOD
+   * angle; gated on display and isFiring.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Visibility is forwarded to graph elements; small-angle muzzle merging uses portable frustum fields when present.")
@@ -469,6 +572,10 @@ export class EveTurretFiringFX extends EveEntity
     active.forEach((index, order) => this.stretch[index]?.SetIntensity?.(order ? merge : active.length + (1 - active.length) * merge));
   }
 
+  /**
+   * Appends the renderables of every started element still inside the firing
+   * duration to out; gated on display and isFiring.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Renderable collection is backend-neutral; draw realization remains runtime-engine work.")
@@ -489,6 +596,10 @@ export class EveTurretFiringFX extends EveEntity
   @type.float32
   maxScale = 10;
 
+  /**
+   * The number of muzzles the effect drives, which is the number of authored
+   * stretch elements rather than the twelve-muzzle maximum.
+   */
   @carbon.method
   @impl.implemented
   GetPerMuzzleEffectCount()
@@ -496,6 +607,10 @@ export class EveTurretFiringFX extends EveEntity
     return this.stretch.length;
   }
 
+  /**
+   * The parent bone id bound to a muzzle slot, or INVALID_INDEX when the muzzle
+   * rides a supplied transform instead of a bone.
+   */
   @carbon.method
   @impl.implemented
   GetPerMuzzleBoneID(muzzleID)
@@ -504,6 +619,10 @@ export class EveTurretFiringFX extends EveEntity
     return this.#perMuzzleData[muzzleID]?.muzzlePositionBoneID ?? EveTurretFiringFX.INVALID_INDEX;
   }
 
+  /**
+   * Whether the burst repeats instead of ending when the firing duration
+   * elapses.
+   */
   @carbon.method
   @impl.implemented
   IsLooping()
@@ -511,6 +630,10 @@ export class EveTurretFiringFX extends EveEntity
     return this.isLoopFiring;
   }
 
+  /**
+   * Sets whether the stretch elements draw their destination end, which is the
+   * impact on the target.
+   */
   @carbon.method
   @impl.implemented
   SetDisplayDestObject(display)
@@ -518,6 +641,7 @@ export class EveTurretFiringFX extends EveEntity
     this.#displayDestObject = !!display;
   }
 
+  /** Whether the stretch elements draw their destination end. */
   @carbon.method
   @impl.implemented
   GetDisplayDestObject()
@@ -525,6 +649,10 @@ export class EveTurretFiringFX extends EveEntity
     return this.#displayDestObject;
   }
 
+  /**
+   * Sets whether the stretch elements draw their source end, which is the muzzle
+   * flash.
+   */
   @carbon.method
   @impl.implemented
   SetDisplaySourceObject(display)
@@ -532,6 +660,7 @@ export class EveTurretFiringFX extends EveEntity
     this.#displaySourceObject = !!display;
   }
 
+  /** Whether the stretch elements draw their source end. */
   @carbon.method
   @impl.implemented
   GetDisplaySourceObject()
@@ -539,6 +668,7 @@ export class EveTurretFiringFX extends EveEntity
     return this.#displaySourceObject;
   }
 
+  /** Forwards a named controller variable to every stretch element. */
   @carbon.method
   @impl.adapted
   @impl.reason("Controller ownership is represented by direct firing-element method forwarding.")
@@ -547,6 +677,7 @@ export class EveTurretFiringFX extends EveEntity
     for (const stretch of this.stretch) stretch?.SetControllerVariable?.(name, value);
   }
 
+  /** Forwards a named controller event to every stretch element. */
   @carbon.method
   @impl.adapted
   @impl.reason("Controller ownership is represented by direct firing-element method forwarding.")
@@ -555,6 +686,7 @@ export class EveTurretFiringFX extends EveEntity
     for (const stretch of this.stretch) stretch?.HandleControllerEvent?.(name);
   }
 
+  /** Starts the controllers on every stretch element. */
   @carbon.method
   @impl.adapted
   @impl.reason("Controller ownership is represented by direct firing-element method forwarding.")
@@ -595,6 +727,12 @@ export class EveTurretFiringFX extends EveEntity
     }
   }
 
+  /**
+   * Records which surface the shot lands on and, only when it changes, sends the
+   * matching Impact_On switch value to the destination observer's audio emitter;
+   * anything other than armor or hull is sent as Shield, including
+   * IMPACT_INVALID.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Audio emitters are duck-typed; Carbon impact switch values are forwarded without native interfaces.")
@@ -611,6 +749,12 @@ export class EveTurretFiringFX extends EveEntity
     this.#impactConfiguration = configuration;
   }
 
+  /**
+   * Grows the per-muzzle record list to the twelve-muzzle maximum on first use
+   * and refreshes every record's constant delay from the authored
+   * firingDelay1..firingDelay12 fields, so an edited delay takes effect without
+   * a rebuild.
+   */
   #ensureMuzzleData()
   {
     while (this.#perMuzzleData.length < EveTurretFiringFX.MUZZLE_COUNT_MAX)

@@ -46,6 +46,11 @@ export class EveDistributionSpawnerTriggerSphere extends CjsModel
   @type.boolean
   reverseSphereAnimation = false;
 
+  /**
+   * Sorts the pooled placements by their distance from the sphere offset and
+   * normalizes those distances into the 0..1 expansion order the update walks,
+   * then restarts.
+   */
   @carbon.method
   @impl.adapted
   Reset(placements)
@@ -72,6 +77,10 @@ export class EveDistributionSpawnerTriggerSphere extends CjsModel
     this.Restart();
   }
 
+  /**
+   * Rewinds the expansion to its first placement, or its last when the animation
+   * is reversed, and clears the play time.
+   */
   @carbon.method
   @impl.implemented
   Restart()
@@ -80,6 +89,11 @@ export class EveDistributionSpawnerTriggerSphere extends CjsModel
     this.#currentPlayTime = 0;
   }
 
+  /**
+   * Advances the play time and triggers every placement the expanding sphere has
+   * reached, each subject to triggerChance, ending once the sorted order is
+   * exhausted or the play duration elapses.
+   */
   @carbon.method
   @impl.adapted
   UpdateSyncronous(updateContext, _params, owner)
@@ -132,6 +146,7 @@ export class EveDistributionSpawnerTriggerSphere extends CjsModel
     }
   }
 
+  /** Ignores controller variables; the expansion is purely time-driven. */
   @carbon.method
   @impl.noop
   SetControllerVariable(_name, _value)

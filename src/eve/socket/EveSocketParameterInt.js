@@ -17,6 +17,10 @@ export class EveSocketParameterInt extends EveSocketParameterBindingBase
   /** m_defaults - one default captured per bound external parameter. */
   #defaults = [];
 
+  /**
+   * Discards the captured defaults along with the bindings, so nothing can be
+   * restored afterwards.
+   */
   @carbon.method
   @impl.implemented
   ClearBindings()
@@ -38,6 +42,11 @@ export class EveSocketParameterInt extends EveSocketParameterBindingBase
     this.ClearBindings();
   }
 
+  /**
+   * Captures the external parameter's current value as an integer default,
+   * truncating to 32 bits and substituting 0 when the read throws; always
+   * succeeds, so a bind is never refused on its account.
+   */
   ExtractDefault(externalParameter)
   {
     let value = 0;
@@ -53,6 +62,10 @@ export class EveSocketParameterInt extends EveSocketParameterBindingBase
     return true;
   }
 
+  /**
+   * Restores the first captured default, falling back to 0 when nothing was
+   * captured.
+   */
   @carbon.method
   @impl.implemented
   SetValueToDefault()

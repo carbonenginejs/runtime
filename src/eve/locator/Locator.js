@@ -5,6 +5,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Attachment point held as decomposed position, orientation, scale and bone
+ * index, as stored inside a locator set.
+ */
 @type.define({
   className: "Locator",
   family: "eve/utils"

@@ -3,6 +3,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Per-agent scratch record for the ProcessLifetime behavior: which tunnel the
+ * agent is assigned, how far along that tunnel it is, and whether it has spawned
+ * or already used its entry and exit tunnels.
+ */
 @type.define({
   className: "ProcessLifetimeData",
   family: "eve"

@@ -47,8 +47,17 @@ export const EffectKeyGenerator = {
   }
 };
 
+/**
+ * Concrete GPU-free batch accumulator: collects committed batches into a
+ * GDPR-eligible and a plain vector, then sorts and group-counts them on
+ * Finalize.
+ */
 export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
 {
+  /**
+   * Creates an empty accumulator whose key generator decides sorting and GDPR
+   * eligibility, defaulting to the effect-sorted one.
+   */
   constructor(keyGenerator = EffectKeyGenerator)
   {
     super();
@@ -59,6 +68,10 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
     this.batches = [];
   }
 
+  /**
+   * Drops both batch vectors and resets user data and rendering mode to their
+   * defaults.
+   */
   Clear()
   {
     this.userData = 0;
@@ -73,6 +86,13 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
   // batch's rendering mode is overwritten with the accumulator's mode (faithful
   // to Carbon). Commit takes ownership of the batch; do not reuse it afterwards.
   // Returns whether the batch was accepted (JS addition; Carbon returns void).
+  /**
+   * Collects a batch, dropping invalid ones and routing GDPR-eligible batches
+   * (allowed by the key generator, GDR-compatible material, triangle list,
+   * indexed) to the GDPR vector; the batch's rendering mode is overwritten with
+   * the accumulator's and ownership passes here, so the caller must not reuse
+   * the batch. Returns whether it was accepted.
+   */
   Commit(batch)
   {
     if (!batch.IsValid()) return false;
@@ -94,6 +114,11 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
 
   // Folds another accumulator's batches into this one, then clears the source.
   // Mirrors Carbon TransferFrom (per-thread accumulator merge).
+  /**
+   * Folds another accumulator's batches into this one and clears the source; the
+   * source's GDPR batches land in the plain vector when this accumulator does
+   * not allow GDPR.
+   */
   TransferFrom(source)
   {
     const sourceGdpr = source.GetGdprBatches();
@@ -112,11 +137,13 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
     source.Clear();
   }
 
+  /** The live GDPR-eligible batch vector, not a copy. */
   GetGdprBatches()
   {
     return this.gdprBatches;
   }
 
+  /** The live plain batch vector, not a copy. */
   GetBatches()
   {
     return this.batches;
@@ -125,6 +152,11 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
   // Sorts and group-counts the collected batches. No-op for the order-preserving
   // key generator; effect/GDPR generators sort both vectors and stamp each
   // bin-run's length onto its leading batch's groupCount.
+  /**
+   * Sorts and group-counts the collected batches: a no-op for the
+   * order-preserving key generator, a full bin partition of both vectors for
+   * GDPR-enabled ones, and a plain comparator sort otherwise.
+   */
   Finalize()
   {
     const sortType = this.keyGenerator.GetSortType();
@@ -146,11 +178,16 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
     });
   }
 
+  /** Total batches across both vectors. */
   GetBatchCount()
   {
     return this.gdprBatches.length + this.batches.length;
   }
 
+  /**
+   * Whether the batches are effect-sorted, so consecutive batches can share one
+   * state-set, rather than order-preserving.
+   */
   IsChainedByEffect()
   {
     return this.keyGenerator.GetSortType() !== RenderBatchSortType.RENDERBATCHSORTTYPE_NONE;

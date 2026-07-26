@@ -7,6 +7,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Oriented ellipsoid of influence with a hollow inner ellipsoid, weighting
+ * points by falloff and seeding random points between the two shells.
+ */
 @type.define({
   className: "EveEllipsoidVolume",
   family: "eve/volume"
@@ -47,6 +51,10 @@ export class EveEllipsoidVolume extends CjsModel
 
   #inverseRotation = quat.create();
 
+  /**
+   * Clamps the authored shapes, caches the inverse rotation and fires the change
+   * callbacks.
+   */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -55,6 +63,10 @@ export class EveEllipsoidVolume extends CjsModel
     return true;
   }
 
+  /**
+   * Returns a fresh sphere centred on the volume position with the largest shape
+   * radius, so it covers the ellipsoid on every axis.
+   */
   @carbon.method
   @impl.adapted
   GetBoundingSphere()
@@ -65,6 +77,12 @@ export class EveEllipsoidVolume extends CjsModel
     };
   }
 
+  /**
+   * Returns the falloff weight for a point given in the volume's own space: the
+   * point is moved into ellipsoid-local space with the cached inverse rotation,
+   * then compared radially against the inner and outer shapes - 1 inside the
+   * inner ellipsoid, 0 outside the outer one, and a squared ramp between them.
+   */
   @carbon.method
   @impl.adapted
   GetIntensity(position)
@@ -87,6 +105,12 @@ export class EveEllipsoidVolume extends CjsModel
     return ratio * ratio;
   }
 
+  /**
+   * Appends random points expressed in ellipsoid-local space, centred on the ellipsoid rather than offset by its position, split between the inner ellipsoid and the shell by their volume ratio biased with fallOffFactor.
+   *
+   * @param points Caller-owned array the new points are pushed onto.
+   * @param excludeInnerVolume Keeps every point in the shell between the inner and outer shapes.
+   */
   @carbon.method
   @impl.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
@@ -136,6 +160,10 @@ export class EveEllipsoidVolume extends CjsModel
     }
   }
 
+  /**
+   * Registers a callback fired whenever the volume changes, returning the id
+   * needed to unregister it again.
+   */
   @carbon.method
   @impl.adapted
   RegisterForChanges(callback)
@@ -145,6 +173,7 @@ export class EveEllipsoidVolume extends CjsModel
     return id;
   }
 
+  /** Drops a change callback by the id RegisterForChanges returned. */
   @carbon.method
   @impl.implemented
   UnregisterForChanges(callbackId)
@@ -152,6 +181,10 @@ export class EveEllipsoidVolume extends CjsModel
     this.#callbacks.delete(callbackId);
   }
 
+  /**
+   * Re-clamps the shapes and the cached inverse rotation after an authored
+   * change, and notifies every registered listener.
+   */
   @carbon.method
   @impl.adapted
   OnModified()
@@ -160,12 +193,17 @@ export class EveEllipsoidVolume extends CjsModel
     return true;
   }
 
+  /** No debug drawing in this port. */
   @carbon.method
   @impl.noop
   RenderDebugInfo()
   {
   }
 
+  /**
+   * Clamps the shape to non-negative radii, keeps the inner shape inside it,
+   * caches the inverse rotation and optionally fires the change callbacks.
+   */
   #setup(notify)
   {
     for (let i = 0; i < 3; i++)
@@ -183,6 +221,11 @@ export class EveEllipsoidVolume extends CjsModel
     }
   }
 
+  /**
+   * Returns how far the ellipsoid surface lies from the centre along the
+   * direction of the given local point, the smallest radius when the point sits
+   * at the centre, and 0 when the direction has an extent-less axis.
+   */
   static #radialDistance(position, radii)
   {
     const length = vec3.length(position);

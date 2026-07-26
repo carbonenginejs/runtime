@@ -5,6 +5,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
+/**
+ * Controller action that sets a Wwise switch group to a given state on a named
+ * audio emitter when it starts.
+ */
 @type.define({
   className: "Tr2ActionSetAudioSwitch",
   family: "controllers"

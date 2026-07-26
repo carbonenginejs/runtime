@@ -6,6 +6,11 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { carbonPerlin1D } from "@carbonenginejs/runtime-utils/noise";
 
 
+/**
+ * Scalar curve driven by fractal Perlin noise, mapping the noise band to
+ * [offset, offset + scale] and advancing at `speed` from a per-instance random
+ * phase.
+ */
 @type.define({
   className: "TriPerlinCurve",
   family: "trinityCore"
@@ -52,6 +57,7 @@ export class TriPerlinCurve extends CjsModel
   #lastUpdated = -1;
   #startOffset = TriPerlinCurve.#nextStartOffset();
 
+  /** Updates the cached value for the supplied time. */
   @carbon.method
   @impl.implemented
   UpdateValue(time)
@@ -59,6 +65,10 @@ export class TriPerlinCurve extends CjsModel
     this.Update(time);
   }
 
+  /**
+   * Updates and returns the cached value, skipping the noise evaluation when the
+   * time is unchanged since the last call.
+   */
   @carbon.method
   @impl.implemented
   Update(time)
@@ -71,6 +81,11 @@ export class TriPerlinCurve extends CjsModel
     return this.value;
   }
 
+  /**
+   * Samples the noise at a time and maps it to [offset, offset + scale]; the
+   * per-instance random phase is replaced by a fixed offset when
+   * expressionCurveFakeRandom is set, so editor previews are deterministic.
+   */
   @carbon.method
   @impl.implemented
   GetValueAt(time)
@@ -97,11 +112,20 @@ export class TriPerlinCurve extends CjsModel
     this.scale = scale;
   }
 
+  /**
+   * Evaluates Carbon's 1D fractal Perlin noise, returning a value in roughly
+   * [-1, 1].
+   */
   static PerlinNoise1D(position, inverseAmplitude, frequency, octaves)
   {
     return carbonPerlin1D(position, inverseAmplitude, frequency, octaves);
   }
 
+  /**
+   * Draws the next per-instance noise phase from Carbon's shared
+   * linear-congruential TriRand state, reproducing its 32-bit integer truncation
+   * so offsets match the C++ sequence.
+   */
   static #nextStartOffset()
   {
     let state = TriPerlinCurve.#triRandState;

@@ -18,6 +18,10 @@ const LIGHT_NOISE = new Float32Array(LIGHT_NOISE_SIZE);
 let LIGHT_NOISE_INITIALIZED = false;
 
 
+/**
+ * One authored booster placement: its local transform, functionality inputs,
+ * atlas slots, light scale and whether it emits a trail.
+ */
 @type.define({ className: "EveBoosterSet2Item", family: "eve/attachment/boosters" })
 export class EveBoosterSet2Item extends CjsModel
 {
@@ -53,6 +57,11 @@ export class EveBoosterSet2Item extends CjsModel
 }
 
 
+/**
+ * Owns a hull's authored booster placements and derives from them the glow
+ * flares, trails, set bounding sphere and flickering point lights that its
+ * renderable instances draw.
+ */
 @type.define({ className: "EveBoosterSet2", family: "eve/attachment/boosters" })
 export class EveBoosterSet2 extends EveEntity
 {
@@ -281,6 +290,10 @@ export class EveBoosterSet2 extends EveEntity
   /** m_glowsVisible (cpp:682) - starts visible, recomputed by UpdateVisibility. */
   #glowsVisible = true;
 
+  /**
+   * Derives the runtime boosters, flares and trails from the authored items and
+   * binds every renderable instance back to this set.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -294,6 +307,11 @@ export class EveBoosterSet2 extends EveEntity
     return true;
   }
 
+  /**
+   * Applies whichever of the items, staticTrailOffsets and flares rebuild flags
+   * a property change raised, rebuilding only what that flag covers, and bumps
+   * the revision.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -320,6 +338,11 @@ export class EveBoosterSet2 extends EveEntity
     return true;
   }
 
+  /**
+   * Resizes the renderable instance list - one instance per ship drawing this
+   * booster set - keeping at least one, and rebinds every instance; returns the
+   * resulting count.
+   */
   @carbon.method
   @impl.implemented
   SetCount(count)
@@ -344,6 +367,11 @@ export class EveBoosterSet2 extends EveEntity
     return this.instances.length;
   }
 
+  /**
+   * Updates one renderable instance from the parent's transform, speed,
+   * acceleration and rotation, creating the first instance when the set has
+   * none; returns false when boosterInstance is out of range.
+   */
   @carbon.method
   @impl.adapted
   Update(
@@ -376,6 +404,10 @@ export class EveBoosterSet2 extends EveEntity
     return true;
   }
 
+  /**
+   * Advances every instance's trail spline and then the trail set itself;
+   * returns false when no trail set is attached.
+   */
   @carbon.method
   @impl.adapted
   UpdateTrails(deltaTime, time)
@@ -393,6 +425,10 @@ export class EveBoosterSet2 extends EveEntity
     return updated;
   }
 
+  /**
+   * Drops the authored items along with everything derived from them - runtime
+   * boosters, glows, trails, bounding sphere and max size.
+   */
   @carbon.method
   @impl.adapted
   Clear()
@@ -402,6 +438,11 @@ export class EveBoosterSet2 extends EveEntity
     this.#revision++;
   }
 
+  /**
+   * Appends an authored booster placement and immediately derives its runtime
+   * booster, flares and trail; returns the new item's index and throws a
+   * TypeError when localMatrix is not sixteen values.
+   */
   @carbon.method
   @impl.adapted
   Add(
@@ -430,6 +471,10 @@ export class EveBoosterSet2 extends EveEntity
     return this.items.length - 1;
   }
 
+  /**
+   * Empties the derived booster records, glows and trails and resets the set
+   * bounding sphere and max size, leaving the authored items alone.
+   */
   static #ClearRuntimeItems(owner)
   {
     owner.#singleBoosters.length = 0;
@@ -440,6 +485,10 @@ export class EveBoosterSet2 extends EveEntity
     owner.maxSize = 0;
   }
 
+  /**
+   * Discards the derived state and re-derives it from every authored item, then
+   * clears both the items and flares rebuild flags.
+   */
   static #RebuildItems(owner)
   {
     EveBoosterSet2.#ClearRuntimeItems(owner);
@@ -451,6 +500,13 @@ export class EveBoosterSet2 extends EveEntity
     owner.__state.flags.delete("flares");
   }
 
+  /**
+   * Derives one runtime booster from an authored item - scale from the larger of
+   * the transform's X and Y basis lengths, a light position pushed back along -Z
+   * by lightOffset, and a random light flicker phase - then creates its flares
+   * and its trail (offset back half a unit along the booster axis), and grows
+   * the set bounding sphere and max size.
+   */
   static #AddRuntimeItem(owner, item)
   {
     const transform = mat4.clone(item.transform);
@@ -492,6 +548,10 @@ export class EveBoosterSet2 extends EveEntity
     owner.maxSize = Math.max(owner.maxSize, scale);
   }
 
+  /**
+   * Sets the whole flare description in one call: glow and halo scales with
+   * their normal and warp colours, plus the always-on flag.
+   */
   @carbon.method
   @impl.implemented
   SetData(
@@ -517,6 +577,10 @@ export class EveBoosterSet2 extends EveEntity
     this.alwaysOn = !!alwaysOn;
   }
 
+  /**
+   * Sets the whole booster point-light description in one call: light offset,
+   * flicker amplitude and frequency, and the normal and warp radius and colour.
+   */
   @carbon.method
   @impl.implemented
   SetLightData(offset, flickerAmplitude, flickerFrequency, radius, color, warpRadius, warpColor)
@@ -530,6 +594,10 @@ export class EveBoosterSet2 extends EveEntity
     vec4.copy(this.lightWarpColor, warpColor);
   }
 
+  /**
+   * Sets the near and far booster effects; the renderable's boosterHighLod flag
+   * picks between them at draw time.
+   */
   @carbon.method
   @impl.implemented
   SetEffect(effect, effectFar)
@@ -538,6 +606,10 @@ export class EveBoosterSet2 extends EveEntity
     this.effectFar = effectFar ?? null;
   }
 
+  /**
+   * Attaches the sprite set that the per-booster flares are added to; without
+   * one no flares are created.
+   */
   @carbon.method
   @impl.implemented
   SetGlow(glow)
@@ -545,6 +617,10 @@ export class EveBoosterSet2 extends EveEntity
     this.glows = glow ?? null;
   }
 
+  /**
+   * Attaches the trails set that per-booster trails are added to; without one no
+   * trails are created.
+   */
   @carbon.method
   @impl.implemented
   SetTrail(trail)
@@ -552,6 +628,10 @@ export class EveBoosterSet2 extends EveEntity
     this.trails = trail ?? null;
   }
 
+  /**
+   * The intensity of one renderable instance, or the mean across every instance
+   * when no index is given; zero when the set has no instances.
+   */
   @carbon.method
   @impl.adapted
   GetBoosterIntensity(index = null)
@@ -594,6 +674,11 @@ export class EveBoosterSet2 extends EveEntity
     return out;
   }
 
+  /**
+   * The derived runtime boosters as deep copies - transform, functionality,
+   * light position, radius and phase, atlas indices and trail flag - safe for an
+   * adapter to keep.
+   */
   @carbon.method
   @impl.adapted
   GetBoosterData()
@@ -610,6 +695,10 @@ export class EveBoosterSet2 extends EveEntity
     }));
   }
 
+  /**
+   * A counter bumped whenever the authored items or the instance list change, so
+   * an adapter can tell its packed data is stale.
+   */
   @carbon.method
   @impl.implemented
   GetRevision()
@@ -786,6 +875,12 @@ export class EveBoosterSet2 extends EveEntity
 
   static #flickerColorScratch = vec4.create();
 
+  /**
+   * Adds the three flare sprites Carbon authors per booster - the glow, the
+   * symmetric halo and the separately scaled X/Y halo - placed at increasing
+   * distances back along the booster axis and sharing one random blink seed; the
+   * axis is shortened for boosters below scale 3.
+   */
   static #CreateFlares(owner, booster)
   {
     const transform = booster.transform;
@@ -812,6 +907,10 @@ export class EveBoosterSet2 extends EveEntity
       scale * owner.haloScaleX, scale * owner.haloScaleY, owner.haloColor, owner.warpHaloColor);
   }
 
+  /**
+   * Adds one flare sprite to the glow set, offset back along the booster
+   * direction by distance and carrying its normal and warp colours.
+   */
   static #AddFlare(owner, position, direction, distance, blinkRate, blinkPhase, minScale, maxScale, color, warpColor)
   {
     const spritePosition = vec3.scaleAndAdd(vec3.create(), position, direction, -distance);
@@ -827,6 +926,10 @@ export class EveBoosterSet2 extends EveEntity
     );
   }
 
+  /**
+   * Grows the set bounding sphere just far enough to include one booster
+   * position, leaving it unchanged when the position already falls inside.
+   */
   static #UpdateBoundingSphere(owner, position)
   {
     const delta = vec3.subtract(vec3.create(), position, owner.boosterBoundingSphereCenter);
@@ -845,6 +948,10 @@ export class EveBoosterSet2 extends EveEntity
     owner.boosterBoundingSphereRadius = 0.5 * (radius + distance);
   }
 
+  /**
+   * Redistributes the five static trail control offsets evenly backwards along
+   * -Z across staticTrailLength and clears the staticTrailOffsets flag.
+   */
   static #UpdateStaticTrailOffsets(owner)
   {
     owner.__state.flags.delete("staticTrailOffsets");

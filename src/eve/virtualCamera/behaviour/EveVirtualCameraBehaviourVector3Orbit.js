@@ -6,6 +6,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
 
+/**
+ * Vector3 behaviour that places the camera on a horizontal circle about the
+ * anchor, sweeping from a start to an end angle over the timeline.
+ */
 @type.define({
   className: "EveVirtualCameraBehaviourVector3Orbit",
   family: "eve/virtualCamera/behaviour"
@@ -41,6 +45,10 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
   @type.float32
   distance = 1;
 
+  /**
+   * Creates the default constant distance-scalar curve and linear 0-to-1 orbit
+   * curve, and names the behaviour "Orbit".
+   */
   constructor()
   {
     super();
@@ -49,6 +57,7 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
     this.SetName("Orbit");
   }
 
+  /** Sets the behaviour name and renames both owned curves to match. */
   @carbon.method
   @impl.implemented
   SetName(name)
@@ -58,6 +67,13 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
     this.orbitCurve?.SetName?.(`${this.name} - Orbit Curve`);
   }
 
+  /**
+   * Returns the offset onto the orbit circle: world +Z, or the anchor's
+   * horizontal forward direction when world is false, rotated about world up by
+   * the start-to-end angle (degrees) reached by the orbit curve at normalized
+   * timeline time, then scaled by distance, by the anchor radius when
+   * proportional, and by the distance scalar curve.
+   */
   @carbon.method
   @impl.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())

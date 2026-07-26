@@ -634,6 +634,10 @@ export class EveTurretSet extends EveEntity
     this.#ambientEffect()?.StartControllers?.();
   }
 
+  /**
+   * Creates the target when absent, pushes the authored miss and impact
+   * behaviour into it, and initializes the firing and ambient effects.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Resource loading and GPU preparation are engine responsibilities; Trinity initializes the target and owned behavior graph.")
@@ -646,6 +650,7 @@ export class EveTurretSet extends EveEntity
     return true;
   }
 
+  /** Attaches the firing effect and initializes it immediately. */
   @carbon.method
   @impl.implemented
   SetFiringEffect(effect)
@@ -654,6 +659,12 @@ export class EveTurretSet extends EveEntity
     this.firingEffect?.Initialize?.();
   }
 
+  /**
+   * Offers an object to the target for validation; on acceptance it sends the
+   * idle-to-targeting movement audio event when coming from idle or switching
+   * targets, and rescales the firing effect to the new target's radius. Returns
+   * whether the object was accepted.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon QueryInterface target attachment is delegated to EveTurretTarget's browser-compatible target validation.")
@@ -673,6 +684,7 @@ export class EveTurretSet extends EveEntity
     return accepted;
   }
 
+  /** The object currently being targeted, or null. */
   @carbon.method
   @impl.implemented
   GetTargetObject()
@@ -680,6 +692,10 @@ export class EveTurretSet extends EveEntity
     return this.target?.GetTargetable?.() ?? null;
   }
 
+  /**
+   * Rescales the firing effect from the target's radius, passing -1 when there
+   * is no target.
+   */
   @carbon.method
   @impl.implemented
   SetTargetScale()
@@ -687,6 +703,10 @@ export class EveTurretSet extends EveEntity
     this.firingEffect?.SetScaleByRadius?.(this.target?.GetRadius?.() ?? -1);
   }
 
+  /**
+   * Replaces the turret records, truncated to the fixed 24-turret limit,
+   * normalizing each into the record shape and resetting visibleCount.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon builds hidden SingleTurret records from geometry locators; browser hosts may provide equivalent portable records directly.")
@@ -697,6 +717,10 @@ export class EveTurretSet extends EveEntity
     return this.#turrets;
   }
 
+  /**
+   * Appends one normalized turret record and returns it, or null once the fixed
+   * 24-turret limit is reached.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon builds hidden SingleTurret records from geometry locators; browser hosts may provide equivalent portable records directly.")
@@ -709,6 +733,10 @@ export class EveTurretSet extends EveEntity
     return value;
   }
 
+  /**
+   * The live turret record list; the records are mutated in place by
+   * UpdateTurretTransforms, so this is not a snapshot.
+   */
   @carbon.method
   @impl.implemented
   GetTurrets()
@@ -744,6 +772,10 @@ export class EveTurretSet extends EveEntity
     return true;
   }
 
+  /**
+   * Stores the hull transform and immediately recomputes every turret's world
+   * matrix from it.
+   */
   @carbon.method
   @impl.implemented
   SetParentTransform(transform)
@@ -752,6 +784,11 @@ export class EveTurretSet extends EveEntity
     this.UpdateTurretTransforms(transform);
   }
 
+  /**
+   * Recomputes each turret's world matrix as the parent transform applied to its
+   * local matrix and marks the record valid; defaults to the stored parent
+   * transform.
+   */
   @carbon.method
   @impl.implemented
   UpdateTurretTransforms(parentTransform = this.#parentTransform)
@@ -764,6 +801,10 @@ export class EveTurretSet extends EveEntity
     }
   }
 
+  /**
+   * The index of the turret whose world up axis points most directly at its
+   * nearest damage locator, or 0 when no valid turret is found.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("The closest portable turret is selected from its world up-axis and the target tracking position.")
@@ -772,6 +813,10 @@ export class EveTurretSet extends EveEntity
     return this.#getClosestTurretAndLocator().turret;
   }
 
+  /**
+   * Convenience update that runs the synchronous then asynchronous phase against
+   * the stored parent transform.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("This combined browser convenience update runs Carbon's explicit synchronous and asynchronous phases in order.")
@@ -782,6 +827,12 @@ export class EveTurretSet extends EveEntity
     return true;
   }
 
+  /**
+   * Runs the synchronous phase: while a looping effect fires it re-picks the
+   * turret and locator every two seconds, then updates the firing effect, feeds
+   * the target the current muzzle start position, and updates the ambient effect
+   * and movement observer from the first turret.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Animation cleanup and task dispatch are forwarded through portable records; target and firing timing remain source-faithful.")
@@ -811,6 +862,13 @@ export class EveTurretSet extends EveEntity
     return true;
   }
 
+  /**
+   * Runs the asynchronous phase: recomputes the turret world matrices, ramps the
+   * tracking influence through its fade-in and fade-out delays, pushes the
+   * target position into each valid turret's tracking pose in that turret's
+   * local space, then hands the firing effect its end position and per-muzzle
+   * world transforms.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Skeleton realization is engine-owned; portable turret records may consume the same local-target tracking hook.")
@@ -879,6 +937,10 @@ export class EveTurretSet extends EveEntity
     return true;
   }
 
+  /**
+   * Appends the firing and ambient effect renderables to out; gated on display,
+   * and each contribution additionally on displayEffects.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Renderable collection is backend-neutral; geometry and batch realization remain runtime-engine work.")
@@ -890,6 +952,11 @@ export class EveTurretSet extends EveEntity
     return out;
   }
 
+  /**
+   * Forwards visibility to the firing and ambient effects; gated on display and,
+   * per effect, on displayEffects. The turret geometry itself is not culled
+   * here.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Visibility is forwarded through backend-neutral firing and ambient graph contracts.")
@@ -1049,6 +1116,13 @@ export class EveTurretSet extends EveEntity
     return this.GetPerObjectData(accumulator);
   }
 
+  /**
+   * Establishes everything one shot needs: the firing turret and locator, the
+   * advanced cycling fire position, the random firing delay, the fire animation
+   * on the chosen turret, the target's impact timing derived from the effect's
+   * duration and peak time, and the ambient controller's turret state. Returns
+   * false when deactivated or untargeted.
+   */
   #setupFiringState()
   {
     if (this.state === EveTurretSet.State.STATE_DEACTIVE || !this.target) return false;
@@ -1082,6 +1156,12 @@ export class EveTurretSet extends EveEntity
     return true;
   }
 
+  /**
+   * Picks the turret whose world up axis best aligns with its nearest damage
+   * locator and, when chooseRandomLocator is set, re-picks the turret against a
+   * random valid locator instead; falls back to turret 0. Returns the shared
+   * pair record, valid only until the next call.
+   */
   #getClosestTurretAndLocator()
   {
     const pair = EveTurretSet.#closestPair;
@@ -1138,6 +1218,10 @@ export class EveTurretSet extends EveEntity
     return pair;
   }
 
+  /**
+   * Plays an animation on every turret and returns the longest duration
+   * reported.
+   */
   #playAll(animation, loop, delay)
   {
     let duration = 0;
@@ -1145,6 +1229,11 @@ export class EveTurretSet extends EveEntity
     return duration;
   }
 
+  /**
+   * Plays an animation on one turret through the record's own hook or its
+   * controller, returning the reported duration, or 0 when the turret or the
+   * hook is absent.
+   */
   #playTurret(index, animation, loop, delay)
   {
     const turret = this.#turrets[index];
@@ -1152,16 +1241,31 @@ export class EveTurretSet extends EveEntity
     return Number(turret.PlayAnimation?.(animation, loop, delay) ?? turret.controller?.PlayAnimation?.(animation, { loop, delay }) ?? 0);
   }
 
+  /**
+   * The ambient effect in force: the authored one while in ambient-effect
+   * editing mode, otherwise the generated distributed instance container when
+   * one exists.
+   */
   #ambientEffect()
   {
     return this.ambientEffectEditingMode ? this.ambientEffect : this.generatedDistributedAmbientEffect ?? this.ambientEffect;
   }
 
+  /**
+   * Pushes the current state onto the ambient effect's TurretState controller
+   * variable.
+   */
   #setAmbientState()
   {
     this.#ambientEffect()?.SetControllerVariable?.("TurretState", this.state);
   }
 
+  /**
+   * Coerces a caller-supplied turret into the record shape - local and world
+   * matrices, local quaternion and position, valid and display flags - reusing
+   * the object in place when it already carries a local matrix, and otherwise
+   * wrapping it as the record's source.
+   */
   #normalizeTurret(turret)
   {
     if (turret?.localMatrix?.length === 16)

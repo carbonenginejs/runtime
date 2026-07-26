@@ -30,6 +30,10 @@ export class Tr2MaterialParameterStore extends CjsModel
   @type.map("ITriEffectParameter")
   parameters = new Map();
 
+  /**
+   * Looks a parameter up in this store and then walks the parent chain; null
+   * when no store in the chain defines it.
+   */
   @carbon.method
   @impl.implemented
   FindParameter(name)

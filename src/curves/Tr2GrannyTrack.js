@@ -5,6 +5,11 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 
 
+/**
+ * Base for curves sampled out of a Granny animation resource, owning the
+ * resource path, group and track name plus the cycle flag and resolved duration;
+ * subclasses supply the track binding and sampling.
+ */
 @type.define({
   className: "Tr2GrannyTrack",
   family: "curves"

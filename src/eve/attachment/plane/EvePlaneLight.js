@@ -6,6 +6,11 @@ import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
 
 
+/**
+ * The light one plane contributes, carrying its saturation, blink rate and
+ * phase, fade type, light profile and the bone matrix resolved for it each
+ * frame.
+ */
 @type.define({ className: "EvePlaneLight", family: "eve/attachment/planes" })
 export class EvePlaneLight extends CjsModel
 {
@@ -52,6 +57,11 @@ export class EvePlaneLight extends CjsModel
   @type.string
   lightProfilePath = "";
 
+  /**
+   * Builds a plane light from a SOF-authored description, taking the light
+   * profile path from the description or, failing that, from the light data's
+   * texture path.
+   */
   static FromSOF(value)
   {
     const values = value ?? {};

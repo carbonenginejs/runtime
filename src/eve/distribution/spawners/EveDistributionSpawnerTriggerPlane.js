@@ -47,6 +47,11 @@ export class EveDistributionSpawnerTriggerPlane extends CjsModel
   @type.boolean
   reversePlaneAnimation = false;
 
+  /**
+   * Sorts the pooled placements by their distance along the plane normal and
+   * normalizes those distances into the 0..1 sweep order the update walks, then
+   * restarts.
+   */
   @carbon.method
   @impl.adapted
   Reset(placements)
@@ -74,6 +79,10 @@ export class EveDistributionSpawnerTriggerPlane extends CjsModel
     this.Restart();
   }
 
+  /**
+   * Rewinds the sweep to its first placement, or its last when the animation is
+   * reversed, and clears the play time.
+   */
   @carbon.method
   @impl.implemented
   Restart()
@@ -82,6 +91,11 @@ export class EveDistributionSpawnerTriggerPlane extends CjsModel
     this.#currentPlayTime = 0;
   }
 
+  /**
+   * Advances the play time and triggers every placement the sweeping plane has
+   * passed, each subject to triggerChance, ending once the sorted order is
+   * exhausted or the play duration elapses.
+   */
   @carbon.method
   @impl.adapted
   UpdateSyncronous(updateContext, _params, owner)
@@ -134,6 +148,7 @@ export class EveDistributionSpawnerTriggerPlane extends CjsModel
     }
   }
 
+  /** Ignores controller variables; the sweep is purely time-driven. */
   @carbon.method
   @impl.noop
   SetControllerVariable(_name, _value)

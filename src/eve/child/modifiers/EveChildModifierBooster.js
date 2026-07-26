@@ -6,6 +6,11 @@ import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { DistanceBase } from "./EveChildModifierTransformCommon.js";
 
 
+/**
+ * Transform modifier that scales a fixed-radius booster sphere so it keeps a
+ * constant apparent size as camera distance changes, then re-centres it so its
+ * near edge stays put.
+ */
 @type.define({
   className: "EveChildModifierBooster",
   family: "eve/child/modifiers"

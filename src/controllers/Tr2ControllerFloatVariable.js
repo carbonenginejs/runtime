@@ -5,6 +5,11 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 import { Type } from "./enums.js";
 
 
+/**
+ * One named float slot of a controller's variable set, mirroring its value into
+ * the controller's packed expression buffer and raising its dirty bit whenever
+ * it changes.
+ */
 @type.define({
   className: "Tr2ControllerFloatVariable",
   family: "controllers"

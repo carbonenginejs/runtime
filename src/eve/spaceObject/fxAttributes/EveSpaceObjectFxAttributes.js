@@ -65,6 +65,12 @@ function RotationQuaternion(out, matrix)
   return out;
 }
 
+/**
+ * A named bag of parent space-object values - bounding-sphere radius, distance
+ * to the ship, parent world placement, shape ellipsoid, activation strength, and
+ * active turret and kill counts - refreshed each child update for effect
+ * bindings to read.
+ */
 @type.define({ className: "EveSpaceObjectFxAttributes", family: "eve/fxAttributes" })
 export class EveSpaceObjectFxAttributes extends CjsModel
 {

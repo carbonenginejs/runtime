@@ -18,6 +18,10 @@ export class EveSocketParameterVector2 extends EveSocketParameterBindingBase
   /** m_defaults - one default captured per bound external parameter. */
   #defaults = [];
 
+  /**
+   * Discards the captured defaults along with the bindings, so nothing can be
+   * restored afterwards.
+   */
   @carbon.method
   @impl.implemented
   ClearBindings()
@@ -39,6 +43,11 @@ export class EveSocketParameterVector2 extends EveSocketParameterBindingBase
     this.ClearBindings();
   }
 
+  /**
+   * Captures a copy of the external parameter's current value as a default,
+   * keeping it at zero unless the source has at least two components; always
+   * succeeds, so a bind is never refused on its account.
+   */
   ExtractDefault(externalParameter)
   {
     const value = vec2.create();
@@ -58,6 +67,10 @@ export class EveSocketParameterVector2 extends EveSocketParameterBindingBase
     return true;
   }
 
+  /**
+   * Restores the first captured default into the existing value vector, or
+   * zeroes it when nothing was captured.
+   */
   @carbon.method
   @impl.implemented
   SetValueToDefault()

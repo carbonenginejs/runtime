@@ -4,6 +4,11 @@ import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 
+/**
+ * Depth-of-field parameters - focal distance and length, circle-of-confusion and
+ * blur scale, bokeh shape - plus the process-wide switch that enables the effect
+ * at all.
+ */
 @type.define({ className: "Tr2PPDepthOfFieldEffect", family: "postProcess" })
 export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 {
@@ -37,12 +42,20 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
   @type.float32
   focalDistance = 0;
 
+  /**
+   * Returns the shader define name for the selected bokeh shape, falling back to
+   * the disk shape for an unknown value.
+   */
   GetBokehShapeString()
   {
     return Tr2PPDepthOfFieldEffect.BokehShapeStrings[this.bokehShape]
       ?? Tr2PPDepthOfFieldEffect.BokehShapeStrings[Tr2PPDepthOfFieldEffect.Disk];
   }
 
+  /**
+   * Reports depth of field as contributing only when the process-wide switch is
+   * on, the effect is displayed, and its blur scale is positive.
+   */
   IsActive()
   {
     return Tr2PPDepthOfFieldEffect.PostProcessDofEnabled && this.display !== false && Number(this.scale) > 0;

@@ -4,6 +4,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Post-process described as a flat ordered list of Tr2Effect stages, in contrast
+ * to Tr2PostProcess2's named effect slots.
+ */
 @type.define({ className: "Tr2PostProcess", family: "postProcess" })
 export class Tr2PostProcess extends CjsModel
 {

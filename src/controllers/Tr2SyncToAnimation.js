@@ -5,6 +5,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
+/**
+ * State finalizer that holds a state machine in its current state until the
+ * animation layer named by `mask` has finished playing.
+ */
 @type.define({
   className: "Tr2SyncToAnimation",
   family: "controllers"

@@ -11,9 +11,18 @@ import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2Pa
 import { TriBatchType } from "../../../generated/trinityCore/enums.js";
 
 
+/**
+ * A decal projected onto a parent hull, owning its oriented projection matrix,
+ * optional bone attachment, per-LOD triangle index lists and screen-size
+ * visibility ramp.
+ */
 @type.define({ className: "EveSpaceObjectDecal", family: "eve/attachment/decal" })
 export class EveSpaceObjectDecal extends CjsModel
 {
+  /**
+   * Establishes Carbon's opaque decal batch type after schema initialization,
+   * because the schema's legacy TriBatchType default is 0.
+   */
   constructor()
   {
     super();
@@ -107,11 +116,19 @@ export class EveSpaceObjectDecal extends CjsModel
 
   #shLightingScratch = new Float32Array(IEveSpaceObject2ParentData.SH_COEFFICIENT_COUNT * 4);
 
+  /**
+   * Property form of HasStaticIndexBuffers: whether any LOD carries decal
+   * triangle indices.
+   */
   get hasStaticIndexBuffers()
   {
     return this.HasStaticIndexBuffers();
   }
 
+  /**
+   * Builds the decal matrix and its inverse from the authored position, rotation
+   * and scaling; returns false when the composed matrix is not invertible.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -119,6 +136,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return this.#updateDecalMatrix();
   }
 
+  /**
+   * Rebuilds the decal matrix and its inverse after an authored placement
+   * change.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -127,6 +148,12 @@ export class EveSpaceObjectDecal extends CjsModel
     return true;
   }
 
+  /**
+   * Copies another decal's authored description - name, display, placement, bone
+   * index, minimum screen size, effect and batch type - and rebuilds the decal
+   * matrix; the per-LOD index buffers are not copied. Returns false when source
+   * is missing.
+   */
   @carbon.method
   @impl.adapted
   CopyFrom(source)
@@ -144,6 +171,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return this.#updateDecalMatrix();
   }
 
+  /**
+   * Copies the authored decal position into the caller-owned out vector and
+   * returns it.
+   */
   @carbon.method
   @impl.adapted
   GetPosition(out = vec3.create())
@@ -151,6 +182,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return vec3.copy(out, this.position);
   }
 
+  /**
+   * Sets the authored decal position and rebuilds the decal matrix; a missing
+   * value is taken as the origin.
+   */
   @carbon.method
   @impl.adapted
   SetPosition(value)
@@ -159,6 +194,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return this.#updateDecalMatrix();
   }
 
+  /**
+   * Copies the authored decal rotation into the caller-owned out quaternion and
+   * returns it.
+   */
   @carbon.method
   @impl.adapted
   GetRotation(out = quat.create())
@@ -166,6 +205,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return quat.copy(out, this.rotation);
   }
 
+  /**
+   * Sets the authored decal rotation and rebuilds the decal matrix; a missing
+   * value is taken as the identity rotation.
+   */
   @carbon.method
   @impl.adapted
   SetRotation(value)
@@ -174,6 +217,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return this.#updateDecalMatrix();
   }
 
+  /**
+   * Copies the authored decal scaling into the caller-owned out vector and
+   * returns it.
+   */
   @carbon.method
   @impl.adapted
   GetScaling(out = vec3.create())
@@ -181,6 +228,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return vec3.copy(out, this.scaling);
   }
 
+  /**
+   * Copies the decal's projection matrix into out; the value is only current as
+   * of the last Initialize, OnModified or placement setter.
+   */
   @carbon.method
   @impl.adapted
   GetDecalMatrix(out = mat4.create())
@@ -188,6 +239,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return mat4.copy(out, this.#decalMatrix);
   }
 
+  /**
+   * Copies the inverse of the decal's projection matrix into out, which is what
+   * maps hull-space positions into the decal's unit cube.
+   */
   @carbon.method
   @impl.adapted
   GetInverseDecalMatrix(out = mat4.create())
@@ -195,6 +250,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return mat4.copy(out, this.#inverseDecalMatrix);
   }
 
+  /**
+   * Sets the authored decal scaling and rebuilds the decal matrix; a missing
+   * value is taken as unit scale.
+   */
   @carbon.method
   @impl.adapted
   SetScaling(value)
@@ -203,6 +262,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return this.#updateDecalMatrix();
   }
 
+  /**
+   * The parent mesh bone the decal rides, or -1 when it rides the hull transform
+   * directly.
+   */
   @carbon.method
   @impl.adapted
   GetBoneIndex()
@@ -210,6 +273,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return this.parentBoneIndex;
   }
 
+  /**
+   * Sets the parent mesh bone the decal rides; the bone matrix itself is only
+   * picked up on the next SetBoneMatrix.
+   */
   @carbon.method
   @impl.adapted
   SetBoneIndex(index)
@@ -218,6 +285,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return true;
   }
 
+  /**
+   * Replaces the SOF-authored triangle index lists, one array per LOD, coercing
+   * each entry to an unsigned integer.
+   */
   @carbon.method
   @impl.adapted
   SetIndices(indices)
@@ -226,6 +297,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return true;
   }
 
+  /**
+   * The per-LOD triangle index lists as fresh copies, so a caller cannot mutate
+   * the stored buffers.
+   */
   @carbon.method
   @impl.adapted
   GetStaticIndexBuffers()
@@ -233,6 +308,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return this.staticIndexBuffers.map(lod => lod.slice());
   }
 
+  /**
+   * Whether any LOD carries triangle indices; a decal without them has no
+   * geometry to draw.
+   */
   @carbon.method
   @impl.adapted
   HasStaticIndexBuffers()
@@ -240,6 +319,7 @@ export class EveSpaceObjectDecal extends CjsModel
     return this.staticIndexBuffers.some(lod => lod.length > 0);
   }
 
+  /** The triangle count per LOD, being each index list's length divided by three. */
   @carbon.method
   @impl.adapted
   GetDecalPrimitiveCounts()
@@ -247,6 +327,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return this.staticIndexBuffers.map(lod => Math.trunc(lod.length / 3));
   }
 
+  /**
+   * Sets the LOD threshold in screen pixels below which UpdateVisibility culls
+   * the decal; zero disables the test and makes the decal always visible.
+   */
   @carbon.method
   @impl.adapted
   SetMinScreenSize(value)
@@ -255,6 +339,7 @@ export class EveSpaceObjectDecal extends CjsModel
     return true;
   }
 
+  /** Sets the effect that draws the decal; a decal without one is never visible. */
   @carbon.method
   @impl.adapted
   SetEffect(effect)
@@ -263,6 +348,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return true;
   }
 
+  /**
+   * Sets a shader option on the decal effect; returns false when no effect that
+   * accepts options is attached.
+   */
   @carbon.method
   @impl.adapted
   SetShaderOption(name, value)
@@ -272,6 +361,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return true;
   }
 
+  /**
+   * Sets the TriBatchType the decal submits under, overriding the opaque default
+   * the constructor establishes.
+   */
   @carbon.method
   @impl.adapted
   SetBatchType(value)
@@ -280,6 +373,10 @@ export class EveSpaceObjectDecal extends CjsModel
     return true;
   }
 
+  /**
+   * Sets the draw priority the engine sorts decals on; the value is runtime-only
+   * and never persisted.
+   */
   @carbon.method
   @impl.adapted
   SetPriority(value)
@@ -552,6 +649,10 @@ export class EveSpaceObjectDecal extends CjsModel
     throw new Error("EveSpaceObjectDecal.GetPickingBatches is not implemented in CarbonEngineJS.");
   }
 
+  /**
+   * Recomposes the decal matrix from the authored rotation, position and scaling
+   * and inverts it; returns whether the inverse existed.
+   */
   #updateDecalMatrix()
   {
     mat4.fromRotationTranslationScale(this.#decalMatrix, this.rotation, this.position, this.scaling);

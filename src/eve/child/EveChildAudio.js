@@ -8,6 +8,10 @@ import { carbon, CjsSchema, impl, io, type } from "@carbonenginejs/runtime-utils
 import { EveChildTransform } from "./EveChildTransform.js";
 
 
+/**
+ * Space-object child that owns a positional audio emitter and keeps its position
+ * and orientation tracking the child's world transform.
+ */
 @type.define({ className: "EveChildAudio", family: "eve/child" })
 export class EveChildAudio extends EveChildTransform
 {
@@ -25,6 +29,11 @@ export class EveChildAudio extends EveChildTransform
   @type.model("ITr2AudEmitter")
   audioEmitter = null;
 
+  /**
+   * Creates the emitter from the schema registry when none was authored and
+   * initializes it at the current world position; returns false when no
+   * AudEmitter class is registered, and true when an emitter already exists.
+   */
   Initialize()
   {
     if (this.audioEmitter) return true;
@@ -35,6 +44,7 @@ export class EveChildAudio extends EveChildTransform
     return this.audioEmitter.Initialize?.(this.name || "audio_object", "", position) !== false;
   }
 
+  /** Construction hook; forwards to Initialize. */
   @carbon.method
   @impl.adapted
   __init__()
@@ -42,6 +52,7 @@ export class EveChildAudio extends EveChildTransform
     return this.Initialize();
   }
 
+  /** Renames the underlying emitter without touching this child's own name field. */
   @carbon.method
   @impl.implemented
   SetEmitterName(name)
@@ -49,16 +60,27 @@ export class EveChildAudio extends EveChildTransform
     this.audioEmitter?.SetName?.(String(name));
   }
 
+  /** Returns the authored child name, which is also the emitter's default name. */
   GetName()
   {
     return this.name;
   }
 
+  /**
+   * Sets the authored child name; the emitter only picks it up through
+   * OnModified or an explicit SetEmitterName.
+   */
   SetName(name)
   {
     this.name = String(name ?? "");
   }
 
+  /**
+   * Applies a mute change by muting or unmuting the emitter and a name change by
+   * renaming it (falling back to "audio_object" when the name is empty); the
+   * value argument follows the repo's OnModified duck of field name or field
+   * value.
+   */
   OnModified(value = null)
   {
     if (value === "mute" || value === this.mute)
@@ -72,6 +94,12 @@ export class EveChildAudio extends EveChildTransform
     return true;
   }
 
+  /**
+   * Rebuilds the world transform from the parent - preferring the parent's own
+   * live localToWorld over the params copy - and, while unmuted, pushes the
+   * emitter its position plus front and top orientation vectors derived from
+   * that transform's rotation.
+   */
   UpdateSyncronous(_updateContext, params = {})
   {
     const parent = params.childParent ?? params.spaceObjectParent ?? null;
@@ -87,32 +115,52 @@ export class EveChildAudio extends EveChildTransform
     }
   }
 
+  /**
+   * No-op: the emitter is driven entirely from the sync pass, where the parent
+   * transform is already final.
+   */
   UpdateAsyncronous(_updateContext, _params)
   {
   }
 
+  /** No-op: an audio child is never rendered and keeps no visibility state. */
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
+  /** No-op: an audio child contributes no renderables. */
   GetRenderables(_renderables)
   {
   }
 
+  /**
+   * Always returns false and leaves out untouched: an emitter has no spatial
+   * extent to contribute to the owner's bounds.
+   */
   GetBoundingSphere(_out, _query = 0)
   {
     return false;
   }
 
+  /**
+   * Copies the child's world transform, as rebuilt by the last sync update.
+   * @param {Float32Array} [out] - caller-owned; allocated when omitted
+   * @returns {Float32Array} out
+   */
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this.worldTransform);
   }
 
+  /**
+   * No-op override: the audio child never composes a local transform from
+   * authored SRT values, so its world transform is the parent's.
+   */
   Setup(_scale, _rotation, _translation, _lowestLodVisible)
   {
   }
 
+  /** No-op: an audio child has no LOD levels. */
   ChangeLOD(_lod)
   {
   }

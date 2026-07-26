@@ -15,6 +15,10 @@ import { Tr2Light } from "../../lights/Tr2Light.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 
 
+/**
+ * A hull's authored blinking sprites, owning their static and per-bone bounds
+ * and the point lights the sprites emit.
+ */
 @type.define({ className: "EveSpriteSet", family: "eve/attachment/sprites" })
 export class EveSpriteSet extends EveEntity
 {
@@ -64,6 +68,10 @@ export class EveSpriteSet extends EveEntity
    * UpdateLights). */
   #activationStrength = 0;
 
+  /**
+   * Drops every sprite and every light; the bounds only follow on the next
+   * Rebuild.
+   */
   @carbon.method
   @impl.implemented
   Clear()
@@ -104,6 +112,11 @@ export class EveSpriteSet extends EveEntity
     this.#activationStrength = Number(activationStrength) || 0;
   }
 
+  /**
+   * Appends a sprite and returns the stored item, accepting either a ready-made item on its own or a position plus one of two argument forms.
+   * @param {object|vec3} positionOrItem An existing sprite item, or the sprite position.
+   * @param {...*} args Either (scale, color, warpColor) for a non-blinking sprite, or (blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor).
+   */
   @carbon.method
   @impl.adapted
   Add(positionOrItem, ...args)
@@ -143,6 +156,7 @@ export class EveSpriteSet extends EveEntity
     return item;
   }
 
+  /** The live sprite item list, not a copy. */
   @carbon.method
   @impl.implemented
   GetSprites()
@@ -150,6 +164,7 @@ export class EveSpriteSet extends EveEntity
     return this.sprites;
   }
 
+  /** The authored set name, which SOF uses to match this set to its DNA entry. */
   @carbon.method
   @impl.implemented
   GetName()
@@ -157,6 +172,7 @@ export class EveSpriteSet extends EveEntity
     return this.name;
   }
 
+  /** Sets the authored set name, coercing null or undefined to an empty string. */
   @carbon.method
   @impl.implemented
   SetName(name)
@@ -164,6 +180,7 @@ export class EveSpriteSet extends EveEntity
     this.name = String(name ?? "");
   }
 
+  /** The effect that draws the sprites. */
   @carbon.method
   @impl.implemented
   GetEffect()
@@ -171,6 +188,7 @@ export class EveSpriteSet extends EveEntity
     return this.effect;
   }
 
+  /** Sets the effect that draws the sprites. */
   @carbon.method
   @impl.implemented
   SetEffect(effect)
@@ -178,6 +196,10 @@ export class EveSpriteSet extends EveEntity
     this.effect = effect ?? null;
   }
 
+  /**
+   * Sets whether the sprites ride skeleton bones, which is what decides if
+   * GetAabb consults the caller's bone list at all.
+   */
   @carbon.method
   @impl.implemented
   SetSkinned(skinned)
@@ -185,6 +207,10 @@ export class EveSpriteSet extends EveEntity
     this.skinned = !!skinned;
   }
 
+  /**
+   * Recomputes the static and per-bone bounds from the authored sprites and
+   * marks the packed geometry stale.
+   */
   @carbon.method
   @impl.adapted
   Rebuild()
@@ -229,6 +255,10 @@ export class EveSpriteSet extends EveEntity
     return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
   }
 
+  /**
+   * Runs the first Rebuild so the set has bounds before its first visibility
+   * test.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -237,6 +267,10 @@ export class EveSpriteSet extends EveEntity
     return true;
   }
 
+  /**
+   * Converts a SOF-authored light description into an EveSpriteLight and appends
+   * it to the set.
+   */
   @carbon.method
   @impl.adapted
   AddLightFromSOF(light)

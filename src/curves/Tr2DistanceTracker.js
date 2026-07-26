@@ -5,6 +5,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Scalar function reporting the distance between two tracked positions, either
+ * the full separation or its projection onto a fixed direction, and optionally
+ * signed by which side of that direction the target lies.
+ */
 @type.define({
   className: "Tr2DistanceTracker",
   family: "curves"

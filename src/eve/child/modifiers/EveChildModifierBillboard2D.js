@@ -5,6 +5,10 @@ import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { Billboard2D } from "./EveChildModifierTransformCommon.js";
 
 
+/**
+ * Transform modifier that aligns a child to the screen plane, leaving it facing
+ * the viewer whatever the camera does.
+ */
 @type.define({
   className: "EveChildModifierBillboard2D",
   family: "eve/child/modifiers"

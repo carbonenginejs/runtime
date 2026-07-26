@@ -8,6 +8,10 @@ import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * One authored run of identical sprites, laid out either evenly along a line or
+ * distributed around a circle, with the blink timing and colour they share.
+ */
 @type.define({ className: "EveSpriteLineSetItem", family: "eve/attachment/sprites" })
 export class EveSpriteLineSetItem extends CjsModel
 {
@@ -80,12 +84,21 @@ export class EveSpriteLineSetItem extends CjsModel
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
+  /**
+   * Coerces an authored count field to a whole, non-negative sprite count; a
+   * non-finite or non-positive value yields zero.
+   */
   static GetSpriteCount(value)
   {
     const count = Math.trunc(Number(value));
     return Number.isFinite(count) && count > 0 ? count : 0;
   }
 
+  /**
+   * Fills the caller-owned out box with the run's bounds: for a circle, a box
+   * around the position at the larger of the two radii; for a line, a box
+   * centred on the run covering its full spaced length.
+   */
   @carbon.method
   @impl.adapted
   GetBounds(out)
@@ -102,6 +115,7 @@ export class EveSpriteLineSetItem extends CjsModel
     return box3.fromPositionRadius(out, center, distance * 0.5);
   }
 
+  /** The parent bone this sprite run rides. */
   @carbon.method
   @impl.implemented
   GetBoneIndex()
@@ -109,6 +123,11 @@ export class EveSpriteLineSetItem extends CjsModel
     return this.boneIndex;
   }
 
+  /**
+   * Expands the run into its individual sprite positions in parent space -
+   * stepped around the rotated ellipse for a circle, or spaced along the rotated
+   * X axis for a line - as freshly allocated vectors.
+   */
   @carbon.method
   @impl.adapted
   GetPositions()

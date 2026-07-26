@@ -8,6 +8,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Curve returning the same authored vec4 at every time, usable as a scalar,
+ * vector, quaternion or color function; its derivatives are always zero
+ * (identity for quaternions).
+ */
 @type.define({
   className: "Tr2CurveConstant",
   family: "curves"
@@ -140,11 +145,19 @@ export class Tr2CurveConstant extends CjsModel
     return vec3.copy(out, this.value);
   }
 
+  /**
+   * Copies as many components of the constant into the caller-owned `out` as it
+   * can hold.
+   */
   static #copyValue(out, value)
   {
     return copyArrayLike(out, value);
   }
 
+  /**
+   * Writes the zero derivative into `out`, using the identity quaternion for a
+   * 4-component output and the zero vector otherwise.
+   */
   static #setDerivative(out)
   {
     if (out.length > 3)

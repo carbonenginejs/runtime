@@ -26,6 +26,7 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends CjsModel
   @type.model("ITriVectorFunction")
   scaleCurve = null;
 
+  /** Reports a transform effect whenever a non-zero scale factor is authored. */
   @carbon.method
   @impl.implemented
   AffectsTransform()
@@ -33,6 +34,11 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends CjsModel
     return this.scaleFactor !== 0;
   }
 
+  /**
+   * Scales a placement by the size of the parent space object: the parent's bounding-sphere radius either samples scaleCurve or, without a curve, forms a scaleFactor-shaped ratio against authoredForBoundingRadius, and the result multiplies into the placement's additional scale rather than replacing it. Does nothing when the update params carry no space-object parent.
+   *
+   * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
+   */
   @carbon.method
   @impl.adapted
   ProcessDistributionModifier(placement, _deltaTime, params)

@@ -11,6 +11,11 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform } from "../EveChildTransform.js";
 
 
+/**
+ * Line-set path shaped as a quadratic Bezier: samples the curve between two
+ * endpoints through one control point and emits the resulting chain as line
+ * segments.
+ */
 @type.define({
   className: "EveBezierCurve",
   family: "eve/child/lineSetPaths"
@@ -116,6 +121,7 @@ export class EveBezierCurve extends EveChildTransform
 
   #regeneratePoints = true;
 
+  /** Marks the point chain dirty so the first update regenerates it. */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -124,6 +130,10 @@ export class EveBezierCurve extends EveChildTransform
     return true;
   }
 
+  /**
+   * Clamps completeness to 0..2, segments to 1..128 and segmentOffset to 0..1,
+   * then marks the point chain dirty.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -135,6 +145,11 @@ export class EveBezierCurve extends EveChildTransform
     return true;
   }
 
+  /**
+   * Advances the scroll animation value by movementSpeed times the frame delta
+   * (wrapped into 0..1) and, when the points are dirty, regenerates them and the
+   * bounding sphere; returns whether a regeneration ran.
+   */
   @carbon.method
   @impl.adapted
   Update(updateContext, _params = null)
@@ -152,6 +167,10 @@ export class EveBezierCurve extends EveChildTransform
     return true;
   }
 
+  /**
+   * Samples the quadratic Bezier into the point chain across the sub-range selected by completeness, shifted by segmentOffset, and refreshes the world transform. Does nothing when fewer than two segments are requested.
+   * @param {Float32Array} [parentTransform] - a non-identity matrix is used and cached, so later identity calls reuse the last real parent transform
+   */
   @carbon.method
   @impl.adapted
   GeneratePoints(parentTransform = mat4.create())
@@ -191,6 +210,7 @@ export class EveBezierCurve extends EveChildTransform
     this.#regeneratePoints = false;
   }
 
+  /** Number of generated points; zero until GeneratePoints has run. */
   @carbon.method
   @impl.adapted
   GetPointCount()
@@ -198,6 +218,10 @@ export class EveBezierCurve extends EveChildTransform
     return this.#points.length;
   }
 
+  /**
+   * Recomputes the local bounding sphere around the three control points, padded by the mesh size of the billboard objects riding the path.
+   * @param {Number} [meshSize] - a non-zero value is remembered and reused on later zero-argument calls
+   */
   @carbon.method
   @impl.adapted
   CalculateBoundingSphere(meshSize = 0, _reCalculateChildren = true)
@@ -219,6 +243,11 @@ export class EveBezierCurve extends EveChildTransform
     vec4.set(this.#boundingSphere, center[0], center[1], center[2], Math.sqrt(radiusSquared) + meshSize);
   }
 
+  /**
+   * Returns the cached bounding sphere moved through the path's local transform.
+   * @param {Float32Array} [out] - caller-owned; allocated when omitted
+   * @returns {Float32Array} out
+   */
   @carbon.method
   @impl.adapted
   GetBoundingSphere(out = vec4.create())
@@ -226,6 +255,11 @@ export class EveBezierCurve extends EveChildTransform
     return sph3.transformMat4(out, this.#boundingSphere, this.localTransform);
   }
 
+  /**
+   * Tests the bounding sphere, placed by the local transform under the given
+   * system location, against the frustum and stores the result in isVisible; a
+   * non-displayed path returns early and keeps its previous flag.
+   */
   @carbon.method
   @impl.adapted
   UpdateVisibility(frustum, _parentLod = null, systemLocation = mat4.create())
@@ -241,6 +275,12 @@ export class EveBezierCurve extends EveChildTransform
     this.isVisible = !!frustum?.IsSphereVisible?.(sphere);
   }
 
+  /**
+   * Emits one straight line per segment into the line set (regenerating dirty
+   * points first), optionally animated at scrollSpeed; the wrap-around segment
+   * is skipped while completeness is below 1, and the last segment ends exactly
+   * on point2 rather than on an interpolated sample.
+   */
   @carbon.method
   @impl.adapted
   AddLinesToSet(lineSet, color, animColor, scrollSpeed = 0)
@@ -273,6 +313,10 @@ export class EveBezierCurve extends EveChildTransform
     }
   }
 
+  /**
+   * Rounded segment count, scaled down by how far completeness is from a full
+   * sweep when scaleSegmentsByCompleteness is set.
+   */
   #getSegmentCount()
   {
     const completenessScale = 1 - Math.abs(this.completeness - 1);
@@ -293,12 +337,20 @@ export class EveBezierCurve extends EveChildTransform
 
   static #identityMatrix = mat4.create();
 
+  /**
+   * Frame delta read from the update-context duck (GetDeltaT() or .deltaT),
+   * falling back to 0 when neither is present or the value is not finite.
+   */
   static #getDeltaT(context)
   {
     const value = context?.GetDeltaT?.() ?? context?.deltaT ?? 0;
     return Number.isFinite(Number(value)) ? Number(value) : 0;
   }
 
+  /**
+   * Returns a newly allocated vector holding the point moved through the given
+   * transform.
+   */
   static #transformPoint(point, transform)
   {
     return vec3.transformMat4(vec3.create(), point, transform);

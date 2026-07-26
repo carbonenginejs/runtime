@@ -7,6 +7,10 @@ import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
+/**
+ * One authored sprite: its bone attachment, position, blink timing, scale range,
+ * falloff and normal and warp colours.
+ */
 @type.define({ className: "EveSpriteSetItem", family: "eve/attachment/sprites" })
 export class EveSpriteSetItem extends CjsModel
 {
@@ -64,6 +68,7 @@ export class EveSpriteSetItem extends CjsModel
     return box3.fromPositionRadius(out, this.position, this.maxScale);
   }
 
+  /** The parent bone this sprite rides. */
   @carbon.method
   @impl.implemented
   GetBoneIndex()

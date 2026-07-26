@@ -12,6 +12,10 @@ const NORMALIZED_FORCE = vec3.create();
 const FORCE_OFFSET = vec3.create();
 const NO_FORCES = [];
 
+/**
+ * Drone behavior that pulls agents back toward the inclusion volumes once they
+ * drift into the falloff shell; agents fully inside feel no force.
+ */
 @type.define({ className: "InclusionVolume", family: "eve/child/behaviors" })
 export class InclusionVolume extends CjsModel
 {

@@ -20,6 +20,10 @@ export class EveDistributionModifierProcessLifetime extends CjsModel
   @type.float32
   lifetimeDuration = -1;
 
+  /**
+   * Reports no transform effect, so this modifier alone never forces the
+   * distribution into its per-frame transform reset.
+   */
   @carbon.method
   @impl.implemented
   AffectsTransform()
@@ -27,6 +31,11 @@ export class EveDistributionModifierProcessLifetime extends CjsModel
     return false;
   }
 
+  /**
+   * Returns the authored kill event once a placement's accumulated lifetime
+   * passes lifetimeDuration, and DO_NOTHING otherwise or when no positive
+   * duration is authored.
+   */
   @carbon.method
   @impl.implemented
   ProcessDistributionModifier(placement, _deltaTime, _params)

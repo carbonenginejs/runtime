@@ -15,6 +15,10 @@ export class EveUiObject extends EveSpaceObject2
   @type.boolean
   usePerspectiveScale = true;
 
+  /**
+   * Enables or disables display on every mesh area carrying the given name,
+   * across all batch types.
+   */
   @carbon.method
   @impl.implemented
   SetVisibilityForArea(areaName, enable)
@@ -36,6 +40,11 @@ export class EveUiObject extends EveSpaceObject2
     }
   }
 
+  /**
+   * Maps a picking area index back to its area name, returning "invalid_mesh"
+   * when there is no mesh and "invalid_areaid" when no picking area has that
+   * index.
+   */
   @carbon.method
   @impl.implemented
   GetNameForPickingAreaID(areaID)

@@ -11,6 +11,10 @@ import { EveSpaceObject2 } from "./EveSpaceObject2.js";
 import { EveMissileWarhead } from "./EveMissileWarhead.js";
 
 
+/**
+ * A missile in flight: the curve-driven ball path plus the warheads that ride
+ * it, own the targeting state and supply all of its renderables and bounds.
+ */
 @type.define({ className: "EveMissile", family: "eve/spaceObject" })
 export class EveMissile extends EveSpaceObject2
 {
@@ -26,6 +30,10 @@ export class EveMissile extends EveSpaceObject2
   #estimatedTotalAliveTime = 1;
   #lastValidSpeed = 0;
 
+  /**
+   * Runs the base initialization and silences all warhead particle emitting
+   * until launch.
+   */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -35,6 +43,11 @@ export class EveMissile extends EveSpaceObject2
     return true;
   }
 
+  /**
+   * Arms the missile for a new flight: latches the launching ship's velocity and
+   * the estimated flying time, resets the flight clock, and silences warhead
+   * emitting.
+   */
   @carbon.method
   @impl.implemented
   Start(shipVelocity, estimatedFlyingTime)
@@ -47,6 +60,13 @@ export class EveMissile extends EveSpaceObject2
     this.#lastValidSpeed = 0;
   }
 
+  /**
+   * Samples the flight path and its derivative to keep the estimated
+   * time-to-target current, then for each live warhead advances the state
+   * machine, hands it the target locator offset in missile space, integrates its
+   * flight and fires the explosion callback on detonation, and finally rebuilds
+   * the missile bounding sphere from the warheads.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Targetable output parameters and curve samples use the org-standard out-last convention; CPU flight behavior remains source-faithful.")
@@ -111,6 +131,11 @@ export class EveMissile extends EveSpaceObject2
     return true;
   }
 
+  /**
+   * Runs each warhead's visibility pass against the missile world transform
+   * composed with that warhead's offset, and merges the warheads' LOD levels
+   * into the missile's.
+   */
   @carbon.method
   @impl.implemented
   UpdateVisibility(context, _parentTransform = EveMissile.#identity)
@@ -125,6 +150,7 @@ export class EveMissile extends EveSpaceObject2
     return true;
   }
 
+  /** Collects only the warheads' renderables - the missile itself owns no mesh. */
   @carbon.method
   @impl.implemented
   GetRenderables(out = [])
@@ -133,6 +159,10 @@ export class EveMissile extends EveSpaceObject2
     return out;
   }
 
+  /**
+   * Writes the missile's world-space bounding sphere, built from the
+   * warhead-derived local sphere and the missile world transform.
+   */
   @carbon.method
   @impl.implemented
   GetBoundingSphere(out = vec4.create())
@@ -142,6 +172,10 @@ export class EveMissile extends EveSpaceObject2
     return true;
   }
 
+  /**
+   * Recomputes the missile's local bounding sphere as the union of its warheads'
+   * local spheres.
+   */
   @carbon.method
   @impl.implemented
   RebuildMissileBoundingSphere()
@@ -157,6 +191,10 @@ export class EveMissile extends EveSpaceObject2
     return true;
   }
 
+  /**
+   * Returns null: the missile owns no renderable, so each warhead publishes its
+   * own per-object record.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("The missile owns no renderable; its warheads publish their own backend-neutral records.")

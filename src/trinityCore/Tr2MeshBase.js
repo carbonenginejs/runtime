@@ -7,6 +7,10 @@ import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "./Tr2RenderBatch.js";
 
 
+/**
+ * Base mesh: owns one mesh-area list per batch type and turns the displayed
+ * areas into GPU-free render batches and shadow area blocks.
+ */
 @type.define({ className: "Tr2MeshBase", family: "trinityCore" })
 export class Tr2MeshBase extends CjsModel
 {
@@ -108,6 +112,10 @@ export class Tr2MeshBase extends CjsModel
   @type.boolean
   rotatesVertices = false;
 
+  /**
+   * The live area list for a TriBatchType, or null for a non-integer or unmapped
+   * type.
+   */
   @carbon.method
   @impl.implemented
   GetAreas(areaType)
@@ -117,6 +125,10 @@ export class Tr2MeshBase extends CjsModel
     return property ? this[property] : null;
   }
 
+  /**
+   * Appends an area to the list for a batch type; returns false when that type
+   * has no list.
+   */
   @carbon.method
   @impl.adapted
   AddArea(areaType, area)
@@ -127,6 +139,10 @@ export class Tr2MeshBase extends CjsModel
     return true;
   }
 
+  /**
+   * Every area of every batch type, in batch-type order, as one newly allocated
+   * array.
+   */
   @carbon.method
   @impl.implemented
   GetAllAreas()
@@ -172,6 +188,10 @@ export class Tr2MeshBase extends CjsModel
     return reported;
   }
 
+  /**
+   * Sets a shader option on every area effect that supports it; returns whether
+   * at least one area was updated.
+   */
   @carbon.method
   @impl.adapted
   SetShaderOption(name, value)
@@ -186,6 +206,11 @@ export class Tr2MeshBase extends CjsModel
     return updated;
   }
 
+  /**
+   * The vertex-displacement bounds adjustment consumers apply to this mesh: max
+   * local scale, max local displacement and whether the material rotates
+   * vertices.
+   */
   @carbon.method
   @impl.adapted
   GetMaterialBoundsAdjustment()
@@ -197,6 +222,10 @@ export class Tr2MeshBase extends CjsModel
     };
   }
 
+  /**
+   * Stores the bounds adjustment, coercing missing or non-numeric entries to
+   * zero and false.
+   */
   @carbon.method
   @impl.adapted
   SetMaterialBoundsAdjustment(value)
@@ -208,6 +237,7 @@ export class Tr2MeshBase extends CjsModel
     return true;
   }
 
+  /** Empty at this level; Tr2Mesh overrides it with the real geometry path. */
   @carbon.method
   @impl.adapted
   GetGeometryResPath()
@@ -220,6 +250,12 @@ export class Tr2MeshBase extends CjsModel
   // scene collector can drive a mesh directly and a transform can pass a
   // pre-fetched vector (Carbon Tr2Transform::GetBatches passes GetAreas(type)).
   // Returns whether any batch was committed (JS addition; Carbon returns void).
+  /**
+   * Emits one batch per displayed area into the accumulator, where areas may be
+   * a TriBatchType or an already-resolved area list, so a scene collector or a
+   * transform can drive the mesh directly; returns whether any batch was
+   * committed (a JS addition, Carbon returns void).
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("GPU-free descriptor batches: geometry buffers and final draw args are resolved by the engine at dispatch")
@@ -244,6 +280,12 @@ export class Tr2MeshBase extends CjsModel
   // material/shader key, and the geometry + area range are recorded as a source
   // descriptor for the engine to realize. Returns null for a hidden or
   // material-less area (Carbon returns an invalid batch in those cases).
+  /**
+   * Builds one GPU-free batch for a mesh area, using the area's effect as
+   * material and shader key and recording geometry plus area range as a source
+   * descriptor; returns null for a hidden or material-less area, where Carbon
+   * returns an invalid batch.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("GPU-free: emits a geometry source descriptor instead of realized Tr2BufferAL allocations")
@@ -267,6 +309,11 @@ export class Tr2MeshBase extends CjsModel
   // Appends one (startIndex, count) block per area of the requested type.
   // Carbon deliberately skips non-shadow-casting OPAQUE areas here too (overlay
   // rendering over e.g. scaffolding build effects causes problems).
+  /**
+   * Appends one clamped (startIndex, count) block per area of the requested type
+   * to the caller's collector, skipping non-shadow-casting OPAQUE areas as
+   * Carbon does because overlay rendering over build effects misbehaves.
+   */
   @carbon.method
   @impl.implemented
   CollectAreaBlocks(collector, areaType)
@@ -286,6 +333,11 @@ export class Tr2MeshBase extends CjsModel
   // Appends blocks grouped by shared area material (the shadow path). Skips
   // non-shadow-casting OPAQUE and DECAL areas. Faithfully does NOT clamp
   // negative index/count (Carbon asymmetry with CollectAreaBlocks).
+  /**
+   * Appends blocks grouped by shared area material for the shadow path, skipping
+   * non-shadow-casting OPAQUE and DECAL areas, and faithfully reproduces
+   * Carbon's asymmetry by not clamping negative index or count.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Material grouping uses reference identity in place of Carbon's effect hash values.")

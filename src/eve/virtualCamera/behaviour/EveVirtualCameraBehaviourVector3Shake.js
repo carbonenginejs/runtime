@@ -8,6 +8,10 @@ import { TriPerlinCurve } from "../../../curves/TriPerlinCurve.js";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
 
+/**
+ * Vector3 behaviour that shakes the camera with independent per-axis Perlin
+ * noise applied along the camera's own right, up and forward axes.
+ */
 @type.define({
   className: "EveVirtualCameraBehaviourVector3Shake",
   family: "eve/virtualCamera/behaviour"
@@ -38,6 +42,10 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
 
   #phase = EveVirtualCameraBehaviourVector3Shake.#allocatePhase();
 
+  /**
+   * Creates the default magnitude envelope curve and names the behaviour
+   * "Shake".
+   */
   constructor()
   {
     super();
@@ -45,6 +53,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
     this.SetName("Shake");
   }
 
+  /** Sets the behaviour name and renames the owned magnitude curve to match. */
   @carbon.method
   @impl.implemented
   SetName(name)
@@ -53,6 +62,13 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
     this.magnitudeCurve?.SetName?.(`${this.name} - Magnitude Curve`);
   }
 
+  /**
+   * Returns the shake offset for this frame: the authored per-axis magnitude
+   * scaled by three decorrelated Perlin samples and by the magnitude envelope at
+   * normalized timeline time, optionally compressed through atan and scaled by
+   * the camera-to-interest distance when scaleByView is set, then mapped onto
+   * the camera's right, up and forward axes.
+   */
   @carbon.method
   @impl.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
@@ -81,11 +97,20 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
     return vec3.scaleAndAdd(out, out, camera.GetForwardDirection(vec3.create()), offset[2]);
   }
 
+  /**
+   * Samples one axis of 1D Perlin noise at the given time offset scaled by
+   * frequency, summing the configured number of octaves.
+   */
   static #clampedNoise(offset, frequency, octaves)
   {
     return TriPerlinCurve.PerlinNoise1D(offset * frequency, 2, 2, octaves);
   }
 
+  /**
+   * Builds the default shake envelope over normalized time: an almost immediate
+   * rise to full magnitude by 0.1, then a linear fade to zero at the end of the
+   * timeline.
+   */
   static #createMagnitudeCurve()
   {
     const curve = new Tr2CurveScalar();
@@ -97,6 +122,10 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
     return curve;
   }
 
+  /**
+   * Hands each new instance a distinct noise phase from a rolling 12-bit
+   * counter, so shakes created together do not sample identical noise.
+   */
   static #allocatePhase()
   {
     const phase = EveVirtualCameraBehaviourVector3Shake.#nextPhase & 0xfff;

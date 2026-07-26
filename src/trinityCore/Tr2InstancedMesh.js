@@ -6,6 +6,10 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 import { Tr2Mesh } from "./Tr2Mesh.js";
 
 
+/**
+ * A mesh drawn once per entry of a separate instance-data stream, with static
+ * bounds or bounds expanded by the per-instance size.
+ */
 @type.define({ className: "Tr2InstancedMesh", family: "trinityCore" })
 export class Tr2InstancedMesh extends Tr2Mesh
 {
@@ -43,6 +47,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @type.int32
   instanceMeshIndex = 0;
 
+  /** Defers to Tr2Mesh; the instance stream needs no extra CPU-side setup. */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -50,6 +55,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return super.Initialize();
   }
 
+  /** Resource path the instance data is loaded from. */
   @carbon.method
   @impl.implemented
   GetInstanceMeshResPath()
@@ -57,6 +63,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return this.instanceGeometryResPath;
   }
 
+  /** Sets the instance-data resource path; schedules the instanceBuffer rebuild. */
   @carbon.method
   @impl.adapted
   SetInstanceMeshResPath(path)
@@ -64,6 +71,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
     this.instanceGeometryResPath = String(path ?? "");
   }
 
+  /** Index of the instance buffer within the instance geometry resource. */
   @carbon.method
   @impl.implemented
   GetInstanceMeshIndex()
@@ -71,6 +79,10 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return this.instanceMeshIndex;
   }
 
+  /**
+   * The bound instance-data provider (an ITr2InstanceData), or null when none is
+   * set.
+   */
   @carbon.method
   @impl.implemented
   GetInstanceGeometryResource()
@@ -78,6 +90,10 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return this.instanceGeometryResource;
   }
 
+  /**
+   * Binds an already-resolved instance-data provider; schedules the
+   * instanceBuffer rebuild.
+   */
   @carbon.method
   @impl.adapted
   SetInstanceGeometryRes(resource)
@@ -85,6 +101,10 @@ export class Tr2InstancedMesh extends Tr2Mesh
     this.instanceGeometryResource = resource ?? null;
   }
 
+  /**
+   * Sets the static bounds used when boundsMethod is STATIC; a missing vector is
+   * treated as the origin.
+   */
   @carbon.method
   @impl.adapted
   SetBoundingBox(minBounds, maxBounds)
@@ -93,6 +113,10 @@ export class Tr2InstancedMesh extends Tr2Mesh
     vec3.copy(this.maxBounds, maxBounds ?? Tr2InstancedMesh.#zero);
   }
 
+  /**
+   * Switches to DYNAMIC bounds, where the instance stream's box is expanded by a
+   * fixed instance size in world units.
+   */
   @carbon.method
   @impl.adapted
   SetDynamicBounds(maxInstanceSize)
@@ -101,6 +125,10 @@ export class Tr2InstancedMesh extends Tr2Mesh
     this.maxInstanceSize = Number(maxInstanceSize) || 0;
   }
 
+  /**
+   * Switches to DYNAMIC_SCALED bounds, where the instance stream's box is
+   * expanded by maxScale multiplied by the mesh geometry's own radius.
+   */
   @carbon.method
   @impl.adapted
   SetDynamicScaledBounds(maxScale)
@@ -109,6 +137,12 @@ export class Tr2InstancedMesh extends Tr2Mesh
     this.maxInstanceSize = Number(maxScale) || 0;
   }
 
+  /**
+   * The whole-mesh bounds: the authored static box, or the instance stream's box
+   * expanded by the instance size (scaled by the geometry radius under
+   * DYNAMIC_SCALED); a zero box when no instance bounds are available. Always a
+   * freshly allocated pair.
+   */
   @carbon.method
   @impl.adapted
   GetBounds()
@@ -213,6 +247,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return { center, radius: instanceSize };
   }
 
+  /** A detached { min, max } pair cloned from the two vectors. */
   static #cloneBounds(minBounds, maxBounds)
   {
     return {
@@ -221,6 +256,10 @@ export class Tr2InstancedMesh extends Tr2Mesh
     };
   }
 
+  /**
+   * Radius of the mesh geometry's bounding box measured from the origin,
+   * defaulting to 1 when the resource exposes no box.
+   */
   static #getGeometryRadius(resource, meshIndex)
   {
     const bounds = resource?.GetBoundingBox?.(meshIndex);

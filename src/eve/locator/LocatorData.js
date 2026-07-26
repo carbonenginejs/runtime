@@ -5,6 +5,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/** Position and orientation pair handed to seek-target child behaviours. */
 @type.define({
   className: "LocatorData",
   family: "eve/child/behaviors"

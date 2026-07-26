@@ -5,6 +5,11 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsControllerExpressionProgram } from "../controllers/CjsControllerExpressionProgram.js";
 
 
+/**
+ * Scalar curve whose value is produced by a compiled expression evaluated at
+ * time divided by timeScale, with input1..input4 and a stable per-instance
+ * random constant available as terms.
+ */
 @type.define({
   className: "Tr2CurveScalarExpression",
   family: "curves"
@@ -229,6 +234,10 @@ export class Tr2CurveScalarExpression extends CjsModel
       self: this
     })) || 0;
   }
+  /**
+   * Returns the cached program, recompiling first when it is missing or was
+   * built from different source text.
+   */
   Compile()
   {
     if (!this.#program || this.#program.source !== this.expression)

@@ -5,6 +5,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Named attachment point on a space object, carrying a full transform matrix
+ * rather than decomposed components.
+ */
 @type.define({
   className: "EveLocator2",
   family: "eve/utils"
@@ -19,24 +23,34 @@ export class EveLocator2 extends CjsModel
   @type.mat4
   transform = mat4.create();
 
+  /** Returns the name consumers select this locator by. */
   @carbon.method
   @impl.implemented
   GetName()
   {
     return this.name;
   }
+  /**
+   * Sets the name consumers select this locator by, coercing the value to a
+   * string.
+   */
   @carbon.method
   @impl.implemented
   SetName(name)
   {
     this.name = String(name);
   }
+  /**
+   * Returns the locator's live transform matrix, not a copy; writes through it
+   * change the locator.
+   */
   @carbon.method
   @impl.implemented
   GetTransform()
   {
     return this.transform;
   }
+  /** Copies a matrix into the locator's own transform storage. */
   @carbon.method
   @impl.implemented
   SetTransform(value)

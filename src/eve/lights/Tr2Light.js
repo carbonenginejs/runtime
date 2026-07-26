@@ -15,6 +15,11 @@ import {
 } from "./lightConversion.js";
 
 
+/**
+ * Base scene light: holds the authored light attributes, resolves its bone
+ * transform, and submits a converted point or spot record to the light manager
+ * each frame.
+ */
 @type.define({ className: "Tr2Light", family: "eve/lights" })
 export class Tr2Light extends CjsModel
 {
@@ -63,12 +68,21 @@ export class Tr2Light extends CjsModel
   // and the runtime-sof separate-node hydration shape working.
   #lightDataView = null;
 
+  /**
+   * Compat LightData view over the concrete light's flattened fields, built on
+   * first access and redirecting both reads and writes back to this object.
+   */
   get lightData()
   {
     this.#lightDataView ??= createCjsLightDataView(this, this.constructor.LightDataFields);
     return this.#lightDataView;
   }
 
+  /**
+   * Applies a value bag, first folding any nested `lightData` bag (the
+   * pre-flatten hydration shape) into the flattened fields so everything lands
+   * in one schema pass.
+   */
   SetValues(values = {}, options = {})
   {
     return setCjsLightDataOwnerValues(
@@ -80,6 +94,7 @@ export class Tr2Light extends CjsModel
     );
   }
 
+  /** Applies a whole LightData bag onto the flattened light fields. */
   @carbon.method
   @impl.implemented
   SetLightData(lightData)
@@ -87,6 +102,10 @@ export class Tr2Light extends CjsModel
     return this.SetValues({ lightData });
   }
 
+  /**
+   * Sets the parent brightness factor, which scales the authored brightness only
+   * when the light record is built for submission.
+   */
   @carbon.method
   @impl.implemented
   SetBrightnessMultiplier(multiplier)
@@ -94,6 +113,7 @@ export class Tr2Light extends CjsModel
     this.SetValues({ brightnessMultiplier: Number(multiplier) });
   }
 
+  /** Sets the light colour, returning whether the value actually changed. */
   @carbon.method
   @impl.implemented
   ChangeLightColor(color)
@@ -101,6 +121,10 @@ export class Tr2Light extends CjsModel
     return this.SetValues({ color }, { returnBoolean: true });
   }
 
+  /**
+   * Returns the live LightData view, which aliases this light's fields instead
+   * of copying them.
+   */
   @carbon.method
   @impl.implemented
   GetLightData()
@@ -108,6 +132,10 @@ export class Tr2Light extends CjsModel
     return this.lightData;
   }
 
+  /**
+   * Returns the parent brightness factor applied at submission time, not the
+   * authored brightness.
+   */
   @carbon.method
   @impl.implemented
   GetBrightnessMultiplier()
@@ -213,6 +241,10 @@ export class Tr2Light extends CjsModel
     return out;
   }
 
+  /**
+   * Reports the light ready; resolving the light profile is left to the
+   * resource/runtime adapter, so this always succeeds.
+   */
   @carbon.method
   @impl.adapted
   Initialize()

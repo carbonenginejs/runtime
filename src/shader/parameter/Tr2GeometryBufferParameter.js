@@ -42,6 +42,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
 
   cachedEffect = null;
 
+  /** The shader resource name this buffer binds to. */
   @carbon.method
   @impl.implemented
   GetParameterName()
@@ -61,6 +62,10 @@ export class Tr2GeometryBufferParameter extends CjsParameter
     return CjsParameter.hashFnv1String(this.name, startingHash);
   }
 
+  /**
+   * Nothing to do in this GPU-free package - a resource path is never resolved
+   * to a buffer here; returns true.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -68,6 +73,10 @@ export class Tr2GeometryBufferParameter extends CjsParameter
     return true;
   }
 
+  /**
+   * Consumes the `resource` dirty flag by re-initializing and re-resolving
+   * handles against the cached shader.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -80,6 +89,10 @@ export class Tr2GeometryBufferParameter extends CjsParameter
     return true;
   }
 
+  /**
+   * Caches the shader and records whether it reflects a resource of this name;
+   * no GPU buffer is bound.
+   */
   @carbon.method
   @impl.adapted
   RebuildEffectHandles(effectRes)
@@ -88,6 +101,10 @@ export class Tr2GeometryBufferParameter extends CjsParameter
     this.usedByCurrentEffect = !!this.name && !!CjsParameter.getEffectResource(effectRes, this.name);
   }
 
+  /**
+   * Always false - populating a resource set is device work this package does
+   * not do.
+   */
   @carbon.method
   @impl.adapted
   CopyToResourceSet()
@@ -95,6 +112,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
     return false;
   }
 
+  /** Always false - UAV binding is left to the engine adapter. */
   @carbon.method
   @impl.adapted
   ApplyUav()
@@ -102,6 +120,10 @@ export class Tr2GeometryBufferParameter extends CjsParameter
     return false;
   }
 
+  /**
+   * Whether a buffer object has actually been attached; an authored resourcePath
+   * alone does not make the parameter valid.
+   */
   @carbon.method
   @impl.implemented
   IsValid()
@@ -109,6 +131,10 @@ export class Tr2GeometryBufferParameter extends CjsParameter
     return !!this.gpuBuffer;
   }
 
+  /**
+   * Attaches a buffer object directly and clears the authored resource path, so
+   * the path can no longer override it.
+   */
   @carbon.method
   @impl.implemented
   SetGpuBuffer(buffer)
@@ -117,6 +143,10 @@ export class Tr2GeometryBufferParameter extends CjsParameter
     this.gpuBuffer = buffer;
   }
 
+  /**
+   * The attached buffer object, or null; held by reference and never created
+   * here.
+   */
   @carbon.method
   @impl.implemented
   GetGpuBuffer()

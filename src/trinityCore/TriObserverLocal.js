@@ -6,6 +6,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Holds an audio or placement observer at a fixed local position and facing
+ * inside an object, and republishes it in world space as the object moves.
+ */
 @type.define({ className: "TriObserverLocal", family: "trinityCore" })
 export class TriObserverLocal extends CjsModel
 {
@@ -28,6 +32,12 @@ export class TriObserverLocal extends CjsModel
   @type.boolean
   mute = false;
 
+  /**
+   * Transforms the local position and front vector by the given world transform
+   * and pushes the resulting placement to the observer; a degenerate front falls
+   * back to +Z with +Y up. Returns false when no observer supporting
+   * UpdatePlacement is bound.
+   */
   @carbon.method
   @impl.implemented
   Update(worldTransform)
@@ -55,6 +65,7 @@ export class TriObserverLocal extends CjsModel
     return true;
   }
 
+  /** The bound placement observer, or null. */
   @carbon.method
   @impl.implemented
   GetObserver()
@@ -62,6 +73,10 @@ export class TriObserverLocal extends CjsModel
     return this.observer;
   }
 
+  /**
+   * Binds the placement observer that Update drives; the mute state is not
+   * reapplied to the new observer.
+   */
   @carbon.method
   @impl.implemented
   SetObserver(observer)
@@ -69,6 +84,10 @@ export class TriObserverLocal extends CjsModel
     this.observer = observer ?? null;
   }
 
+  /**
+   * Copies the observer's object-local position; the caller's vector is not
+   * retained.
+   */
   @carbon.method
   @impl.implemented
   SetPosition(position)
@@ -76,6 +95,10 @@ export class TriObserverLocal extends CjsModel
     vec3.copy(this.position, position);
   }
 
+  /**
+   * Copies the observer's object-local facing direction; the caller's vector is
+   * not retained.
+   */
   @carbon.method
   @impl.implemented
   SetFront(front)
@@ -83,6 +106,7 @@ export class TriObserverLocal extends CjsModel
     vec3.copy(this.front, front);
   }
 
+  /** Whether the observer is currently muted. */
   @carbon.method
   @impl.implemented
   GetMute()
@@ -90,6 +114,10 @@ export class TriObserverLocal extends CjsModel
     return this.mute;
   }
 
+  /**
+   * Mutes or unmutes the bound observer, doing nothing and returning false when
+   * the state is already what was asked for.
+   */
   @carbon.method
   @impl.adapted
   SetMute(mute)
@@ -112,6 +140,7 @@ export class TriObserverLocal extends CjsModel
     return true;
   }
 
+  /** Nothing to recompute; the placement is rebuilt on the next Update. */
   @carbon.method
   @impl.implemented
   OnModified()
@@ -119,6 +148,10 @@ export class TriObserverLocal extends CjsModel
     return true;
   }
 
+  /**
+   * Transforms a direction by the transform's upper 3x3, ignoring translation,
+   * and writes it into out.
+   */
   static #TransformNormal(out, value, transform)
   {
     const x = value[0];

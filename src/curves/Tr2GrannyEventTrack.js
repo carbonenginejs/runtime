@@ -5,6 +5,10 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
 
+/**
+ * Granny track that replays a text track's timed entries as engine events,
+ * firing each entry once as the playhead crosses it.
+ */
 @type.define({
   className: "Tr2GrannyEventTrack",
   family: "curves"

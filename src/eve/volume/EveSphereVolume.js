@@ -6,6 +6,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Sphere of influence with a solid inner radius and a falloff out to the outer
+ * radius, weighting points and seeding random ones inside it.
+ */
 @type.define({
   className: "EveSphereVolume",
   family: "eve/volume"
@@ -37,6 +41,7 @@ export class EveSphereVolume extends CjsModel
 
   #nextCallbackId = 1;
 
+  /** Returns a fresh sphere centred on the volume position with its outer radius. */
   @carbon.method
   @impl.adapted
   GetBoundingSphere()
@@ -47,6 +52,11 @@ export class EveSphereVolume extends CjsModel
     };
   }
 
+  /**
+   * Returns the falloff weight for a point given in the volume's own space: 1
+   * within the inner radius, 0 past the outer radius, and a ramp that is linear
+   * in squared distance between them.
+   */
   @carbon.method
   @impl.implemented
   GetIntensity(position)
@@ -66,6 +76,12 @@ export class EveSphereVolume extends CjsModel
     return interpolationDistance > 0 ? 1 - (distanceSq - innerRadiusSq) / interpolationDistance : 0;
   }
 
+  /**
+   * Appends random points expressed relative to the sphere centre rather than offset by its position, spread in direction uniformly over the sphere and in distance between the inner and outer radius as shaped by fallOffFactor.
+   *
+   * @param points Caller-owned array the new points are pushed onto.
+   * @param excludeInnerVolume Keeps every point outside the inner radius.
+   */
   @carbon.method
   @impl.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
@@ -106,6 +122,10 @@ export class EveSphereVolume extends CjsModel
     }
   }
 
+  /**
+   * Registers a callback fired whenever the volume changes, returning the id
+   * needed to unregister it again.
+   */
   @carbon.method
   @impl.adapted
   RegisterForChanges(callback)
@@ -115,6 +135,7 @@ export class EveSphereVolume extends CjsModel
     return id;
   }
 
+  /** Drops a change callback by the id RegisterForChanges returned. */
   @carbon.method
   @impl.implemented
   UnregisterForChanges(callbackId)
@@ -122,6 +143,10 @@ export class EveSphereVolume extends CjsModel
     this.#callbacks.delete(callbackId);
   }
 
+  /**
+   * Clamps the radii so the outer radius stays non-negative and never smaller
+   * than the inner one, then notifies every registered listener.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -146,6 +171,7 @@ export class EveSphereVolume extends CjsModel
     return true;
   }
 
+  /** No debug drawing in this port. */
   @carbon.method
   @impl.noop
   RenderDebugInfo()

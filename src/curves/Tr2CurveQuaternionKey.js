@@ -6,6 +6,10 @@ import { type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2CurveInterpolation } from "./enums.js";
 
 
+/**
+ * One key of a Tr2CurveQuaternion: a time in seconds, the quaternion value at
+ * that time, and the interpolation used to reach the next key.
+ */
 @type.define({
   className: "Tr2CurveQuaternionKey",
   family: "curves"

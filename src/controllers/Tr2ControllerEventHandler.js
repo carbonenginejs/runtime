@@ -5,6 +5,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED } from "./contracts.js";
 
 
+/**
+ * Binds a named controller event to a list of actions that are run as a single
+ * one-shot pulse when the event fires.
+ */
 @type.define({
   className: "Tr2ControllerEventHandler",
   family: "controllers"
@@ -106,6 +110,10 @@ export class Tr2ControllerEventHandler extends CjsModel
     }
   }
 
+  /**
+   * Narrows a stored entry to a controller action, so a malformed list entry is
+   * ignored rather than invoked.
+   */
   static #asControllerAction(value)
   {
     return value && typeof value === "object" ? value : null;

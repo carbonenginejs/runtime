@@ -4,6 +4,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourFloatBase.js";
 
 
+/**
+ * Float behaviour that adds an authored constant, optionally shaped across the
+ * timeline by a scale curve.
+ */
 @type.define({
   className: "EveVirtualCameraBehaviourFloatAdd",
   family: "eve/virtualCamera/behaviour"
@@ -18,12 +22,17 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
   @type.float32
   value = 0;
 
+  /**
+   * Names the behaviour "Add"; no scale curve is created, so the constant is
+   * unshaped until one is authored.
+   */
   constructor()
   {
     super();
     this.name = "Add";
   }
 
+  /** Sets the behaviour name and renames the owned scale curve to match. */
   @carbon.method
   @impl.implemented
   SetName(name)
@@ -32,6 +41,10 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
     this.scaleCurve?.SetName?.(`${this.name} - Scale Curve`);
   }
 
+  /**
+   * Returns the authored value, scaled by the scale curve at normalized timeline
+   * time when one is set, and returned as-is when it is not.
+   */
   @carbon.method
   @impl.adapted
   Update(camera, _current, _deltaTime, localElapsedTime)

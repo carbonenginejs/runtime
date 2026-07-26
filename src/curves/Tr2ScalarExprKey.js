@@ -7,6 +7,11 @@ import { CjsControllerExpressionProgram } from "../controllers/CjsControllerExpr
 import { Tr2CurveInterpolation } from "./enums.js";
 
 
+/**
+ * One key of a Tr2ScalarExprKeyCurve whose time, value and tangents can each be
+ * produced by an expression over the key's inputs, its random constant and the
+ * previous key.
+ */
 @type.define({
   className: "Tr2ScalarExprKey",
   family: "curves"
@@ -148,6 +153,11 @@ export class Tr2ScalarExprKey extends CjsModel
     this.left = this.Evaluate(this.leftTangentExpression, this.left, variables);
     this.right = this.Evaluate(this.rightTangentExpression, this.right, variables);
   }
+  /**
+   * Compiles and evaluates one key expression with the Perlin helper functions
+   * available, returning the supplied fallback when the expression is empty,
+   * fails to compile, or yields NaN.
+   */
   Evaluate(expression, fallback, variables = this.#expressionVariables())
   {
     if (!expression)
@@ -170,6 +180,11 @@ export class Tr2ScalarExprKey extends CjsModel
     }));
     return Number.isNaN(value) ? fallback : value;
   }
+  /**
+   * Builds the variable map key expressions read: the key's own value, time,
+   * tangents, input1..input4, random constant, and the previous key's time and
+   * value.
+   */
   #expressionVariables()
   {
     return {

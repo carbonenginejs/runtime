@@ -17,6 +17,11 @@ export const INSTANCE_FLAG_RENDER_IN_REFLECTION = 0x80000000;
 const POSITION_SCRATCH = vec3.create();
 
 
+/**
+ * One shader area of an instanced mesh: the effect, its batch type, the area
+ * range within the mesh, its cached effect hash and the mesh-group handle it is
+ * registered under.
+ */
 @type.define({ className: "EveChildInstancedMeshArea", family: "eve/child" })
 export class EveChildInstancedMeshArea extends CjsModel
 {
@@ -51,6 +56,10 @@ export class EveChildInstancedMeshArea extends CjsModel
 }
 
 
+/**
+ * A single placement of an instanced mesh: its transform and the index of its
+ * cull sphere in the owning mesh's instance sphere list.
+ */
 @type.define({ className: "EveChildInstancedMeshInstance", family: "eve/child" })
 export class EveChildInstancedMeshInstance extends CjsModel
 {
@@ -66,6 +75,11 @@ export class EveChildInstancedMeshInstance extends CjsModel
 }
 
 
+/**
+ * One geometry-and-areas record inside an EveChildInstancedMeshes child, holding
+ * its instance placements, per-instance world cull spheres, instance flags and
+ * manager registration handles.
+ */
 @type.define({ className: "EveChildInstancedMesh", family: "eve/child" })
 export class EveChildInstancedMesh extends CjsModel
 {
@@ -124,11 +138,20 @@ export class EveChildInstancedMesh extends CjsModel
 
   #geometry = null;
 
+  /**
+   * Returns the geometry resource backing this mesh, or null while none has been
+   * assigned; the mesh does not register with the manager until it is present
+   * and good.
+   */
   GetGeometryResource()
   {
     return this.#geometry;
   }
 
+  /**
+   * Assigns the geometry resource this mesh renders from; a nullish value clears
+   * it. Runtime state, deliberately not persisted.
+   */
   SetGeometryResource(resource)
   {
     this.#geometry = resource ?? null;
@@ -136,6 +159,11 @@ export class EveChildInstancedMesh extends CjsModel
 }
 
 
+/**
+ * Space-object child that hands batches of instanced meshes to the engine's
+ * instanced mesh manager, owning their registration handles, instance flags and
+ * world cull bounds.
+ */
 @type.define({ className: "EveChildInstancedMeshes", family: "eve/child" })
 export class EveChildInstancedMeshes extends EveEntity
 {
@@ -165,6 +193,10 @@ export class EveChildInstancedMeshes extends EveEntity
    * per-frame CollectMeshes retries until geometry streams in. */
   #allRegistered = false;
 
+  /**
+   * The authored name, persisted with the child and used to identify it in the
+   * parent graph.
+   */
   @carbon.method
   @impl.implemented
   GetName()
@@ -172,6 +204,7 @@ export class EveChildInstancedMeshes extends EveEntity
     return this.name;
   }
 
+  /** Sets the authored child name, coercing nullish to the empty string. */
   @carbon.method
   @impl.implemented
   SetName(name)
@@ -179,12 +212,22 @@ export class EveChildInstancedMeshes extends EveEntity
     this.name = String(name ?? "");
   }
 
+  /**
+   * Carbon EveChildInstancedMeshes::UpdateVisibility (cpp:183-186) only caches
+   * the frame's camera frustum for later use; the JS port has no consumer for
+   * that cache, so the frame hook does nothing.
+   */
   @carbon.method
   @impl.adapted
   UpdateVisibility()
   {
   }
 
+  /**
+   * Carbon EveChildInstancedMeshes::GetRenderables (cpp:188-190) collects
+   * nothing: the instanced mesh manager emits the draws, so the accumulator
+   * comes back unchanged.
+   */
   @carbon.method
   @impl.implemented
   GetRenderables(renderables = [])
@@ -192,6 +235,11 @@ export class EveChildInstancedMeshes extends EveEntity
     return renderables;
   }
 
+  /**
+   * Carbon EveChildInstancedMeshes::GetBoundingSphere (cpp:192-195) always
+   * returns false - the child publishes no bounds of its own, because each mesh
+   * registers its own sphere group with the manager.
+   */
   @carbon.method
   @impl.implemented
   GetBoundingSphere()
@@ -199,6 +247,11 @@ export class EveChildInstancedMeshes extends EveEntity
     return false;
   }
 
+  /**
+   * Stamps the child's world transform from the parent's localToWorldTransform
+   * (Carbon cpp:197-200); every per-instance cull sphere the async pass builds
+   * is derived from it.
+   */
   @carbon.method
   @impl.implemented
   UpdateSyncronous(_updateContext, params)
@@ -318,6 +371,11 @@ export class EveChildInstancedMeshes extends EveEntity
     this.hasUpdated = true;
   }
 
+  /**
+   * Returns the child's world transform as stamped by the last sync update.
+   * @param {Float32Array} [out] - caller-owned; when given, receives a copy and is returned instead of the live matrix
+   * @returns {Float32Array} out when supplied, otherwise the live internal matrix
+   */
   @carbon.method
   @impl.implemented
   GetLocalToWorldTransform(out = null)
@@ -329,24 +387,41 @@ export class EveChildInstancedMeshes extends EveEntity
     return this.worldTransform;
   }
 
+  /**
+   * Carbon EveChildInstancedMeshes::Setup (cpp:335-337) is an intentional no-op:
+   * placement comes from the authored per-instance transforms, not from an SRT
+   * setup.
+   */
   @carbon.method
   @impl.implemented
   Setup()
   {
   }
 
+  /**
+   * Carbon EveChildInstancedMeshes::ChangeLOD (cpp:339-341) is an intentional
+   * no-op; the child keeps no LOD state.
+   */
   @carbon.method
   @impl.implemented
   ChangeLOD()
   {
   }
 
+  /**
+   * Accepts and discards the placement origin; this child has no Carbon origin
+   * field and stores none.
+   */
   @carbon.method
   @impl.adapted
   SetOrigin()
   {
   }
 
+  /**
+   * Returns false, so owners treat this child as subject to normal activation
+   * gating.
+   */
   @carbon.method
   @impl.implemented
   IsAlwaysOn()
@@ -381,6 +456,12 @@ export class EveChildInstancedMeshes extends EveEntity
     this.#revision++;
   }
 
+  /**
+   * Appends one instanced mesh: normalizes the area ducks, copies the instance transforms, stamps CASTS_SHADOW plus one flag bit per area batch type (Carbon cpp:418-425), and clears the registration latch so the next AddMeshesToManager pass picks it up.
+   * @param {Iterable} areas - area ducks ({effect, batchType, areaIndex, areaCount})
+   * @param {Iterable<Float32Array>} instanceTransforms - 16-value matrices; copied, not retained
+   * @returns {Boolean} false when no areas or no instances were supplied (nothing is added)
+   */
   @carbon.method
   @impl.adapted
   AddMesh(
@@ -440,6 +521,11 @@ export class EveChildInstancedMeshes extends EveEntity
     return true;
   }
 
+  /**
+   * Drops every mesh and clears the hasUpdated stamp so nothing re-registers
+   * until another update pass runs; registration handles are NOT released here,
+   * so call UnregisterFromMeshManager first when a manager still holds them.
+   */
   @carbon.method
   @impl.adapted
   Clear()
@@ -449,6 +535,11 @@ export class EveChildInstancedMeshes extends EveEntity
     this.#revision++;
   }
 
+  /**
+   * Decodes a picking area id back to the SOF locator it came from.
+   * @param {Number} areaId - mesh ordinal in the high 16 bits, locator index in the low 16 (the pairing AddMeshesToManager registers)
+   * @returns {Array|null} [sofHullName, sofLocatorSetName, locatorIndex], or null when the mesh is unknown or carries no SOF hull name
+   */
   @carbon.method
   @impl.implemented
   GetSofSourceLocator(areaId)
@@ -462,6 +553,7 @@ export class EveChildInstancedMeshes extends EveEntity
     return [mesh.sofHullName, mesh.sofLocatorSetName, value & 0xffff];
   }
 
+  /** Number of meshes currently held. */
   @carbon.method
   @impl.implemented
   GetMeshCount()
@@ -469,6 +561,11 @@ export class EveChildInstancedMeshes extends EveEntity
     return this.meshes.length;
   }
 
+  /**
+   * Reports one mesh's authoring state as a positional tuple (Carbon's multiple out-params).
+   * @param {Number} meshId - mesh index; RangeError when out of range
+   * @returns {Array} [geometryPath, geometryResource, meshIndex, castsShadow, reflectionMode, areaCount, instanceCount]
+   */
   @carbon.method
   @impl.adapted
   GetMeshInfo(meshId)
@@ -485,6 +582,12 @@ export class EveChildInstancedMeshes extends EveEntity
     ];
   }
 
+  /**
+   * Reports one area of one mesh as a positional tuple (Carbon's multiple out-params).
+   * @param {Number} meshId - mesh index; RangeError when out of range
+   * @param {Number} areaId - area index within that mesh; RangeError when out of range
+   * @returns {Array} [effect, batchType, areaIndex, areaCount] - the effect is the live reference
+   */
   @carbon.method
   @impl.adapted
   GetAreaInfo(meshId, areaId)
@@ -499,6 +602,10 @@ export class EveChildInstancedMeshes extends EveEntity
     return [area.effect, area.batchType, area.areaIndex, area.areaCount];
   }
 
+  /**
+   * Whether the given mesh is currently displayed; throws RangeError for an
+   * unknown mesh index.
+   */
   @carbon.method
   @impl.adapted
   GetMeshDisplay(meshId)
@@ -541,6 +648,10 @@ export class EveChildInstancedMeshes extends EveEntity
     }
   }
 
+  /**
+   * Assigns one mesh's geometry resource, bumping the revision only when it
+   * actually changes; registration waits for the next AddMeshesToManager pass.
+   */
   @carbon.method
   @impl.adapted
   SetGeometryResource(meshId, geometry)
@@ -553,6 +664,11 @@ export class EveChildInstancedMeshes extends EveEntity
     }
   }
 
+  /**
+   * Returns a detached snapshot of one mesh - instance transforms cloned, areas
+   * shallow-copied, geometry resource shared by reference - so callers can read
+   * it without touching live registration state.
+   */
   @carbon.method
   @impl.adapted
   GetMeshData(meshId)
@@ -561,6 +677,11 @@ export class EveChildInstancedMeshes extends EveEntity
     return EveChildInstancedMeshes.#CloneMesh(mesh);
   }
 
+  /**
+   * Monotonic counter bumped by every structural change (AddMesh, Clear,
+   * SetMeshDisplay, SetGeometryResource, SetShaderOption), for consumers caching
+   * derived data.
+   */
   @carbon.method
   @impl.implemented
   GetRevision()
@@ -771,6 +892,10 @@ export class EveChildInstancedMeshes extends EveEntity
     return null;
   }
 
+  /**
+   * Resolves a mesh index against the list, throwing RangeError rather than
+   * returning undefined so every public accessor fails loudly.
+   */
   static #GetMesh(meshes, meshId)
   {
     const index = Number(meshId) >>> 0;
@@ -781,6 +906,10 @@ export class EveChildInstancedMeshes extends EveEntity
     return meshes[index];
   }
 
+  /**
+   * Builds an area record from a plain duck, defaulting areaCount to 1 and
+   * caching the effect hash the manager registers the mesh group under.
+   */
   static #CreateArea(value)
   {
     const source = value ?? {};
@@ -793,6 +922,10 @@ export class EveChildInstancedMeshes extends EveEntity
     return area;
   }
 
+  /**
+   * Deep-copies a mesh into a plain object for GetMeshData: instance transforms
+   * cloned, areas spread-copied, the geometry resource shared by reference.
+   */
   static #CloneMesh(mesh)
   {
     return {
@@ -812,6 +945,11 @@ export class EveChildInstancedMeshes extends EveEntity
     };
   }
 
+  /**
+   * Reads an effect's hash through GetHashValue() or a .hash field, yielding 0
+   * when neither is available so a hashless effect still registers
+   * deterministically.
+   */
   static #GetEffectHash(effect)
   {
     const hash = effect?.GetHashValue?.() ?? effect?.hash ?? 0;

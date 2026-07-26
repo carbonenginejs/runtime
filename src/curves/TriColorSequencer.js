@@ -6,6 +6,11 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 import { TriOperator } from "@carbonenginejs/runtime-utils/graphics";
 
 
+/**
+ * Color function combining its child color functions with Carbon's multiply or
+ * add operator; both paths start from opaque white, so an additive sequencer is
+ * offset by white.
+ */
 @type.define({ className: "TriColorSequencer", family: "curves" })
 export class TriColorSequencer extends CjsModel
 {

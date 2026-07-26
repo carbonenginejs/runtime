@@ -29,6 +29,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
 
   #materials = [];
 
+  /** The shader resource name the animated texture binds to. */
   @carbon.method
   @impl.implemented
   GetParameterName()
@@ -44,6 +45,10 @@ export class Tr2TextureAnimationParameter extends CjsParameter
     return CjsParameter.hashFnv1Identity(this.animation, startingHash);
   }
 
+  /**
+   * Marks every attached material's resource sets and constant buffers dirty
+   * after the animation reference changed.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -55,6 +60,11 @@ export class Tr2TextureAnimationParameter extends CjsParameter
     return true;
   }
 
+  /**
+   * Caches the reflected resource type for this name when the shader exposes
+   * one, and leaves the previous type in place otherwise; no GPU binding is
+   * created.
+   */
   @carbon.method
   @impl.adapted
   RebuildEffectHandles(effectRes)
@@ -66,6 +76,10 @@ export class Tr2TextureAnimationParameter extends CjsParameter
     }
   }
 
+  /**
+   * Always false - populating a resource set is device work this package does
+   * not do.
+   */
   @carbon.method
   @impl.adapted
   CopyToResourceSet()
@@ -73,6 +87,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
     return false;
   }
 
+  /** Always false - UAV binding is left to the engine adapter. */
   @carbon.method
   @impl.implemented
   ApplyUav()
@@ -80,6 +95,10 @@ export class Tr2TextureAnimationParameter extends CjsParameter
     return false;
   }
 
+  /**
+   * Registers a material to be dirtied when the animation changes; duplicates
+   * are ignored.
+   */
   @carbon.method
   @impl.implemented
   OnAddedToMaterial(material)
@@ -90,6 +109,10 @@ export class Tr2TextureAnimationParameter extends CjsParameter
     }
   }
 
+  /**
+   * Drops a material from the tracked list, so later frame advances no longer
+   * mark it dirty.
+   */
   @carbon.method
   @impl.implemented
   OnRemovedFromMaterial(material)
@@ -101,6 +124,10 @@ export class Tr2TextureAnimationParameter extends CjsParameter
     }
   }
 
+  /**
+   * The animation's texture for this parameter's channel, or null when no
+   * animation is attached.
+   */
   @carbon.method
   @impl.adapted
   GetTexture()

@@ -7,6 +7,10 @@ import { Tr2CurveInterpolation, Tr2CurveTangentType } from "./enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
 
+/**
+ * Two-component vector curve composed of independent scalar curves for x and y;
+ * its length is the longer of the two.
+ */
 @type.define({
   className: "Tr2CurveVector2",
   family: "curves"

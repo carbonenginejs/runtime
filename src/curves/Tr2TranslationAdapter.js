@@ -6,6 +6,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Vector function wrapping a child vector curve behind its own time remapping
+ * and rotating the sampled offset by a fixed rotation, falling back to a fixed
+ * authored vector when no child curve is attached.
+ */
 @type.define({
   className: "Tr2TranslationAdapter",
   family: "curves"

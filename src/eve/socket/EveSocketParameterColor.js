@@ -22,6 +22,10 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
   /** m_defaults - one default captured per bound external parameter. */
   #defaults = [];
 
+  /**
+   * Discards the captured defaults along with the bindings, so nothing can be
+   * restored afterwards.
+   */
   @carbon.method
   @impl.implemented
   ClearBindings()
@@ -43,6 +47,11 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
     this.ClearBindings();
   }
 
+  /**
+   * Captures a copy of the external parameter's current value as a default,
+   * keeping it at zero unless the source is a four-component value; always
+   * succeeds, so a bind is never refused on its account.
+   */
   ExtractDefault(externalParameter)
   {
     const value = vec4.create();
@@ -62,6 +71,10 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
     return true;
   }
 
+  /**
+   * Restores the first captured default into the existing value vector, or
+   * zeroes it when nothing was captured.
+   */
   @carbon.method
   @impl.implemented
   SetValueToDefault()

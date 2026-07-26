@@ -4,6 +4,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Base of every render-job step: an enable flag, a name, and the
+ * begin/execute/end contract the owning job drives.
+ */
 @type.define({ className: "TriRenderStep", family: "renderJob" })
 export class TriRenderStep extends CjsModel
 {
@@ -27,6 +31,10 @@ export class TriRenderStep extends CjsModel
   @type.string
   name = "";
 
+  /**
+   * Reports whether the owning job should run this step; disabled steps are
+   * skipped without advancing any state.
+   */
   @carbon.method
   @impl.implemented
   IsEnabled()
@@ -34,12 +42,20 @@ export class TriRenderStep extends CjsModel
     return this.enabled;
   }
 
+  /**
+   * Hook the owning job calls before Execute; the base step does nothing, and
+   * subclasses use it to set up state that EndExecute tears down.
+   */
   @carbon.method
   @impl.adapted
   BeginExecute()
   {
   }
 
+  /**
+   * Hook the owning job calls after Execute, including when Execute threw; the
+   * base step does nothing.
+   */
   @carbon.method
   @impl.adapted
   EndExecute()

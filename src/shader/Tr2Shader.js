@@ -22,6 +22,11 @@ export class Tr2Shader extends CjsModel
   @type.boolean
   hasVertexBufferAccessInRtShadow = false;
 
+  /**
+   * Index of the named technique; 0 for the any-technique aliases
+   * (`ANY_TECHNIQUE`, `Any`, empty string) and -1 when the shader has no
+   * techniques or the name is unknown.
+   */
   GetTechniqueIndex(name = "Main")
   {
     const techniques = this.effect?.techniques ?? [];
@@ -36,46 +41,74 @@ export class Tr2Shader extends CjsModel
     return techniques.findIndex(technique => technique?.name === name);
   }
 
+  /** Number of passes in a technique; 0 for an unknown index. */
   GetPassCount(techniqueIndex = 0)
   {
     return this.effect?.techniques?.[techniqueIndex]?.passes?.length ?? 0;
   }
 
+  /**
+   * The reflected constant of this name from any stage of any pass, or null; the
+   * description is metadata, not a bound GPU slot.
+   */
   GetConstant(name)
   {
     return Tr2Shader.findStageValue(this.effect, name, "constants");
   }
 
+  /**
+   * The reflected resource of this name, searching stage resources before UAVs;
+   * null when neither has it.
+   */
   GetResource(name)
   {
     return Tr2Shader.findStageValue(this.effect, name, "resources") ?? Tr2Shader.findStageValue(this.effect, name, "uavs");
   }
 
+  /**
+   * The annotation set authored for a parameter name, or null; the shape depends
+   * on the reflection source.
+   */
   GetParameterAnnotations(parameterName)
   {
     return Tr2Shader.findAnnotationSet(this.effect?.annotations, parameterName);
   }
 
+  /** The packed draw-sort key; 0 until ProcessEffect has run. */
   GetSortValue()
   {
     return this.sortValue;
   }
 
+  /**
+   * The reflected effect description this shader wraps, by reference - not a
+   * copy.
+   */
   GetEffectDescription()
   {
     return this.effect;
   }
 
+  /** The same object GetEffectDescription returns; Carbon exposes both accessors. */
   GetEffect()
   {
     return this.effect;
   }
 
+  /**
+   * The technique's bitmask of shader stages; 0 when the technique index is
+   * unknown.
+   */
   GetShaderTypeMask(techniqueIndex = 0)
   {
     return Number(this.effect?.techniques?.[techniqueIndex]?.shaderTypeMask ?? 0);
   }
 
+  /**
+   * Packs a draw-sort key into sortValue from the first technique's pass count
+   * and its first pass's pixel shader, vertex shader and render-state ids (2 +
+   * 10 + 10 + 10 bits); leaves it 0 when the shader has no passes.
+   */
   ProcessEffect()
   {
     this.sortValue = 0;
@@ -92,11 +125,19 @@ export class Tr2Shader extends CjsModel
     this.sortValue = (passCount << 30) | (pixelShader << 20) | (vertexShader << 10) | renderStates;
   }
 
+  /**
+   * Whether the effect description flags vertex-buffer access during ray-traced
+   * shadow rendering.
+   */
   HasVertexBufferAccessInRtShadow()
   {
     return this.hasVertexBufferAccessInRtShadow;
   }
 
+  /**
+   * First entry named `name` under the given stage key across every stage of the
+   * effect, or null.
+   */
   static findStageValue(effect, name, key)
   {
     for (const stage of Tr2Shader.iterateStages(effect))
@@ -111,6 +152,10 @@ export class Tr2Shader extends CjsModel
     return null;
   }
 
+  /**
+   * Flattens an effect description into every stage input it contains - each
+   * pass's stage inputs plus each library's global and local inputs.
+   */
   static iterateStages(effect)
   {
     const stages = [];
@@ -135,6 +180,10 @@ export class Tr2Shader extends CjsModel
     return stages;
   }
 
+  /**
+   * Finds a named entry in a reflection collection stored as an array
+   * (optionally of key/value pairs), a Map, or a plain object.
+   */
   static findNamedCollectionValue(values, name)
   {
     if (!values)
@@ -166,6 +215,10 @@ export class Tr2Shader extends CjsModel
     return null;
   }
 
+  /**
+   * Resolves a parameter's annotation set out of a Map keyed by name, an array
+   * of entries, or a plain object keyed by name.
+   */
   static findAnnotationSet(annotations, parameterName)
   {
     if (!annotations)

@@ -6,6 +6,10 @@ import { Tr2RenderContext } from "../trinityCore/Tr2RenderContext.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
+/**
+ * An ordered list of render steps plus the cursor and status that let the
+ * sequence pause mid-list and resume on a later frame.
+ */
 @type.define({ className: "TriRenderJob", family: "renderJob" })
 export class TriRenderJob extends CjsModel
 {
@@ -46,6 +50,14 @@ export class TriRenderJob extends CjsModel
 
   #currentStep = 0;
 
+  /**
+   * Carbon TriRenderJob::Run (cpp:18-125): runs the steps in order against a snapshot of the list, resuming at the persisted cursor when the previous run left the job RJ_IN_PROGRESS, and stopping at the first step that does not return RS_OK or that disables the job.
+   * Each step is bracketed by begin/end so the end hook runs even when execution throws. When stackGuard is set, the executor's render-target and depth-stencil depths are compared against the depths recorded on entry: shortfalls are reported as diagnostics and surplus pushes are popped back to the baseline.
+   * @param {number} realTime wall-clock time passed through to each step
+   * @param {number} simTime simulation time passed through to each step
+   * @param {object} [executor] performs the actual work described by the steps; defaults to the shared Tr2RenderContext. It may take over step dispatch by implementing BeginStep/ExecuteStep/EndStep.
+   * @returns {number} the resulting TriRenderJob.Status
+   */
   @carbon.method
   @impl.adapted
   Run(realTime, simTime, executor = null)
@@ -154,35 +166,63 @@ export class TriRenderJob extends CjsModel
     return this.status;
   }
 
+  /**
+   * Treats a step as enabled through its IsEnabled method, or when it has none,
+   * through an enabled field that is not false.
+   */
   static #isStepEnabled(step)
   {
     return step.IsEnabled?.() ?? step.enabled !== false;
   }
 
+  /**
+   * Gives the executor first refusal on step setup via BeginStep, and otherwise
+   * calls the step's own BeginExecute.
+   */
   static #beginStep(executor, step, realTime, simTime, job)
   {
     if (executor?.BeginStep) return executor.BeginStep(step, realTime, simTime, job);
     return step.BeginExecute?.(executor);
   }
 
+  /**
+   * Gives the executor first refusal on step execution via ExecuteStep, and
+   * otherwise calls the step's own Execute; the returned step result decides
+   * whether the job continues.
+   */
   static #executeStep(executor, step, realTime, simTime, job)
   {
     if (executor?.ExecuteStep) return executor.ExecuteStep(step, realTime, simTime, job);
     return step.Execute?.(realTime, simTime, executor);
   }
 
+  /**
+   * Gives the executor first refusal on step teardown via EndStep, and otherwise
+   * calls the step's own EndExecute; the caller runs this even when execution
+   * threw.
+   */
   static #endStep(executor, step, realTime, simTime, job)
   {
     if (executor?.EndStep) return executor.EndStep(step, realTime, simTime, job);
     return step.EndExecute?.(executor);
   }
 
+  /**
+   * Reads a stack depth off the executor, mapping a missing, negative or
+   * non-finite value to 0 so executors that do not track stacks never trip the
+   * guard.
+   */
   static #stackSize(executor, method)
   {
     const value = executor?.[method]?.();
     return Number.isFinite(value) && value >= 0 ? Math.trunc(value) : 0;
   }
 
+  /**
+   * Reports a stack-underflow diagnostic when the executor's render-target or
+   * depth-stencil depth has dropped below the depth recorded at job entry, the
+   * condition Carbon asserts on (TriRenderJob.cpp:63-64).
+   */
   static #diagnoseUnderflow(executor, preRT, preDS, job, step)
   {
     const rt = TriRenderJob.#stackSize(executor, "GetStackSizeRT");
@@ -191,6 +231,11 @@ export class TriRenderJob extends CjsModel
     if (ds < preDS) TriRenderJob.#diagnose(executor, "stack-underflow", { stack: "depth-stencil", job, step, expected: preDS, actual: ds });
   }
 
+  /**
+   * Pops the executor's stack back down to the depth recorded at job entry,
+   * mirroring Carbon's stack repair loop (TriRenderJob.cpp:85-92), and stops
+   * early if a pop fails to reduce the depth.
+   */
   static #unwind(executor, sizeMethod, popMethod, baseline, job, stack)
   {
     let size = TriRenderJob.#stackSize(executor, sizeMethod);
@@ -205,6 +250,10 @@ export class TriRenderJob extends CjsModel
     }
   }
 
+  /**
+   * Forwards a typed diagnostic record to the executor when it exposes
+   * AddDiagnostic; Carbon asserts or logs at these same points.
+   */
   static #diagnose(executor, type, detail)
   {
     executor?.AddDiagnostic?.({ type, ...detail });

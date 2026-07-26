@@ -7,6 +7,10 @@ import { Tr2CurveInterpolation, Tr2CurveTangentType } from "./enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
 
+/**
+ * Quaternion curve built from three scalar curves supplying yaw, pitch and roll
+ * in radians.
+ */
 @type.define({
   className: "Tr2CurveEulerRotation",
   family: "curves"

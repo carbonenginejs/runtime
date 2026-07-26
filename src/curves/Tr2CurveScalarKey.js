@@ -5,6 +5,11 @@ import { type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "./enums.js";
 
 
+/**
+ * One key of a Tr2CurveScalar: a time in seconds, a value, its left and right
+ * tangents in value units per unit time, the interpolation used to reach the
+ * next key, and the tangent-type rule that maintains the tangents.
+ */
 @type.define({
   className: "Tr2CurveScalarKey",
   family: "curves"

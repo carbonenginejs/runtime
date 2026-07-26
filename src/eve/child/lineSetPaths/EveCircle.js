@@ -11,6 +11,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform } from "../EveChildTransform.js";
 
 
+/**
+ * Line-set path shaped as a ring: samples a circle of circleRadius, optionally
+ * distorted per quadrant, and emits the resulting chain as line segments.
+ */
 @type.define({
   className: "EveCircle",
   family: "eve/child/lineSetPaths"
@@ -111,6 +115,7 @@ export class EveCircle extends EveChildTransform
 
   #regeneratePoints = true;
 
+  /** Marks the point chain dirty so the first update regenerates it. */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -119,6 +124,10 @@ export class EveCircle extends EveChildTransform
     return true;
   }
 
+  /**
+   * Clamps completeness to 0..2 and numSegments to 1..128, wraps startPoint into
+   * one turn, then marks the point chain dirty.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -130,6 +139,11 @@ export class EveCircle extends EveChildTransform
     return true;
   }
 
+  /**
+   * Advances the scroll animation value by movementSpeed times the frame delta
+   * (wrapped into 0..1) and, when the points are dirty, regenerates them and the
+   * bounding sphere; returns whether a regeneration ran.
+   */
   @carbon.method
   @impl.adapted
   Update(updateContext, _params = null)
@@ -147,6 +161,10 @@ export class EveCircle extends EveChildTransform
     return true;
   }
 
+  /**
+   * Samples the ring into the point chain across the arc selected by completeness and startPoint, rotated by the animation value, with circleDistort applied as a per-quadrant Y offset; also refreshes the world transform. Does nothing when fewer than two segments are requested.
+   * @param {Float32Array} [parentTransform] - a non-identity matrix is used and cached, so later identity calls reuse the last real parent transform
+   */
   @carbon.method
   @impl.adapted
   GeneratePoints(parentTransform = mat4.create())
@@ -186,6 +204,7 @@ export class EveCircle extends EveChildTransform
     this.#regeneratePoints = false;
   }
 
+  /** Number of generated points; zero until GeneratePoints has run. */
   @carbon.method
   @impl.adapted
   GetPointCount()
@@ -193,6 +212,10 @@ export class EveCircle extends EveChildTransform
     return this.#points.length;
   }
 
+  /**
+   * Sets the local bounding sphere to the origin with radius circleRadius + lineWidth + meshSize.
+   * @param {Number} [meshSize] - a non-zero value is remembered and reused on later zero-argument calls
+   */
   @carbon.method
   @impl.adapted
   CalculateBoundingSphere(meshSize = 0, _reCalculateChildren = true)
@@ -208,6 +231,11 @@ export class EveCircle extends EveChildTransform
     vec4.set(this.#boundingSphere, 0, 0, 0, this.circleRadius + this.lineWidth + meshSize);
   }
 
+  /**
+   * Returns the cached bounding sphere moved through the path's local transform.
+   * @param {Float32Array} [out] - caller-owned; allocated when omitted
+   * @returns {Float32Array} out
+   */
   @carbon.method
   @impl.adapted
   GetBoundingSphere(out = vec4.create())
@@ -215,6 +243,11 @@ export class EveCircle extends EveChildTransform
     return sph3.transformMat4(out, this.#boundingSphere, this.localTransform);
   }
 
+  /**
+   * Tests the bounding sphere, placed by the local transform under the given
+   * system location, against the frustum and stores the result in isVisible; a
+   * non-displayed path returns early and keeps its previous flag.
+   */
   @carbon.method
   @impl.adapted
   UpdateVisibility(frustum, _parentLod = null, systemLocation = mat4.create())
@@ -230,6 +263,11 @@ export class EveCircle extends EveChildTransform
     this.isVisible = !!frustum?.IsSphereVisible?.(sphere);
   }
 
+  /**
+   * Emits one straight line per segment into the line set (regenerating dirty
+   * points first), optionally animated at scrollSpeed; the wrap-around segment
+   * closing the ring is skipped unless completeness is exactly 1.
+   */
   @carbon.method
   @impl.adapted
   AddLinesToSet(lineSet, color, animColor, scrollSpeed = 0)
@@ -261,6 +299,10 @@ export class EveCircle extends EveChildTransform
     }
   }
 
+  /**
+   * Rounded segment count, scaled down by how far completeness is from a full
+   * sweep when scaleSegmentsByCompleteness is set.
+   */
   #getSegmentCount()
   {
     const completenessScale = 1 - Math.abs(this.completeness - 1);
@@ -283,12 +325,20 @@ export class EveCircle extends EveChildTransform
 
   static #identityMatrix = mat4.create();
 
+  /**
+   * Frame delta read from the update-context duck (GetDeltaT() or .deltaT),
+   * falling back to 0 when neither is present or the value is not finite.
+   */
   static #getDeltaT(context)
   {
     const value = context?.GetDeltaT?.() ?? context?.deltaT ?? 0;
     return Number.isFinite(Number(value)) ? Number(value) : 0;
   }
 
+  /**
+   * Returns a newly allocated vector holding the point moved through the given
+   * transform.
+   */
   static #transformPoint(point, transform)
   {
     return vec3.transformMat4(vec3.create(), point, transform);

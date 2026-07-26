@@ -8,6 +8,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Authored parameters of a GPU particle emitter: emission cone and rate,
+ * particle lifetime and speed range, size and colour ramp, and the drag,
+ * turbulence and gravity terms the simulation applies.
+ */
 @type.define({ className: "Tr2GpuSharedEmitter", family: "particle" })
 export class Tr2GpuSharedEmitter extends CjsModel
 {
@@ -148,6 +153,10 @@ export class Tr2GpuSharedEmitter extends CjsModel
 
   #revision = 0;
 
+  /**
+   * Bumps the revision so a renderer holding this emitter rebuilds from it;
+   * there are no GPU resources to create here.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -156,6 +165,10 @@ export class Tr2GpuSharedEmitter extends CjsModel
     return true;
   }
 
+  /**
+   * Bumps the revision so a renderer holding this emitter picks up the changed
+   * parameters.
+   */
   @carbon.method
   @impl.adapted
   OnModified()
@@ -164,6 +177,10 @@ export class Tr2GpuSharedEmitter extends CjsModel
     return true;
   }
 
+  /**
+   * Turns emission on or off; disabling also clears the spawn-time cursor so
+   * re-enabling restarts timing instead of catching up on the idle interval.
+   */
   @carbon.method
   @impl.adapted
   Enable(value)
@@ -172,6 +189,7 @@ export class Tr2GpuSharedEmitter extends CjsModel
     if (!this.#enabled) this.#previousTime = -1;
   }
 
+  /** Reports whether this emitter is currently emitting. */
   @carbon.method
   @impl.adapted
   IsEnabled()
@@ -179,6 +197,7 @@ export class Tr2GpuSharedEmitter extends CjsModel
     return this.#enabled;
   }
 
+  /** Sets the emission cone axis in place, treating a missing value as zero. */
   @carbon.method
   @impl.adapted
   SetDirection(value)
@@ -186,6 +205,7 @@ export class Tr2GpuSharedEmitter extends CjsModel
     vec3.copy(this.direction, value || Tr2GpuSharedEmitter.#zero3);
   }
 
+  /** Sets the emitter origin in place, treating a missing value as zero. */
   @carbon.method
   @impl.adapted
   SetPosition(value)
@@ -193,6 +213,12 @@ export class Tr2GpuSharedEmitter extends CjsModel
     vec3.copy(this.position, value || Tr2GpuSharedEmitter.#zero3);
   }
 
+  /**
+   * Projects Carbon's emitter and particle-parameter structs onto the schema-backed fields in one batched, event-free update followed by a single UpdateValues.
+   * @param {object} emitterData emission shape and speed range; missing members fall back to the current values
+   * @param {object} paramsData per-particle parameters; colors may be supplied either as a colors array or as color0..color3
+   * attractorStrength is only forwarded on subclasses that declare it.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Projects Carbon's setup structs onto the schema-backed editor fields; renderer-only spawn history and transformed parameters remain adapter-owned.")
@@ -233,6 +259,10 @@ export class Tr2GpuSharedEmitter extends CjsModel
     this.UpdateValues({ source: this, skipEvents: true });
   }
 
+  /**
+   * Returns the counter bumped by Initialize and OnModified, which a renderer
+   * compares against its own copy to detect parameter changes.
+   */
   @carbon.method
   @impl.adapted
   GetRevision()

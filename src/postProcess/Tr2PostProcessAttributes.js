@@ -17,6 +17,11 @@ import { Tr2PPSignalLossEffect } from "./Tr2PPSignalLossEffect.js";
 import { Tr2PPVignetteEffect } from "./Tr2PPVignetteEffect.js";
 
 
+/**
+ * One post-process volume's contribution: a value and an enable flag per
+ * attribute, plus the priority band and intensity that weight it when several
+ * volumes are blended together.
+ */
 @type.define({ className: "Tr2PostProcessAttributes", family: "postProcess" })
 export class Tr2PostProcessAttributes extends CjsModel
 {
@@ -486,6 +491,11 @@ export class Tr2PostProcessAttributes extends CjsModel
 
   depthOfFieldForegroundBlurNeeded = false;
 
+  /**
+   * Restores every attribute to its default and clears its enable flag, then
+   * deliberately re-enables the colour-correction attributes so entering a
+   * volume does not interpolate white balance and grading up from zero.
+   */
   @carbon.method
   @impl.implemented
   Reset()
@@ -510,6 +520,12 @@ export class Tr2PostProcessAttributes extends CjsModel
     this.colorOffsetEnabled = true;
   }
 
+  /**
+   * Captures an authored post-process graph as an attribute set, enabling only the attributes whose source effect passed its own availability gate; the LUT slot is taken from the highest-sorted available LUT.
+   * @param {object} postProcess source graph, read through its Get*IfAvailable accessors; null leaves a reset attribute set
+   * @param {number} priority the priority band this volume competes in
+   * @param {number} intensity this volume's weight within its band
+   */
   @carbon.method
   @impl.implemented
   FromPostProcess(postProcess, priority, intensity)
@@ -752,17 +768,30 @@ export class Tr2PostProcessAttributes extends CjsModel
     "grimePath", "filmGrainColored", "vignetteShapePath", "vignetteDetailPath", "depthOfFieldShape", "depthOfFieldForegroundBlurNeeded"
   ]));
 
+  /**
+   * Copies typed-array attribute values so callers never alias a shared default;
+   * scalars, strings and booleans pass through unchanged.
+   */
   static CloneValue(value)
   {
     return ArrayBuffer.isView(value) ? new value.constructor(value) : value;
   }
 
+  /**
+   * Writes an attribute value and its matching `<name>Enabled` flag together,
+   * cloning the value first.
+   */
   static CopyValue(target, name, value, enabled = true)
   {
     target[name] = Tr2PostProcessAttributes.CloneValue(value);
     target[`${name}Enabled`] = enabled;
   }
 
+  /**
+   * Accumulates value * weight into an accumulator, allocating a Float32Array on first use for vector attributes and adding numerically otherwise.
+   * @param {*} result accumulator so far, or null to start a new one
+   * @returns {*} the accumulator, which for vectors is the same array on later calls
+   */
   static AddWeighted(result, value, weight)
   {
     if (ArrayBuffer.isView(value) || Array.isArray(value))
@@ -774,6 +803,10 @@ export class Tr2PostProcessAttributes extends CjsModel
     return Number(result ?? 0) + Number(value ?? 0) * weight;
   }
 
+  /**
+   * Returns the neutral starting value for an attribute, typed from its default:
+   * a zeroed Float32Array, an empty string, false, or 0.
+   */
   static ZeroValue(name)
   {
     const value = Tr2PostProcessAttributes.DefaultValues[name];
@@ -783,6 +816,11 @@ export class Tr2PostProcessAttributes extends CjsModel
     return 0;
   }
 
+  /**
+   * Creates the observer the accumulation passes report into, recording per
+   * attribute which sources influenced it, at what weight, and the value that
+   * came out; GetDict returns that record keyed by attribute name.
+   */
   static CreateDebugObserver()
   {
     const records = {};
@@ -809,6 +847,10 @@ export class Tr2PostProcessAttributes extends CjsModel
     };
   }
 
+  /**
+   * Snapshots a value into the debug record so later mutation of the accumulator
+   * cannot rewrite what was reported.
+   */
   static CloneDebugValue(value)
   {
     if (ArrayBuffer.isView(value)) return new value.constructor(value);
@@ -816,21 +858,39 @@ export class Tr2PostProcessAttributes extends CjsModel
     return value;
   }
 
+  /**
+   * Opens the debug record for one attribute; a null observer makes this a
+   * no-op, which is the normal non-debug path.
+   */
   static BeginDebug(observer, name)
   {
     observer?.BeginAttribute?.(name);
   }
 
+  /**
+   * Records that one source contributed to the open attribute at the given
+   * weight.
+   */
   static DebugInfluence(observer, source, weight)
   {
     observer?.Influence?.(source, weight);
   }
 
+  /**
+   * Closes the open attribute's debug record with the value the accumulation
+   * produced.
+   */
   static EndDebug(observer, value)
   {
     observer?.EndAttribute?.(value);
   }
 
+  /**
+   * Blends one attribute across the sources band by band: within a band the enabled sources' intensities are normalized against the weight still unspent, and the results are either summed or, for max-weight attributes, resolved to the single highest-weighted value. Bands stop contributing once the remaining weight is used up.
+   * @param {Array} sources must already be ordered by priority - runs of equal priority are treated as one band
+   * @param {boolean} [maxWeight] pick-one rather than sum; defaults to whether the attribute is in MaxWeightAttributes, which covers paths, enums and booleans that cannot be interpolated
+   * @returns {*} a freshly cloned value, never an alias of a source
+   */
   static Accumulate(name, sources, maxWeight = Tr2PostProcessAttributes.MaxWeightAttributes.has(name), observer = null)
   {
     let remainingWeight = 1;
@@ -880,6 +940,10 @@ export class Tr2PostProcessAttributes extends CjsModel
     return finalValue;
   }
 
+  /**
+   * Blends LUT paths over the same priority bands as Accumulate, but keeps up to four distinct paths instead of one, merging repeats and ranking by weight.
+   * @returns {Array<{value: string, weight: number}>} the kept paths, weights renormalized to sum to 1
+   */
   static AccumulateLuts(sources, observer = null)
   {
     let remainingWeight = 1;
@@ -931,6 +995,11 @@ export class Tr2PostProcessAttributes extends CjsModel
     return values;
   }
 
+  /**
+   * Installs an effect on a post-process through its Set<Name> method when it
+   * has one, and otherwise by writing the lower-camel-case property of the same
+   * name.
+   */
   static SetEffect(postProcess, name, effect)
   {
     const method = postProcess[`Set${name}`];
@@ -938,6 +1007,11 @@ export class Tr2PostProcessAttributes extends CjsModel
     else postProcess[name.charAt(0).toLowerCase() + name.slice(1)] = effect;
   }
 
+  /**
+   * Rebuilds a post-process graph from blended attribute sources: every effect slot and the LUT list are cleared first, then only the effects whose driving attribute blended to a non-zero value are recreated, so a slot left empty means nothing asked for it.
+   * @param {Array} sources attribute sets ordered by priority, as Accumulate requires
+   * @returns {object} the same post-process instance that was passed in
+   */
   static MergeInto(postProcess, sources, debugObserver = null)
   {
     const values = new Map();

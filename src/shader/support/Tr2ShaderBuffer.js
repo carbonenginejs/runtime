@@ -34,16 +34,28 @@ export class Tr2ShaderBuffer extends CjsModel
     this.size = byteSize;
   }
 
+  /**
+   * Sets which shader stage this buffer belongs to; a non-numeric value becomes
+   * 0.
+   */
   SetShaderType(shaderType)
   {
     this.shaderType = Number(shaderType) || 0;
   }
 
+  /**
+   * Always false - binding the buffer to a device is outside this GPU-free
+   * package.
+   */
   ApplyBuffer()
   {
     return false;
   }
 
+  /**
+   * Copies up to `size` bytes out of an ArrayBuffer, typed-array view, latin-1
+   * string or array-like into a new zero-padded Uint8Array the caller owns.
+   */
   static copyBytes(data, size)
   {
     const out = new Uint8Array(size);

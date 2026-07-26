@@ -6,6 +6,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * One authored ellipse of an ellipse set - centre, plane normal, in-plane
+ * rotation in degrees and the two semi-axis lengths.
+ */
 @type.define({ className: "EveEllipseDefinition", family: "eve/ui" })
 export class EveEllipseDefinition extends CjsModel
 {
@@ -36,12 +40,20 @@ export class EveEllipseDefinition extends CjsModel
   @type.float32
   semiMinor = 1;
 
+  /**
+   * Invokes the bound dirty callback so the owning set regenerates its geometry
+   * after any authored field changes.
+   */
   OnModified(_value = null)
   {
     this.#dirtyFlag?.();
     return true;
   }
 
+  /**
+   * Installs the callback invoked whenever this definition is modified; pass
+   * null to unbind, and anything that is neither a function nor null throws.
+   */
   SetDirtyFlag(dirtyFlag)
   {
     if (dirtyFlag !== null && typeof dirtyFlag !== "function")

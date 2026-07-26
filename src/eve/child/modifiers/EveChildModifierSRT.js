@@ -7,6 +7,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Transform modifier that applies a fixed scale, rotation and translation ahead
+ * of the child's own transform.
+ */
 @type.define({
   className: "EveChildModifierSRT",
   family: "eve/child/modifiers"

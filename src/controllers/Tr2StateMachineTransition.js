@@ -5,6 +5,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsControllerExpressionProgram } from "./CjsControllerExpressionProgram.js";
 
 
+/**
+ * One outgoing edge of a state machine state: evaluates a boolean condition
+ * expression and, when it passes, names the destination state to switch to.
+ */
 @type.define({
   className: "Tr2StateMachineTransition",
   family: "controllers"
@@ -148,6 +152,12 @@ export class Tr2StateMachineTransition extends CjsModel
   {
     return this.GetSource();
   }
+  /**
+   * Gets the bitmask of controller variables this condition reads, so the owning
+   * state can skip evaluation when none of them changed; returns 0 (never skip)
+   * when the condition calls an impure function or references a variable that is
+   * missing or beyond the 64-bit mask.
+   */
   @carbon.method
   @impl.adapted
   GetVariableMask()
@@ -248,6 +258,11 @@ export class Tr2StateMachineTransition extends CjsModel
     this.Compile();
     return this.#functionNames.slice();
   }
+  /**
+   * Builds the condition evaluation context, delegating to the controller's own
+   * GetExpressionContext when it has one and otherwise assembling controller,
+   * owner and state machine directly.
+   */
   #getExpressionContext(controller, owner, stateMachine)
   {
     const runtime = controller;
@@ -261,6 +276,11 @@ export class Tr2StateMachineTransition extends CjsModel
       stateMachine: stateMachine
     };
   }
+  /**
+   * Looks up the destination state by this transition's `name` on the source
+   * state's machine; the authored name is the destination state name, not a
+   * label for the edge.
+   */
   #resolveDestination()
   {
     const stateMachine = this.#source?.GetStateMachine?.() ?? null;
@@ -271,6 +291,10 @@ export class Tr2StateMachineTransition extends CjsModel
     return stateMachine.GetStateByName?.(this.name) ?? null;
   }
 
+  /**
+   * Checks whether any variable this condition reads is dirty; an empty variable
+   * mask means the condition must always be evaluated.
+   */
   static #dirtyMaskMatches(variableMask, dirtyVariables)
   {
     if (variableMask === 0n)

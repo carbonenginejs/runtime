@@ -409,6 +409,13 @@ export class ProcessLifetime extends CjsModel
 
   // Prepends the system-wide tunnels and reassigns sequential IDs (Carbon
   // ReassignTunnelIDsAndAddSystemTunnels, cpp:464-494).
+  /**
+   * Prepends the system-wide tunnels to this behavior's local ones and renumbers
+   * every tunnel's tunnelID to its index in that flattened list (Carbon
+   * ReassignTunnelIDsAndAddSystemTunnels, cpp:464-494), then clears the
+   * reassignment flag - the IDs agent scratch records store are indices into
+   * exactly this list.
+   */
   #ReassignTunnelIDsAndAddSystemTunnels(system)
   {
     const localTunnels = this.#privateTunnels.slice();
@@ -425,6 +432,13 @@ export class ProcessLifetime extends CjsModel
   // Steers the agent through one tunnel; returns true when it passed the last
   // point (Carbon ProcessTunnel, cpp:220-299). Mutates data.tunnelPoint and
   // this.#desiredVector.
+  /**
+   * Steers one agent toward the next spline point of a tunnel, adding a random
+   * offset within the tunnel cylinder so drones wander while transiting (Carbon
+   * ProcessTunnel, cpp:220-299); returns true once the agent has passed the
+   * tunnel's last point. Mutates the agent's scratch tunnelPoint and the
+   * behavior's shared desired vector.
+   */
   #ProcessTunnel(agent, tunnel, data, boundingSphere)
   {
     const points = tunnel.splinePoints;
@@ -524,6 +538,11 @@ export class ProcessLifetime extends CjsModel
 
   // Assigns the exit tunnel whose entry point is closest to the agent (Carbon
   // FindAndAssignAnExitTunnel, cpp:301-327).
+  /**
+   * Assigns the agent the exit tunnel whose first spline point is closest to it,
+   * or marks the exit as already used when no exit tunnel exists so the agent is
+   * removed instead (Carbon FindAndAssignAnExitTunnel, cpp:301-327).
+   */
   #FindAndAssignAnExitTunnel(agent, data)
   {
     let closestPointIndex = -1;
@@ -555,6 +574,11 @@ export class ProcessLifetime extends CjsModel
 
   // Places the very first spawn somewhere along a random entrance tunnel's
   // curve (Carbon FindInitialSpawnPoint, cpp:329-388).
+  /**
+   * Places the very first spawn at a random time along a random entrance tunnel's curve, ageing the agent by the fraction of the tunnel it skipped and setting the spline point it resumes from (Carbon FindInitialSpawnPoint, cpp:329-388). Prefers this behavior's own tunnel groups and falls back to the system-wide ones.
+   * @param {Float32Array} pos - caller-owned; receives the chosen spawn position
+   * @returns {Boolean} false when no entrance tunnel with loaded curves is available
+   */
   #FindInitialSpawnPoint(drone, data, pos, systemTunnels)
   {
     // if we have local tunnels use them, otherwise use system-wide ones
@@ -622,6 +646,14 @@ export class ProcessLifetime extends CjsModel
   // Picks a jittered entrance point for a respawning drone and assigns it the
   // matching tunnel (Carbon FindASpawnPoint, cpp:390-426). The candidate
   // lists are allocated here - a respawn event, not the steady per-frame path.
+  /**
+   * Picks a random entrance tunnel for a respawning agent, jitters its first
+   * spline point within that tunnel's point-of-no-return size, moves the agent
+   * and the group's spawn position there, orients the agent along the point's
+   * direction and assigns it the matching tunnel (Carbon FindASpawnPoint,
+   * cpp:390-426); the candidate lists are allocated here because this is a
+   * respawn event, not the steady per-frame path.
+   */
   #FindASpawnPoint(agent, data, group)
   {
     const potentialPoints = [];
@@ -660,6 +692,11 @@ export class ProcessLifetime extends CjsModel
     data.assignedLifeTimeTunnel = tunnelIndex[randomNbr];
   }
 
+  /**
+   * Snapshots the current spline tunnel group list and hands each group the
+   * callback that rebuilds this behavior's tunnel registry when the group's own
+   * contents change.
+   */
   #WireTunnelGroups()
   {
     this.#tunnelGroupSnapshot = this.splineTunnels.slice();
@@ -672,6 +709,11 @@ export class ProcessLifetime extends CjsModel
     }
   }
 
+  /**
+   * Whether the spline tunnel group list still matches the snapshot taken when
+   * the groups were last wired; the per-frame mismatch check stands in for
+   * Carbon's Blue list change notifications, which JavaScript does not receive.
+   */
   #TunnelGroupsMatchSnapshot()
   {
     return (

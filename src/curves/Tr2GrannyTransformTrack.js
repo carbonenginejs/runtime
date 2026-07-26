@@ -7,6 +7,11 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
 
+/**
+ * Granny track that samples a bone's position, orientation and scale-shear
+ * curves together, exposing them as a translation vector, rotation quaternion
+ * and scale vector.
+ */
 @type.define({
   className: "Tr2GrannyTransformTrack",
   family: "curves"

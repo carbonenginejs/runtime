@@ -32,16 +32,25 @@ export class EveSocketParameterString extends CjsModel
   @type.list("std::string")
   defaults = [];
 
+  /** Returns the name an external parameter has to match before it can bind here. */
   GetName()
   {
     return this.name;
   }
 
+  /**
+   * Sets the name external parameters must match to bind, coercing null to an
+   * empty string.
+   */
   SetName(name)
   {
     this.name = String(name ?? "");
   }
 
+  /**
+   * Creates the `valueExposure` external parameter pointing at this object's
+   * `value` attribute on first call; later calls leave the existing one alone.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -57,6 +66,10 @@ export class EveSocketParameterString extends CjsModel
     return true;
   }
 
+  /**
+   * Drops the bound external parameters; unlike the typed socket parameters, the
+   * captured defaults are kept.
+   */
   @carbon.method
   @impl.implemented
   ClearBindings()
@@ -64,6 +77,11 @@ export class EveSocketParameterString extends CjsModel
     this.externalParameters.length = 0;
   }
 
+  /**
+   * Records a matching external parameter after capturing its current value as a default; strings are held directly instead of through a value binding, and propagation writes to them.
+   *
+   * @returns {boolean} True when the external parameter was valid, name-matched and stored.
+   */
   @carbon.method
   @impl.adapted
   BindToExternalParameter(externalParameter)
@@ -75,6 +93,10 @@ export class EveSocketParameterString extends CjsModel
     return true;
   }
 
+  /**
+   * Captures the external parameter's current value as a string default,
+   * substituting an empty string when the read throws; always succeeds.
+   */
   ExtractDefault(externalParameter)
   {
     let value = "";
@@ -90,6 +112,10 @@ export class EveSocketParameterString extends CjsModel
     return true;
   }
 
+  /**
+   * Restores the default captured for the first bound external parameter,
+   * leaving the value untouched when none was captured.
+   */
   @carbon.method
   @impl.implemented
   SetValueToDefault()
@@ -97,6 +123,7 @@ export class EveSocketParameterString extends CjsModel
     if (this.defaults.length) this.value = this.defaults[0];
   }
 
+  /** Reports whether any external parameter is bound to this one. */
   @carbon.method
   @impl.implemented
   Used()
@@ -104,6 +131,10 @@ export class EveSocketParameterString extends CjsModel
     return this.externalParameters.length !== 0;
   }
 
+  /**
+   * Reads the current value through `valueExposure` and writes it into every
+   * bound external parameter.
+   */
   @carbon.method
   @impl.adapted
   Propagate()

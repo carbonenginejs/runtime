@@ -40,6 +40,10 @@ export class TriVariableParameter extends CjsParameter
 
   cachedEffect = null;
 
+  /**
+   * The shader constant or resource name the variable's value is uploaded to;
+   * distinct from variableName, which names the store entry.
+   */
   @carbon.method
   @impl.implemented
   GetParameterName()
@@ -55,6 +59,10 @@ export class TriVariableParameter extends CjsParameter
     return CjsParameter.hashFnv1String(this.name, startingHash);
   }
 
+  /**
+   * Resolves variableName against a store and caches the variable object; an empty variableName clears the binding. Always returns true.
+   * @param variableStore store to bind against; null keeps the store supplied by an earlier call
+   */
   @carbon.method
   @impl.adapted
   Initialize(variableStore = null)
@@ -69,6 +77,10 @@ export class TriVariableParameter extends CjsParameter
     return true;
   }
 
+  /**
+   * Consumes the two dirty flags: `variable` re-resolves the store binding,
+   * `effectHandles` re-resolves usage against the cached shader.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -85,6 +97,11 @@ export class TriVariableParameter extends CjsParameter
     return true;
   }
 
+  /**
+   * Records usage by looking the name up as a shader resource when the bound
+   * variable is a texture or buffer type and as a shader constant otherwise; an
+   * unbound variable always counts as unused.
+   */
   @carbon.method
   @impl.adapted
   RebuildEffectHandles(effectRes)
@@ -103,6 +120,10 @@ export class TriVariableParameter extends CjsParameter
     this.usedByCurrentTechnique = used;
   }
 
+  /**
+   * Delegates the write to the bound variable, so the store owns the value; does
+   * nothing when no variable is bound.
+   */
   @carbon.method
   @impl.adapted
   CopyValueToEffect(inputType, dest, size, renderContext)
@@ -110,6 +131,10 @@ export class TriVariableParameter extends CjsParameter
     this.variable?.CopyValueToEffect?.(inputType, dest, size, renderContext);
   }
 
+  /**
+   * Always false - populating a resource set is device work this package does
+   * not do.
+   */
   @carbon.method
   @impl.adapted
   CopyToResourceSet()
@@ -117,6 +142,7 @@ export class TriVariableParameter extends CjsParameter
     return false;
   }
 
+  /** Always false - UAV binding is left to the engine adapter. */
   @carbon.method
   @impl.adapted
   ApplyUav()
@@ -124,6 +150,10 @@ export class TriVariableParameter extends CjsParameter
     return false;
   }
 
+  /**
+   * The bound variable's type tag, which decides whether the name binds as a
+   * resource or a constant; `invalid` when nothing is bound.
+   */
   @carbon.method
   @impl.implemented
   GetVariableType()

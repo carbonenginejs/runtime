@@ -15,6 +15,11 @@ import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 const INVERSE_PATCH_SCRATCH = mat4.create();
 
 
+/**
+ * A placeable node in an Eve scene graph: local SRT placement, an optional mesh,
+ * particle systems and emitters, curve sets, observers and child transforms,
+ * with its own frustum and LOD visibility pass.
+ */
 @type.define({ className: "EveTransform", family: "eve/spaceObject" })
 export class EveTransform extends Tr2Transform
 {
@@ -79,6 +84,10 @@ export class EveTransform extends Tr2Transform
   #lastCurveUpdateDelta = EveLODHelper.lowUpdateRate;
   #lastWorldTransform = mat4.create();
 
+  /**
+   * Adopts an authored meshLod as the node's mesh when no mesh was set, so a
+   * graph that only authored the LOD mesh still renders.
+   */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -91,6 +100,10 @@ export class EveTransform extends Tr2Transform
     return true;
   }
 
+  /**
+   * Rebuilds the local matrix from rotation, translation and scaling and composes it with the parent to refresh worldTransform, keeping the previous world transform for motion vectors, then pushes the new transform to the particle systems and observers.
+   * @returns {mat4} The node's live worldTransform, valid until the next update.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Renderer-owned modifier state is supplied through the update context; standard SRT and parent composition stay in Trinity.")
@@ -104,6 +117,7 @@ export class EveTransform extends Tr2Transform
     return this.worldTransform;
   }
 
+  /** Runs the synchronous pass then the asynchronous pass, in Carbon's order. */
   @carbon.method
   @impl.implemented
   Update(context)
@@ -112,12 +126,20 @@ export class EveTransform extends Tr2Transform
     this.UpdateAsyncronous(context);
   }
 
+  /**
+   * Does nothing: EveTransform performs all of its per-frame work in
+   * UpdateAsyncronous.
+   */
   @carbon.method
   @impl.implemented
   UpdateSyncronous(_context)
   {
   }
 
+  /**
+   * Advances the curve sets once the accumulated delta satisfies the LOD update rate, then updates the children, particle systems and particle emitters.
+   * @returns {boolean} False without doing any work when the node's update flag is off.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Particle updates are forwarded through backend-neutral emitter and system contracts; device particle managers remain engine-owned.")
@@ -146,6 +168,10 @@ export class EveTransform extends Tr2Transform
     return true;
   }
 
+  /**
+   * Refreshes the world transform, then derives visibility and LOD from the mesh bounding sphere: the sphere is frustum-tested and its on-screen size in pixels is compared against the context's medium and low detail thresholds for the LOD level and against visibilityThreshold for visibility; a node with no mesh is always visible, any particle system forces high LOD, and children's LOD levels are merged in.
+   * @returns {boolean} Whether this node itself is visible.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Browser frustum and quality state are read from the explicit update context instead of renderer globals.")
@@ -185,6 +211,11 @@ export class EveTransform extends Tr2Transform
     return this.#isVisible;
   }
 
+  /**
+   * Sorts the particle systems, appends this node when it is visible and has a
+   * mesh, then recurses into the children; nothing is appended while display is
+   * off.
+   */
   @carbon.method
   @impl.implemented
   GetRenderables(out = [])
@@ -201,6 +232,10 @@ export class EveTransform extends Tr2Transform
   // name; the store (engine-supplied layout) transposes them on Set. Carbon's
   // worldInverse = Inverse(transposed world) == Transpose(Inverse(world)), so
   // it is just Set("worldInverse", Inverse(world)) - the store transposes.
+  /**
+   * Allocates an EveBasicPerObjectData record from the accumulator and fills it with the world, previous-world and inverse-world matrices, patching the first all-zero basis of a singular world matrix with a 0.1 diagonal before inverting, as Carbon does.
+   * @returns {object} The allocated record, owned by the accumulator.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Constant-buffer layout/packing is engine-owned; Trinity Allocs the record from the accumulator's store and Sets logical values by name (the store transposes per the engine layout).")
@@ -245,6 +280,10 @@ export class EveTransform extends Tr2Transform
     return false;
   }
 
+  /**
+   * Reports whether the mesh has any transparent areas, which tells the renderer
+   * to route this node through the sorted transparent pass.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Declared on Tr2Transform in Carbon; the generated base class stays data-only.")
@@ -259,6 +298,11 @@ export class EveTransform extends Tr2Transform
 
   // Distance from the view position to the world translation, scaled by the
   // authored multiplier (used to order transparent renderables back-to-front).
+  /**
+   * Returns the distance from the render context's view position to this node's
+   * world translation, scaled by the authored sortValueMultiplier, used to order
+   * transparent renderables back-to-front.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")
@@ -271,6 +315,11 @@ export class EveTransform extends Tr2Transform
     return Math.hypot(x, y, z) * this.sortValueMultiplier;
   }
 
+  /**
+   * Writes the world-space bounding sphere, taken from the override bounds when they differ and otherwise from the mesh bounding box, and unions in the children's spheres when a query is passed.
+   * @param {vec4} out Caller-owned sphere; left untouched when no source produced one.
+   * @returns {boolean} Whether a sphere was written.
+   */
   @carbon.method
   @impl.implemented
   GetBoundingSphere(out = vec4.create(), query = 0)
@@ -303,6 +352,11 @@ export class EveTransform extends Tr2Transform
     return valid;
   }
 
+  /**
+   * Returns the world translation; called without an out parameter it returns a
+   * live subarray view of worldTransform that changes with the next transform
+   * update.
+   */
   @carbon.method
   @impl.implemented
   GetWorldPosition(out)
@@ -310,6 +364,10 @@ export class EveTransform extends Tr2Transform
     return out ? vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]) : this.worldTransform.subarray(12, 15);
   }
 
+  /**
+   * Returns the node's local rotation quaternion; called without an out
+   * parameter it returns the live field rather than a copy.
+   */
   @carbon.method
   @impl.implemented
   GetWorldRotation(out)
@@ -317,6 +375,7 @@ export class EveTransform extends Tr2Transform
     return out ? quat.copy(out, this.rotation) : this.rotation;
   }
 
+  /** Returns the LOD level chosen by the last visibility pass. */
   @carbon.method
   @impl.implemented
   GetLODLevel()
@@ -324,6 +383,7 @@ export class EveTransform extends Tr2Transform
     return this.lodLevel;
   }
 
+  /** Turns rendering of this node and its subtree on or off. */
   @carbon.method
   @impl.implemented
   SetDisplay(value)
@@ -331,6 +391,7 @@ export class EveTransform extends Tr2Transform
     this.display = !!value;
   }
 
+  /** Starts playback on every curve set on this node. */
   @carbon.method
   @impl.implemented
   PlayCurveSets()
@@ -338,6 +399,10 @@ export class EveTransform extends Tr2Transform
     for (const curveSet of this.curveSets) curveSet?.Play?.();
   }
 
+  /**
+   * Starts every curve set carrying the given name, playing a named time range
+   * when one is supplied and otherwise resetting to the full range first.
+   */
   @carbon.method
   @impl.implemented
   PlayCurveSet(name, rangeName = "")
@@ -357,6 +422,7 @@ export class EveTransform extends Tr2Transform
     }
   }
 
+  /** Stops every curve set carrying the given name. */
   @carbon.method
   @impl.implemented
   StopCurveSet(name)
@@ -364,6 +430,10 @@ export class EveTransform extends Tr2Transform
     for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) curveSet.Stop?.();
   }
 
+  /**
+   * Returns the longest curve duration across the curve sets carrying the given
+   * name, or 0 when none match.
+   */
   @carbon.method
   @impl.implemented
   GetCurveSetDuration(name)
@@ -373,6 +443,10 @@ export class EveTransform extends Tr2Transform
     return duration;
   }
 
+  /**
+   * Returns the longest duration of a named time range across the curve sets
+   * carrying the given name, or 0 when none match.
+   */
   @carbon.method
   @impl.implemented
   GetRangeDuration(name, rangeName)

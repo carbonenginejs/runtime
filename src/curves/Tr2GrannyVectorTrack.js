@@ -5,6 +5,10 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
 
+/**
+ * Granny track that samples a named one-dimensional vector track and exposes it
+ * as a scalar value.
+ */
 @type.define({
   className: "Tr2GrannyVectorTrack",
   family: "curves"

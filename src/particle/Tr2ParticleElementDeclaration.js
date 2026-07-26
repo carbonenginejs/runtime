@@ -52,6 +52,10 @@ export class Tr2ParticleElementDeclaration extends CjsModel
     }
   }
 
+  /**
+   * Returns the authored custom name for CUSTOM elements, and the semantic's
+   * enum name for the built-in types.
+   */
   GetName()
   {
     return this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM

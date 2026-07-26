@@ -6,6 +6,10 @@ import { TriRenderJob } from "./TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
+/**
+ * Step describing a copy out of one render target into another render target or
+ * into a texture resource, including the source and destination sub-rectangles.
+ */
 @type.define({ className: "TriStepCopyRenderTarget", family: "renderJob" })
 export class TriStepCopyRenderTarget extends TriRenderStep
 {
@@ -29,26 +33,34 @@ export class TriStepCopyRenderTarget extends TriRenderStep
   @type.objectRef("TriViewport")
   destinationViewport = null;
 
+  /** Reads the destination render target under Carbon's lower-case accessor name. */
   get destination()
   {
     return this.Destination;
   }
 
+  /** Sets the destination render target, normalising a missing value to null. */
   set destination(value)
   {
     this.Destination = value ?? null;
   }
 
+  /** Reads the source render target under Carbon's lower-case accessor name. */
   get source()
   {
     return this.Source;
   }
 
+  /** Sets the source render target, normalising a missing value to null. */
   set source(value)
   {
     this.Source = value ?? null;
   }
 
+  /**
+   * Assigns the copy operands, routing a texture-resource destination to
+   * destinationTexture and anything else to the render-target destination.
+   */
   @carbon.method
   @impl.adapted
   __init__(destination = null, source = null, destinationViewport = null, sourceViewport = null)
@@ -63,6 +75,11 @@ export class TriStepCopyRenderTarget extends TriRenderStep
     this.sourceViewport = sourceViewport ?? null;
   }
 
+  /**
+   * Builds the copy intent and hands it to the executor's CopyRenderTarget;
+   * incomplete operands yield no intent and are a no-op that still reports
+   * RS_OK, while an explicit false from the executor is RS_FAILED.
+   */
   @carbon.method
   @impl.implemented
   Execute(_realTime, _simTime, executor)
@@ -73,6 +90,10 @@ export class TriStepCopyRenderTarget extends TriRenderStep
     return copied === false ? TriRenderJob.StepResult.RS_FAILED : TriRenderJob.StepResult.RS_OK;
   }
 
+  /**
+   * Carbon TriStepCopyRenderTarget::Execute (cpp:13-95): resolves the operands and viewports into a plain copy description the executor performs, with destinationType distinguishing the render-target path from the texture path.
+   * @returns {object|null} the copy intent, or null when the source or both destinations are missing
+   */
   @carbon.method
   @impl.adapted
   GetCopyIntent()
@@ -99,6 +120,12 @@ export class TriStepCopyRenderTarget extends TriRenderStep
     };
   }
 
+  /**
+   * Builds the render-target-to-render-target rectangles: a source viewport with
+   * a non-positive extent cancels the copy, and a negative destination origin
+   * clamps to zero while trimming the same amount off the source rectangle
+   * (Carbon TriStepCopyRenderTarget.cpp:33-73).
+   */
   static #renderTargetIntent(source, destination, sourceViewport, destX, destY)
   {
     let x = destX;
@@ -152,6 +179,10 @@ export class TriStepCopyRenderTarget extends TriRenderStep
     };
   }
 
+  /**
+   * Converts a viewport's x/y/width/height into a left/top/right/bottom
+   * rectangle, treating non-numeric fields as zero.
+   */
   static #viewportRect(viewport)
   {
     const left = Number(viewport.x) || 0;
@@ -164,11 +195,19 @@ export class TriStepCopyRenderTarget extends TriRenderStep
     };
   }
 
+  /**
+   * Reads a dimension off a render target through its Get<Name>() accessor or
+   * its lower-case property, yielding 0 when neither is present.
+   */
   static #dimension(value, method, property)
   {
     return Number(value?.[`Get${method}`]?.() ?? value?.[property]) || 0;
   }
 
+  /**
+   * Identifies a destination as a texture resource by its registered class name,
+   * a name ending in TextureRes, or the presence of GetTexture.
+   */
   static #isTextureResource(value)
   {
     const name = CjsSchema.getClassName(value?.constructor) ?? value?._sourceClassName ?? "";

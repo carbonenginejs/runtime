@@ -34,6 +34,10 @@ export class EveDistributionSpawnModifierRandomRotation extends CjsModel
   @type.boolean
   overrideRotation = false;
 
+  /**
+   * Reseeds the random stream from the wall clock, so rotations differ between
+   * runs unless consistentRandom pins them to the placement id.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -42,6 +46,11 @@ export class EveDistributionSpawnModifierRandomRotation extends CjsModel
     return true;
   }
 
+  /**
+   * Builds a rotation from random yaw, pitch and roll between minRotation and
+   * maxRotation, then either replaces the placement's initial rotation or
+   * combines it with the authored one.
+   */
   @carbon.method
   @impl.adapted
   ProcessSpawnModifier(placement, _numPlacements)

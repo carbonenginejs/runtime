@@ -183,6 +183,10 @@ export class TriDevice extends CjsModel
   @type.int32
   minimumModelLOD = 0;
 
+  /**
+   * Width over height of the device viewport in pixels; zero when there is no
+   * viewport or its height is zero.
+   */
   @carbon.method
   @impl.implemented
   AspectRatio()

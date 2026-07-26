@@ -5,6 +5,7 @@ import { TriRenderJob } from "./TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
+/** Step that requests regeneration of a render target's mip chain. */
 @type.define({ className: "TriStepGenerateMipMaps", family: "renderJob" })
 export class TriStepGenerateMipMaps extends TriRenderStep
 {
@@ -12,6 +13,7 @@ export class TriStepGenerateMipMaps extends TriRenderStep
   @type.objectRef("Tr2RenderTarget")
   renderTarget = null;
 
+  /** Stores the render target whose mip chain is regenerated. */
   @carbon.method
   @impl.adapted
   __init__(renderTarget = null)
@@ -19,6 +21,10 @@ export class TriStepGenerateMipMaps extends TriRenderStep
     this.renderTarget = renderTarget ?? null;
   }
 
+  /**
+   * Asks the executor to regenerate the target's mip maps; with no target set
+   * the step is a no-op.
+   */
   @carbon.method
   @impl.implemented
   Execute(_realTime, _simTime, executor)

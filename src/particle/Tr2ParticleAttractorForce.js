@@ -6,6 +6,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Particle force of constant magnitude pointing at a fixed position, regardless
+ * of distance.
+ */
 @type.define({
   className: "Tr2ParticleAttractorForce",
   family: "particle"
@@ -30,6 +34,10 @@ export class Tr2ParticleAttractorForce extends CjsModel
     return length === 0 ? vec3.set(out, 0, 0, 0) : vec3.scale(out, out, this.magnitude / length);
   }
 
+  /**
+   * Nothing to advance per frame: the force depends only on the authored
+   * position and magnitude.
+   */
   @carbon.method
   @impl.noop
   Update(_dt)

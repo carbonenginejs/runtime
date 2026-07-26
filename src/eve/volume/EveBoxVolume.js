@@ -7,6 +7,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Oriented box of influence with a hollow inner box, weighting points by falloff
+ * and seeding random points across its shell.
+ */
 @type.define({
   className: "EveBoxVolume",
   family: "eve/volume"
@@ -47,6 +51,10 @@ export class EveBoxVolume extends CjsModel
 
   #inverseRotation = quat.create();
 
+  /**
+   * Clamps the authored scalings and caches the inverse rotation the intensity
+   * test needs.
+   */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -55,6 +63,10 @@ export class EveBoxVolume extends CjsModel
     return true;
   }
 
+  /**
+   * Returns a fresh sphere centred on the box position whose radius is half the
+   * length of the scaling vector.
+   */
   @carbon.method
   @impl.adapted
   GetBoundingSphere()
@@ -65,6 +77,12 @@ export class EveBoxVolume extends CjsModel
     };
   }
 
+  /**
+   * Returns the falloff weight for a point given in the volume's own space: the
+   * point is moved into box-local space with the cached inverse rotation, then
+   * compared radially against the inner and outer boxes - 1 inside the inner
+   * box, 0 outside the outer one, and a squared ramp between them.
+   */
   @carbon.method
   @impl.adapted
   GetIntensity(position)
@@ -86,6 +104,12 @@ export class EveBoxVolume extends CjsModel
     return ratio * ratio;
   }
 
+  /**
+   * Appends random points expressed in box-local space, centred on the box rather than offset by its position, choosing between the inner box and the six shell zones in proportion to their volumes and biasing shell samples outward by fallOffFactor. Generates nothing when any scaling axis is zero.
+   *
+   * @param points Caller-owned array the new points are pushed onto.
+   * @param excludeInnerVolume Drops the inner box from the choice, keeping every point in the shell.
+   */
   @carbon.method
   @impl.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
@@ -168,6 +192,10 @@ export class EveBoxVolume extends CjsModel
     }
   }
 
+  /**
+   * Registers a callback fired whenever the volume changes, returning the id
+   * needed to unregister it again.
+   */
   @carbon.method
   @impl.adapted
   RegisterForChanges(callback)
@@ -177,6 +205,7 @@ export class EveBoxVolume extends CjsModel
     return id;
   }
 
+  /** Drops a change callback by the id RegisterForChanges returned. */
   @carbon.method
   @impl.implemented
   UnregisterForChanges(callbackId)
@@ -184,6 +213,10 @@ export class EveBoxVolume extends CjsModel
     this.#callbacks.delete(callbackId);
   }
 
+  /**
+   * Re-clamps the scalings and the cached inverse rotation after an authored
+   * change, then notifies every registered listener.
+   */
   @carbon.method
   @impl.adapted
   OnModified()
@@ -196,12 +229,17 @@ export class EveBoxVolume extends CjsModel
     return true;
   }
 
+  /** No debug drawing in this port. */
   @carbon.method
   @impl.noop
   RenderDebugInfo()
   {
   }
 
+  /**
+   * Clamps the scaling to non-negative values, keeps the inner scaling inside
+   * it, and caches the inverse of the box rotation.
+   */
   #setup()
   {
     for (let i = 0; i < 3; i++)
@@ -212,12 +250,21 @@ export class EveBoxVolume extends CjsModel
     quat.invert(this.#inverseRotation, this.rotation);
   }
 
+  /**
+   * Moves a point into box-local space by subtracting the box centre and
+   * applying the inverse rotation.
+   */
   static #toLocal(position, center, inverseRotation)
   {
     const local = vec3.subtract(vec3.create(), position, center);
     return vec3.transformQuat(local, local, inverseRotation);
   }
 
+  /**
+   * Returns how far the box surface lies from the centre along the direction of
+   * the given local point, falling back to half the smallest extent when the
+   * point sits at the centre.
+   */
   static #radialBoxDistance(position, scaling)
   {
     const length = vec3.length(position);

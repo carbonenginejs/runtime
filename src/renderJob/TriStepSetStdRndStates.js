@@ -5,6 +5,11 @@ import { TriRenderJob } from "./TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
+/**
+ * Step that selects one of Carbon's standard rendering-mode state blocks -
+ * opaque, decal, alpha, additive, depth-only, picking and so on - instead of
+ * setting states individually.
+ */
 @type.define({ className: "TriStepSetStdRndStates", family: "renderJob" })
 export class TriStepSetStdRndStates extends TriRenderStep
 {
@@ -47,6 +52,10 @@ export class TriStepSetStdRndStates extends TriRenderStep
   @schema.enum("RenderingMode")
   renderingMode = TriStepSetStdRndStates.RM_OPAQUE;
 
+  /**
+   * Sets the rendering mode when one is supplied, otherwise leaves the default
+   * opaque mode in place.
+   */
   @carbon.method
   @impl.adapted
   __init__(state)
@@ -54,6 +63,7 @@ export class TriStepSetStdRndStates extends TriRenderStep
     if (arguments.length && state !== undefined) this.SetState(state);
   }
 
+  /** Sets the rendering mode, silently ignoring values at or above RM_COUNT. */
   SetState(state)
   {
     const value = Number(state) >>> 0;
@@ -63,6 +73,10 @@ export class TriStepSetStdRndStates extends TriRenderStep
     }
   }
 
+  /**
+   * Asks the executor to apply the standard state block for the selected
+   * rendering mode; which states that block contains is the executor's concern.
+   */
   @carbon.method
   @impl.implemented
   Execute(_realTime, _simTime, executor)

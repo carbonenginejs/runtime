@@ -6,6 +6,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Color function that blends two authored colors by a fixed lerp factor and
+ * applies saturation and brightness, exposing both the mixed color and its
+ * linear-space conversion.
+ */
 @type.define({
   className: "Tr2CurveColorMixer",
   family: "curves"

@@ -5,6 +5,11 @@ import { carbon, CjsSchema, impl, io, type } from "@carbonenginejs/runtime-utils
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 
+/**
+ * Copies one attribute of a source object onto an attribute of a destination
+ * object, applying a scale and per-component offset through a type-checked copy
+ * plan built when the endpoints resolve.
+ */
 @type.define({ className: "TriValueBinding", family: "trinityCore" })
 export class TriValueBinding extends CjsModel
 {
@@ -88,6 +93,12 @@ export class TriValueBinding extends CjsModel
   @type.boolean
   isValid = false;
 
+  /**
+   * Resolves both endpoints, builds the copy plan and sets isValid; a callable
+   * copyValueCallable short-circuits the whole plan, and an ITriReroutable
+   * destination is registered with and its rerouted buffer cached when it is
+   * large enough for the plan.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Resolves Blue field metadata through JavaScript properties and supports the portable runtime's numeric, vector, boolean, and callback value families.")
@@ -156,6 +167,11 @@ export class TriValueBinding extends CjsModel
     }
   }
 
+  /**
+   * Runs the callback or the planned copy once, writing through the rerouted
+   * buffer when one is installed and notifying the destination when its field
+   * declares notify; returns whether any value actually changed.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Copies portable JavaScript values and emits CjsModel notifications instead of invoking Carbon's native typed copy-function table.")
@@ -206,6 +222,7 @@ export class TriValueBinding extends CjsModel
     return changed;
   }
 
+  /** Re-resolves the endpoints and copy plan after any field change. */
   @carbon.method
   @impl.implemented
   OnModified(_value = null)
@@ -214,6 +231,7 @@ export class TriValueBinding extends CjsModel
     return true;
   }
 
+  /** The destination attribute string, including any .x/.r component suffix. */
   @carbon.method
   @impl.implemented
   GetDestinationAttributeName()
@@ -221,6 +239,10 @@ export class TriValueBinding extends CjsModel
     return this.destinationAttribute;
   }
 
+  /**
+   * Rebinds the source endpoint, drops weak and reroute state, and leaves the
+   * binding invalid until the next Initialize.
+   */
   @carbon.method
   @impl.implemented
   SetSource(sourceAttribute, sourceObject)
@@ -235,6 +257,10 @@ export class TriValueBinding extends CjsModel
     this.isValid = false;
   }
 
+  /**
+   * Rebinds the destination endpoint, unregistering from any reroutable
+   * destination, and leaves the binding invalid until the next Initialize.
+   */
   @carbon.method
   @impl.implemented
   SetDestination(destinationAttribute, destinationObject)
@@ -249,6 +275,7 @@ export class TriValueBinding extends CjsModel
     this.isValid = false;
   }
 
+  /** Sets the multiplier applied to the source value before the offset is added. */
   @carbon.method
   @impl.implemented
   SetScale(scale)
@@ -256,6 +283,11 @@ export class TriValueBinding extends CjsModel
     this.scale = Number(scale);
   }
 
+  /**
+   * Binds both endpoints through WeakRef so the binding keeps neither object
+   * alive, sets the scale and four-component offset, then initializes and
+   * returns whether the result is valid.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Uses WeakRef for Carbon's BlueWeakRef endpoints and returns validity as a JavaScript convenience.")
@@ -284,6 +316,7 @@ export class TriValueBinding extends CjsModel
     return this.isValid;
   }
 
+  /** Whether the last Initialize produced a usable copy plan. */
   @carbon.method
   @impl.implemented
   IsValid()
@@ -291,6 +324,10 @@ export class TriValueBinding extends CjsModel
     return this.isValid;
   }
 
+  /**
+   * Dereferences the source endpoint, honouring weak mode; null once a weakly
+   * held source has been collected.
+   */
   @carbon.method
   @impl.implemented
   GetCurrentSourceObject()
@@ -298,6 +335,10 @@ export class TriValueBinding extends CjsModel
     return this.isWeak ? this.#sourceObjectWeak?.deref?.() ?? null : this.sourceObject;
   }
 
+  /**
+   * Dereferences the destination endpoint, honouring weak mode; null once a
+   * weakly held destination has been collected.
+   */
   @carbon.method
   @impl.implemented
   GetCurrentDestinationObject()
@@ -305,6 +346,7 @@ export class TriValueBinding extends CjsModel
     return this.isWeak ? this.#destinationObjectWeak?.deref?.() ?? null : this.destinationObject;
   }
 
+  /** Carbon's second name for GetCurrentSourceObject. */
   @carbon.method
   @impl.implemented
   GetSourceObject()
@@ -312,6 +354,10 @@ export class TriValueBinding extends CjsModel
     return this.GetCurrentSourceObject();
   }
 
+  /**
+   * Rebinds the source object in place - weakly when the binding is weak - and
+   * re-initializes, keeping the attribute names.
+   */
   @carbon.method
   @impl.implemented
   SetSourceObject(sourceObject)
@@ -329,6 +375,7 @@ export class TriValueBinding extends CjsModel
     this.Initialize();
   }
 
+  /** Carbon's second name for GetCurrentDestinationObject. */
   @carbon.method
   @impl.implemented
   GetDestinationObject()
@@ -336,6 +383,10 @@ export class TriValueBinding extends CjsModel
     return this.GetCurrentDestinationObject();
   }
 
+  /**
+   * Rebinds the destination object in place - weakly when the binding is weak -
+   * unregistering from any previous reroutable destination, and re-initializes.
+   */
   @carbon.method
   @impl.implemented
   SetDestinationObject(destinationObject)
@@ -355,6 +406,10 @@ export class TriValueBinding extends CjsModel
     this.Initialize();
   }
 
+  /**
+   * Installs the buffer an ITriReroutable destination wants written instead of
+   * its own field; null restores direct field writes.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Swaps the portable array or scalar-holder destination supplied by ITriReroutable instead of Carbon's raw byte pointer.")
@@ -363,6 +418,10 @@ export class TriValueBinding extends CjsModel
     this.#reroutedDestination = destination ?? null;
   }
 
+  /**
+   * Dereferences the registered reroutable destination, which is held weakly for
+   * weak bindings.
+   */
   #GetReroutableDestination()
   {
     return this.#reroutableDestination instanceof WeakRef
@@ -370,6 +429,10 @@ export class TriValueBinding extends CjsModel
       : this.#reroutableDestination;
   }
 
+  /**
+   * Splits `field` or `field.x` into a name plus a component index (x/r zero
+   * through w/a three); null for an empty name or an unrecognized suffix.
+   */
   static #ParseAttribute(attribute)
   {
     const value = String(attribute ?? "");
@@ -380,11 +443,20 @@ export class TriValueBinding extends CjsModel
     return component.length === 1 && offsets[component] !== undefined ? { name: value.slice(0, dot), offset: offsets[component] } : null;
   }
 
+  /**
+   * Whether a component index is usable: either absent, or the value is
+   * array-like and long enough to hold it.
+   */
   static #CanUseOffset(value, offset)
   {
     return offset === -1 || (TriValueBinding.#IsArrayLike(value) && value.length > offset);
   }
 
+  /**
+   * Classifies a value as a scalar or a fixed-length float array from its schema
+   * field kind, falling back to the runtime value's shape when the field is
+   * unknown; null when neither applies.
+   */
   static #DescribeValue(value, field)
   {
     const kind = field?.type?.kind ?? null;
@@ -420,6 +492,11 @@ export class TriValueBinding extends CjsModel
     return null;
   }
 
+  /**
+   * Chooses the copy strategy for a source/destination category pair, or null
+   * when the types are incompatible; the plan also records the byte size a
+   * rerouted destination buffer must provide.
+   */
   static #CreateCopyPlan(source, sourceOffset, destination, destinationOffset)
   {
     if (!source || !destination) return null;
@@ -518,6 +595,10 @@ export class TriValueBinding extends CjsModel
     return null;
   }
 
+  /**
+   * Executes a copy plan, applying the scale and per-component offset, and
+   * returns whether any component actually changed.
+   */
   static #ApplyCopyPlan(plan, object, name, source, destination, scale, offset)
   {
     switch (plan.kind)
@@ -608,6 +689,11 @@ export class TriValueBinding extends CjsModel
     }
   }
 
+  /**
+   * Writes a scalar through whichever destination shape applies - a setter
+   * function, an array's first slot, a { value } holder, or the object's own
+   * field - returning false when the value is already equal.
+   */
   static #WriteScalar(object, name, destination, value)
   {
     if (typeof destination === "function")
@@ -637,6 +723,10 @@ export class TriValueBinding extends CjsModel
     return true;
   }
 
+  /**
+   * Writes one array component, returning false when the index is out of range
+   * or the value is unchanged.
+   */
   static #WriteArrayComponent(destination, index, value)
   {
     if (!TriValueBinding.#IsArrayLike(destination) || destination.length <= index) return false;
@@ -645,6 +735,10 @@ export class TriValueBinding extends CjsModel
     return true;
   }
 
+  /**
+   * Truncates a number to the destination's integer or boolean kind; float kinds
+   * pass through unchanged.
+   */
   static #CastScalar(kind, value)
   {
     switch (kind)
@@ -660,6 +754,10 @@ export class TriValueBinding extends CjsModel
     }
   }
 
+  /**
+   * Byte size of a scalar kind, used to size the rerouted-buffer requirement
+   * recorded in the copy plan.
+   */
   static #ScalarBytes(kind)
   {
     if (["int8", "uint8", "boolean"].includes(kind)) return 1;
@@ -668,6 +766,10 @@ export class TriValueBinding extends CjsModel
     return 4;
   }
 
+  /**
+   * Notifies the destination of the changed field through UpdateValues,
+   * OnValueChanged or OnModified, whichever it implements.
+   */
   static #Notify(object, name, source)
   {
     if (typeof object.UpdateValues === "function") object.UpdateValues({ property: name, source });
@@ -675,11 +777,13 @@ export class TriValueBinding extends CjsModel
     else object.OnModified?.({ property: name, source });
   }
 
+  /** Whether the value is an array or a typed-array view. */
   static #IsArrayLike(value)
   {
     return Array.isArray(value) || ArrayBuffer.isView(value);
   }
 
+  /** Whether a value can be held by WeakRef, i.e. an object or a function. */
   static #IsReference(value)
   {
     return value !== null && (typeof value === "object" || typeof value === "function");

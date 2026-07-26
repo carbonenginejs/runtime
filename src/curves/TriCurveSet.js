@@ -4,6 +4,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Playable group of curves and value bindings sharing one scaled playhead,
+ * applying every curve and copying every binding each update while it is
+ * playing.
+ */
 @type.define({
   className: "TriCurveSet",
   family: "curves"
@@ -472,6 +477,11 @@ export class TriCurveSet extends CjsModel
   {
     return this.#isUsingSimTimeRebase;
   }
+  /**
+   * Constrains the playhead to the active temporary range, wrapping it around
+   * the range for a looped range and clamping it to the range end otherwise;
+   * does nothing when no range is set.
+   */
   ApplyTimeRange()
   {
     if (!this.#hasTimeRange)
@@ -495,6 +505,11 @@ export class TriCurveSet extends CjsModel
       this.scaledTime = Math.min(this.scaledTime, this.#timeRangeMax);
     }
   }
+  /**
+   * Invokes the registered stop callback exactly once and releases it, accepting
+   * either a plain function or a Carbon callable that is called and then
+   * destroyed.
+   */
   CallStopCallback()
   {
     if (!this.#callback)
@@ -512,6 +527,10 @@ export class TriCurveSet extends CjsModel
     }
     this.#callback = null;
   }
+  /**
+   * Releases the registered stop callback without invoking it, destroying it
+   * when it is a Carbon callable.
+   */
   DestroyStopCallback()
   {
     if (this.#callback && typeof this.#callback !== "function")

@@ -46,12 +46,17 @@ export class Tr2EffectLibraryParameters extends CjsModel
   @type.boolean
   usedTexturesDirty = false;
 
+  /** Records a resource this library binds and marks the used-texture list stale. */
   AddUsedResource(resource)
   {
     this.usedResources.push(resource);
     this.usedTexturesDirty = true;
   }
 
+  /**
+   * Records a parameter whose value destination has been rerouted into this
+   * library's storage.
+   */
   AddReroutable(reroutable)
   {
     this.reroutedParameters.push(reroutable);

@@ -1,14 +1,26 @@
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 
+/**
+ * Shared base for the shader parameter models: destination-reroute plumbing,
+ * effect-reflection lookups and Carbon's FNV1 content hashing.
+ */
 export class CjsParameter extends CjsModel
 {
 
+  /**
+   * Whether a value can receive a scalar write - a setter function, a `{ value:
+   * number }` holder, or a writable number array.
+   */
   static isScalarDestination(value)
   {
     return typeof value === "function" || CjsParameter.isNumberHolder(value) || CjsParameter.isWritableNumberArray(value, 1);
   }
 
+  /**
+   * Reads a scalar back out of whichever destination form was supplied.
+   * @param fallback returned for function destinations, which are write-only
+   */
   static readScalarDestination(destination, fallback)
   {
     if (typeof destination === "function")
@@ -22,6 +34,10 @@ export class CjsParameter extends CjsModel
     return Number(destination[0]);
   }
 
+  /**
+   * Writes a scalar through whichever destination form was supplied - calling a
+   * function, assigning `.value`, or writing element 0.
+   */
   static writeScalarDestination(destination, value)
   {
     if (typeof destination === "function")
@@ -37,6 +53,10 @@ export class CjsParameter extends CjsModel
     destination[0] = value;
   }
 
+  /**
+   * Tells every registered binding the parameter's destination moved, calling
+   * function bindings directly and object bindings through RerouteDestination.
+   */
   static notifyBindings(bindings, destination)
   {
     for (const binding of bindings)
@@ -52,6 +72,10 @@ export class CjsParameter extends CjsModel
     }
   }
 
+  /**
+   * Appends a binding to a parameter's binding list unless it is already
+   * present.
+   */
   static registerBinding(bindings, binding)
   {
     if (!bindings.includes(binding))
@@ -60,6 +84,10 @@ export class CjsParameter extends CjsModel
     }
   }
 
+  /**
+   * Removes a binding from a parameter's binding list; unknown bindings are
+   * ignored.
+   */
   static unregisterBinding(bindings, binding)
   {
     const index = bindings.indexOf(binding);
@@ -69,50 +97,82 @@ export class CjsParameter extends CjsModel
     }
   }
 
+  /** Whether the shader reflects a constant of this name. */
   static hasEffectConstant(effectRes, name)
   {
     return !!CjsParameter.getEffectConstant(effectRes, name);
   }
 
+  /**
+   * The reflected constant description for a name, accepting either casing of
+   * the accessor; null when absent. Reflection metadata only - never a GPU
+   * handle.
+   */
   static getEffectConstant(effectRes, name)
   {
     const reader = effectRes;
     return reader?.GetConstant?.(name) ?? reader?.getConstant?.(name) ?? null;
   }
 
+  /** Whether the shader reflects a resource of this name. */
   static hasEffectResource(effectRes, name)
   {
     const reader = effectRes;
     return !!(reader?.GetResource?.(name) ?? reader?.getResource?.(name));
   }
 
+  /**
+   * The reflected resource description for a name, accepting either casing of
+   * the accessor; null when absent.
+   */
   static getEffectResource(effectRes, name)
   {
     const reader = effectRes;
     return reader?.GetResource?.(name) ?? reader?.getResource?.(name) ?? null;
   }
 
+  /**
+   * The annotation container the shader authored for a parameter name, in
+   * whatever shape the reflection source uses; null when absent.
+   */
   static getEffectAnnotations(effectRes, name)
   {
     const reader = effectRes;
     return reader?.GetParameterAnnotations?.(name) ?? reader?.getParameterAnnotations?.(name) ?? null;
   }
 
+  /**
+   * A parameter's shader name, preferring GetParameterName over a raw `name`
+   * field; the empty string when neither exists.
+   */
   static getNamedValue(value)
   {
     return value?.GetParameterName?.() ?? value?.getParameterName?.() ?? value?.name ?? "";
   }
 
+  /**
+   * The name of a collection entry that may be a bare string, a named model, or
+   * a `{ key }` pair.
+   */
   static getArrayItemName(value)
   {
     return typeof value === "string" ? value : value?.name ?? value?.key ?? "";
   }
 
+  /**
+   * First array entry whose item name or parameter name matches; null for a
+   * non-array.
+   */
   static findByName(values, name)
   {
     return Array.isArray(values) ? values.find(value => CjsParameter.getArrayItemName(value) === name || CjsParameter.getNamedValue(value) === name) ?? null : null;
   }
 
+  /**
+   * Invalidates a material's resource sets and constant buffers after one of its
+   * resources changed; every call is optional-chained, so non-material owners
+   * are tolerated.
+   */
   static markMaterialResourcesDirty(material)
   {
     material?.InvalidateResourceSets?.();
@@ -120,6 +180,10 @@ export class CjsParameter extends CjsModel
     material?.MarkConstantBuffersDirty?.();
   }
 
+  /**
+   * Reads the sRGB flag off a reflected constant, accepting the
+   * isSRGB/isSrgb/srgb spellings different reflection sources emit.
+   */
   static getConstantIsSrgb(constant)
   {
     const data = constant;
@@ -193,16 +257,28 @@ export class CjsParameter extends CjsModel
 
   static #nextIdentity = 1;
 
+  /**
+   * Whether a value is an object with a numeric `value` property - the
+   * boxed-scalar destination form.
+   */
   static isNumberHolder(value)
   {
     return typeof value === "object" && value !== null && "value" in value && typeof value.value === "number";
   }
 
+  /**
+   * Whether a value is an object with a `length` of at least `length`; element
+   * types are deliberately not checked, so uninitialized out-parameters pass.
+   */
   static isWritableNumberArray(value, length)
   {
     return !!value && typeof value === "object" && "length" in value && Number(value.length) >= length;
   }
 
+  /**
+   * Whether a value is an array or typed array of exactly `length` numbers - the
+   * strict test used to infer a parameter class from a raw map-form value.
+   */
   static isNumberArrayValue(value, length)
   {
     if (!value || typeof value !== "object" || Number(value.length) !== length) return false;

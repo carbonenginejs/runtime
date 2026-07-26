@@ -6,6 +6,11 @@ import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
 
 
+/**
+ * The light one sprite contributes, carrying the blink rate, phase and scale
+ * range that modulate its radius, plus its light profile and the bone matrix
+ * resolved for it each frame.
+ */
 @type.define({ className: "EveSpriteLight", family: "eve/attachment/sprites" })
 export class EveSpriteLight extends CjsModel
 {
@@ -37,6 +42,11 @@ export class EveSpriteLight extends CjsModel
   @type.string
   lightProfilePath = "";
 
+  /**
+   * Builds a sprite light from a SOF-authored description, taking the light
+   * profile path from the description or, failing that, from the light data's
+   * texture path.
+   */
   static FromSOF(value)
   {
     const values = value ?? {};

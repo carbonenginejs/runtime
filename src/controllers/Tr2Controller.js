@@ -83,6 +83,11 @@ export class Tr2Controller extends CjsModel
   {
     return this.#callbackCount;
   }
+  /**
+   * Number of named callbacks currently registered; mirrored as a field so
+   * consumers can observe registration without walking the private callback
+   * list.
+   */
   set callbackCount(value)
   {
     this.#callbackCount = value;

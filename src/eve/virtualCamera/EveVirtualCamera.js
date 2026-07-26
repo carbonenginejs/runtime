@@ -10,6 +10,11 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 const SCRUB_INCREMENT_DT = 1 / 60;
 const SCRUB_MAX_ITERATIONS = 20;
+/**
+ * Cinematic camera defined by a position, a point of interest, a field of view
+ * and a roll, each rebuilt every update from its own list of behaviours over a
+ * local timeline.
+ */
 @type.define({
   className: "EveVirtualCamera",
   family: "eve/virtualCamera"
@@ -96,6 +101,10 @@ export class EveVirtualCamera extends CjsModel
   @type.boolean
   running = false;
 
+  /**
+   * Builds a D3D-handed look-at view matrix from the current position, point of
+   * interest and roll-adjusted up direction.
+   */
   @carbon.method
   @impl.adapted
   GetViewMatrix(out = mat4.create())
@@ -103,6 +112,14 @@ export class EveVirtualCamera extends CjsModel
     return mat4.lookAtD3D(out, this.position, this.pointOfInterest, this.GetUpDirection());
   }
 
+  /**
+   * Builds a zero-to-one depth perspective projection from the camera's field of view and the supplied framing values.
+   * @param {Number} aspectRatio
+   * @param {Number} frontClip Near plane distance
+   * @param {Number} backClip Far plane distance
+   * @param {mat4} [out]
+   * @returns {mat4}
+   */
   @carbon.method
   @impl.adapted
   GetProjectionMatrix(aspectRatio, frontClip, backClip, out = mat4.create())
@@ -110,6 +127,10 @@ export class EveVirtualCamera extends CjsModel
     return mat4.perspectiveZO(out, this.fov, aspectRatio, frontClip, backClip);
   }
 
+  /**
+   * Returns the normalized direction from the camera position towards its point
+   * of interest.
+   */
   @carbon.method
   @impl.adapted
   GetViewDirection(out = vec3.create())
@@ -117,6 +138,10 @@ export class EveVirtualCamera extends CjsModel
     return vec3.normalize(out, vec3.subtract(out, this.pointOfInterest, this.position));
   }
 
+  /**
+   * Returns the view direction, as a virtual camera always faces its point of
+   * interest.
+   */
   @carbon.method
   @impl.adapted
   GetForwardDirection(out = vec3.create())
@@ -124,6 +149,11 @@ export class EveVirtualCamera extends CjsModel
     return this.GetViewDirection(out);
   }
 
+  /**
+   * Returns the up vector obtained by orthogonalizing world up against the view
+   * direction and then rotating it about the view axis by the roll angle, which
+   * is authored in degrees.
+   */
   @carbon.method
   @impl.adapted
   GetUpDirection(out = vec3.create())
@@ -135,6 +165,7 @@ export class EveVirtualCamera extends CjsModel
     return vec3.normalize(out, vec3.transformQuat(out, out, rotation));
   }
 
+  /** Returns the normalized cross product of the forward and up directions. */
   @carbon.method
   @impl.adapted
   GetRightDirection(out = vec3.create())
@@ -142,6 +173,13 @@ export class EveVirtualCamera extends CjsModel
     return vec3.normalize(out, vec3.cross(out, this.GetForwardDirection(vec3.create()), this.GetUpDirection(vec3.create())));
   }
 
+  /**
+   * Advances the local timeline (only while running), refreshes the anchor
+   * centre, radius and forward state, and re-evaluates position, point of
+   * interest, field of view and roll from their behaviour lists; each value is
+   * written back only when its behaviour list is non-empty, so an unauthored
+   * channel keeps whatever was set externally.
+   */
   @carbon.method
   @impl.adapted
   Update(deltaTime)
@@ -176,6 +214,7 @@ export class EveVirtualCamera extends CjsModel
     }
   }
 
+  /** Starts the local timeline advancing on subsequent updates. */
   @carbon.method
   @impl.implemented
   Play()
@@ -183,6 +222,10 @@ export class EveVirtualCamera extends CjsModel
     this.running = true;
   }
 
+  /**
+   * Freezes the local timeline without resetting it, so updates leave the
+   * evaluated transform where it is.
+   */
   @carbon.method
   @impl.implemented
   Pause()
@@ -190,6 +233,7 @@ export class EveVirtualCamera extends CjsModel
     this.running = false;
   }
 
+  /** Rewinds the local timeline to zero and stops it advancing. */
   @carbon.method
   @impl.implemented
   Stop()
@@ -198,6 +242,7 @@ export class EveVirtualCamera extends CjsModel
     this.running = false;
   }
 
+  /** Rewinds the local timeline to zero, leaving the running state alone. */
   @carbon.method
   @impl.implemented
   Reset()
@@ -205,6 +250,10 @@ export class EveVirtualCamera extends CjsModel
     this.localElapsedTime = 0;
   }
 
+  /**
+   * Scrubs the camera to an absolute local time by replaying Update in fixed 1/60s steps so that stateful behaviours see a plausible history; the step count is capped at 20 and the step size grows to cover longer jumps. The camera is forced running for the scrub and its previous running state is restored afterwards.
+   * @param {Number} time Target local elapsed time in seconds; may be negative
+   */
   @carbon.method
   @impl.adapted
   UpdateToLocalTime(time)
@@ -231,6 +280,10 @@ export class EveVirtualCamera extends CjsModel
     }
   }
 
+  /**
+   * Copies field of view, roll, position and point of interest from another
+   * camera, leaving behaviours, name and timeline untouched.
+   */
   @carbon.method
   @impl.implemented
   CopyTransform(source)
@@ -241,6 +294,10 @@ export class EveVirtualCamera extends CjsModel
     vec3.copy(this.pointOfInterest, source.pointOfInterest);
   }
 
+  /**
+   * Writes a transform supplied from outside directly onto the camera, used to
+   * drive it from a host application or a transition instead of from behaviours.
+   */
   @carbon.method
   @impl.adapted
   UpdateExternal(position, pointOfInterest, fov, roll)
@@ -251,6 +308,7 @@ export class EveVirtualCamera extends CjsModel
     this.roll = roll;
   }
 
+  /** Returns the camera name used to look it up in the camera system. */
   @carbon.method
   @impl.implemented
   GetName()
@@ -258,6 +316,7 @@ export class EveVirtualCamera extends CjsModel
     return this.name;
   }
 
+  /** Sets the camera name, coercing the argument to a string. */
   @carbon.method
   @impl.implemented
   SetName(name)
@@ -265,6 +324,10 @@ export class EveVirtualCamera extends CjsModel
     this.name = String(name);
   }
 
+  /**
+   * Returns the timeline length in seconds that behaviours divide local elapsed
+   * time by to get their normalized curve time.
+   */
   @carbon.method
   @impl.implemented
   GetAnimationTimelineLength()
@@ -272,6 +335,10 @@ export class EveVirtualCamera extends CjsModel
     return this.animationTimelineLength;
   }
 
+  /**
+   * Sets the timeline length in seconds; a length of zero makes behaviours treat
+   * their normalized time as zero.
+   */
   @carbon.method
   @impl.implemented
   SetAnimationTimelineLength(value)
@@ -279,6 +346,7 @@ export class EveVirtualCamera extends CjsModel
     this.animationTimelineLength = value;
   }
 
+  /** Returns the vertical field of view in radians. */
   @carbon.method
   @impl.implemented
   GetFov()
@@ -286,6 +354,10 @@ export class EveVirtualCamera extends CjsModel
     return this.fov;
   }
 
+  /**
+   * Sets the vertical field of view in radians; field-of-view behaviours
+   * overwrite it on the next update.
+   */
   @carbon.method
   @impl.implemented
   SetFov(value)
@@ -293,6 +365,7 @@ export class EveVirtualCamera extends CjsModel
     this.fov = value;
   }
 
+  /** Returns the roll about the view axis in degrees. */
   @carbon.method
   @impl.implemented
   GetRoll()
@@ -300,6 +373,10 @@ export class EveVirtualCamera extends CjsModel
     return this.roll;
   }
 
+  /**
+   * Sets the roll about the view axis in degrees; roll behaviours overwrite it
+   * on the next update.
+   */
   @carbon.method
   @impl.implemented
   SetRoll(value)
@@ -307,6 +384,7 @@ export class EveVirtualCamera extends CjsModel
     this.roll = value;
   }
 
+  /** Copies the world-space camera position into out. */
   @carbon.method
   @impl.adapted
   GetPosition(out = vec3.create())
@@ -314,6 +392,10 @@ export class EveVirtualCamera extends CjsModel
     return vec3.copy(out, this.position);
   }
 
+  /**
+   * Copies a world-space position into the camera, preserving the identity of
+   * the backing vector.
+   */
   @carbon.method
   @impl.adapted
   SetPosition(value)
@@ -321,6 +403,7 @@ export class EveVirtualCamera extends CjsModel
     vec3.copy(this.position, value);
   }
 
+  /** Copies the world-space point the camera looks at into out. */
   @carbon.method
   @impl.adapted
   GetPointOfInterest(out = vec3.create())
@@ -328,6 +411,10 @@ export class EveVirtualCamera extends CjsModel
     return vec3.copy(out, this.pointOfInterest);
   }
 
+  /**
+   * Copies a world-space look-at point into the camera, preserving the identity
+   * of the backing vector.
+   */
   @carbon.method
   @impl.adapted
   SetPointOfInterest(value)
@@ -335,6 +422,10 @@ export class EveVirtualCamera extends CjsModel
     vec3.copy(this.pointOfInterest, value);
   }
 
+  /**
+   * Appends a vector3 behaviour whose returned offset is accumulated into the
+   * camera position, starting from the position anchor centre.
+   */
   @carbon.method
   @impl.implemented
   AddPositionBehaviour(behaviour)
@@ -342,6 +433,10 @@ export class EveVirtualCamera extends CjsModel
     this.positionBehaviours.push(behaviour);
   }
 
+  /**
+   * Appends a vector3 behaviour whose returned offset is accumulated into the
+   * point of interest, starting from the point-of-interest anchor centre.
+   */
   @carbon.method
   @impl.implemented
   AddPointOfInterestBehaviour(behaviour)
@@ -349,6 +444,10 @@ export class EveVirtualCamera extends CjsModel
     this.pointOfInterestBehaviours.push(behaviour);
   }
 
+  /**
+   * Appends a float behaviour whose returned delta is accumulated into the field
+   * of view, which restarts from 1 radian each update.
+   */
   @carbon.method
   @impl.implemented
   AddFOVBehaviour(behaviour)
@@ -356,6 +455,10 @@ export class EveVirtualCamera extends CjsModel
     this.fovBehaviours.push(behaviour);
   }
 
+  /**
+   * Appends a float behaviour whose returned delta is accumulated into the roll,
+   * which restarts from 0 degrees each update.
+   */
   @carbon.method
   @impl.implemented
   AddRollBehaviour(behaviour)
@@ -363,6 +466,11 @@ export class EveVirtualCamera extends CjsModel
     this.rollBehaviours.push(behaviour);
   }
 
+  /**
+   * Adds each active behaviour's returned offset into value in list order, so
+   * later behaviours see the running result of the earlier ones together with
+   * the anchor centre, radius and forward direction.
+   */
   static #applyVectorBehaviours(behaviours, camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward)
   {
     for (const behaviour of behaviours)
@@ -378,6 +486,10 @@ export class EveVirtualCamera extends CjsModel
     }
   }
 
+  /**
+   * Returns value with each active behaviour's returned delta added in list
+   * order; a non-numeric result counts as zero.
+   */
   static #applyFloatBehaviours(behaviours, camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward)
   {
     for (const behaviour of behaviours)
@@ -390,6 +502,12 @@ export class EveVirtualCamera extends CjsModel
     return value;
   }
 
+  /**
+   * Recomputes the averaged centre, forward direction and enclosing radius of one anchor list, which behaviours use to scale and orient themselves relative to the anchored objects.
+   * @param {EveVirtualCamera} camera
+   * @param {String} prefix Field prefix, either "position" or "pointOfInterest"
+   * @returns {void} Writes the AnchorCenter, AnchorForwardDirection and AnchorRadius fields; with no anchors the forward direction becomes +Z and the radius 1000
+   */
   static #updateAnchorState(camera, prefix)
   {
     const anchors = camera[`${prefix}Anchors`];

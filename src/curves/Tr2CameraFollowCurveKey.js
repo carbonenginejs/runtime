@@ -6,6 +6,11 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 import { Tr2FollowCurveKeyInterpolation } from "./enums.js";
 
 
+/**
+ * Key of a camera follow curve, holding the camera offset and its tangents plus
+ * the field-of-view multiplier and framing angles used to place the camera box
+ * at that point in time.
+ */
 @type.define({
   className: "Tr2CameraFollowCurveKey",
   family: "curves"

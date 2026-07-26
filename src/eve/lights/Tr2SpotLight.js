@@ -10,6 +10,10 @@ import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { Tr2Light } from "./Tr2Light.js";
 
 
+/**
+ * Cone light, adding inner and outer cone angles to the flattened point-light
+ * attribute set.
+ */
 @type.define({ className: "Tr2SpotLight", family: "eve/lights" })
 export class Tr2SpotLight extends Tr2Light
 {

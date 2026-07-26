@@ -24,6 +24,10 @@ export class Tr2VariableStore extends CjsModel
 
   #variables = new Map();
 
+  /**
+   * Parents the new store to the global store, except while the global store
+   * itself is being constructed.
+   */
   constructor()
   {
     super();
@@ -33,6 +37,10 @@ export class Tr2VariableStore extends CjsModel
     }
   }
 
+  /**
+   * The store searched next when a lookup misses here; null on the global store,
+   * which is the root.
+   */
   @carbon.method
   @impl.implemented
   GetParentVariableStore()
@@ -187,6 +195,11 @@ export class Tr2VariableStore extends CjsModel
 
   // Carbon RegisterVariableType: reuse an existing local variable when the
   // type matches or was only reserved; a hard type conflict returns null.
+  /**
+   * Reuses an existing local variable when its type matches or was only reserved
+   * as INVALID, returns null on a hard type conflict, and otherwise creates the
+   * local variable.
+   */
   #RegisterVariableType(name, contentType)
   {
     const existing = this.FindLocalVariable(name);
@@ -206,11 +219,19 @@ export class Tr2VariableStore extends CjsModel
     return this.#CreateLocal(name, contentType);
   }
 
+  /**
+   * Creates a local variable holding only the reserved INVALID type, so the name
+   * is claimed before a value is known.
+   */
   #CreateReserved(name)
   {
     return this.#CreateLocal(name, TriVariableContentType.TRIVARIABLE_INVALID);
   }
 
+  /**
+   * Creates a variable with the given name and content type and stores it in
+   * this store.
+   */
   #CreateLocal(name, contentType)
   {
     const variable = new TriVariable();

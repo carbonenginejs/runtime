@@ -6,6 +6,10 @@ import { CjsControllerExpressionProgram } from "./CjsControllerExpressionProgram
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
+/**
+ * Controller action that registers for per-frame updates and drives a curve
+ * set's playhead from an expression, by default the elapsed state time.
+ */
 @type.define({
   className: "Tr2ActionAnimateCurveSet",
   family: "controllers"
@@ -161,6 +165,10 @@ export class Tr2ActionAnimateCurveSet extends CjsModel
       action: this
     }))) || 0;
   }
+  /**
+   * Compiles the authored time expression, reusing the cached program while the
+   * expression text is unchanged.
+   */
   CompileExpression()
   {
     return CjsControllerExpressionProgram.compileCached(this.#runtime, this.value, 0);

@@ -10,6 +10,11 @@ import { Tr2MatrixKey } from "./Tr2MatrixKey.js";
 const SPHERICAL_LINEAR = 4;
 
 
+/**
+ * Matrix function that tracks a named bone on a skinned object, returning the
+ * authored transform composed with that bone's current matrix and the object's
+ * world transform rather than sampling its own keys.
+ */
 @type.define({
   className: "Tr2BoneMatrixCurve",
   family: "curves"
@@ -288,6 +293,11 @@ export class Tr2BoneMatrixCurve extends CjsModel
   {
     return this.#bone;
   }
+  /**
+   * Gets the last key at or before a time, relying on the keys being sorted and
+   * falling back to the first key when the time precedes all of them; returns
+   * null for an empty curve.
+   */
   GetKeyForTime(time)
   {
     const keys = this.keys;
@@ -310,6 +320,11 @@ export class Tr2BoneMatrixCurve extends CjsModel
     return best;
   }
 
+  /**
+   * Reads a bone's 16-component matrix through GetBoneMatrix or
+   * GetBoneTransform, returning null when the object exposes neither or returns
+   * a wrongly sized value.
+   */
   static #getBoneMatrix(skinnedObject, bone)
   {
     if (!skinnedObject || !bone)
@@ -329,6 +344,10 @@ export class Tr2BoneMatrixCurve extends CjsModel
     return null;
   }
 
+  /**
+   * Reads the skinned object's own 16-component world transform, or null when it
+   * exposes none.
+   */
   static #getSkinnedObjectTransform(skinnedObject)
   {
     if (skinnedObject && typeof skinnedObject === "object" && "GetTransform" in skinnedObject && typeof skinnedObject.GetTransform === "function")

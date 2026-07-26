@@ -7,6 +7,10 @@ import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from "./enums.js";
 import { Tr2CurveQuaternionKey } from "./Tr2CurveQuaternionKey.js";
 
 
+/**
+ * Keyed quaternion curve evaluated in seconds, with per-key interpolation and
+ * independent extrapolation modes before the first and after the last key.
+ */
 @type.define({
   className: "Tr2CurveQuaternion",
   family: "curves"

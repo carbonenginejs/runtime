@@ -23,6 +23,10 @@ import {
 } from "../../lights/lightConversion.js";
 
 
+/**
+ * A hull's authored banner quads, owning their static and per-bone bounds, the
+ * largest single banner radius its LOD is measured on, and the banner lights.
+ */
 @type.define({ className: "EveBannerSet", family: "eve/attachment/banners" })
 export class EveBannerSet extends EveEntity
 {
@@ -81,6 +85,12 @@ export class EveBannerSet extends EveEntity
    * BLACK until UpdateLights runs. */
   #activationStrength = 0;
 
+  /**
+   * Recomputes the bounds a banner set answers with - the static box, the
+   * per-bone boxes and the largest single banner half-diagonal - and marks the
+   * packed geometry stale; a set without an effect builds no bounds at all, so
+   * it reads as invisible rather than unbounded.
+   */
   @carbon.method
   @impl.adapted
   Rebuild()
@@ -311,6 +321,10 @@ export class EveBannerSet extends EveEntity
     return true;
   }
 
+  /**
+   * The SOF reference id of the banner at an index, which is how a caller maps a
+   * picked banner back to its authored slot.
+   */
   @carbon.method
   @impl.implemented
   GetReference(index)
@@ -368,6 +382,10 @@ export class EveBannerSet extends EveEntity
     return uLength / vLength;
   }
 
+  /**
+   * Runs the first Rebuild so the set has bounds before its first visibility
+   * test.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -376,6 +394,10 @@ export class EveBannerSet extends EveEntity
     return true;
   }
 
+  /**
+   * Copies a loose banner description into a stored EveBannerItem, appends it
+   * and returns the copy; the source object is not retained.
+   */
   @carbon.method
   @impl.implemented
   AddBanner(banner)
@@ -385,6 +407,10 @@ export class EveBannerSet extends EveEntity
     return copy;
   }
 
+  /**
+   * Sets the effect that draws the banners; without one Rebuild produces no
+   * bounds and the set never draws.
+   */
   @carbon.method
   @impl.implemented
   SetEffect(effect)
@@ -392,6 +418,7 @@ export class EveBannerSet extends EveEntity
     this.effect = effect ?? null;
   }
 
+  /** Sets the banner key that the set's picking id is derived from. */
   @carbon.method
   @impl.implemented
   SetKey(key)
@@ -399,6 +426,7 @@ export class EveBannerSet extends EveEntity
     this.key = Number(key) | 0;
   }
 
+  /** The picking id this set writes, which is 101 plus the authored key. */
   @carbon.method
   @impl.implemented
   GetPickingID()
@@ -406,6 +434,10 @@ export class EveBannerSet extends EveEntity
     return (101 + this.key) >>> 0;
   }
 
+  /**
+   * Sets a shader option on the banner effect, doing nothing when no effect that
+   * accepts options is attached.
+   */
   @carbon.method
   @impl.adapted
   SetShaderOption(name, value)
@@ -416,6 +448,10 @@ export class EveBannerSet extends EveEntity
     }
   }
 
+  /**
+   * Sets the texture parameter whose average colour replaces the authored colour
+   * of every banner light.
+   */
   @carbon.method
   @impl.adapted
   SetPrimaryTextureParameter(parameter)
@@ -423,6 +459,10 @@ export class EveBannerSet extends EveEntity
     this.primaryTextureParameter = parameter ?? null;
   }
 
+  /**
+   * Converts a SOF-authored light description into an EveBannerLight and appends
+   * it to the set.
+   */
   @carbon.method
   @impl.adapted
   AddLightFromSOF(light)
@@ -591,11 +631,20 @@ export class EveBannerSet extends EveEntity
 
   static #aspectPreviousPosition = vec3.create();
 
+  /**
+   * Clamps an authored curvature angle to the 0..180 degree range the arc
+   * measurement assumes.
+   */
   static #clampBannerAngle(angle)
   {
     return Math.max(0, Math.min(Number(angle), 180));
   }
 
+  /**
+   * Sums the transformed chord lengths of the horizontal curvature arc, sampled
+   * at roughly one segment per five degrees, giving the banner's real U length
+   * as the generated geometry would have it.
+   */
   static #measureHorizontalArc(transform, angle, halfAngle, scaleX, scaleZ)
   {
     const segments = 1 + Math.floor(angle / 5);
@@ -620,6 +669,11 @@ export class EveBannerSet extends EveEntity
     return length;
   }
 
+  /**
+   * Sums the transformed chord lengths of the vertical curvature arc, sampled at
+   * roughly one segment per five degrees, giving the banner's real V length as
+   * the generated geometry would have it.
+   */
   static #measureVerticalArc(transform, angle, halfAngle, scaleY, scaleZ)
   {
     const segments = 1 + Math.floor(angle / 5);
@@ -644,6 +698,10 @@ export class EveBannerSet extends EveEntity
     return length;
   }
 
+  /**
+   * Builds an EveBannerItem from a loose banner description, leaving the item's
+   * own default in place for every field the source omits.
+   */
   static #copyBanner(source)
   {
     const banner = new EveBannerItem();

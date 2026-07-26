@@ -17,16 +17,22 @@ export class EveSocketParameterBindingBase extends CjsModel
   @type.list("ITr2ValueBinding")
   bindings = [];
 
+  /** Returns the name an external parameter has to match before it can bind here. */
   GetName()
   {
     return this.name;
   }
 
+  /**
+   * Sets the name external parameters must match to bind, coercing null to an
+   * empty string.
+   */
   SetName(name)
   {
     this.name = String(name ?? "");
   }
 
+  /** Drops every value binding, leaving the current value in place. */
   @carbon.method
   @impl.implemented
   ClearBindings()
@@ -34,6 +40,11 @@ export class EveSocketParameterBindingBase extends CjsModel
     this.bindings.length = 0;
   }
 
+  /**
+   * Creates a binding that reads this parameter's `value` field and writes it to the external parameter, keeping it only when the names match, the binding initializes and a default could be captured.
+   *
+   * @returns {boolean} True when the binding was created and stored.
+   */
   @carbon.method
   @impl.adapted
   BindToExternalParameter(externalParameter)
@@ -48,11 +59,17 @@ export class EveSocketParameterBindingBase extends CjsModel
     return true;
   }
 
+  /**
+   * Hook where a typed subclass records the external parameter's current value
+   * as a restore default; the base captures nothing and refuses the bind by
+   * returning false.
+   */
   ExtractDefault(_externalParameter)
   {
     return false;
   }
 
+  /** Reports whether anything is bound to this parameter. */
   @carbon.method
   @impl.implemented
   Used()
@@ -60,6 +77,7 @@ export class EveSocketParameterBindingBase extends CjsModel
     return this.bindings.length !== 0;
   }
 
+  /** Pushes the current value out through every binding. */
   @carbon.method
   @impl.implemented
   Propagate()

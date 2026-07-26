@@ -4,6 +4,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Controller action that fires a named callback on its controller when the
+ * action starts, letting host code hook a point in a state machine or timeline.
+ */
 @type.define({
   className: "Tr2ActionCallback",
   family: "controllers"

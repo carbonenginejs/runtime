@@ -6,6 +6,10 @@ import { Tr2MeshBase } from "./Tr2MeshBase.js";
 import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 
 
+/**
+ * A mesh backed by a geometry resource, adding the resource path plus the
+ * morph-target weights and baked-morph state on top of Tr2MeshBase.
+ */
 @type.define({ className: "Tr2Mesh", family: "trinityCore" })
 export class Tr2Mesh extends Tr2MeshBase
 {
@@ -33,11 +37,16 @@ export class Tr2Mesh extends Tr2MeshBase
   @type.objectRef("TriGeometryRes")
   geometry = null;
 
+  /**
+   * True while the bound geometry resource is still loading; false when no
+   * resource is bound.
+   */
   get isLoading()
   {
     return this.geometry?.IsLoading?.() ?? false;
   }
 
+  /** Rebuilds the morph-target state once a geometry resource is present. */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -49,6 +58,10 @@ export class Tr2Mesh extends Tr2MeshBase
     return true;
   }
 
+  /**
+   * Rebuilds the morph-target state after a field change when a geometry
+   * resource is present.
+   */
   @carbon.method
   @impl.adapted
   OnModified()
@@ -60,6 +73,10 @@ export class Tr2Mesh extends Tr2MeshBase
     return true;
   }
 
+  /**
+   * Sets the geometry resource path to load from; the currently bound resource
+   * is left in place until the load resolves.
+   */
   @carbon.method
   @impl.adapted
   SetMeshResPath(path)
@@ -67,6 +84,11 @@ export class Tr2Mesh extends Tr2MeshBase
     this.geometryResPath = String(path ?? "");
   }
 
+  /**
+   * Binds an already-resolved geometry resource, clears the authored path and
+   * rebuilds morph targets; the geometry rebuild token is added explicitly
+   * because direct mutation bypasses SetValues.
+   */
   @carbon.method
   @impl.adapted
   SetGeometryRes(resource)
@@ -79,6 +101,7 @@ export class Tr2Mesh extends Tr2MeshBase
     this.InitializeMorphTargets();
   }
 
+  /** The bound geometry resource, or null until the resource layer supplies one. */
   @carbon.method
   @impl.adapted
   GetGeometryResource()
@@ -86,6 +109,10 @@ export class Tr2Mesh extends Tr2MeshBase
     return this.geometry;
   }
 
+  /**
+   * The bound resource's own path when one is bound, otherwise the authored
+   * path.
+   */
   @carbon.method
   @impl.adapted
   GetGeometryResPath()
@@ -93,6 +120,7 @@ export class Tr2Mesh extends Tr2MeshBase
     return this.geometry?.GetPath?.() ?? this.geometryResPath;
   }
 
+  /** The fixed number of mesh-area lists a mesh carries (14). */
   @carbon.method
   @impl.implemented
   GetAreasCount()

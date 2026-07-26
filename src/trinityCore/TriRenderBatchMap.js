@@ -11,12 +11,21 @@ import { Tr2RenderReason } from "../generated/trinityCore/enums.js";
 import { TriRenderBatchAccumulator, DefaultKeyGenerator, EffectKeyGenerator } from "./TriRenderBatchAccumulator.js";
 
 
+/**
+ * One render-batch accumulator per TriBatchType, with the scene-level collect,
+ * finalize and clear flow over them.
+ */
 export class TriRenderBatchMap
 {
   // batchTypes: iterable of TriBatchType values to collect. createAccumulator:
   // optional (batchType) => accumulator factory. The default matches Carbon's
   // key-generator selection: order-preserving for TRANSPARENT (the producer
   // inserts back-to-front), effect-sorted for everything else.
+  /**
+   * Creates one accumulator per requested batch type; by default TRANSPARENT
+   * gets the order-preserving key generator (the producer inserts back-to-front)
+   * and every other type the effect-sorted one.
+   */
   constructor(batchTypes, createAccumulator = null)
   {
     this.accumulators = new Map();
@@ -29,6 +38,7 @@ export class TriRenderBatchMap
     }
   }
 
+  /** The accumulator for one batch type, or null when that type is not collected. */
   GetAccumulator(batchType)
   {
     return this.accumulators.get(batchType) ?? null;
@@ -36,6 +46,11 @@ export class TriRenderBatchMap
 
   // Bind the per-object-data store (from the render context) onto every
   // accumulator - GetPerObjectData Allocs pooled records through it.
+  /**
+   * Binds the per-object-data store onto every accumulator, since
+   * GetPerObjectData leases pooled records through it; returns this for
+   * chaining.
+   */
   SetRawDataStore(store)
   {
     for (const accumulator of this.accumulators.values())
@@ -46,6 +61,7 @@ export class TriRenderBatchMap
     return this;
   }
 
+  /** The collected batch types, in insertion order, as a new array. */
   GetBatchTypes()
   {
     return Array.from(this.accumulators.keys());
@@ -55,6 +71,12 @@ export class TriRenderBatchMap
   // renderable (keyed off the pool accumulator, by convention the OPAQUE one),
   // then GetBatches into each registered batch type. Renderables are expected
   // pre-culled; visibility/frustum filtering is a scene concern upstream.
+  /**
+   * Serial form of Carbon's GetBatchesFromRenderables: one GetPerObjectData per
+   * renderable, keyed off the pool accumulator (by convention the OPAQUE one),
+   * then GetBatches into every registered batch type. Renderables are expected
+   * pre-culled.
+   */
   CollectFromRenderables(renderables, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (!renderables) return;
@@ -75,16 +97,22 @@ export class TriRenderBatchMap
     }
   }
 
+  /** Sorts and group-counts every accumulator. */
   Finalize()
   {
     for (const accumulator of this.accumulators.values()) accumulator.Finalize();
   }
 
+  /**
+   * Clears every accumulator; the accumulators themselves are retained and
+   * reused next frame.
+   */
   Clear()
   {
     for (const accumulator of this.accumulators.values()) accumulator.Clear();
   }
 
+  /** Total batches collected across every batch type. */
   GetBatchCount()
   {
     let count = 0;

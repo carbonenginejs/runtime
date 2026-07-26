@@ -7,12 +7,22 @@ import { Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType } fro
 import { Tr2CurveScalarKey } from "./Tr2CurveScalarKey.js";
 
 
+/**
+ * Keyed scalar curve evaluated in seconds, with per-key constant, linear or
+ * Hermite interpolation and independent clamp, linear, cycle or mirror
+ * extrapolation before the first and after the last key.
+ */
 @type.define({
   className: "Tr2CurveScalar",
   family: "curves"
 })
 export class Tr2CurveScalar extends CjsModel
 {
+  /**
+   * Computes an AUTO key's tangent as the time-weighted blend of the incoming
+   * and outgoing secant slopes; a zero-length interval on either side
+   * contributes a slope of 0.
+   */
   static getAutoTangent(prevTime, prevValue, time, value, nextTime, nextValue)
   {
     let left = 0;
@@ -29,6 +39,11 @@ export class Tr2CurveScalar extends CjsModel
     return left * (1 - x) + right * x;
   }
 
+  /**
+   * Computes an AUTO_CLAMP key's tangent, returning 0 at a local extremum so the
+   * curve does not overshoot, and otherwise damping the through-slope by how
+   * close the key sits to its neighbours.
+   */
   static getAutoClampedTangent(prevTime, prevValue, _time, value, nextTime, nextValue)
   {
     if (value < prevValue && value < nextValue || value > prevValue && value > nextValue)
@@ -45,6 +60,11 @@ export class Tr2CurveScalar extends CjsModel
     return (nextValue - prevValue) / (nextTime - prevTime) * keyDistance;
   }
 
+  /**
+   * Evaluates one segment at a local time using the interpolation mode of its
+   * left key; Hermite tangents are authored per unit time and scaled by the
+   * segment length here.
+   */
   static getSegmentValue(time, k0, k1)
   {
     switch (k0.interpolation)
@@ -67,6 +87,11 @@ export class Tr2CurveScalar extends CjsModel
     }
   }
 
+  /**
+   * Evaluates the slope of one segment at a local time; constant segments report
+   * 0 and Hermite segments report the cubic derivative rescaled back to
+   * per-unit-time.
+   */
   static getSegmentTangent(time, k0, k1)
   {
     switch (k0.interpolation)
@@ -90,6 +115,11 @@ export class Tr2CurveScalar extends CjsModel
     }
   }
 
+  /**
+   * Folds a scaled time back into the [first, last] key range: CYCLE repeats the
+   * range and MIRROR reflects it on alternate repeats, with a zero-length range
+   * collapsing to the first key time.
+   */
   static getWrappedLocalTime(scaledTime, first, last, extrapolationBefore, extrapolationAfter)
   {
     const length = last - first;

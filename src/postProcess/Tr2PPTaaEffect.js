@@ -4,6 +4,10 @@ import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 
+/**
+ * Temporal anti-aliasing settings: quality level, the early-out threshold below
+ * which pixels are left alone, and the debug visualization selector.
+ */
 @type.define({ className: "Tr2PPTaaEffect", family: "postProcess" })
 export class Tr2PPTaaEffect extends Tr2PPEffect
 {
@@ -22,6 +26,10 @@ export class Tr2PPTaaEffect extends Tr2PPEffect
   @type.float32
   earlyOutThreshold = 0.001;
 
+  /**
+   * Reports TAA as contributing whenever it is displayed; unlike the other
+   * effects it has no intensity or scale to gate on.
+   */
   IsActive()
   {
     return this.display !== false;

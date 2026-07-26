@@ -26,6 +26,10 @@ export class EveDistributionSpawnerBurst extends CjsModel
   @type.float32
   delayBeforeInitialBurst = 0;
 
+  /**
+   * Restarts the burst timer; the placement pool is not sorted or otherwise used
+   * by this spawner.
+   */
   @carbon.method
   @impl.implemented
   Reset(_placements)
@@ -33,6 +37,10 @@ export class EveDistributionSpawnerBurst extends CjsModel
     this.Restart();
   }
 
+  /**
+   * Rearms the spawner by clearing the timer, allowing the one-shot burst to
+   * fire again.
+   */
   @carbon.method
   @impl.implemented
   Restart()
@@ -40,6 +48,11 @@ export class EveDistributionSpawnerBurst extends CjsModel
     this.#localTimer = 0;
   }
 
+  /**
+   * Waits out the initial delay, then spawns a `completeness` fraction of the
+   * currently free placements plus the extra per-burst triggers in one go, and
+   * disarms itself until restarted.
+   */
   @carbon.method
   @impl.adapted
   UpdateSyncronous(updateContext, _params, owner)
@@ -62,6 +75,7 @@ export class EveDistributionSpawnerBurst extends CjsModel
     this.#localTimer = -1;
   }
 
+  /** Ignores controller variables; the burst is purely time-driven. */
   @carbon.method
   @impl.implemented
   SetControllerVariable(_name, _value)

@@ -12,6 +12,10 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js"
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 
 
+/**
+ * A hull's authored sprite runs - lines and circles of evenly spaced sprites -
+ * owning their static and per-bone bounds and the point lights they emit.
+ */
 @type.define({ className: "EveSpriteLineSet", family: "eve/attachment/sprites" })
 export class EveSpriteLineSet extends EveEntity
 {
@@ -58,6 +62,10 @@ export class EveSpriteLineSet extends EveEntity
    * NOT 1: packed-set lights are BLACK until UpdateLights runs). */
   #activationStrength = 0;
 
+  /**
+   * Recomputes the static and per-bone bounds from the authored sprite lines and
+   * marks the packed geometry stale.
+   */
   @carbon.method
   @impl.adapted
   Rebuild()
@@ -69,6 +77,10 @@ export class EveSpriteLineSet extends EveEntity
     CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spriteLines);
   }
 
+  /**
+   * Runs the first Rebuild so the set has bounds before its first visibility
+   * test.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -109,6 +121,7 @@ export class EveSpriteLineSet extends EveEntity
     return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
   }
 
+  /** Sets the drawing effect and the skinned flag in one call. */
   @carbon.method
   @impl.implemented
   Setup(effect, isSkinned)
@@ -117,6 +130,10 @@ export class EveSpriteLineSet extends EveEntity
     this.skinned = !!isSkinned;
   }
 
+  /**
+   * Appends an authored sprite line item; the bounds only pick it up on the next
+   * Rebuild.
+   */
   @carbon.method
   @impl.implemented
   Add(item)
@@ -124,6 +141,10 @@ export class EveSpriteLineSet extends EveEntity
     this.spriteLines.push(item);
   }
 
+  /**
+   * Sets a shader option on the sprite line effect, doing nothing when no effect
+   * that accepts options is attached.
+   */
   @carbon.method
   @impl.adapted
   SetShaderOption(name, value)
@@ -134,6 +155,10 @@ export class EveSpriteLineSet extends EveEntity
     }
   }
 
+  /**
+   * Converts a SOF-authored light description into an EveSpriteLight and appends
+   * it to the set.
+   */
   @carbon.method
   @impl.adapted
   AddLightFromSOF(light)

@@ -11,6 +11,10 @@ import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../..
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 
 
+/**
+ * A hull's authored haze volumes, owning their per-bone bounds and the point
+ * lights the haze emits.
+ */
 @type.define({ className: "EveHazeSet", family: "eve/attachment/haze" })
 export class EveHazeSet extends EveEntity
 {
@@ -51,6 +55,7 @@ export class EveHazeSet extends EveEntity
 
   #boosterGain = 0;
 
+  /** Sets the effect that draws the haze volumes. */
   @carbon.method
   @impl.implemented
   Setup(effect)
@@ -58,6 +63,10 @@ export class EveHazeSet extends EveEntity
     this.effect = effect ?? null;
   }
 
+  /**
+   * Runs the first Rebuild so the set has bounds before its first visibility
+   * test.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -66,6 +75,10 @@ export class EveHazeSet extends EveEntity
     return true;
   }
 
+  /**
+   * Recomputes the item-set bounds and marks the packed geometry stale; a haze
+   * set has no skinned flag, so every bone-indexed haze always gets its own box.
+   */
   @carbon.method
   @impl.adapted
   Rebuild()
@@ -104,6 +117,10 @@ export class EveHazeSet extends EveEntity
     return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
   }
 
+  /**
+   * Appends an authored haze item; the bounds only pick it up on the next
+   * Rebuild.
+   */
   @carbon.method
   @impl.implemented
   AddHazeItem(item)
@@ -111,6 +128,10 @@ export class EveHazeSet extends EveEntity
     this.hazes.push(item);
   }
 
+  /**
+   * Sets a shader option on the haze effect, doing nothing when no effect that
+   * accepts options is attached.
+   */
   @carbon.method
   @impl.adapted
   SetShaderOption(name, value)
@@ -121,6 +142,10 @@ export class EveHazeSet extends EveEntity
     }
   }
 
+  /**
+   * Converts a SOF-authored light description into an EveHazeSetLight and
+   * appends it to the set.
+   */
   @carbon.method
   @impl.adapted
   AddLightFromSOF(light)

@@ -6,6 +6,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Screen-space bracket drawn from an atlas icon, carrying its own colour, 2D
+ * translation and display flag.
+ */
 @type.define({ className: "EveSprite2dBracket", family: "eve/ui" })
 export class EveSprite2dBracket extends CjsModel
 {

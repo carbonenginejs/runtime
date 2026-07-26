@@ -7,6 +7,12 @@ import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { schema, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Full authored attribute set of a light - position, colour, brightness and
+ * noise, radii, orientation and cone angles, texture path, bone index, flags,
+ * shadow setting and volumetric flag - used as the compat view over a light's
+ * flattened fields.
+ */
 @type.define({
   className: "CjsLightData",
   sourceClass: "LightData",

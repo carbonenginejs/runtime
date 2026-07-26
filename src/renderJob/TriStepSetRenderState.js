@@ -6,6 +6,10 @@ import { TriRenderStep } from "./TriRenderStep.js";
 import { RenderState } from "@carbonenginejs/runtime-utils/render-context";
 
 
+/**
+ * Step that sets a single render state to a single value for the steps that
+ * follow.
+ */
 @type.define({ className: "TriStepSetRenderState", family: "renderJob" })
 export class TriStepSetRenderState extends TriRenderStep
 {
@@ -18,6 +22,10 @@ export class TriStepSetRenderState extends TriRenderStep
   @type.uint32
   value = 0;
 
+  /**
+   * Accepts either no arguments or both a state and a value; supplying only one
+   * of the pair throws.
+   */
   @carbon.method
   @impl.adapted
   __init__(state, value)
@@ -34,12 +42,20 @@ export class TriStepSetRenderState extends TriRenderStep
     }
   }
 
+  /**
+   * Sets the state selector and its value together, both coerced to unsigned
+   * 32-bit.
+   */
   SetStateAndValue(state, value)
   {
     this.state = Number(state) >>> 0;
     this.value = Number(value) >>> 0;
   }
 
+  /**
+   * Forwards the state/value pair to the executor, which owns the mapping onto
+   * real pipeline state.
+   */
   @carbon.method
   @impl.implemented
   Execute(_realTime, _simTime, executor)

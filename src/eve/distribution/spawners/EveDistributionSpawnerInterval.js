@@ -38,6 +38,7 @@ export class EveDistributionSpawnerInterval extends CjsModel
   @type.float32
   delayBeforeInitialSpawn = 0;
 
+  /** Restarts the interval timer; the placement pool is not used by this spawner. */
   @carbon.method
   @impl.implemented
   Reset(_placements)
@@ -45,6 +46,11 @@ export class EveDistributionSpawnerInterval extends CjsModel
     this.Restart();
   }
 
+  /**
+   * Rearms the interval and clears the repeat count, optionally starting at a
+   * random point inside one interval and backing the timer off by the initial
+   * spawn delay.
+   */
   @carbon.method
   @impl.adapted
   Restart()
@@ -54,6 +60,11 @@ export class EveDistributionSpawnerInterval extends CjsModel
     this.#numTriggered = 0;
   }
 
+  /**
+   * Spawns one entity each time the timer passes the repeat delay, up to
+   * numberOfRepeats (unlimited when it is zero), reseeding the timer with a
+   * randomized interval delta.
+   */
   @carbon.method
   @impl.adapted
   UpdateSyncronous(updateContext, _params, owner)
@@ -73,6 +84,7 @@ export class EveDistributionSpawnerInterval extends CjsModel
     }
   }
 
+  /** Ignores controller variables; the interval is purely time-driven. */
   @carbon.method
   @impl.implemented
   SetControllerVariable(_name, _value)

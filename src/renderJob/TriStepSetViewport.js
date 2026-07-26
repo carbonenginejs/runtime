@@ -5,6 +5,10 @@ import { TriRenderJob } from "./TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
+/**
+ * Step that installs a viewport, or restores the full-screen viewport when none
+ * is authored.
+ */
 @type.define({ className: "TriStepSetViewport", family: "renderJob" })
 export class TriStepSetViewport extends TriRenderStep
 {
@@ -12,6 +16,7 @@ export class TriStepSetViewport extends TriRenderStep
   @type.objectRef("TriViewport")
   viewport = null;
 
+  /** Stores the viewport this step installs. */
   @carbon.method
   @impl.adapted
   __init__(viewport = null)
@@ -19,6 +24,10 @@ export class TriStepSetViewport extends TriRenderStep
     this.SetViewport(viewport);
   }
 
+  /**
+   * Replaces the viewport; null selects the full-screen viewport instead of
+   * leaving the current one.
+   */
   @carbon.method
   @impl.adapted
   SetViewport(viewport)
@@ -26,6 +35,10 @@ export class TriStepSetViewport extends TriRenderStep
     this.viewport = viewport ?? null;
   }
 
+  /**
+   * Sets the authored viewport, or asks the executor for its full-screen
+   * viewport when none is set.
+   */
   @carbon.method
   @impl.implemented
   Execute(_realTime, _simTime, executor)

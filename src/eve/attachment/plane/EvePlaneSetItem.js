@@ -9,6 +9,10 @@ import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * One authored plane: its bone attachment, placement, colour, two independently
+ * transformed and scrolling texture layers, mask atlas slot and blink data.
+ */
 @type.define({ className: "EvePlaneSetItem", family: "eve/attachment/planes" })
 export class EvePlaneSetItem extends CjsModel
 {
@@ -73,6 +77,10 @@ export class EvePlaneSetItem extends CjsModel
   @type.vec4
   blinkData = vec4.fromValues(1, 0, 1, 0);
 
+  /**
+   * Fills the caller-owned out box with the plane's unit box transformed by its
+   * rotation, position and scaling.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")
@@ -88,6 +96,7 @@ export class EvePlaneSetItem extends CjsModel
     return box3.transformMat4(out, EvePlaneSetItem.#bounds, transform);
   }
 
+  /** The parent bone this plane rides. */
   @carbon.method
   @impl.implemented
   GetBoneIndex()

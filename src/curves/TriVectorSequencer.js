@@ -6,6 +6,11 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 import { TriOperator } from "@carbonenginejs/runtime-utils/graphics";
 
 
+/**
+ * Vector function combining its child vector functions with Carbon's multiply,
+ * add or average operator; multiply starts from ones and the additive paths from
+ * zero.
+ */
 @type.define({ className: "TriVectorSequencer", family: "curves" })
 export class TriVectorSequencer extends CjsModel
 {

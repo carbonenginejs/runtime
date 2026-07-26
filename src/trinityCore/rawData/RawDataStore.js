@@ -235,6 +235,10 @@ export class RawDataStore
     this.#cursor = 0;
   }
 
+  /**
+   * Appends a fresh arena chunk of chunkFloats floats plus a Uint32 alias view
+   * over the same bytes, so payload fields can be written as floats or raw bits.
+   */
   #AddChunk()
   {
     const chunk = new Float32Array(this.#chunkFloats);

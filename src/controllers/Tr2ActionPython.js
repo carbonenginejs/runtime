@@ -5,6 +5,11 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from "./contracts.js";
 
 
+/**
+ * Controller action that delegates to a host-provided scripted action instance,
+ * forwarding link, start, stop and update callbacks and persisting the
+ * instance's own opaque state bytes.
+ */
 @type.define({
   className: "Tr2ActionPython",
   family: "controllers"
@@ -270,6 +275,10 @@ export class Tr2ActionPython extends CjsModel
     this.#loadedState = null;
     this.#ensureInstance();
   }
+  /**
+   * Creates the host instance on first use and replays persisted state into it
+   * through OnLoad, guarding against loading the same state buffer twice.
+   */
   #ensureInstance()
   {
     if (!this.#instance)

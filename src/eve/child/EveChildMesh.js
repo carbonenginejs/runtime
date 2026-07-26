@@ -28,6 +28,11 @@ const BOX_QUERY_SCRATCH = { min: vec3.create(), max: vec3.create() };
 const ZERO_VEC3 = vec3.create();
 
 
+/**
+ * Space-object child that draws one mesh under its own transform, owning its
+ * decals, lights, attachments, morph weights, world bounds and screen-size LOD
+ * state.
+ */
 @type.define({ className: "EveChildMesh", family: "eve/child" })
 export class EveChildMesh extends EveChildTransform
 {
@@ -195,6 +200,10 @@ export class EveChildMesh extends EveChildTransform
   @type.string
   sofLocatorIndex = "";
 
+  /**
+   * Rebuilds the local transform up front when the child is marked
+   * staticTransform, since UpdateTransform will not rebuild it on later frames.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -206,6 +215,11 @@ export class EveChildMesh extends EveChildTransform
     return true;
   }
 
+  /**
+   * Applies the authored scale/rotation/translation and, when supplied, the
+   * lowest LOD level at which the child stays visible; returns the rebuilt local
+   * transform.
+   */
   @carbon.method
   @impl.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
@@ -218,6 +232,11 @@ export class EveChildMesh extends EveChildTransform
     return this.localTransform;
   }
 
+  /**
+   * Replaces the instance placement list with clones of the supplied matrices, so later caller mutations do not reach the child.
+   * @param {Iterable<Float32Array>} instances - 16-value matrices; a wrongly sized entry throws TypeError
+   * @returns {Array<Float32Array>} the stored list
+   */
   @carbon.method
   @impl.implemented
   SetInstanceTransforms(instances)
@@ -235,6 +254,10 @@ export class EveChildMesh extends EveChildTransform
     return this.instanceTransforms;
   }
 
+  /**
+   * Returns the live instance transform list, not a copy - mutating it changes
+   * what the child renders.
+   */
   @carbon.method
   @impl.adapted
   GetInstanceTransforms()
@@ -242,6 +265,11 @@ export class EveChildMesh extends EveChildTransform
     return this.instanceTransforms;
   }
 
+  /**
+   * Assigns the Tr2MeshBase this child draws; a nullish value clears it, which
+   * also makes the child permanently invisible (UpdateVisibility requires a
+   * mesh).
+   */
   @carbon.method
   @impl.implemented
   SetMesh(mesh)
@@ -249,6 +277,10 @@ export class EveChildMesh extends EveChildTransform
     this.mesh = mesh ?? null;
   }
 
+  /**
+   * Records whether this child's placement was authored in space or by SOF (the
+   * Origin enum).
+   */
   @carbon.method
   @impl.implemented
   SetOrigin(origin)
@@ -256,6 +288,10 @@ export class EveChildMesh extends EveChildTransform
     this.origin = Number(origin) | 0;
   }
 
+  /**
+   * Copies the given scale into the child's SRT scaling; it reaches the world
+   * transform on the next local-transform rebuild.
+   */
   @carbon.method
   @impl.implemented
   SetScale(scale)
@@ -263,6 +299,10 @@ export class EveChildMesh extends EveChildTransform
     vec3.copy(this.scaling, scale);
   }
 
+  /**
+   * Sets the reflection mode, which decides whether the child registers as a
+   * ReflectionRenderable and whether it casts shadows during reflection passes.
+   */
   @carbon.method
   @impl.implemented
   SetReflectionMode(mode)
@@ -270,6 +310,10 @@ export class EveChildMesh extends EveChildTransform
     this.reflectionMode = Number(mode) | 0;
   }
 
+  /**
+   * Sets whether the child registers as a shadow caster and contributes opaque
+   * shadow batches.
+   */
   @carbon.method
   @impl.implemented
   SetCastShadow(castShadow)
@@ -277,6 +321,11 @@ export class EveChildMesh extends EveChildTransform
     this.castShadow = !!castShadow;
   }
 
+  /**
+   * Sets the minimum screen size, in pixels across, that the child's world
+   * bounding sphere must reach - after the frame's inverse LOD factor scaling -
+   * before UpdateVisibility marks it visible.
+   */
   @carbon.method
   @impl.implemented
   SetMinScreenSize(minScreenSize)
@@ -297,6 +346,10 @@ export class EveChildMesh extends EveChildTransform
     return this.worldTransform;
   }
 
+  /**
+   * The authored name, persisted with the child and used to identify it in the
+   * parent graph.
+   */
   @carbon.method
   @impl.implemented
   GetName()
@@ -304,6 +357,7 @@ export class EveChildMesh extends EveChildTransform
     return this.name;
   }
 
+  /** Sets the authored child name, coercing nullish to the empty string. */
   @carbon.method
   @impl.implemented
   SetName(name)
@@ -311,6 +365,10 @@ export class EveChildMesh extends EveChildTransform
     this.name = String(name ?? "");
   }
 
+  /**
+   * Appends a transform modifier; modifiers fold over the child's world
+   * transform in insertion order on each async update.
+   */
   @carbon.method
   @impl.implemented
   AddTransformModifier(modifier)
@@ -318,6 +376,11 @@ export class EveChildMesh extends EveChildTransform
     this.transformModifiers.push(modifier);
   }
 
+  /**
+   * Appends a decal; decals refresh their visibility only while the child itself
+   * is visible, and ride along in GetRenderables when the mesh has a geometry
+   * resource.
+   */
   @carbon.method
   @impl.implemented
   AddDecal(decal)
@@ -325,6 +388,10 @@ export class EveChildMesh extends EveChildTransform
     this.decals.push(decal);
   }
 
+  /**
+   * Appends an attachment; attachments refresh their lights and visibility every
+   * frame regardless of the child's own visibility.
+   */
   @carbon.method
   @impl.implemented
   AddAttachment(attachment)
@@ -332,6 +399,10 @@ export class EveChildMesh extends EveChildTransform
     this.attachments.push(attachment);
   }
 
+  /**
+   * Drops every attachment, removing their lights, batches and visibility
+   * updates from this child.
+   */
   @carbon.method
   @impl.implemented
   ClearAttachments()
@@ -339,6 +410,10 @@ export class EveChildMesh extends EveChildTransform
     this.attachments.length = 0;
   }
 
+  /**
+   * Appends a light, submitted to the light manager from the child's world
+   * transform while the child displays.
+   */
   @carbon.method
   @impl.implemented
   AddLight(light)
@@ -346,6 +421,10 @@ export class EveChildMesh extends EveChildTransform
     this.lights.push(light);
   }
 
+  /**
+   * Drops every light, which also stops the child registering as a LightOwner on
+   * the next component registration.
+   */
   @carbon.method
   @impl.implemented
   ClearLights()
@@ -353,6 +432,7 @@ export class EveChildMesh extends EveChildTransform
     this.lights.length = 0;
   }
 
+  /** Returns true unconditionally - a child mesh reports itself as always on. */
   @carbon.method
   @impl.implemented
   IsAlwaysOn()
@@ -360,6 +440,7 @@ export class EveChildMesh extends EveChildTransform
     return true;
   }
 
+  /** Forwards a shader option to the mesh, every decal and every attachment. */
   @carbon.method
   @impl.implemented
   SetShaderOption(name, value)
@@ -375,6 +456,11 @@ export class EveChildMesh extends EveChildTransform
     }
   }
 
+  /**
+   * Names of the mesh's morph targets in index order, or an empty array when the
+   * mesh exposes none; the indices line up with the records GetMorphTargets
+   * returns.
+   */
   @carbon.method
   @impl.adapted
   GetMorphTargetNames()
@@ -382,6 +468,10 @@ export class EveChildMesh extends EveChildTransform
     return this.mesh?.GetMorphTargetNames?.() ?? [];
   }
 
+  /**
+   * Writes a named morph weight on the mesh; it only reaches the render path
+   * after the next UpdateMorphAnimationBuffer pass re-sorts the indexed buffer.
+   */
   @carbon.method
   @impl.adapted
   SetMorphTargetWeight(name, weight)
@@ -389,6 +479,11 @@ export class EveChildMesh extends EveChildTransform
     this.mesh?.SetMorphTargetWeight?.(name, weight);
   }
 
+  /**
+   * Reads a named morph weight straight from the mesh (0 when it has no such
+   * target), bypassing any animation-driven value the morph buffer may have
+   * applied.
+   */
   @carbon.method
   @impl.adapted
   GetMorphTargetWeight(name)
@@ -500,6 +595,11 @@ export class EveChildMesh extends EveChildTransform
       .map(value => ({ index: value.index, weight: value.weight }));
   }
 
+  /**
+   * Always returns null: a child mesh exposes no packed area-id lookup, since
+   * its SOF identity lives directly on its
+   * sofParentHullName/sofLocatorSetName/sofLocatorIndex fields.
+   */
   @carbon.method
   @impl.adapted
   GetSofSourceLocator()

@@ -5,6 +5,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Tracks what a turret set is shooting at: the chosen damage locator, the
+ * resolved impact and miss positions, and the queue of hit/miss results the
+ * server has sent.
+ */
 @type.define({ className: "EveTurretTarget", family: "eve/attachment/turrets" })
 export class EveTurretTarget extends CjsModel
 {
@@ -30,12 +35,22 @@ export class EveTurretTarget extends CjsModel
   #randomMissDistanceOffset = 0.5;
   #randomMissPositionOffset = vec3.create();
 
+  /**
+   * The targetable record this tracker is following, or null when it has no
+   * target.
+   */
   @carbon.method @impl.implemented
   GetTargetable()
   {
     return this.#targetable;
   }
 
+  /**
+   * Accepts an object as the target only when it exposes both an impact or
+   * damage-locator surface and a world-position surface; a change to a different
+   * object seeds the position blend so tracking eases off the previous target.
+   * Returns whether the object was accepted.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Carbon QueryInterface checks are represented by validating the targetable's required duck-typed position surface.")
   SetTargetable(object)
@@ -54,12 +69,19 @@ export class EveTurretTarget extends CjsModel
     return true;
   }
 
+  /** The damage locator index currently being fired at, or -1 when not firing. */
   @carbon.method @impl.implemented
   GetLocator()
   {
     return this.locator;
   }
 
+  /**
+   * Begins a shot at a locator: rolls this burst's random miss distance and
+   * offset, and, when the shot is not a queued miss and an impact size is
+   * authored, either creates the impact immediately (zero delay under
+   * damage-locator behaviour) or arms it to be created once delay elapses.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Carbon's random helpers map to Math.random; targetable calls use the org-standard out-last convention.")
   StartFireAtLocator(locator, delay, length, source = EveTurretTarget.#zero)
@@ -91,6 +113,10 @@ export class EveTurretTarget extends CjsModel
     }
   }
 
+  /**
+   * Ends firing: clears the locator, the position blend, the current miss state
+   * and every queued shot result.
+   */
   @carbon.method @impl.implemented
   StopFireAtLocator()
   {
@@ -100,6 +126,12 @@ export class EveTurretTarget extends CjsModel
     this.#missQueue.length = 0;
   }
 
+  /**
+   * Resolves the world impact point for the current locator into out according
+   * to the impact behaviour - the damage locator, the target's centre, or the
+   * target's own shield-ellipsoid solution - falling back to the target's world
+   * position when the locator gives no usable or finite position.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Targetable output parameters use CarbonEngineJS's out-last calling convention.")
   GetImpactPosition(source = EveTurretTarget.#zero, out = vec3.create())
@@ -123,6 +155,14 @@ export class EveTurretTarget extends CjsModel
     return out;
   }
 
+  /**
+   * Advances the target for the frame: recomputes the impact point, extends the
+   * miss point far past the target along the miss direction (a fixed 250 km for
+   * lasers, distance-relative otherwise), maintains an in-flight impact under
+   * damage-locator behaviour, and blends the tracking position out of the
+   * previous target. Returns the live position buffer, valid until the next
+   * Update.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Targetable output parameters use CarbonEngineJS's out-last calling convention.")
   Update(deltaTime, source = EveTurretTarget.#zero)
@@ -172,18 +212,33 @@ export class EveTurretTarget extends CjsModel
     return this.position;
   }
 
+  /**
+   * The point the turrets aim at - the miss point when the last shot missed,
+   * otherwise the blended target position. Copies into out when one is given,
+   * otherwise returns the live buffer.
+   */
   @carbon.method @impl.implemented
   GetTrackingPosition(out)
   {
     return copyOrReturn(this.GetShotMissed() ? this.#positionMiss : this.position, out);
   }
 
+  /**
+   * The point the firing effect terminates at - the miss point when the last
+   * shot missed, otherwise the resolved impact point. Copies into out when one
+   * is given, otherwise returns the live buffer.
+   */
   @carbon.method @impl.implemented
   GetTargetPosition(out)
   {
     return copyOrReturn(this.GetShotMissed() ? this.#positionMiss : this.targetPosition, out);
   }
 
+  /**
+   * The index of the target's damage locator nearest source, with its world
+   * position written into out; -1 when there is no target or the locator has no
+   * position.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Targetable output parameters use CarbonEngineJS's out-last calling convention.")
   FindClosestLocator(source, out = vec3.create())
@@ -193,6 +248,10 @@ export class EveTurretTarget extends CjsModel
     return this.#targetable.GetDamageLocatorPosition?.(locator, true, out) === false ? -1 : locator;
   }
 
+  /**
+   * A locator drawn from the target's 'good' set, falling back to the closest
+   * one, with its world position written into out; -1 when neither resolves.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Targetable output parameters use CarbonEngineJS's out-last calling convention.")
   FindRandomValidLocator(source, out = vec3.create())
@@ -204,6 +263,11 @@ export class EveTurretTarget extends CjsModel
     return this.#targetable.GetDamageLocatorPosition?.(locator, true, out) === false ? -1 : locator;
   }
 
+  /**
+   * Sets how misses and impacts are handled: laser versus projectile miss
+   * behaviour, the impact size (zero suppresses impacts entirely) and the
+   * impact-position behaviour.
+   */
   @carbon.method @impl.implemented
   SetBehaviour(laserMiss, projectileMiss, impactSize, impactBehaviour)
   {
@@ -213,6 +277,10 @@ export class EveTurretTarget extends CjsModel
     this.behaviour = Number(impactBehaviour) | 0;
   }
 
+  /**
+   * Takes the next queued shot result and makes it the current miss state; an
+   * empty queue counts as a hit.
+   */
   @carbon.method @impl.implemented
   PopShotMissed()
   {
@@ -220,12 +288,21 @@ export class EveTurretTarget extends CjsModel
     return this.#lastShotMissed;
   }
 
+  /**
+   * Whether the most recently popped shot result was a miss, which is what
+   * selects the miss position for tracking and targeting.
+   */
   @carbon.method @impl.implemented
   GetShotMissed()
   {
     return this.#lastShotMissed;
   }
 
+  /**
+   * Queues a hit/miss result for a future shot and stamps the shot time; the queue keeps at most four entries, dropping the oldest.
+   * @param {boolean} missed Whether that shot will miss.
+   * @param {number} [timestamp] Shot time in seconds; defaults to wall-clock time, and may be supplied for determinism.
+   */
   @carbon.method @impl.adapted
   @impl.reason("An optional timestamp supports deterministic tests; otherwise browser wall-clock seconds replace BeOS actual time.")
   SetShotMissed(missed, timestamp = Date.now() / 1000)
@@ -235,30 +312,44 @@ export class EveTurretTarget extends CjsModel
     while (this.#missQueue.length > 4) this.#missQueue.shift();
   }
 
+  /** The timestamp stamped by the most recent SetShotMissed, in seconds. */
   @carbon.method @impl.implemented
   GetLastShotTime()
   {
     return this.#lastShotTime;
   }
 
+  /** The number of queued shot results not yet popped. */
   @carbon.method @impl.implemented
   MissQueueSize()
   {
     return this.#missQueue.length;
   }
 
+  /**
+   * The target's radius, which scales the firing effect; -1 when there is no
+   * target.
+   */
   @carbon.method @impl.implemented
   GetRadius()
   {
     return Number(this.#targetable?.GetRadius?.() ?? -1);
   }
 
+  /**
+   * The surface the target currently presents - shield, armor or hull -
+   * IMPACT_INVALID when the target does not report one.
+   */
   @carbon.method @impl.implemented
   GetImpactConfiguration()
   {
     return this.#targetable?.GetImpactConfiguration?.() ?? EveTurretTarget.ImpactConfiguration.IMPACT_INVALID;
   }
 
+  /**
+   * Whether the firing effect should draw its impact end: false only when the
+   * shot missed and projectile miss behaviour is set.
+   */
   @carbon.method @impl.implemented
   ShowDestObject()
   {

@@ -5,6 +5,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Quaternion function wrapping a child quaternion curve behind its own time
+ * remapping, falling back to a fixed authored quaternion when no child curve is
+ * attached.
+ */
 @type.define({
   className: "Tr2RotationAdapter",
   family: "curves"

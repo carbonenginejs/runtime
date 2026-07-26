@@ -9,6 +9,10 @@ import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
+/**
+ * One authored haze volume: its bone attachment, placement, colour and the
+ * four-component haze shaping data.
+ */
 @type.define({ className: "EveHazeSetItem", family: "eve/attachment/haze" })
 export class EveHazeSetItem extends CjsModel
 {
@@ -40,6 +44,11 @@ export class EveHazeSetItem extends CjsModel
   @type.vec4
   hazeData = vec4.fromValues(4, 0.2, 2, 0);
 
+  /**
+   * Fills the caller-owned out box with the haze's authored source box - which
+   * reaches to z 5 rather than 0.5, because a haze extends well beyond its
+   * placement - transformed by its rotation, position and scaling.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")
@@ -55,6 +64,7 @@ export class EveHazeSetItem extends CjsModel
     return box3.transformMat4(out, EveHazeSetItem.#bounds, transform);
   }
 
+  /** The parent bone this haze volume rides. */
   @carbon.method
   @impl.implemented
   GetBoneIndex()

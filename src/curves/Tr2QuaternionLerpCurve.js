@@ -6,6 +6,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Quaternion curve that spherically interpolates between two child quaternion
+ * curves, ramping the blend from 0 to 1 over `length` seconds starting at
+ * `start` and clamping outside that window.
+ */
 @type.define({
   className: "Tr2QuaternionLerpCurve",
   family: "curves"

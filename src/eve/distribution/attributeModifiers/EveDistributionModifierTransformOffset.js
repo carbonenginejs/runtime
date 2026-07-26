@@ -41,6 +41,10 @@ export class EveDistributionModifierTransformOffset extends CjsModel
   @type.model("ITriVectorFunction")
   translationCurve = null;
 
+  /**
+   * Always reports a transform effect, which puts the distribution into its
+   * per-frame reset-and-reaccumulate mode.
+   */
   @carbon.method
   @impl.implemented
   AffectsTransform()
@@ -48,6 +52,11 @@ export class EveDistributionModifierTransformOffset extends CjsModel
     return true;
   }
 
+  /**
+   * Accumulates a translation, rotation and scale onto a placement's additional transform, taken from the authored constants or, when a curve is set, sampled from it at the placement's lifetime; the translation is rotated into the placement's current orientation and the scale multiplies the existing additional scale rather than replacing it.
+   *
+   * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
+   */
   @carbon.method
   @impl.adapted
   ProcessDistributionModifier(placement, _deltaTime, _params)

@@ -8,6 +8,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveTransform } from "./EveTransform.js";
 
 
+/**
+ * A detached transform root whose own ball and model curves drive its matrix and
+ * which stands in as a single targetable point for missiles and impacts.
+ */
 @type.define({ className: "EveRootTransform", family: "eve/spaceObject" })
 export class EveRootTransform extends EveTransform
 {
@@ -210,6 +214,11 @@ export class EveRootTransform extends EveTransform
     return this.boundingSphereRadius;
   }
 
+  /**
+   * Reads a numeric value from the update context, preferring a getter method
+   * and falling back to the named properties, and yields 0 when nothing supplies
+   * it.
+   */
   static #GetContextValue(context, methodName, ...propertyNames)
   {
     const method = context?.[methodName];
@@ -224,6 +233,11 @@ export class EveRootTransform extends EveTransform
     return 0;
   }
 
+  /**
+   * Samples a curve into out through whichever of Update or GetValueAt it
+   * exposes, writing the fallback when there is no curve and copying back curves
+   * that return a new array instead of filling out.
+   */
   static #UpdateCurve(curve, time, out, fallback)
   {
     if (!curve)

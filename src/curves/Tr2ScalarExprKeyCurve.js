@@ -7,6 +7,11 @@ import { Tr2CurveInterpolation } from "./enums.js";
 import { Tr2ScalarExprKey } from "./Tr2ScalarExprKey.js";
 
 
+/**
+ * Keyed scalar curve whose key times, values and tangents are themselves
+ * expressions re-evaluated on every sample, with optional cycling and reversed
+ * playback over the key range.
+ */
 @type.define({
   className: "Tr2ScalarExprKeyCurve",
   family: "curves"
@@ -340,6 +345,10 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   {
     this.#reEvaluateKeys();
   }
+  /**
+   * Re-evaluates every key's expressions in order, passing each key its
+   * predecessor so expressions can reference prevKeyTime and prevKeyValue.
+   */
   #reEvaluateKeys()
   {
     let previousKey = null;
@@ -349,6 +358,11 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
       previousKey = key;
     }
   }
+  /**
+   * Converts caller time into curve-local time by applying timeScale and
+   * timeOffset, reversing it when `reversed` is set and wrapping it into the
+   * key-range length when `cycle` is set.
+   */
   GetLocalTime(time)
   {
     const length = this.Length();
@@ -367,6 +381,11 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
     }
     return localTime;
   }
+  /**
+   * Interpolates between two adjacent keys using the left key's mode; a null key
+   * on either side means the sample lies outside the key range and that end is
+   * held flat at the present key's value.
+   */
   #interpolate(time, lastKey, nextKey)
   {
     let deltaTime = this.Length();

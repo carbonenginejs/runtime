@@ -39,6 +39,10 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends CjsModel
   @type.boolean
   normalizeOffsets = false;
 
+  /**
+   * Reseeds the random stream from the wall clock, so offsets differ between
+   * runs unless consistentRandom pins them to the placement id.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -47,6 +51,12 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends CjsModel
     return true;
   }
 
+  /**
+   * Staggers a spawning placement's starting lifetime: with normalizeOffsets it
+   * replaces the lifetime with an evenly cascading step through the min..max
+   * range across the pool, otherwise it adds a random offset in that range plus
+   * a per-placement cascade.
+   */
   @carbon.method
   @impl.adapted
   ProcessSpawnModifier(placement, numPlacements)

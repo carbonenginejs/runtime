@@ -5,6 +5,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
+/**
+ * One object tracked by the tactical overlay, sampling a translation curve for
+ * its position and velocity and carrying the radius and flags the overlay
+ * presents it with.
+ */
 @type.define({ className: "EveTacticalOverlayTrackObject", family: "eve/ui" })
 export class EveTacticalOverlayTrackObject extends CjsModel
 {
@@ -30,6 +35,11 @@ export class EveTacticalOverlayTrackObject extends CjsModel
 
   #velocity = vec3.create();
 
+  /**
+   * Samples the translation curve at the update context's time, storing the
+   * position and the curve derivative as the tracked velocity; does nothing when
+   * no curve is assigned.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon vector functions use output pointers; runtime curves use the established time-first, out-last calling convention.")
@@ -43,6 +53,7 @@ export class EveTacticalOverlayTrackObject extends CjsModel
     if (position && position !== this.position) vec3.copy(this.position, position);
   }
 
+  /** Copies the velocity sampled by the last UpdatePosition into out. */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon returns Vector3 by value; JavaScript follows the runtime vector out-parameter convention.")
@@ -51,6 +62,7 @@ export class EveTacticalOverlayTrackObject extends CjsModel
     return vec3.copy(out, this.#velocity);
   }
 
+  /** Copies the tracked position into out. */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon returns Vector3 by value; JavaScript follows the runtime vector out-parameter convention.")
@@ -59,6 +71,7 @@ export class EveTacticalOverlayTrackObject extends CjsModel
     return vec3.copy(out, this.position);
   }
 
+  /** Returns the authored radius the overlay sizes this object's marker from. */
   @carbon.method
   @impl.implemented
   GetRadius()
@@ -66,6 +79,10 @@ export class EveTacticalOverlayTrackObject extends CjsModel
     return this.radius;
   }
 
+  /**
+   * Reports whether the object is flagged as aggressive, which the overlay uses
+   * to choose its presentation.
+   */
   @carbon.method
   @impl.implemented
   IsAggressive()
@@ -73,6 +90,7 @@ export class EveTacticalOverlayTrackObject extends CjsModel
     return this.isAggressive;
   }
 
+  /** Reports whether the overlay should draw this object's velocity indicator. */
   @carbon.method
   @impl.implemented
   ShowVelocity()

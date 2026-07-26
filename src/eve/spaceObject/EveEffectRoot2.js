@@ -15,6 +15,11 @@ import { EveSpaceObjectVSData } from "../perObjectData/EveSpaceObjectVSData.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 
 
+/**
+ * A standalone effect root: curve-driven placement plus the effect children,
+ * lights, controllers, curve sets and observers that make up an effect not
+ * attached to a hull.
+ */
 @type.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
 export class EveEffectRoot2 extends EveEntity
 {
@@ -956,6 +961,11 @@ export class EveEffectRoot2 extends EveEntity
     for (const child of this.effectChildren) child?.SetProceduralContainerVariable?.(name, value);
   }
 
+  /**
+   * Builds the per-frame child update parameters naming this root as the
+   * space-object parent, carrying its display state and a copy of the current
+   * root matrix.
+   */
   #CreateChildUpdateParams()
   {
     const params = new EveChildUpdateParams();
@@ -965,6 +975,11 @@ export class EveEffectRoot2 extends EveEntity
     return params;
   }
 
+  /**
+   * Replays every stored controller variable onto a newly added controller or
+   * effect child through the named setter, so late additions start with the same
+   * state.
+   */
   static #ApplyControllerVariables(target, variables, methodName)
   {
     const setter = target?.[methodName];
@@ -972,6 +987,11 @@ export class EveEffectRoot2 extends EveEntity
     for (const [name, value] of variables) setter.call(target, name, value);
   }
 
+  /**
+   * Reads a numeric value from the update context, preferring a getter method
+   * and falling back to the named properties, and yields 0 when nothing supplies
+   * it.
+   */
   static #GetContextValue(context, methodName, ...propertyNames)
   {
     const method = context?.[methodName];
@@ -986,6 +1006,11 @@ export class EveEffectRoot2 extends EveEntity
     return 0;
   }
 
+  /**
+   * Samples a curve into out through whichever of Update or GetValueAt it
+   * exposes, writing the fallback when there is no curve and copying back curves
+   * that return a new array instead of filling out.
+   */
   static #UpdateCurve(curve, time, out, fallback)
   {
     if (!curve)
@@ -1003,6 +1028,10 @@ export class EveEffectRoot2 extends EveEntity
     return out;
   }
 
+  /**
+   * Zeroes every numeric, typed-array and array field of a per-object record in
+   * place, so the record can be refilled from a known-clean state.
+   */
   static #ZeroNumericRecord(record)
   {
     for (const [name, value] of Object.entries(record))

@@ -8,6 +8,11 @@ import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
+/**
+ * One authored spotlight: its bone attachment, placement matrix, the separate
+ * cone, flare and sprite colours drawn for it, and whether booster gain
+ * modulates it.
+ */
 @type.define({ className: "EveSpotlightSetItem", family: "eve/attachment/spotlights" })
 export class EveSpotlightSetItem extends CjsModel
 {
@@ -43,6 +48,10 @@ export class EveSpotlightSetItem extends CjsModel
   @type.boolean
   boosterGainInfluence = false;
 
+  /**
+   * Fills the caller-owned out box with the spotlight's unit box transformed by
+   * its authored placement matrix.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")
@@ -51,6 +60,7 @@ export class EveSpotlightSetItem extends CjsModel
     return box3.transformMat4(out, EveSpotlightSetItem.#bounds, this.transform);
   }
 
+  /** The parent bone this spotlight rides. */
   @carbon.method
   @impl.implemented
   GetBoneIndex()

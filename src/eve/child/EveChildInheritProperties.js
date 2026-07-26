@@ -54,6 +54,10 @@ const COLOR_PROPERTIES = Object.freeze([
 ]);
 
 
+/**
+ * The SOF colour set a space object hands down to its children: one colour per
+ * named material slot (Primary, Hull, Booster, State0, ...) in a fixed order.
+ */
 @type.define({ className: "EveChildInheritProperties", family: "eve/child" })
 export class EveChildInheritProperties extends CjsModel
 {
@@ -235,6 +239,11 @@ export class EveChildInheritProperties extends CjsModel
 
   #properties = COLOR_PROPERTIES.map(name => this[name]);
 
+  /**
+   * Copies an indexed colour set into the named colour fields in the fixed SOF
+   * property order; a nullish set is ignored, and the set must hold at least as
+   * many entries as there are properties.
+   */
   @carbon.method
   @impl.implemented
   SetProperties(colorSet)
@@ -246,6 +255,11 @@ export class EveChildInheritProperties extends CjsModel
     }
   }
 
+  /**
+   * Returns the colour vectors in SOF property order; the array and its vectors
+   * are this object's live storage, not copies, so writes through it change the
+   * inherited colours.
+   */
   @carbon.method
   @impl.implemented
   GetProperties()

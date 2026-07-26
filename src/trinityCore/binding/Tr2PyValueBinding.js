@@ -43,6 +43,10 @@ export class Tr2PyValueBinding extends CjsModel
   @type.boolean
   isValid = false;
 
+  /**
+   * Marks the binding valid only when both objects are present and both
+   * attribute names are non-empty; no type checking is performed.
+   */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -55,6 +59,7 @@ export class Tr2PyValueBinding extends CjsModel
     );
   }
 
+  /** Re-validates the binding after any field change. */
   @carbon.method
   @impl.implemented
   OnModified(_value = null)
@@ -63,6 +68,10 @@ export class Tr2PyValueBinding extends CjsModel
     return true;
   }
 
+  /**
+   * Assigns the source attribute onto the destination attribute; does nothing
+   * when the binding is invalid or the source does not carry the attribute.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Copies JavaScript object attributes in place of Carbon's Python C-API get/set calls.")

@@ -20,6 +20,10 @@ import {
 const WHITE = new Float32Array([1, 1, 1, 1]);
 
 
+/**
+ * A hull's authored textured planes, owning their static and per-bone bounds,
+ * the four shared texture parameters and the plane lights.
+ */
 @type.define({ className: "EvePlaneSet", family: "eve/attachment/planes" })
 export class EvePlaneSet extends EveEntity
 {
@@ -89,6 +93,11 @@ export class EvePlaneSet extends EveEntity
    * BLACK until UpdateLights runs. */
   #activationStrength = 0;
 
+  /**
+   * Recomputes the static and per-bone bounds from the authored planes -
+   * skipping any plane whose colour is fully zero, which contributes nothing -
+   * and marks the packed geometry stale.
+   */
   @carbon.method
   @impl.adapted
   Rebuild()
@@ -107,6 +116,10 @@ export class EvePlaneSet extends EveEntity
     );
   }
 
+  /**
+   * Runs the first Rebuild so the set has bounds before its first visibility
+   * test.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -115,6 +128,7 @@ export class EvePlaneSet extends EveEntity
     return true;
   }
 
+  /** Sets the effect that draws the planes. */
   @carbon.method
   @impl.implemented
   SetEffect(effect)
@@ -122,6 +136,11 @@ export class EvePlaneSet extends EveEntity
     this.effect = effect ?? null;
   }
 
+  /**
+   * Sets the 8-bit pick buffer id written by the plane geometry, rebuilding
+   * immediately when planes are already authored because the id is packed into
+   * it.
+   */
   @carbon.method
   @impl.adapted
   SetPickBufferID(pickBufferID)
@@ -162,6 +181,10 @@ export class EvePlaneSet extends EveEntity
     return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
   }
 
+  /**
+   * Sets whether the planes ride skeleton bones, which is what decides if
+   * GetAabb consults the caller's bone list at all.
+   */
   @carbon.method
   @impl.implemented
   SetIsSkinned(skinned)
@@ -169,6 +192,10 @@ export class EvePlaneSet extends EveEntity
     this.skinned = !!skinned;
   }
 
+  /**
+   * Appends an authored plane item; the bounds only pick it up on the next
+   * Rebuild.
+   */
   @carbon.method
   @impl.implemented
   AddPlaneItem(item)
@@ -176,6 +203,7 @@ export class EvePlaneSet extends EveEntity
     this.planes.push(item);
   }
 
+  /** The live plane item list, not a copy. */
   @carbon.method
   @impl.implemented
   GetPlanes()
@@ -183,6 +211,10 @@ export class EvePlaneSet extends EveEntity
     return this.planes;
   }
 
+  /**
+   * Sets a shader option on the plane effect, doing nothing when no effect that
+   * accepts options is attached.
+   */
   @carbon.method
   @impl.adapted
   SetShaderOption(name, value)
@@ -193,6 +225,10 @@ export class EvePlaneSet extends EveEntity
     }
   }
 
+  /**
+   * Sets the shared image map texture parameter; its average colour is one of
+   * the four factors tinting the plane lights.
+   */
   @carbon.method
   @impl.adapted
   SetImageMapParameter(parameter)
@@ -200,6 +236,10 @@ export class EvePlaneSet extends EveEntity
     this.imageMapParameter = parameter ?? null;
   }
 
+  /**
+   * Sets the shared first layer map texture parameter; its average colour is one
+   * of the four factors tinting the plane lights.
+   */
   @carbon.method
   @impl.adapted
   SetLayerMap1Parameter(parameter)
@@ -207,6 +247,10 @@ export class EvePlaneSet extends EveEntity
     this.layerMap1Parameter = parameter ?? null;
   }
 
+  /**
+   * Sets the shared second layer map texture parameter; its average colour is
+   * one of the four factors tinting the plane lights.
+   */
   @carbon.method
   @impl.adapted
   SetLayerMap2Parameter(parameter)
@@ -214,6 +258,10 @@ export class EvePlaneSet extends EveEntity
     this.layerMap2Parameter = parameter ?? null;
   }
 
+  /**
+   * Sets the shared mask map texture parameter; its average colour is one of the
+   * four factors tinting the plane lights.
+   */
   @carbon.method
   @impl.adapted
   SetMaskMapParameter(parameter)
@@ -221,6 +269,10 @@ export class EvePlaneSet extends EveEntity
     this.maskMapParameter = parameter ?? null;
   }
 
+  /**
+   * Converts a SOF-authored light description into an EvePlaneLight and appends
+   * it to the set.
+   */
   @carbon.method
   @impl.adapted
   AddLightFromSOF(light)
@@ -333,6 +385,11 @@ export class EvePlaneSet extends EveEntity
     }
   }
 
+  /**
+   * The average colour of a texture parameter's resource, white when the
+   * parameter, its resource or its average colour is missing, so an absent map
+   * is a no-op in the four-way product.
+   */
   static #MapAverageColor(parameter)
   {
     const average = parameter?.GetResource?.()?.GetAverageColor?.();

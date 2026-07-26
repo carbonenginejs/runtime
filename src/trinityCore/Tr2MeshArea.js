@@ -5,6 +5,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * One drawable range of a mesh: the index and count of geometry groups plus the
+ * effect, shadow, depth and LOD state that decide how the range is batched.
+ */
 @type.define({ className: "Tr2MeshArea", family: "trinityCore" })
 export class Tr2MeshArea extends CjsModel
 {
@@ -71,6 +75,7 @@ export class Tr2MeshArea extends CjsModel
   /** m_jointMappingAnimRig - shared joint mapping owned by the parent mesh. */
   #jointMappingAnimRig = null;
 
+  /** First geometry group of the area's range. */
   @carbon.method
   @impl.adapted
   GetIndex()
@@ -78,6 +83,10 @@ export class Tr2MeshArea extends CjsModel
     return this.index;
   }
 
+  /**
+   * Sets the first geometry group, coerced to a signed integer; schedules the
+   * batches rebuild.
+   */
   @carbon.method
   @impl.adapted
   SetIndex(value)
@@ -85,6 +94,7 @@ export class Tr2MeshArea extends CjsModel
     this.index = Number(value) | 0;
   }
 
+  /** Number of geometry groups in the area's range. */
   @carbon.method
   @impl.adapted
   GetCount()
@@ -92,6 +102,10 @@ export class Tr2MeshArea extends CjsModel
     return this.count;
   }
 
+  /**
+   * Sets the group count, coerced to a signed integer; schedules the batches
+   * rebuild.
+   */
   @carbon.method
   @impl.adapted
   SetCount(value)
@@ -99,6 +113,7 @@ export class Tr2MeshArea extends CjsModel
     this.count = Number(value) | 0;
   }
 
+  /** Whether the area is drawn; a hidden area emits no batch. */
   @carbon.method
   @impl.adapted
   GetDisplay()
@@ -106,6 +121,7 @@ export class Tr2MeshArea extends CjsModel
     return this.display;
   }
 
+  /** Shows or hides the area. */
   @carbon.method
   @impl.adapted
   SetDisplay(value)
@@ -113,6 +129,7 @@ export class Tr2MeshArea extends CjsModel
     this.display = !!value;
   }
 
+  /** Whether the area is drawn with reversed winding. */
   @carbon.method
   @impl.adapted
   GetReversed()
@@ -120,6 +137,7 @@ export class Tr2MeshArea extends CjsModel
     return this.reversed;
   }
 
+  /** Carbon's second name for GetReversed. */
   @carbon.method
   @impl.adapted
   IsReversed()
@@ -127,6 +145,7 @@ export class Tr2MeshArea extends CjsModel
     return this.reversed;
   }
 
+  /** Sets the reversed-winding flag; schedules the batches rebuild. */
   @carbon.method
   @impl.adapted
   SetReversed(value)
@@ -134,6 +153,7 @@ export class Tr2MeshArea extends CjsModel
     this.reversed = !!value;
   }
 
+  /** Whether the area is lit with spherical-harmonic lighting. */
   @carbon.method
   @impl.adapted
   GetUseSHLighting()
@@ -141,6 +161,7 @@ export class Tr2MeshArea extends CjsModel
     return this.useSHLighting;
   }
 
+  /** Sets the spherical-harmonic lighting flag; schedules the batches rebuild. */
   @carbon.method
   @impl.adapted
   SetUseSHLighting(value)
@@ -148,6 +169,10 @@ export class Tr2MeshArea extends CjsModel
     this.useSHLighting = !!value;
   }
 
+  /**
+   * The area's effect, which serves as its material and shader key during batch
+   * collection; null areas produce no batch.
+   */
   @carbon.method
   @impl.adapted
   GetMaterialInterface()
@@ -155,6 +180,7 @@ export class Tr2MeshArea extends CjsModel
     return this.effect;
   }
 
+  /** Binds the effect used as this area's material. */
   @carbon.method
   @impl.adapted
   SetMaterial(value)
@@ -162,6 +188,10 @@ export class Tr2MeshArea extends CjsModel
     this.effect = value ?? null;
   }
 
+  /**
+   * The authored area name, which SOF and effect bindings use to address this
+   * area of the mesh.
+   */
   @carbon.method
   @impl.implemented
   GetName()
@@ -169,6 +199,7 @@ export class Tr2MeshArea extends CjsModel
     return this.name;
   }
 
+  /** Sets the area name, coercing null to an empty string. */
   @carbon.method
   @impl.adapted
   SetName(value)
@@ -176,6 +207,10 @@ export class Tr2MeshArea extends CjsModel
     this.name = String(value ?? "");
   }
 
+  /**
+   * Whether the area takes part in shadow and overlay area-block collection; SOF
+   * stamps this per batch type and it defaults to true.
+   */
   @carbon.method
   @impl.adapted
   IsCastingShadows()
@@ -183,6 +218,7 @@ export class Tr2MeshArea extends CjsModel
     return this.castsShadows;
   }
 
+  /** Sets shadow participation; schedules the batches rebuild. */
   @carbon.method
   @impl.adapted
   SetCastsShadows(value)
@@ -190,6 +226,7 @@ export class Tr2MeshArea extends CjsModel
     this.castsShadows = !!value;
   }
 
+  /** Whether the authored area participates in depth-area generation. */
   @carbon.method
   @impl.adapted
   GetGenerateDepthArea()
@@ -197,6 +234,7 @@ export class Tr2MeshArea extends CjsModel
     return this.generateDepthArea;
   }
 
+  /** Sets depth-area participation; schedules the batches rebuild. */
   @carbon.method
   @impl.adapted
   SetGenerateDepthArea(value)
@@ -204,6 +242,10 @@ export class Tr2MeshArea extends CjsModel
     this.generateDepthArea = !!value;
   }
 
+  /**
+   * Lowest LOD at which the area is visible; -1 (TR2_LOD_UNSPECIFIED) means
+   * unrestricted.
+   */
   @carbon.method
   @impl.implemented
   GetMinLod()
@@ -211,6 +253,7 @@ export class Tr2MeshArea extends CjsModel
     return this.minLod;
   }
 
+  /** Sets the minimum visible LOD, coerced to a signed integer. */
   @carbon.method
   @impl.implemented
   SetMinLod(lod)
@@ -218,6 +261,7 @@ export class Tr2MeshArea extends CjsModel
     this.minLod = Number(lod) | 0;
   }
 
+  /** Skinning joint count, filled in when the parent mesh binds to a rig. */
   @carbon.method
   @impl.implemented
   GetJointCount()
@@ -225,6 +269,10 @@ export class Tr2MeshArea extends CjsModel
     return this.#jointCount;
   }
 
+  /**
+   * Sets the skinning joint count; CopyFrom deliberately resets it to zero for a
+   * new owner.
+   */
   @carbon.method
   @impl.implemented
   SetJointCount(value)
@@ -232,6 +280,10 @@ export class Tr2MeshArea extends CjsModel
     this.#jointCount = Number(value) >>> 0;
   }
 
+  /**
+   * The joint mapping array; it is owned by the parent mesh and shared by every
+   * area, so it must not be mutated here.
+   */
   @carbon.method
   @impl.implemented
   GetJointMappingAnimRig()

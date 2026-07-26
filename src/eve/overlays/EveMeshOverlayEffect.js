@@ -13,6 +13,10 @@ import {
 } from "../../controllers/contracts.js";
 
 
+/**
+ * Named overlay pass attached to a mesh, holding one effect list per batch type
+ * together with the curve set and controllers that animate them.
+ */
 @type.define({ className: "EveMeshOverlayEffect", family: "eve/overlays" })
 export class EveMeshOverlayEffect extends CjsModel
 {
@@ -56,6 +60,10 @@ export class EveMeshOverlayEffect extends CjsModel
   @type.boolean
   display = true;
 
+  /**
+   * Returns the effect list for a batch type, or null when the overlay is hidden
+   * or the batch type has no list of its own.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon reports success through a bool out-parameter; JavaScript returns null for unsupported or hidden batches.")
@@ -74,6 +82,10 @@ export class EveMeshOverlayEffect extends CjsModel
     }
   }
 
+  /**
+   * Reports whether the overlay applies to the opaque batch alone or to all
+   * batches, given the batch type being queried.
+   */
   @carbon.method
   @impl.implemented
   GetType(batchType)
@@ -83,6 +95,10 @@ export class EveMeshOverlayEffect extends CjsModel
       : EveMeshOverlayEffect.OverlayType.TYPE_ALL;
   }
 
+  /**
+   * Reports whether the overlay contributes any transparent effects, which
+   * decides whether it needs a transparent pass.
+   */
   @carbon.method
   @impl.implemented
   HasTransparentArea()
@@ -90,6 +106,7 @@ export class EveMeshOverlayEffect extends CjsModel
     return this.transparentEffects.length > 0;
   }
 
+  /** Sets a shader option on every effect across all five batch lists. */
   @carbon.method
   @impl.implemented
   SetShaderOption(name, value)
@@ -100,6 +117,10 @@ export class EveMeshOverlayEffect extends CjsModel
     }
   }
 
+  /**
+   * Links each controller that is not already linked to this overlay so it can
+   * resolve the overlay's variables; always succeeds.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Blue root locking is represented by the hydrated JavaScript object identity.")
@@ -112,6 +133,11 @@ export class EveMeshOverlayEffect extends CjsModel
     return true;
   }
 
+  /**
+   * Applies a Blue list notification for the controller list: links inserted
+   * controllers, unlinks removed ones and unlinks all of them on unload start;
+   * loading events and notifications for any other list are ignored.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Plain JavaScript arrays do not raise Blue IList notifications; callers forward the equivalent event explicitly.")
@@ -133,6 +159,7 @@ export class EveMeshOverlayEffect extends CjsModel
     }
   }
 
+  /** Forwards a named variable value to every controller. */
   @carbon.method
   @impl.implemented
   SetControllerVariable(name, value)
@@ -140,6 +167,7 @@ export class EveMeshOverlayEffect extends CjsModel
     for (const controller of this.controllers) controller?.SetVariable?.(name, value);
   }
 
+  /** Forwards a named event to every controller. */
   @carbon.method
   @impl.implemented
   HandleControllerEvent(name)
@@ -147,6 +175,7 @@ export class EveMeshOverlayEffect extends CjsModel
     for (const controller of this.controllers) controller?.HandleEvent?.(name);
   }
 
+  /** Starts every controller attached to the overlay. */
   @carbon.method
   @impl.implemented
   StartControllers()
@@ -154,6 +183,11 @@ export class EveMeshOverlayEffect extends CjsModel
     for (const controller of this.controllers) controller?.Start?.();
   }
 
+  /**
+   * Plays the overlay's curve set when its name matches: a named time range
+   * plays that range, otherwise the range is reset and the set plays from the
+   * start; a name that does not match is ignored.
+   */
   @carbon.method
   @impl.implemented
   PlayCurveSet(name, rangeName = "")
@@ -168,6 +202,10 @@ export class EveMeshOverlayEffect extends CjsModel
     }
   }
 
+  /**
+   * Stops the overlay's curve set when its name matches, and does nothing
+   * otherwise.
+   */
   @carbon.method
   @impl.implemented
   StopCurveSet(name)
@@ -175,6 +213,10 @@ export class EveMeshOverlayEffect extends CjsModel
     this.#matchingCurveSet(name)?.Stop?.();
   }
 
+  /**
+   * Returns the longest curve duration in the named curve set, or 0 when the
+   * name does not match the overlay's set.
+   */
   @carbon.method
   @impl.implemented
   GetCurveSetDuration(name)
@@ -182,6 +224,10 @@ export class EveMeshOverlayEffect extends CjsModel
     return Math.max(0, Number(this.#matchingCurveSet(name)?.GetMaxCurveDuration?.() ?? 0));
   }
 
+  /**
+   * Returns the duration of a named time range within the named curve set, or 0
+   * when either name does not match.
+   */
   @carbon.method
   @impl.implemented
   GetRangeDuration(name, rangeName)
@@ -189,6 +235,11 @@ export class EveMeshOverlayEffect extends CjsModel
     return Math.max(0, Number(this.#matchingCurveSet(name)?.GetRangeDuration?.(rangeName) ?? 0));
   }
 
+  /**
+   * Advances the curve set with the supplied real and simulation times and steps
+   * every controller, matching Carbon's fixed 0.5 controller step; skipped
+   * entirely when updates are disabled or no curve set is assigned.
+   */
   @carbon.method
   @impl.implemented
   Update(realTime, simTime)
@@ -198,6 +249,10 @@ export class EveMeshOverlayEffect extends CjsModel
     for (const controller of this.controllers) controller?.Update?.(0.5);
   }
 
+  /**
+   * Returns the five per-batch effect lists so callers can apply an operation to
+   * every effect the overlay owns.
+   */
   #effectLists()
   {
     return [
@@ -209,6 +264,10 @@ export class EveMeshOverlayEffect extends CjsModel
     ];
   }
 
+  /**
+   * Returns the owned curve set when its name matches the requested one,
+   * otherwise null.
+   */
   #matchingCurveSet(name)
   {
     const curveSet = this.curveSet;

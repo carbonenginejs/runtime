@@ -18,6 +18,7 @@ export class EveDistributionPlacementGeneratorLocators extends CjsModel
   @type.list("Locator")
   locators = [];
 
+  /** Flags the pool as stale when the authored locator list changes. */
   @carbon.method
   @impl.adapted
   OnStructureListModified(_event, _item, _index, _list)
@@ -25,6 +26,12 @@ export class EveDistributionPlacementGeneratorLocators extends CjsModel
     this.#requestRegeneration = true;
   }
 
+  /**
+   * Appends one placement per authored locator, copying its position, direction, scale and bone index, and clears the regeneration request.
+   *
+   * @param placements Caller-owned pool array that is appended to.
+   * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
+   */
   @carbon.method
   @impl.adapted
   GetInitialPlacements(placements, trackingID)
@@ -46,6 +53,7 @@ export class EveDistributionPlacementGeneratorLocators extends CjsModel
     this.#requestRegeneration = false;
   }
 
+  /** Reports whether the locator list changed since the pool was last generated. */
   @carbon.method
   @impl.implemented
   IsRequestingRegeneration()
@@ -53,6 +61,7 @@ export class EveDistributionPlacementGeneratorLocators extends CjsModel
     return this.#requestRegeneration;
   }
 
+  /** No per-frame work; this generator only reacts to locator list changes. */
   @carbon.method
   @impl.implemented
   UpdateSyncronous(_updateContext, _params, _owner)

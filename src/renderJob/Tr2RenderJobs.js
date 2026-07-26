@@ -6,6 +6,10 @@ import { Tr2RenderContext } from "../trinityCore/Tr2RenderContext.js";
 import { TriRenderJob } from "./TriRenderJob.js";
 
 
+/**
+ * The four render-job schedules a frame draws from - recurring, one-off, chained
+ * and update-recurring - and the order in which they are run.
+ */
 @type.define({ className: "Tr2RenderJobs", family: "renderJob" })
 export class Tr2RenderJobs extends CjsModel
 {
@@ -25,6 +29,11 @@ export class Tr2RenderJobs extends CjsModel
   @type.list("TriRenderJob")
   updateRecurring = [];
 
+  /**
+   * Carbon Tr2RenderJobs::Run (cpp:23-98): runs every recurring job, then every one-off job keeping only those still RJ_IN_PROGRESS for the next frame, then chained jobs until one reports RJ_IN_PROGRESS, at which point that job and all remaining ones are carried over.
+   * The whole pass is bracketed by a render-target/depth-stencil batch so no job can leak a binding past the frame.
+   * @param {object} [executor] performs the work the jobs describe; defaults to the shared Tr2RenderContext
+   */
   @carbon.method
   @impl.adapted
   Run(realTime, simTime, executor = null)
@@ -64,6 +73,11 @@ export class Tr2RenderJobs extends CjsModel
     }
   }
 
+  /**
+   * Carbon Tr2RenderJobs::RunUpdate (cpp:100-111): runs the update-recurring
+   * jobs only; unlike Run this pass reschedules nothing and is not bracketed by
+   * a batch.
+   */
   @carbon.method
   @impl.adapted
   RunUpdate(realTime, simTime, executor = null)
@@ -72,6 +86,10 @@ export class Tr2RenderJobs extends CjsModel
     for (const job of this.updateRecurring.slice()) Tr2RenderJobs.#runJob(job, realTime, simTime, context, this);
   }
 
+  /**
+   * Runs one scheduled job, reporting an invalid-render-job diagnostic and
+   * RJ_FAILED when the entry cannot be run.
+   */
   static #runJob(job, realTime, simTime, executor, owner)
   {
     if (!job?.Run)
@@ -82,6 +100,12 @@ export class Tr2RenderJobs extends CjsModel
     return job.Run(realTime, simTime, executor);
   }
 
+  /**
+   * Opens the frame's target scope: delegates to the executor's BeginBatch when
+   * it has one, otherwise pushes a render-target and depth-stencil entry to
+   * snapshot the current binding, undoing whatever was pushed if the second push
+   * throws. The returned token tells #endBatch what to close.
+   */
   static #beginBatch(executor, owner)
   {
     if (executor?.BeginBatch)
@@ -107,6 +131,10 @@ export class Tr2RenderJobs extends CjsModel
     }
   }
 
+  /**
+   * Closes the scope opened by #beginBatch, either delegating to EndBatch or
+   * popping the depth-stencil and render target in reverse order.
+   */
   static #endBatch(executor, owner, batch)
   {
     if (batch.delegated) return executor?.EndBatch?.(owner);

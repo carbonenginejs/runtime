@@ -5,6 +5,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
+/**
+ * Controller action that sets an audio emitter's distance-attenuation scaling
+ * factor on start, optionally multiplied by a named controller variable.
+ */
 @type.define({
   className: "Tr2ActionSetAttenuationScaling",
   family: "controllers"

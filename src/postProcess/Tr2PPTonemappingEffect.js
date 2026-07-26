@@ -4,6 +4,10 @@ import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 
+/**
+ * Tonemapping curve selection - Uncharted2, ACES or AgX - together with the toe,
+ * shoulder and clipping parameters that shape it.
+ */
 @type.define({ className: "Tr2PPTonemappingEffect", family: "postProcess" })
 export class Tr2PPTonemappingEffect extends Tr2PPEffect
 {

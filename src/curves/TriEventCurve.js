@@ -6,6 +6,11 @@ import { TRIEXTRAPOLATION } from "./enums.js";
 import { TriEventKey } from "./TriEventKey.js";
 
 
+/**
+ * Time-keyed event track that fires each key once as the playhead passes it,
+ * dispatching either a named event to a listener or a queued callable, and
+ * restarting the key cursor when time rewinds or a cycle wraps.
+ */
 @type.define({
   className: "TriEventCurve",
   family: "curves"
@@ -43,11 +48,16 @@ export class TriEventCurve extends CjsModel
     return count;
   }
 
+  /**
+   * Gets the number of callable-key invocations still queued for the post-update
+   * phase.
+   */
   static getPostUpdateCallbackCount()
   {
     return this.#postUpdateCallbacks.length;
   }
 
+  /** Discards every queued post-update callback without running it. */
   static clearPostUpdateCallbacks()
   {
     this.#postUpdateCallbacks.length = 0;
@@ -310,11 +320,19 @@ export class TriEventCurve extends CjsModel
     }
   }
 
+  /**
+   * Adopts a plain record as a TriEventKey so externally supplied keys carry the
+   * full key shape.
+   */
   static #ensureEventKey(key)
   {
     return key instanceof TriEventKey ? key : Object.assign(new TriEventKey(), key);
   }
 
+  /**
+   * Normalizes callable-key arguments to an array, treating null or undefined as
+   * no arguments and a bare value as a single argument.
+   */
   static #normalizeCallableArgs(args)
   {
     if (args === null || args === undefined)

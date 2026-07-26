@@ -7,6 +7,11 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "./enums.js";
 
 
+/**
+ * Follow-curve key positioned by another object rather than a fixed point,
+ * taking its place from that object's locator or offset and optionally rotating
+ * its tangents with the object.
+ */
 @type.define({
   className: "Tr2ObjectFollowCurveKey",
   family: "curves"

@@ -5,6 +5,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "./TriRenderJob.js";
 
 
+/** Step that runs a nested render job in place, letting job graphs compose. */
 @type.define({ className: "TriStepRunJob", family: "renderJob" })
 export class TriStepRunJob extends TriRenderStep
 {
@@ -12,6 +13,7 @@ export class TriStepRunJob extends TriRenderStep
   @type.objectRef("TriRenderJob")
   job = null;
 
+  /** Stores the nested job this step runs. */
   @carbon.method
   @impl.adapted
   __init__(job = null)
@@ -19,6 +21,7 @@ export class TriStepRunJob extends TriRenderStep
     this.SetRenderJob(job);
   }
 
+  /** Replaces the nested job; null makes the step a no-op. */
   @carbon.method
   @impl.adapted
   SetRenderJob(job)
@@ -26,6 +29,11 @@ export class TriStepRunJob extends TriRenderStep
     this.job = job ?? null;
   }
 
+  /**
+   * Runs the nested job with the same executor and maps its job status onto a
+   * step result, so a nested job that is still in progress leaves the owning job
+   * in progress too and resumes at this same step next frame.
+   */
   @carbon.method
   @impl.implemented
   Execute(realTime, simTime, executor)

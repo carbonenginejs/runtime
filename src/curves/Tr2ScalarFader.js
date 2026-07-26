@@ -6,6 +6,11 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
 const TRI_PI = Math.PI;
+/**
+ * Scalar fade envelope that ramps linearly between 0 and 1 over an authored fade
+ * length, and also exposes a separate non-linear kick-in pulse that runs once
+ * per fade-in.
+ */
 @type.define({
   className: "Tr2ScalarFader",
   family: "curves"
@@ -118,6 +123,10 @@ export class Tr2ScalarFader extends CjsModel
     return Math.pow(Math.sin(TRI_PI * Math.pow(x, 0.66)), 3);
   }
 
+  /**
+   * Reads the frame delta in seconds from an update context, accepting either a
+   * GetDeltaT method or a plain deltaT property and defaulting to 0.
+   */
   static #getDeltaT(updateContext)
   {
     if (typeof updateContext.GetDeltaT === "function")

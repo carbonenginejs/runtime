@@ -5,6 +5,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
+/**
+ * Controller action that sets a named shader option on its owner when it starts,
+ * changing which shader permutation the owner renders with.
+ */
 @type.define({
   className: "Tr2ActionSetShaderOption",
   family: "controllers"

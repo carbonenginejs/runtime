@@ -7,6 +7,10 @@ import { Tr2CurveInterpolation, Tr2CurveTangentType } from "./enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
 
+/**
+ * Three-component vector curve composed of independent scalar curves for x, y
+ * and z; its length is the longest of the three.
+ */
 @type.define({
   className: "Tr2CurveVector3",
   family: "curves"

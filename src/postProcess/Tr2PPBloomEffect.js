@@ -4,6 +4,11 @@ import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 
+/**
+ * Six-step bloom parameters: per-step blur size and tint, overall brightness and
+ * size scale, luminance thresholding, and the grime texture overlaid on the
+ * result.
+ */
 @type.define({ className: "Tr2PPBloomEffect", family: "postProcess" })
 export class Tr2PPBloomEffect extends Tr2PPEffect
 {

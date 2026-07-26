@@ -6,6 +6,10 @@ import { ITr2GenericEmitter as Tr2GenericEmitterUpdateArguments } from "../gener
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
+/**
+ * Controller action that emits a one-shot burst of particles from a dynamic
+ * emitter when it starts.
+ */
 @type.define({
   className: "Tr2ActionSpawnParticles",
   family: "controllers"
@@ -34,6 +38,10 @@ export class Tr2ActionSpawnParticles extends CjsModel
     this.emitter.SpawnParticles(Tr2ActionSpawnParticles.#createEmitterUpdateArguments(), null, null, this.rate);
   }
 
+  /**
+   * Builds the emitter update arguments used for a manual spawn, with an emit
+   * count factor of 1 so the authored rate is applied unscaled.
+   */
   static #createEmitterUpdateArguments()
   {
     const args = new Tr2GenericEmitterUpdateArguments();

@@ -10,6 +10,10 @@ import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { Tr2Light } from "./Tr2Light.js";
 
 
+/**
+ * Omnidirectional light whose LightData attributes are flattened into persisted
+ * Blue properties.
+ */
 @type.define({ className: "Tr2PointLight", family: "eve/lights" })
 export class Tr2PointLight extends Tr2Light
 {

@@ -5,6 +5,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 
 
+/**
+ * One named shader-binding variable: the content type fixed when it was
+ * registered, plus the value payload standing in for Carbon's typed union.
+ */
 @type.define({
   className: "TriVariable",
   family: "trinityCore"
@@ -23,6 +27,7 @@ export class TriVariable extends CjsModel
   /** Runtime value payload; the typed C++ union collapses to one slot. */
   value = null;
 
+  /** The registered variable name, which the store also uses as its key. */
   @carbon.method
   @impl.implemented
   GetName()
@@ -30,6 +35,7 @@ export class TriVariable extends CjsModel
     return this.name;
   }
 
+  /** The TriVariableContentType fixed at registration; SetValue never changes it. */
   @carbon.method
   @impl.implemented
   GetType()
@@ -49,6 +55,11 @@ export class TriVariable extends CjsModel
     return true;
   }
 
+  /**
+   * Reads the payload; when out is array-like and so is the payload, the
+   * overlapping components are copied into out and out is returned, otherwise
+   * the stored payload itself is returned and is not a copy.
+   */
   @carbon.method
   @impl.adapted
   GetValue(out = undefined)
@@ -102,6 +113,10 @@ export class TriVariable extends CjsModel
     }
   }
 
+  /**
+   * Carbon's display name for a content type, defaulting to this variable's own
+   * type.
+   */
   @carbon.method
   @impl.implemented
   GetTypeName(contentType = this.contentType)
@@ -109,6 +124,10 @@ export class TriVariable extends CjsModel
     return TriVariable.GetTypeName(contentType);
   }
 
+  /**
+   * Constant-buffer byte size of a content type, defaulting to this variable's
+   * own type.
+   */
   @carbon.method
   @impl.implemented
   GetTypeSize(contentType = this.contentType)
@@ -157,6 +176,10 @@ export class TriVariable extends CjsModel
     return TriVariableContentType.TRIVARIABLE_INVALID;
   }
 
+  /**
+   * Carbon's display name for a content type; an unrecognised type falls back to
+   * the INVALID label.
+   */
   static GetTypeName(contentType)
   {
     return TriVariable.#typeNames[contentType] ?? TriVariable.#typeNames[0];

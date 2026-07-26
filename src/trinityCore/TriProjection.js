@@ -6,6 +6,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * The camera projection: the selected projection mode with its parameters, plus
+ * the 4x4 matrix built from them.
+ */
 @type.define({
   className: "TriProjection",
   family: "trinityCore"
@@ -44,6 +48,10 @@ export class TriProjection extends CjsModel
   @type.mat4
   transform = mat4.create();
 
+  /**
+   * Selects the field-of-view perspective mode, storing fov (in radians), aspect
+   * and the near/far planes, and rebuilds the transform.
+   */
   @carbon.method
   @impl.implemented
   PerspectiveFov(fov, aspect, zn, zf)
@@ -56,6 +64,10 @@ export class TriProjection extends CjsModel
     TriProjection.#perspectiveFov(this.transform, fov, aspect, zn, zf);
   }
 
+  /**
+   * Selects the off-centre perspective mode from explicit frustum edges measured
+   * at the near plane, and rebuilds the transform.
+   */
   @carbon.method
   @impl.implemented
   PerspectiveOffCenter(left, right, bottom, top, zn, zf)
@@ -70,6 +82,10 @@ export class TriProjection extends CjsModel
     TriProjection.#perspectiveOffCenter(this.transform, left, right, bottom, top, zn, zf);
   }
 
+  /**
+   * Selects the orthographic mode; width and height are stored in the left and
+   * top slots and front/back in the near and far slots.
+   */
   @carbon.method
   @impl.implemented
   PerspectiveOrthographic(width, height, front, back)
@@ -82,6 +98,10 @@ export class TriProjection extends CjsModel
     TriProjection.#ortho(this.transform, width, height, front, back);
   }
 
+  /**
+   * Adopts a caller-supplied matrix verbatim as the projection, copying it
+   * rather than retaining the caller's buffer.
+   */
   @carbon.method
   @impl.adapted
   CustomProjection(value)
@@ -91,6 +111,7 @@ export class TriProjection extends CjsModel
     mat4.copy(this.transform, value);
   }
 
+  /** The active mode, one of the FOV, OFF_CENTER, ORTHO or CUSTOM constants. */
   @carbon.method
   @impl.implemented
   GetProjectionType()
@@ -98,6 +119,11 @@ export class TriProjection extends CjsModel
     return this.projectionType;
   }
 
+  /**
+   * Rebuilds the projection matrix from the stored parameters, without any view-dependent adjustment; an unset projection type yields identity.
+   * @param {mat4} [out] Caller-owned destination; a new matrix is allocated when omitted.
+   * @returns {mat4} The destination matrix.
+   */
   @carbon.method
   @impl.adapted
   GetMatrixWithoutViewAdjustment(out = mat4.create())
@@ -117,6 +143,10 @@ export class TriProjection extends CjsModel
     }
   }
 
+  /**
+   * Rebuilds the cached transform field from the current parameters, then copies
+   * it into out (a fresh matrix when omitted) and returns it.
+   */
   @carbon.method
   @impl.adapted
   GetTransform(out = mat4.create())
@@ -125,6 +155,10 @@ export class TriProjection extends CjsModel
     return mat4.copy(out, this.transform);
   }
 
+  /**
+   * Builds the right-handed field-of-view perspective matrix with a zero-to-one
+   * depth range (w takes -z).
+   */
   static #perspectiveFov(out, fov, aspect, zn, zf)
   {
     const yScale = 1 / Math.tan(fov * 0.5);
@@ -138,6 +172,11 @@ export class TriProjection extends CjsModel
     return out;
   }
 
+  /**
+   * Builds the right-handed off-centre perspective matrix from the near-plane
+   * frustum edges; the vertical terms follow Carbon's top-above-bottom
+   * convention and so carry the opposite sign to the usual form.
+   */
   static #perspectiveOffCenter(out, left, right, bottom, top, zn, zf)
   {
     out.fill(0);
@@ -151,6 +190,10 @@ export class TriProjection extends CjsModel
     return out;
   }
 
+  /**
+   * Builds the orthographic matrix from width, height and the near/far planes,
+   * with a zero-to-one depth range.
+   */
   static #ortho(out, width, height, zn, zf)
   {
     mat4.identity(out);

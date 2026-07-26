@@ -4,6 +4,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * One key of a matrix curve: a time in seconds and the 4x4 matrix value at that
+ * time.
+ */
 @type.define({
   className: "Tr2MatrixKey",
   family: "curves"

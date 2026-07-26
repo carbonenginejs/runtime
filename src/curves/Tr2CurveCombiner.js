@@ -5,6 +5,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Vector function returning the component-wise sum of every child vector
+ * function sampled at the same time; its length is the longest child's length.
+ */
 @type.define({
   className: "Tr2CurveCombiner",
   family: "curves"

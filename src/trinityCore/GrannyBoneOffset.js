@@ -8,32 +8,47 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Per-bone rotation and translation offsets layered on top of an animated rig,
+ * keyed by bone name until bound into the rig's joint order.
+ */
 @type.define({ className: "GrannyBoneOffset", family: "trinityCore" })
 export class GrannyBoneOffset extends CjsModel
 {
   #transforms = new Map();
   #riggedTransforms = [];
 
+  /** Nothing to prepare; always succeeds. */
   Initialize()
   {
     return true;
   }
 
+  /** Whether any bone offset has been set. */
   HaveTransforms()
   {
     return this.#transforms.size !== 0;
   }
 
+  /**
+   * True when offsets exist but the cached rig binding does not cover the given
+   * bone count, so BindToRig must run again.
+   */
   NeedRebind(numBones)
   {
     return this.HaveTransforms() && this.#riggedTransforms.length !== numBones;
   }
 
+  /**
+   * Drops the joint-order cache, forcing the next BindToRig to rebuild it; the
+   * named offsets are kept.
+   */
   ClearRigBindings()
   {
     this.#riggedTransforms.length = 0;
   }
 
+  /** Drops every named bone offset along with the rig binding. */
   @carbon.method
   @impl.implemented
   ClearTransforms()
@@ -42,6 +57,11 @@ export class GrannyBoneOffset extends CjsModel
     this.ClearRigBindings();
   }
 
+  /**
+   * Replaces a bone's offset with one built from the quaternion components,
+   * discarding any translation previously set for that bone, and invalidates the
+   * rig binding.
+   */
   @carbon.method
   @impl.adapted
   SetRotation(bone, r, i, j, k)
@@ -52,6 +72,10 @@ export class GrannyBoneOffset extends CjsModel
     this.ClearRigBindings();
   }
 
+  /**
+   * Sets a bone's offset translation in place, keeping any rotation already
+   * stored for it, and invalidates the rig binding.
+   */
   @carbon.method
   @impl.implemented
   SetOffset(bone, x, y, z)
@@ -66,6 +90,10 @@ export class GrannyBoneOffset extends CjsModel
     this.ClearRigBindings();
   }
 
+  /**
+   * Caches the named offsets in the rig's bone order so Apply can index them by
+   * joint; bones with no offset get a null slot.
+   */
   BindToRig(bones, numBones = bones?.length ?? 0)
   {
     if (!bones || !numBones) return;
@@ -73,6 +101,13 @@ export class GrannyBoneOffset extends CjsModel
       this.#transforms.get(String(bones[index])) ?? null);
   }
 
+  /**
+   * Composes the joint's offset into its bone transform and multiplies by the
+   * parent, writing the result into out; returns false when that joint has no
+   * offset. Carbon's row-vector `(offset * bone) * parent` becomes `parent *
+   * (bone * offset)` here, and the translation is added component-wise rather
+   * than transformed.
+   */
   Apply(out, joint, boneMatrix, parentMatrix)
   {
     const offset = this.#riggedTransforms[joint];
@@ -89,6 +124,11 @@ export class GrannyBoneOffset extends CjsModel
     return true;
   }
 
+  /**
+   * Applies the joint's offset to a local rotation and position in place -
+   * offset rotation composed first, translation added - and returns false when
+   * that joint has no offset.
+   */
   ApplyToLocal(joint, rotation, position)
   {
     const offset = this.#riggedTransforms[joint];

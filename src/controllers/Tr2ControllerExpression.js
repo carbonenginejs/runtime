@@ -5,6 +5,10 @@ import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsControllerExpressionProgram } from "./CjsControllerExpressionProgram.js";
 
 
+/**
+ * Holds one compiled expression bound to a controller or state machine, together
+ * with the variable dirty mask that says when it needs re-evaluating.
+ */
 @type.define({
   className: "Tr2ControllerExpression",
   family: "controllers"
@@ -126,6 +130,12 @@ export class Tr2ControllerExpression extends CjsModel
     return out;
   }
 
+  /**
+   * Computes the bitmask of controller variables the program reads; returns 0
+   * when the program calls an impure function or references a variable that is
+   * missing or beyond bit 63, and -1 when the controller exposes no variable
+   * view at all.
+   */
   static #getVariableMask(program, controller)
   {
     const view = controller?.GetVariableView?.();
@@ -146,6 +156,10 @@ export class Tr2ControllerExpression extends CjsModel
     return program.HasNonPureFunctions() ? 0n : mask;
   }
 
+  /**
+   * Distinguishes a state machine from a controller by the presence of a
+   * callable GetController.
+   */
   static #isStateMachine(value)
   {
     return !!value && typeof value === "object" && typeof value.GetController === "function";

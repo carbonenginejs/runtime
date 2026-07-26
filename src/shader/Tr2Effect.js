@@ -115,6 +115,10 @@ export class Tr2Effect extends Tr2Material
     this.insideStartUpdate = wasInsideStartUpdate;
   }
 
+  /**
+   * Overrides the store this effect's TriVariableParameter values resolve
+   * against; passing null restores the fallback to the global store.
+   */
   @carbon.method
   @impl.implemented
   SetVariableStore(store)
@@ -130,6 +134,10 @@ export class Tr2Effect extends Tr2Material
     return this.variableStore ?? CjsVariableStore.GetGlobalStore();
   }
 
+  /**
+   * The authored constant-parameter list itself, not a copy - callers that
+   * mutate it mutate the effect.
+   */
   @carbon.method
   @impl.implemented
   GetConstParameters()
@@ -269,6 +277,10 @@ export class Tr2Effect extends Tr2Material
     this.insideStartUpdate = true;
   }
 
+  /**
+   * Attaches every resource to this material, derives actualEffectFilePath from
+   * the authored path, and rebuilds cached shader data.
+   */
   Initialize()
   {
     for (const resource of this.resources)
@@ -280,12 +292,18 @@ export class Tr2Effect extends Tr2Material
     return true;
   }
 
+  /** Re-runs Initialize after notified fields change; always returns true. */
   OnModified()
   {
     this.Initialize();
     return true;
   }
 
+  /**
+   * Keeps list membership consistent: a removed entry has its reroute
+   * destination cleared and is detached from the material, an inserted one is
+   * attached, and cached data is rebuilt either way.
+   */
   OnListModified(event, _key, _key2, value)
   {
     if (value?.SetDestination && String(event).includes("REMOVED"))
@@ -303,6 +321,12 @@ export class Tr2Effect extends Tr2Material
     this.RebuildCachedDataInternal();
   }
 
+  /**
+   * Re-resolves the shader for the current option set and re-binds every
+   * parameter and resource to it, rebuilding the screen-size LOD texture list on
+   * the way; a no-op while a StartUpdate batch is open. Resolves shader metadata
+   * only - no GPU program is created.
+   */
   RebuildCachedDataInternal()
   {
     if (this.insideStartUpdate)
@@ -331,6 +355,10 @@ export class Tr2Effect extends Tr2Material
     }
   }
 
+  /**
+   * Drops the resolved shader and clears every parameter's and resource's effect
+   * handles by rebuilding them against null.
+   */
   ReleaseCachedData()
   {
     this.shader = null;
@@ -345,26 +373,43 @@ export class Tr2Effect extends Tr2Material
     this.lodTextureParameters = [];
   }
 
+  /**
+   * Sets the authored effect path through SetValues so the pipeline rebuild flag
+   * fires; returns whether anything changed.
+   */
   SetEffectPathName(path)
   {
     return this.SetValues({ effectFilePath: path ? String(path) : "" }, { source: this, returnBoolean: true });
   }
 
+  /**
+   * The authored path, not the slash-normalized actualEffectFilePath that
+   * Initialize derives from it.
+   */
   GetEffectPathName()
   {
     return this.effectFilePath;
   }
 
+  /**
+   * The effect resource the shader is resolved from, or null before one has been
+   * assigned.
+   */
   GetEffectRes()
   {
     return this.effectResource;
   }
 
+  /** The authored effect name, which is independent of the effect file path. */
   GetName()
   {
     return this.name;
   }
 
+  /**
+   * Appends a resource parameter, attaches it to this material and rebuilds
+   * cached data; does not check for a duplicate name and always returns true.
+   */
   AddResource(parameter)
   {
     this.resources.push(parameter);
@@ -373,6 +418,10 @@ export class Tr2Effect extends Tr2Material
     return true;
   }
 
+  /**
+   * Creates and attaches a TriTextureParameter for the name, returning false
+   * when a resource already uses that name.
+   */
   AddResourceTexture2D(name, resourcePath = "")
   {
     if (this.GetResourceByName(name))
@@ -401,6 +450,11 @@ export class Tr2Effect extends Tr2Material
     return updated;
   }
 
+  /**
+   * Adds a sampler override for the named resource using Carbon's authoring
+   * defaults for the fields not passed in (addressW 1, filter 3, mipFilter 2);
+   * returns false when an override of that name already exists.
+   */
   AddSamplerOverride(name, addressU = 1, addressV = addressU)
   {
     if (this.HasSamplerOverride(name))
@@ -419,6 +473,11 @@ export class Tr2Effect extends Tr2Material
     return true;
   }
 
+  /**
+   * Adds an authored constant parameter, cloning the value so the caller's
+   * vector is not aliased; returns false when a constant of that name already
+   * exists.
+   */
   AddParameterVector4(name, value = vec4.create())
   {
     if (this.HasParameter(name))
@@ -433,11 +492,19 @@ export class Tr2Effect extends Tr2Material
     return true;
   }
 
+  /**
+   * Adds a constant parameter with the scalar splatted across all four
+   * components, matching Carbon's float authoring.
+   */
   AddParameterFloat(name, value = 0)
   {
     return this.AddParameterVector4(name, vec4.fromValues(value, value, value, value));
   }
 
+  /**
+   * Adds a constant parameter from a colour vector; behaviourally identical to
+   * AddParameterVector4.
+   */
   AddParameterColor(name, value)
   {
     return this.AddParameterVector4(name, value);
@@ -671,6 +738,11 @@ export class Tr2Effect extends Tr2Material
     return null;
   }
 
+  /**
+   * Removes the named entry from one of the effect's collections, detaching it
+   * from the material first when the list is `resources`; returns whether
+   * anything was removed.
+   */
   #removeNamed(list, name)
   {
     const existing = CjsParameter.findByName(list, name);
@@ -686,6 +758,12 @@ export class Tr2Effect extends Tr2Material
     return true;
   }
 
+  /**
+   * Assigns a dynamic parameter by name, reusing the existing model when its
+   * class claims the value and otherwise creating one and replacing the old
+   * entry; string values route to the texture resource list instead. Throws
+   * TypeError when no registered parameter class can represent the value.
+   */
   #setNamedParameter(name, value)
   {
     if (typeof value === "string")
@@ -729,6 +807,11 @@ export class Tr2Effect extends Tr2Material
     return true;
   }
 
+  /**
+   * Points the named texture resource at a res path, creating and attaching a
+   * TriTextureParameter when absent; returns false when the path is already that
+   * value, and throws TypeError for non-string values.
+   */
   #setNamedTexture(name, value)
   {
     if (typeof value !== "string")
@@ -760,6 +843,11 @@ export class Tr2Effect extends Tr2Material
     return true;
   }
 
+  /**
+   * Resolves a descriptor's `Type`/`type`/`_type` field to a parameter
+   * constructor, directly or through the schema registry; returns null when no
+   * type field is present and throws TypeError for an unregistered class name.
+   */
   static #resolveExplicitParameterClass(value)
   {
     const explicit = value?.Type ?? value?.type ?? value?._type;
@@ -779,6 +867,11 @@ export class Tr2Effect extends Tr2Material
     return Registered;
   }
 
+  /**
+   * Coerces a number (splatted to all four components), a four-number array, or
+   * a `{ value }` wrapper into a new vec4; returns null when no vec4 can be
+   * read.
+   */
   static #toConstVector4(value)
   {
     if (typeof value === "number")
@@ -812,6 +905,10 @@ export class Tr2Effect extends Tr2Material
     TriTextureParameter
   ]);
 
+  /**
+   * Empties both the constant and dynamic parameter lists inside one
+   * StartUpdate/EndUpdate batch, so cached data rebuilds once at the end.
+   */
   ClearAllParameters()
   {
     this.StartUpdate();
@@ -820,6 +917,10 @@ export class Tr2Effect extends Tr2Material
     this.EndUpdate();
   }
 
+  /**
+   * Detaches every resource from this material and empties the resource list,
+   * then rebuilds cached data.
+   */
   ClearAllResources()
   {
     for (const resource of this.resources)
@@ -830,6 +931,11 @@ export class Tr2Effect extends Tr2Material
     this.RebuildCachedDataInternal();
   }
 
+  /**
+   * Sets a shader option, adding it when absent; cached data is rebuilt only
+   * when the value actually changes, since options select the shader
+   * permutation.
+   */
   SetOption(name, value)
   {
     const existing = CjsParameter.findByName(this.options, name);
@@ -849,47 +955,74 @@ export class Tr2Effect extends Tr2Material
     this.RebuildCachedDataInternal();
   }
 
+  /**
+   * Drops the named option so the shader resolves with its default permutation
+   * again.
+   */
   ResetOption(name)
   {
     this.options = this.options.filter(option => option?.name !== name);
     this.RebuildCachedDataInternal();
   }
 
+  /** The option's value, or the empty string when the option is not set. */
   GetOption(name)
   {
     return CjsParameter.findByName(this.options, name)?.value ?? "";
   }
 
+  /**
+   * Looks the name up in the dynamic parameters first, then the resources;
+   * authored constant parameters are not searched.
+   */
   GetParameterByName(name)
   {
     return this.FindParameterByName(name) ?? this.GetResourceByName(name);
   }
 
+  /**
+   * The dynamic parameter with this shader name, or null; resources and constant
+   * parameters are not consulted.
+   */
   FindParameterByName(name)
   {
     return this.parameters.find(parameter => CjsParameter.getNamedValue(parameter) === name) ?? null;
   }
 
+  /** The resource parameter with this shader name, or null. */
   GetResourceByName(name)
   {
     return this.resources.find(parameter => CjsParameter.getNamedValue(parameter) === name) ?? null;
   }
 
+  /** Whether a sampler override is authored for this resource name. */
   HasSamplerOverride(name)
   {
     return this.samplerOverrides.some(value => value?.name === name);
   }
 
+  /**
+   * Whether an authored constant parameter uses this name; dynamic parameters
+   * and resources do not count.
+   */
   HasParameter(name)
   {
     return this.constParameters.some(value => value?.name === name);
   }
 
+  /**
+   * Whether any collection - parameters, resources or constant parameters -
+   * already claims the name; the duplicate guard PopulateParameters uses.
+   */
   #hasParameterLike(name)
   {
     return !!(this.GetParameterByName(name) || this.HasParameter(name));
   }
 
+  /**
+   * Whether the resolved shader both marks the name SasUiVisible and exposes it
+   * as a constant or resource; the predicate PruneParameters filters on.
+   */
   #isShaderParameterVisible(name)
   {
     if (!name)
@@ -899,11 +1032,16 @@ export class Tr2Effect extends Tr2Material
     return Tr2Effect.getBool(this.shader, name, "SasUiVisible", false) && !!(this.shader?.GetConstant?.(name) || this.shader?.GetResource?.(name));
   }
 
+  /** Normalizes an authored effect path's backslashes to forward slashes. */
   static convertEffectPath(path)
   {
     return String(path).replaceAll("\\", "/");
   }
 
+  /**
+   * Flattens a shader's technique/pass tree into a flat array of stage inputs,
+   * accepting either a GetEffectDescription accessor or a plain `effect` field.
+   */
   static iterateShaderStages(shader)
   {
     const stages = [];
@@ -918,6 +1056,10 @@ export class Tr2Effect extends Tr2Material
     return stages;
   }
 
+  /**
+   * Normalizes a stage's resource collection - Map, array of entries, or plain
+   * object - into a flat array of resource descriptions.
+   */
   static iterateResources(values)
   {
     if (!values)
@@ -935,6 +1077,10 @@ export class Tr2Effect extends Tr2Material
     return Object.values(values);
   }
 
+  /**
+   * Reads a boolean shader annotation off a parameter, tolerating Map/array/object annotation containers and the several value field names reflection data uses.
+   * @returns {boolean} defaultValue when the annotation is absent
+   */
   static getBool(shader, parameterName, annotationName, defaultValue = false)
   {
     const annotations = shader?.GetParameterAnnotations?.(parameterName);
@@ -947,6 +1093,13 @@ export class Tr2Effect extends Tr2Material
     return Boolean(annotation.boolValue ?? annotation.value ?? annotation.booleanValue ?? defaultValue);
   }
 
+  /**
+   * Builds the parameter model matching a reflected shader constant - float
+   * array, matrix, vector or scalar - seeded with the shader-authored defaults;
+   * a 16-component constant whose name contains `Reflection` becomes an
+   * EnvMapTransform variable parameter instead. Returns null for non-FLOAT
+   * constants, which Carbon does not surface as parameters.
+   */
   static convertEffectConstant(constant, constantValues)
   {
     // Carbon only populates parameters for FLOAT constants; INT/UINT/BOOL
@@ -1014,6 +1167,10 @@ export class Tr2Effect extends Tr2Material
     return parameter;
   }
 
+  /**
+   * Builds a TriTextureParameter for texture resources and a
+   * Tr2GeometryBufferParameter for everything else.
+   */
   static convertEffectResource(resource)
   {
     if (Tr2Effect.isTextureResource(resource))
@@ -1027,6 +1184,11 @@ export class Tr2Effect extends Tr2Material
     return parameter;
   }
 
+  /**
+   * Classifies a reflected resource as a texture: string types containing
+   * TEXTURE but not BUFFER, or numeric types 1..5 (TEXTURE_1D through
+   * TEXTURE_TYPELESS); buffer types start at 6.
+   */
   static isTextureResource(resource)
   {
     const type = resource?.type;
@@ -1039,6 +1201,11 @@ export class Tr2Effect extends Tr2Material
     return Number(type) >= 1 && Number(type) <= 5;
   }
 
+  /**
+   * Reads a constant's shader-authored default scalar, preferring an inline
+   * value and otherwise a little-endian float32 at the constant's offset into
+   * the stage's constantValues; 0 when neither is available.
+   */
   static readScalar(constant, values)
   {
     if (typeof constant.value === "number")
@@ -1086,6 +1253,11 @@ export class Tr2Effect extends Tr2Material
     return out;
   }
 
+  /**
+   * Reads the shader-authored default vec4 for one element of a constant out of the stage's constantValues (16 bytes per element), or from the constant's inline value when it has one.
+   * @param element zero-based array element index; ignored when the constant carries an inline value
+   * @returns {vec4} a newly allocated vector; components outside the buffer stay 0
+   */
   static readVector4(constant, values, element)
   {
     if (constant.value && typeof constant.value.length === "number")

@@ -9,6 +9,10 @@ import { Tr2Light } from "./Tr2Light.js";
 import { Tr2PointLight } from "./Tr2PointLight.js";
 
 
+/**
+ * Point light that projects a texture, adding the texture path and its resolved
+ * resource to the point-light attribute set and updating dynamically.
+ */
 @type.define({ className: "Tr2TexturedPointLight", family: "eve/lights" })
 export class Tr2TexturedPointLight extends Tr2PointLight
 {
@@ -32,6 +36,10 @@ export class Tr2TexturedPointLight extends Tr2PointLight
 
   #saturation = 1;
 
+  /**
+   * Records the saturation for the projected texture; the stored value is not
+   * read anywhere else in the port yet.
+   */
   @carbon.method
   @impl.implemented
   SetSaturation(saturation)

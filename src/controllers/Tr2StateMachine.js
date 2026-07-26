@@ -6,6 +6,11 @@ import { UnlinkReason } from "./enums.js";
 import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, GetControllerTimeSeconds, TR2_DIRTY_ALL } from "./contracts.js";
 
 
+/**
+ * Runs one state at a time from an authored state list, entering at the
+ * configured start state and following transitions as controller variables
+ * change.
+ */
 @type.define({
   className: "Tr2StateMachine",
   family: "controllers"
@@ -253,6 +258,11 @@ export class Tr2StateMachine extends CjsModel
   {
     return this.GetStateRunTime();
   }
+  /**
+   * Advances through as many immediately-satisfied transitions as the current
+   * state chain produces, resetting the state start time on each hop; after 10
+   * hops it counts revisits and bails out at 20 to break a transition cycle.
+   */
   #followTransitions(dirtyVariables)
   {
     let next = this.currentState?.Update?.(dirtyVariables) ?? null;
@@ -279,6 +289,10 @@ export class Tr2StateMachine extends CjsModel
     }
   }
 
+  /**
+   * Narrows a list payload to an object reference before it is treated as a
+   * state.
+   */
   static #asState(value)
   {
     return value && typeof value === "object" ? value : null;

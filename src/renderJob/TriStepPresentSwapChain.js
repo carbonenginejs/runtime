@@ -5,6 +5,10 @@ import { TriRenderJob } from "./TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
+/**
+ * Step that presents a swap chain, publishing the frame that the preceding steps
+ * produced.
+ */
 @type.define({ className: "TriStepPresentSwapChain", family: "renderJob" })
 export class TriStepPresentSwapChain extends TriRenderStep
 {
@@ -12,6 +16,7 @@ export class TriStepPresentSwapChain extends TriRenderStep
   @type.objectRef("Tr2SwapChain")
   swapChain = null;
 
+  /** Stores the swap chain to present. */
   @carbon.method
   @impl.adapted
   __init__(swapChain = null)
@@ -19,6 +24,10 @@ export class TriStepPresentSwapChain extends TriRenderStep
     this.swapChain = swapChain ?? null;
   }
 
+  /**
+   * Asks the executor to present the swap chain; with none set the step is a
+   * no-op.
+   */
   @carbon.method
   @impl.implemented
   Execute(_realTime, _simTime, executor)

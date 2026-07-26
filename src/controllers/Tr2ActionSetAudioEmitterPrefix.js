@@ -5,6 +5,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
+/**
+ * Controller action that sets the event-name prefix on a named audio emitter
+ * when it starts, changing which bank events later sounds resolve to.
+ */
 @type.define({
   className: "Tr2ActionSetAudioEmitterPrefix",
   family: "controllers"

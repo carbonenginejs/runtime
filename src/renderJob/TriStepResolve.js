@@ -5,6 +5,10 @@ import { TriRenderJob } from "./TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
+/**
+ * Step that resolves one render target into another, optionally regenerating the
+ * destination's mip chain afterwards.
+ */
 @type.define({ className: "TriStepResolve", family: "renderJob" })
 export class TriStepResolve extends TriRenderStep
 {
@@ -20,6 +24,7 @@ export class TriStepResolve extends TriRenderStep
   @type.objectRef("Tr2RenderTarget")
   destination = null;
 
+  /** Stores the resolve operands in Carbon's destination-first argument order. */
   @carbon.method
   @impl.adapted
   __init__(destination = null, source = null)
@@ -28,6 +33,11 @@ export class TriStepResolve extends TriRenderStep
     this.source = source ?? null;
   }
 
+  /**
+   * Skips silently with RS_OK when either operand is missing or the executor
+   * reports it invalid; otherwise resolves and, when requested, regenerates the
+   * destination's mip maps. An explicit false from the resolve is RS_FAILED.
+   */
   @carbon.method
   @impl.implemented
   Execute(_realTime, _simTime, executor)

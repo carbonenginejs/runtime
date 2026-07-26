@@ -73,6 +73,10 @@ export class Tr2VisibilityEvent
 }
 
 
+/**
+ * Collects the visibility events a visibility executor emits, for the interior
+ * and portal consumers to read back.
+ */
 @type.define({ className: "Tr2VisibilityResults", family: "trinityCore" })
 export class Tr2VisibilityResults extends CjsModel
 {

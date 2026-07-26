@@ -29,6 +29,12 @@ const TRANSPARENT_CENTER = vec3.create();
 const OVERLAY_TYPE_OPAQUEONLY = 0;
 const OVERLAY_TYPE_ALL = 1;
 
+/**
+ * The hull of an EVE space object - its mesh, locators, locator sets, decals,
+ * attachments, lights, effect children, overlay effects, impact overlay and
+ * controllers - together with the curve-driven world transform, visibility, LOD
+ * and batch submission that drive them each frame.
+ */
 @type.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
 export class EveSpaceObject2 extends EveEntity
 {
@@ -388,16 +394,25 @@ export class EveSpaceObject2 extends EveEntity
   // Carbon m_impostorMode: the impostor system that raises it is unported.
   #impostorMode = false;
 
+  /** Alias for the mesh property; reads and writes go straight to mesh. */
   get meshLod()
   {
     return this.mesh;
   }
 
+  /** Alias for the mesh property; reads and writes go straight to mesh. */
   set meshLod(mesh)
   {
     this.mesh = mesh ?? null;
   }
 
+  /**
+   * Links the authored controllers, pushes authored inherit properties down to
+   * the effect children and lights, and derives the impact overlay's damage
+   * locator count from the "damage" locator set - which Carbon does at build
+   * time - so a field-populated graph reaches the same live state as the
+   * authoring path.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -431,6 +446,7 @@ export class EveSpaceObject2 extends EveEntity
     return true;
   }
 
+  /** Returns the hull mesh, or null when none is attached. */
   @carbon.method
   @impl.implemented
   GetMesh()
@@ -438,6 +454,10 @@ export class EveSpaceObject2 extends EveEntity
     return this.mesh;
   }
 
+  /**
+   * Replaces the hull mesh; the cached area blocks are only rebuilt on the next
+   * batch call.
+   */
   @carbon.method
   @impl.adapted
   SetMesh(mesh)
@@ -445,6 +465,10 @@ export class EveSpaceObject2 extends EveEntity
     this.mesh = mesh ?? null;
   }
 
+  /**
+   * Appends a controller, links it to this object when it is not already linked,
+   * and replays the current controller variables onto it.
+   */
   @carbon.method
   @impl.adapted
   AddController(controller)
@@ -458,6 +482,11 @@ export class EveSpaceObject2 extends EveEntity
     return controller;
   }
 
+  /**
+   * Appends a placement observer, which is repositioned from the observer
+   * transform on every synchronous update; the observer is returned for
+   * chaining.
+   */
   @carbon.method
   @impl.implemented
   AddObserver(observer)
@@ -466,6 +495,11 @@ export class EveSpaceObject2 extends EveEntity
     return observer;
   }
 
+  /**
+   * Sets the colour set that effect children and lights inherit, creating the
+   * inherit-properties holder on first use, and pushes it to the existing
+   * children and lights.
+   */
   @carbon.method
   @impl.implemented
   SetInheritProperties(colorSet)
@@ -478,6 +512,7 @@ export class EveSpaceObject2 extends EveEntity
     this.#PropagateInheritProperties();
   }
 
+  /** Pushes the current inherited properties to every effect child and light. */
   #PropagateInheritProperties()
   {
     const properties = this.inheritProperties.GetProperties();
@@ -491,6 +526,10 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
+  /**
+   * Returns the first effect child with the given name, or null when none
+   * matches.
+   */
   @carbon.method
   @impl.implemented
   GetEffectChildByName(name)
@@ -506,6 +545,11 @@ export class EveSpaceObject2 extends EveEntity
     return null;
   }
 
+  /**
+   * Appends an effect child, first giving it the hull's inherited properties and
+   * then replaying the current controller variables onto it, so a late addition
+   * starts in the same state as the rest.
+   */
   @carbon.method
   @impl.adapted
   AddToEffectChildrenList(child)
@@ -519,6 +563,7 @@ export class EveSpaceObject2 extends EveEntity
     return child;
   }
 
+  /** Appends a light, first giving it the hull's inherited properties. */
   @carbon.method
   @impl.implemented
   AddLight(light)
@@ -530,6 +575,10 @@ export class EveSpaceObject2 extends EveEntity
     this.lights.push(light);
   }
 
+  /**
+   * Drops every light from the hull; component registration is not revisited
+   * here.
+   */
   @carbon.method
   @impl.implemented
   ClearLights()
@@ -537,6 +586,10 @@ export class EveSpaceObject2 extends EveEntity
     this.lights.length = 0;
   }
 
+  /**
+   * Removes an effect child, returning false when it is not attached to this
+   * hull.
+   */
   @carbon.method
   @impl.implemented
   RemoveFromEffectChildrenList(child)
@@ -550,6 +603,10 @@ export class EveSpaceObject2 extends EveEntity
     return true;
   }
 
+  /**
+   * Sets the curve that rotates the model within the hull's ball rotation, or
+   * clears it when passed nothing.
+   */
   @carbon.method
   @impl.implemented
   SetModelRotationCurve(curve)
@@ -557,6 +614,7 @@ export class EveSpaceObject2 extends EveEntity
     this.modelRotationCurve = curve ?? null;
   }
 
+  /** Returns the model rotation curve, or null when none is set. */
   @carbon.method
   @impl.implemented
   GetModelRotationCurve()
@@ -564,6 +622,10 @@ export class EveSpaceObject2 extends EveEntity
     return this.modelRotationCurve;
   }
 
+  /**
+   * Sets the curve that offsets the model within the hull's ball position, or
+   * clears it when passed nothing.
+   */
   @carbon.method
   @impl.implemented
   SetModelTranslationCurve(curve)
@@ -571,6 +633,7 @@ export class EveSpaceObject2 extends EveEntity
     this.modelTranslationCurve = curve ?? null;
   }
 
+  /** Returns the model translation curve, or null when none is set. */
   @carbon.method
   @impl.implemented
   GetModelTranslationCurve()
@@ -578,6 +641,11 @@ export class EveSpaceObject2 extends EveEntity
     return this.modelTranslationCurve;
   }
 
+  /**
+   * Rebuilds the hull world transform for a frame from the ball position and rotation curves plus the optional model translation and rotation curves, applies modelScale as a uniform scale, then refreshes the inverse transform and the world bounds; the previous world transform is kept for motion vectors and the world velocity comes from the position curve's derivative.
+   * @param {number} time Frame time; repeating the previous call's time is a no-op.
+   * @returns {boolean} False when the transform had already been built for this time.
+   */
   @carbon.method
   @impl.adapted
   UpdateWorldTransform(time)
@@ -674,6 +742,10 @@ export class EveSpaceObject2 extends EveEntity
     return false;
   }
 
+  /**
+   * Refreshes the world transform, then - when the update flag is on - places the observers, stamps the LOD-gated curve clock while advancing the overlay effects, runs the effect children's synchronous pass with the current placement, and updates the impact overlay; the overlay effects receive the context time as both clocks, as Carbon does.
+   * @returns {boolean} False when the update flag is off; the world transform is refreshed either way.
+   */
   @carbon.method
   @impl.adapted
   UpdateSyncronous(updateContext = null)
@@ -723,6 +795,10 @@ export class EveSpaceObject2 extends EveEntity
     return true;
   }
 
+  /**
+   * Runs the controllers at a frequency derived from the hull's estimated pixel diameter against the context's high-detail threshold, advances the object curve sets only on frames the synchronous LOD gate stamped, then updates the transform children, the effect children and the impact overlay.
+   * @returns {number} The controller update frequency in 0..1, which is also handed to the effect children; 0 when the hull is not visible or the update flag is off.
+   */
   @carbon.method
   @impl.adapted
   UpdateAsyncronous(updateContext = null)
@@ -970,6 +1046,12 @@ export class EveSpaceObject2 extends EveEntity
   // order into the order-preserving TRANSPARENT accumulator. Bounding boxes come
   // from the geometry resource when it exposes them; a failed lookup keeps
   // Carbon's origin-center fallback.
+  /**
+   * Commits the mesh's transparent areas back-to-front, ordering them by the
+   * squared distance from the view position to each area's world-space
+   * bounding-box center and falling back to the object origin when the geometry
+   * resource cannot supply a box.
+   */
   #GetSortedTransparentBatches(areas, batches, perObjectData, renderContext)
   {
     const geometry = this.mesh.GetGeometryResource?.() ?? null;
@@ -1039,6 +1121,10 @@ export class EveSpaceObject2 extends EveEntity
     this.#cachedAreaBlocksBuilt = true;
   }
 
+  /**
+   * Drops the cached overlay and shadow area-block lists so the next batch call
+   * rebuilds them from the current mesh.
+   */
   @carbon.method
   @impl.implemented
   ReleaseCachedData()
@@ -1051,6 +1137,10 @@ export class EveSpaceObject2 extends EveEntity
     this.#cachedAreaBlocksBuilt = false;
   }
 
+  /**
+   * Rebuilds the cached area blocks on first use when a mesh is attached; Carbon
+   * instead rebuilds them from the geometry-resource load callback.
+   */
   #EnsureCachedAreaBlocks()
   {
     if (!this.#cachedAreaBlocksBuilt && this.mesh) this.RebuildCachedData();
@@ -1137,6 +1227,11 @@ export class EveSpaceObject2 extends EveEntity
     return (batches.GetBatchCount?.() ?? 0) > committedBefore;
   }
 
+  /**
+   * Builds and commits one render batch drawing a single cached area block with
+   * the given material and optional priority, skipping the block when the
+   * material yields no valid batch.
+   */
   #CommitBlockBatch(batches, material, geometry, meshIndex, block, perObjectData, priority)
   {
     const batch = new Tr2RenderBatch();
@@ -1149,11 +1244,20 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   // EveMeshOverlayEffect::GetEffects (display-gated, per batch type).
+  /**
+   * Returns an overlay effect's display-gated effect list for a batch type, or
+   * null when it contributes none.
+   */
   #OverlayEffectsFor(overlay, batchType)
   {
     return overlay?.GetEffects?.(batchType) ?? null;
   }
 
+  /**
+   * Reports whether the hull mesh has transparent areas or any overlay effect
+   * does, which tells the renderer to route this object through the sorted
+   * transparent pass.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Portable mesh area access replaces Carbon's native mesh-area vectors.")
@@ -1169,6 +1273,10 @@ export class EveSpaceObject2 extends EveEntity
     return false;
   }
 
+  /**
+   * Returns the distance from the render context's view position to the hull
+   * world translation, used to order transparent renderables back-to-front.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")
@@ -1301,6 +1409,10 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
+  /**
+   * Reports whether children and effect children should be shown; always true on
+   * the base hull, subclasses gate it on activation state.
+   */
   @carbon.method
   @impl.implemented
   DisplayChildren()
@@ -1308,6 +1420,10 @@ export class EveSpaceObject2 extends EveEntity
     return true;
   }
 
+  /**
+   * Returns the transform placement observers are attached to - the live hull
+   * world transform.
+   */
   @carbon.method
   @impl.implemented
   GetObserverTransform()
@@ -1315,6 +1431,10 @@ export class EveSpaceObject2 extends EveEntity
     return this.worldTransform;
   }
 
+  /**
+   * Returns the transform effect children are placed against - the live hull
+   * world transform, not a copy.
+   */
   @carbon.method
   @impl.implemented
   GetLocalToWorldTransform()
@@ -1330,6 +1450,10 @@ export class EveSpaceObject2 extends EveEntity
     vec3.transformMat4(out, this.boundingSphereCenter, this.worldTransform);
   }
 
+  /**
+   * Returns the live curve-sampled ball position; the array is the object's own
+   * field and is rewritten by the next transform update.
+   */
   @carbon.method
   @impl.implemented
   GetWorldPosition()
@@ -1337,6 +1461,11 @@ export class EveSpaceObject2 extends EveEntity
     return this.worldPosition;
   }
 
+  /**
+   * Returns the live curve-sampled ball rotation, which excludes the model
+   * rotation curve; the quaternion is the object's own field and is rewritten by
+   * the next transform update.
+   */
   @carbon.method
   @impl.implemented
   GetWorldRotation()
@@ -1344,6 +1473,10 @@ export class EveSpaceObject2 extends EveEntity
     return this.worldRotation;
   }
 
+  /**
+   * Finds a sound emitter by observer name on this hull and then recursively in
+   * the effect children, returning null when no emitter carries the name.
+   */
   @carbon.method
   @impl.implemented
   FindSoundEmitter(name)
@@ -1369,6 +1502,10 @@ export class EveSpaceObject2 extends EveEntity
     return null;
   }
 
+  /**
+   * Sets the mute flag and pushes it to every effect child and placement
+   * observer.
+   */
   @carbon.method
   @impl.adapted
   SetMute(mute)
@@ -1876,6 +2013,10 @@ export class EveSpaceObject2 extends EveEntity
     return out;
   }
 
+  /**
+   * Raises a named controller event on this hull's controllers and forwards it
+   * to the effect children and overlay effects.
+   */
   @carbon.method
   @impl.implemented
   HandleControllerEvent(name)
@@ -1930,6 +2071,10 @@ export class EveSpaceObject2 extends EveEntity
   // Carbon EveSpaceObject2::PlayAnimation: every playback wrapper funnels
   // into the animation updater, which owns playback state; a missing updater
   // is a Carbon-faithful no-op.
+  /**
+   * Forwards a playback request to the animation updater, which owns all
+   * animation state; a hull without an updater does nothing, as in Carbon.
+   */
   #PlayAnimation(animName, replace, loopCount, delay, speed, clearWhenDone)
   {
     this.animationUpdater?.PlayAnimation?.(String(animName ?? ""), replace, loopCount, delay, speed, clearWhenDone);
@@ -1980,6 +2125,10 @@ export class EveSpaceObject2 extends EveEntity
     return this;
   }
 
+  /**
+   * Returns a plain-object snapshot of the controller variables currently
+   * stamped on this hull.
+   */
   @carbon.method
   @impl.implemented
   GetControllerVariables()
@@ -2199,6 +2348,11 @@ export class EveSpaceObject2 extends EveEntity
     return updater.GetMeshBindingBoneCount?.() ?? 0;
   }
 
+  /**
+   * Pushes shield, armor and hull damage levels to the impact overlay and
+   * mirrors them into the ShieldDamage, ArmorDamage and HullDamage controller
+   * variables so bound effects follow.
+   */
   @carbon.method
   @impl.adapted
   SetImpactDamageState(shield, armor, hull, doCreateArmorImpacts = true)
@@ -2219,6 +2373,11 @@ export class EveSpaceObject2 extends EveEntity
     this.impactOverlay?.ToggleEffect?.(name, enable, duration);
   }
 
+  /**
+   * Stores a controller variable on the hull and pushes it to the controllers,
+   * effect children and overlay effects; the stored value is replayed onto
+   * controllers and children added later.
+   */
   @carbon.method
   @impl.implemented
   SetControllerVariable(name, value)
@@ -2240,6 +2399,10 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
+  /**
+   * Forwards a procedural-container variable to every effect child; the hull
+   * itself keeps no copy.
+   */
   @carbon.method
   @impl.implemented
   SetProceduralContainerVariable(name, value)
@@ -2250,6 +2413,10 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
+  /**
+   * Starts this hull's controllers and those of its effect children and overlay
+   * effects.
+   */
   @carbon.method
   @impl.implemented
   StartControllers()
@@ -2301,6 +2468,11 @@ export class EveSpaceObject2 extends EveEntity
 
   // Carbon Blue TransformLocator: bone-attached records pick up the mesh
   // bone matrix; without bone data the authored values pass through.
+  /**
+   * Applies the mesh bone matrix to a locator position and rotation for
+   * bone-attached locators; the authored values pass through unchanged when
+   * there is no usable bone data.
+   */
   #TransformLocator(position, rotation, boneIndex)
   {
     const updater = this.animationUpdater;
@@ -2321,6 +2493,11 @@ export class EveSpaceObject2 extends EveEntity
   // Carbon Blue ApplyModelTransform samples both curves at the Be::Time()
   // origin (pure GetValueAt, no playback advance): translation adds, model
   // rotation rotates the position and pre-multiplies.
+  /**
+   * Applies the model translation and rotation curves sampled at time 0 to a
+   * locator position and rotation, matching Carbon's Blue locator surface, which
+   * reads the curves without advancing playback.
+   */
   #ApplyModelTransform(position, rotation)
   {
     if (this.modelTranslationCurve)
@@ -2339,6 +2516,10 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   // Carbon GetLocatorsForSet: first set matching the name wins.
+  /**
+   * Returns the locator list of the first locator set carrying the name, or null
+   * when no set matches; the list stays owned by the locator set.
+   */
   #GetLocatorsForSet(locatorSetName)
   {
     const target = String(locatorSetName ?? "");
@@ -2356,6 +2537,12 @@ export class EveSpaceObject2 extends EveEntity
   // authored quaternion; bone-attached locators additionally apply the mesh
   // bone matrix. Carbon leaves the outputs untouched (caller-uninitialized)
   // when bone data is missing; CarbonEngineJS keeps the unskinned values.
+  /**
+   * Writes a locator's object-space position and its direction, which is +Y
+   * rotated by the authored quaternion, applying the mesh bone matrix for
+   * bone-attached locators; where Carbon leaves the outputs untouched when bone
+   * data is missing, this keeps the unskinned values.
+   */
   #GetLocatorInObjectSpace(outPosition, outDirection, locator)
   {
     vec3.transformQuat(outDirection, EveSpaceObject2.#unitY, locator.direction);
@@ -2378,6 +2565,11 @@ export class EveSpaceObject2 extends EveEntity
 
   // Carbon GetClosestLocatorIndex: facing-gated closest search; 0 when the
   // set is missing, -1 when no locator faces the position.
+  /**
+   * Returns the index of the nearest locator in a named set that faces the given
+   * world position - 0 when the set is missing, -1 when no locator faces the
+   * position.
+   */
   #GetClosestLocatorIndex(position, locatorSetName)
   {
     const locators = this.#GetLocatorsForSet(locatorSetName);
@@ -2407,12 +2599,17 @@ export class EveSpaceObject2 extends EveEntity
     return closestIndex;
   }
 
+  /**
+   * Reports whether a locator faces a position, by testing that stepping the
+   * object-space position back along the locator direction shortens it.
+   */
   static #IsLocatorFacingPosition(locatorDirection, posInObjectSpace)
   {
     const moved = vec3.subtract(vec3.create(), posInObjectSpace, locatorDirection);
     return vec3.squaredLength(moved) < vec3.squaredLength(posInObjectSpace);
   }
 
+  /** Rotates a direction by a matrix's rotation basis, ignoring its translation. */
   static #TransformNormal(out, direction, matrix)
   {
     const x = direction[0];
@@ -2450,6 +2647,11 @@ export class EveSpaceObject2 extends EveEntity
     vec3.copy(this.generatedShapeEllipsoidRadius, outRadii);
   }
 
+  /**
+   * Maps the negated dot product of a locator direction and an offset direction
+   * onto Carbon's square-root fit score, the ranking used to pick a varied
+   * damage locator.
+   */
   static #GetDirectionFit(v0, v1)
   {
     const direction = -vec3.dot(v0, v1);
@@ -2458,6 +2660,10 @@ export class EveSpaceObject2 extends EveEntity
       : (Math.sqrt(Math.abs(direction)) + 1) * 0.5;
   }
 
+  /**
+   * Intersects a ray with an axis-aligned ellipsoid in the ellipsoid's own space and writes the hit point into out.
+   * @returns {number|null} The ray parameter at the hit, or null when the ray is degenerate or misses.
+   */
   static #IntersectEllipsoidRay(out, center, radii, origin, direction)
   {
     const vx = direction[0] / radii[0];
@@ -2479,6 +2685,7 @@ export class EveSpaceObject2 extends EveEntity
     return t;
   }
 
+  /** Reports whether a point lies inside an axis-aligned ellipsoid. */
   static #IsPointInsideEllipsoid(center, radii, point)
   {
     const x = (point[0] - center[0]) / radii[0];
@@ -2489,6 +2696,11 @@ export class EveSpaceObject2 extends EveEntity
 
   // Mesh bone matrices come from the animation updater; only mat4-shaped
   // entries are usable.
+  /**
+   * Returns the animation updater's mesh bone matrix at an index, or null when
+   * the entry is absent or not a 16-element matrix; the matrix is borrowed from
+   * the updater, not copied.
+   */
   static #GetBoneMatrix(updater, boneIndex)
   {
     const bones = updater.GetMeshBoneMatrixList?.();
@@ -2496,6 +2708,11 @@ export class EveSpaceObject2 extends EveEntity
     return bone && bone.length >= 16 ? bone : null;
   }
 
+  /**
+   * Replays every stored controller variable onto a newly added controller or
+   * effect child through the named setter, so late additions start with the same
+   * state.
+   */
   static #ApplyControllerVariables(target, variables, methodName)
   {
     const setter = target?.[methodName];
@@ -2509,6 +2726,11 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
+  /**
+   * Samples a curve into out through whichever of Update or GetValueAt it
+   * exposes, writing the fallback when there is no curve and copying back curves
+   * that return a new array instead of filling out.
+   */
   static #UpdateCurve(curve, time, out, fallback)
   {
     if (!curve)
@@ -2539,6 +2761,11 @@ export class EveSpaceObject2 extends EveEntity
     return out;
   }
 
+  /**
+   * Reads a numeric value from the update context, preferring a getter method
+   * and falling back to the named properties, and yields 0 when nothing supplies
+   * it.
+   */
   static #GetContextValue(context, methodName, ...propertyNames)
   {
     const method = context?.[methodName];
@@ -2556,18 +2783,28 @@ export class EveSpaceObject2 extends EveEntity
     return 0;
   }
 
+  /**
+   * Returns a world sphere's on-screen diameter in pixels from the frustum's
+   * exact query, or 0 when the frustum does not expose it.
+   */
   static #GetPixelSize(frustum, sphere)
   {
     const method = frustum?.GetPixelSizeAccross;
     return Number(typeof method === "function" ? method.call(frustum, sphere) : 0) || 0;
   }
 
+  /**
+   * Returns a world sphere's on-screen diameter in pixels, preferring the
+   * frustum's cheaper estimated query and falling back to the exact one, or 0
+   * when the frustum exposes neither.
+   */
   static #GetEstimatedPixelSize(frustum, sphere)
   {
     const method = frustum?.GetPixelSizeAccrossEst ?? frustum?.GetPixelSizeAccross;
     return Number(typeof method === "function" ? method.call(frustum, sphere) : 0) || 0;
   }
 
+  /** Writes a center and radius into a caller-owned sph3. */
   static #SetSphere(out, center, radius)
   {
     return sph3.set(out, center[0], center[1], center[2], radius);

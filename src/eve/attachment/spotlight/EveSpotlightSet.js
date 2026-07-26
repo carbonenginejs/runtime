@@ -11,6 +11,10 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js"
 import { AsPerSpotLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 
 
+/**
+ * A hull's authored spotlights, owning their static and per-bone bounds, the
+ * cone and glow effects that draw them, and the spot lights they emit.
+ */
 @type.define({ className: "EveSpotlightSet", family: "eve/attachment/spotlights" })
 export class EveSpotlightSet extends EveEntity
 {
@@ -64,6 +68,10 @@ export class EveSpotlightSet extends EveEntity
 
   #boosterGain = 0;
 
+  /**
+   * Recomputes the static and per-bone bounds from the authored spotlight items
+   * and marks the packed geometry stale.
+   */
   @carbon.method
   @impl.adapted
   Rebuild()
@@ -76,6 +84,10 @@ export class EveSpotlightSet extends EveEntity
     CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spotlightItems);
   }
 
+  /**
+   * Runs the first Rebuild so the set has bounds before its first visibility
+   * test.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -84,6 +96,7 @@ export class EveSpotlightSet extends EveEntity
     return true;
   }
 
+  /** The effect that draws the light cones. */
   @carbon.method
   @impl.implemented
   GetConeEffect()
@@ -91,6 +104,7 @@ export class EveSpotlightSet extends EveEntity
     return this.coneEffect;
   }
 
+  /** Sets the effect that draws the light cones. */
   @carbon.method
   @impl.implemented
   SetConeEffect(effect)
@@ -98,6 +112,7 @@ export class EveSpotlightSet extends EveEntity
     this.coneEffect = effect ?? null;
   }
 
+  /** The effect that draws the glow sprite at each cone's source. */
   @carbon.method
   @impl.implemented
   GetGlowEffect()
@@ -105,6 +120,7 @@ export class EveSpotlightSet extends EveEntity
     return this.glowEffect;
   }
 
+  /** Sets the effect that draws the glow sprite at each cone's source. */
   @carbon.method
   @impl.implemented
   SetGlowEffect(effect)
@@ -144,6 +160,10 @@ export class EveSpotlightSet extends EveEntity
     return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
   }
 
+  /**
+   * Sets whether the spotlights ride skeleton bones, which is what decides if
+   * GetAabb consults the caller's bone list at all.
+   */
   @carbon.method
   @impl.implemented
   SetSkinned(skinned)
@@ -151,6 +171,7 @@ export class EveSpotlightSet extends EveEntity
     this.skinned = !!skinned;
   }
 
+  /** The authored set name, which SOF uses to match this set to its DNA entry. */
   @carbon.method
   @impl.implemented
   GetName()
@@ -158,6 +179,7 @@ export class EveSpotlightSet extends EveEntity
     return this.name;
   }
 
+  /** Sets the authored set name, coercing null or undefined to an empty string. */
   @carbon.method
   @impl.implemented
   SetName(name)
@@ -165,6 +187,7 @@ export class EveSpotlightSet extends EveEntity
     this.name = String(name ?? "");
   }
 
+  /** The live spotlight item list, not a copy. */
   @carbon.method
   @impl.implemented
   GetSpotlightItems()
@@ -172,6 +195,10 @@ export class EveSpotlightSet extends EveEntity
     return this.spotlightItems;
   }
 
+  /**
+   * Appends an authored spotlight item; the bounds only pick it up on the next
+   * Rebuild.
+   */
   @carbon.method
   @impl.implemented
   AddSpotlightItem(item)
@@ -179,6 +206,10 @@ export class EveSpotlightSet extends EveEntity
     this.spotlightItems.push(item);
   }
 
+  /**
+   * Sets a shader option on both the cone and the glow effect, skipping
+   * whichever is absent or does not accept options.
+   */
   @carbon.method
   @impl.adapted
   SetShaderOption(name, value)
@@ -193,6 +224,10 @@ export class EveSpotlightSet extends EveEntity
     }
   }
 
+  /**
+   * Converts a SOF-authored light description into an EveSpotlightLight and
+   * appends it to the set.
+   */
   @carbon.method
   @impl.adapted
   AddLightFromSOF(light)

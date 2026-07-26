@@ -7,6 +7,11 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { Tr2BindingPoint } from "./Tr2BindingPoint.js";
 
 
+/**
+ * Controller action that registers for per-frame updates and continuously writes
+ * an expression-driven value, by default the action's curve sampled at state
+ * time, into a bound destination property.
+ */
 @type.define({
   className: "Tr2ActionAnimateValue",
   family: "controllers"
@@ -235,12 +240,20 @@ export class Tr2ActionAnimateValue extends CjsModel
       action: this
     }))) || 0;
   }
+  /**
+   * Compiles the authored value expression with the `Curve` function bound to
+   * this action's curve, reusing the cached program while the text is unchanged.
+   */
   CompileExpression()
   {
     return CjsControllerExpressionProgram.compileCached(this.#runtime, this.value, 0, {
       Curve: (_ctx, time) => this.GetCurveValue(Number(time))
     });
   }
+  /**
+   * Gets the lazily created binding point, refreshing it from the currently
+   * authored path, destination object and attribute on every call.
+   */
   GetBindingPoint()
   {
     if (!this.#bindingPoint)
@@ -252,10 +265,18 @@ export class Tr2ActionAnimateValue extends CjsModel
     this.#bindingPoint.attribute = this.attribute;
     return this.#bindingPoint;
   }
+  /**
+   * Resolves the binding point against the controller's binding roots and its
+   * owner.
+   */
   LinkDestination(controller = this.#runtime.controller, owner = ITr2ControllerAction.getOwner(controller))
   {
     return this.GetBindingPoint().Link(controller, owner);
   }
+  /**
+   * Checks whether binding is deferred to Start, which requires both the
+   * delayBinding flag and an authored path.
+   */
   HasDelayedBinding()
   {
     return this.delayBinding && !!this.path;

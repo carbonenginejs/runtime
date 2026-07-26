@@ -12,6 +12,10 @@ const FORCE = vec3.create();
 const FORCE_OFFSET = vec3.create();
 const NO_FORCES = [];
 
+/**
+ * Drone behavior that adds a per-agent Perlin-noise wander force seeded from the
+ * agent's lifetime and id, so each drone drifts on its own path.
+ */
 @type.define({ className: "Wander", family: "eve/child/behaviors" })
 export class Wander extends CjsModel
 {

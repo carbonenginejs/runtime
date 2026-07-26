@@ -4,6 +4,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsParameter } from "./CjsParameter.js";
 
 
+/**
+ * Single float value for a named shader constant, with optional rerouting into
+ * an external scalar destination.
+ */
 @type.define({className: "Tr2FloatParameter", family: "shader"})
 export class Tr2FloatParameter extends CjsParameter
 {
@@ -24,6 +28,7 @@ export class Tr2FloatParameter extends CjsParameter
   #reroutedValue = null;
   #valueRef = {  value: this.value };
 
+  /** The shader constant name this value binds to; empty until authored. */
   @carbon.method
   @impl.implemented
   GetParameterName()
@@ -39,6 +44,10 @@ export class Tr2FloatParameter extends CjsParameter
     return CjsParameter.hashFnv1String(this.name, CjsParameter.hashFnv1Floats([this.value], startingHash));
   }
 
+  /**
+   * Reads back through the reroute destination when one is set, so the result
+   * reflects writes made by whoever owns that destination.
+   */
   @carbon.method
   @impl.implemented
   GetValue()
@@ -51,6 +60,10 @@ export class Tr2FloatParameter extends CjsParameter
     return this.value;
   }
 
+  /**
+   * Coerces to a number, refreshes the boxed reference GetDestination hands out,
+   * and writes through to the reroute destination when one is set.
+   */
   @carbon.method
   @impl.implemented
   SetValue(value)
@@ -63,6 +76,7 @@ export class Tr2FloatParameter extends CjsParameter
     }
   }
 
+  /** Whether reads and writes currently go through an external destination. */
   @carbon.method
   @impl.implemented
   IsRerouted()
@@ -70,6 +84,10 @@ export class Tr2FloatParameter extends CjsParameter
     return this.#reroutedValue !== null;
   }
 
+  /**
+   * Points the parameter at an external scalar destination and seeds it with the current value; a target under 4 bytes or of an unusable shape clears the reroute instead. Bindings are notified of the effective destination either way.
+   * @param size destination capacity in bytes
+   */
   @carbon.method
   @impl.adapted
   SetDestination(dest, size = 4)
@@ -86,6 +104,11 @@ export class Tr2FloatParameter extends CjsParameter
     CjsParameter.notifyBindings(this.#bindings, this.GetDestination().dest);
   }
 
+  /**
+   * The scalar an upload should read - the reroute target, or the parameter's
+   * own boxed `{ value }` holder - with its 4-byte size. The boxed holder is a
+   * stable object that survives SetValue calls.
+   */
   @carbon.method
   @impl.adapted
   GetDestination()
@@ -96,6 +119,10 @@ export class Tr2FloatParameter extends CjsParameter
     };
   }
 
+  /**
+   * Adds a binding to be notified whenever the destination is repointed;
+   * duplicates are ignored.
+   */
   @carbon.method
   @impl.adapted
   RegisterBinding(binding)
@@ -103,6 +130,7 @@ export class Tr2FloatParameter extends CjsParameter
     CjsParameter.registerBinding(this.#bindings, binding);
   }
 
+  /** Stops notifying a binding; unknown bindings are ignored. */
   @carbon.method
   @impl.adapted
   UnregisterBinding(binding)
@@ -110,6 +138,11 @@ export class Tr2FloatParameter extends CjsParameter
     CjsParameter.unregisterBinding(this.#bindings, binding);
   }
 
+  /**
+   * Records whether the shader reflects a constant of this name and drops a
+   * stale reroute when the shader is gone; reflection metadata only, no GPU
+   * handle.
+   */
   @carbon.method
   @impl.adapted
   RebuildEffectHandles(effectRes)
@@ -121,6 +154,10 @@ export class Tr2FloatParameter extends CjsParameter
     this.usedByCurrentEffect = !!this.name && CjsParameter.hasEffectConstant(effectRes, this.name);
   }
 
+  /**
+   * Syncs the boxed reference and any reroute destination with the current
+   * value; always returns true.
+   */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -133,6 +170,10 @@ export class Tr2FloatParameter extends CjsParameter
     return true;
   }
 
+  /**
+   * Writes the current value - read back through the reroute first when one is
+   * active - into the caller's destination.
+   */
   @carbon.method
   @impl.adapted
   CopyValueToEffect(_inputType, out)

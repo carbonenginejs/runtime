@@ -31,6 +31,11 @@ function fail(message)
   throw new Error(`CjsBatchManager: ${message}`);
 }
 
+/**
+ * Owns the per-library render-batch producer and collector registry and drives
+ * the GPU-free per-frame flow of realize, build, finalize into one accumulator
+ * per batch type.
+ */
 export class CjsBatchManager
 {
   #producers = new Map();
@@ -51,6 +56,11 @@ export class CjsBatchManager
   // producer type names that MUST be registered before Initialize succeeds.
   // createAccumulator: optional (batchType) => accumulator factory forwarded to
   // the TriRenderBatchMap (e.g. an order-preserving accumulator for TRANSPARENT).
+  /**
+   * Configures which TriBatchType values are collected, which producer types
+   * Initialize must find registered, and an optional per-batch-type accumulator
+   * factory.
+   */
   constructor({ batchTypes = DEFAULT_BATCH_TYPES, requiredTypes = [], createAccumulator = null } = {})
   {
     this.#batchTypes = Array.from(batchTypes);
@@ -62,6 +72,11 @@ export class CjsBatchManager
   // batchMap, perObjectData, reason) emits data batches; Realize(renderable) is
   // the engine's pull-realization (consumes __state.rebuild tokens, fast-exits
   // when current). Registration is closed once Initialize has run.
+  /**
+   * Registers producer hooks given as { type, Build, Realize? } entries,
+   * rejecting duplicates and malformed entries; registration closes once
+   * Initialize has run. Returns this for chaining.
+   */
   Register(entries)
   {
     if (this.#initialized) fail("Register must be called before Initialize");
@@ -85,6 +100,10 @@ export class CjsBatchManager
   // Registers a scene-global collector (e.g. the quad or instanced-mesh family):
   // Collect(renderables, batchMap, reason) runs once per frame after the
   // per-renderable pass (Carbon precedent: Tr2QuadRenderer, EveInstancedMeshManager).
+  /**
+   * Registers a scene-global collector whose Collect runs once per frame after
+   * the per-renderable pass; must also be called before Initialize.
+   */
   RegisterCollector(name, collector)
   {
     if (this.#initialized) fail("RegisterCollector must be called before Initialize");
@@ -97,6 +116,10 @@ export class CjsBatchManager
 
   // Fail-closed gate: throws if a required producer type has no registration.
   // Creates the per-TriBatchType accumulator map and closes the registry.
+  /**
+   * Fail-closed gate: throws when any required producer type is unregistered,
+   * then creates the per-batch-type accumulator map and closes the registry.
+   */
   Initialize()
   {
     if (this.#initialized) fail("Initialize was already called");
@@ -112,6 +135,7 @@ export class CjsBatchManager
     return this;
   }
 
+  /** Whether Initialize has run and the batch map exists. */
   IsInitialized()
   {
     return this.#initialized;
@@ -134,6 +158,12 @@ export class CjsBatchManager
   // Scene-global collectors run after; Finalize sorts/group-counts every
   // accumulator. renderContext supplies the relocated view position (Carbon
   // reads a renderer global). Returns the finalized batch map.
+  /**
+   * Runs the per-frame CPU collection over pre-culled renderables - realize,
+   * per-renderable build into every non-transparent type, then a back-to-front
+   * transparent pass, then the scene-global collectors - and returns the
+   * finalized batch map.
+   */
   Collect(renderables, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL, renderContext = null)
   {
     if (!this.#initialized) fail("Collect requires Initialize");
@@ -210,16 +240,19 @@ export class CjsBatchManager
     return batchMap;
   }
 
+  /** The batch map created by Initialize, or null before it has run. */
   GetBatchMap()
   {
     return this.#batchMap;
   }
 
+  /** The accumulator for one batch type, or null when that type is not collected. */
   GetAccumulator(batchType)
   {
     return this.#batchMap?.GetAccumulator(batchType) ?? null;
   }
 
+  /** A copy of the collected batch-type list. */
   GetBatchTypes()
   {
     return Array.from(this.#batchTypes);
@@ -228,6 +261,11 @@ export class CjsBatchManager
   // A renderable DECLARES its producer type (method or plain property); it never
   // owns builder code. Returns null when undeclared (duck-typed GetBatches
   // fallback applies).
+  /**
+   * Looks up the producer a renderable declares through GetBatchProducerType or
+   * a batchProducerType property; null means the duck-typed GetBatches fallback
+   * applies.
+   */
   #ProducerFor(renderable)
   {
     const type = renderable.GetBatchProducerType?.() ?? renderable.batchProducerType ?? null;
@@ -237,6 +275,10 @@ export class CjsBatchManager
   // True when the object advertises pending scheduled GPU work via the shared
   // __state.rebuild token set (kb section 8). Realizers use this (plus their own
   // per-token checks) to fast-exit when current.
+  /**
+   * Whether an object advertises pending scheduled GPU work through its shared
+   * __state.rebuild token set.
+   */
   static HasRebuildWork(object)
   {
     return (object?.__state?.rebuild?.size ?? 0) > 0;
@@ -248,6 +290,11 @@ export class CjsBatchManager
   // child tokens alongside the owner's - no upward token copying is performed.
   // This helper answers "does the owner or any child advertise work"; the
   // realizer still clears each consumed token where it lives.
+  /**
+   * Whether the owner or any listed child advertises rebuild work; child tokens
+   * stay where they live, and the realizer still clears each consumed token
+   * there.
+   */
   static AnyRebuildWork(object, children = null)
   {
     if (CjsBatchManager.HasRebuildWork(object)) return true;

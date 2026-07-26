@@ -4,6 +4,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * A screen viewport rectangle in pixels together with its minimum and maximum
+ * depth.
+ */
 @type.define({
   className: "TriViewport",
   family: "trinityCore"
@@ -34,6 +38,10 @@ export class TriViewport extends CjsModel
   @type.float32
   maxZ = 1;
 
+  /**
+   * Python-style constructor hook; assigns origin, size and depth range,
+   * defaulting to a 1x1 viewport over the full zero-to-one depth range.
+   */
   @carbon.method
   @impl.adapted
   __init__(x = 0, y = 0, width = 1, height = 1, minZ = 0, maxZ = 1)
@@ -46,6 +54,7 @@ export class TriViewport extends CjsModel
     this.maxZ = maxZ;
   }
 
+  /** Pixel width divided by pixel height; a zero height is not guarded against. */
   @carbon.method
   @impl.implemented
   GetAspectRatio()

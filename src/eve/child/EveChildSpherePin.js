@@ -6,6 +6,11 @@ import { EveChildMesh } from "./EveChildMesh.js";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 
+/**
+ * Child mesh that draws a pin on a sphere's surface, contributing the pin's
+ * centre normal, radius, rotation, alpha threshold and colour to its own
+ * per-object shader data.
+ */
 @type.define({ className: "EveChildSpherePin", family: "eve/child" })
 export class EveChildSpherePin extends EveChildMesh
 {

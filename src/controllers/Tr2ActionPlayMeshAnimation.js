@@ -7,6 +7,11 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { Tr2BindingPoint } from "./Tr2BindingPoint.js";
 
 
+/**
+ * Controller action that plays or enqueues a named geometry animation on a
+ * destination object's animation controller when it starts, and stops or
+ * enqueues a stop when it ends.
+ */
 @type.define({
   className: "Tr2ActionPlayMeshAnimation",
   family: "controllers"
@@ -190,11 +195,17 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
     }
     return true;
   }
+  /** Resolves and caches the destination object, returning it. */
   LinkDestination(controller = this.#controller)
   {
     this.#resolvedDestination = this.ResolveDestination(controller);
     return this.#resolvedDestination;
   }
+  /**
+   * Gets the object whose animation controller is driven: the controller owner
+   * for destinationType OWNER, otherwise the cached resolved destination,
+   * re-resolved when it is missing or binding is delayed.
+   */
   @carbon.method
   @impl.adapted
   GetDestination(controller = this.#controller)
@@ -209,6 +220,10 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
     }
     return this.#resolvedDestination;
   }
+  /**
+   * Checks whether a destination is reachable; destinationType OWNER is always
+   * considered valid.
+   */
   @carbon.method
   @impl.adapted
   IsBindingValid()
@@ -219,10 +234,18 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
     }
     return !!this.GetDestination();
   }
+  /**
+   * Alias for IsBindingValid, kept for callers using Carbon's destination
+   * wording.
+   */
   IsDestinationValid()
   {
     return this.IsBindingValid();
   }
+  /**
+   * Resolves the destination from the directly assigned object, otherwise by
+   * walking the authored path against the controller's binding roots.
+   */
   ResolveDestination(controller)
   {
     if (this.destination)

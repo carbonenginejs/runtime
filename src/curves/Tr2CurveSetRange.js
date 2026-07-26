@@ -4,6 +4,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Named sub-interval of a curve set's scaled timeline, giving a start and end
+ * time and whether playback loops inside it.
+ */
 @type.define({
   className: "Tr2CurveSetRange",
   family: "curves"

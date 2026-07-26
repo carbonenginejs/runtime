@@ -7,6 +7,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Instance data whose buffer lives entirely on the GPU: Trinity keeps only the
+ * CPU-side layout metadata, stride, instance count and bounds.
+ */
 @type.define({ className: "Tr2DirectInstanceData", family: "trinityCore" })
 export class Tr2DirectInstanceData extends CjsModel
 {
@@ -50,6 +54,7 @@ export class Tr2DirectInstanceData extends CjsModel
     vec3.copy(this.aabbMax, max);
   }
 
+  /** Number of instances in the GPU-side buffer. */
   @carbon.method
   @impl.implemented
   GetCount()
@@ -57,6 +62,10 @@ export class Tr2DirectInstanceData extends CjsModel
     return this.count;
   }
 
+  /**
+   * Byte stride of one instance, computed by SetLayout as the largest offset
+   * plus element size in the layout.
+   */
   @carbon.method
   @impl.implemented
   GetStride()
@@ -88,6 +97,7 @@ export class Tr2DirectInstanceData extends CjsModel
     this.#stride = stride;
   }
 
+  /** The frozen element-descriptor list recorded by SetLayout. */
   @carbon.method
   @impl.implemented
   GetLayout()
@@ -95,6 +105,10 @@ export class Tr2DirectInstanceData extends CjsModel
     return this.#layout;
   }
 
+  /**
+   * A detached copy of the recorded bounds; the buffer index is ignored because
+   * only one stream is modelled.
+   */
   @carbon.method
   @impl.implemented
   GetInstanceBufferBoundingBox(_bufferIndex = 0)

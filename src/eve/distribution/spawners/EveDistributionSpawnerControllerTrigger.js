@@ -39,6 +39,10 @@ export class EveDistributionSpawnerControllerTrigger extends CjsModel
   @type.boolean
   restartOnReceivingValue = false;
 
+  /**
+   * Restarts the wrapped spawners; the placement pool is not used by this
+   * trigger.
+   */
   @carbon.method
   @impl.implemented
   Reset(_placements)
@@ -46,6 +50,7 @@ export class EveDistributionSpawnerControllerTrigger extends CjsModel
     this.Restart();
   }
 
+  /** Restarts every wrapped spawner, leaving the active state untouched. */
   @carbon.method
   @impl.implemented
   Restart()
@@ -56,6 +61,10 @@ export class EveDistributionSpawnerControllerTrigger extends CjsModel
     }
   }
 
+  /**
+   * Re-evaluates the active state when the `value` property is written directly
+   * rather than through a controller.
+   */
   @carbon.method
   @impl.adapted
   OnModified(name)
@@ -67,6 +76,7 @@ export class EveDistributionSpawnerControllerTrigger extends CjsModel
     return true;
   }
 
+  /** Ticks the wrapped spawners only while the trigger is active. */
   @carbon.method
   @impl.implemented
   UpdateSyncronous(updateContext, params, owner)
@@ -82,6 +92,10 @@ export class EveDistributionSpawnerControllerTrigger extends CjsModel
     }
   }
 
+  /**
+   * Adopts the value when the name matches this trigger's variable and
+   * re-evaluates the active state; other names are ignored.
+   */
   @carbon.method
   @impl.implemented
   SetControllerVariable(name, value)
@@ -95,6 +109,10 @@ export class EveDistributionSpawnerControllerTrigger extends CjsModel
     this.#applyValue();
   }
 
+  /**
+   * Recomputes the active flag from the current value, inverted when
+   * invertTrigger is set, after optionally restarting the wrapped spawners.
+   */
   #applyValue()
   {
     if (this.restartOnReceivingValue)

@@ -5,6 +5,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/** One vec4 row of a TriFloatArrayParameter's value list. */
 @type.define({
   className: "TriVector4",
   family: "shader"

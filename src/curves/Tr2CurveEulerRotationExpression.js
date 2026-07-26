@@ -6,6 +6,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsControllerExpressionProgram } from "../controllers/CjsControllerExpressionProgram.js";
 
 
+/**
+ * Quaternion curve built from three independently compiled expressions producing
+ * yaw, pitch and roll in radians at time divided by timeScale.
+ */
 @type.define({
   className: "Tr2CurveEulerRotationExpression",
   family: "curves"
@@ -135,24 +139,31 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   {
     return out;
   }
+  /** The authored yaw expression source text, before compilation. */
   @carbon.method
   @impl.implemented
   GetExpressionYaw()
   {
     return this.expressionYaw;
   }
+  /** The authored pitch expression source text, before compilation. */
   @carbon.method
   @impl.implemented
   GetExpressionPitch()
   {
     return this.expressionPitch;
   }
+  /** The authored roll expression source text, before compilation. */
   @carbon.method
   @impl.implemented
   GetExpressionRoll()
   {
     return this.expressionRoll;
   }
+  /**
+   * Sets the yaw expression and drops its cached program so the next sample
+   * recompiles.
+   */
   @carbon.method
   @impl.adapted
   SetExpressionYaw(expression)
@@ -160,6 +171,10 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     this.expressionYaw = expression;
     this.#programs[0] = null;
   }
+  /**
+   * Sets the pitch expression and drops its cached program so the next sample
+   * recompiles.
+   */
   @carbon.method
   @impl.adapted
   SetExpressionPitch(expression)
@@ -167,6 +182,10 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     this.expressionPitch = expression;
     this.#programs[1] = null;
   }
+  /**
+   * Sets the roll expression and drops its cached program so the next sample
+   * recompiles.
+   */
   @carbon.method
   @impl.adapted
   SetExpressionRoll(expression)
@@ -174,6 +193,11 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     this.expressionRoll = expression;
     this.#programs[2] = null;
   }
+  /**
+   * Backs the expression `input`/`inputAt` functions by sampling the n-th input
+   * curve, defaulting to the time of the most recent GetContext call and
+   * returning 0 when no such input exists.
+   */
   @carbon.method
   @impl.implemented
   GetInputValue(index, time = this.#currentTime)
@@ -181,18 +205,28 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     const input = this.inputs[index | 0];
     return input ? input.GetValueAt(time) : 0;
   }
+  /**
+   * Gets this curve's per-instance random constant, which stays fixed until
+   * ResetRandomConstant is called so `randomConstant` expressions are stable
+   * over time.
+   */
   @carbon.method
   @impl.implemented
   GetRandomConstant()
   {
     return this.randomConstant;
   }
+  /** Draws a new per-instance random constant in [0, 1). */
   @carbon.method
   @impl.implemented
   ResetRandomConstant()
   {
     this.randomConstant = Math.random();
   }
+  /**
+   * Gets the curve expression terms offered to an editor, including `radians`
+   * because this curve's outputs are angles.
+   */
   @carbon.method
   @impl.adapted
   GetExpressionTermInfo()
@@ -201,6 +235,10 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
       includeRadians: true
     });
   }
+  /**
+   * Compiles and evaluates an arbitrary expression against this curve's context
+   * at time 0, returning 0 when it does not compile.
+   */
   @carbon.method
   @impl.adapted
   EvaluateExpression(expression)
@@ -210,6 +248,10 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     });
     return program.IsValid() ? Number(program.Evaluate(this.GetContext(0))) || 0 : 0;
   }
+  /**
+   * Compiles any of the yaw, pitch or roll expressions whose cached program is
+   * missing or stale against the currently authored source.
+   */
   Compile()
   {
     const expressions = [this.expressionYaw, this.expressionPitch, this.expressionRoll];
@@ -224,6 +266,11 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
       }
     }
   }
+  /**
+   * Builds the evaluation context for a sample, dividing the caller time by
+   * timeScale, recording it as the current input time, and exposing it alongside
+   * input1..input4 as expression variables.
+   */
   GetContext(time)
   {
     const scaledTime = time / this.timeScale;
@@ -242,6 +289,10 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     };
   }
 
+  /**
+   * Evaluates one angle program, substituting 0 for a missing or invalid program
+   * and for any non-finite result.
+   */
   static #evaluate(program, context)
   {
     return program?.IsValid() ? Number(program.Evaluate(context)) || 0 : 0;

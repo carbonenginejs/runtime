@@ -5,6 +5,11 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
+/**
+ * Controller action that writes a constant or source-variable value into a
+ * controller variable on a different object, named by destinationOwner among the
+ * owner's binding roots.
+ */
 @type.define({
   className: "Tr2ActionSetExternalControllerVariable",
   family: "controllers"
@@ -124,6 +129,11 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
   {
     return !!this.variable;
   }
+  /**
+   * Resolves `destination` by case-insensitively matching destinationOwner
+   * against the owner's binding roots, and records the name it resolved against
+   * so OnModified can detect a real change.
+   */
   #linkToDestinationOwner()
   {
     this.#linkedOwner = this.destinationOwner;
@@ -149,6 +159,11 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
     }
   }
 
+  /**
+   * Writes the value through the destination's SetControllerVariable, returning
+   * false when the destination or variable name is missing or the method is
+   * absent.
+   */
   static #setControllerVariable(destination, variable, value)
   {
     if (!destination || !variable)
@@ -163,6 +178,10 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
     return false;
   }
 
+  /**
+   * Normalizes an owner's binding roots into name/value pairs, accepting an
+   * array, a Map, a `bindingRoots` property or a plain object.
+   */
   static #getBindingRoots(owner)
   {
     const roots = ITr2ControllerAction.callTarget(owner, "GetBindingRoots");

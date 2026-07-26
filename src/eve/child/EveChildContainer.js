@@ -21,6 +21,11 @@ import { Tr2PerObjectData } from "../../trinityCore/Tr2PerObjectData.js";
 const ZERO_VEC3 = vec3.create();
 
 
+/**
+ * Space-object child that groups other children under one transform, owning
+ * their curve sets, controllers, observers, lights, attachments and transform
+ * modifiers, and gating them on a display-quality filter.
+ */
 @type.define({ className: "EveChildContainer", family: "eve/child" })
 export class EveChildContainer extends EveChildTransform
 {
@@ -152,6 +157,10 @@ export class EveChildContainer extends EveChildTransform
 
   #hasUpdated = false;
 
+  /**
+   * Links every authored controller that is not already linked to this
+   * container, so controller variables and events reach them.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -182,6 +191,11 @@ export class EveChildContainer extends EveChildTransform
     return true;
   }
 
+  /**
+   * Applies the authored scale/rotation/translation through the shared child
+   * transform setup and returns the rebuilt local transform; lowestLodVisible is
+   * accepted for signature parity only.
+   */
   @carbon.method
   @impl.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
@@ -189,6 +203,10 @@ export class EveChildContainer extends EveChildTransform
     return super.Setup(scale, rotation, translation, lowestLodVisible);
   }
 
+  /**
+   * Returns the authored container name, which GetEffectChildByName matches
+   * against on the parent side.
+   */
   @carbon.method
   @impl.implemented
   GetName()
@@ -196,6 +214,7 @@ export class EveChildContainer extends EveChildTransform
     return this.name;
   }
 
+  /** Sets the authored container name, coercing nullish to the empty string. */
   @carbon.method
   @impl.implemented
   SetName(name)
@@ -203,6 +222,10 @@ export class EveChildContainer extends EveChildTransform
     this.name = String(name ?? "");
   }
 
+  /**
+   * Records whether this container's placement was authored in space or by SOF
+   * (the Origin enum).
+   */
   @carbon.method
   @impl.implemented
   SetOrigin(origin)
@@ -210,6 +233,7 @@ export class EveChildContainer extends EveChildTransform
     this.origin = Number(origin) | 0;
   }
 
+  /** Stores the always-on flag that IsAlwaysOn reports to the owner. */
   @carbon.method
   @impl.implemented
   SetAlwaysOn(alwaysOn)
@@ -217,6 +241,7 @@ export class EveChildContainer extends EveChildTransform
     this.alwaysOn = !!alwaysOn;
   }
 
+  /** Reports the authored always-on flag. */
   @carbon.method
   @impl.implemented
   IsAlwaysOn()
@@ -224,6 +249,11 @@ export class EveChildContainer extends EveChildTransform
     return this.alwaysOn;
   }
 
+  /**
+   * Sets the display-quality filter that IsRendering tests the current shader
+   * model against, which in turn gates every update and render path on this
+   * container.
+   */
   @carbon.method
   @impl.implemented
   SetDisplayQualityModifier(filter)
@@ -231,6 +261,10 @@ export class EveChildContainer extends EveChildTransform
     this.displayFilter = Number(filter) | 0;
   }
 
+  /**
+   * Sets the mute flag and, only when it changes, pushes it down to the
+   * contained children and local observers.
+   */
   @carbon.method
   @impl.implemented
   SetMute(mute)
@@ -243,6 +277,10 @@ export class EveChildContainer extends EveChildTransform
     }
   }
 
+  /**
+   * Pushes this container's current mute flag onto every contained child and
+   * local observer - it mutates their state, not the container's.
+   */
   @carbon.method
   @impl.implemented
   MuteChildren()
@@ -257,6 +295,10 @@ export class EveChildContainer extends EveChildTransform
     }
   }
 
+  /**
+   * Appends a transform modifier; modifiers fold over the container's world
+   * transform in insertion order on each async update.
+   */
   @carbon.method
   @impl.implemented
   AddTransformModifier(modifier)
@@ -264,6 +306,10 @@ export class EveChildContainer extends EveChildTransform
     this.transformModifiers.push(modifier);
   }
 
+  /**
+   * Appends a local audio observer, which is re-placed from the container's
+   * world transform on every sync update.
+   */
   @carbon.method
   @impl.implemented
   AddObserver(observer)
@@ -271,6 +317,10 @@ export class EveChildContainer extends EveChildTransform
     this.observers.push(observer);
   }
 
+  /**
+   * Appends a controller, links it to this container, and replays every
+   * controller variable set so far onto it so it starts in sync.
+   */
   @carbon.method
   @impl.adapted
   AddController(controller)
@@ -283,6 +333,11 @@ export class EveChildContainer extends EveChildTransform
     }
   }
 
+  /**
+   * Records a named float variable, pushes it to every controller on this
+   * container, and recurses into the contained children; the recorded value is
+   * also replayed onto controllers and children added later.
+   */
   @carbon.method
   @impl.implemented
   SetControllerVariable(name, value)
@@ -300,6 +355,10 @@ export class EveChildContainer extends EveChildTransform
     }
   }
 
+  /**
+   * Fires a named controller event on every controller here and recurses into
+   * the contained children.
+   */
   @carbon.method
   @impl.implemented
   HandleControllerEvent(name)
@@ -315,6 +374,7 @@ export class EveChildContainer extends EveChildTransform
     }
   }
 
+  /** Starts every controller here and recurses into the contained children. */
   @carbon.method
   @impl.implemented
   StartControllers()
@@ -329,6 +389,10 @@ export class EveChildContainer extends EveChildTransform
     }
   }
 
+  /**
+   * Forwards a procedural container variable to the contained children; a plain
+   * container holds none of its own.
+   */
   @carbon.method
   @impl.implemented
   SetProceduralContainerVariable(name, value)
@@ -339,6 +403,10 @@ export class EveChildContainer extends EveChildTransform
     }
   }
 
+  /**
+   * Returns the first direct child whose GetName()/name matches, or null; the
+   * search does not recurse into nested containers.
+   */
   @carbon.method
   @impl.implemented
   GetEffectChildByName(name)
@@ -354,6 +422,10 @@ export class EveChildContainer extends EveChildTransform
     return null;
   }
 
+  /**
+   * Appends a child and replays every controller variable set so far onto it,
+   * then returns that same child.
+   */
   @carbon.method
   @impl.adapted
   AddToEffectChildrenList(child)
@@ -366,6 +438,7 @@ export class EveChildContainer extends EveChildTransform
     return child;
   }
 
+  /** Removes a child by identity and reports whether it was present. */
   @carbon.method
   @impl.implemented
   RemoveFromEffectChildrenList(child)
@@ -379,6 +452,10 @@ export class EveChildContainer extends EveChildTransform
     return false;
   }
 
+  /**
+   * Forwards a shader option to every contained child and attachment; the
+   * container compiles nothing itself.
+   */
   @carbon.method
   @impl.implemented
   SetShaderOption(name, value)
@@ -393,6 +470,10 @@ export class EveChildContainer extends EveChildTransform
     }
   }
 
+  /**
+   * Stores the Granny animation owner supplied by SOF placement; the bone-list
+   * override that would consume it awaits the JS animation seam.
+   */
   @carbon.method
   @impl.implemented
   SetAnimationOwner(animationOwner)
@@ -400,6 +481,11 @@ export class EveChildContainer extends EveChildTransform
     this.animationOwner = animationOwner ?? null;
   }
 
+  /**
+   * Flags this container as a SOF placement root - authored placement state,
+   * persisted for interchange parity, with no consumer inside the container
+   * itself.
+   */
   @carbon.method
   @impl.implemented
   SetIsPlacementRoot(isPlacementRoot)
@@ -407,6 +493,10 @@ export class EveChildContainer extends EveChildTransform
     this.isPlacementRoot = !!isPlacementRoot;
   }
 
+  /**
+   * Appends an attachment; attachments are the only thing a container renders
+   * itself (HasRenderables) and the only thing GetBatches submits.
+   */
   @carbon.method
   @impl.implemented
   AddAttachment(attachment)
@@ -414,6 +504,10 @@ export class EveChildContainer extends EveChildTransform
     this.attachments.push(attachment);
   }
 
+  /**
+   * Drops every attachment, which also stops the container from contributing any
+   * renderable of its own.
+   */
   @carbon.method
   @impl.implemented
   ClearAttachments()
@@ -421,6 +515,10 @@ export class EveChildContainer extends EveChildTransform
     this.attachments.length = 0;
   }
 
+  /**
+   * Reports whether the container owns nothing at all - no children, lights,
+   * attachments, controllers, curve sets, transform modifiers or observers.
+   */
   @carbon.method
   @impl.implemented
   Empty()
@@ -1155,6 +1253,11 @@ export class EveChildContainer extends EveChildTransform
   // EveChildUpdateParams by value, cpp:505/592). Allocated per call like
   // EveSpaceObject2's child fan-out - container recursion makes a module
   // scratch record unsafe.
+  /**
+   * Copies the caller's update params into a fresh child-facing record (Carbon
+   * passes EveChildUpdateParams by value, cpp:505/592); allocated per call
+   * because container recursion makes a shared module scratch record unsafe.
+   */
   static #DeriveChildParams(params)
   {
     const next = new EveChildUpdateParams();

@@ -7,6 +7,11 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2ParticleElementDeclaration } from "../particle/Tr2ParticleElementDeclaration.js";
 
 
+/**
+ * Owns a CPU-side instance stream - a vertex element layout, the packed
+ * per-instance rows and their bounding box - and can spawn the same rows into a
+ * particle system on demand.
+ */
 @type.define({ className: "Tr2RuntimeInstanceData", family: "trinityCore" })
 export class Tr2RuntimeInstanceData extends CjsModel
 {
@@ -64,16 +69,25 @@ export class Tr2RuntimeInstanceData extends CjsModel
 
   #dataRevision = 0;
 
+  /** True when rows or layout have changed since the last UpdateData. */
   get dirty()
   {
     return this.#dirty;
   }
 
+  /**
+   * Counter bumped by every UpdateData that publishes a dirty change; consumers
+   * compare it to detect that the packed bytes were republished.
+   */
   get dataRevision()
   {
     return this.#dataRevision;
   }
 
+  /**
+   * Repacks the CPU buffer from the persisted layout and rows, then publishes
+   * it.
+   */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -83,6 +97,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return true;
   }
 
+  /**
+   * Repacks the CPU buffer only when the cpuData flag was scheduled, i.e. layout
+   * or rows actually changed.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -94,6 +112,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return true;
   }
 
+  /**
+   * Replaces the element layout and discards every existing row - a layout must
+   * be set before any SetData.
+   */
   @carbon.method
   @impl.adapted
   SetElementLayout(layout)
@@ -102,6 +124,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     this.DestroyData();
   }
 
+  /**
+   * Replaces all instance rows and repacks the byte buffer; throws when no
+   * layout has been set.
+   */
   @carbon.method
   @impl.adapted
   SetData(rows)
@@ -109,6 +135,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     this.#setData(rows);
   }
 
+  /**
+   * A detached copy of one instance row, with its component arrays cloned so the
+   * caller cannot alias stored data.
+   */
   @carbon.method
   @impl.implemented
   GetItem(index)
@@ -117,6 +147,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return this.rows[index].map(Tr2RuntimeInstanceData.#cloneValue);
   }
 
+  /**
+   * Validates one instance row against the layout, stores it and rewrites its
+   * bytes in place, marking the data dirty.
+   */
   @carbon.method
   @impl.adapted
   SetItem(index, row)
@@ -128,6 +162,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
     this.#dirty = true;
   }
 
+  /** A detached copy of one element of one instance row. */
   @carbon.method
   @impl.implemented
   GetItemElement(index, elementIndex)
@@ -137,6 +172,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return Tr2RuntimeInstanceData.#cloneValue(this.rows[index][elementIndex]);
   }
 
+  /**
+   * Validates and stores a single element of one row, patching only that
+   * element's bytes in the packed buffer.
+   */
   @carbon.method
   @impl.adapted
   SetItemElement(index, elementIndex, value)
@@ -153,6 +192,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     this.#dirty = true;
   }
 
+  /**
+   * Publishes pending changes by clearing the dirty flag and bumping the data
+   * revision; returns false when nothing was dirty.
+   */
   @carbon.method
   @impl.adapted
   UpdateData()
@@ -166,6 +209,12 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return true;
   }
 
+  /**
+   * Recomputes the box from the first POSITION element with at least three
+   * components; returns false without touching it when the box was set
+   * explicitly, and zeroes the box when there is no such element or no
+   * instances.
+   */
   @carbon.method
   @impl.adapted
   UpdateBoundingBox()
@@ -200,6 +249,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return true;
   }
 
+  /**
+   * Sets the box explicitly from either a { min, max } object or two vectors,
+   * and latches explicitBoundingBox so UpdateBoundingBox stops recomputing it.
+   */
   @carbon.method
   @impl.adapted
   SetBoundingBox(bounds, maxBounds)
@@ -215,6 +268,12 @@ export class Tr2RuntimeInstanceData extends CjsModel
     this.explicitBoundingBox = true;
   }
 
+  /**
+   * Reads the bounding box; the values are copied into the caller's vectors when both are supplied, otherwise a freshly cloned pair is returned.
+   * @param {vec3} [minBounds] Caller-owned destination for the minimum.
+   * @param {vec3} [maxBounds] Caller-owned destination for the maximum.
+   * @returns {boolean|{min: vec3, max: vec3}} True when written into the out vectors, otherwise a new { min, max } pair.
+   */
   @carbon.method
   @impl.implemented
   GetBoundingBox(minBounds, maxBounds)
@@ -231,6 +290,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     };
   }
 
+  /**
+   * The bounding box of the single CPU instance buffer; the buffer index is
+   * ignored because only one stream exists.
+   */
   @carbon.method
   @impl.implemented
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
@@ -238,6 +301,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return this.GetBoundingBox();
   }
 
+  /** Number of packed instance rows. */
   @carbon.method
   @impl.implemented
   GetCount()
@@ -245,6 +309,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return this.count;
   }
 
+  /** Byte size of one packed row, summed from the element layout. */
   @carbon.method
   @impl.implemented
   GetStride()
@@ -252,6 +317,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return this.#stride;
   }
 
+  /**
+   * The frozen normalized element descriptors, each carrying usage, type,
+   * component count, byte size and byte offset.
+   */
   @carbon.method
   @impl.implemented
   GetLayout()
@@ -259,6 +328,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return this.#layout;
   }
 
+  /**
+   * A copy of the packed instance bytes, or null when no rows are set; the
+   * caller owns the returned array.
+   */
   @carbon.method
   @impl.adapted
   GetData()
@@ -266,6 +339,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return this.#data ? new Uint8Array(this.#data) : null;
   }
 
+  /**
+   * Drops every row and the packed buffer while keeping the layout, and marks
+   * the data dirty.
+   */
   @carbon.method
   @impl.adapted
   DestroyData()
@@ -449,6 +526,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return maxScale;
   }
 
+  /**
+   * Re-normalizes the persisted layout and repacks the persisted rows; throws
+   * when rows exist but the layout is empty.
+   */
   #rebuildCpuData()
   {
     const rows = this.rows;
@@ -468,6 +549,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     this.#setData(rows);
   }
 
+  /**
+   * Normalizes each element descriptor, assigns sequential byte offsets,
+   * computes the row stride and republishes the persisted layout summary.
+   */
   #setElementLayout(layout)
   {
     if (!Array.isArray(layout))
@@ -488,6 +573,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     this.#stride = offset;
   }
 
+  /**
+   * Normalizes every row against the layout and packs them into one freshly
+   * allocated little-endian buffer.
+   */
   #setData(rows)
   {
     if (!this.#layout.length)
@@ -513,6 +602,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     this.#dirty = true;
   }
 
+  /**
+   * Coerces a row given either as an array or as a name-keyed object into layout
+   * order and validates each element.
+   */
   #normalizeRow(row, rowIndex)
   {
     const values = Array.isArray(row)
@@ -529,6 +622,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
     ));
   }
 
+  /** Writes every element of one normalized row into the packed buffer. */
   #writeRow(view, rowIndex, row)
   {
     for (let elementIndex = 0; elementIndex < this.#layout.length; elementIndex++)
@@ -537,6 +631,11 @@ export class Tr2RuntimeInstanceData extends CjsModel
     }
   }
 
+  /**
+   * Writes one element at its row and layout offset; a scalar supplied for a
+   * four-component INT8/UINT8 element is written as a single packed 32-bit word
+   * (the bone-index case).
+   */
   #writeElement(view, rowIndex, elementIndex, value)
   {
     const element = this.#layout[elementIndex];
@@ -567,6 +666,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     }
   }
 
+  /**
+   * Throws RangeError unless the index is an integer inside the current instance
+   * count.
+   */
   #assertItemIndex(index)
   {
     if (!Number.isInteger(index) || index < 0 || index >= this.count)
@@ -575,6 +678,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
     }
   }
 
+  /** Throws RangeError unless the index is an integer inside the current layout. */
   #assertElementIndex(index)
   {
     if (!Number.isInteger(index) || index < 0 || index >= this.#layout.length)
@@ -583,6 +687,11 @@ export class Tr2RuntimeInstanceData extends CjsModel
     }
   }
 
+  /**
+   * Builds a full element descriptor at the given byte offset from either a {
+   * usage, usageIndex, type, name } object or Carbon's legacy [particleUsage,
+   * usageIndex, componentCount] triple.
+   */
   static #normalizeElement(value, index, offset)
   {
     const legacy = Array.isArray(value);
@@ -618,6 +727,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     };
   }
 
+  /**
+   * The frozen persistable summary of an element descriptor: usage, usage index,
+   * type and name.
+   */
   static #describeElement(value)
   {
     return Object.freeze({
@@ -628,6 +741,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     });
   }
 
+  /**
+   * Transposes a column-major 4x4 into the three float4 rows the transform
+   * instance stream stores.
+   */
   static #packTransform(value)
   {
     return [
@@ -637,6 +754,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     ];
   }
 
+  /**
+   * Maps a legacy particle element type index onto its vertex usage name; throws
+   * for an out-of-range index.
+   */
   static #particleUsageToVertexUsage(value)
   {
     const usages = ["TANGENT", "POSITION", "NORMAL", "BITANGENT", "TEXCOORD"];
@@ -648,6 +769,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return usages[index];
   }
 
+  /**
+   * Resolves a usage given as a name or as a UsageCode number to its canonical
+   * name; throws when it matches neither.
+   */
   static #normalizeUsage(value)
   {
     if (typeof value === "number")
@@ -663,6 +788,11 @@ export class Tr2RuntimeInstanceData extends CjsModel
     throw new TypeError(`Invalid vertex usage ${String(value)}`);
   }
 
+  /**
+   * Decodes a data type name or code into base type, component count and
+   * component byte size by unpacking Carbon's type bit-field (low three bits the
+   * type, bit 3 unsigned, bits 5-6 the component count minus one).
+   */
   static #normalizeType(value)
   {
     let dataType;
@@ -700,6 +830,12 @@ export class Tr2RuntimeInstanceData extends CjsModel
     };
   }
 
+  /**
+   * Validates and coerces one element value against its descriptor; a bare
+   * number is accepted for a single-component element and for a packed four-byte
+   * integer element, anything else must supply exactly componentCount finite
+   * numbers.
+   */
   static #normalizeElementValue(element, value, label)
   {
     if (
@@ -733,6 +869,10 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return result;
   }
 
+  /**
+   * Writes one little-endian component of the given base type; FLOAT16 has no
+   * packer and throws.
+   */
   static #writeComponent(view, offset, baseType, value)
   {
     switch (baseType)
@@ -748,6 +888,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
     }
   }
 
+  /** Copies array-valued elements so returned rows never alias stored data. */
   static #cloneValue(value)
   {
     return Array.isArray(value) ? value.slice() : value;

@@ -5,6 +5,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Holds the booster trail placements a hull emits, together with the mesh
+ * resource and effect a renderer draws them with.
+ */
 @type.define({ className: "EveTrailsSet", family: "eve/attachment/boosters" })
 export class EveTrailsSet extends CjsModel
 {
@@ -41,6 +45,7 @@ export class EveTrailsSet extends CjsModel
 
   #revision = 0;
 
+  /** Bumps the revision so an adapter re-reads the trail data on its next pass. */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -49,6 +54,10 @@ export class EveTrailsSet extends CjsModel
     return true;
   }
 
+  /**
+   * Bumps the revision after a property change so an adapter re-reads the trail
+   * data.
+   */
   @carbon.method
   @impl.adapted
   OnModified()
@@ -57,12 +66,17 @@ export class EveTrailsSet extends CjsModel
     return true;
   }
 
+  /**
+   * Accepts the per-frame update; the set itself holds no time-varying state,
+   * because trail motion lives on each booster renderable's spline.
+   */
   @carbon.method
   @impl.implemented
   Update()
   {
   }
 
+  /** Drops every trail placement and bumps the revision. */
   @carbon.method
   @impl.adapted
   Clear()
@@ -71,6 +85,10 @@ export class EveTrailsSet extends CjsModel
     this.#revision++;
   }
 
+  /**
+   * Appends a trail placement with its size, cloning the transform; throws a
+   * TypeError when localMatrix is not sixteen values.
+   */
   @carbon.method
   @impl.implemented
   Add(localMatrix, size)
@@ -86,6 +104,7 @@ export class EveTrailsSet extends CjsModel
     this.#revision++;
   }
 
+  /** The authored rate at which a trail fades out behind its booster. */
   @carbon.method
   @impl.implemented
   GetFadeSpeed()
@@ -93,6 +112,7 @@ export class EveTrailsSet extends CjsModel
     return this.fadeSpeed;
   }
 
+  /** Sets the effect that draws the trails. */
   @carbon.method
   @impl.implemented
   SetEffect(effect)
@@ -100,6 +120,10 @@ export class EveTrailsSet extends CjsModel
     this.effect = effect ?? null;
   }
 
+  /**
+   * Sets the trail mesh resource path and bumps the revision; resolving the path
+   * to a resource is the host's job.
+   */
   @carbon.method
   @impl.adapted
   SetMeshResPath(path)
@@ -108,6 +132,10 @@ export class EveTrailsSet extends CjsModel
     this.#revision++;
   }
 
+  /**
+   * Attaches a resolved trail geometry resource, bumping the revision only when
+   * the resource actually changes.
+   */
   @carbon.method
   @impl.adapted
   SetGeometryResource(resource)
@@ -119,6 +147,10 @@ export class EveTrailsSet extends CjsModel
     }
   }
 
+  /**
+   * The trail placements as deep copies, safe for an adapter to keep past the
+   * next Clear or Add.
+   */
   @carbon.method
   @impl.adapted
   GetTrailData()
@@ -129,6 +161,10 @@ export class EveTrailsSet extends CjsModel
     }));
   }
 
+  /**
+   * A counter bumped whenever the trail placements, mesh path or geometry
+   * resource change, so an adapter can tell its packed data is stale.
+   */
   @carbon.method
   @impl.implemented
   GetRevision()

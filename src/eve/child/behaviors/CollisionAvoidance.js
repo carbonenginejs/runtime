@@ -10,6 +10,10 @@ import { ProcessPriority } from "./enums.js";
 const FROM_TARGET = vec3.create();
 const NO_FORCES = [];
 
+/**
+ * Drone behavior that pushes agents away from the centre of every exclusion
+ * volume they intersect, weighted by the volume's intensity at the agent.
+ */
 @type.define({ className: "CollisionAvoidance", family: "eve/child/behaviors" })
 export class CollisionAvoidance extends CjsModel
 {

@@ -9,6 +9,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * One ship's instance of a booster set: it carries the parent transform, speed
+ * and rotation, derives the booster and trail intensities, and maintains the
+ * five-point trail spline and its LOD flags.
+ */
 @type.define({ className: "EveBoosterSet2Renderable", family: "eve/attachment/boosters" })
 export class EveBoosterSet2Renderable extends CjsModel
 {
@@ -118,6 +123,10 @@ export class EveBoosterSet2Renderable extends CjsModel
 
   #trailsTimeToNext = 0;
 
+  /**
+   * Binds this instance to the booster set whose authored placements, colours
+   * and light data it draws.
+   */
   @carbon.method
   @impl.adapted
   SetBoosterSet(boosterSet)
@@ -125,6 +134,12 @@ export class EveBoosterSet2Renderable extends CjsModel
     this.#boosterSet = boosterSet ?? null;
   }
 
+  /**
+   * Derives the booster intensity from the parent's speed ratio and the
+   * acceleration along its backward axis, each low-pass filtered against the
+   * previous frame and the result clamped to 2; an always-on set returns its
+   * authored intensity instead.
+   */
   @carbon.method
   @impl.implemented
   CalculateIntensity(acceleration)
@@ -153,6 +168,11 @@ export class EveBoosterSet2Renderable extends CjsModel
     return value;
   }
 
+  /**
+   * Takes the parent transform, speed and rotation for the frame - deriving
+   * speed from the transform delta when the set is not destiny-driven - and
+   * recomputes the overall intensity, which it returns.
+   */
   @carbon.method
   @impl.implemented
   Update(deltaTime, _time, parentMatrix, parentSpeed, parentAcceleration, parentRotation)
@@ -182,6 +202,12 @@ export class EveBoosterSet2Renderable extends CjsModel
     return this.overallIntensity;
   }
 
+  /**
+   * Recomputes the trail spline and maps its total length onto the trail
+   * intensity, fading in above the minimum length and back out approaching the
+   * maximum, with nothing drawn outside that band; an always-on set is pinned to
+   * full intensity.
+   */
   @carbon.method
   @impl.adapted
   UpdateTrails(deltaTime, _time = 0)
@@ -229,6 +255,11 @@ export class EveBoosterSet2Renderable extends CjsModel
     return true;
   }
 
+  /**
+   * A freshly allocated snapshot of the trail spline: control positions carrying
+   * their normalized segment lengths, control normals carrying their length
+   * factors, plus total length, intensity and world bounds.
+   */
   @carbon.method
   @impl.adapted
   GetTrailSplineData()
@@ -253,6 +284,7 @@ export class EveBoosterSet2Renderable extends CjsModel
     };
   }
 
+  /** The overall booster intensity computed by the last Update. */
   @carbon.method
   @impl.implemented
   GetIntensity()
@@ -435,6 +467,12 @@ export class EveBoosterSet2Renderable extends CjsModel
     return out;
   }
 
+  /**
+   * Places the five trail control points for the frame - sampled out of the
+   * physics offset ring at the trail time delta, or taken from the set's static
+   * offsets rotated into parent space - then recomputes the spline metrics;
+   * returns false for a non-positive delta.
+   */
   #CalculateSplineData(deltaTime)
   {
     const elapsed = Number(deltaTime);
@@ -489,6 +527,12 @@ export class EveBoosterSet2Renderable extends CjsModel
     return true;
   }
 
+  /**
+   * Advances the 300-entry trail offset ring by the parent's movement in fixed
+   * ~16.7 ms steps, taking a separate bulk path once twenty or more steps are
+   * owed in a single frame so a stalled or teleported ship does not walk the
+   * ring one entry at a time.
+   */
   #UpdatePhysicsTrailOffsets(deltaTime)
   {
     const movement = vec3.transformQuat(
@@ -575,6 +619,12 @@ export class EveBoosterSet2Renderable extends CjsModel
       EveBoosterSet2Renderable.#positionOffsetDelta * iterationCount;
   }
 
+  /**
+   * Recomputes everything derived from the control points: total trail length,
+   * world trail bounds padded by the booster sphere radius, the per-point
+   * tangent normals with their length factors, and the normalized per-segment
+   * lengths.
+   */
   #UpdateSplineMetrics()
   {
     this.trailsTotalLength = 0;
@@ -666,6 +716,10 @@ export class EveBoosterSet2Renderable extends CjsModel
     }
   }
 
+  /**
+   * The booster set's five authored static trail offsets gathered into an array
+   * in control-point order.
+   */
   static #GetStaticOffsets(boosterSet)
   {
     return [
@@ -677,11 +731,19 @@ export class EveBoosterSet2Renderable extends CjsModel
     ];
   }
 
+  /**
+   * Maps 0..1 through a sine ease so a trail length fade starts and ends flat
+   * instead of stepping.
+   */
   static #SinSmooth(value)
   {
     return Math.sin(value * Math.PI - Math.PI / 2) / 2 + 0.5;
   }
 
+  /**
+   * Applies only a transform's upper 3x3 rotation and scale to a vector, leaving
+   * its translation out, so a direction stays a direction.
+   */
   static #TransformNormal(out, value, transform)
   {
     const x = value[0];
@@ -693,6 +755,10 @@ export class EveBoosterSet2Renderable extends CjsModel
     return out;
   }
 
+  /**
+   * Wraps an index into the 300-entry trail offset ring, handling negative
+   * values so the ring can be walked backwards.
+   */
   static #WrapOffsetIndex(index)
   {
     const count = EveBoosterSet2Renderable.#positionOffsetCount;

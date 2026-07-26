@@ -8,6 +8,10 @@ import { Tr2CurveScalar } from "../../../curves/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 
 
+/**
+ * Base for the virtual camera behaviours that contribute a world-space vector3
+ * offset to a camera's position or point of interest each update.
+ */
 @type.define({
   className: "EveVirtualCameraBehaviourVector3Base",
   family: "eve/virtualCamera/behaviour"
@@ -23,6 +27,7 @@ export class EveVirtualCameraBehaviourVector3Base extends CjsModel
   @type.string
   name = "";
 
+  /** Returns the authored behaviour name shown in tooling. */
   @carbon.method
   @impl.implemented
   GetName()
@@ -30,6 +35,10 @@ export class EveVirtualCameraBehaviourVector3Base extends CjsModel
     return this.name;
   }
 
+  /**
+   * Sets the behaviour name, coercing to a string; subclasses override this to
+   * rename the curves they own alongside it.
+   */
   @carbon.method
   @impl.implemented
   SetName(name)
@@ -37,6 +46,10 @@ export class EveVirtualCameraBehaviourVector3Base extends CjsModel
     this.name = String(name);
   }
 
+  /**
+   * Re-applies the current name after a field change, which propagates it to any
+   * owned curves through the subclass SetName override.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -45,6 +58,7 @@ export class EveVirtualCameraBehaviourVector3Base extends CjsModel
     return true;
   }
 
+  /** Reports whether the camera should evaluate this behaviour this update. */
   @carbon.method
   @impl.implemented
   IsActive()
@@ -52,6 +66,11 @@ export class EveVirtualCameraBehaviourVector3Base extends CjsModel
     return this.active;
   }
 
+  /**
+   * Builds the default scalar curve that holds a single value across normalized
+   * time 0 to 1, used where a subclass wants an unshaped multiplier the author
+   * can later edit.
+   */
   static createConstantCurve(value = 1)
   {
     const curve = new Tr2CurveScalar();
@@ -61,6 +80,11 @@ export class EveVirtualCameraBehaviourVector3Base extends CjsModel
     return curve;
   }
 
+  /**
+   * Builds the default scalar curve ramping linearly from 0 to 1 across
+   * normalized time, used as the starting interpolation shape for behaviours
+   * that sweep between two values.
+   */
   static createEaseCurve()
   {
     const curve = new Tr2CurveScalar();
@@ -70,6 +94,12 @@ export class EveVirtualCameraBehaviourVector3Base extends CjsModel
     return curve;
   }
 
+  /**
+   * Rotates a vector about world up by the yaw of the anchor's forward
+   * direction, turning an anchor-relative offset into a world-space one that
+   * follows the anchored object's heading; the vector is returned unchanged when
+   * the forward direction has no horizontal component.
+   */
   static rotateVectorWithAnchor(out, value, anchorForwardDirection)
   {
     const horizontal = vec3.fromValues(anchorForwardDirection[0], 0, anchorForwardDirection[2]);

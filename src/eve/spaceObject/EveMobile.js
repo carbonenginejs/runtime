@@ -7,6 +7,11 @@ import { EveTurretSet } from "../attachment/turrets/EveTurretSet.js";
 import { EveSpaceObject2 } from "./EveSpaceObject2.js";
 
 
+/**
+ * A space object that carries turret sets, keeping each set bound to the hull
+ * locators or animated bones it fires from and tracking how many of its turrets
+ * are active.
+ */
 @type.define({ className: "EveMobile", family: "eve/spaceObject" })
 export class EveMobile extends EveSpaceObject2
 {
@@ -22,6 +27,10 @@ export class EveMobile extends EveSpaceObject2
   #turretSetsLocatorInfo = [];
   #turretLocatorCountingInfo = new Map();
 
+  /**
+   * Runs the base initialization, then seeds the turret locator counters from
+   * the current locators and binds every turret set to them.
+   */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -32,6 +41,7 @@ export class EveMobile extends EveSpaceObject2
     return true;
   }
 
+  /** Rebinds the turret sets to their locators after the turret set list changes. */
   @carbon.method
   @impl.adapted
   @impl.reason("List notifications are represented by a direct browser callback; registry ownership remains runtime-engine work.")
@@ -74,6 +84,10 @@ export class EveMobile extends EveSpaceObject2
     }
   }
 
+  /**
+   * Returns the locator index a turret slot was bound to, or 0 when the set or
+   * slot has no binding.
+   */
   @carbon.method
   @impl.implemented
   GetTurretLocatorIndex(turretSetIndex, slotIndex)
@@ -81,6 +95,12 @@ export class EveMobile extends EveSpaceObject2
     return this.#turretSetsLocatorInfo[turretSetIndex]?.locators?.[slotIndex]?.index ?? 0;
   }
 
+  /**
+   * Binds each turret set to the locators or animated bones whose names extend
+   * its locator name, allocating sets that do not name a turret locator from the
+   * shared locator_turret_ pool, and pushes each matched transform into the set
+   * as a local turret transform up to the per-set turret limit.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Authored EveLocator2 transforms and optional animation-updater bone transforms replace Carbon's locator-type pointer surface.")
@@ -147,6 +167,11 @@ export class EveMobile extends EveSpaceObject2
     return true;
   }
 
+  /**
+   * Counts the unbroken run of locator_turret_<n>a/b locator pairs starting at
+   * 1, returning 0 when the set of 'a' locators does not match the set of 'b'
+   * locators.
+   */
   @carbon.method
   @impl.implemented
   GetTurretLocatorCount()
@@ -172,6 +197,10 @@ export class EveMobile extends EveSpaceObject2
     return count;
   }
 
+  /**
+   * Returns how many turret sets were past the targeting state at the last
+   * synchronous update.
+   */
   @carbon.method
   @impl.implemented
   GetActiveTurretCount()
@@ -179,6 +208,11 @@ export class EveMobile extends EveSpaceObject2
     return this.ActiveTurretCount;
   }
 
+  /**
+   * Runs the base synchronous update, refreshes bone-driven turret locator
+   * transforms, updates every turret set against the hull transform, and
+   * recounts the active turrets.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Animated locator transforms use an optional animation-updater bone contract; all turret state updates remain in Trinity.")
@@ -207,6 +241,7 @@ export class EveMobile extends EveSpaceObject2
     return true;
   }
 
+  /** Runs the base asynchronous update and then the turret sets. */
   @carbon.method
   @impl.implemented
   UpdateAsyncronous(context)
@@ -215,6 +250,10 @@ export class EveMobile extends EveSpaceObject2
     return this.UpdateTurretsAsyncronous(context);
   }
 
+  /**
+   * Advances every turret set's asynchronous work, handing it the hull transform
+   * as its parent placement.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon's native ParentData constant buffers collapse to the portable parent transform required by turret graph updates.")
@@ -224,6 +263,10 @@ export class EveMobile extends EveSpaceObject2
     return true;
   }
 
+  /**
+   * Runs the base visibility pass and, while display is on, forwards visibility
+   * to the turret sets.
+   */
   @carbon.method
   @impl.implemented
   UpdateVisibility(context, _parentTransform = EveMobile.#identity)
@@ -234,6 +277,10 @@ export class EveMobile extends EveSpaceObject2
     return visible;
   }
 
+  /**
+   * Appends the base renderables followed by every turret set's renderables;
+   * nothing is appended while display is off.
+   */
   @carbon.method
   @impl.implemented
   GetRenderables(out = [])
@@ -244,6 +291,11 @@ export class EveMobile extends EveSpaceObject2
     return out;
   }
 
+  /**
+   * Returns the hull's local bounding box grown to contain every turret set's
+   * box; with out parameters it fills them and returns true, without them it
+   * returns a { min, max } object.
+   */
   @carbon.method
   @impl.implemented
   GetLocalBoundingBox(outMin, outMax)
@@ -264,6 +316,7 @@ export class EveMobile extends EveSpaceObject2
     return returnObject ? { min: outMin, max: outMax } : true;
   }
 
+  /** Sets a controller variable on the hull and forwards it to every turret set. */
   @carbon.method
   @impl.implemented
   SetControllerVariable(name, value)
@@ -272,6 +325,7 @@ export class EveMobile extends EveSpaceObject2
     for (const turretSet of this.turretSets) turretSet?.SetControllerVariable?.(name, value);
   }
 
+  /** Raises a controller event on the hull and forwards it to every turret set. */
   @carbon.method
   @impl.implemented
   HandleControllerEvent(name)
@@ -280,6 +334,7 @@ export class EveMobile extends EveSpaceObject2
     for (const turretSet of this.turretSets) turretSet?.HandleControllerEvent?.(name);
   }
 
+  /** Starts the hull's controllers and every turret set's controllers. */
   @carbon.method
   @impl.implemented
   StartControllers()
@@ -288,6 +343,10 @@ export class EveMobile extends EveSpaceObject2
     for (const turretSet of this.turretSets) turretSet?.StartControllers?.();
   }
 
+  /**
+   * Children, turret sets and boosters are shown only while activation strength
+   * is above 0.5.
+   */
   @carbon.method
   @impl.implemented
   DisplayChildren()
@@ -295,6 +354,10 @@ export class EveMobile extends EveSpaceObject2
     return this.activationStrength > 0.5;
   }
 
+  /**
+   * Returns the parent transform turret sets are placed against - the live hull
+   * world transform, regardless of swarm index.
+   */
   @carbon.method
   @impl.implemented
   GetTurretTransform(_turretSetIndex = 0)
@@ -302,6 +365,11 @@ export class EveMobile extends EveSpaceObject2
     return this.worldTransform;
   }
 
+  /**
+   * Rebuilds the per-name-prefix counters that allocate turret sets to numbered
+   * locators, resetting each prefix's running count and, when asked, recomputing
+   * its total from the digit that follows the prefix.
+   */
   #resetTurretLocatorCounter(updateTotal)
   {
     for (const record of this.#locatorRecords())
@@ -324,12 +392,21 @@ export class EveMobile extends EveSpaceObject2
     }
   }
 
+  /**
+   * Returns the next locator number to allocate for a name prefix together with
+   * that prefix's total, or null when the prefix is unknown.
+   */
   #getTurretLocatorCountingInfo(name)
   {
     const info = this.#turretLocatorCountingInfo.get(name);
     return info ? { current: info.currentCount + 1, total: info.totalCount } : null;
   }
 
+  /**
+   * Builds the name-keyed list of authored locators and animation-updater bones
+   * that turret binding searches; a bone whose name is already taken by a
+   * locator is skipped.
+   */
   #locatorRecords()
   {
     const records = [];
@@ -350,6 +427,11 @@ export class EveMobile extends EveSpaceObject2
     return records;
   }
 
+  /**
+   * Copies a locator record's transform into the caller-owned out matrix - the
+   * animated bone world transform for bone records, the authored transform for
+   * locator records - and returns null when neither is available.
+   */
   #getLocatorRecordTransform(record, out)
   {
     if (record.type === "bone")

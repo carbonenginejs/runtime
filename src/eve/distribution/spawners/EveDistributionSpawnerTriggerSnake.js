@@ -50,6 +50,10 @@ export class EveDistributionSpawnerTriggerSnake extends CjsModel
   @type.float32
   distanceToTravelTimeMultiplier = 0;
 
+  /**
+   * Picks a random pooled placement as the first target of the walk and
+   * restarts.
+   */
   @carbon.method
   @impl.adapted
   Reset(placements)
@@ -67,6 +71,10 @@ export class EveDistributionSpawnerTriggerSnake extends CjsModel
     this.Restart();
   }
 
+  /**
+   * Clears the travel timers and the destination count, leaving a zero travel
+   * duration so the next update triggers the current target immediately.
+   */
   @carbon.method
   @impl.implemented
   Restart()
@@ -76,6 +84,12 @@ export class EveDistributionSpawnerTriggerSnake extends CjsModel
     this.#travelDurationToNextPoint = 0;
   }
 
+  /**
+   * Triggers the current target once its travel time is up, then hops to the
+   * free placement nearest a point extrapolated past the last target, charging
+   * extra travel time for the distance covered; stops after totalDestinations,
+   * which -1 makes unlimited.
+   */
   @carbon.method
   @impl.adapted
   UpdateSyncronous(updateContext, _params, owner)
@@ -120,6 +134,7 @@ export class EveDistributionSpawnerTriggerSnake extends CjsModel
     }
   }
 
+  /** Ignores controller variables; the walk is purely time-driven. */
   @carbon.method
   @impl.noop
   SetControllerVariable(_name, _value)

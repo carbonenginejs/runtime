@@ -6,6 +6,11 @@ import { GetControllerTimeSeconds } from "./contracts.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
+/**
+ * Controller action that plays a named curve set (optionally one named range) on
+ * its owner for the duration of the action, and can hold off state transitions
+ * until a synced range iteration has completed.
+ */
 @type.define({
   className: "Tr2ActionPlayCurveSet",
   family: "controllers"
@@ -115,6 +120,10 @@ export class Tr2ActionPlayCurveSet extends CjsModel
   {
     this.#prevTime = simTime;
   }
+  /**
+   * Starts the curve set on the owner, returning false when the owner exposes no
+   * PlayCurveSet.
+   */
   #play(owner)
   {
     if (ITr2ControllerAction.hasFunction(owner, "PlayCurveSet"))
@@ -124,6 +133,10 @@ export class Tr2ActionPlayCurveSet extends CjsModel
     }
     return false;
   }
+  /**
+   * Gets the authored range duration in seconds from the owner, or 0 when the
+   * owner cannot report one.
+   */
   #getRangeDuration(owner)
   {
     const ownerDuration = ITr2ControllerAction.callTarget(owner, "GetRangeDuration", this.curveSetName, this.rangeName);

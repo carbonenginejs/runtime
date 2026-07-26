@@ -8,6 +8,10 @@ import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 
 const UP = vec3.fromValues(0, 1, 0);
 
+/**
+ * Transform modifier that yaws a child about world up until it faces the camera
+ * in the horizontal plane, leaving its authored pitch and roll intact.
+ */
 @type.define({
   className: "EveChildModifierCameraOrientedRotationConstrained",
   family: "eve/child/modifiers"

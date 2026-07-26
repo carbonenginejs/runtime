@@ -42,6 +42,12 @@ export class EveDistributionPlacementGeneratorVolume extends CjsModel
   @type.model("IEveVolume")
   volume = null;
 
+  /**
+   * Appends one placement per point sampled from the assigned volume, translated by the volume's bounding-sphere centre and oriented so +Y points along the sampled radial direction; appends nothing when no volume is assigned.
+   *
+   * @param placements Caller-owned pool array that is appended to.
+   * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
+   */
   @carbon.method
   @impl.adapted
   GetInitialPlacements(placements, trackingID)
@@ -75,6 +81,7 @@ export class EveDistributionPlacementGeneratorVolume extends CjsModel
     this.#isRequestingRegeneration = false;
   }
 
+  /** Marks the placement pool as stale so the owning distribution rebuilds it. */
   @carbon.method
   @impl.implemented
   RequestRegeneration()
@@ -82,6 +89,10 @@ export class EveDistributionPlacementGeneratorVolume extends CjsModel
     this.#isRequestingRegeneration = true;
   }
 
+  /**
+   * Reports whether the pool is stale; the owning distribution restarts while
+   * this is true, and it clears once new placements are generated.
+   */
   @carbon.method
   @impl.implemented
   IsRequestingRegeneration()
@@ -89,6 +100,7 @@ export class EveDistributionPlacementGeneratorVolume extends CjsModel
     return this.#isRequestingRegeneration;
   }
 
+  /** Subscribes to change notifications on the assigned volume. */
   @carbon.method
   @impl.adapted
   Initialize()
@@ -97,6 +109,10 @@ export class EveDistributionPlacementGeneratorVolume extends CjsModel
     return true;
   }
 
+  /**
+   * Requests regeneration and re-points the volume subscription after any
+   * authored change.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -106,6 +122,10 @@ export class EveDistributionPlacementGeneratorVolume extends CjsModel
     return true;
   }
 
+  /**
+   * Re-checks the volume subscription each frame, so a volume swapped in at
+   * runtime is picked up and triggers regeneration.
+   */
   @carbon.method
   @impl.adapted
   UpdateSyncronous(_updateContext, _params, _owner)
@@ -113,6 +133,10 @@ export class EveDistributionPlacementGeneratorVolume extends CjsModel
     this.#syncVolumeCallbacks();
   }
 
+  /**
+   * Moves the change subscription onto the currently assigned volume when it
+   * differs from the subscribed one, then requests regeneration.
+   */
   #syncVolumeCallbacks()
   {
     if (this.volume === this.#subscribedVolume)
