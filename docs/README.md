@@ -58,7 +58,7 @@ import {
 } from "@carbonenginejs/tools-browser/audio";
 import {
     CjsAudioRes
-} from "@carbonenginejs/runtime-resource/audio";
+} from "@carbonenginejs/runtime-resource/resource/audio";
 ```
 
 For file-index parsing and safe HTTP(S) resolution, start with:

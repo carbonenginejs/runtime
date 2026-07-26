@@ -8,7 +8,7 @@ import {
 import {
     CjsAudioBufferRes,
     CjsAudioRes,
-} from "@carbonenginejs/runtime-resource/audio";
+} from "@carbonenginejs/runtime-resource/resource/audio";
 import { CjsWemFormat } from "@carbonenginejs/runtime-resource/formats/wem";
 
 import {

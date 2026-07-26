@@ -3,7 +3,7 @@ import { decodeJson } from "@carbonenginejs/runtime-utils/json";
 import {
     CjsAudioBufferRes,
     CjsAudioRes,
-} from "@carbonenginejs/runtime-resource/audio";
+} from "@carbonenginejs/runtime-resource/resource/audio";
 import { CjsResMan } from "@carbonenginejs/runtime-resource";
 import { CjsBnkFormat } from "@carbonenginejs/runtime-resource/formats/bnk";
 import { CjsWemFormat } from "@carbonenginejs/runtime-resource/formats/wem";

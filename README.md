@@ -103,7 +103,7 @@ prefix mappings itself.
 select the same representation. Embedded resources share one bank backing and
 delegate `Lock()` / `Unlock()` to that backing.
 Both resource-owner classes come from
-`@carbonenginejs/runtime-resource/audio`; this package owns their library
+`@carbonenginejs/runtime-resource/resource/audio`; this package owns their library
 registration and delivery-route projection.
 
 The root export is available when an application consumes several tool

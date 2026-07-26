@@ -57,7 +57,7 @@ Canonical-to-URL mapping remains exclusively in CjsResMan. URL-backed
 providers receive resolved URLs; structural sources receive normalized
 resource paths.
 The returned `CjsAudioRes` and backing `CjsAudioBufferRes` classes are owned
-and exported by `@carbonenginejs/runtime-resource/audio`.
+and exported by `@carbonenginejs/runtime-resource/resource/audio`.
 
 ## Errors
 
