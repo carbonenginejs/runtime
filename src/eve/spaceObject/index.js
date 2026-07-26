@@ -1,4 +1,5 @@
 export * from "./EveSpaceObject2.js";
+export * from "./IEveSpaceObject2ParentData.js";
 export * from "./EveEffectRoot2.js";
 export * from "./EveRootTransform.js";
 export * from "./EveTransform.js";

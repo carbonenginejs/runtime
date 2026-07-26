@@ -29,8 +29,9 @@ import {
   TriValueBinding
 } from "../npm/dist/index.js";
 import { Tr2ParticleDirectForce } from "../npm/dist/particle/Tr2ParticleDirectForce.js";
+import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { TriBatchType } from "../npm/dist/generated/trinityCore/enums.js";
-import { EveChildBulletStorm } from "../npm/dist/generated/eve/child/EveChildBulletStorm.js";
+import { EveChildBulletStorm } from "../npm/dist/eve/child/EveChildBulletStorm.js";
 import { EveChildExplosion } from "../npm/dist/generated/eve/child/EveChildExplosion.js";
 import { EveChildInstanceContainer } from "../npm/dist/generated/eve/child/EveChildInstanceContainer.js";
 import { EveChildPlug } from "../npm/dist/generated/eve/child/EveChildPlug.js";
@@ -76,6 +77,13 @@ import { Tr2FactionLight } from "../npm/dist/generated/eve/lights/Tr2FactionLigh
 import { EveSmartLightSpotLight } from "../npm/dist/generated/eve/smartLights/EveSmartLightSpotLight.js";
 import { Tr2Light } from "../npm/dist/eve/lights/Tr2Light.js";
 
+
+// A minimal accumulator duck carrying a fresh per-object store.
+function makeAccumulatorWithStore()
+{
+  const store = makePerObjectStore();
+  return { Alloc: name => store.Alloc(name) };
+}
 
 test("EveTurretFiringFX reports Carbon's per-muzzle effect count", () =>
 {
@@ -271,8 +279,25 @@ test("EveLineSet retains editable CPU lines before renderer submission", () =>
   assert.equal(lines.maxCurrentLineCount, 1);
   assert.equal(lines.HasTransparentBatches(), true);
   assert.throws(() => lines.GetBatches(null, 0, null, 0), /not implemented/);
-  assert.throws(() => lines.GetSortValue(), /not implemented/);
-  assert.throws(() => lines.GetPerObjectData(null), /not implemented/);
+
+  // Update stamps the world transform from the curves and scaling (cpp:97-114).
+  lines.scaling.set([2, 2, 2]);
+  lines.translationCurve = { Update: (out, _time) => out.set([3, 4, 5]) };
+  lines.Update({ GetTime: () => 1 });
+  assert.deepEqual(Array.from(lines.worldTransform.slice(12, 15)), [3, 4, 5], "translation stamped");
+  assert.equal(lines.worldTransform[0], 2, "scaling stamped");
+
+  // GetSortValue is the view distance (cpp:203-208).
+  assert.equal(lines.GetSortValue({ GetViewPosition: () => [3, 8, 5] }), 4, "distance to the view position");
+  assert.equal(lines.GetSortValue(), 0, "no render context yields 0");
+
+  // GetPerObjectData is the { vs, ps } record - two structs, one WorldMat each,
+  // both stored TRANSPOSED (cpp:210-231).
+  const pod = lines.GetPerObjectData(makeAccumulatorWithStore());
+  assert.deepEqual([...pod.vs.GetLayout().stages], ["vs"]);
+  assert.deepEqual([...pod.ps.GetLayout().stages], ["ps"]);
+  assert.equal(pod.vs.GetData()[3], 3, "vs WorldMat transposed - translation x at [3]");
+  assert.equal(pod.ps.GetData()[7], 4, "ps WorldMat transposed - translation y at [7]");
 });
 
 test("EveChildBulletStorm rebuilds locator instances and transitions its clip sphere", () =>
@@ -302,6 +327,22 @@ test("EveChildBulletStorm rebuilds locator instances and transitions its clip sp
   storm.UpdateAsyncronous({ GetDeltaT: () => 1.05 });
   assert.equal(storm.clipSphere, -1);
   assert.equal(storm.CanChangeState(), true);
+
+  // GetPerObjectData (cpp:393-410): transposed world, effectInfo packing, and
+  // per-element target writes with slots past the target count untouched.
+  storm.worldTransform[12] = 7;
+  const stormPod = storm.GetPerObjectData(makeAccumulatorWithStore());
+  assert.equal(stormPod.GetData()[3], 7, "world transposed - translation x at [3]");
+  assert.deepEqual(
+    Array.from(stormPod.GetData().slice(16, 20)),
+    [1, storm.sourceRadius + storm.range, -1, 1000].map(Math.fround),
+    "effectInfo = (targetCount, sourceRadius + range, clipSphere, speed)"
+  );
+  assert.deepEqual(
+    Array.from(stormPod.Copy("targetPositionsWS", new Float32Array(4), 0)),
+    [10, 20, 30, 4050],
+    "target blob 0 written"
+  );
 });
 
 test("EveChildExplosion schedules local and global Carbon explosion children", () =>
@@ -417,7 +458,20 @@ test("Eve effects propagate controllers, bindings, and named parameters", () =>
   assert.equal(calls.length, 2);
   assert.equal(lensflare.HasTransparentBatches(), false);
   assert.equal(lensflare.GetSortValue(), 1);
-  assert.throws(() => lensflare.GetPerObjectData(null), /not implemented/);
+
+  // GetPerObjectData (cpp:399-410): directionScale = (direction, sunSize);
+  // indices[0]/[1] from the occlusion offsets (null -> 0); indices[2]/[3]
+  // NEVER written (Carbon arena-garbage parity). Dual-bound: one payload,
+  // stages ["vs", "ps"].
+  lensflare.direction.set([0.6, 0, 0.8]);
+  lensflare.sunSize = 1.5;
+  lensflare.occlusionOffset = 7;
+  const flarePod = lensflare.GetPerObjectData(makeAccumulatorWithStore());
+  assert.deepEqual([...flarePod.GetLayout().stages], ["vs", "ps"], "same bytes bound to both slots");
+  assert.deepEqual(Array.from(flarePod.GetData().slice(0, 4)), [0.6, 0, 0.8, 1.5].map(Math.fround), "directionScale");
+  const flareUints = new Uint32Array(flarePod.GetData().buffer, flarePod.GetData().byteOffset, flarePod.GetData().length);
+  assert.equal(flareUints[4], 7, "indices[0] from the occlusion offset");
+  assert.equal(flareUints[5], 0, "indices[1] null offset uploads 0");
 
   let batchArgs = null;
   lensflare.mesh = {

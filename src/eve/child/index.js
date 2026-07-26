@@ -1,4 +1,5 @@
 export * from "./EveChildAudio.js";
+export * from "./EveChildBulletStorm.js";
 export * from "./EveChildContainer.js";
 export * from "./EveChildEffectPropagator.js";
 export * from "./EveChildFogVolume.js";

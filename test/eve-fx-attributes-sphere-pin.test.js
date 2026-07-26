@@ -11,7 +11,9 @@ import {
   EveShip2,
   EveSpaceObject2,
   EveSpaceObjectFxAttributes,
+  EveSpherePin,
 } from "../npm/dist/index.js";
+import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
 
 function closeArray(actual, expected, epsilon = 1e-6)
@@ -297,25 +299,60 @@ test("EveChildSpherePin aliases its Blue colors and fills the Carbon per-object 
   pin.pinRadius = 0.25;
   pin.pinRotation = 0.75;
   pin.pinAlphaThreshold = 0.5;
-  const data = pin.GetPerObjectData({
-    Allocate(Type)
-    {
-      assert.equal(Type, EveChildSpherePinPerObjectData);
-      return new Type();
-    },
-  });
+
+  // Transient RawData payload (cpp:40-62), dual-bound (cpp:68-75).
+  const store = makePerObjectStore();
+  const data = pin.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+
+  assert.deepEqual([...data.GetLayout().stages], ["vs", "ps"], "same bytes bound to both slots");
 
   const transposedWorld = mat4.transpose(mat4.create(), pin.worldTransform);
-  closeArray(data.worldMatrix, transposedWorld);
-  closeArray(data.pinPosition, [6, 7, 8, 0.25]);
-  closeArray(data.pinRotation, [0.75, 0, 0, 0]);
-  closeArray(data.pinColor, [0.1, 0.2, 0.3, 0.4]);
-  closeArray(data.pinThreshold, [0.5, 0, 0, 0]);
-  closeArray(data.pinRadiusPrecalc, [
+  closeArray(data.Copy("worldMatrix", new Float32Array(16)), transposedWorld);
+  closeArray(data.Copy("pinPosition", new Float32Array(4)), [6, 7, 8, 0.25]);
+  closeArray(data.Copy("pinRotation", new Float32Array(4)), [0.75, 0, 0, 0]);
+  closeArray(data.Copy("pinColor", new Float32Array(4)), [0.1, 0.2, 0.3, 0.4]);
+  closeArray(data.Copy("pinThreshold", new Float32Array(4)), [0.5, 0, 0, 0]);
+  closeArray(data.Copy("pinRadiusPrecalc", new Float32Array(4)), [
     Math.sin(0.25),
     Math.cos(0.25),
     Math.sin(0.75),
     Math.cos(0.75),
   ]);
-  closeArray(data.pinUV, [1, 1, 0, 0]);
+  closeArray(data.Copy("pinUV", new Float32Array(4)), [1, 1, 0, 0]);
+});
+
+test("EveSpherePin composes its world under the parent and fills the Carbon per-object record", () =>
+{
+  const pin = new EveSpherePin();
+
+  // Carbon (row-vector): local * parent - local first (cpp:243-251). Parent
+  // rotates 90deg about Z then translates (10,0,0); local translates (1,0,0).
+  // Correct order lands the pin at (10,1,0); the swapped order gives (11,0,0).
+  const parent = mat4.fromRotationTranslation(
+    mat4.create(),
+    [0, 0, Math.sin(Math.PI / 4), Math.cos(Math.PI / 4)],
+    [10, 0, 0]
+  );
+  pin.translation.set([1, 0, 0]);
+  pin.UpdateViewDependentData(null, parent);
+  closeArray(pin.worldTransform.slice(12, 15), [10, 1, 0], 1e-5);
+
+  pin.centerNormal.set([6, 7, 8]);
+  pin.pinRadius = 0.25;
+  pin.pinRotation = 0.75;
+  pin.pinAlphaThreshold = 0.5;
+  pin.pinColor.set([0.1, 0.2, 0.3, 0.4]);
+  pin.uvAtlasScaleOffset.set([2, 3, 0.5, 0.25]);
+
+  // Transient RawData payload (cpp:336-357), dual-bound (cpp:415-425).
+  const store = makePerObjectStore();
+  const data = pin.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+
+  assert.deepEqual([...data.GetLayout().stages], ["vs", "ps"], "same bytes bound to both slots");
+
+  const transposedWorld = mat4.transpose(mat4.create(), pin.worldTransform);
+  closeArray(data.Copy("worldMatrix", new Float32Array(16)), transposedWorld);
+  closeArray(data.Copy("pinPosition", new Float32Array(4)), [6, 7, 8, 0.25]);
+  closeArray(data.Copy("pinColor", new Float32Array(4)), [0.1, 0.2, 0.3, 0.4]);
+  closeArray(data.Copy("pinUV", new Float32Array(4)), [2, 3, 0.5, 0.25], 1e-6);
 });

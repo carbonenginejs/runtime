@@ -6,6 +6,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType } from "../../../generated/trinityCore/enums.js";
 
 
@@ -73,6 +74,26 @@ export class EveSpaceObjectDecal extends CjsModel
   #inverseDecalMatrix = mat4.create();
 
   #priority = 0;
+
+  /** m_parentData (EveSpaceObjectDecal.h:178) - copied by value from the
+   * owning space object each frame; zeroed with an identity transform by
+   * Carbon's constructor (cpp:56-57). Runtime state, never persisted. */
+  #parentData = new IEveSpaceObject2ParentData();
+
+  /** m_parentBoneMatrix (h:190) - the animated parent bone this decal rides,
+   * identity until SetBoneMatrix supplies one. */
+  #parentBoneMatrix = mat4.create();
+
+  /** m_isVisible (h:204) - a float, not a bool: the non-LOD paths set exactly
+   * 0 or 1 while the LOD path writes a 0..1 fade ramp (cpp:119-176). */
+  #isVisible = 0;
+
+  /** Carbon m_invParentBoneMatrix (h:191) is declared but never assigned; the
+   * value the shader sees is recomputed per fill (cpp:366), so this port keeps
+   * no member for it. */
+  #inverseParentBoneMatrix = mat4.create();
+
+  #shLightingScratch = new Float32Array(IEveSpaceObject2ParentData.SH_COEFFICIENT_COUNT * 4);
 
   get hasStaticIndexBuffers()
   {
@@ -253,6 +274,167 @@ export class EveSpaceObjectDecal extends CjsModel
   {
     this.#priority = Number(value) >>> 0;
     return true;
+  }
+
+  /** Carbon EveSpaceObjectDecal::SetBoneMatrix (cpp:475-491): expands the
+   * parent's Float4x3 mesh bone at m_parentBoneIndex into the 4x4 bone matrix.
+   * A -1 index or an out-of-range index leaves the identity in place. */
+  @carbon.method
+  @impl.implemented
+  SetBoneMatrix(boneMatrices, boneMatrixCount)
+  {
+    if (this.parentBoneIndex === -1 || this.parentBoneIndex >= boneMatrixCount)
+    {
+      return false;
+    }
+
+    const bone = boneMatrices?.[this.parentBoneIndex];
+    if (!bone) return false;
+
+    // Float4x3 is COLUMN-stride on the shared byte layout: each packed row is
+    // (v0, v4, v8, v12) of the logical matrix (math skill gotcha 7), so the
+    // expansion writes the transpose of the three packed rows back into the
+    // 4x4 basis and leaves the last column as identity.
+    const out = this.#parentBoneMatrix;
+    for (let row = 0; row < 3; row++)
+    {
+      out[row] = bone[row * 4 + 0];
+      out[4 + row] = bone[row * 4 + 1];
+      out[8 + row] = bone[row * 4 + 2];
+      out[12 + row] = bone[row * 4 + 3];
+    }
+    out[3] = 0;
+    out[7] = 0;
+    out[11] = 0;
+    out[15] = 1;
+
+    return true;
+  }
+
+  /** The parent-state copy Carbon performs inside UpdateVisibility
+   * (cpp:145/178). Split out as its own seam because UpdateVisibility's
+   * frustum, screen-size and LOD-fade work is not ported yet; the visibility
+   * factor is supplied explicitly so the per-object fill stays faithful. */
+  @carbon.method
+  @impl.custom
+  @impl.reason("Carbon copies the parent data inside UpdateVisibility, whose frustum and LOD-fade paths remain unported; exposing the copy keeps the per-object fill exact meanwhile.")
+  SetParentData(parentData, isVisible = 1)
+  {
+    if (!parentData) return false;
+
+    this.#parentData.SetValues
+      ? this.#parentData.SetValues(parentData)
+      : Object.assign(this.#parentData, parentData);
+    this.#parentData.shLighting = parentData.shLighting ?? null;
+    this.#isVisible = Number(isVisible) || 0;
+    return true;
+  }
+
+  /** Carbon EveSpaceObjectDecal::HasTransparentBatches (cpp:241-244). */
+  @carbon.method
+  @impl.implemented
+  HasTransparentBatches()
+  {
+    return true;
+  }
+
+  /** Carbon EveSpaceObjectDecal::GetSortValue (cpp:337-340). */
+  @carbon.method
+  @impl.implemented
+  GetSortValue()
+  {
+    return 1;
+  }
+
+  /** Carbon ITr2Pickable::GetID is inline on the decal (h:113-116) and returns
+   * the object itself; the area id selects nothing on this class. */
+  @carbon.method
+  @impl.implemented
+  GetID(_areaId)
+  {
+    return this;
+  }
+
+  /**
+   * Carbon EveSpaceObjectDecal::GetPerObjectData (cpp:346-386): the
+   * EveDecalPerObjectData composite - a DecalVSPerObjectData +
+   * DecalPSPerObjectData pair uploaded as TWO constant buffers (cpp:975-976).
+   * Here that is two Allocs returned as a { vs, ps } record.
+   *
+   * Set(MATRIX) performs Carbon's Transpose. The two inverses are taken from
+   * the ALREADY-transposed matrices, matching Carbon exactly: Inverse of a
+   * transpose is the transpose of the inverse, so they are written raw.
+   */
+  @carbon.method
+  @impl.implemented
+  GetPerObjectData(accumulator)
+  {
+    const vs = accumulator.Alloc("DecalVSPerObjectData");
+    const ps = accumulator.Alloc("DecalPSPerObjectData");
+    const parentData = this.#parentData;
+
+    vs.Set("worldMatrix", parentData.transform);
+    // cpp:358 inverts the transposed world matrix in place, so the result is
+    // already GPU-form and must bypass the encoder.
+    mat4.transpose(this.#inverseParentBoneMatrix, parentData.transform);
+    mat4.invert(this.#inverseParentBoneMatrix, this.#inverseParentBoneMatrix);
+    vs.SetRaw("invWorldMatrix", this.#inverseParentBoneMatrix);
+
+    vs.Set("decalMatrix", this.#decalMatrix);
+    vs.Set("inverseDecalMatrix", this.#inverseDecalMatrix);
+    vs.Set("parentBoneMatrix", this.#parentBoneMatrix);
+
+    // cpp:366 - Inverse(Transpose(m_parentBoneMatrix)), recomputed per fill;
+    // Carbon never reads its own m_invParentBoneMatrix member.
+    mat4.transpose(this.#inverseParentBoneMatrix, this.#parentBoneMatrix);
+    mat4.invert(this.#inverseParentBoneMatrix, this.#inverseParentBoneMatrix);
+    vs.SetRaw("invParentBoneMatrix", this.#inverseParentBoneMatrix);
+
+    // cpp:374 - killCount is a uint widened to float; isVisible is the 0..1
+    // visibility ramp; z and w are reserved literals.
+    ps.Set("displayData", [parentData.killCount, this.#isVisible, 0, 0]);
+    ps.Set("shipData", parentData.shipData);
+    ps.Set("clipData", [
+      parentData.clipSphereCenter[0],
+      parentData.clipSphereCenter[1],
+      parentData.clipSphereCenter[2],
+      parentData.clipRadiusSq
+    ]);
+    ps.Set("clipRadius2Sq", [parentData.clipRadius2Sq]);
+
+    // cpp:376-383 - copy the parent's seven packed coefficients, or zero the
+    // whole block when the parent supplied none. m_unused stays unwritten.
+    const coefficients = this.#shLightingScratch;
+    coefficients.fill(0);
+    const shLighting = parentData.shLighting;
+    if (shLighting)
+    {
+      for (let index = 0; index < coefficients.length && index < shLighting.length; index++)
+      {
+        coefficients[index] = shLighting[index];
+      }
+    }
+    ps.Set("shLightingCoefficients", coefficients);
+
+    return { vs, ps };
+  }
+
+  /** Carbon EveSpaceObjectDecal::GetBatches (cpp:250-331) submits the packed
+   * decal index buffers against the device geometry resource. */
+  @carbon.method
+  @impl.notImplemented
+  GetBatches(_batches, _batchType, _perObjectData, _reason)
+  {
+    throw new Error("EveSpaceObjectDecal.GetBatches is not implemented in CarbonEngineJS.");
+  }
+
+  /** Carbon EveSpaceObjectDecal::GetPickingBatches (cpp:919-926) forwards to
+   * GetBatches once the attachment pick-type mask passes. */
+  @carbon.method
+  @impl.notImplemented
+  GetPickingBatches(_batches, _pickTypes, _perObjectData)
+  {
+    throw new Error("EveSpaceObjectDecal.GetPickingBatches is not implemented in CarbonEngineJS.");
   }
 
   #updateDecalMatrix()

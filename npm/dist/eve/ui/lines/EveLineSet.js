@@ -1,6 +1,7 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { type, io, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
@@ -16,11 +17,7 @@ class EveLineSet extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveLineSet",
       family: "eve/ui"
-    })], [[type.list("EveLineData"), 0, "lines"], [[type, type.uint32], 16, "maxCurrentLineCount"], [[type, type.uint32], 16, "currentSubmittedLineCount"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("ITriQuaternionFunction")], 16, "rotationCurve"], [[io, io.notify, io, io.persist, void 0, type.model("Tr2Effect")], 16, "effect"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.boolean], 16, "renderTransparent"], [[io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "translationCurve"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Stores Carbon's pending line data as renderer-neutral JavaScript records; buffer realization belongs to an engine package.")], 18, "AddLine"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")], 18, "ChangeLineColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")], 18, "ChangeLine"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")], 18, "ChangeLinePosition"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearLines"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Returns a Boolean for JavaScript callers while preserving Carbon's indexed CPU-line removal.")], 18, "RemoveLine"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Records submitted counts without creating Carbon's GPU vertex buffer; realization belongs to an engine package.")], 18, "SubmitChanges"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetPerObjectData"]], 0, void 0, CjsModel));
-  }
-  constructor(...args) {
-    super(...args);
-    _init_extra_translationCurve(this);
+    })], [[type.list("EveLineData"), 0, "lines"], [[type, type.uint32], 16, "maxCurrentLineCount"], [[type, type.uint32], 16, "currentSubmittedLineCount"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("ITriQuaternionFunction")], 16, "rotationCurve"], [[io, io.notify, io, io.persist, void 0, type.model("Tr2Effect")], 16, "effect"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.boolean], 16, "renderTransparent"], [[io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "translationCurve"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Stores Carbon's pending line data as renderer-neutral JavaScript records; buffer realization belongs to an engine package.")], 18, "AddLine"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")], 18, "ChangeLineColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")], 18, "ChangeLine"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Mutates the renderer-neutral CPU record because GPU buffer updates belong to an engine package.")], 18, "ChangeLinePosition"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearLines"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Returns a Boolean for JavaScript callers while preserving Carbon's indexed CPU-line removal.")], 18, "RemoveLine"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Records submitted counts without creating Carbon's GPU vertex buffer; realization belongs to an engine package.")], 18, "SubmitChanges"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon reads the Tr2Renderer view-position static; the batch collector supplies the render context explicitly.")], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPerObjectData"]], 0, void 0, CjsModel));
   }
   /** Carbon's pending CPU line records. */
   lines = (_initProto(this), _init_lines(this, []));
@@ -47,6 +44,29 @@ class EveLineSet extends CjsModel {
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   translationCurve = (_init_extra_renderTransparent(this), _init_translationCurve(this, null));
+
+  /** m_worldTransform (EveLineSet.h:119) - runtime state stamped by
+   * UpdateSyncronous from the curves and scaling; not persisted. */
+  worldTransform = (_init_extra_translationCurve(this), mat4.create());
+
+  /** Carbon EveLineSet::UpdateSyncronous (cpp:97-114): sample the position and
+   * rotation curves, then m_worldTransform = TransformationMatrix(scaling,
+   * rotation, translation). Carbon (s, r, t) is gl
+   * fromRotationTranslationScale (r, t, s) - equivalent matrix, different
+   * argument order (math skill rule table). */
+  UpdateSyncronous(updateContext) {
+    const rotation = vec4.fromValues(0, 0, 0, 1);
+    const translation = vec3.create();
+    const time = updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0;
+    this.translationCurve?.Update?.(translation, time);
+    this.rotationCurve?.Update?.(rotation, time);
+    mat4.fromRotationTranslationScale(this.worldTransform, rotation, translation, this.scaling);
+  }
+
+  /** Carbon EveLineSet::Update forwards to UpdateSyncronous (cpp:120-123). */
+  Update(updateContext) {
+    this.UpdateSyncronous(updateContext);
+  }
 
   /** Carbon method AddLine (MAP_METHOD_AND_WRAP). */
   AddLine(position1, color1, position2, color2) {
@@ -117,14 +137,35 @@ class EveLineSet extends CjsModel {
     throw new Error("EveLineSet.GetBatches is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon EveLineSet::GetSortValue reads renderer view state and the live world transform (cpp:203-208). */
-  GetSortValue() {
-    throw new Error("EveLineSet.GetSortValue is not implemented in CarbonEngineJS.");
+  /** Carbon EveLineSet::GetSortValue (cpp:203-208): distance from the view
+   * position to the world translation. Carbon reads the Tr2Renderer static;
+   * the collector threads the render context instead. */
+  GetSortValue(renderContext = null) {
+    const viewPosition = renderContext?.GetViewPosition?.();
+    if (!viewPosition) {
+      return 0;
+    }
+    const world = this.worldTransform;
+    const dx = viewPosition[0] - world[12];
+    const dy = viewPosition[1] - world[13];
+    const dz = viewPosition[2] - world[14];
+    return Math.sqrt(dx * dx + dy * dy + dz * dz);
   }
 
-  /** Carbon EveLineSet::GetPerObjectData populates standard device constant buffers (cpp:210-231). */
-  GetPerObjectData(_accumulator) {
-    throw new Error("EveLineSet.GetPerObjectData is not implemented in CarbonEngineJS.");
+  /** Carbon EveLineSet::GetPerObjectData (cpp:210-231): a Tr2PerObjectDataStandard
+   * carrying EvePerObjectVSData + EvePerObjectPSData, each one transposed
+   * WorldMat, uploaded as two constant buffers. Here that is two Allocs
+   * returned as a { vs, ps } record; Set(MATRIX) performs Carbon's
+   * `Transpose(m_worldTransform)`. */
+  GetPerObjectData(accumulator) {
+    const vs = accumulator.Alloc("EvePerObjectVSData");
+    const ps = accumulator.Alloc("EvePerObjectPSData");
+    vs.Set("WorldMat", this.worldTransform);
+    ps.Set("WorldMat", this.worldTransform);
+    return {
+      vs,
+      ps
+    };
   }
   static {
     _initClass();

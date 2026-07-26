@@ -39,6 +39,7 @@
   "scripts": {
     "audit:gaps": "node scripts/audit_implementation_gaps.js",
     "audit:parity": "node scripts/audit_public_method_parity.js",
+    "audit:types": "node scripts/audit_type_references.js",
     "test": "npm run build:npm && node --test test/*.test.js",
     "lint": "node scripts/lint_source_style.js",
     "build:npm": "npm run lint && node scripts/build_npm.js && rollup -c"

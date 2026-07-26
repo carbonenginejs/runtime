@@ -1,5 +1,4 @@
 export { EveChildBehaviorSystem } from './EveChildBehaviorSystem.js';
-export { EveChildBulletStorm } from './EveChildBulletStorm.js';
 export { EveChildCloud } from './EveChildCloud.js';
 export { EveChildCloud2 } from './EveChildCloud2.js';
 export { EveChildExplosion } from './EveChildExplosion.js';

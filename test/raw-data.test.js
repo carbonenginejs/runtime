@@ -299,3 +299,108 @@ test("direct construction: a persistent (self-owned) payload bypasses the arena"
   payload.Set("world", MakeWorld());
   assertClose(payload.GetData()[3], 10, "self-owned payload encodes identically");
 });
+
+test("Set(INT) stores signed two's complement (reflection can type i32 vs u32)", () =>
+{
+  const store = MakeStore("Interior", [
+    { name: "lightCount", size: 1, encoding: Type.INT },
+    { name: "padding",    size: 3, encoding: Type.INT }
+  ]);
+  const data = store.Alloc("Interior");
+
+  data.Set("lightCount", [-1]);
+  data.Set("padding", [7, -8, 9]);
+
+  const floats = data.GetData();
+  const ints = new Int32Array(floats.buffer, floats.byteOffset, floats.length);
+  assert.equal(ints[0], -1, "-1 round-trips through the signed lane");
+  assert.equal(ints[1], 7, "positive int");
+  assert.equal(ints[2], -8, "negative int in an array field");
+  assert.equal(ints[3], 9, "tail int");
+});
+
+test("per-element Set writes ONE slot; the unwritten tail keeps its arena bytes", () =>
+{
+  // Carbon fills m_turretTranslation[turretIndex] for VISIBLE turrets only
+  // (EveTurretSet.cpp:2323-2341); slots past the visible count stay garbage.
+  const store = MakeStore("TurretVS", [
+    { name: "turretTranslation", size: 4, elements: 4, encoding: Type.VECTOR },
+    { name: "turretRotation",    size: 4, elements: 4, encoding: Type.VECTOR }
+  ]);
+
+  // First tenant dirties the arena so the tail is detectably non-zero.
+  const first = store.Alloc("TurretVS");
+  first.Set("turretTranslation", [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]);
+  store.Reset();
+
+  const data = store.Alloc("TurretVS");
+  data.Set("turretTranslation", [1, 2, 3, 4], 0);
+  data.Set("turretTranslation", [5, 6, 7, 8], 1);
+
+  assertClose(data.GetData()[0], 1, "element 0 written");
+  assertClose(data.GetData()[4], 5, "element 1 written");
+  assertClose(data.GetData()[8], 9, "element 2 is previous-tenant bytes (Carbon parity)");
+
+  const out = data.Copy("turretTranslation", new Float32Array(4), 1);
+  assertClose(out[0], 5, "per-element Copy reads one slot");
+
+  data.SetRaw("turretRotation", [11, 12, 13, 14], 2);
+  assertClose(data.GetData()[16 + 8], 11, "per-element SetRaw offsets into the array");
+
+  assert.throws(() => data.Set("turretTranslation", [0, 0, 0, 0], 4), /out of range/, "element index bounds-checked");
+  assert.throws(() => data.Set("turretTranslation", [0, 0, 0, 0], -1), /out of range/, "negative element rejected");
+  assert.throws(() => data.Set("turretTranslation", [0, 0, 0, 0], 1.5), /out of range/, "fractional element rejected");
+});
+
+test("stages: defs declare their binding slots; the engine reads GetLayout().stages", () =>
+{
+  const store = new RawDataStore(TightPacker);
+
+  // Default: a single vertex-stage payload (EveBasicPerObjectData).
+  store.RegisterStruct("BasicVS", [{ name: "world", size: 16, encoding: Type.MATRIX }]);
+  assert.deepEqual([...store.Alloc("BasicVS").GetLayout().stages], ["vs"], "stages default to [vs]");
+
+  // Same bytes bound to BOTH slots (sphere pin, lensflare): one struct, two stages.
+  store.RegisterStruct(
+    "SpherePin",
+    [{ name: "worldMatrix", size: 16, encoding: Type.MATRIX }],
+    { stages: ["vs", "ps"] }
+  );
+  assert.deepEqual([...store.Alloc("SpherePin").GetLayout().stages], ["vs", "ps"], "dual-bound payload declares both");
+
+  assert.throws(
+    () => store.RegisterStruct("Bad", [{ name: "a", size: 4, encoding: Type.VECTOR }], { stages: ["fragment"] }),
+    /unknown stage "fragment"/,
+    "stages validated against RawDataStore.Stages"
+  );
+  assert.throws(
+    () => store.RegisterStruct("Bad", [{ name: "a", size: 4, encoding: Type.VECTOR }], { stages: [] }),
+    /non-empty/,
+    "empty stages rejected"
+  );
+  assert.throws(
+    () => store.RegisterStruct("Bad", [{ name: "a", size: 4, encoding: Type.VECTOR }], { stages: ["vs", "vs"] }),
+    /duplicate stage/,
+    "duplicate stages rejected"
+  );
+});
+
+test("a distinct VS+PS pair is TWO Allocs returned as a { vs, ps } record", () =>
+{
+  // Carbon's dominant composite (turret, decal, booster): two structs, two
+  // constant buffers. The batch pipeline threads the record through untouched.
+  const store = new RawDataStore(TightPacker).Register({
+    DecalVS: [{ name: "worldMatrix", size: 16, encoding: Type.MATRIX }],
+    DecalPS: { def: [{ name: "displayData", size: 4, encoding: Type.VECTOR }], stages: ["ps"] }
+  });
+
+  const perObjectData = { vs: store.Alloc("DecalVS"), ps: store.Alloc("DecalPS") };
+  perObjectData.vs.Set("worldMatrix", MakeWorld());
+  perObjectData.ps.Set("displayData", [1, 2, 3, 4]);
+
+  assert.deepEqual([...perObjectData.vs.GetLayout().stages], ["vs"], "vs half binds the vertex slot");
+  assert.deepEqual([...perObjectData.ps.GetLayout().stages], ["ps"], "Register accepts { def, stages }");
+  assertClose(perObjectData.vs.GetData()[3], 10, "vs half encoded (transposed translation)");
+  assertClose(perObjectData.ps.GetData()[0], 1, "ps half is its own slice");
+  assert.notEqual(perObjectData.vs.GetData(), perObjectData.ps.GetData(), "two independent arena slots");
+});

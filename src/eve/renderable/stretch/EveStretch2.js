@@ -181,20 +181,27 @@ export class EveStretch2 extends EveEntity
     return out;
   }
 
-  @carbon.method @impl.adapted
-  @impl.reason("Returns portable constant data rather than allocating Carbon renderer constant buffers.")
-  GetPerObjectData()
+  /** Carbon EveStretch2::GetPerObjectData (cpp:327-337): stamps
+   * m_effectData[1].x = m_intensity, then uploads the contiguous member run
+   * m_source..m_effectData[2] (EveStretch2.h:105-109) - 4 vec4s - to BOTH
+   * per-object slots (cpp:23-39). One payload, stages ["vs", "ps"]. */
+  @carbon.method @impl.implemented
+  GetPerObjectData(accumulator)
   {
     this.#effectData[1][0] = this.#intensity;
-    return {
-      source: vec3.clone(this.#source),
-      currentDestinationScale: this.#currentDestinationScale,
-      destination: vec3.clone(this.#destination),
-      destinationScale: this.#destinationScale,
-      effectData: this.#effectData.map(value => vec4.clone(value)),
-      quadCount: this.quadCount,
-      effect: this.effect
-    };
+
+    const data = accumulator.Alloc("EveStretch2PerObjectData");
+
+    data.Set("sourceData", [
+      this.#source[0], this.#source[1], this.#source[2], this.#currentDestinationScale
+    ]);
+    data.Set("destinationData", [
+      this.#destination[0], this.#destination[1], this.#destination[2], this.#destinationScale
+    ]);
+    data.Set("effectData", this.#effectData[0], 0);
+    data.Set("effectData", this.#effectData[1], 1);
+
+    return data;
   }
 
   @carbon.method @impl.adapted

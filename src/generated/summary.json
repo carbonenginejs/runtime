@@ -1,8 +1,8 @@
 {
   "outRoot": "src/generated",
   "classes": {
-    "written": 283,
-    "skipped": 312
+    "written": 281,
+    "skipped": 314
   },
   "enums": {
     "written": 16,
@@ -411,6 +411,11 @@
     },
     {
       "family": "eve/child",
+      "className": "EveChildBulletStorm",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
       "className": "EveChildContainer",
       "reason": "hand-maintained source exists"
     },
@@ -682,6 +687,11 @@
     {
       "family": "eve/scene",
       "className": "EveSpaceScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveSpherePin",
       "reason": "hand-maintained source exists"
     },
     {

@@ -89,14 +89,25 @@ export class RawDataStore
   }
 
   /**
-   * Register several structs at once: { StructName: def, ... }. Each `def` is a
-   * field-def array (see RegisterStruct). Returns the store for chaining.
+   * Register several structs at once: { StructName: def, ... }. Each value is a
+   * field-def array (see RegisterStruct) or { def, stages } when the struct
+   * binds anywhere other than the default vertex-stage slot. Returns the store
+   * for chaining.
    */
   Register(structs)
   {
     for (const name of Object.keys(structs))
     {
-      this.RegisterStruct(name, structs[name]);
+      const entry = structs[name];
+
+      if (Array.isArray(entry))
+      {
+        this.RegisterStruct(name, entry);
+      }
+      else
+      {
+        this.RegisterStruct(name, entry.def, { stages: entry.stages });
+      }
     }
 
     return this;
@@ -108,10 +119,18 @@ export class RawDataStore
    * `size` may instead be a defaults ARRAY whose length is the size. Throws -
    * naming the struct - if the packer supplies no layout for it (the engine must
    * cover every struct). Returns the store for chaining.
+   *
+   * `options.stages` declares which per-object constant slots the payload binds
+   * (default ["vs"]). This is Carbon-SEMANTIC knowledge - which
+   * FillAndSetConstants calls exist for the struct - so it travels with the def,
+   * not the packer: ["vs"] a vertex-stage payload, ["ps"] a pixel payload (one
+   * half of a { vs, ps } record), ["vs", "ps"] the SAME bytes bound to both
+   * slots (sphere pin, lensflare). The engine reads it from GetLayout().stages.
    */
-  RegisterStruct(name, def)
+  RegisterStruct(name, def, options = {})
   {
     const normalized = RawDataStore.normalizeDef(def);
+    const stages = RawDataStore.normalizeStages(name, options.stages);
     let resolved;
 
     try
@@ -148,7 +167,7 @@ export class RawDataStore
       }
     }
 
-    this.#layouts.set(name, { fields: resolved.fields, stride: resolved.stride, defaults });
+    this.#layouts.set(name, { fields: resolved.fields, stride: resolved.stride, defaults, stages });
 
     return this;
   }
@@ -224,6 +243,44 @@ export class RawDataStore
 
   /** The field encoding kinds (packing directives). */
   static Type = RawDataType;
+
+  /** The per-object binding slots a struct may declare via options.stages. */
+  static Stages = Object.freeze(["vs", "ps", "gs", "cs", "hs", "ds"]);
+
+  /**
+   * Validate a stages declaration: a non-empty array drawn from
+   * RawDataStore.Stages, no duplicates. Defaults to ["vs"] (Carbon's most
+   * common single-payload binding). Returns a frozen copy.
+   */
+  static normalizeStages(structName, stages)
+  {
+    if (stages === undefined || stages === null)
+    {
+      return RawDataStore.defaultStages;
+    }
+
+    if (!Array.isArray(stages) || !stages.length)
+    {
+      throw new Error(`RawDataStore: struct "${structName}" stages must be a non-empty array`);
+    }
+
+    for (const stage of stages)
+    {
+      if (!RawDataStore.Stages.includes(stage))
+      {
+        throw new Error(`RawDataStore: struct "${structName}" has unknown stage "${stage}" (expected one of: ${RawDataStore.Stages.join(", ")})`);
+      }
+    }
+
+    if (new Set(stages).size !== stages.length)
+    {
+      throw new Error(`RawDataStore: struct "${structName}" declares a duplicate stage`);
+    }
+
+    return Object.freeze([...stages]);
+  }
+
+  static defaultStages = Object.freeze(["vs"]);
 
   /**
    * Normalize a raw def: default elements to 1, resolve size-as-defaults-array,

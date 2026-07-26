@@ -25,7 +25,7 @@ properties in generated and maintained source. It excludes the deliberate
 
 The current source contains:
 
-- 151 explicit methods across 47 classes; and
+- 153 explicit methods across 49 classes; and
 - no unknown properties.
 
 The remaining methods are concentrated in native, GPU, font, bitmap/atlas,
@@ -45,13 +45,13 @@ The `CARBON_SCHEMA_ROOT` environment variable may provide the same location.
 The audit resolves JavaScript inheritance, checks `@carbon.method` exposure,
 and excludes deliberately quarantined classes.
 
-The current audit checks 342 promoted classes and excludes 19 quarantined
-classes. Eleven classes have 30 omitted methods:
+The current audit checks 344 promoted classes and excludes 19 quarantined
+classes. Ten classes have 26 omitted methods:
 
 | Contract | Classes | Omitted surface |
 | --- | --- | --- |
 | Pickable (16 omissions) | `EveMissile`, `EveMissileWarhead`, `EveMobile`, `EveRootTransform`, `EveSpaceObject2`, `EveSpaceObjectDecal`, `EveTransform`, `EveUiObject` | `GetPickingBatches` and `GetID` on each class. |
-| Renderable (14 omissions) | `EveBoosterSet2Renderable`, `EveSpaceObjectDecal`, `EveStretch2`, `EveTurretSet` | Batch, transparency, sort-value, and per-object-data methods as applicable to each class. |
+| Renderable (10 omissions) | `EveSpaceObjectDecal`, `EveStretch2`, `EveTurretSet` | Batch, transparency, sort-value, and per-object-data methods as applicable to each class. |
 
 `EveSpaceObjectDecal` participates in both groups. The audit reports:
 

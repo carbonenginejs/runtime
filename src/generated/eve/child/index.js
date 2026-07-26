@@ -1,5 +1,4 @@
 export * from "./EveChildBehaviorSystem.js";
-export * from "./EveChildBulletStorm.js";
 export * from "./EveChildCloud.js";
 export * from "./EveChildCloud2.js";
 export * from "./EveChildExplosion.js";

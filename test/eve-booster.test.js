@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
+import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import {
   EveBoosterSet2,
   EveBoosterSet2Item,
@@ -200,6 +201,20 @@ test("EveBoosterSet2Renderable maintains Carbon trail spline CPU data", () =>
   spline.positions[0][0] = 500;
   assert.equal(boosters.instances[0].GetTrailSplineData().positions[0][0], 10);
   assert.equal(boosters.UpdateTrails(0, 0), true);
+
+  // GetPerObjectData (cpp:260-289): the { vs, ps } composite - two structs,
+  // two constant buffers (cpp:1325-1329). shipMatrix stored TRANSPOSED; both
+  // 5-slot trail arrays fully written from the spline state above.
+  const store = makePerObjectStore();
+  const pod = boosters.instances[0].GetPerObjectData({ Alloc: name => store.Alloc(name) });
+
+  assert.deepEqual([...pod.vs.GetLayout().stages], ["vs"], "vs half binds the vertex slot");
+  assert.deepEqual([...pod.ps.GetLayout().stages], ["ps"], "ps half binds the pixel slot");
+  assert.equal(pod.vs.GetData()[3], 10, "shipMatrix transposed - translation x at [3]");
+  assert.equal(pod.ps.Copy("trailIntensity", new Float32Array(1))[0], 1, "trail intensity in the ps half");
+  assertVecNear(pod.vs.Copy("trailsControlPositions", new Float32Array(4), 0), [10, 20, 30, 0]);
+  assertVecNear(pod.vs.Copy("trailsControlPositions", new Float32Array(4), 4), [10, 20, -10, 0.25]);
+  assertVecNear(pod.vs.Copy("trailsControlNormals", new Float32Array(4), 0), [0, 0, -10, 1]);
 });
 
 test("EveBoosterSet2Renderable preserves Carbon trail fades and fixed-step motion", () =>

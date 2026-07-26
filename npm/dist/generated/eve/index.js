@@ -1,5 +1,4 @@
 export { EveChildBehaviorSystem } from './child/EveChildBehaviorSystem.js';
-export { EveChildBulletStorm } from './child/EveChildBulletStorm.js';
 export { EveChildCloud } from './child/EveChildCloud.js';
 export { EveChildCloud2 } from './child/EveChildCloud2.js';
 export { EveChildExplosion } from './child/EveChildExplosion.js';
@@ -56,7 +55,6 @@ export { EveConnector } from './ui/EveConnector.js';
 export { EveCurveLineSet } from './ui/EveCurveLineSet.js';
 export { EveLineContainer } from './ui/EveLineContainer.js';
 export { EveProjectBracket } from './ui/EveProjectBracket.js';
-export { EveSpherePin } from './ui/EveSpherePin.js';
 export { EveSprite2dBracketRenderer } from './ui/EveSprite2dBracketRenderer.js';
 export { EveTacticalOverlay } from './ui/EveTacticalOverlay.js';
 export { ConnectorType } from './ui/enums.js';

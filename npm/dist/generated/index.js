@@ -1,6 +1,5 @@
 export { Tr2VectorFunctionModifier } from './curves/Tr2VectorFunctionModifier.js';
 export { EveChildBehaviorSystem } from './eve/child/EveChildBehaviorSystem.js';
-export { EveChildBulletStorm } from './eve/child/EveChildBulletStorm.js';
 export { EveChildCloud } from './eve/child/EveChildCloud.js';
 export { EveChildCloud2 } from './eve/child/EveChildCloud2.js';
 export { EveChildExplosion } from './eve/child/EveChildExplosion.js';
@@ -57,7 +56,6 @@ export { EveConnector } from './eve/ui/EveConnector.js';
 export { EveCurveLineSet } from './eve/ui/EveCurveLineSet.js';
 export { EveLineContainer } from './eve/ui/EveLineContainer.js';
 export { EveProjectBracket } from './eve/ui/EveProjectBracket.js';
-export { EveSpherePin } from './eve/ui/EveSpherePin.js';
 export { EveSprite2dBracketRenderer } from './eve/ui/EveSprite2dBracketRenderer.js';
 export { EveTacticalOverlay } from './eve/ui/EveTacticalOverlay.js';
 export { ConnectorType } from './eve/ui/enums.js';

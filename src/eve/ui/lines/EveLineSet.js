@@ -4,6 +4,7 @@
 // Hand-maintained after promotion from generated schema intake.
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
+import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 
@@ -57,6 +58,37 @@ export class EveLineSet extends CjsModel
   @io.persist
   @type.model("ITriVectorFunction")
   translationCurve = null;
+
+  /** m_worldTransform (EveLineSet.h:119) - runtime state stamped by
+   * UpdateSyncronous from the curves and scaling; not persisted. */
+  worldTransform = mat4.create();
+
+  /** Carbon EveLineSet::UpdateSyncronous (cpp:97-114): sample the position and
+   * rotation curves, then m_worldTransform = TransformationMatrix(scaling,
+   * rotation, translation). Carbon (s, r, t) is gl
+   * fromRotationTranslationScale (r, t, s) - equivalent matrix, different
+   * argument order (math skill rule table). */
+  @carbon.method
+  @impl.implemented
+  UpdateSyncronous(updateContext)
+  {
+    const rotation = vec4.fromValues(0, 0, 0, 1);
+    const translation = vec3.create();
+    const time = updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0;
+
+    this.translationCurve?.Update?.(translation, time);
+    this.rotationCurve?.Update?.(rotation, time);
+
+    mat4.fromRotationTranslationScale(this.worldTransform, rotation, translation, this.scaling);
+  }
+
+  /** Carbon EveLineSet::Update forwards to UpdateSyncronous (cpp:120-123). */
+  @carbon.method
+  @impl.implemented
+  Update(updateContext)
+  {
+    this.UpdateSyncronous(updateContext);
+  }
 
   /** Carbon method AddLine (MAP_METHOD_AND_WRAP). */
   @carbon.method
@@ -160,20 +192,45 @@ export class EveLineSet extends CjsModel
     throw new Error("EveLineSet.GetBatches is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon EveLineSet::GetSortValue reads renderer view state and the live world transform (cpp:203-208). */
+  /** Carbon EveLineSet::GetSortValue (cpp:203-208): distance from the view
+   * position to the world translation. Carbon reads the Tr2Renderer static;
+   * the collector threads the render context instead. */
   @carbon.method
-  @impl.notImplemented
-  GetSortValue()
+  @impl.adapted
+  @impl.reason("Carbon reads the Tr2Renderer view-position static; the batch collector supplies the render context explicitly.")
+  GetSortValue(renderContext = null)
   {
-    throw new Error("EveLineSet.GetSortValue is not implemented in CarbonEngineJS.");
+    const viewPosition = renderContext?.GetViewPosition?.();
+
+    if (!viewPosition)
+    {
+      return 0;
+    }
+
+    const world = this.worldTransform;
+    const dx = viewPosition[0] - world[12];
+    const dy = viewPosition[1] - world[13];
+    const dz = viewPosition[2] - world[14];
+
+    return Math.sqrt(dx * dx + dy * dy + dz * dz);
   }
 
-  /** Carbon EveLineSet::GetPerObjectData populates standard device constant buffers (cpp:210-231). */
+  /** Carbon EveLineSet::GetPerObjectData (cpp:210-231): a Tr2PerObjectDataStandard
+   * carrying EvePerObjectVSData + EvePerObjectPSData, each one transposed
+   * WorldMat, uploaded as two constant buffers. Here that is two Allocs
+   * returned as a { vs, ps } record; Set(MATRIX) performs Carbon's
+   * `Transpose(m_worldTransform)`. */
   @carbon.method
-  @impl.notImplemented
-  GetPerObjectData(_accumulator)
+  @impl.implemented
+  GetPerObjectData(accumulator)
   {
-    throw new Error("EveLineSet.GetPerObjectData is not implemented in CarbonEngineJS.");
+    const vs = accumulator.Alloc("EvePerObjectVSData");
+    const ps = accumulator.Alloc("EvePerObjectPSData");
+
+    vs.Set("WorldMat", this.worldTransform);
+    ps.Set("WorldMat", this.worldTransform);
+
+    return { vs, ps };
   }
 
 }

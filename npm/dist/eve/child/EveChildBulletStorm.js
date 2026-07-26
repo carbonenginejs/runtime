@@ -1,4 +1,4 @@
-import { applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
+import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { type, io, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
@@ -7,7 +7,7 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
 let _initProto, _initClass, _init_instances, _init_extra_instances, _init_targetBlobs, _init_extra_targetBlobs, _init_worldTransform, _init_extra_worldTransform, _init_targetObjects, _init_extra_targetObjects, _init_objectCount, _init_extra_objectCount, _init_clipSphere, _init_extra_clipSphere, _init_sourceRadius, _init_extra_sourceRadius, _init_sourceObject, _init_extra_sourceObject, _init_multiplier, _init_extra_multiplier, _init_speed, _init_extra_speed, _init_sourceLocatorSet, _init_extra_sourceLocatorSet, _init_name, _init_extra_name, _init_range, _init_extra_range, _init_display, _init_extra_display, _init_effect, _init_extra_effect;
 
-/** EveChildBulletStorm (eve/child) - generated from schema shapeHash 31dfe6d2.... */
+/** Locator-driven bullet-storm child: instances, target blobs, and the clip-sphere state machine. */
 let _EveChildBulletStorm;
 class EveChildBulletStorm extends CjsModel {
   static {
@@ -17,7 +17,7 @@ class EveChildBulletStorm extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveChildBulletStorm",
       family: "eve/child"
-    })], [[type.list("EveChildBulletStormInstance"), 0, "instances"], [type.array("vec4"), 0, "targetBlobs"], [[type, type.mat4], 16, "worldTransform"], [[io, io.notify, io, io.read, void 0, type.list("IEveSpaceObject2")], 16, "targetObjects"], [[io, io.read, type, type.uint32], 16, "objectCount"], [[io, io.read, type, type.float32], 16, "clipSphere"], [[io, io.read, type, type.float32], 16, "sourceRadius"], [[io, io.notify, io, io.readwrite, void 0, type.objectRef("EveSpaceObject2")], 16, "sourceObject"], [[io, io.notify, io, io.persist, type, type.uint32], 16, "multiplier"], [[io, io.notify, io, io.persist, type, type.float32], 16, "speed"], [[io, io.notify, io, io.persist, type, type.string], 16, "sourceLocatorSet"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.float32], 16, "range"], [[io, io.readwrite, type, type.boolean], 16, "display"], [[io, io.persist, void 0, type.model("Tr2Effect")], 16, "effect"], [[carbon, carbon.method, impl, impl.implemented], 18, "CanChangeState"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.implemented], 18, "StartEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "StopEffect"], [[impl, impl.adapted], 18, "UpdateAsyncronous"]], 0, void 0, CjsModel));
+    })], [[type.list("EveChildBulletStormInstance"), 0, "instances"], [type.array("vec4"), 0, "targetBlobs"], [[type, type.mat4], 16, "worldTransform"], [[io, io.notify, io, io.read, void 0, type.list("IEveSpaceObject2")], 16, "targetObjects"], [[io, io.read, type, type.uint32], 16, "objectCount"], [[io, io.read, type, type.float32], 16, "clipSphere"], [[io, io.read, type, type.float32], 16, "sourceRadius"], [[io, io.notify, io, io.readwrite, void 0, type.objectRef("EveSpaceObject2")], 16, "sourceObject"], [[io, io.notify, io, io.persist, type, type.uint32], 16, "multiplier"], [[io, io.notify, io, io.persist, type, type.float32], 16, "speed"], [[io, io.notify, io, io.persist, type, type.string], 16, "sourceLocatorSet"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.float32], 16, "range"], [[io, io.readwrite, type, type.boolean], 16, "display"], [[io, io.persist, void 0, type.model("Tr2Effect")], 16, "effect"], [[carbon, carbon.method, impl, impl.implemented], 18, "CanChangeState"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.implemented], 18, "StartEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "StopEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPerObjectData"], [[impl, impl.adapted], 18, "UpdateAsyncronous"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);
@@ -105,6 +105,36 @@ class EveChildBulletStorm extends CjsModel {
     this.#clipSphereMultiplier = -1;
     this.clipSphere = 0;
     this.#changingClipSphere = true;
+  }
+
+  /** Carbon EveChildBulletStorm::HasTransparentBatches is always false. */
+  HasTransparentBatches() {
+    return false;
+  }
+
+  /** Carbon EveChildBulletStorm::GetSortValue is the constant zero. */
+  GetSortValue() {
+    return 0;
+  }
+
+  /** Carbon EveChildBulletStorm::GetBatches submits the instanced storm geometry (GPU-backed). */
+  GetBatches(_accumulator, _batchType, _perObjectData, _reason) {
+    throw new Error("EveChildBulletStorm.GetBatches is not implemented in CarbonEngineJS.");
+  }
+
+  /** Carbon EveChildBulletStorm::GetPerObjectData (cpp:393-410): transposed
+   * world (Set(MATRIX) does it), effectInfo = (targetObjects.length,
+   * sourceRadius + range, clipSphere, speed), then targetPositionsWS[i] per
+   * target blob. Slots past targetBlobs.length are NEVER written - the
+   * per-element writes keep Carbon's arena-garbage tail. VS-only payload. */
+  GetPerObjectData(accumulator) {
+    const data = accumulator.Alloc("EveChildBulletStormPerObjectData");
+    data.Set("worldTransform", this.worldTransform);
+    data.Set("effectInfo", [this.targetObjects.length, this.sourceRadius + this.range, this.clipSphere, this.speed]);
+    for (let index = 0; index < this.targetBlobs.length; index++) {
+      data.Set("targetPositionsWS", this.targetBlobs[index], index);
+    }
+    return data;
   }
   UpdateAsyncronous(updateContext, params = {}) {
     params.spaceObjectParent?.GetLocalToWorldTransform?.(this.worldTransform);

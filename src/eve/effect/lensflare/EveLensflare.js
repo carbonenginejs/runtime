@@ -113,6 +113,18 @@ export class EveLensflare extends CjsModel
    * counts as VISIBLE (the >= comparison) - deliberate Carbon behavior. */
   direction = vec3.create();
 
+  /** m_sunSize (EveLensflare.h:107; ctor 0, cpp:71) - stamped by
+   * PrepareRender from the distance-to-center falloff (cpp:161-165);
+   * runtime state, not persisted. */
+  sunSize = 0;
+
+  /** m_occlusionOffset / m_backgroundOcclusionOffset (EveLensflare.h:140-141) -
+   * Tr2OcclusionBuffer offsets the ENGINE allocates and stamps (cpp:332-368).
+   * null until an engine provides them; Carbon's null case uploads 0. */
+  occlusionOffset = null;
+
+  backgroundOcclusionOffset = null;
+
   /** m_transform (EveLensflare.h:102; ctor identity, cpp:74) - stamped by
    * PrepareRender, forwarded to the flare children as their parent. */
   transform = mat4.create();
@@ -187,12 +199,23 @@ export class EveLensflare extends CjsModel
     return 1;
   }
 
-  /** Carbon EveLensflare::GetPerObjectData populates lensflare-specific device constants (cpp:399-410). */
+  /** Carbon EveLensflare::GetPerObjectData (cpp:399-410): directionScale =
+   * (direction, sunSize); indices[0]/[1] from the optional occlusion offsets
+   * (null uploads 0). indices[2] and [3] are NEVER written in Carbon - the
+   * per-element writes keep that arena-garbage parity. The struct registers
+   * with stages ["vs", "ps"]: one payload, same bytes bound to both slots
+   * (cpp:24-38). */
   @carbon.method
-  @impl.notImplemented
-  GetPerObjectData(_accumulator)
+  @impl.implemented
+  GetPerObjectData(accumulator)
   {
-    throw new Error("EveLensflare.GetPerObjectData is not implemented in CarbonEngineJS.");
+    const data = accumulator.Alloc("EveLensflarePerObjectData");
+
+    data.Set("directionScale", [this.direction[0], this.direction[1], this.direction[2], this.sunSize]);
+    data.Set("indices", [this.occlusionOffset ?? 0], 0);
+    data.Set("indices", [this.backgroundOcclusionOffset ?? 0], 1);
+
+    return data;
   }
 
 }

@@ -1,8 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl, CjsSchema } from '@carbonenginejs/runtime-utils/schema';
-import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { EveChildMesh as _EveChildMesh } from './EveChildMesh.js';
-import { EveChildSpherePinPerObjectData as _EveChildSpherePinPer } from '../perObjectData/EveChildSpherePinPerObjectData.js';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
@@ -16,7 +14,7 @@ class EveChildSpherePin extends _EveChildMesh {
     } = _applyDecs2311(this, [type.define({
       className: "EveChildSpherePin",
       family: "eve/child"
-    })], [[[io, io.persist, void 0, type.list("TriCurveSet")], 16, "curveSets"], [[io, io.notify, io, io.persist, type, type.vec3], 16, "centerNormal"], [[io, io.notify, io, io.persist, type, type.float32], 16, "pinMaxRadius"], [[io, io.notify, io, io.persist, type, type.float32], 16, "pinRadius"], [[io, io.notify, io, io.persist, type, type.float32], 16, "pinRotation"], [[io, io.notify, io, io.persist, type, type.float32], 16, "pinAlphaThreshold"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon allocates a native Tr2PerObjectData subclass; runtime-trinity allocates or constructs the equivalent portable schema record.")], 18, "GetPerObjectData"]], 0, void 0, _EveChildMesh));
+    })], [[[io, io.persist, void 0, type.list("TriCurveSet")], 16, "curveSets"], [[io, io.notify, io, io.persist, type, type.vec3], 16, "centerNormal"], [[io, io.notify, io, io.persist, type, type.float32], 16, "pinMaxRadius"], [[io, io.notify, io, io.persist, type, type.float32], 16, "pinRadius"], [[io, io.notify, io, io.persist, type, type.float32], 16, "pinRotation"], [[io, io.notify, io, io.persist, type, type.float32], 16, "pinAlphaThreshold"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPerObjectData"]], 0, void 0, _EveChildMesh));
   }
   constructor(...args) {
     super(...args);
@@ -70,21 +68,20 @@ class EveChildSpherePin extends _EveChildMesh {
   }
 
   /**
-   * Builds Carbon's sphere-pin constant record. Matrices in GPU records are
-   * stored transposed; all other values are copied in logical order.
+   * Carbon EveChildSpherePin::GetPerObjectData (cpp:40-62). One transient
+   * payload; Set(MATRIX) performs Carbon's `Transpose(m_worldTransform)`.
+   * The struct registers with stages ["vs", "ps"]: the SAME bytes are bound
+   * to both per-object slots (cpp:68-75).
    */
-  GetPerObjectData(accumulator = null) {
-    const data = typeof accumulator?.Allocate === "function" ? accumulator.Allocate(_EveChildSpherePinPer) : new _EveChildSpherePinPer();
-    if (!data) {
-      return null;
-    }
-    mat4.transpose(data.worldMatrix, this.worldTransform);
-    vec4.set(data.pinPosition, this.centerNormal[0], this.centerNormal[1], this.centerNormal[2], this.pinRadius);
-    vec4.set(data.pinRotation, this.pinRotation, 0, 0, 0);
-    vec4.copy(data.pinColor, this.#pinColor);
-    vec4.set(data.pinThreshold, this.pinAlphaThreshold, 0, 0, 0);
-    vec4.set(data.pinRadiusPrecalc, Math.sin(this.pinRadius), Math.cos(this.pinRadius), Math.sin(this.pinRotation), Math.cos(this.pinRotation));
-    vec4.set(data.pinUV, 1, 1, 0, 0);
+  GetPerObjectData(accumulator) {
+    const data = accumulator.Alloc("EveChildSpherePinPerObjectData");
+    data.Set("worldMatrix", this.worldTransform);
+    data.Set("pinPosition", [this.centerNormal[0], this.centerNormal[1], this.centerNormal[2], this.pinRadius]);
+    data.Set("pinRotation", [this.pinRotation, 0, 0, 0]);
+    data.Set("pinColor", this.#pinColor);
+    data.Set("pinThreshold", [this.pinAlphaThreshold, 0, 0, 0]);
+    data.Set("pinRadiusPrecalc", [Math.sin(this.pinRadius), Math.cos(this.pinRadius), Math.sin(this.pinRotation), Math.cos(this.pinRotation)]);
+    data.Set("pinUV", [1, 1, 0, 0]);
     return data;
   }
   static {

@@ -13,9 +13,23 @@
 //   Set(name, value)     logical value in, ENCODED into the buffer
 //   SetRaw(name, value)  bytes in, NO encoding (value is already GPU-form)
 //   Copy(name, out)      bytes OUT into a caller buffer - never a reference
+// Each verb takes an optional trailing element index for per-element writes
+// into an array field (Carbon fills `m_turretTranslation[turretIndex]` for
+// VISIBLE turrets only - the unwritten tail stays arena garbage, and a
+// whole-array Set would destroy that parity).
 // There is intentionally no Get: the payload is write-only from Trinity's
 // side (every field derives from logical inputs the fill already holds), and
 // the uploader reads the whole packed slice via GetData().
+//
+// MULTI-PAYLOAD RENDERABLES: Carbon's dominant composite shape is a distinct
+// VS struct + PS struct uploaded as TWO constant buffers (turret, decal,
+// booster, the Tr2PerObjectDataWithPersistentBuffers family). That is TWO
+// Allocs here, returned from GetPerObjectData as a plain record:
+//   { vs: store.Alloc("DecalVSPerObjectData"), ps: store.Alloc("DecalPSPerObjectData") }
+// The batch pipeline threads the record through untouched. A payload bound to
+// more than one stage from the SAME bytes (sphere pin, lensflare) stays ONE
+// RawData whose struct is registered with stages: ["vs", "ps"] - the engine
+// reads the binding from GetLayout().stages.
 
 /**
  * The encoding KIND of a struct field - a packing directive, not a math type.
@@ -29,6 +43,12 @@ const RawDataType = Object.freeze({
   VECTOR: "vector",
   /** Integer bit-cast into the float buffer's Uint32 lanes (e.g. bone offsets). */
   UINT: "uint",
+  /**
+   * SIGNED integer bit-cast (two's complement) - e.g. the interior lightCount.
+   * Same bytes as UINT for non-negatives; kept distinct so a reflection-based
+   * packer can type the lane i32 vs u32.
+   */
+  INT: "int",
   /** mat4 packed column-stride into 12 floats (Carbon Float4x3; skill gotcha 7). */
   MATRIX_3X4: "matrix3x4"
 });
@@ -65,6 +85,15 @@ const RawDataEncoders = Object.freeze({
     const total = field.size * field.elements;
     for (let index = 0; index < total; index++) {
       uints[field.offset + index] = value[index] >>> 0;
+    }
+  },
+  [RawDataType.INT](_floats, uints, field, value) {
+    const total = field.size * field.elements;
+
+    // Uint32 assignment stores the two's-complement bit pattern, which is
+    // exactly what a signed lane needs (-1 -> 0xFFFFFFFF).
+    for (let index = 0; index < total; index++) {
+      uints[field.offset + index] = value[index] | 0;
     }
   },
   [RawDataType.MATRIX_3X4](floats, _uints, field, value) {
@@ -115,14 +144,37 @@ class RawData {
   }
 
   /**
-   * Write a LOGICAL value, encoded per the field's kind (MATRIX transposes,
-   * UINT bit-casts, MATRIX_3X4 column-stride packs, VECTOR copies).
+   * Resolve a field, optionally narrowed to ONE element of an array field.
+   * The narrowed view shifts the offset by element * size and clamps
+   * elements to 1, so every verb writes exactly one slot and the unwritten
+   * tail keeps its arena bytes (Carbon's visible-turrets-only fill).
    */
-  Set(name, value) {
+  #Field(name, element) {
     const field = this.#layout.fields[name];
     if (!field) {
       throw new Error(`RawData: unknown field "${name}"`);
     }
+    if (element === undefined) {
+      return field;
+    }
+    if (!Number.isInteger(element) || element < 0 || element >= field.elements) {
+      throw new Error(`RawData: element ${element} is out of range for field "${name}" (elements: ${field.elements})`);
+    }
+    return {
+      offset: field.offset + element * field.size,
+      size: field.size,
+      elements: 1,
+      encoding: field.encoding
+    };
+  }
+
+  /**
+   * Write a LOGICAL value, encoded per the field's kind (MATRIX transposes,
+   * UINT/INT bit-cast, MATRIX_3X4 column-stride packs, VECTOR copies). Pass
+   * `element` to write one slot of an array field.
+   */
+  Set(name, value, element) {
+    const field = this.#Field(name, element);
     const encoder = RawDataEncoders[field.encoding];
     if (!encoder) {
       throw new Error(`RawData: no encoder for encoding "${field.encoding}" (field "${name}")`);
@@ -133,13 +185,11 @@ class RawData {
   /**
    * Write bytes that are ALREADY in GPU form - no encoding. Mirrors Carbon's
    * direct member write (e.g. worldInverse computed from an already-transposed
-   * world). Copies up to the field's footprint.
+   * world). Copies up to the field's footprint. Pass `element` to write one
+   * slot of an array field.
    */
-  SetRaw(name, value) {
-    const field = this.#layout.fields[name];
-    if (!field) {
-      throw new Error(`RawData: unknown field "${name}"`);
-    }
+  SetRaw(name, value, element) {
+    const field = this.#Field(name, element);
     const total = Math.min(field.size * field.elements, value.length);
     for (let index = 0; index < total; index++) {
       this.#floats[field.offset + index] = value[index];
@@ -149,13 +199,10 @@ class RawData {
   /**
    * Copy a field's packed bytes OUT into a caller-owned buffer. Never returns
    * a reference into the payload. Debug / inspection only - the render path is
-   * write-only.
+   * write-only. Pass `element` to copy one slot of an array field.
    */
-  Copy(name, out) {
-    const field = this.#layout.fields[name];
-    if (!field) {
-      throw new Error(`RawData: unknown field "${name}"`);
-    }
+  Copy(name, out, element) {
+    const field = this.#Field(name, element);
     const total = field.size * field.elements;
     for (let index = 0; index < total; index++) {
       out[index] = this.#floats[field.offset + index];

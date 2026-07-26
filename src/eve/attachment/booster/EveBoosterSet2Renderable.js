@@ -259,6 +259,70 @@ export class EveBoosterSet2Renderable extends CjsModel
     return this.overallIntensity;
   }
 
+  /** Carbon EveBoosterSet2Renderable::HasTransparentBatches is always false
+   * (additive batches only, via the instanced geometry provider). */
+  @carbon.method
+  @impl.implemented
+  HasTransparentBatches()
+  {
+    return false;
+  }
+
+  /** Carbon EveBoosterSet2Renderable::GetSortValue is the constant one. */
+  @carbon.method
+  @impl.implemented
+  GetSortValue()
+  {
+    return 1;
+  }
+
+  /** Carbon EveBoosterSet2Renderable::GetBatches submits the instanced booster geometry (GPU-backed). */
+  @carbon.method
+  @impl.notImplemented
+  GetBatches(_accumulator, _batchType, _perObjectData, _reason)
+  {
+    throw new Error("EveBoosterSet2Renderable.GetBatches is not implemented in CarbonEngineJS.");
+  }
+
+  /** Carbon EveBoosterSet2Renderable::GetPerObjectData (cpp:260-289): the
+   * EveBoosterSetPerObjectData composite - a VertexShaderData + PixelShaderData
+   * pair uploaded as TWO constant buffers (cpp:1325-1329). Here that is two
+   * Allocs returned as a { vs, ps } record. Set(MATRIX) performs Carbon's
+   * `Transpose(m_parentTransform)`; both 5-slot trail arrays are fully
+   * written, exactly as Carbon's loop. The padding scalars are never written
+   * (Carbon leaves them uninitialized). */
+  @carbon.method
+  @impl.implemented
+  GetPerObjectData(accumulator)
+  {
+    const vs = accumulator.Alloc("EveBoosterSetVSData");
+    const ps = accumulator.Alloc("EveBoosterSetPSData");
+
+    vs.Set("shipMatrix", this.#parentTransform);
+    vs.Set("boosterIntensity", [this.overallIntensity]);
+    vs.Set("shipSpeed", [this.parentSpeed]);
+    vs.Set("maxBoosterSize", [this.#boosterSet?.maxSize ?? 0]);
+
+    ps.Set("boosterIntensity", [this.overallIntensity]);
+    ps.Set("trailIntensity", [this.trailIntensity]);
+    ps.Set("warpIntensity", [this.#boosterSet?.warpIntensity ?? 0]);
+
+    for (let index = 0; index < this.#trailsControlPositions.length; index++)
+    {
+      const position = this.#trailsControlPositions[index];
+      const normal = this.#trailsControlNormals[index];
+
+      vs.Set("trailsControlPositions", [
+        position[0], position[1], position[2], this.#trailsSequenceLength[index]
+      ], index);
+      vs.Set("trailsControlNormals", [
+        normal[0], normal[1], normal[2], this.#trailsControlNormalsFactor[index]
+      ], index);
+    }
+
+    return { vs, ps };
+  }
+
   /** Protected-equivalent read of Carbon's m_parentTransform
    * (EveBoosterSet2.h:132) - the owning set's GetLights transforms each
    * booster light position by it (cpp:1305/1314). Returns the live buffer;

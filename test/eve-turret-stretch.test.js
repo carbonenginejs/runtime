@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
+import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import {
   EveFiringEffectElementContainer,
   EveLocalPositionCurve,
@@ -99,10 +100,14 @@ test("EveStretch2 retains Carbon curve timing and portable render data", () =>
   stretch.SetFiringTransform(vec3.fromValues(1, 2, 3), vec3.fromValues(1, 2, 13));
   stretch.StartFiring(0.5);
   stretch.Update({ currentTime: 2, originShift: vec3.create() });
-  const data = stretch.GetPerObjectData();
-  assert.equal(data.quadCount, 4);
-  assert.deepEqual(Array.from(data.source), [1, 2, 3]);
-  assert.deepEqual(Array.from(data.destination), [1, 2, 13]);
+
+  // Transient RawData payload (cpp:327-337): the m_source..m_effectData member
+  // run as 4 vec4s, same bytes bound to VS and PS (cpp:23-39).
+  const store = makePerObjectStore();
+  const data = stretch.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+  assert.deepEqual([...data.GetLayout().stages], ["vs", "ps"]);
+  assert.deepEqual(Array.from(data.Copy("sourceData", new Float32Array(4)).slice(0, 3)), [1, 2, 3]);
+  assert.deepEqual(Array.from(data.Copy("destinationData", new Float32Array(4)).slice(0, 3)), [1, 2, 13]);
   assert.equal(stretch.GetRenderables([]).length, 1);
   stretch.StopFiring();
   assert.ok(events.some(value => value[0] === "end" && value[1] === "end"));
