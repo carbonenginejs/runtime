@@ -17,7 +17,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSpotlightSetItem",
         family: "eve/attachment/spotlights"
-      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.color], 16, "coneColor"], [[io, io.persist, type, type.color], 16, "flareColor"], [[io, io.persist, type, type.color], 16, "spriteColor"], [[io, io.persist, type, type.mat4], 16, "transform"], [[io, io.persist, type, type.vec3], 16, "spriteScale"], [[io, io.persist, type, type.boolean], 16, "boosterGainInfluence"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon returns AxisAlignedBox by value; JavaScript returns cloned { min, max } vectors.")], 18, "GetBounds"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoneIndex"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.color], 16, "coneColor"], [[io, io.persist, type, type.color], 16, "flareColor"], [[io, io.persist, type, type.color], 16, "spriteColor"], [[io, io.persist, type, type.mat4], 16, "transform"], [[io, io.persist, type, type.vec3], 16, "spriteScale"], [[io, io.persist, type, type.boolean], 16, "boosterGainInfluence"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")], 18, "GetBounds"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoneIndex"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);
@@ -31,15 +31,8 @@ new class extends _identity {
     transform = (_init_extra_spriteColor(this), _init_transform(this, mat4.create()));
     spriteScale = (_init_extra_transform(this), _init_spriteScale(this, vec3.fromValues(1, 1, 1)));
     boosterGainInfluence = (_init_extra_spriteScale(this), _init_boosterGainInfluence(this, false));
-    GetBounds() {
-      const bounds = box3.transformMat4(box3.create(), _EveSpotlightSetItem.#bounds, this.transform);
-      const min = vec3.create();
-      const max = vec3.create();
-      box3.toBounds(bounds, min, max);
-      return {
-        min,
-        max
-      };
+    GetBounds(out) {
+      return box3.transformMat4(out, _EveSpotlightSetItem.#bounds, this.transform);
     }
     GetBoneIndex() {
       return this.boneIndex;

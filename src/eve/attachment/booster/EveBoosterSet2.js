@@ -622,13 +622,13 @@ export class EveBoosterSet2 extends EveEntity
    * renderable whose glow sprite set is on screen, so `glowsVisible` is a
    * whole-set flag, not per booster.
    *
-   * EveSpriteSet::UpdateVisibility (its own transformed-AABB frustum test) is
-   * not ported yet. When the sprite set cannot answer, this keeps Carbon's
-   * constructor default of visible rather than inventing a cull - the flare is
-   * separately gated per renderable by `boostersVisible` (cpp:1264). */
+   * The glow test is EveSpriteSet::UpdateVisibility - a transformed item-set
+   * AABB against the frustum. A foreign glow duck without that method is taken
+   * as visible rather than culled; the flare is still gated per renderable by
+   * `boostersVisible` (cpp:1264). */
   @carbon.method
   @impl.adapted
-  @impl.reason("EveSpriteSet.UpdateVisibility is unported; an absent test falls back to visible instead of culling.")
+  @impl.reason("A glow duck lacking UpdateVisibility is treated as visible rather than culled.")
   UpdateVisibility(updateContext)
   {
     this.#glowsVisible = false;

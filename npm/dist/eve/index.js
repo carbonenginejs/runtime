@@ -164,6 +164,7 @@ export { EveLineSet } from './ui/lines/EveLineSet.js';
 export { EveTacticalOverlayTrackObject } from './ui/tacticalOverlay/EveTacticalOverlayTrackObject.js';
 export { EveTacticalTrails } from './ui/tacticalOverlay/EveTacticalTrails.js';
 export { Blink, Fade, FadeIn, FadeInOut, FadeOut, FadeType, Saturate } from './attachment/EveSpaceObjectAttachmentUtils.js';
+export { CreateItemSetBoundingBoxes, GetItemSetAabb } from './attachment/itemSetBounds.js';
 export { EveBannerItem } from './attachment/banner/EveBannerItem.js';
 export { EveBannerLight } from './attachment/banner/EveBannerLight.js';
 export { EveBannerSet } from './attachment/banner/EveBannerSet.js';

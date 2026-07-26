@@ -1,5 +1,6 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveSpriteSet.h
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveSpriteSet.cpp
+import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
@@ -9,6 +10,7 @@ import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveSpriteSetItem } from "./EveSpriteSetItem.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Blink } from "../EveSpaceObjectAttachmentUtils.js";
+import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 
@@ -50,6 +52,12 @@ export class EveSpriteSet extends EveEntity
   lights = [];
 
   #rebuildRevision = 0;
+
+  /** m_aabb (h:140) - the union of every unskinned sprite's bounds. */
+  #staticBounds = box3.create();
+
+  /** m_boundingBoxes (h:142) - [{ boneIndex, bounds }], ascending. */
+  #boneBounds = [];
 
   /** Carbon m_activationStrength (ctor default 0, EveSpriteSet.cpp:67 - NOT
    * 1: packed-set lights are BLACK until the owner's update calls
@@ -183,6 +191,42 @@ export class EveSpriteSet extends EveEntity
   {
     this.#rebuildRevision++;
     this.__state.rebuild.add("packedGeometry");
+    // Carbon rebuilds the item-set bounds at the tail of the same pack
+    // (cpp:342); the packing itself is engine-side, the bounds are not.
+    CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.sprites);
+  }
+
+  /** Carbon EveSpriteSet::GetAabb (cpp:163-166): the item-set bounds, with the
+   * bone list forwarded only when the set is skinned. */
+  @carbon.method
+  @impl.implemented
+  GetAabb(out, bones = null, boneCount = 0)
+  {
+    return GetItemSetAabb(
+      out,
+      this.#staticBounds,
+      this.#boneBounds,
+      bones,
+      this.skinned ? boneCount : 0
+    );
+  }
+
+  /** Carbon EveSpriteSet::UpdateVisibility (cpp:130-140): an uninitialized set
+   * is NOT visible; otherwise its bounds move into world space and take the
+   * frustum box test. No LOD and no display gate - Carbon tests display at draw
+   * time, not here. */
+  @carbon.method
+  @impl.implemented
+  UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
+  {
+    const aabb = this.GetAabb(EveSpriteSet.#aabbScratch, bones, boneCount);
+    if (box3.isEmpty(aabb))
+    {
+      return false;
+    }
+
+    box3.transformMat4(aabb, aabb, parentTransform);
+    return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
   }
 
   @carbon.method
@@ -245,6 +289,9 @@ export class EveSpriteSet extends EveEntity
       lightManager?.AddLight?.(record);
     }
   }
+
+  /** Per-frame scratch - UpdateVisibility must not allocate. */
+  static #aabbScratch = box3.create();
 
   static #features = { parentBrightness: 0, parentScale: 1 };
 

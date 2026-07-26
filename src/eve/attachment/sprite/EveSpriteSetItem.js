@@ -3,6 +3,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveSpriteSetItem_Blue.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
+import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
@@ -52,12 +53,15 @@ export class EveSpriteSetItem extends CjsModel
   @type.int32
   boneIndex = 0;
 
+  /** Carbon EveSpriteSetItem::GetBounds (cpp:35-38): Sphere(position, maxScale)
+   * - the sprite at its largest blink scale. `out` is required; the item-set
+   * bounds builder supplies its own scratch. */
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon returns Sphere by value; JavaScript follows the runtime sphere out-parameter convention.")
-  GetBounds(out = vec4.create())
+  GetBounds(out)
   {
-    return vec4.set(out, this.position[0], this.position[1], this.position[2], this.maxScale);
+    return box3.fromPositionRadius(out, this.position, this.maxScale);
   }
 
   @carbon.method

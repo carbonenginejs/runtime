@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
@@ -29,9 +30,9 @@ test("EveHazeSetItem preserves Carbon TRS bounds and bone lookup", () => {
   item.scaling.set([2, 3, 4]);
   item.boneIndex = 17;
 
-  const bounds = item.GetBounds();
-  assertVec(bounds.min, [8.5, 19, 28]);
-  assertVec(bounds.max, [11.5, 21, 50]);
+  const bounds = item.GetBounds(box3.create());
+  assertVec(box3.$min(bounds), [8.5, 19, 28]);
+  assertVec(box3.$max(bounds), [11.5, 21, 50]);
   assert.equal(item.GetBoneIndex(), 17);
 });
 
@@ -41,9 +42,9 @@ test("EveSpotlightSetItem transforms Carbon's unit box", () => {
   mat4.fromRotationTranslationScale(item.transform, rotation, [5, 6, 7], [2, 4, 6]);
   item.boneIndex = 23;
 
-  const bounds = item.GetBounds();
-  assertVec(bounds.min, [3, 5, 4]);
-  assertVec(bounds.max, [7, 7, 10]);
+  const bounds = item.GetBounds(box3.create());
+  assertVec(box3.$min(bounds), [3, 5, 4]);
+  assertVec(box3.$max(bounds), [7, 7, 10]);
   assert.equal(item.GetBoneIndex(), 23);
 });
 
@@ -54,9 +55,9 @@ test("EvePlaneSetItem transforms Carbon's unit box with authored TRS", () => {
   item.scaling.set([2, 4, 6]);
   item.boneIndex = 31;
 
-  const bounds = item.GetBounds();
-  assertVec(bounds.min, [3, 5, 4]);
-  assertVec(bounds.max, [7, 7, 10]);
+  const bounds = item.GetBounds(box3.create());
+  assertVec(box3.$min(bounds), [3, 5, 4]);
+  assertVec(box3.$max(bounds), [7, 7, 10]);
   assert.equal(item.GetBoneIndex(), 31);
 });
 
@@ -65,10 +66,12 @@ test("EveSpriteSetItem exposes Carbon sphere bounds and bone lookup", () => {
   item.position.set([1, 2, 3]);
   item.maxScale = 4;
   item.boneIndex = 29;
-  const out = new Float32Array(4);
+  // Carbon returns Sphere(position, maxScale); the port fills its enclosing box.
+  const out = box3.create();
 
   assert.equal(item.GetBounds(out), out);
-  assertVec(out, [1, 2, 3, 4]);
+  assertVec(box3.$min(out), [-3, -2, -1]);
+  assertVec(box3.$max(out), [5, 6, 7]);
   assert.equal(item.GetBoneIndex(), 29);
 });
 

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
+import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import {
@@ -10,6 +11,7 @@ import {
   EveBoosterSet2Item,
   EveBoosterSet2Renderable,
   EveSpriteSet,
+  EveSpriteSetItem,
   EveTrailsSet,
   TriFrustum
 } from "../npm/dist/index.js";
@@ -392,14 +394,23 @@ test("EveBoosterSet2.UpdateVisibility gates on display and reports glow visibili
 
   set.display = true;
   set.glows = new EveSpriteSet();
-  // Unported EveSpriteSet.UpdateVisibility: the fallback keeps the glow.
-  assert.equal(set.UpdateVisibility(context), true);
-  assert.equal(renderable.isVisible, true, "renderables were updated");
+
+  // An empty sprite set has no bounds to test, so it reports not visible.
+  assert.equal(set.UpdateVisibility(context), false);
+  assert.equal(renderable.isVisible, true, "renderables were updated regardless");
   assert.deepEqual(set.GetRenderables(), [renderable]);
 
-  // A sprite set that answers is believed.
-  set.glows.UpdateVisibility = () => false;
-  assert.equal(set.UpdateVisibility(context), false);
+  // A sprite sitting on the booster is on screen, so the glow draws.
+  const sprite = new EveSpriteSetItem();
+  vec3.set(sprite.position, 0, 0, -2000);
+  sprite.maxScale = 50;
+  set.glows.sprites.push(sprite);
+  set.glows.Rebuild();
+  assert.equal(set.UpdateVisibility(context), true);
+
+  // A glow duck that cannot answer is taken as visible, not culled.
+  set.glows = { };
+  assert.equal(set.UpdateVisibility(context), true);
 
   set.effect = null;
   assert.deepEqual(set.GetRenderables(), [], "no effect, no batches");

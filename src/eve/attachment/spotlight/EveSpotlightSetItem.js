@@ -45,14 +45,10 @@ export class EveSpotlightSetItem extends CjsModel
 
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon returns AxisAlignedBox by value; JavaScript returns cloned { min, max } vectors.")
-  GetBounds()
+  @impl.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")
+  GetBounds(out)
   {
-    const bounds = box3.transformMat4(box3.create(), EveSpotlightSetItem.#bounds, this.transform);
-    const min = vec3.create();
-    const max = vec3.create();
-    box3.toBounds(bounds, min, max);
-    return { min, max };
+    return box3.transformMat4(out, EveSpotlightSetItem.#bounds, this.transform);
   }
 
   @carbon.method

@@ -18,7 +18,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EvePlaneSetItem",
         family: "eve/attachment/planes"
-      })], [[[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.color], 16, "color"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec4], 16, "layer1Transform"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec4], 16, "layer2Transform"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec4], 16, "layer1Scroll"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec4], 16, "layer2Scroll"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.quat], 16, "rotation"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.uint32], 16, "maskAtlasID"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.int32], 16, "boneIndex"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec3], 16, "position"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec4], 16, "blinkData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon returns AxisAlignedBox by value; JavaScript returns cloned { min, max } vectors.")], 18, "GetBounds"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoneIndex"]], 0, void 0, CjsModel));
+      })], [[[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.color], 16, "color"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec4], 16, "layer1Transform"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec4], 16, "layer2Transform"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec4], 16, "layer1Scroll"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec4], 16, "layer2Scroll"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.quat], 16, "rotation"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.uint32], 16, "maskAtlasID"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.int32], 16, "boneIndex"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec3], 16, "position"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.vec4], 16, "blinkData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")], 18, "GetBounds"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoneIndex"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);
@@ -39,17 +39,10 @@ new class extends _identity {
     // Carbon omits this SOF-authored value from Blue serialization, but it is
     // part of the editable plane description and must survive values exchange.
     blinkData = (_init_extra_position(this), _init_blinkData(this, vec4.fromValues(1, 0, 1, 0)));
-    GetBounds() {
+    GetBounds(out) {
       // Carbon TransformationMatrix(scaling, rotation, position).
       const transform = mat4.fromRotationTranslationScale(_EvePlaneSetItem.#transform, this.rotation, this.position, this.scaling);
-      const bounds = box3.transformMat4(_EvePlaneSetItem.#transformedBounds, _EvePlaneSetItem.#bounds, transform);
-      const min = vec3.create();
-      const max = vec3.create();
-      box3.toBounds(bounds, min, max);
-      return {
-        min,
-        max
-      };
+      return box3.transformMat4(out, _EvePlaneSetItem.#bounds, transform);
     }
     GetBoneIndex() {
       return this.boneIndex;

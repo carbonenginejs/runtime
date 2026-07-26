@@ -42,21 +42,17 @@ export class EveHazeSetItem extends CjsModel
 
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon returns AxisAlignedBox by value; JavaScript returns cloned { min, max } vectors.")
-  GetBounds()
+  @impl.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")
+  GetBounds(out)
   {
     // Carbon (row-vector): TransformationMatrix(scaling, rotation, position).
     const transform = mat4.fromRotationTranslationScale(
-      mat4.create(),
+      EveHazeSetItem.#transform,
       this.rotation,
       this.position,
       this.scaling
     );
-    const bounds = box3.transformMat4(box3.create(), EveHazeSetItem.#bounds, transform);
-    const min = vec3.create();
-    const max = vec3.create();
-    box3.toBounds(bounds, min, max);
-    return { min, max };
+    return box3.transformMat4(out, EveHazeSetItem.#bounds, transform);
   }
 
   @carbon.method
@@ -67,4 +63,6 @@ export class EveHazeSetItem extends CjsModel
   }
 
   static #bounds = box3.fromValues(-0.5, -0.5, -0.5, 0.5, 0.5, 5);
+
+  static #transform = mat4.create();
 }

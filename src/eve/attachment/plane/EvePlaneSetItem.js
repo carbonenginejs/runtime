@@ -75,8 +75,8 @@ export class EvePlaneSetItem extends CjsModel
 
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon returns AxisAlignedBox by value; JavaScript returns cloned { min, max } vectors.")
-  GetBounds()
+  @impl.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")
+  GetBounds(out)
   {
     // Carbon TransformationMatrix(scaling, rotation, position).
     const transform = mat4.fromRotationTranslationScale(
@@ -85,11 +85,7 @@ export class EvePlaneSetItem extends CjsModel
       this.position,
       this.scaling
     );
-    const bounds = box3.transformMat4(EvePlaneSetItem.#transformedBounds, EvePlaneSetItem.#bounds, transform);
-    const min = vec3.create();
-    const max = vec3.create();
-    box3.toBounds(bounds, min, max);
-    return { min, max };
+    return box3.transformMat4(out, EvePlaneSetItem.#bounds, transform);
   }
 
   @carbon.method

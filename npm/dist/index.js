@@ -239,6 +239,7 @@ export { EveLineSet } from './eve/ui/lines/EveLineSet.js';
 export { EveTacticalOverlayTrackObject } from './eve/ui/tacticalOverlay/EveTacticalOverlayTrackObject.js';
 export { EveTacticalTrails } from './eve/ui/tacticalOverlay/EveTacticalTrails.js';
 export { Blink, Fade, FadeIn, FadeInOut, FadeOut, FadeType, Saturate } from './eve/attachment/EveSpaceObjectAttachmentUtils.js';
+export { CreateItemSetBoundingBoxes, GetItemSetAabb } from './eve/attachment/itemSetBounds.js';
 export { EveBannerItem } from './eve/attachment/banner/EveBannerItem.js';
 export { EveBannerLight } from './eve/attachment/banner/EveBannerLight.js';
 export { EveBannerSet } from './eve/attachment/banner/EveBannerSet.js';

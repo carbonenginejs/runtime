@@ -1,6 +1,7 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
+import { box3 } from '@carbonenginejs/runtime-utils/box3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
@@ -30,8 +31,12 @@ class EveSpriteSetItem extends CjsModel {
   color = (_init_extra_position(this), _init_color(this, vec4.fromValues(1, 1, 1, 1)));
   warpColor = (_init_extra_color(this), _init_warpColor(this, vec4.fromValues(1, 1, 1, 1)));
   boneIndex = (_init_extra_warpColor(this), _init_boneIndex(this, 0));
-  GetBounds(out = vec4.create()) {
-    return vec4.set(out, this.position[0], this.position[1], this.position[2], this.maxScale);
+
+  /** Carbon EveSpriteSetItem::GetBounds (cpp:35-38): Sphere(position, maxScale)
+   * - the sprite at its largest blink scale. `out` is required; the item-set
+   * bounds builder supplies its own scratch. */
+  GetBounds(out) {
+    return box3.fromPositionRadius(out, this.position, this.maxScale);
   }
   GetBoneIndex() {
     return this.boneIndex;
