@@ -5,6 +5,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/** One line in an EveLineSet: two endpoints, each with its own colour. */
 @type.define({
   className: "EveLineData",
   family: "eve/ui"

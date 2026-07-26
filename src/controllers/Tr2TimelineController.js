@@ -439,6 +439,7 @@ export class Tr2TimelineController extends CjsModel
   {
     return this.actions[index] ?? null;
   }
+
   /**
    * Gets the timeline start time in seconds of the action at an index, or 0 when
    * the index has no entry.
@@ -449,6 +450,7 @@ export class Tr2TimelineController extends CjsModel
   {
     return this.#entryAt(index)?.startTime ?? 0;
   }
+
   /**
    * Gets the timeline end time in seconds of the action at an index, or 0 when
    * the index has no entry.
@@ -459,6 +461,7 @@ export class Tr2TimelineController extends CjsModel
   {
     return this.#entryAt(index)?.endTime ?? 0;
   }
+
   /**
    * Gets the track the action at an index belongs to, or 0 when the index has no
    * entry.
@@ -469,6 +472,7 @@ export class Tr2TimelineController extends CjsModel
   {
     return this.#entryAt(index)?.trackID ?? 0;
   }
+
   /**
    * Moves an action's start time, starting or stopping the action immediately
    * when the edit changes whether it covers the current time; returns false for
@@ -506,6 +510,7 @@ export class Tr2TimelineController extends CjsModel
     entry.startTime = startTime;
     return true;
   }
+
   /**
    * Moves an action's end time, starting or stopping the action immediately when
    * the edit changes whether it covers the current time; returns false for an
@@ -543,6 +548,7 @@ export class Tr2TimelineController extends CjsModel
     entry.endTime = endTime;
     return true;
   }
+
   /**
    * Reassigns an action to another track, starting or stopping it when the move
    * changes whether its track is enabled while the action covers the current
@@ -742,6 +748,7 @@ export class Tr2TimelineController extends CjsModel
     }
     this.#setTime(time, false);
   }
+
   /**
    * Sets the current time and reconciles every enabled action against the new
    * time; when includePassedActions is set, an action whose whole range was
@@ -814,6 +821,7 @@ export class Tr2TimelineController extends CjsModel
       this.Link(owner);
     }
   }
+
   /**
    * Gets the timeline entry parallel to the action at an index, or null when the
    * lists are not the same length.

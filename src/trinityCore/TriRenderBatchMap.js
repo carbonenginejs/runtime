@@ -21,6 +21,7 @@ export class TriRenderBatchMap
   // optional (batchType) => accumulator factory. The default matches Carbon's
   // key-generator selection: order-preserving for TRANSPARENT (the producer
   // inserts back-to-front), effect-sorted for everything else.
+
   /**
    * Creates one accumulator per requested batch type; by default TRANSPARENT
    * gets the order-preserving key generator (the producer inserts back-to-front)
@@ -46,6 +47,7 @@ export class TriRenderBatchMap
 
   // Bind the per-object-data store (from the render context) onto every
   // accumulator - GetPerObjectData Allocs pooled records through it.
+
   /**
    * Binds the per-object-data store onto every accumulator, since
    * GetPerObjectData leases pooled records through it; returns this for
@@ -71,6 +73,7 @@ export class TriRenderBatchMap
   // renderable (keyed off the pool accumulator, by convention the OPAQUE one),
   // then GetBatches into each registered batch type. Renderables are expected
   // pre-culled; visibility/frustum filtering is a scene concern upstream.
+
   /**
    * Serial form of Carbon's GetBatchesFromRenderables: one GetPerObjectData per
    * renderable, keyed off the pool accumulator (by convention the OPAQUE one),

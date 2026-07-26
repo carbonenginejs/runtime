@@ -152,6 +152,7 @@ export class Tr2StateMachineTransition extends CjsModel
   {
     return this.GetSource();
   }
+
   /**
    * Gets the bitmask of controller variables this condition reads, so the owning
    * state can skip evaluation when none of them changed; returns 0 (never skip)
@@ -258,6 +259,7 @@ export class Tr2StateMachineTransition extends CjsModel
     this.Compile();
     return this.#functionNames.slice();
   }
+
   /**
    * Builds the condition evaluation context, delegating to the controller's own
    * GetExpressionContext when it has one and otherwise assembling controller,
@@ -276,6 +278,7 @@ export class Tr2StateMachineTransition extends CjsModel
       stateMachine: stateMachine
     };
   }
+
   /**
    * Looks up the destination state by this transition's `name` on the source
    * state's machine; the authored name is the destination state name, not a

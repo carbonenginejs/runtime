@@ -232,6 +232,7 @@ export class EveTransform extends Tr2Transform
   // name; the store (engine-supplied layout) transposes them on Set. Carbon's
   // worldInverse = Inverse(transposed world) == Transpose(Inverse(world)), so
   // it is just Set("worldInverse", Inverse(world)) - the store transposes.
+
   /**
    * Allocates an EveBasicPerObjectData record from the accumulator and fills it with the world, previous-world and inverse-world matrices, patching the first all-zero basis of a singular world matrix with a 0.1 diagonal before inverting, as Carbon does.
    * @returns {object} The allocated record, owned by the accumulator.
@@ -298,6 +299,7 @@ export class EveTransform extends Tr2Transform
 
   // Distance from the view position to the world translation, scaled by the
   // authored multiplier (used to order transparent renderables back-to-front).
+
   /**
    * Returns the distance from the render context's view position to this node's
    * world translation, scaled by the authored sortValueMultiplier, used to order

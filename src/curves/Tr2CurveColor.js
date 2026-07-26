@@ -9,6 +9,7 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
 
 const CLAMP_MIN = vec4.create();
+
 /**
  * Color curve composed of four independent scalar curves for r, g, b and a,
  * sampled at time minus timeOffset; an empty alpha curve yields 1, and the

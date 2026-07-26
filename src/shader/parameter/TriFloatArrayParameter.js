@@ -50,6 +50,7 @@ export class TriFloatArrayParameter extends CjsParameter
     }
     return CjsParameter.hashFnv1String(this.name, startingHash);
   }
+
   /** Nothing to resolve - the rows are authored data; returns true. */
   @carbon.method
   @impl.implemented
@@ -57,6 +58,7 @@ export class TriFloatArrayParameter extends CjsParameter
   {
     return true;
   }
+
   /**
    * Re-resolves effect handles against the cached shader after any notified
    * field changes.
@@ -68,6 +70,7 @@ export class TriFloatArrayParameter extends CjsParameter
     this.RebuildEffectHandles(this.#cachedEffect);
     return true;
   }
+
   /**
    * Caches the shader and records whether it reflects a constant of this name;
    * no GPU handle is bound.
@@ -81,6 +84,7 @@ export class TriFloatArrayParameter extends CjsParameter
     this.usedByCurrentEffect = used;
     this.usedByCurrentTechnique = used;
   }
+
   /**
    * Packs the rows contiguously into the destination, stopping at whichever limit comes first: the last row, the destination length, or the byte budget; a final row may be written partially.
    * @param size byte budget in the destination, four bytes per float

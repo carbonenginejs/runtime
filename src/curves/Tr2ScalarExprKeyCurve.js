@@ -345,6 +345,7 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   {
     this.#reEvaluateKeys();
   }
+
   /**
    * Re-evaluates every key's expressions in order, passing each key its
    * predecessor so expressions can reference prevKeyTime and prevKeyValue.
@@ -358,6 +359,7 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
       previousKey = key;
     }
   }
+
   /**
    * Converts caller time into curve-local time by applying timeScale and
    * timeOffset, reversing it when `reversed` is set and wrapping it into the
@@ -381,6 +383,7 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
     }
     return localTime;
   }
+
   /**
    * Interpolates between two adjacent keys using the left key's mode; a null key
    * on either side means the sample lies outside the key range and that end is

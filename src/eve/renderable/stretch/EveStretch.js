@@ -24,6 +24,11 @@ import {
 } from "./CjsStretchRuntime.js";
 
 
+/**
+ * An effect drawn between a source point and a destination point, hosting
+ * transform children pinned at each end, stretched along the span, and
+ * travelling from one end to the other.
+ */
 @type.define({ className: "EveStretch", family: "eve/renderable/stretch" })
 export class EveStretch extends EveEntity
 {
@@ -61,6 +66,12 @@ export class EveStretch extends EveEntity
   #destinationScale = 1;
   #negativeZ = false;
 
+  /**
+   * Samples the source and destination position curves for the frame; with no
+   * source curve the source position falls back to the translation of the
+   * transform last given to SetSourceTransform. Skipped entirely while update is
+   * false.
+   */
   @carbon.method @impl.implemented
   UpdateSynchronous(context)
   {
@@ -72,11 +83,17 @@ export class EveStretch extends EveEntity
     return true;
   }
 
+  /** Carbon's IEveSpaceObject2 spelling of UpdateSynchronous; forwards unchanged. */
   UpdateSyncronous(context)
   {
     return this.UpdateSynchronous(context);
   }
 
+  /**
+   * Advances the curves, records the endpoint separation in length, forwards the
+   * asynchronous phase to the displayed endpoint children plus the stretch and
+   * move children, and feeds both audio objects the current endpoints.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Carbon splits synchronous and asynchronous work; the browser graph keeps both phases but executes child calls serially.")
   UpdateAsynchronous(context)
@@ -93,22 +110,38 @@ export class EveStretch extends EveEntity
     return true;
   }
 
+  /**
+   * Carbon's IEveSpaceObject2 spelling of UpdateAsynchronous; forwards
+   * unchanged.
+   */
   UpdateAsyncronous(context)
   {
     return this.UpdateAsynchronous(context);
   }
 
+  /**
+   * IEveFiringEffectElement synchronous hook; EveStretch does all of its firing
+   * work in the asynchronous phase, so this only reports success.
+   */
   UpdateEffectSync(context)
   {
     void context;
     return true;
   }
 
+  /**
+   * IEveFiringEffectElement asynchronous hook; runs both update phases through
+   * Update.
+   */
   UpdateEffectAsync(context)
   {
     return this.Update(context);
   }
 
+  /**
+   * Runs both update phases in order, for callers that drive the stretch outside
+   * the scene's split synchronous/asynchronous pass.
+   */
   @carbon.method @impl.implemented
   Update(context)
   {
@@ -117,6 +150,11 @@ export class EveStretch extends EveEntity
     return true;
   }
 
+  /**
+   * Advances the curve sets, the progress curve and the move-completion set on
+   * time measured from startTime, which is latched on the first frame after
+   * StartMoving.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Curve LOD is renderer policy in Carbon; runtime-trinity retains the authored gate and updates graph curves without device globals.")
   UpdateCurves(context)
@@ -133,6 +171,16 @@ export class EveStretch extends EveEntity
     updateCurveSet(this.moveCompletion, relative);
   }
 
+  /**
+   * Computes the source, destination, stretch and move placements for the frame
+   * and hands each to its child; the stretch itself never draws, so nothing is
+   * realized on the GPU here. In transform mode (SetSourceTransform) the
+   * authored transforms are used, the source taking a fixed -90 degree X
+   * correction and parentTransform being ignored; otherwise the bases are
+   * derived from the sampled endpoints, scaled by the endpoint scales and
+   * combined with parentTransform. Latches moveCompleted and hides the move
+   * child once the progress curve reaches 1.
+   */
   @carbon.method @impl.adapted
   @impl.reason("The transforms are computed in Trinity, while child render realization remains backend-owned.")
   UpdateVisibility(context, parentTransform = EveStretch.#identity)
@@ -202,6 +250,10 @@ export class EveStretch extends EveEntity
     }
   }
 
+  /**
+   * Appends the displayed children's renderables to out; this package stops at collection, and runtime-engine turns the collected objects into draw batches.
+   * @returns {Array} out
+   */
   @carbon.method @impl.adapted
   @impl.reason("Renderable collection is backend-neutral; runtime-engine turns the returned objects into draw batches.")
   GetRenderables(out = [])
@@ -214,6 +266,11 @@ export class EveStretch extends EveEntity
     return out;
   }
 
+  /**
+   * Restarts the travelling child from the source end: clears the latched start
+   * time and the completion flag, re-shows the move child and fires the stretch
+   * audio event.
+   */
   @carbon.method @impl.implemented
   StartMoving()
   {
@@ -225,6 +282,7 @@ export class EveStretch extends EveEntity
     else this.audio?.SendEvent?.("wise:/msg_fx_play_stretch");
   }
 
+  /** Starts the travelling child and plays the first curve set. */
   @carbon.method @impl.implemented
   Start()
   {
@@ -232,12 +290,21 @@ export class EveStretch extends EveEntity
     this.curveSets[0]?.Play?.();
   }
 
+  /**
+   * Shows or hides the whole stretch, gating visibility, renderable collection
+   * and light contribution.
+   */
   @carbon.method @impl.implemented
   SetDisplay(display)
   {
     this.display = !!display;
   }
 
+  /**
+   * Pins the source endpoint to a plain position, which also switches the
+   * stretch out of transform mode so the source orientation is derived from the
+   * span again.
+   */
   @carbon.method @impl.implemented
   SetSourcePosition(value)
   {
@@ -245,6 +312,10 @@ export class EveStretch extends EveEntity
     vec3.copy(this.#sourcePosition, value);
   }
 
+  /**
+   * Pins the destination endpoint and rebuilds its transform as a pure
+   * translation.
+   */
   @carbon.method @impl.implemented
   SetDestinationPosition(value)
   {
@@ -252,6 +323,11 @@ export class EveStretch extends EveEntity
     translationMatrix(value, this.#destinationTransform);
   }
 
+  /**
+   * Pins the source endpoint from a full transform and switches the stretch into
+   * transform mode, so UpdateVisibility uses the supplied orientation instead of
+   * deriving one from the two endpoints.
+   */
   @carbon.method @impl.implemented
   SetSourceTransform(value)
   {
@@ -260,6 +336,10 @@ export class EveStretch extends EveEntity
     mat4.getTranslation(this.#sourcePosition, value);
   }
 
+  /**
+   * Pins the destination endpoint from a full transform and takes its position
+   * from that transform's translation.
+   */
   @carbon.method @impl.implemented
   SetDestinationTransform(value)
   {
@@ -267,12 +347,20 @@ export class EveStretch extends EveEntity
     mat4.getTranslation(this.#destinationPosition, value);
   }
 
+  /**
+   * Reverses the direction the stretch child is scaled along, for effects
+   * authored pointing down -Z.
+   */
   @carbon.method @impl.implemented
   SetIsNegZForward(value)
   {
     this.#negativeZ = !!value;
   }
 
+  /**
+   * Longest curve-set duration in seconds, each divided by that set's own time
+   * scale.
+   */
   @carbon.method @impl.implemented
   GetCurveDuration()
   {
@@ -285,6 +373,10 @@ export class EveStretch extends EveEntity
     return duration;
   }
 
+  /**
+   * Begins a firing cycle by curve-set name convention: play_start and play_loop are played from -delay, play_end is stopped, and the audio outburst/impact/stretch events are triggered. Starting play_start also restarts the travelling child.
+   * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
+   */
   @carbon.method @impl.implemented
   StartFiring(delay = 0)
   {
@@ -305,6 +397,10 @@ export class EveStretch extends EveEntity
     this.audio?.TriggerStretchEvent?.();
   }
 
+  /**
+   * Ends a firing cycle: play_start and play_loop stop, play_end plays, the
+   * travelling child restarts and the stretch audio stops.
+   */
   @carbon.method @impl.implemented
   StopFiring()
   {
@@ -322,6 +418,10 @@ export class EveStretch extends EveEntity
     this.stretchAudio?.Stop?.();
   }
 
+  /**
+   * Sets both endpoints from a firing call, accepting either a 16-element source
+   * transform or a source position, and marks the stretch as -Z forward.
+   */
   @carbon.method @impl.implemented
   SetFiringTransform(source, destination)
   {
@@ -331,6 +431,10 @@ export class EveStretch extends EveEntity
     this.SetIsNegZForward(true);
   }
 
+  /**
+   * Selects which endpoint children take part in updates, visibility, renderable
+   * collection and light contribution.
+   */
   @carbon.method @impl.implemented
   DisplayEndPoints(displaySource, displayDestination)
   {
@@ -338,23 +442,40 @@ export class EveStretch extends EveEntity
     this.#displayDestination = !!displayDestination;
   }
 
+  /**
+   * Uniform scale applied to the source endpoint child's basis and to its light
+   * placement.
+   */
   @carbon.method @impl.implemented
   SetSourceObjectScale(scale)
   {
     this.#sourceScale = Number(scale);
   }
 
+  /**
+   * Uniform scale applied to the destination endpoint child's basis and to its
+   * light placement.
+   */
   @carbon.method @impl.implemented
   SetDestObjectScale(scale)
   {
     this.#destinationScale = Number(scale);
   }
 
+  /**
+   * IEveFiringEffectElement intensity hook; EveStretch has no intensity term of
+   * its own.
+   */
   @carbon.method @impl.noop
   SetIntensity(_intensity)
   {
   }
 
+  /**
+   * Merges the bounding spheres of the source, destination and stretch children; the travelling child is not included.
+   * @param {Array} out - caller-owned packed (x, y, z, radius), overwritten
+   * @returns {Boolean} whether any child contributed a sphere
+   */
   @carbon.method @impl.adapted
   @impl.reason("Bounds are merged from graph children without Carbon's native BoundingSphere helper.")
   GetBoundingSphere(out = vec4.create())
@@ -370,6 +491,11 @@ export class EveStretch extends EveEntity
     return out[3] > 0;
   }
 
+  /**
+   * Offers the source and destination lights to the light manager at their
+   * endpoint positions, each scaled by its endpoint scale; a hidden stretch or a
+   * hidden endpoint contributes nothing.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Light ownership is forwarded to browser light objects; device light-manager registration stays outside Trinity.")
   GetLights(lightManager)

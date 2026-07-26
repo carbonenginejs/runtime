@@ -317,6 +317,7 @@ export class Tr2StateMachineState extends CjsModel
     }
     return !this.finalizer || !controller || this.finalizer.CanTransition(controller);
   }
+
   /**
    * Finds the destination of the first transition that activates against a fully
    * dirty variable mask, used to resolve where to go once finalizing completes.
@@ -333,6 +334,7 @@ export class Tr2StateMachineState extends CjsModel
     }
     return null;
   }
+
   /**
    * Gets the controller through the linked state machine, or null when this
    * state is unlinked.
@@ -341,6 +343,7 @@ export class Tr2StateMachineState extends CjsModel
   {
     return this.#stateMachine?.GetController?.() ?? null;
   }
+
   /**
    * Links and starts an inserted action when the state is already active, or
    * stops and unlinks a removed one.
@@ -373,6 +376,7 @@ export class Tr2StateMachineState extends CjsModel
         break;
     }
   }
+
   /**
    * Links or unlinks a transition as the list changes and recomputes the
    * combined variable mask, which gates whether Update evaluates transitions at

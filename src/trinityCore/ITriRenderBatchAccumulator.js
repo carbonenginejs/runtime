@@ -33,6 +33,7 @@ export class ITriRenderBatchAccumulator
 
   // Bind the per-object-data store (from the render context). Carbon's pool
   // allocator (Tr2Renderer::GetPoolAllocator) relocates onto this store.
+
   /**
    * Binds the per-object-data store, normally taken from the render context at
    * scene setup; returns this for chaining.
@@ -52,6 +53,7 @@ export class ITriRenderBatchAccumulator
   // Lease a transient per-object payload for a registered struct (the pooled
   // per-object-data allocation). Requires a store - there is no fallback; a
   // missing store is a setup error, not a silent tight-pack.
+
   /**
    * Leases a transient per-object payload for a registered struct from the bound
    * store; a missing store throws rather than silently falling back, because it
@@ -70,6 +72,7 @@ export class ITriRenderBatchAccumulator
   // Carbon pool-allocates per-object data from the accumulator; in JS the GC
   // owns lifetime, so this just constructs the requested object. Retained for
   // the deferred { object: this } sites during the per-object-data migration.
+
   /**
    * Constructs the requested per-object-data object; Carbon pool-allocates here,
    * but in JS the GC owns lifetime, so this only calls the constructor.

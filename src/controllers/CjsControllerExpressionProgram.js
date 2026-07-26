@@ -62,6 +62,7 @@ const CURVE_EXPRESSION_TERMS = [
   ...(parameters ? { parameters } : {}),
   description
 }));
+
 /**
  * Compiles a Carbon controller or curve expression into an AST and evaluates it
  * without dynamic JavaScript eval, exposing the referenced variable and function
@@ -308,11 +309,16 @@ export class CjsControllerExpressionProgram
     return terms;
   }
 
+  /**
+   * Static factory that compiles expression source into a ready program, the
+   * form callers use instead of constructing and compiling in two steps.
+   */
   static Compile(source, options = {})
   {
     return new CjsControllerExpressionProgram(source, options);
   }
 }
+
 /**
  * Recursive-descent parser turning expression source into the AST evaluated by
  * CjsControllerExpressionProgram, collecting referenced variable and function
@@ -340,6 +346,7 @@ class CjsControllerExpressionParser
     this.options = options || {};
     this.tokens = Tokenize(source);
   }
+
   /**
    * Parses the whole source as a single expression and requires that all input
    * is consumed.
@@ -350,6 +357,7 @@ class CjsControllerExpressionParser
     this.Expect("eof");
     return expression;
   }
+
   /**
    * Parses the ternary `cond ? a : b` level, which is right-associative and the
    * lowest-precedence form.
@@ -371,6 +379,7 @@ class CjsControllerExpressionParser
     }
     return condition;
   }
+
   /** Parses left-associative `||` chains. */
   ParseLogicalOr()
   {
@@ -386,6 +395,7 @@ class CjsControllerExpressionParser
     }
     return node;
   }
+
   /** Parses left-associative `&&` chains, which bind tighter than `||`. */
   ParseLogicalAnd()
   {
@@ -401,6 +411,7 @@ class CjsControllerExpressionParser
     }
     return node;
   }
+
   /** Parses left-associative `==` and `!=` chains. */
   ParseEquality()
   {
@@ -431,6 +442,7 @@ class CjsControllerExpressionParser
       }
     }
   }
+
   /**
    * Parses left-associative `<`, `<=`, `>` and `>=` chains, which bind tighter
    * than equality.
@@ -482,6 +494,7 @@ class CjsControllerExpressionParser
       }
     }
   }
+
   /** Parses left-associative `+` and `-` chains. */
   ParseTerm()
   {
@@ -512,6 +525,7 @@ class CjsControllerExpressionParser
       }
     }
   }
+
   /**
    * Parses left-associative `*`, `/` and `%` chains, which bind tighter than
    * addition.
@@ -554,6 +568,7 @@ class CjsControllerExpressionParser
       }
     }
   }
+
   /**
    * Parses `^` power chains; unlike most languages this level is
    * left-associative here.
@@ -572,6 +587,7 @@ class CjsControllerExpressionParser
     }
     return node;
   }
+
   /**
    * Parses right-nested prefix `!`, `-` and `+` operators, falling through to a
    * primary when none is present.
@@ -604,6 +620,7 @@ class CjsControllerExpressionParser
     }
     return this.ParsePrimary();
   }
+
   /**
    * Parses a number, string, parenthesized expression, function call, built-in
    * constant, or a variable identifier, recording bare identifiers in
@@ -655,6 +672,7 @@ class CjsControllerExpressionParser
     }
     throw this.Error(`Unexpected token '${String(token.value)}'`);
   }
+
   /**
    * Parses a call argument list after the opening parenthesis and fails
    * compilation when the name resolves to no built-in or caller-supplied
@@ -683,6 +701,7 @@ class CjsControllerExpressionParser
       args
     };
   }
+
   /**
    * Rejects identifiers such as `__proto__`, `constructor` and `globalThis` that
    * could be used to escape the sandboxed evaluator.
@@ -694,6 +713,7 @@ class CjsControllerExpressionParser
       throw this.Error(`Unsafe identifier '${name}'`);
     }
   }
+
   /**
    * Returns the token at the cursor without consuming it; the stream always ends
    * with an `eof` token.
@@ -702,6 +722,7 @@ class CjsControllerExpressionParser
   {
     return this.tokens[this.index];
   }
+
   /**
    * Consumes the next token and returns true when it has the given type and, if
    * supplied, the given value; otherwise leaves the cursor untouched.
@@ -720,6 +741,7 @@ class CjsControllerExpressionParser
     this.index++;
     return true;
   }
+
   /**
    * Consumes and returns the next token, throwing a compile error naming the
    * expected form when it does not match.
@@ -733,6 +755,7 @@ class CjsControllerExpressionParser
     }
     throw this.Error(`Expected ${value || type}, got '${token ? String(token.value) : "end of input"}'`);
   }
+
   /**
    * Builds a compile error carrying the source text and the character position
    * of the current token.
@@ -1449,6 +1472,7 @@ function HasFunction(value, key)
 {
   return HasProperty(value, key) && typeof value[key] === "function";
 }
+
 /**
  * Error raised while tokenizing or parsing an expression, carrying the source
  * text, the reason, and the character position at which parsing failed.
@@ -1458,6 +1482,7 @@ export class CjsControllerExpressionCompileError extends Error
   expression;
   reason;
   position;
+
   /**
    * Formats the message as the position, reason and full expression so a failed
    * compile is diagnosable from the message alone.
@@ -1471,6 +1496,7 @@ export class CjsControllerExpressionCompileError extends Error
     this.position = data.position;
   }
 }
+
 /**
  * Error raised while evaluating a compiled expression, carrying the source text
  * and the reason.
@@ -1479,6 +1505,7 @@ export class CjsControllerExpressionEvaluateError extends Error
 {
   expression;
   reason;
+
   /**
    * Formats the message as the reason and the full expression; unlike compile
    * errors there is no meaningful source position at evaluation time.

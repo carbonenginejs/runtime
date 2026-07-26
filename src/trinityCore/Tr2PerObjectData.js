@@ -7,6 +7,7 @@
 // concrete GPU upload path (Carbon SetPerObjectDataToDevice / ApplyConstantBuffers,
 // which write Tr2ConstantBufferAL) is engine-owned and intentionally not modelled
 // here; the engine reads whatever data a concrete subclass exposes at dispatch.
+
 /**
  * GPU-free base for per-object render data, carrying the object id a batch is
  * picked and identified by; the GPU upload path is engine-owned.

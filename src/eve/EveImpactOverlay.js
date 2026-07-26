@@ -8,6 +8,11 @@ import { Tr2ScalarFader } from "../curves/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../generated/include/enums.js";
 
 
+/**
+ * The damage presentation for one ship: shield, armour and hull impact
+ * resources, the faders driving hardening and repair effects, and the
+ * data-texture bookkeeping that feeds them.
+ */
 @type.define({ className: "EveImpactOverlay", family: "eve/overlays/impact" })
 export class EveImpactOverlay extends CjsModel
 {
@@ -126,6 +131,7 @@ export class EveImpactOverlay extends CjsModel
 
   #lastDamageState = vec3.fromValues(1, 1, 1);
 
+  /** Post-hydration hook; the overlay needs no additional setup. */
   @carbon.method
   @impl.implemented
   Initialize()
@@ -133,6 +139,11 @@ export class EveImpactOverlay extends CjsModel
     return true;
   }
 
+  /**
+   * Assigns the overlay's authored resources in one call - the hull flicker
+   * curve, the armour and hull impact emitters, the armour damage shader and the
+   * shield impact mesh - together with the shield shape flag.
+   */
   @carbon.method
   @impl.adapted
   Set(hullDamageFlickerCurve, armorDamageEmitter, hullImpactEmitter, armorDamageShader, shieldImpactMesh, shieldIsEllipsoid)
@@ -146,6 +157,10 @@ export class EveImpactOverlay extends CjsModel
     return true;
   }
 
+  /**
+   * Sets the per-ship random seed that varies impact placement between otherwise
+   * identical hulls.
+   */
   @carbon.method
   @impl.adapted
   SetSeed(seed)
@@ -154,6 +169,11 @@ export class EveImpactOverlay extends CjsModel
     return true;
   }
 
+  /**
+   * Records how many damage locators the owning object exposes; derived from the
+   * owner at lifecycle time, so it is deliberately kept out of the values
+   * interchange.
+   */
   @carbon.method
   @impl.adapted
   SetDamageLocatorCount(count)
@@ -162,6 +182,10 @@ export class EveImpactOverlay extends CjsModel
     return true;
   }
 
+  /**
+   * Number of damage locators the owning object exposes, as last recorded by
+   * SetDamageLocatorCount.
+   */
   @carbon.method
   @impl.adapted
   GetDamageLocatorCount()
@@ -169,6 +193,7 @@ export class EveImpactOverlay extends CjsModel
     return this.#damageLocatorCount;
   }
 
+  /** Seconds an armour impact stays alive before it is retired. */
   @carbon.method
   @impl.implemented
   GetArmorImpactLifeTime()
@@ -176,6 +201,11 @@ export class EveImpactOverlay extends CjsModel
     return this.#armorImpactLifeTime;
   }
 
+  /**
+   * Copies the last recorded shield, armour and hull damage state.
+   * @param {Array} out - caller-owned vec3; a fresh vector is allocated when omitted
+   * @returns {Array} out
+   */
   @carbon.method
   @impl.adapted
   GetLastDamageState(out = vec3.create())
@@ -183,6 +213,10 @@ export class EveImpactOverlay extends CjsModel
     return vec3.copy(out, this.#lastDamageState);
   }
 
+  /**
+   * Row offset of this overlay's block in the shared impact data texture, or -1
+   * while it has no block.
+   */
   @carbon.method
   @impl.adapted
   GetDataTextureOffset()
@@ -190,6 +224,7 @@ export class EveImpactOverlay extends CjsModel
     return this.#dataTextureOffset;
   }
 
+  /** Which ImpactConfiguration this overlay was authored for. */
   @carbon.method
   @impl.adapted
   GetImpactConfiguration()
@@ -197,6 +232,10 @@ export class EveImpactOverlay extends CjsModel
     return this.configuration;
   }
 
+  /**
+   * Whether the shield is presented as a generated ellipsoid rather than the
+   * authored shield impact mesh.
+   */
   @carbon.method
   @impl.adapted
   HasShieldEllipsoid()
@@ -204,6 +243,11 @@ export class EveImpactOverlay extends CjsModel
     return this.shieldIsEllipsoid;
   }
 
+  /**
+   * Starts a fade on the named shield, armour or hull effect; the fade runs over a quarter of the requested duration.
+   * @param {String} name - one of shieldboost, shieldhardening, armorhardening, armorrepair, hullrepair
+   * @returns {Boolean} false when the name matches no fader
+   */
   @carbon.method
   @impl.adapted
   ToggleEffect(name, on, duration)
@@ -214,6 +258,10 @@ export class EveImpactOverlay extends CjsModel
     return true;
   }
 
+  /**
+   * Maps an effect name to the fader that drives it, or null when the name is
+   * unknown.
+   */
   static #effectFader(overlay, name)
   {
     switch (name)

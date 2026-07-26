@@ -165,6 +165,7 @@ export class Tr2ActionAnimateCurveSet extends CjsModel
       action: this
     }))) || 0;
   }
+
   /**
    * Compiles the authored time expression, reusing the cached program while the
    * expression text is unchanged.

@@ -83,6 +83,7 @@ export class Tr2Controller extends CjsModel
   {
     return this.#callbackCount;
   }
+
   /**
    * Number of named callbacks currently registered; mirrored as a field so
    * consumers can observe registration without walking the private callback
@@ -556,6 +557,7 @@ export class Tr2Controller extends CjsModel
       time: this.#time
     };
   }
+
   /**
    * Links and starts an inserted state machine, or stops and unlinks a removed
    * one, so list edits stay consistent with the controller's play state.
@@ -587,6 +589,7 @@ export class Tr2Controller extends CjsModel
         break;
     }
   }
+
   /**
    * Links an inserted event handler to this controller and unlinks a removed
    * one.
@@ -607,6 +610,7 @@ export class Tr2Controller extends CjsModel
         break;
     }
   }
+
   /**
    * Relinks the whole controller when a variable is inserted or removed, because
    * the variable buffer and per-variable dirty bits are index-based and must be

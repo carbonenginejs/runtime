@@ -16,6 +16,7 @@ import { EveEntity } from "../EveEntity.js";
 // fan-out. Children whose Carbon class is not an EveEntity simply never get
 // forwarded a registry (Carbon's BlueCastPtr fails; JS registers them with no
 // components, base RegisterComponents being a no-op).
+
 /**
  * Shared base for space-object children: holds the SRT values, local and world
  * transforms, and the rules by which a child's world transform is derived from
@@ -121,6 +122,7 @@ export class EveChildTransform extends EveEntity
   // row-vector convention (local first, then parent), which is
   // mat4.multiply(world, parent, local) in gl-matrix - matching
   // EveTransform.UpdateViewDependentData.
+
   /**
    * Recomputes the child's world transform from its parent for this frame - the single place a child's placement is driven. A staticTransform or non-SRT child reuses its local transform as-is; otherwise it is recomposed first, and when useStaticScale or useStaticRotation is set the parent is decomposed and rebuilt with unit scale and/or identity rotation before the two are combined.
    * @param {Float32Array} parentTransform - borrowed, read only

@@ -129,6 +129,7 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
   {
     return !!this.variable;
   }
+
   /**
    * Resolves `destination` by case-insensitively matching destinationOwner
    * against the owner's binding roots, and records the name it resolved against

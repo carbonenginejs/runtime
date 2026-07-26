@@ -90,6 +90,7 @@ export class TriTextureParameter extends CjsParameter
     }
     return CjsParameter.hashFnv1String(this.name, startingHash);
   }
+
   /**
    * Sets the name through SetValues so the effectHandles rebuild flag fires;
    * returns whether it changed.
@@ -100,6 +101,7 @@ export class TriTextureParameter extends CjsParameter
   {
     return this.SetValues({ name: String(name) }, { source: this, returnBoolean: true });
   }
+
   /**
    * The path of the currently attached texture when it exposes one, falling back
    * to the authored resourcePath - so after a redirect this can differ from what
@@ -112,6 +114,7 @@ export class TriTextureParameter extends CjsParameter
     const resource = this.GetResource();
     return resource?.GetPath?.() ?? resource?.path ?? resource?.resourcePath ?? this.resourcePath;
   }
+
   /**
    * Sets the authored path and raises the resource flag, so the next OnModified
    * drops the attached texture and asks for it again.
@@ -122,6 +125,7 @@ export class TriTextureParameter extends CjsParameter
   {
     this.SetValues({ resourcePath: String(resourcePath) }, { source: this });
   }
+
   /**
    * Attaches a resolved texture provider, discards any low-res stand-in,
    * re-resolves effect handles against the cached shader and notifies owning
@@ -139,6 +143,7 @@ export class TriTextureParameter extends CjsParameter
     this.RebuildEffectHandles(this.#cachedEffect);
     this.OnTextureChanged();
   }
+
   /**
    * The texture actually in use: the low-res stand-in while one is active,
    * otherwise the resolved resource.
@@ -149,6 +154,7 @@ export class TriTextureParameter extends CjsParameter
   {
     return this.#lowResResource ?? this.resource;
   }
+
   /** Always true - a texture swap must dirty the owning materials' resource sets. */
   @carbon.method
   @impl.implemented
@@ -156,6 +162,7 @@ export class TriTextureParameter extends CjsParameter
   {
     return true;
   }
+
   /**
    * Turns on screen-size-driven mip selection and stores the density scales; Carbon's spelling of the method name is kept.
    * @param uvDensityScale five scales: the world-position scale first, then the four UV-set scales
@@ -171,6 +178,7 @@ export class TriTextureParameter extends CjsParameter
     this.uvDensityScale2 = Number(uvDensityScale[3] ?? 0);
     this.uvDensityScale3 = Number(uvDensityScale[4] ?? 0);
   }
+
   /** Turns mip selection off, so UsedWithScreenSize then always requests LOD 0. */
   @carbon.method
   @impl.implemented
@@ -178,6 +186,7 @@ export class TriTextureParameter extends CjsParameter
   {
     this.#textureLodEnabled = false;
   }
+
   /**
    * Carbon TriTextureParameter::UsedWithScreenSize (cpp:53-97): takes the largest resolution demanded by the world-position and per-UV-set densities, compares it against the texture's native resolution, and asks the resource for the resulting mip level.
    * @returns {number} the requested LOD, 0 when LOD is disabled or no density applies
@@ -221,6 +230,7 @@ export class TriTextureParameter extends CjsParameter
     this.#requestResourceResolution(requestedLod);
     return requestedLod;
   }
+
   /**
    * Consumes the two dirty flags: `resource` drops the attached texture and
    * re-initializes, `effectHandles` re-resolves against the cached shader.
@@ -242,6 +252,7 @@ export class TriTextureParameter extends CjsParameter
     }
     return true;
   }
+
   /**
    * Nothing to do in this GPU-free package - res paths are never resolved to
    * texture bytes here; returns true so callers can treat initialization as
@@ -253,6 +264,7 @@ export class TriTextureParameter extends CjsParameter
   {
     return true;
   }
+
   /**
    * Caches the shader and records whether it exposes a resource or constant of
    * this name; no GPU binding is created.
@@ -266,6 +278,7 @@ export class TriTextureParameter extends CjsParameter
     this.usedByCurrentEffect = used;
     this.usedByCurrentTechnique = used;
   }
+
   /**
    * Registers a material to be notified when the texture changes; duplicates are
    * ignored.
@@ -279,6 +292,7 @@ export class TriTextureParameter extends CjsParameter
       this.#materials.push(material);
     }
   }
+
   /**
    * Stops notifying a material; the material reference is dropped, not the
    * texture.
@@ -293,6 +307,7 @@ export class TriTextureParameter extends CjsParameter
       this.#materials.splice(index, 1);
     }
   }
+
   /**
    * Tells every owning material that its resource sets and constant buffers are
    * stale.
@@ -308,6 +323,7 @@ export class TriTextureParameter extends CjsParameter
       target?.MarkConstantBuffersDirty?.();
     }
   }
+
   /**
    * Asks the texture currently in use for a mip level, if it supports resolution
    * requests.

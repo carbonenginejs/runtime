@@ -56,6 +56,7 @@ export class CjsBatchManager
   // producer type names that MUST be registered before Initialize succeeds.
   // createAccumulator: optional (batchType) => accumulator factory forwarded to
   // the TriRenderBatchMap (e.g. an order-preserving accumulator for TRANSPARENT).
+
   /**
    * Configures which TriBatchType values are collected, which producer types
    * Initialize must find registered, and an optional per-batch-type accumulator
@@ -72,6 +73,7 @@ export class CjsBatchManager
   // batchMap, perObjectData, reason) emits data batches; Realize(renderable) is
   // the engine's pull-realization (consumes __state.rebuild tokens, fast-exits
   // when current). Registration is closed once Initialize has run.
+
   /**
    * Registers producer hooks given as { type, Build, Realize? } entries,
    * rejecting duplicates and malformed entries; registration closes once
@@ -100,6 +102,7 @@ export class CjsBatchManager
   // Registers a scene-global collector (e.g. the quad or instanced-mesh family):
   // Collect(renderables, batchMap, reason) runs once per frame after the
   // per-renderable pass (Carbon precedent: Tr2QuadRenderer, EveInstancedMeshManager).
+
   /**
    * Registers a scene-global collector whose Collect runs once per frame after
    * the per-renderable pass; must also be called before Initialize.
@@ -116,6 +119,7 @@ export class CjsBatchManager
 
   // Fail-closed gate: throws if a required producer type has no registration.
   // Creates the per-TriBatchType accumulator map and closes the registry.
+
   /**
    * Fail-closed gate: throws when any required producer type is unregistered,
    * then creates the per-batch-type accumulator map and closes the registry.
@@ -158,6 +162,7 @@ export class CjsBatchManager
   // Scene-global collectors run after; Finalize sorts/group-counts every
   // accumulator. renderContext supplies the relocated view position (Carbon
   // reads a renderer global). Returns the finalized batch map.
+
   /**
    * Runs the per-frame CPU collection over pre-culled renderables - realize,
    * per-renderable build into every non-transparent type, then a back-to-front
@@ -261,6 +266,7 @@ export class CjsBatchManager
   // A renderable DECLARES its producer type (method or plain property); it never
   // owns builder code. Returns null when undeclared (duck-typed GetBatches
   // fallback applies).
+
   /**
    * Looks up the producer a renderable declares through GetBatchProducerType or
    * a batchProducerType property; null means the duck-typed GetBatches fallback
@@ -275,6 +281,7 @@ export class CjsBatchManager
   // True when the object advertises pending scheduled GPU work via the shared
   // __state.rebuild token set (kb section 8). Realizers use this (plus their own
   // per-token checks) to fast-exit when current.
+
   /**
    * Whether an object advertises pending scheduled GPU work through its shared
    * __state.rebuild token set.
@@ -290,6 +297,7 @@ export class CjsBatchManager
   // child tokens alongside the owner's - no upward token copying is performed.
   // This helper answers "does the owner or any child advertise work"; the
   // realizer still clears each consumed token where it lives.
+
   /**
    * Whether the owner or any listed child advertises rebuild work; child tokens
    * stay where they live, and the realizer still clears each consumed token

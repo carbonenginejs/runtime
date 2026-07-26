@@ -250,6 +250,7 @@ export class Tr2MeshBase extends CjsModel
   // scene collector can drive a mesh directly and a transform can pass a
   // pre-fetched vector (Carbon Tr2Transform::GetBatches passes GetAreas(type)).
   // Returns whether any batch was committed (JS addition; Carbon returns void).
+
   /**
    * Emits one batch per displayed area into the accumulator, where areas may be
    * a TriBatchType or an already-resolved area list, so a scene collector or a
@@ -280,6 +281,7 @@ export class Tr2MeshBase extends CjsModel
   // material/shader key, and the geometry + area range are recorded as a source
   // descriptor for the engine to realize. Returns null for a hidden or
   // material-less area (Carbon returns an invalid batch in those cases).
+
   /**
    * Builds one GPU-free batch for a mesh area, using the area's effect as
    * material and shader key and recording geometry plus area range as a source
@@ -309,6 +311,7 @@ export class Tr2MeshBase extends CjsModel
   // Appends one (startIndex, count) block per area of the requested type.
   // Carbon deliberately skips non-shadow-casting OPAQUE areas here too (overlay
   // rendering over e.g. scaffolding build effects causes problems).
+
   /**
    * Appends one clamped (startIndex, count) block per area of the requested type
    * to the caller's collector, skipping non-shadow-casting OPAQUE areas as
@@ -333,6 +336,7 @@ export class Tr2MeshBase extends CjsModel
   // Appends blocks grouped by shared area material (the shadow path). Skips
   // non-shadow-casting OPAQUE and DECAL areas. Faithfully does NOT clamp
   // negative index/count (Carbon asymmetry with CollectAreaBlocks).
+
   /**
    * Appends blocks grouped by shared area material for the shadow path, skipping
    * non-shadow-casting OPAQUE and DECAL areas, and faithfully reproduces

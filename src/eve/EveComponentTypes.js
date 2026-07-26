@@ -15,20 +15,28 @@ export { ReflectionMode, ReflectionSetting };
 export const EveComponentType = Object.freeze({
   /** ITr2Renderable (ITr2Renderable.h:58). */
   ReflectionRenderable: "ReflectionRenderable",
+
   /** ITr2VolumetricRenderable (ITr2VolumetricRenderable.h:55). */
   VolumetricRenderable: "VolumetricRenderable",
+
   /** ITr2MeshMorph (ITr2MeshMorph.h:14). */
   MeshMorph: "MeshMorph",
+
   /** ITr2PostProcessOwner (PostProcess/ITr2PostProcessOwner.h:15). */
   PostProcessOwner: "PostProcessOwner",
+
   /** IEveInstanceMeshProvider (Eve/EveInstancedMeshManager.h:273). */
   InstancedMeshProvider: "InstancedMeshProvider",
+
   /** ITr2LightOwner (Lights/ITr2LightOwner.h:18). */
   LightOwner: "LightOwner",
+
   /** ITr2FroxelFogSettings (Tr2VolumetricsRenderer.h:57). */
   FroxelFogSettings: "FroxelFogSettings",
+
   /** IEveShadowCaster (Eve/IEveShadowCaster.h:164). */
   ShadowCaster: "ShadowCaster",
+
   /** IEveLightingOverride (EveChildLightingOverride.h:35). */
   EveLightingOverride: "EveLightingOverride"
 });
@@ -44,6 +52,7 @@ export const EveComponentType = Object.freeze({
 export const EveComponentRequiredMethods = Object.freeze({
   /** ITr2Renderable.h:47-57 pure virtuals. */
   ReflectionRenderable: Object.freeze(["GetBatches", "HasTransparentBatches", "GetSortValue", "GetPerObjectData"]),
+
   /** ITr2VolumetricRenderable.h:44-51 pure virtuals. */
   VolumetricRenderable: Object.freeze([
     "GetSortValue",
@@ -55,18 +64,25 @@ export const EveComponentRequiredMethods = Object.freeze({
     "PrepareCloudShadowMap",
     "SetCloudShadowMapHandle"
   ]),
+
   /** ITr2MeshMorph.h:11. */
   MeshMorph: Object.freeze(["UpdateMeshMorphs"]),
+
   /** PostProcess/ITr2PostProcessOwner.h:12. */
   PostProcessOwner: Object.freeze(["GetPostProcessAttributes"]),
+
   /** Eve/EveInstancedMeshManager.h:270. */
   InstancedMeshProvider: Object.freeze(["AddMeshesToManager"]),
+
   /** Lights/ITr2LightOwner.h:13. */
   LightOwner: Object.freeze(["GetLights"]),
+
   /** Tr2VolumetricsRenderer.h:55. */
   FroxelFogSettings: Object.freeze(["GetFroxelFogSettings"]),
+
   /** Eve/IEveShadowCaster.h:143-149 pure virtuals. */
   ShadowCaster: Object.freeze(["IsCastingShadow", "GetShadowBatches", "GetShadowPerObjectData"]),
+
   /** EveChildLightingOverride.h:31. */
   EveLightingOverride: Object.freeze(["GetOverrides"])
 });

@@ -8,6 +8,10 @@ import { Tr2CurveScalar } from "../curves/Tr2CurveScalar.js";
 import { TriCurveSet } from "../curves/TriCurveSet.js";
 
 
+/**
+ * Tracks a set of moving points, estimates the volume covering them, and drives
+ * a curve set from the eased camera distance to that volume.
+ */
 @type.define({
   className: "EveDistanceField",
   family: "eve"
@@ -79,6 +83,11 @@ export class EveDistanceField extends CjsModel
 
   #isDynamic = false;
 
+  /**
+   * Configures the field as static, so its extent and midpoint are the authored
+   * ones rather than derived from tracked objects, and rebuilds the distance
+   * curve set.
+   */
   @carbon.method
   @impl.adapted
   SetupStaticDistanceField(dimensions, position, distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
@@ -93,6 +102,11 @@ export class EveDistanceField extends CjsModel
     this.#updateDistanceCurveSize();
   }
 
+  /**
+   * Configures the field as dynamic and marks the coverage dirty, so the
+   * midpoint and extent are recomputed from the tracked objects on the next
+   * update.
+   */
   @carbon.method
   @impl.implemented
   SetupDynamicDistanceField(distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
@@ -105,6 +119,13 @@ export class EveDistanceField extends CjsModel
     this.#createCurveSet();
   }
 
+  /**
+   * Measures the camera distance for this frame - to the midpoint when static,
+   * to the nearest tracked point when dynamic - eases the stored distance
+   * towards it using the in or out time constant depending on which way it
+   * moves, and drives the curve set. The distance is the curve set's time axis,
+   * not a delta.
+   */
   @carbon.method
   @impl.adapted
   Update(updateContext)
@@ -153,6 +174,10 @@ export class EveDistanceField extends CjsModel
     }
   }
 
+  /**
+   * Defers a distance-curve rebuild to the next update when the minimum or
+   * maximum distance changed.
+   */
   @carbon.method
   @impl.adapted
   OnModified(_options = {})
@@ -164,6 +189,11 @@ export class EveDistanceField extends CjsModel
     return true;
   }
 
+  /**
+   * Marks the coverage dirty when a tracked object is inserted, and resets the
+   * midpoint and extent once the last one is removed; events for other lists are
+   * ignored.
+   */
   @carbon.method
   @impl.adapted
   OnListModified(event, _key = 0, _key2 = 0, _value = null, list = this.objects)
@@ -186,12 +216,17 @@ export class EveDistanceField extends CjsModel
     }
   }
 
+  /** Debug rendering hook; this package produces no debug geometry. */
   @carbon.method
   @impl.noop
   RenderDebugInfo()
   {
   }
 
+  /**
+   * Builds the curve set the field drives: a single named scalar curve falling
+   * linearly from 1 to 0 across the distance range.
+   */
   #createCurveSet()
   {
     this.curveSet = new TriCurveSet();
@@ -203,6 +238,10 @@ export class EveDistanceField extends CjsModel
     this.curveSet.AddCurve(this.#distanceCurve);
   }
 
+  /**
+   * Moves the distance curve's two keys onto the current minimum and maximum
+   * distance and clears the pending-rebuild flag.
+   */
   #updateDistanceCurveSize()
   {
     const keys = this.#distanceCurve?.GetKeys?.() ?? [];
@@ -216,12 +255,20 @@ export class EveDistanceField extends CjsModel
     this.#updateDistanceCurve = false;
   }
 
+  /** Zeroes the midpoint and extent once nothing is being tracked. */
   #setNeutralValues()
   {
     vec3.zero(this.midpoint);
     vec3.zero(this.dimensions);
   }
 
+  /**
+   * Samples every tracked object and returns the distance from the camera to the
+   * nearest of them, capped at the maximum distance. While the coverage is dirty
+   * it also rebuilds the midpoint and extent from the points lying within
+   * distanceThreshold of the mean spread, enforcing the maximum X/Z ratio and
+   * the minimum Y ratio.
+   */
   #calculateFieldCoverageAndDistance(time, cameraPosition, originShift)
   {
     if (this.objects.length === 0)
@@ -276,12 +323,20 @@ export class EveDistanceField extends CjsModel
     return Math.sqrt(distanceNowSq);
   }
 
+  /**
+   * Evaluates a tracked vector curve at time into out, leaving out unchanged
+   * when the curve yields nothing usable.
+   */
   static #sampleObject(object, time, out)
   {
     const result = object?.GetValueAt?.(time, out);
     return result?.length >= 3 ? vec3.copy(out, result) : out;
   }
 
+  /**
+   * Camera position from the view, falling back to the translation of its
+   * transform and then to the origin.
+   */
   static #getCameraPosition(cameraView)
   {
     const direct = cameraView?.GetPosition?.();
@@ -293,11 +348,20 @@ export class EveDistanceField extends CjsModel
     return transform?.length >= 16 ? vec3.fromValues(transform[12], transform[13], transform[14]) : vec3.create();
   }
 
+  /**
+   * Reads the current time from an update context, accepting the
+   * GetTime()/currentTime/time spellings.
+   */
   static #getTime(context)
   {
     return Number(context?.GetTime?.() ?? context?.currentTime ?? context?.time ?? 0);
   }
 
+  /**
+   * Reads the frame delta from an update context, deriving it from the current
+   * and last times when the context exposes no delta directly; the first frame
+   * yields zero.
+   */
   static #getDeltaT(context)
   {
     const direct = context?.GetDeltaT?.() ?? context?.deltaT;
@@ -309,6 +373,10 @@ export class EveDistanceField extends CjsModel
     return lastTime === 0 ? 0 : Number(context?.currentTime ?? 0) - lastTime;
   }
 
+  /**
+   * Reads the scene's floating-origin shift from an update context, or a zero
+   * vector when it has none.
+   */
   static #getOriginShift(context)
   {
     const value = context?.GetOriginShift?.() ?? context?.originShift;

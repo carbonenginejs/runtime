@@ -6,6 +6,7 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
 const TRI_PI = Math.PI;
+
 /**
  * Scalar fade envelope that ramps linearly between 0 and 1 over an authored fade
  * length, and also exposes a separate non-linear kick-in pulse that runs once

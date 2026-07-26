@@ -258,6 +258,7 @@ export class Tr2StateMachine extends CjsModel
   {
     return this.GetStateRunTime();
   }
+
   /**
    * Advances through as many immediately-satisfied transitions as the current
    * state chain produces, resetting the state start time on each hop; after 10

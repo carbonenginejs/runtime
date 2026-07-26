@@ -6,6 +6,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * A vector function that computes a point local to a model - a point on its
+ * bounding hull, a damage or firing locator, a turret muzzle, or an authored
+ * offset - selected by an authored behaviour.
+ */
 @type.define({ className: "EveLocalPositionCurve", family: "eve/renderable/stretch" })
 export class EveLocalPositionCurve extends CjsModel
 {
@@ -27,18 +32,28 @@ export class EveLocalPositionCurve extends CjsModel
 
   #impactEffectIndex = -1;
 
+  /** Post-construction hook that selects the behaviour, defaulting to POS_NONE. */
   @carbon.method @impl.implemented
   __init__(behavior = EveLocalPositionCurve.LocalPositionBehavior.POS_NONE)
   {
     this.SetBehavior(behavior);
   }
 
+  /**
+   * Selects which of the LocalPositionBehavior calculations this curve
+   * evaluates.
+   */
   @carbon.method @impl.implemented
   SetBehavior(behavior)
   {
     this.behavior = Number(behavior) | 0;
   }
 
+  /**
+   * Evaluates the selected behaviour at time.
+   * @param {Array} [out] - caller-owned vec3; defaults to the curve's own value field, so callers that pass nothing update it in place. Under POS_NONE the incoming out is stored as the curve's value and returned unchanged.
+   * @returns {Array} out
+   */
   @carbon.method @impl.adapted
   @impl.reason("Carbon overloads Be::Time and double; JavaScript has one numeric time domain and follows the org out-last convention.")
   Update(time, out = this.value)
@@ -67,6 +82,11 @@ export class EveLocalPositionCurve extends CjsModel
     }
   }
 
+  /**
+   * Seeds out with the last stored value and re-evaluates the behaviour at time, unlike the pure accessors on the simpler curves.
+   * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
+   * @returns {Array} out
+   */
   @carbon.method @impl.adapted
   @impl.reason("JavaScript uses CarbonEngineJS's standard time-first, out-last curve convention.")
   GetValueAt(time, out = vec3.create())
@@ -75,18 +95,31 @@ export class EveLocalPositionCurve extends CjsModel
     return this.Update(time, out);
   }
 
+  /**
+   * The first derivative is undefined for a locator-driven curve; out is
+   * returned untouched.
+   */
   @carbon.method @impl.implemented
   GetValueDotAt(_time, out = vec3.create())
   {
     return out;
   }
 
+  /**
+   * The second derivative is undefined for a locator-driven curve; out is
+   * returned untouched.
+   */
   @carbon.method @impl.implemented
   GetValueDoubleDotAt(_time, out = vec3.create())
   {
     return out;
   }
 
+  /**
+   * Widens the last computed value into a double-precision three-element buffer for the camera-relative path; it does not re-evaluate the behaviour.
+   * @param {Float64Array} [out] - caller-owned; a fresh buffer is allocated when omitted
+   * @returns {Float64Array} out
+   */
   @carbon.method @impl.adapted
   @impl.reason("Vector3d is represented by any three-element numeric output buffer in JavaScript.")
   InterpolatedPosition(_time, out = new Float64Array(3))
@@ -97,6 +130,11 @@ export class EveLocalPositionCurve extends CjsModel
     return out;
   }
 
+  /**
+   * POS_OFFSET_POSITION: the authored offset rotated by the parent rotation
+   * curve and translated by the parent position curve, either of which may be
+   * absent.
+   */
   CalculateOffsetPosition(time, out)
   {
     vec3.copy(out, this.positionOffset);
@@ -113,6 +151,12 @@ export class EveLocalPositionCurve extends CjsModel
     return out;
   }
 
+  /**
+   * POS_OFFSET_PLANE_ROTATION: takes the aligned point (or the authored offset
+   * when there is no align curve), drops it onto the parent's height, and pushes
+   * it back out along that flattened direction to its original distance from the
+   * parent.
+   */
   CalculateOffsetPlaneRotation(time, out)
   {
     sampleVector(this.parentPositionCurve, time, EveLocalPositionCurve.#parentPosition);
@@ -130,6 +174,14 @@ export class EveLocalPositionCurve extends CjsModel
     return out;
   }
 
+  /**
+   * POS_NEAREST_BOUNDING_POINT: walks from the parent position towards the
+   * aligned point by the authored offset plus the radius of the parent's
+   * bounding ellipsoid in that direction, measured in the parent's own frame.
+   * Falls back to the plain parent position when any of the three driving curves
+   * is missing, and skips the ellipsoid term unless all three boundingSize axes
+   * exceed 10.
+   */
   CalculateNearestBoundingPoint(time, out)
   {
     if (!(this.parentPositionCurve && this.alignPositionCurve && this.parentRotationCurve))
@@ -160,12 +212,21 @@ export class EveLocalPositionCurve extends CjsModel
     return vec3.scaleAndAdd(out, parentPosition, direction, scale);
   }
 
+  /**
+   * POS_CENTER_BOUNDING_POINT: asks the parent space object for its model centre
+   * at time; out is unchanged when there is no parent.
+   */
   GetCenterBoundingSphere(time, out)
   {
     this.parent?.UpdateModelCenterWorldPosition?.(time, out);
     return out;
   }
 
+  /**
+   * POS_TARGET_DMG_LOCATOR: on the first call picks the parent damage locator
+   * nearest the aligned point and latches it, then reports that locator's
+   * position on every call.
+   */
   GetDamageLocator(time, out)
   {
     if (!(this.alignPositionCurve && this.parent)) return out;
@@ -178,6 +239,11 @@ export class EveLocalPositionCurve extends CjsModel
     return out;
   }
 
+  /**
+   * POS_TARGET_DMG_LOCATOR_IMPACT: as GetDamageLocator, but also creates an
+   * impact on the parent at that locator the first time, then updates it each
+   * call with the direction from the locator back towards the aligned point.
+   */
   GetDamageLocatorImpact(time, out)
   {
     if (!(this.alignPositionCurve && this.parent)) return out;
@@ -196,6 +262,11 @@ export class EveLocalPositionCurve extends CjsModel
     return out;
   }
 
+  /**
+   * POS_NEAREST_FIRING_LOCATOR: the world position of the configured locator
+   * within the named locator set; out is unchanged when the parent, index or set
+   * name is missing.
+   */
   GetNearestFiringLocator(_time, out)
   {
     if (this.parent && this.locatorIndex !== -1 && this.locatorSetName)
@@ -205,6 +276,10 @@ export class EveLocalPositionCurve extends CjsModel
     return out;
   }
 
+  /**
+   * POS_ACTIVE_TURRET: the translation of the turret set's firing bone for the
+   * configured muzzle; out is unchanged when the turret set has no such bone.
+   */
   GetFiringTurretPosition(_time, out)
   {
     const transform = this.turretSetObject?.GetFiringBoneWorldTransform?.(this.muzzleIndex);

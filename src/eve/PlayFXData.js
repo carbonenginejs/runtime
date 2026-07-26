@@ -4,6 +4,12 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Per-agent scratch for the PlayFX child behaviour: whether the agent's effect
+ * is currently running and the target position it was last aimed at. The
+ * behaviour allocates one record per agent and rewrites it on every behaviour
+ * update.
+ */
 @type.define({
   className: "PlayFXData",
   family: "eve/child/behaviors"

@@ -9,6 +9,11 @@ import { EveComponentType } from "../../EveComponentTypes.js";
 import { getCurveDuration, getOriginShift, getTime, makeEndpointTransforms, updateCurveSet } from "./CjsStretchRuntime.js";
 
 
+/**
+ * A simplified stretch that renders the span between two points as a strip of
+ * quads with its own effect, end emitters, observers and point lights, instead
+ * of hosting child objects.
+ */
 @type.define({ className: "EveStretch2", family: "eve/renderable/stretch" })
 export class EveStretch2 extends EveEntity
 {
@@ -40,6 +45,10 @@ export class EveStretch2 extends EveEntity
   #intensity = 1;
   #effectData = [vec4.fromValues(0, 0, 0, Math.random()), vec4.fromValues(1, 0, 0, 0)];
 
+  /**
+   * Post-hydration hook; validates the authored quad count. Carbon also builds
+   * the procedural GPU buffers here, which is engine work in this port.
+   */
   @carbon.method @impl.adapted
   @impl.reason("GPU buffer preparation belongs to runtime-engine; initialization validates the graph-owned quad count.")
   Initialize()
@@ -47,6 +56,10 @@ export class EveStretch2 extends EveEntity
     return this.OnModified();
   }
 
+  /**
+   * Re-validates quadCount against the 128-quad procedural geometry limit after
+   * a model update and throws a RangeError when it is exceeded.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Carbon rebuilds procedural GPU buffers here; runtime-trinity only enforces the authored 128-quad contract.")
   OnModified()
@@ -58,23 +71,33 @@ export class EveStretch2 extends EveEntity
     return true;
   }
 
+  /**
+   * Sets the destination-end scale and adopts it as the current one, undoing any
+   * hidden-destination override left by DisplayEndPoints.
+   */
   @carbon.method @impl.implemented
   SetDestObjectScale(scale)
   {
     this.#destinationScale = this.#currentDestinationScale = Number(scale);
   }
 
+  /** IEveFiringEffectElement move hook; EveStretch2 has no travelling child. */
   @carbon.method @impl.noop
   StartMoving()
   {
   }
 
+  /** Longer of the start and loop curve-set durations. */
   @carbon.method @impl.implemented
   GetCurveDuration()
   {
     return Math.max(getCurveDuration(this.start), getCurveDuration(this.loop));
   }
 
+  /**
+   * Begins a shot: reseeds the per-shot random value carried in the effect data, plays the start and loop sets from -delay and stops the end set.
+   * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
+   */
   @carbon.method @impl.adapted
   @impl.reason("Carbon uses rand(); the browser uses Math.random for the per-shot shader seed.")
   StartFiring(delay = 0)
@@ -85,6 +108,7 @@ export class EveStretch2 extends EveEntity
     this.end?.Stop?.();
   }
 
+  /** Ends a shot: stops the start and loop sets and plays the end set. */
   @carbon.method @impl.implemented
   StopFiring()
   {
@@ -93,6 +117,11 @@ export class EveStretch2 extends EveEntity
     this.end?.Play?.();
   }
 
+  /**
+   * Sets both endpoints, accepting either a 16-element source transform - of
+   * which only the translation is kept, since the span orientation is rebuilt
+   * each update - or a source position.
+   */
   @carbon.method @impl.implemented
   SetFiringTransform(source, destination)
   {
@@ -101,36 +130,59 @@ export class EveStretch2 extends EveEntity
     vec3.copy(this.#destination, destination);
   }
 
+  /**
+   * Hides the destination end by zeroing its current scale; the source end is
+   * always drawn, so the source flag is ignored.
+   */
   @carbon.method @impl.implemented
   DisplayEndPoints(_displaySource, displayDestination)
   {
     this.#currentDestinationScale = displayDestination ? this.#destinationScale : 0;
   }
 
+  /**
+   * Shows or hides the stretch, gating visibility, renderable collection and
+   * light contribution.
+   */
   @carbon.method @impl.implemented
   SetDisplay(display)
   {
     this.#visible = !!display;
   }
 
+  /**
+   * Sets the intensity uploaded in per-object data, clamped to zero at the
+   * bottom; a zero intensity also suppresses visibility, renderables and lights.
+   */
   @carbon.method @impl.implemented
   SetIntensity(intensity)
   {
     this.#intensity = Math.max(0, Number(intensity));
   }
 
+  /**
+   * IEveFiringEffectElement synchronous hook; EveStretch2 does all of its work
+   * in the asynchronous phase.
+   */
   @carbon.method @impl.noop
   UpdateEffectSync(_context)
   {
     return true;
   }
 
+  /** IEveFiringEffectElement asynchronous hook; runs Update. */
   @carbon.method @impl.implemented
   UpdateEffectAsync(context)
   {
     return this.Update(context);
   }
 
+  /**
+   * Advances the start, loop and end curve sets on time measured from the first
+   * update, records each set's scaled time into the effect data that
+   * GetPerObjectData uploads, rebuilds the two endpoint bases, and drives the
+   * end observers and GPU emitters from them.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Generic emitters receive a plain update descriptor instead of Carbon's native UpdateArguments structure.")
   Update(context)
@@ -154,6 +206,10 @@ export class EveStretch2 extends EveEntity
     return true;
   }
 
+  /**
+   * Frustum-tests a box in the source basis that reaches boundingRadius sideways and the endpoint distance plus boundingRadius forwards, caching the result for GetRenderables; a hidden or zero-intensity stretch fails without testing, and a frustum that cannot test boxes passes.
+   * @returns {Boolean} whether the stretch is in frustum
+   */
   @carbon.method @impl.adapted
   @impl.reason("The browser frustum is duck-typed and receives a portable axis-aligned box descriptor.")
   UpdateVisibility(context)
@@ -173,6 +229,10 @@ export class EveStretch2 extends EveEntity
     return this.#inFrustum;
   }
 
+  /**
+   * Pushes the stretch itself when displayed, non-zero intensity and in frustum; the quad strip is built by the engine from the per-object data, not here.
+   * @returns {Array} out
+   */
   @carbon.method @impl.adapted
   @impl.reason("The class is collected as a renderable; GPU batch realization remains runtime-engine work.")
   GetRenderables(out = [])
@@ -204,6 +264,11 @@ export class EveStretch2 extends EveEntity
     return data;
   }
 
+  /**
+   * Offers the source and destination point lights at their endpoint bases, the
+   * destination scaled by its current scale; nothing is offered while hidden or
+   * at zero intensity.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Light objects are forwarded without registering against Carbon's native light manager component registry.")
   GetLights(lightManager)
@@ -228,21 +293,41 @@ export class EveStretch2 extends EveEntity
     }
   }
 
+  /**
+   * Copies the source endpoint position.
+   * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
+   * @returns {Array} out
+   */
   GetSourcePosition(out = vec3.create())
   {
     return vec3.copy(out, this.#source);
   }
 
+  /**
+   * Copies the destination endpoint position.
+   * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
+   * @returns {Array} out
+   */
   GetDestinationPosition(out = vec3.create())
   {
     return vec3.copy(out, this.#destination);
   }
 
+  /**
+   * Copies the source endpoint basis, which is only valid once Update has run.
+   * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+   * @returns {Array} out
+   */
   GetSourceTransform(out = mat4.create())
   {
     return mat4.copy(out, this.#sourceTransform);
   }
 
+  /**
+   * Copies the destination endpoint basis, which is only valid once Update has run.
+   * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+   * @returns {Array} out
+   */
   GetDestinationTransform(out = mat4.create())
   {
     return mat4.copy(out, this.#destinationTransform);

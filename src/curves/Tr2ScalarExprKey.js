@@ -153,6 +153,7 @@ export class Tr2ScalarExprKey extends CjsModel
     this.left = this.Evaluate(this.leftTangentExpression, this.left, variables);
     this.right = this.Evaluate(this.rightTangentExpression, this.right, variables);
   }
+
   /**
    * Compiles and evaluates one key expression with the Perlin helper functions
    * available, returning the supplied fallback when the expression is empty,
@@ -180,6 +181,7 @@ export class Tr2ScalarExprKey extends CjsModel
     }));
     return Number.isNaN(value) ? fallback : value;
   }
+
   /**
    * Builds the variable map key expressions read: the key's own value, time,
    * tangents, input1..input4, random constant, and the previous key's time and

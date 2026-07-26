@@ -203,6 +203,7 @@ export class Tr2ActionBindRTPC extends CjsModel
       action: this
     }))) || 0;
   }
+
   /**
    * Compiles the authored value expression with the `Curve` function bound to
    * this action's curve, reusing the cached program while the text is unchanged.

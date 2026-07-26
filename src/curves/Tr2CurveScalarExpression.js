@@ -234,6 +234,7 @@ export class Tr2CurveScalarExpression extends CjsModel
       self: this
     })) || 0;
   }
+
   /**
    * Returns the cached program, recompiling first when it is missing or was
    * built from different source text.

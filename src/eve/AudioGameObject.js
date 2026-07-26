@@ -9,6 +9,11 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, CjsSchema, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * A freely placed audio emitter driven by its own translation and rotation
+ * curves, so a sound can sit anywhere in a scene without being attached to an
+ * asset.
+ */
 @type.define({ className: "AudioGameObject", family: "eve" })
 export class AudioGameObject extends CjsModel
 {
@@ -51,6 +56,11 @@ export class AudioGameObject extends CjsModel
   @type.boolean
   display = true;
 
+  /**
+   * Creates the emitter from the registered AudEmitter class if there is not one
+   * already, places it at the object's current world position, and reports
+   * whether the emitter accepted initialization.
+   */
   Initialize()
   {
     if (this.audioEmitter) return true;
@@ -64,6 +74,7 @@ export class AudioGameObject extends CjsModel
     return initialized !== false;
   }
 
+  /** Post-hydration hook; runs Initialize. */
   @carbon.method
   @impl.adapted
   __init__()
@@ -71,6 +82,7 @@ export class AudioGameObject extends CjsModel
     return this.Initialize();
   }
 
+  /** The emitter this object drives, or null before Initialize has run. */
   @carbon.method
   @impl.implemented
   GetAudioEmitter()
@@ -78,6 +90,10 @@ export class AudioGameObject extends CjsModel
     return this.audioEmitter;
   }
 
+  /**
+   * Renames the underlying emitter without touching this object's own name
+   * field.
+   */
   @carbon.method
   @impl.implemented
   SetEmitterName(name)
@@ -85,6 +101,10 @@ export class AudioGameObject extends CjsModel
     this.audioEmitter?.SetName?.(String(name));
   }
 
+  /**
+   * Sends a named event to the emitter and returns the identifier it hands back,
+   * or 0 when there is no emitter or no event name.
+   */
   @carbon.method
   @impl.implemented
   PlayAudioEvent(eventName)
@@ -93,6 +113,7 @@ export class AudioGameObject extends CjsModel
     return this.audioEmitter.SendEvent?.(String(eventName)) ?? 0;
   }
 
+  /** Applies a changed mute flag or name to the emitter after a model update. */
   OnModified(value = null)
   {
     if (value === "mute" || value === this.mute)
@@ -106,6 +127,10 @@ export class AudioGameObject extends CjsModel
     return true;
   }
 
+  /**
+   * Re-evaluates the transform curves for the frame and pushes the resulting
+   * position and orientation to the emitter, unless the object is muted.
+   */
   UpdateSyncronous(updateContext = null)
   {
     const time = updateContext?.GetTime?.() ?? updateContext?.time ?? 0;
@@ -116,18 +141,28 @@ export class AudioGameObject extends CjsModel
     }
   }
 
+  /**
+   * IEveSpaceObject2 asynchronous phase; the object does all of its work
+   * synchronously.
+   */
   UpdateAsyncronous(_updateContext = null)
   {
   }
 
+  /** IEveSpaceObject2 hook; an audio object has nothing to cull. */
   UpdateVisibility(_updateContext, _parentTransform)
   {
   }
 
+  /** IEveSpaceObject2 hook; an audio object contributes no renderables. */
   GetRenderables(_renderables, _impostors = null)
   {
   }
 
+  /**
+   * Reports a unit sphere at the object's world position, so scene traversal has something to place it by.
+   * @param {Array} out - caller-owned packed (x, y, z, radius), overwritten
+   */
   GetBoundingSphere(out = vec4.create())
   {
     const position = this.GetWorldPosition(vec3.create());
@@ -135,21 +170,40 @@ export class AudioGameObject extends CjsModel
     return true;
   }
 
+  /**
+   * Copies the transform stamped by the last UpdateWorldTransform.
+   * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+   * @returns {Array} out
+   */
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this.#worldTransform);
   }
 
+  /**
+   * Copies the translation of the transform stamped by the last UpdateWorldTransform.
+   * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
+   * @returns {Array} out
+   */
   GetWorldPosition(out = vec3.create())
   {
     return mat4.getTranslation(out, this.#worldTransform);
   }
 
+  /**
+   * Copies the normalized rotation of the transform stamped by the last UpdateWorldTransform.
+   * @param {Array} [out] - caller-owned quat; a fresh quaternion is allocated when omitted
+   * @returns {Array} out
+   */
   GetWorldRotation(out = quat.create())
   {
     return quat.normalize(out, mat4.getRotation(out, this.#worldTransform));
   }
 
+  /**
+   * Reports a fixed unit cube; the object has no geometry, but scene code
+   * expects a box.
+   */
   GetLocalBoundingBox(outMin, outMax)
   {
     vec3.set(outMin, -1, -1, -1);
@@ -157,6 +211,10 @@ export class AudioGameObject extends CjsModel
     return true;
   }
 
+  /**
+   * Rebuilds the world transform from the authored translation and rotation after letting the transform curves overwrite them at the given time.
+   * @returns {Array} the object's own matrix, valid only until the next call
+   */
   UpdateWorldTransform(time)
   {
     const translation = vec3.clone(this.translation);
@@ -167,6 +225,11 @@ export class AudioGameObject extends CjsModel
     return this.#worldTransform;
   }
 
+  /**
+   * Pushes a position to the emitter together with the object's front and top
+   * axes rotated into world space, which is what gives the sound its
+   * orientation.
+   */
   #SetEmitterPosition(position)
   {
     const rotation = this.GetWorldRotation(quat.create());

@@ -4,6 +4,12 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Per-agent scratch for the SeekTarget child behaviour: the locator being
+ * sought, the position and direction of the approach, and whether the agent has
+ * spawned and arrived. The behaviour allocates one record per agent and rewrites
+ * it on every behaviour update.
+ */
 @type.define({
   className: "SeekTargetData",
   family: "eve/child/behaviors"

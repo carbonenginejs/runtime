@@ -30,6 +30,7 @@ export class EveLocator2 extends CjsModel
   {
     return this.name;
   }
+
   /**
    * Sets the name consumers select this locator by, coercing the value to a
    * string.
@@ -40,6 +41,7 @@ export class EveLocator2 extends CjsModel
   {
     this.name = String(name);
   }
+
   /**
    * Returns the locator's live transform matrix, not a copy; writes through it
    * change the locator.
@@ -50,6 +52,7 @@ export class EveLocator2 extends CjsModel
   {
     return this.transform;
   }
+
   /** Copies a matrix into the locator's own transform storage. */
   @carbon.method
   @impl.implemented

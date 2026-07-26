@@ -204,6 +204,7 @@ export class Tr2CurveRandomAxisRotation extends CjsModel
     return () => engine.Next() / 0xffffffff;
   }
 }
+
 /**
  * Deterministic MT19937 Mersenne Twister used to reproduce the C++ standard
  * library's default random sequence from a persisted seed.
@@ -224,6 +225,7 @@ class CjsMt19937
       this.#state[i] = Math.imul(1812433253, previous ^ previous >>> 30) + i >>> 0;
     }
   }
+
   /**
    * Returns the next 32-bit unsigned value, regenerating the state block when
    * the previous 624 outputs are exhausted.
@@ -241,6 +243,7 @@ class CjsMt19937
     value ^= value >>> 18;
     return value >>> 0;
   }
+
   /** Regenerates the whole 624-word state block and rewinds the output cursor. */
   #twist()
   {

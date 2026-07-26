@@ -4,6 +4,7 @@ import { TriRenderJob } from "./TriRenderJob.js";
 
 // Carbon: RenderJob/TriStepPopProjection.cpp — Execute pops the projection
 // (Tr2Renderer::PopProjection).
+
 /**
  * Step that pops the executor's projection stack, restoring the projection saved
  * by an earlier push.

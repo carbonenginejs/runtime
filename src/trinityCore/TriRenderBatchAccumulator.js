@@ -86,6 +86,7 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
   // batch's rendering mode is overwritten with the accumulator's mode (faithful
   // to Carbon). Commit takes ownership of the batch; do not reuse it afterwards.
   // Returns whether the batch was accepted (JS addition; Carbon returns void).
+
   /**
    * Collects a batch, dropping invalid ones and routing GDPR-eligible batches
    * (allowed by the key generator, GDR-compatible material, triangle list,
@@ -114,6 +115,7 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
 
   // Folds another accumulator's batches into this one, then clears the source.
   // Mirrors Carbon TransferFrom (per-thread accumulator merge).
+
   /**
    * Folds another accumulator's batches into this one and clears the source; the
    * source's GDPR batches land in the plain vector when this accumulator does
@@ -152,6 +154,7 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
   // Sorts and group-counts the collected batches. No-op for the order-preserving
   // key generator; effect/GDPR generators sort both vectors and stamp each
   // bin-run's length onto its leading batch's groupCount.
+
   /**
    * Sorts and group-counts the collected batches: a no-op for the
    * order-preserving key generator, a full bin partition of both vectors for

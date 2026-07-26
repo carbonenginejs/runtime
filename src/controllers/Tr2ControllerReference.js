@@ -178,6 +178,7 @@ export class Tr2ControllerReference extends CjsModel
   {
     return this.#owner;
   }
+
   /**
    * Resolves `controller` from the authored path through the registered resource
    * resolver, recording the path it resolved from so OnModified can tell a real

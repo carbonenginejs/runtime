@@ -23,6 +23,10 @@ export class EveChildSpherePin extends EveChildMesh
     return this.#pinColor;
   }
 
+  /**
+   * Copies a four-component colour into the owned buffer; a shorter value is
+   * ignored rather than partially applied.
+   */
   set pinColor(value)
   {
     if (value?.length >= 4)
@@ -37,6 +41,7 @@ export class EveChildSpherePin extends EveChildMesh
     return this.#pinColor;
   }
 
+  /** Blue alias that writes through to pinColor. */
   set color(value)
   {
     this.pinColor = value;

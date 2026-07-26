@@ -79,6 +79,7 @@ export class Tr2ActionOverlay extends CjsModel
     }
     this.#overlay = null;
   }
+
   /**
    * Finds the overlay already present on the owner by name, and only when it is
    * absent and addOnStart is set loads it from the authored path, names it,
@@ -102,6 +103,7 @@ export class Tr2ActionOverlay extends CjsModel
       }
     }
   }
+
   /**
    * Lower-cases the authored path and switches the `_skinned` suffix on or off
    * to match whether the owner is animated.
@@ -120,6 +122,7 @@ export class Tr2ActionOverlay extends CjsModel
     }
     return path;
   }
+
   /**
    * Picks the object the overlay is attached to, preferring the controller owner
    * itself and otherwise following targetAnotherOwner through a named parameter

@@ -40,6 +40,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   {
     this.Create(name, texture, uavMipLevel);
   }
+
   /**
    * Assigns name, texture provider and UAV mip level together, notifying only
    * when at least one of them actually changed; returns whether it did.
@@ -61,6 +62,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
     this.UpdateValues({ property: "texture", source: this });
     return true;
   }
+
   /** The shader resource name this texture binds to. */
   @carbon.method
   @impl.implemented
@@ -76,6 +78,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   {
     return CjsParameter.hashFnv1Identity(this.texture, startingHash);
   }
+
   /**
    * Invalidates the resource sets of every material this parameter is attached
    * to.
@@ -87,6 +90,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
     this.#invalidateResourceSets();
     return true;
   }
+
   /**
    * Deliberately does nothing: Carbon caches the effect resource type here for
    * later resource-set binding, which runtime-trinity leaves to engine adapters.
@@ -99,6 +103,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
     // Carbon caches the effect resource type here for later resource-set
     // binding. Runtime-trinity leaves that realization to engine adapters.
   }
+
   /**
    * Swaps the texture provider and notifies owners; returns false when it is
    * already the same object.
@@ -115,6 +120,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
     this.UpdateValues({ property: "texture", source: this });
     return true;
   }
+
   /**
    * The attached provider, or null; this package holds the reference but never
    * resolves or uploads it.
@@ -125,6 +131,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   {
     return this.texture;
   }
+
   /**
    * Sets the mip level to use when this texture is bound as an unordered-access
    * view, coerced to uint32.
@@ -135,6 +142,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   {
     this.uavMipLevel = mipLevel >>> 0;
   }
+
   /**
    * Registers a material to be invalidated when this parameter changes;
    * duplicates are ignored.
@@ -148,6 +156,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
       this.#materials.push(material);
     }
   }
+
   /**
    * Drops a material from the tracked list, so later texture swaps no longer
    * invalidate its resource sets.
@@ -162,6 +171,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
       this.#materials.splice(index, 1);
     }
   }
+
   /** Invalidates the resource sets of every attached material. */
   #invalidateResourceSets()
   {

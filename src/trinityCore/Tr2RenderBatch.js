@@ -38,6 +38,7 @@ export function OrderOf(ref)
 
 // A contiguous (startIndex, count) block of mesh groups. Mirrors Carbon
 // TriRenderBatchAreaBlock; used by the shadow/overlay area-block paths.
+
 /**
  * A contiguous (startIndex, count) run of mesh groups, as consumed by the shadow
  * and overlay area-block paths.
@@ -56,6 +57,7 @@ export class TriRenderBatchAreaBlock
 
   // Compacts a set of possibly overlapping/adjacent blocks into the minimal set
   // of contiguous runs, in place. Mirrors TriRenderBatchAreaBlock::Optimize.
+
   /**
    * Compacts a vector of possibly overlapping or adjacent blocks into the
    * minimal set of contiguous runs, rewriting the caller's array in place and
@@ -92,6 +94,7 @@ export class TriRenderBatchAreaBlock
 
 // A shared-material list of area blocks (shadow/overlay path). Mirrors
 // TriRenderBatchAreaBlocksWithSharedMaterial.
+
 /**
  * Groups the area blocks that draw with one shared shader material on the shadow
  * and overlay path.
@@ -123,6 +126,7 @@ export class TriRenderBatchAreaBlocksWithSharedMaterial extends TriRenderBatchAr
 // Tr2RenderBatch struct; the vertex/index "buffer" slots hold whatever the
 // producer supplies (in the GPU-free runtime these are geometry-resource-backed
 // descriptors that the engine resolves to real buffers at dispatch time).
+
 /**
  * One draw's worth of CPU descriptor state - material and shader key, geometry
  * binding, draw arguments and sort keys - holding no device resources.
@@ -180,6 +184,7 @@ export class Tr2RenderBatch
   // shader is realized yet, so the material (effect) itself stands in as the
   // shader key. Either way the shader is both the validity key (see IsValid) and
   // the primary bin/sort key, so effect-equal batches still group together.
+
   /**
    * Sets the material and derives the shader key from it, falling back to the
    * material itself when no shader-state interface is realized yet; that key is
@@ -199,6 +204,7 @@ export class Tr2RenderBatch
   }
 
   // Carbon: SetGeometry(vertexDecl, Tr2BufferAL& vb, stride, Tr2BufferAL& ib, indexStride).
+
   /**
    * Binds one vertex stream and an index buffer with their strides, clearing the
    * second stream.
@@ -214,6 +220,7 @@ export class Tr2RenderBatch
   }
 
   // Carbon overload taking suballocated-buffer allocations (the mesh path).
+
   /**
    * Binds geometry from suballocated buffer allocations, taking each
    * allocation's buffer and stride (Carbon's mesh path).
@@ -230,6 +237,7 @@ export class Tr2RenderBatch
   }
 
   // Carbon two-stream allocation overload.
+
   /**
    * Binds a two-stream allocation set; the second allocation becomes vertex
    * stream 1.
@@ -243,6 +251,7 @@ export class Tr2RenderBatch
 
   // GPU-free geometry binding: records the resource + mesh/area range for the
   // engine to resolve into realized buffers and draw arguments at dispatch.
+
   /**
    * GPU-free geometry binding: records the geometry resource plus the mesh and
    * area range for the engine to resolve into realized buffers and draw
@@ -277,6 +286,7 @@ export class Tr2RenderBatch
 
   // Carbon spells this SetInidices (a typo in the C++ API); we use the corrected
   // name since both producer and consumer are ours.
+
   /**
    * Binds the index buffer and its stride; Carbon spells this SetInidices, a
    * typo corrected here because both producer and consumer are ours.
@@ -317,6 +327,7 @@ export class Tr2RenderBatch
 
   // Non-indexed draw: reuses indexCountPerInstance for the vertex count and
   // startIndexLocation for the start vertex; baseVertexLocation is left as is.
+
   /**
    * Records a non-indexed instanced draw, reusing indexCountPerInstance for the
    * vertex count and startIndexLocation for the start vertex; baseVertexLocation
@@ -340,6 +351,7 @@ export class Tr2RenderBatch
   }
 
   // Carbon overloads SetPickingData(data) and SetPickingData(meshIndex, areaIndex).
+
   /**
    * Stores picking data either as a raw value or, when a second argument is
    * given, as the mesh index shifted above the low byte of the area index.
@@ -352,6 +364,7 @@ export class Tr2RenderBatch
   // A batch is valid iff it has a shader (i.e. SetMaterial was called with a
   // material that exposed a shader-state interface). Invalid batches are dropped
   // silently at Commit time.
+
   /**
    * A batch is valid only once it has a shader, that is once SetMaterial
    * received a material; invalid batches are dropped silently at Commit.
@@ -365,6 +378,7 @@ export class Tr2RenderBatch
 // Two batches can share a single state-set (one bin/GDPR group) iff all of these
 // match. Note: priority, material and topology are intentionally NOT compared
 // here (faithful to Carbon CanBeBinned).
+
 /**
  * Whether two batches can share one state-set: shader, vertex declaration, index
  * stride, both vertex streams and rendering mode must match, while priority,
@@ -383,6 +397,7 @@ export function CanBeBinned(batch1, batch2)
 // JS comparator (negative/zero/positive) reproducing Carbon Compare's strict-weak
 // ordering: priority, shader, vertexDeclaration, indexStride, stream0, stream1,
 // renderingMode. Pointer identity is replaced by a stable per-reference order id.
+
 /**
  * Strict-weak comparator reproducing Carbon's batch ordering - priority, shader,
  * vertex declaration, index stride, stream 0, stream 1, rendering mode - with
@@ -410,6 +425,7 @@ export function CompareBatches(batch1, batch2)
 // Sorts a batch vector and writes each bin-run's length onto the run's leading
 // batch (groupCount). Mirrors Tr2GdprBatchFullPartition. JS Array.sort is stable,
 // so the "full" and "stable" partition variants are behaviourally identical here.
+
 /**
  * Sorts a batch vector and writes each bin-run's length onto that run's leading
  * batch groupCount, so dispatch can stride one state-set over several draws.

@@ -30,6 +30,11 @@ import {
 } from "./CjsStretchRuntime.js";
 
 
+/**
+ * The current stretch effect: places space-object children at the source, across
+ * the span, at the destination and at a travelling point between them, driven by
+ * its own controllers, dynamic bindings and curve sets.
+ */
 @type.define({ className: "EveStretch3", family: "eve/renderable/stretch" })
 export class EveStretch3 extends EveEntity
 {
@@ -61,6 +66,10 @@ export class EveStretch3 extends EveEntity
   #isMuzzleEffect = false;
   #stretchState = EveStretch3.StretchState.STRETCH_STATE_UNDEFINED;
 
+  /**
+   * Post-hydration hook; links any controller that is not already linked and
+   * takes ownership of the dynamic bindings.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Assigns portable dynamic-binding owners directly because JavaScript arrays do not provide Carbon IList parent locks.")
   Initialize()
@@ -73,12 +82,20 @@ export class EveStretch3 extends EveEntity
     return true;
   }
 
+  /**
+   * The space object standing in as parent for the source-side children, or
+   * null.
+   */
   @carbon.method @impl.implemented
   GetSourceSpaceObject()
   {
     return this.#sourceSpaceObject;
   }
 
+  /**
+   * Sets the space object used as parent for the source-side children and
+   * relinks the dynamic bindings, since it is one of their roots.
+   */
   @carbon.method @impl.implemented
   SetSourceSpaceObject(value)
   {
@@ -86,12 +103,17 @@ export class EveStretch3 extends EveEntity
     this.#InitializeBindings();
   }
 
+  /** The space object standing in as parent for the destination child, or null. */
   @carbon.method @impl.implemented
   GetDestSpaceObject()
   {
     return this.#destinationSpaceObject;
   }
 
+  /**
+   * Sets the space object used as parent for the destination child and relinks
+   * the dynamic bindings, since it is one of their roots.
+   */
   @carbon.method @impl.implemented
   SetDestSpaceObject(value)
   {
@@ -99,6 +121,10 @@ export class EveStretch3 extends EveEntity
     this.#InitializeBindings();
   }
 
+  /**
+   * Relinks the dynamic bindings and evaluates them once at time zero, and unless only the bindings were asked for, relinks the controllers.
+   * @param {Boolean} [onlyUpdateBindings] - leave the controllers linked as they are
+   */
   @carbon.method @impl.adapted
   @impl.reason("Links portable bindings/controllers directly instead of using Carbon raw roots.")
   Rebind(onlyUpdateBindings = false)
@@ -114,6 +140,11 @@ export class EveStretch3 extends EveEntity
     }
   }
 
+  /**
+   * Builds the prototype-free name map that bindings and controllers resolve
+   * against: every curve set under its own name, plus Owner, the source and
+   * destination space objects, and the root object of each child.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Builds Carbon's unordered parameter map as a prototype-free JavaScript object.")
@@ -135,6 +166,11 @@ export class EveStretch3 extends EveEntity
     return out;
   }
 
+  /**
+   * Fills out with the fixed binding roots - Owner, Source, Dest, Stretch, Move and the two space objects - under their binding-path names.
+   * @param {Object} [out] - caller-owned map, mutated in place
+   * @returns {Object} out
+   */
   @carbon.method
   @impl.implemented
   GetBindingRoots(out = {})
@@ -149,6 +185,11 @@ export class EveStretch3 extends EveEntity
     return out;
   }
 
+  /**
+   * Applies Carbon's IList ownership callbacks for the controllers and
+   * dynamic-binding lists - linking on insert, unlinking on remove, unlinking
+   * every controller on unload - and ignores events flagged as loading.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Reproduces Carbon IList controller and dynamic-binding callbacks through explicit portable list-event arguments.")
@@ -179,6 +220,16 @@ export class EveStretch3 extends EveEntity
     }
   }
 
+  /**
+   * Applies a pending firing transition (starting sets the FiringDelay and
+   * IsFiring controller variables, stopping clears IsFiring), advances the
+   * bindings and controllers, samples the endpoint curves, records the span in
+   * length, and drives each child's synchronous phase with a fresh parameter
+   * block: the source and stretch children under the source space object, the
+   * move child at the interpolated offset, and the destination child under the
+   * destination space object at its scaled placement. Skipped entirely while
+   * update is false.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Carbon's synchronous task phase is retained as a serial graph update in the browser runtime.")
   UpdateSynchronous(context)
@@ -224,11 +275,21 @@ export class EveStretch3 extends EveEntity
     return true;
   }
 
+  /** Carbon's IEveSpaceObject2 spelling of UpdateSynchronous; forwards unchanged. */
   UpdateSyncronous(context)
   {
     return this.UpdateSynchronous(context);
   }
 
+  /**
+   * Advances the curve sets on time measured from the first asynchronous update,
+   * then places each child: the source at the span basis, or verbatim at the
+   * muzzle transform when SetFiringTransform supplied one; the stretch child
+   * spanning the endpoints and re-centred on their midpoint; the move child at
+   * the interpolated position carrying the span orientation; and the destination
+   * at its scaled basis. Finally feeds both audio objects the current endpoints.
+   * Skipped entirely while update is false.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Carbon's asynchronous task phase is retained as a serial graph update in the browser runtime.")
   UpdateAsynchronous(context)
@@ -268,25 +329,47 @@ export class EveStretch3 extends EveEntity
     return true;
   }
 
+  /**
+   * Carbon's IEveSpaceObject2 spelling of UpdateAsynchronous; forwards
+   * unchanged.
+   */
   UpdateAsyncronous(context)
   {
     return this.UpdateAsynchronous(context);
   }
 
+  /**
+   * IEveFiringEffectElement synchronous hook; runs the normal synchronous
+   * update.
+   */
   UpdateEffectSync(context)
   {
     return this.UpdateSynchronous(context);
   }
 
+  /**
+   * IEveFiringEffectElement asynchronous hook; runs the normal asynchronous
+   * update.
+   */
   UpdateEffectAsync(context)
   {
     return this.UpdateAsynchronous(context);
   }
 
+  /**
+   * IEveFiringEffectElement move hook; EveStretch3 drives its travelling child
+   * from the moveProgression value instead of a start event.
+   */
   StartMoving()
   {
   }
 
+  /**
+   * Hands each child its visibility placement: the endpoint children as plain
+   * translations (the destination scaled), the stretch child the parent
+   * transform unchanged, and the move child the span orientation moved to the
+   * interpolated position. No GPU work happens here.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Visibility transforms are computed here; renderer-specific LOD realization stays in runtime-engine.")
   UpdateVisibility(context, parentTransform = EveStretch3.#identity)
@@ -303,6 +386,10 @@ export class EveStretch3 extends EveEntity
     updateChildVisibility(this.moveObject, context, EveStretch3.#moveVisibility);
   }
 
+  /**
+   * Appends every child's renderables to out while displayed; batch construction is left to runtime-engine.
+   * @returns {Array} out
+   */
   @carbon.method @impl.adapted
   @impl.reason("Renderable collection is backend-neutral; draw-batch construction remains runtime-engine work.")
   GetRenderables(out = [])
@@ -311,12 +398,21 @@ export class EveStretch3 extends EveEntity
     return out;
   }
 
+  /**
+   * Shows or hides the stretch, gating visibility, renderable collection,
+   * curve-set control and component registration.
+   */
   @carbon.method @impl.implemented
   SetDisplay(display)
   {
     this.display = !!display;
   }
 
+  /**
+   * Merges the bounding spheres of every child, including the travelling one.
+   * @param {Array} out - caller-owned packed (x, y, z, radius), overwritten
+   * @returns {Boolean} whether any child contributed a sphere
+   */
   @carbon.method @impl.adapted
   @impl.reason("Bounds are merged from child graph objects without Carbon's native BoundingSphere helper.")
   GetBoundingSphere(out = vec4.create())
@@ -334,6 +430,10 @@ export class EveStretch3 extends EveEntity
     return valid;
   }
 
+  /**
+   * Longest curve-set duration in seconds, each divided by that set's own time
+   * scale.
+   */
   @carbon.method @impl.implemented
   GetCurveDuration()
   {
@@ -346,6 +446,10 @@ export class EveStretch3 extends EveEntity
     return duration;
   }
 
+  /**
+   * Requests a firing start; the controller variables are only applied on the next synchronous update, while the stretch audio starts immediately.
+   * @param {Number} [delay] - seconds handed to the controllers as the FiringDelay variable
+   */
   @carbon.method @impl.implemented
   StartFiring(delay = 0)
   {
@@ -354,6 +458,10 @@ export class EveStretch3 extends EveEntity
     this.stretchAudio?.Start?.();
   }
 
+  /**
+   * Requests a firing stop; IsFiring is cleared on the next synchronous update,
+   * while the stretch audio stops immediately.
+   */
   @carbon.method @impl.implemented
   StopFiring()
   {
@@ -361,6 +469,12 @@ export class EveStretch3 extends EveEntity
     this.stretchAudio?.Stop?.();
   }
 
+  /**
+   * Pins both endpoints explicitly and drops the source and dest position curves
+   * so they cannot overwrite them. A 16-element source marks this a muzzle
+   * effect, whose transform is used verbatim for the source child instead of the
+   * derived span basis.
+   */
   @carbon.method @impl.implemented
   SetFiringTransform(source, destination)
   {
@@ -381,22 +495,35 @@ export class EveStretch3 extends EveEntity
     vec3.copy(this.destinationPosition, destination);
   }
 
+  /** IEveFiringEffectElement hook; EveStretch3 cannot hide individual endpoints. */
   @carbon.method @impl.noop
   DisplayEndPoints(_displaySource, _displayDestination)
   {
   }
 
+  /**
+   * Uniform scale applied to the destination child's placement in both the
+   * synchronous and asynchronous passes.
+   */
   @carbon.method @impl.implemented
   SetDestObjectScale(scale)
   {
     this.#destinationScale = Number(scale);
   }
 
+  /**
+   * IEveFiringEffectElement intensity hook; EveStretch3 has no intensity term of
+   * its own.
+   */
   @carbon.method @impl.noop
   SetIntensity(_intensity)
   {
   }
 
+  /**
+   * Sets a controller variable on every child and on this stretch's own
+   * controllers.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Controller ownership is represented by direct child/controller method forwarding.")
   SetControllerVariable(name, value)
@@ -405,6 +532,10 @@ export class EveStretch3 extends EveEntity
     for (const controller of this.controllers) controller?.SetVariable?.(name, value);
   }
 
+  /**
+   * Delivers a controller event to every child and to this stretch's own
+   * controllers.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Controller ownership is represented by direct child/controller method forwarding.")
   HandleControllerEvent(name)
@@ -413,6 +544,7 @@ export class EveStretch3 extends EveEntity
     for (const controller of this.controllers) controller?.HandleEvent?.(name);
   }
 
+  /** Starts every child's controllers and this stretch's own. */
   @carbon.method @impl.adapted
   @impl.reason("Controller ownership is represented by direct child/controller method forwarding.")
   StartControllers()
@@ -421,6 +553,11 @@ export class EveStretch3 extends EveEntity
     for (const controller of this.controllers) controller?.Start?.();
   }
 
+  /**
+   * Plays every local curve set with the given name - over a named time range
+   * when one is given, otherwise from the start with the range reset - and
+   * forwards the call to the children. Ignored while hidden.
+   */
   PlayCurveSet(name, rangeName = "")
   {
     if (!this.display) return;
@@ -433,6 +570,10 @@ export class EveStretch3 extends EveEntity
     for (const component of this.#components()) component?.PlayCurveSet?.(name, rangeName);
   }
 
+  /**
+   * Stops every local curve set with the given name and forwards the call to the
+   * children. Ignored while hidden.
+   */
   StopCurveSet(name)
   {
     if (!this.display) return;
@@ -440,12 +581,21 @@ export class EveStretch3 extends EveEntity
     for (const component of this.#components()) component?.StopCurveSet?.(name);
   }
 
+  /**
+   * Advances every local curve set with the given name to an explicit time and
+   * forwards the call to the children; unlike play and stop this is not gated on
+   * display.
+   */
   UpdateCurveSet(name, time)
   {
     for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) updateCurveSet(curveSet, time);
     for (const component of this.#components()) component?.UpdateCurveSet?.(name, time);
   }
 
+  /**
+   * Longest duration of the named curve set across this stretch and its
+   * children; 0 while hidden.
+   */
   GetCurveSetDuration(name)
   {
     if (!this.display) return 0;
@@ -455,6 +605,10 @@ export class EveStretch3 extends EveEntity
     return duration;
   }
 
+  /**
+   * Longest duration of a named time range within the named curve set, across
+   * this stretch and its children; 0 while hidden.
+   */
   GetRangeDuration(name, rangeName)
   {
     if (!this.display) return 0;
@@ -464,6 +618,10 @@ export class EveStretch3 extends EveEntity
     return duration;
   }
 
+  /**
+   * First emitter with the given name from the audio object, falling back to the
+   * stretch audio, or null when neither has one.
+   */
   FindSoundEmitter(name)
   {
     return this.audio?.FindEmitterByName?.(name) ?? this.stretchAudio?.FindEmitterByName?.(name) ?? null;
@@ -498,11 +656,19 @@ export class EveStretch3 extends EveEntity
     }
   }
 
+  /**
+   * The non-null children in Carbon's RunOnComponents order: source,
+   * destination, stretch, then the travelling child.
+   */
   #components()
   {
     return [this.sourceObject, this.destObject, this.stretchObject, this.moveObject].filter(Boolean);
   }
 
+  /**
+   * Takes ownership of every dynamic binding and links it, so the bindings
+   * resolve against this stretch's roots.
+   */
   #InitializeBindings()
   {
     for (const binding of this.dynamicBindings)
@@ -512,6 +678,10 @@ export class EveStretch3 extends EveEntity
     }
   }
 
+  /**
+   * A fresh child-update parameter block carrying this stretch's visibility;
+   * each call site fills in the parent object and the world placement.
+   */
   #makeParams()
   {
     const params = new EveChildUpdateParams();

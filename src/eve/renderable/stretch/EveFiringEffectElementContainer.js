@@ -7,6 +7,10 @@ import { EveEntity } from "../../EveEntity.js";
 import { collectRenderables, updateChildAsync, updateChildSync } from "./CjsStretchRuntime.js";
 
 
+/**
+ * A top-level wrapper that hosts one firing-effect element for editing, owning
+ * the endpoint state that is pushed into that element every update.
+ */
 @type.define({ className: "EveFiringEffectElementContainer", family: "eve/renderable/stretch" })
 export class EveFiringEffectElementContainer extends EveEntity
 {
@@ -22,6 +26,11 @@ export class EveFiringEffectElementContainer extends EveEntity
 
   #active = false;
 
+  /**
+   * Pushes the container's endpoint state - source transform or position,
+   * destination scale and endpoint display flags - into the wrapped element,
+   * then updates the element, but only while the container is firing.
+   */
   @carbon.method @impl.adapted
   @impl.reason("JavaScript uses duck-typed firing elements rather than Carbon QueryInterface dispatch.")
   UpdateSynchronous(context)
@@ -43,11 +52,16 @@ export class EveFiringEffectElementContainer extends EveEntity
     return true;
   }
 
+  /** Carbon's IEveSpaceObject2 spelling of UpdateSynchronous; forwards unchanged. */
   UpdateSyncronous(context)
   {
     return this.UpdateSynchronous(context);
   }
 
+  /**
+   * The wrapped element is driven entirely from the synchronous phase, so this
+   * only reports success.
+   */
   @carbon.method @impl.adapted
   @impl.reason("The browser runtime forwards lifecycle calls directly to the hydrated element.")
   UpdateAsynchronous(context)
@@ -56,11 +70,19 @@ export class EveFiringEffectElementContainer extends EveEntity
     return true;
   }
 
+  /**
+   * Carbon's IEveSpaceObject2 spelling of UpdateAsynchronous; forwards
+   * unchanged.
+   */
   UpdateAsyncronous(context)
   {
     return this.UpdateAsynchronous(context);
   }
 
+  /**
+   * Forwards the parent placement to the wrapped element under the container's
+   * own display flag.
+   */
   @carbon.method @impl.adapted
   @impl.reason("Visibility is graph-owned; the renderer consumes the collected element later.")
   UpdateVisibility(context, transform)
@@ -68,6 +90,10 @@ export class EveFiringEffectElementContainer extends EveEntity
     if (this.display) this.element?.UpdateVisibility?.(context, transform);
   }
 
+  /**
+   * Appends the wrapped element's renderables to out while the container is displayed.
+   * @returns {Array} out
+   */
   @carbon.method @impl.adapted
   @impl.reason("Renderable collection is backend-neutral and leaves batch realization to the engine package.")
   GetRenderables(out = [])
@@ -76,6 +102,10 @@ export class EveFiringEffectElementContainer extends EveEntity
     return out;
   }
 
+  /**
+   * Starts the wrapped element firing and marks the container active, which is
+   * what enables the per-frame element update.
+   */
   @carbon.method @impl.implemented
   StartFiring(delay = 0)
   {
@@ -83,6 +113,10 @@ export class EveFiringEffectElementContainer extends EveEntity
     this.#active = true;
   }
 
+  /**
+   * Stops the wrapped element and clears the active flag, halting the per-frame
+   * element update while still pushing endpoint state.
+   */
   @carbon.method @impl.implemented
   StopFiring()
   {
@@ -90,6 +124,10 @@ export class EveFiringEffectElementContainer extends EveEntity
     this.#active = false;
   }
 
+  /**
+   * Toggles firing through StartFiring/StopFiring, ignoring a request that
+   * matches the current state so a repeated true does not restart the effect.
+   */
   @carbon.method @impl.implemented
   SetActive(active)
   {
@@ -98,24 +136,36 @@ export class EveFiringEffectElementContainer extends EveEntity
     else this.StopFiring();
   }
 
+  /** Whether the container is currently firing. */
   @carbon.method @impl.implemented
   GetActive()
   {
     return this.#active;
   }
 
+  /**
+   * Replaces the wrapped firing-effect element; the container's active state is
+   * not reapplied to the new element.
+   */
   @carbon.method @impl.implemented
   SetElement(element)
   {
     this.element = element ?? null;
   }
 
+  /** The wrapped firing-effect element, or null. */
   @carbon.method @impl.implemented
   GetElement()
   {
     return this.element;
   }
 
+  /**
+   * Records the endpoints, accepting either a 16-element source transform - kept
+   * whole, with its translation mirrored into source - or a source position;
+   * which one was given is latched in useSourceTransform and applied on the next
+   * synchronous update.
+   */
   @carbon.method @impl.implemented
   SetFiringTransform(source, destination)
   {
@@ -133,12 +183,20 @@ export class EveFiringEffectElementContainer extends EveEntity
     vec3.copy(this.destination, destination);
   }
 
+  /**
+   * Records the destination-end scale forwarded to the element on the next
+   * synchronous update.
+   */
   @carbon.method @impl.implemented
   SetDestObjectScale(scale)
   {
     this.destinationScale = Number(scale);
   }
 
+  /**
+   * Records which endpoints the element should draw; forwarded on the next
+   * synchronous update.
+   */
   @carbon.method @impl.implemented
   DisplayEndPoints(displaySource, displayDestination)
   {
@@ -146,12 +204,20 @@ export class EveFiringEffectElementContainer extends EveEntity
     this.displayDestination = !!displayDestination;
   }
 
+  /**
+   * Shows or hides the container, gating visibility and renderable collection
+   * but not the endpoint state push.
+   */
   @carbon.method @impl.implemented
   SetDisplay(display)
   {
     this.display = !!display;
   }
 
+  /**
+   * Curve duration reported by the wrapped element, or 0 when there is no
+   * element.
+   */
   @carbon.method @impl.implemented
   GetCurveDuration()
   {

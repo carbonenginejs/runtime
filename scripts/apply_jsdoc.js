@@ -65,9 +65,23 @@ for (const [file, fileEntries] of byFile)
   // Insert from the bottom up so earlier offsets stay valid.
   const targets = [];
 
+  // A getter and a setter share one name, so repeated entries for the same
+  // (kind, name) are consumed positionally: first entry to the first
+  // occurrence in source order, second to the second.
+  const consumed = new Map();
+
   for (const entry of fileEntries)
   {
-    const target = FindTarget(source, entry);
+    const key = `${entry.kind}:${entry.name}`;
+    // An entry may pin its occurrence explicitly, which is how a setter is
+    // documented when its getter already carries a doc and would otherwise
+    // absorb the entry.
+    const occurrence = Number.isInteger(entry.occurrence)
+      ? entry.occurrence
+      : consumed.get(key) ?? 0;
+    consumed.set(key, occurrence + 1);
+
+    const target = FindTarget(source, entry, occurrence);
     if (!target)
     {
       failures.push(`${file} :: ${entry.kind} ${entry.name} not found`);
@@ -105,9 +119,15 @@ if (failures.length)
   process.exitCode = 1;
 }
 
-/** Locates the declaration an entry names, and whether it is already documented. */
-function FindTarget(source, entry)
+/**
+ * Locates the declaration an entry names, and whether it is already documented.
+ * `occurrence` selects between same-named declarations - a getter/setter pair -
+ * in source order.
+ */
+function FindTarget(source, entry, occurrence = 0)
 {
+  let seen = 0;
+
   const ast = parse(source, {
     sourceType: "module",
     plugins: ["classProperties", "classStaticBlock", "decoratorAutoAccessors", "decorators", "importAttributes"]
@@ -126,7 +146,7 @@ function FindTarget(source, entry)
 
       if (entry.kind === "class" && className === entry.name)
       {
-        return Describe(source, node, declaration);
+        if (seen++ === occurrence) return Describe(source, node, declaration);
       }
 
       for (const member of declaration.body.body)
@@ -136,14 +156,14 @@ function FindTarget(source, entry)
         const kind = member.kind === "constructor" ? "constructor" : "method";
         if (entry.kind !== kind) continue;
         if (`${className}.${memberName}` !== entry.name) continue;
-        return Describe(source, member, member);
+        if (seen++ === occurrence) return Describe(source, member, member);
       }
       continue;
     }
 
     if (entry.kind === "function" && declaration.type === "FunctionDeclaration" && declaration.id?.name === entry.name)
     {
-      return Describe(source, node, declaration);
+      if (seen++ === occurrence) return Describe(source, node, declaration);
     }
   }
 

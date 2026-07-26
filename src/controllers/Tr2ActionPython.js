@@ -275,6 +275,7 @@ export class Tr2ActionPython extends CjsModel
     this.#loadedState = null;
     this.#ensureInstance();
   }
+
   /**
    * Creates the host instance on first use and replays persisted state into it
    * through OnLoad, guarding against loading the same state buffer twice.

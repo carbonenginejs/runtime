@@ -139,6 +139,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   {
     return out;
   }
+
   /** The authored yaw expression source text, before compilation. */
   @carbon.method
   @impl.implemented
@@ -146,6 +147,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   {
     return this.expressionYaw;
   }
+
   /** The authored pitch expression source text, before compilation. */
   @carbon.method
   @impl.implemented
@@ -153,6 +155,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   {
     return this.expressionPitch;
   }
+
   /** The authored roll expression source text, before compilation. */
   @carbon.method
   @impl.implemented
@@ -160,6 +163,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   {
     return this.expressionRoll;
   }
+
   /**
    * Sets the yaw expression and drops its cached program so the next sample
    * recompiles.
@@ -171,6 +175,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     this.expressionYaw = expression;
     this.#programs[0] = null;
   }
+
   /**
    * Sets the pitch expression and drops its cached program so the next sample
    * recompiles.
@@ -182,6 +187,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     this.expressionPitch = expression;
     this.#programs[1] = null;
   }
+
   /**
    * Sets the roll expression and drops its cached program so the next sample
    * recompiles.
@@ -193,6 +199,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     this.expressionRoll = expression;
     this.#programs[2] = null;
   }
+
   /**
    * Backs the expression `input`/`inputAt` functions by sampling the n-th input
    * curve, defaulting to the time of the most recent GetContext call and
@@ -205,6 +212,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     const input = this.inputs[index | 0];
     return input ? input.GetValueAt(time) : 0;
   }
+
   /**
    * Gets this curve's per-instance random constant, which stays fixed until
    * ResetRandomConstant is called so `randomConstant` expressions are stable
@@ -216,6 +224,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   {
     return this.randomConstant;
   }
+
   /** Draws a new per-instance random constant in [0, 1). */
   @carbon.method
   @impl.implemented
@@ -223,6 +232,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   {
     this.randomConstant = Math.random();
   }
+
   /**
    * Gets the curve expression terms offered to an editor, including `radians`
    * because this curve's outputs are angles.
@@ -235,6 +245,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
       includeRadians: true
     });
   }
+
   /**
    * Compiles and evaluates an arbitrary expression against this curve's context
    * at time 0, returning 0 when it does not compile.
@@ -248,6 +259,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
     });
     return program.IsValid() ? Number(program.Evaluate(this.GetContext(0))) || 0 : 0;
   }
+
   /**
    * Compiles any of the yaw, pitch or roll expressions whose cached program is
    * missing or stale against the currently authored source.
@@ -266,6 +278,7 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
       }
     }
   }
+
   /**
    * Builds the evaluation context for a sample, dividing the caller time by
    * timeScale, recording it as the current input time, and exposing it alongside

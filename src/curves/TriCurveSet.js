@@ -477,6 +477,7 @@ export class TriCurveSet extends CjsModel
   {
     return this.#isUsingSimTimeRebase;
   }
+
   /**
    * Constrains the playhead to the active temporary range, wrapping it around
    * the range for a looped range and clamping it to the range end otherwise;
@@ -505,6 +506,7 @@ export class TriCurveSet extends CjsModel
       this.scaledTime = Math.min(this.scaledTime, this.#timeRangeMax);
     }
   }
+
   /**
    * Invokes the registered stop callback exactly once and releases it, accepting
    * either a plain function or a Carbon callable that is called and then
@@ -527,6 +529,7 @@ export class TriCurveSet extends CjsModel
     }
     this.#callback = null;
   }
+
   /**
    * Releases the registered stop callback without invoking it, destroying it
    * when it is a Carbon callable.

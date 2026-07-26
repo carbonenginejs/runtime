@@ -9,6 +9,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * One oriented box projected onto a hull that replaces a source material with a
+ * chosen blend of target materials inside it.
+ */
 @type.define({ className: "EveCustomMask", family: "eve/spaceObject" })
 export class EveCustomMask extends CjsModel
 {
@@ -46,6 +50,11 @@ export class EveCustomMask extends CjsModel
   @type.vec4
   targetMaterials = vec4.fromValues(1, 1, 1, 1);
 
+  /**
+   * Assigns the mask's placement, mirroring, UV clamping, source material index
+   * and target material weights in one call, substituting neutral defaults for
+   * any argument that is missing.
+   */
   @carbon.method
   @impl.adapted
   Setup(position, scaling, rotation, isMirrored, clampU, clampV, sourceMaterialID, targets)
@@ -61,6 +70,11 @@ export class EveCustomMask extends CjsModel
     return true;
   }
 
+  /**
+   * Builds the box to draw when visualising this mask: the mask placement with its extents scaled by the owner's radius and flattened along X.
+   * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+   * @returns {Array} out
+   */
   @carbon.method
   @impl.adapted
   GetDebugDrawMatrix(out = mat4.create(), objectRadius = 0)
@@ -70,6 +84,11 @@ export class EveCustomMask extends CjsModel
     return mat4.fromRotationTranslationScale(out, this.rotation, this.position, scale);
   }
 
+  /**
+   * Writes this mask into one of the two custom-mask slots of the per-object value structs: the transposed inverse placement plus the enable and mirror flags for the vertex stage, and the source material ID, target weights and UV clamps for the pixel stage. These are CPU-side value records; nothing is uploaded here.
+   * @param {Number} index - custom-mask slot, 0 or 1
+   * @returns {Boolean} false for an out-of-range slot, a missing struct, or a placement that cannot be inverted
+   */
   @carbon.method
   @impl.adapted
   FillPerObjectData(index, vsData, psData)
@@ -97,6 +116,11 @@ export class EveCustomMask extends CjsModel
     return true;
   }
 
+  /**
+   * Clears a custom-mask slot in the per-object value structs so the slot contributes nothing; the UV clamp values are left as they were.
+   * @param {Number} index - custom-mask slot, 0 or 1
+   * @returns {Boolean} false for an out-of-range slot or a missing struct
+   */
   @carbon.method
   @impl.adapted
   static ZeroPerObjectData(index, vsData, psData)
@@ -112,11 +136,17 @@ export class EveCustomMask extends CjsModel
     return true;
   }
 
+  /** Whether an index addresses one of the two custom-mask slots. */
   static #isValidSlot(index)
   {
     return Number.isInteger(index) && index >= 0 && index < EveCustomMask.CUSTOM_MASK_COUNT;
   }
 
+  /**
+   * The mat4 at index in a fixed per-object slot array, replacing a missing or
+   * wrong-sized entry; throws when the array itself is absent, since the layout
+   * is owner-allocated.
+   */
   static #mat4Slot(slots, index)
   {
     if (!Array.isArray(slots))
@@ -127,6 +157,11 @@ export class EveCustomMask extends CjsModel
     return slots[index];
   }
 
+  /**
+   * The vec4 at index in a fixed per-object slot array, replacing a missing or
+   * wrong-sized entry; throws when the array itself is absent, since the layout
+   * is owner-allocated.
+   */
   static #vec4Slot(slots, index)
   {
     if (!Array.isArray(slots))

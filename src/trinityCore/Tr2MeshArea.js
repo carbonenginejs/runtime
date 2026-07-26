@@ -51,6 +51,7 @@ export class Tr2MeshArea extends CjsModel
   // setters. The JS values path has no setter side channel, so they are
   // schema-backed here so SOF-authored shadow/depth/LOD state survives
   // values exchange. Without them every area defaults to shadow-casting.
+
   /** m_castsShadows - per-batch-type shadow participation (SOF-stamped). */
   @io.rebuild("batches")
   @io.persist

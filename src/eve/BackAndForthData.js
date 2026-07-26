@@ -4,6 +4,12 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Per-agent scratch for the BackAndForth child behaviour: the locator the agent
+ * is travelling to, the direction it approaches from, and how far through the
+ * trip it is. The behaviour allocates one record per agent and rewrites it on
+ * every behaviour update.
+ */
 @type.define({
   className: "BackAndForthData",
   family: "eve/child/behaviors"

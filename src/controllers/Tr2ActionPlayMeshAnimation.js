@@ -195,12 +195,14 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
     }
     return true;
   }
+
   /** Resolves and caches the destination object, returning it. */
   LinkDestination(controller = this.#controller)
   {
     this.#resolvedDestination = this.ResolveDestination(controller);
     return this.#resolvedDestination;
   }
+
   /**
    * Gets the object whose animation controller is driven: the controller owner
    * for destinationType OWNER, otherwise the cached resolved destination,
@@ -220,6 +222,7 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
     }
     return this.#resolvedDestination;
   }
+
   /**
    * Checks whether a destination is reachable; destinationType OWNER is always
    * considered valid.
@@ -234,6 +237,7 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
     }
     return !!this.GetDestination();
   }
+
   /**
    * Alias for IsBindingValid, kept for callers using Carbon's destination
    * wording.
@@ -242,6 +246,7 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
   {
     return this.IsBindingValid();
   }
+
   /**
    * Resolves the destination from the directly assigned object, otherwise by
    * walking the authored path against the controller's binding roots.

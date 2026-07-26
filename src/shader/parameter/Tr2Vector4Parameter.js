@@ -50,6 +50,10 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
     return this.value[0];
   }
 
+  /**
+   * Writes component 0 and marks the parameter dirty, so the next apply carries
+   * the new value.
+   */
   set x(component)
   {
     this.#setComponent(0, component);
@@ -62,6 +66,10 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
     return this.value[1];
   }
 
+  /**
+   * Writes component 1 and marks the parameter dirty, so the next apply carries
+   * the new value.
+   */
   set y(component)
   {
     this.#setComponent(1, component);
@@ -74,6 +82,10 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
     return this.value[2];
   }
 
+  /**
+   * Writes component 2 and marks the parameter dirty, so the next apply carries
+   * the new value.
+   */
   set z(component)
   {
     this.#setComponent(2, component);
@@ -86,6 +98,10 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
     return this.value[3];
   }
 
+  /**
+   * Writes component 3 and marks the parameter dirty, so the next apply carries
+   * the new value.
+   */
   set w(component)
   {
     this.#setComponent(3, component);

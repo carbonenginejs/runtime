@@ -4,6 +4,12 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * Per-agent scratch for the Inertia child behaviour: the acceleration carried
+ * over from the previous update and the weight it is blended in with. The
+ * behaviour allocates one record per agent and rewrites it on every behaviour
+ * update.
+ */
 @type.define({
   className: "InertiaData",
   family: "eve/child/behaviors"

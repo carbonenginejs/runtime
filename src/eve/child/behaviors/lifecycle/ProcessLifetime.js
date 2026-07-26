@@ -409,6 +409,7 @@ export class ProcessLifetime extends CjsModel
 
   // Prepends the system-wide tunnels and reassigns sequential IDs (Carbon
   // ReassignTunnelIDsAndAddSystemTunnels, cpp:464-494).
+
   /**
    * Prepends the system-wide tunnels to this behavior's local ones and renumbers
    * every tunnel's tunnelID to its index in that flattened list (Carbon
@@ -432,6 +433,7 @@ export class ProcessLifetime extends CjsModel
   // Steers the agent through one tunnel; returns true when it passed the last
   // point (Carbon ProcessTunnel, cpp:220-299). Mutates data.tunnelPoint and
   // this.#desiredVector.
+
   /**
    * Steers one agent toward the next spline point of a tunnel, adding a random
    * offset within the tunnel cylinder so drones wander while transiting (Carbon
@@ -538,6 +540,7 @@ export class ProcessLifetime extends CjsModel
 
   // Assigns the exit tunnel whose entry point is closest to the agent (Carbon
   // FindAndAssignAnExitTunnel, cpp:301-327).
+
   /**
    * Assigns the agent the exit tunnel whose first spline point is closest to it,
    * or marks the exit as already used when no exit tunnel exists so the agent is
@@ -574,6 +577,7 @@ export class ProcessLifetime extends CjsModel
 
   // Places the very first spawn somewhere along a random entrance tunnel's
   // curve (Carbon FindInitialSpawnPoint, cpp:329-388).
+
   /**
    * Places the very first spawn at a random time along a random entrance tunnel's curve, ageing the agent by the fraction of the tunnel it skipped and setting the spline point it resumes from (Carbon FindInitialSpawnPoint, cpp:329-388). Prefers this behavior's own tunnel groups and falls back to the system-wide ones.
    * @param {Float32Array} pos - caller-owned; receives the chosen spawn position
@@ -646,6 +650,7 @@ export class ProcessLifetime extends CjsModel
   // Picks a jittered entrance point for a respawning drone and assigns it the
   // matching tunnel (Carbon FindASpawnPoint, cpp:390-426). The candidate
   // lists are allocated here - a respawn event, not the steady per-frame path.
+
   /**
    * Picks a random entrance tunnel for a respawning agent, jitters its first
    * spline point within that tunnel's point-of-no-return size, moves the agent

@@ -436,6 +436,7 @@ export class Tr2RenderContext extends CjsModel
   // step calls these with no argument: push saves the current viewport, pop
   // restores it and re-records the set-viewport intent so realization sees the
   // restored value. Independent of the RT/DS balance-guard stacks.
+
   /**
    * Saves the current viewport on its own save/restore stack, independent of the
    * render-target and depth-stencil balance guards.
@@ -491,6 +492,7 @@ export class Tr2RenderContext extends CjsModel
   // Mirrors Tr2Renderer::SetViewTransform: cache the view matrix, compute its
   // inverse once, and derive the view position from the inverse-view
   // translation row (Carbon reads _41.._43 -> column-major indices [12,13,14]).
+
   /**
    * Mirrors Tr2Renderer::SetViewTransform - copies the view matrix into the
    * cached buffer, inverts it once (falling back to identity when singular) and
@@ -531,6 +533,7 @@ export class Tr2RenderContext extends CjsModel
 
   // Raw column-major view matrix (Tr2Renderer::GetViewTransform). Live buffer -
   // callers read, never mutate.
+
   /**
    * The raw column-major view matrix (Tr2Renderer::GetViewTransform); a live
    * buffer owned by the context that callers read and never mutate.
@@ -542,6 +545,7 @@ export class Tr2RenderContext extends CjsModel
 
   // Inverse of the view matrix (Tr2Renderer::GetInverseViewTransform), cached on
   // the last view change. Live buffer - callers read, never mutate.
+
   /**
    * The inverse view matrix (Tr2Renderer::GetInverseViewTransform), recomputed
    * on each view change; a live buffer callers read and never mutate.
@@ -553,6 +557,7 @@ export class Tr2RenderContext extends CjsModel
 
   // World-space view/eye position (Tr2Renderer::GetViewPosition): the
   // inverse-view translation. Live buffer - callers read, never mutate.
+
   /**
    * The world-space eye position taken from the inverse-view translation; a live
    * buffer callers read and never mutate.
@@ -564,6 +569,7 @@ export class Tr2RenderContext extends CjsModel
 
   // Whether a view matrix has been set (camera-dependent modifiers fall back to
   // an unchanged transform when it has not).
+
   /**
    * Whether a view matrix has been set; camera-dependent modifiers fall back to
    * an unchanged transform when it has not.
@@ -576,6 +582,7 @@ export class Tr2RenderContext extends CjsModel
   // Save/restore stack for the cached view transform (Carbon Push/PopViewTransform).
   // Push snapshots the current view object, its matrix, and the has-matrix flag;
   // pop restores them and re-derives the inverse/eye-position via ApplyViewMatrix.
+
   /**
    * Snapshots the current view record, its matrix and the has-matrix flag onto
    * the view-transform stack, copying the matrix rather than aliasing the live
@@ -672,6 +679,7 @@ export class Tr2RenderContext extends CjsModel
   }
 
   // Save/restore stack for the current projection (Carbon Push/PopProjection).
+
   /** Saves the current projection on its own save/restore stack. */
   PushProjection()
   {
@@ -710,6 +718,7 @@ export class Tr2RenderContext extends CjsModel
   // returns the intents recorded since the previous TakeIntents/ClearIntents and
   // advances the cursor. Unlike GetIntents (a full copy), the same intent is
   // never returned twice, so nested jobs cannot realize an intent more than once.
+
   /**
    * Exactly-once consumption for a per-step executor: returns the intents
    * recorded since the previous take and advances the cursor, so no intent can
@@ -723,6 +732,7 @@ export class Tr2RenderContext extends CjsModel
   }
 
   // Peek at the intents since the cursor without advancing it.
+
   /** The intents recorded since the cursor, without advancing it. */
   PeekIntents()
   {

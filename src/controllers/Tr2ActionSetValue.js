@@ -194,6 +194,7 @@ export class Tr2ActionSetValue extends CjsModel
       action: this
     })) || 0;
   }
+
   /**
    * Compiles the authored value expression, reusing the cached program while the
    * expression text is unchanged.
@@ -202,6 +203,7 @@ export class Tr2ActionSetValue extends CjsModel
   {
     return CjsControllerExpressionProgram.compileCached(this.#expression, this.value, 0);
   }
+
   /**
    * Evaluates the value expression against the controller context, returning 0
    * when it does not compile or does not produce a finite number.
@@ -210,6 +212,7 @@ export class Tr2ActionSetValue extends CjsModel
   {
     return this.#evaluateValue(controller, owner) ?? 0;
   }
+
   /**
    * Evaluates the value expression, returning null rather than 0 when it fails
    * to compile or yields a non-finite number so the caller can skip the write.
@@ -231,6 +234,7 @@ export class Tr2ActionSetValue extends CjsModel
     }));
     return Number.isFinite(value) ? value : null;
   }
+
   /**
    * Gets the lazily created binding point, refreshing it from the currently
    * authored path, destination object and attribute on every call.
@@ -246,6 +250,7 @@ export class Tr2ActionSetValue extends CjsModel
     this.#bindingPoint.attribute = this.attribute;
     return this.#bindingPoint;
   }
+
   /**
    * Resolves the binding point against the controller's binding roots and its
    * owner.
@@ -254,6 +259,7 @@ export class Tr2ActionSetValue extends CjsModel
   {
     return this.GetBindingPoint().Link(controller, owner);
   }
+
   /**
    * Checks whether binding is deferred to Start, which requires both the
    * delayBinding flag and an authored path.

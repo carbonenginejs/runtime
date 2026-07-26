@@ -159,6 +159,7 @@ export class Tr2CurveVector3Expression extends CjsModel
   {
     return out;
   }
+
   /** Gets the authored x-component expression source. */
   @carbon.method
   @impl.implemented
@@ -166,6 +167,7 @@ export class Tr2CurveVector3Expression extends CjsModel
   {
     return this.expressionX;
   }
+
   /** Gets the authored y-component expression source. */
   @carbon.method
   @impl.implemented
@@ -173,6 +175,7 @@ export class Tr2CurveVector3Expression extends CjsModel
   {
     return this.expressionY;
   }
+
   /** Gets the authored z-component expression source. */
   @carbon.method
   @impl.implemented
@@ -180,6 +183,7 @@ export class Tr2CurveVector3Expression extends CjsModel
   {
     return this.expressionZ;
   }
+
   /**
    * Sets the x-component expression and drops its cached program so the next
    * sample recompiles; returns false and changes nothing when the source is
@@ -198,6 +202,7 @@ export class Tr2CurveVector3Expression extends CjsModel
     }
     return true;
   }
+
   /**
    * Sets the y-component expression and drops its cached program so the next
    * sample recompiles; returns false and changes nothing when the source is
@@ -216,6 +221,7 @@ export class Tr2CurveVector3Expression extends CjsModel
     }
     return true;
   }
+
   /**
    * Sets the z-component expression and drops its cached program so the next
    * sample recompiles; returns false and changes nothing when the source is
@@ -234,6 +240,7 @@ export class Tr2CurveVector3Expression extends CjsModel
     }
     return true;
   }
+
   /**
    * Backs the expression `input`/`inputAt` functions by sampling the n-th input
    * curve, defaulting to the time of the most recent GetContext call and
@@ -246,6 +253,7 @@ export class Tr2CurveVector3Expression extends CjsModel
     const input = this.inputs[index | 0];
     return input ? input.GetValueAt(time) : 0;
   }
+
   /**
    * Gets this curve's per-instance random constant, which stays fixed until
    * ResetRandomConstant is called so `randomConstant` expressions are stable
@@ -257,6 +265,7 @@ export class Tr2CurveVector3Expression extends CjsModel
   {
     return this.randomConstant;
   }
+
   /** Draws a new per-instance random constant in [0, 1). */
   @carbon.method
   @impl.implemented
@@ -264,6 +273,7 @@ export class Tr2CurveVector3Expression extends CjsModel
   {
     this.randomConstant = Math.random();
   }
+
   /** Gets the curve expression terms offered to an editor for autocompletion. */
   @carbon.method
   @impl.adapted
@@ -271,6 +281,7 @@ export class Tr2CurveVector3Expression extends CjsModel
   {
     return CjsControllerExpressionProgram.getCurveTermInfo();
   }
+
   /**
    * Compiles and evaluates an arbitrary expression against this curve's context
    * at time 0, returning 0 when it does not compile.
@@ -284,6 +295,7 @@ export class Tr2CurveVector3Expression extends CjsModel
     });
     return program.IsValid() ? Number(program.Evaluate(this.GetContext(0))) || 0 : 0;
   }
+
   /**
    * Compiles any component expression whose cached program is missing or stale
    * against the currently authored source.
@@ -302,6 +314,7 @@ export class Tr2CurveVector3Expression extends CjsModel
       }
     }
   }
+
   /**
    * Builds the evaluation context for a sample, dividing the caller time by
    * timeScale, recording it as the current input time, and exposing it alongside
@@ -324,6 +337,7 @@ export class Tr2CurveVector3Expression extends CjsModel
       }
     };
   }
+
   /**
    * Compiles as needed and writes the three evaluated components into the
    * caller-owned `out`, zeroing a fourth component when `out` is longer than 3.

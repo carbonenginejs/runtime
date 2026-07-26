@@ -5,6 +5,12 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * The parameter block a parent passes down when updating a space-object child:
+ * the parent references, the parent's bone array, the child's world placement,
+ * and the owner's motion and activation state. Rebuilt by the parent for each
+ * child update, so nothing in it survives the call.
+ */
 @type.define({
   className: "EveChildUpdateParams",
   family: "eve/child"

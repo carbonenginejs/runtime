@@ -72,6 +72,7 @@ const D4N_SCALE_TABLE = new Float32Array([1.4142135, 0.70710677, 0.35355338, 0.3
 const D4N_OFFSET_TABLE = new Float32Array([-0.70710677, -0.35355338, -0.53033006, -0.17677669, 0.17677669, -0.17677669, -0.088388346, 0.0, 0.70710677, 0.35355338, 0.53033006, 0.17677669, -0.17677669, 0.17677669, 0.088388346, -0.0]);
 const D4N_SCALE_TABLE_MULTIPLIER_16 = 0.000030518509;
 const D4N_SCALE_TABLE_MULTIPLIER_8 = 0.0078740157;
+
 /**
  * Decodes Granny's 19 compressed animation-curve formats into explicit knots and
  * controls, and samples them at a time, without depending on a GR2 container

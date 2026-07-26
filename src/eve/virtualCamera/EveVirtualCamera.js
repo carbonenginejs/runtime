@@ -10,6 +10,7 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 const SCRUB_INCREMENT_DT = 1 / 60;
 const SCRUB_MAX_ITERATIONS = 20;
+
 /**
  * Cinematic camera defined by a position, a point of interest, a field of view
  * and a roll, each rebuilt every update from its own list of behaviours over a

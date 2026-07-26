@@ -5,6 +5,12 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
+/**
+ * One generated placement in a distribution: the initial transform the generator
+ * produced, the extra translation, rotation and scale the attribute modifiers
+ * have accumulated, and the identity and lifetime that let those modifiers
+ * recognise the same placement between frames.
+ */
 @type.define({
   className: "PlacementDataWithIdentifier",
   family: "eve/distribution/attributeModifiers"

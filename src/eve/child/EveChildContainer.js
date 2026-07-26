@@ -1253,6 +1253,7 @@ export class EveChildContainer extends EveChildTransform
   // EveChildUpdateParams by value, cpp:505/592). Allocated per call like
   // EveSpaceObject2's child fan-out - container recursion makes a module
   // scratch record unsafe.
+
   /**
    * Copies the caller's update params into a fresh child-facing record (Carbon
    * passes EveChildUpdateParams by value, cpp:505/592); allocated per call

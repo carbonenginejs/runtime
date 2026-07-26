@@ -1046,6 +1046,7 @@ export class EveSpaceObject2 extends EveEntity
   // order into the order-preserving TRANSPARENT accumulator. Bounding boxes come
   // from the geometry resource when it exposes them; a failed lookup keeps
   // Carbon's origin-center fallback.
+
   /**
    * Commits the mesh's transparent areas back-to-front, ordering them by the
    * squared distance from the view position to each area's world-space
@@ -1244,6 +1245,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   // EveMeshOverlayEffect::GetEffects (display-gated, per batch type).
+
   /**
    * Returns an overlay effect's display-gated effect list for a batch type, or
    * null when it contributes none.
@@ -2071,6 +2073,7 @@ export class EveSpaceObject2 extends EveEntity
   // Carbon EveSpaceObject2::PlayAnimation: every playback wrapper funnels
   // into the animation updater, which owns playback state; a missing updater
   // is a Carbon-faithful no-op.
+
   /**
    * Forwards a playback request to the animation updater, which owns all
    * animation state; a hull without an updater does nothing, as in Carbon.
@@ -2468,6 +2471,7 @@ export class EveSpaceObject2 extends EveEntity
 
   // Carbon Blue TransformLocator: bone-attached records pick up the mesh
   // bone matrix; without bone data the authored values pass through.
+
   /**
    * Applies the mesh bone matrix to a locator position and rotation for
    * bone-attached locators; the authored values pass through unchanged when
@@ -2493,6 +2497,7 @@ export class EveSpaceObject2 extends EveEntity
   // Carbon Blue ApplyModelTransform samples both curves at the Be::Time()
   // origin (pure GetValueAt, no playback advance): translation adds, model
   // rotation rotates the position and pre-multiplies.
+
   /**
    * Applies the model translation and rotation curves sampled at time 0 to a
    * locator position and rotation, matching Carbon's Blue locator surface, which
@@ -2516,6 +2521,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   // Carbon GetLocatorsForSet: first set matching the name wins.
+
   /**
    * Returns the locator list of the first locator set carrying the name, or null
    * when no set matches; the list stays owned by the locator set.
@@ -2537,6 +2543,7 @@ export class EveSpaceObject2 extends EveEntity
   // authored quaternion; bone-attached locators additionally apply the mesh
   // bone matrix. Carbon leaves the outputs untouched (caller-uninitialized)
   // when bone data is missing; CarbonEngineJS keeps the unskinned values.
+
   /**
    * Writes a locator's object-space position and its direction, which is +Y
    * rotated by the authored quaternion, applying the mesh bone matrix for
@@ -2565,6 +2572,7 @@ export class EveSpaceObject2 extends EveEntity
 
   // Carbon GetClosestLocatorIndex: facing-gated closest search; 0 when the
   // set is missing, -1 when no locator faces the position.
+
   /**
    * Returns the index of the nearest locator in a named set that faces the given
    * world position - 0 when the set is missing, -1 when no locator faces the
@@ -2696,6 +2704,7 @@ export class EveSpaceObject2 extends EveEntity
 
   // Mesh bone matrices come from the animation updater; only mat4-shaped
   // entries are usable.
+
   /**
    * Returns the animation updater's mesh bone matrix at an index, or null when
    * the entry is absent or not a 16-element matrix; the matrix is borrowed from

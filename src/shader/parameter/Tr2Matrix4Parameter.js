@@ -66,6 +66,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
     }
     return CjsVectorParameter.copyNumberArray(out, this.value, 16);
   }
+
   /**
    * Copies 16 components in and writes through to the reroute destination when
    * one is set.
@@ -80,6 +81,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
       CjsVectorParameter.writeVectorDestination(this.#reroutedValue, this.value, 16);
     }
   }
+
   /** Whether reads and writes currently go through an external destination. */
   @carbon.method
   @impl.implemented
@@ -87,6 +89,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   {
     return this.#reroutedValue !== null;
   }
+
   /**
    * Points the parameter at an external destination and seeds it with the current matrix; a target under 64 bytes or not writable as 16 components clears the reroute instead. Bindings are notified of the effective destination either way.
    * @param size destination capacity in bytes, not components
@@ -106,6 +109,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
     }
     CjsVectorParameter.notifyBindings(this.#bindings, this.GetDestination().dest);
   }
+
   /**
    * The array an upload should read - the reroute target when set, otherwise the
    * parameter's own matrix - paired with its 64-byte size. The array is
@@ -120,6 +124,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
       size: 64
     };
   }
+
   /**
    * Adds a binding to be notified whenever the destination is repointed;
    * duplicates are ignored.
@@ -130,6 +135,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   {
     CjsVectorParameter.registerBinding(this.#bindings, binding);
   }
+
   /** Stops notifying a binding; unknown bindings are ignored. */
   @carbon.method
   @impl.adapted
@@ -137,6 +143,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   {
     CjsVectorParameter.unregisterBinding(this.#bindings, binding);
   }
+
   /**
    * Records whether the shader reflects a constant of this name and drops a
    * stale reroute when the shader is gone; reflection metadata only, no GPU
@@ -154,6 +161,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
     this.usedByCurrentEffect = used;
     this.usedByCurrentTechnique = used;
   }
+
   /**
    * Seeds an existing reroute destination with the current matrix; always
    * returns true.
@@ -168,6 +176,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
     }
     return true;
   }
+
   /**
    * Writes the 16 components an upload should use into the caller's destination,
    * reading back through the reroute first; the stored element order is copied

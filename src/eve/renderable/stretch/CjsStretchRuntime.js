@@ -2,23 +2,40 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 
 
+/**
+ * Reads the current time from an update context, accepting a bare number or any
+ * of the GetTime()/currentTime/time spellings the hydrated contexts use.
+ */
 export function getTime(context)
 {
   if (typeof context === "number") return context;
   return Number(context?.GetTime?.() ?? context?.currentTime ?? context?.time ?? 0);
 }
 
+/**
+ * Reads the frame delta from an update context, accepting a bare number or any
+ * of the GetDeltaT()/deltaTime/deltaT spellings.
+ */
 export function getDeltaTime(context)
 {
   if (typeof context === "number") return context;
   return Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
 }
 
+/**
+ * Reads the scene's floating-origin shift from an update context.
+ * @returns {Array} the context's own vector, or a shared zero vector that callers must not mutate
+ */
 export function getOriginShift(context)
 {
   return context?.GetOriginShift?.() ?? context?.originShift ?? CjsStretchRuntime.ZERO;
 }
 
+/**
+ * Samples a vector curve at time through whichever of Update/UpdateValue/GetValueAt the hydrated object exposes, falling back to its stored value field.
+ * @param {Array} out - caller-owned vec3; returned unchanged when the curve is null or exposes none of those entry points
+ * @returns {Array} out
+ */
 export function sampleVector(curve, time, out)
 {
   if (!curve) return out;
@@ -29,6 +46,10 @@ export function sampleVector(curve, time, out)
   return out;
 }
 
+/**
+ * Advances a curve set to an absolute time, using UpdateDelta for objects that
+ * predate the two-argument Update.
+ */
 export function updateCurveSet(curveSet, time)
 {
   if (!curveSet) return;
@@ -36,12 +57,21 @@ export function updateCurveSet(curveSet, time)
   else curveSet.UpdateDelta?.(time);
 }
 
+/**
+ * Longest duration a curve set or curve reports through
+ * GetMaxCurveDuration/GetCurveDuration/duration, or 0 when it reports none.
+ */
 export function getCurveDuration(value)
 {
   if (!value) return 0;
   return Number(value.GetMaxCurveDuration?.() ?? value.GetCurveDuration?.() ?? value.duration ?? 0);
 }
 
+/**
+ * Runs a stretch child's synchronous update phase, tolerating the
+ * Synchronous/Syncronous spelling split and falling back to the firing-element
+ * hook.
+ */
 export function updateChildSync(child, context, params)
 {
   if (!child) return;
@@ -50,6 +80,11 @@ export function updateChildSync(child, context, params)
   else child.UpdateEffectSync?.(context, params);
 }
 
+/**
+ * Runs a stretch child's asynchronous update phase, tolerating the
+ * Asynchronous/Asyncronous spelling split and falling back to the firing-element
+ * hook, then to a plain Update.
+ */
 export function updateChildAsync(child, context, params)
 {
   if (!child) return;
@@ -59,6 +94,10 @@ export function updateChildAsync(child, context, params)
   else child.Update?.(context, params);
 }
 
+/**
+ * Hands a stretch child its world placement for the frame, falling back to the
+ * older UpdateViewDependentData entry point.
+ */
 export function updateChildVisibility(child, context, transform)
 {
   if (!child) return;
@@ -66,6 +105,10 @@ export function updateChildVisibility(child, context, transform)
   else child.UpdateViewDependentData?.(transform, context);
 }
 
+/**
+ * Appends a stretch child's renderables to out, pushing the child itself when it produces batches directly rather than delegating.
+ * @returns {Array} out
+ */
 export function collectRenderables(child, out)
 {
   if (!child) return out;
@@ -74,6 +117,12 @@ export function collectRenderables(child, out)
   return out;
 }
 
+/**
+ * Builds the pair of endpoint bases for a stretch: the source basis has its Z axis pointing at the destination, and the destination basis is the same frame with X and Z negated so it faces back down the line. A zero-length span falls back to +Z, and the up reference is the world axis least aligned with the direction.
+ * @param {Array} source - caller-owned mat4, overwritten with the source basis
+ * @param {Array} destination - caller-owned mat4, overwritten with the destination basis
+ * @returns {Array} source
+ */
 export function makeEndpointTransforms(sourcePosition, destinationPosition, source, destination)
 {
   const direction = CjsStretchRuntime.DIRECTION;
@@ -101,6 +150,11 @@ export function makeEndpointTransforms(sourcePosition, destinationPosition, sour
   return source;
 }
 
+/**
+ * Builds the source endpoint basis and scales its Z axis by the endpoint distance, so a child authored one unit long in Z spans the gap exactly; negativeZ makes the span run backwards for effects authored down -Z.
+ * @param {Array} out - caller-owned mat4, overwritten
+ * @returns {Array} out
+ */
 export function makeStretchTransform(sourcePosition, destinationPosition, out, negativeZ = false)
 {
   makeEndpointTransforms(sourcePosition, destinationPosition, out, CjsStretchRuntime.MATRIX);
@@ -111,6 +165,11 @@ export function makeStretchTransform(sourcePosition, destinationPosition, out, n
   return out;
 }
 
+/**
+ * Writes a uniform-scale-plus-translation matrix.
+ * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+ * @returns {Array} out
+ */
 export function translationMatrix(position, out = mat4.create(), scale = 1)
 {
   mat4.identity(out);
@@ -121,6 +180,10 @@ export function translationMatrix(position, out = mat4.create(), scale = 1)
   return out;
 }
 
+/**
+ * Grows out to the smallest sphere enclosing both spheres, where each is packed (x, y, z, radius). A negative-radius input is ignored, and an empty out is replaced outright rather than merged.
+ * @returns {Array} out
+ */
 export function mergeSphere(out, sphere)
 {
   if (!(sphere?.[3] >= 0)) return out;

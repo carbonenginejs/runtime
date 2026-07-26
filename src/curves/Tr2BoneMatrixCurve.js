@@ -293,6 +293,7 @@ export class Tr2BoneMatrixCurve extends CjsModel
   {
     return this.#bone;
   }
+
   /**
    * Gets the last key at or before a time, relying on the keys being sorted and
    * falling back to the first key when the time precedes all of them; returns

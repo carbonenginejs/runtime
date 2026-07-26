@@ -39,16 +39,20 @@
 export const RawDataType = Object.freeze({
   /** Square matrix, stored TRANSPOSED (HLSL column_major). N inferred from size. */
   MATRIX: "matrix",
+
   /** Straight copy - float / vec2 / vec3 / vec4. */
   VECTOR: "vector",
+
   /** Integer bit-cast into the float buffer's Uint32 lanes (e.g. bone offsets). */
   UINT: "uint",
+
   /**
    * SIGNED integer bit-cast (two's complement) - e.g. the interior lightCount.
    * Same bytes as UINT for non-negatives; kept distinct so a reflection-based
    * packer can type the lane i32 vs u32.
    */
   INT: "int",
+
   /** mat4 packed column-stride into 12 floats (Carbon Float4x3; skill gotcha 7). */
   MATRIX_3X4: "matrix3x4"
 });

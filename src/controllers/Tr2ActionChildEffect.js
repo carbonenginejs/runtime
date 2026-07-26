@@ -126,6 +126,7 @@ export class Tr2ActionChildEffect extends CjsModel
     }
     this.#child = null;
   }
+
   /**
    * Resolves the object the child effect is attached to, following
    * targetAnotherOwner when set.
@@ -134,6 +135,7 @@ export class Tr2ActionChildEffect extends CjsModel
   {
     return this.#resolveOwner(owner).owner;
   }
+
   /**
    * Looks up an already-present child by childName on the owner, returning null
    * when childName is empty or no match exists.
@@ -142,6 +144,7 @@ export class Tr2ActionChildEffect extends CjsModel
   {
     return (this.childName ? ITr2ControllerAction.callTarget(owner, "GetEffectChildByName", this.childName) ?? Tr2ActionChildEffect.#findNamed(owner, this.childName) : null) ?? null;
   }
+
   /**
    * Creates the child through the owner's AddChildFromPath, and when the owner
    * has no loader falls back to attaching a plain `{ name, path }` placeholder
@@ -163,6 +166,7 @@ export class Tr2ActionChildEffect extends CjsModel
     Tr2ActionChildEffect.#addChildToOwner(owner, child);
     return child;
   }
+
   /**
    * Redirects the action to another owner named by targetAnotherOwner, trying a
    * named effect child, then a named parameter, then a stretch endpoint;

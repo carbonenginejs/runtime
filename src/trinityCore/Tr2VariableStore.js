@@ -195,6 +195,7 @@ export class Tr2VariableStore extends CjsModel
 
   // Carbon RegisterVariableType: reuse an existing local variable when the
   // type matches or was only reserved; a hard type conflict returns null.
+
   /**
    * Reuses an existing local variable when its type matches or was only reserved
    * as INVALID, returns null on a hard type conflict, and otherwise creates the

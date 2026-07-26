@@ -11,6 +11,11 @@ import {
   BELIST_UNLOADSTART
 } from "../../../controllers/contracts.js";
 
+/**
+ * A named bundle of curve sets, controllers and dynamic bindings that animates
+ * other space objects through typed parameter slots, without owning any geometry
+ * itself.
+ */
 @type.define({ className: "EveMultiEffect", family: "eve/effect" })
 export class EveMultiEffect extends CjsModel
 {
@@ -45,6 +50,11 @@ export class EveMultiEffect extends CjsModel
   @type.string
   name = "";
 
+  /**
+   * Builds the prototype-free name map that dynamic bindings resolve against:
+   * each parameter slot's bound object and each curve set's root under their own
+   * names, plus Owner for the effect itself.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Builds Carbon's unordered root map as a prototype-free JavaScript object.")
@@ -80,6 +90,10 @@ export class EveMultiEffect extends CjsModel
     }
   }
 
+  /**
+   * Post-hydration hook; takes ownership of the parameter slots and dynamic
+   * bindings, then links the bindings and controllers.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Assigns portable owner references before linking because JavaScript arrays do not provide Carbon IList parent locks.")
@@ -91,6 +105,11 @@ export class EveMultiEffect extends CjsModel
     return true;
   }
 
+  /**
+   * Applies Carbon's IList ownership callbacks for the parameters, bindings and
+   * controllers lists - assigning or clearing owners, linking or unlinking
+   * controllers, unlinking all of them on unload - and rebinds afterwards.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Reproduces Carbon IList ownership and controller callbacks through explicit portable list-event arguments.")
@@ -158,6 +177,7 @@ export class EveMultiEffect extends CjsModel
     for (const controller of this.controllers) controller?.Start?.();
   }
 
+  /** First parameter slot with the given name, or null. */
   @carbon.method
   @impl.implemented
   GetParameterByName(parameterName)
@@ -166,6 +186,11 @@ export class EveMultiEffect extends CjsModel
     return this.parameters.find(parameter => EveMultiEffect.#GetName(parameter) === name) ?? null;
   }
 
+  /**
+   * Fills out with Owner followed by each parameter slot's bound object, so a slot named Owner overrides the effect itself.
+   * @param {Object|Map} [out] - caller-owned map, mutated in place
+   * @returns {Object|Map} out
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Mutates a JavaScript object or Map while preserving Carbon's base-Owner-then-parameter precedence.")
@@ -183,6 +208,10 @@ export class EveMultiEffect extends CjsModel
     return out;
   }
 
+  /**
+   * Plays every curve set with the given name, over a named time range when one
+   * is given, otherwise from the start with the range reset.
+   */
   @carbon.method
   @impl.implemented
   PlayCurveSet(name, rangeName = "")
@@ -199,6 +228,7 @@ export class EveMultiEffect extends CjsModel
     }
   }
 
+  /** Stops every curve set with the given name. */
   @carbon.method
   @impl.implemented
   StopCurveSet(name)
@@ -209,6 +239,10 @@ export class EveMultiEffect extends CjsModel
     }
   }
 
+  /**
+   * Advances every curve set with the given name to an explicit time, bypassing
+   * the effect's own update pass.
+   */
   @carbon.method
   @impl.implemented
   UpdateCurveSet(name, time)
@@ -219,6 +253,10 @@ export class EveMultiEffect extends CjsModel
     }
   }
 
+  /**
+   * Longest duration among the curve sets with the given name, or 0 when there
+   * is no such set.
+   */
   @carbon.method
   @impl.implemented
   GetCurveSetDuration(name)
@@ -234,6 +272,10 @@ export class EveMultiEffect extends CjsModel
     return duration;
   }
 
+  /**
+   * Longest duration of a named time range among the curve sets with the given
+   * name, or 0 when there is no such range.
+   */
   @carbon.method
   @impl.implemented
   GetRangeDuration(name, rangeName)
@@ -249,6 +291,10 @@ export class EveMultiEffect extends CjsModel
     return duration;
   }
 
+  /**
+   * Advances the curve sets, controllers and bindings for the frame; the effect
+   * has no geometry, so this is its only update phase.
+   */
   @carbon.method
   @impl.implemented
   UpdateSyncronous(updateContext)
@@ -259,24 +305,34 @@ export class EveMultiEffect extends CjsModel
     for (const binding of this.bindings) binding?.Update?.(time);
   }
 
+  /**
+   * IEveSpaceObject2 asynchronous phase; the effect does all of its work
+   * synchronously.
+   */
   @carbon.method
   @impl.noop
   UpdateAsyncronous(_updateContext)
   {
   }
 
+  /** IEveSpaceObject2 hook; the effect has nothing of its own to cull. */
   @carbon.method
   @impl.noop
   UpdateVisibility(_updateContext, _parentTransform)
   {
   }
 
+  /**
+   * IEveSpaceObject2 hook; the effect contributes no renderables - it animates
+   * objects that are collected by their own owners.
+   */
   @carbon.method
   @impl.noop
   GetRenderables(_renderables, _impostors)
   {
   }
 
+  /** The effect has no spatial extent, so it never reports a bounding sphere. */
   @carbon.method
   @impl.implemented
   GetBoundingSphere(_sphere, _query = 0)
@@ -284,24 +340,37 @@ export class EveMultiEffect extends CjsModel
     return false;
   }
 
+  /**
+   * IEveSpaceObject2 hook; the effect contributes no per-object values of its
+   * own.
+   */
   @carbon.method
   @impl.noop
   GetPerObjectStructs(_vsData, _psData)
   {
   }
 
+  /**
+   * IEveSpaceObject2 hook with nothing to advance: a multi-effect has no model
+   * centre, so the call is a no-op.
+   */
   @carbon.method
   @impl.noop
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
 
+  /**
+   * IEveSpaceObject2 hook that leaves the caller position untouched, since a
+   * multi-effect has no model centre to report.
+   */
   @carbon.method
   @impl.noop
   GetModelCenterWorldPosition(_position)
   {
   }
 
+  /** The effect has no local geometry, so it never reports a bounding box. */
   @carbon.method
   @impl.implemented
   GetLocalBoundingBox(_min, _max)
@@ -309,29 +378,49 @@ export class EveMultiEffect extends CjsModel
     return false;
   }
 
+  /**
+   * IEveSpaceObject2 hook; the effect has no placement of its own, so the
+   * caller's matrix is left as it was.
+   */
   @carbon.method
   @impl.noop
   GetLocalToWorldTransform(_transform)
   {
   }
 
+  /**
+   * IEveSpaceObject2 hook with nothing to register, since a multi-effect owns no
+   * quads.
+   */
   @carbon.method
   @impl.noop
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
 
+  /**
+   * IEveSpaceObject2 hook with nothing to submit: a multi-effect contributes no
+   * quads for the frustum.
+   */
   @carbon.method
   @impl.noop
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }
 
+  /**
+   * Name of a parameter slot or curve set as a string, from GetName() or a name
+   * field, empty when it has neither.
+   */
   static #GetName(value)
   {
     return String(value?.GetName?.() ?? value?.name ?? "");
   }
 
+  /**
+   * Writes a name and value into a binding-root container that may be either a
+   * Map or a plain object.
+   */
   static #SetMapValue(out, name, value)
   {
     if (out instanceof Map) out.set(name, value);

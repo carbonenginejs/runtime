@@ -120,6 +120,7 @@ export class Tr2ActionPlayCurveSet extends CjsModel
   {
     this.#prevTime = simTime;
   }
+
   /**
    * Starts the curve set on the owner, returning false when the owner exposes no
    * PlayCurveSet.
@@ -133,6 +134,7 @@ export class Tr2ActionPlayCurveSet extends CjsModel
     }
     return false;
   }
+
   /**
    * Gets the authored range duration in seconds from the owner, or 0 when the
    * owner cannot report one.
