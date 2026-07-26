@@ -88,6 +88,17 @@ export class EveSpaceObjectDecal extends CjsModel
    * 0 or 1 while the LOD path writes a 0..1 fade ramp (cpp:119-176). */
   #isVisible = 0;
 
+  /** m_minBounds / m_maxBounds (h:215) - the geometry mesh bounds an instanced
+   * decal measures instead of the unit cube. Stamped by the loader. */
+  #minBounds = vec3.create();
+
+  #maxBounds = vec3.create();
+
+  /** m_instanceData (h:212) - non-null selects the instanced visibility path.
+   * The instance buffer itself is engine-owned; the graph only needs to know
+   * whether one is attached. */
+  #instanceData = null;
+
   /** Carbon m_invParentBoneMatrix (h:191) is declared but never assigned; the
    * value the shader sees is recomputed per fill (cpp:366), so this port keeps
    * no member for it. */
@@ -311,23 +322,147 @@ export class EveSpaceObjectDecal extends CjsModel
     return true;
   }
 
-  /** The parent-state copy Carbon performs inside UpdateVisibility
-   * (cpp:145/178). Split out as its own seam because UpdateVisibility's
-   * frustum, screen-size and LOD-fade work is not ported yet; the visibility
-   * factor is supplied explicitly so the per-object fill stays faithful. */
-  @carbon.method
-  @impl.custom
-  @impl.reason("Carbon copies the parent data inside UpdateVisibility, whose frustum and LOD-fade paths remain unported; exposing the copy keeps the per-object fill exact meanwhile.")
-  SetParentData(parentData, isVisible = 1)
+  /** Carbon copies the parent data by value at the two points UpdateVisibility
+   * accepts the decal (cpp:145, cpp:178). shLighting is a borrowed pointer into
+   * the parent's own PS data, so it is carried by reference exactly as Carbon
+   * carries the pointer. */
+  #CopyParentData(parentData)
   {
-    if (!parentData) return false;
+    if (this.#parentData.SetValues) this.#parentData.SetValues(parentData);
+    else Object.assign(this.#parentData, parentData);
 
-    this.#parentData.SetValues
-      ? this.#parentData.SetValues(parentData)
-      : Object.assign(this.#parentData, parentData);
     this.#parentData.shLighting = parentData.shLighting ?? null;
-    this.#isVisible = Number(isVisible) || 0;
+  }
+
+  /**
+   * Carbon EveSpaceObjectDecal::UpdateVisibility (cpp:117-179).
+   *
+   * `m_isVisible` is a FLOAT: zero when culled, one when no minimum screen
+   * size is authored, otherwise a 0..1 fade ramp that reaches the shader as
+   * displayData.y. The ramp has no lower clamp because the below-minimum case
+   * already returned.
+   *
+   * On every cull path Carbon leaves m_parentData STALE - only the visibility
+   * is cleared - so the copy happens solely on the accept paths.
+   */
+  @carbon.method
+  @impl.implemented
+  UpdateVisibility(updateContext, parentData)
+  {
+    this.#isVisible = 0;
+
+    if (!this.display || !this.decalEffect || !parentData) return false;
+
+    if (!(this.minScreenSize > 0))
+    {
+      this.#isVisible = 1;
+      this.#CopyParentData(parentData);
+      return true;
+    }
+
+    const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum ?? null;
+    if (!frustum) return false;
+
+    // Carbon (row-vector): m_parentBoneMatrix * parentData->transform - the
+    // bone applies first, so the gl operands swap.
+    const worldDecalMatrix = mat4.multiply(mat4.create(), parentData.transform, this.#parentBoneMatrix);
+    const min = vec3.fromValues(-1, -1, -1);
+    const max = vec3.fromValues(1, 1, 1);
+
+    if (this.#instanceData)
+    {
+      // Instanced decals measure the geometry mesh bounds instead of the unit
+      // cube (cpp:135-155).
+      vec3.transformMat4(min, this.#minBounds, worldDecalMatrix);
+      vec3.transformMat4(max, this.#maxBounds, worldDecalMatrix);
+
+      if (EveSpaceObjectDecal.#BoundingBoxIsInside(min, max, frustum.viewPos))
+      {
+        this.#isVisible = 1;
+        this.#CopyParentData(parentData);
+        return true;
+      }
+
+      if (!frustum.IsBoxVisible?.({ min, max }))
+      {
+        return false;
+      }
+
+      // Measure from the closest point of the box rather than its centre, so a
+      // long box does not lod out while one end is near the camera.
+      const closest = EveSpaceObjectDecal.#ClosestPointToBoundingBox(min, max, frustum.viewPos);
+      const offset = vec3.subtract(vec3.create(), closest, frustum.viewPos);
+      mat4.multiply(worldDecalMatrix, mat4.fromTranslation(mat4.create(), offset), worldDecalMatrix);
+    }
+
+    // Carbon: m_decalMatrix * worldDecalMatrix - the decal applies first.
+    mat4.multiply(worldDecalMatrix, worldDecalMatrix, this.#decalMatrix);
+    EveSpaceObjectDecal.#TransformBoundingBox(min, max, worldDecalMatrix);
+
+    // Carbon's sphere is the box's circumscribing sphere: the centre of the
+    // transformed box and HALF ITS FULL DIAGONAL (cpp:159-160).
+    const center = vec3.scale(vec3.create(), vec3.add(vec3.create(), min, max), 0.5);
+    const radius = vec3.distance(min, max) * 0.5;
+    const pixelSize = frustum.GetPixelSizeAccrossEst(center, radius);
+    const modifiedMinScreen = this.minScreenSize * (updateContext?.GetLodFactor?.() ?? 1);
+
+    if (pixelSize < modifiedMinScreen) return false;
+
+    this.#isVisible = Math.min((pixelSize - modifiedMinScreen) / (modifiedMinScreen * 0.5), 1);
+    this.#CopyParentData(parentData);
     return true;
+  }
+
+  /** The visibility fade Carbon writes to displayData.y; 0 when lodded out. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon reads the m_isVisible member directly; JavaScript exposes the private runtime value through an accessor.")
+  GetVisibility()
+  {
+    return this.#isVisible;
+  }
+
+  /** Carbon BoundingBoxIsInside - whether a point lies within the box. */
+  static #BoundingBoxIsInside(min, max, point)
+  {
+    return point[0] >= min[0] && point[0] <= max[0]
+      && point[1] >= min[1] && point[1] <= max[1]
+      && point[2] >= min[2] && point[2] <= max[2];
+  }
+
+  /** Carbon ClosestPointToBoundingBox - the point clamped into the box. */
+  static #ClosestPointToBoundingBox(min, max, point)
+  {
+    return vec3.fromValues(
+      Math.min(Math.max(point[0], min[0]), max[0]),
+      Math.min(Math.max(point[1], min[1]), max[1]),
+      Math.min(Math.max(point[2], min[2]), max[2])
+    );
+  }
+
+  /** Carbon BoundingBoxTransform - the axis-aligned bounds of the transformed
+   * box, rebuilt from all eight transformed corners. */
+  static #TransformBoundingBox(min, max, transform)
+  {
+    const sourceMin = vec3.clone(min);
+    const sourceMax = vec3.clone(max);
+    const corner = vec3.create();
+
+    vec3.set(min, Infinity, Infinity, Infinity);
+    vec3.set(max, -Infinity, -Infinity, -Infinity);
+
+    for (let index = 0; index < 8; index++)
+    {
+      vec3.set(
+        corner,
+        (index & 1) ? sourceMax[0] : sourceMin[0],
+        (index & 2) ? sourceMax[1] : sourceMin[1],
+        (index & 4) ? sourceMax[2] : sourceMin[2]
+      );
+      vec3.transformMat4(corner, corner, transform);
+      vec3.min(min, min, corner);
+      vec3.max(max, max, corner);
+    }
   }
 
   /** Carbon EveSpaceObjectDecal::HasTransparentBatches (cpp:241-244). */
