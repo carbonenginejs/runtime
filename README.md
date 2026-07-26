@@ -33,11 +33,16 @@ const resource = resMan.GetResource("res:/video/intro.mp4");
 const video = await resource.Ready();
 ```
 
+Browser consumers use worker-backed fetch and declared worker-safe format
+readers by default, with deterministic main-thread fallback; see
+[browser worker execution](docs/reference/workers.md).
+
 ## Documentation
 
 - [Package documentation](docs/README.md)
 - [Architecture and boundaries](docs/architecture.md)
 - [Resource lifecycle concepts](docs/concepts/resource-lifecycle.md)
+- [Browser worker execution](docs/reference/workers.md)
 - [Format subpaths](docs/formats/README.md)
 - [Format ownership and fork provenance](docs/formats/provenance.md)
 

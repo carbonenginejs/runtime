@@ -36,6 +36,18 @@ export class CjsBlackFormat
     #classes = {};
 
     /**
+     * Plain payload outputs can be decoded in a browser worker. Document and
+     * runtime outputs retain class identity and therefore stay on the caller
+     * thread.
+     */
+    static worker = Object.freeze({
+        module: import.meta.url,
+        exportName: "CjsBlackFormat",
+        outputTypes: Object.freeze([ OUTPUT_JSON, OUTPUT_PAYLOAD ]),
+        defaultOutput: OUTPUT_JSON
+    });
+
+    /**
      * Create a reusable format profile.
      *
      * @param {object} [options] Default format values.

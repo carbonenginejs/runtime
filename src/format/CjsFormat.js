@@ -168,6 +168,14 @@ export class CjsFormat
   static inputTypes = Object.freeze([]);
   static outputTypes = Object.freeze([]);
   static debugOutputTypes = Object.freeze(["json", "raw"]);
+
+  /**
+   * Optional browser-worker module declaration.
+   *
+   * Concrete formats opt in with their exact `import.meta.url`, export name,
+   * and optional clone-safe output restrictions.
+   */
+  static worker = null;
 }
 
 /**

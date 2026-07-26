@@ -45,6 +45,26 @@ Base runtime resource handle that carries normalized path/extension/requirement 
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
+<!-- class:CjsResourceMainThreadLoader -->
+## `CjsResourceMainThreadLoader`
+
+Direct execution strategy that reads through a structural source and invokes registered format facades on the caller thread.
+
+- Export: `@carbonenginejs/runtime-resource`
+- Source: `src/CjsResourceLoader.js`
+- Visibility: Public
+- Kind: Adapted ccpwgl loader strategy
+
+<!-- class:CjsResourceWorkerLoader -->
+## `CjsResourceWorkerLoader`
+
+Browser module-worker strategy that correlates source/format requests, transfers owned buffers, propagates cancellation and fatal failure, and delegates unsupported operations to a main-thread loader.
+
+- Export: `@carbonenginejs/runtime-resource`
+- Source: `src/CjsResourceLoader.js`
+- Visibility: Public
+- Kind: Adapted ccpwgl loader strategy
+
 <!-- class:CjsMemoryResourceSource -->
 ## `CjsMemoryResourceSource`
 
@@ -58,7 +78,7 @@ In-memory resource source that maps normalized resource paths to preset values a
 <!-- class:CjsFetchResourceSource -->
 ## `CjsFetchResourceSource`
 
-Resource source that resolves a normalized path against an optional base URL and reads response bytes through an injected fetch implementation.
+Resource source that resolves a normalized path against an optional base URL, reads response bytes through an injected fetch implementation, and describes cloneable worker fetch requests when eligible.
 
 - Export: `@carbonenginejs/runtime-resource`
 - Source: `src/CjsResourceSource.js`

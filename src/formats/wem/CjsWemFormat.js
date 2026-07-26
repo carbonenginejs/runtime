@@ -31,6 +31,14 @@ export class CjsWemFormat
     #values = DEFAULT_VALUES;
 
     /**
+     * Browser-worker module declaration consumed by CjsResourceWorkerLoader.
+     */
+    static worker = Object.freeze({
+        module: import.meta.url,
+        exportName: "CjsWemFormat"
+    });
+
+    /**
      * Create a reusable wem format profile.
      *
      * @param {object} [options] Default read/inspect options.

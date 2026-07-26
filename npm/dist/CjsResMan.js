@@ -2,6 +2,7 @@ import { CjsMotherLode, getMotherLodeKey } from './CjsMotherLode.js';
 import { CjsEventEmitter } from '@carbonenginejs/runtime-utils/model';
 import { CjsResource as _CjsResource } from './CjsResource.js';
 import { CjsResManWorkQueue, CjsResManQueue, NormalizeCjsResManQueue } from './CjsResManQueue.js';
+import { CjsResourceMainThreadLoader, CjsResourceWorkerLoader } from './CjsResourceLoader.js';
 import { normalizeResourceExtension, normalizeResourcePath, getResourceExtension } from './resourcePath.js';
 
 /** @type {WeakMap<object, CjsResourceReadContext>} */
@@ -179,6 +180,11 @@ class CjsResMan extends CjsEventEmitter {
     this.sourceOperations = new WeakMap();
     this.queuedSourceOperations = new WeakMap();
     this.formatOperations = new WeakMap();
+    this.mainThreadLoader = new CjsResourceMainThreadLoader();
+    this.workerLoader = new CjsResourceWorkerLoader({
+      fallback: this.mainThreadLoader
+    });
+    this.resourceLoader = this.workerLoader;
     this.maxConcurrentLoads = 8;
     this.maxPrepareTime = 0.005;
     this.maxPrepareItemsPerTick = 0;
@@ -213,6 +219,9 @@ class CjsResMan extends CjsEventEmitter {
    * @param {object} [options={}] Additive source, registry, queue, format, and resource-type settings.
    * @param {number} [options.cacheSize] Recorded-byte budget immediately installed on the active MotherLode.
    * @param {object} [options.cacheCleanup] Cleanup policy used if a smaller configured budget evicts cached identities.
+   * @param {object} [options.mainThreadLoader] Direct execution strategy.
+   * @param {object} [options.workerLoader] Worker loader instance or construction options.
+   * @param {boolean} [options.useWorkerLoading=true] Whether worker-backed execution is selected.
    * @returns {CjsResMan} This resource manager.
    * @throws {TypeError} If options or any configured component are invalid.
    * @throws {Error|AggregateError} If resource mutations are active or replacing MotherLode cannot clean its resources.
@@ -245,6 +254,15 @@ class CjsResMan extends CjsEventEmitter {
     }
     if (Object.prototype.hasOwnProperty.call(options, "source")) {
       this.SetSource(options.source);
+    }
+    if (Object.prototype.hasOwnProperty.call(options, "mainThreadLoader")) {
+      this.SetMainThreadLoader(options.mainThreadLoader);
+    }
+    if (Object.prototype.hasOwnProperty.call(options, "workerLoader")) {
+      this.SetWorkerLoader(options.workerLoader);
+    }
+    if (Object.prototype.hasOwnProperty.call(options, "useWorkerLoading")) {
+      this.UseWorkerLoading(options.useWorkerLoading);
     }
     if (Object.prototype.hasOwnProperty.call(options, "maxConcurrentLoads")) {
       AssertPositiveInteger(options.maxConcurrentLoads, "maxConcurrentLoads");
@@ -294,6 +312,85 @@ class CjsResMan extends CjsEventEmitter {
   SetSource(source) {
     this.source = source || null;
     return this;
+  }
+
+  /**
+   * Replace the direct execution strategy used by unsupported worker
+   * operations and whenever worker loading is not selected.
+   *
+   * @param {object} loader Loader exposing `Read` and `ReadFormat`.
+   * @returns {CjsResMan} This resource manager.
+   */
+  SetMainThreadLoader(loader) {
+    AssertResourceLoader(loader, "mainThreadLoader");
+    const wasSelected = this.resourceLoader === this.mainThreadLoader;
+    this.mainThreadLoader = loader;
+    this.workerLoader?.SetFallback?.(loader);
+    if (wasSelected || !this.resourceLoader) this.resourceLoader = loader;
+    return this;
+  }
+
+  /**
+   * Install a worker loader instance or construct one from options.
+   *
+   * Installation does not select worker execution; call
+   * `UseWorkerLoading(true)` or pass `useWorkerLoading: true`.
+   *
+   * @param {object|null} loader Worker loader or CjsResourceWorkerLoader options.
+   * @returns {CjsResMan} This resource manager.
+   */
+  SetWorkerLoader(loader) {
+    const wasSelected = this.resourceLoader === this.workerLoader;
+    if (loader === null || loader === false) {
+      this.workerLoader = null;
+      if (wasSelected) this.resourceLoader = this.mainThreadLoader;
+      return this;
+    }
+    const resolved = IsResourceLoader(loader) ? loader : new CjsResourceWorkerLoader({
+      ...(loader || {}),
+      fallback: loader?.fallback || this.mainThreadLoader
+    });
+    AssertResourceLoader(resolved, "workerLoader");
+    this.workerLoader = resolved;
+    if (wasSelected) this.resourceLoader = resolved;
+    return this;
+  }
+
+  /**
+   * Select worker-backed execution, lazily creating the default module worker
+   * loader when required. Unsupported sources and formats still use the
+   * configured main-thread loader.
+   *
+   * @param {boolean} [value=true] Whether worker execution is selected.
+   * @returns {CjsResMan} This resource manager.
+   */
+  UseWorkerLoading(value = true) {
+    if (!value) {
+      this.resourceLoader = this.mainThreadLoader;
+      return this;
+    }
+    if (!this.workerLoader) this.SetWorkerLoader({});
+    this.workerLoader.Reset?.();
+    this.resourceLoader = this.workerLoader;
+    return this;
+  }
+
+  /**
+   * Report whether worker-backed execution is the selected strategy.
+   *
+   * @returns {boolean}
+   */
+  IsWorkerLoading() {
+    return Boolean(this.workerLoader && this.resourceLoader === this.workerLoader);
+  }
+
+  /**
+   * Return unresolved requests owned by the selected/installed worker loader.
+   *
+   * @returns {number}
+   */
+  GetPendingWorkers() {
+    return this.workerLoader?.GetPendingCount?.() || 0;
   }
   AddToQueue(queue, callback, context = null, flags = 0) {
     const task = this.QueueTask(queue, callback, context, {
@@ -359,7 +456,7 @@ class CjsResMan extends CjsEventEmitter {
     return this.urgentResourceLoads;
   }
   IsLoading() {
-    return this.GetPendingLoads() + this.GetPendingPrepares() > 0;
+    return this.GetPendingLoads() + this.GetPendingPrepares() + this.GetPendingWorkers() > 0;
   }
 
   /**
@@ -1206,16 +1303,25 @@ class CjsResMan extends CjsEventEmitter {
    */
   async #PrepareResourceObjectQueued(resource, bytes, options, ownership) {
     let object = bytes;
-    this.#AssertOptionalResourceOwnership(ownership, "queue-stage:read:enqueue");
-    const readTask = this.QueueTask(CjsResManQueue.MAIN, () => {
-      this.#AssertOptionalResourceOwnership(ownership, "queue-stage:read:run");
-      return this.ReadResourceObjectPayload(resource, bytes, options);
-    }, resource, {
-      kind: "prepare",
-      stage: "read",
-      path: resource.GetPath()
-    });
-    const read = await readTask.promise;
+    const resolved = this.#ResolveResourceObjectRead(resource, bytes, options);
+    const formatOptions = resolved.descriptor ? CreateFormatReadOptions(resolved.descriptor, options) : null;
+    const runInWorker = Boolean(resolved.descriptor && typeof this.resourceLoader?.CanReadFormat === "function" && this.resourceLoader.CanReadFormat(resolved.descriptor, formatOptions));
+    let read;
+    if (runInWorker) {
+      this.#AssertOptionalResourceOwnership(ownership, "worker-stage:read:run");
+      read = await this.#ReadResolvedResourceObjectPayload(resource, bytes, options, resolved);
+    } else {
+      this.#AssertOptionalResourceOwnership(ownership, "queue-stage:read:enqueue");
+      const readTask = this.QueueTask(CjsResManQueue.MAIN, () => {
+        this.#AssertOptionalResourceOwnership(ownership, "queue-stage:read:run");
+        return this.#ReadResolvedResourceObjectPayload(resource, bytes, options, resolved);
+      }, resource, {
+        kind: "prepare",
+        stage: "read",
+        path: resource.GetPath()
+      });
+      read = await readTask.promise;
+    }
     this.#AssertOptionalResourceOwnership(ownership, "queue-stage:read:settled");
     if (read !== undefined) object = read;
     this.#AssertOptionalResourceOwnership(ownership, "queue-stage:publish:enqueue");
@@ -1245,18 +1351,52 @@ class CjsResMan extends CjsEventEmitter {
    * @throws {Error|TypeError} If no registered reader matches or its read contract fails.
    */
   async ReadResourceObjectPayload(resource, bytes, options = {}) {
+    return this.#ReadResolvedResourceObjectPayload(resource, bytes, options, this.#ResolveResourceObjectRead(resource, bytes, options));
+  }
+
+  /**
+   * Resolve the configured direct loader or format descriptor once so queue
+   * selection and execution use the same registration snapshot.
+   *
+   * @param {CjsResource} resource Resource whose CPU outcome is requested.
+   * @param {*} bytes Source input.
+   * @param {object} options Requested output options.
+   * @returns {{loader: Function|null, descriptor: object|null}} Resolved reader.
+   */
+  #ResolveResourceObjectRead(resource, bytes, options) {
     const explicitLoader = this.GetObjectLoader(resource.GetExt());
     if (explicitLoader) {
       if (options.emit !== undefined) {
         throw CreateObjectLoaderOutputMissingError(resource.GetExt(), options.emit);
       }
-      return explicitLoader(bytes, CreatePrepareContext(this, resource, bytes, options, "read"));
+      return {
+        loader: explicitLoader,
+        descriptor: null
+      };
     }
-    const descriptor = this.ResolveFormatDescriptor(resource.GetExt(), {
-      ...options,
-      bytes
-    });
-    return this.ReadFormatOnce(resource, descriptor, bytes, options);
+    return {
+      loader: null,
+      descriptor: this.ResolveFormatDescriptor(resource.GetExt(), {
+        ...options,
+        bytes
+      })
+    };
+  }
+
+  /**
+   * Execute one already-resolved reader through its direct or format path.
+   *
+   * @param {CjsResource} resource Resource whose CPU outcome is requested.
+   * @param {*} bytes Source input.
+   * @param {object} options Requested output options.
+   * @param {{loader: Function|null, descriptor: object|null}} resolved Reader selection.
+   * @returns {Promise<*>} Reader result.
+   */
+  #ReadResolvedResourceObjectPayload(resource, bytes, options, resolved) {
+    if (resolved.loader) {
+      return resolved.loader(bytes, CreatePrepareContext(this, resource, bytes, options, "read"));
+    }
+    return this.ReadFormatOnce(resource, resolved.descriptor, bytes, options);
   }
 
   /**
@@ -1383,32 +1523,7 @@ class CjsResMan extends CjsEventEmitter {
    * @throws {TypeError|Error} If the facade lacks a reader or reading fails.
    */
   async ReadFormat(descriptor, bytes, options = {}) {
-    const {
-      Format,
-      defaults
-    } = descriptor;
-    const formatOptions = {
-      ...defaults,
-      ...(options.formatOptions || {})
-    };
-    if (options.emit !== undefined) {
-      formatOptions.emit = FindDeclaredOutput(GetFormatOutputs(Format), options.emit) ?? options.emit;
-    }
-    if (options.classes !== undefined) formatOptions.classes = options.classes;
-    if (typeof Format.readAsync === "function") {
-      return Format.readAsync(bytes, formatOptions);
-    }
-    if (typeof Format.read === "function") {
-      return Format.read(bytes, formatOptions);
-    }
-    const reader = new Format(formatOptions);
-    if (typeof reader.ReadAsync === "function") {
-      return reader.ReadAsync(bytes, formatOptions);
-    }
-    if (typeof reader.Read === "function") {
-      return reader.Read(bytes, formatOptions);
-    }
-    throw new TypeError(`${Format.name} does not expose a read operation.`);
+    return this.resourceLoader.ReadFormat(descriptor, bytes, CreateFormatReadOptions(descriptor, options));
   }
 
   /**
@@ -1764,7 +1879,7 @@ class CjsResMan extends CjsEventEmitter {
       revisionKey: context.revisionKey,
       retain: cachePolicy === true || queuedRecord?.retain === true
     };
-    record.promise = Promise.resolve().then(() => context.source.Read(context.path, options));
+    record.promise = Promise.resolve().then(() => this.resourceLoader.Read(context.source, context.path, options));
     if (cachePolicy !== false) operations.set(key, record);
     record.promise.then(() => {
       if (cachePolicy !== false && !record.retain && operations.get(key) === record) {
@@ -2959,6 +3074,52 @@ function GetResourceDiagnosticPath(resource) {
  * @returns {void}
  */
 function Noop() {}
+
+/**
+ * Validate a resource execution strategy.
+ *
+ * @param {*} loader Candidate loader.
+ * @param {string} name Configuration field name.
+ * @returns {void}
+ */
+function AssertResourceLoader(loader, name) {
+  if (!IsResourceLoader(loader)) {
+    throw new TypeError(`CjsResMan ${name} must provide Read and ReadFormat.`);
+  }
+}
+
+/**
+ * Test the structural resource loader contract.
+ *
+ * @param {*} loader Candidate loader.
+ * @returns {boolean}
+ */
+function IsResourceLoader(loader) {
+  return Boolean(loader && typeof loader.Read === "function" && typeof loader.ReadFormat === "function");
+}
+
+/**
+ * Merge frozen registration defaults with one request's format overrides.
+ *
+ * @param {object} descriptor Registered format descriptor.
+ * @param {object} options Resource read options.
+ * @returns {object} Effective format reader options.
+ */
+function CreateFormatReadOptions(descriptor, options) {
+  const {
+    Format,
+    defaults
+  } = descriptor;
+  const formatOptions = {
+    ...defaults,
+    ...(options.formatOptions || {})
+  };
+  if (options.emit !== undefined) {
+    formatOptions.emit = FindDeclaredOutput(GetFormatOutputs(Format), options.emit) ?? options.emit;
+  }
+  if (options.classes !== undefined) formatOptions.classes = options.classes;
+  return formatOptions;
+}
 
 /**
  * Return the wall-clock timestamp used by default automatic purge cadence.

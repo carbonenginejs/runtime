@@ -1,5 +1,5 @@
 import { CLASS_KEYS } from './core/schema.js';
-import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, toJsonValue, OUTPUT_DOCUMENT, OUTPUT_RAW, OUTPUT_RUNTIME, OUTPUT_PAYLOAD, OUTPUT_JSON } from './core/helpers.js';
+import { DEFAULT_VALUES, OUTPUT_JSON, OUTPUT_PAYLOAD, normalizeValues, validateClassKey, validateClass, toJsonValue, OUTPUT_DOCUMENT, OUTPUT_RAW, OUTPUT_RUNTIME } from './core/helpers.js';
 import { CJS_BLACK_FORMAT_ID, CJS_BLACK_EXTENSION, CJS_BLACK_FOURCC, CJS_BLACK_VERSION } from './core/blackConstants.js';
 import { CjsBlackReader } from './core/CjsBlackReader.js';
 
@@ -16,6 +16,18 @@ class CjsBlackFormat {
   #schema = DEFAULT_VALUES.schema;
   #readerOptions = {};
   #classes = {};
+
+  /**
+   * Plain payload outputs can be decoded in a browser worker. Document and
+   * runtime outputs retain class identity and therefore stay on the caller
+   * thread.
+   */
+  static worker = Object.freeze({
+    module: import.meta.url,
+    exportName: "CjsBlackFormat",
+    outputTypes: Object.freeze([OUTPUT_JSON, OUTPUT_PAYLOAD]),
+    defaultOutput: OUTPUT_JSON
+  });
 
   /**
    * Create a reusable format profile.

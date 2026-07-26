@@ -54,6 +54,8 @@ packages realize that payload into backend objects.
   reload contract.
 - [reference/queues.md](reference/queues.md): queued CPU load, publication,
   registration, and the `Wait()` fence.
+- [reference/workers.md](reference/workers.md): browser-worker source and
+  declared worker-safe format execution.
 - [reference/texture-arrays.md](reference/texture-arrays.md): texture-array
   proxies, update generations, and adapter commits.
 - [reference/texture-pipeline.md](reference/texture-pipeline.md):

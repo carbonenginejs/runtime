@@ -40,6 +40,8 @@ historical mapping.
 - `CjsResMan` semantic resource construction, registered-format selection,
   concurrency-limited source loading, staged prepare queues, layered
   source/read/resource deduplication, object loader dispatch, and prefetch.
+- Main-thread and browser-worker resource execution strategies, including
+  transferable fetch results and declared worker-safe CPU readers.
 - `CjsTextureArrayRes` and `CjsTextureParameterProxy` for material-facing,
   frame-coalesced texture-array inputs.
 - Raw `CjsEventEmitter` (from `runtime-utils/model`) for manager/runtime events
@@ -75,6 +77,8 @@ historical mapping.
 
 Concrete formats are not imported or registered by the package root; see
 [formats/README.md](formats/README.md) for the import rule and map.
+Worker-safe formats provide their own exact module declaration and remain
+explicit registrations; see [browser worker execution](reference/workers.md).
 
 ## Source layout
 

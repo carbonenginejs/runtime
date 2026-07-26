@@ -29,6 +29,10 @@ through `SetPayload()`, validate their own required fields, and throw
 `GetPayload()`, `HasPayload()`, and `ReleasePayload()` manage transient CPU
 retention without introducing a parallel DTO class hierarchy.
 
+Clone-safe formats may additionally declare browser-worker execution
+metadata. Worker eligibility never changes the format's direct API; see
+[browser worker execution](../reference/workers.md).
+
 ## Format map
 
 | Format | Class | Import |

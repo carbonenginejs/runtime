@@ -22,7 +22,8 @@ resource preparation abstraction:
 - application-level default retention policy selection;
 - automatic resource/payload byte estimation and separate CPU/adapter
   budgets;
-- browser-aware source behavior such as fetch response type selection;
+- additional browser-source response types and configurable worker-pool
+  concurrency;
 - purged-resource/device-loss recovery policy (backend device-loss recovery
   belongs to the engine's realization operation).
 

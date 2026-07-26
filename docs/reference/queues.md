@@ -15,7 +15,8 @@ BACKGROUND: deduplicated source load, limited by maxConcurrentLoads
 MAIN:       reader/format conversion -> resource publication
 ```
 
-The main reader/format operation and publication are separate queue items.
+Without worker execution, the main reader/format operation and publication
+are separate queue items.
 `maxPrepareTime` is a per-pump budget in seconds limiting synchronous
 main-queue work started in one pump, and `maxPrepareItemsPerTick` can add an
 item-count limit. Promise-returning format work remains in flight without
@@ -41,6 +42,12 @@ The selected format class owns conversion to the promised CPU output.
 `CjsResMan` does not inspect WebGL, WebGPU, texture, geometry, or codec
 support, and it does not run backend realization. An engine consumes the
 published CPU resource afterward through its own explicit operation.
+
+When worker loading is selected, a declared worker-safe format read runs on
+the module worker rather than occupying a main-queue item. The guarded
+publication item remains on the main queue. `GetPendingWorkers()` and
+`IsLoading()` include unresolved worker requests, and a queued resource
+operation keeps the worker descendant within its `Wait()` lineage.
 
 ## Queue controls
 
@@ -98,5 +105,6 @@ registry.
 ## Related documentation
 
 - [Resource lifecycle concepts](../concepts/resource-lifecycle.md)
+- [Browser worker execution](workers.md)
 - [MotherLode identity, cache, and retention](motherlode-cache.md)
 - [Format subpaths](../formats/README.md)

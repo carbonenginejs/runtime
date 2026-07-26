@@ -44,6 +44,8 @@ export { CjsFormat, ValidateFormatContract } from './format/CjsFormat.js';
 export { CjsEventEmitter } from '@carbonenginejs/runtime-utils/model';
 export { CjsMotherLode, getMotherLodeKey } from './CjsMotherLode.js';
 export { CjsFetchResourceSource, CjsMemoryResourceSource } from './CjsResourceSource.js';
+export { CjsResourceMainThreadLoader, CjsResourceWorkerLoader, ReadFormatOnCurrentThread } from './CjsResourceLoader.js';
+export { CjsResourceWorkerMessage, CjsResourceWorkerOperation } from './CjsResourceWorkerProtocol.js';
 export { CjsResManQueue } from './CjsResManQueue.js';
 export { CjsResMan } from './CjsResMan.js';
 //# sourceMappingURL=index.js.map

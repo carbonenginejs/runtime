@@ -9,5 +9,7 @@ export * from "./CjsFormat.js";
 export { CjsEventEmitter } from "@carbonenginejs/runtime-utils/model";
 export * from "./CjsMotherLode.js";
 export * from "./CjsResourceSource.js";
+export * from "./CjsResourceLoader.js";
+export * from "./CjsResourceWorkerProtocol.js";
 export { CjsResManQueue } from "./CjsResManQueue.js";
 export * from "./CjsResMan.js";

@@ -47,6 +47,14 @@ export class CjsBnkFormat
     #values = DEFAULT_VALUES;
 
     /**
+     * Browser-worker module declaration consumed by CjsResourceWorkerLoader.
+     */
+    static worker = Object.freeze({
+        module: import.meta.url,
+        exportName: "CjsBnkFormat"
+    });
+
+    /**
      * Create a reusable bnk format profile.
      *
      * @param {object} [options] Default read/inspect options.

@@ -6,6 +6,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.js",
+    "./worker": "./src/CjsResourceWorker.js",
     "./formats": "./src/formats/index.js",
     "./formats/black": "./src/formats/black/index.js",
     "./formats/black/schema": "./src/formats/black/core/blackSchema.js",
