@@ -137,6 +137,11 @@ const WEIGHTS_4 = new Uint8Array([0, 4, 9, 13, 17, 21, 26, 30, 34, 38, 43, 47, 5
 // partitions shared with BC7.
 const PARTITIONS_2 = new Uint16Array([0xcccc, 0x8888, 0xeeee, 0xecc8, 0xc880, 0xfeec, 0xfec8, 0xec80, 0xc800, 0xffec, 0xfe80, 0xe800, 0xffe8, 0xff00, 0xfff0, 0xf000, 0xf710, 0x008e, 0x7100, 0x08ce, 0x008c, 0x7310, 0x3100, 0x8cce, 0x088c, 0x3110, 0x6666, 0x366c, 0x17e8, 0x0ff0, 0x718e, 0x399c]);
 const ANCHOR_2 = new Uint8Array([15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 2, 8, 2, 2, 8, 8, 15, 2, 8, 2, 2, 8, 8, 2, 2]);
+
+/**
+ * Decodes BC6H texture blocks into a normalized floating-point image for the DDS
+ * format reader.
+ */
 function decodeBc6h(source, width, height, rowPitch = Math.ceil(width / 4) * 16, signed = false) {
   const rgba = new Float32Array(width * height * 4);
   const blockRows = Math.ceil(height / 4);
@@ -150,6 +155,11 @@ function decodeBc6h(source, width, height, rowPitch = Math.ceil(width / 4) * 16,
   }
   return rgba;
 }
+
+/**
+ * Decodes one BC6H texture block into destination pixels for the DDS format
+ * reader.
+ */
 function decodeBc6hBlock(block, signed = false) {
   if (block.byteLength < 16) throw new RangeError("BC6H block must contain 16 bytes");
   const lowMode = readBits(block, 0, 2);

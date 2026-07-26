@@ -1,4 +1,9 @@
 const CMF_CLASS_KEYS = Object.freeze(["Root", "Section", "Metadata", "MetadataEntry", "Mesh", "IndexGroup", "VertexElement", "MeshLod", "MeshArea", "LodMeshArea", "BoneBinding", "MorphTargets", "MorphTarget", "LodMorphTarget", "AudioOcclusionMesh", "Skeleton", "BoneMask", "BoneWeight", "Animation", "AnimationChannel", "AnimationCurve"]);
+
+/**
+ * Builds a CMF document from normalized shared geometry for the STL
+ * shared-geometry adapter.
+ */
 function buildCmfFromShared(root) {
   return {
     version: 1,
@@ -106,6 +111,11 @@ function bounds(mesh) {
     max: mesh.maxBounds ?? [0, 0, 0]
   };
 }
+
+/**
+ * Hydrates a CMF document through the configured runtime-class resolver for the
+ * STL shared-geometry adapter.
+ */
 function hydrateCmf(root, classes, hydrationOptions = {}) {
   const hydrationClasses = createHydrationClasses(classes, hydrationOptions);
   return hydrate("Root", {

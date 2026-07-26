@@ -19,6 +19,8 @@ packages realize that payload into backend objects.
   selection, `Ready()`/`GetObject()`) without choosing a GPU backend;
 - you need one of the non-shader format readers as a tree-shakeable subpath
   (`@carbonenginejs/runtime-resource/formats/<name>`);
+- you need canonical raw audio resources for complete files or byte windows
+  over shared physical sources;
 - you are writing an engine adapter that consumes published CPU payloads and
   needs the documented retention, reload, and texture-array contracts.
 
@@ -56,6 +58,8 @@ packages realize that payload into backend objects.
   registration, and the `Wait()` fence.
 - [reference/workers.md](reference/workers.md): browser-worker source and
   declared worker-safe format execution.
+- [reference/classes/audio.md](reference/classes/audio.md): complete/shared
+  audio byte owners and individually addressable audio resource views.
 - [reference/texture-arrays.md](reference/texture-arrays.md): texture-array
   proxies, update generations, and adapter commits.
 - [reference/texture-pipeline.md](reference/texture-pipeline.md):

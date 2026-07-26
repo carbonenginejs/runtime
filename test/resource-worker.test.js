@@ -3,29 +3,35 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import * as RuntimeResource from "../npm/dist/index.js";
 import {
   CjsFetchResourceSource,
-  CjsResourceMainThreadLoader,
-  CjsResourceWorkerLoader,
-  CjsResourceWorkerMessage,
-  CjsResourceWorkerOperation,
+  CjsResManMainThreadLoader,
+  CjsResManWorkerLoader,
   CjsResMan,
   CjsResManQueue
 } from "../npm/dist/index.js";
-import {
-  CollectCjsResourceWorkerTransferables,
-  InstallCjsResourceWorker,
-  RunCjsResourceWorkerOperation,
-  SerializeCjsResourceWorkerError
-} from "../npm/dist/CjsResourceWorker.js";
+import { CjsResManWorker } from "../npm/dist/worker/CjsResManWorker.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workerFormatUrl = pathToFileURL(
   path.join(root, "test", "fixtures", "worker-format.mjs")
 ).href;
 
+test("ResMan worker types expose their owning class ancestry", () => {
+  assert.equal(
+    RuntimeResource.CjsResManMainThreadLoader,
+    CjsResManMainThreadLoader
+  );
+  assert.equal(RuntimeResource.CjsResManWorkerLoader, CjsResManWorkerLoader);
+  assert.equal("CjsResourceMainThreadLoader" in RuntimeResource, false);
+  assert.equal("CjsResourceWorkerLoader" in RuntimeResource, false);
+  assert.equal("CjsResourceWorkerProtocol" in RuntimeResource, false);
+  assert.equal("CjsResManWorkerProtocol" in RuntimeResource, false);
+});
+
 test("main-thread resource loader preserves structural source and format contracts", async () => {
-  const loader = new CjsResourceMainThreadLoader();
+  const loader = new CjsResManMainThreadLoader();
   const source = {
     Read(pathValue, options) {
       return { path: pathValue, marker: options.marker };
@@ -65,7 +71,7 @@ test("CjsResMan selects worker loading by default with an explicit main-thread o
 
 test("worker loader correlates results and preserves transferable requests", async () => {
   const worker = new FakeWorker();
-  const loader = new CjsResourceWorkerLoader({ worker });
+  const loader = new CjsResManWorkerLoader({ worker });
   const firstBuffer = new ArrayBuffer(2);
   const first = loader.Execute("test.first", { value: 1 }, {
     transfer: [ firstBuffer ]
@@ -80,7 +86,7 @@ test("worker loader correlates results and preserves transferable requests", asy
 
   worker.Emit("message", {
     data: {
-      type: CjsResourceWorkerMessage.RESULT,
+      type: CjsResManWorker.Message.RESULT,
       id: 2,
       ok: true,
       result: "second"
@@ -88,7 +94,7 @@ test("worker loader correlates results and preserves transferable requests", asy
   });
   worker.Emit("message", {
     data: {
-      type: CjsResourceWorkerMessage.RESULT,
+      type: CjsResManWorker.Message.RESULT,
       id: 1,
       ok: true,
       result: "first"
@@ -102,7 +108,7 @@ test("worker loader correlates results and preserves transferable requests", asy
 
 test("worker loader honors clone-safe format output declarations", () => {
   const worker = new FakeWorker();
-  const loader = new CjsResourceWorkerLoader({ worker });
+  const loader = new CjsResManWorkerLoader({ worker });
   class CjsRestrictedWorkerFormat
   {
     static worker = {
@@ -122,7 +128,7 @@ test("worker loader honors clone-safe format output declarations", () => {
 
 test("worker loader aborts requests and rejects every request on fatal worker failure", async () => {
   const worker = new FakeWorker();
-  const loader = new CjsResourceWorkerLoader({ worker });
+  const loader = new CjsResManWorkerLoader({ worker });
   const controller = new AbortController();
   const aborted = loader.Execute("test.abort", null, { signal: controller.signal });
   const failing = loader.Execute("test.failure", null);
@@ -133,7 +139,7 @@ test("worker loader aborts requests and rejects every request on fatal worker fa
     error => error.name === "AbortError" && /cancelled by test/u.test(error.message)
   );
   assert.equal(worker.messages.some(entry =>
-    entry.message.type === CjsResourceWorkerMessage.CANCEL
+    entry.message.type === CjsResManWorker.Message.CANCEL
     && entry.message.id === 1
   ), true);
 
@@ -158,7 +164,7 @@ test("fetch sources describe worker reads without serializing ResMan-only option
     signal
   });
 
-  assert.equal(request.operation, CjsResourceWorkerOperation.FETCH);
+  assert.equal(request.operation, CjsResManWorker.Operation.FETCH);
   assert.equal(request.payload.url, "res:/audio/test.wem");
   assert.deepEqual(request.payload.options, {
     credentials: "include",
@@ -199,13 +205,13 @@ test("CjsResMan loads fetch-source files through its default worker strategy", a
   assert.equal(resMan.PumpBackgroundQueue(), true);
   await WaitUntil(() => worker.messages.length === 1);
   const request = worker.messages[0].message;
-  assert.equal(request.operation, CjsResourceWorkerOperation.FETCH);
+  assert.equal(request.operation, CjsResManWorker.Operation.FETCH);
   assert.equal(request.payload.path, "res:/worker/default.bin");
 
   const buffer = new Uint8Array([ 6, 7 ]).buffer;
   worker.Emit("message", {
     data: {
-      type: CjsResourceWorkerMessage.RESULT,
+      type: CjsResManWorker.Message.RESULT,
       id: request.id,
       ok: true,
       result: buffer
@@ -226,8 +232,8 @@ test("CjsResMan loads fetch-source files through its default worker strategy", a
 
 test("worker operation host executes fetch and dynamic format modules", async () => {
   const bytes = new Uint8Array([ 3, 4, 5 ]);
-  const fetched = await RunCjsResourceWorkerOperation(
-    CjsResourceWorkerOperation.FETCH,
+  const fetched = await CjsResManWorker.Execute(
+    CjsResManWorker.Operation.FETCH,
     {
       url: "https://example.invalid/data.bin",
       path: "res:/data.bin",
@@ -247,8 +253,8 @@ test("worker operation host executes fetch and dynamic format modules", async ()
   );
   assert.equal(fetched, bytes.buffer);
 
-  const formatted = await RunCjsResourceWorkerOperation(
-    CjsResourceWorkerOperation.FORMAT_READ,
+  const formatted = await CjsResManWorker.Execute(
+    CjsResManWorker.Operation.FORMAT_READ,
     {
       module: workerFormatUrl,
       exportName: "CjsTestWorkerFormat",
@@ -277,13 +283,13 @@ test("worker entry installs the execute/result message envelope", async () => {
       responses.push({ message, transfer });
     }
   };
-  const uninstall = InstallCjsResourceWorker(scope);
+  const uninstall = CjsResManWorker.Install(scope);
 
   await onMessage({
     data: {
-      type: CjsResourceWorkerMessage.EXECUTE,
+      type: CjsResManWorker.Message.EXECUTE,
       id: 42,
-      operation: CjsResourceWorkerOperation.FORMAT_READ,
+      operation: CjsResManWorker.Operation.FORMAT_READ,
       payload: {
         module: workerFormatUrl,
         exportName: "CjsTestWorkerFormat",
@@ -294,7 +300,7 @@ test("worker entry installs the execute/result message envelope", async () => {
   });
 
   assert.equal(responses.length, 1);
-  assert.equal(responses[0].message.type, CjsResourceWorkerMessage.RESULT);
+  assert.equal(responses[0].message.type, CjsResManWorker.Message.RESULT);
   assert.equal(responses[0].message.id, 42);
   assert.equal(responses[0].message.ok, true);
   assert.deepEqual(responses[0].message.result.bytes, [ 9 ]);
@@ -306,7 +312,7 @@ test("worker helpers collect unique buffers and serialize cloneable errors", () 
   const first = new Uint8Array([ 1, 2 ]);
   const second = new ArrayBuffer(3);
   assert.deepEqual(
-    CollectCjsResourceWorkerTransferables({
+    CjsResManWorker.CollectTransferables({
       first,
       alias: new Uint8Array(first.buffer),
       nested: [ second ]
@@ -318,7 +324,7 @@ test("worker helpers collect unique buffers and serialize cloneable errors", () 
   failure.code = "TEST_WORKER";
   failure.path = "res:/bad.bin";
   assert.deepEqual(
-    SerializeCjsResourceWorkerError(failure, "test"),
+    CjsResManWorker.SerializeError(failure, "test"),
     {
       name: "Error",
       message: "bad worker operation",

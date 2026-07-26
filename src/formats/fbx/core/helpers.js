@@ -1374,6 +1374,10 @@ function adler32(bytes)
  */
 class DeflateBitReader
 {
+    /**
+     * Creates a DeflateBitReader over caller-provided FBX bytes and reader
+     * options.
+     */
     constructor(bytes)
     {
         this.bytes = bytes;
@@ -1382,6 +1386,7 @@ class DeflateBitReader
         this.bitCount = 0;
     }
 
+    /** Reads bits from the current FBX binary reader. */
     readBits(count)
     {
         let
@@ -1412,12 +1417,17 @@ class DeflateBitReader
         return value;
     }
 
+    /**
+     * Moves the compressed-bit cursor to the next byte boundary for the FBX
+     * binary reader.
+     */
     alignByte()
     {
         this.bitBuffer = 0;
         this.bitCount = 0;
     }
 
+    /** Reads aligned byte from the current FBX binary reader. */
     readAlignedByte()
     {
         if (this.byteOffset >= this.bytes.byteLength)
@@ -1427,6 +1437,7 @@ class DeflateBitReader
         return this.bytes[this.byteOffset++];
     }
 
+    /** Reads aligned U16 LE from the current FBX binary reader. */
     readAlignedU16LE()
     {
         const
@@ -1442,6 +1453,7 @@ class DeflateBitReader
  */
 class DeflateHuffmanTable
 {
+    /** Creates a DeflateHuffmanTable with caller-provided initial state. */
     constructor(lengths)
     {
         this.tables = [];
@@ -1487,6 +1499,10 @@ class DeflateHuffmanTable
         }
     }
 
+    /**
+     * Decodes one symbol through the canonical Deflate Huffman table for the FBX
+     * decoder.
+     */
     decode(reader)
     {
         let code = 0;

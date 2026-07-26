@@ -19,7 +19,7 @@ class CjsBnkFormat {
   #values = DEFAULT_VALUES;
 
   /**
-   * Browser-worker module declaration consumed by CjsResourceWorkerLoader.
+   * Browser-worker module declaration consumed by CjsResManWorkerLoader.
    */
   static worker = Object.freeze({
     module: import.meta.url,

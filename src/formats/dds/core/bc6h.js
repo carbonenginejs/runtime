@@ -72,6 +72,10 @@ const ANCHOR_2 = new Uint8Array([
     15, 2, 8, 2, 2, 8, 8, 15, 2, 8, 2, 2, 8, 8, 2, 2
 ]);
 
+/**
+ * Decodes BC6H texture blocks into a normalized floating-point image for the DDS
+ * format reader.
+ */
 export function decodeBc6h(source, width, height, rowPitch = Math.ceil(width / 4) * 16, signed = false)
 {
     const rgba = new Float32Array(width * height * 4);
@@ -91,6 +95,10 @@ export function decodeBc6h(source, width, height, rowPitch = Math.ceil(width / 4
     return rgba;
 }
 
+/**
+ * Decodes one BC6H texture block into destination pixels for the DDS format
+ * reader.
+ */
 export function decodeBc6hBlock(block, signed = false)
 {
     if (block.byteLength < 16) throw new RangeError("BC6H block must contain 16 bytes");

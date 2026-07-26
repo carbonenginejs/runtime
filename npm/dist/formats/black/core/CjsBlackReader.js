@@ -14,6 +14,10 @@ import { CjsBlackSchemaRegistry } from './CjsBlackSchemaRegistry.js';
  * each read entrypoint separately restores the cursor to `dataOffset`.
  */
 class CjsBlackReader extends CjsBlueReader {
+  /**
+   * Creates a CjsBlackReader over caller-provided Black bytes and reader
+   * options.
+   */
   constructor(input, options = {}) {
     super(options, {
       schemaRegistry: CjsBlackSchemaRegistry,
@@ -32,6 +36,11 @@ class CjsBlackReader extends CjsBlueReader {
     this.payloadDepth = 0;
     this.payloadRootFields = null;
   }
+
+  /**
+   * Returns structural metadata without materializing the decoded payload for
+   * the Black object-graph reader.
+   */
   Inspect() {
     if (this.info) return this.info;
     const reader = this.reader;
@@ -54,9 +63,16 @@ class CjsBlackReader extends CjsBlueReader {
     };
     return this.info;
   }
+
+  /**
+   * Reads the primary public payload representation from the supplied input
+   * for the Black object-graph reader.
+   */
   Read() {
     return this.ReadPayload();
   }
+
+  /** Reads document from the current Black object-graph reader. */
   ReadDocument() {
     const info = this.Inspect();
     this.ResetReadState();
@@ -88,6 +104,8 @@ class CjsBlackReader extends CjsBlueReader {
       reports: this.reports
     });
   }
+
+  /** Reads runtime from the current Black object-graph reader. */
   ReadRuntime() {
     const info = this.Inspect();
     this.ResetReadState();
@@ -105,6 +123,8 @@ class CjsBlackReader extends CjsBlueReader {
       reports: this.reports
     };
   }
+
+  /** Reads payload from the current Black object-graph reader. */
   ReadPayload() {
     const info = this.Inspect();
     this.ResetReadState();
@@ -125,6 +145,8 @@ class CjsBlackReader extends CjsBlueReader {
     }
     return payload;
   }
+
+  /** Reads object from the current Black object-graph reader. */
   ReadObject(reader) {
     if (this.readMode === "runtime") return this.ReadRuntimeObject(reader);
     if (this.readMode === "payload") return this.ReadPayloadObject(reader);
@@ -137,6 +159,8 @@ class CjsBlackReader extends CjsBlueReader {
       embedded: false
     });
   }
+
+  /** Reads embedded object from the current Black object-graph reader. */
   ReadEmbeddedObject(reader) {
     if (this.readMode === "runtime") return this.ReadRuntimeObjectPayload(reader, {
       blackReference: null,
@@ -151,6 +175,8 @@ class CjsBlackReader extends CjsBlueReader {
       embedded: true
     });
   }
+
+  /** Reads object payload from the current Black object-graph reader. */
   ReadObjectPayload(reader, options) {
     const payloadSize = reader.ReadU32();
     const objectReader = reader.ReadBinaryReader(payloadSize);
@@ -202,6 +228,8 @@ class CjsBlackReader extends CjsBlueReader {
     objectReader.ExpectEnd(`${kind} did not read to end`);
     return CjsCarbonDocument.createRef(node.id);
   }
+
+  /** Reads runtime object from the current Black object-graph reader. */
   ReadRuntimeObject(reader) {
     const blackReference = reader.ReadU32();
     if (blackReference === 0) return null;
@@ -213,6 +241,8 @@ class CjsBlackReader extends CjsBlueReader {
       embedded: false
     });
   }
+
+  /** Reads runtime object payload from the current Black object-graph reader. */
   ReadRuntimeObjectPayload(reader, options) {
     const payloadSize = reader.ReadU32();
     const objectReader = reader.ReadBinaryReader(payloadSize);
@@ -242,6 +272,8 @@ class CjsBlackReader extends CjsBlueReader {
     this.ApplyRuntimeValues(target, values, kind, shape);
     return target;
   }
+
+  /** Reads payload object from the current Black object-graph reader. */
   ReadPayloadObject(reader) {
     const blackReference = reader.ReadU32();
     if (blackReference === 0) return null;
@@ -253,6 +285,8 @@ class CjsBlackReader extends CjsBlueReader {
       embedded: false
     });
   }
+
+  /** Reads payload object payload from the current Black object-graph reader. */
   ReadPayloadObjectPayload(reader, options) {
     const payloadSize = reader.ReadU32();
     const objectReader = reader.ReadBinaryReader(payloadSize);
@@ -283,9 +317,13 @@ class CjsBlackReader extends CjsBlueReader {
     objectReader.ExpectEnd(`${kind} did not read to end`);
     return target;
   }
+
+  /** Creates skipped payload target for the current Black object-graph reader. */
   CreateSkippedPayloadTarget() {
     return {};
   }
+
+  /** Returns payload root fields from the current Black object-graph reader. */
   GetPayloadRootFields() {
     if (this.payloadRootFields !== null) return this.payloadRootFields;
     const fields = this.options.payloadRootFields ?? this.options.rootFields ?? null;
@@ -296,6 +334,11 @@ class CjsBlackReader extends CjsBlueReader {
     this.payloadRootFields = new Set((Array.isArray(fields) ? fields : [fields]).map(String));
     return this.payloadRootFields;
   }
+
+  /**
+   * Reports whether skip payload field is enabled by the current Black
+   * object-graph reader.
+   */
   ShouldSkipPayloadField(target) {
     if (this.readMode !== "payload" || this.payloadDepth !== 1) return false;
     const rootFields = this.GetPayloadRootFields();
@@ -303,6 +346,8 @@ class CjsBlackReader extends CjsBlueReader {
     const fieldName = target.unknown ? target.blackName : target.field.name;
     return !rootFields.has(fieldName);
   }
+
+  /** Advances past field value in the current Black object-graph reader. */
   SkipFieldValue(reader, target) {
     if (target.unknown) {
       this.ReadUnknownFieldValue(reader, null, target.blackName);
@@ -310,6 +355,8 @@ class CjsBlackReader extends CjsBlueReader {
     }
     CjsBlackPropertyReaders.skipValue(reader, target.field);
   }
+
+  /** Advances past object in the current Black object-graph reader. */
   SkipObject(reader) {
     const blackReference = reader.ReadU32();
     if (blackReference === 0) return;
@@ -317,9 +364,13 @@ class CjsBlackReader extends CjsBlueReader {
     this.references.set(blackReference, this.CreateSkippedPayloadTarget());
     this.SkipObjectPayload(reader);
   }
+
+  /** Advances past embedded object in the current Black object-graph reader. */
   SkipEmbeddedObject(reader) {
     this.SkipObjectPayload(reader);
   }
+
+  /** Advances past object payload in the current Black object-graph reader. */
   SkipObjectPayload(reader) {
     const payloadSize = reader.ReadU32();
     const objectReader = reader.ReadBinaryReader(payloadSize);
@@ -332,18 +383,40 @@ class CjsBlackReader extends CjsBlueReader {
     }
     objectReader.ExpectEnd(`${kind} did not read to end`);
   }
+
+  /**
+   * Reports whether include class metadata is enabled by the current Black
+   * object-graph reader.
+   */
   ShouldIncludeClassMetadata() {
     return Boolean(this.options.includeClassMetadata || this.options.trace || this.options.debug);
   }
+
+  /**
+   * Reports whether include field trace is enabled by the current Black
+   * object-graph reader.
+   */
   ShouldIncludeFieldTrace() {
     return Boolean(this.options.includeFieldTrace || this.options.trace || this.options.debug);
   }
+
+  /**
+   * Reports whether include document metadata is enabled by the current Black
+   * object-graph reader.
+   */
   ShouldIncludeDocumentMetadata() {
     return Boolean(this.options.includeMetadata || this.options.trace || this.options.debug || this.options.metadata);
   }
+
+  /**
+   * Reports whether include ref index is enabled by the current Black
+   * object-graph reader.
+   */
   ShouldIncludeRefIndex() {
     return Boolean(this.options.includeRefIndex || this.options.trace || this.options.debug);
   }
+
+  /** Creates document metadata for the current Black object-graph reader. */
   CreateDocumentMetadata(info) {
     if (!this.ShouldIncludeDocumentMetadata()) return this.options.metadata || null;
     return {
@@ -355,6 +428,11 @@ class CjsBlackReader extends CjsBlueReader {
       ...(this.options.metadata || {})
     };
   }
+
+  /**
+   * Resolves field target with context against the current Black object-graph
+   * reader.
+   */
   ResolveFieldTargetWithContext(kind, shape, blackName, previousBlackName = null) {
     try {
       return this.ResolveFieldTarget(kind, shape, blackName);
@@ -363,6 +441,8 @@ class CjsBlackReader extends CjsBlueReader {
       throw error;
     }
   }
+
+  /** Reads field value with context from the current Black object-graph reader. */
   ReadFieldValueWithContext(reader, kind, blackName, target) {
     try {
       return target.unknown ? this.ReadUnknownFieldValue(reader, kind, blackName) : CjsBlackPropertyReaders.readValue(reader, target.field);
@@ -371,6 +451,11 @@ class CjsBlackReader extends CjsBlueReader {
       throw error;
     }
   }
+
+  /**
+   * Assigns field value while preserving the current Black object-graph reader
+   * contract.
+   */
   AssignFieldValue(node, target, value) {
     if (target.unknown) {
       node.raw = node.raw || {};
@@ -390,6 +475,11 @@ class CjsBlackReader extends CjsBlueReader {
     }
     this.AssignFieldTrace(node, target);
   }
+
+  /**
+   * Assigns field trace while preserving the current Black object-graph reader
+   * contract.
+   */
   AssignFieldTrace(node, target) {
     if (!this.ShouldIncludeFieldTrace()) return;
     node.meta.black.fields[target.blackName] = {
@@ -401,6 +491,8 @@ class CjsBlackReader extends CjsBlueReader {
       key: target.key
     };
   }
+
+  /** Resolves field target against the current Black object-graph reader. */
   ResolveFieldTarget(kind, shape, blackName) {
     if (!shape) {
       throw new TypeError(`No source shape registered for Black type ${kind}`);
@@ -445,6 +537,8 @@ class CjsBlackReader extends CjsBlueReader {
     }
     throw new TypeError(`Unknown Black property ${blackName} for ${kind}`);
   }
+
+  /** Reads unknown field value from the current Black object-graph reader. */
   ReadUnknownFieldValue(reader, kind, blackName) {
     const readers = this.GetUnknownFieldReaders(blackName);
     const errors = [];
@@ -465,6 +559,8 @@ class CjsBlackReader extends CjsBlueReader {
     });
     throw errors[0] || new TypeError(`Unable to read unknown Black field ${blackName} for ${kind}`);
   }
+
+  /** Returns unknown field readers from the current Black object-graph reader. */
   GetUnknownFieldReaders(blackName) {
     const readers = [];
     const readByKind = (kind, options = null) => {
@@ -519,6 +615,8 @@ class CjsBlackReader extends CjsBlueReader {
     });
     return readers;
   }
+
+  /** Resolves black field target against the current Black object-graph reader. */
   ResolveBlackFieldTarget(blackName, blackField, fields) {
     const sourceField = fields.find(item => item.name === blackField.fieldName || item.name === blackField.name || item.cppName === blackField.cppName || item.cppName === blackField.memberPath || item.cppName === blackField.memberRoot);
     const fieldName = blackField.fieldName || sourceField?.name || blackField.name || CjsBlackReader.toJsFieldName(blackName);
@@ -544,6 +642,11 @@ class CjsBlackReader extends CjsBlueReader {
       key: storageKey
     };
   }
+
+  /**
+   * Resolves unknown field target against the current Black object-graph
+   * reader.
+   */
   ResolveUnknownFieldTarget(_kind, _shape, blackName) {
     return {
       blackName,
@@ -568,17 +671,26 @@ class CjsBlackReader extends CjsBlueReader {
       unknown: true
     };
   }
+
+  /**
+   * Reports whether capture unknown field is enabled by the current Black
+   * object-graph reader.
+   */
   ShouldCaptureUnknownField(blackName, _kind, shape) {
     if (this.options.captureUnknownBlackFields) return true;
     if (this.options.captureUnknownResourceFields && /^res:\//.test(String(blackName || ""))) return true;
     if (this.options.captureUnknownWhenNoBlackFields && (!shape?.black || !shape.black.fields || !shape.black.fields.length)) return true;
     return false;
   }
+
+  /** Resolves class against the current Black object-graph reader. */
   ResolveClass(kind) {
     const classes = this.options.classes || {};
     const Schema = this.options.registry || CjsSchema;
     return classes[kind] || Schema.GetConstructor(kind);
   }
+
+  /** Clears read state before reusing the current Black object-graph reader. */
   ResetReadState() {
     super.ResetBlueReadState();
     this.references = new Map();
@@ -587,6 +699,8 @@ class CjsBlackReader extends CjsBlueReader {
     this.payloadDepth = 0;
     this.payloadRootFields = null;
   }
+
+  /** Reads string table from the current Black object-graph reader. */
   static readStringTable(reader) {
     const stringsReader = reader.ReadBinaryReader(reader.ReadU32());
     const count = stringsReader.ReadU16();
@@ -597,6 +711,8 @@ class CjsBlackReader extends CjsBlueReader {
     stringsReader.ExpectEnd("Black string table did not read to end");
     return strings;
   }
+
+  /** Reads wide string table from the current Black object-graph reader. */
   static readWideStringTable(reader) {
     const wideStringsReader = reader.ReadBinaryReader(reader.ReadU32());
     const count = wideStringsReader.ReadU16();
@@ -607,6 +723,11 @@ class CjsBlackReader extends CjsBlueReader {
     wideStringsReader.ExpectEnd("Black wide string table did not read to end");
     return wideStrings;
   }
+
+  /**
+   * Converts indexed key into the canonical Black object-graph reader
+   * representation.
+   */
   static normalizeIndexedKey(indexToken, field) {
     const number = Number(indexToken);
     if (Number.isInteger(number) && String(indexToken).trim() === String(number)) return number;
@@ -619,6 +740,8 @@ class CjsBlackReader extends CjsBlueReader {
     }
     return pascal || text;
   }
+
+  /** Parses indexed member from the current Black object-graph reader. */
   static parseIndexedMember(value) {
     const match = String(value || "").match(/^(.+)\[([^\]]+)\]$/);
     if (!match) return null;
@@ -627,6 +750,8 @@ class CjsBlackReader extends CjsBlueReader {
       indexToken: match[2]
     };
   }
+
+  /** Converts the current Black object-graph reader value to JS field name. */
   static toJsFieldName(value) {
     return String(value || "").replace(/^m_/, "");
   }

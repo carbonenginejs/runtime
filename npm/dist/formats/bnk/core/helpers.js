@@ -39,6 +39,11 @@ const HIRC_TYPE_NAMES = Object.freeze({
   21: "envelope",
   22: "audio-device"
 });
+
+/**
+ * Normalizes reader options against their supported defaults for the BNK format
+ * reader.
+ */
 function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsBnkFormat") {
   const values = {
     ...DEFAULT_VALUES,
@@ -49,12 +54,16 @@ function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsB
   values.emit = normalizeEmit(values.emit, readerName);
   return values;
 }
+
+/** Normalizes the requested output representation for the BNK format reader. */
 function normalizeEmit(emit, readerName) {
   if (emit === undefined || emit === null) return OUTPUT_RAW;
   if (emit === OUTPUT_JSON) return OUTPUT_BNK_JSON;
   if ([OUTPUT_RAW, OUTPUT_BNK_JSON, OUTPUT_MEDIA].includes(emit)) return emit;
   throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
+
+/** Returns a byte view over the supplied binary input for the BNK format reader. */
 function toBytes(input) {
   if (input instanceof Uint8Array) return input;
   if (input instanceof ArrayBuffer) return new Uint8Array(input);
@@ -266,6 +275,8 @@ function readNameTable(bytes, dataOffset, size) {
   }
   return names;
 }
+
+/** Inspects input using normalized format options for the BNK format reader. */
 function inspectWithValues(input, values = DEFAULT_VALUES) {
   const bytes = toBytes(input);
   if (!isBNK(bytes)) {
@@ -306,6 +317,11 @@ function extractMedia(bytes, metadata, mediaId) {
   }
   return items;
 }
+
+/**
+ * Reports whether input is supported under normalized format options for the BNK
+ * format reader.
+ */
 function isSupportedWithValues(input, values = DEFAULT_VALUES) {
   try {
     const metadata = inspectWithValues(input, values);
@@ -354,6 +370,8 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
     };
   }
 }
+
+/** Reads input using normalized format options for the BNK format reader. */
 function readWithValues(input, values = DEFAULT_VALUES) {
   const bytes = toBytes(input);
   const metadata = inspectWithValues(bytes, values);
@@ -379,6 +397,8 @@ function readWithValues(input, values = DEFAULT_VALUES) {
     bytes
   };
 }
+
+/** Converts a parsed payload into a JSON-safe value for the BNK format reader. */
 function toJsonValue(value) {
   if (value instanceof Uint8Array) return {
     byteLength: value.byteLength

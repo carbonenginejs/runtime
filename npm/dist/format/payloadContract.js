@@ -20,6 +20,11 @@ const ResourcePayloadValues = Object.freeze({
   alphaModes: Object.freeze(["straight", "premultiplied", "opaque", "unknown"]),
   textureDimensions: Object.freeze(["2d", "cube", "3d", "array"])
 });
+
+/**
+ * Validates dimensions, stride, and byte storage for a decoded RGBA payload for
+ * the resource payload contract.
+ */
 function validateRgbaPayload(payload, options = null) {
   const value = assertObject(payload, "RGBA payload");
   assertPayloadType(value, ResourcePayloadType.RGBA, "RGBA payload");
@@ -59,6 +64,11 @@ function validateRgbaPayload(payload, options = null) {
   }
   return value;
 }
+
+/**
+ * Validates the discriminated fields required by a texture payload for the
+ * resource payload contract.
+ */
 function validateTexturePayload(payload) {
   const value = assertObject(payload, "Texture payload");
   assertPayloadType(value, ResourcePayloadType.TEXTURE, "Texture payload");
@@ -79,6 +89,11 @@ function validateTexturePayload(payload) {
   }
   return value;
 }
+
+/**
+ * Validates the discriminated fields required by an audio payload for the
+ * resource payload contract.
+ */
 function validateAudioPayload(payload) {
   const value = assertObject(payload, "Audio payload");
   if (![ResourcePayloadType.AUDIO, ResourcePayloadType.PCM].includes(value.payloadType)) {
@@ -92,6 +107,11 @@ function validateAudioPayload(payload) {
   assertPositiveOrZeroNumber(value.durationSeconds, "Audio payload.durationSeconds");
   return value;
 }
+
+/**
+ * Validates the discriminated fields required by a video payload for the
+ * resource payload contract.
+ */
 function validateVideoPayload(payload) {
   const value = assertObject(payload, "Video payload");
   assertPayloadType(value, ResourcePayloadType.VIDEO, "Video payload");

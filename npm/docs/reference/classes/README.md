@@ -23,6 +23,8 @@ documentation check against the actual source tree.
 
 - [core.md](core.md): the resource manager, MotherLode cache, resource and
   source classes, and the format/probe bases.
+- [audio.md](audio.md): raw audio-byte owners and individually addressable
+  audio resource views.
 - [resources.md](resources.md): the Carbon-shaped semantic resource and data
   classes under `src/resources`.
 - [texture.md](texture.md): texture-array aggregation classes under

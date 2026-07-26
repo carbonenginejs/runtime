@@ -68,6 +68,7 @@ function cloneValues(values)
     };
 }
 
+/** Validates a requested runtime class key for the RED object-graph reader. */
 export function validateClassKey(classKeys, key, readerName)
 {
     if (typeof key !== "string" || !key)
@@ -76,6 +77,10 @@ export function validateClassKey(classKeys, key, readerName)
     }
 }
 
+/**
+ * Validates a resolved runtime class constructor for the RED object-graph
+ * reader.
+ */
 export function validateClass(classKeys, type, Class, readerName)
 {
     validateClassKey(classKeys, type, readerName);
@@ -101,6 +106,10 @@ function mergeClasses(values, classes, classKeys, readerName)
     values.classes = next;
 }
 
+/**
+ * Normalizes reader options against their supported defaults for the RED
+ * object-graph reader.
+ */
 export function normalizeValues(base, options, classKeys, readerName)
 {
     if (!options || typeof options !== "object")
@@ -133,12 +142,17 @@ export function normalizeValues(base, options, classKeys, readerName)
     return values;
 }
 
+/** Copies reader options accepted by the current RED object-graph reader. */
 export function copyReaderOptions(values)
 {
     const { emit: _emit, schema: _schema, classes: _classes, ...readerOptions } = values;
     return readerOptions;
 }
 
+/**
+ * Converts a parsed payload into a JSON-safe value for the RED object-graph
+ * reader.
+ */
 export function toJsonValue(value, seen = new WeakSet())
 {
     if (value === null || typeof value !== "object") return value;

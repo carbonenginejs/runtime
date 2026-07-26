@@ -32,6 +32,7 @@ export class TriGeometryRes extends CjsResource
   @type.string
   name = "";
 
+  /** Creates a TriGeometryRes with caller-provided initial state. */
   constructor(values = null)
   {
     super();

@@ -26,6 +26,8 @@ new class extends _identity {
     forceLod = (_initProto(this), _init_forceLod(this, false));
     forcedLodIndex = (_init_extra_forceLod(this), _init_forcedLodIndex(this, -1));
     name = (_init_extra_forcedLodIndex(this), _init_name(this, ""));
+
+    /** Creates a TriGeometryRes with caller-provided initial state. */
     constructor(values = null) {
       super(), _init_extra_name(this);
       this.SetValues(values || {}, {

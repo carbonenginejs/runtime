@@ -23,6 +23,7 @@ new class extends _identity {
         family: "resources"
       })], [[[carbon, carbon.method, impl, impl.adapted], 18, "GetPermutationDescription"]], 0, void 0, _CjsResource));
     }
+    /** Creates a Tr2EffectRes with caller-provided initial state. */
     constructor(values = null) {
       _initProto(super());
       this.SetValues(values || {}, {

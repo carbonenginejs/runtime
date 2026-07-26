@@ -35,6 +35,10 @@ export const WEM_CODEC_NAMES = Object.freeze({
     0xffff: "wwise-vorbis"
 });
 
+/**
+ * Normalizes reader options against their supported defaults for the WEM format
+ * reader.
+ */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsWemFormat")
 {
     const values = { ...DEFAULT_VALUES, ...(base || {}), ...(options || {}) };
@@ -43,6 +47,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
+/** Normalizes the requested output representation for the WEM format reader. */
 export function normalizeEmit(emit, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -51,6 +56,7 @@ export function normalizeEmit(emit, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
+/** Returns a byte view over the supplied binary input for the WEM format reader. */
 export function toBytes(input)
 {
     if (input instanceof Uint8Array) return input;
@@ -184,6 +190,7 @@ export function inspectWEM(bytes)
     return info;
 }
 
+/** Inspects input using normalized format options for the WEM format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = toBytes(input);
@@ -200,6 +207,10 @@ export function inspectWithValues(input, values = DEFAULT_VALUES)
     };
 }
 
+/**
+ * Reports whether input is supported under normalized format options for the WEM
+ * format reader.
+ */
 export function isSupportedWithValues(input, values = DEFAULT_VALUES)
 {
     try
@@ -353,6 +364,7 @@ function getOggSupport(metadata)
     return { supported: true, reason: "" };
 }
 
+/** Reads input using normalized format options for the WEM format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = toBytes(input);
@@ -428,6 +440,7 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     throw error;
 }
 
+/** Converts a parsed payload into a JSON-safe value for the WEM format reader. */
 export function toJsonValue(value)
 {
     if (value instanceof Uint8Array) return { byteLength: value.byteLength };

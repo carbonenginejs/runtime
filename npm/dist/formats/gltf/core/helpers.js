@@ -28,11 +28,15 @@ const DEFAULT_VALUES = Object.freeze({
   classes: Object.freeze({})
 });
 const OPTION_KEYS = new Set(["emit", "source", "buffers", "packTangents", "uvHandedness", "rebuildMissingNormals", "rebuildMissingTangents", "rebuildMissingBiNormals", "classes"]);
+
+/** Validates a requested runtime class key for the glTF format reader. */
 function validateClassKey(key, readerName = "CjsGltfFormat") {
   if (!CLASS_KEYS.includes(key)) {
     throw new Error(`${readerName}: unknown class key ${JSON.stringify(key)}; expected one of ${CLASS_KEYS.join(", ")}`);
   }
 }
+
+/** Validates a resolved runtime class constructor for the glTF format reader. */
 function validateClass(key, Class, readerName = "CjsGltfFormat") {
   validateClassKey(key, readerName);
   if (typeof Class !== "function") {
@@ -66,6 +70,11 @@ function normalizeUvHandedness(value, readerName) {
   if (value === "left" || value === -1 || value === "negative") return "left";
   throw new TypeError(`${readerName}: uvHandedness must be "right" or "left"`);
 }
+
+/**
+ * Normalizes reader options against their supported defaults for the glTF format
+ * reader.
+ */
 function normalizeValues(base, options = {}, readerName = "CjsGltfFormat") {
   if (!options || typeof options !== "object") {
     throw new TypeError(`${readerName}: options must be an object`);
@@ -229,6 +238,8 @@ function rebuildMissingMeshData(format, json, values) {
     }
   }
 }
+
+/** Reads input using normalized format options for the glTF format reader. */
 function readWithValues(format, input, values) {
   const parsed = parseInput(input);
   const json = parseGltfToJson(parsed.gltf, {
@@ -245,6 +256,8 @@ function readWithValues(format, input, values) {
     source: values.source
   });
 }
+
+/** Inspects input using normalized format options for the glTF format reader. */
 function inspectWithValues(input, values) {
   const parsed = parseInput(input);
   return inspectGltf(parsed.gltf, {
@@ -252,6 +265,8 @@ function inspectWithValues(input, values) {
     source: values.source
   });
 }
+
+/** Converts a parsed payload into a JSON-safe value for the glTF format reader. */
 function toJsonValue(value) {
   if (value === null || value === undefined) return value;
   if (typeof value !== "object") return value;

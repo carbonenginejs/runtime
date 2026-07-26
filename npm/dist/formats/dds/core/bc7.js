@@ -105,6 +105,11 @@ const PARTITIONS_3 = new Uint32Array([0xaa685050, 0x6a5a5040, 0x5a5a4200, 0x5450
 const ANCHOR_2 = new Uint8Array([15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 2, 8, 2, 2, 8, 8, 15, 2, 8, 2, 2, 8, 8, 2, 2, 15, 15, 6, 8, 2, 8, 15, 15, 2, 8, 2, 2, 2, 15, 15, 6, 6, 2, 6, 8, 15, 15, 2, 2, 15, 15, 15, 15, 15, 2, 2, 15]);
 const ANCHOR_3_SECOND = new Uint8Array([3, 3, 15, 15, 8, 3, 15, 15, 8, 8, 6, 6, 6, 5, 3, 3, 3, 3, 8, 15, 3, 3, 6, 10, 5, 8, 8, 6, 8, 5, 15, 15, 8, 15, 3, 5, 6, 10, 8, 15, 15, 3, 15, 5, 15, 15, 15, 15, 3, 15, 5, 5, 5, 8, 5, 10, 5, 10, 8, 13, 15, 12, 3, 3]);
 const ANCHOR_3_THIRD = new Uint8Array([15, 8, 8, 3, 15, 15, 3, 8, 15, 15, 15, 15, 15, 15, 15, 8, 15, 8, 15, 3, 15, 8, 15, 8, 3, 15, 6, 10, 15, 15, 10, 8, 15, 3, 15, 10, 10, 8, 9, 10, 6, 15, 8, 15, 3, 6, 6, 8, 15, 3, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 3, 15, 15, 8]);
+
+/**
+ * Decodes BC7 texture blocks into a normalized RGBA image for the DDS format
+ * reader.
+ */
 function decodeBc7(source, width, height, rowPitch = Math.ceil(width / 4) * 16) {
   const rgba = new Uint8Array(width * height * 4);
   const blockRows = Math.ceil(height / 4);
@@ -118,6 +123,11 @@ function decodeBc7(source, width, height, rowPitch = Math.ceil(width / 4) * 16) 
   }
   return rgba;
 }
+
+/**
+ * Decodes one BC7 texture block into destination pixels for the DDS format
+ * reader.
+ */
 function decodeBc7Block(block) {
   if (block.byteLength < 16) throw new RangeError("BC7 block must contain 16 bytes");
   if (block[0] === 0) return new Uint8Array(16 * 4);
@@ -237,10 +247,16 @@ function copyBlock(block, output, width, height, blockX, blockY) {
  * software BC7 decoder.
  */
 class Bc7BitReader {
+  /** Creates a Bc7BitReader over caller-provided DDS bytes and reader options. */
   constructor(bytes) {
     this.bytes = bytes;
     this.offset = 0;
   }
+
+  /**
+   * Reads the requested number of bits from one BC7 block for the DDS binary
+   * reader.
+   */
   read(bitCount) {
     let value = 0;
     for (let bit = 0; bit < bitCount; bit++) {

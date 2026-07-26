@@ -30,6 +30,7 @@ export function wwiseIdFromName(name)
     return hash;
 }
 
+/** Converts the current BNK format reader value to soundbanks info document. */
 export function toSoundbanksInfoDocument(input)
 {
     let value = input;

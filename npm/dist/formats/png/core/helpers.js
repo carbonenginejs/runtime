@@ -21,6 +21,11 @@ const IMAGE_MIME_TYPES = Object.freeze({
   tga: "image/x-tga",
   dds: "image/vnd-ms.dds"
 });
+
+/**
+ * Normalizes reader options against their supported defaults for the PNG format
+ * reader.
+ */
 function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsImageFormat") {
   const values = {
     ...DEFAULT_VALUES,
@@ -31,11 +36,15 @@ function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsI
   values.emit = normalizeEmit(values.emit, values.inputType, readerName);
   return values;
 }
+
+/** Normalizes the requested input representation for the PNG format reader. */
 function normalizeInputType(inputType) {
   if (!inputType) return "";
   const value = String(inputType).replace(/^\./u, "").toLowerCase();
   return value === "jpg" ? "jpeg" : value;
 }
+
+/** Normalizes the requested output representation for the PNG format reader. */
 function normalizeEmit(emit, inputType, readerName) {
   if (emit === undefined || emit === null) return OUTPUT_RAW;
   if (emit === OUTPUT_JSON && inputType) return DEBUG_OUTPUTS[inputType] || OUTPUT_JSON;
@@ -43,12 +52,16 @@ function normalizeEmit(emit, inputType, readerName) {
   if (Object.values(DEBUG_OUTPUTS).includes(emit)) return emit;
   throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
+
+/** Returns a byte view over the supplied binary input for the PNG format reader. */
 function toBytes(input) {
   if (input instanceof Uint8Array) return input;
   if (input instanceof ArrayBuffer) return new Uint8Array(input);
   if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
   throw new TypeError("Image input must be Uint8Array, ArrayBuffer, or DataView");
 }
+
+/** Inspects input using normalized format options for the PNG format reader. */
 function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   const bytes = toBytes(input);
   const detected = inspectBytes(bytes);
@@ -64,6 +77,11 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
     ...detected
   };
 }
+
+/**
+ * Reports whether input is supported under normalized format options for the PNG
+ * format reader.
+ */
 function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   try {
     const metadata = inspectWithValues(input, values, expectedType);
@@ -105,6 +123,8 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     };
   }
 }
+
+/** Reads input using normalized format options for the PNG format reader. */
 function readWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   const bytes = toBytes(input);
   const metadata = inspectWithValues(bytes, values, expectedType);
@@ -129,6 +149,11 @@ function readWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   error.emit = values.emit;
   throw error;
 }
+
+/**
+ * Reads input asynchronously using normalized format options for the PNG format
+ * reader.
+ */
 async function readWithValuesAsync(input, values = DEFAULT_VALUES, expectedType = "") {
   const bytes = toBytes(input);
   const metadata = inspectWithValues(bytes, values, expectedType);
@@ -140,6 +165,8 @@ async function readWithValuesAsync(input, values = DEFAULT_VALUES, expectedType 
   }
   return readWithValues(bytes, values, expectedType);
 }
+
+/** Converts a parsed payload into a JSON-safe value for the PNG format reader. */
 function toJsonValue(value) {
   if (value instanceof Uint8Array) {
     return {
@@ -154,6 +181,11 @@ function toJsonValue(value) {
   }
   return value;
 }
+
+/**
+ * Inspects the supplied bytes without decoding their payload for the PNG format
+ * reader.
+ */
 function inspectBytes(bytes) {
   if (isPNG(bytes)) return inspectPNG(bytes);
   if (isJPEG(bytes)) return inspectJPEG(bytes);
@@ -165,15 +197,35 @@ function inspectBytes(bytes) {
     height: 0
   };
 }
+
+/**
+ * Reports whether the supplied bytes begin with a PNG signature for the PNG
+ * format reader.
+ */
 function isPNG(bytes) {
   return bytes.byteLength >= 24 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
 }
+
+/**
+ * Reports whether the supplied bytes begin with a JPEG signature for the PNG
+ * format reader.
+ */
 function isJPEG(bytes) {
   return bytes.byteLength >= 4 && bytes[0] === 0xff && bytes[1] === 0xd8;
 }
+
+/**
+ * Reports whether the supplied bytes begin with a DDS signature for the PNG
+ * format reader.
+ */
 function isDDS(bytes) {
   return bytes.byteLength >= 128 && bytes[0] === 0x44 && bytes[1] === 0x44 && bytes[2] === 0x53 && bytes[3] === 0x20;
 }
+
+/**
+ * Reports whether the supplied bytes have a supported TGA header for the PNG
+ * format reader.
+ */
 function isTGA(bytes) {
   if (bytes.byteLength < 18) return false;
   const imageType = bytes[2],

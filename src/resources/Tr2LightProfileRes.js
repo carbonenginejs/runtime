@@ -12,6 +12,7 @@ import { AssertResourcePayloadObject } from "./resourceBoundary.js";
 @type.define({ className: "Tr2LightProfileRes", family: "resources" })
 export class Tr2LightProfileRes extends CjsResource
 {
+  /** Updates payload in the current resource payload lifecycle. */
   SetPayload(payload = null)
   {
     if (payload === null)

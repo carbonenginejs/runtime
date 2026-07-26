@@ -24,6 +24,7 @@ export class Tr2ImageRes extends CjsResource
   @type.uint32
   height = 0;
 
+  /** Creates a Tr2ImageRes with caller-provided initial state. */
   constructor(values = null) {
     super();
     this.SetValues(values || {}, {

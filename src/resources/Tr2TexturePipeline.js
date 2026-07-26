@@ -32,6 +32,7 @@ export class Tr2TexturePipeline extends CjsModel
   @type.list("ITr2TexturePipelineStep")
   steps = [];
 
+  /** Creates a Tr2TexturePipeline with caller-provided initial state. */
   constructor(values = null)
   {
     super();

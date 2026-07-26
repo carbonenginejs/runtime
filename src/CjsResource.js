@@ -1,6 +1,10 @@
 import { CjsEventEmitter } from "@carbonenginejs/runtime-utils/model";
+import {
+  getResourceExtension,
+  normalizeResourceExtension,
+  normalizeResourcePath
+} from "@carbonenginejs/runtime-utils/path";
 import { CjsSchema, carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
-import { getResourceExtension, normalizeResourcePath } from "./resourcePath.js";
 
 /**
  * Deterministic activity values accepted by resource-facing lease methods.
@@ -46,6 +50,7 @@ export class CjsResource extends CjsEventEmitter
   @type.string
   state = CjsResource.State.EMPTY;
 
+  /** Identifies this handle as a runtime resource. */
   get isResource() {
     return true;
   }
@@ -132,7 +137,7 @@ export class CjsResource extends CjsEventEmitter
   @impl.adapted
   Initialize(path, ext = null, requirement = "") {
     this.path = normalizeResourcePath(path);
-    this.ext = ext ? String(ext).replace(/^\./u, "").toLowerCase() : getResourceExtension(this.path);
+    this.ext = ext ? normalizeResourceExtension(ext) : getResourceExtension(this.path);
     this.requirement = requirement === null || requirement === undefined
       ? ""
       : String(requirement).trim().toLowerCase();
@@ -230,6 +235,7 @@ export class CjsResource extends CjsEventEmitter
     return this.state === CjsResource.State.FAILED;
   }
 
+  /** Changes state and emits the state-specific and statechange events. */
   SetState(state, ...details) {
     if (!CjsResource.IsValidState(state)) {
       throw new TypeError(`Invalid CjsResource state: ${state}`);
@@ -242,26 +248,32 @@ export class CjsResource extends CjsEventEmitter
     return this;
   }
 
+  /** Marks this resource as requested. */
   MarkRequested() {
     return this.SetState(CjsResource.State.REQUESTED);
   }
 
+  /** Marks this resource as actively loading. */
   MarkLoading() {
     return this.SetState(CjsResource.State.LOADING);
   }
 
+  /** Marks this resource's CPU payload as loaded. */
   MarkLoaded() {
     return this.SetState(CjsResource.State.LOADED);
   }
 
+  /** Marks this resource as preparing its semantic result. */
   MarkPreparing() {
     return this.SetState(CjsResource.State.PREPARING);
   }
 
+  /** Marks this resource as successfully prepared. */
   MarkPrepared() {
     return this.SetState(CjsResource.State.PREPARED);
   }
 
+  /** Marks this resource as successfully prepared. */
   MarkGood() {
     return this.MarkPrepared();
   }
@@ -289,6 +301,7 @@ export class CjsResource extends CjsEventEmitter
     return this.state === CjsResource.State.PURGED;
   }
 
+  /** Stores a load failure and marks this resource as failed. */
   SetError(error) {
     this.error = error || null;
     return this.SetState(CjsResource.State.FAILED, this.error);
@@ -598,8 +611,19 @@ export class CjsResource extends CjsEventEmitter
     PURGED: "purged"
   });
 
-  static IsValidState(state) {
+  /** Returns true when a value belongs to the resource state vocabulary. */
+  static IsValidState(state)
+  {
     return Object.values(CjsResource.State).includes(state);
+  }
+
+  /** Returns true when a resource state cannot continue its current operation. */
+  static IsTerminalState(state)
+  {
+    return state === CjsResource.State.PREPARED
+      || state === CjsResource.State.FAILED
+      || state === CjsResource.State.UNLOADED
+      || state === CjsResource.State.PURGED;
   }
 }
 

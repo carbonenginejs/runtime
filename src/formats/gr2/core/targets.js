@@ -34,6 +34,10 @@ const CHANNELS = Object.freeze([
     { name: "blendWeight", usage: "BoneWeights", elementCount: 4, usageIndex: 0 }
 ]);
 
+/**
+ * Builds a CMF document from normalized shared geometry for the GR2
+ * shared-geometry adapter.
+ */
 export function buildCmfFromShared(root)
 {
     return {
@@ -319,6 +323,10 @@ function maxDisplacement(deltaPositions)
     return max;
 }
 
+/**
+ * Hydrates a CMF document through the configured runtime-class resolver for the
+ * GR2 shared-geometry adapter.
+ */
 export function hydrateCmf(root, classes, hydrationOptions = {})
 {
     const hydrationClasses = createHydrationClasses(classes, hydrationOptions);

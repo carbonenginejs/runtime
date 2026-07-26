@@ -14,6 +14,10 @@ import { CjsReader } from './CjsReader.js';
  * path yet and retains its lenient named-field behavior.
  */
 class CjsBlueReader extends CjsReader {
+  /**
+   * Creates a CjsBlueReader over caller-provided resource bytes and reader
+   * options.
+   */
   constructor(options = {}, config = {}) {
     super({
       ...options
@@ -37,15 +41,24 @@ class CjsBlueReader extends CjsReader {
     };
     this.ResetBlueReadState();
   }
+
+  /** Clears blue read state before reusing the current Blue graph reader. */
   ResetBlueReadState() {
     this.reports = [];
     this.runtimeInstances = [];
   }
+
+  /**
+   * Finalizes runtime instances after the current Blue graph reader has been
+   * read.
+   */
   FinalizeRuntimeInstances() {
     for (const record of this.runtimeInstances) {
       this.adapter.finalize(record.instance, this.CreateRuntimeContext(record.kind, record.shape, false));
     }
   }
+
+  /** Creates runtime target for the current Blue graph reader. */
   CreateRuntimeTarget(kind, shape = null) {
     const built = this.adapter.construct(kind, this.CreateRuntimeContext(kind, shape, true, this.options));
     if (built !== undefined) return built;
@@ -53,6 +66,8 @@ class CjsBlueReader extends CjsReader {
     if (ClassConstructor) return new ClassConstructor();
     return this.CreateRuntimeFallback(kind, shape);
   }
+
+  /** Creates runtime fallback for the current Blue graph reader. */
   CreateRuntimeFallback(kind, shape = null) {
     const target = {
       _sourceClassName: this.includeSourceShape ? kind : kind || null
@@ -60,6 +75,8 @@ class CjsBlueReader extends CjsReader {
     if (this.includeSourceShape) target._sourceShape = shape || null;
     return target;
   }
+
+  /** Applies runtime values to the current Blue graph reader. */
   ApplyRuntimeValues(target, values, kind, shape = null) {
     this.adapter.applyValues(target, values, this.CreateRuntimeContext(kind, shape, true, this.hydrationOptions));
     this.runtimeInstances.push({
@@ -68,6 +85,8 @@ class CjsBlueReader extends CjsReader {
       shape
     });
   }
+
+  /** Creates runtime context for the current Blue graph reader. */
   CreateRuntimeContext(kind, shape, includeOptions, options = null) {
     const context = {
       kind
@@ -76,12 +95,16 @@ class CjsBlueReader extends CjsReader {
     if (includeOptions) context.options = options;
     return context;
   }
+
+  /** Creates payload target for the current Blue graph reader. */
   CreatePayloadTarget(kind) {
     const typeField = this.GetPayloadTypeField();
     return typeField && (kind || this.includeEmptyPayloadType) ? {
       [typeField]: kind
     } : {};
   }
+
+  /** Creates payload reference for the current Blue graph reader. */
   CreatePayloadReference(targetObject, referenceId) {
     const idField = this.GetPayloadIdField();
     const referenceField = this.GetPayloadReferenceField();
@@ -94,18 +117,28 @@ class CjsBlueReader extends CjsReader {
       [referenceField]: referenceId
     } : targetObject;
   }
+
+  /** Returns payload type field from the current Blue graph reader. */
   GetPayloadTypeField() {
     return this.GetPayloadField("payloadTypeField", "_type");
   }
+
+  /** Returns payload ID field from the current Blue graph reader. */
   GetPayloadIdField() {
     return this.GetPayloadField("payloadIdField", "_id");
   }
+
+  /** Returns payload reference field from the current Blue graph reader. */
   GetPayloadReferenceField() {
     return this.GetPayloadField("payloadReferenceField", "_reference");
   }
+
+  /** Returns payload values field from the current Blue graph reader. */
   GetPayloadValuesField() {
     return this.GetPayloadField("payloadValuesField", "_values");
   }
+
+  /** Returns payload field from the current Blue graph reader. */
   GetPayloadField(name, fallback) {
     const value = this.options[name];
     if (!this.validatePayloadReservedFields) {
@@ -116,6 +149,11 @@ class CjsBlueReader extends CjsReader {
     if (typeof value === "string" && value) return value;
     throw this.PayloadError("PAYLOAD_MARKER_CONFIGURATION", `${name} must be a non-empty string or false`);
   }
+
+  /**
+   * Validates payload configuration against Blue graph reader constraints and
+   * throws on failure.
+   */
   ValidatePayloadConfiguration() {
     if (!this.validatePayloadReservedFields) {
       this.payloadReservedFields = null;
@@ -142,6 +180,11 @@ class CjsBlueReader extends CjsReader {
     }
     this.payloadReservedFields = reserved;
   }
+
+  /**
+   * Validates payload field available against Blue graph reader constraints
+   * and throws on failure.
+   */
   AssertPayloadFieldAvailable(field) {
     if (!this.validatePayloadReservedFields) return;
     if (!this.payloadReservedFields) this.ValidatePayloadConfiguration();
@@ -149,12 +192,22 @@ class CjsBlueReader extends CjsReader {
     if (!role) return;
     throw this.PayloadError("PAYLOAD_RESERVED_FIELD_COLLISION", `payload field "${field}" is reserved for the ${role} marker`);
   }
+
+  /**
+   * Assigns payload values while preserving the current Blue graph reader
+   * contract.
+   */
   AssignPayloadValues(targetObject, values) {
     for (const [field, value] of Object.entries(values)) {
       this.AssertPayloadFieldAvailable(field);
       this.DefinePayloadProperty(targetObject, field, value);
     }
   }
+
+  /**
+   * Assigns payload reference ID while preserving the current Blue graph
+   * reader contract.
+   */
   AssignPayloadReferenceId(targetObject, idField, referenceId) {
     if (!Object.hasOwn(targetObject, idField)) {
       this.DefinePayloadProperty(targetObject, idField, referenceId);
@@ -164,11 +217,18 @@ class CjsBlueReader extends CjsReader {
     if (targetObject[idField] === referenceId) return;
     throw this.PayloadError("PAYLOAD_RESERVED_FIELD_COLLISION", `payload ID field "${idField}" conflicts with reference ${referenceId}`);
   }
+
+  /**
+   * Creates a payload error annotated with the current graph context for the
+   * Blue graph reader.
+   */
   PayloadError(code, message) {
     const error = new TypeError(`${code}: ${message}`);
     error.code = code;
     return error;
   }
+
+  /** Defines payload property on the current Blue graph reader result. */
   DefinePayloadProperty(targetObject, field, value) {
     Object.defineProperty(targetObject, field, {
       value,
@@ -177,6 +237,11 @@ class CjsBlueReader extends CjsReader {
       writable: true
     });
   }
+
+  /**
+   * Assigns runtime field value while preserving the current Blue graph reader
+   * contract.
+   */
   AssignRuntimeFieldValue(targetObject, target, value) {
     if (target.unknown) {
       targetObject[target.wireName] = value;
@@ -193,6 +258,11 @@ class CjsBlueReader extends CjsReader {
     }
     targetObject[target.field.name] = this.NormalizeRuntimeFieldValue(value, target.field);
   }
+
+  /**
+   * Assigns payload field value while preserving the current Blue graph reader
+   * contract.
+   */
   AssignPayloadFieldValue(targetObject, target, value) {
     this.AssertPayloadFieldAvailable(target.unknown ? target.wireName : target.field.name);
     if (target.unknown) {
@@ -222,6 +292,11 @@ class CjsBlueReader extends CjsReader {
       targetObject[target.field.name] = value;
     }
   }
+
+  /**
+   * Converts runtime field value into the canonical Blue graph reader
+   * representation.
+   */
   NormalizeRuntimeFieldValue(value, field) {
     if (!field) return value;
 
@@ -236,6 +311,8 @@ class CjsBlueReader extends CjsReader {
     if (CjsBlueReader.isShapeIncompatibleMathArray(value, descriptor)) return value;
     return normalizeCarbonValue(value, field);
   }
+
+  /** Resolves source shape against the current Blue graph reader. */
   ResolveSourceShape(kind) {
     const registry = this.options.registry || null;
     if (registry?.GetSourceShape) return registry.GetSourceShape(kind);
@@ -249,16 +326,28 @@ class CjsBlueReader extends CjsReader {
     }
     return this.schemaShapes.get(kind) || null;
   }
+
+  /** Resolves class against the current Blue graph reader. */
   ResolveClass(kind) {
     if (!kind) return null;
     const classes = this.options.classes || {};
     const Registry = this.options.registry || this.defaultRegistry;
     return classes[kind] || (Registry ? Registry.GetConstructor(kind) : null);
   }
+
+  /**
+   * Applies the configured resource-path transform to a decoded field value
+   * for the Blue graph reader.
+   */
   TransformPath(value) {
     const handler = this.options.pathHandler;
     return typeof handler === "function" ? handler(value) : value;
   }
+
+  /**
+   * Reports whether the current Blue graph reader satisfies shape incompatible
+   * math array.
+   */
   static isShapeIncompatibleMathArray(value, descriptor) {
     const expectedLength = descriptor?.length;
     return Array.isArray(value) && Number.isInteger(expectedLength) && value.length !== expectedLength;

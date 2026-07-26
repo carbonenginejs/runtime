@@ -9,6 +9,10 @@ export const DEFAULT_VALUES = Object.freeze({
     source: ""
 });
 
+/**
+ * Normalizes reader options against their supported defaults for the GIF format
+ * reader.
+ */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsGifFormat")
 {
     if (!options || typeof options !== "object" || Array.isArray(options))
@@ -28,6 +32,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
+/** Returns a byte view over the supplied binary input for the GIF format reader. */
 export function toBytes(input)
 {
     if (input instanceof Uint8Array) return input;
@@ -36,11 +41,13 @@ export function toBytes(input)
     throw new TypeError("GIF input must be Uint8Array, ArrayBuffer, or a view");
 }
 
+/** Reports whether the current GIF format reader satisfies GIF. */
 export function isGIF(bytes)
 {
     return bytes.byteLength >= 13 && (ascii(bytes, 0, 6) === "GIF87a" || ascii(bytes, 0, 6) === "GIF89a");
 }
 
+/** Inspects input using normalized format options for the GIF format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "gif")
 {
     const bytes = toBytes(input);
@@ -53,6 +60,10 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     return { ...metadata, byteLength: bytes.byteLength, source: values.source || "buffer" };
 }
 
+/**
+ * Reports whether input is supported under normalized format options for the GIF
+ * format reader.
+ */
 export function isSupportedWithValues(input, values = DEFAULT_VALUES)
 {
     try
@@ -92,6 +103,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
     }
 }
 
+/** Reads input using normalized format options for the GIF format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = toBytes(input);
@@ -119,6 +131,7 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     throw error;
 }
 
+/** Converts a parsed payload into a JSON-safe value for the GIF format reader. */
 export function toJsonValue(value)
 {
     if (value instanceof Uint8Array) return { byteLength: value.byteLength };

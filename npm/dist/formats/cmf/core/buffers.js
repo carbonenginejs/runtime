@@ -12,11 +12,15 @@ const CHANNEL_NAMES = Object.freeze({
   PackedTangent: "packedTangent",
   PackedTangentLegacy: "packedTangentLegacy"
 });
+
+/** Decodes geometry sync into a normalized CMF format reader result. */
 function decodeGeometrySync(result, sourceBytes) {
   const sections = result.sections.map((section, index) => decodeSectionSync(section, index, sourceBytes));
   attachGeometry(result, sections);
   return result;
 }
+
+/** Decodes geometry async into a normalized CMF format reader result. */
 async function decodeGeometryAsync(result, sourceBytes) {
   await MeshoptDecoder.ready;
   const sections = result.sections.map((section, index) => decodeSectionWithMeshopt(section, index, sourceBytes));

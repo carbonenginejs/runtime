@@ -63,6 +63,7 @@ function lookup1Values(entries, dimensions) {
  * `eop` instead of throwing (end-of-packet is a defined decode condition).
  */
 class PacketReader {
+  /** Creates a PacketReader over caller-provided Ogg bytes and reader options. */
   constructor(bytes) {
     this.bytes = bytes;
     this.position = 0;
@@ -70,6 +71,8 @@ class PacketReader {
     this.bitsLeft = 0;
     this.eop = false;
   }
+
+  /** Reads bits from the current Ogg binary reader. */
   readBits(count) {
     let value = 0;
     for (let i = 0; i < count; i++) {
@@ -94,6 +97,7 @@ class PacketReader {
  * scalar and vector packet decoding.
  */
 class Codebook {
+  /** Creates a Codebook with caller-provided initial state. */
   constructor() {
     this.dimensions = 0;
     this.entries = 0;
@@ -105,6 +109,11 @@ class Codebook {
     this.treeNodes = null;
     this.maxLength = 0;
   }
+
+  /**
+   * Builds the canonical Vorbis Huffman decode tree for this codebook for the
+   * Ogg decoder.
+   */
   buildHuffman(lengths) {
     const available = new Uint32Array(33);
     this.fastTable = new Int32Array(FAST_SIZE).fill(-1);
@@ -162,6 +171,8 @@ class Codebook {
     }
     this.treeNodes = nodes;
   }
+
+  /** Decodes the Ogg input into a normalized Ogg decoder result. */
   decode(reader) {
     // fast path: peek up to FAST_BITS without consuming
     let peek = 0;
@@ -206,6 +217,8 @@ class Codebook {
     }
     throw decodeError("huffman walk exceeded max code length");
   }
+
+  /** Reconstructs one vector-quantized codebook component for the Ogg decoder. */
   vqValue(symbol, element) {
     if (this.lookupType === 1) {
       let index = symbol;

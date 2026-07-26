@@ -45,6 +45,8 @@ class CjsResourceProbe extends CjsModel {
   variants = (_init_extra_variant(this), _init_variants(this, []));
   warnings = (_init_extra_variants(this), _init_warnings(this, []));
   errors = (_init_extra_warnings(this), _init_errors(this, []));
+
+  /** Creates a CjsResourceProbe with caller-provided initial state. */
   constructor(values = null) {
     super(), _init_extra_errors(this);
     this.SetValues(values || {}, {

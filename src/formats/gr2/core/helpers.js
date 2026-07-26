@@ -94,6 +94,7 @@ function validateRule(name, value)
     throw new TypeError(`CjsFormatGr2 ${name} option must be true, false, or a function`);
 }
 
+/** Validates a requested runtime class key for the GR2 format reader. */
 export function validateClassKey(key)
 {
     if (!CLASS_KEYS.includes(key))
@@ -102,6 +103,7 @@ export function validateClassKey(key)
     }
 }
 
+/** Validates a resolved runtime class constructor for the GR2 format reader. */
 export function validateClass(type, Class)
 {
     validateClassKey(type);
@@ -136,6 +138,10 @@ function optionValue(options, keys)
     return undefined;
 }
 
+/**
+ * Normalizes reader options against their supported defaults for the GR2 format
+ * reader.
+ */
 export function normalizeValues(base = DEFAULT_VALUES, options = {})
 {
     if (!options || typeof options !== "object")
@@ -219,6 +225,7 @@ function toBytes(input)
     throw new TypeError("CjsFormatGr2: input must be GR2 bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
 }
 
+/** Reads and validates raw input bytes for the GR2 format reader. */
 export function readRawInput(input)
 {
     return isRawGr2Result(input) ? input : readGr2Raw(toBytes(input));
@@ -383,6 +390,7 @@ function buildJson(reader, raw, values)
     return json;
 }
 
+/** Reads input using normalized format options for the GR2 format reader. */
 export function readWithValues(reader, input, values)
 {
     const parsed = readRawInput(input);
@@ -393,6 +401,7 @@ export function readWithValues(reader, input, values)
         : json;
 }
 
+/** Converts a parsed payload into a JSON-safe value for the GR2 format reader. */
 export function toJsonValue(value, seen = new WeakSet())
 {
     if (value === null || typeof value !== "object") return value;
@@ -422,6 +431,10 @@ export function toJsonValue(value, seen = new WeakSet())
     return out;
 }
 
+/**
+ * Inspects raw GR2 result without materializing the full GR2 format reader
+ * payload.
+ */
 export function inspectRawGr2Result(parsed)
 {
     const

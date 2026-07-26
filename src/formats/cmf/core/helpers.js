@@ -11,6 +11,10 @@ export const DEFAULT_VALUES = Object.freeze({
     classes: {}
 });
 
+/**
+ * Normalizes reader options against their supported defaults for the CMF format
+ * reader.
+ */
 export function normalizeValues(base = {}, options = {})
 {
     const values = {
@@ -49,6 +53,7 @@ function hasClasses(classes)
     return !!classes && Object.values(classes).some((Class) => typeof Class === "function");
 }
 
+/** Reads and validates raw input bytes for the CMF format reader. */
 export function readRawInput(input, options = {})
 {
     if (input && typeof input === "object" && Array.isArray(input.sections) && Array.isArray(input.meshes))
@@ -59,6 +64,7 @@ export function readRawInput(input, options = {})
     return readCmf(input, options);
 }
 
+/** Reads and validates raw input bytes asynchronously for the CMF format reader. */
 export async function readRawInputAsync(input, options = {})
 {
     if (input && typeof input === "object" && Array.isArray(input.sections) && Array.isArray(input.meshes))
@@ -70,6 +76,7 @@ export async function readRawInputAsync(input, options = {})
     return readCmfAsync(input, options);
 }
 
+/** Reads input using normalized format options for the CMF format reader. */
 export function readWithValues(owner, input, values)
 {
     const raw = readRawInput(input, values);
@@ -85,6 +92,10 @@ export function readWithValues(owner, input, values)
             : hydrateNativeRoot(raw, values.classes, { source: values.source });
 }
 
+/**
+ * Reads input asynchronously using normalized format options for the CMF format
+ * reader.
+ */
 export async function readWithValuesAsync(owner, input, values)
 {
     const raw = await readRawInputAsync(input, values);
@@ -100,6 +111,7 @@ export async function readWithValuesAsync(owner, input, values)
             : hydrateNativeRoot(raw, values.classes, { source: values.source });
 }
 
+/** Loads shared with values through the current CMF format reader. */
 export function loadSharedWithValues(input, values)
 {
     const native = buildCmfFromShared(input);
@@ -110,6 +122,7 @@ export function loadSharedWithValues(input, values)
             : hydrateNativeRoot(native, values.classes, { source: values.source });
 }
 
+/** Loads native with values through the current CMF format reader. */
 export function loadNativeWithValues(input, values)
 {
     if (values.emit === OUTPUT_RAW)
@@ -124,6 +137,10 @@ export function loadNativeWithValues(input, values)
             : hydrateNativeRoot(input, values.classes, { source: values.source });
 }
 
+/**
+ * Inspects raw CMF result without materializing the full CMF format reader
+ * payload.
+ */
 export function inspectRawCmfResult(input, options = {})
 {
     return inspectCmf(readRawInput(input, { ...options, decodeBuffers: false }));
@@ -188,6 +205,7 @@ function emptyGr2Vertex()
     };
 }
 
+/** Converts a parsed payload into a JSON-safe value for the CMF format reader. */
 export function toJsonValue(value)
 {
     if (value === null || value === undefined)
@@ -223,6 +241,7 @@ export function toJsonValue(value)
     return value;
 }
 
+/** Validates a requested runtime class key for the CMF format reader. */
 export function validateClassKey(type)
 {
     if (!CLASS_KEYS.includes(type))
@@ -231,6 +250,7 @@ export function validateClassKey(type)
     }
 }
 
+/** Validates a resolved runtime class constructor for the CMF format reader. */
 export function validateClass(type, Class)
 {
     validateClassKey(type);

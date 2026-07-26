@@ -1,4 +1,4 @@
-import { normalizeResourcePath } from './resourcePath.js';
+import { normalizeResourcePath } from '@carbonenginejs/runtime-utils/path';
 
 // Source: blue/include/IMotherLode.h
 // Source: blue/src/MotherLode.h

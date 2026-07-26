@@ -310,6 +310,7 @@ export class CjsBlackFormat
     static outputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_DOCUMENT, OUTPUT_PAYLOAD, OUTPUT_RUNTIME ]);
     static debugOutputTypes = Object.freeze([ OUTPUT_RAW ]);
 
+    /** Provides the one-shot Black copy reader options helper entry point. */
     static copyReaderOptions(values)
     {
         const {

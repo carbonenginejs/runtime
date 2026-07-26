@@ -85,11 +85,15 @@ class CjsFormat {
     report.verified = false;
     return report;
   }
+
+  /** Creates a CjsFormat with caller-provided reader configuration. */
   constructor(options = null) {
     this.options = {
       ...(options || {})
     };
   }
+
+  /** Applies supported format options for the resource format configuration. */
   SetValues(values = null) {
     if (!values || typeof values !== "object") {
       return this;
@@ -106,6 +110,11 @@ class CjsFormat {
     }
     return this;
   }
+
+  /**
+   * Returns a copy of the current format options for the resource format
+   * configuration.
+   */
   GetValues() {
     return {
       options: {
@@ -113,6 +122,11 @@ class CjsFormat {
       }
     };
   }
+
+  /**
+   * Initializes the format with the supplied values and context for the resource
+   * format configuration.
+   */
   Initialize(values = null) {
     return this.SetValues(values || {});
   }

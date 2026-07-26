@@ -41,6 +41,8 @@ new class extends _identity {
     width = (_init_extra_cutoutWidth(this), _init_width(this, 0));
     cutoutX = (_init_extra_width(this), _init_cutoutX(this, 0));
     cutoutY = (_init_extra_cutoutX(this), _init_cutoutY(this, 0));
+
+    /** Creates a TriTextureRes with caller-provided initial state. */
     constructor(values = null) {
       super(), _init_extra_cutoutY(this);
       this.SetValues(values || {}, {

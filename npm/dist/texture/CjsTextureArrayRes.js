@@ -1,7 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { type } from '@carbonenginejs/runtime-utils/schema';
+import { normalizeResourcePath } from '@carbonenginejs/runtime-utils/path';
 import { CjsResource as _CjsResource } from '../CjsResource.js';
-import { normalizeResourcePath } from '../resourcePath.js';
 import { CjsTextureParameterProxy } from './CjsTextureParameterProxy.js';
 
 let _initClass;
@@ -34,6 +34,8 @@ new class extends _identity {
     #failedError = null;
     #updateScheduler = null;
     #updateHandler = null;
+
+    /** Creates a CjsTextureArrayRes with caller-provided initial state. */
     constructor(values = null) {
       const options = values && typeof values === "object" && !Array.isArray(values) ? values : {};
       const resourceValues = {
@@ -55,9 +57,13 @@ new class extends _identity {
         this.SetLayerCount(options.layerCount, options.layerNames);
       }
     }
+
+    /** Returns layer count from the current texture-array resource. */
     GetLayerCount() {
       return this.#layers.length;
     }
+
+    /** Updates layer count in the current texture-array resource. */
     SetLayerCount(value, names = null) {
       const count = Number(value);
       if (!Number.isInteger(count) || count < 1) {
@@ -79,20 +85,30 @@ new class extends _identity {
       this.#InvalidateRange(count, true);
       return true;
     }
+
+    /** Returns layer parameter from the current texture-array resource. */
     GetLayerParameter(layer) {
       return this.#GetLayer(layer).proxy;
     }
+
+    /** Returns layer parameters from the current texture-array resource. */
     GetLayerParameters(out = []) {
       for (const layer of this.#layers) out.push(layer.proxy);
       return out;
     }
+
+    /** Returns layer resource path from the current texture-array resource. */
     GetLayerResourcePath(layer) {
       return this.#GetLayer(layer).path;
     }
+
+    /** Returns layer resource paths from the current texture-array resource. */
     GetLayerResourcePaths(out = []) {
       for (const layer of this.#layers) out.push(layer.path);
       return out;
     }
+
+    /** Updates layer resource path in the current texture-array resource. */
     SetLayerResourcePath(layer, value) {
       const record = this.#GetLayer(layer);
       const path = normalizeResourcePath(value);
@@ -102,6 +118,8 @@ new class extends _identity {
       this.#InvalidateLayer(layer);
       return true;
     }
+
+    /** Updates layer resource paths in the current texture-array resource. */
     SetLayerResourcePaths(values, names = null) {
       if (!Array.isArray(values) || values.length === 0) {
         throw new TypeError("CjsTextureArrayRes layers must be a non-empty array of resource paths.");
@@ -136,9 +154,13 @@ new class extends _identity {
       }
       return contentChanged || namesChanged;
     }
+
+    /** Returns layer resource from the current texture-array resource. */
     GetLayerResource(layer) {
       return this.#GetLayer(layer).resource;
     }
+
+    /** Updates layer resource in the current texture-array resource. */
     SetLayerResource(layer, resource) {
       const record = this.#GetLayer(layer);
       const next = resource ?? null;
@@ -160,25 +182,45 @@ new class extends _identity {
       this.#InvalidateRange(this.#layers.length, !!options.topologyChanged);
       return this;
     }
+
+    /** Returns requested revision from the current texture-array resource. */
     GetRequestedRevision() {
       return this.#requestedRevision;
     }
+
+    /** Returns prepared revision from the current texture-array resource. */
     GetPreparedRevision() {
       return this.#preparedRevision;
     }
+
+    /** Reports whether update is required by the current texture-array resource. */
     NeedsUpdate() {
       return this.#updateScheduled || this.#dirtyLayers.size > 0 || this.#preparedRevision < this.#requestedRevision;
     }
+
+    /** Returns dirty layers from the current texture-array resource. */
     GetDirtyLayers() {
       return new Set(this.#dirtyLayers);
     }
+
+    /**
+     * Returns revisions currently being prepared by the update handler for the
+     * texture-array resource.
+     */
     GetInFlightRevisions(out = []) {
       for (const revision of this.#inFlightRequests.keys()) out.push(revision);
       return out.sort((a, b) => a - b);
     }
+
+    /**
+     * Reports whether a requested revision is currently being prepared for the
+     * texture-array resource.
+     */
     IsRevisionInFlight(revision) {
       return this.#inFlightRequests.has(revision);
     }
+
+    /** Updates update scheduler in the current texture-array resource. */
     SetUpdateScheduler(schedule = null) {
       if (schedule !== null && typeof schedule !== "function") {
         throw new TypeError("CjsTextureArrayRes update scheduler must be a function or null.");
@@ -187,6 +229,8 @@ new class extends _identity {
       if (schedule && this.#updateScheduled) schedule(this);
       return this;
     }
+
+    /** Updates update handler in the current texture-array resource. */
     SetUpdateHandler(handler = null) {
       if (handler !== null && typeof handler !== "function") {
         throw new TypeError("CjsTextureArrayRes update handler must be a function or null.");
@@ -325,6 +369,8 @@ new class extends _identity {
         });
       });
     }
+
+    /** Creates one texture-array layer record for the texture-array resource. */
     #CreateLayer(layer, name = "", path = "") {
       return {
         path: normalizeResourcePath(path),
@@ -334,26 +380,45 @@ new class extends _identity {
         })
       };
     }
+
+    /**
+     * Returns a validated texture-array layer record for the texture-array
+     * resource.
+     */
     #GetLayer(layer) {
       if (!Number.isInteger(layer) || layer < 0 || layer >= this.#layers.length) {
         throw new RangeError(`CjsTextureArrayRes layer ${layer} is out of range.`);
       }
       return this.#layers[layer];
     }
+
+    /** Updates layer names in the current texture-array resource. */
     #SetLayerNames(names) {
       if (!names) return;
       for (let layer = 0; layer < Math.min(names.length, this.#layers.length); layer++) {
         this.#layers[layer].proxy.SetParameterName(names[layer]);
       }
     }
+
+    /** Invalidates one texture-array layer for the texture-array resource. */
     #InvalidateLayer(layer) {
       this.#InvalidateLayers([layer]);
     }
+
+    /**
+     * Invalidates the requested texture-array layer range for the texture-array
+     * resource.
+     */
     #InvalidateRange(count, topologyChanged = false) {
       const layers = [];
       for (let layer = 0; layer < count; layer++) layers.push(layer);
       this.#InvalidateLayers(layers, topologyChanged);
     }
+
+    /**
+     * Invalidates the supplied texture-array layers for the texture-array
+     * resource.
+     */
     #InvalidateLayers(layers, topologyChanged = false) {
       const changed = [];
       for (const layer of layers) {
@@ -371,11 +436,18 @@ new class extends _identity {
         topologyChanged: this.#topologyChanged
       }));
     }
+
+    /** Schedules the coalesced texture-array update for the texture-array resource. */
     #ScheduleUpdate() {
       if (this.#updateScheduled) return;
       this.#updateScheduled = true;
       this.#updateScheduler?.(this);
     }
+
+    /**
+     * Resolves waiters satisfied by the prepared revision for the texture-array
+     * resource.
+     */
     #ResolveReadyWaiters(revision) {
       const pending = [];
       for (const waiter of this.#readyWaiters) {
@@ -383,6 +455,11 @@ new class extends _identity {
       }
       this.#readyWaiters = pending;
     }
+
+    /**
+     * Rejects waiters affected by a failed revision for the texture-array
+     * resource.
+     */
     #RejectReadyWaiters(revision, error) {
       const pending = [];
       for (const waiter of this.#readyWaiters) {

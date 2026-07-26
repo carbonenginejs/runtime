@@ -4,6 +4,10 @@
  */
 export class CjsBlackBinaryReader
 {
+    /**
+     * Creates a CjsBlackBinaryReader over caller-provided Black bytes and reader
+     * options.
+     */
     constructor(dataView, context = null)
     {
         if (!(dataView instanceof DataView))
@@ -16,16 +20,28 @@ export class CjsBlackBinaryReader
         this.offset = 0;
     }
 
+    /**
+     * Returns the number of unread Black bytes for the Black object-graph
+     * reader.
+     */
     get remaining()
     {
         return this.data.byteLength - this.offset;
     }
 
+    /**
+     * Reports whether the Black cursor consumed every byte for the Black
+     * object-graph reader.
+     */
     AtEnd()
     {
         return this.remaining === 0;
     }
 
+    /**
+     * Validates end against Black object-graph reader constraints and throws on
+     * failure.
+     */
     ExpectEnd(message = "Black reader did not reach end")
     {
         if (!this.AtEnd())
@@ -34,6 +50,10 @@ export class CjsBlackBinaryReader
         }
     }
 
+    /**
+     * Validates U32 against Black object-graph reader constraints and throws on
+     * failure.
+     */
     ExpectU32(expected, message)
     {
         const actual = this.ReadU32();
@@ -44,17 +64,20 @@ export class CjsBlackBinaryReader
         return actual;
     }
 
+    /** Reads binary reader from the current Black object-graph reader. */
     ReadBinaryReader(byteLength)
     {
         return new CjsBlackBinaryReader(this.ReadDataView(byteLength), this.context);
     }
 
+    /** Reads bytes from the current Black object-graph reader. */
     ReadBytes(byteLength)
     {
         const view = this.ReadDataView(byteLength);
         return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
     }
 
+    /** Reads C string from the current Black object-graph reader. */
     ReadCString()
     {
         const startOffset = this.offset;
@@ -69,6 +92,7 @@ export class CjsBlackBinaryReader
         return CjsBlackBinaryReader.utf8Decoder.decode(bytes);
     }
 
+    /** Reads CW string from the current Black object-graph reader. */
     ReadCWString()
     {
         const startOffset = this.offset;
@@ -83,6 +107,7 @@ export class CjsBlackBinaryReader
         return CjsBlackBinaryReader.utf16Decoder.decode(bytes);
     }
 
+    /** Reads data view from the current Black object-graph reader. */
     ReadDataView(byteLength)
     {
         if (!Number.isInteger(byteLength) || byteLength < 0)
@@ -100,6 +125,10 @@ export class CjsBlackBinaryReader
         return result;
     }
 
+    /**
+     * Reads a 32-bit float from the Black cursor for the Black object-graph
+     * reader.
+     */
     ReadF32()
     {
         const value = this.data.getFloat32(this.offset, true);
@@ -107,6 +136,10 @@ export class CjsBlackBinaryReader
         return value;
     }
 
+    /**
+     * Reads a 64-bit float from the Black cursor for the Black object-graph
+     * reader.
+     */
     ReadF64()
     {
         const value = this.data.getFloat64(this.offset, true);
@@ -114,6 +147,10 @@ export class CjsBlackBinaryReader
         return value;
     }
 
+    /**
+     * Reads a signed 8-bit integer from the Black cursor for the Black
+     * object-graph reader.
+     */
     ReadI8()
     {
         const value = this.data.getInt8(this.offset);
@@ -121,6 +158,10 @@ export class CjsBlackBinaryReader
         return value;
     }
 
+    /**
+     * Reads a signed 16-bit integer from the Black cursor for the Black
+     * object-graph reader.
+     */
     ReadI16()
     {
         const value = this.data.getInt16(this.offset, true);
@@ -128,6 +169,10 @@ export class CjsBlackBinaryReader
         return value;
     }
 
+    /**
+     * Reads a signed 32-bit integer from the Black cursor for the Black
+     * object-graph reader.
+     */
     ReadI32()
     {
         const value = this.data.getInt32(this.offset, true);
@@ -135,11 +180,19 @@ export class CjsBlackBinaryReader
         return value;
     }
 
+    /**
+     * Reads a signed 64-bit integer from the Black cursor for the Black
+     * object-graph reader.
+     */
     ReadI64()
     {
         return this.data.getBigInt64(this.ConsumeOffset(8), true);
     }
 
+    /**
+     * Resolves a narrow-string table index from the Black cursor for the Black
+     * object-graph reader.
+     */
     ReadStringRef()
     {
         const index = this.ReadU16();
@@ -151,6 +204,7 @@ export class CjsBlackBinaryReader
         return strings[index];
     }
 
+    /** Reads wide string ref from the current Black object-graph reader. */
     ReadWideStringRef()
     {
         const index = this.ReadU16();
@@ -162,6 +216,10 @@ export class CjsBlackBinaryReader
         return strings[index];
     }
 
+    /**
+     * Reads an unsigned 8-bit integer from the Black cursor for the Black
+     * object-graph reader.
+     */
     ReadU8()
     {
         const value = this.data.getUint8(this.offset);
@@ -169,6 +227,10 @@ export class CjsBlackBinaryReader
         return value;
     }
 
+    /**
+     * Reads an unsigned 16-bit integer from the Black cursor for the Black
+     * object-graph reader.
+     */
     ReadU16()
     {
         const value = this.data.getUint16(this.offset, true);
@@ -176,6 +238,10 @@ export class CjsBlackBinaryReader
         return value;
     }
 
+    /**
+     * Reads an unsigned 32-bit integer from the Black cursor for the Black
+     * object-graph reader.
+     */
     ReadU32()
     {
         const value = this.data.getUint32(this.offset, true);
@@ -183,16 +249,25 @@ export class CjsBlackBinaryReader
         return value;
     }
 
+    /**
+     * Reads an unsigned 64-bit integer from the Black cursor for the Black
+     * object-graph reader.
+     */
     ReadU64()
     {
         return this.data.getBigUint64(this.ConsumeOffset(8), true);
     }
 
+    /**
+     * Advances the Black cursor by a validated byte count for the Black
+     * object-graph reader.
+     */
     Skip(byteLength)
     {
         this.ReadDataView(byteLength);
     }
 
+    /** Consumes offset from the current Black object-graph reader. */
     ConsumeOffset(byteLength)
     {
         if (this.remaining < byteLength)
@@ -205,6 +280,10 @@ export class CjsBlackBinaryReader
         return offset;
     }
 
+    /**
+     * Creates a bounded Black reader over supported binary input for the Black
+     * object-graph reader.
+     */
     static from(input, context = null)
     {
         if (input instanceof CjsBlackBinaryReader) return input;

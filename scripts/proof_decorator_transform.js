@@ -15,7 +15,7 @@ function entryText(kind) {
   const base = kind === "source" ? "../../src/index.js" : "../../npm/dist/index.js";
   return `
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
-import { CjsResource, CjsResourceState } from "${base}";
+import { CjsResource } from "${base}";
 
 export function capture() {
   const resource = new CjsResource().Initialize("res:/Texture/Ship.DDS");
@@ -29,7 +29,7 @@ export function capture() {
     ext: resource.GetExt(),
     state: resource.state,
     prepared: resource.IsPrepared(),
-    good: resource.SetState(CjsResourceState.PREPARED).IsGood(),
+    good: resource.SetState(CjsResource.State.PREPARED).IsGood(),
   };
 }
 `;

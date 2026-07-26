@@ -41,6 +41,10 @@ export const HIRC_TYPE_NAMES = Object.freeze({
     22: "audio-device"
 });
 
+/**
+ * Normalizes reader options against their supported defaults for the BNK format
+ * reader.
+ */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsBnkFormat")
 {
     const values = { ...DEFAULT_VALUES, ...(base || {}), ...(options || {}) };
@@ -49,6 +53,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
+/** Normalizes the requested output representation for the BNK format reader. */
 export function normalizeEmit(emit, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -57,6 +62,7 @@ export function normalizeEmit(emit, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
+/** Returns a byte view over the supplied binary input for the BNK format reader. */
 export function toBytes(input)
 {
     if (input instanceof Uint8Array) return input;
@@ -300,6 +306,7 @@ function readNameTable(bytes, dataOffset, size)
     return names;
 }
 
+/** Inspects input using normalized format options for the BNK format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = toBytes(input);
@@ -347,6 +354,10 @@ export function extractMedia(bytes, metadata, mediaId)
     return items;
 }
 
+/**
+ * Reports whether input is supported under normalized format options for the BNK
+ * format reader.
+ */
 export function isSupportedWithValues(input, values = DEFAULT_VALUES)
 {
     try
@@ -405,6 +416,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
     }
 }
 
+/** Reads input using normalized format options for the BNK format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = toBytes(input);
@@ -433,6 +445,7 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     };
 }
 
+/** Converts a parsed payload into a JSON-safe value for the BNK format reader. */
 export function toJsonValue(value)
 {
     if (value instanceof Uint8Array) return { byteLength: value.byteLength };

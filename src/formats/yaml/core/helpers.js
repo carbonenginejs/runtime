@@ -104,6 +104,10 @@ function normalizeBoolean(value, name, readerName)
     return value;
 }
 
+/**
+ * Normalizes reader options against their supported defaults for the YAML
+ * document reader.
+ */
 export function normalizeValues(base, options = {}, readerName = "CjsYamlFormat")
 {
     if (!options || typeof options !== "object" || Array.isArray(options))
@@ -148,6 +152,10 @@ export function normalizeValues(base, options = {}, readerName = "CjsYamlFormat"
     return values;
 }
 
+/**
+ * Converts a YAML node graph into JSON-safe values while preserving references
+ * for the YAML document reader.
+ */
 export function toJsonGraph(value, options)
 {
     const counts = new WeakMap();

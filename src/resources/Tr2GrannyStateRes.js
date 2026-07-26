@@ -13,6 +13,7 @@ import { AssertResourcePayloadObject, ResourcePayloadError } from "./resourceBou
 @type.define({ className: "Tr2GrannyStateRes", family: "resources" })
 export class Tr2GrannyStateRes extends CjsResource
 {
+  /** Updates payload in the current resource payload lifecycle. */
   SetPayload(payload = null)
   {
     if (payload === null)

@@ -4,16 +4,19 @@
  */
 export class CjsBlackSchemaRegistry
 {
+    /** Creates a CjsBlackSchemaRegistry with caller-provided initial state. */
     constructor(schema = null)
     {
         this.shapes = CjsBlackSchemaRegistry.createShapeMap(schema);
     }
 
+    /** Returns source shape from the current Black object-graph reader. */
     GetSourceShape(kind)
     {
         return this.shapes.get(kind) || null;
     }
 
+    /** Creates shape map for the current Black object-graph reader. */
     static createShapeMap(schema)
     {
         const shapes = new Map();
@@ -27,6 +30,7 @@ export class CjsBlackSchemaRegistry
         return shapes;
     }
 
+    /** Collects schema shapes required by the current Black object-graph reader. */
     static collectSchemaShapes(value, shapes, seen)
     {
         if (!value || typeof value !== "object") return;
@@ -77,6 +81,10 @@ export class CjsBlackSchemaRegistry
         }
     }
 
+    /**
+     * Reports whether the current Black object-graph reader satisfies compact
+     * class map.
+     */
     static isCompactClassMap(value)
     {
         if (!value || typeof value !== "object" || Array.isArray(value)) return false;
@@ -94,12 +102,20 @@ export class CjsBlackSchemaRegistry
         );
     }
 
+    /**
+     * Reports whether the current Black object-graph reader satisfies compact
+     * class fields.
+     */
     static isCompactClassFields(fields)
     {
         const specs = Object.values(fields || {});
         return specs.every(spec => CjsBlackSchemaRegistry.isCompactFieldSpec(spec));
     }
 
+    /**
+     * Reports whether the current Black object-graph reader satisfies compact
+     * field spec.
+     */
     static isCompactFieldSpec(spec)
     {
         if (typeof spec === "string") return true;
@@ -107,6 +123,7 @@ export class CjsBlackSchemaRegistry
         return typeof spec.type === "string" || typeof spec.kind === "string";
     }
 
+    /** Adds compact class map to the current Black object-graph reader. */
     static addCompactClassMap(classes, shapes)
     {
         for (const [ className, fields ] of Object.entries(classes || {}))
@@ -115,6 +132,10 @@ export class CjsBlackSchemaRegistry
         }
     }
 
+    /**
+     * Reports whether the current Black object-graph reader satisfies class
+     * schema.
+     */
     static isClassSchema(value)
     {
         if (!value || typeof value !== "object") return false;
@@ -128,6 +149,7 @@ export class CjsBlackSchemaRegistry
         );
     }
 
+    /** Adds shape to the current Black object-graph reader. */
     static addShape(schema, shapes)
     {
         const shape = CjsBlackSchemaRegistry.normalizeShape(schema);
@@ -139,6 +161,10 @@ export class CjsBlackSchemaRegistry
         if (schema.name) shapes.set(schema.name, shape);
     }
 
+    /**
+     * Converts shape into the canonical Black object-graph reader
+     * representation.
+     */
     static normalizeShape(schema)
     {
         const black = schema.black || {};
@@ -166,6 +192,10 @@ export class CjsBlackSchemaRegistry
         };
     }
 
+    /**
+     * Converts fields into the canonical Black object-graph reader
+     * representation.
+     */
     static normalizeFields(schema)
     {
         const fields = [];
@@ -216,17 +246,29 @@ export class CjsBlackSchemaRegistry
         return fields;
     }
 
+    /**
+     * Reports whether the current Black object-graph reader satisfies compact
+     * field map.
+     */
     static isCompactFieldMap(value)
     {
         return !!value && typeof value === "object" && !Array.isArray(value);
     }
 
+    /**
+     * Converts compact Black field declarations into normalized field records
+     * for the Black object-graph reader.
+     */
     static compactBlackFields(fields)
     {
         return Object.entries(fields || {}).map(([ blackName, fieldSpec ]) =>
             CjsBlackSchemaRegistry.compactBlackField(blackName, fieldSpec));
     }
 
+    /**
+     * Converts one compact field declaration into a normalized field record for
+     * the Black object-graph reader.
+     */
     static compactField(blackName, fieldSpec)
     {
         const spec = CjsBlackSchemaRegistry.normalizeCompactSpec(blackName, fieldSpec);
@@ -239,11 +281,19 @@ export class CjsBlackSchemaRegistry
         };
     }
 
+    /**
+     * Converts one Black-specific compact field declaration into a normalized
+     * record for the Black object-graph reader.
+     */
     static compactBlackField(blackName, fieldSpec)
     {
         return CjsBlackSchemaRegistry.normalizeCompactSpec(blackName, fieldSpec).black;
     }
 
+    /**
+     * Converts compact spec into the canonical Black object-graph reader
+     * representation.
+     */
     static normalizeCompactSpec(blackName, fieldSpec)
     {
         const
@@ -273,6 +323,10 @@ export class CjsBlackSchemaRegistry
         };
     }
 
+    /**
+     * Converts a compact type descriptor into its normalized schema
+     * representation for the Black object-graph reader.
+     */
     static compactTypeDescriptor(type, spec)
     {
         const normalized = String(type || "unknown");
@@ -347,6 +401,10 @@ export class CjsBlackSchemaRegistry
         }
     }
 
+    /**
+     * Converts a compact Black wire type into its normalized schema
+     * representation for the Black object-graph reader.
+     */
     static compactBlackType(beType, jsType, extra = {})
     {
         return {
@@ -359,11 +417,19 @@ export class CjsBlackSchemaRegistry
         };
     }
 
+    /**
+     * Converts a compact float-array type into its normalized schema
+     * representation for the Black object-graph reader.
+     */
     static compactFloatArrayType(kind, length)
     {
         return CjsBlackSchemaRegistry.compactBlackType("FLOATARRAY", { kind, length }, { length });
     }
 
+    /**
+     * Converts a compact wire-type code into its normalized schema
+     * representation for the Black object-graph reader.
+     */
     static compactWireType(beType, container = null)
     {
         switch (beType)
@@ -402,6 +468,10 @@ export class CjsBlackSchemaRegistry
         }
     }
 
+    /**
+     * Converts black field into the canonical Black object-graph reader
+     * representation.
+     */
     static normalizeBlackField(field, sourceFields = [])
     {
         const names = field.names || null;
@@ -438,6 +508,10 @@ export class CjsBlackSchemaRegistry
         };
     }
 
+    /**
+     * Reports whether black field name matches the current Black object-graph
+     * reader.
+     */
     static matchesBlackFieldName(field, blackName)
     {
         if (!field || !blackName) return false;
@@ -457,6 +531,10 @@ export class CjsBlackSchemaRegistry
         return false;
     }
 
+    /**
+     * Classifies a field name as canonical, source, or alias metadata for the
+     * Black object-graph reader.
+     */
     static getNameRole(names, role)
     {
         if (!names || typeof names !== "object") return null;
@@ -470,6 +548,7 @@ export class CjsBlackSchemaRegistry
         return null;
     }
 
+    /** Converts the current Black object-graph reader value to JS field name. */
     static toJsFieldName(value)
     {
         return String(value || "").replace(/^m_/, "");

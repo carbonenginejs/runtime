@@ -45,25 +45,35 @@ Base runtime resource handle that carries normalized path/extension/requirement 
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
-<!-- class:CjsResourceMainThreadLoader -->
-## `CjsResourceMainThreadLoader`
+<!-- class:CjsResManMainThreadLoader -->
+## `CjsResManMainThreadLoader`
 
 Direct execution strategy that reads through a structural source and invokes registered format facades on the caller thread.
 
 - Export: `@carbonenginejs/runtime-resource`
-- Source: `src/CjsResourceLoader.js`
+- Source: `src/worker/CjsResManMainThreadLoader.js`
 - Visibility: Public
 - Kind: Adapted ccpwgl loader strategy
 
-<!-- class:CjsResourceWorkerLoader -->
-## `CjsResourceWorkerLoader`
+<!-- class:CjsResManWorkerLoader -->
+## `CjsResManWorkerLoader`
 
 Browser module-worker strategy that correlates source/format requests, transfers owned buffers, propagates cancellation and fatal failure, and delegates unsupported operations to a main-thread loader.
 
 - Export: `@carbonenginejs/runtime-resource`
-- Source: `src/CjsResourceLoader.js`
+- Source: `src/worker/CjsResManWorkerLoader.js`
 - Visibility: Public
 - Kind: Adapted ccpwgl loader strategy
+
+<!-- class:CjsResManWorker -->
+## `CjsResManWorker`
+
+Static browser-worker host that owns its operation/message vocabulary, executes clone-safe source and format operations, installs the message envelope, transfers owned buffers, and serializes failures for `CjsResMan`.
+
+- Export: `@carbonenginejs/runtime-resource/worker`
+- Source: `src/worker/CjsResManWorker.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
 
 <!-- class:CjsMemoryResourceSource -->
 ## `CjsMemoryResourceSource`

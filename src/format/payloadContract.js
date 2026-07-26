@@ -22,6 +22,10 @@ export const ResourcePayloadValues = Object.freeze({
     textureDimensions: Object.freeze([ "2d", "cube", "3d", "array" ])
 });
 
+/**
+ * Validates dimensions, stride, and byte storage for a decoded RGBA payload for
+ * the resource payload contract.
+ */
 export function validateRgbaPayload(payload, options = null)
 {
     const value = assertObject(payload, "RGBA payload");
@@ -63,6 +67,10 @@ export function validateRgbaPayload(payload, options = null)
     return value;
 }
 
+/**
+ * Validates the discriminated fields required by a texture payload for the
+ * resource payload contract.
+ */
 export function validateTexturePayload(payload)
 {
     const value = assertObject(payload, "Texture payload");
@@ -88,6 +96,10 @@ export function validateTexturePayload(payload)
     return value;
 }
 
+/**
+ * Validates the discriminated fields required by an audio payload for the
+ * resource payload contract.
+ */
 export function validateAudioPayload(payload)
 {
     const value = assertObject(payload, "Audio payload");
@@ -104,6 +116,10 @@ export function validateAudioPayload(payload)
     return value;
 }
 
+/**
+ * Validates the discriminated fields required by a video payload for the
+ * resource payload contract.
+ */
 export function validateVideoPayload(payload)
 {
     const value = assertObject(payload, "Video payload");

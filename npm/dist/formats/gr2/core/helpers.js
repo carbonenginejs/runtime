@@ -64,11 +64,15 @@ function validateRule(name, value) {
   if (typeof value === "boolean" || typeof value === "function") return value;
   throw new TypeError(`CjsFormatGr2 ${name} option must be true, false, or a function`);
 }
+
+/** Validates a requested runtime class key for the GR2 format reader. */
 function validateClassKey(key) {
   if (!CLASS_KEYS.includes(key)) {
     throw new Error(`CjsFormatGr2 unknown class type "${key}"`);
   }
 }
+
+/** Validates a resolved runtime class constructor for the GR2 format reader. */
 function validateClass(type, Class) {
   validateClassKey(type);
   if (typeof Class !== "function") {
@@ -94,6 +98,11 @@ function optionValue(options, keys) {
   }
   return undefined;
 }
+
+/**
+ * Normalizes reader options against their supported defaults for the GR2 format
+ * reader.
+ */
 function normalizeValues(base = DEFAULT_VALUES, options = {}) {
   if (!options || typeof options !== "object") {
     throw new TypeError("CjsFormatGr2 options must be an object");
@@ -151,6 +160,8 @@ function toBytes(input) {
   if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
   throw new TypeError("CjsFormatGr2: input must be GR2 bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
 }
+
+/** Reads and validates raw input bytes for the GR2 format reader. */
 function readRawInput(input) {
   return isRawGr2Result(input) ? input : readGr2Raw(toBytes(input));
 }
@@ -280,6 +291,8 @@ function buildJson(reader, raw, values) {
   processMeshData(reader, json, raw, values);
   return json;
 }
+
+/** Reads input using normalized format options for the GR2 format reader. */
 function readWithValues(reader, input, values) {
   const parsed = readRawInput(input);
   if (values.emit === OUTPUT_RAW) return parsed;
@@ -288,6 +301,8 @@ function readWithValues(reader, input, values) {
     source: values.source
   }) : json;
 }
+
+/** Converts a parsed payload into a JSON-safe value for the GR2 format reader. */
 function toJsonValue(value, seen = new WeakSet()) {
   if (value === null || typeof value !== "object") return value;
   if (ArrayBuffer.isView(value)) return Array.from(value, item => toJsonValue(item, seen));
@@ -309,6 +324,11 @@ function toJsonValue(value, seen = new WeakSet()) {
   seen.delete(value);
   return out;
 }
+
+/**
+ * Inspects raw GR2 result without materializing the full GR2 format reader
+ * payload.
+ */
 function inspectRawGr2Result(parsed) {
   const fileInfo = parsed.fileInfo || {},
     count = value => Array.isArray(value) ? value.filter(Boolean).length : 0;

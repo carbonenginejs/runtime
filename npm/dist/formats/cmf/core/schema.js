@@ -2,6 +2,7 @@ import { STRUCT_SIZE, FILE_SIGNATURE, FILE_VERSION, SectionCompression, SectionT
 import { BinaryReader, crc32, enumName, readBounds, readVector3, readMatrix, readQuaternion } from './binary.js';
 import { decodeGeometrySync, decodeGeometryAsync } from './buffers.js';
 
+/** Reads and validates a CMF document synchronously for the CMF format reader. */
 function readCmf(input, options = {}) {
   const reader = new BinaryReader(input);
   const header = readHeader(reader);
@@ -23,6 +24,8 @@ function readCmf(input, options = {}) {
   };
   return options.decodeBuffers ? decodeGeometrySync(result, reader.bytes) : result;
 }
+
+/** Reads and validates a CMF document asynchronously for the CMF format reader. */
 async function readCmfAsync(input, options = {}) {
   const reader = new BinaryReader(input);
   const header = readHeader(reader);
@@ -44,6 +47,8 @@ async function readCmfAsync(input, options = {}) {
   };
   return options.decodeBuffers ? await decodeGeometryAsync(result, reader.bytes) : result;
 }
+
+/** Reads header from the current CMF format reader. */
 function readHeader(reader) {
   const signature = reader.u32(0);
   const version = reader.u32(4);
@@ -60,6 +65,11 @@ function readHeader(reader) {
     sections
   };
 }
+
+/**
+ * Returns CMF header and section metadata without decoding geometry for the CMF
+ * format reader.
+ */
 function inspectCmf(result) {
   return {
     signature: result.signature,

@@ -173,6 +173,7 @@ export class OggPageWriter
         this.#granule = granule;
     }
 
+    /** Flushes bits into the current WEM binary writer output. */
     #flushBits()
     {
         if (this.#bitsStored === 0) return;

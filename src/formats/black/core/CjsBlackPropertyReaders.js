@@ -10,6 +10,7 @@ import {
  */
 export class CjsBlackPropertyReaders
 {
+    /** Reads value from the current Black object-graph reader. */
     static readValue(reader, field)
     {
         const descriptor = normalizeCarbonTypeDescriptor(field);
@@ -97,6 +98,7 @@ export class CjsBlackPropertyReaders
         }
     }
 
+    /** Reads black value from the current Black object-graph reader. */
     static readBlackValue(reader, black, descriptor)
     {
         switch (black.beType)
@@ -162,6 +164,7 @@ export class CjsBlackPropertyReaders
         }
     }
 
+    /** Advances past value in the current Black object-graph reader. */
     static skipValue(reader, field)
     {
         const descriptor = normalizeCarbonTypeDescriptor(field);
@@ -230,6 +233,7 @@ export class CjsBlackPropertyReaders
         }
     }
 
+    /** Advances past black value in the current Black object-graph reader. */
     static skipBlackValue(reader, black, descriptor)
     {
         switch (black.beType)
@@ -282,6 +286,7 @@ export class CjsBlackPropertyReaders
         }
     }
 
+    /** Reads black structure list from the current Black object-graph reader. */
     static readBlackStructureList(reader, black)
     {
         return CjsBlackPropertyReaders.readStructureList(reader, {
@@ -293,17 +298,29 @@ export class CjsBlackPropertyReaders
         });
     }
 
+    /**
+     * Reads a schema field through the non-Black fallback decoder for the Black
+     * object-graph reader.
+     */
     static readValueWithoutBlack(reader, descriptor)
     {
         return CjsBlackPropertyReaders.readValue(reader, { jsType: descriptor });
     }
 
+    /**
+     * Reads a schema field whose wire value references the Black string table
+     * for the Black object-graph reader.
+     */
     static readStringRef(reader, descriptor)
     {
         const value = reader.ReadStringRef();
         return descriptor.kind === CARBON_TYPE.PATH ? reader.context.TransformPath(value) : value;
     }
 
+    /**
+     * Reads a nested Black root-interface value for the Black object-graph
+     * reader.
+     */
     static readBlackIRoot(reader, black, descriptor)
     {
         if (black.container === "dict") return CjsBlackPropertyReaders.readDict(reader);
@@ -311,6 +328,10 @@ export class CjsBlackPropertyReaders
         return reader.context.ReadEmbeddedObject(reader);
     }
 
+    /**
+     * Advances past a nested Black root-interface value for the Black
+     * object-graph reader.
+     */
     static skipBlackIRoot(reader, black, descriptor)
     {
         if (black.container === "dict")
@@ -326,6 +347,7 @@ export class CjsBlackPropertyReaders
         reader.context.SkipEmbeddedObject(reader);
     }
 
+    /** Reads dict from the current Black object-graph reader. */
     static readDict(reader)
     {
         const count = reader.ReadU32();
@@ -337,6 +359,7 @@ export class CjsBlackPropertyReaders
         return result;
     }
 
+    /** Advances past dict in the current Black object-graph reader. */
     static skipDict(reader)
     {
         const count = reader.ReadU32();
@@ -347,6 +370,7 @@ export class CjsBlackPropertyReaders
         }
     }
 
+    /** Reads binary block from the current Black object-graph reader. */
     static readBinaryBlock(reader, black)
     {
         const byteLength = reader.ReadI32();
@@ -364,6 +388,10 @@ export class CjsBlackPropertyReaders
         };
     }
 
+    /**
+     * Reports whether a binary block is tagged as a 32-bit index buffer for the
+     * Black object-graph reader.
+     */
     static isUint32IndexBufferBlock(reader, black, byteLength)
     {
         if (byteLength % 4 !== 0) return false;
@@ -373,6 +401,10 @@ export class CjsBlackPropertyReaders
             black.storageName === "indexBuffer";
     }
 
+    /**
+     * Reads a binary block as an array of unsigned 32-bit integers for the Black
+     * object-graph reader.
+     */
     static readUint32Array(bytes)
     {
         const result = new Uint32Array(bytes.byteLength / 4);
@@ -384,6 +416,7 @@ export class CjsBlackPropertyReaders
         return result;
     }
 
+    /** Reads array from the current Black object-graph reader. */
     static readArray(reader, descriptor)
     {
         const elementType = normalizeCarbonTypeDescriptor(descriptor.elementType);
@@ -408,6 +441,7 @@ export class CjsBlackPropertyReaders
         return result;
     }
 
+    /** Advances past array in the current Black object-graph reader. */
     static skipArray(reader, descriptor)
     {
         const elementType = normalizeCarbonTypeDescriptor(descriptor.elementType);
@@ -431,6 +465,7 @@ export class CjsBlackPropertyReaders
         }
     }
 
+    /** Reads float array from the current Black object-graph reader. */
     static readFloatArray(reader, count)
     {
         const result = [];
@@ -441,6 +476,7 @@ export class CjsBlackPropertyReaders
         return result;
     }
 
+    /** Reads structure list from the current Black object-graph reader. */
     static readStructureList(reader, descriptor)
     {
         const count = reader.ReadI32();
@@ -456,6 +492,7 @@ export class CjsBlackPropertyReaders
         };
     }
 
+    /** Advances past structure list in the current Black object-graph reader. */
     static skipStructureList(reader)
     {
         const count = reader.ReadI32();
@@ -463,6 +500,7 @@ export class CjsBlackPropertyReaders
         reader.Skip(count * structureSize);
     }
 
+    /** Reads typed array from the current Black object-graph reader. */
     static readTypedArray(reader, descriptor)
     {
         const count = reader.ReadU32();
@@ -477,6 +515,7 @@ export class CjsBlackPropertyReaders
         };
     }
 
+    /** Advances past typed array in the current Black object-graph reader. */
     static skipTypedArray(reader)
     {
         const count = reader.ReadU32();
@@ -484,6 +523,7 @@ export class CjsBlackPropertyReaders
         reader.Skip(count * elementSize);
     }
 
+    /** Advances past binary block in the current Black object-graph reader. */
     static skipBinaryBlock(reader)
     {
         const byteLength = reader.ReadI32();

@@ -22,6 +22,10 @@ export const CMF_CLASS_KEYS = Object.freeze([
     "AnimationCurve"
 ]);
 
+/**
+ * Builds a CMF document from normalized shared geometry for the glTF
+ * shared-geometry adapter.
+ */
 export function buildCmfFromShared(root)
 {
     return {
@@ -138,6 +142,10 @@ function bounds(mesh)
     };
 }
 
+/**
+ * Hydrates a CMF document through the configured runtime-class resolver for the
+ * glTF shared-geometry adapter.
+ */
 export function hydrateCmf(root, classes, hydrationOptions = {})
 {
     const hydrationClasses = createHydrationClasses(classes, hydrationOptions);

@@ -11,6 +11,11 @@ const DEBUG_OUTPUTS = Object.freeze({
   wav: "wavJson",
   mp3: "mp3Json"
 });
+
+/**
+ * Normalizes reader options against their supported defaults for the MP3 format
+ * reader.
+ */
 function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsAudioFormat") {
   const values = {
     ...DEFAULT_VALUES,
@@ -21,9 +26,13 @@ function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsA
   values.emit = normalizeEmit(values.emit, values.inputType, readerName);
   return values;
 }
+
+/** Normalizes the requested input representation for the MP3 format reader. */
 function normalizeInputType(inputType) {
   return inputType ? String(inputType).replace(/^\./u, "").toLowerCase() : "";
 }
+
+/** Normalizes the requested output representation for the MP3 format reader. */
 function normalizeEmit(emit, inputType, readerName) {
   if (emit === undefined || emit === null) return OUTPUT_RAW;
   if (emit === OUTPUT_JSON && inputType) return DEBUG_OUTPUTS[inputType] || OUTPUT_JSON;
@@ -31,12 +40,16 @@ function normalizeEmit(emit, inputType, readerName) {
   if (Object.values(DEBUG_OUTPUTS).includes(emit)) return emit;
   throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
+
+/** Returns a byte view over the supplied binary input for the MP3 format reader. */
 function toBytes(input) {
   if (input instanceof Uint8Array) return input;
   if (input instanceof ArrayBuffer) return new Uint8Array(input);
   if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
   throw new TypeError("Audio input must be Uint8Array, ArrayBuffer, or DataView");
 }
+
+/** Inspects input using normalized format options for the MP3 format reader. */
 function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   const bytes = toBytes(input);
   const metadata = inspectBytes(bytes);
@@ -51,6 +64,11 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
     ...metadata
   };
 }
+
+/**
+ * Reports whether input is supported under normalized format options for the MP3
+ * format reader.
+ */
 function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   try {
     const metadata = inspectWithValues(input, values, expectedType);
@@ -98,6 +116,8 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     };
   }
 }
+
+/** Reads input using normalized format options for the MP3 format reader. */
 function readWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   const bytes = toBytes(input);
   const metadata = inspectWithValues(bytes, values, expectedType);
@@ -124,6 +144,8 @@ function getAudioMimeType(metadata) {
   if (metadata.sourceFormat === "wav") return "audio/wav";
   return "audio/mpeg";
 }
+
+/** Converts a parsed payload into a JSON-safe value for the MP3 format reader. */
 function toJsonValue(value) {
   if (value instanceof Uint8Array) return {
     byteLength: value.byteLength
@@ -136,6 +158,11 @@ function toJsonValue(value) {
   }
   return value;
 }
+
+/**
+ * Inspects the supplied bytes without decoding their payload for the MP3 format
+ * reader.
+ */
 function inspectBytes(bytes) {
   if (isWAV(bytes)) return inspectWAV(bytes);
   if (isMP3(bytes)) return inspectMP3(bytes);
@@ -144,9 +171,19 @@ function inspectBytes(bytes) {
     audioFormat: ""
   };
 }
+
+/**
+ * Reports whether the supplied bytes have a RIFF/WAVE header for the MP3 format
+ * reader.
+ */
 function isWAV(bytes) {
   return bytes.byteLength >= 12 && fourCc(bytes, 0) === "RIFF" && fourCc(bytes, 8) === "WAVE";
 }
+
+/**
+ * Reports whether the supplied bytes have a supported MP3 header for the MP3
+ * format reader.
+ */
 function isMP3(bytes) {
   return bytes.byteLength >= 3 && (fourCc(bytes, 0, 3) === "ID3" || bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0);
 }

@@ -31,6 +31,10 @@ function defineMappingValue(target, key, value) {
  * enforcing tag policy and alias limits.
  */
 class CjsYamlReader extends CjsReader {
+  /**
+   * Creates a CjsYamlReader over caller-provided YAML bytes and reader
+   * options.
+   */
   constructor(input, options = {}) {
     super(options);
     if (typeof input !== "string") {
@@ -47,17 +51,28 @@ class CjsYamlReader extends CjsReader {
     });
     this.inventory = this.BuildInventory();
   }
+
+  /**
+   * Reads the primary public payload representation from the supplied input
+   * for the YAML document reader.
+   */
   Read() {
     return this.ReadPayload();
   }
+
+  /** Reads payload from the current YAML document reader. */
   ReadPayload() {
     return toJsonGraph(this.ReadRaw(), this.options);
   }
+
+  /** Reads raw from the current YAML document reader. */
   ReadRaw() {
     this.AssertSyntax();
     this.AssertAliasLimit();
     return this.Convert(this.document.contents, new Map());
   }
+
+  /** Reads document from the current YAML document reader. */
   ReadDocument() {
     let value = null;
     const errors = this.inventory.errors.slice();
@@ -88,6 +103,11 @@ class CjsYamlReader extends CjsReader {
       errors
     };
   }
+
+  /**
+   * Returns structural metadata without materializing the decoded payload for
+   * the YAML document reader.
+   */
   Inspect() {
     return {
       format: {
@@ -107,6 +127,11 @@ class CjsYamlReader extends CjsReader {
       errors: this.inventory.errors
     };
   }
+
+  /**
+   * Classifies the root YAML node before conversion for the YAML document
+   * reader.
+   */
   RootKind() {
     const node = this.document.contents;
     if (node === null) return "null";
@@ -116,17 +141,32 @@ class CjsYamlReader extends CjsReader {
     if (isAlias(node)) return "alias";
     return "unknown";
   }
+
+  /**
+   * Validates syntax against YAML document reader constraints and throws on
+   * failure.
+   */
   AssertSyntax() {
     if (!this.document.errors.length) return;
     const first = this.document.errors[0];
     const source = this.options.sourceName ? ` in ${this.options.sourceName}` : "";
     throw new SyntaxError(`CjsYamlFormat${source}: ${displayMessage(first)}`);
   }
+
+  /**
+   * Validates alias limit against YAML document reader constraints and throws
+   * on failure.
+   */
   AssertAliasLimit() {
     if (this.inventory.aliases.length <= this.options.maxAliasCount) return;
     const source = this.options.sourceName ? ` in ${this.options.sourceName}` : "";
     throw new RangeError(`CjsYamlFormat${source}: alias count ${this.inventory.aliases.length} exceeds maxAliasCount ${this.options.maxAliasCount}`);
   }
+
+  /**
+   * Converts the current value into the normalized YAML document reader
+   * representation.
+   */
   Convert(node, memo) {
     if (node === null || node === undefined) return null;
     if (isAlias(node)) {
@@ -172,6 +212,8 @@ class CjsYamlReader extends CjsReader {
     }
     return this.ConvertBase(node, memo, true);
   }
+
+  /** Converts base into the normalized YAML document reader representation. */
   ConvertBase(node, memo, memoize) {
     if (isScalar(node)) return node.value;
     if (isSeq(node)) {
@@ -196,25 +238,47 @@ class CjsYamlReader extends CjsReader {
     }
     throw this.NodeError(node, "unsupported YAML node");
   }
+
+  /**
+   * Converts a YAML mapping key into its JavaScript property representation
+   * for the YAML document reader.
+   */
   MapKey(node) {
     if (!isScalar(node)) throw this.NodeError(node, "mapping keys must be scalar values");
     return String(node.value);
   }
+
+  /**
+   * Converts a YAML custom-tag node through its registered handler for the
+   * YAML document reader.
+   */
   CustomTag(node) {
     const tag = canonicalTag(node.tag);
     return tag && !STANDARD_TAGS.has(tag) ? tag : null;
   }
+
+  /**
+   * Validates tag allowed against YAML document reader constraints and throws
+   * on failure.
+   */
   AssertTagAllowed(tag, node) {
     if (!this.options.allowedTags) return;
     const allowed = new Set(this.options.allowedTags.map(canonicalTag));
     if (!allowed.has(tag)) throw this.NodeError(node, `custom tag "${tag}" is not in allowedTags`);
   }
+
+  /** Finds tag handler in the current YAML document reader. */
   FindTagHandler(tag) {
     const handlers = this.options.tagHandlers;
     const short = tag.startsWith(TAG_PREFIX) ? `!!${tag.slice(TAG_PREFIX.length)}` : tag;
     if (handlers instanceof Map) return handlers.get(tag) || handlers.get(short) || null;
     return handlers[tag] || handlers[short] || null;
   }
+
+  /**
+   * Builds the context passed to a YAML custom-tag handler for the YAML
+   * document reader.
+   */
   TagContext(tag, node) {
     return {
       tag,
@@ -222,6 +286,11 @@ class CjsYamlReader extends CjsReader {
       location: this.TagLocation(node)
     };
   }
+
+  /**
+   * Creates a YAML conversion error annotated with node location for the YAML
+   * document reader.
+   */
   NodeError(node, message) {
     const at = node && node.tag ? this.TagLocation(node) : this.Location(node);
     const source = this.options.sourceName ? `${this.options.sourceName}:` : "";
@@ -231,6 +300,11 @@ class CjsYamlReader extends CjsReader {
     error.location = at;
     return error;
   }
+
+  /**
+   * Returns normalized source-location metadata for a YAML node for the YAML
+   * document reader.
+   */
   Location(node) {
     if (!node || !Array.isArray(node.range)) return null;
     const pos = this.lineCounter.linePos(node.range[0]);
@@ -240,6 +314,11 @@ class CjsYamlReader extends CjsReader {
       column: pos.col
     };
   }
+
+  /**
+   * Returns normalized source-location metadata for a YAML tag for the YAML
+   * document reader.
+   */
   TagLocation(node) {
     const fallback = this.Location(node);
     if (!fallback || !node.tag) return fallback;
@@ -256,6 +335,11 @@ class CjsYamlReader extends CjsReader {
       column: pos.col
     };
   }
+
+  /**
+   * Builds a public description of error from the current YAML document
+   * reader.
+   */
   DescribeError(error) {
     const linePos = error && error.linePos && error.linePos[0];
     return {
@@ -267,6 +351,8 @@ class CjsYamlReader extends CjsReader {
       } : null
     };
   }
+
+  /** Builds inventory for the current YAML document reader. */
   BuildInventory() {
     const tags = [];
     const anchors = [];
@@ -298,6 +384,11 @@ class CjsYamlReader extends CjsReader {
       errors: this.document.errors.map(error => this.DescribeError(error))
     };
   }
+
+  /**
+   * Returns the public kind label for a YAML node for the YAML document
+   * reader.
+   */
   NodeKind(node) {
     if (isMap(node)) return "mapping";
     if (isSeq(node)) return "sequence";

@@ -21,6 +21,7 @@ import {
 } from "./binary.js";
 import { decodeGeometryAsync, decodeGeometrySync } from "./buffers.js";
 
+/** Reads and validates a CMF document synchronously for the CMF format reader. */
 export function readCmf(input, options = {})
 {
     const reader = new BinaryReader(input);
@@ -47,6 +48,7 @@ export function readCmf(input, options = {})
     return options.decodeBuffers ? decodeGeometrySync(result, reader.bytes) : result;
 }
 
+/** Reads and validates a CMF document asynchronously for the CMF format reader. */
 export async function readCmfAsync(input, options = {})
 {
     const reader = new BinaryReader(input);
@@ -73,6 +75,7 @@ export async function readCmfAsync(input, options = {})
     return options.decodeBuffers ? await decodeGeometryAsync(result, reader.bytes) : result;
 }
 
+/** Reads header from the current CMF format reader. */
 export function readHeader(reader)
 {
     const signature = reader.u32(0);
@@ -92,6 +95,10 @@ export function readHeader(reader)
     };
 }
 
+/**
+ * Returns CMF header and section metadata without decoding geometry for the CMF
+ * format reader.
+ */
 export function inspectCmf(result)
 {
     return {

@@ -53,6 +53,7 @@ export class Tr2TextureLodManager extends CjsModel
 
   #textures = [];
 
+  /** Creates a Tr2TextureLodManager with caller-provided initial state. */
   constructor(values = null)
   {
     super();

@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import {
+  getResourceExtension,
+  normalizeResourcePath
+} from "@carbonenginejs/runtime-utils/path";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import * as runtimeResource from "../npm/dist/index.js";
 import {
@@ -24,14 +28,14 @@ import {
   CjsTextureArrayRes,
   CjsTextureParameterProxy,
   TriGrannyRes,
-  getMotherLodeKey,
-  getResourceExtension,
-  normalizeResourcePath
+  getMotherLodeKey
 } from "../npm/dist/index.js";
 
 test("runtime-resource does not export an event scope layer", () => {
   assert.equal(runtimeResource.CjsEventEmitter, CjsEventEmitter);
   assert.equal("CjsEventEmitterScope" in runtimeResource, false);
+  assert.equal("CjsResourceState" in runtimeResource, false);
+  assert.equal("isTerminalResourceState" in runtimeResource, false);
   for (const name of [
     "CjsObjectDTO",
     "CjsGeometryDTO",
@@ -267,6 +271,10 @@ test("CjsResource exposes Carbon-style lifecycle methods and schema", () => {
   assert.equal(resource.GetPath(), "res:/texture/ship.dds");
   assert.equal(resource.GetExt(), "dds");
   assert.equal(resource.state, CjsResource.State.EMPTY);
+  assert.equal(CjsResource.IsValidState(CjsResource.State.EMPTY), true);
+  assert.equal(CjsResource.IsTerminalState(CjsResource.State.EMPTY), false);
+  assert.equal(CjsResource.IsTerminalState(CjsResource.State.PREPARED), true);
+  assert.equal(CjsResource.IsTerminalState(CjsResource.State.FAILED), true);
   assert.equal(resource.IsPrepared(), false);
   assert.equal(resource.IsGood(), false);
   assert.equal(resource.HasLoaded(), false);

@@ -51,6 +51,7 @@ function createVertexChannels()
     return channels;
 }
 
+/** Returns a byte view over the supplied binary input for the glTF format reader. */
 export function toBytes(input)
 {
     if (input instanceof Uint8Array) return input;
@@ -72,6 +73,7 @@ function isGlbBytes(bytes)
     return bytes.length >= 12 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0, true) === GLB_MAGIC;
 }
 
+/** Reports whether the current glTF format reader satisfies glb. */
 export function isGlb(input)
 {
     try
@@ -94,6 +96,7 @@ function parseJsonText(text)
     return json;
 }
 
+/** Parses input from the current glTF format reader. */
 export function parseInput(input)
 {
     if (input && typeof input === "object" && !(input instanceof ArrayBuffer) && !ArrayBuffer.isView(input))
@@ -735,6 +738,10 @@ function registerModelTargets(modelTargets, model)
     }
 }
 
+/**
+ * Parses glTF or GLB input into its normalized JSON document for the glTF format
+ * reader.
+ */
 export function parseGltfToJson(gltf, { binaryChunk = null, source = "memory", buffers: providedBuffers = null } = {})
 {
     if (!gltf.asset || !String(gltf.asset.version || "").startsWith("2"))
@@ -790,6 +797,7 @@ export function parseGltfToJson(gltf, { binaryChunk = null, source = "memory", b
     return root;
 }
 
+/** Inspects glTF without materializing the full glTF format reader payload. */
 export function inspectGltf(gltf, { format = "gltf", source = "memory" } = {})
 {
     return {

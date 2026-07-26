@@ -10,7 +10,8 @@ const external = id => id.startsWith("@carbonenginejs/")
 export default {
   input: [
     "src/index.js",
-    "src/CjsResourceWorker.js",
+    "src/audio/index.js",
+    "src/worker/CjsResManWorker.js",
     "src/formats/index.js",
     "src/formats/black/index.js",
     "src/formats/black/core/blackSchema.js",

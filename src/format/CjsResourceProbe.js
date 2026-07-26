@@ -69,6 +69,7 @@ export class CjsResourceProbe extends CjsModel
   @type.list("string")
   errors = [];
 
+  /** Creates a CjsResourceProbe with caller-provided initial state. */
   constructor(values = null) {
     super();
     this.SetValues(values || {}, {

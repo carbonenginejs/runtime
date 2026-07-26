@@ -26,6 +26,8 @@ new class extends _identity {
     }
     width = (_initProto(this), _init_width(this, 0));
     height = (_init_extra_width(this), _init_height(this, 0));
+
+    /** Creates a Tr2ImageRes with caller-provided initial state. */
     constructor(values = null) {
       super(), _init_extra_height(this);
       this.SetValues(values || {}, {

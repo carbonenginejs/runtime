@@ -152,6 +152,8 @@ class OggPageWriter {
   setGranule(granule) {
     this.#granule = granule;
   }
+
+  /** Flushes bits into the current WEM binary writer output. */
   #flushBits() {
     if (this.#bitsStored === 0) return;
     if (this.#payloadBytes === OGG_MAX_PAYLOAD) {

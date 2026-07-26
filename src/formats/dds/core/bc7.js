@@ -64,6 +64,10 @@ const ANCHOR_3_THIRD = new Uint8Array([
     15, 3, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 3, 15, 15, 8
 ]);
 
+/**
+ * Decodes BC7 texture blocks into a normalized RGBA image for the DDS format
+ * reader.
+ */
 export function decodeBc7(source, width, height, rowPitch = Math.ceil(width / 4) * 16)
 {
     const rgba = new Uint8Array(width * height * 4);
@@ -83,6 +87,10 @@ export function decodeBc7(source, width, height, rowPitch = Math.ceil(width / 4)
     return rgba;
 }
 
+/**
+ * Decodes one BC7 texture block into destination pixels for the DDS format
+ * reader.
+ */
 export function decodeBc7Block(block)
 {
     if (block.byteLength < 16) throw new RangeError("BC7 block must contain 16 bytes");
@@ -250,12 +258,17 @@ function copyBlock(block, output, width, height, blockX, blockY)
  */
 class Bc7BitReader
 {
+    /** Creates a Bc7BitReader over caller-provided DDS bytes and reader options. */
     constructor(bytes)
     {
         this.bytes = bytes;
         this.offset = 0;
     }
 
+    /**
+     * Reads the requested number of bits from one BC7 block for the DDS binary
+     * reader.
+     */
     read(bitCount)
     {
         let value = 0;

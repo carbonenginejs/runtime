@@ -44,6 +44,11 @@ const CHANNELS = Object.freeze([{
   elementCount: 4,
   usageIndex: 0
 }]);
+
+/**
+ * Builds a CMF document from normalized shared geometry for the GR2
+ * shared-geometry adapter.
+ */
 function buildCmfFromShared(root) {
   return {
     version: 1,
@@ -294,6 +299,11 @@ function maxDisplacement(deltaPositions) {
   }
   return max;
 }
+
+/**
+ * Hydrates a CMF document through the configured runtime-class resolver for the
+ * GR2 shared-geometry adapter.
+ */
 function hydrateCmf(root, classes, hydrationOptions = {}) {
   const hydrationClasses = createHydrationClasses(classes, hydrationOptions);
   return hydrate("Root", {

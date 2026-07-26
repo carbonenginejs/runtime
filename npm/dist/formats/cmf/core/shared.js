@@ -1,3 +1,7 @@
+/**
+ * Builds a CMF document from normalized shared geometry for the CMF format
+ * reader.
+ */
 function buildCmfFromShared(input) {
   const root = input && input.meshes ? input : {
     meshes: [input]
@@ -10,6 +14,11 @@ function buildCmfFromShared(input) {
     animations: root.animations ?? []
   };
 }
+
+/**
+ * Builds normalized shared geometry from a CMF document for the CMF format
+ * reader.
+ */
 function buildSharedFromCmf(raw, classes, hydrationOptions = {}) {
   const hydrationClasses = createHydrationClasses(classes, hydrationOptions);
   return hydrate("Root", {

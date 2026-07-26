@@ -20,6 +20,7 @@ new class extends _identity {
         family: "resources"
       })], [], 0, void 0, _CjsResource).c;
     }
+    /** Updates payload in the current resource payload lifecycle. */
     SetPayload(payload = null) {
       if (payload === null) {
         super.SetPayload(null);

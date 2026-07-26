@@ -49,6 +49,8 @@ class Tr2TextureLodManager extends CjsModel {
   /** m_lowDetailVtaFiles (bool) */
   lowDetailVtaFiles = (_init_extra_currentStats(this), _init_lowDetailVtaFiles(this, false));
   #textures = (_init_extra_lowDetailVtaFiles(this), []);
+
+  /** Creates a Tr2TextureLodManager with caller-provided initial state. */
   constructor(values = null) {
     super();
     this.SetValues(values || {}, {

@@ -23,47 +23,84 @@
  * interactive-music node payloads with exact-end validation.
  */
 class MusicCursor {
+  /** Creates an MusicCursor with caller-provided initial state. */
   constructor(bytes, offset = 0) {
     this.view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     this.bytes = bytes;
     this.at = offset;
   }
+
+  /** Returns the number of unread BNK bytes for the BNK format reader. */
   get remaining() {
     return this.bytes.byteLength - this.at;
   }
+
+  /**
+   * Reads an unsigned 8-bit integer from the BNK cursor for the BNK format
+   * reader.
+   */
   u8() {
     return this.view.getUint8(this.at++);
   }
+
+  /**
+   * Reads an unsigned 16-bit integer from the BNK cursor for the BNK format
+   * reader.
+   */
   u16() {
     const value = this.view.getUint16(this.at, true);
     this.at += 2;
     return value;
   }
+
+  /**
+   * Reads a signed 16-bit integer from the BNK cursor for the BNK format
+   * reader.
+   */
   s16() {
     const value = this.view.getInt16(this.at, true);
     this.at += 2;
     return value;
   }
+
+  /**
+   * Reads an unsigned 32-bit integer from the BNK cursor for the BNK format
+   * reader.
+   */
   u32() {
     const value = this.view.getUint32(this.at, true);
     this.at += 4;
     return value;
   }
+
+  /**
+   * Reads a signed 32-bit integer from the BNK cursor for the BNK format
+   * reader.
+   */
   s32() {
     const value = this.view.getInt32(this.at, true);
     this.at += 4;
     return value;
   }
+
+  /** Reads a 32-bit float from the BNK cursor for the BNK format reader. */
   f32() {
     const value = this.view.getFloat32(this.at, true);
     this.at += 4;
     return value;
   }
+
+  /** Reads a 64-bit float from the BNK cursor for the BNK format reader. */
   f64() {
     const value = this.view.getFloat64(this.at, true);
     this.at += 8;
     return value;
   }
+
+  /**
+   * Reads a null-terminated string from the BNK cursor for the BNK format
+   * reader.
+   */
   stringZ() {
     let end = this.at;
     while (end < this.bytes.byteLength && this.bytes[end] !== 0) end++;

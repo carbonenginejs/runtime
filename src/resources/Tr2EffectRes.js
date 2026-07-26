@@ -15,6 +15,7 @@ import { AssertResourcePayloadArray, AssertResourcePayloadObject } from "./resou
 export class Tr2EffectRes extends CjsResource
 {
 
+  /** Creates a Tr2EffectRes with caller-provided initial state. */
   constructor(values = null)
   {
     super();

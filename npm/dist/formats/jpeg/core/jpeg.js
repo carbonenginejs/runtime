@@ -7,6 +7,11 @@ const COSINE = Array.from({
 const SCALE = Array.from({
   length: 8
 }, (_, value) => value === 0 ? 1 / Math.sqrt(2) : 1);
+
+/**
+ * Decodes baseline JPEG bytes into a normalized RGBA payload for the JPEG format
+ * reader.
+ */
 function decodeJpegToRgba(bytes, metadata = {}) {
   const decoder = new BaselineJpegDecoder(bytes);
   const image = decoder.decode();
@@ -31,6 +36,11 @@ function decodeJpegToRgba(bytes, metadata = {}) {
     }
   };
 }
+
+/**
+ * Reports whether JPEG metadata is supported by the software decoder for the
+ * JPEG format reader.
+ */
 function canDecodeJpeg(metadata = {}) {
   return metadata.sourceFormat === "jpeg" && metadata.precision === 8 && metadata.components >= 1 && metadata.components <= 3 && (metadata.marker === 0xc0 || metadata.marker === 0xc1) && metadata.progressive !== true;
 }
@@ -47,9 +57,16 @@ class BaselineJpegDecoder {
   #frame = null;
   #scan = null;
   #restartInterval = 0;
+
+  /** Creates a BaselineJpegDecoder with caller-provided initial state. */
   constructor(bytes) {
     this.#bytes = bytes;
   }
+
+  /**
+   * Decodes the current baseline JPEG stream into RGBA pixels for the JPEG
+   * decoder.
+   */
   decode() {
     this.readMarker(0xd8);
     while (this.#offset < this.#bytes.length) {
@@ -63,6 +80,11 @@ class BaselineJpegDecoder {
     }
     throw new Error("jpeg: no baseline scan found");
   }
+
+  /**
+   * Reads JPEG frame dimensions, sampling, and component metadata for the JPEG
+   * decoder.
+   */
   readFrame(marker) {
     const length = this.readU16();
     const precision = this.readU8();
@@ -108,6 +130,11 @@ class BaselineJpegDecoder {
       maxV
     };
   }
+
+  /**
+   * Reads JPEG quantization tables into natural coefficient order for the JPEG
+   * decoder.
+   */
   readQuantizationTables() {
     const end = this.#offset + this.readU16() - 2;
     while (this.#offset < end) {
@@ -121,6 +148,11 @@ class BaselineJpegDecoder {
     }
     this.#offset = end;
   }
+
+  /**
+   * Builds JPEG Huffman lookup tables from their canonical definitions for the
+   * JPEG decoder.
+   */
   readHuffmanTables() {
     const end = this.#offset + this.readU16() - 2;
     while (this.#offset < end) {
@@ -146,11 +178,21 @@ class BaselineJpegDecoder {
     }
     this.#offset = end;
   }
+
+  /**
+   * Reads the JPEG restart interval declared by a DRI segment for the JPEG
+   * decoder.
+   */
   readRestartInterval() {
     const length = this.readU16();
     if (length !== 4) throw new Error("jpeg: invalid restart interval segment");
     this.#restartInterval = this.readU16();
   }
+
+  /**
+   * Reads JPEG scan component and spectral-selection metadata for the JPEG
+   * decoder.
+   */
   readScanHeader() {
     const length = this.readU16();
     const count = this.readU8();
@@ -176,6 +218,11 @@ class BaselineJpegDecoder {
       byId
     };
   }
+
+  /**
+   * Decodes the current JPEG entropy scan into component planes and RGBA
+   * pixels for the JPEG decoder.
+   */
   decodeScan() {
     const frame = this.#frame;
     const mcuWidth = 8 * frame.maxH;
@@ -235,6 +282,11 @@ class BaselineJpegDecoder {
       data
     };
   }
+
+  /**
+   * Decodes one JPEG coefficient block through inverse quantization and IDCT
+   * for the JPEG decoder.
+   */
   decodeBlock(reader, component) {
     const quantization = this.#quantization.get(component.quantizationId);
     const dcTable = this.#huffman.get(`0:${component.dc}`);
@@ -261,18 +313,32 @@ class BaselineJpegDecoder {
     for (let i = 0; i < 64; i++) coefficients[i] *= quantization[i];
     return inverseDct(coefficients);
   }
+
+  /**
+   * Reads an unsigned 8-bit value from the JPEG byte cursor for the JPEG
+   * decoder.
+   */
   readU8() {
     if (this.#offset >= this.#bytes.length) throw new Error("jpeg: unexpected end of input");
     return this.#bytes[this.#offset++];
   }
+
+  /**
+   * Reads an unsigned 16-bit big-endian value from the JPEG byte cursor for
+   * the JPEG decoder.
+   */
   readU16() {
     return this.readU8() << 8 | this.readU8();
   }
+
+  /** Consumes and validates an expected JPEG marker for the JPEG decoder. */
   readMarker(expected = null) {
     const marker = this.nextMarker();
     if (expected !== null && marker !== expected) throw new Error("jpeg: missing SOI marker");
     return marker;
   }
+
+  /** Scans forward to the next valid JPEG marker byte for the JPEG decoder. */
   nextMarker() {
     while (this.#offset < this.#bytes.length && this.#bytes[this.#offset++] !== 0xff) {
       // Scan forward to the next marker prefix.
@@ -281,6 +347,11 @@ class BaselineJpegDecoder {
     if (this.#offset >= this.#bytes.length) throw new Error("jpeg: unexpected end while reading marker");
     return this.#bytes[this.#offset++];
   }
+
+  /**
+   * Advances past the payload of an unhandled JPEG segment for the JPEG
+   * decoder.
+   */
   skipSegment() {
     const length = this.readU16();
     if (length < 2 || this.#offset + length - 2 > this.#bytes.length) throw new Error("jpeg: invalid segment length");
@@ -298,10 +369,17 @@ class EntropyReader {
   #buffer = 0;
   #bits = 0;
   #marker = null;
+
+  /**
+   * Creates a EntropyReader over caller-provided JPEG bytes and reader
+   * options.
+   */
   constructor(bytes, offset) {
     this.#bytes = bytes;
     this.#offset = offset;
   }
+
+  /** Reads one entropy-coded bit for the JPEG binary reader. */
   readBit() {
     if (!this.#bits) {
       let value = this.#bytes[this.#offset++];
@@ -320,14 +398,29 @@ class EntropyReader {
     }
     return this.#buffer >>> --this.#bits & 1;
   }
+
+  /**
+   * Reads the requested number of entropy-coded bits for the JPEG binary
+   * reader.
+   */
   readBits(count) {
     let value = 0;
     for (let i = 0; i < count; i++) value = value << 1 | this.readBit();
     return value;
   }
+
+  /**
+   * Aligns the entropy cursor to the next byte boundary for the JPEG binary
+   * reader.
+   */
   align() {
     this.#bits = 0;
   }
+
+  /**
+   * Consumes and validates the next JPEG restart marker for the JPEG binary
+   * reader.
+   */
   consumeRestart() {
     while (this.#bytes[this.#offset] === 0xff) this.#offset++;
     const marker = this.#bytes[this.#offset++];

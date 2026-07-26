@@ -1032,12 +1032,18 @@ function adler32(bytes) {
  * property arrays.
  */
 class DeflateBitReader {
+  /**
+   * Creates a DeflateBitReader over caller-provided FBX bytes and reader
+   * options.
+   */
   constructor(bytes) {
     this.bytes = bytes;
     this.byteOffset = 0;
     this.bitBuffer = 0;
     this.bitCount = 0;
   }
+
+  /** Reads bits from the current FBX binary reader. */
   readBits(count) {
     let value = 0,
       shift = 0,
@@ -1059,16 +1065,25 @@ class DeflateBitReader {
     }
     return value;
   }
+
+  /**
+   * Moves the compressed-bit cursor to the next byte boundary for the FBX
+   * binary reader.
+   */
   alignByte() {
     this.bitBuffer = 0;
     this.bitCount = 0;
   }
+
+  /** Reads aligned byte from the current FBX binary reader. */
   readAlignedByte() {
     if (this.byteOffset >= this.bytes.byteLength) {
       throw new Error("fbx: compressed array stored block is truncated");
     }
     return this.bytes[this.byteOffset++];
   }
+
+  /** Reads aligned U16 LE from the current FBX binary reader. */
   readAlignedU16LE() {
     const low = this.readAlignedByte(),
       high = this.readAlignedByte();
@@ -1081,6 +1096,7 @@ class DeflateBitReader {
  * inflating compressed FBX property arrays.
  */
 class DeflateHuffmanTable {
+  /** Creates a DeflateHuffmanTable with caller-provided initial state. */
   constructor(lengths) {
     this.tables = [];
     this.maxBits = 0;
@@ -1113,6 +1129,11 @@ class DeflateHuffmanTable {
       this.tables[length][reversed] = symbol;
     }
   }
+
+  /**
+   * Decodes one symbol through the canonical Deflate Huffman table for the FBX
+   * decoder.
+   */
   decode(reader) {
     let code = 0;
     for (let length = 1; length <= this.maxBits; length++) {

@@ -145,16 +145,24 @@ function rootSource(input) {
  * triangles during STL printability inspection.
  */
 class DisjointSet {
+  /** Creates a DisjointSet with caller-provided initial state. */
   constructor(size) {
     this.parent = new Array(size);
     for (let i = 0; i < size; i++) this.parent[i] = i;
   }
+
+  /** Finds the canonical entry in the current STL format reader. */
   find(value) {
     const parent = this.parent[value];
     if (parent === value) return value;
     this.parent[value] = this.find(parent);
     return this.parent[value];
   }
+
+  /**
+   * Merges the connected components containing two mesh vertices for the STL
+   * format reader.
+   */
   union(a, b) {
     const ra = this.find(a),
       rb = this.find(b);

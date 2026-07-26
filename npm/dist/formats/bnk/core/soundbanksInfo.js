@@ -27,6 +27,8 @@ function wwiseIdFromName(name) {
   }
   return hash;
 }
+
+/** Converts the current BNK format reader value to soundbanks info document. */
 function toSoundbanksInfoDocument(input) {
   let value = input;
   if (value instanceof ArrayBuffer) value = new Uint8Array(value);

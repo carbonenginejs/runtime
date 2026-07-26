@@ -41,6 +41,11 @@ class Flattener {
   #view = new DataView(this.#bytes.buffer);
   #chunkCache = new Map();
   size = 0;
+
+  /**
+   * Grows the output buffer when the requested write would exceed capacity for
+   * the CMF binary writer.
+   */
   #ensure(capacity) {
     if (capacity <= this.#bytes.length) return;
     let next = this.#bytes.length * 2;
@@ -50,6 +55,8 @@ class Flattener {
     this.#bytes = grown;
     this.#view = new DataView(grown.buffer);
   }
+
+  /** Reserves output storage in the current CMF binary writer. */
   reserve(byteLength) {
     const offset = this.size;
     this.#ensure(offset + byteLength);
@@ -57,6 +64,8 @@ class Flattener {
     this.size = offset + byteLength;
     return offset;
   }
+
+  /** Reserves aligned in the current CMF binary writer. */
   reserveAligned(byteLength, alignment = 8) {
     const padded = Math.ceil(this.size / alignment) * alignment;
     this.#ensure(padded);
@@ -64,24 +73,59 @@ class Flattener {
     this.size = padded;
     return this.reserve(byteLength);
   }
+
+  /**
+   * Writes an unsigned 8-bit integer into the output buffer for the CMF binary
+   * writer.
+   */
   u8(offset, value) {
     this.#view.setUint8(offset, value);
   }
+
+  /**
+   * Writes an unsigned 16-bit little-endian integer into the output buffer for
+   * the CMF binary writer.
+   */
   u16(offset, value) {
     this.#view.setUint16(offset, value, true);
   }
+
+  /**
+   * Writes an unsigned 32-bit little-endian integer into the output buffer for
+   * the CMF binary writer.
+   */
   u32(offset, value) {
     this.#view.setUint32(offset, value >>> 0, true);
   }
+
+  /**
+   * Writes a 32-bit little-endian float into the output buffer for the CMF
+   * binary writer.
+   */
   f32(offset, value) {
     this.#view.setFloat32(offset, value || 0, true);
   }
+
+  /**
+   * Writes a signed 64-bit little-endian integer into the output buffer for
+   * the CMF binary writer.
+   */
   i64(offset, value) {
     this.#view.setBigInt64(offset, BigInt(value), true);
   }
+
+  /**
+   * Writes an unsigned 64-bit little-endian integer into the output buffer for
+   * the CMF binary writer.
+   */
   u64(offset, value) {
     this.#view.setBigUint64(offset, BigInt(value), true);
   }
+
+  /**
+   * Copies bytes into a previously reserved output range for the CMF binary
+   * writer.
+   */
   setBytes(offset, bytes) {
     this.#bytes.set(bytes, offset);
   }
@@ -128,12 +172,22 @@ class Flattener {
     this.u64(fieldOffset + 8, byteSize);
     for (let i = 0; i < count; i++) writeElement(this, chunkOffset + i * elementSize, elements[i]);
   }
+
+  /**
+   * Writes a length-prefixed UTF-8 string into the output buffer for the CMF
+   * binary writer.
+   */
   string(fieldOffset, value) {
     const encoded = textEncoder.encode(value || "");
     this.span(fieldOffset, encoded, 1, (buffer, offset, byte) => buffer.u8(offset, byte), {
       dedup: true
     });
   }
+
+  /**
+   * Writes a length-prefixed byte block into the output buffer for the CMF
+   * binary writer.
+   */
   bytes() {
     return this.#bytes.slice(0, this.size);
   }

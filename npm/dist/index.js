@@ -1,5 +1,3 @@
-export { CjsResourceState, isTerminalResourceState } from './resourceStates.js';
-export { getResourceExtension, normalizeResourceExtension, normalizeResourcePath } from './resourcePath.js';
 export { CjsResource } from './CjsResource.js';
 export { TriTextureRes } from './resources/TriTextureRes.js';
 export { TriGeometryRes } from './resources/TriGeometryRes.js';
@@ -36,6 +34,8 @@ export { TriJointBinding } from './resources/TriJointBinding.js';
 export { TriMorphTargetGeometryConstants } from './resources/TriMorphTargetGeometryConstants.js';
 export { TriRtGeometryConstants } from './resources/TriRtGeometryConstants.js';
 export { GrannyDeprecationLevel, Tr2Lod } from './resources/enums.js';
+export { CjsAudioBufferRes } from './audio/CjsAudioBufferRes.js';
+export { CjsAudioRes } from './audio/CjsAudioRes.js';
 export { CjsTextureArrayRes } from './texture/CjsTextureArrayRes.js';
 export { CjsTextureParameterProxy } from './texture/CjsTextureParameterProxy.js';
 export { CjsResourceProbe } from './format/CjsResourceProbe.js';
@@ -44,8 +44,8 @@ export { CjsFormat, ValidateFormatContract } from './format/CjsFormat.js';
 export { CjsEventEmitter } from '@carbonenginejs/runtime-utils/model';
 export { CjsMotherLode, getMotherLodeKey } from './CjsMotherLode.js';
 export { CjsFetchResourceSource, CjsMemoryResourceSource } from './CjsResourceSource.js';
-export { CjsResourceMainThreadLoader, CjsResourceWorkerLoader, ReadFormatOnCurrentThread } from './CjsResourceLoader.js';
-export { CjsResourceWorkerMessage, CjsResourceWorkerOperation } from './CjsResourceWorkerProtocol.js';
+export { CjsResManMainThreadLoader } from './worker/CjsResManMainThreadLoader.js';
+export { CjsResManWorkerLoader } from './worker/CjsResManWorkerLoader.js';
 export { CjsResManQueue } from './CjsResManQueue.js';
 export { CjsResMan } from './CjsResMan.js';
 //# sourceMappingURL=index.js.map

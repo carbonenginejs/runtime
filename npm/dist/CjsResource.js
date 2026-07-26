@@ -1,7 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from './_virtual/_rollupPluginBabelHelpers.js';
 import { CjsEventEmitter } from '@carbonenginejs/runtime-utils/model';
+import { normalizeResourcePath, normalizeResourceExtension, getResourceExtension } from '@carbonenginejs/runtime-utils/path';
 import { type, carbon, impl, CjsSchema } from '@carbonenginejs/runtime-utils/schema';
-import { normalizeResourcePath, getResourceExtension } from './resourcePath.js';
 
 let _initProto, _initClass, _init_path, _init_extra_path, _init_ext, _init_extra_ext, _init_requirement, _init_extra_requirement, _init_state, _init_extra_state;
 
@@ -41,6 +41,8 @@ new class extends _identity {
     ext = (_init_extra_path(this), _init_ext(this, ""));
     requirement = (_init_extra_ext(this), _init_requirement(this, ""));
     state = (_init_extra_requirement(this), _init_state(this, _CjsResource.State.EMPTY));
+
+    /** Identifies this handle as a runtime resource. */
     get isResource() {
       return true;
     }
@@ -124,7 +126,7 @@ new class extends _identity {
      */
     Initialize(path, ext = null, requirement = "") {
       this.path = normalizeResourcePath(path);
-      this.ext = ext ? String(ext).replace(/^\./u, "").toLowerCase() : getResourceExtension(this.path);
+      this.ext = ext ? normalizeResourceExtension(ext) : getResourceExtension(this.path);
       this.requirement = requirement === null || requirement === undefined ? "" : String(requirement).trim().toLowerCase();
       this.state = _CjsResource.State.EMPTY;
       this.error = null;
@@ -203,6 +205,8 @@ new class extends _identity {
     IsFailed() {
       return this.state === _CjsResource.State.FAILED;
     }
+
+    /** Changes state and emits the state-specific and statechange events. */
     SetState(state, ...details) {
       if (!_CjsResource.IsValidState(state)) {
         throw new TypeError(`Invalid CjsResource state: ${state}`);
@@ -214,21 +218,33 @@ new class extends _identity {
       this.EmitEvent?.("statechange", this, state, previous);
       return this;
     }
+
+    /** Marks this resource as requested. */
     MarkRequested() {
       return this.SetState(_CjsResource.State.REQUESTED);
     }
+
+    /** Marks this resource as actively loading. */
     MarkLoading() {
       return this.SetState(_CjsResource.State.LOADING);
     }
+
+    /** Marks this resource's CPU payload as loaded. */
     MarkLoaded() {
       return this.SetState(_CjsResource.State.LOADED);
     }
+
+    /** Marks this resource as preparing its semantic result. */
     MarkPreparing() {
       return this.SetState(_CjsResource.State.PREPARING);
     }
+
+    /** Marks this resource as successfully prepared. */
     MarkPrepared() {
       return this.SetState(_CjsResource.State.PREPARED);
     }
+
+    /** Marks this resource as successfully prepared. */
     MarkGood() {
       return this.MarkPrepared();
     }
@@ -253,6 +269,8 @@ new class extends _identity {
     IsPurged() {
       return this.state === _CjsResource.State.PURGED;
     }
+
+    /** Stores a load failure and marks this resource as failed. */
     SetError(error) {
       this.error = error || null;
       return this.SetState(_CjsResource.State.FAILED, this.error);
@@ -535,8 +553,14 @@ new class extends _identity {
       }
       return this;
     }
+    /** Returns true when a value belongs to the resource state vocabulary. */
     static IsValidState(state) {
       return Object.values(_CjsResource.State).includes(state);
+    }
+
+    /** Returns true when a resource state cannot continue its current operation. */
+    static IsTerminalState(state) {
+      return state === _CjsResource.State.PREPARED || state === _CjsResource.State.FAILED || state === _CjsResource.State.UNLOADED || state === _CjsResource.State.PURGED;
     }
   }];
   State = Object.freeze({

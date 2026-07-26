@@ -9,6 +9,10 @@
  * source-specific state and reset behavior.
  */
 class CjsReader {
+  /**
+   * Creates a CjsReader over caller-provided resource bytes and reader
+   * options.
+   */
   constructor(options = {}) {
     this.options = options;
   }

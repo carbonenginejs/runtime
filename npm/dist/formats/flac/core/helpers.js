@@ -7,6 +7,11 @@ const DEFAULT_VALUES = Object.freeze({
   source: ""
 });
 const DEBUG_OUTPUT = "flacJson";
+
+/**
+ * Normalizes reader options against their supported defaults for the FLAC format
+ * reader.
+ */
 function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsFlacFormat") {
   const values = {
     ...DEFAULT_VALUES,
@@ -19,15 +24,21 @@ function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsF
   }
   return values;
 }
+
+/** Returns a byte view over the supplied binary input for the FLAC format reader. */
 function toBytes(input) {
   if (input instanceof Uint8Array) return input;
   if (input instanceof ArrayBuffer) return new Uint8Array(input);
   if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
   throw new TypeError("FLAC input must be Uint8Array, ArrayBuffer, or DataView");
 }
+
+/** Reports whether the current FLAC format reader satisfies FLAC. */
 function isFLAC(bytes) {
   return bytes.byteLength >= 4 && bytes[0] === 0x66 && bytes[1] === 0x4c && bytes[2] === 0x61 && bytes[3] === 0x43;
 }
+
+/** Inspects input using normalized format options for the FLAC format reader. */
 function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   const bytes = toBytes(input);
   if (!isFLAC(bytes)) throw new TypeError("CjsFlacFormat: input is not a FLAC stream");
@@ -40,6 +51,11 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
     ...inspectBytes(bytes)
   };
 }
+
+/**
+ * Reports whether input is supported under normalized format options for the
+ * FLAC format reader.
+ */
 function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   try {
     const metadata = inspectWithValues(input, values, expectedType);
@@ -85,6 +101,8 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     };
   }
 }
+
+/** Reads input using normalized format options for the FLAC format reader. */
 function readWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   const bytes = toBytes(input);
   const metadata = inspectWithValues(bytes, values, expectedType);
@@ -107,6 +125,8 @@ function readWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
     bytes
   };
 }
+
+/** Converts a parsed payload into a JSON-safe value for the FLAC format reader. */
 function toJsonValue(value) {
   if (value instanceof Uint8Array) return {
     byteLength: value.byteLength

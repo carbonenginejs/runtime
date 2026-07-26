@@ -93,6 +93,7 @@ export class TriTextureRes extends CjsResource
   @type.float32
   cutoutY = 0;
 
+  /** Creates a TriTextureRes with caller-provided initial state. */
   constructor(values = null) {
     super();
     this.SetValues(values || {}, {

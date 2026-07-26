@@ -1,3 +1,7 @@
+/**
+ * Creates a coded error at a public resource API boundary for the resource
+ * payload lifecycle.
+ */
 export function ResourceBoundaryError(className, methodName, reason) {
   const error = new Error(`${className}.${methodName} is owned by engine adapters in CarbonEngineJS. ${reason || ""}`.trim());
   error.code = "CJS_RESOURCE_ENGINE_BOUNDARY";
@@ -6,6 +10,10 @@ export function ResourceBoundaryError(className, methodName, reason) {
   return error;
 }
 
+/**
+ * Creates a coded error for unavailable Carbon runtime behavior for the resource
+ * payload lifecycle.
+ */
 export function CarbonStubError(className, methodName, reason) {
   const error = new Error(`${className}.${methodName} is a CarbonEngineJS resource stub and is not implemented yet. ${reason || ""}`.trim());
   error.code = "CJS_RESOURCE_NOT_IMPLEMENTED";
@@ -14,6 +22,10 @@ export function CarbonStubError(className, methodName, reason) {
   return error;
 }
 
+/**
+ * Creates a coded error for an invalid resource payload for the resource payload
+ * lifecycle.
+ */
 export function ResourcePayloadError(className, reason, field = "", cause = null) {
   const location = field ? `${className} payload.${field}` : `${className} payload`;
   const error = new TypeError(`${location} is invalid. ${reason || ""}`.trim());
@@ -24,6 +36,10 @@ export function ResourcePayloadError(className, reason, field = "", cause = null
   return error;
 }
 
+/**
+ * Validates that a resource payload is a plain object for the resource payload
+ * lifecycle.
+ */
 export function AssertResourcePayloadObject(className, payload) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)
     || payload instanceof ArrayBuffer || ArrayBuffer.isView(payload)) {
@@ -32,6 +48,10 @@ export function AssertResourcePayloadObject(className, payload) {
   return payload;
 }
 
+/**
+ * Validates that a resource payload field is an array for the resource payload
+ * lifecycle.
+ */
 export function AssertResourcePayloadArray(className, payload, field) {
   if (!Array.isArray(payload[field])) {
     throw ResourcePayloadError(className, "Expected an array.", field);
@@ -39,6 +59,10 @@ export function AssertResourcePayloadArray(className, payload, field) {
   return payload[field];
 }
 
+/**
+ * Validates a resource payload against the supplied field contract for the
+ * resource payload lifecycle.
+ */
 export function ValidateResourcePayload(className, payload, validator) {
   AssertResourcePayloadObject(className, payload);
   try {

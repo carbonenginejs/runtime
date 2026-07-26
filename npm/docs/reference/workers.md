@@ -1,11 +1,8 @@
 # Browser worker execution
 
 Status: Evolving
-
 Scope: `@carbonenginejs/runtime-resource`
-
 Audience: Browser integrators and format maintainers
-
 Summary: Defines worker-backed source and format execution while keeping resource publication and class-bearing results on the caller thread.
 
 ## Enable worker execution
@@ -30,7 +27,7 @@ Pass `useWorkerLoading: false` or call `UseWorkerLoading(false)` when a caller
 requires deterministic main-thread execution.
 
 The default worker entry is resolved relative to the published
-`CjsResourceWorkerLoader` module. A browser wrapper may instead inject an
+`CjsResManWorkerLoader` module. A browser wrapper may instead inject an
 existing Worker-compatible object, a `workerFactory`, or a `workerUrl` through
 the `workerLoader` constructor option:
 

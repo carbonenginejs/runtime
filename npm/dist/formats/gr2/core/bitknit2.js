@@ -47,6 +47,8 @@ class FrequencyModel {
     this.lookup = new Uint16Array(1024);
     this.rebuildLookup();
   }
+
+  /** Rebuilds lookup used by the current GR2 format reader. */
   rebuildLookup() {
     const cum = this.cum;
     const lookup = this.lookup;

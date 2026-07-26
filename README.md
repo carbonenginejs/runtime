@@ -37,12 +37,26 @@ Browser consumers use worker-backed fetch and declared worker-safe format
 readers by default, with deterministic main-thread fallback; see
 [browser worker execution](docs/reference/workers.md).
 
+Raw audio resource ownership is available from an explicit subpath:
+
+```js
+import {
+  CjsAudioBufferRes,
+  CjsAudioRes
+} from "@carbonenginejs/runtime-resource/audio";
+```
+
+`CjsAudioRes` always represents one addressable audio file. Its backing may be
+a complete loose file, an individually served response, or a window within a
+shared `CjsAudioBufferRes` bank payload.
+
 ## Documentation
 
 - [Package documentation](docs/README.md)
 - [Architecture and boundaries](docs/architecture.md)
 - [Resource lifecycle concepts](docs/concepts/resource-lifecycle.md)
 - [Browser worker execution](docs/reference/workers.md)
+- [Audio resource classes](docs/reference/classes/audio.md)
 - [Format subpaths](docs/formats/README.md)
 - [Format ownership and fork provenance](docs/formats/provenance.md)
 

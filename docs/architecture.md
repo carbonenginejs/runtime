@@ -44,6 +44,8 @@ historical mapping.
   transferable fetch results and declared worker-safe CPU readers.
 - `CjsTextureArrayRes` and `CjsTextureParameterProxy` for material-facing,
   frame-coalesced texture-array inputs.
+- `CjsAudioBufferRes` for physical audio-byte ownership and `CjsAudioRes` for
+  complete or windowed individually addressable audio files.
 - Raw `CjsEventEmitter` (from `runtime-utils/model`) for manager/runtime events
   without requiring `CjsModel` inheritance.
 - Path normalization, extension helpers, and source adapters for memory and
@@ -65,6 +67,8 @@ historical mapping.
 - Shader formats (`format-dxbc`, `format-hlsl`, `format-webgl`,
   `format-webgpu` remain separate packages).
 - AudioBuffer construction, playback, or audio manager behavior.
+- Audio-library document construction, enrichment, media-ID interpretation,
+  and delivery-route selection.
 
 ## Package relationships
 
@@ -84,7 +88,9 @@ explicit registrations; see [browser worker execution](reference/workers.md).
 
 Authoring source is decorated JavaScript; published output is built ESM in
 `npm/dist`. Completed Carbon data classes live with maintained source under
-`src/resources`; `src/generated` is reserved for unresolved active ports and
-is currently absent. Native shapes that JavaScript replaces or does not use
-are retained only under `src/dropped`, with their disposition documented
-there, and are never exported or bundled.
+`src/resources`; original audio resource owners live under `src/audio`;
+worker execution and its message protocol live under `src/worker`;
+`src/generated` is reserved for unresolved active ports and is currently
+absent. Native shapes that JavaScript replaces or does not use are retained
+only under `src/dropped`, with their disposition documented there, and are
+never exported or bundled.

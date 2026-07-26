@@ -1,7 +1,7 @@
 // Source: blue/include/IMotherLode.h
 // Source: blue/src/MotherLode.h
 // Source: blue/src/MotherLode.cpp
-import { normalizeResourcePath } from "./resourcePath.js";
+import { normalizeResourcePath } from "@carbonenginejs/runtime-utils/path";
 
 const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;
 const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);

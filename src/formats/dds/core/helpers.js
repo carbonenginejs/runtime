@@ -98,6 +98,10 @@ const DEBUG_OUTPUTS = Object.freeze({
     dds: "ddsJson"
 });
 
+/**
+ * Normalizes reader options against their supported defaults for the DDS format
+ * reader.
+ */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsImageFormat")
 {
     const values = { ...DEFAULT_VALUES, ...(base || {}), ...(options || {}) };
@@ -106,6 +110,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
+/** Normalizes the requested input representation for the DDS format reader. */
 export function normalizeInputType(inputType)
 {
     if (!inputType) return "";
@@ -113,6 +118,7 @@ export function normalizeInputType(inputType)
     return value === "jpg" ? "jpeg" : value;
 }
 
+/** Normalizes the requested output representation for the DDS format reader. */
 export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -122,6 +128,7 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
+/** Returns a byte view over the supplied binary input for the DDS format reader. */
 export function toBytes(input)
 {
     if (input instanceof Uint8Array) return input;
@@ -130,6 +137,7 @@ export function toBytes(input)
     throw new TypeError("Image input must be Uint8Array, ArrayBuffer, or DataView");
 }
 
+/** Inspects input using normalized format options for the DDS format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = toBytes(input);
@@ -150,6 +158,10 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     };
 }
 
+/**
+ * Reports whether input is supported under normalized format options for the DDS
+ * format reader.
+ */
 export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     try
@@ -230,6 +242,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
     }
 }
 
+/** Reads input using normalized format options for the DDS format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = toBytes(input);
@@ -267,6 +280,7 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     throw error;
 }
 
+/** Converts a parsed payload into a JSON-safe value for the DDS format reader. */
 export function toJsonValue(value)
 {
     if (value instanceof Uint8Array)
@@ -283,6 +297,10 @@ export function toJsonValue(value)
     return value;
 }
 
+/**
+ * Inspects the supplied bytes without decoding their payload for the DDS format
+ * reader.
+ */
 export function inspectBytes(bytes)
 {
     if (isPNG(bytes)) return inspectPNG(bytes);
@@ -292,6 +310,10 @@ export function inspectBytes(bytes)
     return { sourceFormat: "", width: 0, height: 0 };
 }
 
+/**
+ * Reports whether the supplied bytes begin with a PNG signature for the DDS
+ * format reader.
+ */
 export function isPNG(bytes)
 {
     return bytes.byteLength >= 24 &&
@@ -299,11 +321,19 @@ export function isPNG(bytes)
         bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
 }
 
+/**
+ * Reports whether the supplied bytes begin with a JPEG signature for the DDS
+ * format reader.
+ */
 export function isJPEG(bytes)
 {
     return bytes.byteLength >= 4 && bytes[0] === 0xff && bytes[1] === 0xd8;
 }
 
+/**
+ * Reports whether the supplied bytes begin with a DDS signature for the DDS
+ * format reader.
+ */
 export function isDDS(bytes)
 {
     return bytes.byteLength >= DDS_HEADER_SIZE + 4 &&
@@ -311,6 +341,10 @@ export function isDDS(bytes)
         readU32LE(bytes, 4) === DDS_HEADER_SIZE;
 }
 
+/**
+ * Reports whether the supplied bytes have a supported TGA header for the DDS
+ * format reader.
+ */
 export function isTGA(bytes)
 {
     if (bytes.byteLength < 18) return false;

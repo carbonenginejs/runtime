@@ -42,6 +42,8 @@ function createVertexChannels() {
   }
   return channels;
 }
+
+/** Returns a byte view over the supplied binary input for the glTF format reader. */
 function toBytes(input) {
   if (input instanceof Uint8Array) return input;
   if (typeof ArrayBuffer !== "undefined" && input instanceof ArrayBuffer) return new Uint8Array(input);
@@ -56,6 +58,8 @@ function toUtf8(bytes) {
 function isGlbBytes(bytes) {
   return bytes.length >= 12 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0, true) === GLB_MAGIC;
 }
+
+/** Reports whether the current glTF format reader satisfies glb. */
 function isGlb(input) {
   try {
     return isGlbBytes(toBytes(input));
@@ -70,6 +74,8 @@ function parseJsonText(text) {
   }
   return json;
 }
+
+/** Parses input from the current glTF format reader. */
 function parseInput(input) {
   if (input && typeof input === "object" && !(input instanceof ArrayBuffer) && !ArrayBuffer.isView(input)) {
     if (!input.asset) throw new Error("CjsGltfFormat: object input is not a glTF asset");
@@ -589,6 +595,11 @@ function registerModelTargets(modelTargets, model) {
     modelTargets.set(nodeIndex, targets);
   }
 }
+
+/**
+ * Parses glTF or GLB input into its normalized JSON document for the glTF format
+ * reader.
+ */
 function parseGltfToJson(gltf, {
   binaryChunk = null,
   source = "memory",
@@ -636,6 +647,8 @@ function parseGltfToJson(gltf, {
   root.animations = buildAnimations(gltf, buffers, modelTargets);
   return root;
 }
+
+/** Inspects glTF without materializing the full glTF format reader payload. */
 function inspectGltf(gltf, {
   format = "gltf",
   source = "memory"

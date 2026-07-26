@@ -28,6 +28,10 @@ const IMAGE_MIME_TYPES = Object.freeze({
     dds: "image/vnd-ms.dds"
 });
 
+/**
+ * Normalizes reader options against their supported defaults for the JPEG format
+ * reader.
+ */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsImageFormat")
 {
     const values = { ...DEFAULT_VALUES, ...(base || {}), ...(options || {}) };
@@ -36,6 +40,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
+/** Normalizes the requested input representation for the JPEG format reader. */
 export function normalizeInputType(inputType)
 {
     if (!inputType) return "";
@@ -43,6 +48,7 @@ export function normalizeInputType(inputType)
     return value === "jpg" ? "jpeg" : value;
 }
 
+/** Normalizes the requested output representation for the JPEG format reader. */
 export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -52,6 +58,7 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
+/** Returns a byte view over the supplied binary input for the JPEG format reader. */
 export function toBytes(input)
 {
     if (input instanceof Uint8Array) return input;
@@ -60,6 +67,7 @@ export function toBytes(input)
     throw new TypeError("Image input must be Uint8Array, ArrayBuffer, or DataView");
 }
 
+/** Inspects input using normalized format options for the JPEG format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = toBytes(input);
@@ -80,6 +88,10 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     };
 }
 
+/**
+ * Reports whether input is supported under normalized format options for the
+ * JPEG format reader.
+ */
 export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     try
@@ -121,6 +133,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
     }
 }
 
+/** Reads input using normalized format options for the JPEG format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = toBytes(input);
@@ -182,6 +195,7 @@ function imageMimeType(sourceFormat)
     return IMAGE_MIME_TYPES[sourceFormat] || "application/octet-stream";
 }
 
+/** Converts a parsed payload into a JSON-safe value for the JPEG format reader. */
 export function toJsonValue(value)
 {
     if (value instanceof Uint8Array)
@@ -198,6 +212,10 @@ export function toJsonValue(value)
     return value;
 }
 
+/**
+ * Inspects the supplied bytes without decoding their payload for the JPEG format
+ * reader.
+ */
 export function inspectBytes(bytes)
 {
     if (isPNG(bytes)) return inspectPNG(bytes);
@@ -207,6 +225,10 @@ export function inspectBytes(bytes)
     return { sourceFormat: "", width: 0, height: 0 };
 }
 
+/**
+ * Reports whether the supplied bytes begin with a PNG signature for the JPEG
+ * format reader.
+ */
 export function isPNG(bytes)
 {
     return bytes.byteLength >= 24 &&
@@ -214,21 +236,37 @@ export function isPNG(bytes)
         bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
 }
 
+/**
+ * Reports whether the supplied bytes begin with a JPEG signature for the JPEG
+ * format reader.
+ */
 export function isJPEG(bytes)
 {
     return bytes.byteLength >= 4 && bytes[0] === 0xff && bytes[1] === 0xd8;
 }
 
+/**
+ * Reports whether the supplied bytes begin with a JPEG signature accepted as JPG
+ * for the JPEG format reader.
+ */
 export function isJPG(bytes)
 {
     return isJPEG(bytes);
 }
 
+/**
+ * Reports whether the supplied bytes begin with a DDS signature for the JPEG
+ * format reader.
+ */
 export function isDDS(bytes)
 {
     return bytes.byteLength >= 128 && bytes[0] === 0x44 && bytes[1] === 0x44 && bytes[2] === 0x53 && bytes[3] === 0x20;
 }
 
+/**
+ * Reports whether the supplied bytes have a supported TGA header for the JPEG
+ * format reader.
+ */
 export function isTGA(bytes)
 {
     if (bytes.byteLength < 18) return false;

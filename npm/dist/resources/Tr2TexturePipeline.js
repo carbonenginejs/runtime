@@ -27,6 +27,8 @@ class Tr2TexturePipeline extends CjsModel {
 
   /** m_steps (PITr2TexturePipelineStepVector) [READ, PERSIST] */
   steps = (_init_extra_pipelineType(this), _init_steps(this, []));
+
+  /** Creates a Tr2TexturePipeline with caller-provided initial state. */
   constructor(values = null) {
     super(), _init_extra_steps(this);
     this.SetValues(values || {}, {

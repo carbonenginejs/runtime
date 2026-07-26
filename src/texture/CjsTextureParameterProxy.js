@@ -15,6 +15,7 @@ export class CjsTextureParameterProxy extends CjsEventEmitter
   #layer;
   #name;
 
+  /** Creates a CjsTextureParameterProxy with caller-provided initial state. */
   constructor(parent, layer, options = {})
   {
     super();
@@ -32,6 +33,10 @@ export class CjsTextureParameterProxy extends CjsEventEmitter
     this.#name = options.name === undefined ? "" : String(options.name);
   }
 
+  /**
+   * Returns the resource path represented by this texture layer proxy for the
+   * texture parameter proxy.
+   */
   get resourcePath()
   {
     return this.GetResourcePath();
@@ -55,36 +60,46 @@ export class CjsTextureParameterProxy extends CjsEventEmitter
     return this.#parent;
   }
 
+  /** Updates the resource path exposed by the current texture parameter proxy. */
   set resourcePath(value)
   {
     this.SetResourcePath(value);
   }
 
+  /**
+   * Returns the public parameter name represented by this texture layer proxy
+   * for the texture parameter proxy.
+   */
   get name()
   {
     return this.#name;
   }
 
+  /** Updates the name exposed by the current texture parameter proxy. */
   set name(value)
   {
     this.SetParameterName(value);
   }
 
+  /** Returns parent from the current texture parameter proxy. */
   GetParent()
   {
     return this.#parent;
   }
 
+  /** Returns layer index from the current texture parameter proxy. */
   GetLayerIndex()
   {
     return this.#layer;
   }
 
+  /** Returns parameter name from the current texture parameter proxy. */
   GetParameterName()
   {
     return this.#name;
   }
 
+  /** Updates parameter name in the current texture parameter proxy. */
   SetParameterName(value)
   {
     const next = value === null || value === undefined ? "" : String(value);
@@ -95,11 +110,13 @@ export class CjsTextureParameterProxy extends CjsEventEmitter
     return true;
   }
 
+  /** Returns resource path from the current texture parameter proxy. */
   GetResourcePath()
   {
     return this.#parent.GetLayerResourcePath(this.#layer);
   }
 
+  /** Updates resource path in the current texture parameter proxy. */
   SetResourcePath(value)
   {
     const previous = this.GetResourcePath();
@@ -108,17 +125,20 @@ export class CjsTextureParameterProxy extends CjsEventEmitter
     return true;
   }
 
+  /** Returns value from the current texture parameter proxy. */
   GetValue()
   {
     return this.GetResourcePath();
   }
 
+  /** Updates value in the current texture parameter proxy. */
   SetValue(value)
   {
     if (value === undefined) return false;
     return this.SetResourcePath(value);
   }
 
+  /** Compares value with the current texture parameter proxy value. */
   EqualsValue(value)
   {
     return String(value ?? "").trim().replace(/\\/gu, "/").replace(/\/+/gu, "/").toLowerCase() === this.GetResourcePath();
@@ -136,6 +156,7 @@ export class CjsTextureParameterProxy extends CjsEventEmitter
     return this.#parent.GetLayerResource(this.#layer);
   }
 
+  /** Updates source resource in the current texture parameter proxy. */
   SetSourceResource(resource)
   {
     const previous = this.GetSourceResource();
@@ -144,6 +165,7 @@ export class CjsTextureParameterProxy extends CjsEventEmitter
     return true;
   }
 
+  /** Updates resource in the current texture parameter proxy. */
   SetResource(resource)
   {
     return this.SetSourceResource(resource);
@@ -157,22 +179,26 @@ export class CjsTextureParameterProxy extends CjsEventEmitter
     return this;
   }
 
+  /** Returns resources from the current texture parameter proxy. */
   GetResources(out = [])
   {
     if (!out.includes(this.#parent)) out.push(this.#parent);
     return out;
   }
 
+  /** Reports whether the current texture parameter proxy satisfies prepared. */
   IsPrepared()
   {
     return this.#parent.IsPrepared();
   }
 
+  /** Reports whether the current texture parameter proxy satisfies good. */
   IsGood()
   {
     return this.#parent.IsGood();
   }
 
+  /** Reads y from the current texture parameter proxy. */
   Ready(options = {})
   {
     return this.#parent.Ready(options);

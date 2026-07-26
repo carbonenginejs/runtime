@@ -53,6 +53,7 @@ class FrequencyModel
         this.rebuildLookup();
     }
 
+    /** Rebuilds lookup used by the current GR2 format reader. */
     rebuildLookup()
     {
         const cum = this.cum;

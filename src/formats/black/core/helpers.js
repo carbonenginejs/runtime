@@ -107,6 +107,7 @@ function cloneListOrValue(value)
     return Array.isArray(value) ? value.slice() : value ?? null;
 }
 
+/** Validates a requested runtime class key for the Black object-graph reader. */
 export function validateClassKey(classKeys, key, readerName)
 {
     if (typeof key !== "string" || !key)
@@ -115,6 +116,10 @@ export function validateClassKey(classKeys, key, readerName)
     }
 }
 
+/**
+ * Validates a resolved runtime class constructor for the Black object-graph
+ * reader.
+ */
 export function validateClass(classKeys, type, Class, readerName)
 {
     validateClassKey(classKeys, type, readerName);
@@ -140,6 +145,10 @@ function mergeClasses(values, classes, classKeys, readerName)
     values.classes = next;
 }
 
+/**
+ * Normalizes reader options against their supported defaults for the Black
+ * object-graph reader.
+ */
 export function normalizeValues(base, options, classKeys, readerName)
 {
     if (!options || typeof options !== "object")
@@ -187,11 +196,19 @@ export function normalizeValues(base, options, classKeys, readerName)
     return values;
 }
 
+/**
+ * Throws a format error for a reader operation that is intentionally unavailable
+ * for the Black object-graph reader.
+ */
 export function notImplemented(readerName, methodName)
 {
     return new Error(`${readerName}.${methodName} is not implemented yet`);
 }
 
+/**
+ * Converts a parsed payload into a JSON-safe value for the Black object-graph
+ * reader.
+ */
 export function toJsonValue(value, seen = new WeakSet())
 {
     if (value === null || typeof value !== "object") return value;

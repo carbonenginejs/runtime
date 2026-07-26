@@ -1,5 +1,10 @@
 import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
 import { CjsEventEmitter } from "@carbonenginejs/runtime-utils/model";
+import {
+  getResourceExtension,
+  normalizeResourceExtension,
+  normalizeResourcePath
+} from "@carbonenginejs/runtime-utils/path";
 import { CjsResource } from "./CjsResource.js";
 import {
   CjsResManQueue,
@@ -7,15 +12,11 @@ import {
   NormalizeCjsResManQueue
 } from "./CjsResManQueue.js";
 import {
-  CjsResourceMainThreadLoader,
-  CjsResourceWorkerLoader
-} from "./CjsResourceLoader.js";
+  CjsResManMainThreadLoader
+} from "./worker/CjsResManMainThreadLoader.js";
 import {
-  getResourceExtension,
-  normalizeResourceExtension,
-  normalizeResourcePath
-} from "./resourcePath.js";
-
+  CjsResManWorkerLoader
+} from "./worker/CjsResManWorkerLoader.js";
 /** @type {WeakMap<object, CjsResourceReadContext>} */
 const READ_CONTEXTS = new WeakMap();
 
@@ -211,8 +212,8 @@ export class CjsResMan extends CjsEventEmitter
     this.sourceOperations = new WeakMap();
     this.queuedSourceOperations = new WeakMap();
     this.formatOperations = new WeakMap();
-    this.mainThreadLoader = new CjsResourceMainThreadLoader();
-    this.workerLoader = new CjsResourceWorkerLoader({
+    this.mainThreadLoader = new CjsResManMainThreadLoader();
+    this.workerLoader = new CjsResManWorkerLoader({
       fallback: this.mainThreadLoader
     });
     this.resourceLoader = this.workerLoader;
@@ -393,7 +394,7 @@ export class CjsResMan extends CjsEventEmitter
    * Installation does not select worker execution; call
    * `UseWorkerLoading(true)` or pass `useWorkerLoading: true`.
    *
-   * @param {object|null} loader Worker loader or CjsResourceWorkerLoader options.
+   * @param {object|null} loader Worker loader or CjsResManWorkerLoader options.
    * @returns {CjsResMan} This resource manager.
    */
   SetWorkerLoader(loader) {
@@ -406,7 +407,7 @@ export class CjsResMan extends CjsEventEmitter
 
     const resolved = IsResourceLoader(loader)
       ? loader
-      : new CjsResourceWorkerLoader({
+      : new CjsResManWorkerLoader({
         ...(loader || {}),
         fallback: loader?.fallback || this.mainThreadLoader
       });
@@ -453,6 +454,10 @@ export class CjsResMan extends CjsEventEmitter
     return this.workerLoader?.GetPendingCount?.() || 0;
   }
 
+  /**
+   * Enqueues a resource task on the selected execution lane for the resource
+   * manager.
+   */
   AddToQueue(queue, callback, context = null, flags = 0) {
     const task = this.QueueTask(queue, callback, context, { flags });
     task.promise.catch(error => {
@@ -461,14 +466,23 @@ export class CjsResMan extends CjsEventEmitter
     return task.id;
   }
 
+  /** Cancels a queued resource task before it starts for the resource manager. */
   CancelFromQueue(queue, id, reason = "") {
     return this.GetWorkQueue(queue).Cancel(id, reason);
   }
 
+  /**
+   * Allocates the next task identifier for a selected queue for the resource
+   * manager.
+   */
   GetNextIdForQueue(queue) {
     return this.GetWorkQueue(queue).GetNextId();
   }
 
+  /**
+   * Starts pending preparation work within the main-thread concurrency limit for
+   * the resource manager.
+   */
   PumpMainThreadQueue(options = {}) {
     const urgent = options.urgent === true || this.urgentResourceLoads;
     const result = this._prepareQueue.Pump({
@@ -480,6 +494,10 @@ export class CjsResMan extends CjsEventEmitter
     return result.processed > 0;
   }
 
+  /**
+   * Starts pending load work within the background concurrency limit for the
+   * resource manager.
+   */
   PumpBackgroundQueue(options = {}) {
     const result = this._loadQueue.Pump({
       maxItems: options.maxItems ?? 0,
@@ -489,11 +507,19 @@ export class CjsResMan extends CjsEventEmitter
     return result.processed > 0;
   }
 
+  /**
+   * Prevents the selected queue from starting additional work for the resource
+   * manager.
+   */
   PauseQueue(queue) {
     this.GetWorkQueue(queue).Pause();
     return this;
   }
 
+  /**
+   * Allows the selected queue to start pending work again for the resource
+   * manager.
+   */
   ResumeQueue(queue) {
     const name = NormalizeCjsResManQueue(queue);
     this.GetWorkQueue(name).Resume();
@@ -502,14 +528,26 @@ export class CjsResMan extends CjsEventEmitter
     return this;
   }
 
+  /**
+   * Returns the number of load tasks waiting or running for the resource
+   * manager.
+   */
   GetPendingLoads() {
     return this._loadQueue.GetPendingCount();
   }
 
+  /**
+   * Returns the number of preparation tasks waiting or running for the resource
+   * manager.
+   */
   GetPendingPrepares() {
     return this._prepareQueue.GetPendingCount();
   }
 
+  /**
+   * Returns queue counts and concurrency state for diagnostics for the resource
+   * manager.
+   */
   GetQueueStats(queue = null) {
     if (queue !== null && queue !== undefined) return this.GetWorkQueue(queue).GetStats();
     return Object.freeze({
@@ -518,15 +556,27 @@ export class CjsResMan extends CjsEventEmitter
     });
   }
 
+  /**
+   * Switches resource loading between normal and urgent concurrency policy for
+   * the resource manager.
+   */
   SetUrgentResourceLoads(value) {
     this.urgentResourceLoads = Boolean(value);
     return this;
   }
 
+  /**
+   * Reports whether urgent resource-load scheduling is active for the resource
+   * manager.
+   */
   IsUrgentResourceLoads() {
     return this.urgentResourceLoads;
   }
 
+  /**
+   * Reports whether any resource load or preparation remains pending for the
+   * resource manager.
+   */
   IsLoading() {
     return this.GetPendingLoads() + this.GetPendingPrepares() + this.GetPendingWorkers() > 0;
   }
@@ -645,6 +695,10 @@ export class CjsResMan extends CjsEventEmitter
     return this;
   }
 
+  /**
+   * Returns the execution queue selected by its public lane name for the
+   * resource manager.
+   */
   GetWorkQueue(queue) {
     return NormalizeCjsResManQueue(queue) === CjsResManQueue.MAIN
       ? this._prepareQueue
@@ -670,6 +724,7 @@ export class CjsResMan extends CjsEventEmitter
     return this.#TrackQueueTask(this.GetWorkQueue(queue).Add(callback, context, metadata));
   }
 
+  /** Requests a later background-queue scheduling pass for the resource manager. */
   ScheduleBackgroundQueue() {
     if (this._backgroundPumpScheduled || this._loadQueue.IsPaused()) return this;
     this._backgroundPumpScheduled = true;
@@ -680,6 +735,10 @@ export class CjsResMan extends CjsEventEmitter
     return this;
   }
 
+  /**
+   * Requests a later main-thread preparation scheduling pass for the resource
+   * manager.
+   */
   ScheduleMainThreadQueue() {
     if (!this.autoPumpMainThreadQueue || this._mainThreadPumpScheduled || this._prepareQueue.IsPaused()) return this;
     this._mainThreadPumpScheduled = true;
@@ -988,11 +1047,19 @@ export class CjsResMan extends CjsEventEmitter
     return promise;
   }
 
+  /**
+   * Loads and hydrates an object graph through the configured resource pipeline
+   * for the resource manager.
+   */
   LoadObject(path, options = {})
   {
     return this.GetObject(path, options);
   }
 
+  /**
+   * Fetches and hydrates an object graph without retaining a resource handle for
+   * the resource manager.
+   */
   FetchObject(path, options = {})
   {
     return this.GetObject(path, options);
@@ -1342,6 +1409,10 @@ export class CjsResMan extends CjsEventEmitter
     }
   }
 
+  /**
+   * Fetches raw source bytes through the configured resource source for the
+   * resource manager.
+   */
   Fetch(path, options = {})
   {
     return options.resource === true || options.requirement !== undefined || options.payload !== undefined
@@ -1746,6 +1817,10 @@ export class CjsResMan extends CjsEventEmitter
     return result;
   }
 
+  /**
+   * Warms a resource and its discovered dependencies without returning payload
+   * data for the resource manager.
+   */
   async Prefetch(paths, options = {}) {
     const entries = Array.isArray(paths) ? paths : [paths];
     return Promise.all(entries.map(path => this.LoadObject(path, options)));

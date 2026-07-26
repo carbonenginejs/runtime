@@ -263,6 +263,7 @@ export class CjsRedFormat
         return toJsonValue(value);
     }
 
+    /** Provides the one-shot RED copy reader options helper entry point. */
     static copyReaderOptions(values)
     {
         return copyReaderOptions(values);

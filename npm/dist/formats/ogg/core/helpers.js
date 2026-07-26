@@ -9,6 +9,11 @@ const DEFAULT_VALUES = Object.freeze({
   inputType: "ogg",
   source: ""
 });
+
+/**
+ * Normalizes reader options against their supported defaults for the Ogg format
+ * reader.
+ */
 function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsOggFormat") {
   if (!options || typeof options !== "object" || Array.isArray(options)) {
     throw new TypeError(`${readerName}: options must be an object`);
@@ -27,15 +32,24 @@ function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsO
   }
   return values;
 }
+
+/** Returns a byte view over the supplied binary input for the Ogg format reader. */
 function toBytes(input) {
   if (input instanceof Uint8Array) return input;
   if (input instanceof ArrayBuffer) return new Uint8Array(input);
   if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
   throw new TypeError("OGG input must be Uint8Array, ArrayBuffer, or a view");
 }
+
+/**
+ * Reports whether the supplied bytes begin with an Ogg page signature for the
+ * Ogg format reader.
+ */
 function isOGG(bytes) {
   return bytes.byteLength >= 4 && ascii(bytes, 0, 4) === "OggS";
 }
+
+/** Inspects input using normalized format options for the Ogg format reader. */
 function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "ogg") {
   const bytes = toBytes(input);
   if (!isOGG(bytes)) throw new TypeError("CjsOggFormat: input is not an Ogg container");
@@ -49,6 +63,11 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "ogg")
     source: values.source || "buffer"
   };
 }
+
+/**
+ * Reports whether input is supported under normalized format options for the Ogg
+ * format reader.
+ */
 function isSupportedWithValues(input, values = DEFAULT_VALUES) {
   try {
     const metadata = inspectWithValues(input, values);
@@ -107,6 +126,8 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
     };
   }
 }
+
+/** Reads input using normalized format options for the Ogg format reader. */
 function readWithValues(input, values = DEFAULT_VALUES) {
   const bytes = toBytes(input);
   const metadata = inspectWithValues(bytes, values);
@@ -164,6 +185,8 @@ function readWithValues(input, values = DEFAULT_VALUES) {
   error.code = "CJS_FORMAT_OUTPUT_NOT_IMPLEMENTED";
   throw error;
 }
+
+/** Converts a parsed payload into a JSON-safe value for the Ogg format reader. */
 function toJsonValue(value) {
   if (value instanceof Uint8Array) return {
     byteLength: value.byteLength

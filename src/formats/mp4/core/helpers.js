@@ -14,6 +14,10 @@ const DEBUG_OUTPUTS = Object.freeze({
     webm: "webmJson"
 });
 
+/**
+ * Normalizes reader options against their supported defaults for the MP4 format
+ * reader.
+ */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsVideoFormat")
 {
     const values = { ...DEFAULT_VALUES, ...(base || {}), ...(options || {}) };
@@ -22,6 +26,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
+/** Normalizes the requested output representation for the MP4 format reader. */
 export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -31,6 +36,7 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
+/** Returns a byte view over the supplied binary input for the MP4 format reader. */
 export function toBytes(input)
 {
     if (input instanceof Uint8Array) return input;
@@ -39,6 +45,7 @@ export function toBytes(input)
     throw new TypeError("Video input must be Uint8Array, ArrayBuffer, or DataView");
 }
 
+/** Inspects input using normalized format options for the MP4 format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = toBytes(input);
@@ -56,6 +63,10 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
     };
 }
 
+/**
+ * Reports whether input is supported under normalized format options for the MP4
+ * format reader.
+ */
 export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     try
@@ -124,6 +135,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
     }
 }
 
+/** Reads input using normalized format options for the MP4 format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = toBytes(input);
@@ -190,6 +202,10 @@ function getMediaMimeType(metadata)
     return tracks.some((track) => track.type === "video") ? "video/mp4" : "audio/mp4";
 }
 
+/**
+ * Inspects the supplied bytes without decoding their payload for the MP4 format
+ * reader.
+ */
 export function inspectBytes(bytes)
 {
     if (isMP4(bytes)) return inspectMP4(bytes);
@@ -197,16 +213,25 @@ export function inspectBytes(bytes)
     return { sourceFormat: "" };
 }
 
+/**
+ * Reports whether the supplied bytes have an ISO base-media header for the MP4
+ * format reader.
+ */
 export function isMP4(bytes)
 {
     return bytes.byteLength >= 12 && fourCc(bytes, 4) === "ftyp";
 }
 
+/**
+ * Reports whether the supplied bytes have a WebM EBML header for the MP4 format
+ * reader.
+ */
 export function isWebM(bytes)
 {
     return bytes.byteLength >= 4 && bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3;
 }
 
+/** Converts a parsed payload into a JSON-safe value for the MP4 format reader. */
 export function toJsonValue(value)
 {
     if (value instanceof Uint8Array) return { byteLength: value.byteLength };

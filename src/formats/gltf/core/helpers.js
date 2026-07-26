@@ -55,6 +55,7 @@ const OPTION_KEYS = new Set([
     "classes"
 ]);
 
+/** Validates a requested runtime class key for the glTF format reader. */
 export function validateClassKey(key, readerName = "CjsGltfFormat")
 {
     if (!CLASS_KEYS.includes(key))
@@ -63,6 +64,7 @@ export function validateClassKey(key, readerName = "CjsGltfFormat")
     }
 }
 
+/** Validates a resolved runtime class constructor for the glTF format reader. */
 export function validateClass(key, Class, readerName = "CjsGltfFormat")
 {
     validateClassKey(key, readerName);
@@ -107,6 +109,10 @@ function normalizeUvHandedness(value, readerName)
     throw new TypeError(`${readerName}: uvHandedness must be "right" or "left"`);
 }
 
+/**
+ * Normalizes reader options against their supported defaults for the glTF format
+ * reader.
+ */
 export function normalizeValues(base, options = {}, readerName = "CjsGltfFormat")
 {
     if (!options || typeof options !== "object")
@@ -326,6 +332,7 @@ function rebuildMissingMeshData(format, json, values)
     }
 }
 
+/** Reads input using normalized format options for the glTF format reader. */
 export function readWithValues(format, input, values)
 {
     const parsed = parseInput(input);
@@ -339,12 +346,14 @@ export function readWithValues(format, input, values)
     return hydrateJson(json, { classes: values.classes, source: values.source });
 }
 
+/** Inspects input using normalized format options for the glTF format reader. */
 export function inspectWithValues(input, values)
 {
     const parsed = parseInput(input);
     return inspectGltf(parsed.gltf, { format: parsed.format, source: values.source });
 }
 
+/** Converts a parsed payload into a JSON-safe value for the glTF format reader. */
 export function toJsonValue(value)
 {
     if (value === null || value === undefined) return value;

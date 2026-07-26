@@ -7,6 +7,11 @@ const DEFAULT_VALUES = Object.freeze({
   inputType: "gif",
   source: ""
 });
+
+/**
+ * Normalizes reader options against their supported defaults for the GIF format
+ * reader.
+ */
 function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsGifFormat") {
   if (!options || typeof options !== "object" || Array.isArray(options)) {
     throw new TypeError(`${readerName}: options must be an object`);
@@ -25,15 +30,21 @@ function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsG
   }
   return values;
 }
+
+/** Returns a byte view over the supplied binary input for the GIF format reader. */
 function toBytes(input) {
   if (input instanceof Uint8Array) return input;
   if (input instanceof ArrayBuffer) return new Uint8Array(input);
   if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
   throw new TypeError("GIF input must be Uint8Array, ArrayBuffer, or a view");
 }
+
+/** Reports whether the current GIF format reader satisfies GIF. */
 function isGIF(bytes) {
   return bytes.byteLength >= 13 && (ascii(bytes, 0, 6) === "GIF87a" || ascii(bytes, 0, 6) === "GIF89a");
 }
+
+/** Inspects input using normalized format options for the GIF format reader. */
 function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "gif") {
   const bytes = toBytes(input);
   if (!isGIF(bytes)) throw new TypeError("CjsGifFormat: input is not a GIF87a/GIF89a image");
@@ -47,6 +58,11 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "gif")
     source: values.source || "buffer"
   };
 }
+
+/**
+ * Reports whether input is supported under normalized format options for the GIF
+ * format reader.
+ */
 function isSupportedWithValues(input, values = DEFAULT_VALUES) {
   try {
     const metadata = inspectWithValues(input, values);
@@ -96,6 +112,8 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
     };
   }
 }
+
+/** Reads input using normalized format options for the GIF format reader. */
 function readWithValues(input, values = DEFAULT_VALUES) {
   const bytes = toBytes(input);
   const metadata = inspectWithValues(bytes, values);
@@ -119,6 +137,8 @@ function readWithValues(input, values = DEFAULT_VALUES) {
   error.code = "CJS_FORMAT_OUTPUT_NOT_IMPLEMENTED";
   throw error;
 }
+
+/** Converts a parsed payload into a JSON-safe value for the GIF format reader. */
 function toJsonValue(value) {
   if (value instanceof Uint8Array) return {
     byteLength: value.byteLength
