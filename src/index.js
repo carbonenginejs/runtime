@@ -11,6 +11,8 @@ export * as json from "./json.js";
 export * from "./json.js";
 export * as lookup from "./lookup.js";
 export * from "./lookup.js";
+export * as object from "./object.js";
+export * from "./object.js";
 export * as path from "./path.js";
 export * from "./path.js";
 export * as text from "./text.js";

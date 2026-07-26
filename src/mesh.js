@@ -45,13 +45,42 @@ function validateIndices(indices, vertexCount)
  */
 export function triangleNormal(a, b, c)
 {
-    const normal = [ 0, 0, 0 ];
-    cross(
-        normal,
-        [ b[0] - a[0], b[1] - a[1], b[2] - a[2] ],
-        [ c[0] - a[0], c[1] - a[1], c[2] - a[2] ]
-    );
-    return normalize(normal, normal);
+    return triangleNormalTo([ 0, 0, 0 ], a, b, c);
+}
+
+/**
+ * Calculate a unit face normal into caller-owned storage.
+ *
+ * @param {ArrayLike<number>} out Receiving xyz vector.
+ * @param {ArrayLike<number>} a First xyz vertex.
+ * @param {ArrayLike<number>} b Second xyz vertex.
+ * @param {ArrayLike<number>} c Third xyz vertex.
+ * @returns {ArrayLike<number>} The receiving vector.
+ */
+export function triangleNormalTo(out, a, b, c)
+{
+    const
+        abX = b[0] - a[0],
+        abY = b[1] - a[1],
+        abZ = b[2] - a[2],
+        acX = c[0] - a[0],
+        acY = c[1] - a[1],
+        acZ = c[2] - a[2];
+
+    out[0] = abY * acZ - abZ * acY;
+    out[1] = abZ * acX - abX * acZ;
+    out[2] = abX * acY - abY * acX;
+
+    const length = Math.hypot(out[0], out[1], out[2]);
+
+    if (length > 0)
+    {
+        out[0] /= length;
+        out[1] /= length;
+        out[2] /= length;
+    }
+
+    return out;
 }
 
 /**
@@ -383,6 +412,7 @@ export function generateBiNormals(normals, tangents, options = {})
 
 export const mesh = Object.freeze({
     triangleNormal,
+    triangleNormalTo,
     triangleArea2,
     isDegenerateTriangle,
     computeBoundsFromPositions,

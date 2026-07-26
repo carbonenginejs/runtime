@@ -92,6 +92,17 @@ test("mesh generates normals, tangents, and binormals", () =>
     ]);
 });
 
+test("mesh writes triangle normals into caller-owned storage", () =>
+{
+    const out = new Float32Array(3);
+
+    assert.equal(
+        mesh.triangleNormalTo(out, [ 0, 0, 0 ], [ 1, 0, 0 ], [ 0, 1, 0 ]),
+        out
+    );
+    assert.deepEqual([ ...out ], [ 0, 0, 1 ]);
+});
+
 test("vertex compatibility delegates to shared mesh math", () =>
 {
     almostEqualArray(
