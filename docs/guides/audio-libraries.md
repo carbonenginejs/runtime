@@ -202,7 +202,7 @@ whole-bank source, one `CjsAudioBufferRes` owns the physical BNK payload and
 every embedded child stores only its offset and length.
 
 Both resource classes are owned and exported by
-`@carbonenginejs/runtime-resource/audio`; this package creates and registers
+`@carbonenginejs/runtime-resource/resource/audio`; this package creates and registers
 them according to the audio-library document and selected delivery route.
 
 MP3, Ogg, WAV, and FLAC are retained as browser-native bytes. A private manager
