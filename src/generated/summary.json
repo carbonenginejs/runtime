@@ -1,8 +1,8 @@
 {
   "outRoot": "src/generated",
   "classes": {
-    "written": 281,
-    "skipped": 314
+    "written": 280,
+    "skipped": 315
   },
   "enums": {
     "written": 16,
@@ -652,6 +652,11 @@
     {
       "family": "eve/scene",
       "className": "EveSceneStaticParticles",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveShip2",
       "reason": "hand-maintained source exists"
     },
     {

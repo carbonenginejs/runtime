@@ -222,6 +222,7 @@ export { EveTransform } from './eve/spaceObject/EveTransform.js';
 export { EveMissileWarhead } from './eve/spaceObject/EveMissileWarhead.js';
 export { EveMissile } from './eve/spaceObject/EveMissile.js';
 export { EveMobile } from './eve/spaceObject/EveMobile.js';
+export { EveShip2 } from './eve/spaceObject/EveShip2.js';
 export { EveStation2 } from './eve/spaceObject/EveStation2.js';
 export { createEveSpaceObjectMainPerObjectValues } from './eve/spaceObject/createEveSpaceObjectMainPerObjectValues.js';
 export { EveCameraFxAttributes } from './eve/spaceObject/fxAttributes/EveCameraFxAttributes.js';
@@ -500,7 +501,6 @@ export { EveSmartLightMesh } from './generated/eve/smartLights/EveSmartLightMesh
 export { EveSmartLightPointLight } from './generated/eve/smartLights/EveSmartLightPointLight.js';
 export { EveSmartLightQuad } from './generated/eve/smartLights/EveSmartLightQuad.js';
 export { EveSmartLightSpotLight } from './generated/eve/smartLights/EveSmartLightSpotLight.js';
-export { EveShip2 } from './generated/eve/spaceObject/EveShip2.js';
 export { IEveSpaceObject2 } from './generated/eve/spaceObject/IEveSpaceObject2.js';
 export { State, StateChangeEvent } from './generated/eve/spaceObject/enums.js';
 export { EveSwarm } from './generated/eve/spaceObject/swarm/EveSwarm.js';

@@ -6,6 +6,7 @@ export * from "./EveTransform.js";
 export * from "./EveMissileWarhead.js";
 export * from "./EveMissile.js";
 export * from "./EveMobile.js";
+export * from "./EveShip2.js";
 export * from "./EveStation2.js";
 export * from "./createEveSpaceObjectMainPerObjectValues.js";
 export * from "./fxAttributes/index.js";

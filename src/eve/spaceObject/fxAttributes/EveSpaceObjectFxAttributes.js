@@ -8,7 +8,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { EveSpaceObject2 } from "../EveSpaceObject2.js";
-import { EveShip2 } from "../../../generated/eve/spaceObject/EveShip2.js";
+import { EveShip2 } from "../EveShip2.js";
 
 const BOUNDING_SPHERE = vec4.create();
 const OBJECT_POSITION = vec3.create();

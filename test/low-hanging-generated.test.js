@@ -40,7 +40,7 @@ import { EveChildRef } from "../npm/dist/generated/eve/child/EveChildRef.js";
 import { EveChildSocket } from "../npm/dist/generated/eve/child/EveChildSocket.js";
 import { EveChildProceduralContainer } from "../npm/dist/eve/child/procedural/EveChildProceduralContainer.js";
 import { EveMultiEffect } from "../npm/dist/eve/effect/multiEffect/EveMultiEffect.js";
-import { EveShip2 } from "../npm/dist/generated/eve/spaceObject/EveShip2.js";
+import { EveShip2 } from "../npm/dist/eve/spaceObject/EveShip2.js";
 import { EveCamera } from "../npm/dist/eve/camera/EveCamera.js";
 import { BackAndForth } from "../npm/dist/generated/eve/child/behaviors/BackAndForth.js";
 import { SeekTarget } from "../npm/dist/generated/eve/child/behaviors/SeekTarget.js";

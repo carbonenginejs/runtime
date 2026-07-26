@@ -6,7 +6,7 @@ import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { EveSpaceObject2 as _EveSpaceObject } from '../EveSpaceObject2.js';
-import { EveShip2 as _EveShip } from '../../../generated/eve/spaceObject/EveShip2.js';
+import { EveShip2 as _EveShip } from '../EveShip2.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_activationStrength, _init_extra_activationStrength, _init_activeTurretCount, _init_extra_activeTurretCount, _init_childParent, _init_extra_childParent, _init_generatedShapeEllipsoidCenter, _init_extra_generatedShapeEllipsoidCenter, _init_generatedShapeEllipsoidRadius, _init_extra_generatedShapeEllipsoidRadius, _init_killCount, _init_extra_killCount, _init_ship, _init_extra_ship, _init_boundingSphereRadius, _init_extra_boundingSphereRadius, _init_parentWorldRotation, _init_extra_parentWorldRotation, _init_parentWorldTranslation, _init_extra_parentWorldTranslation;
 const BOUNDING_SPHERE = vec4.create();

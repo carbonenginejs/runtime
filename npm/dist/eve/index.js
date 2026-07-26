@@ -147,6 +147,7 @@ export { EveTransform } from './spaceObject/EveTransform.js';
 export { EveMissileWarhead } from './spaceObject/EveMissileWarhead.js';
 export { EveMissile } from './spaceObject/EveMissile.js';
 export { EveMobile } from './spaceObject/EveMobile.js';
+export { EveShip2 } from './spaceObject/EveShip2.js';
 export { EveStation2 } from './spaceObject/EveStation2.js';
 export { createEveSpaceObjectMainPerObjectValues } from './spaceObject/createEveSpaceObjectMainPerObjectValues.js';
 export { EveCameraFxAttributes } from './spaceObject/fxAttributes/EveCameraFxAttributes.js';

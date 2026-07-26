@@ -1,6 +1,6 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../../_virtual/_rollupPluginBabelHelpers.js';
 import { type, io, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveShip2 as _EveShip } from '../EveShip2.js';
+import { EveShip2 as _EveShip } from '../../../../eve/spaceObject/EveShip2.js';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { EveSwarmRenderable as _EveSwarmRenderable } from './EveSwarmRenderable.js';

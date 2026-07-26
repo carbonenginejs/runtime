@@ -1,13 +1,13 @@
-import { applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
+import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveMobile as _EveMobile } from '../../../eve/spaceObject/EveMobile.js';
-import { TriFloat as _TriFloat } from '../../../trinityCore/TriFloat.js';
+import { EveMobile as _EveMobile } from './EveMobile.js';
+import { TriFloat as _TriFloat } from '../../trinityCore/TriFloat.js';
 
 let _initProto, _initClass, _init_boosters, _init_extra_boosters, _init_displayKillCounterValue, _init_extra_displayKillCounterValue, _init_maxSpeed, _init_extra_maxSpeed, _init_speed, _init_extra_speed;
 
-/** EveShip2 (eve/spaceObject) - generated from schema shapeHash 6adb2554.... */
+/** A ship space object: booster drive, speed state, and ship shader data. */
 let _EveShip;
 class EveShip2 extends _EveMobile {
   static {

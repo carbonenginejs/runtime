@@ -1,4 +1,3 @@
-export { EveShip2 } from './EveShip2.js';
 export { IEveSpaceObject2 } from './IEveSpaceObject2.js';
 export { State, StateChangeEvent } from './enums.js';
 export { EveSwarm } from './swarm/EveSwarm.js';
