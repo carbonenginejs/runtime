@@ -5,6 +5,12 @@ import { UnlinkReason } from './enums.js';
 import { TR2_DIRTY_ALL, BELIST_EVENTMASK, BELIST_REMOVED, BELIST_INSERTED } from './contracts.js';
 
 let _initProto, _initClass, _init_actions, _init_extra_actions, _init_transitions, _init_extra_transitions, _init_finalizer, _init_extra_finalizer, _init_name, _init_extra_name;
+
+/**
+ * One state of a Tr2StateMachine: starts and stops its action list on entry and
+ * exit, and evaluates its outgoing transitions each update to decide the next
+ * state.
+ */
 let _Tr2StateMachineState;
 new class extends _identity {
   static [class Tr2StateMachineState extends CjsModel {
@@ -228,6 +234,11 @@ new class extends _identity {
       }
       return !this.finalizer || !controller || this.finalizer.CanTransition(controller);
     }
+
+    /**
+     * Finds the destination of the first transition that activates against a fully
+     * dirty variable mask, used to resolve where to go once finalizing completes.
+     */
     #getNextState() {
       for (const transition of this.transitions) {
         const destination = transition.GetDestination?.() ?? null;
@@ -237,9 +248,19 @@ new class extends _identity {
       }
       return null;
     }
+
+    /**
+     * Gets the controller through the linked state machine, or null when this
+     * state is unlinked.
+     */
     #getController() {
       return this.#stateMachine?.GetController?.() ?? null;
     }
+
+    /**
+     * Links and starts an inserted action when the state is already active, or
+     * stops and unlinks a removed one.
+     */
     #onActionListModified(event, value) {
       const action = _Tr2StateMachineState.#asAction(value);
       const controller = this.#getController();
@@ -262,6 +283,12 @@ new class extends _identity {
           break;
       }
     }
+
+    /**
+     * Links or unlinks a transition as the list changes and recomputes the
+     * combined variable mask, which gates whether Update evaluates transitions at
+     * all.
+     */
     #onTransitionListModified(event, value) {
       const transition = _Tr2StateMachineState.#asTransition(value);
       switch (event & BELIST_EVENTMASK) {
@@ -279,6 +306,26 @@ new class extends _identity {
           break;
       }
     }
+
+    /**
+     * Narrows a list payload to an object reference before it is treated as an
+     * action.
+     */
+
+    /**
+     * Narrows a list payload to an object reference before it is treated as a
+     * transition.
+     */
+
+    /**
+     * Coerces a variable mask to BigInt so masks from different sources can be
+     * combined exactly.
+     */
+
+    /**
+     * Checks whether any variable this state's transitions depend on is marked
+     * dirty this frame.
+     */
   }];
   #asAction(value) {
     return value && typeof value === "object" ? value : null;

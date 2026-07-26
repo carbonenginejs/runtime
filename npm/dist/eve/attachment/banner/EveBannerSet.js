@@ -16,6 +16,11 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from '../itemSetBounds.js'
 import { MatrixCopyFrom3x4, CopyLightData, AsPerPointLightData, CreateLightRecord, CreateLightDataScratch } from '../../lights/lightConversion.js';
 
 let _initProto, _initStatic, _initClass, _init_banners, _init_extra_banners, _init_name, _init_extra_name, _init_effect, _init_extra_effect, _init_isPickable, _init_extra_isPickable, _init_display, _init_extra_display, _init_key, _init_extra_key, _init_lights, _init_extra_lights, _init_primaryTextureParameter, _init_extra_primaryTextureParameter;
+
+/**
+ * A hull's authored banner quads, owning their static and per-bone bounds, the
+ * largest single banner radius its LOD is measured on, and the banner lights.
+ */
 let _EveBannerSet;
 new class extends _identity {
   static [class EveBannerSet extends _EveEntity {
@@ -58,6 +63,13 @@ new class extends _identity {
     /** Carbon m_activationStrength (ctor 0, EveBannerSet.cpp:94). Lights are
      * BLACK until UpdateLights runs. */
     #activationStrength = 0;
+
+    /**
+     * Recomputes the bounds a banner set answers with - the static box, the
+     * per-bone boxes and the largest single banner half-diagonal - and marks the
+     * packed geometry stale; a set without an effect builds no bounds at all, so
+     * it reads as invisible rather than unbounded.
+     */
     Rebuild() {
       // Physical geometry, buffers and batches are backend work; the bounds are
       // not. Carbon rebuilds both together (cpp:397-431).
@@ -218,6 +230,11 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * The SOF reference id of the banner at an index, which is how a caller maps a
+     * picked banner back to its authored slot.
+     */
     GetReference(index) {
       return this.banners[index].reference;
     }
@@ -258,32 +275,66 @@ new class extends _identity {
       const vLength = _EveBannerSet.#measureVerticalArc(transform, angleY, halfAngleY, scaleY, scaleZ);
       return uLength / vLength;
     }
+
+    /**
+     * Runs the first Rebuild so the set has bounds before its first visibility
+     * test.
+     */
     Initialize() {
       this.Rebuild();
       return true;
     }
+
+    /**
+     * Copies a loose banner description into a stored EveBannerItem, appends it
+     * and returns the copy; the source object is not retained.
+     */
     AddBanner(banner) {
       const copy = _EveBannerSet.#copyBanner(banner);
       this.banners.push(copy);
       return copy;
     }
+
+    /**
+     * Sets the effect that draws the banners; without one Rebuild produces no
+     * bounds and the set never draws.
+     */
     SetEffect(effect) {
       this.effect = effect ?? null;
     }
+
+    /** Sets the banner key that the set's picking id is derived from. */
     SetKey(key) {
       this.key = Number(key) | 0;
     }
+
+    /** The picking id this set writes, which is 101 plus the authored key. */
     GetPickingID() {
       return 101 + this.key >>> 0;
     }
+
+    /**
+     * Sets a shader option on the banner effect, doing nothing when no effect that
+     * accepts options is attached.
+     */
     SetShaderOption(name, value) {
       if (this.effect && typeof this.effect.SetOption === "function") {
         this.effect.SetOption(name, value);
       }
     }
+
+    /**
+     * Sets the texture parameter whose average colour replaces the authored colour
+     * of every banner light.
+     */
     SetPrimaryTextureParameter(parameter) {
       this.primaryTextureParameter = parameter ?? null;
     }
+
+    /**
+     * Converts a SOF-authored light description into an EveBannerLight and appends
+     * it to the set.
+     */
     AddLightFromSOF(light) {
       this.lights.push(_EveBannerLight.FromSOF(light));
     }
@@ -379,6 +430,28 @@ new class extends _identity {
     /** Per-frame scratch - UpdateVisibility must not allocate. */
 
     /** Carbon passes a single 1.0 density (cpp:154) - a banner is one flat quad. */
+
+    /**
+     * Clamps an authored curvature angle to the 0..180 degree range the arc
+     * measurement assumes.
+     */
+
+    /**
+     * Sums the transformed chord lengths of the horizontal curvature arc, sampled
+     * at roughly one segment per five degrees, giving the banner's real U length
+     * as the generated geometry would have it.
+     */
+
+    /**
+     * Sums the transformed chord lengths of the vertical curvature arc, sampled at
+     * roughly one segment per five degrees, giving the banner's real V length as
+     * the generated geometry would have it.
+     */
+
+    /**
+     * Builds an EveBannerItem from a loose banner description, leaving the item's
+     * own default in place for every field the source omits.
+     */
   }];
   DebugEffect = Object.freeze({
     Wireframe: 0,

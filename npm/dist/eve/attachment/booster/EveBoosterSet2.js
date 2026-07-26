@@ -16,6 +16,11 @@ let _initClass, _init_transform, _init_extra_transform, _init_functionality, _in
 const LIGHT_NOISE_SIZE = 128;
 const LIGHT_NOISE = new Float32Array(LIGHT_NOISE_SIZE);
 let LIGHT_NOISE_INITIALIZED = false;
+
+/**
+ * One authored booster placement: its local transform, functionality inputs,
+ * atlas slots, light scale and whether it emits a trail.
+ */
 let _EveBoosterSet2Item;
 class EveBoosterSet2Item extends CjsModel {
   static {
@@ -208,6 +213,11 @@ new class extends _identity {
 
     /** m_glowsVisible (cpp:682) - starts visible, recomputed by UpdateVisibility. */
     #glowsVisible = true;
+
+    /**
+     * Derives the runtime boosters, flares and trails from the authored items and
+     * binds every renderable instance back to this set.
+     */
     Initialize() {
       _EveBoosterSet.#RebuildItems(this);
       for (const renderable of this.instances) {
@@ -216,6 +226,12 @@ new class extends _identity {
       this.#revision++;
       return true;
     }
+
+    /**
+     * Applies whichever of the items, staticTrailOffsets and flares rebuild flags
+     * a property change raised, rebuilding only what that flag covers, and bumps
+     * the revision.
+     */
     OnModified(_options = {}) {
       const flags = this.__state.flags;
       if (flags.has("items")) {
@@ -234,6 +250,12 @@ new class extends _identity {
       this.#revision++;
       return true;
     }
+
+    /**
+     * Resizes the renderable instance list - one instance per ship drawing this
+     * booster set - keeping at least one, and rebinds every instance; returns the
+     * resulting count.
+     */
     SetCount(count) {
       const requested = Math.trunc(Number(count));
       const target = Number.isFinite(requested) ? Math.max(1, requested) : 1;
@@ -251,6 +273,12 @@ new class extends _identity {
       this.#revision++;
       return this.instances.length;
     }
+
+    /**
+     * Updates one renderable instance from the parent's transform, speed,
+     * acceleration and rotation, creating the first instance when the set has
+     * none; returns false when boosterInstance is out of range.
+     */
     Update(deltaTime, time, parentMatrix = mat4.create(), parentSpeed = 0, parentAcceleration = _EveBoosterSet.#zero, parentRotation = _EveBoosterSet.#identityRotation, boosterInstance = 0) {
       if (!this.instances.length) {
         this.SetCount(1);
@@ -262,6 +290,11 @@ new class extends _identity {
       this.instances[index]?.Update?.(deltaTime, time, parentMatrix, parentSpeed, parentAcceleration, parentRotation);
       return true;
     }
+
+    /**
+     * Advances every instance's trail spline and then the trail set itself;
+     * returns false when no trail set is attached.
+     */
     UpdateTrails(deltaTime, time) {
       if (!this.trails) {
         return false;
@@ -273,11 +306,22 @@ new class extends _identity {
       this.trails.Update?.(time);
       return updated;
     }
+
+    /**
+     * Drops the authored items along with everything derived from them - runtime
+     * boosters, glows, trails, bounding sphere and max size.
+     */
     Clear() {
       this.items.length = 0;
       _EveBoosterSet.#ClearRuntimeItems(this);
       this.#revision++;
     }
+
+    /**
+     * Appends an authored booster placement and immediately derives its runtime
+     * booster, flares and trail; returns the new item's index and throws a
+     * TypeError when localMatrix is not sixteen values.
+     */
     Add(localMatrix, functionality, hasTrail, atlasIndex0, atlasIndex1, lightScale = 1) {
       if (!localMatrix || localMatrix.length !== 16) {
         throw new TypeError("EveBoosterSet2 transforms must contain 16 values");
@@ -294,6 +338,29 @@ new class extends _identity {
       this.#revision++;
       return this.items.length - 1;
     }
+
+    /**
+     * Empties the derived booster records, glows and trails and resets the set
+     * bounding sphere and max size, leaving the authored items alone.
+     */
+
+    /**
+     * Discards the derived state and re-derives it from every authored item, then
+     * clears both the items and flares rebuild flags.
+     */
+
+    /**
+     * Derives one runtime booster from an authored item - scale from the larger of
+     * the transform's X and Y basis lengths, a light position pushed back along -Z
+     * by lightOffset, and a random light flicker phase - then creates its flares
+     * and its trail (offset back half a unit along the booster axis), and grows
+     * the set bounding sphere and max size.
+     */
+
+    /**
+     * Sets the whole flare description in one call: glow and halo scales with
+     * their normal and warp colours, plus the always-on flag.
+     */
     SetData(glowScale, glowColor, warpGlowColor, symHaloScale, haloScaleX, haloScaleY, haloColor, warpHaloColor, alwaysOn) {
       this.glowScale = Number(glowScale);
       vec4.copy(this.glowColor, glowColor);
@@ -305,6 +372,11 @@ new class extends _identity {
       vec4.copy(this.warpHaloColor, warpHaloColor);
       this.alwaysOn = !!alwaysOn;
     }
+
+    /**
+     * Sets the whole booster point-light description in one call: light offset,
+     * flicker amplitude and frequency, and the normal and warp radius and colour.
+     */
     SetLightData(offset, flickerAmplitude, flickerFrequency, radius, color, warpRadius, warpColor) {
       this.lightOffset = Number(offset);
       this.lightFlickerAmplitude = Number(flickerAmplitude);
@@ -314,16 +386,36 @@ new class extends _identity {
       this.lightWarpRadius = Number(warpRadius);
       vec4.copy(this.lightWarpColor, warpColor);
     }
+
+    /**
+     * Sets the near and far booster effects; the renderable's boosterHighLod flag
+     * picks between them at draw time.
+     */
     SetEffect(effect, effectFar) {
       this.effect = effect ?? null;
       this.effectFar = effectFar ?? null;
     }
+
+    /**
+     * Attaches the sprite set that the per-booster flares are added to; without
+     * one no flares are created.
+     */
     SetGlow(glow) {
       this.glows = glow ?? null;
     }
+
+    /**
+     * Attaches the trails set that per-booster trails are added to; without one no
+     * trails are created.
+     */
     SetTrail(trail) {
       this.trails = trail ?? null;
     }
+
+    /**
+     * The intensity of one renderable instance, or the mean across every instance
+     * when no index is given; zero when the set has no instances.
+     */
     GetBoosterIntensity(index = null) {
       if (index !== null && index !== undefined) {
         return this.instances[Number(index) >>> 0]?.GetIntensity?.() ?? 0;
@@ -353,6 +445,12 @@ new class extends _identity {
       }
       return out;
     }
+
+    /**
+     * The derived runtime boosters as deep copies - transform, functionality,
+     * light position, radius and phase, atlas indices and trail flag - safe for an
+     * adapter to keep.
+     */
     GetBoosterData() {
       return this.#singleBoosters.map(booster => ({
         transform: mat4.clone(booster.transform),
@@ -365,6 +463,11 @@ new class extends _identity {
         hasTrail: booster.hasTrail
       }));
     }
+
+    /**
+     * A counter bumped whenever the authored items or the instance list change, so
+     * an adapter can tell its packed data is stale.
+     */
     GetRevision() {
       return this.#revision;
     }
@@ -481,6 +584,28 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Adds the three flare sprites Carbon authors per booster - the glow, the
+     * symmetric halo and the separately scaled X/Y halo - placed at increasing
+     * distances back along the booster axis and sharing one random blink seed; the
+     * axis is shortened for boosters below scale 3.
+     */
+
+    /**
+     * Adds one flare sprite to the glow set, offset back along the booster
+     * direction by distance and carrying its normal and warp colours.
+     */
+
+    /**
+     * Grows the set bounding sphere just far enough to include one booster
+     * position, leaving it unchanged when the position already falls inside.
+     */
+
+    /**
+     * Redistributes the five static trail control offsets evenly backwards along
+     * -Z across staticTrailLength and clears the staticTrailOffsets flag.
+     */
   }];
   #ClearRuntimeItems(_0) {
     return _ClearRuntimeItems.apply(this, arguments);

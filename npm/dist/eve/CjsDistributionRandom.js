@@ -15,6 +15,12 @@ function createMinStdRandom(seed) {
     return (state - 1) / (modulus - 1);
   };
 }
+
+/**
+ * Seed for a placement's random stream: the placement's own unique ID when the
+ * distribution wants a result that is stable across runs, otherwise the time
+ * seed shifted left by that ID.
+ */
 function getDistributionSeed(uniqueID, timeSeed, consistentRandom) {
   const id = Number(uniqueID) >>> 0;
   return consistentRandom ? id : Number(timeSeed) << id % 11 >>> 0;

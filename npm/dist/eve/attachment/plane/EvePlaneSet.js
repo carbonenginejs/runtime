@@ -12,6 +12,11 @@ import { MatrixCopyFrom3x4, CopyLightData, AsPerPointLightData, CreateLightRecor
 
 let _initProto, _initClass, _init_pickBufferID, _init_extra_pickBufferID, _init_hideOnLowQuality, _init_extra_hideOnLowQuality, _init_effect, _init_extra_effect, _init_skinned, _init_extra_skinned, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_planes, _init_extra_planes, _init_lights, _init_extra_lights, _init_imageMapParameter, _init_extra_imageMapParameter, _init_layerMap1Parameter, _init_extra_layerMap1Parameter, _init_layerMap2Parameter, _init_extra_layerMap2Parameter, _init_maskMapParameter, _init_extra_maskMapParameter;
 const WHITE = new Float32Array([1, 1, 1, 1]);
+
+/**
+ * A hull's authored textured planes, owning their static and per-bone bounds,
+ * the four shared texture parameters and the plane lights.
+ */
 let _EvePlaneSet;
 new class extends _identity {
   static [class EvePlaneSet extends _EveEntity {
@@ -50,6 +55,12 @@ new class extends _identity {
     /** Carbon m_activationStrength (ctor 0, EvePlaneSet.cpp:76). Lights are
      * BLACK until UpdateLights runs. */
     #activationStrength = 0;
+
+    /**
+     * Recomputes the static and per-bone bounds from the authored planes -
+     * skipping any plane whose colour is fully zero, which contributes nothing -
+     * and marks the packed geometry stale.
+     */
     Rebuild() {
       // Packed vertices, bounds caches and quad registration are reconciled by
       // the renderer adapter from this authored graph.
@@ -59,13 +70,26 @@ new class extends _identity {
       // filter: a fully transparent plane contributes NO bounds at all.
       CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.planes.filter(item => !_EvePlaneSet.#IsFullyTransparent(item)));
     }
+
+    /**
+     * Runs the first Rebuild so the set has bounds before its first visibility
+     * test.
+     */
     Initialize() {
       this.Rebuild();
       return true;
     }
+
+    /** Sets the effect that draws the planes. */
     SetEffect(effect) {
       this.effect = effect ?? null;
     }
+
+    /**
+     * Sets the 8-bit pick buffer id written by the plane geometry, rebuilding
+     * immediately when planes are already authored because the id is packed into
+     * it.
+     */
     SetPickBufferID(pickBufferID) {
       this.pickBufferID = Number(pickBufferID) & 0xff;
       if (this.planes.length) this.Rebuild();
@@ -88,32 +112,74 @@ new class extends _identity {
       box3.transformMat4(aabb, aabb, parentTransform);
       return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
     }
+
+    /**
+     * Sets whether the planes ride skeleton bones, which is what decides if
+     * GetAabb consults the caller's bone list at all.
+     */
     SetIsSkinned(skinned) {
       this.skinned = !!skinned;
     }
+
+    /**
+     * Appends an authored plane item; the bounds only pick it up on the next
+     * Rebuild.
+     */
     AddPlaneItem(item) {
       this.planes.push(item);
     }
+
+    /** The live plane item list, not a copy. */
     GetPlanes() {
       return this.planes;
     }
+
+    /**
+     * Sets a shader option on the plane effect, doing nothing when no effect that
+     * accepts options is attached.
+     */
     SetShaderOption(name, value) {
       if (this.effect && typeof this.effect.SetOption === "function") {
         this.effect.SetOption(name, value);
       }
     }
+
+    /**
+     * Sets the shared image map texture parameter; its average colour is one of
+     * the four factors tinting the plane lights.
+     */
     SetImageMapParameter(parameter) {
       this.imageMapParameter = parameter ?? null;
     }
+
+    /**
+     * Sets the shared first layer map texture parameter; its average colour is one
+     * of the four factors tinting the plane lights.
+     */
     SetLayerMap1Parameter(parameter) {
       this.layerMap1Parameter = parameter ?? null;
     }
+
+    /**
+     * Sets the shared second layer map texture parameter; its average colour is
+     * one of the four factors tinting the plane lights.
+     */
     SetLayerMap2Parameter(parameter) {
       this.layerMap2Parameter = parameter ?? null;
     }
+
+    /**
+     * Sets the shared mask map texture parameter; its average colour is one of the
+     * four factors tinting the plane lights.
+     */
     SetMaskMapParameter(parameter) {
       this.maskMapParameter = parameter ?? null;
     }
+
+    /**
+     * Converts a SOF-authored light description into an EvePlaneLight and appends
+     * it to the set.
+     */
     AddLightFromSOF(light) {
       this.lights.push(_EvePlaneLight.FromSOF(light));
     }
@@ -199,6 +265,12 @@ new class extends _identity {
         lightManager?.AddLight?.(record);
       }
     }
+
+    /**
+     * The average colour of a texture parameter's resource, white when the
+     * parameter, its resource or its average colour is missing, so an absent map
+     * is a no-op in the four-way product.
+     */
 
     /** Carbon CreateBoundingBoxes skips an item whose color is exactly
      * Color(0, 0, 0, 0) (cpp:332-335) - an authored "off" plane contributes no

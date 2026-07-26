@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initProto, _initClass, _init_attachedToCamera, _init_extra_attachedToCamera;
+
+/**
+ * Transform modifier that moves a child with the camera, either pinning its
+ * translation to the view position or offsetting it by the view position.
+ */
 let _EveChildModifierTran;
 class EveChildModifierTranslateWithCamera extends CjsModel {
   static {

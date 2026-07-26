@@ -4,6 +4,13 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_agentAccel, _init_extra_agentAccel, _init_inertiaWeight, _init_extra_inertiaWeight;
+
+/**
+ * Per-agent scratch for the Inertia child behaviour: the acceleration carried
+ * over from the previous update and the weight it is blended in with. The
+ * behaviour allocates one record per agent and rewrites it on every behaviour
+ * update.
+ */
 let _InertiaData;
 class InertiaData extends CjsModel {
   static {

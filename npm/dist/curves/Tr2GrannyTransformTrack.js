@@ -6,6 +6,12 @@ import { CjsGrannyCurves } from './CjsGrannyCurves.js';
 import { Tr2GrannyTrack as _Tr2GrannyTrack } from './Tr2GrannyTrack.js';
 
 let _initProto, _initClass, _init_compressCurves, _init_extra_compressCurves, _init_rotation, _init_extra_rotation, _init_translation, _init_extra_translation, _init_scale, _init_extra_scale;
+
+/**
+ * Granny track that samples a bone's position, orientation and scale-shear
+ * curves together, exposing them as a translation vector, rotation quaternion
+ * and scale vector.
+ */
 let _Tr2GrannyTransformTr;
 class Tr2GrannyTransformTrack extends _Tr2GrannyTrack {
   static {

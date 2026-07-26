@@ -6,6 +6,12 @@ import { Tr2CurveInterpolation } from './enums.js';
 import { Tr2ScalarExprKey as _Tr2ScalarExprKey } from './Tr2ScalarExprKey.js';
 
 let _initProto, _initClass, _init_interpolation, _init_extra_interpolation, _init_currentValue, _init_extra_currentValue, _init_name, _init_extra_name, _init_cycle, _init_extra_cycle, _init_reversed, _init_extra_reversed, _init_timeOffset, _init_extra_timeOffset, _init_timeScale, _init_extra_timeScale, _init_keys, _init_extra_keys;
+
+/**
+ * Keyed scalar curve whose key times, values and tangents are themselves
+ * expressions re-evaluated on every sample, with optional cycling and reversed
+ * playback over the key range.
+ */
 let _Tr2ScalarExprKeyCurv;
 class Tr2ScalarExprKeyCurve extends CjsModel {
   static {
@@ -241,6 +247,11 @@ class Tr2ScalarExprKeyCurve extends CjsModel {
   Sort() {
     this.#reEvaluateKeys();
   }
+
+  /**
+   * Re-evaluates every key's expressions in order, passing each key its
+   * predecessor so expressions can reference prevKeyTime and prevKeyValue.
+   */
   #reEvaluateKeys() {
     let previousKey = null;
     for (const key of this.keys) {
@@ -248,6 +259,12 @@ class Tr2ScalarExprKeyCurve extends CjsModel {
       previousKey = key;
     }
   }
+
+  /**
+   * Converts caller time into curve-local time by applying timeScale and
+   * timeOffset, reversing it when `reversed` is set and wrapping it into the
+   * key-range length when `cycle` is set.
+   */
   GetLocalTime(time) {
     const length = this.Length();
     let localTime = time / this.timeScale - this.timeOffset;
@@ -262,6 +279,12 @@ class Tr2ScalarExprKeyCurve extends CjsModel {
     }
     return localTime;
   }
+
+  /**
+   * Interpolates between two adjacent keys using the left key's mode; a null key
+   * on either side means the sample lies outside the key range and that end is
+   * held flat at the present key's value.
+   */
   #interpolate(time, lastKey, nextKey) {
     let deltaTime = this.Length();
     let startValue = Number(this.keys[0].value);

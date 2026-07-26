@@ -8,6 +8,11 @@ const TermType = Object.freeze({
   FUNCTION: 1,
   STRING_FUNCTION: 2
 });
+
+/**
+ * Describes one term the expression language exposes - a variable, a function or
+ * a string function - with its category, argument names and help text.
+ */
 let _Tr2ExpressionTermInf;
 new class extends _identity {
   static [class Tr2ExpressionTermInfo extends CjsModel {
@@ -34,20 +39,36 @@ new class extends _identity {
     name = (_init_extra_category(this), _init_name(this, ""));
     description = (_init_extra_name(this), _init_description(this, ""));
     #arguments = (_init_extra_description(this), []);
+
+    /** A detached copy of the argument-name list. */
     GetArguments() {
       return this.#arguments.slice();
     }
+
+    /** Builds a VARIABLE term, which takes no arguments. */
     static Variable(category, name, description) {
       return _Tr2ExpressionTermInf.#create(TermType.VARIABLE, category, name, [], description);
     }
+
+    /**
+     * Builds a FUNCTION term where every trailing value but the last is an
+     * argument name and the last is the description.
+     */
     static Function(category, name, ...argumentsAndDescription) {
       const values = argumentsAndDescription.slice();
       const description = values.pop() ?? "";
       return _Tr2ExpressionTermInf.#create(TermType.FUNCTION, category, name, values, description);
     }
+
+    /** Builds a STRING_FUNCTION term taking exactly one argument. */
     static StringFunction(category, name, argument, description) {
       return _Tr2ExpressionTermInf.#create(TermType.STRING_FUNCTION, category, name, [argument], description);
     }
+
+    /**
+     * Constructs and fills a term of the given type, copying the argument list so
+     * the caller's array is not retained.
+     */
   }];
   #create(_0, _1, _2, _3, _4) {
     return _create.apply(this, arguments);

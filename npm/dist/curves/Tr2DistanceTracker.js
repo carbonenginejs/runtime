@@ -4,6 +4,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_value, _init_extra_value, _init_signedDistance, _init_extra_signedDistance, _init_distanceToClosest, _init_extra_distanceToClosest, _init_direction, _init_extra_direction, _init_sourceObject, _init_extra_sourceObject, _init_targetObject, _init_extra_targetObject, _init_sourcePosition, _init_extra_sourcePosition, _init_targetPosition, _init_extra_targetPosition;
+
+/**
+ * Scalar function reporting the distance between two tracked positions, either
+ * the full separation or its projection onto a fixed direction, and optionally
+ * signed by which side of that direction the target lies.
+ */
 let _Tr2DistanceTracker;
 class Tr2DistanceTracker extends CjsModel {
   static {

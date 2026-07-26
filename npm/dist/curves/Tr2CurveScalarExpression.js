@@ -4,6 +4,12 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsControllerExpressionProgram } from '../controllers/CjsControllerExpressionProgram.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_expression, _init_extra_expression, _init_currentValue, _init_extra_currentValue, _init_input, _init_extra_input, _init_input2, _init_extra_input2, _init_input3, _init_extra_input3, _init_input4, _init_extra_input4, _init_inputs, _init_extra_inputs;
+
+/**
+ * Scalar curve whose value is produced by a compiled expression evaluated at
+ * time divided by timeScale, with input1..input4 and a stable per-instance
+ * random constant available as terms.
+ */
 let _Tr2CurveScalarExpres;
 class Tr2CurveScalarExpression extends CjsModel {
   static {
@@ -171,6 +177,11 @@ class Tr2CurveScalarExpression extends CjsModel {
       self: this
     })) || 0;
   }
+
+  /**
+   * Returns the cached program, recompiling first when it is missing or was
+   * built from different source text.
+   */
   Compile() {
     if (!this.#program || this.#program.source !== this.expression) {
       this.SetExpression(this.expression);

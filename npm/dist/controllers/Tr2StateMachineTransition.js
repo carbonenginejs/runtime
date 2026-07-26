@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsControllerExpressionProgram } from './CjsControllerExpressionProgram.js';
 
 let _initProto, _initClass, _init_condition, _init_extra_condition, _init_name, _init_extra_name;
+
+/**
+ * One outgoing edge of a state machine state: evaluates a boolean condition
+ * expression and, when it passes, names the destination state to switch to.
+ */
 let _Tr2StateMachineTrans;
 new class extends _identity {
   static [class Tr2StateMachineTransition extends CjsModel {
@@ -114,6 +119,13 @@ new class extends _identity {
     GetState() {
       return this.GetSource();
     }
+
+    /**
+     * Gets the bitmask of controller variables this condition reads, so the owning
+     * state can skip evaluation when none of them changed; returns 0 (never skip)
+     * when the condition calls an impure function or references a variable that is
+     * missing or beyond the 64-bit mask.
+     */
     GetVariableMask() {
       const program = this.Compile();
       if (program.HasNonPureFunctions()) {
@@ -192,6 +204,12 @@ new class extends _identity {
       this.Compile();
       return this.#functionNames.slice();
     }
+
+    /**
+     * Builds the condition evaluation context, delegating to the controller's own
+     * GetExpressionContext when it has one and otherwise assembling controller,
+     * owner and state machine directly.
+     */
     #getExpressionContext(controller, owner, stateMachine) {
       const runtime = controller;
       if (runtime?.GetExpressionContext) {
@@ -203,6 +221,12 @@ new class extends _identity {
         stateMachine: stateMachine
       };
     }
+
+    /**
+     * Looks up the destination state by this transition's `name` on the source
+     * state's machine; the authored name is the destination state name, not a
+     * label for the edge.
+     */
     #resolveDestination() {
       const stateMachine = this.#source?.GetStateMachine?.() ?? null;
       if (!stateMachine || !this.name) {
@@ -210,6 +234,11 @@ new class extends _identity {
       }
       return stateMachine.GetStateByName?.(this.name) ?? null;
     }
+
+    /**
+     * Checks whether any variable this condition reads is dirty; an empty variable
+     * mask means the condition must always be evaluated.
+     */
   }];
   #dirtyMaskMatches(variableMask, dirtyVariables) {
     if (variableMask === 0n) {

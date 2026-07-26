@@ -4,6 +4,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_targetPosition, _init_extra_targetPosition, _init_behaviour, _init_extra_behaviour, _init_positionOldInfluence, _init_extra_positionOldInfluence, _init_position, _init_extra_position, _init_positionOld, _init_extra_positionOld, _init_locator, _init_extra_locator;
+
+/**
+ * Tracks what a turret set is shooting at: the chosen damage locator, the
+ * resolved impact and miss positions, and the queue of hit/miss results the
+ * server has sent.
+ */
 let _EveTurretTarget;
 new class extends _identity {
   static [class EveTurretTarget extends CjsModel {
@@ -36,9 +42,21 @@ new class extends _identity {
     #impactSize = 0;
     #randomMissDistanceOffset = 0.5;
     #randomMissPositionOffset = vec3.create();
+
+    /**
+     * The targetable record this tracker is following, or null when it has no
+     * target.
+     */
     GetTargetable() {
       return this.#targetable;
     }
+
+    /**
+     * Accepts an object as the target only when it exposes both an impact or
+     * damage-locator surface and a world-position surface; a change to a different
+     * object seeds the position blend so tracking eases off the previous target.
+     * Returns whether the object was accepted.
+     */
     SetTargetable(object) {
       if (!object) return false;
       const hasTargetSurface = typeof object.GetDamageLocatorPosition === "function" || typeof object.GetImpactPosition === "function";
@@ -52,9 +70,18 @@ new class extends _identity {
       }
       return true;
     }
+
+    /** The damage locator index currently being fired at, or -1 when not firing. */
     GetLocator() {
       return this.locator;
     }
+
+    /**
+     * Begins a shot at a locator: rolls this burst's random miss distance and
+     * offset, and, when the shot is not a queued miss and an impact size is
+     * authored, either creates the impact immediately (zero delay under
+     * damage-locator behaviour) or arms it to be created once delay elapses.
+     */
     StartFireAtLocator(locator, delay, length, source = _EveTurretTarget.#zero) {
       this.locator = Number(locator) | 0;
       this.#randomMissDistanceOffset = Math.random();
@@ -78,12 +105,24 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Ends firing: clears the locator, the position blend, the current miss state
+     * and every queued shot result.
+     */
     StopFireAtLocator() {
       this.locator = -1;
       this.positionOldInfluence = -1;
       this.#lastShotMissed = false;
       this.#missQueue.length = 0;
     }
+
+    /**
+     * Resolves the world impact point for the current locator into out according
+     * to the impact behaviour - the damage locator, the target's centre, or the
+     * target's own shield-ellipsoid solution - falling back to the target's world
+     * position when the locator gives no usable or finite position.
+     */
     GetImpactPosition(source = _EveTurretTarget.#zero, out = vec3.create()) {
       if (!this.#targetable) return out;
       if (this.behaviour === _EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR) {
@@ -98,6 +137,15 @@ new class extends _identity {
       }
       return out;
     }
+
+    /**
+     * Advances the target for the frame: recomputes the impact point, extends the
+     * miss point far past the target along the miss direction (a fixed 250 km for
+     * lasers, distance-relative otherwise), maintains an in-flight impact under
+     * damage-locator behaviour, and blends the tracking position out of the
+     * previous target. Returns the live position buffer, valid until the next
+     * Update.
+     */
     Update(deltaTime, source = _EveTurretTarget.#zero) {
       const dt = Number(deltaTime) || 0;
       if (this.#targetable) {
@@ -132,17 +180,40 @@ new class extends _identity {
       }
       return this.position;
     }
+
+    /**
+     * The point the turrets aim at - the miss point when the last shot missed,
+     * otherwise the blended target position. Copies into out when one is given,
+     * otherwise returns the live buffer.
+     */
     GetTrackingPosition(out) {
       return copyOrReturn(this.GetShotMissed() ? this.#positionMiss : this.position, out);
     }
+
+    /**
+     * The point the firing effect terminates at - the miss point when the last
+     * shot missed, otherwise the resolved impact point. Copies into out when one
+     * is given, otherwise returns the live buffer.
+     */
     GetTargetPosition(out) {
       return copyOrReturn(this.GetShotMissed() ? this.#positionMiss : this.targetPosition, out);
     }
+
+    /**
+     * The index of the target's damage locator nearest source, with its world
+     * position written into out; -1 when there is no target or the locator has no
+     * position.
+     */
     FindClosestLocator(source, out = vec3.create()) {
       if (!this.#targetable) return -1;
       const locator = Number(this.#targetable.GetClosestDamageLocatorIndex?.(source) ?? -1) | 0;
       return this.#targetable.GetDamageLocatorPosition?.(locator, true, out) === false ? -1 : locator;
     }
+
+    /**
+     * A locator drawn from the target's 'good' set, falling back to the closest
+     * one, with its world position written into out; -1 when neither resolves.
+     */
     FindRandomValidLocator(source, out = vec3.create()) {
       if (!this.#targetable) return -1;
       let locator = Number(this.#targetable.GetGoodDamageLocatorIndex?.(source) ?? -1) | 0;
@@ -150,36 +221,77 @@ new class extends _identity {
       locator = Number(this.#targetable.GetClosestDamageLocatorIndex?.(source) ?? -1) | 0;
       return this.#targetable.GetDamageLocatorPosition?.(locator, true, out) === false ? -1 : locator;
     }
+
+    /**
+     * Sets how misses and impacts are handled: laser versus projectile miss
+     * behaviour, the impact size (zero suppresses impacts entirely) and the
+     * impact-position behaviour.
+     */
     SetBehaviour(laserMiss, projectileMiss, impactSize, impactBehaviour) {
       this.#laserMissBehaviour = !!laserMiss;
       this.#projectileMissBehaviour = !!projectileMiss;
       this.#impactSize = Number(impactSize);
       this.behaviour = Number(impactBehaviour) | 0;
     }
+
+    /**
+     * Takes the next queued shot result and makes it the current miss state; an
+     * empty queue counts as a hit.
+     */
     PopShotMissed() {
       this.#lastShotMissed = this.#missQueue.length ? this.#missQueue.shift() : false;
       return this.#lastShotMissed;
     }
+
+    /**
+     * Whether the most recently popped shot result was a miss, which is what
+     * selects the miss position for tracking and targeting.
+     */
     GetShotMissed() {
       return this.#lastShotMissed;
     }
+
+    /**
+     * Queues a hit/miss result for a future shot and stamps the shot time; the queue keeps at most four entries, dropping the oldest.
+     * @param {boolean} missed Whether that shot will miss.
+     * @param {number} [timestamp] Shot time in seconds; defaults to wall-clock time, and may be supplied for determinism.
+     */
     SetShotMissed(missed, timestamp = Date.now() / 1000) {
       this.#missQueue.push(!!missed);
       this.#lastShotTime = Number(timestamp);
       while (this.#missQueue.length > 4) this.#missQueue.shift();
     }
+
+    /** The timestamp stamped by the most recent SetShotMissed, in seconds. */
     GetLastShotTime() {
       return this.#lastShotTime;
     }
+
+    /** The number of queued shot results not yet popped. */
     MissQueueSize() {
       return this.#missQueue.length;
     }
+
+    /**
+     * The target's radius, which scales the firing effect; -1 when there is no
+     * target.
+     */
     GetRadius() {
       return Number(this.#targetable?.GetRadius?.() ?? -1);
     }
+
+    /**
+     * The surface the target currently presents - shield, armor or hull -
+     * IMPACT_INVALID when the target does not report one.
+     */
     GetImpactConfiguration() {
       return this.#targetable?.GetImpactConfiguration?.() ?? _EveTurretTarget.ImpactConfiguration.IMPACT_INVALID;
     }
+
+    /**
+     * Whether the firing effect should draw its impact end: false only when the
+     * shot missed and projectile miss behaviour is set.
+     */
     ShowDestObject() {
       return !(this.#projectileMissBehaviour && this.GetShotMissed());
     }

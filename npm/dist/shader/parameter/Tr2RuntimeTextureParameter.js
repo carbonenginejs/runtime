@@ -3,6 +3,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsParameter } from './CjsParameter.js';
 
 let _initProto, _initClass, _init_texture, _init_extra_texture, _init_name, _init_extra_name, _init_uavMipLevel, _init_extra_uavMipLevel;
+
+/**
+ * A named texture slot fed by a runtime-supplied texture provider rather than an
+ * authored res path.
+ */
 let _Tr2RuntimeTexturePar;
 class Tr2RuntimeTextureParameter extends CjsParameter {
   static {
@@ -18,9 +23,19 @@ class Tr2RuntimeTextureParameter extends CjsParameter {
   name = (_init_extra_texture(this), _init_name(this, ""));
   uavMipLevel = (_init_extra_name(this), _init_uavMipLevel(this, 0));
   #materials = (_init_extra_uavMipLevel(this), []);
+
+  /**
+   * Blue construction form: forwards the name, provider and UAV mip level to
+   * Create.
+   */
   __init__(name = "", texture = null, uavMipLevel = 0) {
     this.Create(name, texture, uavMipLevel);
   }
+
+  /**
+   * Assigns name, texture provider and UAV mip level together, notifying only
+   * when at least one of them actually changed; returns whether it did.
+   */
   Create(name, texture, uavMipLevel = 0) {
     const nextName = String(name);
     const nextMipLevel = uavMipLevel >>> 0;
@@ -37,6 +52,8 @@ class Tr2RuntimeTextureParameter extends CjsParameter {
     });
     return true;
   }
+
+  /** The shader resource name this texture binds to. */
   GetParameterName() {
     return this.name;
   }
@@ -45,15 +62,30 @@ class Tr2RuntimeTextureParameter extends CjsParameter {
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL) {
     return CjsParameter.hashFnv1Identity(this.texture, startingHash);
   }
+
+  /**
+   * Invalidates the resource sets of every material this parameter is attached
+   * to.
+   */
   OnModified(_options = {}) {
     this.#invalidateResourceSets();
     return true;
   }
+
+  /**
+   * Deliberately does nothing: Carbon caches the effect resource type here for
+   * later resource-set binding, which runtime-trinity leaves to engine adapters.
+   */
   RebuildEffectHandles(_effectRes) {
 
     // Carbon caches the effect resource type here for later resource-set
     // binding. Runtime-trinity leaves that realization to engine adapters.
   }
+
+  /**
+   * Swaps the texture provider and notifies owners; returns false when it is
+   * already the same object.
+   */
   SetTextureProvider(texture) {
     if (this.texture === texture) {
       return false;
@@ -65,23 +97,45 @@ class Tr2RuntimeTextureParameter extends CjsParameter {
     });
     return true;
   }
+
+  /**
+   * The attached provider, or null; this package holds the reference but never
+   * resolves or uploads it.
+   */
   GetTextureProvider() {
     return this.texture;
   }
+
+  /**
+   * Sets the mip level to use when this texture is bound as an unordered-access
+   * view, coerced to uint32.
+   */
   SetUavMipLevel(mipLevel) {
     this.uavMipLevel = mipLevel >>> 0;
   }
+
+  /**
+   * Registers a material to be invalidated when this parameter changes;
+   * duplicates are ignored.
+   */
   OnAddedToMaterial(material) {
     if (!this.#materials.includes(material)) {
       this.#materials.push(material);
     }
   }
+
+  /**
+   * Drops a material from the tracked list, so later texture swaps no longer
+   * invalidate its resource sets.
+   */
   OnRemovedFromMaterial(material) {
     const index = this.#materials.indexOf(material);
     if (index >= 0) {
       this.#materials.splice(index, 1);
     }
   }
+
+  /** Invalidates the resource sets of every attached material. */
   #invalidateResourceSets() {
     for (const material of this.#materials) {
       material?.InvalidateResourceSets?.();

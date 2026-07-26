@@ -4,6 +4,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { TriVariableContentType } from '../generated/trinityCore/enums.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_contentType, _init_extra_contentType;
+
+/**
+ * One named shader-binding variable: the content type fixed when it was
+ * registered, plus the value payload standing in for Carbon's typed union.
+ */
 let _TriVariable;
 new class extends _identity {
   static [class TriVariable extends CjsModel {
@@ -23,9 +28,13 @@ new class extends _identity {
 
     /** Runtime value payload; the typed C++ union collapses to one slot. */
     value = (_init_extra_contentType(this), null);
+
+    /** The registered variable name, which the store also uses as its key. */
     GetName() {
       return this.name;
     }
+
+    /** The TriVariableContentType fixed at registration; SetValue never changes it. */
     GetType() {
       return this.contentType;
     }
@@ -38,6 +47,12 @@ new class extends _identity {
       this.value = value;
       return true;
     }
+
+    /**
+     * Reads the payload; when out is array-like and so is the payload, the
+     * overlapping components are copied into out and out is returned, otherwise
+     * the stored payload itself is returned and is not a copy.
+     */
     GetValue(out = undefined) {
       const value = this.value;
       if (out && value && typeof value.length === "number" && typeof out.length === "number") {
@@ -74,9 +89,19 @@ new class extends _identity {
         this.value = null;
       }
     }
+
+    /**
+     * Carbon's display name for a content type, defaulting to this variable's own
+     * type.
+     */
     GetTypeName(contentType = this.contentType) {
       return _TriVariable.GetTypeName(contentType);
     }
+
+    /**
+     * Constant-buffer byte size of a content type, defaulting to this variable's
+     * own type.
+     */
     GetTypeSize(contentType = this.contentType) {
       return _TriVariable.GetTypeSize(contentType);
     }
@@ -116,6 +141,11 @@ new class extends _identity {
       }
       return TriVariableContentType.TRIVARIABLE_INVALID;
     }
+
+    /**
+     * Carbon's display name for a content type; an unrecognised type falls back to
+     * the INVALID label.
+     */
     static GetTypeName(contentType) {
       return _TriVariable.#typeNames[contentType] ?? _TriVariable.#typeNames[0];
     }

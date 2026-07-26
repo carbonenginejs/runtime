@@ -8,6 +8,11 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_color, _init_extra_color, _init_layer1Transform, _init_extra_layer1Transform, _init_layer2Transform, _init_extra_layer2Transform, _init_layer1Scroll, _init_extra_layer1Scroll, _init_layer2Scroll, _init_extra_layer2Scroll, _init_rotation, _init_extra_rotation, _init_scaling, _init_extra_scaling, _init_name, _init_extra_name, _init_maskAtlasID, _init_extra_maskAtlasID, _init_boneIndex, _init_extra_boneIndex, _init_position, _init_extra_position, _init_blinkData, _init_extra_blinkData;
+
+/**
+ * One authored plane: its bone attachment, placement, colour, two independently
+ * transformed and scrolling texture layers, mask atlas slot and blink data.
+ */
 let _EvePlaneSetItem;
 new class extends _identity {
   static [class EvePlaneSetItem extends CjsModel {
@@ -39,11 +44,18 @@ new class extends _identity {
     // Carbon omits this SOF-authored value from Blue serialization, but it is
     // part of the editable plane description and must survive values exchange.
     blinkData = (_init_extra_position(this), _init_blinkData(this, vec4.fromValues(1, 0, 1, 0)));
+
+    /**
+     * Fills the caller-owned out box with the plane's unit box transformed by its
+     * rotation, position and scaling.
+     */
     GetBounds(out) {
       // Carbon TransformationMatrix(scaling, rotation, position).
       const transform = mat4.fromRotationTranslationScale(_EvePlaneSetItem.#transform, this.rotation, this.position, this.scaling);
       return box3.transformMat4(out, _EvePlaneSetItem.#bounds, transform);
     }
+
+    /** The parent bone this plane rides. */
     GetBoneIndex() {
       return this.boneIndex;
     }

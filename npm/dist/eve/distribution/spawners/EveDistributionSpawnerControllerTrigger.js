@@ -37,20 +37,34 @@ class EveDistributionSpawnerControllerTrigger extends CjsModel {
 
   /** m_restartOnReceivingValue (bool) [READWRITE, PERSIST] */
   restartOnReceivingValue = (_init_extra_spawners(this), _init_restartOnReceivingValue(this, false));
+
+  /**
+   * Restarts the wrapped spawners; the placement pool is not used by this
+   * trigger.
+   */
   Reset(_placements) {
     this.Restart();
   }
+
+  /** Restarts every wrapped spawner, leaving the active state untouched. */
   Restart() {
     for (const spawner of this.spawners) {
       spawner.Restart();
     }
   }
+
+  /**
+   * Re-evaluates the active state when the `value` property is written directly
+   * rather than through a controller.
+   */
   OnModified(name) {
     if (name === "value") {
       this.#applyValue();
     }
     return true;
   }
+
+  /** Ticks the wrapped spawners only while the trigger is active. */
   UpdateSyncronous(updateContext, params, owner) {
     if (!this.isActive) {
       return;
@@ -59,6 +73,11 @@ class EveDistributionSpawnerControllerTrigger extends CjsModel {
       spawner.UpdateSyncronous(updateContext, params, owner);
     }
   }
+
+  /**
+   * Adopts the value when the name matches this trigger's variable and
+   * re-evaluates the active state; other names are ignored.
+   */
   SetControllerVariable(name, value) {
     if (this.variableName !== name) {
       return;
@@ -66,6 +85,11 @@ class EveDistributionSpawnerControllerTrigger extends CjsModel {
     this.value = value;
     this.#applyValue();
   }
+
+  /**
+   * Recomputes the active flag from the current value, inverted when
+   * invertTrigger is set, after optionally restarting the wrapped spawners.
+   */
   #applyValue() {
     if (this.restartOnReceivingValue) {
       this.Restart();

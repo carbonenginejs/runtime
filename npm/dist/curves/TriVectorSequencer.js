@@ -5,6 +5,12 @@ import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/sc
 import { TriOperator } from '@carbonenginejs/runtime-utils/graphics';
 
 let _initProto, _initClass, _init_operator, _init_extra_operator, _init_value, _init_extra_value, _init_start, _init_extra_start, _init_functions, _init_extra_functions, _init_name, _init_extra_name;
+
+/**
+ * Vector function combining its child vector functions with Carbon's multiply,
+ * add or average operator; multiply starts from ones and the additive paths from
+ * zero.
+ */
 let _TriVectorSequencer;
 new class extends _identity {
   static [class TriVectorSequencer extends CjsModel {

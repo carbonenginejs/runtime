@@ -8,12 +8,27 @@ const BELIST_UNLOADSTART = 0x07;
 const BELIST_LOADFINISHED = 0x06;
 const BELIST_LOADING = 0x10;
 const TR2_DIRTY_ALL = (1n << 64n) - 1n;
+
+/**
+ * Gets the wall-clock time in seconds that controllers throttle against, from
+ * performance.now when available and Date.now otherwise.
+ */
 function GetControllerActualTimeSeconds() {
   return GetClockSeconds();
 }
+
+/**
+ * Gets the simulation frame time in seconds; the JS port has no separate sim
+ * clock, so this currently returns the same clock as the actual time.
+ */
 function GetControllerFrameTimeSeconds() {
   return GetClockSeconds();
 }
+
+/**
+ * Gets the controller time base in seconds, which Carbon defines as the frame
+ * time.
+ */
 function GetControllerTimeSeconds() {
   return GetControllerFrameTimeSeconds();
 }
@@ -23,6 +38,11 @@ function GetClockSeconds() {
   }
   return Date.now() / 1000;
 }
+
+/**
+ * Coerces a variable dirty mask to BigInt so the 64-bit mask arithmetic used by
+ * state machines stays exact.
+ */
 function ToDirtyMask(value) {
   return typeof value === "bigint" ? value : BigInt(value);
 }

@@ -6,6 +6,11 @@ import { Tr2CurveInterpolation, Tr2CurveTangentType } from './enums.js';
 import { Tr2CurveScalar as _Tr2CurveScalar } from './Tr2CurveScalar.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_yaw, _init_extra_yaw, _init_pitch, _init_extra_pitch, _init_roll, _init_extra_roll, _init_currentValue, _init_extra_currentValue;
+
+/**
+ * Quaternion curve built from three scalar curves supplying yaw, pitch and roll
+ * in radians.
+ */
 let _Tr2CurveEulerRotatio;
 class Tr2CurveEulerRotation extends CjsModel {
   static {

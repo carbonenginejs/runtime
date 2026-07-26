@@ -109,6 +109,8 @@ class EveShip2 extends _EveMobile {
     }
     return out;
   }
+
+  /** Returns the attached booster set, or null when the ship has none. */
   GetBoosters() {
     return this.boosters;
   }
@@ -152,9 +154,19 @@ class EveShip2 extends _EveMobile {
   DisplayBoosters() {
     return !!this.boosters && this.DisplayChildren();
   }
+
+  /**
+   * Returns the kill count displayed on the hull, which the space-object effect
+   * attributes expose to effect bindings.
+   */
   GetKillCounterValue() {
     return this.displayKillCounterValue;
   }
+
+  /**
+   * Returns the ship's maximum speed, the divisor that normalizes current speed
+   * into the bound audio speed parameter.
+   */
   GetMaxSpeed() {
     return this.maxSpeed;
   }
@@ -197,6 +209,11 @@ class EveShip2 extends _EveMobile {
     });
     return true;
   }
+
+  /**
+   * Runs the base space-object initialization; the ship adds no setup of its
+   * own.
+   */
   Initialize() {
     return super.Initialize?.() ?? true;
   }

@@ -4,6 +4,8 @@ import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 
 let _initProto, _initClass, _init_slot, _init_extra_slot, _init_renderTarget, _init_extra_renderTarget;
+
+/** Step that pushes a render target onto the executor's stack for a given slot. */
 let _TriStepPushRenderTar;
 class TriStepPushRenderTarget extends _TriRenderStep {
   static {
@@ -21,10 +23,17 @@ class TriStepPushRenderTarget extends _TriRenderStep {
   }
   slot = (_initProto(this), _init_slot(this, 0));
   renderTarget = (_init_extra_slot(this), _init_renderTarget(this, null));
+
+  /** Stores the render target and the slot it is pushed for. */
   __init__(renderTarget = null, slot = 0) {
     this.renderTarget = renderTarget ?? null;
     this.slot = Number(slot) >>> 0;
   }
+
+  /**
+   * Pushes the render target for its slot; every push needs a matching
+   * TriStepPopRenderTarget in the same job or the job's stack guard unwinds it.
+   */
   Execute(_realTime, _simTime, executor) {
     executor?.PushRenderTarget?.(this.renderTarget, this.slot);
     return _TriRenderJob.StepResult.RS_OK;

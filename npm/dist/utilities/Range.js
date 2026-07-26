@@ -3,6 +3,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_isUniform, _init_extra_isUniform, _init_centerPoint, _init_extra_centerPoint, _init_minRangePoint, _init_extra_minRangePoint, _init_maxRangePoint, _init_extra_maxRangePoint;
+
+/**
+ * A center point with a lower and an upper range point, optionally kept
+ * symmetric about the center, and clamped for display against separate slider
+ * bounds.
+ */
 let _Range;
 class Range extends CjsModel {
   static {
@@ -59,6 +65,8 @@ class Range extends CjsModel {
     }
     this.#syncRangePoints();
   }
+
+  /** Returns the point both range points are measured from. */
   GetCenterPoint() {
     return this.centerPoint;
   }
@@ -67,21 +75,41 @@ class Range extends CjsModel {
   GetMinRangePoint() {
     return this.minRangePoint;
   }
+
+  /**
+   * Returns the upper range point after Carbon's clamp, which is a min against
+   * the slider maximum, not a max (Range.cpp:68-71).
+   */
   GetMaxRangePoint() {
     return this.maxRangePoint;
   }
+
+  /**
+   * Flips symmetric mode, and when turning it on collapses both sides to the
+   * smaller of the two distances from the center.
+   */
   ToggleIsUniform() {
     this.isUniform = !this.isUniform;
     if (this.isUniform) {
       this.FixUniformity();
     }
   }
+
+  /**
+   * Sets symmetric mode, fixing up the range points immediately when enabling
+   * it.
+   */
   SetIsUniform(value) {
     this.isUniform = value;
     if (this.isUniform) {
       this.FixUniformity();
     }
   }
+
+  /**
+   * Makes the range symmetric by adopting the smaller of the two distances from
+   * the center on both sides, so uniformity narrows rather than widens.
+   */
   FixUniformity() {
     const minRangeDelta = this.centerPoint - this.#minRange;
     const maxRangeDelta = this.#maxRange - this.centerPoint;
@@ -89,23 +117,48 @@ class Range extends CjsModel {
     this.SetMinRangePoint(this.centerPoint - newDelta);
     this.SetMaxRangePoint(this.centerPoint + newDelta);
   }
+
+  /**
+   * Reports whether the two range points are being kept symmetric about the
+   * center.
+   */
   GetIsUniform() {
     return this.isUniform;
   }
+
+  /**
+   * Sets the lower slider bound the exposed range points are clamped against,
+   * and re-clamps them.
+   */
   SetSliderMin(value) {
     this.#sliderRangeMin = value;
     this.#syncRangePoints();
   }
+
+  /**
+   * Sets the upper slider bound the exposed range points are clamped against,
+   * and re-clamps them.
+   */
   SetSliderMax(value) {
     this.#sliderRangeMax = value;
     this.#syncRangePoints();
   }
+
+  /** Returns the lower slider bound used when clamping the exposed range points. */
   GetSliderMin() {
     return this.#sliderRangeMin;
   }
+
+  /** Returns the upper slider bound used when clamping the exposed range points. */
   GetSliderMax() {
     return this.#sliderRangeMax;
   }
+
+  /**
+   * Recomputes the exposed minRangePoint and maxRangePoint from the internal
+   * range and the slider bounds; Carbon derives these on read (Range.cpp:63-71)
+   * and clamps both with min, which is reproduced here rather than corrected.
+   */
   #syncRangePoints() {
     this.minRangePoint = Math.min(this.#minRange, this.#sliderRangeMin);
     this.maxRangePoint = Math.min(this.#maxRange, this.#sliderRangeMax);

@@ -15,6 +15,12 @@ const SWIZZLE_OFFSETS = {
   w: 3,
   a: 3
 };
+
+/**
+ * Resolves an authored `path`/`attribute` pair against named root objects into a
+ * concrete property, optionally a single swizzled component of a vector, and
+ * reads or writes it.
+ */
 let _Tr2BindingPoint;
 new class extends _identity {
   static [class Tr2BindingPoint extends CjsModel {
@@ -172,6 +178,12 @@ new class extends _identity {
       this.#attributeName = parsed.name;
       return true;
     }
+
+    /**
+     * Walks a binding path of the form `Root.child[0].other["name"]` against the
+     * supplied name/value root pairs, returning the addressed object or null if
+     * any step fails.
+     */
     static ResolvePath(path, roots) {
       if (!path) {
         return null;
@@ -207,6 +219,61 @@ new class extends _identity {
       }
       return _Tr2BindingPoint.#isObjectRecord(object) ? object : null;
     }
+
+    /**
+     * Normalizes the `roots` argument into name/value pairs, accepting an array of
+     * pairs, a plain object map, or a controller whose owner is exposed as `Owner`
+     * alongside its own binding path roots.
+     */
+
+    /**
+     * Splits `field.x` into a property name and a component offset; returns an
+     * offset of -1 for a whole-field binding and null when the suffix is not a
+     * single valid xyzw/rgba swizzle.
+     */
+
+    /**
+     * Reads a C-style identifier starting at an index, returning its text and the
+     * index just past it.
+     */
+
+    /**
+     * Reads a bracketed selector, which is either a possibly negative integer
+     * index or a double-quoted name.
+     */
+
+    /**
+     * Selects an element from a list by integer index, counting from the end for
+     * negative values, or by matching the element's `name`.
+     */
+
+    /**
+     * Finds the array a bracketed selector should index into, checking `items`,
+     * `children`, `curveSets`, `controllers` and `actions` in that order.
+     */
+
+    /**
+     * Tells the target its property changed through the first of UpdateValues,
+     * OnValueChanged or OnModified that it implements, and otherwise marks the
+     * field in a `_dirty` record.
+     */
+
+    /**
+     * Compares two array-likes element-wise with Object.is, used to decide whether
+     * a vector write actually changed anything.
+     */
+
+    /**
+     * Distinguishes a plain name-to-object root map from a controller, by checking
+     * that it exposes neither GetOwner nor GetBindingPathRoots.
+     */
+
+    /**
+     * Checks that a value is a non-null object and so can be indexed by a path
+     * step.
+     */
+
+    /** Checks that a value is an object whose named key is callable. */
   }];
   #getLinkRoots(roots, owner) {
     if (Array.isArray(roots)) {

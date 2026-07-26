@@ -4,6 +4,11 @@ import { Tr2Light as _Tr2Light } from './Tr2Light.js';
 import { Tr2PointLight as _Tr2PointLight } from './Tr2PointLight.js';
 
 let _initProto, _initClass, _init_texture, _init_extra_texture, _init_texturePath, _init_extra_texturePath;
+
+/**
+ * Point light that projects a texture, adding the texture path and its resolved
+ * resource to the point-light attribute set and updating dynamically.
+ */
 let _Tr2TexturedPointLigh;
 new class extends _identity {
   static [class Tr2TexturedPointLight extends _Tr2PointLight {
@@ -23,6 +28,11 @@ new class extends _identity {
     isDynamic = (_init_extra_texturePath(this), true);
     type = _Tr2Light.POINT_LIGHT;
     #saturation = 1;
+
+    /**
+     * Records the saturation for the projected texture; the stored value is not
+     * read anywhere else in the port yet.
+     */
     SetSaturation(saturation) {
       this.#saturation = Number(saturation);
     }

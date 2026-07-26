@@ -30,9 +30,17 @@ class EveDistributionModifierScaleBySpaceObjectParent extends CjsModel {
 
   /** m_scaleCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   scaleCurve = (_init_extra_authoredForBoundingRadius(this), _init_scaleCurve(this, null));
+
+  /** Reports a transform effect whenever a non-zero scale factor is authored. */
   AffectsTransform() {
     return this.scaleFactor !== 0;
   }
+
+  /**
+   * Scales a placement by the size of the parent space object: the parent's bounding-sphere radius either samples scaleCurve or, without a curve, forms a scaleFactor-shaped ratio against authoredForBoundingRadius, and the result multiplies into the placement's additional scale rather than replacing it. Does nothing when the update params carry no space-object parent.
+   *
+   * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
+   */
   ProcessDistributionModifier(placement, _deltaTime, params) {
     if (!params.spaceObjectParent) {
       return 0;

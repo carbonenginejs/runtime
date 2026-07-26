@@ -4,6 +4,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { BELIST_INSERTED, BELIST_REMOVED, BELIST_LOADING, BELIST_UNLOADSTART, BELIST_EVENTMASK } from '../../../controllers/contracts.js';
 
 let _initProto, _initClass, _init_bindings, _init_extra_bindings, _init_controllers, _init_extra_controllers, _init_curveSets, _init_extra_curveSets, _init_externalParameters, _init_extra_externalParameters, _init_parameters, _init_extra_parameters, _init_name, _init_extra_name;
+
+/**
+ * A named bundle of curve sets, controllers and dynamic bindings that animates
+ * other space objects through typed parameter slots, without owning any geometry
+ * itself.
+ */
 let _EveMultiEffect;
 new class extends _identity {
   static [class EveMultiEffect extends CjsModel {
@@ -37,6 +43,12 @@ new class extends _identity {
 
     /** m_name (BlueSharedString) [READWRITE, PERSIST] */
     name = (_init_extra_parameters(this), _init_name(this, ""));
+
+    /**
+     * Builds the prototype-free name map that dynamic bindings resolve against:
+     * each parameter slot's bound object and each curve set's root under their own
+     * names, plus Owner for the effect itself.
+     */
     GetParameterMap() {
       const out = Object.create(null);
       for (const parameter of this.parameters) {
@@ -59,12 +71,23 @@ new class extends _identity {
         for (const controller of this.controllers) controller?.Link?.(this);
       }
     }
+
+    /**
+     * Post-hydration hook; takes ownership of the parameter slots and dynamic
+     * bindings, then links the bindings and controllers.
+     */
     Initialize() {
       for (const parameter of this.parameters) parameter?.SetOwner?.(this);
       for (const binding of this.bindings) binding?.SetOwner?.(this);
       this.Rebind();
       return true;
     }
+
+    /**
+     * Applies Carbon's IList ownership callbacks for the parameters, bindings and
+     * controllers lists - assigning or clearing owners, linking or unlinking
+     * controllers, unlinking all of them on unload - and rebinds afterwards.
+     */
     OnListModified(event, _key = 0, _key2 = 0, value = null, list = null) {
       const maskedEvent = event & BELIST_EVENTMASK;
       if (list === this.parameters) {
@@ -103,10 +126,18 @@ new class extends _identity {
     StartControllers() {
       for (const controller of this.controllers) controller?.Start?.();
     }
+
+    /** First parameter slot with the given name, or null. */
     GetParameterByName(parameterName) {
       const name = String(parameterName);
       return this.parameters.find(parameter => _EveMultiEffect.#GetName(parameter) === name) ?? null;
     }
+
+    /**
+     * Fills out with Owner followed by each parameter slot's bound object, so a slot named Owner overrides the effect itself.
+     * @param {Object|Map} [out] - caller-owned map, mutated in place
+     * @returns {Object|Map} out
+     */
     GetBindingRoots(out = {}) {
       _EveMultiEffect.#SetMapValue(out, "Owner", this);
       for (const parameter of this.parameters) {
@@ -114,6 +145,11 @@ new class extends _identity {
       }
       return out;
     }
+
+    /**
+     * Plays every curve set with the given name, over a named time range when one
+     * is given, otherwise from the start with the range reset.
+     */
     PlayCurveSet(name, rangeName = "") {
       for (const curveSet of this.curveSets) {
         if (_EveMultiEffect.#GetName(curveSet) !== name) continue;
@@ -123,16 +159,28 @@ new class extends _identity {
         }
       }
     }
+
+    /** Stops every curve set with the given name. */
     StopCurveSet(name) {
       for (const curveSet of this.curveSets) {
         if (_EveMultiEffect.#GetName(curveSet) === name) curveSet?.Stop?.();
       }
     }
+
+    /**
+     * Advances every curve set with the given name to an explicit time, bypassing
+     * the effect's own update pass.
+     */
     UpdateCurveSet(name, time) {
       for (const curveSet of this.curveSets) {
         if (_EveMultiEffect.#GetName(curveSet) === name) curveSet?.Update?.(time, time);
       }
     }
+
+    /**
+     * Longest duration among the curve sets with the given name, or 0 when there
+     * is no such set.
+     */
     GetCurveSetDuration(name) {
       let duration = 0;
       for (const curveSet of this.curveSets) {
@@ -142,6 +190,11 @@ new class extends _identity {
       }
       return duration;
     }
+
+    /**
+     * Longest duration of a named time range among the curve sets with the given
+     * name, or 0 when there is no such range.
+     */
     GetRangeDuration(name, rangeName) {
       let duration = 0;
       for (const curveSet of this.curveSets) {
@@ -151,27 +204,88 @@ new class extends _identity {
       }
       return duration;
     }
+
+    /**
+     * Advances the curve sets, controllers and bindings for the frame; the effect
+     * has no geometry, so this is its only update phase.
+     */
     UpdateSyncronous(updateContext) {
       const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0);
       for (const curveSet of this.curveSets) curveSet?.Update?.(time, time);
       for (const controller of this.controllers) controller?.Update?.(0.5);
       for (const binding of this.bindings) binding?.Update?.(time);
     }
+
+    /**
+     * IEveSpaceObject2 asynchronous phase; the effect does all of its work
+     * synchronously.
+     */
     UpdateAsyncronous(_updateContext) {}
+
+    /** IEveSpaceObject2 hook; the effect has nothing of its own to cull. */
     UpdateVisibility(_updateContext, _parentTransform) {}
+
+    /**
+     * IEveSpaceObject2 hook; the effect contributes no renderables - it animates
+     * objects that are collected by their own owners.
+     */
     GetRenderables(_renderables, _impostors) {}
+
+    /** The effect has no spatial extent, so it never reports a bounding sphere. */
     GetBoundingSphere(_sphere, _query = 0) {
       return false;
     }
+
+    /**
+     * IEveSpaceObject2 hook; the effect contributes no per-object values of its
+     * own.
+     */
     GetPerObjectStructs(_vsData, _psData) {}
+
+    /**
+     * IEveSpaceObject2 hook with nothing to advance: a multi-effect has no model
+     * centre, so the call is a no-op.
+     */
     UpdateModelCenterWorldPosition(_position, _time) {}
+
+    /**
+     * IEveSpaceObject2 hook that leaves the caller position untouched, since a
+     * multi-effect has no model centre to report.
+     */
     GetModelCenterWorldPosition(_position) {}
+
+    /** The effect has no local geometry, so it never reports a bounding box. */
     GetLocalBoundingBox(_min, _max) {
       return false;
     }
+
+    /**
+     * IEveSpaceObject2 hook; the effect has no placement of its own, so the
+     * caller's matrix is left as it was.
+     */
     GetLocalToWorldTransform(_transform) {}
+
+    /**
+     * IEveSpaceObject2 hook with nothing to register, since a multi-effect owns no
+     * quads.
+     */
     RegisterWithQuadRenderer(_quadRenderer) {}
+
+    /**
+     * IEveSpaceObject2 hook with nothing to submit: a multi-effect contributes no
+     * quads for the frustum.
+     */
     AddQuadsToQuadRenderer(_frustum, _quadRenderer) {}
+
+    /**
+     * Name of a parameter slot or curve set as a string, from GetName() or a name
+     * field, empty when it has neither.
+     */
+
+    /**
+     * Writes a name and value into a binding-root container that may be either a
+     * Map or a plain object.
+     */
   }];
   #GetName(value) {
     return String(value?.GetName?.() ?? value?.name ?? "");

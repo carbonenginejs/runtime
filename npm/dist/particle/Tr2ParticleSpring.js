@@ -4,6 +4,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_position, _init_extra_position, _init_springConstant, _init_extra_springConstant;
+
+/**
+ * Linear spring pulling particles toward a fixed position with a force
+ * proportional to displacement.
+ */
 let _Tr2ParticleSpring;
 class Tr2ParticleSpring extends CjsModel {
   static {
@@ -27,6 +32,11 @@ class Tr2ParticleSpring extends CjsModel {
     vec3.subtract(out, position, this.position);
     return vec3.scale(out, out, -this.springConstant);
   }
+
+  /**
+   * Nothing to advance per frame: the spring force depends only on each
+   * particle's current position.
+   */
   Update(_dt) {}
   static {
     _initClass();

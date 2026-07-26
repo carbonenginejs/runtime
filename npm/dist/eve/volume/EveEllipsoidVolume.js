@@ -5,6 +5,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_position, _init_extra_position, _init_rotation, _init_extra_rotation, _init_innerShape, _init_extra_innerShape, _init_shape, _init_extra_shape, _init_debugShowIntersection, _init_extra_debugShowIntersection;
+
+/**
+ * Oriented ellipsoid of influence with a hollow inner ellipsoid, weighting
+ * points by falloff and seeding random points between the two shells.
+ */
 let _EveEllipsoidVolume;
 new class extends _identity {
   static [class EveEllipsoidVolume extends CjsModel {
@@ -26,16 +31,33 @@ new class extends _identity {
     #callbacks = (_init_extra_debugShowIntersection(this), new Map());
     #nextCallbackId = 1;
     #inverseRotation = quat.create();
+
+    /**
+     * Clamps the authored shapes, caches the inverse rotation and fires the change
+     * callbacks.
+     */
     Initialize() {
       this.#setup(true);
       return true;
     }
+
+    /**
+     * Returns a fresh sphere centred on the volume position with the largest shape
+     * radius, so it covers the ellipsoid on every axis.
+     */
     GetBoundingSphere() {
       return {
         center: vec3.clone(this.position),
         radius: Math.max(this.shape[0], this.shape[1], this.shape[2])
       };
     }
+
+    /**
+     * Returns the falloff weight for a point given in the volume's own space: the
+     * point is moved into ellipsoid-local space with the cached inverse rotation,
+     * then compared radially against the inner and outer shapes - 1 inside the
+     * inner ellipsoid, 0 outside the outer one, and a squared ramp between them.
+     */
     GetIntensity(position) {
       const local = vec3.subtract(vec3.create(), position, this.position);
       vec3.transformQuat(local, local, this.#inverseRotation);
@@ -52,6 +74,13 @@ new class extends _identity {
       const ratio = span > 0 ? (outer - distance) / span : 0;
       return ratio * ratio;
     }
+
+    /**
+     * Appends random points expressed in ellipsoid-local space, centred on the ellipsoid rather than offset by its position, split between the inner ellipsoid and the shell by their volume ratio biased with fallOffFactor.
+     *
+     * @param points Caller-owned array the new points are pushed onto.
+     * @param excludeInnerVolume Keeps every point in the shell between the inner and outer shapes.
+     */
     GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor) {
       const count = Math.max(0, Math.trunc(howManyToAdd));
       let innerSelectionChance = 0;
@@ -79,19 +108,38 @@ new class extends _identity {
         points.push(position);
       }
     }
+
+    /**
+     * Registers a callback fired whenever the volume changes, returning the id
+     * needed to unregister it again.
+     */
     RegisterForChanges(callback) {
       const id = this.#nextCallbackId++;
       this.#callbacks.set(id, callback);
       return id;
     }
+
+    /** Drops a change callback by the id RegisterForChanges returned. */
     UnregisterForChanges(callbackId) {
       this.#callbacks.delete(callbackId);
     }
+
+    /**
+     * Re-clamps the shapes and the cached inverse rotation after an authored
+     * change, and notifies every registered listener.
+     */
     OnModified() {
       this.#setup(true);
       return true;
     }
+
+    /** No debug drawing in this port. */
     RenderDebugInfo() {}
+
+    /**
+     * Clamps the shape to non-negative radii, keeps the inner shape inside it,
+     * caches the inverse rotation and optionally fires the change callbacks.
+     */
     #setup(notify) {
       for (let i = 0; i < 3; i++) {
         this.shape[i] = Math.max(0, this.shape[i]);
@@ -104,6 +152,12 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Returns how far the ellipsoid surface lies from the centre along the
+     * direction of the given local point, the smallest radius when the point sits
+     * at the centre, and 0 when the direction has an extent-less axis.
+     */
   }];
   #radialDistance(position, radii) {
     const length = vec3.length(position);

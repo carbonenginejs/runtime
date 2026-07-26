@@ -4,6 +4,11 @@ import { CjsGrannyCurves } from './CjsGrannyCurves.js';
 import { Tr2GrannyTrack as _Tr2GrannyTrack } from './Tr2GrannyTrack.js';
 
 let _initProto, _initClass, _init_value, _init_extra_value;
+
+/**
+ * Granny track that samples a named one-dimensional vector track and exposes it
+ * as a scalar value.
+ */
 let _Tr2GrannyVectorTrack;
 class Tr2GrannyVectorTrack extends _Tr2GrannyTrack {
   static {

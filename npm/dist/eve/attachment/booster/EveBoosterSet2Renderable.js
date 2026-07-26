@@ -8,6 +8,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_trailIntensity, _init_extra_trailIntensity, _init_trailsTotalLength, _init_extra_trailsTotalLength, _init_isVisible, _init_extra_isVisible, _init_trailsVisible, _init_extra_trailsVisible, _init_boostersVisible, _init_extra_boostersVisible, _init_trailsTimeDelta, _init_extra_trailsTimeDelta, _init_boosterHighLod, _init_extra_boosterHighLod, _init_trailsBoundsMax, _init_extra_trailsBoundsMax, _init_trailsBoundsMin, _init_extra_trailsBoundsMin, _init_overallIntensity, _init_extra_overallIntensity, _init_parentRotation, _init_extra_parentRotation, _init_parentSpeed, _init_extra_parentSpeed;
+
+/**
+ * One ship's instance of a booster set: it carries the parent transform, speed
+ * and rotation, derives the booster and trail intensities, and maintains the
+ * five-point trail spline and its LOD flags.
+ */
 let _EveBoosterSet2Render;
 new class extends _identity {
   static [class EveBoosterSet2Renderable extends CjsModel {
@@ -73,9 +79,21 @@ new class extends _identity {
     #trailsOffsetLatest = 0;
     #trailsOffsetAccu = vec3.create();
     #trailsTimeToNext = 0;
+
+    /**
+     * Binds this instance to the booster set whose authored placements, colours
+     * and light data it draws.
+     */
     SetBoosterSet(boosterSet) {
       this.#boosterSet = boosterSet ?? null;
     }
+
+    /**
+     * Derives the booster intensity from the parent's speed ratio and the
+     * acceleration along its backward axis, each low-pass filtered against the
+     * previous frame and the result clamped to 2; an always-on set returns its
+     * authored intensity instead.
+     */
     CalculateIntensity(acceleration) {
       const boosterSet = this.#boosterSet;
       if (!boosterSet) {
@@ -96,6 +114,12 @@ new class extends _identity {
       this.#lastValue = value;
       return value;
     }
+
+    /**
+     * Takes the parent transform, speed and rotation for the frame - deriving
+     * speed from the transform delta when the set is not destiny-driven - and
+     * recomputes the overall intensity, which it returns.
+     */
     Update(deltaTime, _time, parentMatrix, parentSpeed, parentAcceleration, parentRotation) {
       const boosterSet = this.#boosterSet;
       if (boosterSet?.destinyUpdate) {
@@ -115,6 +139,13 @@ new class extends _identity {
       this.overallIntensity = this.CalculateIntensity(parentAcceleration);
       return this.overallIntensity;
     }
+
+    /**
+     * Recomputes the trail spline and maps its total length onto the trail
+     * intensity, fading in above the minimum length and back out approaching the
+     * maximum, with nothing drawn outside that band; an always-on set is pinned to
+     * full intensity.
+     */
     UpdateTrails(deltaTime, _time = 0) {
       const boosterSet = this.#boosterSet;
       if (!boosterSet) {
@@ -136,6 +167,12 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * A freshly allocated snapshot of the trail spline: control positions carrying
+     * their normalized segment lengths, control normals carrying their length
+     * factors, plus total length, intensity and world bounds.
+     */
     GetTrailSplineData() {
       return {
         positions: this.#trailsControlPositions.map((position, index) => vec4.fromValues(position[0], position[1], position[2], this.#trailsSequenceLength[index])),
@@ -146,6 +183,8 @@ new class extends _identity {
         boundsMax: vec3.clone(this.trailsBoundsMax)
       };
     }
+
+    /** The overall booster intensity computed by the last Update. */
     GetIntensity() {
       return this.overallIntensity;
     }
@@ -274,6 +313,13 @@ new class extends _identity {
       out[3] = 2 * boosterSet.boosterBoundingSphereRadius;
       return out;
     }
+
+    /**
+     * Places the five trail control points for the frame - sampled out of the
+     * physics offset ring at the trail time delta, or taken from the set's static
+     * offsets rotated into parent space - then recomputes the spline metrics;
+     * returns false for a non-positive delta.
+     */
     #CalculateSplineData(deltaTime) {
       const elapsed = Number(deltaTime);
       if (!(elapsed > 0)) {
@@ -299,6 +345,13 @@ new class extends _identity {
       this.#UpdateSplineMetrics();
       return true;
     }
+
+    /**
+     * Advances the 300-entry trail offset ring by the parent's movement in fixed
+     * ~16.7 ms steps, taking a separate bulk path once twenty or more steps are
+     * owed in a single frame so a stalled or teleported ship does not walk the
+     * ring one entry at a time.
+     */
     #UpdatePhysicsTrailOffsets(deltaTime) {
       const movement = vec3.transformQuat(vec3.create(), _EveBoosterSet2Render.#zAxis, this.parentRotation);
       vec3.scale(movement, movement, deltaTime * this.parentSpeed);
@@ -336,6 +389,13 @@ new class extends _identity {
       vec3.subtract(this.#trailsOffsetAccu, this.#trailsOffsetAccu, cumulativeOffset);
       this.#trailsTimeToNext -= _EveBoosterSet2Render.#positionOffsetDelta * iterationCount;
     }
+
+    /**
+     * Recomputes everything derived from the control points: total trail length,
+     * world trail bounds padded by the booster sphere radius, the per-point
+     * tangent normals with their length factors, and the normalized per-segment
+     * lengths.
+     */
     #UpdateSplineMetrics() {
       this.trailsTotalLength = 0;
       for (let index = 1; index < _EveBoosterSet2Render.#controlPointCount; index++) {
@@ -371,6 +431,26 @@ new class extends _identity {
         this.#trailsSequenceLength[index] = this.trailsTotalLength ? length / this.trailsTotalLength : 0;
       }
     }
+
+    /**
+     * The booster set's five authored static trail offsets gathered into an array
+     * in control-point order.
+     */
+
+    /**
+     * Maps 0..1 through a sine ease so a trail length fade starts and ends flat
+     * instead of stepping.
+     */
+
+    /**
+     * Applies only a transform's upper 3x3 rotation and scale to a vector, leaving
+     * its translation out, so a direction stays a direction.
+     */
+
+    /**
+     * Wraps an index into the 300-entry trail offset ring, handling negative
+     * values so the ring can be walked backwards.
+     */
 
     /** Per-frame visibility scratch - UpdateVisibility must not allocate. */
   }];

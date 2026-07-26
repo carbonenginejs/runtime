@@ -5,6 +5,8 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_position, _init_extra_position, _init_color, _init_extra_color, _init_position2, _init_extra_position2, _init_color2, _init_extra_color2;
+
+/** One line in an EveLineSet: two endpoints, each with its own colour. */
 let _EveLineData;
 class EveLineData extends CjsModel {
   static {

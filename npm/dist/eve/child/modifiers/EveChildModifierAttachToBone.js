@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initProto, _initClass, _init_boneIndex, _init_extra_boneIndex;
+
+/**
+ * Transform modifier that rigidly attaches a child to one bone of the parent's
+ * animation bone palette.
+ */
 let _EveChildModifierAtta;
 new class extends _identity {
   static [class EveChildModifierAttachToBone extends CjsModel {
@@ -58,6 +63,12 @@ new class extends _identity {
       // Carbon (row-vector): boneMatrix * transform - bone first.
       return mat4.multiply(out, transform, bone);
     }
+
+    /**
+     * Selects which bone of the parent's palette the child follows; a negative
+     * index, or one past the palette length, leaves the incoming transform
+     * untouched.
+     */
     SetBoneIndex(index) {
       this.boneIndex = Number(index) | 0;
     }

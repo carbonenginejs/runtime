@@ -4,6 +4,13 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_effectPlaying, _init_extra_effectPlaying, _init_droneArrived, _init_extra_droneArrived, _init_oldTarget, _init_extra_oldTarget;
+
+/**
+ * Per-agent scratch for the PlayFX child behaviour: whether the agent's effect
+ * is currently running and the target position it was last aimed at. The
+ * behaviour allocates one record per agent and rewrites it on every behaviour
+ * update.
+ */
 let _PlayFXData;
 class PlayFXData extends CjsModel {
   static {

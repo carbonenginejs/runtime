@@ -3,6 +3,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_enabled, _init_extra_enabled, _init_name, _init_extra_name;
+
+/**
+ * Base of every render-job step: an enable flag, a name, and the
+ * begin/execute/end contract the owning job drives.
+ */
 let _TriRenderStep;
 new class extends _identity {
   static [class TriRenderStep extends CjsModel {
@@ -21,10 +26,25 @@ new class extends _identity {
     }
     enabled = (_initProto(this), _init_enabled(this, true));
     name = (_init_extra_enabled(this), _init_name(this, ""));
+
+    /**
+     * Reports whether the owning job should run this step; disabled steps are
+     * skipped without advancing any state.
+     */
     IsEnabled() {
       return this.enabled;
     }
+
+    /**
+     * Hook the owning job calls before Execute; the base step does nothing, and
+     * subclasses use it to set up state that EndExecute tears down.
+     */
     BeginExecute() {}
+
+    /**
+     * Hook the owning job calls after Execute, including when Execute threw; the
+     * base step does nothing.
+     */
     EndExecute() {}
   }];
   Result = Object.freeze({

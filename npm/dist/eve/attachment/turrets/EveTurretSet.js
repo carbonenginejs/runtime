@@ -418,6 +418,11 @@ new class extends _identity {
       this.firingEffect?.StartControllers?.();
       this.#ambientEffect()?.StartControllers?.();
     }
+
+    /**
+     * Creates the target when absent, pushes the authored miss and impact
+     * behaviour into it, and initializes the firing and ambient effects.
+     */
     Initialize() {
       this.target ??= new _EveTurretTarget();
       this.target.SetBehaviour?.(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
@@ -425,10 +430,19 @@ new class extends _identity {
       this.#ambientEffect()?.Initialize?.();
       return true;
     }
+
+    /** Attaches the firing effect and initializes it immediately. */
     SetFiringEffect(effect) {
       this.firingEffect = effect ?? null;
       this.firingEffect?.Initialize?.();
     }
+
+    /**
+     * Offers an object to the target for validation; on acceptance it sends the
+     * idle-to-targeting movement audio event when coming from idle or switching
+     * targets, and rescales the firing effect to the new target's radius. Returns
+     * whether the object was accepted.
+     */
     SetTargetObject(object) {
       this.target ??= new _EveTurretTarget();
       const previous = this.target.GetTargetable?.();
@@ -441,17 +455,34 @@ new class extends _identity {
       }
       return accepted;
     }
+
+    /** The object currently being targeted, or null. */
     GetTargetObject() {
       return this.target?.GetTargetable?.() ?? null;
     }
+
+    /**
+     * Rescales the firing effect from the target's radius, passing -1 when there
+     * is no target.
+     */
     SetTargetScale() {
       this.firingEffect?.SetScaleByRadius?.(this.target?.GetRadius?.() ?? -1);
     }
+
+    /**
+     * Replaces the turret records, truncated to the fixed 24-turret limit,
+     * normalizing each into the record shape and resetting visibleCount.
+     */
     SetTurrets(turrets = []) {
       this.#turrets = Array.from(turrets).slice(0, _EveTurretSet.MAX_TURRETS_PER_SET).map(turret => this.#normalizeTurret(turret));
       this.visibleCount = this.#turrets.length;
       return this.#turrets;
     }
+
+    /**
+     * Appends one normalized turret record and returns it, or null once the fixed
+     * 24-turret limit is reached.
+     */
     AddTurret(turret) {
       if (this.#turrets.length >= _EveTurretSet.MAX_TURRETS_PER_SET) return null;
       const value = this.#normalizeTurret(turret);
@@ -459,6 +490,11 @@ new class extends _identity {
       this.visibleCount = this.#turrets.length;
       return value;
     }
+
+    /**
+     * The live turret record list; the records are mutated in place by
+     * UpdateTurretTransforms, so this is not a snapshot.
+     */
     GetTurrets() {
       return this.#turrets;
     }
@@ -485,10 +521,21 @@ new class extends _identity {
       this.visibleCount = this.#turrets.length;
       return true;
     }
+
+    /**
+     * Stores the hull transform and immediately recomputes every turret's world
+     * matrix from it.
+     */
     SetParentTransform(transform) {
       mat4.copy(this.#parentTransform, transform);
       this.UpdateTurretTransforms(transform);
     }
+
+    /**
+     * Recomputes each turret's world matrix as the parent transform applied to its
+     * local matrix and marks the record valid; defaults to the stored parent
+     * transform.
+     */
     UpdateTurretTransforms(parentTransform = this.#parentTransform) {
       mat4.copy(this.#parentTransform, parentTransform);
       for (const turret of this.#turrets) {
@@ -496,14 +543,31 @@ new class extends _identity {
         turret.valid = true;
       }
     }
+
+    /**
+     * The index of the turret whose world up axis points most directly at its
+     * nearest damage locator, or 0 when no valid turret is found.
+     */
     GetClosestTurret() {
       return this.#getClosestTurretAndLocator().turret;
     }
+
+    /**
+     * Convenience update that runs the synchronous then asynchronous phase against
+     * the stored parent transform.
+     */
     Update(context) {
       this.UpdateSyncronous(context);
       this.UpdateAsyncronous(context, this.#parentTransform);
       return true;
     }
+
+    /**
+     * Runs the synchronous phase: while a looping effect fires it re-picks the
+     * turret and locator every two seconds, then updates the firing effect, feeds
+     * the target the current muzzle start position, and updates the ambient effect
+     * and movement observer from the first turret.
+     */
     UpdateSyncronous(context, parentTransform = this.#parentTransform) {
       const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
       if (parentTransform?.length === 16) mat4.copy(this.#parentTransform, parentTransform);
@@ -528,6 +592,14 @@ new class extends _identity {
       if (this.#turrets.length) this.turretMovementObserver?.Update?.(this.#turrets[0].worldMatrix);
       return true;
     }
+
+    /**
+     * Runs the asynchronous phase: recomputes the turret world matrices, ramps the
+     * tracking influence through its fade-in and fade-out delays, pushes the
+     * target position into each valid turret's tracking pose in that turret's
+     * local space, then hands the firing effect its end position and per-muzzle
+     * world transforms.
+     */
     UpdateAsyncronous(context, parentData = this.#parentTransform) {
       const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
       const parentTransform = parentData?.transform?.length === 16 ? parentData.transform : parentData;
@@ -581,12 +653,23 @@ new class extends _identity {
       });
       return true;
     }
+
+    /**
+     * Appends the firing and ambient effect renderables to out; gated on display,
+     * and each contribution additionally on displayEffects.
+     */
     GetRenderables(out = []) {
       if (!this.display) return out;
       if (this.displayEffects) this.firingEffect?.GetRenderables?.(out);
       if (this.#ambientEffect() && this.displayEffects) this.#ambientEffect().GetRenderables?.(out);
       return out;
     }
+
+    /**
+     * Forwards visibility to the firing and ambient effects; gated on display and,
+     * per effect, on displayEffects. The turret geometry itself is not culled
+     * here.
+     */
     UpdateVisibility(context) {
       if (!this.display) return false;
       if (this.displayEffects) this.firingEffect?.UpdateVisibility?.(context);
@@ -704,6 +787,14 @@ new class extends _identity {
     GetShadowPerObjectData(accumulator = null) {
       return this.GetPerObjectData(accumulator);
     }
+
+    /**
+     * Establishes everything one shot needs: the firing turret and locator, the
+     * advanced cycling fire position, the random firing delay, the fire animation
+     * on the chosen turret, the target's impact timing derived from the effect's
+     * duration and peak time, and the ambient controller's turret state. Returns
+     * false when deactivated or untargeted.
+     */
     #setupFiringState() {
       if (this.state === _EveTurretSet.State.STATE_DEACTIVE || !this.target) return false;
       const pair = this.#getClosestTurretAndLocator();
@@ -732,6 +823,13 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Picks the turret whose world up axis best aligns with its nearest damage
+     * locator and, when chooseRandomLocator is set, re-picks the turret against a
+     * random valid locator instead; falls back to turret 0. Returns the shared
+     * pair record, valid only until the next call.
+     */
     #getClosestTurretAndLocator() {
       const pair = _EveTurretSet.#closestPair;
       pair.turret = _EveTurretSet.INVALID_INDEX;
@@ -780,11 +878,22 @@ new class extends _identity {
       if (pair.turret === _EveTurretSet.INVALID_INDEX) pair.turret = 0;
       return pair;
     }
+
+    /**
+     * Plays an animation on every turret and returns the longest duration
+     * reported.
+     */
     #playAll(animation, loop, delay) {
       let duration = 0;
       for (let index = 0; index < this.#turrets.length; index++) duration = Math.max(duration, this.#playTurret(index, animation, loop, delay));
       return duration;
     }
+
+    /**
+     * Plays an animation on one turret through the record's own hook or its
+     * controller, returning the reported duration, or 0 when the turret or the
+     * hook is absent.
+     */
     #playTurret(index, animation, loop, delay) {
       const turret = this.#turrets[index];
       if (!turret) return 0;
@@ -793,12 +902,30 @@ new class extends _identity {
         delay
       }) ?? 0);
     }
+
+    /**
+     * The ambient effect in force: the authored one while in ambient-effect
+     * editing mode, otherwise the generated distributed instance container when
+     * one exists.
+     */
     #ambientEffect() {
       return this.ambientEffectEditingMode ? this.ambientEffect : this.generatedDistributedAmbientEffect ?? this.ambientEffect;
     }
+
+    /**
+     * Pushes the current state onto the ambient effect's TurretState controller
+     * variable.
+     */
     #setAmbientState() {
       this.#ambientEffect()?.SetControllerVariable?.("TurretState", this.state);
     }
+
+    /**
+     * Coerces a caller-supplied turret into the record shape - local and world
+     * matrices, local quaternion and position, valid and display flags - reusing
+     * the object in place when it already carries a local matrix, and otherwise
+     * wrapping it as the record's source.
+     */
     #normalizeTurret(turret) {
       if (turret?.localMatrix?.length === 16) {
         turret.worldMatrix ??= mat4.create();

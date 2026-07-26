@@ -3,6 +3,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_callable, _init_extra_callable, _init_callableArgs, _init_extra_callableArgs, _init_value, _init_extra_value, _init_time, _init_extra_time;
+
+/**
+ * One key of a TriEventCurve: a time in seconds plus either a named event string
+ * or a callable and its arguments to invoke when the playhead crosses it.
+ */
 let _TriEventKey;
 class TriEventKey extends CjsModel {
   static {

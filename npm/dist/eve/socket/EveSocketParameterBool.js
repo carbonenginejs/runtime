@@ -21,6 +21,11 @@ class EveSocketParameterBool extends _EveSocketParameterBi {
 
   /** m_defaults - one default captured per bound external parameter. */
   #defaults = (_init_extra_value(this), []);
+
+  /**
+   * Discards the captured defaults along with the bindings, so nothing can be
+   * restored afterwards.
+   */
   ClearBindings() {
     this.#defaults.length = 0;
     super.ClearBindings();
@@ -34,6 +39,12 @@ class EveSocketParameterBool extends _EveSocketParameterBi {
     }
     this.ClearBindings();
   }
+
+  /**
+   * Captures the external parameter's current value as a boolean default, using
+   * false when the read throws; always succeeds, so a bind is never refused on
+   * its account.
+   */
   ExtractDefault(externalParameter) {
     let value = false;
     try {
@@ -44,6 +55,11 @@ class EveSocketParameterBool extends _EveSocketParameterBi {
     this.#defaults.push(value);
     return true;
   }
+
+  /**
+   * Restores the first captured default, falling back to false when nothing was
+   * captured.
+   */
   SetValueToDefault() {
     this.value = this.#defaults.length ? this.#defaults[0] : false;
   }

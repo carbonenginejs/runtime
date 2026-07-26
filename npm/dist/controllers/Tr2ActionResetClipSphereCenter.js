@@ -7,6 +7,12 @@ import { ResetBehavior } from './enums.js';
 import { ITr2ControllerAction } from './ITr2ControllerAction.js';
 
 let _initProto, _initClass, _init_resetBehavior, _init_extra_resetBehavior, _init_locatorIndex, _init_extra_locatorIndex, _init_locatorSetName, _init_extra_locatorSetName;
+
+/**
+ * Controller action that moves its owner's clip-sphere center on start, either
+ * back to the object center or onto a locator chosen from a named set or from
+ * the last damage-locator hit.
+ */
 let _Tr2ActionResetClipSp;
 new class extends _identity {
   static [class Tr2ActionResetClipSphereCenter extends CjsModel {
@@ -62,6 +68,17 @@ new class extends _identity {
         owner.ResetClipSphereCenter(center);
       }
     }
+
+    /**
+     * Gets a position from a named locator set, picking a uniformly random locator
+     * when the index is negative, and accepting either a bare 3-component locator
+     * or one carrying a `position`.
+     */
+
+    /**
+     * Truncates a value to a 32-bit integer locator index, substituting the
+     * fallback when it is not finite.
+     */
   }];
   #resolveLocatorPosition(owner, setName, index) {
     const locators = ITr2ControllerAction.callTarget(owner, "GetLocatorsForSet", setName) ?? (ITr2ControllerAction.hasProperty(owner, "locatorSets") && Array.isArray(owner.locatorSets) ? owner.locatorSets.find(set => ITr2ControllerAction.hasProperty(set, "name") && set.name === setName)?.locators : null);

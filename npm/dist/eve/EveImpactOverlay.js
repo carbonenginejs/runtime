@@ -6,6 +6,12 @@ import { Tr2ScalarFader as _Tr2ScalarFader } from '../curves/Tr2ScalarFader.js';
 import { ImpactConfiguration } from '../generated/include/enums.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_seed, _init_extra_seed, _init_display, _init_extra_display, _init_configuration, _init_extra_configuration, _init_impactDataNextIdx, _init_extra_impactDataNextIdx, _init_armorImpactGoalCount, _init_extra_armorImpactGoalCount, _init_armorImpactParentSize, _init_extra_armorImpactParentSize, _init_shieldImpactColorFade, _init_extra_shieldImpactColorFade, _init_shieldImpactParentSize, _init_extra_shieldImpactParentSize, _init_shieldIsEllipsoid, _init_extra_shieldIsEllipsoid, _init_debugForceSpawnDebris, _init_extra_debugForceSpawnDebris, _init_renderPriority, _init_extra_renderPriority, _init_mesh, _init_extra_mesh, _init_dataTextureBlockID, _init_extra_dataTextureBlockID, _init_maxShieldImpacts, _init_extra_maxShieldImpacts, _init_overallShieldImpact, _init_extra_overallShieldImpact, _init_shieldHardening, _init_extra_shieldHardening, _init_shieldBoosting, _init_extra_shieldBoosting, _init_armorDamageShader, _init_extra_armorDamageShader, _init_armorImpactEmitter, _init_extra_armorImpactEmitter, _init_armorRepairing, _init_extra_armorRepairing, _init_armorHardening, _init_extra_armorHardening, _init_hullRepairing, _init_extra_hullRepairing, _init_hullDamageFlickerCurve, _init_extra_hullDamageFlickerCurve, _init_hullDamageFactor, _init_extra_hullDamageFactor, _init_hullImpactEmitter, _init_extra_hullImpactEmitter;
+
+/**
+ * The damage presentation for one ship: shield, armour and hull impact
+ * resources, the faders driving hardening and repair effects, and the
+ * data-texture bookkeeping that feeds them.
+ */
 let _EveImpactOverlay;
 new class extends _identity {
   static [class EveImpactOverlay extends CjsModel {
@@ -51,9 +57,17 @@ new class extends _identity {
     #armorImpactLifeTime = 10;
     #dataTextureOffset = -1;
     #lastDamageState = vec3.fromValues(1, 1, 1);
+
+    /** Post-hydration hook; the overlay needs no additional setup. */
     Initialize() {
       return true;
     }
+
+    /**
+     * Assigns the overlay's authored resources in one call - the hull flicker
+     * curve, the armour and hull impact emitters, the armour damage shader and the
+     * shield impact mesh - together with the shield shape flag.
+     */
     Set(hullDamageFlickerCurve, armorDamageEmitter, hullImpactEmitter, armorDamageShader, shieldImpactMesh, shieldIsEllipsoid) {
       this.shieldIsEllipsoid = !!shieldIsEllipsoid;
       this.hullDamageFlickerCurve = hullDamageFlickerCurve ?? null;
@@ -63,38 +77,85 @@ new class extends _identity {
       this.mesh = shieldImpactMesh ?? null;
       return true;
     }
+
+    /**
+     * Sets the per-ship random seed that varies impact placement between otherwise
+     * identical hulls.
+     */
     SetSeed(seed) {
       this.seed = Number(seed) >>> 0;
       return true;
     }
+
+    /**
+     * Records how many damage locators the owning object exposes; derived from the
+     * owner at lifecycle time, so it is deliberately kept out of the values
+     * interchange.
+     */
     SetDamageLocatorCount(count) {
       this.#damageLocatorCount = Number(count) >>> 0;
       return true;
     }
+
+    /**
+     * Number of damage locators the owning object exposes, as last recorded by
+     * SetDamageLocatorCount.
+     */
     GetDamageLocatorCount() {
       return this.#damageLocatorCount;
     }
+
+    /** Seconds an armour impact stays alive before it is retired. */
     GetArmorImpactLifeTime() {
       return this.#armorImpactLifeTime;
     }
+
+    /**
+     * Copies the last recorded shield, armour and hull damage state.
+     * @param {Array} out - caller-owned vec3; a fresh vector is allocated when omitted
+     * @returns {Array} out
+     */
     GetLastDamageState(out = vec3.create()) {
       return vec3.copy(out, this.#lastDamageState);
     }
+
+    /**
+     * Row offset of this overlay's block in the shared impact data texture, or -1
+     * while it has no block.
+     */
     GetDataTextureOffset() {
       return this.#dataTextureOffset;
     }
+
+    /** Which ImpactConfiguration this overlay was authored for. */
     GetImpactConfiguration() {
       return this.configuration;
     }
+
+    /**
+     * Whether the shield is presented as a generated ellipsoid rather than the
+     * authored shield impact mesh.
+     */
     HasShieldEllipsoid() {
       return this.shieldIsEllipsoid;
     }
+
+    /**
+     * Starts a fade on the named shield, armour or hull effect; the fade runs over a quarter of the requested duration.
+     * @param {String} name - one of shieldboost, shieldhardening, armorhardening, armorrepair, hullrepair
+     * @returns {Boolean} false when the name matches no fader
+     */
     ToggleEffect(name, on, duration) {
       const fader = _EveImpactOverlay.#effectFader(this, name);
       if (!fader) return false;
       fader.StartFade(!!on, Number(duration) / 4);
       return true;
     }
+
+    /**
+     * Maps an effect name to the fader that drives it, or null when the name is
+     * unknown.
+     */
   }];
   #effectFader(overlay, name) {
     switch (name) {

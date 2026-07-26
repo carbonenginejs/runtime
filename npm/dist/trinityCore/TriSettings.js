@@ -3,6 +3,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { carbon, type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass;
+
+/**
+ * A registry of named boolean, number and string settings with type-checked
+ * reads and writes and a Python-style repr.
+ */
 let _TriSettings;
 new class extends _identity {
   static [class TriSettings extends CjsModel {
@@ -16,6 +21,12 @@ new class extends _identity {
       })], [[[carbon, carbon.method], 18, "GetValue"], [[carbon, carbon.method], 18, "SetValue"], [[carbon, carbon.method], 18, "__repr__"]], 0, void 0, CjsModel));
     }
     #settings = (_initProto(this), new Map());
+
+    /**
+     * Registers a setting and latches its value type from the initial value; only
+     * boolean, number and string are supported, and re-registering replaces the
+     * entry. Returns this for chaining.
+     */
     RegisterSetting(name, value) {
       const key = _TriSettings.#GetKey(name);
       const valueType = typeof value;
@@ -28,9 +39,19 @@ new class extends _identity {
       });
       return this;
     }
+
+    /**
+     * The { value, valueType } record for a setting, or null when it is not
+     * registered.
+     */
     FindSetting(name) {
       return this.#settings.get(_TriSettings.#GetKey(name)) ?? null;
     }
+
+    /**
+     * The current value of a registered setting; an unknown name throws RangeError
+     * rather than returning a default.
+     */
     GetValue(name) {
       const key = _TriSettings.#GetKey(name);
       const setting = this.#settings.get(key);
@@ -39,6 +60,12 @@ new class extends _identity {
       }
       return setting.value;
     }
+
+    /**
+     * Assigns a registered setting, throwing RangeError for an unknown name and
+     * TypeError when the value's type differs from the one latched at
+     * registration.
+     */
     SetValue(name, value) {
       const key = _TriSettings.#GetKey(name);
       const setting = this.#settings.get(key);
@@ -50,6 +77,8 @@ new class extends _identity {
       }
       setting.value = value;
     }
+
+    /** A Python-style dict literal of every setting, ordered by name. */
     GetReprString() {
       let result = "{";
       const entries = [...this.#settings.entries()].sort(([a], [b]) => a.localeCompare(b));
@@ -58,9 +87,18 @@ new class extends _identity {
       }
       return `${result}}`;
     }
+
+    /** Python repr hook, delegating to GetReprString. */
     __repr__() {
       return this.GetReprString();
     }
+
+    /** Validates that a setting name is a string and returns it as the map key. */
+
+    /**
+     * Formats a value the way Python would: True/False for booleans and
+     * single-quoted, escaped text for strings.
+     */
   }];
   #GetKey(name) {
     if (typeof name !== "string") {

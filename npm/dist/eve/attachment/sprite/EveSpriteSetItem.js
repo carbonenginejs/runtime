@@ -6,6 +6,11 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_blinkRate, _init_extra_blinkRate, _init_blinkPhase, _init_extra_blinkPhase, _init_minScale, _init_extra_minScale, _init_maxScale, _init_extra_maxScale, _init_falloff, _init_extra_falloff, _init_position, _init_extra_position, _init_color, _init_extra_color, _init_warpColor, _init_extra_warpColor, _init_boneIndex, _init_extra_boneIndex;
+
+/**
+ * One authored sprite: its bone attachment, position, blink timing, scale range,
+ * falloff and normal and warp colours.
+ */
 let _EveSpriteSetItem;
 class EveSpriteSetItem extends CjsModel {
   static {
@@ -38,6 +43,8 @@ class EveSpriteSetItem extends CjsModel {
   GetBounds(out) {
     return box3.fromPositionRadius(out, this.position, this.maxScale);
   }
+
+  /** The parent bone this sprite rides. */
   GetBoneIndex() {
     return this.boneIndex;
   }

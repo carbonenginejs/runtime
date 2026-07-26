@@ -5,6 +5,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_behavior, _init_extra_behavior, _init_impactSize, _init_extra_impactSize, _init_offset, _init_extra_offset, _init_positionOffset, _init_extra_positionOffset, _init_parentPositionCurve, _init_extra_parentPositionCurve, _init_alignPositionCurve, _init_extra_alignPositionCurve, _init_value, _init_extra_value, _init_boundingSize, _init_extra_boundingSize, _init_parentRotationCurve, _init_extra_parentRotationCurve, _init_parent, _init_extra_parent, _init_turretSetObject, _init_extra_turretSetObject, _init_muzzleIndex, _init_extra_muzzleIndex, _init_damageLocatorIndex, _init_extra_damageLocatorIndex, _init_locatorIndex, _init_extra_locatorIndex, _init_locatorSetName, _init_extra_locatorSetName;
+
+/**
+ * A vector function that computes a point local to a model - a point on its
+ * bounding hull, a damage or firing locator, a turret muzzle, or an authored
+ * offset - selected by an authored behaviour.
+ */
 let _EveLocalPositionCurv;
 new class extends _identity {
   static [class EveLocalPositionCurve extends CjsModel {
@@ -33,12 +39,25 @@ new class extends _identity {
     locatorIndex = (_init_extra_damageLocatorIndex(this), _init_locatorIndex(this, -1));
     locatorSetName = (_init_extra_locatorIndex(this), _init_locatorSetName(this, ""));
     #impactEffectIndex = (_init_extra_locatorSetName(this), -1);
+
+    /** Post-construction hook that selects the behaviour, defaulting to POS_NONE. */
     __init__(behavior = _EveLocalPositionCurv.LocalPositionBehavior.POS_NONE) {
       this.SetBehavior(behavior);
     }
+
+    /**
+     * Selects which of the LocalPositionBehavior calculations this curve
+     * evaluates.
+     */
     SetBehavior(behavior) {
       this.behavior = Number(behavior) | 0;
     }
+
+    /**
+     * Evaluates the selected behaviour at time.
+     * @param {Array} [out] - caller-owned vec3; defaults to the curve's own value field, so callers that pass nothing update it in place. Under POS_NONE the incoming out is stored as the curve's value and returned unchanged.
+     * @returns {Array} out
+     */
     Update(time, out = this.value) {
       switch (this.behavior) {
         case _EveLocalPositionCurv.LocalPositionBehavior.POS_NEAREST_BOUNDING_POINT:
@@ -62,22 +81,50 @@ new class extends _identity {
           return out;
       }
     }
+
+    /**
+     * Seeds out with the last stored value and re-evaluates the behaviour at time, unlike the pure accessors on the simpler curves.
+     * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
+     * @returns {Array} out
+     */
     GetValueAt(time, out = vec3.create()) {
       vec3.copy(out, this.value);
       return this.Update(time, out);
     }
+
+    /**
+     * The first derivative is undefined for a locator-driven curve; out is
+     * returned untouched.
+     */
     GetValueDotAt(_time, out = vec3.create()) {
       return out;
     }
+
+    /**
+     * The second derivative is undefined for a locator-driven curve; out is
+     * returned untouched.
+     */
     GetValueDoubleDotAt(_time, out = vec3.create()) {
       return out;
     }
+
+    /**
+     * Widens the last computed value into a double-precision three-element buffer for the camera-relative path; it does not re-evaluate the behaviour.
+     * @param {Float64Array} [out] - caller-owned; a fresh buffer is allocated when omitted
+     * @returns {Float64Array} out
+     */
     InterpolatedPosition(_time, out = new Float64Array(3)) {
       out[0] = this.value[0];
       out[1] = this.value[1];
       out[2] = this.value[2];
       return out;
     }
+
+    /**
+     * POS_OFFSET_POSITION: the authored offset rotated by the parent rotation
+     * curve and translated by the parent position curve, either of which may be
+     * absent.
+     */
     CalculateOffsetPosition(time, out) {
       vec3.copy(out, this.positionOffset);
       if (this.parentRotationCurve) {
@@ -90,6 +137,13 @@ new class extends _identity {
       }
       return out;
     }
+
+    /**
+     * POS_OFFSET_PLANE_ROTATION: takes the aligned point (or the authored offset
+     * when there is no align curve), drops it onto the parent's height, and pushes
+     * it back out along that flattened direction to its original distance from the
+     * parent.
+     */
     CalculateOffsetPlaneRotation(time, out) {
       sampleVector(this.parentPositionCurve, time, _EveLocalPositionCurv.#parentPosition);
       if (this.alignPositionCurve) sampleVector(this.alignPositionCurve, time, out);else vec3.copy(out, this.positionOffset);
@@ -102,6 +156,15 @@ new class extends _identity {
       }
       return out;
     }
+
+    /**
+     * POS_NEAREST_BOUNDING_POINT: walks from the parent position towards the
+     * aligned point by the authored offset plus the radius of the parent's
+     * bounding ellipsoid in that direction, measured in the parent's own frame.
+     * Falls back to the plain parent position when any of the three driving curves
+     * is missing, and skips the ellipsoid term unless all three boundingSize axes
+     * exceed 10.
+     */
     CalculateNearestBoundingPoint(time, out) {
       if (!(this.parentPositionCurve && this.alignPositionCurve && this.parentRotationCurve)) {
         if (this.parentPositionCurve) sampleVector(this.parentPositionCurve, time, out);
@@ -126,10 +189,21 @@ new class extends _identity {
       }
       return vec3.scaleAndAdd(out, parentPosition, direction, scale);
     }
+
+    /**
+     * POS_CENTER_BOUNDING_POINT: asks the parent space object for its model centre
+     * at time; out is unchanged when there is no parent.
+     */
     GetCenterBoundingSphere(time, out) {
       this.parent?.UpdateModelCenterWorldPosition?.(time, out);
       return out;
     }
+
+    /**
+     * POS_TARGET_DMG_LOCATOR: on the first call picks the parent damage locator
+     * nearest the aligned point and latches it, then reports that locator's
+     * position on every call.
+     */
     GetDamageLocator(time, out) {
       if (!(this.alignPositionCurve && this.parent)) return out;
       if (this.damageLocatorIndex === -1) {
@@ -139,6 +213,12 @@ new class extends _identity {
       this.parent.GetDamageLocatorPosition?.(this.damageLocatorIndex, true, out);
       return out;
     }
+
+    /**
+     * POS_TARGET_DMG_LOCATOR_IMPACT: as GetDamageLocator, but also creates an
+     * impact on the parent at that locator the first time, then updates it each
+     * call with the direction from the locator back towards the aligned point.
+     */
     GetDamageLocatorImpact(time, out) {
       if (!(this.alignPositionCurve && this.parent)) return out;
       sampleVector(this.alignPositionCurve, time, _EveLocalPositionCurv.#parentPosition);
@@ -153,12 +233,23 @@ new class extends _identity {
       this.parent.UpdateImpact?.(out, _EveLocalPositionCurv.#direction, this.#impactEffectIndex);
       return out;
     }
+
+    /**
+     * POS_NEAREST_FIRING_LOCATOR: the world position of the configured locator
+     * within the named locator set; out is unchanged when the parent, index or set
+     * name is missing.
+     */
     GetNearestFiringLocator(_time, out) {
       if (this.parent && this.locatorIndex !== -1 && this.locatorSetName) {
         this.parent.GetLocatorPosition?.(this.locatorIndex, true, this.locatorSetName, out);
       }
       return out;
     }
+
+    /**
+     * POS_ACTIVE_TURRET: the translation of the turret set's firing bone for the
+     * configured muzzle; out is unchanged when the turret set has no such bone.
+     */
     GetFiringTurretPosition(_time, out) {
       const transform = this.turretSetObject?.GetFiringBoneWorldTransform?.(this.muzzleIndex);
       if (transform?.length === 16) vec3.set(out, transform[12], transform[13], transform[14]);

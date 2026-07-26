@@ -4,6 +4,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_worldMatrix, _init_extra_worldMatrix, _init_invWorldMatrix, _init_extra_invWorldMatrix, _init_decalMatrix, _init_extra_decalMatrix, _init_inverseDecalMatrix, _init_extra_inverseDecalMatrix, _init_parentBoneMatrix, _init_extra_parentBoneMatrix, _init_invParentBoneMatrix, _init_extra_invParentBoneMatrix;
+
+/**
+ * Vertex-stage per-object matrices for a space-object decal - the hull world
+ * transform, the decal projection transform and the parent bone transform, each
+ * paired with its inverse - as values a renderer packs into a constant buffer.
+ */
 let _DecalVSPerObjectData;
 class DecalVSPerObjectData extends CjsModel {
   static {

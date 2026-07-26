@@ -7,6 +7,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_value, _init_extra_value, _init_currentValue, _init_extra_currentValue;
+
+/**
+ * Curve returning the same authored vec4 at every time, usable as a scalar,
+ * vector, quaternion or color function; its derivatives are always zero
+ * (identity for quaternions).
+ */
 let _Tr2CurveConstant;
 new class extends _identity {
   static [class Tr2CurveConstant extends CjsModel {
@@ -113,6 +119,16 @@ new class extends _identity {
     InterpolatedPosition(_time, out) {
       return vec3.copy(out, this.value);
     }
+
+    /**
+     * Copies as many components of the constant into the caller-owned `out` as it
+     * can hold.
+     */
+
+    /**
+     * Writes the zero derivative into `out`, using the identity quaternion for a
+     * 4-component output and the zero vector otherwise.
+     */
   }];
   #copyValue(out, value) {
     return copyArrayLike(out, value);

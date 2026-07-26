@@ -4,6 +4,11 @@ import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/sc
 import { Tr2Mesh as _Tr2Mesh } from './Tr2Mesh.js';
 
 let _initProto, _initClass, _init_boundsMethod, _init_extra_boundsMethod, _init_instanceGeometryResPath, _init_extra_instanceGeometryResPath, _init_maxBounds, _init_extra_maxBounds, _init_maxInstanceSize, _init_extra_maxInstanceSize, _init_minBounds, _init_extra_minBounds, _init_instanceGeometryResource, _init_extra_instanceGeometryResource, _init_instanceMeshIndex, _init_extra_instanceMeshIndex;
+
+/**
+ * A mesh drawn once per entry of a separate instance-data stream, with static
+ * bounds or bounds expanded by the per-instance size.
+ */
 let _Tr2InstancedMesh;
 new class extends _identity {
   static [class Tr2InstancedMesh extends _Tr2Mesh {
@@ -27,36 +32,76 @@ new class extends _identity {
     minBounds = (_init_extra_maxInstanceSize(this), _init_minBounds(this, vec3.create()));
     instanceGeometryResource = (_init_extra_minBounds(this), _init_instanceGeometryResource(this, null));
     instanceMeshIndex = (_init_extra_instanceGeometryResource(this), _init_instanceMeshIndex(this, 0));
+
+    /** Defers to Tr2Mesh; the instance stream needs no extra CPU-side setup. */
     Initialize() {
       return super.Initialize();
     }
+
+    /** Resource path the instance data is loaded from. */
     GetInstanceMeshResPath() {
       return this.instanceGeometryResPath;
     }
+
+    /** Sets the instance-data resource path; schedules the instanceBuffer rebuild. */
     SetInstanceMeshResPath(path) {
       this.instanceGeometryResPath = String(path ?? "");
     }
+
+    /** Index of the instance buffer within the instance geometry resource. */
     GetInstanceMeshIndex() {
       return this.instanceMeshIndex;
     }
+
+    /**
+     * The bound instance-data provider (an ITr2InstanceData), or null when none is
+     * set.
+     */
     GetInstanceGeometryResource() {
       return this.instanceGeometryResource;
     }
+
+    /**
+     * Binds an already-resolved instance-data provider; schedules the
+     * instanceBuffer rebuild.
+     */
     SetInstanceGeometryRes(resource) {
       this.instanceGeometryResource = resource ?? null;
     }
+
+    /**
+     * Sets the static bounds used when boundsMethod is STATIC; a missing vector is
+     * treated as the origin.
+     */
     SetBoundingBox(minBounds, maxBounds) {
       vec3.copy(this.minBounds, minBounds ?? _Tr2InstancedMesh.#zero);
       vec3.copy(this.maxBounds, maxBounds ?? _Tr2InstancedMesh.#zero);
     }
+
+    /**
+     * Switches to DYNAMIC bounds, where the instance stream's box is expanded by a
+     * fixed instance size in world units.
+     */
     SetDynamicBounds(maxInstanceSize) {
       this.boundsMethod = _Tr2InstancedMesh.BoundsMethod.DYNAMIC;
       this.maxInstanceSize = Number(maxInstanceSize) || 0;
     }
+
+    /**
+     * Switches to DYNAMIC_SCALED bounds, where the instance stream's box is
+     * expanded by maxScale multiplied by the mesh geometry's own radius.
+     */
     SetDynamicScaledBounds(maxScale) {
       this.boundsMethod = _Tr2InstancedMesh.BoundsMethod.DYNAMIC_SCALED;
       this.maxInstanceSize = Number(maxScale) || 0;
     }
+
+    /**
+     * The whole-mesh bounds: the authored static box, or the instance stream's box
+     * expanded by the instance size (scaled by the geometry radius under
+     * DYNAMIC_SCALED); a zero box when no instance bounds are available. Always a
+     * freshly allocated pair.
+     */
     GetBounds() {
       if (this.boundsMethod === _Tr2InstancedMesh.BoundsMethod.STATIC) {
         return _Tr2InstancedMesh.#cloneBounds(this.minBounds, this.maxBounds);
@@ -139,6 +184,13 @@ new class extends _identity {
         radius: instanceSize
       };
     }
+
+    /** A detached { min, max } pair cloned from the two vectors. */
+
+    /**
+     * Radius of the mesh geometry's bounding box measured from the origin,
+     * defaulting to 1 when the resource exposes no box.
+     */
   }];
   #cloneBounds(minBounds, maxBounds) {
     return {

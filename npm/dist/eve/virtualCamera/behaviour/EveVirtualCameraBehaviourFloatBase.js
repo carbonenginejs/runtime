@@ -3,6 +3,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_active, _init_extra_active, _init_name, _init_extra_name;
+
+/**
+ * Base for the virtual camera behaviours that contribute a scalar delta to a
+ * camera's field of view or roll each update.
+ */
 let _EveVirtualCameraBeha;
 class EveVirtualCameraBehaviourFloatBase extends CjsModel {
   static {
@@ -20,16 +25,30 @@ class EveVirtualCameraBehaviourFloatBase extends CjsModel {
   }
   active = (_initProto(this), _init_active(this, true));
   name = (_init_extra_active(this), _init_name(this, ""));
+
+  /** Returns the authored behaviour name shown in tooling. */
   GetName() {
     return this.name;
   }
+
+  /**
+   * Sets the behaviour name, coercing to a string; subclasses override this to
+   * rename the curves they own alongside it.
+   */
   SetName(name) {
     this.name = String(name);
   }
+
+  /**
+   * Re-applies the current name after a field change, which propagates it to any
+   * owned curves through the subclass SetName override.
+   */
   OnModified(_options = {}) {
     this.SetName(this.name);
     return true;
   }
+
+  /** Reports whether the camera should evaluate this behaviour this update. */
   IsActive() {
     return this.active;
   }

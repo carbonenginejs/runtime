@@ -7,6 +7,8 @@ let _initProto, _initClass;
 
 // Carbon: RenderJob/TriStepPushProjection.cpp — Execute pushes the current
 // projection (Tr2Renderer::PushProjection).
+
+/** Step that saves the current projection so a later pop can restore it. */
 let _TriStepPushProjectio;
 class TriStepPushProjection extends _TriRenderStep {
   static {
@@ -22,6 +24,10 @@ class TriStepPushProjection extends _TriRenderStep {
     super(...args);
     _initProto(this);
   }
+  /**
+   * Pushes the executor's current projection; the value is not supplied by the
+   * step, only the intent to save it.
+   */
   Execute(_realTime, _simTime, executor) {
     executor?.PushProjection?.();
     return _TriRenderJob.StepResult.RS_OK;

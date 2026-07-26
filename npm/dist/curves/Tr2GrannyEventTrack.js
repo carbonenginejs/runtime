@@ -4,6 +4,11 @@ import { CjsGrannyCurves } from './CjsGrannyCurves.js';
 import { Tr2GrannyTrack as _Tr2GrannyTrack } from './Tr2GrannyTrack.js';
 
 let _initProto, _initClass, _init_eventListener, _init_extra_eventListener;
+
+/**
+ * Granny track that replays a text track's timed entries as engine events,
+ * firing each entry once as the playhead crosses it.
+ */
 let _Tr2GrannyEventTrack;
 class Tr2GrannyEventTrack extends _Tr2GrannyTrack {
   static {

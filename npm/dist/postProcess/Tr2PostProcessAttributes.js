@@ -15,6 +15,12 @@ import { Tr2PPSignalLossEffect as _Tr2PPSignalLossEffec } from './Tr2PPSignalLos
 import { Tr2PPVignetteEffect as _Tr2PPVignetteEffect } from './Tr2PPVignetteEffect.js';
 
 let _initProto, _initClass, _init_priority, _init_extra_priority, _init_intensity, _init_extra_intensity, _init_signalLossIntensityEnabled, _init_extra_signalLossIntensityEnabled, _init_signalLossIntensity, _init_extra_signalLossIntensity, _init_bloomBrightnessEnabled, _init_extra_bloomBrightnessEnabled, _init_bloomBrightness, _init_extra_bloomBrightness, _init_bloomLuminanceThresholdEnabled, _init_extra_bloomLuminanceThresholdEnabled, _init_bloomLuminanceThreshold, _init_extra_bloomLuminanceThreshold, _init_bloomLuminanceScaleEnabled, _init_extra_bloomLuminanceScaleEnabled, _init_bloomLuminanceScale, _init_extra_bloomLuminanceScale, _init_bloomSizeScaleEnabled, _init_extra_bloomSizeScaleEnabled, _init_bloomSizeScale, _init_extra_bloomSizeScale, _init_bloomDirectionalWeightEnabled, _init_extra_bloomDirectionalWeightEnabled, _init_bloomDirectionalWeight, _init_extra_bloomDirectionalWeight, _init_bloomStepSize1Enabled, _init_extra_bloomStepSize1Enabled, _init_bloomStepSize, _init_extra_bloomStepSize, _init_bloomStepSize2Enabled, _init_extra_bloomStepSize2Enabled, _init_bloomStepSize2, _init_extra_bloomStepSize2, _init_bloomStepSize3Enabled, _init_extra_bloomStepSize3Enabled, _init_bloomStepSize3, _init_extra_bloomStepSize3, _init_bloomStepSize4Enabled, _init_extra_bloomStepSize4Enabled, _init_bloomStepSize4, _init_extra_bloomStepSize4, _init_bloomStepSize5Enabled, _init_extra_bloomStepSize5Enabled, _init_bloomStepSize5, _init_extra_bloomStepSize5, _init_bloomStepSize6Enabled, _init_extra_bloomStepSize6Enabled, _init_bloomStepSize6, _init_extra_bloomStepSize6, _init_bloomStepTint1Enabled, _init_extra_bloomStepTint1Enabled, _init_bloomStepTint, _init_extra_bloomStepTint, _init_bloomStepTint2Enabled, _init_extra_bloomStepTint2Enabled, _init_bloomStepTint2, _init_extra_bloomStepTint2, _init_bloomStepTint3Enabled, _init_extra_bloomStepTint3Enabled, _init_bloomStepTint3, _init_extra_bloomStepTint3, _init_bloomStepTint4Enabled, _init_extra_bloomStepTint4Enabled, _init_bloomStepTint4, _init_extra_bloomStepTint4, _init_bloomStepTint5Enabled, _init_extra_bloomStepTint5Enabled, _init_bloomStepTint5, _init_extra_bloomStepTint5, _init_bloomStepTint6Enabled, _init_extra_bloomStepTint6Enabled, _init_bloomStepTint6, _init_extra_bloomStepTint6, _init_grimeIntensityEnabled, _init_extra_grimeIntensityEnabled, _init_grimeIntensity, _init_extra_grimeIntensity, _init_grimePathEnabled, _init_extra_grimePathEnabled, _init_grimePath, _init_extra_grimePath, _init_exposureAdjustmentEnabled, _init_extra_exposureAdjustmentEnabled, _init_exposureAdjustment, _init_extra_exposureAdjustment, _init_filmGrainIntensityEnabled, _init_extra_filmGrainIntensityEnabled, _init_filmGrainIntensity, _init_extra_filmGrainIntensity, _init_filmGrainSizeEnabled, _init_extra_filmGrainSizeEnabled, _init_filmGrainSize, _init_extra_filmGrainSize, _init_filmGrainDensityEnabled, _init_extra_filmGrainDensityEnabled, _init_filmGrainDensity, _init_extra_filmGrainDensity, _init_filmGrainContrastEnabled, _init_extra_filmGrainContrastEnabled, _init_filmGrainContrast, _init_extra_filmGrainContrast, _init_filmGrainBrightnessModifierEnabled, _init_extra_filmGrainBrightnessModifierEnabled, _init_filmGrainBrightnessModifier, _init_extra_filmGrainBrightnessModifier, _init_filmGrainColoredEnabled, _init_extra_filmGrainColoredEnabled, _init_filmGrainColored, _init_extra_filmGrainColored, _init_filmGrainColorAmountEnabled, _init_extra_filmGrainColorAmountEnabled, _init_filmGrainColorAmount, _init_extra_filmGrainColorAmount, _init_saturationEnabled, _init_extra_saturationEnabled, _init_saturation, _init_extra_saturation, _init_fadeIntensityEnabled, _init_extra_fadeIntensityEnabled, _init_fadeIntensity, _init_extra_fadeIntensity, _init_fadeColorEnabled, _init_extra_fadeColorEnabled, _init_fadeColor, _init_extra_fadeColor, _init_lutIntensityEnabled, _init_extra_lutIntensityEnabled, _init_lutIntensity, _init_extra_lutIntensity, _init_lutPathEnabled, _init_extra_lutPathEnabled, _init_lutPath, _init_extra_lutPath, _init_vignetteIntensityEnabled, _init_extra_vignetteIntensityEnabled, _init_vignetteIntensity, _init_extra_vignetteIntensity, _init_vignetteOpacityEnabled, _init_extra_vignetteOpacityEnabled, _init_vignetteOpacity, _init_extra_vignetteOpacity, _init_vignetteColorEnabled, _init_extra_vignetteColorEnabled, _init_vignetteColor, _init_extra_vignetteColor, _init_vignetteDetail1SizeEnabled, _init_extra_vignetteDetail1SizeEnabled, _init_vignetteDetail1Size, _init_extra_vignetteDetail1Size, _init_vignetteDetail1ScrollEnabled, _init_extra_vignetteDetail1ScrollEnabled, _init_vignetteDetail1Scroll, _init_extra_vignetteDetail1Scroll, _init_vignetteDetail2SizeEnabled, _init_extra_vignetteDetail2SizeEnabled, _init_vignetteDetail2Size, _init_extra_vignetteDetail2Size, _init_vignetteDetail2ScrollEnabled, _init_extra_vignetteDetail2ScrollEnabled, _init_vignetteDetail2Scroll, _init_extra_vignetteDetail2Scroll, _init_vignetteShapePathEnabled, _init_extra_vignetteShapePathEnabled, _init_vignetteShapePath, _init_extra_vignetteShapePath, _init_vignetteDetailPathEnabled, _init_extra_vignetteDetailPathEnabled, _init_vignetteDetailPath, _init_extra_vignetteDetailPath, _init_vignetteSineFrequencyEnabled, _init_extra_vignetteSineFrequencyEnabled, _init_vignetteSineFrequency, _init_extra_vignetteSineFrequency, _init_vignetteMinSineFrequencyEnabled, _init_extra_vignetteMinSineFrequencyEnabled, _init_vignetteMinSineFrequency, _init_extra_vignetteMinSineFrequency, _init_vignetteMaxSineFrequencyEnabled, _init_extra_vignetteMaxSineFrequencyEnabled, _init_vignetteMaxSineFrequency, _init_extra_vignetteMaxSineFrequency, _init_depthOfFieldScaleEnabled, _init_extra_depthOfFieldScaleEnabled, _init_depthOfFieldScale, _init_extra_depthOfFieldScale, _init_depthOfFieldFocalDistanceEnabled, _init_extra_depthOfFieldFocalDistanceEnabled, _init_depthOfFieldFocalDistance, _init_extra_depthOfFieldFocalDistance, _init_depthOfFieldFocalLengthEnabled, _init_extra_depthOfFieldFocalLengthEnabled, _init_depthOfFieldFocalLength, _init_extra_depthOfFieldFocalLength, _init_depthOfFieldShapeEnabled, _init_extra_depthOfFieldShapeEnabled, _init_depthOfFieldShape, _init_extra_depthOfFieldShape, _init_whiteTemperatureEnabled, _init_extra_whiteTemperatureEnabled, _init_whiteTemperature, _init_extra_whiteTemperature, _init_whiteTintEnabled, _init_extra_whiteTintEnabled, _init_whiteTint, _init_extra_whiteTint, _init_colorSaturationEnabled, _init_extra_colorSaturationEnabled, _init_colorSaturation, _init_extra_colorSaturation, _init_colorContrastEnabled, _init_extra_colorContrastEnabled, _init_colorContrast, _init_extra_colorContrast, _init_colorGammaEnabled, _init_extra_colorGammaEnabled, _init_colorGamma, _init_extra_colorGamma, _init_colorGainEnabled, _init_extra_colorGainEnabled, _init_colorGain, _init_extra_colorGain, _init_colorOffsetEnabled, _init_extra_colorOffsetEnabled, _init_colorOffset, _init_extra_colorOffset;
+
+/**
+ * One post-process volume's contribution: a value and an enable flag per
+ * attribute, plus the priority band and intensity that weight it when several
+ * volumes are blended together.
+ */
 let _Tr2PostProcessAttrib;
 new class extends _identity {
   static [class Tr2PostProcessAttributes extends CjsModel {
@@ -146,6 +152,12 @@ new class extends _identity {
     prioritizedLuts = (_init_extra_colorOffset(this), new Set());
     depthOfFieldForegroundBlurNeededEnabled = false;
     depthOfFieldForegroundBlurNeeded = false;
+
+    /**
+     * Restores every attribute to its default and clears its enable flag, then
+     * deliberately re-enables the colour-correction attributes so entering a
+     * volume does not interpolate white balance and grading up from zero.
+     */
     Reset() {
       this.intensity = 0;
       this.priority = _Tr2PostProcessAttrib.MEDIUM_PRIORITY;
@@ -165,6 +177,13 @@ new class extends _identity {
       this.colorGainEnabled = true;
       this.colorOffsetEnabled = true;
     }
+
+    /**
+     * Captures an authored post-process graph as an attribute set, enabling only the attributes whose source effect passed its own availability gate; the LUT slot is taken from the highest-sorted available LUT.
+     * @param {object} postProcess source graph, read through its Get*IfAvailable accessors; null leaves a reset attribute set
+     * @param {number} priority the priority band this volume competes in
+     * @param {number} intensity this volume's weight within its band
+     */
     FromPostProcess(postProcess, priority, intensity) {
       this.Reset();
       this.intensity = Number(intensity ?? 0);
@@ -242,13 +261,28 @@ new class extends _identity {
         set("colorOffset", colorCorrection.colorOffset);
       }
     }
+    /**
+     * Copies typed-array attribute values so callers never alias a shared default;
+     * scalars, strings and booleans pass through unchanged.
+     */
     static CloneValue(value) {
       return ArrayBuffer.isView(value) ? new value.constructor(value) : value;
     }
+
+    /**
+     * Writes an attribute value and its matching `<name>Enabled` flag together,
+     * cloning the value first.
+     */
     static CopyValue(target, name, value, enabled = true) {
       target[name] = _Tr2PostProcessAttrib.CloneValue(value);
       target[`${name}Enabled`] = enabled;
     }
+
+    /**
+     * Accumulates value * weight into an accumulator, allocating a Float32Array on first use for vector attributes and adding numerically otherwise.
+     * @param {*} result accumulator so far, or null to start a new one
+     * @returns {*} the accumulator, which for vectors is the same array on later calls
+     */
     static AddWeighted(result, value, weight) {
       if (ArrayBuffer.isView(value) || Array.isArray(value)) {
         if (!result) result = new Float32Array(value.length);
@@ -257,6 +291,11 @@ new class extends _identity {
       }
       return Number(result ?? 0) + Number(value ?? 0) * weight;
     }
+
+    /**
+     * Returns the neutral starting value for an attribute, typed from its default:
+     * a zeroed Float32Array, an empty string, false, or 0.
+     */
     static ZeroValue(name) {
       const value = _Tr2PostProcessAttrib.DefaultValues[name];
       if (ArrayBuffer.isView(value)) return new Float32Array(value.length);
@@ -264,6 +303,12 @@ new class extends _identity {
       if (typeof value === "boolean") return false;
       return 0;
     }
+
+    /**
+     * Creates the observer the accumulation passes report into, recording per
+     * attribute which sources influenced it, at what weight, and the value that
+     * came out; GetDict returns that record keyed by attribute name.
+     */
     static CreateDebugObserver() {
       const records = {};
       let current = null;
@@ -290,6 +335,11 @@ new class extends _identity {
         }
       };
     }
+
+    /**
+     * Snapshots a value into the debug record so later mutation of the accumulator
+     * cannot rewrite what was reported.
+     */
     static CloneDebugValue(value) {
       if (ArrayBuffer.isView(value)) return new value.constructor(value);
       if (Array.isArray(value)) return value.map(item => ({
@@ -297,15 +347,37 @@ new class extends _identity {
       }));
       return value;
     }
+
+    /**
+     * Opens the debug record for one attribute; a null observer makes this a
+     * no-op, which is the normal non-debug path.
+     */
     static BeginDebug(observer, name) {
       observer?.BeginAttribute?.(name);
     }
+
+    /**
+     * Records that one source contributed to the open attribute at the given
+     * weight.
+     */
     static DebugInfluence(observer, source, weight) {
       observer?.Influence?.(source, weight);
     }
+
+    /**
+     * Closes the open attribute's debug record with the value the accumulation
+     * produced.
+     */
     static EndDebug(observer, value) {
       observer?.EndAttribute?.(value);
     }
+
+    /**
+     * Blends one attribute across the sources band by band: within a band the enabled sources' intensities are normalized against the weight still unspent, and the results are either summed or, for max-weight attributes, resolved to the single highest-weighted value. Bands stop contributing once the remaining weight is used up.
+     * @param {Array} sources must already be ordered by priority - runs of equal priority are treated as one band
+     * @param {boolean} [maxWeight] pick-one rather than sum; defaults to whether the attribute is in MaxWeightAttributes, which covers paths, enums and booleans that cannot be interpolated
+     * @returns {*} a freshly cloned value, never an alias of a source
+     */
     static Accumulate(name, sources, maxWeight = _Tr2PostProcessAttrib.MaxWeightAttributes.has(name), observer = null) {
       let remainingWeight = 1;
       let result = maxWeight ? _Tr2PostProcessAttrib.ZeroValue(name) : null;
@@ -343,6 +415,11 @@ new class extends _identity {
       _Tr2PostProcessAttrib.EndDebug(observer, finalValue);
       return finalValue;
     }
+
+    /**
+     * Blends LUT paths over the same priority bands as Accumulate, but keeps up to four distinct paths instead of one, merging repeats and ranking by weight.
+     * @returns {Array<{value: string, weight: number}>} the kept paths, weights renormalized to sum to 1
+     */
     static AccumulateLuts(sources, observer = null) {
       let remainingWeight = 1;
       const values = [];
@@ -389,10 +466,22 @@ new class extends _identity {
       _Tr2PostProcessAttrib.EndDebug(observer, values);
       return values;
     }
+
+    /**
+     * Installs an effect on a post-process through its Set<Name> method when it
+     * has one, and otherwise by writing the lower-camel-case property of the same
+     * name.
+     */
     static SetEffect(postProcess, name, effect) {
       const method = postProcess[`Set${name}`];
       if (typeof method === "function") method.call(postProcess, effect);else postProcess[name.charAt(0).toLowerCase() + name.slice(1)] = effect;
     }
+
+    /**
+     * Rebuilds a post-process graph from blended attribute sources: every effect slot and the LUT list are cleared first, then only the effects whose driving attribute blended to a non-zero value are recreated, so a slot left empty means nothing asked for it.
+     * @param {Array} sources attribute sets ordered by priority, as Accumulate requires
+     * @returns {object} the same post-process instance that was passed in
+     */
     static MergeInto(postProcess, sources, debugObserver = null) {
       const values = new Map();
       for (const name of _Tr2PostProcessAttrib.AttributeNames) {

@@ -7,6 +7,12 @@ import { Tr2TimelineEntry as _Tr2TimelineEntry } from './Tr2TimelineEntry.js';
 import { UnlinkReason } from './enums.js';
 
 let _initProto, _initClass, _init_actions, _init_extra_actions, _init_entries, _init_extra_entries, _init_name, _init_extra_name, _init_variables, _init_extra_variables, _init_eventHandlers, _init_extra_eventHandlers, _init_timeScale, _init_extra_timeScale, _init_isPlaying, _init_extra_isPlaying, _init_isPaused, _init_extra_isPaused;
+
+/**
+ * Plays a list of controller actions against a scrubbable timeline, starting and
+ * stopping each action as the current time enters and leaves its authored
+ * start/end range on an enabled track.
+ */
 let _Tr2TimelineControlle;
 new class extends _identity {
   static [class Tr2TimelineController extends CjsModel {
@@ -305,15 +311,36 @@ new class extends _identity {
     GetAction(index) {
       return this.actions[index] ?? null;
     }
+
+    /**
+     * Gets the timeline start time in seconds of the action at an index, or 0 when
+     * the index has no entry.
+     */
     GetActionStartTime(index) {
       return this.#entryAt(index)?.startTime ?? 0;
     }
+
+    /**
+     * Gets the timeline end time in seconds of the action at an index, or 0 when
+     * the index has no entry.
+     */
     GetActionEndTime(index) {
       return this.#entryAt(index)?.endTime ?? 0;
     }
+
+    /**
+     * Gets the track the action at an index belongs to, or 0 when the index has no
+     * entry.
+     */
     GetActionTrackID(index) {
       return this.#entryAt(index)?.trackID ?? 0;
     }
+
+    /**
+     * Moves an action's start time, starting or stopping the action immediately
+     * when the edit changes whether it covers the current time; returns false for
+     * an out-of-range index.
+     */
     SetActionStartTime(index, startTime) {
       if (index < 0 || index >= this.actions.length) {
         return false;
@@ -337,6 +364,12 @@ new class extends _identity {
       entry.startTime = startTime;
       return true;
     }
+
+    /**
+     * Moves an action's end time, starting or stopping the action immediately when
+     * the edit changes whether it covers the current time; returns false for an
+     * out-of-range index.
+     */
     SetActionEndTime(index, endTime) {
       if (index < 0 || index >= this.actions.length) {
         return false;
@@ -360,6 +393,12 @@ new class extends _identity {
       entry.endTime = endTime;
       return true;
     }
+
+    /**
+     * Reassigns an action to another track, starting or stopping it when the move
+     * changes whether its track is enabled while the action covers the current
+     * time.
+     */
     SetActionTrackID(index, trackID) {
       if (index < 0 || index >= this.actions.length) {
         return false;
@@ -501,6 +540,13 @@ new class extends _identity {
       }
       this.#setTime(time, false);
     }
+
+    /**
+     * Sets the current time and reconciles every enabled action against the new
+     * time; when includePassedActions is set, an action whose whole range was
+     * skipped over in one step is started and stopped back to back so it is not
+     * silently missed.
+     */
     #setTime(time, includePassedActions) {
       const oldTime = this.#time;
       this.#time = time;
@@ -548,9 +594,24 @@ new class extends _identity {
         this.Link(owner);
       }
     }
+
+    /**
+     * Gets the timeline entry parallel to the action at an index, or null when the
+     * lists are not the same length.
+     */
     #entryAt(index) {
       return this.entries[index] ?? null;
     }
+
+    /**
+     * Checks whether a time falls in an entry's range; the start is inclusive and
+     * the end exclusive.
+     */
+
+    /**
+     * Checks whether an entry's whole range fell inside a single update step,
+     * meaning the action was never observed active.
+     */
   }];
   #inRange(time, entry) {
     return time >= entry.startTime && time < entry.endTime;

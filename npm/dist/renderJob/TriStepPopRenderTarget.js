@@ -4,6 +4,11 @@ import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 
 let _initProto, _initClass, _init_slot, _init_extra_slot;
+
+/**
+ * Step that pops one slot off the executor's render-target stack, undoing an
+ * earlier push.
+ */
 let _TriStepPopRenderTarg;
 class TriStepPopRenderTarget extends _TriRenderStep {
   static {
@@ -20,9 +25,16 @@ class TriStepPopRenderTarget extends _TriRenderStep {
     _init_extra_slot(this);
   }
   slot = (_initProto(this), _init_slot(this, 0));
+
+  /** Stores the render-target slot to pop. */
   __init__(slot = 0) {
     this.slot = Number(slot) >>> 0;
   }
+
+  /**
+   * Pops the recorded slot; the matching push must occur earlier in the same job
+   * or the job's stack guard reports an underflow.
+   */
   Execute(_realTime, _simTime, executor) {
     executor?.PopRenderTarget?.(this.slot);
     return _TriRenderJob.StepResult.RS_OK;

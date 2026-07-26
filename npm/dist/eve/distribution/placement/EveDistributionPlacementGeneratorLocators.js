@@ -26,9 +26,18 @@ class EveDistributionPlacementGeneratorLocators extends CjsModel {
 
   /** m_locators (PLocatorStructureList) [READ, PERSIST] */
   locators = _init_locators(this, []);
+
+  /** Flags the pool as stale when the authored locator list changes. */
   OnStructureListModified(_event, _item, _index, _list) {
     this.#requestRegeneration = true;
   }
+
+  /**
+   * Appends one placement per authored locator, copying its position, direction, scale and bone index, and clears the regeneration request.
+   *
+   * @param placements Caller-owned pool array that is appended to.
+   * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
+   */
   GetInitialPlacements(placements, trackingID) {
     for (const locator of this.locators) {
       const data = new _PlacementDataWithIde();
@@ -44,9 +53,13 @@ class EveDistributionPlacementGeneratorLocators extends CjsModel {
     }
     this.#requestRegeneration = false;
   }
+
+  /** Reports whether the locator list changed since the pool was last generated. */
   IsRequestingRegeneration() {
     return this.#requestRegeneration;
   }
+
+  /** No per-frame work; this generator only reacts to locator list changes. */
   UpdateSyncronous(_updateContext, _params, _owner) {}
   static {
     _initClass();

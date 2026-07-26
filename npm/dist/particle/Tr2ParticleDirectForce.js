@@ -4,6 +4,8 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_force, _init_extra_force;
+
+/** Constant particle force vector, applied identically to every particle. */
 let _Tr2ParticleDirectFor;
 class Tr2ParticleDirectForce extends CjsModel {
   static {
@@ -25,6 +27,11 @@ class Tr2ParticleDirectForce extends CjsModel {
   GetForce(_position, _velocity, _dt, _mass, out = vec3.create()) {
     return vec3.copy(out, this.force);
   }
+
+  /**
+   * Nothing to advance per frame: the force vector is authored and never
+   * changes.
+   */
   Update(_dt) {}
   static {
     _initClass();

@@ -10,6 +10,12 @@ import { EveChildUpdateParams as _EveChildUpdateParams } from '../../EveChildUpd
 import { getTime, sampleVector, updateChildSync, translationMatrix, updateCurveSet, makeEndpointTransforms, updateChildAsync, makeStretchTransform, updateChildVisibility, collectRenderables, mergeSphere, getCurveDuration } from './CjsStretchRuntime.js';
 
 let _initProto, _initClass, _init_sourcePosition, _init_extra_sourcePosition, _init_destinationPosition, _init_extra_destinationPosition, _init_source, _init_extra_source, _init_dest, _init_extra_dest, _init_name, _init_extra_name, _init_moveProgression, _init_extra_moveProgression, _init_stretchAudio, _init_extra_stretchAudio, _init_controllers, _init_extra_controllers, _init_curveSets, _init_extra_curveSets, _init_length, _init_extra_length, _init_dynamicBindings, _init_extra_dynamicBindings, _init_display, _init_extra_display, _init_update, _init_extra_update, _init_destObject, _init_extra_destObject, _init_sourceObject, _init_extra_sourceObject, _init_stretchObject, _init_extra_stretchObject, _init_startTime, _init_extra_startTime, _init_audio, _init_extra_audio, _init_moveObject, _init_extra_moveObject;
+
+/**
+ * The current stretch effect: places space-object children at the source, across
+ * the span, at the destination and at a travelling point between them, driven by
+ * its own controllers, dynamic bindings and curve sets.
+ */
 let _EveStretch;
 new class extends _identity {
   static [class EveStretch3 extends _EveEntity {
@@ -48,6 +54,11 @@ new class extends _identity {
     #delay = 0;
     #isMuzzleEffect = false;
     #stretchState = _EveStretch.StretchState.STRETCH_STATE_UNDEFINED;
+
+    /**
+     * Post-hydration hook; links any controller that is not already linked and
+     * takes ownership of the dynamic bindings.
+     */
     Initialize() {
       for (const controller of this.controllers) {
         if (!controller?.IsLinked?.()) controller?.Link?.(this);
@@ -55,20 +66,42 @@ new class extends _identity {
       this.#InitializeBindings();
       return true;
     }
+
+    /**
+     * The space object standing in as parent for the source-side children, or
+     * null.
+     */
     GetSourceSpaceObject() {
       return this.#sourceSpaceObject;
     }
+
+    /**
+     * Sets the space object used as parent for the source-side children and
+     * relinks the dynamic bindings, since it is one of their roots.
+     */
     SetSourceSpaceObject(value) {
       this.#sourceSpaceObject = value ?? null;
       this.#InitializeBindings();
     }
+
+    /** The space object standing in as parent for the destination child, or null. */
     GetDestSpaceObject() {
       return this.#destinationSpaceObject;
     }
+
+    /**
+     * Sets the space object used as parent for the destination child and relinks
+     * the dynamic bindings, since it is one of their roots.
+     */
     SetDestSpaceObject(value) {
       this.#destinationSpaceObject = value ?? null;
       this.#InitializeBindings();
     }
+
+    /**
+     * Relinks the dynamic bindings and evaluates them once at time zero, and unless only the bindings were asked for, relinks the controllers.
+     * @param {Boolean} [onlyUpdateBindings] - leave the controllers linked as they are
+     */
     Rebind(onlyUpdateBindings = false) {
       for (const binding of this.dynamicBindings) {
         binding?.Link?.();
@@ -78,6 +111,12 @@ new class extends _identity {
         for (const controller of this.controllers) controller?.Link?.(this);
       }
     }
+
+    /**
+     * Builds the prototype-free name map that bindings and controllers resolve
+     * against: every curve set under its own name, plus Owner, the source and
+     * destination space objects, and the root object of each child.
+     */
     GetParameterMap() {
       const out = Object.create(null);
       for (const curveSet of this.curveSets) {
@@ -93,6 +132,12 @@ new class extends _identity {
       if (this.stretchObject) out.StretchObject = this.stretchObject?.GetRootObject?.() ?? this.stretchObject;
       return out;
     }
+
+    /**
+     * Fills out with the fixed binding roots - Owner, Source, Dest, Stretch, Move and the two space objects - under their binding-path names.
+     * @param {Object} [out] - caller-owned map, mutated in place
+     * @returns {Object} out
+     */
     GetBindingRoots(out = {}) {
       out.Owner = this;
       out.Source = this.sourceObject;
@@ -103,6 +148,12 @@ new class extends _identity {
       out.DestSpaceObject = this.#destinationSpaceObject;
       return out;
     }
+
+    /**
+     * Applies Carbon's IList ownership callbacks for the controllers and
+     * dynamic-binding lists - linking on insert, unlinking on remove, unlinking
+     * every controller on unload - and ignores events flagged as loading.
+     */
     OnListModified(event, _key = 0, _key2 = 0, value = null, list = null) {
       if ((event & BELIST_LOADING) !== 0) return;
       const maskedEvent = event & BELIST_EVENTMASK;
@@ -119,6 +170,17 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Applies a pending firing transition (starting sets the FiringDelay and
+     * IsFiring controller variables, stopping clears IsFiring), advances the
+     * bindings and controllers, samples the endpoint curves, records the span in
+     * length, and drives each child's synchronous phase with a fresh parameter
+     * block: the source and stretch children under the source space object, the
+     * move child at the interpolated offset, and the destination child under the
+     * destination space object at its scaled placement. Skipped entirely while
+     * update is false.
+     */
     UpdateSynchronous(context) {
       if (!this.update) return true;
       if (this.#stretchState === _EveStretch.StretchState.STRETCH_STATE_STARTING) {
@@ -153,9 +215,21 @@ new class extends _identity {
       }
       return true;
     }
+
+    /** Carbon's IEveSpaceObject2 spelling of UpdateSynchronous; forwards unchanged. */
     UpdateSyncronous(context) {
       return this.UpdateSynchronous(context);
     }
+
+    /**
+     * Advances the curve sets on time measured from the first asynchronous update,
+     * then places each child: the source at the span basis, or verbatim at the
+     * muzzle transform when SetFiringTransform supplied one; the stretch child
+     * spanning the endpoints and re-centred on their midpoint; the move child at
+     * the interpolated position carrying the span orientation; and the destination
+     * at its scaled basis. Finally feeds both audio objects the current endpoints.
+     * Skipped entirely while update is false.
+     */
     UpdateAsynchronous(context) {
       if (!this.update) return true;
       const time = getTime(context);
@@ -189,16 +263,43 @@ new class extends _identity {
       this.stretchAudio?.Update?.(this.sourcePosition, this.destinationPosition);
       return true;
     }
+
+    /**
+     * Carbon's IEveSpaceObject2 spelling of UpdateAsynchronous; forwards
+     * unchanged.
+     */
     UpdateAsyncronous(context) {
       return this.UpdateAsynchronous(context);
     }
+
+    /**
+     * IEveFiringEffectElement synchronous hook; runs the normal synchronous
+     * update.
+     */
     UpdateEffectSync(context) {
       return this.UpdateSynchronous(context);
     }
+
+    /**
+     * IEveFiringEffectElement asynchronous hook; runs the normal asynchronous
+     * update.
+     */
     UpdateEffectAsync(context) {
       return this.UpdateAsynchronous(context);
     }
+
+    /**
+     * IEveFiringEffectElement move hook; EveStretch3 drives its travelling child
+     * from the moveProgression value instead of a start event.
+     */
     StartMoving() {}
+
+    /**
+     * Hands each child its visibility placement: the endpoint children as plain
+     * translations (the destination scaled), the stretch child the parent
+     * transform unchanged, and the move child the span orientation moved to the
+     * interpolated position. No GPU work happens here.
+     */
     UpdateVisibility(context, parentTransform = _EveStretch.#identity) {
       if (!this.display) return;
       updateChildVisibility(this.sourceObject, context, translationMatrix(this.sourcePosition, _EveStretch.#sourceVisibility));
@@ -211,13 +312,29 @@ new class extends _identity {
       _EveStretch.#moveVisibility[14] = _EveStretch.#movePosition[2];
       updateChildVisibility(this.moveObject, context, _EveStretch.#moveVisibility);
     }
+
+    /**
+     * Appends every child's renderables to out while displayed; batch construction is left to runtime-engine.
+     * @returns {Array} out
+     */
     GetRenderables(out = []) {
       if (this.display) for (const component of this.#components()) collectRenderables(component, out);
       return out;
     }
+
+    /**
+     * Shows or hides the stretch, gating visibility, renderable collection,
+     * curve-set control and component registration.
+     */
     SetDisplay(display) {
       this.display = !!display;
     }
+
+    /**
+     * Merges the bounding spheres of every child, including the travelling one.
+     * @param {Array} out - caller-owned packed (x, y, z, radius), overwritten
+     * @returns {Boolean} whether any child contributed a sphere
+     */
     GetBoundingSphere(out = vec4.create()) {
       vec4.set(out, 0, 0, 0, 0);
       let valid = false;
@@ -229,6 +346,11 @@ new class extends _identity {
       }
       return valid;
     }
+
+    /**
+     * Longest curve-set duration in seconds, each divided by that set's own time
+     * scale.
+     */
     GetCurveDuration() {
       let duration = 0;
       for (const curveSet of this.curveSets) {
@@ -237,15 +359,32 @@ new class extends _identity {
       }
       return duration;
     }
+
+    /**
+     * Requests a firing start; the controller variables are only applied on the next synchronous update, while the stretch audio starts immediately.
+     * @param {Number} [delay] - seconds handed to the controllers as the FiringDelay variable
+     */
     StartFiring(delay = 0) {
       this.#delay = Number(delay);
       this.#stretchState = _EveStretch.StretchState.STRETCH_STATE_STARTING;
       this.stretchAudio?.Start?.();
     }
+
+    /**
+     * Requests a firing stop; IsFiring is cleared on the next synchronous update,
+     * while the stretch audio stops immediately.
+     */
     StopFiring() {
       this.#stretchState = _EveStretch.StretchState.STRETCH_STATE_STOPPING;
       this.stretchAudio?.Stop?.();
     }
+
+    /**
+     * Pins both endpoints explicitly and drops the source and dest position curves
+     * so they cannot overwrite them. A 16-element source marks this a muzzle
+     * effect, whose transform is used verbatim for the source child instead of the
+     * derived span basis.
+     */
     SetFiringTransform(source, destination) {
       this.source = null;
       this.dest = null;
@@ -260,23 +399,53 @@ new class extends _identity {
       }
       vec3.copy(this.destinationPosition, destination);
     }
+
+    /** IEveFiringEffectElement hook; EveStretch3 cannot hide individual endpoints. */
     DisplayEndPoints(_displaySource, _displayDestination) {}
+
+    /**
+     * Uniform scale applied to the destination child's placement in both the
+     * synchronous and asynchronous passes.
+     */
     SetDestObjectScale(scale) {
       this.#destinationScale = Number(scale);
     }
+
+    /**
+     * IEveFiringEffectElement intensity hook; EveStretch3 has no intensity term of
+     * its own.
+     */
     SetIntensity(_intensity) {}
+
+    /**
+     * Sets a controller variable on every child and on this stretch's own
+     * controllers.
+     */
     SetControllerVariable(name, value) {
       for (const component of this.#components()) component?.SetControllerVariable?.(name, value);
       for (const controller of this.controllers) controller?.SetVariable?.(name, value);
     }
+
+    /**
+     * Delivers a controller event to every child and to this stretch's own
+     * controllers.
+     */
     HandleControllerEvent(name) {
       for (const component of this.#components()) component?.HandleControllerEvent?.(name);
       for (const controller of this.controllers) controller?.HandleEvent?.(name);
     }
+
+    /** Starts every child's controllers and this stretch's own. */
     StartControllers() {
       for (const component of this.#components()) component?.StartControllers?.();
       for (const controller of this.controllers) controller?.Start?.();
     }
+
+    /**
+     * Plays every local curve set with the given name - over a named time range
+     * when one is given, otherwise from the start with the range reset - and
+     * forwards the call to the children. Ignored while hidden.
+     */
     PlayCurveSet(name, rangeName = "") {
       if (!this.display) return;
       for (const curveSet of this.curveSets) {
@@ -288,15 +457,31 @@ new class extends _identity {
       }
       for (const component of this.#components()) component?.PlayCurveSet?.(name, rangeName);
     }
+
+    /**
+     * Stops every local curve set with the given name and forwards the call to the
+     * children. Ignored while hidden.
+     */
     StopCurveSet(name) {
       if (!this.display) return;
       for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) curveSet.Stop?.();
       for (const component of this.#components()) component?.StopCurveSet?.(name);
     }
+
+    /**
+     * Advances every local curve set with the given name to an explicit time and
+     * forwards the call to the children; unlike play and stop this is not gated on
+     * display.
+     */
     UpdateCurveSet(name, time) {
       for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) updateCurveSet(curveSet, time);
       for (const component of this.#components()) component?.UpdateCurveSet?.(name, time);
     }
+
+    /**
+     * Longest duration of the named curve set across this stretch and its
+     * children; 0 while hidden.
+     */
     GetCurveSetDuration(name) {
       if (!this.display) return 0;
       let duration = 0;
@@ -304,6 +489,11 @@ new class extends _identity {
       for (const component of this.#components()) duration = Math.max(duration, Number(component?.GetCurveSetDuration?.(name) ?? 0));
       return duration;
     }
+
+    /**
+     * Longest duration of a named time range within the named curve set, across
+     * this stretch and its children; 0 while hidden.
+     */
     GetRangeDuration(name, rangeName) {
       if (!this.display) return 0;
       let duration = 0;
@@ -311,6 +501,11 @@ new class extends _identity {
       for (const component of this.#components()) duration = Math.max(duration, Number(component?.GetRangeDuration?.(name, rangeName) ?? 0));
       return duration;
     }
+
+    /**
+     * First emitter with the given name from the audio object, falling back to the
+     * stretch audio, or null when neither has one.
+     */
     FindSoundEmitter(name) {
       return this.audio?.FindEmitterByName?.(name) ?? this.stretchAudio?.FindEmitterByName?.(name) ?? null;
     }
@@ -337,15 +532,30 @@ new class extends _identity {
         this.stretchObject?.UnRegister?.(registry);
       }
     }
+
+    /**
+     * The non-null children in Carbon's RunOnComponents order: source,
+     * destination, stretch, then the travelling child.
+     */
     #components() {
       return [this.sourceObject, this.destObject, this.stretchObject, this.moveObject].filter(Boolean);
     }
+
+    /**
+     * Takes ownership of every dynamic binding and links it, so the bindings
+     * resolve against this stretch's roots.
+     */
     #InitializeBindings() {
       for (const binding of this.dynamicBindings) {
         binding?.SetOwner?.(this);
         binding?.Link?.();
       }
     }
+
+    /**
+     * A fresh child-update parameter block carrying this stretch's visibility;
+     * each call site fills in the parent object and the world placement.
+     */
     #makeParams() {
       const params = new _EveChildUpdateParams();
       params.isVisible = this.display;

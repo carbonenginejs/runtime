@@ -6,6 +6,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_scaling, _init_extra_scaling, _init_rotation, _init_extra_rotation, _init_translation, _init_extra_translation;
+
+/**
+ * Transform modifier that applies a fixed scale, rotation and translation ahead
+ * of the child's own transform.
+ */
 let _EveChildModifierSRT;
 new class extends _identity {
   static [class EveChildModifierSRT extends CjsModel {

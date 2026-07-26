@@ -7,6 +7,12 @@ import { EveChildTransform as _EveChildTransform } from './EveChildTransform.js'
 import { EveComponentType } from '../EveComponentTypes.js';
 
 let _initProto, _initClass, _init_priority, _init_extra_priority, _init_volumes, _init_extra_volumes, _init_boundingSphereCenter, _init_extra_boundingSphereCenter, _init_boundingSphereRadius, _init_extra_boundingSphereRadius, _init_name, _init_extra_name, _init_intensity, _init_extra_intensity, _init_thickness, _init_extra_thickness, _init_thicknessEnabled, _init_extra_thicknessEnabled, _init_lightDirectionality, _init_extra_lightDirectionality, _init_lightDirectionalityEnabled, _init_extra_lightDirectionalityEnabled, _init_environmentIntensity, _init_extra_environmentIntensity, _init_environmentIntensityEnabled, _init_extra_environmentIntensityEnabled, _init_environmentDirectionality, _init_extra_environmentDirectionality, _init_environmentDirectionalityEnabled, _init_extra_environmentDirectionalityEnabled, _init_fogColor, _init_extra_fogColor, _init_fogColorEnabled, _init_extra_fogColorEnabled, _init_backgroundVisibility, _init_extra_backgroundVisibility, _init_backgroundVisibilityEnabled, _init_extra_backgroundVisibilityEnabled, _init_godRayNoiseIntensity, _init_extra_godRayNoiseIntensity, _init_godRayNoiseIntensityEnabled, _init_extra_godRayNoiseIntensityEnabled, _init_godRayNoiseFrequency, _init_extra_godRayNoiseFrequency, _init_godRayNoiseFrequencyEnabled, _init_extra_godRayNoiseFrequencyEnabled, _init_godRayNoiseAnimationSpeed, _init_extra_godRayNoiseAnimationSpeed, _init_godRayNoiseAnimationSpeedEnabled, _init_extra_godRayNoiseAnimationSpeedEnabled, _init_fogNoiseIntensity, _init_extra_fogNoiseIntensity, _init_fogNoiseIntensityEnabled, _init_extra_fogNoiseIntensityEnabled, _init_fogNoiseFrequency, _init_extra_fogNoiseFrequency, _init_fogNoiseFrequencyEnabled, _init_extra_fogNoiseFrequencyEnabled;
+
+/**
+ * Space-object child that contributes a prioritized froxel fog settings
+ * override, its strength driven by how deeply the camera sits inside the volumes
+ * it owns.
+ */
 let _EveChildFogVolume;
 new class extends _identity {
   static [class EveChildFogVolume extends _EveChildTransform {
@@ -52,6 +58,12 @@ new class extends _identity {
     fogNoiseIntensityEnabled = (_init_extra_fogNoiseIntensity(this), _init_fogNoiseIntensityEnabled(this, false));
     fogNoiseFrequency = (_init_extra_fogNoiseIntensityEnabled(this), _init_fogNoiseFrequency(this, 15));
     fogNoiseFrequencyEnabled = (_init_extra_fogNoiseFrequency(this), _init_fogNoiseFrequencyEnabled(this, false));
+
+    /**
+     * Recomputes the local bounding sphere as the union of the child volumes'
+     * spheres, skipping volumes with a missing centre or a non-finite/negative
+     * radius; returns whether any volume contributed.
+     */
     RebuildBoundingSphere() {
       vec3.set(this.boundingSphereCenter, 0, 0, 0);
       this.boundingSphereRadius = 0;
@@ -69,17 +81,41 @@ new class extends _identity {
       }
       return initialized;
     }
+
+    /**
+     * The authored name, persisted with the volume and used to identify it in the
+     * parent graph.
+     */
     GetName() {
       return this.name;
     }
+
+    /** Sets the authored volume name, coercing nullish to the empty string. */
     SetName(name) {
       this.name = String(name ?? "");
     }
+
+    /**
+     * Copies the cached local-space bounding sphere into out and always reports success, even before any volume has contributed (in which case it is the zero-radius sphere at the origin).
+     * @param {Float32Array} [out] - caller-owned; receives (x, y, z, radius)
+     * @returns {Boolean} always true
+     */
     GetBoundingSphere(out = vec4.create()) {
       vec4.set(out, this.boundingSphereCenter[0], this.boundingSphereCenter[1], this.boundingSphereCenter[2], this.boundingSphereRadius);
       return true;
     }
+
+    /** No-op: a fog volume carries no sync-side frame work. */
     UpdateSyncronous(_updateContext, _params) {}
+
+    /**
+     * Rebuilds the world transform and bounding sphere, then resolves the fog
+     * intensity for the frame: with no volumes the authored intensity applies
+     * directly; otherwise the camera is moved into local space and, only while it
+     * is inside the bounding sphere, the strongest volume intensity there
+     * (short-circuiting at 1) is scaled by the authored intensity - a camera
+     * outside leaves the intensity at zero.
+     */
     UpdateAsyncronous(updateContext, params = {}) {
       this.UpdateTransform(params.localToWorldTransform ?? mat4.create());
       const initialized = this.RebuildBoundingSphere();
@@ -99,15 +135,33 @@ new class extends _identity {
       }
       this.#fogIntensity *= this.intensity;
     }
+
+    /**
+     * Copies the child's world transform, as rebuilt by the last async update.
+     * @param {Float32Array} [out] - caller-owned; allocated when omitted
+     * @returns {Float32Array} out
+     */
     GetLocalToWorldTransform(out = mat4.create()) {
       return mat4.copy(out, this.worldTransform);
     }
+
+    /**
+     * Applies the authored scale/rotation/translation through the shared child
+     * transform setup.
+     */
     Setup(scale, rotation, translation, lowestLodVisible) {
       return super.Setup(scale, rotation, translation, lowestLodVisible);
     }
+
+    /** Returns true unconditionally - a fog volume reports itself as always on. */
     IsAlwaysOn() {
       return true;
     }
+
+    /**
+     * Builds the initial bounding sphere from the authored volumes so the first
+     * frame can already reject an outside camera.
+     */
     Initialize() {
       this.RebuildBoundingSphere();
       return true;
@@ -124,6 +178,13 @@ new class extends _identity {
         registry.RegisterComponent(EveComponentType.FroxelFogSettings, this);
       }
     }
+
+    /**
+     * Returns this child's contribution to the froxel fog system: its priority,
+     * the intensity resolved by the last async update, and every optional
+     * attribute as a {value, enabled} pair so the consumer can tell an override
+     * from a default.
+     */
     GetFroxelFogSettings() {
       const attribute = (value, enabled) => ({
         value,
@@ -145,9 +206,20 @@ new class extends _identity {
         fogNoiseFrequency: attribute(this.fogNoiseFrequency, this.fogNoiseFrequencyEnabled)
       };
     }
+
+    /** No-op: a fog volume is not renderable and keeps no visibility state. */
     UpdateVisibility(_updateContext, _parentTransform, _parentLod) {}
+
+    /** No-op: a fog volume contributes settings, never renderables. */
     GetRenderables(_renderables) {}
+
+    /** No-op: a fog volume has no LOD levels. */
     ChangeLOD(_lod) {}
+    /**
+     * Grows the accumulated bounding sphere so it also encloses the given sphere,
+     * short-circuiting when either sphere already contains the other and handling
+     * coincident centres.
+     */
     #UnionSphere(sphere) {
       const delta = vec3.subtract(vec3.create(), sphere.center, this.boundingSphereCenter);
       const distance = vec3.length(delta);

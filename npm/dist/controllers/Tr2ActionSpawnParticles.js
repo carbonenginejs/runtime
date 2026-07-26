@@ -5,6 +5,11 @@ import { ITr2GenericEmitter as _ITr2GenericEmitter } from '../generated/particle
 import { ITr2ControllerAction } from './ITr2ControllerAction.js';
 
 let _initProto, _initClass, _init_emitter, _init_extra_emitter, _init_rate, _init_extra_rate;
+
+/**
+ * Controller action that emits a one-shot burst of particles from a dynamic
+ * emitter when it starts.
+ */
 let _Tr2ActionSpawnPartic;
 new class extends _identity {
   static [class Tr2ActionSpawnParticles extends CjsModel {
@@ -33,6 +38,11 @@ new class extends _identity {
       }
       this.emitter.SpawnParticles(_Tr2ActionSpawnPartic.#createEmitterUpdateArguments(), null, null, this.rate);
     }
+
+    /**
+     * Builds the emitter update arguments used for a manual spawn, with an emit
+     * count factor of 1 so the authored rate is applied unscaled.
+     */
   }];
   #createEmitterUpdateArguments() {
     const args = new _ITr2GenericEmitter();

@@ -5,6 +5,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { Locator as _Locator } from './Locator.js';
 
 let _initProto, _initClass, _init_locators, _init_extra_locators, _init_name, _init_extra_name;
+
+/**
+ * Named group of locators that a space object publishes for turrets, effects and
+ * distributions to attach to.
+ */
 let _EveLocatorSets;
 new class extends _identity {
   static [class EveLocatorSets extends CjsModel {
@@ -23,6 +28,11 @@ new class extends _identity {
     }
     locators = (_initProto(this), _init_locators(this, []));
     name = (_init_extra_locators(this), _init_name(this, ""));
+
+    /**
+     * Shifts the position of every locator in the set by an offset, doing nothing
+     * for a zero offset.
+     */
     Translate(offset) {
       if (_EveLocatorSets.#lengthSq(offset) === 0) {
         return;
@@ -31,27 +41,54 @@ new class extends _identity {
         vec3.add(locator.position, locator.position, offset);
       }
     }
+
+    /**
+     * Appends copies of the given locators, so the set never aliases the caller's
+     * records.
+     */
     Append(locators) {
       for (const locator of locators) {
         this.locators.push(_Locator.from(locator));
       }
     }
+
+    /**
+     * Reports whether the set carries exactly this name; set lookups are an exact
+     * string match.
+     */
     HasName(name) {
       return this.name === String(name);
     }
+
+    /** Returns the set's live locator list, not a copy. */
     GetLocators() {
       return this.locators;
     }
+
+    /** Returns the name callers look this set up by. */
     GetName() {
       return this.name;
     }
+
+    /** Sets the name callers look this set up by, coercing the value to a string. */
     SetName(name) {
       this.name = String(name);
     }
+
+    /**
+     * Replaces both the set name and its whole locator list with copies of the
+     * given locators.
+     */
     Set(name, locators) {
       this.SetName(name);
       this.locators = locators.map(locator => _Locator.from(locator));
     }
+
+    /**
+     * Overwrites the locator at an index from a plain value, defaulting a missing
+     * scale to zero and a missing bone index to 0; an index outside the list is
+     * ignored.
+     */
     SetLocator(index, value) {
       const existing = this.locators[index];
       if (existing) {
@@ -63,6 +100,11 @@ new class extends _identity {
         });
       }
     }
+
+    /**
+     * Squared length of a three-component value, used to test an offset for being
+     * zero without a square root.
+     */
   }];
   #lengthSq(value) {
     return value[0] * value[0] + value[1] * value[1] + value[2] * value[2];

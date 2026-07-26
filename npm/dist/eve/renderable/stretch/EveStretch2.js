@@ -8,6 +8,12 @@ import { EveComponentType } from '../../EveComponentTypes.js';
 import { getCurveDuration, getTime, updateCurveSet, makeEndpointTransforms, getOriginShift } from './CjsStretchRuntime.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_loop, _init_extra_loop, _init_start, _init_extra_start, _init_end, _init_extra_end, _init_effect, _init_extra_effect, _init_destinationEmitter, _init_extra_destinationEmitter, _init_sourceEmitter, _init_extra_sourceEmitter, _init_quadCount, _init_extra_quadCount, _init_destinationObserver, _init_extra_destinationObserver, _init_sourceObserver, _init_extra_sourceObserver, _init_destinationLight, _init_extra_destinationLight, _init_sourceLight, _init_extra_sourceLight, _init_boundingRadius, _init_extra_boundingRadius;
+
+/**
+ * A simplified stretch that renders the span between two points as a strip of
+ * quads with its own effect, end emitters, observers and point lights, instead
+ * of hosting child objects.
+ */
 let _EveStretch;
 new class extends _identity {
   static [class EveStretch2 extends _EveEntity {
@@ -44,52 +50,113 @@ new class extends _identity {
     #startTime = 0;
     #intensity = 1;
     #effectData = [vec4.fromValues(0, 0, 0, Math.random()), vec4.fromValues(1, 0, 0, 0)];
+
+    /**
+     * Post-hydration hook; validates the authored quad count. Carbon also builds
+     * the procedural GPU buffers here, which is engine work in this port.
+     */
     Initialize() {
       return this.OnModified();
     }
+
+    /**
+     * Re-validates quadCount against the 128-quad procedural geometry limit after
+     * a model update and throws a RangeError when it is exceeded.
+     */
     OnModified() {
       if (this.quadCount > _EveStretch.MAX_QUAD_COUNT) {
         throw new RangeError(`EveStretch2.quadCount must be <= ${_EveStretch.MAX_QUAD_COUNT}`);
       }
       return true;
     }
+
+    /**
+     * Sets the destination-end scale and adopts it as the current one, undoing any
+     * hidden-destination override left by DisplayEndPoints.
+     */
     SetDestObjectScale(scale) {
       this.#destinationScale = this.#currentDestinationScale = Number(scale);
     }
+
+    /** IEveFiringEffectElement move hook; EveStretch2 has no travelling child. */
     StartMoving() {}
+
+    /** Longer of the start and loop curve-set durations. */
     GetCurveDuration() {
       return Math.max(getCurveDuration(this.start), getCurveDuration(this.loop));
     }
+
+    /**
+     * Begins a shot: reseeds the per-shot random value carried in the effect data, plays the start and loop sets from -delay and stops the end set.
+     * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
+     */
     StartFiring(delay = 0) {
       this.#effectData[0][3] = Math.random();
       this.start?.PlayFrom?.(-delay);
       this.loop?.PlayFrom?.(-delay);
       this.end?.Stop?.();
     }
+
+    /** Ends a shot: stops the start and loop sets and plays the end set. */
     StopFiring() {
       this.start?.Stop?.();
       this.loop?.Stop?.();
       this.end?.Play?.();
     }
+
+    /**
+     * Sets both endpoints, accepting either a 16-element source transform - of
+     * which only the translation is kept, since the span orientation is rebuilt
+     * each update - or a source position.
+     */
     SetFiringTransform(source, destination) {
       if (source?.length === 16) mat4.getTranslation(this.#source, source);else vec3.copy(this.#source, source);
       vec3.copy(this.#destination, destination);
     }
+
+    /**
+     * Hides the destination end by zeroing its current scale; the source end is
+     * always drawn, so the source flag is ignored.
+     */
     DisplayEndPoints(_displaySource, displayDestination) {
       this.#currentDestinationScale = displayDestination ? this.#destinationScale : 0;
     }
+
+    /**
+     * Shows or hides the stretch, gating visibility, renderable collection and
+     * light contribution.
+     */
     SetDisplay(display) {
       this.#visible = !!display;
     }
+
+    /**
+     * Sets the intensity uploaded in per-object data, clamped to zero at the
+     * bottom; a zero intensity also suppresses visibility, renderables and lights.
+     */
     SetIntensity(intensity) {
       this.#intensity = Math.max(0, Number(intensity));
     }
+
+    /**
+     * IEveFiringEffectElement synchronous hook; EveStretch2 does all of its work
+     * in the asynchronous phase.
+     */
     UpdateEffectSync(_context) {
       return true;
     }
+
+    /** IEveFiringEffectElement asynchronous hook; runs Update. */
     UpdateEffectAsync(context) {
       return this.Update(context);
     }
+
+    /**
+     * Advances the start, loop and end curve sets on time measured from the first
+     * update, records each set's scaled time into the effect data that
+     * GetPerObjectData uploads, rebuilds the two endpoint bases, and drives the
+     * end observers and GPU emitters from them.
+     */
     Update(context) {
       const time = getTime(context);
       if (this.#startTime === 0) this.#startTime = time;
@@ -118,6 +185,11 @@ new class extends _identity {
       });
       return true;
     }
+
+    /**
+     * Frustum-tests a box in the source basis that reaches boundingRadius sideways and the endpoint distance plus boundingRadius forwards, caching the result for GetRenderables; a hidden or zero-intensity stretch fails without testing, and a frustum that cannot test boxes passes.
+     * @returns {Boolean} whether the stretch is in frustum
+     */
     UpdateVisibility(context) {
       if (!(this.#visible && this.#intensity > 0)) {
         this.#inFrustum = false;
@@ -132,6 +204,11 @@ new class extends _identity {
       this.#inFrustum = frustum?.IsBoxVisible ? !!frustum.IsBoxVisible(bounds) : true;
       return this.#inFrustum;
     }
+
+    /**
+     * Pushes the stretch itself when displayed, non-zero intensity and in frustum; the quad strip is built by the engine from the per-object data, not here.
+     * @returns {Array} out
+     */
     GetRenderables(out = []) {
       if (this.#visible && this.#intensity > 0 && this.#inFrustum) out.push(this);
       return out;
@@ -150,6 +227,12 @@ new class extends _identity {
       data.Set("effectData", this.#effectData[1], 1);
       return data;
     }
+
+    /**
+     * Offers the source and destination point lights at their endpoint bases, the
+     * destination scaled by its current scale; nothing is offered while hidden or
+     * at zero intensity.
+     */
     GetLights(lightManager) {
       if (!(this.#visible && this.#intensity > 0)) return;
       this.sourceLight?.AddLight?.(lightManager, this.#sourceTransform, 1);
@@ -167,15 +250,39 @@ new class extends _identity {
         registry.RegisterComponent(EveComponentType.LightOwner, this);
       }
     }
+
+    /**
+     * Copies the source endpoint position.
+     * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
+     * @returns {Array} out
+     */
     GetSourcePosition(out = vec3.create()) {
       return vec3.copy(out, this.#source);
     }
+
+    /**
+     * Copies the destination endpoint position.
+     * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
+     * @returns {Array} out
+     */
     GetDestinationPosition(out = vec3.create()) {
       return vec3.copy(out, this.#destination);
     }
+
+    /**
+     * Copies the source endpoint basis, which is only valid once Update has run.
+     * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+     * @returns {Array} out
+     */
     GetSourceTransform(out = mat4.create()) {
       return mat4.copy(out, this.#sourceTransform);
     }
+
+    /**
+     * Copies the destination endpoint basis, which is only valid once Update has run.
+     * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+     * @returns {Array} out
+     */
     GetDestinationTransform(out = mat4.create()) {
       return mat4.copy(out, this.#destinationTransform);
     }

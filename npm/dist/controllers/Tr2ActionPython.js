@@ -4,6 +4,12 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from './contracts.js';
 
 let _initProto, _initClass, _init_module, _init_extra_module, _init_className, _init_extra_className, _init_state, _init_extra_state;
+
+/**
+ * Controller action that delegates to a host-provided scripted action instance,
+ * forwarding link, start, stop and update callbacks and persisting the
+ * instance's own opaque state bytes.
+ */
 let _Tr2ActionPython;
 new class extends _identity {
   static [class Tr2ActionPython extends CjsModel {
@@ -200,6 +206,11 @@ new class extends _identity {
       this.#loadedState = null;
       this.#ensureInstance();
     }
+
+    /**
+     * Creates the host instance on first use and replays persisted state into it
+     * through OnLoad, guarding against loading the same state buffer twice.
+     */
     #ensureInstance() {
       if (!this.#instance) {
         this.#instance = _Tr2ActionPython.createInstance(this.module, this.className, this);

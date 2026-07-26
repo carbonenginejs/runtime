@@ -42,6 +42,12 @@ class EveDistributionSpawnerTriggerSphere extends CjsModel {
 
   /** m_reverseSphereAnimation (bool) [READWRITE, PERSIST] */
   reverseSphereAnimation = (_init_extra_delayBeforeActivation(this), _init_reverseSphereAnimation(this, false));
+
+  /**
+   * Sorts the pooled placements by their distance from the sphere offset and
+   * normalizes those distances into the 0..1 expansion order the update walks,
+   * then restarts.
+   */
   Reset(placements) {
     if (placements.length === 0) {
       return;
@@ -59,10 +65,21 @@ class EveDistributionSpawnerTriggerSphere extends CjsModel {
     }
     this.Restart();
   }
+
+  /**
+   * Rewinds the expansion to its first placement, or its last when the animation
+   * is reversed, and clears the play time.
+   */
   Restart() {
     this.#currentTrigger = this.reverseSphereAnimation ? this.#distSortedIndexes.length - 1 : 0;
     this.#currentPlayTime = 0;
   }
+
+  /**
+   * Advances the play time and triggers every placement the expanding sphere has
+   * reached, each subject to triggerChance, ending once the sorted order is
+   * exhausted or the play duration elapses.
+   */
   UpdateSyncronous(updateContext, _params, owner) {
     if (this.#distSortedIndexes.length === 0 || this.#currentPlayTime >= this.playDuration + this.delayBeforeActivation) {
       return;
@@ -96,6 +113,8 @@ class EveDistributionSpawnerTriggerSphere extends CjsModel {
       }
     }
   }
+
+  /** Ignores controller variables; the expansion is purely time-driven. */
   SetControllerVariable(_name, _value) {}
   static {
     _initClass();

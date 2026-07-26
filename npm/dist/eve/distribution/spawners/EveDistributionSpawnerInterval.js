@@ -37,14 +37,28 @@ class EveDistributionSpawnerInterval extends CjsModel {
 
   /** m_delayBeforeInitialSpawn (float) [READWRITE, PERSIST] */
   delayBeforeInitialSpawn = (_init_extra_maxRandomizedIntervalDelta(this), _init_delayBeforeInitialSpawn(this, 0));
+
+  /** Restarts the interval timer; the placement pool is not used by this spawner. */
   Reset(_placements) {
     this.Restart();
   }
+
+  /**
+   * Rearms the interval and clears the repeat count, optionally starting at a
+   * random point inside one interval and backing the timer off by the initial
+   * spawn delay.
+   */
   Restart() {
     this.#localTimer = this.useRandomStartOffset ? Math.random() * this.delayBetweenRepeats : 0;
     this.#localTimer -= this.delayBeforeInitialSpawn;
     this.#numTriggered = 0;
   }
+
+  /**
+   * Spawns one entity each time the timer passes the repeat delay, up to
+   * numberOfRepeats (unlimited when it is zero), reseeding the timer with a
+   * randomized interval delta.
+   */
   UpdateSyncronous(updateContext, _params, owner) {
     if (this.numberOfRepeats !== 0 && this.#numTriggered >= this.numberOfRepeats) {
       return;
@@ -56,6 +70,8 @@ class EveDistributionSpawnerInterval extends CjsModel {
       this.#localTimer = this.maxRandomizedIntervalDelta - 2 * Math.random() * this.maxRandomizedIntervalDelta;
     }
   }
+
+  /** Ignores controller variables; the interval is purely time-driven. */
   SetControllerVariable(_name, _value) {}
   static {
     _initClass();

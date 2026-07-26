@@ -4,6 +4,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
 let _initProto, _initClass, _init_destinationAttribute, _init_extra_destinationAttribute, _init_sourceAttribute, _init_extra_sourceAttribute, _init_destinationObject, _init_extra_destinationObject, _init_isEnabled, _init_extra_isEnabled, _init_name, _init_extra_name, _init_sourceObject, _init_extra_sourceObject, _init_offset, _init_extra_offset, _init_copyValueCallable, _init_extra_copyValueCallable, _init_scale, _init_extra_scale, _init_isWeak, _init_extra_isWeak, _init_isValid, _init_extra_isValid;
+
+/**
+ * Copies one attribute of a source object onto an attribute of a destination
+ * object, applying a scale and per-component offset through a type-checked copy
+ * plan built when the endpoints resolve.
+ */
 let _TriValueBinding;
 new class extends _identity {
   static [class TriValueBinding extends CjsModel {
@@ -62,6 +68,13 @@ new class extends _identity {
     /** m_isWeak (bool) [READ] */
     isWeak = (_init_extra_scale(this), _init_isWeak(this, false));
     isValid = (_init_extra_isWeak(this), _init_isValid(this, false));
+
+    /**
+     * Resolves both endpoints, builds the copy plan and sets isValid; a callable
+     * copyValueCallable short-circuits the whole plan, and an ITriReroutable
+     * destination is registered with and its rerouted buffer cached when it is
+     * large enough for the plan.
+     */
     Initialize() {
       this.#GetReroutableDestination()?.UnregisterBinding?.(this);
       this.#reroutableDestination = null;
@@ -112,6 +125,12 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Runs the callback or the planned copy once, writing through the rerouted
+     * buffer when one is installed and notifying the destination when its field
+     * declares notify; returns whether any value actually changed.
+     */
     CopyValue() {
       if (!this.isEnabled) return false;
       if (!this.isValid && !this.#callbackReady) this.Initialize();
@@ -135,13 +154,22 @@ new class extends _identity {
       }
       return changed;
     }
+
+    /** Re-resolves the endpoints and copy plan after any field change. */
     OnModified(_value = null) {
       this.Initialize();
       return true;
     }
+
+    /** The destination attribute string, including any .x/.r component suffix. */
     GetDestinationAttributeName() {
       return this.destinationAttribute;
     }
+
+    /**
+     * Rebinds the source endpoint, drops weak and reroute state, and leaves the
+     * binding invalid until the next Initialize.
+     */
     SetSource(sourceAttribute, sourceObject) {
       this.#GetReroutableDestination()?.UnregisterBinding?.(this);
       this.#reroutableDestination = null;
@@ -152,6 +180,11 @@ new class extends _identity {
       this.sourceObject = sourceObject ?? null;
       this.isValid = false;
     }
+
+    /**
+     * Rebinds the destination endpoint, unregistering from any reroutable
+     * destination, and leaves the binding invalid until the next Initialize.
+     */
     SetDestination(destinationAttribute, destinationObject) {
       this.#GetReroutableDestination()?.UnregisterBinding?.(this);
       this.#reroutableDestination = null;
@@ -162,9 +195,17 @@ new class extends _identity {
       this.destinationObject = destinationObject ?? null;
       this.isValid = false;
     }
+
+    /** Sets the multiplier applied to the source value before the offset is added. */
     SetScale(scale) {
       this.scale = Number(scale);
     }
+
+    /**
+     * Binds both endpoints through WeakRef so the binding keeps neither object
+     * alive, sets the scale and four-component offset, then initializes and
+     * returns whether the result is valid.
+     */
     CreateWeakBinding(source, sourceAttribute, destination, destinationAttribute, scale = 1, offset = [0, 0, 0, 0]) {
       this.#GetReroutableDestination()?.UnregisterBinding?.(this);
       this.#reroutableDestination = null;
@@ -188,18 +229,37 @@ new class extends _identity {
       this.Initialize();
       return this.isValid;
     }
+
+    /** Whether the last Initialize produced a usable copy plan. */
     IsValid() {
       return this.isValid;
     }
+
+    /**
+     * Dereferences the source endpoint, honouring weak mode; null once a weakly
+     * held source has been collected.
+     */
     GetCurrentSourceObject() {
       return this.isWeak ? this.#sourceObjectWeak?.deref?.() ?? null : this.sourceObject;
     }
+
+    /**
+     * Dereferences the destination endpoint, honouring weak mode; null once a
+     * weakly held destination has been collected.
+     */
     GetCurrentDestinationObject() {
       return this.isWeak ? this.#destinationObjectWeak?.deref?.() ?? null : this.destinationObject;
     }
+
+    /** Carbon's second name for GetCurrentSourceObject. */
     GetSourceObject() {
       return this.GetCurrentSourceObject();
     }
+
+    /**
+     * Rebinds the source object in place - weakly when the binding is weak - and
+     * re-initializes, keeping the attribute names.
+     */
     SetSourceObject(sourceObject) {
       if (this.isWeak) {
         this.#sourceObjectWeak = sourceObject && typeof WeakRef === "function" ? new WeakRef(sourceObject) : {
@@ -210,9 +270,16 @@ new class extends _identity {
       }
       this.Initialize();
     }
+
+    /** Carbon's second name for GetCurrentDestinationObject. */
     GetDestinationObject() {
       return this.GetCurrentDestinationObject();
     }
+
+    /**
+     * Rebinds the destination object in place - weakly when the binding is weak -
+     * unregistering from any previous reroutable destination, and re-initializes.
+     */
     SetDestinationObject(destinationObject) {
       this.#GetReroutableDestination()?.UnregisterBinding?.(this);
       this.#reroutableDestination = null;
@@ -225,12 +292,79 @@ new class extends _identity {
       }
       this.Initialize();
     }
+
+    /**
+     * Installs the buffer an ITriReroutable destination wants written instead of
+     * its own field; null restores direct field writes.
+     */
     RerouteDestination(destination) {
       this.#reroutedDestination = destination ?? null;
     }
+
+    /**
+     * Dereferences the registered reroutable destination, which is held weakly for
+     * weak bindings.
+     */
     #GetReroutableDestination() {
       return this.#reroutableDestination instanceof WeakRef ? this.#reroutableDestination.deref() ?? null : this.#reroutableDestination;
     }
+
+    /**
+     * Splits `field` or `field.x` into a name plus a component index (x/r zero
+     * through w/a three); null for an empty name or an unrecognized suffix.
+     */
+
+    /**
+     * Whether a component index is usable: either absent, or the value is
+     * array-like and long enough to hold it.
+     */
+
+    /**
+     * Classifies a value as a scalar or a fixed-length float array from its schema
+     * field kind, falling back to the runtime value's shape when the field is
+     * unknown; null when neither applies.
+     */
+
+    /**
+     * Chooses the copy strategy for a source/destination category pair, or null
+     * when the types are incompatible; the plan also records the byte size a
+     * rerouted destination buffer must provide.
+     */
+
+    /**
+     * Executes a copy plan, applying the scale and per-component offset, and
+     * returns whether any component actually changed.
+     */
+
+    /**
+     * Writes a scalar through whichever destination shape applies - a setter
+     * function, an array's first slot, a { value } holder, or the object's own
+     * field - returning false when the value is already equal.
+     */
+
+    /**
+     * Writes one array component, returning false when the index is out of range
+     * or the value is unchanged.
+     */
+
+    /**
+     * Truncates a number to the destination's integer or boolean kind; float kinds
+     * pass through unchanged.
+     */
+
+    /**
+     * Byte size of a scalar kind, used to size the rerouted-buffer requirement
+     * recorded in the copy plan.
+     */
+
+    /**
+     * Notifies the destination of the changed field through UpdateValues,
+     * OnValueChanged or OnModified, whichever it implements.
+     */
+
+    /** Whether the value is an array or a typed-array view. */
+
+    /** Whether a value can be held by WeakRef, i.e. an object or a function. */
   }];
   #ParseAttribute(attribute) {
     const value = String(attribute ?? "");

@@ -11,6 +11,11 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from '../itemSetBounds.js'
 import { MatrixCopyFrom3x4, AsPerPointLightData, CreateLightRecord } from '../../lights/lightConversion.js';
 
 let _initProto, _initClass, _init_spriteLines, _init_extra_spriteLines, _init_skinned, _init_extra_skinned, _init_effectHash, _init_extra_effectHash, _init_effect, _init_extra_effect, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_lights, _init_extra_lights;
+
+/**
+ * A hull's authored sprite runs - lines and circles of evenly spaced sprites -
+ * owning their static and per-bone bounds and the point lights they emit.
+ */
 let _EveSpriteLineSet;
 new class extends _identity {
   static [class EveSpriteLineSet extends _EveEntity {
@@ -41,6 +46,11 @@ new class extends _identity {
     /** Carbon m_activationStrength (ctor default 0, EveSpriteLineSet.cpp:26 -
      * NOT 1: packed-set lights are BLACK until UpdateLights runs). */
     #activationStrength = 0;
+
+    /**
+     * Recomputes the static and per-bone bounds from the authored sprite lines and
+     * marks the packed geometry stale.
+     */
     Rebuild() {
       // Position expansion is available on each item, but packed quad data,
       // effect hashes, bounds caches and registration belong to the adapter.
@@ -48,6 +58,11 @@ new class extends _identity {
       this.__state.rebuild.add("packedGeometry");
       CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spriteLines);
     }
+
+    /**
+     * Runs the first Rebuild so the set has bounds before its first visibility
+     * test.
+     */
     Initialize() {
       this.Rebuild();
       return true;
@@ -70,18 +85,35 @@ new class extends _identity {
       box3.transformMat4(aabb, aabb, parentTransform);
       return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
     }
+
+    /** Sets the drawing effect and the skinned flag in one call. */
     Setup(effect, isSkinned) {
       this.effect = effect ?? null;
       this.skinned = !!isSkinned;
     }
+
+    /**
+     * Appends an authored sprite line item; the bounds only pick it up on the next
+     * Rebuild.
+     */
     Add(item) {
       this.spriteLines.push(item);
     }
+
+    /**
+     * Sets a shader option on the sprite line effect, doing nothing when no effect
+     * that accepts options is attached.
+     */
     SetShaderOption(name, value) {
       if (this.effect && typeof this.effect.SetOption === "function") {
         this.effect.SetOption(name, value);
       }
     }
+
+    /**
+     * Converts a SOF-authored light description into an EveSpriteLight and appends
+     * it to the set.
+     */
     AddLightFromSOF(light) {
       this.lights.push(_EveSpriteLight.FromSOF(light));
     }

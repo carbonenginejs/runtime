@@ -6,6 +6,12 @@ import { Tr2CurveInterpolation, Tr2CurveExtrapolation, Tr2CurveTangentType } fro
 import { Tr2CurveScalarKey as _Tr2CurveScalarKey } from './Tr2CurveScalarKey.js';
 
 let _initProto, _initStatic, _initClass, _init_keys, _init_extra_keys, _init_name, _init_extra_name, _init_timeOffset, _init_extra_timeOffset, _init_timeScale, _init_extra_timeScale, _init_currentValue, _init_extra_currentValue, _init_extrapolationBefore, _init_extra_extrapolationBefore, _init_extrapolationAfter, _init_extra_extrapolationAfter;
+
+/**
+ * Keyed scalar curve evaluated in seconds, with per-key constant, linear or
+ * Hermite interpolation and independent clamp, linear, cycle or mirror
+ * extrapolation before the first and after the last key.
+ */
 let _Tr2CurveScalar;
 new class extends _identity {
   static [class Tr2CurveScalar extends CjsModel {
@@ -22,6 +28,11 @@ new class extends _identity {
       })], 16, "keys"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.float32], 16, "timeOffset"], [[io, io.persist, type, type.float32], 16, "timeScale"], [[io, io.read, type, type.float32], 16, "currentValue"], [[io, io.persist, type, type.uint32, void 0, schema.enum("Tr2CurveExtrapolation")], 16, "extrapolationBefore"], [[io, io.persist, type, type.uint32, void 0, schema.enum("Tr2CurveExtrapolation")], 16, "extrapolationAfter"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "Update"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetValueAt"], [[carbon, carbon.method, impl, impl.implemented], 18, "ScaleTime"], [[carbon, carbon.method, impl, impl.implemented], 18, "Length"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetTangent"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetTangentAt"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurrentValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetTimeOffset"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetTimeOffset"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetTimeScale"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetTimeScale"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsEmpty"], [[carbon, carbon.method, impl, impl.adapted], 18, "OnKeysChanged"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddKey"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetExtrapolation"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetKeys"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetDefinition"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetDefinition"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rasterize"], [[carbon, carbon.method, impl, impl.adapted], 26, "Rasterize"]], 0, void 0, CjsModel));
       _initStatic(this);
     }
+    /**
+     * Computes an AUTO key's tangent as the time-weighted blend of the incoming
+     * and outgoing secant slopes; a zero-length interval on either side
+     * contributes a slope of 0.
+     */
     static getAutoTangent(prevTime, prevValue, time, value, nextTime, nextValue) {
       let left = 0;
       if (time - prevTime > num.EPSILON) {
@@ -34,6 +45,12 @@ new class extends _identity {
       const x = (time - prevTime) / (nextTime - prevTime);
       return left * (1 - x) + right * x;
     }
+
+    /**
+     * Computes an AUTO_CLAMP key's tangent, returning 0 at a local extremum so the
+     * curve does not overshoot, and otherwise damping the through-slope by how
+     * close the key sits to its neighbours.
+     */
     static getAutoClampedTangent(prevTime, prevValue, _time, value, nextTime, nextValue) {
       if (value < prevValue && value < nextValue || value > prevValue && value > nextValue) {
         return 0;
@@ -46,6 +63,12 @@ new class extends _identity {
       keyDistance = num.min(1, num.min(keyDistance, 1 - keyDistance) * 6);
       return (nextValue - prevValue) / (nextTime - prevTime) * keyDistance;
     }
+
+    /**
+     * Evaluates one segment at a local time using the interpolation mode of its
+     * left key; Hermite tangents are authored per unit time and scaled by the
+     * segment length here.
+     */
     static getSegmentValue(time, k0, k1) {
       switch (k0.interpolation) {
         case Tr2CurveInterpolation.CONSTANT:
@@ -64,6 +87,12 @@ new class extends _identity {
           return 0;
       }
     }
+
+    /**
+     * Evaluates the slope of one segment at a local time; constant segments report
+     * 0 and Hermite segments report the cubic derivative rescaled back to
+     * per-unit-time.
+     */
     static getSegmentTangent(time, k0, k1) {
       switch (k0.interpolation) {
         case Tr2CurveInterpolation.CONSTANT:
@@ -83,6 +112,12 @@ new class extends _identity {
           return 0;
       }
     }
+
+    /**
+     * Folds a scaled time back into the [first, last] key range: CYCLE repeats the
+     * range and MIRROR reflects it on alternate repeats, with a zero-length range
+     * collapsing to the first key time.
+     */
     static getWrappedLocalTime(scaledTime, first, last, extrapolationBefore, extrapolationAfter) {
       const length = last - first;
       if (length === 0) {

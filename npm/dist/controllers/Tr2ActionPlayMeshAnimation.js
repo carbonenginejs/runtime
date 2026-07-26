@@ -6,6 +6,12 @@ import { ITr2ControllerAction } from './ITr2ControllerAction.js';
 import { Tr2BindingPoint as _Tr2BindingPoint } from './Tr2BindingPoint.js';
 
 let _initProto, _initClass, _init_destinationType, _init_extra_destinationType, _init_playAction, _init_extra_playAction, _init_stopAction, _init_extra_stopAction, _init_mask, _init_extra_mask, _init_animation, _init_extra_animation, _init_speed, _init_extra_speed, _init_delay, _init_extra_delay, _init_destination, _init_extra_destination, _init_delayBinding, _init_extra_delayBinding, _init_loops, _init_extra_loops, _init_path, _init_extra_path;
+
+/**
+ * Controller action that plays or enqueues a named geometry animation on a
+ * destination object's animation controller when it starts, and stops or
+ * enqueues a stop when it ends.
+ */
 let _Tr2ActionPlayMeshAni;
 new class extends _identity {
   static [class Tr2ActionPlayMeshAnimation extends CjsModel {
@@ -124,10 +130,18 @@ new class extends _identity {
       }
       return true;
     }
+
+    /** Resolves and caches the destination object, returning it. */
     LinkDestination(controller = this.#controller) {
       this.#resolvedDestination = this.ResolveDestination(controller);
       return this.#resolvedDestination;
     }
+
+    /**
+     * Gets the object whose animation controller is driven: the controller owner
+     * for destinationType OWNER, otherwise the cached resolved destination,
+     * re-resolved when it is missing or binding is delayed.
+     */
     GetDestination(controller = this.#controller) {
       if (this.destinationType === DestinationType.OWNER) {
         return ITr2ControllerAction.getOwner(controller);
@@ -137,15 +151,30 @@ new class extends _identity {
       }
       return this.#resolvedDestination;
     }
+
+    /**
+     * Checks whether a destination is reachable; destinationType OWNER is always
+     * considered valid.
+     */
     IsBindingValid() {
       if (this.destinationType === DestinationType.OWNER) {
         return true;
       }
       return !!this.GetDestination();
     }
+
+    /**
+     * Alias for IsBindingValid, kept for callers using Carbon's destination
+     * wording.
+     */
     IsDestinationValid() {
       return this.IsBindingValid();
     }
+
+    /**
+     * Resolves the destination from the directly assigned object, otherwise by
+     * walking the authored path against the controller's binding roots.
+     */
     ResolveDestination(controller) {
       if (this.destination) {
         return this.destination;

@@ -14,6 +14,12 @@ let _initProto, _initClass, _init_meshLod, _init_extra_meshLod, _init_children, 
 // Static scratch for the singular-world patch fixup (allocation rules: hot
 // per-object path, copy-into, never allocate per call).
 const INVERSE_PATCH_SCRATCH = mat4.create();
+
+/**
+ * A placeable node in an Eve scene graph: local SRT placement, an optional mesh,
+ * particle systems and emitters, curve sets, observers and child transforms,
+ * with its own frustum and LOD visibility pass.
+ */
 let _EveTransform;
 new class extends _identity {
   static [class EveTransform extends _Tr2Transform {
@@ -61,6 +67,11 @@ new class extends _identity {
     #isVisible = (_init_extra_useLodLevel(this), true);
     #lastCurveUpdateDelta = EveLODHelper.lowUpdateRate;
     #lastWorldTransform = mat4.create();
+
+    /**
+     * Adopts an authored meshLod as the node's mesh when no mesh was set, so a
+     * graph that only authored the LOD mesh still renders.
+     */
     Initialize() {
       if (!this.mesh) {
         this.mesh = this.meshLod;
@@ -68,6 +79,11 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Rebuilds the local matrix from rotation, translation and scaling and composes it with the parent to refresh worldTransform, keeping the previous world transform for motion vectors, then pushes the new transform to the particle systems and observers.
+     * @returns {mat4} The node's live worldTransform, valid until the next update.
+     */
     UpdateViewDependentData(context, parentTransform = _EveTransform.#identity) {
       mat4.copy(this.#lastWorldTransform, this.worldTransform);
       mat4.fromRotationTranslationScale(this.localTransform, this.rotation, this.translation, this.scaling);
@@ -76,11 +92,23 @@ new class extends _identity {
       for (const observer of this.observers) observer?.Update?.(this.worldTransform);
       return this.worldTransform;
     }
+
+    /** Runs the synchronous pass then the asynchronous pass, in Carbon's order. */
     Update(context) {
       this.UpdateSyncronous(context);
       this.UpdateAsyncronous(context);
     }
+
+    /**
+     * Does nothing: EveTransform performs all of its per-frame work in
+     * UpdateAsyncronous.
+     */
     UpdateSyncronous(_context) {}
+
+    /**
+     * Advances the curve sets once the accumulated delta satisfies the LOD update rate, then updates the children, particle systems and particle emitters.
+     * @returns {boolean} False without doing any work when the node's update flag is off.
+     */
     UpdateAsyncronous(context) {
       if (!this.update) return false;
       const time = Number(context?.GetTime?.() ?? context?.currentTime ?? context?.time ?? 0);
@@ -106,6 +134,11 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Refreshes the world transform, then derives visibility and LOD from the mesh bounding sphere: the sphere is frustum-tested and its on-screen size in pixels is compared against the context's medium and low detail thresholds for the LOD level and against visibilityThreshold for visibility; a node with no mesh is always visible, any particle system forces high LOD, and children's LOD levels are merged in.
+     * @returns {boolean} Whether this node itself is visible.
+     */
     UpdateVisibility(context, parentTransform = _EveTransform.#identity) {
       this.lodLevel = Tr2Lod.TR2_LOD_LOW;
       this.#isVisible = false;
@@ -133,6 +166,12 @@ new class extends _identity {
       }
       return this.#isVisible;
     }
+
+    /**
+     * Sorts the particle systems, appends this node when it is visible and has a
+     * mesh, then recurses into the children; nothing is appended while display is
+     * off.
+     */
     GetRenderables(out = []) {
       if (!this.display) return out;
       for (const system of this.particleSystems) system?.SortParticles?.();
@@ -146,6 +185,11 @@ new class extends _identity {
     // name; the store (engine-supplied layout) transposes them on Set. Carbon's
     // worldInverse = Inverse(transposed world) == Transpose(Inverse(world)), so
     // it is just Set("worldInverse", Inverse(world)) - the store transposes.
+
+    /**
+     * Allocates an EveBasicPerObjectData record from the accumulator and fills it with the world, previous-world and inverse-world matrices, patching the first all-zero basis of a singular world matrix with a 0.1 diagonal before inverting, as Carbon does.
+     * @returns {object} The allocated record, owned by the accumulator.
+     */
     GetPerObjectData(accumulator) {
       const data = accumulator.Alloc("EveBasicPerObjectData");
       data.Set("world", this.worldTransform);
@@ -174,6 +218,11 @@ new class extends _identity {
       }
       return false;
     }
+
+    /**
+     * Reports whether the mesh has any transparent areas, which tells the renderer
+     * to route this node through the sorted transparent pass.
+     */
     HasTransparentBatches() {
       if (this.display && this.mesh) {
         return (this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0;
@@ -183,6 +232,12 @@ new class extends _identity {
 
     // Distance from the view position to the world translation, scaled by the
     // authored multiplier (used to order transparent renderables back-to-front).
+
+    /**
+     * Returns the distance from the render context's view position to this node's
+     * world translation, scaled by the authored sortValueMultiplier, used to order
+     * transparent renderables back-to-front.
+     */
     GetSortValue(renderContext = null) {
       const viewPosition = renderContext?.GetViewPosition?.();
       const x = (viewPosition?.[0] ?? 0) - this.worldTransform[12];
@@ -190,6 +245,12 @@ new class extends _identity {
       const z = (viewPosition?.[2] ?? 0) - this.worldTransform[14];
       return Math.hypot(x, y, z) * this.sortValueMultiplier;
     }
+
+    /**
+     * Writes the world-space bounding sphere, taken from the override bounds when they differ and otherwise from the mesh bounding box, and unions in the children's spheres when a query is passed.
+     * @param {vec4} out Caller-owned sphere; left untouched when no source produced one.
+     * @returns {boolean} Whether a sphere was written.
+     */
     GetBoundingSphere(out = vec4.create(), query = 0) {
       let valid = false;
       if (!vec3.equals(this.overrideBoundsMin, this.overrideBoundsMax)) {
@@ -211,21 +272,43 @@ new class extends _identity {
       }
       return valid;
     }
+
+    /**
+     * Returns the world translation; called without an out parameter it returns a
+     * live subarray view of worldTransform that changes with the next transform
+     * update.
+     */
     GetWorldPosition(out) {
       return out ? vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]) : this.worldTransform.subarray(12, 15);
     }
+
+    /**
+     * Returns the node's local rotation quaternion; called without an out
+     * parameter it returns the live field rather than a copy.
+     */
     GetWorldRotation(out) {
       return out ? quat.copy(out, this.rotation) : this.rotation;
     }
+
+    /** Returns the LOD level chosen by the last visibility pass. */
     GetLODLevel() {
       return this.lodLevel;
     }
+
+    /** Turns rendering of this node and its subtree on or off. */
     SetDisplay(value) {
       this.display = !!value;
     }
+
+    /** Starts playback on every curve set on this node. */
     PlayCurveSets() {
       for (const curveSet of this.curveSets) curveSet?.Play?.();
     }
+
+    /**
+     * Starts every curve set carrying the given name, playing a named time range
+     * when one is supplied and otherwise resetting to the full range first.
+     */
     PlayCurveSet(name, rangeName = "") {
       for (const curveSet of this.curveSets) {
         if ((curveSet?.GetName?.() ?? curveSet?.name) !== name) continue;
@@ -237,14 +320,26 @@ new class extends _identity {
         }
       }
     }
+
+    /** Stops every curve set carrying the given name. */
     StopCurveSet(name) {
       for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) curveSet.Stop?.();
     }
+
+    /**
+     * Returns the longest curve duration across the curve sets carrying the given
+     * name, or 0 when none match.
+     */
     GetCurveSetDuration(name) {
       let duration = 0;
       for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) duration = Math.max(duration, Number(curveSet.GetMaxCurveDuration?.() ?? 0));
       return duration;
     }
+
+    /**
+     * Returns the longest duration of a named time range across the curve sets
+     * carrying the given name, or 0 when none match.
+     */
     GetRangeDuration(name, rangeName) {
       let duration = 0;
       for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) duration = Math.max(duration, Number(curveSet.GetRangeDuration?.(rangeName) ?? 0));

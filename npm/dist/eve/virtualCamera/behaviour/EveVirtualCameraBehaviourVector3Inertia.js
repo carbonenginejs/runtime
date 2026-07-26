@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveVirtualCameraBehaviourVector3Base as _EveVirtualCameraBeha$1 } from './EveVirtualCameraBehaviourVector3Base.js';
 
 let _initProto, _initClass, _init_inertiaFactor, _init_extra_inertiaFactor;
+
+/**
+ * Vector3 behaviour that gives the camera value momentum, so it accelerates
+ * towards its target and coasts rather than tracking it exactly.
+ */
 let _EveVirtualCameraBeha;
 class EveVirtualCameraBehaviourVector3Inertia extends _EveVirtualCameraBeha$1 {
   static {
@@ -18,10 +23,23 @@ class EveVirtualCameraBehaviourVector3Inertia extends _EveVirtualCameraBeha$1 {
   inertiaFactor = (_initProto(this), _init_inertiaFactor(this, 1));
   #lastPosition = (_init_extra_inertiaFactor(this), vec3.create());
   #lastVelocity = vec3.create();
+
+  /**
+   * Names the behaviour "Inertia"; the default factor of 1 applies the full
+   * correction each update.
+   */
   constructor() {
     super();
     this.name = "Inertia";
   }
+
+  /**
+   * Accelerates a retained velocity towards the incoming position by the
+   * position error less the current velocity, divided by inertiaFactor (larger
+   * values are heavier and slower to respond), advances the retained position by
+   * it and returns the offset from the incoming position; the first update seeds
+   * position and velocity and returns zero.
+   */
   Update(_camera, current, deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create()) {
     if (localElapsedTime <= 0) {
       vec3.zero(this.#lastVelocity);

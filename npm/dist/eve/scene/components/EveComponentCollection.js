@@ -28,11 +28,22 @@ class EveComponentCollection extends CjsModel {
 
   /** m_collection (std::vector<T*>) */
   collection = (_init_extra_bit(this), _init_collection(this, []));
+
+  /**
+   * Appends an entity and returns the index it was stored at, which the registry
+   * records on the entity.
+   */
   Add(entity) {
     const index = this.collection.length;
     this.collection.push(entity);
     return index;
   }
+
+  /**
+   * Removes the entry at an index by moving the last element into its place and
+   * returns that moved entity so the caller can fix up its stored index, or null
+   * when nothing moved or the index is out of range.
+   */
   SwapWithBack(index) {
     if (index < 0 || index >= this.collection.length) {
       return null;
@@ -46,12 +57,24 @@ class EveComponentCollection extends CjsModel {
     this.collection.pop();
     return swappedEntity;
   }
+
+  /**
+   * Drops all entities from the collection without touching their stored
+   * component state.
+   */
   Clear() {
     this.collection.length = 0;
   }
+
+  /**
+   * Returns the single mask bit the registry assigned to this collection, used
+   * as the key for an entity's per-component index.
+   */
   GetBit() {
     return this.bit;
   }
+
+  /** Returns the number of entities currently in the collection. */
   Size() {
     return this.collection.length;
   }

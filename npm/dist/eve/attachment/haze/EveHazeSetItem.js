@@ -8,6 +8,11 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_color, _init_extra_color, _init_rotation, _init_extra_rotation, _init_scaling, _init_extra_scaling, _init_name, _init_extra_name, _init_boneIndex, _init_extra_boneIndex, _init_position, _init_extra_position, _init_hazeData, _init_extra_hazeData;
+
+/**
+ * One authored haze volume: its bone attachment, placement, colour and the
+ * four-component haze shaping data.
+ */
 let _EveHazeSetItem;
 new class extends _identity {
   static [class EveHazeSetItem extends CjsModel {
@@ -31,11 +36,19 @@ new class extends _identity {
     boneIndex = (_init_extra_name(this), _init_boneIndex(this, 0));
     position = (_init_extra_boneIndex(this), _init_position(this, vec3.create()));
     hazeData = (_init_extra_position(this), _init_hazeData(this, vec4.fromValues(4, 0.2, 2, 0)));
+
+    /**
+     * Fills the caller-owned out box with the haze's authored source box - which
+     * reaches to z 5 rather than 0.5, because a haze extends well beyond its
+     * placement - transformed by its rotation, position and scaling.
+     */
     GetBounds(out) {
       // Carbon (row-vector): TransformationMatrix(scaling, rotation, position).
       const transform = mat4.fromRotationTranslationScale(_EveHazeSetItem.#transform, this.rotation, this.position, this.scaling);
       return box3.transformMat4(out, _EveHazeSetItem.#bounds, transform);
     }
+
+    /** The parent bone this haze volume rides. */
     GetBoneIndex() {
       return this.boneIndex;
     }

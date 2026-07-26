@@ -4,6 +4,11 @@ import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
 let _initProto, _initClass, _init_view, _init_extra_view, _init_camera, _init_extra_camera;
+
+/**
+ * Step that installs the view transform for the steps that follow, taken either
+ * from an authored view or from a camera updated against the current viewport.
+ */
 let _TriStepSetView;
 new class extends _identity {
   static [class TriStepSetView extends _TriRenderStep {
@@ -22,13 +27,28 @@ new class extends _identity {
     }
     view = (_initProto(this), _init_view(this, null));
     camera = (_init_extra_view(this), _init_camera(this, null));
+
+    /** Stores the view and camera the step chooses between at execution time. */
     __init__(view = null, camera = null) {
       this.SetViewCameraParent(view, camera);
     }
+
+    /**
+     * Replaces both operands; either may be null, and the view takes precedence
+     * when both are set.
+     */
     SetViewCameraParent(view, camera) {
       this.view = view ?? null;
       this.camera = camera ?? null;
     }
+
+    /**
+     * Sets the view transform from the view when one is authored; otherwise
+     * updates the camera using the executor viewport's aspect ratio (1 when the
+     * viewport is missing or has no height) and sets the resulting view matrix.
+     * The second argument to SetViewTransform identifies the source object the
+     * executor should associate with the transform.
+     */
     Execute(realTime, simTime, executor) {
       if (this.view) {
         executor?.SetViewTransform?.(_TriStepSetView.#getTransform(this.view), this.view);
@@ -41,6 +61,11 @@ new class extends _identity {
       }
       return _TriRenderJob.StepResult.RS_OK;
     }
+
+    /**
+     * Unwraps a transform from a GetTransform() accessor or a transform property,
+     * falling back to the value itself when it already is the matrix.
+     */
   }];
   #getTransform(value) {
     return value?.GetTransform?.() ?? value?.transform ?? value ?? null;

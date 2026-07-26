@@ -5,6 +5,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_position, _init_extra_position, _init_scaling, _init_extra_scaling, _init_innerScaling, _init_extra_innerScaling, _init_rotation, _init_extra_rotation, _init_name, _init_extra_name, _init_debugShowIntersection, _init_extra_debugShowIntersection;
+
+/**
+ * Oriented box of influence with a hollow inner box, weighting points by falloff
+ * and seeding random points across its shell.
+ */
 let _EveBoxVolume;
 new class extends _identity {
   static [class EveBoxVolume extends CjsModel {
@@ -26,16 +31,33 @@ new class extends _identity {
     #callbacks = (_init_extra_debugShowIntersection(this), new Map());
     #nextCallbackId = 1;
     #inverseRotation = quat.create();
+
+    /**
+     * Clamps the authored scalings and caches the inverse rotation the intensity
+     * test needs.
+     */
     Initialize() {
       this.#setup();
       return true;
     }
+
+    /**
+     * Returns a fresh sphere centred on the box position whose radius is half the
+     * length of the scaling vector.
+     */
     GetBoundingSphere() {
       return {
         center: vec3.clone(this.position),
         radius: vec3.length(this.scaling) * 0.5
       };
     }
+
+    /**
+     * Returns the falloff weight for a point given in the volume's own space: the
+     * point is moved into box-local space with the cached inverse rotation, then
+     * compared radially against the inner and outer boxes - 1 inside the inner
+     * box, 0 outside the outer one, and a squared ramp between them.
+     */
     GetIntensity(position) {
       const local = _EveBoxVolume.#toLocal(position, this.position, this.#inverseRotation);
       const outer = _EveBoxVolume.#radialBoxDistance(local, this.scaling);
@@ -51,6 +73,13 @@ new class extends _identity {
       const ratio = span > 0 ? (outer - distance) / span : 0;
       return ratio * ratio;
     }
+
+    /**
+     * Appends random points expressed in box-local space, centred on the box rather than offset by its position, choosing between the inner box and the six shell zones in proportion to their volumes and biasing shell samples outward by fallOffFactor. Generates nothing when any scaling axis is zero.
+     *
+     * @param points Caller-owned array the new points are pushed onto.
+     * @param excludeInnerVolume Drops the inner box from the choice, keeping every point in the shell.
+     */
     GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor) {
       if (this.scaling[0] === 0 || this.scaling[1] === 0 || this.scaling[2] === 0) {
         return;
@@ -97,14 +126,26 @@ new class extends _identity {
         points.push(position);
       }
     }
+
+    /**
+     * Registers a callback fired whenever the volume changes, returning the id
+     * needed to unregister it again.
+     */
     RegisterForChanges(callback) {
       const id = this.#nextCallbackId++;
       this.#callbacks.set(id, callback);
       return id;
     }
+
+    /** Drops a change callback by the id RegisterForChanges returned. */
     UnregisterForChanges(callbackId) {
       this.#callbacks.delete(callbackId);
     }
+
+    /**
+     * Re-clamps the scalings and the cached inverse rotation after an authored
+     * change, then notifies every registered listener.
+     */
     OnModified() {
       this.#setup();
       for (const callback of this.#callbacks.values()) {
@@ -112,7 +153,14 @@ new class extends _identity {
       }
       return true;
     }
+
+    /** No debug drawing in this port. */
     RenderDebugInfo() {}
+
+    /**
+     * Clamps the scaling to non-negative values, keeps the inner scaling inside
+     * it, and caches the inverse of the box rotation.
+     */
     #setup() {
       for (let i = 0; i < 3; i++) {
         this.scaling[i] = Math.max(0, this.scaling[i]);
@@ -120,6 +168,17 @@ new class extends _identity {
       }
       quat.invert(this.#inverseRotation, this.rotation);
     }
+
+    /**
+     * Moves a point into box-local space by subtracting the box centre and
+     * applying the inverse rotation.
+     */
+
+    /**
+     * Returns how far the box surface lies from the centre along the direction of
+     * the given local point, falling back to half the smallest extent when the
+     * point sits at the centre.
+     */
   }];
   #toLocal(position, center, inverseRotation) {
     const local = vec3.subtract(vec3.create(), position, center);

@@ -6,6 +6,11 @@ import { TriPerlinCurve as _TriPerlinCurve } from '../../../curves/TriPerlinCurv
 import { EveVirtualCameraBehaviourFloatBase as _EveVirtualCameraBeha$1 } from './EveVirtualCameraBehaviourFloatBase.js';
 
 let _initProto, _initClass, _init_octaves, _init_extra_octaves, _init_magnitudeCurve, _init_extra_magnitudeCurve, _init_magnitude, _init_extra_magnitude, _init_perlineScale, _init_extra_perlineScale;
+
+/**
+ * Float behaviour that adds a Perlin-noise wobble to a scalar camera value such
+ * as field of view or roll.
+ */
 let _EveVirtualCameraBeha;
 new class extends _identity {
   static [class EveVirtualCameraBehaviourFloatNoise extends _EveVirtualCameraBeha$1 {
@@ -23,15 +28,28 @@ new class extends _identity {
     magnitude = (_init_extra_magnitudeCurve(this), _init_magnitude(this, 1));
     perlineScale = (_init_extra_magnitude(this), _init_perlineScale(this, 1));
     #phase = (_init_extra_perlineScale(this), _EveVirtualCameraBeha.#allocatePhase());
+
+    /**
+     * Creates the default magnitude envelope curve and names the behaviour
+     * "Shake".
+     */
     constructor() {
       super();
       this.magnitudeCurve = _EveVirtualCameraBeha.#createMagnitudeCurve();
       this.SetName("Shake");
     }
+
+    /** Sets the behaviour name and renames the owned magnitude curve to match. */
     SetName(name) {
       super.SetName(name);
       this.magnitudeCurve?.SetName?.(`${this.name} - Magnitude Curve`);
     }
+
+    /**
+     * Returns the authored magnitude scaled by a 1D Perlin sample of the
+     * phase-offset local time (rate set by perlineScale, detail by octaves) and by
+     * the magnitude envelope at normalized timeline time.
+     */
     Update(camera, _current, _deltaTime, localElapsedTime) {
       let offset = this.magnitude * _TriPerlinCurve.PerlinNoise1D((localElapsedTime + this.#phase) * this.perlineScale, 2, 2, this.octaves);
       if (this.magnitudeCurve) {
@@ -41,6 +59,17 @@ new class extends _identity {
       }
       return offset;
     }
+
+    /**
+     * Builds the default envelope over normalized time: a near-instant ramp to
+     * full magnitude by 0.1, then a linear fade to zero at the end of the
+     * timeline.
+     */
+
+    /**
+     * Hands each new instance a distinct noise phase from a rolling 12-bit
+     * counter, keeping simultaneous noise behaviours from moving in lockstep.
+     */
   }];
   #nextPhase = 0;
   #createMagnitudeCurve() {

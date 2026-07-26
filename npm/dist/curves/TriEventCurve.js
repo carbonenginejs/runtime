@@ -5,6 +5,12 @@ import { TRIEXTRAPOLATION } from './enums.js';
 import { TriEventKey as _TriEventKey } from './TriEventKey.js';
 
 let _initProto, _initClass, _init_extrapolation, _init_extra_extrapolation, _init_name, _init_extra_name, _init_eventListener, _init_extra_eventListener, _init_time, _init_extra_time, _init_length, _init_extra_length, _init_localTime, _init_extra_localTime, _init_value, _init_extra_value, _init_keys, _init_extra_keys;
+
+/**
+ * Time-keyed event track that fires each key once as the playhead passes it,
+ * dispatching either a named event to a listener or a queued callable, and
+ * restarting the key cursor when time rewinds or a cycle wraps.
+ */
 let _TriEventCurve;
 new class extends _identity {
   static [class TriEventCurve extends CjsModel {
@@ -40,9 +46,16 @@ new class extends _identity {
       }
       return count;
     }
+
+    /**
+     * Gets the number of callable-key invocations still queued for the post-update
+     * phase.
+     */
     static getPostUpdateCallbackCount() {
       return this.#postUpdateCallbacks.length;
     }
+
+    /** Discards every queued post-update callback without running it. */
     static clearPostUpdateCallbacks() {
       this.#postUpdateCallbacks.length = 0;
     }
@@ -219,6 +232,16 @@ new class extends _identity {
         this.eventListener.HandleEvent(this.value);
       }
     }
+
+    /**
+     * Adopts a plain record as a TriEventKey so externally supplied keys carry the
+     * full key shape.
+     */
+
+    /**
+     * Normalizes callable-key arguments to an array, treating null or undefined as
+     * no arguments and a bare value as a single argument.
+     */
   }];
   #postUpdateCallbacks = [];
   #ensureEventKey(key) {

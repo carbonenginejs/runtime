@@ -4,6 +4,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_drag, _init_extra_drag;
+
+/**
+ * Quadratic fluid drag on particles, clamped so a single integration step can
+ * never push a particle's velocity past zero into a reversal.
+ */
 let _Tr2ParticleFluidDrag;
 class Tr2ParticleFluidDragForce extends CjsModel {
   static {
@@ -29,6 +34,11 @@ class Tr2ParticleFluidDragForce extends CjsModel {
     const predictedDot = speed * speed * (1 + forceScale * step);
     return vec3.scale(out, velocity, predictedDot < 0 ? -1 / step : forceScale);
   }
+
+  /**
+   * Nothing to advance per frame: the drag term is derived from the particle's
+   * current velocity and the step it is being integrated over.
+   */
   Update(_dt) {}
   static {
     _initClass();

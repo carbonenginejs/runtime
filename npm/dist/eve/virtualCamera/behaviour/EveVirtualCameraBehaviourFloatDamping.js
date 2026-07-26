@@ -3,6 +3,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveVirtualCameraBehaviourFloatBase as _EveVirtualCameraBeha$1 } from './EveVirtualCameraBehaviourFloatBase.js';
 
 let _initProto, _initClass, _init_dampingFactor, _init_extra_dampingFactor;
+
+/**
+ * Float behaviour that lags a scalar camera value behind the value the other
+ * behaviours produced, smoothing sudden changes.
+ */
 let _EveVirtualCameraBeha;
 class EveVirtualCameraBehaviourFloatDamping extends _EveVirtualCameraBeha$1 {
   static {
@@ -16,10 +21,22 @@ class EveVirtualCameraBehaviourFloatDamping extends _EveVirtualCameraBeha$1 {
   }
   dampingFactor = (_initProto(this), _init_dampingFactor(this, 1));
   #lastValue = (_init_extra_dampingFactor(this), 0);
+
+  /**
+   * Names the behaviour "Damping"; the default damping factor of 1 follows the
+   * input exactly.
+   */
   constructor() {
     super();
     this.name = "Damping";
   }
+
+  /**
+   * Moves the retained value a dampingFactor fraction of the way towards the
+   * incoming value and returns the difference, so the accumulated result lands
+   * on the smoothed value; the first update (local time at or below zero) only
+   * seeds the retained value and contributes nothing.
+   */
   Update(_camera, current, _deltaTime, localElapsedTime) {
     if (localElapsedTime <= 0) {
       this.#lastValue = current;

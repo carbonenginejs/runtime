@@ -29,6 +29,12 @@ const BOX_QUERY_SCRATCH = {
   max: vec3.create()
 };
 const ZERO_VEC3 = vec3.create();
+
+/**
+ * Space-object child that draws one mesh under its own transform, owning its
+ * decals, lights, attachments, morph weights, world bounds and screen-size LOD
+ * state.
+ */
 let _EveChildMesh;
 new class extends _identity {
   static [class EveChildMesh extends _EveChildTransform {
@@ -102,12 +108,23 @@ new class extends _identity {
     sofParentHullName = (_init_extra_sofDna(this), _init_sofParentHullName(this, ""));
     sofLocatorSetName = (_init_extra_sofParentHullName(this), _init_sofLocatorSetName(this, ""));
     sofLocatorIndex = (_init_extra_sofLocatorSetName(this), _init_sofLocatorIndex(this, ""));
+
+    /**
+     * Rebuilds the local transform up front when the child is marked
+     * staticTransform, since UpdateTransform will not rebuild it on later frames.
+     */
     Initialize() {
       if (this.staticTransform) {
         this.RebuildLocalTransform();
       }
       return true;
     }
+
+    /**
+     * Applies the authored scale/rotation/translation and, when supplied, the
+     * lowest LOD level at which the child stays visible; returns the rebuilt local
+     * transform.
+     */
     Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null) {
       super.Setup(scale, rotation, translation, lowestLodVisible);
       if (lowestLodVisible !== null && lowestLodVisible !== undefined) {
@@ -115,6 +132,12 @@ new class extends _identity {
       }
       return this.localTransform;
     }
+
+    /**
+     * Replaces the instance placement list with clones of the supplied matrices, so later caller mutations do not reach the child.
+     * @param {Iterable<Float32Array>} instances - 16-value matrices; a wrongly sized entry throws TypeError
+     * @returns {Array<Float32Array>} the stored list
+     */
     SetInstanceTransforms(instances) {
       const next = [];
       for (const transform of instances ?? []) {
@@ -126,24 +149,61 @@ new class extends _identity {
       this.instanceTransforms = next;
       return this.instanceTransforms;
     }
+
+    /**
+     * Returns the live instance transform list, not a copy - mutating it changes
+     * what the child renders.
+     */
     GetInstanceTransforms() {
       return this.instanceTransforms;
     }
+
+    /**
+     * Assigns the Tr2MeshBase this child draws; a nullish value clears it, which
+     * also makes the child permanently invisible (UpdateVisibility requires a
+     * mesh).
+     */
     SetMesh(mesh) {
       this.mesh = mesh ?? null;
     }
+
+    /**
+     * Records whether this child's placement was authored in space or by SOF (the
+     * Origin enum).
+     */
     SetOrigin(origin) {
       this.origin = Number(origin) | 0;
     }
+
+    /**
+     * Copies the given scale into the child's SRT scaling; it reaches the world
+     * transform on the next local-transform rebuild.
+     */
     SetScale(scale) {
       vec3.copy(this.scaling, scale);
     }
+
+    /**
+     * Sets the reflection mode, which decides whether the child registers as a
+     * ReflectionRenderable and whether it casts shadows during reflection passes.
+     */
     SetReflectionMode(mode) {
       this.reflectionMode = Number(mode) | 0;
     }
+
+    /**
+     * Sets whether the child registers as a shadow caster and contributes opaque
+     * shadow batches.
+     */
     SetCastShadow(castShadow) {
       this.castShadow = !!castShadow;
     }
+
+    /**
+     * Sets the minimum screen size, in pixels across, that the child's world
+     * bounding sphere must reach - after the frame's inverse LOD factor scaling -
+     * before UpdateVisibility marks it visible.
+     */
     SetMinScreenSize(minScreenSize) {
       this.minScreenSize = Number(minScreenSize);
     }
@@ -156,33 +216,75 @@ new class extends _identity {
       }
       return this.worldTransform;
     }
+
+    /**
+     * The authored name, persisted with the child and used to identify it in the
+     * parent graph.
+     */
     GetName() {
       return this.name;
     }
+
+    /** Sets the authored child name, coercing nullish to the empty string. */
     SetName(name) {
       this.name = String(name ?? "");
     }
+
+    /**
+     * Appends a transform modifier; modifiers fold over the child's world
+     * transform in insertion order on each async update.
+     */
     AddTransformModifier(modifier) {
       this.transformModifiers.push(modifier);
     }
+
+    /**
+     * Appends a decal; decals refresh their visibility only while the child itself
+     * is visible, and ride along in GetRenderables when the mesh has a geometry
+     * resource.
+     */
     AddDecal(decal) {
       this.decals.push(decal);
     }
+
+    /**
+     * Appends an attachment; attachments refresh their lights and visibility every
+     * frame regardless of the child's own visibility.
+     */
     AddAttachment(attachment) {
       this.attachments.push(attachment);
     }
+
+    /**
+     * Drops every attachment, removing their lights, batches and visibility
+     * updates from this child.
+     */
     ClearAttachments() {
       this.attachments.length = 0;
     }
+
+    /**
+     * Appends a light, submitted to the light manager from the child's world
+     * transform while the child displays.
+     */
     AddLight(light) {
       this.lights.push(light);
     }
+
+    /**
+     * Drops every light, which also stops the child registering as a LightOwner on
+     * the next component registration.
+     */
     ClearLights() {
       this.lights.length = 0;
     }
+
+    /** Returns true unconditionally - a child mesh reports itself as always on. */
     IsAlwaysOn() {
       return true;
     }
+
+    /** Forwards a shader option to the mesh, every decal and every attachment. */
     SetShaderOption(name, value) {
       this.mesh?.SetShaderOption?.(name, value);
       for (const decal of this.decals) {
@@ -192,12 +294,29 @@ new class extends _identity {
         attachment?.SetShaderOption?.(name, value);
       }
     }
+
+    /**
+     * Names of the mesh's morph targets in index order, or an empty array when the
+     * mesh exposes none; the indices line up with the records GetMorphTargets
+     * returns.
+     */
     GetMorphTargetNames() {
       return this.mesh?.GetMorphTargetNames?.() ?? [];
     }
+
+    /**
+     * Writes a named morph weight on the mesh; it only reaches the render path
+     * after the next UpdateMorphAnimationBuffer pass re-sorts the indexed buffer.
+     */
     SetMorphTargetWeight(name, weight) {
       this.mesh?.SetMorphTargetWeight?.(name, weight);
     }
+
+    /**
+     * Reads a named morph weight straight from the mesh (0 when it has no such
+     * target), bypassing any animation-driven value the morph buffer may have
+     * applied.
+     */
     GetMorphTargetWeight(name) {
       return this.mesh?.GetMorphTargetWeight?.(name) ?? 0;
     }
@@ -269,6 +388,12 @@ new class extends _identity {
         weight: value.weight
       }));
     }
+
+    /**
+     * Always returns null: a child mesh exposes no packed area-id lookup, since
+     * its SOF identity lives directly on its
+     * sofParentHullName/sofLocatorSetName/sofLocatorIndex fields.
+     */
     GetSofSourceLocator() {
       return null;
     }

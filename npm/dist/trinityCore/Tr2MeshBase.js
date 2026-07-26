@@ -5,6 +5,11 @@ import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from './Tr2RenderBatch.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_display, _init_extra_display, _init_meshIndex, _init_extra_meshIndex, _init_opaqueAreas, _init_extra_opaqueAreas, _init_decalAreas, _init_extra_decalAreas, _init_depthAreas, _init_extra_depthAreas, _init_transparentAreas, _init_extra_transparentAreas, _init_additiveAreas, _init_extra_additiveAreas, _init_pickableAreas, _init_extra_pickableAreas, _init_mirrorAreas, _init_extra_mirrorAreas, _init_decalNormalAreas, _init_extra_decalNormalAreas, _init_depthNormalAreas, _init_extra_depthNormalAreas, _init_opaquePrepassAreas, _init_extra_opaquePrepassAreas, _init_decalPrepassAreas, _init_extra_decalPrepassAreas, _init_geometryEraserAreas, _init_extra_geometryEraserAreas, _init_distortionAreas, _init_extra_distortionAreas, _init_flareAreas, _init_extra_flareAreas, _init_maxVertexScale, _init_extra_maxVertexScale, _init_maxVertexDisplacement, _init_extra_maxVertexDisplacement, _init_rotatesVertices, _init_extra_rotatesVertices;
+
+/**
+ * Base mesh: owns one mesh-area list per batch type and turns the displayed
+ * areas into GPU-free render batches and shadow area blocks.
+ */
 let _Tr2MeshBase;
 new class extends _identity {
   static [class Tr2MeshBase extends CjsModel {
@@ -43,17 +48,32 @@ new class extends _identity {
     maxVertexScale = (_init_extra_flareAreas(this), _init_maxVertexScale(this, 1));
     maxVertexDisplacement = (_init_extra_maxVertexScale(this), _init_maxVertexDisplacement(this, 0));
     rotatesVertices = (_init_extra_maxVertexDisplacement(this), _init_rotatesVertices(this, false));
+
+    /**
+     * The live area list for a TriBatchType, or null for a non-integer or unmapped
+     * type.
+     */
     GetAreas(areaType) {
       if (!Number.isInteger(areaType)) return null;
       const property = _Tr2MeshBase.#areaProperties[areaType];
       return property ? this[property] : null;
     }
+
+    /**
+     * Appends an area to the list for a batch type; returns false when that type
+     * has no list.
+     */
     AddArea(areaType, area) {
       const areas = this.GetAreas(areaType);
       if (!areas) return false;
       areas.push(area);
       return true;
     }
+
+    /**
+     * Every area of every batch type, in batch-type order, as one newly allocated
+     * array.
+     */
     GetAllAreas() {
       return _Tr2MeshBase.#areaProperties.flatMap(property => this[property]);
     }
@@ -87,6 +107,11 @@ new class extends _identity {
       }
       return reported;
     }
+
+    /**
+     * Sets a shader option on every area effect that supports it; returns whether
+     * at least one area was updated.
+     */
     SetShaderOption(name, value) {
       let updated = false;
       for (const area of this.GetAllAreas()) {
@@ -96,6 +121,12 @@ new class extends _identity {
       }
       return updated;
     }
+
+    /**
+     * The vertex-displacement bounds adjustment consumers apply to this mesh: max
+     * local scale, max local displacement and whether the material rotates
+     * vertices.
+     */
     GetMaterialBoundsAdjustment() {
       return {
         maxLocalScale: this.maxVertexScale,
@@ -103,6 +134,11 @@ new class extends _identity {
         rotatesVertices: this.rotatesVertices
       };
     }
+
+    /**
+     * Stores the bounds adjustment, coercing missing or non-numeric entries to
+     * zero and false.
+     */
     SetMaterialBoundsAdjustment(value) {
       const source = value || {};
       this.maxVertexScale = Number(source.maxLocalScale) || 0;
@@ -110,6 +146,8 @@ new class extends _identity {
       this.rotatesVertices = !!source.rotatesVertices;
       return true;
     }
+
+    /** Empty at this level; Tr2Mesh overrides it with the real geometry path. */
     GetGeometryResPath() {
       return "";
     }
@@ -119,6 +157,13 @@ new class extends _identity {
     // scene collector can drive a mesh directly and a transform can pass a
     // pre-fetched vector (Carbon Tr2Transform::GetBatches passes GetAreas(type)).
     // Returns whether any batch was committed (JS addition; Carbon returns void).
+
+    /**
+     * Emits one batch per displayed area into the accumulator, where areas may be
+     * a TriBatchType or an already-resolved area list, so a scene collector or a
+     * transform can drive the mesh directly; returns whether any batch was
+     * committed (a JS addition, Carbon returns void).
+     */
     GetBatches(accumulator, areas, perObjectData, _reason) {
       if (this.display === false) return false;
       const areaList = Array.isArray(areas) ? areas : this.GetAreas(areas);
@@ -136,6 +181,13 @@ new class extends _identity {
     // material/shader key, and the geometry + area range are recorded as a source
     // descriptor for the engine to realize. Returns null for a hidden or
     // material-less area (Carbon returns an invalid batch in those cases).
+
+    /**
+     * Builds one GPU-free batch for a mesh area, using the area's effect as
+     * material and shader key and recording geometry plus area range as a source
+     * descriptor; returns null for a hidden or material-less area, where Carbon
+     * returns an invalid batch.
+     */
     CreateGeometryBatch(geometry, area, perObjectData) {
       if (!area || area.GetDisplay() === false) return null;
       const effect = area.GetMaterialInterface();
@@ -152,6 +204,12 @@ new class extends _identity {
     // Appends one (startIndex, count) block per area of the requested type.
     // Carbon deliberately skips non-shadow-casting OPAQUE areas here too (overlay
     // rendering over e.g. scaffolding build effects causes problems).
+
+    /**
+     * Appends one clamped (startIndex, count) block per area of the requested type
+     * to the caller's collector, skipping non-shadow-casting OPAQUE areas as
+     * Carbon does because overlay rendering over build effects misbehaves.
+     */
     CollectAreaBlocks(collector, areaType) {
       const areas = this.GetAreas(areaType);
       if (!areas) return collector;
@@ -165,6 +223,12 @@ new class extends _identity {
     // Appends blocks grouped by shared area material (the shadow path). Skips
     // non-shadow-casting OPAQUE and DECAL areas. Faithfully does NOT clamp
     // negative index/count (Carbon asymmetry with CollectAreaBlocks).
+
+    /**
+     * Appends blocks grouped by shared area material for the shadow path, skipping
+     * non-shadow-casting OPAQUE and DECAL areas, and faithfully reproduces
+     * Carbon's asymmetry by not clamping negative index or count.
+     */
     CollectAreaBlocksWithSharedMaterials(collectors, areaType) {
       const areas = this.GetAreas(areaType);
       if (!areas) return collectors;

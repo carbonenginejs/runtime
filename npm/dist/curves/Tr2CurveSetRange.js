@@ -3,6 +3,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_name, _init_extra_name, _init_startTime, _init_extra_startTime, _init_endTime, _init_extra_endTime, _init_looped, _init_extra_looped;
+
+/**
+ * Named sub-interval of a curve set's scaled timeline, giving a start and end
+ * time and whether playback loops inside it.
+ */
 let _Tr2CurveSetRange;
 class Tr2CurveSetRange extends CjsModel {
   static {

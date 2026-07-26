@@ -10,6 +10,11 @@ import { EveSpaceObject2 as _EveSpaceObject } from './EveSpaceObject2.js';
 import { EveMissileWarhead as _EveMissileWarhead } from './EveMissileWarhead.js';
 
 let _initProto, _initClass, _init_warheads, _init_extra_warheads, _init_updateWarheads, _init_extra_updateWarheads, _init_target, _init_extra_target, _init_targetRadius, _init_extra_targetRadius, _init_explosionCallback, _init_extra_explosionCallback;
+
+/**
+ * A missile in flight: the curve-driven ball path plus the warheads that ride
+ * it, own the targeting state and supply all of its renderables and bounds.
+ */
 let _EveMissile;
 new class extends _identity {
   static [class EveMissile extends _EveSpaceObject {
@@ -32,11 +37,22 @@ new class extends _identity {
     #time = 0;
     #estimatedTotalAliveTime = 1;
     #lastValidSpeed = 0;
+
+    /**
+     * Runs the base initialization and silences all warhead particle emitting
+     * until launch.
+     */
     Initialize() {
       super.Initialize();
       for (const warhead of this.warheads) warhead?.EnableParticleEmitting?.(false);
       return true;
     }
+
+    /**
+     * Arms the missile for a new flight: latches the launching ship's velocity and
+     * the estimated flying time, resets the flight clock, and silences warhead
+     * emitting.
+     */
     Start(shipVelocity, estimatedFlyingTime) {
       vec3.copy(this.#inheritedVelocity, shipVelocity ?? _EveMissile.#zero);
       this.#estimatedTotalAliveTime = Number(estimatedFlyingTime) || 0;
@@ -45,6 +61,14 @@ new class extends _identity {
       vec3.copy(this.#inheritedStartVelocity, this.#inheritedVelocity);
       this.#lastValidSpeed = 0;
     }
+
+    /**
+     * Samples the flight path and its derivative to keep the estimated
+     * time-to-target current, then for each live warhead advances the state
+     * machine, hands it the target locator offset in missile space, integrates its
+     * flight and fires the explosion callback on detonation, and finally rebuilds
+     * the missile bounding sphere from the warheads.
+     */
     UpdateSyncronous(context) {
       super.UpdateSyncronous(context);
       const time = Number(context?.GetTime?.() ?? context?.currentTime ?? context?.time ?? 0);
@@ -95,6 +119,12 @@ new class extends _identity {
       this.RebuildMissileBoundingSphere();
       return true;
     }
+
+    /**
+     * Runs each warhead's visibility pass against the missile world transform
+     * composed with that warhead's offset, and merges the warheads' LOD levels
+     * into the missile's.
+     */
     UpdateVisibility(context, _parentTransform = _EveMissile.#identity) {
       for (const warhead of this.warheads) {
         if (!warhead) continue;
@@ -104,15 +134,27 @@ new class extends _identity {
       }
       return true;
     }
+
+    /** Collects only the warheads' renderables - the missile itself owns no mesh. */
     GetRenderables(out = []) {
       for (const warhead of this.warheads) warhead?.GetRenderables?.(out);
       return out;
     }
+
+    /**
+     * Writes the missile's world-space bounding sphere, built from the
+     * warhead-derived local sphere and the missile world transform.
+     */
     GetBoundingSphere(out = vec4.create()) {
       vec4.set(_EveMissile.#localSphere, this.boundingSphereCenter[0], this.boundingSphereCenter[1], this.boundingSphereCenter[2], this.boundingSphereRadius);
       sph3.transformMat4(out, _EveMissile.#localSphere, this.worldTransform);
       return true;
     }
+
+    /**
+     * Recomputes the missile's local bounding sphere as the union of its warheads'
+     * local spheres.
+     */
     RebuildMissileBoundingSphere() {
       vec4.set(_EveMissile.#mergedSphere, 0, 0, 0, 0);
       for (const warhead of this.warheads) {
@@ -123,6 +165,11 @@ new class extends _identity {
       this.boundingSphereRadius = _EveMissile.#mergedSphere[3];
       return true;
     }
+
+    /**
+     * Returns null: the missile owns no renderable, so each warhead publishes its
+     * own per-object record.
+     */
     GetPerObjectData() {
       return null;
     }

@@ -38,10 +38,21 @@ class EveDistributionSpawnModifierRandomScale extends CjsModel {
 
   /** m_overrideScale (bool) [READWRITE, PERSIST] */
   overrideScale = (_init_extra_uniformScale(this), _init_overrideScale(this, false));
+
+  /**
+   * Reseeds the random stream from the wall clock, so scales differ between runs
+   * unless consistentRandom pins them to the placement id.
+   */
   Initialize() {
     this.#timeSeed = Date.now() >>> 0;
     return true;
   }
+
+  /**
+   * Draws a random scale between minScale and maxScale - per axis, or with one
+   * shared factor when uniformScale is set - and either replaces the placement's
+   * initial scale or multiplies into it.
+   */
   ProcessSpawnModifier(placement, _numPlacements) {
     const seed = getDistributionSeed(placement.uniqueID, this.#timeSeed, this.consistentRandom);
     const random = createMinStdRandom(seed);

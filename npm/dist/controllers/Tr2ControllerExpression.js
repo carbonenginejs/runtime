@@ -4,6 +4,11 @@ import { type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsControllerExpressionProgram } from './CjsControllerExpressionProgram.js';
 
 let _initProto, _initClass, _init_program, _init_extra_program, _init_stateMachine, _init_extra_stateMachine, _init_controller, _init_extra_controller, _init_variableMask, _init_extra_variableMask;
+
+/**
+ * Holds one compiled expression bound to a controller or state machine, together
+ * with the variable dirty mask that says when it needs re-evaluating.
+ */
 let _Tr2ControllerExpress;
 new class extends _identity {
   static [class Tr2ControllerExpression extends CjsModel {
@@ -97,6 +102,18 @@ new class extends _identity {
       CjsControllerExpressionProgram.addControllerTermInfo(out);
       return out;
     }
+
+    /**
+     * Computes the bitmask of controller variables the program reads; returns 0
+     * when the program calls an impure function or references a variable that is
+     * missing or beyond bit 63, and -1 when the controller exposes no variable
+     * view at all.
+     */
+
+    /**
+     * Distinguishes a state machine from a controller by the presence of a
+     * callable GetController.
+     */
   }];
   #getVariableMask(program, controller) {
     const view = controller?.GetVariableView?.();

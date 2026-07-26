@@ -9,6 +9,12 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveTransform as _EveTransform } from './EveTransform.js';
 
 let _initProto, _initClass, _init_pathOffsetNoiseScale, _init_extra_pathOffsetNoiseScale, _init_pathOffsetNoiseSpeed, _init_extra_pathOffsetNoiseSpeed, _init_startDataValid, _init_extra_startDataValid, _init_pathOffset, _init_extra_pathOffset, _init_maxExplosionDistance, _init_extra_maxExplosionDistance, _init_impactDuration, _init_extra_impactDuration, _init_explosionPosition, _init_extra_explosionPosition, _init_impactSize, _init_extra_impactSize, _init_spriteSet, _init_extra_spriteSet, _init_targetLocatorID, _init_extra_targetLocatorID, _init_durationEjectPhase, _init_extra_durationEjectPhase, _init_doSpread, _init_extra_doSpread, _init_acceleration, _init_extra_acceleration, _init_id, _init_extra_id, _init_startEjectVelocity, _init_extra_startEjectVelocity, _init_warheadLength, _init_extra_warheadLength, _init_warheadRadius, _init_extra_warheadRadius;
+
+/**
+ * One warhead of a missile: its launch-to-explosion state machine, the
+ * noise-perturbed offset path it flies relative to the missile, and the impact
+ * test against the target.
+ */
 let _EveMissileWarhead;
 new class extends _identity {
   static [class EveMissileWarhead extends _EveTransform {
@@ -61,6 +67,12 @@ new class extends _identity {
     #lastPositionValid = false;
     #noisePhase = _EveMissileWarhead.#nextNoisePhase++ & 0xfff;
     #isVisible = true;
+
+    /**
+     * Resets the warhead to its pre-launch state and re-rolls the randomized
+     * explosion distance, speed modifier and final-target timing that vary this
+     * flight.
+     */
     PrepareLaunch() {
       this.#currentEjectVelocity = this.startEjectVelocity;
       this.#currentDurationEjectPhase = this.durationEjectPhase;
@@ -85,6 +97,12 @@ new class extends _identity {
       this.#bombFlightpath = false;
       this.#lastPositionValid = false;
     }
+
+    /**
+     * Latches the launch transform as the warhead's start offset and orientation
+     * and marks the start data valid, which releases the state machine from its
+     * delayed state.
+     */
     Launch(startTransform) {
       mat4.getRotation(this.#startOrientation, startTransform);
       vec3.set(this.#currentStartOffset, startTransform[12], startTransform[13], startTransform[14]);
@@ -93,6 +111,12 @@ new class extends _identity {
       this.startDataValid = true;
       this.#lastPositionValid = false;
     }
+
+    /**
+     * Sets the destination offset the warhead flies toward; on a target switch it
+     * also snapshots the previous destination and flight time so the change is
+     * blended in rather than snapped.
+     */
     UpdateEndTransform(endTransform, switchLocators) {
       vec3.set(this.#endOffset, endTransform[12], endTransform[13], endTransform[14]);
       if (switchLocators) {
@@ -100,6 +124,11 @@ new class extends _identity {
         vec3.copy(this.#oldEndOffset, this.#currentEndOffset);
       }
     }
+
+    /**
+     * Advances the delayed/launch/ejecting/tracking state machine by one frame, picking a damage locator when tracking begins and again at the spread-to-final switch.
+     * @returns {number} The state-change event the missile must act on, or EVT_NONE.
+     */
     UpdateState(deltaTime, estimatedTotalAliveTime, target) {
       this.#bombFlightpath = !target;
       let event = _EveMissileWarhead.StateChangeEvent.EVT_NONE;
@@ -137,6 +166,11 @@ new class extends _identity {
       }
       return event;
     }
+
+    /**
+     * Tests the final tracking segment for a hit on the target - or detonates immediately when there is no target - recording the explosion position and spawning an impact on the target when impactSize is set.
+     * @returns {number} EVT_EXPLODE when the warhead detonated this frame, otherwise EVT_NONE.
+     */
     CheckImpact(deltaTime, estimatedTotalAliveTime, target) {
       if (this.#state !== _EveMissileWarhead.State.STATE_TRACKING_FINAL || this.id < 0) return _EveMissileWarhead.StateChangeEvent.EVT_NONE;
       const totalFlyingTime = Math.max((Number(estimatedTotalAliveTime) + 0.1) * this.#speedModifier, Number.EPSILON);
@@ -161,6 +195,13 @@ new class extends _identity {
       this.#state = _EveMissileWarhead.State.STATE_EXPLODED;
       return _EveMissileWarhead.StateChangeEvent.EVT_EXPLODE;
     }
+
+    /**
+     * Samples the Perlin path offset for the current flight time, advances the
+     * base transform, and recomputes the per-frame movement vector that impact
+     * direction and orientation depend on; the noise phase is a stable
+     * per-instance sequence rather than Carbon's pointer-derived one.
+     */
     Update(context) {
       const position = this.#flyingTime * this.pathOffsetNoiseSpeed + this.#noisePhase;
       this.pathOffset[0] = carbonPerlin1D(position, 1.1, 2, 3) * this.pathOffsetNoiseScale;
@@ -172,6 +213,13 @@ new class extends _identity {
       vec3.subtract(this.#movement, _EveMissileWarhead.#positionNow, this.#positionLastFrame);
       vec3.copy(this.#positionLastFrame, _EveMissileWarhead.#positionNow);
     }
+
+    /**
+     * Integrates one frame of flight - eject velocity, inherited ship velocity,
+     * start-to-destination interpolation shaped by acceleration, the noise path
+     * offset and the bomb falloff - then rebuilds the warhead's offset transform
+     * and slerps its orientation toward the direction of travel.
+     */
     UpdateWarhead(deltaTime, estimatedTotalAliveTime, currentBallVelocity, currentInheritedVelocity, inverseBallRotation, missileTransform, originShift = _EveMissileWarhead.#zero) {
       const dt = Number(deltaTime) || 0;
       vec3.set(_EveMissileWarhead.#ejectVelocity, 0, 0, this.#currentEjectVelocity);
@@ -212,10 +260,21 @@ new class extends _identity {
       mat4.fromRotationTranslation(this.#currentOffsetTransform, this.#currentOrientation, this.#currentOffset);
       mat4.multiply(this.worldTransform, missileTransform, this.#currentOffsetTransform);
     }
+
+    /**
+     * Turns the warhead's own particle emitters and those of its children on or
+     * off.
+     */
     EnableParticleEmitting(enable) {
       for (const child of this.children) for (const emitter of child?.particleEmitters ?? []) enableEmitter(emitter, enable);
       for (const emitter of this.particleEmitters) enableEmitter(emitter, enable);
     }
+
+    /**
+     * Snaps the world transform to the supplied parent transform and runs the base
+     * visibility pass; returns false while the warhead is unlaunched, dead or
+     * hidden.
+     */
     UpdateVisibility(context, parentTransform) {
       this.#isVisible = false;
       if (!this.startDataValid || this.#state === _EveMissileWarhead.State.STATE_DEAD || !this.display) return false;
@@ -224,37 +283,77 @@ new class extends _identity {
       super.UpdateVisibility(context, parentTransform);
       return true;
     }
+
+    /**
+     * Appends the warhead mesh and its sprite set; nothing is appended while the
+     * warhead is invisible or at low LOD.
+     */
     GetRenderables(out = []) {
       if (!this.#isVisible || this.lodLevel <= _EveTransform.Tr2Lod.TR2_LOD_LOW) return out;
       if (this.mesh) out.push(this);
       this.spriteSet?.GetRenderables?.(out);
       return out;
     }
+
+    /**
+     * Writes the world-space sphere enclosing the warhead body, sized and centred
+     * from warheadLength.
+     */
     GetBoundingSphere(out = vec4.create()) {
       vec4.set(_EveMissileWarhead.#localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
       sph3.transformMat4(out, _EveMissileWarhead.#localSphere, this.worldTransform);
       return true;
     }
+
+    /**
+     * Writes the warhead body sphere in the missile's space, which the missile
+     * unions into its own bounding sphere.
+     */
     GetLocalBoundingSphere(out = vec4.create()) {
       vec4.set(_EveMissileWarhead.#localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
       sph3.transformMat4(out, _EveMissileWarhead.#localSphere, this.#currentOffsetTransform);
       return true;
     }
+
+    /**
+     * Returns the warhead's live offset transform relative to the missile; it is
+     * the warhead's own matrix and is rewritten by the next flight update.
+     */
     GetCurrentOffsetTransform() {
       return this.#currentOffsetTransform;
     }
+
+    /**
+     * Returns the damage locator index this warhead is tracking, or -1 when none
+     * has been chosen.
+     */
     GetTargetLocator() {
       return this.targetLocatorID;
     }
+
+    /** Overrides the damage locator index this warhead tracks. */
     SetTargetLocator(locator) {
       this.targetLocatorID = Number(locator) | 0;
     }
+
+    /** Returns the current flight state, one of EveMissileWarhead.State. */
     GetState() {
       return this.#state;
     }
+
+    /**
+     * Returns the authored warhead id, which the missile passes to the explosion
+     * callback.
+     */
     GetWarheadID() {
       return this.id;
     }
+
+    /**
+     * Allocates the warhead's per-object record and sets the world transform and
+     * the radius/length pair the shader needs; the record carries values only,
+     * never GPU resources.
+     */
     GetPerObjectData(accumulator) {
       const data = accumulator.Alloc("EveMissileWarheadPerObjectData");
       data.Set("world", this.worldTransform);

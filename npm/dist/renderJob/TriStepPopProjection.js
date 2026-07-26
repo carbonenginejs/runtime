@@ -7,6 +7,11 @@ let _initProto, _initClass;
 
 // Carbon: RenderJob/TriStepPopProjection.cpp — Execute pops the projection
 // (Tr2Renderer::PopProjection).
+
+/**
+ * Step that pops the executor's projection stack, restoring the projection saved
+ * by an earlier push.
+ */
 let _TriStepPopProjection;
 class TriStepPopProjection extends _TriRenderStep {
   static {
@@ -22,6 +27,7 @@ class TriStepPopProjection extends _TriRenderStep {
     super(...args);
     _initProto(this);
   }
+  /** Restores the projection saved by the matching push step. */
   Execute(_realTime, _simTime, executor) {
     executor?.PopProjection?.();
     return _TriRenderJob.StepResult.RS_OK;

@@ -4,6 +4,11 @@ import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
 let _initProto, _initClass, _init_swapChain, _init_extra_swapChain;
+
+/**
+ * Step that presents a swap chain, publishing the frame that the preceding steps
+ * produced.
+ */
 let _TriStepPresentSwapCh;
 class TriStepPresentSwapChain extends _TriRenderStep {
   static {
@@ -20,9 +25,16 @@ class TriStepPresentSwapChain extends _TriRenderStep {
     _init_extra_swapChain(this);
   }
   swapChain = (_initProto(this), _init_swapChain(this, null));
+
+  /** Stores the swap chain to present. */
   __init__(swapChain = null) {
     this.swapChain = swapChain ?? null;
   }
+
+  /**
+   * Asks the executor to present the swap chain; with none set the step is a
+   * no-op.
+   */
   Execute(_realTime, _simTime, executor) {
     if (this.swapChain) executor?.PresentSwapChain?.(this.swapChain);
     return _TriRenderJob.StepResult.RS_OK;

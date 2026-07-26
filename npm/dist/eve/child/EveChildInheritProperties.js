@@ -5,6 +5,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_Primary, _init_extra_Primary, _init_Secondary, _init_extra_Secondary, _init_Tertiary, _init_extra_Tertiary, _init_Black, _init_extra_Black, _init_White, _init_extra_White, _init_Yellow, _init_extra_Yellow, _init_Orange, _init_extra_Orange, _init_Red, _init_extra_Red, _init_Blue, _init_extra_Blue, _init_Green, _init_extra_Green, _init_Cyan, _init_extra_Cyan, _init_Fire, _init_extra_Fire, _init_Hull, _init_extra_Hull, _init_Glass, _init_extra_Glass, _init_Reactor, _init_extra_Reactor, _init_Darkhull, _init_extra_Darkhull, _init_Booster, _init_extra_Booster, _init_Killmark, _init_extra_Killmark, _init_PrimaryLight, _init_extra_PrimaryLight, _init_SecondaryLight, _init_extra_SecondaryLight, _init_TertiaryLight, _init_extra_TertiaryLight, _init_WhiteLight, _init_extra_WhiteLight, _init_PrimarySpotlight, _init_extra_PrimarySpotlight, _init_SecondarySpotlight, _init_extra_SecondarySpotlight, _init_TertiarySpotlight, _init_extra_TertiarySpotlight, _init_PrimaryHologram, _init_extra_PrimaryHologram, _init_SecondaryHologram, _init_extra_SecondaryHologram, _init_TertiaryHologram, _init_extra_TertiaryHologram, _init_State, _init_extra_State, _init_State2, _init_extra_State2, _init_State3, _init_extra_State3, _init_State4, _init_extra_State4, _init_StateVulnerable, _init_extra_StateVulnerable, _init_StateInvulnerable, _init_extra_StateInvulnerable, _init_PrimaryForcefield, _init_extra_PrimaryForcefield, _init_SecondaryForcefield, _init_extra_SecondaryForcefield, _init_PrimaryBanner, _init_extra_PrimaryBanner, _init_PrimaryBillboard, _init_extra_PrimaryBillboard, _init_PrimaryFx, _init_extra_PrimaryFx, _init_SecondaryFx, _init_extra_SecondaryFx, _init_PrimaryWarpFx, _init_extra_PrimaryWarpFx, _init_PrimaryAttackFx, _init_extra_PrimaryAttackFx, _init_PrimarySiegeFx, _init_extra_PrimarySiegeFx, _init_PrimaryDockedFx, _init_extra_PrimaryDockedFx;
 const COLOR_PROPERTIES = Object.freeze(["Primary", "Secondary", "Tertiary", "Black", "White", "Yellow", "Orange", "Red", "Blue", "Green", "Cyan", "Fire", "Hull", "Glass", "Reactor", "Darkhull", "Booster", "Killmark", "PrimaryLight", "SecondaryLight", "TertiaryLight", "WhiteLight", "PrimaryHologram", "SecondaryHologram", "TertiaryHologram", "State0", "State1", "State2", "State3", "StateVulnerable", "StateInvulnerable", "PrimaryForcefield", "SecondaryForcefield", "PrimaryBanner", "PrimaryFx", "SecondaryFx", "PrimarySpotlight", "SecondarySpotlight", "TertiarySpotlight", "PrimaryBillboard", "PrimaryWarpFx", "PrimaryAttackFx", "PrimarySiegeFx", "PrimaryDockedFx"]);
+
+/**
+ * The SOF colour set a space object hands down to its children: one colour per
+ * named material slot (Primary, Hull, Booster, State0, ...) in a fixed order.
+ */
 let _EveChildInheritPrope;
 class EveChildInheritProperties extends CjsModel {
   static {
@@ -61,12 +66,24 @@ class EveChildInheritProperties extends CjsModel {
   PrimarySiegeFx = (_init_extra_PrimaryAttackFx(this), _init_PrimarySiegeFx(this, vec4.create()));
   PrimaryDockedFx = (_init_extra_PrimarySiegeFx(this), _init_PrimaryDockedFx(this, vec4.create()));
   #properties = (_init_extra_PrimaryDockedFx(this), COLOR_PROPERTIES.map(name => this[name]));
+
+  /**
+   * Copies an indexed colour set into the named colour fields in the fixed SOF
+   * property order; a nullish set is ignored, and the set must hold at least as
+   * many entries as there are properties.
+   */
   SetProperties(colorSet) {
     if (!colorSet) return;
     for (let index = 0; index < this.#properties.length; index++) {
       vec4.copy(this.#properties[index], colorSet[index]);
     }
   }
+
+  /**
+   * Returns the colour vectors in SOF property order; the array and its vectors
+   * are this object's live storage, not copies, so writes through it change the
+   * inherited colours.
+   */
   GetProperties() {
     return this.#properties;
   }

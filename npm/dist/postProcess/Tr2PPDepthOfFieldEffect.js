@@ -3,6 +3,12 @@ import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2PPEffect as _Tr2PPEffect } from './Tr2PPEffect.js';
 
 let _initClass, _init_bokehShape, _init_extra_bokehShape, _init_scale, _init_extra_scale, _init_cocScale, _init_extra_cocScale, _init_useTAAFriendlyBokeh, _init_extra_useTAAFriendlyBokeh, _init_focalLength, _init_extra_focalLength, _init_foregroundBlurNeeded, _init_extra_foregroundBlurNeeded, _init_focalDistance, _init_extra_focalDistance;
+
+/**
+ * Depth-of-field parameters - focal distance and length, circle-of-confusion and
+ * blur scale, bokeh shape - plus the process-wide switch that enables the effect
+ * at all.
+ */
 let _Tr2PPDepthOfFieldEff;
 new class extends _identity {
   static [class Tr2PPDepthOfFieldEffect extends _Tr2PPEffect {
@@ -26,9 +32,19 @@ new class extends _identity {
     focalLength = (_init_extra_useTAAFriendlyBokeh(this), _init_focalLength(this, 0));
     foregroundBlurNeeded = (_init_extra_focalLength(this), _init_foregroundBlurNeeded(this, true));
     focalDistance = (_init_extra_foregroundBlurNeeded(this), _init_focalDistance(this, 0));
+
+    /**
+     * Returns the shader define name for the selected bokeh shape, falling back to
+     * the disk shape for an unknown value.
+     */
     GetBokehShapeString() {
       return _Tr2PPDepthOfFieldEff.BokehShapeStrings[this.bokehShape] ?? _Tr2PPDepthOfFieldEff.BokehShapeStrings[_Tr2PPDepthOfFieldEff.Disk];
     }
+
+    /**
+     * Reports depth of field as contributing only when the process-wide switch is
+     * on, the effect is displayed, and its blur scale is positive.
+     */
     IsActive() {
       return _Tr2PPDepthOfFieldEff.PostProcessDofEnabled && this.display !== false && Number(this.scale) > 0;
     }

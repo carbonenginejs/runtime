@@ -9,6 +9,12 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 let _initProto, _initClass, _init_position, _init_extra_position, _init_pointOfInterestAnchorCenter, _init_extra_pointOfInterestAnchorCenter, _init_positionAnchorCenter, _init_extra_positionAnchorCenter, _init_pointOfInterestAnchors, _init_extra_pointOfInterestAnchors, _init_positionAnchors, _init_extra_positionAnchors, _init_localElapsedTime, _init_extra_localElapsedTime, _init_pointOfInterest, _init_extra_pointOfInterest, _init_pointOfInterestAnchorRadius, _init_extra_pointOfInterestAnchorRadius, _init_positionAnchorRadius, _init_extra_positionAnchorRadius, _init_positionAnchorForwardDirection, _init_extra_positionAnchorForwardDirection, _init_pointOfInterestAnchorForwardDirection, _init_extra_pointOfInterestAnchorForwardDirection, _init_fovBehaviours, _init_extra_fovBehaviours, _init_pointOfInterestBehaviours, _init_extra_pointOfInterestBehaviours, _init_positionBehaviours, _init_extra_positionBehaviours, _init_rollBehaviours, _init_extra_rollBehaviours, _init_roll, _init_extra_roll, _init_fov, _init_extra_fov, _init_animationTimelineLength, _init_extra_animationTimelineLength, _init_name, _init_extra_name, _init_running, _init_extra_running;
 const SCRUB_INCREMENT_DT = 1 / 60;
 const SCRUB_MAX_ITERATIONS = 20;
+
+/**
+ * Cinematic camera defined by a position, a point of interest, a field of view
+ * and a roll, each rebuilt every update from its own list of behaviours over a
+ * local timeline.
+ */
 let _EveVirtualCamera;
 new class extends _identity {
   static [class EveVirtualCamera extends CjsModel {
@@ -45,18 +51,48 @@ new class extends _identity {
     animationTimelineLength = (_init_extra_fov(this), _init_animationTimelineLength(this, 10));
     name = (_init_extra_animationTimelineLength(this), _init_name(this, "Virtual Camera"));
     running = (_init_extra_name(this), _init_running(this, false));
+
+    /**
+     * Builds a D3D-handed look-at view matrix from the current position, point of
+     * interest and roll-adjusted up direction.
+     */
     GetViewMatrix(out = mat4.create()) {
       return mat4.lookAtD3D(out, this.position, this.pointOfInterest, this.GetUpDirection());
     }
+
+    /**
+     * Builds a zero-to-one depth perspective projection from the camera's field of view and the supplied framing values.
+     * @param {Number} aspectRatio
+     * @param {Number} frontClip Near plane distance
+     * @param {Number} backClip Far plane distance
+     * @param {mat4} [out]
+     * @returns {mat4}
+     */
     GetProjectionMatrix(aspectRatio, frontClip, backClip, out = mat4.create()) {
       return mat4.perspectiveZO(out, this.fov, aspectRatio, frontClip, backClip);
     }
+
+    /**
+     * Returns the normalized direction from the camera position towards its point
+     * of interest.
+     */
     GetViewDirection(out = vec3.create()) {
       return vec3.normalize(out, vec3.subtract(out, this.pointOfInterest, this.position));
     }
+
+    /**
+     * Returns the view direction, as a virtual camera always faces its point of
+     * interest.
+     */
     GetForwardDirection(out = vec3.create()) {
       return this.GetViewDirection(out);
     }
+
+    /**
+     * Returns the up vector obtained by orthogonalizing world up against the view
+     * direction and then rotating it about the view axis by the roll angle, which
+     * is authored in degrees.
+     */
     GetUpDirection(out = vec3.create()) {
       const view = this.GetForwardDirection(vec3.create());
       const right = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), view, vec3.fromValues(0, 1, 0)));
@@ -64,9 +100,19 @@ new class extends _identity {
       const rotation = quat.setAxisAngle(quat.create(), view, -this.roll * Math.PI / 180);
       return vec3.normalize(out, vec3.transformQuat(out, out, rotation));
     }
+
+    /** Returns the normalized cross product of the forward and up directions. */
     GetRightDirection(out = vec3.create()) {
       return vec3.normalize(out, vec3.cross(out, this.GetForwardDirection(vec3.create()), this.GetUpDirection(vec3.create())));
     }
+
+    /**
+     * Advances the local timeline (only while running), refreshes the anchor
+     * centre, radius and forward state, and re-evaluates position, point of
+     * interest, field of view and roll from their behaviour lists; each value is
+     * written back only when its behaviour list is non-empty, so an unauthored
+     * channel keeps whatever was set externally.
+     */
     Update(deltaTime) {
       const dt = this.running ? deltaTime : 0;
       this.localElapsedTime += dt;
@@ -93,19 +139,35 @@ new class extends _identity {
         this.roll = roll;
       }
     }
+
+    /** Starts the local timeline advancing on subsequent updates. */
     Play() {
       this.running = true;
     }
+
+    /**
+     * Freezes the local timeline without resetting it, so updates leave the
+     * evaluated transform where it is.
+     */
     Pause() {
       this.running = false;
     }
+
+    /** Rewinds the local timeline to zero and stops it advancing. */
     Stop() {
       this.Reset();
       this.running = false;
     }
+
+    /** Rewinds the local timeline to zero, leaving the running state alone. */
     Reset() {
       this.localElapsedTime = 0;
     }
+
+    /**
+     * Scrubs the camera to an absolute local time by replaying Update in fixed 1/60s steps so that stateful behaviours see a plausible history; the step count is capped at 20 and the step size grows to cover longer jumps. The camera is forced running for the scrub and its previous running state is restored afterwards.
+     * @param {Number} time Target local elapsed time in seconds; may be negative
+     */
     UpdateToLocalTime(time) {
       const diff = time - this.localElapsedTime;
       let dt = SCRUB_INCREMENT_DT;
@@ -125,66 +187,156 @@ new class extends _identity {
         this.Pause();
       }
     }
+
+    /**
+     * Copies field of view, roll, position and point of interest from another
+     * camera, leaving behaviours, name and timeline untouched.
+     */
     CopyTransform(source) {
       this.fov = source.fov;
       this.roll = source.roll;
       vec3.copy(this.position, source.position);
       vec3.copy(this.pointOfInterest, source.pointOfInterest);
     }
+
+    /**
+     * Writes a transform supplied from outside directly onto the camera, used to
+     * drive it from a host application or a transition instead of from behaviours.
+     */
     UpdateExternal(position, pointOfInterest, fov, roll) {
       vec3.copy(this.position, position);
       vec3.copy(this.pointOfInterest, pointOfInterest);
       this.fov = fov;
       this.roll = roll;
     }
+
+    /** Returns the camera name used to look it up in the camera system. */
     GetName() {
       return this.name;
     }
+
+    /** Sets the camera name, coercing the argument to a string. */
     SetName(name) {
       this.name = String(name);
     }
+
+    /**
+     * Returns the timeline length in seconds that behaviours divide local elapsed
+     * time by to get their normalized curve time.
+     */
     GetAnimationTimelineLength() {
       return this.animationTimelineLength;
     }
+
+    /**
+     * Sets the timeline length in seconds; a length of zero makes behaviours treat
+     * their normalized time as zero.
+     */
     SetAnimationTimelineLength(value) {
       this.animationTimelineLength = value;
     }
+
+    /** Returns the vertical field of view in radians. */
     GetFov() {
       return this.fov;
     }
+
+    /**
+     * Sets the vertical field of view in radians; field-of-view behaviours
+     * overwrite it on the next update.
+     */
     SetFov(value) {
       this.fov = value;
     }
+
+    /** Returns the roll about the view axis in degrees. */
     GetRoll() {
       return this.roll;
     }
+
+    /**
+     * Sets the roll about the view axis in degrees; roll behaviours overwrite it
+     * on the next update.
+     */
     SetRoll(value) {
       this.roll = value;
     }
+
+    /** Copies the world-space camera position into out. */
     GetPosition(out = vec3.create()) {
       return vec3.copy(out, this.position);
     }
+
+    /**
+     * Copies a world-space position into the camera, preserving the identity of
+     * the backing vector.
+     */
     SetPosition(value) {
       vec3.copy(this.position, value);
     }
+
+    /** Copies the world-space point the camera looks at into out. */
     GetPointOfInterest(out = vec3.create()) {
       return vec3.copy(out, this.pointOfInterest);
     }
+
+    /**
+     * Copies a world-space look-at point into the camera, preserving the identity
+     * of the backing vector.
+     */
     SetPointOfInterest(value) {
       vec3.copy(this.pointOfInterest, value);
     }
+
+    /**
+     * Appends a vector3 behaviour whose returned offset is accumulated into the
+     * camera position, starting from the position anchor centre.
+     */
     AddPositionBehaviour(behaviour) {
       this.positionBehaviours.push(behaviour);
     }
+
+    /**
+     * Appends a vector3 behaviour whose returned offset is accumulated into the
+     * point of interest, starting from the point-of-interest anchor centre.
+     */
     AddPointOfInterestBehaviour(behaviour) {
       this.pointOfInterestBehaviours.push(behaviour);
     }
+
+    /**
+     * Appends a float behaviour whose returned delta is accumulated into the field
+     * of view, which restarts from 1 radian each update.
+     */
     AddFOVBehaviour(behaviour) {
       this.fovBehaviours.push(behaviour);
     }
+
+    /**
+     * Appends a float behaviour whose returned delta is accumulated into the roll,
+     * which restarts from 0 degrees each update.
+     */
     AddRollBehaviour(behaviour) {
       this.rollBehaviours.push(behaviour);
     }
+
+    /**
+     * Adds each active behaviour's returned offset into value in list order, so
+     * later behaviours see the running result of the earlier ones together with
+     * the anchor centre, radius and forward direction.
+     */
+
+    /**
+     * Returns value with each active behaviour's returned delta added in list
+     * order; a non-numeric result counts as zero.
+     */
+
+    /**
+     * Recomputes the averaged centre, forward direction and enclosing radius of one anchor list, which behaviours use to scale and orient themselves relative to the anchored objects.
+     * @param {EveVirtualCamera} camera
+     * @param {String} prefix Field prefix, either "position" or "pointOfInterest"
+     * @returns {void} Writes the AnchorCenter, AnchorForwardDirection and AnchorRadius fields; with no anchors the forward direction becomes +Z and the radius 1000
+     */
   }];
   #applyVectorBehaviours(behaviours, camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward) {
     for (const behaviour of behaviours) {

@@ -4,6 +4,12 @@ import { type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from './enums.js';
 
 let _initClass, _init_time, _init_extra_time, _init_value, _init_extra_value, _init_leftTangent, _init_extra_leftTangent, _init_rightTangent, _init_extra_rightTangent, _init_id, _init_extra_id, _init_interpolation, _init_extra_interpolation, _init_tangentType, _init_extra_tangentType;
+
+/**
+ * One key of a Tr2CurveScalar: a time in seconds, a value, its left and right
+ * tangents in value units per unit time, the interpolation used to reach the
+ * next key, and the tangent-type rule that maintains the tangents.
+ */
 let _Tr2CurveScalarKey;
 class Tr2CurveScalarKey extends CjsModel {
   static {

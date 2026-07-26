@@ -4,6 +4,8 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_data, _init_extra_data;
+
+/** One vec4 row of a TriFloatArrayParameter's value list. */
 let _TriVector;
 class TriVector4 extends CjsModel {
   static {

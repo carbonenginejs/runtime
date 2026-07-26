@@ -7,6 +7,11 @@ import { Tr2CurveScalar as _Tr2CurveScalar } from '../curves/Tr2CurveScalar.js';
 import { TriCurveSet as _TriCurveSet } from '../curves/TriCurveSet.js';
 
 let _initProto, _initClass, _init_dimensions, _init_extra_dimensions, _init_midpoint, _init_extra_midpoint, _init_distanceThreshold, _init_extra_distanceThreshold, _init_maxXZRatio, _init_extra_maxXZRatio, _init_minYRatio, _init_extra_minYRatio, _init_timeAdjustmentSecondsIn, _init_extra_timeAdjustmentSecondsIn, _init_timeAdjustmentSecondsOut, _init_extra_timeAdjustmentSecondsOut, _init_objects, _init_extra_objects, _init_cameraView, _init_extra_cameraView, _init_curveSet, _init_extra_curveSet, _init_distance, _init_extra_distance, _init_minDistance, _init_extra_minDistance, _init_maxDistance, _init_extra_maxDistance;
+
+/**
+ * Tracks a set of moving points, estimates the volume covering them, and drives
+ * a curve set from the eased camera distance to that volume.
+ */
 let _EveDistanceField;
 new class extends _identity {
   static [class EveDistanceField extends CjsModel {
@@ -36,6 +41,12 @@ new class extends _identity {
     #dirty = true;
     #updateDistanceCurve = false;
     #isDynamic = false;
+
+    /**
+     * Configures the field as static, so its extent and midpoint are the authored
+     * ones rather than derived from tracked objects, and rebuilds the distance
+     * curve set.
+     */
     SetupStaticDistanceField(dimensions, position, distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn) {
       this.#isDynamic = false;
       vec3.copy(this.dimensions, dimensions);
@@ -46,6 +57,12 @@ new class extends _identity {
       this.#createCurveSet();
       this.#updateDistanceCurveSize();
     }
+
+    /**
+     * Configures the field as dynamic and marks the coverage dirty, so the
+     * midpoint and extent are recomputed from the tracked objects on the next
+     * update.
+     */
     SetupDynamicDistanceField(distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn) {
       this.#isDynamic = true;
       this.#dirty = true;
@@ -54,6 +71,14 @@ new class extends _identity {
       this.timeAdjustmentSecondsOut = timeAdjustmentSecondsOut;
       this.#createCurveSet();
     }
+
+    /**
+     * Measures the camera distance for this frame - to the midpoint when static,
+     * to the nearest tracked point when dynamic - eases the stored distance
+     * towards it using the in or out time constant depending on which way it
+     * moves, and drives the curve set. The distance is the curve set's time axis,
+     * not a delta.
+     */
     Update(updateContext) {
       const cameraPosition = _EveDistanceField.#getCameraPosition(this.cameraView);
       const time = _EveDistanceField.#getTime(updateContext);
@@ -86,12 +111,23 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Defers a distance-curve rebuild to the next update when the minimum or
+     * maximum distance changed.
+     */
     OnModified(_options = {}) {
       if (this.__state.flags.delete("distanceCurve")) {
         this.#updateDistanceCurve = true;
       }
       return true;
     }
+
+    /**
+     * Marks the coverage dirty when a tracked object is inserted, and resets the
+     * midpoint and extent once the last one is removed; events for other lists are
+     * ignored.
+     */
     OnListModified(event, _key = 0, _key2 = 0, _value = null, list = this.objects) {
       if (list !== this.objects) {
         return;
@@ -107,7 +143,14 @@ new class extends _identity {
           break;
       }
     }
+
+    /** Debug rendering hook; this package produces no debug geometry. */
     RenderDebugInfo() {}
+
+    /**
+     * Builds the curve set the field drives: a single named scalar curve falling
+     * linearly from 1 to 0 across the distance range.
+     */
     #createCurveSet() {
       this.curveSet = new _TriCurveSet();
       this.#distanceCurve = new _Tr2CurveScalar();
@@ -117,6 +160,11 @@ new class extends _identity {
       this.#distanceCurve.SetTimeOffset(0);
       this.curveSet.AddCurve(this.#distanceCurve);
     }
+
+    /**
+     * Moves the distance curve's two keys onto the current minimum and maximum
+     * distance and clears the pending-rebuild flag.
+     */
     #updateDistanceCurveSize() {
       const keys = this.#distanceCurve?.GetKeys?.() ?? [];
       if (keys.length === 2) {
@@ -127,10 +175,20 @@ new class extends _identity {
       this.#distanceCurve?.SetTimeOffset?.(0);
       this.#updateDistanceCurve = false;
     }
+
+    /** Zeroes the midpoint and extent once nothing is being tracked. */
     #setNeutralValues() {
       vec3.zero(this.midpoint);
       vec3.zero(this.dimensions);
     }
+
+    /**
+     * Samples every tracked object and returns the distance from the camera to the
+     * nearest of them, capped at the maximum distance. While the coverage is dirty
+     * it also rebuilds the midpoint and extent from the points lying within
+     * distanceThreshold of the mean spread, enforcing the maximum X/Z ratio and
+     * the minimum Y ratio.
+     */
     #calculateFieldCoverageAndDistance(time, cameraPosition, originShift) {
       if (this.objects.length === 0) {
         vec3.add(this.midpoint, this.midpoint, originShift);
@@ -172,6 +230,32 @@ new class extends _identity {
       }
       return Math.sqrt(distanceNowSq);
     }
+
+    /**
+     * Evaluates a tracked vector curve at time into out, leaving out unchanged
+     * when the curve yields nothing usable.
+     */
+
+    /**
+     * Camera position from the view, falling back to the translation of its
+     * transform and then to the origin.
+     */
+
+    /**
+     * Reads the current time from an update context, accepting the
+     * GetTime()/currentTime/time spellings.
+     */
+
+    /**
+     * Reads the frame delta from an update context, deriving it from the current
+     * and last times when the context exposes no delta directly; the first frame
+     * yields zero.
+     */
+
+    /**
+     * Reads the scene's floating-origin shift from an update context, or a zero
+     * vector when it has none.
+     */
   }];
   #sampleObject(object, time, out) {
     const result = object?.GetValueAt?.(time, out);

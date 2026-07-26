@@ -5,6 +5,11 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { CjsControllerExpressionProgram } from '../controllers/CjsControllerExpressionProgram.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_expressionX, _init_extra_expressionX, _init_expressionY, _init_extra_expressionY, _init_expressionZ, _init_extra_expressionZ, _init_currentValue, _init_extra_currentValue, _init_input, _init_extra_input, _init_input2, _init_extra_input2, _init_input3, _init_extra_input3, _init_input4, _init_extra_input4, _init_inputs, _init_extra_inputs;
+
+/**
+ * Vector curve whose x, y and z components are each produced by an independently
+ * compiled expression evaluated at time divided by timeScale.
+ */
 let _Tr2CurveVector3Expre;
 new class extends _identity {
   static [class Tr2CurveVector3Expression extends CjsModel {
@@ -101,15 +106,27 @@ new class extends _identity {
     InterpolatedPosition(_time, out) {
       return out;
     }
+
+    /** Gets the authored x-component expression source. */
     GetExpressionX() {
       return this.expressionX;
     }
+
+    /** Gets the authored y-component expression source. */
     GetExpressionY() {
       return this.expressionY;
     }
+
+    /** Gets the authored z-component expression source. */
     GetExpressionZ() {
       return this.expressionZ;
     }
+
+    /**
+     * Sets the x-component expression and drops its cached program so the next
+     * sample recompiles; returns false and changes nothing when the source is
+     * unchanged.
+     */
     SetExpressionX(expression, options = {}) {
       const changed = this.SetValues({
         expressionX: expression
@@ -128,6 +145,12 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Sets the y-component expression and drops its cached program so the next
+     * sample recompiles; returns false and changes nothing when the source is
+     * unchanged.
+     */
     SetExpressionY(expression, options = {}) {
       const changed = this.SetValues({
         expressionY: expression
@@ -146,6 +169,12 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Sets the z-component expression and drops its cached program so the next
+     * sample recompiles; returns false and changes nothing when the source is
+     * unchanged.
+     */
     SetExpressionZ(expression, options = {}) {
       const changed = this.SetValues({
         expressionZ: expression
@@ -164,25 +193,51 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Backs the expression `input`/`inputAt` functions by sampling the n-th input
+     * curve, defaulting to the time of the most recent GetContext call and
+     * returning 0 when no such input exists.
+     */
     GetInputValue(index, time = this.#currentTime) {
       const input = this.inputs[index | 0];
       return input ? input.GetValueAt(time) : 0;
     }
+
+    /**
+     * Gets this curve's per-instance random constant, which stays fixed until
+     * ResetRandomConstant is called so `randomConstant` expressions are stable
+     * over time.
+     */
     GetRandomConstant() {
       return this.randomConstant;
     }
+
+    /** Draws a new per-instance random constant in [0, 1). */
     ResetRandomConstant() {
       this.randomConstant = Math.random();
     }
+
+    /** Gets the curve expression terms offered to an editor for autocompletion. */
     GetExpressionTermInfo() {
       return CjsControllerExpressionProgram.getCurveTermInfo();
     }
+
+    /**
+     * Compiles and evaluates an arbitrary expression against this curve's context
+     * at time 0, returning 0 when it does not compile.
+     */
     EvaluateExpression(expression) {
       const program = CjsControllerExpressionProgram.Compile(expression, {
         emptyValue: 0
       });
       return program.IsValid() ? Number(program.Evaluate(this.GetContext(0))) || 0 : 0;
     }
+
+    /**
+     * Compiles any component expression whose cached program is missing or stale
+     * against the currently authored source.
+     */
     Compile() {
       const expressions = [this.expressionX, this.expressionY, this.expressionZ];
       for (let i = 0; i < expressions.length; i++) {
@@ -194,6 +249,12 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Builds the evaluation context for a sample, dividing the caller time by
+     * timeScale, recording it as the current input time, and exposing it alongside
+     * input1..input4 as expression variables.
+     */
     GetContext(time) {
       const scaledTime = time / this.timeScale;
       this.#currentTime = scaledTime;
@@ -210,6 +271,11 @@ new class extends _identity {
         }
       };
     }
+
+    /**
+     * Compiles as needed and writes the three evaluated components into the
+     * caller-owned `out`, zeroing a fourth component when `out` is longer than 3.
+     */
     #sample(time, out) {
       this.Compile();
       const context = this.GetContext(time);
@@ -221,6 +287,11 @@ new class extends _identity {
       }
       return out;
     }
+
+    /**
+     * Evaluates one component program, substituting 0 for a missing or invalid
+     * program and for any non-finite result.
+     */
   }];
   #evaluate(program, context) {
     return program?.IsValid() ? Number(program.Evaluate(context)) || 0 : 0;

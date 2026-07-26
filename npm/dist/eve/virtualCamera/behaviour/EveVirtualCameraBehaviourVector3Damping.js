@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveVirtualCameraBehaviourVector3Base as _EveVirtualCameraBeha$1 } from './EveVirtualCameraBehaviourVector3Base.js';
 
 let _initProto, _initClass, _init_m_dampingRatio, _init_extra_m_dampingRatio;
+
+/**
+ * Vector3 behaviour that lags the camera position or point of interest behind
+ * its target, giving a smooth follow with no overshoot.
+ */
 let _EveVirtualCameraBeha;
 class EveVirtualCameraBehaviourVector3Damping extends _EveVirtualCameraBeha$1 {
   static {
@@ -17,10 +22,22 @@ class EveVirtualCameraBehaviourVector3Damping extends _EveVirtualCameraBeha$1 {
   }
   m_dampingRatio = (_initProto(this), _init_m_dampingRatio(this, 1));
   #lastPosition = (_init_extra_m_dampingRatio(this), vec3.create());
+
+  /**
+   * Names the behaviour "Damping"; the default ratio of 1 follows the input
+   * exactly.
+   */
   constructor() {
     super();
     this.name = "Damping";
   }
+
+  /**
+   * Lerps the retained position towards the incoming one by m_dampingRatio and
+   * returns the offset from the incoming position to that smoothed one; the
+   * first update (local time at or below zero) seeds the retained position and
+   * returns zero.
+   */
   Update(_camera, current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create()) {
     if (localElapsedTime <= 0) {
       vec3.copy(this.#lastPosition, current);

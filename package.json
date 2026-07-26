@@ -38,7 +38,7 @@
   },
   "scripts": {
     "audit:gaps": "node scripts/audit_implementation_gaps.js",
-    "audit:jsdoc": "node scripts/audit_jsdoc.js",
+    "audit:jsdoc": "node ../docs/tooling/bin/cjs-jsdoc.js audit .",
     "audit:parity": "node scripts/audit_public_method_parity.js",
     "audit:types": "node scripts/audit_type_references.js",
     "test": "npm run build:npm && node --test test/*.test.js",

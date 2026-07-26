@@ -3,6 +3,8 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_left, _init_extra_left, _init_top, _init_extra_top, _init_right, _init_extra_right, _init_bottom, _init_extra_bottom;
+
+/** An integer screen rectangle given by its left, top, right and bottom edges. */
 let _TriRect;
 class TriRect extends CjsModel {
   static {
@@ -22,12 +24,22 @@ class TriRect extends CjsModel {
   top = (_init_extra_left(this), _init_top(this, 0));
   right = (_init_extra_top(this), _init_right(this, 0));
   bottom = (_init_extra_right(this), _init_bottom(this, 0));
+
+  /**
+   * Python-style constructor hook; assigns all four edges, each defaulting to
+   * zero.
+   */
   __init__(left = 0, top = 0, right = 0, bottom = 0) {
     this.left = left;
     this.top = top;
     this.right = right;
     this.bottom = bottom;
   }
+
+  /**
+   * Assigns the supplied edges, leaving any edge passed as undefined at its
+   * current value.
+   */
   SetRect(left, top, right, bottom) {
     if (left !== undefined) {
       this.left = left;

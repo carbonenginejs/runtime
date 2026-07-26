@@ -13,6 +13,12 @@ import { EveSpaceObjectVSData as _EveSpaceObjectVSData } from '../perObjectData/
 import { EveComponentType } from '../EveComponentTypes.js';
 
 let _initProto, _initClass, _init_effectChildren, _init_extra_effectChildren, _init_estimatedSize, _init_extra_estimatedSize, _init_lodLevel, _init_extra_lodLevel, _init_mute, _init_extra_mute, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_dynamicLOD, _init_extra_dynamicLOD, _init_scaling, _init_extra_scaling, _init_rotation, _init_extra_rotation, _init_translation, _init_extra_translation, _init_duration, _init_extra_duration, _init_secondaryLightingEmissiveColor, _init_extra_secondaryLightingEmissiveColor, _init_curveSets, _init_extra_curveSets, _init_lights, _init_extra_lights, _init_externalParameters, _init_extra_externalParameters, _init_controllers, _init_extra_controllers, _init_observers, _init_extra_observers, _init_rotationCurve, _init_extra_rotationCurve, _init_secondaryLightingSphereRadius, _init_extra_secondaryLightingSphereRadius, _init_boundingSphereCenter, _init_extra_boundingSphereCenter, _init_boundingSphereRadius, _init_extra_boundingSphereRadius, _init_modelTranslationCurve, _init_extra_modelTranslationCurve, _init_modelRotationCurve, _init_extra_modelRotationCurve, _init_translationCurve, _init_extra_translationCurve;
+
+/**
+ * A standalone effect root: curve-driven placement plus the effect children,
+ * lights, controllers, curve sets and observers that make up an effect not
+ * attached to a hull.
+ */
 let _EveEffectRoot;
 new class extends _identity {
   static [class EveEffectRoot2 extends _EveEntity {
@@ -631,6 +637,12 @@ new class extends _identity {
     SetProceduralContainerVariable(name, value) {
       for (const child of this.effectChildren) child?.SetProceduralContainerVariable?.(name, value);
     }
+
+    /**
+     * Builds the per-frame child update parameters naming this root as the
+     * space-object parent, carrying its display state and a copy of the current
+     * root matrix.
+     */
     #CreateChildUpdateParams() {
       const params = new _EveChildUpdateParams();
       params.spaceObjectParent = this;
@@ -638,6 +650,29 @@ new class extends _identity {
       mat4.copy(params.localToWorldTransform, this.#lastUpdateMatrix);
       return params;
     }
+
+    /**
+     * Replays every stored controller variable onto a newly added controller or
+     * effect child through the named setter, so late additions start with the same
+     * state.
+     */
+
+    /**
+     * Reads a numeric value from the update context, preferring a getter method
+     * and falling back to the named properties, and yields 0 when nothing supplies
+     * it.
+     */
+
+    /**
+     * Samples a curve into out through whichever of Update or GetValueAt it
+     * exposes, writing the fallback when there is no curve and copying back curves
+     * that return a new array instead of filling out.
+     */
+
+    /**
+     * Zeroes every numeric, typed-array and array field of a per-object record in
+     * place, so the record can be refilled from a known-clean state.
+     */
   }];
   #ApplyControllerVariables(target, variables, methodName) {
     const setter = target?.[methodName];

@@ -35,10 +35,21 @@ class EveDistributionSpawnModifierRandomOffset extends CjsModel {
 
   /** m_uniformOffset (bool) [READWRITE, PERSIST] */
   uniformOffset = (_init_extra_consistentRandom(this), _init_uniformOffset(this, false));
+
+  /**
+   * Reseeds the random stream from the wall clock, so offsets differ between
+   * runs unless consistentRandom pins them to the placement id.
+   */
   Initialize() {
     this.#timeSeed = Date.now() >>> 0;
     return true;
   }
+
+  /**
+   * Adds a random offset between minOffset and maxOffset - drawn per axis, or
+   * with one shared factor when uniformOffset is set - to the placement's
+   * initial translation, rotated into the placement's initial orientation first.
+   */
   ProcessSpawnModifier(placement, _numPlacements) {
     const seed = getDistributionSeed(placement.uniqueID, this.#timeSeed, this.consistentRandom);
     const random = createMinStdRandom(seed);

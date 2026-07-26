@@ -7,6 +7,12 @@ import { Tr2MatrixKey as _Tr2MatrixKey } from './Tr2MatrixKey.js';
 
 let _initProto, _initClass, _init_currentValue, _init_extra_currentValue, _init_name, _init_extra_name, _init_length, _init_extra_length, _init_cycle, _init_extra_cycle, _init_reversed, _init_extra_reversed, _init_startValue, _init_extra_startValue, _init_endValue, _init_extra_endValue, _init_skinnedObject, _init_extra_skinnedObject, _init_transform, _init_extra_transform, _init_keys, _init_extra_keys;
 const SPHERICAL_LINEAR = 4;
+
+/**
+ * Matrix function that tracks a named bone on a skinned object, returning the
+ * authored transform composed with that bone's current matrix and the object's
+ * world transform rather than sampling its own keys.
+ */
 let _Tr2BoneMatrixCurve;
 new class extends _identity {
   static [class Tr2BoneMatrixCurve extends CjsModel {
@@ -191,6 +197,12 @@ new class extends _identity {
     GetBone() {
       return this.#bone;
     }
+
+    /**
+     * Gets the last key at or before a time, relying on the keys being sorted and
+     * falling back to the first key when the time precedes all of them; returns
+     * null for an empty curve.
+     */
     GetKeyForTime(time) {
       const keys = this.keys;
       if (!this.keys.length) {
@@ -206,6 +218,17 @@ new class extends _identity {
       }
       return best;
     }
+
+    /**
+     * Reads a bone's 16-component matrix through GetBoneMatrix or
+     * GetBoneTransform, returning null when the object exposes neither or returns
+     * a wrongly sized value.
+     */
+
+    /**
+     * Reads the skinned object's own 16-component world transform, or null when it
+     * exposes none.
+     */
   }];
   #identityMatrix = mat4.create();
   #keyInterpolations = new WeakMap();

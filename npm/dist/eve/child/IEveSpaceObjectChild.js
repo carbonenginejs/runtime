@@ -3,6 +3,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass;
+
+/**
+ * Base type for space-object children, carrying the shared Origin enum that
+ * distinguishes space-authored placement from SOF-authored placement.
+ */
 let _IEveSpaceObjectChild;
 new class extends _identity {
   static [class IEveSpaceObjectChild extends CjsModel {

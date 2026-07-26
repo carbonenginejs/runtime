@@ -6,6 +6,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { Billboard2D, DistanceBase } from './EveChildModifierTransformCommon.js';
 
 let _initProto, _initClass, _init_fixed, _init_extra_fixed;
+
+/**
+ * Transform modifier that turns a child to face the camera, either as a fixed
+ * billboard that preserves the child's authored scale or as a free one that
+ * screen-aligns and then re-aligns along the camera direction.
+ */
 let _EveChildModifierBill;
 new class extends _identity {
   static [class EveChildModifierBillboard3D extends CjsModel {

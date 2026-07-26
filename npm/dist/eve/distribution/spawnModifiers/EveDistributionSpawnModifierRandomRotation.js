@@ -36,10 +36,21 @@ class EveDistributionSpawnModifierRandomRotation extends CjsModel {
 
   /** m_overrideRotation (bool) [READWRITE, PERSIST] */
   overrideRotation = (_init_extra_consistentRandom(this), _init_overrideRotation(this, false));
+
+  /**
+   * Reseeds the random stream from the wall clock, so rotations differ between
+   * runs unless consistentRandom pins them to the placement id.
+   */
   Initialize() {
     this.#timeSeed = Date.now() >>> 0;
     return true;
   }
+
+  /**
+   * Builds a rotation from random yaw, pitch and roll between minRotation and
+   * maxRotation, then either replaces the placement's initial rotation or
+   * combines it with the authored one.
+   */
   ProcessSpawnModifier(placement, _numPlacements) {
     const seed = getDistributionSeed(placement.uniqueID, this.#timeSeed, this.consistentRandom);
     const random = createMinStdRandom(seed);

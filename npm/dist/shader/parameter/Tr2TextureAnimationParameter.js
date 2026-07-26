@@ -26,6 +26,8 @@ class Tr2TextureAnimationParameter extends CjsParameter {
   name = (_init_extra_channel(this), _init_name(this, ""));
   resourceType = (_init_extra_name(this), 0);
   #materials = [];
+
+  /** The shader resource name the animated texture binds to. */
   GetParameterName() {
     return this.name;
   }
@@ -34,35 +36,68 @@ class Tr2TextureAnimationParameter extends CjsParameter {
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL) {
     return CjsParameter.hashFnv1Identity(this.animation, startingHash);
   }
+
+  /**
+   * Marks every attached material's resource sets and constant buffers dirty
+   * after the animation reference changed.
+   */
   OnModified(_options = {}) {
     for (const material of this.#materials) {
       CjsParameter.markMaterialResourcesDirty(material);
     }
     return true;
   }
+
+  /**
+   * Caches the reflected resource type for this name when the shader exposes
+   * one, and leaves the previous type in place otherwise; no GPU binding is
+   * created.
+   */
   RebuildEffectHandles(effectRes) {
     const resource = this.name ? CjsParameter.getEffectResource(effectRes, this.name) : null;
     if (resource) {
       this.resourceType = resource.type ?? this.resourceType;
     }
   }
+
+  /**
+   * Always false - populating a resource set is device work this package does
+   * not do.
+   */
   CopyToResourceSet() {
     return false;
   }
+
+  /** Always false - UAV binding is left to the engine adapter. */
   ApplyUav() {
     return false;
   }
+
+  /**
+   * Registers a material to be dirtied when the animation changes; duplicates
+   * are ignored.
+   */
   OnAddedToMaterial(material) {
     if (!this.#materials.includes(material)) {
       this.#materials.push(material);
     }
   }
+
+  /**
+   * Drops a material from the tracked list, so later frame advances no longer
+   * mark it dirty.
+   */
   OnRemovedFromMaterial(material) {
     const index = this.#materials.indexOf(material);
     if (index >= 0) {
       this.#materials.splice(index, 1);
     }
   }
+
+  /**
+   * The animation's texture for this parameter's channel, or null when no
+   * animation is attached.
+   */
   GetTexture() {
     return this.animation?.GetTexture?.(this.channel) ?? this.animation?.getTexture?.(this.channel) ?? null;
   }

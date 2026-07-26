@@ -5,6 +5,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_continuousEmitter, _init_extra_continuousEmitter, _init_rate, _init_extra_rate, _init_emissionDensity, _init_extra_emissionDensity, _init_maxEmissionDensity, _init_extra_maxEmissionDensity, _init_maxDisplacement, _init_extra_maxDisplacement, _init_position, _init_extra_position, _init_direction, _init_extra_direction, _init_angle, _init_extra_angle, _init_innerAngle, _init_extra_innerAngle, _init_radius, _init_extra_radius, _init_inheritVelocity, _init_extra_inheritVelocity, _init_minSpeed, _init_extra_minSpeed, _init_maxSpeed, _init_extra_maxSpeed, _init_minLifeTime, _init_extra_minLifeTime, _init_maxLifeTime, _init_extra_maxLifeTime, _init_sizes, _init_extra_sizes, _init_sizeVariance, _init_extra_sizeVariance, _init_color, _init_extra_color, _init_color2, _init_extra_color2, _init_color3, _init_extra_color3, _init_color4, _init_extra_color4, _init_textureIndex, _init_extra_textureIndex, _init_colorMidpoint, _init_extra_colorMidpoint, _init_velocityStretchRotation, _init_extra_velocityStretchRotation, _init_drag, _init_extra_drag, _init_turbulenceAmplitude, _init_extra_turbulenceAmplitude, _init_turbulenceFrequency, _init_extra_turbulenceFrequency, _init_gravity, _init_extra_gravity;
+
+/**
+ * Authored parameters of a GPU particle emitter: emission cone and rate,
+ * particle lifetime and speed range, size and colour ramp, and the drag,
+ * turbulence and gravity terms the simulation applies.
+ */
 let _Tr2GpuSharedEmitter;
 new class extends _identity {
   static [class Tr2GpuSharedEmitter extends CjsModel {
@@ -49,27 +55,55 @@ new class extends _identity {
     #enabled = (_init_extra_gravity(this), true);
     #previousTime = -1;
     #revision = 0;
+
+    /**
+     * Bumps the revision so a renderer holding this emitter rebuilds from it;
+     * there are no GPU resources to create here.
+     */
     Initialize() {
       this.#revision++;
       return true;
     }
+
+    /**
+     * Bumps the revision so a renderer holding this emitter picks up the changed
+     * parameters.
+     */
     OnModified() {
       this.#revision++;
       return true;
     }
+
+    /**
+     * Turns emission on or off; disabling also clears the spawn-time cursor so
+     * re-enabling restarts timing instead of catching up on the idle interval.
+     */
     Enable(value) {
       this.#enabled = !!value;
       if (!this.#enabled) this.#previousTime = -1;
     }
+
+    /** Reports whether this emitter is currently emitting. */
     IsEnabled() {
       return this.#enabled;
     }
+
+    /** Sets the emission cone axis in place, treating a missing value as zero. */
     SetDirection(value) {
       vec3.copy(this.direction, value || _Tr2GpuSharedEmitter.#zero3);
     }
+
+    /** Sets the emitter origin in place, treating a missing value as zero. */
     SetPosition(value) {
       vec3.copy(this.position, value || _Tr2GpuSharedEmitter.#zero3);
     }
+
+    /**
+     * Projects Carbon's emitter and particle-parameter structs onto the schema-backed fields in one batched, event-free update followed by a single UpdateValues.
+     * @param {object} emitterData emission shape and speed range; missing members fall back to the current values
+     * @param {object} paramsData per-particle parameters; colors may be supplied either as a colors array or as color0..color3
+     * attractorStrength is only forwarded on subclasses that declare it.
+     */
     Setup(rate, emitterData, paramsData) {
       const emitter = emitterData || {};
       const parameters = paramsData || {};
@@ -110,6 +144,11 @@ new class extends _identity {
         skipEvents: true
       });
     }
+
+    /**
+     * Returns the counter bumped by Initialize and OnModified, which a renderer
+     * compares against its own copy to detect parameter changes.
+     */
     GetRevision() {
       return this.#revision;
     }

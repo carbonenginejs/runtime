@@ -6,6 +6,13 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_worldTransform, _init_extra_worldTransform, _init_worldTransformLast, _init_extra_worldTransformLast, _init_invWorldTransform, _init_extra_invWorldTransform, _init_shipData, _init_extra_shipData, _init_clipSphereCenter, _init_extra_clipSphereCenter, _init_clipRadiusSq, _init_extra_clipRadiusSq, _init_clipRadius2Sq, _init_extra_clipRadius2Sq, _init_impactDataOffset, _init_extra_impactDataOffset, _init_clipSphereFactor, _init_extra_clipSphereFactor, _init_clipSphereFactor2, _init_extra_clipSphereFactor2, _init_shLightingCoefficients, _init_extra_shLightingCoefficients, _init_customMaskMaterialIDs, _init_extra_customMaskMaterialIDs, _init_customMaskTargets, _init_extra_customMaskTargets, _init_customMaskClamps, _init_extra_customMaskClamps, _init_screenSize, _init_extra_screenSize, _init_customData, _init_extra_customData;
+
+/**
+ * Pixel-stage per-object values for a space object - transforms, clip sphere,
+ * impact offset, spherical-harmonic lighting, custom-mask material IDs and
+ * targets, and screen size - as values a renderer packs into a constant buffer,
+ * never as GPU resources.
+ */
 let _EveSpaceObjectPSData;
 new class extends _identity {
   static [class EveSpaceObjectPSData extends CjsModel {
@@ -44,6 +51,12 @@ new class extends _identity {
     customMaskClamps = (_init_extra_customMaskTargets(this), _init_customMaskClamps(this, vec4.create()));
     screenSize = (_init_extra_customMaskClamps(this), _init_screenSize(this, vec4.create()));
     customData = (_init_extra_screenSize(this), _init_customData(this, vec4.create()));
+
+    /**
+     * Applies a value bag, first padding or truncating shLightingCoefficients,
+     * customMaskMaterialIDs and customMaskTargets to their declared counts so the
+     * record always matches the constant-buffer layout.
+     */
     SetValues(values = {}, options = {}) {
       const normalized = {
         ...values
@@ -53,6 +66,11 @@ new class extends _identity {
       if (Object.hasOwn(values, "customMaskTargets")) normalized.customMaskTargets = _EveSpaceObjectPSData.#vec4Array(values.customMaskTargets, _EveSpaceObjectPSData.CUSTOM_MASK_COUNT);
       return super.SetValues(normalized, options);
     }
+
+    /**
+     * Builds a fixed-length array of owned vec4 copies, coercing each component to
+     * a number and defaulting missing ones to zero.
+     */
   }];
   CUSTOM_MASK_COUNT = 2;
   SH_COEFFICIENT_COUNT = 7;

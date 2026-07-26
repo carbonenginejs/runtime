@@ -10,6 +10,11 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from '../itemSetBounds.js'
 import { MatrixCopyFrom3x4, AsPerSpotLightData, CreateLightRecord } from '../../lights/lightConversion.js';
 
 let _initProto, _initClass, _init_spotlightItems, _init_extra_spotlightItems, _init_name, _init_extra_name, _init_display, _init_extra_display, _init_coneEffect, _init_extra_coneEffect, _init_glowEffect, _init_extra_glowEffect, _init_skinned, _init_extra_skinned, _init_intensity, _init_extra_intensity, _init_lights, _init_extra_lights;
+
+/**
+ * A hull's authored spotlights, owning their static and per-bone bounds, the
+ * cone and glow effects that draw them, and the spot lights they emit.
+ */
 let _EveSpotlightSet;
 new class extends _identity {
   static [class EveSpotlightSet extends _EveEntity {
@@ -42,6 +47,11 @@ new class extends _identity {
      * EveSpotlightSet.cpp:90-91). Lights are BLACK until UpdateLights runs. */
     #activationStrength = 0;
     #boosterGain = 0;
+
+    /**
+     * Recomputes the static and per-bone bounds from the authored spotlight items
+     * and marks the packed geometry stale.
+     */
     Rebuild() {
       // Packed cone/glow vertices, bounds caches, effect hashes and quad
       // registration are reconciled by the concrete renderer adapter.
@@ -50,19 +60,32 @@ new class extends _identity {
       // Carbon rebuilds the item-set bounds at the tail of the same pack (cpp:311).
       CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spotlightItems);
     }
+
+    /**
+     * Runs the first Rebuild so the set has bounds before its first visibility
+     * test.
+     */
     Initialize() {
       this.Rebuild();
       return true;
     }
+
+    /** The effect that draws the light cones. */
     GetConeEffect() {
       return this.coneEffect;
     }
+
+    /** Sets the effect that draws the light cones. */
     SetConeEffect(effect) {
       this.coneEffect = effect ?? null;
     }
+
+    /** The effect that draws the glow sprite at each cone's source. */
     GetGlowEffect() {
       return this.glowEffect;
     }
+
+    /** Sets the effect that draws the glow sprite at each cone's source. */
     SetGlowEffect(effect) {
       this.glowEffect = effect ?? null;
     }
@@ -84,21 +107,42 @@ new class extends _identity {
       box3.transformMat4(aabb, aabb, parentTransform);
       return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
     }
+
+    /**
+     * Sets whether the spotlights ride skeleton bones, which is what decides if
+     * GetAabb consults the caller's bone list at all.
+     */
     SetSkinned(skinned) {
       this.skinned = !!skinned;
     }
+
+    /** The authored set name, which SOF uses to match this set to its DNA entry. */
     GetName() {
       return this.name;
     }
+
+    /** Sets the authored set name, coercing null or undefined to an empty string. */
     SetName(name) {
       this.name = String(name ?? "");
     }
+
+    /** The live spotlight item list, not a copy. */
     GetSpotlightItems() {
       return this.spotlightItems;
     }
+
+    /**
+     * Appends an authored spotlight item; the bounds only pick it up on the next
+     * Rebuild.
+     */
     AddSpotlightItem(item) {
       this.spotlightItems.push(item);
     }
+
+    /**
+     * Sets a shader option on both the cone and the glow effect, skipping
+     * whichever is absent or does not accept options.
+     */
     SetShaderOption(name, value) {
       if (this.coneEffect && typeof this.coneEffect.SetOption === "function") {
         this.coneEffect.SetOption(name, value);
@@ -107,6 +151,11 @@ new class extends _identity {
         this.glowEffect.SetOption(name, value);
       }
     }
+
+    /**
+     * Converts a SOF-authored light description into an EveSpotlightLight and
+     * appends it to the set.
+     */
     AddLightFromSOF(light) {
       this.lights.push(_EveSpotlightLight.FromSOF(light));
     }

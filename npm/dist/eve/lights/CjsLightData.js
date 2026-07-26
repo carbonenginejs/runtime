@@ -6,6 +6,13 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { type, schema } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_position, _init_extra_position, _init_color, _init_extra_color, _init_brightness, _init_extra_brightness, _init_noiseAmplitude, _init_extra_noiseAmplitude, _init_noiseFrequency, _init_extra_noiseFrequency, _init_noiseOctaves, _init_extra_noiseOctaves, _init_radius, _init_extra_radius, _init_innerRadius, _init_extra_innerRadius, _init_rotation, _init_extra_rotation, _init_outerAngle, _init_extra_outerAngle, _init_innerAngle, _init_extra_innerAngle, _init_texturePath, _init_extra_texturePath, _init_boneIndex, _init_extra_boneIndex, _init_flags, _init_extra_flags, _init_startTime, _init_extra_startTime, _init_castsShadows, _init_extra_castsShadows, _init_isVolumetric, _init_extra_isVolumetric;
+
+/**
+ * Full authored attribute set of a light - position, colour, brightness and
+ * noise, radii, orientation and cone angles, texture path, bone index, flags,
+ * shadow setting and volumetric flag - used as the compat view over a light's
+ * flattened fields.
+ */
 let _CjsLightData;
 new class extends _identity {
   static [class CjsLightData extends CjsModel {

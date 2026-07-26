@@ -4,6 +4,13 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_locatorTarget, _init_extra_locatorTarget, _init_locatorDirection, _init_extra_locatorDirection, _init_locatorIndex, _init_extra_locatorIndex, _init_seek, _init_extra_seek, _init_deliver, _init_extra_deliver, _init_arrived, _init_extra_arrived, _init_timePassed, _init_extra_timePassed;
+
+/**
+ * Per-agent scratch for the BackAndForth child behaviour: the locator the agent
+ * is travelling to, the direction it approaches from, and how far through the
+ * trip it is. The behaviour allocates one record per agent and rewrites it on
+ * every behaviour update.
+ */
 let _BackAndForthData;
 class BackAndForthData extends CjsModel {
   static {

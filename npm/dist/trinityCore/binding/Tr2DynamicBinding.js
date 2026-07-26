@@ -4,6 +4,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { TriValueBinding as _TriValueBinding } from './TriValueBinding.js';
 
 let _initProto, _initClass, _init_bindingDelay, _init_extra_bindingDelay, _init_destination, _init_extra_destination, _init_isDestinationValid, _init_extra_isDestinationValid, _init_name, _init_extra_name, _init_destinationObjectAttribute, _init_extra_destinationObjectAttribute, _init_destinationObjectPath, _init_extra_destinationObjectPath, _init_sourceObjectAttribute, _init_extra_sourceObjectAttribute, _init_sourceObjectPath, _init_extra_sourceObjectPath, _init_scale, _init_extra_scale, _init_source, _init_extra_source, _init_isSourceValid, _init_extra_isSourceValid, _init_binding, _init_extra_binding;
+
+/**
+ * A value binding described by object paths: it resolves both endpoints against
+ * its owner's parameter map, builds a weak TriValueBinding and starts copying
+ * after a configured delay.
+ */
 let _Tr2DynamicBinding;
 new class extends _identity {
   static [class Tr2DynamicBinding extends CjsModel {
@@ -34,6 +40,11 @@ new class extends _identity {
     source = (_init_extra_scale(this), _init_source(this, null));
     isSourceValid = (_init_extra_source(this), _init_isSourceValid(this, false));
     binding = (_init_extra_isSourceValid(this), _init_binding(this, null));
+
+    /**
+     * Redefines the read-only source and destination fields as getters over the
+     * weakly held endpoint references, and records the initial link signature.
+     */
     constructor() {
       super(), _init_extra_binding(this);
       Object.defineProperty(this, "source", {
@@ -48,6 +59,13 @@ new class extends _identity {
       });
       this.#lastLinkSignature = this.#GetLinkSignature();
     }
+
+    /**
+     * Unlinks, resolves both object paths against the owner's parameter map and
+     * builds a weak binding between the two attributes, scheduling the first copy
+     * bindingDelay milliseconds after the current frame time; returns false
+     * without an owner or when either endpoint fails to resolve.
+     */
     Link(currentFrameTime = undefined) {
       this.Unlink();
       if (currentFrameTime !== undefined) {
@@ -72,6 +90,11 @@ new class extends _identity {
       }
       return false;
     }
+
+    /**
+     * Tears down the binding, clears both endpoint references and validity flags
+     * and resets the pending binding time.
+     */
     Unlink() {
       this.binding?.SetDestinationObject?.(null);
       this.binding = null;
@@ -81,9 +104,19 @@ new class extends _identity {
       this.isDestinationValid = false;
       this.#bindingTime = 0;
     }
+
+    /**
+     * Sets the object whose GetParameterMap supplies the roots that Link resolves
+     * paths against; without it Link always fails.
+     */
     SetOwner(owner) {
       this.#owner = owner ?? null;
     }
+
+    /**
+     * Records the current frame time and copies the bound value once the binding
+     * delay has elapsed; returns whether a copy took place.
+     */
     Update(time) {
       this.#currentFrameTime = Number(time);
       if (this.binding && this.#bindingTime <= this.#currentFrameTime) {
@@ -91,19 +124,40 @@ new class extends _identity {
       }
       return false;
     }
+
+    /**
+     * Shifts the pending binding time and the cached frame time by the clock
+     * delta, so rebasing the simulation clock neither skips nor stalls the delay.
+     */
     OnSimClockRebase(oldTime, newTime) {
       const adjustment = Number(newTime) - Number(oldTime);
       this.#bindingTime += adjustment;
       this.#currentFrameTime += adjustment;
     }
+
+    /**
+     * Re-checks that the weakly held destination is still alive and refreshes the
+     * read-only flag.
+     */
     IsDestinationValid() {
       this.isDestinationValid = !!this.destination;
       return this.isDestinationValid;
     }
+
+    /**
+     * Re-checks that the weakly held source is still alive and refreshes the
+     * read-only flag.
+     */
     IsSourceValid() {
       this.isSourceValid = !!this.source;
       return this.isSourceValid;
     }
+
+    /**
+     * Relinks when any of Carbon's five notify fields (both paths, both attributes
+     * and the scale) changed; without an owner it only unlinks and records the new
+     * signature.
+     */
     OnModified(_options = {}) {
       const signature = this.#GetLinkSignature();
       if (signature !== this.#lastLinkSignature) {
@@ -114,9 +168,37 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * A JSON digest of the five link-defining fields, compared to detect that a
+     * relink is required.
+     */
     #GetLinkSignature() {
       return JSON.stringify([this.destinationObjectPath, this.destinationObjectAttribute, this.sourceObjectPath, this.sourceObjectAttribute, this.scale]);
     }
+
+    /**
+     * Looks a named root up in the owner's parameter map, which may be a Map or a
+     * plain object.
+     */
+
+    /**
+     * Selects an element of an array or of a GetSize/GetAt list, either by index
+     * (negative counts from the end) or by matching an element's name.
+     */
+
+    /**
+     * Walks a path of the form root.attribute[0]["name"] through the parameter
+     * map, returning the object only when the whole path was consumed and the
+     * result is a reference.
+     */
+
+    /**
+     * Wraps a reference in a WeakRef, or in a strong deref shim where WeakRef is
+     * unavailable; null for anything that is not a reference.
+     */
+
+    /** Whether a value can be held by WeakRef, i.e. an object or a function. */
   }];
   #GetRoot(roots, name) {
     if (roots instanceof Map) return roots.get(name) ?? null;

@@ -4,6 +4,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_position, _init_extra_position, _init_radius, _init_extra_radius, _init_innerRadius, _init_extra_innerRadius, _init_name, _init_extra_name;
+
+/**
+ * Sphere of influence with a solid inner radius and a falloff out to the outer
+ * radius, weighting points and seeding random ones inside it.
+ */
 let _EveSphereVolume;
 class EveSphereVolume extends CjsModel {
   static {
@@ -21,12 +26,20 @@ class EveSphereVolume extends CjsModel {
   name = (_init_extra_innerRadius(this), _init_name(this, ""));
   #callbacks = (_init_extra_name(this), new Map());
   #nextCallbackId = 1;
+
+  /** Returns a fresh sphere centred on the volume position with its outer radius. */
   GetBoundingSphere() {
     return {
       center: vec3.clone(this.position),
       radius: this.radius
     };
   }
+
+  /**
+   * Returns the falloff weight for a point given in the volume's own space: 1
+   * within the inner radius, 0 past the outer radius, and a ramp that is linear
+   * in squared distance between them.
+   */
   GetIntensity(position) {
     const distanceSq = vec3.squaredDistance(position, this.position);
     const outerRadiusSq = this.radius * this.radius;
@@ -40,6 +53,13 @@ class EveSphereVolume extends CjsModel {
     const interpolationDistance = outerRadiusSq - innerRadiusSq;
     return interpolationDistance > 0 ? 1 - (distanceSq - innerRadiusSq) / interpolationDistance : 0;
   }
+
+  /**
+   * Appends random points expressed relative to the sphere centre rather than offset by its position, spread in direction uniformly over the sphere and in distance between the inner and outer radius as shaped by fallOffFactor.
+   *
+   * @param points Caller-owned array the new points are pushed onto.
+   * @param excludeInnerVolume Keeps every point outside the inner radius.
+   */
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor) {
     const count = Math.max(0, Math.trunc(howManyToAdd));
     const radiusRange = this.radius - this.innerRadius;
@@ -63,14 +83,26 @@ class EveSphereVolume extends CjsModel {
       points.push(vec3.fromValues(radial * Math.cos(angle) * distance, radial * Math.sin(angle) * distance, z * distance));
     }
   }
+
+  /**
+   * Registers a callback fired whenever the volume changes, returning the id
+   * needed to unregister it again.
+   */
   RegisterForChanges(callback) {
     const id = this.#nextCallbackId++;
     this.#callbacks.set(id, callback);
     return id;
   }
+
+  /** Drops a change callback by the id RegisterForChanges returned. */
   UnregisterForChanges(callbackId) {
     this.#callbacks.delete(callbackId);
   }
+
+  /**
+   * Clamps the radii so the outer radius stays non-negative and never smaller
+   * than the inner one, then notifies every registered listener.
+   */
   OnModified(_options = {}) {
     const flags = this.__state.flags;
     if (flags.delete("innerRadius") && this.innerRadius > this.radius) {
@@ -87,6 +119,8 @@ class EveSphereVolume extends CjsModel {
     }
     return true;
   }
+
+  /** No debug drawing in this port. */
   RenderDebugInfo() {}
   static {
     _initClass();

@@ -4,6 +4,12 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { carbonPerlin1D } from '@carbonenginejs/runtime-utils/noise';
 
 let _initProto, _initClass, _init_alpha, _init_extra_alpha, _init_beta, _init_extra_beta, _init_N, _init_extra_N, _init_value, _init_extra_value, _init_scale, _init_extra_scale, _init_offset, _init_extra_offset, _init_speed, _init_extra_speed, _init_name, _init_extra_name;
+
+/**
+ * Scalar curve driven by fractal Perlin noise, mapping the noise band to
+ * [offset, offset + scale] and advancing at `speed` from a per-instance random
+ * phase.
+ */
 let _TriPerlinCurve;
 new class extends _identity {
   static [class TriPerlinCurve extends CjsModel {
@@ -28,9 +34,16 @@ new class extends _identity {
     name = (_init_extra_speed(this), _init_name(this, ""));
     #lastUpdated = (_init_extra_name(this), -1);
     #startOffset = _TriPerlinCurve.#nextStartOffset();
+
+    /** Updates the cached value for the supplied time. */
     UpdateValue(time) {
       this.Update(time);
     }
+
+    /**
+     * Updates and returns the cached value, skipping the noise evaluation when the
+     * time is unchanged since the last call.
+     */
     Update(time) {
       if (this.#lastUpdated !== time) {
         this.#lastUpdated = time;
@@ -38,6 +51,12 @@ new class extends _identity {
       }
       return this.value;
     }
+
+    /**
+     * Samples the noise at a time and maps it to [offset, offset + scale]; the
+     * per-instance random phase is replaced by a fixed offset when
+     * expressionCurveFakeRandom is set, so editor previews are deterministic.
+     */
     GetValueAt(time) {
       let position = Number(time);
       if (_TriPerlinCurve.expressionCurveFakeRandom) {
@@ -53,9 +72,20 @@ new class extends _identity {
     ScaleTime(scale) {
       this.scale = scale;
     }
+
+    /**
+     * Evaluates Carbon's 1D fractal Perlin noise, returning a value in roughly
+     * [-1, 1].
+     */
     static PerlinNoise1D(position, inverseAmplitude, frequency, octaves) {
       return carbonPerlin1D(position, inverseAmplitude, frequency, octaves);
     }
+
+    /**
+     * Draws the next per-instance noise phase from Carbon's shared
+     * linear-congruential TriRand state, reproducing its 32-bit integer truncation
+     * so offsets match the C++ sequence.
+     */
   }];
   expressionCurveFakeRandom = false;
   #triRandState = 1234;

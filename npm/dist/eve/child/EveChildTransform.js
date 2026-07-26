@@ -16,6 +16,12 @@ let _initProto, _initClass, _init_translation, _init_extra_translation, _init_sc
 // fan-out. Children whose Carbon class is not an EveEntity simply never get
 // forwarded a registry (Carbon's BlueCastPtr fails; JS registers them with no
 // components, base RegisterComponents being a no-op).
+
+/**
+ * Shared base for space-object children: holds the SRT values, local and world
+ * transforms, and the rules by which a child's world transform is derived from
+ * its parent's each frame.
+ */
 let _EveChildTransform;
 new class extends _identity {
   static [class EveChildTransform extends _EveEntity {
@@ -41,12 +47,24 @@ new class extends _identity {
     useSRT = (_init_extra_staticTransform(this), _init_useSRT(this, true));
     useStaticRotation = (_init_extra_useSRT(this), _init_useStaticRotation(this, false));
     useStaticScale = (_init_extra_useStaticRotation(this), _init_useStaticScale(this, false));
+
+    /**
+     * Recomposes the local transform from the current scaling, rotation and
+     * translation; a child with useSRT off keeps its authored localTransform
+     * untouched.
+     */
     RebuildLocalTransform() {
       if (this.useSRT) {
         _EveChildTransform.#compose(this.localTransform, this.scaling, this.rotation, this.translation);
       }
       return this.localTransform;
     }
+
+    /**
+     * Applies the supplied SRT components (each optional - omitted ones keep their current value) and rebuilds the local transform; a child with useSRT off returns its authored localTransform unchanged.
+     * @param {Number} [_lowestLodVisible] - accepted for Carbon signature parity, unused here
+     * @returns {Float32Array} the child's live local transform
+     */
     Setup(scale = null, rotation = null, translation = null, _lowestLodVisible = null) {
       if (!this.useSRT) {
         return this.localTransform;
@@ -62,10 +80,21 @@ new class extends _identity {
       }
       return this.RebuildLocalTransform();
     }
+
+    /**
+     * Setup that also latches useStaticRotation, so from then on UpdateTransform
+     * strips the parent's rotation and the child keeps a fixed world orientation.
+     */
     SetupWithStaticRotation(scale = null, rotation = null, translation = null, lowestLodVisible = null) {
       this.useStaticRotation = true;
       return this.Setup(scale, rotation, translation, lowestLodVisible);
     }
+
+    /**
+     * Setup that also latches staticTransform, so from then on UpdateTransform
+     * reuses the local transform as-is instead of recomposing it from the SRT
+     * values every frame.
+     */
     SetupWithStaticTransform(scale = null, rotation = null, translation = null, lowestLodVisible = null) {
       this.staticTransform = true;
       return this.Setup(scale, rotation, translation, lowestLodVisible);
@@ -75,6 +104,12 @@ new class extends _identity {
     // row-vector convention (local first, then parent), which is
     // mat4.multiply(world, parent, local) in gl-matrix - matching
     // EveTransform.UpdateViewDependentData.
+
+    /**
+     * Recomputes the child's world transform from its parent for this frame - the single place a child's placement is driven. A staticTransform or non-SRT child reuses its local transform as-is; otherwise it is recomposed first, and when useStaticScale or useStaticRotation is set the parent is decomposed and rebuilt with unit scale and/or identity rotation before the two are combined.
+     * @param {Float32Array} parentTransform - borrowed, read only
+     * @returns {Float32Array} the child's live world transform
+     */
     UpdateTransform(parentTransform) {
       if (this.staticTransform || !this.useSRT) {
         return mat4.multiply(this.worldTransform, parentTransform, this.localTransform);
@@ -95,6 +130,14 @@ new class extends _identity {
       const modifiedParentTransform = _EveChildTransform.#compose(mat4.create(), scale, rotation, translation);
       return mat4.multiply(this.worldTransform, modifiedParentTransform, this.localTransform);
     }
+
+    /** Builds a transform matrix from a scale, rotation and translation triple. */
+
+    /**
+     * Extracts the normalized rotation quaternion from a transform by dividing
+     * each basis column by the matching component of the supplied scale first, so
+     * non-uniform scaling does not skew the result.
+     */
   }];
   #compose(out, scale, rotation, translation) {
     return mat4.fromRotationTranslationScale(out, rotation, translation, scale);

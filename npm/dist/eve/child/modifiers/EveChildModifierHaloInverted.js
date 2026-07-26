@@ -6,6 +6,12 @@ import { carbon, impl, type } from '@carbonenginejs/runtime-utils/schema';
 import { DistanceBase } from './EveChildModifierTransformCommon.js';
 
 let _initProto, _initClass;
+
+/**
+ * Transform modifier that scales a child to nothing as its local Z axis turns to
+ * face the camera - the inverse of a halo, and despite the name not a subclass
+ * of one.
+ */
 let _EveChildModifierHalo;
 new class extends _identity {
   static [class EveChildModifierHaloInverted extends CjsModel {

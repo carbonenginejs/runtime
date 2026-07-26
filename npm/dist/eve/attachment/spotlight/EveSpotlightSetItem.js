@@ -7,6 +7,12 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_boneIndex, _init_extra_boneIndex, _init_coneColor, _init_extra_coneColor, _init_flareColor, _init_extra_flareColor, _init_spriteColor, _init_extra_spriteColor, _init_transform, _init_extra_transform, _init_spriteScale, _init_extra_spriteScale, _init_boosterGainInfluence, _init_extra_boosterGainInfluence;
+
+/**
+ * One authored spotlight: its bone attachment, placement matrix, the separate
+ * cone, flare and sprite colours drawn for it, and whether booster gain
+ * modulates it.
+ */
 let _EveSpotlightSetItem;
 new class extends _identity {
   static [class EveSpotlightSetItem extends CjsModel {
@@ -31,9 +37,16 @@ new class extends _identity {
     transform = (_init_extra_spriteColor(this), _init_transform(this, mat4.create()));
     spriteScale = (_init_extra_transform(this), _init_spriteScale(this, vec3.fromValues(1, 1, 1)));
     boosterGainInfluence = (_init_extra_spriteScale(this), _init_boosterGainInfluence(this, false));
+
+    /**
+     * Fills the caller-owned out box with the spotlight's unit box transformed by
+     * its authored placement matrix.
+     */
     GetBounds(out) {
       return box3.transformMat4(out, _EveSpotlightSetItem.#bounds, this.transform);
     }
+
+    /** The parent bone this spotlight rides. */
     GetBoneIndex() {
       return this.boneIndex;
     }

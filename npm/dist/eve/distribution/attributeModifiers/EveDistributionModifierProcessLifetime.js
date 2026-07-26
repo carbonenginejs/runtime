@@ -26,9 +26,20 @@ new class extends _identity {
 
     /** m_lifetimeDuration (float) [READWRITE, PERSIST] */
     lifetimeDuration = (_init_extra_killEvent(this), _init_lifetimeDuration(this, -1));
+
+    /**
+     * Reports no transform effect, so this modifier alone never forces the
+     * distribution into its per-frame transform reset.
+     */
     AffectsTransform() {
       return false;
     }
+
+    /**
+     * Returns the authored kill event once a placement's accumulated lifetime
+     * passes lifetimeDuration, and DO_NOTHING otherwise or when no positive
+     * duration is authored.
+     */
     ProcessDistributionModifier(placement, _deltaTime, _params) {
       return placement.lifeTime > this.lifetimeDuration && this.lifetimeDuration > 0 ? this.killEvent : _EveDistributionModif.DistributionEntityLifeTimeEvent.DO_NOTHING;
     }

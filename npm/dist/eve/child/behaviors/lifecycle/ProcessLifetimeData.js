@@ -3,6 +3,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_hasUsedEntryTunnel, _init_extra_hasUsedEntryTunnel, _init_hasUsedExitTunnel, _init_extra_hasUsedExitTunnel, _init_assignedLifeTimeTunnel, _init_extra_assignedLifeTimeTunnel, _init_tunnelPoint, _init_extra_tunnelPoint, _init_hasSpawned, _init_extra_hasSpawned;
+
+/**
+ * Per-agent scratch record for the ProcessLifetime behavior: which tunnel the
+ * agent is assigned, how far along that tunnel it is, and whether it has spawned
+ * or already used its entry and exit tunnels.
+ */
 let _ProcessLifetimeData;
 class ProcessLifetimeData extends CjsModel {
   static {

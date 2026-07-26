@@ -10,6 +10,11 @@ import { MatrixCopyFrom3x4, AsPerPointLightData, CreateLightRecord } from '../..
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from '../itemSetBounds.js';
 
 let _initProto, _initClass, _init_effect, _init_extra_effect, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_hazes, _init_extra_hazes, _init_lights, _init_extra_lights;
+
+/**
+ * A hull's authored haze volumes, owning their per-bone bounds and the point
+ * lights the haze emits.
+ */
 let _EveHazeSet;
 new class extends _identity {
   static [class EveHazeSet extends _EveEntity {
@@ -40,13 +45,25 @@ new class extends _identity {
      * bool, verbatim quirk). Lights are BLACK until UpdateLights runs. */
     #activationStrength = 0;
     #boosterGain = 0;
+
+    /** Sets the effect that draws the haze volumes. */
     Setup(effect) {
       this.effect = effect ?? null;
     }
+
+    /**
+     * Runs the first Rebuild so the set has bounds before its first visibility
+     * test.
+     */
     Initialize() {
       this.Rebuild();
       return true;
     }
+
+    /**
+     * Recomputes the item-set bounds and marks the packed geometry stale; a haze
+     * set has no skinned flag, so every bone-indexed haze always gets its own box.
+     */
     Rebuild() {
       // Carbon rebuilds packed haze vertices and static bounds here. The
       // backend-neutral runtime keeps the authored graph and invalidates the
@@ -70,14 +87,29 @@ new class extends _identity {
       box3.transformMat4(aabb, aabb, parentTransform);
       return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
     }
+
+    /**
+     * Appends an authored haze item; the bounds only pick it up on the next
+     * Rebuild.
+     */
     AddHazeItem(item) {
       this.hazes.push(item);
     }
+
+    /**
+     * Sets a shader option on the haze effect, doing nothing when no effect that
+     * accepts options is attached.
+     */
     SetShaderOption(name, value) {
       if (this.effect && typeof this.effect.SetOption === "function") {
         this.effect.SetOption(name, value);
       }
     }
+
+    /**
+     * Converts a SOF-authored light description into an EveHazeSetLight and
+     * appends it to the set.
+     */
     AddLightFromSOF(light) {
       this.lights.push(_EveHazeSetLight.FromSOF(light));
     }

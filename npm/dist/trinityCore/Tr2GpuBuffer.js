@@ -30,6 +30,11 @@ new class extends _identity {
 
     /** m_name - debug label; not Blue-exposed. */
     #name = (_init_extra_isValid(this), "");
+
+    /**
+     * Sets the debug label, coercing null to an empty string; Carbon keeps this
+     * private with no getter, so the paired GetName is a JS addition.
+     */
     SetName(name) {
       this.#name = String(name ?? "");
     }

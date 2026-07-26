@@ -6,6 +6,11 @@ import { Tr2CurveInterpolation, Tr2CurveTangentType } from './enums.js';
 import { Tr2CurveScalar as _Tr2CurveScalar } from './Tr2CurveScalar.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_x, _init_extra_x, _init_y, _init_extra_y, _init_currentValue, _init_extra_currentValue;
+
+/**
+ * Two-component vector curve composed of independent scalar curves for x and y;
+ * its length is the longer of the two.
+ */
 let _Tr2CurveVector;
 class Tr2CurveVector2 extends CjsModel {
   static {

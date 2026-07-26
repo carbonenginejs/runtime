@@ -7,6 +7,8 @@ let _initProto, _initClass;
 
 // Carbon: RenderJob/TriStepPushViewport.cpp — Execute pushes the current
 // viewport onto the render context's ESM stack.
+
+/** Step that saves the current viewport so a later pop can restore it. */
 let _TriStepPushViewport;
 class TriStepPushViewport extends _TriRenderStep {
   static {
@@ -22,6 +24,10 @@ class TriStepPushViewport extends _TriRenderStep {
     super(...args);
     _initProto(this);
   }
+  /**
+   * Pushes the executor's current viewport; the value is not supplied by the
+   * step, only the intent to save it.
+   */
   Execute(_realTime, _simTime, executor) {
     executor?.PushViewport?.();
     return _TriRenderJob.StepResult.RS_OK;

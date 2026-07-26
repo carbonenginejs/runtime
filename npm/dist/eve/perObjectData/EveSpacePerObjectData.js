@@ -6,6 +6,13 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_worldTransform, _init_extra_worldTransform, _init_worldTransformLast, _init_extra_worldTransformLast, _init_invWorldTransform, _init_extra_invWorldTransform, _init_shipData, _init_extra_shipData, _init_clipSphereCenter, _init_extra_clipSphereCenter, _init_ellpsoidRadii, _init_extra_ellpsoidRadii, _init_ellpsoidCenter, _init_extra_ellpsoidCenter, _init_boneOffsets, _init_extra_boneOffsets, _init_customData, _init_extra_customData, _init_customMaskMatrix, _init_extra_customMaskMatrix, _init_customMaskData, _init_extra_customMaskData, _init_customMaskMaterialIDs, _init_extra_customMaskMaterialIDs, _init_customMaskTargets, _init_extra_customMaskTargets, _init_customMaskClamps, _init_extra_customMaskClamps, _init_shLighting, _init_extra_shLighting, _init_clipRadiusSq, _init_extra_clipRadiusSq, _init_clipRadius2Sq, _init_extra_clipRadius2Sq, _init_impactDataOffset, _init_extra_impactDataOffset, _init_clipSphereFactor, _init_extra_clipSphereFactor, _init_clipSphereFactor2, _init_extra_clipSphereFactor2;
+
+/**
+ * Combined per-object record for a space object covering both stages -
+ * transforms, clip sphere, ellipsoid, custom masks, bone offsets and
+ * spherical-harmonic lighting coefficients - as values a renderer packs into a
+ * constant buffer, never as GPU resources.
+ */
 let _EveSpacePerObjectDat;
 new class extends _identity {
   static [class EveSpacePerObjectData extends CjsModel {
@@ -54,6 +61,12 @@ new class extends _identity {
     impactDataOffset = (_init_extra_clipRadius2Sq(this), _init_impactDataOffset(this, 0));
     clipSphereFactor2 = (_init_extra_impactDataOffset(this), _init_clipSphereFactor(this, 0));
     clipSphereFactor = (_init_extra_clipSphereFactor(this), _init_clipSphereFactor2(this, 0));
+
+    /**
+     * Applies a value bag, first padding or truncating boneOffsets, the
+     * custom-mask arrays and shLighting to their declared counts so the record
+     * always matches the constant-buffer layout.
+     */
     SetValues(values = {}, options = {}) {
       const normalized = {
         ...values
@@ -66,6 +79,21 @@ new class extends _identity {
       if (Object.hasOwn(values, "shLighting")) normalized.shLighting = _EveSpacePerObjectDat.#vec4Array(values.shLighting, _EveSpacePerObjectDat.SH_COEFFICIENT_COUNT);
       return super.SetValues(normalized, options);
     }
+
+    /**
+     * Builds a fixed-length array of owned mat4 copies, substituting identity for
+     * any entry that is not a 16-element matrix.
+     */
+
+    /**
+     * Builds a fixed-length array of owned vec4 copies, coercing each component to
+     * a number and defaulting missing ones to zero.
+     */
+
+    /**
+     * Builds a fixed-length array of unsigned 32-bit integers, coercing missing or
+     * non-numeric entries to zero.
+     */
   }];
   CUSTOM_MASK_COUNT = 2;
   BONE_OFFSET_COUNT = 4;

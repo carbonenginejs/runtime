@@ -14,6 +14,12 @@ let _initClass, _init_effect, _init_extra_effect, _init_batchType, _init_extra_b
 const INSTANCE_FLAG_CASTS_SHADOW = 0x40000000;
 const INSTANCE_FLAG_RENDER_IN_REFLECTION = 0x80000000;
 const POSITION_SCRATCH = vec3.create();
+
+/**
+ * One shader area of an instanced mesh: the effect, its batch type, the area
+ * range within the mesh, its cached effect hash and the mesh-group handle it is
+ * registered under.
+ */
 let _EveChildInstancedMes;
 class EveChildInstancedMeshArea extends CjsModel {
   static {
@@ -101,9 +107,20 @@ class EveChildInstancedMesh extends CjsModel {
    * RENDER_IN_REFLECTION refreshed each async pass (cpp:251). */
   flags = 0;
   #geometry = null;
+
+  /**
+   * Returns the geometry resource backing this mesh, or null while none has been
+   * assigned; the mesh does not register with the manager until it is present
+   * and good.
+   */
   GetGeometryResource() {
     return this.#geometry;
   }
+
+  /**
+   * Assigns the geometry resource this mesh renders from; a nullish value clears
+   * it. Runtime state, deliberately not persisted.
+   */
   SetGeometryResource(resource) {
     this.#geometry = resource ?? null;
   }
@@ -136,19 +153,50 @@ new class extends _identity {
      * set optimistically each pass, cleared by ANY not-ready mesh/area so the
      * per-frame CollectMeshes retries until geometry streams in. */
     #allRegistered = false;
+
+    /**
+     * The authored name, persisted with the child and used to identify it in the
+     * parent graph.
+     */
     GetName() {
       return this.name;
     }
+
+    /** Sets the authored child name, coercing nullish to the empty string. */
     SetName(name) {
       this.name = String(name ?? "");
     }
+
+    /**
+     * Carbon EveChildInstancedMeshes::UpdateVisibility (cpp:183-186) only caches
+     * the frame's camera frustum for later use; the JS port has no consumer for
+     * that cache, so the frame hook does nothing.
+     */
     UpdateVisibility() {}
+
+    /**
+     * Carbon EveChildInstancedMeshes::GetRenderables (cpp:188-190) collects
+     * nothing: the instanced mesh manager emits the draws, so the accumulator
+     * comes back unchanged.
+     */
     GetRenderables(renderables = []) {
       return renderables;
     }
+
+    /**
+     * Carbon EveChildInstancedMeshes::GetBoundingSphere (cpp:192-195) always
+     * returns false - the child publishes no bounds of its own, because each mesh
+     * registers its own sphere group with the manager.
+     */
     GetBoundingSphere() {
       return false;
     }
+
+    /**
+     * Stamps the child's world transform from the parent's localToWorldTransform
+     * (Carbon cpp:197-200); every per-instance cull sphere the async pass builds
+     * is derived from it.
+     */
     UpdateSyncronous(_updateContext, params) {
       if (params?.localToWorldTransform?.length === 16) {
         mat4.copy(this.worldTransform, params.localToWorldTransform);
@@ -241,15 +289,42 @@ new class extends _identity {
       }
       this.hasUpdated = true;
     }
+
+    /**
+     * Returns the child's world transform as stamped by the last sync update.
+     * @param {Float32Array} [out] - caller-owned; when given, receives a copy and is returned instead of the live matrix
+     * @returns {Float32Array} out when supplied, otherwise the live internal matrix
+     */
     GetLocalToWorldTransform(out = null) {
       if (out) {
         return mat4.copy(out, this.worldTransform);
       }
       return this.worldTransform;
     }
+
+    /**
+     * Carbon EveChildInstancedMeshes::Setup (cpp:335-337) is an intentional no-op:
+     * placement comes from the authored per-instance transforms, not from an SRT
+     * setup.
+     */
     Setup() {}
+
+    /**
+     * Carbon EveChildInstancedMeshes::ChangeLOD (cpp:339-341) is an intentional
+     * no-op; the child keeps no LOD state.
+     */
     ChangeLOD() {}
+
+    /**
+     * Accepts and discards the placement origin; this child has no Carbon origin
+     * field and stores none.
+     */
     SetOrigin() {}
+
+    /**
+     * Returns false, so owners treat this child as subject to normal activation
+     * gating.
+     */
     IsAlwaysOn() {
       return false;
     }
@@ -273,6 +348,13 @@ new class extends _identity {
       }
       this.#revision++;
     }
+
+    /**
+     * Appends one instanced mesh: normalizes the area ducks, copies the instance transforms, stamps CASTS_SHADOW plus one flag bit per area batch type (Carbon cpp:418-425), and clears the registration latch so the next AddMeshesToManager pass picks it up.
+     * @param {Iterable} areas - area ducks ({effect, batchType, areaIndex, areaCount})
+     * @param {Iterable<Float32Array>} instanceTransforms - 16-value matrices; copied, not retained
+     * @returns {Boolean} false when no areas or no instances were supplied (nothing is added)
+     */
     AddMesh(geometryPath, castsShadow, reflectionMode, meshIndex, areas, instanceTransforms, sofHullName = "", sofLocatorSetName = "") {
       const sourceAreas = Array.from(areas ?? []);
       const sourceTransforms = Array.from(instanceTransforms ?? []);
@@ -312,11 +394,23 @@ new class extends _identity {
       this.#revision++;
       return true;
     }
+
+    /**
+     * Drops every mesh and clears the hasUpdated stamp so nothing re-registers
+     * until another update pass runs; registration handles are NOT released here,
+     * so call UnregisterFromMeshManager first when a manager still holds them.
+     */
     Clear() {
       this.meshes.length = 0;
       this.hasUpdated = false;
       this.#revision++;
     }
+
+    /**
+     * Decodes a picking area id back to the SOF locator it came from.
+     * @param {Number} areaId - mesh ordinal in the high 16 bits, locator index in the low 16 (the pairing AddMeshesToManager registers)
+     * @returns {Array|null} [sofHullName, sofLocatorSetName, locatorIndex], or null when the mesh is unknown or carries no SOF hull name
+     */
     GetSofSourceLocator(areaId) {
       const value = Number(areaId) >>> 0;
       const mesh = this.meshes[value >>> 16];
@@ -325,13 +419,28 @@ new class extends _identity {
       }
       return [mesh.sofHullName, mesh.sofLocatorSetName, value & 0xffff];
     }
+
+    /** Number of meshes currently held. */
     GetMeshCount() {
       return this.meshes.length;
     }
+
+    /**
+     * Reports one mesh's authoring state as a positional tuple (Carbon's multiple out-params).
+     * @param {Number} meshId - mesh index; RangeError when out of range
+     * @returns {Array} [geometryPath, geometryResource, meshIndex, castsShadow, reflectionMode, areaCount, instanceCount]
+     */
     GetMeshInfo(meshId) {
       const mesh = _EveChildInstancedMes4.#GetMesh(this.meshes, meshId);
       return [mesh.geometryPath, mesh.GetGeometryResource(), mesh.meshIndex, mesh.castsShadow, mesh.reflectionMode, mesh.areas.length, mesh.instances.length];
     }
+
+    /**
+     * Reports one area of one mesh as a positional tuple (Carbon's multiple out-params).
+     * @param {Number} meshId - mesh index; RangeError when out of range
+     * @param {Number} areaId - area index within that mesh; RangeError when out of range
+     * @returns {Array} [effect, batchType, areaIndex, areaCount] - the effect is the live reference
+     */
     GetAreaInfo(meshId, areaId) {
       const mesh = _EveChildInstancedMes4.#GetMesh(this.meshes, meshId);
       const index = Number(areaId) >>> 0;
@@ -341,6 +450,11 @@ new class extends _identity {
       const area = mesh.areas[index];
       return [area.effect, area.batchType, area.areaIndex, area.areaCount];
     }
+
+    /**
+     * Whether the given mesh is currently displayed; throws RangeError for an
+     * unknown mesh index.
+     */
     GetMeshDisplay(meshId) {
       return _EveChildInstancedMes4.#GetMesh(this.meshes, meshId).display;
     }
@@ -370,6 +484,11 @@ new class extends _identity {
         this.#revision++;
       }
     }
+
+    /**
+     * Assigns one mesh's geometry resource, bumping the revision only when it
+     * actually changes; registration waits for the next AddMeshesToManager pass.
+     */
     SetGeometryResource(meshId, geometry) {
       const mesh = _EveChildInstancedMes4.#GetMesh(this.meshes, meshId);
       if (mesh.GetGeometryResource() !== geometry) {
@@ -377,10 +496,22 @@ new class extends _identity {
         this.#revision++;
       }
     }
+
+    /**
+     * Returns a detached snapshot of one mesh - instance transforms cloned, areas
+     * shallow-copied, geometry resource shared by reference - so callers can read
+     * it without touching live registration state.
+     */
     GetMeshData(meshId) {
       const mesh = _EveChildInstancedMes4.#GetMesh(this.meshes, meshId);
       return _EveChildInstancedMes4.#CloneMesh(mesh);
     }
+
+    /**
+     * Monotonic counter bumped by every structural change (AddMesh, Clear,
+     * SetMeshDisplay, SetGeometryResource, SetShaderOption), for consumers caching
+     * derived data.
+     */
     GetRevision() {
       return this.#revision;
     }
@@ -517,6 +648,27 @@ new class extends _identity {
     GetShadowPerObjectData(..._args) {
       return null;
     }
+
+    /**
+     * Resolves a mesh index against the list, throwing RangeError rather than
+     * returning undefined so every public accessor fails loudly.
+     */
+
+    /**
+     * Builds an area record from a plain duck, defaulting areaCount to 1 and
+     * caching the effect hash the manager registers the mesh group under.
+     */
+
+    /**
+     * Deep-copies a mesh into a plain object for GetMeshData: instance transforms
+     * cloned, areas spread-copied, the geometry resource shared by reference.
+     */
+
+    /**
+     * Reads an effect's hash through GetHashValue() or a .hash field, yielding 0
+     * when neither is available so a hashless effect still registers
+     * deterministically.
+     */
   }];
   #GetMesh(meshes, meshId) {
     const index = Number(meshId) >>> 0;

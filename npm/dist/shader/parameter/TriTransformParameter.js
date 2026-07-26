@@ -45,6 +45,8 @@ new class extends _identity {
 
     /** m_worldTransform (Matrix) [READWRITE, PERSIST] */
     worldTransform = (_init_extra_translation(this), _init_worldTransform(this, mat4.create()));
+
+    /** The shader constant name the composed transform matrix is uploaded to. */
     GetParameterName() {
       return this.name;
     }

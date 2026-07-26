@@ -72,6 +72,12 @@ const D4N_SCALE_TABLE = new Float32Array([1.4142135, 0.70710677, 0.35355338, 0.3
 const D4N_OFFSET_TABLE = new Float32Array([-0.70710677, -0.35355338, -0.53033006, -0.17677669, 0.17677669, -0.17677669, -0.088388346, 0.0, 0.70710677, 0.35355338, 0.53033006, 0.17677669, -0.17677669, 0.17677669, 0.088388346, -0]);
 const D4N_SCALE_TABLE_MULTIPLIER_16 = 0.000030518509;
 const D4N_SCALE_TABLE_MULTIPLIER_8 = 0.0078740157;
+
+/**
+ * Decodes Granny's 19 compressed animation-curve formats into explicit knots and
+ * controls, and samples them at a time, without depending on a GR2 container
+ * reader.
+ */
 class CjsGrannyCurves {
   static #resources = new Map();
 
@@ -129,35 +135,77 @@ class CjsGrannyCurves {
     }
     return CjsGrannyCurves.#sampleQuadraticCurve(out, curve, time, cycle, duration || knots[count - 1], knot);
   }
+
+  /**
+   * Registers a decoded Granny source under a resource path so tracks can
+   * resolve it later; the caller retains ownership of the source object.
+   */
   static registerResource(path, source) {
     if (path) {
       CjsGrannyCurves.#resources.set(path, source);
     }
   }
+
+  /** Drops the registration for a resource path. */
   static unregisterResource(path) {
     CjsGrannyCurves.#resources.delete(path);
   }
+
+  /** Drops every registered Granny source. */
   static clearResources() {
     CjsGrannyCurves.#resources.clear();
   }
+
+  /** Gets the source registered for a resource path, or null. */
   static resolveResource(path) {
     return CjsGrannyCurves.#resources.get(path) ?? null;
   }
+
+  /**
+   * Unwraps an arbitrary loader result down to the object that actually carries
+   * an `animations` array, searching nested json/data/value/source/fileInfo keys
+   * up to eight levels deep.
+   */
   static getTrackSource(value) {
     return CjsGrannyCurves.#findTrackSource(value, 0);
   }
+
+  /**
+   * Gets a source's animation list, accepting either the camel-case or
+   * Pascal-case key and returning an empty array when absent.
+   */
   static getAnimations(source) {
     return CjsGrannyCurves.#getArray(source, "animations", "Animations");
   }
+
+  /**
+   * Gets an animation's track group list, accepting either the camel-case or
+   * Pascal-case key and returning an empty array when absent.
+   */
   static getTrackGroups(animation) {
     return CjsGrannyCurves.#getArray(animation, "trackGroups", "TrackGroups");
   }
+
+  /**
+   * Gets an animation's duration in seconds, or 0 when it is absent or
+   * non-numeric.
+   */
   static getAnimationDuration(animation) {
     return Number(animation.duration ?? animation.Duration) || 0;
   }
+
+  /**
+   * Gets an animation's authored time step in seconds, or 0 when it is absent or
+   * non-numeric.
+   */
   static getAnimationTimeStep(animation) {
     return Number(animation.timeStep ?? animation.TimeStep) || 0;
   }
+
+  /**
+   * Finds a named transform track in a track group and returns it with its
+   * orientation, position and scaleShear curves normalized to camel-case keys.
+   */
   static findTransformTrack(group, name) {
     const trackGroup = CjsGrannyCurves.#asTrackGroup(group);
     if (!trackGroup) {
@@ -167,6 +215,11 @@ class CjsGrannyCurves {
     const track = tracks.find(item => CjsGrannyCurves.#getName(item) === name);
     return track ? CjsGrannyCurves.#normalizeTransformTrack(track) : null;
   }
+
+  /**
+   * Finds a named vector track in a track group and returns it with its
+   * valueCurve normalized to a camel-case key.
+   */
   static findVectorTrack(group, name) {
     const trackGroup = CjsGrannyCurves.#asTrackGroup(group);
     if (!trackGroup) {
@@ -176,6 +229,8 @@ class CjsGrannyCurves {
     const track = tracks.find(item => CjsGrannyCurves.#getName(item) === name);
     return track ? CjsGrannyCurves.#normalizeVectorTrack(track) : null;
   }
+
+  /** Finds a named text (event) track in a track group, or null. */
   static findTextTrack(group, name) {
     const trackGroup = CjsGrannyCurves.#asTrackGroup(group);
     if (!trackGroup) {
@@ -184,6 +239,11 @@ class CjsGrannyCurves {
     const textTracks = CjsGrannyCurves.#getArray(trackGroup, "textTracks", "TextTracks");
     return textTracks.find(track => CjsGrannyCurves.#getName(track) === name) ?? null;
   }
+
+  /**
+   * Flattens a text track into `{ time, text }` records in source order,
+   * dropping entries whose timestamp is not a finite number.
+   */
   static getTextTrackEntries(track) {
     const entries = CjsGrannyCurves.#getArray(track, "entries", "Entries");
     const out = [];
@@ -198,6 +258,13 @@ class CjsGrannyCurves {
     }
     return out;
   }
+
+  /**
+   * Decodes one Granny curve to the shared sampler shape for the expected
+   * dimension, first reusing already-explicit knots and controls when present
+   * and otherwise running the format decoder; returns null instead of throwing
+   * for an errored, malformed or unsupported curve.
+   */
   static decodeGrannyCurve(curve, dimension) {
     if (!curve || curve.error || curve.Error) {
       return null;
@@ -250,22 +317,43 @@ class CjsGrannyCurves {
       return null;
     }
   }
+
+  /**
+   * Samples a decoded curve into the caller-owned `out` array, taking the
+   * keyframed flag from the curve itself; `out` must hold at least the curve's
+   * dimension.
+   */
   static sampleGrannyCurve(out, curve, time, cycle, duration) {
     CjsGrannyCurves.sampleDecodedCurve(out, curve, time, cycle, duration, {
       keyframed: curve.keyframed
     });
     return out;
   }
+
+  /** Narrows a value to a non-null object, otherwise null. */
   static #asRecord(value) {
     return value !== null && typeof value === "object" ? value : null;
   }
+
+  /**
+   * Accepts a value as a Granny source only if it carries an animations array
+   * under either casing.
+   */
   static #asTrackSource(value) {
     const record = CjsGrannyCurves.#asRecord(value);
     return CjsGrannyCurves.#hasArrayValue(record, "animations", "Animations") ? record : null;
   }
+
+  /** Narrows a value to a non-null object usable as a track group. */
   static #asTrackGroup(value) {
     return CjsGrannyCurves.#asRecord(value);
   }
+
+  /**
+   * Recursively searches the common wrapper keys for the object carrying the
+   * animations array, stopping past depth 8 to bound cyclic or deeply nested
+   * loader results.
+   */
   static #findTrackSource(value, depth) {
     const direct = CjsGrannyCurves.#asTrackSource(value);
     if (direct) {
@@ -283,6 +371,11 @@ class CjsGrannyCurves {
     }
     return null;
   }
+
+  /**
+   * Reads an array property under either the camel-case or Pascal-case key,
+   * returning an empty array when neither holds one.
+   */
   static #getArray(value, lowerKey, upperKey) {
     const lower = value[lowerKey];
     if (Array.isArray(lower)) {
@@ -291,16 +384,30 @@ class CjsGrannyCurves {
     const upper = value[upperKey];
     return Array.isArray(upper) ? upper : [];
   }
+
+  /** Checks whether either the camel-case or Pascal-case key holds an array. */
   static #hasArrayValue(value, lowerKey, upperKey) {
     return Array.isArray(value?.[lowerKey]) || Array.isArray(value?.[upperKey]);
   }
+
+  /** Reads a name under either the camel-case or Pascal-case key. */
   static #getName(value) {
     return value.name ?? value.Name;
   }
+
+  /**
+   * Reads a text-track entry's time from timeStamp, TimeStamp, timestamp or
+   * time, returning NaN when none is numeric.
+   */
   static #getEntryTime(entry) {
     const value = entry.timeStamp ?? entry.TimeStamp ?? entry.timestamp ?? entry.time;
     return typeof value === "number" ? value : Number.NaN;
   }
+
+  /**
+   * Copies a transform track with its name and its orientation, position and
+   * scaleShear curves exposed under camel-case keys.
+   */
   static #normalizeTransformTrack(track) {
     return {
       ...track,
@@ -310,6 +417,11 @@ class CjsGrannyCurves {
       scaleShear: track.scaleShear ?? track.ScaleShear
     };
   }
+
+  /**
+   * Copies a vector track with its name and valueCurve exposed under camel-case
+   * keys.
+   */
   static #normalizeVectorTrack(track) {
     return {
       ...track,
@@ -317,6 +429,12 @@ class CjsGrannyCurves {
       valueCurve: track.valueCurve ?? track.ValueCurve
     };
   }
+
+  /**
+   * Copies a curve object with every Pascal-case key also exposed camel-case, so
+   * the format decoders can read one casing regardless of how the source was
+   * produced.
+   */
   static #normalizeCurve(curve) {
     const normalized = {
       ...curve
@@ -335,6 +453,12 @@ class CjsGrannyCurves {
     normalized.error = curve.error ?? curve.Error;
     return normalized;
   }
+
+  /**
+   * Reuses a curve that already carries explicit knot and control arrays,
+   * rejecting it when the dimension does not match the track or the control
+   * count is not a whole number of samples.
+   */
   static #getDecodedCurve(curve, dimension) {
     const knots = curve.knots;
     const controls = curve.controls;
@@ -351,9 +475,13 @@ class CjsGrannyCurves {
       keyframed: curve.format === 0
     };
   }
+
+  /** Lower-cases the first character of a key name. */
   static #lowerFirst(value) {
     return value ? value[0].toLowerCase() + value.slice(1) : value;
   }
+
+  /** Copies one whole control sample into the caller-owned `out` array. */
   static #copyControl(out, curve, index) {
     const offset = index * curve.dimension;
     for (let i = 0; i < curve.dimension; i++) {
@@ -361,6 +489,11 @@ class CjsGrannyCurves {
     }
     return out;
   }
+
+  /**
+   * Binary-searches the knot array for the index of the first knot strictly
+   * greater than the time.
+   */
   static #findKnotIndex(knots, time) {
     let low = 0;
     let high = knots.length - 1;
@@ -374,10 +507,21 @@ class CjsGrannyCurves {
     }
     return low;
   }
+
+  /**
+   * Maps a time onto a frame index for a uniformly keyframed curve, clamping to
+   * the first and last frame; a duration of zero always yields frame 0.
+   */
   static #sampleKeyframedCurve(count, time, duration) {
     const frame = duration > 0 ? Math.trunc(count * time / duration) : 0;
     return Math.max(0, Math.min(count - 1, frame));
   }
+
+  /**
+   * Linearly interpolates a degree-1 curve into `out`, wrapping the segment
+   * around the end of the knot array and shifting the times by one duration when
+   * cycling.
+   */
   static #sampleLinearCurve(out, curve, time, cycle, duration, knot) {
     const knots = curve.knots;
     const count = knots.length;
@@ -400,6 +544,12 @@ class CjsGrannyCurves {
     }
     return out;
   }
+
+  /**
+   * Evaluates a degree-2 curve into `out` from the three controls ending at the
+   * found knot, shifting out-of-order times by one duration so a cycling curve
+   * stays monotonic.
+   */
   static #sampleQuadraticCurve(out, curve, time, cycle, duration, knot) {
     const knots = curve.knots;
     const count = knots.length;

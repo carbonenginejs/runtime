@@ -62,6 +62,11 @@ class Tr2VisibilityEvent {
     FLUSH_GPU_COMMAND_BUFFER: 1 << 29
   });
 }
+
+/**
+ * Collects the visibility events a visibility executor emits, for the interior
+ * and portal consumers to read back.
+ */
 let _Tr2VisibilityResults;
 class Tr2VisibilityResults extends CjsModel {
   static {

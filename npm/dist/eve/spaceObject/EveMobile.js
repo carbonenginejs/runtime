@@ -6,6 +6,12 @@ import { EveTurretSet as _EveTurretSet } from '../attachment/turrets/EveTurretSe
 import { EveSpaceObject2 as _EveSpaceObject } from './EveSpaceObject2.js';
 
 let _initProto, _initClass, _init_turretSets, _init_extra_turretSets, _init_ActiveTurretCount, _init_extra_ActiveTurretCount;
+
+/**
+ * A space object that carries turret sets, keeping each set bound to the hull
+ * locators or animated bones it fires from and tracking how many of its turrets
+ * are active.
+ */
 let _EveMobile;
 new class extends _identity {
   static [class EveMobile extends _EveSpaceObject {
@@ -22,12 +28,19 @@ new class extends _identity {
     ActiveTurretCount = (_init_extra_turretSets(this), _init_ActiveTurretCount(this, 0));
     #turretSetsLocatorInfo = (_init_extra_ActiveTurretCount(this), []);
     #turretLocatorCountingInfo = new Map();
+
+    /**
+     * Runs the base initialization, then seeds the turret locator counters from
+     * the current locators and binds every turret set to them.
+     */
     Initialize() {
       super.Initialize();
       this.#resetTurretLocatorCounter(true);
       this.RebuildTurretPositions();
       return true;
     }
+
+    /** Rebinds the turret sets to their locators after the turret set list changes. */
     OnListModified() {
       this.RebuildTurretPositions();
     }
@@ -55,9 +68,21 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Returns the locator index a turret slot was bound to, or 0 when the set or
+     * slot has no binding.
+     */
     GetTurretLocatorIndex(turretSetIndex, slotIndex) {
       return this.#turretSetsLocatorInfo[turretSetIndex]?.locators?.[slotIndex]?.index ?? 0;
     }
+
+    /**
+     * Binds each turret set to the locators or animated bones whose names extend
+     * its locator name, allocating sets that do not name a turret locator from the
+     * shared locator_turret_ pool, and pushes each matched transform into the set
+     * as a local turret transform up to the per-set turret limit.
+     */
     RebuildTurretPositions() {
       this.#turretSetsLocatorInfo.length = 0;
       this.#resetTurretLocatorCounter(false);
@@ -118,6 +143,12 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Counts the unbroken run of locator_turret_<n>a/b locator pairs starting at
+     * 1, returning 0 when the set of 'a' locators does not match the set of 'b'
+     * locators.
+     */
     GetTurretLocatorCount() {
       let foundA = 0;
       let foundB = 0;
@@ -136,9 +167,20 @@ new class extends _identity {
       }
       return count;
     }
+
+    /**
+     * Returns how many turret sets were past the targeting state at the last
+     * synchronous update.
+     */
     GetActiveTurretCount() {
       return this.ActiveTurretCount;
     }
+
+    /**
+     * Runs the base synchronous update, refreshes bone-driven turret locator
+     * transforms, updates every turret set against the hull transform, and
+     * recounts the active turrets.
+     */
     UpdateSyncronous(context) {
       super.UpdateSyncronous(context);
       let activeCount = 0;
@@ -159,28 +201,51 @@ new class extends _identity {
       this.ActiveTurretCount = activeCount;
       return true;
     }
+
+    /** Runs the base asynchronous update and then the turret sets. */
     UpdateAsyncronous(context) {
       super.UpdateAsyncronous(context);
       return this.UpdateTurretsAsyncronous(context);
     }
+
+    /**
+     * Advances every turret set's asynchronous work, handing it the hull transform
+     * as its parent placement.
+     */
     UpdateTurretsAsyncronous(context) {
       for (const turretSet of this.turretSets) turretSet?.UpdateAsyncronous?.(context, {
         transform: this.GetTurretTransform(turretSet.swarmID)
       });
       return true;
     }
+
+    /**
+     * Runs the base visibility pass and, while display is on, forwards visibility
+     * to the turret sets.
+     */
     UpdateVisibility(context, _parentTransform = _EveMobile.#identity) {
       const visible = super.UpdateVisibility(context, _parentTransform);
       if (!this.display) return false;
       for (const turretSet of this.turretSets) turretSet?.UpdateVisibility?.(context);
       return visible;
     }
+
+    /**
+     * Appends the base renderables followed by every turret set's renderables;
+     * nothing is appended while display is off.
+     */
     GetRenderables(out = []) {
       if (!this.display) return out;
       super.GetRenderables(out);
       for (const turretSet of this.turretSets) turretSet?.GetRenderables?.(out);
       return out;
     }
+
+    /**
+     * Returns the hull's local bounding box grown to contain every turret set's
+     * box; with out parameters it fills them and returns true, without them it
+     * returns a { min, max } object.
+     */
     GetLocalBoundingBox(outMin, outMax) {
       const returnObject = !outMin || !outMax;
       outMin ??= vec3.create();
@@ -198,24 +263,46 @@ new class extends _identity {
         max: outMax
       } : true;
     }
+
+    /** Sets a controller variable on the hull and forwards it to every turret set. */
     SetControllerVariable(name, value) {
       super.SetControllerVariable(name, value);
       for (const turretSet of this.turretSets) turretSet?.SetControllerVariable?.(name, value);
     }
+
+    /** Raises a controller event on the hull and forwards it to every turret set. */
     HandleControllerEvent(name) {
       super.HandleControllerEvent(name);
       for (const turretSet of this.turretSets) turretSet?.HandleControllerEvent?.(name);
     }
+
+    /** Starts the hull's controllers and every turret set's controllers. */
     StartControllers() {
       super.StartControllers();
       for (const turretSet of this.turretSets) turretSet?.StartControllers?.();
     }
+
+    /**
+     * Children, turret sets and boosters are shown only while activation strength
+     * is above 0.5.
+     */
     DisplayChildren() {
       return this.activationStrength > 0.5;
     }
+
+    /**
+     * Returns the parent transform turret sets are placed against - the live hull
+     * world transform, regardless of swarm index.
+     */
     GetTurretTransform(_turretSetIndex = 0) {
       return this.worldTransform;
     }
+
+    /**
+     * Rebuilds the per-name-prefix counters that allocate turret sets to numbered
+     * locators, resetting each prefix's running count and, when asked, recomputing
+     * its total from the digit that follows the prefix.
+     */
     #resetTurretLocatorCounter(updateTotal) {
       for (const record of this.#locatorRecords()) {
         const separator = record.name.lastIndexOf("_");
@@ -235,6 +322,11 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Returns the next locator number to allocate for a name prefix together with
+     * that prefix's total, or null when the prefix is unknown.
+     */
     #getTurretLocatorCountingInfo(name) {
       const info = this.#turretLocatorCountingInfo.get(name);
       return info ? {
@@ -242,6 +334,12 @@ new class extends _identity {
         total: info.totalCount
       } : null;
     }
+
+    /**
+     * Builds the name-keyed list of authored locators and animation-updater bones
+     * that turret binding searches; a bone whose name is already taken by a
+     * locator is skipped.
+     */
     #locatorRecords() {
       const records = [];
       for (let index = 0; index < this.locators.length; index++) {
@@ -268,6 +366,12 @@ new class extends _identity {
       }
       return records;
     }
+
+    /**
+     * Copies a locator record's transform into the caller-owned out matrix - the
+     * animated bone world transform for bone records, the authored transform for
+     * locator records - and returns null when neither is available.
+     */
     #getLocatorRecordTransform(record, out) {
       if (record.type === "bone") {
         const value = this.animationUpdater?.GetBoneWorldTransform?.(record.name, out) ?? this.animationUpdater?.GetBoneTransform?.(record.index, out);

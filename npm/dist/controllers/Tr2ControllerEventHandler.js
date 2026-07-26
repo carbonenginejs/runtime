@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { BELIST_EVENTMASK, BELIST_REMOVED, BELIST_INSERTED } from './contracts.js';
 
 let _initProto, _initClass, _init_actions, _init_extra_actions, _init_name, _init_extra_name;
+
+/**
+ * Binds a named controller event to a list of actions that are run as a single
+ * one-shot pulse when the event fires.
+ */
 let _Tr2ControllerEventHa;
 new class extends _identity {
   static [class Tr2ControllerEventHandler extends CjsModel {
@@ -81,6 +86,11 @@ new class extends _identity {
         action.Stop?.(controller);
       }
     }
+
+    /**
+     * Narrows a stored entry to a controller action, so a malformed list entry is
+     * ignored rather than invoked.
+     */
   }];
   #asControllerAction(value) {
     return value && typeof value === "object" ? value : null;

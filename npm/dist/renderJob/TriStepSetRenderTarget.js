@@ -4,6 +4,11 @@ import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
 let _initProto, _initClass, _init_renderTarget, _init_extra_renderTarget;
+
+/**
+ * Step that binds a render target to slot 0 directly, without touching the
+ * render-target stack.
+ */
 let _TriStepSetRenderTarg;
 class TriStepSetRenderTarget extends _TriRenderStep {
   static {
@@ -20,9 +25,16 @@ class TriStepSetRenderTarget extends _TriRenderStep {
     _init_extra_renderTarget(this);
   }
   renderTarget = (_initProto(this), _init_renderTarget(this, null));
+
+  /** Stores the render target to bind. */
   __init__(renderTarget = null) {
     this.renderTarget = renderTarget ?? null;
   }
+
+  /**
+   * Binds the render target to slot 0; with none set the current binding is left
+   * alone rather than cleared.
+   */
   Execute(_realTime, _simTime, executor) {
     if (this.renderTarget) executor?.SetRenderTarget?.(0, this.renderTarget);
     return _TriRenderJob.StepResult.RS_OK;

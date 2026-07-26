@@ -6,6 +6,12 @@ import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/sc
 import { Tr2FollowCurveKeyInterpolation, RotationSetting } from './enums.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_object, _init_extra_object, _init_time, _init_extra_time, _init_interpolation, _init_extra_interpolation, _init_leftTangent, _init_extra_leftTangent, _init_rightTangent, _init_extra_rightTangent, _init_rotatedLeftTangent, _init_extra_rotatedLeftTangent, _init_rotatedRightTangent, _init_extra_rotatedRightTangent, _init_offsetLocatorName, _init_extra_offsetLocatorName, _init_offset, _init_extra_offset, _init_rotationSetting, _init_extra_rotationSetting;
+
+/**
+ * Follow-curve key positioned by another object rather than a fixed point,
+ * taking its place from that object's locator or offset and optionally rotating
+ * its tangents with the object.
+ */
 let _Tr2ObjectFollowCurve;
 new class extends _identity {
   static [class Tr2ObjectFollowCurveKey extends CjsModel {

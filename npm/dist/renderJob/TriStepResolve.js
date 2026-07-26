@@ -4,6 +4,11 @@ import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
 let _initProto, _initClass, _init_generateMipmap, _init_extra_generateMipmap, _init_source, _init_extra_source, _init_destination, _init_extra_destination;
+
+/**
+ * Step that resolves one render target into another, optionally regenerating the
+ * destination's mip chain afterwards.
+ */
 let _TriStepResolve;
 class TriStepResolve extends _TriRenderStep {
   static {
@@ -22,10 +27,18 @@ class TriStepResolve extends _TriRenderStep {
   generateMipmap = (_initProto(this), _init_generateMipmap(this, false));
   source = (_init_extra_generateMipmap(this), _init_source(this, null));
   destination = (_init_extra_source(this), _init_destination(this, null));
+
+  /** Stores the resolve operands in Carbon's destination-first argument order. */
   __init__(destination = null, source = null) {
     this.destination = destination ?? null;
     this.source = source ?? null;
   }
+
+  /**
+   * Skips silently with RS_OK when either operand is missing or the executor
+   * reports it invalid; otherwise resolves and, when requested, regenerates the
+   * destination's mip maps. An explicit false from the resolve is RS_FAILED.
+   */
   Execute(_realTime, _simTime, executor) {
     if (!this.source || !this.destination) return _TriRenderJob.StepResult.RS_OK;
     if (executor?.IsRenderTargetValid) {

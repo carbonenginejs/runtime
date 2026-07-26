@@ -3,6 +3,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_assignedSlot, _init_extra_assignedSlot;
+
+/**
+ * Per-agent scratch for the Formation child behaviour: the formation slot the
+ * agent has been assigned, or -1 while it has none. The behaviour allocates one
+ * record per agent and rewrites it on every behaviour update.
+ */
 let _FormationData;
 class FormationData extends CjsModel {
   static {

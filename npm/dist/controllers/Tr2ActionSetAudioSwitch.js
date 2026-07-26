@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { ITr2ControllerAction } from './ITr2ControllerAction.js';
 
 let _initProto, _initClass, _init_emitter, _init_extra_emitter, _init_switchGroup, _init_extra_switchGroup, _init_switchState, _init_extra_switchState;
+
+/**
+ * Controller action that sets a Wwise switch group to a given state on a named
+ * audio emitter when it starts.
+ */
 let _Tr2ActionSetAudioSwi;
 class Tr2ActionSetAudioSwitch extends CjsModel {
   static {

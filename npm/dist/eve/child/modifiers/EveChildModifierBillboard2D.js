@@ -5,6 +5,11 @@ import { carbon, impl, type } from '@carbonenginejs/runtime-utils/schema';
 import { Billboard2D } from './EveChildModifierTransformCommon.js';
 
 let _initProto, _initClass;
+
+/**
+ * Transform modifier that aligns a child to the screen plane, leaving it facing
+ * the viewer whatever the camera does.
+ */
 let _EveChildModifierBill;
 class EveChildModifierBillboard2D extends CjsModel {
   static {

@@ -4,6 +4,11 @@ import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
 let _initProto, _initClass, _init_viewport, _init_extra_viewport;
+
+/**
+ * Step that installs a viewport, or restores the full-screen viewport when none
+ * is authored.
+ */
 let _TriStepSetViewport;
 class TriStepSetViewport extends _TriRenderStep {
   static {
@@ -20,12 +25,24 @@ class TriStepSetViewport extends _TriRenderStep {
     _init_extra_viewport(this);
   }
   viewport = (_initProto(this), _init_viewport(this, null));
+
+  /** Stores the viewport this step installs. */
   __init__(viewport = null) {
     this.SetViewport(viewport);
   }
+
+  /**
+   * Replaces the viewport; null selects the full-screen viewport instead of
+   * leaving the current one.
+   */
   SetViewport(viewport) {
     this.viewport = viewport ?? null;
   }
+
+  /**
+   * Sets the authored viewport, or asks the executor for its full-screen
+   * viewport when none is set.
+   */
   Execute(_realTime, _simTime, executor) {
     if (this.viewport) executor?.SetViewport?.(this.viewport);else executor?.SetFullScreenViewport?.();
     return _TriRenderJob.StepResult.RS_OK;

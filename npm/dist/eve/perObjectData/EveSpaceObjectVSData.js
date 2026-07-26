@@ -5,6 +5,13 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_worldTransform, _init_extra_worldTransform, _init_worldTransformLast, _init_extra_worldTransformLast, _init_invWorldTransform, _init_extra_invWorldTransform, _init_shipData, _init_extra_shipData, _init_clipData, _init_extra_clipData, _init_ellpsoidRadii, _init_extra_ellpsoidRadii, _init_ellpsoidCenter, _init_extra_ellpsoidCenter, _init_customMaskMatrix, _init_extra_customMaskMatrix, _init_customMaskData, _init_extra_customMaskData, _init_boneOffsets, _init_extra_boneOffsets, _init_morphTargetVertexDataOffset, _init_extra_morphTargetVertexDataOffset, _init_morphTargetAnimationDataOffset, _init_extra_morphTargetAnimationDataOffset, _init_activeMorphTargetsCount, _init_extra_activeMorphTargetsCount, _init_bakedMorphTargetVertexDataOffset, _init_extra_bakedMorphTargetVertexDataOffset, _init_customData, _init_extra_customData;
+
+/**
+ * Vertex-stage per-object values for a space object - world/inverse-world
+ * transforms, clip and ellipsoid data, custom-mask matrices, bone and
+ * morph-target offsets - held as plain values a renderer packs into a constant
+ * buffer, never as GPU resources.
+ */
 let _EveSpaceObjectVSData;
 new class extends _identity {
   static [class EveSpaceObjectVSData extends CjsModel {
@@ -40,6 +47,12 @@ new class extends _identity {
     activeMorphTargetsCount = (_init_extra_morphTargetAnimationDataOffset(this), _init_activeMorphTargetsCount(this, 0));
     bakedMorphTargetVertexDataOffset = (_init_extra_activeMorphTargetsCount(this), _init_bakedMorphTargetVertexDataOffset(this, 0));
     customData = (_init_extra_bakedMorphTargetVertexDataOffset(this), _init_customData(this, vec4.create()));
+
+    /**
+     * Applies a value bag, first padding or truncating the fixed-length
+     * customMaskMatrix, customMaskData and boneOffsets arrays to their declared
+     * counts so the record always matches the constant-buffer layout.
+     */
     SetValues(values = {}, options = {}) {
       const normalized = {
         ...values
@@ -49,6 +62,21 @@ new class extends _identity {
       if (Object.hasOwn(values, "boneOffsets")) normalized.boneOffsets = _EveSpaceObjectVSData.#uintArray(values.boneOffsets, _EveSpaceObjectVSData.BONE_OFFSET_COUNT);
       return super.SetValues(normalized, options);
     }
+
+    /**
+     * Builds a fixed-length array of owned mat4 copies, substituting identity for
+     * any entry that is not a 16-element matrix.
+     */
+
+    /**
+     * Builds a fixed-length array of owned vec4 copies, coercing each component to
+     * a number and defaulting missing ones to zero.
+     */
+
+    /**
+     * Builds a fixed-length array of unsigned 32-bit integers, coercing missing or
+     * non-numeric entries to zero.
+     */
   }];
   CUSTOM_MASK_COUNT = 2;
   BONE_OFFSET_COUNT = 4;

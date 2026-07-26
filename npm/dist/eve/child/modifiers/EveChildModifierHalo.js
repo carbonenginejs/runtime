@@ -5,6 +5,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { carbon, impl, type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass;
+
+/**
+ * Transform modifier that screen-aligns a child and shrinks it by the squared
+ * facing of its local Z axis toward the camera, so a halo fades out edge-on.
+ */
 let _EveChildModifierHalo;
 new class extends _identity {
   static [class EveChildModifierHalo extends CjsModel {

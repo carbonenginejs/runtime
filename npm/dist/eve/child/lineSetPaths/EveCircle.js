@@ -9,6 +9,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveChildTransform as _EveChildTransform } from '../EveChildTransform.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_display, _init_extra_display, _init_translation, _init_extra_translation, _init_rotation, _init_extra_rotation, _init_scaling, _init_extra_scaling, _init_isVisible, _init_extra_isVisible, _init_circleRadius, _init_extra_circleRadius, _init_circleDistort, _init_extra_circleDistort, _init_numSegments, _init_extra_numSegments, _init_completeness, _init_extra_completeness, _init_startPoint, _init_extra_startPoint, _init_lineWidth, _init_extra_lineWidth, _init_scaleSegmentsByCompleteness, _init_extra_scaleSegmentsByCompleteness, _init_scaleEndpoints, _init_extra_scaleEndpoints, _init_billboardObjects, _init_extra_billboardObjects, _init_objectScale, _init_extra_objectScale, _init_movementSpeed, _init_extra_movementSpeed, _init_animValue, _init_extra_animValue;
+
+/**
+ * Line-set path shaped as a ring: samples a circle of circleRadius, optionally
+ * distorted per quadrant, and emits the resulting chain as line segments.
+ */
 let _EveCircle;
 new class extends _identity {
   static [class EveCircle extends _EveChildTransform {
@@ -44,10 +49,17 @@ new class extends _identity {
     #boundingSphere = vec4.create();
     #meshSize = 0;
     #regeneratePoints = true;
+
+    /** Marks the point chain dirty so the first update regenerates it. */
     Initialize() {
       this.#regeneratePoints = true;
       return true;
     }
+
+    /**
+     * Clamps completeness to 0..2 and numSegments to 1..128, wraps startPoint into
+     * one turn, then marks the point chain dirty.
+     */
     OnModified(_options = {}) {
       this.completeness = Math.min(2, Math.max(0, this.completeness));
       this.numSegments = Math.min(128, Math.max(1, this.numSegments));
@@ -55,6 +67,12 @@ new class extends _identity {
       this.#regeneratePoints = true;
       return true;
     }
+
+    /**
+     * Advances the scroll animation value by movementSpeed times the frame delta
+     * (wrapped into 0..1) and, when the points are dirty, regenerates them and the
+     * bounding sphere; returns whether a regeneration ran.
+     */
     Update(updateContext, _params = null) {
       if (this.movementSpeed !== 0) {
         this.animValue = (this.animValue + this.movementSpeed * _EveCircle.#getDeltaT(updateContext)) % 1;
@@ -66,6 +84,11 @@ new class extends _identity {
       this.CalculateBoundingSphere();
       return true;
     }
+
+    /**
+     * Samples the ring into the point chain across the arc selected by completeness and startPoint, rotated by the animation value, with circleDistort applied as a per-quadrant Y offset; also refreshes the world transform. Does nothing when fewer than two segments are requested.
+     * @param {Float32Array} [parentTransform] - a non-identity matrix is used and cached, so later identity calls reuse the last real parent transform
+     */
     GeneratePoints(parentTransform = mat4.create()) {
       const segmentCount = this.#getSegmentCount();
       if (segmentCount <= 1) {
@@ -95,9 +118,16 @@ new class extends _identity {
       this.#points = points;
       this.#regeneratePoints = false;
     }
+
+    /** Number of generated points; zero until GeneratePoints has run. */
     GetPointCount() {
       return this.#points.length;
     }
+
+    /**
+     * Sets the local bounding sphere to the origin with radius circleRadius + lineWidth + meshSize.
+     * @param {Number} [meshSize] - a non-zero value is remembered and reused on later zero-argument calls
+     */
     CalculateBoundingSphere(meshSize = 0, _reCalculateChildren = true) {
       if (meshSize !== 0) {
         this.#meshSize = meshSize;
@@ -106,9 +136,21 @@ new class extends _identity {
       }
       vec4.set(this.#boundingSphere, 0, 0, 0, this.circleRadius + this.lineWidth + meshSize);
     }
+
+    /**
+     * Returns the cached bounding sphere moved through the path's local transform.
+     * @param {Float32Array} [out] - caller-owned; allocated when omitted
+     * @returns {Float32Array} out
+     */
     GetBoundingSphere(out = vec4.create()) {
       return sph3.transformMat4(out, this.#boundingSphere, this.localTransform);
     }
+
+    /**
+     * Tests the bounding sphere, placed by the local transform under the given
+     * system location, against the frustum and stores the result in isVisible; a
+     * non-displayed path returns early and keeps its previous flag.
+     */
     UpdateVisibility(frustum, _parentLod = null, systemLocation = mat4.create()) {
       if (!this.display) {
         return;
@@ -119,6 +161,12 @@ new class extends _identity {
       const sphere = sph3.transformMat4(vec4.create(), this.#boundingSphere, transform);
       this.isVisible = !!frustum?.IsSphereVisible?.(sphere);
     }
+
+    /**
+     * Emits one straight line per segment into the line set (regenerating dirty
+     * points first), optionally animated at scrollSpeed; the wrap-around segment
+     * closing the ring is skipped unless completeness is exactly 1.
+     */
     AddLinesToSet(lineSet, color, animColor, scrollSpeed = 0) {
       if (!this.display || !this.isVisible) {
         return;
@@ -141,6 +189,11 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Rounded segment count, scaled down by how far completeness is from a full
+     * sweep when scaleSegmentsByCompleteness is set.
+     */
     #getSegmentCount() {
       const completenessScale = 1 - Math.abs(this.completeness - 1);
       return Math.trunc(this.scaleSegmentsByCompleteness ? (this.numSegments + 0.5) * completenessScale : this.numSegments + 0.5);
@@ -156,6 +209,16 @@ new class extends _identity {
     UpdateBuffer(..._args) {
       throw new Error("EveCircle.UpdateBuffer is not implemented in CarbonEngineJS.");
     }
+
+    /**
+     * Frame delta read from the update-context duck (GetDeltaT() or .deltaT),
+     * falling back to 0 when neither is present or the value is not finite.
+     */
+
+    /**
+     * Returns a newly allocated vector holding the point moved through the given
+     * transform.
+     */
   }];
   #identityMatrix = mat4.create();
   #getDeltaT(context) {

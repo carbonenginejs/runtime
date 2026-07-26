@@ -3,6 +3,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_useRealTime, _init_extra_useRealTime, _init_playOnLoad, _init_extra_playOnLoad, _init_bindings, _init_extra_bindings, _init_curves, _init_extra_curves, _init_ranges, _init_extra_ranges, _init_name, _init_extra_name, _init_scale, _init_extra_scale, _init_useSimTimeRebase, _init_extra_useSimTimeRebase, _init_driver, _init_extra_driver, _init_scaledTime, _init_extra_scaledTime, _init_isPlaying, _init_extra_isPlaying;
+
+/**
+ * Playable group of curves and value bindings sharing one scaled playhead,
+ * applying every curve and copying every binding each update while it is
+ * playing.
+ */
 let _TriCurveSet;
 class TriCurveSet extends CjsModel {
   static {
@@ -332,6 +338,12 @@ class TriCurveSet extends CjsModel {
   IsUsingSimTimeRebase() {
     return this.#isUsingSimTimeRebase;
   }
+
+  /**
+   * Constrains the playhead to the active temporary range, wrapping it around
+   * the range for a looped range and clamping it to the range end otherwise;
+   * does nothing when no range is set.
+   */
   ApplyTimeRange() {
     if (!this.#hasTimeRange) {
       return;
@@ -348,6 +360,12 @@ class TriCurveSet extends CjsModel {
       this.scaledTime = Math.min(this.scaledTime, this.#timeRangeMax);
     }
   }
+
+  /**
+   * Invokes the registered stop callback exactly once and releases it, accepting
+   * either a plain function or a Carbon callable that is called and then
+   * destroyed.
+   */
   CallStopCallback() {
     if (!this.#callback) {
       return;
@@ -360,6 +378,11 @@ class TriCurveSet extends CjsModel {
     }
     this.#callback = null;
   }
+
+  /**
+   * Releases the registered stop callback without invoking it, destroying it
+   * when it is a Carbon callable.
+   */
   DestroyStopCallback() {
     if (this.#callback && typeof this.#callback !== "function") {
       this.#callback.Destroy?.();

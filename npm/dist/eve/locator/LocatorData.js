@@ -5,6 +5,8 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_position, _init_extra_position, _init_direction, _init_extra_direction;
+
+/** Position and orientation pair handed to seek-target child behaviours. */
 let _LocatorData;
 class LocatorData extends CjsModel {
   static {

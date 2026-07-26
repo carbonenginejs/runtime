@@ -52,19 +52,42 @@ class Tr2EffectPassParameters extends CjsModel {
 
   /** m_usedTexturesDirty (bool) */
   usedTexturesDirty = (_init_extra_compatibleWithGdr(this), _init_usedTexturesDirty(this, false));
+
+  /** Records a resource this pass binds and marks the used-texture list stale. */
   AddUsedResource(resource) {
     this.usedResources.push(resource);
     this.usedTexturesDirty = true;
   }
+
+  /**
+   * Records a parameter whose value destination has been rerouted into this
+   * pass's storage.
+   */
   AddReroutable(reroutable) {
     this.reroutedParameters.push(reroutable);
   }
+
+  /**
+   * Allocates the CPU-side constant mirror for one shader stage of this pass.
+   * @param type stage index into stageInput
+   * @param size mirror size in bytes, rounded up to 16 by the stage
+   */
   AllocateConstantMirror(type, size) {
     this.#stage(type).AllocateConstants(size);
   }
+
+  /**
+   * Fills one stage's constant mirror from already-built shared buffer contents and clears that stage's dirty flag.
+   * @param type stage index into stageInput
+   */
   GetSharedConstantBuffer(type, contents, size) {
     this.#stage(type).GetSharedConstantBuffer(contents, size);
   }
+
+  /**
+   * The stage input at the given index, created on demand; negative or
+   * non-numeric indices clamp to 0.
+   */
   #stage(type) {
     const index = Math.max(0, Number(type) || 0);
     this.stageInput[index] ??= new _Tr2MaterialStageInpu();

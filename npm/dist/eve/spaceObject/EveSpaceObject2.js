@@ -28,6 +28,13 @@ const TRANSPARENT_CENTER = vec3.create();
 // Carbon EveMeshOverlayEffect::OverlayType (EveMeshOverlayEffect.h:35-41).
 const OVERLAY_TYPE_OPAQUEONLY = 0;
 const OVERLAY_TYPE_ALL = 1;
+
+/**
+ * The hull of an EVE space object - its mesh, locators, locator sets, decals,
+ * attachments, lights, effect children, overlay effects, impact overlay and
+ * controllers - together with the curve-driven world transform, visibility, LOD
+ * and batch submission that drive them each frame.
+ */
 let _EveSpaceObject;
 new class extends _identity {
   static [class EveSpaceObject2 extends _EveEntity {
@@ -241,12 +248,24 @@ new class extends _identity {
 
     // Carbon m_impostorMode: the impostor system that raises it is unported.
     #impostorMode = false;
+
+    /** Alias for the mesh property; reads and writes go straight to mesh. */
     get meshLod() {
       return this.mesh;
     }
+
+    /** Alias for the mesh property; reads and writes go straight to mesh. */
     set meshLod(mesh) {
       this.mesh = mesh ?? null;
     }
+
+    /**
+     * Links the authored controllers, pushes authored inherit properties down to
+     * the effect children and lights, and derives the impact overlay's damage
+     * locator count from the "damage" locator set - which Carbon does at build
+     * time - so a field-populated graph reaches the same live state as the
+     * authoring path.
+     */
     Initialize() {
       for (const controller of this.controllers) {
         if (!controller?.IsLinked?.()) {
@@ -271,12 +290,24 @@ new class extends _identity {
       }
       return true;
     }
+
+    /** Returns the hull mesh, or null when none is attached. */
     GetMesh() {
       return this.mesh;
     }
+
+    /**
+     * Replaces the hull mesh; the cached area blocks are only rebuilt on the next
+     * batch call.
+     */
     SetMesh(mesh) {
       this.mesh = mesh ?? null;
     }
+
+    /**
+     * Appends a controller, links it to this object when it is not already linked,
+     * and replays the current controller variables onto it.
+     */
     AddController(controller) {
       this.controllers.push(controller);
       if (!controller?.IsLinked?.()) {
@@ -285,10 +316,22 @@ new class extends _identity {
       _EveSpaceObject.#ApplyControllerVariables(controller, this.#controllerVariables, "SetVariable");
       return controller;
     }
+
+    /**
+     * Appends a placement observer, which is repositioned from the observer
+     * transform on every synchronous update; the observer is returned for
+     * chaining.
+     */
     AddObserver(observer) {
       this.observers.push(observer);
       return observer;
     }
+
+    /**
+     * Sets the colour set that effect children and lights inherit, creating the
+     * inherit-properties holder on first use, and pushes it to the existing
+     * children and lights.
+     */
     SetInheritProperties(colorSet) {
       if (!this.inheritProperties) {
         this.inheritProperties = new _EveChildInheritPrope();
@@ -296,6 +339,8 @@ new class extends _identity {
       this.inheritProperties.SetProperties(colorSet);
       this.#PropagateInheritProperties();
     }
+
+    /** Pushes the current inherited properties to every effect child and light. */
     #PropagateInheritProperties() {
       const properties = this.inheritProperties.GetProperties();
       for (const child of this.effectChildren) {
@@ -305,6 +350,11 @@ new class extends _identity {
         light?.SetInheritProperties?.(properties);
       }
     }
+
+    /**
+     * Returns the first effect child with the given name, or null when none
+     * matches.
+     */
     GetEffectChildByName(name) {
       const target = String(name ?? "");
       for (const child of this.effectChildren) {
@@ -314,6 +364,12 @@ new class extends _identity {
       }
       return null;
     }
+
+    /**
+     * Appends an effect child, first giving it the hull's inherited properties and
+     * then replaying the current controller variables onto it, so a late addition
+     * starts in the same state as the rest.
+     */
     AddToEffectChildrenList(child) {
       if (this.inheritProperties) {
         child?.SetInheritProperties?.(this.inheritProperties.GetProperties());
@@ -322,15 +378,27 @@ new class extends _identity {
       _EveSpaceObject.#ApplyControllerVariables(child, this.#controllerVariables, "SetControllerVariable");
       return child;
     }
+
+    /** Appends a light, first giving it the hull's inherited properties. */
     AddLight(light) {
       if (this.inheritProperties) {
         light?.SetInheritProperties?.(this.inheritProperties.GetProperties());
       }
       this.lights.push(light);
     }
+
+    /**
+     * Drops every light from the hull; component registration is not revisited
+     * here.
+     */
     ClearLights() {
       this.lights.length = 0;
     }
+
+    /**
+     * Removes an effect child, returning false when it is not attached to this
+     * hull.
+     */
     RemoveFromEffectChildrenList(child) {
       const index = this.effectChildren.indexOf(child);
       if (index === -1) {
@@ -339,18 +407,38 @@ new class extends _identity {
       this.effectChildren.splice(index, 1);
       return true;
     }
+
+    /**
+     * Sets the curve that rotates the model within the hull's ball rotation, or
+     * clears it when passed nothing.
+     */
     SetModelRotationCurve(curve) {
       this.modelRotationCurve = curve ?? null;
     }
+
+    /** Returns the model rotation curve, or null when none is set. */
     GetModelRotationCurve() {
       return this.modelRotationCurve;
     }
+
+    /**
+     * Sets the curve that offsets the model within the hull's ball position, or
+     * clears it when passed nothing.
+     */
     SetModelTranslationCurve(curve) {
       this.modelTranslationCurve = curve ?? null;
     }
+
+    /** Returns the model translation curve, or null when none is set. */
     GetModelTranslationCurve() {
       return this.modelTranslationCurve;
     }
+
+    /**
+     * Rebuilds the hull world transform for a frame from the ball position and rotation curves plus the optional model translation and rotation curves, applies modelScale as a uniform scale, then refreshes the inverse transform and the world bounds; the previous world transform is kept for motion vectors and the world velocity comes from the position curve's derivative.
+     * @param {number} time Frame time; repeating the previous call's time is a no-op.
+     * @returns {boolean} False when the transform had already been built for this time.
+     */
     UpdateWorldTransform(time) {
       const nextTime = Number(time) || 0;
       if (this.#lastUpdateTransformTime === nextTime) {
@@ -421,6 +509,11 @@ new class extends _identity {
       }
       return false;
     }
+
+    /**
+     * Refreshes the world transform, then - when the update flag is on - places the observers, stamps the LOD-gated curve clock while advancing the overlay effects, runs the effect children's synchronous pass with the current placement, and updates the impact overlay; the overlay effects receive the context time as both clocks, as Carbon does.
+     * @returns {boolean} False when the update flag is off; the world transform is refreshed either way.
+     */
     UpdateSyncronous(updateContext = null) {
       const time = _EveSpaceObject.#GetContextValue(updateContext, "GetTime", "currentTime", "time");
       this.UpdateWorldTransform(time);
@@ -457,6 +550,11 @@ new class extends _identity {
       this.impactOverlay?.UpdateSyncronous?.(updateContext, this);
       return true;
     }
+
+    /**
+     * Runs the controllers at a frequency derived from the hull's estimated pixel diameter against the context's high-detail threshold, advances the object curve sets only on frames the synchronous LOD gate stamped, then updates the transform children, the effect children and the impact overlay.
+     * @returns {number} The controller update frequency in 0..1, which is also handed to the effect children; 0 when the hull is not visible or the update flag is off.
+     */
     UpdateAsyncronous(updateContext = null) {
       if (!this.update) {
         return 0;
@@ -625,6 +723,13 @@ new class extends _identity {
     // order into the order-preserving TRANSPARENT accumulator. Bounding boxes come
     // from the geometry resource when it exposes them; a failed lookup keeps
     // Carbon's origin-center fallback.
+
+    /**
+     * Commits the mesh's transparent areas back-to-front, ordering them by the
+     * squared distance from the view position to each area's world-space
+     * bounding-box center and falling back to the object origin when the geometry
+     * resource cannot supply a box.
+     */
     #GetSortedTransparentBatches(areas, batches, perObjectData, renderContext) {
       const geometry = this.mesh.GetGeometryResource?.() ?? null;
       const viewPosition = renderContext?.GetViewPosition?.();
@@ -677,6 +782,11 @@ new class extends _identity {
       }
       this.#cachedAreaBlocksBuilt = true;
     }
+
+    /**
+     * Drops the cached overlay and shadow area-block lists so the next batch call
+     * rebuilds them from the current mesh.
+     */
     ReleaseCachedData() {
       for (const blocks of this.#overlayMeshAreaBlocks) {
         blocks.length = 0;
@@ -684,6 +794,11 @@ new class extends _identity {
       this.#shadowMeshOpaqueAreas.length = 0;
       this.#cachedAreaBlocksBuilt = false;
     }
+
+    /**
+     * Rebuilds the cached area blocks on first use when a mesh is attached; Carbon
+     * instead rebuilds them from the geometry-resource load callback.
+     */
     #EnsureCachedAreaBlocks() {
       if (!this.#cachedAreaBlocksBuilt && this.mesh) this.RebuildCachedData();
     }
@@ -745,6 +860,12 @@ new class extends _identity {
       }
       return (batches.GetBatchCount?.() ?? 0) > committedBefore;
     }
+
+    /**
+     * Builds and commits one render batch drawing a single cached area block with
+     * the given material and optional priority, skipping the block when the
+     * material yields no valid batch.
+     */
     #CommitBlockBatch(batches, material, geometry, meshIndex, block, perObjectData, priority) {
       const batch = new Tr2RenderBatch();
       batch.SetMaterial(material);
@@ -756,9 +877,20 @@ new class extends _identity {
     }
 
     // EveMeshOverlayEffect::GetEffects (display-gated, per batch type).
+
+    /**
+     * Returns an overlay effect's display-gated effect list for a batch type, or
+     * null when it contributes none.
+     */
     #OverlayEffectsFor(overlay, batchType) {
       return overlay?.GetEffects?.(batchType) ?? null;
     }
+
+    /**
+     * Reports whether the hull mesh has transparent areas or any overlay effect
+     * does, which tells the renderer to route this object through the sorted
+     * transparent pass.
+     */
     HasTransparentBatches() {
       if (!this.mesh) return false;
       if ((this.mesh.GetAreas?.(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0) return true;
@@ -767,6 +899,11 @@ new class extends _identity {
       }
       return false;
     }
+
+    /**
+     * Returns the distance from the render context's view position to the hull
+     * world translation, used to order transparent renderables back-to-front.
+     */
     GetSortValue(renderContext = null) {
       const viewPosition = renderContext?.GetViewPosition?.();
       const x = (viewPosition?.[0] ?? 0) - this.worldTransform[12];
@@ -856,12 +993,27 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Reports whether children and effect children should be shown; always true on
+     * the base hull, subclasses gate it on activation state.
+     */
     DisplayChildren() {
       return true;
     }
+
+    /**
+     * Returns the transform placement observers are attached to - the live hull
+     * world transform.
+     */
     GetObserverTransform() {
       return this.worldTransform;
     }
+
+    /**
+     * Returns the transform effect children are placed against - the live hull
+     * world transform, not a copy.
+     */
     GetLocalToWorldTransform() {
       return this.worldTransform;
     }
@@ -870,12 +1022,28 @@ new class extends _identity {
     GetModelCenterWorldPosition(out) {
       vec3.transformMat4(out, this.boundingSphereCenter, this.worldTransform);
     }
+
+    /**
+     * Returns the live curve-sampled ball position; the array is the object's own
+     * field and is rewritten by the next transform update.
+     */
     GetWorldPosition() {
       return this.worldPosition;
     }
+
+    /**
+     * Returns the live curve-sampled ball rotation, which excludes the model
+     * rotation curve; the quaternion is the object's own field and is rewritten by
+     * the next transform update.
+     */
     GetWorldRotation() {
       return this.worldRotation;
     }
+
+    /**
+     * Finds a sound emitter by observer name on this hull and then recursively in
+     * the effect children, returning null when no emitter carries the name.
+     */
     FindSoundEmitter(name) {
       const target = String(name ?? "");
       for (const observer of this.observers) {
@@ -891,6 +1059,11 @@ new class extends _identity {
       }
       return null;
     }
+
+    /**
+     * Sets the mute flag and pushes it to every effect child and placement
+     * observer.
+     */
     SetMute(mute) {
       this.mute = !!mute;
       for (const child of this.effectChildren) {
@@ -1270,6 +1443,11 @@ new class extends _identity {
       }
       return out;
     }
+
+    /**
+     * Raises a named controller event on this hull's controllers and forwards it
+     * to the effect children and overlay effects.
+     */
     HandleControllerEvent(name) {
       const eventName = String(name ?? "");
       for (const controller of this.controllers) {
@@ -1309,6 +1487,11 @@ new class extends _identity {
     // Carbon EveSpaceObject2::PlayAnimation: every playback wrapper funnels
     // into the animation updater, which owns playback state; a missing updater
     // is a Carbon-faithful no-op.
+
+    /**
+     * Forwards a playback request to the animation updater, which owns all
+     * animation state; a hull without an updater does nothing, as in Carbon.
+     */
     #PlayAnimation(animName, replace, loopCount, delay, speed, clearWhenDone) {
       this.animationUpdater?.PlayAnimation?.(String(animName ?? ""), replace, loopCount, delay, speed, clearWhenDone);
     }
@@ -1345,6 +1528,11 @@ new class extends _identity {
       this.UpdateWorldBounds();
       return this;
     }
+
+    /**
+     * Returns a plain-object snapshot of the controller variables currently
+     * stamped on this hull.
+     */
     GetControllerVariables() {
       return Object.fromEntries(this.#controllerVariables);
     }
@@ -1511,6 +1699,12 @@ new class extends _identity {
       }
       return updater.GetMeshBindingBoneCount?.() ?? 0;
     }
+
+    /**
+     * Pushes shield, armor and hull damage levels to the impact overlay and
+     * mirrors them into the ShieldDamage, ArmorDamage and HullDamage controller
+     * variables so bound effects follow.
+     */
     SetImpactDamageState(shield, armor, hull, doCreateArmorImpacts = true) {
       this.impactOverlay?.SetDamageState?.(shield, armor, hull, doCreateArmorImpacts);
       this.SetControllerVariable("ShieldDamage", shield);
@@ -1524,6 +1718,12 @@ new class extends _identity {
     SetImpactAnimation(name, enable, duration) {
       this.impactOverlay?.ToggleEffect?.(name, enable, duration);
     }
+
+    /**
+     * Stores a controller variable on the hull and pushes it to the controllers,
+     * effect children and overlay effects; the stored value is replayed onto
+     * controllers and children added later.
+     */
     SetControllerVariable(name, value) {
       const key = String(name ?? "");
       const next = Number(value);
@@ -1538,11 +1738,21 @@ new class extends _identity {
         overlay?.SetControllerVariable?.(key, next);
       }
     }
+
+    /**
+     * Forwards a procedural-container variable to every effect child; the hull
+     * itself keeps no copy.
+     */
     SetProceduralContainerVariable(name, value) {
       for (const child of this.effectChildren) {
         child?.SetProceduralContainerVariable?.(name, value);
       }
     }
+
+    /**
+     * Starts this hull's controllers and those of its effect children and overlay
+     * effects.
+     */
     StartControllers() {
       for (const controller of this.controllers) {
         controller?.Start?.();
@@ -1589,6 +1799,12 @@ new class extends _identity {
 
     // Carbon Blue TransformLocator: bone-attached records pick up the mesh
     // bone matrix; without bone data the authored values pass through.
+
+    /**
+     * Applies the mesh bone matrix to a locator position and rotation for
+     * bone-attached locators; the authored values pass through unchanged when
+     * there is no usable bone data.
+     */
     #TransformLocator(position, rotation, boneIndex) {
       const updater = this.animationUpdater;
       if (boneIndex <= 0 || !updater?.IsInitialized?.()) {
@@ -1606,6 +1822,12 @@ new class extends _identity {
     // Carbon Blue ApplyModelTransform samples both curves at the Be::Time()
     // origin (pure GetValueAt, no playback advance): translation adds, model
     // rotation rotates the position and pre-multiplies.
+
+    /**
+     * Applies the model translation and rotation curves sampled at time 0 to a
+     * locator position and rotation, matching Carbon's Blue locator surface, which
+     * reads the curves without advancing playback.
+     */
     #ApplyModelTransform(position, rotation) {
       if (this.modelTranslationCurve) {
         const translation = vec3.create();
@@ -1621,6 +1843,11 @@ new class extends _identity {
     }
 
     // Carbon GetLocatorsForSet: first set matching the name wins.
+
+    /**
+     * Returns the locator list of the first locator set carrying the name, or null
+     * when no set matches; the list stays owned by the locator set.
+     */
     #GetLocatorsForSet(locatorSetName) {
       const target = String(locatorSetName ?? "");
       for (const set of this.locatorSets) {
@@ -1635,6 +1862,13 @@ new class extends _identity {
     // authored quaternion; bone-attached locators additionally apply the mesh
     // bone matrix. Carbon leaves the outputs untouched (caller-uninitialized)
     // when bone data is missing; CarbonEngineJS keeps the unskinned values.
+
+    /**
+     * Writes a locator's object-space position and its direction, which is +Y
+     * rotated by the authored quaternion, applying the mesh bone matrix for
+     * bone-attached locators; where Carbon leaves the outputs untouched when bone
+     * data is missing, this keeps the unskinned values.
+     */
     #GetLocatorInObjectSpace(outPosition, outDirection, locator) {
       vec3.transformQuat(outDirection, _EveSpaceObject.#unitY, locator.direction);
       vec3.copy(outPosition, locator.position);
@@ -1653,6 +1887,12 @@ new class extends _identity {
 
     // Carbon GetClosestLocatorIndex: facing-gated closest search; 0 when the
     // set is missing, -1 when no locator faces the position.
+
+    /**
+     * Returns the index of the nearest locator in a named set that faces the given
+     * world position - 0 when the set is missing, -1 when no locator faces the
+     * position.
+     */
     #GetClosestLocatorIndex(position, locatorSetName) {
       const locators = this.#GetLocatorsForSet(locatorSetName);
       if (!locators) {
@@ -1676,6 +1916,14 @@ new class extends _identity {
       }
       return closestIndex;
     }
+
+    /**
+     * Reports whether a locator faces a position, by testing that stepping the
+     * object-space position back along the locator direction shortens it.
+     */
+
+    /** Rotates a direction by a matrix's rotation basis, ignoring its translation. */
+
     /** Carbon's authored-or-derived local shape ellipsoid query. */
     GetShapeEllipsoid(outCenter, outRadii) {
       if (this.shapeEllipsoidRadius[0] > 0) {
@@ -1695,8 +1943,58 @@ new class extends _identity {
       vec3.copy(this.generatedShapeEllipsoidRadius, outRadii);
     }
 
+    /**
+     * Maps the negated dot product of a locator direction and an offset direction
+     * onto Carbon's square-root fit score, the ranking used to pick a varied
+     * damage locator.
+     */
+
+    /**
+     * Intersects a ray with an axis-aligned ellipsoid in the ellipsoid's own space and writes the hit point into out.
+     * @returns {number|null} The ray parameter at the hit, or null when the ray is degenerate or misses.
+     */
+
+    /** Reports whether a point lies inside an axis-aligned ellipsoid. */
+
     // Mesh bone matrices come from the animation updater; only mat4-shaped
     // entries are usable.
+
+    /**
+     * Returns the animation updater's mesh bone matrix at an index, or null when
+     * the entry is absent or not a 16-element matrix; the matrix is borrowed from
+     * the updater, not copied.
+     */
+
+    /**
+     * Replays every stored controller variable onto a newly added controller or
+     * effect child through the named setter, so late additions start with the same
+     * state.
+     */
+
+    /**
+     * Samples a curve into out through whichever of Update or GetValueAt it
+     * exposes, writing the fallback when there is no curve and copying back curves
+     * that return a new array instead of filling out.
+     */
+
+    /**
+     * Reads a numeric value from the update context, preferring a getter method
+     * and falling back to the named properties, and yields 0 when nothing supplies
+     * it.
+     */
+
+    /**
+     * Returns a world sphere's on-screen diameter in pixels from the frustum's
+     * exact query, or 0 when the frustum does not expose it.
+     */
+
+    /**
+     * Returns a world sphere's on-screen diameter in pixels, preferring the
+     * frustum's cheaper estimated query and falling back to the exact one, or 0
+     * when the frustum exposes neither.
+     */
+
+    /** Writes a center and radius into a caller-owned sph3. */
   }];
   #IsLocatorFacingPosition(locatorDirection, posInObjectSpace) {
     const moved = vec3.subtract(vec3.create(), posInObjectSpace, locatorDirection);

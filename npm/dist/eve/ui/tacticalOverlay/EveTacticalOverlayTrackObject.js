@@ -4,6 +4,12 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_translationCurve, _init_extra_translationCurve, _init_position, _init_extra_position, _init_radius, _init_extra_radius, _init_isAggressive, _init_extra_isAggressive, _init_showVelocity, _init_extra_showVelocity;
+
+/**
+ * One object tracked by the tactical overlay, sampling a translation curve for
+ * its position and velocity and carrying the radius and flags the overlay
+ * presents it with.
+ */
 let _EveTacticalOverlayTr;
 class EveTacticalOverlayTrackObject extends CjsModel {
   static {
@@ -21,6 +27,12 @@ class EveTacticalOverlayTrackObject extends CjsModel {
   isAggressive = (_init_extra_radius(this), _init_isAggressive(this, false));
   showVelocity = (_init_extra_isAggressive(this), _init_showVelocity(this, true));
   #velocity = (_init_extra_showVelocity(this), vec3.create());
+
+  /**
+   * Samples the translation curve at the update context's time, storing the
+   * position and the curve derivative as the tracked velocity; does nothing when
+   * no curve is assigned.
+   */
   UpdatePosition(updateContext) {
     if (!this.translationCurve) return;
     const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0) || 0;
@@ -29,18 +41,31 @@ class EveTacticalOverlayTrackObject extends CjsModel {
     const position = this.translationCurve.GetValueAt?.(time, this.position);
     if (position && position !== this.position) vec3.copy(this.position, position);
   }
+
+  /** Copies the velocity sampled by the last UpdatePosition into out. */
   GetVelocity(out = vec3.create()) {
     return vec3.copy(out, this.#velocity);
   }
+
+  /** Copies the tracked position into out. */
   GetPosition(out = vec3.create()) {
     return vec3.copy(out, this.position);
   }
+
+  /** Returns the authored radius the overlay sizes this object's marker from. */
   GetRadius() {
     return this.radius;
   }
+
+  /**
+   * Reports whether the object is flagged as aggressive, which the overlay uses
+   * to choose its presentation.
+   */
   IsAggressive() {
     return this.isAggressive;
   }
+
+  /** Reports whether the overlay should draw this object's velocity indicator. */
   ShowVelocity() {
     return this.showVelocity;
   }

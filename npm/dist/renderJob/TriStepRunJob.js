@@ -4,6 +4,8 @@ import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 
 let _initProto, _initClass, _init_job, _init_extra_job;
+
+/** Step that runs a nested render job in place, letting job graphs compose. */
 let _TriStepRunJob;
 class TriStepRunJob extends _TriRenderStep {
   static {
@@ -20,12 +22,22 @@ class TriStepRunJob extends _TriRenderStep {
     _init_extra_job(this);
   }
   job = (_initProto(this), _init_job(this, null));
+
+  /** Stores the nested job this step runs. */
   __init__(job = null) {
     this.SetRenderJob(job);
   }
+
+  /** Replaces the nested job; null makes the step a no-op. */
   SetRenderJob(job) {
     this.job = job ?? null;
   }
+
+  /**
+   * Runs the nested job with the same executor and maps its job status onto a
+   * step result, so a nested job that is still in progress leaves the owning job
+   * in progress too and resumes at this same step next frame.
+   */
   Execute(realTime, simTime, executor) {
     if (!this.job) return _TriRenderJob.StepResult.RS_OK;
     switch (this.job.Run(realTime, simTime, executor)) {

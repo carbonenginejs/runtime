@@ -4,6 +4,12 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsGrannyCurves } from './CjsGrannyCurves.js';
 
 let _initProto, _initClass, _init_grannyResPath, _init_extra_grannyResPath, _init_cycle, _init_extra_cycle, _init_duration, _init_extra_duration, _init_grannyRes, _init_extra_grannyRes, _init_name, _init_extra_name, _init_group, _init_extra_group;
+
+/**
+ * Base for curves sampled out of a Granny animation resource, owning the
+ * resource path, group and track name plus the cycle flag and resolved duration;
+ * subclasses supply the track binding and sampling.
+ */
 let _Tr2GrannyTrack;
 class Tr2GrannyTrack extends CjsModel {
   static {

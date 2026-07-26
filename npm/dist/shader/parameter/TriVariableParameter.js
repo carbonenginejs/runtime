@@ -31,6 +31,11 @@ class TriVariableParameter extends CjsParameter {
   variable = (_init_extra_variableName(this), null);
   variableStore = null;
   cachedEffect = null;
+
+  /**
+   * The shader constant or resource name the variable's value is uploaded to;
+   * distinct from variableName, which names the store entry.
+   */
   GetParameterName() {
     return this.name;
   }
@@ -39,6 +44,11 @@ class TriVariableParameter extends CjsParameter {
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL) {
     return CjsParameter.hashFnv1String(this.name, startingHash);
   }
+
+  /**
+   * Resolves variableName against a store and caches the variable object; an empty variableName clears the binding. Always returns true.
+   * @param variableStore store to bind against; null keeps the store supplied by an earlier call
+   */
   Initialize(variableStore = null) {
     this.variableStore = variableStore ?? this.variableStore;
     if (!this.variableName) {
@@ -48,6 +58,11 @@ class TriVariableParameter extends CjsParameter {
     this.variable = this.variableStore?.GetVariable?.(this.variableName) ?? this.variableStore?.getVariable?.(this.variableName) ?? this.variableStore?.[this.variableName] ?? this.variable;
     return true;
   }
+
+  /**
+   * Consumes the two dirty flags: `variable` re-resolves the store binding,
+   * `effectHandles` re-resolves usage against the cached shader.
+   */
   OnModified(_options = {}) {
     const flags = this.__state.flags;
     if (flags.delete("variable")) {
@@ -58,6 +73,12 @@ class TriVariableParameter extends CjsParameter {
     }
     return true;
   }
+
+  /**
+   * Records usage by looking the name up as a shader resource when the bound
+   * variable is a texture or buffer type and as a shader constant otherwise; an
+   * unbound variable always counts as unused.
+   */
   RebuildEffectHandles(effectRes) {
     this.cachedEffect = effectRes;
     this.usedByCurrentEffect = false;
@@ -71,15 +92,32 @@ class TriVariableParameter extends CjsParameter {
     this.usedByCurrentEffect = used;
     this.usedByCurrentTechnique = used;
   }
+
+  /**
+   * Delegates the write to the bound variable, so the store owns the value; does
+   * nothing when no variable is bound.
+   */
   CopyValueToEffect(inputType, dest, size, renderContext) {
     this.variable?.CopyValueToEffect?.(inputType, dest, size, renderContext);
   }
+
+  /**
+   * Always false - populating a resource set is device work this package does
+   * not do.
+   */
   CopyToResourceSet() {
     return false;
   }
+
+  /** Always false - UAV binding is left to the engine adapter. */
   ApplyUav() {
     return false;
   }
+
+  /**
+   * The bound variable's type tag, which decides whether the name binds as a
+   * resource or a constant; `invalid` when nothing is bound.
+   */
   GetVariableType() {
     return this.variable?.GetType?.() ?? this.variable?.type ?? "invalid";
   }

@@ -5,6 +5,12 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_value, _init_extra_value, _init_fading, _init_extra_fading, _init_fadeTime, _init_extra_fadeTime;
 const TRI_PI = Math.PI;
+
+/**
+ * Scalar fade envelope that ramps linearly between 0 and 1 over an authored fade
+ * length, and also exposes a separate non-linear kick-in pulse that runs once
+ * per fade-in.
+ */
 let _Tr2ScalarFader;
 new class extends _identity {
   static [class Tr2ScalarFader extends CjsModel {
@@ -87,6 +93,11 @@ new class extends _identity {
       const x = num.clamp(this.fadeTime / this.kickInLength, 0, 1);
       return Math.pow(Math.sin(TRI_PI * Math.pow(x, 0.66)), 3);
     }
+
+    /**
+     * Reads the frame delta in seconds from an update context, accepting either a
+     * GetDeltaT method or a plain deltaT property and defaulting to 0.
+     */
   }];
   #getDeltaT(updateContext) {
     if (typeof updateContext.GetDeltaT === "function") {

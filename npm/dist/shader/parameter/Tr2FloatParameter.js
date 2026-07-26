@@ -3,6 +3,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsParameter } from './CjsParameter.js';
 
 let _initProto, _initClass, _init_value, _init_extra_value, _init_name, _init_extra_name, _init_usedByCurrentEffect, _init_extra_usedByCurrentEffect;
+
+/**
+ * Single float value for a named shader constant, with optional rerouting into
+ * an external scalar destination.
+ */
 let _Tr2FloatParameter;
 class Tr2FloatParameter extends CjsParameter {
   static {
@@ -22,6 +27,8 @@ class Tr2FloatParameter extends CjsParameter {
   #valueRef = {
     value: this.value
   };
+
+  /** The shader constant name this value binds to; empty until authored. */
   GetParameterName() {
     return this.name;
   }
@@ -30,6 +37,11 @@ class Tr2FloatParameter extends CjsParameter {
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL) {
     return CjsParameter.hashFnv1String(this.name, CjsParameter.hashFnv1Floats([this.value], startingHash));
   }
+
+  /**
+   * Reads back through the reroute destination when one is set, so the result
+   * reflects writes made by whoever owns that destination.
+   */
   GetValue() {
     if (this.#reroutedValue) {
       this.value = CjsParameter.readScalarDestination(this.#reroutedValue, this.value);
@@ -37,6 +49,11 @@ class Tr2FloatParameter extends CjsParameter {
     }
     return this.value;
   }
+
+  /**
+   * Coerces to a number, refreshes the boxed reference GetDestination hands out,
+   * and writes through to the reroute destination when one is set.
+   */
   SetValue(value) {
     this.value = Number(value);
     this.#valueRef.value = this.value;
@@ -44,9 +61,16 @@ class Tr2FloatParameter extends CjsParameter {
       CjsParameter.writeScalarDestination(this.#reroutedValue, this.value);
     }
   }
+
+  /** Whether reads and writes currently go through an external destination. */
   IsRerouted() {
     return this.#reroutedValue !== null;
   }
+
+  /**
+   * Points the parameter at an external scalar destination and seeds it with the current value; a target under 4 bytes or of an unusable shape clears the reroute instead. Bindings are notified of the effective destination either way.
+   * @param size destination capacity in bytes
+   */
   SetDestination(dest, size = 4) {
     if (size >= 4 && CjsParameter.isScalarDestination(dest)) {
       this.#reroutedValue = dest;
@@ -56,24 +80,48 @@ class Tr2FloatParameter extends CjsParameter {
     }
     CjsParameter.notifyBindings(this.#bindings, this.GetDestination().dest);
   }
+
+  /**
+   * The scalar an upload should read - the reroute target, or the parameter's
+   * own boxed `{ value }` holder - with its 4-byte size. The boxed holder is a
+   * stable object that survives SetValue calls.
+   */
   GetDestination() {
     return {
       dest: this.#reroutedValue ?? this.#valueRef,
       size: 4
     };
   }
+
+  /**
+   * Adds a binding to be notified whenever the destination is repointed;
+   * duplicates are ignored.
+   */
   RegisterBinding(binding) {
     CjsParameter.registerBinding(this.#bindings, binding);
   }
+
+  /** Stops notifying a binding; unknown bindings are ignored. */
   UnregisterBinding(binding) {
     CjsParameter.unregisterBinding(this.#bindings, binding);
   }
+
+  /**
+   * Records whether the shader reflects a constant of this name and drops a
+   * stale reroute when the shader is gone; reflection metadata only, no GPU
+   * handle.
+   */
   RebuildEffectHandles(effectRes) {
     if (!effectRes && this.#reroutedValue) {
       this.SetDestination(null, 0);
     }
     this.usedByCurrentEffect = !!this.name && CjsParameter.hasEffectConstant(effectRes, this.name);
   }
+
+  /**
+   * Syncs the boxed reference and any reroute destination with the current
+   * value; always returns true.
+   */
   Initialize() {
     this.#valueRef.value = this.value;
     if (this.#reroutedValue) {
@@ -81,6 +129,11 @@ class Tr2FloatParameter extends CjsParameter {
     }
     return true;
   }
+
+  /**
+   * Writes the current value - read back through the reroute first when one is
+   * active - into the caller's destination.
+   */
   CopyValueToEffect(_inputType, out) {
     CjsParameter.writeScalarDestination(out, this.GetValue());
   }

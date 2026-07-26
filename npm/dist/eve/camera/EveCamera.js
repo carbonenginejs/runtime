@@ -285,27 +285,60 @@ new class extends _identity {
       projection?.CustomProjection?.(out);
       return out;
     }
+
+    /**
+     * Recovers the vertical field of view in radians from a projection matrix
+     * produced by CalculateProjectionMatrix, undoing the aspect clamp that method
+     * applies above 1.6.
+     */
     static CalculateFovFromProjection(transform) {
       const aspectRatio = transform[0] ? transform[5] / transform[0] : 0;
       const aspectAdjustment = aspectRatio > 1.6 ? aspectRatio / 1.6 : 1;
       return 2 * Math.atan(aspectAdjustment / transform[5]);
     }
+
+    /**
+     * Rebuilds a projection matrix with new near and far clip distances,
+     * preserving the field of view, aspect ratio and centre offsets recovered from
+     * the original.
+     */
     static ModifyClipPlanes(original, nearClip, farClip, out = mat4.create()) {
       const aspectRatio = original[0] ? original[5] / original[0] : 0;
       const fieldOfView = _EveCamera.CalculateFovFromProjection(original);
       return _EveCamera.CalculateProjectionMatrix(out, aspectRatio, fieldOfView, original[8], original[9], nearClip, farClip);
     }
+
+    /**
+     * Rebuilds a projection matrix with extra normalized x and y centre offsets
+     * added to those the original already carries, used to shift the view frustum
+     * without moving the camera.
+     */
     static AddCenterOffset(original, xOffset, yOffset, nearClip, farClip, out = mat4.create()) {
       const aspectRatio = original[0] ? original[5] / original[0] : 0;
       const fieldOfView = _EveCamera.CalculateFovFromProjection(original);
       return _EveCamera.CalculateProjectionMatrix(out, aspectRatio, fieldOfView, original[8] + xOffset, original[9] + yOffset, nearClip, farClip);
     }
+
+    /**
+     * Returns the camera's TriView wrapper, whose transform is rewritten by each
+     * successful update; it is live storage, not a copy.
+     */
     GetViewMatrix() {
       return this.viewMatrix;
     }
+
+    /**
+     * Returns the camera's TriProjection wrapper, whose transform is rebuilt from
+     * the field of view and clip planes on each update.
+     */
     GetProjection() {
       return this.projectionMatrix;
     }
+
+    /**
+     * Returns the world position resolved by the last update; the vector is the
+     * camera's own storage and is overwritten next update.
+     */
     GetPosition() {
       return this.pos;
     }
@@ -532,6 +565,12 @@ new class extends _identity {
       this.#failedLastFrame = failed;
       return !failed;
     }
+
+    /**
+     * Re-derives yaw and pitch when the parent-orbit rotation quaternion changes,
+     * and re-evaluates interest tracking (clearing the interest orbit speeds) when
+     * the interest object changes.
+     */
     OnModified(_options = {}) {
       if (!quat.exactEquals(this.rotationAroundParent, this.#lastRotationAroundParent)) {
         quaternionToYawPitchRoll(CAMERA_YAW_PITCH_ROLL, this.rotationAroundParent);
@@ -573,12 +612,22 @@ new class extends _identity {
       this.#pitchIntSpeed = pitch;
       fromYawPitchRoll(this.rotationOfInterest, this.#yawInt, this.#pitchInt, 0);
     }
+
+    /**
+     * Clamps pitch into the authored min/max range, and yaw as well but only when
+     * a yaw range is configured, that is when minYaw and maxYaw differ.
+     */
     #CapPitchAndYaw() {
       this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch));
       if (this.minYaw !== this.maxYaw) {
         this.yaw = Math.max(this.minYaw, Math.min(this.maxYaw, this.yaw));
       }
     }
+
+    /**
+     * Extracts the view, up and right basis vectors out of a view transform into
+     * the supplied vectors.
+     */
   }];
   #CopyViewBasis(transform, view, up, right) {
     vec3.set(view, transform[2], transform[6], transform[10]);

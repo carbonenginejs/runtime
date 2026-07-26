@@ -44,6 +44,11 @@ class EveDistributionSpawnerTriggerSnake extends CjsModel {
 
   /** m_distanceToTravelTimeMultiplier (float) [READWRITE, PERSIST] */
   distanceToTravelTimeMultiplier = (_init_extra_totalDestinations(this), _init_distanceToTravelTimeMultiplier(this, 0));
+
+  /**
+   * Picks a random pooled placement as the first target of the walk and
+   * restarts.
+   */
   Reset(placements) {
     if (placements.length === 0) {
       return;
@@ -55,11 +60,23 @@ class EveDistributionSpawnerTriggerSnake extends CjsModel {
     this.#activeTargetUniqueID = placement.uniqueID;
     this.Restart();
   }
+
+  /**
+   * Clears the travel timers and the destination count, leaving a zero travel
+   * duration so the next update triggers the current target immediately.
+   */
   Restart() {
     this.destinationsReached = -1;
     this.#currentTravelTime = 0;
     this.#travelDurationToNextPoint = 0;
   }
+
+  /**
+   * Triggers the current target once its travel time is up, then hops to the
+   * free placement nearest a point extrapolated past the last target, charging
+   * extra travel time for the distance covered; stops after totalDestinations,
+   * which -1 makes unlimited.
+   */
   UpdateSyncronous(updateContext, _params, owner) {
     if (this.destinationsReached >= this.totalDestinations && this.totalDestinations !== -1) {
       return;
@@ -87,6 +104,8 @@ class EveDistributionSpawnerTriggerSnake extends CjsModel {
       this.#travelDurationToNextPoint += vec3.distance(this.#targetPoint, this.#lastTarget) * this.distanceToTravelTimeMultiplier / 100;
     }
   }
+
+  /** Ignores controller variables; the walk is purely time-driven. */
   SetControllerVariable(_name, _value) {}
   static {
     _initClass();

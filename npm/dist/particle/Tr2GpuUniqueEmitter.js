@@ -4,6 +4,11 @@ import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2GpuSharedEmitter as _Tr2GpuSharedEmitter } from './Tr2GpuSharedEmitter.js';
 
 let _initClass, _init_scaledByParent, _init_extra_scaledByParent, _init_attractorPosition, _init_extra_attractorPosition, _init_attractorStrength, _init_extra_attractorStrength;
+
+/**
+ * GPU emitter owned by a single instance, adding parent scaling and a
+ * per-instance attractor on top of the shared emitter parameters.
+ */
 let _Tr2GpuUniqueEmitter;
 class Tr2GpuUniqueEmitter extends _Tr2GpuSharedEmitter {
   static {

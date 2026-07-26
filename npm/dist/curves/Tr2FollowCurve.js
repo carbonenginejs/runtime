@@ -5,6 +5,12 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2FollowCurveKeyInterpolation } from './enums.js';
 
 let _initProto, _initClass, _init_currentValue, _init_extra_currentValue, _init_keys, _init_extra_keys, _init_name, _init_extra_name;
+
+/**
+ * Vector curve interpolated through an ordered list of follow-curve keys, each
+ * supplying its own position, tangents and interpolation for the segment that
+ * follows it.
+ */
 let _Tr2FollowCurve;
 class Tr2FollowCurve extends CjsModel {
   static {

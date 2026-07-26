@@ -5,6 +5,11 @@ import { Tr2RenderContext as _Tr2RenderContext } from '../trinityCore/Tr2RenderC
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
 let _initProto, _initClass, _init_status, _init_extra_status, _init_stackGuard, _init_extra_stackGuard, _init_enabled, _init_extra_enabled, _init_name, _init_extra_name, _init_steps, _init_extra_steps;
+
+/**
+ * An ordered list of render steps plus the cursor and status that let the
+ * sequence pause mid-list and resume on a later frame.
+ */
 let _TriRenderJob;
 new class extends _identity {
   static [class TriRenderJob extends CjsModel {
@@ -23,6 +28,15 @@ new class extends _identity {
     name = (_init_extra_enabled(this), _init_name(this, ""));
     steps = (_init_extra_name(this), _init_steps(this, []));
     #currentStep = (_init_extra_steps(this), 0);
+
+    /**
+     * Carbon TriRenderJob::Run (cpp:18-125): runs the steps in order against a snapshot of the list, resuming at the persisted cursor when the previous run left the job RJ_IN_PROGRESS, and stopping at the first step that does not return RS_OK or that disables the job.
+     * Each step is bracketed by begin/end so the end hook runs even when execution throws. When stackGuard is set, the executor's render-target and depth-stencil depths are compared against the depths recorded on entry: shortfalls are reported as diagnostics and surplus pushes are popped back to the baseline.
+     * @param {number} realTime wall-clock time passed through to each step
+     * @param {number} simTime simulation time passed through to each step
+     * @param {object} [executor] performs the actual work described by the steps; defaults to the shared Tr2RenderContext. It may take over step dispatch by implementing BeginStep/ExecuteStep/EndStep.
+     * @returns {number} the resulting TriRenderJob.Status
+     */
     Run(realTime, simTime, executor = null) {
       if (!this.enabled) return _TriRenderJob.Status.RJ_DONE;
       const context = executor || _Tr2RenderContext.GetDefault();
@@ -105,6 +119,51 @@ new class extends _identity {
       }
       return this.status;
     }
+
+    /**
+     * Treats a step as enabled through its IsEnabled method, or when it has none,
+     * through an enabled field that is not false.
+     */
+
+    /**
+     * Gives the executor first refusal on step setup via BeginStep, and otherwise
+     * calls the step's own BeginExecute.
+     */
+
+    /**
+     * Gives the executor first refusal on step execution via ExecuteStep, and
+     * otherwise calls the step's own Execute; the returned step result decides
+     * whether the job continues.
+     */
+
+    /**
+     * Gives the executor first refusal on step teardown via EndStep, and otherwise
+     * calls the step's own EndExecute; the caller runs this even when execution
+     * threw.
+     */
+
+    /**
+     * Reads a stack depth off the executor, mapping a missing, negative or
+     * non-finite value to 0 so executors that do not track stacks never trip the
+     * guard.
+     */
+
+    /**
+     * Reports a stack-underflow diagnostic when the executor's render-target or
+     * depth-stencil depth has dropped below the depth recorded at job entry, the
+     * condition Carbon asserts on (TriRenderJob.cpp:63-64).
+     */
+
+    /**
+     * Pops the executor's stack back down to the depth recorded at job entry,
+     * mirroring Carbon's stack repair loop (TriRenderJob.cpp:85-92), and stops
+     * early if a pop fails to reduce the depth.
+     */
+
+    /**
+     * Forwards a typed diagnostic record to the executor when it exposes
+     * AddDiagnostic; Carbon asserts or logs at these same points.
+     */
   }];
   Status = Object.freeze({
     RJ_INIT: 0,

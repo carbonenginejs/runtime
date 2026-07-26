@@ -6,6 +6,11 @@ import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from './enums.js';
 import { Tr2CurveQuaternionKey as _Tr2CurveQuaternionKe } from './Tr2CurveQuaternionKey.js';
 
 let _initProto, _initClass, _init_keys, _init_extra_keys, _init_name, _init_extra_name, _init_currentValue, _init_extra_currentValue, _init_extrapolationBefore, _init_extra_extrapolationBefore, _init_extrapolationAfter, _init_extra_extrapolationAfter;
+
+/**
+ * Keyed quaternion curve evaluated in seconds, with per-key interpolation and
+ * independent extrapolation modes before the first and after the last key.
+ */
 let _Tr2CurveQuaternion;
 new class extends _identity {
   static [class Tr2CurveQuaternion extends CjsModel {

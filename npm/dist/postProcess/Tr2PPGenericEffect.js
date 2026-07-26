@@ -4,6 +4,11 @@ import { Tr2PPEffect as _Tr2PPEffect } from './Tr2PPEffect.js';
 import { Quality } from '../generated/postProcess/enums.js';
 
 let _initClass, _init_quality, _init_extra_quality, _init_effect, _init_extra_effect;
+
+/**
+ * Post-process slot wrapping an arbitrary authored Tr2Effect together with the
+ * quality level it needs before a frame will run it.
+ */
 let _Tr2PPGenericEffect;
 new class extends _identity {
   static [class Tr2PPGenericEffect extends _Tr2PPEffect {
@@ -22,6 +27,8 @@ new class extends _identity {
     }
     quality = _init_quality(this, 1);
     effect = (_init_extra_quality(this), _init_effect(this, null));
+
+    /** Returns the wrapped effect, which may be null when none was authored. */
     GetEffect() {
       return this.effect;
     }

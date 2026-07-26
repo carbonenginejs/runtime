@@ -4,6 +4,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { TriValueBinding as _TriValueBinding } from './TriValueBinding.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_destinationObject, _init_extra_destinationObject, _init_destinationAttribute, _init_extra_destinationAttribute, _init_valid, _init_extra_valid;
+
+/**
+ * A named handle onto one attribute - optionally one vector component - of
+ * another object, exposing it for type-checked reads and writes.
+ */
 let _Tr2ExternalParameter;
 new class extends _identity {
   static [class Tr2ExternalParameter extends CjsModel {
@@ -67,6 +72,12 @@ new class extends _identity {
       _Tr2ExternalParameter.#Notify(this.destinationObject, this.#destinationName, this);
       return true;
     }
+
+    /**
+     * Resolves destinationAttribute against the destination object, caching the
+     * schema field, component offset and value category; an unresolvable attribute
+     * leaves valid false and still returns true.
+     */
     Initialize() {
       this.valid = false;
       this.#destinationName = "";
@@ -95,42 +106,108 @@ new class extends _identity {
       this.valid = true;
       return true;
     }
+
+    /** Re-resolves the cached destination entry after any field change. */
     OnModified(_value = null) {
       this.Initialize();
       return true;
     }
+
+    /** The parameter's exposed name. */
     GetName() {
       return this.name;
     }
+
+    /** Sets the exposed name, coercing null to an empty string. */
     SetName(name) {
       this.name = String(name ?? "");
     }
+
+    /**
+     * Rebinds the destination object and immediately re-resolves the cached entry,
+     * where Carbon defers that to its notify lifecycle.
+     */
     SetDestinationObject(destinationObject) {
       this.destinationObject = destinationObject ?? null;
       this.Initialize();
     }
+
+    /**
+     * Rebinds the destination attribute and immediately re-resolves the cached
+     * entry.
+     */
     SetDestinationAttribute(destinationAttribute) {
       this.destinationAttribute = String(destinationAttribute ?? "");
       this.Initialize();
     }
+
+    /**
+     * Whether the destination attribute currently resolves to a supported value
+     * shape.
+     */
     IsValid() {
       return this.valid;
     }
+
+    /**
+     * The live value of the bound attribute, re-resolving first if needed; null
+     * when the binding cannot be resolved. Array values are the destination's own
+     * buffers, not copies.
+     */
     GetDestination() {
       if (!this.valid) this.Initialize();
       return this.valid ? this.destinationObject[this.#destinationName] : null;
     }
+
+    /**
+     * The cached schema field metadata plus the component offset, or null while
+     * invalid; stands in for Carbon's Be::VarEntry pointer.
+     */
     GetDestinationEntry() {
       return this.valid ? {
         ...this.#destinationEntry,
         offset: this.#destinationOffset
       } : null;
     }
+
+    /**
+     * Creates a TriValueBinding already pointed at this parameter's destination
+     * endpoint, leaving the source for the caller to set.
+     */
     CreateBinding() {
       const binding = new _TriValueBinding();
       binding.SetDestination(this.destinationAttribute, this.destinationObject);
       return binding;
     }
+
+    /**
+     * Classifies the destination value as boolean, string, number, fixed-length
+     * float array or object reference, preferring the schema field kind over the
+     * runtime value's shape.
+     */
+
+    /**
+     * Validates an incoming value against the destination category and converts
+     * it, returning { valid, value } or { valid, message }; a component write only
+     * accepts a finite number.
+     */
+
+    /**
+     * Truncates a number to the destination's integer kind; float kinds pass
+     * through unchanged.
+     */
+
+    /**
+     * Splits `field` or `field.x` into a name plus a component index (x/r zero
+     * through w/a three); null for an empty name or an unrecognized suffix.
+     */
+
+    /** Whether the value is an array or a typed-array view. */
+
+    /**
+     * Notifies the destination of the changed field through UpdateValues,
+     * OnValueChanged or OnModified, whichever it implements.
+     */
   }];
   #DescribeValue(value, field) {
     const kind = field?.type?.kind ?? null;

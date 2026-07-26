@@ -7,6 +7,11 @@ let _initProto, _initClass;
 
 // Carbon: RenderJob/TriStepPopViewTransform.cpp — Execute pops the view
 // transform (Tr2Renderer::PopViewTransform).
+
+/**
+ * Step that pops the executor's view-transform stack, restoring the view saved
+ * by an earlier push.
+ */
 let _TriStepPopViewTransf;
 class TriStepPopViewTransform extends _TriRenderStep {
   static {
@@ -22,6 +27,7 @@ class TriStepPopViewTransform extends _TriRenderStep {
     super(...args);
     _initProto(this);
   }
+  /** Restores the view transform saved by the matching push step. */
   Execute(_realTime, _simTime, executor) {
     executor?.PopViewTransform?.();
     return _TriRenderJob.StepResult.RS_OK;

@@ -4,6 +4,12 @@ import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/sc
 import { Type } from './enums.js';
 
 let _initProto, _initClass, _init_variableType, _init_extra_variableType, _init_enumValues, _init_extra_enumValues, _init_value, _init_extra_value, _init_defaultValue, _init_extra_defaultValue, _init_name, _init_extra_name;
+
+/**
+ * One named float slot of a controller's variable set, mirroring its value into
+ * the controller's packed expression buffer and raising its dirty bit whenever
+ * it changes.
+ */
 let _Tr2ControllerFloatVa;
 new class extends _identity {
   static [class Tr2ControllerFloatVariable extends CjsModel {

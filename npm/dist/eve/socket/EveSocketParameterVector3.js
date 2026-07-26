@@ -22,6 +22,11 @@ class EveSocketParameterVector3 extends _EveSocketParameterBi {
 
   /** m_defaults - one default captured per bound external parameter. */
   #defaults = (_init_extra_value(this), []);
+
+  /**
+   * Discards the captured defaults along with the bindings, so nothing can be
+   * restored afterwards.
+   */
   ClearBindings() {
     this.#defaults.length = 0;
     super.ClearBindings();
@@ -35,6 +40,12 @@ class EveSocketParameterVector3 extends _EveSocketParameterBi {
     }
     this.ClearBindings();
   }
+
+  /**
+   * Captures a copy of the external parameter's current value as a default,
+   * keeping it at zero unless the source has at least three components; always
+   * succeeds, so a bind is never refused on its account.
+   */
   ExtractDefault(externalParameter) {
     const value = vec3.create();
     try {
@@ -48,6 +59,11 @@ class EveSocketParameterVector3 extends _EveSocketParameterBi {
     this.#defaults.push(value);
     return true;
   }
+
+  /**
+   * Restores the first captured default into the existing value vector, or
+   * zeroes it when nothing was captured.
+   */
   SetValueToDefault() {
     if (this.#defaults.length) {
       vec3.copy(this.value, this.#defaults[0]);

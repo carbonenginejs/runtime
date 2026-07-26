@@ -16,6 +16,12 @@ const Tr2Lod = Object.freeze({
 class EveLODHelper {
   static lowUpdateRate = 1;
   static mediumUpdateRate = 0.1;
+
+  /**
+   * Whether an object at this detail level is due for an update given the
+   * seconds since its last one; unspecified and low update once a second, medium
+   * ten times a second, and higher levels every frame.
+   */
   static ShouldUpdate(lod, timeSinceUpdate) {
     switch (lod) {
       case Tr2Lod.TR2_LOD_UNSPECIFIED:
@@ -27,6 +33,11 @@ class EveLODHelper {
         return true;
     }
   }
+
+  /**
+   * Combines two detail levels, keeping the higher and treating unspecified as no opinion. Given an update context the second argument is instead a bounding sphere: an invisible sphere yields unspecified, and a visible one is classified by its on-screen pixel size against the context's low and medium detail thresholds before being merged.
+   * @param {Number|Array} lodOrSphere - a Tr2Lod level, or a packed (x, y, z, radius) sphere when updateContext is given
+   */
   static MergeLOD(lod0, lodOrSphere, updateContext = null) {
     if (updateContext) {
       const frustum = updateContext.GetFrustum();

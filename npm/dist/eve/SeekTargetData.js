@@ -4,6 +4,13 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_bucketId, _init_extra_bucketId, _init_locatorIndex, _init_extra_locatorIndex, _init_timePassed, _init_extra_timePassed, _init_position, _init_extra_position, _init_direction, _init_extra_direction, _init_arrived, _init_extra_arrived, _init_hasSpawned, _init_extra_hasSpawned;
+
+/**
+ * Per-agent scratch for the SeekTarget child behaviour: the locator being
+ * sought, the position and direction of the approach, and whether the agent has
+ * spawned and arrived. The behaviour allocates one record per agent and rewrites
+ * it on every behaviour update.
+ */
 let _SeekTargetData;
 class SeekTargetData extends CjsModel {
   static {

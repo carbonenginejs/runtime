@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { UnlinkReason } from './enums.js';
 
 let _initProto, _initClass, _init_controller, _init_extra_controller, _init_path, _init_extra_path;
+
+/**
+ * Stands in for a controller loaded from a resource path, forwarding the full
+ * controller lifecycle to whichever controller the path resolves to.
+ */
 let _Tr2ControllerReferen;
 new class extends _identity {
   static [class Tr2ControllerReference extends CjsModel {
@@ -129,6 +134,12 @@ new class extends _identity {
     GetOwner() {
       return this.#owner;
     }
+
+    /**
+     * Resolves `controller` from the authored path through the registered resource
+     * resolver, recording the path it resolved from so OnModified can tell a real
+     * path change from an unrelated settle.
+     */
     ResolveController() {
       this.#resolvedPath = this.path;
       if (!this.path) {

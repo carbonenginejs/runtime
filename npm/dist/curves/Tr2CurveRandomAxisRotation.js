@@ -4,6 +4,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_currentValue, _init_extra_currentValue, _init_period, _init_extra_period, _init_seed, _init_extra_seed;
+
+/**
+ * Quaternion curve that spins at a fixed rate of one revolution per `period`
+ * seconds about an axis fixed by two seed-derived random rotations applied
+ * before and after the spin.
+ */
 let _Tr2CurveRandomAxisRo;
 new class extends _identity {
   static [class Tr2CurveRandomAxisRotation extends CjsModel {
@@ -141,6 +147,19 @@ new class extends _identity {
       _Tr2CurveRandomAxisRo.#buildCarbonRandomRotation(this.preRotation, random);
       _Tr2CurveRandomAxisRo.#buildCarbonRandomRotation(this.postRotation, random);
     }
+
+    /**
+     * Draws roll, pitch and yaw from the supplied generator in that order -
+     * matching Carbon's draw order, which fixes the resulting rotation for a given
+     * seed - and writes the quaternion into `out`.
+     */
+
+    /** Draws one angle uniformly in [0, 2pi) radians from the supplied generator. */
+
+    /**
+     * Builds a [0, 1] generator over a Mersenne Twister seeded like MSVC's
+     * default_random_engine, so a persisted seed reproduces Carbon's rotations.
+     */
   }];
   #buildCarbonRandomRotation(out, random) {
     const roll = _Tr2CurveRandomAxisRo.#randomAngle(random);
@@ -162,6 +181,8 @@ new class extends _identity {
 class CjsMt19937 {
   #state = new Uint32Array(624);
   #index = 624;
+
+  /** Seeds the 624-word state with MT19937's standard initialisation recurrence. */
   constructor(seed) {
     this.#state[0] = seed >>> 0;
     for (let i = 1; i < this.#state.length; i++) {
@@ -169,6 +190,11 @@ class CjsMt19937 {
       this.#state[i] = Math.imul(1812433253, previous ^ previous >>> 30) + i >>> 0;
     }
   }
+
+  /**
+   * Returns the next 32-bit unsigned value, regenerating the state block when
+   * the previous 624 outputs are exhausted.
+   */
   Next() {
     if (this.#index >= this.#state.length) {
       this.#twist();
@@ -180,6 +206,8 @@ class CjsMt19937 {
     value ^= value >>> 18;
     return value >>> 0;
   }
+
+  /** Regenerates the whole 624-word state block and rewinds the output cursor. */
   #twist() {
     for (let i = 0; i < this.#state.length; i++) {
       const next = (i + 1) % this.#state.length;

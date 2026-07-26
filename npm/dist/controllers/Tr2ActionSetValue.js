@@ -6,6 +6,11 @@ import { ITr2ControllerAction } from './ITr2ControllerAction.js';
 import { Tr2BindingPoint as _Tr2BindingPoint } from './Tr2BindingPoint.js';
 
 let _initProto, _initClass, _init_value, _init_extra_value, _init_attribute, _init_extra_attribute, _init_destination, _init_extra_destination, _init_delayBinding, _init_extra_delayBinding, _init_path, _init_extra_path;
+
+/**
+ * Controller action that evaluates a value expression once on start and writes
+ * the result into a bound destination property.
+ */
 let _Tr2ActionSetValue;
 class Tr2ActionSetValue extends CjsModel {
   static {
@@ -139,12 +144,27 @@ class Tr2ActionSetValue extends CjsModel {
       action: this
     })) || 0;
   }
+
+  /**
+   * Compiles the authored value expression, reusing the cached program while the
+   * expression text is unchanged.
+   */
   CompileExpression() {
     return CjsControllerExpressionProgram.compileCached(this.#expression, this.value, 0);
   }
+
+  /**
+   * Evaluates the value expression against the controller context, returning 0
+   * when it does not compile or does not produce a finite number.
+   */
   GetValue(controller = this.#controller, owner = ITr2ControllerAction.getOwner(controller)) {
     return this.#evaluateValue(controller, owner) ?? 0;
   }
+
+  /**
+   * Evaluates the value expression, returning null rather than 0 when it fails
+   * to compile or yields a non-finite number so the caller can skip the write.
+   */
   #evaluateValue(controller, owner) {
     const program = this.CompileExpression();
     if (!program.IsValid()) {
@@ -160,6 +180,11 @@ class Tr2ActionSetValue extends CjsModel {
     }));
     return Number.isFinite(value) ? value : null;
   }
+
+  /**
+   * Gets the lazily created binding point, refreshing it from the currently
+   * authored path, destination object and attribute on every call.
+   */
   GetBindingPoint() {
     if (!this.#bindingPoint) {
       this.#bindingPoint = new _Tr2BindingPoint();
@@ -169,9 +194,19 @@ class Tr2ActionSetValue extends CjsModel {
     this.#bindingPoint.attribute = this.attribute;
     return this.#bindingPoint;
   }
+
+  /**
+   * Resolves the binding point against the controller's binding roots and its
+   * owner.
+   */
   LinkDestination(controller = this.#controller, owner = ITr2ControllerAction.getOwner(controller)) {
     return this.GetBindingPoint().Link(controller, owner);
   }
+
+  /**
+   * Checks whether binding is deferred to Start, which requires both the
+   * delayBinding flag and an authored path.
+   */
   HasDelayedBinding() {
     return this.delayBinding && !!this.path;
   }

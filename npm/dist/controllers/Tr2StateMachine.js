@@ -5,6 +5,12 @@ import { UnlinkReason } from './enums.js';
 import { BELIST_EVENTMASK, BELIST_REMOVED, GetControllerTimeSeconds, BELIST_INSERTED, TR2_DIRTY_ALL } from './contracts.js';
 
 let _initProto, _initClass, _init_states, _init_extra_states, _init_currentState, _init_extra_currentState, _init_startState, _init_extra_startState, _init_name, _init_extra_name;
+
+/**
+ * Runs one state at a time from an authored state list, entering at the
+ * configured start state and following transitions as controller variables
+ * change.
+ */
 let _Tr2StateMachine;
 new class extends _identity {
   static [class Tr2StateMachine extends CjsModel {
@@ -189,6 +195,12 @@ new class extends _identity {
     GetStateTime() {
       return this.GetStateRunTime();
     }
+
+    /**
+     * Advances through as many immediately-satisfied transitions as the current
+     * state chain produces, resetting the state start time on each hop; after 10
+     * hops it counts revisits and bails out at 20 to break a transition cycle.
+     */
     #followTransitions(dirtyVariables) {
       let next = this.currentState?.Update?.(dirtyVariables) ?? null;
       if (!next) {
@@ -209,6 +221,11 @@ new class extends _identity {
         next = this.currentState.Update?.(TR2_DIRTY_ALL) ?? null;
       }
     }
+
+    /**
+     * Narrows a list payload to an object reference before it is treated as a
+     * state.
+     */
   }];
   #asState(value) {
     return value && typeof value === "object" ? value : null;

@@ -5,6 +5,12 @@ import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/sc
 import { Tr2CurveVector3LerpKeyInterpolation } from './enums.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_initialValue, _init_extra_initialValue, _init_currentValue, _init_extra_currentValue, _init_curveStartTime, _init_extra_curveStartTime, _init_startInterpolation, _init_extra_startInterpolation, _init_curve, _init_extra_curve;
+
+/**
+ * Vector curve that eases from a fixed initial value into a child vector curve,
+ * blending over the interval ending at curveStartTime with the configured start
+ * interpolation.
+ */
 let _Tr2CurveVector3Lerp;
 new class extends _identity {
   static [class Tr2CurveVector3Lerp extends CjsModel {

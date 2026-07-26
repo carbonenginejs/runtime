@@ -9,6 +9,12 @@ import { TriFloat as _TriFloat } from '../../../trinityCore/TriFloat.js';
 import { getTime, sampleVector, updateChildAsync, updateCurveSet, makeEndpointTransforms, updateChildVisibility, makeStretchTransform, translationMatrix, collectRenderables, getCurveDuration, mergeSphere } from './CjsStretchRuntime.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_source, _init_extra_source, _init_dest, _init_extra_dest, _init_stretchAudio, _init_extra_stretchAudio, _init_lodLevel, _init_extra_lodLevel, _init_progressCurve, _init_extra_progressCurve, _init_moveCompletion, _init_extra_moveCompletion, _init_curveSets, _init_extra_curveSets, _init_length, _init_extra_length, _init_moving, _init_extra_moving, _init_moveCompleted, _init_extra_moveCompleted, _init_display, _init_extra_display, _init_update, _init_extra_update, _init_destLights, _init_extra_destLights, _init_sourceLights, _init_extra_sourceLights, _init_destObject, _init_extra_destObject, _init_sourceObject, _init_extra_sourceObject, _init_stretchObject, _init_extra_stretchObject, _init_useCurveLod, _init_extra_useCurveLod, _init_startTime, _init_extra_startTime, _init_audio, _init_extra_audio, _init_moveObject, _init_extra_moveObject;
+
+/**
+ * An effect drawn between a source point and a destination point, hosting
+ * transform children pinned at each end, stretched along the span, and
+ * travelling from one end to the other.
+ */
 let _EveStretch;
 new class extends _identity {
   static [class EveStretch extends _EveEntity {
@@ -53,6 +59,13 @@ new class extends _identity {
     #sourceScale = 1;
     #destinationScale = 1;
     #negativeZ = false;
+
+    /**
+     * Samples the source and destination position curves for the frame; with no
+     * source curve the source position falls back to the translation of the
+     * transform last given to SetSourceTransform. Skipped entirely while update is
+     * false.
+     */
     UpdateSynchronous(context) {
       if (!this.update) return true;
       const time = getTime(context);
@@ -60,9 +73,17 @@ new class extends _identity {
       if (this.dest) sampleVector(this.dest, time, this.#destinationPosition);
       return true;
     }
+
+    /** Carbon's IEveSpaceObject2 spelling of UpdateSynchronous; forwards unchanged. */
     UpdateSyncronous(context) {
       return this.UpdateSynchronous(context);
     }
+
+    /**
+     * Advances the curves, records the endpoint separation in length, forwards the
+     * asynchronous phase to the displayed endpoint children plus the stretch and
+     * move children, and feeds both audio objects the current endpoints.
+     */
     UpdateAsynchronous(context) {
       if (!this.update) return true;
       this.UpdateCurves(context);
@@ -75,20 +96,46 @@ new class extends _identity {
       this.stretchAudio?.Update?.(this.#sourcePosition, this.#destinationPosition);
       return true;
     }
+
+    /**
+     * Carbon's IEveSpaceObject2 spelling of UpdateAsynchronous; forwards
+     * unchanged.
+     */
     UpdateAsyncronous(context) {
       return this.UpdateAsynchronous(context);
     }
+
+    /**
+     * IEveFiringEffectElement synchronous hook; EveStretch does all of its firing
+     * work in the asynchronous phase, so this only reports success.
+     */
     UpdateEffectSync(context) {
       return true;
     }
+
+    /**
+     * IEveFiringEffectElement asynchronous hook; runs both update phases through
+     * Update.
+     */
     UpdateEffectAsync(context) {
       return this.Update(context);
     }
+
+    /**
+     * Runs both update phases in order, for callers that drive the stretch outside
+     * the scene's split synchronous/asynchronous pass.
+     */
     Update(context) {
       this.UpdateSynchronous(context);
       this.UpdateAsynchronous(context);
       return true;
     }
+
+    /**
+     * Advances the curve sets, the progress curve and the move-completion set on
+     * time measured from startTime, which is latched on the first frame after
+     * StartMoving.
+     */
     UpdateCurves(context) {
       const time = getTime(context);
       if (this.startTime < 0 && this.moving) this.startTime = time;
@@ -99,6 +146,17 @@ new class extends _identity {
       }
       updateCurveSet(this.moveCompletion, relative);
     }
+
+    /**
+     * Computes the source, destination, stretch and move placements for the frame
+     * and hands each to its child; the stretch itself never draws, so nothing is
+     * realized on the GPU here. In transform mode (SetSourceTransform) the
+     * authored transforms are used, the source taking a fixed -90 degree X
+     * correction and parentTransform being ignored; otherwise the bases are
+     * derived from the sampled endpoints, scaled by the endpoint scales and
+     * combined with parentTransform. Latches moveCompleted and hides the move
+     * child once the progress curve reaches 1.
+     */
     UpdateVisibility(context, parentTransform = _EveStretch.#identity) {
       if (!this.display) return;
       const sourceTransform = _EveStretch.#sourceMatrix;
@@ -151,6 +209,11 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Appends the displayed children's renderables to out; this package stops at collection, and runtime-engine turns the collected objects into draw batches.
+     * @returns {Array} out
+     */
     GetRenderables(out = []) {
       if (!this.display) return out;
       if (this.#displaySource) collectRenderables(this.sourceObject, out);
@@ -159,6 +222,12 @@ new class extends _identity {
       collectRenderables(this.moveObject, out);
       return out;
     }
+
+    /**
+     * Restarts the travelling child from the source end: clears the latched start
+     * time and the completion flag, re-shows the move child and fires the stretch
+     * audio event.
+     */
     StartMoving() {
       this.startTime = -1;
       this.moving = true;
@@ -166,33 +235,72 @@ new class extends _identity {
       this.moveObject?.SetDisplay?.(true);
       if (typeof this.audio?.TriggerStretchEvent === "function") this.audio.TriggerStretchEvent();else this.audio?.SendEvent?.("wise:/msg_fx_play_stretch");
     }
+
+    /** Starts the travelling child and plays the first curve set. */
     Start() {
       this.StartMoving();
       this.curveSets[0]?.Play?.();
     }
+
+    /**
+     * Shows or hides the whole stretch, gating visibility, renderable collection
+     * and light contribution.
+     */
     SetDisplay(display) {
       this.display = !!display;
     }
+
+    /**
+     * Pins the source endpoint to a plain position, which also switches the
+     * stretch out of transform mode so the source orientation is derived from the
+     * span again.
+     */
     SetSourcePosition(value) {
       this.#useTransforms = false;
       vec3.copy(this.#sourcePosition, value);
     }
+
+    /**
+     * Pins the destination endpoint and rebuilds its transform as a pure
+     * translation.
+     */
     SetDestinationPosition(value) {
       vec3.copy(this.#destinationPosition, value);
       translationMatrix(value, this.#destinationTransform);
     }
+
+    /**
+     * Pins the source endpoint from a full transform and switches the stretch into
+     * transform mode, so UpdateVisibility uses the supplied orientation instead of
+     * deriving one from the two endpoints.
+     */
     SetSourceTransform(value) {
       this.#useTransforms = true;
       mat4.copy(this.#sourceTransform, value);
       mat4.getTranslation(this.#sourcePosition, value);
     }
+
+    /**
+     * Pins the destination endpoint from a full transform and takes its position
+     * from that transform's translation.
+     */
     SetDestinationTransform(value) {
       mat4.copy(this.#destinationTransform, value);
       mat4.getTranslation(this.#destinationPosition, value);
     }
+
+    /**
+     * Reverses the direction the stretch child is scaled along, for effects
+     * authored pointing down -Z.
+     */
     SetIsNegZForward(value) {
       this.#negativeZ = !!value;
     }
+
+    /**
+     * Longest curve-set duration in seconds, each divided by that set's own time
+     * scale.
+     */
     GetCurveDuration() {
       let duration = 0;
       for (const curveSet of this.curveSets) {
@@ -201,6 +309,11 @@ new class extends _identity {
       }
       return duration;
     }
+
+    /**
+     * Begins a firing cycle by curve-set name convention: play_start and play_loop are played from -delay, play_end is stopped, and the audio outburst/impact/stretch events are triggered. Starting play_start also restarts the travelling child.
+     * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
+     */
     StartFiring(delay = 0) {
       for (const curveSet of this.curveSets) {
         const name = curveSet?.GetName?.() ?? curveSet?.name;
@@ -214,6 +327,11 @@ new class extends _identity {
       this.audio?.TriggerImpactEvent?.();
       this.audio?.TriggerStretchEvent?.();
     }
+
+    /**
+     * Ends a firing cycle: play_start and play_loop stop, play_end plays, the
+     * travelling child restarts and the stretch audio stops.
+     */
     StopFiring() {
       for (const curveSet of this.curveSets) {
         const name = curveSet?.GetName?.() ?? curveSet?.name;
@@ -224,22 +342,53 @@ new class extends _identity {
       }
       this.stretchAudio?.Stop?.();
     }
+
+    /**
+     * Sets both endpoints from a firing call, accepting either a 16-element source
+     * transform or a source position, and marks the stretch as -Z forward.
+     */
     SetFiringTransform(source, destination) {
       if (source?.length === 16) this.SetSourceTransform(source);else this.SetSourcePosition(source);
       this.SetDestinationPosition(destination);
       this.SetIsNegZForward(true);
     }
+
+    /**
+     * Selects which endpoint children take part in updates, visibility, renderable
+     * collection and light contribution.
+     */
     DisplayEndPoints(displaySource, displayDestination) {
       this.#displaySource = !!displaySource;
       this.#displayDestination = !!displayDestination;
     }
+
+    /**
+     * Uniform scale applied to the source endpoint child's basis and to its light
+     * placement.
+     */
     SetSourceObjectScale(scale) {
       this.#sourceScale = Number(scale);
     }
+
+    /**
+     * Uniform scale applied to the destination endpoint child's basis and to its
+     * light placement.
+     */
     SetDestObjectScale(scale) {
       this.#destinationScale = Number(scale);
     }
+
+    /**
+     * IEveFiringEffectElement intensity hook; EveStretch has no intensity term of
+     * its own.
+     */
     SetIntensity(_intensity) {}
+
+    /**
+     * Merges the bounding spheres of the source, destination and stretch children; the travelling child is not included.
+     * @param {Array} out - caller-owned packed (x, y, z, radius), overwritten
+     * @returns {Boolean} whether any child contributed a sphere
+     */
     GetBoundingSphere(out = vec4.create()) {
       vec4.set(out, 0, 0, 0, 0);
       for (const child of [this.sourceObject, this.destObject, this.stretchObject]) {
@@ -249,6 +398,12 @@ new class extends _identity {
       }
       return out[3] > 0;
     }
+
+    /**
+     * Offers the source and destination lights to the light manager at their
+     * endpoint positions, each scaled by its endpoint scale; a hidden stretch or a
+     * hidden endpoint contributes nothing.
+     */
     GetLights(lightManager) {
       if (!this.display) return;
       const source = translationMatrix(this.#sourcePosition, _EveStretch.#lightSource, this.#sourceScale);

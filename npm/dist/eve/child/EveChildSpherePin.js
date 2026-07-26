@@ -5,6 +5,12 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
 let _initProto, _initClass, _init_curveSets, _init_extra_curveSets, _init_centerNormal, _init_extra_centerNormal, _init_pinMaxRadius, _init_extra_pinMaxRadius, _init_pinRadius, _init_extra_pinRadius, _init_pinRotation, _init_extra_pinRotation, _init_pinAlphaThreshold, _init_extra_pinAlphaThreshold;
+
+/**
+ * Child mesh that draws a pin on a sphere's surface, contributing the pin's
+ * centre normal, radius, rotation, alpha threshold and colour to its own
+ * per-object shader data.
+ */
 let _EveChildSpherePin;
 class EveChildSpherePin extends _EveChildMesh {
   static {
@@ -26,6 +32,11 @@ class EveChildSpherePin extends _EveChildMesh {
   get pinColor() {
     return this.#pinColor;
   }
+
+  /**
+   * Copies a four-component colour into the owned buffer; a shorter value is
+   * ignored rather than partially applied.
+   */
   set pinColor(value) {
     if (value?.length >= 4) {
       vec4.copy(this.#pinColor, value);
@@ -36,6 +47,8 @@ class EveChildSpherePin extends _EveChildMesh {
   get color() {
     return this.#pinColor;
   }
+
+  /** Blue alias that writes through to pinColor. */
   set color(value) {
     this.pinColor = value;
   }

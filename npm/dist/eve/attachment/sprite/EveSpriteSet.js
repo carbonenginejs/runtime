@@ -14,6 +14,11 @@ import { Tr2Light as _Tr2Light } from '../../lights/Tr2Light.js';
 import { MatrixCopyFrom3x4, AsPerPointLightData, CreateLightRecord } from '../../lights/lightConversion.js';
 
 let _initProto, _initClass, _init_sprites, _init_extra_sprites, _init_name, _init_extra_name, _init_effect, _init_extra_effect, _init_skinned, _init_extra_skinned, _init_intensity, _init_extra_intensity, _init_display, _init_extra_display, _init_lights, _init_extra_lights;
+
+/**
+ * A hull's authored blinking sprites, owning their static and per-bone bounds
+ * and the point lights the sprites emit.
+ */
 let _EveSpriteSet;
 new class extends _identity {
   static [class EveSpriteSet extends _EveEntity {
@@ -45,6 +50,11 @@ new class extends _identity {
      * 1: packed-set lights are BLACK until the owner's update calls
      * UpdateLights). */
     #activationStrength = 0;
+
+    /**
+     * Drops every sprite and every light; the bounds only follow on the next
+     * Rebuild.
+     */
     Clear() {
       this.sprites.length = 0;
       this.lights.length = 0;
@@ -74,6 +84,12 @@ new class extends _identity {
       }
       this.#activationStrength = Number(activationStrength) || 0;
     }
+
+    /**
+     * Appends a sprite and returns the stored item, accepting either a ready-made item on its own or a position plus one of two argument forms.
+     * @param {object|vec3} positionOrItem An existing sprite item, or the sprite position.
+     * @param {...*} args Either (scale, color, warpColor) for a non-blinking sprite, or (blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor).
+     */
     Add(positionOrItem, ...args) {
       if (positionOrItem && !ArrayBuffer.isView(positionOrItem) && !Array.isArray(positionOrItem) && args.length === 0) {
         this.sprites.push(positionOrItem);
@@ -104,24 +120,44 @@ new class extends _identity {
       this.sprites.push(item);
       return item;
     }
+
+    /** The live sprite item list, not a copy. */
     GetSprites() {
       return this.sprites;
     }
+
+    /** The authored set name, which SOF uses to match this set to its DNA entry. */
     GetName() {
       return this.name;
     }
+
+    /** Sets the authored set name, coercing null or undefined to an empty string. */
     SetName(name) {
       this.name = String(name ?? "");
     }
+
+    /** The effect that draws the sprites. */
     GetEffect() {
       return this.effect;
     }
+
+    /** Sets the effect that draws the sprites. */
     SetEffect(effect) {
       this.effect = effect ?? null;
     }
+
+    /**
+     * Sets whether the sprites ride skeleton bones, which is what decides if
+     * GetAabb consults the caller's bone list at all.
+     */
     SetSkinned(skinned) {
       this.skinned = !!skinned;
     }
+
+    /**
+     * Recomputes the static and per-bone bounds from the authored sprites and
+     * marks the packed geometry stale.
+     */
     Rebuild() {
       this.#rebuildRevision++;
       this.__state.rebuild.add("packedGeometry");
@@ -148,10 +184,20 @@ new class extends _identity {
       box3.transformMat4(aabb, aabb, parentTransform);
       return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
     }
+
+    /**
+     * Runs the first Rebuild so the set has bounds before its first visibility
+     * test.
+     */
     Initialize() {
       this.Rebuild();
       return true;
     }
+
+    /**
+     * Converts a SOF-authored light description into an EveSpriteLight and appends
+     * it to the set.
+     */
     AddLightFromSOF(light) {
       this.lights.push(_EveSpriteLight.FromSOF(light));
     }

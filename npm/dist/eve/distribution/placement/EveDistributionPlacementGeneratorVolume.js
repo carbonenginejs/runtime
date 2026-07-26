@@ -39,6 +39,13 @@ class EveDistributionPlacementGeneratorVolume extends CjsModel {
 
   /** m_volume (IEveVolumePtr) [PERSISTONLY] */
   volume = (_init_extra_falloffFactor(this), _init_volume(this, null));
+
+  /**
+   * Appends one placement per point sampled from the assigned volume, translated by the volume's bounding-sphere centre and oriented so +Y points along the sampled radial direction; appends nothing when no volume is assigned.
+   *
+   * @param placements Caller-owned pool array that is appended to.
+   * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
+   */
   GetInitialPlacements(placements, trackingID) {
     this.#syncVolumeCallbacks();
     if (!this.volume) {
@@ -62,24 +69,48 @@ class EveDistributionPlacementGeneratorVolume extends CjsModel {
     }
     this.#isRequestingRegeneration = false;
   }
+
+  /** Marks the placement pool as stale so the owning distribution rebuilds it. */
   RequestRegeneration() {
     this.#isRequestingRegeneration = true;
   }
+
+  /**
+   * Reports whether the pool is stale; the owning distribution restarts while
+   * this is true, and it clears once new placements are generated.
+   */
   IsRequestingRegeneration() {
     return this.#isRequestingRegeneration;
   }
+
+  /** Subscribes to change notifications on the assigned volume. */
   Initialize() {
     this.#syncVolumeCallbacks();
     return true;
   }
+
+  /**
+   * Requests regeneration and re-points the volume subscription after any
+   * authored change.
+   */
   OnModified(_options = {}) {
     this.RequestRegeneration();
     this.#syncVolumeCallbacks();
     return true;
   }
+
+  /**
+   * Re-checks the volume subscription each frame, so a volume swapped in at
+   * runtime is picked up and triggers regeneration.
+   */
   UpdateSyncronous(_updateContext, _params, _owner) {
     this.#syncVolumeCallbacks();
   }
+
+  /**
+   * Moves the change subscription onto the currently assigned volume when it
+   * differs from the subscribed one, then requests regeneration.
+   */
   #syncVolumeCallbacks() {
     if (this.volume === this.#subscribedVolume) {
       return;

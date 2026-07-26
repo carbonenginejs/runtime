@@ -4,6 +4,11 @@ import { Tr2MeshBase as _Tr2MeshBase } from './Tr2MeshBase.js';
 import { Tr2SerializedMorphAnimation as _Tr2SerializedMorphAn } from './Tr2SerializedMorphAnimation.js';
 
 let _initProto, _initClass, _init_geometryResPath, _init_extra_geometryResPath, _init_serializedMorphAnimations, _init_extra_serializedMorphAnimations, _init_deferGeometryLoad, _init_extra_deferGeometryLoad, _init_geometry, _init_extra_geometry;
+
+/**
+ * A mesh backed by a geometry resource, adding the resource path plus the
+ * morph-target weights and baked-morph state on top of Tr2MeshBase.
+ */
 let _Tr2Mesh;
 class Tr2Mesh extends _Tr2MeshBase {
   static {
@@ -25,24 +30,47 @@ class Tr2Mesh extends _Tr2MeshBase {
   serializedMorphAnimations = (_init_extra_geometryResPath(this), _init_serializedMorphAnimations(this, []));
   deferGeometryLoad = (_init_extra_serializedMorphAnimations(this), _init_deferGeometryLoad(this, false));
   geometry = (_init_extra_deferGeometryLoad(this), _init_geometry(this, null));
+
+  /**
+   * True while the bound geometry resource is still loading; false when no
+   * resource is bound.
+   */
   get isLoading() {
     return this.geometry?.IsLoading?.() ?? false;
   }
+
+  /** Rebuilds the morph-target state once a geometry resource is present. */
   Initialize() {
     if (this.GetGeometryResource()) {
       this.InitializeMorphTargets();
     }
     return true;
   }
+
+  /**
+   * Rebuilds the morph-target state after a field change when a geometry
+   * resource is present.
+   */
   OnModified() {
     if (this.GetGeometryResource()) {
       this.InitializeMorphTargets();
     }
     return true;
   }
+
+  /**
+   * Sets the geometry resource path to load from; the currently bound resource
+   * is left in place until the load resolves.
+   */
   SetMeshResPath(path) {
     this.geometryResPath = String(path ?? "");
   }
+
+  /**
+   * Binds an already-resolved geometry resource, clears the authored path and
+   * rebuilds morph targets; the geometry rebuild token is added explicitly
+   * because direct mutation bypasses SetValues.
+   */
   SetGeometryRes(resource) {
     this.geometryResPath = "";
     this.geometry = resource ?? null;
@@ -51,12 +79,21 @@ class Tr2Mesh extends _Tr2MeshBase {
     this.__state.rebuild.add("geometry");
     this.InitializeMorphTargets();
   }
+
+  /** The bound geometry resource, or null until the resource layer supplies one. */
   GetGeometryResource() {
     return this.geometry;
   }
+
+  /**
+   * The bound resource's own path when one is bound, otherwise the authored
+   * path.
+   */
   GetGeometryResPath() {
     return this.geometry?.GetPath?.() ?? this.geometryResPath;
   }
+
+  /** The fixed number of mesh-area lists a mesh carries (14). */
   GetAreasCount() {
     return 14;
   }

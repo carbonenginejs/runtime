@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { ITr2ControllerAction } from './ITr2ControllerAction.js';
 
 let _initProto, _initClass, _init_mask, _init_extra_mask;
+
+/**
+ * State finalizer that holds a state machine in its current state until the
+ * animation layer named by `mask` has finished playing.
+ */
 let _Tr2SyncToAnimation;
 class Tr2SyncToAnimation extends CjsModel {
   static {

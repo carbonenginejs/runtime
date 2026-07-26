@@ -4,6 +4,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_value, _init_extra_value, _init_curve, _init_extra_curve, _init_currentValue, _init_extra_currentValue;
+
+/**
+ * Quaternion function wrapping a child quaternion curve behind its own time
+ * remapping, falling back to a fixed authored quaternion when no child curve is
+ * attached.
+ */
 let _Tr2RotationAdapter;
 class Tr2RotationAdapter extends CjsModel {
   static {

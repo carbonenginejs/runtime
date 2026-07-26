@@ -4,6 +4,12 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { ITr2ControllerAction } from './ITr2ControllerAction.js';
 
 let _initProto, _initClass, _init_destination, _init_extra_destination, _init_destinationOwner, _init_extra_destinationOwner, _init_variable, _init_extra_variable, _init_value, _init_extra_value, _init_sourceVariable, _init_extra_sourceVariable, _init_startControllers, _init_extra_startControllers;
+
+/**
+ * Controller action that writes a constant or source-variable value into a
+ * controller variable on a different object, named by destinationOwner among the
+ * owner's binding roots.
+ */
 let _Tr2ActionSetExternal;
 new class extends _identity {
   static [class Tr2ActionSetExternalControllerVariable extends CjsModel {
@@ -88,6 +94,12 @@ new class extends _identity {
     IsVariableValid() {
       return !!this.variable;
     }
+
+    /**
+     * Resolves `destination` by case-insensitively matching destinationOwner
+     * against the owner's binding roots, and records the name it resolved against
+     * so OnModified can detect a real change.
+     */
     #linkToDestinationOwner() {
       this.#linkedOwner = this.destinationOwner;
       this.destination = null;
@@ -107,6 +119,17 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Writes the value through the destination's SetControllerVariable, returning
+     * false when the destination or variable name is missing or the method is
+     * absent.
+     */
+
+    /**
+     * Normalizes an owner's binding roots into name/value pairs, accepting an
+     * array, a Map, a `bindingRoots` property or a plain object.
+     */
   }];
   #setControllerVariable(destination, variable, value) {
     if (!destination || !variable) {

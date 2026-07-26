@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { ITr2ControllerAction } from './ITr2ControllerAction.js';
 
 let _initProto, _initClass, _init_addOnStart, _init_extra_addOnStart, _init_targetAnotherOwner, _init_extra_targetAnotherOwner, _init_childName, _init_extra_childName, _init_path, _init_extra_path, _init_removeOnStop, _init_extra_removeOnStop;
+
+/**
+ * Controller action that attaches a child effect loaded from a resource path to
+ * its owner on start and detaches it on stop.
+ */
 let _Tr2ActionChildEffect;
 new class extends _identity {
   static [class Tr2ActionChildEffect extends CjsModel {
@@ -89,12 +94,28 @@ new class extends _identity {
       }
       this.#child = null;
     }
+
+    /**
+     * Resolves the object the child effect is attached to, following
+     * targetAnotherOwner when set.
+     */
     ResolveOwner(owner) {
       return this.#resolveOwner(owner).owner;
     }
+
+    /**
+     * Looks up an already-present child by childName on the owner, returning null
+     * when childName is empty or no match exists.
+     */
     FindChild(owner) {
       return (this.childName ? ITr2ControllerAction.callTarget(owner, "GetEffectChildByName", this.childName) ?? _Tr2ActionChildEffect.#findNamed(owner, this.childName) : null) ?? null;
     }
+
+    /**
+     * Creates the child through the owner's AddChildFromPath, and when the owner
+     * has no loader falls back to attaching a plain `{ name, path }` placeholder
+     * record so the binding still resolves.
+     */
     CreateChild(owner) {
       const childFromOwner = ITr2ControllerAction.callTarget(owner, "AddChildFromPath", this.path, this.childName);
       if (childFromOwner) {
@@ -109,6 +130,12 @@ new class extends _identity {
       _Tr2ActionChildEffect.#addChildToOwner(owner, child);
       return child;
     }
+
+    /**
+     * Redirects the action to another owner named by targetAnotherOwner, trying a
+     * named effect child, then a named parameter, then a stretch endpoint;
+     * `rebind` is set when the redirect requires the controller owner to rebind.
+     */
     #resolveOwner(owner) {
       if (!owner || !this.targetAnotherOwner) {
         return {
@@ -136,6 +163,42 @@ new class extends _identity {
         rebind: !!stretchOwner
       };
     }
+
+    /**
+     * Attaches a child through AddToEffectChildrenList or AddChild, falling back
+     * to pushing onto plain `effectChildren` and `children` arrays.
+     */
+
+    /**
+     * Searches the owner's `effectChildren`, `children` and `items` arrays for an
+     * entry whose GetName() or `name` matches.
+     */
+
+    /**
+     * Resolves the `SourceSpaceObject` and `DestSpaceObject` endpoints of a
+     * stretch owner, returning null for any other name.
+     */
+
+    /**
+     * Detaches a child through RemoveFromEffectChildrenList or RemoveChild,
+     * falling back to splicing it out of plain `effectChildren` and `children`
+     * arrays.
+     */
+
+    /**
+     * Names a created child through SetName when available, otherwise by assigning
+     * the `name` property; an empty name is ignored.
+     */
+
+    /**
+     * Appends a value to a named array property on the owner if it is not already
+     * present.
+     */
+
+    /**
+     * Removes the first occurrence of a value from a named array property on the
+     * owner.
+     */
   }];
   #resourcePrefetcher = null;
   #addChildToOwner(owner, child) {

@@ -4,6 +4,8 @@ import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
 let _initProto, _initClass, _init_renderTarget, _init_extra_renderTarget;
+
+/** Step that requests regeneration of a render target's mip chain. */
 let _TriStepGenerateMipMa;
 class TriStepGenerateMipMaps extends _TriRenderStep {
   static {
@@ -20,9 +22,16 @@ class TriStepGenerateMipMaps extends _TriRenderStep {
     _init_extra_renderTarget(this);
   }
   renderTarget = (_initProto(this), _init_renderTarget(this, null));
+
+  /** Stores the render target whose mip chain is regenerated. */
   __init__(renderTarget = null) {
     this.renderTarget = renderTarget ?? null;
   }
+
+  /**
+   * Asks the executor to regenerate the target's mip maps; with no target set
+   * the step is a no-op.
+   */
   Execute(_realTime, _simTime, executor) {
     if (this.renderTarget) executor?.GenerateMipMaps?.(this.renderTarget);
     return _TriRenderJob.StepResult.RS_OK;

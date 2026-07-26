@@ -5,6 +5,11 @@ import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsLightData as _CjsLightData } from '../../lights/CjsLightData.js';
 
 let _initClass, _init_lightData, _init_extra_lightData, _init_lightProfile, _init_extra_lightProfile, _init_index, _init_extra_index, _init_boosterGainInfluence, _init_extra_boosterGainInfluence, _init_boneMatrix, _init_extra_boneMatrix, _init_lightProfilePath, _init_extra_lightProfilePath;
+
+/**
+ * The light one haze item contributes, carrying its booster-gain influence flag,
+ * light profile and the bone matrix resolved for it each frame.
+ */
 let _EveHazeSetLight;
 class EveHazeSetLight extends CjsModel {
   static {
@@ -26,6 +31,12 @@ class EveHazeSetLight extends CjsModel {
   boosterGainInfluence = (_init_extra_index(this), _init_boosterGainInfluence(this, false));
   boneMatrix = (_init_extra_boosterGainInfluence(this), _init_boneMatrix(this, mat4.create()));
   lightProfilePath = (_init_extra_boneMatrix(this), _init_lightProfilePath(this, ""));
+
+  /**
+   * Builds a haze light from a SOF-authored description, taking the light
+   * profile path from the description or, failing that, from the light data's
+   * texture path.
+   */
   static FromSOF(value) {
     const values = value ?? {};
     return _EveHazeSetLight.from({

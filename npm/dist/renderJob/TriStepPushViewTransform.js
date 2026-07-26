@@ -7,6 +7,8 @@ let _initProto, _initClass;
 
 // Carbon: RenderJob/TriStepPushViewTransform.cpp — Execute pushes the current
 // view transform (Tr2Renderer::PushViewTransform).
+
+/** Step that saves the current view transform so a later pop can restore it. */
 let _TriStepPushViewTrans;
 class TriStepPushViewTransform extends _TriRenderStep {
   static {
@@ -22,6 +24,10 @@ class TriStepPushViewTransform extends _TriRenderStep {
     super(...args);
     _initProto(this);
   }
+  /**
+   * Pushes the executor's current view transform; the value is not supplied by
+   * the step, only the intent to save it.
+   */
   Execute(_realTime, _simTime, executor) {
     executor?.PushViewTransform?.();
     return _TriRenderJob.StepResult.RS_OK;

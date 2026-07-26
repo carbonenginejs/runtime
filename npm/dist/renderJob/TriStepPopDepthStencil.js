@@ -4,6 +4,8 @@ import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 
 let _initProto, _initClass;
+
+/** Step that pops the executor's depth-stencil stack, undoing an earlier push. */
 let _TriStepPopDepthStenc;
 class TriStepPopDepthStencil extends _TriRenderStep {
   static {
@@ -19,6 +21,10 @@ class TriStepPopDepthStencil extends _TriRenderStep {
     super(...args);
     _initProto(this);
   }
+  /**
+   * Pops the depth-stencil pushed earlier in the job; popping more than was
+   * pushed trips the job's stack guard.
+   */
   Execute(_realTime, _simTime, executor) {
     executor?.PopDepthStencil?.();
     return _TriRenderJob.StepResult.RS_OK;

@@ -8,6 +8,12 @@ import { createCjsLightDataView, setCjsLightDataOwnerValues } from './CjsLightDa
 import { MatrixCopyFrom3x4, AreLightFlagsValid, AsPerPointLightData, AsPerSpotLightData, CreateLightRecord } from './lightConversion.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_startTime, _init_extra_startTime, _init_isDynamic, _init_extra_isDynamic, _init_brightnessMultiplier, _init_extra_brightnessMultiplier, _init_boneTransform, _init_extra_boneTransform, _init_lightProfile, _init_extra_lightProfile, _init_lightProfilePath, _init_extra_lightProfilePath, _init_type, _init_extra_type;
+
+/**
+ * Base scene light: holds the authored light attributes, resolves its bone
+ * transform, and submits a converted point or spot record to the light manager
+ * each frame.
+ */
 let _Tr2Light;
 new class extends _identity {
   static [class Tr2Light extends CjsModel {
@@ -34,23 +40,43 @@ new class extends _identity {
     // the real storage; this keeps Carbon's GetLightData() reference surface
     // and the runtime-sof separate-node hydration shape working.
     #lightDataView = (_init_extra_type(this), null);
+
+    /**
+     * Compat LightData view over the concrete light's flattened fields, built on
+     * first access and redirecting both reads and writes back to this object.
+     */
     get lightData() {
       this.#lightDataView ??= createCjsLightDataView(this, this.constructor.LightDataFields);
       return this.#lightDataView;
     }
+
+    /**
+     * Applies a value bag, first folding any nested `lightData` bag (the
+     * pre-flatten hydration shape) into the flattened fields so everything lands
+     * in one schema pass.
+     */
     SetValues(values = {}, options = {}) {
       return setCjsLightDataOwnerValues(this, values, options, (ownerValues, ownerOptions) => super.SetValues(ownerValues, ownerOptions), this.constructor.LightDataFields);
     }
+
+    /** Applies a whole LightData bag onto the flattened light fields. */
     SetLightData(lightData) {
       return this.SetValues({
         lightData
       });
     }
+
+    /**
+     * Sets the parent brightness factor, which scales the authored brightness only
+     * when the light record is built for submission.
+     */
     SetBrightnessMultiplier(multiplier) {
       this.SetValues({
         brightnessMultiplier: Number(multiplier)
       });
     }
+
+    /** Sets the light colour, returning whether the value actually changed. */
     ChangeLightColor(color) {
       return this.SetValues({
         color
@@ -58,9 +84,19 @@ new class extends _identity {
         returnBoolean: true
       });
     }
+
+    /**
+     * Returns the live LightData view, which aliases this light's fields instead
+     * of copying them.
+     */
     GetLightData() {
       return this.lightData;
     }
+
+    /**
+     * Returns the parent brightness factor applied at submission time, not the
+     * authored brightness.
+     */
     GetBrightnessMultiplier() {
       return this.brightnessMultiplier;
     }
@@ -141,6 +177,11 @@ new class extends _identity {
       out.color[2] = (color?.[2] ?? 0) * brightness;
       return out;
     }
+
+    /**
+     * Reports the light ready; resolving the light profile is left to the
+     * resource/runtime adapter, so this always succeeds.
+     */
     Initialize() {
       // Light-profile resolution is supplied by the resource/runtime adapter.
       return true;

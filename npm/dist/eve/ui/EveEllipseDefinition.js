@@ -4,6 +4,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_center, _init_extra_center, _init_planeNormal, _init_extra_planeNormal, _init_rotationDegrees, _init_extra_rotationDegrees, _init_semiMajor, _init_extra_semiMajor, _init_semiMinor, _init_extra_semiMinor;
+
+/**
+ * One authored ellipse of an ellipse set - centre, plane normal, in-plane
+ * rotation in degrees and the two semi-axis lengths.
+ */
 let _EveEllipseDefinition;
 class EveEllipseDefinition extends CjsModel {
   static {
@@ -25,10 +30,20 @@ class EveEllipseDefinition extends CjsModel {
   rotationDegrees = (_init_extra_planeNormal(this), _init_rotationDegrees(this, 0));
   semiMajor = (_init_extra_rotationDegrees(this), _init_semiMajor(this, 1));
   semiMinor = (_init_extra_semiMajor(this), _init_semiMinor(this, 1));
+
+  /**
+   * Invokes the bound dirty callback so the owning set regenerates its geometry
+   * after any authored field changes.
+   */
   OnModified(_value = null) {
     this.#dirtyFlag?.();
     return true;
   }
+
+  /**
+   * Installs the callback invoked whenever this definition is modified; pass
+   * null to unbind, and anything that is neither a function nor null throws.
+   */
   SetDirtyFlag(dirtyFlag) {
     if (dirtyFlag !== null && typeof dirtyFlag !== "function") {
       throw new TypeError("EveEllipseDefinition dirty flag must be a function or null");

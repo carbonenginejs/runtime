@@ -50,6 +50,11 @@ new class extends _identity {
           return Math.max(1, Math.min(4, Math.trunc(this.dimension) || 1));
       }
     }
+
+    /**
+     * Returns the authored custom name for CUSTOM elements, and the semantic's
+     * enum name for the built-in types.
+     */
     GetName() {
       return this.elementType === _Tr2ParticleElementDe.Type.CUSTOM ? this.customName : Object.keys(_Tr2ParticleElementDe.Type).find(name => _Tr2ParticleElementDe.Type[name] === this.elementType) ?? "";
     }

@@ -6,6 +6,12 @@ import { CjsControllerExpressionProgram } from '../controllers/CjsControllerExpr
 import { Tr2CurveInterpolation } from './enums.js';
 
 let _initProto, _initClass, _init_interpolation, _init_extra_interpolation, _init_input, _init_extra_input, _init_input2, _init_extra_input2, _init_input3, _init_extra_input3, _init_input4, _init_extra_input4, _init_time, _init_extra_time, _init_value, _init_extra_value, _init_left, _init_extra_left, _init_leftTangentExpression, _init_extra_leftTangentExpression, _init_rightTangentExpression, _init_extra_rightTangentExpression, _init_timeExpression, _init_extra_timeExpression, _init_valueExpression, _init_extra_valueExpression, _init_randomMax, _init_extra_randomMax, _init_randomMin, _init_extra_randomMin, _init_randomConstant, _init_extra_randomConstant, _init_right, _init_extra_right, _init_prevKeyTime, _init_extra_prevKeyTime, _init_prevKeyValue, _init_extra_prevKeyValue;
+
+/**
+ * One key of a Tr2ScalarExprKeyCurve whose time, value and tangents can each be
+ * produced by an expression over the key's inputs, its random constant and the
+ * previous key.
+ */
 let _Tr2ScalarExprKey;
 new class extends _identity {
   static [class Tr2ScalarExprKey extends CjsModel {
@@ -76,6 +82,12 @@ new class extends _identity {
       this.left = this.Evaluate(this.leftTangentExpression, this.left, variables);
       this.right = this.Evaluate(this.rightTangentExpression, this.right, variables);
     }
+
+    /**
+     * Compiles and evaluates one key expression with the Perlin helper functions
+     * available, returning the supplied fallback when the expression is empty,
+     * fails to compile, or yields NaN.
+     */
     Evaluate(expression, fallback, variables = this.#expressionVariables()) {
       if (!expression) {
         return fallback;
@@ -95,6 +107,12 @@ new class extends _identity {
       }));
       return Number.isNaN(value) ? fallback : value;
     }
+
+    /**
+     * Builds the variable map key expressions read: the key's own value, time,
+     * tangents, input1..input4, random constant, and the previous key's time and
+     * value.
+     */
     #expressionVariables() {
       return {
         value: Number(this.value),

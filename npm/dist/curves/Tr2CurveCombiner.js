@@ -4,6 +4,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_curves, _init_extra_curves, _init_currentValue, _init_extra_currentValue;
+
+/**
+ * Vector function returning the component-wise sum of every child vector
+ * function sampled at the same time; its length is the longest child's length.
+ */
 let _Tr2CurveCombiner;
 class Tr2CurveCombiner extends CjsModel {
   static {

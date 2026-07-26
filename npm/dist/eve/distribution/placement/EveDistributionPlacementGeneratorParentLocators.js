@@ -31,6 +31,13 @@ class EveDistributionPlacementGeneratorParentLocators extends CjsModel {
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
   locatorSetName = _init_locatorSetName(this, "damage");
+
+  /**
+   * Appends one placement per locator of the parent space object's named locator set, copying position, direction, scale and bone index; appends nothing until an update has resolved that set.
+   *
+   * @param placements Caller-owned pool array that is appended to.
+   * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
+   */
   GetInitialPlacements(placements, trackingID) {
     this.#requestRegeneration = false;
     if (!this.#locators) {
@@ -49,9 +56,20 @@ class EveDistributionPlacementGeneratorParentLocators extends CjsModel {
       placements.push(placement);
     }
   }
+
+  /**
+   * Reports whether a locator set has just been resolved from the parent and the
+   * pool therefore needs rebuilding.
+   */
   IsRequestingRegeneration() {
     return this.#requestRegeneration;
   }
+
+  /**
+   * Resolves the named locator set from the space-object parent carried by the
+   * update params, re-resolving whenever the parent or the set name changes, and
+   * requests regeneration once locators are found.
+   */
   UpdateSyncronous(_updateContext, params, _owner) {
     const parent = params.spaceObjectParent;
     const locatorSetName = String(this.locatorSetName ?? "");
@@ -70,10 +88,20 @@ class EveDistributionPlacementGeneratorParentLocators extends CjsModel {
       }
     }
   }
+
+  /**
+   * Invalidates the resolved locator set after an authored change so the next
+   * update re-reads it.
+   */
   OnModified(_options = {}) {
     this.#regenerated = false;
     return true;
   }
+
+  /**
+   * Invalidates the resolved locator set so the next update re-reads it from the
+   * parent.
+   */
   OnStructureListModified(_event, _item, _index, _list) {
     this.#regenerated = false;
   }

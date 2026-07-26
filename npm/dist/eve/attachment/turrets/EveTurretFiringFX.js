@@ -120,6 +120,12 @@ new class extends _identity {
     #displaySourceObject = true;
     #displayDestObject = true;
     #impactConfiguration = _EveTurretFiringFX.ImpactConfiguration.IMPACT_INVALID;
+
+    /**
+     * Allocates the twelve per-muzzle records and resolves the firing duration,
+     * preferring a non-negative firingDurationOverride and otherwise the longest
+     * stretch-element curve.
+     */
     Initialize() {
       this.#ensureMuzzleData();
       if (this.firingDurationOverride >= 0) this.firingDuration = this.firingDurationOverride;else {
@@ -128,6 +134,12 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Stops firing and runs one asynchronous then one synchronous update so the
+     * stretch elements settle into their stopped state before the effect is
+     * discarded.
+     */
     CleanUp(context = {
       currentTime: 0,
       deltaTime: 0
@@ -136,25 +148,59 @@ new class extends _identity {
       this.UpdateAsynchronous(context);
       this.UpdateSynchronous(context);
     }
+
+    /**
+     * Recomputes the firing duration after a property change, taking the override
+     * when it is non-negative and the longest element curve otherwise.
+     */
     OnModified() {
       this.firingDuration = this.firingDurationOverride >= 0 ? this.firingDurationOverride : this.GetCurveDuration();
       return true;
     }
+
+    /**
+     * Binds a muzzle slot to a parent bone id; a muzzle id outside the
+     * twelve-muzzle range is ignored rather than reported.
+     */
     SetMuzzleBoneID(muzzleID, boneID) {
       this.#ensureMuzzleData();
       if (muzzleID >= 0 && muzzleID < _EveTurretFiringFX.MUZZLE_COUNT_MAX) this.#perMuzzleData[muzzleID].muzzlePositionBoneID = Number(boneID) >>> 0;
     }
+
+    /**
+     * Copies a world muzzle transform into a muzzle slot; a muzzle id outside the
+     * twelve-muzzle range is ignored rather than reported.
+     */
     SetMuzzleTransform(muzzleID, transform) {
       this.#ensureMuzzleData();
       if (muzzleID >= 0 && muzzleID < _EveTurretFiringFX.MUZZLE_COUNT_MAX) mat4.copy(this.#perMuzzleData[muzzleID].muzzleTransform, transform);
     }
+
+    /**
+     * Reads a muzzle slot's world transform, falling back to identity for a slot that was never populated.
+     * @param {number} muzzleID Muzzle slot to read.
+     * @param {mat4} [out] Caller-owned matrix to fill; a fresh one is allocated when omitted.
+     * @returns {mat4} out.
+     */
     GetMuzzleTransform(muzzleID, out = mat4.create()) {
       this.#ensureMuzzleData();
       return mat4.copy(out, this.#perMuzzleData[muzzleID]?.muzzleTransform ?? _EveTurretFiringFX.#identity);
     }
+
+    /**
+     * Sets the world point every stretch element extends towards, which is the
+     * impact end of the shot.
+     */
     SetEndPosition(value) {
       vec3.copy(this.endPosition, value);
     }
+
+    /**
+     * Scales each stretch element's destination object between minScale and
+     * maxScale by where the target radius falls in the minRadius..maxRadius band,
+     * and hands the raw radius to the destination observer as an audio attenuation
+     * factor; does nothing unless scaleEffectTarget is authored.
+     */
     SetScaleByRadius(radius) {
       if (!this.scaleEffectTarget) return;
       const span = this.maxRadius - this.minRadius;
@@ -163,10 +209,22 @@ new class extends _identity {
       for (const stretch of this.stretch) stretch?.SetDestObjectScale?.(scale);
       this.destinationObserver?.GetObserver?.()?.SetAttenuationScalingFactor?.(Number(radius));
     }
+
+    /**
+     * Restarts a looping burst by telling every stretch element to move again,
+     * without resetting the per-muzzle delays that PrepareFiring establishes.
+     */
     PrepareFiringEffectMoveObjects() {
       for (const stretch of this.stretch) stretch?.StartMoving?.();
       this.isFiring = true;
     }
+
+    /**
+     * Arms the muzzles for a burst: selected muzzles start after delay plus their authored constant delay, every other muzzle is pushed out of reach with a maximal delay.
+     * @param {number} delay Common start delay added to each muzzle's authored constant delay.
+     * @param {number} [muzzleID] First muzzle of the firing group; INVALID_INDEX arms every muzzle.
+     * @param {number} [muzzleCount] Number of consecutive muzzles in the group.
+     */
     PrepareFiring(delay, muzzleID = _EveTurretFiringFX.INVALID_INDEX, muzzleCount = _EveTurretFiringFX.INVALID_INDEX) {
       this.#ensureMuzzleData();
       for (let index = 0; index < this.stretch.length; index++) {
@@ -179,11 +237,22 @@ new class extends _identity {
       }
       this.isFiring = true;
     }
+
+    /**
+     * The longest curve duration across the stretch elements, which is what the
+     * firing duration falls back to when no override is authored.
+     */
     GetCurveDuration() {
       let duration = 0;
       for (const stretch of this.stretch) duration = Math.max(duration, Number(stretch?.GetCurveDuration?.() ?? 0));
       return duration;
     }
+
+    /**
+     * Averages the translation of every started muzzle transform, which is the point the shot is heard and seen to leave from.
+     * @param {vec3} [out] Caller-owned vector filled with the averaged position.
+     * @returns {boolean} False when the effect is not firing or no muzzle has started, in which case out is left untouched.
+     */
     GetStartPosition(out = vec3.create()) {
       if (!this.isFiring) return false;
       this.#ensureMuzzleData();
@@ -200,15 +269,36 @@ new class extends _identity {
       vec3.scale(out, _EveTurretFiringFX.#startPosition, 1 / count);
       return true;
     }
+
+    /**
+     * The firing duration in force: the override when non-negative, otherwise the
+     * duration resolved at Initialize.
+     */
     GetFiringDuration() {
       return this.firingDurationOverride >= 0 ? this.firingDurationOverride : this.firingDuration;
     }
+
+    /**
+     * The authored offset into the burst at which the shot is considered to land,
+     * used to time the target's impact.
+     */
     GetFiringPeakTime() {
       return this.firingPeakTime;
     }
+
+    /**
+     * The name of the bone muzzle locators are resolved under, Pos_Fire unless
+     * authored otherwise.
+     */
     GetFiringBoneName() {
       return this.boneName;
     }
+
+    /**
+     * Starts one muzzle: its stretch element begins firing, the start curve set
+     * plays backdated by the muzzle's remaining delay and the stop curve set is
+     * halted; returns false when the muzzle has no record or no element.
+     */
     StartMuzzleEffect(muzzleID) {
       this.#ensureMuzzleData();
       const data = this.#perMuzzleData[muzzleID];
@@ -220,6 +310,12 @@ new class extends _identity {
       data.readyToStart = false;
       return true;
     }
+
+    /**
+     * Stops every stretch element, clears all per-muzzle timers, halts the start
+     * curve set and plays the stop curve set; does nothing when the effect is not
+     * firing.
+     */
     StopFiring() {
       if (!this.isFiring) return;
       this.#ensureMuzzleData();
@@ -236,10 +332,22 @@ new class extends _identity {
       this.stopCurveSet?.Play?.();
       this.isFiring = false;
     }
+
+    /**
+     * Whether any muzzle has run its delay down but not yet started, and is still
+     * inside the firing duration or belongs to a looping effect.
+     */
     ReadyToFire() {
       this.#ensureMuzzleData();
       return this.#perMuzzleData.slice(0, this.stretch.length).some(data => (data.elapsedTime < this.firingDuration || this.isLoopFiring) && !data.started && data.readyToStart);
     }
+
+    /**
+     * Advances each muzzle's delay and elapsed time, starts the muzzles whose
+     * delay expired, pushes the muzzle and end transforms into their stretch
+     * elements, then updates the active curve set and both observers; returns
+     * whether a muzzle started firing on this call.
+     */
     UpdateAsynchronous(context) {
       this.#ensureMuzzleData();
       const deltaTime = getDeltaTime(context);
@@ -274,6 +382,11 @@ new class extends _identity {
       this.destinationObserver?.Update?.(translationMatrix(this.endPosition, _EveTurretFiringFX.#destinationTransform));
       return justFired;
     }
+
+    /**
+     * Runs the synchronous element update for every muzzle still inside the firing
+     * duration, or for all of them when the effect loops.
+     */
     UpdateSynchronous(context) {
       this.#ensureMuzzleData();
       for (let index = 0; index < this.stretch.length; index++) {
@@ -282,11 +395,23 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Runs the asynchronous then synchronous phase in order and reports whether a
+     * muzzle started firing.
+     */
     Update(context) {
       const fired = this.UpdateAsynchronous(context);
       this.UpdateSynchronous(context);
       return fired;
     }
+
+    /**
+     * Updates visibility on every started element and, when several bone-free
+     * muzzles fire at once, merges them by shifting the whole set's intensity onto
+     * the first element as the muzzle cluster shrinks below the frustum's LOD
+     * angle; gated on display and isFiring.
+     */
     UpdateVisibility(context) {
       if (!(this.display && this.isFiring)) return;
       this.#ensureMuzzleData();
@@ -312,6 +437,11 @@ new class extends _identity {
       const merge = angle <= lodAngle ? 0 : Math.min((angle - lodAngle) / lodAngle, 1);
       active.forEach((index, order) => this.stretch[index]?.SetIntensity?.(order ? merge : active.length + (1 - active.length) * merge));
     }
+
+    /**
+     * Appends the renderables of every started element still inside the firing
+     * duration to out; gated on display and isFiring.
+     */
     GetRenderables(out = []) {
       if (!(this.display && this.isFiring)) return out;
       this.#ensureMuzzleData();
@@ -324,34 +454,69 @@ new class extends _identity {
 
     /** m_maxScale (float) [READWRITE, PERSIST] */
     maxScale = _init_maxScale(this, 10);
+
+    /**
+     * The number of muzzles the effect drives, which is the number of authored
+     * stretch elements rather than the twelve-muzzle maximum.
+     */
     GetPerMuzzleEffectCount() {
       return this.stretch.length;
     }
+
+    /**
+     * The parent bone id bound to a muzzle slot, or INVALID_INDEX when the muzzle
+     * rides a supplied transform instead of a bone.
+     */
     GetPerMuzzleBoneID(muzzleID) {
       this.#ensureMuzzleData();
       return this.#perMuzzleData[muzzleID]?.muzzlePositionBoneID ?? _EveTurretFiringFX.INVALID_INDEX;
     }
+
+    /**
+     * Whether the burst repeats instead of ending when the firing duration
+     * elapses.
+     */
     IsLooping() {
       return this.isLoopFiring;
     }
+
+    /**
+     * Sets whether the stretch elements draw their destination end, which is the
+     * impact on the target.
+     */
     SetDisplayDestObject(display) {
       this.#displayDestObject = !!display;
     }
+
+    /** Whether the stretch elements draw their destination end. */
     GetDisplayDestObject() {
       return this.#displayDestObject;
     }
+
+    /**
+     * Sets whether the stretch elements draw their source end, which is the muzzle
+     * flash.
+     */
     SetDisplaySourceObject(display) {
       this.#displaySourceObject = !!display;
     }
+
+    /** Whether the stretch elements draw their source end. */
     GetDisplaySourceObject() {
       return this.#displaySourceObject;
     }
+
+    /** Forwards a named controller variable to every stretch element. */
     SetControllerVariable(name, value) {
       for (const stretch of this.stretch) stretch?.SetControllerVariable?.(name, value);
     }
+
+    /** Forwards a named controller event to every stretch element. */
     HandleControllerEvent(name) {
       for (const stretch of this.stretch) stretch?.HandleControllerEvent?.(name);
     }
+
+    /** Starts the controllers on every stretch element. */
     StartControllers() {
       for (const stretch of this.stretch) stretch?.StartControllers?.();
     }
@@ -377,6 +542,13 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Records which surface the shot lands on and, only when it changes, sends the
+     * matching Impact_On switch value to the destination observer's audio emitter;
+     * anything other than armor or hull is sent as Shield, including
+     * IMPACT_INVALID.
+     */
     SetImpactConfiguration(configuration) {
       if (configuration !== this.#impactConfiguration) {
         const emitter = this.destinationObserver?.GetObserver?.();
@@ -385,6 +557,13 @@ new class extends _identity {
       }
       this.#impactConfiguration = configuration;
     }
+
+    /**
+     * Grows the per-muzzle record list to the twelve-muzzle maximum on first use
+     * and refreshes every record's constant delay from the authored
+     * firingDelay1..firingDelay12 fields, so an edited delay takes effect without
+     * a rebuild.
+     */
     #ensureMuzzleData() {
       while (this.#perMuzzleData.length < _EveTurretFiringFX.MUZZLE_COUNT_MAX) {
         const index = this.#perMuzzleData.length;

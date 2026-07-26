@@ -5,6 +5,12 @@ import { CjsControllerExpressionProgram } from './CjsControllerExpressionProgram
 import { ITr2ControllerAction } from './ITr2ControllerAction.js';
 
 let _initProto, _initClass, _init_value, _init_extra_value, _init_emitter, _init_extra_emitter, _init_rtpcName, _init_extra_rtpcName, _init_curve, _init_extra_curve;
+
+/**
+ * Controller action that registers for per-frame updates and pushes an
+ * expression-driven value into a named Wwise real-time parameter on a sound
+ * emitter.
+ */
 let _Tr2ActionBindRTPC;
 class Tr2ActionBindRTPC extends CjsModel {
   static {
@@ -147,6 +153,11 @@ class Tr2ActionBindRTPC extends CjsModel {
       action: this
     }))) || 0;
   }
+
+  /**
+   * Compiles the authored value expression with the `Curve` function bound to
+   * this action's curve, reusing the cached program while the text is unchanged.
+   */
   CompileExpression() {
     return CjsControllerExpressionProgram.compileCached(this.#runtime, this.value, 0, {
       Curve: (_ctx, time) => this.GetCurveValue(Number(time))

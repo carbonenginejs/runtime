@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { ITr2ControllerAction } from './ITr2ControllerAction.js';
 
 let _initProto, _initClass, _init_path, _init_extra_path, _init_overlayName, _init_extra_overlayName, _init_targetAnotherOwner, _init_extra_targetAnotherOwner, _init_addOnStart, _init_extra_addOnStart, _init_removeOnStop, _init_extra_removeOnStop;
+
+/**
+ * Controller action that adds a named overlay effect to its owner when the
+ * action starts and removes it again when the action stops.
+ */
 let _Tr2ActionOverlay;
 new class extends _identity {
   static [class Tr2ActionOverlay extends CjsModel {
@@ -54,6 +59,12 @@ new class extends _identity {
       }
       this.#overlay = null;
     }
+
+    /**
+     * Finds the overlay already present on the owner by name, and only when it is
+     * absent and addOnStart is set loads it from the authored path, names it,
+     * attaches it, and starts its controllers.
+     */
     #loadOverlay(owner) {
       this.#overlay = this.overlayName ? ITr2ControllerAction.callTarget(owner, "GetOverlayEffectByName", this.overlayName) ?? _Tr2ActionOverlay.#findNamed(owner, "overlays", this.overlayName) : null;
       if (!this.#overlay && this.addOnStart && this.path) {
@@ -68,6 +79,11 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Lower-cases the authored path and switches the `_skinned` suffix on or off
+     * to match whether the owner is animated.
+     */
     #normalizePath(owner) {
       let path = this.path.toLowerCase();
       const animated = !!ITr2ControllerAction.callTarget(owner, "IsAnimated");
@@ -78,6 +94,13 @@ new class extends _identity {
       }
       return path;
     }
+
+    /**
+     * Picks the object the overlay is attached to, preferring the controller owner
+     * itself and otherwise following targetAnotherOwner through a named parameter
+     * or a stretch endpoint; `rebind` is set when the redirect requires the
+     * controller owner to rebind.
+     */
     #resolveOwner(owner) {
       if (!owner) {
         return {
@@ -116,6 +139,51 @@ new class extends _identity {
         rebind: false
       };
     }
+
+    /**
+     * Attaches an overlay through the owner's AddOverlayEffect, falling back to
+     * pushing onto a plain `overlays` array.
+     */
+
+    /**
+     * Appends a value to a named array property on the owner if it is not already
+     * present.
+     */
+
+    /**
+     * Finds an entry in a named array property whose GetName() or `name` matches,
+     * or null.
+     */
+
+    /**
+     * Resolves the `SourceSpaceObject` and `DestSpaceObject` endpoints of a
+     * stretch owner, returning null for any other name.
+     */
+
+    /**
+     * Checks whether an object can hold overlays, by exposing any of the overlay
+     * accessor methods or a plain `overlays` array.
+     */
+
+    /**
+     * Loads an overlay from a path through whichever owner loader exists,
+     * reporting in `added` whether that loader already attached it to the owner.
+     */
+
+    /**
+     * Removes the first occurrence of a value from a named array property on the
+     * owner.
+     */
+
+    /**
+     * Detaches an overlay through the owner's RemoveOverlayEffect, falling back to
+     * splicing it out of a plain `overlays` array.
+     */
+
+    /**
+     * Names a loaded overlay through SetName when available, otherwise by
+     * assigning the `name` property; an empty name is ignored.
+     */
   }];
   #addOverlay(owner, overlay) {
     if (ITr2ControllerAction.hasFunction(owner, "AddOverlayEffect")) {

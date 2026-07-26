@@ -9,6 +9,12 @@ const OBJECT_POSITION = vec3.create();
 const VECTOR_TO_OBJECT = vec3.create();
 const CHILD_TRANSFORM = mat4.create();
 const IDENTITY_TRANSFORM = mat4.create();
+
+/**
+ * A named bag of camera-relative values - distance to camera, look angle to the
+ * object, and object, child and camera forward directions - refreshed each child
+ * update for effect bindings to read.
+ */
 let _EveCameraFxAttribute;
 class EveCameraFxAttributes extends CjsModel {
   static {

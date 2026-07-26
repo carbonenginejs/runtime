@@ -164,10 +164,21 @@ new class extends _identity {
       this.createSplineTunnels();
       return true;
     }
+
+    /**
+     * Registers this group's "SplineTunnels" debug option in the caller's option
+     * bag (Set-like add or insert) and returns that bag.
+     */
     GetDebugOptions(options = new Set()) {
       if (options?.add) options.add("SplineTunnels");else options?.insert?.("SplineTunnels");
       return options;
     }
+
+    /**
+     * Draws every tunnel's shape: pull and point-of-no-return spheres at its first spline point, a marker sphere at its last, and a cylWidth cylinder along each point's direction vector.
+     * @param {Object} renderer - injected debug renderer capability
+     * @param {Float32Array} [parentWorldLocation] - places the tunnel geometry in world space
+     */
     RenderDebugInfo(renderer, parentWorldLocation = mat4.create()) {
       for (const tunnel of this.tunnels) {
         const points = tunnel?.splinePoints ?? [];

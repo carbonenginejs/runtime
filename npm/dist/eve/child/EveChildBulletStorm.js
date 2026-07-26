@@ -136,6 +136,14 @@ class EveChildBulletStorm extends CjsModel {
     }
     return data;
   }
+
+  /**
+   * Re-reads the world transform from the owning space object, rebuilds the
+   * world-space target blobs for up to the first ten targets (each blob radius
+   * floored at 4050), refreshes the source object's radius, and - while the clip
+   * sphere is still animating - advances it at the storm's travel speed over the
+   * total reach, clamped to -1..1.
+   */
   UpdateAsyncronous(updateContext, params = {}) {
     params.spaceObjectParent?.GetLocalToWorldTransform?.(this.worldTransform);
     this.targetBlobs.length = 0;

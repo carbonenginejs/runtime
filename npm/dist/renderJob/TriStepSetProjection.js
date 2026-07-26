@@ -4,6 +4,8 @@ import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
 let _initProto, _initClass, _init_projection, _init_extra_projection;
+
+/** Step that installs an authored projection for the steps that follow. */
 let _TriStepSetProjection;
 class TriStepSetProjection extends _TriRenderStep {
   static {
@@ -20,12 +22,24 @@ class TriStepSetProjection extends _TriRenderStep {
     _init_extra_projection(this);
   }
   projection = (_initProto(this), _init_projection(this, null));
+
+  /** Stores the projection this step installs. */
   __init__(projection = null) {
     this.SetProjection(projection);
   }
+
+  /**
+   * Replaces the projection; null makes the step a no-op rather than clearing
+   * the current projection.
+   */
   SetProjection(projection) {
     this.projection = projection ?? null;
   }
+
+  /**
+   * Installs the projection on the executor when one is authored, leaving the
+   * current projection untouched otherwise.
+   */
   Execute(_realTime, _simTime, executor) {
     if (this.projection) executor?.SetProjection?.(this.projection);
     return _TriRenderJob.StepResult.RS_OK;

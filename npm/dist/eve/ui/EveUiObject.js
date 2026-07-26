@@ -23,6 +23,11 @@ class EveUiObject extends _EveSpaceObject {
   }
   /** m_usePerspectiveScale (bool) [READWRITE] */
   usePerspectiveScale = (_initProto(this), _init_usePerspectiveScale(this, true));
+
+  /**
+   * Enables or disables display on every mesh area carrying the given name,
+   * across all batch types.
+   */
   SetVisibilityForArea(areaName, enable) {
     const mesh = this.GetMesh();
     if (!mesh) return;
@@ -36,6 +41,12 @@ class EveUiObject extends _EveSpaceObject {
       }
     }
   }
+
+  /**
+   * Maps a picking area index back to its area name, returning "invalid_mesh"
+   * when there is no mesh and "invalid_areaid" when no picking area has that
+   * index.
+   */
   GetNameForPickingAreaID(areaID) {
     const mesh = this.GetMesh();
     if (!mesh) return "invalid_mesh";

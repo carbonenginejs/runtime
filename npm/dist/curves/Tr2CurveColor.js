@@ -8,6 +8,12 @@ import { Tr2CurveScalar as _Tr2CurveScalar } from './Tr2CurveScalar.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_srgbOutput, _init_extra_srgbOutput, _init_r, _init_extra_r, _init_g, _init_extra_g, _init_b, _init_extra_b, _init_a, _init_extra_a, _init_timeOffset, _init_extra_timeOffset, _init_currentValue, _init_extra_currentValue;
 const CLAMP_MIN = vec4.create();
+
+/**
+ * Color curve composed of four independent scalar curves for r, g, b and a,
+ * sampled at time minus timeOffset; an empty alpha curve yields 1, and the
+ * result is converted to gamma space when srgbOutput is set.
+ */
 let _Tr2CurveColor;
 class Tr2CurveColor extends CjsModel {
   static {

@@ -5,6 +5,12 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2ParticleElementDeclaration as _Tr2ParticleElementDe } from '../particle/Tr2ParticleElementDeclaration.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_particleSystem, _init_extra_particleSystem, _init_layout, _init_extra_layout, _init_rows, _init_extra_rows, _init_explicitBoundingBox, _init_extra_explicitBoundingBox, _init_count, _init_extra_count, _init_aabbMin, _init_extra_aabbMin, _init_aabbMax, _init_extra_aabbMax;
+
+/**
+ * Owns a CPU-side instance stream - a vertex element layout, the packed
+ * per-instance rows and their bounding box - and can spawn the same rows into a
+ * particle system on demand.
+ */
 let _Tr2RuntimeInstanceDa;
 new class extends _identity {
   static [class Tr2RuntimeInstanceData extends CjsModel {
@@ -37,34 +43,71 @@ new class extends _identity {
     #stride = 0;
     #dirty = false;
     #dataRevision = 0;
+
+    /** True when rows or layout have changed since the last UpdateData. */
     get dirty() {
       return this.#dirty;
     }
+
+    /**
+     * Counter bumped by every UpdateData that publishes a dirty change; consumers
+     * compare it to detect that the packed bytes were republished.
+     */
     get dataRevision() {
       return this.#dataRevision;
     }
+
+    /**
+     * Repacks the CPU buffer from the persisted layout and rows, then publishes
+     * it.
+     */
     Initialize() {
       this.#rebuildCpuData();
       this.UpdateData();
       return true;
     }
+
+    /**
+     * Repacks the CPU buffer only when the cpuData flag was scheduled, i.e. layout
+     * or rows actually changed.
+     */
     OnModified(_options = {}) {
       if (this.__state.flags.delete("cpuData")) {
         this.#rebuildCpuData();
       }
       return true;
     }
+
+    /**
+     * Replaces the element layout and discards every existing row - a layout must
+     * be set before any SetData.
+     */
     SetElementLayout(layout) {
       this.#setElementLayout(layout);
       this.DestroyData();
     }
+
+    /**
+     * Replaces all instance rows and repacks the byte buffer; throws when no
+     * layout has been set.
+     */
     SetData(rows) {
       this.#setData(rows);
     }
+
+    /**
+     * A detached copy of one instance row, with its component arrays cloned so the
+     * caller cannot alias stored data.
+     */
     GetItem(index) {
       this.#assertItemIndex(index);
       return this.rows[index].map(_Tr2RuntimeInstanceDa.#cloneValue);
     }
+
+    /**
+     * Validates one instance row against the layout, stores it and rewrites its
+     * bytes in place, marking the data dirty.
+     */
     SetItem(index, row) {
       this.#assertItemIndex(index);
       const normalized = this.#normalizeRow(row, index);
@@ -72,11 +115,18 @@ new class extends _identity {
       this.#writeRow(new DataView(this.#data), index, normalized);
       this.#dirty = true;
     }
+
+    /** A detached copy of one element of one instance row. */
     GetItemElement(index, elementIndex) {
       this.#assertItemIndex(index);
       this.#assertElementIndex(elementIndex);
       return _Tr2RuntimeInstanceDa.#cloneValue(this.rows[index][elementIndex]);
     }
+
+    /**
+     * Validates and stores a single element of one row, patching only that
+     * element's bytes in the packed buffer.
+     */
     SetItemElement(index, elementIndex, value) {
       this.#assertItemIndex(index);
       this.#assertElementIndex(elementIndex);
@@ -85,6 +135,11 @@ new class extends _identity {
       this.#writeElement(new DataView(this.#data), index, elementIndex, normalized);
       this.#dirty = true;
     }
+
+    /**
+     * Publishes pending changes by clearing the dirty flag and bumping the data
+     * revision; returns false when nothing was dirty.
+     */
     UpdateData() {
       if (!this.#dirty) {
         return false;
@@ -93,6 +148,13 @@ new class extends _identity {
       this.#dataRevision++;
       return true;
     }
+
+    /**
+     * Recomputes the box from the first POSITION element with at least three
+     * components; returns false without touching it when the box was set
+     * explicitly, and zeroes the box when there is no such element or no
+     * instances.
+     */
     UpdateBoundingBox() {
       if (this.explicitBoundingBox) {
         return false;
@@ -115,6 +177,11 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Sets the box explicitly from either a { min, max } object or two vectors,
+     * and latches explicitBoundingBox so UpdateBoundingBox stops recomputing it.
+     */
     SetBoundingBox(bounds, maxBounds) {
       const min = maxBounds === undefined ? bounds?.min ?? bounds?.minBounds : bounds;
       const max = maxBounds === undefined ? bounds?.max ?? bounds?.maxBounds : maxBounds;
@@ -125,6 +192,13 @@ new class extends _identity {
       vec3.copy(this.aabbMax, max);
       this.explicitBoundingBox = true;
     }
+
+    /**
+     * Reads the bounding box; the values are copied into the caller's vectors when both are supplied, otherwise a freshly cloned pair is returned.
+     * @param {vec3} [minBounds] Caller-owned destination for the minimum.
+     * @param {vec3} [maxBounds] Caller-owned destination for the maximum.
+     * @returns {boolean|{min: vec3, max: vec3}} True when written into the out vectors, otherwise a new { min, max } pair.
+     */
     GetBoundingBox(minBounds, maxBounds) {
       if (minBounds && maxBounds) {
         vec3.copy(minBounds, this.aabbMin);
@@ -136,21 +210,45 @@ new class extends _identity {
         max: vec3.clone(this.aabbMax)
       };
     }
+
+    /**
+     * The bounding box of the single CPU instance buffer; the buffer index is
+     * ignored because only one stream exists.
+     */
     GetInstanceBufferBoundingBox(_bufferIndex = 0) {
       return this.GetBoundingBox();
     }
+
+    /** Number of packed instance rows. */
     GetCount() {
       return this.count;
     }
+
+    /** Byte size of one packed row, summed from the element layout. */
     GetStride() {
       return this.#stride;
     }
+
+    /**
+     * The frozen normalized element descriptors, each carrying usage, type,
+     * component count, byte size and byte offset.
+     */
     GetLayout() {
       return this.#layout;
     }
+
+    /**
+     * A copy of the packed instance bytes, or null when no rows are set; the
+     * caller owns the returned array.
+     */
     GetData() {
       return this.#data ? new Uint8Array(this.#data) : null;
     }
+
+    /**
+     * Drops every row and the packed buffer while keeping the layout, and marks
+     * the data dirty.
+     */
     DestroyData() {
       this.rows = [];
       this.#data = null;
@@ -271,6 +369,11 @@ new class extends _identity {
       this.UpdateData();
       return maxScale;
     }
+
+    /**
+     * Re-normalizes the persisted layout and repacks the persisted rows; throws
+     * when rows exist but the layout is empty.
+     */
     #rebuildCpuData() {
       const rows = this.rows;
       this.#setElementLayout(this.layout);
@@ -286,6 +389,11 @@ new class extends _identity {
       }
       this.#setData(rows);
     }
+
+    /**
+     * Normalizes each element descriptor, assigns sequential byte offsets,
+     * computes the row stride and republishes the persisted layout summary.
+     */
     #setElementLayout(layout) {
       if (!Array.isArray(layout)) {
         throw new TypeError("Element layout must be an array");
@@ -300,6 +408,11 @@ new class extends _identity {
       this.#layout = Object.freeze(normalized);
       this.#stride = offset;
     }
+
+    /**
+     * Normalizes every row against the layout and packs them into one freshly
+     * allocated little-endian buffer.
+     */
     #setData(rows) {
       if (!this.#layout.length) {
         throw new Error("SetElementLayout must be called before SetData");
@@ -318,6 +431,11 @@ new class extends _identity {
       this.count = normalizedRows.length;
       this.#dirty = true;
     }
+
+    /**
+     * Coerces a row given either as an array or as a name-keyed object into layout
+     * order and validates each element.
+     */
     #normalizeRow(row, rowIndex) {
       const values = Array.isArray(row) ? row : this.#layout.map(element => row?.[element.name]);
       if (values.length !== this.#layout.length) {
@@ -325,11 +443,19 @@ new class extends _identity {
       }
       return values.map((value, elementIndex) => _Tr2RuntimeInstanceDa.#normalizeElementValue(this.#layout[elementIndex], value, `Instance ${rowIndex} element ${elementIndex}`));
     }
+
+    /** Writes every element of one normalized row into the packed buffer. */
     #writeRow(view, rowIndex, row) {
       for (let elementIndex = 0; elementIndex < this.#layout.length; elementIndex++) {
         this.#writeElement(view, rowIndex, elementIndex, row[elementIndex]);
       }
     }
+
+    /**
+     * Writes one element at its row and layout offset; a scalar supplied for a
+     * four-component INT8/UINT8 element is written as a single packed 32-bit word
+     * (the bone-index case).
+     */
     #writeElement(view, rowIndex, elementIndex, value) {
       const element = this.#layout[elementIndex];
       const offset = rowIndex * this.#stride + element.offset;
@@ -348,16 +474,69 @@ new class extends _identity {
         _Tr2RuntimeInstanceDa.#writeComponent(view, offset + index * element.componentByteSize, element.baseType, values[index]);
       }
     }
+
+    /**
+     * Throws RangeError unless the index is an integer inside the current instance
+     * count.
+     */
     #assertItemIndex(index) {
       if (!Number.isInteger(index) || index < 0 || index >= this.count) {
         throw new RangeError("Instance index out of range");
       }
     }
+
+    /** Throws RangeError unless the index is an integer inside the current layout. */
     #assertElementIndex(index) {
       if (!Number.isInteger(index) || index < 0 || index >= this.#layout.length) {
         throw new RangeError("Element index out of range");
       }
     }
+
+    /**
+     * Builds a full element descriptor at the given byte offset from either a {
+     * usage, usageIndex, type, name } object or Carbon's legacy [particleUsage,
+     * usageIndex, componentCount] triple.
+     */
+
+    /**
+     * The frozen persistable summary of an element descriptor: usage, usage index,
+     * type and name.
+     */
+
+    /**
+     * Transposes a column-major 4x4 into the three float4 rows the transform
+     * instance stream stores.
+     */
+
+    /**
+     * Maps a legacy particle element type index onto its vertex usage name; throws
+     * for an out-of-range index.
+     */
+
+    /**
+     * Resolves a usage given as a name or as a UsageCode number to its canonical
+     * name; throws when it matches neither.
+     */
+
+    /**
+     * Decodes a data type name or code into base type, component count and
+     * component byte size by unpacking Carbon's type bit-field (low three bits the
+     * type, bit 3 unsigned, bits 5-6 the component count minus one).
+     */
+
+    /**
+     * Validates and coerces one element value against its descriptor; a bare
+     * number is accepted for a single-component element and for a packed four-byte
+     * integer element, anything else must supply exactly componentCount finite
+     * numbers.
+     */
+
+    /**
+     * Writes one little-endian component of the given base type; FLOAT16 has no
+     * packer and throws.
+     */
+
+    /** Copies array-valued elements so returned rows never alias stored data. */
   }];
   #normalizeElement(value, index, offset) {
     const legacy = Array.isArray(value);

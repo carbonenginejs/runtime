@@ -111,6 +111,11 @@ new class extends _identity {
 
     /** Get/SetMinimumModelLOD (MAP_PROPERTY) - prevents the first N model LODs from loading; 0 disables. */
     minimumModelLOD = (_init_extra_disableAsyncLoad(this), _init_minimumModelLOD(this, 0));
+
+    /**
+     * Width over height of the device viewport in pixels; zero when there is no
+     * viewport or its height is zero.
+     */
     AspectRatio() {
       const viewport = this.viewport;
       if (!viewport || !viewport.height) {

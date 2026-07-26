@@ -5,6 +5,11 @@ import { EveEffectRoot2 as _EveEffectRoot } from '../../spaceObject/EveEffectRoo
 import { EveSpaceObject2 as _EveSpaceObject } from '../../spaceObject/EveSpaceObject2.js';
 
 let _initProto, _initClass, _init_type, _init_extra_type, _init_name, _init_extra_name, _init_object, _init_extra_object;
+
+/**
+ * One named slot in an EveMultiEffect, holding the object bound to that name
+ * together with the object type the effect expects there.
+ */
 let _EveMultiEffectParame;
 new class extends _identity {
   static [class EveMultiEffectParameter extends CjsModel {
@@ -21,9 +26,16 @@ new class extends _identity {
     name = (_init_extra_type(this), _init_name(this, ""));
     object = (_init_extra_name(this), _init_object(this, null));
     #owner = (_init_extra_object(this), null);
+
+    /** Binds an object to this slot, or clears it when given nothing. */
     SetParameterObject(object) {
       this.object = object ?? null;
     }
+
+    /**
+     * Whether the bound object matches the declared parameter type; TYPE_ANYTHING
+     * accepts any non-null object, and an unrecognised type accepts none.
+     */
     IsValid() {
       if (!this.object) return false;
       switch (this.type) {
@@ -37,15 +49,29 @@ new class extends _identity {
           return false;
       }
     }
+
+    /**
+     * Sets the effect rebound when this slot's object changes; passing nothing
+     * detaches the slot.
+     */
     SetOwner(owner) {
       this.#owner = owner ?? null;
     }
+
+    /** The object bound to this slot, or null. */
     GetParameterObject() {
       return this.object;
     }
+
+    /** The name bindings and controllers use to reach this slot. */
     GetName() {
       return this.name;
     }
+
+    /**
+     * Rebinds the owning effect after a model update, since the bound object is
+     * the slot's only notifying field.
+     */
     OnModified() {
       this.#owner?.Rebind?.();
       return true;

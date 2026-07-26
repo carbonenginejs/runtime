@@ -37,13 +37,25 @@ class Tr2PyValueBinding extends CjsModel {
 
   /** m_isValid (bool) [READ] */
   isValid = (_init_extra_sourceObject(this), _init_isValid(this, false));
+
+  /**
+   * Marks the binding valid only when both objects are present and both
+   * attribute names are non-empty; no type checking is performed.
+   */
   Initialize() {
     this.isValid = this.sourceObject !== null && this.destinationObject !== null && this.sourceAttribute.length !== 0 && this.destinationAttribute.length !== 0;
   }
+
+  /** Re-validates the binding after any field change. */
   OnModified(_value = null) {
     this.Initialize();
     return true;
   }
+
+  /**
+   * Assigns the source attribute onto the destination attribute; does nothing
+   * when the binding is invalid or the source does not carry the attribute.
+   */
   CopyValue() {
     if (this.isValid && (typeof this.sourceObject === "object" || typeof this.sourceObject === "function") && this.sourceAttribute in this.sourceObject) {
       this.destinationObject[this.destinationAttribute] = this.sourceObject[this.sourceAttribute];

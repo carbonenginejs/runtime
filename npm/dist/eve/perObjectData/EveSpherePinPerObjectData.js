@@ -6,6 +6,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_worldMatrix, _init_extra_worldMatrix, _init_pinPosition, _init_extra_pinPosition, _init_pinRotation, _init_extra_pinRotation, _init_pinColor, _init_extra_pinColor, _init_pinThreshold, _init_extra_pinThreshold, _init_pinRadiusPrecalc, _init_extra_pinRadiusPrecalc, _init_pinUV, _init_extra_pinUV;
+
+/**
+ * Per-object values for a standalone UI sphere pin - world matrix plus the pin's
+ * position, orientation quaternion, colour, threshold, precalculated radius and
+ * UV - as values a renderer packs into a constant buffer.
+ */
 let _EveSpherePinPerObjec;
 class EveSpherePinPerObjectData extends CjsModel {
   static {

@@ -4,6 +4,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_WorldMat, _init_extra_WorldMat;
+
+/**
+ * Minimal vertex-stage per-object record carrying only the world matrix,
+ * matching Carbon's shared Eve constant-buffer format.
+ */
 let _EvePerObjectVSData;
 class EvePerObjectVSData extends CjsModel {
   static {

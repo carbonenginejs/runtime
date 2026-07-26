@@ -3,6 +3,11 @@ import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2PPEffect as _Tr2PPEffect } from './Tr2PPEffect.js';
 
 let _initClass, _init_debug, _init_extra_debug, _init_quality, _init_extra_quality, _init_earlyOutThreshold, _init_extra_earlyOutThreshold;
+
+/**
+ * Temporal anti-aliasing settings: quality level, the early-out threshold below
+ * which pixels are left alone, and the debug visualization selector.
+ */
 let _Tr2PPTaaEffect;
 new class extends _identity {
   static [class Tr2PPTaaEffect extends _Tr2PPEffect {
@@ -22,6 +27,11 @@ new class extends _identity {
     debug = _init_debug(this, _Tr2PPTaaEffect.TAA_DEBUG_OFF);
     quality = (_init_extra_debug(this), _init_quality(this, _Tr2PPTaaEffect.TAA_HIGH));
     earlyOutThreshold = (_init_extra_quality(this), _init_earlyOutThreshold(this, 0.001));
+
+    /**
+     * Reports TAA as contributing whenever it is displayed; unlike the other
+     * effects it has no intensity or scale to gate on.
+     */
     IsActive() {
       return this.display !== false;
     }

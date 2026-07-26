@@ -9,6 +9,11 @@ let _initProto, _initClass, _init_behaviorPriority, _init_extra_behaviorPriority
 // Module scratch for the per-agent loop (behavior updates run sequentially).
 const FROM_TARGET = vec3.create();
 const NO_FORCES = [];
+
+/**
+ * Drone behavior that pushes agents away from the centre of every exclusion
+ * volume they intersect, weighted by the volume's intensity at the agent.
+ */
 let _CollisionAvoidance;
 new class extends _identity {
   static [class CollisionAvoidance extends CjsModel {

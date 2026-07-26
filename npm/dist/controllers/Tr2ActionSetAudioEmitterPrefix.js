@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { ITr2ControllerAction } from './ITr2ControllerAction.js';
 
 let _initProto, _initClass, _init_emitter, _init_extra_emitter, _init_prefix, _init_extra_prefix;
+
+/**
+ * Controller action that sets the event-name prefix on a named audio emitter
+ * when it starts, changing which bank events later sounds resolve to.
+ */
 let _Tr2ActionSetAudioEmi;
 class Tr2ActionSetAudioEmitterPrefix extends CjsModel {
   static {

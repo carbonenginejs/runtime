@@ -7,6 +7,11 @@ let _initProto, _initClass;
 
 // Carbon: RenderJob/TriStepPopViewport.cpp — Execute pops the viewport off the
 // render context's ESM stack.
+
+/**
+ * Step that pops the executor's viewport stack, restoring the viewport saved by
+ * an earlier push.
+ */
 let _TriStepPopViewport;
 class TriStepPopViewport extends _TriRenderStep {
   static {
@@ -22,6 +27,7 @@ class TriStepPopViewport extends _TriRenderStep {
     super(...args);
     _initProto(this);
   }
+  /** Restores the viewport saved by the matching push step. */
   Execute(_realTime, _simTime, executor) {
     executor?.PopViewport?.();
     return _TriRenderJob.StepResult.RS_OK;

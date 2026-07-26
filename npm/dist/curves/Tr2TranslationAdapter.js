@@ -5,6 +5,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_value, _init_extra_value, _init_curve, _init_extra_curve, _init_rotationOffset, _init_extra_rotationOffset, _init_currentValue, _init_extra_currentValue;
+
+/**
+ * Vector function wrapping a child vector curve behind its own time remapping
+ * and rotating the sampled offset by a fixed rotation, falling back to a fixed
+ * authored vector when no child curve is attached.
+ */
 let _Tr2TranslationAdapte;
 class Tr2TranslationAdapter extends CjsModel {
   static {

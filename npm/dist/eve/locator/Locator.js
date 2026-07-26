@@ -5,6 +5,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_position, _init_extra_position, _init_direction, _init_extra_direction, _init_scale, _init_extra_scale, _init_boneIndex, _init_extra_boneIndex;
+
+/**
+ * Attachment point held as decomposed position, orientation, scale and bone
+ * index, as stored inside a locator set.
+ */
 let _Locator;
 class Locator extends CjsModel {
   static {

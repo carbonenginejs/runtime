@@ -39,9 +39,20 @@ class EveDistributionModifierTransformOffset extends CjsModel {
 
   /** m_translationCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   translationCurve = (_init_extra_scaleCurve(this), _init_translationCurve(this, null));
+
+  /**
+   * Always reports a transform effect, which puts the distribution into its
+   * per-frame reset-and-reaccumulate mode.
+   */
   AffectsTransform() {
     return true;
   }
+
+  /**
+   * Accumulates a translation, rotation and scale onto a placement's additional transform, taken from the authored constants or, when a curve is set, sampled from it at the placement's lifetime; the translation is rotated into the placement's current orientation and the scale multiplies the existing additional scale rather than replacing it.
+   *
+   * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
+   */
   ProcessDistributionModifier(placement, _deltaTime, _params) {
     // Carbon (row-vector): initialRotation * additionalRotation - initial first.
     const combinedRotation = quat.multiply(quat.create(), placement.additionalRotation, placement.initialRotation);

@@ -4,6 +4,8 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_transform, _init_extra_transform;
+
+/** The camera view matrix, together with the look-at helper that builds it. */
 let _TriView;
 class TriView extends CjsModel {
   static {
@@ -21,9 +23,16 @@ class TriView extends CjsModel {
   }
   /** m_transform (Matrix) [READWRITE, PERSIST] */
   transform = (_initProto(this), _init_transform(this, mat4.create()));
+
+  /** Copies a view matrix in; the caller's buffer is not retained. */
   SetTransform(value) {
     mat4.copy(this.transform, value);
   }
+
+  /**
+   * Copies the view matrix into out (a fresh matrix when omitted) and returns
+   * it, since JS cannot safely hand out Carbon's const matrix reference.
+   */
   GetTransform(out = mat4.create()) {
     return mat4.copy(out, this.transform);
   }

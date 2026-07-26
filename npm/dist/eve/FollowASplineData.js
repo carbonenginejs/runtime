@@ -3,6 +3,13 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_tunnelLock, _init_extra_tunnelLock, _init_tunnelPoint, _init_extra_tunnelPoint;
+
+/**
+ * Per-agent scratch for the FollowASpline child behaviour: which tunnel the
+ * agent is locked onto and which point along it the agent is heading for. The
+ * behaviour allocates one record per agent and rewrites it on every behaviour
+ * update.
+ */
 let _FollowASplineData;
 class FollowASplineData extends CjsModel {
   static {

@@ -5,6 +5,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_convertedLinearValue, _init_extra_convertedLinearValue, _init_color, _init_extra_color, _init_color2, _init_extra_color2, _init_currentValue, _init_extra_currentValue, _init_lerpValue, _init_extra_lerpValue, _init_saturation, _init_extra_saturation, _init_brightness, _init_extra_brightness;
+
+/**
+ * Color function that blends two authored colors by a fixed lerp factor and
+ * applies saturation and brightness, exposing both the mixed color and its
+ * linear-space conversion.
+ */
 let _Tr2CurveColorMixer;
 class Tr2CurveColorMixer extends CjsModel {
   static {

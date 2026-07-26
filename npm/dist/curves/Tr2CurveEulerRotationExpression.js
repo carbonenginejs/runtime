@@ -5,6 +5,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsControllerExpressionProgram } from '../controllers/CjsControllerExpressionProgram.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_expressionYaw, _init_extra_expressionYaw, _init_expressionPitch, _init_extra_expressionPitch, _init_expressionRoll, _init_extra_expressionRoll, _init_currentValue, _init_extra_currentValue, _init_input, _init_extra_input, _init_input2, _init_extra_input2, _init_input3, _init_extra_input3, _init_input4, _init_extra_input4, _init_inputs, _init_extra_inputs;
+
+/**
+ * Quaternion curve built from three independently compiled expressions producing
+ * yaw, pitch and roll in radians at time divided by timeScale.
+ */
 let _Tr2CurveEulerRotatio;
 new class extends _identity {
   static [class Tr2CurveEulerRotationExpression extends CjsModel {
@@ -85,48 +90,98 @@ new class extends _identity {
     GetValueDoubleDotAt(_time, out) {
       return out;
     }
+
+    /** The authored yaw expression source text, before compilation. */
     GetExpressionYaw() {
       return this.expressionYaw;
     }
+
+    /** The authored pitch expression source text, before compilation. */
     GetExpressionPitch() {
       return this.expressionPitch;
     }
+
+    /** The authored roll expression source text, before compilation. */
     GetExpressionRoll() {
       return this.expressionRoll;
     }
+
+    /**
+     * Sets the yaw expression and drops its cached program so the next sample
+     * recompiles.
+     */
     SetExpressionYaw(expression) {
       this.expressionYaw = expression;
       this.#programs[0] = null;
     }
+
+    /**
+     * Sets the pitch expression and drops its cached program so the next sample
+     * recompiles.
+     */
     SetExpressionPitch(expression) {
       this.expressionPitch = expression;
       this.#programs[1] = null;
     }
+
+    /**
+     * Sets the roll expression and drops its cached program so the next sample
+     * recompiles.
+     */
     SetExpressionRoll(expression) {
       this.expressionRoll = expression;
       this.#programs[2] = null;
     }
+
+    /**
+     * Backs the expression `input`/`inputAt` functions by sampling the n-th input
+     * curve, defaulting to the time of the most recent GetContext call and
+     * returning 0 when no such input exists.
+     */
     GetInputValue(index, time = this.#currentTime) {
       const input = this.inputs[index | 0];
       return input ? input.GetValueAt(time) : 0;
     }
+
+    /**
+     * Gets this curve's per-instance random constant, which stays fixed until
+     * ResetRandomConstant is called so `randomConstant` expressions are stable
+     * over time.
+     */
     GetRandomConstant() {
       return this.randomConstant;
     }
+
+    /** Draws a new per-instance random constant in [0, 1). */
     ResetRandomConstant() {
       this.randomConstant = Math.random();
     }
+
+    /**
+     * Gets the curve expression terms offered to an editor, including `radians`
+     * because this curve's outputs are angles.
+     */
     GetExpressionTermInfo() {
       return CjsControllerExpressionProgram.getCurveTermInfo({
         includeRadians: true
       });
     }
+
+    /**
+     * Compiles and evaluates an arbitrary expression against this curve's context
+     * at time 0, returning 0 when it does not compile.
+     */
     EvaluateExpression(expression) {
       const program = CjsControllerExpressionProgram.Compile(expression, {
         emptyValue: 0
       });
       return program.IsValid() ? Number(program.Evaluate(this.GetContext(0))) || 0 : 0;
     }
+
+    /**
+     * Compiles any of the yaw, pitch or roll expressions whose cached program is
+     * missing or stale against the currently authored source.
+     */
     Compile() {
       const expressions = [this.expressionYaw, this.expressionPitch, this.expressionRoll];
       for (let i = 0; i < expressions.length; i++) {
@@ -138,6 +193,12 @@ new class extends _identity {
         }
       }
     }
+
+    /**
+     * Builds the evaluation context for a sample, dividing the caller time by
+     * timeScale, recording it as the current input time, and exposing it alongside
+     * input1..input4 as expression variables.
+     */
     GetContext(time) {
       const scaledTime = time / this.timeScale;
       this.#currentTime = scaledTime;
@@ -154,6 +215,11 @@ new class extends _identity {
         }
       };
     }
+
+    /**
+     * Evaluates one angle program, substituting 0 for a missing or invalid program
+     * and for any non-finite result.
+     */
   }];
   #evaluate(program, context) {
     return program?.IsValid() ? Number(program.Evaluate(context)) || 0 : 0;

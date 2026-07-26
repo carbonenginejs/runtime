@@ -4,6 +4,8 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_drag, _init_extra_drag;
+
+/** Linear particle drag: a force proportional to velocity and opposing it. */
 let _Tr2ParticleDragForce;
 class Tr2ParticleDragForce extends CjsModel {
   static {
@@ -25,6 +27,11 @@ class Tr2ParticleDragForce extends CjsModel {
   GetForce(_position, velocity, _dt, _mass, out = vec3.create()) {
     return vec3.scale(out, velocity, -this.drag);
   }
+
+  /**
+   * Nothing to advance per frame: drag is computed from each particle's current
+   * velocity.
+   */
   Update(_dt) {}
   static {
     _initClass();

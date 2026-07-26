@@ -3,6 +3,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_callbackName, _init_extra_callbackName;
+
+/**
+ * Controller action that fires a named callback on its controller when the
+ * action starts, letting host code hook a point in a state machine or timeline.
+ */
 let _Tr2ActionCallback;
 class Tr2ActionCallback extends CjsModel {
   static {

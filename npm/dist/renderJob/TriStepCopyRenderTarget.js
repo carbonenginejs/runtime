@@ -4,6 +4,11 @@ import { TriRenderJob as _TriRenderJob } from './TriRenderJob.js';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
 let _initProto, _initClass, _init_Destination, _init_extra_Destination, _init_destinationTexture, _init_extra_destinationTexture, _init_Source, _init_extra_Source, _init_sourceViewport, _init_extra_sourceViewport, _init_destinationViewport, _init_extra_destinationViewport;
+
+/**
+ * Step describing a copy out of one render target into another render target or
+ * into a texture resource, including the source and destination sub-rectangles.
+ */
 let _TriStepCopyRenderTar;
 new class extends _identity {
   static [class TriStepCopyRenderTarget extends _TriRenderStep {
@@ -25,18 +30,31 @@ new class extends _identity {
     Source = (_init_extra_destinationTexture(this), _init_Source(this, null));
     sourceViewport = (_init_extra_Source(this), _init_sourceViewport(this, null));
     destinationViewport = (_init_extra_sourceViewport(this), _init_destinationViewport(this, null));
+
+    /** Reads the destination render target under Carbon's lower-case accessor name. */
     get destination() {
       return this.Destination;
     }
+
+    /** Sets the destination render target, normalising a missing value to null. */
     set destination(value) {
       this.Destination = value ?? null;
     }
+
+    /** Reads the source render target under Carbon's lower-case accessor name. */
     get source() {
       return this.Source;
     }
+
+    /** Sets the source render target, normalising a missing value to null. */
     set source(value) {
       this.Source = value ?? null;
     }
+
+    /**
+     * Assigns the copy operands, routing a texture-resource destination to
+     * destinationTexture and anything else to the render-target destination.
+     */
     __init__(destination = null, source = null, destinationViewport = null, sourceViewport = null) {
       if (destination) {
         if (_TriStepCopyRenderTar.#isTextureResource(destination)) this.destinationTexture = destination;else this.Destination = destination;
@@ -45,12 +63,23 @@ new class extends _identity {
       this.destinationViewport = destinationViewport ?? null;
       this.sourceViewport = sourceViewport ?? null;
     }
+
+    /**
+     * Builds the copy intent and hands it to the executor's CopyRenderTarget;
+     * incomplete operands yield no intent and are a no-op that still reports
+     * RS_OK, while an explicit false from the executor is RS_FAILED.
+     */
     Execute(_realTime, _simTime, executor) {
       const intent = this.GetCopyIntent();
       if (!intent) return _TriRenderJob.StepResult.RS_OK;
       const copied = executor?.CopyRenderTarget?.(intent);
       return copied === false ? _TriRenderJob.StepResult.RS_FAILED : _TriRenderJob.StepResult.RS_OK;
     }
+
+    /**
+     * Carbon TriStepCopyRenderTarget::Execute (cpp:13-95): resolves the operands and viewports into a plain copy description the executor performs, with destinationType distinguishing the render-target path from the texture path.
+     * @returns {object|null} the copy intent, or null when the source or both destinations are missing
+     */
     GetCopyIntent() {
       if (!this.Source || !this.Destination && !this.destinationTexture) return null;
       const destX = Number(this.destinationViewport?.x) || 0;
@@ -69,6 +98,28 @@ new class extends _identity {
         sourceRect: this.sourceViewport ? _TriStepCopyRenderTar.#viewportRect(this.sourceViewport) : null
       };
     }
+
+    /**
+     * Builds the render-target-to-render-target rectangles: a source viewport with
+     * a non-positive extent cancels the copy, and a negative destination origin
+     * clamps to zero while trimming the same amount off the source rectangle
+     * (Carbon TriStepCopyRenderTarget.cpp:33-73).
+     */
+
+    /**
+     * Converts a viewport's x/y/width/height into a left/top/right/bottom
+     * rectangle, treating non-numeric fields as zero.
+     */
+
+    /**
+     * Reads a dimension off a render target through its Get<Name>() accessor or
+     * its lower-case property, yielding 0 when neither is present.
+     */
+
+    /**
+     * Identifies a destination as a texture resource by its registered class name,
+     * a name ending in TextureRes, or the presence of GetTexture.
+     */
   }];
   #renderTargetIntent(source, destination, sourceViewport, destX, destY) {
     let x = destX;

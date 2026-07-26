@@ -4,6 +4,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveVirtualCameraBehaviourVector3Base as _EveVirtualCameraBeha$1 } from './EveVirtualCameraBehaviourVector3Base.js';
 
 let _initProto, _initClass, _init_proportional, _init_extra_proportional, _init_world, _init_extra_world, _init_offset, _init_extra_offset;
+
+/**
+ * Vector3 behaviour that applies a fixed, time-independent displacement, either
+ * in world space or in the anchor's yaw frame.
+ */
 let _EveVirtualCameraBeha;
 class EveVirtualCameraBehaviourVector3Offset extends _EveVirtualCameraBeha$1 {
   static {
@@ -18,10 +23,21 @@ class EveVirtualCameraBehaviourVector3Offset extends _EveVirtualCameraBeha$1 {
   proportional = (_initProto(this), _init_proportional(this, true));
   world = (_init_extra_proportional(this), _init_world(this, false));
   offset = (_init_extra_world(this), _init_offset(this, vec3.create()));
+
+  /**
+   * Names the behaviour "Offset"; it owns no curves, so the offset is constant
+   * over the timeline.
+   */
   constructor() {
     super(), _init_extra_offset(this);
     this.name = "Offset";
   }
+
+  /**
+   * Returns the authored offset, yawed into the anchor's heading unless world is
+   * set and multiplied by the anchor radius when proportional is set; it ignores
+   * time and delta time entirely.
+   */
   Update(_camera, _current, _deltaTime, _localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create()) {
     if (this.world) {
       vec3.copy(out, this.offset);

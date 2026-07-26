@@ -6,6 +6,12 @@ import { io, carbon, impl, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initProto, _initClass, _init_dest, _init_extra_dest;
+
+/**
+ * Transform modifier that stretches a child along the vector from its own
+ * position to a destination point, scaling it to the stretch length and centring
+ * it on the midpoint.
+ */
 let _EveChildModifierStre;
 new class extends _identity {
   static [class EveChildModifierStretch extends CjsModel {
@@ -65,9 +71,20 @@ new class extends _identity {
       // Carbon (row-vector): srcRotation * stretchTransform - source rotation first.
       return mat4.multiply(out, out, srcRotMat);
     }
+
+    /**
+     * Binds the vector function sampled at the frame time for the stretch
+     * endpoint; a nullish value clears it and leaves the SetDestPosition fallback
+     * in effect.
+     */
     SetDest(dest) {
       this.dest = dest ?? null;
     }
+
+    /**
+     * Copies the fallback stretch endpoint used when no destination vector
+     * function is bound, or before one yields a value.
+     */
     SetDestPosition(destPosition) {
       vec3.copy(this.#destPosition, destPosition);
     }

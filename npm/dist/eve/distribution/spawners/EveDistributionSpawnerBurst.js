@@ -30,12 +30,28 @@ class EveDistributionSpawnerBurst extends CjsModel {
 
   /** m_delayBeforeInitialBurst (float) [READWRITE, PERSIST] */
   delayBeforeInitialBurst = (_init_extra_additionalTriggersPerBurst(this), _init_delayBeforeInitialBurst(this, 0));
+
+  /**
+   * Restarts the burst timer; the placement pool is not sorted or otherwise used
+   * by this spawner.
+   */
   Reset(_placements) {
     this.Restart();
   }
+
+  /**
+   * Rearms the spawner by clearing the timer, allowing the one-shot burst to
+   * fire again.
+   */
   Restart() {
     this.#localTimer = 0;
   }
+
+  /**
+   * Waits out the initial delay, then spawns a `completeness` fraction of the
+   * currently free placements plus the extra per-burst triggers in one go, and
+   * disarms itself until restarted.
+   */
   UpdateSyncronous(updateContext, _params, owner) {
     if (this.#localTimer === -1) {
       return;
@@ -50,6 +66,8 @@ class EveDistributionSpawnerBurst extends CjsModel {
     owner.AddEntities(Math.min(numTriggers, availableTriggers));
     this.#localTimer = -1;
   }
+
+  /** Ignores controller variables; the burst is purely time-driven. */
   SetControllerVariable(_name, _value) {}
   static {
     _initClass();

@@ -7,6 +7,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl, CjsSchema } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_audioEmitter, _init_extra_audioEmitter, _init_translationCurve, _init_extra_translationCurve, _init_rotationCurve, _init_extra_rotationCurve, _init_externalParameters, _init_extra_externalParameters, _init_rotation, _init_extra_rotation, _init_translation, _init_extra_translation, _init_mute, _init_extra_mute, _init_name, _init_extra_name, _init_display, _init_extra_display;
+
+/**
+ * A freely placed audio emitter driven by its own translation and rotation
+ * curves, so a sound can sit anywhere in a scene without being attached to an
+ * asset.
+ */
 let _AudioGameObject;
 new class extends _identity {
   static [class AudioGameObject extends CjsModel {
@@ -33,6 +39,12 @@ new class extends _identity {
     mute = (_init_extra_translation(this), _init_mute(this, false));
     name = (_init_extra_mute(this), _init_name(this, ""));
     display = (_init_extra_name(this), _init_display(this, true));
+
+    /**
+     * Creates the emitter from the registered AudEmitter class if there is not one
+     * already, places it at the object's current world position, and reports
+     * whether the emitter accepted initialization.
+     */
     Initialize() {
       if (this.audioEmitter) return true;
       const Emitter = CjsSchema.GetConstructor("AudEmitter");
@@ -44,19 +56,35 @@ new class extends _identity {
       this.#SetEmitterPosition(position);
       return initialized !== false;
     }
+
+    /** Post-hydration hook; runs Initialize. */
     __init__() {
       return this.Initialize();
     }
+
+    /** The emitter this object drives, or null before Initialize has run. */
     GetAudioEmitter() {
       return this.audioEmitter;
     }
+
+    /**
+     * Renames the underlying emitter without touching this object's own name
+     * field.
+     */
     SetEmitterName(name) {
       this.audioEmitter?.SetName?.(String(name));
     }
+
+    /**
+     * Sends a named event to the emitter and returns the identifier it hands back,
+     * or 0 when there is no emitter or no event name.
+     */
     PlayAudioEvent(eventName) {
       if (!this.audioEmitter || !eventName) return 0;
       return this.audioEmitter.SendEvent?.(String(eventName)) ?? 0;
     }
+
+    /** Applies a changed mute flag or name to the emitter after a model update. */
     OnModified(value = null) {
       if (value === "mute" || value === this.mute) {
         this.audioEmitter?.[this.mute ? "Mute" : "Unmute"]?.();
@@ -66,6 +94,11 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Re-evaluates the transform curves for the frame and pushes the resulting
+     * position and orientation to the emitter, unless the object is muted.
+     */
     UpdateSyncronous(updateContext = null) {
       const time = updateContext?.GetTime?.() ?? updateContext?.time ?? 0;
       this.UpdateWorldTransform(time);
@@ -73,28 +106,70 @@ new class extends _identity {
         this.#SetEmitterPosition(this.GetWorldPosition(vec3.create()));
       }
     }
+
+    /**
+     * IEveSpaceObject2 asynchronous phase; the object does all of its work
+     * synchronously.
+     */
     UpdateAsyncronous(_updateContext = null) {}
+
+    /** IEveSpaceObject2 hook; an audio object has nothing to cull. */
     UpdateVisibility(_updateContext, _parentTransform) {}
+
+    /** IEveSpaceObject2 hook; an audio object contributes no renderables. */
     GetRenderables(_renderables, _impostors = null) {}
+
+    /**
+     * Reports a unit sphere at the object's world position, so scene traversal has something to place it by.
+     * @param {Array} out - caller-owned packed (x, y, z, radius), overwritten
+     */
     GetBoundingSphere(out = vec4.create()) {
       const position = this.GetWorldPosition(vec3.create());
       vec4.set(out, position[0], position[1], position[2], 1);
       return true;
     }
+
+    /**
+     * Copies the transform stamped by the last UpdateWorldTransform.
+     * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+     * @returns {Array} out
+     */
     GetLocalToWorldTransform(out = mat4.create()) {
       return mat4.copy(out, this.#worldTransform);
     }
+
+    /**
+     * Copies the translation of the transform stamped by the last UpdateWorldTransform.
+     * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
+     * @returns {Array} out
+     */
     GetWorldPosition(out = vec3.create()) {
       return mat4.getTranslation(out, this.#worldTransform);
     }
+
+    /**
+     * Copies the normalized rotation of the transform stamped by the last UpdateWorldTransform.
+     * @param {Array} [out] - caller-owned quat; a fresh quaternion is allocated when omitted
+     * @returns {Array} out
+     */
     GetWorldRotation(out = quat.create()) {
       return quat.normalize(out, mat4.getRotation(out, this.#worldTransform));
     }
+
+    /**
+     * Reports a fixed unit cube; the object has no geometry, but scene code
+     * expects a box.
+     */
     GetLocalBoundingBox(outMin, outMax) {
       vec3.set(outMin, -1, -1, -1);
       vec3.set(outMax, 1, 1, 1);
       return true;
     }
+
+    /**
+     * Rebuilds the world transform from the authored translation and rotation after letting the transform curves overwrite them at the given time.
+     * @returns {Array} the object's own matrix, valid only until the next call
+     */
     UpdateWorldTransform(time) {
       const translation = vec3.clone(this.translation);
       const rotation = quat.clone(this.rotation);
@@ -103,6 +178,12 @@ new class extends _identity {
       mat4.fromRotationTranslation(this.#worldTransform, rotation, translation);
       return this.#worldTransform;
     }
+
+    /**
+     * Pushes a position to the emitter together with the object's front and top
+     * axes rotated into world space, which is what gives the sound its
+     * orientation.
+     */
     #SetEmitterPosition(position) {
       const rotation = this.GetWorldRotation(quat.create());
       const front = vec3.transformQuat(vec3.create(), _AudioGameObject.FRONT, rotation);

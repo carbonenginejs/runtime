@@ -11,6 +11,11 @@ let _initProto, _initClass, _init_behaviorPriority, _init_extra_behaviorPriority
 const FORCE = vec3.create();
 const FORCE_OFFSET = vec3.create();
 const NO_FORCES = [];
+
+/**
+ * Drone behavior that adds a per-agent Perlin-noise wander force seeded from the
+ * agent's lifetime and id, so each drone drifts on its own path.
+ */
 let _Wander;
 new class extends _identity {
   static [class Wander extends CjsModel {

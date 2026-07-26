@@ -5,6 +5,11 @@ import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsVectorParameter } from './CjsVectorParameter.js';
 
 let _initProto, _initClass, _init_value, _init_extra_value, _init_usedByCurrentTechnique, _init_extra_usedByCurrentTechnique, _init_usedByCurrentEffect, _init_extra_usedByCurrentEffect, _init_name, _init_extra_name;
+
+/**
+ * Three-component float value for a named shader constant, with sRGB gamma
+ * handling and optional rerouting into an external destination.
+ */
 let _Tr2Vector3Parameter;
 class Tr2Vector3Parameter extends CjsVectorParameter {
   static {
@@ -34,6 +39,11 @@ class Tr2Vector3Parameter extends CjsVectorParameter {
     this.GetValue();
     return this.value[0];
   }
+
+  /**
+   * Writes component 0 and marks the parameter dirty, so the next apply carries
+   * the new value.
+   */
   set x(component) {
     this.#setComponent(0, component);
   }
@@ -43,6 +53,11 @@ class Tr2Vector3Parameter extends CjsVectorParameter {
     this.GetValue();
     return this.value[1];
   }
+
+  /**
+   * Writes component 1 and marks the parameter dirty, so the next apply carries
+   * the new value.
+   */
   set y(component) {
     this.#setComponent(1, component);
   }
@@ -52,27 +67,46 @@ class Tr2Vector3Parameter extends CjsVectorParameter {
     this.GetValue();
     return this.value[2];
   }
+
+  /**
+   * Writes component 2 and marks the parameter dirty, so the next apply carries
+   * the new value.
+   */
   set z(component) {
     this.#setComponent(2, component);
   }
+
+  /** Blue MAP_PROPERTY alias reading `x`. */
   get v1() {
     return this.x;
   }
+
+  /** Blue MAP_PROPERTY alias writing `x`. */
   set v1(component) {
     this.x = component;
   }
+
+  /** Blue MAP_PROPERTY alias reading `y`. */
   get v2() {
     return this.y;
   }
+
+  /** Blue MAP_PROPERTY alias writing `y`. */
   set v2(component) {
     this.y = component;
   }
+
+  /** Blue MAP_PROPERTY alias reading `z`. */
   get v3() {
     return this.z;
   }
+
+  /** Blue MAP_PROPERTY alias writing `z`. */
   set v3(component) {
     this.z = component;
   }
+
+  /** The shader constant name this value binds to; empty until authored. */
   GetParameterName() {
     return this.name;
   }
@@ -81,12 +115,22 @@ class Tr2Vector3Parameter extends CjsVectorParameter {
   GetHashValue(startingHash = CjsVectorParameter.FNV1_INITIAL) {
     return CjsVectorParameter.hashFnv1String(this.name, CjsVectorParameter.hashFnv1Floats(this.value, startingHash));
   }
+
+  /**
+   * Refreshes from the reroute destination when one is set, then copies three components out.
+   * @param out defaults to the parameter's own value array, so a caller passing nothing gets a live reference rather than a copy
+   */
   GetValue(out = this.value) {
     if (this.#reroutedValue) {
       CjsVectorParameter.readVectorDestination(this.#reroutedValue, this.value, 3);
     }
     return CjsVectorParameter.copyNumberArray(out, this.value, 3);
   }
+
+  /**
+   * Copies three components in, refreshes the linear mirror and writes through
+   * to the reroute destination when one is set.
+   */
   SetValue(value) {
     CjsVectorParameter.copyNumberArray(this.value, value, 3);
     this.#updateLinearValue();
@@ -94,9 +138,20 @@ class Tr2Vector3Parameter extends CjsVectorParameter {
       CjsVectorParameter.writeVectorDestination(this.#reroutedValue, this.value, 3);
     }
   }
+
+  /**
+   * Whether reads and writes go through an external destination; an sRGB
+   * constant is never rerouted, because its value must be gamma-converted before
+   * upload.
+   */
   IsRerouted() {
     return !this.isSrgb && this.#reroutedValue !== null;
   }
+
+  /**
+   * Points the parameter at an external destination and seeds it with the current value; a target smaller than 12 bytes, not writable as three components, or belonging to an sRGB constant clears the reroute instead. Registered bindings are notified of the effective destination either way.
+   * @param size destination capacity in bytes, not components
+   */
   SetDestination(dest, size = 12) {
     if (size >= 12 && !this.isSrgb && CjsVectorParameter.isVectorDestination(dest, 3)) {
       this.#reroutedValue = dest;
@@ -107,18 +162,37 @@ class Tr2Vector3Parameter extends CjsVectorParameter {
     }
     CjsVectorParameter.notifyBindings(this.#bindings, this.GetDestination().dest);
   }
+
+  /**
+   * The array an upload should read - the reroute target when set, otherwise the
+   * parameter's own value - paired with its 12-byte size. The array is borrowed,
+   * not copied.
+   */
   GetDestination() {
     return {
       dest: this.#reroutedValue ?? this.value,
       size: 12
     };
   }
+
+  /**
+   * Adds a binding to be notified whenever the destination is repointed;
+   * duplicates are ignored.
+   */
   RegisterBinding(binding) {
     CjsVectorParameter.registerBinding(this.#bindings, binding);
   }
+
+  /** Stops notifying a binding; unknown bindings are ignored. */
   UnregisterBinding(binding) {
     CjsVectorParameter.unregisterBinding(this.#bindings, binding);
   }
+
+  /**
+   * Re-resolves usage and the sRGB flag from the shader's reflected constant,
+   * dropping the reroute when the shader is gone or the constant turns out to be
+   * sRGB. Reads reflection metadata only; no GPU handle is bound.
+   */
   RebuildEffectHandles(effectRes) {
     this.isSrgb = false;
     if (!effectRes && this.#reroutedValue) {
@@ -134,6 +208,11 @@ class Tr2Vector3Parameter extends CjsVectorParameter {
     }
     this.#updateLinearValue();
   }
+
+  /**
+   * Seeds an existing reroute destination with the current value and refreshes
+   * the linear mirror; always returns true.
+   */
   Initialize() {
     if (this.#reroutedValue) {
       CjsVectorParameter.writeVectorDestination(this.#reroutedValue, this.value, 3);
@@ -141,6 +220,12 @@ class Tr2Vector3Parameter extends CjsVectorParameter {
     this.#updateLinearValue();
     return true;
   }
+
+  /**
+   * Writes the three components an upload should use into the caller's
+   * destination: the authored value while rerouted, otherwise the
+   * gamma-converted linear mirror for an sRGB constant.
+   */
   CopyValueToEffect(_inputType, out) {
     if (this.#reroutedValue) {
       CjsVectorParameter.writeVectorDestination(out, this.value, 3);
@@ -148,6 +233,11 @@ class Tr2Vector3Parameter extends CjsVectorParameter {
     }
     CjsVectorParameter.writeVectorDestination(out, this.isSrgb ? this.linearValue : this.value, 3);
   }
+
+  /**
+   * Refreshes the linear mirror: a plain copy when not sRGB, otherwise
+   * gamma-to-linear on all three components.
+   */
   #updateLinearValue() {
     if (!this.isSrgb) {
       CjsVectorParameter.copyNumberArray(this.linearValue, this.value, 3);
@@ -157,6 +247,11 @@ class Tr2Vector3Parameter extends CjsVectorParameter {
     this.linearValue[1] = num.gammaToLinear(this.value[1]);
     this.linearValue[2] = num.gammaToLinear(this.value[2]);
   }
+
+  /**
+   * Assigns one component in place and re-runs SetValue so the linear mirror and
+   * any reroute stay in sync.
+   */
   #setComponent(index, component) {
     this.value[index] = Number(component);
     this.SetValue(this.value);

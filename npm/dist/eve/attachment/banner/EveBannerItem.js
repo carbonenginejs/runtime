@@ -11,6 +11,12 @@ let _initProto, _initClass, _init_bone, _init_extra_bone, _init_position, _init_
 // Carbon persists banners as a raw structure list (BLUE_DECLARE_STRUCTURE_LIST
 // on EveBannerSet.banners, READ | PERSIST), so every geometric field below
 // round-trips.
+
+/**
+ * One authored banner quad: its bone attachment, placement, the two curvature
+ * angles that bend it, and the SOF reference id identifying which banner is
+ * shown.
+ */
 let _EveBannerItem;
 new class extends _identity {
   static [class EveBannerItem extends CjsModel {

@@ -31,6 +31,11 @@ class Tr2MaterialParameterStore extends CjsModel {
 
   /** m_parameters (PITriEffectParameterDict) [READ, PERSIST] */
   parameters = (_init_extra_parentPath(this), _init_parameters(this, new Map()));
+
+  /**
+   * Looks a parameter up in this store and then walks the parent chain; null
+   * when no store in the chain defines it.
+   */
   FindParameter(name) {
     let currentStore = this;
     while (currentStore) {

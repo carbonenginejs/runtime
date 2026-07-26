@@ -27,6 +27,12 @@ function randomGauss(random, deviation) {
   const first = Math.max(random(), 1e-100);
   return deviation * Math.pow(-2 * Math.log(first), 0.75) * Math.cos(random() * Math.PI * 2);
 }
+
+/**
+ * A scene-scale field of static particle clusters, held as CPU instance rows
+ * around a double-precision aggregate origin and drawn through a single
+ * instanced mesh.
+ */
 let _EveSceneStaticPartic;
 class EveSceneStaticParticles extends CjsModel {
   static {

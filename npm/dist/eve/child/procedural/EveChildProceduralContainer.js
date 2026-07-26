@@ -292,6 +292,13 @@ new class extends _identity {
     // EveChildUpdateParams by value, cpp:93/120). Allocated per call like
     // EveChildContainer's fan-out - selected children can nest further
     // containers, making a module scratch record unsafe.
+
+    /**
+     * Copies the caller's update params into a fresh child-facing record (Carbon
+     * passes EveChildUpdateParams by value, cpp:93/120); allocated per call
+     * because a selected child can itself nest further containers, making a shared
+     * module scratch record unsafe.
+     */
   }];
   #DeriveChildParams(params) {
     const next = new _EveChildUpdateParams();

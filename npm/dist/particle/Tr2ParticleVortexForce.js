@@ -4,6 +4,11 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_magnitude, _init_extra_magnitude, _init_axis, _init_extra_axis, _init_position, _init_extra_position;
+
+/**
+ * Particle force of constant magnitude directed tangentially around an axis
+ * through a fixed position, swirling particles about it.
+ */
 let _Tr2ParticleVortexFor;
 class Tr2ParticleVortexForce extends CjsModel {
   static {
@@ -30,6 +35,11 @@ class Tr2ParticleVortexForce extends CjsModel {
     const length = vec3.length(out);
     return length === 0 ? vec3.set(out, 0, 0, 0) : vec3.scale(out, out, this.magnitude / length);
   }
+
+  /**
+   * Nothing to advance per frame: the vortex is fully described by its axis,
+   * position and magnitude.
+   */
   Update(_dt) {}
   static {
     _initClass();

@@ -19,6 +19,12 @@ let _initProto, _initClass, _init_displayFilter, _init_extra_displayFilter, _ini
 // Module scratch (read-only zero vector; container recursion forbids mutable
 // module scratch here - see GetBoundingSphere).
 const ZERO_VEC3 = vec3.create();
+
+/**
+ * Space-object child that groups other children under one transform, owning
+ * their curve sets, controllers, observers, lights, attachments and transform
+ * modifiers, and gating them on a display-quality filter.
+ */
 let _EveChildContainer;
 new class extends _identity {
   static [class EveChildContainer extends _EveChildTransform {
@@ -70,6 +76,11 @@ new class extends _identity {
     #ownerMaxSpeed = 0;
     #activationStrength = 1;
     #hasUpdated = false;
+
+    /**
+     * Links every authored controller that is not already linked to this
+     * container, so controller variables and events reach them.
+     */
     Initialize() {
       for (const controller of this.controllers) {
         if (!controller?.IsLinked?.()) {
@@ -89,27 +100,60 @@ new class extends _identity {
       }
       return true;
     }
+
+    /**
+     * Applies the authored scale/rotation/translation through the shared child
+     * transform setup and returns the rebuilt local transform; lowestLodVisible is
+     * accepted for signature parity only.
+     */
     Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null) {
       return super.Setup(scale, rotation, translation, lowestLodVisible);
     }
+
+    /**
+     * Returns the authored container name, which GetEffectChildByName matches
+     * against on the parent side.
+     */
     GetName() {
       return this.name;
     }
+
+    /** Sets the authored container name, coercing nullish to the empty string. */
     SetName(name) {
       this.name = String(name ?? "");
     }
+
+    /**
+     * Records whether this container's placement was authored in space or by SOF
+     * (the Origin enum).
+     */
     SetOrigin(origin) {
       this.origin = Number(origin) | 0;
     }
+
+    /** Stores the always-on flag that IsAlwaysOn reports to the owner. */
     SetAlwaysOn(alwaysOn) {
       this.alwaysOn = !!alwaysOn;
     }
+
+    /** Reports the authored always-on flag. */
     IsAlwaysOn() {
       return this.alwaysOn;
     }
+
+    /**
+     * Sets the display-quality filter that IsRendering tests the current shader
+     * model against, which in turn gates every update and render path on this
+     * container.
+     */
     SetDisplayQualityModifier(filter) {
       this.displayFilter = Number(filter) | 0;
     }
+
+    /**
+     * Sets the mute flag and, only when it changes, pushes it down to the
+     * contained children and local observers.
+     */
     SetMute(mute) {
       const next = !!mute;
       if (next !== this.mute) {
@@ -117,6 +161,11 @@ new class extends _identity {
         this.MuteChildren();
       }
     }
+
+    /**
+     * Pushes this container's current mute flag onto every contained child and
+     * local observer - it mutates their state, not the container's.
+     */
     MuteChildren() {
       for (const child of this.objects) {
         child?.SetMute?.(this.mute);
@@ -125,12 +174,27 @@ new class extends _identity {
         observer?.SetMute?.(this.mute);
       }
     }
+
+    /**
+     * Appends a transform modifier; modifiers fold over the container's world
+     * transform in insertion order on each async update.
+     */
     AddTransformModifier(modifier) {
       this.transformModifiers.push(modifier);
     }
+
+    /**
+     * Appends a local audio observer, which is re-placed from the container's
+     * world transform on every sync update.
+     */
     AddObserver(observer) {
       this.observers.push(observer);
     }
+
+    /**
+     * Appends a controller, links it to this container, and replays every
+     * controller variable set so far onto it so it starts in sync.
+     */
     AddController(controller) {
       this.controllers.push(controller);
       controller?.Link?.(this);
@@ -138,6 +202,12 @@ new class extends _identity {
         controller?.SetVariable?.(name, value);
       }
     }
+
+    /**
+     * Records a named float variable, pushes it to every controller on this
+     * container, and recurses into the contained children; the recorded value is
+     * also replayed onto controllers and children added later.
+     */
     SetControllerVariable(name, value) {
       const key = String(name ?? "");
       const next = Number(value);
@@ -149,6 +219,11 @@ new class extends _identity {
         child?.SetControllerVariable?.(key, next);
       }
     }
+
+    /**
+     * Fires a named controller event on every controller here and recurses into
+     * the contained children.
+     */
     HandleControllerEvent(name) {
       const eventName = String(name ?? "");
       for (const controller of this.controllers) {
@@ -158,6 +233,8 @@ new class extends _identity {
         child?.HandleControllerEvent?.(eventName);
       }
     }
+
+    /** Starts every controller here and recurses into the contained children. */
     StartControllers() {
       for (const controller of this.controllers) {
         controller?.Start?.();
@@ -166,11 +243,21 @@ new class extends _identity {
         child?.StartControllers?.();
       }
     }
+
+    /**
+     * Forwards a procedural container variable to the contained children; a plain
+     * container holds none of its own.
+     */
     SetProceduralContainerVariable(name, value) {
       for (const child of this.objects) {
         child?.SetProceduralContainerVariable?.(name, value);
       }
     }
+
+    /**
+     * Returns the first direct child whose GetName()/name matches, or null; the
+     * search does not recurse into nested containers.
+     */
     GetEffectChildByName(name) {
       const target = String(name ?? "");
       for (const child of this.objects) {
@@ -180,6 +267,11 @@ new class extends _identity {
       }
       return null;
     }
+
+    /**
+     * Appends a child and replays every controller variable set so far onto it,
+     * then returns that same child.
+     */
     AddToEffectChildrenList(child) {
       this.objects.push(child);
       for (const [name, value] of this.#controllerVariables) {
@@ -187,6 +279,8 @@ new class extends _identity {
       }
       return child;
     }
+
+    /** Removes a child by identity and reports whether it was present. */
     RemoveFromEffectChildrenList(child) {
       const index = this.objects.indexOf(child);
       if (index !== -1) {
@@ -195,6 +289,11 @@ new class extends _identity {
       }
       return false;
     }
+
+    /**
+     * Forwards a shader option to every contained child and attachment; the
+     * container compiles nothing itself.
+     */
     SetShaderOption(name, value) {
       for (const child of this.objects) {
         child?.SetShaderOption?.(name, value);
@@ -203,18 +302,44 @@ new class extends _identity {
         attachment?.SetShaderOption?.(name, value);
       }
     }
+
+    /**
+     * Stores the Granny animation owner supplied by SOF placement; the bone-list
+     * override that would consume it awaits the JS animation seam.
+     */
     SetAnimationOwner(animationOwner) {
       this.animationOwner = animationOwner ?? null;
     }
+
+    /**
+     * Flags this container as a SOF placement root - authored placement state,
+     * persisted for interchange parity, with no consumer inside the container
+     * itself.
+     */
     SetIsPlacementRoot(isPlacementRoot) {
       this.isPlacementRoot = !!isPlacementRoot;
     }
+
+    /**
+     * Appends an attachment; attachments are the only thing a container renders
+     * itself (HasRenderables) and the only thing GetBatches submits.
+     */
     AddAttachment(attachment) {
       this.attachments.push(attachment);
     }
+
+    /**
+     * Drops every attachment, which also stops the container from contributing any
+     * renderable of its own.
+     */
     ClearAttachments() {
       this.attachments.length = 0;
     }
+
+    /**
+     * Reports whether the container owns nothing at all - no children, lights,
+     * attachments, controllers, curve sets, transform modifiers or observers.
+     */
     Empty() {
       return this.objects.length === 0 && this.lights.length === 0 && this.attachments.length === 0 && this.controllers.length === 0 && this.curveSets.length === 0 && this.transformModifiers.length === 0 && this.observers.length === 0;
     }
@@ -717,6 +842,12 @@ new class extends _identity {
     // EveChildUpdateParams by value, cpp:505/592). Allocated per call like
     // EveSpaceObject2's child fan-out - container recursion makes a module
     // scratch record unsafe.
+
+    /**
+     * Copies the caller's update params into a fresh child-facing record (Carbon
+     * passes EveChildUpdateParams by value, cpp:505/592); allocated per call
+     * because container recursion makes a shared module scratch record unsafe.
+     */
 
     // Carbon reads Tr2Renderer::GetShaderModel() (a renderer global); the
     // browser runtime stamps it here. TR2SM_3_0_DEPTH is the DX11 depth path

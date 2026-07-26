@@ -5,6 +5,13 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_spaceObjectParent, _init_extra_spaceObjectParent, _init_childParent, _init_extra_childParent, _init_boneCount, _init_extra_boneCount, _init_bones, _init_extra_bones, _init_ownerMaxSpeed, _init_extra_ownerMaxSpeed, _init_activationStrength, _init_extra_activationStrength, _init_controllerUpdateFrequency, _init_extra_controllerUpdateFrequency, _init_isVisible, _init_extra_isVisible, _init_localToWorldTransform, _init_extra_localToWorldTransform, _init_worldVelocity, _init_extra_worldVelocity;
+
+/**
+ * The parameter block a parent passes down when updating a space-object child:
+ * the parent references, the parent's bone array, the child's world placement,
+ * and the owner's motion and activation state. Rebuilt by the parent for each
+ * child update, so nothing in it survives the call.
+ */
 let _EveChildUpdateParams;
 class EveChildUpdateParams extends CjsModel {
   static {

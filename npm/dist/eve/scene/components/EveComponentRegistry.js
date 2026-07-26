@@ -29,6 +29,11 @@ class EveComponentRegistry extends CjsModel {
 
   /** m_registeredEntities (std::vector<EveEntity*>) */
   registeredEntities = (_init_extra_componentCollectionLoopGuard(this), _init_registeredEntities(this, []));
+
+  /**
+   * Empties every component collection and detaches all registered entities,
+   * resetting their registry link and component state.
+   */
   Clear() {
     for (const collection of this.#componentCollections) {
       collection.Clear();
@@ -42,10 +47,20 @@ class EveComponentRegistry extends CjsModel {
     }
     this.registeredEntities.length = 0;
   }
+
+  /**
+   * Removes the entity from this registry and adds it back, moving it to the end
+   * of the registration order.
+   */
   ReRegister(entity) {
     entity.UnRegister(this);
     entity.Register(this);
   }
+
+  /**
+   * Adds an entity to the registry and records its index, returning false if the
+   * entity is already registered anywhere.
+   */
   Register(entity) {
     if (entity.indexInRegistry !== -1) {
       return false;
@@ -55,6 +70,12 @@ class EveComponentRegistry extends CjsModel {
     this.registeredEntities.push(entity);
     return true;
   }
+
+  /**
+   * Removes an entity by swapping the last registered entity into its slot,
+   * keeping the entity list dense, and returns false if the entity is not
+   * registered here.
+   */
   UnRegister(entity) {
     const index = entity.indexInRegistry;
     if (entity.registry !== this || index < 0 || index >= this.registeredEntities.length) {
@@ -71,14 +92,31 @@ class EveComponentRegistry extends CjsModel {
     entity.indexInRegistry = -1;
     return true;
   }
+
+  /**
+   * Drops the entity from every component collection while leaving it registered
+   * in the entity list.
+   */
   UnRegisterAllComponents(entity) {
     for (const collection of this.#componentCollections) {
       this.RemoveFromCollection(collection, entity);
     }
   }
+
+  /**
+   * Returns the collection for a component name, or null when no collection has
+   * been created for it yet.
+   */
   GetComponentCollection(componentName) {
     return this.#componentCollections.find(collection => collection.name === componentName) ?? null;
   }
+
+  /**
+   * Adds an entity to the named component's collection, creating the collection
+   * on demand, and throws if the entity is missing any method the component
+   * interface requires - the fail-closed stand-in for Carbon's compile-time
+   * RegisterComponent<T> constraint.
+   */
   RegisterComponent(componentName, entity) {
     // Fail-closed duck assertion: Carbon's RegisterComponent<T> cannot compile
     // for an entity that does not implement T; the JS port asserts the
@@ -96,10 +134,21 @@ class EveComponentRegistry extends CjsModel {
     }
     return this.AddToCollection(collection, entity);
   }
+
+  /**
+   * Removes an entity from the named component's collection, returning false
+   * when no such collection exists.
+   */
   UnRegisterComponent(componentName, entity) {
     const collection = this.GetComponentCollection(componentName);
     return collection ? this.RemoveFromCollection(collection, entity) : false;
   }
+
+  /**
+   * Creates a collection for a component name and assigns it the next free bit;
+   * throws once 32 collections exist because the entity component mask is 32
+   * bits wide.
+   */
   AddCollection(componentName) {
     if (this.#componentCollections.length >= 32) {
       throw new RangeError("EveComponentRegistry supports at most 32 component collections.");
@@ -110,6 +159,12 @@ class EveComponentRegistry extends CjsModel {
     this.#componentCollections.push(collection);
     return collection;
   }
+
+  /**
+   * Appends an entity to a collection and stores the resulting index on the
+   * entity under the collection's bit, returning false if it is already a
+   * member.
+   */
   AddToCollection(collection, entity) {
     if (entity.GetComponentIndex(collection.GetBit()) !== undefined) {
       return false;
@@ -118,6 +173,12 @@ class EveComponentRegistry extends CjsModel {
     entity.SetComponentState(collection.GetBit(), index);
     return true;
   }
+
+  /**
+   * Removes an entity from a collection by swapping the back element into its
+   * slot and fixing up the moved entity's stored index, returning false if it
+   * was not a member.
+   */
   RemoveFromCollection(collection, entity) {
     const bit = collection.GetBit();
     const index = entity.GetComponentIndex(bit);
@@ -131,9 +192,20 @@ class EveComponentRegistry extends CjsModel {
     entity.RemoveComponentState(bit);
     return true;
   }
+
+  /**
+   * Returns the live entity array backing the named component collection, or an
+   * empty array when the collection does not exist; the array is borrowed and
+   * changes as entities register.
+   */
   GetComponents(componentName) {
     return this.GetComponentCollection(componentName)?.collection ?? [];
   }
+
+  /**
+   * Returns how many entities are in the named component collection, or 0 when
+   * the collection does not exist.
+   */
   ComponentCount(componentName) {
     return this.GetComponentCollection(componentName)?.Size() ?? 0;
   }

@@ -7,6 +7,11 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_boneIndex, _init_extra_boneIndex, _init_name, _init_extra_name, _init_isCircle, _init_extra_isCircle, _init_position, _init_extra_position, _init_rotation, _init_extra_rotation, _init_scaling, _init_extra_scaling, _init_spacing, _init_extra_spacing, _init_blinkRate, _init_extra_blinkRate, _init_blinkPhase, _init_extra_blinkPhase, _init_blinkPhaseShift, _init_extra_blinkPhaseShift, _init_minScale, _init_extra_minScale, _init_maxScale, _init_extra_maxScale, _init_falloff, _init_extra_falloff, _init_color, _init_extra_color;
+
+/**
+ * One authored run of identical sprites, laid out either evenly along a line or
+ * distributed around a circle, with the blink timing and colour they share.
+ */
 let _EveSpriteLineSetItem;
 new class extends _identity {
   static [class EveSpriteLineSetItem extends CjsModel {
@@ -37,10 +42,21 @@ new class extends _identity {
     maxScale = (_init_extra_minScale(this), _init_maxScale(this, 10));
     falloff = (_init_extra_maxScale(this), _init_falloff(this, 0));
     color = (_init_extra_falloff(this), _init_color(this, vec4.fromValues(1, 1, 1, 1)));
+
+    /**
+     * Coerces an authored count field to a whole, non-negative sprite count; a
+     * non-finite or non-positive value yields zero.
+     */
     static GetSpriteCount(value) {
       const count = Math.trunc(Number(value));
       return Number.isFinite(count) && count > 0 ? count : 0;
     }
+
+    /**
+     * Fills the caller-owned out box with the run's bounds: for a circle, a box
+     * around the position at the larger of the two radii; for a line, a box
+     * centred on the run covering its full spaced length.
+     */
     GetBounds(out) {
       if (this.isCircle) {
         return box3.fromPositionRadius(out, this.position, Math.max(this.scaling[0], this.scaling[1]));
@@ -51,9 +67,17 @@ new class extends _identity {
       const center = vec3.scaleAndAdd(vec3.create(), this.position, direction, distance * 0.5);
       return box3.fromPositionRadius(out, center, distance * 0.5);
     }
+
+    /** The parent bone this sprite run rides. */
     GetBoneIndex() {
       return this.boneIndex;
     }
+
+    /**
+     * Expands the run into its individual sprite positions in parent space -
+     * stepped around the rotated ellipse for a circle, or spaced along the rotated
+     * X axis for a line - as freshly allocated vectors.
+     */
     GetPositions() {
       const positions = [];
       if (this.isCircle) {

@@ -9,6 +9,12 @@ import { IEveSpaceObject2ParentData as _IEveSpaceObject2Pare } from '../../space
 import { TriBatchType } from '../../../generated/trinityCore/enums.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_batchType, _init_extra_batchType, _init_position, _init_extra_position, _init_minScreenSize, _init_extra_minScreenSize, _init_rotation, _init_extra_rotation, _init_scaling, _init_extra_scaling, _init_parentBoneIndex, _init_extra_parentBoneIndex, _init_decalEffect, _init_extra_decalEffect, _init_display, _init_extra_display, _init_staticIndexBuffers, _init_extra_staticIndexBuffers;
+
+/**
+ * A decal projected onto a parent hull, owning its oriented projection matrix,
+ * optional bone attachment, per-LOD triangle index lists and screen-size
+ * visibility ramp.
+ */
 let _EveSpaceObjectDecal;
 new class extends _identity {
   static [class EveSpaceObjectDecal extends CjsModel {
@@ -21,6 +27,10 @@ new class extends _identity {
         family: "eve/attachment/decal"
       })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.read, type, type.int32, void 0, schema.enum("TriBatchType")], 16, "batchType"], [[io, io.notify, io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.float32], 16, "minScreenSize"], [[io, io.notify, io, io.persist, type, type.quat], 16, "rotation"], [[io, io.notify, io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.int32], 16, "parentBoneIndex"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "decalEffect"], [[io, io.readwrite, type, type.boolean], 16, "display"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.array("unknown")], 16, "staticIndexBuffers"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "OnModified"], [[carbon, carbon.method, impl, impl.adapted], 18, "CopyFrom"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetPosition"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetPosition"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetRotation"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetRotation"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetScaling"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetDecalMatrix"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetInverseDecalMatrix"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetScaling"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetBoneIndex"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetBoneIndex"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetIndices"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetStaticIndexBuffers"], [[carbon, carbon.method, impl, impl.adapted], 18, "HasStaticIndexBuffers"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetDecalPrimitiveCounts"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetMinScreenSize"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetEffect"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetBatchType"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetPriority"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetBoneMatrix"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon reads the m_isVisible member directly; JavaScript exposes the private runtime value through an accessor.")], 18, "GetVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetID"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPerObjectData"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetPickingBatches"]], 0, void 0, CjsModel));
     }
+    /**
+     * Establishes Carbon's opaque decal batch type after schema initialization,
+     * because the schema's legacy TriBatchType default is 0.
+     */
     constructor() {
       super();
       // The schema's legacy TriBatchType default is 0. Carbon's decal default is
@@ -72,16 +82,38 @@ new class extends _identity {
      * no member for it. */
     #inverseParentBoneMatrix = mat4.create();
     #shLightingScratch = new Float32Array(_IEveSpaceObject2Pare.SH_COEFFICIENT_COUNT * 4);
+
+    /**
+     * Property form of HasStaticIndexBuffers: whether any LOD carries decal
+     * triangle indices.
+     */
     get hasStaticIndexBuffers() {
       return this.HasStaticIndexBuffers();
     }
+
+    /**
+     * Builds the decal matrix and its inverse from the authored position, rotation
+     * and scaling; returns false when the composed matrix is not invertible.
+     */
     Initialize() {
       return this.#updateDecalMatrix();
     }
+
+    /**
+     * Rebuilds the decal matrix and its inverse after an authored placement
+     * change.
+     */
     OnModified(_options = {}) {
       this.#updateDecalMatrix();
       return true;
     }
+
+    /**
+     * Copies another decal's authored description - name, display, placement, bone
+     * index, minimum screen size, effect and batch type - and rebuilds the decal
+     * matrix; the per-LOD index buffers are not copied. Returns false when source
+     * is missing.
+     */
     CopyFrom(source) {
       if (!source) return false;
       this.name = String(source.name ?? "");
@@ -95,70 +127,159 @@ new class extends _identity {
       this.batchType = Number(source.batchType) | 0;
       return this.#updateDecalMatrix();
     }
+
+    /**
+     * Copies the authored decal position into the caller-owned out vector and
+     * returns it.
+     */
     GetPosition(out = vec3.create()) {
       return vec3.copy(out, this.position);
     }
+
+    /**
+     * Sets the authored decal position and rebuilds the decal matrix; a missing
+     * value is taken as the origin.
+     */
     SetPosition(value) {
       vec3.copy(this.position, value || _EveSpaceObjectDecal.#zero);
       return this.#updateDecalMatrix();
     }
+
+    /**
+     * Copies the authored decal rotation into the caller-owned out quaternion and
+     * returns it.
+     */
     GetRotation(out = quat.create()) {
       return quat.copy(out, this.rotation);
     }
+
+    /**
+     * Sets the authored decal rotation and rebuilds the decal matrix; a missing
+     * value is taken as the identity rotation.
+     */
     SetRotation(value) {
       quat.copy(this.rotation, value || _EveSpaceObjectDecal.#identityRotation);
       return this.#updateDecalMatrix();
     }
+
+    /**
+     * Copies the authored decal scaling into the caller-owned out vector and
+     * returns it.
+     */
     GetScaling(out = vec3.create()) {
       return vec3.copy(out, this.scaling);
     }
+
+    /**
+     * Copies the decal's projection matrix into out; the value is only current as
+     * of the last Initialize, OnModified or placement setter.
+     */
     GetDecalMatrix(out = mat4.create()) {
       return mat4.copy(out, this.#decalMatrix);
     }
+
+    /**
+     * Copies the inverse of the decal's projection matrix into out, which is what
+     * maps hull-space positions into the decal's unit cube.
+     */
     GetInverseDecalMatrix(out = mat4.create()) {
       return mat4.copy(out, this.#inverseDecalMatrix);
     }
+
+    /**
+     * Sets the authored decal scaling and rebuilds the decal matrix; a missing
+     * value is taken as unit scale.
+     */
     SetScaling(value) {
       vec3.copy(this.scaling, value || _EveSpaceObjectDecal.#one);
       return this.#updateDecalMatrix();
     }
+
+    /**
+     * The parent mesh bone the decal rides, or -1 when it rides the hull transform
+     * directly.
+     */
     GetBoneIndex() {
       return this.parentBoneIndex;
     }
+
+    /**
+     * Sets the parent mesh bone the decal rides; the bone matrix itself is only
+     * picked up on the next SetBoneMatrix.
+     */
     SetBoneIndex(index) {
       this.parentBoneIndex = Number(index) | 0;
       return true;
     }
+
+    /**
+     * Replaces the SOF-authored triangle index lists, one array per LOD, coercing
+     * each entry to an unsigned integer.
+     */
     SetIndices(indices) {
       this.staticIndexBuffers = Array.from(indices || [], lod => Array.from(lod || [], value => Number(value) >>> 0));
       return true;
     }
+
+    /**
+     * The per-LOD triangle index lists as fresh copies, so a caller cannot mutate
+     * the stored buffers.
+     */
     GetStaticIndexBuffers() {
       return this.staticIndexBuffers.map(lod => lod.slice());
     }
+
+    /**
+     * Whether any LOD carries triangle indices; a decal without them has no
+     * geometry to draw.
+     */
     HasStaticIndexBuffers() {
       return this.staticIndexBuffers.some(lod => lod.length > 0);
     }
+
+    /** The triangle count per LOD, being each index list's length divided by three. */
     GetDecalPrimitiveCounts() {
       return this.staticIndexBuffers.map(lod => Math.trunc(lod.length / 3));
     }
+
+    /**
+     * Sets the LOD threshold in screen pixels below which UpdateVisibility culls
+     * the decal; zero disables the test and makes the decal always visible.
+     */
     SetMinScreenSize(value) {
       this.minScreenSize = Number(value) || 0;
       return true;
     }
+
+    /** Sets the effect that draws the decal; a decal without one is never visible. */
     SetEffect(effect) {
       this.decalEffect = effect ?? null;
       return true;
     }
+
+    /**
+     * Sets a shader option on the decal effect; returns false when no effect that
+     * accepts options is attached.
+     */
     SetShaderOption(name, value) {
       if (!this.decalEffect?.SetOption) return false;
       this.decalEffect.SetOption(name, value);
       return true;
     }
+
+    /**
+     * Sets the TriBatchType the decal submits under, overriding the opaque default
+     * the constructor establishes.
+     */
     SetBatchType(value) {
       this.batchType = Number(value) | 0;
       return true;
     }
+
+    /**
+     * Sets the draw priority the engine sorts decals on; the value is runtime-only
+     * and never persisted.
+     */
     SetPriority(value) {
       this.#priority = Number(value) >>> 0;
       return true;
@@ -361,6 +482,11 @@ new class extends _identity {
     GetPickingBatches(_batches, _pickTypes, _perObjectData) {
       throw new Error("EveSpaceObjectDecal.GetPickingBatches is not implemented in CarbonEngineJS.");
     }
+
+    /**
+     * Recomposes the decal matrix from the authored rotation, position and scaling
+     * and inverts it; returns whether the inverse existed.
+     */
     #updateDecalMatrix() {
       mat4.fromRotationTranslationScale(this.#decalMatrix, this.rotation, this.position, this.scaling);
       return !!mat4.invert(this.#inverseDecalMatrix, this.#decalMatrix);
