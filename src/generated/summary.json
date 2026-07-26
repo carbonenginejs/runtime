@@ -1,7 +1,7 @@
 {
   "outRoot": "src/generated",
   "classes": {
-    "written": 280,
+    "written": 279,
     "skipped": 315
   },
   "enums": {
@@ -2094,8 +2094,8 @@
     "outRoot": "src/generated",
     "scannedDocs": 1247,
     "relevantDocs": 893,
-    "generated": 595,
-    "fallback": 120,
+    "generated": 594,
+    "fallback": 121,
     "skippedSof": 97,
     "skippedInvalid": 1,
     "errors": 0,
@@ -2236,8 +2236,8 @@
       },
       "eve/spaceObject": {
         "docs": 20,
-        "generated": 13,
-        "fallback": 7,
+        "generated": 12,
+        "fallback": 8,
         "skippedSof": 0,
         "errors": 0
       },
@@ -2570,9 +2570,33 @@
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve/distribution/attributeModifiers",
-        "className": "DistributionEntityLifeTimeEvent",
-        "schema": "eve/DistributionEntityLifeTimeEvent.json",
+        "family": "eve/attachment/decal",
+        "className": "IEveSpaceObjectDecalOwner",
+        "schema": "eve/IEveSpaceObjectDecalOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/attachment",
+        "className": "IEveSpaceObjectAttachment",
+        "schema": "eve/IEveSpaceObjectAttachment.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/attachment",
+        "className": "IEveSpaceObjectAttachmentOwner",
+        "schema": "eve/IEveSpaceObjectAttachmentOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child/behaviors",
+        "className": "IBehavior",
+        "schema": "eve/IBehavior.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child/lineSetPaths",
+        "className": "IEveLineSetPath",
+        "schema": "eve/IEveLineSetPath.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
@@ -2606,93 +2630,57 @@
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve",
-        "className": "EveLODHelper",
-        "schema": "eve/EveLODHelper.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/perObjectData",
-        "className": "EveMissileWarheadPerObjectData",
-        "schema": "eve/EveMissileWarheadPerObjectData.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve",
-        "className": "EveParticleDirectForce",
-        "schema": "eve/EveParticleDirectForce.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve",
-        "className": "EveParticleDragForce",
-        "schema": "eve/EveParticleDragForce.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve",
-        "className": "EveParticleSpring",
-        "schema": "eve/EveParticleSpring.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/socket",
-        "className": "EveSocketParameterFilePath",
-        "schema": "eve/EveSocketParameterFilePath.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/spaceObject",
-        "className": "EveStation2",
-        "schema": "eve/EveStation2.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/virtualCamera/behaviour",
-        "className": "EveVirtualCameraBehaviourVector3MoveRight",
-        "schema": "eve/EveVirtualCameraBehaviourVector3MoveRight.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/virtualCamera/behaviour",
-        "className": "EveVirtualCameraBehaviourVector3MoveUp",
-        "schema": "eve/EveVirtualCameraBehaviourVector3MoveUp.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/virtualCamera/transition",
-        "className": "EveVirtualCameraTransitionCut",
-        "schema": "eve/EveVirtualCameraTransitionCut.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/child/behaviors",
-        "className": "IBehavior",
-        "schema": "eve/IBehavior.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve",
-        "className": "IEveBallpark",
-        "schema": "eve/IEveBallpark.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
         "family": "eve/child/modifiers",
         "className": "IEveChildTransformModifier",
         "schema": "eve/IEveChildTransformModifier.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve/scene",
-        "className": "IEveComponentCollection",
-        "schema": "eve/IEveComponentCollection.json",
+        "family": "eve/child/procedural/selection",
+        "className": "IEveProceduralSelectionMethod",
+        "schema": "eve/IEveProceduralSelectionMethod.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve/distribution",
-        "className": "IEveDistributionMethod",
-        "schema": "eve/IEveDistributionMethod.json",
+        "family": "eve/child",
+        "className": "IEveEffectChildrenOwner",
+        "schema": "eve/IEveEffectChildrenOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child",
+        "className": "IEveInheritPropertiesOwner",
+        "schema": "eve/IEveInheritPropertiesOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child",
+        "className": "IEveSpaceObjectChild",
+        "schema": "eve/IEveSpaceObjectChild.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child",
+        "className": "ITr2PostProcessOwner",
+        "schema": "eve/ITr2PostProcessOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child",
+        "className": "ITr2VolumetricRenderable",
+        "schema": "eve/ITr2VolumetricRenderable.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child",
+        "className": "MorphTargetAnimationFilter",
+        "schema": "eve/MorphTargetAnimationFilter.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/distribution/attributeModifiers",
+        "className": "DistributionEntityLifeTimeEvent",
+        "schema": "eve/DistributionEntityLifeTimeEvent.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
@@ -2726,15 +2714,9 @@
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve/child",
-        "className": "IEveEffectChildrenOwner",
-        "schema": "eve/IEveEffectChildrenOwner.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve",
-        "className": "IEveFiringEffectElement",
-        "schema": "eve/IEveFiringEffectElement.json",
+        "family": "eve/distribution",
+        "className": "IEveDistributionMethod",
+        "schema": "eve/IEveDistributionMethod.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
@@ -2744,117 +2726,21 @@
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve/child",
-        "className": "IEveInheritPropertiesOwner",
-        "schema": "eve/IEveInheritPropertiesOwner.json",
+        "family": "eve/lights",
+        "className": "ITr2LightOwner",
+        "schema": "lights/ITr2LightOwner.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve",
-        "className": "IEveInstanceMeshProvider",
-        "schema": "eve/IEveInstanceMeshProvider.json",
+        "family": "eve/lights",
+        "className": "PerLightShadowSetting",
+        "schema": "lights/PerLightShadowSetting.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve/spaceObject",
-        "className": "IEveLightReceiver",
-        "schema": "eve/IEveLightReceiver.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/child/lineSetPaths",
-        "className": "IEveLineSetPath",
-        "schema": "eve/IEveLineSetPath.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/child/procedural/selection",
-        "className": "IEveProceduralSelectionMethod",
-        "schema": "eve/IEveProceduralSelectionMethod.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve",
-        "className": "IEveReferencePoint",
-        "schema": "eve/IEveReferencePoint.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/spaceObject",
-        "className": "IEveReflectionRenderable",
-        "schema": "eve/IEveReflectionRenderable.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/spaceObject",
-        "className": "IEveSceneRegistrationObject",
-        "schema": "eve/IEveSceneRegistrationObject.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/scene",
-        "className": "IEveShadowCaster",
-        "schema": "eve/IEveShadowCaster.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/scene",
-        "className": "IEveShadowFrustum",
-        "schema": "eve/IEveShadowFrustum.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/smartLights",
-        "className": "IEveSmartLightGroup",
-        "schema": "eve/IEveSmartLightGroup.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/smartLights/attributeModifiers",
-        "className": "IEveSmartLightGroupAttributeModifier",
-        "schema": "eve/IEveSmartLightGroupAttributeModifier.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/socket",
-        "className": "IEveSocketParameter",
-        "schema": "eve/IEveSocketParameter.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/attachment",
-        "className": "IEveSpaceObjectAttachment",
-        "schema": "eve/IEveSpaceObjectAttachment.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/attachment",
-        "className": "IEveSpaceObjectAttachmentOwner",
-        "schema": "eve/IEveSpaceObjectAttachmentOwner.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/child",
-        "className": "IEveSpaceObjectChild",
-        "schema": "eve/IEveSpaceObjectChild.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/attachment/decal",
-        "className": "IEveSpaceObjectDecalOwner",
-        "schema": "eve/IEveSpaceObjectDecalOwner.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve",
-        "className": "IEveTransform",
-        "schema": "eve/IEveTransform.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/volume",
-        "className": "IEveVolume",
-        "schema": "eve/IEveVolume.json",
+        "family": "eve/perObjectData",
+        "className": "EveMissileWarheadPerObjectData",
+        "schema": "eve/EveMissileWarheadPerObjectData.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
@@ -2870,21 +2756,87 @@
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve/spaceObject",
-        "className": "ITr2AudGeometry",
-        "schema": "eve/ITr2AudGeometry.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
         "family": "eve/renderable/stretch",
         "className": "ITr2DebugRenderable",
         "schema": "eve/ITr2DebugRenderable.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve",
-        "className": "ITr2DynamicBindingOwner",
-        "schema": "eve/ITr2DynamicBindingOwner.json",
+        "family": "eve/scene",
+        "className": "IEveComponentCollection",
+        "schema": "eve/IEveComponentCollection.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/scene",
+        "className": "IEveShadowCaster",
+        "schema": "eve/IEveShadowCaster.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/scene",
+        "className": "IEveShadowFrustum",
+        "schema": "eve/IEveShadowFrustum.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/smartLights/attributeModifiers",
+        "className": "IEveSmartLightGroupAttributeModifier",
+        "schema": "eve/IEveSmartLightGroupAttributeModifier.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/smartLights",
+        "className": "IEveSmartLightGroup",
+        "schema": "eve/IEveSmartLightGroup.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/socket",
+        "className": "EveSocketParameterFilePath",
+        "schema": "eve/EveSocketParameterFilePath.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/socket",
+        "className": "IEveSocketParameter",
+        "schema": "eve/IEveSocketParameter.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "EveStation2",
+        "schema": "eve/EveStation2.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "IEveLightReceiver",
+        "schema": "eve/IEveLightReceiver.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "IEveReflectionRenderable",
+        "schema": "eve/IEveReflectionRenderable.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "IEveSceneRegistrationObject",
+        "schema": "eve/IEveSceneRegistrationObject.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "IEveSpaceObject2",
+        "schema": "eve/IEveSpaceObject2.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "ITr2AudGeometry",
+        "schema": "eve/ITr2AudGeometry.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
@@ -2894,27 +2846,93 @@
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve/child",
-        "className": "ITr2PostProcessOwner",
-        "schema": "eve/ITr2PostProcessOwner.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
         "family": "eve/spaceObject",
         "className": "ITr2SoundEmitterOwner",
         "schema": "eve/ITr2SoundEmitterOwner.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve/child",
-        "className": "ITr2VolumetricRenderable",
-        "schema": "eve/ITr2VolumetricRenderable.json",
+        "family": "eve/virtualCamera/behaviour",
+        "className": "EveVirtualCameraBehaviourVector3MoveRight",
+        "schema": "eve/EveVirtualCameraBehaviourVector3MoveRight.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
-        "family": "eve/child",
-        "className": "MorphTargetAnimationFilter",
-        "schema": "eve/MorphTargetAnimationFilter.json",
+        "family": "eve/virtualCamera/behaviour",
+        "className": "EveVirtualCameraBehaviourVector3MoveUp",
+        "schema": "eve/EveVirtualCameraBehaviourVector3MoveUp.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/virtualCamera/transition",
+        "className": "EveVirtualCameraTransitionCut",
+        "schema": "eve/EveVirtualCameraTransitionCut.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/volume",
+        "className": "IEveVolume",
+        "schema": "eve/IEveVolume.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "EveLODHelper",
+        "schema": "eve/EveLODHelper.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "EveParticleDirectForce",
+        "schema": "eve/EveParticleDirectForce.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "EveParticleDragForce",
+        "schema": "eve/EveParticleDragForce.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "EveParticleSpring",
+        "schema": "eve/EveParticleSpring.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "IEveBallpark",
+        "schema": "eve/IEveBallpark.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "IEveFiringEffectElement",
+        "schema": "eve/IEveFiringEffectElement.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "IEveInstanceMeshProvider",
+        "schema": "eve/IEveInstanceMeshProvider.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "IEveReferencePoint",
+        "schema": "eve/IEveReferencePoint.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "IEveTransform",
+        "schema": "eve/IEveTransform.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "ITr2DynamicBindingOwner",
+        "schema": "eve/ITr2DynamicBindingOwner.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {
@@ -3059,18 +3077,6 @@
         "family": "include",
         "className": "Tr2Curve",
         "schema": "include/Tr2Curve.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/lights",
-        "className": "ITr2LightOwner",
-        "schema": "lights/ITr2LightOwner.json",
-        "reason": "schema carries no field or method detail (interface/no-detail class)"
-      },
-      {
-        "family": "eve/lights",
-        "className": "PerLightShadowSetting",
-        "schema": "lights/PerLightShadowSetting.json",
         "reason": "schema carries no field or method detail (interface/no-detail class)"
       },
       {

@@ -501,7 +501,6 @@ export { EveSmartLightMesh } from './generated/eve/smartLights/EveSmartLightMesh
 export { EveSmartLightPointLight } from './generated/eve/smartLights/EveSmartLightPointLight.js';
 export { EveSmartLightQuad } from './generated/eve/smartLights/EveSmartLightQuad.js';
 export { EveSmartLightSpotLight } from './generated/eve/smartLights/EveSmartLightSpotLight.js';
-export { IEveSpaceObject2 } from './generated/eve/spaceObject/IEveSpaceObject2.js';
 export { State, StateChangeEvent } from './generated/eve/spaceObject/enums.js';
 export { EveSwarm } from './generated/eve/spaceObject/swarm/EveSwarm.js';
 export { EveSwarmRenderable } from './generated/eve/spaceObject/swarm/EveSwarmRenderable.js';
