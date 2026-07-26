@@ -1,5 +1,6 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveSpriteLineSet.h
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveSpriteLineSet.cpp
+import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEntity } from "../../EveEntity.js";
@@ -7,6 +8,7 @@ import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Blink } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
+import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 
 
@@ -46,6 +48,12 @@ export class EveSpriteLineSet extends EveEntity
 
   #rebuildRevision = 0;
 
+  /** m_aabb - the union of every unskinned sprite line (cpp:77). */
+  #staticBounds = box3.create();
+
+  /** m_boundingBoxes - [{ boneIndex, bounds }], ascending. */
+  #boneBounds = [];
+
   /** Carbon m_activationStrength (ctor default 0, EveSpriteLineSet.cpp:26 -
    * NOT 1: packed-set lights are BLACK until UpdateLights runs). */
   #activationStrength = 0;
@@ -58,6 +66,7 @@ export class EveSpriteLineSet extends EveEntity
     // effect hashes, bounds caches and registration belong to the adapter.
     this.#rebuildRevision++;
     this.__state.rebuild.add("packedGeometry");
+    CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spriteLines);
   }
 
   @carbon.method
@@ -66,6 +75,38 @@ export class EveSpriteLineSet extends EveEntity
   {
     this.Rebuild();
     return true;
+  }
+
+  /** Carbon EveSpriteLineSet::GetAabb (cpp:177-180): the item-set bounds, with the bone
+   * list forwarded only when the set is skinned. */
+  @carbon.method
+  @impl.implemented
+  GetAabb(out, bones = null, boneCount = 0)
+  {
+    return GetItemSetAabb(
+      out,
+      this.#staticBounds,
+      this.#boneBounds,
+      bones,
+      this.skinned ? boneCount : 0
+    );
+  }
+
+  /** Carbon EveSpriteLineSet::UpdateVisibility (cpp:140-150): an uninitialized set is
+   * NOT visible; otherwise the bounds move into world space and take the
+   * frustum box test. No LOD and no display gate. */
+  @carbon.method
+  @impl.implemented
+  UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
+  {
+    const aabb = this.GetAabb(EveSpriteLineSet.#aabbScratch, bones, boneCount);
+    if (box3.isEmpty(aabb))
+    {
+      return false;
+    }
+
+    box3.transformMat4(aabb, aabb, parentTransform);
+    return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
   }
 
   @carbon.method
@@ -173,6 +214,9 @@ export class EveSpriteLineSet extends EveEntity
       lightManager?.AddLight?.(record);
     }
   }
+
+  /** Per-frame scratch - UpdateVisibility must not allocate. */
+  static #aabbScratch = box3.create();
 
   static #features = { parentBrightness: 0, parentScale: 1 };
 

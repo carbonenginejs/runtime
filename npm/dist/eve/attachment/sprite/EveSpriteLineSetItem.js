@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
+import { box3 } from '@carbonenginejs/runtime-utils/box3';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
@@ -40,15 +41,15 @@ new class extends _identity {
       const count = Math.trunc(Number(value));
       return Number.isFinite(count) && count > 0 ? count : 0;
     }
-    GetBounds(out = vec4.create()) {
+    GetBounds(out) {
       if (this.isCircle) {
-        return vec4.set(out, this.position[0], this.position[1], this.position[2], Math.max(this.scaling[0], this.scaling[1]));
+        return box3.fromPositionRadius(out, this.position, Math.max(this.scaling[0], this.scaling[1]));
       }
       const count = _EveSpriteLineSetItem.GetSpriteCount(this.scaling[0]);
       const direction = vec3.transformQuat(vec3.create(), _EveSpriteLineSetItem.#unitX, this.rotation);
       const distance = count * this.spacing;
       const center = vec3.scaleAndAdd(vec3.create(), this.position, direction, distance * 0.5);
-      return vec4.set(out, center[0], center[1], center[2], distance * 0.5);
+      return box3.fromPositionRadius(out, center, distance * 0.5);
     }
     GetBoneIndex() {
       return this.boneIndex;

@@ -1,4 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
+import { box3 } from '@carbonenginejs/runtime-utils/box3';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveEntity as _EveEntity } from '../../EveEntity.js';
@@ -6,6 +7,7 @@ import { EvePlaneLight as _EvePlaneLight } from './EvePlaneLight.js';
 import { EveComponentType } from '../../EveComponentTypes.js';
 import { Saturate, Fade } from '../EveSpaceObjectAttachmentUtils.js';
 import { Tr2Light as _Tr2Light } from '../../lights/Tr2Light.js';
+import { CreateItemSetBoundingBoxes, GetItemSetAabb } from '../itemSetBounds.js';
 import { MatrixCopyFrom3x4, CopyLightData, AsPerPointLightData, CreateLightRecord, CreateLightDataScratch } from '../../lights/lightConversion.js';
 
 let _initProto, _initClass, _init_pickBufferID, _init_extra_pickBufferID, _init_hideOnLowQuality, _init_extra_hideOnLowQuality, _init_effect, _init_extra_effect, _init_skinned, _init_extra_skinned, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_planes, _init_extra_planes, _init_lights, _init_extra_lights, _init_imageMapParameter, _init_extra_imageMapParameter, _init_layerMap1Parameter, _init_extra_layerMap1Parameter, _init_layerMap2Parameter, _init_extra_layerMap2Parameter, _init_maskMapParameter, _init_extra_maskMapParameter;
@@ -20,7 +22,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EvePlaneSet",
         family: "eve/attachment/planes"
-      })], [[[void 0, io.rebuild("packedGeometry"), io, io.notify, io, io.persist, type, type.uint8], 16, "pickBufferID"], [[io, io.persist, type, type.boolean], 16, "hideOnLowQuality"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.boolean], 16, "skinned"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.list("EvePlaneSetItem")], 16, "planes"], [[io, io.persist, void 0, type.list("EvePlaneLight")], 16, "lights"], [[io, io.persist, void 0, type.objectRef("TriTextureParameter")], 16, "imageMapParameter"], [[io, io.persist, void 0, type.objectRef("TriTextureParameter")], 16, "layerMap1Parameter"], [[io, io.persist, void 0, type.objectRef("TriTextureParameter")], 16, "layerMap2Parameter"], [[io, io.persist, void 0, type.objectRef("TriTextureParameter")], 16, "maskMapParameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetEffect"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetPickBufferID"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetIsSkinned"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddPlaneItem"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPlanes"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetImageMapParameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetLayerMap1Parameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetLayerMap2Parameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetMaskMapParameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddLightFromSOF"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateLights"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The texture average color is a resource capability - read as a GetAverageColor duck on the parameter's resource, white when absent.")], 18, "GetAverageColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); the texture average colors and profile packing follow the adapted ducks above.")], 18, "GetLights"]], 0, void 0, _EveEntity));
+      })], [[[void 0, io.rebuild("packedGeometry"), io, io.notify, io, io.persist, type, type.uint8], 16, "pickBufferID"], [[io, io.persist, type, type.boolean], 16, "hideOnLowQuality"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.boolean], 16, "skinned"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.list("EvePlaneSetItem")], 16, "planes"], [[io, io.persist, void 0, type.list("EvePlaneLight")], 16, "lights"], [[io, io.persist, void 0, type.objectRef("TriTextureParameter")], 16, "imageMapParameter"], [[io, io.persist, void 0, type.objectRef("TriTextureParameter")], 16, "layerMap1Parameter"], [[io, io.persist, void 0, type.objectRef("TriTextureParameter")], 16, "layerMap2Parameter"], [[io, io.persist, void 0, type.objectRef("TriTextureParameter")], 16, "maskMapParameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetEffect"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetPickBufferID"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAabb"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetIsSkinned"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddPlaneItem"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPlanes"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetImageMapParameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetLayerMap1Parameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetLayerMap2Parameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetMaskMapParameter"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddLightFromSOF"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateLights"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The texture average color is a resource capability - read as a GetAverageColor duck on the parameter's resource, white when absent.")], 18, "GetAverageColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); the texture average colors and profile packing follow the adapted ducks above.")], 18, "GetLights"]], 0, void 0, _EveEntity));
     }
     pickBufferID = (_initProto(this), _init_pickBufferID(this, 0));
     hideOnLowQuality = (_init_extra_pickBufferID(this), _init_hideOnLowQuality(this, false));
@@ -39,6 +41,12 @@ new class extends _identity {
     maskMapParameter = (_init_extra_layerMap2Parameter(this), _init_maskMapParameter(this, null));
     #rebuildRevision = (_init_extra_maskMapParameter(this), 0);
 
+    /** m_aabb - the union of every unskinned, non-transparent plane (cpp:323-355). */
+    #staticBounds = box3.create();
+
+    /** m_boundingBoxes - [{ boneIndex, bounds }], ascending. */
+    #boneBounds = [];
+
     /** Carbon m_activationStrength (ctor 0, EvePlaneSet.cpp:76). Lights are
      * BLACK until UpdateLights runs. */
     #activationStrength = 0;
@@ -47,6 +55,9 @@ new class extends _identity {
       // the renderer adapter from this authored graph.
       this.#rebuildRevision++;
       this.__state.rebuild.add("packedGeometry");
+      // Carbon CreateBoundingBoxes (cpp:323-355) is the shared builder plus one
+      // filter: a fully transparent plane contributes NO bounds at all.
+      CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.planes.filter(item => !_EvePlaneSet.#IsFullyTransparent(item)));
     }
     Initialize() {
       this.Rebuild();
@@ -58,6 +69,24 @@ new class extends _identity {
     SetPickBufferID(pickBufferID) {
       this.pickBufferID = Number(pickBufferID) & 0xff;
       if (this.planes.length) this.Rebuild();
+    }
+
+    /** Carbon EvePlaneSet::GetAabb (cpp:273-276): the item-set bounds, with the bone
+     * list forwarded only when the set is skinned. */
+    GetAabb(out, bones = null, boneCount = 0) {
+      return GetItemSetAabb(out, this.#staticBounds, this.#boneBounds, bones, this.skinned ? boneCount : 0);
+    }
+
+    /** Carbon EvePlaneSet::UpdateVisibility (cpp:236-246): an uninitialized set is
+     * NOT visible; otherwise the bounds move into world space and take the
+     * frustum box test. No LOD and no display gate. */
+    UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0) {
+      const aabb = this.GetAabb(_EvePlaneSet.#aabbScratch, bones, boneCount);
+      if (box3.isEmpty(aabb)) {
+        return false;
+      }
+      box3.transformMat4(aabb, aabb, parentTransform);
+      return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
     }
     SetIsSkinned(skinned) {
       this.skinned = !!skinned;
@@ -170,6 +199,12 @@ new class extends _identity {
         lightManager?.AddLight?.(record);
       }
     }
+
+    /** Carbon CreateBoundingBoxes skips an item whose color is exactly
+     * Color(0, 0, 0, 0) (cpp:332-335) - an authored "off" plane contributes no
+     * bounds. Any non-zero channel, alpha included, counts. */
+
+    /** Per-frame scratch - UpdateVisibility must not allocate. */
   }];
   #MapAverageColor(parameter) {
     const average = parameter?.GetResource?.()?.GetAverageColor?.();
@@ -179,6 +214,11 @@ new class extends _identity {
     parentBrightness: 0,
     parentScale: 1
   };
+  #IsFullyTransparent(item) {
+    const color = item?.color;
+    return !!color && !color[0] && !color[1] && !color[2] && !color[3];
+  }
+  #aabbScratch = box3.create();
   #lightRecord = CreateLightRecord();
   #lightDataScratch = CreateLightDataScratch();
   #averageColorScratch = new Float32Array(4);

@@ -5,6 +5,14 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import {
   CreateItemSetBoundingBoxes,
+  EveHazeSet,
+  EveHazeSetItem,
+  EvePlaneSet,
+  EvePlaneSetItem,
+  EveSpotlightSet,
+  EveSpotlightSetItem,
+  EveSpriteLineSet,
+  EveSpriteLineSetItem,
   EveSpriteSet,
   EveSpriteSetItem,
   GetItemSetAabb,
@@ -137,5 +145,98 @@ test("EveSpriteSet.UpdateVisibility tests its transformed item bounds (EveSprite
     set.UpdateVisibility(updateContext, behind, bones, 1),
     true,
     "skinned: the bone moves the sprite back into view"
+  );
+});
+
+
+test("every packed attachment set answers UpdateVisibility from its item bounds", () =>
+{
+  const frustum = new TriFrustum();
+  frustum.DeriveFrustum(
+    mat4.lookAt(mat4.create(), [0, 0, 0], [0, 0, -1], [0, 1, 0]),
+    [0, 0, 0],
+    mat4.perspective(mat4.create(), Math.PI / 2, 1, 0.1, 100000),
+    { width: 1024, height: 1024 }
+  );
+  const updateContext = { GetFrustum: () => frustum };
+  const inFront = mat4.fromTranslation(mat4.create(), [0, 0, -100]);
+  const behind = mat4.fromTranslation(mat4.create(), [0, 0, 400]);
+
+  const haze = new EveHazeSet();
+  const hazeItem = new EveHazeSetItem();
+  vec3.set(hazeItem.position, 0, 0, 0);
+  haze.hazes.push(hazeItem);
+
+  const spotlight = new EveSpotlightSet();
+  spotlight.spotlightItems.push(new EveSpotlightSetItem());
+
+  const planes = new EvePlaneSet();
+  planes.planes.push(new EvePlaneSetItem());
+
+  const lines = new EveSpriteLineSet();
+  const lineItem = new EveSpriteLineSetItem();
+  vec3.set(lineItem.scaling, 3, 1, 1);
+  lines.spriteLines.push(lineItem);
+
+  for (const set of [haze, spotlight, planes, lines])
+  {
+    const name = set.constructor.name;
+    set.Rebuild();
+    assert.equal(set.UpdateVisibility(updateContext, inFront), true, `${name} in front`);
+    assert.equal(set.UpdateVisibility(updateContext, behind), false, `${name} behind`);
+  }
+
+  // An empty set has no bounds and is never visible.
+  const empty = new EveSpotlightSet();
+  empty.Rebuild();
+  assert.equal(empty.UpdateVisibility(updateContext, inFront), false);
+});
+
+test("EvePlaneSet drops a fully transparent plane from its bounds (cpp:332-335)", () =>
+{
+  const set = new EvePlaneSet();
+  const visible = new EvePlaneSetItem();
+  const invisible = new EvePlaneSetItem();
+  vec3.set(invisible.position, 500, 0, 0);
+  invisible.color.set([0, 0, 0, 0]);
+  set.planes.push(visible, invisible);
+  set.Rebuild();
+
+  const bounds = set.GetAabb(box3.create());
+  assert.ok(box3.$max(bounds)[0] < 100, "the transparent plane contributed nothing");
+
+  // Any non-zero channel counts, alpha included.
+  invisible.color.set([0, 0, 0, 1]);
+  set.Rebuild();
+  assert.ok(box3.$max(set.GetAabb(box3.create()))[0] > 100);
+});
+
+test("EveHazeSet always groups per bone, with no skinned flag (cpp:247)", () =>
+{
+  const set = new EveHazeSet();
+  const item = new EveHazeSetItem();
+  item.boneIndex = 3;
+  set.hazes.push(item);
+  set.Rebuild();
+
+  // Carbon passes skinned=true unconditionally, so a bone-indexed haze never
+  // lands in the static box: with no bone list it still reports its own box.
+  assert.equal(set.GetAabb, undefined, "EveHazeSet deliberately has no GetAabb, matching Carbon");
+
+  const frustum = new TriFrustum();
+  frustum.DeriveFrustum(
+    mat4.lookAt(mat4.create(), [0, 0, 0], [0, 0, -1], [0, 1, 0]),
+    [0, 0, 0],
+    mat4.perspective(mat4.create(), Math.PI / 2, 1, 0.1, 100000),
+    { width: 1024, height: 1024 }
+  );
+  const updateContext = { GetFrustum: () => frustum };
+  const inFront = mat4.fromTranslation(mat4.create(), [0, 0, -100]);
+
+  assert.equal(set.UpdateVisibility(updateContext, inFront), true, "bone box, untransformed");
+  assert.equal(
+    set.UpdateVisibility(updateContext, inFront, MakeBones([0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 5000]), 4),
+    false,
+    "bone 3 drags the haze far behind the camera"
   );
 });

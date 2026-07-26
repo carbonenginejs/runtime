@@ -1,5 +1,6 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveHazeSet.h
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveHazeSet.cpp
+import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEntity } from "../../EveEntity.js";
@@ -7,6 +8,7 @@ import { EveHazeSetLight } from "./EveHazeSetLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 
 
 @type.define({ className: "EveHazeSet", family: "eve/attachment/haze" })
@@ -35,6 +37,12 @@ export class EveHazeSet extends EveEntity
   lights = [];
 
   #rebuildRevision = 0;
+
+  /** m_aabb - the union of every haze that rides the parent transform. */
+  #staticBounds = box3.create();
+
+  /** m_boundingBoxes - [{ boneIndex, bounds }], ascending. */
+  #boneBounds = [];
 
   /** Carbon m_activationStrength (ctor 0, EveHazeSet.cpp:66) and
    * m_boosterGain (ctor `false` = 0.0f, cpp:67 - a float initialized with a
@@ -67,6 +75,33 @@ export class EveHazeSet extends EveEntity
     // renderer-facing revision without allocating device resources.
     this.#rebuildRevision++;
     this.__state.rebuild.add("packedGeometry");
+    // Carbon rebuilds the item-set bounds here too (cpp:247), passing
+    // skinned=TRUE unconditionally: a haze set has no skinned flag, so every
+    // bone-indexed haze gets its own box.
+    CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, true, this.hazes);
+  }
+
+  /** Carbon EveHazeSet::UpdateVisibility (cpp:208-218). Unlike the other sets
+   * this one has no GetAabb of its own and never gates the bone count, because
+   * its bounds are always built skinned. */
+  @carbon.method
+  @impl.implemented
+  UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
+  {
+    const aabb = GetItemSetAabb(
+      EveHazeSet.#aabbScratch,
+      this.#staticBounds,
+      this.#boneBounds,
+      bones,
+      boneCount
+    );
+    if (box3.isEmpty(aabb))
+    {
+      return false;
+    }
+
+    box3.transformMat4(aabb, aabb, parentTransform);
+    return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
   }
 
   @carbon.method
@@ -166,6 +201,9 @@ export class EveHazeSet extends EveEntity
       lightManager?.AddLight?.(record);
     }
   }
+
+  /** Per-frame scratch - UpdateVisibility must not allocate. */
+  static #aabbScratch = box3.create();
 
   static #features = { parentBrightness: 0, parentScale: 1 };
 

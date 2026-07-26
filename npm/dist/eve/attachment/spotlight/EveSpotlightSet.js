@@ -1,10 +1,12 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
+import { box3 } from '@carbonenginejs/runtime-utils/box3';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveEntity as _EveEntity } from '../../EveEntity.js';
 import { EveSpotlightLight as _EveSpotlightLight } from './EveSpotlightLight.js';
 import { EveComponentType } from '../../EveComponentTypes.js';
 import { Tr2Light as _Tr2Light } from '../../lights/Tr2Light.js';
+import { CreateItemSetBoundingBoxes, GetItemSetAabb } from '../itemSetBounds.js';
 import { MatrixCopyFrom3x4, AsPerSpotLightData, CreateLightRecord } from '../../lights/lightConversion.js';
 
 let _initProto, _initClass, _init_spotlightItems, _init_extra_spotlightItems, _init_name, _init_extra_name, _init_display, _init_extra_display, _init_coneEffect, _init_extra_coneEffect, _init_glowEffect, _init_extra_glowEffect, _init_skinned, _init_extra_skinned, _init_intensity, _init_extra_intensity, _init_lights, _init_extra_lights;
@@ -18,7 +20,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSpotlightSet",
         family: "eve/attachment/spotlights"
-      })], [[[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.list("EveSpotlightSetItem")], 16, "spotlightItems"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.boolean], 16, "display"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "coneEffect"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "glowEffect"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.boolean], 16, "skinned"], [[io, io.persist, type, type.float32], 16, "intensity"], [[io, io.persist, void 0, type.list("EveSpotlightLight")], 16, "lights"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetConeEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetConeEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetGlowEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetGlowEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetSkinned"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSpotlightItems"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddSpotlightItem"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddLightFromSOF"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateLights"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Profile-index packing is by-reference per lightConversion.js conventions.")], 18, "GetLights"]], 0, void 0, _EveEntity));
+      })], [[[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.list("EveSpotlightSetItem")], 16, "spotlightItems"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.boolean], 16, "display"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "coneEffect"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "glowEffect"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.boolean], 16, "skinned"], [[io, io.persist, type, type.float32], 16, "intensity"], [[io, io.persist, void 0, type.list("EveSpotlightLight")], 16, "lights"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetConeEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetConeEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetGlowEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetGlowEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAabb"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetSkinned"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSpotlightItems"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddSpotlightItem"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddLightFromSOF"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateLights"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Profile-index packing is by-reference per lightConversion.js conventions.")], 18, "GetLights"]], 0, void 0, _EveEntity));
     }
     spotlightItems = (_initProto(this), _init_spotlightItems(this, []));
     name = (_init_extra_spotlightItems(this), _init_name(this, ""));
@@ -30,6 +32,12 @@ new class extends _identity {
     lights = (_init_extra_intensity(this), _init_lights(this, []));
     #rebuildRevision = (_init_extra_lights(this), 0);
 
+    /** m_aabb - the union of every unskinned spotlight (cpp:311). */
+    #staticBounds = box3.create();
+
+    /** m_boundingBoxes - [{ boneIndex, bounds }], ascending. */
+    #boneBounds = [];
+
     /** Carbon m_activationStrength / m_boosterGain (ctor 0 / 0,
      * EveSpotlightSet.cpp:90-91). Lights are BLACK until UpdateLights runs. */
     #activationStrength = 0;
@@ -39,6 +47,8 @@ new class extends _identity {
       // registration are reconciled by the concrete renderer adapter.
       this.#rebuildRevision++;
       this.__state.rebuild.add("packedGeometry");
+      // Carbon rebuilds the item-set bounds at the tail of the same pack (cpp:311).
+      CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spotlightItems);
     }
     Initialize() {
       this.Rebuild();
@@ -55,6 +65,24 @@ new class extends _identity {
     }
     SetGlowEffect(effect) {
       this.glowEffect = effect ?? null;
+    }
+
+    /** Carbon EveSpotlightSet::GetAabb (cpp:176-179): the item-set bounds, with the bone
+     * list forwarded only when the set is skinned. */
+    GetAabb(out, bones = null, boneCount = 0) {
+      return GetItemSetAabb(out, this.#staticBounds, this.#boneBounds, bones, this.skinned ? boneCount : 0);
+    }
+
+    /** Carbon EveSpotlightSet::UpdateVisibility (cpp:138-148): an uninitialized set is
+     * NOT visible; otherwise the bounds move into world space and take the
+     * frustum box test. No LOD and no display gate. */
+    UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0) {
+      const aabb = this.GetAabb(_EveSpotlightSet.#aabbScratch, bones, boneCount);
+      if (box3.isEmpty(aabb)) {
+        return false;
+      }
+      box3.transformMat4(aabb, aabb, parentTransform);
+      return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
     }
     SetSkinned(skinned) {
       this.skinned = !!skinned;
@@ -140,7 +168,10 @@ new class extends _identity {
         lightManager?.AddLight?.(record);
       }
     }
+
+    /** Per-frame scratch - UpdateVisibility must not allocate. */
   }];
+  #aabbScratch = box3.create();
   #features = {
     parentBrightness: 0,
     parentScale: 1

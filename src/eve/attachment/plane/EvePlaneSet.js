@@ -1,5 +1,6 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EvePlaneSet.h
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EvePlaneSet.cpp
+import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEntity } from "../../EveEntity.js";
@@ -7,6 +8,7 @@ import { EvePlaneLight } from "./EvePlaneLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Fade, Saturate } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
+import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import {
   AsPerPointLightData,
   CopyLightData,
@@ -77,6 +79,12 @@ export class EvePlaneSet extends EveEntity
   maskMapParameter = null;
   #rebuildRevision = 0;
 
+  /** m_aabb - the union of every unskinned, non-transparent plane (cpp:323-355). */
+  #staticBounds = box3.create();
+
+  /** m_boundingBoxes - [{ boneIndex, bounds }], ascending. */
+  #boneBounds = [];
+
   /** Carbon m_activationStrength (ctor 0, EvePlaneSet.cpp:76). Lights are
    * BLACK until UpdateLights runs. */
   #activationStrength = 0;
@@ -89,6 +97,14 @@ export class EvePlaneSet extends EveEntity
     // the renderer adapter from this authored graph.
     this.#rebuildRevision++;
     this.__state.rebuild.add("packedGeometry");
+    // Carbon CreateBoundingBoxes (cpp:323-355) is the shared builder plus one
+    // filter: a fully transparent plane contributes NO bounds at all.
+    CreateItemSetBoundingBoxes(
+      this.#staticBounds,
+      this.#boneBounds,
+      this.skinned,
+      this.planes.filter(item => !EvePlaneSet.#IsFullyTransparent(item))
+    );
   }
 
   @carbon.method
@@ -112,6 +128,38 @@ export class EvePlaneSet extends EveEntity
   {
     this.pickBufferID = Number(pickBufferID) & 0xff;
     if (this.planes.length) this.Rebuild();
+  }
+
+  /** Carbon EvePlaneSet::GetAabb (cpp:273-276): the item-set bounds, with the bone
+   * list forwarded only when the set is skinned. */
+  @carbon.method
+  @impl.implemented
+  GetAabb(out, bones = null, boneCount = 0)
+  {
+    return GetItemSetAabb(
+      out,
+      this.#staticBounds,
+      this.#boneBounds,
+      bones,
+      this.skinned ? boneCount : 0
+    );
+  }
+
+  /** Carbon EvePlaneSet::UpdateVisibility (cpp:236-246): an uninitialized set is
+   * NOT visible; otherwise the bounds move into world space and take the
+   * frustum box test. No LOD and no display gate. */
+  @carbon.method
+  @impl.implemented
+  UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
+  {
+    const aabb = this.GetAabb(EvePlaneSet.#aabbScratch, bones, boneCount);
+    if (box3.isEmpty(aabb))
+    {
+      return false;
+    }
+
+    box3.transformMat4(aabb, aabb, parentTransform);
+    return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
   }
 
   @carbon.method
@@ -292,6 +340,18 @@ export class EvePlaneSet extends EveEntity
   }
 
   static #features = { parentBrightness: 0, parentScale: 1 };
+
+  /** Carbon CreateBoundingBoxes skips an item whose color is exactly
+   * Color(0, 0, 0, 0) (cpp:332-335) - an authored "off" plane contributes no
+   * bounds. Any non-zero channel, alpha included, counts. */
+  static #IsFullyTransparent(item)
+  {
+    const color = item?.color;
+    return !!color && !color[0] && !color[1] && !color[2] && !color[3];
+  }
+
+  /** Per-frame scratch - UpdateVisibility must not allocate. */
+  static #aabbScratch = box3.create();
 
   static #lightRecord = CreateLightRecord();
 

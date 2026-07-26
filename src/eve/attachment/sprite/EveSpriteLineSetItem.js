@@ -2,6 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EveSpriteLineSetItem.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
+import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
@@ -87,18 +88,18 @@ export class EveSpriteLineSetItem extends CjsModel
 
   @carbon.method
   @impl.adapted
-  GetBounds(out = vec4.create())
+  GetBounds(out)
   {
     if (this.isCircle)
     {
-      return vec4.set(out, this.position[0], this.position[1], this.position[2], Math.max(this.scaling[0], this.scaling[1]));
+      return box3.fromPositionRadius(out, this.position, Math.max(this.scaling[0], this.scaling[1]));
     }
 
     const count = EveSpriteLineSetItem.GetSpriteCount(this.scaling[0]);
     const direction = vec3.transformQuat(vec3.create(), EveSpriteLineSetItem.#unitX, this.rotation);
     const distance = count * this.spacing;
     const center = vec3.scaleAndAdd(vec3.create(), this.position, direction, distance * 0.5);
-    return vec4.set(out, center[0], center[1], center[2], distance * 0.5);
+    return box3.fromPositionRadius(out, center, distance * 0.5);
   }
 
   @carbon.method

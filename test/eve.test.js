@@ -1,6 +1,7 @@
 import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
 import { AudioGameObject, BackAndForthData, CjsEveThrottleableState, CjsLightData, DecalVSPerObjectData, EveBannerItem, EveBannerLight, EveBannerSet, EveBezierCurve, EveBoxVolume, EveChildAudio, EveChildFogVolume, EveChildLightingOverride, EveChildModifierSRT, EveChildSpherePinPerObjectData, EveChildTransform, EveChildUpdateParams, EveCircle, EveCustomMask, EveDistanceField, EveEllipseDefinition, EveEllipseSet, EveEllipsoidVolume, EveHazeSet, EveHazeSetLight, EveImpactOverlay, EveLODHelper, EveLineData, EveLocator2, EveLocatorSets, EvePerObjectPSData, EvePerObjectVSData, EvePlaneLight, EvePlaneSet, EvePlaneSetItem, EveRemotePositionCurve, EveSpaceObjectDecal, EveSpaceObjectPSData, EveSpaceObjectVSData, EveSpacePerObjectData, EveSpherePinPerObjectData, EveSphereVolume, EveSpotlightLight, EveSpotlightSet, EveSpotlightSetItem, EveSpriteLight, EveSpriteLineSet, EveSpriteLineSetItem, EveSpriteSet, EveSpriteSetItem, EveThrottleable, EveVirtualCamera, EveVirtualCameraBehaviourFloatAdd, EveVirtualCameraBehaviourFloatBase, EveVirtualCameraBehaviourFloatDamping, EveVirtualCameraBehaviourFloatNoise, EveVirtualCameraBehaviourFloatSet, EveVirtualCameraBehaviourVector3Base, EveVirtualCameraBehaviourVector3Damping, EveVirtualCameraBehaviourVector3Inertia, EveVirtualCameraBehaviourVector3MoveBetween, EveVirtualCameraBehaviourVector3MoveForward, EveVirtualCameraBehaviourVector3MoveRight, EveVirtualCameraBehaviourVector3MoveUp, EveVirtualCameraBehaviourVector3Offset, EveVirtualCameraBehaviourVector3Orbit, EveVirtualCameraBehaviourVector3Shake, EveVirtualCameraSystem, EveVirtualCameraTransitionCut, EveVirtualCameraTransitionLerp, FollowASplineData, FormationData, InertiaData, Locator, LocatorData, PlacementDataWithIdentifier, PlayFXData, ProcessLifetimeData, SeekTargetData, Tr2CurveExtrapolation, Tr2Light, Tr2Lod, Tr2PointLight, Tr2ScalarFader, Tr2SpotLight, Tr2TexturedPointLight, TriPerlinCurve } from "../npm/dist/index.js";
+import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
@@ -587,7 +588,9 @@ test("EveSpriteLineSet expands Carbon line and circle positions without renderer
   assertVec3(positions[0], [1, 2, 3]);
   assertVec3(positions[1], [1, 4, 3]);
   assertVec3(positions[2], [1, 6, 3]);
-  assertVec4(line.GetBounds(), [1, 5, 3, 3]);
+  // Carbon returns Sphere(center, halfLength); the port fills its enclosing box.
+  assertVec3(box3.$min(line.GetBounds(box3.create())), [-2, 2, 0]);
+  assertVec3(box3.$max(line.GetBounds(box3.create())), [4, 8, 6]);
   assertEquals(line.GetBoneIndex(), 0);
 
   const circle = new EveSpriteLineSetItem();
@@ -600,7 +603,8 @@ test("EveSpriteLineSet expands Carbon line and circle positions without renderer
   assertVec3(circlePositions[1], [2, 0, 0]);
   assertVec3(circlePositions[2], [0, 0, -4]);
   assertVec3(circlePositions[3], [-2, 0, 0]);
-  assertVec4(circle.GetBounds(), [0, 0, 0, 4]);
+  assertVec3(box3.$min(circle.GetBounds(box3.create())), [-4, -4, -4]);
+  assertVec3(box3.$max(circle.GetBounds(box3.create())), [4, 4, 4]);
 
   const set = new EveSpriteLineSet();
   const options = [];

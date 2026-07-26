@@ -1,4 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
+import { box3 } from '@carbonenginejs/runtime-utils/box3';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveEntity as _EveEntity } from '../../EveEntity.js';
@@ -6,6 +7,7 @@ import { EveSpriteLight as _EveSpriteLight } from './EveSpriteLight.js';
 import { EveComponentType } from '../../EveComponentTypes.js';
 import { Blink } from '../EveSpaceObjectAttachmentUtils.js';
 import { Tr2Light as _Tr2Light } from '../../lights/Tr2Light.js';
+import { CreateItemSetBoundingBoxes, GetItemSetAabb } from '../itemSetBounds.js';
 import { MatrixCopyFrom3x4, AsPerPointLightData, CreateLightRecord } from '../../lights/lightConversion.js';
 
 let _initProto, _initClass, _init_spriteLines, _init_extra_spriteLines, _init_skinned, _init_extra_skinned, _init_effectHash, _init_extra_effectHash, _init_effect, _init_extra_effect, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_lights, _init_extra_lights;
@@ -19,7 +21,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSpriteLineSet",
         family: "eve/attachment/sprites"
-      })], [[[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.list("EveSpriteLineSetItem")], 16, "spriteLines"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.boolean], 16, "skinned"], [[io, io.read, type, type.uint32], 16, "effectHash"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.readwrite, type, type.boolean], 16, "display"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.list("EveSpriteLight")], 16, "lights"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "Setup"], [[carbon, carbon.method, impl, impl.implemented], 18, "Add"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddLightFromSOF"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateLights"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); profile-index packing is by-reference per lightConversion.js.")], 18, "GetLights"]], 0, void 0, _EveEntity));
+      })], [[[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.list("EveSpriteLineSetItem")], 16, "spriteLines"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, type, type.boolean], 16, "skinned"], [[io, io.read, type, type.uint32], 16, "effectHash"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.readwrite, type, type.boolean], 16, "display"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.list("EveSpriteLight")], 16, "lights"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAabb"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "Setup"], [[carbon, carbon.method, impl, impl.implemented], 18, "Add"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddLightFromSOF"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateLights"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); profile-index packing is by-reference per lightConversion.js.")], 18, "GetLights"]], 0, void 0, _EveEntity));
     }
     spriteLines = (_initProto(this), _init_spriteLines(this, []));
     skinned = (_init_extra_spriteLines(this), _init_skinned(this, false));
@@ -30,6 +32,12 @@ new class extends _identity {
     lights = (_init_extra_name(this), _init_lights(this, []));
     #rebuildRevision = (_init_extra_lights(this), 0);
 
+    /** m_aabb - the union of every unskinned sprite line (cpp:77). */
+    #staticBounds = box3.create();
+
+    /** m_boundingBoxes - [{ boneIndex, bounds }], ascending. */
+    #boneBounds = [];
+
     /** Carbon m_activationStrength (ctor default 0, EveSpriteLineSet.cpp:26 -
      * NOT 1: packed-set lights are BLACK until UpdateLights runs). */
     #activationStrength = 0;
@@ -38,10 +46,29 @@ new class extends _identity {
       // effect hashes, bounds caches and registration belong to the adapter.
       this.#rebuildRevision++;
       this.__state.rebuild.add("packedGeometry");
+      CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spriteLines);
     }
     Initialize() {
       this.Rebuild();
       return true;
+    }
+
+    /** Carbon EveSpriteLineSet::GetAabb (cpp:177-180): the item-set bounds, with the bone
+     * list forwarded only when the set is skinned. */
+    GetAabb(out, bones = null, boneCount = 0) {
+      return GetItemSetAabb(out, this.#staticBounds, this.#boneBounds, bones, this.skinned ? boneCount : 0);
+    }
+
+    /** Carbon EveSpriteLineSet::UpdateVisibility (cpp:140-150): an uninitialized set is
+     * NOT visible; otherwise the bounds move into world space and take the
+     * frustum box test. No LOD and no display gate. */
+    UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0) {
+      const aabb = this.GetAabb(_EveSpriteLineSet.#aabbScratch, bones, boneCount);
+      if (box3.isEmpty(aabb)) {
+        return false;
+      }
+      box3.transformMat4(aabb, aabb, parentTransform);
+      return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
     }
     Setup(effect, isSkinned) {
       this.effect = effect ?? null;
@@ -115,7 +142,10 @@ new class extends _identity {
         lightManager?.AddLight?.(record);
       }
     }
+
+    /** Per-frame scratch - UpdateVisibility must not allocate. */
   }];
+  #aabbScratch = box3.create();
   #features = {
     parentBrightness: 0,
     parentScale: 1

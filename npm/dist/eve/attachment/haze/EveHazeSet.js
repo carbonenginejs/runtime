@@ -1,4 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
+import { box3 } from '@carbonenginejs/runtime-utils/box3';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveEntity as _EveEntity } from '../../EveEntity.js';
@@ -6,6 +7,7 @@ import { EveHazeSetLight as _EveHazeSetLight } from './EveHazeSetLight.js';
 import { EveComponentType } from '../../EveComponentTypes.js';
 import { Tr2Light as _Tr2Light } from '../../lights/Tr2Light.js';
 import { MatrixCopyFrom3x4, AsPerPointLightData, CreateLightRecord } from '../../lights/lightConversion.js';
+import { CreateItemSetBoundingBoxes, GetItemSetAabb } from '../itemSetBounds.js';
 
 let _initProto, _initClass, _init_effect, _init_extra_effect, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_hazes, _init_extra_hazes, _init_lights, _init_extra_lights;
 let _EveHazeSet;
@@ -18,7 +20,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveHazeSet",
         family: "eve/attachment/haze"
-      })], [[[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.list("EveHazeSetItem")], 16, "hazes"], [[io, io.persist, void 0, type.list("EveHazeSetLight")], 16, "lights"], [[carbon, carbon.method, impl, impl.implemented], 18, "Setup"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddHazeItem"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddLightFromSOF"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateLights"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Profile-index packing is by-reference per lightConversion.js conventions.")], 18, "GetLights"]], 0, void 0, _EveEntity));
+      })], [[[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("packedGeometry"), io, io.persist, void 0, type.list("EveHazeSetItem")], 16, "hazes"], [[io, io.persist, void 0, type.list("EveHazeSetLight")], 16, "lights"], [[carbon, carbon.method, impl, impl.implemented], 18, "Setup"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "Rebuild"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddHazeItem"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddLightFromSOF"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateLights"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Profile-index packing is by-reference per lightConversion.js conventions.")], 18, "GetLights"]], 0, void 0, _EveEntity));
     }
     effect = (_initProto(this), _init_effect(this, null));
     display = (_init_extra_effect(this), _init_display(this, true));
@@ -26,6 +28,12 @@ new class extends _identity {
     hazes = (_init_extra_name(this), _init_hazes(this, []));
     lights = (_init_extra_hazes(this), _init_lights(this, []));
     #rebuildRevision = (_init_extra_lights(this), 0);
+
+    /** m_aabb - the union of every haze that rides the parent transform. */
+    #staticBounds = box3.create();
+
+    /** m_boundingBoxes - [{ boneIndex, bounds }], ascending. */
+    #boneBounds = [];
 
     /** Carbon m_activationStrength (ctor 0, EveHazeSet.cpp:66) and
      * m_boosterGain (ctor `false` = 0.0f, cpp:67 - a float initialized with a
@@ -45,6 +53,22 @@ new class extends _identity {
       // renderer-facing revision without allocating device resources.
       this.#rebuildRevision++;
       this.__state.rebuild.add("packedGeometry");
+      // Carbon rebuilds the item-set bounds here too (cpp:247), passing
+      // skinned=TRUE unconditionally: a haze set has no skinned flag, so every
+      // bone-indexed haze gets its own box.
+      CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, true, this.hazes);
+    }
+
+    /** Carbon EveHazeSet::UpdateVisibility (cpp:208-218). Unlike the other sets
+     * this one has no GetAabb of its own and never gates the bone count, because
+     * its bounds are always built skinned. */
+    UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0) {
+      const aabb = GetItemSetAabb(_EveHazeSet.#aabbScratch, this.#staticBounds, this.#boneBounds, bones, boneCount);
+      if (box3.isEmpty(aabb)) {
+        return false;
+      }
+      box3.transformMat4(aabb, aabb, parentTransform);
+      return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
     }
     AddHazeItem(item) {
       this.hazes.push(item);
@@ -113,7 +137,10 @@ new class extends _identity {
         lightManager?.AddLight?.(record);
       }
     }
+
+    /** Per-frame scratch - UpdateVisibility must not allocate. */
   }];
+  #aabbScratch = box3.create();
   #features = {
     parentBrightness: 0,
     parentScale: 1
