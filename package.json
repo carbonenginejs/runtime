@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/runtime-utils",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Browser-safe shared utilities, math, constants, Carbon types, schemas, documents, and runtime model primitives.",
   "type": "module",
   "main": "src/index.js",
@@ -132,5 +132,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "overrides": {
+    "brace-expansion": "^5.0.8"
   }
 }

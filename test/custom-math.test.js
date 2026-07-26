@@ -222,6 +222,18 @@ test("box emptiness, transforms, plane intersection, and corners are correct", (
 
     assert.equal(box3.isEmpty(centered), false);
     almostEqualArray(transformed, centered);
+
+    const
+        rotation = quat.setAxisAngle(quat.create(), [ 0, 0, 1 ], Math.PI * 0.5),
+        transform = mat4.fromRotationTranslationScale(
+            mat4.create(),
+            rotation,
+            [ 5, 6, 7 ],
+            [ 2, 4, 6 ]
+        ),
+        transformedCentered = box3.transformMat4(box3.create(), centered, transform);
+    almostEqualArray(transformedCentered, [ 1, 4, 1, 9, 8, 13 ]);
+
     assert.equal(box3.isEmpty(empty), true);
     assert.equal(box3.equals(empty, box3.create()), true);
     assert.deepEqual(Array.from(box3.getSize(vec3.create(), empty)), [ 0, 0, 0 ]);
