@@ -5,6 +5,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
+/**
+ * Controller action that adds a named overlay effect to its owner when the
+ * action starts and removes it again when the action stops.
+ */
 @type.define({
   className: "Tr2ActionOverlay",
   family: "controllers"
@@ -75,6 +79,11 @@ export class Tr2ActionOverlay extends CjsModel
     }
     this.#overlay = null;
   }
+  /**
+   * Finds the overlay already present on the owner by name, and only when it is
+   * absent and addOnStart is set loads it from the authored path, names it,
+   * attaches it, and starts its controllers.
+   */
   #loadOverlay(owner)
   {
     this.#overlay = this.overlayName ? ITr2ControllerAction.callTarget(owner, "GetOverlayEffectByName", this.overlayName) ?? Tr2ActionOverlay.#findNamed(owner, "overlays", this.overlayName) : null;
@@ -93,6 +102,10 @@ export class Tr2ActionOverlay extends CjsModel
       }
     }
   }
+  /**
+   * Lower-cases the authored path and switches the `_skinned` suffix on or off
+   * to match whether the owner is animated.
+   */
   #normalizePath(owner)
   {
     let path = this.path.toLowerCase();
@@ -107,6 +120,12 @@ export class Tr2ActionOverlay extends CjsModel
     }
     return path;
   }
+  /**
+   * Picks the object the overlay is attached to, preferring the controller owner
+   * itself and otherwise following targetAnotherOwner through a named parameter
+   * or a stretch endpoint; `rebind` is set when the redirect requires the
+   * controller owner to rebind.
+   */
   #resolveOwner(owner)
   {
     if (!owner)
@@ -152,6 +171,10 @@ export class Tr2ActionOverlay extends CjsModel
     };
   }
 
+  /**
+   * Attaches an overlay through the owner's AddOverlayEffect, falling back to
+   * pushing onto a plain `overlays` array.
+   */
   static #addOverlay(owner, overlay)
   {
     if (ITr2ControllerAction.hasFunction(owner, "AddOverlayEffect"))
@@ -162,6 +185,10 @@ export class Tr2ActionOverlay extends CjsModel
     this.#addToArray(owner, "overlays", overlay);
   }
 
+  /**
+   * Appends a value to a named array property on the owner if it is not already
+   * present.
+   */
   static #addToArray(owner, listName, value)
   {
     if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]) && !owner[listName].includes(value))
@@ -170,6 +197,10 @@ export class Tr2ActionOverlay extends CjsModel
     }
   }
 
+  /**
+   * Finds an entry in a named array property whose GetName() or `name` matches,
+   * or null.
+   */
   static #findNamed(owner, listName, name)
   {
     if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]))
@@ -179,6 +210,10 @@ export class Tr2ActionOverlay extends CjsModel
     return null;
   }
 
+  /**
+   * Resolves the `SourceSpaceObject` and `DestSpaceObject` endpoints of a
+   * stretch owner, returning null for any other name.
+   */
   static #getStretchOwner(owner, name)
   {
     if (name === "SourceSpaceObject")
@@ -192,11 +227,19 @@ export class Tr2ActionOverlay extends CjsModel
     return null;
   }
 
+  /**
+   * Checks whether an object can hold overlays, by exposing any of the overlay
+   * accessor methods or a plain `overlays` array.
+   */
   static #isOverlayOwner(owner)
   {
     return !!owner && typeof owner === "object" && (ITr2ControllerAction.hasFunction(owner, "GetOverlayEffectByName") || ITr2ControllerAction.hasFunction(owner, "AddOverlayEffect") || ITr2ControllerAction.hasFunction(owner, "RemoveOverlayEffect") || ITr2ControllerAction.hasProperty(owner, "overlays"));
   }
 
+  /**
+   * Loads an overlay from a path through whichever owner loader exists,
+   * reporting in `added` whether that loader already attached it to the owner.
+   */
   static #loadOverlayResource(owner, path)
   {
     const loaded = ITr2ControllerAction.callTarget(owner, "LoadOverlayEffectFromPath", path) ?? ITr2ControllerAction.callTarget(owner, "LoadOverlayEffect", path);
@@ -208,6 +251,10 @@ export class Tr2ActionOverlay extends CjsModel
     return { overlay: added, added: !!added };
   }
 
+  /**
+   * Removes the first occurrence of a value from a named array property on the
+   * owner.
+   */
   static #removeFromArray(owner, listName, value)
   {
     if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]))
@@ -220,6 +267,10 @@ export class Tr2ActionOverlay extends CjsModel
     }
   }
 
+  /**
+   * Detaches an overlay through the owner's RemoveOverlayEffect, falling back to
+   * splicing it out of a plain `overlays` array.
+   */
   static #removeOverlay(owner, overlay)
   {
     if (ITr2ControllerAction.hasFunction(owner, "RemoveOverlayEffect"))
@@ -230,6 +281,10 @@ export class Tr2ActionOverlay extends CjsModel
     this.#removeFromArray(owner, "overlays", overlay);
   }
 
+  /**
+   * Names a loaded overlay through SetName when available, otherwise by
+   * assigning the `name` property; an empty name is ignored.
+   */
   static #setName(target, name)
   {
     if (!name || !target || typeof target !== "object")

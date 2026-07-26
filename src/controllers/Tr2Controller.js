@@ -8,6 +8,10 @@ import { CjsEveThrottleableState } from "../eve/CjsEveThrottleableState.js";
 import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
 
 
+/**
+ * Owns a set of state machines, float variables and event handlers, driving them
+ * against a linked owner object on a throttled update.
+ */
 @type.define({
   className: "Tr2Controller",
   family: "controllers"
@@ -71,6 +75,10 @@ export class Tr2Controller extends CjsModel
 
   #callbackCount = 0;
 
+  /**
+   * Number of named callbacks currently registered; kept as a field so schema
+   * consumers can observe registration without walking the private list.
+   */
   get callbackCount()
   {
     return this.#callbackCount;
@@ -543,6 +551,10 @@ export class Tr2Controller extends CjsModel
       time: this.#time
     };
   }
+  /**
+   * Links and starts an inserted state machine, or stops and unlinks a removed
+   * one, so list edits stay consistent with the controller's play state.
+   */
   #onStateMachineListModified(event, value)
   {
     const stateMachine = Tr2Controller.#asStateMachine(value);
@@ -570,6 +582,10 @@ export class Tr2Controller extends CjsModel
         break;
     }
   }
+  /**
+   * Links an inserted event handler to this controller and unlinks a removed
+   * one.
+   */
   #onEventHandlerListModified(event, value)
   {
     const handler = value instanceof Tr2ControllerEventHandler ? value : null;
@@ -586,6 +602,11 @@ export class Tr2Controller extends CjsModel
         break;
     }
   }
+  /**
+   * Relinks the whole controller when a variable is inserted or removed, because
+   * the variable buffer and per-variable dirty bits are index-based and must be
+   * rebuilt.
+   */
   #onVariableListModified(event)
   {
     const maskedEvent = event & BELIST_EVENTMASK;
@@ -601,6 +622,10 @@ export class Tr2Controller extends CjsModel
     }
   }
 
+  /**
+   * Narrows a list payload to an object reference before it is treated as a
+   * state machine.
+   */
   static #asStateMachine(value)
   {
     return value && typeof value === "object" ? value : null;

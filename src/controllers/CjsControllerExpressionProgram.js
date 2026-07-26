@@ -62,6 +62,11 @@ const CURVE_EXPRESSION_TERMS = [
   ...(parameters ? { parameters } : {}),
   description
 }));
+/**
+ * Compiles a Carbon controller or curve expression into an AST and evaluates it
+ * without dynamic JavaScript eval, exposing the referenced variable and function
+ * names for dirty tracking.
+ */
 export class CjsControllerExpressionProgram
 {
   source = "";
@@ -78,6 +83,10 @@ export class CjsControllerExpressionProgram
 
   #error = null;
 
+  /**
+   * Creates a program and immediately compiles the supplied source; compilation
+   * failures are captured in `error` rather than thrown.
+   */
   constructor(source = "", options = {})
   {
     this.Compile(source, options);
@@ -181,6 +190,11 @@ export class CjsControllerExpressionProgram
     return false;
   }
 
+  /**
+   * Creates the mutable per-action cache record that compileCached and
+   * makeActionContext operate on, holding the last compiled program, its source,
+   * and the action's start and last evaluation times.
+   */
   static createRuntimeState()
   {
     return {
@@ -192,6 +206,10 @@ export class CjsControllerExpressionProgram
     };
   }
 
+  /**
+   * Recompiles into the supplied runtime state only when the expression text has
+   * changed, so per-frame evaluation does not re-parse.
+   */
   static compileCached(state, expression, emptyValue = 0, functions)
   {
     if (!state.program || state.source !== expression)
@@ -202,6 +220,11 @@ export class CjsControllerExpressionProgram
     return state.program;
   }
 
+  /**
+   * Builds the evaluation context for an action, deriving `stateTime` from the
+   * runtime state's start and last times and delegating to the controller's own
+   * GetExpressionContext when it has one.
+   */
   static makeActionContext(controller, owner, state, extra = {})
   {
     const stateTime = state.lastTime - state.startTime;
@@ -218,6 +241,11 @@ export class CjsControllerExpressionProgram
     };
   }
 
+  /**
+   * Samples an arbitrary curve-like object at a time, trying GetValueAt,
+   * GetValue and Update in that order before falling back to a currentValue
+   * property or a plain numeric coercion.
+   */
   static getCurveValue(curve, time)
   {
     if (HasFunction(curve, "GetValueAt"))
@@ -235,6 +263,11 @@ export class CjsControllerExpressionProgram
     return HasProperty(curve, "currentValue") ? ToNumber(curve.currentValue) : ToNumber(curve);
   }
 
+  /**
+   * Appends the controller, graphics-setting and server-date expression terms to
+   * an editor term list, skipping group/name pairs already present and adding
+   * the `Curve` term only when the caller declares a curve.
+   */
   static addControllerTermInfo(out, options = {})
   {
     for (const term of CONTROLLER_EXPRESSION_TERMS)
@@ -255,6 +288,10 @@ export class CjsControllerExpressionProgram
     }
   }
 
+  /**
+   * Returns a fresh copy of the curve-expression term list for editor
+   * autocompletion, optionally including the `radians` function.
+   */
   static getCurveTermInfo(options = {})
   {
     const terms = CURVE_EXPRESSION_TERMS.map(term => ({ ...term }));
@@ -276,6 +313,12 @@ export class CjsControllerExpressionProgram
     return new CjsControllerExpressionProgram(source, options);
   }
 }
+/**
+ * Recursive-descent parser turning expression source into the AST evaluated by
+ * CjsControllerExpressionProgram, collecting referenced variable and function
+ * names and rejecting identifiers that could reach the JavaScript prototype
+ * chain.
+ */
 class CjsControllerExpressionParser
 {
   source;
@@ -287,18 +330,30 @@ class CjsControllerExpressionParser
 
   functionNames = new Set();
 
+  /**
+   * Tokenizes the source up front; a malformed character or unterminated string
+   * throws a CjsControllerExpressionCompileError here rather than during Parse.
+   */
   constructor(source, options)
   {
     this.source = source;
     this.options = options || {};
     this.tokens = Tokenize(source);
   }
+  /**
+   * Parses the whole source as a single expression and requires that all input
+   * is consumed.
+   */
   Parse()
   {
     const expression = this.ParseConditional();
     this.Expect("eof");
     return expression;
   }
+  /**
+   * Parses the ternary `cond ? a : b` level, which is right-associative and the
+   * lowest-precedence form.
+   */
   ParseConditional()
   {
     const condition = this.ParseLogicalOr();
@@ -316,6 +371,7 @@ class CjsControllerExpressionParser
     }
     return condition;
   }
+  /** Parses left-associative `||` chains. */
   ParseLogicalOr()
   {
     let node = this.ParseLogicalAnd();
@@ -330,6 +386,7 @@ class CjsControllerExpressionParser
     }
     return node;
   }
+  /** Parses left-associative `&&` chains, which bind tighter than `||`. */
   ParseLogicalAnd()
   {
     let node = this.ParseEquality();
@@ -344,6 +401,7 @@ class CjsControllerExpressionParser
     }
     return node;
   }
+  /** Parses left-associative `==` and `!=` chains. */
   ParseEquality()
   {
     let node = this.ParseComparison();
@@ -373,6 +431,10 @@ class CjsControllerExpressionParser
       }
     }
   }
+  /**
+   * Parses left-associative `<`, `<=`, `>` and `>=` chains, which bind tighter
+   * than equality.
+   */
   ParseComparison()
   {
     let node = this.ParseTerm();
@@ -420,6 +482,7 @@ class CjsControllerExpressionParser
       }
     }
   }
+  /** Parses left-associative `+` and `-` chains. */
   ParseTerm()
   {
     let node = this.ParseFactor();
@@ -449,6 +512,10 @@ class CjsControllerExpressionParser
       }
     }
   }
+  /**
+   * Parses left-associative `*`, `/` and `%` chains, which bind tighter than
+   * addition.
+   */
   ParseFactor()
   {
     let node = this.ParseExponent();
@@ -487,6 +554,10 @@ class CjsControllerExpressionParser
       }
     }
   }
+  /**
+   * Parses `^` power chains; unlike most languages this level is
+   * left-associative here.
+   */
   ParseExponent()
   {
     let node = this.ParseUnary();
@@ -501,6 +572,10 @@ class CjsControllerExpressionParser
     }
     return node;
   }
+  /**
+   * Parses right-nested prefix `!`, `-` and `+` operators, falling through to a
+   * primary when none is present.
+   */
   ParseUnary()
   {
     if (this.Match("operator", "!"))
@@ -529,6 +604,11 @@ class CjsControllerExpressionParser
     }
     return this.ParsePrimary();
   }
+  /**
+   * Parses a number, string, parenthesized expression, function call, built-in
+   * constant, or a variable identifier, recording bare identifiers in
+   * `variableNames`.
+   */
   ParsePrimary()
   {
     const token = this.Peek();
@@ -575,6 +655,11 @@ class CjsControllerExpressionParser
     }
     throw this.Error(`Unexpected token '${String(token.value)}'`);
   }
+  /**
+   * Parses a call argument list after the opening parenthesis and fails
+   * compilation when the name resolves to no built-in or caller-supplied
+   * function, so unknown functions cannot reach evaluation.
+   */
   ParseCall(name)
   {
     this.AssertSafeIdentifier(name);
@@ -598,6 +683,10 @@ class CjsControllerExpressionParser
       args
     };
   }
+  /**
+   * Rejects identifiers such as `__proto__`, `constructor` and `globalThis` that
+   * could be used to escape the sandboxed evaluator.
+   */
   AssertSafeIdentifier(name)
   {
     if (BLOCKED_IDENTIFIERS.has(name))
@@ -605,10 +694,18 @@ class CjsControllerExpressionParser
       throw this.Error(`Unsafe identifier '${name}'`);
     }
   }
+  /**
+   * Returns the token at the cursor without consuming it; the stream always ends
+   * with an `eof` token.
+   */
   Peek()
   {
     return this.tokens[this.index];
   }
+  /**
+   * Consumes the next token and returns true when it has the given type and, if
+   * supplied, the given value; otherwise leaves the cursor untouched.
+   */
   Match(type, value)
   {
     const token = this.Peek();
@@ -623,6 +720,10 @@ class CjsControllerExpressionParser
     this.index++;
     return true;
   }
+  /**
+   * Consumes and returns the next token, throwing a compile error naming the
+   * expected form when it does not match.
+   */
   Expect(type, value)
   {
     const token = this.Peek();
@@ -632,6 +733,10 @@ class CjsControllerExpressionParser
     }
     throw this.Error(`Expected ${value || type}, got '${token ? String(token.value) : "end of input"}'`);
   }
+  /**
+   * Builds a compile error carrying the source text and the character position
+   * of the current token.
+   */
   Error(message)
   {
     const token = this.Peek();
@@ -1344,11 +1449,19 @@ function HasFunction(value, key)
 {
   return HasProperty(value, key) && typeof value[key] === "function";
 }
+/**
+ * Error raised while tokenizing or parsing an expression, carrying the source
+ * text, the reason, and the character position at which parsing failed.
+ */
 export class CjsControllerExpressionCompileError extends Error
 {
   expression;
   reason;
   position;
+  /**
+   * Formats the message as the position, reason and full expression so a failed
+   * compile is diagnosable from the message alone.
+   */
   constructor(data)
   {
     super(`Error compiling expression at ${data.position}: ${data.reason} (${data.expression})`);
@@ -1358,10 +1471,18 @@ export class CjsControllerExpressionCompileError extends Error
     this.position = data.position;
   }
 }
+/**
+ * Error raised while evaluating a compiled expression, carrying the source text
+ * and the reason.
+ */
 export class CjsControllerExpressionEvaluateError extends Error
 {
   expression;
   reason;
+  /**
+   * Formats the message as the reason and the full expression; unlike compile
+   * errors there is no meaningful source position at evaluation time.
+   */
   constructor(data)
   {
     super(`Error evaluating expression: ${data.reason} (${data.expression})`);

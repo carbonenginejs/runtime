@@ -67,12 +67,17 @@ for (const entry of entries)
     problems.push([label, `restates the name: "${text}"`]);
   }
 
-  const normalized = text.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ");
-  if (seen.has(normalized))
+  // Punctuation is significant here - "`+` and `-` chains" and "`==` and `!=`
+  // chains" are different sentences - so only whitespace and case collapse.
+  // The same helper appearing in two classes may legitimately share a doc; two
+  // DIFFERENTLY NAMED symbols sharing one sentence means at least one is wrong.
+  const normalized = text.toLowerCase().replace(/\s+/g, " ").trim();
+  const previous = seen.get(normalized);
+  if (previous && previous.split(".").pop().replace(/^#/, "") !== symbol)
   {
-    problems.push([label, `duplicate of ${seen.get(normalized)}`]);
+    problems.push([label, `duplicate of ${previous}`]);
   }
-  else
+  else if (!previous)
   {
     seen.set(normalized, entry.name);
   }

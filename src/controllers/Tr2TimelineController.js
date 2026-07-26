@@ -8,6 +8,11 @@ import { Tr2TimelineEntry } from "./Tr2TimelineEntry.js";
 import { UnlinkReason } from "./enums.js";
 
 
+/**
+ * Plays a list of controller actions against a scrubbable timeline, starting and
+ * stopping each action as the current time enters and leaves its authored
+ * start/end range on an enabled track.
+ */
 @type.define({
   className: "Tr2TimelineController",
   family: "controllers"
@@ -434,24 +439,41 @@ export class Tr2TimelineController extends CjsModel
   {
     return this.actions[index] ?? null;
   }
+  /**
+   * Gets the timeline start time in seconds of the action at an index, or 0 when
+   * the index has no entry.
+   */
   @carbon.method
   @impl.implemented
   GetActionStartTime(index)
   {
     return this.#entryAt(index)?.startTime ?? 0;
   }
+  /**
+   * Gets the timeline end time in seconds of the action at an index, or 0 when
+   * the index has no entry.
+   */
   @carbon.method
   @impl.implemented
   GetActionEndTime(index)
   {
     return this.#entryAt(index)?.endTime ?? 0;
   }
+  /**
+   * Gets the track the action at an index belongs to, or 0 when the index has no
+   * entry.
+   */
   @carbon.method
   @impl.implemented
   GetActionTrackID(index)
   {
     return this.#entryAt(index)?.trackID ?? 0;
   }
+  /**
+   * Moves an action's start time, starting or stopping the action immediately
+   * when the edit changes whether it covers the current time; returns false for
+   * an out-of-range index.
+   */
   @carbon.method
   @impl.adapted
   SetActionStartTime(index, startTime)
@@ -484,6 +506,11 @@ export class Tr2TimelineController extends CjsModel
     entry.startTime = startTime;
     return true;
   }
+  /**
+   * Moves an action's end time, starting or stopping the action immediately when
+   * the edit changes whether it covers the current time; returns false for an
+   * out-of-range index.
+   */
   @carbon.method
   @impl.adapted
   SetActionEndTime(index, endTime)
@@ -516,6 +543,11 @@ export class Tr2TimelineController extends CjsModel
     entry.endTime = endTime;
     return true;
   }
+  /**
+   * Reassigns an action to another track, starting or stopping it when the move
+   * changes whether its track is enabled while the action covers the current
+   * time.
+   */
   @carbon.method
   @impl.adapted
   SetActionTrackID(index, trackID)
@@ -710,6 +742,12 @@ export class Tr2TimelineController extends CjsModel
     }
     this.#setTime(time, false);
   }
+  /**
+   * Sets the current time and reconciles every enabled action against the new
+   * time; when includePassedActions is set, an action whose whole range was
+   * skipped over in one step is started and stopped back to back so it is not
+   * silently missed.
+   */
   #setTime(time, includePassedActions)
   {
     const oldTime = this.#time;
@@ -776,16 +814,28 @@ export class Tr2TimelineController extends CjsModel
       this.Link(owner);
     }
   }
+  /**
+   * Gets the timeline entry parallel to the action at an index, or null when the
+   * lists are not the same length.
+   */
   #entryAt(index)
   {
     return this.entries[index] ?? null;
   }
 
+  /**
+   * Checks whether a time falls in an entry's range; the start is inclusive and
+   * the end exclusive.
+   */
   static #inRange(time, entry)
   {
     return time >= entry.startTime && time < entry.endTime;
   }
 
+  /**
+   * Checks whether an entry's whole range fell inside a single update step,
+   * meaning the action was never observed active.
+   */
   static #crossedRange(oldTime, newTime, entry)
   {
     const updateRange = { startTime: oldTime, endTime: newTime };

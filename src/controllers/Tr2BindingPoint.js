@@ -17,6 +17,11 @@ const SWIZZLE_OFFSETS = {
   a: 3
 };
 
+/**
+ * Resolves an authored `path`/`attribute` pair against named root objects into a
+ * concrete property, optionally a single swizzled component of a vector, and
+ * reads or writes it.
+ */
 @type.define({
   className: "Tr2BindingPoint",
   family: "controllers"
@@ -240,6 +245,11 @@ export class Tr2BindingPoint extends CjsModel
     return true;
   }
 
+  /**
+   * Walks a binding path of the form `Root.child[0].other["name"]` against the
+   * supplied name/value root pairs, returning the addressed object or null if
+   * any step fails.
+   */
   static ResolvePath(path, roots)
   {
     if (!path)
@@ -285,6 +295,11 @@ export class Tr2BindingPoint extends CjsModel
     return Tr2BindingPoint.#isObjectRecord(object) ? object : null;
   }
 
+  /**
+   * Normalizes the `roots` argument into name/value pairs, accepting an array of
+   * pairs, a plain object map, or a controller whose owner is exposed as `Owner`
+   * alongside its own binding path roots.
+   */
   static #getLinkRoots(roots, owner)
   {
     if (Array.isArray(roots))
@@ -309,6 +324,11 @@ export class Tr2BindingPoint extends CjsModel
     return out;
   }
 
+  /**
+   * Splits `field.x` into a property name and a component offset; returns an
+   * offset of -1 for a whole-field binding and null when the suffix is not a
+   * single valid xyzw/rgba swizzle.
+   */
   static #parseAttribute(attribute)
   {
     const dot = attribute.indexOf(".");
@@ -324,12 +344,20 @@ export class Tr2BindingPoint extends CjsModel
     return { name: attribute.slice(0, dot), offset: SWIZZLE_OFFSETS[swizzle] };
   }
 
+  /**
+   * Reads a C-style identifier starting at an index, returning its text and the
+   * index just past it.
+   */
   static #readIdentifier(path, index)
   {
     const match = /^[A-Za-z_][A-Za-z0-9_]*/.exec(path.slice(index));
     return match ? { value: match[0], next: index + match[0].length } : null;
   }
 
+  /**
+   * Reads a bracketed selector, which is either a possibly negative integer
+   * index or a double-quoted name.
+   */
   static #readIndex(path, index)
   {
     if (path[index] !== "[")
@@ -353,6 +381,10 @@ export class Tr2BindingPoint extends CjsModel
     return null;
   }
 
+  /**
+   * Selects an element from a list by integer index, counting from the end for
+   * negative values, or by matching the element's `name`.
+   */
   static #getListElement(object, selector)
   {
     if (!object)
@@ -372,6 +404,10 @@ export class Tr2BindingPoint extends CjsModel
     return list.find(item => Tr2BindingPoint.#isObjectRecord(item) && item.name === selector) ?? null;
   }
 
+  /**
+   * Finds the array a bracketed selector should index into, checking `items`,
+   * `children`, `curveSets`, `controllers` and `actions` in that order.
+   */
   static #findListProperty(object)
   {
     for (const name of ["items", "children", "curveSets", "controllers", "actions"])
@@ -384,6 +420,11 @@ export class Tr2BindingPoint extends CjsModel
     return null;
   }
 
+  /**
+   * Tells the target its property changed through the first of UpdateValues,
+   * OnValueChanged or OnModified that it implements, and otherwise marks the
+   * field in a `_dirty` record.
+   */
   static #notifyValueChanged(target, attribute, value, source)
   {
     if (Tr2BindingPoint.#hasFunction(target, "UpdateValues"))
@@ -404,6 +445,10 @@ export class Tr2BindingPoint extends CjsModel
     }
   }
 
+  /**
+   * Compares two array-likes element-wise with Object.is, used to decide whether
+   * a vector write actually changed anything.
+   */
   static #areArrayValuesEqual(a, b)
   {
     if (a.length !== b.length)
@@ -420,16 +465,25 @@ export class Tr2BindingPoint extends CjsModel
     return true;
   }
 
+  /**
+   * Distinguishes a plain name-to-object root map from a controller, by checking
+   * that it exposes neither GetOwner nor GetBindingPathRoots.
+   */
   static #isPlainRootMap(value)
   {
     return Tr2BindingPoint.#isObjectRecord(value) && !Tr2BindingPoint.#hasFunction(value, "GetOwner") && !Tr2BindingPoint.#hasFunction(value, "GetBindingPathRoots");
   }
 
+  /**
+   * Checks that a value is a non-null object and so can be indexed by a path
+   * step.
+   */
   static #isObjectRecord(value)
   {
     return !!value && typeof value === "object";
   }
 
+  /** Checks that a value is an object whose named key is callable. */
   static #hasFunction(value, key)
   {
     return Tr2BindingPoint.#isObjectRecord(value) && typeof value[key] === "function";

@@ -5,6 +5,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
+/**
+ * Controller action that attaches a child effect loaded from a resource path to
+ * its owner on start and detaches it on stop.
+ */
 @type.define({
   className: "Tr2ActionChildEffect",
   family: "controllers"
@@ -122,14 +126,27 @@ export class Tr2ActionChildEffect extends CjsModel
     }
     this.#child = null;
   }
+  /**
+   * Resolves the object the child effect is attached to, following
+   * targetAnotherOwner when set.
+   */
   ResolveOwner(owner)
   {
     return this.#resolveOwner(owner).owner;
   }
+  /**
+   * Looks up an already-present child by childName on the owner, returning null
+   * when childName is empty or no match exists.
+   */
   FindChild(owner)
   {
     return (this.childName ? ITr2ControllerAction.callTarget(owner, "GetEffectChildByName", this.childName) ?? Tr2ActionChildEffect.#findNamed(owner, this.childName) : null) ?? null;
   }
+  /**
+   * Creates the child through the owner's AddChildFromPath, and when the owner
+   * has no loader falls back to attaching a plain `{ name, path }` placeholder
+   * record so the binding still resolves.
+   */
   CreateChild(owner)
   {
     const childFromOwner = ITr2ControllerAction.callTarget(owner, "AddChildFromPath", this.path, this.childName);
@@ -146,6 +163,11 @@ export class Tr2ActionChildEffect extends CjsModel
     Tr2ActionChildEffect.#addChildToOwner(owner, child);
     return child;
   }
+  /**
+   * Redirects the action to another owner named by targetAnotherOwner, trying a
+   * named effect child, then a named parameter, then a stretch endpoint;
+   * `rebind` is set when the redirect requires the controller owner to rebind.
+   */
   #resolveOwner(owner)
   {
     if (!owner || !this.targetAnotherOwner)
@@ -178,6 +200,10 @@ export class Tr2ActionChildEffect extends CjsModel
     };
   }
 
+  /**
+   * Attaches a child through AddToEffectChildrenList or AddChild, falling back
+   * to pushing onto plain `effectChildren` and `children` arrays.
+   */
   static #addChildToOwner(owner, child)
   {
     if (ITr2ControllerAction.hasFunction(owner, "AddToEffectChildrenList"))
@@ -194,6 +220,10 @@ export class Tr2ActionChildEffect extends CjsModel
     this.#addToArray(owner, "children", child);
   }
 
+  /**
+   * Searches the owner's `effectChildren`, `children` and `items` arrays for an
+   * entry whose GetName() or `name` matches.
+   */
   static #findNamed(owner, name)
   {
     for (const listName of ["effectChildren", "children", "items"])
@@ -210,6 +240,10 @@ export class Tr2ActionChildEffect extends CjsModel
     return null;
   }
 
+  /**
+   * Resolves the `SourceSpaceObject` and `DestSpaceObject` endpoints of a
+   * stretch owner, returning null for any other name.
+   */
   static #getStretchOwner(owner, name)
   {
     if (name === "SourceSpaceObject")
@@ -223,6 +257,11 @@ export class Tr2ActionChildEffect extends CjsModel
     return null;
   }
 
+  /**
+   * Detaches a child through RemoveFromEffectChildrenList or RemoveChild,
+   * falling back to splicing it out of plain `effectChildren` and `children`
+   * arrays.
+   */
   static #removeChildFromOwner(owner, child)
   {
     if (ITr2ControllerAction.hasFunction(owner, "RemoveFromEffectChildrenList"))
@@ -239,6 +278,10 @@ export class Tr2ActionChildEffect extends CjsModel
     this.#removeFromArray(owner, "children", child);
   }
 
+  /**
+   * Names a created child through SetName when available, otherwise by assigning
+   * the `name` property; an empty name is ignored.
+   */
   static #setChildName(child, name)
   {
     if (!name || !child || typeof child !== "object")
@@ -253,6 +296,10 @@ export class Tr2ActionChildEffect extends CjsModel
     child.name = name;
   }
 
+  /**
+   * Appends a value to a named array property on the owner if it is not already
+   * present.
+   */
   static #addToArray(owner, listName, value)
   {
     if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]) && !owner[listName].includes(value))
@@ -261,6 +308,10 @@ export class Tr2ActionChildEffect extends CjsModel
     }
   }
 
+  /**
+   * Removes the first occurrence of a value from a named array property on the
+   * owner.
+   */
   static #removeFromArray(owner, listName, value)
   {
     if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]))
