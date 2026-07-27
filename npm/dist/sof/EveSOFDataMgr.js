@@ -436,6 +436,10 @@ function projectHullChildren(values) {
 function projectHullChildSets(values) {
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
     visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroupName: String(value.visibilityGroup ?? "primary"),
+    // Carbon hashes the group and keeps no name; the catalog retains it so
+    // callers can report which groups a hull offers (never emitted in a document).
+    visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(item => ({
       redFilePath: String(item.redFilePath ?? ""),
       lowestLodVisible: Number(item.lowestLodVisible ?? 0),
@@ -577,6 +581,7 @@ function projectHullBanners(values) {
     groups.get(usage).items.push({
       item: projectBannerItem(value, reference++),
       visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+      visibilityGroupName: String(value.visibilityGroup ?? "primary"),
       bannerLight: {
         radiusMultiplier: Number(light.radiusMultiplier ?? 1),
         brightness: Number(light.brightness ?? 1),
@@ -607,6 +612,7 @@ function projectHullBannerSets(values) {
     }
     result.push({
       visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+      visibilityGroupName: String(value.visibilityGroup ?? "primary"),
       bannerTypes: new Map([...groups.entries()].sort(([left], [right]) => left - right))
     });
   }
@@ -628,6 +634,7 @@ function projectHullHazeSets(values) {
     hazeType: Number(value.hazeType ?? 0),
     skinned: value.skinned === true,
     visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(item => ({
       colorType: Number(item.colorType ?? 0),
       boneIndex: Number(item.boneIndex ?? -1),
@@ -648,6 +655,7 @@ function projectHullSpriteLineSets(values) {
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
     skinned: value.skinned === true,
     visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(item => ({
       blinkPhaseShift: Number(item.blinkPhaseShift ?? 0),
       blinkPhase: Number(item.blinkPhase ?? 0),
@@ -674,6 +682,7 @@ function projectHullPlaneSets(values) {
     layer2MapResPath: String(value.layer2MapResPath ?? ""),
     maskMapResPath: String(value.maskMapResPath ?? ""),
     visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     atlasSize: Number(value.atlasSize ?? 1) >>> 0,
     atlasAspectRatio: copyArray(value.atlasAspectRatio, [1, 1]),
     skinned: value.skinned === true,
@@ -706,6 +715,7 @@ function projectHullSpotlightSets(values) {
     skinned: value.skinned === true,
     zOffset: Number(value.zOffset ?? 0),
     visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     coneTextureResPath: String(value.coneTextureResPath ?? ""),
     glowTextureResPath: String(value.glowTextureResPath ?? ""),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(item => ({
@@ -743,6 +753,7 @@ function projectHullSpriteSets(values) {
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
     skinned: value.skinned === true,
     visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(item => ({
       position: copyArray(item.position, [0, 0, 0]),
       blinkRate: Number(item.blinkRate ?? 0.1),
@@ -776,6 +787,7 @@ function projectPointLightAttachment(value) {
 function projectHullLightSets(values) {
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
     visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(projectHullLightSetItem)
   }));
 }
@@ -832,6 +844,7 @@ function projectLocatorSet(value, target, state) {
 function projectHullDecalSets(values) {
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
     visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(projectHullDecalSetItem)
   }));
 }
@@ -862,9 +875,10 @@ function projectDecalIndexBuffers(values) {
 }
 function projectFaction(value) {
   const logos = LOGO_KEYS.map(key => ({
-    textures: projectTextureMap(value.logoSet?.[key]?.textures)
+    textures: projectTextureMap(selectNamedSlot(value.logoSet, key, "logos")?.textures)
   }));
-  const visibilityData = new Set((Array.isArray(value.visibilityGroupSet?.visibilityGroups) ? value.visibilityGroupSet.visibilityGroups : []).map(item => fnv1(String(item?.str ?? ""))));
+  const visibilityGroups = (Array.isArray(value.visibilityGroupSet?.visibilityGroups) ? value.visibilityGroupSet.visibilityGroups : []).map(item => String(item?.str ?? ""));
+  const visibilityData = new Set(visibilityGroups.map(name => fnv1(name)));
   const spotlightSetsColors = new Map();
   for (const set of Array.isArray(value.spotlightSets) ? value.spotlightSets : []) {
     if (!set) continue;
@@ -893,9 +907,13 @@ function projectFaction(value) {
   return {
     ...value,
     colorData: {
-      colors: value.colorSet ? FACTION_COLOR_KEYS.map((key, index) => isVector4(value.colorSet[key]) ? copyVector(value.colorSet[key]) : factionColorDefault(index)) : FACTION_COLOR_KEYS.map(() => [0, 0, 0, 0])
+      colors: value.colorSet ? FACTION_COLOR_KEYS.map((key, index) => {
+        const color = selectNamedSlot(value.colorSet, key, "colors");
+        return isVector4(color) ? copyVector(color) : factionColorDefault(index);
+      }) : FACTION_COLOR_KEYS.map(() => [0, 0, 0, 0])
     },
     areaMaterials: projectAreaMaterials(value.areaTypes),
+    visibilityGroups,
     logoSetData: {
       logos
     },
@@ -1408,8 +1426,29 @@ function createAreaMaterialData() {
 function projectAreaMaterials(areaTypes) {
   const result = createAreaMaterialData();
   if (!areaTypes) return result;
-  AREA_MATERIAL_KEYS.forEach((key, areaType) => mergeAreaMaterial(result, areaTypes[key], areaType));
+  AREA_MATERIAL_KEYS.forEach((key, areaType) => mergeAreaMaterial(result, selectAreaMaterial(areaTypes, key), areaType));
   return result;
+}
+function selectAreaMaterial(areaTypes, key) {
+  return selectNamedSlot(areaTypes, key, "materials");
+}
+
+/**
+ * Carbon's generated records declare one property per slot (EveSOFDataArea's
+ * AreaType properties, EveSOFDataFactionColorSet's ColorType properties), but
+ * the decoded data.black record carries those slots as a lowercase-keyed child
+ * map instead. Both shapes reach these projections, and reading only the
+ * declared property names silently produced empty area materials and
+ * all-black faction colors.
+ */
+function selectNamedSlot(container, key, mapName) {
+  if (!container) return null;
+  if (container[key] !== undefined && container[key] !== null) return container[key];
+  const slots = container[mapName];
+  if (!slots) return null;
+  const lowercase = key.toLowerCase();
+  if (slots instanceof Map) return slots.get(lowercase) ?? slots.get(key) ?? null;
+  return slots[lowercase] ?? slots[key] ?? null;
 }
 function projectSingleAreaMaterial(value, areaType) {
   const result = createAreaMaterialData();
@@ -1418,10 +1457,22 @@ function projectSingleAreaMaterial(value, areaType) {
 }
 function mergeAreaMaterial(result, value, areaType) {
   if (!value) return;
-  [value.material1, value.material2, value.material3, value.material4].forEach((name, materialIndex) => {
-    if (name) result.materialNames.set(`${areaType}:${materialIndex}`, String(name));
+  [areaMaterialName(value.material1, "material1"), areaMaterialName(value.material2, "material2"), areaMaterialName(value.material3, "material3"), areaMaterialName(value.material4, "material4")].forEach((name, materialIndex) => {
+    if (name) result.materialNames.set(`${areaType}:${materialIndex}`, name);
   });
   result.glowColor.set(`${areaType}:GeneralGlowColor`, Number(value.colorType ?? 0));
+}
+
+/**
+ * Carbon's m_material[N] is a plain string, but the decoded data.black record
+ * wraps each slot in its own single-key object ({ material1: "name" }).
+ * Stringifying that wrapper produced "[object Object]" material names, so no
+ * material record was ever found.
+ */
+function areaMaterialName(value, key) {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  return String(value[key] ?? value.name ?? value.str ?? "");
 }
 function isVector4(value) {
   return value && typeof value !== "string" && typeof value.length === "number" && value.length === 4;

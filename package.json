@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/runtime-sof",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "description": "CarbonEngineJS Space Object Factory (SOF) data classes and JSON contract.",
   "type": "module",

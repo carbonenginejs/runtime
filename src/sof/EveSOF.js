@@ -496,6 +496,67 @@ export class EveSOF extends CjsModel
     return dna.IsValid() ? dna : null;
   }
 
+  /**
+   * Reports the visibility groups one DNA resolves, without building a graph.
+   *
+   * Visibility groups are how a faction turns hull attachment sets on and off,
+   * so this answers which groups the selected hulls author, which the faction
+   * declares, and therefore which sets a build emits. Carbon keeps only the
+   * FNV1 hashes at runtime (EveSOFDataMgr.cpp:1301-1310) and has no equivalent
+   * query; the names come from the catalog projection.
+   */
+  @carbon.method
+  @impl.adapted
+  GetDnaVisibilityGroups(dnaString)
+  {
+    const dna = this.CreateDna(dnaString);
+    if (dna === null) return null;
+
+    const declared = [...new Set(dna.factionData?.visibilityGroups ?? [])];
+    const declaredSet = new Set(declared);
+    const sets = [];
+    for (let hullIndex = 0; hullIndex < dna.GetMultiHullCount(); hullIndex++)
+    {
+      const hull = dna.hullDatas?.[hullIndex];
+      if (!hull) continue;
+      // A gated set is any hull collection whose records carry a visibility
+      // group, so this follows the catalog rather than a second list of the
+      // set kinds Carbon happens to gate today.
+      for (const [field, values] of Object.entries(hull))
+      {
+        if (!Array.isArray(values)) continue;
+        for (const value of values)
+        {
+          if (!value || value.visibilityGroupName === undefined) continue;
+          const group = String(value.visibilityGroupName);
+          sets.push({
+            kind: field,
+            // Carbon's projected sets keep the visibility hash, not the
+            // authored set name, so name is present only where a projection
+            // already carries one.
+            name: String(value.name ?? ""),
+            hullIndex,
+            visibilityGroup: group,
+            visible: declaredSet.has(group)
+          });
+        }
+      }
+    }
+
+    const authored = [...new Set(sets.map(item => item.visibilityGroup))].sort();
+    return Object.freeze({
+      dna: String(dnaString),
+      hulls: Object.freeze([...(dna.hullNames ?? [])]),
+      faction: String(dna.factionName ?? ""),
+      race: String(dna.raceName ?? ""),
+      declared: Object.freeze(declared),
+      authored: Object.freeze(authored),
+      visible: Object.freeze(authored.filter(name => declaredSet.has(name))),
+      hidden: Object.freeze(authored.filter(name => !declaredSet.has(name))),
+      sets: Object.freeze(sets.map(item => Object.freeze(item)))
+    });
+  }
+
   /** Inspects one DNA selection without creating a graph or runtime values. */
   InspectDna(dnaString)
   {

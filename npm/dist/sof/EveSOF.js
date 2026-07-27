@@ -121,7 +121,7 @@ class EveSOF extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveSOF",
       family: "eve"
-    })], [[[io, io.readwrite, type, type.boolean], 16, "allowFileCaching"], [[io, io.readwrite, type, type.boolean], 16, "alphaCutoutShadowsEnabled"], [[io, io.readwrite, type, type.string], 16, "volumetricTrailPath"], [[io, io.readwrite, type, type.float64], 16, "buildTime"], [[io, io.read, void 0, type.objectRef("EveSOFDataMgr")], 16, "dataMgr"], [[io, io.readwrite, type, type.boolean], 16, "editorMode"], [[carbon, carbon.method, impl, impl.implemented], 18, "LoadData"], [[carbon, carbon.method, impl, impl.implemented], 18, "CreateDna"], [[carbon, carbon.method, impl, impl.implemented], 18, "ValidateDNA"], [[carbon, carbon.method, impl, impl.implemented], 18, "Build"], [[carbon, carbon.method, impl, impl.adapted], 18, "PlanLayoutFromDNA"], [[carbon, carbon.method, impl, impl.implemented], 18, "BuildFromDNA"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupExtensionBuild"], [[carbon, carbon.method, impl, impl.implemented], 18, "CreateMesh"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetupShaders"], [[carbon, carbon.method, impl, impl.implemented], 18, "FillMeshAreaVector"], [[carbon, carbon.method, impl, impl.implemented], 18, "GenerateDepthFromAreaVector"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupCustomMask"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupDecalSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupImpactEffects"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupEffects"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupChildrenAndAnimations"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupEffectChildren"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupAudio"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupControllers"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupModelCurves"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupInstancedMeshes"], [[carbon, carbon.method, impl, impl.adapted], 18, "CreateInstancedMesh"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupLayout"], [[carbon, carbon.method, impl, impl.adapted], 18, "CreateSharedLayoutAreas"], [[carbon, carbon.method, impl, impl.adapted], 18, "CreateLayoutInstancedMesh"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupBoosters"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupAttachments"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupSpriteSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupSpotlightSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupPlaneSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupSpriteLineSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupHazeSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupBanners"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupBannerSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupLights"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetupLocators"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetupLocatorSets"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetupTurretMaterialFromFaction"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetupTurretMaterialFromDNA"]], 0, void 0, CjsModel));
+    })], [[[io, io.readwrite, type, type.boolean], 16, "allowFileCaching"], [[io, io.readwrite, type, type.boolean], 16, "alphaCutoutShadowsEnabled"], [[io, io.readwrite, type, type.string], 16, "volumetricTrailPath"], [[io, io.readwrite, type, type.float64], 16, "buildTime"], [[io, io.read, void 0, type.objectRef("EveSOFDataMgr")], 16, "dataMgr"], [[io, io.readwrite, type, type.boolean], 16, "editorMode"], [[carbon, carbon.method, impl, impl.implemented], 18, "LoadData"], [[carbon, carbon.method, impl, impl.implemented], 18, "CreateDna"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetDnaVisibilityGroups"], [[carbon, carbon.method, impl, impl.implemented], 18, "ValidateDNA"], [[carbon, carbon.method, impl, impl.implemented], 18, "Build"], [[carbon, carbon.method, impl, impl.adapted], 18, "PlanLayoutFromDNA"], [[carbon, carbon.method, impl, impl.implemented], 18, "BuildFromDNA"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupExtensionBuild"], [[carbon, carbon.method, impl, impl.implemented], 18, "CreateMesh"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetupShaders"], [[carbon, carbon.method, impl, impl.implemented], 18, "FillMeshAreaVector"], [[carbon, carbon.method, impl, impl.implemented], 18, "GenerateDepthFromAreaVector"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupCustomMask"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupDecalSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupImpactEffects"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupEffects"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupChildrenAndAnimations"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupEffectChildren"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupAudio"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupControllers"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupModelCurves"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupInstancedMeshes"], [[carbon, carbon.method, impl, impl.adapted], 18, "CreateInstancedMesh"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupLayout"], [[carbon, carbon.method, impl, impl.adapted], 18, "CreateSharedLayoutAreas"], [[carbon, carbon.method, impl, impl.adapted], 18, "CreateLayoutInstancedMesh"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupBoosters"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupAttachments"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupSpriteSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupSpotlightSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupPlaneSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupSpriteLineSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupHazeSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupBanners"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupBannerSets"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetupLights"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetupLocators"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetupLocatorSets"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetupTurretMaterialFromFaction"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetupTurretMaterialFromDNA"]], 0, void 0, CjsModel));
   }
   allowFileCaching = (_initProto(this), _init_allowFileCaching(this, true));
 
@@ -293,6 +293,59 @@ class EveSOF extends CjsModel {
     const dna = new _EveSOFDNA();
     dna.Setup(dnaString, this.dataMgr);
     return dna.IsValid() ? dna : null;
+  }
+
+  /**
+   * Reports the visibility groups one DNA resolves, without building a graph.
+   *
+   * Visibility groups are how a faction turns hull attachment sets on and off,
+   * so this answers which groups the selected hulls author, which the faction
+   * declares, and therefore which sets a build emits. Carbon keeps only the
+   * FNV1 hashes at runtime (EveSOFDataMgr.cpp:1301-1310) and has no equivalent
+   * query; the names come from the catalog projection.
+   */
+  GetDnaVisibilityGroups(dnaString) {
+    const dna = this.CreateDna(dnaString);
+    if (dna === null) return null;
+    const declared = [...new Set(dna.factionData?.visibilityGroups ?? [])];
+    const declaredSet = new Set(declared);
+    const sets = [];
+    for (let hullIndex = 0; hullIndex < dna.GetMultiHullCount(); hullIndex++) {
+      const hull = dna.hullDatas?.[hullIndex];
+      if (!hull) continue;
+      // A gated set is any hull collection whose records carry a visibility
+      // group, so this follows the catalog rather than a second list of the
+      // set kinds Carbon happens to gate today.
+      for (const [field, values] of Object.entries(hull)) {
+        if (!Array.isArray(values)) continue;
+        for (const value of values) {
+          if (!value || value.visibilityGroupName === undefined) continue;
+          const group = String(value.visibilityGroupName);
+          sets.push({
+            kind: field,
+            // Carbon's projected sets keep the visibility hash, not the
+            // authored set name, so name is present only where a projection
+            // already carries one.
+            name: String(value.name ?? ""),
+            hullIndex,
+            visibilityGroup: group,
+            visible: declaredSet.has(group)
+          });
+        }
+      }
+    }
+    const authored = [...new Set(sets.map(item => item.visibilityGroup))].sort();
+    return Object.freeze({
+      dna: String(dnaString),
+      hulls: Object.freeze([...(dna.hullNames ?? [])]),
+      faction: String(dna.factionName ?? ""),
+      race: String(dna.raceName ?? ""),
+      declared: Object.freeze(declared),
+      authored: Object.freeze(authored),
+      visible: Object.freeze(authored.filter(name => declaredSet.has(name))),
+      hidden: Object.freeze(authored.filter(name => !declaredSet.has(name))),
+      sets: Object.freeze(sets.map(item => Object.freeze(item)))
+    });
   }
 
   /** Inspects one DNA selection without creating a graph or runtime values. */

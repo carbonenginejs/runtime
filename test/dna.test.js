@@ -5462,3 +5462,181 @@ test("SOF stamps the injected buildTime as every light's startTime", () => {
   assert.equal(stamped.length, zeroTimes.length);
   assert.ok(stamped.every(([, value]) => value === 42.5), JSON.stringify(stamped));
 });
+
+test("faction area materials, colors, and logos survive the decoded data.black shape", () => {
+  // data.black delivers these records as a single lowercase-keyed child map
+  // instead of Carbon's declared per-slot properties, and wraps each material
+  // name in its own single-key object. Reading only the declared names left
+  // every Mtl1-4 shader parameter and every faction color unresolved.
+  const manager = new EveSOFDataMgr();
+  assert.equal(manager.SetData({
+    hull: [{ name: "rifter", opaqueAreas: [] }],
+    race: [{ name: "caldari" }],
+    pattern: [],
+    layout: [],
+    generic: {},
+    material: [
+      {
+        name: "blue_darknavy_enamel",
+        parameters: [
+          { name: "DiffuseColor", value: [0.1, 0.2, 0.3, 1] },
+          { name: "Gloss", value: [0.5, 0, 0, 0] },
+        ],
+      },
+    ],
+    faction: [
+      {
+        name: "caldarinavy",
+        areaTypes: {
+          _type: "EveSOFDataArea",
+          materials: {
+            primary: {
+              _type: "EveSOFDataAreaMaterial",
+              colorType: 4,
+              material1: { material1: "blue_darknavy_enamel" },
+            },
+          },
+        },
+        colorSet: {
+          _type: "EveSOFDataFactionColorSet",
+          colors: { primary: [0.2, 0.3, 0.5, 1] },
+        },
+        logoSet: {
+          _type: "EveSOFDataLogoSet",
+          logos: {
+            primary: {
+              _type: "EveSOFDataLogo",
+              textures: [{ name: "DecalAlbedoMap", resFilePath: "res:/logo_a.dds" }],
+            },
+          },
+        },
+      },
+    ],
+  }), true);
+
+  const faction = manager.GetFactionData("caldarinavy");
+  assert.equal(faction.areaMaterials.materialNames.get("0:0"), "blue_darknavy_enamel");
+  assert.equal(faction.areaMaterials.glowColor.get("0:GeneralGlowColor"), 4);
+  assert.deepEqual(faction.colorData.colors[0], [0.2, 0.3, 0.5, 1]);
+  assert.equal(
+    faction.logoSetData.logos[0].textures.get("DecalAlbedoMap").resFilePath,
+    "res:/logo_a.dds",
+  );
+
+  // The declared per-slot shape must keep working alongside it.
+  const declared = new EveSOFDataMgr();
+  assert.equal(declared.SetData({
+    hull: [{ name: "rifter", opaqueAreas: [] }],
+    race: [{ name: "minmatar" }],
+    material: [],
+    pattern: [],
+    layout: [],
+    generic: {},
+    faction: [
+      {
+        name: "minmatar",
+        areaTypes: { Primary: { material1: "rust", colorType: 2 } },
+        colorSet: { Primary: [1, 0, 0, 1] },
+      },
+    ],
+  }), true);
+  const flat = declared.GetFactionData("minmatar");
+  assert.equal(flat.areaMaterials.materialNames.get("0:0"), "rust");
+  assert.deepEqual(flat.colorData.colors[0], [1, 0, 0, 1]);
+});
+
+test("mesh area parameters resolve faction materials into Mtl shader values", () => {
+  const sof = new EveSOF();
+  assert.equal(sof.dataMgr.SetData({
+    hull: [
+      {
+        name: "rifter",
+        geometryResFilePath: "res:/model/rifter.gr2",
+        opaqueAreas: [{ name: "area_hull", shader: "quadv5.fx", index: 0, count: 1, areaType: 0 }],
+      },
+    ],
+    faction: [
+      {
+        name: "minmatar",
+        areaTypes: {
+          _type: "EveSOFDataArea",
+          materials: {
+            primary: { _type: "EveSOFDataAreaMaterial", material1: { material1: "rust" } },
+          },
+        },
+      },
+    ],
+    race: [{ name: "minmatar" }],
+    material: [
+      { name: "rust", parameters: [{ name: "DiffuseColor", value: [0.4, 0.2, 0.1, 1] }] },
+    ],
+    generic: {
+      materialPrefixes: [{ str: "Mtl1" }, { str: "Mtl2" }],
+      areaShaders: [{ shader: "quadv5.fx", parameters: [{ str: "Mtl1DiffuseColor" }] }],
+    },
+  }), true);
+
+  const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
+  const nodes = new Map(document.nodes.map(node => [node.id, node]));
+  const parameters = document.nodes
+    .filter(node => node.kind === "Tr2ConstantEffectParameter")
+    .map(node => [node.fields.name, node.fields.value]);
+
+  assert.ok(nodes.size > 0);
+  assert.deepEqual(
+    parameters.find(([name]) => name === "Mtl1DiffuseColor"),
+    ["Mtl1DiffuseColor", [0.4, 0.2, 0.1, 1]],
+  );
+});
+
+test("DNA visibility groups report what a faction turns on and off", () => {
+  const sof = new EveSOF();
+  assert.equal(sof.dataMgr.SetData({
+    hull: [
+      {
+        name: "rifter",
+        opaqueAreas: [],
+        decalSets: [
+          { name: "standard", visibilityGroup: "primary", items: [] },
+          { name: "holiday", visibilityGroup: "holiday_19", items: [] },
+        ],
+        planeSets: [{ name: "glow", visibilityGroup: "police", items: [] }],
+      },
+    ],
+    faction: [
+      {
+        name: "minmatar",
+        visibilityGroupSet: { visibilityGroups: [{ str: "primary" }, { str: "unused" }] },
+      },
+      { name: "police", visibilityGroupSet: { visibilityGroups: [{ str: "police" }] } },
+    ],
+    race: [{ name: "minmatar" }],
+    material: [],
+    pattern: [],
+    layout: [],
+    generic: {},
+  }), true);
+
+  const standard = sof.GetDnaVisibilityGroups("rifter:minmatar:minmatar");
+  assert.deepEqual(standard.declared, ["primary", "unused"]);
+  assert.deepEqual(standard.authored, ["holiday_19", "police", "primary"]);
+  assert.deepEqual(standard.visible, ["primary"]);
+  assert.deepEqual(standard.hidden, ["holiday_19", "police"]);
+  // Carbon's projected sets keep the visibility hash, not the authored set
+  // name, so the report is keyed by collection and group.
+  assert.deepEqual(
+    standard.sets.map(set => [set.kind, set.visibilityGroup, set.visible]).sort(),
+    [
+      ["hullDecalSets", "holiday_19", false],
+      ["hullDecalSets", "primary", true],
+      ["planeSets", "police", false],
+    ].sort(),
+  );
+
+  // The same hull under a faction that declares only "police" flips which sets build.
+  const police = sof.GetDnaVisibilityGroups("rifter:police:minmatar");
+  assert.deepEqual(police.visible, ["police"]);
+  assert.deepEqual(police.hidden, ["holiday_19", "primary"]);
+
+  assert.equal(sof.GetDnaVisibilityGroups("missing:minmatar:minmatar"), null);
+});
