@@ -490,7 +490,7 @@ test("from initializes owned children last-to-first before their parent", () => 
     assert.deepEqual(order, ["assigned-last", "assigned-first"]);
 });
 
-test("Traverse is cycle-safe and GetResources honors subtree collectors", () => {
+test("Traverse is cycle-safe and GetResources visits every model", () => {
     class GraphModel extends CjsModel {}
     CjsSchema.define(GraphModel, { className: "GraphModel" });
     CjsSchema.defineField(GraphModel, "children", "type", { kind: "array" });
@@ -509,18 +509,17 @@ test("Traverse is cycle-safe and GetResources honors subtree collectors", () => 
     root.Traverse(model => visited.push(model));
     assert.deepEqual(visited, [root, branch, leaf]);
 
+    // Collectors report their own resources only. A model that reports must not
+    // suppress its descendants: an under-reported dependency set lets an
+    // all-or-nothing readiness check pass while a child is still loading.
     const resourceA = { isResource: true, path: "res:/a" };
     const resourceB = { isResource: true, path: "res:/b" };
-    branch.OnGetResources = out => {
-        out.add(resourceA);
-        out.add(resourceA);
-        out.add(resourceB);
-    };
-    leaf.OnGetResources = () => {
-        throw new Error("subtree collector must suppress generic child traversal");
-    };
+    const resourceC = { isResource: true, path: "res:/c" };
+    branch.OnGetResources = () => [resourceA, resourceA, resourceB];
+    leaf.OnGetResources = () => [resourceC];
 
-    assert.deepEqual(root.GetResources([resourceA, {}, null]), [resourceA, resourceB]);
+    // Prior contents are replaced, not accumulated into.
+    assert.deepEqual(root.GetResources([resourceC]), [resourceA, resourceB, resourceC]);
 });
 
 test("CjsEventEmitter normalizes names and supports external method sources", () => {

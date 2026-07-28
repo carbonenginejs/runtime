@@ -14,6 +14,15 @@ const MAX_UPDATE_PASSES = 32;
 export class CjsModel extends CjsEventEmitter
 {
     /**
+     * Identifies this class as a schema-backed model.
+     *
+     * Declared statically so CjsSchema can recognise a model class from a field
+     * declaration alone, without importing CjsModel - which it cannot do, since
+     * this module already imports CjsSchema. Mirrors `CjsResource.isResource`.
+     */
+    static isModel = true;
+
+    /**
      * Creates a schema-backed model with initialized runtime state.
      */
     constructor()
@@ -208,16 +217,18 @@ export class CjsModel extends CjsEventEmitter
 
             if (descend)
             {
-                const fields = getModelFields(model);
-                const start = reverse ? fields.length - 1 : 0;
-                const end = reverse ? -1 : fields.length;
+                // Only the fields declared to hold child models, precomputed per
+                // class - not every field, type-tested per value per visit.
+                const children = CjsSchema.getSchema(model.constructor).children;
+                const start = reverse ? children.length - 1 : 0;
+                const end = reverse ? -1 : children.length;
                 const step = reverse ? -1 : 1;
 
                 for (let i = start; i !== end; i += step)
                 {
-                    const field = fields[i];
-                    if (options.ownedOnly === true && field.io?.ownership !== "owned") continue;
-                    const value = model[field.name];
+                    const child = children[i];
+                    if (options.ownedOnly === true && !child.owned) continue;
+                    const value = model[child.name];
 
                     if (Array.isArray(value))
                     {
@@ -242,19 +253,47 @@ export class CjsModel extends CjsEventEmitter
     /**
      * Collects unique resources reported by this model graph into an array.
      *
+     * Every model in the graph is visited: reporting resources does not hide a
+     * model's descendants, because an under-reported dependency set would let
+     * readiness checks pass while a child's resources were still loading.
+     *
+     * Resources held in schema fields are collected automatically - they are
+     * already declared, as `@type.objectRef("TriGeometryRes")` and friends, so
+     * restating them in a hook would be the hand-written relay chain this
+     * traversal exists to replace.
+     *
+     * `OnGetResources()` is the escape hatch for resources a model holds
+     * outside its schema, such as private fields. It takes no arguments and
+     * always returns an iterable of resources - never a bare resource and never
+     * nothing. Most models do not implement it.
+     *
      * @param {Array<*>} [out=[]] Output array, whose contents are replaced.
      * @returns {Array<*>} The supplied output array.
      */
     GetResources(out = [])
     {
         const resources = new Set();
-        AddResources(resources, out);
 
         this.Traverse(model =>
         {
-            if (typeof model.OnGetResources !== "function") return true;
-            AddResources(resources, model.OnGetResources(resources));
-            return false;
+            for (const field of CjsSchema.getSchema(model.constructor).resources)
+            {
+                const value = model[field.name];
+                if (Array.isArray(value))
+                {
+                    for (const item of value) AddResource(resources, item);
+                }
+                else
+                {
+                    AddResource(resources, value);
+                }
+            }
+
+            if (typeof model.OnGetResources === "function")
+            {
+                AddResources(resources, model.OnGetResources());
+            }
+            return true;
         });
 
         out.length = 0;
@@ -776,17 +815,23 @@ function initializeOwnedGraph(root, options = {})
     return root;
 }
 
+function AddResource(target, value)
+{
+    if (value?.isResource === true) target.add(value);
+}
+
+
 function AddResources(target, values)
 {
-    if (values === null || values === undefined) return;
-    if (values?.isResource === true)
+    if (typeof values === "string" || typeof values?.[Symbol.iterator] !== "function")
     {
-        target.add(values);
-        return;
+        throw new TypeError("CjsModel.OnGetResources must return an iterable of resources.");
     }
-    if (typeof values !== "string" && typeof values[Symbol.iterator] === "function")
+
+    // Empty slots are the model's own unset fields, not a contract violation.
+    for (const value of values)
     {
-        for (const value of values) AddResources(target, value);
+        if (value !== null && value !== undefined) target.add(value);
     }
 }
 

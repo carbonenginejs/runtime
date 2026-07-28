@@ -1,4 +1,11 @@
 const CLASS_SCHEMA = new WeakMap();
+
+// Exported schemas, memoized per class. SCHEMA_GENERATION is bumped by every
+// metadata definition (see getOrCreateClassSchema), which is what makes a stale
+// memo detectable without tracking which subclasses a base class change reaches.
+const SCHEMA_EXPORTS = new WeakMap();
+let SCHEMA_GENERATION = 0;
+
 const CONSTRUCTOR_BY_NAME = new Map();
 const ENUM_SCHEMA_BY_NAME = new Map();
 const ENUM_SCHEMA_BY_OBJECT = new WeakMap();
@@ -128,6 +135,9 @@ export class CjsSchema
         }
 
         CONSTRUCTOR_BY_NAME.set(name.trim(), Constructor);
+        // Buckets resolve class references by name, so a late registration
+        // changes how already-built schemas should have been bucketed.
+        SCHEMA_GENERATION += 1;
         return this;
     }
 
@@ -151,48 +161,39 @@ export class CjsSchema
         return name ? ENUM_SCHEMA_BY_NAME.get(name) || null : null;
     }
 
+    /**
+     * Return the exported schema for a class.
+     *
+     * The schema is the precomputed answer - collapsing the inheritance
+     * lineage and merging metadata - so building it per call would defeat its
+     * purpose. Callers traverse model graphs and ask once per node, so this is
+     * memoized per class and rebuilt only when class metadata is defined.
+     *
+     * Namespace-filtered exports are not memoized: they are a projection of the
+     * full schema requested by tooling, not the hot read path.
+     *
+     * The result is shared, not copied - treat it as read-only. It is not
+     * frozen: deep-cloning and freezing every field on the way out cost far
+     * more than the mistakes it guarded against.
+     *
+     * @param {Function} Constructor
+     * @param {object} [options={}]
+     * @param {string|Array<string>} [options.namespaces] Restricts exported metadata namespaces.
+     * @returns {object} Shared schema export.
+     */
     static getSchema(Constructor, options = {})
     {
-        const schema = CLASS_SCHEMA.get(Constructor);
         const namespaces = normalizeNamespaces(options.namespaces);
-        const fields = [];
-        const methods = [];
+        if (namespaces) return buildSchema(Constructor, namespaces);
 
-        for (const field of getEffectiveFields(Constructor))
-        {
-            fields.push(enrichEnumField(exportField(field, namespaces), Constructor));
-        }
+        const memo = SCHEMA_EXPORTS.get(Constructor);
+        if (memo && memo.generation === SCHEMA_GENERATION) return memo.schema;
 
-        for (const method of schema?.methods || [])
-        {
-            methods.push(exportField(method, namespaces));
-        }
-
-        const result = {
-            className: CjsSchema.getClassName(Constructor),
-            fields: Object.freeze(fields)
-        };
-
-        const family = schema?.family || CjsSchema.getClassFamily(Constructor);
-        if (family)
-        {
-            result.family = family;
-        }
-
-        if (schema?.sourceClass && schema.sourceClass !== result.className)
-        {
-            result.sourceClass = schema.sourceClass;
-        }
-
-        if (schema?.aliases?.length)
-        {
-            result.aliases = Object.freeze([...schema.aliases]);
-        }
-
-        if (methods.length) result.methods = Object.freeze(methods);
-
-        return Object.freeze(result);
+        const schema = buildSchema(Constructor, null);
+        SCHEMA_EXPORTS.set(Constructor, { generation: SCHEMA_GENERATION, schema });
+        return schema;
     }
+
 
     static type = Object.freeze({
         array: itemType => fieldDecorator("type", { kind: "array", itemType }),
@@ -547,7 +548,9 @@ function defineHiddenInheritedFields(Constructor, fieldNames)
 
     const Parent = Object.getPrototypeOf(Constructor);
     const inheritedFields = new Set(getEffectiveFields(Parent).map(field => field.name));
-    const className = CLASS_SCHEMA.get(Constructor)?.className || Constructor.name || "<anonymous>";
+    // Declared name only: Constructor.name does not survive minification, and a
+    // mangled name in an error reads as a real one and sends you chasing it.
+    const className = CLASS_SCHEMA.get(Constructor)?.className || "<undeclared>";
 
     for (const fieldName of fieldNames)
     {
@@ -635,8 +638,125 @@ function mergeMemberMetadata(target, source)
     return target;
 }
 
+function buildSchema(Constructor, namespaces)
+{
+    const schema = CLASS_SCHEMA.get(Constructor);
+    const fields = [];
+    const methods = [];
+
+    for (const field of getEffectiveFields(Constructor))
+    {
+        fields.push(enrichEnumField(exportField(field, namespaces), Constructor));
+    }
+
+    for (const method of schema?.methods || [])
+    {
+        methods.push(exportField(method, namespaces));
+    }
+
+    const result = {
+        className: CjsSchema.getClassName(Constructor),
+        fields
+    };
+
+    const family = schema?.family || CjsSchema.getClassFamily(Constructor);
+    if (family)
+    {
+        result.family = family;
+    }
+
+    if (schema?.sourceClass && schema.sourceClass !== result.className)
+    {
+        result.sourceClass = schema.sourceClass;
+    }
+
+    if (schema?.aliases?.length)
+    {
+        result.aliases = [ ...schema.aliases ];
+    }
+
+    if (methods.length) result.methods = methods;
+
+    addSchemaBuckets(result);
+    return result;
+}
+
+
+// Kinds that hold many values rather than one. `map` and `set` are included
+// because they are iterable collections of the referenced class, same as a list.
+const MANY_KINDS = new Set([ "list", "array", "set", "map" ]);
+
+// Kinds that can hold a child model. Bucketing on the KIND rather than on a
+// resolvable class reference keeps traversal conservative: `type.struct(Class)`
+// drops the reference during normalization, and a raw defineField may omit the
+// item type, so requiring a reference would silently stop visiting those.
+// Scalar and math kinds are excluded, which is where the saving comes from.
+const MODEL_KINDS = new Set([
+    "struct", "model", "rawStruct", "objectRef", "unknown",
+    "list", "array", "set", "map"
+]);
+
+
+/**
+ * Precompute the answers consumers would otherwise recompute per traversal.
+ *
+ * Graph walks ask the same two questions of every node - which fields hold
+ * child models, which hold resources - and answering them by scanning the field
+ * list and type-testing each value costs more than the walk itself. The class
+ * cannot change without rebuilding its schema, so this is solved once.
+ */
+function addSchemaBuckets(schema)
+{
+    const byName = new Map();
+    const children = [];
+    const resources = [];
+
+    for (const field of schema.fields)
+    {
+        byName.set(field.name, field);
+
+        const type = field.type;
+        // An undeclared field could hold anything, so it stays traversable.
+        const kind = type?.kind;
+        if (kind && !MODEL_KINDS.has(kind)) continue;
+
+        const entry = { name: field.name, many: MANY_KINDS.has(kind) };
+
+        if (type && resolveFieldClass(type)?.isResource === true)
+        {
+            resources.push(entry);
+            continue;
+        }
+
+        entry.owned = field.io?.ownership === "owned";
+        children.push(entry);
+    }
+
+    schema.byName = byName;
+    schema.children = children;
+    schema.resources = resources;
+}
+
+
+// Only string references survive normalization - type.struct(SomeClass) drops
+// the reference entirely - so a field can only be bucketed when it names a
+// class. The one field in the tree that named nothing was a missing
+// declaration, not a deliberate escape.
+function resolveFieldClass(type)
+{
+    const ref = type.className || type.itemType || type.valueType;
+    return typeof ref === "string" && ref ? CONSTRUCTOR_BY_NAME.get(ref) || null : null;
+}
+
+
 function getOrCreateClassSchema(Constructor)
 {
+    // The only route by which class metadata is mutated, and therefore the only
+    // place exported schemas can go stale. A single global counter rather than
+    // per-class invalidation because a base class change invalidates every
+    // subclass, and lineage is not tracked in reverse.
+    SCHEMA_GENERATION += 1;
+
     let schema = CLASS_SCHEMA.get(Constructor);
     if (!schema)
     {
@@ -937,9 +1057,8 @@ function componentIndex(char)
 
 function mergeNamespace(existing, value)
 {
-    if (!existing) return cloneSchemaValue(value);
-    if (isPlainObject(existing) && isPlainObject(value)) return Object.freeze({ ...existing, ...value });
-    return cloneSchemaValue(value);
+    if (isPlainObject(existing) && isPlainObject(value)) return { ...existing, ...value };
+    return value;
 }
 
 // Resolves @schema.enum("X") through the owning class's PascalCase static so
@@ -984,10 +1103,10 @@ function exportField(field, namespaces)
     {
         if (key === "name") continue;
         if (namespaces && !namespaces.has(key)) continue;
-        result[key] = cloneSchemaValue(value);
+        result[key] = value;
     }
 
-    return Object.freeze(result);
+    return result;
 }
 
 function normalizeNamespaces(namespaces)
