@@ -1833,7 +1833,7 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
   assert.equal(image.GetPayload(), imagePayload);
 });
 
-test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource loaded", async () => {
+test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource prepared", async () => {
   const records = new Map([
     [ "res:/data/example.json", "{\"name\":\"example\"}" ]
   ]);
@@ -1851,9 +1851,12 @@ test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource 
   const resource = resMan.Lookup("res:/data/example.json");
 
   assert.deepEqual(object, { name: "example" });
-  assert.equal(resource.state, CjsResource.State.LOADED);
+  // Publishing hands over the reader OUTCOME, so the bytes are already what
+  // they needed to become - that is preparation, and the resource is good.
+  assert.equal(resource.state, CjsResource.State.PREPARED);
   assert.equal(resource.HasLoaded(), true);
-  assert.equal(resource.IsPrepared(), false);
+  assert.equal(resource.IsPrepared(), true);
+  assert.equal(resource.IsGood(), true);
   assert.equal(resource.object, object);
 });
 
@@ -2000,7 +2003,7 @@ test("failed object operations are removed so explicit retry can succeed", async
   const recovered = await resource.Ready();
   assert.deepEqual(recovered, { recovered: true });
   assert.equal(attempts, 2);
-  assert.equal(resource.state, CjsResource.State.LOADED);
+  assert.equal(resource.state, CjsResource.State.PREPARED);
   assert.equal(resource.error, null);
   assert.equal(resource.GetPayload(), recovered);
   assert.equal(resource.object, recovered);

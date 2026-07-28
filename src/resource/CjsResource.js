@@ -15,8 +15,10 @@ import { CjsSchema, carbon, impl, type } from "@carbonenginejs/runtime-utils/sch
  */
 
 /**
- * Manager-owned callbacks attached while a resource has canonical ownership.
- * The controller deliberately contains no load, fetch, prepare, or reload hook.
+ * Manager-owned callbacks attached while a resource has canonical ownership,
+ * and detached the moment it ends. The controller carries no load, fetch, or
+ * prepare hook; recovery lives in the separate reload hook, which deliberately
+ * outlives ownership because losing ownership is exactly when it is needed.
  *
  * @typedef {object} CjsResourceLifecycleController
  * @property {Function} [isCurrent] Tests exact canonical manager ownership without renewing activity.
@@ -38,6 +40,18 @@ export class CjsResource extends CjsEventEmitter
 {
   #payload = null;
 
+  /** Reloads attempted since the last successful load. */
+  #reloadAttempts = 0;
+
+  /**
+   * How many times a purged or failed resource reloads itself before giving up.
+   *
+   * Per class so a subclass can be more or less patient. Counted per resource
+   * and reset on every successful load, so this bounds consecutive failures,
+   * not the lifetime total.
+   */
+  static maxReloadAttempts = 3;
+
   @type.path
   path = "";
 
@@ -50,9 +64,18 @@ export class CjsResource extends CjsEventEmitter
   @type.string
   state = CjsResource.State.EMPTY;
 
+  /**
+   * Identifies this class as a runtime resource.
+   *
+   * Static, so a schema field declared as `@type.objectRef("TriGeometryRes")`
+   * can be known to hold a resource without an instance existing - the
+   * declaration alone is enough, resolved through `CjsSchema.GetConstructor`.
+   */
+  static isResource = true;
+
   /** Identifies this handle as a runtime resource. */
   get isResource() {
-    return true;
+    return this.constructor.isResource === true;
   }
 
   /**
@@ -83,6 +106,12 @@ export class CjsResource extends CjsEventEmitter
       writable: true
     });
     Object.defineProperty(this, "__lifecycleController", {
+      value: null,
+      enumerable: false,
+      configurable: true,
+      writable: true
+    });
+    Object.defineProperty(this, "__reloadHook", {
       value: null,
       enumerable: false,
       configurable: true,
@@ -214,13 +243,38 @@ export class CjsResource extends CjsEventEmitter
   }
 
   /**
-   * Return true when preparation completed successfully.
+   * Return true when this resource finished trying to load, either way.
+   *
+   * The pull form of the `completed` event. Carbon expresses this as a
+   * predicate because it has no events - `m_isPrepared` is set on the failure
+   * path too (`BlueAsyncRes.cpp:183`) - so `IsPrepared()` there means "finished
+   * trying" while ours keeps the narrower "succeeded".
+   *
+   * `PURGED` is not completion: nothing was tried and nothing concluded, the
+   * payload was simply taken away.
+   *
+   * @returns {boolean}
+   */
+  HasCompleted() {
+    return this.state === CjsResource.State.PREPARED
+      || this.state === CjsResource.State.FAILED;
+  }
+
+  /**
+   * Return true when preparation completed successfully, and renew this
+   * resource.
+   *
+   * Every caller of `IsGood()` is about to use the resource, so renewal always
+   * follows the query. Merging them - as ccpwgl does in `Tw2Resource.js:108` -
+   * closes that gap permanently instead of relying on call-site discipline, and
+   * means a purged resource reloads itself the moment anything asks for it.
    *
    * @returns {boolean}
    */
   @carbon.method
   @impl.adapted
   IsGood() {
+    this.KeepAlive();
     return this.IsPrepared();
   }
 
@@ -235,7 +289,10 @@ export class CjsResource extends CjsEventEmitter
     return this.state === CjsResource.State.FAILED;
   }
 
-  /** Changes state and emits the state-specific and statechange events. */
+  /**
+   * Changes state and emits the state-specific, statechange, and - on reaching
+   * a load outcome - completed events.
+   */
   SetState(state, ...details) {
     if (!CjsResource.isValidState(state)) {
       throw new TypeError(`Invalid CjsResource state: ${state}`);
@@ -243,9 +300,54 @@ export class CjsResource extends CjsEventEmitter
     const previous = this.state;
     if (previous === state) return this;
     this.state = state;
+    // A successful load clears the budget, so the cap bounds consecutive
+    // failures rather than how many times a resource may ever be purged.
+    if (state === CjsResource.State.PREPARED) this.#reloadAttempts = 0;
     this.EmitEvent?.(state, this, ...details);
     this.EmitEvent?.("statechange", this, state, previous);
+    // Fires again after a purge and reload, so subscribers rebuild whatever
+    // they derived from the payload that was deleted.
+    if (this.HasCompleted()) this.EmitEvent?.("completed", this, ...details);
     return this;
+  }
+
+  /**
+   * Subscribe to this resource finishing, firing immediately when it already
+   * has.
+   *
+   * The immediate call is the point. A plain emitter drops late subscribers on
+   * the floor - subscribe after `PREPARED` and nothing ever arrives - which is
+   * why callers end up doing work synchronously "just in case" instead of
+   * subscribing. ccpwgl solves this by replaying current state at registration
+   * (`Tw2Resource.onNotification`), and a subscriber satisfied that way is
+   * never stored at all, so only subscriptions genuinely still waiting
+   * accumulate.
+   *
+   * The listener runs for both outcomes and branches itself:
+   *
+   * ```js
+   * res.OnCompleted(res => { if (res.IsPrepared()) something; else somethingElse; });
+   * ```
+   *
+   * It may run more than once - a purge and reload completes again - so
+   * handlers must be written to be re-entered rather than assuming first load.
+   *
+   * @param {Function} listener Called with this resource once it has finished.
+   * @param {*} [source=null] Optional owner used for bulk removal.
+   * @returns {CjsResource} This resource.
+   */
+  OnCompleted(listener, source = null)
+  {
+    if (typeof listener !== "function")
+    {
+      throw new TypeError("CjsResource.OnCompleted requires a function.");
+    }
+    if (this.HasCompleted())
+    {
+      listener(this);
+      return this;
+    }
+    return this.OnEvent("completed", listener, source);
   }
 
   /** Marks this resource as requested. */
@@ -405,10 +507,15 @@ export class CjsResource extends CjsEventEmitter
   }
 
   /**
-   * Explicitly renew this resource's canonical identity activity.
-   * Unlike ccpwgl compatibility behavior, `IsGood()`, `HasLoaded()`, and other
-   * state queries never call this method implicitly. Renewal never fetches or
-   * reloads a purged resource.
+   * Renew this resource's canonical identity activity, and reload it when
+   * it has been purged.
+   *
+   * Purge is deletion - the payload is gone and nothing restores it - so
+   * revival is an ordinary reload along the first-load path. Consumers
+   * therefore never have to know a purge happened: they ask for what they need
+   * and this makes it be there.
+   *
+   * `IsGood()` calls this, so most callers never invoke it directly.
    *
    * @param {CjsResourceActivityOptions} [options={}] Optional deterministic activity values.
    * @returns {CjsResource} This resource, whether bound or detached.
@@ -417,6 +524,92 @@ export class CjsResource extends CjsEventEmitter
   KeepAlive(options = {})
   {
     this.__lifecycleController?.keepAlive?.(options);
+    if (this.IsPurged()) this.Reload(options);
+    return this;
+  }
+
+  /**
+   * Re-register this handle with its manager and reload it into itself.
+   *
+   * Runs only from `PURGED` or `FAILED` - the two states where the payload is
+   * absent but recoverable. It does nothing to a resource that is loaded or
+   * still loading, so it is not a way to force a refetch of something already
+   * there.
+   *
+   * Bounded by `maxReloadAttempts`, because `KeepAlive()` calls this and the
+   * render path calls that every frame: without a cap, one missing texture
+   * becomes a permanent retry storm against the thing least likely to succeed.
+   * Attempts are spaced by real load round-trips rather than frames - starting
+   * one leaves `PURGED`/`FAILED`, so nothing re-enters until it settles - and
+   * the count resets on any successful load.
+   *
+   * The distinction that matters: the reload must fill THIS handle, not resolve
+   * whatever the manager currently caches for the same path. A consumer holding
+   * a purged handle has no way to discover a replacement, so handing it a fresh
+   * instance elsewhere leaves it dead forever.
+   *
+   * Detached handles have no manager to re-register with and stay as they are.
+   *
+   * @param {CjsResourceActivityOptions} [options={}] Optional deterministic activity values.
+   * @returns {boolean} Whether a reload was started.
+   */
+  Reload(options = {})
+  {
+    if (!this.IsPurged() && !this.IsFailed()) return false;
+    if (this.#reloadAttempts >= this.constructor.maxReloadAttempts) return false;
+    if (typeof this.__reloadHook !== "function") return false;
+
+    this.#reloadAttempts += 1;
+    return this.__reloadHook(options) !== false;
+  }
+
+  /**
+   * Bind the manager callback that restores this handle after it loses its
+   * payload.
+   *
+   * Deliberately separate from the lifecycle controller, which is detached the
+   * moment canonical ownership ends. Recovery has to survive exactly that
+   * event: a purged handle with no route back to its manager is unrecoverable,
+   * which is the failure this whole contract exists to prevent.
+   *
+   * @param {Function|null} hook Manager callback, or `null` to detach it.
+   * @returns {CjsResource} This resource.
+   * @throws {TypeError} If the hook is neither a function nor null.
+   */
+  SetReloadHook(hook = null)
+  {
+    if (hook !== null && typeof hook !== "function")
+    {
+      throw new TypeError("CjsResource.SetReloadHook requires a function or null.");
+    }
+    this.__reloadHook = hook;
+    return this;
+  }
+
+  /**
+   * Return how many reloads have been attempted since the last successful load.
+   *
+   * @returns {number}
+   */
+  GetReloadAttempts()
+  {
+    return this.#reloadAttempts;
+  }
+
+  /**
+   * Clear the reload attempt count, so a resource that exhausted its attempts
+   * can be asked again.
+   *
+   * This is the deliberate "try it again" gesture - a user retrying a failed
+   * load, say. It is separate from `Reload()` because the cap exists precisely
+   * to stop the automatic path retrying forever, so lifting it has to be a
+   * decision someone made.
+   *
+   * @returns {CjsResource} This resource.
+   */
+  ResetReloadAttempts()
+  {
+    this.#reloadAttempts = 0;
     return this;
   }
 
@@ -500,8 +693,9 @@ export class CjsResource extends CjsEventEmitter
    * Concurrent callers share one in-flight operation. A resident payload is
    * returned without source work; after explicit payload release, this call is
    * an explicit reconstruction request and may load/prepare through the bound
-   * manager. Detached or purged handles do not revive themselves: their loader
-   * resolves the manager's current canonical identity.
+   * manager. This loader resolves the manager's current canonical identity, so
+   * on a purged handle it may answer with a different instance - use
+   * `KeepAlive()`/`Reload()` to revive this handle itself.
    *
    * Promised-output fields retained by the handle take precedence over fields
    * supplied here; operation policy such as cache/reload controls may still be
@@ -617,13 +811,18 @@ export class CjsResource extends CjsEventEmitter
     return Object.values(CjsResource.State).includes(state);
   }
 
-  /** Returns true when a resource state cannot continue its current operation. */
+  /**
+   * Returns true when a resource state cannot continue its current operation.
+   *
+   * `PURGED` is deliberately absent: a purged resource reloads itself
+   * through `KeepAlive()`, so purge is a transition out of a settled state
+   * rather than a resting place.
+   */
   static isTerminalState(state)
   {
     return state === CjsResource.State.PREPARED
       || state === CjsResource.State.FAILED
-      || state === CjsResource.State.UNLOADED
-      || state === CjsResource.State.PURGED;
+      || state === CjsResource.State.UNLOADED;
   }
 }
 

@@ -121,7 +121,7 @@ test("CjsResMan queues source load, CPU read, and publication separately", async
   const object = await operation;
   assert.equal(object.bytes, bytes);
   assert.equal(resource.object, object);
-  assert.equal(resource.state, "loaded");
+  assert.equal(resource.state, "prepared");
   assert.equal(resMan.GetPendingPrepares(), 0);
   assert.deepEqual(calls, [
     [ "load", "res:/queue/example.bin" ],
@@ -530,7 +530,7 @@ test("an atomic reload commits before an older canonical operation settles last"
   await oldFailure;
   assert.equal(resMan.Lookup(path), replacement);
   assert.deepEqual(replacement.GetPayload(), { revision: 2 });
-  assert.equal(replacement.state, "loaded");
+  assert.equal(replacement.state, "prepared");
   assert.equal(oldResource.state, "requested");
   assert.equal(oldResource.error, null);
   assert.equal(oldResource.HasPayload(), false);
@@ -723,7 +723,7 @@ test("reinserting the same JavaScript resource handle does not reuse its obsolet
   sourceReleases[0]("{\"revision\":1}");
   await oldFailure;
   assert.deepEqual(sharedResource.GetPayload(), { revision: 2 });
-  assert.equal(sharedResource.state, "loaded");
+  assert.equal(sharedResource.state, "prepared");
   assert.equal(sharedResource.error, null);
 });
 

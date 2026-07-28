@@ -1648,7 +1648,12 @@ class CjsResMan extends CjsEventEmitter {
       resource.SetPayload?.(object, options);
       resource.object = object;
     }
-    if (!resource.IsPrepared?.()) resource.MarkLoaded();
+    // PREPARED, not LOADED: `object` is the reader/converter OUTCOME, so the
+    // bytes have already been turned into whatever they needed to become.
+    // LOADED means raw source data is in hand and still has to be prepared - a
+    // resource in that state is not yet good, and marking it here left IsGood()
+    // permanently false for every resource that does not prepare itself.
+    if (!resource.IsPrepared?.()) resource.MarkPrepared();
     return result;
   }
 
@@ -2429,6 +2434,52 @@ class CjsResMan extends CjsEventEmitter {
    * @param {object|Function} resource Canonical resource handle.
    * @returns {object|Function} The supplied resource.
    */
+  /**
+   * Reload a purged handle back into itself.
+   *
+   * Purge deletes the payload and drops the registry entry, so a consumer left
+   * holding the handle has no way to reach a replacement - it cannot discover
+   * one, and nothing hands it over. Recovery therefore has to fill THIS handle
+   * rather than resolve whatever the manager currently caches for the path.
+   *
+   * The handle is re-registered BEFORE loading, so the ordinary load path finds
+   * it as the canonical identity and loads into it instead of minting another.
+   *
+   * Declines rather than guesses in two cases: when another resource has since
+   * claimed the identity - displacing it would kill whoever holds that one, the
+   * very failure being fixed here - and when the retained request no longer
+   * resolves to the same identity, which would re-register the handle under the
+   * wrong key.
+   *
+   * @param {string} key Canonical resolved identity key.
+   * @param {CjsResource} resource The purged handle to restore.
+   * @returns {boolean} Whether a reload was started.
+   */
+  #ReloadPurgedResource(key, resource) {
+    if (!resource?.IsPurged?.()) return false;
+    try {
+      const current = this.motherLode.Lookup(key);
+      if (current && current !== resource) return false;
+      const request = resource.GetObjectRequest?.() || {};
+      const path = normalizeResourcePath(resource.GetPath());
+      if (getMotherLodeKey(path, this.GetResourceVariant(request)) !== key) return false;
+
+      // Leave PURGED first: ownership is not considered current while purged,
+      // so binding before this would produce a controller that no-ops.
+      resource.MarkRequested();
+      if (!current) this.motherLode.Insert(key, resource, {
+        replace: true
+      });
+      this.#invalidResourceOwnership.delete(resource);
+      this.#BindResourceLifecycle(key, resource);
+
+      // Failure is recorded on the resource and observed through `completed`.
+      this.GetObject(path, request).catch(() => {});
+      return true;
+    } catch {
+      return false;
+    }
+  }
   #BindResourceLifecycle(key, resource) {
     const owner = this.motherLode;
     let ownership = this.#resourceOwnership.get(resource) || null;
@@ -2442,6 +2493,10 @@ class CjsResMan extends CjsEventEmitter {
       this.#resourceOwnership.set(resource, ownership);
       this.#invalidResourceOwnership.delete(resource);
     }
+
+    // Bound outside the lifecycle controller, which is detached when canonical
+    // ownership ends - which is precisely when a handle needs to come back.
+    resource?.SetReloadHook?.(() => this.#ReloadPurgedResource(key, resource));
     if (typeof resource?.SetLifecycleController !== "function") return resource;
     resource.SetLifecycleController(Object.freeze({
       isCurrent: () => this.#IsResourceOwnershipCurrent(ownership),
