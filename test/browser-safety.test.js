@@ -34,9 +34,13 @@ test("published source has no Node-only imports or globals", async () =>
 
         assert.doesNotMatch(source, /(?:from|import\s*\()\s*["']node:/u, file);
         assert.doesNotMatch(source, /\bBuffer\b|\bprocess\b|\brequire\s*\(/u, file);
+        // runtime-trinity is permitted for its narrow `/perobject` subpath only,
+        // which is a single leaf module with no imports of its own - the Carbon
+        // per-object layouts. The package root would drag in the whole runtime,
+        // so it stays outside the boundary.
         assert.doesNotMatch(
             source,
-            /(?:from|import\s*\()\s*["']@carbonenginejs\/(?!runtime-(?:audio|resource|utils)(?:\/|["']))/u,
+            /(?:from|import\s*\()\s*["']@carbonenginejs\/(?!runtime-(?:audio|resource|utils)(?:\/|["'])|runtime-trinity\/perobject["'])/u,
             `${file} imports outside the allowed browser runtime boundary.`
         );
     }
