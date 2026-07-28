@@ -3,6 +3,7 @@ import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { sph3 } from '@carbonenginejs/runtime-utils/sph3';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
+import { getBoneList } from '../../trinityCore/Tr2GrannyAnimation.js';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
@@ -30,6 +31,12 @@ const BOX_QUERY_SCRATCH = {
 };
 const ZERO_VEC3 = vec3.create();
 
+// Carbon's (nullptr, 0) bone result - frozen so callers cannot mutate it.
+const NO_BONE_TRANSFORMS = Object.freeze({
+  bones: null,
+  boneCount: 0
+});
+
 /**
  * Space-object child that draws one mesh under its own transform, owning its
  * decals, lights, attachments, morph weights, world bounds and screen-size LOD
@@ -45,7 +52,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveChildMesh",
         family: "eve/child"
-      })], [[[io, io.notify, io, io.persist, type, type.int32, void 0, schema.enum("ReflectionMode")], 16, "reflectionMode"], [[io, io.persist, void 0, type.list("IEveChildTransformModifier")], 16, "transformModifiers"], [[io, io.read, type, type.mat4], 16, "worldTransform"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "display"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "castShadow"], [[io, io.notify, io, io.persist, void 0, type.objectRef("Tr2MeshBase")], 16, "mesh"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "translation"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.mat4], 16, "localTransform"], [[io, io.persist, void 0, type.list("EveSpaceObjectDecal")], 16, "decals"], [[io, io.persist, type, type.boolean], 16, "staticTransform"], [[io, io.notify, io, io.persist, void 0, type.objectRef("Tr2GrannyAnimation")], 16, "animationUpdater"], [[io, io.persist, void 0, type.list("IEveSpaceObjectAttachment")], 16, "attachments"], [[io, io.persist, void 0, type.list("Tr2Light")], 16, "lights"], [[io, io.persist, type, type.int32, void 0, schema.enum("Tr2Lod")], 16, "lowestLodVisible"], [[io, io.persist, type, type.float32], 16, "minScreenSize"], [[io, io.persist, type, type.float32], 16, "sortValueOffset"], [[io, io.persist, type, type.float32], 16, "sortValueScale"], [[io, io.read, type, type.float32], 16, "currentScreenSize"], [[io, io.read, type, type.float32], 16, "currentInstanceScreenSize"], [[io, io.persist, type, type.boolean], 16, "useSRT"], [[io, io.persist, type, type.boolean], 16, "updateAnimation"], [[io, io.persist, type, type.int32, void 0, schema.enum("Origin")], 16, "origin"], [[void 0, io.rebuild("instanceBuffer"), io, io.persist, void 0, type.array("mat4")], 16, "instanceTransforms"], [[io, io.persist, type, type.string], 16, "sofDna"], [[io, io.persist, type, type.string], 16, "sofParentHullName"], [[io, io.persist, type, type.string], 16, "sofLocatorSetName"], [[io, io.persist, type, type.string], 16, "sofLocatorIndex"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "Setup"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetInstanceTransforms"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetInstanceTransforms"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetMesh"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetOrigin"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetScale"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetReflectionMode"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetCastShadow"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetMinScreenSize"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLocalToWorldTransform"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddTransformModifier"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddDecal"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddAttachment"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearAttachments"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddLight"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearLights"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsAlwaysOn"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMorphTargetNames"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetMorphTargetWeight"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMorphTargetWeight"], [[impl, impl.adapted], 18, "UpdateMorphAnimationBuffer"], [[impl, impl.adapted], 18, "GetMorphTargets"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetSofSourceLocator"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Audio-geometry registration is engine-owned and the animationUpdater branches await the JS animation seam; nothing else remains in Carbon's body.")], 18, "UpdateSyncronous"], [[carbon, carbon.method, void 0, carbon.contextual(["camera"]), impl, impl.adapted], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Bone-fed decal/attachment bounds await the animation seam and the raytracing refresh is engine-owned; the LOD/screen-size math is ported.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The decal mesh cache is engine-owned (null placeholder); collection structure is ported.")], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Frustum and threshold arrive via the duck-typed update context instead of renderer state.")], 18, "IsVisible"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Screen-size LOD selection and winding reversal are engine-resolved at realization; delegation structure is ported.")], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("shadowPixelSize LOD selection and winding reversal are engine-resolved at realization; delegation structure is ported.")], 18, "GetShadowBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetShadowPerObjectData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Persistent VS/PS device buffers and bone/morph ring offsets are engine-owned; the record carries the object reference the engine serializer consumes.")], 18, "GetPerObjectData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Overload dispatch by argument shape and a length-1 out array replace C++ overloading and the float& out-param; the shadow math is ported.")], 18, "IsCastingShadow"], [[carbon, carbon.method, impl, impl.implemented], 18, "ChangeLOD"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnRegisterComponents"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("GetBoneTransforms (cpp:1285-1307) rides the granny animation updater - awaits the JS animation seam; (null, 0) is passed per the file's UpdateAsyncronous convention.")], 18, "GetLights"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetID"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetPickingBatches"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "InitializeAnimation"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "BakeMorphs"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "UnbakeMorphs"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "IsMeshBaked"]], 0, void 0, _EveChildTransform));
+      })], [[[io, io.notify, io, io.persist, type, type.int32, void 0, schema.enum("ReflectionMode")], 16, "reflectionMode"], [[io, io.persist, void 0, type.list("IEveChildTransformModifier")], 16, "transformModifiers"], [[io, io.read, type, type.mat4], 16, "worldTransform"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "display"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "castShadow"], [[io, io.notify, io, io.persist, void 0, type.objectRef("Tr2MeshBase")], 16, "mesh"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "translation"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.mat4], 16, "localTransform"], [[io, io.persist, void 0, type.list("EveSpaceObjectDecal")], 16, "decals"], [[io, io.persist, type, type.boolean], 16, "staticTransform"], [[io, io.notify, io, io.persist, void 0, type.objectRef("Tr2GrannyAnimation")], 16, "animationUpdater"], [[io, io.persist, void 0, type.list("IEveSpaceObjectAttachment")], 16, "attachments"], [[io, io.persist, void 0, type.list("Tr2Light")], 16, "lights"], [[io, io.persist, type, type.int32, void 0, schema.enum("Tr2Lod")], 16, "lowestLodVisible"], [[io, io.persist, type, type.float32], 16, "minScreenSize"], [[io, io.persist, type, type.float32], 16, "sortValueOffset"], [[io, io.persist, type, type.float32], 16, "sortValueScale"], [[io, io.read, type, type.float32], 16, "currentScreenSize"], [[io, io.read, type, type.float32], 16, "currentInstanceScreenSize"], [[io, io.persist, type, type.boolean], 16, "useSRT"], [[io, io.persist, type, type.boolean], 16, "updateAnimation"], [[io, io.persist, type, type.int32, void 0, schema.enum("Origin")], 16, "origin"], [[void 0, io.rebuild("instanceBuffer"), io, io.persist, void 0, type.array("mat4")], 16, "instanceTransforms"], [[io, io.persist, type, type.string], 16, "sofDna"], [[io, io.persist, type, type.string], 16, "sofParentHullName"], [[io, io.persist, type, type.string], 16, "sofLocatorSetName"], [[io, io.persist, type, type.string], 16, "sofLocatorIndex"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "Setup"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetInstanceTransforms"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetInstanceTransforms"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetMesh"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetOrigin"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetScale"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetReflectionMode"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetCastShadow"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetMinScreenSize"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLocalToWorldTransform"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddTransformModifier"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddDecal"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddAttachment"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearAttachments"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddLight"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearLights"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsAlwaysOn"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetShaderOption"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMorphTargetNames"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetMorphTargetWeight"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMorphTargetWeight"], [[impl, impl.adapted], 18, "UpdateMorphAnimationBuffer"], [[impl, impl.adapted], 18, "GetMorphTargets"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetSofSourceLocator"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Audio-geometry registration is engine-owned and the animationUpdater branches await the JS animation seam; nothing else remains in Carbon's body.")], 18, "UpdateSyncronous"], [[carbon, carbon.method, void 0, carbon.contextual(["camera"]), impl, impl.adapted], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2AnimationMeshBinding is unported, so the second bone source (Carbon cpp:1303-1306) yields no bones rather than wrong ones.")], 18, "GetBoneTransforms"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Bone-fed decal bounds still await the decal seam and the raytracing refresh is engine-owned; the LOD/screen-size math and the bone-fed attachment pass are ported.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The decal mesh cache is engine-owned (null placeholder); collection structure is ported.")], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Frustum and threshold arrive via the duck-typed update context instead of renderer state.")], 18, "IsVisible"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Screen-size LOD selection and winding reversal are engine-resolved at realization; delegation structure is ported.")], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("shadowPixelSize LOD selection and winding reversal are engine-resolved at realization; delegation structure is ported.")], 18, "GetShadowBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetShadowPerObjectData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Persistent VS/PS device buffers and bone/morph ring offsets are engine-owned; the record carries the object reference the engine serializer consumes.")], 18, "GetPerObjectData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Overload dispatch by argument shape and a length-1 out array replace C++ overloading and the float& out-param; the shadow math is ported.")], 18, "IsCastingShadow"], [[carbon, carbon.method, impl, impl.implemented], 18, "ChangeLOD"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnRegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLights"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetID"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GetPickingBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "InitializeAnimation"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "BakeMorphs"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "UnbakeMorphs"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "IsMeshBaked"]], 0, void 0, _EveChildTransform));
     }
     constructor(...args) {
       super(...args);
@@ -117,6 +124,9 @@ new class extends _identity {
       if (this.staticTransform) {
         this.RebuildLocalTransform();
       }
+
+      // cpp:84 - bind the updater to this mesh's geometry.
+      this.InitializeAnimation();
       return true;
     }
 
@@ -474,6 +484,33 @@ new class extends _identity {
      * @param {Number} parentLod - parent Tr2Lod level
      * @returns {Boolean} isVisible
      */
+    /**
+     * The mesh's bone palette, as a borrowed Float4x3 buffer and its bone count.
+     *
+     * Carbon `EveChildMesh::GetBoneTransforms` (cpp:1285-1307). Carbon branches:
+     * the updater's own palette when it has a mesh binding, otherwise a separate
+     * `Tr2AnimationMeshBinding` palette. Only the first branch exists here -
+     * `Tr2AnimationMeshBinding` is unported - so a mesh relying on the second
+     * gets no bones rather than the wrong ones.
+     *
+     * Carbon also assigns `accumulatedTransforms` at cpp:1295 and never reads it;
+     * a dead local, not reproduced.
+     */
+    GetBoneTransforms() {
+      const updater = this.animationUpdater;
+      if (!updater?.IsInitialized?.()) {
+        return NO_BONE_TRANSFORMS;
+      }
+
+      // cpp:1297-1302 - the updater's own palette when it binds to the mesh.
+      if (updater.HasMeshBinding?.()) {
+        return getBoneList(updater);
+      }
+
+      // cpp:1303-1306 would fall to a Tr2AnimationMeshBinding palette here. That
+      // class is unported, so this yields no bones rather than the wrong ones.
+      return NO_BONE_TRANSFORMS;
+    }
     UpdateVisibility(updateContext, _parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH) {
       this.#isVisible = false;
       this.currentScreenSize = -1;
@@ -526,10 +563,14 @@ new class extends _identity {
         }
       }
 
-      // Carbon (cpp:427-435): attachments always refresh visibility; bones from
-      // GetBoneTransforms await the animation seam.
+      // Carbon (cpp:427-435): attachments always refresh visibility, fed the bone
+      // palette so a bone-parented attachment is placed by its bone.
+      const {
+        bones,
+        boneCount
+      } = this.GetBoneTransforms();
       for (const attachment of this.attachments) {
-        attachment?.UpdateVisibility?.(updateContext, this.worldTransform, null, 0);
+        attachment?.UpdateVisibility?.(updateContext, this.worldTransform, bones, boneCount);
       }
       if (this.#isVisible) {
         for (const decal of this.decals) {
@@ -799,8 +840,14 @@ new class extends _identity {
       if (!this.lights.length || !this.display) {
         return;
       }
+
+      // cpp:1645 - bones so a bone-parented light is placed by its bone.
+      const {
+        bones,
+        boneCount
+      } = this.GetBoneTransforms();
       for (const light of this.lights) {
-        light?.AddLight?.(lightManager, this.worldTransform, 1, null, 0);
+        light?.AddLight?.(lightManager, this.worldTransform, 1, bones, boneCount);
         light?.SetBrightnessMultiplier?.(this.#activationStrength);
       }
     }
@@ -818,11 +865,27 @@ new class extends _identity {
       throw new Error("EveChildMesh.GetPickingBatches is not implemented in CarbonEngineJS.");
     }
 
-    /** Carbon EveChildMesh::InitializeAnimation (cpp:217-232) wires the
-     * animationUpdater to the mesh geometry resource; awaits the JS animation
-     * seam (no Tr2GrannyAnimation runtime). */
-    InitializeAnimation(..._args) {
-      throw new Error("EveChildMesh.InitializeAnimation is not implemented in CarbonEngineJS.");
+    /**
+     * Binds the animation updater to this mesh's geometry, so a child with no
+     * animation resource of its own animates from the mesh's own bone binding.
+     *
+     * Carbon `EveChildMesh::InitializeAnimation` (cpp:217-232). Only runs when
+     * the updater has no authored resPath - one that does keeps its own
+     * resource. When the mesh has no geometry yet the shared binding is cleared
+     * rather than left stale, so a later mesh swap rebinds cleanly.
+     */
+    InitializeAnimation() {
+      const updater = this.animationUpdater;
+      if (!updater || updater.resPath_) {
+        return;
+      }
+      const geometry = this.mesh?.GetGeometryResource?.();
+      if (geometry) {
+        updater.SetUseMeshBinding?.(true);
+        updater.SetSharedGeometryRes?.(geometry);
+        return;
+      }
+      updater.SetSharedGeometryRes?.(null);
     }
 
     /** Carbon BakeMorphs runs the merge-morphs GPU compute pass; GPU-owned. */

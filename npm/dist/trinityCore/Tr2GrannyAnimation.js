@@ -1,12 +1,12 @@
-import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
+import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { mat3 } from '@carbonenginejs/runtime-utils/mat3';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { io, type, impl, carbon } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { CjsGrannyCurves } from '../../curves/CjsGrannyCurves.js';
-import { GrannyBoneOffset as _GrannyBoneOffset } from '../../trinityCore/GrannyBoneOffset.js';
+import { CjsGrannyCurves } from '../curves/CjsGrannyCurves.js';
+import { GrannyBoneOffset as _GrannyBoneOffset } from './GrannyBoneOffset.js';
 
 let _initProto, _initClass, _init_resPath_, _init_extra_resPath_, _init_model_, _init_extra_model_, _init_grannyRes, _init_extra_grannyRes, _init_eventListener, _init_extra_eventListener, _init_animationEnabled, _init_extra_animationEnabled, _init_debugRenderJointNames, _init_extra_debugRenderJointNames, _init_debugRenderSkeleton, _init_extra_debugRenderSkeleton, _init_boneOffset, _init_extra_boneOffset;
 function createLayer(name = "", weight = 1, allBones = false) {
@@ -26,7 +26,39 @@ function getName(value) {
   return String(value?.name ?? value?.Name ?? "");
 }
 
-/** Tr2GrannyAnimation (trinityCore) - generated from schema shapeHash 056bad2a.... */
+/** No bones: the shape every consumer already handles, per Carbon's else branch. */
+const NO_BONES = Object.freeze({
+  bones: null,
+  boneCount: 0
+});
+
+/**
+ * The mesh bone palette of an animation updater, or nulls when it has none.
+ *
+ * Carbon `Tr2GrannyAnimationUtils::GetBoneList` (Tr2GrannyAnimation.cpp:24-33),
+ * which every bone consumer calls before threading `(bones, boneCount)` down.
+ * An uninitialised updater or a zero bone count yields the same shape as no
+ * updater at all, so callers need one branch rather than three.
+ *
+ * The palette is BORROWED - it is the updater's live buffer, rewritten in place
+ * each frame. Do not retain it across frames or mutate it.
+ */
+function getBoneList(animationUpdater) {
+  if (!animationUpdater?.IsInitialized?.()) {
+    return NO_BONES;
+  }
+  const boneCount = animationUpdater.GetMeshBoneCount?.() ?? 0;
+  if (!boneCount) {
+    return NO_BONES;
+  }
+  const bones = animationUpdater.GetMeshBoneMatrixList?.();
+  return bones ? {
+    bones,
+    boneCount
+  } : NO_BONES;
+}
+
+/** Tr2GrannyAnimation (trinityCore) - promoted from generated; shapeHash 056bad2a. */
 let _Tr2GrannyAnimation;
 class Tr2GrannyAnimation extends CjsModel {
   static {
@@ -36,7 +68,7 @@ class Tr2GrannyAnimation extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "Tr2GrannyAnimation",
       family: "trinityCore"
-    })], [[[io, io.persistOnly, type, type.string], 16, "resPath_"], [[io, io.persistOnly, type, type.string], 16, "model_"], [[io, io.read, void 0, type.objectRef("TriGrannyRes")], 16, "grannyRes"], [[io, io.readwrite, void 0, type.objectRef("IBlueEventListener")], 16, "eventListener"], [[io, io.readwrite, type, type.boolean], 16, "animationEnabled"], [[io, io.readwrite, type, type.boolean], 16, "debugRenderJointNames"], [[io, io.readwrite, type, type.boolean], 16, "debugRenderSkeleton"], [[io, io.read, void 0, type.objectRef("GrannyBoneOffset")], 16, "boneOffset"], [[impl, impl.adapted], 18, "Initialize"], [[impl, impl.adapted], 18, "SetGrannyResource"], [[impl, impl.adapted], 18, "RebuildCachedData"], [[impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "PlayAnimationEx"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddAnimationLayer"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddAnimationLayerAllBones"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddAnimationLayerBone"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Resource loading stays runtime-resource-owned; registered decoded resources are attached synchronously when available.")], 18, "AddSecondaryResPath"], [[impl, impl.adapted], 18, "SetSecondaryGrannyResource"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The browser graph retains Carbon's aim request; final IK realization can be refined by an engine adapter.")], 18, "AimBone"], [[carbon, carbon.method, impl, impl.implemented], 18, "ChainAnimation"], [[carbon, carbon.method, impl, impl.implemented], 18, "ChainAnimationEx"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearAnimations"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearAnimationLayers"], [[carbon, carbon.method, impl, impl.implemented], 18, "DisableAimBone"], [[carbon, carbon.method, impl, impl.adapted], 18, "EndAnimation"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAdditiveBlendMode"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLayerWeight"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetSecondaryAnimationName"], [[carbon, carbon.method, impl, impl.adapted], 18, "PlayAnimation"], [[impl, impl.adapted], 18, "PlayAnimationOnce"], [[carbon, carbon.method, impl, impl.adapted], 18, "PlayLayerAnimation"], [[impl, impl.adapted], 18, "PlayLayerAnimationByName"], [[carbon, carbon.method, impl, impl.implemented], 18, "RemoveAnimationLayerBone"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetAnimationNames"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetAdditiveBlendMode"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLayerControlParam"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLayerControlParamSkewRate"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLayerWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "TogglePauseAnimations"], [[impl, impl.implemented], 18, "IsInitialized"], [[impl, impl.adapted], 18, "GetMeshBoneMatrixList"], [[impl, impl.implemented], 18, "GetMeshBoneCount"], [[impl, impl.adapted], 18, "GetBoneWorldTransform"], [[impl, impl.adapted], 18, "GetBoneTransform"], [[impl, impl.adapted], 18, "GetBoneMatrix"], [[impl, impl.implemented], 18, "GetAnimationTransforms"], [[impl, impl.implemented], 18, "GetAnimationBoneList"], [[impl, impl.implemented], 18, "GetMorphAnimations"], [[impl, impl.adapted], 18, "GetAimBoneState"]], 0, void 0, CjsModel));
+    })], [[[io, io.persistOnly, type, type.string], 16, "resPath_"], [[io, io.persistOnly, type, type.string], 16, "model_"], [[io, io.read, void 0, type.objectRef("TriGrannyRes")], 16, "grannyRes"], [[io, io.readwrite, void 0, type.objectRef("IBlueEventListener")], 16, "eventListener"], [[io, io.readwrite, type, type.boolean], 16, "animationEnabled"], [[io, io.readwrite, type, type.boolean], 16, "debugRenderJointNames"], [[io, io.readwrite, type, type.boolean], 16, "debugRenderSkeleton"], [[io, io.read, void 0, type.objectRef("GrannyBoneOffset")], 16, "boneOffset"], [[impl, impl.adapted], 18, "Initialize"], [[impl, impl.adapted], 18, "SetGrannyResource"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetSharedGeometryRes"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasMeshBinding"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetUseMeshBinding"], [[impl, impl.adapted], 18, "HasSharedGeometryRes"], [[impl, impl.adapted], 18, "RebuildCachedData"], [[impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "PlayAnimationEx"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddAnimationLayer"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddAnimationLayerAllBones"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddAnimationLayerBone"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Resource loading stays runtime-resource-owned; registered decoded resources are attached synchronously when available.")], 18, "AddSecondaryResPath"], [[impl, impl.adapted], 18, "SetSecondaryGrannyResource"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The browser graph retains Carbon's aim request; final IK realization can be refined by an engine adapter.")], 18, "AimBone"], [[carbon, carbon.method, impl, impl.implemented], 18, "ChainAnimation"], [[carbon, carbon.method, impl, impl.implemented], 18, "ChainAnimationEx"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearAnimations"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearAnimationLayers"], [[carbon, carbon.method, impl, impl.implemented], 18, "DisableAimBone"], [[carbon, carbon.method, impl, impl.adapted], 18, "EndAnimation"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAdditiveBlendMode"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLayerWeight"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetSecondaryAnimationName"], [[carbon, carbon.method, impl, impl.adapted], 18, "PlayAnimation"], [[impl, impl.adapted], 18, "PlayAnimationOnce"], [[carbon, carbon.method, impl, impl.adapted], 18, "PlayLayerAnimation"], [[impl, impl.adapted], 18, "PlayLayerAnimationByName"], [[carbon, carbon.method, impl, impl.implemented], 18, "RemoveAnimationLayerBone"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetAnimationNames"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetAdditiveBlendMode"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLayerControlParam"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLayerControlParamSkewRate"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLayerWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "TogglePauseAnimations"], [[impl, impl.implemented], 18, "IsInitialized"], [[impl, impl.adapted], 18, "GetMeshBoneMatrixList"], [[impl, impl.implemented], 18, "GetMeshBoneCount"], [[impl, impl.adapted], 18, "GetBoneWorldTransform"], [[impl, impl.adapted], 18, "GetBoneTransform"], [[impl, impl.adapted], 18, "GetBoneMatrix"], [[impl, impl.implemented], 18, "GetAnimationTransforms"], [[impl, impl.implemented], 18, "GetAnimationBoneList"], [[impl, impl.implemented], 18, "GetMorphAnimations"], [[impl, impl.adapted], 18, "GetAimBoneState"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);
@@ -52,6 +84,18 @@ class Tr2GrannyAnimation extends CjsModel {
   #initialized = false;
   #layers = new Map();
   #meshBoneIndices = [];
+
+  /**
+   * Carbon's `Float4x3* m_meshBoneMatrixList` (Tr2GrannyAnimation.h:208) - one
+   * contiguous palette, stride 12, allocated once and rewritten in place.
+   */
+  #meshBonePalette = null;
+
+  /** Carbon m_useMeshBinding (Tr2GrannyAnimation.cpp:81) - defaults false. */
+  #useMeshBinding = false;
+
+  /** Whether grannyRes was borrowed from the mesh rather than resolved here. */
+  #sharedGeometry = false;
   #morphAnimations = new Map();
   #morphCurveCache = new WeakMap();
   #morphSample = new Float32Array(1);
@@ -94,7 +138,45 @@ class Tr2GrannyAnimation extends CjsModel {
   /** Attaches an already decoded TriGrannyRes-compatible resource. */
   SetGrannyResource(resource) {
     this.grannyRes = resource ?? null;
+    this.#sharedGeometry = false;
     return this.RebuildCachedData();
+  }
+
+  /**
+   * Binds a geometry resource BORROWED from the mesh this controller animates,
+   * rather than one resolved from its own resPath.
+   *
+   * Carbon `SetSharedGeometryRes` (Tr2GrannyAnimation.h), driven by
+   * `EveChildMesh::InitializeAnimation` when the updater has no authored path
+   * of its own. A null resource clears the binding, which is Carbon's fallback
+   * when the mesh has no geometry yet.
+   */
+  SetSharedGeometryRes(resource) {
+    this.grannyRes = resource ?? null;
+    this.#sharedGeometry = !!resource;
+    return this.RebuildCachedData();
+  }
+
+  /**
+   * Whether the palette is built from the MESH's bone binding.
+   *
+   * Carbon gates palette construction on this (`m_useMeshBinding`,
+   * Tr2GrannyAnimation.cpp:588, :633) and `EveChildMesh::GetBoneTransforms`
+   * branches on it to choose between this controller's palette and a separate
+   * Tr2AnimationMeshBinding. Defaults false, matching cpp:81.
+   */
+  HasMeshBinding() {
+    return this.#useMeshBinding;
+  }
+
+  /** Carbon `SetUseMeshBinding` (Tr2GrannyAnimation.h:60). */
+  SetUseMeshBinding(enable) {
+    this.#useMeshBinding = !!enable;
+  }
+
+  /** Whether the bound geometry was borrowed from the mesh. */
+  HasSharedGeometryRes() {
+    return this.#sharedGeometry;
   }
 
   /** Rebuilds browser bone state directly from format-gr2's stable payload. */
@@ -357,10 +439,57 @@ class Tr2GrannyAnimation extends CjsModel {
     return this.#initialized;
   }
 
-  /** Returns the mesh-order browser bone matrices expected by Eve objects. */
+  /**
+   * The mesh-order bone palette, in Carbon's storage: ONE contiguous buffer of
+   * Float4x3 entries, stride 12, not an array of matrices.
+   *
+   * Carbon holds `Float4x3* m_meshBoneMatrixList` (Tr2GrannyAnimation.h:208)
+   * and every CPU consumer unpacks it with `TriMatrixCopyFrom3x4`. The JS
+   * consumers already expect that shape - `MatrixCopyFrom3x4` indexes
+   * `boneIndex * 12` for the light sets, bounds and decals - so the palette is
+   * built here rather than converted at each of nine call sites. It is also
+   * what an uploader wants: one block, handed over whole.
+   *
+   * Float4x3 drops the constant fourth column and stores the first three
+   * columns of the 4x4 (Utilities/MatrixUtils.cpp:6-20).
+   */
   GetMeshBoneMatrixList() {
     const bones = this.#runtimeModel?.bones ?? [];
-    return this.#meshBoneIndices.map(index => bones[index]?.offsetTransform ?? mat4.create());
+    const count = this.#meshBoneIndices.length;
+    if (!this.#meshBonePalette || this.#meshBonePalette.length !== count * 12) {
+      this.#meshBonePalette = new Float32Array(count * 12);
+    }
+    const palette = this.#meshBonePalette;
+    for (let index = 0; index < count; index++) {
+      const source = bones[this.#meshBoneIndices[index]]?.offsetTransform;
+      const base = index * 12;
+      if (!source) {
+        // Carbon leaves an unmapped bone at whatever the palette held; identity
+        // is the reproducible stand-in and keeps a missing bone from collapsing
+        // its geometry to the origin.
+        palette[base] = palette[base + 5] = palette[base + 10] = 1;
+        palette[base + 1] = palette[base + 2] = palette[base + 3] = 0;
+        palette[base + 4] = palette[base + 6] = palette[base + 7] = 0;
+        palette[base + 8] = palette[base + 9] = palette[base + 11] = 0;
+        continue;
+      }
+
+      // Columns of the 4x4, which is rows of its transpose. gl-matrix is
+      // column-major, so column c is source[c * 4 + r].
+      palette[base] = source[0];
+      palette[base + 1] = source[4];
+      palette[base + 2] = source[8];
+      palette[base + 3] = source[12];
+      palette[base + 4] = source[1];
+      palette[base + 5] = source[5];
+      palette[base + 6] = source[9];
+      palette[base + 7] = source[13];
+      palette[base + 8] = source[2];
+      palette[base + 9] = source[6];
+      palette[base + 10] = source[10];
+      palette[base + 11] = source[14];
+    }
+    return palette;
   }
   GetMeshBoneCount() {
     return this.#meshBoneIndices.length;
@@ -762,5 +891,5 @@ class Tr2GrannyAnimation extends CjsModel {
   }
 }
 
-export { _Tr2GrannyAnimation as Tr2GrannyAnimation };
+export { _Tr2GrannyAnimation as Tr2GrannyAnimation, getBoneList };
 //# sourceMappingURL=Tr2GrannyAnimation.js.map

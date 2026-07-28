@@ -5,6 +5,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
+import { getBoneList } from "../../trinityCore/Tr2GrannyAnimation.js";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
@@ -694,8 +695,7 @@ export class EveChildContainer extends EveChildTransform
    * @returns {Boolean} whether the fan-out ran
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("The animationOwner bone list for attachments awaits the animation seam (bones pass as null); the visibility fan-out is ported.")
+  @impl.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
     if (!this.display)
@@ -714,9 +714,13 @@ export class EveChildContainer extends EveChildTransform
 
     if (this.HasRenderables())
     {
+      // cpp:398-409 - the container has no updater of its own; the palette
+      // comes from whichever object owns the animation.
+      const { bones, boneCount } = getBoneList(this.animationOwner?.GetAnimationController?.());
+
       for (const attachment of this.attachments)
       {
-        attachment?.UpdateVisibility?.(updateContext, this.worldTransform, null, 0);
+        attachment?.UpdateVisibility?.(updateContext, this.worldTransform, bones, boneCount);
       }
     }
     return true;

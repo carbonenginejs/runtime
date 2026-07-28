@@ -5,6 +5,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
+import { getBoneList } from "../../trinityCore/Tr2GrannyAnimation.js";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
@@ -26,6 +27,9 @@ const SHADOW_SPHERE_SCRATCH = vec4.create();
 const BOX_CORNER_SCRATCH = vec3.create();
 const BOX_QUERY_SCRATCH = { min: vec3.create(), max: vec3.create() };
 const ZERO_VEC3 = vec3.create();
+
+// Carbon's (nullptr, 0) bone result - frozen so callers cannot mutate it.
+const NO_BONE_TRANSFORMS = Object.freeze({ bones: null, boneCount: 0 });
 
 
 /**
@@ -212,6 +216,10 @@ export class EveChildMesh extends EveChildTransform
     {
       this.RebuildLocalTransform();
     }
+
+    // cpp:84 - bind the updater to this mesh's geometry.
+    this.InitializeAnimation();
+
     return true;
   }
 
@@ -714,9 +722,44 @@ export class EveChildMesh extends EveChildTransform
    * @param {Number} parentLod - parent Tr2Lod level
    * @returns {Boolean} isVisible
    */
+  /**
+   * The mesh's bone palette, as a borrowed Float4x3 buffer and its bone count.
+   *
+   * Carbon `EveChildMesh::GetBoneTransforms` (cpp:1285-1307). Carbon branches:
+   * the updater's own palette when it has a mesh binding, otherwise a separate
+   * `Tr2AnimationMeshBinding` palette. Only the first branch exists here -
+   * `Tr2AnimationMeshBinding` is unported - so a mesh relying on the second
+   * gets no bones rather than the wrong ones.
+   *
+   * Carbon also assigns `accumulatedTransforms` at cpp:1295 and never reads it;
+   * a dead local, not reproduced.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Bone-fed decal/attachment bounds await the animation seam and the raytracing refresh is engine-owned; the LOD/screen-size math is ported.")
+  @impl.reason("Tr2AnimationMeshBinding is unported, so the second bone source (Carbon cpp:1303-1306) yields no bones rather than wrong ones.")
+  GetBoneTransforms()
+  {
+    const updater = this.animationUpdater;
+
+    if (!updater?.IsInitialized?.())
+    {
+      return NO_BONE_TRANSFORMS;
+    }
+
+    // cpp:1297-1302 - the updater's own palette when it binds to the mesh.
+    if (updater.HasMeshBinding?.())
+    {
+      return getBoneList(updater);
+    }
+
+    // cpp:1303-1306 would fall to a Tr2AnimationMeshBinding palette here. That
+    // class is unported, so this yields no bones rather than the wrong ones.
+    return NO_BONE_TRANSFORMS;
+  }
+
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Bone-fed decal bounds still await the decal seam and the raytracing refresh is engine-owned; the LOD/screen-size math and the bone-fed attachment pass are ported.")
   UpdateVisibility(updateContext, _parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
     this.#isVisible = false;
@@ -794,11 +837,13 @@ export class EveChildMesh extends EveChildTransform
       }
     }
 
-    // Carbon (cpp:427-435): attachments always refresh visibility; bones from
-    // GetBoneTransforms await the animation seam.
+    // Carbon (cpp:427-435): attachments always refresh visibility, fed the bone
+    // palette so a bone-parented attachment is placed by its bone.
+    const { bones, boneCount } = this.GetBoneTransforms();
+
     for (const attachment of this.attachments)
     {
-      attachment?.UpdateVisibility?.(updateContext, this.worldTransform, null, 0);
+      attachment?.UpdateVisibility?.(updateContext, this.worldTransform, bones, boneCount);
     }
 
     if (this.#isVisible)
@@ -1180,17 +1225,20 @@ export class EveChildMesh extends EveChildTransform
    * stamped on the previous pass; the first pass uses the Tr2Light default
    * 1). */
   @carbon.method
-  @impl.adapted
-  @impl.reason("GetBoneTransforms (cpp:1285-1307) rides the granny animation updater - awaits the JS animation seam; (null, 0) is passed per the file's UpdateAsyncronous convention.")
+  @impl.implemented
   GetLights(lightManager)
   {
     if (!this.lights.length || !this.display)
     {
       return;
     }
+
+    // cpp:1645 - bones so a bone-parented light is placed by its bone.
+    const { bones, boneCount } = this.GetBoneTransforms();
+
     for (const light of this.lights)
     {
-      light?.AddLight?.(lightManager, this.worldTransform, 1, null, 0);
+      light?.AddLight?.(lightManager, this.worldTransform, 1, bones, boneCount);
       light?.SetBrightnessMultiplier?.(this.#activationStrength);
     }
   }
@@ -1214,14 +1262,36 @@ export class EveChildMesh extends EveChildTransform
     throw new Error("EveChildMesh.GetPickingBatches is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon EveChildMesh::InitializeAnimation (cpp:217-232) wires the
-   * animationUpdater to the mesh geometry resource; awaits the JS animation
-   * seam (no Tr2GrannyAnimation runtime). */
+  /**
+   * Binds the animation updater to this mesh's geometry, so a child with no
+   * animation resource of its own animates from the mesh's own bone binding.
+   *
+   * Carbon `EveChildMesh::InitializeAnimation` (cpp:217-232). Only runs when
+   * the updater has no authored resPath - one that does keeps its own
+   * resource. When the mesh has no geometry yet the shared binding is cleared
+   * rather than left stale, so a later mesh swap rebinds cleanly.
+   */
   @carbon.method
-  @impl.notImplemented
-  InitializeAnimation(..._args)
+  @impl.implemented
+  InitializeAnimation()
   {
-    throw new Error("EveChildMesh.InitializeAnimation is not implemented in CarbonEngineJS.");
+    const updater = this.animationUpdater;
+
+    if (!updater || updater.resPath_)
+    {
+      return;
+    }
+
+    const geometry = this.mesh?.GetGeometryResource?.();
+
+    if (geometry)
+    {
+      updater.SetUseMeshBinding?.(true);
+      updater.SetSharedGeometryRes?.(geometry);
+      return;
+    }
+
+    updater.SetSharedGeometryRes?.(null);
   }
 
   /** Carbon BakeMorphs runs the merge-morphs GPU compute pass; GPU-owned. */

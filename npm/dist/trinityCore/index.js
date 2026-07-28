@@ -17,6 +17,7 @@ export { Tr2MaterialParameterStore } from './Tr2MaterialParameterStore.js';
 export { Tr2Mesh } from './Tr2Mesh.js';
 export { Tr2MeshArea } from './Tr2MeshArea.js';
 export { Tr2MeshBase } from './Tr2MeshBase.js';
+export { Tr2GrannyAnimation, getBoneList } from './Tr2GrannyAnimation.js';
 export { Tr2PerObjectData } from './Tr2PerObjectData.js';
 export { Tr2PrimaryRenderContext } from './Tr2PrimaryRenderContext.js';
 export { CanBeBinned, CompareBatches, OrderOf, Tr2GdprBatchFullPartition, Tr2GdprBatchStableFullPartition, Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from './Tr2RenderBatch.js';

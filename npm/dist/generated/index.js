@@ -142,7 +142,6 @@ export { Tr2DebugRenderer } from './trinityCore/Tr2DebugRenderer.js';
 export { Tr2Denoiser } from './trinityCore/Tr2Denoiser.js';
 export { Tr2GpuProfiler } from './trinityCore/Tr2GpuProfiler.js';
 export { Tr2GpuStructuredBuffer } from './trinityCore/Tr2GpuStructuredBuffer.js';
-export { Tr2GrannyAnimation } from './trinityCore/Tr2GrannyAnimation.js';
 export { Tr2GrannyPrimitiveSet } from './trinityCore/Tr2GrannyPrimitiveSet.js';
 export { Tr2HostBitmap } from './trinityCore/Tr2HostBitmap.js';
 export { Tr2ImpostorManager } from './trinityCore/Tr2ImpostorManager.js';

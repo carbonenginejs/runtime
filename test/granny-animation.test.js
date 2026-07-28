@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
-import { Tr2GrannyAnimation } from "../npm/dist/generated/trinityCore/Tr2GrannyAnimation.js";
+import { Tr2GrannyAnimation } from "../npm/dist/trinityCore/Tr2GrannyAnimation.js";
 import { GrannyBoneOffset } from "../npm/dist/trinityCore/index.js";
 
 
@@ -101,9 +101,9 @@ test("Tr2GrannyAnimation builds and samples browser bone matrices", () =>
   assert.equal(animation.PlayAnimation("Move", true, 0, 0, 1, false), true);
   assert.equal(animation.Update(1), true);
   const bones = animation.GetMeshBoneMatrixList();
-  assert.equal(bones.length, 2);
-  assert.ok(Math.abs(bones[0][12] - 5) < 1e-6);
-  assert.ok(Math.abs(bones[1][12] - 5) < 1e-6);
+  assert.equal(bones.length, 24, "two bones, Float4x3 stride 12");
+  assert.ok(Math.abs(bones[3] - 5) < 1e-6, "bone 0 translation x");
+  assert.ok(Math.abs(bones[15] - 5) < 1e-6, "bone 1 translation x");
   assert.ok(Math.abs(animation.GetMorphAnimations().get("Smile") - 0.5) < 1e-6);
 
   assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "PlayAnimation")?.carbon?.method, true);
@@ -121,12 +121,12 @@ test("Tr2GrannyAnimation applies post-sample bone offsets before world compositi
   animation.Update(1);
 
   const bones = animation.GetMeshBoneMatrixList();
-  assert.ok(Math.abs(bones[0][12] - 7) < 1e-6);
-  assert.ok(Math.abs(bones[1][12] - 7) < 1e-6);
+  assert.ok(Math.abs(bones[3] - 7) < 1e-6, "bone 0 translation x");
+  assert.ok(Math.abs(bones[15] - 7) < 1e-6, "bone 1 translation x");
 
   animation.boneOffset.ClearTransforms();
   animation.Update(0);
-  assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[0][12] - 5) < 1e-6);
+  assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[3] - 5) < 1e-6);
 });
 
 
@@ -206,11 +206,11 @@ test("Tr2GrannyAnimation handles reverse, paused, and masked-layer playback", ()
   animation.SetGrannyResource(createResource());
   animation.PlayAnimation("Move", true, 0, 0, -1, false);
   animation.Update(0.5);
-  assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[0][12] - 7.5) < 1e-6);
+  assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[3] - 7.5) < 1e-6);
 
   animation.TogglePauseAnimations(true);
   animation.Update(1);
-  assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[0][12] - 7.5) < 1e-6);
+  assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[3] - 7.5) < 1e-6);
   animation.TogglePauseAnimations(false);
 
   assert.equal(animation.AddAnimationLayer("upper", 0.5), true);

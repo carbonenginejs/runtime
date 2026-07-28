@@ -495,6 +495,10 @@ new class extends _identity {
           if (!transform) {
             continue;
           }
+          // cpp:1109 passes nullptr bones deliberately, and it is not a deferral:
+          // booster glows are tied to the booster LOCATORS, so each glow is placed
+          // by its renderable's parent transform (the locator placement) rather
+          // than by a bone index. There is nothing for a bone palette to resolve.
           const visible = this.glows.UpdateVisibility ? this.glows.UpdateVisibility(updateContext, transform, null, 0) : true;
           if (visible) {
             this.#glowsVisible = true;

@@ -8,7 +8,6 @@ export { Tr2DebugRenderer } from './Tr2DebugRenderer.js';
 export { Tr2Denoiser } from './Tr2Denoiser.js';
 export { Tr2GpuProfiler } from './Tr2GpuProfiler.js';
 export { Tr2GpuStructuredBuffer } from './Tr2GpuStructuredBuffer.js';
-export { Tr2GrannyAnimation } from './Tr2GrannyAnimation.js';
 export { Tr2GrannyPrimitiveSet } from './Tr2GrannyPrimitiveSet.js';
 export { Tr2HostBitmap } from './Tr2HostBitmap.js';
 export { Tr2ImpostorManager } from './Tr2ImpostorManager.js';

@@ -16,6 +16,8 @@ import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
+import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
+import { getBoneList } from "../../trinityCore/Tr2GrannyAnimation.js";
 import { Tr2PerObjectData } from "../../trinityCore/Tr2PerObjectData.js";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../trinityCore/Tr2RenderBatch.js";
 
@@ -896,9 +898,13 @@ export class EveSpaceObject2 extends EveEntity
       }
     }
 
+    // Bones so a bone-parented attachment's bounds follow its bone, which is
+    // what drives the per-bone AABB union (Carbon BoundingBox.cpp:815-833).
+    const { bones, boneCount } = getBoneList(this.animationUpdater);
+
     for (const attachment of this.attachments)
     {
-      if (attachment?.UpdateVisibility?.(updateContext, this.worldTransform, null, 0))
+      if (attachment?.UpdateVisibility?.(updateContext, this.worldTransform, bones, boneCount))
       {
         this.#isMeshVisible = true;
         this.isVisible = true;
@@ -1324,17 +1330,21 @@ export class EveSpaceObject2 extends EveEntity
    * lag, preserved verbatim. cpp:3554's dead `DisplayChildren()` local is
    * not ported. */
   @carbon.method
-  @impl.adapted
-  @impl.reason("The granny bone list (Tr2GrannyAnimationUtils::GetBoneList, cpp:3545-3547) awaits the JS animation seam - (null, 0) is passed, the established EveChildMesh convention.")
+  @impl.implemented
   GetLights(lightManager)
   {
     if (!this.display)
     {
       return;
     }
+
+    // cpp:3545-3547 - Tr2GrannyAnimationUtils::GetBoneList, so a bone-parented
+    // light is placed by its bone rather than by the object transform alone.
+    const { bones, boneCount } = getBoneList(this.animationUpdater);
+
     for (const light of this.lights)
     {
-      light?.AddLight?.(lightManager, this.worldTransform, 1, null, 0);
+      light?.AddLight?.(lightManager, this.worldTransform, 1, bones, boneCount);
       light?.SetBrightnessMultiplier?.(this.activationStrength);
     }
   }
@@ -2706,15 +2716,23 @@ export class EveSpaceObject2 extends EveEntity
   // entries are usable.
 
   /**
-   * Returns the animation updater's mesh bone matrix at an index, or null when
-   * the entry is absent or not a 16-element matrix; the matrix is borrowed from
-   * the updater, not copied.
+   * Unpacks one bone from the updater's palette into a mat4, or null when the
+   * index is out of range.
+   *
+   * The palette is Carbon's storage - one contiguous Float4x3 buffer, stride
+   * 12 - so a bone is expanded rather than borrowed. Carbon does the same at
+   * every read site with TriMatrixCopyFrom3x4.
    */
   static #GetBoneMatrix(updater, boneIndex)
   {
     const bones = updater.GetMeshBoneMatrixList?.();
-    const bone = bones?.[boneIndex];
-    return bone && bone.length >= 16 ? bone : null;
+
+    if (!bones || boneIndex < 0 || (boneIndex + 1) * 12 > bones.length)
+    {
+      return null;
+    }
+
+    return MatrixCopyFrom3x4(mat4.create(), bones, boneIndex);
   }
 
   /**

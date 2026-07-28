@@ -420,6 +420,7 @@ export { Tr2MaterialParameterStore } from './trinityCore/Tr2MaterialParameterSto
 export { Tr2Mesh } from './trinityCore/Tr2Mesh.js';
 export { Tr2MeshArea } from './trinityCore/Tr2MeshArea.js';
 export { Tr2MeshBase } from './trinityCore/Tr2MeshBase.js';
+export { Tr2GrannyAnimation, getBoneList } from './trinityCore/Tr2GrannyAnimation.js';
 export { Tr2PerObjectData } from './trinityCore/Tr2PerObjectData.js';
 export { Tr2PrimaryRenderContext } from './trinityCore/Tr2PrimaryRenderContext.js';
 export { CanBeBinned, CompareBatches, OrderOf, Tr2GdprBatchFullPartition, Tr2GdprBatchStableFullPartition, Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from './trinityCore/Tr2RenderBatch.js';
@@ -586,7 +587,6 @@ export { Tr2DebugRenderer } from './generated/trinityCore/Tr2DebugRenderer.js';
 export { Tr2Denoiser } from './generated/trinityCore/Tr2Denoiser.js';
 export { Tr2GpuProfiler } from './generated/trinityCore/Tr2GpuProfiler.js';
 export { Tr2GpuStructuredBuffer } from './generated/trinityCore/Tr2GpuStructuredBuffer.js';
-export { Tr2GrannyAnimation } from './generated/trinityCore/Tr2GrannyAnimation.js';
 export { Tr2GrannyPrimitiveSet } from './generated/trinityCore/Tr2GrannyPrimitiveSet.js';
 export { Tr2HostBitmap } from './generated/trinityCore/Tr2HostBitmap.js';
 export { Tr2ImpostorManager } from './generated/trinityCore/Tr2ImpostorManager.js';

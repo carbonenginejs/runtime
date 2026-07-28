@@ -12,6 +12,7 @@ export * from "./Tr2MaterialParameterStore.js";
 export * from "./Tr2Mesh.js";
 export * from "./Tr2MeshArea.js";
 export * from "./Tr2MeshBase.js";
+export * from "./Tr2GrannyAnimation.js";
 export * from "./Tr2PerObjectData.js";
 export * from "./Tr2PrimaryRenderContext.js";
 export * from "./Tr2RenderBatch.js";
