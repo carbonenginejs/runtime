@@ -270,12 +270,12 @@ export class EveChildParticleSystem extends EveChildTransform
   {
     const data = accumulator.Alloc("EveBasicPerObjectData");
 
-    data.Set("world", this.worldTransform);
-    data.Set("worldLast", this.#worldTransformLast);
+    data.SetAndTranspose("world", this.worldTransform);
+    data.SetAndTranspose("worldLast", this.#worldTransformLast);
 
     const inverse = mat4.create();
     if (!mat4.invert(inverse, this.worldTransform)) mat4.identity(inverse);
-    data.Set("worldInverse", inverse);
+    data.SetAndTranspose("worldInverse", inverse);
 
     return data;
   }

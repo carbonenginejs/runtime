@@ -2,7 +2,7 @@
   "outRoot": "src/generated",
   "classes": {
     "written": 279,
-    "skipped": 315
+    "skipped": 304
   },
   "enums": {
     "written": 16,
@@ -1271,26 +1271,6 @@
     },
     {
       "family": "shader",
-      "className": "Tr2EffectConstant",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "shader",
-      "className": "Tr2EffectDefine",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "shader",
-      "className": "Tr2EffectDescription",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "shader",
-      "className": "Tr2EffectLibrary",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "shader",
       "className": "Tr2EffectLibraryParameters",
       "reason": "hand-maintained source exists"
     },
@@ -1301,32 +1281,12 @@
     },
     {
       "family": "shader",
-      "className": "Tr2EffectParameterAnnotation",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "shader",
       "className": "Tr2EffectPassParameters",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "shader",
-      "className": "Tr2EffectResource",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "shader",
-      "className": "Tr2EffectStageInput",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "shader",
       "className": "Tr2EffectStateManager",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "shader",
-      "className": "Tr2EffectTechnique",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1361,11 +1321,6 @@
     },
     {
       "family": "shader",
-      "className": "Tr2Pass",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "shader",
       "className": "Tr2RuntimeTextureParameter",
       "reason": "hand-maintained source exists"
     },
@@ -1377,16 +1332,6 @@
     {
       "family": "shader",
       "className": "Tr2SamplerOverrideData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "shader",
-      "className": "Tr2SamplerSetup",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "shader",
-      "className": "Tr2Shader",
       "reason": "hand-maintained source exists"
     },
     {
@@ -2094,7 +2039,7 @@
     "outRoot": "src/generated",
     "scannedDocs": 1247,
     "relevantDocs": 893,
-    "generated": 594,
+    "generated": 583,
     "fallback": 121,
     "skippedSof": 97,
     "skippedInvalid": 1,
@@ -2460,7 +2405,7 @@
       },
       "shader": {
         "docs": 41,
-        "generated": 39,
+        "generated": 28,
         "fallback": 2,
         "skippedSof": 0,
         "errors": 0
@@ -4177,6 +4122,72 @@
         "family": "resources",
         "className": "TriTextureRes",
         "schema": "resources/TriTextureRes.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectConstant",
+        "schema": "shader/Tr2EffectConstant.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectDefine",
+        "schema": "shader/Tr2EffectDefine.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectDescription",
+        "schema": "shader/Tr2EffectDescription.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectLibrary",
+        "schema": "shader/Tr2EffectLibrary.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectParameterAnnotation",
+        "schema": "shader/Tr2EffectParameterAnnotation.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectResource",
+        "schema": "shader/Tr2EffectResource.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectStageInput",
+        "schema": "shader/Tr2EffectStageInput.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectTechnique",
+        "schema": "shader/Tr2EffectTechnique.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2Pass",
+        "schema": "shader/Tr2Pass.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2SamplerSetup",
+        "schema": "shader/Tr2SamplerSetup.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2Shader",
+        "schema": "shader/Tr2Shader.json",
         "reason": "owned by runtime-resource"
       },
       {

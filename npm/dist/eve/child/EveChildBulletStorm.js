@@ -129,10 +129,10 @@ class EveChildBulletStorm extends CjsModel {
    * per-element writes keep Carbon's arena-garbage tail. VS-only payload. */
   GetPerObjectData(accumulator) {
     const data = accumulator.Alloc("EveChildBulletStormPerObjectData");
-    data.Set("worldTransform", this.worldTransform);
+    data.SetAndTranspose("worldTransform", this.worldTransform);
     data.Set("effectInfo", [this.targetObjects.length, this.sourceRadius + this.range, this.clipSphere, this.speed]);
     for (let index = 0; index < this.targetBlobs.length; index++) {
-      data.Set("targetPositionsWS", this.targetBlobs[index], index);
+      data.SetIndex("targetPositionsWS", index, this.targetBlobs[index]);
     }
     return data;
   }

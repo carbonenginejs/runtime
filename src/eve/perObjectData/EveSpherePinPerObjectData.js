@@ -1,6 +1,5 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\UI\EveSpherePin.h
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
-import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { type } from "@carbonenginejs/runtime-utils/schema";
@@ -8,8 +7,8 @@ import { type } from "@carbonenginejs/runtime-utils/schema";
 
 /**
  * Per-object values for a standalone UI sphere pin - world matrix plus the pin's
- * position, orientation quaternion, colour, threshold, precalculated radius and
- * UV - as values a renderer packs into a constant buffer.
+ * position, orientation, colour, threshold, precalculated radius and UV - as
+ * values a renderer packs into a constant buffer.
  */
 @type.define({
   className: "EveSpherePinPerObjectData",
@@ -23,8 +22,11 @@ export class EveSpherePinPerObjectData extends CjsModel
   @type.vec4
   pinPosition = vec4.create();
 
-  @type.quat
-  pinRotation = quat.create();
+  // EveSpherePin.h:33 declares `Vector4 m_pinRotation`, not Quaternion - the
+  // byte-identical sibling EveChildSpherePinPerObjectData and the registered
+  // struct def both agree on VECTOR.
+  @type.vec4
+  pinRotation = vec4.create();
 
   @type.color
   pinColor = vec4.create();

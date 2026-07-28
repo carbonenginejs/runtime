@@ -157,8 +157,8 @@ class EveLensflare extends CjsModel {
   GetPerObjectData(accumulator) {
     const data = accumulator.Alloc("EveLensflarePerObjectData");
     data.Set("directionScale", [this.direction[0], this.direction[1], this.direction[2], this.sunSize]);
-    data.Set("indices", [this.occlusionOffset ?? 0], 0);
-    data.Set("indices", [this.backgroundOcclusionOffset ?? 0], 1);
+    data.SetIndex("indices", 0, [this.occlusionOffset ?? 0]);
+    data.SetIndex("indices", 1, [this.backgroundOcclusionOffset ?? 0]);
     return data;
   }
   static {

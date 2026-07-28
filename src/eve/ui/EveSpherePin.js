@@ -219,7 +219,7 @@ export class EveSpherePin extends CjsModel
   {
     const data = accumulator.Alloc("EveSpherePinPerObjectData");
 
-    data.Set("worldMatrix", this.worldTransform);
+    data.SetAndTranspose("worldMatrix", this.worldTransform);
     data.Set("pinPosition", [
       this.centerNormal[0],
       this.centerNormal[1],

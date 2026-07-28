@@ -193,8 +193,8 @@ new class extends _identity {
      */
     GetPerObjectData(accumulator) {
       const data = accumulator.Alloc("EveBasicPerObjectData");
-      data.Set("world", this.worldTransform);
-      data.Set("worldLast", this.#lastWorldTransform);
+      data.SetAndTranspose("world", this.worldTransform);
+      data.SetAndTranspose("worldLast", this.#lastWorldTransform);
       if (!mat4.invert(INVERSE_PATCH_SCRATCH, this.worldTransform)) {
         // Carbon singular fixup (EveTransform.cpp:66-75): patch the first
         // all-zero basis of the LOGICAL world (its column [0,1,2]/[4,5,6]/
@@ -205,7 +205,7 @@ new class extends _identity {
         if (patched[0] === 0 && patched[1] === 0 && patched[2] === 0) patched[0] = 0.1;else if (patched[4] === 0 && patched[5] === 0 && patched[6] === 0) patched[5] = 0.1;else if (patched[8] === 0 && patched[9] === 0 && patched[10] === 0) patched[10] = 0.1;
         if (!mat4.invert(INVERSE_PATCH_SCRATCH, patched)) mat4.identity(INVERSE_PATCH_SCRATCH);
       }
-      data.Set("worldInverse", INVERSE_PATCH_SCRATCH);
+      data.SetAndTranspose("worldInverse", INVERSE_PATCH_SCRATCH);
       return data;
     }
 

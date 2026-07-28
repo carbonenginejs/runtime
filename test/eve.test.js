@@ -227,9 +227,14 @@ test("promoted Eve data classes expose source-backed metadata and defaults", asy
   assertMat4(decalVS.invWorldMatrix, mat4.create());
   assertMat4(decalVS.parentBoneMatrix, mat4.create());
   assertMat4(childSpherePin.worldMatrix, mat4.create());
+  // EveSpherePin.h:33 and EveChildSpherePin.h:22 both declare `Vector4
+  // m_pinRotation`, and both registered struct defs encode it as VECTOR. The
+  // two classes disagreed until 2026-07-28 (EveSpherePinPerObjectData used
+  // @type.quat), which is why their defaults differed. Carbon's PODs are
+  // uninitialised, so zero is the consistent choice, not an identity rotation.
   assertVec4(childSpherePin.pinRotation, [0, 0, 0, 0]);
   assertMat4(spherePin.worldMatrix, mat4.create());
-  assertQuat(spherePin.pinRotation, [0, 0, 0, 1]);
+  assertVec4(spherePin.pinRotation, [0, 0, 0, 0]);
   assertVec3(line.position1, [0, 0, 0]);
   assertVec3(line.position2, [0, 0, 0]);
   assertEquals(followSpline.tunnelLock, -1);

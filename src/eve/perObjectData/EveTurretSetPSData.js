@@ -28,8 +28,14 @@ export class EveTurretSetPSData extends CjsModel
   @type.vec3
   unused = vec3.create();
 
-  /** m_shLightingCoefficients (Vector4[7]) */
-  @type.rawStruct("Vector4[7]")
-  shLightingCoefficients = Array.from({ length: 7 }, () => vec4.create());
+  /** m_shLightingCoefficients (Vector4[SH_COEFFICIENT_COUNT]) */
+  @type.array("vec4")
+  shLightingCoefficients = Array.from(
+    { length: EveTurretSetPSData.SH_COEFFICIENT_COUNT },
+    () => vec4.create()
+  );
+
+  /** Tr2ShLightingManager.h:51 - `PACKED_COEFFICIENT_COUNT`. */
+  static SH_COEFFICIENT_COUNT = 7;
 
 }

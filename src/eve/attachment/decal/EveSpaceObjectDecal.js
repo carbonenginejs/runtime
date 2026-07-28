@@ -573,9 +573,11 @@ export class EveSpaceObjectDecal extends CjsModel
    * DecalPSPerObjectData pair uploaded as TWO constant buffers (cpp:975-976).
    * Here that is two Allocs returned as a { vs, ps } record.
    *
-   * Set(MATRIX) performs Carbon's Transpose. The two inverses are taken from
-   * the ALREADY-transposed matrices, matching Carbon exactly: Inverse of a
-   * transpose is the transpose of the inverse, so they are written raw.
+   * SetAndTranspose performs Carbon's Transpose. Carbon computes the two
+   * inverses FROM the already-transposed matrices; because Inverse(M-transpose)
+   * equals Inverse(M)-transpose (carbon-math-conventions F2), inverting the
+   * logical matrix and letting the encoder transpose produces byte-identical
+   * output with one transpose less work.
    */
   @carbon.method
   @impl.implemented
@@ -585,22 +587,21 @@ export class EveSpaceObjectDecal extends CjsModel
     const ps = accumulator.Alloc("DecalPSPerObjectData");
     const parentData = this.#parentData;
 
-    vs.Set("worldMatrix", parentData.transform);
-    // cpp:358 inverts the transposed world matrix in place, so the result is
-    // already GPU-form and must bypass the encoder.
-    mat4.transpose(this.#inverseParentBoneMatrix, parentData.transform);
-    mat4.invert(this.#inverseParentBoneMatrix, this.#inverseParentBoneMatrix);
-    vs.SetRaw("invWorldMatrix", this.#inverseParentBoneMatrix);
+    vs.SetAndTranspose("worldMatrix", parentData.transform);
+    // cpp:358 inverts the transposed world matrix in place; by F2 that is the
+    // transpose of the logical inverse, so this is the same bytes.
+    mat4.invert(this.#inverseParentBoneMatrix, parentData.transform);
+    vs.SetAndTranspose("invWorldMatrix", this.#inverseParentBoneMatrix);
 
-    vs.Set("decalMatrix", this.#decalMatrix);
-    vs.Set("inverseDecalMatrix", this.#inverseDecalMatrix);
-    vs.Set("parentBoneMatrix", this.#parentBoneMatrix);
+    vs.SetAndTranspose("decalMatrix", this.#decalMatrix);
+    vs.SetAndTranspose("inverseDecalMatrix", this.#inverseDecalMatrix);
+    vs.SetAndTranspose("parentBoneMatrix", this.#parentBoneMatrix);
 
     // cpp:366 - Inverse(Transpose(m_parentBoneMatrix)), recomputed per fill;
-    // Carbon never reads its own m_invParentBoneMatrix member.
-    mat4.transpose(this.#inverseParentBoneMatrix, this.#parentBoneMatrix);
-    mat4.invert(this.#inverseParentBoneMatrix, this.#inverseParentBoneMatrix);
-    vs.SetRaw("invParentBoneMatrix", this.#inverseParentBoneMatrix);
+    // Carbon never reads its own m_invParentBoneMatrix member. Same F2
+    // identity as above.
+    mat4.invert(this.#inverseParentBoneMatrix, this.#parentBoneMatrix);
+    vs.SetAndTranspose("invParentBoneMatrix", this.#inverseParentBoneMatrix);
 
     // cpp:374 - killCount is a uint widened to float; isVisible is the 0..1
     // visibility ramp; z and w are reserved literals.

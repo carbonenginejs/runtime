@@ -174,26 +174,8 @@ class RawData {
    * `element` to write one slot of an array field.
    */
   Set(name, value, element) {
-    const field = this.#Field(name, element);
-    const encoder = RawDataEncoders[field.encoding];
-    if (!encoder) {
-      throw new Error(`RawData: no encoder for encoding "${field.encoding}" (field "${name}")`);
-    }
-    encoder(this.#floats, this.#uints, field, value);
-  }
-
-  /**
-   * Write bytes that are ALREADY in GPU form - no encoding. Mirrors Carbon's
-   * direct member write (e.g. worldInverse computed from an already-transposed
-   * world). Copies up to the field's footprint. Pass `element` to write one
-   * slot of an array field.
-   */
-  SetRaw(name, value, element) {
-    const field = this.#Field(name, element);
-    const total = Math.min(field.size * field.elements, value.length);
-    for (let index = 0; index < total; index++) {
-      this.#floats[field.offset + index] = value[index];
-    }
+    this.#NotMatrix(name, "Set");
+    this.#Write(this.#Field(name, element), name, value);
   }
 
   /**
@@ -208,6 +190,105 @@ class RawData {
       out[index] = this.#floats[field.offset + index];
     }
     return out;
+  }
+
+  /**
+   * Write a matrix, transposing it into the buffer.
+   *
+   * Carbon stores every per-object matrix transposed (`m_vsData.worldTransform
+   * = Transpose( m_worldTransform )`), so the record is GPU-form and terminal.
+   * This method performs the transpose, which means a producer passes its
+   * LOGICAL matrix and cannot forget the step; it also transposes straight into
+   * the destination, so no scratch matrix is needed.
+   *
+   * Matrix fields only. See carbon-math-conventions F1/F6.
+   */
+  SetAndTranspose(name, value) {
+    this.#AssertMatrix(name);
+    this.#Write(this.#Field(name, undefined), name, value);
+  }
+
+  /** SetAndTranspose for one element of an array field, e.g. customMaskMatrix. */
+  SetAndTransposeIndex(name, index, value) {
+    this.#AssertMatrix(name);
+    this.#Write(this.#Field(name, index), name, value);
+  }
+
+  /** Write one element of an array field. Non-matrix fields only. */
+  SetIndex(name, index, value) {
+    this.#NotMatrix(name, "SetIndex");
+    this.#Write(this.#Field(name, index), name, value);
+  }
+
+  /** Encodes one value into a resolved field. */
+  #Write(field, name, value) {
+    const encoder = RawDataEncoders[field.encoding];
+    if (!encoder) {
+      throw new Error(`RawData: no encoder for encoding "${field.encoding}" (field "${name}")`);
+    }
+    encoder(this.#floats, this.#uints, field, value);
+  }
+
+  /**
+   * A live reference into the buffer for one field - writing through it is a
+   * zero-copy write, which is deliberate: Carbon hands out a raw pointer into
+   * `m_psData` for exactly this (GetParentData, cpp:1877-1883).
+   *
+   * Non-matrix fields only; a matrix is transposed and indistinguishable from a
+   * logical one, so it must be read through GetTransposed.
+   */
+  Get(name) {
+    this.#NotMatrix(name, "Get");
+    return this.#View(this.#Field(name, undefined));
+  }
+
+  /** Get for one element of an array field. Non-matrix fields only. */
+  GetIndex(name, index) {
+    this.#NotMatrix(name, "GetIndex");
+    return this.#View(this.#Field(name, index));
+  }
+
+  /**
+   * A live reference to a stored matrix. The value IS transposed - the name
+   * says so at the call site, because doing maths with it as though it were
+   * logical is silently wrong.
+   */
+  GetTransposed(name) {
+    this.#AssertMatrix(name);
+    return this.#View(this.#Field(name, undefined));
+  }
+
+  /** GetTransposed for one element of an array field. */
+  GetTransposedIndex(name, index) {
+    this.#AssertMatrix(name);
+    return this.#View(this.#Field(name, index));
+  }
+
+  /** Copy one element of an array field out into a caller-owned buffer. */
+  CopyIndex(name, index, out) {
+    return this.Copy(name, out, index);
+  }
+
+  /** A Float32 view over one field's lanes, sharing the record's bytes. */
+  #View(field) {
+    const total = field.size * field.elements;
+    return this.#floats.subarray(field.offset, field.offset + total);
+  }
+
+  /** Asserts a field IS a matrix. */
+  #AssertMatrix(name) {
+    const field = this.#Field(name, undefined);
+    if (field.encoding !== RawDataType.MATRIX) {
+      throw new Error(`RawData: field "${name}" is "${field.encoding}", not a matrix - use Set/Get, not the transposed pair`);
+    }
+  }
+
+  /** Asserts a field is NOT a matrix, so the orientation cannot be lost. */
+  #NotMatrix(name, verb) {
+    const field = this.#Field(name, undefined);
+    if (field.encoding === RawDataType.MATRIX) {
+      throw new Error(`RawData: field "${name}" is a matrix and is stored TRANSPOSED - ` + `use ${verb.startsWith("Set") ? "SetAndTranspose" : "GetTransposed"}, not ${verb}`);
+    }
   }
 
   /** The packed Float32 slice - what the engine uploader memcpys/binds. */

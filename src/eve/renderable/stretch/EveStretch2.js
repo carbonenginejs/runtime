@@ -258,8 +258,8 @@ export class EveStretch2 extends EveEntity
     data.Set("destinationData", [
       this.#destination[0], this.#destination[1], this.#destination[2], this.#destinationScale
     ]);
-    data.Set("effectData", this.#effectData[0], 0);
-    data.Set("effectData", this.#effectData[1], 1);
+    data.SetIndex("effectData", 0, this.#effectData[0]);
+    data.SetIndex("effectData", 1, this.#effectData[1]);
 
     return data;
   }

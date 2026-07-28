@@ -19,8 +19,17 @@ export class EveChildBulletStormPerObjectData extends CjsModel
   @type.vec4
   effectInfo = vec4.create();
 
-  /** m_targetPositionsWS (Vector4) */
-  @type.vec4
-  targetPositionsWS = vec4.create();
+  /** m_targetPositionsWS (Vector4[TARGET_POSITION_COUNT]) */
+  @type.array("vec4")
+  targetPositionsWS = Array.from(
+    { length: EveChildBulletStormPerObjectData.TARGET_POSITION_COUNT },
+    () => vec4.create()
+  );
+
+  /**
+   * EveChildBulletStorm.h:29 - `Vector4 m_targetPositionsWS[10]`. The bound is a
+   * bare literal in Carbon, not a named constant.
+   */
+  static TARGET_POSITION_COUNT = 10;
 
 }

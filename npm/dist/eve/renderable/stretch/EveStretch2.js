@@ -223,8 +223,8 @@ new class extends _identity {
       const data = accumulator.Alloc("EveStretch2PerObjectData");
       data.Set("sourceData", [this.#source[0], this.#source[1], this.#source[2], this.#currentDestinationScale]);
       data.Set("destinationData", [this.#destination[0], this.#destination[1], this.#destination[2], this.#destinationScale]);
-      data.Set("effectData", this.#effectData[0], 0);
-      data.Set("effectData", this.#effectData[1], 1);
+      data.SetIndex("effectData", 0, this.#effectData[0]);
+      data.SetIndex("effectData", 1, this.#effectData[1]);
       return data;
     }
 

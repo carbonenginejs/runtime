@@ -160,8 +160,8 @@ class EveLineSet extends CjsModel {
   GetPerObjectData(accumulator) {
     const vs = accumulator.Alloc("EvePerObjectVSData");
     const ps = accumulator.Alloc("EvePerObjectPSData");
-    vs.Set("WorldMat", this.worldTransform);
-    ps.Set("WorldMat", this.worldTransform);
+    vs.SetAndTranspose("WorldMat", this.worldTransform);
+    ps.SetAndTranspose("WorldMat", this.worldTransform);
     return {
       vs,
       ps

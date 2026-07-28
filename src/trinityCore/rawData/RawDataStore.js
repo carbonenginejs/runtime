@@ -42,6 +42,88 @@
 //
 // Design: PER-OBJECT-DATA-DESIGN-2026-07-24.md
 import { RawData, RawDataType } from "./RawData.js";
+import { CjsPerObjectLayouts } from "./CjsPerObjectLayouts.js";
+
+
+/** Declared catalog type -> the encoder kind that writes its bytes. */
+const CATALOG_ENCODINGS = {
+  [CjsPerObjectLayouts.Types.MATRIX4]: RawDataType.MATRIX,
+  [CjsPerObjectLayouts.Types.UINT32]: RawDataType.UINT,
+  [CjsPerObjectLayouts.Types.INT32]: RawDataType.INT
+};
+
+
+/**
+ * The built-in packer: Carbon's own layout, read from CjsPerObjectLayouts.
+ *
+ * This is what the injected-packer seam was holding a place for. It turned out
+ * not to be backend-specific - WGSL declares `array<vec4<f32>, N>` and GLSL
+ * declares `vec4 cbN[N]` or a std140 block wrapping `vec4 data[N]`, and
+ * std140's stride for an array of vec4 is 16 bytes, the same as tight C++
+ * packing. An engine that genuinely needs a different physical layout still
+ * supplies its own packer; it is simply no longer required for the common case.
+ */
+/**
+ * A catalog layout as a store field-def array.
+ *
+ * A default on an array field is repeated across every element: the store
+ * applies each default at a single offset, and Carbon's neutral for a slot
+ * (identity for an unused custom mask) applies to every slot, not just the
+ * first.
+ */
+function catalogDef(layout)
+{
+  const def = [];
+
+  for (const field of layout.fields.values())
+  {
+    let value = null;
+
+    if (field.default)
+    {
+      value = field.count > 1
+        ? Array.from({ length: field.count }, () => [ ...field.default ]).flat()
+        : [ ...field.default ];
+    }
+
+    def.push({
+      name: field.name,
+      size: field.size,
+      elements: field.count,
+      encoding: CATALOG_ENCODINGS[field.type] ?? RawDataType.VECTOR,
+      default: value
+    });
+  }
+
+  return def;
+}
+
+
+const CATALOG_PACKER = {
+  ResolveLayout(structName)
+  {
+    const layout = CjsPerObjectLayouts.Get(structName);
+
+    if (!layout)
+    {
+      return null;
+    }
+
+    const fields = {};
+
+    for (const field of layout.fields.values())
+    {
+      fields[field.name] = {
+        offset: field.offset,
+        size: field.size,
+        elements: field.count,
+        encoding: CATALOG_ENCODINGS[field.type] ?? RawDataType.VECTOR
+      };
+    }
+
+    return { fields, stride: layout.stride };
+  }
+};
 
 
 /** Registers constant-data struct shapes and leases packed payloads from a per-engine arena. */
@@ -66,20 +148,23 @@ export class RawDataStore
   #cursor = 0;
 
   /**
-   * @param {object} packer - the backend packer (has ResolveLayout(name, def)).
-   *   REQUIRED - the store ships no default; a store with no packer cannot lay
-   *   out any struct.
+   * @param {object} [packer] - a backend packer with ResolveLayout(name, def).
+   *   OPTIONAL. Carbon packs per-object data by memcpy'ing the C++ struct
+   *   (EveSpaceObject2.cpp:1469-1483), and the translated shaders declare these
+   *   buffers as a flat vec4[N] on every backend, so there is one physical
+   *   layout rather than a backend-specific one. When no packer is supplied the
+   *   store resolves from CjsPerObjectLayouts, which carries it.
    * @param {object} [options]
    * @param {number} [options.chunkFloats] - arena chunk size in floats.
    */
-  constructor(packer, options = {})
+  constructor(packer = null, options = {})
   {
-    if (!packer || typeof packer.ResolveLayout !== "function")
+    if (packer && typeof packer.ResolveLayout !== "function")
     {
-      throw new Error("RawDataStore needs a packer with ResolveLayout(name, def)");
+      throw new Error("RawDataStore: a supplied packer needs ResolveLayout(name, def)");
     }
 
-    this.#packer = packer;
+    this.#packer = packer ?? CATALOG_PACKER;
 
     if (Number.isInteger(options.chunkFloats) && options.chunkFloats > 0)
     {
@@ -130,6 +215,22 @@ export class RawDataStore
    */
   RegisterStruct(name, def, options = {})
   {
+    if (def === undefined)
+    {
+      // No def supplied: take Carbon's, from the catalog.
+      const layout = CjsPerObjectLayouts.Get(name);
+
+      if (!layout)
+      {
+        throw new Error(
+          `RawDataStore: struct "${name}" is not in CjsPerObjectLayouts - add it there, or pass a def explicitly`
+        );
+      }
+
+      def = catalogDef(layout);
+      options = { ...options, stages: options.stages ?? layout.stages };
+    }
+
     const normalized = RawDataStore.normalizeDef(def);
     const stages = RawDataStore.normalizeStages(name, options.stages);
     let resolved;

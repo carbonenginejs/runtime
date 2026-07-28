@@ -11,6 +11,13 @@ import { type } from "@carbonenginejs/runtime-utils/schema";
  * transforms, clip sphere, ellipsoid, custom masks, bone offsets and
  * spherical-harmonic lighting coefficients - as values a renderer packs into a
  * constant buffer, never as GPU resources.
+ *
+ * Field order is the CONTRACT here, not a style choice: Carbon uploads this
+ * struct through a structured buffer with a raw memcpy
+ * (EveInstancedMeshManager.cpp:69-77), so declaration order must stay
+ * byte-for-byte with EveSpaceObject2.h:143-170. Note it is NOT the same order
+ * as the EveSpaceObjectVSData/PSData pair - the clip scalars sit at fields 6-10
+ * here and the mask block follows the ellipsoid.
  */
 @type.define({
   className: "EveSpacePerObjectData",
@@ -39,18 +46,27 @@ export class EveSpacePerObjectData extends CjsModel
   @type.vec3
   clipSphereCenter = vec3.create();
 
+  @type.float32
+  clipRadiusSq = 0;
+
+  @type.float32
+  clipRadius2Sq = 0;
+
+  @type.float32
+  impactDataOffset = 0;
+
+  @type.float32
+  clipSphereFactor2 = 0;
+
+  @type.float32
+  clipSphereFactor = 0;
+
   /** Carbon's field name (sic) - "ellpsoid" matches the source struct. */
   @type.vec4
   ellpsoidRadii = vec4.create();
 
   @type.vec4
   ellpsoidCenter = vec4.create();
-
-  @type.array("uint32")
-  boneOffsets = Array(EveSpacePerObjectData.BONE_OFFSET_COUNT).fill(0);
-
-  @type.vec4
-  customData = vec4.create();
 
   @type.array("mat4")
   customMaskMatrix = Array.from({ length: EveSpacePerObjectData.CUSTOM_MASK_COUNT }, () => mat4.create());
@@ -67,23 +83,14 @@ export class EveSpacePerObjectData extends CjsModel
   @type.vec4
   customMaskClamps = vec4.create();
 
+  @type.array("uint32")
+  boneOffsets = Array(EveSpacePerObjectData.BONE_OFFSET_COUNT).fill(0);
+
+  @type.vec4
+  customData = vec4.create();
+
   @type.array("vec4")
   shLighting = Array.from({ length: EveSpacePerObjectData.SH_COEFFICIENT_COUNT }, () => vec4.create());
-
-  @type.float32
-  clipRadiusSq = 0;
-
-  @type.float32
-  clipRadius2Sq = 0;
-
-  @type.float32
-  impactDataOffset = 0;
-
-  @type.float32
-  clipSphereFactor2 = 0;
-
-  @type.float32
-  clipSphereFactor = 0;
 
   /**
    * Applies a value bag, first padding or truncating boneOffsets, the

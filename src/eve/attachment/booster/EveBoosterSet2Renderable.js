@@ -331,7 +331,7 @@ export class EveBoosterSet2Renderable extends CjsModel
     const vs = accumulator.Alloc("EveBoosterSetVSData");
     const ps = accumulator.Alloc("EveBoosterSetPSData");
 
-    vs.Set("shipMatrix", this.#parentTransform);
+    vs.SetAndTranspose("shipMatrix", this.#parentTransform);
     vs.Set("boosterIntensity", [this.overallIntensity]);
     vs.Set("shipSpeed", [this.parentSpeed]);
     vs.Set("maxBoosterSize", [this.#boosterSet?.maxSize ?? 0]);
@@ -345,12 +345,12 @@ export class EveBoosterSet2Renderable extends CjsModel
       const position = this.#trailsControlPositions[index];
       const normal = this.#trailsControlNormals[index];
 
-      vs.Set("trailsControlPositions", [
+      vs.SetIndex("trailsControlPositions", index, [
         position[0], position[1], position[2], this.#trailsSequenceLength[index]
-      ], index);
-      vs.Set("trailsControlNormals", [
+      ]);
+      vs.SetIndex("trailsControlNormals", index, [
         normal[0], normal[1], normal[2], this.#trailsControlNormalsFactor[index]
-      ], index);
+      ]);
     }
 
     return { vs, ps };

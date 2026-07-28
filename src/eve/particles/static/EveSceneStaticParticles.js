@@ -250,8 +250,8 @@ export class EveSceneStaticParticles extends CjsModel
     {
       return null;
     }
-    data.Set("world", this.worldMatrix);
-    data.Set("lastWorld", this.lastWorldMatrix);
+    data.SetAndTranspose("world", this.worldMatrix);
+    data.SetAndTranspose("lastWorld", this.lastWorldMatrix);
     return data;
   }
 

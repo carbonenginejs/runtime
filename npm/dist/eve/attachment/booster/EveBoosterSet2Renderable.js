@@ -215,7 +215,7 @@ new class extends _identity {
     GetPerObjectData(accumulator) {
       const vs = accumulator.Alloc("EveBoosterSetVSData");
       const ps = accumulator.Alloc("EveBoosterSetPSData");
-      vs.Set("shipMatrix", this.#parentTransform);
+      vs.SetAndTranspose("shipMatrix", this.#parentTransform);
       vs.Set("boosterIntensity", [this.overallIntensity]);
       vs.Set("shipSpeed", [this.parentSpeed]);
       vs.Set("maxBoosterSize", [this.#boosterSet?.maxSize ?? 0]);
@@ -225,8 +225,8 @@ new class extends _identity {
       for (let index = 0; index < this.#trailsControlPositions.length; index++) {
         const position = this.#trailsControlPositions[index];
         const normal = this.#trailsControlNormals[index];
-        vs.Set("trailsControlPositions", [position[0], position[1], position[2], this.#trailsSequenceLength[index]], index);
-        vs.Set("trailsControlNormals", [normal[0], normal[1], normal[2], this.#trailsControlNormalsFactor[index]], index);
+        vs.SetIndex("trailsControlPositions", index, [position[0], position[1], position[2], this.#trailsSequenceLength[index]]);
+        vs.SetIndex("trailsControlNormals", index, [normal[0], normal[1], normal[2], this.#trailsControlNormalsFactor[index]]);
       }
       return {
         vs,

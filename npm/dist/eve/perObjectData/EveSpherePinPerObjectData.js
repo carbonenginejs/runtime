@@ -1,6 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
-import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
@@ -9,8 +8,8 @@ let _initClass, _init_worldMatrix, _init_extra_worldMatrix, _init_pinPosition, _
 
 /**
  * Per-object values for a standalone UI sphere pin - world matrix plus the pin's
- * position, orientation quaternion, colour, threshold, precalculated radius and
- * UV - as values a renderer packs into a constant buffer.
+ * position, orientation, colour, threshold, precalculated radius and UV - as
+ * values a renderer packs into a constant buffer.
  */
 let _EveSpherePinPerObjec;
 class EveSpherePinPerObjectData extends CjsModel {
@@ -21,7 +20,7 @@ class EveSpherePinPerObjectData extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveSpherePinPerObjectData",
       family: "eve/perObjectData"
-    })], [[[type, type.mat4], 16, "worldMatrix"], [[type, type.vec4], 16, "pinPosition"], [[type, type.quat], 16, "pinRotation"], [[type, type.color], 16, "pinColor"], [[type, type.vec4], 16, "pinThreshold"], [[type, type.vec4], 16, "pinRadiusPrecalc"], [[type, type.vec4], 16, "pinUV"]], 0, void 0, CjsModel));
+    })], [[[type, type.mat4], 16, "worldMatrix"], [[type, type.vec4], 16, "pinPosition"], [[type, type.vec4], 16, "pinRotation"], [[type, type.color], 16, "pinColor"], [[type, type.vec4], 16, "pinThreshold"], [[type, type.vec4], 16, "pinRadiusPrecalc"], [[type, type.vec4], 16, "pinUV"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);
@@ -29,7 +28,11 @@ class EveSpherePinPerObjectData extends CjsModel {
   }
   worldMatrix = _init_worldMatrix(this, mat4.create());
   pinPosition = (_init_extra_worldMatrix(this), _init_pinPosition(this, vec4.create()));
-  pinRotation = (_init_extra_pinPosition(this), _init_pinRotation(this, quat.create()));
+
+  // EveSpherePin.h:33 declares `Vector4 m_pinRotation`, not Quaternion - the
+  // byte-identical sibling EveChildSpherePinPerObjectData and the registered
+  // struct def both agree on VECTOR.
+  pinRotation = (_init_extra_pinPosition(this), _init_pinRotation(this, vec4.create()));
   pinColor = (_init_extra_pinRotation(this), _init_pinColor(this, vec4.create()));
   pinThreshold = (_init_extra_pinColor(this), _init_pinThreshold(this, vec4.create()));
   pinRadiusPrecalc = (_init_extra_pinThreshold(this), _init_pinRadiusPrecalc(this, vec4.create()));

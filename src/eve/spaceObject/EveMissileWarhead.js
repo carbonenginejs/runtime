@@ -428,7 +428,7 @@ export class EveMissileWarhead extends EveTransform
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveMissileWarheadPerObjectData");
-    data.Set("world", this.worldTransform);
+    data.SetAndTranspose("world", this.worldTransform);
     data.Set("missileSize", [this.warheadRadius, this.warheadLength, 0, 0]);
     return data;
   }

@@ -141,7 +141,7 @@ class EveSpherePin extends CjsModel {
    * to both per-object slots (cpp:415-425). */
   GetPerObjectData(accumulator) {
     const data = accumulator.Alloc("EveSpherePinPerObjectData");
-    data.Set("worldMatrix", this.worldTransform);
+    data.SetAndTranspose("worldMatrix", this.worldTransform);
     data.Set("pinPosition", [this.centerNormal[0], this.centerNormal[1], this.centerNormal[2], this.pinRadius]);
     data.Set("pinRotation", [this.pinRotation, 0, 0, 0]);
     data.Set("pinColor", this.pinColor);

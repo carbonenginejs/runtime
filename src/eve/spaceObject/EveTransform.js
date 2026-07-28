@@ -244,8 +244,8 @@ export class EveTransform extends Tr2Transform
   {
     const data = accumulator.Alloc("EveBasicPerObjectData");
 
-    data.Set("world", this.worldTransform);
-    data.Set("worldLast", this.#lastWorldTransform);
+    data.SetAndTranspose("world", this.worldTransform);
+    data.SetAndTranspose("worldLast", this.#lastWorldTransform);
 
     if (!mat4.invert(INVERSE_PATCH_SCRATCH, this.worldTransform))
     {
@@ -261,7 +261,7 @@ export class EveTransform extends Tr2Transform
       if (!mat4.invert(INVERSE_PATCH_SCRATCH, patched)) mat4.identity(INVERSE_PATCH_SCRATCH);
     }
 
-    data.Set("worldInverse", INVERSE_PATCH_SCRATCH);
+    data.SetAndTranspose("worldInverse", INVERSE_PATCH_SCRATCH);
     return data;
   }
 

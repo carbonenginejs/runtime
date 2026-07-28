@@ -37,16 +37,25 @@ export class EveTurretSetVSData extends CjsModel
   @type.uint32
   prevBoneOffset = 0;
 
-  /** _unused (uint32_t[2]) */
-  @type.rawStruct("uint32_t[2]")
-  _unused = new Uint32Array(2);
+  /** _unused (uint32_t[2]) - Carbon's explicit pad; never written. */
+  @type.array("uint32")
+  _unused = [0, 0];
 
-  /** m_turretTranslation (Vector4[24]) */
-  @type.rawStruct("Vector4[24]")
-  turretTranslation = Array.from({ length: 24 }, () => vec4.create());
+  /** m_turretTranslation (Vector4[EVE_MAX_TURRETS_PER_SET]) */
+  @type.array("vec4")
+  turretTranslation = Array.from(
+    { length: EveTurretSetVSData.TURRET_COUNT },
+    () => vec4.create()
+  );
 
-  /** m_turretRotation (Quaternion[24]) */
-  @type.rawStruct("Quaternion[24]")
-  turretRotation = Array.from({ length: 24 }, () => quat.create());
+  /** m_turretRotation (Quaternion[EVE_MAX_TURRETS_PER_SET]) */
+  @type.array("quat")
+  turretRotation = Array.from(
+    { length: EveTurretSetVSData.TURRET_COUNT },
+    () => quat.create()
+  );
+
+  /** EveTurretSet.h:43 - `EVE_MAX_TURRETS_PER_SET`. */
+  static TURRET_COUNT = 24;
 
 }

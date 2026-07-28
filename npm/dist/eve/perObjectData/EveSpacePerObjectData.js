@@ -5,42 +5,52 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 
-let _initClass, _init_worldTransform, _init_extra_worldTransform, _init_worldTransformLast, _init_extra_worldTransformLast, _init_invWorldTransform, _init_extra_invWorldTransform, _init_shipData, _init_extra_shipData, _init_clipSphereCenter, _init_extra_clipSphereCenter, _init_ellpsoidRadii, _init_extra_ellpsoidRadii, _init_ellpsoidCenter, _init_extra_ellpsoidCenter, _init_boneOffsets, _init_extra_boneOffsets, _init_customData, _init_extra_customData, _init_customMaskMatrix, _init_extra_customMaskMatrix, _init_customMaskData, _init_extra_customMaskData, _init_customMaskMaterialIDs, _init_extra_customMaskMaterialIDs, _init_customMaskTargets, _init_extra_customMaskTargets, _init_customMaskClamps, _init_extra_customMaskClamps, _init_shLighting, _init_extra_shLighting, _init_clipRadiusSq, _init_extra_clipRadiusSq, _init_clipRadius2Sq, _init_extra_clipRadius2Sq, _init_impactDataOffset, _init_extra_impactDataOffset, _init_clipSphereFactor, _init_extra_clipSphereFactor, _init_clipSphereFactor2, _init_extra_clipSphereFactor2;
+let _initClass, _init_worldTransform, _init_extra_worldTransform, _init_worldTransformLast, _init_extra_worldTransformLast, _init_invWorldTransform, _init_extra_invWorldTransform, _init_shipData, _init_extra_shipData, _init_clipSphereCenter, _init_extra_clipSphereCenter, _init_clipRadiusSq, _init_extra_clipRadiusSq, _init_clipRadius2Sq, _init_extra_clipRadius2Sq, _init_impactDataOffset, _init_extra_impactDataOffset, _init_clipSphereFactor, _init_extra_clipSphereFactor, _init_clipSphereFactor2, _init_extra_clipSphereFactor2, _init_ellpsoidRadii, _init_extra_ellpsoidRadii, _init_ellpsoidCenter, _init_extra_ellpsoidCenter, _init_customMaskMatrix, _init_extra_customMaskMatrix, _init_customMaskData, _init_extra_customMaskData, _init_customMaskMaterialIDs, _init_extra_customMaskMaterialIDs, _init_customMaskTargets, _init_extra_customMaskTargets, _init_customMaskClamps, _init_extra_customMaskClamps, _init_boneOffsets, _init_extra_boneOffsets, _init_customData, _init_extra_customData, _init_shLighting, _init_extra_shLighting;
 
 /**
  * Combined per-object record for a space object covering both stages -
  * transforms, clip sphere, ellipsoid, custom masks, bone offsets and
  * spherical-harmonic lighting coefficients - as values a renderer packs into a
  * constant buffer, never as GPU resources.
+ *
+ * Field order is the CONTRACT here, not a style choice: Carbon uploads this
+ * struct through a structured buffer with a raw memcpy
+ * (EveInstancedMeshManager.cpp:69-77), so declaration order must stay
+ * byte-for-byte with EveSpaceObject2.h:143-170. Note it is NOT the same order
+ * as the EveSpaceObjectVSData/PSData pair - the clip scalars sit at fields 6-10
+ * here and the mask block follows the ellipsoid.
  */
 let _EveSpacePerObjectDat;
 new class extends _identity {
   static [class EveSpacePerObjectData extends CjsModel {
     static {
       ({
-        e: [_init_worldTransform, _init_extra_worldTransform, _init_worldTransformLast, _init_extra_worldTransformLast, _init_invWorldTransform, _init_extra_invWorldTransform, _init_shipData, _init_extra_shipData, _init_clipSphereCenter, _init_extra_clipSphereCenter, _init_ellpsoidRadii, _init_extra_ellpsoidRadii, _init_ellpsoidCenter, _init_extra_ellpsoidCenter, _init_boneOffsets, _init_extra_boneOffsets, _init_customData, _init_extra_customData, _init_customMaskMatrix, _init_extra_customMaskMatrix, _init_customMaskData, _init_extra_customMaskData, _init_customMaskMaterialIDs, _init_extra_customMaskMaterialIDs, _init_customMaskTargets, _init_extra_customMaskTargets, _init_customMaskClamps, _init_extra_customMaskClamps, _init_shLighting, _init_extra_shLighting, _init_clipRadiusSq, _init_extra_clipRadiusSq, _init_clipRadius2Sq, _init_extra_clipRadius2Sq, _init_impactDataOffset, _init_extra_impactDataOffset, _init_clipSphereFactor, _init_extra_clipSphereFactor, _init_clipSphereFactor2, _init_extra_clipSphereFactor2],
+        e: [_init_worldTransform, _init_extra_worldTransform, _init_worldTransformLast, _init_extra_worldTransformLast, _init_invWorldTransform, _init_extra_invWorldTransform, _init_shipData, _init_extra_shipData, _init_clipSphereCenter, _init_extra_clipSphereCenter, _init_clipRadiusSq, _init_extra_clipRadiusSq, _init_clipRadius2Sq, _init_extra_clipRadius2Sq, _init_impactDataOffset, _init_extra_impactDataOffset, _init_clipSphereFactor, _init_extra_clipSphereFactor, _init_clipSphereFactor2, _init_extra_clipSphereFactor2, _init_ellpsoidRadii, _init_extra_ellpsoidRadii, _init_ellpsoidCenter, _init_extra_ellpsoidCenter, _init_customMaskMatrix, _init_extra_customMaskMatrix, _init_customMaskData, _init_extra_customMaskData, _init_customMaskMaterialIDs, _init_extra_customMaskMaterialIDs, _init_customMaskTargets, _init_extra_customMaskTargets, _init_customMaskClamps, _init_extra_customMaskClamps, _init_boneOffsets, _init_extra_boneOffsets, _init_customData, _init_extra_customData, _init_shLighting, _init_extra_shLighting],
         c: [_EveSpacePerObjectDat, _initClass]
       } = _applyDecs2311(this, [type.define({
         className: "EveSpacePerObjectData",
         family: "eve/perObjectData"
-      })], [[[type, type.mat4], 16, "worldTransform"], [[type, type.mat4], 16, "worldTransformLast"], [[type, type.mat4], 16, "invWorldTransform"], [[type, type.vec4], 16, "shipData"], [[type, type.vec3], 16, "clipSphereCenter"], [[type, type.vec4], 16, "ellpsoidRadii"], [[type, type.vec4], 16, "ellpsoidCenter"], [type.array("uint32"), 0, "boneOffsets"], [[type, type.vec4], 16, "customData"], [type.array("mat4"), 0, "customMaskMatrix"], [type.array("vec4"), 0, "customMaskData"], [type.array("vec4"), 0, "customMaskMaterialIDs"], [type.array("vec4"), 0, "customMaskTargets"], [[type, type.vec4], 16, "customMaskClamps"], [type.array("vec4"), 0, "shLighting"], [[type, type.float32], 16, "clipRadiusSq"], [[type, type.float32], 16, "clipRadius2Sq"], [[type, type.float32], 16, "impactDataOffset"], [[type, type.float32], 16, "clipSphereFactor2"], [[type, type.float32], 16, "clipSphereFactor"]], 0, void 0, CjsModel));
+      })], [[[type, type.mat4], 16, "worldTransform"], [[type, type.mat4], 16, "worldTransformLast"], [[type, type.mat4], 16, "invWorldTransform"], [[type, type.vec4], 16, "shipData"], [[type, type.vec3], 16, "clipSphereCenter"], [[type, type.float32], 16, "clipRadiusSq"], [[type, type.float32], 16, "clipRadius2Sq"], [[type, type.float32], 16, "impactDataOffset"], [[type, type.float32], 16, "clipSphereFactor2"], [[type, type.float32], 16, "clipSphereFactor"], [[type, type.vec4], 16, "ellpsoidRadii"], [[type, type.vec4], 16, "ellpsoidCenter"], [type.array("mat4"), 0, "customMaskMatrix"], [type.array("vec4"), 0, "customMaskData"], [type.array("vec4"), 0, "customMaskMaterialIDs"], [type.array("vec4"), 0, "customMaskTargets"], [[type, type.vec4], 16, "customMaskClamps"], [type.array("uint32"), 0, "boneOffsets"], [[type, type.vec4], 16, "customData"], [type.array("vec4"), 0, "shLighting"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);
-      _init_extra_clipSphereFactor2(this);
+      _init_extra_shLighting(this);
     }
     worldTransform = _init_worldTransform(this, mat4.create());
     worldTransformLast = (_init_extra_worldTransform(this), _init_worldTransformLast(this, mat4.create()));
     invWorldTransform = (_init_extra_worldTransformLast(this), _init_invWorldTransform(this, mat4.create()));
     shipData = (_init_extra_invWorldTransform(this), _init_shipData(this, vec4.create()));
     clipSphereCenter = (_init_extra_shipData(this), _init_clipSphereCenter(this, vec3.create()));
+    clipRadiusSq = (_init_extra_clipSphereCenter(this), _init_clipRadiusSq(this, 0));
+    clipRadius2Sq = (_init_extra_clipRadiusSq(this), _init_clipRadius2Sq(this, 0));
+    impactDataOffset = (_init_extra_clipRadius2Sq(this), _init_impactDataOffset(this, 0));
+    clipSphereFactor2 = (_init_extra_impactDataOffset(this), _init_clipSphereFactor(this, 0));
+    clipSphereFactor = (_init_extra_clipSphereFactor(this), _init_clipSphereFactor2(this, 0));
 
     /** Carbon's field name (sic) - "ellpsoid" matches the source struct. */
-    ellpsoidRadii = (_init_extra_clipSphereCenter(this), _init_ellpsoidRadii(this, vec4.create()));
+    ellpsoidRadii = (_init_extra_clipSphereFactor2(this), _init_ellpsoidRadii(this, vec4.create()));
     ellpsoidCenter = (_init_extra_ellpsoidRadii(this), _init_ellpsoidCenter(this, vec4.create()));
-    boneOffsets = (_init_extra_ellpsoidCenter(this), _init_boneOffsets(this, Array(_EveSpacePerObjectDat.BONE_OFFSET_COUNT).fill(0)));
-    customData = (_init_extra_boneOffsets(this), _init_customData(this, vec4.create()));
-    customMaskMatrix = (_init_extra_customData(this), _init_customMaskMatrix(this, Array.from({
+    customMaskMatrix = (_init_extra_ellpsoidCenter(this), _init_customMaskMatrix(this, Array.from({
       length: _EveSpacePerObjectDat.CUSTOM_MASK_COUNT
     }, () => mat4.create())));
     customMaskData = (_init_extra_customMaskMatrix(this), _init_customMaskData(this, Array.from({
@@ -53,14 +63,11 @@ new class extends _identity {
       length: _EveSpacePerObjectDat.CUSTOM_MASK_COUNT
     }, () => vec4.create())));
     customMaskClamps = (_init_extra_customMaskTargets(this), _init_customMaskClamps(this, vec4.create()));
-    shLighting = (_init_extra_customMaskClamps(this), _init_shLighting(this, Array.from({
+    boneOffsets = (_init_extra_customMaskClamps(this), _init_boneOffsets(this, Array(_EveSpacePerObjectDat.BONE_OFFSET_COUNT).fill(0)));
+    customData = (_init_extra_boneOffsets(this), _init_customData(this, vec4.create()));
+    shLighting = (_init_extra_customData(this), _init_shLighting(this, Array.from({
       length: _EveSpacePerObjectDat.SH_COEFFICIENT_COUNT
     }, () => vec4.create())));
-    clipRadiusSq = (_init_extra_shLighting(this), _init_clipRadiusSq(this, 0));
-    clipRadius2Sq = (_init_extra_clipRadiusSq(this), _init_clipRadius2Sq(this, 0));
-    impactDataOffset = (_init_extra_clipRadius2Sq(this), _init_impactDataOffset(this, 0));
-    clipSphereFactor2 = (_init_extra_impactDataOffset(this), _init_clipSphereFactor(this, 0));
-    clipSphereFactor = (_init_extra_clipSphereFactor(this), _init_clipSphereFactor2(this, 0));
 
     /**
      * Applies a value bag, first padding or truncating boneOffsets, the
