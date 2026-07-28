@@ -5,9 +5,11 @@ inspection, simulation, and renderer-neutral runtime behavior.
 
 Use this package when an application needs the portable Trinity object graph
 without creating a graphics device. It builds on
-`@carbonenginejs/runtime-utils`; resource loading belongs to
-`@carbonenginejs/runtime-resource`, and WebGL or WebGPU realization belongs to
-an engine.
+`@carbonenginejs/runtime-utils` and consumes canonical resource/shader models
+from `@carbonenginejs/runtime-resource`. Trinity owns the mutable
+`Tr2Effect`/`Tr2Material` facade, parameters, options, and graph behavior;
+resource loading and device-free shader reflection belong to runtime-resource,
+and WebGL or WebGPU realization belongs to an engine.
 
 ## Install
 

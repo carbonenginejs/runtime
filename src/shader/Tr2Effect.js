@@ -8,7 +8,7 @@ import { Tr2ConstantEffectParameter } from "./parameter/Tr2ConstantEffectParamet
 import { Tr2FloatParameter } from "./parameter/Tr2FloatParameter.js";
 import { Tr2GeometryBufferParameter } from "./parameter/Tr2GeometryBufferParameter.js";
 import { Tr2Matrix4Parameter } from "./parameter/Tr2Matrix4Parameter.js";
-import { Tr2EffectConstant } from "./reflection/Tr2EffectConstant.js";
+import { Tr2EffectConstant } from "@carbonenginejs/runtime-resource/resource/shader";
 import { Tr2ShaderOption } from "./reflection/Tr2ShaderOption.js";
 import { Tr2SamplerOverride } from "./sampler/Tr2SamplerOverride.js";
 import { Tr2Vector2Parameter } from "./parameter/Tr2Vector2Parameter.js";

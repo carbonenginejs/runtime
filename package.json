@@ -34,6 +34,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@carbonenginejs/runtime-resource": "file:../runtime-resource/npm",
     "@carbonenginejs/runtime-utils": "file:../runtime-utils"
   },
   "scripts": {

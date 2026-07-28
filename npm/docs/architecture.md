@@ -16,7 +16,7 @@ serialized in browsers, workers, Node.js tools, and test hosts.
 
 ```text
 @carbonenginejs/tools-core -- reviewed source --> @carbonenginejs/runtime-trinity
-@carbonenginejs/runtime-trinity -- depends on --> @carbonenginejs/runtime-utils
+@carbonenginejs/runtime-trinity -- depends on --> runtime-utils + runtime-resource
 
 @carbonenginejs/runtime-resource -- decoded values --> application composition
 @carbonenginejs/runtime-trinity -- graph and intents --> application composition
@@ -24,10 +24,10 @@ application composition --> host WebGL engine
 application composition --> @carbonenginejs/engine-webgpu
 ```
 
-The runtime dependency points from `@carbonenginejs/runtime-trinity` to
-`@carbonenginejs/runtime-utils`. Schema scanning and source emission flow from
-`@carbonenginejs/tools-core` during development, but generated source never
-imports that Node toolchain.
+Runtime dependencies point from `@carbonenginejs/runtime-trinity` to
+`@carbonenginejs/runtime-utils` and `@carbonenginejs/runtime-resource`.
+Schema scanning and source emission flow from `@carbonenginejs/tools-core`
+during development, but generated source never imports that Node toolchain.
 
 ## Owned responsibilities
 
@@ -40,16 +40,19 @@ The current package owns:
 - portable lifecycle, distribution, post-process graph, and scene behavior;
 - generated schema intake and the maintained implementations promoted from it.
 
-`TriDevice`, render contexts, targets, buffers, effects, shaders, and
-presentation records remain Trinity graph classes. Their serialized identity
-does not make this package the owner of live backend handles.
+`TriDevice`, render contexts, targets, authored shader options, effect/material
+facades, parameters, buffers, and presentation records remain Trinity graph
+classes. Canonical `Tr2EffectRes`, `Tr2Shader`, and immutable reflection records
+are resource-owned. Serialized identity never makes either package the owner of
+live backend handles.
 
 ## Ownership elsewhere
 
 - `@carbonenginejs/runtime-utils` owns shared models, schema decorators, math,
   constants, and general runtime primitives.
-- `@carbonenginejs/runtime-resource` owns resource acquisition, decoding, and
-  reusable CPU resource representations.
+- `@carbonenginejs/runtime-resource` owns resource acquisition, decoding,
+  reusable CPU resource representations, compiled-effect selection/cache, and
+  the canonical device-free `Tr2Shader` reflection graph.
 - `@carbonenginejs/runtime-character` owns character GState behavior.
 - `@carbonenginejs/tools-core` owns source scanning, schema compilation, and
   generated-class emission.

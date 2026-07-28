@@ -28,7 +28,7 @@ focused `./sprite2d` package export in the current manifest.
 | `@carbonenginejs/runtime-trinity/particle` | Maintained CPU particle data, emitters, forces, constraints, and systems. |
 | `@carbonenginejs/runtime-trinity/postProcess` | Device-free post-process graph and attribute models. |
 | `@carbonenginejs/runtime-trinity/renderJob` | Ordered render-job and render-step graph classes. |
-| `@carbonenginejs/runtime-trinity/shader` | Shader-model metadata and renderer-neutral semantic helpers. |
+| `@carbonenginejs/runtime-trinity/shader` | Mutable effect/material facade, parameters, options, sampler overrides, shader buffers, and identity-preserving compatibility reexports of resource-owned reflection classes. |
 | `@carbonenginejs/runtime-trinity/trinityCore` | Core Trinity resources, batches, views, projections, bindings, and graph records. |
 | `@carbonenginejs/runtime-trinity/ui` | Maintained Trinity UI graph classes. |
 | `@carbonenginejs/runtime-trinity/utilities` | Package-specific portable runtime helpers. |

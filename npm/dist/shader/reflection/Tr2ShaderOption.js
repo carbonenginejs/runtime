@@ -4,7 +4,12 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_name, _init_extra_name, _init_value, _init_extra_value;
 
-/** Tr2ShaderOption (shader) - generated from schema shapeHash a79378fe.... */
+/**
+ * Mutable authored option on the Tr2Effect facade.
+ *
+ * Tr2EffectRes accepts this plain name/value shape but does not own authored
+ * option lifetime.
+ */
 let _Tr2ShaderOption;
 class Tr2ShaderOption extends CjsModel {
   static {

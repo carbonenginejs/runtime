@@ -1,6 +1,18 @@
 export * from "./Tr2Effect.js";
 export * from "./Tr2Material.js";
-export * from "./Tr2Shader.js";
+export {
+  Tr2EffectConstant,
+  Tr2EffectDefine,
+  Tr2EffectDescription,
+  Tr2EffectLibrary,
+  Tr2EffectParameterAnnotation,
+  Tr2EffectResource,
+  Tr2EffectStageInput,
+  Tr2EffectTechnique,
+  Tr2Pass,
+  Tr2SamplerSetup,
+  Tr2Shader
+} from "@carbonenginejs/runtime-resource/resource/shader";
 export * from "./extractTr2EffectConstantValues.js";
 export * from "./material/Tr2EffectLibraryParameters.js";
 export * from "./material/Tr2EffectParam.js";
@@ -22,19 +34,9 @@ export * from "./parameter/TriTextureParameter.js";
 export * from "./parameter/TriTransformParameter.js";
 export * from "./parameter/TriVariableParameter.js";
 export * from "./parameter/TriVector4.js";
-export * from "./reflection/Tr2EffectConstant.js";
-export * from "./reflection/Tr2EffectDefine.js";
-export * from "./reflection/Tr2EffectDescription.js";
-export * from "./reflection/Tr2EffectLibrary.js";
-export * from "./reflection/Tr2EffectParameterAnnotation.js";
-export * from "./reflection/Tr2EffectResource.js";
-export * from "./reflection/Tr2EffectStageInput.js";
-export * from "./reflection/Tr2EffectTechnique.js";
-export * from "./reflection/Tr2Pass.js";
 export * from "./reflection/Tr2ShaderOption.js";
 export * from "./sampler/Tr2SamplerOverride.js";
 export * from "./sampler/Tr2SamplerOverrideData.js";
-export * from "./sampler/Tr2SamplerSetup.js";
 export * from "./support/CjsVariableStore.js";
 export * from "./support/Tr2DataTextureManager.js";
 export * from "./support/Tr2EffectStateManager.js";

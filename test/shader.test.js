@@ -1,11 +1,12 @@
 import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
-import { CjsVariableStore, Tr2Effect, Tr2EffectConstant, Tr2EffectDefine, Tr2EffectDescription, Tr2EffectLibraryParameters, Tr2EffectParameterAnnotation, Tr2EffectPassParameters, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2FloatParameter, Tr2GeometryBufferParameter, Tr2Material, Tr2MaterialStageInput, Tr2Matrix4Parameter, Tr2Pass, Tr2RuntimeTextureParameter, Tr2SamplerOverride, Tr2Shader, Tr2ShaderBuffer, Tr2TextureAnimationParameter, Tr2Vector2Parameter, Tr2Vector3Parameter, Tr2Vector4Parameter, TriFloatArrayParameter, TriTextureParameter, TriTransformParameter, TriVariableParameter, TriVector4 } from "../npm/dist/index.js";
+import { CjsVariableStore, Tr2Effect, Tr2EffectConstant, Tr2EffectDefine, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectLibraryParameters, Tr2EffectParameterAnnotation, Tr2EffectPassParameters, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2FloatParameter, Tr2GeometryBufferParameter, Tr2Material, Tr2MaterialStageInput, Tr2Matrix4Parameter, Tr2Pass, Tr2RuntimeTextureParameter, Tr2SamplerOverride, Tr2SamplerSetup, Tr2Shader, Tr2ShaderBuffer, Tr2TextureAnimationParameter, Tr2Vector2Parameter, Tr2Vector3Parameter, Tr2Vector4Parameter, TriFloatArrayParameter, TriTextureParameter, TriTransformParameter, TriVariableParameter, TriVector4 } from "../npm/dist/index.js";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec2 } from "@carbonenginejs/runtime-utils/vec2";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
+import * as ResourceShader from "@carbonenginejs/runtime-resource/resource/shader";
 
 
 function assert(condition, message = "assertion failed")
@@ -29,6 +30,24 @@ function assertAlmostEquals(actual, expected, epsilon = 1e-6)
     throw new Error(`expected ${expected}, got ${actual}`);
   }
 }
+
+test("Trinity shader compatibility exports preserve canonical identity", () =>
+{
+  assertEquals(Tr2Shader, ResourceShader.Tr2Shader);
+  assertEquals(Tr2EffectDescription, ResourceShader.Tr2EffectDescription);
+  assertEquals(Tr2EffectTechnique, ResourceShader.Tr2EffectTechnique);
+  assertEquals(Tr2Pass, ResourceShader.Tr2Pass);
+  assertEquals(Tr2EffectStageInput, ResourceShader.Tr2EffectStageInput);
+  assertEquals(Tr2EffectConstant, ResourceShader.Tr2EffectConstant);
+  assertEquals(Tr2EffectResource, ResourceShader.Tr2EffectResource);
+  assertEquals(Tr2EffectDefine, ResourceShader.Tr2EffectDefine);
+  assertEquals(Tr2EffectLibrary, ResourceShader.Tr2EffectLibrary);
+  assertEquals(Tr2SamplerSetup, ResourceShader.Tr2SamplerSetup);
+  assertEquals(
+    Tr2EffectParameterAnnotation,
+    ResourceShader.Tr2EffectParameterAnnotation
+  );
+});
 
 test("sampler overrides preserve Carbon structure and AddSamplerOverride defaults", () =>
 {
@@ -119,13 +138,26 @@ test("shader TriFloatArrayParameter copies vector4 rows as graph data", () =>
 });
 test("promoted shader classes are skipped by generated shader barrels", async () =>
 {
-  const classNames = ["Tr2ConstantEffectParameter", "Tr2DataTextureManager", "Tr2Effect", "Tr2EffectConstant", "Tr2EffectDefine", "Tr2EffectDescription", "Tr2EffectLibrary", "Tr2EffectLibraryParameters", "Tr2EffectParam", "Tr2EffectParameterAnnotation", "Tr2EffectPassParameters", "Tr2EffectResource", "Tr2EffectStageInput", "Tr2EffectStateManager", "Tr2EffectTechnique", "Tr2EffectTechniqueInputs", "Tr2FloatParameter", "Tr2GeometryBufferParameter", "Tr2Material", "Tr2MaterialStageInput", "Tr2Matrix4Parameter", "Tr2Pass", "Tr2RuntimeTextureParameter", "Tr2SamplerOverride", "Tr2SamplerOverrideData", "Tr2SamplerSetup", "Tr2Shader", "Tr2ShaderBuffer", "Tr2ShaderOption", "Tr2SharedConstantBuffers", "Tr2TextureAnimationParameter", "Tr2Vector2Parameter", "Tr2Vector3Parameter", "Tr2Vector4Parameter", "TriFloatArrayParameter", "TriTextureParameter", "TriTransformParameter", "TriVariableParameter", "TriVector4"];
+  const resourceOwnedClassNames = ["Tr2EffectConstant", "Tr2EffectDefine", "Tr2EffectDescription", "Tr2EffectLibrary", "Tr2EffectParameterAnnotation", "Tr2EffectResource", "Tr2EffectStageInput", "Tr2EffectTechnique", "Tr2Pass", "Tr2SamplerSetup", "Tr2Shader"];
+  const trinityOwnedClassNames = ["Tr2ConstantEffectParameter", "Tr2DataTextureManager", "Tr2Effect", "Tr2EffectLibraryParameters", "Tr2EffectParam", "Tr2EffectPassParameters", "Tr2EffectStateManager", "Tr2EffectTechniqueInputs", "Tr2FloatParameter", "Tr2GeometryBufferParameter", "Tr2Material", "Tr2MaterialStageInput", "Tr2Matrix4Parameter", "Tr2RuntimeTextureParameter", "Tr2SamplerOverride", "Tr2SamplerOverrideData", "Tr2ShaderBuffer", "Tr2ShaderOption", "Tr2SharedConstantBuffers", "Tr2TextureAnimationParameter", "Tr2Vector2Parameter", "Tr2Vector3Parameter", "Tr2Vector4Parameter", "TriFloatArrayParameter", "TriTextureParameter", "TriTransformParameter", "TriVariableParameter", "TriVector4"];
+  const classNames = [...trinityOwnedClassNames, ...resourceOwnedClassNames];
   const summary = JSON.parse(await readFile("src/generated/summary.json", "utf8"));
   const skipped = new Set((summary.skipped || []).map(item => `${item.family}/${item.className}`));
+  const generationSkipped = new Map((summary.generation?.skipped || []).map(item => [`${item.family}/${item.className}`, item]));
   const generatedShaderBarrel = await readFile("src/generated/shader/index.js", "utf8");
-  for (const className of classNames)
+  for (const className of trinityOwnedClassNames)
   {
     assert(skipped.has(`shader/${className}`), `${className} should be skipped by generated output`);
+  }
+  for (const className of resourceOwnedClassNames)
+  {
+    const item = generationSkipped.get(`shader/${className}`);
+    assert(item, `${className} should be externally owned by runtime-resource`);
+    assertEquals(item.schema, `shader/${className}.json`);
+    assertEquals(item.reason, "owned by runtime-resource");
+  }
+  for (const className of classNames)
+  {
     assert(!generatedShaderBarrel.includes(`./${className}.js`), `${className} should not be exported from generated shader barrel`);
   }
 });

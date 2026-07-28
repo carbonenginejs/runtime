@@ -6,7 +6,7 @@ import { Tr2ConstantEffectParameter as _Tr2ConstantEffectPar } from './parameter
 import { Tr2FloatParameter as _Tr2FloatParameter } from './parameter/Tr2FloatParameter.js';
 import { Tr2GeometryBufferParameter as _Tr2GeometryBufferPar } from './parameter/Tr2GeometryBufferParameter.js';
 import { Tr2Matrix4Parameter as _Tr2Matrix4Parameter } from './parameter/Tr2Matrix4Parameter.js';
-import { Tr2EffectConstant as _Tr2EffectConstant } from './reflection/Tr2EffectConstant.js';
+import { Tr2EffectConstant } from '@carbonenginejs/runtime-resource/resource/shader';
 import { Tr2ShaderOption as _Tr2ShaderOption } from './reflection/Tr2ShaderOption.js';
 import { Tr2SamplerOverride as _Tr2SamplerOverride } from './sampler/Tr2SamplerOverride.js';
 import { Tr2Vector2Parameter as _Tr2Vector2Parameter } from './parameter/Tr2Vector2Parameter.js';
@@ -879,7 +879,7 @@ new class extends _identity {
       // Carbon only populates parameters for FLOAT constants; INT/UINT/BOOL
       // constants are skipped. String types accepted for pre-enum reflection data.
       const constantType = constant?.type;
-      if (constantType !== undefined && constantType !== null && constantType !== _Tr2EffectConstant.Type.FLOAT && constantType !== "FLOAT") {
+      if (constantType !== undefined && constantType !== null && constantType !== Tr2EffectConstant.Type.FLOAT && constantType !== "FLOAT") {
         return null;
       }
       const name = constant.name ?? "";

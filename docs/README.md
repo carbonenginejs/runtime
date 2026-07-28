@@ -37,7 +37,7 @@ resource uploads, draw submission, presentation, or device-loss recovery.
 
 ```text
 @carbonenginejs/tools-core -- reviewed source --> @carbonenginejs/runtime-trinity
-@carbonenginejs/runtime-trinity -- depends on --> @carbonenginejs/runtime-utils
+@carbonenginejs/runtime-trinity -- depends on --> runtime-utils + runtime-resource
 
 @carbonenginejs/runtime-resource -- decoded values --> application composition
 @carbonenginejs/runtime-trinity -- graph and intents --> application composition
@@ -47,9 +47,12 @@ application composition --> @carbonenginejs/engine-webgpu or host engine
 `@carbonenginejs/runtime-utils` provides the shared model, schema, constants,
 and math foundation. `@carbonenginejs/tools-core` is a build-time producer of
 schema and generated-class input, not a runtime dependency.
-`@carbonenginejs/runtime-resource` owns decoded geometry, texture, effect, and
-related resource values. Engine packages own live backend objects and realize
-Trinity's renderer-neutral graph.
+`@carbonenginejs/runtime-resource` owns decoded geometry and texture values,
+`Tr2EffectRes`, canonical `Tr2Shader`/reflection records, portable hydration,
+permutation selection, and shader caching. Trinity owns the mutable
+`Tr2Effect`/`Tr2Material` facade, parameters, authored options, sampler
+overrides, and graph behavior. Engine packages own live backend objects and
+realize the combined renderer-neutral graph.
 
 Character GState behavior belongs to `@carbonenginejs/runtime-character`.
 Applications or `@carbonenginejs/runtime-core` compose these domains.
