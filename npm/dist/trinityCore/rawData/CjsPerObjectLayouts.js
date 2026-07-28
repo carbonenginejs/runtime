@@ -72,6 +72,7 @@ const ENCODINGS = Object.freeze({
   [Types.UINT32]: "uint",
   [Types.INT32]: "int"
 });
+const ZERO4 = Object.freeze([0, 0, 0, 0]);
 const IDENTITY = Object.freeze([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 
 /** EveTransform.h:161-163 - three matrices, the simplest placeable payload. */
@@ -292,7 +293,8 @@ const EveSpaceObjectDecal = Object.freeze({
       },
       shLightingCoefficients: {
         type: Types.VECTOR4,
-        count: 7
+        count: 7,
+        default: ZERO4
       }
     }
   }
@@ -520,7 +522,8 @@ const EveSpaceObject = Object.freeze({
       // Tr2ShLightingManager::PACKED_COEFFICIENT_COUNT = 7.
       shLightingCoefficients: {
         type: Types.VECTOR4,
-        count: 7
+        count: 7,
+        default: ZERO4
       },
       customMaskMaterialIDs: {
         type: Types.VECTOR4,
@@ -609,7 +612,123 @@ const EveTurretSet = Object.freeze({
       },
       shLightingCoefficients: {
         type: Types.VECTOR4,
-        count: 7
+        count: 7,
+        default: ZERO4
+      }
+    }
+  }
+});
+
+/**
+ * EveSpaceObject2.h:143 - the merged VS+PS variant used by the instanced path.
+ * Uploaded through a STRUCTURED BUFFER rather than a constant buffer
+ * (EveInstancedMeshManager.cpp:69-77), so it carries no register.
+ *
+ * Field order is NOT the same as the EveSpaceObject VS/PS pair: the five clip
+ * scalars sit at fields 6-10 here, before the ellipsoid. Since the upload is a
+ * raw memcpy, that order is the contract.
+ */
+const EveSpacePerObject = Object.freeze({
+  shared: {
+    struct: "EveSpacePerObjectData",
+    fields: {
+      worldTransform: {
+        type: Types.MATRIX4,
+        default: IDENTITY
+      },
+      worldTransformLast: {
+        type: Types.MATRIX4,
+        default: IDENTITY
+      },
+      invWorldTransform: {
+        type: Types.MATRIX4,
+        default: IDENTITY
+      },
+      // This struct's own initialiser is (0,0,0,0), unlike the
+      // EveSpaceObject2 constructor's (1,1,0,1).
+      shipData: {
+        type: Types.VECTOR4
+      },
+      clipSphereCenter: {
+        type: Types.VECTOR3
+      },
+      clipRadiusSq: {
+        type: Types.FLOAT
+      },
+      clipRadius2Sq: {
+        type: Types.FLOAT
+      },
+      impactDataOffset: {
+        type: Types.FLOAT
+      },
+      clipSphereFactor2: {
+        type: Types.FLOAT
+      },
+      clipSphereFactor: {
+        type: Types.FLOAT
+      },
+      ellpsoidRadii: {
+        type: Types.VECTOR4
+      },
+      ellpsoidCenter: {
+        type: Types.VECTOR4
+      },
+      // EveSpaceObject2.h:160 initialises this to all-zero, contradicting
+      // EveCustomMask::ZeroPerObjectData's IdentityMatrix. The zero path
+      // is the live one, so identity wins; reproduced as written.
+      customMaskMatrix: {
+        type: Types.MATRIX4,
+        count: 2,
+        default: IDENTITY
+      },
+      customMaskData: {
+        type: Types.VECTOR4,
+        count: 2
+      },
+      customMaskMaterialIDs: {
+        type: Types.VECTOR4,
+        count: 2
+      },
+      customMaskTargets: {
+        type: Types.VECTOR4,
+        count: 2
+      },
+      customMaskClamps: {
+        type: Types.VECTOR4
+      },
+      boneOffsets: {
+        type: Types.UINT32,
+        count: 4
+      },
+      customData: {
+        type: Types.VECTOR4
+      },
+      shLighting: {
+        type: Types.VECTOR4,
+        count: 7,
+        default: ZERO4
+      }
+    }
+  }
+});
+
+/** Tr2ConstantBufferFormats.h:35 - the generic, non-EVE per-object block. */
+const Tr2PerObject = Object.freeze({
+  vs: {
+    struct: "Tr2PerObjectVSData",
+    fields: {
+      WorldMat: {
+        type: Types.MATRIX4,
+        default: IDENTITY
+      },
+      boundingCylinderLocalHeight: {
+        type: Types.FLOAT
+      },
+      boundingCylinderLocalXZCenter: {
+        type: Types.VECTOR2
+      },
+      boundingCylinderRotation: {
+        type: Types.FLOAT
       }
     }
   }
@@ -627,7 +746,9 @@ const GROUPS = Object.freeze({
   EveChildBulletStorm,
   EveStretch2,
   EveSpaceObject,
-  EveTurretSet
+  EveTurretSet,
+  EveSpacePerObject,
+  Tr2PerObject
 });
 
 /** Which stages each group key binds to. */
@@ -793,5 +914,5 @@ function resolveLayout(group, key, buffer) {
   });
 }
 
-export { CjsPerObjectLayouts, EveBasic, EveBoosterSet, EveChildBulletStorm, EveChildSpherePin, EveLensflare, EveMissileWarhead, EvePerObject, EveSceneStaticParticles, EveSpaceObject, EveSpaceObjectDecal, EveSpherePin, EveStretch2, EveTurretSet };
+export { CjsPerObjectLayouts, EveBasic, EveBoosterSet, EveChildBulletStorm, EveChildSpherePin, EveLensflare, EveMissileWarhead, EvePerObject, EveSceneStaticParticles, EveSpaceObject, EveSpaceObjectDecal, EveSpacePerObject, EveSpherePin, EveStretch2, EveTurretSet, Tr2PerObject };
 //# sourceMappingURL=CjsPerObjectLayouts.js.map

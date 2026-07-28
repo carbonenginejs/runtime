@@ -84,6 +84,9 @@ const ENCODINGS = Object.freeze({
 });
 
 
+const ZERO4 = Object.freeze([0, 0, 0, 0]);
+
+
 const IDENTITY = Object.freeze([
     1, 0, 0, 0,
     0, 1, 0, 0,
@@ -222,7 +225,7 @@ export const EveSpaceObjectDecal = Object.freeze({
             clipData: { type: Types.VECTOR4 },
             clipRadius2Sq: { type: Types.FLOAT },
             unused: { type: Types.VECTOR3 },
-            shLightingCoefficients: { type: Types.VECTOR4, count: 7 }
+            shLightingCoefficients: { type: Types.VECTOR4, count: 7, default: ZERO4 }
         }
     }
 });
@@ -348,7 +351,7 @@ export const EveSpaceObject = Object.freeze({
             clipSphereFactor2: { type: Types.FLOAT },
             clipSphereFactor: { type: Types.FLOAT },
             // Tr2ShLightingManager::PACKED_COEFFICIENT_COUNT = 7.
-            shLightingCoefficients: { type: Types.VECTOR4, count: 7 },
+            shLightingCoefficients: { type: Types.VECTOR4, count: 7, default: ZERO4 },
             customMaskMaterialIDs: { type: Types.VECTOR4, count: 2 },
             customMaskTargets: { type: Types.VECTOR4, count: 2 },
             // Both slots packed into one vec4: (u0, v0, u1, v1).
@@ -390,7 +393,64 @@ export const EveTurretSet = Object.freeze({
             clipData1: { type: Types.VECTOR4 },
             clipRadius2Sq: { type: Types.FLOAT },
             unused: { type: Types.VECTOR3 },
-            shLightingCoefficients: { type: Types.VECTOR4, count: 7 }
+            shLightingCoefficients: { type: Types.VECTOR4, count: 7, default: ZERO4 }
+        }
+    }
+});
+
+
+/**
+ * EveSpaceObject2.h:143 - the merged VS+PS variant used by the instanced path.
+ * Uploaded through a STRUCTURED BUFFER rather than a constant buffer
+ * (EveInstancedMeshManager.cpp:69-77), so it carries no register.
+ *
+ * Field order is NOT the same as the EveSpaceObject VS/PS pair: the five clip
+ * scalars sit at fields 6-10 here, before the ellipsoid. Since the upload is a
+ * raw memcpy, that order is the contract.
+ */
+export const EveSpacePerObject = Object.freeze({
+    shared: {
+        struct: "EveSpacePerObjectData",
+        fields: {
+            worldTransform: { type: Types.MATRIX4, default: IDENTITY },
+            worldTransformLast: { type: Types.MATRIX4, default: IDENTITY },
+            invWorldTransform: { type: Types.MATRIX4, default: IDENTITY },
+            // This struct's own initialiser is (0,0,0,0), unlike the
+            // EveSpaceObject2 constructor's (1,1,0,1).
+            shipData: { type: Types.VECTOR4 },
+            clipSphereCenter: { type: Types.VECTOR3 },
+            clipRadiusSq: { type: Types.FLOAT },
+            clipRadius2Sq: { type: Types.FLOAT },
+            impactDataOffset: { type: Types.FLOAT },
+            clipSphereFactor2: { type: Types.FLOAT },
+            clipSphereFactor: { type: Types.FLOAT },
+            ellpsoidRadii: { type: Types.VECTOR4 },
+            ellpsoidCenter: { type: Types.VECTOR4 },
+            // EveSpaceObject2.h:160 initialises this to all-zero, contradicting
+            // EveCustomMask::ZeroPerObjectData's IdentityMatrix. The zero path
+            // is the live one, so identity wins; reproduced as written.
+            customMaskMatrix: { type: Types.MATRIX4, count: 2, default: IDENTITY },
+            customMaskData: { type: Types.VECTOR4, count: 2 },
+            customMaskMaterialIDs: { type: Types.VECTOR4, count: 2 },
+            customMaskTargets: { type: Types.VECTOR4, count: 2 },
+            customMaskClamps: { type: Types.VECTOR4 },
+            boneOffsets: { type: Types.UINT32, count: 4 },
+            customData: { type: Types.VECTOR4 },
+            shLighting: { type: Types.VECTOR4, count: 7, default: ZERO4 }
+        }
+    }
+});
+
+
+/** Tr2ConstantBufferFormats.h:35 - the generic, non-EVE per-object block. */
+export const Tr2PerObject = Object.freeze({
+    vs: {
+        struct: "Tr2PerObjectVSData",
+        fields: {
+            WorldMat: { type: Types.MATRIX4, default: IDENTITY },
+            boundingCylinderLocalHeight: { type: Types.FLOAT },
+            boundingCylinderLocalXZCenter: { type: Types.VECTOR2 },
+            boundingCylinderRotation: { type: Types.FLOAT }
         }
     }
 });
@@ -409,7 +469,9 @@ const GROUPS = Object.freeze({
     EveChildBulletStorm,
     EveStretch2,
     EveSpaceObject,
-    EveTurretSet
+    EveTurretSet,
+    EveSpacePerObject,
+    Tr2PerObject
 });
 
 

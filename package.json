@@ -14,7 +14,8 @@
     "./curves": "./src/curves/index.js",
     "./generated/*": "./src/generated/*/index.js",
     "./generated": "./src/generated/index.js",
-    "./eve": "./src/eve/index.js"
+    "./eve": "./src/eve/index.js",
+    "./perobject": "./src/trinityCore/rawData/CjsPerObjectLayouts.js"
   },
   "engines": {
     "node": ">=18"

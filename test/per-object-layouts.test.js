@@ -47,7 +47,9 @@ const SIZES = [
   [ "EveSpaceObjectVSData", 116, "EveSpaceObject2.h:99" ],
   [ "EveSpaceObjectPSData", 116, "EveSpaceObject2.h:122" ],
   [ "EveTurretSetVSData", 236, "EveTurretSet.h:47" ],
-  [ "EveTurretSetPSData", 40, "EveTurretSet.h:63" ]
+  [ "EveTurretSetPSData", 40, "EveTurretSet.h:63" ],
+  [ "EveSpacePerObjectData", 164, "EveSpaceObject2.h:143 - the instanced variant" ],
+  [ "Tr2PerObjectVSData", 20, "Tr2ConstantBufferFormats.h:35" ]
 ];
 
 
