@@ -3,30 +3,32 @@ import { CjsPerObjectLayouts } from './CjsPerObjectLayouts.js';
 
 // Factory + arena for RawData constant-data payloads.
 //
-// A store is PER-ENGINE (one CjsLibrary = one live backend). It is built with a
-// packer (the backend's physical layout rules) and structs are REGISTERED on
-// the instance - registration resolves each struct through the packer right
-// then, so a struct the engine cannot pack fails loud at registration, naming
-// it. The engine must supply a packer for every registered struct; there is no
-// silent fallback and no built-in default packer - the consumer always brings
-// its own (an engine, or a trivial tight packer in tests).
+// A store is PER-ENGINE (one CjsLibrary = one live backend). Structs are
+// REGISTERED on the instance - registration resolves each struct's layout right
+// then, so a struct that cannot be laid out fails loud at registration, naming
+// it.
 //
-// THE PACKER CONTRACT (the engine-facing duck):
+// TRINITY COMPUTES THE OFFSETS. This once required an engine-injected packer,
+// on the premise that the physical layout is BACKEND-SPECIFIC. That premise is
+// false for these buffers, verified 2026-07-28: every backend declares them as
+// a flat array of vec4 - WGSL `array<vec4<f32>, N>`, GLSL `vec4 cbN[N]`, or a
+// std140 block wrapping `vec4 data[N]` - and std140's stride for an array of
+// vec4 is 16 bytes, identical to tight C++ packing. The std140 rules that DO
+// diverge (vec3 padded to 16, scalar array stride) never engage, because there
+// are no struct members to pad: the translated shader indexes the flat array
+// and reassembles fields itself.
 //
-//   ResolveLayout(structName, normalizedDef) -> {
-//     fields: { [name]: { offset, size, elements, encoding } },  // float offsets
-//     stride: number                                             // floats/instance
-//   }
+// Layouts resolve from two sources, in order:
 //
-// `structName` lets a reflection-based engine packer key its per-struct shader
-// layout by name (a generic packer ignores it). Offsets are FLOAT offsets
-// relative to one instance's slot (the same offset indexes the Float32 and
-// Uint32 views). A packer that cannot lay out a struct must throw or return
-// null - the store treats that as "not covered" and fails loud at
-// RegisterStruct. Trinity owns the LOGICAL shape (names/sizes/encoding kinds);
-// the packer owns the PHYSICAL layout (offsets/padding), which is backend-
-// specific (WebGL sets uniforms individually; a WebGPU UBO applies std140), so
-// Trinity never computes offsets.
+//   1. CjsPerObjectLayouts, when the struct name is a Carbon struct. Those
+//      offsets are declared, not derived, because Carbon memcpy's the C++
+//      struct (EveSpaceObject2.cpp:1469-1483) and its members sit on float4
+//      boundaries - tight-packing a FLOAT member would drift from it.
+//   2. tight packing of the supplied def, for an ad-hoc struct the catalog
+//      does not carry.
+//
+// Offsets are FLOAT offsets relative to one instance's slot (the same offset
+// indexes the Float32 and Uint32 views).
 //
 // Allocation is an ARENA (bump), not a free-list:
 //   - Alloc(name) bumps a cursor and returns a view ("snip off what you need")
@@ -52,16 +54,6 @@ const CATALOG_ENCODINGS = {
   [CjsPerObjectLayouts.Types.INT32]: RawDataType.INT
 };
 
-/**
- * The built-in packer: Carbon's own layout, read from CjsPerObjectLayouts.
- *
- * This is what the injected-packer seam was holding a place for. It turned out
- * not to be backend-specific - WGSL declares `array<vec4<f32>, N>` and GLSL
- * declares `vec4 cbN[N]` or a std140 block wrapping `vec4 data[N]`, and
- * std140's stride for an array of vec4 is 16 bytes, the same as tight C++
- * packing. An engine that genuinely needs a different physical layout still
- * supplies its own packer; it is simply no longer required for the common case.
- */
 /**
  * A catalog layout as a store field-def array.
  *
@@ -89,33 +81,54 @@ function catalogDef(layout) {
   }
   return def;
 }
-const CATALOG_PACKER = {
-  ResolveLayout(structName) {
-    const layout = CjsPerObjectLayouts.Get(structName);
-    if (!layout) {
-      return null;
-    }
-    const fields = {};
-    for (const field of layout.fields.values()) {
-      fields[field.name] = {
-        offset: field.offset,
-        size: field.size,
-        elements: field.count,
-        encoding: CATALOG_ENCODINGS[field.type] ?? RawDataType.VECTOR
-      };
-    }
-    return {
-      fields,
-      stride: layout.stride
+
+/**
+ * Carbon's declared layout for a struct, or null when the catalog omits it.
+ */
+function catalogLayout(structName) {
+  const layout = CjsPerObjectLayouts.Get(structName);
+  if (!layout) {
+    return null;
+  }
+  const fields = {};
+  for (const field of layout.fields.values()) {
+    fields[field.name] = {
+      offset: field.offset,
+      size: field.size,
+      elements: field.count,
+      encoding: CATALOG_ENCODINGS[field.type] ?? RawDataType.VECTOR
     };
   }
-};
+  return {
+    fields,
+    stride: layout.stride
+  };
+}
+
+/**
+ * Tight layout for an ad-hoc struct the catalog does not carry: fields in
+ * declared order, no padding.
+ */
+function tightLayout(normalized) {
+  const fields = {};
+  let offset = 0;
+  for (const field of normalized) {
+    fields[field.name] = {
+      offset,
+      size: field.size,
+      elements: field.elements,
+      encoding: field.encoding
+    };
+    offset += field.size * field.elements;
+  }
+  return {
+    fields,
+    stride: offset
+  };
+}
 
 /** Registers constant-data struct shapes and leases packed payloads from a per-engine arena. */
 class RawDataStore {
-  /** The engine's packer (physical offsets/padding). Required. */
-  #packer = null;
-
   /** Registered layouts: name -> { fields, stride, defaults }. */
   #layouts = new Map();
 
@@ -129,20 +142,10 @@ class RawDataStore {
   #cursor = 0;
 
   /**
-   * @param {object} [packer] - a backend packer with ResolveLayout(name, def).
-   *   OPTIONAL. Carbon packs per-object data by memcpy'ing the C++ struct
-   *   (EveSpaceObject2.cpp:1469-1483), and the translated shaders declare these
-   *   buffers as a flat vec4[N] on every backend, so there is one physical
-   *   layout rather than a backend-specific one. When no packer is supplied the
-   *   store resolves from CjsPerObjectLayouts, which carries it.
    * @param {object} [options]
    * @param {number} [options.chunkFloats] - arena chunk size in floats.
    */
-  constructor(packer = null, options = {}) {
-    if (packer && typeof packer.ResolveLayout !== "function") {
-      throw new Error("RawDataStore: a supplied packer needs ResolveLayout(name, def)");
-    }
-    this.#packer = packer ?? CATALOG_PACKER;
+  constructor(options = {}) {
     if (Number.isInteger(options.chunkFloats) && options.chunkFloats > 0) {
       this.#chunkFloats = options.chunkFloats;
     }
@@ -170,16 +173,16 @@ class RawDataStore {
   }
 
   /**
-   * Register one struct and RESOLVE it through the packer immediately. `def` is
-   * an array of field defs: { name, encoding, size, elements?, default? }, where
-   * `size` may instead be a defaults ARRAY whose length is the size. Throws -
-   * naming the struct - if the packer supplies no layout for it (the engine must
-   * cover every struct). Returns the store for chaining.
+   * Register one struct and RESOLVE its layout immediately. `def` is an array
+   * of field defs: { name, encoding, size, elements?, default? }, where `size`
+   * may instead be a defaults ARRAY whose length is the size. Omit `def`
+   * entirely for a Carbon struct and the catalog supplies it. Returns the store
+   * for chaining.
    *
    * `options.stages` declares which per-object constant slots the payload binds
    * (default ["vs"]). This is Carbon-SEMANTIC knowledge - which
-   * FillAndSetConstants calls exist for the struct - so it travels with the def,
-   * not the packer: ["vs"] a vertex-stage payload, ["ps"] a pixel payload (one
+   * FillAndSetConstants calls exist for the struct - so it travels with the def
+   * rather than the layout: ["vs"] a vertex-stage payload, ["ps"] a pixel payload (one
    * half of a { vs, ps } record), ["vs", "ps"] the SAME bytes bound to both
    * slots (sphere pin, lensflare). The engine reads it from GetLayout().stages.
    */
@@ -198,15 +201,10 @@ class RawDataStore {
     }
     const normalized = RawDataStore.normalizeDef(def);
     const stages = RawDataStore.normalizeStages(name, options.stages);
-    let resolved;
-    try {
-      resolved = this.#packer.ResolveLayout(name, normalized);
-    } catch (error) {
-      throw new Error(`RawDataStore: packer failed to lay out struct "${name}": ${error.message}`);
-    }
-    if (!resolved || !resolved.fields || !Number.isFinite(resolved.stride)) {
-      throw new Error(`RawDataStore: packer supplied no layout for struct "${name}" (the engine must pack every registered struct)`);
-    }
+
+    // Carbon's declared offsets win: its members sit on float4 boundaries, so
+    // tight-packing them would drift the moment a struct carries a FLOAT.
+    const resolved = catalogLayout(name) ?? tightLayout(normalized);
     if (resolved.stride > this.#chunkFloats) {
       throw new Error(`RawDataStore: struct "${name}" (${resolved.stride} floats) exceeds the chunk size (${this.#chunkFloats})`);
     }
@@ -318,8 +316,8 @@ class RawDataStore {
 
   /**
    * Normalize a raw def: default elements to 1, resolve size-as-defaults-array,
-   * require a name and encoding. Physical offsets are NOT computed here - that
-   * is the packer's job.
+   * require a name and encoding. Physical offsets are NOT computed here - they
+   * are resolved at registration, from the catalog or by tight packing.
    */
   static normalizeDef(def) {
     return def.map(field => {
@@ -346,19 +344,6 @@ class RawDataStore {
         default: defaultValue
       };
     });
-  }
-
-  /**
-   * Build a per-engine store. `engine` must expose a packer - itself (has
-   * ResolveLayout), or via GetRawDataPacker()/rawDataPacker. Throws if none:
-   * the engine MUST supply a packer.
-   */
-  static from(engine, options = {}) {
-    const packer = typeof engine?.ResolveLayout === "function" ? engine : engine?.GetRawDataPacker?.() ?? engine?.rawDataPacker ?? null;
-    if (!packer) {
-      throw new Error("RawDataStore.from: the engine supplied no packer (needs ResolveLayout / GetRawDataPacker / rawDataPacker)");
-    }
-    return new RawDataStore(packer, options);
   }
 }
 

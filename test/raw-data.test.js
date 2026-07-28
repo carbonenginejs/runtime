@@ -9,23 +9,22 @@ import { RawData, RawDataStore } from "../npm/dist/index.js";
 const EPSILON = 1e-6;
 const Type = RawDataStore.Type;
 
-// The library ships NO packer - the consumer always supplies one. This trivial
-// tight packer (no padding) stands in for an engine's packer across the tests.
-const TightPacker = {
-  ResolveLayout(_structName, def)
+// The store computes its own offsets - from CjsPerObjectLayouts for a Carbon
+// struct, by tight packing otherwise. This mirrors the tight rule, for the one
+// test that builds a RawData directly rather than through the store.
+function tightLayout(def)
+{
+  const fields = {};
+  let offset = 0;
+
+  for (const field of def)
   {
-    const fields = {};
-    let offset = 0;
-
-    for (const field of def)
-    {
-      fields[field.name] = { offset, size: field.size, elements: field.elements, encoding: field.encoding };
-      offset += field.size * field.elements;
-    }
-
-    return { fields, stride: offset };
+    fields[field.name] = { offset, size: field.size, elements: field.elements, encoding: field.encoding };
+    offset += field.size * field.elements;
   }
-};
+
+  return { fields, stride: offset };
+}
 
 function assertClose(actual, expected, message)
 {
@@ -46,19 +45,19 @@ function MakeWorld()
 // A store with one struct registered against the tight packer.
 function MakeStore(name, def, options)
 {
-  const store = new RawDataStore(TightPacker, options);
+  const store = new RawDataStore(options);
   store.RegisterStruct(name, def);
   return store;
 }
 
-test("TightPacker resolves tight offsets and stride (name-keyed contract)", () =>
+test("an ad-hoc struct lays out tight: fields in order, no padding", () =>
 {
   const def = RawDataStore.normalizeDef([
     { name: "world",     size: 16, encoding: Type.MATRIX },
     { name: "shipData",  size: 4,  encoding: Type.VECTOR },
     { name: "masks",     size: 16, elements: 2, encoding: Type.MATRIX }
   ]);
-  const layout = TightPacker.ResolveLayout("VS", def);
+  const layout = tightLayout(def);
 
   assert.equal(layout.fields.world.offset, 0, "world at 0");
   assert.equal(layout.fields.shipData.offset, 16, "shipData after world");
@@ -207,7 +206,7 @@ test("arena grows into new chunks without invalidating earlier views", () =>
 
 test("Alloc throws for an unregistered struct; Has reflects registration", () =>
 {
-  const store = new RawDataStore(TightPacker);
+  const store = new RawDataStore();
   assert.equal(store.Has("VS"), false);
   assert.throws(() => store.Alloc("VS"), /not registered/);
 
@@ -217,14 +216,13 @@ test("Alloc throws for an unregistered struct; Has reflects registration", () =>
   assert.throws(() => vs.Set("missing", [0]), /unknown field/);
 });
 
-test("a store falls back to Carbon's own layout when no packer is supplied", () =>
+test("a Carbon struct resolves from the catalog, def and stages included", () =>
 {
-  // This reverses the original decision. The injected packer assumed the
-  // physical layout was backend-specific; it is not - WGSL declares
-  // `array<vec4<f32>, N>`, GLSL declares `vec4 cbN[N]` or a std140 block
-  // wrapping `vec4 data[N]`, and std140's stride for an array of vec4 is 16
-  // bytes, the same as tight C++ packing. So the store carries Carbon's layout
-  // and an engine only supplies a packer if it genuinely needs a different one.
+  // There is no injected packer. The physical layout is not backend-specific:
+  // WGSL declares `array<vec4<f32>, N>`, GLSL declares `vec4 cbN[N]` or a
+  // std140 block wrapping `vec4 data[N]`, and std140's stride for an array of
+  // vec4 is 16 bytes - the same as tight C++ packing. So Trinity owns the
+  // offsets outright.
   const store = new RawDataStore();
   store.RegisterStruct("EveSpaceObjectVSData");
 
@@ -232,10 +230,8 @@ test("a store falls back to Carbon's own layout when no packer is supplied", () 
   assert.equal(data.GetLayout().stride, 116, "EveSpaceObject2.h:99");
   assert.deepEqual(data.GetLayout().stages, ["vs"]);
 
-  // A struct the catalog does not cover still fails loud rather than guessing.
+  // A struct the catalog does not cover, with no def, fails rather than guessing.
   assert.throws(() => store.RegisterStruct("NotACarbonStruct"), /not in CjsPerObjectLayouts/);
-  // A supplied packer must still be a packer.
-  assert.throws(() => new RawDataStore({}), /needs ResolveLayout/);
 });
 
 
@@ -260,75 +256,52 @@ test("catalog defaults are applied on Alloc, including per element", () =>
   }
 });
 
-test("the engine MUST cover every registered struct - RegisterStruct fails loud otherwise", () =>
+test("an ad-hoc struct tight-packs; a def-less unknown one fails loud", () =>
 {
-  // A reflection-style packer that only knows two structs, keyed by name.
-  const reflected = {
-    layouts: {
-      Known: { fields: { a: { offset: 0, size: 4, elements: 1, encoding: Type.VECTOR } }, stride: 4 }
-    },
-    ResolveLayout(name)
-    {
-      const layout = this.layouts[name];
+  const store = new RawDataStore();
 
-      if (!layout)
-      {
-        return null; // not covered by this engine's shaders
-      }
+  // Not a Carbon struct, but a def was supplied, so it tight-packs.
+  store.RegisterStruct("AdHoc", [
+    { name: "a", size: 4, encoding: Type.VECTOR },
+    { name: "b", size: 4, encoding: Type.VECTOR }
+  ]);
+  assert.equal(store.Has("AdHoc"), true);
+  assert.equal(store.Alloc("AdHoc").GetLayout().stride, 8, "no padding");
 
-      return layout;
-    }
-  };
-  const store = RawDataStore.from(reflected);
-
-  store.RegisterStruct("Known", [{ name: "a", size: 4, encoding: Type.VECTOR }]);
-  assert.equal(store.Has("Known"), true, "covered struct registers");
-
+  // No def and no catalog entry: nothing to guess from, so it fails naming it.
   assert.throws(
-    () => store.RegisterStruct("Unknown", [{ name: "a", size: 4, encoding: Type.VECTOR }]),
-    /supplied no layout for struct "Unknown"/,
-    "an uncovered struct fails loud at registration, naming it"
+    () => store.RegisterStruct("Unknown"),
+    /not in CjsPerObjectLayouts/,
+    "fails loud at registration, naming the struct"
   );
-  assert.equal(store.Has("Unknown"), false, "the uncovered struct is not registered");
+  assert.equal(store.Has("Unknown"), false);
 });
 
-test("Register bulk-registers a struct map; the packer receives the struct NAME", () =>
+test("Register bulk-registers a struct map, resolving each by name", () =>
 {
-  // A packer that pads b to an 8-float boundary and asserts it gets the name.
-  const seenNames = [];
-  const paddingPacker = {
-    ResolveLayout(name, def)
-    {
-      seenNames.push(name);
-      const fields = {};
-      let offset = 0;
-
-      for (const field of def)
-      {
-        fields[field.name] = { offset, size: field.size, elements: field.elements, encoding: field.encoding };
-        offset += Math.ceil((field.size * field.elements) / 8) * 8;
-      }
-
-      return { fields, stride: offset };
-    }
-  };
-  const store = RawDataStore.from(paddingPacker).Register({
+  const store = new RawDataStore().Register({
     VS: [{ name: "a", size: 4, encoding: Type.VECTOR }, { name: "b", size: 4, encoding: Type.VECTOR }],
     PS: [{ name: "c", size: 4, encoding: Type.VECTOR }]
   });
 
-  assert.deepEqual(seenNames.sort(), ["PS", "VS"], "packer keyed by struct name");
+  assert.equal(store.Has("VS"), true);
+  assert.equal(store.Has("PS"), true);
+
   const vs = store.Alloc("VS");
   vs.Set("a", [1, 1, 1, 1]);
   vs.Set("b", [2, 2, 2, 2]);
-  assertClose(vs.GetData()[8], 2, "b written at the packer's padded offset");
-  assertClose(vs.GetData()[4], 0, "the pad gap is untouched");
-  assert.equal(vs.GetLayout().stride, 16, "padded stride");
+  assertClose(vs.GetData()[4], 2, "b follows a with no padding");
+  assert.equal(vs.GetLayout().stride, 8);
+
+  // The name is what selects Carbon's declared layout over tight packing.
+  const carbon = new RawDataStore();
+  carbon.RegisterStruct("EveSpaceObjectVSData");
+  assert.equal(carbon.Alloc("EveSpaceObjectVSData").GetLayout().stride, 116);
 });
 
 test("direct construction: a persistent (self-owned) payload bypasses the arena", () =>
 {
-  const layout = TightPacker.ResolveLayout("VS", RawDataStore.normalizeDef([
+  const layout = tightLayout(RawDataStore.normalizeDef([
     { name: "world", size: 16, encoding: Type.MATRIX }
   ]));
   layout.defaults = [];
@@ -394,7 +367,7 @@ test("per-element Set writes ONE slot; the unwritten tail keeps its arena bytes"
 
 test("stages: defs declare their binding slots; the engine reads GetLayout().stages", () =>
 {
-  const store = new RawDataStore(TightPacker);
+  const store = new RawDataStore();
 
   // Default: a single vertex-stage payload (EveBasicPerObjectData).
   store.RegisterStruct("BasicVS", [{ name: "world", size: 16, encoding: Type.MATRIX }]);
@@ -429,7 +402,7 @@ test("a distinct VS+PS pair is TWO Allocs returned as a { vs, ps } record", () =
 {
   // Carbon's dominant composite (turret, decal, booster): two structs, two
   // constant buffers. The batch pipeline threads the record through untouched.
-  const store = new RawDataStore(TightPacker).Register({
+  const store = new RawDataStore().Register({
     DecalVS: [{ name: "worldMatrix", size: 16, encoding: Type.MATRIX }],
     DecalPS: { def: [{ name: "displayData", size: 4, encoding: Type.VECTOR }], stages: ["ps"] }
   });

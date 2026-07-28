@@ -131,28 +131,10 @@ export const TEST_PER_OBJECT_STRUCTS = {
   }
 };
 
-// A trivial tight packer (no padding) standing in for the engine's physical
-// layout. Lives only in tests - src ships no packer.
-export const TightPacker = {
-  ResolveLayout(_structName, def)
-  {
-    const fields = {};
-    let offset = 0;
-
-    for (const field of def)
-    {
-      fields[field.name] = { offset, size: field.size, elements: field.elements, encoding: field.encoding };
-      offset += field.size * field.elements;
-    }
-
-    return { fields, stride: offset };
-  }
-};
-
-/** A store with the test structs registered against the tight packer. */
+/** A store with the test structs registered. */
 export function makePerObjectStore(options)
 {
-  return new RawDataStore(TightPacker, options).Register(TEST_PER_OBJECT_STRUCTS);
+  return new RawDataStore(options).Register(TEST_PER_OBJECT_STRUCTS);
 }
 
 /** A render-context stand-in that carries the per-object store. */
