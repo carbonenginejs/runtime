@@ -73,6 +73,17 @@ const LANES = Object.freeze({
 });
 
 
+/**
+ * Declared type -> the encoder kind that writes its bytes. These are the string
+ * values of `RawDataType`; see ToRawLayout for why they are not imported.
+ */
+const ENCODINGS = Object.freeze({
+    [Types.MATRIX4]: "matrix",
+    [Types.UINT32]: "uint",
+    [Types.INT32]: "int"
+});
+
+
 const IDENTITY = Object.freeze([
     1, 0, 0, 0,
     0, 1, 0, 0,
@@ -443,6 +454,54 @@ export class CjsPerObjectLayouts
     static Names()
     {
         return [...CjsPerObjectLayouts.#Resolved().keys()];
+    }
+
+    /**
+     * A layout in the shape RawData consumes: float offsets keyed by name,
+     * plus the stride, stages, and the defaults to apply on allocation.
+     *
+     * Encodings are the string values of `RawDataType`, written literally
+     * rather than imported so this module stays free of a cycle (RawData
+     * imports this one for its persistent factory). `per-object-layouts.test.js`
+     * asserts the two agree.
+     *
+     * A default on an array field is repeated across every element: the neutral
+     * for a slot - identity for an unused custom mask - applies to every slot,
+     * not just the first.
+     */
+    static ToRawLayout(struct)
+    {
+        const layout = CjsPerObjectLayouts.Get(struct);
+
+        if (!layout)
+        {
+            return null;
+        }
+
+        const fields = {};
+        const defaults = [];
+
+        for (const field of layout.fields.values())
+        {
+            fields[field.name] = {
+                offset: field.offset,
+                size: field.size,
+                elements: field.count,
+                encoding: ENCODINGS[field.type] ?? "vector"
+            };
+
+            if (field.default)
+            {
+                defaults.push({
+                    offset: field.offset,
+                    values: field.count > 1
+                        ? Array.from({ length: field.count }, () => [ ...field.default ]).flat()
+                        : [ ...field.default ]
+                });
+            }
+        }
+
+        return { fields, stride: layout.stride, stages: layout.stages, defaults };
     }
 
     /** The group a struct belongs to, with its stage key, or null. */

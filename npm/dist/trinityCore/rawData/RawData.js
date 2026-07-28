@@ -1,25 +1,38 @@
+import { CjsPerObjectLayouts } from './CjsPerObjectLayouts.js';
+
 // GPU-free per-object / per-frame constant data.
 //
 // A RawData is a thin, write-mostly view over a slice of a packed constant
 // buffer: name -> encoded bytes. It is NOT a CjsModel (no persistence, no
-// reactivity) - it is transient GPU staging, produced fresh each frame and
-// consumed by the engine's uploader.
+// reactivity) - it is GPU staging. Most records are leased per frame from the
+// arena and consumed by the engine's uploader; a few are PERSISTENT, owned by
+// an object across frames via RawData.create and marked with Invalidate.
 //
 // Design + rationale: runtime-trinity/agents/PER-OBJECT-DATA-DESIGN-2026-07-24.md
 // Transpose contract (why matrices are stored transposed): the
 // carbon-math-conventions skill, "GPU upload: the transpose contract".
 //
 // Verbs (name ALWAYS first - a keyed store, not a math op):
-//   Set(name, value)     logical value in, ENCODED into the buffer
-//   SetRaw(name, value)  bytes in, NO encoding (value is already GPU-form)
-//   Copy(name, out)      bytes OUT into a caller buffer - never a reference
-// Each verb takes an optional trailing element index for per-element writes
-// into an array field (Carbon fills `m_turretTranslation[turretIndex]` for
-// VISIBLE turrets only - the unwritten tail stays arena garbage, and a
-// whole-array Set would destroy that parity).
-// There is intentionally no Get: the payload is write-only from Trinity's
-// side (every field derives from logical inputs the fill already holds), and
-// the uploader reads the whole packed slice via GetData().
+//   SetAndTranspose(name, value)   a MATRIX4 field; PERFORMS the transpose
+//   GetTransposed(name)            a MATRIX4 field; returns what is stored
+//   Set(name, value) / Get(name)   everything else; both throw on a matrix
+//   Copy(name, out)                bytes OUT into a caller-owned buffer
+//   ...Index(name, index, ...)     one element of an array field
+//
+// Every matrix is stored TRANSPOSED, so Set/Get refuse matrix fields and name
+// the pair to use instead. The orientation is stated at the call site and
+// checked at runtime rather than remembered. There is no SetRaw: its only two
+// uses computed Inverse(Transpose(M)), which equals Transpose(Inverse(M)), so
+// inverting the logical matrix gives the same bytes. See the
+// carbon-math-conventions skill, F6.
+//
+// The indexed forms exist because Carbon fills arrays PARTIALLY - it writes
+// m_turretTranslation[i] for VISIBLE turrets only, and the unwritten tail keeps
+// whatever the arena held. A whole-array write would destroy that parity.
+//
+// Get returns a LIVE reference into the buffer, so writing through it is a
+// zero-copy write. That is deliberate: Carbon hands out a raw pointer into
+// m_psData for exactly this (EveSpaceObject2.cpp:1877-1883).
 //
 // MULTI-PAYLOAD RENDERABLES: Carbon's dominant composite shape is a distinct
 // VS struct + PS struct uploaded as TWO constant buffers (turret, decal,
@@ -126,6 +139,9 @@ class RawData {
 
   /** Uint32 view over the SAME bytes, for UINT lanes. */
   #uints = null;
+
+  /** Whether the payload has changed since an uploader last matched it. */
+  #dirty = true;
 
   /**
    * @param {object} layout - resolved layout for one struct
@@ -289,6 +305,61 @@ class RawData {
     if (field.encoding === RawDataType.MATRIX) {
       throw new Error(`RawData: field "${name}" is a matrix and is stored TRANSPOSED - ` + `use ${verb.startsWith("Set") ? "SetAndTranspose" : "GetTransposed"}, not ${verb}`);
     }
+  }
+
+  /**
+   * Marks the payload as changed since the engine last uploaded it.
+   *
+   * Only meaningful for a PERSISTENT record - one owned by an object across
+   * frames rather than leased from the arena. Carbon's equivalent is
+   * `Tr2PersistentPerObjectData::InvalidateBufferData`, called once per frame
+   * from the owner's async update (EveSpaceObject2.cpp:626-627); when the flag
+   * is clear the engine rebinds the existing GPU buffer with no lock and no
+   * memcpy (Tr2PersistentPerObjectData.h:118-124).
+   *
+   * A transient arena record needs none of this - it is filled and consumed
+   * within the frame - so the flag simply stays true there.
+   */
+  Invalidate() {
+    this.#dirty = true;
+    return this;
+  }
+
+  /** Whether the payload has changed since ClearDirty. */
+  IsDirty() {
+    return this.#dirty;
+  }
+
+  /** Called by an uploader once the GPU buffer matches this payload. */
+  ClearDirty() {
+    this.#dirty = false;
+    return this;
+  }
+
+  /**
+   * A PERSISTENT record: one this object owns across frames, with its own
+   * buffer, outside the arena.
+   *
+   * This is Carbon's second per-object shape. Most payloads are leased from the
+   * frame pool and die at Reset, but five types keep theirs as members because
+   * the values are stable across a frame AND are read back - EveSpaceObject2
+   * reads its own stored matrices (cpp:3747) and hands shLighting to
+   * attachments as a live pointer (cpp:1877-1883). Those are the records that
+   * want Get/GetTransposed.
+   *
+   * Defaults are applied once here rather than per allocation.
+   */
+  static create(struct) {
+    const layout = CjsPerObjectLayouts.ToRawLayout(struct);
+    if (!layout) {
+      throw new Error(`RawData: struct "${struct}" is not in CjsPerObjectLayouts`);
+    }
+    const floats = new Float32Array(layout.stride);
+    const uints = new Uint32Array(floats.buffer);
+    for (const preset of layout.defaults) {
+      floats.set(preset.values, preset.offset);
+    }
+    return new RawData(layout, floats, uints);
   }
 
   /** The packed Float32 slice - what the engine uploader memcpys/binds. */

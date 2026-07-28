@@ -8,6 +8,8 @@ import test from "node:test";
 
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 
+import { RawData, RawDataType } from "../npm/dist/index.js";
+import { CjsPerObjectLayouts } from "../src/trinityCore/rawData/CjsPerObjectLayouts.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
 
@@ -171,6 +173,57 @@ test("CopyIndex copies one element out", () =>
 
   assertEquals(out[0], 9);
   assertEquals(out[3], 6);
+});
+
+
+test("a persistent record owns its buffer and starts with Carbon's defaults", () =>
+{
+  // Carbon's second per-object shape: five types keep their payload as a
+  // member across frames rather than leasing it from the pool, because the
+  // values are stable within a frame AND are read back
+  // (EveSpaceObject2.h:582-584, cpp:1877-1883).
+  const ps = RawData.create("EveSpaceObjectPSData");
+
+  assertEquals(ps.GetData().length, 116, "EveSpaceObject2.h:122");
+  assertEquals(Array.from(ps.Get("shipData")).join(","), "1,1,0,1", "cpp:195");
+  assertEquals(Array.from(ps.Get("screenSize")).join(","), "0.5,0.5,0.5,1", "EveChildMesh.cpp:65");
+
+  // Its own buffer, not a slice of a shared arena.
+  const other = RawData.create("EveSpaceObjectPSData");
+  assert(ps.GetData().buffer !== other.GetData().buffer, "records do not share a buffer");
+
+  assertThrows(() => RawData.create("NotAStruct"), /not in CjsPerObjectLayouts/u, "unknown struct");
+});
+
+
+test("Invalidate is the per-frame dirty flag for a persistent record", () =>
+{
+  // Carbon calls InvalidateBufferData once per frame from the owner's async
+  // update (EveSpaceObject2.cpp:626-627); while the flag is clear the engine
+  // rebinds the existing GPU buffer with no lock and no memcpy.
+  const vs = RawData.create("EveSpaceObjectVSData");
+
+  assertEquals(vs.IsDirty(), true, "a fresh record has never been uploaded");
+
+  vs.ClearDirty();
+  assertEquals(vs.IsDirty(), false, "the uploader matched it");
+
+  vs.Invalidate();
+  assertEquals(vs.IsDirty(), true, "the owner changed it");
+});
+
+
+test("the catalog's encoding strings match RawDataType", () =>
+{
+  // CjsPerObjectLayouts writes these literally rather than importing
+  // RawDataType, because RawData imports the catalog for RawData.create and the
+  // pair would otherwise be circular. This is the guard on that shortcut.
+  const layout = CjsPerObjectLayouts.ToRawLayout("EveSpaceObjectVSData");
+
+  assertEquals(layout.fields.worldTransform.encoding, RawDataType.MATRIX);
+  assertEquals(layout.fields.shipData.encoding, RawDataType.VECTOR);
+  assertEquals(layout.fields.boneOffsets.encoding, RawDataType.UINT);
+  assertEquals(layout.stride, 116);
 });
 
 
