@@ -93,8 +93,11 @@ export class Tr2MeshBase extends CjsModel
   @type.list("Tr2MeshArea")
   distortionAreas = [];
 
-  // Carbon routes TRIBATCHTYPE_FLARE but does not expose this list to Blue.
+  // Carbon routes TRIBATCHTYPE_FLARE but does not expose this list to Blue, so
+  // this list is typed without being read or persisted: the type declaration is
+  // what makes its areas reachable to graph traversal, independent of io.
   @io.rebuild("batches")
+  @type.list("Tr2MeshArea")
   flareAreas = [];
 
   @io.read
