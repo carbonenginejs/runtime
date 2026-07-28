@@ -4,10 +4,11 @@ CarbonEngineJS resource lifecycle, cache, format selection, source, and object
 loading contracts — the GPU-free resource layer.
 
 Use this package when you need Carbon-shaped resource loading (`res:/` paths,
-requirement/emit selection, `Ready()`/`GetObject()`) or one of the non-shader
-format readers, without choosing a GPU backend. It sits between resource
-providers and the engine packages that realize prepared resources. It does not
-own WebGL/WebGPU realization, device budgets, or shader formats.
+requirement/emit selection, `Ready()`/`GetObject()`), canonical GPU-free shader
+reflection, or one of the bundled format readers without choosing a GPU
+backend. It sits between format/resource providers and the engines that
+realize prepared resources. It owns neither WebGL/WebGPU realization nor the
+standalone shader parser/compiler packages.
 
 ## Install
 
@@ -56,6 +57,20 @@ import {
 a complete loose file, an individually served response, or a window within a
 shared `CjsAudioBufferRes` bank payload.
 
+Canonical effect-resource and shader reflection classes are available from:
+
+```js
+import {
+  Tr2EffectRes,
+  Tr2Shader
+} from "@carbonenginejs/runtime-resource/resource/shader";
+```
+
+`Tr2EffectRes` fail-closed validates complete permutation topology and portable
+reflection, selects a package permutation, and hydrates it into a cached,
+device-free `Tr2Shader`. Engines add programs, layouts, bindings, and other GPU
+state.
+
 ## Documentation
 
 - [Package documentation](docs/README.md)
@@ -63,6 +78,7 @@ shared `CjsAudioBufferRes` bank payload.
 - [Resource lifecycle concepts](docs/concepts/resource-lifecycle.md)
 - [Browser worker execution](docs/reference/workers.md)
 - [Audio resource classes](docs/reference/classes/audio.md)
+- [Resource and shader-reflection classes](docs/reference/classes/resources.md)
 - [Format subpaths](docs/formats/README.md)
 - [Format ownership and fork provenance](docs/formats/provenance.md)
 

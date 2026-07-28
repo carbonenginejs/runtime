@@ -48,10 +48,120 @@ Data record mirroring Carbon's per-LOD decal range, holding the start index and 
 <!-- class:Tr2EffectRes -->
 ## `Tr2EffectRes`
 
-Resource record that owns effect/shader payload facts, including the permutation description, while engine packages decide shader-module, pipeline, bind-group, and sampler realization.
+Resource record that owns an effect package, resolves global and local permutation options, hydrates exact portable reflection into canonical shaders, and caches them by body index.
 
 - Export: `@carbonenginejs/runtime-resource`
 - Source: `src/resource/shader/Tr2EffectRes.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:Tr2EffectConstant -->
+## `Tr2EffectConstant`
+
+Canonical device-free reflection record for one named constant, including register layout and exact default bytes.
+
+- Export: `@carbonenginejs/runtime-resource/resource/shader`
+- Source: `src/resource/shader/reflection/Tr2EffectConstant.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:Tr2EffectDefine -->
+## `Tr2EffectDefine`
+
+Canonical name/value record for one reflected effect define.
+
+- Export: `@carbonenginejs/runtime-resource/resource/shader`
+- Source: `src/resource/shader/reflection/Tr2EffectDefine.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:Tr2EffectDescription -->
+## `Tr2EffectDescription`
+
+Canonical device-free effect body containing techniques, annotations, and library reflection.
+
+- Export: `@carbonenginejs/runtime-resource/resource/shader`
+- Source: `src/resource/shader/reflection/Tr2EffectDescription.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:Tr2EffectLibrary -->
+## `Tr2EffectLibrary`
+
+Canonical reflected shader-library record containing source bytes, exported symbols, and derived ray-tracing entry roles.
+
+- Export: `@carbonenginejs/runtime-resource/resource/shader`
+- Source: `src/resource/shader/reflection/Tr2EffectLibrary.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:Tr2EffectParameterAnnotation -->
+## `Tr2EffectParameterAnnotation`
+
+Canonical typed parameter annotation that also preserves its exact raw scalar bits.
+
+- Export: `@carbonenginejs/runtime-resource/resource/shader`
+- Source: `src/resource/shader/reflection/Tr2EffectParameterAnnotation.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:Tr2EffectResource -->
+## `Tr2EffectResource`
+
+Canonical stage-resource reflection record for textures, buffers, UAVs, and related binding metadata.
+
+- Export: `@carbonenginejs/runtime-resource/resource/shader`
+- Source: `src/resource/shader/reflection/Tr2EffectResource.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:Tr2EffectStageInput -->
+## `Tr2EffectStageInput`
+
+Canonical device-free stage record containing source program bytes, constants, resources, samplers, and signatures.
+
+- Export: `@carbonenginejs/runtime-resource/resource/shader`
+- Source: `src/resource/shader/reflection/Tr2EffectStageInput.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:Tr2EffectTechnique -->
+## `Tr2EffectTechnique`
+
+Canonical named technique record containing its ordered reflected passes and shader-type mask.
+
+- Export: `@carbonenginejs/runtime-resource/resource/shader`
+- Source: `src/resource/shader/reflection/Tr2EffectTechnique.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:Tr2Pass -->
+## `Tr2Pass`
+
+Canonical reflected pass record containing ordered stage inputs and renderer-neutral render-state values.
+
+- Export: `@carbonenginejs/runtime-resource/resource/shader`
+- Source: `src/resource/shader/reflection/Tr2Pass.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:Tr2SamplerSetup -->
+## `Tr2SamplerSetup`
+
+Canonical device-free sampler reflection record preserving static/dynamic setup and nullable source names.
+
+- Export: `@carbonenginejs/runtime-resource/resource/shader`
+- Source: `src/resource/shader/sampler/Tr2SamplerSetup.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:Tr2Shader -->
+## `Tr2Shader`
+
+Canonical device-free hydrated shader graph and top-level portable-reflection orchestrator.
+
+- Export: `@carbonenginejs/runtime-resource/resource/shader`
+- Source: `src/resource/shader/Tr2Shader.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 

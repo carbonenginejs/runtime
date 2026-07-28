@@ -19,10 +19,13 @@ Engine adapters own device realization:
 LOADED -> PREPARING -> PREPARED
 ```
 
-The package selects and runs registered non-shader readers, hydrates or
-returns the promised CPU outcome, and stores lifecycle state, cache entries,
-and loaded payloads. It never creates WebGL/WebGPU textures, buffers, shader
-modules, pipelines, or bind groups, and it never inspects backend capability.
+The package selects and runs registered readers, hydrates or returns the
+promised CPU outcome, and stores lifecycle state, cache entries, and loaded
+payloads. For compiled effects it independently validates complete permutation
+topology and the format package's plain portable reflection, selects a
+permutation, and hydrates a canonical device-free `Tr2Shader` graph. It never
+creates WebGL/WebGPU textures, buffers, shader modules, pipelines, or bind
+groups, and it never inspects backend capability.
 A realization failure destroys its candidate and returns the resource to
 `LOADED` without discarding the valid CPU payload.
 
@@ -58,6 +61,9 @@ historical mapping.
 - Canonical Carbon resource classes that validate and hold CPU payloads
   privately: `TriTextureRes`, `TriGeometryRes`, `Tr2EffectRes`, `Tr2ImageRes`,
   `TriGrannyRes`, `Tr2GrannyStateRes`, and `Tr2LightProfileRes`.
+- Canonical device-free shader/reflection classes: `Tr2Shader`, its effect,
+  technique, pass, stage, constant, resource, sampler, annotation, and library
+  records; portable hydration; permutation selection; and per-index caching.
 - `Tr2TexturePipeline` CPU-only texture steps and `Tr2TextureLodManager`
   membership.
 - Opaque engine-owned subobject slots for backend adapters.
@@ -68,8 +74,9 @@ historical mapping.
 
 - WebGL/WebGPU realization, allocations, upload accounting, device budgets,
   capability limits, and device-loss recovery (engine packages).
-- Shader compilation and backend runtime objects. The current shader-format
-  packages remain separate until their readers and translators migrate here.
+- Shader binary decoding, backend translation, and package serialization remain
+  in the standalone shader-format packages. Backend shader objects remain in
+  engine packages.
 - AudioBuffer construction, playback, or audio manager behavior.
 - Audio-library document construction, enrichment, media-ID interpretation,
   and delivery-route selection.
@@ -79,7 +86,9 @@ historical mapping.
 - `runtime-core` may configure and expose a `CjsResMan`, but does not own its
   implementation.
 - `runtime-trinity` and `runtime-sof` may request GPU-free objects and
-  resources without selecting an engine.
+  resources without selecting an engine. Trinity owns the mutable
+  `Tr2Effect`/`Tr2Material` facade, parameters, options, and sampler overrides;
+  it consumes the resource-owned shader graph.
 - `engine-webgpu` and future WebGL engines consume loaded resources and own
   all backend allocations, preparation, replacement, and destruction.
 

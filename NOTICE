@@ -3,8 +3,9 @@ carbonenginejs/runtime-resource
 
 Copyright (c) 2026 CarbonEngineJS contributors.
 
-This package owns CarbonEngineJS resource lifecycle, format selection, and the
-non-shader format implementations listed under `format-notices/`.
+This package owns CarbonEngineJS resource lifecycle, format selection,
+canonical GPU-free shader/reflection models, and the non-shader format
+implementations listed under `format-notices/`.
 
 CarbonEngine source material, format names, class names, and schema semantics
 remain copyright their original CarbonEngine authors. Fenris Creations

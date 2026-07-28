@@ -11,7 +11,9 @@ Summary: Documentation home for the GPU-free resource lifecycle, cache, format, 
 CarbonEngineJS: resource identity and state, the MotherLode cache, semantic
 resource classes, registered format readers, fetch providers, and the queued
 CPU load/publication pipeline. It stops at a published CPU payload; engine
-packages realize that payload into backend objects.
+packages realize that payload into backend objects. It also owns the canonical
+device-free `Tr2EffectRes`/`Tr2Shader` reflection graph and portable-reflection
+hydration boundary.
 
 ## Use this package when
 
@@ -19,6 +21,8 @@ packages realize that payload into backend objects.
   selection, `Ready()`/`GetObject()`) without choosing a GPU backend;
 - you need one of the non-shader format readers as a tree-shakeable subpath
   (`@carbonenginejs/runtime-resource/formats/<name>`);
+- you need canonical effect permutation selection or immutable shader
+  reflection records from `@carbonenginejs/runtime-resource/resource/shader`;
 - you need canonical raw audio resources for complete files or byte windows
   over shared physical sources;
 - you are writing an engine adapter that consumes published CPU payloads and
@@ -33,7 +37,8 @@ packages realize that payload into backend objects.
   packages (`engine-webgpu`, future WebGL engines) that realize prepared
   resources.
 - Owned responsibility: resource identity, cache, CPU payload lifecycle,
-  format selection and conversion, and load/publication queues.
+  format selection and conversion, load/publication queues, and canonical
+  device-free effect/shader reflection hydration and selection.
 - Owned elsewhere: WebGL/WebGPU realization, device budgets, and device-loss
   recovery belong to engine packages; shader formats belong to the dedicated
   shader format packages.
@@ -60,6 +65,8 @@ packages realize that payload into backend objects.
   declared worker-safe format execution.
 - [reference/classes/audio.md](reference/classes/audio.md): complete/shared
   audio byte owners and individually addressable audio resource views.
+- [reference/classes/resources.md](reference/classes/resources.md): canonical
+  resource records, effect selection, and shader-reflection classes.
 - [reference/texture-arrays.md](reference/texture-arrays.md): texture-array
   proxies, update generations, and adapter commits.
 - [reference/texture-pipeline.md](reference/texture-pipeline.md):
