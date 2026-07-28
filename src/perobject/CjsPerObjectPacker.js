@@ -7,13 +7,13 @@
 // laid out on a guess; ResolveLayout returns null.
 //
 // HISTORY (2026-07-28): this began as the packer `RawDataStore` required and no
-// package supplied. That requirement is gone - runtime-trinity now carries
-// Carbon's layout itself in `CjsPerObjectLayouts`, because the physical layout
-// turned out not to be backend-specific (WGSL declares `array<vec4<f32>, N>`,
-// GLSL declares `vec4 cbN[N]` or a std140 block wrapping `vec4 data[N]`, and
-// std140's stride for an array of vec4 matches tight C++ packing). It still
-// satisfies the `ResolveLayout(structName, normalizedDef)` shape, so an engine
-// that genuinely needs a different layout can still inject it.
+// package supplied. That requirement is gone, and so is the seam it filled -
+// runtime-trinity computes the offsets itself from `CjsPerObjectLayouts`,
+// because the physical layout turned out not to be backend-specific (WGSL
+// declares `array<vec4<f32>, N>`, GLSL declares `vec4 cbN[N]` or a std140 block
+// wrapping `vec4 data[N]`, and std140's stride for an array of vec4 matches
+// tight C++ packing). What remains here is TOOL-side layout: byte geometry and
+// register positions, which a runtime writing through named fields never needs.
 //
 // When a caller supplies a logical definition the packer VERIFIES it against
 // the ABI instead of ignoring it, so drift between a runtime declaration and
