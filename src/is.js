@@ -149,6 +149,68 @@ export function isNumber(a)
 }
 
 /**
+ * Checks if a value fits a signed 8-bit integer.
+ * @param {*} value
+ * @returns {Boolean}
+ */
+export function isInt8(value)
+{
+    return Number.isInteger(value) && value >= -0x80 && value <= 0x7f;
+}
+
+/**
+ * Checks if a value fits an unsigned 8-bit integer.
+ * @param {*} value
+ * @returns {Boolean}
+ */
+export function isUint8(value)
+{
+    return Number.isInteger(value) && value >= 0 && value <= 0xff;
+}
+
+/**
+ * Checks if a value fits a signed 16-bit integer.
+ * @param {*} value
+ * @returns {Boolean}
+ */
+export function isInt16(value)
+{
+    return Number.isInteger(value) && value >= -0x8000 && value <= 0x7fff;
+}
+
+/**
+ * Checks if a value fits an unsigned 16-bit integer.
+ * @param {*} value
+ * @returns {Boolean}
+ */
+export function isUint16(value)
+{
+    return Number.isInteger(value) && value >= 0 && value <= 0xffff;
+}
+
+/**
+ * Checks if a value fits a signed 32-bit integer.
+ * @param {*} value
+ * @returns {Boolean}
+ */
+export function isInt32(value)
+{
+    return Number.isInteger(value)
+        && value >= -0x80000000
+        && value <= 0x7fffffff;
+}
+
+/**
+ * Checks if a value fits an unsigned 32-bit integer.
+ * @param {*} value
+ * @returns {Boolean}
+ */
+export function isUint32(value)
+{
+    return Number.isInteger(value) && value >= 0 && value <= 0xffffffff;
+}
+
+/**
  * Checks if a value is a function
  * @param {*} a
  * @returns {Boolean}
