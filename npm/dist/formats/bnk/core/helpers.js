@@ -143,7 +143,7 @@ function inspectBNK(bytes) {
       dataChunkSize = size;
     }
     if (id === "HIRC") {
-      info.hirc = readHircListing(bytes, dataOffset, size);
+      info.hirc = readHircListing(bytes, dataOffset, size, info.bankVersion);
     }
     if (id === "STID") {
       info.names = readNameTable(bytes, dataOffset, size);
@@ -178,7 +178,7 @@ function readMediaIndex(bytes, dataOffset, size) {
   }
   return entries;
 }
-function readHircListing(bytes, dataOffset, size) {
+function readHircListing(bytes, dataOffset, size, bankVersion) {
   const entries = [];
   if (size < 4) return entries;
   const count = readU32(bytes, dataOffset);
@@ -199,7 +199,7 @@ function readHircListing(bytes, dataOffset, size) {
       // View over the object body AFTER the leading u32 id; not a copy.
       payload: bytes.subarray(payloadOffset + 4, payloadOffset + entrySize)
     };
-    decodeHircFields(entry);
+    decodeHircFields(entry, bankVersion);
     entries.push(entry);
     offset = payloadOffset + entrySize;
   }
@@ -212,24 +212,31 @@ function readHircListing(bytes, dataOffset, size) {
  * generator version 150 / Wwise 2022.1); every read is bounds-checked, and a
  * body too short for its type's layout simply keeps the raw payload only.
  *
- * - event (4): `u8 actionCount` + `actionCount x u32` -> `actionIds`.
+ * - event (4): version >122 uses Wwise's MSB-first base-128 action count;
+ *   older banks use `u8 actionCount`; both are followed by u32 action ids.
  * - event-action (3): `u16 actionType` (high byte = family: 0x04 play,
  *   0x01 stop, 0x02 pause, 0x03 resume) + `u32 targetId`.
- * - sound (2): `u32 pluginId, u8 streamType, u32 sourceId (wem id),
- *   u32 inMemoryMediaSize` (streamType 0 = embedded, 1 = streamed).
+ * - sound (2): `u32 pluginId, u8 streamType, u32 sourceId,
+ *   u32 inMemoryMediaSize` (streamType 0 = bank data, 1 = streaming
+ *   prefetch, 2 = streamed). Only plugin type 1 is codec-backed WEM media.
  * - music-track (11): `u8 flags, u32 sourceCount`, then per source the same
  *   plugin/stream/source/size quad as sound -> `sources`.
  *
  * Deeper structures (container children, positioning, RTPC curves) remain
  * undecoded; consumers interpret `payload` themselves.
  */
-function decodeHircFields(entry) {
+function decodeHircFields(entry, bankVersion) {
   const body = entry.payload;
   if (entry.type === 4 && body.byteLength >= 1) {
     const actionIds = [];
-    const actionCount = body[0];
-    for (let i = 0; i < actionCount && 1 + i * 4 + 4 <= body.byteLength; i++) {
-      actionIds.push(readU32(body, 1 + i * 4));
+    const decoded = bankVersion > 122 ? readWwiseVar(body, 0) : {
+      value: body[0],
+      nextOffset: 1
+    };
+    const actionCount = decoded?.value ?? 0;
+    const actionOffset = decoded?.nextOffset ?? body.byteLength;
+    for (let i = 0; i < actionCount && actionOffset + i * 4 + 4 <= body.byteLength; i++) {
+      actionIds.push(readU32(body, actionOffset + i * 4));
     }
     entry.actionIds = actionIds;
   } else if (entry.type === 3 && body.byteLength >= 6) {
@@ -237,6 +244,7 @@ function decodeHircFields(entry) {
     entry.targetId = readU32(body, 2);
   } else if (entry.type === 2 && body.byteLength >= 13) {
     entry.pluginId = readU32(body, 0);
+    entry.pluginType = entry.pluginId & 0x0f;
     entry.streamType = body[4];
     entry.sourceId = readU32(body, 5);
     entry.inMemoryMediaSize = readU32(body, 9);
@@ -248,6 +256,7 @@ function decodeHircFields(entry) {
       if (at + 13 > body.byteLength) break;
       sources.push({
         pluginId: readU32(body, at),
+        pluginType: readU32(body, at) & 0x0f,
         streamType: body[at + 4],
         sourceId: readU32(body, at + 5),
         inMemoryMediaSize: readU32(body, at + 9)
@@ -255,6 +264,39 @@ function decodeHircFields(entry) {
     }
     entry.sources = sources;
   }
+}
+
+/**
+ * Reads Wwise's MSB-first base-128 unsigned integer.
+ *
+ * @returns {{value:number,nextOffset:number}|null} Decoded value and next
+ * offset, or null for truncated, overflowed, or non-canonical input.
+ */
+function readWwiseVar(bytes, offset = 0) {
+  let at = Number(offset);
+  let value = 0;
+  let count = 0;
+  if (!Number.isSafeInteger(at) || at < 0) {
+    return null;
+  }
+  while (at < bytes.byteLength && count < 5) {
+    const byte = bytes[at++];
+    if (count === 0 && byte === 0x80) {
+      return null;
+    }
+    if (value > 0x01ffffff) {
+      return null;
+    }
+    value = value * 128 + (byte & 0x7f);
+    count++;
+    if ((byte & 0x80) === 0) {
+      return value <= 0xffffffff ? {
+        value: value >>> 0,
+        nextOffset: at
+      } : null;
+    }
+  }
+  return null;
 }
 function readNameTable(bytes, dataOffset, size) {
   const names = [];
@@ -425,5 +467,5 @@ function readU32(bytes, offset) {
   return (bytes[offset] | bytes[offset + 1] << 8 | bytes[offset + 2] << 16 | bytes[offset + 3] * 0x1000000) >>> 0;
 }
 
-export { DEFAULT_VALUES, HIRC_TYPE_NAMES, OUTPUT_BNK_JSON, OUTPUT_JSON, OUTPUT_MEDIA, OUTPUT_RAW, extractMedia, inspectBNK, inspectWithValues, isBNK, isSupportedWithValues, normalizeEmit, normalizeValues, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, HIRC_TYPE_NAMES, OUTPUT_BNK_JSON, OUTPUT_JSON, OUTPUT_MEDIA, OUTPUT_RAW, extractMedia, inspectBNK, inspectWithValues, isBNK, isSupportedWithValues, normalizeEmit, normalizeValues, readWithValues, readWwiseVar, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

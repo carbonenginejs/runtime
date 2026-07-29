@@ -37,9 +37,7 @@ const TRAVERSABLE_TYPES = new Set([ 2, 5, 6, 9, 10, 11, 12, 13 ]);
 // Media-bearing terminals: typed sourceIds are collected, no traversal out.
 const TERMINAL_TYPES = new Set([ HIRC_SOUND, HIRC_MUSIC_TRACK ]);
 
-// actionType high byte for the play family (for example 0x0403 = play; the
-// low byte is scope). Stop is 0x01xx, pause 0x02xx, resume 0x03xx.
-const PLAY_ACTION_FAMILY = 0x0400;
+const PLAY_ACTION_TYPES = new Set([ 0x0403, 0x0503 ]);
 
 /**
  * Resolve event -> wem media edges over one or more inspected soundbanks.
@@ -107,7 +105,7 @@ export function eventMediaFromBanks(inspections, { knownWemIds = [] } = {})
         {
             const action = objects.get(actionId);
             if (!action || action.type !== HIRC_ACTION) continue;
-            if (((action.actionType ?? 0) & 0xff00) !== PLAY_ACTION_FAMILY) continue;
+            if (!PLAY_ACTION_TYPES.has(action.actionType ?? 0)) continue;
             const target = objects.get(action.targetId);
             if (target && TRAVERSABLE_TYPES.has(target.type)) stack.push(target.id);
         }
@@ -120,7 +118,10 @@ export function eventMediaFromBanks(inspections, { knownWemIds = [] } = {})
 
             const { nodeRefs, mediaRefs } = scanObject(node);
             for (const wemId of mediaRefs) media.add(wemId);
-            if (node.type === HIRC_SOUND && node.sourceId !== undefined && wemIdSet.has(node.sourceId))
+            if (node.type === HIRC_SOUND
+                && node.pluginType === 1
+                && node.sourceId !== undefined
+                && wemIdSet.has(node.sourceId))
             {
                 media.add(node.sourceId);
             }

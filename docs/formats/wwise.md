@@ -19,7 +19,7 @@ names, and the HIRC listing with version-stable typed fields (event action
 lists, action type/target, sound and music-track source ids; pinned against
 bank generator version 150). The Wwise-domain toolkit is grouped under the
 `CjsBnkFormat.wwise` static: the SoundbanksInfo catalog helpers, the FNV-1
-id hash, and event to media resolution:
+id hash, event-to-media resolution, and typed authored-SFX nodes:
 
 ```js
 import { CjsBnkFormat } from "@carbonenginejs/runtime-resource/formats/bnk";
@@ -30,6 +30,13 @@ const { eventMedia } = CjsBnkFormat.wwise.eventMediaFromBanks(inspections);
 // eventMedia: Map<eventObjectId, Set<wemId>> - banks may split events from
 // their target sounds, so pass every related bank to one call.
 
+const {
+    nodes,
+    events,
+    actions,
+    diagnostics
+} = CjsBnkFormat.wwise.sfxNodesFromBanks(inspections);
+
 const ogg = CjsWemFormat.toOgg(wemBytes);   // Wwise Vorbis -> Ogg (lossless)
 const pcm = CjsWemFormat.toPcm(wemBytes);   // PTADPCM / 16-bit PCM -> float32
 ```
@@ -37,6 +44,14 @@ const pcm = CjsWemFormat.toPcm(wemBytes);   // PTADPCM / 16-bit PCM -> float32
 The read/inspect path stays a pure container reader;
 `wwise.eventMediaFromBanks` is graph interpretation offered for consumers
 with their own engines — the resource lifecycle never calls it.
+
+Typed authored-SFX tail decoding is deliberately pinned to bank generator
+version 150. It preserves Random/Sequence, Switch/State, and Layer fields
+without deciding how an audio runtime should lower them. Unsupported versions,
+failed exact-end anchors, ambiguities, and duplicate object identities are
+reported through `diagnostics` instead of being guessed. Like
+`eventMediaFromBanks`, `sfxNodesFromBanks` is consumer-facing graph
+interpretation; the resource lifecycle never calls it.
 
 ## Related documentation
 

@@ -98,23 +98,27 @@ function parseSoundbanksInfo(input) {
   return summary;
 }
 function normalizeBank(bank) {
+  const media = Array.isArray(bank.Media) ? bank.Media : bank.IncludedMemoryFiles || [];
+  const events = Array.isArray(bank.Events) ? bank.Events : bank.IncludedEvents || [];
   return {
     id: String(bank.Id ?? ""),
     type: bank.Type || "",
     language: bank.Language || "",
     shortName: bank.ShortName || "",
     path: bank.Path || "",
-    media: (bank.Media || []).map(entry => ({
+    media: media.map(entry => ({
       id: String(entry.Id ?? ""),
       shortName: entry.ShortName || "",
       cachePath: entry.CachePath || "",
+      path: entry.Path || "",
       language: entry.Language || "",
       streaming: entry.Streaming === "true",
-      location: entry.Location || ""
+      location: entry.Location || (Array.isArray(bank.IncludedMemoryFiles) ? "Memory" : "")
     })),
-    events: (bank.Events || []).map(entry => ({
+    events: events.map(entry => ({
       id: String(entry.Id ?? ""),
-      name: entry.Name || ""
+      name: entry.Name || "",
+      maxAttenuation: finiteNumber(entry.MaxAttenuation, 0)
     })),
     switchGroups: (bank.SwitchGroups || []).map(group => ({
       id: String(group.Id ?? ""),
@@ -137,6 +141,10 @@ function normalizeBank(bank) {
       name: entry.Name || ""
     }))
   };
+}
+function finiteNumber(value, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
 }
 
 /**

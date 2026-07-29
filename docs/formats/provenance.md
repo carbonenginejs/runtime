@@ -85,6 +85,11 @@ format attribution rather than fork provenance.
 | Wwise soundbank (`.bnk`) | `CjsBnkFormat` | `@carbonenginejs/runtime-resource/formats/bnk` | Original code; chunk layout from public community documentation (ww2ogg, vgmstream, wwiser), no code copied. Also carries the SoundbanksInfo JSON helpers (`parseSoundbanksInfo`, `buildSoundbanksCatalog`, `joinSoundbanksInfo`) and `wwiseIdFromName` (FNV-1 32 of the lowercased name, verified against EVE bank/language ids). HIRC entries additionally decode version-stable typed fields (event action lists, action type/target, sound and music-track source ids), pinned by hexdump against bank generator version 150, and the `wwise` static namespace groups the domain toolkit (SoundbanksInfo helpers, id hash, `wwise.eventMediaFromBanks` event → media resolution over inspected banks — graph interpretation for consumers; never used by the resource lifecycle). |
 | Wwise media (`.wem`) | `CjsWemFormat` | `@carbonenginejs/runtime-resource/formats/wem` | Original code; container/codec-tag behavior from public community documentation (ww2ogg, vgmstream, wwiser), no code copied. Includes a Wwise-Vorbis→Ogg repacker (`emit: "ogg"`), an original reimplementation of the ww2ogg algorithm with inline granule computation (no revorb pass needed), and a PTADPCM/16-bit-PCM decoder (`emit: "pcm"` / `toPcm()`, AudioBuffer-ready float32; PTADPCM algorithm from community documentation, verified against EVE media). |
 
+The BNK toolkit also exposes `wwise.sfxNodesFromBanks`: typed, exact-end
+version-150 Random/Sequence, Switch/State, and Layer tails plus event/action
+records and explicit parser diagnostics. It preserves resource facts for
+consumer-owned lowering and is never invoked by the resource lifecycle.
+
 ## Post-fork additions inside copied formats
 
 - `formats/dds` gained original, dependency-free **BC6H and BC7 CPU decoders**

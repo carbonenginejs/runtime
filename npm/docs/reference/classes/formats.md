@@ -79,6 +79,16 @@ Little-endian byte cursor over HIRC payload bytes used to decode Wwise interacti
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:SfxCursor -->
+## `SfxCursor`
+
+Bounds-aware little-endian cursor used for exact-end Wwise SFX-tail validation.
+
+- Export: `None`
+- Source: `src/formats/bnk/core/sfxNodes.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 ### cmf
 
 <!-- class:CjsCmfFormat -->

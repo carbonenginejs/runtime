@@ -53,12 +53,19 @@ test("decodes typed HIRC fields for events, actions, sounds, and music tracks", 
     assert.equal(byId.get(0x5002).targetId, 0x6001);
 
     assert.equal(byId.get(0x6001).pluginId, 0x00040001);
+    assert.equal(byId.get(0x6001).pluginType, 1);
     assert.equal(byId.get(0x6001).streamType, 0);
     assert.equal(byId.get(0x6001).sourceId, 901);
     assert.equal(byId.get(0x6001).inMemoryMediaSize, 64);
 
     assert.deepEqual(byId.get(0x7001).sources, [
-        { pluginId: 0x00040001, streamType: 1, sourceId: 902, inMemoryMediaSize: 16 }
+        {
+            pluginId: 0x00040001,
+            pluginType: 1,
+            streamType: 1,
+            sourceId: 902,
+            inMemoryMediaSize: 16
+        }
     ]);
 });
 
@@ -159,6 +166,56 @@ test("detects and parses SoundbanksInfo documents", () =>
     assert.equal(parsed.eventCount, 2);
     assert.deepEqual(parsed.languages, [ "English(US)", "SFX" ]);
     assert.equal(parsed.banks[0].switchGroups[0].switches[1].name, "large");
+});
+
+test("parses legacy IncludedEvents and IncludedMemoryFiles documents", () =>
+{
+    const parsed = CjsBnkFormat.wwise.parseSoundbanksInfo({
+        SoundBanksInfo: {
+            SchemaVersion: "12",
+            SoundBankVersion: "140",
+            SoundBanks: [
+                {
+                    Id: "2395677314",
+                    Language: "SFX",
+                    ShortName: "Common",
+                    Path: "Common.bnk",
+                    IncludedEvents: [
+                        {
+                            Id: "1483003980",
+                            Name: "Play_TestLoop",
+                            MaxAttenuation: "100.",
+                        },
+                    ],
+                    IncludedMemoryFiles: [
+                        {
+                            Id: "839160035",
+                            Language: "SFX",
+                            ShortName: "loop.wav",
+                            Path: "SFX\\loop.wem",
+                        },
+                    ],
+                },
+            ],
+        },
+    });
+
+    assert.equal(parsed.eventCount, 1);
+    assert.equal(parsed.mediaCount, 1);
+    assert.deepEqual(parsed.banks[0].events[0], {
+        id: "1483003980",
+        name: "Play_TestLoop",
+        maxAttenuation: 100,
+    });
+    assert.deepEqual(parsed.banks[0].media[0], {
+        id: "839160035",
+        shortName: "loop.wav",
+        cachePath: "",
+        path: "SFX\\loop.wem",
+        language: "SFX",
+        streaming: false,
+        location: "Memory",
+    });
 });
 
 test("builds catalogs and joins them with bank inspections", () =>

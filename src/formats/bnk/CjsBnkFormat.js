@@ -29,6 +29,12 @@ import {
     parseMusicSwitch,
     parseMusicTrack
 } from "./core/musicNodes.js";
+import {
+    parseSfxLayer,
+    parseSfxRandomSequence,
+    parseSfxSwitch,
+    sfxNodesFromBanks
+} from "./core/sfxNodes.js";
 
 const FORMAT_NAME = "CjsBnkFormat";
 
@@ -256,6 +262,11 @@ export class CjsBnkFormat
      * entries (HIRC 10-13) into typed nodes - children, meter, cue markers,
      * clips, playlist trees, decision trees, and transition rules. See
      * core/musicNodes.js for the anchored, exact-end-validated parse.
+     *
+     * The v150 authored-SFX decoders (`sfxNodesFromBanks` and the per-type
+     * Random/Sequence, Switch, and Layer parsers) preserve raw Wwise
+     * semantics for runtime-audio's optional builder. They do not lower
+     * container behavior into a playback schema.
      */
     static wwise = Object.freeze({
         isSoundbanksInfo,
@@ -268,7 +279,11 @@ export class CjsBnkFormat
         parseMusicSegment,
         parseMusicTrack,
         parseMusicPlaylist,
-        parseMusicSwitch
+        parseMusicSwitch,
+        sfxNodesFromBanks,
+        parseSfxRandomSequence,
+        parseSfxSwitch,
+        parseSfxLayer
     });
 
     /**
