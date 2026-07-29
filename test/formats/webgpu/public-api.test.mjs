@@ -10,7 +10,7 @@ class Resource {}
 
 // The compiler is a format inside runtime-resource now, so its packageVersion
 // is the emitted producer/format version, no longer the host manifest version.
-const FORMAT_VERSION = "0.6.0";
+const FORMAT_VERSION = "0.11.0";
 
 const SAMPLE_CHUNKS = [
     [ "INFO", { format: "CEWGPU", formatVersion: 1, analyzer: "dxbc-phase1" } ],
@@ -85,7 +85,7 @@ test("implemented metadata advertises the package surface", () =>
     assert.equal(CjsWebgpuFormat.implementationStatus, "partial");
     assert.equal(CjsWebgpuFormat.format, "CEWGPU");
     assert.equal(CjsWebgpuFormat.analysisFormat, "CEWGPU_ANALYSIS");
-    assert.equal(CjsWebgpuFormat.packageVersion, "0.6.0");
+    assert.equal(CjsWebgpuFormat.packageVersion, FORMAT_VERSION);
     assert.equal(CjsWebgpuFormat.packageVersion, FORMAT_VERSION);
 });
 
@@ -184,7 +184,7 @@ test("buildEffect exposes structurally qualified selected-body CEWGPU packaging"
     assert.equal(CjsWebgpuFormat.isCewgpu(result.bytes), true);
     assert.equal(result.info.formatVersion, 3);
     assert.equal(result.info.targetBackend, "webgpu");
-    assert.equal(result.info.backendPackage, "@carbonenginejs/format-webgpu");
+    assert.equal(result.info.backendPackage, "@carbonenginejs/runtime-resource/formats/webgpu");
     assert.equal(
         result.info.backendPackageVersion,
         CjsWebgpuFormat.packageVersion

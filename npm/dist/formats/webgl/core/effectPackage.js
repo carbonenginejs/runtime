@@ -7,7 +7,7 @@ import { buildCompleteEffectReflection, EFFECT_REFLECTION_CHUNK, EFFECT_REFLECTI
 import { buildPackage, inspectWithValues, emitGlslWithOptions } from './helpers.js';
 import { sha256Utf8, sha256Bytes } from '../../../format/effect/sha256.js';
 
-const PACKAGE_VERSION = "0.2.0";
+const PACKAGE_VERSION = "0.11.0";
 
 /**
  * Builds a complete CEWG package from compiled Tr2 effect bytes.
@@ -134,7 +134,7 @@ function buildEffectPackage(input, options = {}) {
     formatVersion: EFFECT_INFO_VERSION,
     packageKind: values.allPermutations ? "tr2-effect-webgl-permutations" : "tr2-effect-webgl",
     targetBackend: "webgl",
-    backendPackage: "@carbonenginejs/format-webgl",
+    backendPackage: "@carbonenginejs/runtime-resource/formats/webgl",
     backendPackageVersion: PACKAGE_VERSION,
     generatedAt: values.generatedAt,
     sourcePath: values.source,

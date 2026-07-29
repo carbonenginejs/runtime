@@ -1,5 +1,5 @@
-const FORMAT_WEBGPU_PACKAGE_NAME = "@carbonenginejs/format-webgpu";
-const FORMAT_WEBGPU_PACKAGE_VERSION = "0.6.0";
+const FORMAT_WEBGPU_PACKAGE_NAME = "@carbonenginejs/runtime-resource/formats/webgpu";
+const FORMAT_WEBGPU_PACKAGE_VERSION = "0.11.0";
 const WEBGPU_BACKEND_NAME = "webgpu";
 const DXBC_WGSL_TRANSLATOR_NAME = "dxbc-js-wgsl";
 const DXBC_WGSL_TRANSLATOR_VERSION = FORMAT_WEBGPU_PACKAGE_VERSION;

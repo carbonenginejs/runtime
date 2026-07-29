@@ -59,7 +59,7 @@ export function validateEffectPackageEnvelope(pkg)
         throw new Error(`CEWG INFO schema must be version ${EFFECT_INFO_VERSION}`);
     }
     if (info.targetBackend !== "webgl"
-        || info.backendPackage !== "@carbonenginejs/format-webgl"
+        || info.backendPackage !== "@carbonenginejs/runtime-resource/formats/webgl"
         || !SEMANTIC_VERSION.test(info.backendPackageVersion)
         || info.translator !== "dxbc-js-emitter"
         || !SEMANTIC_VERSION.test(info.translatorVersion))

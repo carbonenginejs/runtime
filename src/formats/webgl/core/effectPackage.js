@@ -17,7 +17,7 @@ import {
 import { buildPackage, emitGlslWithOptions, inspectWithValues } from "./helpers.js";
 import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
 
-const PACKAGE_VERSION = "0.2.0";
+const PACKAGE_VERSION = "0.11.0";
 
 /**
  * Builds a complete CEWG package from compiled Tr2 effect bytes.
@@ -174,7 +174,7 @@ export function buildEffectPackage(input, options = {})
             ? "tr2-effect-webgl-permutations"
             : "tr2-effect-webgl",
         targetBackend: "webgl",
-        backendPackage: "@carbonenginejs/format-webgl",
+        backendPackage: "@carbonenginejs/runtime-resource/formats/webgl",
         backendPackageVersion: PACKAGE_VERSION,
         generatedAt: values.generatedAt,
         sourcePath: values.source,
