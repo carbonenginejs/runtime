@@ -23,6 +23,8 @@ class AudListener extends _AudGameObjResource {
   #effectiveTop = vec3.fromValues(0, 1, 0);
   #normalizedTop = vec3.fromValues(0, 1, 0);
   #cross = vec3.fromValues(-1, 0, 0);
+
+  /** Creates Carbon's fixed-id listener with non-cullable priority weight. */
   constructor() {
     // Carbon: AudGameObjResource(LISTENER_GAME_OBJ_ID) - fixed id must be set
     // before manager registration; name "Listener", FLT_MAX additional weight

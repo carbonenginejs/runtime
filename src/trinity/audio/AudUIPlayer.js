@@ -21,6 +21,7 @@ export class AudUIPlayer extends AudEmitter
 
   #callbackEvents = new Map();
 
+  /** Creates Carbon's fixed-id UI emitter at its authored origin pose. */
   constructor()
   {
     super(UI_GAME_OBJ_ID);
@@ -86,6 +87,7 @@ export class AudUIPlayer extends AudEmitter
     }
   }
 
+  /** Invokes one function- or Blue-style UI completion callback. */
   static #InvokeCallback(callback, eventName)
   {
     if (typeof callback === "function")

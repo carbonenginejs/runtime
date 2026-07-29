@@ -22,6 +22,8 @@ new class extends _identity {
     /** m_callback (BlueScriptCallback) [READWRITE] */
     eventSenderCallback = (_initProto(this), _init_eventSenderCallback(this, null));
     #callbackEvents = (_init_extra_eventSenderCallback(this), new Map());
+
+    /** Creates Carbon's fixed-id UI emitter at its authored origin pose. */
     constructor() {
       super(UI_GAME_OBJ_ID);
       this.name = "UI";
@@ -67,6 +69,8 @@ new class extends _identity {
         queueMicrotask(() => _AudUIPlayer.#InvokeCallback(callbackEvent.callback, callbackEvent.eventName));
       }
     }
+
+    /** Invokes one function- or Blue-style UI completion callback. */
   }];
   #InvokeCallback(callback, eventName) {
     if (typeof callback === "function") {

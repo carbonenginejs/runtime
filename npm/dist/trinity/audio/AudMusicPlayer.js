@@ -20,6 +20,7 @@ class AudMusicPlayer extends _AudEmitter {
       family: "audio"
     })], [], 0, void 0, _AudEmitter).c;
   }
+  /** Creates Carbon's fixed-id music emitter at its authored origin pose. */
   constructor() {
     super(MUSIC_GAME_OBJ_ID);
     this.name = "Music";

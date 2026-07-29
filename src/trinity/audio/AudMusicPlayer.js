@@ -18,6 +18,7 @@ const FLOAT_MAX = 3.4028234663852886e38;
 export class AudMusicPlayer extends AudEmitter
 {
 
+  /** Creates Carbon's fixed-id music emitter at its authored origin pose. */
   constructor()
   {
     super(MUSIC_GAME_OBJ_ID);

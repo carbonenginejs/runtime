@@ -32,6 +32,7 @@ export class Tr2AudioStretchBase extends CjsModel
 
   #top = new Float32Array([ 0, 0, 1 ]);
 
+  /** Creates and initializes Carbon's three-emitter stretch-audio bridge. */
   constructor()
   {
     super();
@@ -92,6 +93,7 @@ export class Tr2AudioStretchBase extends CjsModel
     return null;
   }
 
+  /** Projects one point onto the finite source-to-destination segment. */
   static #ProjectOntoSegment(point, source, destination)
   {
     const x = destination[0] - source[0];

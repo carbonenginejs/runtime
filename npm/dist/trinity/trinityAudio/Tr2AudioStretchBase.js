@@ -30,6 +30,8 @@ new class extends _identity {
     sourceEmitter = (_init_extra_destinationEmitter(this), _init_sourceEmitter(this, null));
     #front = (_init_extra_sourceEmitter(this), new Float32Array([0, 1, 0]));
     #top = new Float32Array([0, 0, 1]);
+
+    /** Creates and initializes Carbon's three-emitter stretch-audio bridge. */
     constructor() {
       super();
       this.Initialize();
@@ -70,6 +72,8 @@ new class extends _identity {
       }
       return null;
     }
+
+    /** Projects one point onto the finite source-to-destination segment. */
   }];
   #ProjectOntoSegment(point, source, destination) {
     const x = destination[0] - source[0];

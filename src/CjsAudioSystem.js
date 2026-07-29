@@ -64,6 +64,7 @@ export class CjsAudioSystem
 
     #adoptedEmitters = new Set();
 
+    /** Creates a headless-first audio composition with optional realization inputs. */
     constructor({
         createContext,
         loadBuffer,

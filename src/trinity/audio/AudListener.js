@@ -22,6 +22,7 @@ export class AudListener extends AudGameObjResource
 
   #cross = vec3.fromValues(-1, 0, 0);
 
+  /** Creates Carbon's fixed-id listener with non-cullable priority weight. */
   constructor()
   {
     // Carbon: AudGameObjResource(LISTENER_GAME_OBJ_ID) - fixed id must be set

@@ -172,6 +172,7 @@ export class AudGameObjResource extends CjsModel
   // Mirrors Carbon's two ctors: default generates an entity id; the protected
   // (AkGameObjectID) variant takes a fixed id (AudListener passes 4) so the
   // id is correct BEFORE manager registration.
+  /** Creates a generated-id game object or Carbon's fixed-id protected variant. */
   constructor(gameObjID)
   {
     super();
@@ -1038,6 +1039,7 @@ export class AudGameObjResource extends CjsModel
 
 // C++ AudGameObjResource::PrepareEvent - trim always, prefix only when
 // non-empty and not bypassed.
+/** Trims an event name and conditionally prepends its game-object prefix. */
 export function PrepareEvent(prefix, event, bypassPrefix)
 {
   const trimmed = String(event).trim();

@@ -111,6 +111,7 @@ new class extends _identity {
     // Mirrors Carbon's two ctors: default generates an entity id; the protected
     // (AkGameObjectID) variant takes a fixed id (AudListener passes 4) so the
     // id is correct BEFORE manager registration.
+    /** Creates a generated-id game object or Carbon's fixed-id protected variant. */
     constructor(gameObjID) {
       super();
       this.ID = gameObjID ?? GenerateEntityID();

@@ -48,6 +48,7 @@ export class CjsAudioBackend
     // in its graph and plays through its own gain into the master gain.
     #musicEngine = null;
 
+    /** Creates the Web Audio realization over an optional context and loaders. */
     constructor({ context, loadBuffer, isLoop, distanceScale, musicEngine, applyRTPC } = {})
     {
         this.#context = context ?? null;
@@ -92,6 +93,7 @@ export class CjsAudioBackend
         return this.#masterGain;
     }
 
+    /** Returns the effect-only bus feeding the master output. */
     get sfxGain()
     {
         return this.#sfxGain;
@@ -103,6 +105,7 @@ export class CjsAudioBackend
         SetAudioParam(this.#sfxGain?.gain, Math.max(0, Math.min(1, Number(value) || 0)), this.#context);
     }
 
+    /** Returns the currently attached built-in or application music engine. */
     get musicEngine()
     {
         return this.#musicEngine;
@@ -591,6 +594,7 @@ export class CjsAudioBackend
         return Math.sqrt(sum / samples.length);
     }
 
+    /** Allocates and posts one event owned by the active music engine. */
     #PostMusicEvent(eventName, { gameObjID = 3, emitter = null, onFinished = null } = {})
     {
         const musicEngine = this.#musicEngine;
@@ -623,6 +627,7 @@ export class CjsAudioBackend
         return playingID;
     }
 
+    /** Applies or defers a millisecond/percentage seek for one playing id. */
     #Seek(playingID, seek)
     {
         const record = this.#playing.get(playingID);
@@ -643,6 +648,7 @@ export class CjsAudioBackend
         return true;
     }
 
+    /** Creates or replaces the Web Audio source for one decoded SFX record. */
     #StartSource(playingID, record)
     {
         if (record.stopped || !record.buffer || this.#playing.get(playingID) !== record)
@@ -707,6 +713,7 @@ export class CjsAudioBackend
         source.start(this.#context.currentTime, record.offsetSeconds);
     }
 
+    /** Finalizes one playing record and delivers completion callbacks once. */
     #FinishPlaying(playingID)
     {
         const record = this.#playing.get(playingID);

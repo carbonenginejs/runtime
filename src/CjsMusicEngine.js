@@ -156,6 +156,7 @@ function resolveSwitchTarget(node, getValue)
 /** One playing music instance: a posted event's active graph playback. */
 class MusicInstance
 {
+    /** Creates the scheduling state for one posted music event. */
     constructor({ playingID, rootId, onFinished })
     {
         this.playingID = playingID;
@@ -205,6 +206,7 @@ export class CjsMusicEngine
 
     #epoch = 0;
 
+    /** Creates a scheduler over an optional authored graph and Web Audio context. */
     constructor({ graph, context, loadMedia, destination, random } = {})
     {
         this.#graph = graph ?? null;
@@ -221,6 +223,7 @@ export class CjsMusicEngine
         }
     }
 
+    /** Returns the Web Audio gain feeding the configured music destination. */
     get musicGain()
     {
         return this.#musicGain;
@@ -370,6 +373,7 @@ export class CjsMusicEngine
         this.#SetValue(wwiseIdFromName(group), wwiseIdFromName(value));
     }
 
+    /** State input by name or id; states and switches share graph arguments. */
     SetState(group, value)
     {
         this.#SetValue(wwiseIdFromName(group), wwiseIdFromName(value));
@@ -470,6 +474,7 @@ export class CjsMusicEngine
         }));
     }
 
+    /** Stores one switch/state argument and reevaluates every live instance. */
     #SetValue(groupId, valueId)
     {
         this.#switchValues.set(groupId >>> 0, valueId >>> 0);
@@ -480,6 +485,7 @@ export class CjsMusicEngine
         }
     }
 
+    /** Returns one stored switch/state argument, defaulting to authored key zero. */
     #GetValue(groupId)
     {
         return this.#switchValues.get(groupId >>> 0) ?? 0;
@@ -634,6 +640,7 @@ export class CjsMusicEngine
         return Promise.all([ ...sourceIds ].map(sourceId => this.#LoadBuffer(sourceId, null))).then(() => {});
     }
 
+    /** Returns bounded first-segment candidates used to prepare destination media. */
     #FirstSegmentCandidates(targetId, limit = 4)
     {
         const node = this.#graph.nodes[targetId];
@@ -696,6 +703,7 @@ export class CjsMusicEngine
         return when;
     }
 
+    /** Selects the bottom-most matching Wwise transition rule. */
     #FindRule(node, fromId, toId)
     {
         if (!node?.rules) return null;
@@ -714,6 +722,7 @@ export class CjsMusicEngine
         return null;
     }
 
+    /** Applies one authored rule and schedules its bridge and destination. */
     #TransitionInstance(instance, rule, target, when)
     {
         // Faded segments STAY in `active` until their fade completes (the
@@ -776,6 +785,7 @@ export class CjsMusicEngine
         this.Process();
     }
 
+    /** Re-primes an instance iterator at a resolved graph target and time. */
     #ResolveInstanceTo(instance, targetId, startTime)
     {
         const node = this.#graph.nodes[targetId];
@@ -840,6 +850,7 @@ export class CjsMusicEngine
         return true;
     }
 
+    /** Creates one scheduled segment gain and queues all selected track clips. */
     #ScheduleSegmentClips(
         instance,
         segment,
@@ -894,6 +905,7 @@ export class CjsMusicEngine
         return scheduled;
     }
 
+    /** Selects the active subtrack for normal, random, or switch track modes. */
     #SelectSubTrack(track)
     {
         const count = Math.max(1, track.subTrackCount || 1);
@@ -912,6 +924,7 @@ export class CjsMusicEngine
         return 0;
     }
 
+    /** Loads and schedules one clip within its allowed pre/post-entry window. */
     #ScheduleClip(
         instance,
         scheduled,
@@ -984,6 +997,7 @@ export class CjsMusicEngine
         }).catch(() => {});
     }
 
+    /** Loads and retains one decoded music source, evicting failed results. */
     #LoadBuffer(sourceId, track)
     {
         if (this.#buffers.has(sourceId)) return this.#buffers.get(sourceId);
@@ -1068,6 +1082,7 @@ export class CjsMusicEngine
         );
     }
 
+    /** Fades a scheduled segment gain and stops loaded or future sources. */
     #FadeOutSources(
         scheduledSegment,
         when,
@@ -1106,6 +1121,7 @@ export class CjsMusicEngine
         }
     }
 
+    /** Stops one live instance immediately or after an audible fade. */
     #StopInstance(instance, fadeSeconds)
     {
         if (instance.stopped) return;
@@ -1134,6 +1150,7 @@ export class CjsMusicEngine
         }
     }
 
+    /** Marks a naturally exhausted instance stopped and finalizes it. */
     #FinishInstance(instance)
     {
         if (instance.finished) return;
@@ -1142,6 +1159,7 @@ export class CjsMusicEngine
         this.#FinalizeInstance(instance);
     }
 
+    /** Removes one instance, disconnects its gain, and fires completion once. */
     #FinalizeInstance(instance)
     {
         if (instance.finished) return;
