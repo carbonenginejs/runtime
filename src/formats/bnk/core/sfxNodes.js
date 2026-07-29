@@ -424,7 +424,6 @@ function FindSwitch(payload, knownObjects, bankVersion)
         }
 
         const children = ReadChildren(cursor, knownObjects);
-        const childSet = new Set(children);
         const assignmentCount = BoundedCount(
             cursor.u32(),
             cursor.remaining,
@@ -448,10 +447,6 @@ function FindSwitch(payload, knownObjects, bankVersion)
             {
                 const childId = cursor.u32();
 
-                if (!childSet.has(childId))
-                {
-                    throw new RangeError("invalid Switch assignment child");
-                }
                 childIds.push(childId);
             }
             assignments.push({ valueId, childIds });
@@ -472,8 +467,7 @@ function FindSwitch(payload, knownObjects, bankVersion)
             const flags2 = cursor.u8();
             const onSwitchMode = flags2 & 0x07;
 
-            if (!childSet.has(childId)
-                || (flags1 & ~0x03)
+            if ((flags1 & ~0x03)
                 || (flags2 & ~0x07)
                 || onSwitchMode > 1)
             {
@@ -489,6 +483,9 @@ function FindSwitch(payload, knownObjects, bankVersion)
             });
         }
 
+        // Essential and partial banks may retain raw SwitchList and parameter
+        // references to nodes that are not serialized in direct Children.
+        // Consumers decide whether those referenced nodes are available.
         return {
             type: "switch",
             groupType,

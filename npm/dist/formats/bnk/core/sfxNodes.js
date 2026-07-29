@@ -314,7 +314,6 @@ function FindSwitch(payload, knownObjects, bankVersion) {
       throw new RangeError("invalid Switch enum");
     }
     const children = ReadChildren(cursor, knownObjects);
-    const childSet = new Set(children);
     const assignmentCount = BoundedCount(cursor.u32(), cursor.remaining, 8, 8192);
     const assignments = [];
     for (let index = 0; index < assignmentCount; index++) {
@@ -323,9 +322,6 @@ function FindSwitch(payload, knownObjects, bankVersion) {
       const childIds = [];
       for (let item = 0; item < itemCount; item++) {
         const childId = cursor.u32();
-        if (!childSet.has(childId)) {
-          throw new RangeError("invalid Switch assignment child");
-        }
         childIds.push(childId);
       }
       assignments.push({
@@ -340,7 +336,7 @@ function FindSwitch(payload, knownObjects, bankVersion) {
       const flags1 = cursor.u8();
       const flags2 = cursor.u8();
       const onSwitchMode = flags2 & 0x07;
-      if (!childSet.has(childId) || flags1 & ~0x03 || flags2 & ~0x07 || onSwitchMode > 1) {
+      if (flags1 & ~0x03 || flags2 & ~0x07 || onSwitchMode > 1) {
         throw new RangeError("invalid Switch parameter");
       }
       parameters.push({
@@ -352,6 +348,10 @@ function FindSwitch(payload, knownObjects, bankVersion) {
         fadeInMs: cursor.s32()
       });
     }
+
+    // Essential and partial banks may retain raw SwitchList and parameter
+    // references to nodes that are not serialized in direct Children.
+    // Consumers decide whether those referenced nodes are available.
     return {
       type: "switch",
       groupType,

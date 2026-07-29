@@ -114,11 +114,12 @@ test("decodes v150 Switch assignments, empty cases, and parameters", () =>
         .u32(601)
         .u8(0)
         .children(SOUND_A, SOUND_B)
-        .u32(2)
+        .u32(3)
         .u32(600).u32(2).u32(SOUND_A).u32(SOUND_B)
-        .u32(601).u32(0)
+        .u32(601).u32(1).u32(9001)
+        .u32(602).u32(0)
         .u32(1)
-        .u32(SOUND_A).u8(0x03).u8(0x01).s32(250).s32(125)
+        .u32(9002).u8(0x03).u8(0x01).s32(250).s32(125)
         .bytes();
     const node = CjsBnkFormat.wwise.parseSfxSwitch(
         bytes,
@@ -130,9 +131,10 @@ test("decodes v150 Switch assignments, empty cases, and parameters", () =>
     assert.equal(node.groupId, 500);
     assert.equal(node.defaultValueId, 601);
     assert.deepEqual(node.assignments[0].childIds, [ SOUND_A, SOUND_B ]);
-    assert.deepEqual(node.assignments[1].childIds, []);
+    assert.deepEqual(node.assignments[1].childIds, [ 9001 ]);
+    assert.deepEqual(node.assignments[2].childIds, []);
     assert.deepEqual(node.parameters[0], {
-        childId: SOUND_A,
+        childId: 9002,
         firstOnly: true,
         continuePlayback: true,
         onSwitchMode: 1,
