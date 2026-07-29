@@ -4,6 +4,7 @@ import { inspectCewgRasterCompleteness } from './cewgCompleteness.js';
 import { markEffectReflectionValidated } from './cewg/CewgPackage.js';
 import { sha256Bytes } from '../../../format/effect/sha256.js';
 
+const EFFECT_INFO_VERSION = 3;
 const EFFECT_PACKAGE_KINDS = new Set(["tr2-effect-webgl", "tr2-effect-webgl-permutations"]);
 const REQUIRED_EFFECT_CHUNKS = Object.freeze(["INFO", "META", "GLSL"]);
 const SEMANTIC_VERSION = /^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u;
@@ -32,8 +33,8 @@ function validateEffectPackageEnvelope(pkg) {
   if (info.formatVersion === 1) {
     return true;
   }
-  if (info.formatVersion !== 2 && info.formatVersion !== 3) {
-    throw new Error("CEWG INFO schema must be version 1, 2, or 3");
+  if (info.formatVersion !== EFFECT_INFO_VERSION) {
+    throw new Error(`CEWG INFO schema must be version ${EFFECT_INFO_VERSION}`);
   }
   if (info.targetBackend !== "webgl" || info.backendPackage !== "@carbonenginejs/format-webgl" || !SEMANTIC_VERSION.test(info.backendPackageVersion) || info.translator !== "dxbc-js-emitter" || !SEMANTIC_VERSION.test(info.translatorVersion)) {
     throw new Error("CEWG INFO producer provenance is malformed");
@@ -326,5 +327,5 @@ function jsonEqual(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-export { validateEffectPackageEnvelope };
+export { EFFECT_INFO_VERSION, validateEffectPackageEnvelope };
 //# sourceMappingURL=effectPackageValidation.js.map

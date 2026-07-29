@@ -1,4 +1,7 @@
 import { normalizeResourceTransformPlan } from "./wgsl/buildResourceTransformPlan.js";
+import { WGSL_SET_VERSION } from "./wgsl/buildWgslSet.js";
+
+export const EFFECT_INFO_VERSION = 3;
 import {
     DXBC_WGSL_TRANSLATOR_NAME,
     FORMAT_WEBGPU_PACKAGE_NAME,
@@ -359,7 +362,7 @@ function validateBackendBodySetReference(pkg, info, permutationGraph)
             || unitKeys.has(unit.key)
             || !Array.isArray(unit.shaders) || !unit.shaders.length
             || !Array.isArray(unit.layouts) || !unit.layouts.length
-            || ![ 2, 3 ].includes(unit.wgslSetVersion))
+            || unit.wgslSetVersion !== WGSL_SET_VERSION)
         {
             throw new Error(
                 `CEWGPU WGSB translation unit ${unit?.key || "<unknown>"} is malformed`
@@ -464,22 +467,16 @@ function validatePermutationGraphReference(pkg, info)
     const chunk = pkg.GetChunk(EFFECT_PERMUTATION_GRAPH_CHUNK);
     if (pointer === undefined && !chunk) return null;
 
-    if (![ 2, 3 ].includes(info.formatVersion)
+    if (info.formatVersion !== EFFECT_INFO_VERSION
         || !pointer || typeof pointer !== "object" || Array.isArray(pointer))
     {
         throw new Error("CEWGPU INFO.permutationGraph is malformed");
     }
-    requireExactKeys(pointer, info.formatVersion === 3 ? [
+    requireExactKeys(pointer, [
         "chunk",
         "format",
         "formatVersion",
         "sha256",
-        "permutationCount",
-        "uniqueBodyCount"
-    ] : [
-        "chunk",
-        "format",
-        "formatVersion",
         "permutationCount",
         "uniqueBodyCount"
     ], "CEWGPU INFO.permutationGraph");
@@ -545,7 +542,7 @@ function readEffectReflectionReference(pkg, info)
         return null;
     }
 
-    if (![ 2, 3 ].includes(info.formatVersion) || pointer === undefined)
+    if (info.formatVersion !== EFFECT_INFO_VERSION || pointer === undefined)
     {
         throw new Error("CEWGPU INFO.effectReflection is malformed");
     }
@@ -1344,17 +1341,17 @@ export function validateEffectPackageEnvelope(pkg)
     const analysis = requireJsonObject(pkg, "ANLS");
     const wgsl = requireJsonObject(pkg, "WGSL");
 
-    if (info.format !== "CEWGPU" || ![ 1, 2, 3 ].includes(info.formatVersion))
+    if (info.format !== "CEWGPU" || info.formatVersion !== EFFECT_INFO_VERSION)
     {
-        throw new Error("CEWGPU INFO schema must be selected-effect version 1, 2, or 3");
+        throw new Error(`CEWGPU INFO schema must be selected-effect version ${EFFECT_INFO_VERSION}`);
     }
     if (analysis.format !== "CEWGPU_ANALYSIS" || analysis.formatVersion !== 1)
     {
         throw new Error("CEWGPU ANLS schema must be CEWGPU_ANALYSIS version 1");
     }
-    if (wgsl.format !== "CJS_WGSL_SET" || ![ 2, 3 ].includes(wgsl.formatVersion))
+    if (wgsl.format !== "CJS_WGSL_SET" || wgsl.formatVersion !== WGSL_SET_VERSION)
     {
-        throw new Error("CEWGPU WGSL schema must be CJS_WGSL_SET version 2 or 3");
+        throw new Error("CEWGPU WGSL schema must be CJS_WGSL_SET version 3");
     }
 
     const stages = requireArray(analysis, "stages", "ANLS");
@@ -1702,17 +1699,19 @@ function validateResourceTransforms(wgsl, layoutKeys, shaderKeys, layouts)
     const transformedBindings = layouts.flatMap((layout) =>
         layout.bindGroups.flatMap((group) =>
             group.bindings.filter((binding) => binding.transformId)));
-    if (wgsl.formatVersion === 2)
+    // Resource transforms are an optional payload, not a schema version: a
+    // package either declares them and binds them, or declares neither.
+    if (!hasTransforms)
     {
-        if (hasTransforms || transformedBindings.length)
+        if (transformedBindings.length)
         {
-            throw new Error("CEWGPU WGSL version 2 cannot contain resource transforms");
+            throw new Error("CEWGPU WGSL transformed bindings require resource recipes");
         }
         return true;
     }
-    if (!hasTransforms)
+    if (!transformedBindings.length)
     {
-        throw new Error("CEWGPU WGSL version 3 requires resource transforms");
+        throw new Error("CEWGPU WGSL resource transforms require transformed bindings");
     }
 
     const plan = normalizeResourceTransformPlan({

@@ -23,12 +23,17 @@ import {
 
 function canonicalEffectChunks()
 {
-    const result = CjsWebgpuFormat.buildEffect(buildMinimalStagedEffectBytes(), {
+    const result = CjsWebgpuFormat.buildEffect(buildMinimalStagedEffectBytes({ version: 15 }), {
         source: "synthetic.sm_hi"
     });
     const pkg = CjsWebgpuFormat.read(result.bytes, { emit: CjsWebgpuFormat.OUTPUT_RAW });
 
-    return pkg.chunks.map((chunk) => [ chunk.tag, pkg.GetJson(chunk.tag) ]);
+    return pkg.chunks.map((chunk) => [
+        chunk.tag,
+        chunk.tag === "RBLB"
+            ? Uint8Array.from(chunk.bytes)
+            : pkg.GetJson(chunk.tag)
+    ]);
 }
 
 function mutateCanonicalEffect(mutations = {}, omitted = [])
@@ -48,6 +53,19 @@ function mutateCanonicalEffect(mutations = {}, omitted = [])
             mutation(copy);
             return [ tag, copy ];
         });
+
+    // The PGRF digest is always present now, so a shape mutation would be
+    // caught by the digest before its own shape check. Rehash so each mutation
+    // still proves the rule it was written for.
+    const info = chunks.find(([ tag ]) => tag === "INFO")?.[1];
+    const graph = chunks.find(([ tag ]) => tag === "PGRF")?.[1];
+    if (info && typeof info === "object" && info.permutationGraph
+        && typeof info.permutationGraph === "object" && graph !== undefined)
+    {
+        info.permutationGraph.sha256 = createHash("sha256")
+            .update(typeof graph === "string" ? graph : `${JSON.stringify(graph)}\n`)
+            .digest("hex");
+    }
 
     return CjsWebgpuFormat.build(chunks);
 }
@@ -728,7 +746,7 @@ test("canonical effect packages require all versioned JSON documents", () =>
         );
     }
     const canonical = CjsWebgpuFormat.buildEffect(
-        buildMinimalStagedEffectBytes(),
+        buildMinimalStagedEffectBytes({ version: 15 }),
         { source: "synthetic.sm_hi" }
     );
     const canonicalRaw = CjsWebgpuFormat.read(canonical.bytes, {
@@ -782,53 +800,12 @@ test("canonical effect packages require all versioned JSON documents", () =>
     }
 });
 
-test("canonical effect packages retain legacy INFO version 1 readability", () =>
-{
-    const bytes = mutateCanonicalEffect({
-        INFO: (value) =>
-        {
-            value.formatVersion = 1;
-            delete value.targetBackend;
-            delete value.backendPackage;
-            delete value.backendPackageVersion;
-            delete value.translatorVersion;
-            delete value.sourceIdentity.sha256;
-            delete value.permutationGraph;
-        }
-    }, [ "PGRF" ]);
 
-    const result = CjsWebgpuFormat.read(bytes);
-    assert.equal(result.info.formatVersion, 1);
-    assert.equal(result.info.translator, "dxbc-js-wgsl");
-    assert.equal(CjsWebgpuFormat.inspect(bytes).permutationCount, 0);
-    assert.equal(CjsWebgpuFormat.inspect(bytes).uniqueBodyCount, 0);
-});
-
-test("canonical effect packages retain pre-PGRF INFO version 2 readability", () =>
-{
-    const bytes = mutateCanonicalEffect({
-        INFO: (value) => { delete value.permutationGraph; }
-    }, [ "PGRF" ]);
-
-    const result = CjsWebgpuFormat.read(bytes);
-    assert.equal(result.info.formatVersion, 2);
-    assert.equal(result.permutationGraph, null);
-    assert.throws(
-        () => CjsWebgpuFormat.read(mutateCanonicalEffect({
-            INFO: (value) =>
-            {
-                value.sourceBodyCoverage = "all-unique";
-                value.backendBodyCoverage = "selected";
-            }
-        })),
-        /legacy INFO cannot declare version 3 body coverage/
-    );
-});
 
 test("canonical effect packages reconcile INFO and complete PGRF topology", () =>
 {
     const canonical = CjsWebgpuFormat.buildEffect(
-        buildMinimalStagedEffectBytes(),
+        buildMinimalStagedEffectBytes({ version: 15 }),
         { source: "synthetic.sm_hi" }
     );
     assert.equal(canonical.info.permutationGraph.chunk, "PGRF");
@@ -1090,35 +1067,6 @@ test("all-unique reflection collapses byte-identical bodies at distinct source r
     }
 });
 
-test("pre-version-15 effect packages retain their exact legacy chunk surface", () =>
-{
-    for (const version of [ 8, 14 ])
-    {
-        const result = CjsWebgpuFormat.buildEffect(
-            buildMinimalStagedEffectBytes({ version }),
-            { source: `synthetic-v${version}.sm_hi` }
-        );
-
-        assert.deepEqual(
-            result.inspection.chunks.map(({ tag }) => tag),
-            [ "INFO", "META", "PGRF", "ANLS", "WGSL" ]
-        );
-        assert.equal(result.reflection, null);
-        assert.equal(result.reflectionBlobs, null);
-        assert.equal(
-            Object.prototype.hasOwnProperty.call(result.info, "effectReflection"),
-            false
-        );
-        const parsed = CjsWebgpuFormat.read(result.bytes);
-        assert.equal(parsed.reflection, null);
-        assert.equal(parsed.reflectionBlobByteLength, 0);
-        const raw = CjsWebgpuFormat.read(result.bytes, {
-            emit: CjsWebgpuFormat.OUTPUT_RAW
-        });
-        assert.equal(raw.reflectionBlobBytes, null);
-        assert.equal(raw.GetReflectionBlob("blob0"), null);
-    }
-});
 
 test("effect reflection pointer and chunks are one fail-closed unit", () =>
 {
@@ -1187,7 +1135,7 @@ test("effect reflection pointer and chunks are one fail-closed unit", () =>
                 delete value.permutationGraph.sha256;
             }
         })),
-        /complete RFLX requires INFO version 3/
+        /INFO schema must be selected-effect version 3/
     );
     assert.throws(
         () => CjsWebgpuFormat.read(mutateCanonicalV15Effect({
@@ -1205,57 +1153,6 @@ test("effect reflection pointer and chunks are one fail-closed unit", () =>
     );
 });
 
-test("reader retains INFO v2 and selected RFLX v1 compatibility", () =>
-{
-    for (const selectHigh of [ false, true ])
-    {
-        const fixture = legacySelectedReflectionFixture(selectHigh);
-        const result = CjsWebgpuFormat.read(fixture.bytes);
-        const raw = CjsWebgpuFormat.read(fixture.bytes, {
-            emit: CjsWebgpuFormat.OUTPUT_RAW
-        });
-
-        assert.equal(result.info.formatVersion, 2);
-        assert.equal(result.info.completeness.sourceComplete, false);
-        assert.equal(result.reflection.formatVersion, 1);
-        assert.equal(
-            result.reflection.selectedBody.permutationIndex,
-            fixture.permutationIndex
-        );
-        assert.deepEqual(
-            raw.GetPortableEffectReflection(fixture.permutationIndex),
-            buildEffectBodyReflection(
-                readEffectAnalysis(fixture.source, {
-                    source: fixture.sourcePath
-                }).effectRes,
-                fixture.permutationIndex
-            )
-        );
-    }
-
-    const fixture = legacySelectedReflectionFixture();
-    const raw = CjsWebgpuFormat.read(fixture.bytes, {
-        emit: CjsWebgpuFormat.OUTPUT_RAW
-    });
-    const upgradedChunks = raw.chunks.map((chunk) => [
-        chunk.tag,
-        chunk.tag === "RBLB"
-            ? Uint8Array.from(chunk.bytes)
-            : structuredClone(raw.GetJson(chunk.tag))
-    ]);
-    const info = upgradedChunks.find(([ tag ]) => tag === "INFO")[1];
-    info.formatVersion = 3;
-    info.permutationGraph.sha256 = createHash("sha256")
-        .update(raw.GetChunk("PGRF").bytes)
-        .digest("hex");
-    info.sourceBodyCoverage = "all-unique";
-    info.backendBodyCoverage = "selected";
-    info.completeness.sourceComplete = true;
-    assert.throws(
-        () => CjsWebgpuFormat.read(CjsWebgpuFormat.build(upgradedChunks)),
-        /source\/backend body coverage is inconsistent/
-    );
-});
 
 test("effect reflection rejects corrupted identities, references, and blob bytes", () =>
 {
@@ -2096,27 +1993,27 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
         },
         {
             chunks: { ANLS: (value) => { delete value.stages[0].shaderBytecode; } },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: { ANLS: (value) => { delete value.stages[0].bindings; } },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: { ANLS: (value) => { delete value.stages[0].shaderHandle; } },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: { ANLS: (value) => { delete value.stages[0].threadGroupSize; } },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: { ANLS: (value) => { value.stages[0].pipelineInputs = [ null ]; } },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: { ANLS: (value) => { value.stages[0].bindings = [ null ]; } },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: {
@@ -2129,7 +2026,7 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
                     }) ];
                 }
             },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: {
@@ -2145,7 +2042,7 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
                     ];
                 }
             },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: {
@@ -2164,7 +2061,7 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
                     }) ];
                 }
             },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: {
@@ -2175,7 +2072,7 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
                     }) ];
                 }
             },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: {
@@ -2192,7 +2089,7 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
                     }) ];
                 }
             },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: {
@@ -2205,7 +2102,7 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
                     }) ];
                 }
             },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: {
@@ -2219,7 +2116,7 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
                     }) ];
                 }
             },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: {
@@ -2234,7 +2131,7 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
                     }) ];
                 }
             },
-            pattern: /transient compiler data/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: {
@@ -2249,11 +2146,7 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
                     }) ];
                 }
             },
-            pattern: /transient compiler data/
-        },
-        {
-            chunks: { WGSL: (value) => { value.formatVersion = 3; } },
-            pattern: /version 3 requires resource transforms/
+            pattern: /transient compiler data|disagrees with ANLS/
         },
         {
             chunks: {
@@ -2262,7 +2155,7 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
                     value.resourceTransforms = [ { id: "bogus" } ];
                 }
             },
-            pattern: /version 2 cannot contain resource transforms/
+            pattern: /resource transforms require transformed bindings/
         },
         {
             chunks: {
@@ -2292,7 +2185,7 @@ test("canonical effect packages reconcile provenance, counts, keys, and selectio
                     } ];
                 }
             },
-            pattern: /version 2 cannot contain resource transforms/
+            pattern: /transformed bindings require resource recipes/
         }
     ];
 
@@ -2348,7 +2241,7 @@ test("canonical explicit selection proves its complete ANLS scope", () =>
     });
     assert.throws(
         () => CjsWebgpuFormat.read(incomplete),
-        /complete ANLS scope/
+        /complete ANLS scope|RFLX and ANLS pass\/stage counts disagree/
     );
 
     for (const mutate of [

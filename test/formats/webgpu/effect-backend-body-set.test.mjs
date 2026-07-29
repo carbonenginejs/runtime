@@ -161,7 +161,7 @@ test("all-body mode requires complete version-15 source reflection", () =>
     assert.throws(() => CjsWebgpuFormat.buildEffect(
         buildMinimalStagedEffectBytes({ version: 14 }),
         { source: "synthetic.sm_hi", mode: "all" }
-    ), /requires complete version-15 source reflection/u);
+    ), /requires a version-15 compiled effect, got version 14/u);
 });
 
 test("unknown package modes still fail closed", () =>

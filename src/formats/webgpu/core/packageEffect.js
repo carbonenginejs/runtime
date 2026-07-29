@@ -1,4 +1,5 @@
 import { readEffectAnalysis } from "./effectAnalysis.js";
+import { EFFECT_INFO_VERSION } from "./effectPackageValidation.js";
 import { buildEffectAnalysis, buildPackage, inspectWithValues } from "./helpers.js";
 import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
 import { buildWgslBindingPlan } from "./wgsl/buildWgslBindingPlan.js";
@@ -66,6 +67,16 @@ export function buildEffectPackage(input, options = {})
     const permutation = normalizeEffectPermutation(options.permutation);
     const selection = normalizeSelection(options.selection);
     const resolved = readEffectAnalysis(input, { source, permutation });
+
+    // One INFO version means one contract, and that contract requires complete
+    // source reflection, which only version-15 input can supply.
+    if (resolved.effectRes?.m_version !== 15)
+    {
+        throw new Error(
+            "Effect package requires a version-15 compiled effect, got version "
+            + (resolved.effectRes?.m_version ?? "unknown")
+        );
+    }
 
     validateResolvedPermutation(permutation, resolved.selection?.selectedOptions ?? []);
 
@@ -199,7 +210,7 @@ export function buildEffectPackage(input, options = {})
     });
     const info = {
         format: "CEWGPU",
-        formatVersion: effectReflection ? 3 : 2,
+        formatVersion: EFFECT_INFO_VERSION,
         packageKind: "tr2-effect-webgpu",
         sourcePath: source,
         outputPath,
@@ -213,9 +224,7 @@ export function buildEffectPackage(input, options = {})
             chunk: EFFECT_PERMUTATION_GRAPH_CHUNK,
             format: EFFECT_PERMUTATION_GRAPH_FORMAT,
             formatVersion: EFFECT_PERMUTATION_GRAPH_VERSION,
-            ...(effectReflection ? {
-                sha256: sha256Utf8(`${JSON.stringify(permutationGraph)}\n`)
-            } : {}),
+            sha256: sha256Utf8(`${JSON.stringify(permutationGraph)}\n`),
             permutationCount: permutationGraph.variants.length,
             uniqueBodyCount: permutationGraph.bodies.length
         }),

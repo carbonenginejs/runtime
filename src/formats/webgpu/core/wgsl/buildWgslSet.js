@@ -1,5 +1,7 @@
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
 
+export const WGSL_SET_VERSION = 3;
+
 const KEY_PATTERN = /^(.*)\.pass([0-9]+)\.(vertex|pixel|compute)$/;
 const KEY_STAGE = Object.freeze({ vertex: "vertex", pixel: "fragment", compute: "compute" });
 const STAGE_TYPES = Object.freeze({ vertex: 0, pixel: 1, compute: 2 });
@@ -377,7 +379,7 @@ export function buildWgslSet(input)
     const resourceTransforms = buildResourceTransforms(entries, layouts);
     return deepFreeze({
         format: "CJS_WGSL_SET",
-        formatVersion: resourceTransforms.length ? 3 : 2,
+        formatVersion: WGSL_SET_VERSION,
         shaders,
         layouts,
         ...(resourceTransforms.length ? { resourceTransforms } : {})

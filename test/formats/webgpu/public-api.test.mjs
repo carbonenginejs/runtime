@@ -169,7 +169,7 @@ test("analyzeEffect decodes real parser stage bytes without embedding them", () 
 
 test("buildEffect exposes structurally qualified selected-body CEWGPU packaging", () =>
 {
-    const source = buildMinimalStagedEffectBytes();
+    const source = buildMinimalStagedEffectBytes({ version: 15 });
     const result = CjsWebgpuFormat.buildEffect(source, {
         source: "res:/graphics/effect.dx11/synthetic.sm_hi",
         sourceIdentity: {
@@ -182,7 +182,7 @@ test("buildEffect exposes structurally qualified selected-body CEWGPU packaging"
     });
 
     assert.equal(CjsWebgpuFormat.isCewgpu(result.bytes), true);
-    assert.equal(result.info.formatVersion, 2);
+    assert.equal(result.info.formatVersion, 3);
     assert.equal(result.info.targetBackend, "webgpu");
     assert.equal(result.info.backendPackage, "@carbonenginejs/format-webgpu");
     assert.equal(
@@ -191,10 +191,12 @@ test("buildEffect exposes structurally qualified selected-body CEWGPU packaging"
     );
     assert.equal(result.info.translator, "dxbc-js-wgsl");
     assert.equal(result.info.translatorVersion, CjsWebgpuFormat.packageVersion);
+    assert.match(result.info.permutationGraph.sha256, /^[0-9a-f]{64}$/u);
     assert.deepEqual(result.info.permutationGraph, {
         chunk: "PGRF",
         format: "CJS_EFFECT_PERMUTATION_GRAPH",
         formatVersion: 1,
+        sha256: result.info.permutationGraph.sha256,
         permutationCount: 1,
         uniqueBodyCount: 1
     });
@@ -208,14 +210,14 @@ test("buildEffect exposes structurally qualified selected-body CEWGPU packaging"
     assert.equal(result.qualification.validator, "cewgpu-structural");
     assert.equal(result.qualification.mode, "selected");
     assert.equal(result.qualification.packageValid, true);
-    assert.equal(result.qualification.sourceComplete, false);
+    assert.equal(result.qualification.sourceComplete, true);
     assert.equal(result.qualification.backendComplete, false);
     assert.equal(result.qualification.runtimeComplete, false);
     assert.equal(result.qualification.nativeComparison, false);
     assert.equal(result.info.bodyMode, "selected");
     assert.deepEqual(result.info.completeness, {
         packageValid: true,
-        sourceComplete: false,
+        sourceComplete: true,
         backendComplete: false,
         runtimeComplete: false
     });
@@ -301,7 +303,7 @@ test("buildEffect rejects a caller source hash that disagrees with its exact byt
 
 test("instance BuildEffect honors reusable source and permutation values", () =>
 {
-    const source = buildMinimalStagedEffectBytes();
+    const source = buildMinimalStagedEffectBytes({ version: 15 });
     const profile = new CjsWebgpuFormat({
         source: "profile.sm_hi",
         permutation: [ { name: "UNKNOWN", value: "ON" } ]
@@ -325,14 +327,14 @@ test("buildEffect gates all-body packaging on complete source reflection", () =>
             buildMinimalStagedEffectBytes(),
             { mode: "all" }
         ),
-        /requires complete version-15 source reflection/u
+        /requires a version-15 compiled effect, got version 8/u
     );
     assert.throws(
         () => CjsWebgpuFormat.buildEffect(
             buildMinimalStagedEffectBytes(),
             { allPermutations: true }
         ),
-        /requires complete version-15 source reflection/u
+        /requires a version-15 compiled effect, got version 8/u
     );
     assert.throws(
         () => CjsWebgpuFormat.buildEffect(

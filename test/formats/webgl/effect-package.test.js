@@ -14,7 +14,7 @@ import {
 
 test("buildEffect converts compiled-effect bytes without filesystem dependencies", () =>
 {
-    const source = buildMinimalStagedEffectBytes();
+    const source = buildMinimalStagedEffectBytes({ version: 15 });
     const logicalPath = "res:/graphics/effect.dx11/synthetic.sm_hi";
     const result = CjsWebglFormat.buildEffect(source, {
         source: logicalPath,
@@ -41,7 +41,7 @@ test("buildEffect converts compiled-effect bytes without filesystem dependencies
 test("buildEffect fails closed unless a diagnostic package is explicit", () =>
 {
     assert.throws(
-        () => CjsWebglFormat.buildEffect(buildMinimalStagedEffectBytes(), {
+        () => CjsWebglFormat.buildEffect(buildMinimalStagedEffectBytes({ version: 15 }), {
             source: "res:/graphics/effect.dx11/synthetic.sm_hi",
             allPermutations: false
         }),
@@ -162,38 +162,6 @@ test("filtered version 15 CEWG cannot overclaim backend completeness", () =>
     assert.doesNotThrow(() => CjsWebglFormat.read(result.bytes));
 });
 
-test("pre-v15 CEWG retains PGRF but remains explicitly reflection-partial", () =>
-{
-    for (const version of [ 8, 14 ])
-    {
-        const result = CjsWebglFormat.buildEffect(
-            buildMinimalStagedEffectBytes({ version }),
-            {
-                source: `synthetic-v${version}.sm_hi`,
-                allowFailures: true
-            }
-        );
-
-        assert.equal(result.info.formatVersion, 2);
-        assert.equal(
-            Object.prototype.hasOwnProperty.call(
-                result.info,
-                "sourceBodyCoverage"
-            ),
-            false
-        );
-        assert.equal(result.info.completeness.sourceComplete, false);
-        assert.equal(result.reflection, null);
-        assert.deepEqual(
-            result.inspection.chunks.map(({ tag }) => tag),
-            [ "INFO", "META", "PGRF", "GLSL" ]
-        );
-        const raw = CjsWebglFormat.read(result.bytes, {
-            emit: CjsWebglFormat.OUTPUT_RAW
-        });
-        assert.equal(raw.GetPortableEffectReflection(), null);
-    }
-});
 
 test("CEWG reflection chunks and digests fail closed", () =>
 {
@@ -325,7 +293,7 @@ test("CEWG source SHA-256 is an assertion, not caller-authored metadata", () =>
 {
     assert.throws(
         () => CjsWebglFormat.buildEffect(
-            buildMinimalStagedEffectBytes(),
+            buildMinimalStagedEffectBytes({ version: 15 }),
             {
                 sourceIdentity: { sha256: "0".repeat(64) },
                 allowFailures: true

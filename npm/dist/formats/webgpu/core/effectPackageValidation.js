@@ -1,4 +1,5 @@
 import { normalizeResourceTransformPlan } from './wgsl/buildResourceTransformPlan.js';
+import { WGSL_SET_VERSION } from './wgsl/buildWgslSet.js';
 import { DXBC_WGSL_TRANSLATOR_NAME, WEBGPU_BACKEND_NAME, FORMAT_WEBGPU_PACKAGE_NAME } from './packageMetadata.js';
 import { EFFECT_PERMUTATION_GRAPH_CHUNK, EFFECT_PERMUTATION_GRAPH_FORMAT, EFFECT_PERMUTATION_GRAPH_VERSION, validateEffectPermutationGraph } from '../../../format/effect/effectPermutationGraph.js';
 import { validateEffectReflectionPointer, EFFECT_REFLECTION_VERSION, effectReflectionForPermutation, EFFECT_REFLECTION_CHUNK, EFFECT_REFLECTION_BLOB_CHUNK } from '../../../format/effect/effectReflectionPackage.js';
@@ -6,6 +7,7 @@ import { sha256Bytes } from '../../../format/effect/sha256.js';
 import { markEffectPackageValidated } from './cewgpu/CewgpuPackage.js';
 import { EFFECT_BACKEND_BODY_SET_CHUNK, EFFECT_BACKEND_BODY_SET_FORMAT, EFFECT_BACKEND_BODY_SET_VERSION } from './effectBackendBodySet.js';
 
+const EFFECT_INFO_VERSION = 3;
 const REQUIRED_EFFECT_CHUNKS = Object.freeze(["INFO", "META", "ANLS", "WGSL"]);
 const EFFECT_PACKAGE_KIND = "tr2-effect-webgpu";
 const SEMANTIC_VERSION = new RegExp("^(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)" + "(?:-(?:(?:0|[1-9]\\d*)|(?:\\d*[A-Za-z-][0-9A-Za-z-]*))" + "(?:\\.(?:(?:0|[1-9]\\d*)|(?:\\d*[A-Za-z-][0-9A-Za-z-]*)))*)?" + "(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$", "u");
@@ -258,7 +260,7 @@ function validateBackendBodySetReference(pkg, info, permutationGraph) {
   const passUnits = requireArray(bodySet, "passUnits", EFFECT_BACKEND_BODY_SET_CHUNK);
   const unitKeys = new Set();
   for (const unit of passUnits) {
-    if (!unit || typeof unit !== "object" || typeof unit.key !== "string" || !unit.key || unitKeys.has(unit.key) || !Array.isArray(unit.shaders) || !unit.shaders.length || !Array.isArray(unit.layouts) || !unit.layouts.length || ![2, 3].includes(unit.wgslSetVersion)) {
+    if (!unit || typeof unit !== "object" || typeof unit.key !== "string" || !unit.key || unitKeys.has(unit.key) || !Array.isArray(unit.shaders) || !unit.shaders.length || !Array.isArray(unit.layouts) || !unit.layouts.length || unit.wgslSetVersion !== WGSL_SET_VERSION) {
       throw new Error(`CEWGPU WGSB translation unit ${unit?.key || "<unknown>"} is malformed`);
     }
     unitKeys.add(unit.key);
@@ -310,10 +312,10 @@ function validatePermutationGraphReference(pkg, info) {
   const pointer = info.permutationGraph;
   const chunk = pkg.GetChunk(EFFECT_PERMUTATION_GRAPH_CHUNK);
   if (pointer === undefined && !chunk) return null;
-  if (![2, 3].includes(info.formatVersion) || !pointer || typeof pointer !== "object" || Array.isArray(pointer)) {
+  if (info.formatVersion !== EFFECT_INFO_VERSION || !pointer || typeof pointer !== "object" || Array.isArray(pointer)) {
     throw new Error("CEWGPU INFO.permutationGraph is malformed");
   }
-  requireExactKeys(pointer, info.formatVersion === 3 ? ["chunk", "format", "formatVersion", "sha256", "permutationCount", "uniqueBodyCount"] : ["chunk", "format", "formatVersion", "permutationCount", "uniqueBodyCount"], "CEWGPU INFO.permutationGraph");
+  requireExactKeys(pointer, ["chunk", "format", "formatVersion", "sha256", "permutationCount", "uniqueBodyCount"], "CEWGPU INFO.permutationGraph");
   if (pointer.chunk !== EFFECT_PERMUTATION_GRAPH_CHUNK || pointer.format !== EFFECT_PERMUTATION_GRAPH_FORMAT || pointer.formatVersion !== EFFECT_PERMUTATION_GRAPH_VERSION) {
     throw new Error("CEWGPU INFO.permutationGraph is malformed");
   }
@@ -351,7 +353,7 @@ function readEffectReflectionReference(pkg, info) {
     }
     return null;
   }
-  if (![2, 3].includes(info.formatVersion) || pointer === undefined) {
+  if (info.formatVersion !== EFFECT_INFO_VERSION || pointer === undefined) {
     throw new Error("CEWGPU INFO.effectReflection is malformed");
   }
   if (!reflectionChunk) {
@@ -811,14 +813,14 @@ function validateEffectPackageEnvelope(pkg) {
   const metadata = requireJsonObject(pkg, "META");
   const analysis = requireJsonObject(pkg, "ANLS");
   const wgsl = requireJsonObject(pkg, "WGSL");
-  if (info.format !== "CEWGPU" || ![1, 2, 3].includes(info.formatVersion)) {
-    throw new Error("CEWGPU INFO schema must be selected-effect version 1, 2, or 3");
+  if (info.format !== "CEWGPU" || info.formatVersion !== EFFECT_INFO_VERSION) {
+    throw new Error(`CEWGPU INFO schema must be selected-effect version ${EFFECT_INFO_VERSION}`);
   }
   if (analysis.format !== "CEWGPU_ANALYSIS" || analysis.formatVersion !== 1) {
     throw new Error("CEWGPU ANLS schema must be CEWGPU_ANALYSIS version 1");
   }
-  if (wgsl.format !== "CJS_WGSL_SET" || ![2, 3].includes(wgsl.formatVersion)) {
-    throw new Error("CEWGPU WGSL schema must be CJS_WGSL_SET version 2 or 3");
+  if (wgsl.format !== "CJS_WGSL_SET" || wgsl.formatVersion !== WGSL_SET_VERSION) {
+    throw new Error("CEWGPU WGSL schema must be CJS_WGSL_SET version 3");
   }
   const stages = requireArray(analysis, "stages", "ANLS");
   const passes = requireArray(analysis, "passes", "ANLS");
@@ -1030,14 +1032,16 @@ function validateComputeSizes(stages, shaders) {
 function validateResourceTransforms(wgsl, layoutKeys, shaderKeys, layouts) {
   const hasTransforms = Object.prototype.hasOwnProperty.call(wgsl, "resourceTransforms");
   const transformedBindings = layouts.flatMap(layout => layout.bindGroups.flatMap(group => group.bindings.filter(binding => binding.transformId)));
-  if (wgsl.formatVersion === 2) {
-    if (hasTransforms || transformedBindings.length) {
-      throw new Error("CEWGPU WGSL version 2 cannot contain resource transforms");
+  // Resource transforms are an optional payload, not a schema version: a
+  // package either declares them and binds them, or declares neither.
+  if (!hasTransforms) {
+    if (transformedBindings.length) {
+      throw new Error("CEWGPU WGSL transformed bindings require resource recipes");
     }
     return true;
   }
-  if (!hasTransforms) {
-    throw new Error("CEWGPU WGSL version 3 requires resource transforms");
+  if (!transformedBindings.length) {
+    throw new Error("CEWGPU WGSL resource transforms require transformed bindings");
   }
   const plan = normalizeResourceTransformPlan({
     format: "CJS_WGSL_RESOURCE_TRANSFORM_PLAN",
@@ -1070,5 +1074,5 @@ function validateResourceTransforms(wgsl, layoutKeys, shaderKeys, layouts) {
   return true;
 }
 
-export { validateEffectPackageEnvelope };
+export { EFFECT_INFO_VERSION, validateEffectPackageEnvelope };
 //# sourceMappingURL=effectPackageValidation.js.map

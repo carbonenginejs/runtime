@@ -60,7 +60,7 @@ test("BuildWgslSet freezes deterministic copyblit shaders and layouts", () =>
     const set = CjsWebgpuFormat.buildWgslSet([ vertex, pixel ]);
 
     assert.equal(set.format, "CJS_WGSL_SET");
-    assert.equal(set.formatVersion, 2);
+    assert.equal(set.formatVersion, 3);
     assert.deepEqual(set.shaders.map((entry) => [ entry.key, entry.stage, entry.stageType ]), [
         [ "Main.pass0.vertex", "vertex", 0 ],
         [ "Main.pass0.pixel", "fragment", 1 ]

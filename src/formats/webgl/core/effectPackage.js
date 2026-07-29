@@ -1,3 +1,4 @@
+import { EFFECT_INFO_VERSION } from "./effectPackageValidation.js";
 import { CjsHlslFormat } from "../../hlsl/index.js";
 import { HlslEffectBindingManifest } from "../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
 import { HlslRenderContextEnum, hlslShaderStageName } from "../../hlsl/core/tr2/HlslRenderContextEnum.js";
@@ -43,6 +44,16 @@ export function buildEffectPackage(input, options = {})
     }
 
     const sourceIdentity = normalizeSourceIdentity(values);
+    // One INFO version means one contract, and that contract requires complete
+    // source reflection, which only version-15 input can supply.
+    if (effectRes.m_version !== 15)
+    {
+        throw new Error(
+            "Effect package requires a version-15 compiled effect, got version "
+            + (effectRes.m_version ?? "unknown")
+        );
+    }
+
     const permutationGraph = buildEffectPermutationGraph(effectRes);
     const reflectionPackage = effectRes.m_version === 15
         ? buildCompleteEffectReflection(
@@ -158,7 +169,7 @@ export function buildEffectPackage(input, options = {})
         record.hlsl2webgl?.ok && record.source).length;
     const info = {
         format: "CEWG",
-        formatVersion: reflectionPackage ? 3 : 2,
+        formatVersion: EFFECT_INFO_VERSION,
         packageKind: values.allPermutations
             ? "tr2-effect-webgl-permutations"
             : "tr2-effect-webgl",

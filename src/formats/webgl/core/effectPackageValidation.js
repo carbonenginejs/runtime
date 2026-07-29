@@ -14,6 +14,8 @@ import { inspectCewgRasterCompleteness } from "./cewgCompleteness.js";
 import { markEffectReflectionValidated } from "./cewg/CewgPackage.js";
 import { sha256Bytes } from "../../../format/effect/sha256.js";
 
+export const EFFECT_INFO_VERSION = 3;
+
 const EFFECT_PACKAGE_KINDS = new Set([
     "tr2-effect-webgl",
     "tr2-effect-webgl-permutations"
@@ -52,9 +54,9 @@ export function validateEffectPackageEnvelope(pkg)
     {
         return true;
     }
-    if (info.formatVersion !== 2 && info.formatVersion !== 3)
+    if (info.formatVersion !== EFFECT_INFO_VERSION)
     {
-        throw new Error("CEWG INFO schema must be version 1, 2, or 3");
+        throw new Error(`CEWG INFO schema must be version ${EFFECT_INFO_VERSION}`);
     }
     if (info.targetBackend !== "webgl"
         || info.backendPackage !== "@carbonenginejs/format-webgl"
