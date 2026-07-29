@@ -14,6 +14,7 @@ const SILENT = wwiseIdFromName("silent");
 const UNSHIPPED = wwiseIdFromName("unshipped");
 
 const SEGMENT_A = 100, SEGMENT_B = 200, TRACK_A = 101, TRACK_B = 201;
+const TRANSITION_SEGMENT = 250, TRANSITION_TRACK = 251;
 const PLAYLIST = 300, SWITCH = 400;
 
 // Segment A: 10s long, entry cue 1000ms, exit cue 9000ms -> 8s boundary period.
@@ -112,7 +113,20 @@ function FakeContext()
     createGain()
     {
       const node = {
-        gain: { value: 1, ramps: [], linearRampToValueAtTime(v, t) { node.gain.ramps.push([ v, t ]); } },
+        gain: {
+          value: 1,
+          ramps: [],
+          sets: [],
+          setValueAtTime(v, t)
+          {
+            node.gain.value = v;
+            node.gain.sets.push([ v, t ]);
+          },
+          linearRampToValueAtTime(v, t)
+          {
+            node.gain.ramps.push([ v, t ]);
+          }
+        },
         connectedTo: null,
         disconnected: false,
         connect(target) { node.connectedTo = target; },
@@ -233,13 +247,13 @@ test("a switch setter event transitions to segment B at the exit-cue boundary wi
   assert.equal(engine.GetPlayingCount(), 1);
 
   // Pending target applies at the next boundary (8s): segment A's source is
-  // stopped with the 500ms src fade and segment B starts at the boundary.
+  // fades over the 500ms before the exit cue and segment B starts there.
   context.currentTime = 6.6;
   engine.Process();
   await tick();
   assert.equal(engine.GetResolvedTarget(503), SEGMENT_B, "tree re-resolves to combat");
   const segmentASource = context.sources[0];
-  assert.equal(segmentASource.stoppedAt, 8.5, "old segment stops at boundary + 500ms rule fade");
+  assert.equal(segmentASource.stoppedAt, 8, "old segment stops at the exit cue after its rule fade");
   const segmentBSource = context.sources.find(s => s.startDuration === 4);
   assert.ok(segmentBSource, "segment B clip scheduled");
   assert.equal(segmentBSource.startedAt, 8, "segment B enters at the boundary");
@@ -264,12 +278,213 @@ test("a NextBar rule transitions at the next bar boundary with a crossfade", asy
 
   assert.equal(engine.GetResolvedTarget(508), SEGMENT_B);
   // Position 3300ms into the segment timeline -> next bar at 4000ms -> ctx 3.0.
-  assert.equal(context.sources[0].stoppedAt, 3.5, "old segment stops when its 500ms crossfade lands");
+  assert.equal(context.sources[0].stoppedAt, 3, "old segment stops at the next bar");
   const segmentAGain = context.gains[2];
-  assert.deepEqual(segmentAGain.gain.ramps, [ [ 0, 3.5 ] ], "old segment gain fades to the sync point + fade");
+  assert.deepEqual(segmentAGain.gain.ramps, [ [ 0, 3 ] ], "old segment gain fades into the sync point");
   const segmentBSource = context.sources.find(s => s.startDuration === 4);
   assert.ok(segmentBSource, "segment B scheduled");
   assert.equal(segmentBSource.startedAt, 3, "segment B enters at the bar boundary");
+});
+
+test("later specific transition rules override an earlier Any-to-Any fallback", async () =>
+{
+  const { context, engine } = Harness(graph =>
+  {
+    const fallback = {
+      ...graph.nodes[SWITCH].rules[0],
+      src: {
+        ...graph.nodes[SWITCH].rules[0].src,
+        transitionTime: 0,
+        syncType: 7
+      }
+    };
+    const specific = {
+      ...fallback,
+      srcIds: [ PLAYLIST ],
+      dstIds: [ SEGMENT_B ],
+      src: {
+        ...fallback.src,
+        syncType: 0
+      }
+    };
+
+    graph.nodes[SWITCH].rules = [ fallback, specific ];
+  });
+
+  engine.PostEvent("music_test_play", 510, () => {});
+  await tick();
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_combat", 511, () => {});
+  await tick();
+
+  const segmentBSource = context.sources.find(s => s.startDuration === 4);
+
+  assert.ok(segmentBSource, "specific rule schedules the destination segment");
+  assert.equal(
+    segmentBSource.startedAt,
+    2,
+    "bottom-to-top rule precedence selects the specific Immediate transition"
+  );
+});
+
+test("an authored transition segment bridges the source and destination", async () =>
+{
+  const { context, engine, loaded } = Harness(graph =>
+  {
+    graph.nodes[TRANSITION_SEGMENT] = {
+      type: "music-segment",
+      children: [ TRANSITION_TRACK ],
+      meter: {
+        gridPeriod: 1000,
+        gridOffset: 0,
+        tempo: 120,
+        beatsPerBar: 4,
+        beatValue: 4
+      },
+      stingers: [],
+      duration: 4000,
+      markers: [
+        { id: 1, position: 1000, name: "" },
+        { id: 2, position: 3000, name: "" }
+      ]
+    };
+    graph.nodes[TRANSITION_TRACK] = {
+      type: "music-track",
+      trackType: 0,
+      subTrackCount: 1,
+      switchParams: null,
+      sources: [
+        {
+          pluginId: 0x00040001,
+          streamType: 1,
+          sourceId: 333,
+          inMemoryMediaSize: 0,
+          sourceBits: 0
+        }
+      ],
+      clips: [
+        {
+          trackId: 0,
+          sourceId: 333,
+          eventId: 0,
+          playAt: 0,
+          beginTrimOffset: 0,
+          endTrimOffset: 0,
+          srcDuration: 4000
+        }
+      ]
+    };
+    graph.nodes[SWITCH].rules[0].transitionSegment = {
+      segmentId: TRANSITION_SEGMENT,
+      fadeIn: {
+        transitionTime: 500,
+        fadeCurve: 4,
+        fadeOffset: 0
+      },
+      fadeOut: {
+        transitionTime: 500,
+        fadeCurve: 4,
+        fadeOffset: 0
+      },
+      playPreEntry: false,
+      playPostExit: false
+    };
+  });
+
+  engine.PostEvent("music_test_play", 512, () => {});
+  await tick();
+  context.currentTime = 6.6;
+  engine.PostEvent("music_switch_combat", 513, () => {});
+  await tick();
+
+  assert.deepEqual(
+    loaded,
+    [ 111, 222, 333 ],
+    "the destination and bridge media are prepared before transition"
+  );
+  const bridgeSource = context.sources.find(source =>
+    source.buffer?.fake === 333);
+  const destinationSource = context.sources.find(source =>
+    source.buffer?.fake === 222);
+
+  assert.ok(bridgeSource, "transition segment is scheduled");
+  assert.equal(
+    bridgeSource.startedAt,
+    8,
+    "disabled transition pre-entry clips playback to the bridge entry cue"
+  );
+  assert.equal(
+    bridgeSource.startOffset,
+    1,
+    "clipped pre-entry advances the source offset"
+  );
+  assert.equal(
+    bridgeSource.startDuration,
+    2,
+    "disabled transition post-exit clips playback at the bridge exit cue"
+  );
+  assert.equal(
+    bridgeSource.stoppedAt,
+    10,
+    "transition fade-out ends at the bridge exit cue"
+  );
+  assert.deepEqual(
+    bridgeSource.connectedTo.gain.ramps,
+    [ [ 1, 8.5 ], [ 0, 10 ] ],
+    "transition fade envelopes are anchored to its entry and exit cues"
+  );
+  assert.ok(destinationSource, "destination segment is scheduled");
+  assert.equal(
+    destinationSource.startedAt,
+    10,
+    "destination entry follows the transition segment exit cue"
+  );
+});
+
+test("transition fade offsets are anchored to source exit and destination entry cues", async () =>
+{
+  const { context, engine } = Harness(graph =>
+  {
+    const rule = graph.nodes[SWITCH].rules[0];
+
+    rule.src = {
+      ...rule.src,
+      transitionTime: 1000,
+      fadeOffset: 500,
+      syncType: 0
+    };
+    rule.dst = {
+      ...rule.dst,
+      transitionTime: 2000,
+      fadeOffset: -500
+    };
+  });
+
+  engine.PostEvent("music_test_play", 514, () => {});
+  await tick();
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_combat", 515, () => {});
+  await tick();
+
+  const source = context.sources.find(value => value.buffer?.fake === 111);
+  const destination = context.sources.find(value => value.buffer?.fake === 222);
+
+  assert.equal(
+    source.stoppedAt,
+    2.5,
+    "source fade ends at sync cue plus its positive offset"
+  );
+  assert.ok(destination, "destination is scheduled");
+  assert.deepEqual(
+    destination.connectedTo.gain.sets,
+    [ [ 0.25, 2 ] ],
+    "late scheduling resumes the destination fade at its linear progress"
+  );
+  assert.deepEqual(
+    destination.connectedTo.gain.ramps,
+    [ [ 1, 3.5 ] ],
+    "destination fade begins 500ms before entry and lasts two seconds"
+  );
 });
 
 

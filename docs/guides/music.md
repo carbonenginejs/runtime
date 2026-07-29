@@ -31,11 +31,13 @@ const audio = new CjsAudioSystem({
 
 The built-in `CjsMusicEngine` supports authored event targets and stops,
 sequence and weighted-random playlists, switch and state decisions, segment
-cue scheduling, transition boundaries, and fades.
+cue scheduling, transition boundaries, linear source/destination fade timing
+and offsets, and transition-segment bridges with their fade envelopes and
+authored pre-entry/post-exit windows.
 
 The source graph may preserve data that the current scheduler does not play.
-Stingers, transition segments, Musical Instrument Digital Interface (MIDI)
-tracks, Synth One tracks, and RTPC volume curves remain unsupported.
+Stingers, Musical Instrument Digital Interface (MIDI) tracks, Synth One
+tracks, RTPC volume curves, and non-linear fade curves remain unsupported.
 
 ## Custom engine
 

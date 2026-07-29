@@ -13,7 +13,8 @@
 //   with the rule's fade times on source and destination instance gains.
 // - Playlist groups: sequence in order, random weighted (avoid-repeat via
 //   shuffle history); step groups yield one child per visit. Loop 0 =
-//   infinite. Transition segments, stingers, and MIDI tracks are not played.
+//   infinite. Transition segments bridge source and destination with authored
+//   pre-entry/post-exit windows. Stingers and MIDI tracks are not played.
 
 const FNV_OFFSET = 2166136261;
 const FNV_PRIME = 16777619;
@@ -33,6 +34,16 @@ export function wwiseIdFromName(name)
 
 const DEFAULT_FADE_SECONDS = 1;
 const SCHEDULE_HORIZON_SECONDS = 1.5;
+
+function FadeDuration(fade)
+{
+    return Math.max(0, Number(fade?.transitionTime) || 0) / 1000;
+}
+
+function FadeOffset(fade)
+{
+    return (Number(fade?.fadeOffset) || 0) / 1000;
+}
 
 function segmentCues(segment)
 {
@@ -572,7 +583,7 @@ export class CjsMusicEngine
         }
         const generation = ++instance.pendingGeneration;
         instance.pendingTargetId = target;
-        this.#PrepareTarget(target).then(() =>
+        this.#PrepareTransition(target, rule).then(() =>
         {
             if (instance.stopped || instance.pendingGeneration !== generation)
             {
@@ -582,6 +593,20 @@ export class CjsMusicEngine
             const when = this.#TransitionTime(instance, rule) ?? instance.boundary;
             this.#TransitionInstance(instance, rule, target, Math.max(when, this.#context.currentTime));
         });
+    }
+
+    /** Preloads both the selected destination and its optional bridge segment. */
+    #PrepareTransition(targetId, rule)
+    {
+        const operations = [ this.#PrepareTarget(targetId) ];
+        const transitionSegmentId = rule?.transitionSegment?.segmentId;
+
+        if (transitionSegmentId)
+        {
+            operations.push(this.#PrepareTarget(transitionSegmentId));
+        }
+
+        return Promise.all(operations).then(() => {});
     }
 
     /**
@@ -675,7 +700,18 @@ export class CjsMusicEngine
     {
         if (!node?.rules) return null;
         const match = (ids, id) => ids.includes(-1) || ids.includes(id | 0);
-        return node.rules.find(rule => match(rule.srcIds, fromId) && match(rule.dstIds, toId)) ?? null;
+        // Wwise evaluates the transition matrix from bottom to top so that a
+        // later, more-specific rule wins over an earlier Any-to-Any fallback.
+        for (let index = node.rules.length - 1; index >= 0; index--)
+        {
+            const rule = node.rules[index];
+
+            if (match(rule.srcIds, fromId) && match(rule.dstIds, toId))
+            {
+                return rule;
+            }
+        }
+        return null;
     }
 
     #TransitionInstance(instance, rule, target, when)
@@ -683,13 +719,60 @@ export class CjsMusicEngine
         // Faded segments STAY in `active` until their fade completes (the
         // prune in Process removes them) - they are still audible, and
         // status consumers must see both sides of a crossfade.
-        const fadeSeconds = Math.max(0, (rule?.src.transitionTime ?? 0)) / 1000;
         for (const active of instance.active)
         {
-            this.#FadeOutSources(active, when, fadeSeconds);
+            this.#ApplySourceFade(active, when, rule?.src);
         }
         instance.resolvedTargetId = target;
-        this.#ResolveInstanceTo(instance, target, when);
+        let destinationTime = when;
+        const transition = rule?.transitionSegment;
+        const transitionSegment = transition
+            ? this.#graph.nodes[transition.segmentId]
+            : null;
+
+        if (transitionSegment?.type === "music-segment")
+        {
+            const { entry, exit } = segmentCues(transitionSegment);
+
+            const scheduledTransition = this.#ScheduleSegmentClips(
+                instance,
+                transitionSegment,
+                transition.segmentId,
+                when,
+                entry,
+                exit,
+                {
+                    targetId: transition.segmentId,
+                    playPreEntry: transition.playPreEntry,
+                    playPostExit: transition.playPostExit,
+                },
+            );
+            destinationTime += Math.max(0.001, (exit - entry) / 1000);
+            this.#ApplyFadeIn(
+                scheduledTransition,
+                when,
+                transition.fadeIn,
+            );
+            if (FadeDuration(transition.fadeOut) > 0)
+            {
+                this.#ApplySourceFade(
+                    scheduledTransition,
+                    destinationTime,
+                    transition.fadeOut,
+                );
+            }
+        }
+
+        this.#ResolveInstanceTo(instance, target, destinationTime);
+        instance.nextSegmentFadeIn = rule?.dst ?? null;
+
+        if (transitionSegment?.type === "music-segment")
+        {
+            // A transition segment can be longer than the normal scheduling
+            // horizon. Schedule the first destination now so its authored
+            // pre-entry can overlap the bridge and no late frame can miss it.
+            this.#ScheduleNextSegment(instance);
+        }
         this.Process();
     }
 
@@ -736,12 +819,40 @@ export class CjsMusicEngine
         const { entry, exit } = segmentCues(segment);
         const boundary = instance.boundary;
         instance.timeline = { startCtx: boundary - entry / 1000, meter: segment.meter };
-        this.#ScheduleSegmentClips(instance, segment, segmentId, boundary, entry, exit);
+        const scheduled = this.#ScheduleSegmentClips(
+            instance,
+            segment,
+            segmentId,
+            boundary,
+            entry,
+            exit,
+        );
+        if (instance.nextSegmentFadeIn)
+        {
+            this.#ApplyFadeIn(
+                scheduled,
+                boundary,
+                instance.nextSegmentFadeIn,
+            );
+            instance.nextSegmentFadeIn = null;
+        }
         instance.boundary = boundary + Math.max(0.001, (exit - entry) / 1000);
         return true;
     }
 
-    #ScheduleSegmentClips(instance, segment, segmentId, boundary, entryCueMs, exitCueMs)
+    #ScheduleSegmentClips(
+        instance,
+        segment,
+        segmentId,
+        boundary,
+        entryCueMs,
+        exitCueMs,
+        {
+            targetId = instance.resolvedTargetId,
+            playPreEntry = true,
+            playPostExit = true,
+        } = {},
+    )
     {
         // Each scheduled segment owns a gain so transitions can crossfade it
         // out without touching the incoming segment on the same instance.
@@ -751,7 +862,7 @@ export class CjsMusicEngine
             sources: [],
             segmentId,
             scheduleId: this.#nextScheduleId++,
-            targetId: instance.resolvedTargetId,
+            targetId,
             gain,
             startCtx: boundary,
             endCtx: boundary + Math.max(0.001, (exitCueMs - entryCueMs) / 1000),
@@ -767,9 +878,20 @@ export class CjsMusicEngine
             for (const clip of track.clips)
             {
                 if ((clip.trackId ?? 0) !== subTrack) continue;
-                this.#ScheduleClip(instance, scheduled, track, clip, boundary, entryCueMs);
+                this.#ScheduleClip(
+                    instance,
+                    scheduled,
+                    track,
+                    clip,
+                    boundary,
+                    entryCueMs,
+                    exitCueMs,
+                    playPreEntry,
+                    playPostExit,
+                );
             }
         }
+        return scheduled;
     }
 
     #SelectSubTrack(track)
@@ -790,21 +912,42 @@ export class CjsMusicEngine
         return 0;
     }
 
-    #ScheduleClip(instance, scheduled, track, clip, boundary, entryCueMs)
+    #ScheduleClip(
+        instance,
+        scheduled,
+        track,
+        clip,
+        boundary,
+        entryCueMs,
+        exitCueMs,
+        playPreEntry,
+        playPostExit,
+    )
     {
         const context = this.#context;
-        const audibleStartMs = clip.playAt + clip.beginTrimOffset;
-        const audibleEndMs = clip.playAt + clip.srcDuration + clip.endTrimOffset;
+        const clipStartMs = clip.playAt + clip.beginTrimOffset;
+        const clipEndMs = clip.playAt + clip.srcDuration + clip.endTrimOffset;
+        const audibleStartMs = playPreEntry
+            ? clipStartMs
+            : Math.max(clipStartMs, entryCueMs);
+        const audibleEndMs = playPostExit
+            ? clipEndMs
+            : Math.min(clipEndMs, exitCueMs);
         if (audibleEndMs <= audibleStartMs) return;
         let when = boundary + (audibleStartMs - entryCueMs) / 1000;
-        let offsetMs = clip.beginTrimOffset;
+        const initialOffsetMs = clip.beginTrimOffset
+            + audibleStartMs
+            - clipStartMs;
+        let offsetMs = initialOffsetMs;
         const now = context.currentTime;
         if (when < now)
         {
             offsetMs += (now - when) * 1000;
             when = now;
         }
-        const durationMs = audibleEndMs - audibleStartMs - (offsetMs - clip.beginTrimOffset);
+        const durationMs = audibleEndMs
+            - audibleStartMs
+            - (offsetMs - initialOffsetMs);
         if (durationMs <= 0) return;
         const entry = { source: null, cancelled: false };
         scheduled.sources.push(entry);
@@ -819,13 +962,25 @@ export class CjsMusicEngine
                 resolvedOffsetMs += (context.currentTime - resolvedWhen) * 1000;
                 resolvedWhen = context.currentTime;
             }
-            const resolvedDurationMs = audibleEndMs - audibleStartMs - (resolvedOffsetMs - clip.beginTrimOffset);
+            const resolvedDurationMs = audibleEndMs
+                - audibleStartMs
+                - (resolvedOffsetMs - initialOffsetMs);
             if (resolvedDurationMs <= 0) return;
+            if (scheduled.fading
+                && scheduled.fadeEndCtx <= context.currentTime)
+            {
+                entry.cancelled = true;
+                return;
+            }
             const source = context.createBufferSource();
             source.buffer = buffer;
             source.connect(scheduled.gain);
             entry.source = source;
             source.start(resolvedWhen, Math.max(0, resolvedOffsetMs) / 1000, resolvedDurationMs / 1000);
+            if (scheduled.fading)
+            {
+                source.stop(scheduled.fadeEndCtx);
+            }
         }).catch(() => {});
     }
 
@@ -846,7 +1001,79 @@ export class CjsMusicEngine
         return pending;
     }
 
-    #FadeOutSources(scheduledSegment, when, fadeSeconds)
+    /** Applies an authored fade-in relative to a segment's entry cue. */
+    #ApplyFadeIn(scheduledSegment, entryTime, fade)
+    {
+        const duration = FadeDuration(fade);
+        const param = scheduledSegment?.gain?.gain;
+
+        if (!(duration > 0) || !param)
+        {
+            return;
+        }
+
+        const start = entryTime + FadeOffset(fade);
+        const end = start + duration;
+        const now = this.#context?.currentTime ?? 0;
+
+        if (end <= now)
+        {
+            if ("value" in param) param.value = 1;
+            return;
+        }
+
+        const effectiveStart = Math.max(start, now);
+        const startValue = Math.max(
+            0,
+            Math.min(1, (effectiveStart - start) / duration),
+        );
+
+        if ("value" in param) param.value = startValue;
+        param.setValueAtTime?.(startValue, effectiveStart);
+        param.linearRampToValueAtTime?.(1, end);
+    }
+
+    /** Applies an authored fade-out whose offset is relative to an exit cue. */
+    #ApplySourceFade(scheduledSegment, exitTime, fade)
+    {
+        const duration = FadeDuration(fade);
+
+        if (!(duration > 0))
+        {
+            this.#FadeOutSources(scheduledSegment, exitTime, 0);
+            return;
+        }
+
+        const end = exitTime + FadeOffset(fade);
+        const start = end - duration;
+        const now = this.#context?.currentTime ?? 0;
+
+        if (end <= now)
+        {
+            this.#FadeOutSources(scheduledSegment, now, 0);
+            return;
+        }
+
+        const effectiveStart = Math.max(start, now);
+        const startValue = Math.max(
+            0,
+            Math.min(1, (end - effectiveStart) / duration),
+        );
+
+        this.#FadeOutSources(
+            scheduledSegment,
+            effectiveStart,
+            end - effectiveStart,
+            startValue,
+        );
+    }
+
+    #FadeOutSources(
+        scheduledSegment,
+        when,
+        fadeSeconds,
+        startValue = null,
+    )
     {
         // First fade wins: an already-fading segment keeps its earlier
         // schedule (its sources already have stops queued).
@@ -856,12 +1083,11 @@ export class CjsMusicEngine
         if (fadeSeconds > 0 && scheduledSegment.gain?.gain)
         {
             const param = scheduledSegment.gain.gain;
-            param.setValueAtTime?.(param.value ?? 1, when);
+            param.setValueAtTime?.(startValue ?? param.value ?? 1, when);
             param.linearRampToValueAtTime?.(0, when + fadeSeconds);
         }
         for (const entry of scheduledSegment.sources)
         {
-            entry.cancelled = entry.source === null;
             if (entry.source)
             {
                 try
@@ -872,6 +1098,10 @@ export class CjsMusicEngine
                 {
                     // already stopped
                 }
+            }
+            else if (when + fadeSeconds <= (this.#context?.currentTime ?? 0))
+            {
+                entry.cancelled = true;
             }
         }
     }
