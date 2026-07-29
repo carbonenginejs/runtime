@@ -69,11 +69,11 @@ test(
     { skip: ENABLED ? false : "set EVE_CDN_SHADER_PIPELINE=1 to run the networked pipeline sweep" },
     async (t) =>
     {
-        const [ { readEffectAnalysis }, { CjsFormatDxbc }, { CjsFormatWebgpu }, { CjsFormatWebgl } ] = await Promise.all([
-            import("@carbonenginejs/format-hlsl"),
-            import("@carbonenginejs/format-dxbc"),
-            import("@carbonenginejs/format-webgpu"),
-            import("@carbonenginejs/format-webgl")
+        const [ { readEffectAnalysis }, { CjsDxbcFormat }, { CjsWebgpuFormat }, { CjsWebglFormat } ] = await Promise.all([
+            import("@carbonenginejs/runtime-resource/formats/hlsl"),
+            import("@carbonenginejs/runtime-resource/formats/dxbc"),
+            import("@carbonenginejs/runtime-resource/formats/webgpu"),
+            import("@carbonenginejs/runtime-resource/formats/webgl")
         ]);
 
         let resolved = null;
@@ -123,31 +123,31 @@ test(
         {
             for (const [ key, bytes ] of stageBytecode)
             {
-                const decoded = CjsFormatDxbc.read(bytes, { source: `${SHADER_PATH}#${key}` });
+                const decoded = CjsDxbcFormat.read(bytes, { source: `${SHADER_PATH}#${key}` });
                 assert.ok(decoded, `${key} did not decode`);
             }
         });
 
         await t.test("format-webgpu builds a readable CEWGPU package with WGSL", () =>
         {
-            const built = CjsFormatWebgpu.buildEffect(effectBytes, { source: SHADER_PATH });
+            const built = CjsWebgpuFormat.buildEffect(effectBytes, { source: SHADER_PATH });
             assert.ok(built.bytes?.length > 0, "no CEWGPU package bytes were produced");
             assert.ok(built.info.shaderCount > 0, "no WGSL shaders were emitted");
 
-            const reread = CjsFormatWebgpu.read(built.bytes, { source: `${SHADER_PATH}#cewgpu` });
+            const reread = CjsWebgpuFormat.read(built.bytes, { source: `${SHADER_PATH}#cewgpu` });
             assert.ok(reread, "built CEWGPU package did not read back");
-            const wgslText = JSON.stringify(CjsFormatWebgpu.toJSON(built.wgsl));
+            const wgslText = JSON.stringify(CjsWebgpuFormat.toJSON(built.wgsl));
             assert.match(wgslText, /@vertex|@fragment/u, "emitted WGSL has no entry points");
         });
 
         await t.test("format-webgl builds a readable CEWG package with GLSL", () =>
         {
-            const built = CjsFormatWebgl.buildEffect(effectBytes, { source: SHADER_PATH });
+            const built = CjsWebglFormat.buildEffect(effectBytes, { source: SHADER_PATH });
             assert.ok(built.bytes?.length > 0, "no CEWG package bytes were produced");
 
-            const reread = CjsFormatWebgl.read(built.bytes, { source: `${SHADER_PATH}#cewg` });
+            const reread = CjsWebglFormat.read(built.bytes, { source: `${SHADER_PATH}#cewg` });
             assert.ok(reread, "built CEWG package did not read back");
-            const glslText = JSON.stringify(CjsFormatWebgl.toJSON(built.glsl));
+            const glslText = JSON.stringify(CjsWebglFormat.toJSON(built.glsl));
             assert.match(glslText, /gl_Position|main\s*\(/u, "emitted GLSL has no entry points");
         });
     }
