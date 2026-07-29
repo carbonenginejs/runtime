@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
-import { impl, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
   isArray,
@@ -10,16 +10,13 @@ import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js"
 import { Tr2EffectTechnique } from "./Tr2EffectTechnique.js";
 
 /** Complete device-free effect description for one selected shader body. */
-@type.define({ className: "Tr2EffectDescription", family: "shader" })
 export class Tr2EffectDescription extends CjsModel
 {
 
   /** techniques (TrackableStdVector<Tr2EffectTechnique>) */
-  @type.list("Tr2EffectTechnique")
   techniques = [];
 
   /** annotations (Tr2EffectAnnotationMap) */
-  @type.map("Tr2EffectParameterAnnotationMap")
   annotations = new Map();
 
   /**
@@ -70,8 +67,6 @@ export class Tr2EffectDescription extends CjsModel
    * @param {object} value Portable effect-description record.
    * @returns {Tr2EffectDescription} Reflected description.
    */
-  @impl.custom
-  @impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.")
   static fromPortable(value)
   {
     if (!isPlainObject(value))
@@ -107,8 +102,6 @@ export class Tr2EffectDescription extends CjsModel
   }
 
   /** Build parameter-name-indexed annotation groups. */
-  @impl.custom
-  @impl.reason("Carbon reads annotation groups from compiled bytes; CarbonEngineJS indexes the validated portable groups into canonical maps.")
   static readPortableAnnotationGroups(values)
   {
     const result = new Map();
@@ -144,3 +137,19 @@ export class Tr2EffectDescription extends CjsModel
   }
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2EffectDescription, {
+  className: "Tr2EffectDescription",
+  family: "shader",
+  methods: [
+    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing." } },
+    { name: "readPortableAnnotationGroups", impl: { custom: true, status: "custom", reason: "Carbon reads annotation groups from compiled bytes; CarbonEngineJS indexes the validated portable groups into canonical maps." } }
+  ]
+});
+CjsSchema.decorateField(Tr2EffectDescription, "techniques", type.list("Tr2EffectTechnique"));
+CjsSchema.decorateField(Tr2EffectDescription, "annotations", type.map("Tr2EffectParameterAnnotationMap"));

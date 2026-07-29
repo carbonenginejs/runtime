@@ -1,36 +1,21 @@
-import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { validateEffectBodyReflection, isEffectBodyReflection } from '../../formats/hlsl/core/portableReflection.js';
-import { Tr2EffectDescription as _Tr2EffectDescription } from './reflection/Tr2EffectDescription.js';
+import { Tr2EffectDescription } from './reflection/Tr2EffectDescription.js';
 
-let _initProto, _initStatic, _initClass, _init_sortValue, _init_extra_sortValue, _init_effect, _init_extra_effect, _init_hasVertexBufferAccessInRtShadow, _init_extra_hasVertexBufferAccessInRtShadow;
+// Source: trinity/trinity/Shader/Tr2Shader.h
+// Source: trinity/trinity/Shader/Tr2Shader.cpp
 
 /** GPU-free selected shader and its complete source reflection graph. */
-let _Tr2Shader;
 class Tr2Shader extends CjsModel {
-  static {
-    ({
-      e: [_init_sortValue, _init_extra_sortValue, _init_effect, _init_extra_effect, _init_hasVertexBufferAccessInRtShadow, _init_extra_hasVertexBufferAccessInRtShadow, _initProto, _initStatic],
-      c: [_Tr2Shader, _initClass]
-    } = _applyDecs2311(this, [type.define({
-      className: "Tr2Shader",
-      family: "shader"
-    })], [[[type, type.uint32], 16, "sortValue"], [type.rawStruct("Tr2EffectDescription"), 0, "effect"], [[type, type.boolean], 16, "hasVertexBufferAccessInRtShadow"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon returns success through a bool plus output index; CarbonEngineJS returns the index directly or -1 while preserving exact name lookup.")], 18, "GetTechniqueIndex"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index.")], 18, "GetPassCount"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetConstant"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetResource"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetParameterAnnotations"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetEffectDescription"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetEffect"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index.")], 18, "GetShaderTypeMask"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon packs renderer handles assigned while reading; the device-free graph leaves the sort key zero until an engine assigns valid handles.")], 18, "ProcessEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasVertexBufferAccessInRtShadow"], [[impl, impl.custom, void 0, impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the validated browser-safe portable-reflection contract after format parsing.")], 26, "fromPortable"], [[impl, impl.custom, void 0, impl.reason("Carbon has no portable-reflection document API; CarbonEngineJS validates that browser-safe interchange contract before hydration.")], 26, "isPortableReflection"], [[impl, impl.custom, void 0, impl.reason("Carbon performs this traversal inline; CarbonEngineJS exposes a collection-shape-neutral helper for the canonical device-free graph.")], 26, "findStageValue"], [[impl, impl.custom, void 0, impl.reason("Carbon performs pass-stage traversal inline; CarbonEngineJS centralizes the same ordering for device-free reflection lookup.")], 26, "iterateStages"], [[impl, impl.custom, void 0, impl.reason("Carbon collections have fixed native types; CarbonEngineJS accepts canonical maps plus JSON-compatible collection shapes.")], 26, "findNamedCollectionValue"], [[impl, impl.custom, void 0, impl.reason("Carbon uses one native annotation map; CarbonEngineJS accepts the canonical map and JSON-compatible serialized forms.")], 26, "findAnnotationSet"]], 0, void 0, CjsModel));
-    _initStatic(this);
-  }
-  constructor(...args) {
-    super(...args);
-    _init_extra_hasVertexBufferAccessInRtShadow(this);
-  }
   /** m_sortValue (unsigned int) */
-  sortValue = (_initProto(this), _init_sortValue(this, 0));
+  sortValue = 0;
 
   /** m_effect (Tr2EffectDescription) */
-  effect = (_init_extra_sortValue(this), _init_effect(this, new _Tr2EffectDescription()));
+  effect = new Tr2EffectDescription();
 
   /** m_hasVertexBufferAccessInRtShadow (bool) */
-  hasVertexBufferAccessInRtShadow = (_init_extra_effect(this), _init_hasVertexBufferAccessInRtShadow(this, false));
+  hasVertexBufferAccessInRtShadow = false;
 
   /**
    * Index of the named technique; 0 for Carbon's empty-string any-technique
@@ -57,7 +42,7 @@ class Tr2Shader extends CjsModel {
    * the description is metadata, not a bound GPU slot.
    */
   GetConstant(name) {
-    return _Tr2Shader.findStageValue(this.effect, name, "constants");
+    return Tr2Shader.findStageValue(this.effect, name, "constants");
   }
 
   /**
@@ -65,12 +50,12 @@ class Tr2Shader extends CjsModel {
    * UAVs; null when neither has it.
    */
   GetResource(name) {
-    for (const stage of _Tr2Shader.iterateStages(this.effect)) {
-      const resource = _Tr2Shader.findNamedCollectionValue(stage?.resources, name);
+    for (const stage of Tr2Shader.iterateStages(this.effect)) {
+      const resource = Tr2Shader.findNamedCollectionValue(stage?.resources, name);
       if (resource) {
         return resource;
       }
-      const uav = _Tr2Shader.findNamedCollectionValue(stage?.uavs, name);
+      const uav = Tr2Shader.findNamedCollectionValue(stage?.uavs, name);
       if (uav) {
         return uav;
       }
@@ -83,7 +68,7 @@ class Tr2Shader extends CjsModel {
    * depends on the reflection source.
    */
   GetParameterAnnotations(parameterName) {
-    return _Tr2Shader.findAnnotationSet(this.effect?.annotations, parameterName);
+    return Tr2Shader.findAnnotationSet(this.effect?.annotations, parameterName);
   }
 
   /** The packed draw-sort key; 0 until ProcessEffect has run. */
@@ -143,10 +128,10 @@ class Tr2Shader extends CjsModel {
    */
   static from(values = {}, options = {}) {
     let normalized = values;
-    if (values?.effect && !(values.effect instanceof _Tr2EffectDescription)) {
+    if (values?.effect && !(values.effect instanceof Tr2EffectDescription)) {
       normalized = {
         ...values,
-        effect: _Tr2EffectDescription.from(values.effect, options)
+        effect: Tr2EffectDescription.from(values.effect, options)
       };
     }
     const shader = super.from(normalized, options);
@@ -166,7 +151,7 @@ class Tr2Shader extends CjsModel {
   static fromPortable(portable) {
     validateEffectBodyReflection(portable);
     const shader = new this();
-    shader.effect = _Tr2EffectDescription.fromPortable(portable.effect);
+    shader.effect = Tr2EffectDescription.fromPortable(portable.effect);
     shader.ProcessEffect();
     return shader;
   }
@@ -183,8 +168,8 @@ class Tr2Shader extends CjsModel {
 
   /** Find one named reflection entry across every stage. */
   static findStageValue(effect, name, key) {
-    for (const stage of _Tr2Shader.iterateStages(effect)) {
-      const found = _Tr2Shader.findNamedCollectionValue(stage?.[key], name);
+    for (const stage of Tr2Shader.iterateStages(effect)) {
+      const found = Tr2Shader.findNamedCollectionValue(stage?.[key], name);
       if (found) {
         return found;
       }
@@ -241,10 +226,74 @@ class Tr2Shader extends CjsModel {
     }
     return annotations[parameterName] ?? null;
   }
-  static {
-    _initClass();
-  }
 }
 
-export { _Tr2Shader as Tr2Shader };
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2Shader, {
+  className: "Tr2Shader",
+  family: "shader",
+  methods: [{
+    name: "fromPortable",
+    impl: {
+      custom: true,
+      status: "custom",
+      reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the validated browser-safe portable-reflection contract after format parsing."
+    }
+  }, {
+    name: "isPortableReflection",
+    impl: {
+      custom: true,
+      status: "custom",
+      reason: "Carbon has no portable-reflection document API; CarbonEngineJS validates that browser-safe interchange contract before hydration."
+    }
+  }, {
+    name: "findStageValue",
+    impl: {
+      custom: true,
+      status: "custom",
+      reason: "Carbon performs this traversal inline; CarbonEngineJS exposes a collection-shape-neutral helper for the canonical device-free graph."
+    }
+  }, {
+    name: "iterateStages",
+    impl: {
+      custom: true,
+      status: "custom",
+      reason: "Carbon performs pass-stage traversal inline; CarbonEngineJS centralizes the same ordering for device-free reflection lookup."
+    }
+  }, {
+    name: "findNamedCollectionValue",
+    impl: {
+      custom: true,
+      status: "custom",
+      reason: "Carbon collections have fixed native types; CarbonEngineJS accepts canonical maps plus JSON-compatible collection shapes."
+    }
+  }, {
+    name: "findAnnotationSet",
+    impl: {
+      custom: true,
+      status: "custom",
+      reason: "Carbon uses one native annotation map; CarbonEngineJS accepts the canonical map and JSON-compatible serialized forms."
+    }
+  }]
+});
+CjsSchema.decorateField(Tr2Shader, "sortValue", type.uint32);
+CjsSchema.decorateField(Tr2Shader, "effect", type.rawStruct("Tr2EffectDescription"));
+CjsSchema.decorateField(Tr2Shader, "hasVertexBufferAccessInRtShadow", type.boolean);
+CjsSchema.decorateMethod(Tr2Shader, "GetTechniqueIndex", carbon.method, impl.adapted, impl.reason("Carbon returns success through a bool plus output index; CarbonEngineJS returns the index directly or -1 while preserving exact name lookup."));
+CjsSchema.decorateMethod(Tr2Shader, "GetPassCount", carbon.method, impl.adapted, impl.reason("Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index."));
+CjsSchema.decorateMethod(Tr2Shader, "GetConstant", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetResource", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetParameterAnnotations", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetSortValue", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetEffectDescription", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetEffect", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetShaderTypeMask", carbon.method, impl.adapted, impl.reason("Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index."));
+CjsSchema.decorateMethod(Tr2Shader, "ProcessEffect", carbon.method, impl.adapted, impl.reason("Carbon packs renderer handles assigned while reading; the device-free graph leaves the sort key zero until an engine assigns valid handles."));
+CjsSchema.decorateMethod(Tr2Shader, "HasVertexBufferAccessInRtShadow", carbon.method, impl.implemented);
+
+export { Tr2Shader };
 //# sourceMappingURL=Tr2Shader.js.map

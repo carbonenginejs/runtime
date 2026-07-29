@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Shader.h
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
-import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
   isEffectBodyReflection,
@@ -9,29 +9,22 @@ import {
 import { Tr2EffectDescription } from "./reflection/Tr2EffectDescription.js";
 
 /** GPU-free selected shader and its complete source reflection graph. */
-@type.define({ className: "Tr2Shader", family: "shader" })
 export class Tr2Shader extends CjsModel
 {
 
   /** m_sortValue (unsigned int) */
-  @type.uint32
   sortValue = 0;
 
   /** m_effect (Tr2EffectDescription) */
-  @type.rawStruct("Tr2EffectDescription")
   effect = new Tr2EffectDescription();
 
   /** m_hasVertexBufferAccessInRtShadow (bool) */
-  @type.boolean
   hasVertexBufferAccessInRtShadow = false;
 
   /**
    * Index of the named technique; 0 for Carbon's empty-string any-technique
    * sentinel and -1 when the shader has no techniques or the name is unknown.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon returns success through a bool plus output index; CarbonEngineJS returns the index directly or -1 while preserving exact name lookup.")
   GetTechniqueIndex(name = "Main")
   {
     const techniques = this.effect?.techniques ?? [];
@@ -47,9 +40,6 @@ export class Tr2Shader extends CjsModel
   }
 
   /** Number of passes in a technique; 0 for an unknown index. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index.")
   GetPassCount(techniqueIndex = 0)
   {
     return this.effect?.techniques?.[techniqueIndex]?.passes?.length ?? 0;
@@ -59,8 +49,6 @@ export class Tr2Shader extends CjsModel
    * The reflected constant of this name from any stage of any pass, or null;
    * the description is metadata, not a bound GPU slot.
    */
-  @carbon.method
-  @impl.implemented
   GetConstant(name)
   {
     return Tr2Shader.findStageValue(this.effect, name, "constants");
@@ -70,8 +58,6 @@ export class Tr2Shader extends CjsModel
    * The reflected resource of this name, searching stage resources before
    * UAVs; null when neither has it.
    */
-  @carbon.method
-  @impl.implemented
   GetResource(name)
   {
     for (const stage of Tr2Shader.iterateStages(this.effect))
@@ -97,8 +83,6 @@ export class Tr2Shader extends CjsModel
    * The annotation set authored for a parameter name, or null; the shape
    * depends on the reflection source.
    */
-  @carbon.method
-  @impl.implemented
   GetParameterAnnotations(parameterName)
   {
     return Tr2Shader.findAnnotationSet(
@@ -108,33 +92,24 @@ export class Tr2Shader extends CjsModel
   }
 
   /** The packed draw-sort key; 0 until ProcessEffect has run. */
-  @carbon.method
-  @impl.implemented
   GetSortValue()
   {
     return this.sortValue;
   }
 
   /** The reflected effect description, by reference rather than copy. */
-  @carbon.method
-  @impl.implemented
   GetEffectDescription()
   {
     return this.effect;
   }
 
   /** The same object GetEffectDescription returns. */
-  @carbon.method
-  @impl.implemented
   GetEffect()
   {
     return this.effect;
   }
 
   /** The technique's bitmask of shader stages, or 0 for an unknown index. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index.")
   GetShaderTypeMask(techniqueIndex = 0)
   {
     return Number(
@@ -146,9 +121,6 @@ export class Tr2Shader extends CjsModel
    * Pack the first technique/pass's renderer handles into Carbon's sort key.
    * A device-free source graph retains 0 while its handles remain invalid.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon packs renderer handles assigned while reading; the device-free graph leaves the sort key zero until an engine assigns valid handles.")
   ProcessEffect()
   {
     this.sortValue = 0;
@@ -183,8 +155,6 @@ export class Tr2Shader extends CjsModel
   }
 
   /** Whether this shader accesses vertex buffers in RT shadow mode. */
-  @carbon.method
-  @impl.implemented
   HasVertexBufferAccessInRtShadow()
   {
     return this.hasVertexBufferAccessInRtShadow;
@@ -223,8 +193,6 @@ export class Tr2Shader extends CjsModel
    * @param {object} portable Portable effect-body reflection.
    * @returns {Tr2Shader} Canonical selected shader.
    */
-  @impl.custom
-  @impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the validated browser-safe portable-reflection contract after format parsing.")
   static fromPortable(portable)
   {
     validateEffectBodyReflection(portable);
@@ -241,16 +209,12 @@ export class Tr2Shader extends CjsModel
    * @param {*} value Candidate value.
    * @returns {boolean} Whether the portable envelope is supported.
    */
-  @impl.custom
-  @impl.reason("Carbon has no portable-reflection document API; CarbonEngineJS validates that browser-safe interchange contract before hydration.")
   static isPortableReflection(value)
   {
     return isEffectBodyReflection(value);
   }
 
   /** Find one named reflection entry across every stage. */
-  @impl.custom
-  @impl.reason("Carbon performs this traversal inline; CarbonEngineJS exposes a collection-shape-neutral helper for the canonical device-free graph.")
   static findStageValue(effect, name, key)
   {
     for (const stage of Tr2Shader.iterateStages(effect))
@@ -265,8 +229,6 @@ export class Tr2Shader extends CjsModel
   }
 
   /** Flatten pass stage inputs in Carbon lookup order. */
-  @impl.custom
-  @impl.reason("Carbon performs pass-stage traversal inline; CarbonEngineJS centralizes the same ordering for device-free reflection lookup.")
   static iterateStages(effect)
   {
     const stages = [];
@@ -281,8 +243,6 @@ export class Tr2Shader extends CjsModel
   }
 
   /** Find a named entry in an array, Map, or plain object collection. */
-  @impl.custom
-  @impl.reason("Carbon collections have fixed native types; CarbonEngineJS accepts canonical maps plus JSON-compatible collection shapes.")
   static findNamedCollectionValue(values, name)
   {
     if (!values)
@@ -317,8 +277,6 @@ export class Tr2Shader extends CjsModel
   }
 
   /** Resolve a parameter's annotations from a Map, array, or plain object. */
-  @impl.custom
-  @impl.reason("Carbon uses one native annotation map; CarbonEngineJS accepts the canonical map and JSON-compatible serialized forms.")
   static findAnnotationSet(annotations, parameterName)
   {
     if (!annotations)
@@ -341,3 +299,35 @@ export class Tr2Shader extends CjsModel
   }
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2Shader, {
+  className: "Tr2Shader",
+  family: "shader",
+  methods: [
+    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the validated browser-safe portable-reflection contract after format parsing." } },
+    { name: "isPortableReflection", impl: { custom: true, status: "custom", reason: "Carbon has no portable-reflection document API; CarbonEngineJS validates that browser-safe interchange contract before hydration." } },
+    { name: "findStageValue", impl: { custom: true, status: "custom", reason: "Carbon performs this traversal inline; CarbonEngineJS exposes a collection-shape-neutral helper for the canonical device-free graph." } },
+    { name: "iterateStages", impl: { custom: true, status: "custom", reason: "Carbon performs pass-stage traversal inline; CarbonEngineJS centralizes the same ordering for device-free reflection lookup." } },
+    { name: "findNamedCollectionValue", impl: { custom: true, status: "custom", reason: "Carbon collections have fixed native types; CarbonEngineJS accepts canonical maps plus JSON-compatible collection shapes." } },
+    { name: "findAnnotationSet", impl: { custom: true, status: "custom", reason: "Carbon uses one native annotation map; CarbonEngineJS accepts the canonical map and JSON-compatible serialized forms." } }
+  ]
+});
+CjsSchema.decorateField(Tr2Shader, "sortValue", type.uint32);
+CjsSchema.decorateField(Tr2Shader, "effect", type.rawStruct("Tr2EffectDescription"));
+CjsSchema.decorateField(Tr2Shader, "hasVertexBufferAccessInRtShadow", type.boolean);
+CjsSchema.decorateMethod(Tr2Shader, "GetTechniqueIndex", carbon.method, impl.adapted, impl.reason("Carbon returns success through a bool plus output index; CarbonEngineJS returns the index directly or -1 while preserving exact name lookup."));
+CjsSchema.decorateMethod(Tr2Shader, "GetPassCount", carbon.method, impl.adapted, impl.reason("Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index."));
+CjsSchema.decorateMethod(Tr2Shader, "GetConstant", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetResource", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetParameterAnnotations", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetSortValue", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetEffectDescription", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetEffect", carbon.method, impl.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetShaderTypeMask", carbon.method, impl.adapted, impl.reason("Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index."));
+CjsSchema.decorateMethod(Tr2Shader, "ProcessEffect", carbon.method, impl.adapted, impl.reason("Carbon packs renderer handles assigned while reading; the device-free graph leaves the sort key zero until an engine assigns valid handles."));
+CjsSchema.decorateMethod(Tr2Shader, "HasVertexBufferAccessInRtShadow", carbon.method, impl.implemented);

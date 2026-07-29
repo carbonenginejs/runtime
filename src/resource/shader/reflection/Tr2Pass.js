@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { impl, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
   isArray,
@@ -12,38 +12,28 @@ import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";
 const SHADER_TYPE_COUNT = 6;
 
 /** Reflected effect pass; backend program and state handles remain engine-owned. */
-@type.define({ className: "Tr2Pass", family: "shader" })
 export class Tr2Pass extends CjsModel
 {
 
   /** stageInputs (Tr2EffectStageInput) */
-  @type.list("Tr2EffectStageInput")
   stageInputs = [];
 
   /** renderStates (unsigned int) */
-  @type.uint32
   renderStates = 0;
 
   /** shaderTypeMask (unsigned int) */
-  @type.uint32
   shaderTypeMask = 0;
 
   /** shaderProgram (unsigned int) */
-  @type.uint32
   shaderProgram = 0;
 
   /** resourceSetDesc (Tr2ResourceSetDescriptionAL) */
-  @type.rawStruct("Tr2ResourceSetDescriptionAL")
   resourceSetDesc = null;
 
   /** indirectLayout (Tr2IndirectDrawBufferLayout) */
-  @type.rawStruct("Tr2IndirectDrawBufferLayout")
   indirectLayout = null;
 
   /** Exact authored render-state pairs retained before an engine creates a state handle. */
-  @impl.adapted
-  @impl.reason("Carbon stores a renderer-owned render-state handle; the device-free graph retains the authored state/value pairs until an engine realizes them.")
-  @type.rawStruct("CjsEffectRenderStateValues")
   renderStateValues = [];
 
   /**
@@ -52,8 +42,6 @@ export class Tr2Pass extends CjsModel
    * @param {object} value Portable pass record.
    * @returns {Tr2Pass} Reflected pass.
    */
-  @impl.custom
-  @impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.")
   static fromPortable(value)
   {
     if (!isPlainObject(value))
@@ -136,3 +124,23 @@ export class Tr2Pass extends CjsModel
   }
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2Pass, {
+  className: "Tr2Pass",
+  family: "shader",
+  methods: [
+    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing." } }
+  ]
+});
+CjsSchema.decorateField(Tr2Pass, "stageInputs", type.list("Tr2EffectStageInput"));
+CjsSchema.decorateField(Tr2Pass, "renderStates", type.uint32);
+CjsSchema.decorateField(Tr2Pass, "shaderTypeMask", type.uint32);
+CjsSchema.decorateField(Tr2Pass, "shaderProgram", type.uint32);
+CjsSchema.decorateField(Tr2Pass, "resourceSetDesc", type.rawStruct("Tr2ResourceSetDescriptionAL"));
+CjsSchema.decorateField(Tr2Pass, "indirectLayout", type.rawStruct("Tr2IndirectDrawBufferLayout"));
+CjsSchema.decorateField(Tr2Pass, "renderStateValues", impl.adapted, impl.reason("Carbon stores a renderer-owned render-state handle; the device-free graph retains the authored state/value pairs until an engine realizes them."), type.rawStruct("CjsEffectRenderStateValues"));

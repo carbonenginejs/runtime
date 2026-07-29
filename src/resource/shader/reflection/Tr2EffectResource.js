@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { impl, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, impl, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
   isPlainObject,
@@ -7,29 +7,22 @@ import {
 } from "@carbonenginejs/runtime-utils/is";
 
 /** Reflected SRV or UAV resource metadata. */
-@type.define({ className: "Tr2EffectResource", family: "shader" })
 export class Tr2EffectResource extends CjsModel
 {
 
   /** isSRGB (bool) */
-  @type.boolean
   isSRGB = false;
 
   /** isAutoregister (bool) */
-  @type.boolean
   isAutoregister = false;
 
   /** name (const char*) */
-  @type.string
   name = "";
 
   /** type (Type - enum Type) */
-  @type.int32
-  @schema.enum("Type")
   type = 0;
 
   /** arrayElements (uint32_t) */
-  @type.uint32
   arrayElements = 0;
 
   /**
@@ -38,8 +31,6 @@ export class Tr2EffectResource extends CjsModel
    * @param {object} value Portable resource record.
    * @returns {Tr2EffectResource} Reflected resource.
    */
-  @impl.custom
-  @impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.")
   static fromPortable(value)
   {
     if (!isPlainObject(value))
@@ -87,3 +78,21 @@ export class Tr2EffectResource extends CjsModel
   });
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2EffectResource, {
+  className: "Tr2EffectResource",
+  family: "shader",
+  methods: [
+    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing." } }
+  ]
+});
+CjsSchema.decorateField(Tr2EffectResource, "isSRGB", type.boolean);
+CjsSchema.decorateField(Tr2EffectResource, "isAutoregister", type.boolean);
+CjsSchema.decorateField(Tr2EffectResource, "name", type.string);
+CjsSchema.decorateField(Tr2EffectResource, "type", type.int32, schema.enum("Type"));
+CjsSchema.decorateField(Tr2EffectResource, "arrayElements", type.uint32);

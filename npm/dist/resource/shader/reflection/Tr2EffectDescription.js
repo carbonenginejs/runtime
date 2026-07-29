@@ -1,34 +1,19 @@
-import { applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
-import { impl, type } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { isPlainObject, isArray } from '@carbonenginejs/runtime-utils/is';
-import { Tr2EffectParameterAnnotation as _Tr2EffectParameterAn } from './Tr2EffectParameterAnnotation.js';
-import { Tr2EffectTechnique as _Tr2EffectTechnique } from './Tr2EffectTechnique.js';
+import { Tr2EffectParameterAnnotation } from './Tr2EffectParameterAnnotation.js';
+import { Tr2EffectTechnique } from './Tr2EffectTechnique.js';
 
-let _initStatic, _initClass, _init_techniques, _init_extra_techniques, _init_annotations, _init_extra_annotations;
+// Source: trinity/trinity/Shader/Tr2EffectDescription.h
+// Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
 
 /** Complete device-free effect description for one selected shader body. */
-let _Tr2EffectDescription;
 class Tr2EffectDescription extends CjsModel {
-  static {
-    ({
-      e: [_init_techniques, _init_extra_techniques, _init_annotations, _init_extra_annotations, _initStatic],
-      c: [_Tr2EffectDescription, _initClass]
-    } = _applyDecs2311(this, [type.define({
-      className: "Tr2EffectDescription",
-      family: "shader"
-    })], [[type.list("Tr2EffectTechnique"), 0, "techniques"], [type.map("Tr2EffectParameterAnnotationMap"), 0, "annotations"], [[impl, impl.custom, void 0, impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.")], 26, "fromPortable"], [[impl, impl.custom, void 0, impl.reason("Carbon reads annotation groups from compiled bytes; CarbonEngineJS indexes the validated portable groups into canonical maps.")], 26, "readPortableAnnotationGroups"]], 0, void 0, CjsModel));
-    _initStatic(this);
-  }
-  constructor(...args) {
-    super(...args);
-    _init_extra_annotations(this);
-  }
   /** techniques (TrackableStdVector<Tr2EffectTechnique>) */
-  techniques = _init_techniques(this, []);
+  techniques = [];
 
   /** annotations (Tr2EffectAnnotationMap) */
-  annotations = (_init_extra_techniques(this), _init_annotations(this, new Map()));
+  annotations = new Map();
 
   /**
    * Construct a canonical effect description from JS/JSON model values.
@@ -47,7 +32,7 @@ class Tr2EffectDescription extends CjsModel {
         if (!Array.isArray(records)) {
           throw new TypeError(`Effect annotations for "${parameterName}" must be an array`);
         }
-        annotations.set(String(parameterName), records.map(record => record instanceof _Tr2EffectParameterAn ? record : _Tr2EffectParameterAn.from(record, options)));
+        annotations.set(String(parameterName), records.map(record => record instanceof Tr2EffectParameterAnnotation ? record : Tr2EffectParameterAnnotation.from(record, options)));
       }
       normalized = {
         ...values,
@@ -82,7 +67,7 @@ class Tr2EffectDescription extends CjsModel {
     }
     const effect = new this();
     effect.annotations = this.readPortableAnnotationGroups(value.annotations);
-    effect.techniques = value.techniques.map(entry => _Tr2EffectTechnique.fromPortable(entry));
+    effect.techniques = value.techniques.map(entry => Tr2EffectTechnique.fromPortable(entry));
     return effect;
   }
 
@@ -100,14 +85,38 @@ class Tr2EffectDescription extends CjsModel {
       if (result.has(parameterName)) {
         throw new Error(`Portable effect annotation group "${parameterName}" is duplicated`);
       }
-      result.set(parameterName, value.annotations.map(entry => _Tr2EffectParameterAn.fromPortable(entry)));
+      result.set(parameterName, value.annotations.map(entry => Tr2EffectParameterAnnotation.fromPortable(entry)));
     }
     return result;
   }
-  static {
-    _initClass();
-  }
 }
 
-export { _Tr2EffectDescription as Tr2EffectDescription };
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2EffectDescription, {
+  className: "Tr2EffectDescription",
+  family: "shader",
+  methods: [{
+    name: "fromPortable",
+    impl: {
+      custom: true,
+      status: "custom",
+      reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing."
+    }
+  }, {
+    name: "readPortableAnnotationGroups",
+    impl: {
+      custom: true,
+      status: "custom",
+      reason: "Carbon reads annotation groups from compiled bytes; CarbonEngineJS indexes the validated portable groups into canonical maps."
+    }
+  }]
+});
+CjsSchema.decorateField(Tr2EffectDescription, "techniques", type.list("Tr2EffectTechnique"));
+CjsSchema.decorateField(Tr2EffectDescription, "annotations", type.map("Tr2EffectParameterAnnotationMap"));
+
+export { Tr2EffectDescription };
 //# sourceMappingURL=Tr2EffectDescription.js.map

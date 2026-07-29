@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { impl, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
   isArray,
@@ -10,64 +10,46 @@ import { clonePortableSourceProgram } from "../portable.js";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";
 
 /** Reflected shader-library metadata. */
-@type.define({ className: "Tr2EffectLibrary", family: "shader" })
 export class Tr2EffectLibrary extends CjsModel
 {
 
   /** payloadSize (uint32_t) */
-  @type.uint32
   payloadSize = 0;
 
   /** libraryHandle (uint32_t) */
-  @type.uint32
   libraryHandle = 0;
 
   /** rayGenName (BlueSharedStringW) */
-  @type.string
   rayGenName = "";
 
   /** missName (BlueSharedStringW) */
-  @type.string
   missName = "";
 
   /** closestHitName (BlueSharedStringW) */
-  @type.string
   closestHitName = "";
 
   /** anyHitName (BlueSharedStringW) */
-  @type.string
   anyHitName = "";
 
   /** intersectionName (BlueSharedStringW) */
-  @type.string
   intersectionName = "";
 
   /** hitGroupName (BlueSharedStringW) */
-  @type.string
   hitGroupName = "";
 
   /** globalInput (Tr2EffectStageInput) */
-  @type.rawStruct("Tr2EffectStageInput")
   globalInput = null;
 
   /** localInput (Tr2EffectStageInput) */
-  @type.rawStruct("Tr2EffectStageInput")
   localInput = null;
 
   /** globalResourceSetDesc (Tr2ResourceSetDescriptionAL) */
-  @type.rawStruct("Tr2ResourceSetDescriptionAL")
   globalResourceSetDesc = null;
 
   /** Exact source library program metadata and owned bytes. */
-  @impl.adapted
-  @impl.reason("Carbon registers the library with the renderer while reading; the device-free graph retains the source program for later engine realization.")
-  @type.rawStruct("CjsEffectSourceProgram")
   sourceProgram = null;
 
   /** Portable export records retained before backend library registration. */
-  @impl.adapted
-  @impl.reason("Carbon resolves these exports into a renderer library handle; the device-free graph keeps the declarative export list.")
-  @type.rawStruct("CjsEffectLibraryExports")
   exports = [];
 
   /**
@@ -108,8 +90,6 @@ export class Tr2EffectLibrary extends CjsModel
    * @param {object} value Portable library record.
    * @returns {Tr2EffectLibrary} Reflected library.
    */
-  @impl.custom
-  @impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.")
   static fromPortable(value)
   {
     if (!isPlainObject(value))
@@ -173,3 +153,29 @@ export class Tr2EffectLibrary extends CjsModel
   }
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2EffectLibrary, {
+  className: "Tr2EffectLibrary",
+  family: "shader",
+  methods: [
+    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing." } }
+  ]
+});
+CjsSchema.decorateField(Tr2EffectLibrary, "payloadSize", type.uint32);
+CjsSchema.decorateField(Tr2EffectLibrary, "libraryHandle", type.uint32);
+CjsSchema.decorateField(Tr2EffectLibrary, "rayGenName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "missName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "closestHitName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "anyHitName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "intersectionName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "hitGroupName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "globalInput", type.rawStruct("Tr2EffectStageInput"));
+CjsSchema.decorateField(Tr2EffectLibrary, "localInput", type.rawStruct("Tr2EffectStageInput"));
+CjsSchema.decorateField(Tr2EffectLibrary, "globalResourceSetDesc", type.rawStruct("Tr2ResourceSetDescriptionAL"));
+CjsSchema.decorateField(Tr2EffectLibrary, "sourceProgram", impl.adapted, impl.reason("Carbon registers the library with the renderer while reading; the device-free graph retains the source program for later engine realization."), type.rawStruct("CjsEffectSourceProgram"));
+CjsSchema.decorateField(Tr2EffectLibrary, "exports", impl.adapted, impl.reason("Carbon resolves these exports into a renderer library handle; the device-free graph keeps the declarative export list."), type.rawStruct("CjsEffectLibraryExports"));

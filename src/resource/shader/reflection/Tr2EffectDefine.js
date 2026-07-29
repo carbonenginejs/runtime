@@ -1,18 +1,27 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** Effect compile define retained as source metadata. */
-@type.define({ className: "Tr2EffectDefine", family: "shader" })
 export class Tr2EffectDefine extends CjsModel
 {
 
   /** name (const char*) */
-  @type.string
   name = "";
 
   /** value (const char*) */
-  @type.string
   value = "";
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2EffectDefine, {
+  className: "Tr2EffectDefine",
+  family: "shader"
+});
+CjsSchema.decorateField(Tr2EffectDefine, "name", type.string);
+CjsSchema.decorateField(Tr2EffectDefine, "value", type.string);

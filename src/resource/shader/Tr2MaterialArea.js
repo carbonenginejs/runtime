@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialArea.json; maintained by runtime-resource.
-import { io, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /**
@@ -9,18 +9,25 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
  * The record describes resource data and does not own shader bindings or
  * backend material realization.
  */
-@type.define({ className: "Tr2MaterialArea", family: "resources" })
 export class Tr2MaterialArea extends CjsModel
 {
 
   /** Persisted material parameter-store reference. */
-  @io.persist
-  @type.objectRef("Tr2MaterialParameterStore")
   material = null;
 
   /** Authored material-area metatype. */
-  @io.persist
-  @type.string
   metatype = "";
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2MaterialArea, {
+  className: "Tr2MaterialArea",
+  family: "resources"
+});
+CjsSchema.decorateField(Tr2MaterialArea, "material", io.persist, type.objectRef("Tr2MaterialParameterStore"));
+CjsSchema.decorateField(Tr2MaterialArea, "metatype", io.persist, type.string);

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { impl, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, impl, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { dwordToFloat } from "@carbonenginejs/runtime-utils/math/num";
 import {
@@ -8,39 +8,28 @@ import {
 } from "@carbonenginejs/runtime-utils/is";
 
 /** Typed annotation attached to a reflected effect parameter. */
-@type.define({ className: "Tr2EffectParameterAnnotation", family: "shader" })
 export class Tr2EffectParameterAnnotation extends CjsModel
 {
 
   /** name (const char*) */
-  @type.string
   name = "";
 
   /** type (Type - enum Type) */
-  @type.int32
-  @schema.enum("Type")
   type = 0;
 
   /** boolValue (bool) */
-  @type.boolean
   boolValue = false;
 
   /** Exact serialized BOOL, INT, or FLOAT payload bits. */
-  @impl.adapted
-  @impl.reason("Carbon reads numeric annotations into typed values; the portable source contract retains the exact uint32 payload so NaN, negative zero, and integer bit patterns round-trip losslessly.")
-  @type.uint32
   rawValue = 0;
 
   /** intValue (int) */
-  @type.int32
   intValue = 0;
 
   /** floatValue (float) */
-  @type.float32
   floatValue = 0;
 
   /** stringValue (const char*) */
-  @type.string
   stringValue = "";
 
   /**
@@ -49,8 +38,6 @@ export class Tr2EffectParameterAnnotation extends CjsModel
    * @param {object} value Portable annotation record.
    * @returns {Tr2EffectParameterAnnotation} Reflected annotation.
    */
-  @impl.custom
-  @impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract while retaining exact numeric bits.")
   static fromPortable(value)
   {
     if (!isPlainObject(value))
@@ -122,3 +109,23 @@ export class Tr2EffectParameterAnnotation extends CjsModel
   });
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2EffectParameterAnnotation, {
+  className: "Tr2EffectParameterAnnotation",
+  family: "shader",
+  methods: [
+    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract while retaining exact numeric bits." } }
+  ]
+});
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "name", type.string);
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "type", type.int32, schema.enum("Type"));
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "boolValue", type.boolean);
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "rawValue", impl.adapted, impl.reason("Carbon reads numeric annotations into typed values; the portable source contract retains the exact uint32 payload so NaN, negative zero, and integer bit patterns round-trip losslessly."), type.uint32);
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "intValue", type.int32);
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "floatValue", type.float32);
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "stringValue", type.string);

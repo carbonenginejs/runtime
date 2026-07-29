@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2EffectRes.h
 // Source: trinity/trinity/Resources/Tr2EffectRes.cpp
 // Source: trinity/trinity/Resources/Tr2EffectRes_Blue.cpp
-import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../CjsResource.js";
 import { validateResourcePayload } from "../resourceBoundary.js";
 import { Tr2Shader } from "./Tr2Shader.js";
@@ -18,7 +18,6 @@ const MAX_EFFECT_PERMUTATIONS = 0x10000;
  * This stores effect/shader payload facts. Engine-gpu decides shader module,
  * pipeline, bind group, and sampler realization.
  */
-@type.define({ className: "Tr2EffectRes", family: "resources" })
 export class Tr2EffectRes extends CjsResource
 {
 
@@ -72,9 +71,6 @@ export class Tr2EffectRes extends CjsResource
    * @param {number|null} count Number of local entries to consider.
    * @returns {Tr2Shader|null} Selected device-free shader reflection.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads the selected body directly from compiled effect bytes and registers renderer handles; CarbonEngineJS hydrates the format package's validated portable reflection without realizing GPU state.")
   GetShader(options = [], count = null)
   {
     const axes = getPermutationAxes(this.GetPayload());
@@ -137,8 +133,6 @@ export class Tr2EffectRes extends CjsResource
    * @param {number} index Exact permutation index.
    * @returns {Tr2Shader|null} Canonical shader or null when reflection is absent.
    */
-  @impl.custom
-  @impl.reason("Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact package-index hydration for deterministic package consumers and tests.")
   GetShaderByIndex(index)
   {
     if (!Number.isSafeInteger(index) || index < 0)
@@ -181,9 +175,6 @@ export class Tr2EffectRes extends CjsResource
    *
    * @returns {Array<*>}
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a JSON-friendly plain axis description.")
   GetPermutationDescription()
   {
     const payload = this.GetPayload();
@@ -204,9 +195,6 @@ export class Tr2EffectRes extends CjsResource
   /**
    * Drop hydrated shader graphs while retaining the validated CPU payload.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Backend resources are engine-owned; the resource-side release clears only hydrated device-free shader graphs.")
   ReleaseResources()
   {
     this.#shaders.clear();
@@ -650,3 +638,17 @@ function normalizeShaderOptions(options)
     value: String(option?.value ?? "")
   }));
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2EffectRes, {
+  className: "Tr2EffectRes",
+  family: "resources"
+});
+CjsSchema.decorateMethod(Tr2EffectRes, "GetShader", carbon.method, impl.adapted, impl.reason("Carbon reads the selected body directly from compiled effect bytes and registers renderer handles; CarbonEngineJS hydrates the format package's validated portable reflection without realizing GPU state."));
+CjsSchema.decorateMethod(Tr2EffectRes, "GetShaderByIndex", impl.custom, impl.reason("Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact package-index hydration for deterministic package consumers and tests."));
+CjsSchema.decorateMethod(Tr2EffectRes, "GetPermutationDescription", carbon.method, impl.adapted, impl.reason("Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a JSON-friendly plain axis description."));
+CjsSchema.decorateMethod(Tr2EffectRes, "ReleaseResources", carbon.method, impl.adapted, impl.reason("Backend resources are engine-owned; the resource-side release clears only hydrated device-free shader graphs."));

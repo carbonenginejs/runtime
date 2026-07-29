@@ -1,32 +1,23 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { impl, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { isPlainObject } from "@carbonenginejs/runtime-utils/is";
 import { cloneCarbonValue } from "@carbonenginejs/runtime-utils/types";
 
 /** Reflected sampler name and complete device-free sampler descriptor. */
-@type.define({ className: "Tr2SamplerSetup", family: "shader" })
 export class Tr2SamplerSetup extends CjsModel
 {
 
   /** name (const char*) */
-  @type.string
   name = "";
 
   /** Whether the source sampler carried a name rather than authored null. */
-  @impl.adapted
-  @impl.reason("The schema string field cannot distinguish an authored null sampler name from an empty name; portable reflection must retain that distinction for static sampler records.")
-  @type.boolean
   hasName = false;
 
   /** sampler (Tr2SamplerStateAL) */
-  @type.rawStruct("Tr2SamplerStateAL")
   sampler = null;
 
   /** Whether the sampler occupies a dynamic register rather than static signature state. */
-  @impl.adapted
-  @impl.reason("The portable effect contract distinguishes dynamic and static sampler declarations before an engine creates sampler state.")
-  @type.boolean
   isDynamic = false;
 
   /**
@@ -57,8 +48,6 @@ export class Tr2SamplerSetup extends CjsModel
    * @param {object} value Portable sampler record.
    * @returns {Tr2SamplerSetup} Reflected sampler.
    */
-  @impl.custom
-  @impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.")
   static fromPortable(value)
   {
     if (!isPlainObject(value))
@@ -74,3 +63,20 @@ export class Tr2SamplerSetup extends CjsModel
   }
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2SamplerSetup, {
+  className: "Tr2SamplerSetup",
+  family: "shader",
+  methods: [
+    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing." } }
+  ]
+});
+CjsSchema.decorateField(Tr2SamplerSetup, "name", type.string);
+CjsSchema.decorateField(Tr2SamplerSetup, "hasName", impl.adapted, impl.reason("The schema string field cannot distinguish an authored null sampler name from an empty name; portable reflection must retain that distinction for static sampler records."), type.boolean);
+CjsSchema.decorateField(Tr2SamplerSetup, "sampler", type.rawStruct("Tr2SamplerStateAL"));
+CjsSchema.decorateField(Tr2SamplerSetup, "isDynamic", impl.adapted, impl.reason("The portable effect contract distinguishes dynamic and static sampler declarations before an engine creates sampler state."), type.boolean);

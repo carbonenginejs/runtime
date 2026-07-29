@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
-import { impl, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { copyBytes } from "@carbonenginejs/runtime-utils/bytes";
 import {
@@ -20,60 +20,43 @@ import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js"
 import { Tr2EffectResource } from "./Tr2EffectResource.js";
 
 /** Complete device-free reflection for one shader stage input. */
-@type.define({ className: "Tr2EffectStageInput", family: "shader" })
 export class Tr2EffectStageInput extends CjsModel
 {
 
   /** Portable stage index; Carbon otherwise implies this from the containing array. */
-  @impl.adapted
-  @impl.reason("The source format identifies stage inputs by array index; the device-free graph retains the index explicitly for serialization and engine adapters.")
-  @type.int32
   stageType = -1;
 
   /** m_exists (bool) */
-  @type.boolean
   exists = false;
 
   /** resources (Tr2EffectResourceMap) */
-  @type.map("Tr2EffectResource")
   resources = new Map();
 
   /** uavs (Tr2EffectResourceMap) */
-  @type.map("Tr2EffectResource")
   uavs = new Map();
 
   /** samplers (Tr2SamplerSetupMap) */
-  @type.map("Tr2SamplerSetup")
   samplers = new Map();
 
   /** m_shader (unsigned) */
-  @type.uint32
   shader = 0xffffffff;
 
   /** constants (Tr2EffectConstantVector) */
-  @type.list("Tr2EffectConstant")
   constants = [];
 
   /** m_constantValueSize (unsigned) */
-  @type.uint32
   constantValueSize = 0;
 
   /** constantValues (char[SHADER_CONSTANTS_MAX]) */
-  @type.typedArray("Uint8Array")
   constantValues = new Uint8Array(0);
 
   /** signature (Tr2ShaderSignatureAL) */
-  @type.rawStruct("Tr2ShaderSignatureAL")
   signature = null;
 
   /** annotation (Tr2EffectParameterAnnotationMap) */
-  @type.list("Tr2EffectParameterAnnotation")
   annotation = [];
 
   /** Exact source program metadata and owned bytes, before backend realization. */
-  @impl.adapted
-  @impl.reason("Carbon replaces source program data with renderer handles while reading; the device-free resource graph must retain the portable source program for later engine realization.")
-  @type.rawStruct("CjsEffectSourceProgram")
   sourceProgram = null;
 
   /**
@@ -119,8 +102,6 @@ export class Tr2EffectStageInput extends CjsModel
    * @param {object} value Portable stage record.
    * @returns {Tr2EffectStageInput} Reflected stage input.
    */
-  @impl.custom
-  @impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.")
   static fromPortable(value)
   {
     if (!isPlainObject(value))
@@ -143,8 +124,6 @@ export class Tr2EffectStageInput extends CjsModel
    * @param {object|null} sourceProgram Optional stage source program.
    * @returns {Tr2EffectStageInput} Reflected input.
    */
-  @impl.custom
-  @impl.reason("Carbon reads stage-input bytes in place; CarbonEngineJS also supports the portable stage-input record used by effect packages.")
   static fromPortableInput(value, stageType = -1, sourceProgram = null)
   {
     if (!isPlainObject(value))
@@ -223,8 +202,6 @@ export class Tr2EffectStageInput extends CjsModel
    * @param {number} stageType Stage index.
    * @returns {Tr2EffectStageInput} Empty stage input.
    */
-  @impl.custom
-  @impl.reason("Carbon stores six fixed stage slots in each pass; CarbonEngineJS constructs explicit absent canonical slots before portable stages are assigned.")
   static createEmpty(stageType)
   {
     const stage = new this();
@@ -233,8 +210,6 @@ export class Tr2EffectStageInput extends CjsModel
   }
 
   /** Build one register-indexed portable resource map. */
-  @impl.custom
-  @impl.reason("Carbon reads a native register map; CarbonEngineJS indexes validated portable resource records into the canonical numeric map.")
   static readPortableResourceMap(values)
   {
     const result = new Map();
@@ -266,8 +241,6 @@ export class Tr2EffectStageInput extends CjsModel
   }
 
   /** Build one register-indexed portable sampler map. */
-  @impl.custom
-  @impl.reason("Carbon reads a native sampler map; CarbonEngineJS indexes validated portable sampler records into the canonical numeric map.")
   static readPortableSamplerMap(values)
   {
     const result = new Map();
@@ -299,8 +272,6 @@ export class Tr2EffectStageInput extends CjsModel
   }
 
   /** Hydrate one numeric-register map from canonical JS/JSON values. */
-  @impl.custom
-  @impl.reason("Carbon has fixed native map types; CarbonEngineJS restores numeric register keys and canonical child identity from JSON-compatible maps.")
   static readCanonicalRegisterMap(values, Constructor, options, field)
   {
     const entries = values instanceof Map
@@ -333,3 +304,33 @@ export class Tr2EffectStageInput extends CjsModel
   }
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2EffectStageInput, {
+  className: "Tr2EffectStageInput",
+  family: "shader",
+  methods: [
+    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing." } },
+    { name: "fromPortableInput", impl: { custom: true, status: "custom", reason: "Carbon reads stage-input bytes in place; CarbonEngineJS also supports the portable stage-input record used by effect packages." } },
+    { name: "createEmpty", impl: { custom: true, status: "custom", reason: "Carbon stores six fixed stage slots in each pass; CarbonEngineJS constructs explicit absent canonical slots before portable stages are assigned." } },
+    { name: "readPortableResourceMap", impl: { custom: true, status: "custom", reason: "Carbon reads a native register map; CarbonEngineJS indexes validated portable resource records into the canonical numeric map." } },
+    { name: "readPortableSamplerMap", impl: { custom: true, status: "custom", reason: "Carbon reads a native sampler map; CarbonEngineJS indexes validated portable sampler records into the canonical numeric map." } },
+    { name: "readCanonicalRegisterMap", impl: { custom: true, status: "custom", reason: "Carbon has fixed native map types; CarbonEngineJS restores numeric register keys and canonical child identity from JSON-compatible maps." } }
+  ]
+});
+CjsSchema.decorateField(Tr2EffectStageInput, "stageType", impl.adapted, impl.reason("The source format identifies stage inputs by array index; the device-free graph retains the index explicitly for serialization and engine adapters."), type.int32);
+CjsSchema.decorateField(Tr2EffectStageInput, "exists", type.boolean);
+CjsSchema.decorateField(Tr2EffectStageInput, "resources", type.map("Tr2EffectResource"));
+CjsSchema.decorateField(Tr2EffectStageInput, "uavs", type.map("Tr2EffectResource"));
+CjsSchema.decorateField(Tr2EffectStageInput, "samplers", type.map("Tr2SamplerSetup"));
+CjsSchema.decorateField(Tr2EffectStageInput, "shader", type.uint32);
+CjsSchema.decorateField(Tr2EffectStageInput, "constants", type.list("Tr2EffectConstant"));
+CjsSchema.decorateField(Tr2EffectStageInput, "constantValueSize", type.uint32);
+CjsSchema.decorateField(Tr2EffectStageInput, "constantValues", type.typedArray("Uint8Array"));
+CjsSchema.decorateField(Tr2EffectStageInput, "signature", type.rawStruct("Tr2ShaderSignatureAL"));
+CjsSchema.decorateField(Tr2EffectStageInput, "annotation", type.list("Tr2EffectParameterAnnotation"));
+CjsSchema.decorateField(Tr2EffectStageInput, "sourceProgram", impl.adapted, impl.reason("Carbon replaces source program data with renderer handles while reading; the device-free resource graph must retain the portable source program for later engine realization."), type.rawStruct("CjsEffectSourceProgram"));

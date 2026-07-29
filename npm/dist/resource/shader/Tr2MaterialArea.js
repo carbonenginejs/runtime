@@ -1,8 +1,8 @@
-import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
-let _initClass, _init_material, _init_extra_material, _init_metatype, _init_extra_metatype;
+// Source: trinity/trinity/Resources/Tr2MaterialRes.h
+// Schema: format-carbon resources/Tr2MaterialArea.json; maintained by runtime-resource.
 
 /**
  * Associates one material-area metatype with its persisted parameter store.
@@ -10,30 +10,25 @@ let _initClass, _init_material, _init_extra_material, _init_metatype, _init_extr
  * The record describes resource data and does not own shader bindings or
  * backend material realization.
  */
-let _Tr2MaterialArea;
 class Tr2MaterialArea extends CjsModel {
-  static {
-    ({
-      e: [_init_material, _init_extra_material, _init_metatype, _init_extra_metatype],
-      c: [_Tr2MaterialArea, _initClass]
-    } = _applyDecs2311(this, [type.define({
-      className: "Tr2MaterialArea",
-      family: "resources"
-    })], [[[io, io.persist, void 0, type.objectRef("Tr2MaterialParameterStore")], 16, "material"], [[io, io.persist, type, type.string], 16, "metatype"]], 0, void 0, CjsModel));
-  }
-  constructor(...args) {
-    super(...args);
-    _init_extra_metatype(this);
-  }
   /** Persisted material parameter-store reference. */
-  material = _init_material(this, null);
+  material = null;
 
   /** Authored material-area metatype. */
-  metatype = (_init_extra_material(this), _init_metatype(this, ""));
-  static {
-    _initClass();
-  }
+  metatype = "";
 }
 
-export { _Tr2MaterialArea as Tr2MaterialArea };
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2MaterialArea, {
+  className: "Tr2MaterialArea",
+  family: "resources"
+});
+CjsSchema.decorateField(Tr2MaterialArea, "material", io.persist, type.objectRef("Tr2MaterialParameterStore"));
+CjsSchema.decorateField(Tr2MaterialArea, "metatype", io.persist, type.string);
+
+export { Tr2MaterialArea };
 //# sourceMappingURL=Tr2MaterialArea.js.map

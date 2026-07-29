@@ -1,40 +1,24 @@
-import { applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
-import { type, impl } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { isPlainObject, isArray } from '@carbonenginejs/runtime-utils/is';
-import { Tr2EffectLibrary as _Tr2EffectLibrary } from './Tr2EffectLibrary.js';
-import { Tr2Pass as _Tr2Pass } from './Tr2Pass.js';
+import { Tr2EffectLibrary } from './Tr2EffectLibrary.js';
+import { Tr2Pass } from './Tr2Pass.js';
 
-let _initStatic, _initClass, _init_name, _init_extra_name, _init_passes, _init_extra_passes, _init_libraries, _init_extra_libraries, _init_shaderTypeMask, _init_extra_shaderTypeMask;
+// Source: trinity/trinity/Shader/Tr2EffectDescription.h
 
 /** Reflected effect technique and its passes and libraries. */
-let _Tr2EffectTechnique;
 class Tr2EffectTechnique extends CjsModel {
-  static {
-    ({
-      e: [_init_name, _init_extra_name, _init_passes, _init_extra_passes, _init_libraries, _init_extra_libraries, _init_shaderTypeMask, _init_extra_shaderTypeMask, _initStatic],
-      c: [_Tr2EffectTechnique, _initClass]
-    } = _applyDecs2311(this, [type.define({
-      className: "Tr2EffectTechnique",
-      family: "shader"
-    })], [[[type, type.string], 16, "name"], [type.list("Tr2Pass"), 0, "passes"], [type.list("Tr2EffectLibrary"), 0, "libraries"], [[type, type.uint32], 16, "shaderTypeMask"], [[impl, impl.custom, void 0, impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.")], 26, "fromPortable"]], 0, void 0, CjsModel));
-    _initStatic(this);
-  }
-  constructor(...args) {
-    super(...args);
-    _init_extra_shaderTypeMask(this);
-  }
   /** name (BlueSharedString) */
-  name = _init_name(this, "");
+  name = "";
 
   /** passes (TrackableStdVector<Tr2Pass>) */
-  passes = (_init_extra_name(this), _init_passes(this, []));
+  passes = [];
 
   /** libraries (std::vector<Tr2EffectLibrary>) */
-  libraries = (_init_extra_passes(this), _init_libraries(this, []));
+  libraries = [];
 
   /** shaderTypeMask (unsigned int) */
-  shaderTypeMask = (_init_extra_libraries(this), _init_shaderTypeMask(this, 0));
+  shaderTypeMask = 0;
 
   /**
    * Build one technique from its portable JSON reflection record.
@@ -57,15 +41,34 @@ class Tr2EffectTechnique extends CjsModel {
     }
     const technique = new this();
     technique.name = String(value.name ?? "");
-    technique.passes = value.passes.map(entry => _Tr2Pass.fromPortable(entry));
-    technique.libraries = value.libraries.map(entry => _Tr2EffectLibrary.fromPortable(entry));
+    technique.passes = value.passes.map(entry => Tr2Pass.fromPortable(entry));
+    technique.libraries = value.libraries.map(entry => Tr2EffectLibrary.fromPortable(entry));
     technique.shaderTypeMask = technique.passes.reduce((mask, pass) => mask | pass.shaderTypeMask, 0) >>> 0;
     return technique;
   }
-  static {
-    _initClass();
-  }
 }
 
-export { _Tr2EffectTechnique as Tr2EffectTechnique };
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2EffectTechnique, {
+  className: "Tr2EffectTechnique",
+  family: "shader",
+  methods: [{
+    name: "fromPortable",
+    impl: {
+      custom: true,
+      status: "custom",
+      reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing."
+    }
+  }]
+});
+CjsSchema.decorateField(Tr2EffectTechnique, "name", type.string);
+CjsSchema.decorateField(Tr2EffectTechnique, "passes", type.list("Tr2Pass"));
+CjsSchema.decorateField(Tr2EffectTechnique, "libraries", type.list("Tr2EffectLibrary"));
+CjsSchema.decorateField(Tr2EffectTechnique, "shaderTypeMask", type.uint32);
+
+export { Tr2EffectTechnique };
 //# sourceMappingURL=Tr2EffectTechnique.js.map

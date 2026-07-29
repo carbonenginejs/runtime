@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { impl, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
   isArray,
@@ -9,24 +9,19 @@ import { Tr2EffectLibrary } from "./Tr2EffectLibrary.js";
 import { Tr2Pass } from "./Tr2Pass.js";
 
 /** Reflected effect technique and its passes and libraries. */
-@type.define({ className: "Tr2EffectTechnique", family: "shader" })
 export class Tr2EffectTechnique extends CjsModel
 {
 
   /** name (BlueSharedString) */
-  @type.string
   name = "";
 
   /** passes (TrackableStdVector<Tr2Pass>) */
-  @type.list("Tr2Pass")
   passes = [];
 
   /** libraries (std::vector<Tr2EffectLibrary>) */
-  @type.list("Tr2EffectLibrary")
   libraries = [];
 
   /** shaderTypeMask (unsigned int) */
-  @type.uint32
   shaderTypeMask = 0;
 
   /**
@@ -35,8 +30,6 @@ export class Tr2EffectTechnique extends CjsModel
    * @param {object} value Portable technique record.
    * @returns {Tr2EffectTechnique} Reflected technique.
    */
-  @impl.custom
-  @impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.")
   static fromPortable(value)
   {
     if (!isPlainObject(value))
@@ -79,3 +72,20 @@ export class Tr2EffectTechnique extends CjsModel
   }
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2EffectTechnique, {
+  className: "Tr2EffectTechnique",
+  family: "shader",
+  methods: [
+    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing." } }
+  ]
+});
+CjsSchema.decorateField(Tr2EffectTechnique, "name", type.string);
+CjsSchema.decorateField(Tr2EffectTechnique, "passes", type.list("Tr2Pass"));
+CjsSchema.decorateField(Tr2EffectTechnique, "libraries", type.list("Tr2EffectLibrary"));
+CjsSchema.decorateField(Tr2EffectTechnique, "shaderTypeMask", type.uint32);

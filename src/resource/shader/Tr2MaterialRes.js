@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialRes.json; maintained by runtime-resource.
-import { io, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /**
@@ -10,18 +10,25 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
  * It owns the serializable material description, not device shaders,
  * descriptor bindings, or pipelines.
  */
-@type.define({ className: "Tr2MaterialRes", family: "resources" })
 export class Tr2MaterialRes extends CjsModel
 {
 
   /** Persisted dictionary of material meshes. */
-  @io.persist
-  @type.objectRef("Tr2MaterialMeshDict")
   meshes = null;
 
   /** Authored material name. */
-  @io.persist
-  @type.string
   name = "";
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2MaterialRes, {
+  className: "Tr2MaterialRes",
+  family: "resources"
+});
+CjsSchema.decorateField(Tr2MaterialRes, "meshes", io.persist, type.objectRef("Tr2MaterialMeshDict"));
+CjsSchema.decorateField(Tr2MaterialRes, "name", io.persist, type.string);

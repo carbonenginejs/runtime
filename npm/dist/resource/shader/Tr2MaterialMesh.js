@@ -1,8 +1,8 @@
-import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
-let _initClass, _init_areas, _init_extra_areas;
+// Source: trinity/trinity/Resources/Tr2MaterialRes.h
+// Schema: format-carbon resources/Tr2MaterialMesh.json; maintained by runtime-resource.
 
 /**
  * Holds the persisted material-area dictionary for one material mesh.
@@ -10,27 +10,21 @@ let _initClass, _init_areas, _init_extra_areas;
  * Area lookup remains resource metadata; engines decide how the selected
  * material becomes backend draw state.
  */
-let _Tr2MaterialMesh;
 class Tr2MaterialMesh extends CjsModel {
-  static {
-    ({
-      e: [_init_areas, _init_extra_areas],
-      c: [_Tr2MaterialMesh, _initClass]
-    } = _applyDecs2311(this, [type.define({
-      className: "Tr2MaterialMesh",
-      family: "resources"
-    })], [[[io, io.persist, void 0, type.objectRef("Tr2MaterialAreaDict")], 16, "areas"]], 0, void 0, CjsModel));
-  }
-  constructor(...args) {
-    super(...args);
-    _init_extra_areas(this);
-  }
   /** Persisted dictionary of material areas. */
-  areas = _init_areas(this, null);
-  static {
-    _initClass();
-  }
+  areas = null;
 }
 
-export { _Tr2MaterialMesh as Tr2MaterialMesh };
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2MaterialMesh, {
+  className: "Tr2MaterialMesh",
+  family: "resources"
+});
+CjsSchema.decorateField(Tr2MaterialMesh, "areas", io.persist, type.objectRef("Tr2MaterialAreaDict"));
+
+export { Tr2MaterialMesh };
 //# sourceMappingURL=Tr2MaterialMesh.js.map

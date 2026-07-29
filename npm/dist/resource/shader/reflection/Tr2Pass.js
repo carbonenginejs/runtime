@@ -1,50 +1,34 @@
-import { applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
-import { type, impl } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, type, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { isPlainObject, isArray, isUint32 } from '@carbonenginejs/runtime-utils/is';
 import { requirePortableStageType } from '../portable.js';
-import { Tr2EffectStageInput as _Tr2EffectStageInput } from './Tr2EffectStageInput.js';
+import { Tr2EffectStageInput } from './Tr2EffectStageInput.js';
 
-let _initStatic, _initClass, _init_stageInputs, _init_extra_stageInputs, _init_renderStates, _init_extra_renderStates, _init_shaderTypeMask, _init_extra_shaderTypeMask, _init_shaderProgram, _init_extra_shaderProgram, _init_resourceSetDesc, _init_extra_resourceSetDesc, _init_indirectLayout, _init_extra_indirectLayout, _init_renderStateValues, _init_extra_renderStateValues;
+// Source: trinity/trinity/Shader/Tr2EffectDescription.h
 const SHADER_TYPE_COUNT = 6;
 
 /** Reflected effect pass; backend program and state handles remain engine-owned. */
-let _Tr2Pass;
 class Tr2Pass extends CjsModel {
-  static {
-    ({
-      e: [_init_stageInputs, _init_extra_stageInputs, _init_renderStates, _init_extra_renderStates, _init_shaderTypeMask, _init_extra_shaderTypeMask, _init_shaderProgram, _init_extra_shaderProgram, _init_resourceSetDesc, _init_extra_resourceSetDesc, _init_indirectLayout, _init_extra_indirectLayout, _init_renderStateValues, _init_extra_renderStateValues, _initStatic],
-      c: [_Tr2Pass, _initClass]
-    } = _applyDecs2311(this, [type.define({
-      className: "Tr2Pass",
-      family: "shader"
-    })], [[type.list("Tr2EffectStageInput"), 0, "stageInputs"], [[type, type.uint32], 16, "renderStates"], [[type, type.uint32], 16, "shaderTypeMask"], [[type, type.uint32], 16, "shaderProgram"], [type.rawStruct("Tr2ResourceSetDescriptionAL"), 0, "resourceSetDesc"], [type.rawStruct("Tr2IndirectDrawBufferLayout"), 0, "indirectLayout"], [[impl, impl.adapted, void 0, impl.reason("Carbon stores a renderer-owned render-state handle; the device-free graph retains the authored state/value pairs until an engine realizes them."), void 0, type.rawStruct("CjsEffectRenderStateValues")], 16, "renderStateValues"], [[impl, impl.custom, void 0, impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.")], 26, "fromPortable"]], 0, void 0, CjsModel));
-    _initStatic(this);
-  }
-  constructor(...args) {
-    super(...args);
-    _init_extra_renderStateValues(this);
-  }
   /** stageInputs (Tr2EffectStageInput) */
-  stageInputs = _init_stageInputs(this, []);
+  stageInputs = [];
 
   /** renderStates (unsigned int) */
-  renderStates = (_init_extra_stageInputs(this), _init_renderStates(this, 0));
+  renderStates = 0;
 
   /** shaderTypeMask (unsigned int) */
-  shaderTypeMask = (_init_extra_renderStates(this), _init_shaderTypeMask(this, 0));
+  shaderTypeMask = 0;
 
   /** shaderProgram (unsigned int) */
-  shaderProgram = (_init_extra_shaderTypeMask(this), _init_shaderProgram(this, 0));
+  shaderProgram = 0;
 
   /** resourceSetDesc (Tr2ResourceSetDescriptionAL) */
-  resourceSetDesc = (_init_extra_shaderProgram(this), _init_resourceSetDesc(this, null));
+  resourceSetDesc = null;
 
   /** indirectLayout (Tr2IndirectDrawBufferLayout) */
-  indirectLayout = (_init_extra_resourceSetDesc(this), _init_indirectLayout(this, null));
+  indirectLayout = null;
 
   /** Exact authored render-state pairs retained before an engine creates a state handle. */
-  renderStateValues = (_init_extra_indirectLayout(this), _init_renderStateValues(this, []));
+  renderStateValues = [];
 
   /**
    * Build one pass from its portable JSON reflection record.
@@ -93,19 +77,41 @@ class Tr2Pass extends CjsModel {
     });
     pass.stageInputs = Array.from({
       length: SHADER_TYPE_COUNT
-    }, (_, stageType) => _Tr2EffectStageInput.createEmpty(stageType));
+    }, (_, stageType) => Tr2EffectStageInput.createEmpty(stageType));
     pass.shaderTypeMask = 0;
     for (const stageValue of value.stages) {
-      const stage = _Tr2EffectStageInput.fromPortable(stageValue);
+      const stage = Tr2EffectStageInput.fromPortable(stageValue);
       pass.stageInputs[stage.stageType] = stage;
       pass.shaderTypeMask = (pass.shaderTypeMask | 1 << stage.stageType) >>> 0;
     }
     return pass;
   }
-  static {
-    _initClass();
-  }
 }
 
-export { _Tr2Pass as Tr2Pass };
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2Pass, {
+  className: "Tr2Pass",
+  family: "shader",
+  methods: [{
+    name: "fromPortable",
+    impl: {
+      custom: true,
+      status: "custom",
+      reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing."
+    }
+  }]
+});
+CjsSchema.decorateField(Tr2Pass, "stageInputs", type.list("Tr2EffectStageInput"));
+CjsSchema.decorateField(Tr2Pass, "renderStates", type.uint32);
+CjsSchema.decorateField(Tr2Pass, "shaderTypeMask", type.uint32);
+CjsSchema.decorateField(Tr2Pass, "shaderProgram", type.uint32);
+CjsSchema.decorateField(Tr2Pass, "resourceSetDesc", type.rawStruct("Tr2ResourceSetDescriptionAL"));
+CjsSchema.decorateField(Tr2Pass, "indirectLayout", type.rawStruct("Tr2IndirectDrawBufferLayout"));
+CjsSchema.decorateField(Tr2Pass, "renderStateValues", impl.adapted, impl.reason("Carbon stores a renderer-owned render-state handle; the device-free graph retains the authored state/value pairs until an engine realizes them."), type.rawStruct("CjsEffectRenderStateValues"));
+
+export { Tr2Pass };
 //# sourceMappingURL=Tr2Pass.js.map

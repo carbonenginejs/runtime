@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialMesh.json; maintained by runtime-resource.
-import { io, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /**
@@ -9,13 +9,21 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
  * Area lookup remains resource metadata; engines decide how the selected
  * material becomes backend draw state.
  */
-@type.define({ className: "Tr2MaterialMesh", family: "resources" })
 export class Tr2MaterialMesh extends CjsModel
 {
 
   /** Persisted dictionary of material areas. */
-  @io.persist
-  @type.objectRef("Tr2MaterialAreaDict")
   areas = null;
 
 }
+
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2MaterialMesh, {
+  className: "Tr2MaterialMesh",
+  family: "resources"
+});
+CjsSchema.decorateField(Tr2MaterialMesh, "areas", io.persist, type.objectRef("Tr2MaterialAreaDict"));

@@ -1,10 +1,11 @@
-import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { carbon, impl, type } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsResource as _CjsResource } from '../CjsResource.js';
 import { validateResourcePayload } from '../resourceBoundary.js';
-import { Tr2Shader as _Tr2Shader } from './Tr2Shader.js';
+import { Tr2Shader } from './Tr2Shader.js';
 
-let _initProto, _initClass;
+// Source: trinity/trinity/Resources/Tr2EffectRes.h
+// Source: trinity/trinity/Resources/Tr2EffectRes.cpp
+// Source: trinity/trinity/Resources/Tr2EffectRes_Blue.cpp
 const globalEffectOptions = [];
 const SHA256 = /^[0-9a-f]{64}$/u;
 const UINT8_MAX = 0xff;
@@ -17,168 +18,162 @@ const MAX_EFFECT_PERMUTATIONS = 0x10000;
  * This stores effect/shader payload facts. Engine-gpu decides shader module,
  * pipeline, bind group, and sampler realization.
  */
-let _Tr2EffectRes;
-new class extends _identity {
-  static [class Tr2EffectRes extends _CjsResource {
-    static {
-      ({
-        e: [_initProto],
-        c: [_Tr2EffectRes, _initClass]
-      } = _applyDecs2311(this, [type.define({
-        className: "Tr2EffectRes",
-        family: "resources"
-      })], [[[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon reads the selected body directly from compiled effect bytes and registers renderer handles; CarbonEngineJS hydrates the format package's validated portable reflection without realizing GPU state.")], 18, "GetShader"], [[impl, impl.custom, void 0, impl.reason("Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact package-index hydration for deterministic package consumers and tests.")], 18, "GetShaderByIndex"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a JSON-friendly plain axis description.")], 18, "GetPermutationDescription"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Backend resources are engine-owned; the resource-side release clears only hydrated device-free shader graphs.")], 18, "ReleaseResources"]], 0, void 0, _CjsResource));
-    }
-    #shaders = (_initProto(this), new Map());
+class Tr2EffectRes extends _CjsResource {
+  #shaders = new Map();
 
-    /** Creates a Tr2EffectRes with caller-provided initial state. */
-    constructor(values = null) {
-      super();
-      this.SetValues(values || {}, {
-        markDirty: false,
-        skipUpdate: true,
-        skipEvents: true
-      });
-    }
+  /** Creates a Tr2EffectRes with caller-provided initial state. */
+  constructor(values = null) {
+    super();
+    this.SetValues(values || {}, {
+      markDirty: false,
+      skipUpdate: true,
+      skipEvents: true
+    });
+  }
 
-    /**
-     * Attach a plain shader/effect payload.
-     *
-     * @param {object|null} payload
-     * @param {object|null} options
-     * @returns {Tr2EffectRes}
-     */
-    SetPayload(payload = null, options = null) {
-      if (payload === null) {
-        this.#shaders.clear();
-        super.SetPayload(null);
-        return this;
-      }
-      validateResourcePayload("Tr2EffectRes", payload, validateEffectPayload);
+  /**
+   * Attach a plain shader/effect payload.
+   *
+   * @param {object|null} payload
+   * @param {object|null} options
+   * @returns {Tr2EffectRes}
+   */
+  SetPayload(payload = null, options = null) {
+    if (payload === null) {
       this.#shaders.clear();
-      super.SetPayload(payload);
-      this.SetValues(options || {});
+      super.SetPayload(null);
       return this;
     }
+    validateResourcePayload("Tr2EffectRes", payload, validateEffectPayload);
+    this.#shaders.clear();
+    super.SetPayload(payload);
+    this.SetValues(options || {});
+    return this;
+  }
 
-    /**
-     * Select and hydrate one canonical shader from the complete permutation
-     * graph exposed by a CEWG/CEWGPU raw package.
-     *
-     * Global options have Carbon-compatible precedence over caller options.
-     * Unknown option values retain the authored default.
-     *
-     * @param {Array<object>|Map<string,string>} options Local name/value choices.
-     * @param {number|null} count Number of local entries to consider.
-     * @returns {Tr2Shader|null} Selected device-free shader reflection.
-     */
-    GetShader(options = [], count = null) {
-      const axes = getPermutationAxes(this.GetPayload());
-      if (!axes.length) {
-        const portableIndex = _Tr2Shader.isPortableReflection(this.GetPayload()) ? this.GetPayload().permutationIndex : 0;
-        return this.GetShaderByIndex(portableIndex);
-      }
-      const localOptions = normalizeShaderOptions(options);
-      const localCount = Number.isSafeInteger(count) ? Math.max(0, Math.min(count, localOptions.length)) : localOptions.length;
-      let multiplier = 1;
-      let index = 0;
-      for (const axis of axes) {
-        let selectedIndex = axis.defaultOption;
-        const globalOption = globalEffectOptions.find(option => option.name === axis.name);
-        if (globalOption) {
-          const requestedIndex = axis.options.indexOf(globalOption.value);
+  /**
+   * Select and hydrate one canonical shader from the complete permutation
+   * graph exposed by a CEWG/CEWGPU raw package.
+   *
+   * Global options have Carbon-compatible precedence over caller options.
+   * Unknown option values retain the authored default.
+   *
+   * @param {Array<object>|Map<string,string>} options Local name/value choices.
+   * @param {number|null} count Number of local entries to consider.
+   * @returns {Tr2Shader|null} Selected device-free shader reflection.
+   */
+  GetShader(options = [], count = null) {
+    const axes = getPermutationAxes(this.GetPayload());
+    if (!axes.length) {
+      const portableIndex = Tr2Shader.isPortableReflection(this.GetPayload()) ? this.GetPayload().permutationIndex : 0;
+      return this.GetShaderByIndex(portableIndex);
+    }
+    const localOptions = normalizeShaderOptions(options);
+    const localCount = Number.isSafeInteger(count) ? Math.max(0, Math.min(count, localOptions.length)) : localOptions.length;
+    let multiplier = 1;
+    let index = 0;
+    for (const axis of axes) {
+      let selectedIndex = axis.defaultOption;
+      const globalOption = globalEffectOptions.find(option => option.name === axis.name);
+      if (globalOption) {
+        const requestedIndex = axis.options.indexOf(globalOption.value);
+        if (requestedIndex >= 0) {
+          selectedIndex = requestedIndex;
+        }
+      } else {
+        for (let optionIndex = 0; optionIndex < localCount; optionIndex += 1) {
+          const localOption = localOptions[optionIndex];
+          if (localOption.name !== axis.name) {
+            continue;
+          }
+          const requestedIndex = axis.options.indexOf(localOption.value);
           if (requestedIndex >= 0) {
             selectedIndex = requestedIndex;
           }
-        } else {
-          for (let optionIndex = 0; optionIndex < localCount; optionIndex += 1) {
-            const localOption = localOptions[optionIndex];
-            if (localOption.name !== axis.name) {
-              continue;
-            }
-            const requestedIndex = axis.options.indexOf(localOption.value);
-            if (requestedIndex >= 0) {
-              selectedIndex = requestedIndex;
-            }
-          }
         }
-        index += selectedIndex * multiplier;
-        multiplier *= axis.options.length;
       }
-      return this.GetShaderByIndex(index);
+      index += selectedIndex * multiplier;
+      multiplier *= axis.options.length;
     }
+    return this.GetShaderByIndex(index);
+  }
 
-    /**
-     * Hydrate one exact permutation-table index and cache the resulting runtime
-     * graph for this payload.
-     *
-     * @param {number} index Exact permutation index.
-     * @returns {Tr2Shader|null} Canonical shader or null when reflection is absent.
-     */
-    GetShaderByIndex(index) {
-      if (!Number.isSafeInteger(index) || index < 0) {
-        throw new TypeError("Tr2EffectRes shader index must be a non-negative safe integer");
-      }
-      if (this.#shaders.has(index)) {
-        return this.#shaders.get(index);
-      }
-      const payload = this.GetPayload();
-      const variantCount = getPermutationVariantCount(payload);
-      if (variantCount !== null && index >= variantCount) {
-        return null;
-      }
-      const portable = getPortableReflection(payload, index);
-      if (!portable) {
-        return null;
-      }
-      if (portable.permutationIndex !== index) {
-        throw new Error(`Portable effect reflection index ${portable.permutationIndex} does not match requested index ${index}`);
-      }
-      const shader = _Tr2Shader.fromPortable(portable);
-      this.#shaders.set(index, shader);
-      return shader;
+  /**
+   * Hydrate one exact permutation-table index and cache the resulting runtime
+   * graph for this payload.
+   *
+   * @param {number} index Exact permutation index.
+   * @returns {Tr2Shader|null} Canonical shader or null when reflection is absent.
+   */
+  GetShaderByIndex(index) {
+    if (!Number.isSafeInteger(index) || index < 0) {
+      throw new TypeError("Tr2EffectRes shader index must be a non-negative safe integer");
     }
+    if (this.#shaders.has(index)) {
+      return this.#shaders.get(index);
+    }
+    const payload = this.GetPayload();
+    const variantCount = getPermutationVariantCount(payload);
+    if (variantCount !== null && index >= variantCount) {
+      return null;
+    }
+    const portable = getPortableReflection(payload, index);
+    if (!portable) {
+      return null;
+    }
+    if (portable.permutationIndex !== index) {
+      throw new Error(`Portable effect reflection index ${portable.permutationIndex} does not match requested index ${index}`);
+    }
+    const shader = Tr2Shader.fromPortable(portable);
+    this.#shaders.set(index, shader);
+    return shader;
+  }
 
-    /**
-     * Return a small JSON-friendly permutation description.
-     *
-     * @returns {Array<*>}
-     */
-    GetPermutationDescription() {
-      const payload = this.GetPayload();
-      const axes = getPermutationAxes(payload);
-      if (!axes.length && Array.isArray(payload?.permutations)) {
-        return payload.permutations.map(permutation => ({
-          ...permutation
-        }));
-      }
-      return axes.map(axis => ({
-        name: axis.name,
-        options: [...axis.options],
-        defaultOption: axis.defaultOption,
-        description: axis.description,
-        type: axis.type
+  /**
+   * Return a small JSON-friendly permutation description.
+   *
+   * @returns {Array<*>}
+   */
+  GetPermutationDescription() {
+    const payload = this.GetPayload();
+    const axes = getPermutationAxes(payload);
+    if (!axes.length && Array.isArray(payload?.permutations)) {
+      return payload.permutations.map(permutation => ({
+        ...permutation
       }));
     }
-
-    /**
-     * Drop hydrated shader graphs while retaining the validated CPU payload.
-     */
-    ReleaseResources() {
-      this.#shaders.clear();
-    }
-
-    /** Release the payload and every shader graph hydrated from it. */
-    ReleasePayload() {
-      this.#shaders.clear();
-      return super.ReleasePayload();
-    }
-  }];
-  payload = "shader";
-  constructor() {
-    super(_Tr2EffectRes), _initClass();
+    return axes.map(axis => ({
+      name: axis.name,
+      options: [...axis.options],
+      defaultOption: axis.defaultOption,
+      description: axis.description,
+      type: axis.type
+    }));
   }
-}();
+
+  /**
+   * Drop hydrated shader graphs while retaining the validated CPU payload.
+   */
+  ReleaseResources() {
+    this.#shaders.clear();
+  }
+
+  /** Release the payload and every shader graph hydrated from it. */
+  ReleasePayload() {
+    this.#shaders.clear();
+    return super.ReleasePayload();
+  }
+  static payload = "shader";
+}
+
+/**
+ * Merge Carbon-style global effect option overrides.
+ *
+ * An empty value removes the override. Existing Tr2EffectRes shader caches
+ * remain valid objects; callers rebuild effects to request the new selection.
+ *
+ * @param {Array<object>|Map<string,string>} changes Option changes.
+ */
 function ModifyGlobalEffectOptions(changes = []) {
   for (const change of normalizeShaderOptions(changes)) {
     const index = globalEffectOptions.findIndex(option => option.name === change.name);
@@ -214,7 +209,7 @@ function validateEffectPayload(payload) {
     } else {
       validateLegacyPermutationDescription(payload.permutations);
     }
-  } else if (!_Tr2Shader.isPortableReflection(payload)) {
+  } else if (!Tr2Shader.isPortableReflection(payload)) {
     throw new TypeError("Tr2EffectRes payload requires a complete permutation graph, permutations array, or one portable reflection");
   }
   if (Array.isArray(payload.portableReflections)) {
@@ -223,7 +218,7 @@ function validateEffectPayload(payload) {
       throw new Error("Tr2EffectRes portable reflection count disagrees with its permutations");
     }
     payload.portableReflections.forEach((reflection, index) => {
-      if (!_Tr2Shader.isPortableReflection(reflection) || reflection.permutationIndex !== index) {
+      if (!Tr2Shader.isPortableReflection(reflection) || reflection.permutationIndex !== index) {
         throw new Error(`Tr2EffectRes portable reflection ${index} is malformed`);
       }
     });
@@ -392,7 +387,7 @@ function getPortableReflection(payload, index) {
   if (typeof payload.getPortableEffectReflection === "function") {
     return payload.getPortableEffectReflection(index);
   }
-  if (_Tr2Shader.isPortableReflection(payload)) {
+  if (Tr2Shader.isPortableReflection(payload)) {
     return index === payload.permutationIndex ? payload : null;
   }
   if (Array.isArray(payload.portableReflections)) {
@@ -416,5 +411,19 @@ function normalizeShaderOptions(options) {
   }));
 }
 
-export { GetGlobalEffectOptions, ModifyGlobalEffectOptions, _Tr2EffectRes as Tr2EffectRes };
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2EffectRes, {
+  className: "Tr2EffectRes",
+  family: "resources"
+});
+CjsSchema.decorateMethod(Tr2EffectRes, "GetShader", carbon.method, impl.adapted, impl.reason("Carbon reads the selected body directly from compiled effect bytes and registers renderer handles; CarbonEngineJS hydrates the format package's validated portable reflection without realizing GPU state."));
+CjsSchema.decorateMethod(Tr2EffectRes, "GetShaderByIndex", impl.custom, impl.reason("Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact package-index hydration for deterministic package consumers and tests."));
+CjsSchema.decorateMethod(Tr2EffectRes, "GetPermutationDescription", carbon.method, impl.adapted, impl.reason("Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a JSON-friendly plain axis description."));
+CjsSchema.decorateMethod(Tr2EffectRes, "ReleaseResources", carbon.method, impl.adapted, impl.reason("Backend resources are engine-owned; the resource-side release clears only hydrated device-free shader graphs."));
+
+export { GetGlobalEffectOptions, ModifyGlobalEffectOptions, Tr2EffectRes };
 //# sourceMappingURL=Tr2EffectRes.js.map

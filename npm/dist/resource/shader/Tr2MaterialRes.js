@@ -1,8 +1,8 @@
-import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
-let _initClass, _init_meshes, _init_extra_meshes, _init_name, _init_extra_name;
+// Source: trinity/trinity/Resources/Tr2MaterialRes.h
+// Schema: format-carbon resources/Tr2MaterialRes.json; maintained by runtime-resource.
 
 /**
  * Root persisted material record containing its authored name and material
@@ -11,30 +11,25 @@ let _initClass, _init_meshes, _init_extra_meshes, _init_name, _init_extra_name;
  * It owns the serializable material description, not device shaders,
  * descriptor bindings, or pipelines.
  */
-let _Tr2MaterialRes;
 class Tr2MaterialRes extends CjsModel {
-  static {
-    ({
-      e: [_init_meshes, _init_extra_meshes, _init_name, _init_extra_name],
-      c: [_Tr2MaterialRes, _initClass]
-    } = _applyDecs2311(this, [type.define({
-      className: "Tr2MaterialRes",
-      family: "resources"
-    })], [[[io, io.persist, void 0, type.objectRef("Tr2MaterialMeshDict")], 16, "meshes"], [[io, io.persist, type, type.string], 16, "name"]], 0, void 0, CjsModel));
-  }
-  constructor(...args) {
-    super(...args);
-    _init_extra_name(this);
-  }
   /** Persisted dictionary of material meshes. */
-  meshes = _init_meshes(this, null);
+  meshes = null;
 
   /** Authored material name. */
-  name = (_init_extra_meshes(this), _init_name(this, ""));
-  static {
-    _initClass();
-  }
+  name = "";
 }
 
-export { _Tr2MaterialRes as Tr2MaterialRes };
+// Declared imperatively rather than with decorators, so this module stays
+// plain ESM that loads from source without a transform. The decorator
+// expressions are reused verbatim, so the registered metadata is identical.
+// Statics belong in `methods`: decorateMethod targets the prototype and
+// would register a static as an instance field.
+CjsSchema.define(Tr2MaterialRes, {
+  className: "Tr2MaterialRes",
+  family: "resources"
+});
+CjsSchema.decorateField(Tr2MaterialRes, "meshes", io.persist, type.objectRef("Tr2MaterialMeshDict"));
+CjsSchema.decorateField(Tr2MaterialRes, "name", io.persist, type.string);
+
+export { Tr2MaterialRes };
 //# sourceMappingURL=Tr2MaterialRes.js.map
