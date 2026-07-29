@@ -26,7 +26,6 @@ export * from "./Tr2RotationTool.js";
 export * from "./Tr2SSAO.js";
 export * from "./Tr2SSSSS.js";
 export * from "./Tr2ScalingTool.js";
-export * from "./Tr2ShLightingManager.js";
 export * from "./Tr2ShadowMap.js";
 export * from "./Tr2SolidSet.js";
 export * from "./Tr2StreamingBitmapSaver.js";

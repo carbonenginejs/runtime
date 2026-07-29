@@ -26,7 +26,6 @@ export { Tr2RotationTool } from './Tr2RotationTool.js';
 export { Tr2SSAO } from './Tr2SSAO.js';
 export { Tr2SSSSS } from './Tr2SSSSS.js';
 export { Tr2ScalingTool } from './Tr2ScalingTool.js';
-export { Tr2ShLightingManager } from './Tr2ShLightingManager.js';
 export { Tr2ShadowMap } from './Tr2ShadowMap.js';
 export { Tr2SolidSet } from './Tr2SolidSet.js';
 export { Tr2StreamingBitmapSaver } from './Tr2StreamingBitmapSaver.js';

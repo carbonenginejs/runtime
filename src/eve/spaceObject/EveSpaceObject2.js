@@ -411,6 +411,13 @@ export class EveSpaceObject2 extends EveEntity
   /** EVE_SPACEOBJECT_CUSTOWMASK_MAX (EveSpaceObject2.h:49) - custom-mask slots. */
   static CUSTOM_MASK_MAX = EveCustomMask.CUSTOM_MASK_COUNT;
 
+  /**
+   * Carbon g_secondaryLightingRadiusCutoffFactor (cpp:52), a registered engine
+   * setting defaulting to 0.3. It scales this hull's bounding radius into the
+   * cutoff below which a secondary light source is too small to matter.
+   */
+  static SECONDARY_LIGHTING_RADIUS_CUTOFF_FACTOR = 0.3;
+
   /** Scratch for the per-frame shader-data fill; never allocate in it. */
   static #clipSphereCenterScratch = vec3.create();
 
@@ -819,6 +826,57 @@ export class EveSpaceObject2 extends EveEntity
     this.#psData.Set("clipRadius2Sq", [Math.sign(dissolveRadius2) * dissolveRadius2 * dissolveRadius2]);
     this.#psData.Set("clipSphereFactor", [this.clipSphereFactor]);
     this.#psData.Set("clipSphereFactor2", [this.clipSphereFactor2]);
+  }
+
+  /**
+   * Carbon EveSpaceObject2::UpdateShLighting (cpp:1411-1421): asks the scene's
+   * SH lighting manager for this hull's secondary-lighting coefficients, faded
+   * in across the low-detail threshold so a hull entering that range does not
+   * pop. The coefficients are cleared first, which is also what leaves the
+   * unwritten tail zero on the L1 path.
+   * @param {Object} manager - Tr2ShLightingManager
+   * @param {Object} [updateContext] - frame context, for the detail thresholds
+   */
+  @carbon.method
+  @impl.implemented
+  UpdateShLighting(manager, updateContext = null)
+  {
+    const coefficients = this.#psData.Get("shLightingCoefficients");
+
+    coefficients.fill(0);
+
+    const lowThreshold = EveSpaceObject2.#GetContextValue(updateContext, "GetLowDetailThreshold", "lowDetailThreshold");
+
+    if (!(this.estimatedPixelDiameterWithChildren > lowThreshold) || typeof manager?.GetLighting !== "function")
+    {
+      return false;
+    }
+
+    const mediumThreshold = EveSpaceObject2.#GetContextValue(updateContext, "GetMediumDetailThreshold", "mediumDetailThreshold");
+    const intensityFadeRadius = (mediumThreshold - lowThreshold) * 0.25;
+    const intensity = Math.min(Math.max((this.estimatedPixelDiameterWithChildren - lowThreshold) / intensityFadeRadius, 0), 1);
+
+    manager.GetLighting(
+      this.worldPosition,
+      intensity,
+      this.boundingSphereRadius * EveSpaceObject2.SECONDARY_LIGHTING_RADIUS_CUTOFF_FACTOR,
+      coefficients
+    );
+
+    return true;
+  }
+
+  /**
+   * Carbon EveSpaceObject2::ClearShLighting (cpp:1423-1426): drops this hull's
+   * secondary-lighting contribution back to nothing.
+   */
+  @carbon.method
+  @impl.implemented
+  ClearShLighting()
+  {
+    this.#psData.Get("shLightingCoefficients").fill(0);
+
+    return true;
   }
 
   /**

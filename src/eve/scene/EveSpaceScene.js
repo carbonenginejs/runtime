@@ -61,6 +61,10 @@ const IDENTITY = mat4.create();
 //     `Finalize` inside Collect = Carbon FinalizeBatches cpp:1522.
 // 10. `scene.GatherLights(lightManager)` - AFTER step 9 (Carbon cpp:1396-1416
 //     runs after GatherBatches cpp:1387).
+// 10b. `scene.UpdateShLighting(objects)` - the LAST thing Carbon's gather does
+//     (cpp:1524), so every receiver's secondary-lighting coefficients are
+//     current for the frame being submitted. Skipped entirely when the scene
+//     carries no shLightingManager.
 // 11. (driver/engine, optional) `for (const lf of scene.lensflares)
 //     lf?.PrepareRender?.(frustum)` (cpp:1419-1422; the JS lensflare shell has
 //     no method yet - pure no-op today).
@@ -921,6 +925,44 @@ export class EveSpaceScene extends CjsModel
     }
 
     lightManager.ResolveLightData?.();
+  }
+
+  /**
+   * Carbon EveSpaceScene::UpdateShLighting (cpp:1685-1703): hands every
+   * secondary-lighting receiver the scene's SH manager, so each one samples the
+   * bounce light at its own position. A scene with no manager does nothing, as
+   * Carbon does.
+   *
+   * Carbon runs this at the very END of the gather (cpp:1524, after
+   * FinalizeBatches), and over a parallel range; the JS pass is sequential
+   * because the receivers write only their own records and share no state.
+   *
+   * @param {Array} objects - the frame's visible objects
+   * @returns {Number} how many receivers were updated
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon's Tr2ParallelFor becomes a sequential pass; the receivers touch only their own per-object records.")
+  UpdateShLighting(objects = [])
+  {
+    if (!this.shLightingManager)
+    {
+      return 0;
+    }
+
+    let updated = 0;
+
+    for (const object of objects)
+    {
+      if (typeof object?.UpdateShLighting !== "function")
+      {
+        continue;
+      }
+      object.UpdateShLighting(this.shLightingManager, this.updateContext);
+      updated++;
+    }
+
+    return updated;
   }
 
   /** Carbon method ReregisterEntities (MAP_METHOD_AND_WRAP, cpp:4064-4089).

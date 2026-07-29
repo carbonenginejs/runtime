@@ -157,7 +157,6 @@ export { Tr2RotationTool } from './trinityCore/Tr2RotationTool.js';
 export { Tr2SSAO } from './trinityCore/Tr2SSAO.js';
 export { Tr2SSSSS } from './trinityCore/Tr2SSSSS.js';
 export { Tr2ScalingTool } from './trinityCore/Tr2ScalingTool.js';
-export { Tr2ShLightingManager } from './trinityCore/Tr2ShLightingManager.js';
 export { Tr2ShadowMap } from './trinityCore/Tr2ShadowMap.js';
 export { Tr2SolidSet } from './trinityCore/Tr2SolidSet.js';
 export { Tr2StreamingBitmapSaver } from './trinityCore/Tr2StreamingBitmapSaver.js';
