@@ -24,7 +24,7 @@ The frozen key map contains:
 - `RESOURCE_MANAGER`
 - `SPACE_OBJECT_FACTORY`
 - `DEVICE`
-- `AUDIO_SYSTEM`
+- `AUDIO_MANAGER`
 - `INPUT_MANAGER`
 
 Keys resolve to string names and do not construct their corresponding
@@ -33,7 +33,8 @@ services.
 ## Construction and values
 
 `new CjsLibrary(options)` accepts `services`, `resourceManager`,
-`spaceObjectFactory`, `capabilities`, `resourceDefaults`, and `behaviors`.
+`spaceObjectFactory`, `audioManager`, `capabilities`, `resourceDefaults`, and
+`behaviors`.
 
 - `SetValues(options)` applies those fields.
 - `GetValues()` returns the current composition snapshot.
@@ -46,7 +47,8 @@ Unknown option and topic names throw.
 
 - `Initialize(options)` applies values and marks the library initialized.
 - `InitializeAsync(options)` also loads `dataPath` through the SOF service.
-- `Shutdown()` clears the initialized flag.
+- `Shutdown()` disables and detaches the audio manager, then clears the
+  initialized flag without disposing the externally owned manager.
 - `IsInitialized()` reports that flag.
 
 ## Service registry
@@ -57,9 +59,12 @@ Unknown option and topic names throw.
   resource slot.
 - `SetSpaceObjectFactory(value)` and `GetSpaceObjectFactory()` manage the
   dedicated SOF slot.
+- `SetAudioManager(value)` and `GetAudioManager()` manage the structural audio
+  manager slot; the value must provide `InstallLibrary(document)`.
 
 Setting a dedicated service through its conventional key keeps both views in
-sync.
+sync. `Register({ audio: document })` forwards the complete document unchanged
+to the audio manager.
 
 ## Capability registry
 

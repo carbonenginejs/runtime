@@ -18,10 +18,19 @@ test("registers services without creating backend objects", () =>
     assert.equal(library.HasService(CjsServiceKey.RESOURCE_MANAGER), true);
     assert.equal(library.IsInitialized(), false);
 
-    library.SetService(CjsServiceKey.AUDIO_SYSTEM, { name: "audio" }).Initialize();
+    const audioManager = {
+        name: "audio",
+        InstallLibrary() {},
+    };
+
+    library.SetAudioManager(audioManager).Initialize();
 
     assert.equal(library.IsInitialized(), true);
-    assert.equal(library.GetService(CjsServiceKey.AUDIO_SYSTEM).name, "audio");
+    assert.equal(
+        library.GetService(CjsServiceKey.AUDIO_MANAGER).name,
+        "audio",
+    );
+    assert.equal(library.GetAudioManager(), audioManager);
     library.Shutdown();
     assert.equal(library.IsInitialized(), false);
 });
@@ -464,4 +473,48 @@ test("validates service keys and option shapes", () =>
     assert.throws(() => new CjsLibrary().SetService("", {}), /service key must be a non-empty string/u);
     assert.throws(() => new CjsLibrary({ unknown: true }), /unknown option/u);
     assert.throws(() => new CjsLibrary().Register({ resMan: {} }), error => error.code === "CJS_LIBRARY_SERVICE_MISSING");
+});
+
+test("audio registration forwards one document and shutdown deactivates without disposal", () =>
+{
+    const calls = [];
+    const audioManager = {
+        InstallLibrary(document)
+        {
+            calls.push([ "install", document ]);
+        },
+        Disable()
+        {
+            calls.push([ "disable" ]);
+        },
+        Detach()
+        {
+            calls.push([ "detach" ]);
+        },
+        Dispose()
+        {
+            calls.push([ "dispose" ]);
+        },
+    };
+    const document = {
+        schema: "carbonenginejs.audioLibrary",
+    };
+    const library = new CjsLibrary({
+        audioManager,
+    }).Register({
+        audio: document,
+    }).Initialize();
+
+    assert.equal(library.GetAudioManager(), audioManager);
+    assert.deepEqual(calls, [
+        [ "install", document ],
+    ]);
+
+    library.Shutdown();
+
+    assert.deepEqual(calls, [
+        [ "install", document ],
+        [ "disable" ],
+        [ "detach" ],
+    ]);
 });

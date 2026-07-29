@@ -12,7 +12,7 @@ export const CjsServiceKey = Object.freeze({
     RESOURCE_MANAGER: "resourceManager",
     SPACE_OBJECT_FACTORY: "spaceObjectFactory",
     DEVICE: "device",
-    AUDIO_SYSTEM: "audioSystem",
+    AUDIO_MANAGER: "audioManager",
     INPUT_MANAGER: "inputManager"
 });
 
@@ -20,6 +20,7 @@ const OPTION_KEYS = new Set([
     "services",
     "resourceManager",
     "spaceObjectFactory",
+    "audioManager",
     "capabilities",
     "resourceDefaults",
     "behaviors"
@@ -39,6 +40,7 @@ export class CjsLibrary
     #behaviorOrder = 0;
     #resourceManager = null;
     #spaceObjectFactory = null;
+    #audioManager = null;
     #initialized = false;
 
     /** Creates a composition root from optional services, capabilities, and request policies. */
@@ -74,6 +76,10 @@ export class CjsLibrary
         {
             this.SetSpaceObjectFactory(options.spaceObjectFactory);
         }
+        if (Object.prototype.hasOwnProperty.call(options, "audioManager"))
+        {
+            this.SetAudioManager(options.audioManager);
+        }
         if (Object.prototype.hasOwnProperty.call(options, "capabilities"))
         {
             this.RegisterCapabilities(options.capabilities);
@@ -104,11 +110,13 @@ export class CjsLibrary
             "services",
             "resourceManager",
             "spaceObjectFactory",
+            "audioManager",
             "capabilities",
             "resourceDefaults",
             "behaviors",
             "resMan",
-            "sof"
+            "sof",
+            "audio"
         ]);
         for (const key of Object.keys(options))
         {
@@ -126,6 +134,10 @@ export class CjsLibrary
         if (Object.prototype.hasOwnProperty.call(options, "spaceObjectFactory"))
         {
             this.SetSpaceObjectFactory(options.spaceObjectFactory);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "audioManager"))
+        {
+            this.SetAudioManager(options.audioManager);
         }
         if (Object.prototype.hasOwnProperty.call(options, "capabilities"))
         {
@@ -147,6 +159,10 @@ export class CjsLibrary
         {
             ForwardRegistration(this.#spaceObjectFactory, "sof", options.sof);
         }
+        if (Object.prototype.hasOwnProperty.call(options, "audio"))
+        {
+            ForwardAudioLibrary(this.#audioManager, options.audio);
+        }
         return this;
     }
 
@@ -157,6 +173,7 @@ export class CjsLibrary
             initialized: this.#initialized,
             resourceManager: this.#resourceManager,
             spaceObjectFactory: this.#spaceObjectFactory,
+            audioManager: this.#audioManager,
             services: Object.fromEntries(this.#services),
             capabilities: this.GetCapabilities(),
             resourceDefaults: this.GetResourceDefaults(),
@@ -191,9 +208,14 @@ export class CjsLibrary
         return this;
     }
 
-    /** Marks the composition root uninitialized without assuming ownership of its services. */
+    /**
+     * Marks the composition root uninitialized and deactivates attached audio
+     * without disposing any caller-owned service.
+     */
     Shutdown()
     {
+        this.#audioManager?.Disable?.();
+        this.#audioManager?.Detach?.();
         this.#initialized = false;
         return this;
     }
@@ -207,12 +229,14 @@ export class CjsLibrary
             this.#services.delete(name);
             if (name === CjsServiceKey.RESOURCE_MANAGER) this.#resourceManager = null;
             if (name === CjsServiceKey.SPACE_OBJECT_FACTORY) this.#spaceObjectFactory = null;
+            if (name === CjsServiceKey.AUDIO_MANAGER) this.#audioManager = null;
         }
         else
         {
             this.#services.set(name, service);
             if (name === CjsServiceKey.RESOURCE_MANAGER) this.#resourceManager = service;
             if (name === CjsServiceKey.SPACE_OBJECT_FACTORY) this.#spaceObjectFactory = service;
+            if (name === CjsServiceKey.AUDIO_MANAGER) this.#audioManager = service;
         }
         return this;
     }
@@ -258,6 +282,26 @@ export class CjsLibrary
     GetSpaceObjectFactory()
     {
         return this.#spaceObjectFactory;
+    }
+
+    /** Registers the browser audio-manager service. */
+    SetAudioManager(audioManager)
+    {
+        if (audioManager !== null
+            && audioManager !== undefined
+            && typeof audioManager.InstallLibrary !== "function")
+        {
+            throw new TypeError(
+                "CjsLibrary audioManager must provide InstallLibrary",
+            );
+        }
+        return this.SetService(CjsServiceKey.AUDIO_MANAGER, audioManager);
+    }
+
+    /** Returns the registered browser audio-manager service. */
+    GetAudioManager()
+    {
+        return this.#audioManager;
     }
 
     /** Merge an already-probed synchronous capability report. */
@@ -776,6 +820,29 @@ function ForwardRegistration(service, topic, options)
         throw error;
     }
     service.Register(options);
+}
+
+function ForwardAudioLibrary(audioManager, library)
+{
+    if (!audioManager)
+    {
+        const error = new Error(
+            "CjsLibrary cannot register audio without an audio manager.",
+        );
+        error.code = "CJS_LIBRARY_SERVICE_MISSING";
+        error.topic = "audio";
+        throw error;
+    }
+    if (typeof audioManager.InstallLibrary !== "function")
+    {
+        const error = new Error(
+            "CjsLibrary audio manager does not provide InstallLibrary().",
+        );
+        error.code = "CJS_LIBRARY_REGISTER_UNSUPPORTED";
+        error.topic = "audio";
+        throw error;
+    }
+    audioManager.InstallLibrary(library);
 }
 
 function ForwardCall(service, method, ...args)

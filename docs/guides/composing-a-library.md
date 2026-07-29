@@ -15,9 +15,9 @@ import CjsLibrary, {
 const library = new CjsLibrary({
     resourceManager,
     spaceObjectFactory,
+    audioManager,
     services: {
         [CjsServiceKey.DEVICE]: device,
-        [CjsServiceKey.AUDIO_SYSTEM]: audioSystem,
         [CjsServiceKey.INPUT_MANAGER]: inputManager
     }
 });
@@ -38,12 +38,15 @@ library.Register({
         emit: "json"
     },
     resMan: resourceOptions,
-    sof: sofOptions
+    sof: sofOptions,
+    audio: completeAudioLibraryDocument
 });
 ```
 
 `resMan` and `sof` values are forwarded to the corresponding service's
-`Register()` method. A missing service or method fails explicitly.
+`Register()` method. `audio` is passed unchanged to the audio manager's
+`InstallLibrary()` method. Runtime-core never downloads or builds that
+document. A missing service or method fails explicitly.
 
 ## Initialize and request
 
@@ -67,3 +70,6 @@ Use `GetValues()`, `GetCapabilities()`, `GetResourceDefaults()`, and
 `GetResourceBehaviors()` for snapshots of the current library configuration.
 The returned capability and request-policy snapshots do not transfer
 ownership of the registered services.
+
+`Shutdown()` disables and detaches the audio manager but does not dispose it;
+the caller retains ownership of its context, provider, and final disposal.
