@@ -1418,6 +1418,36 @@ preflight. The synthetic fixtures cannot express either condition, so an
 all-body corpus sweep is part of this feature's verification, not an optional
 extra.
 
+## Consumer boundary: resource transforms are not realized
+
+`engine-webgpu` accepts `CJS_WGSL_SET` versions 1, 2 and 3, and rejects a
+version-3 document that declares a resource transform with an explicit
+`not supported by this engine` diagnostic. The discriminator is the **feature**,
+never the document version and never `texture.viewDimension`:
+
+- a package is rejected when `wgsl.resourceTransforms` is non-empty, or when
+  any canonical layout binding carries `transformId` or `arrayLayerCount`;
+- a **source-declared** `texture_2d_array` is accepted. It keeps every one of
+  its bindings and needs no new engine machinery. Gating on `viewDimension`
+  would reject the very packages the existing exact draw gate renders — the
+  selected Quad V5 body binds a plain `texture_2d_array<f32>` with no
+  transform, and both Quad families carry `cube` bindings.
+
+The transform case is genuinely unrealizable rather than merely unimplemented:
+the producer removes a transform's non-zero-layer inputs from the physical
+layout, so an engine has no way to feed the array binding-by-binding. Until the
+engine allocates the array itself and fills layer *i* from `inputs[i]`, a
+transformed package must fail closed. Consequence to expect, not to debug: the
+Detail, HeatDetail and Environment family draw gates stay red under this
+boundary, because their selected bodies carry a transform.
+
+Accepting version 3 also tightened three structural checks that were written
+`=== 2` and would otherwise have silently downgraded every version-3 package to
+version-1 semantics: shared binding identities must span at least two stages,
+and explicit D3D and scope identities are both required. That downgrade would
+have been invisible to the exact draw gate, because DX11 and DX12 downgrade
+identically and the bit-exact comparison would have stayed green.
+
 ## Verification contract
 
 Every shader-emission, layout, or transform compatibility change requires the
