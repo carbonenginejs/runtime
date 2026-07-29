@@ -3,9 +3,9 @@
 import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
-  isPortableEffectReflection,
-  validatePortableEffectReflection
-} from "./portableValidation.js";
+  isEffectBodyReflection,
+  validateEffectBodyReflection
+} from "../../formats/hlsl/portable.js";
 import { Tr2EffectDescription } from "./reflection/Tr2EffectDescription.js";
 
 /** GPU-free selected shader and its complete source reflection graph. */
@@ -227,7 +227,7 @@ export class Tr2Shader extends CjsModel
   @impl.reason("Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the validated browser-safe portable-reflection contract after format parsing.")
   static fromPortable(portable)
   {
-    validatePortableEffectReflection(portable);
+    validateEffectBodyReflection(portable);
 
     const shader = new this();
     shader.effect = Tr2EffectDescription.fromPortable(portable.effect);
@@ -245,7 +245,7 @@ export class Tr2Shader extends CjsModel
   @impl.reason("Carbon has no portable-reflection document API; CarbonEngineJS validates that browser-safe interchange contract before hydration.")
   static isPortableReflection(value)
   {
-    return isPortableEffectReflection(value);
+    return isEffectBodyReflection(value);
   }
 
   /** Find one named reflection entry across every stage. */

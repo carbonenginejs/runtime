@@ -13,7 +13,7 @@ import {
   clonePortableSourceProgram,
   requirePortableStageType
 } from "../portable.js";
-import { validatePortableEffectInput } from "../portableValidation.js";
+import { validateEffectBodyInput } from "../../../formats/hlsl/portable.js";
 import { Tr2SamplerSetup } from "../sampler/Tr2SamplerSetup.js";
 import { Tr2EffectConstant } from "./Tr2EffectConstant.js";
 import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js";
@@ -151,7 +151,7 @@ export class Tr2EffectStageInput extends CjsModel
     {
       throw new TypeError("Portable effect stage input must be an object");
     }
-    validatePortableEffectInput(value);
+    validateEffectBodyInput(value);
     if (!isArray(value.constants))
     {
       throw new TypeError("Portable effect constants must be an array");

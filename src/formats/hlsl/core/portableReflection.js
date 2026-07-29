@@ -1,4 +1,5 @@
 import { readRaw } from "./helpers.js";
+import { isPlainObject } from "@carbonenginejs/runtime-utils/is";
 import { HlslEffectStateManager } from "./HlslEffectStateManager.js";
 import {
     HlslRenderContextEnum,
@@ -1272,8 +1273,10 @@ function requireExactKeys(value, allowed, context)
 
 function isRecord(value)
 {
-    return !!value && typeof value === "object"
-        && !Array.isArray(value) && !ArrayBuffer.isView(value);
+    // Plain objects only. A class instance, Map, Date, or anything carrying a
+    // custom prototype can present exactly the right own keys while bringing
+    // behaviour with it, so reject them at every object position.
+    return isPlainObject(value);
 }
 
 function requireBytes(value, context)
@@ -1411,5 +1414,42 @@ function assertUint(value, context)
     if (!Number.isSafeInteger(value) || value < 0 || value > UINT32_MAX)
     {
         throw new Error(`${context} must fit uint32`);
+    }
+}
+
+/**
+ * Validate one stage or library input record on its own.
+ *
+ * The whole-document walk validates inputs in place; this exposes the same
+ * rules for a caller hydrating a single input outside that walk.
+ *
+ * @param {object} input Candidate portable input record.
+ * @param {string} [context] Diagnostic context used in error messages.
+ * @returns {object} The validated input record.
+ */
+export function validateEffectBodyInput(input, context = "standalone input")
+{
+    validateInput(input, context);
+
+    return input;
+}
+
+/**
+ * Report whether a value is a valid portable body-reflection document.
+ *
+ * @param {any} value Candidate document.
+ * @returns {boolean} True when the document validates.
+ */
+export function isEffectBodyReflection(value)
+{
+    try
+    {
+        validateEffectBodyReflection(value);
+
+        return true;
+    }
+    catch
+    {
+        return false;
     }
 }

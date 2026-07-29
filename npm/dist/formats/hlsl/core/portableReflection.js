@@ -1,4 +1,5 @@
 import { readRaw } from './helpers.js';
+import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
 import { HlslEffectStateManager } from './HlslEffectStateManager.js';
 import { HlslRenderContextEnum, hlslShaderStageName } from './tr2/HlslRenderContextEnum.js';
 import { HlslShader } from './tr2/shader/HlslShader.js';
@@ -731,7 +732,10 @@ function requireExactKeys(value, allowed, context) {
   }
 }
 function isRecord(value) {
-  return !!value && typeof value === "object" && !Array.isArray(value) && !ArrayBuffer.isView(value);
+  // Plain objects only. A class instance, Map, Date, or anything carrying a
+  // custom prototype can present exactly the right own keys while bringing
+  // behaviour with it, so reject them at every object position.
+  return isPlainObject(value);
 }
 function requireBytes(value, context) {
   if (!(value instanceof Uint8Array)) {
@@ -810,5 +814,35 @@ function assertUint(value, context) {
   }
 }
 
-export { EFFECT_BODY_REFLECTION_FORMAT, EFFECT_BODY_REFLECTION_VERSION, buildEffectBodyReflection, enumerateUniqueEffectBodies, readEffectBodyReflection, validateEffectBodyReflection };
+/**
+ * Validate one stage or library input record on its own.
+ *
+ * The whole-document walk validates inputs in place; this exposes the same
+ * rules for a caller hydrating a single input outside that walk.
+ *
+ * @param {object} input Candidate portable input record.
+ * @param {string} [context] Diagnostic context used in error messages.
+ * @returns {object} The validated input record.
+ */
+function validateEffectBodyInput(input, context = "standalone input") {
+  validateInput(input, context);
+  return input;
+}
+
+/**
+ * Report whether a value is a valid portable body-reflection document.
+ *
+ * @param {any} value Candidate document.
+ * @returns {boolean} True when the document validates.
+ */
+function isEffectBodyReflection(value) {
+  try {
+    validateEffectBodyReflection(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export { EFFECT_BODY_REFLECTION_FORMAT, EFFECT_BODY_REFLECTION_VERSION, buildEffectBodyReflection, enumerateUniqueEffectBodies, isEffectBodyReflection, readEffectBodyReflection, validateEffectBodyInput, validateEffectBodyReflection };
 //# sourceMappingURL=portableReflection.js.map

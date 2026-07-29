@@ -5,7 +5,7 @@ import { copyBytes } from '@carbonenginejs/runtime-utils/bytes';
 import { isPlainObject, isArray, isUint32 } from '@carbonenginejs/runtime-utils/is';
 import { cloneCarbonValue } from '@carbonenginejs/runtime-utils/types';
 import { requirePortableStageType, clonePortableSourceProgram } from '../portable.js';
-import { validatePortableEffectInput } from '../portableValidation.js';
+import { validateEffectBodyInput } from '../../../formats/hlsl/core/portableReflection.js';
 import { Tr2SamplerSetup as _Tr2SamplerSetup } from '../sampler/Tr2SamplerSetup.js';
 import { Tr2EffectConstant as _Tr2EffectConstant } from './Tr2EffectConstant.js';
 import { Tr2EffectParameterAnnotation as _Tr2EffectParameterAn } from './Tr2EffectParameterAnnotation.js';
@@ -118,7 +118,7 @@ class Tr2EffectStageInput extends CjsModel {
     if (!isPlainObject(value)) {
       throw new TypeError("Portable effect stage input must be an object");
     }
-    validatePortableEffectInput(value);
+    validateEffectBodyInput(value);
     if (!isArray(value.constants)) {
       throw new TypeError("Portable effect constants must be an array");
     }

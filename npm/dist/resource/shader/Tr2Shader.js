@@ -1,7 +1,7 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { validatePortableEffectReflection, isPortableEffectReflection } from './portableValidation.js';
+import { validateEffectBodyReflection, isEffectBodyReflection } from '../../formats/hlsl/core/portableReflection.js';
 import { Tr2EffectDescription as _Tr2EffectDescription } from './reflection/Tr2EffectDescription.js';
 
 let _initProto, _initStatic, _initClass, _init_sortValue, _init_extra_sortValue, _init_effect, _init_extra_effect, _init_hasVertexBufferAccessInRtShadow, _init_extra_hasVertexBufferAccessInRtShadow;
@@ -164,7 +164,7 @@ class Tr2Shader extends CjsModel {
    * @returns {Tr2Shader} Canonical selected shader.
    */
   static fromPortable(portable) {
-    validatePortableEffectReflection(portable);
+    validateEffectBodyReflection(portable);
     const shader = new this();
     shader.effect = _Tr2EffectDescription.fromPortable(portable.effect);
     shader.ProcessEffect();
@@ -178,7 +178,7 @@ class Tr2Shader extends CjsModel {
    * @returns {boolean} Whether the portable envelope is supported.
    */
   static isPortableReflection(value) {
-    return isPortableEffectReflection(value);
+    return isEffectBodyReflection(value);
   }
 
   /** Find one named reflection entry across every stage. */
