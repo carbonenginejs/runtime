@@ -20,6 +20,8 @@ under `format-notices/<format>/`.
 | `format-dds` | `66fa149cd826e1114ad0be84479f89dee753ed76` | `CjsDdsFormat` | `@carbonenginejs/runtime-resource/formats/dds` |
 | `format-dxbc` | `3790bda40d7d0d3b774eeb4d82a13827dbe332df` | `CjsDxbcFormat` | `@carbonenginejs/runtime-resource/formats/dxbc` |
 | `format-hlsl` | `e494203f3a1e10866fbe148b460297045cd959ed` | `CjsHlslFormat` | `@carbonenginejs/runtime-resource/formats/hlsl` |
+| `format-webgl` | `428bc141d090b7416745ea43bf3fc320b9e99b43` | `CjsWebglFormat` | `@carbonenginejs/runtime-resource/formats/webgl` |
+| `format-webgpu` | `ffabae8c6a6c658f30807582300aa97522964ee7` | `CjsWebgpuFormat` | `@carbonenginejs/runtime-resource/formats/webgpu` |
 | `format-fbx` | `8d0fcc2fe44c8096b35e360a903bff30b49eb592` | `CjsFbxFormat` | `@carbonenginejs/runtime-resource/formats/fbx` |
 | `format-flac` | unborn working-tree snapshot | `CjsFlacFormat` | `@carbonenginejs/runtime-resource/formats/flac` |
 | `format-gif` | `5d831c5c0533a9579682f776274574289a520899` | `CjsGifFormat` | `@carbonenginejs/runtime-resource/formats/gif` |
@@ -160,10 +162,11 @@ snapshot must record its new source and digest here.
   catalog but does not yet enforce it while reading YAML fields.
 - The shader formats were excluded from the original migration while their
   implementations were still being finished. That sequencing guard was lifted
-  on 2026-07-29 and they are moving in as ordinary formats. `format-dxbc` has
-  landed as `formats/dxbc`; `format-hlsl`, `format-webgl`, and `format-webgpu`
-  follow. Their standalone repositories remain in place, unmodified by the
-  move.
+  on 2026-07-29 and they moved in as ordinary formats. All four landed:
+  `formats/dxbc`, `formats/hlsl`, `formats/webgl`, and `formats/webgpu`. Their
+  standalone repositories remain in place, unmodified by the move. Their
+  local-only test fixtures are game-derived and were deliberately not copied;
+  the suites that need them skip with an explicit reason.
 
 ## Typed-array ownership adjustments
 

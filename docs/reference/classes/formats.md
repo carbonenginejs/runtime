@@ -737,6 +737,152 @@ WAV audio format profile that inspects RIFF chunk metadata and reads supported W
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
+### shared effect layer
+
+<!-- class:ReflectionBlobStore -->
+## `ReflectionBlobStore`
+
+Content-addressed arena that deduplicates every exact byte payload referenced by portable effect reflection.
+
+- Export: `None`
+- Source: `src/format/effect/effectReflectionPackage.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+### webgl
+
+<!-- class:CjsWebglFormat -->
+## `CjsWebglFormat`
+
+WebGL shader format profile that translates compiled Carbon effects into CEWG packages carrying GLSL programs and portable source reflection.
+
+- Export: `@carbonenginejs/runtime-resource/formats/webgl`
+- Source: `src/formats/webgl/CjsWebglFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CewgPackage -->
+## `CewgPackage`
+
+Reader for the flat CEWG container: chunk lookup, cached JSON decoding, and validated portable reflection access.
+
+- Export: `None`
+- Source: `src/formats/webgl/core/cewg/CewgPackage.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:CewgPackageBuilder -->
+## `CewgPackageBuilder`
+
+Builds a CEWG container from ordered, uniquely tagged chunks.
+
+- Export: `None`
+- Source: `src/formats/webgl/core/cewg/CewgPackageBuilder.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:WebglReader -->
+## `WebglReader`
+
+Bounded little-endian byte cursor over CEWG container bytes.
+
+- Export: `None`
+- Source: `src/formats/webgl/core/cewg/binary.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:WebglReadError -->
+## `WebglReadError`
+
+Error raised when CEWG bytes or package documents are malformed or inconsistent.
+
+- Export: `None`
+- Source: `src/formats/webgl/core/errors.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:DxbcGlslEmitter -->
+## `DxbcGlslEmitter`
+
+Translates decoded DXBC shader programs into GLSL for the WebGL backend.
+
+- Export: `None`
+- Source: `src/formats/webgl/core/glsl/DxbcGlslEmitter.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:DxbcGlslHelperRegistry -->
+## `DxbcGlslHelperRegistry`
+
+Collects and emits the GLSL helper functions a translated program requires.
+
+- Export: `None`
+- Source: `src/formats/webgl/core/glsl/DxbcGlslHelpers.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:DxbcGlslOperandFormatter -->
+## `DxbcGlslOperandFormatter`
+
+Formats DXBC operands, swizzles, and modifiers as GLSL expressions.
+
+- Export: `None`
+- Source: `src/formats/webgl/core/glsl/DxbcGlslOperandFormatter.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+### webgpu
+
+<!-- class:CjsWebgpuFormat -->
+## `CjsWebgpuFormat`
+
+WebGPU shader format profile that translates compiled Carbon effects into CEWGPU packages carrying WGSL programs, bind-group layouts, and portable source reflection.
+
+- Export: `@carbonenginejs/runtime-resource/formats/webgpu`
+- Source: `src/formats/webgpu/CjsWebgpuFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CewgpuPackage -->
+## `CewgpuPackage`
+
+Reader for the flat CEWGPU container: chunk lookup, cached JSON decoding, and gated portable reflection and backend program access.
+
+- Export: `None`
+- Source: `src/formats/webgpu/core/cewgpu/CewgpuPackage.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:CewgpuPackageBuilder -->
+## `CewgpuPackageBuilder`
+
+Builds a CEWGPU container from ordered, uniquely tagged chunks.
+
+- Export: `None`
+- Source: `src/formats/webgpu/core/cewgpu/CewgpuPackageBuilder.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:WebgpuReader -->
+## `WebgpuReader`
+
+Bounded little-endian byte cursor over CEWGPU container bytes.
+
+- Export: `None`
+- Source: `src/formats/webgpu/core/cewgpu/binary.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:WebgpuReadError -->
+## `WebgpuReadError`
+
+Error raised when CEWGPU bytes or package documents are malformed or inconsistent.
+
+- Export: `None`
+- Source: `src/formats/webgpu/core/errors.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 ### webm
 
 <!-- class:CjsWebmFormat -->

@@ -4,6 +4,8 @@ export { CjsCmfFormat } from './cmf/CjsCmfFormat.js';
 export { CjsDdsFormat } from './dds/CjsDdsFormat.js';
 export { CjsDxbcFormat } from './dxbc/CjsDxbcFormat.js';
 export { CjsHlslFormat } from './hlsl/CjsHlslFormat.js';
+export { CjsWebglFormat } from './webgl/CjsWebglFormat.js';
+export { CjsWebgpuFormat } from './webgpu/CjsWebgpuFormat.js';
 export { CjsFbxFormat } from './fbx/CjsFbxFormat.js';
 export { CjsFlacFormat } from './flac/CjsFlacFormat.js';
 export { CjsGifFormat } from './gif/CjsGifFormat.js';
