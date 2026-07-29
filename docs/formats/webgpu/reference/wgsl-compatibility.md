@@ -1433,6 +1433,20 @@ never the document version and never `texture.viewDimension`:
   selected Quad V5 body binds a plain `texture_2d_array<f32>` with no
   transform, and both Quad families carry `cube` bindings.
 
+Source-declared array textures are now realized rather than merely accepted:
+the engine creates a layered 2D texture with a `2d-array` view and binds it
+through the same adapter, gated by a synthetic two-layer draw that asserts each
+layer's pixels exactly. A single-layer array view is legal and distinct from a
+plain 2D view, because a shader declaring `texture_2d_array<f32>` needs the
+array view whatever its layer count. A layout asking for the dimension the view
+was not created with fails closed, since a view's dimension is fixed at
+creation and cannot be reinterpreted.
+
+This matters beyond the transform case: the High `.sm_depth` Quad V5 `Main`
+pass binds `LightProfileArray` as a plain `texture_2d_array<f32>` with no
+transform at all, so array-texture realization is a prerequisite for any
+High-tier draw gate, not a detail of transform support.
+
 The transform case is genuinely unrealizable rather than merely unimplemented:
 the producer removes a transform's non-zero-layer inputs from the physical
 layout, so an engine has no way to feed the array binding-by-binding. Until the
