@@ -30,10 +30,10 @@
     "@carbonenginejs/runtime-utils": "^0.1.0"
   },
   "devDependencies": {
-    "@carbonenginejs/format-dxbc": "^0.1.3",
-    "@carbonenginejs/format-hlsl": "^0.1.3",
-    "@carbonenginejs/format-webgl": "^0.1.6",
-    "@carbonenginejs/format-webgpu": "^0.4.1"
+    "@carbonenginejs/format-dxbc": "^0.1.4",
+    "@carbonenginejs/format-hlsl": "^0.1.8",
+    "@carbonenginejs/format-webgl": "^0.2.0",
+    "@carbonenginejs/format-webgpu": "^0.6.0"
   },
   "keywords": [
     "carbonenginejs",
