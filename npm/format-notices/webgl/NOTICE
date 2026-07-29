@@ -9,7 +9,7 @@ Contains no Microsoft, CarbonEngine, or Fenris Creations (CCP Games) code. The C
 four-byte-tagged chunk layout: `INFO`/`META`/`GLSL`/...) is a CarbonEngineJS
 invention, not a Microsoft, CarbonEngine, or Fenris Creations (CCP Games) one. The DXBC token-stream layout follows
 Microsoft's public d3d11TokenizedProgramFormat documentation (consumed here
-only through `@carbonenginejs/format-dxbc`'s public format; this package
+only through the sibling `formats/dxbc` public format; this format
 decodes no DXBC bytes itself). Unity Technologies' HLSLcc (MIT) was used as
 a behavioral reference while auditing the GLSL lowering rules this emitter
 implements; no HLSLcc source is included in this repository.
