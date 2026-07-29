@@ -55,6 +55,7 @@
     "lint": "node scripts/lint_package.js",
     "build:npm": "npm run lint && node scripts/build_npm.js && rollup -c",
     "proof:decorators": "node scripts/proof_decorator_transform.js",
+    "metadata:hlsl": "node scripts/formats/hlsl/metadata.js metadata",
     "package:effect": "node scripts/formats/webgpu/package-effect.js",
     "qualify:effects": "node scripts/formats/webgpu/qualify-effect-pairs.js",
     "qualify:matrix": "node scripts/formats/webgpu/qualify-effect-matrix.js",
