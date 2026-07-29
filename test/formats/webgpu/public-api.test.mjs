@@ -10,7 +10,7 @@ class Resource {}
 
 // The compiler is a format inside runtime-resource now, so its packageVersion
 // is the emitted producer/format version, no longer the host manifest version.
-const FORMAT_VERSION = "0.11.0";
+const FORMAT_VERSION = "0.11.1";
 
 const SAMPLE_CHUNKS = [
     [ "INFO", { format: "CEWGPU", formatVersion: 1, analyzer: "dxbc-phase1" } ],

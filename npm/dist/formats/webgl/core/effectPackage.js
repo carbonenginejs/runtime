@@ -7,7 +7,7 @@ import { buildCompleteEffectReflection, EFFECT_REFLECTION_CHUNK, EFFECT_REFLECTI
 import { buildPackage, inspectWithValues, emitGlslWithOptions } from './helpers.js';
 import { sha256Utf8, sha256Bytes } from '../../../format/effect/sha256.js';
 
-const PACKAGE_VERSION = "0.11.0";
+const PACKAGE_VERSION = "0.11.1";
 
 /**
  * Builds a complete CEWG package from compiled Tr2 effect bytes.

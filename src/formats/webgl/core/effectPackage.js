@@ -17,7 +17,7 @@ import {
 import { buildPackage, emitGlslWithOptions, inspectWithValues } from "./helpers.js";
 import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
 
-const PACKAGE_VERSION = "0.11.0";
+const PACKAGE_VERSION = "0.11.1";
 
 /**
  * Builds a complete CEWG package from compiled Tr2 effect bytes.
