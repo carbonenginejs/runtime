@@ -40,6 +40,23 @@ ordinary ownership removals preserve the handle's last resource state;
 `PURGED` is reserved for successful policy eviction through inactivity or
 byte pressure.
 
+`PURGED` is not terminal for the handle. Purge deletes the payload, but the
+handle revives itself: `IsGood()` renews activity through `KeepAlive()`, and
+`KeepAlive()` reloads a purged resource along the ordinary first-load path. A
+consumer therefore never learns that a purge happened and never manages
+retention itself - it asks whether the resource is good, and that question is
+what keeps it, or brings it back.
+
+Liveness follows visibility. Something being drawn is asked about every frame
+and stays live; something that stops being drawn stops being renewed, ages out,
+and has its memory reclaimed; when it is drawn again the next `IsGood()`
+restores it. `Reload()` is bounded by `maxReloadAttempts` precisely because the
+render path calls this every frame, so one permanently missing resource cannot
+become a retry storm. A reload refills the exact handle the consumer holds
+rather than resolving whatever the manager currently caches for that path,
+because a consumer holding a purged handle has no way to discover a
+replacement.
+
 `Startup()` and `Shutdown()` are idempotent. `HasKey`, `Lookup`, `Delete`,
 `GetKeys`, `GetValues`, `GetSize`, `SetCacheSize`, `GetCacheSize`, `GetStats`,
 `TrimCache`, `ReplaceExpected`, `Clear`, and `ClearCached` provide the

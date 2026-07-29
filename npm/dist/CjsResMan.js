@@ -2480,6 +2480,21 @@ class CjsResMan extends CjsEventEmitter {
       return false;
     }
   }
+
+  /**
+   * Give one resource the liveness callbacks its consumers never manage
+   * themselves: activity renewal, payload renewal, lock counting, and the
+   * reload hook that revives the handle after a purge.
+   *
+   * Ownership is captured by generation, so a late release can never renew or
+   * unlock a rebound owner. The reload hook is bound outside the lifecycle
+   * controller because that controller is detached exactly when canonical
+   * ownership ends, which is precisely when a purged handle needs to come back.
+   *
+   * @param {string} key Canonical resolved key.
+   * @param {object} resource Resource handle to bind.
+   * @returns {object} The same resource handle.
+   */
   #BindResourceLifecycle(key, resource) {
     const owner = this.motherLode;
     let ownership = this.#resourceOwnership.get(resource) || null;
