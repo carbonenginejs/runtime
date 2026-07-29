@@ -6,7 +6,7 @@ const textDecoder = new TextDecoder("utf-8", { fatal: false });
 /**
  * Little-endian binary reader with optional shared string-table references.
  */
-export class CjsDxbcReader
+export class DxbcReader
 {
     /**
    * Creates a reader over a byte payload and optional shared string table.

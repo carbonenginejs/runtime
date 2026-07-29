@@ -42,6 +42,7 @@ metadata. Worker eligibility never changes the format's direct API; see
 | CMF (`.cmf`) | `CjsCmfFormat` | `@carbonenginejs/runtime-resource/formats/cmf` |
 | DDS (`.dds`) | `CjsDdsFormat` | `@carbonenginejs/runtime-resource/formats/dds` |
 | DXBC (shader bytecode) | `CjsDxbcFormat` | `@carbonenginejs/runtime-resource/formats/dxbc` |
+| Compiled effect (`.sm_hi`, `.sm_lo`, `.sm_depth`) | `CjsHlslFormat` | `@carbonenginejs/runtime-resource/formats/hlsl` |
 | FBX (`.fbx`) | `CjsFbxFormat` | `@carbonenginejs/runtime-resource/formats/fbx` |
 | FLAC (`.flac`) | `CjsFlacFormat` | `@carbonenginejs/runtime-resource/formats/flac` |
 | GIF (`.gif`) | `CjsGifFormat` | `@carbonenginejs/runtime-resource/formats/gif` |

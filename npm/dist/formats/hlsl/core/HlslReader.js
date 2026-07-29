@@ -1,4 +1,4 @@
-import { DxbcReadError } from './errors.js';
+import { HlslEffectReadError } from './HlslEffectReadError.js';
 import { asUint8Array } from '@carbonenginejs/runtime-utils/bytes';
 
 const textDecoder = new TextDecoder("utf-8", {
@@ -6,9 +6,9 @@ const textDecoder = new TextDecoder("utf-8", {
 });
 
 /**
- * Little-endian binary reader with optional shared string-table references.
+ * Little-endian binary reader for Carbon/Trinity compiled effect data.
  */
-class CjsDxbcReader {
+class HlslReader {
   /**
   * Creates a reader over a byte payload and optional shared string table.
   *
@@ -36,7 +36,7 @@ class CjsDxbcReader {
   * @param {ArrayBuffer|ArrayBufferView|Uint8Array} bytes String-table bytes.
   * @param {number|null} [size] Valid string-table byte count.
   */
-  SetStringTable(bytes, size = null) {
+  setStringTable(bytes, size = null) {
     this.stringTable = asUint8Array(bytes);
     this.stringTableSize = Number.isInteger(size) ? size : this.stringTable.length;
   }
@@ -55,7 +55,7 @@ class CjsDxbcReader {
   *
   * @param {number} size Byte count to skip.
   */
-  Skip(size) {
+  skip(size) {
     this._require(size);
     this.offset += size;
   }
@@ -66,7 +66,7 @@ class CjsDxbcReader {
   * @param {number} size Byte count to read.
   * @returns {Uint8Array} View over the read bytes.
   */
-  ReadRaw(size) {
+  readRaw(size) {
     this._require(size);
     const start = this.offset;
     this.offset += size;
@@ -138,7 +138,7 @@ class CjsDxbcReader {
   *
   * @returns {boolean} Boolean value.
   */
-  ReadBool() {
+  readBool() {
     return this.readUint8() !== 0;
   }
 
@@ -148,9 +148,9 @@ class CjsDxbcReader {
   * @param {number} [sizeHint] Optional maximum byte span for bounds checking.
   * @returns {string} Decoded string.
   */
-  ReadString(sizeHint = 0) {
+  readString(sizeHint = 0) {
     const offset = this.readUint32();
-    return this.ReadStringAt(offset, sizeHint);
+    return this.readStringAt(offset, sizeHint);
   }
 
   /**
@@ -159,12 +159,12 @@ class CjsDxbcReader {
   * @param {number} length Source field length.
   * @returns {string|null} Decoded string or null.
   */
-  ReadStringOptional(length) {
+  readStringOptional(length) {
     const offset = this.readUint32();
     if (length === 0) {
       return null;
     }
-    return this.ReadStringAt(offset, length);
+    return this.readStringAt(offset, length);
   }
 
   /**
@@ -173,7 +173,7 @@ class CjsDxbcReader {
   * @param {number} size Blob byte count.
   * @returns {{offset:number,bytes:Uint8Array}} Blob location and bytes.
   */
-  ReadTableBlob(size) {
+  readTableBlob(size) {
     const offset = this.readUint32();
     this._requireStringTable(offset, size);
     return {
@@ -188,7 +188,7 @@ class CjsDxbcReader {
   * @param {number} size Blob byte count.
   * @returns {{offset:number,bytes:Uint8Array}} Blob location and bytes.
   */
-  ReadTableBlobOptional(size) {
+  readTableBlobOptional(size) {
     const offset = this.readUint32();
     if (size === 0) {
       return {
@@ -210,7 +210,7 @@ class CjsDxbcReader {
   * @param {number} [sizeHint] Optional maximum byte span for bounds checking.
   * @returns {string} Decoded string.
   */
-  ReadStringAt(offset, sizeHint = 0) {
+  readStringAt(offset, sizeHint = 0) {
     this._requireStringTable(offset, sizeHint);
     let end = offset;
     while (end < this.stringTableSize && this.stringTable[end] !== 0) {
@@ -227,7 +227,7 @@ class CjsDxbcReader {
   */
   _require(size) {
     if (!Number.isInteger(size) || size < 0 || this.offset + size > this.end) {
-      throw new DxbcReadError("Unexpected end of effect data", {
+      throw new HlslEffectReadError("Unexpected end of effect data", {
         source: this.source,
         offset: this.offset,
         requested: size,
@@ -246,13 +246,13 @@ class CjsDxbcReader {
   _requireStringTable(offset, sizeHint = 0) {
     const size = Number(sizeHint) || 0;
     if (!this.stringTable) {
-      throw new DxbcReadError("Missing effect string table", {
+      throw new HlslEffectReadError("Missing effect string table", {
         source: this.source,
         offset
       });
     }
     if (!Number.isInteger(offset) || offset < 0 || offset >= this.stringTableSize || offset + size > this.stringTableSize) {
-      throw new DxbcReadError("Invalid string-table offset", {
+      throw new HlslEffectReadError("Invalid string-table offset", {
         source: this.source,
         offset,
         sizeHint: size,
@@ -262,5 +262,5 @@ class CjsDxbcReader {
   }
 }
 
-export { CjsDxbcReader };
-//# sourceMappingURL=CjsDxbcReader.js.map
+export { HlslReader };
+//# sourceMappingURL=HlslReader.js.map

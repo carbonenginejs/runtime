@@ -1,5 +1,5 @@
 import { asUint8Array } from "@carbonenginejs/runtime-utils/bytes";
-import { CjsDxbcReader } from "./CjsDxbcReader.js";
+import { DxbcReader } from "./DxbcReader.js";
 import { DxbcReadError } from "./errors.js";
 
 const DXBC_HEADER_SIZE = 32;
@@ -70,7 +70,7 @@ export class DxbcContainer
             });
         }
 
-        const reader = new CjsDxbcReader(this.bytes, { source: this.source, offset: DXBC_MAGIC.length });
+        const reader = new DxbcReader(this.bytes, { source: this.source, offset: DXBC_MAGIC.length });
         this.checksum = reader.ReadRaw(16).slice();
         this.version = reader.readUint32();
         this.totalSize = reader.readUint32();
@@ -147,7 +147,7 @@ export class DxbcContainer
                 totalSize: this.totalSize
             });
         }
-        const reader = new CjsDxbcReader(this.bytes, { source: this.source, offset });
+        const reader = new DxbcReader(this.bytes, { source: this.source, offset });
         const fourCC = fourCCDecoder.decode(reader.ReadRaw(4));
         const size = reader.readUint32();
         if (offset + DXBC_CHUNK_HEADER_SIZE + size > this.totalSize)

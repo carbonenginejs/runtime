@@ -1,4 +1,4 @@
-import { CjsDxbcReader } from "./CjsDxbcReader.js";
+import { DxbcReader } from "./DxbcReader.js";
 import { DxbcReadError } from "./errors.js";
 
 const SIGNATURE_TABLE_HEADER_SIZE = 8;
@@ -64,7 +64,7 @@ export class DxbcSignatureChunk
         }
 
         const bytes = chunk.bytes;
-        const reader = new CjsDxbcReader(bytes, { source: this.source });
+        const reader = new DxbcReader(bytes, { source: this.source });
         const elementCount = reader.readUint32();
         const elementOffset = reader.readUint32() || SIGNATURE_TABLE_HEADER_SIZE;
         if (elementOffset + elementCount * layout.stride > bytes.length)

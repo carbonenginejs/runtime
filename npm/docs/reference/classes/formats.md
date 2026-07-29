@@ -145,13 +145,13 @@ DXBC shader-bytecode format profile that reads container chunks, signatures, and
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
-<!-- class:CjsDxbcReader -->
-## `CjsDxbcReader`
+<!-- class:DxbcReader -->
+## `DxbcReader`
 
 Bounded little-endian byte cursor over DXBC payloads, with optional shared string-table resolution.
 
 - Export: `None`
-- Source: `src/formats/dxbc/core/CjsDxbcReader.js`
+- Source: `src/formats/dxbc/core/DxbcReader.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
@@ -332,6 +332,228 @@ Adaptive weighted symbol window that Oodle1 dictionaries use to model symbol pro
 
 - Export: `None`
 - Source: `src/formats/gr2/core/oodle1.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+### hlsl
+
+<!-- class:CjsHlslFormat -->
+## `CjsHlslFormat`
+
+Compiled Carbon effect format profile that reads .sm_* shader packages into permutation, technique, and stage metadata.
+
+- Export: `@carbonenginejs/runtime-resource/formats/hlsl`
+- Source: `src/formats/hlsl/CjsHlslFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:HlslReader -->
+## `HlslReader`
+
+Bounded little-endian byte cursor over compiled effect payloads, with shared string-table resolution.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/HlslReader.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslEffectReadError -->
+## `HlslEffectReadError`
+
+Error raised when compiled effect bytes are malformed, truncated, or an unsupported version.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/HlslEffectReadError.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslEffectStateManager -->
+## `HlslEffectStateManager`
+
+Resolves and caches render-state setups referenced by a compiled effect while it is read.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/HlslEffectStateManager.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslRenderStateSetup -->
+## `HlslRenderStateSetup`
+
+Ordered render-state key and value records attached to one pass.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/HlslRenderStateSetup.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslResourceSetDescription -->
+## `HlslResourceSetDescription`
+
+Describes one resource set bound by a compiled effect stage.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/HlslResourceSetDescription.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslShaderBytecode -->
+## `HlslShaderBytecode`
+
+Stage bytecode payload carried by a compiled effect, with its stage type and name.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/HlslShaderBytecode.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslEffectRes -->
+## `HlslEffectRes`
+
+Parsed compiled effect resource: permutation axes, body offsets, and lazily decoded shader bodies.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/resources/HlslEffectRes.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslShaderPermutation -->
+## `HlslShaderPermutation`
+
+One permutation axis of a compiled effect, with its ordered options and default.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/resources/HlslShaderPermutation.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslEffectBindingManifest -->
+## `HlslEffectBindingManifest`
+
+Flattened per-stage binding manifest derived from a resolved effect description.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslEffectBindingManifest.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslEffectConstant -->
+## `HlslEffectConstant`
+
+Reflected shader constant: name, offset, size, type, dimension, and element count.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslEffectConstant.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslEffectDescription -->
+## `HlslEffectDescription`
+
+Decoded effect body: techniques, passes, stages, libraries, and top-level annotations.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslEffectDescription.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslEffectLibrary -->
+## `HlslEffectLibrary`
+
+Ray-tracing shader library record with its exports, payload size, and stage inputs.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslEffectLibrary.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslEffectParameterAnnotation -->
+## `HlslEffectParameterAnnotation`
+
+Typed annotation attached to a reflected effect parameter.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslEffectParameterAnnotation.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslEffectResource -->
+## `HlslEffectResource`
+
+Reflected shader resource or UAV binding with its register identity and array count.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslEffectResource.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslEffectStageInput -->
+## `HlslEffectStageInput`
+
+Reflected stage input: constants, resources, samplers, signatures, and default constant bytes.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslEffectStageInput.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslEffectTechnique -->
+## `HlslEffectTechnique`
+
+Named technique of a compiled effect body and its ordered passes.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslEffectTechnique.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslPass -->
+## `HlslPass`
+
+One pass of a technique, carrying its stage inputs and render states.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslPass.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslSamplerDescription -->
+## `HlslSamplerDescription`
+
+Sampler state description: filters, address modes, LOD bounds, and comparison function.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslSamplerDescription.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslSamplerSetup -->
+## `HlslSamplerSetup`
+
+Named or static sampler setup bound by a compiled effect stage.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslSamplerSetup.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslShader -->
+## `HlslShader`
+
+Decoded shader body for one permutation index, wrapping its effect description.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslShader.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:HlslShaderOption -->
+## `HlslShaderOption`
+
+One option value of a permutation axis.
+
+- Export: `None`
+- Source: `src/formats/hlsl/core/tr2/shader/HlslShaderOption.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 

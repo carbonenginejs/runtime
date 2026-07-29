@@ -3,6 +3,7 @@ export { CjsBnkFormat } from "./bnk/index.js";
 export { CjsCmfFormat } from "./cmf/index.js";
 export { CjsDdsFormat } from "./dds/index.js";
 export { CjsDxbcFormat } from "./dxbc/index.js";
+export { CjsHlslFormat } from "./hlsl/index.js";
 export { CjsFbxFormat } from "./fbx/index.js";
 export { CjsFlacFormat } from "./flac/index.js";
 export { CjsGifFormat } from "./gif/index.js";

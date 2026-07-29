@@ -21,6 +21,8 @@
     "./formats/cmf": "./dist/formats/cmf/index.js",
     "./formats/dds": "./dist/formats/dds/index.js",
     "./formats/dxbc": "./dist/formats/dxbc/index.js",
+    "./formats/hlsl": "./dist/formats/hlsl/index.js",
+    "./formats/hlsl/portable": "./dist/formats/hlsl/portable.js",
     "./formats/fbx": "./dist/formats/fbx/index.js",
     "./formats/flac": "./dist/formats/flac/index.js",
     "./formats/gif": "./dist/formats/gif/index.js",

@@ -26,6 +26,8 @@ export default {
     "src/formats/cmf/index.js",
     "src/formats/dds/index.js",
     "src/formats/dxbc/index.js",
+    "src/formats/hlsl/index.js",
+    "src/formats/hlsl/portable.js",
     "src/formats/fbx/index.js",
     "src/formats/flac/index.js",
     "src/formats/gif/index.js",

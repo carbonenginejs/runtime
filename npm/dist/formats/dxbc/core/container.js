@@ -1,5 +1,5 @@
 import { asUint8Array } from '@carbonenginejs/runtime-utils/bytes';
-import { CjsDxbcReader } from './CjsDxbcReader.js';
+import { DxbcReader } from './DxbcReader.js';
 import { DxbcReadError } from './errors.js';
 
 const DXBC_HEADER_SIZE = 32;
@@ -61,7 +61,7 @@ class DxbcContainer {
         length: this.bytes.length
       });
     }
-    const reader = new CjsDxbcReader(this.bytes, {
+    const reader = new DxbcReader(this.bytes, {
       source: this.source,
       offset: DXBC_MAGIC.length
     });
@@ -140,7 +140,7 @@ class DxbcContainer {
         totalSize: this.totalSize
       });
     }
-    const reader = new CjsDxbcReader(this.bytes, {
+    const reader = new DxbcReader(this.bytes, {
       source: this.source,
       offset
     });
