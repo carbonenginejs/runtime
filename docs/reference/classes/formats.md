@@ -133,6 +133,78 @@ LSB-first bit reader over a single 128-bit BC7 block bitstream for the software 
 - Visibility: Internal
 - Kind: Internal implementation class
 
+### dxbc
+
+<!-- class:CjsDxbcFormat -->
+## `CjsDxbcFormat`
+
+DXBC shader-bytecode format profile that reads container chunks, signatures, and the decoded shader program from compiled Direct3D bytecode.
+
+- Export: `@carbonenginejs/runtime-resource/formats/dxbc`
+- Source: `src/formats/dxbc/CjsDxbcFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsDxbcReader -->
+## `CjsDxbcReader`
+
+Bounded little-endian byte cursor over DXBC payloads, with optional shared string-table resolution.
+
+- Export: `None`
+- Source: `src/formats/dxbc/core/CjsDxbcReader.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:DxbcContainer -->
+## `DxbcContainer`
+
+Parsed DXBC container that locates and exposes its four-character-code chunks.
+
+- Export: `None`
+- Source: `src/formats/dxbc/core/container.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:DxbcInstructionDecoder -->
+## `DxbcInstructionDecoder`
+
+Decodes the DXBC shader token stream into structured instructions, operands, and declarations.
+
+- Export: `None`
+- Source: `src/formats/dxbc/core/decoder.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:DxbcReadError -->
+## `DxbcReadError`
+
+Error raised when DXBC bytes are malformed, truncated, or structurally invalid.
+
+- Export: `None`
+- Source: `src/formats/dxbc/core/errors.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:DxbcShaderProgram -->
+## `DxbcShaderProgram`
+
+Decoded DXBC shader program: version, stage type, and its ordered instruction stream.
+
+- Export: `None`
+- Source: `src/formats/dxbc/core/program.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:DxbcSignatureChunk -->
+## `DxbcSignatureChunk`
+
+Parsed DXBC input, output, or patch-constant signature chunk and its parameter records.
+
+- Export: `None`
+- Source: `src/formats/dxbc/core/signature.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 ### fbx
 
 <!-- class:CjsFbxFormat -->

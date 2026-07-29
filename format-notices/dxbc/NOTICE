@@ -1,0 +1,20 @@
+carbonenginejs/format-dxbc
+==========================
+
+A pure-JavaScript reader for Microsoft DXBC (Direct3D compiled shader
+bytecode) containers and the SM4/SM5 instruction token stream.
+
+Contains no Microsoft, CarbonEngine, or Fenris Creations (CCP Games) code. The
+token-stream layout follows Microsoft's public d3d11TokenizedProgramFormat
+documentation. CarbonEngine and Fenris Creations (CCP Games) are mentioned for
+interoperability and target-ecosystem context only; DXBC itself is a Microsoft
+format. Unity Technologies' HLSLcc (MIT) was used as a behavioral reference
+while auditing instruction semantics; no HLSLcc source is included in this
+repository.
+
+This package is not affiliated with or endorsed by CCP Games.
+
+CarbonEngineJS-facing code is copyright cppctamber / CarbonEngineJS
+contributors.
+
+Repository license: MIT. See LICENSE.

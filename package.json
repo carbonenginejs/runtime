@@ -21,6 +21,7 @@
     "./formats/bnk": "./src/formats/bnk/index.js",
     "./formats/cmf": "./src/formats/cmf/index.js",
     "./formats/dds": "./src/formats/dds/index.js",
+    "./formats/dxbc": "./src/formats/dxbc/index.js",
     "./formats/fbx": "./src/formats/fbx/index.js",
     "./formats/flac": "./src/formats/flac/index.js",
     "./formats/gif": "./src/formats/gif/index.js",

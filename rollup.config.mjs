@@ -25,6 +25,7 @@ export default {
     "src/formats/bnk/index.js",
     "src/formats/cmf/index.js",
     "src/formats/dds/index.js",
+    "src/formats/dxbc/index.js",
     "src/formats/fbx/index.js",
     "src/formats/flac/index.js",
     "src/formats/gif/index.js",

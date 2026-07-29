@@ -41,6 +41,7 @@ metadata. Worker eligibility never changes the format's direct API; see
 | Wwise soundbank (`.bnk`) | `CjsBnkFormat` | `@carbonenginejs/runtime-resource/formats/bnk` |
 | CMF (`.cmf`) | `CjsCmfFormat` | `@carbonenginejs/runtime-resource/formats/cmf` |
 | DDS (`.dds`) | `CjsDdsFormat` | `@carbonenginejs/runtime-resource/formats/dds` |
+| DXBC (shader bytecode) | `CjsDxbcFormat` | `@carbonenginejs/runtime-resource/formats/dxbc` |
 | FBX (`.fbx`) | `CjsFbxFormat` | `@carbonenginejs/runtime-resource/formats/fbx` |
 | FLAC (`.flac`) | `CjsFlacFormat` | `@carbonenginejs/runtime-resource/formats/flac` |
 | GIF (`.gif`) | `CjsGifFormat` | `@carbonenginejs/runtime-resource/formats/gif` |

@@ -18,6 +18,7 @@ under `format-notices/<format>/`.
 | `format-black` | `9fcaaff9e5f28c90b628d8a10b7c79aff7913a90` | `CjsBlackFormat` | `@carbonenginejs/runtime-resource/formats/black` |
 | `format-cmf` | unborn working-tree snapshot | `CjsCmfFormat` | `@carbonenginejs/runtime-resource/formats/cmf` |
 | `format-dds` | `66fa149cd826e1114ad0be84479f89dee753ed76` | `CjsDdsFormat` | `@carbonenginejs/runtime-resource/formats/dds` |
+| `format-dxbc` | `3790bda40d7d0d3b774eeb4d82a13827dbe332df` | `CjsDxbcFormat` | `@carbonenginejs/runtime-resource/formats/dxbc` |
 | `format-fbx` | `8d0fcc2fe44c8096b35e360a903bff30b49eb592` | `CjsFbxFormat` | `@carbonenginejs/runtime-resource/formats/fbx` |
 | `format-flac` | unborn working-tree snapshot | `CjsFlacFormat` | `@carbonenginejs/runtime-resource/formats/flac` |
 | `format-gif` | `5d831c5c0533a9579682f776274574289a520899` | `CjsGifFormat` | `@carbonenginejs/runtime-resource/formats/gif` |
@@ -156,9 +157,12 @@ snapshot must record its new source and digest here.
 - `format-carbon` remains the schema emitter/generator and build-time schema
   authority. Black consumes its published definitions; Red exposes the copied
   catalog but does not yet enforce it while reading YAML fields.
-- `format-dxbc`, `format-hlsl`, `format-webgl`, and `format-webgpu` are active
-  shader work and were not copied, annotated, or otherwise modified by this
-  migration.
+- The shader formats were excluded from the original migration while their
+  implementations were still being finished. That sequencing guard was lifted
+  on 2026-07-29 and they are moving in as ordinary formats. `format-dxbc` has
+  landed as `formats/dxbc`; `format-hlsl`, `format-webgl`, and `format-webgpu`
+  follow. Their standalone repositories remain in place, unmodified by the
+  move.
 
 ## Typed-array ownership adjustments
 

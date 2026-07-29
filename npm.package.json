@@ -20,6 +20,7 @@
     "./formats/bnk": "./dist/formats/bnk/index.js",
     "./formats/cmf": "./dist/formats/cmf/index.js",
     "./formats/dds": "./dist/formats/dds/index.js",
+    "./formats/dxbc": "./dist/formats/dxbc/index.js",
     "./formats/fbx": "./dist/formats/fbx/index.js",
     "./formats/flac": "./dist/formats/flac/index.js",
     "./formats/gif": "./dist/formats/gif/index.js",
