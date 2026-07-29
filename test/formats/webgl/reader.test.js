@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import CjsWebglFormat, { CjsWebglFormat as NamedCjsFormatWebgl } from "../../../src/formats/webgl/index.js";
+import CjsWebglFormat, { CjsWebglFormat as NamedCjsWebglFormat } from "../../../src/formats/webgl/index.js";
 import { buildCewgPackage } from "./synthetic.js";
 
 const SAMPLE_CHUNKS = [
@@ -27,7 +27,7 @@ test("package root exports one public class", async () =>
     assert.deepEqual(Object.keys(mod).sort(), [ "CjsWebglFormat", "default" ].sort());
     assert.equal(mod.default, CjsWebglFormat);
     assert.equal(mod.CjsWebglFormat, CjsWebglFormat);
-    assert.equal(NamedCjsFormatWebgl, CjsWebglFormat);
+    assert.equal(NamedCjsWebglFormat, CjsWebglFormat);
 });
 
 test("static read and instance Read share one code path", () =>

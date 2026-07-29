@@ -26,9 +26,9 @@ export function asUint8Array(value)
 /**
  * Minimal little-endian binary reader for the flat CEWG chunk container.
  *
- * Trimmed from Carbon's compiled-effect `WebglReader` (see
- * `@carbonenginejs/format-dxbc`'s and `@carbonenginejs/format-hlsl`'s vendored
- * copies): the CEWG format has no string table, so only raw-byte and uint32
+ * Trimmed from Carbon's compiled-effect `WebglReader` (see the sibling
+ * `formats/dxbc` and `formats/hlsl` vendored copies): the CEWG format has no
+ * string table, so only raw-byte and uint32
  * reads plus offset/remaining tracking are implemented here.
  */
 export class WebglReader

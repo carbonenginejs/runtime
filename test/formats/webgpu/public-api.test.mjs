@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 
-import CjsWebgpuFormat, { CjsWebgpuFormat as NamedCjsFormatWebgpu } from "../../../src/formats/webgpu/index.js";
+import CjsWebgpuFormat, { CjsWebgpuFormat as NamedCjsWebgpuFormat } from "../../../src/formats/webgpu/index.js";
 import { buildCewgpuPackage, buildMinimalStagedEffectBytes } from "./synthetic.js";
 
 class Package {}
@@ -34,7 +34,7 @@ test("package root exports one public class", async () =>
     assert.deepEqual(Object.keys(mod).sort(), [ "CjsWebgpuFormat", "default" ]);
     assert.equal(mod.default, CjsWebgpuFormat);
     assert.equal(mod.CjsWebgpuFormat, CjsWebgpuFormat);
-    assert.equal(NamedCjsFormatWebgpu, CjsWebgpuFormat);
+    assert.equal(NamedCjsWebgpuFormat, CjsWebgpuFormat);
 });
 
 test("reader exposes the expected public profile API", () =>

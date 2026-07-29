@@ -3,14 +3,14 @@ import assert from "node:assert/strict";
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
-import CjsFormatDxbc from "../../../src/formats/dxbc/index.js";
+import CjsDxbcFormat from "../../../src/formats/dxbc/index.js";
 import CjsWebglFormat from "../../../src/formats/webgl/index.js";
 
 /**
  * Optional corpus sweep: scans the directory supplied by WEBGL_CORPUS_DIR for
  * `.sm_hi` compiled effect files with embedded DXBC payloads (raw magic scan,
  * same approach as
- * @carbonenginejs/format-dxbc's own corpus test — no effect-container
+ * the dxbc format's own corpus test — no effect-container
  * parsing), emits GLSL for every vertex/pixel payload, and counts map-style
  * compute successes/kill-list rejections without failing on them. Not part
  * of the baseline checks; game assets are never committed. Enable with:
@@ -79,7 +79,7 @@ test(
                 let stageName = null;
                 try
                 {
-                    stageName = CjsFormatDxbc.inspect(blob, { source: filePath }).programTypeName;
+                    stageName = CjsDxbcFormat.inspect(blob, { source: filePath }).programTypeName;
                 }
                 catch
                 {

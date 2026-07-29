@@ -1,7 +1,7 @@
 /**
  * Synthetic DXBC and CEWG builders for self-contained tests.
  *
- * The DXBC layouts mirror `@carbonenginejs/format-dxbc`'s container/program
+ * The DXBC layouts mirror the sibling `formats/dxbc` container/program
  * encoding (copied from that package's own `test/synthetic.js`); the CEWG
  * builder mirrors `src/core/cewg/CewgPackage.js`'s chunk layout. Tests must
  * run without any game assets (org rule), so containers/packages are
