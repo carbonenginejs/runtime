@@ -145,11 +145,7 @@ export class Tr2EffectDescription extends CjsModel
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectDescription, {
   className: "Tr2EffectDescription",
-  family: "shader",
-  methods: [
-    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing." } },
-    { name: "readPortableAnnotationGroups", impl: { custom: true, status: "custom", reason: "Carbon reads annotation groups from compiled bytes; CarbonEngineJS indexes the validated portable groups into canonical maps." } }
-  ]
+  family: "shader"
 });
 CjsSchema.decorateField(Tr2EffectDescription, "techniques", type.list("Tr2EffectTechnique"));
 CjsSchema.decorateField(Tr2EffectDescription, "annotations", type.map("Tr2EffectParameterAnnotationMap"));

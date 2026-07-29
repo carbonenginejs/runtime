@@ -128,14 +128,6 @@ CjsSchema.define(Tr2EffectConstant, {
     type: {
       kind: "boolean"
     }
-  }],
-  methods: [{
-    name: "fromPortable",
-    impl: {
-      reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.",
-      custom: true,
-      status: "custom"
-    }
   }]
 });
 

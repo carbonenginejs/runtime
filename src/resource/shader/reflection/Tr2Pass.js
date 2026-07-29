@@ -132,10 +132,7 @@ export class Tr2Pass extends CjsModel
 // would register a static as an instance field.
 CjsSchema.define(Tr2Pass, {
   className: "Tr2Pass",
-  family: "shader",
-  methods: [
-    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing." } }
-  ]
+  family: "shader"
 });
 CjsSchema.decorateField(Tr2Pass, "stageInputs", type.list("Tr2EffectStageInput"));
 CjsSchema.decorateField(Tr2Pass, "renderStates", type.uint32);

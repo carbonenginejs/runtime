@@ -71,10 +71,7 @@ export class Tr2SamplerSetup extends CjsModel
 // would register a static as an instance field.
 CjsSchema.define(Tr2SamplerSetup, {
   className: "Tr2SamplerSetup",
-  family: "shader",
-  methods: [
-    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing." } }
-  ]
+  family: "shader"
 });
 CjsSchema.decorateField(Tr2SamplerSetup, "name", type.string);
 CjsSchema.decorateField(Tr2SamplerSetup, "hasName", impl.adapted, impl.reason("The schema string field cannot distinguish an authored null sampler name from an empty name; portable reflection must retain that distinction for static sampler records."), type.boolean);

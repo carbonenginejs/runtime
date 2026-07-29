@@ -72,15 +72,7 @@ class Tr2EffectResource extends CjsModel {
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectResource, {
   className: "Tr2EffectResource",
-  family: "shader",
-  methods: [{
-    name: "fromPortable",
-    impl: {
-      custom: true,
-      status: "custom",
-      reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing."
-    }
-  }]
+  family: "shader"
 });
 CjsSchema.decorateField(Tr2EffectResource, "isSRGB", type.boolean);
 CjsSchema.decorateField(Tr2EffectResource, "isAutoregister", type.boolean);

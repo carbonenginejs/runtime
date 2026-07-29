@@ -89,15 +89,7 @@ class Tr2EffectParameterAnnotation extends CjsModel {
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectParameterAnnotation, {
   className: "Tr2EffectParameterAnnotation",
-  family: "shader",
-  methods: [{
-    name: "fromPortable",
-    impl: {
-      custom: true,
-      status: "custom",
-      reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract while retaining exact numeric bits."
-    }
-  }]
+  family: "shader"
 });
 CjsSchema.decorateField(Tr2EffectParameterAnnotation, "name", type.string);
 CjsSchema.decorateField(Tr2EffectParameterAnnotation, "type", type.int32, schema.enum("Type"));

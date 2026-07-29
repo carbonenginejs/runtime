@@ -110,15 +110,5 @@ CjsSchema.define(Tr2EffectConstant, {
     { name: "elements", type: { kind: "uint32" } },
     { name: "isSRGB", type: { kind: "boolean" } },
     { name: "isAutoregister", type: { kind: "boolean" } }
-  ],
-  methods: [
-    {
-      name: "fromPortable",
-      impl: {
-        reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing.",
-        custom: true,
-        status: "custom"
-      }
-    }
   ]
 });

@@ -125,15 +125,7 @@ class Tr2EffectLibrary extends CjsModel {
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectLibrary, {
   className: "Tr2EffectLibrary",
-  family: "shader",
-  methods: [{
-    name: "fromPortable",
-    impl: {
-      custom: true,
-      status: "custom",
-      reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing."
-    }
-  }]
+  family: "shader"
 });
 CjsSchema.decorateField(Tr2EffectLibrary, "payloadSize", type.uint32);
 CjsSchema.decorateField(Tr2EffectLibrary, "libraryHandle", type.uint32);

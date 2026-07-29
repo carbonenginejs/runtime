@@ -693,8 +693,4 @@ test("shader reflection classes register canonical runtime-resource metadata", (
     CjsSchema.getMethod(Tr2Shader, "GetTechniqueIndex")?.impl?.reason ?? "",
     /output index/
   );
-  assert.equal(
-    CjsSchema.getMethod(Tr2Shader, "fromPortable")?.impl?.status,
-    "custom"
-  );
 });

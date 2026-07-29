@@ -55,15 +55,7 @@ class Tr2EffectTechnique extends CjsModel {
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectTechnique, {
   className: "Tr2EffectTechnique",
-  family: "shader",
-  methods: [{
-    name: "fromPortable",
-    impl: {
-      custom: true,
-      status: "custom",
-      reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing."
-    }
-  }]
+  family: "shader"
 });
 CjsSchema.decorateField(Tr2EffectTechnique, "name", type.string);
 CjsSchema.decorateField(Tr2EffectTechnique, "passes", type.list("Tr2Pass"));

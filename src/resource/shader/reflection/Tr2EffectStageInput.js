@@ -312,15 +312,7 @@ export class Tr2EffectStageInput extends CjsModel
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectStageInput, {
   className: "Tr2EffectStageInput",
-  family: "shader",
-  methods: [
-    { name: "fromPortable", impl: { custom: true, status: "custom", reason: "Carbon reads compiled effect bytes directly; CarbonEngineJS hydrates the browser-safe portable-reflection contract after format parsing." } },
-    { name: "fromPortableInput", impl: { custom: true, status: "custom", reason: "Carbon reads stage-input bytes in place; CarbonEngineJS also supports the portable stage-input record used by effect packages." } },
-    { name: "createEmpty", impl: { custom: true, status: "custom", reason: "Carbon stores six fixed stage slots in each pass; CarbonEngineJS constructs explicit absent canonical slots before portable stages are assigned." } },
-    { name: "readPortableResourceMap", impl: { custom: true, status: "custom", reason: "Carbon reads a native register map; CarbonEngineJS indexes validated portable resource records into the canonical numeric map." } },
-    { name: "readPortableSamplerMap", impl: { custom: true, status: "custom", reason: "Carbon reads a native sampler map; CarbonEngineJS indexes validated portable sampler records into the canonical numeric map." } },
-    { name: "readCanonicalRegisterMap", impl: { custom: true, status: "custom", reason: "Carbon has fixed native map types; CarbonEngineJS restores numeric register keys and canonical child identity from JSON-compatible maps." } }
-  ]
+  family: "shader"
 });
 CjsSchema.decorateField(Tr2EffectStageInput, "stageType", impl.adapted, impl.reason("The source format identifies stage inputs by array index; the device-free graph retains the index explicitly for serialization and engine adapters."), type.int32);
 CjsSchema.decorateField(Tr2EffectStageInput, "exists", type.boolean);
