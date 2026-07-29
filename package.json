@@ -55,6 +55,11 @@
     "lint": "node scripts/lint_package.js",
     "build:npm": "npm run lint && node scripts/build_npm.js && rollup -c",
     "proof:decorators": "node scripts/proof_decorator_transform.js",
+    "package:effect": "node scripts/formats/webgpu/package-effect.js",
+    "qualify:effects": "node scripts/formats/webgpu/qualify-effect-pairs.js",
+    "qualify:matrix": "node scripts/formats/webgpu/qualify-effect-matrix.js",
+    "package:webgl": "node scripts/formats/webgl/packageTr2WebglEffect.js",
+    "validate:webgl2": "node scripts/formats/webgl/validateCewgWebgl2.js",
     "check": "npm run build:npm && npm run proof:decorators",
     "test": "npm run check && node --test \"test/**/*.test.js\" \"test/**/*.test.mjs\""
   },

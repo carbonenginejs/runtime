@@ -106,6 +106,12 @@ async function CheckDocument(name, errors)
   const source = await fs.readFile(file, "utf8");
   const linkPattern = /!?\[[^\]]*\]\(([^)]+)\)/gu;
 
+  // Link scanning ignores code, because shader and C-family snippets contain
+  // `type[N](args)` constructor calls that match the markdown link pattern.
+  const prose = source
+    .replace(/^[ \t]*```[\s\S]*?^[ \t]*```/gmu, "")
+    .replace(/`[^`\n]*`/gu, "");
+
   // Every docs/ page carries the organization standard metadata header.
   if (name.startsWith("docs/"))
   {
@@ -123,7 +129,7 @@ async function CheckDocument(name, errors)
     }
   }
 
-  for (const match of source.matchAll(linkPattern))
+  for (const match of prose.matchAll(linkPattern))
   {
     const target = match[1].trim().split(/\s+/u, 1)[0];
 
