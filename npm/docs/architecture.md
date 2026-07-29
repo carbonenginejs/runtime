@@ -48,9 +48,13 @@ The current package owns:
 ## Ownership elsewhere
 
 - `@carbonenginejs/runtime-resource` owns WEM, BNK, Ogg, and related format
-  parsing and CPU conversion.
-- `@carbonenginejs/tools-core` owns exact-build audio-library generation,
-  acquisition caches, provider indexing, prefetch, and Node HTTP routes.
+  parsing and CPU conversion, plus logical/physical raw audio resources.
+- `@carbonenginejs/tools-browser/audio` owns browser-safe audio-library
+  construction, loading, enrichment, delivery probing, and adaptation to
+  CjsResMan audio resources.
+- `@carbonenginejs/tools-core` wraps that builder with exact-build
+  acquisition, caches, provider indexing, prefetch, CLI/API, and Node HTTP
+  routes.
 - The application owns user-gesture timing, `AudioContext` construction,
   source credentials, URLs, and decoded-buffer policy.
 - `@carbonenginejs/runtime-core` may compose an audio service, but does not
