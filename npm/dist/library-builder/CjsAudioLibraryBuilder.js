@@ -76,55 +76,17 @@ class CjsAudioLibraryBuilder {
       language = "",
       ...graphOptions
     } = options;
-    const requestedLanguage = String(language ?? "").trim().replaceAll("_", "-").toLowerCase();
-    const groups = new Map();
-    for (const inspection of inspections) {
-      const bankID = normalizeUnsignedID(inspection?.bankId, "Audio inspection bankId");
-      const languageID = normalizeUnsignedID(inspection?.languageId ?? 0, `Audio inspection ${bankID} languageId`);
-      const group = groups.get(bankID) ?? [];
-      if (group.some(value => normalizeUnsignedID(value.languageId ?? 0, "Audio languageId") === languageID)) {
-        throw new TypeError(`Duplicate audio inspection identity ${bankID}:${languageID}`);
-      }
-      group.push(inspection);
-      groups.set(bankID, group);
-    }
-    const shared = [];
-    const variants = [];
-    for (const group of groups.values()) {
-      group.sort(compareBankInspections);
-      if (group.length === 1 && !String(group[0].language ?? "").trim()) {
-        shared.push(group[0]);
-      } else {
-        variants.push(group);
-      }
-    }
-    if (!variants.length) {
-      return [CjsBnkFormat.wwise.eventMediaFromBanks([...shared].sort(compareBankInspections), graphOptions)];
-    }
-    const selected = [...shared];
-    let matchedLanguage = !requestedLanguage;
-    for (const group of variants) {
-      const exact = group.find(value => String(value.language ?? "").toLowerCase() === requestedLanguage);
-      const inspection = exact ?? group.find(value => !String(value.language ?? "").trim()) ?? (!requestedLanguage ? group[0] : null);
-      if (exact) {
-        matchedLanguage = true;
-      }
-      if (inspection) {
-        selected.push(inspection);
-      }
-    }
-    if (!matchedLanguage) {
-      throw new Error(`Audio event-media language is unavailable: ${requestedLanguage}`);
-    }
-    return [CjsBnkFormat.wwise.eventMediaFromBanks(selected.sort(compareBankInspections), graphOptions)];
+    const selected = SelectLanguageInspections(inspections, language);
+    return [CjsBnkFormat.wwise.eventMediaFromBanks(selected, graphOptions)];
   }
 
   /**
    * Projects the conservative v150 Step SFX subset from typed BNK nodes.
    *
    * runtime-resource owns HIRC decoding. This method only names and lowers
-   * codec sounds, Step Random/Sequence, and Step Switch/State containers.
-   * Unsupported events are omitted whole and described in diagnostics.
+   * codec sounds, Step Random/Sequence, Step Switch/State containers, and
+   * trackless non-continuous Layer containers. Unsupported events are
+   * omitted whole and described in diagnostics.
    */
   static createSfxGraph({
     inspections,
@@ -352,22 +314,25 @@ class CjsAudioLibraryBuilder {
         });
       }
     }
-    const merged = this.createEventMediaGraphs(inspections, {
+    const graphInspections = SelectLanguageInspections(inspections, eventMediaLanguage);
+    const merged = this.createEventMediaGraphs(graphInspections, {
       knownWemIds: Object.keys(library.media),
       language: eventMediaLanguage
     });
     const eventMedia = this.createEventMediaTable(library.metadata, merged);
     const completeOptions = {
       ...options,
+      music: includeMusic || options.music === false ? null : options.music,
       bankIdentities,
       eventMedia,
       eventMediaLanguage,
       embeddedMedia
     };
-    library = this.build(completeOptions);
+    let assembledOptions = completeOptions;
+    library = this.build(assembledOptions);
     if (includeSfx) {
       const sfx = this.createSfxGraph({
-        inspections,
+        inspections: graphInspections,
         metadata: library.metadata,
         soundbanksInfo: options.soundbanksInfo,
         media: library.media,
@@ -375,10 +340,11 @@ class CjsAudioLibraryBuilder {
       });
       options.onSfxDiagnostics?.(sfx.diagnostics);
       if (Object.keys(sfx.events).length) {
-        library = this.build({
-          ...completeOptions,
+        assembledOptions = {
+          ...assembledOptions,
           sfx
-        });
+        };
+        library = this.build(assembledOptions);
       }
     }
     if (includeMusic) {
@@ -388,10 +354,11 @@ class CjsAudioLibraryBuilder {
         media: library.media,
         embeddedMedia: library.embeddedMedia ?? {}
       });
-      library = this.build({
-        ...completeOptions,
+      assembledOptions = {
+        ...assembledOptions,
         music
-      });
+      };
+      library = this.build(assembledOptions);
     }
     return library;
   }
@@ -556,14 +523,8 @@ function LowerSfxGraph({
         if (source.continuous) {
           throw new Error(`continuous ${source.type} ${id}`);
         }
-        if (source.transitionMode !== 0) {
-          throw new Error(`transitioned ${source.type} ${id}`);
-        }
         if (source.restartBackward) {
           throw new Error(`reverse sequence ${id}`);
-        }
-        if (source.resetPlaylistEachPlay) {
-          throw new Error(`reset-on-play ${source.type} ${id}`);
         }
         const playlist = source.playlist.length ? source.playlist : source.children.map(playId => ({
           playId,
@@ -634,6 +595,23 @@ function LowerSfxGraph({
           default: {
             nodeId: defaultChild
           }
+        };
+      } else if (source.type === "layer") {
+        if (source.continuousValidation) {
+          throw new Error(`continuous layer ${id}`);
+        }
+        if (source.layers.length) {
+          throw new Error(`tracked layer ${id}`);
+        }
+        const children = source.children.map(nodeId => ({
+          nodeId: lower(nodeId)
+        }));
+        if (!children.length) {
+          throw new Error(`empty layer ${id}`);
+        }
+        node = {
+          type: "parallel",
+          children
         };
       } else {
         throw new Error(`unsupported node type ${source.type}`);
@@ -813,6 +791,7 @@ function compactBankInspection(value, source, bank) {
   }
   const bankId = Number(normalizeUnsignedID(value.bankId, `Audio bank ${bank.resPath} inspected bankId`));
   const languageId = Number(normalizeUnsignedID(value.languageId ?? 0, `Audio bank ${bank.resPath} inspected languageId`));
+  const bankVersion = Number(normalizeUnsignedID(value.bankVersion ?? 0, `Audio bank ${bank.resPath} inspected bankVersion`));
   const hirc = Array.from(value.hirc ?? [], entry => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
       throw new TypeError(`Audio bank ${bank.resPath} contains an invalid HIRC entry`);
@@ -851,6 +830,7 @@ function compactBankInspection(value, source, bank) {
     resPath: bank.resPath,
     bankId,
     languageId,
+    bankVersion,
     language: bank.language,
     hirc,
     media
@@ -1188,6 +1168,49 @@ function normalizeUnsignedID(value, label) {
 }
 function normalizeBankPath(value) {
   return String(value ?? "").trim().replaceAll("\\", "/").toLowerCase();
+}
+function SelectLanguageInspections(inspections, language) {
+  const requestedLanguage = String(language ?? "").trim().replaceAll("_", "-").toLowerCase();
+  const groups = new Map();
+  for (const inspection of inspections) {
+    const bankID = normalizeUnsignedID(inspection?.bankId, "Audio inspection bankId");
+    const languageID = normalizeUnsignedID(inspection?.languageId ?? 0, `Audio inspection ${bankID} languageId`);
+    const group = groups.get(bankID) ?? [];
+    if (group.some(value => normalizeUnsignedID(value.languageId ?? 0, "Audio languageId") === languageID)) {
+      throw new TypeError(`Duplicate audio inspection identity ${bankID}:${languageID}`);
+    }
+    group.push(inspection);
+    groups.set(bankID, group);
+  }
+  const shared = [];
+  const variants = [];
+  for (const group of groups.values()) {
+    group.sort(compareBankInspections);
+    if (group.length === 1 && !String(group[0].language ?? "").trim()) {
+      shared.push(group[0]);
+    } else {
+      variants.push(group);
+    }
+  }
+  if (!variants.length) {
+    return shared.sort(compareBankInspections);
+  }
+  const selected = [...shared];
+  let matchedLanguage = !requestedLanguage;
+  for (const group of variants) {
+    const exact = group.find(value => String(value.language ?? "").toLowerCase() === requestedLanguage);
+    const inspection = exact ?? group.find(value => !String(value.language ?? "").trim()) ?? (!requestedLanguage ? group[0] : null);
+    if (exact) {
+      matchedLanguage = true;
+    }
+    if (inspection) {
+      selected.push(inspection);
+    }
+  }
+  if (!matchedLanguage) {
+    throw new Error(`Audio event-media language is unavailable: ${requestedLanguage}`);
+  }
+  return selected.sort(compareBankInspections);
 }
 function compareBankInspections(left, right) {
   return compareText(bankSourceName(left?.source), bankSourceName(right?.source)) || compareText(normalizeBankPath(left?.resPath), normalizeBankPath(right?.resPath)) || (Number(left?.bankId ?? 0) >>> 0) - (Number(right?.bankId ?? 0) >>> 0) || (Number(left?.languageId ?? 0) >>> 0) - (Number(right?.languageId ?? 0) >>> 0);

@@ -135,6 +135,7 @@ const library = await CjsAudioLibraryBuilder.buildFromBanks({
     indexEntries,
     soundbanksInfo,
     includeSfx: true,
+    language: "en-us",
     loadBank,
     onSfxDiagnostics(diagnostics)
     {
@@ -143,13 +144,20 @@ const library = await CjsAudioLibraryBuilder.buildFromBanks({
 });
 ```
 
+`language` selects one localized bank variant before event-media and SFX HIRC
+objects are merged. This is required because localized banks reuse object IDs
+while pointing at different media.
+
 Automatic construction currently accepts Wwise generator-version-150 codec
-sounds, Step Random/Sequence containers without transitions or reverse/reset
-behavior, and named Step Switch/State containers without transition
-parameters. It omits an entire event when that event mixes unsupported actions
-or reaches an unsupported node; the optional diagnostics callback explains
-each omission. Continuous scheduling, Play-and-Continue, Play-Event, actor
-mixers, Layer/Blend curves, and other unqualified HIRC semantics are never
+sounds, Step Random/Sequence containers without reverse restart, and named
+Step Switch/State containers without transition parameters. Trackless,
+non-continuous Layer/Blend containers lower to parallel playback. Transition
+and reset-after-stop policies authored on a Step Random/Sequence container are
+Continuous-only and therefore do not alter its one-child-per-post behavior.
+The builder omits an entire event when that event mixes unsupported actions or
+reaches an unsupported node; the optional diagnostics callback explains each
+omission. Continuous scheduling, Play-and-Continue, Play-Event, actor mixers,
+authored Layer/Blend tracks, and other unqualified HIRC semantics are never
 silently approximated.
 
 The caller may instead obtain a complete built library from an API and skip
