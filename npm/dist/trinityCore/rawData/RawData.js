@@ -1,3 +1,4 @@
+import { CjsPerFrameLayouts } from './CjsPerFrameLayouts.js';
 import { CjsPerObjectLayouts } from './CjsPerObjectLayouts.js';
 
 // GPU-free per-object / per-frame constant data.
@@ -84,6 +85,13 @@ const RawDataType = Object.freeze({
  * the slice start (the views are already sliced to this struct's slot).
  * `size` is the DESTINATION footprint in floats per element.
  */
+// Module scratch for wrapping a scalar write. Written and consumed inside one
+// synchronous encoder call, so it never outlives the statement that filled it.
+const SCALAR_SCRATCH = [0];
+function SCALAR_SCRATCH_SET(value) {
+  SCALAR_SCRATCH[0] = value;
+  return SCALAR_SCRATCH;
+}
 const RawDataEncoders = Object.freeze({
   [RawDataType.MATRIX](floats, _uints, field, value) {
     const n = Math.sqrt(field.size);
@@ -264,7 +272,23 @@ class RawData {
     if (!encoder) {
       throw new Error(`RawData: no encoder for encoding "${field.encoding}" (field "${name}")`);
     }
-    encoder(this.#floats, this.#uints, field, value);
+    encoder(this.#floats, this.#uints, field, this.#Normalize(field, name, value));
+  }
+
+  /**
+   * Every encoder reads `value[index]`, so a bare number would write NaN into
+   * each lane instead of failing. A single-lane field - a float, a uint, an
+   * int - is unambiguous, so accept the scalar and wrap it; anything wider
+   * must be indexable, and says so rather than silently filling with NaN.
+   */
+  #Normalize(field, name, value) {
+    if (typeof value === "number") {
+      if (field.size * field.elements !== 1) {
+        throw new Error(`RawData: field "${name}" is ${field.size * field.elements} lanes wide ` + "and needs an indexable value, not a number");
+      }
+      return SCALAR_SCRATCH_SET(value);
+    }
+    return value;
   }
 
   /**
@@ -405,11 +429,15 @@ class RawData {
    * want Get/GetTransposed.
    *
    * Defaults are applied once here rather than per allocation.
+   *
+   * Both catalogs are consulted. Per-frame buffers are only ever persistent -
+   * the scene owns them across the frame and reads them back - so they have no
+   * transient counterpart and never appear in an arena lease.
    */
   static create(struct) {
-    const layout = CjsPerObjectLayouts.ToRawLayout(struct);
+    const layout = CjsPerObjectLayouts.ToRawLayout(struct) ?? CjsPerFrameLayouts.ToRawLayout(struct);
     if (!layout) {
-      throw new Error(`RawData: struct "${struct}" is not in CjsPerObjectLayouts`);
+      throw new Error(`RawData: struct "${struct}" is in neither CjsPerObjectLayouts nor CjsPerFrameLayouts`);
     }
     const floats = new Float32Array(layout.stride);
     const uints = new Uint32Array(floats.buffer);

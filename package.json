@@ -15,7 +15,8 @@
     "./generated/*": "./src/generated/*/index.js",
     "./generated": "./src/generated/index.js",
     "./eve": "./src/eve/index.js",
-    "./perobject": "./src/trinityCore/rawData/CjsPerObjectLayouts.js"
+    "./perobject": "./src/trinityCore/rawData/CjsPerObjectLayouts.js",
+    "./perframe": "./src/trinityCore/rawData/CjsPerFrameLayouts.js"
   },
   "engines": {
     "node": ">=18"

@@ -19,11 +19,38 @@ import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttrib
 import { EveComponentType } from "../EveComponentTypes.js";
 import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
+import { EveCamera } from "../camera/EveCamera.js";
+import { CjsPerFrameLayouts } from "../../trinityCore/rawData/CjsPerFrameLayouts.js";
+import { RawData } from "../../trinityCore/rawData/RawData.js";
 import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../trinityCore/pickRay.js";
 
 
 // Module scratch for the per-frame sun-direction read (assume-dirty).
 const sunDirectionScratch = vec3.create();
+
+// Module scratch for the per-frame constant fills. Two are needed because the
+// composed result and one operand are live at the same time; neither survives
+// the call that wrote it.
+const perFrameMatrixScratch = mat4.create();
+const perFrameLastProjectionScratch = mat4.create();
+
+const ZERO4 = Object.freeze([0, 0, 0, 0]);
+
+const ZERO_JITTER = vec4.create();
+
+// EveSpaceScene.cpp:3196-3199 - the four froxel-fog slice distances, constant
+// every frame.
+const VOLUMETRIC_SLICES = Object.freeze([1000, 10000, 100000, 1000000]);
+
+// Flip y and change the range from (-1, +1) to (0, 1): Carbon's
+// `ScalingMatrix(0.5, -0.5, 1) * TranslationMatrix(0.5, 0.5, 0)`
+// (EveSpaceScene.cpp:3179), pre-built because it never changes.
+const SHADOW_CLIP_TO_UV = mat4.fromValues(
+  0.5, 0, 0, 0,
+  0, -0.5, 0, 0,
+  0, 0, 1, 0,
+  0.5, 0.5, 0, 1
+);
 
 // The scene-root parent transform for the visibility pass (Carbon
 // EveSpaceScene.cpp:1441 `const Matrix& identity = IdentityMatrix()`). Module
@@ -66,6 +93,13 @@ const IDENTITY = mat4.create();
 //     (cpp:1524), so every receiver's secondary-lighting coefficients are
 //     current for the frame being submitted. Skipped entirely when the scene
 //     carries no shLightingManager.
+// 10c. `scene.PopulatePerFramePSData(renderContext, frame, shadowMap)` then
+//     `scene.PopulatePerFrameVSData(renderContext, frame)` - Carbon's order at
+//     cpp:1424-1425, PS first, because the pixel fill is what resolves
+//     m_upscalingAmount that the vertex fill then reads. Runs after GatherLights
+//     so the blended sun colour is current. The engine binds the two records at
+//     Tr2Renderer::GetPerFrame{VS,PS}StartRegister; their layouts are published
+//     on the `/perframe` subpath.
 // 11. (driver/engine, optional) `for (const lf of scene.lensflares)
 //     lf?.PrepareRender?.(frustum)` (cpp:1419-1422; the JS lensflare shell has
 //     no method yet - pure no-op today).
@@ -453,6 +487,23 @@ export class EveSpaceScene extends CjsModel
   currentNebulaIntensity = 0;
 
   currentReflectionIntensity = 0;
+
+  // Carbon m_viewLast / m_projectionLast / m_jitterMatrix
+  // (EveSpaceScene.h:296-297, protected): the previous frame's camera, which
+  // the per-frame vertex block hands to the shader for motion vectors.
+  viewLast = mat4.create();
+
+  projectionLast = mat4.create();
+
+  jitterMatrix = mat4.create();
+
+  // Carbon m_jitter (EveSpaceScene.h:624) - xy: projection offset, zw: pixel
+  // offset. The per-frame pixel block reports only whether it is non-zero.
+  jitter = vec4.create();
+
+  // Carbon m_upscalingAmount (EveSpaceScene.h:623, =1 by default at cpp:221).
+  // Reset by the per-frame pixel fill and raised by an upscaler, if any.
+  upscalingAmount = 1;
 
   // Carbon g_eveSpaceSceneDynamicLighting (registered setting
   // "eveSpaceSceneDynamicLighting", cpp:109-110, default false) - scoped to
@@ -982,6 +1033,330 @@ export class EveSpaceScene extends CjsModel
     }
 
     return updated;
+  }
+
+  /**
+   * The scene's own per-frame vertex record (Carbon m_perFrameVS,
+   * EveSpaceScene.h:300). Persistent, not arena-leased: it is rewritten each
+   * frame and bound once, and the PS fill reads m_upscalingAmount back out of
+   * the same pass.
+   */
+  #perFrameVS = RawData.create("EveSpaceScenePerFrameVSData");
+
+  /** Carbon m_perFramePS (EveSpaceScene.h:240). */
+  #perFramePS = RawData.create("EveSpaceScenePerFramePSData");
+
+  /** The record PopulatePerFrameVSData fills. */
+  GetPerFrameVSData()
+  {
+    return this.#perFrameVS;
+  }
+
+  /** The record PopulatePerFramePSData fills. */
+  GetPerFramePSData()
+  {
+    return this.#perFramePS;
+  }
+
+  /**
+   * Fills the per-frame VERTEX constants (Carbon
+   * EveSpaceScene::PopulatePerFrameVSData, cpp:3015-3068).
+   *
+   * Adapted in one respect, the same way StampFrameContext is: Carbon reads
+   * the camera off `Tr2Renderer` statics and the render-target/viewport sizes
+   * off `renderContext.m_esm`, neither of which exists GPU-free here. The
+   * driver passes them in `frame` instead. Everything the scene itself owns -
+   * sun, fog, env-map rotation, the previous frame's view/projection - is read
+   * from the scene, as Carbon does.
+   *
+   * Matrices are stored TRANSPOSED because the shaders are column_major, with
+   * one deliberate exception Carbon calls out at cpp:3023: the value wanted for
+   * `ViewInverseTransposeMat` is already a transpose, so transposing it again
+   * cancels and the inverse view goes in as-is.
+   *
+   * @param {Object} renderContext - the frame's Tr2RenderContext
+   * @param {Object} [frame] - the engine-supplied state Carbon reads statically
+   * @param {Number} [frame.renderTargetWidth]
+   * @param {Number} [frame.renderTargetHeight]
+   * @param {Number} [frame.aspectRatio]
+   * @param {Number} [frame.animationTime] - Tr2Renderer::GetAnimationTime
+   * @param {Object|null} [frame.deviceViewport] - {width, height}
+   * @param {Object|null} [frame.projectionTransform] - the NON reversed-depth
+   *   projection, which Carbon uses only to recover the field of view
+   * @param {Object} [out] - the record to fill; defaults to the scene's own
+   * @returns {Object} the filled record
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Tr2Renderer view statics and the ESM's render-target/viewport sizes are engine state; the driver supplies them in `frame`.")
+  PopulatePerFrameVSData(renderContext, frame = {}, out = this.#perFrameVS)
+  {
+    const view = renderContext.GetViewTransform();
+    const projection = renderContext.GetProjection();
+
+    // column_major for shaders
+    out.SetAndTranspose("ViewMat", view);
+    out.SetAndTranspose("ProjectionMat", projection);
+
+    // Carbon `view * proj` (row-vector); gl-matrix swaps the operands.
+    mat4.multiply(perFrameMatrixScratch, projection, view);
+    out.SetAndTranspose("ViewProjectionMat", perFrameMatrixScratch);
+
+    // Needs the transposed, but the shader also wants column_major, so it is
+    // transpose(transpose(m)) == m (cpp:3023-3024).
+    mat4.transpose(perFrameMatrixScratch, renderContext.GetInverseViewTransform());
+    out.SetAndTranspose("ViewInverseTransposeMat", perFrameMatrixScratch);
+
+    // Carbon `m_projectionLast * m_jitterMatrix` then `m_viewLast * that`.
+    mat4.multiply(perFrameLastProjectionScratch, this.jitterMatrix, this.projectionLast);
+    out.SetAndTranspose("ProjLast", perFrameLastProjectionScratch);
+    out.SetAndTranspose("ViewLast", this.viewLast);
+    mat4.multiply(perFrameMatrixScratch, perFrameLastProjectionScratch, this.viewLast);
+    out.SetAndTranspose("ViewProjectionLast", perFrameMatrixScratch);
+
+    // Each scene has a nebula, and that can be rotated and inverted by scaling.
+    mat4.fromQuat(perFrameMatrixScratch, this.envMapRotation);
+    out.SetAndTranspose("EnvMapRotationMat", perFrameMatrixScratch);
+
+    this.#FillSunData(out);
+
+    out.Set("TargetResolution", [
+      frame.renderTargetWidth ?? 0,
+      frame.renderTargetHeight ?? 0
+    ]);
+
+    this.#FillFovXY(out, frame);
+
+    // Guarded so a zero-width fog band cannot divide by zero (cpp:3049-3054).
+    let distance = this.fogEnd - this.fogStart;
+    if (Math.abs(distance) < 1e-5)
+    {
+      distance = 1e-5;
+    }
+    out.Set("FogFactors", [ this.fogEnd / distance, 1 / distance, this.fogMax ]);
+
+    // Derived from SetupViewport in Tr2Renderer.cpp (cpp:3056-3062).
+    const viewport = renderContext.GetViewport();
+    const device = frame.deviceViewport ?? viewport;
+
+    if (viewport && device)
+    {
+      out.Set("ViewportAdjustment", [
+        viewport.x < 0 ? -1 : 1,
+        viewport.y + viewport.height > (frame.renderTargetHeight ?? 0) ? -1 : 1,
+        device.width / viewport.width,
+        device.height / viewport.height
+      ]);
+    }
+
+    out.Set("Time", frame.animationTime ?? 0);
+    out.Set("Upscaling", this.upscalingAmount);
+    out.Set("ViewportSize", device ? [ device.width, device.height ] : [ 0, 0 ]);
+
+    return out;
+  }
+
+  /**
+   * Fills the per-frame PIXEL constants (Carbon
+   * EveSpaceScene::PopulatePerFramePSData, cpp:3075-3202). Same `frame`
+   * adaptation as the vertex fill.
+   *
+   * The cascaded-shadow block (ShadowMapValues / CascadeRanges /
+   * ShadowMatrixVal / SplitInfo) is filled only when a shadow map is passed,
+   * exactly as Carbon's `if( shadowMap )` gate does; without one the record
+   * keeps the shadows-disabled defaults the catalog declares.
+   *
+   * @param {Object} renderContext - the frame's Tr2RenderContext
+   * @param {Object} [frame] - as PopulatePerFrameVSData, plus:
+   * @param {Number} [frame.frameIndex] - Tr2Renderer::GetCurrentFrameCounter
+   * @param {Number} [frame.gammaBrightness]
+   * @param {Number} [frame.sceneMipLodBias] - the upscaler's bias, plus the
+   *   scene post-process's own; the upscaling info is engine state
+   * @param {Number} [frame.inverseShadowMapAtlasSize] - 0 with no light manager
+   * @param {Number} [frame.shadowMapAtlasEntryMinSizeLog2]
+   * @param {Object|null} [shadowMap] - the cascaded shadow map, or null
+   * @param {Object} [out] - the record to fill; defaults to the scene's own
+   * @returns {Object} the filled record
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the upscaler's mip bias are engine state; the driver supplies them in `frame`.")
+  PopulatePerFramePSData(renderContext, frame = {}, shadowMap = null, out = this.#perFramePS)
+  {
+    const projection = renderContext.GetProjection();
+
+    out.SetAndTranspose("ViewMat", renderContext.GetViewTransform());
+
+    // transpose(transpose(m)) == m, as in the vertex fill (cpp:3079-3080).
+    mat4.transpose(perFrameMatrixScratch, renderContext.GetInverseViewTransform());
+    out.SetAndTranspose("ViewInverseTransposeMat", perFrameMatrixScratch);
+
+    mat4.fromQuat(perFrameMatrixScratch, this.envMapRotation);
+    out.SetAndTranspose("EnvMapRotationMat", perFrameMatrixScratch);
+
+    this.#FillSunData(out);
+
+    // The pixel fill alone overrides the sun's alpha with the roughness
+    // (cpp:3087) - the vertex fill leaves the blended colour's own alpha.
+    out.Set("SunDiffuseColor", [
+      this.currentSunColor[0],
+      this.currentSunColor[1],
+      this.currentSunColor[2],
+      this.defaultDiffuseRoughness
+    ]);
+
+    out.Set("AmbientColor", [ this.ambientColor[0], this.ambientColor[1], this.ambientColor[2] ]);
+    out.Set("ReflectionIntensity", this.currentReflectionIntensity);
+    out.Set("FogColor", [ this.fogColor[0], this.fogColor[1], this.fogColor[2], this.fogMax ]);
+
+    out.Set("GammaBrightness", frame.gammaBrightness ?? 0);
+
+    out.Set("TargetResolution", [
+      frame.renderTargetWidth ?? 0,
+      frame.renderTargetHeight ?? 0
+    ]);
+
+    this.#FillFovXY(out, frame);
+
+    // Shadows are disabled by default (cpp:3107).
+    out.Set("ShadowCameraRange", [ 1, 0 ]);
+
+    const viewport = renderContext.GetViewport();
+    const device = frame.deviceViewport ?? viewport;
+
+    out.Set("ViewportOffset", viewport ? [ viewport.x, viewport.y ] : [ 0, 0 ]);
+    out.Set("ViewportSize", device ? [ device.width, device.height ] : [ 0, 0 ]);
+
+    out.Set("Time", frame.animationTime ?? 0);
+
+    out.Set("FrameIndex", frame.frameIndex ?? 0);
+    out.Set("Jittering", vec4.exactEquals(this.jitter, ZERO_JITTER) ? 0 : 1);
+
+    // Carbon stores 1 << m_shadowQuality, not the enum value.
+    out.Set("ShadowQuality", 1 << this.shadowQualitySetting);
+
+    out.Set("InverseShadowMapAtlasSize", frame.inverseShadowMapAtlasSize ?? 0);
+    out.Set("ShadowMapAtlasEntryMinSizeLog2", frame.shadowMapAtlasEntryMinSizeLog2 ?? 0);
+
+    out.Set("ShadowMapSettings", [ 1, 1, 0, 0 ]);
+    out.Set("ShadowLightness", 0);
+    out.Set("DepthMapSampleCount", 1); // legacy
+
+    // The reversed-depth projection's _43/_33, which the shader uses to turn a
+    // depth sample back into a view-space distance (cpp:3140-3142).
+    out.Set("ProjectionToView", [ projection[14], projection[10] ]);
+
+    // Carbon resets m_upscalingAmount here and lets the upscaler raise it; with
+    // no upscaler the scene stays at 1 and only the post-process bias applies.
+    this.upscalingAmount = frame.upscalingAmount ?? 1;
+    out.Set("Upscaling", this.upscalingAmount);
+    out.Set("SceneMipLodBias", frame.sceneMipLodBias ?? 0);
+
+    if (shadowMap)
+    {
+      this.#FillShadowCascades(out, shadowMap, renderContext);
+    }
+
+    // m_perFrameVS.ProjectionMat is already transposed (cpp:3192-3193).
+    mat4.transpose(perFrameMatrixScratch, projection);
+    mat4.invert(perFrameMatrixScratch, perFrameMatrixScratch);
+    out.SetAndTranspose("ProjectionInverseMat", perFrameMatrixScratch);
+
+    out.Set("Debug", this.perFrameDebug);
+
+    out.Set("VolumetricSlices", VOLUMETRIC_SLICES);
+
+    this.volumetricsRenderer?.PopulatePerFrameData?.(out);
+
+    return out;
+  }
+
+  /**
+   * The SunData block both fills share (cpp:3035-3039 / 3085-3089). The
+   * direction is normalized AND negated: shaders work with the direction TO
+   * the light, not the direction it travels.
+   */
+  #FillSunData(out)
+  {
+    vec3.normalize(sunDirectionScratch, this.sunDirection);
+    out.Set("SunDirWorld", [
+      -sunDirectionScratch[0],
+      -sunDirectionScratch[1],
+      -sunDirectionScratch[2]
+    ]);
+    out.Set("SunDiffuseColor", this.currentSunColor);
+  }
+
+  /**
+   * FOV both ways - width in x, height in y (cpp:3046-3047 / 3103-3104).
+   * Carbon recovers it from the NON reversed-depth projection, so a driver
+   * that reverses depth must pass the original in `frame.projectionTransform`.
+   */
+  #FillFovXY(out, frame)
+  {
+    const source = frame.projectionTransform;
+    const fovY = source ? EveCamera.CalculateFovFromProjection(source) : 0;
+
+    out.Set("FovXY", [ fovY * (frame.aspectRatio ?? 1), fovY ]);
+  }
+
+  /**
+   * The cascaded-shadow block (cpp:3163-3190). Each cascade's shadow matrix is
+   * rebased into the current view, flipped in y, remapped from (-1,+1) to
+   * (0,1), then scaled and offset into its cell of the 8x2 atlas.
+   */
+  #FillShadowCascades(out, shadowMap, renderContext)
+  {
+    const split = shadowMap.perSplitData ?? shadowMap.m_perSplitData ?? {};
+
+    for (let index = 0; index < 4; index++)
+    {
+      out.SetIndex("ShadowMapValues", index, split.ShadowMapValues?.[index] ?? ZERO4);
+    }
+
+    for (let index = 0; index < 16; index++)
+    {
+      out.SetIndex("CascadeRanges", index, split.CascadeRanges?.[index] ?? ZERO4);
+    }
+
+    const inverseView = renderContext.GetInverseViewTransform();
+    const cellsX = 8;
+    const cellsY = 2;
+
+    for (let index = 0; index < CjsPerFrameLayouts.SHADOW_FRUSTUM_COUNT; index++)
+    {
+      const stored = split.ShadowMatrixVal?.[index];
+
+      if (!stored)
+      {
+        continue;
+      }
+
+      // Carbon `inverseView * Transpose(stored)`; gl-matrix swaps operands.
+      mat4.transpose(perFrameLastProjectionScratch, stored);
+      mat4.multiply(perFrameMatrixScratch, perFrameLastProjectionScratch, inverseView);
+
+      // Flip y and change the range from (-1, +1) to (0, 1).
+      mat4.multiply(perFrameMatrixScratch, SHADOW_CLIP_TO_UV, perFrameMatrixScratch);
+
+      // Then into this cascade's cell of the 8x2 atlas.
+      mat4.identity(perFrameLastProjectionScratch);
+      mat4.translate(perFrameLastProjectionScratch, perFrameLastProjectionScratch, [
+        (index % cellsX) / cellsX,
+        Math.floor(index / cellsX) / cellsY,
+        0
+      ]);
+      mat4.scale(perFrameLastProjectionScratch, perFrameLastProjectionScratch, [
+        1 / cellsX,
+        1 / cellsY,
+        1
+      ]);
+      mat4.multiply(perFrameMatrixScratch, perFrameLastProjectionScratch, perFrameMatrixScratch);
+
+      out.SetAndTransposeIndex("ShadowMatrixVal", index, perFrameMatrixScratch);
+    }
+
+    out.Set("SplitInfo", split.SplitInfo ?? ZERO4);
   }
 
   /** Carbon method ReregisterEntities (MAP_METHOD_AND_WRAP, cpp:4064-4089).

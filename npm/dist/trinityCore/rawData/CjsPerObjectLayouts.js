@@ -1,3 +1,5 @@
+import { IDENTITY, Types, ZERO4, toRawLayout, buildLayouts } from './constantLayout.js';
+
 // Per-object constant-data layouts.
 //
 // This catalog has no CarbonEngine counterpart, which is why it is Cjs* rather
@@ -10,6 +12,9 @@
 // IS the byte layout the shader reads. Field ORDER and field SIZE are therefore
 // the entire binding contract: renaming a field is safe, reordering or resizing
 // one silently shifts every field after it.
+//
+// The declaration vocabulary and the resolver are shared with the per-frame
+// catalog; see constantLayout.js.
 //
 // Layouts are grouped per object, with up to three buffers:
 //
@@ -27,53 +32,6 @@
 // "unwritten slots = allocator garbage". Declaring a default opts a field out
 // of that.
 
-/**
- * Declared C++ member types. String values rather than ordinals so a typo
- * throws at lookup instead of silently packing wrong, and a layout dump reads
- * `"matrix4"` rather than `3`.
- */
-const Types = Object.freeze({
-  /** 16 floats. Stored transposed; written with SetAndTranspose. */
-  MATRIX4: "matrix4",
-  /** 4 floats. */
-  QUATERNION: "quaternion",
-  /** 4 floats. */
-  VECTOR4: "vector4",
-  /** 3 floats. */
-  VECTOR3: "vector3",
-  /** 2 floats. */
-  VECTOR2: "vector2",
-  /** 1 float. */
-  FLOAT: "float",
-  /** 1 lane, bit-cast into the buffer's Uint32 view. */
-  UINT32: "uint32",
-  /** 1 lane, two's-complement bit-cast. */
-  INT32: "int32"
-});
-
-/** Float lanes per declared type. */
-const LANES = Object.freeze({
-  [Types.MATRIX4]: 16,
-  [Types.QUATERNION]: 4,
-  [Types.VECTOR4]: 4,
-  [Types.VECTOR3]: 3,
-  [Types.VECTOR2]: 2,
-  [Types.FLOAT]: 1,
-  [Types.UINT32]: 1,
-  [Types.INT32]: 1
-});
-
-/**
- * Declared type -> the encoder kind that writes its bytes. These are the string
- * values of `RawDataType`; see ToRawLayout for why they are not imported.
- */
-const ENCODINGS = Object.freeze({
-  [Types.MATRIX4]: "matrix",
-  [Types.UINT32]: "uint",
-  [Types.INT32]: "int"
-});
-const ZERO4 = Object.freeze([0, 0, 0, 0]);
-const IDENTITY = Object.freeze([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 
 /** EveTransform.h:161-163 - three matrices, the simplest placeable payload. */
 const EveBasic = Object.freeze({
@@ -759,13 +717,6 @@ const GROUPS = Object.freeze({
   Tr2PerObject
 });
 
-/** Which stages each group key binds to. */
-const STAGES = Object.freeze({
-  vs: Object.freeze(["vs"]),
-  ps: Object.freeze(["ps"]),
-  shared: Object.freeze(["vs", "ps"])
-});
-
 /**
  * Resolved per-object layouts, keyed by struct name.
  *
@@ -799,44 +750,12 @@ class CjsPerObjectLayouts {
    * A layout in the shape RawData consumes: float offsets keyed by name,
    * plus the stride, stages, and the defaults to apply on allocation.
    *
-   * Encodings are the string values of `RawDataType`, written literally
-   * rather than imported so this module stays free of a cycle (RawData
-   * imports this one for its persistent factory). `per-object-layouts.test.js`
-   * asserts the two agree.
-   *
-   * A default on an array field is repeated across every element: the neutral
-   * for a slot - identity for an unused custom mask - applies to every slot,
-   * not just the first.
+   * `per-object-layouts.test.js` asserts the encodings agree with
+   * `RawDataType`, which constantLayout.js deliberately does not import.
    */
   static ToRawLayout(struct) {
     const layout = CjsPerObjectLayouts.Get(struct);
-    if (!layout) {
-      return null;
-    }
-    const fields = {};
-    const defaults = [];
-    for (const field of layout.fields.values()) {
-      fields[field.name] = {
-        offset: field.offset,
-        size: field.size,
-        elements: field.count,
-        encoding: ENCODINGS[field.type] ?? "vector"
-      };
-      if (field.default) {
-        defaults.push({
-          offset: field.offset,
-          values: field.count > 1 ? Array.from({
-            length: field.count
-          }, () => [...field.default]).flat() : [...field.default]
-        });
-      }
-    }
-    return {
-      fields,
-      stride: layout.stride,
-      stages: layout.stages,
-      defaults
-    };
+    return layout ? toRawLayout(layout) : null;
   }
 
   /** The group a struct belongs to, with its stage key, or null. */
@@ -861,70 +780,10 @@ class CjsPerObjectLayouts {
    */
   static #Resolved() {
     if (!CjsPerObjectLayouts.#layouts) {
-      CjsPerObjectLayouts.#layouts = buildLayouts();
+      CjsPerObjectLayouts.#layouts = buildLayouts(GROUPS, "CjsPerObjectLayouts");
     }
     return CjsPerObjectLayouts.#layouts;
   }
-}
-
-/** Resolves every group's buffers into flat, offset-bearing layouts. */
-function buildLayouts() {
-  const layouts = new Map();
-  for (const [group, buffers] of Object.entries(GROUPS)) {
-    for (const [key, buffer] of Object.entries(buffers)) {
-      if (layouts.has(buffer.struct)) {
-        throw new Error(`CjsPerObjectLayouts: duplicate struct name "${buffer.struct}"`);
-      }
-      layouts.set(buffer.struct, resolveLayout(group, key, buffer));
-    }
-  }
-  return layouts;
-}
-
-/** Lays out one buffer, asserting Carbon's two register invariants. */
-function resolveLayout(group, key, buffer) {
-  const fields = new Map();
-  let offset = 0;
-  for (const [name, declared] of Object.entries(buffer.fields)) {
-    const lanes = LANES[declared.type];
-    if (lanes === undefined) {
-      throw new Error(`CjsPerObjectLayouts: ${buffer.struct}.${name} has unknown type "${declared.type}"`);
-    }
-    const count = declared.count ?? 1;
-
-    // Carbon hand-pads its per-object structs so no float4-sized member
-    // ever needs implicit padding. A catalog entry that breaks that is
-    // wrong, so it fails loud rather than silently inserting a gap.
-    if (lanes >= 4 && offset % 4) {
-      throw new Error(`CjsPerObjectLayouts: ${buffer.struct}.${name} would start at float ${offset}, ` + "which is not a register boundary");
-    }
-    fields.set(name, {
-      name,
-      type: declared.type,
-      offset,
-      size: lanes,
-      count,
-      default: declared.default ?? null,
-      isMatrix: declared.type === Types.MATRIX4,
-      isInteger: declared.type === Types.UINT32 || declared.type === Types.INT32
-    });
-    offset += lanes * count;
-  }
-
-  // Tr2PerObjectData.h:57 - "Size of per-object data must be a multiple of
-  // Vector4". Reproduced so a bad catalog entry fails at build, not on screen.
-  if (offset % 4) {
-    throw new Error(`CjsPerObjectLayouts: ${buffer.struct} is ${offset} floats, not a multiple of Vector4`);
-  }
-  return Object.freeze({
-    struct: buffer.struct,
-    group,
-    key,
-    stages: STAGES[key] ?? STAGES.vs,
-    fields,
-    stride: offset,
-    registerCount: offset / 4
-  });
 }
 
 export { CjsPerObjectLayouts, EveBasic, EveBoosterSet, EveChildBulletStorm, EveChildSpherePin, EveLensflare, EveMissileWarhead, EvePerObject, EveSceneStaticParticles, EveSpaceObject, EveSpaceObjectDecal, EveSpacePerObject, EveSpherePin, EveStretch2, EveTurretSet, Tr2PerObject };

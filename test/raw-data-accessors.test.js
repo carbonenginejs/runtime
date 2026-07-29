@@ -192,7 +192,13 @@ test("a persistent record owns its buffer and starts with Carbon's defaults", ()
   const other = RawData.create("EveSpaceObjectPSData");
   assert(ps.GetData().buffer !== other.GetData().buffer, "records do not share a buffer");
 
-  assertThrows(() => RawData.create("NotAStruct"), /not in CjsPerObjectLayouts/u, "unknown struct");
+  // create consults BOTH catalogs - per-object and per-frame - so an unknown
+  // struct has to miss in each of them.
+  assertThrows(
+    () => RawData.create("NotAStruct"),
+    /in neither CjsPerObjectLayouts nor CjsPerFrameLayouts/u,
+    "unknown struct"
+  );
 });
 
 
