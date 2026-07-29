@@ -1,7 +1,10 @@
 import { EFFECT_INFO_VERSION } from './effectPackageValidation.js';
 import { CjsHlslFormat } from '../../hlsl/CjsHlslFormat.js';
-import { HlslEffectBindingManifest } from '../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js';
 import { HlslRenderContextEnum, hlslShaderStageName } from '../../hlsl/core/tr2/HlslRenderContextEnum.js';
+import '../../hlsl/core/HlslReader.js';
+import '@carbonenginejs/runtime-utils/bytes';
+import '../../hlsl/core/tr2/shader/HlslEffectResource.js';
+import { HlslEffectBindingManifest } from '../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js';
 import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_PERMUTATION_GRAPH_FORMAT, EFFECT_PERMUTATION_GRAPH_CHUNK } from '../../../format/effect/effectPermutationGraph.js';
 import { buildCompleteEffectReflection, EFFECT_REFLECTION_CHUNK, EFFECT_REFLECTION_BLOB_CHUNK } from '../../../format/effect/effectReflectionPackage.js';
 import { buildPackage, inspectWithValues, emitGlslWithOptions } from './helpers.js';
