@@ -370,7 +370,7 @@ function populate(instance, fields, hydrationOptions = {})
 {
     if (!instance || typeof instance.SetValues !== "function")
     {
-        throw new TypeError("CjsFormatGr2 CMF class population requires classes to implement SetValues(values)");
+        throw new TypeError("CjsGr2Format CMF class population requires classes to implement SetValues(values)");
     }
     instance.SetValues(fields, { ...hydrationOptions, skipUpdate: true, skipEvents: true });
     return instance;

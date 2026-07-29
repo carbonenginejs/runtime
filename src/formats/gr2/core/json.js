@@ -77,7 +77,7 @@ function populate(instance, props, hydrationOptions = {})
 {
     if (!instance || typeof instance.SetValues !== "function")
     {
-        throw new TypeError("CjsFormatGr2 class population requires classes to implement SetValues(values)");
+        throw new TypeError("CjsGr2Format class population requires classes to implement SetValues(values)");
     }
     instance.SetValues(props, { ...hydrationOptions, skipUpdate: true, skipEvents: true });
     return instance;

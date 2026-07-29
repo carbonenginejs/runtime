@@ -53,10 +53,10 @@ GR2/GSF reader joined the runtime copies:
 |---|---|---|---|
 | `format-gr2` | `fa64607de7a3a96ed3b1aec5288bf71057642043` (v0.2.0, MIT) | `CjsGr2Format` | `@carbonenginejs/runtime-resource/formats/gr2` |
 
-The copied engine keeps its donor class name (`CjsFormatGr2`, re-exported)
-under `formats/gr2/core/`; `CjsGr2Format` is the runtime-authored contract
-wrapper. Donor license and notice files are kept under
-`format-notices/gr2/`.
+The donor engine was folded into the single public `CjsGr2Format` class, so
+the copied `CjsFormatGr2` name is gone and `formats/gr2/core/` holds only
+role-named helper modules, matching every other format. Donor license and
+notice files are kept under `format-notices/gr2/`.
 
 ## Black definition snapshot
 

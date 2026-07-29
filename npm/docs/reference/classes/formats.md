@@ -285,16 +285,6 @@ Runtime GR2/GSF format class that wraps the migrated `format-gr2` engine under c
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
-<!-- class:CjsFormatGr2 -->
-## `CjsFormatGr2`
-
-Migrated GR2/GSF reader that parses Granny files with section decompression, reflected type-tree walking, JSON emission, curve decompression, and caller-class hydration through its core helper modules.
-
-- Export: `@carbonenginejs/runtime-resource/formats/gr2`
-- Source: `src/formats/gr2/core/CjsFormatGr2.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
 <!-- class:Decoder -->
 ## `Decoder`
 

@@ -42,7 +42,7 @@ function normalizeEmit(emit)
     if (emit === OUTPUT_GR2) return OUTPUT_GR2;
     if (emit === OUTPUT_CMF) return OUTPUT_CMF;
     if (emit === OUTPUT_RAW) return OUTPUT_RAW;
-    throw new Error(`CjsFormatGr2 unknown emit value "${emit}"`);
+    throw new Error(`CjsGr2Format unknown emit value "${emit}"`);
 }
 
 function hasOwn(value, key)
@@ -74,7 +74,7 @@ function assertKnownOptions(options)
     {
         if (!OPTION_KEYS.has(key))
         {
-            throw new TypeError(`CjsFormatGr2 unknown option "${key}"`);
+            throw new TypeError(`CjsGr2Format unknown option "${key}"`);
         }
     }
 }
@@ -83,7 +83,7 @@ function validateBoolean(name, value)
 {
     if (typeof value !== "boolean")
     {
-        throw new TypeError(`CjsFormatGr2 ${name} option must be true or false`);
+        throw new TypeError(`CjsGr2Format ${name} option must be true or false`);
     }
     return value;
 }
@@ -91,7 +91,7 @@ function validateBoolean(name, value)
 function validateRule(name, value)
 {
     if (typeof value === "boolean" || typeof value === "function") return value;
-    throw new TypeError(`CjsFormatGr2 ${name} option must be true, false, or a function`);
+    throw new TypeError(`CjsGr2Format ${name} option must be true, false, or a function`);
 }
 
 /** Validates a requested runtime class key for the GR2 format reader. */
@@ -99,7 +99,7 @@ export function validateClassKey(key)
 {
     if (!CLASS_KEYS.includes(key))
     {
-        throw new Error(`CjsFormatGr2 unknown class type "${key}"`);
+        throw new Error(`CjsGr2Format unknown class type "${key}"`);
     }
 }
 
@@ -109,7 +109,7 @@ export function validateClass(type, Class)
     validateClassKey(type);
     if (typeof Class !== "function")
     {
-        throw new TypeError(`CjsFormatGr2 class "${type}" must be a constructor`);
+        throw new TypeError(`CjsGr2Format class "${type}" must be a constructor`);
     }
 }
 
@@ -117,7 +117,7 @@ function mergeClasses(values, classes)
 {
     if (!classes || typeof classes !== "object")
     {
-        throw new TypeError("CjsFormatGr2 classes option must be an object");
+        throw new TypeError("CjsGr2Format classes option must be an object");
     }
 
     const next = { ...values.classes };
@@ -146,7 +146,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {})
 {
     if (!options || typeof options !== "object")
     {
-        throw new TypeError("CjsFormatGr2 options must be an object");
+        throw new TypeError("CjsGr2Format options must be an object");
     }
 
     assertKnownOptions(options);
@@ -190,7 +190,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {})
 
     if ((values.emit === OUTPUT_GR2 || values.emit === OUTPUT_CMF) && !hasClasses(values.classes))
     {
-        throw new TypeError(`CjsFormatGr2 emit "${values.emit}" requires explicit classes`);
+        throw new TypeError(`CjsGr2Format emit "${values.emit}" requires explicit classes`);
     }
 
     return values;
@@ -222,7 +222,7 @@ function toBytes(input)
     if (input instanceof Uint8Array) return input;
     if (typeof ArrayBuffer !== "undefined" && input instanceof ArrayBuffer) return new Uint8Array(input);
     if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("CjsFormatGr2: input must be GR2 bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
+    throw new TypeError("CjsGr2Format: input must be GR2 bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
 }
 
 /** Reads and validates raw input bytes for the GR2 format reader. */
@@ -252,7 +252,7 @@ function requireVertexChannel(mesh, meshIndex, channel, feature)
     const value = vertexChannel(mesh, channel);
     if (!value || value.length === 0)
     {
-        throw new Error(`CjsFormatGr2 ${feature} requires mesh.vertex.${channel} for mesh ${meshName(mesh, meshIndex)}`);
+        throw new Error(`CjsGr2Format ${feature} requires mesh.vertex.${channel} for mesh ${meshName(mesh, meshIndex)}`);
     }
     return value;
 }
@@ -267,7 +267,7 @@ function triangleFaces(mesh, meshIndex, feature)
 
     if (faces.length === 0)
     {
-        throw new Error(`CjsFormatGr2 ${feature} requires triangle indices for mesh ${meshName(mesh, meshIndex)}`);
+        throw new Error(`CjsGr2Format ${feature} requires triangle indices for mesh ${meshName(mesh, meshIndex)}`);
     }
 
     return faces;
@@ -282,7 +282,7 @@ function shouldApplyMeshRule(reader, rule, context)
         const result = rule(fullContext);
         if (typeof result !== "boolean")
         {
-            throw new TypeError(`CjsFormatGr2 ${context.feature} rule must return true or false`);
+            throw new TypeError(`CjsGr2Format ${context.feature} rule must return true or false`);
         }
         return result;
     }
@@ -410,7 +410,7 @@ export function toJsonValue(value, seen = new WeakSet())
 
     if (seen.has(value))
     {
-        throw new TypeError("CjsFormatGr2.toJSON cannot convert circular data");
+        throw new TypeError("CjsGr2Format.toJSON cannot convert circular data");
     }
 
     if (typeof value.toJSON === "function")
@@ -442,7 +442,7 @@ export function inspectRawGr2Result(parsed)
         count = value => Array.isArray(value) ? value.filter(Boolean).length : 0;
 
     return {
-        reader: "CjsFormatGr2",
+        reader: "CjsGr2Format",
         format: "gr2",
         version: parsed.version | 0,
         sectionCount: parsed.secCount | 0,

@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import CjsGr2Format, {
-    CjsGr2Format as NamedCjsGr2Format,
-    CjsFormatGr2
+    CjsGr2Format as NamedCjsGr2Format
 } from "../../../src/formats/gr2/index.js";
 // CjsFormat pulls in decorated probe code - test the consumer output.
 import { CjsFormat } from "../../../npm/dist/index.js";
@@ -47,10 +46,9 @@ function createMinimalGr2()
     return bytes;
 }
 
-test("exports default and named CjsGr2Format plus the migrated CjsFormatGr2 engine", () =>
+test("exports one public class as default and named", () =>
 {
     assert.equal(CjsGr2Format, NamedCjsGr2Format);
-    assert.equal(Object.getPrototypeOf(CjsGr2Format), CjsFormatGr2);
 });
 
 test("satisfies the runtime-resource format contract", () =>

@@ -5,7 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import CjsGr2Format, { CjsFormatGr2, CjsFormatGr2 as NamedCjsFormatGr2 } from "../../../src/formats/gr2/index.js";
+import CjsGr2Format, { CjsGr2Format as NamedCjsGr2Format } from "../../../src/formats/gr2/index.js";
 import { CLASS_KEYS, emitJson } from "../../../src/formats/gr2/core/json.js";
 
 class TestModel
@@ -291,31 +291,31 @@ test("emitJson requires registered classes to implement SetValues", () =>
     );
 });
 
-test("CjsFormatGr2 exposes the static package constants and helper namespaces", () =>
+test("CjsGr2Format exposes the static package constants and helper namespaces", () =>
 {
-    assert.equal(CjsFormatGr2.OUTPUT_JSON, "json");
-    assert.equal(CjsFormatGr2.OUTPUT_GR2, "gr2");
-    assert.equal(CjsFormatGr2.OUTPUT_GR2_JSON, "gr2Json");
-    assert.equal(CjsFormatGr2.OUTPUT_CMF, "cmf");
-    assert.equal(CjsFormatGr2.OUTPUT_RAW, "raw");
-    for (const key of CLASS_KEYS) assert.ok(CjsFormatGr2.CLASS_KEYS.includes(key));
-    assert.ok(CjsFormatGr2.CLASS_KEYS.includes("VertexElement"));
-    assert.deepEqual(CjsFormatGr2.outputTypes, [ "gr2", "cmf" ]);
-    assert.deepEqual(CjsFormatGr2.debugOutputTypes, [ "json", "gr2Json", "raw" ]);
-    assert.equal(typeof CjsFormatGr2.curves.decode, "function");
-    assert.equal(typeof CjsFormatGr2.tangents.unpack, "function");
+    assert.equal(CjsGr2Format.OUTPUT_JSON, "json");
+    assert.equal(CjsGr2Format.OUTPUT_GR2, "gr2");
+    assert.equal(CjsGr2Format.OUTPUT_GR2_JSON, "gr2Json");
+    assert.equal(CjsGr2Format.OUTPUT_CMF, "cmf");
+    assert.equal(CjsGr2Format.OUTPUT_RAW, "raw");
+    for (const key of CLASS_KEYS) assert.ok(CjsGr2Format.CLASS_KEYS.includes(key));
+    assert.ok(CjsGr2Format.CLASS_KEYS.includes("VertexElement"));
+    assert.deepEqual(CjsGr2Format.outputTypes, [ "gr2", "cmf" ]);
+    assert.deepEqual(CjsGr2Format.debugOutputTypes, [ "json", "gr2Json", "raw" ]);
+    assert.equal(typeof CjsGr2Format.curves.decode, "function");
+    assert.equal(typeof CjsGr2Format.tangents.unpack, "function");
 });
 
 test("formats/gr2 subpath exports the runtime class and the migrated engine", async () =>
 {
     const mod = await import("../../../src/formats/gr2/index.js");
 
-    assert.deepEqual(Object.keys(mod).sort(), [ "CjsFormatGr2", "CjsGr2Format", "default" ]);
+    // One public class, like every other format: no internal engine class leaks
+    // out of the barrel.
+    assert.deepEqual(Object.keys(mod).sort(), [ "CjsGr2Format", "default" ]);
     assert.equal(mod.default, CjsGr2Format);
     assert.equal(mod.CjsGr2Format, CjsGr2Format);
-    assert.equal(mod.CjsFormatGr2, CjsFormatGr2);
-    assert.equal(NamedCjsFormatGr2, CjsFormatGr2);
-    assert.equal(Object.getPrototypeOf(CjsGr2Format), CjsFormatGr2);
+    assert.equal(NamedCjsGr2Format, CjsGr2Format);
 });
 
 test("curves module exports decoded curve helpers", async () =>
@@ -326,35 +326,35 @@ test("curves module exports decoded curve helpers", async () =>
     assert.equal(typeof mod.sampleDecodedCurve, "function");
 });
 
-test("CjsFormatGr2 static read builds json from raw results", () =>
+test("CjsGr2Format static read builds json from raw results", () =>
 {
     const
         raw = buildRaw(),
-        fromRead = CjsFormatGr2.read(raw);
+        fromRead = CjsGr2Format.read(raw);
 
     assert.equal(fromRead.grannyFileFormatRevision, 7);
     assert.equal(fromRead.grannyFileSource, "test.gr2");
     assert.equal(fromRead.meshes[0].name, "TestMesh");
-    assert.equal(CjsFormatGr2.buildJson, undefined);
-    assert.equal(CjsFormatGr2.construct, undefined);
+    assert.equal(CjsGr2Format.buildJson, undefined);
+    assert.equal(CjsGr2Format.construct, undefined);
     assert.throws(
-        () => CjsFormatGr2.read(raw, { emit: "gr2_json" }),
+        () => CjsGr2Format.read(raw, { emit: "gr2_json" }),
         /unknown emit value/
     );
 });
 
-test("CjsFormatGr2 static read hydrates registered node classes", () =>
+test("CjsGr2Format static read hydrates registered node classes", () =>
 {
     const raw = buildRaw();
 
     const
-        constructed = CjsFormatGr2.read(raw, { classes: { Root, Mesh } });
+        constructed = CjsGr2Format.read(raw, { classes: { Root, Mesh } });
 
     assert.ok(constructed instanceof Root);
     assert.ok(constructed.meshes[0] instanceof Mesh);
 });
 
-test("CjsFormatGr2 static read emits explicit GR2 and CMF class targets", () =>
+test("CjsGr2Format static read emits explicit GR2 and CMF class targets", () =>
 {
     class CmfRoot extends TestModel {}
     class CmfMesh extends TestModel {}
@@ -362,18 +362,18 @@ test("CjsFormatGr2 static read emits explicit GR2 and CMF class targets", () =>
     const raw = buildRaw();
 
     assert.throws(
-        () => CjsFormatGr2.read(raw, { emit: "cmf" }),
+        () => CjsGr2Format.read(raw, { emit: "cmf" }),
         /requires explicit classes/
     );
 
-    const gr2 = CjsFormatGr2.read(raw, {
+    const gr2 = CjsGr2Format.read(raw, {
         emit: "gr2",
         classes: { Root, Mesh }
     });
     assert.ok(gr2 instanceof Root);
     assert.ok(gr2.meshes[0] instanceof Mesh);
 
-    const cmf = CjsFormatGr2.read(raw, {
+    const cmf = CjsGr2Format.read(raw, {
         emit: "cmf",
         classes: { Root: CmfRoot, Mesh: CmfMesh }
     });
@@ -387,12 +387,12 @@ test("CjsFormatGr2 static read emits explicit GR2 and CMF class targets", () =>
     assert.equal(cmf.version, 1);
 });
 
-test("CjsFormatGr2 CMF target preserves morph target payloads", () =>
+test("CjsGr2Format CMF target preserves morph target payloads", () =>
 {
     class CmfRoot extends TestModel {}
     class CmfMesh extends TestModel {}
 
-    const cmf = CjsFormatGr2.read(buildGeometryRaw({ morphTargets: true }), {
+    const cmf = CjsGr2Format.read(buildGeometryRaw({ morphTargets: true }), {
         emit: "cmf",
         classes: { Root: CmfRoot, Mesh: CmfMesh }
     });
@@ -419,9 +419,9 @@ test("CjsFormatGr2 CMF target preserves morph target payloads", () =>
     ]);
 });
 
-test("CjsFormatGr2 instances expose only the PascalCase public profile API", () =>
+test("CjsGr2Format instances expose only the PascalCase public profile API", () =>
 {
-    assert.deepEqual(Object.getOwnPropertyNames(CjsFormatGr2.prototype).sort(), [
+    assert.deepEqual(Object.getOwnPropertyNames(CjsGr2Format.prototype).sort(), [
         "GetClass",
         "GetValues",
         "HasClass",
@@ -438,15 +438,15 @@ test("CjsFormatGr2 instances expose only the PascalCase public profile API", () 
         "constructor"
     ].sort());
 
-    assert.equal(typeof CjsFormatGr2.read, "function");
-    assert.equal(typeof CjsFormatGr2.Read, "undefined");
-    assert.equal(typeof CjsFormatGr2.inspect, "function");
-    assert.equal(typeof CjsFormatGr2.Inspect, "undefined");
+    assert.equal(typeof CjsGr2Format.read, "function");
+    assert.equal(typeof CjsGr2Format.Read, "undefined");
+    assert.equal(typeof CjsGr2Format.inspect, "function");
+    assert.equal(typeof CjsGr2Format.Inspect, "undefined");
 });
 
-test("CjsFormatGr2 instances carry reusable values and classes", () =>
+test("CjsGr2Format instances carry reusable values and classes", () =>
 {
-    const reader = new CjsFormatGr2({
+    const reader = new CjsGr2Format({
         classes: { Root, Mesh },
         decompressCurves: true,
         unpackTangents: false,
@@ -474,16 +474,16 @@ test("CjsFormatGr2 instances carry reusable values and classes", () =>
 
     assert.ok(constructed instanceof Root);
     assert.ok(constructed.meshes[0] instanceof Mesh);
-    assert.equal(reader.Read(buildRaw(), { emit: CjsFormatGr2.OUTPUT_RAW }).version, 7);
-    assert.equal(reader.GetValues({ emit: CjsFormatGr2.OUTPUT_RAW }).emit, CjsFormatGr2.OUTPUT_RAW);
-    assert.equal(reader.GetValues().emit, CjsFormatGr2.OUTPUT_JSON);
+    assert.equal(reader.Read(buildRaw(), { emit: CjsGr2Format.OUTPUT_RAW }).version, 7);
+    assert.equal(reader.GetValues({ emit: CjsGr2Format.OUTPUT_RAW }).emit, CjsGr2Format.OUTPUT_RAW);
+    assert.equal(reader.GetValues().emit, CjsGr2Format.OUTPUT_JSON);
 });
 
 test("unpackTangents accepts per-mesh rule functions", () =>
 {
     let seen = null;
 
-    const reader = new CjsFormatGr2({
+    const reader = new CjsGr2Format({
         unpackTangents: context =>
         {
             seen = context;
@@ -503,11 +503,11 @@ test("unpackTangents accepts per-mesh rule functions", () =>
     assert.equal(seen.meshIndex, 0);
 
     assert.throws(
-        () => new CjsFormatGr2({ unpackTangents: () => "yes" }).Read(buildRaw()),
+        () => new CjsGr2Format({ unpackTangents: () => "yes" }).Read(buildRaw()),
         /must return true or false/
     );
     assert.throws(
-        () => new CjsFormatGr2({ unpackTangents: "yes" }).Read(buildRaw()),
+        () => new CjsGr2Format({ unpackTangents: "yes" }).Read(buildRaw()),
         /must be true, false, or a function/
     );
 });
@@ -516,7 +516,7 @@ test("static read uses the class as rule context without creating a profile", ()
 {
     let seen = null;
 
-    CjsFormatGr2.read(buildRaw(), {
+    CjsGr2Format.read(buildRaw(), {
         unpackTangents: context =>
         {
             seen = context;
@@ -524,13 +524,13 @@ test("static read uses the class as rule context without creating a profile", ()
         }
     });
 
-    assert.equal(seen.reader, CjsFormatGr2);
+    assert.equal(seen.reader, CjsGr2Format);
 });
 
-test("CjsFormatGr2 rebuilds missing normals, tangents, and binormals when configured", () =>
+test("CjsGr2Format rebuilds missing normals, tangents, and binormals when configured", () =>
 {
     const seen = [];
-    const json = CjsFormatGr2.read(buildGeometryRaw(), {
+    const json = CjsGr2Format.read(buildGeometryRaw(), {
         rebuildMissingNormals: context =>
         {
             seen.push([ context.feature, context.channel, context.mesh.name, context.meshIndex ]);
@@ -547,45 +547,45 @@ test("CjsFormatGr2 rebuilds missing normals, tangents, and binormals when config
     assert.deepEqual(rounded(vertex.binormal), [ 0, 1, 0, 0, 1, 0, 0, 1, 0 ]);
 });
 
-test("CjsFormatGr2 throws when missing rebuild requirements are unavailable", () =>
+test("CjsGr2Format throws when missing rebuild requirements are unavailable", () =>
 {
     assert.throws(
-        () => CjsFormatGr2.read(buildGeometryRaw({ positions: false }), { rebuildMissingNormals: true }),
+        () => CjsGr2Format.read(buildGeometryRaw({ positions: false }), { rebuildMissingNormals: true }),
         /rebuildMissingNormals requires mesh\.vertex\.position/
     );
 
     assert.throws(
-        () => CjsFormatGr2.read(buildGeometryRaw(), { rebuildMissingTangents: true }),
+        () => CjsGr2Format.read(buildGeometryRaw(), { rebuildMissingTangents: true }),
         /rebuildMissingTangents requires mesh\.vertex\.normal/
     );
 
     assert.throws(
-        () => CjsFormatGr2.read(buildGeometryRaw({ normals: true, texcoord0: false }), { rebuildMissingTangents: true }),
+        () => CjsGr2Format.read(buildGeometryRaw({ normals: true, texcoord0: false }), { rebuildMissingTangents: true }),
         /rebuildMissingTangents requires mesh\.vertex\.texcoord0/
     );
 
     assert.throws(
-        () => CjsFormatGr2.read(buildGeometryRaw({ normals: true }), { rebuildMissingBiNormals: true }),
+        () => CjsGr2Format.read(buildGeometryRaw({ normals: true }), { rebuildMissingBiNormals: true }),
         /rebuildMissingBiNormals requires mesh\.vertex\.tangent/
     );
 
     assert.throws(
-        () => CjsFormatGr2.read(buildGeometryRaw(), { rebuildMissingNormals: () => "yes" }),
+        () => CjsGr2Format.read(buildGeometryRaw(), { rebuildMissingNormals: () => "yes" }),
         /rebuildMissingNormals rule must return true or false/
     );
 
     assert.throws(
-        () => CjsFormatGr2.read(buildGeometryRaw(), { rebuildMissingNormals: "yes" }),
+        () => CjsGr2Format.read(buildGeometryRaw(), { rebuildMissingNormals: "yes" }),
         /rebuildMissingNormals option must be true, false, or a function/
     );
 });
 
-test("CjsFormatGr2.inspect returns stable metadata and counts", () =>
+test("CjsGr2Format.inspect returns stable metadata and counts", () =>
 {
-    const summary = CjsFormatGr2.inspect(buildRaw());
+    const summary = CjsGr2Format.inspect(buildRaw());
 
     assert.deepEqual(summary, {
-        reader: "CjsFormatGr2",
+        reader: "CjsGr2Format",
         format: "gr2",
         version: 7,
         sectionCount: 3,
@@ -599,15 +599,15 @@ test("CjsFormatGr2.inspect returns stable metadata and counts", () =>
         }
     });
 
-    assert.deepEqual(CjsFormatGr2.inspect(buildRaw()), summary);
+    assert.deepEqual(CjsGr2Format.inspect(buildRaw()), summary);
 });
 
-test("CjsFormatGr2.toJSON returns JSON-compatible data", () =>
+test("CjsGr2Format.toJSON returns JSON-compatible data", () =>
 {
     const
-        json = CjsFormatGr2.read(buildRaw()),
-        plain = CjsFormatGr2.toJSON(json),
-        readerPlain = new CjsFormatGr2().ToJSON(json);
+        json = CjsGr2Format.read(buildRaw()),
+        plain = CjsGr2Format.toJSON(json),
+        readerPlain = new CjsGr2Format().ToJSON(json);
 
     assert.deepEqual(plain, readerPlain);
     assert.deepEqual(plain, JSON.parse(JSON.stringify(plain)));
@@ -617,6 +617,6 @@ test("CjsFormatGr2.toJSON returns JSON-compatible data", () =>
     {
         const circular = {};
         circular.self = circular;
-        CjsFormatGr2.toJSON(circular);
+        CjsGr2Format.toJSON(circular);
     }, /cannot convert circular data/);
 });

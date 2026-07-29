@@ -32,10 +32,9 @@ const summary = CjsGr2Format.inspect(bytes);
 const asynchronousGraph = await CjsGr2Format.readAsync(bytes);
 ```
 
-The wrapper exposes the normal runtime-resource format metadata and
-`isSupported(bytes)` magic probe. It also exports the migrated
-`CjsFormatGr2` reader engine for compatibility, but new consumers should use
-`CjsGr2Format`.
+`CjsGr2Format` is the one public class: the reader engine plus the normal
+runtime-resource format metadata and the `isSupported(bytes)` magic probe.
+The barrel exports nothing else.
 
 Register it with `CjsResMan` when GR2/GSF should participate in ordinary
 resource loading:
