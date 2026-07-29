@@ -42,23 +42,19 @@ tools-browser
 ```
 
 The package uses narrow browser-safe runtime subpaths when a domain tool needs
-an owning schema, resource lifecycle, or reader. Its public families are
-audio-library construction/loading/resource adaptation, provider-neutral chat,
-remote file-index handling, and the Carbon realtime v1 client.
+an owning schema or reader. Its public families are remote audio acquisition,
+provider-neutral chat, remote file-index handling, and the Carbon realtime v1
+client.
 
 ## Start here
 
-For deterministic audio-library construction, loading, or resource access,
-start with:
+For remote audio documents, builder inputs, complete files, and ranges, start
+with:
 
 ```js
 import {
-    CjsAudioLibrary,
-    CjsAudioLibraryBuilder
+    CjsAudioLibrary
 } from "@carbonenginejs/tools-browser/audio";
-import {
-    CjsAudioRes
-} from "@carbonenginejs/runtime-resource/resource/audio";
 ```
 
 For file-index parsing and safe HTTP(S) resolution, start with:

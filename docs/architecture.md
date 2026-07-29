@@ -15,32 +15,28 @@ user-facing implementation.
 ## Dependency direction
 
 ```text
- runtime-utils   runtime-audio/audioMetadata   runtime-resource formats
-        ^                   ^                            ^
-        |                   |                            |
-        +---------------- tools-browser -----------------+
-                             ^
-                             |
-             browser applications and Node wrappers
+ runtime-utils        runtime-audio/library
+        ^                       ^
+        |                       |
+        +--------- tools-browser+
+                    ^
+                    |
+        browser applications and Node wrappers
 ```
 
-Published source imports browser-safe runtime primitives, the dependency-free
-audio metadata adapter, selected resource formats, and local modules. Tests may
-use Node facilities, but no Node built-in enters `src/`.
+Published source imports browser-safe runtime primitives, the canonical audio
+document installer, and local modules. Tests may use Node facilities, but no
+Node built-in enters `src/`.
 
 ## Owned responsibilities
 
 The implemented package currently owns:
 
-- deterministic schema-v2 audio-library construction from caller-supplied
-  metadata, file-index values, and injected bank access;
-- validation and loading of prebuilt audio-library JSON through objects,
-  browser files, responses, or Fetch;
-- adaptation of prepared audio-library records into runtime-resource-owned,
-  individually addressable `CjsAudioRes` handles backed by loose files,
-  exact-media APIs, ranges, or shared `CjsAudioBufferRes` bank payloads;
-- registration and one-time initialization of prebuilt-library or sound-bank
-  inputs, with optional metadata enrichment applied over either base;
+- remote schema-v2 audio-document acquisition and canonical installation;
+- caller-selected SoundbanksInfo, neutral enrichment, and remote file-index
+  projection into the runtime builder's plain input shape;
+- exact remote individual/whole-file and byte-range reads for
+  `CjsAudioMan`'s structural provider contract;
 - appfileindex and resfileindex parsing, discovery, immutable lookup, named
   overlays, and safe HTTP(S) source resolution;
 - provider-neutral chat-room selection, browser-local filtering, disposable
@@ -75,10 +71,11 @@ subpath, tests, documentation, and owned security boundary.
   `runtime-*` packages.
 - Audio event interpretation, decoded-buffer caching, scheduling, and playback
   semantics belong in `@carbonenginejs/runtime-audio`.
-- Physical audio-byte ownership, logical audio resource views, shared backing
-  locks, and payload retention belong in `@carbonenginejs/runtime-resource`.
-- Browser media-representation selection and the rules that project physical
-  sources or byte windows into CjsResMan resources belong in this package.
+- Audio document construction, event/media selection, WEM preparation,
+  decoded-buffer retention, and playback belong in
+  `@carbonenginejs/runtime-audio`.
+- Physical audio-byte resource ownership belongs in
+  `@carbonenginejs/runtime-resource`.
 - BNK/WEM parsing and conversion belong in
   `@carbonenginejs/runtime-resource`.
 - Node filesystems, acquisition caches, provider credentials, servers,
@@ -103,15 +100,10 @@ policy remains authoritative because blocked messages can be suppressed before
 they reach any browser. Provider credentials, upstream room sharing, supplier
 asset resolution, and moderation synchronization remain server concerns.
 
-Audio-library construction accepts metadata values and bank capabilities
-directly. It does not discover installation paths, cache layouts, provider
-credentials, or service roots. Complete builds read every bank through one
-injected capability and support cancellation.
-
-Audio resource adaptation does not make CjsResMan or MotherLode understand
-audio. The adapter registers path/variant resources and wires child liveness
-to shared backing resources; the resource packages continue to provide only
-neutral loading, canonical ownership, queueing, and retention behavior.
+Audio acquisition accepts caller-selected URLs, logical paths resolved through
+an injected remote file index, and fetch options. It does not discover
+installation paths, cache layouts, credentials, or service roots. It performs
+no audio-library construction or runtime selection.
 
 ## Environment contract
 

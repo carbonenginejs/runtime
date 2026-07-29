@@ -3,32 +3,19 @@
 Status: Evolving
 Scope: `@carbonenginejs/tools-browser/audio`
 Audience: Browser application authors and maintainers
-Summary: Catalogs browser-safe audio-library construction and transport classes.
+Summary: Catalogs browser-safe remote audio acquisition.
 
 <!-- class:CjsAudioLibrary -->
 ## `CjsAudioLibrary`
 
-Browser audio-library adapter for construction, loading, and CjsResMan access.
+Reads complete documents, caller-selected builder inputs, individual files, complete banks, and exact bank ranges over browser fetch and remote file indexes.
 
 - Export: `@carbonenginejs/tools-browser/audio`
 - Source: `src/audio/CjsAudioLibrary.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
-- Notes: Registers configuration before one async initialization permanently
-  locks it, loads or builds a prepared document, applies optional enrichment,
-  and hides loose, split-API, full-bank, and range ingress from callers.
-
-<!-- class:CjsAudioLibraryBuilder -->
-## `CjsAudioLibraryBuilder`
-
-Stateless construction of deterministic audio-library artifacts.
-
-- Export: `@carbonenginejs/tools-browser/audio`
-- Source: `src/audio/CjsAudioLibraryBuilder.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-- Notes: Accepts object or `Map` metadata sections and reads banks only through
-  caller-injected capabilities.
+- Notes: Performs no document construction, event/media selection, decoding,
+  resource-manager adaptation, or runtime caching.
 
 ## Related documentation
 

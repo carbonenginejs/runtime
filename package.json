@@ -8,7 +8,6 @@
   "exports": {
     ".": "./src/index.js",
     "./audio": "./src/audio/index.js",
-    "./audio/builder": "./src/audio/CjsAudioLibraryBuilder.js",
     "./chat": "./src/chat/index.js",
     "./fileindex": "./src/fileindex/index.js",
     "./perobject": "./src/perobject/index.js",
