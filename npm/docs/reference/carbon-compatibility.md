@@ -26,8 +26,11 @@ The maintained graph includes:
 - event metadata and sound prioritization;
 - event curves and RTPC-driven curve-set time;
 - UI and music emitters;
-- three-emitter stretch audio; and
-- audio geometry data.
+- three-emitter stretch audio;
+- action-log records and callback flushing;
+- spatial-audio settings and manager delegates;
+- placement observers; and
+- audio geometry data plus optional backend geometry lifecycle calls.
 
 The exact class inventory is in the
 [class-purpose catalog](classes/README.md).
@@ -56,7 +59,9 @@ The package does not emulate:
 
 - Wwise device enumeration or device-change callbacks;
 - Wwise profiler capture;
-- native spatial-audio geometry processing, occlusion, or diffraction;
+- Web Audio realization of spatial-audio geometry, occlusion, or diffraction
+  (the portable data/settings/refcount contract is implemented for injected
+  backends);
 - native audio-input plugins;
 - operating-system device selection; or
 - Wwise middleware rendering.

@@ -5,6 +5,76 @@ Scope: `@carbonenginejs/runtime-audio/trinity` classes under `src/trinity/`
 Audience: Users, maintainers, and automated readers  
 Summary: Provides one-sentence purpose descriptors for maintained Carbon audio graph classes.
 
+<!-- class:AudActionLogCB -->
+## `AudActionLogCB`
+
+Queues Carbon-shaped audio action records and flushes them to a registered JavaScript callback during manager processing.
+
+- Export: `@carbonenginejs/runtime-audio/trinity`
+- Source: `src/trinity/audio/AudActionLog.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:AudActionRecord -->
+## `AudActionRecord`
+
+Provides the base value contract for one queued Carbon audio action.
+
+- Export: `@carbonenginejs/runtime-audio/trinity`
+- Source: `src/trinity/audio/AudActionLog.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:AudActionRecordPostEvent -->
+## `AudActionRecordPostEvent`
+
+Records one event post with time, emitter, playing, event, and name identities.
+
+- Export: `@carbonenginejs/runtime-audio/trinity`
+- Source: `src/trinity/audio/AudActionLog.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:AudActionRecordExecuteActionOnPlayingID -->
+## `AudActionRecordExecuteActionOnPlayingID`
+
+Records one stop or break action applied to a playing identity.
+
+- Export: `@carbonenginejs/runtime-audio/trinity`
+- Source: `src/trinity/audio/AudActionLog.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:AudActionRecordSetSwitch -->
+## `AudActionRecordSetSwitch`
+
+Records one emitter-local switch group and state change.
+
+- Export: `@carbonenginejs/runtime-audio/trinity`
+- Source: `src/trinity/audio/AudActionLog.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:AudActionRecordSetState -->
+## `AudActionRecordSetState`
+
+Records one global audio state-group change.
+
+- Export: `@carbonenginejs/runtime-audio/trinity`
+- Source: `src/trinity/audio/AudActionLog.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:AudActionRecordSetRTPC -->
+## `AudActionRecordSetRTPC`
+
+Records one global or emitter-local real-time parameter change.
+
+- Export: `@carbonenginejs/runtime-audio/trinity`
+- Source: `src/trinity/audio/AudActionLog.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:AudEmitter -->
 ## `AudEmitter`
 
@@ -12,6 +82,16 @@ Represents the concrete content-facing audio emitter with authored placement and
 
 - Export: `@carbonenginejs/runtime-audio/trinity`
 - Source: `src/trinity/audio/AudEmitter.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:AudGeometry -->
+## `AudGeometry`
+
+Maintains Carbon geometry-set reference counts and routes Wwise-shaped geometry lifecycle values to an optional browser backend.
+
+- Export: `@carbonenginejs/runtime-audio/trinity`
+- Source: `src/trinity/audio/AudGeometry.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -85,6 +165,16 @@ Binds an authored real-time parameter value to its owning audio game object.
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
+<!-- class:AudPosition -->
+## `AudPosition`
+
+Stores browser-safe front, top, and position vectors for Carbon placement-observer updates.
+
+- Export: `@carbonenginejs/runtime-audio/trinity`
+- Source: `src/trinity/audio/AudPosition.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
 <!-- class:AudSettings -->
 ## `AudSettings`
 
@@ -144,6 +234,16 @@ Positions source, destination, and stretch emitters along one listener-relative 
 - Source: `src/trinity/audio/StretchAudio.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
+
+<!-- class:SpatialAudioSettings -->
+## `SpatialAudioSettings`
+
+Retains Carbon spatial-audio initialization defaults and getter/setter semantics for manager and injected-backend use.
+
+- Export: `@carbonenginejs/runtime-audio/trinity`
+- Source: `src/trinity/audio/SpatialAudioSettings.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
 
 <!-- class:Tr2AudioStretchAuto -->
 ## `Tr2AudioStretchAuto`

@@ -135,6 +135,29 @@ export class SoundPrioritization extends CjsModel
     this.#audioCullingEnabled = !!enabled;
   }
 
+  /** Carbon method EnableAudioCulling. */
+  @carbon.method
+  @impl.implemented
+  EnableAudioCulling()
+  {
+    this.#audioCullingEnabled = true;
+  }
+
+  /** Carbon method DisableAudioCulling: wake every culled object before disabling. */
+  @carbon.method
+  @impl.implemented
+  DisableAudioCulling()
+  {
+    for (const object of this.#gameObjects)
+    {
+      if (object.IsCulled?.())
+      {
+        object.Wake?.();
+      }
+    }
+    this.#audioCullingEnabled = false;
+  }
+
   // Carbon asymmetry preserved: weight getters return weightMultiplier x the
   // stored raw field; setters store raw (SoundPrioritization.cpp:228-296).
   /** Carbon method GetMaxAwakeGameObjects (plain, no multiply). */
@@ -191,6 +214,14 @@ export class SoundPrioritization extends CjsModel
   GetPlayingVitalSoundWeight()
   {
     return this.#settings.weightMultiplier * this.#settings.playingVitalSoundWeight;
+  }
+
+  /** Carbon method SetPlayingVitalSoundWeight (raw). */
+  @carbon.method
+  @impl.implemented
+  SetPlayingVitalSoundWeight(value)
+  {
+    this.#settings.playingVitalSoundWeight = value;
   }
 
   /** Carbon method GetPlaying2DWeight (multiplied). */
@@ -289,10 +320,11 @@ export class SoundPrioritization extends CjsModel
     this.#settings.usedEmitterWeight = value;
   }
 
-  /** Registered objects (introspection/test surface). */
-  @impl.custom
-  @impl.reason("CarbonEngineJS-only accessor; Carbon exposes no equivalent read.")
-  GetGameObjects()
+  /** Carbon method GetPrioritizedAudioObjects: defensive current-order snapshot. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon returns a const vector reference; CarbonEngineJS returns a defensive array.")
+  GetPrioritizedAudioObjects()
   {
     return this.#gameObjects.slice();
   }

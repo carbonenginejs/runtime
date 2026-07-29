@@ -60,6 +60,14 @@ export class AudioCurveSetDriver extends CjsModel
     return !!AudGameObjResource.manager?.enabled && this.audioParameterName !== "" && this.#audioParameterExists;
   }
 
+  /** Carbon property getter GetAudioParameterName. */
+  @carbon.method
+  @impl.implemented
+  GetAudioParameterName()
+  {
+    return this.audioParameterName;
+  }
+
   /** Carbon method Initialize: registers the monitored parameter with the manager. */
   @carbon.method
   @impl.implemented

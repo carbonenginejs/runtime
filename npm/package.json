@@ -6,13 +6,16 @@
   "exports": {
     ".": "./dist/index.js",
     "./trinity": "./dist/trinity/index.js",
-    "./audioMetadata": "./dist/audioMetadata.js"
+    "./audioMetadata": "./dist/audioMetadata.js",
+    "./library": "./dist/library/index.js",
+    "./library-builder": "./dist/library-builder/index.js"
   },
   "sideEffects": false,
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
+    "@carbonenginejs/runtime-resource": "^0.10.0",
     "@carbonenginejs/runtime-utils": "^0.1.0"
   },
   "files": [

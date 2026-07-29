@@ -7,7 +7,10 @@ export default {
     "src/index.js",
     // Explicit entry so the graph-only ./trinity facade survives
     // preserveModules (pure re-export barrels are elided otherwise).
-    "src/trinity/index.js"
+    "src/trinity/index.js",
+    "src/library/index.js",
+    // Optional library construction stays out of the root module graph.
+    "src/library-builder/index.js"
   ],
   external,
   output: {

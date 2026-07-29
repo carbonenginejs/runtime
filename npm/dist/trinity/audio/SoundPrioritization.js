@@ -32,7 +32,7 @@ class SoundPrioritization extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "SoundPrioritization",
       family: "audio"
-    })], [[[carbon, carbon.method, impl, impl.implemented], 18, "RegisterGameObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnregisterGameObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "CullAudio"], [[carbon, carbon.method, impl, impl.implemented], 18, "ResetCullingSettings"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAudioCullingEnabled"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetAudioCullingEnabled"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetMaxAwakeGameObjects"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetMaxAwakeGameObjects"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetOneShotWindow"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetOneShotWindow"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWeightMultiplier"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetWeightMultiplier"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPlayingVitalSoundWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPlaying2DWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetPlaying2DWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRangeWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetRangeWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPlayingEventsWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetPlayingEventsWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWaitingOneShotWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetWaitingOneShotWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetVisibleWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetVisibleWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetUsedEmitterWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetUsedEmitterWeight"], [[impl, impl.custom, void 0, impl.reason("CarbonEngineJS-only accessor; Carbon exposes no equivalent read.")], 18, "GetGameObjects"], [[void 0, carbon.renamed("CalculateObjectWeight"), impl, impl.implemented], 26, "calculateObjectWeight"]], 0, void 0, CjsModel));
+    })], [[[carbon, carbon.method, impl, impl.implemented], 18, "RegisterGameObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnregisterGameObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "CullAudio"], [[carbon, carbon.method, impl, impl.implemented], 18, "ResetCullingSettings"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAudioCullingEnabled"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetAudioCullingEnabled"], [[carbon, carbon.method, impl, impl.implemented], 18, "EnableAudioCulling"], [[carbon, carbon.method, impl, impl.implemented], 18, "DisableAudioCulling"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetMaxAwakeGameObjects"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetMaxAwakeGameObjects"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetOneShotWindow"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetOneShotWindow"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWeightMultiplier"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetWeightMultiplier"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPlayingVitalSoundWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetPlayingVitalSoundWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPlaying2DWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetPlaying2DWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRangeWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetRangeWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPlayingEventsWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetPlayingEventsWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWaitingOneShotWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetWaitingOneShotWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetVisibleWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetVisibleWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetUsedEmitterWeight"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetUsedEmitterWeight"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon returns a const vector reference; CarbonEngineJS returns a defensive array.")], 18, "GetPrioritizedAudioObjects"], [[void 0, carbon.renamed("CalculateObjectWeight"), impl, impl.implemented], 26, "calculateObjectWeight"]], 0, void 0, CjsModel));
     _initStatic(this);
   }
   #settings = (_initProto(this), DefaultSettings());
@@ -108,6 +108,21 @@ class SoundPrioritization extends CjsModel {
     this.#audioCullingEnabled = !!enabled;
   }
 
+  /** Carbon method EnableAudioCulling. */
+  EnableAudioCulling() {
+    this.#audioCullingEnabled = true;
+  }
+
+  /** Carbon method DisableAudioCulling: wake every culled object before disabling. */
+  DisableAudioCulling() {
+    for (const object of this.#gameObjects) {
+      if (object.IsCulled?.()) {
+        object.Wake?.();
+      }
+    }
+    this.#audioCullingEnabled = false;
+  }
+
   // Carbon asymmetry preserved: weight getters return weightMultiplier x the
   // stored raw field; setters store raw (SoundPrioritization.cpp:228-296).
   /** Carbon method GetMaxAwakeGameObjects (plain, no multiply). */
@@ -143,6 +158,11 @@ class SoundPrioritization extends CjsModel {
   /** Carbon method GetPlayingVitalSoundWeight (multiplied). */
   GetPlayingVitalSoundWeight() {
     return this.#settings.weightMultiplier * this.#settings.playingVitalSoundWeight;
+  }
+
+  /** Carbon method SetPlayingVitalSoundWeight (raw). */
+  SetPlayingVitalSoundWeight(value) {
+    this.#settings.playingVitalSoundWeight = value;
   }
 
   /** Carbon method GetPlaying2DWeight (multiplied). */
@@ -205,8 +225,8 @@ class SoundPrioritization extends CjsModel {
     this.#settings.usedEmitterWeight = value;
   }
 
-  /** Registered objects (introspection/test surface). */
-  GetGameObjects() {
+  /** Carbon method GetPrioritizedAudioObjects: defensive current-order snapshot. */
+  GetPrioritizedAudioObjects() {
     return this.#gameObjects.slice();
   }
 

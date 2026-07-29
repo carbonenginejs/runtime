@@ -3,114 +3,113 @@
 Status: Evolving  
 Scope: `@carbonenginejs/runtime-audio`  
 Audience: Runtime authors, application integrators, and maintainers  
-Summary: Defines audio graph, realization, media-provider, and package ownership boundaries.
+Summary: Defines audio graph, document, builder, provider, and realization ownership.
 
 ## Purpose
 
 `runtime-audio` keeps Carbon audio state and portable behavior usable without a
-device while allowing an application to attach browser playback explicitly.
+device while allowing a browser application to attach playback explicitly.
 The graph and realization share one package because event, bank, emitter,
-culling, and music lifecycles form one audio-domain contract.
+culling, source-selection, decode, and music lifecycles form one audio-domain
+contract.
 
 ## Dependency direction
 
 ```text
-                  runtime-utils
-                        |
-                        v
-            runtime-audio/trinity
-                        |
-                        v
-            CjsAudioSystem + backend
-                        ^
-                        |
-          host loaders and AudioContext
+               runtime-utils
+                    |
+                    v
+        runtime-audio/trinity
+                    |
+                    v
+              CjsAudioMan
+             /           \
+            v             v
+   CjsAudioSystem     media provider
+            |
+            v
+     Web Audio backend
 ```
 
 The `./trinity` entry exports Carbon graph classes and does not evaluate the
-Web Audio backend. The root entry adds the composition root, backend, metadata
-adapter, and music scheduler without creating a device during import.
+Web Audio backend. The root entry adds `CjsAudioMan`, the lower-level
+`CjsAudioSystem`, backend, metadata adapter, and music scheduler without
+creating a device during import.
+
+The optional `./library-builder` entry is separate so builder-only BNK/HIRC
+construction code is absent from ordinary runtime bundles. Playback keeps its
+WEM format import lazy until original WEM bytes actually need preparation.
 
 ## Owned responsibilities
 
-The current package owns:
+The package owns:
 
-- Carbon `Aud*`, `Tr2Audio*`, and audio-geometry model classes;
-- emitter, listener, event, bank, RTPC, switch, and culling behavior;
-- graph adoption and release through `CjsAudioSystem`;
-- per-source Web Audio playback, positioning, gain, seek, and completion;
-- authored interactive-music scheduling; and
-- explicit lifecycle and decoded-music cache release.
+- Carbon `Aud*`, `Tr2Audio*`, audio-geometry, action-log, placement, and
+  spatial-settings classes;
+- emitter, listener, event, bank, RTPC, switch, culling, and music behavior;
+- immutable schema-v2 document validation and installation;
+- language/media representation selection;
+- individual-file, whole-original-file, and exact-range delivery;
+- WEM preparation, browser decoding, pending-work deduplication, and explicit
+  decoded/source-byte cache release;
+- graph adoption and release through the composed `CjsAudioSystem`; and
+- Web Audio playback, positioning, gain, seek, fades, and completion.
 
-`CjsAudioSystem` is the current public composition root. It receives split
-`audioMetadata`, `musicGraph`, `loadBuffer`, and `loadMedia` inputs.
+`CjsAudioMan` is the public composition root. It receives one complete
+document and one structural media provider. `CjsAudioSystem` remains available
+as the lower-level graph/backend composition used by the manager.
 
 ## Ownership elsewhere
 
 - `@carbonenginejs/runtime-resource` owns WEM, BNK, Ogg, and related format
-  parsing and CPU conversion, plus logical/physical raw audio resources.
-- `@carbonenginejs/tools-browser/audio` owns browser-safe audio-library
-  construction, loading, enrichment, delivery probing, and adaptation to
-  CjsResMan audio resources.
-- `@carbonenginejs/tools-core` wraps that builder with exact-build
-  acquisition, caches, provider indexing, prefetch, CLI/API, and Node HTTP
-  routes.
-- The application owns user-gesture timing, `AudioContext` construction,
-  source credentials, URLs, and decoded-buffer policy.
-- `@carbonenginejs/runtime-core` may compose an audio service, but does not
-  absorb audio-domain event, bank, or playback semantics.
-- A general resource manager may budget raw or converted resources, but does
-  not interpret banks or resolve audio events.
+  parsing and CPU conversion.
+- `@carbonenginejs/tools-browser/audio` optionally acquires remote documents,
+  builder inputs, complete files, and ranges. It neither builds nor interprets
+  the installed library.
+- `@carbonenginejs/tools-core` calls the runtime-owned builder and adds
+  exact-build acquisition, caches, provider indexing, prefetch, CLI/API, and
+  HTTP routes.
+- The application owns user-gesture timing, credentials, endpoint selection,
+  and the decision to download, import, build, or request the complete
+  document.
+- `@carbonenginejs/runtime-core` composes an audio-manager service but does not
+  absorb audio-domain semantics.
 
 ## Environment contract
 
-Importing either public entry is side-effect-free. Constructing
-`CjsAudioSystem` remains headless until `Enable()` calls the supplied
-`createContext` factory. Without a context, enablement fails safely and graph
-events remain queued under the null-manager behavior.
-
-The built-in backend is buffer-based. Complete encoded items become decoded
-`AudioBuffer` values before playback. Long music and ambience require an
-application-owned streaming engine; `loadMedia` is not a streaming contract.
+All public runtime entries are browser-safe. Import and construction perform
+no DOM, fetch, Node, or device work. `Enable()` is the first point at which the
+supplied/default browser context factory may create an `AudioContext`.
+Without a usable context, enablement fails safely and graph events retain
+Carbon's null-manager behavior.
 
 ## Data flow
 
 ```text
-generated audio library or caller metadata
-                    |
-                    v
-     host validation and source selection
-                    |
-          +---------+---------+
-          |                   |
-          v                   v
-   event metadata        music graph
-          |                   |
-          v                   v
-  CjsAudioSystem       CjsMusicEngine
-          \                   /
-           \                 /
-            v               v
-              CjsAudioBackend
-                     |
-                     v
-               Web Audio graph
+complete schema-v2 document
+             |
+             v
+        CjsAudioMan
+      /              \
+     v                v
+selection        event/music graph
+     |                |
+     v                v
+media provider   CjsAudioSystem
+     \                /
+      \              /
+       v            v
+    prepare/decode -> CjsAudioBackend
 ```
 
-The host may use a generated library, static files, a local service, or another
-provider. Runtime-audio consumes plain values and loader functions rather than
-depending on one transport.
-
-## Planned boundary
-
-The approved `CjsAudioMan` direction installs one complete audio library and
-owns media-variant selection and decode orchestration. It is not a current
-export. See [Audio manager direction](concepts/audio-manager.md) for the
-activation gates.
+The host may use a packaged artifact, a complete API result, the optional
+builder, or another source. Runtime-audio does not care how the document was
+obtained. Provider calls receive exact document records and request either an
+individual file, a complete original file, or one exact byte range.
 
 ## Related documentation
 
-- [Package documentation](README.md)
+- [Audio manager contract](concepts/audio-manager.md)
 - [Browser playback guide](guides/browser-playback.md)
-- [Current API reference](reference/api.md)
+- [API reference](reference/api.md)
 - [Carbon compatibility](reference/carbon-compatibility.md)

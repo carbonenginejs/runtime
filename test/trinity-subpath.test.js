@@ -7,10 +7,12 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const GRAPH_CLASSES = [
+  "AudActionLogCB", "AudActionRecord", "AudActionRecordPostEvent",
   "AudEmitter", "AudEventCurve", "AudEventKey", "AudGameObjResource",
+  "AudGeometry",
   "AudListener", "AudManager", "AudMusicPlayer", "AudParameter", "AudSettings",
-  "AudStaticDataRepository", "AudUIPlayer", "AudioCurveSetDriver",
-  "SoundPrioritization", "StretchAudio",
+  "AudPosition", "AudStaticDataRepository", "AudUIPlayer", "AudioCurveSetDriver",
+  "SoundPrioritization", "SpatialAudioSettings", "StretchAudio",
   "Tr2AudioStretchAuto", "Tr2AudioStretchBase", "Tr2AudGeometryData"
 ];
 

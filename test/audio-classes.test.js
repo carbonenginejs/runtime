@@ -3,15 +3,19 @@ import assert from "node:assert/strict";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import {
   AudEmitter,
+  AudActionLogCB,
   AudEventCurve,
   AudEventKey,
   AudGameObjResource,
+  AudGeometry,
   AudioCurveSetDriver,
   AudListener,
   AudManager,
   AudMusicPlayer,
   AudParameter,
+  AudPosition,
   AudUIPlayer,
+  SpatialAudioSettings,
   StretchAudio,
   Tr2AudioStretchAuto,
   Tr2AudioStretchBase
@@ -22,11 +26,15 @@ test("real Carbon audio classes are exported with their Carbon families", () =>
 {
   const expectations = [
     [AudGameObjResource, "AudGameObjResource", "audio"],
+    [AudActionLogCB, "AudActionLogCB", "audio"],
     [AudEmitter, "AudEmitter", "audio"],
     [AudListener, "AudListener", "audio"],
     [AudEventCurve, "AudEventCurve", "audio"],
     [AudEventKey, "AudEventKey", "audio"],
     [AudParameter, "AudParameter", "audio"],
+    [AudPosition, "AudPosition", "audio"],
+    [AudGeometry, "AudGeometry", "audio"],
+    [SpatialAudioSettings, "SpatialAudioSettings", "audio"],
     [AudioCurveSetDriver, "AudioCurveSetDriver", "audio"],
     [AudManager, "AudManager", "audio"],
     [AudMusicPlayer, "AudMusicPlayer", "audio"],

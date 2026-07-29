@@ -15,7 +15,7 @@ class AudioCurveSetDriver extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "AudioCurveSetDriver",
       family: "audio"
-    })], [[[io, io.persist, void 0, type.model("ITriScalarFunction")], 16, "fallbackCurve"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.read, type, type.float32], 16, "audioParameterValue"], [[io, io.persistOnly, type, type.string], 16, "audioParameterName"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurveSetTime"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsValid"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetAudioParameterName"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, void 0, type.model("ITriScalarFunction")], 16, "fallbackCurve"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.read, type, type.float32], 16, "audioParameterValue"], [[io, io.persistOnly, type, type.string], 16, "audioParameterName"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurveSetTime"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsValid"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAudioParameterName"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetAudioParameterName"]], 0, void 0, CjsModel));
   }
   /** m_fallbackCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
   fallbackCurve = (_initProto(this), _init_fallbackCurve(this, null));
@@ -48,6 +48,11 @@ class AudioCurveSetDriver extends CjsModel {
   /** Carbon method IsValid: enabled manager + named + existing RTPC. */
   IsValid() {
     return !!_AudGameObjResource.manager?.enabled && this.audioParameterName !== "" && this.#audioParameterExists;
+  }
+
+  /** Carbon property getter GetAudioParameterName. */
+  GetAudioParameterName() {
+    return this.audioParameterName;
   }
 
   /** Carbon method Initialize: registers the monitored parameter with the manager. */

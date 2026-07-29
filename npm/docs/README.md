@@ -20,8 +20,8 @@ Use `runtime-audio` when an application needs to:
 
 - hydrate or inspect Carbon audio graph objects;
 - run emitter, listener, culling, bank, RTPC, switch, or event behavior;
-- realize that behavior through an injected Web Audio context and media
-  loader;
+- install one complete audio-library document and realize it through an
+  injected Web Audio context and media provider;
 - schedule a tools-generated interactive-music graph; or
 - provide a compatible application-owned music engine.
 
@@ -43,10 +43,12 @@ needed.
       applications   runtime-core composition
 ```
 
-The host supplies source acquisition, encoded-media conversion, decoded
-buffers, and the browser audio context. `@carbonenginejs/runtime-resource`
-owns reusable audio format operations. Node acquisition, library generation,
-caches, and HTTP services belong in `@carbonenginejs/tools-core`.
+The host supplies the complete document, exact source acquisition, and browser
+audio context. Runtime-audio owns source selection, bank slicing, WEM
+preparation, decoding, and decoded-buffer policy.
+`@carbonenginejs/runtime-resource` owns reusable audio format operations. Node
+acquisition, caches, and HTTP services belong in
+`@carbonenginejs/tools-core`.
 
 ## Start here
 
@@ -64,7 +66,7 @@ const emitter = AudEmitter.from({
 });
 ```
 
-For browser playback, start with `CjsAudioSystem` and the
+For browser playback, start with `CjsAudioMan` and the
 [browser playback guide](guides/browser-playback.md).
 
 ## Documentation map
@@ -72,7 +74,7 @@ For browser playback, start with `CjsAudioSystem` and the
 - [Architecture and boundaries](architecture.md)
 - [Browser playback guide](guides/browser-playback.md)
 - [Custom and authored music](guides/music.md)
-- [Audio manager direction](concepts/audio-manager.md)
+- [Audio manager contract](concepts/audio-manager.md)
 - [Current API reference](reference/api.md)
 - [Carbon compatibility](reference/carbon-compatibility.md)
 - [Class-purpose catalog](reference/classes/README.md)

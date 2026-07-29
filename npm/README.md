@@ -3,10 +3,10 @@
 Complete CarbonEngineJS audio domain with a graph-only `./trinity` entry and
 optional Web Audio realization.
 
-Use this package to hydrate and operate Carbon audio objects, connect them to
-an application-supplied audio context and media loader, or schedule authored
-interactive music. Audio acquisition and conversion remain with the host,
-`@carbonenginejs/runtime-resource`, and Node tooling.
+Use this package to hydrate and operate Carbon audio objects, install one
+complete schema-v2 audio-library document, and play it through an injected
+browser media provider. Runtime-audio consumes data; it never discovers an
+installation, downloads builder inputs, or requires Node.
 
 ## Install
 
@@ -31,8 +31,35 @@ emitter.SetRTPC("speed", 0.5);
 const values = emitter.GetValues();
 ```
 
-Applications that need audible playback compose `CjsAudioSystem` with their
-own context and decoded-buffer loader during a user gesture.
+Applications that need audible playback use `CjsAudioMan` with a complete
+document and a structural provider:
+
+```js
+import {
+    CjsAudioMan
+} from "@carbonenginejs/runtime-audio";
+
+const audio = new CjsAudioMan(completeLibraryDocument, {
+    mediaProvider: {
+        Read: source => fetch(source.url).then(response => response.arrayBuffer()),
+        ReadRange: (bank, range) => readExactRange(bank, range)
+    }
+});
+```
+
+The provider may deliver individual prepared/original files, complete
+original banks for local slicing, or exact original-bank ranges. The optional
+builder is isolated from the root runtime graph:
+
+```js
+import {
+    CjsAudioLibraryBuilder
+} from "@carbonenginejs/runtime-audio/library-builder";
+```
+
+Callers supply index rows, SoundbanksInfo, optional neutral enrichment, and
+bank access. Fetching those inputs is outside the builder and runtime
+contracts.
 
 ## Documentation
 
@@ -42,7 +69,7 @@ own context and decoded-buffer loader during a user gesture.
 - [Current API reference](docs/reference/api.md)
 - [Carbon compatibility](docs/reference/carbon-compatibility.md)
 - [Class-purpose catalog](docs/reference/classes/README.md)
-- [Audio manager direction](docs/concepts/audio-manager.md)
+- [Audio manager contract](docs/concepts/audio-manager.md)
 
 ## License
 

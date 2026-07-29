@@ -3,79 +3,92 @@
 Status: Experimental  
 Scope: `@carbonenginejs/runtime-audio`  
 Audience: Runtime authors and application integrators  
-Summary: Lists the current public subpaths and principal runtime-audio exports.
+Summary: Lists public subpaths and the complete-document runtime contract.
 
-## Contract
+## Import contract
 
-All public entries are ECMAScript modules and are safe to import without
-creating an audio context. The `./trinity` entry excludes realization modules.
-
-## Subpaths
+All public entries are browser-safe ECMAScript modules. Importing them does not
+create an audio context, fetch data, or touch the DOM.
 
 | Import | Purpose |
 | --- | --- |
-| `@carbonenginejs/runtime-audio` | Complete graph, metadata adapter, audio system, backend, and music scheduler. |
-| `@carbonenginejs/runtime-audio/trinity` | Carbon audio graph classes and portable behavior without backend evaluation. |
-| `@carbonenginejs/runtime-audio/audioMetadata` | `audioMetadataFromSoundbanksInfo()` without importing the complete package. |
+| `@carbonenginejs/runtime-audio` | Complete graph, `CjsAudioMan`, lower-level system, backend, metadata adapter, and music scheduler. |
+| `@carbonenginejs/runtime-audio/trinity` | Carbon audio graph and portable behavior without backend evaluation. |
+| `@carbonenginejs/runtime-audio/audioMetadata` | `audioMetadataFromSoundbanksInfo()`. |
+| `@carbonenginejs/runtime-audio/library` | Schema-v2 validation and immutable installation. |
+| `@carbonenginejs/runtime-audio/library-builder` | Optional construction from caller-supplied inputs. |
 
-## Realization exports
+## Principal exports
 
 | Export | Purpose |
 | --- | --- |
-| `CjsAudioSystem` | Composes metadata, Carbon manager behavior, backend playback, graph adoption, and optional music. |
-| `CjsAudioBackend` | Implements the Web Audio emitter, source, listener, gain, RTPC, switch, seek, and completion operations. |
-| `CjsMusicEngine` | Schedules an authored interactive-music graph against decoded media. |
-| `wwiseIdFromName(name)` | Computes the lowercase 32-bit Wwise name hash used by authored event and state names. |
-| `audioMetadataFromSoundbanksInfo(document, enrichment)` | Converts caller-supplied SoundbanksInfo data into repository metadata and optionally merges culling enrichment. |
+| `CjsAudioMan` | Installs one document and owns selection, delivery, preparation, decode caches, system lifecycle, and emitter adoption. |
+| `CjsAudioSystem` | Lower-level Carbon repository, manager, backend, graph-adoption, and music composition. |
+| `CjsAudioBackend` | Web Audio emitter, source, listener, gain, RTPC, switch, seek, fade, and completion realization. |
+| `CjsMusicEngine` | Authored interactive-music scheduling. |
+| `CjsAudioLibraryBuilder` | Deterministic document construction without input acquisition. |
+| `installAudioLibraryDocument(value)` | Validates, detaches, and deeply freezes one document. |
+| `validateAudioLibraryDocument(value)` | Validates the current schema-v2 contract. |
+| `audioMetadataFromSoundbanksInfo(document, enrichment)` | Maps supplied SoundbanksInfo and optional neutral enrichment to repository metadata. |
 
-The [class-purpose catalog](classes/README.md) lists every public and internal
-class with its exact source and provenance kind.
+## Complete document
 
-## `CjsAudioSystem` lifecycle
-
-1. Construct with metadata and loader capabilities.
-2. Call `Attach()` to install the graph seams.
-3. Call `Enable()` from a browser user gesture.
-4. Adopt or create emitters.
-5. Call `Process(now)` from the application update loop.
-6. Release individual emitters or call `Dispose()`.
-
-Only one attached system owns the static graph seams at a time.
-
-## Metadata shape
-
-`audioMetadataFromSoundbanksInfo()` returns:
+Only `schemaVersion: 2` is accepted:
 
 ```js
 {
-    Events: {},
-    SoundBanks: {},
-    WemFileIDs: {}
+    schema: "carbonenginejs.audioLibrary",
+    schemaVersion: 2,
+    metadata: { Events: {}, SoundBanks: {}, WemFileIDs: {} },
+    media: {},
+    banks: {},
+    embeddedMedia: {},
+    eventMedia: {},
+    eventMediaLanguage: "",
+    music: undefined
 }
 ```
 
-Missing optional enrichment degrades culling information rather than changing
-event identity. Invalid input without a `SoundBanksInfo.SoundBanks` document
-throws `TypeError`.
+`media` contains individual prepared or original source records.
+`embeddedMedia` identifies an original bank plus `offset` and `byteLength`.
+Every bank key and `sourceID` is its `bankID:languageID` identity.
 
-## Constraints
+## Delivery
 
-- Web Audio playback requires a host-created compatible context.
-- Effect and built-in music loaders return complete decoded buffers.
-- Graph-only imports do not imply audible playback.
-- The current system consumes split inputs rather than installing a complete
-  schema-v2 audio library.
-- Custom music-engine factories are synchronous because they run during
-  gesture-time enablement.
+`ResolveMedia()` and `LoadMedia()` accept:
+
+- `delivery: "individual"` for one exact file;
+- `delivery: "whole"` for one complete original bank and local slice;
+- `delivery: "range"` for an exact original-bank byte window; or
+- `delivery: "auto"` to choose from provider capabilities.
+
+The manager also accepts language and media-type preferences. Concurrent
+loads of one selected representation share work. `ReleaseMedia()`,
+`ClearMedia()`, and `ClearSourceData()` release retained state explicitly.
+
+## Lifecycle
+
+1. Construct with a document and provider, or call `InstallLibrary()`.
+2. Call `Enable(soundBanks)` during a browser gesture.
+3. Create/adopt emitters and drive `Process(now)`.
+4. Release emitters/media or call `Dispose()`.
+
+## Builder
+
+`CjsAudioLibraryBuilder` accepts caller-supplied `indexEntries`,
+`soundbanksInfo` or metadata, optional `enrichment`, and optional `loadBank`.
+It performs no fetch, file-index discovery, cache access, or Node filesystem
+work.
 
 ## Errors
 
 | Failure | Meaning |
 | --- | --- |
-| `Enable()` returns `false` | No usable backend context was created. |
-| Posting returns playing ID `0` | The event was queued, culled, unknown, blocked on banks, or unavailable to the backend. |
-| `ValidateMusicEngine()` throws `TypeError` | The supplied engine is asynchronous or lacks a required method. |
-| `AdoptEmitter()` throws | The value is not an audio game object or reuses another object's ID. |
+| `InstallLibrary()` throws | The value is not the current complete schema-v2 document. |
+| `Enable()` returns `false` | No usable browser backend context was created. |
+| Posting returns playing ID `0` | The event is queued, culled, unknown, blocked on banks, or unavailable. |
+| `ResolveMedia()` throws | No acceptable representation/provider route exists. |
+| `LoadMedia()` rejects | Acquisition, range validation, preparation, or decoding failed. |
 
 ## Related documentation
 

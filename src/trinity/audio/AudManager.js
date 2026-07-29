@@ -10,7 +10,9 @@
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { AudGameObjResource } from "./AudGameObjResource.js";
+import { AudGeometry } from "./AudGeometry.js";
 import { LISTENER_GAME_OBJ_ID, SoundPrioritization } from "./SoundPrioritization.js";
+import { SpatialAudioSettings } from "./SpatialAudioSettings.js";
 
 // C++ ComputeWwiseHashForSoundBank strips from the first "." then hashes via
 // AK GetIDFromString; headless we key by the stripped name (adapted - the
@@ -60,6 +62,8 @@ export class AudManager extends CjsModel
   #callbackGameObjects = new Map();
 
   #debugDisplayAllEmitters = false;
+
+  #spatialAudioSettings = new SpatialAudioSettings();
 
   // CarbonEngineJS-original: the prioritization is a public collaborator so
   // emitters can read weights directly (see AudGameObjResource notes).
@@ -124,7 +128,7 @@ export class AudManager extends CjsModel
     {
       this.LoadBank(bank);
     }
-    for (const gameObject of this.soundPrioritization.GetGameObjects())
+    for (const gameObject of this.soundPrioritization.GetPrioritizedAudioObjects())
     {
       gameObject.Wake();
     }
@@ -139,11 +143,12 @@ export class AudManager extends CjsModel
     {
       return;
     }
-    for (const gameObject of this.soundPrioritization.GetGameObjects())
+    for (const gameObject of this.soundPrioritization.GetPrioritizedAudioObjects())
     {
       gameObject.Cull();
     }
     this.ClearBanks();
+    AudGeometry.ClearAllGeometry();
     this.#state = "disabled";
   }
 
@@ -279,7 +284,11 @@ export class AudManager extends CjsModel
     {
       return false;
     }
-    AudGameObjResource.backend?.SetGlobalRTPCValue?.(rtpcName, value);
+    if (AudGameObjResource.backend?.SetGlobalRTPCValue?.(rtpcName, value) === false)
+    {
+      return false;
+    }
+    this.LogSetRTPC(0, rtpcName, value);
     return true;
   }
 
@@ -293,7 +302,470 @@ export class AudManager extends CjsModel
       return false;
     }
     AudGameObjResource.backend?.SetGlobalState?.(stateGroup, stateName);
+    this.LogSetState(stateGroup, stateName);
     return true;
+  }
+
+  /** Carbon method LogPostEvent. */
+  @carbon.method
+  @impl.implemented
+  LogPostEvent(emitterID, playID, eventID, name)
+  {
+    this.log?.LogPostEvent?.(emitterID, playID, eventID, name);
+  }
+
+  /** Carbon method LogExecuteActionOnPlayingID. */
+  @carbon.method
+  @impl.implemented
+  LogExecuteActionOnPlayingID(emitterID, playID, action)
+  {
+    this.log?.LogExecuteActionOnPlayingID?.(emitterID, playID, action);
+  }
+
+  /** Carbon method LogSetSwitch. */
+  @carbon.method
+  @impl.implemented
+  LogSetSwitch(emitterID, group, state)
+  {
+    this.log?.LogSetSwitch?.(emitterID, group, state);
+  }
+
+  /** Carbon method LogSetState. */
+  @carbon.method
+  @impl.implemented
+  LogSetState(group, state)
+  {
+    this.log?.LogSetState?.(group, state);
+  }
+
+  /** Carbon method LogSetRTPC. */
+  @carbon.method
+  @impl.implemented
+  LogSetRTPC(emitterID, name, value, playID = 0)
+  {
+    this.log?.LogSetRTPC?.(emitterID, name, value, playID);
+  }
+
+  /** Carbon method GetSpatialAudioGeometryEnabled. */
+  @carbon.method
+  @impl.implemented
+  GetSpatialAudioGeometryEnabled()
+  {
+    return this.#spatialAudioSettings.GetSpatialAudioGeometryEnabled();
+  }
+
+  /** Carbon method SetSpatialAudioGeometryEnabled. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Browser backends may expose InitSpatialAudioGeometry; the setting and geometry lifecycle remain available even though WebAudio has no native diffraction engine.")
+  SetSpatialAudioGeometryEnabled(enabled)
+  {
+    const value = Boolean(enabled);
+    if (this.GetSpatialAudioGeometryEnabled() === value)
+    {
+      return;
+    }
+    if (this.#state !== "enabled")
+    {
+      this.#spatialAudioSettings.SetSpatialAudioGeometryEnabled(value);
+      return;
+    }
+    if (!value)
+    {
+      this.#spatialAudioSettings.SetSpatialAudioGeometryEnabled(false);
+      AudGeometry.ClearAllGeometry();
+      return;
+    }
+    const settings = this.#spatialAudioSettings.PopulateInitSettings({});
+    if (AudGameObjResource.backend?.InitSpatialAudioGeometry?.(settings) === false)
+    {
+      return;
+    }
+    this.#spatialAudioSettings.SetSpatialAudioGeometryEnabled(true);
+  }
+
+  /** Returns the spatial-audio movement threshold. */
+  @carbon.method
+  @impl.implemented
+  GetMovementThreshold()
+  {
+    return this.#spatialAudioSettings.GetMovementThreshold();
+  }
+
+  /** Sets the spatial-audio movement threshold. */
+  @carbon.method
+  @impl.implemented
+  SetMovementThreshold(value)
+  {
+    this.#spatialAudioSettings.SetMovementThreshold(value);
+  }
+
+  /** Returns the maximum number of primary spatial-audio rays. */
+  @carbon.method
+  @impl.implemented
+  GetNumberOfPrimaryRays()
+  {
+    return this.#spatialAudioSettings.GetNumberOfPrimaryRays();
+  }
+
+  /** Sets the maximum number of primary spatial-audio rays. */
+  @carbon.method
+  @impl.implemented
+  SetNumberOfPrimaryRays(value)
+  {
+    this.#spatialAudioSettings.SetNumberOfPrimaryRays(value);
+  }
+
+  /** Returns the maximum reflection order. */
+  @carbon.method
+  @impl.implemented
+  GetMaxReflectionOrder()
+  {
+    return this.#spatialAudioSettings.GetMaxReflectionOrder();
+  }
+
+  /** Sets the maximum reflection order. */
+  @carbon.method
+  @impl.implemented
+  SetMaxReflectionOrder(value)
+  {
+    this.#spatialAudioSettings.SetMaxReflectionOrder(value);
+  }
+
+  /** Returns the maximum diffraction order. */
+  @carbon.method
+  @impl.implemented
+  GetMaxDiffractionOrder()
+  {
+    return this.#spatialAudioSettings.GetMaxDiffractionOrder();
+  }
+
+  /** Sets the maximum diffraction order. */
+  @carbon.method
+  @impl.implemented
+  SetMaxDiffractionOrder(value)
+  {
+    this.#spatialAudioSettings.SetMaxDiffractionOrder(value);
+  }
+
+  /** Returns the maximum number of emitter room auxiliary sends. */
+  @carbon.method
+  @impl.implemented
+  GetMaxEmitterRoomAuxSends()
+  {
+    return this.#spatialAudioSettings.GetMaxEmitterRoomAuxSends();
+  }
+
+  /** Sets the maximum number of emitter room auxiliary sends. */
+  @carbon.method
+  @impl.implemented
+  SetMaxEmitterRoomAuxSends(value)
+  {
+    this.#spatialAudioSettings.SetMaxEmitterRoomAuxSends(value);
+  }
+
+  /** Returns the diffraction order applied at reflection endpoints. */
+  @carbon.method
+  @impl.implemented
+  GetDiffractionOnReflectionsOrder()
+  {
+    return this.#spatialAudioSettings.GetDiffractionOnReflectionsOrder();
+  }
+
+  /** Sets the diffraction order applied at reflection endpoints. */
+  @carbon.method
+  @impl.implemented
+  SetDiffractionOnReflectionsOrder(value)
+  {
+    this.#spatialAudioSettings.SetDiffractionOnReflectionsOrder(value);
+  }
+
+  /** Returns the maximum spatial-audio path length. */
+  @carbon.method
+  @impl.implemented
+  GetMaxPathLength()
+  {
+    return this.#spatialAudioSettings.GetMaxPathLength();
+  }
+
+  /** Sets the maximum spatial-audio path length. */
+  @carbon.method
+  @impl.implemented
+  SetMaxPathLength(value)
+  {
+    this.#spatialAudioSettings.SetMaxPathLength(value);
+  }
+
+  /** Returns the targeted spatial-audio CPU percentage. */
+  @carbon.method
+  @impl.implemented
+  GetCPULimitPercentage()
+  {
+    return this.#spatialAudioSettings.GetCPULimitPercentage();
+  }
+
+  /** Sets the targeted spatial-audio CPU percentage. */
+  @carbon.method
+  @impl.implemented
+  SetCPULimitPercentage(value)
+  {
+    this.#spatialAudioSettings.SetCPULimitPercentage(value);
+  }
+
+  /** Returns the spatial-audio load-balancing spread. */
+  @carbon.method
+  @impl.implemented
+  GetLoadBalancingSpread()
+  {
+    return this.#spatialAudioSettings.GetLoadBalancingSpread();
+  }
+
+  /** Sets the spatial-audio load-balancing spread. */
+  @carbon.method
+  @impl.implemented
+  SetLoadBalancingSpread(value)
+  {
+    this.#spatialAudioSettings.SetLoadBalancingSpread(value);
+  }
+
+  /** Returns whether geometric diffraction and transmission are enabled. */
+  @carbon.method
+  @impl.implemented
+  GetEnableDiffractionAndTransmission()
+  {
+    return this.#spatialAudioSettings.GetEnableDiffractionAndTransmission();
+  }
+
+  /** Enables or disables geometric diffraction and transmission. */
+  @carbon.method
+  @impl.implemented
+  SetEnableDiffractionAndTransmission(value)
+  {
+    this.#spatialAudioSettings.SetEnableDiffractionAndTransmission(value);
+  }
+
+  /** Returns whether Wwise calculates emitter virtual positions. */
+  @carbon.method
+  @impl.implemented
+  GetCalcEmitterVirtualPosition()
+  {
+    return this.#spatialAudioSettings.GetCalcEmitterVirtualPosition();
+  }
+
+  /** Enables or disables Wwise emitter virtual-position calculation. */
+  @carbon.method
+  @impl.implemented
+  SetCalcEmitterVirtualPosition(value)
+  {
+    this.#spatialAudioSettings.SetCalcEmitterVirtualPosition(value);
+  }
+
+  /** Returns the geometry surface transmission loss. */
+  @carbon.method
+  @impl.implemented
+  GetTransmissionLoss()
+  {
+    return this.#spatialAudioSettings.GetTransmissionLoss();
+  }
+
+  /** Sets the geometry surface transmission loss. */
+  @carbon.method
+  @impl.implemented
+  SetTransmissionLoss(value)
+  {
+    this.#spatialAudioSettings.SetTransmissionLoss(value);
+  }
+
+  /** Returns whether geometry diffraction is enabled. */
+  @carbon.method
+  @impl.implemented
+  GetEnableDiffraction()
+  {
+    return this.#spatialAudioSettings.GetEnableDiffraction();
+  }
+
+  /** Enables or disables geometry diffraction. */
+  @carbon.method
+  @impl.implemented
+  SetEnableDiffraction(value)
+  {
+    this.#spatialAudioSettings.SetEnableDiffraction(value);
+  }
+
+  /** Returns whether geometry boundary-edge diffraction is enabled. */
+  @carbon.method
+  @impl.implemented
+  GetEnableDiffractionOnBoundaryEdges()
+  {
+    return this.#spatialAudioSettings.GetEnableDiffractionOnBoundaryEdges();
+  }
+
+  /** Enables or disables geometry boundary-edge diffraction. */
+  @carbon.method
+  @impl.implemented
+  SetEnableDiffractionOnBoundaryEdges(value)
+  {
+    this.#spatialAudioSettings.SetEnableDiffractionOnBoundaryEdges(value);
+  }
+
+  /** Returns the one-shot opportunity window in milliseconds. */
+  @carbon.method
+  @impl.implemented
+  GetOneShotWindow()
+  {
+    return this.soundPrioritization.GetOneShotWindow();
+  }
+
+  /** Sets the one-shot opportunity window in milliseconds. */
+  @carbon.method
+  @impl.implemented
+  SetOneShotWindow(value)
+  {
+    this.soundPrioritization.SetOneShotWindow(value);
+  }
+
+  /** Returns the weighted playing-2D contribution. */
+  @carbon.method
+  @impl.implemented
+  GetPlaying2DWeight()
+  {
+    return this.soundPrioritization.GetPlaying2DWeight();
+  }
+
+  /** Sets the raw playing-2D weight. */
+  @carbon.method
+  @impl.implemented
+  SetPlaying2DWeight(value)
+  {
+    this.soundPrioritization.SetPlaying2DWeight(value);
+  }
+
+  /** Returns the weighted playing-events contribution. */
+  @carbon.method
+  @impl.implemented
+  GetPlayingEventsWeight()
+  {
+    return this.soundPrioritization.GetPlayingEventsWeight();
+  }
+
+  /** Sets the raw playing-events weight. */
+  @carbon.method
+  @impl.implemented
+  SetPlayingEventsWeight(value)
+  {
+    this.soundPrioritization.SetPlayingEventsWeight(value);
+  }
+
+  /** Returns the weighted vital-sound contribution. */
+  @carbon.method
+  @impl.implemented
+  GetPlayingVitalSoundWeight()
+  {
+    return this.soundPrioritization.GetPlayingVitalSoundWeight();
+  }
+
+  /** Sets the raw vital-sound weight. */
+  @carbon.method
+  @impl.implemented
+  SetPlayingVitalSoundWeight(value)
+  {
+    this.soundPrioritization.SetPlayingVitalSoundWeight(value);
+  }
+
+  /** Returns the weighted range contribution. */
+  @carbon.method
+  @impl.implemented
+  GetRangeWeight()
+  {
+    return this.soundPrioritization.GetRangeWeight();
+  }
+
+  /** Sets the raw range weight. */
+  @carbon.method
+  @impl.implemented
+  SetRangeWeight(value)
+  {
+    this.soundPrioritization.SetRangeWeight(value);
+  }
+
+  /** Returns the weighted used-emitter contribution. */
+  @carbon.method
+  @impl.implemented
+  GetUsedEmitterWeight()
+  {
+    return this.soundPrioritization.GetUsedEmitterWeight();
+  }
+
+  /** Sets the raw used-emitter weight. */
+  @carbon.method
+  @impl.implemented
+  SetUsedEmitterWeight(value)
+  {
+    this.soundPrioritization.SetUsedEmitterWeight(value);
+  }
+
+  /** Returns the weighted visibility contribution. */
+  @carbon.method
+  @impl.implemented
+  GetVisibleWeight()
+  {
+    return this.soundPrioritization.GetVisibleWeight();
+  }
+
+  /** Sets the raw visibility weight. */
+  @carbon.method
+  @impl.implemented
+  SetVisibleWeight(value)
+  {
+    this.soundPrioritization.SetVisibleWeight(value);
+  }
+
+  /** Returns the weighted waiting-one-shot contribution. */
+  @carbon.method
+  @impl.implemented
+  GetWaitingOneShotWeight()
+  {
+    return this.soundPrioritization.GetWaitingOneShotWeight();
+  }
+
+  /** Sets the raw waiting-one-shot weight. */
+  @carbon.method
+  @impl.implemented
+  SetWaitingOneShotWeight(value)
+  {
+    this.soundPrioritization.SetWaitingOneShotWeight(value);
+  }
+
+  /** Returns the global prioritization weight multiplier. */
+  @carbon.method
+  @impl.implemented
+  GetWeightMultiplier()
+  {
+    return this.soundPrioritization.GetWeightMultiplier();
+  }
+
+  /** Sets the global prioritization weight multiplier. */
+  @carbon.method
+  @impl.implemented
+  SetWeightMultiplier(value)
+  {
+    this.soundPrioritization.SetWeightMultiplier(value);
+  }
+
+  /** Returns the maximum number of awake audio objects. */
+  @carbon.method
+  @impl.implemented
+  GetMaxAwakeGameObjects()
+  {
+    return this.soundPrioritization.GetMaxAwakeGameObjects();
+  }
+
+  /** Sets the maximum number of awake audio objects. */
+  @carbon.method
+  @impl.implemented
+  SetMaxAwakeGameObjects(value)
+  {
+    this.soundPrioritization.SetMaxAwakeGameObjects(value);
   }
 
   /** Carbon method StopAll: every prioritized emitter stops everything. */
@@ -303,7 +775,7 @@ export class AudManager extends CjsModel
   {
     if (this.#state !== "uninitialized")
     {
-      for (const gameObject of this.soundPrioritization.GetGameObjects())
+      for (const gameObject of this.soundPrioritization.GetPrioritizedAudioObjects())
       {
         gameObject.StopAll?.();
       }
@@ -345,6 +817,30 @@ export class AudManager extends CjsModel
   GetAudioEmitter(gameObjID)
   {
     return this.#callbackGameObjects.get(gameObjID) ?? null;
+  }
+
+  /** Carbon method WithCallbackGameObject. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("The native locked callback map is synchronous in JavaScript's single-threaded graph runtime.")
+  WithCallbackGameObject(gameObjID, callback)
+  {
+    const emitter = this.#callbackGameObjects.get(gameObjID);
+    if (!emitter)
+    {
+      return false;
+    }
+    callback(emitter);
+    return true;
+  }
+
+  /** Carbon debug method GetEventName. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon dereferences a missing emitter in this debug helper; the JavaScript graph returns an empty name when no emitter is registered.")
+  GetEventName(emitterID, playingID)
+  {
+    return this.GetAudioEmitter(emitterID)?.GetPlayingEvents?.().get(playingID) ?? "";
   }
 
   /** Carbon method GetListener: the fixed-id listener object. */
@@ -406,6 +902,23 @@ export class AudManager extends CjsModel
     }
   }
 
+  /** Carbon method GetAudioCullingEnabled. */
+  @carbon.method
+  @impl.implemented
+  GetAudioCullingEnabled()
+  {
+    this.audioCullingEnabled = this.soundPrioritization.GetAudioCullingEnabled();
+    return this.audioCullingEnabled;
+  }
+
+  /** Carbon Blue property getter GetAudioCullingEnabledProperty. */
+  @carbon.method
+  @impl.implemented
+  GetAudioCullingEnabledProperty()
+  {
+    return this.GetAudioCullingEnabled();
+  }
+
   /** Carbon method Process: cull (when enabled+flagged), render, flush the log. */
   @carbon.method
   @impl.implemented
@@ -439,14 +952,14 @@ export class AudManager extends CjsModel
   @impl.implemented
   DisableAudioCulling()
   {
-    for (const object of this.soundPrioritization.GetGameObjects())
+    for (const object of this.soundPrioritization.GetPrioritizedAudioObjects())
     {
       if (object.IsCulled?.())
       {
         object.Wake?.();
       }
     }
-    this.soundPrioritization.SetAudioCullingEnabled(false);
+    this.soundPrioritization.DisableAudioCulling();
     this.audioCullingEnabled = false;
   }
 
@@ -455,17 +968,17 @@ export class AudManager extends CjsModel
   @impl.implemented
   EnableAudioCulling()
   {
-    this.soundPrioritization.SetAudioCullingEnabled(true);
+    this.soundPrioritization.EnableAudioCulling();
     this.audioCullingEnabled = true;
   }
 
   /** Carbon debug method GetPrioritizedEmitters: defensive current-order snapshot. */
-  @carbon.method
+  @carbon.renamed("GetPrioritizedAudioEmitters")
   @impl.adapted
   @impl.reason("Carbon returns SoundPrioritization's current debug list; CarbonEngineJS returns a defensive array of the same current order.")
   GetPrioritizedEmitters()
   {
-    return this.soundPrioritization.GetGameObjects();
+    return this.soundPrioritization.GetPrioritizedAudioObjects();
   }
 
   /** Carbon debug flag; renderer consumption remains optional. */

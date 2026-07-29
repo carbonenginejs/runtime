@@ -19,13 +19,23 @@ const GENERATED_FAMILIES = ["audio", "trinityAudioApi"];
 // there (see each file's header). trinityAudio is an entirely hand-owned
 // family; the audio-family entries below were promoted from generator output.
 const HAND_OWNED_CLASSES = new Set([
+  "AudActionLogCB",
+  "AudActionRecord",
+  "AudActionRecordExecuteActionOnPlayingID",
+  "AudActionRecordPostEvent",
+  "AudActionRecordSetRTPC",
+  "AudActionRecordSetState",
+  "AudActionRecordSetSwitch",
   "AudEmitter",
   "AudEventCurve",
+  "AudGeometry",
   "AudioCurveSetDriver",
   "AudManager",
   "AudMusicPlayer",
   "AudParameter",
+  "AudPosition",
   "StretchAudio",
+  "SpatialAudioSettings",
   "AudGameObjResource",
   "AudListener",
   "AudStaticDataRepository",
@@ -40,15 +50,7 @@ const HAND_OWNED_CLASSES = new Set([
 //   debug telemetry with no data-graph value (verdicts cite the C++ Blue
 //   exposure: attribute-less, interface-only, or not Blue at all).
 const TRIMMED_CLASSES = new Set([
-  "AudActionLogCB",
-  "AudActionRecordExecuteActionOnPlayingID",
-  "AudActionRecordPostEvent",
-  "AudActionRecordSetRTPC",
-  "AudActionRecordSetState",
-  "AudActionRecordSetSwitch",
-  "AudGeometry",
   "AudPathResolver",
-  "AudPosition",
   "AudioInputMgr",
   "FileHelpers",
   "IAudioInputMgr",
@@ -57,7 +59,6 @@ const TRIMMED_CLASSES = new Set([
   "RH2LH",
   "SoundBankInfo",
   "SoundPrioritization",
-  "SpatialAudioSettings",
   "StringUtils",
   "WaapiManager"
 ]);

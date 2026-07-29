@@ -69,7 +69,7 @@ class AudioLibrary
 
     constructor(raw)
     {
-        if (raw.schema !== "carbonenginejs.audioLibrary" || ![ 1, 2 ].includes(raw.schemaVersion))
+        if (raw.schema !== "carbonenginejs.audioLibrary" || raw.schemaVersion !== 2)
         {
             throw new Error(`Unsupported audio library schema: ${raw.schema ?? "<missing>"} v${raw.schemaVersion ?? "<missing>"}`);
         }

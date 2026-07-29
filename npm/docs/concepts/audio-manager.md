@@ -1,75 +1,69 @@
-# Audio manager direction
+# Audio manager contract
 
-Status: Evolving  
+Status: Experimental
 Scope: `@carbonenginejs/runtime-audio`  
 Audience: Runtime authors and application integrators  
-Summary: Separates the current audio-system contract from the approved whole-library manager direction.
+Summary: Defines the whole-library manager and its acquisition-free runtime boundary.
 
-## Purpose
+## Contract
 
-The package currently exposes `CjsAudioSystem`. The approved destination is a
-narrower `CjsAudioMan` composition root that installs one complete audio
-library and owns audio-specific source selection and preparation. This page
-keeps that planned boundary distinct from imports available today.
+`CjsAudioMan` installs one complete schema-v2 audio-library document and owns:
 
-## Current
+- immutable document installation;
+- event, bank, loose-media, embedded-member, and prepared-variant resolution;
+- explicit language and delivery selection;
+- individual-file, whole-bank/local-slice, and exact-range reads;
+- WEM or browser-native media preparation and decoding;
+- pending decode deduplication and explicit decoded/source cache release; and
+- the Carbon manager, emitter, listener, backend, and music lifecycles.
 
-`CjsAudioSystem` currently receives:
+It accepts a structural provider:
 
-- `audioMetadata` for event, bank, culling, and media membership facts;
-- `musicGraph` for authored interactive music;
-- `loadBuffer(eventID, eventName)` for effect playback;
-- `loadMedia(sourceID, track)` for built-in music;
-- an optional context factory or compatible music engine; and
-- an optional RTPC application delegate.
+```js
+{
+    Read(sourceRecord, context),
+    ReadRange?(bankRecord, { offset, byteLength, signal }),
+    CanRead?(sourceRecord, context),
+    CanReadRange?(bankRecord, context)
+}
+```
 
-It composes `AudManager`, `AudStaticDataRepository`, `CjsAudioBackend`, and
-`CjsMusicEngine`. It adopts and releases graph emitters, but it does not
-install or fetch a complete generated audio library.
+`Read` may return bytes, `{ bytes, mediaType }`, an `AudioBuffer`, or PCM
+channel data. `ReadRange` may return HTTP-206 bytes or a complete original
+file marked `complete: true`; the manager slices the latter locally.
 
-The current backend expects complete decoded `AudioBuffer` values. It does not
-stream long sources.
+## Document acquisition
 
-## Planned
+The caller decides how the complete document exists:
 
-`CjsAudioMan` is planned to:
+- import or download a built artifact;
+- receive a complete result from an API;
+- call `@carbonenginejs/runtime-audio/library-builder` with already acquired
+  inputs; or
+- package it through another application-specific process.
 
-- install and validate one immutable semantic audio library;
-- resolve events, banks, loose media, embedded members, and prepared variants;
-- select an explicitly supported language and delivery variant;
-- coordinate bank extraction and WEM or prepared-media conversion;
-- deduplicate pending decode work;
-- retain and release decoded backend buffers under explicit policy; and
-- continue exposing Carbon manager, emitter, and listener behavior.
+Neither manager nor builder discovers or downloads builder inputs. The
+optional builder accepts supplied index rows, SoundbanksInfo or metadata,
+optional neutral enrichment, and optional bank access.
 
-The manager remains able to run without a general resource manager. It accepts
-an injected structural media provider. A runtime-core adapter may use ResMan
-for raw or converted resource budgeting, but ResMan does not resolve audio
-events, interpret banks, or own decoded-audio playback policy.
+## Lower-level system
 
-## Activation gates
-
-The planned name becomes current only after:
-
-1. the whole-library installer and media-provider contract are implemented;
-2. current direct `loadBuffer` and `loadMedia` consumers have a migration path;
-3. runtime-core composition and shutdown tests pass;
-4. the browser demo proves effect, authored music, and caller-owned music
-   paths; and
-5. package exports and documentation change together.
-
-Until those gates pass, consumers import and use `CjsAudioSystem`.
+`CjsAudioMan` composes `CjsAudioSystem`, which in turn owns `AudManager`,
+`AudStaticDataRepository`, `CjsAudioBackend`, and optional `CjsMusicEngine`.
+Direct `CjsAudioSystem` use remains possible for specialized integrations, but
+ordinary consumers should install a complete document through `CjsAudioMan`.
 
 ## Non-goals
 
-- Moving audio-domain behavior into runtime-utils.
-- Making a general resource manager understand event or bank semantics.
-- Requiring a live Node service for runtime playback.
+- Making a general resource manager interpret audio events or banks.
+- Requiring a Node service for browser playback.
 - Treating filenames or URLs as canonical Wwise media identity.
-- Claiming that the current buffer loader provides streaming.
+- Downloading SoundbanksInfo, indexes, enrichment, or banks inside the
+  builder.
+- Claiming buffer playback is long-form streaming.
 
 ## Related documentation
 
 - [Architecture and boundaries](../architecture.md)
-- [Current API reference](../reference/api.md)
-- [Custom and authored music](../guides/music.md)
+- [API reference](../reference/api.md)
+- [Browser playback guide](../guides/browser-playback.md)

@@ -23,7 +23,7 @@ if (!libraryPath)
 
 const library = JSON.parse(fs.readFileSync(libraryPath, "utf8"));
 
-if (library.schema !== "carbonenginejs.audioLibrary" || ![ 1, 2 ].includes(library.schemaVersion))
+if (library.schema !== "carbonenginejs.audioLibrary" || library.schemaVersion !== 2)
 {
   throw new Error(`Unsupported audio library schema: ${library.schema ?? "<missing>"} v${library.schemaVersion ?? "<missing>"}`);
 }

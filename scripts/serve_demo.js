@@ -151,7 +151,7 @@ async function LoadLibrary()
       ? await fs.promises.readFile(libraryJsonPath)
       : gunzipSync(await fs.promises.readFile(libraryGzipPath));
     const library = JSON.parse(bytes.toString("utf8"));
-    if (library.schema !== "carbonenginejs.audioLibrary" || ![ 1, 2 ].includes(library.schemaVersion))
+    if (library.schema !== "carbonenginejs.audioLibrary" || library.schemaVersion !== 2)
     {
       throw new Error(`Unsupported audio library schema v${library.schemaVersion ?? "<missing>"}`);
     }

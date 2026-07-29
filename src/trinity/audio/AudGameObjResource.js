@@ -268,7 +268,9 @@ export class AudGameObjResource extends CjsModel
       }
       if (soundbanksLoaded)
       {
-        playingID = AudGameObjResource.backend?.PostEvent?.(repository.GetEventID(fullEventName), this.ID, additionalFlags, this, fullEventName) ?? INVALID_PLAYING_ID;
+        const eventID = repository.GetEventID(fullEventName);
+        playingID = AudGameObjResource.backend?.PostEvent?.(eventID, this.ID, additionalFlags, this, fullEventName) ?? INVALID_PLAYING_ID;
+        manager.LogPostEvent?.(this.ID, playingID, eventID, fullEventName);
         if (playingID !== INVALID_PLAYING_ID)
         {
           this.ApplyEventStopRelationships(fullEventName);
@@ -383,6 +385,8 @@ export class AudGameObjResource extends CjsModel
       return false;
     }
     AudGameObjResource.backend?.ExecuteActionOnPlayingID?.(action, playingID, fadeOutDuration);
+    const actionName = String(action).toLowerCase() === "break" ? "Break" : "Stop";
+    AudGameObjResource.manager?.LogExecuteActionOnPlayingID?.(this.ID, playingID, actionName);
     return true;
   }
 
@@ -422,7 +426,11 @@ export class AudGameObjResource extends CjsModel
     }
     if (this.#gameObjRegistered)
     {
-      AudGameObjResource.backend?.SetRTPCValue?.(rtpcName, rtpcValue, this.ID);
+      if (AudGameObjResource.backend?.SetRTPCValue?.(rtpcName, rtpcValue, this.ID) === false)
+      {
+        return false;
+      }
+      AudGameObjResource.manager?.LogSetRTPC?.(this.ID, rtpcName, rtpcValue);
       return true;
     }
     return false;
@@ -440,7 +448,11 @@ export class AudGameObjResource extends CjsModel
     }
     if (this.#gameObjRegistered)
     {
-      AudGameObjResource.backend?.SetSwitch?.(switchGroup, switchState, this.ID);
+      if (AudGameObjResource.backend?.SetSwitch?.(switchGroup, switchState, this.ID) === false)
+      {
+        return false;
+      }
+      AudGameObjResource.manager?.LogSetSwitch?.(this.ID, switchGroup, switchState);
       return true;
     }
     return false;
@@ -987,6 +999,18 @@ export class AudGameObjResource extends CjsModel
       this.RefreshPlacementFromRotation();
     }
     return super.OnModified(options);
+  }
+
+  /** Carbon INotifyList method OnListModified: bind inserted parameters to this game-object id. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("CarbonEngineJS receives cooperative list notifications rather than Blue IList event flags; an inserted AudParameter is bound directly.")
+  OnListModified(_event, _key, _key2, value, list = this.parameters)
+  {
+    if (list === this.parameters && value)
+    {
+      value.SetGameObjectID?.(this.ID);
+    }
   }
 
   /** Values write hook: a supplied position counts as received placement. */

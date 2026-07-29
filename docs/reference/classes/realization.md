@@ -15,6 +15,26 @@ Realizes Carbon audio graph operations as Web Audio nodes and active playback so
 - Visibility: Public
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsAudioMan -->
+## `CjsAudioMan`
+
+Installs one complete audio-library document and owns media selection, delivery, preparation, decode retention, and the composed audio system.
+
+- Export: `@carbonenginejs/runtime-audio`
+- Source: `src/CjsAudioMan.js`
+- Visibility: Public
+- Kind: CarbonEngineJS original
+
+<!-- class:CjsAudioLibraryBuilder -->
+## `CjsAudioLibraryBuilder`
+
+Builds a deterministic schema-v2 audio-library document from caller-supplied values and bank access.
+
+- Export: `@carbonenginejs/runtime-audio/library-builder`
+- Source: `src/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Public
+- Kind: CarbonEngineJS original
+
 <!-- class:CjsAudioSystem -->
 ## `CjsAudioSystem`
 

@@ -51,11 +51,37 @@ function ScanDirectory(directory, relativeDirectory)
     }
     else if (entry.isFile())
     {
-      const text = fs.readFileSync(absolutePath).toString("utf8").toLowerCase();
-      if (text.includes(prohibited))
+      if (ContainsProhibitedText(absolutePath))
       {
         violations.push(`${normalizedPath} (content)`);
       }
     }
+  }
+}
+
+function ContainsProhibitedText(absolutePath)
+{
+  const text = fs.readFileSync(absolutePath).toString("utf8");
+
+  if (!absolutePath.toLowerCase().endsWith(".map"))
+  {
+    return text.toLowerCase().includes(prohibited);
+  }
+
+  try
+  {
+    const map = JSON.parse(text);
+    const meaningfulText = [
+      map.file,
+      ...(map.sources ?? []),
+      ...(map.sourcesContent ?? []),
+      ...(map.names ?? [])
+    ].join("\n");
+
+    return meaningfulText.toLowerCase().includes(prohibited);
+  }
+  catch
+  {
+    return text.toLowerCase().includes(prohibited);
   }
 }
