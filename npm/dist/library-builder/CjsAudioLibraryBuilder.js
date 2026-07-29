@@ -1,4 +1,5 @@
 import { audioMetadataFromSoundbanksInfo } from '../audioMetadata.js';
+import { normalizeSfxGraph } from '../library/sfxGraph.js';
 import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
 
 // Browser-safe audio-library construction. Acquisition remains caller-owned:
@@ -7,6 +8,8 @@ import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
 const MUSIC_BANK_NAMES = Object.freeze(["music.bnk", "music_essential.bnk"]);
 const MUSIC_EVENT_BANK_NAME = "common.bnk";
 const MUSIC_HIRC_TYPES = new Set([10, 11, 12, 13]);
+const SFX_PLAY_ACTION = 0x0403;
+const SFX_UNSUPPORTED_PLAY_ACTIONS = new Set([0x0503, 0x2103]);
 const AUDIO_LANGUAGE_TAGS = Object.freeze({
   chinese: "zh-cn",
   "chinese(prc)": "zh-cn",
@@ -117,6 +120,37 @@ class CjsAudioLibraryBuilder {
   }
 
   /**
+   * Projects the conservative v150 Step SFX subset from typed BNK nodes.
+   *
+   * runtime-resource owns HIRC decoding. This method only names and lowers
+   * codec sounds, Step Random/Sequence, and Step Switch/State containers.
+   * Unsupported events are omitted whole and described in diagnostics.
+   */
+  static createSfxGraph({
+    inspections,
+    metadata,
+    soundbanksInfo = null,
+    media = {},
+    embeddedMedia = {}
+  } = {}) {
+    if (!Array.isArray(inspections)) {
+      throw new TypeError("Audio SFX construction requires bank inspections");
+    }
+    const parsed = CjsBnkFormat.wwise.sfxNodesFromBanks(inspections);
+    const eventNames = new Map();
+    for (const [name, record] of metadataEntries(metadata?.Events, "Audio metadata Events")) {
+      eventNames.set(Number(record.eventID) >>> 0, name);
+    }
+    return LowerSfxGraph({
+      parsed,
+      eventNames,
+      names: CreateSfxNameCatalog(soundbanksInfo),
+      media,
+      embeddedMedia
+    });
+  }
+
+  /**
    * Builds the dynamic-music section from already inspected BNK files.
    *
    * Inspections must carry their source bank name. The format package owns
@@ -224,7 +258,7 @@ class CjsAudioLibraryBuilder {
       metadata: library.metadata,
       enrichment
     });
-    return {
+    const result = {
       ...library,
       metadata: sortedKeys({
         Events: sortedKeys(metadata.Events),
@@ -232,6 +266,10 @@ class CjsAudioLibraryBuilder {
         WemFileIDs: sortedKeys(metadata.WemFileIDs)
       })
     };
+    if (enrichment?.sfx) {
+      result.sfx = normalizeSfxGraph(enrichment.sfx, library.media ?? {}, library.embeddedMedia ?? {});
+    }
+    return result;
   }
 
   /**
@@ -244,8 +282,24 @@ class CjsAudioLibraryBuilder {
     const inspectBank = options.inspectBank ?? defaultInspectBank;
     const eventMediaLanguage = normalizeEventMediaLanguage(options.language ?? "en-us");
     const includeMusic = options.music === true;
+    const includeSfx = options.includeSfx === true;
     const signal = options.signal ?? null;
-    let library = this.build(options);
+    if (includeSfx && (options.sfx || options.enrichment?.sfx)) {
+      throw new TypeError("Audio SFX construction cannot combine includeSfx with a supplied sfx graph");
+    }
+    if (options.onSfxDiagnostics !== undefined && typeof options.onSfxDiagnostics !== "function") {
+      throw new TypeError("Audio onSfxDiagnostics must be a function");
+    }
+    const preliminaryOptions = {
+      ...options,
+      sfx: null,
+      music: null,
+      enrichment: options.enrichment ? {
+        ...options.enrichment,
+        sfx: null
+      } : options.enrichment
+    };
+    let library = this.build(preliminaryOptions);
     if (typeof inspectBank !== "function") {
       throw new TypeError("Audio inspectBank must be a function");
     }
@@ -311,6 +365,22 @@ class CjsAudioLibraryBuilder {
       embeddedMedia
     };
     library = this.build(completeOptions);
+    if (includeSfx) {
+      const sfx = this.createSfxGraph({
+        inspections,
+        metadata: library.metadata,
+        soundbanksInfo: options.soundbanksInfo,
+        media: library.media,
+        embeddedMedia: library.embeddedMedia ?? {}
+      });
+      options.onSfxDiagnostics?.(sfx.diagnostics);
+      if (Object.keys(sfx.events).length) {
+        library = this.build({
+          ...completeOptions,
+          sfx
+        });
+      }
+    }
     if (includeMusic) {
       const music = this.createMusicGraph({
         inspections: inspections.filter(inspection => [MUSIC_EVENT_BANK_NAME, ...MUSIC_BANK_NAMES].includes(bankSourceName(inspection.source))),
@@ -337,6 +407,7 @@ class CjsAudioLibraryBuilder {
       eventMediaLanguage = null,
       embeddedMedia = null,
       bankIdentities = null,
+      sfx: sfxInput = null,
       music = null,
       sourceTarget = null,
       sourceGame = null,
@@ -356,6 +427,7 @@ class CjsAudioLibraryBuilder {
       soundbanksInfo,
       enrichment
     });
+    const sfx = sfxInput ?? enrichment?.sfx ?? null;
     const authoredBanks = createAuthoredBankCatalog(soundbanksInfo, metadata);
     const media = {};
     const banks = createBankTable(entries, authoredBanks, bankIdentities);
@@ -392,6 +464,9 @@ class CjsAudioLibraryBuilder {
     if (embeddedMedia && Object.keys(embeddedMedia).length) {
       library.embeddedMedia = normalizeSourceTable(embeddedMedia);
     }
+    if (sfx !== null) {
+      library.sfx = normalizeSfxGraph(sfx, library.media, library.embeddedMedia ?? {});
+    }
     if (music !== null) {
       validateMusicGraph(music, library.media, library.embeddedMedia ?? {});
       library.music = normalizeMusicGraph(music);
@@ -407,6 +482,270 @@ class CjsAudioLibraryBuilder {
     }
     return library;
   }
+}
+function LowerSfxGraph({
+  parsed,
+  eventNames,
+  names,
+  media,
+  embeddedMedia
+}) {
+  const nodes = {};
+  const events = {};
+  const lowered = new Map();
+  const active = new Set();
+  const omittedEvents = [];
+  const usedIDs = new Set([...parsed.nodes.keys()].map(value => String(value >>> 0)));
+  let syntheticID = 0xffffffff;
+  const allocate = node => {
+    while (syntheticID > 0 && usedIDs.has(String(syntheticID))) {
+      syntheticID--;
+    }
+    if (syntheticID === 0) {
+      throw new Error("Audio SFX construction exhausted node identities");
+    }
+    const id = String(syntheticID--);
+    usedIDs.add(id);
+    nodes[id] = node;
+    return id;
+  };
+  const aggregate = childIDs => {
+    if (!childIDs.length) {
+      return allocate({
+        type: "silence"
+      });
+    }
+    if (childIDs.length === 1) {
+      return childIDs[0];
+    }
+    return allocate({
+      type: "parallel",
+      children: childIDs.map(nodeId => ({
+        nodeId
+      }))
+    });
+  };
+  const lower = rawID => {
+    const id = String(Number(rawID) >>> 0);
+    if (lowered.has(id)) {
+      return lowered.get(id);
+    }
+    if (active.has(id)) {
+      throw new Error(`cycle at node ${id}`);
+    }
+    const source = parsed.nodes.get(Number(id));
+    if (!source) {
+      throw new Error(`missing typed node ${id}`);
+    }
+    active.add(id);
+    try {
+      let node;
+      if (source.type === "sound") {
+        const mediaID = String(source.sourceId >>> 0);
+        if (source.pluginType !== 1) {
+          throw new Error(`source plug-in sound ${id}`);
+        }
+        if (!media[mediaID] && !embeddedMedia[mediaID]) {
+          throw new Error(`sound ${id} references unavailable media ${mediaID}`);
+        }
+        node = {
+          type: "sound",
+          mediaId: mediaID
+        };
+      } else if (source.type === "random" || source.type === "sequence") {
+        if (source.continuous) {
+          throw new Error(`continuous ${source.type} ${id}`);
+        }
+        if (source.transitionMode !== 0) {
+          throw new Error(`transitioned ${source.type} ${id}`);
+        }
+        if (source.restartBackward) {
+          throw new Error(`reverse sequence ${id}`);
+        }
+        if (source.resetPlaylistEachPlay) {
+          throw new Error(`reset-on-play ${source.type} ${id}`);
+        }
+        const playlist = source.playlist.length ? source.playlist : source.children.map(playId => ({
+          playId,
+          weight: 1
+        }));
+        const children = [];
+        for (const item of playlist) {
+          if (source.type === "random" && source.usingWeight && item.weight <= 0) {
+            continue;
+          }
+          children.push({
+            nodeId: lower(item.playId),
+            ...(source.type === "random" && source.usingWeight ? {
+              weight: item.weight
+            } : {})
+          });
+        }
+        if (!children.length) {
+          throw new Error(`empty ${source.type} ${id}`);
+        }
+        node = {
+          type: source.type,
+          scope: source.global ? "global" : "object",
+          children,
+          ...(source.type === "random" ? {
+            mode: source.randomMode === 1 ? "shuffle" : "random",
+            avoidRepeat: source.avoidRepeatCount
+          } : {})
+        };
+      } else if (source.type === "switch") {
+        if (source.continuousValidation) {
+          throw new Error(`continuous switch ${id}`);
+        }
+        if (source.parameters.some(parameter => parameter.firstOnly || parameter.continuePlayback || parameter.onSwitchMode !== 0 || parameter.fadeOutMs !== 0 || parameter.fadeInMs !== 0)) {
+          throw new Error(`transitioned switch ${id}`);
+        }
+        const scope = source.groupType === 1 ? "state" : "switch";
+        const group = names.groups.get(`${scope}:${source.groupId}`);
+        if (!group?.name) {
+          throw new Error(`unnamed ${scope} group ${source.groupId}`);
+        }
+        const cases = {};
+        let defaultChild = null;
+        for (const assignment of source.assignments) {
+          const valueName = group.values.get(assignment.valueId);
+          if (!valueName) {
+            throw new Error(`unnamed ${scope} value ${assignment.valueId}`);
+          }
+          const child = aggregate(assignment.childIds.map(lower));
+          cases[valueName] = {
+            nodeId: child
+          };
+          if (assignment.valueId === source.defaultValueId) {
+            defaultChild = child;
+          }
+        }
+        if (!Object.keys(cases).length) {
+          throw new Error(`empty switch ${id}`);
+        }
+        if (defaultChild === null) {
+          defaultChild = aggregate([]);
+        }
+        node = {
+          type: "switch",
+          scope,
+          group: group.name,
+          cases,
+          default: {
+            nodeId: defaultChild
+          }
+        };
+      } else {
+        throw new Error(`unsupported node type ${source.type}`);
+      }
+      nodes[id] = node;
+      lowered.set(id, id);
+      return id;
+    } finally {
+      active.delete(id);
+    }
+  };
+  for (const [eventID, event] of [...parsed.events.entries()].sort(([left], [right]) => left - right)) {
+    const name = eventNames.get(eventID >>> 0);
+    if (!name) {
+      continue;
+    }
+    try {
+      const roots = [];
+      const unsupportedActions = [];
+      for (const actionID of event.actionIds) {
+        const action = parsed.actions.get(actionID);
+        if (!action) {
+          throw new Error(`missing action ${actionID}`);
+        }
+        if (SFX_UNSUPPORTED_PLAY_ACTIONS.has(action.actionType)) {
+          throw new Error(`unsupported play action 0x${action.actionType.toString(16)}`);
+        }
+        if (action.actionType === SFX_PLAY_ACTION) {
+          roots.push({
+            nodeId: lower(action.targetId)
+          });
+        } else {
+          unsupportedActions.push(action.actionType);
+        }
+      }
+      if (roots.length) {
+        if (unsupportedActions.length) {
+          throw new Error("mixed event actions " + unsupportedActions.map(value => `0x${value.toString(16)}`).join(", "));
+        }
+        events[name] = roots;
+      }
+    } catch (error) {
+      omittedEvents.push({
+        id: eventID,
+        name,
+        reason: error.message
+      });
+    }
+  }
+  const pruned = PruneSfxNodes(events, nodes);
+  return {
+    schemaVersion: 1,
+    generator: "@carbonenginejs/runtime-audio/library-builder",
+    events,
+    nodes: pruned,
+    diagnostics: {
+      parser: parsed.diagnostics,
+      omittedEvents
+    }
+  };
+}
+function CreateSfxNameCatalog(soundbanksInfo) {
+  const groups = new Map();
+  if (!soundbanksInfo) {
+    return {
+      groups
+    };
+  }
+  const parsed = CjsBnkFormat.wwise.parseSoundbanksInfo(soundbanksInfo);
+  for (const bank of parsed.banks) {
+    for (const [scope, entries, valuesField] of [["switch", bank.switchGroups, "switches"], ["state", bank.stateGroups, "states"]]) {
+      for (const entry of entries) {
+        const key = `${scope}:${Number(entry.id) >>> 0}`;
+        const group = groups.get(key) ?? {
+          name: entry.name,
+          values: new Map()
+        };
+        for (const value of entry[valuesField]) {
+          group.values.set(Number(value.id) >>> 0, value.name);
+        }
+        groups.set(key, group);
+      }
+    }
+  }
+  return {
+    groups
+  };
+}
+function PruneSfxNodes(events, nodes) {
+  const reachable = new Set();
+  const visit = child => {
+    const id = String(child && typeof child === "object" ? child.nodeId : child);
+    if (reachable.has(id) || !nodes[id]) {
+      return;
+    }
+    reachable.add(id);
+    const node = nodes[id];
+    if (node.type === "switch") {
+      for (const value of Object.values(node.cases)) visit(value);
+      if (node.default) visit(node.default);
+    } else {
+      for (const value of node.children ?? []) visit(value);
+    }
+  };
+  for (const roots of Object.values(events)) {
+    for (const root of roots) visit(root);
+  }
+  const result = {};
+  for (const id of [...reachable].sort((left, right) => Number(left) - Number(right))) {
+    result[id] = nodes[id];
+  }
+  return result;
 }
 function normalizeBankLoader(options) {
   if (typeof options.loadBank === "function") {

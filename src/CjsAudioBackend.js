@@ -6,8 +6,8 @@
 //
 // Injectables keep this node-testable and decode-agnostic:
 // - context: an AudioContext (or compatible fake); never created here.
-// - loadBuffer(eventID, eventName) -> Promise<AudioBuffer> - the app wires
-//   runtime-resource's wem->ogg->decode chain (catalog route) behind this.
+// - loadBuffer(eventID, eventName, controls) -> Promise<AudioBuffer|voice set>
+//   - the app wires runtime-resource's wem->ogg->decode chain behind this.
 // - isLoop(eventName) - loop flag source (usually the static data repository).
 
 const DEFAULT_FADE_SECONDS = 1;
@@ -31,11 +31,15 @@ export class CjsAudioBackend
 
     #globalRtpcValues = new Map();
 
+    #globalStateValues = new Map();
+
     #objectRtpcValues = new Map();
 
     #objectSwitchValues = new Map();
 
     #applyRTPC = null;
+
+    #releaseGameObj = null;
 
     #nextPlayingID = 1;
 
@@ -49,13 +53,24 @@ export class CjsAudioBackend
     #musicEngine = null;
 
     /** Creates the Web Audio realization over an optional context and loaders. */
-    constructor({ context, loadBuffer, isLoop, distanceScale, musicEngine, applyRTPC } = {})
+    constructor({
+        context,
+        loadBuffer,
+        isLoop,
+        distanceScale,
+        musicEngine,
+        applyRTPC,
+        releaseGameObj,
+    } = {})
     {
         this.#context = context ?? null;
         this.#loadBuffer = loadBuffer ?? null;
         this.#isLoop = isLoop ?? (() => false);
         this.#distanceScale = Number(distanceScale) || 1;
         this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
+        this.#releaseGameObj = typeof releaseGameObj === "function"
+            ? releaseGameObj
+            : null;
 
         if (this.#context)
         {
@@ -174,7 +189,13 @@ export class CjsAudioBackend
         {
             panner.connect(this.#sfxGain);
         }
-        this.#emitterNodes.set(gameObjID, { gain, panner, analyser, scalingFactor: 1 });
+        this.#emitterNodes.set(gameObjID, {
+            gain,
+            flatGain: null,
+            panner,
+            analyser,
+            scalingFactor: 1,
+        });
     }
 
     /** Tears down an emitter's node chain and halts its playing sources, loaded or pending. */
@@ -192,17 +213,26 @@ export class CjsAudioBackend
                     {
                         record.musicEngine?.ExecuteAction?.("stop", playingID, 0);
                     }
-                    record.source?.stop?.(this.#context.currentTime);
+                    for (const voice of record.voices ?? [])
+                    {
+                        if (voice.source)
+                        {
+                            voice.source.onended = null;
+                            voice.source.stop?.(this.#context.currentTime);
+                        }
+                    }
                     this.#FinishPlaying(playingID);
                 }
             }
             nodes.gain.disconnect?.();
+            nodes.flatGain?.disconnect?.();
             nodes.panner.disconnect?.();
             nodes.analyser?.disconnect?.();
             this.#emitterNodes.delete(gameObjID);
         }
         this.#objectRtpcValues.delete(gameObjID);
         this.#objectSwitchValues.delete(gameObjID);
+        this.#releaseGameObj?.(gameObjID);
     }
 
     /** Starts an event: allocates the playing id synchronously, starts when the media resolves. */
@@ -219,31 +249,57 @@ export class CjsAudioBackend
             return 0;
         }
         const playingID = this.#nextPlayingID++;
-        const sourceGain = this.#context.createGain();
-        sourceGain.connect(nodes.gain);
         const record = {
             gameObjID,
             emitter,
             eventName,
-            source: null,
-            sourceGain,
-            buffer: null,
+            voices: [],
+            loaded: false,
             stopped: false,
-            startContextTime: null,
-            offsetSeconds: 0,
+            pendingBreak: false,
             pendingSeek: null
         };
         this.#playing.set(playingID, record);
 
-        Promise.resolve(this.#loadBuffer(eventID, eventName)).then(buffer =>
+        const controls = this.#CreateSfxControls(gameObjID);
+
+        Promise.resolve().then(() =>
         {
-            if (!buffer || record.stopped || !this.#playing.has(playingID))
+            if (record.stopped || !this.#playing.has(playingID))
+            {
+                return null;
+            }
+            return this.#loadBuffer(
+                eventID,
+                eventName,
+                controls,
+            );
+        }).then(result =>
+        {
+            if (!result || record.stopped || !this.#playing.has(playingID))
             {
                 this.#FinishPlaying(playingID);
                 return;
             }
-            record.buffer = buffer;
-            this.#StartSource(playingID, record);
+
+            const descriptors = NormalizeVoiceDescriptors(
+                result,
+                () => !!this.#isLoop(record.eventName),
+            );
+
+            for (const descriptor of descriptors)
+            {
+                record.voices.push(this.#CreateVoice(descriptor, nodes));
+            }
+            record.loaded = true;
+
+            if (!record.voices.length)
+            {
+                this.#FinishPlaying(playingID);
+                return;
+            }
+
+            this.#StartVoices(playingID, record);
         }).catch(() => this.#FinishPlaying(playingID));
 
         return playingID;
@@ -291,35 +347,59 @@ export class CjsAudioBackend
             record.musicEngine?.ExecuteAction?.(action, playingID, fadeOutDuration);
             return;
         }
-        if (action === "break")
+        if (action === "break" && !record.loaded)
         {
-            // Pending sources have no BufferSource yet; the loop flag comes
-            // from the injected delegate so a broken pending one-shot still
-            // plays out once its media resolves, like a loaded one.
-            const loops = record.source ? !!record.source.loop : !!this.#isLoop(record.eventName);
-            if (!loops)
-            {
-                return;
-            }
+            // Authored SFX leaves may override the event-level loop flag.
+            // Keep the pending record until its descriptors resolve, then
+            // discard only looping leaves and let one-shots play out.
+            record.pendingBreak = true;
+            return;
         }
-        record.stopped = true;
-        if (record.source)
+        const breaking = action === "break";
+
+        if (!breaking)
+        {
+            record.stopped = true;
+        }
+        const active = record.voices?.filter(voice =>
+            voice.source
+            && !voice.ended
+            && (!breaking || voice.loop)) ?? [];
+
+        if (active.length)
         {
             // An explicit 0 means an immediate stop; only a missing/invalid
             // duration falls back to the default fade.
             const ms = Number(fadeOutDuration);
             const seconds = Number.isFinite(ms) ? Math.max(0, ms) / 1000 : DEFAULT_FADE_SECONDS;
-            if (seconds > 0)
+
+            for (const voice of active)
             {
-                record.sourceGain.gain?.linearRampToValueAtTime?.(0, this.#context.currentTime + seconds);
+                voice.stopping = true;
+                if (seconds > 0)
+                {
+                    const param = voice.gain.gain;
+                    const now = this.#context.currentTime;
+
+                    if (typeof param?.cancelAndHoldAtTime === "function")
+                    {
+                        param.cancelAndHoldAtTime(now);
+                    }
+                    else
+                    {
+                        param?.cancelScheduledValues?.(now);
+                        param?.setValueAtTime?.(param.value, now);
+                    }
+                    param?.linearRampToValueAtTime?.(0, now + seconds);
+                }
+                else
+                {
+                    SetAudioParam(voice.gain.gain, 0, this.#context);
+                }
+                voice.source.stop(this.#context.currentTime + seconds);
             }
-            else
-            {
-                SetAudioParam(record.sourceGain.gain, 0, this.#context);
-            }
-            record.source.stop(this.#context.currentTime + seconds);
         }
-        else
+        else if (!breaking)
         {
             this.#FinishPlaying(playingID);
         }
@@ -359,15 +439,24 @@ export class CjsAudioBackend
         {
             return record.musicEngine?.GetSourcePlayPosition?.(playingID) ?? -1;
         }
-        if (!record.source || record.startContextTime === null)
+        const voice = record.voices?.find(value =>
+            value.source && !value.ended);
+
+        if (!voice || voice.startContextTime === null)
         {
             return 0;
         }
-        let seconds = record.offsetSeconds + Math.max(0, this.#context.currentTime - record.startContextTime);
-        const duration = Number(record.buffer?.duration);
+        let seconds = voice.offsetSeconds
+            + Math.max(
+                0,
+                this.#context.currentTime - voice.startContextTime,
+            ) * voice.playbackRate;
+        const duration = Number(voice.buffer?.duration);
         if (Number.isFinite(duration) && duration > 0)
         {
-            seconds = record.source.loop ? seconds % duration : Math.min(seconds, duration);
+            seconds = voice.source.loop
+                ? seconds % duration
+                : Math.min(seconds, duration);
         }
         return Math.max(0, Math.round(seconds * 1000));
     }
@@ -427,9 +516,9 @@ export class CjsAudioBackend
     }
 
     /**
-     * Per-object RTPC store. Authored Wwise response curves are not available
-     * in the runtime catalog; applications may inject applyRTPC to realize a
-     * known project-specific mapping without runtime-audio inventing one.
+     * Per-object RTPC store. Installed SFX gain curves update active voices;
+     * applications may also inject applyRTPC for project-specific mappings
+     * that are outside the portable SFX graph.
      */
     SetRTPCValue(rtpcName, value, gameObjID)
     {
@@ -442,6 +531,7 @@ export class CjsAudioBackend
             this.#objectRtpcValues.set(gameObjID, values);
         }
         values.set(name, numeric);
+        this.#RefreshSfxGains(gameObjID);
         const nodes = this.#emitterNodes.get(gameObjID) ?? null;
         this.#applyRTPC?.({
             gameObjID,
@@ -449,6 +539,7 @@ export class CjsAudioBackend
             value: numeric,
             context: this.#context,
             gain: nodes?.gain?.gain ?? null,
+            flatGain: nodes?.flatGain?.gain ?? null,
             panner: nodes?.panner ?? null
         });
     }
@@ -498,6 +589,7 @@ export class CjsAudioBackend
         const name = String(rtpcName);
         const numeric = Number(value);
         this.#globalRtpcValues.set(name, numeric);
+        this.#RefreshSfxGains();
         if (name === "menu_main_master_level")
         {
             SetAudioParam(this.#masterGain?.gain, Math.max(0, Math.min(1, numeric || 0)), this.#context);
@@ -508,10 +600,20 @@ export class CjsAudioBackend
         }
     }
 
-    /** Global state group - feeds the music engine's tree arguments. */
+    /** Global state group - feeds authored SFX and music tree arguments. */
     SetGlobalState(stateGroup, stateName)
     {
+        this.#globalStateValues.set(
+            String(stateGroup),
+            String(stateName),
+        );
         this.#musicEngine?.SetState(stateGroup, stateName);
+    }
+
+    /** Global state query for authored SFX selection. */
+    GetGlobalState(stateGroup)
+    {
+        return this.#globalStateValues.get(String(stateGroup));
     }
 
     /** Monitored-parameter query source. */
@@ -549,24 +651,59 @@ export class CjsAudioBackend
         return this.#playing.size;
     }
 
+    /** Stops every backend-owned event, including direct music posts. */
+    StopAll()
+    {
+        for (const [ playingID, record ] of [ ...this.#playing ])
+        {
+            record.stopped = true;
+
+            if (record.music)
+            {
+                record.musicEngine?.ExecuteAction?.("stop", playingID, 0);
+            }
+            else
+            {
+                for (const voice of record.voices ?? [])
+                {
+                    if (voice.source)
+                    {
+                        voice.source.onended = null;
+                        try
+                        {
+                            voice.source.stop?.(this.#context.currentTime);
+                        }
+                        catch
+                        {
+                            // already stopped
+                        }
+                    }
+                }
+            }
+
+            if (this.#playing.has(playingID))
+            {
+                this.#FinishPlaying(playingID);
+            }
+        }
+    }
+
     /**
      * Stops owned voices and disconnects WebAudio nodes. The AudioContext is
      * host-owned and is deliberately not closed here.
      */
     Dispose()
     {
+        this.StopAll();
         this.SetMusicEngine(null);
         for (const gameObjID of [ ...this.#emitterNodes.keys() ])
         {
             this.UnregisterGameObj(gameObjID);
         }
-        for (const playingID of [ ...this.#playing.keys() ])
-        {
-            this.#FinishPlaying(playingID);
-        }
         this.#objectRtpcValues.clear();
         this.#objectSwitchValues.clear();
         this.#globalRtpcValues.clear();
+        this.#globalStateValues.clear();
         this.#sfxGain?.disconnect?.();
         this.#masterGain?.disconnect?.();
         this.#sfxGain = null;
@@ -641,33 +778,121 @@ export class CjsAudioBackend
             return record.musicEngine?.[method]?.(playingID, seek.value) === true;
         }
         record.pendingSeek = seek;
-        if (record.buffer)
+        if (record.loaded)
         {
-            this.#StartSource(playingID, record);
+            this.#StartVoices(playingID, record);
         }
         return true;
     }
 
-    /** Creates or replaces the Web Audio source for one decoded SFX record. */
-    #StartSource(playingID, record)
+    /** Creates live control readers for one emitter's authored SFX post. */
+    #CreateSfxControls(gameObjID)
     {
-        if (record.stopped || !record.buffer || this.#playing.get(playingID) !== record)
+        return Object.freeze({
+            gameObjID,
+            getSwitch: group =>
+                this.GetSwitchValue(group, gameObjID),
+            getState: group =>
+                this.GetGlobalState(group),
+            getRTPC: name =>
+                this.GetRTPCValue(name, gameObjID),
+            getGlobalRTPC: name =>
+                this.GetGlobalRTPCValue(name),
+        });
+    }
+
+    /** Creates one decoded SFX voice and its independent gain stage. */
+    #CreateVoice(descriptor, emitterNodes)
+    {
+        const gain = this.#context.createGain();
+
+        if (descriptor.spatial)
+        {
+            gain.connect(emitterNodes.gain);
+        }
+        else
+        {
+            if (!emitterNodes.flatGain)
+            {
+                emitterNodes.flatGain = this.#context.createGain();
+                emitterNodes.flatGain.connect(
+                    emitterNodes.analyser ?? this.#sfxGain,
+                );
+            }
+            gain.connect(emitterNodes.flatGain);
+        }
+
+        const voice = {
+            buffer: descriptor.buffer,
+            loop: descriptor.loop,
+            playbackRate: descriptor.playbackRate,
+            spatial: descriptor.spatial,
+            getGain: descriptor.getGain,
+            gain,
+            source: null,
+            ended: false,
+            stopping: false,
+            startContextTime: null,
+            offsetSeconds: 0,
+        };
+
+        this.#ApplyVoiceGain(voice);
+        return voice;
+    }
+
+    /** Starts or restarts every decoded voice owned by one logical event. */
+    #StartVoices(playingID, record)
+    {
+        if (record.stopped
+            || !record.loaded
+            || this.#playing.get(playingID) !== record)
         {
             return;
         }
-        const duration = Number(record.buffer.duration);
-        let offsetSeconds = 0;
-        if (record.pendingSeek?.kind === "ms")
-        {
-            offsetSeconds = record.pendingSeek.value / 1000;
-        }
-        else if (record.pendingSeek?.kind === "percent" && Number.isFinite(duration))
-        {
-            offsetSeconds = record.pendingSeek.value * duration;
-        }
-        record.pendingSeek = null;
 
-        const loops = !!this.#isLoop(record.eventName);
+        const seek = record.pendingSeek;
+        const pendingBreak = record.pendingBreak;
+
+        record.pendingSeek = null;
+        record.pendingBreak = false;
+
+        for (const voice of record.voices)
+        {
+            if (pendingBreak && voice.loop)
+            {
+                voice.ended = true;
+                voice.stopping = true;
+                continue;
+            }
+            if (voice.stopping)
+            {
+                continue;
+            }
+            this.#StartVoice(playingID, record, voice, seek);
+        }
+
+        if (record.voices.every(voice => voice.ended))
+        {
+            this.#FinishPlaying(playingID);
+        }
+    }
+
+    /** Creates or replaces one Web Audio buffer source. */
+    #StartVoice(playingID, record, voice, seek)
+    {
+        const duration = Number(voice.buffer.duration);
+        let offsetSeconds = 0;
+
+        if (seek?.kind === "ms")
+        {
+            offsetSeconds = seek.value / 1000;
+        }
+        else if (seek?.kind === "percent" && Number.isFinite(duration))
+        {
+            offsetSeconds = seek.value * duration;
+        }
+
+        const loops = voice.loop;
         if (Number.isFinite(duration) && duration > 0)
         {
             if (loops)
@@ -676,12 +901,12 @@ export class CjsAudioBackend
             }
             else if (offsetSeconds >= duration)
             {
-                this.#FinishPlaying(playingID);
+                voice.ended = true;
                 return;
             }
         }
 
-        const previous = record.source;
+        const previous = voice.source;
         if (previous)
         {
             previous.onended = null;
@@ -697,20 +922,84 @@ export class CjsAudioBackend
         }
 
         const source = this.#context.createBufferSource();
-        source.buffer = record.buffer;
+        source.buffer = voice.buffer;
         source.loop = loops;
-        source.connect(record.sourceGain);
+        if (source.playbackRate
+            && typeof source.playbackRate === "object"
+            && "value" in source.playbackRate)
+        {
+            source.playbackRate.value = voice.playbackRate;
+        }
+        source.connect(voice.gain);
         source.onended = () =>
         {
-            if (record.source === source)
+            if (voice.source === source)
             {
-                this.#FinishPlaying(playingID);
+                this.#VoiceEnded(playingID, record, voice);
             }
         };
-        record.source = source;
-        record.offsetSeconds = Math.max(0, offsetSeconds);
-        record.startContextTime = this.#context.currentTime;
-        source.start(this.#context.currentTime, record.offsetSeconds);
+        voice.source = source;
+        voice.ended = false;
+        voice.offsetSeconds = Math.max(0, offsetSeconds);
+        voice.startContextTime = this.#context.currentTime;
+        this.#ApplyVoiceGain(voice);
+        source.start(this.#context.currentTime, voice.offsetSeconds);
+    }
+
+    /** Marks one physical voice complete and closes its logical event at zero. */
+    #VoiceEnded(playingID, record, voice)
+    {
+        voice.ended = true;
+        voice.source?.disconnect?.();
+
+        if (record.voices.every(value => value.ended))
+        {
+            this.#FinishPlaying(playingID);
+        }
+    }
+
+    /** Re-evaluates authored live RTPC gain curves. */
+    #RefreshSfxGains(gameObjID = null)
+    {
+        for (const record of this.#playing.values())
+        {
+            if (record.music
+                || record.stopped
+                || (gameObjID !== null && record.gameObjID !== gameObjID))
+            {
+                continue;
+            }
+            for (const voice of record.voices ?? [])
+            {
+                if (!voice.stopping)
+                {
+                    this.#ApplyVoiceGain(voice);
+                }
+            }
+        }
+    }
+
+    /** Applies one voice descriptor's current safe linear gain. */
+    #ApplyVoiceGain(voice)
+    {
+        let value = 1;
+
+        try
+        {
+            value = voice.getGain();
+        }
+        catch
+        {
+            value = 1;
+        }
+
+        const gain = Number(value);
+
+        SetAudioParam(
+            voice.gain?.gain,
+            Number.isFinite(gain) ? Math.max(0, gain) : 1,
+            this.#context,
+        );
     }
 
     /** Finalizes one playing record and delivers completion callbacks once. */
@@ -721,10 +1010,33 @@ export class CjsAudioBackend
         {
             this.#playing.delete(playingID);
             record.stopped = true;
+
+            for (const voice of record.voices ?? [])
+            {
+                if (voice.source)
+                {
+                    voice.source.onended = null;
+                }
+                if (voice.source && !voice.ended)
+                {
+                    try
+                    {
+                        voice.source.stop?.(this.#context.currentTime);
+                    }
+                    catch
+                    {
+                        // already stopped
+                    }
+                }
+                voice.source?.disconnect?.();
+                voice.gain?.disconnect?.();
+            }
+
             if (record.source)
             {
                 record.source.onended = null;
             }
+            record.source?.disconnect?.();
             record.sourceGain?.disconnect?.();
             record.emitter?.EventFinishedCallback?.(playingID);
             record.onFinished?.(playingID);
@@ -738,4 +1050,50 @@ function SetAudioParam(param, value, context)
     {
         param.value = value;
     }
+}
+
+function NormalizeVoiceDescriptors(result, eventLoop)
+{
+    const values = Array.isArray(result?.voices)
+        ? result.voices
+        : [ { buffer: result } ];
+
+    return values.map((value, index) =>
+    {
+        if (!value?.buffer)
+        {
+            throw new TypeError(
+                `Audio voice ${index} has no decoded buffer`,
+            );
+        }
+
+        const playbackRate = Number(value.playbackRate ?? 1);
+
+        if (!Number.isFinite(playbackRate) || playbackRate <= 0)
+        {
+            throw new TypeError(
+                `Audio voice ${index} playbackRate must be positive`,
+            );
+        }
+
+        const constantGain = Number(value.gain ?? 1);
+
+        return {
+            buffer: value.buffer,
+            loop: value.loop === undefined
+                ? Boolean(eventLoop())
+                : Boolean(value.loop),
+            playbackRate,
+            spatial: value.spatial === undefined
+                ? true
+                : Boolean(value.spatial),
+            getGain: typeof value.getGain === "function"
+                ? value.getGain
+                : () => (
+                    Number.isFinite(constantGain)
+                        ? Math.max(0, constantGain)
+                        : 1
+                ),
+        };
+    });
 }

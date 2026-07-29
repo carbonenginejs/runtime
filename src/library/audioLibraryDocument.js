@@ -1,3 +1,8 @@
+import {
+    normalizeSfxGraph,
+    validateSfxGraph,
+} from "./sfxGraph.js";
+
 const AUDIO_LIBRARY_SCHEMA = "carbonenginejs.audioLibrary";
 const AUDIO_LIBRARY_VERSION = 2;
 
@@ -39,13 +44,49 @@ export function validateAudioLibraryDocument(value)
         value.media,
         value.embeddedMedia ?? {},
     );
+    if (value.sfx !== undefined)
+    {
+        validateSfxGraph(
+            value.sfx,
+            value.media,
+            value.embeddedMedia ?? {},
+        );
+        for (const eventName of Object.keys(value.sfx.events))
+        {
+            if (!metadata.Events[eventName])
+            {
+                throw new TypeError(
+                    `Audio library SFX event ${eventName} has no metadata event`,
+                );
+            }
+        }
+    }
     ValidateMusic(
         value.music,
         value.media,
         value.embeddedMedia ?? {},
     );
+    ValidateEventOwnership(value.sfx, value.music);
 
     return true;
+}
+
+function ValidateEventOwnership(sfx, music)
+{
+    if (!sfx || !music)
+    {
+        return;
+    }
+
+    for (const eventName of Object.keys(sfx.events))
+    {
+        if (Array.isArray(music.eventTargets?.[eventName]))
+        {
+            throw new TypeError(
+                `Audio event ${eventName} cannot be owned by both SFX and music graphs`,
+            );
+        }
+    }
 }
 
 /**
@@ -58,7 +99,87 @@ export function validateAudioLibraryDocument(value)
 export function installAudioLibraryDocument(value)
 {
     validateAudioLibraryDocument(value);
-    return CloneJSONValue(value, "audio library");
+    const normalized = value.sfx === undefined
+        ? value
+        : {
+            ...value,
+            sfx: normalizeSfxGraph(
+                value.sfx,
+                value.media,
+                value.embeddedMedia ?? {},
+            ),
+        };
+
+    if (normalized.sfx)
+    {
+        normalized.metadata = NormalizeSfxLoopMetadata(
+            value.metadata,
+            normalized.sfx,
+        );
+    }
+
+    return CloneJSONValue(normalized, "audio library");
+}
+
+function NormalizeSfxLoopMetadata(metadata, sfx)
+{
+    const events = {
+        ...metadata.Events,
+    };
+
+    for (const [ eventName, roots ] of Object.entries(sfx.events))
+    {
+        const source = events[eventName];
+        const fallback = Boolean(source.isLoop);
+        const mayLoop = roots.some(root =>
+            ChildMayLoop(root, sfx.nodes, fallback, new Set()));
+
+        events[eventName] = {
+            ...source,
+            isLoop: mayLoop ? 1 : 0,
+        };
+    }
+
+    return {
+        ...metadata,
+        Events: events,
+    };
+}
+
+function ChildMayLoop(child, nodes, fallback, active)
+{
+    const id = String(Number(
+        child && typeof child === "object" ? child.nodeId : child,
+    ) >>> 0);
+    const node = nodes[id];
+
+    if (!node || active.has(id))
+    {
+        return false;
+    }
+    if (node.type === "sound")
+    {
+        return node.loop === undefined ? fallback : node.loop;
+    }
+    if (node.type === "silence")
+    {
+        return false;
+    }
+
+    const next = new Set(active);
+
+    next.add(id);
+
+    if (node.type === "switch")
+    {
+        return [
+            ...Object.values(node.cases),
+            ...(node.default === undefined ? [] : [ node.default ]),
+        ].some(value => ChildMayLoop(value, nodes, fallback, next));
+    }
+
+    return node.children.some(value =>
+        ChildMayLoop(value, nodes, fallback, next));
 }
 
 function ValidateBanks(banks)

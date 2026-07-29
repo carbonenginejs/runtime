@@ -31,7 +31,14 @@ export function audioMetadataFromSoundbanksInfo(soundbanksInfo, enrichment = nul
         {
             soundBanks[bankName] = { EssentialSoundBank: 0 };
         }
-        for (const entry of bank.Events || [])
+        const bankEvents = Array.isArray(bank.Events)
+            ? bank.Events
+            : bank.IncludedEvents || [];
+        const bankMedia = Array.isArray(bank.Media)
+            ? bank.Media
+            : bank.IncludedMemoryFiles || [];
+
+        for (const entry of bankEvents)
         {
             const name = String(entry.Name || "");
             if (!name)
@@ -40,19 +47,29 @@ export function audioMetadataFromSoundbanksInfo(soundbanksInfo, enrichment = nul
             }
             const record = events[name] ?? (events[name] = {
                 eventID: Number(entry.Id) >>> 0,
-                maxRadiusAttenuation: 0,
+                maxRadiusAttenuation: FiniteNumber(
+                    entry.MaxAttenuation,
+                    0,
+                ),
                 isLoop: 0,
                 is2D: 0,
                 isVital: 0,
                 eventsStoppedBy: [],
                 soundbanks: []
             });
+            if (entry.MaxAttenuation !== undefined)
+            {
+                record.maxRadiusAttenuation = Math.max(
+                    record.maxRadiusAttenuation,
+                    FiniteNumber(entry.MaxAttenuation, 0),
+                );
+            }
             if (bankName && !record.soundbanks.includes(bankName))
             {
                 record.soundbanks.push(bankName);
             }
         }
-        for (const media of bank.Media || [])
+        for (const media of bankMedia)
         {
             const id = String(media.Id ?? "");
             if (id && !wemFileIDs[id])
@@ -64,6 +81,13 @@ export function audioMetadataFromSoundbanksInfo(soundbanksInfo, enrichment = nul
 
     const metadata = { Events: events, SoundBanks: soundBanks, WemFileIDs: wemFileIDs };
     return enrichment ? MergeEnrichment(metadata, enrichment) : metadata;
+}
+
+function FiniteNumber(value, fallback)
+{
+    const number = Number(value);
+
+    return Number.isFinite(number) ? number : fallback;
 }
 
 function BankFileName(bank)

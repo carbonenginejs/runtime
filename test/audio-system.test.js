@@ -137,6 +137,36 @@ test("audioMetadataFromSoundbanksInfo builds the base repository shape", async (
   assert.equal(metadata.Events.engine_loop.isLoop, 0, "degraded default without enrichment");
   assert.equal(metadata.WemFileIDs["777"].SoundBank, "ships.bnk");
 
+  const legacy = audioMetadataFromSoundbanksInfo({
+    SoundBanksInfo: {
+      SchemaVersion: "12",
+      SoundbankVersion: "140",
+      SoundBanks: [
+        {
+          Id: "3",
+          ShortName: "common",
+          Path: "Common.bnk",
+          IncludedEvents: [
+            {
+              Id: "1483003980",
+              Name: "Play_TestLoop",
+              MaxAttenuation: "100."
+            }
+          ],
+          IncludedMemoryFiles: [
+            {
+              Id: "839160035",
+              ShortName: "loop.wav"
+            }
+          ]
+        }
+      ]
+    }
+  });
+  assert.equal(legacy.Events.Play_TestLoop.eventID, 1483003980);
+  assert.equal(legacy.Events.Play_TestLoop.maxRadiusAttenuation, 100);
+  assert.equal(legacy.WemFileIDs["839160035"].SoundBank, "Common.bnk");
+
   // Optional enrichment supplies additional culling flags.
   const enriched = audioMetadataFromSoundbanksInfo(
     { SoundBanksInfo: { SoundBanks: [{ Id: "1", Path: "SoundBanks\\ships.bnk", Events: [{ Id: "12345", Name: "engine_loop" }] }] } },

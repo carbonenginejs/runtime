@@ -45,6 +45,7 @@ class AudManager extends CjsModel {
   // GetStateValue preserves Carbon's 0/1/2.
   #state = (_init_extra_settings(this), "uninitialized");
   #soundBankInfoMap = new Map();
+  #nextSoundBankOperation = 1;
   #monitoredParameters = new Map();
   #callbackGameObjects = new Map();
   #debugDisplayAllEmitters = false;
@@ -124,13 +125,19 @@ class AudManager extends CjsModel {
     if (status === "loaded" || status === "loading") {
       return;
     }
+    const operation = this.#nextSoundBankOperation++;
     this.#soundBankInfoMap.set(key, {
       soundBankStatus: "loading",
       soundBankID: key,
       soundBankName: String(name),
-      waitingEventsAfterLoad: []
+      waitingEventsAfterLoad: [],
+      operation
     });
-    _AudGameObjResource.backend?.LoadBank?.(String(name), loaded => this.UpdateSoundBankStatus(key, loaded ? "loaded" : "not_loaded"));
+    _AudGameObjResource.backend?.LoadBank?.(String(name), loaded => {
+      if (this.#soundBankInfoMap.get(key)?.operation === operation) {
+        this.UpdateSoundBankStatus(key, loaded ? "loaded" : "not_loaded");
+      }
+    });
   }
 
   /** Carbon method UnloadBank. */
@@ -143,8 +150,15 @@ class AudManager extends CjsModel {
     if (status === "not_loaded" || status === "unloading") {
       return;
     }
+    const operation = this.#nextSoundBankOperation++;
+    const info = this.#soundBankInfoMap.get(key);
+    info.operation = operation;
     this.UpdateSoundBankStatus(key, "unloading");
-    _AudGameObjResource.backend?.UnloadBank?.(String(name), () => this.#soundBankInfoMap.delete(key));
+    _AudGameObjResource.backend?.UnloadBank?.(String(name), () => {
+      if (this.#soundBankInfoMap.get(key)?.operation === operation) {
+        this.#soundBankInfoMap.delete(key);
+      }
+    });
   }
 
   /** Carbon method ClearBanks. */

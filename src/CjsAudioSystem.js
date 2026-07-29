@@ -62,6 +62,8 @@ export class CjsAudioSystem
 
     #applyRTPC = null;
 
+    #releaseGameObj = null;
+
     #adoptedEmitters = new Set();
 
     /** Creates a headless-first audio composition with optional realization inputs. */
@@ -74,7 +76,8 @@ export class CjsAudioSystem
         loadMedia,
         musicEngine,
         createMusicEngine,
-        applyRTPC
+        applyRTPC,
+        releaseGameObj,
     } = {})
     {
         this.#createContext = createContext ?? null;
@@ -85,6 +88,9 @@ export class CjsAudioSystem
         this.#providedMusicEngine = musicEngine ?? null;
         this.#createMusicEngine = typeof createMusicEngine === "function" ? createMusicEngine : null;
         this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
+        this.#releaseGameObj = typeof releaseGameObj === "function"
+            ? releaseGameObj
+            : null;
         if (audioMetadata)
         {
             this.repository.Initialize(audioMetadata);
@@ -132,7 +138,8 @@ export class CjsAudioSystem
                     loadBuffer: this.#loadBuffer,
                     isLoop: eventName => this.repository.EventIsLoop(eventName),
                     distanceScale: this.#distanceScale,
-                    applyRTPC: this.#applyRTPC
+                    applyRTPC: this.#applyRTPC,
+                    releaseGameObj: this.#releaseGameObj,
                 });
                 if (!this.musicEngine)
                 {
@@ -175,6 +182,7 @@ export class CjsAudioSystem
     Disable()
     {
         this.manager.Disable();
+        this.backend?.StopAll();
     }
 
     /** Per-frame drive: culling + render + log flush. */

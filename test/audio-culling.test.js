@@ -197,6 +197,69 @@ test("AudManager lifecycle: enable, async bank load, deferred-event flush with b
   }
 });
 
+test("AudManager ignores stale asynchronous bank callbacks", async () =>
+{
+  const { AudManager } = await import("../npm/dist/index.js");
+  const repository = new AudStaticDataRepository();
+  const loads = [];
+  const unloads = [];
+
+  repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
+  AudGameObjResource.staticDataRepository = repository;
+  AudGameObjResource.backend = {
+    LoadBank(name, callback)
+    {
+      loads.push({ name, callback });
+    },
+    UnloadBank(name, callback)
+    {
+      unloads.push({ name, callback });
+    }
+  };
+
+  const manager = new AudManager();
+
+  AudGameObjResource.manager = manager;
+
+  try
+  {
+    manager.Enable([]);
+    loads.shift().callback(true);
+
+    manager.LoadBank("race.bnk");
+    const firstLoad = loads.shift();
+    manager.UnloadBank("race.bnk");
+    const firstUnload = unloads.shift();
+    manager.LoadBank("race.bnk");
+    const secondLoad = loads.shift();
+
+    firstUnload.callback();
+    firstLoad.callback(true);
+    assert.equal(manager.GetSoundBankStatus("race.bnk"), "loading");
+
+    secondLoad.callback(true);
+    assert.equal(manager.GetSoundBankStatus("race.bnk"), "loaded");
+
+    manager.UnloadBank("race.bnk");
+    const secondUnload = unloads.shift();
+    manager.LoadBank("race.bnk");
+    const thirdLoad = loads.shift();
+    manager.UnloadBank("race.bnk");
+    const thirdUnload = unloads.shift();
+
+    secondUnload.callback();
+    thirdLoad.callback(true);
+    assert.equal(manager.GetSoundBankStatus("race.bnk"), "unloading");
+
+    thirdUnload.callback();
+    assert.equal(manager.GetSoundBankStatus("race.bnk"), "not_loaded");
+  }
+  finally
+  {
+    teardown();
+  }
+});
+
 
 test("StretchAudio projects the listener onto the beam segment", async () =>
 {

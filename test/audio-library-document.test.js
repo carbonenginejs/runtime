@@ -104,3 +104,228 @@ test("rejects the retired v1 document shape", () =>
         /Unsupported audio-library schema version: 1/u,
     );
 });
+
+test("validates authored SFX nodes, media references, curves, and cycles", () =>
+{
+    const valid = CreateDocument();
+
+    valid.sfx = {
+        schemaVersion: 1,
+        events: {
+            engine_loop: [ { nodeId: "1" } ],
+        },
+        nodes: {
+            "1": {
+                type: "blend",
+                children: [
+                    {
+                        nodeId: "2",
+                        gainCurves: [
+                            {
+                                rtpc: "speed",
+                                scope: "object",
+                                points: [
+                                    { x: 0, gainDb: -96 },
+                                    { x: 1, gainDb: 0 },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+            "2": {
+                type: "sound",
+                mediaId: "777",
+                loop: true,
+            },
+        },
+    };
+
+    assert.equal(validateAudioLibraryDocument(valid), true);
+
+    const missing = structuredClone(valid);
+
+    missing.sfx.nodes["2"].mediaId = "999";
+    assert.throws(
+        () => validateAudioLibraryDocument(missing),
+        /references missing source 999/u,
+    );
+
+    const curve = structuredClone(valid);
+
+    curve.sfx.nodes["1"].children[0].gainCurves[0].points.reverse();
+    assert.throws(
+        () => validateAudioLibraryDocument(curve),
+        /points must have increasing x/u,
+    );
+
+    const cycle = structuredClone(valid);
+
+    cycle.sfx.nodes["2"] = {
+        type: "parallel",
+        children: [ { nodeId: "1" } ],
+    };
+    assert.throws(
+        () => validateAudioLibraryDocument(cycle),
+        /contains a cycle/u,
+    );
+
+    const mode = structuredClone(valid);
+
+    mode.sfx.nodes["1"] = {
+        type: "random",
+        mode: "roulette",
+        children: [ { nodeId: "2" } ],
+    };
+    assert.throws(
+        () => validateAudioLibraryDocument(mode),
+        /mode must be random or shuffle/u,
+    );
+
+    const scope = structuredClone(valid);
+
+    scope.sfx.nodes["1"] = {
+        type: "sequence",
+        scope: "listener",
+        children: [ { nodeId: "2" } ],
+    };
+    assert.throws(
+        () => validateAudioLibraryDocument(scope),
+        /scope must be object or global/u,
+    );
+
+    const duplicateCase = structuredClone(valid);
+
+    duplicateCase.sfx.nodes["1"] = {
+        type: "switch",
+        group: "size",
+        cases: {
+            Large: { nodeId: "2" },
+            large: { nodeId: "2" },
+        },
+    };
+    assert.throws(
+        () => validateAudioLibraryDocument(duplicateCase),
+        /has duplicate case large/u,
+    );
+});
+
+test("installation canonicalizes authored SFX identifiers and curve numbers", () =>
+{
+    const source = CreateDocument();
+
+    source.sfx = {
+        schemaVersion: 1,
+        events: {
+            engine_loop: [ { nodeId: "01" } ],
+        },
+        nodes: {
+            "1": {
+                type: "sound",
+                mediaId: "0777",
+                gainCurves: [
+                    {
+                        rtpc: "speed",
+                        points: [
+                            { x: "0", gainDb: "-20" },
+                            { x: "1", gainDb: "0" },
+                        ],
+                    },
+                ],
+            },
+        },
+    };
+
+    const installed = installAudioLibraryDocument(source);
+
+    assert.deepEqual(installed.sfx.events.engine_loop, [
+        { nodeId: "1" },
+    ]);
+    assert.equal(installed.sfx.nodes["1"].mediaId, "777");
+    assert.deepEqual(installed.sfx.nodes["1"].gainCurves[0].points, [
+        { x: 0, gainDb: -20 },
+        { x: 1, gainDb: 0 },
+    ]);
+
+    const invalid = structuredClone(source);
+
+    invalid.sfx.nodes["1"].mediaId = true;
+    assert.throws(
+        () => installAudioLibraryDocument(invalid),
+        /must be an unsigned 32-bit integer greater than zero/u,
+    );
+});
+
+test("installation projects authored sound loop overrides into event lifecycle metadata", () =>
+{
+    const looping = CreateDocument();
+
+    looping.metadata.Events.engine_loop.isLoop = 0;
+    looping.sfx = {
+        schemaVersion: 1,
+        events: {
+            engine_loop: [ 1 ],
+        },
+        nodes: {
+            1: {
+                type: "sound",
+                mediaId: 777,
+                loop: true,
+            },
+        },
+    };
+    assert.equal(
+        installAudioLibraryDocument(looping)
+            .metadata.Events.engine_loop.isLoop,
+        1,
+    );
+
+    const oneShot = structuredClone(looping);
+
+    oneShot.metadata.Events.engine_loop.isLoop = 1;
+    oneShot.sfx.nodes["1"].loop = false;
+    assert.equal(
+        installAudioLibraryDocument(oneShot)
+            .metadata.Events.engine_loop.isLoop,
+        0,
+    );
+});
+
+test("rejects events silently claimed by both SFX and music graphs", () =>
+{
+    const source = CreateDocument();
+
+    source.sfx = {
+        schemaVersion: 1,
+        events: {
+            engine_loop: [ 1 ],
+        },
+        nodes: {
+            1: {
+                type: "sound",
+                mediaId: 777,
+            },
+        },
+    };
+    source.music = {
+        schemaVersion: 1,
+        banks: [ "ships.bnk" ],
+        nodes: {
+            10: {
+                type: "music-segment",
+                bank: "ships.bnk",
+                children: [],
+            },
+        },
+        eventTargets: {
+            engine_loop: [ 10 ],
+        },
+        eventStops: {},
+        switchSetters: {},
+    };
+
+    assert.throws(
+        () => installAudioLibraryDocument(source),
+        /cannot be owned by both SFX and music graphs/u,
+    );
+});

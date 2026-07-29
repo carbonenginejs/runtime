@@ -11,10 +11,14 @@ Summary: Defines the whole-library manager and its acquisition-free runtime boun
 
 - immutable document installation;
 - event, bank, loose-media, embedded-member, and prepared-variant resolution;
+- optional authored SFX selection, parallel voice ownership, and live RTPC
+  gain evaluation;
 - explicit language and delivery selection;
 - individual-file, whole-bank/local-slice, and exact-range reads;
 - WEM or browser-native media preparation and decoding;
-- pending decode deduplication and explicit decoded/source cache release; and
+- pending decode deduplication and explicit decoded/source cache release;
+- default banks and desired-bank state across disable/enable;
+- race-safe asynchronous bank callbacks; and
 - the Carbon manager, emitter, listener, backend, and music lifecycles.
 
 It accepts a structural provider:
@@ -45,6 +49,8 @@ The caller decides how the complete document exists:
 Neither manager nor builder discovers or downloads builder inputs. The
 optional builder accepts supplied index rows, SoundbanksInfo or metadata,
 optional neutral enrichment, and optional bank access.
+The enrichment may carry an `sfx` program; the manager consumes it after
+installation without learning how the caller obtained it.
 
 ## Lower-level system
 
@@ -52,6 +58,10 @@ optional neutral enrichment, and optional bank access.
 `AudStaticDataRepository`, `CjsAudioBackend`, and optional `CjsMusicEngine`.
 Direct `CjsAudioSystem` use remains possible for specialized integrations, but
 ordinary consumers should install a complete document through `CjsAudioMan`.
+Its bank-intent facade provides `LoadSoundBank(s)`, `UnloadSoundBank(s)`,
+`SwapSoundBanks()`, `ReloadSoundBanks()`, protected default-bank helpers,
+global RTPC/state setters, and `StopAllPlayingSounds()`. These methods change
+runtime intent only; they never acquire library or media data.
 
 ## Non-goals
 
@@ -67,3 +77,4 @@ ordinary consumers should install a complete document through `CjsAudioMan`.
 - [Architecture and boundaries](../architecture.md)
 - [API reference](../reference/api.md)
 - [Browser playback guide](../guides/browser-playback.md)
+- [Authored SFX programs](../guides/sfx.md)

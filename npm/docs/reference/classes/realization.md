@@ -55,6 +55,16 @@ Schedules an authored interactive-music graph against decoded Web Audio buffers.
 - Visibility: Public
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsSfxEngine -->
+## `CjsSfxEngine`
+
+Resolves an optional authored SFX program into media voices and live RTPC gains.
+
+- Export: `@carbonenginejs/runtime-audio`
+- Source: `src/CjsSfxEngine.js`
+- Visibility: Public
+- Kind: CarbonEngineJS original
+
 <!-- class:MusicInstance -->
 ## `MusicInstance`
 

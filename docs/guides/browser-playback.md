@@ -62,6 +62,7 @@ let context;
 
 const audio = new CjsAudioMan(document, {
     createContext: () => context = new AudioContext(),
+    defaultSoundBanks: [ "ui.bnk" ],
     mediaProvider: {
         async Read(source)
         {
@@ -79,7 +80,7 @@ const audio = new CjsAudioMan(document, {
     }
 });
 
-if (!audio.Enable([ "ui.bnk" ]))
+if (!audio.Enable())
 {
     throw new Error("Audio context creation failed");
 }
@@ -111,6 +112,11 @@ Individual source records always use `Read(sourceRecord)`. The provider owns
 URLs, credentials, fetch policy, and cancellation. Runtime-audio owns media
 choice, validation, preparation, decoding, and caches.
 
+For authored random, sequence, switch, layered, or RTPC-controlled behavior,
+include the optional `sfx` program described in
+[Authored SFX programs](sfx.md). Its sound leaves still use these same
+provider routes.
+
 ## Cleanup
 
 Use `ReleaseMedia()` for one retained media identity, `ClearMedia()` for all
@@ -122,4 +128,5 @@ owner.
 
 - [Architecture and boundaries](../architecture.md)
 - [Audio manager contract](../concepts/audio-manager.md)
+- [Authored SFX programs](sfx.md)
 - [API reference](../reference/api.md)

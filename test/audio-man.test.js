@@ -120,6 +120,53 @@ function FakeContext(log)
     };
 }
 
+function PlaybackContext(log)
+{
+    const context = FakeContext(log);
+    const createGain = context.createGain.bind(context);
+
+    context.gains = [];
+    context.createGain = () =>
+    {
+        const gain = createGain();
+        const connect = gain.connect.bind(gain);
+
+        gain.connectedTo = null;
+        gain.connect = target =>
+        {
+            gain.connectedTo = target;
+            return connect(target);
+        };
+        context.gains.push(gain);
+        return gain;
+    };
+    context.sources = [];
+    context.createBufferSource = () =>
+    {
+        const source = {
+            buffer: null,
+            loop: false,
+            playbackRate: FakeParam(1),
+            onended: null,
+            started: false,
+            connect() {},
+            disconnect() {},
+            start()
+            {
+                source.started = true;
+            },
+            stop()
+            {
+                source.onended?.();
+            },
+        };
+
+        context.sources.push(source);
+        return source;
+    };
+    return context;
+}
+
 test("CjsAudioMan installs one immutable document and reads individual media", async () =>
 {
     const log = [];
@@ -153,6 +200,78 @@ test("CjsAudioMan installs one immutable document and reads individual media", a
     assert.equal(reads[0][1].kind, "media");
     assert.deepEqual([ ...log[0][1] ], [ 1, 2, 3, 4 ]);
     assert.equal(man.ReleaseMedia(777), 1);
+    man.Dispose();
+});
+
+test("CjsAudioMan owns and realizes the fixed Carbon listener", () =>
+{
+    const log = [];
+    const context = PlaybackContext(log);
+    const man = new CjsAudioMan(CreateDocument(), {
+        createContext: () => context,
+    });
+
+    assert.equal(man.manager.GetListener(), man.listener);
+    assert.equal(man.Enable(), true);
+    assert.equal(man.manager.GetListener(), man.listener);
+    assert.deepEqual(
+        [
+            context.listener.positionX.value,
+            context.listener.positionY.value,
+            context.listener.positionZ.value,
+        ],
+        [ 0, 0, 0 ],
+    );
+    man.Dispose();
+});
+
+test("CjsAudioMan owns default and disabled-state bank intent", () =>
+{
+    const man = new CjsAudioMan(CreateDocument(), {
+        createContext: () => PlaybackContext([]),
+        defaultSoundBanks: [ "base.bnk" ],
+    });
+
+    man.LoadSoundBank("queued.bnk");
+    assert.deepEqual(man.banksWaitingToLoad, [ "queued.bnk" ]);
+    assert.equal(man.Enable([ "scene.bnk" ]), true);
+    assert.deepEqual(man.GetLoadedSoundBanks().sort(), [
+        "Init.bnk",
+        "base.bnk",
+        "queued.bnk",
+        "scene.bnk",
+    ]);
+
+    man.AddAndLoadDefaultSoundBank("always.bnk");
+    assert.equal(man.UnloadSoundBank("always.bnk"), false);
+    assert.deepEqual(man.SwapSoundBanks([ "next.bnk" ]), {
+        loaded: [ "next.bnk" ],
+        unloaded: [ "queued.bnk", "scene.bnk" ],
+    });
+    assert.deepEqual(man.GetLoadedSoundBanks().sort(), [
+        "Init.bnk",
+        "always.bnk",
+        "base.bnk",
+        "next.bnk",
+    ]);
+
+    man.Disable();
+    assert.equal(man.GetState(), 1);
+    assert.equal(man.UnloadSoundBank("next.bnk"), true);
+    man.LoadSoundBank("later.bnk");
+    assert.equal(man.Enable(), true);
+    assert.deepEqual(man.GetLoadedSoundBanks().sort(), [
+        "Init.bnk",
+        "always.bnk",
+        "base.bnk",
+        "later.bnk",
+    ]);
+    assert.equal(man.SetGlobalRTPC("volume", 0.5), true);
+    assert.equal(man.SetState("music", "danger"), true);
+
+    assert.equal(man.RemoveAndUnloadDefaultSoundBank("always.bnk"), true);
+    assert.deepEqual(man.defaultSoundBanks, [ "base.bnk" ]);
+    man.StopAllPlayingSounds();
     man.Dispose();
 });
 
@@ -248,6 +367,115 @@ test("original PCM wem files are prepared into AudioBuffer channel data", async 
         false,
         "runtime-resource decoded PCM without browser encoded-media decode",
     );
+    man.Dispose();
+});
+
+test("CjsAudioMan resolves authored switch and blend nodes before media delivery", async () =>
+{
+    const log = [];
+    const reads = [];
+    const context = PlaybackContext(log);
+    const library = {
+        schema: "carbonenginejs.audioLibrary",
+        schemaVersion: 2,
+        metadata: {
+            Events: {
+                weapon_fire: {
+                    eventID: 42,
+                    eventsStoppedBy: [],
+                    is2D: 1,
+                    isLoop: 0,
+                    isVital: 1,
+                    maxRadiusAttenuation: 0,
+                    soundbanks: [ "ships.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "ships.bnk": {
+                    EssentialSoundBank: 0,
+                },
+            },
+            WemFileIDs: {},
+        },
+        media: {
+            "777": {
+                sourceID: "prepared:777",
+                resPath: "res:/audio/777.ogg",
+                mediaType: "ogg",
+            },
+            "778": {
+                sourceID: "prepared:778",
+                resPath: "res:/audio/778.ogg",
+                mediaType: "ogg",
+            },
+        },
+        banks: {},
+        sfx: {
+            schemaVersion: 1,
+            events: {
+                weapon_fire: [ { nodeId: "1" } ],
+            },
+            nodes: {
+                "1": {
+                    type: "switch",
+                    group: "ship_size",
+                    scope: "switch",
+                    cases: {
+                        large: { nodeId: "2" },
+                    },
+                    default: { nodeId: "10" },
+                },
+                "2": {
+                    type: "blend",
+                    children: [
+                        { nodeId: "10" },
+                        { nodeId: "11" },
+                    ],
+                },
+                "10": {
+                    type: "sound",
+                    mediaId: "777",
+                },
+                "11": {
+                    type: "sound",
+                    mediaId: "778",
+                },
+            },
+        },
+    };
+    const man = new CjsAudioMan(library, {
+        createContext: () => context,
+        mediaProvider: {
+            Read(source)
+            {
+                reads.push(source.sourceID);
+                return new Uint8Array([ 1, 2, 3, 4 ]);
+            },
+        },
+    });
+
+    assert.equal(man.Enable([ "ships.bnk" ]), true);
+
+    const emitter = man.CreateEmitter();
+
+    emitter.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
+    emitter.Wake();
+    assert.equal(emitter.SetSwitch("ship_size", "large"), true);
+    assert.ok(emitter.SendEvent("weapon_fire") > 0);
+
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.deepEqual(reads.sort(), [ "prepared:777", "prepared:778" ]);
+    assert.equal(context.sources.length, 2);
+    assert.equal(context.sources.every(source => source.started), true);
+    assert.equal(
+        context.gains[4].connectedTo,
+        context.gains[5],
+        "authored 2D metadata bypasses the emitter panner",
+    );
+    assert.equal(context.gains[6].connectedTo, context.gains[5]);
+    assert.equal(context.gains[5].connectedTo, context.gains[1]);
     man.Dispose();
 });
 

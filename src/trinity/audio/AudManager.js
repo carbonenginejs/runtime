@@ -57,6 +57,8 @@ export class AudManager extends CjsModel
 
   #soundBankInfoMap = new Map();
 
+  #nextSoundBankOperation = 1;
+
   #monitoredParameters = new Map();
 
   #callbackGameObjects = new Map();
@@ -167,8 +169,24 @@ export class AudManager extends CjsModel
     {
       return;
     }
-    this.#soundBankInfoMap.set(key, { soundBankStatus: "loading", soundBankID: key, soundBankName: String(name), waitingEventsAfterLoad: [] });
-    AudGameObjResource.backend?.LoadBank?.(String(name), loaded => this.UpdateSoundBankStatus(key, loaded ? "loaded" : "not_loaded"));
+    const operation = this.#nextSoundBankOperation++;
+    this.#soundBankInfoMap.set(key, {
+      soundBankStatus: "loading",
+      soundBankID: key,
+      soundBankName: String(name),
+      waitingEventsAfterLoad: [],
+      operation
+    });
+    AudGameObjResource.backend?.LoadBank?.(String(name), loaded =>
+    {
+      if (this.#soundBankInfoMap.get(key)?.operation === operation)
+      {
+        this.UpdateSoundBankStatus(
+          key,
+          loaded ? "loaded" : "not_loaded"
+        );
+      }
+    });
   }
 
   /** Carbon method UnloadBank. */
@@ -186,8 +204,18 @@ export class AudManager extends CjsModel
     {
       return;
     }
+    const operation = this.#nextSoundBankOperation++;
+    const info = this.#soundBankInfoMap.get(key);
+
+    info.operation = operation;
     this.UpdateSoundBankStatus(key, "unloading");
-    AudGameObjResource.backend?.UnloadBank?.(String(name), () => this.#soundBankInfoMap.delete(key));
+    AudGameObjResource.backend?.UnloadBank?.(String(name), () =>
+    {
+      if (this.#soundBankInfoMap.get(key)?.operation === operation)
+      {
+        this.#soundBankInfoMap.delete(key);
+      }
+    });
   }
 
   /** Carbon method ClearBanks. */

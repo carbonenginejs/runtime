@@ -33,8 +33,8 @@ contract.
 
 The `./trinity` entry exports Carbon graph classes and does not evaluate the
 Web Audio backend. The root entry adds `CjsAudioMan`, the lower-level
-`CjsAudioSystem`, backend, metadata adapter, and music scheduler without
-creating a device during import.
+`CjsAudioSystem`, backend, metadata adapter, SFX interpreter, and music
+scheduler without creating a device during import.
 
 The optional `./library-builder` entry is separate so builder-only BNK/HIRC
 construction code is absent from ordinary runtime bundles. Playback keeps its
@@ -47,6 +47,8 @@ The package owns:
 - Carbon `Aud*`, `Tr2Audio*`, audio-geometry, action-log, placement, and
   spatial-settings classes;
 - emitter, listener, event, bank, RTPC, switch, culling, and music behavior;
+- optional authored SFX random, step-sequence, switch/state, parallel/blend,
+  gain, and live RTPC-curve behavior;
 - immutable schema-v2 document validation and installation;
 - language/media representation selection;
 - individual-file, whole-original-file, and exact-range delivery;
@@ -92,7 +94,7 @@ complete schema-v2 document
         CjsAudioMan
       /              \
      v                v
-selection        event/music graph
+selection       SFX/event/music graph
      |                |
      v                v
 media provider   CjsAudioSystem
@@ -111,5 +113,6 @@ individual file, a complete original file, or one exact byte range.
 
 - [Audio manager contract](concepts/audio-manager.md)
 - [Browser playback guide](guides/browser-playback.md)
+- [Authored SFX programs](guides/sfx.md)
 - [API reference](reference/api.md)
 - [Carbon compatibility](reference/carbon-compatibility.md)

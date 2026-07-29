@@ -23,5 +23,6 @@ export { CjsAudioBackend } from './CjsAudioBackend.js';
 export { CjsAudioMan } from './CjsAudioMan.js';
 export { CjsAudioSystem } from './CjsAudioSystem.js';
 export { CjsMusicEngine, wwiseIdFromName } from './CjsMusicEngine.js';
+export { CjsSfxEngine } from './CjsSfxEngine.js';
 export { audioMetadataFromSoundbanksInfo } from './audioMetadata.js';
 //# sourceMappingURL=index.js.map

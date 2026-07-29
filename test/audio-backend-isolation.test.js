@@ -12,6 +12,17 @@ function FakeParam(initial)
   const param = {
     value: initial,
     ramps: [],
+    cancellations: [],
+    sets: [],
+    cancelScheduledValues(time)
+    {
+      param.cancellations.push(time);
+    },
+    setValueAtTime(value, time)
+    {
+      param.sets.push([value, time]);
+      param.value = value;
+    },
     linearRampToValueAtTime(value, time)
     {
       param.ramps.push([value, time]);
@@ -122,6 +133,8 @@ test("stopping one of two concurrent sources leaves the other's gain and lifetim
   backend.ExecuteActionOnPlayingID("stop", idA, 500);
 
   assert.deepEqual(gainA.gain.ramps, [[0, 0.5]], "stopped source fades on its own gain");
+  assert.deepEqual(gainA.gain.cancellations, [0]);
+  assert.deepEqual(gainA.gain.sets, [[1, 0]], "the fade is anchored at the current gain");
   assert.equal(sourceA.stoppedAt, 0.5);
   assert.equal(gainB.gain.value, 1, "sibling gain value untouched");
   assert.deepEqual(gainB.gain.ramps, [], "sibling gain has no scheduled fade");
@@ -177,7 +190,7 @@ test("an explicit zero fade stops immediately; only a missing duration uses the 
 });
 
 
-test("pending sources: stop finishes once, break lets a one-shot play out and halts a loop", async () =>
+test("pending sources: stop finishes once and break waits for authored loop descriptors", async () =>
 {
   const buffers = new Map();
   const { context, finished, emitter, backend } = Harness({
@@ -192,12 +205,17 @@ test("pending sources: stop finishes once, break lets a one-shot play out and ha
   const stopped = backend.PostEvent(7, 1, 0, emitter, "shot_stopped");
   backend.ExecuteActionOnPlayingID("stop", stopped, 0);
   assert.deepEqual(finished, [stopped], "stopping a pending source finishes it immediately");
-  buffers.get("shot_stopped").resolve({ fake: "buffer" });
   await tick();
+  assert.equal(
+    buffers.has("shot_stopped"),
+    false,
+    "a stop before the loader microtask avoids acquisition",
+  );
   assert.equal(context.sources.length, 0, "a stopped pending source never starts");
   assert.deepEqual(finished, [stopped], "the finished callback fired exactly once");
 
   const broken = backend.PostEvent(8, 1, 0, emitter, "shot_broken");
+  await tick();
   backend.ExecuteActionOnPlayingID("break", broken);
   assert.equal(backend.GetPlayingCount(), 1, "a broken pending one-shot stays alive");
   buffers.get("shot_broken").resolve({ fake: "buffer" });
@@ -207,11 +225,72 @@ test("pending sources: stop finishes once, break lets a one-shot play out and ha
   assert.equal(context.sources[0].stoppedAt, null);
 
   const loop = backend.PostEvent(9, 1, 0, emitter, "engine_loop");
+  await tick();
   backend.ExecuteActionOnPlayingID("break", loop, 0);
-  assert.ok(finished.includes(loop), "a broken pending loop finishes like a stop");
+  assert.equal(
+    backend.GetPlayingCount(),
+    2,
+    "a pending break cannot assume the event-level loop flag is authoritative"
+  );
   buffers.get("engine_loop").resolve({ fake: "buffer" });
   await tick();
+  assert.ok(finished.includes(loop), "the resolved looping descriptor is discarded");
   assert.equal(context.sources.length, 1, "the broken pending loop never starts");
+});
+
+
+test("break halts only looping voices in a mixed authored event", async () =>
+{
+  const { context, finished, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        { buffer: { duration: 10 }, loop: true },
+        { buffer: { duration: 2 }, loop: false }
+      ]
+    })
+  });
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "mixed");
+
+  await tick();
+  backend.ExecuteActionOnPlayingID("break", playingID, 250);
+
+  assert.equal(context.sources[0].stoppedAt, 0.25);
+  assert.equal(context.sources[1].stoppedAt, null);
+  assert.deepEqual(context.gains[3].gain.ramps, [[0, 0.25]]);
+  assert.deepEqual(context.gains[4].gain.ramps, []);
+
+  assert.equal(backend.SeekOnEventMs(playingID, 500), true);
+  assert.equal(context.sources.length, 3);
+  assert.equal(context.sources[2].loop, false, "seek cannot resurrect the broken loop");
+
+  context.sources[0].onended?.();
+  assert.equal(backend.GetPlayingCount(), 1);
+  assert.deepEqual(finished, []);
+  context.sources[2].onended?.();
+  assert.deepEqual(finished, [playingID]);
+});
+
+
+test("pending break honors per-voice loop overrides instead of event metadata", async () =>
+{
+  const pending = Deferred();
+  const { context, emitter, backend } = Harness({
+    isLoop: () => false,
+    loadBuffer: () => pending.promise
+  });
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "metadata_one_shot");
+
+  backend.ExecuteActionOnPlayingID("break", playingID, 0);
+  pending.resolve({
+    voices: [
+      { buffer: { duration: 10 }, loop: true },
+      { buffer: { duration: 2 }, loop: false }
+    ]
+  });
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].loop, false);
 });
 
 
@@ -238,4 +317,138 @@ test("UnregisterGameObj halts loaded sources and cancels in-flight loads", async
   await tick();
   assert.equal(context.sources.length, 1, "the in-flight load never starts on the torn-down graph");
   assert.deepEqual(finished.sort(), [loaded, inflight].sort(), "resolution after teardown adds no callbacks");
+});
+
+
+test("a synchronous media-loader failure cleans up the playing record", async () =>
+{
+  const { finished, emitter, backend } = Harness({
+    loadBuffer()
+    {
+      throw new Error("decode failed");
+    }
+  });
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "broken");
+
+  assert.ok(playingID > 0);
+  await tick();
+  assert.equal(backend.GetPlayingCount(), 0);
+    assert.deepEqual(finished, [playingID]);
+});
+
+
+test("a later voice start failure stops an already-started sibling", async () =>
+{
+  const { context, finished, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        { buffer: { duration: 2 }, loop: true },
+        { buffer: { duration: 2 }, loop: true }
+      ]
+    })
+  });
+  const createBufferSource = context.createBufferSource.bind(context);
+  let created = 0;
+
+  context.createBufferSource = () =>
+  {
+    const source = createBufferSource();
+
+    created++;
+    if (created === 2)
+    {
+      source.start = () =>
+      {
+        throw new Error("start failed");
+      };
+    }
+    return source;
+  };
+
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "layered");
+
+  await tick();
+  assert.equal(backend.GetPlayingCount(), 0);
+  assert.equal(context.sources[0].stoppedAt, 0);
+  assert.deepEqual(finished, [playingID]);
+});
+
+
+test("one authored event owns parallel voices with live per-object RTPC gains", async () =>
+{
+  let controls;
+  const { context, finished, emitter, backend } = Harness({
+    loadBuffer: async (eventID, eventName, suppliedControls) =>
+    {
+      controls = suppliedControls;
+      return {
+        voices: [
+          {
+            buffer: { duration: 2 },
+            getGain: () => controls.getRTPC("intensity") ?? 0
+          },
+          {
+            buffer: { duration: 2 },
+            gain: 0.5
+          }
+        ]
+      };
+    }
+  });
+
+  backend.SetRTPCValue("intensity", 0.25, 1);
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "layered_shot");
+  await tick();
+
+  assert.equal(context.sources.length, 2);
+  assert.equal(context.gains[3].gain.value, 0.25);
+  assert.equal(context.gains[4].gain.value, 0.5);
+
+  backend.SetRTPCValue("intensity", 0.75, 1);
+  assert.equal(
+    context.gains[3].gain.value,
+    0.75,
+    "an active authored curve updates without restarting its voice"
+  );
+  assert.equal(context.gains[4].gain.value, 0.5);
+
+  context.sources[0].onended?.();
+  assert.equal(
+    backend.GetPlayingCount(),
+    1,
+    "the logical event survives until every parallel voice ends"
+  );
+  context.sources[1].onended?.();
+  assert.deepEqual(finished, [playingID]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+
+test("a non-spatial voice bypasses the emitter panner but keeps voice and SFX gain", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 2 },
+          spatial: false
+        }
+      ]
+    })
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "ui_click");
+  await tick();
+
+  assert.equal(
+    context.gains[4].connectedTo,
+    context.gains[1],
+    "the lazy 2D emitter gain feeds the SFX bus directly"
+  );
+  assert.equal(
+    context.gains[3].connectedTo,
+    context.gains[4],
+    "the voice retains an emitter-level gain before the 2D bus",
+  );
+  assert.notEqual(context.gains[3].connectedTo, context.gains[2]);
 });

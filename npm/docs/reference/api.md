@@ -12,7 +12,7 @@ create an audio context, fetch data, or touch the DOM.
 
 | Import | Purpose |
 | --- | --- |
-| `@carbonenginejs/runtime-audio` | Complete graph, `CjsAudioMan`, lower-level system, backend, metadata adapter, and music scheduler. |
+| `@carbonenginejs/runtime-audio` | Complete graph, `CjsAudioMan`, lower-level system, backend, SFX interpreter, metadata adapter, and music scheduler. |
 | `@carbonenginejs/runtime-audio/trinity` | Carbon audio graph and portable behavior without backend evaluation. |
 | `@carbonenginejs/runtime-audio/audioMetadata` | `audioMetadataFromSoundbanksInfo()`. |
 | `@carbonenginejs/runtime-audio/library` | Schema-v2 validation and immutable installation. |
@@ -22,13 +22,16 @@ create an audio context, fetch data, or touch the DOM.
 
 | Export | Purpose |
 | --- | --- |
-| `CjsAudioMan` | Installs one document and owns selection, delivery, preparation, decode caches, system lifecycle, and emitter adoption. |
+| `CjsAudioMan` | Installs one document and owns selection, delivery, preparation, decode caches, desired bank state, listener/system lifecycle, and emitter adoption. |
 | `CjsAudioSystem` | Lower-level Carbon repository, manager, backend, graph-adoption, and music composition. |
 | `CjsAudioBackend` | Web Audio emitter, source, listener, gain, RTPC, switch, seek, fade, and completion realization. |
+| `CjsSfxEngine` | Browser-safe authored random, step-sequence, switch/state, blend, and RTPC-gain interpretation. |
 | `CjsMusicEngine` | Authored interactive-music scheduling. |
 | `CjsAudioLibraryBuilder` | Deterministic document construction without input acquisition. |
 | `installAudioLibraryDocument(value)` | Validates, detaches, and deeply freezes one document. |
 | `validateAudioLibraryDocument(value)` | Validates the current schema-v2 contract. |
+| `validateSfxGraph(value, media, embeddedMedia)` | Validates one optional authored SFX program and its media references. |
+| `normalizeSfxGraph(value, media, embeddedMedia)` | Produces deterministic builder output for one validated SFX program. |
 | `audioMetadataFromSoundbanksInfo(document, enrichment)` | Maps supplied SoundbanksInfo and optional neutral enrichment to repository metadata. |
 
 ## Complete document
@@ -45,6 +48,7 @@ Only `schemaVersion: 2` is accepted:
     embeddedMedia: {},
     eventMedia: {},
     eventMediaLanguage: "",
+    sfx: undefined,
     music: undefined
 }
 ```
@@ -52,6 +56,8 @@ Only `schemaVersion: 2` is accepted:
 `media` contains individual prepared or original source records.
 `embeddedMedia` identifies an original bank plus `offset` and `byteLength`.
 Every bank key and `sourceID` is its `bankID:languageID` identity.
+When present, `sfx` selects and layers those media identities using the
+version-1 portable SFX graph.
 
 ## Delivery
 
@@ -73,10 +79,18 @@ loads of one selected representation share work. `ReleaseMedia()`,
 3. Create/adopt emitters and drive `Process(now)`.
 4. Release emitters/media or call `Dispose()`.
 
+Constructor option `defaultSoundBanks` protects banks that should be present
+whenever audio is enabled. Calls to `LoadSoundBank()` while disabled are
+retained for the next successful `Enable()`. `Disable()` preserves the current
+loaded/in-flight set, and `SwapSoundBanks()` reconciles non-default bank
+intent without acquiring bytes. `SetGlobalRTPC()`, `SetState()`, and
+`StopAllPlayingSounds()` keep a thin browser integration on `CjsAudioMan`.
+
 ## Builder
 
 `CjsAudioLibraryBuilder` accepts caller-supplied `indexEntries`,
-`soundbanksInfo` or metadata, optional `enrichment`, and optional `loadBank`.
+`soundbanksInfo` or metadata, optional `enrichment`, optional `sfx`, and
+optional `loadBank`.
 It performs no fetch, file-index discovery, cache access, or Node filesystem
 work.
 
@@ -94,4 +108,5 @@ work.
 
 - [Architecture and boundaries](../architecture.md)
 - [Browser playback guide](../guides/browser-playback.md)
+- [Authored SFX programs](../guides/sfx.md)
 - [Carbon compatibility](carbon-compatibility.md)

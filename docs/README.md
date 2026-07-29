@@ -22,6 +22,7 @@ Use `runtime-audio` when an application needs to:
 - run emitter, listener, culling, bank, RTPC, switch, or event behavior;
 - install one complete audio-library document and realize it through an
   injected Web Audio context and media provider;
+- run optional authored SFX selection, layering, and RTPC gain curves;
 - schedule a tools-generated interactive-music graph; or
 - provide a compatible application-owned music engine.
 
@@ -73,6 +74,7 @@ For browser playback, start with `CjsAudioMan` and the
 
 - [Architecture and boundaries](architecture.md)
 - [Browser playback guide](guides/browser-playback.md)
+- [Authored SFX programs](guides/sfx.md)
 - [Custom and authored music](guides/music.md)
 - [Audio manager contract](concepts/audio-manager.md)
 - [Current API reference](reference/api.md)

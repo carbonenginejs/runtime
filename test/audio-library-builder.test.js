@@ -49,6 +49,19 @@ test("optional library builder accepts supplied data and optional enrichment", (
             },
             SoundBanks: {},
             WemFileIDs: {},
+            sfx: {
+                schemaVersion: 1,
+                events: {
+                    engine_loop: [ 1 ],
+                },
+                nodes: {
+                    "1": {
+                        type: "sound",
+                        mediaId: 777,
+                        loop: true,
+                    },
+                },
+            },
         },
         sourceTarget: "eve",
         sourceGame: "Eve",
@@ -65,6 +78,10 @@ test("optional library builder accepts supplied data and optional enrichment", (
     assert.equal(library.metadata.Events.engine_loop.maxRadiusAttenuation, 250);
     assert.equal(library.media["777"].storagePath, "bb/777_hash.wem");
     assert.equal(library.banks["524:0"].storagePath, "aa/524_hash.bnk");
+    assert.deepEqual(library.sfx.events.engine_loop, [
+        { nodeId: "1" },
+    ]);
+    assert.equal(library.sfx.nodes["1"].mediaId, "777");
     assert.equal(
         JSON.stringify(library),
         JSON.stringify(CjsAudioLibraryBuilder.build(options)),
@@ -111,6 +128,18 @@ test("complete library construction reads banks only through the injected loader
                 byteLength: 4096,
             },
         ],
+        sfx: {
+            schemaVersion: 1,
+            events: {
+                weapon_fire: [ 2 ],
+            },
+            nodes: {
+                "2": {
+                    type: "sound",
+                    mediaId: 9001,
+                },
+            },
+        },
         loadBank(bank, context)
         {
             calls.push({
@@ -170,6 +199,7 @@ test("complete library construction reads banks only through the injected loader
         language: "",
         mediaType: "wem",
     });
+    assert.equal(library.sfx.nodes["2"].mediaId, "9001");
 });
 
 test("complete construction honors cancellation before reading a bank", async () =>
@@ -209,6 +239,89 @@ test("complete construction honors cancellation before reading a bank", async ()
         /cancelled/u,
     );
     assert.equal(called, false);
+});
+
+test("music:true is deferred until inspected banks are available", async () =>
+{
+    await assert.rejects(
+        CjsAudioLibraryBuilder.buildFromBanks({
+            music: true,
+            metadata: {
+                Events: {},
+                SoundBanks: {},
+                WemFileIDs: {},
+            },
+            indexEntries: [],
+            loadBank()
+            {
+                throw new Error("must not read");
+            },
+        }),
+        /Audio music construction requires indexed banks/u,
+    );
+});
+
+test("typed runtime-resource SFX nodes lower into the portable builder graph", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                weapon_fire: {
+                    eventID: 100,
+                },
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+
+    assert.deepEqual(result.events, {
+        weapon_fire: [
+            { nodeId: "200" },
+        ],
+    });
+    assert.deepEqual(result.nodes, {
+        "200": {
+            type: "sound",
+            mediaId: "9001",
+        },
+    });
+    assert.equal(result.diagnostics.parser.failed.length, 0);
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
 function uint32Bytes(value)

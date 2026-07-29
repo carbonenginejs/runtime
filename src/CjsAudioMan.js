@@ -2,6 +2,8 @@
 // composition root that installs one complete semantic library and owns
 // media selection, delivery, preparation, and decoded-buffer retention.
 import { CjsAudioSystem } from "./CjsAudioSystem.js";
+import { CjsSfxEngine } from "./CjsSfxEngine.js";
+import { AudListener } from "./trinity/audio/AudListener.js";
 import {
     installAudioLibraryDocument,
 } from "./library/audioLibraryDocument.js";
@@ -30,6 +32,8 @@ export class CjsAudioMan
 
     #decodedMedia = new Map();
 
+    #defaultSoundBanks = new Set();
+
     #delivery = "auto";
 
     #languages = [];
@@ -38,15 +42,23 @@ export class CjsAudioMan
 
     #library = null;
 
+    #listener = null;
+
     #mediaProvider = null;
 
+    #banksWaitingToLoad = new Set();
+
     #selectEventMedia = null;
+
+    #sfxEngine = null;
 
     #system = null;
 
     #systemOptions = null;
 
     #wholeBanks = new Map();
+
+    #random = null;
 
     /**
      * Creates an uninstalled manager or installs the supplied complete
@@ -59,9 +71,11 @@ export class CjsAudioMan
         createContext = CreateBrowserAudioContext,
         delivery = "auto",
         languages = null,
+        defaultSoundBanks = [],
         cacheDecoded = true,
         cacheWholeBanks = true,
         selectEventMedia = null,
+        random = Math.random,
         distanceScale = 1,
         musicEngine = null,
         createMusicEngine = null,
@@ -79,14 +93,22 @@ export class CjsAudioMan
                 "CjsAudioMan selectEventMedia must be a function",
             );
         }
+        if (typeof random !== "function")
+        {
+            throw new TypeError("CjsAudioMan random must be a function");
+        }
 
         this.#createContext = createContext;
         this.#delivery = NormalizeDelivery(delivery);
         this.#languagesExplicit = languages !== null;
         this.#languages = NormalizeLanguages(languages ?? []);
+        this.#defaultSoundBanks = new Set(
+            NormalizeBankNames(defaultSoundBanks),
+        );
         this.#cacheDecoded = Boolean(cacheDecoded);
         this.#cacheWholeBanks = Boolean(cacheWholeBanks);
         this.#selectEventMedia = selectEventMedia;
+        this.#random = random;
         this.#systemOptions = {
             distanceScale,
             musicEngine,
@@ -128,6 +150,12 @@ export class CjsAudioMan
         return this.#system?.repository ?? null;
     }
 
+    /** Returns the manager-owned fixed Carbon listener. */
+    get listener()
+    {
+        return this.#listener;
+    }
+
     /** Returns the realized Web Audio backend after successful enablement. */
     get backend()
     {
@@ -140,10 +168,28 @@ export class CjsAudioMan
         return this.#system?.musicEngine ?? null;
     }
 
+    /** Returns the active authored SFX interpreter, when installed. */
+    get sfxEngine()
+    {
+        return this.#sfxEngine;
+    }
+
     /** Returns the browser audio context after successful enablement. */
     get context()
     {
         return this.#context;
+    }
+
+    /** Returns the protected default bank names in deterministic order. */
+    get defaultSoundBanks()
+    {
+        return [ ...this.#defaultSoundBanks ].sort();
+    }
+
+    /** Returns bank intents retained for the next successful enable. */
+    get banksWaitingToLoad()
+    {
+        return [ ...this.#banksWaitingToLoad ].sort();
     }
 
     /**
@@ -164,9 +210,17 @@ export class CjsAudioMan
         const installed = installAudioLibraryDocument(library);
 
         this.#system?.Dispose();
+        this.#listener = null;
+        this.#sfxEngine?.Reset();
         this.#decodedMedia.clear();
         this.#wholeBanks.clear();
         this.#library = installed;
+        this.#sfxEngine = installed.sfx
+            ? new CjsSfxEngine({
+                graph: installed.sfx,
+                random: this.#random,
+            })
+            : null;
         this.#system = new CjsAudioSystem({
             ...this.#systemOptions,
             createContext: () =>
@@ -178,10 +232,20 @@ export class CjsAudioMan
             },
             audioMetadata: installed.metadata,
             musicGraph: installed.music ?? null,
-            loadBuffer: (eventID, eventName) =>
-                this.#LoadEventBuffer(eventID, eventName),
+            loadBuffer: (eventID, eventName, controls) =>
+                this.#LoadEventBuffer(eventID, eventName, controls),
             loadMedia: sourceID => this.LoadMedia(sourceID),
+            releaseGameObj: gameObjID =>
+                this.#sfxEngine?.ReleaseGameObj(gameObjID),
         });
+        this.#listener = new AudListener();
+        this.#listener.SetPosition(
+            [ 0, 0, 1 ],
+            [ 0, 1, 0 ],
+            [ 0, 0, 0 ],
+        );
+        this.#listener.MarkPositionReceived();
+        this.#system.AdoptEmitter(this.#listener);
 
         if (!this.#languagesExplicit)
         {
@@ -425,15 +489,177 @@ export class CjsAudioMan
     Enable(soundBanksToLoad = [])
     {
         const system = this.#RequireSystem();
+        const requested = new Set([
+            ...this.#defaultSoundBanks,
+            ...this.#banksWaitingToLoad,
+            ...NormalizeBankNames(soundBanksToLoad),
+        ]);
 
         system.Attach();
-        return system.Enable(soundBanksToLoad);
+        const enabled = system.Enable([ ...requested ]);
+
+        if (enabled && this.#listener)
+        {
+            this.#banksWaitingToLoad.clear();
+            this.#listener.SetPosition(
+                this.#listener.GetFront(),
+                this.#listener.GetTop(),
+                this.#listener.GetPosition(),
+            );
+        }
+        else if (!enabled)
+        {
+            for (const bank of requested)
+            {
+                this.#banksWaitingToLoad.add(bank);
+            }
+        }
+        return enabled;
     }
 
     /** Disables Carbon audio without destroying the reusable AudioContext. */
     Disable()
     {
+        if (this.#system?.manager.GetStateValue() === 2)
+        {
+            this.#banksWaitingToLoad = new Set(
+                this.#system.manager.GetLoadedSoundBanks(),
+            );
+        }
         this.#system?.Disable();
+    }
+
+    /** Adds and loads one protected default soundbank. */
+    AddAndLoadDefaultSoundBank(soundBankName)
+    {
+        const bank = NormalizeBankName(soundBankName);
+
+        this.#defaultSoundBanks.add(bank);
+        this.LoadSoundBank(bank);
+        return bank;
+    }
+
+    /** Removes and unloads one protected default soundbank. */
+    RemoveAndUnloadDefaultSoundBank(soundBankName)
+    {
+        const bank = NormalizeBankName(soundBankName);
+
+        if (!this.#defaultSoundBanks.delete(bank))
+        {
+            return false;
+        }
+        return this.UnloadSoundBank(bank);
+    }
+
+    /** Loads now when enabled, otherwise retains one bank intent. */
+    LoadSoundBank(soundBankName)
+    {
+        const bank = NormalizeBankName(soundBankName);
+
+        if (this.#system?.manager.GetStateValue() === 2)
+        {
+            this.#system.manager.LoadBank(bank);
+        }
+        else
+        {
+            this.#banksWaitingToLoad.add(bank);
+        }
+        return bank;
+    }
+
+    /** Loads several banks through the same desired-state facade. */
+    LoadSoundBanks(soundBanks)
+    {
+        return NormalizeBankNames(soundBanks).map(bank =>
+            this.LoadSoundBank(bank));
+    }
+
+    /** Unloads one non-default bank or removes its pending load intent. */
+    UnloadSoundBank(soundBankName)
+    {
+        const bank = NormalizeBankName(soundBankName);
+
+        if (bank.toLowerCase() === "init.bnk"
+            || this.#defaultSoundBanks.has(bank))
+        {
+            return false;
+        }
+
+        this.#banksWaitingToLoad.delete(bank);
+        this.#system?.manager.UnloadBank(bank);
+        return true;
+    }
+
+    /** Unloads several non-default banks. */
+    UnloadSoundBanks(soundBanks)
+    {
+        return NormalizeBankNames(soundBanks).filter(bank =>
+            this.UnloadSoundBank(bank));
+    }
+
+    /** Reconciles non-default banks with one caller-owned desired set. */
+    SwapSoundBanks(soundBanks)
+    {
+        const requested = new Set(NormalizeBankNames(soundBanks));
+        const loaded = new Set(
+            this.#system?.manager.GetStateValue() === 2
+                ? this.#system.manager.GetLoadedSoundBanks()
+                : this.#banksWaitingToLoad,
+        );
+        const keep = new Set([
+            "Init.bnk",
+            ...this.#defaultSoundBanks,
+            ...requested,
+        ]);
+        const toLoad = [ ...requested ].filter(bank => !loaded.has(bank));
+        const toUnload = [ ...loaded ].filter(bank => !keep.has(bank));
+
+        this.LoadSoundBanks(toLoad);
+        this.UnloadSoundBanks(toUnload);
+        return {
+            loaded: toLoad.sort(),
+            unloaded: toUnload.sort(),
+        };
+    }
+
+    /** Disables and re-enables while preserving the current desired banks. */
+    ReloadSoundBanks()
+    {
+        const banks = this.GetLoadedSoundBanks();
+
+        this.Disable();
+        return this.Enable(banks);
+    }
+
+    /** Returns loaded and in-flight bank names from the Carbon manager. */
+    GetLoadedSoundBanks()
+    {
+        return this.#system?.manager.GetLoadedSoundBanks() ?? [];
+    }
+
+    /** Returns Carbon's numeric uninitialized/disabled/enabled state. */
+    GetState()
+    {
+        return this.#system?.manager.GetStateValue() ?? 0;
+    }
+
+    /** Sets one global RTPC when the audio manager is enabled. */
+    SetGlobalRTPC(rtpcName, value)
+    {
+        return this.#system?.manager.SetGlobalRTPC(rtpcName, value) ?? false;
+    }
+
+    /** Sets one global authored state when the audio manager is enabled. */
+    SetState(stateGroup, stateName)
+    {
+        return this.#system?.manager.SetState(stateGroup, stateName) ?? false;
+    }
+
+    /** Stops emitter-routed and directly posted backend playback. */
+    StopAllPlayingSounds()
+    {
+        this.#system?.manager.StopAll();
+        this.#system?.backend?.StopAll();
     }
 
     /** Drives culling, backend rendering, music, and log flushing. */
@@ -498,7 +724,11 @@ export class CjsAudioMan
     {
         this.#system?.Dispose();
         this.#system = null;
+        this.#listener = null;
+        this.#sfxEngine?.Reset();
+        this.#sfxEngine = null;
         this.#context = null;
+        this.#banksWaitingToLoad.clear();
         this.#decodedMedia.clear();
         this.#wholeBanks.clear();
     }
@@ -651,8 +881,41 @@ export class CjsAudioMan
     }
 
     /** Selects and loads one media buffer for an event. */
-    async #LoadEventBuffer(eventID, eventName)
+    async #LoadEventBuffer(eventID, eventName, controls = {})
     {
+        const spatial = !Boolean(
+            this.#library?.metadata?.Events?.[eventName]?.is2D,
+        );
+
+        if (this.#sfxEngine?.HandlesEvent(eventName))
+        {
+            const engine = this.#sfxEngine;
+            const selections = engine.ResolveEvent(eventName, controls);
+
+            if (!selections.length)
+            {
+                return { voices: [] };
+            }
+
+            const buffers = await Promise.all(
+                selections.map(selection =>
+                    this.LoadMedia(selection.mediaID)),
+            );
+
+            return {
+                voices: selections.map((selection, index) => ({
+                    buffer: buffers[index],
+                    loop: selection.loop,
+                    playbackRate: selection.playbackRate,
+                    spatial,
+                    getGain: () => engine.EvaluateGain(
+                        selection,
+                        controls,
+                    ),
+                })),
+            };
+        }
+
         const values = this.#library?.eventMedia?.[eventName] ?? [];
 
         if (!values.length)
@@ -682,7 +945,14 @@ export class CjsAudioMan
             );
         }
 
-        return this.LoadMedia(id);
+        return {
+            voices: [
+                {
+                    buffer: await this.LoadMedia(id),
+                    spatial,
+                },
+            ],
+        };
     }
 
     /** Reads and decodes one selected media representation. */
@@ -866,6 +1136,27 @@ function NormalizeLanguages(values)
             ? []
             : [ values ];
     return [ ...new Set(input.map(NormalizeLanguage).filter(Boolean)) ];
+}
+
+function NormalizeBankNames(values)
+{
+    if (typeof values === "string" || !values?.[Symbol.iterator])
+    {
+        throw new TypeError("Audio soundbanks must be an iterable of names");
+    }
+
+    return [ ...new Set([ ...values ].map(NormalizeBankName)) ];
+}
+
+function NormalizeBankName(value)
+{
+    const bank = String(value ?? "").trim();
+
+    if (!bank)
+    {
+        throw new TypeError("Audio soundbank names must be non-empty strings");
+    }
+    return bank;
 }
 
 function NormalizeLanguage(value)

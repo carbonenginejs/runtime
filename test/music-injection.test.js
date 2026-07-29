@@ -85,6 +85,22 @@ test("custom music engines are created only at gesture-time enable and accept ar
     assert.deepEqual(finished, [ playingID ]);
     assert.equal(system.backend.GetPlayingCount(), 0);
 
+    const disabled = system.PostMusicEvent(
+      "play_my_music",
+      id => finished.push(id)
+    );
+    system.Disable();
+    assert.ok(
+      log.some(entry =>
+        entry[0] === "action"
+        && entry[1] === "stop"
+        && entry[2] === disabled
+        && entry[3] === 0),
+      "disable stops direct music outside prioritized emitters"
+    );
+    assert.ok(finished.includes(disabled));
+    assert.equal(system.backend.GetPlayingCount(), 0);
+
     const replacement = CustomMusicEngine(log);
     system.SetMusicEngine(replacement);
     assert.equal(log.filter(entry => entry[0] === "dispose").length, 1, "the replaced engine is disposed");

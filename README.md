@@ -8,6 +8,10 @@ complete schema-v2 audio-library document, and play it through an injected
 browser media provider. Runtime-audio consumes data; it never discovers an
 installation, downloads builder inputs, or requires Node.
 
+An optional SFX program in that document provides authored random,
+step-sequence, switch/state, parallel/blend, gain, and live RTPC-curve
+behavior without changing how media bytes are delivered.
+
 ## Install
 
 ```sh
@@ -66,6 +70,7 @@ contracts.
 - [Package documentation](docs/README.md)
 - [Architecture and boundaries](docs/architecture.md)
 - [Browser playback guide](docs/guides/browser-playback.md)
+- [Authored SFX programs](docs/guides/sfx.md)
 - [Current API reference](docs/reference/api.md)
 - [Carbon compatibility](docs/reference/carbon-compatibility.md)
 - [Class-purpose catalog](docs/reference/classes/README.md)

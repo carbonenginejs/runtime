@@ -22,6 +22,8 @@ The maintained graph includes:
 - audio manager lifecycle, bank status, deferred events, global RTPC and state;
 - per-object events, prefixes, RTPC values, switches, placement, culling, mute,
   and wake behavior;
+- root-runtime interpretation of supplied authored SFX random, step-sequence,
+  switch/state, parallel/blend, gain, and linear RTPC-curve data;
 - listener and emitter placement;
 - event metadata and sound prioritization;
 - event curves and RTPC-driven curve-set time;

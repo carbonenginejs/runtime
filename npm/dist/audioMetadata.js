@@ -27,25 +27,30 @@ function audioMetadataFromSoundbanksInfo(soundbanksInfo, enrichment = null) {
         EssentialSoundBank: 0
       };
     }
-    for (const entry of bank.Events || []) {
+    const bankEvents = Array.isArray(bank.Events) ? bank.Events : bank.IncludedEvents || [];
+    const bankMedia = Array.isArray(bank.Media) ? bank.Media : bank.IncludedMemoryFiles || [];
+    for (const entry of bankEvents) {
       const name = String(entry.Name || "");
       if (!name) {
         continue;
       }
       const record = events[name] ?? (events[name] = {
         eventID: Number(entry.Id) >>> 0,
-        maxRadiusAttenuation: 0,
+        maxRadiusAttenuation: FiniteNumber(entry.MaxAttenuation, 0),
         isLoop: 0,
         is2D: 0,
         isVital: 0,
         eventsStoppedBy: [],
         soundbanks: []
       });
+      if (entry.MaxAttenuation !== undefined) {
+        record.maxRadiusAttenuation = Math.max(record.maxRadiusAttenuation, FiniteNumber(entry.MaxAttenuation, 0));
+      }
       if (bankName && !record.soundbanks.includes(bankName)) {
         record.soundbanks.push(bankName);
       }
     }
-    for (const media of bank.Media || []) {
+    for (const media of bankMedia) {
       const id = String(media.Id ?? "");
       if (id && !wemFileIDs[id]) {
         wemFileIDs[id] = {
@@ -61,6 +66,10 @@ function audioMetadataFromSoundbanksInfo(soundbanksInfo, enrichment = null) {
     WemFileIDs: wemFileIDs
   };
   return enrichment ? MergeEnrichment(metadata, enrichment) : metadata;
+}
+function FiniteNumber(value, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
 }
 function BankFileName(bank) {
   const path = String(bank.Path || bank.ShortName || "");
