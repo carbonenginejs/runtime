@@ -109,6 +109,21 @@ test("quaternion unit-vector rotation is safe when output aliases input", () =>
     almostEqualArray(from, [ 0, 0, Math.SQRT1_2, Math.SQRT1_2 ]);
 });
 
+test("vec3.maxComponent reduces to the largest component, not a component-wise max", () =>
+{
+    assert.equal(vec3.maxComponent([ 1, 5, 3 ]), 5);
+    assert.equal(vec3.maxComponent([ 7, 2, 2 ]), 7);
+    assert.equal(vec3.maxComponent([ 0, 0, 9 ]), 9);
+
+    // All-negative reduces to the least negative, not to zero.
+    assert.equal(vec3.maxComponent([ -4, -1, -9 ]), -1);
+    assert.equal(vec3.maxComponent(new Float32Array([ 0.25, 0.5, 0.125 ])), 0.5);
+
+    // The distinction from gl-matrix's component-wise max, which is a vector.
+    assert.equal(typeof vec3.maxComponent([ 1, 2, 3 ]), "number");
+    assert.equal(vec3.max(vec3.create(), [ 1, 2, 3 ], [ 3, 2, 1 ]).length, 3);
+});
+
 test("matrix helpers preserve view, scale, projection, arc, and reflection invariants", () =>
 {
     const

@@ -560,6 +560,21 @@ vec3.isEmpty = function (a)
 };
 
 /**
+ * The largest of the three components.
+ *
+ * A reduction to one number, unlike `max`, which is the component-wise maximum
+ * of two vectors. Carbon spells it `MaxVectorComponent`, and uses it to reduce a
+ * colour to the single value that decides how bright it counts as.
+ *
+ * @param {vec3} a
+ * @returns {Number}
+ */
+vec3.maxComponent = function (a)
+{
+    return Math.max(a[0], a[1], a[2]);
+};
+
+/**
  * Multiplies a vec3 by a scalar
  *
  * @param {vec3} out
@@ -1097,6 +1112,7 @@ export const {
     length,
     lerp,
     max,
+    maxComponent,
     min,
     mul,
     multiply,
