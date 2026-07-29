@@ -23,7 +23,7 @@
   "name": "@carbonenginejs/runtime-trinity",
   "sideEffects": false,
   "private": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "files": [
     "src",
     "docs",
