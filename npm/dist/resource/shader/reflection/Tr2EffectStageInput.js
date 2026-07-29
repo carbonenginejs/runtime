@@ -7,7 +7,7 @@ import { cloneCarbonValue } from '@carbonenginejs/runtime-utils/types';
 import { requirePortableStageType, clonePortableSourceProgram } from '../portable.js';
 import { validateEffectBodyInput } from '../../../formats/hlsl/core/portableReflection.js';
 import { Tr2SamplerSetup as _Tr2SamplerSetup } from '../sampler/Tr2SamplerSetup.js';
-import { Tr2EffectConstant as _Tr2EffectConstant } from './Tr2EffectConstant.js';
+import { Tr2EffectConstant } from './Tr2EffectConstant.js';
 import { Tr2EffectParameterAnnotation as _Tr2EffectParameterAn } from './Tr2EffectParameterAnnotation.js';
 import { Tr2EffectResource as _Tr2EffectResource } from './Tr2EffectResource.js';
 
@@ -148,7 +148,7 @@ class Tr2EffectStageInput extends CjsModel {
     const input = new this();
     input.stageType = stageType;
     input.exists = true;
-    input.constants = value.constants.map(entry => _Tr2EffectConstant.fromPortable(entry));
+    input.constants = value.constants.map(entry => Tr2EffectConstant.fromPortable(entry));
     input.resources = this.readPortableResourceMap(value.resources);
     input.uavs = this.readPortableResourceMap(value.uavs);
     input.samplers = this.readPortableSamplerMap(value.samplers);
