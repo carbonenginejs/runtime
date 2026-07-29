@@ -41,11 +41,6 @@ const L2_PACK_4 = 0.5 * L2_PACK_2;
 /** ShSolver<L2>::s_normalizationCoefficients. */
 const L2_NORMALIZATION = Object.freeze([2 * SQRT_PI * 0.282094791773878140 * Math.sqrt(0.3141593e1), 2 / 3 * Math.sqrt(3 * Math.PI) * -0.4886025119029199 * (Math.sqrt(3) * Math.sqrt(0.3141593e1) / 2), 2 / 3 * Math.sqrt(3 * Math.PI) * 0.488602511902919920 * (Math.sqrt(3) * Math.sqrt(0.3141593e1) / 2), 2 / 3 * Math.sqrt(3 * Math.PI) * -0.4886025119029199 * (Math.sqrt(3) * Math.sqrt(0.3141593e1) / 2), 2 / 5 * Math.sqrt(5 * Math.PI) * 0.546274215296039590 * (-Math.sqrt(5) * Math.sqrt(0.3141593e1) / 2), 2 / 5 * Math.sqrt(5 * Math.PI) * -1.0925484305920792 * (-Math.sqrt(5) * Math.sqrt(0.3141593e1) / 2), 2 / 5 * Math.sqrt(5 * Math.PI) * -0.31539156525252005 * (-Math.sqrt(5) * Math.sqrt(0.3141593e1) / 2), 2 / 5 * Math.sqrt(5 * Math.PI) * -1.0925484305920792 * (-Math.sqrt(5) * Math.sqrt(0.3141593e1) / 2), 2 / 5 * Math.sqrt(5 * Math.PI) * 0.546274215296039590 * (-Math.sqrt(5) * Math.sqrt(0.3141593e1) / 2)]);
 
-/** The largest of a colour's three components (Carbon MaxVectorComponent). */
-function maxComponent(value) {
-  return Math.max(value[0], value[1], value[2]);
-}
-
 /**
  * Resolve a value Carbon holds by POINTER, so a source that changes after
  * registration is still read at its current value. A number is a snapshot; a
@@ -170,7 +165,7 @@ new class extends _identity {
      */
     UpdateSourceData() {
       this.#sourceData.length = 0;
-      const maxLight = maxComponent(this.#sunColor);
+      const maxLight = vec3.maxComponent(this.#sunColor);
       for (const source of this.#sources) {
         const radius = readFloat(source.radius);
         if (radius <= 0) {
@@ -184,7 +179,7 @@ new class extends _identity {
           albedo,
           cutoffMultiplier: 1,
           emissive,
-          maxColorComponent: Math.max(maxComponent(albedo) * maxLight, maxComponent(emissive))
+          maxColorComponent: Math.max(vec3.maxComponent(albedo) * maxLight, vec3.maxComponent(emissive))
         });
       }
       for (const light of this.lights) {
@@ -202,7 +197,7 @@ new class extends _identity {
           albedo: vec3.create(),
           cutoffMultiplier: 0,
           emissive,
-          maxColorComponent: maxComponent(emissive)
+          maxColorComponent: vec3.maxComponent(emissive)
         });
       }
       return this.#sourceData.length;

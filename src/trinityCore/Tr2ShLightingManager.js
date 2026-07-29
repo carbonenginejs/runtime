@@ -57,13 +57,6 @@ const L2_NORMALIZATION = Object.freeze([
 ]);
 
 
-/** The largest of a colour's three components (Carbon MaxVectorComponent). */
-function maxComponent(value)
-{
-  return Math.max(value[0], value[1], value[2]);
-}
-
-
 /**
  * Resolve a value Carbon holds by POINTER, so a source that changes after
  * registration is still read at its current value. A number is a snapshot; a
@@ -212,7 +205,7 @@ export class Tr2ShLightingManager extends CjsModel
   {
     this.#sourceData.length = 0;
 
-    const maxLight = maxComponent(this.#sunColor);
+    const maxLight = vec3.maxComponent(this.#sunColor);
 
     for (const source of this.#sources)
     {
@@ -232,7 +225,7 @@ export class Tr2ShLightingManager extends CjsModel
         albedo,
         cutoffMultiplier: 1,
         emissive,
-        maxColorComponent: Math.max(maxComponent(albedo) * maxLight, maxComponent(emissive))
+        maxColorComponent: Math.max(vec3.maxComponent(albedo) * maxLight, vec3.maxComponent(emissive))
       });
     }
 
@@ -257,7 +250,7 @@ export class Tr2ShLightingManager extends CjsModel
         albedo: vec3.create(),
         cutoffMultiplier: 0,
         emissive,
-        maxColorComponent: maxComponent(emissive)
+        maxColorComponent: vec3.maxComponent(emissive)
       });
     }
 
