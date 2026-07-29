@@ -75,20 +75,25 @@ new class extends _identity {
       if (!_EveCustomMask.#isValidSlot(index) || !vsData || !psData) {
         return false;
       }
+      // Carbon TransformationMatrix(scaling, rotation, position); gl takes
+      // (rotation, translation, scale) - the same matrix, different argument order.
       const transform = mat4.fromRotationTranslationScale(mat4.create(), this.rotation, this.position, this.scaling);
       const inverse = mat4.invert(mat4.create(), transform);
       if (!inverse) {
         return false;
       }
-      mat4.transpose(_EveCustomMask.#mat4Slot(vsData.customMaskMatrix, index), inverse);
-      vec4.set(_EveCustomMask.#vec4Slot(vsData.customMaskData, index), 1, this.isMirrored ? 1 : 0, 0, 0);
-      vec4.set(_EveCustomMask.#vec4Slot(psData.customMaskMaterialIDs, index), this.materialIndex, 0, 0, 0);
-      vec4.copy(_EveCustomMask.#vec4Slot(psData.customMaskTargets, index), this.targetMaterials);
-      if (!psData.customMaskClamps || psData.customMaskClamps.length !== 4) {
-        psData.customMaskClamps = vec4.create();
-      }
-      psData.customMaskClamps[index * 2] = this.clampU ? 1 : 0;
-      psData.customMaskClamps[index * 2 + 1] = this.clampV ? 1 : 0;
+      // Carbon stores Transpose(invCustomMaskTransform); SetAndTranspose performs
+      // that, so the LOGICAL inverse is what gets passed.
+      vsData.SetAndTransposeIndex("customMaskMatrix", index, inverse);
+      vsData.SetIndex("customMaskData", index, [1, this.isMirrored ? 1 : 0, 0, 0]);
+      psData.SetIndex("customMaskMaterialIDs", index, [this.materialIndex, 0, 0, 0]);
+      psData.SetIndex("customMaskTargets", index, this.targetMaterials);
+
+      // customMaskClamps is ONE vec4 shared by both slots: slot n owns lanes
+      // 2n and 2n+1 (EveCustomMask.cpp:80-81).
+      const clamps = psData.Get("customMaskClamps");
+      clamps[index * 2] = this.clampU ? 1 : 0;
+      clamps[index * 2 + 1] = this.clampV ? 1 : 0;
       return true;
     }
 
@@ -101,45 +106,28 @@ new class extends _identity {
       if (!_EveCustomMask.#isValidSlot(index) || !vsData || !psData) {
         return false;
       }
-      mat4.identity(_EveCustomMask.#mat4Slot(vsData.customMaskMatrix, index));
-      vec4.set(_EveCustomMask.#vec4Slot(vsData.customMaskData, index), 0, 0, 0, 0);
-      vec4.set(_EveCustomMask.#vec4Slot(psData.customMaskMaterialIDs, index), 0, 0, 0, 0);
-      vec4.set(_EveCustomMask.#vec4Slot(psData.customMaskTargets, index), 0, 0, 0, 0);
+      // Carbon quirk (EveCustomMask.cpp:88-93): the zeroing path clears the
+      // matrix, data, material IDs and targets but NOT customMaskClamps, so a
+      // slot that stops being filled keeps its last clamp lanes. Reproduced.
+      vsData.SetAndTransposeIndex("customMaskMatrix", index, _EveCustomMask.#identity);
+      vsData.SetIndex("customMaskData", index, _EveCustomMask.#zero4);
+      psData.SetIndex("customMaskMaterialIDs", index, _EveCustomMask.#zero4);
+      psData.SetIndex("customMaskTargets", index, _EveCustomMask.#zero4);
       return true;
     }
 
     /** Whether an index addresses one of the two custom-mask slots. */
 
-    /**
-     * The mat4 at index in a fixed per-object slot array, replacing a missing or
-     * wrong-sized entry; throws when the array itself is absent, since the layout
-     * is owner-allocated.
-     */
+    /** A zeroed vec4, for the slot-clearing writes. */
 
-    /**
-     * The vec4 at index in a fixed per-object slot array, replacing a missing or
-     * wrong-sized entry; throws when the array itself is absent, since the layout
-     * is owner-allocated.
-     */
+    /** Identity, for the cleared custom-mask matrix slot. */
   }];
   CUSTOM_MASK_COUNT = 2;
   #isValidSlot(index) {
     return Number.isInteger(index) && index >= 0 && index < _EveCustomMask.CUSTOM_MASK_COUNT;
   }
-  #mat4Slot(slots, index) {
-    if (!Array.isArray(slots)) {
-      throw new TypeError("EveCustomMask requires a fixed customMaskMatrix array");
-    }
-    if (!slots[index] || slots[index].length !== 16) slots[index] = mat4.create();
-    return slots[index];
-  }
-  #vec4Slot(slots, index) {
-    if (!Array.isArray(slots)) {
-      throw new TypeError("EveCustomMask requires a fixed custom-mask vec4 array");
-    }
-    if (!slots[index] || slots[index].length !== 4) slots[index] = vec4.create();
-    return slots[index];
-  }
+  #zero4 = vec4.create();
+  #identity = mat4.create();
   #zero = vec3.create();
   #one = vec3.fromValues(1, 1, 1);
   #identityRotation = quat.create();

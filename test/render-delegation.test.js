@@ -20,7 +20,7 @@ import { makePerObjectStore, makeRenderContextWithStore } from "./helpers/perObj
 // An accumulator wired with a test per-object-data store.
 function makeAccumulator()
 {
-  return new TriRenderBatchAccumulator().SetRawDataStore(makePerObjectStore());
+  return new TriRenderBatchAccumulator().SetTriPoolAllocator(makePerObjectStore());
 }
 
 const OPAQUE = TriBatchType.TRIBATCHTYPE_OPAQUE;
@@ -186,7 +186,7 @@ test("manager transparent pass draws renderables back-to-front in insertion orde
     {
       return [ 0, 0, 0 ];
     },
-    GetRawDataStore()
+    GetTriPoolAllocator()
     {
       return store;
     }
@@ -269,9 +269,13 @@ test("EveSpaceObject2.GetPerObjectData/GetSortValue honor the Carbon contracts",
 {
   const object = new EveSpaceObject2();
   const accumulator = new TriRenderBatchAccumulator();
+  // Carbon EveSpaceObject2::GetPerObjectData returns a pooled handle over the
+  // object's two PERSISTENT buffers, so the JS record is the { vs, ps } pair
+  // the owner keeps across frames - not a lease and not a deferred marker.
   const data = object.GetPerObjectData(accumulator);
-  assert.ok(data instanceof Tr2PerObjectData);
-  assert.equal(data.object, object, "record carries the live object reference (Carbon callback parity)");
+  assert.equal(data.vs.GetStruct(), "EveSpaceObjectVSData", "the VS half is the persistent record");
+  assert.equal(data.ps.GetStruct(), "EveSpaceObjectPSData", "the PS half is the persistent record");
+  assert.equal(object.GetPerObjectData(accumulator).vs, data.vs, "the record persists across calls");
 
   object.worldTransform[12] = 3;
   object.worldTransform[13] = 4;

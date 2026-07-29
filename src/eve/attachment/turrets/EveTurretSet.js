@@ -324,6 +324,35 @@ export class EveTurretSet extends EveEntity
 
   #parentTransform = mat4.create();
 
+  /** m_shipTransformPrev - last frame's parent transform, for motion vectors. */
+  #shipTransformPrev = mat4.create();
+
+  /**
+   * m_parentData - the hull values an attachment renders with, refreshed by the
+   * parent through IEveSpaceObject2::GetParentData.
+   */
+  #parentData = {};
+
+  /**
+   * m_skeletonBoneIndices - the shader's bone mapping, shared by every turret
+   * of the set. Skeleton realization is engine-owned, so this stays empty until
+   * one is supplied and the default count applies.
+   */
+  #skeletonBoneIndices = [];
+
+  /** Default bones per turret when no skeleton mapping is present (cpp:2334). */
+  static DEFAULT_BONES_PER_TURRET = 3;
+
+  /** Tr2ShLightingManager::PACKED_COEFFICIENT_COUNT. */
+  static SH_COEFFICIENT_COUNT = 7;
+
+  /** Carbon's placeholder pose for a visible-but-invalid turret (cpp:2335-2336). */
+  static #invalidTranslation = vec4.fromValues(0, 0, 0, 1);
+
+  static #invalidRotation = quat.create();
+
+  static #zero4 = vec4.create();
+
   #activeTurret = EveTurretSet.INVALID_INDEX;
 
   #highDetailFrozen = false;
@@ -876,7 +905,17 @@ export class EveTurretSet extends EveEntity
   {
     const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
     const parentTransform = parentData?.transform?.length === 16 ? parentData.transform : parentData;
-    if (parentTransform?.length === 16) this.UpdateTurretTransforms(parentTransform);
+    if (parentTransform?.length === 16)
+    {
+      // The OUTGOING parent transform becomes m_shipTransformPrev before the
+      // new one is adopted, so the record can carry both.
+      mat4.copy(this.#shipTransformPrev, this.#parentTransform);
+      this.UpdateTurretTransforms(parentTransform);
+    }
+    if (parentData && parentData !== this.#parentTransform && !ArrayBuffer.isView(parentData) && !Array.isArray(parentData))
+    {
+      this.#parentData = parentData;
+    }
     if (this.#trackingInfluenceDelta !== 0)
     {
       this.trackingInfluence += this.#trackingInfluenceDelta * deltaTime;
@@ -1096,15 +1135,71 @@ export class EveTurretSet extends EveEntity
   @impl.reason("The EveTurretSetPerObjectData constant-block fill and bone-palette ring upload are engine-owned; the record carries the object reference the engine serializer consumes. IsGood/GetMeshCount realization gates are engine-side - the CPU gate is geometry presence.")
   GetPerObjectData(accumulator = null)
   {
-    if (!this.geometryResource)
+    if (!this.geometryResource || typeof accumulator?.Alloc !== "function")
     {
       return null;
     }
-    const data = typeof accumulator?.Allocate === "function"
-      ? accumulator.Allocate(Tr2PerObjectData)
-      : new Tr2PerObjectData();
-    data.object = this;
-    return data;
+
+    const vs = accumulator.Alloc("EveTurretSetVSData");
+    const ps = accumulator.Alloc("EveTurretSetPSData");
+    const parent = this.#parentData;
+
+    // Carbon cpp:2305-2309.
+    vs.SetAndTranspose("shipMatrix", parent.transform ?? this.#parentTransform);
+    vs.SetAndTranspose("prevShipMatrix", this.#shipTransformPrev);
+    vs.Set("baseCutoffData", [ this.bottomClipHeight, 0, 0, 0 ]);
+
+    if (this.#turrets.length)
+    {
+      // The shader's bone-index mapping is shared by every turret of the set;
+      // three bones is Carbon's default when no skeleton mapping is present.
+      const boneCount = this.#skeletonBoneIndices.length || EveTurretSet.DEFAULT_BONES_PER_TURRET;
+
+      // Only VISIBLE turrets consume a slot, and the array is filled densely -
+      // the unwritten tail deliberately keeps whatever the arena held
+      // (cpp:2322-2341).
+      let turretIndex = 0;
+      for (const turret of this.#turrets)
+      {
+        // Carbon's SingleTurret::visible is this port's `display`.
+        if (turret.display === false)
+        {
+          continue;
+        }
+        if (turret.valid)
+        {
+          vs.SetIndex("turretRotation", turretIndex, turret.localQuaternion);
+          vs.SetIndex("turretTranslation", turretIndex, turret.localPosition);
+        }
+        else
+        {
+          vs.SetIndex("turretTranslation", turretIndex, EveTurretSet.#invalidTranslation);
+          vs.SetIndex("turretRotation", turretIndex, EveTurretSet.#invalidRotation);
+        }
+        turretIndex++;
+      }
+
+      // currentBoneOffset/prevBoneOffset are GPU ring addresses with no CPU
+      // derivation (cpp:2387-2388); they stay at their zero default.
+      vs.Set("turretSetData", [ boneCount, 0, 0, 0 ]);
+
+      // ps data (cpp:2394-2404)
+      ps.Set("shipData", parent.shipData ?? EveTurretSet.#zero4);
+      const clipCenter = parent.clipSphereCenter ?? EveTurretSet.#zero4;
+      ps.Set("clipData1", [ clipCenter[0], clipCenter[1], clipCenter[2], parent.clipRadiusSq ?? 0 ]);
+      ps.Set("clipRadius2Sq", [ parent.clipRadius2Sq ?? 0 ]);
+
+      // The hull's coefficients when it published any, zeroes otherwise.
+      for (let index = 0; index < EveTurretSet.SH_COEFFICIENT_COUNT; index++)
+      {
+        const source = parent.shLighting
+          ? parent.shLighting.subarray(index * 4, index * 4 + 4)
+          : EveTurretSet.#zero4;
+        ps.SetIndex("shLightingCoefficients", index, source);
+      }
+    }
+
+    return { vs, ps };
   }
 
   /** Carbon EveTurretSet::GetShadowPerObjectData (cpp:2520-2523): pure

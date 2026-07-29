@@ -713,6 +713,14 @@ const EveSpacePerObject = Object.freeze({
 });
 
 /** Tr2ConstantBufferFormats.h:35 - the generic, non-EVE per-object block. */
+/**
+ * Tr2ConstantBufferFormats.h:35. Catalogued but deliberately PRODUCERLESS in
+ * this package: its only Carbon filler is `Tr2InteriorPlaceable::GetPerObjectData`
+ * (Interior/Tr2InteriorPlaceable.cpp:555-585), and interior placeables are not
+ * runtime-trinity classes. The layout lives here because the catalog is the
+ * org-wide truth, exported on the `/perobject` subpath; whichever package ports
+ * the placeable consumes it from there rather than redeclaring it.
+ */
 const Tr2PerObject = Object.freeze({
   vs: {
     struct: "Tr2PerObjectVSData",
@@ -846,6 +854,11 @@ class CjsPerObjectLayouts {
     }
     return null;
   }
+
+  /**
+   * The resolved layout map, built once on first use and cached.
+   * @returns {Map} struct name -> resolved layout
+   */
   static #Resolved() {
     if (!CjsPerObjectLayouts.#layouts) {
       CjsPerObjectLayouts.#layouts = buildLayouts();

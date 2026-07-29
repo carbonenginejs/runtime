@@ -1,3 +1,6 @@
+import { RawData } from "../../trinityCore/rawData/RawData.js";
+
+
 const VS_FIELDS = Object.freeze(new Set([
   "worldTransform",
   "worldTransformLast",
@@ -123,21 +126,6 @@ function applyOverrides(source, allowed, target, owner)
   }
 }
 
-function identityMatrix()
-{
-  return [
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    0, 0, 0, 1
-  ];
-}
-
-function zeroVector()
-{
-  return [0, 0, 0, 0];
-}
-
 function extractCustomMasks(object)
 {
   const masks = object.customMasks;
@@ -146,24 +134,33 @@ function extractCustomMasks(object)
   if (masks.length === 0) return null;
   if (masks.length > 2) fail("object.customMasks cannot contain more than two Main mask slots");
 
-  const vs = {
-    customMaskMatrix: [identityMatrix(), identityMatrix()],
-    customMaskData: [zeroVector(), zeroVector()]
-  };
-  const ps = {
-    customMaskMaterialIDs: [zeroVector(), zeroVector()],
-    customMaskTargets: [zeroVector(), zeroVector()],
-    customMaskClamps: zeroVector()
-  };
+  // EveCustomMask writes GPU-form records, so the masks fill a scratch pair and
+  // the plain Main values are read back out of them. The matrix slots come back
+  // through GetTransposedIndex because that is how they are stored.
+  const vsRecord = RawData.create("EveSpaceObjectVSData");
+  const psRecord = RawData.create("EveSpaceObjectPSData");
+
   for (let index = 0; index < masks.length; index++)
   {
     const mask = masks[index];
     if (!mask || typeof mask.FillPerObjectData !== "function"
-      || mask.FillPerObjectData(index, vs, ps) !== true)
+      || mask.FillPerObjectData(index, vsRecord, psRecord) !== true)
     {
       fail(`object.customMasks[${index}] could not fill Main per-object data`);
     }
   }
+
+  const slots = [0, 1];
+  const vs = {
+    customMaskMatrix: slots.map((slot) => Array.from(vsRecord.GetTransposedIndex("customMaskMatrix", slot))),
+    customMaskData: slots.map((slot) => Array.from(vsRecord.GetIndex("customMaskData", slot)))
+  };
+  const ps = {
+    customMaskMaterialIDs: slots.map((slot) => Array.from(psRecord.GetIndex("customMaskMaterialIDs", slot))),
+    customMaskTargets: slots.map((slot) => Array.from(psRecord.GetIndex("customMaskTargets", slot))),
+    customMaskClamps: Array.from(psRecord.Get("customMaskClamps"))
+  };
+
   return { vs, ps };
 }
 

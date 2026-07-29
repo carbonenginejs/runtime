@@ -1,16 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  EveCustomMask,
-  EveSpaceObject2,
-  EveSpacePerObjectData,
-  Tr2ConstantEffectParameter,
-  Tr2Effect,
-  Tr2Vector4Parameter,
-  createEveSpaceObjectMainPerObjectValues,
-  extractTr2EffectConstantValues
-} from "../npm/dist/index.js";
+import { EveCustomMask, EveSpaceObject2, Tr2ConstantEffectParameter, Tr2Effect, Tr2Vector4Parameter, createEveSpaceObjectMainPerObjectValues, extractTr2EffectConstantValues } from "../npm/dist/index.js";
 
 function matrix(first)
 {
@@ -123,7 +114,21 @@ test("space-object Main extraction maps object aliases, shared values, and custo
   mask.targetMaterials.set([0, 1, 0, 1]);
   object.customMasks = [mask];
 
-  const shared = new EveSpacePerObjectData();
+  // EveSpacePerObjectData is retired as a class; the extractor consumes plain
+  // shared values, so the fixture is one.
+  const shared = {
+    clipSphereCenter: new Float32Array(3),
+    boneOffsets: [0, 0, 0, 0],
+    customData: new Float32Array(4),
+    shLighting: Array.from({ length: 7 }, () => new Float32Array(4)),
+    customMaskData: [new Float32Array(4), new Float32Array(4)],
+    customMaskMaterialIDs: [new Float32Array(4), new Float32Array(4)],
+    customMaskTargets: [new Float32Array(4), new Float32Array(4)],
+    customMaskClamps: new Float32Array(4),
+    clipRadiusSq: 0,
+    clipSphereFactor: 0,
+    clipSphereFactor2: 0
+  };
   // clipSphereCenter now lives on the shared record (matching Carbon's
   // EveSpacePerObjectData struct), so the shared value is the one consumed.
   shared.clipSphereCenter.set([3, 4, 5]);
@@ -133,7 +138,12 @@ test("space-object Main extraction maps object aliases, shared values, and custo
   shared.clipRadiusSq = 19;
   shared.clipSphereFactor2 = 0.75;
   shared.clipSphereFactor = 0.875;
-  assert.equal(mask.FillPerObjectData(0, shared, shared), true);
+  // The mask now fills GPU-form RawData records, while this extractor consumes
+  // the plain shared value record, so the mask's contribution is set directly.
+  shared.customMaskData[0].set([1, mask.isMirrored ? 1 : 0, 0, 0]);
+  shared.customMaskMaterialIDs[0].set([mask.materialIndex, 0, 0, 0]);
+  shared.customMaskTargets[0].set(mask.targetMaterials);
+  shared.customMaskClamps[0] = mask.clampU ? 1 : 0;
   const shipData = [20, 21, 22, 23];
 
   const result = createEveSpaceObjectMainPerObjectValues({

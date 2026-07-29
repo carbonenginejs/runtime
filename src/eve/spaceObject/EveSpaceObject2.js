@@ -20,6 +20,9 @@ import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { getBoneList } from "../../trinityCore/Tr2GrannyAnimation.js";
 import { Tr2PerObjectData } from "../../trinityCore/Tr2PerObjectData.js";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../trinityCore/Tr2RenderBatch.js";
+import { RawData } from "../../trinityCore/rawData/RawData.js";
+import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
+import { EveCustomMask } from "../EveCustomMask.js";
 
 // Static scratch for the sorted-transparent area pass (allocation rules: hot
 // per-frame path, copy-into, never allocate per call).
@@ -282,6 +285,15 @@ export class EveSpaceObject2 extends EveEntity
   @type.vec4
   customShaderData = vec4.create();
 
+  /**
+   * m_spaceObjectShipData (Vector4) [READ] - the packed shader ship data:
+   * .y activation strength, .z dirt level, .w bounding-sphere radius
+   * (PrepareShaderData, cpp:734-744). .x is authored elsewhere and left alone.
+   */
+  @io.read
+  @type.vec4
+  spaceObjectShipData = vec4.create();
+
   /** m_lastDamageLocatorHit (int) [READ] */
   @io.read
   @type.int32
@@ -395,6 +407,26 @@ export class EveSpaceObject2 extends EveEntity
 
   // Carbon m_impostorMode: the impostor system that raises it is unported.
   #impostorMode = false;
+
+  /** EVE_SPACEOBJECT_CUSTOWMASK_MAX (EveSpaceObject2.h:49) - custom-mask slots. */
+  static CUSTOM_MASK_MAX = EveCustomMask.CUSTOM_MASK_COUNT;
+
+  /** Scratch for the per-frame shader-data fill; never allocate in it. */
+  static #clipSphereCenterScratch = vec3.create();
+
+  static #shapeCenterScratch = vec3.create();
+
+  static #shapeRadiusScratch = vec3.create();
+
+  // Carbon m_vsData / m_psData: the PERSISTENT per-object records. They are
+  // owner-held members across frames rather than pool leases, because the
+  // object fills them during update and reads them back afterwards
+  // (cpp:3747 takes the world translation out of the STORED transposed matrix).
+  // Carbon's paired m_perObjectDataVs/m_perObjectDataPs GPU buffers are the
+  // engine's business; Invalidate on these records carries the same signal.
+  #vsData = RawData.create("EveSpaceObjectVSData");
+
+  #psData = RawData.create("EveSpaceObjectPSData");
 
   /** Alias for the mesh property; reads and writes go straight to mesh. */
   get meshLod()
@@ -659,6 +691,10 @@ export class EveSpaceObject2 extends EveEntity
     }
     this.#lastUpdateTransformTime = nextTime;
     mat4.copy(this.lastWorldTransform, this.worldTransform);
+    // Carbon cpp:2675-2676: the OUTGOING transform becomes worldTransformLast,
+    // stored transposed in both records, before the new one is built.
+    this.#vsData.SetAndTranspose("worldTransformLast", this.lastWorldTransform);
+    this.#psData.SetAndTranspose("worldTransformLast", this.lastWorldTransform);
 
     EveSpaceObject2.#UpdateCurve(this.translationCurve, nextTime, this.worldPosition, EveSpaceObject2.#zero);
     if (this.translationCurve?.GetValueDotAt)
@@ -745,6 +781,89 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /**
+   * Carbon EveSpaceObject2::PrepareShaderData (cpp:734-763): refreshes the
+   * world bounds, packs the ship data, and derives the clip-sphere dissolve
+   * values into the persistent per-object records.
+   */
+  @carbon.method
+  @impl.implemented
+  PrepareShaderData(updateContext = null)
+  {
+    this.UpdateWorldBounds();
+
+    // An impact overlay may damp the activation strength; otherwise full on.
+    this.spaceObjectShipData[1] = this.impactOverlay
+      ? (this.impactOverlay.GetActivationStrength?.(updateContext) ?? 1)
+      : 1;
+    this.spaceObjectShipData[3] = this.GetBoundingSphereRadius();
+    this.spaceObjectShipData[2] = this.dirtLevel;
+
+    // clipSphereFactor runs 0 (fully visible) to 1 (invisible); the shader gets
+    // a signed squared radius rather than the factor itself.
+    let normalizedBoundingRadius = this.GetBoundingSphereRadius() / (this.modelScale === 0 ? 1 : this.modelScale);
+    const clipOffset = vec3.length(this.clipSphereCenter);
+    normalizedBoundingRadius += clipOffset;
+    const insideSpherePercentage = Math.min(1, clipOffset / normalizedBoundingRadius);
+    const dissolveRadius = this.clipSphereFactor * normalizedBoundingRadius * (1 + insideSpherePercentage);
+
+    const center = this.GetBoundingSphereCenter();
+    const clipSphereCenter = EveSpaceObject2.#clipSphereCenterScratch;
+    vec3.add(clipSphereCenter, this.clipSphereCenter, center);
+    const clipRadiusSq = Math.sign(dissolveRadius) * dissolveRadius * dissolveRadius;
+
+    this.#psData.Set("clipSphereCenter", clipSphereCenter);
+    this.#psData.Set("clipRadiusSq", [clipRadiusSq]);
+    this.#vsData.Set("clipData", [clipSphereCenter[0], clipSphereCenter[1], clipSphereCenter[2], clipRadiusSq]);
+
+    const dissolveRadius2 = this.clipSphereFactor2 * normalizedBoundingRadius * (1 + insideSpherePercentage);
+    this.#psData.Set("clipRadius2Sq", [Math.sign(dissolveRadius2) * dissolveRadius2 * dissolveRadius2]);
+    this.#psData.Set("clipSphereFactor", [this.clipSphereFactor]);
+    this.#psData.Set("clipSphereFactor2", [this.clipSphereFactor2]);
+  }
+
+  /**
+   * Carbon EveSpaceObject2::GetParentData (cpp:1872-1885): the values an
+   * attachment needs from its hull. `shLighting` is a LIVE view into the PS
+   * record, exactly as Carbon hands out a raw pointer into m_psData - an
+   * attachment reading it sees the hull's current coefficients.
+   * @param {Object} [out] - caller-owned record, refreshed in place
+   */
+  @carbon.method
+  @impl.implemented
+  GetParentData(out = new IEveSpaceObject2ParentData())
+  {
+    mat4.copy(out.transform, this.worldTransform);
+    // Carbon memsets the record and never assigns killCount on this path.
+    out.killCount = 0;
+    vec4.copy(out.shipData, this.spaceObjectShipData);
+    vec3.copy(out.clipSphereCenter, this.#psData.Get("clipSphereCenter"));
+    out.clipRadiusSq = this.#psData.Get("clipRadiusSq")[0];
+    out.clipRadius2Sq = this.#psData.Get("clipRadius2Sq")[0];
+    out.clipFactor = this.#psData.Get("clipSphereFactor")[0];
+    out.clipFactor2 = this.#psData.Get("clipSphereFactor2")[0];
+    out.shLighting = this.#psData.Get("shLightingCoefficients");
+    vec4.copy(out.customData, this.#psData.Get("customData"));
+
+    return out;
+  }
+
+  /**
+   * Carbon EveSpaceObject2::GetPerObjectStructs (cpp:1485-1490): hands a copy
+   * of both records to a caller, with the VS record's customData taken from the
+   * PS record as Carbon does.
+   * @returns {{vs: RawData, ps: RawData}} independent copies, not live records
+   */
+  @carbon.method
+  @impl.implemented
+  GetPerObjectStructs(vsData = RawData.create("EveSpaceObjectVSData"), psData = RawData.create("EveSpaceObjectPSData"))
+  {
+    vsData.CopyFrom(this.#vsData);
+    psData.CopyFrom(this.#psData);
+    vsData.Set("customData", this.#psData.Get("customData"));
+    return { vs: vsData, ps: psData };
+  }
+
+  /**
    * Refreshes the world transform, then - when the update flag is on - places the observers, stamps the LOD-gated curve clock while advancing the overlay effects, runs the effect children's synchronous pass with the current placement, and updates the impact overlay; the overlay effects receive the context time as both clocks, as Carbon does.
    * @returns {boolean} False when the update flag is off; the world transform is refreshed either way.
    */
@@ -817,6 +936,53 @@ export class EveSpaceObject2 extends EveEntity
     for (const controller of this.controllers)
     {
       controller?.Update?.(frequency);
+    }
+
+    // Carbon cpp:626-663: the persistent buffers are invalidated once per
+    // frame, then the shader data is prepared and copied into both records.
+    this.#vsData.Invalidate();
+    this.#psData.Invalidate();
+
+    const previousActivationStrength = this.spaceObjectShipData[1];
+    this.PrepareShaderData(updateContext);
+    if (previousActivationStrength !== this.spaceObjectShipData[1])
+    {
+      this.SetControllerVariable?.("ActivationStrength", this.spaceObjectShipData[1]);
+    }
+
+    this.#psData.Set("shipData", this.spaceObjectShipData);
+    this.#vsData.Set("shipData", this.spaceObjectShipData);
+    // m_psData.customData is script/SOF-driven; the model field is its author.
+    this.#psData.Set("customData", this.customShaderData);
+    // Both records carry the same two matrices; each is written from the
+    // LOGICAL transform, which produces the bytes Carbon's `m_psData.x =
+    // m_vsData.x` copy of the already-transposed value produces.
+    this.#vsData.SetAndTranspose("worldTransform", this.worldTransform);
+    this.#vsData.SetAndTranspose("invWorldTransform", this.inverseWorldTransform);
+    this.#psData.SetAndTranspose("worldTransform", this.worldTransform);
+    this.#psData.SetAndTranspose("invWorldTransform", this.inverseWorldTransform);
+
+    const shapeCenter = EveSpaceObject2.#shapeCenterScratch;
+    const shapeRadius = EveSpaceObject2.#shapeRadiusScratch;
+    this.GetShapeEllipsoid(shapeCenter, shapeRadius);
+    this.#vsData.Set("ellpsoidRadii", [ shapeRadius[0], shapeRadius[1], shapeRadius[2], 0 ]);
+    this.#vsData.Set("ellpsoidCenter", [ shapeCenter[0], shapeCenter[1], shapeCenter[2], 0 ]);
+
+    if (this.impactOverlay)
+    {
+      this.#psData.Set("impactDataOffset", [ this.impactOverlay.GetDataTextureOffset?.() ?? 0 ]);
+    }
+
+    for (let slot = 0; slot < EveSpaceObject2.CUSTOM_MASK_MAX; slot++)
+    {
+      if (this.customMasks.length > slot)
+      {
+        this.customMasks[slot]?.FillPerObjectData?.(slot, this.#vsData, this.#psData);
+      }
+      else
+      {
+        EveCustomMask.ZeroPerObjectData(slot, this.#vsData, this.#psData);
+      }
     }
 
     // Object-level curve sets update only on frames the sync-side LOD gate
@@ -1304,13 +1470,23 @@ export class EveSpaceObject2 extends EveEntity
   @carbon.method
   @impl.adapted
   @impl.reason("Persistent VS/PS device buffers are engine-owned; the record carries the object reference the engine serializer consumes.")
-  GetPerObjectData(accumulator = null)
+  GetPerObjectData(_accumulator = null)
   {
-    const data = typeof accumulator?.Allocate === "function"
-      ? accumulator.Allocate(Tr2PerObjectData)
-      : new Tr2PerObjectData();
-    data.object = this;
-    return data;
+    // Carbon cpp:1437-1445: the bone ring is uploaded and its OFFSETS stamped
+    // into the record, then a pooled handle referencing the two persistent
+    // buffers is returned. The offsets are GPU addresses with no CPU
+    // derivation, so they stay at their zero default here; the bone count is
+    // CPU-known and is written.
+    const boneCount = this.animationUpdater?.IsInitialized?.()
+      ? (this.animationUpdater.GetMeshBoneCount?.() ?? 0)
+      : null;
+    if (boneCount !== null)
+    {
+      this.#vsData.SetIndex("boneOffsets", 2, [ boneCount ]);
+    }
+    this.#vsData.Set("customData", this.#psData.Get("customData"));
+
+    return { vs: this.#vsData, ps: this.#psData };
   }
 
   /** Carbon forwards the shadow pass to the same per-object record. */

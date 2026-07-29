@@ -1,4 +1,5 @@
 import test from "node:test";
+import { CjsPerObjectLayouts } from "../src/trinityCore/rawData/CjsPerObjectLayouts.js";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
@@ -14,8 +15,6 @@ import {
   EveSpaceObject2,
   EveTransform,
   EveTurretSet,
-  EveTurretSetPSData,
-  EveTurretSetVSData,
   Locator,
   TriRenderBatchAccumulator
 } from "../npm/dist/index.js";
@@ -88,7 +87,7 @@ test("EveMissileWarhead follows Carbon launch, state, particle, impact, and POD 
   assert.deepEqual(Array.from(warhead.explosionPosition), Array.from(warhead.GetWorldPosition()));
   assert.equal(warhead.CheckImpact(0.1, 2, null), EveMissileWarhead.StateChangeEvent.EVT_NONE);
 
-  const accumulator = new TriRenderBatchAccumulator().SetRawDataStore(makePerObjectStore());
+  const accumulator = new TriRenderBatchAccumulator().SetTriPoolAllocator(makePerObjectStore());
   const data = warhead.GetPerObjectData(accumulator);
   const missileSize = new Float32Array(4);
   data.Copy("missileSize", missileSize);
@@ -150,14 +149,18 @@ test("EveMobile maps authored turret locators and drives the active count", () =
 
 test("turret fixed POD arrays and tracking fade preserve Carbon dimensions and ordering", () =>
 {
-  const vs = new EveTurretSetVSData();
-  const ps = new EveTurretSetPSData();
-  assert.equal(vs._unused.length, 2);
-  assert.equal(vs.turretTranslation.length, 24);
-  assert.equal(vs.turretRotation.length, 24);
-  assert.equal(ps.shLightingCoefficients.length, 7);
-  assert.notEqual(vs.turretTranslation[0], vs.turretTranslation[1]);
-  assert.notEqual(ps.shLightingCoefficients[0], ps.shLightingCoefficients[1]);
+  // The fixed POD dimensions are the catalog element counts now.
+  const vs = CjsPerObjectLayouts.Get("EveTurretSetVSData").fields;
+  const ps = CjsPerObjectLayouts.Get("EveTurretSetPSData").fields;
+  assert.equal(vs.get("_unused").count, 2);
+  assert.equal(vs.get("turretTranslation").count, 24);
+  assert.equal(vs.get("turretRotation").count, 24);
+  assert.equal(ps.get("shLightingCoefficients").count, 7);
+  // Distinct slots: each array element occupies its own span, so slot 1 starts
+  // one element past slot 0 rather than aliasing it.
+  const translation = vs.get("turretTranslation");
+  assert.equal(translation.size, 4, "each turret translation is one vec4");
+  assert.equal(ps.get("shLightingCoefficients").size, 4, "each coefficient is one vec4");
 
   const turretSet = new EveTurretSet();
   turretSet.maxTrackingTime = 2;

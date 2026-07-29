@@ -18,7 +18,7 @@ import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
 function makeAccumulator()
 {
-  return new TriRenderBatchAccumulator().SetRawDataStore(makePerObjectStore());
+  return new TriRenderBatchAccumulator().SetTriPoolAllocator(makePerObjectStore());
 }
 
 

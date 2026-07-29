@@ -53,11 +53,11 @@ export class TriRenderBatchMap
    * GetPerObjectData leases pooled records through it; returns this for
    * chaining.
    */
-  SetRawDataStore(store)
+  SetTriPoolAllocator(store)
   {
     for (const accumulator of this.accumulators.values())
     {
-      accumulator.SetRawDataStore(store);
+      accumulator.SetTriPoolAllocator(store);
     }
 
     return this;

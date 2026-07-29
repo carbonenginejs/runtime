@@ -226,6 +226,17 @@ export class AudioGameObject extends CjsModel
   }
 
   /**
+   * IEveSpaceObject2 hook (AudioGameObject.cpp:91-93): an audio game object is
+   * not rendered, so it contributes nothing to a child's per-object records and
+   * Carbon's body is empty. Present so a child parented to one can call it.
+   */
+  @carbon.method
+  @impl.noop
+  GetPerObjectStructs(_vsData, _psData)
+  {
+  }
+
+  /**
    * Pushes a position to the emitter together with the object's front and top
    * axes rotated into world space, which is what gives the sound its
    * orientation.

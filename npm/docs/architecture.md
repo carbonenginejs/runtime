@@ -98,12 +98,13 @@ backend-owned semantics before serialization or upload.
 
 ### Constant-data ownership
 
-Trinity owns the LOGICAL shape of a constant-data struct: field names, element
-counts, and an encoding kind that says what the packer must do with each value.
-An engine owns the PHYSICAL layout. It supplies a packer that resolves every
-registered struct to byte offsets and a stride, so the same logical shape can
-produce different memory in different backends. A struct the packer does not
-cover fails at registration rather than at draw time.
+Trinity owns the constant-data layout outright: field names, element counts, an
+encoding kind per field, and the byte offsets. There is ONE layout and no
+per-engine packing, because these buffers are not backend-specific — every
+backend declares them as a flat array of `vec4`, and std140's stride for an
+array of `vec4` matches tight C++ packing. A struct the catalog does not cover
+fails at registration rather than at draw time. An engine that genuinely needs
+different memory transforms it downstream.
 
 `RawDataStore` leases payloads from a per-engine arena; `RawData` is the
 write-mostly view over one slice. Values are written through the encoding
@@ -118,9 +119,15 @@ A renderable returns whichever shape its constant data actually has:
 - one payload, when a single buffer is bound;
 - a `{ vs, ps }` record, when the vertex and pixel stages take DIFFERENT
   payloads and are therefore two separate buffers;
-- a marker carrying the object, when the fill depends on engine-owned state and
-  must be deferred to realization;
-- `null`, when the renderable consumes its parent's data instead.
+- `null`, when the renderable cannot produce one — no geometry, or no
+  accumulator to lease from.
+
+The record itself belongs to one of Carbon's two tiers, chosen statically by
+class rather than by a runtime branch. A TRANSIENT record is leased from the
+frame arena and dies at reset. A PERSISTENT record is a member the owner keeps
+across frames, because it fills the record during update and reads it back
+afterwards; `EveSpaceObject2` is the reference case, and `Invalidate` marks it
+for re-upload once per frame.
 
 A struct declares the stages it binds to, so one payload bound to several
 stages stays one payload rather than being duplicated per stage. The batch

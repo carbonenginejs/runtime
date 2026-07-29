@@ -9,9 +9,11 @@ import { CjsPerObjectLayouts } from "./CjsPerObjectLayouts.js";
 // arena and consumed by the engine's uploader; a few are PERSISTENT, owned by
 // an object across frames via RawData.create and marked with Invalidate.
 //
-// Design + rationale: runtime-trinity/agents/PER-OBJECT-DATA-DESIGN-2026-07-24.md
-// Transpose contract (why matrices are stored transposed): the
-// carbon-math-conventions skill, "GPU upload: the transpose contract".
+// Why matrices are stored transposed: Carbon transposes every per-object matrix
+// on its way to the GPU (`m_vsData.worldTransform = Transpose( m_worldTransform )`
+// and every other PopulatePerObjectData), because HLSL constant buffers pack
+// column_major by default while Carbon's Matrix is row-major. The requirement is
+// the shader's, not a math-library artifact, so the port pays it identically.
 //
 // Verbs (name ALWAYS first - a keyed store, not a math op):
 //   SetAndTranspose(name, value)   a MATRIX4 field; PERFORMS the transpose
@@ -67,7 +69,17 @@ export const RawDataType = Object.freeze({
    */
   INT: "int",
 
-  /** mat4 packed column-stride into 12 floats (Carbon Float4x3; skill gotcha 7). */
+  /**
+   * mat4 packed column-stride into 12 floats (Carbon Float4x3; skill gotcha 7).
+   *
+   * No CATALOGUED struct has a Float4x3 field - Carbon's per-object structs
+   * carry bone ring OFFSETS, not the palette itself - so this encoder is
+   * currently exercised only by `test/raw-data.test.js`. It is kept rather than
+   * removed because the packing rule it encodes is the one that shipped wrong
+   * once already (row-stride instead of column-stride, invisible for identity
+   * bones), and `Tr2GrannyAnimation` maintains exactly such a palette. If a
+   * struct ever declares a Float4x3, this is the encoder it needs.
+   */
   MATRIX_3X4: "matrix3x4"
 });
 
@@ -153,7 +165,7 @@ export const RawDataEncoders = Object.freeze({
 
 /**
  * A packed constant-data slice bound to a resolved layout. Instances are
- * handed out by a RawDataStore (transient, arena-backed) or constructed
+ * handed out by a TriPoolAllocator (transient, arena-backed) or constructed
  * directly by an object that owns a persistent buffer.
  */
 export class RawData
@@ -170,16 +182,27 @@ export class RawData
   /** Whether the payload has changed since an uploader last matched it. */
   #dirty = true;
 
+  /** Catalogued struct name, when this record was built from one. */
+  #struct = null;
+
   /**
    * @param {object} layout - resolved layout for one struct
    * @param {Float32Array} floats - the slice (start = struct slot)
    * @param {Uint32Array} uints - Uint32 view over the same slice
+   * @param {String} [struct] - catalogued struct name, when there is one
    */
-  constructor(layout, floats, uints)
+  constructor(layout, floats, uints, struct = null)
   {
     this.#layout = layout;
     this.#floats = floats;
     this.#uints = uints;
+    this.#struct = struct;
+  }
+
+  /** The catalogued struct name, or null for an ad-hoc record. */
+  GetStruct()
+  {
+    return this.#struct;
   }
 
   /** Whether a field exists in the layout. */
@@ -343,6 +366,50 @@ export class RawData
     return this.Copy(name, out, index);
   }
 
+  /**
+   * Zero every byte - Carbon's `memset( &data, 0, sizeof(data) )`. Declared
+   * defaults are NOT re-applied: memset does not respect them either, and a
+   * caller that wants them writes them back explicitly, as Carbon does.
+   */
+  Zero()
+  {
+    this.#floats.fill(0);
+    this.#dirty = true;
+
+    return this;
+  }
+
+  /**
+   * Copy another record's bytes into this one wholesale - Carbon's by-value
+   * struct assignment (`vsData = m_vsData`, cpp:1487). Both records must carry
+   * the SAME layout: the bytes are copied without re-encoding, so a mismatched
+   * stride would silently reinterpret every field after the first difference.
+   */
+  CopyFrom(other)
+  {
+    const source = other?.GetLayout?.();
+
+    // A store-registered layout and a RawData.create layout are distinct
+    // objects for the same struct, so identity cannot be the only test - but
+    // the STRIDE cannot stand in for it either: EveSpaceObjectVSData and
+    // EveSpaceObjectPSData are both 116 floats and share nothing else. The
+    // struct name is the test; an unnamed ad-hoc record needs the same layout
+    // object.
+    const sameStruct = this.#struct !== null && other.GetStruct?.() === this.#struct;
+
+    if (!source || (!sameStruct && source !== this.#layout))
+    {
+      throw new Error(
+        `RawData: CopyFrom requires a record of the same struct (this "${this.#struct}", other "${other?.GetStruct?.() ?? "unknown"}")`
+      );
+    }
+
+    this.#floats.set(other.GetData());
+    this.#dirty = true;
+
+    return this;
+  }
+
   /** A Float32 view over one field's lanes, sharing the record's bytes. */
   #View(field)
   {
@@ -442,7 +509,7 @@ export class RawData
       floats.set(preset.values, preset.offset);
     }
 
-    return new RawData(layout, floats, uints);
+    return new RawData(layout, floats, uints, struct);
   }
 
   /** The packed Float32 slice - what the engine uploader memcpys/binds. */

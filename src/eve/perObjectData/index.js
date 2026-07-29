@@ -1,18 +1,4 @@
-export * from "./DecalPSPerObjectData.js";
-export * from "./DecalVSPerObjectData.js";
-export * from "./EveBoosterSetPSData.js";
-export * from "./EveBoosterSetPerObjectData.js";
-export * from "./EveBoosterSetVSData.js";
-export * from "./EveChildBulletStormPerObjectData.js";
-export * from "./EveChildSpherePinPerObjectData.js";
-export * from "./EveDecalPerObjectData.js";
-export * from "./EvePerObjectPSData.js";
-export * from "./EvePerObjectVSData.js";
-export * from "./EveSpaceObjectPSData.js";
-export * from "./EveSpaceObjectVSData.js";
-export * from "./EveSpacePerObjectData.js";
-export * from "./EveSpherePinPerObjectData.js";
-export * from "./EveTurretSetPSData.js";
-export * from "./EveTurretSetPerObjectData.js";
-export * from "./EveTurretSetVSData.js";
-export * from "./MergeMorphsConstantBuffer.js";
+// The CjsModel per-object record classes were quarantined on 2026-07-29 (see
+// src/dropped/README.md); RawData + CjsPerObjectLayouts is the single
+// representation. What remains here is the shared child-record helper.
+export * from "./childPerObjectRecords.js";

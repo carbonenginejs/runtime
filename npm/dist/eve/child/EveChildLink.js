@@ -1,17 +1,18 @@
-import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
+import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveChildMesh as _EveChildMesh } from '../../../eve/child/EveChildMesh.js';
+import { EveChildMesh as _EveChildMesh } from './EveChildMesh.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { sph3 } from '@carbonenginejs/runtime-utils/sph3';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
-import { EveSpaceObjectPSData as _EveSpaceObjectPSData } from '../../../eve/perObjectData/EveSpaceObjectPSData.js';
-import { EveSpaceObjectVSData as _EveSpaceObjectVSData } from '../../../eve/perObjectData/EveSpaceObjectVSData.js';
 
 let _initProto, _initClass, _init_linkStrengthCurves, _init_extra_linkStrengthCurves, _init_linkStrengthBindings, _init_extra_linkStrengthBindings, _init_linkBarrier, _init_extra_linkBarrier, _init_currentDistance, _init_extra_currentDistance, _init_currentDirection, _init_extra_currentDirection, _init_target, _init_extra_target, _init_linkStrength, _init_extra_linkStrength, _init_targetRadius, _init_extra_targetRadius;
 
-/** EveChildLink (eve/child) - generated from schema shapeHash 9d53a00b.... */
+/**
+ * A stretched link between a shield hull and an arc target: it orients itself
+ * along the arc, keeps its own final world placement, and inherits the hull per-object values.
+ */
 let _EveChildLink;
 new class extends _identity {
   static [class EveChildLink extends _EveChildMesh {
@@ -50,12 +51,6 @@ new class extends _identity {
 
     /** m_isVisible (bool, EveChildMesh) - result of the last UpdateVisibility pass. */
     #isVisible = (_init_extra_targetRadius(this), false);
-
-    /** m_vsData (EveSpaceObjectVSData, EveChildMesh) - CPU record for the per-object VS constants. */
-    #vsData = new _EveSpaceObjectVSData();
-
-    /** m_psData (EveSpaceObjectPSData, EveChildMesh) - CPU record for the per-object PS constants. */
-    #psData = new _EveSpaceObjectPSData();
 
     /**
      * Resolves the link direction and distance from the parent's model center to
@@ -159,11 +154,17 @@ new class extends _identity {
       const finalWorld = _EveChildLink.#finalWorld;
       mat4.translate(finalWorld, this.worldTransform, shieldEllipsoidCenter);
 
-      // Per-object records (EveChildLink.cpp:142-151); the persistent-buffer
-      // invalidation is engine-owned.
-      params.spaceObjectParent?.GetPerObjectStructs?.(this.#vsData, this.#psData);
-      mat4.transpose(this.#vsData.worldTransform, finalWorld);
-      mat4.transpose(this.#vsData.worldTransformLast, linkRotation);
+      // Carbon cpp:143-151: invalidate, inherit the hull's structs, then stamp
+      // the link's own placement into the records EveChildMesh owns - Carbon
+      // inherits the same pair. worldTransformLast deliberately carries the LINK
+      // ROTATION rather than the previous transform, so a stretched link resolves
+      // its motion vector along the arc.
+      const records = this.GetPerObjectRecords();
+      records.vs.Invalidate();
+      records.ps.Invalidate();
+      params.spaceObjectParent?.GetPerObjectStructs?.(records.vs, records.ps);
+      records.vs.SetAndTranspose("worldTransform", finalWorld);
+      records.vs.SetAndTranspose("worldTransformLast", linkRotation);
     }
 
     /**

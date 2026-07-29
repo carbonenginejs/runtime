@@ -10,8 +10,7 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
-import { EveSpaceObjectPSData } from "../perObjectData/EveSpaceObjectPSData.js";
-import { EveSpaceObjectVSData } from "../perObjectData/EveSpaceObjectVSData.js";
+import { RawData } from "../../trinityCore/rawData/RawData.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 
 
@@ -497,19 +496,23 @@ export class EveEffectRoot2 extends EveEntity
     this.lights.length = 0;
   }
 
-  /** Initializes the portable child-facing space-object records. */
+  /**
+   * Carbon EveEffectRoot2::GetPerObjectStructs (cpp:463-478): zeroes both
+   * records, then sets activation strength and bounding-sphere radius to 1. An
+   * effect root carries no hull values of its own, so a child parented to one
+   * inherits neutral data rather than nothing.
+   * @returns {{vs: RawData, ps: RawData}}
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Native constant-buffer structs are represented by GPU-free value records.")
-  GetPerObjectStructs(vsData = new EveSpaceObjectVSData(), psData = new EveSpaceObjectPSData())
+  @impl.implemented
+  GetPerObjectStructs(vsData = RawData.create("EveSpaceObjectVSData"), psData = RawData.create("EveSpaceObjectPSData"))
   {
-    EveEffectRoot2.#ZeroNumericRecord(vsData);
-    EveEffectRoot2.#ZeroNumericRecord(psData);
-    vsData.shipData[1] = 1;
-    vsData.shipData[3] = 1;
-    psData.shipData[1] = 1;
-    psData.shipData[3] = 1;
-    return { vsData, psData };
+    vsData.Zero();
+    psData.Zero();
+    vsData.Set("shipData", EveEffectRoot2.#neutralShipData);
+    psData.Set("shipData", EveEffectRoot2.#neutralShipData);
+
+    return { vs: vsData, ps: psData };
   }
 
   /** Registers this root as a secondary light source with an injected manager. */
@@ -1028,26 +1031,8 @@ export class EveEffectRoot2 extends EveEntity
     return out;
   }
 
-  /**
-   * Zeroes every numeric, typed-array and array field of a per-object record in
-   * place, so the record can be refilled from a known-clean state.
-   */
-  static #ZeroNumericRecord(record)
-  {
-    for (const [name, value] of Object.entries(record))
-    {
-      if (typeof value === "number") record[name] = 0;
-      else if (ArrayBuffer.isView(value)) value.fill(0);
-      else if (Array.isArray(value))
-      {
-        for (let index = 0; index < value.length; index++)
-        {
-          if (typeof value[index] === "number") value[index] = 0;
-          else if (ArrayBuffer.isView(value[index])) value[index].fill(0);
-        }
-      }
-    }
-  }
+  /** Carbon's neutral hull data: full activation, unit bounding radius. */
+  static #neutralShipData = Object.freeze([ 0, 1, 0, 1 ]);
 
   static #identity = mat4.create();
   static #centerTransform = mat4.create();

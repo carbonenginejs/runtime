@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
-import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
+import '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveMobile as _EveMobile } from './EveMobile.js';
 import { TriFloat as _TriFloat } from '../../trinityCore/TriFloat.js';
@@ -17,7 +17,7 @@ class EveShip2 extends _EveMobile {
     } = _applyDecs2311(this, [type.define({
       className: "EveShip2",
       family: "eve/spaceObject"
-    })], [[[io, io.persistOnly, void 0, type.model("EveBoosterSet2")], 16, "boosters"], [[io, io.readwrite, type, type.uint32], 16, "displayKillCounterValue"], [[io, io.readwrite, type, type.float32], 16, "maxSpeed"], [[io, io.read, void 0, type.objectRef("TriFloat")], 16, "speed"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateBoosters"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoosters"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetBoosters"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnRegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "DisplayBoosters"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetKillCounterValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetMaxSpeed"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Blue FindEntry member binding becomes a duck-typed value holder; runtime-audio owns the emitter side.")], 18, "UpdateShipSpeedForAudio"], [[carbon, carbon.method, impl, impl.implemented], 18, "RebuildCachedData"], [[carbon, carbon.method, impl, impl.adapted], 18, "RebuildBoosterSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Persistent VS/PS buffers are engine-owned; shipData is exposed for createEveSpaceObjectMainPerObjectValues.")], 18, "GetPerObjectData"]], 0, void 0, _EveMobile));
+    })], [[[io, io.persistOnly, void 0, type.model("EveBoosterSet2")], 16, "boosters"], [[io, io.readwrite, type, type.uint32], 16, "displayKillCounterValue"], [[io, io.readwrite, type, type.float32], 16, "maxSpeed"], [[io, io.read, void 0, type.objectRef("TriFloat")], 16, "speed"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateBoosters"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoosters"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetBoosters"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnRegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "DisplayBoosters"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetKillCounterValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetMaxSpeed"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Blue FindEntry member binding becomes a duck-typed value holder; runtime-audio owns the emitter side.")], 18, "UpdateShipSpeedForAudio"], [[carbon, carbon.method, impl, impl.implemented], 18, "RebuildCachedData"], [[carbon, carbon.method, impl, impl.adapted], 18, "RebuildBoosterSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPerObjectData"]], 0, void 0, _EveMobile));
   }
   /** m_boosters (EveBoosterSet2Ptr) [PERSISTONLY] */
   boosters = (_initProto(this), _init_boosters(this, null));
@@ -36,9 +36,6 @@ class EveShip2 extends _EveMobile {
 
   /** m_acceleration - second derivative of the position curve, fed to boosters. */
   #acceleration = vec3.create();
-
-  /** m_spaceObjectShipData - vs/ps ship constants; x carries booster glow. */
-  #spaceObjectShipData = vec4.create();
 
   /**
    * Carbon EveShip2::UpdateSyncronous - base sync, then speed from the world
@@ -225,13 +222,19 @@ class EveShip2 extends _EveMobile {
    * per-object values builder.
    */
   GetPerObjectData(accumulator = null) {
-    this.#spaceObjectShipData[0] = this.boosters?.GetBoosterIntensity?.() ?? 0;
-    return super.GetPerObjectData(accumulator);
+    this.spaceObjectShipData[0] = this.boosters?.GetBoosterIntensity?.() ?? 0;
+    const data = super.GetPerObjectData(accumulator);
+    // The base fill ran during update, so the glow lane has to be restamped
+    // into both records here - Carbon writes m_spaceObjectShipData and the
+    // records read from it in the same call (EveShip2.cpp:275-289).
+    data.vs.Set("shipData", this.spaceObjectShipData);
+    data.ps.Set("shipData", this.spaceObjectShipData);
+    return data;
   }
 
   /** The vs/ps ship constants (x = booster glow intensity). */
   GetSpaceObjectShipData() {
-    return this.#spaceObjectShipData;
+    return this.spaceObjectShipData;
   }
   static {
     _initClass();

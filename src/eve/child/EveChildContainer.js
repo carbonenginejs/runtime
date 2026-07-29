@@ -16,6 +16,11 @@ import { Origin } from "../../generated/eve/child/enums.js";
 import { Tr2RenderReason, TR2SHADERMODEL } from "../../generated/trinityCore/enums.js";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { Tr2PerObjectData } from "../../trinityCore/Tr2PerObjectData.js";
+import {
+  createChildPerObjectRecords,
+  inheritParentPerObjectData,
+  stampChildTransforms
+} from "../perObjectData/childPerObjectRecords.js";
 
 // Module scratch (read-only zero vector; container recursion forbids mutable
 // module scratch here - see GetBoundingSphere).
@@ -155,6 +160,12 @@ export class EveChildContainer extends EveChildTransform
   #ownerMaxSpeed = 0;
 
   #activationStrength = 1;
+
+  /** m_vsData / m_psData - this container's PERSISTENT per-object pair. */
+  #perObjectData = createChildPerObjectRecords();
+
+  /** Carbon's local `lastWorldTransform`, kept across frames here. */
+  #lastWorldTransform = mat4.create();
 
   #hasUpdated = false;
 
@@ -593,10 +604,18 @@ export class EveChildContainer extends EveChildTransform
 
     const parentTransform = params?.localToWorldTransform;
 
+    // Carbon captures the OUTGOING transform before rebuilding.
+    mat4.copy(this.#lastWorldTransform, this.worldTransform);
+
     if (parentTransform && parentTransform.length === 16)
     {
       this.UpdateTransform(parentTransform);
     }
+
+    // Carbon cpp:576-589: inherit the hull's per-object values, rebase the clip
+    // data by this child's translation, then stamp our own transforms.
+    inheritParentPerObjectData(this.#perObjectData, params?.spaceObjectParent, this.translation);
+    stampChildTransforms(this.#perObjectData, this.worldTransform, this.#lastWorldTransform);
 
     const frequency = params?.controllerUpdateFrequency ?? 0.5;
     for (const controller of this.controllers)
@@ -878,21 +897,25 @@ export class EveChildContainer extends EveChildTransform
     return 0;
   }
 
-  /** Carbon EveChildContainer::GetPerObjectData (cpp:1180-1203) uploads the
-   * animationOwner bone palette into the GPU ring buffer and allocates
-   * Tr2PerObjectDataWithPersistentBuffers; both are GPU seams, so the GPU-free
-   * record carries the live object reference for the engine serializer
-   * (mirrors EveSpaceObject2.GetPerObjectData). */
+  /**
+   * Carbon EveChildContainer::GetPerObjectData (cpp:1180-1203): uploads the
+   * animation owner's bone palette, then hands back a handle over this
+   * container's two PERSISTENT buffers. The ring offsets are GPU addresses with
+   * no CPU derivation and keep their defaults; the bone COUNT is CPU-known.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Persistent VS/PS device buffers and the bone ring upload are engine-owned; the record carries the object reference the engine serializer consumes.")
-  GetPerObjectData(accumulator = null)
+  @impl.reason("GPU ring-buffer offsets have no CPU derivation and keep their defaults; every CPU-known field is filled.")
+  GetPerObjectData(_accumulator = null)
   {
-    const data = typeof accumulator?.Allocate === "function"
-      ? accumulator.Allocate(Tr2PerObjectData)
-      : new Tr2PerObjectData();
-    data.object = this;
-    return data;
+    const updater = this.animationOwner?.animationUpdater ?? this.animationUpdater;
+
+    if (updater?.IsInitialized?.())
+    {
+      this.#perObjectData.vs.SetIndex("boneOffsets", 2, [ updater.GetMeshBoneCount?.() ?? 0 ]);
+    }
+
+    return { vs: this.#perObjectData.vs, ps: this.#perObjectData.ps };
   }
 
   /** Carbon EveChildContainer::HasRenderables (cpp:1129-1132): the container

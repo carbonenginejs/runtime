@@ -5,6 +5,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveEntity as _EveEntity } from '../EveEntity.js';
 import { ShouldReflect, EveComponentType } from '../EveComponentTypes.js';
+import { RawData } from '../../trinityCore/rawData/RawData.js';
 
 let _initClass, _init_effect, _init_extra_effect, _init_batchType, _init_extra_batchType, _init_areaIndex, _init_extra_areaIndex, _init_areaCount, _init_extra_areaCount, _init_effectHash, _init_extra_effectHash, _initClass2, _init_transform, _init_extra_transform, _init_sphereIndex, _init_extra_sphereIndex, _initClass3, _init_geometryPath, _init_extra_geometryPath, _init_castsShadow, _init_extra_castsShadow, _init_reflectionMode, _init_extra_reflectionMode, _init_meshIndex, _init_extra_meshIndex, _init_areas, _init_extra_areas, _init_instances, _init_extra_instances, _init_sofHullName, _init_extra_sofHullName, _init_sofLocatorSetName, _init_extra_sofLocatorSetName, _init_display, _init_extra_display, _initProto, _initClass4, _init_name, _init_extra_name, _init_worldTransform, _init_extra_worldTransform, _init_hasUpdated, _init_extra_hasUpdated, _init_meshes, _init_extra_meshes;
 
@@ -149,6 +150,14 @@ new class extends _identity {
     /** Carbon m_perObjectDataHandle (h:143) - manager registration handle. */
     #perObjectDataHandle = null;
 
+    /**
+     * Carbon m_perObjectData (EveSpacePerObjectData): the PERSISTENT per-instance
+     * record the mesh manager uploads into its structured buffer.
+     */
+    #perObjectData = RawData.create("EveSpacePerObjectData");
+
+    /** EVE_SPACEOBJECT_CUSTOWMASK_MAX (EveSpaceObject2.h:49). */
+
     /** Carbon m_allRegistered (h:147) - the AddMeshesToManager retry latch:
      * set optimistically each pass, cleared by ANY not-ready mesh/area so the
      * per-frame CollectMeshes retries until geometry streams in. */
@@ -190,6 +199,53 @@ new class extends _identity {
      */
     GetBoundingSphere() {
       return false;
+    }
+
+    /**
+     * Carbon EveChildInstancedMeshes::UpdateAsyncronous (cpp:204-238): the
+     * per-instance record is this child's own transforms plus the hull values it
+     * inherits, flattened into ONE struct - EveSpacePerObjectData carries both
+     * the VS and PS halves because the manager uploads it as a single instance.
+     * @param {Object} parent - the space-object parent, when there is one
+     */
+    #UpdatePerObjectData(parent) {
+      const record = this.#perObjectData;
+
+      // cpp:211: the STORED (already transposed) transform rolls into last.
+      record.SetAndTranspose("worldTransformLast", record.GetTransposed("worldTransform"));
+      record.SetAndTranspose("worldTransform", this.worldTransform);
+
+      // cpp:214 inverts the transposed matrix; by carbon-math-conventions F2 that
+      // equals the transpose of the logical inverse, which is what this produces.
+      const inverse = _EveChildInstancedMes4.#inverseScratch;
+      if (!mat4.invert(inverse, this.worldTransform)) {
+        mat4.identity(inverse);
+      }
+      record.SetAndTranspose("invWorldTransform", inverse);
+      if (typeof parent?.GetPerObjectStructs !== "function") {
+        return;
+      }
+      const {
+        vs,
+        ps
+      } = parent.GetPerObjectStructs();
+      for (const name of ["shipData", "clipSphereCenter", "clipRadiusSq", "clipRadius2Sq", "impactDataOffset", "clipSphereFactor2", "clipSphereFactor"]) {
+        record.Set(name, ps.Get(name));
+      }
+      for (const name of ["ellpsoidRadii", "ellpsoidCenter", "customData"]) {
+        record.Set(name, vs.Get(name));
+      }
+      record.Set("customMaskClamps", ps.Get("customMaskClamps"));
+      record.Set("boneOffsets", vs.Get("boneOffsets"));
+      for (let slot = 0; slot < _EveChildInstancedMes4.CUSTOM_MASK_COUNT; slot++) {
+        record.SetAndTransposeIndex("customMaskMatrix", slot, vs.GetTransposedIndex("customMaskMatrix", slot));
+        record.SetIndex("customMaskData", slot, vs.GetIndex("customMaskData", slot));
+        record.SetIndex("customMaskMaterialIDs", slot, ps.GetIndex("customMaskMaterialIDs", slot));
+        record.SetIndex("customMaskTargets", slot, ps.GetIndex("customMaskTargets", slot));
+      }
+
+      // cpp:238: the PS record's coefficients land in the record's shLighting.
+      record.Set("shLighting", ps.Get("shLightingCoefficients"));
     }
 
     /**
@@ -670,6 +726,8 @@ new class extends _identity {
      * deterministically.
      */
   }];
+  #inverseScratch = mat4.create();
+  CUSTOM_MASK_COUNT = 2;
   #GetMesh(meshes, meshId) {
     const index = Number(meshId) >>> 0;
     if (index >= meshes.length) {

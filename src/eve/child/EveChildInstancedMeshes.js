@@ -7,6 +7,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEntity } from "../EveEntity.js";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
+import { RawData } from "../../trinityCore/rawData/RawData.js";
 
 /** Carbon EveInstancedMeshManager::InstanceFlags (EveInstancedMeshManager.h:
  * 13-26, cpp:998-1048): a uint32 bitfield - bit (1 << batchType) per present
@@ -188,6 +189,17 @@ export class EveChildInstancedMeshes extends EveEntity
   /** Carbon m_perObjectDataHandle (h:143) - manager registration handle. */
   #perObjectDataHandle = null;
 
+  /**
+   * Carbon m_perObjectData (EveSpacePerObjectData): the PERSISTENT per-instance
+   * record the mesh manager uploads into its structured buffer.
+   */
+  #perObjectData = RawData.create("EveSpacePerObjectData");
+
+  static #inverseScratch = mat4.create();
+
+  /** EVE_SPACEOBJECT_CUSTOWMASK_MAX (EveSpaceObject2.h:49). */
+  static CUSTOM_MASK_COUNT = 2;
+
   /** Carbon m_allRegistered (h:147) - the AddMeshesToManager retry latch:
    * set optimistically each pass, cleared by ANY not-ready mesh/area so the
    * per-frame CollectMeshes retries until geometry streams in. */
@@ -245,6 +257,61 @@ export class EveChildInstancedMeshes extends EveEntity
   GetBoundingSphere()
   {
     return false;
+  }
+
+  /**
+   * Carbon EveChildInstancedMeshes::UpdateAsyncronous (cpp:204-238): the
+   * per-instance record is this child's own transforms plus the hull values it
+   * inherits, flattened into ONE struct - EveSpacePerObjectData carries both
+   * the VS and PS halves because the manager uploads it as a single instance.
+   * @param {Object} parent - the space-object parent, when there is one
+   */
+  #UpdatePerObjectData(parent)
+  {
+    const record = this.#perObjectData;
+
+    // cpp:211: the STORED (already transposed) transform rolls into last.
+    record.SetAndTranspose("worldTransformLast", record.GetTransposed("worldTransform"));
+    record.SetAndTranspose("worldTransform", this.worldTransform);
+
+    // cpp:214 inverts the transposed matrix; by carbon-math-conventions F2 that
+    // equals the transpose of the logical inverse, which is what this produces.
+    const inverse = EveChildInstancedMeshes.#inverseScratch;
+    if (!mat4.invert(inverse, this.worldTransform))
+    {
+      mat4.identity(inverse);
+    }
+    record.SetAndTranspose("invWorldTransform", inverse);
+
+    if (typeof parent?.GetPerObjectStructs !== "function")
+    {
+      return;
+    }
+
+    const { vs, ps } = parent.GetPerObjectStructs();
+
+    for (const name of [ "shipData", "clipSphereCenter", "clipRadiusSq", "clipRadius2Sq",
+      "impactDataOffset", "clipSphereFactor2", "clipSphereFactor" ])
+    {
+      record.Set(name, ps.Get(name));
+    }
+    for (const name of [ "ellpsoidRadii", "ellpsoidCenter", "customData" ])
+    {
+      record.Set(name, vs.Get(name));
+    }
+    record.Set("customMaskClamps", ps.Get("customMaskClamps"));
+    record.Set("boneOffsets", vs.Get("boneOffsets"));
+
+    for (let slot = 0; slot < EveChildInstancedMeshes.CUSTOM_MASK_COUNT; slot++)
+    {
+      record.SetAndTransposeIndex("customMaskMatrix", slot, vs.GetTransposedIndex("customMaskMatrix", slot));
+      record.SetIndex("customMaskData", slot, vs.GetIndex("customMaskData", slot));
+      record.SetIndex("customMaskMaterialIDs", slot, ps.GetIndex("customMaskMaterialIDs", slot));
+      record.SetIndex("customMaskTargets", slot, ps.GetIndex("customMaskTargets", slot));
+    }
+
+    // cpp:238: the PS record's coefficients land in the record's shLighting.
+    record.Set("shLighting", ps.Get("shLightingCoefficients"));
   }
 
   /**

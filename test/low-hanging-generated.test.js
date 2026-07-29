@@ -1,33 +1,9 @@
 import test from "node:test";
+import { RawData } from "../src/trinityCore/rawData/RawData.js";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
-import {
-  EveChildEffectPropagator,
-  EveBoosterSet2,
-  EveLensflare,
-  EveLineSet,
-  EveLocator2,
-  EveMultiEffectParameter,
-  EveSceneStaticParticles,
-  EveSocketParameterString,
-  EveTurretFiringFX,
-  EveTacticalTrails,
-  EveUiObject,
-  Tr2MaterialParameterStore,
-  Tr2ExternalParameter,
-  Tr2CurveVector3,
-  Tr2InstancedMesh,
-  Tr2Mesh,
-  Tr2MeshArea,
-  Tr2RuntimeInstanceData,
-  Tr2Sprite2dLineTrace,
-  Tr2Sprite2dPolygon,
-  Tr2Sprite2dTransform,
-  Tr2Sprite2dVertex,
-  Tr2SpriteObjectBase,
-  TriValueBinding
-} from "../npm/dist/index.js";
+import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLineSet, EveLocator2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveTacticalTrails, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../npm/dist/index.js";
 import { Tr2ParticleDirectForce } from "../npm/dist/particle/Tr2ParticleDirectForce.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { TriBatchType } from "../npm/dist/generated/trinityCore/enums.js";
@@ -46,16 +22,14 @@ import { BackAndForth } from "../npm/dist/generated/eve/child/behaviors/BackAndF
 import { SeekTarget } from "../npm/dist/generated/eve/child/behaviors/SeekTarget.js";
 import { EveProceduralMethodCycling } from "../npm/dist/eve/child/procedural/selection/EveProceduralMethodCycling.js";
 import { Tr2CurveLineSet } from "../npm/dist/generated/trinityCore/Tr2CurveLineSet.js";
-import { EveChildBehaviorSystem } from "../npm/dist/generated/eve/child/EveChildBehaviorSystem.js";
+import { EveChildBehaviorSystem } from "../npm/dist/eve/child/EveChildBehaviorSystem.js";
 import { EveChildLineSet } from "../npm/dist/generated/eve/child/EveChildLineSet.js";
 import { FollowASpline } from "../npm/dist/generated/eve/child/behaviors/FollowASpline.js";
 import { SpawnDrones } from "../npm/dist/generated/eve/child/behaviors/SpawnDrones.js";
 import { SplineTunnelGroup } from "../npm/dist/index.js";
 import { Tr2ManipulationTool } from "../npm/dist/generated/trinityCore/Tr2ManipulationTool.js";
 import { EveSwarm } from "../npm/dist/generated/eve/spaceObject/swarm/EveSwarm.js";
-import { EveSwarmRenderable } from "../npm/dist/generated/eve/spaceObject/swarm/EveSwarmRenderable.js";
-import { EveSpaceObjectPSData } from "../npm/dist/eve/perObjectData/EveSpaceObjectPSData.js";
-import { EveSpaceObjectVSData } from "../npm/dist/eve/perObjectData/EveSpaceObjectVSData.js";
+import { EveSwarmRenderable } from "../npm/dist/eve/spaceObject/swarm/EveSwarmRenderable.js";
 import { Tr2ParticleSystem } from "../npm/dist/generated/particle/Tr2ParticleSystem.js";
 import { Tr2DynamicEmitter } from "../npm/dist/generated/particle/Tr2DynamicEmitter.js";
 import { Tr2StaticEmitter } from "../npm/dist/generated/particle/Tr2StaticEmitter.js";
@@ -795,29 +769,32 @@ test("EveSwarmRenderable copies transforms and shared ship shader data", () =>
   transform[14] = 10;
   renderable.SetWorldTransform(transform);
   assert.deepEqual(Array.from(renderable.GetWorldTransform()), Array.from(transform));
-  assert.equal(renderable.vsData.worldTransform[3], 8);
-  assert.equal(renderable.psData.worldTransform[3], 8);
+  // The record stores the TRANSPOSED transform, so the translation lands in the
+  // fourth COLUMN: flat index 3 rather than 12.
+  const stored = renderable.GetPerObjectData();
+  assert.equal(stored.vs.GetTransposed("worldTransform")[3], 8);
+  assert.equal(stored.ps.GetTransposed("worldTransform")[3], 8);
 
-  const sourceVs = new EveSpaceObjectVSData();
-  sourceVs.clipData.set([1, 2, 3, 4]);
-  sourceVs.ellpsoidCenter.set([5, 6, 7, 8]);
-  sourceVs.ellpsoidRadii.set([9, 10, 11, 12]);
-  sourceVs.shipData.set([13, 14, 15, 16]);
-  const sourcePs = new EveSpaceObjectPSData();
-  sourcePs.clipSphereCenter.set([17, 18, 19]);
-  sourcePs.shipData.set([20, 21, 22, 23]);
-  sourcePs.clipRadiusSq = 24;
-  sourcePs.clipRadius2Sq = 25;
-  sourcePs.impactDataOffset = 26;
-  sourcePs.clipSphereFactor2 = 27;
-  sourcePs.clipSphereFactor = 28;
-  sourcePs.shLightingCoefficients[0].set([29, 30, 31, 32]);
+  const sourceVs = RawData.create("EveSpaceObjectVSData");
+  sourceVs.Set("clipData", [1, 2, 3, 4]);
+  sourceVs.Set("ellpsoidCenter", [5, 6, 7, 8]);
+  sourceVs.Set("ellpsoidRadii", [9, 10, 11, 12]);
+  sourceVs.Set("shipData", [13, 14, 15, 16]);
+  const sourcePs = RawData.create("EveSpaceObjectPSData");
+  sourcePs.Set("clipSphereCenter", [17, 18, 19]);
+  sourcePs.Set("shipData", [20, 21, 22, 23]);
+  sourcePs.Set("clipRadiusSq", [24]);
+  sourcePs.Set("clipRadius2Sq", [25]);
+  sourcePs.Set("impactDataOffset", [26]);
+  sourcePs.Set("clipSphereFactor2", [27]);
+  sourcePs.Set("clipSphereFactor", [28]);
+  sourcePs.SetIndex("shLightingCoefficients", 0, [29, 30, 31, 32]);
   renderable.SetShaderData(sourceVs, sourcePs);
   renderable.SetBoosterIntensity(0.75);
-  assert.deepEqual(Array.from(renderable.vsData.clipData), [1, 2, 3, 4]);
-  assert.deepEqual(Array.from(renderable.psData.clipSphereCenter), [17, 18, 19]);
-  assert.deepEqual(Array.from(renderable.psData.shLightingCoefficients[0]), [29, 30, 31, 32]);
-  assert.deepEqual(Array.from(renderable.psData.shipData), [0.75, 21, 22, 23]);
+  assert.deepEqual(Array.from(stored.vs.Get("clipData")), [1, 2, 3, 4]);
+  assert.deepEqual(Array.from(stored.ps.Get("clipSphereCenter")), [17, 18, 19]);
+  assert.deepEqual(Array.from(stored.ps.GetIndex("shLightingCoefficients", 0)), [29, 30, 31, 32]);
+  assert.deepEqual(Array.from(stored.ps.Get("shipData")), [0.75, 21, 22, 23]);
 
   const decal = { Clone: () => ({ clone: true }) };
   renderable.InitDecals([decal]);

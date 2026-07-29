@@ -180,8 +180,8 @@ export class CjsBatchManager
     // Bind the per-object-data store from the render context (built once from
     // the engine at scene setup). GetPerObjectData Allocs pooled records from
     // it; without a store, an eager-fill renderable throws (setup error).
-    const store = renderContext?.GetRawDataStore?.();
-    if (store) batchMap.SetRawDataStore(store);
+    const store = renderContext?.GetTriPoolAllocator?.();
+    if (store) batchMap.SetTriPoolAllocator(store);
 
     const collectsTransparent = this.#batchTypes.includes(TRANSPARENT);
     const transparents = [];

@@ -25,7 +25,7 @@ export class ITriRenderBatchAccumulator
 
     this.renderingMode = RenderingMode.RM_ANY;
 
-    // The per-object-data store (a RawDataStore), set once from the render
+    // The per-object-data store (a TriPoolAllocator), set once from the render
     // context at scene setup. The engine builds it from its own struct
     // reflection; Trinity never defines a struct here.
     this.rawDataStore = null;
@@ -38,14 +38,14 @@ export class ITriRenderBatchAccumulator
    * Binds the per-object-data store, normally taken from the render context at
    * scene setup; returns this for chaining.
    */
-  SetRawDataStore(store)
+  SetTriPoolAllocator(store)
   {
     this.rawDataStore = store;
     return this;
   }
 
   /** The bound per-object-data store, or null when none was set. */
-  GetRawDataStore()
+  GetTriPoolAllocator()
   {
     return this.rawDataStore;
   }

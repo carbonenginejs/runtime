@@ -1,4 +1,5 @@
 import test from "node:test";
+import { CjsPerObjectLayouts } from "../src/trinityCore/rawData/CjsPerObjectLayouts.js";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
@@ -13,7 +14,6 @@ import {
   EveStretch3,
   EveTurretFiringFX,
   EveTurretSet,
-  EveTurretSetPerObjectData,
   EveTurretTarget
 } from "../npm/dist/index.js";
 
@@ -39,9 +39,10 @@ test("stretch and turret classes are maintained in their Carbon families", () =>
   assert.equal(existsSync(new URL("../src/generated/eve/renderable/stretch/EveStretch2.js", import.meta.url)), false);
   assert.equal(existsSync(new URL("../src/generated/eve/attachment/turrets/EveTurretSet.js", import.meta.url)), false);
 
-  const perObjectData = new EveTurretSetPerObjectData();
-  assert.ok(perObjectData.vsData);
-  assert.ok(perObjectData.psData);
+  // The composite is retired; the catalog carries the
+  // VS/PS pair it used to wrap.
+  assert.ok(CjsPerObjectLayouts.Get("EveTurretSetVSData"));
+  assert.ok(CjsPerObjectLayouts.Get("EveTurretSetPSData"));
 });
 
 test("EveLocalPositionCurve implements Carbon offset and ellipsoid behavior", () =>

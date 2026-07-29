@@ -1,13 +1,13 @@
-// RawData / RawDataStore: the GPU-free constant-data system.
+// RawData / TriPoolAllocator: the GPU-free constant-data system.
 // Design: runtime-trinity/agents/PER-OBJECT-DATA-DESIGN-2026-07-24.md
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
-import { RawData, RawDataStore } from "../npm/dist/index.js";
+import { RawData, TriPoolAllocator } from "../npm/dist/index.js";
 
 
 const EPSILON = 1e-6;
-const Type = RawDataStore.Type;
+const Type = TriPoolAllocator.Type;
 
 // The store computes its own offsets - from CjsPerObjectLayouts for a Carbon
 // struct, by tight packing otherwise. This mirrors the tight rule, for the one
@@ -45,14 +45,14 @@ function MakeWorld()
 // A store with one struct registered against the tight packer.
 function MakeStore(name, def, options)
 {
-  const store = new RawDataStore(options);
+  const store = new TriPoolAllocator(options);
   store.RegisterStruct(name, def);
   return store;
 }
 
 test("an ad-hoc struct lays out tight: fields in order, no padding", () =>
 {
-  const def = RawDataStore.normalizeDef([
+  const def = TriPoolAllocator.normalizeDef([
     { name: "world",     size: 16, encoding: Type.MATRIX },
     { name: "shipData",  size: 4,  encoding: Type.VECTOR },
     { name: "masks",     size: 16, elements: 2, encoding: Type.MATRIX }
@@ -206,7 +206,7 @@ test("arena grows into new chunks without invalidating earlier views", () =>
 
 test("Alloc throws for an unregistered struct; Has reflects registration", () =>
 {
-  const store = new RawDataStore();
+  const store = new TriPoolAllocator();
   assert.equal(store.Has("VS"), false);
   assert.throws(() => store.Alloc("VS"), /not registered/);
 
@@ -223,7 +223,7 @@ test("a Carbon struct resolves from the catalog, def and stages included", () =>
   // std140 block wrapping `vec4 data[N]`, and std140's stride for an array of
   // vec4 is 16 bytes - the same as tight C++ packing. So Trinity owns the
   // offsets outright.
-  const store = new RawDataStore();
+  const store = new TriPoolAllocator();
   store.RegisterStruct("EveSpaceObjectVSData");
 
   const data = store.Alloc("EveSpaceObjectVSData");
@@ -237,7 +237,7 @@ test("a Carbon struct resolves from the catalog, def and stages included", () =>
 
 test("catalog defaults are applied on Alloc, including per element", () =>
 {
-  const store = new RawDataStore();
+  const store = new TriPoolAllocator();
   store.RegisterStruct("EveSpaceObjectVSData");
 
   const data = store.Alloc("EveSpaceObjectVSData");
@@ -258,7 +258,7 @@ test("catalog defaults are applied on Alloc, including per element", () =>
 
 test("an ad-hoc struct tight-packs; a def-less unknown one fails loud", () =>
 {
-  const store = new RawDataStore();
+  const store = new TriPoolAllocator();
 
   // Not a Carbon struct, but a def was supplied, so it tight-packs.
   store.RegisterStruct("AdHoc", [
@@ -279,7 +279,7 @@ test("an ad-hoc struct tight-packs; a def-less unknown one fails loud", () =>
 
 test("Register bulk-registers a struct map, resolving each by name", () =>
 {
-  const store = new RawDataStore().Register({
+  const store = new TriPoolAllocator().Register({
     VS: [{ name: "a", size: 4, encoding: Type.VECTOR }, { name: "b", size: 4, encoding: Type.VECTOR }],
     PS: [{ name: "c", size: 4, encoding: Type.VECTOR }]
   });
@@ -294,14 +294,14 @@ test("Register bulk-registers a struct map, resolving each by name", () =>
   assert.equal(vs.GetLayout().stride, 8);
 
   // The name is what selects Carbon's declared layout over tight packing.
-  const carbon = new RawDataStore();
+  const carbon = new TriPoolAllocator();
   carbon.RegisterStruct("EveSpaceObjectVSData");
   assert.equal(carbon.Alloc("EveSpaceObjectVSData").GetLayout().stride, 116);
 });
 
 test("direct construction: a persistent (self-owned) payload bypasses the arena", () =>
 {
-  const layout = tightLayout(RawDataStore.normalizeDef([
+  const layout = tightLayout(TriPoolAllocator.normalizeDef([
     { name: "world", size: 16, encoding: Type.MATRIX }
   ]));
   layout.defaults = [];
@@ -367,7 +367,7 @@ test("per-element Set writes ONE slot; the unwritten tail keeps its arena bytes"
 
 test("stages: defs declare their binding slots; the engine reads GetLayout().stages", () =>
 {
-  const store = new RawDataStore();
+  const store = new TriPoolAllocator();
 
   // Default: a single vertex-stage payload (EveBasicPerObjectData).
   store.RegisterStruct("BasicVS", [{ name: "world", size: 16, encoding: Type.MATRIX }]);
@@ -384,7 +384,7 @@ test("stages: defs declare their binding slots; the engine reads GetLayout().sta
   assert.throws(
     () => store.RegisterStruct("Bad", [{ name: "a", size: 4, encoding: Type.VECTOR }], { stages: ["fragment"] }),
     /unknown stage "fragment"/,
-    "stages validated against RawDataStore.Stages"
+    "stages validated against TriPoolAllocator.Stages"
   );
   assert.throws(
     () => store.RegisterStruct("Bad", [{ name: "a", size: 4, encoding: Type.VECTOR }], { stages: [] }),
@@ -402,7 +402,7 @@ test("a distinct VS+PS pair is TWO Allocs returned as a { vs, ps } record", () =
 {
   // Carbon's dominant composite (turret, decal, booster): two structs, two
   // constant buffers. The batch pipeline threads the record through untouched.
-  const store = new RawDataStore().Register({
+  const store = new TriPoolAllocator().Register({
     DecalVS: [{ name: "worldMatrix", size: 16, encoding: Type.MATRIX }],
     DecalPS: { def: [{ name: "displayData", size: 4, encoding: Type.VECTOR }], stages: ["ps"] }
   });

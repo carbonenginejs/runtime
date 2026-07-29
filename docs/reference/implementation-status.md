@@ -25,7 +25,7 @@ properties in generated and maintained source. It excludes the deliberate
 
 The current source contains:
 
-- 153 explicit methods across 49 classes; and
+- 154 explicit methods across 50 classes; and
 - no unknown properties.
 
 The remaining methods are concentrated in native, GPU, font, bitmap/atlas,
@@ -67,6 +67,12 @@ classes. Ten classes have 26 omitted methods:
 - Per-frame scene semantics remain engine-supplied because the Trinity graph
   does not own complete frame, history, jitter, shadow, and presentation
   state.
+- Per-object constant data is complete on the CPU side: every catalogued struct
+  with a Carbon producer in this package is filled. The exceptions are values
+  that are literally GPU addresses - bone-ring and morph-ring offsets - which
+  keep their defaults until an engine supplies them, and `Tr2PerObjectVSData`,
+  whose only Carbon filler is an interior placeable that is not a
+  runtime-trinity class.
 - Generated classes may expose explicit obligations, but manual behavior
   belongs in maintained source from the first substantive edit. Some legacy
   generated files already contain portable implementations and are being

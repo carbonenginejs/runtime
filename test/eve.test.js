@@ -1,6 +1,7 @@
 import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
-import { AudioGameObject, BackAndForthData, CjsEveThrottleableState, CjsLightData, DecalVSPerObjectData, EveBannerItem, EveBannerLight, EveBannerSet, EveBezierCurve, EveBoxVolume, EveChildAudio, EveChildFogVolume, EveChildLightingOverride, EveChildModifierSRT, EveChildSpherePinPerObjectData, EveChildTransform, EveChildUpdateParams, EveCircle, EveCustomMask, EveDistanceField, EveEllipseDefinition, EveEllipseSet, EveEllipsoidVolume, EveHazeSet, EveHazeSetLight, EveImpactOverlay, EveLODHelper, EveLineData, EveLocator2, EveLocatorSets, EvePerObjectPSData, EvePerObjectVSData, EvePlaneLight, EvePlaneSet, EvePlaneSetItem, EveRemotePositionCurve, EveSpaceObjectDecal, EveSpaceObjectPSData, EveSpaceObjectVSData, EveSpacePerObjectData, EveSpherePinPerObjectData, EveSphereVolume, EveSpotlightLight, EveSpotlightSet, EveSpotlightSetItem, EveSpriteLight, EveSpriteLineSet, EveSpriteLineSetItem, EveSpriteSet, EveSpriteSetItem, EveThrottleable, EveVirtualCamera, EveVirtualCameraBehaviourFloatAdd, EveVirtualCameraBehaviourFloatBase, EveVirtualCameraBehaviourFloatDamping, EveVirtualCameraBehaviourFloatNoise, EveVirtualCameraBehaviourFloatSet, EveVirtualCameraBehaviourVector3Base, EveVirtualCameraBehaviourVector3Damping, EveVirtualCameraBehaviourVector3Inertia, EveVirtualCameraBehaviourVector3MoveBetween, EveVirtualCameraBehaviourVector3MoveForward, EveVirtualCameraBehaviourVector3MoveRight, EveVirtualCameraBehaviourVector3MoveUp, EveVirtualCameraBehaviourVector3Offset, EveVirtualCameraBehaviourVector3Orbit, EveVirtualCameraBehaviourVector3Shake, EveVirtualCameraSystem, EveVirtualCameraTransitionCut, EveVirtualCameraTransitionLerp, FollowASplineData, FormationData, InertiaData, Locator, LocatorData, PlacementDataWithIdentifier, PlayFXData, ProcessLifetimeData, SeekTargetData, Tr2CurveExtrapolation, Tr2Light, Tr2Lod, Tr2PointLight, Tr2ScalarFader, Tr2SpotLight, Tr2TexturedPointLight, TriPerlinCurve } from "../npm/dist/index.js";
+import { AudioGameObject, BackAndForthData, CjsEveThrottleableState, CjsLightData, EveBannerItem, EveBannerLight, EveBannerSet, EveBezierCurve, EveBoxVolume, EveChildAudio, EveChildFogVolume, EveChildLightingOverride, EveChildModifierSRT, EveChildTransform, EveChildUpdateParams, EveCircle, EveCustomMask, EveDistanceField, EveEllipseDefinition, EveEllipseSet, EveEllipsoidVolume, EveHazeSet, EveHazeSetLight, EveImpactOverlay, EveLODHelper, EveLineData, EveLocator2, EveLocatorSets, EvePlaneLight, EvePlaneSet, EvePlaneSetItem, EveRemotePositionCurve, EveSpaceObjectDecal, EveSphereVolume, EveSpotlightLight, EveSpotlightSet, EveSpotlightSetItem, EveSpriteLight, EveSpriteLineSet, EveSpriteLineSetItem, EveSpriteSet, EveSpriteSetItem, EveThrottleable, EveVirtualCamera, EveVirtualCameraBehaviourFloatAdd, EveVirtualCameraBehaviourFloatBase, EveVirtualCameraBehaviourFloatDamping, EveVirtualCameraBehaviourFloatNoise, EveVirtualCameraBehaviourFloatSet, EveVirtualCameraBehaviourVector3Base, EveVirtualCameraBehaviourVector3Damping, EveVirtualCameraBehaviourVector3Inertia, EveVirtualCameraBehaviourVector3MoveBetween, EveVirtualCameraBehaviourVector3MoveForward, EveVirtualCameraBehaviourVector3MoveRight, EveVirtualCameraBehaviourVector3MoveUp, EveVirtualCameraBehaviourVector3Offset, EveVirtualCameraBehaviourVector3Orbit, EveVirtualCameraBehaviourVector3Shake, EveVirtualCameraSystem, EveVirtualCameraTransitionCut, EveVirtualCameraTransitionLerp, FollowASplineData, FormationData, InertiaData, Locator, LocatorData, PlacementDataWithIdentifier, PlayFXData, ProcessLifetimeData, SeekTargetData, Tr2CurveExtrapolation, Tr2Light, Tr2Lod, Tr2PointLight, Tr2ScalarFader, Tr2SpotLight, Tr2TexturedPointLight, TriPerlinCurve } from "../npm/dist/index.js";
+import { RawData } from "../src/trinityCore/rawData/RawData.js";
 import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
@@ -162,18 +163,10 @@ test("promoted Eve data classes expose source-backed metadata and defaults", asy
 {
   const backAndForth = new BackAndForthData();
   const params = new EveChildUpdateParams();
-  const decalVS = new DecalVSPerObjectData();
-  const childSpherePin = new EveChildSpherePinPerObjectData();
-  new EvePerObjectVSData();
-  new EvePerObjectPSData();
   new EveRemotePositionCurve();
-  new EveSpaceObjectPSData();
-  new EveSpaceObjectVSData();
-  new EveSpacePerObjectData();
   new EveCustomMask();
   new EveImpactOverlay();
   new EveSpaceObjectDecal();
-  const spherePin = new EveSpherePinPerObjectData();
   const line = new EveLineData();
   const followSpline = new FollowASplineData();
   const formation = new FormationData();
@@ -189,19 +182,11 @@ test("promoted Eve data classes expose source-backed metadata and defaults", asy
   const seekTarget = new SeekTargetData();
   assertEquals(CjsSchema.GetConstructor("BackAndForthData"), BackAndForthData);
   assertEquals(CjsSchema.GetConstructor("EveChildUpdateParams"), EveChildUpdateParams);
-  assertEquals(CjsSchema.GetConstructor("DecalVSPerObjectData"), DecalVSPerObjectData);
-  assertEquals(CjsSchema.GetConstructor("EveChildSpherePinPerObjectData"), EveChildSpherePinPerObjectData);
   assertEquals(CjsSchema.GetConstructor("EveLineData"), EveLineData);
-  assertEquals(CjsSchema.GetConstructor("EvePerObjectVSData"), EvePerObjectVSData);
-  assertEquals(CjsSchema.GetConstructor("EvePerObjectPSData"), EvePerObjectPSData);
   assertEquals(CjsSchema.GetConstructor("EveRemotePositionCurve"), EveRemotePositionCurve);
-  assertEquals(CjsSchema.GetConstructor("EveSpaceObjectPSData"), EveSpaceObjectPSData);
-  assertEquals(CjsSchema.GetConstructor("EveSpaceObjectVSData"), EveSpaceObjectVSData);
-  assertEquals(CjsSchema.GetConstructor("EveSpacePerObjectData"), EveSpacePerObjectData);
   assertEquals(CjsSchema.GetConstructor("EveCustomMask"), EveCustomMask);
   assertEquals(CjsSchema.GetConstructor("EveImpactOverlay"), EveImpactOverlay);
   assertEquals(CjsSchema.GetConstructor("EveSpaceObjectDecal"), EveSpaceObjectDecal);
-  assertEquals(CjsSchema.GetConstructor("EveSpherePinPerObjectData"), EveSpherePinPerObjectData);
   assertEquals(CjsSchema.GetConstructor("EveThrottleable"), EveThrottleable);
   assertEquals(CjsSchema.GetConstructor("FollowASplineData"), FollowASplineData);
   assertEquals(CjsSchema.GetConstructor("FormationData"), FormationData);
@@ -223,18 +208,6 @@ test("promoted Eve data classes expose source-backed metadata and defaults", asy
   assertEquals(params.isVisible, true);
   assertVec3(params.worldVelocity, [0, 0, 0]);
   assertMat4(params.localToWorldTransform, mat4.create());
-  assertMat4(decalVS.worldMatrix, mat4.create());
-  assertMat4(decalVS.invWorldMatrix, mat4.create());
-  assertMat4(decalVS.parentBoneMatrix, mat4.create());
-  assertMat4(childSpherePin.worldMatrix, mat4.create());
-  // EveSpherePin.h:33 and EveChildSpherePin.h:22 both declare `Vector4
-  // m_pinRotation`, and both registered struct defs encode it as VECTOR. The
-  // two classes disagreed until 2026-07-28 (EveSpherePinPerObjectData used
-  // @type.quat), which is why their defaults differed. Carbon's PODs are
-  // uninitialised, so zero is the consistent choice, not an identity rotation.
-  assertVec4(childSpherePin.pinRotation, [0, 0, 0, 0]);
-  assertMat4(spherePin.worldMatrix, mat4.create());
-  assertVec4(spherePin.pinRotation, [0, 0, 0, 0]);
   assertVec3(line.position1, [0, 0, 0]);
   assertVec3(line.position2, [0, 0, 0]);
   assertEquals(followSpline.tunnelLock, -1);
@@ -261,14 +234,7 @@ test("promoted Eve data classes expose source-backed metadata and defaults", asy
   assertEquals(seekTarget.arrived, true);
   assertEquals(CjsSchema.getField(BackAndForthData, "timePassed")?.type.kind, "float32");
   assertEquals(CjsSchema.getField(EveChildUpdateParams, "localToWorldTransform")?.type.kind, "mat4");
-  assertEquals(CjsSchema.getField(DecalVSPerObjectData, "inverseDecalMatrix")?.type.kind, "mat4");
-  assertEquals(CjsSchema.getField(EveChildSpherePinPerObjectData, "pinColor")?.type.kind, "color");
   assertEquals(CjsSchema.getField(EveRemotePositionCurve, "startPositionCurve")?.type.className, "ITriVectorFunction");
-  assertEquals(CjsSchema.getField(EveSpaceObjectVSData, "worldTransform")?.type.kind, "mat4");
-  assertEquals(CjsSchema.getField(EveSpaceObjectVSData, "activeMorphTargetsCount")?.type.kind, "uint32");
-  assertEquals(CjsSchema.getField(EveSpaceObjectPSData, "clipSphereCenter")?.type.kind, "vec3");
-  assertEquals(CjsSchema.getField(EveSpacePerObjectData, "clipRadiusSq")?.type.kind, "float32");
-  assertEquals(CjsSchema.getField(EveSpherePinPerObjectData, "pinUV")?.type.kind, "vec4");
   assertEquals(CjsSchema.getField(EveLineData, "color1")?.type.kind, "color");
   assertEquals(CjsSchema.getField(EveLocator2, "transform")?.type.kind, "mat4");
   assertEquals(CjsSchema.getField(PlacementDataWithIdentifier, "uniqueID")?.type.kind, "uint32");
@@ -278,40 +244,11 @@ test("promoted Eve data classes expose source-backed metadata and defaults", asy
   assertEquals(CjsSchema.getField(SeekTargetData, "position")?.type.kind, "vec3");
   const summary = JSON.parse(await readFile("src/generated/summary.json", "utf8"));
   const skipped = new Map((summary.skipped || []).map(item => [item.className, item]));
-  for (const className of ["BackAndForthData", "EveBasicPerObjectData", "DecalVSPerObjectData", "EveChildSpherePinPerObjectData", "EveChildUpdateParams", "EveCustomMask", "EveLineData", "EvePerObjectPSData", "EvePerObjectVSData", "EveRemotePositionCurve", "EveSpaceObjectDecal", "EveSpaceObjectPSData", "EveSpaceObjectVSData", "EveSpacePerObjectData", "EveSpherePinPerObjectData", "EveThrottleable", "FollowASplineData", "FormationData", "InertiaData", "EveLocator2", "EveLocatorSets", "Locator", "LocatorData", "PlacementDataWithIdentifier", "PlayFXData", "ProcessLifetimeData", "SeekTargetData"])
+  for (const className of ["BackAndForthData", "EveBasicPerObjectData", "EveChildUpdateParams", "EveCustomMask", "EveLineData", "EveRemotePositionCurve", "EveSpaceObjectDecal", "EveThrottleable", "FollowASplineData", "FormationData", "InertiaData", "EveLocator2", "EveLocatorSets", "Locator", "LocatorData", "PlacementDataWithIdentifier", "PlayFXData", "ProcessLifetimeData", "SeekTargetData"])
   {
     const item = skipped.get(className);
     assert(item && item.family.startsWith("eve"), `${className} should be skipped by generated output`);
   }
-});
-
-test("custom-mask per-object data preserves Carbon fixed array layouts", () =>
-{
-  const vs = new EveSpaceObjectVSData();
-  const ps = new EveSpaceObjectPSData();
-  const perObject = new EveSpacePerObjectData();
-  assertEquals(vs.customMaskMatrix.length, 2);
-  assertEquals(vs.customMaskData.length, 2);
-  assertEquals(vs.boneOffsets.length, 4);
-  assertEquals(ps.shLightingCoefficients.length, 7);
-  assertEquals(ps.customMaskMaterialIDs.length, 2);
-  assertEquals(ps.customMaskTargets.length, 2);
-  assertEquals(perObject.customMaskMatrix.length, 2);
-  assertEquals(perObject.shLighting.length, 7);
-  assert(vs.customMaskMatrix[0] !== vs.customMaskMatrix[1]);
-  assert(ps.customMaskTargets[0] !== ps.customMaskTargets[1]);
-  assertEquals(CjsSchema.getField(EveSpaceObjectVSData, "customMaskMatrix")?.type.kind, "array");
-  assertEquals(CjsSchema.getField(EveSpaceObjectVSData, "customMaskMatrix")?.type.itemType, "mat4");
-
-  const hydrated = EveSpaceObjectVSData.from({
-    customMaskData: [[1, 2, 3, 4]],
-    boneOffsets: [1, 2, 3, 4, 5]
-  });
-  assert(hydrated.customMaskData[0] instanceof Float32Array);
-  assert(hydrated.customMaskData[1] instanceof Float32Array);
-  assertVec4(hydrated.customMaskData[0], [1, 2, 3, 4]);
-  assertVec4(hydrated.customMaskData[1], [0, 0, 0, 0]);
-  assertEquals(hydrated.boneOffsets.join(","), "1,2,3,4");
 });
 
 test("EveCustomMask fills and clears both Carbon per-object mask slots", () =>
@@ -334,22 +271,25 @@ test("EveCustomMask fills and clears both Carbon per-object mask slots", () =>
   assertAlmostEquals(debug[10], 30);
   assertVec3([debug[12], debug[13], debug[14]], [1, 2, 3]);
 
-  const vs = new EveSpaceObjectVSData();
-  const ps = new EveSpaceObjectPSData();
+  // The mask writes into the GPU-form per-object records, so the matrix slot
+  // is read back through GetTransposedIndex and holds Transpose(inverse).
+  const vs = RawData.create("EveSpaceObjectVSData");
+  const ps = RawData.create("EveSpaceObjectPSData");
   assertEquals(mask.FillPerObjectData(1, vs, ps), true);
   const expected = mat4.transpose(mat4.create(), mat4.invert(mat4.create(), mat4.fromRotationTranslationScale(mat4.create(), mask.rotation, mask.position, mask.scaling)));
-  assertMat4(vs.customMaskMatrix[1], expected);
-  assertVec4(vs.customMaskData[1], [1, 1, 0, 0]);
-  assertVec4(ps.customMaskMaterialIDs[1], [2, 0, 0, 0]);
-  assertVec4(ps.customMaskTargets[1], [1, 0, 1, 0]);
-  assertVec4(ps.customMaskClamps, [0, 0, 1, 0]);
+  assertMat4(vs.GetTransposedIndex("customMaskMatrix", 1), expected);
+  assertVec4(vs.GetIndex("customMaskData", 1), [1, 1, 0, 0]);
+  assertVec4(ps.GetIndex("customMaskMaterialIDs", 1), [2, 0, 0, 0]);
+  assertVec4(ps.GetIndex("customMaskTargets", 1), [1, 0, 1, 0]);
+  assertVec4(ps.Get("customMaskClamps"), [0, 0, 1, 0]);
 
   assertEquals(EveCustomMask.ZeroPerObjectData(1, vs, ps), true);
-  assertMat4(vs.customMaskMatrix[1], mat4.create());
-  assertVec4(vs.customMaskData[1], [0, 0, 0, 0]);
-  assertVec4(ps.customMaskMaterialIDs[1], [0, 0, 0, 0]);
-  assertVec4(ps.customMaskTargets[1], [0, 0, 0, 0]);
-  assertVec4(ps.customMaskClamps, [0, 0, 1, 0]);
+  assertMat4(vs.GetTransposedIndex("customMaskMatrix", 1), mat4.create());
+  assertVec4(vs.GetIndex("customMaskData", 1), [0, 0, 0, 0]);
+  assertVec4(ps.GetIndex("customMaskMaterialIDs", 1), [0, 0, 0, 0]);
+  assertVec4(ps.GetIndex("customMaskTargets", 1), [0, 0, 0, 0]);
+  // Carbon's zeroing path leaves the clamp lanes alone.
+  assertVec4(ps.Get("customMaskClamps"), [0, 0, 1, 0]);
   assertEquals(mask.FillPerObjectData(2, vs, ps), false);
 });
 

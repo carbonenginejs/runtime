@@ -102,7 +102,7 @@ investigated on 2026-07-17 during the trinity CPU-completion pass:
 Unlike the rest of this folder (native shapes never ported), these three were
 FULLY-PORTED `CjsModel` per-object-data payload classes that the RawData
 per-object-data system replaced. Payloads now flow through the engine-packed
-`RawDataStore` (`src/trinityCore/rawData/`): a renderable's `GetPerObjectData`
+`TriPoolAllocator` (`src/trinityCore/rawData/`): a renderable's `GetPerObjectData`
 calls `accumulator.Alloc("<StructName>").Set(name, logicalValue)` and the store
 transposes/packs per the engine layout, so the CjsModel payload class is no
 longer the vehicle. They are quarantined here (not deleted) as shape reference
@@ -120,6 +120,64 @@ engine-side, keyed by the SAME struct names (a stand-in packer for tests is in
 here. These three keep their `export class` text like every other file in this
 folder, which is also what makes the generator skip re-emitting the one
 generated basename (`EveSceneStaticParticlesPerObjectData`).
+
+## Superseded per-object-data payloads, wave 2 (producer port, 2026-07-29)
+
+The 2026-07-24 note above described three payload classes replaced by RawData.
+The remaining eighteen followed on 2026-07-29, when the last producers were
+ported and every per-object fill in the package became a `RawData` write. They
+live in `perObjectData/`.
+
+The decision behind them: Carbon has ONE struct per payload that is both the CPU
+record and the uploaded bytes. Keeping a `CjsModel` mirror of each meant every
+field existed twice, with nothing enforcing that the two agreed - so the mirrors
+are quarantined and `RawData` + `CjsPerObjectLayouts` is the single
+representation.
+
+**Why this package owns the identity:** these are Carbon per-object constant
+structs declared in the Trinity/Eve headers, so runtime-trinity is their
+canonical home and no other package may declare them.
+
+**Why they are not supported runtime models:** a per-object record is GPU-form,
+write-mostly staging - transposed matrices, bit-cast integers, positional
+packing. `CjsModel` gives persistence, notification and reactivity, none of
+which apply, and its per-field JS objects cannot express the byte layout the
+shader binding depends on.
+
+**Replacement:** `RawData` (`src/trinityCore/rawData/RawData.js`) over a layout
+from `CjsPerObjectLayouts`, keyed by the SAME struct names these classes carried.
+Transient payloads come from `accumulator.Alloc("<StructName>")`; persistent ones
+from `RawData.create("<StructName>")`.
+
+**Condition for revival:** a proven need for a per-object payload to be
+serialized, notified, or hydrated as graph state - which would mean it is not
+per-object staging data any more, and the layout question should be revisited
+before any class here is restored.
+
+| File | Was | Replaced by |
+|---|---|---|
+| `perObjectData/EveSpaceObjectVSData.js` | Hull VS record (116 floats) | Persistent `RawData` on `EveSpaceObject2`, the child owners and `EveSwarmRenderable` |
+| `perObjectData/EveSpaceObjectPSData.js` | Hull PS record (116 floats) | As above |
+| `perObjectData/EveSpacePerObjectData.js` | Flattened instance record (164 floats) | Persistent `RawData` on `EveChildInstancedMeshes` |
+| `perObjectData/EveTurretSetVSData.js` | Turret VS record (236 floats) | `Alloc("EveTurretSetVSData")` in `EveTurretSet.GetPerObjectData` |
+| `perObjectData/EveTurretSetPSData.js` | Turret PS record (40 floats) | `Alloc("EveTurretSetPSData")` in the same fill |
+| `perObjectData/EveTurretSetPerObjectData.js` | VS+PS composite wrapper | The `{ vs, ps }` record the fill returns |
+| `perObjectData/DecalVSPerObjectData.js` | Decal VS record | `Alloc("DecalVSPerObjectData")` in `EveSpaceObjectDecal.GetPerObjectData` |
+| `perObjectData/DecalPSPerObjectData.js` | Decal PS record | `Alloc("DecalPSPerObjectData")` in the same fill |
+| `perObjectData/EveDecalPerObjectData.js` | Decal VS+PS composite wrapper | The `{ vs, ps }` record the fill returns |
+| `perObjectData/EveBoosterSetVSData.js` | Booster VS record | `Alloc("EveBoosterSetVSData")` in `EveBoosterSet2Renderable.GetPerObjectData` |
+| `perObjectData/EveBoosterSetPSData.js` | Booster PS record | `Alloc("EveBoosterSetPSData")` in the same fill |
+| `perObjectData/EveBoosterSetPerObjectData.js` | Booster VS+PS composite wrapper | The `{ vs, ps }` record the fill returns |
+| `perObjectData/EvePerObjectVSData.js` | Generic `Tr2PerObjectDataStandard` VS half | `Alloc("EvePerObjectVSData")` in `EveLineSet.GetPerObjectData` |
+| `perObjectData/EvePerObjectPSData.js` | Generic PS half | `Alloc("EvePerObjectPSData")` in the same fill |
+| `perObjectData/EveSpherePinPerObjectData.js` | Sphere-pin record | `Alloc("EveSpherePinPerObjectData")` in `EveSpherePin.GetPerObjectData` |
+| `perObjectData/EveChildSpherePinPerObjectData.js` | Child sphere-pin record | `Alloc("EveChildSpherePinPerObjectData")` in `EveChildSpherePin.GetPerObjectData` |
+| `perObjectData/EveChildBulletStormPerObjectData.js` | Bullet-storm record | `Alloc("EveChildBulletStormPerObjectData")` in `EveChildBulletStorm.GetPerObjectData` |
+| `perObjectData/MergeMorphsConstantBuffer.js` | Morph-merge compute constants | Catalogued layout; the compute pass that consumes it is engine-owned and unported |
+
+Their struct sizes are still guarded: `test/per-object-layouts.test.js` pins every
+stride against its Carbon header cite, which is what the retired
+`test/per-object-classes.test.js` used to do.
 
 ## Mechanics
 

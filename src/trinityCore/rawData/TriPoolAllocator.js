@@ -1,6 +1,12 @@
 // Factory + arena for RawData constant-data payloads.
 //
-// A store is PER-ENGINE (one CjsLibrary = one live backend). Structs are
+// Named for Carbon TriPoolAllocator (TriPoolAllocator.h/.cpp): the same job,
+// lifetime and per-frame Clear. Carbon bump-allocates with placement new and
+// wholesale Clear()s at EndRenderContext (Tr2Renderer.cpp:1072-1081), which is
+// exactly what Alloc/Reset do here. It also carries the struct-layout registry,
+// which C++ gets free from the type system via Allocate<T>().
+//
+// A pool is PER-ENGINE (one CjsLibrary = one live backend). Structs are
 // REGISTERED on the instance - registration resolves each struct's layout right
 // then, so a struct that cannot be laid out fails loud at registration, naming
 // it.
@@ -144,7 +150,7 @@ function tightLayout(normalized)
 
 
 /** Registers constant-data struct shapes and leases packed payloads from a per-engine arena. */
-export class RawDataStore
+export class TriPoolAllocator
 {
   /** Registered layouts: name -> { fields, stride, defaults }. */
   #layouts = new Map();
@@ -224,7 +230,7 @@ export class RawDataStore
       if (!layout)
       {
         throw new Error(
-          `RawDataStore: struct "${name}" is not in CjsPerObjectLayouts - add it there, or pass a def explicitly`
+          `TriPoolAllocator: struct "${name}" is not in CjsPerObjectLayouts - add it there, or pass a def explicitly`
         );
       }
 
@@ -232,8 +238,8 @@ export class RawDataStore
       options = { ...options, stages: options.stages ?? layout.stages };
     }
 
-    const normalized = RawDataStore.normalizeDef(def);
-    const stages = RawDataStore.normalizeStages(name, options.stages);
+    const normalized = TriPoolAllocator.normalizeDef(def);
+    const stages = TriPoolAllocator.normalizeStages(name, options.stages);
 
     // Carbon's declared offsets win: its members sit on float4 boundaries, so
     // tight-packing them would drift the moment a struct carries a FLOAT.
@@ -241,7 +247,7 @@ export class RawDataStore
 
     if (resolved.stride > this.#chunkFloats)
     {
-      throw new Error(`RawDataStore: struct "${name}" (${resolved.stride} floats) exceeds the chunk size (${this.#chunkFloats})`);
+      throw new Error(`TriPoolAllocator: struct "${name}" (${resolved.stride} floats) exceeds the chunk size (${this.#chunkFloats})`);
     }
 
     const defaults = [];
@@ -281,7 +287,7 @@ export class RawDataStore
 
     if (!layout)
     {
-      throw new Error(`RawDataStore: struct "${name}" is not registered on this store (call Register/RegisterStruct first)`);
+      throw new Error(`TriPoolAllocator: struct "${name}" is not registered on this store (call Register/RegisterStruct first)`);
     }
 
     const stride = layout.stride;
@@ -313,7 +319,7 @@ export class RawDataStore
       }
     }
 
-    return new RawData(layout, floats, uints);
+    return new RawData(layout, floats, uints, name);
   }
 
   /**
@@ -345,32 +351,32 @@ export class RawDataStore
 
   /**
    * Validate a stages declaration: a non-empty array drawn from
-   * RawDataStore.Stages, no duplicates. Defaults to ["vs"] (Carbon's most
+   * TriPoolAllocator.Stages, no duplicates. Defaults to ["vs"] (Carbon's most
    * common single-payload binding). Returns a frozen copy.
    */
   static normalizeStages(structName, stages)
   {
     if (stages === undefined || stages === null)
     {
-      return RawDataStore.defaultStages;
+      return TriPoolAllocator.defaultStages;
     }
 
     if (!Array.isArray(stages) || !stages.length)
     {
-      throw new Error(`RawDataStore: struct "${structName}" stages must be a non-empty array`);
+      throw new Error(`TriPoolAllocator: struct "${structName}" stages must be a non-empty array`);
     }
 
     for (const stage of stages)
     {
-      if (!RawDataStore.Stages.includes(stage))
+      if (!TriPoolAllocator.Stages.includes(stage))
       {
-        throw new Error(`RawDataStore: struct "${structName}" has unknown stage "${stage}" (expected one of: ${RawDataStore.Stages.join(", ")})`);
+        throw new Error(`TriPoolAllocator: struct "${structName}" has unknown stage "${stage}" (expected one of: ${TriPoolAllocator.Stages.join(", ")})`);
       }
     }
 
     if (new Set(stages).size !== stages.length)
     {
-      throw new Error(`RawDataStore: struct "${structName}" declares a duplicate stage`);
+      throw new Error(`TriPoolAllocator: struct "${structName}" declares a duplicate stage`);
     }
 
     return Object.freeze([...stages]);
@@ -389,12 +395,12 @@ export class RawDataStore
     {
       if (!field.name)
       {
-        throw new Error("RawDataStore: every struct field needs a name");
+        throw new Error("TriPoolAllocator: every struct field needs a name");
       }
 
       if (!field.encoding)
       {
-        throw new Error(`RawDataStore: field "${field.name}" needs an encoding (RawDataStore.Type.*)`);
+        throw new Error(`TriPoolAllocator: field "${field.name}" needs an encoding (TriPoolAllocator.Type.*)`);
       }
 
       let size = field.size;
@@ -408,7 +414,7 @@ export class RawDataStore
 
       if (!Number.isInteger(size) || size <= 0)
       {
-        throw new Error(`RawDataStore: field "${field.name}" needs a positive integer size`);
+        throw new Error(`TriPoolAllocator: field "${field.name}" needs a positive integer size`);
       }
 
       return {

@@ -271,15 +271,17 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   assert.equal(effect.GetRadius(), 5);
   assert.equal(effect.GetCurveSetDuration("impact"), 5);
   assert.equal(effect.GetRangeDuration("impact", "burst"), 4);
+  // Carbon memsets both records, then restores only the two neutral lanes, so a
+  // dirty record handed back in comes out clean.
   const perObject = effect.GetPerObjectStructs();
-  perObject.vsData.boneOffsets[0] = 9;
-  perObject.psData.clipRadiusSq = 12;
-  perObject.vsData.shipData[0] = 7;
-  effect.GetPerObjectStructs(perObject.vsData, perObject.psData);
-  assert.equal(perObject.vsData.boneOffsets[0], 0);
-  assert.equal(perObject.psData.clipRadiusSq, 0);
-  assertVecNear(perObject.vsData.shipData, [0, 1, 0, 1]);
-  assertVecNear(perObject.psData.shipData, [0, 1, 0, 1]);
+  perObject.vs.SetIndex("boneOffsets", 0, [ 9 ]);
+  perObject.ps.Set("clipRadiusSq", [ 12 ]);
+  perObject.vs.Set("shipData", [ 7, 7, 7, 7 ]);
+  effect.GetPerObjectStructs(perObject.vs, perObject.ps);
+  assert.equal(perObject.vs.GetIndex("boneOffsets", 0)[0], 0);
+  assert.equal(perObject.ps.Get("clipRadiusSq")[0], 0);
+  assertVecNear(perObject.vs.Get("shipData"), [0, 1, 0, 1]);
+  assertVecNear(perObject.ps.Get("shipData"), [0, 1, 0, 1]);
 
   effect.Start();
   effect.Stop();

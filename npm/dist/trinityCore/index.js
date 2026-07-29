@@ -7,7 +7,7 @@ export { Tr2ExternalParameter } from './binding/Tr2ExternalParameter.js';
 export { Tr2PyValueBinding } from './binding/Tr2PyValueBinding.js';
 export { TriValueBinding } from './binding/TriValueBinding.js';
 export { RawData, RawDataEncoders, RawDataType } from './rawData/RawData.js';
-export { RawDataStore } from './rawData/RawDataStore.js';
+export { TriPoolAllocator } from './rawData/TriPoolAllocator.js';
 export { Tr2DepthStencil } from './Tr2DepthStencil.js';
 export { Tr2DirectInstanceData } from './Tr2DirectInstanceData.js';
 export { Tr2ExpressionTermInfo } from './Tr2ExpressionTermInfo.js';

@@ -1,2 +1,2 @@
 export { RawData, RawDataType, RawDataEncoders } from "./RawData.js";
-export { RawDataStore } from "./RawDataStore.js";
+export { TriPoolAllocator } from "./TriPoolAllocator.js";

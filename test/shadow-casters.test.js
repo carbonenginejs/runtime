@@ -16,6 +16,7 @@ import {
   Tr2RenderReason,
   TriBatchType
 } from "../npm/dist/index.js";
+import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
 
 const EPSILON = 1e-5;
@@ -127,8 +128,14 @@ test("EveTurretSet.GetPerObjectData: null without geometry (legal on batches), f
   const set = new EveTurretSet();
   assert.equal(set.GetPerObjectData(), null, "null without geometry");
   set.geometryResource = {};
-  const data = set.GetShadowPerObjectData();
-  assert.equal(data.object, set, "record carries the object");
+  // Carbon allocates the record from the accumulator, so no accumulator means
+  // no record - the same legal null the batch path already tolerates.
+  assert.equal(set.GetShadowPerObjectData(), null, "null without an accumulator");
+
+  const store = makePerObjectStore();
+  const data = set.GetShadowPerObjectData({ Alloc: (name) => store.Alloc(name) });
+  assert.equal(data.vs.GetStruct(), "EveTurretSetVSData", "the shadow variant forwards to the same fill");
+  assert.equal(data.ps.GetStruct(), "EveTurretSetPSData", "and carries the PS half");
 });
 
 test("EveSwarm.GetBoundingSphere: squad box sphere plus the ship radius (EveSwarm.cpp:801-808)", () =>
@@ -219,5 +226,8 @@ test("EveSwarmRenderable.GetPerObjectData record + shadow forward (EveSwarm.cpp:
 {
   const renderable = new EveSwarmRenderable();
   const data = renderable.GetShadowPerObjectData();
-  assert.equal(data.object, renderable, "record carries the object");
+  // The shadow variant forwards to the same PERSISTENT pair.
+  assert.equal(data.vs.GetStruct(), "EveSpaceObjectVSData", "the VS half");
+  assert.equal(data.ps.GetStruct(), "EveSpaceObjectPSData", "the PS half");
+  assert.equal(renderable.GetPerObjectData().vs, data.vs, "same record both ways");
 });

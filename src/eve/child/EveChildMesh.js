@@ -16,6 +16,11 @@ import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { Tr2PerObjectData } from "../../trinityCore/Tr2PerObjectData.js";
+import {
+  createChildPerObjectRecords,
+  inheritParentPerObjectData,
+  stampChildTransforms
+} from "../perObjectData/childPerObjectRecords.js";
 
 // Module scratch for the hot per-frame visibility/shadow paths (allocation
 // rules: copy-into, never allocate per call; child updates run sequentially so
@@ -62,6 +67,12 @@ export class EveChildMesh extends EveChildTransform
   #hasUpdated = false;
 
   #activationStrength = 1;
+
+  /** m_vsData / m_psData - this child's PERSISTENT per-object record pair. */
+  #perObjectData = createChildPerObjectRecords();
+
+  /** Carbon's local `lastWorldTransform` (cpp:912), kept across frames here. */
+  #lastWorldTransform = mat4.create();
 
   // Carbon m_worldBoundingBox/m_worldBoundingSphere: world-space bounds
   // refreshed by UpdateAsyncronous; the sphere is invalid while radius <= 0.
@@ -649,6 +660,9 @@ export class EveChildMesh extends EveChildTransform
   {
     const parentTransform = params?.localToWorldTransform;
 
+    // Carbon captures the OUTGOING transform before rebuilding (cpp:912).
+    mat4.copy(this.#lastWorldTransform, this.worldTransform);
+
     if (parentTransform && parentTransform.length === 16)
     {
       this.UpdateTransform(parentTransform);
@@ -660,6 +674,11 @@ export class EveChildMesh extends EveChildTransform
       params?.boneCount ?? 0,
       params?.bones ?? null
     );
+
+    // Carbon cpp:932-954: inherit the hull's per-object values, rebase the clip
+    // data by this child's translation, then stamp our own transforms.
+    inheritParentPerObjectData(this.#perObjectData, params?.spaceObjectParent, this.translation);
+    stampChildTransforms(this.#perObjectData, this.worldTransform, this.#lastWorldTransform);
 
     this.#activationStrength = Number(params?.activationStrength ?? 1);
 
@@ -1031,21 +1050,32 @@ export class EveChildMesh extends EveChildTransform
     return this.GetPerObjectData(accumulator);
   }
 
-  /** Carbon EveChildMesh::GetPerObjectData (cpp:799-843) uploads bone/morph
-   * ring-buffer offsets and allocates Tr2PerObjectDataWithPersistentBuffers;
-   * those fills are GPU ring-buffer state, so the GPU-free record carries the
-   * live object reference for the engine serializer to pull current values at
-   * realization (mirrors EveSpaceObject2.GetPerObjectData). */
+  /**
+   * Carbon EveChildMesh::GetPerObjectData (cpp:799-843): resets the morph
+   * counters, uploads the bone and morph rings, then hands back a handle over
+   * this child's two PERSISTENT buffers.
+   *
+   * The ring OFFSETS (`boneOffsets[0..1]`, `morphTargetAnimationDataOffset`,
+   * `morphTargetVertexDataOffset`, `bakedMorphTargetVertexDataOffset`) are GPU
+   * addresses with no CPU derivation, so they keep their defaults; the counts,
+   * which are CPU-known, are written.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Persistent VS/PS device buffers and bone/morph ring offsets are engine-owned; the record carries the object reference the engine serializer consumes.")
-  GetPerObjectData(accumulator = null)
+  @impl.reason("GPU ring-buffer offsets have no CPU derivation and keep their defaults; every CPU-known field is filled.")
+  GetPerObjectData(_accumulator = null)
   {
-    const data = typeof accumulator?.Allocate === "function"
-      ? accumulator.Allocate(Tr2PerObjectData)
-      : new Tr2PerObjectData();
-    data.object = this;
-    return data;
+    this.#perObjectData.vs.Set("activeMorphTargetsCount", [ 0 ]);
+    // Carbon seeds the baked-morph offset with UINT32_MAX, not zero.
+    this.#perObjectData.vs.Set("bakedMorphTargetVertexDataOffset", [ 0xffffffff ]);
+
+    if (this.animationUpdater?.IsInitialized?.())
+    {
+      const boneCount = this.animationUpdater.GetMeshBoneCount?.() ?? 0;
+      this.#perObjectData.vs.SetIndex("boneOffsets", 2, [ boneCount ]);
+    }
+
+    return { vs: this.#perObjectData.vs, ps: this.#perObjectData.ps };
   }
 
   /**

@@ -43,8 +43,9 @@ test("EveShip2 stamps booster glow into shipData and gates boosters on children 
   ship.boosters = { GetBoosterIntensity: () => 0.75 };
 
   const pod = ship.GetPerObjectData();
-  assert.equal(pod.object, ship, "base per-object record");
+  assert.equal(pod.vs.GetStruct(), "EveSpaceObjectVSData", "base per-object record");
   assert.ok(Math.abs(ship.GetSpaceObjectShipData()[0] - 0.75) < 1e-6, "shipData.x = booster glow");
+  assert.ok(Math.abs(pod.vs.Get("shipData")[0] - 0.75) < 1e-6, "the glow reaches the VS record");
 
   // DisplayBoosters follows DisplayChildren (activation-strength gate).
   assert.equal(typeof ship.DisplayBoosters(), "boolean");

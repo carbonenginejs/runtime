@@ -5,7 +5,7 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveShip2 } from "../../../../eve/spaceObject/EveShip2.js";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { EveSwarmRenderable } from "./EveSwarmRenderable.js";
+import { EveSwarmRenderable } from "../../../../eve/spaceObject/swarm/EveSwarmRenderable.js";
 
 /** EveSwarm (eve/spaceObject/swarm) - generated from schema shapeHash e65716bf.... */
 @type.define({ className: "EveSwarm", family: "eve/spaceObject/swarm" })

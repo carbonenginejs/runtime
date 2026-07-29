@@ -4,15 +4,7 @@ import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import {
-  EveCameraFxAttributes,
-  EveChildSpherePin,
-  EveChildSpherePinPerObjectData,
-  EveShip2,
-  EveSpaceObject2,
-  EveSpaceObjectFxAttributes,
-  EveSpherePin,
-} from "../npm/dist/index.js";
+import { EveCameraFxAttributes, EveChildSpherePin, EveShip2, EveSpaceObject2, EveSpaceObjectFxAttributes, EveSpherePin } from "../npm/dist/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
 
@@ -274,10 +266,6 @@ test("EveChildSpherePin aliases its Blue colors and fills the Carbon per-object 
   assert.deepEqual(values.color, values.pinColor);
   assert.equal(CjsSchema.getField(EveChildSpherePin, "color")?.type?.kind, "color");
   assert.equal(CjsSchema.getField(EveChildSpherePin, "pinColor")?.type?.kind, "color");
-  assert.equal(
-    CjsSchema.getField(EveChildSpherePinPerObjectData, "pinRotation")?.type?.kind,
-    "vec4"
-  );
 
   const curveUpdates = [];
   pin.curveSets.push({

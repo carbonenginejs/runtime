@@ -39,8 +39,6 @@ export class EveShip2 extends EveMobile
   /** m_acceleration - second derivative of the position curve, fed to boosters. */
   #acceleration = vec3.create();
 
-  /** m_spaceObjectShipData - vs/ps ship constants; x carries booster glow. */
-  #spaceObjectShipData = vec4.create();
 
   /**
    * Carbon EveShip2::UpdateSyncronous - base sync, then speed from the world
@@ -301,18 +299,25 @@ export class EveShip2 extends EveMobile
    * per-object values builder.
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Persistent VS/PS buffers are engine-owned; shipData is exposed for createEveSpaceObjectMainPerObjectValues.")
+  @impl.implemented
   GetPerObjectData(accumulator = null)
   {
-    this.#spaceObjectShipData[0] = this.boosters?.GetBoosterIntensity?.() ?? 0;
-    return super.GetPerObjectData(accumulator);
+    this.spaceObjectShipData[0] = this.boosters?.GetBoosterIntensity?.() ?? 0;
+
+    const data = super.GetPerObjectData(accumulator);
+    // The base fill ran during update, so the glow lane has to be restamped
+    // into both records here - Carbon writes m_spaceObjectShipData and the
+    // records read from it in the same call (EveShip2.cpp:275-289).
+    data.vs.Set("shipData", this.spaceObjectShipData);
+    data.ps.Set("shipData", this.spaceObjectShipData);
+
+    return data;
   }
 
   /** The vs/ps ship constants (x = booster glow intensity). */
   GetSpaceObjectShipData()
   {
-    return this.#spaceObjectShipData;
+    return this.spaceObjectShipData;
   }
 
 }
