@@ -21,8 +21,8 @@ reflection.
   resource, annotation, library, define, and sampler reflection records;
 - portable-reflection hydration.
 
-`@carbonenginejs/format-hlsl` owns compiled-effect binary parsing and the
-validated plain portable-reflection schema. CEWG and CEWGPU packages expose
+`@carbonenginejs/runtime-resource/formats/hlsl` owns compiled-effect binary
+parsing and the validated plain portable-reflection schema. CEWG and CEWGPU packages expose
 that portable reflection. WebGL/WebGPU engines own program/module creation,
 layouts, bindings, uploads, pipelines, draws, and device recovery.
 
