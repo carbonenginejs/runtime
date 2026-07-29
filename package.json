@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/tools-browser",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Browser-facing CarbonEngineJS clients, remote readers, and application tools.",
   "type": "module",
   "main": "src/index.js",
@@ -23,8 +23,8 @@
     "check": "npm run lint && npm test"
   },
   "dependencies": {
-    "@carbonenginejs/runtime-audio": "^0.2.2",
-    "@carbonenginejs/runtime-resource": "^0.11.1",
+    "@carbonenginejs/runtime-audio": "^0.3.0",
+    "@carbonenginejs/runtime-resource": "^0.12.0",
     "@carbonenginejs/runtime-trinity": "^0.7.0",
     "@carbonenginejs/runtime-utils": "^0.1.2"
   },

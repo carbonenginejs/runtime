@@ -8,13 +8,7 @@ audio graph semantics and resource formats remain in their owning runtime
 packages. Node acquisition, servers, credentials, and persistent caches remain
 in `@carbonenginejs/tools-core`.
 
-The package remains private while its dependency and consumer migrations are
-completed.
-
 ## Install
-
-Registry installation is intentionally unavailable during the private
-bootstrap. After its release:
 
 ```sh
 npm install @carbonenginejs/tools-browser

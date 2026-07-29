@@ -83,9 +83,6 @@ import {
 } from "@carbonenginejs/tools-browser/chat";
 ```
 
-The package remains private until its dependency and consumer migrations are
-complete.
-
 ## Documentation map
 
 - [Architecture and boundaries](architecture.md)
