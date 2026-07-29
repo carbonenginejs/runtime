@@ -21,6 +21,7 @@ import { getBoneList } from "../../trinityCore/Tr2GrannyAnimation.js";
 import { Tr2PerObjectData } from "../../trinityCore/Tr2PerObjectData.js";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../trinityCore/Tr2RenderBatch.js";
 import { RawData } from "../../trinityCore/rawData/RawData.js";
+import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../trinityCore/Tr2PickType.js";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { EveCustomMask } from "../EveCustomMask.js";
 
@@ -1375,6 +1376,72 @@ export class EveSpaceObject2 extends EveEntity
   #EnsureCachedAreaBlocks()
   {
     if (!this.#cachedAreaBlocksBuilt && this.mesh) this.RebuildCachedData();
+  }
+
+  /**
+   * Carbon EveSpaceObject2::GetPickingBatches (cpp:3645-3675): collects the
+   * geometry a pick pass should test, by mask. It is ordinary batch collection
+   * - the pick itself is an engine pass that renders these and reads IDs back.
+   *
+   * The OPAQUE bit deliberately pulls in the transparent and additive OVERLAY
+   * effects too, so a cloaking hull stays pickable.
+   *
+   * @param {Object} batches - the picking accumulator
+   * @param {Number} pickTypes - a Tr2PickType mask
+   * @param {Object} perObjectData - this hull's per-object record
+   */
+  @carbon.method
+  @impl.implemented
+  GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
+  {
+    if (pickTypes & Tr2PickType.PICK_TYPE_PICKING)
+    {
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_PICKING, perObjectData);
+    }
+
+    if (pickTypes & Tr2PickType.PICK_TYPE_OPAQUE)
+    {
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData);
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_DECAL, perObjectData);
+      this.GetBatchesFromOverlayVector(batches, perObjectData, TriBatchType.TRIBATCHTYPE_TRANSPARENT, this.mesh);
+      this.GetBatchesFromOverlayVector(batches, perObjectData, TriBatchType.TRIBATCHTYPE_ADDITIVE, this.mesh);
+    }
+
+    if (pickTypes & Tr2PickType.PICK_TYPE_TRANSPARENT)
+    {
+      // Carbon takes the mesh's OWN areas here rather than going through
+      // GetBatches, and returns early when the mesh is absent or hidden - so a
+      // hidden mesh suppresses the transparent pass only, not the ones above.
+      if (!this.mesh || this.mesh.display === false)
+      {
+        return true;
+      }
+
+      for (const batchType of [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, TriBatchType.TRIBATCHTYPE_ADDITIVE ])
+      {
+        const areas = this.mesh.GetAreas?.(batchType);
+
+        if (areas)
+        {
+          this.mesh.GetBatches?.(batches, areas, perObjectData);
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Carbon EveSpaceObject2::GetID (cpp:3640-3643): a picked area resolves to
+   * the hull itself, so the area index is deliberately ignored.
+   * @param {Number} [_areaID] - the picked area, unused by this class
+   * @returns {EveSpaceObject2} this
+   */
+  @carbon.method
+  @impl.implemented
+  GetID(_areaID = 0)
+  {
+    return this;
   }
 
   /** Carbon GetShadowBatches (EveSpaceObject2.cpp:1143-1184): one batch per

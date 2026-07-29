@@ -19,6 +19,7 @@ import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttrib
 import { EveComponentType } from "../EveComponentTypes.js";
 import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
+import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../trinityCore/pickRay.js";
 
 
 // Module scratch for the per-frame sun-direction read (assume-dirty).
@@ -637,12 +638,30 @@ export class EveSpaceScene extends CjsModel
     throw new Error("EveSpaceScene.PickObjectAndAreaID is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method PickInfinity (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon EveSpaceScene::PickInfinity (cpp:4039-4050): the world-space
+   * DIRECTION a screen pixel points along - the pick ray with nothing to hit,
+   * which is what a click on empty space resolves to. Pure math, no readback.
+   *
+   * @param {Number} x - screen x, in pixels
+   * @param {Number} y - screen y, in pixels
+   * @param {Float32Array} projection - the projection matrix
+   * @param {Float32Array} view - the view matrix
+   * @param {Object} [viewport] - { x, y, width, height }; the frame's render
+   *   context supplies one when this is omitted
+   * @param {Float32Array} [out] - caller-owned direction
+   * @returns {Float32Array|null} the normalized world direction, or null when
+   *   either matrix cannot be inverted
+   */
   @carbon.method
-  @impl.notImplemented
-  PickInfinity(...args)
+  @impl.implemented
+  PickInfinity(x, y, projection, view, viewport = null, out = vec3.create())
   {
-    throw new Error("EveSpaceScene.PickInfinity is not implemented in CarbonEngineJS.");
+    const resolved = viewport ?? this.updateContext?.renderContext?.GetViewport?.();
+    const projected = screenToProjection(x, y, resolved);
+    const ray = convertProjectionCoordToWorldPickRay(projected.x, projected.y, projection, view);
+
+    return ray ? vec3.copy(out, ray.direction) : null;
   }
 
   /**

@@ -12,6 +12,7 @@ export { Tr2Mesh } from './Tr2Mesh.js';
 export { Tr2MeshArea } from './Tr2MeshArea.js';
 export { Tr2MeshBase } from './Tr2MeshBase.js';
 export { Tr2PerObjectData } from './Tr2PerObjectData.js';
+export { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from './Tr2PickType.js';
 export { Tr2PrimaryRenderContext } from './Tr2PrimaryRenderContext.js';
 export { CanBeBinned, CompareBatches, OrderOf, Tr2GdprBatchFullPartition, Tr2GdprBatchStableFullPartition, Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from './Tr2RenderBatch.js';
 export { Tr2RenderContext } from './Tr2RenderContext.js';
@@ -42,6 +43,7 @@ export { Tr2DynamicBinding } from './binding/Tr2DynamicBinding.js';
 export { Tr2ExternalParameter } from './binding/Tr2ExternalParameter.js';
 export { Tr2PyValueBinding } from './binding/Tr2PyValueBinding.js';
 export { TriValueBinding } from './binding/TriValueBinding.js';
+export { convertProjectionCoordToWorldPickRay, screenToProjection } from './pickRay.js';
 export { RawData, RawDataEncoders, RawDataType } from './rawData/RawData.js';
 export { TriPoolAllocator } from './rawData/TriPoolAllocator.js';
 //# sourceMappingURL=index.js.map

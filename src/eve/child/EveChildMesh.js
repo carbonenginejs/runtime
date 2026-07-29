@@ -16,6 +16,7 @@ import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { Tr2PerObjectData } from "../../trinityCore/Tr2PerObjectData.js";
+import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../trinityCore/Tr2PickType.js";
 import {
   createChildPerObjectRecords,
   inheritParentPerObjectData,
@@ -1281,15 +1282,51 @@ export class EveChildMesh extends EveChildTransform
     return this;
   }
 
-  /** Carbon EveChildMesh::GetPickingBatches (cpp:862-889) maps Tr2PickTypes
-   * flags onto batch-type collections with transparent/additive special
-   * casing; the pick-type flag enum is not yet ported, so the surface fails
-   * loudly rather than mis-collecting. */
+  /**
+   * Carbon EveChildMesh::GetPickingBatches (cpp:862-889): collects the geometry
+   * a pick pass should test, by mask. Unlike the hull's version this one has no
+   * overlay effects to pull in.
+   *
+   * @param {Object} batches - the picking accumulator
+   * @param {Number} pickTypes - a Tr2PickType mask
+   * @param {Object} perObjectData - this child's per-object record
+   */
   @carbon.method
-  @impl.notImplemented
-  GetPickingBatches(..._args)
+  @impl.implemented
+  GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
-    throw new Error("EveChildMesh.GetPickingBatches is not implemented in CarbonEngineJS.");
+    if (pickTypes & Tr2PickType.PICK_TYPE_PICKING)
+    {
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_PICKING, perObjectData);
+    }
+
+    if (pickTypes & Tr2PickType.PICK_TYPE_OPAQUE)
+    {
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData);
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_DECAL, perObjectData);
+    }
+
+    if (pickTypes & Tr2PickType.PICK_TYPE_TRANSPARENT)
+    {
+      // A hidden mesh suppresses the transparent pass only; Carbon returns
+      // early here, after the collections above have already run.
+      if (!this.mesh || this.mesh.display === false)
+      {
+        return true;
+      }
+
+      for (const batchType of [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, TriBatchType.TRIBATCHTYPE_ADDITIVE ])
+      {
+        const areas = this.mesh.GetAreas?.(batchType);
+
+        if (areas)
+        {
+          this.mesh.GetBatches?.(batches, areas, perObjectData);
+        }
+      }
+    }
+
+    return true;
   }
 
   /**
