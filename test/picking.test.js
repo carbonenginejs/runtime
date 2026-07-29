@@ -12,8 +12,14 @@ import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 
 import {
   EveChildMesh,
+  EveMissile,
+  EveMissileWarhead,
+  EveMobile,
+  EveRootTransform,
   EveSpaceObject2,
   EveSpaceScene,
+  EveTransform,
+  EveUiObject,
   TR2_PICK_TYPE_DEFAULT,
   Tr2PickType,
   convertProjectionCoordToWorldPickRay,
@@ -233,5 +239,52 @@ test("the pick passes that need a GPU readback stay explicit", () =>
   for (const name of [ "PickObject", "PickAsyncObject", "PickObjectAndAreaID" ])
   {
     assert.throws(() => scene[name](), /not implemented/u, `${name} needs an engine pass`);
+  }
+});
+
+
+test("EveTransform picks through its own GetBatches, and the derived classes inherit it", () =>
+{
+  const transform = new EveTransform();
+  const collected = [];
+
+  transform.GetBatches = (batches, batchType) => collected.push(batchType);
+
+  // No decals and no overlays: the opaque bit is one collection, unlike the hull.
+  transform.GetPickingBatches({}, Tr2PickType.PICK_TYPE_OPAQUE, null);
+  assert.deepEqual(collected, [ TriBatchType.TRIBATCHTYPE_OPAQUE ], "solid only");
+
+  // The transparent bit goes through GetBatches too, NOT the mesh's areas -
+  // so a hidden transform contributes nothing rather than suppressing one pass.
+  collected.length = 0;
+  transform.GetPickingBatches({}, Tr2PickType.PICK_TYPE_TRANSPARENT, null);
+  assert.deepEqual(
+    collected,
+    [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, TriBatchType.TRIBATCHTYPE_ADDITIVE ],
+    "both transparent kinds, through the node's own batch path"
+  );
+
+  assert.equal(transform.GetID(3), transform, "a picked area resolves to the transform");
+});
+
+
+test("every Carbon pickable has a surface, whether declared or inherited", () =>
+{
+  // Carbon declares GetPickingBatches on exactly two of these - EveSpaceObject2
+  // and EveTransform - and the rest inherit. The JS hierarchy matches, so the
+  // whole family is covered by those two ports.
+  for (const [ name, Constructor, base ] of [
+    [ "EveMissile", EveMissile, EveSpaceObject2 ],
+    [ "EveMobile", EveMobile, EveSpaceObject2 ],
+    [ "EveUiObject", EveUiObject, EveSpaceObject2 ],
+    [ "EveMissileWarhead", EveMissileWarhead, EveTransform ],
+    [ "EveRootTransform", EveRootTransform, EveTransform ]
+  ])
+  {
+    const instance = new Constructor();
+
+    assert.ok(instance instanceof base, `${name} derives from ${base.name}`);
+    assert.equal(typeof instance.GetPickingBatches, "function", `${name} can be picked`);
+    assert.equal(instance.GetID(0), instance, `${name} resolves to itself`);
   }
 });

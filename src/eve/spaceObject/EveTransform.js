@@ -9,6 +9,7 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import { Tr2Transform } from "../../generated/trinityCore/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
+import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../trinityCore/Tr2PickType.js";
 
 // Static scratch for the singular-world patch fixup (allocation rules: hot
 // per-object path, copy-into, never allocate per call).
@@ -279,6 +280,59 @@ export class EveTransform extends Tr2Transform
       return this.mesh.GetBatches(batches, this.mesh.GetAreas(batchType), perObjectData) === true;
     }
     return false;
+  }
+
+  /**
+   * Carbon EveTransform::GetPickingBatches (EveTransform.cpp:?): collects the
+   * geometry a pick pass should test, by mask.
+   *
+   * Simpler than the hull's version in two ways that are deliberate: there are
+   * no decals or overlay effects to pull into the opaque bit, and the
+   * transparent bit goes through this class's own `GetBatches` rather than
+   * reaching into the mesh's areas - so a hidden transform contributes nothing
+   * at all, instead of suppressing only its transparent pass.
+   *
+   * Inherited by `EveMissileWarhead` and `EveRootTransform`, which is how
+   * Carbon gives them a pickable surface without declaring one.
+   *
+   * @param {Object} batches - the picking accumulator
+   * @param {Number} pickTypes - a Tr2PickType mask
+   * @param {Object} perObjectData - this transform's per-object record
+   */
+  @carbon.method
+  @impl.implemented
+  GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
+  {
+    if (pickTypes & Tr2PickType.PICK_TYPE_PICKING)
+    {
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_PICKING, perObjectData);
+    }
+
+    if (pickTypes & Tr2PickType.PICK_TYPE_OPAQUE)
+    {
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData);
+    }
+
+    if (pickTypes & Tr2PickType.PICK_TYPE_TRANSPARENT)
+    {
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_TRANSPARENT, perObjectData);
+      this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_ADDITIVE, perObjectData);
+    }
+
+    return true;
+  }
+
+  /**
+   * Carbon EveTransform::GetID (EveTransform.h:83-86): a picked area resolves
+   * to this transform, so the area index is deliberately ignored.
+   * @param {Number} [_areaID] - the picked area, unused by this class
+   * @returns {EveTransform} this
+   */
+  @carbon.method
+  @impl.implemented
+  GetID(_areaID = 0)
+  {
+    return this;
   }
 
   /**

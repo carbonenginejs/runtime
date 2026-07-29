@@ -8,6 +8,7 @@ import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/sc
 import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
 import { Tr2Transform as _Tr2Transform } from '../../generated/trinityCore/Tr2Transform.js';
 import { EveLODHelper } from '../EveLODHelper.js';
+import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from '../../trinityCore/Tr2PickType.js';
 import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 
 let _initProto, _initClass, _init_meshLod, _init_extra_meshLod, _init_children, _init_extra_children, _init_overrideBoundsMin, _init_extra_overrideBoundsMin, _init_overrideBoundsMax, _init_extra_overrideBoundsMax, _init_particleEmitters, _init_extra_particleEmitters, _init_particleSystems, _init_extra_particleSystems, _init_lodLevel, _init_extra_lodLevel, _init_hideOnLowQuality, _init_extra_hideOnLowQuality, _init_visibilityThreshold, _init_extra_visibilityThreshold, _init_observers, _init_extra_observers, _init_useLodLevel, _init_extra_useLodLevel;
@@ -31,7 +32,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveTransform",
         family: "eve/spaceObject"
-      })], [[[io, io.persist, void 0, type.model("Tr2MeshBase")], 16, "meshLod"], [[io, io.persist, void 0, type.list("IEveTransform")], 16, "children"], [[io, io.persist, type, type.vec3], 16, "overrideBoundsMin"], [[io, io.persist, type, type.vec3], 16, "overrideBoundsMax"], [[io, io.persist, void 0, type.list("ITr2GenericEmitter")], 16, "particleEmitters"], [[io, io.persist, void 0, type.list("Tr2ParticleSystem")], 16, "particleSystems"], [[io, io.read, type, type.int32, void 0, schema.enum("Tr2Lod")], 16, "lodLevel"], [[io, io.persist, type, type.boolean], 16, "hideOnLowQuality"], [[io, io.persist, type, type.float32], 16, "visibilityThreshold"], [[io, io.persist, void 0, type.list("TriObserverLocal")], 16, "observers"], [[io, io.persist, type, type.boolean], 16, "useLodLevel"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Renderer-owned modifier state is supplied through the update context; standard SRT and parent composition stay in Trinity.")], 18, "UpdateViewDependentData"], [[carbon, carbon.method, impl, impl.implemented], 18, "Update"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Particle updates are forwarded through backend-neutral emitter and system contracts; device particle managers remain engine-owned.")], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Browser frustum and quality state are read from the explicit update context instead of renderer globals.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Constant-buffer layout/packing is engine-owned; Trinity Allocs the record from the accumulator's store and Sets logical values by name (the store transposes per the engine layout).")], 18, "GetPerObjectData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Declared on Tr2Transform in Carbon; the generated base class stays data-only.")], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Declared on Tr2Transform in Carbon; the generated base class stays data-only.")], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWorldPosition"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWorldRotation"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLODLevel"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDisplay"], [[carbon, carbon.method, impl, impl.implemented], 18, "PlayCurveSets"], [[carbon, carbon.method, impl, impl.implemented], 18, "PlayCurveSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "StopCurveSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurveSetDuration"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRangeDuration"]], 0, void 0, _Tr2Transform));
+      })], [[[io, io.persist, void 0, type.model("Tr2MeshBase")], 16, "meshLod"], [[io, io.persist, void 0, type.list("IEveTransform")], 16, "children"], [[io, io.persist, type, type.vec3], 16, "overrideBoundsMin"], [[io, io.persist, type, type.vec3], 16, "overrideBoundsMax"], [[io, io.persist, void 0, type.list("ITr2GenericEmitter")], 16, "particleEmitters"], [[io, io.persist, void 0, type.list("Tr2ParticleSystem")], 16, "particleSystems"], [[io, io.read, type, type.int32, void 0, schema.enum("Tr2Lod")], 16, "lodLevel"], [[io, io.persist, type, type.boolean], 16, "hideOnLowQuality"], [[io, io.persist, type, type.float32], 16, "visibilityThreshold"], [[io, io.persist, void 0, type.list("TriObserverLocal")], 16, "observers"], [[io, io.persist, type, type.boolean], 16, "useLodLevel"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Renderer-owned modifier state is supplied through the update context; standard SRT and parent composition stay in Trinity.")], 18, "UpdateViewDependentData"], [[carbon, carbon.method, impl, impl.implemented], 18, "Update"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Particle updates are forwarded through backend-neutral emitter and system contracts; device particle managers remain engine-owned.")], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Browser frustum and quality state are read from the explicit update context instead of renderer globals.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Constant-buffer layout/packing is engine-owned; Trinity Allocs the record from the accumulator's store and Sets logical values by name (the store transposes per the engine layout).")], 18, "GetPerObjectData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Declared on Tr2Transform in Carbon; the generated base class stays data-only.")], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPickingBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetID"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Declared on Tr2Transform in Carbon; the generated base class stays data-only.")], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWorldPosition"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWorldRotation"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLODLevel"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDisplay"], [[carbon, carbon.method, impl, impl.implemented], 18, "PlayCurveSets"], [[carbon, carbon.method, impl, impl.implemented], 18, "PlayCurveSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "StopCurveSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurveSetDuration"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRangeDuration"]], 0, void 0, _Tr2Transform));
     }
     /** m_meshLod (Tr2MeshBasePtr) [READWRITE, PERSIST] */
     meshLod = (_initProto(this), _init_meshLod(this, null));
@@ -218,6 +219,47 @@ new class extends _identity {
         return this.mesh.GetBatches(batches, this.mesh.GetAreas(batchType), perObjectData) === true;
       }
       return false;
+    }
+
+    /**
+     * Carbon EveTransform::GetPickingBatches (EveTransform.cpp:?): collects the
+     * geometry a pick pass should test, by mask.
+     *
+     * Simpler than the hull's version in two ways that are deliberate: there are
+     * no decals or overlay effects to pull into the opaque bit, and the
+     * transparent bit goes through this class's own `GetBatches` rather than
+     * reaching into the mesh's areas - so a hidden transform contributes nothing
+     * at all, instead of suppressing only its transparent pass.
+     *
+     * Inherited by `EveMissileWarhead` and `EveRootTransform`, which is how
+     * Carbon gives them a pickable surface without declaring one.
+     *
+     * @param {Object} batches - the picking accumulator
+     * @param {Number} pickTypes - a Tr2PickType mask
+     * @param {Object} perObjectData - this transform's per-object record
+     */
+    GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null) {
+      if (pickTypes & Tr2PickType.PICK_TYPE_PICKING) {
+        this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_PICKING, perObjectData);
+      }
+      if (pickTypes & Tr2PickType.PICK_TYPE_OPAQUE) {
+        this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData);
+      }
+      if (pickTypes & Tr2PickType.PICK_TYPE_TRANSPARENT) {
+        this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_TRANSPARENT, perObjectData);
+        this.GetBatches(batches, TriBatchType.TRIBATCHTYPE_ADDITIVE, perObjectData);
+      }
+      return true;
+    }
+
+    /**
+     * Carbon EveTransform::GetID (EveTransform.h:83-86): a picked area resolves
+     * to this transform, so the area index is deliberately ignored.
+     * @param {Number} [_areaID] - the picked area, unused by this class
+     * @returns {EveTransform} this
+     */
+    GetID(_areaID = 0) {
+      return this;
     }
 
     /**
