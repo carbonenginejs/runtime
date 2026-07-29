@@ -176,8 +176,8 @@ new class extends _identity {
         if (radius <= 0) {
           continue;
         }
-        const albedo = [source.albedo[0] * this.secondaryIntensity, source.albedo[1] * this.secondaryIntensity, source.albedo[2] * this.secondaryIntensity];
-        const emissive = [source.emissive[0] * this.secondaryIntensity, source.emissive[1] * this.secondaryIntensity, source.emissive[2] * this.secondaryIntensity];
+        const albedo = vec3.scale(vec3.create(), source.albedo, this.secondaryIntensity);
+        const emissive = vec3.scale(vec3.create(), source.emissive, this.secondaryIntensity);
         this.#sourceData.push({
           position: source.position,
           radius,
@@ -195,11 +195,11 @@ new class extends _identity {
         const radius = [0];
         const color = [0, 0, 0, 0];
         light.GetLight(position, radius, color);
-        const emissive = [color[0] * this.primaryIntensity, color[1] * this.primaryIntensity, color[2] * this.primaryIntensity];
+        const emissive = vec3.scale(vec3.create(), color, this.primaryIntensity);
         this.#sourceData.push({
           position,
           radius: readFloat(radius),
-          albedo: [0, 0, 0],
+          albedo: vec3.create(),
           cutoffMultiplier: 0,
           emissive,
           maxColorComponent: maxComponent(emissive)
@@ -241,14 +241,10 @@ new class extends _identity {
         if (source.radius < cutoffRadius * source.cutoffMultiplier) {
           continue;
         }
-        direction[0] = source.position[0] - position[0];
-        direction[1] = source.position[1] - position[1];
-        direction[2] = source.position[2] - position[2];
-        const distance = Math.hypot(direction[0], direction[1], direction[2]);
+        vec3.subtract(direction, source.position, position);
+        const distance = vec3.length(direction);
         const oneOverDistance = 1 / distance;
-        direction[0] *= oneOverDistance;
-        direction[1] *= oneOverDistance;
-        direction[2] *= oneOverDistance;
+        vec3.scale(direction, direction, oneOverDistance);
 
         // Carbon's skip test reads the W LANE of vectors loaded as float4 from
         // packed struct members, so the values it actually compares are the
@@ -269,7 +265,7 @@ new class extends _identity {
         // The albedo term is lit by the primary light through a wrapped dot
         // product, so a sphere facing away still reflects a little; the emissive
         // term is added unlit.
-        const dot = (this.#sunDirection[0] * direction[0] + this.#sunDirection[1] * direction[1] + this.#sunDirection[2] * direction[2]) * 0.5 + 0.5;
+        const dot = vec3.dot(this.#sunDirection, direction) * 0.5 + 0.5;
         for (let channel = 0; channel < 3; channel++) {
           const color = dot * source.albedo[channel] * this.#sunColor[channel] + source.emissive[channel];
           for (let index = 0; index < count; index++) {
