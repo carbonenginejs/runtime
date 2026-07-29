@@ -31,6 +31,7 @@ const COMPONENTS = "xyzw";
 export class CjsPerObjectLayoutError extends Error
 {
 
+    /** Creates a layout error with stable structural details. */
     constructor(message, details = {})
     {
         super(message);
@@ -51,6 +52,7 @@ export class CjsPerObjectPacker
     /** Resolved layouts, keyed by struct name. */
     #layouts = new Map();
 
+    /** Creates a packer with optional caller-supplied struct definitions. */
     constructor(options = {})
     {
         this.#structs = options.structs ?? null;
@@ -313,6 +315,7 @@ export class CjsPerObjectPacker
         return floats;
     }
 
+    /** Resolves one caller-supplied or canonical struct definition. */
     #Struct(structName)
     {
         if (this.#structs && Object.prototype.hasOwnProperty.call(this.#structs, structName))
@@ -323,6 +326,7 @@ export class CjsPerObjectPacker
         return perObjectStruct(structName);
     }
 
+    /** Lists every canonical and caller-supplied struct name once. */
     #Names()
     {
         const names = perObjectStructNames();

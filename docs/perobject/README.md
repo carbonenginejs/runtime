@@ -1,12 +1,17 @@
 # `@carbonenginejs/tools-browser/perobject`
 
+Status: Evolving
+Scope: `@carbonenginejs/tools-browser/perobject`
+Audience: Shader-tool authors and runtime integrators
+Summary: Explains Carbon per-object constant-buffer layout, synthesis, packing, and decoding.
+
 Carbon per-object constant-buffer ABI, layout packer, value synthesizer, and a
 decoder that names the anonymous `cbN[i]` slots in a translated shader.
 
-Provenance: struct declarations and fill logic are read from `E:\carbonengine`
-(CarbonEngine, CCP Games). Every struct entry carries a `file:line` cite.
-`E:\ccpwgl` is not used as a source; it carries both old-style and new-style
-per-object data and is not authoritative for CarbonEngineJS.
+Provenance: struct declarations and fill logic are read from CarbonEngine
+source (CCP Games). Every struct entry carries a `file:line` cite. Historical
+ccpwgl implementations are comparative evidence, not source authority for
+CarbonEngineJS.
 
 ## Why this exists
 
@@ -106,7 +111,7 @@ const packed = new CjsPerObjectPacker().Pack(values.structs.ps, values.ps);
 
 Packing an already-transposed value as `"logical"` transposes it twice, which
 corrupts the rotation block while leaving the translation column looking
-correct. See `.agents/skills/carbon-math-conventions` F1/F6.
+correct. Keep this distinction aligned with the matrix convention above.
 
 `runtime-trinity` has no equivalent choice — its records are always GPU-form,
 and `SetAndTranspose`/`GetTransposed` are the only matrix accessors. The option

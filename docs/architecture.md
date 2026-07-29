@@ -42,7 +42,11 @@ The implemented package currently owns:
 - provider-neutral chat-room selection, browser-local filtering, disposable
   room listeners, and consumption of server-resolved presentation assets;
 - Carbon realtime v1 message validation, WebSocket consumption, exact
-  subscriptions, reconnect, capability replacement, and snapshot recovery;
+  subscriptions, bounded hello/request/pressure behavior, reconnect
+  classification, secret-safe metrics, capability replacement, and snapshot
+  recovery;
+- a narrow side-effect-free Carbon realtime v1 wire subpath shared with Node
+  protocol consumers without sharing server implementations;
 - caller-injected WebSocket, Fetch, and related browser capabilities.
 
 Future demos, inspectors, loaders, and integration helpers may join when they

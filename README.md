@@ -72,7 +72,9 @@ files and exact ranges for the runtime provider contract.
 
 The root export is available when an application consumes several tool
 families. Targeted `./audio`, `./chat`, `./fileindex`, and `./realtime` imports
-remain available.
+remain available. Node hosts and protocol tools that need only the
+side-effect-free wire constants and structural validators use
+`./realtime/wire`.
 
 ## Documentation
 

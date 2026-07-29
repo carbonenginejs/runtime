@@ -8,7 +8,7 @@ Summary: Provides one-sentence purpose descriptors for maintained realtime class
 <!-- class:CjsRealtimeClient -->
 ## `CjsRealtimeClient`
 
-Consumes Carbon realtime v1 in browsers with reconnect and snapshot reconciliation.
+Consumes Carbon realtime v1 in browsers with bounded lifecycle, outbound pressure, reconnect, secret-safe metrics, and snapshot reconciliation.
 
 - Export: `@carbonenginejs/tools-browser/realtime`
 - Source: `src/realtime/CjsRealtimeClient.js`
@@ -21,6 +21,7 @@ Consumes Carbon realtime v1 in browsers with reconnect and snapshot reconciliati
 Represents a stable secret-safe failure for realtime protocol and recovery work.
 
 - Export: `@carbonenginejs/tools-browser/realtime`
+- Wire export: `@carbonenginejs/tools-browser/realtime/wire`
 - Source: `src/realtime/CjsRealtimeError.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
@@ -31,6 +32,7 @@ Represents a stable secret-safe failure for realtime protocol and recovery work.
 Constructs and validates messages at the Carbon realtime v1 wire boundary.
 
 - Export: `@carbonenginejs/tools-browser/realtime`
+- Wire export: `@carbonenginejs/tools-browser/realtime/wire`
 - Source: `src/realtime/CjsRealtimeProtocol.js`
 - Visibility: Public
 - Kind: CarbonEngineJS

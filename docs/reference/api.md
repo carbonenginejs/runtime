@@ -34,7 +34,8 @@ import {
 | [`./audio`](../../src/audio/index.js) | Reads remote audio documents, builder inputs, complete files, and ranges. | `CjsAudioLibrary` |
 | [`./chat`](../../src/chat/index.js) | Requests and optionally filters provider-neutral chat rooms over one realtime client. | `CHAT_TOPICS`, `CjsChatBlockList`, `CjsChatClient`, `CjsChatContract`, `CjsChatRoomSubscription` |
 | [`./fileindex`](../../src/fileindex/index.js) | Parses, loads, layers, and safely resolves appfileindex and resfileindex data. | `CjsFileIndex`, `CjsFileIndexEntry`, `CjsFileIndexLibrary`, `CjsFileIndexOverlay`, `CjsFileIndexSource` |
-| [`./realtime`](../../src/realtime/index.js) | Consumes Carbon realtime v1 with validation, reconnect, subscriptions, and snapshot recovery. | `CjsRealtimeClient`, `CjsRealtimeError`, `CjsRealtimeProtocol`, `CjsRealtimeSubscription`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
+| [`./realtime`](../../src/realtime/index.js) | Consumes Carbon realtime v1 with bounded lifecycle, pressure, reconnect, metrics, subscriptions, and snapshot recovery. | `CjsRealtimeClient`, `CjsRealtimeError`, `CjsRealtimeProtocol`, `CjsRealtimeSubscription`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
+| [`./realtime/wire`](../../src/realtime/CjsRealtimeProtocol.js) | Exposes the side-effect-free Carbon realtime v1 wire constants, constructors, and structural validators. | `CjsRealtimeError`, `CjsRealtimeProtocol`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
 
 ## Environment contract
 

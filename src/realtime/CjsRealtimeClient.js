@@ -1,3 +1,4 @@
+import { encodeUtf8 } from "@carbonenginejs/runtime-utils/text";
 import { CjsRealtimeError } from "./CjsRealtimeError.js";
 import {
     CjsRealtimeProtocol,
@@ -6,7 +7,7 @@ import {
 } from "./CjsRealtimeProtocol.js";
 import { CjsRealtimeSubscription } from "./CjsRealtimeSubscription.js";
 
-/** Browser-safe Carbon realtime client with reconnect and snapshot reconciliation. */
+/** Consumes Carbon realtime v1 in browsers with bounded lifecycle, outbound pressure, reconnect, secret-safe metrics, and snapshot reconciliation. */
 export class CjsRealtimeClient
 {
 
@@ -15,16 +16,23 @@ export class CjsRealtimeClient
     #connectLoop;
     #fetch;
     #generationAbortController;
+    #generationFailure;
     #hello;
+    #helloTimeoutMs;
     #maxMessageBytes;
     #messageLane;
+    #metrics;
     #onError;
     #onStateChange;
     #operationLane;
+    #outbound;
     #pendingRequests;
+    #queuedOperationCount;
     #random;
     #readyWaiters;
     #reconnect;
+    #reconnectDelayWaiter;
+    #requestTimeoutMs;
     #requestSequence;
     #running;
     #skipReconnectDelay;
@@ -56,7 +64,10 @@ export class CjsRealtimeClient
         webSocketClass = globalThis.WebSocket,
         fetch = globalThis.fetch,
         maxMessageBytes = 64 * 1024,
+        helloTimeoutMs = 10000,
+        requestTimeoutMs = 15000,
         reconnect = {},
+        outbound = {},
         random = Math.random,
         onStateChange = null,
         onError = null
@@ -75,6 +86,9 @@ export class CjsRealtimeClient
         {
             throw new RangeError("maxMessageBytes must be an integer of at least 1024");
         }
+
+        CjsRealtimeClient.assertTimeout(helloTimeoutMs, "helloTimeoutMs");
+        CjsRealtimeClient.assertTimeout(requestTimeoutMs, "requestTimeoutMs");
 
         if (typeof random !== "function")
         {
@@ -100,7 +114,10 @@ export class CjsRealtimeClient
         this.#webSocketClass = webSocketClass;
         this.#fetch = fetch;
         this.#maxMessageBytes = maxMessageBytes;
+        this.#helloTimeoutMs = helloTimeoutMs;
+        this.#requestTimeoutMs = requestTimeoutMs;
         this.#reconnect = CjsRealtimeClient.normalizeReconnect(reconnect);
+        this.#outbound = CjsRealtimeClient.normalizeOutbound(outbound);
         this.#random = random;
         this.#onStateChange = onStateChange;
         this.#onError = onError;
@@ -112,12 +129,24 @@ export class CjsRealtimeClient
         this.#socket = null;
         this.#hello = null;
         this.#generationAbortController = null;
+        this.#generationFailure = null;
         this.#messageLane = Promise.resolve();
         this.#operationLane = Promise.resolve();
+        this.#queuedOperationCount = 0;
         this.#requestSequence = 0;
         this.#running = false;
         this.#connectLoop = null;
+        this.#reconnectDelayWaiter = null;
         this.#skipReconnectDelay = false;
+        this.#metrics = {
+            connectionGenerations: 0,
+            reconnectAttempts: 0,
+            helloTimeouts: 0,
+            requestTimeouts: 0,
+            snapshotRecoveries: 0,
+            sequenceGapResyncs: 0,
+            outboundPressure: 0
+        };
     }
 
     /** Starts or joins the reconnect loop and resolves after subscriptions recover. */
@@ -144,6 +173,7 @@ export class CjsRealtimeClient
     {
         this.#running = false;
         this.#skipReconnectDelay = true;
+        this.#CancelReconnectDelay();
         this.#RejectReadyWaiters(new CjsRealtimeError(
             "client_closed",
             "Realtime client was closed",
@@ -174,6 +204,7 @@ export class CjsRealtimeClient
         }
 
         this.#skipReconnectDelay = true;
+        this.#CancelReconnectDelay();
         this.#SetState("reconnecting");
         const ready = this.#WaitForReady();
 
@@ -331,6 +362,15 @@ export class CjsRealtimeClient
     }
 
     /**
+     * Returns frozen secret-free lifecycle counters. Capabilities, URLs,
+     * request bodies, provider payloads, and error details are never recorded.
+     */
+    GetMetrics()
+    {
+        return Object.freeze({ ...this.#metrics });
+    }
+
+    /**
      * Derives the frozen socket and HTTP endpoint pair from caller URLs, upgrading
      * http(s) to ws(s), applying the default realtime route to an empty path, and
      * stripping the query and fragment so no capability can travel in a URL.
@@ -405,6 +445,84 @@ export class CjsRealtimeClient
     }
 
     /**
+     * Bounds the number of queued caller operations and the amount already
+     * buffered by the browser WebSocket before another frame is admitted.
+     */
+    static normalizeOutbound(value)
+    {
+        const result = {
+            maximumBufferedBytes: value.maximumBufferedBytes ?? 256 * 1024,
+            maximumQueuedOperations: value.maximumQueuedOperations ?? 64
+        };
+
+        if (!Number.isSafeInteger(result.maximumBufferedBytes)
+            || result.maximumBufferedBytes < 1
+            || !Number.isSafeInteger(result.maximumQueuedOperations)
+            || result.maximumQueuedOperations < 1)
+        {
+            throw new RangeError("Invalid realtime outbound pressure policy");
+        }
+
+        return Object.freeze(result);
+    }
+
+    /** Requires one positive finite integer timeout in milliseconds. */
+    static assertTimeout(value, label)
+    {
+        if (!Number.isSafeInteger(value) || value < 1)
+        {
+            throw new RangeError(`${label} must be a positive integer`);
+        }
+
+        return value;
+    }
+
+    /**
+     * Returns whether a connection failure needs explicit caller action before
+     * another connection generation may start.
+     */
+    static isTerminalFailure(error)
+    {
+        return [
+            "forbidden",
+            "invalid_origin",
+            "policy_violation",
+            "subprotocol_mismatch",
+            "unauthorized",
+            "unsupported_version",
+            "websocket_unavailable",
+            "fetch_unavailable"
+        ].includes(error?.code)
+            || [ 1002, 1008, 4401, 4403 ].includes(error?.closeCode);
+    }
+
+    /** Maps a socket close event to one stable retry or terminal failure. */
+    static closeFailure(event)
+    {
+        const closeCode = Number.isSafeInteger(event?.code) ? event.code : 1006;
+        const terminal = new Map([
+            [ 1002, [ "protocol_error", "Realtime protocol negotiation failed" ] ],
+            [ 1008, [ "policy_violation", "Realtime connection violated server policy" ] ],
+            [ 4401, [ "unauthorized", "Realtime capability was rejected" ] ],
+            [ 4403, [ "forbidden", "Realtime capability lacks permission" ] ]
+        ]).get(closeCode);
+
+        if (terminal)
+        {
+            return new CjsRealtimeError(terminal[0], terminal[1], {
+                connectionUsable: false,
+                closeCode
+            });
+        }
+
+        return new CjsRealtimeError(
+            "connection_closed",
+            `Realtime connection closed (${closeCode})`,
+            { retryable: true, connectionUsable: false, closeCode }
+        );
+    }
+
+    /**
      * Creates a deferred whose resolve and reject are idempotent and whose
      * promise is pre-caught, so a rejection nobody awaits never surfaces as
      * unhandled.
@@ -461,6 +579,8 @@ export class CjsRealtimeClient
 
         while (this.#running)
         {
+            let terminal = false;
+
             try
             {
                 await this.#OpenConnection();
@@ -468,12 +588,25 @@ export class CjsRealtimeClient
             }
             catch (failure)
             {
-                this.#ReportError(CjsRealtimeError.from(failure, {
+                const error = CjsRealtimeError.from(failure, {
                     code: "connection_failed",
                     message: "Realtime connection failed",
                     retryable: true,
                     connectionUsable: false
-                }));
+                });
+
+                if (this.#running)
+                {
+                    this.#ReportError(error);
+                    terminal = CjsRealtimeClient.isTerminalFailure(error);
+
+                    if (terminal)
+                    {
+                        this.#running = false;
+                        this.#RejectReadyWaiters(error);
+                        this.#SetState("stopped");
+                    }
+                }
             }
             finally
             {
@@ -481,12 +614,13 @@ export class CjsRealtimeClient
                 this.#ResetGeneration("connection_lost");
             }
 
-            if (!this.#running)
+            if (!this.#running || terminal)
             {
                 break;
             }
 
             this.#SetState("reconnecting");
+            this.#metrics.reconnectAttempts++;
             const delay = this.#skipReconnectDelay
                 ? 0
                 : CjsRealtimeClient.reconnectDelay(this.#reconnect, attempt++, this.#random);
@@ -494,7 +628,7 @@ export class CjsRealtimeClient
 
             if (delay > 0)
             {
-                await new Promise(resolve => setTimeout(resolve, delay));
+                await this.#WaitReconnectDelay(delay);
             }
         }
 
@@ -523,14 +657,52 @@ export class CjsRealtimeClient
         const hello = CjsRealtimeClient.createDeferred();
         const abortController = new AbortController();
 
+        this.#metrics.connectionGenerations++;
         this.#socket = socket;
         this.#hello = hello;
         this.#generationAbortController = abortController;
+        this.#generationFailure = null;
         this.#messageLane = Promise.resolve();
         this.#requestSequence = 0;
+        const helloTimer = setTimeout(() =>
+        {
+            if (hello.settled)
+            {
+                return;
+            }
+
+            const failure = new CjsRealtimeError(
+                "hello_timeout",
+                "Realtime server hello timed out",
+                {
+                    retryable: true,
+                    connectionUsable: false,
+                    closeCode: 1013
+                }
+            );
+
+            this.#metrics.helloTimeouts++;
+            this.#generationFailure = failure;
+            hello.reject(failure);
+            socket.close(4408, "hello_timeout");
+        }, this.#helloTimeoutMs);
 
         socket.addEventListener("open", () =>
         {
+            if (socket.protocol !== REALTIME_SUBPROTOCOL)
+            {
+                const failure = new CjsRealtimeError(
+                    "subprotocol_mismatch",
+                    "Realtime server did not negotiate the required subprotocol",
+                    { connectionUsable: false, closeCode: 1002 }
+                );
+
+                this.#generationFailure = failure;
+                hello.reject(failure);
+                socket.close(1002, "subprotocol_mismatch");
+                return;
+            }
+
             try
             {
                 this.#Send(CjsRealtimeProtocol.createHello(
@@ -540,8 +712,11 @@ export class CjsRealtimeClient
             }
             catch (failure)
             {
-                hello.reject(failure);
-                socket.close(1002, "hello_failed");
+                const error = CjsRealtimeError.from(failure);
+
+                this.#generationFailure = error;
+                hello.reject(error);
+                socket.close(error.closeCode ?? 1002, error.code);
             }
         }, { once: true });
 
@@ -554,16 +729,13 @@ export class CjsRealtimeClient
 
         socket.addEventListener("close", event =>
         {
-            const failure = new CjsRealtimeError(
-                "connection_closed",
-                `Realtime connection closed (${event.code ?? 1006})`,
-                { retryable: true, connectionUsable: false }
-            );
+            const failure = this.#generationFailure
+                ?? CjsRealtimeClient.closeFailure(event);
 
             hello.reject(failure);
             this.#RejectPendingRequests(failure);
             abortController.abort();
-            closed.resolve(event);
+            closed.resolve(failure);
         }, { once: true });
 
         socket.addEventListener("error", () => {}, { once: true });
@@ -571,6 +743,7 @@ export class CjsRealtimeClient
         try
         {
             this.connection = await hello.promise;
+            clearTimeout(helloTimer);
             this.#SetState("subscribing");
             await this.#ActivateSubscriptions();
 
@@ -581,10 +754,17 @@ export class CjsRealtimeClient
 
             this.#SetState("ready");
             this.#ResolveReadyWaiters(this.connection);
-            await closed.promise;
+            const failure = await closed.promise;
+
+            if (this.#running && CjsRealtimeClient.isTerminalFailure(failure))
+            {
+                throw failure;
+            }
         }
         finally
         {
+            clearTimeout(helloTimer);
+
             if (this.#socket === socket)
             {
                 if (!closed.settled)
@@ -692,6 +872,7 @@ export class CjsRealtimeClient
                 { signal: this.#generationAbortController?.signal ?? null }
             );
             await subscription.InstallSnapshot(snapshot);
+            this.#metrics.snapshotRecoveries++;
         }
 
         return subscription;
@@ -716,8 +897,36 @@ export class CjsRealtimeClient
         const requestId = `client-${++this.#requestSequence}`;
         const message = createMessage(requestId);
         const pending = CjsRealtimeClient.createDeferred();
+        const socket = this.#socket;
 
         this.#pendingRequests.set(requestId, pending);
+        pending.timer = setTimeout(() =>
+        {
+            if (this.#pendingRequests.get(requestId) !== pending)
+            {
+                return;
+            }
+
+            const failure = new CjsRealtimeError(
+                "request_timeout",
+                "Realtime request timed out",
+                {
+                    retryable: true,
+                    connectionUsable: false,
+                    closeCode: 4408
+                }
+            );
+
+            this.#metrics.requestTimeouts++;
+            this.#pendingRequests.delete(requestId);
+            this.#generationFailure = failure;
+            pending.reject(failure);
+
+            if (this.#socket === socket)
+            {
+                socket.close(1013, "request_timeout");
+            }
+        }, this.#requestTimeoutMs);
 
         try
         {
@@ -725,8 +934,23 @@ export class CjsRealtimeClient
         }
         catch (failure)
         {
+            const error = CjsRealtimeError.from(failure, {
+                code: "send_failed",
+                message: "Realtime request could not be sent",
+                retryable: true,
+                connectionUsable: false,
+                closeCode: 1011
+            });
+
             this.#pendingRequests.delete(requestId);
-            pending.reject(failure);
+            clearTimeout(pending.timer);
+            this.#generationFailure = error;
+            pending.reject(error);
+
+            if (!error.connectionUsable && this.#socket === socket)
+            {
+                socket.close(error.closeCode ?? 1011, error.code);
+            }
         }
 
         return pending.promise;
@@ -768,6 +992,7 @@ export class CjsRealtimeClient
             }
 
             this.#pendingRequests.delete(message.requestId);
+            clearTimeout(pending.timer);
             pending.resolve(message);
             return;
         }
@@ -775,20 +1000,24 @@ export class CjsRealtimeClient
         if (message.type === "error")
         {
             const failure = CjsRealtimeError.fromMessage(message);
+            const terminal = CjsRealtimeClient.isTerminalFailure(failure);
 
             if (message.requestId && this.#pendingRequests.has(message.requestId))
             {
                 const pending = this.#pendingRequests.get(message.requestId);
                 this.#pendingRequests.delete(message.requestId);
+                clearTimeout(pending.timer);
                 pending.reject(failure);
             }
-            else
+            else if (!terminal)
             {
                 this.#ReportError(failure);
             }
 
-            if (!failure.connectionUsable)
+            if (!failure.connectionUsable || terminal)
             {
+                this.#generationFailure = failure;
+                this.#hello?.reject(failure);
                 this.#socket?.close(failure.closeCode ?? 1002, failure.code);
             }
 
@@ -818,11 +1047,22 @@ export class CjsRealtimeClient
     #HandleMessageFailure(failure)
     {
         const error = CjsRealtimeError.from(failure);
+        const terminal = CjsRealtimeClient.isTerminalFailure(error);
 
-        this.#ReportError(error);
+        if (error.code === "resync_required")
+        {
+            this.#metrics.sequenceGapResyncs++;
+        }
+
+        if (!terminal)
+        {
+            this.#ReportError(error);
+        }
 
         if (error.code !== "consumer_callback_failed")
         {
+            this.#generationFailure = error;
+            this.#hello?.reject(error);
             this.#socket?.close(error.closeCode ?? 4409, error.code);
         }
     }
@@ -835,10 +1075,16 @@ export class CjsRealtimeClient
     {
         const error = CjsRealtimeError.from(failure);
 
+        if (error.code === "resync_required")
+        {
+            this.#metrics.sequenceGapResyncs++;
+        }
+
         this.#ReportError(error);
 
         if (!error.connectionUsable || error.code === "resync_required")
         {
+            this.#generationFailure = error;
             this.#socket?.close(error.closeCode ?? 4409, error.code);
         }
     }
@@ -885,8 +1131,9 @@ export class CjsRealtimeClient
     }
 
     /**
-     * Serializes one message onto the current socket, throwing
-     * connection_unavailable when there is none.
+     * Serializes one bounded message onto the current socket. Admission fails
+     * before send when the browser's existing buffered bytes plus this frame
+     * exceed the configured pressure ceiling.
      */
     #Send(message)
     {
@@ -895,7 +1142,38 @@ export class CjsRealtimeClient
             throw new CjsRealtimeError("connection_unavailable", "Realtime socket is unavailable");
         }
 
-        this.#socket.send(JSON.stringify(message));
+        const text = JSON.stringify(message);
+        const byteLength = encodeUtf8(text).byteLength;
+
+        if (byteLength > this.#maxMessageBytes)
+        {
+            throw new CjsRealtimeError(
+                "message_too_large",
+                "Realtime outbound message exceeds the byte limit",
+                { connectionUsable: false, closeCode: 1009 }
+            );
+        }
+
+        const bufferedAmount = Number.isFinite(this.#socket.bufferedAmount)
+            && this.#socket.bufferedAmount > 0
+            ? this.#socket.bufferedAmount
+            : 0;
+
+        if (bufferedAmount + byteLength > this.#outbound.maximumBufferedBytes)
+        {
+            this.#metrics.outboundPressure++;
+            throw new CjsRealtimeError(
+                "outbound_pressure",
+                "Realtime outbound pressure limit was reached",
+                {
+                    retryable: true,
+                    connectionUsable: false,
+                    closeCode: 1013
+                }
+            );
+        }
+
+        this.#socket.send(text);
     }
 
     /**
@@ -918,6 +1196,7 @@ export class CjsRealtimeClient
         });
 
         this.#RejectPendingRequests(failure);
+        this.#generationFailure = null;
     }
 
     /**
@@ -932,6 +1211,44 @@ export class CjsRealtimeClient
                 retryable: true
             });
         }
+    }
+
+    /** Waits for one reconnect delay that Close or capability replacement may cancel. */
+    #WaitReconnectDelay(delay)
+    {
+        return new Promise(resolve =>
+        {
+            const waiter = {
+                timer: null,
+                resolve: () =>
+                {
+                    if (this.#reconnectDelayWaiter !== waiter)
+                    {
+                        return;
+                    }
+
+                    this.#reconnectDelayWaiter = null;
+                    resolve();
+                }
+            };
+
+            waiter.timer = setTimeout(waiter.resolve, delay);
+            this.#reconnectDelayWaiter = waiter;
+        });
+    }
+
+    /** Clears and settles the current reconnect delay, if any. */
+    #CancelReconnectDelay()
+    {
+        const waiter = this.#reconnectDelayWaiter;
+
+        if (!waiter)
+        {
+            return;
+        }
+
+        clearTimeout(waiter.timer);
+        waiter.resolve();
     }
 
     /**
@@ -981,6 +1298,7 @@ export class CjsRealtimeClient
     {
         for (const pending of this.#pendingRequests.values())
         {
+            clearTimeout(pending.timer);
             pending.reject(failure);
         }
 
@@ -994,9 +1312,25 @@ export class CjsRealtimeClient
      */
     #QueueOperation(operation)
     {
+        if (this.#queuedOperationCount >= this.#outbound.maximumQueuedOperations)
+        {
+            this.#metrics.outboundPressure++;
+            return Promise.reject(new CjsRealtimeError(
+                "outbound_pressure",
+                "Realtime outbound operation queue is full",
+                { retryable: true }
+            ));
+        }
+
+        this.#queuedOperationCount++;
         const result = this.#operationLane.then(operation);
-        this.#operationLane = result.catch(() => {});
-        return result;
+        const settled = result.finally(() =>
+        {
+            this.#queuedOperationCount--;
+        });
+
+        this.#operationLane = settled.catch(() => {});
+        return settled;
     }
 
     /**

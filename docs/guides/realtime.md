@@ -14,6 +14,23 @@ live delivery.
 
 The client does not issue capabilities or own server policy.
 
+## Wire-only consumers
+
+Protocol tools and Node hosts that do not need the browser client use the
+narrow side-effect-free subpath:
+
+```js
+import {
+    CjsRealtimeProtocol,
+    REALTIME_SUBPROTOCOL
+} from "@carbonenginejs/tools-browser/realtime/wire";
+```
+
+Importing this subpath does not read WebSocket or Fetch and does not start a
+connection. It owns browser-safe v1 constants, message construction, and
+structural normalization only. Authentication, server error policy, hubs,
+gateways, retries, and callbacks remain in their environment-specific owners.
+
 ## Connect and subscribe
 
 ```js
@@ -48,6 +65,46 @@ share one service ID and are retained independently across connection
 generations. Pass the subscription object to `Unsubscribe`; passing a service
 ID is supported only when exactly one desired subscription exists for it.
 
+## Lifecycle bounds and retry policy
+
+The client verifies that the opened socket negotiated
+`carbon.tools.realtime.v1` before it sends the capability-bearing hello. A
+missing or different negotiated protocol is terminal: `Connect()` rejects and
+the client enters `stopped`.
+
+Defaults are:
+
+- `helloTimeoutMs: 10000`, measured from creation of one socket generation;
+- `requestTimeoutMs: 15000` for subscribe, unsubscribe, and command;
+- reconnect backoff from 250 ms to 10 seconds, factor 2, jitter 0.2;
+- `outbound.maximumBufferedBytes: 262144`; and
+- `outbound.maximumQueuedOperations: 64`.
+
+A hello or request timeout closes that connection generation. Request IDs are
+generation-scoped and never reused before the generation closes. Transient
+network closure, timeout, and `resync_required` outcomes reconnect with bounded
+backoff. Authentication, policy, version, negotiated-subprotocol, and missing
+injected-API failures stop automatic retry. After correcting the cause, call
+`Connect()` again explicitly; replacing a capability while stopped does not
+open a socket by itself.
+
+The socket pressure ceiling checks `bufferedAmount` plus the next serialized
+frame before `send`. The caller-operation ceiling rejects excess queued work
+with `outbound_pressure`. Neither path accumulates an unbounded outbound
+message queue.
+
+## Secret-safe metrics
+
+```js
+const metrics = client.GetMetrics();
+```
+
+The frozen record contains counters for connection generations, reconnect
+attempts, hello and request timeouts, completed snapshot recoveries, sequence
+gap resynchronizations, and outbound pressure. It never contains a capability,
+URL, request body, provider payload, or error detail. Continue to use
+`CjsRealtimeError.ToRecord()` for bounded observer-safe failure records.
+
 ## Provider-neutral chat
 
 The `./chat` facade builds targeted room listeners on this realtime client.
@@ -61,7 +118,8 @@ client.Close();
 ```
 
 Closing stops reconnect attempts, rejects pending readiness waits, clears
-connection-scoped state, and closes the active socket.
+connection-scoped state, cancels a pending reconnect delay, and closes the
+active socket.
 
 ## Snapshot recovery
 

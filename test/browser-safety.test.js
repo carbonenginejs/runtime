@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
@@ -79,9 +80,46 @@ function withoutComments(source)
         .join("\n");
 }
 
+test("the wire-only subpath does not read WebSocket or Fetch while importing", () =>
+{
+    const probe = spawnSync(process.execPath, [
+        "--input-type=module",
+        "--eval",
+        `
+            for (const name of [ "WebSocket", "fetch" ])
+            {
+                Object.defineProperty(globalThis, name, {
+                    configurable: true,
+                    get()
+                    {
+                        throw new Error(\`Wire import touched \${name}\`);
+                    }
+                });
+            }
+
+            const wire = await import("@carbonenginejs/tools-browser/realtime/wire");
+
+            if (wire.REALTIME_SUBPROTOCOL !== "carbon.tools.realtime.v1")
+            {
+                throw new Error("Unexpected realtime subprotocol");
+            }
+
+            if (typeof wire.CjsRealtimeProtocol.parseText !== "function")
+            {
+                throw new Error("Missing realtime protocol");
+            }
+        `
+    ], {
+        cwd: packageRoot,
+        encoding: "utf8"
+    });
+
+    assert.equal(probe.status, 0, probe.stderr || probe.stdout);
+});
+
 test("every public subpath imports independently", async () =>
 {
-    for (const name of [ "audio", "chat", "fileindex", "realtime" ])
+    for (const name of [ "audio", "chat", "fileindex", "realtime", "realtime/wire" ])
     {
         const module = await import(`@carbonenginejs/tools-browser/${name}`);
 

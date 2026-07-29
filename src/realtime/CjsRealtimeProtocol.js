@@ -1,6 +1,8 @@
 import { encodeUtf8 } from "@carbonenginejs/runtime-utils/text";
 import { CjsRealtimeError } from "./CjsRealtimeError.js";
 
+export { CjsRealtimeError };
+
 export const REALTIME_PROTOCOL = "carbon.tools.realtime";
 export const REALTIME_PROTOCOL_VERSION = 1;
 export const REALTIME_ROUTE = "/v1/realtime";
@@ -59,6 +61,157 @@ export class CjsRealtimeProtocol
         }
 
         return value;
+    }
+
+    /** Validates and normalizes one client-to-server message. */
+    static normalizeClientMessage(value, { authenticated = false } = {})
+    {
+        if (!CjsRealtimeProtocol.isRecord(value) || typeof value.type !== "string")
+        {
+            throw new CjsRealtimeError("invalid_message", "Realtime message type is required", {
+                connectionUsable: false,
+                closeCode: 1002
+            });
+        }
+
+        if (!authenticated && value.type !== "hello")
+        {
+            throw new CjsRealtimeError("hello_required", "The first realtime message must be hello", {
+                connectionUsable: false,
+                closeCode: 1002
+            });
+        }
+
+        if (authenticated && value.type === "hello")
+        {
+            throw new CjsRealtimeError("unexpected_hello", "Realtime hello was already accepted", {
+                connectionUsable: false,
+                closeCode: 1002
+            });
+        }
+
+        if (value.type === "hello")
+        {
+            if (value.protocolVersion !== REALTIME_PROTOCOL_VERSION)
+            {
+                throw new CjsRealtimeError(
+                    "unsupported_version",
+                    "Unsupported realtime protocol version",
+                    {
+                        connectionUsable: false,
+                        closeCode: 1002
+                    }
+                );
+            }
+
+            CjsRealtimeProtocol.assertString(value.capability, "capability", 1, 2048);
+
+            if (value.client !== undefined && !CjsRealtimeProtocol.isRecord(value.client))
+            {
+                throw new CjsRealtimeError("invalid_request", "hello.client must be an object");
+            }
+
+            return Object.freeze({
+                type: "hello",
+                protocolVersion: value.protocolVersion,
+                capability: value.capability,
+                client: value.client === undefined
+                    ? null
+                    : CjsRealtimeProtocol.cloneJson(value.client)
+            });
+        }
+
+        CjsRealtimeProtocol.assertRequestId(value.requestId);
+
+        if ([ "subscribe", "subscribe-targeted" ].includes(value.type))
+        {
+            CjsRealtimeProtocol.assertServiceId(value.serviceId);
+
+            if (!Array.isArray(value.topics) || value.topics.length === 0)
+            {
+                throw new CjsRealtimeError(
+                    "invalid_request",
+                    "subscribe.topics must be a non-empty array"
+                );
+            }
+
+            const topics = value.topics.map(topic =>
+            {
+                CjsRealtimeProtocol.assertName(topic, "topic");
+
+                return topic;
+            });
+
+            if (new Set(topics).size !== topics.length)
+            {
+                throw new CjsRealtimeError(
+                    "invalid_request",
+                    "subscribe.topics must be unique"
+                );
+            }
+
+            const targeted = value.type === "subscribe-targeted";
+
+            if (targeted && !CjsRealtimeProtocol.isRecord(value.target))
+            {
+                throw new CjsRealtimeError(
+                    "invalid_request",
+                    "subscribe-targeted.target must be an object"
+                );
+            }
+
+            const message = {
+                type: "subscribe",
+                requestId: value.requestId,
+                serviceId: value.serviceId,
+                topics: Object.freeze([ ...topics ])
+            };
+
+            if (targeted)
+            {
+                message.target = Object.freeze(CjsRealtimeProtocol.cloneJson(value.target));
+            }
+
+            return Object.freeze(message);
+        }
+
+        if (value.type === "unsubscribe")
+        {
+            CjsRealtimeProtocol.assertString(value.subscriptionId, "subscriptionId", 1, 128);
+
+            return Object.freeze({
+                type: "unsubscribe",
+                requestId: value.requestId,
+                subscriptionId: value.subscriptionId
+            });
+        }
+
+        if (value.type === "command")
+        {
+            CjsRealtimeProtocol.assertServiceId(value.serviceId);
+            CjsRealtimeProtocol.assertName(value.action, "action");
+
+            if (value.operationId !== undefined && value.operationId !== null)
+            {
+                CjsRealtimeProtocol.assertString(value.operationId, "operationId", 1, 128);
+            }
+
+            CjsRealtimeProtocol.validateJson(value.data ?? null);
+
+            return Object.freeze({
+                type: "command",
+                requestId: value.requestId,
+                serviceId: value.serviceId,
+                action: value.action,
+                operationId: value.operationId ?? null,
+                data: CjsRealtimeProtocol.cloneJson(value.data ?? null)
+            });
+        }
+
+        throw new CjsRealtimeError("invalid_message", "Unsupported realtime message type", {
+            connectionUsable: false,
+            closeCode: 1002
+        });
     }
 
     /** Constructs the required first client message without retaining it elsewhere. */
@@ -374,11 +527,32 @@ export class CjsRealtimeProtocol
         });
     }
 
+    /** Returns the stable identity portion of a normalized service value. */
+    static serviceIdentity(value)
+    {
+        const service = CjsRealtimeProtocol.normalizeServiceIdentity(value);
+
+        return Object.freeze({
+            family: service.family,
+            familyVersion: service.familyVersion,
+            kind: service.kind,
+            id: service.id
+        });
+    }
+
     /** Creates an immutable JSON-compatible clone. */
     static freezeJson(value)
     {
         CjsRealtimeProtocol.validateJson(value);
         return CjsRealtimeProtocol.freezeValue(JSON.parse(JSON.stringify(value)));
+    }
+
+    /** Creates a detached JSON-compatible clone without freezing it. */
+    static cloneJson(value)
+    {
+        CjsRealtimeProtocol.validateJson(value);
+
+        return JSON.parse(JSON.stringify(value));
     }
 
     /** Validates a JSON-compatible value with bounded depth and node count. */

@@ -3,10 +3,16 @@ import test from "node:test";
 
 import {
     CjsRealtimeClient,
+    CjsRealtimeError,
     CjsRealtimeProtocol,
     CjsRealtimeSubscription,
     REALTIME_SUBPROTOCOL
 } from "@carbonenginejs/tools-browser/realtime";
+import {
+    CjsRealtimeError as CjsRealtimeWireError,
+    CjsRealtimeProtocol as CjsRealtimeWireProtocol,
+    REALTIME_SUBPROTOCOL as WIRE_SUBPROTOCOL
+} from "@carbonenginejs/tools-browser/realtime/wire";
 import {
     CjsChatBlockList,
     CjsChatClient
@@ -22,7 +28,9 @@ const SERVICE = Object.freeze({
 class CjsRealtimeTestSocket
 {
 
+    static initialBufferedAmount = 0;
     static responder = null;
+    static selectedProtocol = null;
     static sockets = [];
 
     #listeners;
@@ -30,8 +38,9 @@ class CjsRealtimeTestSocket
     constructor(url, protocol)
     {
         this.url = url;
-        this.protocol = protocol;
+        this.protocol = CjsRealtimeTestSocket.selectedProtocol ?? protocol;
         this.readyState = 0;
+        this.bufferedAmount = CjsRealtimeTestSocket.initialBufferedAmount;
         this.sent = [];
         this.#listeners = new Map();
         CjsRealtimeTestSocket.sockets.push(this);
@@ -97,10 +106,15 @@ class CjsRealtimeTestSocket
         }
     }
 
-    static Reset(responder)
+    static Reset(responder, {
+        bufferedAmount = 0,
+        protocol = null
+    } = {})
     {
         CjsRealtimeTestSocket.sockets = [];
         CjsRealtimeTestSocket.responder = responder;
+        CjsRealtimeTestSocket.initialBufferedAmount = bufferedAmount;
+        CjsRealtimeTestSocket.selectedProtocol = protocol;
     }
 
 }
@@ -123,6 +137,88 @@ test("constructs and validates the shared v1 client wire messages", () =>
     assert.equal(
         CjsRealtimeProtocol.normalizeCursor(Cursor("stream-one", 4, 2)).sequence,
         4
+    );
+});
+
+test("exports one narrow browser-safe v1 wire authority", () =>
+{
+    assert.equal(CjsRealtimeWireProtocol, CjsRealtimeProtocol);
+    assert.equal(CjsRealtimeWireError, CjsRealtimeError);
+    assert.equal(WIRE_SUBPROTOCOL, REALTIME_SUBPROTOCOL);
+    assert.deepEqual(CjsRealtimeWireProtocol.normalizeClientMessage({
+        type: "hello",
+        protocolVersion: 1,
+        capability: "secret-capability",
+        client: { id: "facade-one", kind: "facade" }
+    }), {
+        type: "hello",
+        protocolVersion: 1,
+        capability: "secret-capability",
+        client: { id: "facade-one", kind: "facade" }
+    });
+
+    const targeted = CjsRealtimeWireProtocol.normalizeClientMessage({
+        type: "subscribe-targeted",
+        requestId: "target-one",
+        serviceId: "primary-chat",
+        topics: [ "chat.message.received" ],
+        target: {
+            room: {
+                provider: "twitch",
+                login: "fenriscreations"
+            }
+        }
+    }, { authenticated: true });
+
+    assert.equal(targeted.type, "subscribe");
+    assert.deepEqual(targeted.target, {
+        room: {
+            provider: "twitch",
+            login: "fenriscreations"
+        }
+    });
+    assert.notEqual(targeted.target, null);
+    assert.throws(() => CjsRealtimeWireProtocol.normalizeClientMessage({
+        type: "subscribe",
+        requestId: "target-two",
+        serviceId: "primary-chat",
+        topics: [ "chat.message.received" ]
+    }), error => error instanceof CjsRealtimeWireError
+        && error.code === "hello_required"
+        && error.closeCode === 1002);
+});
+
+test("bounds malformed, oversized, deep, dense, and cyclic wire JSON", () =>
+{
+    assert.throws(
+        () => CjsRealtimeWireProtocol.parseText("{"),
+        error => error.code === "invalid_json" && error.closeCode === 1002
+    );
+    assert.throws(
+        () => CjsRealtimeWireProtocol.parseText(JSON.stringify({ value: "12345" }), {
+            maxBytes: 5
+        }),
+        error => error.code === "message_too_large" && error.closeCode === 1009
+    );
+
+    const cyclic = {};
+
+    cyclic.self = cyclic;
+    assert.throws(
+        () => CjsRealtimeWireProtocol.validateJson(cyclic),
+        error => error.code === "invalid_request"
+    );
+    assert.throws(
+        () => CjsRealtimeWireProtocol.validateJson({ one: { two: true } }, {
+            maxDepth: 1
+        }),
+        error => error.code === "invalid_request"
+    );
+    assert.throws(
+        () => CjsRealtimeWireProtocol.validateJson([ true, false ], {
+            maxNodes: 2
+        }),
+        error => error.code === "invalid_request"
     );
 });
 
@@ -206,6 +302,198 @@ test("connects, subscribes future-only, and replaces capabilities by reconnectin
     client.Close();
 });
 
+test("requires the negotiated subprotocol before hello and resumes only when asked", async () =>
+{
+    CjsRealtimeTestSocket.Reset((socket, message) =>
+    {
+        if (message.type === "hello")
+        {
+            queueMicrotask(() => socket.ServerMessage(Hello("connection-resumed")));
+        }
+    }, { protocol: "" });
+
+    const errors = [];
+    const client = new CjsRealtimeClient({
+        url: "http://127.0.0.1:3000",
+        capability: "must-not-be-sent",
+        webSocketClass: CjsRealtimeTestSocket,
+        onError: error => errors.push(error)
+    });
+
+    await assert.rejects(
+        client.Connect(),
+        error => error.code === "subprotocol_mismatch" && error.closeCode === 1002
+    );
+    assert.equal(client.state, "stopped");
+    assert.deepEqual(CjsRealtimeTestSocket.sockets[0].sent, []);
+    assert.equal(errors.at(-1).code, "subprotocol_mismatch");
+
+    CjsRealtimeTestSocket.selectedProtocol = REALTIME_SUBPROTOCOL;
+    await client.Connect();
+
+    assert.equal(client.IsConnected(), true);
+    assert.equal(CjsRealtimeTestSocket.sockets.length, 2);
+    assert.equal(client.GetMetrics().connectionGenerations, 2);
+    client.Close();
+});
+
+test("bounds server hello and exposes secret-free timeout metrics", async () =>
+{
+    CjsRealtimeTestSocket.Reset(() => {});
+    const errors = [];
+    const client = new CjsRealtimeClient({
+        url: "http://127.0.0.1:3000",
+        capability: "hello-timeout-capability",
+        webSocketClass: CjsRealtimeTestSocket,
+        helloTimeoutMs: 5,
+        reconnect: { minimumDelayMs: 1000, maximumDelayMs: 1000 },
+        onError: error => errors.push(error)
+    });
+    const ready = client.Connect();
+
+    await WaitFor(() => errors.some(error => error.code === "hello_timeout"));
+
+    const metrics = client.GetMetrics();
+
+    assert.equal(metrics.helloTimeouts, 1);
+    assert.equal(metrics.reconnectAttempts, 1);
+    assert.doesNotMatch(JSON.stringify(metrics), /capability|hello-timeout/u);
+    client.Close();
+    await assert.rejects(ready, error => error.code === "client_closed");
+});
+
+test("stops automatic retry when the server rejects authentication", async () =>
+{
+    CjsRealtimeTestSocket.Reset((socket, message) =>
+    {
+        if (message.type === "hello")
+        {
+            queueMicrotask(() => socket.ServerMessage({
+                type: "error",
+                code: "unauthorized",
+                message: "Realtime capability was rejected",
+                retryable: false,
+                connectionUsable: false
+            }));
+        }
+    });
+
+    const client = new CjsRealtimeClient({
+        url: "http://127.0.0.1:3000",
+        capability: "rejected-capability",
+        webSocketClass: CjsRealtimeTestSocket,
+        reconnect: { minimumDelayMs: 0, maximumDelayMs: 0 }
+    });
+
+    await assert.rejects(
+        client.Connect(),
+        error => error.code === "unauthorized" && error.retryable === false
+    );
+    assert.equal(client.state, "stopped");
+    assert.equal(client.GetMetrics().connectionGenerations, 1);
+    assert.equal(client.GetMetrics().reconnectAttempts, 0);
+    client.Close();
+});
+
+test("times out one request, closes its generation, and never records its body", async () =>
+{
+    CjsRealtimeTestSocket.Reset((socket, message) =>
+    {
+        if (message.type === "hello")
+        {
+            queueMicrotask(() => socket.ServerMessage(Hello("connection-request-timeout")));
+        }
+    });
+
+    const client = new CjsRealtimeClient({
+        url: "http://127.0.0.1:3000",
+        capability: "request-timeout-capability",
+        webSocketClass: CjsRealtimeTestSocket,
+        requestTimeoutMs: 5,
+        reconnect: { minimumDelayMs: 1000, maximumDelayMs: 1000 }
+    });
+
+    await client.Connect();
+    let errorRecord = null;
+
+    await assert.rejects(
+        client.Command("synthetic-main", "state.change", {
+            secretPayload: "must-not-be-recorded"
+        }),
+        error =>
+        {
+            errorRecord = error.ToRecord();
+            return error.code === "request_timeout"
+                && error.retryable === true
+                && error.connectionUsable === false;
+        }
+    );
+
+    const metrics = client.GetMetrics();
+
+    assert.equal(metrics.requestTimeouts, 1);
+    assert.doesNotMatch(
+        JSON.stringify({ metrics, errorRecord }),
+        /request-timeout-capability|must-not-be-recorded/u
+    );
+    client.Close();
+});
+
+test("bounds browser buffered bytes and the caller operation queue", async () =>
+{
+    let pendingCommand = null;
+
+    CjsRealtimeTestSocket.Reset((socket, message) =>
+    {
+        if (message.type === "hello")
+        {
+            queueMicrotask(() => socket.ServerMessage(Hello("connection-pressure")));
+        }
+
+        if (message.type === "command")
+        {
+            pendingCommand = { socket, message };
+        }
+    });
+
+    const client = new CjsRealtimeClient({
+        url: "http://127.0.0.1:3000",
+        capability: "pressure-capability",
+        webSocketClass: CjsRealtimeTestSocket,
+        requestTimeoutMs: 1000,
+        outbound: {
+            maximumBufferedBytes: 512,
+            maximumQueuedOperations: 1
+        }
+    });
+
+    await client.Connect();
+    const first = client.Command("synthetic-main", "state.change", { value: "first" });
+
+    await WaitFor(() => pendingCommand !== null);
+    await assert.rejects(
+        client.Command("synthetic-main", "state.change", { value: "queued" }),
+        error => error.code === "outbound_pressure" && error.retryable === true
+    );
+    pendingCommand.socket.ServerMessage({
+        type: "result",
+        requestId: pendingCommand.message.requestId,
+        status: "completed",
+        data: { accepted: true }
+    });
+    assert.deepEqual(await first, { accepted: true });
+
+    CjsRealtimeTestSocket.sockets[0].bufferedAmount = 512;
+    await assert.rejects(
+        client.Command("synthetic-main", "state.change", { value: "buffered" }),
+        error => error.code === "outbound_pressure"
+            && error.connectionUsable === false
+            && error.closeCode === 1013
+    );
+    assert.equal(client.GetMetrics().outboundPressure, 2);
+    client.Close();
+});
+
 test("buffers socket events while the authenticated snapshot request is pending", async () =>
 {
     const snapshotResponse = Deferred();
@@ -267,6 +555,52 @@ test("buffers socket events while the authenticated snapshot request is pending"
     await connected;
 
     assert.deepEqual(applied, [ "snapshot", "after-snapshot" ]);
+    assert.equal(client.GetMetrics().snapshotRecoveries, 1);
+    client.Close();
+});
+
+test("counts sequence-gap resynchronization before reconnecting", async () =>
+{
+    CjsRealtimeTestSocket.Reset((socket, message) =>
+    {
+        if (message.type === "hello")
+        {
+            queueMicrotask(() => socket.ServerMessage(Hello("connection-gap")));
+        }
+
+        if (message.type === "subscribe")
+        {
+            queueMicrotask(() => socket.ServerMessage(SubscribeResult(message.requestId, {
+                subscriptionId: "subscription-gap",
+                cursor: Cursor("stream-gap", 0, 0)
+            })));
+        }
+    });
+
+    const errors = [];
+    const client = new CjsRealtimeClient({
+        url: "http://127.0.0.1:3000",
+        capability: "gap-capability",
+        webSocketClass: CjsRealtimeTestSocket,
+        reconnect: { minimumDelayMs: 1000, maximumDelayMs: 1000 },
+        onError: error => errors.push(error)
+    });
+
+    client.Subscribe({
+        serviceId: SERVICE.id,
+        topics: [ "synthetic.state.changed" ]
+    });
+    await client.Connect();
+    CjsRealtimeTestSocket.sockets[0].ServerMessage(Event({
+        subscriptionId: "subscription-gap",
+        streamId: "stream-gap",
+        sequence: 2,
+        topicSequence: 2,
+        value: "gap"
+    }));
+    await WaitFor(() => errors.some(error => error.code === "resync_required"));
+
+    assert.equal(client.GetMetrics().sequenceGapResyncs, 1);
     client.Close();
 });
 

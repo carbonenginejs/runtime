@@ -16,8 +16,7 @@
 // Carbon's `= Transpose(m)` staging fill. Do not pre-transpose.
 //
 // Carbon math is row-vector and runtime-utils (gl-matrix) is column-vector, so
-// every composition here swaps operands relative to the C++ - see
-// .agents/skills/carbon-math-conventions.
+// every composition here swaps operands relative to the C++.
 
 import { mat4, vec3, vec4 } from "@carbonenginejs/runtime-utils";
 
@@ -38,6 +37,7 @@ export class CjsPerObjectSynthesizer
     /** The class that owns filling a custom-mask slot, normally EveCustomMask. */
     #customMask = null;
 
+    /** Creates a synthesizer with an optional custom-mask implementation. */
     constructor(options = {})
     {
         this.#customMask = options.customMask ?? null;
@@ -202,6 +202,7 @@ export class CjsPerObjectSynthesizer
         };
     }
 
+    /** Produces the four Carbon ship-data lanes and records neutral fallbacks. */
     #ShipData(options)
     {
         // EveSpaceObject2.cpp:195 constructor, then EveShip2.cpp:285 (.x),
@@ -235,6 +236,7 @@ export class CjsPerObjectSynthesizer
         ];
     }
 
+    /** Produces Carbon's signed clip-sphere values. */
     #Clip(options)
     {
         // EveSpaceObject2.cpp:746-762, reproduced including the sign-carrying
@@ -266,6 +268,7 @@ export class CjsPerObjectSynthesizer
         };
     }
 
+    /** Produces the authored or neutral shape ellipsoid. */
     #Ellipsoid(options)
     {
         // EveSpaceObject2.cpp:641-644. Carbon's "not authored" sentinel is a
@@ -404,6 +407,7 @@ export class CjsPerObjectSynthesizer
         return values;
     }
 
+    /** Returns one supplied value or records and returns its neutral fallback. */
     #Supplied(options, name, fallback)
     {
         if (options[name] === undefined || options[name] === null)
