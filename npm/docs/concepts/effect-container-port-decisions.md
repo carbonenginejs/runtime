@@ -209,7 +209,45 @@ these is now a comment at the code that would have hit it:
 The handoff's claimed v15 stage field order was confirmed wrong:
 `pipelineInputs` and `registers` come **after** `shaderCode` + `threadGroupSize`.
 
-## The layering defect in `engine-webgpu`
+## Measured baseline, and what it says about where the win is
+
+Sizes are reported as **ratios and section shares, never absolute totals**. These
+are build artifacts, not shipped assets, and nobody fetches them over a network. A
+package that shrinks far less than the rest is the interesting signal: it means
+identical program source is not sharing, which is an arena bug wearing a size
+number as a costume.
+
+Before, measured from real dx11 effects at build 3444265 — 6 webgpu packages
+(20.2 MB) and 5 webgl packages (79.5 MB), same source effects both sides:
+
+| section | webgpu share | webgl share |
+|---|---|---|
+| `RFLX` portable reflection | **78.5%** | 19.6% |
+| `RBLB` reflection blob arena | 16.7% | 4.1% |
+| `GLSL` program set | — | **55.6%** |
+| `META` | 0.0% | **20.3%** |
+| `PGRF` permutation graph | 2.1% | 0.4% |
+| `WGSL` program set | **1.9%** | — |
+| `ANLS` analysis | **0.6%** | — |
+| `INFO` | 0.0% | 0.0% |
+
+Three things follow, and two of them correct expectations the plan was working from.
+
+**For webgpu the bulk is reflection, not program source.** `RFLX` plus `RBLB` is
+95.2% of every selected package; the emitted WGSL is 1.9%. So the ~3x is expected to
+come almost entirely from replacing the reflection document with Carbon description
+records over a shared arena — every name and description currently repeats per body
+as JSON. Moving program source into the arena is still correct, and it is what makes
+all-body packages tractable, but on a selected package it is a rounding error.
+
+**For webgl the bulk really is program source**, at 55.6%, because webgl already
+defaults to carrying every permutation. Its profile does not mirror webgpu's at all,
+and its second-largest section is `META` at 20.3% — `effectRes.toJSON()` plus a
+per-body binding manifest, which is exactly the selection and manifest data the
+container makes redundant. webgl is also 4x the size of webgpu for the same effects.
+
+**Deleting `ANLS` was never a size play.** It is 0.6%. The reason to stop storing it
+is duplication and layering, and it should be argued on those terms only.
 
 **This predates the container port and is not the port's to fix.** It is recorded
 here because the ANLS audit surfaced it and it must not be rediscovered.
