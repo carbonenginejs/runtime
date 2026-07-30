@@ -9,6 +9,14 @@ const validatedEffectPackages = new WeakSet();
 const CEWGPU_MAGIC = "CWGP";
 const CEWGPU_FORMAT = "CEWGPU";
 const CEWGPU_VERSION = 1;
+
+/**
+ * The chunk package's version, exported so the record-layout container can be
+ * held distinct from it by construction rather than by two constants that happen
+ * to differ. They share a magic deliberately — same logical format, reorganised —
+ * so this dword is the only thing separating them.
+ */
+export const CEWGPU_CHUNK_PACKAGE_VERSION = CEWGPU_VERSION;
 const textDecoder = new TextDecoder("utf-8", { fatal: false });
 const jsonTextDecoder = new TextDecoder("utf-8", { fatal: true });
 

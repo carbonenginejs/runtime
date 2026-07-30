@@ -4,13 +4,23 @@ import path from "node:path";
 import { readFile, stat } from "node:fs/promises";
 
 import { buildEffectPackage } from "../../../src/formats/webgpu/core/packageEffect.js";
-import { buildCarbonEffectContainer } from "../../../src/formats/webgpu/core/buildCarbonEffectContainer.js";
+import {
+    buildCarbonEffectContainer,
+    CEWGPU_CONTAINER_MAGIC,
+    CEWGPU_CONTAINER_VERSION
+} from "../../../src/formats/webgpu/core/buildCarbonEffectContainer.js";
 import { readEffectAnalysis } from "../../../src/formats/webgpu/core/effectAnalysis.js";
 import { CewgpuContainer } from "../../../src/formats/webgpu/core/cewgpu/CewgpuContainer.js";
+import { CEWGPU_CHUNK_PACKAGE_VERSION } from "../../../src/formats/webgpu/core/cewgpu/CewgpuPackage.js";
 import {
     readBackendBlock,
     writeBackendBlock
 } from "../../../src/format/carbonEffect/carbonEffectBackendBlock.js";
+import {
+    CARBON_EFFECT_PAYLOAD_KIND,
+    writeCarbonEffectEnvelope
+} from "../../../src/format/carbonEffect/index.js";
+import { CjsByteWriter } from "../../../src/format/CjsByteWriter.js";
 
 /**
  * Effects chosen to span the shapes that reach different descriptor branches,
@@ -203,3 +213,36 @@ test(
         assert.ok(comparedPasses > 2000, `expected a substantial comparison, got ${comparedPasses}`);
     }
 );
+
+test("the container envelope cannot be confused with the chunk package", () =>
+{
+    // The magic is deliberately shared: this is the same logical format
+    // reorganised, not a different one. So the version dword has to carry the
+    // whole discrimination, and it does -- but only because the container is
+    // version 2. At version 1 the two formats were byte-identical for eight
+    // bytes, and a chunk package with exactly one chunk matched for twelve.
+    assert.notEqual(CEWGPU_CONTAINER_VERSION, CEWGPU_CHUNK_PACKAGE_VERSION);
+
+    const envelope = new CjsByteWriter(12);
+    writeCarbonEffectEnvelope(envelope, {
+        magic: CEWGPU_CONTAINER_MAGIC,
+        containerVersion: CEWGPU_CONTAINER_VERSION,
+        payloadKind: CARBON_EFFECT_PAYLOAD_KIND.WGSL
+    });
+    const bytes = envelope.toBytes();
+
+    assert.equal(new TextDecoder().decode(bytes.subarray(0, 4)), CEWGPU_CONTAINER_MAGIC);
+    assert.equal(new DataView(bytes.buffer, bytes.byteOffset).getUint32(4, true), 2);
+
+    // Negative control: a chunk-package header must fail the container read at
+    // the version, not merely at some later field. If it were accepted here the
+    // discrimination would be happening somewhere unproven.
+    const chunkHeader = new CjsByteWriter(12);
+    chunkHeader.bytes(new TextEncoder().encode(CEWGPU_CONTAINER_MAGIC));
+    chunkHeader.u32(CEWGPU_CHUNK_PACKAGE_VERSION);
+    chunkHeader.u32(1);
+
+    const reader = new CewgpuContainer();
+    assert.equal(reader.Read(chunkHeader.toBytes(), { sourcePath: "chunk package" }), false);
+    assert.match(String(reader.readError?.message), /Unsupported container version 1/u);
+});

@@ -23,8 +23,21 @@ import { buildEffectBodyReflection } from "../../hlsl/core/portableReflection.js
 /** Four printable-ASCII bytes, provably disjoint from a Carbon version dword. */
 export const CEWGPU_CONTAINER_MAGIC = "CWGP";
 
-/** Container version. Bump when the envelope or the record layout changes. */
-export const CEWGPU_CONTAINER_VERSION = 1;
+/**
+ * Container version, and the discriminator against the chunk package.
+ *
+ * The magic is deliberately shared with the chunk format this replaces — it is
+ * the same logical format, reorganised — so the version dword is what tells them
+ * apart. The chunk package is version 1; the record layout is 2. Anything else
+ * would leave the two ambiguous in their first eight bytes, which they were at
+ * version 1: a chunk package whose chunk count happened to be 1 was byte-
+ * identical to a WGSL container for twelve bytes.
+ *
+ * Being disjoint from a *Carbon* file is a separate property and is argued at
+ * `writeCarbonEffectEnvelope`. Being disjoint from our own previous format is
+ * this constant's job.
+ */
+export const CEWGPU_CONTAINER_VERSION = 2;
 
 /**
  * The entry-point name every WGSL lowerer emits.
