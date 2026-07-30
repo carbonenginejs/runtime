@@ -323,17 +323,56 @@ by line span rather than counted whole.
 | **deleted** — untargetable, operands never reach the wire | ~48 | 0 |
 | **retained, retargeted at records** | ~60 | ~35 |
 | **retained, moved to the backend layer** (WebGPU enum tables, `STAGE_SCHEMA`, bind-group and transform checks) | ~350 | 0 |
-| header, imports, JSDoc | ~336 | ~46 |
+| imports, shared helpers, boilerplate, JSDoc | ~380 | ~141 |
+| **total** | 1757 | 609 |
 
 The retargeted column is ~60 lines, not ~436. Two clauses in it are load-bearing;
 the rest is the per-blob exhaustiveness rule and the caps already in phase 1. The
 ~350 retained-but-moved lines are not deleted and not retargeted — they keep working
 on WebGPU concepts, which is where they always belonged.
 
+The webgl boilerplate share is high — 141 of 609, 23% — because that file is one
+large driver function plus six one-line type guards, so its per-function overhead is
+proportionally larger than webgpu's thirty-six functions.
+
 This also shrinks the commit the backend split was partly sized to justify. The split
 still holds on its other grounds — webgl needs a measurement baseline, half-cost
 failure discovery, and `inspectWithValues` couples write to read within a backend but
 not across backends.
+
+### The alias decision, and the free oracle for it
+
+Aliasing is the one thing the write path **decides** rather than preserves, and
+nothing in phase 1 exercised that. Phase 1 proved re-emission: read the rows, write
+them back, aliases carried across without ever being chosen. Deciding is new logic —
+Carbon compares packed bodies pairwise and points a duplicate's row at the surviving
+twin (`ShaderCompiler.cpp:717-744`, `:804-820`), which is why `bodyKey` was dropped in
+favour of "identical offset is the alias". Getting it wrong produces a structurally
+valid file with wrong sharing: every check passes, the arena is sound, and the wrong
+permutation resolves to the wrong body. None of the rules above catch that.
+
+CCP's files are a free oracle, because they already contain the answer. The corpus
+test now decodes each shipped effect, rebuilds it through the **deciding** path
+(`CjsCarbonEffectWriter.addBody`, which dedupes bodies by content) rather than the
+preserving one, and compares the alias grouping — which rows share a body,
+canonicalised independently of where that body sits.
+
+This is a **container-level** property: which bodies are byte-identical, decided
+before any backend translation and independent of it. So the oracle runs over the
+whole corpus rather than a chosen sample — all 4833 files across dx11, dx12 and
+metal, the same sweep as the re-emit proof, with the writer deciding aliases instead
+of preserving the rows it read. WGSL support is irrelevant to it, so effects that no
+backend can translate are valid cases and are included.
+
+Measured: **900 of 4833 files alias, ratios up to 20:1, zero groupings disagree with
+CCP's compiler.** The spread matters more than any single figure — `.sm_lo` variants
+of the quad family reach 480 rows over 24 bodies (20:1) because low quality collapses
+more permutations, while `unpacked_quadv5.sm_hi` is 480 over 144 (3.3:1), reproducing
+the figure the plan quoted from Carbon exactly.
+
+The grouping is asserted by name and ahead of the byte comparison. A byte diff would
+catch a wrong grouping too, but it would report "these files differ at offset
+918204", which is not a diagnosis.
 
 ### Two traps this surfaced
 

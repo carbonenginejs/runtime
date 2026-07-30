@@ -60,6 +60,39 @@ async function* walk(dir)
 }
 
 /**
+ * Canonicalises an offset table's alias grouping: which permutation rows share a
+ * body, independent of where that body sits.
+ *
+ * Aliasing is the one thing the write path *decides* rather than preserves. Phase 1
+ * proved re-emission — read the rows, write them back — which carries aliases
+ * across without ever choosing them. Deciding is new logic: Carbon compares packed
+ * bodies pairwise and points a duplicate's row at the surviving twin
+ * (`ShaderCompiler.cpp:717-744`, `:804-820`), which is why `bodyKey` was dropped in
+ * favour of "identical offset is the alias". Get that decision wrong and the result
+ * is a structurally valid file with wrong sharing: every check passes, the arena is
+ * sound, and the wrong permutation resolves to the wrong body.
+ *
+ * CCP's own files are the oracle, because they already contain the answer.
+ *
+ * @param {object[]} records Offset-table rows.
+ * @returns {string} Canonical grouping, comparable across files.
+ */
+function aliasGrouping(records)
+{
+    const byOffset = new Map();
+    for (let index = 0; index < records.length; index += 1)
+    {
+        if (!byOffset.has(records[index].offset)) byOffset.set(records[index].offset, []);
+        byOffset.get(records[index].offset).push(index);
+    }
+    return JSON.stringify(
+        Array.from(byOffset.values())
+            .map((group) => group.slice().sort((a, b) => a - b))
+            .sort((a, b) => a[0] - b[0])
+    );
+}
+
+/**
  * Returns the first offset at which two byte runs differ, or -1.
  *
  * @param {Uint8Array} a First byte run.
@@ -93,6 +126,9 @@ test(
         const descriptionFailures = [];
         const containerFailures = [];
         const rebuildDivergences = [];
+        const aliasMismatches = [];
+        let aliasingFiles = 0;
+        let maxAliasRatio = 1;
 
         for await (const filePath of walk(corpusDir))
         {
@@ -183,6 +219,28 @@ test(
             const rebuiltBytes = rebuilt.toBytes();
             const rebuiltArenaSize = rebuilt.stringTable.byteLength;
 
+            // Assert the alias decision by name, before the byte comparison. A
+            // byte diff would catch a wrong grouping too, but it would report it as
+            // "these files differ at offset 918204", which is not a diagnosis.
+            const rebuiltReader = new CjsCarbonEffectReader(rebuiltBytes, {
+                source: `${filePath}#rebuilt`
+            });
+            const sourceGrouping = aliasGrouping(reader.records);
+            if (aliasGrouping(rebuiltReader.records) !== sourceGrouping)
+            {
+                aliasMismatches.push({
+                    filePath,
+                    rows: reader.records.length,
+                    sourceBodies: reader.diagnostics.uniqueBodyCount,
+                    rebuiltBodies: rebuiltReader.diagnostics.uniqueBodyCount
+                });
+            }
+            if (reader.records.length > reader.diagnostics.uniqueBodyCount) aliasingFiles += 1;
+            maxAliasRatio = Math.max(
+                maxAliasRatio,
+                reader.records.length / reader.diagnostics.uniqueBodyCount
+            );
+
             if (firstDifference(rebuiltBytes, original) !== -1)
             {
                 rebuildDivergences.push({
@@ -210,12 +268,18 @@ test(
             `carbon effect corpus: ${files} files, ${bodies} rows, ${uniqueBodies} distinct bodies; `
             + `${sparse} sparse, ${misordered} misordered; ${rebuildDivergences.length} arena rebuilds diverged`
         );
+        console.log(
+            `alias decision: ${aliasingFiles} files alias, max ratio `
+            + `${maxAliasRatio.toFixed(1)}:1, ${aliasMismatches.length} groupings disagreed with CCP`
+        );
         if (rebuildDivergences.length)
         {
             console.log("arena rebuild divergences (first 5):", rebuildDivergences.slice(0, 5));
         }
 
         assert.ok(files > 0, "no compiled effect files found under the corpus dir");
+        assert.deepEqual(aliasMismatches.slice(0, 5), [], `${aliasMismatches.length} files where our alias decision disagreed with CCP's compiler`);
+        assert.ok(maxAliasRatio > 1, "no aliasing file in the corpus; the alias decision is untested");
         assert.deepEqual(descriptionFailures.slice(0, 5), [], `${descriptionFailures.length} description blobs did not re-emit byte-exactly`);
         assert.deepEqual(containerFailures.slice(0, 5), [], `${containerFailures.length} containers did not re-emit byte-exactly`);
     }
