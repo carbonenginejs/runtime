@@ -55,6 +55,16 @@ Schedules an authored interactive-music graph against decoded Web Audio buffers.
 - Visibility: Public
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsJukebox -->
+## `CjsJukebox`
+
+Plays an optional neutral music-library playlist through caller-supplied browser acquisition.
+
+- Export: `@carbonenginejs/runtime-audio`
+- Source: `src/CjsJukebox.js`
+- Visibility: Public
+- Kind: CarbonEngineJS original
+
 <!-- class:CjsSfxEngine -->
 ## `CjsSfxEngine`
 

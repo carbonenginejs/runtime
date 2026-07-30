@@ -39,6 +39,10 @@ scheduler without creating a device during import.
 The optional `./library-builder` entry is separate so builder-only BNK/HIRC
 construction code is absent from ordinary runtime bundles. Playback keeps its
 WEM format import lazy until original WEM bytes actually need preparation.
+When asked to construct authored SFX from banks, the builder resolves raw
+version-150 NodeBase and Actor-Mixer inheritance supplied by
+`runtime-resource` and projects only qualified spatial metadata into the final
+document.
 
 ## Owned responsibilities
 
@@ -47,6 +51,8 @@ The package owns:
 - Carbon `Aud*`, `Tr2Audio*`, audio-geometry, action-log, placement, and
   spatial-settings classes;
 - emitter, listener, event, bank, RTPC, switch, culling, and music behavior;
+- optional neutral catalog validation and direct playlist playback through
+  caller-owned track acquisition and availability functions;
 - optional authored SFX random, step-sequence, switch/state, parallel/blend,
   gain, and live RTPC-curve behavior;
 - immutable schema-v2 document validation and installation;
@@ -73,7 +79,8 @@ as the lower-level graph/backend composition used by the manager.
   HTTP routes.
 - The application owns user-gesture timing, credentials, endpoint selection,
   and the decision to download, import, build, or request the complete
-  document.
+  document. It also owns neutral music-track delivery and decides whether
+  jukebox playback mixes with or replaces authored dynamic music.
 - `@carbonenginejs/runtime-core` composes an audio-manager service but does not
   absorb audio-domain semantics.
 
@@ -109,10 +116,17 @@ builder, or another source. Runtime-audio does not care how the document was
 obtained. Provider calls receive exact document records and request either an
 individual file, a complete original file, or one exact byte range.
 
+The optional neutral music library is a second input to `CjsAudioMan`, not a
+Wwise graph section. `CjsJukebox` passes its selected song record to the
+injected loader and decodes returned bytes with the realized browser context.
+It does not synthesize events or replace `CjsMusicEngine`. A separate injected
+probe lets the host hide or disable URLs that are not currently reachable.
+
 ## Related documentation
 
 - [Audio manager contract](concepts/audio-manager.md)
 - [Browser playback guide](guides/browser-playback.md)
 - [Authored SFX programs](guides/sfx.md)
+- [Optional jukebox](guides/jukebox.md)
 - [API reference](reference/api.md)
 - [Carbon compatibility](reference/carbon-compatibility.md)

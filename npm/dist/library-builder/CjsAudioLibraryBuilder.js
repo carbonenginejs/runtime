@@ -1,4 +1,5 @@
 import { audioMetadataFromSoundbanksInfo } from '../audioMetadata.js';
+import { validateAudioLibraryDocument } from '../library/audioLibraryDocument.js';
 import { normalizeSfxGraph } from '../library/sfxGraph.js';
 import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
 
@@ -60,6 +61,17 @@ class CjsAudioLibraryBuilder {
   }
 
   /**
+   * Projects exact event-to-media reachability from a validated SFX graph.
+   *
+   * Every possible authored branch is included. Events absent from the
+   * graph are intentionally absent from the result rather than falling back
+   * to heuristic container-byte scanning.
+   */
+  static createSfxEventMediaTable(sfx) {
+    return CreateSfxEventMediaTable(sfx);
+  }
+
+  /**
    * Resolves event graphs with explicit bank and language precedence.
    *
    * Localized variants share a bank ID and reuse HIRC object IDs. One
@@ -85,8 +97,11 @@ class CjsAudioLibraryBuilder {
    *
    * runtime-resource owns HIRC decoding. This method only names and lowers
    * codec sounds, Step Random/Sequence, Step Switch/State containers, and
-   * trackless non-continuous Layer containers. Unsupported events are
-   * omitted whole and described in diagnostics.
+   * trackless non-continuous Layer containers. It also returns a sparse
+   * event-metadata projection after resolving NodeBase positioning through
+   * hierarchy-only Actor-Mixers. Unsupported events are omitted whole and
+   * described in diagnostics; unresolved spatial inheritance omits only
+   * that metadata projection.
    */
   static createSfxGraph({
     inspections,
@@ -231,6 +246,7 @@ class CjsAudioLibraryBuilder {
     if (enrichment?.sfx) {
       result.sfx = normalizeSfxGraph(enrichment.sfx, library.media ?? {}, library.embeddedMedia ?? {});
     }
+    validateAudioLibraryDocument(result);
     return result;
   }
 
@@ -315,11 +331,14 @@ class CjsAudioLibraryBuilder {
       }
     }
     const graphInspections = SelectLanguageInspections(inspections, eventMediaLanguage);
-    const merged = this.createEventMediaGraphs(graphInspections, {
-      knownWemIds: Object.keys(library.media),
-      language: eventMediaLanguage
-    });
-    const eventMedia = this.createEventMediaTable(library.metadata, merged);
+    let eventMedia = {};
+    if (!includeSfx) {
+      const merged = this.createEventMediaGraphs(graphInspections, {
+        knownWemIds: Object.keys(library.media),
+        language: eventMediaLanguage
+      });
+      eventMedia = this.createEventMediaTable(library.metadata, merged);
+    }
     const completeOptions = {
       ...options,
       music: includeMusic || options.music === false ? null : options.music,
@@ -342,6 +361,8 @@ class CjsAudioLibraryBuilder {
       if (Object.keys(sfx.events).length) {
         assembledOptions = {
           ...assembledOptions,
+          bankProjection: sfx.metadataProjection,
+          eventMedia: this.createSfxEventMediaTable(sfx),
           sfx
         };
         library = this.build(assembledOptions);
@@ -369,6 +390,7 @@ class CjsAudioLibraryBuilder {
       indexEntries = [],
       metadata: metadataInput = null,
       soundbanksInfo,
+      bankProjection = null,
       enrichment = null,
       eventMedia = null,
       eventMediaLanguage = null,
@@ -392,6 +414,7 @@ class CjsAudioLibraryBuilder {
     const metadata = createAudioMetadata({
       metadata: metadataInput,
       soundbanksInfo,
+      bankProjection,
       enrichment
     });
     const sfx = sfxInput ?? enrichment?.sfx ?? null;
@@ -447,6 +470,7 @@ class CjsAudioLibraryBuilder {
     if (generatedAt !== null) {
       library.generatedAt = String(generatedAt);
     }
+    validateAudioLibraryDocument(library);
     return library;
   }
 }
@@ -460,6 +484,8 @@ function LowerSfxGraph({
   const nodes = {};
   const events = {};
   const lowered = new Map();
+  const leavesByNode = new Map();
+  const leavesByEvent = new Map();
   const active = new Set();
   const omittedEvents = [];
   const usedIDs = new Set([...parsed.nodes.keys()].map(value => String(value >>> 0)));
@@ -507,8 +533,16 @@ function LowerSfxGraph({
     active.add(id);
     try {
       let node;
+      const leaves = new Set();
+      const lowerChild = childID => {
+        const loweredID = lower(childID);
+        const childKey = String(Number(childID) >>> 0);
+        AddSet(leaves, leavesByNode.get(childKey));
+        return loweredID;
+      };
       if (source.type === "sound") {
         const mediaID = String(source.sourceId >>> 0);
+        const loopCount = parsed.nodeBases?.get(Number(id))?.loopCount;
         if (source.pluginType !== 1) {
           throw new Error(`source plug-in sound ${id}`);
         }
@@ -517,8 +551,15 @@ function LowerSfxGraph({
         }
         node = {
           type: "sound",
-          mediaId: mediaID
+          mediaId: mediaID,
+          // The runtime graph currently represents infinite loops.
+          // Positive Wwise loop counts remain finite authored repeats
+          // and therefore must not become WebAudio infinite loops.
+          ...(loopCount === 0 ? {
+            loop: true
+          } : {})
         };
+        leaves.add(Number(id) >>> 0);
       } else if (source.type === "random" || source.type === "sequence") {
         if (source.continuous) {
           throw new Error(`continuous ${source.type} ${id}`);
@@ -536,7 +577,7 @@ function LowerSfxGraph({
             continue;
           }
           children.push({
-            nodeId: lower(item.playId),
+            nodeId: lowerChild(item.playId),
             ...(source.type === "random" && source.usingWeight ? {
               weight: item.weight
             } : {})
@@ -573,7 +614,7 @@ function LowerSfxGraph({
           if (!valueName) {
             throw new Error(`unnamed ${scope} value ${assignment.valueId}`);
           }
-          const child = aggregate(assignment.childIds.map(lower));
+          const child = aggregate(assignment.childIds.map(lowerChild));
           cases[valueName] = {
             nodeId: child
           };
@@ -604,7 +645,7 @@ function LowerSfxGraph({
           throw new Error(`tracked layer ${id}`);
         }
         const children = source.children.map(nodeId => ({
-          nodeId: lower(nodeId)
+          nodeId: lowerChild(nodeId)
         }));
         if (!children.length) {
           throw new Error(`empty layer ${id}`);
@@ -618,6 +659,7 @@ function LowerSfxGraph({
       }
       nodes[id] = node;
       lowered.set(id, id);
+      leavesByNode.set(id, leaves);
       return id;
     } finally {
       active.delete(id);
@@ -630,6 +672,7 @@ function LowerSfxGraph({
     }
     try {
       const roots = [];
+      const leaves = new Set();
       const unsupportedActions = [];
       for (const actionID of event.actionIds) {
         const action = parsed.actions.get(actionID);
@@ -643,6 +686,7 @@ function LowerSfxGraph({
           roots.push({
             nodeId: lower(action.targetId)
           });
+          AddSet(leaves, leavesByNode.get(String(Number(action.targetId) >>> 0)));
         } else {
           unsupportedActions.push(action.actionType);
         }
@@ -652,6 +696,7 @@ function LowerSfxGraph({
           throw new Error("mixed event actions " + unsupportedActions.map(value => `0x${value.toString(16)}`).join(", "));
         }
         events[name] = roots;
+        leavesByEvent.set(name, leaves);
       }
     } catch (error) {
       omittedEvents.push({
@@ -662,16 +707,149 @@ function LowerSfxGraph({
     }
   }
   const pruned = PruneSfxNodes(events, nodes);
+  const spatial = CreateSfxSpatialProjection(parsed, leavesByEvent);
   return {
     schemaVersion: 1,
     generator: "@carbonenginejs/runtime-audio/library-builder",
     events,
     nodes: pruned,
+    metadataProjection: {
+      Events: spatial.events
+    },
     diagnostics: {
       parser: parsed.diagnostics,
-      omittedEvents
+      omittedEvents,
+      spatial: spatial.diagnostics
     }
   };
+}
+function CreateSfxEventMediaTable(sfx) {
+  const events = sfx?.events;
+  const nodes = sfx?.nodes;
+  if (!events || typeof events !== "object" || Array.isArray(events) || !nodes || typeof nodes !== "object" || Array.isArray(nodes)) {
+    throw new TypeError("Authored SFX event-media projection requires events and nodes");
+  }
+  const table = {};
+  for (const eventName of Object.keys(events).sort()) {
+    const pending = (events[eventName] ?? []).map(child => String(child?.nodeId ?? child));
+    const visited = new Set();
+    const media = new Set();
+    while (pending.length) {
+      const id = pending.pop();
+      if (visited.has(id)) {
+        continue;
+      }
+      visited.add(id);
+      const node = nodes[id];
+      if (!node) {
+        throw new TypeError(`Authored SFX event ${eventName} references missing node ${id}`);
+      }
+      if (node.type === "sound") {
+        media.add(String(node.mediaId));
+        continue;
+      }
+      for (const child of SfxNodeChildren(node)) {
+        pending.push(String(child?.nodeId ?? child));
+      }
+    }
+    if (media.size) {
+      table[eventName] = [...media].sort((left, right) => Number(left) - Number(right));
+    }
+  }
+  return table;
+}
+function SfxNodeChildren(node) {
+  if (node.type === "switch") {
+    return [...Object.values(node.cases ?? {}), ...(node.default === undefined || node.default === null ? [] : [node.default])];
+  }
+  return node.children ?? [];
+}
+function CreateSfxSpatialProjection(parsed, leavesByEvent) {
+  const cache = new Map();
+  const active = new Set();
+  const events = {};
+  const projected = [];
+  const omitted = [];
+  const resolve = rawID => {
+    const id = Number(rawID) >>> 0;
+    if (cache.has(id)) {
+      return cache.get(id);
+    }
+    if (active.has(id)) {
+      return {
+        known: false,
+        reason: `positioning parent cycle at ${id}`
+      };
+    }
+    const nodeBase = parsed.nodeBases?.get(id);
+    if (!nodeBase) {
+      const result = {
+        known: false,
+        reason: `missing NodeBase ${id}`
+      };
+      cache.set(id, result);
+      return result;
+    }
+    active.add(id);
+    let result;
+    try {
+      if (nodeBase.positioning?.overrideParent) {
+        result = {
+          known: true,
+          // Carbon's generated is2D metadata follows the resolved
+          // positioning owner's attenuation assignment, not merely
+          // Wwise's listener-relative-routing bit. A v150
+          // Common+Effects+Modules corpus comparison matched the
+          // source audio metadata for every fully lowered event.
+          is2D: nodeBase.attenuationId === null || nodeBase.attenuationId === 0
+        };
+      } else {
+        const parentId = Number(nodeBase.directParentId) >>> 0;
+        result = parentId ? resolve(parentId) : {
+          known: false,
+          reason: `NodeBase ${id} inherits from no serialized parent`
+        };
+      }
+    } finally {
+      active.delete(id);
+    }
+    cache.set(id, result);
+    return result;
+  };
+  for (const [name, leafSet] of leavesByEvent) {
+    const leafIds = [...leafSet].sort((left, right) => left - right);
+    const resolved = leafIds.map(resolve);
+    const unknown = resolved.filter(value => !value.known).map(value => value.reason);
+    if (!leafIds.length || unknown.length) {
+      omitted.push({
+        name,
+        leafIds,
+        reasons: [...new Set(unknown.length ? unknown : ["event has no playable leaves"])]
+      });
+      continue;
+    }
+    const is2D = resolved.every(value => value.is2D) ? 1 : 0;
+    events[name] = {
+      is2D
+    };
+    projected.push({
+      name,
+      leafIds,
+      is2D
+    });
+  }
+  return {
+    events,
+    diagnostics: {
+      projected,
+      omitted
+    }
+  };
+}
+function AddSet(target, source) {
+  for (const value of source ?? []) {
+    target.add(value);
+  }
 }
 function CreateSfxNameCatalog(soundbanksInfo) {
   const groups = new Map();
@@ -925,19 +1103,31 @@ function compareIndexEntries(left, right) {
 function createAudioMetadata({
   metadata,
   soundbanksInfo,
+  bankProjection = null,
   enrichment
 }) {
-  let result;
+  let result = {
+    Events: {},
+    SoundBanks: {},
+    WemFileIDs: {}
+  };
+  let hasBase = false;
   if (soundbanksInfo !== null && soundbanksInfo !== undefined) {
     result = normalizeAudioMetadata(audioMetadataFromSoundbanksInfo(soundbanksInfo), "SoundbanksInfo metadata");
-    if (metadata !== null && metadata !== undefined) {
-      result = mergeAudioMetadata(result, normalizeAudioMetadata(metadata, "audio metadata", {
-        partial: true
-      }));
-    }
-  } else if (metadata !== null && metadata !== undefined) {
-    result = normalizeAudioMetadata(metadata, "audio metadata");
-  } else {
+    hasBase = true;
+  }
+  if (bankProjection !== null && bankProjection !== undefined) {
+    result = mergeAudioMetadata(result, normalizeAudioMetadata(bankProjection, "bank-derived audio metadata", {
+      partial: true
+    }));
+  }
+  if (metadata !== null && metadata !== undefined) {
+    result = mergeAudioMetadata(result, normalizeAudioMetadata(metadata, "audio metadata", {
+      partial: hasBase
+    }));
+    hasBase = true;
+  }
+  if (!hasBase) {
     throw new TypeError("Audio-library construction requires metadata or soundbanksInfo");
   }
   if (enrichment !== null && enrichment !== undefined) {

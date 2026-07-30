@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -9,6 +10,7 @@ const excludedDirectories = new Set([
   ".deno",
   ".scratch",
   "coverage",
+  "music-cache",
   "node_modules"
 ]);
 const violations = [];
@@ -61,6 +63,24 @@ function ScanDirectory(directory, relativeDirectory)
 
 function ContainsProhibitedText(absolutePath)
 {
+  if (absolutePath.toLowerCase().endsWith(".gz"))
+  {
+    try
+    {
+      return zlib.gunzipSync(fs.readFileSync(absolutePath))
+        .toString("utf8")
+        .toLowerCase()
+        .includes(prohibited);
+    }
+    catch
+    {
+      return fs.readFileSync(absolutePath)
+        .toString("utf8")
+        .toLowerCase()
+        .includes(prohibited);
+    }
+  }
+
   const text = fs.readFileSync(absolutePath).toString("utf8");
 
   if (!absolutePath.toLowerCase().endsWith(".map"))

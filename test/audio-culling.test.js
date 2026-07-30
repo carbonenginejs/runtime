@@ -107,6 +107,74 @@ test("CullAudio keeps the nearest set awake (with Carbon's +1 quirk) and skips m
   }
 });
 
+test("missing attenuation metadata cannot silence a one-shot at the listener", () =>
+{
+  const repository = new AudStaticDataRepository();
+  const prioritization = new SoundPrioritization();
+  const posted = [];
+
+  repository.Initialize({
+    Events: {
+      authored_shot: {
+        eventID: 7,
+        maxRadiusAttenuation: 0,
+        isLoop: 0,
+        is2D: 0,
+        isVital: 0,
+        eventsStoppedBy: [],
+        soundbanks: [ "common.bnk" ],
+      },
+    },
+    SoundBanks: { "common.bnk": { EssentialSoundBank: 0 } },
+    WemFileIDs: {},
+  });
+  AudGameObjResource.staticDataRepository = repository;
+  AudGameObjResource.manager = {
+    enabled: true,
+    audioCullingEnabled: true,
+    soundPrioritization: prioritization,
+    RegisterGameObject() {},
+    GetSoundBankStatus: () => "loaded",
+    LogPostEvent() {},
+  };
+  AudGameObjResource.backend = {
+    RegisterGameObj() {},
+    SetPosition() {},
+    SetScalingFactor() {},
+    PostEvent(eventID)
+    {
+      posted.push(eventID);
+      return 91;
+    },
+  };
+
+  try
+  {
+    const emitter = new AudEmitter();
+
+    emitter.SetPlacement(
+      [ 0, 0, 1 ],
+      [ 0, 1, 0 ],
+      [ 0, 0, 0 ],
+    );
+    assert.equal(emitter.PostEvent("authored_shot"), 0);
+    assert.equal(emitter.GetWaitingOneShot(), "authored_shot");
+
+    emitter.SetDistanceSqFromListener(0);
+    emitter.CalculateCullingWeight(0);
+    assert.equal(emitter.listenerInRange, true);
+
+    emitter.Wake();
+    assert.deepEqual(posted, [ 7 ]);
+    assert.equal(emitter.GetWaitingOneShot(), "");
+    assert.equal(emitter.GetPlayingEvents().get(91), "authored_shot");
+  }
+  finally
+  {
+    teardown();
+  }
+});
+
 
 test("attenuation normalization remaps without clamping", () =>
 {

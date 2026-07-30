@@ -12,6 +12,11 @@ An optional SFX program in that document provides authored random,
 step-sequence, switch/state, parallel/blend, gain, and live RTPC-curve
 behavior without changing how media bytes are delivered.
 
+An independent optional music-library input powers `CjsJukebox`. Song URLs
+and paths remain caller-owned; the browser application supplies acquisition
+and optional availability functions, while runtime-audio owns
+cancellation-safe decode and playback.
+
 ## Install
 
 ```sh
@@ -71,6 +76,7 @@ contracts.
 - [Architecture and boundaries](docs/architecture.md)
 - [Browser playback guide](docs/guides/browser-playback.md)
 - [Authored SFX programs](docs/guides/sfx.md)
+- [Optional jukebox](docs/guides/jukebox.md)
 - [Current API reference](docs/reference/api.md)
 - [Carbon compatibility](docs/reference/carbon-compatibility.md)
 - [Class-purpose catalog](docs/reference/classes/README.md)

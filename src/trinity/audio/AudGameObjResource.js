@@ -745,7 +745,8 @@ export class AudGameObjResource extends CjsModel
 
   /** Carbon method ApplyEventStopRelationships: purge queued/playing events this event stops. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Carbon relies on Wwise to execute the posted Stop action; the portable backend must dispatch the equivalent stop while applying the same metadata relationship.")
   ApplyEventStopRelationships(stoppingEventName)
   {
     const repository = AudGameObjResource.staticDataRepository;
@@ -754,6 +755,7 @@ export class AudGameObjResource extends CjsModel
       return;
     }
     let changed = false;
+    const playingIDsToStop = [];
     for (const queued of [...this.#eventsOnWake])
     {
       if (repository.EventIsStopped(queued, stoppingEventName))
@@ -767,8 +769,13 @@ export class AudGameObjResource extends CjsModel
       if (repository.EventIsStopped(playing, stoppingEventName))
       {
         this.#pendingStoppedPlayingIDs.add(playingID);
+        playingIDsToStop.push(playingID);
         changed = true;
       }
+    }
+    for (const playingID of playingIDsToStop)
+    {
+      this.ExecuteActionOnPlayingID(playingID, "stop", 1000);
     }
     if (changed)
     {
@@ -857,7 +864,7 @@ export class AudGameObjResource extends CjsModel
   /** Carbon method CalculateCullingWeight: refresh in-range/one-shot state and store the weight. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon reads the weights through g_audioManager property delegates; CarbonEngineJS reads the manager's SoundPrioritization directly (same multiplied values).")
+  @impl.reason("Carbon reads complete authored radii and manager property delegates. CarbonEngineJS reads the manager's SoundPrioritization directly and treats a nonpositive radius as unknown/unbounded so optional metadata cannot make an event inaudible.")
   CalculateCullingWeight(now = NowMs())
   {
     const prioritization = AudGameObjResource.manager?.soundPrioritization;
@@ -867,7 +874,13 @@ export class AudGameObjResource extends CjsModel
     }
     if (!this.#muted)
     {
-      this.listenerInRange = this.playing2DSound || this.distanceFromListener < this.GetMaxAttenuationRadius();
+      // Carbon AudGameObjResource.cpp:741 compares the squared distance
+      // strictly against complete authored metadata. Portable libraries may
+      // omit that optional radius; zero therefore means unknown, not silent.
+      const maxAttenuationRadius = this.GetMaxAttenuationRadius();
+      this.listenerInRange = this.playing2DSound
+        || maxAttenuationRadius <= 0
+        || this.distanceFromListener < maxAttenuationRadius;
     }
     let waitingOneShotWeight = 0;
     if (this.#culled && this.#waitingOneShotName)

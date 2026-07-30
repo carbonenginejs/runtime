@@ -99,6 +99,62 @@ test("AudActionLogCB receives Carbon-shaped records from live manager and emitte
   }
 });
 
+test("portable stop relationships dispatch the backend action Wwise normally owns", () =>
+{
+  const repository = new AudStaticDataRepository();
+  repository.Initialize({
+    Events: {
+      engine_loop: {
+        eventID: 7,
+        isLoop: 1,
+        eventsStoppedBy: [ "engine_stop" ],
+        soundbanks: [ "ships.bnk" ]
+      },
+      engine_stop: {
+        eventID: 8,
+        isLoop: 0,
+        eventsStoppedBy: [],
+        soundbanks: [ "ships.bnk" ]
+      }
+    },
+    SoundBanks: { "ships.bnk": { EssentialSoundBank: 0 } },
+    WemFileIDs: {}
+  });
+  const manager = new AudManager();
+  const actions = [];
+  let nextPlayingID = 40;
+
+  AudGameObjResource.manager = manager;
+  AudGameObjResource.staticDataRepository = repository;
+  AudGameObjResource.backend = {
+    Init: () => true,
+    LoadBank: (name, callback) => callback(true),
+    RegisterGameObj: () => {},
+    SetPosition: () => {},
+    PostEvent: () => ++nextPlayingID,
+    ExecuteActionOnPlayingID: (...args) => actions.push(args),
+    RenderAudio: () => {}
+  };
+
+  try
+  {
+    manager.Enable([ "ships.bnk" ]);
+    const emitter = new AudEmitter();
+    emitter.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
+    emitter.Wake();
+
+    assert.equal(emitter.PostEvent("engine_loop"), 41);
+    assert.equal(emitter.PostEvent("engine_stop"), 42);
+    assert.deepEqual(actions, [
+      [ "stop", 41, 1000 ]
+    ]);
+  }
+  finally
+  {
+    ResetAudioSeams();
+  }
+});
+
 test("AudPosition retains Carbon placement-observer values without browser globals", () =>
 {
   const position = new AudPosition();

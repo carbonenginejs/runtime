@@ -18,6 +18,7 @@ function validateAudioLibraryDocument(value) {
   RequireRecord(metadata.WemFileIDs, "Audio library metadata.WemFileIDs");
   RequireRecord(value.media, "Audio library media");
   RequireRecord(value.banks, "Audio library banks");
+  ValidateEventMetadata(metadata.Events);
   ValidateBanks(value.banks);
   ValidateEmbeddedMedia(value.embeddedMedia, value.banks);
   ValidateEventMedia(value.eventMedia, value.eventMediaLanguage, value.media, value.embeddedMedia ?? {});
@@ -32,6 +33,17 @@ function validateAudioLibraryDocument(value) {
   ValidateMusic(value.music, value.media, value.embeddedMedia ?? {});
   ValidateEventOwnership(value.sfx, value.music);
   return true;
+}
+function ValidateEventMetadata(events) {
+  for (const [name, event] of Object.entries(events)) {
+    RequireRecord(event, `Audio library metadata event ${name}`);
+    if (event.is2D !== undefined && event.is2D !== 0 && event.is2D !== 1) {
+      throw new TypeError(`Audio library metadata event ${name} is2D must be 0 or 1`);
+    }
+    if (event.maxRadiusAttenuation !== undefined && (!Number.isFinite(event.maxRadiusAttenuation) || event.maxRadiusAttenuation < 0)) {
+      throw new TypeError(`Audio library metadata event ${name} maxRadiusAttenuation must be a non-negative finite number`);
+    }
+  }
 }
 function ValidateEventOwnership(sfx, music) {
   if (!sfx || !music) {

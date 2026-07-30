@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>runtime-audio demo — real library, synthesized sound, no Trinity</title>
+<title>runtime-audio demo — authored SFX, music, and media delivery</title>
 <style>
   body { font: 13px/1.5 system-ui, "Segoe UI", sans-serif; margin: 0; display: grid; grid-template-columns: 340px 1fr; height: 100vh; background: #0b0e14; color: #cdd6e4; }
   #panel { padding: 14px; overflow-y: auto; border-right: 1px solid #1e2633; }
@@ -20,7 +20,7 @@
   #events li span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #events .kind, #events .radius { color: #64748b; white-space: nowrap; text-align: right; font-size: 11px; }
   #stage { position: relative; }
-  canvas { width: 100%; height: 100%; display: block; }
+  canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
   #hud { position: absolute; top: 10px; left: 12px; color: #94a3b8; }
   #musicHud { position: absolute; top: 30px; left: 12px; color: #a78bfa; white-space: nowrap; }
   #controls { position: absolute; top: 10px; right: 12px; width: 252px; display: flex; flex-direction: column; gap: 10px; }
@@ -34,6 +34,9 @@
   #mixTable { margin: 0; border-collapse: collapse; }
   #mixTable td { padding: 2px 8px 2px 0; color: #94a3b8; white-space: nowrap; font-size: 12px; }
   #mixTable input[type=range] { width: 130px; vertical-align: middle; }
+  .buttonRow { display: flex; gap: 6px; margin-top: 7px; }
+  .buttonRow button { flex: 1; padding: 6px 8px; font-size: 12px; }
+  #sfxStatus { color: #7dd3fc; font-size: 11px; line-height: 1.4; margin-top: 7px; }
   .loop { color: #34d399; } .vital { color: #f59e0b; } .flat { color: #64748b; }
 </style>
 </head>
@@ -65,11 +68,43 @@
       <p class="hint" style="margin:0 0 6px">the real EVE music graph; moods steer the switch container</p>
       <select id="moods" title="mood"></select>
     </div>
+    <div class="card" id="jukebox">
+      <h2>classic jukebox</h2>
+      <p class="hint" style="margin:0 0 6px">75 titled tracks supplied as a separate optional music library</p>
+      <select id="jukeboxTracks" title="classic EVE track"></select>
+      <div class="buttonRow">
+        <button id="jukeboxPrevious" type="button" title="previous track">previous</button>
+        <button id="jukeboxPlay" type="button">play</button>
+        <button id="jukeboxPause" type="button">pause</button>
+        <button id="jukeboxNext" type="button" title="next track">next</button>
+      </div>
+      <div id="jukeboxStatus" class="hint" style="margin-top:6px">enable audio to use the jukebox</div>
+    </div>
+    <div class="card" id="sfx" style="display:none">
+      <h2>authored SFX</h2>
+      <p class="hint" style="margin:0 0 6px">real BNK/HIRC graphs interpreted by CjsAudioMan; repeat a selection to exercise its container state</p>
+      <select id="sfxExamples" title="authored SFX example"></select>
+      <div class="buttonRow">
+        <button id="sfxPost" type="button">post again</button>
+        <button id="sfxReset" type="button">reset object</button>
+      </div>
+      <label for="delivery">media delivery</label>
+      <select id="delivery" title="CjsAudioMan media delivery">
+        <option value="auto">auto</option>
+        <option value="individual">individual file</option>
+        <option value="range">exact bank range</option>
+        <option value="whole">whole bank + local slice</option>
+      </select>
+      <div id="sfxStatus"></div>
+    </div>
     <div class="card">
       <h2>runtime-audio demo</h2>
       <ul id="help">
         <li>click a panel item to play it</li>
+        <li>use authored SFX to hear random, Step sequence, and parallel graphs</li>
+        <li>download demo tracks with <code>npm run demo:music</code>, then use the classic jukebox</li>
         <li>drag the listener or an emitter to move it</li>
+        <li>drag empty space to pan around the scene</li>
         <li>right-click an emitter to remove it</li>
         <li>wheel over an emitter to scale it</li>
         <li>alt + wheel over an emitter to rotate it</li>
@@ -77,6 +112,7 @@
         <li><span style="color:#7dd3fc">blue tick</span> effective emitter direction</li>
         <li><span style="color:#cbd5e1">white ring</span> hearing range</li>
         <li><span style="color:#3b82f6">blue ring</span> engine cull range</li>
+        <li><span style="color:#c084fc">●</span> authored SFX active · <span style="color:#c084fc">○</span> idle retained state (Reset removes)</li>
         <li><span style="color:#34d399">●</span> placed · <span style="color:#fbbf24">●</span> demo · <span style="color:#475569">●</span> culled</li>
       </ul>
     </div>
@@ -91,8 +127,8 @@
     "@carbonenginejs/runtime-utils/quat": "/runtime-utils/src/quat.js",
     "@carbonenginejs/runtime-utils/vec3": "/runtime-utils/src/vec3.js",
     "@carbonenginejs/runtime-utils/graphics": "/runtime-utils/src/graphics/index.js",
-    "gl-matrix/": "/runtime-utils/node_modules/gl-matrix/",
-    "@carbonenginejs/runtime-resource/formats/wem": "/runtime-resource/npm/dist/formats/wem/index.js"
+    "@carbonenginejs/runtime-resource/formats/wem": "/runtime-resource/npm/dist/formats/wem/index.js",
+    "gl-matrix/": "/runtime-utils/node_modules/gl-matrix/"
   }
 }
 </script>

@@ -55,6 +55,12 @@ The principal example is emitter position and authored rotation.
 Browser callbacks run on the JavaScript event loop. UI completion callbacks are
 tracked per playing ID so overlapping events complete independently.
 
+Carbon receives complete authored attenuation data. A portable schema-v2
+library may omit the optional per-event culling enrichment; in that case a
+nonpositive attenuation radius is treated as unknown/unbounded so the event
+remains playable. Positive authored radii retain Carbon's squared-distance
+culling behavior.
+
 ## Unsupported native behavior
 
 The package does not emulate:

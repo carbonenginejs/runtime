@@ -1,17 +1,21 @@
-// runtime-audio demo — real library, synthesized fallback, no Trinity.
+// runtime-audio demo — complete library, authored graphs, no Trinity.
 //
 // Class-based demo application. Each class owns one concern:
 //   AudioLibrary     the audio artifact + event/effect naming queries
-//   MediaSource      wem fetch/decode, synthesized stand-ins, media stats
+//   MediaSource      structural individual/whole/range provider + media stats
 //   Scene            listener + emitter population and lifecycle sequences
 //   Stage            canvas view, pointer interaction, hover card, drawing
 //   MusicUi          dynamic-music chips, play/stop, one-line status hud
+//   JukeboxUi        optional titled-track library and direct playlist controls
+//   SfxUi            authored random/sequence/parallel graph exercises
 //   Showcase         the prebuilt "Load demo" scene and its schedulers
 //   EffectListPanel  the searchable effect list on the left
-//   DemoApp          wiring, audio-system enablement, the frame loop
+//   DemoApp          CjsAudioMan wiring, enablement, and the frame loop
 
-import { CjsAudioSystem, AudEmitter, AudListener, AudMusicPlayer } from "/runtime-audio/npm/dist/index.js";
-import { CjsWemFormat } from "@carbonenginejs/runtime-resource/formats/wem";
+import {
+    CjsAudioMan,
+    CjsMusicEngine,
+} from "/runtime-audio/npm/dist/index.js";
 
 // One acoustic scale everywhere: world units -> panner units.
 const ACOUSTIC_SCALE = 1 / 150;
@@ -34,18 +38,15 @@ function PrettyName(name)
         .join(" ");
 }
 
-// FNV-1a: a stable per-event identity for media picks and synth parameters.
-function HashName(text)
+/** True while an emitter is playing or retaining work for a later wake. */
+function IsEmitterBusy(emitter)
 {
-    let h = 2166136261;
-    for (const c of text)
-    {
-        h ^= c.charCodeAt(0);
-        h = Math.imul(h, 16777619);
-    }
-    return h >>> 0;
+    return Boolean(
+        emitter.GetPlayingEvents().size
+        || emitter.GetEventsOnWake().length
+        || emitter.GetWaitingOneShot(),
+    );
 }
-
 
 /**
  * The audio artifact plus every naming/graph query the demo asks of it:
@@ -119,21 +120,283 @@ class AudioLibrary
         return this.raw.music ?? null;
     }
 
-    GetEventRecord(eventName)
+    /** Authored SFX graph projected from the supplied BNK/HIRC data. */
+    get sfx()
     {
-        return this.raw.metadata.Events[eventName];
+        return this.raw.sfx ?? null;
+    }
+
+    /** Returns every authored node family reachable from one SFX event. */
+    SfxNodeTypes(eventName)
+    {
+        const graph = this.sfx;
+        const roots = graph?.events?.[eventName] ?? [];
+        const pending = roots.map(root => String(root.nodeId));
+        const visited = new Set();
+        const types = new Set();
+
+        while (pending.length)
+        {
+            const id = pending.pop();
+
+            if (visited.has(id))
+            {
+                continue;
+            }
+            visited.add(id);
+
+            const node = graph.nodes[id];
+
+            if (!node)
+            {
+                continue;
+            }
+
+            types.add(node.type);
+            for (const child of node.children ?? [])
+            {
+                pending.push(String(child.nodeId));
+            }
+            for (const child of Object.values(node.cases ?? {}))
+            {
+                pending.push(String(child.nodeId));
+            }
+            if (node.default)
+            {
+                pending.push(String(node.default.nodeId));
+            }
+        }
+
+        return [ ...types ];
     }
 
     /**
-     * Exact event->wem edges (HIRC graph) are the ONLY media route: every
-     * event with a reachable play chain in the shipped banks has edges.
-     * Events without them are control events (stop/pause - their actions
-     * target other events) or reference unshipped objects; the real client
-     * plays nothing for those.
+     * Selects one deterministic, playable event for each authored container
+     * family present in the demo library.
+     */
+    SfxExamples()
+    {
+        const preferences = {
+            sound: [ "dungeon_particle_accelerator_play" ],
+            random: [ "Play_explosion_large" ],
+            sequence: [ "msg_fittingSlotHi_play" ],
+            parallel: [ "microjumpdrive_cycle_play" ],
+            switch: [],
+            blend: [],
+        };
+        const eventNames = Object.keys(this.sfx?.events ?? {}).sort();
+        const examples = [];
+
+        for (const type of Object.keys(preferences))
+        {
+            const preferred = preferences[type].find(name =>
+                this.SfxNodeTypes(name).includes(type));
+            const eventName = preferred ?? eventNames.find(name =>
+                this.SfxNodeTypes(name).includes(type));
+
+            if (eventName)
+            {
+                examples.push({
+                    eventName,
+                    type,
+                    nodeTypes: this.SfxNodeTypes(eventName),
+                });
+            }
+        }
+
+        return examples;
+    }
+
+    GetEventRecord(eventName)
+    {
+        const record = this.raw.metadata.Events[eventName];
+
+        return record
+            ? {
+                ...record,
+                isLoop: this.EventMayLoop(eventName) ? 1 : 0,
+            }
+            : undefined;
+    }
+
+    /**
+     * True when an exact authored SFX branch can play an infinite Sound loop.
+     *
+     * A supplied enrichment flag remains the fallback for older graphs whose
+     * Sound leaves do not carry an explicit override.
+     */
+    EventMayLoop(eventName)
+    {
+        const graph = this.sfx;
+        const roots = graph?.events?.[eventName] ?? [];
+        const pending = roots.map(root => String(root.nodeId));
+        const visited = new Set();
+        const fallback = Boolean(
+            this.raw.metadata.Events[eventName]?.isLoop,
+        );
+
+        while (pending.length)
+        {
+            const id = pending.pop();
+
+            if (visited.has(id))
+            {
+                continue;
+            }
+            visited.add(id);
+
+            const node = graph.nodes[id];
+
+            if (!node)
+            {
+                continue;
+            }
+            if (node.type === "sound")
+            {
+                if (node.loop === undefined ? fallback : node.loop)
+                {
+                    return true;
+                }
+                continue;
+            }
+            for (const child of node.children ?? [])
+            {
+                pending.push(String(child.nodeId));
+            }
+            for (const child of Object.values(node.cases ?? {}))
+            {
+                pending.push(String(child.nodeId));
+            }
+            if (node.default)
+            {
+                pending.push(String(node.default.nodeId));
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * True when every possible Sound leaf is an infinite loop delivered from
+     * an embedded BNK range. The committed showcase uses this stricter subset
+     * so a visible startup source never depends on an unavailable loose WEM.
+     */
+    EventHasSelfContainedLoop(eventName)
+    {
+        const graph = this.sfx;
+        const roots = graph?.events?.[eventName] ?? [];
+        const pending = roots.map(root => String(root.nodeId));
+        const visited = new Set();
+        const fallback = Boolean(
+            this.raw.metadata.Events[eventName]?.isLoop,
+        );
+        let soundCount = 0;
+
+        while (pending.length)
+        {
+            const id = pending.pop();
+
+            if (visited.has(id))
+            {
+                continue;
+            }
+            visited.add(id);
+
+            const node = graph.nodes[id];
+
+            if (!node || node.type === "silence")
+            {
+                return false;
+            }
+            if (node.type === "sound")
+            {
+                soundCount++;
+                const loops = node.loop === undefined
+                    ? fallback
+                    : node.loop;
+                const url = this.WemUrl(String(node.mediaId));
+
+                if (!loops || !url?.startsWith("/bankwem/"))
+                {
+                    return false;
+                }
+                continue;
+            }
+            for (const child of node.children ?? [])
+            {
+                pending.push(String(child.nodeId));
+            }
+            for (const child of Object.values(node.cases ?? {}))
+            {
+                pending.push(String(child.nodeId));
+            }
+            if (node.default)
+            {
+                pending.push(String(node.default.nodeId));
+            }
+        }
+
+        return soundCount > 0;
+    }
+
+    /**
+     * Returns the media leaves reachable through the exact authored SFX graph.
+     *
+     * The legacy flat eventMedia table was recovered by scanning undecoded
+     * container bytes for values that resembled object or WEM ids. It is useful
+     * as diagnostic reachability data, but it is not safe as a playback route:
+     * a false-positive id can select an unrelated voice line. The demo therefore
+     * fails closed for events outside the validated SFX graph.
      */
     PlayableCandidates(eventName)
     {
-        return (this.raw.eventMedia?.[eventName] ?? []).filter(wemId => this.WemUrl(wemId));
+        const graph = this.sfx;
+        const roots = graph?.events?.[eventName] ?? [];
+        const pending = roots.map(root => String(root.nodeId));
+        const visited = new Set();
+        const media = new Set();
+
+        while (pending.length)
+        {
+            const id = pending.pop();
+
+            if (visited.has(id))
+            {
+                continue;
+            }
+            visited.add(id);
+
+            const node = graph.nodes[id];
+
+            if (!node)
+            {
+                continue;
+            }
+            if (node.type === "sound")
+            {
+                const mediaId = String(node.mediaId);
+
+                if (this.WemUrl(mediaId))
+                {
+                    media.add(mediaId);
+                }
+                continue;
+            }
+            for (const child of node.children ?? [])
+            {
+                pending.push(String(child.nodeId));
+            }
+            for (const child of Object.values(node.cases ?? {}))
+            {
+                pending.push(String(child.nodeId));
+            }
+            if (node.default)
+            {
+                pending.push(String(node.default.nodeId));
+            }
+        }
+
+        return [ ...media ];
     }
 
     /**
@@ -170,16 +433,22 @@ class AudioLibrary
     SequenceFor(stages)
     {
         const sequence = [];
-        for (const stage of [ "on", "activate", "begin", "start" ]) if (stages.has(stage)) sequence.push(stage);
-        if (stages.has("idle")) sequence.push("idle");
-        if (stages.has("active"))
+        const playable = stage =>
+            stages.has(stage)
+            && this.PlayableCandidates(stages.get(stage)).length > 0;
+
+        for (const stage of [ "on", "activate", "begin", "start" ]) if (playable(stage)) sequence.push(stage);
+        if (playable("idle")) sequence.push("idle");
+        if (playable("active"))
         {
             sequence.push("active");
-            if (stages.has("idle")) sequence.push("idle");
+            if (playable("idle")) sequence.push("idle");
         }
-        for (const stage of [ "fire", "play", "event" ]) if (stages.has(stage)) sequence.push(stage);
-        for (const stage of [ "end", "powerdown", "deactivate", "stop", "off" ]) if (stages.has(stage)) sequence.push(stage);
-        return sequence.length ? sequence : [ ...stages.keys() ].slice(0, 1);
+        for (const stage of [ "fire", "play", "event" ]) if (playable(stage)) sequence.push(stage);
+        for (const stage of [ "end", "powerdown", "deactivate", "stop", "off" ]) if (playable(stage)) sequence.push(stage);
+        return sequence.length
+            ? sequence
+            : [ ...stages.keys() ].filter(playable).slice(0, 1);
     }
 
     /** Aggregate display facts across an effect's stages */
@@ -196,6 +465,25 @@ class AudioLibrary
             anyPlayable = anyPlayable || this.PlayableCandidates(name).length > 0;
         }
         return { radius, anyLoop, anyPlayable };
+    }
+
+}
+
+/** The separate, optional neutral music-library catalog used by the jukebox. */
+class JukeboxLibrary
+{
+
+    static async Load()
+    {
+        const raw = await FetchLibraryJson(
+            new URL("./eve-online-music-library.json", import.meta.url),
+        );
+
+        if (!raw)
+        {
+            throw new Error("No demo music-library catalog is available");
+        }
+        return raw;
     }
 
 }
@@ -230,32 +518,20 @@ async function FetchLibraryJson(url)
 
 
 /**
- * Media for the audio system: real wems fetched and decoded through the
- * kb §5 resolveType seam, synthesized stand-ins when decode fails, honest
- * silence when the event has no shipped media. Keeps the real/synth/silent
- * tallies the hud displays.
+ * Structural provider for CjsAudioMan. It only acquires caller-selected
+ * records; runtime-audio owns representation choice, WEM preparation,
+ * decoding, and decoded/whole-bank retention.
  */
 class MediaSource
 {
 
-    /** Media outcome tallies for the hud */
-    stats = { real: 0, synth: 0, silent: 0 };
-
-    /** @type {AudioLibrary} */
-    #library = null;
-
-    /** Decoded AudioBuffers by wem id */
-    #cache = new Map();
+    /** Provider-operation tallies for the HUD. */
+    stats = { individual: 0, range: 0, whole: 0, failed: 0 };
 
     /** @type {AudioContext} */
     #context = null;
 
-    constructor(library)
-    {
-        this.#library = library;
-    }
-
-    /** The audio system's createContext callback (keeps the decode ref) */
+    /** CjsAudioMan's user-gesture context factory. */
     CreateContext()
     {
         return this.#context = new AudioContext();
@@ -266,123 +542,80 @@ class MediaSource
         this.#context?.resume?.();
     }
 
-    /**
-     * The audio system's loadBuffer callback. No exact edges -> silence,
-     * matching the real client (control events and events whose target
-     * objects are not in any shipped bank).
-     */
-    async LoadEventBuffer(eventName)
+    /** Reads one individual media file or one complete original bank. */
+    async Read(source, context = {})
     {
-        if (!this.#library.PlayableCandidates(eventName).length)
-        {
-            this.stats.silent++;
-            return null;
-        }
-        try
-        {
-            const real = await this.#LoadRealBuffer(eventName);
-            if (real)
-            {
-                this.stats.real++;
-                return real;
-            }
-        }
-        catch
-        {
-            // undecodable codec / fetch miss -> synthesized fallback
-        }
-        this.stats.synth++;
-        return this.#Synthesize(eventName);
+        const route = context.kind === "bank" ? "whole" : "individual";
+        const url = source?.storagePath
+            ? `/cache/${source.storagePath}`
+            : source?.url;
+
+        this.stats[route]++;
+        return this.#Fetch(url, context.signal, source?.mediaType);
     }
 
-    /** The music engine loads complete decoded buffers by wem id */
-    async LoadMediaBuffer(sourceId)
+    /** Reads one exact embedded WEM member selected by CjsAudioMan. */
+    async ReadRange(bank, context)
     {
-        const url = this.#library.WemUrl(sourceId);
-        if (!url) return null;
-        if (this.#cache.has(sourceId)) return this.#cache.get(sourceId);
-        const wemBytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
-        const buffer = await this.#DecodeWem(wemBytes);
-        this.#cache.set(sourceId, buffer);
-        return buffer;
+        this.stats.range++;
+        return this.#Fetch(
+            `/range/${encodeURIComponent(bank.storagePath)}`
+                + `?offset=${context.offset}`
+                + `&byteLength=${context.byteLength}`,
+            context.signal,
+            "wem",
+        );
     }
 
-    async #LoadRealBuffer(eventName)
+    /** Acquires one caller-selected jukebox path; runtime owns its decoding. */
+    async ReadMusicTrack(song, { signal } = {})
     {
-        const candidates = this.#library.PlayableCandidates(eventName);
-        if (!candidates.length) return null;
-        const wemId = candidates[HashName(eventName) % candidates.length];
-        const url = this.#library.WemUrl(wemId);
-        if (!url) return null;
-        if (this.#cache.has(wemId)) return this.#cache.get(wemId);
-        const wemBytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
-        const buffer = await this.#DecodeWem(wemBytes);
-        this.#cache.set(wemId, buffer);
-        return buffer;
-    }
+        const source = song.url ?? song.path;
+        const response = await fetch(source, { signal });
 
-    /**
-     * Content-verified routing via the kb §5 resolveType seam: the declared
-     * codec is validated against the container structure (mislabeled tags
-     * fall through to whichever codec actually validates), and `preferred`
-     * names the decode route. The alternate decoder stays as last-resort
-     * insurance (a failure here still lands in the caller's synthesized
-     * stand-in).
-     */
-    async #DecodeWem(wemBytes)
-    {
-        // Wwise Vorbis: lossless repack to Ogg, decoded natively by the browser.
-        const asVorbis = async () =>
+        if (!response.ok)
         {
-            const ogg = await CjsWemFormat.toOgg(wemBytes);
-            const oggBytes = ogg instanceof Uint8Array ? ogg : ogg.bytes ?? ogg.data;
-            return this.#context.decodeAudioData(oggBytes.slice().buffer);
-        };
-        // PTADPCM / plain PCM (most turret + artillery SFX): decode to
-        // float32 channels and build the AudioBuffer directly.
-        const asPcm = async () =>
-        {
-            const pcm = CjsWemFormat.toPcm(wemBytes);
-            const built = this.#context.createBuffer(pcm.channels, pcm.sampleCount, pcm.sampleRate);
-            pcm.channelData.forEach((data, channel) => built.copyToChannel(data, channel));
-            return built;
-        };
-        const { preferred } = await CjsWemFormat.resolveType(wemBytes);
-        const preferPcm = preferred === "pcm";
-        try
-        {
-            return await (preferPcm ? asPcm() : asVorbis());
-        }
-        catch
-        {
-            return await (preferPcm ? asVorbis() : asPcm());
-        }
-    }
-
-    /**
-     * Synthesized stand-in: buffer parameters derive from the event's REAL
-     * metadata (loop flag) + a name hash for identity.
-     */
-    #Synthesize(eventName)
-    {
-        const record = this.#library.GetEventRecord(eventName);
-        const seed = HashName(eventName);
-        const seconds = record.isLoop ? 1.5 : 0.6 + (seed % 40) / 100;
-        const rate = this.#context.sampleRate;
-        const buffer = this.#context.createBuffer(1, Math.floor(seconds * rate), rate);
-        const data = buffer.getChannelData(0);
-        const base = 90 + (seed % 700);
-        for (let i = 0; i < data.length; i++)
-        {
-            const t = i / rate;
-            const envelope = record.isLoop ? 0.6 : Math.exp(-3 * t);
-            data[i] = envelope * 0.25 * (
-                Math.sin(2 * Math.PI * base * t) +
-                0.5 * Math.sin(2 * Math.PI * base * 1.5 * t) +
-                0.15 * (Math.random() * 2 - 1)
+            throw new Error(
+                response.status === 404
+                    ? "Track is not downloaded; run npm run demo:music"
+                    : `Track unavailable: ${response.status}`,
             );
         }
-        return buffer;
+        return response.arrayBuffer();
+    }
+
+    /** Checks a caller-owned song URL without transferring its audio body. */
+    async IsMusicTrackAvailable(song, { signal } = {})
+    {
+        const source = song.url ?? song.path;
+        const response = await fetch(source, {
+            method: "HEAD",
+            signal,
+        }).catch(() => null);
+
+        return Boolean(response?.ok);
+    }
+
+    async #Fetch(url, signal, mediaType = "")
+    {
+        if (!url)
+        {
+            this.stats.failed++;
+            throw new Error("Audio source has no provider route");
+        }
+
+        const response = await fetch(url, { signal });
+
+        if (!response.ok)
+        {
+            this.stats.failed++;
+            throw new Error(`Audio unavailable: ${response.status}`);
+        }
+
+        return {
+            bytes: await response.arrayBuffer(),
+            mediaType,
+        };
     }
 
 }
@@ -467,13 +700,38 @@ class Scene
     /** One playing event on a fresh emitter; returns the scene item */
     Spawn(eventName, effectStem = null, fixedPosition = null)
     {
-        if (!this.#app.system) return;
+        if (!this.#app.IsAudioEnabled()
+            || !this.#app.library.PlayableCandidates(eventName).length)
+        {
+            return;
+        }
         const record = this.#app.library.GetEventRecord(eventName);
         const item = this.#SpawnEmitter(Math.max(500, record.maxRadiusAttenuation || 2000), fixedPosition);
         item.eventName = eventName;
         item.effectStem = effectStem;
         item.isLoop = !!record.isLoop;
         item.emitter.SendEvent(eventName);
+        this.emitters.push(item);
+        return item;
+    }
+
+    /**
+     * Adds one retained emitter to the visible scene without posting yet.
+     * Callers may post repeatedly on the returned object to preserve authored
+     * per-emitter graph state such as Step sequence position.
+     */
+    SpawnPersistent(eventName, name, fixedPosition)
+    {
+        if (!this.#app.IsAudioEnabled()) return;
+        const record = this.#app.library.GetEventRecord(eventName) ?? {};
+        const item = this.#SpawnEmitter(
+            Math.max(500, record.maxRadiusAttenuation || 2000),
+            fixedPosition,
+            { name },
+        );
+        item.eventName = eventName;
+        item.persistent = true;
+        item.authoredSfx = true;
         this.emitters.push(item);
         return item;
     }
@@ -486,12 +744,19 @@ class Scene
      */
     SpawnSequence(stem, fixedPosition = null)
     {
-        if (!this.#app.system) return;
+        if (!this.#app.IsAudioEnabled()) return;
         const stages = this.#app.library.effects.get(stem);
         const { radius } = this.#app.library.GetEffectMeta(stages);
+        const sequence = this.#app.library.SequenceFor(stages)
+            .map(stage => stages.get(stage));
+
+        if (!sequence.length)
+        {
+            return;
+        }
         const item = this.#SpawnEmitter(Math.max(500, radius || 2000), fixedPosition);
         item.effectStem = stem;
-        item.sequence = this.#app.library.SequenceFor(stages).map(stage => stages.get(stage));
+        item.sequence = sequence;
         item.sequenceIndex = -1;
         item.holdUntil = 0;
         item.eventName = `${stem} ▶`;
@@ -540,12 +805,12 @@ class Scene
         {
             const item = this.emitters[i];
             if (item === this.#app.stage.draggingEmitter || now - item.born < 1000) continue;
+            if (item.persistent) continue;
             if (item.sequence && !item.sequenceDone) continue;   // sequence still running
             if (item.isLoop && !item.sequence) continue;         // manual loops persist
             const emitter = item.emitter;
-            if (emitter.GetPlayingEvents().size || emitter.GetEventsOnWake().length || emitter.GetWaitingOneShot()) continue;
-            emitter.UnregisterWwiseObject();
-            this.#app.system.manager.UnregisterGameObject(emitter.ID);
+            if (IsEmitterBusy(emitter)) continue;
+            this.#app.audio.ReleaseEmitter(emitter);
             this.emitters.splice(i, 1);
         }
     }
@@ -562,12 +827,26 @@ class Scene
         const index = this.emitters.indexOf(item);
         if (index === -1) return;
         this.emitters.splice(index, 1);
+        if (item === this.#app.stage.draggingEmitter)
+        {
+            this.#app.stage.draggingEmitter = null;
+            this.#app.stage.UpdateTip(null);
+        }
+        item.onRemove?.();
+        if (fadeMs <= 0)
+        {
+            this.#app.audio?.ReleaseEmitter(item.emitter);
+            return;
+        }
         for (const playingID of [ ...item.emitter.GetPlayingEvents().keys() ])
         {
             item.emitter.StopSound(playingID, fadeMs);
         }
         this.#app.system.manager.UnregisterGameObject(item.emitter.ID);
-        setTimeout(() => item.emitter.UnregisterWwiseObject(), fadeMs + 300);
+        setTimeout(
+            () => this.#app.audio?.ReleaseEmitter(item.emitter),
+            fadeMs + 300,
+        );
     }
 
     /**
@@ -584,13 +863,12 @@ class Scene
         }
     }
 
-    #SpawnEmitter(radius, fixedPosition = null)
+    #SpawnEmitter(radius, fixedPosition = null, options = undefined)
     {
-        const emitter = new AudEmitter();
+        const emitter = this.#app.audio.CreateEmitter(options);
         if (fixedPosition)
         {
             Scene.SetEmitterPlacement(emitter, fixedPosition, this.listenerPosition);
-            emitter.Wake();
             return { emitter, position: [ ...fixedPosition ], radius, born: performance.now() };
         }
         const stage = this.#app.stage;
@@ -605,13 +883,27 @@ class Scene
         const distance = Math.min(radius * (0.2 + Math.random() * 0.65), viewLimit * (0.2 + Math.random() * 0.8));
         const halfX = scale > 0 ? (stage.canvas.width * 0.47) / scale : 14000;
         const halfZ = scale > 0 ? (stage.canvas.height * 0.47) / scale : 14000;
-        const position = [
-            Math.max(-halfX, Math.min(halfX, this.listenerPosition[0] + Math.cos(angle) * distance)),
+        const minX = stage.viewCenter[0] - halfX,
+            maxX = stage.viewCenter[0] + halfX,
+            minZ = stage.viewCenter[1] - halfZ,
+            maxZ = stage.viewCenter[1] + halfZ;
+        const listenerInView = this.listenerPosition[0] >= minX
+            && this.listenerPosition[0] <= maxX
+            && this.listenerPosition[2] >= minZ
+            && this.listenerPosition[2] <= maxZ;
+        const candidate = [
+            this.listenerPosition[0] + Math.cos(angle) * distance,
             0,
-            Math.max(-halfZ, Math.min(halfZ, this.listenerPosition[2] + Math.sin(angle) * distance))
+            this.listenerPosition[2] + Math.sin(angle) * distance,
         ];
+        const position = listenerInView
+            ? [
+                Math.max(minX, Math.min(maxX, candidate[0])),
+                0,
+                Math.max(minZ, Math.min(maxZ, candidate[2])),
+            ]
+            : candidate;
         Scene.SetEmitterPlacement(emitter, position, this.listenerPosition);
-        emitter.Wake();
         return { emitter, position, radius, born: performance.now() };
     }
 
@@ -619,9 +911,9 @@ class Scene
 
 
 /**
- * The canvas view: world<->screen mapping, wheel zoom / per-emitter
- * attenuation scaling, listener + emitter dragging, the hover info card,
- * and the two-pass frame draw.
+ * The canvas view: world<->screen mapping, camera pan, wheel zoom /
+ * per-emitter attenuation scaling, listener + emitter dragging, the hover
+ * info card, and the two-pass frame draw.
  */
 class Stage
 {
@@ -629,8 +921,11 @@ class Stage
     /** @type {HTMLCanvasElement} */
     canvas = null;
 
-    /** View zoom factor (canvas center = world origin) */
+    /** View zoom factor. */
     zoom = 1;
+
+    /** World x/z coordinate shown at the center of the canvas. */
+    viewCenter = [ 0, 0 ];
 
     /** The emitter item currently being dragged, if any */
     draggingEmitter = null;
@@ -641,7 +936,9 @@ class Stage
     /** @type {CanvasRenderingContext2D} */
     #context2d = null;
 
+    #activePointerId = null;
     #draggingListener = false;
+    #panAnchorWorld = null;
     #hud = null;
     #tip = null;
     #stageElement = null;
@@ -658,6 +955,8 @@ class Stage
         this.canvas.addEventListener("pointerdown", event => this.#OnPointerDown(event));
         this.canvas.addEventListener("pointermove", event => this.#OnPointerMove(event));
         this.canvas.addEventListener("pointerup", event => this.#OnPointerUp(event));
+        this.canvas.addEventListener("pointercancel", event => this.#OnPointerUp(event));
+        this.canvas.addEventListener("lostpointercapture", event => this.#EndPointer(event.pointerId, false));
         this.canvas.addEventListener("pointerleave", () => this.UpdateTip(null));
         this.canvas.addEventListener("contextmenu", event => this.#OnContextMenu(event));
     }
@@ -670,12 +969,12 @@ class Stage
 
     CanvasToWorld(event)
     {
-        const rect = this.canvas.getBoundingClientRect();
+        const [ x, y ] = this.CanvasPoint(event);
         const scale = this.ViewScale();
         return [
-            (event.clientX - rect.left - this.canvas.width / 2) / scale,
+            this.viewCenter[0] + (x - this.canvas.width / 2) / scale,
             0,
-            (event.clientY - rect.top - this.canvas.height / 2) / scale
+            this.viewCenter[1] + (y - this.canvas.height / 2) / scale
         ];
     }
 
@@ -685,25 +984,30 @@ class Stage
         return [ event.clientX - rect.left, event.clientY - rect.top ];
     }
 
+    WorldToCanvas(position)
+    {
+        const scale = this.ViewScale();
+        return [
+            this.canvas.width / 2 + (position[0] - this.viewCenter[0]) * scale,
+            this.canvas.height / 2 + (position[2] - this.viewCenter[1]) * scale,
+        ];
+    }
+
     NearListener(event)
     {
         const [ px, py ] = this.CanvasPoint(event);
-        const scale = this.ViewScale();
-        const x = this.canvas.width / 2 + this.#app.scene.listenerPosition[0] * scale;
-        const y = this.canvas.height / 2 + this.#app.scene.listenerPosition[2] * scale;
+        const [ x, y ] = this.WorldToCanvas(this.#app.scene.listenerPosition);
         return Math.hypot(px - x, py - y) < 18;
     }
 
     NearestEmitter(event)
     {
         const [ px, py ] = this.CanvasPoint(event);
-        const scale = this.ViewScale();
         let best = null,
             bestDistance = 14;
         for (const item of this.#app.scene.emitters)
         {
-            const x = this.canvas.width / 2 + item.position[0] * scale;
-            const y = this.canvas.height / 2 + item.position[2] * scale;
+            const [ x, y ] = this.WorldToCanvas(item.position);
             const distance = Math.hypot(px - x, py - y);
             if (distance < bestDistance)
             {
@@ -736,7 +1040,7 @@ class Stage
         const scalingText = item.scaling && Math.abs(item.scaling - 1) > 0.01 ? ` ×${item.scaling.toFixed(1)}` : "";
         this.#tip.textContent = [
             title,
-            `${emitter.IsCulled() ? "culled" : "awake"} · playing ${emitter.GetPlayingEvents().size} · level ${level.toFixed(2)}`,
+            `${emitter.IsCulled() ? "culled" : IsEmitterBusy(emitter) ? "active" : "idle"} · playing ${emitter.GetPlayingEvents().size} · level ${level.toFixed(2)}`,
             flags,
             `distance ${Math.round(distance)} / hearing ~${Math.round((Math.max(1e-4, item.scaling ?? 1) / AUDIBLE_GAIN_FLOOR) / ACOUSTIC_SCALE)} / cull ${Math.round(item.radius)}${scalingText}`,
             `front ${Array.from(emitter.front, value => Math.abs(value) < 1e-3 ? 0 : value).map(value => value.toFixed(2)).join(", ")}${item.authoredYaw ? ` · authored yaw ${Math.round(item.authoredYaw * 180 / Math.PI)}°` : ""}`,
@@ -758,11 +1062,8 @@ class Stage
         context2d.fillStyle = "#0b0e14";
         context2d.fillRect(0, 0, w, h);
         context2d.font = "11px system-ui, sans-serif";
-        const cx = w / 2,
-            cy = h / 2,
-            scale = this.ViewScale();
-        const lx = cx + scene.listenerPosition[0] * scale,
-            ly = cy + scene.listenerPosition[2] * scale;
+        const scale = this.ViewScale();
+        const [ lx, ly ] = this.WorldToCanvas(scene.listenerPosition);
         context2d.fillStyle = "#e2e8f0";
         context2d.beginPath();
         context2d.arc(lx, ly, 6, 0, 7);
@@ -778,9 +1079,9 @@ class Stage
         const showCullRings = document.getElementById("cullRings").checked;
         for (const item of scene.emitters)
         {
-            const x = cx + item.position[0] * scale,
-                y = cy + item.position[2] * scale;
+            const [ x, y ] = this.WorldToCanvas(item.position);
             const culled = item.emitter.IsCulled();
+            const idleAuthoredSfx = item.authoredSfx && !IsEmitterBusy(item.emitter);
             if (!culled) awake++;
             // Engine range check compares distanceSq against radiusSq *
             // scaling, so the effective ring radius grows with sqrt(scaling).
@@ -827,20 +1128,32 @@ class Stage
             context2d.moveTo(x, y);
             context2d.lineTo(x + front[0] * 22, y + front[2] * 22);
             context2d.stroke();
-            context2d.fillStyle = culled ? "#475569" : item.demo ? "#fbbf24" : "#34d399";
             context2d.beginPath();
             context2d.arc(x, y, 5, 0, 7);
-            context2d.fill();
+            if (idleAuthoredSfx && !culled)
+            {
+                context2d.fillStyle = "#0b0e14";
+                context2d.fill();
+                context2d.strokeStyle = "#c084fc";
+                context2d.lineWidth = 2;
+                context2d.stroke();
+            }
+            else
+            {
+                context2d.fillStyle = culled ? "#475569" : item.demo ? "#fbbf24" : item.authoredSfx ? "#c084fc" : "#34d399";
+                context2d.fill();
+            }
         }
         // Pass 2: all text, on top of every circle.
         context2d.fillStyle = "#e2e8f0";
         context2d.fillText("listener (drag me)", lx + 14, ly + 4);
         for (const item of scene.emitters)
         {
-            const x = cx + item.position[0] * scale,
-                y = cy + item.position[2] * scale;
+            const [ x, y ] = this.WorldToCanvas(item.position);
             context2d.fillStyle = "#94a3b8";
-            const suffix = (item.isLoop && !item.sequence ? " ⟲" : "") + (item.scaling && Math.abs(item.scaling - 1) > 0.01 ? ` ×${item.scaling.toFixed(1)}` : "");
+            const suffix = (item.isLoop && !item.sequence ? " ⟲" : "")
+                + (item.authoredSfx && !IsEmitterBusy(item.emitter) ? " · idle" : "")
+                + (item.scaling && Math.abs(item.scaling - 1) > 0.01 ? ` ×${item.scaling.toFixed(1)}` : "");
             const label = PrettyName(item.sequence ? item.effectStem : item.eventName);
             context2d.fillText(label.slice(0, 28) + suffix, x + 8, y + 4);
             // Sequence emitters announce their current stage under the dot
@@ -857,12 +1170,13 @@ class Stage
             }
         }
         const stats = this.#app.media.stats;
-        this.#hud.textContent = `emitters: ${scene.emitters.length}  awake: ${awake}  playing: ${system.backend?.GetPlayingCount() ?? 0}  media: ${stats.real} real / ${stats.synth} synth / ${stats.silent} silent  zoom: ${this.zoom >= 1 ? this.zoom.toFixed(1) : `1/${(1 / this.zoom).toFixed(1)}`}x`;
+        this.#hud.textContent = `emitters: ${scene.emitters.length}  awake: ${awake}  playing: ${system.backend?.GetPlayingCount() ?? 0}  reads: ${stats.individual} file / ${stats.range} range / ${stats.whole} whole / ${stats.failed} failed  zoom: ${this.zoom >= 1 ? this.zoom.toFixed(1) : `1/${(1 / this.zoom).toFixed(1)}`}x  view: ${Math.round(this.viewCenter[0])}, ${Math.round(this.viewCenter[1])}`;
     }
 
     #OnWheel(event)
     {
         event.preventDefault();
+        if (this.#activePointerId !== null) return;
         // Over an emitter: scale its attenuation (radius + loudness) through
         // the real engine path. Anywhere else: zoom the view.
         const item = this.NearestEmitter(event);
@@ -889,24 +1203,37 @@ class Stage
 
     #OnPointerDown(event)
     {
-        if (this.NearListener(event))
-        {
-            this.#draggingListener = true;
-            this.canvas.setPointerCapture(event.pointerId);
-            this.#app.scene.MoveListenerTo(this.CanvasToWorld(event));
-            return;
-        }
+        if (event.button !== 0 || this.#activePointerId !== null) return;
+        this.#activePointerId = event.pointerId;
         const item = this.NearestEmitter(event);
         if (item)
         {
             this.draggingEmitter = item;
             this.canvas.setPointerCapture(event.pointerId);
+            this.canvas.style.cursor = "grabbing";
             this.#app.scene.MoveEmitterTo(item, this.CanvasToWorld(event));
+            return;
         }
+        if (this.NearListener(event))
+        {
+            this.#draggingListener = true;
+            this.canvas.setPointerCapture(event.pointerId);
+            this.canvas.style.cursor = "grabbing";
+            this.#app.scene.MoveListenerTo(this.CanvasToWorld(event));
+            return;
+        }
+        this.#panAnchorWorld = this.CanvasToWorld(event);
+        this.canvas.setPointerCapture(event.pointerId);
+        this.canvas.style.cursor = "grabbing";
+        this.UpdateTip(null);
     }
 
     #OnPointerMove(event)
     {
+        if (this.#activePointerId !== null && event.pointerId !== this.#activePointerId)
+        {
+            return;
+        }
         if (this.#draggingListener)
         {
             this.#app.scene.MoveListenerTo(this.CanvasToWorld(event));
@@ -917,19 +1244,40 @@ class Stage
             this.#app.scene.MoveEmitterTo(this.draggingEmitter, this.CanvasToWorld(event));
             this.UpdateTip(null);
         }
+        else if (this.#panAnchorWorld)
+        {
+            const [ x, y ] = this.CanvasPoint(event);
+            const scale = this.ViewScale();
+            this.viewCenter[0] = this.#panAnchorWorld[0] - (x - this.canvas.width / 2) / scale;
+            this.viewCenter[1] = this.#panAnchorWorld[2] - (y - this.canvas.height / 2) / scale;
+            this.canvas.style.cursor = "grabbing";
+            this.UpdateTip(null);
+        }
         else
         {
             const hover = this.NearestEmitter(event);
-            this.canvas.style.cursor = (this.NearListener(event) || hover) ? "grab" : "default";
+            this.canvas.style.cursor = (this.NearListener(event) || hover) ? "move" : "grab";
             this.UpdateTip(hover, event);
         }
     }
 
     #OnPointerUp(event)
     {
+        this.#EndPointer(event.pointerId, true);
+    }
+
+    #EndPointer(pointerId, releaseCapture)
+    {
+        if (pointerId !== this.#activePointerId) return;
+        this.#activePointerId = null;
         this.#draggingListener = false;
         this.draggingEmitter = null;
-        this.canvas.releasePointerCapture?.(event.pointerId);
+        this.#panAnchorWorld = null;
+        this.canvas.style.cursor = "grab";
+        if (releaseCapture && this.canvas.hasPointerCapture?.(pointerId))
+        {
+            this.canvas.releasePointerCapture(pointerId);
+        }
     }
 
     #OnContextMenu(event)
@@ -978,10 +1326,14 @@ class MusicUi
     /** Builds the music panel once the audio system is enabled */
     Initialize()
     {
+        if (this.musicPlayer)
+        {
+            return;
+        }
+
         const musicGraph = this.#app.library.music;
-        // Carbon's dedicated music emitter (fixed game-object id 3).
-        this.musicPlayer = new AudMusicPlayer();
-        this.musicPlayer.Wake();
+        // Carbon's manager-owned dedicated music emitter (fixed id 3).
+        this.musicPlayer = this.#app.audio.GetMusicPlayer();
         document.getElementById("music").style.display = "";
         this.#select = document.getElementById("moods");
         this.#dynamicRoot = musicGraph.eventTargets["music_eve_dynamic_play"]?.[0];
@@ -1001,7 +1353,37 @@ class MusicUi
             this.musicPlayer.SendEvent("music_eve_dynamic_stop");
             return;
         }
-        const engine = this.#app.system.musicEngine;
+        if (!this.#app.IsAudioEnabled())
+        {
+            toggle.checked = false;
+            return;
+        }
+        this.#app.jukeboxUi.Stop();
+        const engine = this.#app.audio.musicEngine;
+        // The Wwise tree's unset/default branch begins with a retired loose
+        // WEM. The game always supplies a gameplay music state before posting
+        // the dynamic play event, so seed a shipped state for the standalone
+        // demo as well. Later UI and showcase setters still steer normally.
+        if (this.currentMood === "default")
+        {
+            const initialEvent = "music_switch_triglavian_space";
+            const initialTarget = engine.PreviewSwitchEvent(
+                initialEvent,
+                this.#dynamicRoot,
+            );
+
+            if (initialTarget !== null
+                && this.#moodEvents.includes(initialEvent))
+            {
+                this.moodLabelByTarget.set(
+                    initialTarget,
+                    "triglavian_space",
+                );
+                this.musicPlayer.SendEvent(initialEvent);
+                this.currentMood = "triglavian_space";
+                this.RefreshMoodAvailability();
+            }
+        }
         const target = engine.PreviewSwitchEvent("", this.#dynamicRoot);
         if (target !== null && !this.moodLabelByTarget.has(target)) this.moodLabelByTarget.set(target, "default");
         this.musicPlayer.SendEvent("music_eve_dynamic_play");
@@ -1023,8 +1405,8 @@ class MusicUi
      */
     RefreshMoodAvailability()
     {
-        if (!this.#dynamicRoot || !this.#app.system?.musicEngine || !this.#select) return;
-        const engine = this.#app.system.musicEngine;
+        if (!this.#dynamicRoot || !this.#app.audio?.musicEngine || !this.#select) return;
+        const engine = this.#app.audio.musicEngine;
         const current = engine.PreviewSwitchEvent("", this.#dynamicRoot);
         const offered = new Set();
         this.#select.innerHTML = "";
@@ -1082,7 +1464,7 @@ class MusicUi
      */
     UpdateHud()
     {
-        const [ status ] = this.#app.system?.musicEngine?.GetStatus() ?? [];
+        const [ status ] = this.#app.audio?.musicEngine?.GetStatus() ?? [];
         if (!status)
         {
             this.#hudElement.textContent = this.#app.library.music ? "music: stopped" : "";
@@ -1110,8 +1492,8 @@ class MusicUi
 
     #SteerTo(eventName)
     {
-        if (!eventName) return;
-        const engine = this.#app.system.musicEngine;
+        if (!eventName || !this.#app.IsAudioEnabled()) return;
+        const engine = this.#app.audio.musicEngine;
         // Only act when this mood would actually change the music - a no-op
         // selection must not relabel anything.
         const current = engine.PreviewSwitchEvent("", this.#dynamicRoot);
@@ -1124,6 +1506,319 @@ class MusicUi
         this.musicPlayer.SendEvent(eventName);
         this.currentMood = label;
         this.RefreshMoodAvailability();
+    }
+
+}
+
+/**
+ * Neutral music-library controls. This talks directly to CjsJukebox and is
+ * deliberately separate from the authored Wwise music event/switch graph.
+ */
+class JukeboxUi
+{
+
+    /** @type {DemoApp} */
+    #app = null;
+
+    #select = null;
+
+    #status = null;
+
+    #initialized = false;
+
+    constructor(app)
+    {
+        this.#app = app;
+        this.#select = document.getElementById("jukeboxTracks");
+        this.#status = document.getElementById("jukeboxStatus");
+
+        const playlist = app.jukeboxLibrary.playlists[0];
+
+        for (const song of playlist.songs)
+        {
+            const option = document.createElement("option");
+
+            option.value = song.id;
+            option.textContent = `${song.id}. ${song.name}`;
+            this.#select.appendChild(option);
+        }
+    }
+
+    /** Attaches controls after CjsAudioMan has realized its browser backend. */
+    Initialize()
+    {
+        if (this.#initialized)
+        {
+            this.#Refresh(this.#app.audio.jukebox.GetStatus());
+            return;
+        }
+
+        this.#initialized = true;
+        const jukebox = this.#app.audio.jukebox;
+
+        jukebox.SetRepeat("playlist");
+        jukebox.SetOnChange(status => this.#Refresh(status));
+        document.getElementById("jukeboxPlay").onclick = () =>
+            void this.PlaySelected();
+        document.getElementById("jukeboxPause").onclick = () =>
+        {
+            if (!jukebox.Pause())
+            {
+                jukebox.Resume();
+            }
+        };
+        document.getElementById("jukeboxPrevious").onclick = () =>
+            void this.#Run(() => jukebox.Previous());
+        document.getElementById("jukeboxNext").onclick = () =>
+            void this.#Run(() => jukebox.Next());
+        this.#select.onchange = () => void this.PlaySelected();
+        this.#Refresh(jukebox.GetStatus());
+        void this.#RefreshAvailability();
+    }
+
+    /** Plays the selected titled track and stops the authored demo music. */
+    PlaySelected()
+    {
+        if (!this.#app.IsAudioEnabled())
+        {
+            this.#status.textContent = "enable audio to use the jukebox";
+            return Promise.resolve(null);
+        }
+        if (this.#select.selectedOptions[0]?.disabled)
+        {
+            this.#status.textContent = "selected track is unavailable";
+            return Promise.resolve(null);
+        }
+        if (document.getElementById("musicToggle").checked)
+        {
+            this.#app.musicUi.SetEnabled(false);
+        }
+
+        return this.#Run(() => this.#app.audio.jukebox.PlaySong(
+            this.#select.value,
+            { playlistID: "eve-online-in-game-tracks" },
+        ));
+    }
+
+    /** Stops the neutral player without affecting authored music. */
+    Stop()
+    {
+        this.#app.audio?.jukebox?.Stop();
+    }
+
+    async #Run(operation)
+    {
+        try
+        {
+            return await operation();
+        }
+        catch (error)
+        {
+            this.#status.textContent = error.message;
+            return null;
+        }
+    }
+
+    async #RefreshAvailability()
+    {
+        this.#status.textContent = "checking downloaded tracks…";
+        await this.#app.audio.jukebox.RefreshAvailability(
+            "eve-online-in-game-tracks",
+        ).catch(() => []);
+
+        for (const option of this.#select.options)
+        {
+            const availability =
+                this.#app.audio.jukebox.GetTrackAvailability(
+                    option.value,
+                    { playlistID: "eve-online-in-game-tracks" },
+                );
+
+            option.disabled = availability === "unavailable";
+            option.textContent = option.textContent.replace(
+                / \(unavailable\)$/,
+                "",
+            ) + (option.disabled ? " (unavailable)" : "");
+        }
+
+        const available = [ ...this.#select.options ].find(
+            option => !option.disabled,
+        );
+
+        if (available && this.#select.selectedOptions[0]?.disabled)
+        {
+            this.#select.value = available.value;
+        }
+        this.#Refresh(this.#app.audio.jukebox.GetStatus());
+    }
+
+    #Refresh(status)
+    {
+        if (status.song)
+        {
+            this.#select.value = status.song.id;
+        }
+
+        const label = status.song?.name ?? "no track selected";
+
+        this.#status.textContent = status.state === "loading"
+            ? `loading: ${label}`
+            : `${status.state}: ${label}`;
+        document.getElementById("jukeboxPause").textContent =
+            status.state === "paused" ? "resume" : "pause";
+    }
+
+}
+
+
+/**
+ * Authored SFX laboratory: posts one real sound, random, sequence, or parallel
+ * HIRC graph repeatedly on the same object and exposes manager delivery modes.
+ */
+class SfxUi
+{
+
+    /** @type {DemoApp} */
+    #app = null;
+
+    /** Dedicated visible scene item retained so Step sequences advance between posts. */
+    #item = null;
+
+    #examples = [];
+    #postCount = 0;
+    #select = null;
+    #status = null;
+
+    constructor(app)
+    {
+        this.#app = app;
+    }
+
+    /** Builds the controls after CjsAudioMan is enabled. */
+    Initialize()
+    {
+        if (this.#select)
+        {
+            this.#Refresh();
+            return;
+        }
+
+        this.#examples = this.#app.library.SfxExamples();
+
+        if (!this.#examples.length)
+        {
+            return;
+        }
+
+        document.getElementById("sfx").style.display = "";
+        this.#select = document.getElementById("sfxExamples");
+        this.#status = document.getElementById("sfxStatus");
+
+        for (const example of this.#examples)
+        {
+            const option = document.createElement("option");
+
+            option.value = example.eventName;
+            option.textContent = `${example.type}: ${example.eventName}`;
+            option.dataset.type = example.type;
+            this.#select.appendChild(option);
+        }
+
+        this.#select.onchange = () => this.Reset();
+        document.getElementById("sfxPost").onclick = () => this.Post();
+        document.getElementById("sfxReset").onclick = () => this.Reset();
+        document.getElementById("delivery").onchange = event =>
+        {
+            this.#app.audio.SetDelivery(event.target.value);
+            this.#Refresh();
+        };
+        this.#Refresh();
+    }
+
+    /**
+     * Posts the selected event on one retained emitter. Repeated sequence
+     * posts therefore advance instead of restarting at child zero.
+     */
+    Post()
+    {
+        const eventName = this.#select?.value;
+
+        if (!eventName || !this.#app.IsAudioEnabled())
+        {
+            return;
+        }
+        if (this.#item && !this.#app.scene.emitters.includes(this.#item))
+        {
+            this.#item = null;
+            this.#postCount = 0;
+        }
+        if (!this.#item)
+        {
+            const item = this.#app.scene.SpawnPersistent(
+                eventName,
+                "authored_sfx_lab",
+                [
+                    this.#app.scene.listenerPosition[0] + 1800,
+                    0,
+                    this.#app.scene.listenerPosition[2],
+                ],
+            );
+            if (!item) return;
+            item.onRemove = () =>
+            {
+                if (this.#item !== item) return;
+                this.#item = null;
+                this.#postCount = 0;
+                this.#Refresh();
+            };
+            this.#item = item;
+        }
+
+        this.#item.emitter.SendEvent(eventName);
+        this.#postCount++;
+        this.#Refresh();
+    }
+
+    /** Releases graph state so random pools and Step sequences start over. */
+    Reset()
+    {
+        if (this.#item)
+        {
+            this.#app.scene.Remove(this.#item, 0);
+        }
+        this.#postCount = 0;
+        this.#Refresh();
+    }
+
+    #Refresh()
+    {
+        if (!this.#status || !this.#select)
+        {
+            return;
+        }
+
+        const eventName = this.#select.value;
+        const graphTypes = this.#app.library.SfxNodeTypes(eventName);
+        const types = graphTypes
+            .filter(type => type !== "sound");
+        if (!types.length && graphTypes.includes("sound"))
+        {
+            types.push("sound");
+        }
+        const graph = this.#app.library.sfx;
+        const delivery = document.getElementById("delivery").value;
+        const repeated = types.includes("sequence")
+            ? " · repeat to advance the Step sequence"
+            : types.includes("random")
+                ? " · repeat to hear authored random selection"
+                : types.includes("parallel")
+                    ? " · one post resolves simultaneous layer voices"
+                    : "";
+
+        const position = this.#item
+            ? " · purple source is draggable; hollow means idle"
+            : " · Post creates a draggable purple source";
+        this.#status.textContent = `${Object.keys(graph.events).length} events / ${Object.keys(graph.nodes).length} nodes · ${types.join(" + ")} · ${delivery} delivery · posts ${this.#postCount}${repeated}${position}`;
     }
 
 }
@@ -1181,19 +1876,27 @@ class Showcase
         // slider down mid-demo to watch prioritization triage the scene).
         document.getElementById("maxAwake").value = 24;
 
-        // The scene: ONE large ring of hangar/station loops out past the
-        // hearing range (~3000) - from the center you barely hear them; drag
-        // the listener toward a hangar to walk into its soundscape. Anchors
-        // double as spawn points for the activity around them.
+        // The scene: ONE large ring of exact authored ambience loops beyond
+        // the hearing range (~3000). Prefer hangar/station families for the
+        // showcase, but require a graph Sound leaf explicitly marked as
+        // infinite rather than inferring playback behavior from an event name.
+        // From the center you barely hear them; drag the listener toward a
+        // hangar to walk into its soundscape. Anchors double as spawn points
+        // for the activity around them.
         const anchors = [];
-        const sceneLoops = [
-            ...pickFrom(/^Ambience_Hangar_(Amarr|Caldari|Gallente|Minmatar)_Play$/),
-            ...pickFrom(/^air_hangar_play$/),
-            ...pickFrom(/^hangar_platforms_aura_hologram_atmo_play$/),
-            ...pickFrom(/^(amarr|caldari|gallente|minmatar)_hangar_announcements_play$/),
-            ...pickFrom(/^citadel_(amarr|caldari|gallente)_play$/),
-            ...pickFrom(/^(angel_outpost_atmo_play|autominer_atmo_loop_play|citadel_hangar_large_play)$/)
-        ].slice(0, 13);
+        const ambienceRank = (name) =>
+        {
+            if (/(?:hangar|osse|repair_drone)/i.test(name)) return 0;
+            if (/(?:ambience|atmo|outpost|loops|platform)/i.test(name)) return 1;
+            return 2;
+        };
+        const sceneLoops = library.eventNames
+            .filter(name => library.EventHasSelfContainedLoop(name))
+            .sort((left, right) =>
+                ambienceRank(left)
+                - ambienceRank(right)
+                || left.localeCompare(right))
+            .slice(0, 13);
         // Randomized arrival: each loop keeps its ring slot but drifts around
         // it (angle and radius jitter), and starts on its own schedule over
         // the first seconds instead of everything at once. Anchors are laid
@@ -1243,7 +1946,7 @@ class Showcase
         // Artillery batteries: volleys of five, each shot slightly offset in
         // space and time like a battery walking fire, with a couple of
         // impacts landing beyond the muzzle cluster.
-        const artillery = pickFrom(/^play_outburst_artillery_(L|M)_single_fire$/);
+        const artillery = pickFrom(/^play_outburst_artillery_(L|M)_multi_begin$/);
         const impacts = pickFrom(/^artillery_impact_(standard|large)$/);
         if (artillery.length) this.Every(14000, 28000, () =>
         {
@@ -1430,7 +2133,10 @@ class EffectListPanel
 class DemoApp
 {
 
-    /** @type {CjsAudioSystem} */
+    /** @type {CjsAudioMan} */
+    audio = null;
+
+    /** The manager-owned low-level graph/backend system. */
     system = null;
 
     /** @type {AudioLibrary} */
@@ -1448,19 +2154,33 @@ class DemoApp
     /** @type {MusicUi} */
     musicUi = null;
 
+    /** @type {JukeboxUi} */
+    jukeboxUi = null;
+
+    /** The separate optional titled-track catalog. */
+    jukeboxLibrary = null;
+
+    /** @type {SfxUi} */
+    sfxUi = null;
+
     /** @type {Showcase} */
     showcase = null;
 
     /** @type {EffectListPanel} */
     effectList = null;
 
-    constructor(library)
+    #frameStarted = false;
+
+    constructor(library, jukeboxLibrary)
     {
         this.library = library;
-        this.media = new MediaSource(library);
+        this.jukeboxLibrary = jukeboxLibrary;
+        this.media = new MediaSource();
         this.scene = new Scene(this);
         this.stage = new Stage(this);
         this.musicUi = new MusicUi(this);
+        this.jukeboxUi = new JukeboxUi(this);
+        this.sfxUi = new SfxUi(this);
         this.showcase = new Showcase(this);
         this.effectList = new EffectListPanel(this);
         document.getElementById("enable").onchange = event =>
@@ -1478,24 +2198,46 @@ class DemoApp
 
     EnableAudio()
     {
-        if (this.system) return;
-        this.system = new CjsAudioSystem({
-            distanceScale: ACOUSTIC_SCALE,
-            createContext: () => this.media.CreateContext(),
-            loadBuffer: (eventID, eventName) => this.media.LoadEventBuffer(eventName),
-            audioMetadata: this.library.metadata,
-            musicGraph: this.library.music,
-            loadMedia: sourceId => this.media.LoadMediaBuffer(sourceId)
-        });
-        this.system.Attach();
+        if (!this.audio)
+        {
+            this.audio = new CjsAudioMan(this.library.raw, {
+                distanceScale: ACOUSTIC_SCALE,
+                createContext: () => this.media.CreateContext(),
+                mediaProvider: this.media,
+                // Keep the authored music graph deterministic in this demo so
+                // its seeded Triglavian state always begins with the verified
+                // 257897633 WEM. SFX retains its independent random source.
+                createMusicEngine: options => new CjsMusicEngine({
+                    ...options,
+                    random: () => 0,
+                }),
+                musicLibrary: this.jukeboxLibrary,
+                loadMusicTrack: (song, context) =>
+                    this.media.ReadMusicTrack(song, context),
+                isMusicTrackAvailable: (song, context) =>
+                    this.media.IsMusicTrackAvailable(song, context),
+            });
+            this.system = this.audio.system;
+            this.scene.listenerObject = this.audio.listener;
+            this.scene.MoveListenerTo(this.scene.listenerPosition);
+        }
+        if (this.audio.GetState() === 2)
+        {
+            return;
+        }
+
         // Enable with the full catalog: the ported engine gates PostEvent on
         // bank status, and the catalog-route backend completes loads
         // immediately.
-        this.system.Enable(Object.keys(this.library.metadata.SoundBanks));
+        if (!this.audio.Enable(Object.keys(this.library.metadata.SoundBanks)))
+        {
+            document.getElementById("enable").checked = false;
+            return;
+        }
         this.media.ResumeContext();
-        this.scene.listenerObject = new AudListener();
-        this.scene.listenerObject.SetPosition([ 0, 0, -1 ], [ 0, 1, 0 ], this.scene.listenerPosition);
         if (this.library.music) this.musicUi.Initialize();
+        this.jukeboxUi.Initialize();
+        if (this.library.sfx) this.sfxUi.Initialize();
         // Volume controls. Music rides Carbon's authored volume RTPC (a 0..1
         // user setting, authored initial 0.75); SFX uses the CarbonEngineJS
         // sfx bus (Carbon has master + per-category levels, no single sfx
@@ -1506,13 +2248,35 @@ class DemoApp
         // Reflect auto-enable paths (Load demo) in the checkbox.
         document.getElementById("enable").checked = true;
         // Dev/debug handle (console + automated checks).
-        window.__demo = { system: this.system, emitters: this.scene.emitters, library: this.library.raw };
-        requestAnimationFrame(now => this.#Tick(now));
+        window.__demo = {
+            audio: this.audio,
+            system: this.system,
+            emitters: this.scene.emitters,
+            library: this.library.raw,
+            jukebox: this.audio.jukebox,
+            musicLibrary: this.jukeboxLibrary,
+        };
+        if (!this.#frameStarted)
+        {
+            this.#frameStarted = true;
+            requestAnimationFrame(now => this.#Tick(now));
+        }
+    }
+
+    /** True only while event posts can be realized immediately. */
+    IsAudioEnabled()
+    {
+        return this.audio?.GetState() === 2;
     }
 
     LoadShowcase()
     {
-        if (!this.system) this.EnableAudio();
+        if (!this.audio || this.audio.GetState() !== 2) this.EnableAudio();
+        if (!this.IsAudioEnabled())
+        {
+            document.getElementById("demoToggle").checked = false;
+            return;
+        }
         this.showcase.Start();
     }
 
@@ -1523,9 +2287,11 @@ class DemoApp
      */
     DisableAudio()
     {
-        if (!this.system) return;
+        if (!this.audio) return;
         this.StopAll();
+        this.sfxUi.Reset();
         if (this.musicUi.musicPlayer) this.musicUi.SetEnabled(false);
+        this.audio.Disable();
     }
 
     /** Demo checkbox off: the scene winds down piece by piece over ~3s */
@@ -1546,8 +2312,8 @@ class DemoApp
 
     ApplyVolumes()
     {
-        this.system.manager.SetGlobalRTPC("menu_main_music_level", Number(document.getElementById("musicVol").value) / 100);
-        this.system.backend?.SetSfxVolume(Number(document.getElementById("sfxVol").value) / 100);
+        this.audio.SetGlobalRTPC("menu_main_music_level", Number(document.getElementById("musicVol").value) / 100);
+        this.audio.backend?.SetSfxVolume(Number(document.getElementById("sfxVol").value) / 100);
     }
 
     #Tick(now)
@@ -1564,4 +2330,9 @@ class DemoApp
 }
 
 
-new DemoApp(await AudioLibrary.Load());
+const [ audioLibrary, jukeboxLibrary ] = await Promise.all([
+    AudioLibrary.Load(),
+    JukeboxLibrary.Load(),
+]);
+
+new DemoApp(audioLibrary, jukeboxLibrary);

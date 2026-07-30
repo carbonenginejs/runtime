@@ -6,3 +6,7 @@ export {
     normalizeSfxGraph,
     validateSfxGraph,
 } from "./sfxGraph.js";
+export {
+    installMusicLibrary,
+    validateMusicLibrary,
+} from "./musicLibrary.js";

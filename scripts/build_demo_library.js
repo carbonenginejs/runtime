@@ -3,7 +3,7 @@
 //
 // Kept (SoundbanksInfo / resfileindex / bank-derived): event ids + bank
 // membership, wem file ids, bank/media storage paths, embeddedMedia (with
-// mediaType), eventMedia edges, and the music graph.
+// mediaType), eventMedia edges, authored SFX graph, and the music graph.
 // Stripped (optional audio metadata enrichment): per-event culling metadata
 // (maxRadiusAttenuation, isLoop, is2D, isVital, eventsStoppedBy) and
 // per-bank essential flags. The demo degrades gracefully without them:
@@ -38,6 +38,7 @@ for (const name of Object.keys(library.metadata?.SoundBanks ?? {}))
 {
   soundBanks[name] = {};
 }
+const eventMedia = CreateSfxEventMediaTable(library.sfx);
 
 const demoLibrary = {
   schema: library.schema,
@@ -55,9 +56,10 @@ const demoLibrary = {
   },
   media: library.media,
   banks: library.banks,
-  eventMedia: library.eventMedia,
+  eventMedia,
   eventMediaLanguage: library.eventMediaLanguage,
   embeddedMedia: library.embeddedMedia,
+  sfx: library.sfx,
   music: library.music
 };
 
@@ -84,4 +86,48 @@ function ReadOption(name)
 {
   const index = process.argv.indexOf(name);
   return index === -1 ? null : process.argv[index + 1] ?? null;
+}
+
+/**
+ * Demo playback is intentionally restricted to the validated authored SFX
+ * graph. The legacy flat eventMedia table may contain false-positive ids from
+ * undecoded container-byte scans and is therefore not copied into the demo.
+ */
+function CreateSfxEventMediaTable(sfx)
+{
+  const table = {};
+  const events = sfx?.events ?? {};
+  const nodes = sfx?.nodes ?? {};
+
+  for (const eventName of Object.keys(events).sort())
+  {
+    const pending = events[eventName].map(child => String(child.nodeId));
+    const visited = new Set();
+    const media = new Set();
+
+    while (pending.length)
+    {
+      const id = pending.pop();
+      if (visited.has(id)) continue;
+      visited.add(id);
+
+      const node = nodes[id];
+      if (!node) throw new Error(`SFX event ${eventName} references missing node ${id}`);
+      if (node.type === "sound")
+      {
+        media.add(String(node.mediaId));
+        continue;
+      }
+      for (const child of node.children ?? []) pending.push(String(child.nodeId));
+      for (const child of Object.values(node.cases ?? {})) pending.push(String(child.nodeId));
+      if (node.default) pending.push(String(node.default.nodeId));
+    }
+
+    if (media.size)
+    {
+      table[eventName] = [ ...media ].sort((left, right) => Number(left) - Number(right));
+    }
+  }
+
+  return table;
 }

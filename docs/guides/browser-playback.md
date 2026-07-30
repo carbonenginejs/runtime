@@ -117,6 +117,10 @@ include the optional `sfx` program described in
 [Authored SFX programs](sfx.md). Its sound leaves still use these same
 provider routes.
 
+For named soundtrack playback independent of authored Wwise music events,
+pass an optional neutral catalog, loader, and availability probe as described
+in [Optional jukebox](jukebox.md).
+
 ## Cleanup
 
 Use `ReleaseMedia()` for one retained media identity, `ClearMedia()` for all
@@ -129,4 +133,5 @@ owner.
 - [Architecture and boundaries](../architecture.md)
 - [Audio manager contract](../concepts/audio-manager.md)
 - [Authored SFX programs](sfx.md)
+- [Optional jukebox](jukebox.md)
 - [API reference](../reference/api.md)

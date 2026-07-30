@@ -13,7 +13,11 @@ bytes come from. Each resolved sound leaf refers to a media ID in the same
 library, so `CjsAudioMan` can still deliver that ID as an individual file, a
 slice of a complete original bank, or an exact original-bank range.
 
-Without `sfx`, `eventMedia` remains the flat event-to-media fallback.
+Without `sfx`, a caller may still supply `eventMedia` as a flat
+event-to-media fallback. Bank construction with `includeSfx: true` instead
+derives `eventMedia` from the same validated typed graph. Events that cannot
+be lowered are absent from both tables; heuristic container-byte reachability
+is never used as an audible fallback.
 
 ## Shape
 
@@ -148,6 +152,22 @@ const library = await CjsAudioLibraryBuilder.buildFromBanks({
 objects are merged. This is required because localized banks reuse object IDs
 while pointing at different media.
 
+For each completely lowered event, the builder also resolves version-150
+NodeBase positioning through Sound and Actor-Mixer parents. It produces a
+sparse `is2D` metadata patch: a resolved positioning owner without an authored
+attenuation assignment is 2D; an event is 3D when any selected playable leaf
+resolves an attenuation assignment. Actor-Mixers remain inheritance-only and
+are never emitted as playable parallel nodes.
+
+Missing parents, parent cycles, unsupported NodeBase data, and incomplete
+events omit only the derived spatial patch and add diagnostics; they do not
+block otherwise valid sound playback. Automatic bank projection is applied
+after SoundbanksInfo metadata and before caller `metadata` and `enrichment`,
+so explicit caller data remains authoritative. Raw HIRC attenuation curves
+are preserved by `runtime-resource`, but the builder does not currently infer
+`maxRadiusAttenuation` from them. Supply that value through SoundbanksInfo,
+caller metadata, or enrichment.
+
 Automatic construction currently accepts Wwise generator-version-150 codec
 sounds, Step Random/Sequence containers without reverse restart, and named
 Step Switch/State containers without transition parameters. Trackless,
@@ -155,10 +175,15 @@ non-continuous Layer/Blend containers lower to parallel playback. Transition
 and reset-after-stop policies authored on a Step Random/Sequence container are
 Continuous-only and therefore do not alter its one-child-per-post behavior.
 The builder omits an entire event when that event mixes unsupported actions or
-reaches an unsupported node; the optional diagnostics callback explains each
-omission. Continuous scheduling, Play-and-Continue, Play-Event, actor mixers,
-authored Layer/Blend tracks, and other unqualified HIRC semantics are never
-silently approximated.
+reaches an unsupported playable node; the optional diagnostics callback
+explains each omission. Continuous scheduling, Play-and-Continue, Play-Event,
+playable Actor-Mixer approximation, authored Layer/Blend tracks, and other
+unqualified HIRC semantics are never silently approximated.
+
+For events that do lower, the builder walks every possible typed graph branch
+and emits the exact set of reachable media IDs into `eventMedia`. This keeps
+the flat catalog useful to tools without allowing a value that merely
+resembled a WEM ID inside an undecoded payload to become audible.
 
 The caller may instead obtain a complete built library from an API and skip
 the builder. Runtime-audio performs no SFX metadata download or discovery.

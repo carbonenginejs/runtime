@@ -225,6 +225,22 @@ test("CjsAudioMan owns and realizes the fixed Carbon listener", () =>
     man.Dispose();
 });
 
+test("CjsAudioMan lazily owns Carbon's fixed music-player singleton", () =>
+{
+    const man = new CjsAudioMan(CreateDocument(), {
+        createContext: () => PlaybackContext([]),
+    });
+    const first = man.GetMusicPlayer();
+
+    assert.equal(first.ID, 3);
+    assert.equal(first.name, "Music");
+    assert.equal(man.musicPlayer, first);
+    assert.equal(man.manager.GetAudioEmitter(3), first);
+    assert.equal(man.ReleaseEmitter(first), true);
+    assert.notEqual(man.GetMusicPlayer(), first);
+    man.Dispose();
+});
+
 test("CjsAudioMan owns default and disabled-state bank intent", () =>
 {
     const man = new CjsAudioMan(CreateDocument(), {

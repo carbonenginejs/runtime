@@ -89,6 +89,118 @@ test("optional library builder accepts supplied data and optional enrichment", (
     );
 });
 
+test("library construction rejects invalid schema-v2 spatial metadata", () =>
+{
+    const metadata = {
+        Events: {
+            invalid: {
+                is2D: true,
+            },
+        },
+        SoundBanks: {},
+        WemFileIDs: {},
+    };
+
+    assert.throws(
+        () => CjsAudioLibraryBuilder.build({ metadata }),
+        /is2D must be 0 or 1/u,
+    );
+
+    metadata.Events.invalid.is2D = 0;
+    metadata.Events.invalid.maxRadiusAttenuation = -1;
+
+    assert.throws(
+        () => CjsAudioLibraryBuilder.build({ metadata }),
+        /maxRadiusAttenuation must be a non-negative finite number/u,
+    );
+});
+
+test("authored SFX event-media projection follows only typed graph edges", () =>
+{
+    const eventMedia = CjsAudioLibraryBuilder.createSfxEventMediaTable({
+        events: {
+            weapon_fire: [
+                { nodeId: "10" },
+                { nodeId: "20" },
+            ],
+        },
+        nodes: {
+            "10": {
+                type: "sound",
+                mediaId: "9002",
+            },
+            "20": {
+                type: "switch",
+                cases: {
+                    armor: { nodeId: "30" },
+                    shield: { nodeId: "40" },
+                },
+                default: { nodeId: "10" },
+            },
+            "30": {
+                type: "sound",
+                mediaId: "9001",
+            },
+            "40": {
+                type: "parallel",
+                children: [
+                    { nodeId: "10" },
+                    { nodeId: "30" },
+                ],
+            },
+        },
+    });
+
+    assert.deepEqual(eventMedia, {
+        weapon_fire: [ "9001", "9002" ],
+    });
+});
+
+test("library enrichment preserves the complete schema-v2 contract", () =>
+{
+    const library = CjsAudioLibraryBuilder.build({
+        metadata: {
+            Events: {
+                valid: {
+                    is2D: 0,
+                },
+            },
+            SoundBanks: {},
+            WemFileIDs: {},
+        },
+    });
+
+    assert.throws(
+        () => CjsAudioLibraryBuilder.applyEnrichment(library, {
+            Events: {
+                valid: {
+                    is2D: true,
+                },
+            },
+        }),
+        /is2D must be 0 or 1/u,
+    );
+
+    assert.throws(
+        () => CjsAudioLibraryBuilder.applyEnrichment(library, {
+            sfx: {
+                schemaVersion: 1,
+                events: {
+                    missing_metadata: [
+                        { nodeId: "1" },
+                    ],
+                },
+                nodes: {
+                    "1": {
+                        type: "silence",
+                    },
+                },
+            },
+        }),
+        /SFX event missing_metadata has no metadata event/u,
+    );
+});
+
 test("complete library construction reads banks only through the injected loader", async () =>
 {
     const metadata = {
@@ -343,6 +455,65 @@ test("typed runtime-resource SFX nodes lower into the portable builder graph", (
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("typed Wwise infinite Sound loops survive SFX lowering", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload({
+                            loopCount: 0,
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                ambience_play: {
+                    eventID: 100,
+                },
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+
+    assert.deepEqual(result.diagnostics.parser.nodeBaseFailed, []);
+    assert.deepEqual(result.nodes["200"], {
+        type: "sound",
+        mediaId: "9001",
+        loop: true,
+    });
+});
+
 test("Step containers ignore Continuous-only transition and reset policies", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -491,6 +662,317 @@ test("trackless non-continuous Layer containers lower to parallel playback", () 
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("SFX spatial projection resolves inherited and mixed playable leaves", () =>
+{
+    const inspections = [
+        {
+            source: "effects.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 2,
+                    id: 200,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    sourceBits: 0,
+                    payload: soundPayload({
+                        directParentId: 700,
+                    }),
+                },
+                {
+                    type: 2,
+                    id: 201,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9002,
+                    inMemoryMediaSize: 64,
+                    sourceBits: 0,
+                    payload: soundPayload({
+                        positioningFlags: 0x01,
+                    }),
+                },
+                {
+                    type: 2,
+                    id: 203,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9003,
+                    inMemoryMediaSize: 64,
+                    sourceBits: 0,
+                    payload: soundPayload({
+                        positioningFlags: 0x03,
+                        spatialFlags: 0x01,
+                        attenuationId: 0,
+                    }),
+                },
+                {
+                    type: 7,
+                    id: 700,
+                    payload: actorMixerPayload({
+                        positioningFlags: 0x03,
+                        spatialFlags: 0x09,
+                        attenuationId: 800,
+                        children: [ 200 ],
+                    }),
+                },
+                {
+                    type: 9,
+                    id: 202,
+                    payload: concatBytes(
+                        nodeBasePayload(),
+                        layerPayload([ 200, 201 ]),
+                    ),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0403,
+                    targetId: 200,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 301,
+                    actionType: 0x0403,
+                    targetId: 201,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 302,
+                    actionType: 0x0403,
+                    targetId: 202,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 303,
+                    actionType: 0x0403,
+                    targetId: 203,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 300 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 101,
+                    actionIds: [ 301 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 102,
+                    actionIds: [ 302 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 103,
+                    actionIds: [ 303 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        },
+    ];
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections,
+        metadata: {
+            Events: {
+                inherited_3d: { eventID: 100 },
+                local_2d: { eventID: 101 },
+                mixed: { eventID: 102 },
+                listener_relative_with_zero_attenuation: { eventID: 103 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+            "9002": { resPath: "res:/audio/9002.wem" },
+            "9003": { resPath: "res:/audio/9003.wem" },
+        },
+    });
+
+    assert.deepEqual(result.metadataProjection.Events, {
+        inherited_3d: { is2D: 0 },
+        listener_relative_with_zero_attenuation: { is2D: 1 },
+        local_2d: { is2D: 1 },
+        mixed: { is2D: 0 },
+    });
+    assert.deepEqual(result.diagnostics.spatial.omitted, []);
+});
+
+test("SFX spatial projection omits unresolved parent cycles", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "effects.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload({
+                            directParentId: 700,
+                        }),
+                    },
+                    {
+                        type: 7,
+                        id: 700,
+                        payload: actorMixerPayload({
+                            directParentId: 701,
+                        }),
+                    },
+                    {
+                        type: 7,
+                        id: 701,
+                        payload: actorMixerPayload({
+                            directParentId: 700,
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                cyclic: { eventID: 100 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.deepEqual(result.metadataProjection.Events, {});
+    assert.equal(result.diagnostics.spatial.omitted.length, 1);
+    assert.match(
+        result.diagnostics.spatial.omitted[0].reasons[0],
+        /positioning parent cycle/u,
+    );
+});
+
+test("SFX spatial projection fails open for missing inherited parents", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "effects.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload({
+                            directParentId: 700,
+                        }),
+                    },
+                    {
+                        type: 2,
+                        id: 201,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9002,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload({
+                            directParentId: 701,
+                            positioningFlags: 0x01,
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                unresolved: { eventID: 100 },
+                local_override: { eventID: 101 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+            "9002": { resPath: "res:/audio/9002.wem" },
+        },
+    });
+
+    assert.deepEqual(result.metadataProjection.Events, {
+        local_override: { is2D: 1 },
+    });
+    assert.deepEqual(result.diagnostics.spatial.projected, [
+        {
+            name: "local_override",
+            leafIds: [ 201 ],
+            is2D: 1,
+        },
+    ]);
+    assert.deepEqual(result.diagnostics.spatial.omitted, [
+        {
+            name: "unresolved",
+            leafIds: [ 200 ],
+            reasons: [ "missing NodeBase 700" ],
+        },
+    ]);
+});
+
 test("complete construction preserves the bank version for typed SFX lowering", async () =>
 {
     let diagnostics = null;
@@ -540,7 +1022,10 @@ test("complete construction preserves the bank version for typed SFX lowering", 
                             streamType: 0,
                             sourceId: 9001,
                             inMemoryMediaSize: 64,
-                            payload: new Uint8Array(),
+                            sourceBits: 0,
+                            payload: soundPayload({
+                                positioningFlags: 0x01,
+                            }),
                         },
                         {
                             type: 3,
@@ -581,6 +1066,48 @@ test("complete construction preserves the bank version for typed SFX lowering", 
     });
     assert.deepEqual(diagnostics.parser.unsupportedVersions, []);
     assert.deepEqual(diagnostics.omittedEvents, []);
+    assert.deepEqual(diagnostics.spatial.projected, [
+        {
+            name: "weapon_fire",
+            leafIds: [ 200 ],
+            is2D: 1,
+        },
+    ]);
+    assert.equal(library.metadata.Events.weapon_fire.is2D, 1);
+});
+
+test("bank spatial projection preserves caller metadata precedence", async () =>
+{
+    const bankDerived = await BuildSpatialPrecedenceLibrary();
+    const callerMetadata = await BuildSpatialPrecedenceLibrary({
+        metadata: {
+            Events: {
+                weapon_fire: {
+                    is2D: 0,
+                },
+            },
+        },
+    });
+    const callerEnrichment = await BuildSpatialPrecedenceLibrary({
+        metadata: {
+            Events: {
+                weapon_fire: {
+                    is2D: 0,
+                },
+            },
+        },
+        enrichment: {
+            Events: {
+                weapon_fire: {
+                    is2D: 1,
+                },
+            },
+        },
+    });
+
+    assert.equal(bankDerived.metadata.Events.weapon_fire.is2D, 1);
+    assert.equal(callerMetadata.metadata.Events.weapon_fire.is2D, 0);
+    assert.equal(callerEnrichment.metadata.Events.weapon_fire.is2D, 1);
 });
 
 test("complete construction language-selects localized SFX HIRC before lowering", async () =>
@@ -758,4 +1285,247 @@ function layerPayload(children)
     view.setUint32(4 + children.length * 4, 0, true);
     view.setUint8(8 + children.length * 4, 0);
     return bytes;
+}
+
+function soundPayload({
+    directParentId = 0,
+    positioningFlags = 0,
+    spatialFlags = 0,
+    attenuationId = null,
+    loopCount = null,
+} = {})
+{
+    return new TestWriter()
+        .u32(0x00040001)
+        .u8(0)
+        .u32(9001)
+        .u32(64)
+        .u8(0)
+        .append(nodeBasePayload({
+            directParentId,
+            positioningFlags,
+            spatialFlags,
+            attenuationId,
+            loopCount,
+        }))
+        .bytes();
+}
+
+function BuildSpatialPrecedenceLibrary(overrides = {})
+{
+    return CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "200",
+                        ShortName: "common",
+                        Path: "SoundBanks\\common.bnk",
+                        Events: [
+                            {
+                                Id: "100",
+                                Name: "weapon_fire",
+                            },
+                        ],
+                        Media: [
+                            {
+                                Id: "9001",
+                                ShortName: "weapon.wem",
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+        indexEntries: [
+            {
+                logicalPath: "res:/audio/common.bnk",
+                storagePath: "banks/common.bnk",
+                byteLength: 4096,
+            },
+        ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 200,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            sourceBits: 0,
+                            payload: soundPayload({
+                                positioningFlags: 0x01,
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 300,
+                            actionType: 0x0403,
+                            targetId: 200,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 300 ],
+                            payload: new Uint8Array(),
+                        },
+                    ],
+                    media: [
+                        {
+                            id: 9001,
+                            available: true,
+                            absoluteOffset: 32,
+                            length: 64,
+                            mediaType: "wem",
+                        },
+                    ],
+                },
+            };
+        },
+        ...overrides,
+    });
+}
+
+function actorMixerPayload({
+    directParentId = 0,
+    positioningFlags = 0,
+    spatialFlags = 0,
+    attenuationId = null,
+    children = [],
+} = {})
+{
+    const writer = new TestWriter()
+        .append(nodeBasePayload({
+            directParentId,
+            positioningFlags,
+            spatialFlags,
+            attenuationId,
+        }))
+        .u32(children.length);
+
+    for (const child of children)
+    {
+        writer.u32(child);
+    }
+
+    return writer.bytes();
+}
+
+function concatBytes(...values)
+{
+    const writer = new TestWriter();
+
+    for (const value of values)
+    {
+        writer.append(value);
+    }
+
+    return writer.bytes();
+}
+
+function nodeBasePayload({
+    directParentId = 0,
+    positioningFlags = 0,
+    spatialFlags = 0,
+    attenuationId = null,
+    loopCount = null,
+} = {})
+{
+    const writer = new TestWriter()
+        .u8(0).u8(0)
+        .u8(0).u8(0)
+        .u32(0)
+        .u32(directParentId)
+        .u8(0);
+
+    const properties = [];
+
+    if (loopCount !== null)
+    {
+        properties.push([ 0x54, loopCount ]);
+    }
+    if (attenuationId !== null)
+    {
+        properties.push([ 0x55, attenuationId ]);
+    }
+
+    writer.u8(properties.length);
+    for (const [ id ] of properties)
+    {
+        writer.u8(id);
+    }
+    for (const [ , value ] of properties)
+    {
+        writer.u32(value);
+    }
+
+    writer
+        .u8(0)
+        .u8(positioningFlags);
+
+    if ((positioningFlags & 0x03) === 0x03)
+    {
+        writer.u8(spatialFlags);
+    }
+
+    return writer
+        .u8(0).u32(0)
+        .u8(0).u8(0).u16(0).u8(0).u8(0)
+        .u8(0)
+        .u8(0)
+        .u16(0)
+        .bytes();
+}
+
+class TestWriter
+{
+    constructor()
+    {
+        this.values = [];
+    }
+
+    u8(value)
+    {
+        this.values.push(value & 0xff);
+        return this;
+    }
+
+    u16(value)
+    {
+        return this.#number(2, view => view.setUint16(0, value, true));
+    }
+
+    u32(value)
+    {
+        return this.#number(4, view => view.setUint32(0, value, true));
+    }
+
+    append(bytes)
+    {
+        this.values.push(...bytes);
+        return this;
+    }
+
+    bytes()
+    {
+        return Uint8Array.from(this.values);
+    }
+
+    #number(size, write)
+    {
+        const bytes = new Uint8Array(size);
+
+        write(new DataView(bytes.buffer));
+        return this.append(bytes);
+    }
 }

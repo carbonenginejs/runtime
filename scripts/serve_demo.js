@@ -20,7 +20,17 @@ const libraryJsonPath = selectedLibraryPath.endsWith(".gz")
 const libraryGzipPath = selectedLibraryPath.endsWith(".gz")
   ? selectedLibraryPath
   : `${selectedLibraryPath}.gz`;
-const resourceCacheOption = ReadOption("--cache") ?? process.env.AUDIO_RESOURCE_CACHE;
+const conventionalResourceCache = path.join(
+  orgRoot,
+  ".cache",
+  "tool-core",
+  "ResFiles"
+);
+const resourceCacheOption = ReadOption("--cache")
+  ?? process.env.AUDIO_RESOURCE_CACHE
+  ?? (fs.existsSync(conventionalResourceCache)
+    ? conventionalResourceCache
+    : null);
 const resourceCache = resourceCacheOption ? path.resolve(resourceCacheOption) : null;
 const port = Number(ReadOption("--port") ?? process.env.PORT) || 8787;
 const types = {
@@ -30,14 +40,23 @@ const types = {
   ".json": "application/json; charset=utf-8",
   ".gz": "application/gzip",
   ".map": "application/json; charset=utf-8",
-  ".otf": "font/otf"
+  ".otf": "font/otf",
+  ".mp3": "audio/mpeg",
+  ".m4a": "audio/mp4",
+  ".mp4": "audio/mp4",
+  ".ogg": "audio/ogg",
+  ".opus": "audio/ogg",
+  ".wav": "audio/wav",
+  ".flac": "audio/flac",
+  ".webm": "audio/webm"
 };
 
 let libraryPromise = null;
 
 http.createServer(async (request, response) =>
 {
-  const url = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+  const requestUrl = new URL(request.url, "http://localhost");
+  const url = decodeURIComponent(requestUrl.pathname);
   response.setHeader("access-control-allow-origin", "*");
   response.setHeader("cache-control", "no-store");
 
@@ -97,6 +116,43 @@ http.createServer(async (request, response) =>
     return;
   }
 
+  if (url.startsWith("/range/"))
+  {
+    const storagePath = url.slice("/range/".length);
+    const offset = Number(requestUrl.searchParams.get("offset"));
+    const byteLength = Number(requestUrl.searchParams.get("byteLength"));
+    if (!IsStoragePath(storagePath)
+      || !Number.isSafeInteger(offset)
+      || offset < 0
+      || !Number.isSafeInteger(byteLength)
+      || byteLength <= 0)
+    {
+      response.writeHead(404).end("not found");
+      return;
+    }
+
+    try
+    {
+      const bytes = await ReadEmbedded(storagePath, offset, byteLength);
+      if (!bytes)
+      {
+        response.writeHead(404).end("not found");
+        return;
+      }
+      response.writeHead(206, {
+        "content-type": "application/octet-stream",
+        "content-length": bytes.byteLength,
+        "content-range": `bytes ${offset}-${offset + byteLength - 1}/*`
+      });
+      response.end(bytes);
+    }
+    catch
+    {
+      response.writeHead(404).end("not found");
+    }
+    return;
+  }
+
   if (url.startsWith("/cache/"))
   {
     const storagePath = url.slice("/cache/".length);
@@ -124,6 +180,48 @@ http.createServer(async (request, response) =>
     {
       response.writeHead(404).end("not found");
     }
+    return;
+  }
+
+  if (url.startsWith("/jukebox/"))
+  {
+    const parts = url.slice("/jukebox/".length).split("/");
+    const playlistID = parts[0] ?? "";
+    const trackID = parts[1] ?? "";
+    if (parts.length !== 2
+      || !/^[a-z0-9-]+$/i.test(playlistID)
+      || !/^\d{3}$/.test(trackID))
+    {
+      response.writeHead(404).end("not found");
+      return;
+    }
+
+    const directory = path.join(demoRoot, "music-cache", playlistID);
+    const file = fs.existsSync(directory)
+      ? fs.readdirSync(directory)
+        .find(name =>
+          name.startsWith(`${trackID}.`)
+          && !name.endsWith(".info.json")
+          && !name.endsWith(".part")
+          && !name.endsWith(".ytdl"))
+      : null;
+    const resolved = file ? path.resolve(directory, file) : null;
+
+    if (!resolved
+      || !IsWithin(directory, resolved)
+      || !fs.statSync(resolved).isFile())
+    {
+      response.writeHead(404).end(
+        "track not downloaded; run npm run demo:music"
+      );
+      return;
+    }
+
+    response.writeHead(200, {
+      "content-type": types[path.extname(resolved).toLowerCase()]
+        ?? "application/octet-stream"
+    });
+    fs.createReadStream(resolved).pipe(response);
     return;
   }
 

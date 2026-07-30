@@ -2,8 +2,10 @@
 // composition root that installs one complete semantic library and owns
 // media selection, delivery, preparation, and decoded-buffer retention.
 import { CjsAudioSystem } from "./CjsAudioSystem.js";
+import { CjsJukebox } from "./CjsJukebox.js";
 import { CjsSfxEngine } from "./CjsSfxEngine.js";
 import { AudListener } from "./trinity/audio/AudListener.js";
+import { AudMusicPlayer } from "./trinity/audio/AudMusicPlayer.js";
 import {
     installAudioLibraryDocument,
 } from "./library/audioLibraryDocument.js";
@@ -42,7 +44,11 @@ export class CjsAudioMan
 
     #library = null;
 
+    #jukebox = null;
+
     #listener = null;
+
+    #musicPlayer = null;
 
     #mediaProvider = null;
 
@@ -80,6 +86,9 @@ export class CjsAudioMan
         musicEngine = null,
         createMusicEngine = null,
         applyRTPC = null,
+        musicLibrary = null,
+        loadMusicTrack = null,
+        isMusicTrackAvailable = null,
     } = {})
     {
         if (typeof createContext !== "function")
@@ -115,6 +124,17 @@ export class CjsAudioMan
             createMusicEngine,
             applyRTPC,
         };
+
+        if (musicLibrary !== null
+            || loadMusicTrack !== null
+            || isMusicTrackAvailable !== null)
+        {
+            this.#jukebox = new CjsJukebox({
+                library: musicLibrary,
+                loadTrack: loadMusicTrack,
+                isTrackAvailable: isMusicTrackAvailable,
+            });
+        }
 
         if (mediaProvider !== null)
         {
@@ -156,6 +176,12 @@ export class CjsAudioMan
         return this.#listener;
     }
 
+    /** Returns Carbon's manager-owned, lazily created fixed music emitter. */
+    get musicPlayer()
+    {
+        return this.GetMusicPlayer();
+    }
+
     /** Returns the realized Web Audio backend after successful enablement. */
     get backend()
     {
@@ -166,6 +192,12 @@ export class CjsAudioMan
     get musicEngine()
     {
         return this.#system?.musicEngine ?? null;
+    }
+
+    /** Returns the optional neutral playlist player. */
+    get jukebox()
+    {
+        return this.#jukebox;
     }
 
     /** Returns the active authored SFX interpreter, when installed. */
@@ -209,8 +241,10 @@ export class CjsAudioMan
 
         const installed = installAudioLibraryDocument(library);
 
+        this.#jukebox?.Detach();
         this.#system?.Dispose();
         this.#listener = null;
+        this.#musicPlayer = null;
         this.#sfxEngine?.Reset();
         this.#decodedMedia.clear();
         this.#wholeBanks.clear();
@@ -255,6 +289,65 @@ export class CjsAudioMan
         }
 
         return installed;
+    }
+
+    /** Installs or replaces the optional neutral music-library catalog. */
+    InstallMusicLibrary(library)
+    {
+        this.#jukebox ??= new CjsJukebox();
+        const installed = this.#jukebox.InstallLibrary(library);
+
+        if (this.#context && this.#system?.backend?.masterGain)
+        {
+            this.#jukebox.Attach(
+                this.#context,
+                this.#system.backend.masterGain,
+            );
+        }
+        return installed;
+    }
+
+    /** Installs the caller-owned music-track acquisition function. */
+    SetMusicTrackLoader(loadTrack)
+    {
+        this.#jukebox ??= new CjsJukebox();
+        this.#jukebox.SetTrackLoader(loadTrack);
+        return this.#jukebox;
+    }
+
+    /** Installs the caller-owned music-track availability probe. */
+    SetMusicTrackAvailabilityChecker(isTrackAvailable)
+    {
+        this.#jukebox ??= new CjsJukebox();
+        this.#jukebox.SetTrackAvailabilityChecker(isTrackAvailable);
+        return this.#jukebox;
+    }
+
+    /**
+     * Returns Carbon's fixed-id music emitter, creating and adopting it once.
+     *
+     * This emitter remains the authored Wwise event/switch/RTPC facade. The
+     * neutral `jukebox` property is a separate direct-track player.
+     */
+    GetMusicPlayer()
+    {
+        const system = this.#RequireSystem();
+        const existing = system.manager.GetAudioEmitter(3);
+
+        if (existing)
+        {
+            if (!(existing instanceof AudMusicPlayer))
+            {
+                throw new Error(
+                    "Audio game-object ID 3 is not an AudMusicPlayer",
+                );
+            }
+            this.#musicPlayer = existing;
+            return existing;
+        }
+
+        this.#musicPlayer = system.AdoptEmitter(new AudMusicPlayer());
+        return this.#musicPlayer;
     }
 
     /**
@@ -500,6 +593,10 @@ export class CjsAudioMan
 
         if (enabled && this.#listener)
         {
+            this.#jukebox?.Attach(
+                this.#context,
+                system.backend?.masterGain ?? this.#context?.destination,
+            );
             this.#banksWaitingToLoad.clear();
             this.#listener.SetPosition(
                 this.#listener.GetFront(),
@@ -526,6 +623,7 @@ export class CjsAudioMan
                 this.#system.manager.GetLoadedSoundBanks(),
             );
         }
+        this.#jukebox?.Stop();
         this.#system?.Disable();
     }
 
@@ -646,6 +744,10 @@ export class CjsAudioMan
     /** Sets one global RTPC when the audio manager is enabled. */
     SetGlobalRTPC(rtpcName, value)
     {
+        if (rtpcName === "menu_main_music_level")
+        {
+            this.#jukebox?.SetVolume(value);
+        }
         return this.#system?.manager.SetGlobalRTPC(rtpcName, value) ?? false;
     }
 
@@ -660,6 +762,7 @@ export class CjsAudioMan
     {
         this.#system?.manager.StopAll();
         this.#system?.backend?.StopAll();
+        this.#jukebox?.Stop();
     }
 
     /** Drives culling, backend rendering, music, and log flushing. */
@@ -689,7 +792,13 @@ export class CjsAudioMan
     /** Stops and unregisters one adopted Carbon audio game object. */
     ReleaseEmitter(emitter)
     {
-        return this.#system?.ReleaseEmitter(emitter) ?? false;
+        const released = this.#system?.ReleaseEmitter(emitter) ?? false;
+
+        if (released && emitter === this.#musicPlayer)
+        {
+            this.#musicPlayer = null;
+        }
+        return released;
     }
 
     /** Releases every adopted audio game object reachable from a graph. */
@@ -722,9 +831,12 @@ export class CjsAudioMan
     /** Stops playback and releases graph, decode, and source-byte state. */
     Dispose()
     {
+        this.#jukebox?.Dispose();
+        this.#jukebox = null;
         this.#system?.Dispose();
         this.#system = null;
         this.#listener = null;
+        this.#musicPlayer = null;
         this.#sfxEngine?.Reset();
         this.#sfxEngine = null;
         this.#context = null;

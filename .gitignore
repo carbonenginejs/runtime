@@ -19,3 +19,6 @@ review/
 _review/
 carbonenginejs.md
 /DECORATOR-TODOS.md
+
+# Downloaded demo music is local-only and must never enter git or npm.
+/demo/music-cache/

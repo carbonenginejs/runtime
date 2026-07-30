@@ -105,6 +105,27 @@ test("rejects the retired v1 document shape", () =>
     );
 });
 
+test("rejects invalid spatial event metadata", () =>
+{
+    const invalidDimension = CreateDocument();
+
+    invalidDimension.metadata.Events.engine_loop.is2D = true;
+
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidDimension),
+        /is2D must be 0 or 1/u,
+    );
+
+    const invalidRadius = CreateDocument();
+
+    invalidRadius.metadata.Events.engine_loop.maxRadiusAttenuation = -1;
+
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidRadius),
+        /maxRadiusAttenuation must be a non-negative finite number/u,
+    );
+});
+
 test("validates authored SFX nodes, media references, curves, and cycles", () =>
 {
     const valid = CreateDocument();
