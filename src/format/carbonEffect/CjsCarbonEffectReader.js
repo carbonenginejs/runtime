@@ -157,9 +157,11 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
      * Reads and parses one permutation's description blob.
      *
      * @param {number} index Permutation index, positional in the offset table.
+     * @param {object} [options] Read options.
+     * @param {boolean} [options.backend] Expect our optional per-pass trailing block.
      * @returns {object} Description record tree.
      */
-    readDescription(index)
+    readDescription(index, options = {})
     {
         const record = this.records[index];
         if (!record)
@@ -176,7 +178,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
             stringTable: this.stringTableBytes,
             stringTableSize: this.stringTableSize
         });
-        return readEffectDescription(reader);
+        return readEffectDescription(reader, { backend: options.backend === true });
     }
 
     /**

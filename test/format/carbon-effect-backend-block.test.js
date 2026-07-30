@@ -17,7 +17,9 @@ import {
     readBackendBlock,
     writeBackendBlock
 } from "../../src/format/carbonEffect/carbonEffectBackendBlock.js";
-import { buildSyntheticDescription } from "./carbonEffectSynthetic.js";
+import { CjsCarbonEffectReader } from "../../src/format/carbonEffect/CjsCarbonEffectReader.js";
+import { CjsCarbonEffectWriter } from "../../src/format/carbonEffect/CjsCarbonEffectWriter.js";
+import { buildSyntheticDescription, SYNTHETIC_PERMUTATIONS } from "./carbonEffectSynthetic.js";
 
 /**
  * A pass's backend block covering both sections and every optional field.
@@ -303,4 +305,47 @@ test("the backend gate off produces exactly Carbon's bytes", () =>
     });
     const parsed = readEffectDescription(reader);
     assert.equal("backendBlock" in parsed.techniques[0].passes[0], false);
+});
+
+test("the container reader honours the backend gate", () =>
+{
+    // The gate has to be reachable from the container, not just from the record
+    // codec: `CjsCarbonEffectReader.readDescription` accepted no options at all
+    // for three commits, so a backend-bearing container could be written and
+    // never read back. Nothing caught it because every test that exercised the
+    // gate called `readEffectDescription` directly.
+    const block = writeBackendBlock(sampleBlock());
+    const description = buildSyntheticDescription();
+    for (const technique of description.techniques)
+    {
+        for (const pass of technique.passes)
+        {
+            pass.backendBlock = { size: block.length, offset: 0, bytes: block };
+        }
+    }
+
+    const writer = new CjsCarbonEffectWriter({ backend: true });
+    for (const axis of SYNTHETIC_PERMUTATIONS) writer.addPermutation(axis);
+    for (let index = 0; index < 4; index += 1) writer.addBody(index, description);
+
+    const reader = new CjsCarbonEffectReader(writer.toBytes(), { source: "backend gate" });
+    const parsed = reader.readDescription(0, { backend: true });
+    const resolved = parsed.techniques[0].passes[0].backendBlock;
+
+    assert.equal(resolved.size, block.length);
+    assert.deepEqual(Array.from(resolved.bytes), Array.from(block));
+    const decoded = readBackendBlock(resolved.bytes);
+    assert.equal(decoded.bindGroups.length, sampleBlock().bindGroups.length);
+    assert.deepEqual(
+        decoded.bindGroups[0].bindings.map((binding) => binding.generatedSymbol),
+        sampleBlock().bindGroups[0].bindings.map((binding) => binding.generatedSymbol)
+    );
+
+    // Negative control: the same bytes read with the gate closed must fail. If
+    // this succeeded, honouring the option would be unobservable and the test
+    // would pass just as happily against the defect it was written for.
+    assert.throws(
+        () => reader.readDescription(0),
+        /trailing byte|Invalid string-table offset|beyond|exceeds/iu
+    );
 });

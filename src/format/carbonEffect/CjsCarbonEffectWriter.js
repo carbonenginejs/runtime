@@ -264,6 +264,7 @@ export class CjsCarbonEffectWriter
     #bodies = [];
     #compilerVersion;
     #sourceHash;
+    #backend;
 
     /**
      * Creates an empty container builder.
@@ -272,12 +273,14 @@ export class CjsCarbonEffectWriter
      * @param {number[]|Uint8Array} [options.compilerVersion] Four version bytes.
      * @param {string|Uint8Array} [options.sourceHash] 32 ASCII hash bytes.
      * @param {CjsStringTable} [options.stringTable] Arena to intern into.
+     * @param {boolean} [options.backend] Emit the optional trailing block per pass.
      */
     constructor(options = {})
     {
         this.#table = options.stringTable ?? new CjsStringTable();
         this.#compilerVersion = options.compilerVersion ?? [ 0, 0, 0, 0 ];
         this.#sourceHash = options.sourceHash ?? "0".repeat(CARBON_EFFECT_SOURCE_HASH_BYTES);
+        this.#backend = options.backend === true;
     }
 
     /**
@@ -361,7 +364,8 @@ export class CjsCarbonEffectWriter
             if (body.description)
             {
                 writeEffectDescription(new CjsByteWriter(), body.description, {
-                    arena: collectArena(this.#table)
+                    arena: collectArena(this.#table),
+                    backend: this.#backend
                 });
             }
         }
@@ -373,7 +377,7 @@ export class CjsCarbonEffectWriter
         {
             if (body.bytes) return { index: body.index, bytes: body.bytes };
             const writer = new CjsByteWriter();
-            writeEffectDescription(writer, body.description, { arena });
+            writeEffectDescription(writer, body.description, { arena, backend: this.#backend });
             return { index: body.index, bytes: writer.toBytes() };
         });
 

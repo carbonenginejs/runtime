@@ -268,15 +268,21 @@ function mapStageData(input) {
  * Maps one portable stage onto Carbon's `StageInput` record.
  *
  * @param {object} stage Portable stage.
+ * @param {object} context Mapping context carrying the program substitution.
  * @returns {object} Stage record.
  */
-function mapStage(stage) {
+function mapStage(stage, context) {
   const signature = stage.input?.signature ?? {};
   const program = stage.sourceProgram ?? {};
   const threadGroupSize = signature.threadGroupSize ?? {};
+  const substituted = context.programFor ? context.programFor(stage, context) : null;
   return {
     type: stage.stageType,
-    shaderData: blob(program.bytes, program.shaderSize),
+    // `shaderData` is the one field a backend replaces: the record layout is
+    // backend-invariant, so a WGSL or GLSL program occupies exactly the slot
+    // DXBC occupies in a shipped file. Absent a substitution the source
+    // program passes through, which is what re-emitting a dx11 file does.
+    shaderData: substituted ? blob(substituted.bytes, substituted.size) : blob(program.bytes, program.shaderSize),
     threadGroupSize: [threadGroupSize.x ?? 0, threadGroupSize.y ?? 0, threadGroupSize.z ?? 0],
     pipelineInputs: (signature.pipelineInputs ?? []).map(entry => ({
       usage: entry.usage,
@@ -314,10 +320,19 @@ function mapLibrary(library) {
 /**
  * Maps a portable effect-body reflection onto a Carbon v15 description record tree.
  *
+ * Two optional hooks make the same mapping serve a backend emit. Both are pure
+ * functions of the record being mapped, so the mapping stays a mapping: nothing
+ * about the Carbon region changes shape when a backend supplies them, only which
+ * bytes land in `shaderData` and whether the one optional trailing block per pass
+ * carries anything.
+ *
  * @param {object} reflection Portable effect-body reflection.
+ * @param {object} [hooks] Backend substitution hooks.
+ * @param {Function} [hooks.programFor] Returns `{bytes, size}` for one stage.
+ * @param {Function} [hooks.backendBlockFor] Returns block bytes for one pass.
  * @returns {object} Description record tree, ready for `writeEffectDescription`.
  */
-function carbonDescriptionFromPortable(reflection) {
+function carbonDescriptionFromPortable(reflection, hooks = {}) {
   const effect = reflection?.effect;
   if (!effect) {
     throw new CjsFormatWriteError("Portable reflection has no effect", {});
@@ -325,13 +340,25 @@ function carbonDescriptionFromPortable(reflection) {
   return {
     techniques: (effect.techniques ?? []).map(technique => ({
       name: str(technique.name),
-      passes: (technique.passes ?? []).map(pass => ({
-        stages: (pass.stages ?? []).map(mapStage),
-        renderStates: (pass.renderStates ?? []).map(entry => ({
-          state: entry.state >>> 0,
-          value: entry.value >>> 0
-        })).sort((left, right) => left.state - right.state)
-      })),
+      passes: (technique.passes ?? []).map((pass, passIndex) => {
+        const context = {
+          techniqueName: String(technique.name ?? ""),
+          passIndex,
+          passKey: `${technique.name}.pass${passIndex}`,
+          programFor: hooks.programFor
+        };
+        const block = hooks.backendBlockFor ? hooks.backendBlockFor(context, pass) : null;
+        return {
+          stages: (pass.stages ?? []).map(stage => mapStage(stage, context)),
+          renderStates: (pass.renderStates ?? []).map(entry => ({
+            state: entry.state >>> 0,
+            value: entry.value >>> 0
+          })).sort((left, right) => left.state - right.state),
+          ...(block ? {
+            backendBlock: blob(block)
+          } : {})
+        };
+      }),
       libraries: (technique.libraries ?? []).map(mapLibrary)
     })),
     annotations: (effect.annotations ?? []).map(group => ({
