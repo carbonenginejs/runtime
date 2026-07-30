@@ -421,7 +421,7 @@ deliberately reintroduced bug — it did not catch it, because a correct call on
 neighbouring line vouched for the broken one. Tightened to same-line, which costs
 only that raw mappings be written on one line.
 
-### Predicted before measuring: how our WGSL bodies should share
+### How our WGSL bodies should share — predicted, then measured
 
 The alias oracle proves we group *Carbon* bodies the way CCP's compiler does — dx11
 in, dx11 out. It says nothing about how our **WGSL** bodies group, and that is what
@@ -429,31 +429,47 @@ actually determines package size. The mechanism is the same (byte identity of th
 description blob) but the ratio is unknown, so it is worth predicting before running
 it, while the prediction can still be wrong in public.
 
-**Prediction: our `.cewgpu` body count should be at or below dx11's** — that is,
-sharing at least as good as 2.45:1 at `.sm_hi` and 3.91:1 at `.sm_lo`. Two arguments
-point that way. Our reflection is derived from the same DXBC reflection Carbon
-reflects, so wherever Carbon's bodies are identical ours should be too; and lowering
-is a normalising step, so two DXBC bodies that differ only in ways the translation
-erases would collapse further than dx11 does. Neither more sharing nor a little less
-would be a defect.
+The prediction was made and then measured, and it was wrong twice over. Both
+corrections are recorded because the reasoning that produced them is the reusable
+part.
 
-**Substantially less sharing would be a signal, and there is a named suspect.** The
-WGSL shader record carries `sourceMap`, whose entries are
-`{line, instructionIndex, dxbcOffset}`. `dxbcOffset` is a byte offset into the source
-DXBC. Two permutations that lower to character-identical WGSL will still carry
-different `dxbcOffset` values whenever their DXBC is laid out differently — so
-including `sourceMap` in the description blob would make bodies that are genuinely
-identical fail to share, for a reason that has nothing to do with the shader.
+**Wrong suspect: `sourceMap` suppresses no sharing at all.** The argument was that
+`sourceMap` entries carry `dxbcOffset`, a byte offset into the source DXBC, so two
+permutations lowering to character-identical WGSL would still fail to share whenever
+their DXBC was laid out differently. Measured across 2,866 builds covering all 537
+dx11 effects at three tiers: hashing each unit's content with and without
+`sourceMap` yields the same 22,793 distinct units. Whenever the rest of a unit
+matches, its `sourceMap` matches too — `dxbcOffset` never splits an otherwise
+identical body. The mechanism is sound and the effect is null; a plausible mechanism
+is not a measurement.
 
-That would be a real defect wearing a size number, and the fix is already implied by
-the plan: `sourceMap` is a translation intermediate and belongs in the diagnostics
-sidecar, not in the shared body. Body count is the cheapest available detector for
-translation-side noise of this kind, and the all-permutations change is the one run
-where it comes for free.
+**Wrong framing, which matters more: unit count and Carbon body count are not the
+same quantity.** `passUnitSignature` is computed *before* translation and keys on
+`passKey`, `bytecodeDigest`, `semanticBindings` and `effectProfileProof`
+(`effectBackendBodySet.js:31`). That is why `Main.pass0` never dedupes — its DXBC
+genuinely differs per body, and translation cannot undo that. Today's identity is
+therefore **coarser** than the record layout's blob byte-identity, so comparing our
+body count against dx11's Carbon body count compares two different things. The
+baseline to measure against is today's unit count, not the Carbon table.
 
-If the measured ratio lands well below dx11's, the first thing to check is which
-per-body fields vary that should not — starting with `sourceMap`, then any generated
-symbol that encodes a permutation-dependent index.
+**The real prediction, with a number.** Keying on `bytecodeDigest` rather than
+content means some units stay separate that are byte-identical: 420 of 23,213
+(~1.8%), concentrated in ubershader, which goes 48 → 24 at every tier. So the record
+layout should share **slightly better than today, never worse** — expect roughly
+22,793 units where today has 23,213. Substantially less sharing is the signal, and
+`sourceMap` is no longer on the suspect list.
+
+**The tier trend is inverted between the two quantities, and that is not a
+regression.** Unit sharing runs `.sm_hi` 2.75:1 > `.sm_depth` 2.65:1 > `.sm_lo`
+1.87:1; Carbon dx11 bodies run `.sm_lo` 3.91:1 > `.sm_hi` 2.45:1. Both are correct
+measurements of different things. Flagged because an inverted trend is exactly what a
+regression looks like at a glance, and the two tables sit a page apart.
+
+Method, to re-run: build each effect with `mode: "all"`, read back with `OUTPUT_RAW`,
+and hash each `passUnit`'s `{shaders, layouts, resourceTransforms}`. 32 effects fail
+the all-body build outright — storage-resource shape, typed buffer, geometry, compute
+— consistent with the known-unsupported set, so they are excluded rather than
+counted as zero.
 
 ### The mapping oracle: our producer's data into Carbon records
 
