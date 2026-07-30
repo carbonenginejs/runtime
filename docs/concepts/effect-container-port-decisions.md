@@ -374,6 +374,57 @@ The grouping is asserted by name and ahead of the byte comparison. A byte diff w
 catch a wrong grouping too, but it would report "these files differ at offset
 918204", which is not a diagnosis.
 
+**Report sharing per tier, not as one headline ratio.** A single number hides the
+shape, because the ratio varies more by quality tier than by backend:
+
+| backend | `.sm_lo` | `.sm_hi` | `.sm_depth` |
+|---|---|---|---|
+| dx11 | 3.91:1 | 2.45:1 | 2.45:1 |
+| dx12 | 2.64:1 | 1.46:1 | 1.46:1 |
+| metal | 2.53:1 | 1.39:1 | 1.39:1 |
+
+Each cell is 537 effects and 8722 rows. Individual effects go much further —
+`quadv5.sm_lo` is 480 rows over 24 bodies, 20:1, against 3.3:1 for the same effect at
+`.sm_hi`.
+
+This vindicates carrying every permutation rather than baking one. Sharing is
+cheapest exactly where it matters most: low-quality tiers collapse the most
+permutations, and low-quality tiers are what low-end devices fetch. dx11 also shares
+substantially better than dx12 or metal at every tier, which is worth remembering
+before reading a dx11 size ratio as representative of all three.
+
+### The mapping oracle: our producer's data into Carbon records
+
+Every proof above is Carbon records in, the same Carbon records out, checked against
+shipped bytes. Phase 2 adds a direction none of them cover: **our producer's data
+into Carbon records**. CCP never wrote one of our packages, so there is no file to
+diff against, and round-tripping through our own reader would be self-consistent —
+weak in exactly the way `jsonEqual` was weak.
+
+An oracle exists anyway. Our reflection is derived from a dx11 file's own reflection
+through the HLSL reader, so the Carbon region we emit for an effect must be
+near-identical to the Carbon region of the file it came from. `carbon-mapping.test.js`
+diffs the two field for field over 361 bodies across three effects of different
+shapes, and fails on any difference not on a named list. Depth beats breadth here:
+each difference needs judgement, so three effects deeply beats the corpus shallowly.
+
+**It caught a real bug on its first run.** The portable reflection stores sampler LOD
+and border-colour values as raw bit patterns — `mipLODBiasRaw`, `minLODRaw`,
+`maxLODRaw`, `borderColorRaw` — so that a value like `-FLT_MAX` survives JSON without
+a decimal round trip. Carbon's records store them as `float`. The mapping assigned
+them straight across, which would have written `4286578687.0` where the file says
+`-3.4028235e38`. Every structural check in the container accepts that: the record is
+the right length, the field is in the right place, the arena is sound. Only a
+comparison against the source file catches it. This is the failure class the other
+four proofs cannot see — mechanically perfect, semantically wrong.
+
+**One difference remains, and it is legitimate.** For non-dynamic samplers the file
+stores a name but Carbon's reader nulls it (`Tr2EffectDescription.cpp:430-433`)
+before our producer ever sees it, so we emit the empty string. 738 occurrences. The
+name is unrecoverable from our input rather than dropped by our mapping, and Carbon
+nulls it precisely because a non-dynamic sampler is never looked up by name. Worth
+knowing that a re-read of our file cannot recover it.
+
 ### Two traps this surfaced
 
 **`jsonEqual` must be deleted, not retargeted — retargeted it would always pass.**
