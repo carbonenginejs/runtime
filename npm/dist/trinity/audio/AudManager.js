@@ -622,7 +622,7 @@ class AudManager extends CjsModel {
     for (const [name, entry] of this.#monitoredParameters) {
       const value = _AudGameObjResource.backend?.GetGlobalRTPCValue?.(name);
       entry.parameterExists = value !== undefined && value !== null;
-      entry.parameterValue = entry.parameterExists ? Number(value) : entry.parameterValue;
+      entry.parameterValue = entry.parameterExists ? Number(value) : 0;
     }
   }
 

@@ -1,8 +1,9 @@
+import { evaluateWwiseInterpolation } from './internal/wwiseCurve.js';
+
 // CarbonEngineJS original (no Carbon counterpart). Browser-safe interpreter
 // for the optional authored SFX program installed with one audio library.
 // It selects media identities only; CjsAudioMan retains ownership of delivery
 // and decode, while CjsAudioBackend owns Web Audio voices.
-
 const MIN_AUDIBLE_GAIN_DB = -96;
 
 /**
@@ -34,7 +35,8 @@ class CjsSfxEngine {
 
   /** Returns whether the graph owns one event name. */
   HandlesEvent(eventName) {
-    return Array.isArray(this.#graph.events?.[String(eventName)]);
+    const name = String(eventName);
+    return Array.isArray(this.#graph.events?.[name]) || Array.isArray(this.#graph.eventActions?.[name]);
   }
 
   /**
@@ -45,9 +47,17 @@ class CjsSfxEngine {
    */
   ResolveEvent(eventName, controls = {}) {
     const name = String(eventName);
-    const roots = this.#graph.events?.[name];
-    if (!Array.isArray(roots)) {
+    const roots = this.#graph.events?.[name] ?? [];
+    const actions = this.#graph.eventActions?.[name] ?? [];
+    if (!Array.isArray(roots) || !Array.isArray(actions)) {
       return [];
+    }
+    for (const action of actions) {
+      if (action.kind === "state") {
+        controls.setState?.(action.group, action.value);
+      } else if (action.kind === "switch") {
+        controls.setSwitch?.(action.group, action.value);
+      }
     }
     const selections = [];
     for (const root of roots) {
@@ -64,14 +74,20 @@ class CjsSfxEngine {
    */
   EvaluateGain(selection, controls = {}) {
     let gainDb = Number(selection?.gainDb) || 0;
+    let linearGain = 1;
     for (const curve of selection?.gainCurves ?? []) {
       const value = ReadRTPC(curve, controls);
-      gainDb += EvaluateCurve(curve.points, value);
+      const output = EvaluateCurve(curve.points, value);
+      if (curve.points[0].gain !== undefined) {
+        linearGain *= Math.max(0, output);
+      } else {
+        gainDb += output;
+      }
     }
-    if (gainDb <= MIN_AUDIBLE_GAIN_DB) {
+    if (linearGain <= 0 || gainDb <= MIN_AUDIBLE_GAIN_DB) {
       return 0;
     }
-    return 10 ** (gainDb / 20);
+    return linearGain * 10 ** (gainDb / 20);
   }
 
   /** Clears random history and step-sequence positions. */
@@ -259,22 +275,24 @@ function NormalizeControlValue(value, fallback) {
   return Number.isFinite(number) ? number : fallback;
 }
 function EvaluateCurve(points, value) {
-  if (value <= points[0].x) {
-    return points[0].gainDb;
+  const field = points[0].gain === undefined ? "gainDb" : "gain";
+  if (value < points[0].x) {
+    return points[0][field];
   }
   const last = points.at(-1);
   if (value >= last.x) {
-    return last.gainDb;
+    return last[field];
   }
   for (let index = 1; index < points.length; index++) {
     const right = points[index];
-    if (value <= right.x) {
+    if (value < right.x) {
       const left = points[index - 1];
-      const ratio = (value - left.x) / (right.x - left.x);
-      return left.gainDb + (right.gainDb - left.gainDb) * ratio;
+      const span = right.x - left.x;
+      const ratio = span > 0 ? evaluateWwiseInterpolation(left.interpolation ?? 4, (value - left.x) / span) : 1;
+      return left[field] + (right[field] - left[field]) * ratio;
     }
   }
-  return last.gainDb;
+  return last[field];
 }
 function FindCase(cases, value) {
   const direct = cases[String(value)];

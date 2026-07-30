@@ -652,7 +652,9 @@ class CjsAudioBackend {
       getSwitch: group => this.GetSwitchValue(group, gameObjID),
       getState: group => this.GetGlobalState(group),
       getRTPC: name => this.GetRTPCValue(name, gameObjID),
-      getGlobalRTPC: name => this.GetGlobalRTPCValue(name)
+      getGlobalRTPC: name => this.GetGlobalRTPCValue(name),
+      setSwitch: (group, value) => this.SetSwitch(group, value, gameObjID),
+      setState: (group, value) => this.SetGlobalState(group, value)
     });
   }
 

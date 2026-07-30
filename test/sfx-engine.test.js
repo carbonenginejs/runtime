@@ -340,3 +340,111 @@ test("switch/state selection and parallel RTPC gains resolve without acquisition
         "200",
     );
 });
+
+test("event setters update controls before resolving the same post", () =>
+{
+    const switches = new Map();
+    const states = new Map();
+    const engine = new CjsSfxEngine({
+        graph: {
+            schemaVersion: 1,
+            events: {
+                select_large: [ { nodeId: "1" } ],
+            },
+            eventActions: {
+                select_large: [
+                    {
+                        kind: "switch",
+                        group: "ship_size",
+                        value: "large",
+                    },
+                ],
+                set_storm: [
+                    {
+                        kind: "state",
+                        group: "weather",
+                        value: "storm",
+                    },
+                ],
+            },
+            nodes: {
+                "1": {
+                    type: "switch",
+                    group: "ship_size",
+                    cases: {
+                        large: { nodeId: "2" },
+                    },
+                    default: { nodeId: "3" },
+                },
+                "2": { type: "sound", mediaId: "100" },
+                "3": { type: "sound", mediaId: "200" },
+            },
+        },
+    });
+    const controls = {
+        getSwitch: group => switches.get(group),
+        getState: group => states.get(group),
+        setSwitch: (group, value) => switches.set(group, value),
+        setState: (group, value) => states.set(group, value),
+    };
+
+    assert.equal(engine.HandlesEvent("set_storm"), true);
+    assert.deepEqual(engine.ResolveEvent("set_storm", controls), []);
+    assert.equal(states.get("weather"), "storm");
+    assert.equal(
+        engine.ResolveEvent("select_large", controls)[0].mediaID,
+        "100",
+    );
+    assert.equal(switches.get("ship_size"), "large");
+});
+
+test("linear-gain curves preserve Wwise shapes and duplicate-x steps", () =>
+{
+    let speed = 0;
+    const engine = new CjsSfxEngine({
+        graph: {
+            schemaVersion: 1,
+            events: {
+                engine: [ { nodeId: "1" } ],
+            },
+            nodes: {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    gainCurves: [
+                        {
+                            rtpc: "speed",
+                            points: [
+                                { x: 0, gain: 0, interpolation: 5 },
+                                { x: 1, gain: 1, interpolation: 9 },
+                                { x: 2, gain: 1, interpolation: 5 },
+                                { x: 2, gain: 0, interpolation: 9 },
+                            ],
+                        },
+                    ],
+                },
+            },
+        },
+    });
+    const controls = {
+        getRTPC: () => speed,
+    };
+    const selection = engine.ResolveEvent("engine", controls)[0];
+
+    speed = 0.25;
+    assert.equal(engine.EvaluateGain(selection, controls), 0.15625);
+    speed = 0.5;
+    assert.equal(engine.EvaluateGain(selection, controls), 0.5);
+    speed = 1.5;
+    assert.equal(
+        engine.EvaluateGain(selection, controls),
+        1,
+        "constant interpolation retains the left gain",
+    );
+    speed = 2;
+    assert.equal(
+        engine.EvaluateGain(selection, controls),
+        0,
+        "the last duplicate-x point owns the discontinuity",
+    );
+});

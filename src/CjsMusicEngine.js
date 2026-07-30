@@ -4,7 +4,8 @@
 // Carbon's C++ contributes no musical intelligence (InitMusic is dead code);
 // the game only posts events and sets switches/states, so this engine's fidelity
 // target is the bank data, not Carbon code.
-//
+import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
+
 // v1 semantics (documented simplifications):
 // - Segments chain at their exit cue; pre-entry clip audio plays when the
 //   schedule allows (first segment starts at its entry cue "now").
@@ -70,23 +71,7 @@ function PlaylistScheduleHorizon(node)
 /** Wwise AkCurveInterpolation sampled over normalized time. */
 function FadeCurveValue(curve, progress)
 {
-    const value = Math.max(0, Math.min(1, Number(progress) || 0));
-
-    switch (Number(curve))
-    {
-        case 0: return 1 - (1 - value) ** 3; // Log3
-        case 1: return Math.sin(value * Math.PI / 2); // Sine
-        case 2: return Math.sqrt(value); // Log1
-        case 3: // Inverted S: fast at both ends, shallow through the middle.
-            return value < 0.5
-                ? Math.sqrt(value / 2)
-                : 1 - Math.sqrt((1 - value) / 2);
-        case 5: return value * value * (3 - 2 * value); // S curve
-        case 6: return value * value; // Exp1
-        case 7: return 1 - Math.cos(value * Math.PI / 2); // Sine reciprocal
-        case 8: return value ** 3; // Exp3
-        default: return value;
-    }
+    return evaluateWwiseInterpolation(curve, progress);
 }
 
 /** Schedules one linear or sampled Wwise interpolation on an AudioParam. */

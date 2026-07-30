@@ -135,6 +135,11 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
         events: {
             engine_loop: [ { nodeId: "1" } ],
         },
+        eventActions: {
+            engine_loop: [
+                { kind: "switch", group: "engine_mode", value: "combat" },
+            ],
+        },
         nodes: {
             "1": {
                 type: "blend",
@@ -164,6 +169,14 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     };
 
     assert.equal(validateAudioLibraryDocument(valid), true);
+
+    const invalidSetter = structuredClone(valid);
+
+    invalidSetter.sfx.eventActions.engine_loop[0].kind = "rtpc";
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidSetter),
+        /kind must be switch or state/u,
+    );
 
     const invalidSpatial = structuredClone(valid);
 
@@ -208,7 +221,7 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     curve.sfx.nodes["1"].children[0].gainCurves[0].points.reverse();
     assert.throws(
         () => validateAudioLibraryDocument(curve),
-        /points must have increasing x/u,
+        /points must have non-decreasing x/u,
     );
 
     const cycle = structuredClone(valid);
@@ -303,6 +316,21 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
         { x: 1, gainDb: 0 },
     ]);
 
+    const linear = structuredClone(source);
+
+    linear.sfx.nodes["1"].gainCurves[0].points = [
+        { x: "0", gain: "0", interpolation: 5 },
+        { x: "1", gain: "1", interpolation: 9 },
+    ];
+    assert.deepEqual(
+        installAudioLibraryDocument(linear)
+            .sfx.nodes["1"].gainCurves[0].points,
+        [
+            { x: 0, gain: 0, interpolation: 5 },
+            { x: 1, gain: 1, interpolation: 9 },
+        ],
+    );
+
     const invalid = structuredClone(source);
 
     invalid.sfx.nodes["1"].mediaId = true;
@@ -395,5 +423,28 @@ test("rejects events silently claimed by both SFX and music graphs", () =>
     assert.throws(
         () => installAudioLibraryDocument(source),
         /cannot be owned by both SFX and music graphs/u,
+    );
+
+    source.sfx.events = {};
+    source.sfx.nodes = {};
+    source.sfx.eventActions = {
+        engine_loop: [
+            { kind: "state", group: "weather", value: "storm" },
+        ],
+    };
+
+    assert.throws(
+        () => installAudioLibraryDocument(source),
+        /cannot be owned by both SFX and music graphs/u,
+    );
+
+    source.music.eventTargets = {};
+    source.sfx.eventActions.missing_event =
+        source.sfx.eventActions.engine_loop;
+    delete source.sfx.eventActions.engine_loop;
+
+    assert.throws(
+        () => installAudioLibraryDocument(source),
+        /SFX event missing_event has no metadata event/u,
     );
 });

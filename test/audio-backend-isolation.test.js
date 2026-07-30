@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsAudioBackend } from "../npm/dist/index.js";
+import { CjsAudioBackend, CjsSfxEngine } from "../npm/dist/index.js";
 
 const START_QUANTUM = 128 / 48000;
 
@@ -645,6 +645,43 @@ test("one authored event owns parallel voices with live per-object RTPC gains", 
   );
   context.sources[1].onended?.();
   assert.deepEqual(finished, [playingID]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("setter-only authored events update controls and complete without a voice", async () =>
+{
+  const engine = new CjsSfxEngine({
+    graph: {
+      schemaVersion: 1,
+      events: {},
+      eventActions: {
+        select_large: [
+          { kind: "switch", group: "ship_size", value: "large" },
+        ],
+      },
+      nodes: {},
+    },
+  });
+  const { backend, emitter, finished, context } = Harness({
+    loadBuffer: async (_eventID, eventName, controls) =>
+    {
+      assert.deepEqual(engine.ResolveEvent(eventName, controls), []);
+      return { voices: [] };
+    },
+  });
+
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "select_large",
+  );
+
+  await tick();
+  assert.equal(backend.GetSwitchValue("ship_size", 1), "large");
+  assert.equal(context.sources.length, 0);
+  assert.deepEqual(finished, [ playingID ]);
   assert.equal(backend.GetPlayingCount(), 0);
 });
 

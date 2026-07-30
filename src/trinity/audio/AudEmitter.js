@@ -79,7 +79,7 @@ export class AudEmitter extends AudGameObjResource
   @impl.implemented
   HandleEvent(eventName)
   {
-    return this.PostEvent(eventName);
+    this.PostEvent(eventName);
   }
 
   /** Carbon method SetPosition: marks the emitter positioned (unblocks Wake), then stores/pushes. */

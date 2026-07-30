@@ -34,6 +34,11 @@ export class AudioCurveSetDriver extends CjsModel
   // C++ m_audioParameterExists - runtime, refreshed from the manager.
   #audioParameterExists = false;
 
+  // JavaScript adaptation of Carbon's deterministic destructor ownership.
+  #registeredManager = null;
+
+  #registeredParameterName = "";
+
   /** Carbon method GetCurveSetTime: refresh from the monitored-RTPC map; fall back to the curve when invalid. */
   @carbon.method
   @impl.implemented
@@ -73,9 +78,17 @@ export class AudioCurveSetDriver extends CjsModel
   @impl.implemented
   Initialize()
   {
-    if (this.audioParameterName)
+    if (this.audioParameterName && !this.#registeredManager)
     {
-      AudGameObjResource.manager?.RegisterParameter?.(this.audioParameterName);
+      const manager = AudGameObjResource.manager;
+
+      if (typeof manager?.RegisterParameter === "function"
+        && manager.GetState?.() !== "uninitialized")
+      {
+        manager.RegisterParameter(this.audioParameterName);
+        this.#registeredManager = manager;
+        this.#registeredParameterName = this.audioParameterName;
+      }
     }
     return true;
   }
@@ -86,15 +99,41 @@ export class AudioCurveSetDriver extends CjsModel
   SetAudioParameterName(name)
   {
     const manager = AudGameObjResource.manager;
-    if (this.audioParameterName)
+    if (this.#registeredManager)
     {
-      manager?.UnregisterParameter?.(this.audioParameterName);
+      this.#registeredManager.UnregisterParameter?.(
+        this.#registeredParameterName,
+      );
+      this.#registeredManager = null;
+      this.#registeredParameterName = "";
     }
     this.audioParameterName = String(name ?? "");
-    if (this.audioParameterName)
+    if (this.audioParameterName
+      && typeof manager?.RegisterParameter === "function"
+      && manager.GetState?.() !== "uninitialized")
     {
-      manager?.RegisterParameter?.(this.audioParameterName);
+      manager.RegisterParameter(this.audioParameterName);
+      this.#registeredManager = manager;
+      this.#registeredParameterName = this.audioParameterName;
     }
+  }
+
+  /** Releases the monitored-parameter watcher owned by this driver. */
+  @impl.custom
+  @impl.reason("JavaScript has no deterministic destructor; owners call Dispose to perform Carbon's destructor-time monitored-parameter release.")
+  Dispose()
+  {
+    if (!this.#registeredManager)
+    {
+      return;
+    }
+
+    this.#registeredManager.UnregisterParameter?.(
+      this.#registeredParameterName,
+    );
+    this.#registeredManager = null;
+    this.#registeredParameterName = "";
+    this.#audioParameterExists = false;
   }
 
 }

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   AudEmitter,
+  AudioCurveSetDriver,
   CjsAudioSystem,
   CjsSfxEngine,
 } from "../npm/dist/index.js";
@@ -181,6 +182,54 @@ test("temporary culling preserves authored per-object SFX container state", () =
   finally
   {
     system.Dispose();
+  }
+});
+
+test("graph adoption owns AudioCurveSetDriver monitored watchers", () =>
+{
+  const system = new CjsAudioSystem({
+    createContext: () => FakeContext([]),
+    loadBuffer: async () => ({ fake: "buffer" }),
+    audioMetadata: {
+      Events: {},
+      SoundBanks: {},
+      WemFileIDs: {},
+    },
+  });
+  const first = AudioCurveSetDriver.from({
+    audioParameterName: "boost",
+  });
+  const second = AudioCurveSetDriver.from({
+    audioParameterName: "boost",
+  });
+  const graph = {
+    Traverse(visitor)
+    {
+      visitor(first);
+      visitor(second);
+    },
+  };
+
+  system.Attach();
+  try
+  {
+    assert.deepEqual(system.AdoptGraph(graph), [ first, second ]);
+    assert.deepEqual(system.AdoptGraph(graph), [ first, second ]);
+    assert.equal(system.manager.GetParameterInfo("boost"), null);
+
+    assert.equal(system.Enable(), true);
+    assert.equal(system.manager.GetParameterInfo("boost").watchers, 2);
+
+    assert.deepEqual(system.ReleaseGraph(first), [ first ]);
+    assert.equal(system.manager.GetParameterInfo("boost").watchers, 1);
+    assert.deepEqual(system.ReleaseGraph(first), []);
+
+    system.Dispose();
+    assert.equal(system.manager.GetParameterInfo("boost"), null);
+  }
+  finally
+  {
+    system.Detach();
   }
 });
 

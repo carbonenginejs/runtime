@@ -156,7 +156,7 @@ test("AudEmitter is an event-track listener and posts the received name", () =>
   const events = [];
   emitter.PostEvent = eventName => (events.push(eventName), 73);
 
-  assert.equal(emitter.HandleEvent("curve_event"), 73);
+  assert.equal(emitter.HandleEvent("curve_event"), undefined);
   assert.deepEqual(events, [ "curve_event" ]);
 });
 

@@ -722,6 +722,134 @@ test("trackless non-continuous Layer containers lower to parallel playback", () 
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("non-continuous Layer crossfades lower to live linear-gain curves", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "interface.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 2,
+                        id: 202,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9002,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 9,
+                        id: 201,
+                        payload: trackedLayerPayload({
+                            children: [ 200, 202 ],
+                            controlId: 800,
+                            associations: [
+                                {
+                                    childId: 200,
+                                    points: [
+                                        [ 0, 1, 9 ],
+                                        [ 1, 1, 5 ],
+                                        [ 1, 0, 9 ],
+                                    ],
+                                },
+                                {
+                                    childId: 202,
+                                    points: [
+                                        [ 0, 0, 5 ],
+                                        [ 1, 1, 9 ],
+                                    ],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                engine_blend: { eventID: 100 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "1",
+                        ShortName: "interface",
+                        GameParameters: [
+                            { Id: "800", Name: "engine_speed" },
+                        ],
+                    },
+                ],
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+            "9002": { resPath: "res:/audio/9002.wem" },
+        },
+    });
+
+    assert.deepEqual(result.nodes["201"], {
+        type: "blend",
+        children: [
+            {
+                nodeId: "200",
+                gainCurves: [
+                    {
+                        rtpc: "engine_speed",
+                        scope: "object",
+                        points: [
+                            { x: 0, gain: 1, interpolation: 9 },
+                            { x: 1, gain: 1, interpolation: 5 },
+                            { x: 1, gain: 0, interpolation: 9 },
+                        ],
+                    },
+                ],
+            },
+            {
+                nodeId: "202",
+                gainCurves: [
+                    {
+                        rtpc: "engine_speed",
+                        scope: "object",
+                        points: [
+                            { x: 0, gain: 0, interpolation: 5 },
+                            { x: 1, gain: 1, interpolation: 9 },
+                        ],
+                    },
+                ],
+            },
+        ],
+    });
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
 test("SFX Play-Event actions inline the referenced event program", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -787,6 +915,214 @@ test("SFX Play-Event actions inline the referenced event program", () =>
         direct_play: [ { nodeId: "200" } ],
     });
     assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("SFX SetSwitch and SetState actions lower to named event setters", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x1903,
+                        targetId: 0,
+                        payload: setterPayload(500, 501),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 302,
+                        actionType: 0x1203,
+                        targetId: 0,
+                        payload: setterPayload(600, 601),
+                    },
+                    {
+                        type: 3,
+                        id: 303,
+                        actionType: 0x1903,
+                        targetId: 0,
+                        payload: setterPayload(500, 501),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300, 301 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 302 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 102,
+                        actionIds: [ 303 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                select_large: { eventID: 100 },
+                set_storm: { eventID: 101 },
+                music_select_large: { eventID: 102 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "1",
+                        ShortName: "common",
+                        SwitchGroups: [
+                            {
+                                Id: "500",
+                                Name: "ship_size",
+                                Switches: [
+                                    { Id: "501", Name: "large" },
+                                ],
+                            },
+                        ],
+                        StateGroups: [
+                            {
+                                Id: "600",
+                                Name: "weather",
+                                States: [
+                                    { Id: "601", Name: "storm" },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+
+    assert.deepEqual(result.events, {
+        select_large: [ { nodeId: "200" } ],
+    });
+    assert.deepEqual(result.eventActions, {
+        select_large: [
+            { kind: "switch", group: "ship_size", value: "large" },
+        ],
+        set_storm: [
+            { kind: "state", group: "weather", value: "storm" },
+        ],
+    });
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("complete construction installs a setter-only SFX graph", async () =>
+{
+    const library = await CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                select_large: {
+                    eventID: 100,
+                    soundbanks: [ "common.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "common.bnk": {
+                    name: "common",
+                    path: "\\SoundBanks\\SFX\\common.bnk",
+                    shortId: 200,
+                },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "200",
+                        ShortName: "common",
+                        SwitchGroups: [
+                            {
+                                Id: "500",
+                                Name: "ship_size",
+                                Switches: [
+                                    { Id: "501", Name: "large" },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+        indexEntries: [
+            {
+                logicalPath: "res:/audio/common.bnk",
+                storagePath: "banks/common.bnk",
+                byteLength: 128,
+            },
+        ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    hirc: [
+                        {
+                            type: 3,
+                            id: 300,
+                            actionType: 0x1903,
+                            targetId: 0,
+                            payload: setterPayload(500, 501),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 300 ],
+                            payload: new Uint8Array(),
+                        },
+                    ],
+                    media: [],
+                },
+            };
+        },
+    });
+
+    assert.deepEqual(library.sfx.events, {});
+    assert.deepEqual(library.sfx.eventActions, {
+        select_large: [
+            { kind: "switch", group: "ship_size", value: "large" },
+        ],
+    });
+    assert.deepEqual(library.metadata.Events.select_large, {
+        eventID: 100,
+        soundbanks: [ "common.bnk" ],
+    });
 });
 
 test("SFX Play-Event cycles are diagnosed instead of recursing", () =>
@@ -1589,6 +1925,54 @@ function layerPayload(children)
     return bytes;
 }
 
+function trackedLayerPayload({
+    children,
+    controlId,
+    associations,
+})
+{
+    const writer = new TestWriter()
+        .u32(children.length);
+
+    for (const child of children)
+    {
+        writer.u32(child);
+    }
+
+    writer
+        .u32(1)
+        .u32(700)
+        .u16(0)
+        .u32(controlId)
+        .u8(0)
+        .u32(associations.length);
+
+    for (const association of associations)
+    {
+        writer
+            .u32(association.childId)
+            .u32(association.points.length);
+
+        for (const [ from, to, interpolation ] of association.points)
+        {
+            writer
+                .f32(from)
+                .f32(to)
+                .u32(interpolation);
+        }
+    }
+
+    return writer.u8(0).bytes();
+}
+
+function setterPayload(groupID, valueID)
+{
+    return new TestWriter()
+        .u32(groupID)
+        .u32(valueID)
+        .bytes();
+}
+
 function soundPayload({
     directParentId = 0,
     positioningFlags = 0,
@@ -1810,6 +2194,11 @@ class TestWriter
     u32(value)
     {
         return this.#number(4, view => view.setUint32(0, value, true));
+    }
+
+    f32(value)
+    {
+        return this.#number(4, view => view.setFloat32(0, value, true));
     }
 
     append(bytes)

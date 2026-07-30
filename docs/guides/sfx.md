@@ -27,6 +27,11 @@ is never used as an audible fallback.
     events: {
         weapon_fire: [ { nodeId: "1" } ]
     },
+    eventActions: {
+        weapon_fire: [
+            { kind: "switch", group: "ship_size", value: "large" }
+        ]
+    },
     nodes: {
         "1": {
             type: "switch",
@@ -49,8 +54,8 @@ is never used as an audible fallback.
                             rtpc: "weapon_intensity",
                             scope: "object",
                             points: [
-                                { x: 0, gainDb: -96 },
-                                { x: 1, gainDb: 0 }
+                                { x: 0, gain: 0, interpolation: 5 },
+                                { x: 1, gain: 1, interpolation: 9 }
                             ]
                         }
                     ]
@@ -92,6 +97,12 @@ enabled.
 
 An event may have several roots; roots are parallel.
 
+`eventActions` carries ordered authored SetSwitch and SetState actions.
+Switches update the posting game object; states update the global state table.
+The actions run before the event roots are resolved, so a setter may select a
+switch/state branch in the same post. A setter-only event is valid and
+completes without creating a media voice.
+
 Random and sequence state is kept independently per game object by default.
 Set `scope: "global"` on either container to share its history or position
 across all game objects.
@@ -110,10 +121,14 @@ of the selected path add in decibels. A curve has:
   when no per-emitter value exists; and
 - optional `defaultValue`, used when neither the requested object nor global
   RTPC has a value; and
-- strictly increasing `{ x, gainDb }` points.
+- non-decreasing points using either decibel `{ x, gainDb }` values or
+  normalized linear `{ x, gain }` values; and
+- optional Wwise `interpolation` values from 0 through 9 on the point that
+  begins each segment. Duplicate X values preserve authored discontinuities.
 
 Values between points interpolate linearly and values outside the point range
-clamp to the nearest endpoint. Values at or below -96 dB become silence.
+clamp to the nearest endpoint. Authored interpolation shapes are applied when
+present. Decibel values at or below -96 dB and linear gain zero become silence.
 Changing an RTPC updates gain on already playing SFX voices without restarting
 their buffers.
 
@@ -185,19 +200,22 @@ are preserved by `runtime-resource`, but the builder does not currently infer
 caller metadata, or enrichment.
 
 Automatic construction currently accepts Wwise generator-version-150 codec
-sounds, Play, Stop, and Play-Event actions, Step Random/Sequence containers
+sounds, Play, Stop, Play-Event, SetSwitch, and SetState actions, Step Random/Sequence containers
 without reverse restart, and named Step Switch/State containers without
 transition parameters. Play-Event recursively inlines the referenced event's
 playable and Stop program; missing targets and cycles are diagnosed and
 omitted. Trackless, non-continuous Layer/Blend containers lower to parallel
-playback.
+playback. Non-continuous Layer crossfade tracks lower to live normalized-gain
+curves when their controller is a named Game Parameter and the Layer has no
+separate property RTPCs.
 Transition and reset-after-stop policies authored on a Step Random/Sequence
 container are Continuous-only and therefore do not alter its
 one-child-per-post behavior. The builder omits an entire playable event when
 that event mixes other unsupported actions or reaches an unsupported playable
 node; the optional diagnostics callback explains each omission. Continuous
 scheduling, Play-and-Continue, playable Actor-Mixer approximation, authored
-Layer/Blend tracks, and other unqualified HIRC semantics are never silently
+continuous Layers, Layer property RTPCs, and other unqualified HIRC semantics
+are never silently
 approximated.
 
 For events that do lower, the builder walks every possible typed graph branch

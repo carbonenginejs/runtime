@@ -840,6 +840,10 @@ export class CjsAudioBackend
                 this.GetRTPCValue(name, gameObjID),
             getGlobalRTPC: name =>
                 this.GetGlobalRTPCValue(name),
+            setSwitch: (group, value) =>
+                this.SetSwitch(group, value, gameObjID),
+            setState: (group, value) =>
+                this.SetGlobalState(group, value),
         });
     }
 

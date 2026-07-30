@@ -15,7 +15,7 @@ class AudioCurveSetDriver extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "AudioCurveSetDriver",
       family: "audio"
-    })], [[[io, io.persist, void 0, type.model("ITriScalarFunction")], 16, "fallbackCurve"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.read, type, type.float32], 16, "audioParameterValue"], [[io, io.persistOnly, type, type.string], 16, "audioParameterName"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurveSetTime"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsValid"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAudioParameterName"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetAudioParameterName"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, void 0, type.model("ITriScalarFunction")], 16, "fallbackCurve"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.read, type, type.float32], 16, "audioParameterValue"], [[io, io.persistOnly, type, type.string], 16, "audioParameterName"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurveSetTime"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsValid"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetAudioParameterName"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetAudioParameterName"], [[impl, impl.custom, void 0, impl.reason("JavaScript has no deterministic destructor; owners call Dispose to perform Carbon's destructor-time monitored-parameter release.")], 18, "Dispose"]], 0, void 0, CjsModel));
   }
   /** m_fallbackCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
   fallbackCurve = (_initProto(this), _init_fallbackCurve(this, null));
@@ -31,6 +31,10 @@ class AudioCurveSetDriver extends CjsModel {
 
   // C++ m_audioParameterExists - runtime, refreshed from the manager.
   #audioParameterExists = (_init_extra_audioParameterName(this), false);
+
+  // JavaScript adaptation of Carbon's deterministic destructor ownership.
+  #registeredManager = null;
+  #registeredParameterName = "";
 
   /** Carbon method GetCurveSetTime: refresh from the monitored-RTPC map; fall back to the curve when invalid. */
   GetCurveSetTime(time) {
@@ -57,8 +61,13 @@ class AudioCurveSetDriver extends CjsModel {
 
   /** Carbon method Initialize: registers the monitored parameter with the manager. */
   Initialize() {
-    if (this.audioParameterName) {
-      _AudGameObjResource.manager?.RegisterParameter?.(this.audioParameterName);
+    if (this.audioParameterName && !this.#registeredManager) {
+      const manager = _AudGameObjResource.manager;
+      if (typeof manager?.RegisterParameter === "function" && manager.GetState?.() !== "uninitialized") {
+        manager.RegisterParameter(this.audioParameterName);
+        this.#registeredManager = manager;
+        this.#registeredParameterName = this.audioParameterName;
+      }
     }
     return true;
   }
@@ -66,13 +75,28 @@ class AudioCurveSetDriver extends CjsModel {
   /** Carbon method SetAudioParameterName: re-register under the new name. */
   SetAudioParameterName(name) {
     const manager = _AudGameObjResource.manager;
-    if (this.audioParameterName) {
-      manager?.UnregisterParameter?.(this.audioParameterName);
+    if (this.#registeredManager) {
+      this.#registeredManager.UnregisterParameter?.(this.#registeredParameterName);
+      this.#registeredManager = null;
+      this.#registeredParameterName = "";
     }
     this.audioParameterName = String(name ?? "");
-    if (this.audioParameterName) {
-      manager?.RegisterParameter?.(this.audioParameterName);
+    if (this.audioParameterName && typeof manager?.RegisterParameter === "function" && manager.GetState?.() !== "uninitialized") {
+      manager.RegisterParameter(this.audioParameterName);
+      this.#registeredManager = manager;
+      this.#registeredParameterName = this.audioParameterName;
     }
+  }
+
+  /** Releases the monitored-parameter watcher owned by this driver. */
+  Dispose() {
+    if (!this.#registeredManager) {
+      return;
+    }
+    this.#registeredManager.UnregisterParameter?.(this.#registeredParameterName);
+    this.#registeredManager = null;
+    this.#registeredParameterName = "";
+    this.#audioParameterExists = false;
   }
   static {
     _initClass();

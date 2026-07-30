@@ -261,9 +261,55 @@ test("AudManager refreshes monitored RTPC values after each enabled render", asy
     assert.equal(manager.GetParameterInfo("boost").parameterExists, false);
     assert.equal(
       manager.GetParameterInfo("boost").parameterValue,
-      17,
-      "Carbon retains the last value when the RTPC query no longer resolves",
+      0,
+      "Carbon resets a missing monitored RTPC query to its zero-initialized value",
     );
+  }
+  finally
+  {
+    teardown();
+  }
+});
+
+test("AudioCurveSetDriver deterministically releases its monitored watcher", async () =>
+{
+  const { AudioCurveSetDriver } = await import("../npm/dist/index.js");
+  const repository = new AudStaticDataRepository();
+
+  repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
+  AudGameObjResource.staticDataRepository = repository;
+  AudGameObjResource.backend = {
+    Init: () => true,
+    LoadBank: (_name, callback) => callback(true),
+  };
+  const manager = new AudManager();
+  AudGameObjResource.manager = manager;
+
+  try
+  {
+    manager.Enable([]);
+    const first = AudioCurveSetDriver.from({
+      audioParameterName: "boost",
+    });
+    const second = AudioCurveSetDriver.from({
+      audioParameterName: "boost",
+    });
+
+    first.Initialize();
+    first.Initialize();
+    second.Initialize();
+    assert.equal(manager.GetParameterInfo("boost").watchers, 2);
+
+    first.Dispose();
+    first.Dispose();
+    assert.equal(manager.GetParameterInfo("boost").watchers, 1);
+
+    second.SetAudioParameterName("speed");
+    assert.equal(manager.GetParameterInfo("boost"), null);
+    assert.equal(manager.GetParameterInfo("speed").watchers, 1);
+
+    second.Dispose();
+    assert.equal(manager.GetParameterInfo("speed"), null);
   }
   finally
   {

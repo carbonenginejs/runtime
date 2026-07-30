@@ -10,6 +10,7 @@ import { AudGameObjResource } from "./trinity/audio/AudGameObjResource.js";
 import { AudEmitter } from "./trinity/audio/AudEmitter.js";
 import { AudManager } from "./trinity/audio/AudManager.js";
 import { AudStaticDataRepository } from "./trinity/audio/AudStaticDataRepository.js";
+import { AudioCurveSetDriver } from "./trinity/audio/AudioCurveSetDriver.js";
 import { CjsAudioBackend } from "./CjsAudioBackend.js";
 import { CjsMusicEngine } from "./CjsMusicEngine.js";
 
@@ -65,6 +66,8 @@ export class CjsAudioSystem
     #releaseGameObj = null;
 
     #adoptedEmitters = new Set();
+
+    #adoptedCurveSetDrivers = new Set();
 
     /** Creates a headless-first audio composition with optional realization inputs. */
     constructor({
@@ -174,6 +177,13 @@ export class CjsAudioSystem
             AudGameObjResource.backend = this.backend;
         }
         this.manager.Enable(soundBanksToLoad);
+        if (this.manager.enabled)
+        {
+            for (const driver of this.#adoptedCurveSetDrivers)
+            {
+                driver.Initialize();
+            }
+        }
         return this.manager.enabled;
     }
 
@@ -283,13 +293,34 @@ export class CjsAudioSystem
         return emitter;
     }
 
-    /** Adopts every audio game object reachable from a schema graph. */
+    /** Registers a preconstructed audio curve-set driver. */
+    AdoptCurveSetDriver(driver)
+    {
+        if (!(driver instanceof AudioCurveSetDriver))
+        {
+            throw new TypeError(
+                "CjsAudioSystem.AdoptCurveSetDriver requires an AudioCurveSetDriver.",
+            );
+        }
+        if (!this.#adoptedCurveSetDrivers.has(driver))
+        {
+            driver.Initialize();
+            this.#adoptedCurveSetDrivers.add(driver);
+        }
+        return driver;
+    }
+
+    /** Adopts every audio game object and curve driver reachable from a schema graph. */
     AdoptGraph(root)
     {
         const adopted = [];
         if (root instanceof AudGameObjResource)
         {
             adopted.push(this.AdoptEmitter(root));
+        }
+        else if (root instanceof AudioCurveSetDriver)
+        {
+            adopted.push(this.AdoptCurveSetDriver(root));
         }
         else
         {
@@ -298,6 +329,10 @@ export class CjsAudioSystem
                 if (model instanceof AudGameObjResource)
                 {
                     adopted.push(this.AdoptEmitter(model));
+                }
+                else if (model instanceof AudioCurveSetDriver)
+                {
+                    adopted.push(this.AdoptCurveSetDriver(model));
                 }
             });
         }
@@ -320,7 +355,20 @@ export class CjsAudioSystem
         return true;
     }
 
-    /** Releases every adopted audio game object reachable from a schema graph. */
+    /** Releases one adopted audio curve-set driver's monitored watcher. */
+    ReleaseCurveSetDriver(driver)
+    {
+        if (!(driver instanceof AudioCurveSetDriver)
+            || !this.#adoptedCurveSetDrivers.has(driver))
+        {
+            return false;
+        }
+        driver.Dispose();
+        this.#adoptedCurveSetDrivers.delete(driver);
+        return true;
+    }
+
+    /** Releases every adopted audio game object and curve driver in a schema graph. */
     ReleaseGraph(root)
     {
         const released = [];
@@ -328,11 +376,20 @@ export class CjsAudioSystem
         {
             if (this.ReleaseEmitter(root)) released.push(root);
         }
+        else if (root instanceof AudioCurveSetDriver)
+        {
+            if (this.ReleaseCurveSetDriver(root)) released.push(root);
+        }
         else
         {
             root?.Traverse?.(model =>
             {
                 if (model instanceof AudGameObjResource && this.ReleaseEmitter(model))
+                {
+                    released.push(model);
+                }
+                else if (model instanceof AudioCurveSetDriver
+                    && this.ReleaseCurveSetDriver(model))
                 {
                     released.push(model);
                 }
@@ -348,6 +405,10 @@ export class CjsAudioSystem
         for (const emitter of [ ...this.#adoptedEmitters ])
         {
             this.ReleaseEmitter(emitter);
+        }
+        for (const driver of [ ...this.#adoptedCurveSetDrivers ])
+        {
+            this.ReleaseCurveSetDriver(driver);
         }
         this.backend?.SetMusicEngine(null);
         this.musicEngine?.Dispose?.();

@@ -4,6 +4,7 @@ const SWITCH_SCOPES = new Set(["state", "switch"]);
 const RTPC_SCOPES = new Set(["global", "object"]);
 const CONTAINER_SCOPES = new Set(["global", "object"]);
 const RANDOM_MODES = new Set(["random", "shuffle"]);
+const EVENT_ACTION_KINDS = new Set(["state", "switch"]);
 
 /**
  * Validates one browser-portable authored SFX graph against installed media.
@@ -15,6 +16,7 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
   }
   const events = RequireRecord(graph.events, "Audio library SFX events");
   const nodes = RequireRecord(graph.nodes, "Audio library SFX nodes");
+  const eventActions = graph.eventActions === undefined ? {} : RequireRecord(graph.eventActions, "Audio library SFX eventActions");
   for (const [rawID, node] of Object.entries(nodes)) {
     const id = NormalizePositiveID(rawID, `Audio library SFX node ${rawID}`);
     RequireRecord(node, `Audio library SFX node ${id}`);
@@ -100,6 +102,20 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
       ValidateChild(roots[index], nodes, `Audio library SFX event ${eventName} root ${index}`);
     }
   }
+  for (const [eventName, actions] of Object.entries(eventActions)) {
+    NormalizeName(eventName, "Audio library SFX action event name");
+    if (!Array.isArray(actions) || !actions.length) {
+      throw new TypeError(`Audio library SFX eventActions ${eventName} must have actions`);
+    }
+    for (let index = 0; index < actions.length; index++) {
+      const action = RequireRecord(actions[index], `Audio library SFX eventActions ${eventName} action ${index}`);
+      if (!EVENT_ACTION_KINDS.has(action.kind)) {
+        throw new TypeError(`Audio library SFX eventActions ${eventName} action ${index}` + " kind must be switch or state");
+      }
+      NormalizeName(action.group, `Audio library SFX eventActions ${eventName} action ${index} group`);
+      NormalizeName(action.value, `Audio library SFX eventActions ${eventName} action ${index} value`);
+    }
+  }
   ValidateAcyclic(events, nodes);
   return true;
 }
@@ -117,12 +133,23 @@ function normalizeSfxGraph(graph, media = {}, embeddedMedia = {}) {
   for (const name of Object.keys(graph.events).sort()) {
     events[name] = graph.events[name].map(NormalizeChild);
   }
-  return {
+  const result = {
     schemaVersion: SFX_SCHEMA_VERSION,
     generator: String(graph.generator ?? "@carbonenginejs/runtime-audio/library-builder"),
     events,
     nodes
   };
+  if (graph.eventActions && Object.keys(graph.eventActions).length) {
+    result.eventActions = {};
+    for (const name of Object.keys(graph.eventActions).sort()) {
+      result.eventActions[name] = graph.eventActions[name].map(action => ({
+        kind: action.kind,
+        group: String(action.group),
+        value: String(action.value)
+      }));
+    }
+  }
+  return result;
 }
 function NormalizeNode(node) {
   const result = {
@@ -205,7 +232,14 @@ function NormalizeGain(value) {
       }),
       points: curve.points.map(point => ({
         x: Number(point.x),
-        gainDb: Number(point.gainDb)
+        ...(point.gain === undefined ? {
+          gainDb: Number(point.gainDb)
+        } : {
+          gain: Number(point.gain)
+        }),
+        ...(point.interpolation === undefined ? {} : {
+          interpolation: Number(point.interpolation)
+        })
       }))
     }));
   }
@@ -249,12 +283,34 @@ function ValidateGain(value, label) {
       NormalizeFiniteNumber(curve.defaultValue, `${label} gain curve ${index} defaultValue`);
     }
     let previous = -Infinity;
+    let valueField = null;
     for (let pointIndex = 0; pointIndex < curve.points.length; pointIndex++) {
       const point = RequireRecord(curve.points[pointIndex], `${label} gain curve ${index} point ${pointIndex}`);
       const x = NormalizeFiniteNumber(point.x, `${label} gain curve ${index} point ${pointIndex} x`);
-      NormalizeFiniteNumber(point.gainDb, `${label} gain curve ${index} point ${pointIndex} gainDb`);
-      if (x <= previous) {
-        throw new TypeError(`${label} gain curve ${index} points must have increasing x`);
+      const hasGainDb = point.gainDb !== undefined;
+      const hasGain = point.gain !== undefined;
+      if (hasGainDb === hasGain) {
+        throw new TypeError(`${label} gain curve ${index} point ${pointIndex}` + " must have exactly one of gainDb or gain");
+      }
+      const field = hasGain ? "gain" : "gainDb";
+      if (valueField === null) {
+        valueField = field;
+      } else if (field !== valueField) {
+        throw new TypeError(`${label} gain curve ${index} points must use one gain unit`);
+      }
+      if (hasGain) {
+        const gain = NormalizeFiniteNumber(point.gain, `${label} gain curve ${index} point ${pointIndex} gain`);
+        if (gain < 0 || gain > 1) {
+          throw new TypeError(`${label} gain curve ${index} point ${pointIndex}` + " gain must be between 0 and 1");
+        }
+      } else {
+        NormalizeFiniteNumber(point.gainDb, `${label} gain curve ${index} point ${pointIndex} gainDb`);
+      }
+      if (point.interpolation !== undefined && (!Number.isSafeInteger(Number(point.interpolation)) || Number(point.interpolation) < 0 || Number(point.interpolation) > 9)) {
+        throw new TypeError(`${label} gain curve ${index} point ${pointIndex}` + " interpolation must be a Wwise curve value from 0 to 9");
+      }
+      if (x < previous) {
+        throw new TypeError(`${label} gain curve ${index} points must have non-decreasing x`);
       }
       previous = x;
     }

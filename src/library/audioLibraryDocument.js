@@ -52,7 +52,7 @@ export function validateAudioLibraryDocument(value)
             value.media,
             value.embeddedMedia ?? {},
         );
-        for (const eventName of Object.keys(value.sfx.events))
+        for (const eventName of SfxEventNames(value.sfx))
         {
             if (!metadata.Events[eventName])
             {
@@ -105,15 +105,34 @@ function ValidateEventOwnership(sfx, music)
         return;
     }
 
-    for (const eventName of Object.keys(sfx.events))
+    const musicEvents = MusicEventNames(music);
+
+    for (const eventName of SfxEventNames(sfx))
     {
-        if (Array.isArray(music.eventTargets?.[eventName]))
+        if (musicEvents.has(eventName))
         {
             throw new TypeError(
                 `Audio event ${eventName} cannot be owned by both SFX and music graphs`,
             );
         }
     }
+}
+
+function SfxEventNames(sfx)
+{
+    return new Set([
+        ...Object.keys(sfx?.events ?? {}),
+        ...Object.keys(sfx?.eventActions ?? {}),
+    ]);
+}
+
+function MusicEventNames(music)
+{
+    return new Set([
+        ...Object.keys(music?.eventTargets ?? {}),
+        ...Object.keys(music?.eventStops ?? {}),
+        ...Object.keys(music?.switchSetters ?? {}),
+    ]);
 }
 
 /**
