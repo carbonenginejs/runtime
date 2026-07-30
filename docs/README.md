@@ -47,6 +47,7 @@ hydration boundary.
 
 - [Architecture and boundaries](architecture.md)
 - [Resource lifecycle concepts](concepts/resource-lifecycle.md)
+- [Shader resource model](concepts/shader-resource-model.md)
 - [Format subpaths](formats/README.md)
 
 ## Documentation map
@@ -55,6 +56,9 @@ hydration boundary.
   GPU-free split.
 - [concepts/resource-lifecycle.md](concepts/resource-lifecycle.md): states,
   the load/prepare split, and the request workflow.
+- [concepts/shader-resource-model.md](concepts/shader-resource-model.md): how
+  `Tr2EffectRes`, `Tr2Shader` and `Tr2Effect` relate, verified against Carbon —
+  one file, many permutations, many effects sharing them.
 - [reference/motherlode-cache.md](reference/motherlode-cache.md): canonical
   identity, byte-budget cache, payload retention, and purge contracts.
 - [reference/reload.md](reference/reload.md): the candidate-first atomic
