@@ -135,6 +135,93 @@ function unpackVisibility(mask) {
 }
 
 /**
+ * Rebuilds a binding's WebGPU descriptor from what the block does store.
+ *
+ * The descriptor — `buffer`, `texture` or `sampler` — is not on the wire because
+ * it is a pure function of the WGSL type, the resource kind and the structure
+ * stride, all three of which are. `lowerBindingLayout.js` derives it from the
+ * same three inputs on the way out; this derives it back on the way in.
+ *
+ * The pairs that could collide do not. `array<u32>` reaches both a structured
+ * buffer and a compute typed buffer, and the structure stride separates them:
+ * structured always carries one, typed never does.
+ *
+ * @param {object} binding Decoded binding record.
+ * @returns {object} The descriptor fragment, as one `{buffer|texture|sampler}` key.
+ */
+function deriveBindingDescriptor(binding) {
+  const stride = binding.structureStride;
+  if (binding.resourceKind === "sampler") {
+    return {
+      sampler: {
+        type: "filtering"
+      }
+    };
+  }
+  if (binding.resourceKind === "uniform-buffer") {
+    const vec4Count = /^array<vec4<f32>, (\d+)>$/u.exec(binding.type)?.[1];
+    if (!vec4Count) {
+      throw new CjsFormatReadError(`Backend block uniform binding has untranslatable type "${binding.type}"`, {
+        type: binding.type
+      });
+    }
+    return {
+      buffer: {
+        type: "uniform",
+        hasDynamicOffset: false,
+        minBindingSize: Number(vec4Count) * 16
+      }
+    };
+  }
+  if (binding.resourceKind === "sampled-resource") {
+    const texture = TEXTURE_DESCRIPTORS[binding.type];
+    if (texture) return {
+      texture: {
+        ...texture
+      }
+    };
+    return {
+      buffer: {
+        type: "read-only-storage",
+        hasDynamicOffset: false,
+        minBindingSize: stride === undefined ? 4 : stride
+      }
+    };
+  }
+  return {
+    buffer: {
+      type: "storage",
+      hasDynamicOffset: false,
+      minBindingSize: stride === undefined ? 4 : stride
+    }
+  };
+}
+
+/** Texture descriptors by WGSL type (`lowerBindingLayout.js:90-95`). */
+const TEXTURE_DESCRIPTORS = Object.freeze({
+  "texture_2d<f32>": Object.freeze({
+    sampleType: "float",
+    viewDimension: "2d",
+    multisampled: false
+  }),
+  "texture_cube<f32>": Object.freeze({
+    sampleType: "float",
+    viewDimension: "cube",
+    multisampled: false
+  }),
+  "texture_3d<f32>": Object.freeze({
+    sampleType: "float",
+    viewDimension: "3d",
+    multisampled: false
+  }),
+  "texture_2d_array<f32>": Object.freeze({
+    sampleType: "float",
+    viewDimension: "2d-array",
+    multisampled: false
+  })
+});
+
+/**
  * Serialises one pass's backend block.
  *
  * @param {object} block Block contents.
@@ -242,7 +329,7 @@ function readBackendBlock(bytes, options = {}) {
       const generatedSymbol = readInlineString(reader);
       const transformId = readInlineString(reader);
       const identity = `${resourceKind}:${registerSpace}:${registerIndex}`;
-      bindings.push({
+      const record = {
         group,
         binding,
         resourceKind,
@@ -262,6 +349,10 @@ function readBackendBlock(bytes, options = {}) {
         ...(transformId === "" ? {} : {
           transformId
         })
+      };
+      bindings.push({
+        ...record,
+        ...deriveBindingDescriptor(record)
       });
     }
     bindGroups.push({
