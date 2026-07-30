@@ -1,4 +1,5 @@
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
+import { compareUtf8 } from "../../../../format/compareUtf8.js";
 
 export const WGSL_SET_VERSION = 3;
 
@@ -255,7 +256,7 @@ function buildLayouts(entries)
             })).sort((left, right) => left.group - right.group)
         };
     }).sort((left, right) =>
-        left.techniqueName.localeCompare(right.techniqueName)
+        compareUtf8(left.techniqueName, right.techniqueName)
         || left.passIndex - right.passIndex);
 }
 
@@ -371,7 +372,7 @@ export function buildWgslSet(input)
             ...(entry.threadGroupSize ? { threadGroupSize: clonePlain(entry.threadGroupSize) } : {})
         };
     }).sort((left, right) =>
-        left.techniqueName.localeCompare(right.techniqueName)
+        compareUtf8(left.techniqueName, right.techniqueName)
         || left.passIndex - right.passIndex
         || STAGE_NAME_ORDER.indexOf(left.stageName) - STAGE_NAME_ORDER.indexOf(right.stageName));
     validatePassTopologies(entries);

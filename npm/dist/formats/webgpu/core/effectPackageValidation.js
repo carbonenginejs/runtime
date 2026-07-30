@@ -439,6 +439,11 @@ function collectStageKeys(records, context) {
     if (!record || typeof record.techniqueName !== "string" || !record.techniqueName || !Number.isSafeInteger(record.passIndex) || record.passIndex < 0 || !schema || record.stageType !== schema.stageType || record.key !== expected) {
       throw new Error(`CEWGPU ${context} stage ${index} has a noncanonical key`);
     }
+    // `context` is a behavioural discriminator, not a chunk tag. Its two
+    // values happen to spell "ANLS" and "WGSL" because the caller passes the
+    // chunk it is validating, but this branch selects the *emitted-program*
+    // rule set. A mechanical chunk-tag migration that rewrites tag strings
+    // will rewrite this one too and silently disable the check.
     if (context === "WGSL" && (record.stage !== schema.stage || typeof record.entryPoint !== "string" || !record.entryPoint || typeof record.code !== "string" || !record.code || !Array.isArray(record.sourceMap) || record.sourceMap.some(entry => !entry || typeof entry !== "object" || Array.isArray(entry) || !Number.isSafeInteger(entry.line) || entry.line < 1 || !Number.isSafeInteger(entry.instructionIndex) || entry.instructionIndex < 0 || !Number.isSafeInteger(entry.dxbcOffset) || entry.dxbcOffset < 0) || record.stageName === "compute" && (!Array.isArray(record.threadGroupSize) || record.threadGroupSize.length !== 3 || record.threadGroupSize.some(value => !Number.isSafeInteger(value) || value < 1)) || record.stageName !== "compute" && record.threadGroupSize !== undefined && record.threadGroupSize !== null)) {
       throw new Error(`CEWGPU WGSL shader ${record.key} has invalid stage metadata`);
     }

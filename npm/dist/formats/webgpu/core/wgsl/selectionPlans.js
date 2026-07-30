@@ -1,3 +1,5 @@
+import { compareUtf8 } from '../../../../format/compareUtf8.js';
+
 const SCALAR_TYPE_NAMES = Object.freeze({
   float32: "f32",
   int32: "i32",
@@ -172,7 +174,7 @@ function selectionConditionId(instruction) {
   return read ? `${read.refs[0].valueId}.${read.refs[0].component}` : `selection:${instruction.index}`;
 }
 function undefinedTraversalKey(valueId, constraints) {
-  return JSON.stringify([valueId, Array.from(constraints.entries()).sort(([left], [right]) => left.localeCompare(right))]);
+  return JSON.stringify([valueId, Array.from(constraints.entries()).sort(([left], [right]) => compareUtf8(left, right))]);
 }
 function undefinedPathMaskedByAnd(use, constraints) {
   const {

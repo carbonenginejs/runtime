@@ -1,5 +1,6 @@
 import { lowerBindingLayout } from './lowerBindingLayout.js';
 import { normalizeResourceTransformPlan } from './buildResourceTransformPlan.js';
+import { compareUtf8 } from '../../../../format/compareUtf8.js';
 import { particleClearSignedAtomicLayoutPolicy } from './lowerParticleClearComputePrograms.js';
 import { particleEmitSignedAtomicLayoutPolicy } from './lowerParticleEmitComputeProgram.js';
 
@@ -141,7 +142,7 @@ function buildWgslBindingPlan(programs, options = {}) {
   for (const key of sharedIdentities) {
     if (!identities.has(key)) throw new Error(`WGSL shared identity ${key} does not occur in the pass`);
   }
-  bindings.sort((left, right) => left.registerSpace - right.registerSpace || (KIND_ORDER[left.resourceKind] ?? 99) - (KIND_ORDER[right.resourceKind] ?? 99) || left.registerIndex - right.registerIndex || (STAGE_ORDER[left.stages[0]] ?? 99) - (STAGE_ORDER[right.stages[0]] ?? 99) || left.generatedSymbol.localeCompare(right.generatedSymbol) || left.scopeIdentity.localeCompare(right.scopeIdentity));
+  bindings.sort((left, right) => left.registerSpace - right.registerSpace || (KIND_ORDER[left.resourceKind] ?? 99) - (KIND_ORDER[right.resourceKind] ?? 99) || left.registerIndex - right.registerIndex || (STAGE_ORDER[left.stages[0]] ?? 99) - (STAGE_ORDER[right.stages[0]] ?? 99) || compareUtf8(left.generatedSymbol, right.generatedSymbol) || compareUtf8(left.scopeIdentity, right.scopeIdentity));
   const plannedBindings = bindings.map((binding, bindingIndex) => ({
     ...binding,
     group: 0,

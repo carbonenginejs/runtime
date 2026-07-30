@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp (Read)
 
 import { CjsFormatWriteError } from "../CjsFormatError.js";
+import { compareUtf8 } from "../compareUtf8.js";
 
 /**
  * The only description-blob version this module reads or writes.
@@ -69,15 +70,7 @@ export const CARBON_SHADER_CONSTANTS_MAX = 4096;
  */
 export function compareAnnotationNames(a, b)
 {
-    const encoder = new TextEncoder();
-    const left = encoder.encode(a);
-    const right = encoder.encode(b);
-    const shared = Math.min(left.length, right.length);
-    for (let index = 0; index < shared; index += 1)
-    {
-        if (left[index] !== right[index]) return left[index] - right[index];
-    }
-    return left.length - right.length;
+    return compareUtf8(a, b);
 }
 
 /**

@@ -672,6 +672,11 @@ function collectStageKeys(records, context)
         {
             throw new Error(`CEWGPU ${context} stage ${index} has a noncanonical key`);
         }
+        // `context` is a behavioural discriminator, not a chunk tag. Its two
+        // values happen to spell "ANLS" and "WGSL" because the caller passes the
+        // chunk it is validating, but this branch selects the *emitted-program*
+        // rule set. A mechanical chunk-tag migration that rewrites tag strings
+        // will rewrite this one too and silently disable the check.
         if (context === "WGSL"
             && (record.stage !== schema.stage
                 || typeof record.entryPoint !== "string" || !record.entryPoint

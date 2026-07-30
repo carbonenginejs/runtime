@@ -155,17 +155,42 @@ question in every case was what it forecloses.
   emitted WGSL, which uses `generatedSymbol` — that makes it diagnostic, and
   diagnostics do not belong on the wire.
 
-### Sorting must be byte-wise, not locale-aware
+### Sorting must be byte-wise, not locale-aware — done, and order-neutral
 
-Eleven `localeCompare` sorts exist in `formats/webgpu/core/`. **None are in
-`src/format/`**, so phase 1's byte-exactness is not locale-dependent and needs no
-caveat. But those sorts determine our *own* bytes, so reproducible builds require
-replacing all of them with a UTF-8 byte comparator: `buildResourceTransformPlan.js:116`,
-`buildWgslBindingPlan.js:172-173`, `buildWgslSet.js:258,374`,
-`effectBackendBodySet.js:45`, `selectionPlans.js:210`,
-`analyzeRegisterValues.js:236`, `inferValueTypes.js:205`,
-`lowerComputeProgram.js:888,890`. Applying one comparator uniformly is cheaper
-than deciding case by case which reach the wire.
+All eleven `localeCompare` sorts in `formats/webgpu/core/` are replaced by
+`compareUtf8` (`src/format/compareUtf8.js`), applied uniformly rather than only to
+the six that reach the wire. `compareAnnotationNames` was a private copy of the same
+rule and now delegates to it, so the package has one byte comparator and a test
+pinning that it agrees with `compareTableBlobs`.
+
+Why locale collation could not stay: without an explicit locale it is
+implementation- and ICU-dependent, so the same input can order differently across
+Node builds; it treats case as a minor difference, putting `"a"` before `"Z"` where
+bytes do the reverse; and it gives punctuation variable weight, so `-`, `:` and `@`
+— which appear in every binding identity being sorted — are not ordered by code
+point.
+
+**Measured result: the change is byte-neutral on today's data.** Packages were built
+from real dx11 effects before and after, and compared byte-for-byte:
+
+| sample | packages | coverage | result |
+|---|---|---|---|
+| full builds, quad family + textureviewer | 12 | 4–34 bindings per package | identical |
+| wide sweep, `.sm_lo` across the sorted path space | 43 | 534 bindings, 81 layouts, 161 shaders, 21 distinct binding counts from 0 to 38 | identical |
+
+So no fixture re-pin was required, which is a stronger outcome than re-pinning
+carefully: a re-pin you did not need is indistinguishable from one that hid a real
+reorder. The result also confirms the recon's reading of
+`buildWgslBindingPlan.js:172-173` — the `generatedSymbol` and `scopeIdentity`
+tie-breakers are unreachable in practice, because `(registerSpace, kind,
+registerIndex, stage)` is already unique and a shared and a stage-scoped form of one
+identity cannot coexist.
+
+That sort is the one piece of phase 2 whose output crosses the package boundary: it
+assigns the numeric `@group`/`@binding` indices that land in emitted WGSL and that
+`engine-webgpu` binds against. Byte-identical output means the draw gates cannot have
+moved, so verifying them on a device is unnecessary for this change rather than
+merely deferred.
 
 ### Three record traps the field-order table caught
 

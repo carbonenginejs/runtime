@@ -1,3 +1,5 @@
+import { compareUtf8 } from '../../../../format/compareUtf8.js';
+
 const COMPONENTS = ["x", "y", "z", "w"];
 const COMPONENT_INDEX = new Map(COMPONENTS.map((component, index) => [component, index]));
 const SCALAR_TYPES = Object.freeze(["unknown", "float32", "int32", "uint32", "bool", "bitpattern32"]);
@@ -247,7 +249,7 @@ function inferValueTypes(program) {
     const left = find(ensure(leftRef));
     const right = find(ensure(rightRef));
     if (left === right) return;
-    const [root, child] = left.localeCompare(right) <= 0 ? [left, right] : [right, left];
+    const [root, child] = compareUtf8(left, right) <= 0 ? [left, right] : [right, left];
     parent.set(child, root);
     for (const type of constraints.get(child)) constraints.get(root).add(type);
   };

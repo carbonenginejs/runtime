@@ -1,6 +1,7 @@
 import { requireRefactoringAllowed } from './precisionControls.js';
 import { validateExactComputeEnvelope, validateSm50ResourceExtensions, validateReturnTypeMirror } from './validateExactComputeIr.js';
 import { validateFixedHandleOperand, validateFixedHandleBinding } from './validateHandleOperand.js';
+import { compareUtf8 } from '../../../../format/compareUtf8.js';
 import { isSkinVerticesComputeProfile, lowerSkinVerticesComputeProgram } from './lowerSkinVerticesComputeProgram.js';
 import { isCreateHistogramsComputeProfile, lowerCreateHistogramsComputeProgram } from './lowerCreateHistogramsComputeProgram.js';
 import { isMergeHistogramsComputeProfile, lowerMergeHistogramsComputeProgram } from './lowerMergeHistogramsComputeProgram.js';
@@ -559,8 +560,8 @@ function validateBlockOutput(program, state) {
       component: key.slice(split + 1),
       ref
     };
-  }).sort((left, right) => left.register.localeCompare(right.register) || left.component.localeCompare(right.component));
-  const actual = outputs.slice().sort((left, right) => left.register.localeCompare(right.register) || left.component.localeCompare(right.component));
+  }).sort((left, right) => compareUtf8(left.register, right.register) || compareUtf8(left.component, right.component));
+  const actual = outputs.slice().sort((left, right) => compareUtf8(left.register, right.register) || compareUtf8(left.component, right.component));
   if (actual.length !== expected.length || expected.some((entry, index) => actual[index]?.register !== entry.register || actual[index]?.component !== entry.component || !sameRef(actual[index]?.ref, entry.ref))) {
     throw new Error("WGSL compute block output does not match the final scalar register state");
   }

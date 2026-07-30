@@ -1,3 +1,5 @@
+import { compareUtf8 } from '../../../../format/compareUtf8.js';
+
 const RESOURCE_IDENTITY = /^sampled-resource:(\d+):(\d+)$/u;
 const DETAIL_PARAMETER = /^Detail(\d+)Map$/u;
 const SAMPLE_OPCODES = new Set(["sample_b"]);
@@ -79,7 +81,7 @@ function normalizeResourceTransformPlan(value, layoutKey = null) {
   if (value?.format !== "CJS_WGSL_RESOURCE_TRANSFORM_PLAN" || value.formatVersion !== 1 || !Array.isArray(value.resourceTransforms) || !value.resourceTransforms.length) {
     throw new TypeError("WGSL resource transform plan must be a non-empty version-1 document");
   }
-  const resourceTransforms = value.resourceTransforms.map(normalizeTransform).sort((left, right) => left.id.localeCompare(right.id));
+  const resourceTransforms = value.resourceTransforms.map(normalizeTransform).sort((left, right) => compareUtf8(left.id, right.id));
   const ids = new Set();
   for (const transform of resourceTransforms) {
     if (ids.has(transform.id)) {

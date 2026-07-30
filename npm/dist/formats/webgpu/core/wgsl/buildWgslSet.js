@@ -1,4 +1,5 @@
 import { normalizeResourceTransformPlan } from './buildResourceTransformPlan.js';
+import { compareUtf8 } from '../../../../format/compareUtf8.js';
 
 const WGSL_SET_VERSION = 3;
 const KEY_PATTERN = /^(.*)\.pass([0-9]+)\.(vertex|pixel|compute)$/;
@@ -210,7 +211,7 @@ function buildLayouts(entries) {
         bindings: bindings.sort((left, right) => left.binding - right.binding)
       })).sort((left, right) => left.group - right.group)
     };
-  }).sort((left, right) => left.techniqueName.localeCompare(right.techniqueName) || left.passIndex - right.passIndex);
+  }).sort((left, right) => compareUtf8(left.techniqueName, right.techniqueName) || left.passIndex - right.passIndex);
 }
 function validatePassTopologies(entries) {
   const stagesByPass = new Map();
@@ -305,7 +306,7 @@ function buildWgslSet(input) {
         threadGroupSize: clonePlain(entry.threadGroupSize)
       } : {})
     };
-  }).sort((left, right) => left.techniqueName.localeCompare(right.techniqueName) || left.passIndex - right.passIndex || STAGE_NAME_ORDER.indexOf(left.stageName) - STAGE_NAME_ORDER.indexOf(right.stageName));
+  }).sort((left, right) => compareUtf8(left.techniqueName, right.techniqueName) || left.passIndex - right.passIndex || STAGE_NAME_ORDER.indexOf(left.stageName) - STAGE_NAME_ORDER.indexOf(right.stageName));
   validatePassTopologies(entries);
   const layouts = buildLayouts(entries);
   const resourceTransforms = buildResourceTransforms(entries, layouts);

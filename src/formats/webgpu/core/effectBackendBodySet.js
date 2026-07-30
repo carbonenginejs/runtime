@@ -9,6 +9,7 @@ import { buildWgslSet } from "./wgsl/buildWgslSet.js";
 import { buildResourceTransformPlan } from "./wgsl/buildResourceTransformPlan.js";
 import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
 import { selectEffectStages } from "./packageEffectSelection.js";
+import { compareUtf8 } from "../../../format/compareUtf8.js";
 import {
     isParticleClearEffectCandidate,
     particleClearEffectProofFor,
@@ -42,7 +43,7 @@ function passUnitSignature(pass)
                     ? sha256Utf8(JSON.stringify(stage.effectProfileProof))
                     : null
             }))
-            .sort((left, right) => left.stageName.localeCompare(right.stageName))
+            .sort((left, right) => compareUtf8(left.stageName, right.stageName))
     });
 }
 

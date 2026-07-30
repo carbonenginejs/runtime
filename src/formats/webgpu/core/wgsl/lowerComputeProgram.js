@@ -5,6 +5,7 @@ import {
     validateSm50ResourceExtensions
 } from "./validateExactComputeIr.js";
 import { validateFixedHandleBinding, validateFixedHandleOperand } from "./validateHandleOperand.js";
+import { compareUtf8 } from "../../../../format/compareUtf8.js";
 import {
     isSkinVerticesComputeProfile,
     lowerSkinVerticesComputeProgram
@@ -885,9 +886,9 @@ function validateBlockOutput(program, state)
         const split = key.lastIndexOf(".");
         return { register: key.slice(0, split), component: key.slice(split + 1), ref };
     }).sort((left, right) =>
-        left.register.localeCompare(right.register) || left.component.localeCompare(right.component));
+        compareUtf8(left.register, right.register) || compareUtf8(left.component, right.component));
     const actual = outputs.slice().sort((left, right) =>
-        left.register.localeCompare(right.register) || left.component.localeCompare(right.component));
+        compareUtf8(left.register, right.register) || compareUtf8(left.component, right.component));
     if (actual.length !== expected.length
         || expected.some((entry, index) =>
             actual[index]?.register !== entry.register

@@ -117,6 +117,17 @@ an arithmetic error fails loudly rather than shifting every body.
    `{u32 size, u32 offset}` pair. `StringTable::Write` emits a `u32` payload size
    and the payload, nothing else; every reference site resolves its own entry.
 
+**Rule: anything placed in the arena must be arena-independent.** An arena entry
+cannot contain an arena offset. Offsets are assigned by the content sort, the sort
+depends on every entry's bytes, so an entry that referred to the arena would have to
+be interned before its own contents could be computed — a circular dependency with
+no fixed point. This is invisible in Carbon's own code because no Carbon arena blob
+refers to the arena: strings, bytecode and default constant values are all leaves.
+Our per-pass backend block is the first non-leaf candidate, and it is why that block
+carries inline length-prefixed strings instead of references. A test pins the
+property directly — the block's bytes must be identical whichever arena it is
+interned into. Any future arena entry must satisfy the same rule.
+
 `0xffffffff` is the null reference (`StringTable.cpp:52-68`). It is legal at
 **exactly one wire position**: a stage's default-constant-value offset when the
 accompanying size is zero, which `ReadStringOptional` consumes without

@@ -1,5 +1,6 @@
 import { fixedSourceLanes } from './sourceLanes.js';
 import { validateIndexableTempOperand } from './indexableTemps.js';
+import { compareUtf8 } from '../../../../format/compareUtf8.js';
 
 const COMPONENTS = ["x", "y", "z", "w"];
 const REGISTER_FILES = new Set(["temp", "input", "output", "indexable_temp", "input_primitive_id", "output_depth", "output_coverage", "input_control_point", "output_control_point", "input_patch_constant", "input_domain_point", "output_control_point_id", "input_fork_instance_id", "input_join_instance_id", "input_thread_id", "input_thread_group_id", "input_thread_id_in_group", "input_coverage_mask", "input_thread_id_in_group_flattened", "input_gs_instance_id", "output_depth_greater_equal", "output_depth_less_equal"]);
@@ -201,7 +202,7 @@ function analyzeBlock(program, block, values) {
     register,
     component,
     ref
-  }))).sort((a, b) => a.register.localeCompare(b.register) || a.component.localeCompare(b.component));
+  }))).sort((a, b) => compareUtf8(a.register, b.register) || compareUtf8(a.component, b.component));
 }
 
 /**

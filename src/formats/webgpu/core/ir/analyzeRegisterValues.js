@@ -1,5 +1,6 @@
 import { fixedSourceLanes } from "./sourceLanes.js";
 import { validateIndexableTempOperand } from "./indexableTemps.js";
+import { compareUtf8 } from "../../../../format/compareUtf8.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
 
@@ -233,7 +234,7 @@ function analyzeBlock(program, block, values)
     block.outputValues = Array.from(state.entries())
         .flatMap(([ register, components ]) => Array.from(components.entries())
             .map(([ component, ref ]) => ({ register, component, ref })))
-        .sort((a, b) => a.register.localeCompare(b.register) || a.component.localeCompare(b.component));
+        .sort((a, b) => compareUtf8(a.register, b.register) || compareUtf8(a.component, b.component));
 }
 
 /**

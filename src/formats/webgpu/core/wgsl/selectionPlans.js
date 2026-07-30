@@ -1,3 +1,5 @@
+import { compareUtf8 } from "../../../../format/compareUtf8.js";
+
 const SCALAR_TYPE_NAMES = Object.freeze({
     float32: "f32", int32: "i32", uint32: "u32", bool: "bool", bitpattern32: "u32"
 });
@@ -207,7 +209,7 @@ function undefinedTraversalKey(valueId, constraints)
 {
     return JSON.stringify([
         valueId,
-        Array.from(constraints.entries()).sort(([ left ], [ right ]) => left.localeCompare(right))
+        Array.from(constraints.entries()).sort(([ left ], [ right ]) => compareUtf8(left, right))
     ]);
 }
 

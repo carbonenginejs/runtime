@@ -9,6 +9,7 @@ import { buildWgslSet } from './wgsl/buildWgslSet.js';
 import { buildResourceTransformPlan } from './wgsl/buildResourceTransformPlan.js';
 import { sha256Utf8, sha256Bytes } from '../../../format/effect/sha256.js';
 import { selectEffectStages } from './packageEffectSelection.js';
+import { compareUtf8 } from '../../../format/compareUtf8.js';
 import { isParticleClearEffectCandidate, preflightParticleClearEffectProfile, particleClearEffectProofFor } from './wgsl/lowerParticleClearComputePrograms.js';
 
 const EFFECT_BACKEND_BODY_SET_CHUNK = "WGSB";
@@ -33,7 +34,7 @@ function passUnitSignature(pass) {
       // An effect profile changes emission, so two otherwise identical
       // passes must not share one unit when their proofs differ.
       effectProfileProof: stage.effectProfileProof ? sha256Utf8(JSON.stringify(stage.effectProfileProof)) : null
-    })).sort((left, right) => left.stageName.localeCompare(right.stageName))
+    })).sort((left, right) => compareUtf8(left.stageName, right.stageName))
   });
 }
 function collectBodyStageBytecode(effectDescription) {
