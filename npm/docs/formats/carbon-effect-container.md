@@ -212,6 +212,49 @@ order because they are `std::map`s, and sorts annotation keys explicitly by
 that comparison over UTF-8 bytes, which is *not* the same as JavaScript's UTF-16
 code-unit order for names outside ASCII — `"Z"` sorts before `"a"`.
 
+### The optional trailing block
+
+Our own containers add exactly one optional block per pass, after the render-state
+table, referenced by a `{u32 size, u32 offset}` pair into the arena. A Carbon file
+ends the pass at the render states, so the reader and writer gate it on
+`{ backend: true }` and produce Carbon's bytes unchanged when it is closed.
+
+The block carries the two sections that are not derivable from Carbon reflection —
+WebGPU bind-group layouts and resource transforms — in **one** unit, because they
+are mutually required and because "the Carbon region is backend-invariant, with
+exactly one optional trailing block" is the invariant worth keeping.
+
+It lives in the arena so identical layouts dedupe across bodies the way program
+source does; measured sharing is 30.5:1 at `(body, pass)` granularity, 22 distinct
+blocks across 672 pairs. That forces one property: **the block contains no arena
+offsets.** An offset is only known after the arena's content sort, which depends on
+every blob's bytes including this one, so a block referencing the arena could not be
+built before it was interned. Strings inside it are inline and length-prefixed.
+
+```
+u8  blobVersion = 1
+u8  bindGroupCount
+  u8 group | u8 bindingCount
+    u8  resourceKind | u8 registerSpace | u8 binding | u8 visibilityMask
+    u32 registerIndex | u32 structureStride (0xffffffff absent) | u8 arrayLayerCount (0 absent)
+    str type | str generatedSymbol | str transformId (empty = none)
+u8  transformCount
+  u8 familyCode | str id | u8 inputCount
+    u8 registerSpace | u8 registerIndex | str parameter
+```
+
+`identity`, `scopeIdentity`, `group` on each binding, and a transform's `kind`,
+`stage`, `representation`, `missingLayer`, `viewDimension`, `layerCount`,
+`output.identity`, `output.scopeIdentity`, `output.name`, `layoutKey` and every
+input's `layer` are restored on read, not stored. The family byte is what keeps them
+derivable without pinning the format to one recognizer. `id` and each input's
+`parameter` stay on the wire deliberately — `id` because a caller may supply it,
+`parameter` because it keeps layer identity cross-checkable rather than asserted by
+position.
+
+An unknown `blobVersion` reports the pass as having no backend data rather than
+misparsing it; the enclosing size makes it skippable.
+
 ### Count caps
 
 `CARBON_EFFECT_COUNT_CAPS` mirrors `SanityCheck`'s inclusive limits

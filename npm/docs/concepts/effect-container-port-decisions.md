@@ -84,6 +84,21 @@ deduping automatically, which is why 30.5:1 sharing collapses it to +2.6%.
 The cross-body index table is rejected because body records must stay
 independently packed or the offset table stops meaning what it means.
 
+**Correction found while implementing: the blob must be self-contained.** An arena
+blob cannot contain arena offsets. An offset is only known after the arena's
+content sort, and that sort depends on every blob's bytes — including this one — so
+a block referencing the arena would have to be interned before its own contents
+could be computed. Carbon never meets this because no Carbon arena blob refers to
+the arena. Strings inside the block are therefore inline and length-prefixed rather
+than interned.
+
+The decision survives; the cost moves. A repeated `"t11"` is stored once per
+distinct block instead of once per package, which revises the estimate from +2.6%
+to roughly +3.9% — still a 6x improvement on inline, and the 30.5:1 block-level
+dedupe is what carries it. Both sections share one block, as decided, which is also
+what makes them one versioned unit: `blobVersion` sits inside the payload, so an
+unknown version is skipped rather than misparsed.
+
 `resourceTransforms[]` reduces to the minimum the consumer contract needs, with
 every derivation documented where a reader will look for it. All five claimed
 derivations verified, plus eight more.
@@ -116,24 +131,29 @@ recoverable from Carbon's `StageData.textures` map (`EffectData.h:683`), that ma
 is keyed by register index alone, so recovery is sound only at `registerSpace 0`.
 Not worth twelve bytes.
 
-**Three things to confirm rather than assume**, because the code permits more than
-the data shows:
+**The four narrowings, decided.** Each was safe against today's producer; the
+question in every case was what it forecloses.
 
-- `id` and `output.name` are derivable in fact (`:351`, `:364`; 0 deviations across
-  16 instances) but only **by accident** — `normalizeTransform:51,69` accepts any
-  non-empty string, and a caller-supplied plan path exists
-  (`buildWgslBindingPlan.js:91`). Deriving them narrows a contract the code leaves
-  open. `output.name` is never referenced by the emitted WGSL, which uses
-  `generatedSymbol`.
-- dropping `stage` narrows the consumer's declared domain: `packageHelpers.js:183`
-  admits vertex/fragment/compute, the producer emits fragment only.
-- making array position mean `layer` forbids the out-of-order inputs
-  `packageHelpers.js:214-236` deliberately tolerates.
-
-Each narrowing is safe against today's producer and costs a format version bump to
-widen later. A one-byte family discriminator keeps `kind`, `representation`,
-`missingLayer` and `output.name` derivable without pinning the format to a single
-recognizer — the only forward-compatibility question here that is not free.
+- **A one-byte family discriminator is bought.** It keeps `kind`,
+  `representation`, `missingLayer` and `output.name` derivable without pinning the
+  format to a single recognizer. It was the only forward-compatibility question
+  here that was not free, and one byte is the cheapest insurance in the section.
+- **`stage` is dropped**, restored as `"fragment"`. A future producer emitting
+  vertex or compute transforms is a version bump regardless.
+  `packageHelpers.js:183`'s wider admission stays as harmless dead tolerance — the
+  engine is **not** narrowed to match.
+- **Array position means `layer`.** This is safe specifically *because*
+  `inputs[].parameter` stays on the wire: layer identity remains cross-checkable
+  against the parameter rather than asserted by position, which is the property
+  `quadDetailV5Fixture.js:1140-1144` already tests. Position-as-meaning with no
+  independent check would have been a different answer.
+- **`id` stays on the wire; `output.name` is dropped.** They looked alike and are
+  not. `id` is an identity a caller may supply (`normalizeTransform:51` accepts any
+  non-empty string, and `buildWgslBindingPlan.js:91` is a caller-supplied plan
+  path) and it propagates into the engine binding as `transformId`; deriving it
+  forecloses that path to save one `u32`. `output.name` is never referenced by the
+  emitted WGSL, which uses `generatedSymbol` — that makes it diagnostic, and
+  diagnostics do not belong on the wire.
 
 ### Sorting must be byte-wise, not locale-aware
 
@@ -236,10 +256,10 @@ The audit's findings are recorded even though the deletion is deferred:
   body's DXBC and a translator bug could mis-pair them. Keep the check; its minimal
   form is most likely a digest of the source DXBC stored per stage — a field, not a
   document.
-- three fields have **no counterpart** in the persisted records:
+- three ANLS values have **no counterpart** in the persisted records:
   `passes[].renderStates`, `stages[].shaderHandle`, `pipelineInputs[].usageName`.
-  **Checked, and none of them is a capability drop.** All three are values Carbon
-  itself computes at load time and does not persist either:
+  They are not fields, so there is no capability drop to record. All three are
+  values Carbon itself computes at load time and does not persist either:
 
   | ANLS field | what it actually is | Carbon does the same |
   |---|---|---|
@@ -247,9 +267,8 @@ The audit's findings are recorded even though the deletion is deferred:
   | `stages[].shaderHandle` | registration handle from `RegisterShader` (`HlslEffectBindingManifest.js:182`) | `Tr2EffectDescription.cpp:587-591`, identical call |
   | `pipelineInputs[].usageName` | display name looked up from the persisted `usage` byte (`HlslEffectDescription.js:592`) | `GetStringForUsageCode` (`EffectData.h:86`) over `UsageCode` (`:72`) |
 
-  So the note is "three renames", not "three drops". Each is recomputable from
-  data the container already carries, which is what a derived compatibility view
-  is for. Nothing needs to be added to the wire format to preserve them.
+  Each is recomputable from data the container already carries, which is what a
+  derived compatibility view is for. Nothing goes on the wire for them.
 
 ## Constraints that stay in force
 
@@ -278,7 +297,32 @@ The audit's findings are recorded even though the deletion is deferred:
 | item | owner |
 |---|---|
 | Phase 2 — the format rewrite, both backends | container port |
-| Confirm the three `resourceTransforms[]` narrowings above (`id`/`output.name` derivation, `stage` domain, position-as-`layer`) and whether to spend one byte on a family discriminator | maintainer |
-| Replace all eleven `localeCompare` sorts with a byte comparator | container port |
+| Replace all eleven `localeCompare` sorts with a byte comparator, inside phase 2 | container port |
+| Phase 3a — the three one-body assumptions and `CjsWebGPUPackage`'s triple eager clone | container port |
 | Migrate `engine-webgpu` off format chunks and onto `Tr2Shader`; delete the ANLS compatibility view | layering cleanup, after the port |
 | Whether `engine-webgpu` should consume `Tr2EffectRes` selection rather than reimplementing reflection reading | layering cleanup, after the port |
+
+### Why the layering cleanup waits
+
+Not because it is large — the migration is roughly 12 lines across
+`spaceObjectMainBindings.js` and `packageHelpers.js`. Because the correct fix
+injects a `Tr2Shader` into the engine's prepare stage, and the mechanism that would
+do that — `runtime-core` registering engines and adapters into `runtime-core` and
+`runtime-trinity` — is not designed yet. Building it inside `engine-webgpu` would
+implement `runtime-core`'s responsibility in the wrong package. Trivial after that
+design exists, unbuildable before it.
+
+### Phase 3a scope, for when it comes
+
+Three one-body assumptions, not two. An all-permutation package throws or
+mis-resolves at each:
+
+- `matchShaderSource` throws on more than one candidate
+- `buildPipelines`' `layouts.find(key === passKey)` picks blindly
+- `spaceObjectMainBindings.js:219-240` — `findMaterialBinding` fails unless there
+  is exactly **one** `Main.pass0.pixel` analysis stage
+
+Plus `CjsWebGPUPackage`'s triple eager clone: the constructor `cloneJson`s
+`analysis`/`wgsl`/`shaders`/`layouts`, clones again per stage, then clones a third
+time into `_json` and `deepFreeze`s it, unconditionally, against 15-33 MB
+documents. Independent of everything else and safe to do at any point.

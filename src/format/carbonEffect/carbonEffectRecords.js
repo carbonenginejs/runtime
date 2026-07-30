@@ -235,6 +235,12 @@ function writeBlobRef(writer, arena, reference)
 }
 
 /**
+ * An absent sized blob: zero length, Carbon's null offset. The offset word is
+ * still written, and a reader must not dereference it.
+ */
+const EMPTY_BLOB = Object.freeze({ size: 0, offset: 0xffffffff, bytes: new Uint8Array(0) });
+
+/**
  * Error factory used by the write path's cap checks.
  *
  * @param {string} message Failure reason.
@@ -778,9 +784,10 @@ function writeStage(writer, arena, stage)
  *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
  * @param {Function} makeError Error factory.
+ * @param {boolean} backend Whether the optional trailing block is present.
  * @returns {object} Pass record.
  */
-function readPass(reader, makeError)
+function readPass(reader, makeError, backend)
 {
     const stages = [];
     const stageCount = sanityCheck(reader.readUint8(), "stages", makeError);
@@ -796,7 +803,12 @@ function readPass(reader, makeError)
         renderStates.push({ state: reader.readUint32(), value: reader.readUint32() });
     }
 
-    return { stages, renderStates };
+    // The one optional trailing block, present only in our own containers. A
+    // Carbon file ends the pass at the render-state table, so leaving this gate
+    // closed reproduces Carbon's bytes exactly.
+    const backendBlock = backend ? readBlobRef(reader) : null;
+
+    return { stages, renderStates, ...(backendBlock ? { backendBlock } : {}) };
 }
 
 /**
@@ -805,8 +817,9 @@ function readPass(reader, makeError)
  * @param {import("../CjsByteWriter.js").CjsByteWriter} writer Target writer.
  * @param {object} arena Arena resolver.
  * @param {object} pass Pass record.
+ * @param {boolean} backend Whether to emit the optional trailing block.
  */
-function writePass(writer, arena, pass)
+function writePass(writer, arena, pass, backend)
 {
     writer.u8(pass.stages.length);
     for (const stage of pass.stages)
@@ -818,6 +831,10 @@ function writePass(writer, arena, pass)
     {
         writer.u32(entry.state);
         writer.u32(entry.value);
+    }
+    if (backend)
+    {
+        writeBlobRef(writer, arena, pass.backendBlock ?? EMPTY_BLOB);
     }
 }
 
@@ -882,12 +899,15 @@ function writeLibrary(writer, arena, library)
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Reader positioned at the blob.
  * @param {object} [options] Read options.
  * @param {Function} [options.makeError] Error factory taking a message and details.
+ * @param {boolean} [options.backend] Expect our optional per-pass trailing block.
+ *     Leave false for a Carbon file, which ends each pass at the render states.
  * @returns {object} Description record tree.
  */
 export function readEffectDescription(reader, options = {})
 {
     const makeError = options.makeError
         ?? ((message, details) => reader._error(message, details));
+    const backend = options.backend === true;
 
     const techniques = [];
     const techniqueCount = reader.readUint8();
@@ -899,7 +919,7 @@ export function readEffectDescription(reader, options = {})
         const passCount = sanityCheck(reader.readUint8(), "passes", makeError);
         for (let passIndex = 0; passIndex < passCount; passIndex += 1)
         {
-            passes.push(readPass(reader, makeError));
+            passes.push(readPass(reader, makeError, backend));
         }
 
         const libraries = [];
@@ -932,11 +952,14 @@ export function readEffectDescription(reader, options = {})
  * @param {object} description Description record tree.
  * @param {object} [options] Write options.
  * @param {object} [options.arena] Arena resolver; defaults to passthrough.
+ * @param {boolean} [options.backend] Emit our optional per-pass trailing block.
+ *     Leave false to produce bytes a Carbon reader accepts unchanged.
  * @returns {import("../CjsByteWriter.js").CjsByteWriter} The writer.
  */
 export function writeEffectDescription(writer, description, options = {})
 {
     const arena = options.arena ?? passthroughArena;
+    const backend = options.backend === true;
 
     writer.u8(description.techniques.length);
     for (const technique of description.techniques)
@@ -947,7 +970,7 @@ export function writeEffectDescription(writer, description, options = {})
         {
             sanityCheck(pass.stages.length, "stages", writeError);
             sanityCheck(pass.renderStates.length, "renderStates", writeError);
-            writePass(writer, arena, pass);
+            writePass(writer, arena, pass, backend);
         }
         writer.u8(technique.libraries.length);
         for (const library of technique.libraries)
