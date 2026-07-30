@@ -807,8 +807,26 @@ The audit's findings are recorded even though the deletion is deferred:
 | Phase 2 WebGL — after WebGPU is complete and green; deletes the fork flag | container port |
 | Replace all eleven `localeCompare` sorts with a byte comparator, inside phase 2 | container port |
 | Phase 3a — the three one-body assumptions and `CjsWebGPUPackage`'s triple eager clone | container port |
+| Decide whether `npm/docs` stays tracked while being derived — see below | repo hygiene |
 | Migrate `engine-webgpu` off format chunks and onto `Tr2Shader`; delete the ANLS compatibility view | layering cleanup, after the port |
 | Whether `engine-webgpu` should consume `Tr2EffectRes` selection rather than reimplementing reflection reading | layering cleanup, after the port |
+
+### `npm/docs` is both derived and tracked, and that costs attribution
+
+`scripts/build_npm.js` deletes `npm/docs` and re-copies `docs/` wholesale, and it
+runs from `npm run check`, which runs from `npm test`. So **every test run after any
+`docs/` change dirties the working tree**, and the dirt is indistinguishable from
+somebody's uncommitted work.
+
+That is not hypothetical: a mirrored file was attributed to one agent, then to
+another, and belonged to neither — it had been produced by a test run. Three
+readings, all wrong, of a file nobody wrote.
+
+Two honest resolutions, and the choice is not the port's to make: gitignore the
+derived tree, or accept that a docs change is always two commits' worth of files
+and say so. What should not continue is the third state, where it is rediscovered
+as a puzzle. Note also that editing anything under `npm/docs` directly is futile —
+the next test run discards it. The source of truth is `docs/`.
 
 ### Why the layering cleanup waits
 
