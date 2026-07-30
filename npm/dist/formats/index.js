@@ -4,7 +4,7 @@ export { CjsCmfFormat } from './cmf/CjsCmfFormat.js';
 export { CjsDdsFormat } from './dds/CjsDdsFormat.js';
 export { CjsDxbcFormat } from './dxbc/CjsDxbcFormat.js';
 export { CjsHlslFormat } from './hlsl/CjsHlslFormat.js';
-import './hlsl/core/HlslReader.js';
+import '../format/CjsByteReader.js';
 import '@carbonenginejs/runtime-utils/bytes';
 import './hlsl/core/tr2/shader/HlslEffectResource.js';
 export { CjsWebglFormat } from './webgl/CjsWebglFormat.js';

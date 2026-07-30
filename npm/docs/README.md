@@ -47,7 +47,9 @@ hydration boundary.
 
 - [Architecture and boundaries](architecture.md)
 - [Resource lifecycle concepts](concepts/resource-lifecycle.md)
+- [Shader resource model](concepts/shader-resource-model.md)
 - [Format subpaths](formats/README.md)
+- [Carbon compiled-effect container](formats/carbon-effect-container.md)
 
 ## Documentation map
 
@@ -55,6 +57,9 @@ hydration boundary.
   GPU-free split.
 - [concepts/resource-lifecycle.md](concepts/resource-lifecycle.md): states,
   the load/prepare split, and the request workflow.
+- [concepts/shader-resource-model.md](concepts/shader-resource-model.md): how
+  `Tr2EffectRes`, `Tr2Shader` and `Tr2Effect` relate, verified against Carbon —
+  one file, many permutations, many effects sharing them.
 - [reference/motherlode-cache.md](reference/motherlode-cache.md): canonical
   identity, byte-budget cache, payload retention, and purge contracts.
 - [reference/reload.md](reference/reload.md): the candidate-first atomic
@@ -77,6 +82,9 @@ hydration boundary.
   one-sentence class-purpose catalog.
 - [formats/README.md](formats/README.md): format import map and per-format
   output notes.
+- [formats/carbon-effect-container.md](formats/carbon-effect-container.md): the
+  v15 compiled-effect binary layout, the shared byte reader and writer, and the
+  arena offset policy a byte-exact re-emit depends on.
 - [formats/gr2.md](formats/gr2.md): Granny GR2/GSF reading, output modes,
   conversions, graph shape, and class hydration.
 - [formats/wwise.md](formats/wwise.md): Wwise soundbank and media readers.

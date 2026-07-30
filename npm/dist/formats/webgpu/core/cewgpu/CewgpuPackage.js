@@ -1,7 +1,8 @@
-import { asUint8Array, WebgpuReader } from './binary.js';
+import { WebgpuReader } from './binary.js';
 import { validateCewgpuChunkTag } from './tags.js';
 import { sha256Bytes } from '../../../../format/effect/sha256.js';
 import { hydrateEffectReflectionForPermutation } from '../../../../format/effect/effectReflectionPackage.js';
+import { asUint8Array } from '@carbonenginejs/runtime-utils/bytes';
 
 const validatedEffectPackages = new WeakSet();
 const CEWGPU_MAGIC = "CWGP";

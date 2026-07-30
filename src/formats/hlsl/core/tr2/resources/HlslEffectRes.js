@@ -29,6 +29,7 @@ export class HlslEffectRes
         this.m_permutations = [];
         this.m_shaders = new Map();
         this.m_compilerVersion = null;
+        this.m_compilerVersionBytes = null;
         this.m_hash = new Uint8Array(0);
         this.sourcePath = "";
         this.loadError = null;
@@ -66,7 +67,28 @@ export class HlslEffectRes
 
             if (this.m_version >= 15)
             {
-                this.m_compilerVersion = stream.readUint32();
+                // The header slot is four bytes, not a u32:
+                // `constexpr uint8_t ShaderCompilerVersion[4]` = {major, minor,
+                // patch, tweak} (ShaderCompilerConfig.h.in:5), of which Carbon's
+                // rebuild check compares only the first three
+                // (ModifiedTime.cpp:77). A shipped v15 header reads `01 02 06 00`
+                // — compiler 1.2.6.0, matching the ShaderCompiler project
+                // version. As a u32 that is 0x00060201, which means nothing.
+                //
+                // `m_compilerVersionBytes` is the truthful reading and is what new
+                // code should use. `m_compilerVersion` keeps the dword form because
+                // it is republished as `source.compilerVersion` in the portable
+                // reflection, where it is asserted to be an unsigned integer
+                // (portableReflection.js:645) and covered by a package digest —
+                // changing its shape changes package bytes, which belongs with the
+                // format rewrite rather than here.
+                const compilerVersionBytes = stream.readRaw(4);
+                this.m_compilerVersionBytes = Array.from(compilerVersionBytes);
+                this.m_compilerVersion = new DataView(
+                    compilerVersionBytes.buffer,
+                    compilerVersionBytes.byteOffset,
+                    4
+                ).getUint32(0, true);
                 this.m_hash = stream.readRaw(32);
             }
 
@@ -288,6 +310,7 @@ export class HlslEffectRes
         return {
             version: this.m_version,
             compilerVersion: this.m_compilerVersion,
+            compilerVersionBytes: this.m_compilerVersionBytes,
             sourcePath: this.sourcePath,
             stringTableSize: this.m_stringTableSize,
             offsetCount: this.m_offsetCount,
@@ -316,6 +339,7 @@ export class HlslEffectRes
         this.m_permutations = [];
         this.m_shaders = new Map();
         this.m_compilerVersion = null;
+        this.m_compilerVersionBytes = null;
         this.m_hash = new Uint8Array(0);
         this.loadError = null;
     }

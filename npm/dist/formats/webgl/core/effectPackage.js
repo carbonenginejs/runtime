@@ -1,7 +1,7 @@
 import { EFFECT_INFO_VERSION } from './effectPackageValidation.js';
 import { CjsHlslFormat } from '../../hlsl/CjsHlslFormat.js';
 import { HlslRenderContextEnum, hlslShaderStageName } from '../../hlsl/core/tr2/HlslRenderContextEnum.js';
-import '../../hlsl/core/HlslReader.js';
+import '../../../format/CjsByteReader.js';
 import '@carbonenginejs/runtime-utils/bytes';
 import '../../hlsl/core/tr2/shader/HlslEffectResource.js';
 import { HlslEffectBindingManifest } from '../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js';

@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsBlueReader } from "../../src/format/CjsBlueReader.js";
+import { CjsByteReader } from "../../src/format/CjsByteReader.js";
 import { CjsReader } from "../../src/format/CjsReader.js";
+import { CjsCarbonEffectReader } from "../../src/format/carbonEffect/CjsCarbonEffectReader.js";
+import { HlslReader } from "../../src/formats/hlsl/core/HlslReader.js";
+import { WebgpuReader } from "../../src/formats/webgpu/core/cewgpu/binary.js";
+import { WebglReader } from "../../src/formats/webgl/core/cewg/binary.js";
 import { CjsBlackReader } from "../../src/formats/black/core/CjsBlackReader.js";
 import {
     CJS_BLACK_FOURCC,
@@ -18,6 +23,24 @@ test("Blue format readers share hydration and output infrastructure", () =>
     assert.equal(CjsBlackReader.prototype instanceof CjsBlueReader, true);
     assert.equal(CjsRedReader.prototype instanceof CjsBlueReader, true);
     assert.equal(CjsBlueReader.prototype instanceof CjsReader, true);
+});
+
+test("byte-cursor readers share one little-endian implementation", () =>
+{
+    for (const Reader of [ HlslReader, WebgpuReader, WebglReader, CjsCarbonEffectReader ])
+    {
+        assert.equal(Reader.prototype instanceof CjsByteReader, true);
+        assert.equal(Reader.prototype instanceof CjsReader, true);
+        assert.notEqual(Reader.ReadError, undefined);
+        assert.equal(typeof Reader.endOfDataMessage, "string");
+    }
+    assert.equal(CjsByteReader.prototype instanceof CjsReader, true);
+
+    // Each format keeps its own error identity while sharing the cursor.
+    const bytes = new Uint8Array(2);
+    assert.throws(() => new HlslReader(bytes).readUint32(), /Unexpected end of effect data/);
+    assert.throws(() => new WebgpuReader(bytes).readUint32(), /Unexpected end of CEWGPU package data/);
+    assert.throws(() => new WebglReader(bytes).readUint32(), /Unexpected end of CEWG package data/);
 });
 
 test("YAML shares only the generic construction-bound lifecycle", () =>

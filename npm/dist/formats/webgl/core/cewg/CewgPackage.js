@@ -1,6 +1,7 @@
-import { asUint8Array, WebglReader } from './binary.js';
+import { WebglReader } from './binary.js';
 import { sha256Bytes } from '../../../../format/effect/sha256.js';
 import { hydrateEffectReflectionForPermutation } from '../../../../format/effect/effectReflectionPackage.js';
+import { asUint8Array } from '@carbonenginejs/runtime-utils/bytes';
 
 const CEWG_MAGIC = "CEWG";
 const CEWG_FORMAT = "CEWG";

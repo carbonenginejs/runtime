@@ -1,0 +1,308 @@
+// Source: trinity/trinity/Resources/Tr2EffectRes.cpp (DoLoad, GetShader)
+// Source: trinity/shadercompiler/ShaderCompiler.cpp:746-845 (file assembly)
+
+import { CjsByteReader } from "../CjsByteReader.js";
+import { CjsFormatReadError } from "../CjsFormatError.js";
+import { CARBON_EFFECT_DATA_VERSION, readEffectDescription } from "./carbonEffectRecords.js";
+
+/** Byte count of the ASCII-hex MD5 source hash in the v15 header. */
+export const CARBON_EFFECT_SOURCE_HASH_BYTES = 32;
+
+/** Byte count of one offset-table row: `{u32 index, u32 offset, u32 size}`. */
+export const CARBON_EFFECT_RECORD_BYTES = 12;
+
+/**
+ * Plain byte cursor over one description blob, carrying the Carbon effect error
+ * class and message.
+ *
+ * Separate from the container reader because the container reader parses its
+ * header in the constructor; a body needs a cursor, not a second header parse.
+ */
+export class CjsCarbonEffectBodyReader extends CjsByteReader
+{
+    static ReadError = CjsFormatReadError;
+
+    static endOfDataMessage = "Unexpected end of Carbon effect data";
+}
+
+/**
+ * Reader for Carbon's compiled-effect container at version 15.
+ *
+ * The header is (`ShaderCompiler.cpp:822-831`):
+ *
+ * ```
+ * u32      version = 15
+ * u8[4]    shaderCompilerVersion       <- four bytes, not a u32
+ * char[32] sourceHash                  <- ASCII hex MD5 of the HLSL inputs
+ * u32      stringTableSize | arena
+ * u8       permutationCount | permutation records
+ * u32      recordCount     | recordCount x { u32 index, u32 offset, u32 size }
+ * description blobs
+ * ```
+ *
+ * Only version 15 is accepted. Carbon's own reader takes 2..15
+ * (`Tr2EffectRes.cpp:209`) but marks the v13/v14 field-order boundaries
+ * unverified, and every file in the shipped dx11/dx12 corpus is v15, so a
+ * lower version here means something unexpected rather than something old.
+ */
+export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
+{
+    /** Cursor class used for description blobs. */
+    static BodyReader = CjsCarbonEffectBodyReader;
+
+    /**
+     * Reads the container header, arena, permutation axes and offset table.
+     *
+     * @param {ArrayBuffer|ArrayBufferView|Uint8Array} bytes Container bytes.
+     * @param {object} [options] Read options.
+     * @param {string} [options.source] Source name used in error details.
+     * @param {boolean} [options.strict] Reject a sparse or misordered offset table.
+     */
+    constructor(bytes, options = {})
+    {
+        super(bytes, options);
+
+        this.version = this.readUint32();
+        if (this.version !== CARBON_EFFECT_DATA_VERSION)
+        {
+            throw this._error(
+                `Unsupported Carbon effect version ${this.version}; expected ${CARBON_EFFECT_DATA_VERSION}`,
+                { version: this.version }
+            );
+        }
+
+        this.compilerVersion = Array.from(this.readRaw(4));
+        this.sourceHash = Uint8Array.from(this.readRaw(CARBON_EFFECT_SOURCE_HASH_BYTES));
+
+        this.stringTableSize = this.readUint32();
+        if (this.offset + this.stringTableSize > this.bytes.length)
+        {
+            throw this._error("Invalid Carbon effect string-table size", {
+                stringTableSize: this.stringTableSize,
+                byteLength: this.bytes.length
+            });
+        }
+        this.stringTableBytes = this.bytes.subarray(this.offset, this.offset + this.stringTableSize);
+        this.skip(this.stringTableSize);
+        this.setStringTable(this.stringTableBytes, this.stringTableSize);
+
+        this.permutations = this.#readPermutations();
+        this.records = this.#readRecords();
+        this.headerEnd = this.offset;
+        this.diagnostics = this.#inspect();
+
+        if (options.strict)
+        {
+            this.requireDensePermutationTable();
+        }
+    }
+
+    /**
+     * Returns the product of the permutation axes' option counts — the number of
+     * offset-table rows a fully populated file has.
+     *
+     * @returns {number} Permutation count.
+     */
+    get permutationProduct()
+    {
+        let product = 1;
+        for (const permutation of this.permutations)
+        {
+            product *= permutation.options.length;
+        }
+        return product;
+    }
+
+    /**
+     * Throws unless the offset table is dense and positionally indexed.
+     *
+     * Carbon indexes `m_offsets` positionally and never reads the stored `index`
+     * field (`Tr2EffectRes.cpp:121-126`), so a sparse or misordered table does
+     * not fail — it silently returns the wrong shader body. Carbon gets density
+     * incidentally, from `g_compiledEffects` being a `std::map` densely keyed by
+     * `AddPermutationsToWorkQueue`, and promises it nowhere.
+     *
+     * Measured across the whole shipped corpus at build 3444265 — every
+     * `.sm_hi`/`.sm_lo`/`.sm_depth` under `effect.dx11` and `effect.dx12`, 3222
+     * files, 52,332 rows — both conditions hold in every file. That is why this
+     * check exists; it is opt-in rather than automatic because the compiler can
+     * still emit a sparse table when run with `--ignore-permutations`, which
+     * writes only key 0 while declaring every axis.
+     */
+    requireDensePermutationTable()
+    {
+        if (!this.diagnostics.dense)
+        {
+            throw this._error("Carbon effect offset table is sparse", {
+                recordCount: this.records.length,
+                permutationProduct: this.permutationProduct
+            });
+        }
+        if (!this.diagnostics.indicesMatchPosition)
+        {
+            throw this._error("Carbon effect offset table is not positionally indexed", {
+                firstMismatch: this.diagnostics.firstIndexMismatch
+            });
+        }
+    }
+
+    /**
+     * Reads and parses one permutation's description blob.
+     *
+     * @param {number} index Permutation index, positional in the offset table.
+     * @returns {object} Description record tree.
+     */
+    readDescription(index)
+    {
+        const record = this.records[index];
+        if (!record)
+        {
+            throw this._error(`No Carbon effect body at permutation index ${index}`, {
+                index,
+                recordCount: this.records.length
+            });
+        }
+        const reader = new this.constructor.BodyReader(this.bytes, {
+            source: this.source,
+            offset: record.offset,
+            end: record.offset + record.size,
+            stringTable: this.stringTableBytes,
+            stringTableSize: this.stringTableSize
+        });
+        return readEffectDescription(reader);
+    }
+
+    /**
+     * Returns the raw description-blob bytes for one permutation.
+     *
+     * @param {number} index Permutation index, positional in the offset table.
+     * @returns {Uint8Array} View over the body bytes.
+     */
+    bodyBytes(index)
+    {
+        const record = this.records[index];
+        if (!record)
+        {
+            throw this._error(`No Carbon effect body at permutation index ${index}`, { index });
+        }
+        return this.bytes.subarray(record.offset, record.offset + record.size);
+    }
+
+    /**
+     * Reads the permutation axis records (`ShaderCompiler.cpp:769-795`,
+     * `Tr2EffectRes.cpp:263-292`).
+     *
+     * @returns {object[]} Permutation axes with arena references retained.
+     */
+    #readPermutations()
+    {
+        const permutations = [];
+        const count = this.readUint8();
+        for (let index = 0; index < count; index += 1)
+        {
+            const nameOffset = this.readUint32();
+            const name = this.readStringAt(nameOffset);
+            const defaultOption = this.readUint8();
+            const descriptionOffset = this.readUint32();
+            const description = this.readStringAt(descriptionOffset);
+            const type = this.readUint8();
+
+            const options = [];
+            const optionCount = this.readUint8();
+            for (let optionIndex = 0; optionIndex < optionCount; optionIndex += 1)
+            {
+                const offset = this.readUint32();
+                options.push({ offset, value: this.readStringAt(offset) });
+            }
+
+            permutations.push({
+                name: { offset: nameOffset, value: name },
+                defaultOption,
+                description: { offset: descriptionOffset, value: description },
+                type,
+                options
+            });
+        }
+        return permutations;
+    }
+
+    /**
+     * Reads the offset table (`ShaderCompiler.cpp:800-820`,
+     * `Tr2EffectRes.cpp:294-311`).
+     *
+     * @returns {object[]} Offset-table rows.
+     */
+    #readRecords()
+    {
+        const count = this.readUint32();
+        if (count === 0)
+        {
+            throw this._error("Carbon effect contains no compiled bodies");
+        }
+        if (this.offset + count * CARBON_EFFECT_RECORD_BYTES > this.bytes.length)
+        {
+            throw this._error("Carbon effect offset table runs past the end of the file", {
+                recordCount: count,
+                byteLength: this.bytes.length
+            });
+        }
+
+        const records = [];
+        for (let index = 0; index < count; index += 1)
+        {
+            records.push({
+                index: this.readUint32(),
+                offset: this.readUint32(),
+                size: this.readUint32()
+            });
+        }
+        return records;
+    }
+
+    /**
+     * Validates every row's byte range and collects the structural diagnostics
+     * Carbon relies on without stating.
+     *
+     * @returns {object} Structural diagnostics.
+     */
+    #inspect()
+    {
+        const headerEnd = this.headerEnd;
+        const byteLength = this.bytes.length;
+        let firstIndexMismatch = null;
+        const uniqueOffsets = new Set();
+
+        for (let index = 0; index < this.records.length; index += 1)
+        {
+            const record = this.records[index];
+            if (record.index !== index && firstIndexMismatch === null)
+            {
+                firstIndexMismatch = { position: index, storedIndex: record.index };
+            }
+            const end = record.offset + record.size;
+            if (record.offset < headerEnd || end > byteLength || record.size === 0)
+            {
+                throw this._error(`Carbon effect body record ${index} is out of range`, {
+                    position: index,
+                    offset: record.offset,
+                    size: record.size,
+                    headerEnd,
+                    byteLength
+                });
+            }
+            uniqueOffsets.add(record.offset);
+        }
+
+        return {
+            recordCount: this.records.length,
+            permutationProduct: this.permutationProduct,
+            dense: this.records.length === this.permutationProduct,
+            indicesMatchPosition: firstIndexMismatch === null,
+            firstIndexMismatch,
+            uniqueBodyCount: uniqueOffsets.size,
+            aliasedRowCount: this.records.length - uniqueOffsets.size
+        };
+    }
+}
+
+export default CjsCarbonEffectReader;
