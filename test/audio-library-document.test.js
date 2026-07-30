@@ -131,13 +131,27 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     const valid = CreateDocument();
 
     valid.sfx = {
-        schemaVersion: 1,
+        schemaVersion: 2,
         events: {
             engine_loop: [ { nodeId: "1" } ],
         },
-        eventActions: {
+        programs: {
             engine_loop: [
                 { kind: "switch", group: "engine_mode", value: "combat" },
+                { kind: "play", child: { nodeId: "1" } },
+                {
+                    kind: "stop",
+                    targetId: "0",
+                    targetFlags: 0,
+                    scope: "game-object",
+                    mode: "all",
+                    transitionMs: 500,
+                    curve: 6,
+                    actionFlags: 6,
+                    exceptions: [
+                        { targetId: "2", targetFlags: 0 },
+                    ],
+                },
             ],
         },
         nodes: {
@@ -170,9 +184,79 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
 
     assert.equal(validateAudioLibraryDocument(valid), true);
 
+    const legacySfx = structuredClone(valid);
+
+    legacySfx.sfx.schemaVersion = 1;
+    assert.throws(
+        () => validateAudioLibraryDocument(legacySfx),
+        /Unsupported audio SFX schema version: 1/u,
+    );
+
+    const mismatchedProjection = structuredClone(valid);
+
+    mismatchedProjection.sfx.programs.engine_loop[1].child = {
+        nodeId: "2",
+    };
+    assert.throws(
+        () => validateAudioLibraryDocument(mismatchedProjection),
+        /roots must equal its ordered Play projection/u,
+    );
+
+    const busStop = structuredClone(valid);
+
+    busStop.sfx.programs.engine_loop[2].targetFlags = 1;
+    assert.throws(
+        () => validateAudioLibraryDocument(busStop),
+        /bus targets are unsupported/u,
+    );
+
+    const unsupportedStopFlags = structuredClone(valid);
+
+    unsupportedStopFlags.sfx.programs.engine_loop[2].actionFlags = 255;
+    assert.throws(
+        () => validateAudioLibraryDocument(unsupportedStopFlags),
+        /actionFlags must be 6/u,
+    );
+
+    const invalidStopAllTarget = structuredClone(valid);
+
+    invalidStopAllTarget.sfx.programs.engine_loop[2].targetId = "2";
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidStopAllTarget),
+        /Stop-All targetId must be zero/u,
+    );
+
+    const invalidElementExceptions = structuredClone(valid);
+
+    invalidElementExceptions.sfx.programs.engine_loop[2].mode = "element";
+    invalidElementExceptions.sfx.programs.engine_loop[2].targetId = "1";
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidElementExceptions),
+        /element Stops cannot have exceptions/u,
+    );
+
+    const invalidProbability = structuredClone(valid);
+
+    invalidProbability.sfx.events.engine_loop[0].probability = 101;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidProbability),
+        /probability must be between 0 and 100/u,
+    );
+
+    const invalidDelayRange = structuredClone(valid);
+
+    invalidDelayRange.sfx.events.engine_loop[0].delayRangeMs = {
+        min: 10,
+        max: -10,
+    };
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidDelayRange),
+        /delayRangeMs max must be at least min/u,
+    );
+
     const invalidSetter = structuredClone(valid);
 
-    invalidSetter.sfx.eventActions.engine_loop[0].kind = "rtpc";
+    invalidSetter.sfx.programs.engine_loop[0].kind = "rtpc";
     assert.throws(
         () => validateAudioLibraryDocument(invalidSetter),
         /kind must be switch or state/u,
@@ -280,9 +364,19 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
     const source = CreateDocument();
 
     source.sfx = {
-        schemaVersion: 1,
+        schemaVersion: 2,
         events: {
-            engine_loop: [ { nodeId: "01" } ],
+            engine_loop: [
+                {
+                    nodeId: "01",
+                    delayMs: "100",
+                    delayRangeMs: { min: "-50", max: "50" },
+                    probability: "75",
+                    fadeInMs: "250",
+                    fadeInRangeMs: { min: "-25", max: "25" },
+                    fadeCurve: "8",
+                },
+            ],
         },
         nodes: {
             "1": {
@@ -306,7 +400,15 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
     const installed = installAudioLibraryDocument(source);
 
     assert.deepEqual(installed.sfx.events.engine_loop, [
-        { nodeId: "1" },
+        {
+            nodeId: "1",
+            delayMs: 100,
+            delayRangeMs: { min: -50, max: 50 },
+            probability: 75,
+            fadeInMs: 250,
+            fadeInRangeMs: { min: -25, max: 25 },
+            fadeCurve: 8,
+        },
     ]);
     assert.equal(installed.sfx.nodes["1"].mediaId, "777");
     assert.equal(installed.sfx.nodes["1"].playCount, 2);
@@ -346,7 +448,7 @@ test("installation projects authored sound loop overrides into event lifecycle m
 
     looping.metadata.Events.engine_loop.isLoop = 0;
     looping.sfx = {
-        schemaVersion: 1,
+        schemaVersion: 2,
         events: {
             engine_loop: [ 1 ],
         },
@@ -387,12 +489,12 @@ test("installation projects authored sound loop overrides into event lifecycle m
     );
 });
 
-test("rejects events silently claimed by both SFX and music graphs", () =>
+test("accepts authored events shared by SFX and music graphs", () =>
 {
     const source = CreateDocument();
 
     source.sfx = {
-        schemaVersion: 1,
+        schemaVersion: 2,
         events: {
             engine_loop: [ 1 ],
         },
@@ -420,28 +522,33 @@ test("rejects events silently claimed by both SFX and music graphs", () =>
         switchSetters: {},
     };
 
-    assert.throws(
-        () => installAudioLibraryDocument(source),
-        /cannot be owned by both SFX and music graphs/u,
-    );
+    let installed = installAudioLibraryDocument(source);
+
+    assert.deepEqual(installed.sfx.events.engine_loop, [
+        { nodeId: "1" },
+    ]);
+    assert.deepEqual(installed.music.eventTargets.engine_loop, [ 10 ]);
 
     source.sfx.events = {};
     source.sfx.nodes = {};
-    source.sfx.eventActions = {
+    source.sfx.programs = {
         engine_loop: [
             { kind: "state", group: "weather", value: "storm" },
         ],
     };
 
-    assert.throws(
-        () => installAudioLibraryDocument(source),
-        /cannot be owned by both SFX and music graphs/u,
+    installed = installAudioLibraryDocument(source);
+
+    assert.equal(
+        installed.sfx.programs.engine_loop[0].kind,
+        "state",
     );
+    assert.deepEqual(installed.music.eventTargets.engine_loop, [ 10 ]);
 
     source.music.eventTargets = {};
-    source.sfx.eventActions.missing_event =
-        source.sfx.eventActions.engine_loop;
-    delete source.sfx.eventActions.engine_loop;
+    source.sfx.programs.missing_event =
+        source.sfx.programs.engine_loop;
+    delete source.sfx.programs.engine_loop;
 
     assert.throws(
         () => installAudioLibraryDocument(source),

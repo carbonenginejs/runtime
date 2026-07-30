@@ -155,6 +155,77 @@ test("portable stop relationships dispatch the backend action Wwise normally own
   }
 });
 
+test("authored Stop programs suppress the duplicate metadata stop dispatch", () =>
+{
+  const repository = new AudStaticDataRepository();
+  repository.Initialize({
+    Events: {
+      engine_loop: {
+        eventID: 7,
+        isLoop: 1,
+        eventsStoppedBy: [ "engine_stop" ],
+        soundbanks: [ "ships.bnk" ],
+      },
+      engine_stop: {
+        eventID: 8,
+        isLoop: 0,
+        eventsStoppedBy: [],
+        soundbanks: [ "ships.bnk" ],
+      },
+    },
+    SoundBanks: { "ships.bnk": { EssentialSoundBank: 0 } },
+    WemFileIDs: {},
+  });
+  const manager = new AudManager();
+  const actions = [];
+  let nextPlayingID = 40;
+
+  AudGameObjResource.manager = manager;
+  AudGameObjResource.staticDataRepository = repository;
+  AudGameObjResource.backend = {
+    Init: () => true,
+    LoadBank: (_name, callback) => callback(true),
+    RegisterGameObj: () => {},
+    SetPosition: () => {},
+    PostEvent: () => ++nextPlayingID,
+    HandlesEventStops: eventName => eventName === "engine_stop",
+    ExecuteActionOnPlayingID: (...args) => actions.push(args),
+    RenderAudio: () => {},
+  };
+
+  try
+  {
+    manager.Enable([ "ships.bnk" ]);
+    const emitter = new AudEmitter();
+
+    emitter.SetPosition(
+      [ 0, 0, 1 ],
+      [ 0, 1, 0 ],
+      [ 0, 0, 0 ],
+    );
+    emitter.Wake();
+
+    assert.equal(emitter.PostEvent("engine_loop"), 41);
+    assert.equal(emitter.PostEvent("engine_stop"), 42);
+    assert.deepEqual(
+      actions,
+      [],
+      "the ordered backend program owns its authored timing and curve",
+    );
+
+    emitter.Cull();
+    assert.deepEqual(
+      actions[0],
+      [ "stop", 41, 3000 ],
+      "an authored delayed/excepted Stop does not pre-mark the surviving loop as stopped",
+    );
+  }
+  finally
+  {
+    ResetAudioSeams();
+  }
+});
+
 test("AudPosition retains Carbon placement-observer values without browser globals", () =>
 {
   const position = new AudPosition();
@@ -200,6 +271,78 @@ test("SpatialAudioSettings and AudManager expose Carbon defaults and delegates",
     bEnableGeometricDiffractionAndTransmission: true,
     bCalcEmitterVirtualPosition: true
   });
+});
+
+test("pre-enabled spatial geometry participates in Carbon manager initialization", () =>
+{
+  const repository = new AudStaticDataRepository();
+  const manager = new AudManager();
+  const geometrySettings = [];
+  const loadedBanks = [];
+  let geometrySucceeds = false;
+
+  repository.Initialize({
+    Events: {},
+    SoundBanks: {},
+    WemFileIDs: {}
+  });
+  manager.SetMovementThreshold(12);
+  manager.SetSpatialAudioGeometryEnabled(true);
+  AudGameObjResource.manager = manager;
+  AudGameObjResource.staticDataRepository = repository;
+  const createBackend = () => ({
+    Init: () => true,
+    InitSpatialAudioGeometry(settings)
+    {
+      geometrySettings.push(settings);
+      return geometrySucceeds;
+    },
+    LoadBank(name, callback)
+    {
+      loadedBanks.push(name);
+      callback(true);
+    }
+  });
+  AudGameObjResource.backend = createBackend();
+
+  try
+  {
+    manager.Enable();
+    assert.equal(
+      manager.GetState(),
+      "uninitialized",
+      "a geometry initialization failure gates the complete Carbon init",
+    );
+    assert.deepEqual(loadedBanks, []);
+    assert.equal(geometrySettings[0].fMovementThreshold, 12);
+
+    geometrySucceeds = true;
+    manager.Enable();
+    assert.equal(manager.GetState(), "enabled");
+    assert.deepEqual(loadedBanks, [ "Init.bnk" ]);
+    assert.equal(geometrySettings.length, 2);
+
+    manager.SetSpatialAudioGeometryEnabled(false);
+    manager.SetSpatialAudioGeometryEnabled(true);
+    assert.equal(
+      geometrySettings.length,
+      2,
+      "Carbon initializes geometry only once per sound-engine lifetime",
+    );
+
+    manager.Disable();
+    AudGameObjResource.backend = createBackend();
+    manager.Enable();
+    assert.equal(
+      geometrySettings.length,
+      3,
+      "a replacement browser backend starts a new sound-engine lifetime",
+    );
+  }
+  finally
+  {
+    ResetAudioSeams();
+  }
 });
 
 test("AudGeometry preserves Carbon set reference counts and RH-to-LH backend projection", () =>

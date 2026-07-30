@@ -149,14 +149,16 @@ function PlaybackContext(log)
             playbackRate: FakeParam(1),
             onended: null,
             started: false,
+            stoppedAt: null,
             connect() {},
             disconnect() {},
             start()
             {
                 source.started = true;
             },
-            stop()
+            stop(time)
             {
+                source.stoppedAt = time ?? context.currentTime;
                 source.onended?.();
             },
         };
@@ -960,7 +962,7 @@ test("CjsAudioMan resolves authored switch and blend nodes before media delivery
         },
         banks: {},
         sfx: {
-            schemaVersion: 1,
+            schemaVersion: 2,
             events: {
                 weapon_fire: [ { nodeId: "1" } ],
             },
@@ -1051,6 +1053,263 @@ test("CjsAudioMan resolves authored switch and blend nodes before media delivery
         context.gains[3],
         "the surviving layer retains its own authored spatial route",
     );
+    man.Dispose();
+});
+
+test("CjsAudioMan lets the authored Stop program own metadata-related timing", async () =>
+{
+    const context = PlaybackContext([]);
+    const library = {
+        schema: "carbonenginejs.audioLibrary",
+        schemaVersion: 2,
+        metadata: {
+            Events: {
+                engine_loop: {
+                    eventID: 7,
+                    eventsStoppedBy: [ "engine_stop" ],
+                    is2D: 0,
+                    isLoop: 1,
+                    isVital: 0,
+                    maxRadiusAttenuation: 0,
+                    soundbanks: [ "ships.bnk" ],
+                },
+                engine_stop: {
+                    eventID: 8,
+                    eventsStoppedBy: [],
+                    is2D: 0,
+                    isLoop: 0,
+                    isVital: 0,
+                    maxRadiusAttenuation: 0,
+                    soundbanks: [ "ships.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "ships.bnk": {
+                    EssentialSoundBank: 0,
+                },
+            },
+            WemFileIDs: {},
+        },
+        media: {
+            "777": {
+                sourceID: "prepared:777",
+                resPath: "res:/audio/777.ogg",
+                mediaType: "ogg",
+            },
+        },
+        banks: {},
+        sfx: {
+            schemaVersion: 2,
+            events: {
+                engine_loop: [ { nodeId: "200" } ],
+            },
+            programs: {
+                engine_loop: [
+                    {
+                        kind: "play",
+                        child: { nodeId: "200" },
+                    },
+                ],
+                engine_stop: [
+                    {
+                        kind: "stop",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        transitionMs: 250,
+                        curve: 4,
+                        actionFlags: 6,
+                        exceptions: [],
+                    },
+                ],
+            },
+            nodes: {
+                "200": {
+                    type: "sound",
+                    mediaId: "777",
+                    matchIds: [ "200", "700" ],
+                    loop: true,
+                },
+            },
+        },
+    };
+    const man = new CjsAudioMan(library, {
+        createContext: () => context,
+        mediaProvider: {
+            Read: () => new Uint8Array([ 1, 2, 3, 4 ]),
+        },
+    });
+
+    assert.equal(man.Enable([ "ships.bnk" ]), true);
+
+    const emitter = man.CreateEmitter();
+
+    emitter.SetPosition(
+        [ 0, 0, 1 ],
+        [ 0, 1, 0 ],
+        [ 0, 0, 0 ],
+    );
+    emitter.Wake();
+    assert.ok(emitter.SendEvent("engine_loop") > 0);
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(context.sources.length, 1);
+    context.currentTime = 0.1;
+    assert.ok(emitter.SendEvent("engine_stop") > 0);
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(
+        context.sources[0].stoppedAt,
+        0.35,
+        "the decoded 250ms transition replaces the metadata fallback's 1s fade",
+    );
+    man.Dispose();
+});
+
+test("a selective Stop releases one pending leaf without blocking its sibling", async () =>
+{
+    const context = PlaybackContext([]);
+    const library = {
+        schema: "carbonenginejs.audioLibrary",
+        schemaVersion: 2,
+        metadata: {
+            Events: {
+                parallel_play: {
+                    eventID: 7,
+                    eventsStoppedBy: [],
+                    is2D: 0,
+                    isLoop: 0,
+                    isVital: 0,
+                    maxRadiusAttenuation: 0,
+                    soundbanks: [ "ships.bnk" ],
+                },
+                stop_first: {
+                    eventID: 8,
+                    eventsStoppedBy: [],
+                    is2D: 0,
+                    isLoop: 0,
+                    isVital: 0,
+                    maxRadiusAttenuation: 0,
+                    soundbanks: [ "ships.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "ships.bnk": {
+                    EssentialSoundBank: 0,
+                },
+            },
+            WemFileIDs: {},
+        },
+        media: {
+            "777": {
+                sourceID: "prepared:777",
+                resPath: "res:/audio/777.ogg",
+                mediaType: "ogg",
+            },
+            "778": {
+                sourceID: "prepared:778",
+                resPath: "res:/audio/778.ogg",
+                mediaType: "ogg",
+            },
+        },
+        banks: {},
+        sfx: {
+            schemaVersion: 2,
+            events: {
+                parallel_play: [
+                    { nodeId: "200" },
+                    { nodeId: "300" },
+                ],
+            },
+            programs: {
+                parallel_play: [
+                    {
+                        kind: "play",
+                        child: { nodeId: "200" },
+                    },
+                    {
+                        kind: "play",
+                        child: { nodeId: "300" },
+                    },
+                ],
+                stop_first: [
+                    {
+                        kind: "stop",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        transitionMs: 0,
+                        curve: 4,
+                        actionFlags: 6,
+                        exceptions: [],
+                    },
+                ],
+            },
+            nodes: {
+                "200": {
+                    type: "sound",
+                    mediaId: "777",
+                    matchIds: [ "200", "700" ],
+                },
+                "300": {
+                    type: "sound",
+                    mediaId: "778",
+                    matchIds: [ "300", "800" ],
+                },
+            },
+        },
+    };
+    const reads = [];
+    let firstSignal = null;
+    const man = new CjsAudioMan(library, {
+        createContext: () => context,
+        mediaProvider: {
+            Read(source, request)
+            {
+                reads.push(source.sourceID);
+                if (source.sourceID === "prepared:777")
+                {
+                    firstSignal = request.signal;
+                    return new Promise((resolve, reject) =>
+                    {
+                        request.signal.addEventListener("abort", () =>
+                        {
+                            reject(request.signal.reason);
+                        }, { once: true });
+                    });
+                }
+                return new Uint8Array([ 1, 2, 3, 4 ]);
+            },
+        },
+    });
+
+    assert.equal(man.Enable([ "ships.bnk" ]), true);
+    const emitter = man.CreateEmitter();
+
+    emitter.SetPosition(
+        [ 0, 0, 1 ],
+        [ 0, 1, 0 ],
+        [ 0, 0, 0 ],
+    );
+    emitter.Wake();
+    assert.ok(emitter.SendEvent("parallel_play") > 0);
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.deepEqual(reads.sort(), [ "prepared:777", "prepared:778" ]);
+    assert.equal(context.sources.length, 0);
+    assert.equal(firstSignal.aborted, false);
+
+    assert.ok(emitter.SendEvent("stop_first") > 0);
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(firstSignal.aborted, true);
+    assert.equal(context.sources.length, 1);
+    assert.equal(context.sources[0].started, true);
     man.Dispose();
 });
 

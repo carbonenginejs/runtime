@@ -1,4 +1,4 @@
-const SFX_SCHEMA_VERSION = 1;
+const SFX_SCHEMA_VERSION = 2;
 const NODE_TYPES = new Set([
     "blend",
     "parallel",
@@ -13,6 +13,8 @@ const RTPC_SCOPES = new Set([ "global", "object" ]);
 const CONTAINER_SCOPES = new Set([ "global", "object" ]);
 const RANDOM_MODES = new Set([ "random", "shuffle" ]);
 const EVENT_ACTION_KINDS = new Set([ "state", "switch" ]);
+const STOP_SCOPES = new Set([ "game-object", "global" ]);
+const STOP_MODES = new Set([ "all", "all-except", "element" ]);
 
 /**
  * Validates one browser-portable authored SFX graph against installed media.
@@ -40,11 +42,11 @@ export function validateSfxGraph(
         graph.nodes,
         "Audio library SFX nodes",
     );
-    const eventActions = graph.eventActions === undefined
+    const programs = graph.programs === undefined
         ? {}
         : RequireRecord(
-            graph.eventActions,
-            "Audio library SFX eventActions",
+            graph.programs,
+            "Audio library SFX programs",
         );
 
     for (const [ rawID, node ] of Object.entries(nodes))
@@ -64,6 +66,10 @@ export function validateSfxGraph(
         }
 
         ValidateGain(node, `Audio library SFX node ${id}`);
+        ValidateNodePlaybackProperties(
+            node,
+            `Audio library SFX node ${id}`,
+        );
 
         if (node.type === "sound" || node.type === "silence")
         {
@@ -113,6 +119,14 @@ export function validateSfxGraph(
             {
                 throw new TypeError(
                     `Audio library SFX sound ${id} spatial must be boolean`,
+                );
+            }
+            if (node.matchIds !== undefined)
+            {
+                ValidateMatchIds(
+                    node.matchIds,
+                    id,
+                    `Audio library SFX sound ${id} matchIds`,
                 );
             }
             continue;
@@ -251,14 +265,14 @@ export function validateSfxGraph(
         }
     }
 
-    for (const [ eventName, actions ] of Object.entries(eventActions))
+    for (const [ eventName, actions ] of Object.entries(programs))
     {
-        NormalizeName(eventName, "Audio library SFX action event name");
+        NormalizeName(eventName, "Audio library SFX program event name");
 
         if (!Array.isArray(actions) || !actions.length)
         {
             throw new TypeError(
-                `Audio library SFX eventActions ${eventName} must have actions`,
+                `Audio library SFX program ${eventName} must have actions`,
             );
         }
 
@@ -266,23 +280,36 @@ export function validateSfxGraph(
         {
             const action = RequireRecord(
                 actions[index],
-                `Audio library SFX eventActions ${eventName} action ${index}`,
+                `Audio library SFX program ${eventName} action ${index}`,
             );
+            const label = `Audio library SFX program ${eventName} action ${index}`;
 
-            if (!EVENT_ACTION_KINDS.has(action.kind))
+            if (action.kind === "play")
             {
-                throw new TypeError(
-                    `Audio library SFX eventActions ${eventName} action ${index}`
-                    + " kind must be switch or state",
+                ValidateChild(
+                    action.child,
+                    nodes,
+                    `${label} child`,
                 );
+                continue;
             }
-            NormalizeName(
-                action.group,
-                `Audio library SFX eventActions ${eventName} action ${index} group`,
-            );
-            NormalizeName(
-                action.value,
-                `Audio library SFX eventActions ${eventName} action ${index} value`,
+            if (action.kind === "stop")
+            {
+                ValidateStopAction(action, label);
+                continue;
+            }
+            ValidateSetterAction(action, label);
+        }
+
+        const projected = actions
+            .filter(action => action.kind === "play")
+            .map(action => NormalizeChild(action.child));
+        const roots = events[eventName] ?? [];
+
+        if (!ChildrenEqual(projected, roots.map(NormalizeChild)))
+        {
+            throw new TypeError(
+                `Audio library SFX event ${eventName} roots must equal its ordered Play projection`,
             );
         }
     }
@@ -323,24 +350,40 @@ export function normalizeSfxGraph(graph, media = {}, embeddedMedia = {})
         nodes,
     };
 
-    if (graph.eventActions
-        && Object.keys(graph.eventActions).length)
+    if (graph.programs && Object.keys(graph.programs).length)
     {
-        result.eventActions = {};
+        result.programs = {};
 
-        for (const name of Object.keys(graph.eventActions).sort())
+        for (const name of Object.keys(graph.programs).sort())
         {
-            result.eventActions[name] = graph.eventActions[name].map(
-                action => ({
-                    kind: action.kind,
-                    group: String(action.group),
-                    value: String(action.value),
-                }),
-            );
+            result.programs[name] = graph.programs[name].map(action =>
+            {
+                if (action.kind === "play")
+                {
+                    return {
+                        kind: "play",
+                        child: NormalizeChild(action.child),
+                    };
+                }
+                if (action.kind === "stop")
+                {
+                    return NormalizeStopAction(action);
+                }
+                return NormalizeSetterAction(action);
+            });
         }
     }
 
     return result;
+}
+
+function NormalizeSetterAction(action)
+{
+    return {
+        kind: action.kind,
+        group: String(action.group),
+        value: String(action.value),
+    };
 }
 
 function NormalizeNode(node)
@@ -348,6 +391,7 @@ function NormalizeNode(node)
     const result = {
         type: node.type,
         ...NormalizeGain(node),
+        ...NormalizeNodePlaybackProperties(node),
     };
 
     if (node.type === "sound" || node.type === "silence")
@@ -372,6 +416,11 @@ function NormalizeNode(node)
         if (node.spatial !== undefined)
         {
             result.spatial = node.spatial;
+        }
+        if (node.matchIds !== undefined)
+        {
+            result.matchIds = node.matchIds.map(value =>
+                String(Number(value) >>> 0));
         }
         return result;
     }
@@ -429,6 +478,7 @@ function NormalizeChild(child)
     const result = {
         nodeId: String(Number(child.nodeId) >>> 0),
         ...NormalizeGain(child),
+        ...NormalizeActionTiming(child),
     };
 
     if (child.weight !== undefined)
@@ -466,7 +516,74 @@ function NormalizeGain(value)
             })),
         }));
     }
+    if (value.gainDbRanges !== undefined)
+    {
+        result.gainDbRanges = NormalizeRandomRanges(
+            value.gainDbRanges,
+        );
+    }
 
+    return result;
+}
+
+function NormalizeNodePlaybackProperties(value)
+{
+    const result = {};
+
+    for (const field of [ "pitchCents", "initialDelayMs" ])
+    {
+        if (value[field] !== undefined)
+        {
+            result[field] = Number(value[field]);
+        }
+    }
+    for (const field of [
+        "pitchCentsRanges",
+        "initialDelayRangesMs",
+    ])
+    {
+        if (value[field] !== undefined)
+        {
+            result[field] = NormalizeRandomRanges(value[field]);
+        }
+    }
+
+    return result;
+}
+
+function NormalizeRandomRanges(ranges)
+{
+    return ranges.map(range => ({
+        min: Number(range.min),
+        max: Number(range.max),
+    }));
+}
+
+function NormalizeActionTiming(value)
+{
+    const result = {};
+
+    for (const field of [ "delayMs", "fadeInMs", "probability" ])
+    {
+        if (value[field] !== undefined)
+        {
+            result[field] = Number(value[field]);
+        }
+    }
+    for (const field of [ "delayRangeMs", "fadeInRangeMs" ])
+    {
+        if (value[field] !== undefined)
+        {
+            result[field] = {
+                min: Number(value[field].min),
+                max: Number(value[field].max),
+            };
+        }
+    }
+    if (value.fadeCurve !== undefined)
+    {
+        result.fadeCurve = Number(value.fadeCurve);
+    }
     return result;
 }
 
@@ -484,6 +601,7 @@ function ValidateChild(child, nodes, label, allowWeight = false)
     if (IsRecord(child))
     {
         ValidateGain(child, label);
+        ValidateActionTiming(child, label);
 
         if (child.weight !== undefined)
         {
@@ -496,12 +614,301 @@ function ValidateChild(child, nodes, label, allowWeight = false)
     }
 }
 
+function ValidateSetterAction(value, label)
+{
+    const action = RequireRecord(value, label);
+
+    if (!EVENT_ACTION_KINDS.has(action.kind))
+    {
+        throw new TypeError(
+            `${label} kind must be switch or state`,
+        );
+    }
+    NormalizeName(action.group, `${label} group`);
+    NormalizeName(action.value, `${label} value`);
+}
+
+function ValidateStopAction(value, label)
+{
+    const action = RequireRecord(value, label);
+
+    if (!STOP_SCOPES.has(action.scope))
+    {
+        throw new TypeError(
+            `${label} scope must be game-object or global`,
+        );
+    }
+    if (!STOP_MODES.has(action.mode))
+    {
+        throw new TypeError(
+            `${label} mode must be element, all, or all-except`,
+        );
+    }
+
+    const targetID = NormalizeUnsignedID(
+        action.targetId,
+        `${label} targetId`,
+    );
+
+    if (action.mode === "element" && targetID === "0")
+    {
+        throw new TypeError(
+            `${label} element targetId must be greater than zero`,
+        );
+    }
+    if (action.mode !== "element" && targetID !== "0")
+    {
+        throw new TypeError(
+            `${label} Stop-All targetId must be zero`,
+        );
+    }
+    if (action.targetFlags !== undefined)
+    {
+        const targetFlags = NormalizeByte(
+            action.targetFlags,
+            `${label} targetFlags`,
+        );
+
+        if (targetFlags & 0x01)
+        {
+            throw new TypeError(
+                `${label} bus targets are unsupported`,
+            );
+        }
+    }
+    if (action.actionFlags !== undefined)
+    {
+        const actionFlags = NormalizeByte(
+            action.actionFlags,
+            `${label} actionFlags`,
+        );
+
+        if (actionFlags !== 6)
+        {
+            throw new TypeError(
+                `${label} actionFlags must be 6`,
+            );
+        }
+    }
+    if (!Array.isArray(action.exceptions))
+    {
+        throw new TypeError(`${label} exceptions must be an array`);
+    }
+
+    const seen = new Set();
+
+    if (action.mode === "element" && action.exceptions.length)
+    {
+        throw new TypeError(
+            `${label} element Stops cannot have exceptions`,
+        );
+    }
+
+    for (let index = 0; index < action.exceptions.length; index++)
+    {
+        const exception = RequireRecord(
+            action.exceptions[index],
+            `${label} exception ${index}`,
+        );
+        const id = NormalizePositiveID(
+            exception.targetId,
+            `${label} exception ${index} targetId`,
+        );
+
+        if (seen.has(id))
+        {
+            throw new TypeError(
+                `${label} has duplicate exception ${id}`,
+            );
+        }
+        seen.add(id);
+        if (exception.targetFlags !== undefined)
+        {
+            const targetFlags = NormalizeByte(
+                exception.targetFlags,
+                `${label} exception ${index} targetFlags`,
+            );
+
+            if (targetFlags & 0x01)
+            {
+                throw new TypeError(
+                    `${label} bus exceptions are unsupported`,
+                );
+            }
+        }
+    }
+
+    ValidateActionTiming({
+        delayMs: action.delayMs,
+        delayRangeMs: action.delayRangeMs,
+        probability: action.probability,
+    }, label);
+    ValidateTransitionTiming(action, label);
+}
+
+function ChildrenEqual(left, right)
+{
+    return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function ValidateTransitionTiming(value, label)
+{
+    ValidateActionTiming({
+        fadeInMs: value.transitionMs,
+        fadeInRangeMs: value.transitionRangeMs,
+        fadeCurve: value.curve,
+    }, label);
+}
+
+function ValidateMatchIds(value, nodeID, label)
+{
+    if (!Array.isArray(value) || !value.length)
+    {
+        throw new TypeError(`${label} must be a non-empty array`);
+    }
+
+    const normalized = value.map((entry, index) =>
+        NormalizePositiveID(entry, `${label} ${index}`));
+
+    if (normalized[0] !== nodeID)
+    {
+        throw new TypeError(`${label} must begin with node ${nodeID}`);
+    }
+    if (new Set(normalized).size !== normalized.length)
+    {
+        throw new TypeError(`${label} must not contain duplicates`);
+    }
+}
+
+function NormalizeStopAction(action)
+{
+    const result = {
+        kind: "stop",
+        targetId: String(Number(action.targetId) >>> 0),
+        scope: action.scope,
+        mode: action.mode,
+        curve: Number(action.curve ?? 4),
+        exceptions: action.exceptions.map(exception => ({
+            targetId: String(Number(exception.targetId) >>> 0),
+            ...(exception.targetFlags === undefined
+                ? {}
+                : { targetFlags: Number(exception.targetFlags) }),
+        })),
+    };
+
+    for (const field of [
+        "targetFlags",
+        "actionFlags",
+        "delayMs",
+        "probability",
+        "transitionMs",
+    ])
+    {
+        if (action[field] !== undefined)
+        {
+            result[field] = Number(action[field]);
+        }
+    }
+    for (const field of [ "delayRangeMs", "transitionRangeMs" ])
+    {
+        if (action[field] !== undefined)
+        {
+            result[field] = {
+                min: Number(action[field].min),
+                max: Number(action[field].max),
+            };
+        }
+    }
+
+    return result;
+}
+
+function ValidateActionTiming(value, label)
+{
+    for (const [ field, description ] of [
+        [ "delayMs", "delayMs" ],
+        [ "fadeInMs", "fadeInMs" ],
+    ])
+    {
+        if (value[field] !== undefined)
+        {
+            const number = NormalizeFiniteNumber(
+                value[field],
+                `${label} ${description}`,
+            );
+
+            if (number < 0)
+            {
+                throw new TypeError(
+                    `${label} ${description} must be non-negative`,
+                );
+            }
+        }
+    }
+
+    for (const field of [ "delayRangeMs", "fadeInRangeMs" ])
+    {
+        if (value[field] === undefined)
+        {
+            continue;
+        }
+
+        const range = RequireRecord(
+            value[field],
+            `${label} ${field}`,
+        );
+        const min = NormalizeFiniteNumber(
+            range.min,
+            `${label} ${field} min`,
+        );
+        const max = NormalizeFiniteNumber(
+            range.max,
+            `${label} ${field} max`,
+        );
+
+        if (max < min)
+        {
+            throw new TypeError(
+                `${label} ${field} max must be at least min`,
+            );
+        }
+    }
+
+    if (value.probability !== undefined)
+    {
+        const probability = NormalizeFiniteNumber(
+            value.probability,
+            `${label} probability`,
+        );
+
+        if (probability < 0 || probability > 100)
+        {
+            throw new TypeError(
+                `${label} probability must be between 0 and 100`,
+            );
+        }
+    }
+    if (value.fadeCurve !== undefined
+        && (!Number.isSafeInteger(Number(value.fadeCurve))
+            || Number(value.fadeCurve) < 0
+            || Number(value.fadeCurve) > 8))
+    {
+        throw new TypeError(
+            `${label} fadeCurve must be a Wwise curve value from 0 to 8`,
+        );
+    }
+}
+
 function ValidateGain(value, label)
 {
     if (value.gainDb !== undefined)
     {
         NormalizeFiniteNumber(value.gainDb, `${label} gainDb`);
     }
+    ValidateRandomRanges(
+        value.gainDbRanges,
+        `${label} gainDbRanges`,
+    );
     if (value.gainCurves === undefined)
     {
         return;
@@ -625,6 +1032,68 @@ function ValidateGain(value, label)
     }
 }
 
+function ValidateNodePlaybackProperties(value, label)
+{
+    if (value.pitchCents !== undefined)
+    {
+        NormalizeFiniteNumber(
+            value.pitchCents,
+            `${label} pitchCents`,
+        );
+    }
+    if (value.initialDelayMs !== undefined
+        && NormalizeFiniteNumber(
+            value.initialDelayMs,
+            `${label} initialDelayMs`,
+        ) < 0)
+    {
+        throw new TypeError(
+            `${label} initialDelayMs must be non-negative`,
+        );
+    }
+
+    ValidateRandomRanges(
+        value.pitchCentsRanges,
+        `${label} pitchCentsRanges`,
+    );
+    ValidateRandomRanges(
+        value.initialDelayRangesMs,
+        `${label} initialDelayRangesMs`,
+    );
+}
+
+function ValidateRandomRanges(value, label)
+{
+    if (value === undefined)
+    {
+        return;
+    }
+    if (!Array.isArray(value))
+    {
+        throw new TypeError(`${label} must be an array`);
+    }
+
+    for (let index = 0; index < value.length; index++)
+    {
+        const range = RequireRecord(value[index], `${label} ${index}`);
+        const min = NormalizeFiniteNumber(
+            range.min,
+            `${label} ${index} min`,
+        );
+        const max = NormalizeFiniteNumber(
+            range.max,
+            `${label} ${index} max`,
+        );
+
+        if (max < min)
+        {
+            throw new TypeError(
+                `${label} ${index} max must be greater than or equal to min`,
+            );
+        }
+    }
+}
+
 function ValidateAcyclic(events, nodes)
 {
     const visited = new Set();
@@ -726,6 +1195,41 @@ function NormalizePositiveID(value, label)
     }
 
     return String(number >>> 0);
+}
+
+function NormalizeUnsignedID(value, label)
+{
+    if (typeof value !== "number"
+        && (typeof value !== "string" || !/^[0-9]+$/u.test(value)))
+    {
+        throw new TypeError(
+            `${label} must be an unsigned 32-bit integer`,
+        );
+    }
+
+    const number = Number(value);
+
+    if (!Number.isSafeInteger(number)
+        || number < 0
+        || number > 0xffffffff)
+    {
+        throw new TypeError(
+            `${label} must be an unsigned 32-bit integer`,
+        );
+    }
+
+    return String(number >>> 0);
+}
+
+function NormalizeByte(value, label)
+{
+    const number = Number(value);
+
+    if (!Number.isSafeInteger(number) || number < 0 || number > 0xff)
+    {
+        throw new TypeError(`${label} must be an unsigned byte`);
+    }
+    return number;
 }
 
 function NormalizeName(value, label)

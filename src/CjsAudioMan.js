@@ -267,8 +267,30 @@ export class CjsAudioMan
             },
             audioMetadata: installed.metadata,
             musicGraph: installed.music ?? null,
-            loadBuffer: (eventID, eventName, controls) =>
-                this.#LoadEventBuffer(eventID, eventName, controls),
+            loadBuffer: (
+                eventID,
+                eventName,
+                controls,
+                resolvedProgram,
+            ) =>
+                this.#LoadEventBuffer(
+                    eventID,
+                    eventName,
+                    controls,
+                    resolvedProgram,
+                ),
+            resolveSfxProgram: (_eventID, eventName, controls) =>
+                this.#sfxEngine?.HandlesEvent(eventName)
+                    ? this.#sfxEngine.ResolveProgram(
+                        eventName,
+                        controls,
+                    ) ?? []
+                    : null,
+            hasEventStops: eventName =>
+                this.#sfxEngine?.HasStopAction(eventName) === true,
+            hasSfxEvent: eventName =>
+                this.#sfxEngine?.HandlesEvent(eventName) === true
+                || Array.isArray(installed.eventMedia?.[eventName]),
             loadMedia: sourceID => this.LoadMedia(sourceID),
             releaseGameObj: gameObjID =>
                 this.#sfxEngine?.ReleaseGameObj(gameObjID),
@@ -1178,7 +1200,12 @@ export class CjsAudioMan
     }
 
     /** Selects and loads one media buffer for an event. */
-    async #LoadEventBuffer(eventID, eventName, controls = {})
+    async #LoadEventBuffer(
+        eventID,
+        eventName,
+        controls = {},
+        resolvedProgram = null,
+    )
     {
         const eventSpatial = !Boolean(
             this.#library?.metadata?.Events?.[eventName]?.is2D,
@@ -1187,7 +1214,19 @@ export class CjsAudioMan
         if (this.#sfxEngine?.HandlesEvent(eventName))
         {
             const engine = this.#sfxEngine;
-            const selections = engine.ResolveEvent(eventName, controls);
+            const program = Array.isArray(resolvedProgram)
+                ? resolvedProgram
+                : engine.ResolveProgram(eventName, controls) ?? [];
+
+            if (!Array.isArray(resolvedProgram))
+            {
+                controls.installSfxProgram?.(program);
+            }
+
+            const selections = program.flatMap(operation =>
+                operation.kind === "play"
+                    ? operation.selections
+                    : []);
 
             if (!selections.length)
             {
@@ -1196,17 +1235,32 @@ export class CjsAudioMan
 
             const buffers = await Promise.all(
                 selections.map(selection =>
-                    this.LoadMedia(selection.mediaID, {
-                        signal: controls.signal,
+                {
+                    const programSlotId =
+                        `${selection.actionIndex}:${selection.leafIndex}`;
+                    const selectionSignal =
+                        controls.getSfxProgramSignal?.(programSlotId)
+                        ?? controls.signal;
+
+                    return this.LoadMedia(selection.mediaID, {
+                        signal: selectionSignal,
                     }).catch(error =>
                     {
-                        if (controls.signal?.aborted
-                            || IsAbortError(error))
+                        if (controls.signal?.aborted)
+                        {
+                            throw error;
+                        }
+                        if (selectionSignal?.aborted)
+                        {
+                            return null;
+                        }
+                        if (IsAbortError(error))
                         {
                             throw error;
                         }
                         return null;
-                    })),
+                    });
+                }),
             );
 
             return {
@@ -1220,6 +1274,16 @@ export class CjsAudioMan
                                 : { playCount: selection.playCount }),
                             playbackRate: selection.playbackRate,
                             spatial: selection.spatial ?? eventSpatial,
+                            programSlotId: `${selection.actionIndex}:${selection.leafIndex}`,
+                            ...(selection.delayMs === undefined
+                                ? {}
+                                : { delayMs: selection.delayMs }),
+                            ...(selection.fadeInMs === undefined
+                                ? {}
+                                : {
+                                    fadeInMs: selection.fadeInMs,
+                                    fadeCurve: selection.fadeCurve,
+                                }),
                             getGain: () => engine.EvaluateGain(
                                 selection,
                                 controls,

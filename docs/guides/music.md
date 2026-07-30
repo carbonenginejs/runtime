@@ -48,6 +48,12 @@ those children are themselves switch containers. Wwise `Nothing`
 associations use explicit ID zero and do not match `Any`; their rules also
 apply when playback first enters a target from silence.
 
+The library builder identifies authored music by typed Play/Stop targets and
+music argument groups across every selected bank. Event names do not need a
+`music_` prefix and event actions do not need to live in `common.bnk`. When one
+authored Wwise event contains both SFX and music actions, runtime-audio starts
+both sides under one playing ID and reports completion after both have ended.
+
 The source graph may preserve data that the current scheduler does not play.
 Stingers, Musical Instrument Digital Interface (MIDI) tracks, Synth One
 tracks, and RTPC volume curves remain unsupported.

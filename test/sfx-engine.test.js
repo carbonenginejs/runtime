@@ -6,11 +6,72 @@ import { CjsSfxEngine } from "../npm/dist/index.js";
 function Graph(events, nodes)
 {
     return {
-        schemaVersion: 1,
+        schemaVersion: 2,
         events,
         nodes,
     };
 }
+
+test("authored NodeBase properties and randomizers resolve once per post", () =>
+{
+    const samples = [ 0.75, 0.25, 0.5 ];
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { fire: [ { nodeId: "1" } ] },
+            {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    gainDb: -6,
+                    gainDbRanges: [
+                        { min: -2, max: 2 },
+                    ],
+                    pitchCents: 1200,
+                    pitchCentsRanges: [
+                        { min: -100, max: 100 },
+                    ],
+                    initialDelayMs: 250,
+                    initialDelayRangesMs: [
+                        { min: 0, max: 100 },
+                    ],
+                },
+            },
+        ),
+        random: () => samples.shift(),
+    });
+
+    const selection = engine.ResolveEvent("fire")[0];
+
+    assert.equal(selection.gainDb, -5);
+    assert.ok(
+        Math.abs(selection.playbackRate - 2 ** (1150 / 1200)) < 1e-12,
+    );
+    assert.equal(selection.delayMs, 300);
+    assert.deepEqual(samples, []);
+});
+
+test("authored relative volume and pitch clamp after hierarchy accumulation", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { fire: [ { nodeId: "1", gainDb: 150, pitchCents: 1800 } ] },
+            {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    gainDb: 100,
+                    pitchCents: 1200,
+                },
+            },
+        ),
+    });
+
+    const selection = engine.ResolveEvent("fire")[0];
+
+    assert.equal(selection.gainDb, 250);
+    assert.equal(selection.playbackRate, 4);
+    assert.equal(engine.EvaluateGain(selection), 10 ** 10);
+});
 
 test("authored random containers honor weights and per-object repeat avoidance", () =>
 {
@@ -347,16 +408,20 @@ test("event setters update controls before resolving the same post", () =>
     const states = new Map();
     const engine = new CjsSfxEngine({
         graph: {
-            schemaVersion: 1,
+            schemaVersion: 2,
             events: {
                 select_large: [ { nodeId: "1" } ],
             },
-            eventActions: {
+            programs: {
                 select_large: [
                     {
                         kind: "switch",
                         group: "ship_size",
                         value: "large",
+                    },
+                    {
+                        kind: "play",
+                        child: { nodeId: "1" },
                     },
                 ],
                 set_storm: [
@@ -398,12 +463,235 @@ test("event setters update controls before resolving the same post", () =>
     assert.equal(switches.get("ship_size"), "large");
 });
 
+test("event programs preserve authored Play and setter interleaving", () =>
+{
+    const switches = new Map();
+    const engine = new CjsSfxEngine({
+        graph: {
+            schemaVersion: 2,
+            events: {
+                interleaved: [
+                    { nodeId: "1" },
+                    { nodeId: "1" },
+                ],
+            },
+            programs: {
+                interleaved: [
+                    { kind: "play", child: { nodeId: "1" } },
+                    {
+                        kind: "switch",
+                        group: "ship_size",
+                        value: "large",
+                    },
+                    { kind: "play", child: { nodeId: "1" } },
+                ],
+            },
+            nodes: {
+                "1": {
+                    type: "switch",
+                    group: "ship_size",
+                    cases: {
+                        large: { nodeId: "2" },
+                    },
+                    default: { nodeId: "3" },
+                },
+                "2": { type: "sound", mediaId: "100" },
+                "3": { type: "sound", mediaId: "200" },
+            },
+        },
+    });
+    const controls = {
+        getSwitch: group => switches.get(group),
+        setSwitch: (group, value) => switches.set(group, value),
+    };
+
+    assert.deepEqual(
+        engine.ResolveEvent("interleaved", controls)
+            .map(selection => selection.mediaID),
+        [ "200", "100" ],
+    );
+});
+
+test("event programs preserve Stop order, hierarchy matches, and sampled timing", () =>
+{
+    const samples = [ 0.25, 0.75 ];
+    const engine = new CjsSfxEngine({
+        random: () => samples.shift() ?? 0,
+        graph: {
+            schemaVersion: 2,
+            events: {
+                staged_stop: [ { nodeId: "1" } ],
+            },
+            programs: {
+                staged_stop: [
+                    { kind: "play", child: { nodeId: "1" } },
+                    {
+                        kind: "stop",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        delayMs: 100,
+                        delayRangeMs: { min: -20, max: 20 },
+                        transitionMs: 200,
+                        transitionRangeMs: { min: -100, max: 100 },
+                        curve: 6,
+                        actionFlags: 6,
+                        exceptions: [],
+                    },
+                ],
+            },
+            nodes: {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    matchIds: [ "1", "700" ],
+                },
+            },
+        },
+    });
+
+    const program = engine.ResolveProgram("staged_stop");
+
+    assert.deepEqual(
+        program.map(action => action.kind),
+        [ "play", "stop" ],
+    );
+    assert.deepEqual(program[0].selections[0].matchIds, [ "1", "700" ]);
+    assert.equal(program[0].selections[0].actionIndex, 0);
+    assert.deepEqual(program[1], {
+        kind: "stop",
+        actionIndex: 1,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 90,
+        transitionMs: 250,
+        curve: 6,
+        actionFlags: 6,
+        exceptions: [],
+    });
+});
+
+test("Play actions preserve probability, randomized delay, and fade-in", () =>
+{
+    const samples = [ 0.49, 0.5, 0, 0.5 ];
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            {
+                impact: [
+                    {
+                        nodeId: "1",
+                        probability: 50,
+                        delayMs: 100,
+                        delayRangeMs: { min: -50, max: 100 },
+                        fadeInMs: 200,
+                        fadeInRangeMs: { min: -50, max: 50 },
+                        fadeCurve: 8,
+                    },
+                    {
+                        nodeId: "2",
+                        probability: 50,
+                    },
+                ],
+                nested_delay: [
+                    {
+                        nodeId: "3",
+                        delayMs: 100,
+                    },
+                ],
+            },
+            {
+                "1": { type: "sound", mediaId: "100" },
+                "2": { type: "sound", mediaId: "200" },
+                "3": {
+                    type: "parallel",
+                    children: [
+                        {
+                            nodeId: "4",
+                            delayMs: 50,
+                        },
+                    ],
+                },
+                "4": { type: "sound", mediaId: "400" },
+            },
+        ),
+        random: () => samples.shift(),
+    });
+
+    assert.deepEqual(
+        engine.ResolveEvent("impact"),
+        [
+            {
+                mediaID: "100",
+                loop: undefined,
+                playbackRate: 1,
+                gainDb: 0,
+                gainCurves: [],
+                delayMs: 125,
+                fadeInMs: 150,
+                fadeCurve: 8,
+            },
+        ],
+        "one probability sample gates the action before its randomizers",
+    );
+    assert.equal(
+        engine.ResolveEvent("nested_delay")[0].delayMs,
+        150,
+        "nested Play-Event delays remain independent and additive",
+    );
+});
+
+test("nested Play-Event probability gates remain independent", () =>
+{
+    const samples = [ 0.49, 0.49, 0.49, 0.5 ];
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            {
+                gated: [
+                    {
+                        nodeId: "1",
+                        probability: 50,
+                        delayMs: 100,
+                    },
+                ],
+            },
+            {
+                "1": {
+                    type: "parallel",
+                    children: [
+                        {
+                            nodeId: "2",
+                            probability: 50,
+                            delayMs: 50,
+                        },
+                    ],
+                },
+                "2": { type: "sound", mediaId: "200" },
+            },
+        ),
+        random: () => samples.shift(),
+    });
+
+    assert.equal(
+        engine.ResolveEvent("gated")[0].delayMs,
+        150,
+        "the outer and inner actions both pass and keep their own delays",
+    );
+    assert.deepEqual(
+        engine.ResolveEvent("gated"),
+        [],
+        "the inner gate can fail after the outer gate passes",
+    );
+});
+
 test("linear-gain curves preserve Wwise shapes and duplicate-x steps", () =>
 {
     let speed = 0;
     const engine = new CjsSfxEngine({
         graph: {
-            schemaVersion: 1,
+            schemaVersion: 2,
             events: {
                 engine: [ { nodeId: "1" } ],
             },

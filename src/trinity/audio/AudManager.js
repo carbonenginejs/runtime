@@ -67,6 +67,8 @@ export class AudManager extends CjsModel
 
   #spatialAudioSettings = new SpatialAudioSettings();
 
+  #spatialAudioGeometryBackends = new WeakSet();
+
   // CarbonEngineJS-original: the prioritization is a public collaborator so
   // emitters can read weights directly (see AudGameObjResource notes).
   soundPrioritization = new SoundPrioritization();
@@ -96,7 +98,7 @@ export class AudManager extends CjsModel
   /** Carbon method Enable: init if needed, enable, load Init.bnk + requested banks, wake everything. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Wwise engine init (memory/stream/sound/spatial) is the backend's Init; the state machine, bank loads, and wake pass are faithful. Carbon's Enable bails un-enabled when Init fails (audio/src/AudManager.cpp:848-881); a missing backend seam is that failure, so headless the manager stays a true null manager and emitters keep queueing on their wake sets.")
+  @impl.reason("Wwise memory/stream/sound initialization is the backend's Init, while pre-enabled geometry uses optional InitSpatialAudioGeometry with Carbon's populated settings. The state machine, failure gate, bank loads, and wake pass follow audio/src/AudManager.cpp:148-180 and 848-881.")
   Enable(soundBanksToLoad = [])
   {
     if (this.#state === "enabled")
@@ -118,11 +120,19 @@ export class AudManager extends CjsModel
       {
         return;
       }
-      this.#state = "disabled";
     }
     if (!backend)
     {
       return;
+    }
+    if (this.GetSpatialAudioGeometryEnabled()
+      && !this.#InitSpatialAudioGeometry(backend))
+    {
+      return;
+    }
+    if (this.#state === "uninitialized")
+    {
+      this.#state = "disabled";
     }
     this.#state = "enabled";
     this.LoadBank("Init.bnk");
@@ -404,12 +414,38 @@ export class AudManager extends CjsModel
       AudGeometry.ClearAllGeometry();
       return;
     }
-    const settings = this.#spatialAudioSettings.PopulateInitSettings({});
-    if (AudGameObjResource.backend?.InitSpatialAudioGeometry?.(settings) === false)
+    if (!this.#InitSpatialAudioGeometry(AudGameObjResource.backend))
     {
       return;
     }
     this.#spatialAudioSettings.SetSpatialAudioGeometryEnabled(true);
+  }
+
+  /**
+   * Initializes geometry once for each browser backend lifetime.
+   * Carbon retains the equivalent flag across Disable but resets it when the
+   * sound engine terminates; backend identity supplies that boundary here.
+   */
+  #InitSpatialAudioGeometry(backend)
+  {
+    if (!backend
+      || (typeof backend !== "object" && typeof backend !== "function"))
+    {
+      return false;
+    }
+    if (this.#spatialAudioGeometryBackends.has(backend))
+    {
+      return true;
+    }
+
+    const settings = this.#spatialAudioSettings.PopulateInitSettings({});
+
+    if (backend.InitSpatialAudioGeometry?.(settings) === false)
+    {
+      return false;
+    }
+    this.#spatialAudioGeometryBackends.add(backend);
+    return true;
   }
 
   /** Returns the spatial-audio movement threshold. */

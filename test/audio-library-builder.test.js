@@ -50,7 +50,7 @@ test("optional library builder accepts supplied data and optional enrichment", (
             SoundBanks: {},
             WemFileIDs: {},
             sfx: {
-                schemaVersion: 1,
+                schemaVersion: 2,
                 events: {
                     engine_loop: [ 1 ],
                 },
@@ -184,7 +184,7 @@ test("library enrichment preserves the complete schema-v2 contract", () =>
     assert.throws(
         () => CjsAudioLibraryBuilder.applyEnrichment(library, {
             sfx: {
-                schemaVersion: 1,
+                schemaVersion: 2,
                 events: {
                     missing_metadata: [
                         { nodeId: "1" },
@@ -241,7 +241,7 @@ test("complete library construction reads banks only through the injected loader
             },
         ],
         sfx: {
-            schemaVersion: 1,
+            schemaVersion: 2,
             events: {
                 weapon_fire: [ 2 ],
             },
@@ -298,6 +298,7 @@ test("complete library construction reads banks only through the injected loader
         },
     });
 
+    assert.equal(library.sfx.schemaVersion, 2);
     assert.equal(calls.length, 1);
     assert.equal(calls[0].context.sourceID, "200:0");
     assert.deepEqual(library.eventMedia, {
@@ -392,6 +393,103 @@ test("music:false leaves complete construction without a music graph", async () 
     assert.equal(library.music, undefined);
 });
 
+test("music event projection follows typed targets across every bank", () =>
+{
+    const result = CjsAudioLibraryBuilder.createMusicEventProjection({
+        inspections: [
+            {
+                source: "music.bnk",
+                hirc: [],
+            },
+            {
+                source: "dungeons.bnk",
+                hirc: [
+                    {
+                        typeName: "event-action",
+                        id: 10,
+                        actionType: 0x0403,
+                        targetId: 1000,
+                    },
+                    {
+                        typeName: "event-action",
+                        id: 11,
+                        actionType: 0x0103,
+                        targetId: 1000,
+                    },
+                    {
+                        typeName: "event-action",
+                        id: 12,
+                        actionType: 0x1903,
+                        targetId: 0,
+                        payload: setterPayload(55, 66),
+                    },
+                    {
+                        typeName: "event-action",
+                        id: 13,
+                        actionType: 0x1903,
+                        targetId: 0,
+                        payload: setterPayload(77, 88),
+                    },
+                    {
+                        typeName: "event",
+                        id: 100,
+                        actionIds: [ 10 ],
+                    },
+                    {
+                        typeName: "event",
+                        id: 101,
+                        actionIds: [ 11 ],
+                    },
+                    {
+                        typeName: "event",
+                        id: 102,
+                        actionIds: [ 12 ],
+                    },
+                    {
+                        typeName: "event",
+                        id: 103,
+                        actionIds: [ 13 ],
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                dungeon_enter: { eventID: 100 },
+                dungeon_leave: { eventID: 101 },
+                danger: { eventID: 102 },
+                unrelated_switch: { eventID: 103 },
+            },
+        },
+        nodes: {
+            "1000": {
+                type: "music-switch-container",
+                argumentGroups: [
+                    { groupId: 55, groupType: 0 },
+                ],
+            },
+        },
+    });
+
+    assert.deepEqual(result, {
+        eventTargets: {
+            dungeon_enter: [ 1000 ],
+        },
+        eventStops: {
+            dungeon_leave: [ 1000 ],
+        },
+        switchSetters: {
+            danger: [
+                {
+                    kind: "switch",
+                    groupId: 55,
+                    targetId: 66,
+                },
+            ],
+        },
+    });
+});
+
 test("typed runtime-resource SFX nodes lower into the portable builder graph", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -452,6 +550,170 @@ test("typed runtime-resource SFX nodes lower into the portable builder graph", (
         },
     });
     assert.equal(result.diagnostics.parser.failed.length, 0);
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("typed Wwise Play action timing survives SFX lowering", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        action: {
+                            delayTimeMs: 100,
+                            delayRangeMs: { min: -50, max: 100 },
+                            transitionTimeMs: 250,
+                            transitionRangeMs: { min: -25, max: 50 },
+                            probability: 50,
+                            fadeCurve: 8,
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                weapon_fire: {
+                    eventID: 100,
+                },
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+
+    assert.deepEqual(result.events.weapon_fire, [
+        {
+            nodeId: "200",
+            delayMs: 100,
+            delayRangeMs: { min: -50, max: 100 },
+            probability: 50,
+            fadeInMs: 250,
+            fadeInRangeMs: { min: -25, max: 50 },
+            fadeCurve: 8,
+        },
+    ]);
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("SFX lowering preserves inherited NodeBase playback properties", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 7,
+                        id: 150,
+                        payload: actorMixerPayload({
+                            properties: [
+                                { id: 0, value: -3 },
+                                { id: 1, value: 100 },
+                                { id: 34, value: 0.1 },
+                            ],
+                            ranges: [
+                                { id: 0, min: -1, max: 1 },
+                            ],
+                            children: [ 200 ],
+                        }),
+                    },
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: soundPayload({
+                            directParentId: 150,
+                            properties: [
+                                { id: 0, value: -2 },
+                                { id: 1, value: 200 },
+                                { id: 34, value: 0.2 },
+                            ],
+                            ranges: [
+                                { id: 1, min: -50, max: 50 },
+                                { id: 34, min: 0, max: 0.05 },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                weapon_fire: {
+                    eventID: 100,
+                },
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+
+    assert.deepEqual(result.nodes["200"], {
+        type: "sound",
+        mediaId: "9001",
+        matchIds: [ "200", "150" ],
+        gainDb: -5,
+        gainDbRanges: [
+            { min: -1, max: 1 },
+        ],
+        pitchCents: 300,
+        pitchCentsRanges: [
+            { min: -50, max: 50 },
+        ],
+        initialDelayMs: 300.00000447034836,
+        initialDelayRangesMs: [
+            { min: 0, max: 50.00000074505806 },
+        ],
+    });
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
@@ -880,6 +1142,10 @@ test("SFX Play-Event actions inline the referenced event program", () =>
                         id: 301,
                         actionType: 0x2103,
                         targetId: 101,
+                        action: {
+                            delayTimeMs: 500,
+                            delayRangeMs: { min: 0, max: 450 },
+                        },
                         payload: new Uint8Array(),
                     },
                     {
@@ -911,10 +1177,123 @@ test("SFX Play-Event actions inline the referenced event program", () =>
     });
 
     assert.deepEqual(result.events, {
-        chained_play: [ { nodeId: "200" } ],
+        chained_play: [
+            {
+                nodeId: "4294967295",
+                delayMs: 500,
+                delayRangeMs: { min: 0, max: 450 },
+            },
+        ],
         direct_play: [ { nodeId: "200" } ],
     });
+    assert.deepEqual(result.nodes["4294967295"], {
+        type: "parallel",
+        children: [ { nodeId: "200" } ],
+    });
     assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("scheduled Play-Event setters fail closed until actions are ordered", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x2103,
+                        targetId: 101,
+                        action: {
+                            delayTimeMs: 60000,
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x1903,
+                        targetId: 0,
+                        payload: setterPayload(500, 501),
+                    },
+                    {
+                        type: 3,
+                        id: 302,
+                        actionType: 0x1903,
+                        targetId: 0,
+                        action: {
+                            delayTimeMs: 10000,
+                        },
+                        payload: setterPayload(500, 501),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 102,
+                        actionIds: [ 302 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                delayed_select: { eventID: 100 },
+                select_large: { eventID: 101 },
+                delayed_direct: { eventID: 102 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "1",
+                        ShortName: "common",
+                        SwitchGroups: [
+                            {
+                                Id: "500",
+                                Name: "ship_size",
+                                Switches: [
+                                    { Id: "501", Name: "large" },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+    });
+
+    assert.deepEqual(result.programs, {
+        select_large: [
+            { kind: "switch", group: "ship_size", value: "large" },
+        ],
+    });
+    assert.deepEqual(result.diagnostics.omittedEvents, [
+        {
+            id: 100,
+            name: "delayed_select",
+            reason: "scheduled Play-Event 300 targets non-play actions",
+        },
+        {
+            id: 102,
+            name: "delayed_direct",
+            reason: "scheduled setter action 302",
+        },
+    ]);
 });
 
 test("SFX SetSwitch and SetState actions lower to named event setters", () =>
@@ -1029,9 +1408,10 @@ test("SFX SetSwitch and SetState actions lower to named event setters", () =>
     assert.deepEqual(result.events, {
         select_large: [ { nodeId: "200" } ],
     });
-    assert.deepEqual(result.eventActions, {
+    assert.deepEqual(result.programs, {
         select_large: [
             { kind: "switch", group: "ship_size", value: "large" },
+            { kind: "play", child: { nodeId: "200" } },
         ],
         set_storm: [
             { kind: "state", group: "weather", value: "storm" },
@@ -1114,7 +1494,7 @@ test("complete construction installs a setter-only SFX graph", async () =>
     });
 
     assert.deepEqual(library.sfx.events, {});
-    assert.deepEqual(library.sfx.eventActions, {
+    assert.deepEqual(library.sfx.programs, {
         select_large: [
             { kind: "switch", group: "ship_size", value: "large" },
         ],
@@ -1215,6 +1595,20 @@ test("SFX Stop actions project event relationships through hierarchy-only parent
                         id: 301,
                         actionType: 0x0103,
                         targetId: 700,
+                        action: {
+                            actionMode: "element",
+                            actionScope: "game-object",
+                            targetId: 700,
+                            targetFlags: 0,
+                            targetIsBus: false,
+                            delayTimeMs: 250,
+                            delayRangeMs: { min: -50, max: 100 },
+                            transitionTimeMs: 500,
+                            transitionRangeMs: { min: -100, max: 200 },
+                            fadeCurve: 6,
+                            actionFlags: 6,
+                            exceptions: [],
+                        },
                         payload: new Uint8Array(),
                     },
                     {
@@ -1248,6 +1642,23 @@ test("SFX Stop actions project event relationships through hierarchy-only parent
     assert.deepEqual(result.events, {
         ambience_play: [ { nodeId: "200" } ],
     });
+    assert.deepEqual(result.nodes["200"].matchIds, [ "200", "700" ]);
+    assert.deepEqual(result.programs.ambience_stop, [
+        {
+            kind: "stop",
+            targetId: "700",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            curve: 6,
+            actionFlags: 6,
+            exceptions: [],
+            delayMs: 250,
+            delayRangeMs: { min: -50, max: 100 },
+            transitionMs: 500,
+            transitionRangeMs: { min: -100, max: 200 },
+        },
+    ]);
     assert.deepEqual(result.metadataProjection.Events.ambience_play, {
         eventsStoppedBy: [ "ambience_stop" ],
     });
@@ -1979,6 +2390,8 @@ function soundPayload({
     spatialFlags = 0,
     attenuationId = null,
     loopCount = null,
+    properties = [],
+    ranges = [],
 } = {})
 {
     return new TestWriter()
@@ -1993,6 +2406,8 @@ function soundPayload({
             spatialFlags,
             attenuationId,
             loopCount,
+            properties,
+            ranges,
         }))
         .bytes();
 }
@@ -2087,6 +2502,8 @@ function actorMixerPayload({
     positioningFlags = 0,
     spatialFlags = 0,
     attenuationId = null,
+    properties = [],
+    ranges = [],
     children = [],
 } = {})
 {
@@ -2096,6 +2513,8 @@ function actorMixerPayload({
             positioningFlags,
             spatialFlags,
             attenuationId,
+            properties,
+            ranges,
         }))
         .u32(children.length);
 
@@ -2125,6 +2544,8 @@ function nodeBasePayload({
     spatialFlags = 0,
     attenuationId = null,
     loopCount = null,
+    properties: propertyValues = [],
+    ranges = [],
 } = {})
 {
     const writer = new TestWriter()
@@ -2134,30 +2555,56 @@ function nodeBasePayload({
         .u32(directParentId)
         .u8(0);
 
-    const properties = [];
+    const properties = propertyValues.map(property => ({
+        ...property,
+        float: true,
+    }));
 
     if (loopCount !== null)
     {
-        properties.push([ 0x54, loopCount ]);
+        properties.push({
+            id: 0x54,
+            value: loopCount,
+            float: false,
+        });
     }
     if (attenuationId !== null)
     {
-        properties.push([ 0x55, attenuationId ]);
+        properties.push({
+            id: 0x55,
+            value: attenuationId,
+            float: false,
+        });
     }
 
     writer.u8(properties.length);
-    for (const [ id ] of properties)
+    for (const property of properties)
     {
-        writer.u8(id);
+        writer.u8(property.id);
     }
-    for (const [ , value ] of properties)
+    for (const property of properties)
     {
-        writer.u32(value);
+        if (property.float)
+        {
+            writer.f32(property.value);
+        }
+        else
+        {
+            writer.u32(property.value);
+        }
     }
 
-    writer
-        .u8(0)
-        .u8(positioningFlags);
+    writer.u8(ranges.length);
+    for (const range of ranges)
+    {
+        writer.u8(range.id);
+    }
+    for (const range of ranges)
+    {
+        writer.f32(range.min).f32(range.max);
+    }
+
+    writer.u8(positioningFlags);
 
     if ((positioningFlags & 0x03) === 0x03)
     {

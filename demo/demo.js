@@ -267,8 +267,11 @@ class AudioLibrary
             }
         }
 
+        const program = [ ...(graph.programs?.[eventName] ?? []) ];
+
         return {
-            actions: [ ...(graph.eventActions?.[eventName] ?? []) ],
+            program,
+            actions: program.filter(action => action.kind !== "play"),
             switches: [ ...switches.values() ].map(control => ({
                 ...control,
                 values: [ ...control.values ],
@@ -282,7 +285,7 @@ class AudioLibrary
     {
         const controls = this.SfxControls(eventName);
         const actionText = controls.actions
-            .map(action => `${action.kind} ${action.group}=${action.value}`)
+            .map(FormatSfxProgramAction)
             .join(", then ");
 
         if (type === "sound")
@@ -303,11 +306,19 @@ class AudioLibrary
         }
         if (type === "switch action" || type === "state action")
         {
-            return `Before resolving its playable roots, this event applies ${actionText} in authored order.`;
+            return `This event applies ${actionText} in authored order, affecting only later Play actions in the same program.`;
         }
         if (type === "setter only")
         {
             return `Applies ${actionText} without posting an audio root. This is an authored control event, so silence is expected.`;
+        }
+        if (type === "stop action")
+        {
+            const programText = controls.program
+                .map(FormatSfxProgramAction)
+                .join(", then ");
+
+            return `Runs this ordered authored program: ${programText}. Stops use their decoded scope, hierarchy target, delay, transition, curve, and exceptions.`;
         }
         if (type === "switch container")
         {
@@ -363,21 +374,31 @@ class AudioLibrary
             {
                 type: "switch action",
                 preferred: [ "es_screen_2_2_play" ],
-                matches: name => this.sfx?.eventActions?.[name]
+                matches: name => this.sfx?.programs?.[name]
                     ?.some(action => action.kind === "switch")
                     && Boolean(this.sfx?.events?.[name]),
             },
             {
                 type: "state action",
                 preferred: [ "isInsideFractureBubble_yes" ],
-                matches: name => this.sfx?.eventActions?.[name]
+                matches: name => this.sfx?.programs?.[name]
                     ?.some(action => action.kind === "state")
                     && Boolean(this.sfx?.events?.[name]),
             },
             {
+                type: "stop action",
+                preferred: [ "Abyssal_exit_play" ],
+                matches: name => this.sfx?.programs?.[name]
+                    ?.some(action => action.kind === "stop"),
+            },
+            {
                 type: "setter only",
                 preferred: [ "charge_abyssal_switch" ],
-                matches: name => Boolean(this.sfx?.eventActions?.[name])
+                matches: name =>
+                    this.sfx?.programs?.[name]?.length > 0
+                    && this.sfx.programs[name].every(action =>
+                        action.kind === "switch"
+                        || action.kind === "state")
                     && !this.sfx?.events?.[name],
             },
             {
@@ -392,7 +413,7 @@ class AudioLibrary
             },
         ];
         const eventNames = Object.keys(this.sfx?.events ?? {}).sort();
-        const actionNames = Object.keys(this.sfx?.eventActions ?? {}).sort();
+        const actionNames = Object.keys(this.sfx?.programs ?? {}).sort();
         const allNames = [ ...new Set([ ...eventNames, ...actionNames ]) ];
         const examples = [];
         const selected = new Set();
@@ -2176,7 +2197,10 @@ class SfxUi
         }
         if (!types.length)
         {
-            types.push("setter");
+            types.push(details.actions.some(action =>
+                action.kind === "stop")
+                ? "stop action"
+                : "setter");
         }
         const graph = this.#app.library.sfx;
         const delivery = document.getElementById("delivery").value;
@@ -2191,9 +2215,9 @@ class SfxUi
                         : types.includes("switch")
                             ? " · choose an authored branch before posting"
                             : "";
-        const actionSummary = details.actions.length
-            ? ` · before roots: ${details.actions.map(action =>
-                `${action.kind} ${action.group}=${action.value}`).join(" → ")}`
+        const actionSummary = details.program.length
+            ? ` · ordered program: ${details.program.map(action =>
+                FormatSfxProgramAction(action)).join(" → ")}`
             : "";
         const playable = this.#app.library.PlayableCandidates(eventName).length;
         const silent = playable
@@ -2205,7 +2229,7 @@ class SfxUi
             : " · Post creates a draggable purple source";
         const eventCount = new Set([
             ...Object.keys(graph.events),
-            ...Object.keys(graph.eventActions ?? {}),
+            ...Object.keys(graph.programs ?? {}),
         ]).size;
         this.#status.textContent = `${eventCount} events / ${Object.keys(graph.nodes).length} nodes · ${types.join(" + ")} · ${delivery} delivery · posts ${this.#postCount}${repeated}${actionSummary}${silent}${position}`;
     }
@@ -2217,6 +2241,36 @@ function FormatControlValue(value)
     return Number(value).toLocaleString(undefined, {
         maximumFractionDigits: 3,
     });
+}
+
+function FormatSfxProgramAction(action)
+{
+    if (action.kind === "switch" || action.kind === "state")
+    {
+        return `${action.kind} ${action.group}=${action.value}`;
+    }
+    if (action.kind === "play")
+    {
+        return `play ${action.child?.nodeId ?? ""}`.trim();
+    }
+    if (action.kind !== "stop")
+    {
+        return String(action.kind);
+    }
+
+    const target = action.mode === "element"
+        ? `element ${action.targetId}`
+        : action.mode === "all-except"
+            ? `all except ${action.exceptions?.length ?? 0}`
+            : "all";
+    const delay = Number(action.delayMs) > 0
+        ? ` after ${FormatControlValue(action.delayMs)}ms`
+        : "";
+    const transition = Number(action.transitionMs) > 0
+        ? ` over ${FormatControlValue(action.transitionMs)}ms`
+        : "";
+
+    return `stop ${target} (${action.scope}${delay}${transition})`;
 }
 
 

@@ -15,7 +15,7 @@ function FakeParam()
 
 function FakeContext(log)
 {
-  return {
+  const context = {
     currentTime: 0,
     destination: { name: "destination" },
     listener: {
@@ -43,13 +43,18 @@ function FakeContext(log)
       const source = {
         buffer: null, loop: false, onended: null,
         connect: () => {},
-        start: () => log.push("start"),
+        start: time =>
+        {
+          context.currentTime = time;
+          log.push("start");
+        },
         stop: () => { log.push("stop"); source.onended?.(); }
       };
       log.push(source);
       return source;
     }
   };
+  return context;
 }
 
 
@@ -123,7 +128,7 @@ test("temporary culling preserves authored per-object SFX container state", () =
   const log = [];
   const sfx = new CjsSfxEngine({
     graph: {
-      schemaVersion: 1,
+      schemaVersion: 2,
       events: {
         step: [ { nodeId: "1" } ],
       },

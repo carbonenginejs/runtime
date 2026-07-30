@@ -13,6 +13,7 @@ function FakeParam(initial)
   const param = {
     value: initial,
     ramps: [],
+    curves: [],
     cancellations: [],
     sets: [],
     cancelScheduledValues(time)
@@ -27,6 +28,10 @@ function FakeParam(initial)
     linearRampToValueAtTime(value, time)
     {
       param.ramps.push([value, time]);
+    },
+    setValueCurveAtTime(values, time, duration)
+    {
+      param.curves.push([ Array.from(values), time, duration ]);
     }
   };
   return param;
@@ -109,7 +114,14 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
 // Gain creation order: gains[0] master, gains[1] the sfx bus, gains[2] the
 // emitter gain from RegisterGameObj; each PostEvent appends that source's
 // own gain after those.
-function Harness({ loadBuffer, isLoop, applyRTPC } = {})
+function Harness({
+  loadBuffer,
+  isLoop,
+  applyRTPC,
+  musicEngine,
+  hasSfxEvent,
+  resolveSfxProgram,
+} = {})
 {
   const context = FakeContext();
   const finished = [];
@@ -119,10 +131,93 @@ function Harness({ loadBuffer, isLoop, applyRTPC } = {})
     loadBuffer: loadBuffer ?? (async () => ({ fake: "buffer" })),
     isLoop: isLoop ?? (eventName => String(eventName).includes("loop")),
     applyRTPC,
+    musicEngine,
+    hasSfxEvent,
+    resolveSfxProgram,
   });
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
 }
+
+test("one authored event can keep SFX and music alive under one playing id", async () =>
+{
+  let finishMusic = null;
+  const musicPosts = [];
+  const musicEngine = {
+    HandlesEvent: eventName => eventName === "hybrid",
+    PostEvent(eventName, playingID, onFinished)
+    {
+      musicPosts.push([ eventName, playingID ]);
+      finishMusic = onFinished;
+    },
+    ExecuteAction() {},
+    Process() {},
+    Dispose() {},
+  };
+  const { context, finished, emitter, backend } = Harness({
+    hasSfxEvent: eventName => eventName === "hybrid",
+    loadBuffer: async () => ({
+      buffer: { duration: 1 },
+    }),
+    musicEngine,
+  });
+
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "hybrid");
+
+  await tick();
+
+  assert.deepEqual(musicPosts, [ [ "hybrid", playingID ] ]);
+  assert.equal(context.sources.length, 1);
+  assert.equal(backend.GetPlayingCount(), 1);
+
+  context.sources[0].onended();
+
+  assert.deepEqual(finished, []);
+  assert.equal(
+    backend.GetPlayingCount(),
+    1,
+    "the music side retains the shared id after SFX finishes",
+  );
+
+  finishMusic();
+
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("synchronous custom music completion is deferred past id retention", async () =>
+{
+  const musicEngine = {
+    HandlesEvent: eventName => eventName === "instant_music",
+    PostEvent(_eventName, _playingID, onFinished)
+    {
+      onFinished();
+    },
+    ExecuteAction() {},
+    Process() {},
+    Dispose() {},
+  };
+  const { finished, emitter, backend } = Harness({
+    hasSfxEvent: () => false,
+    musicEngine,
+  });
+
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "instant_music",
+  );
+
+  assert.ok(playingID > 0);
+  assert.deepEqual(finished, []);
+
+  await Promise.resolve();
+
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
 
 
 test("stopping one of two concurrent sources leaves the other's gain and lifetime untouched", async () =>
@@ -136,12 +231,13 @@ test("stopping one of two concurrent sources leaves the other's gain and lifetim
   assert.ok(sourceA.started && sourceB.started);
   assert.equal(gainA.connectedTo, context.gains[2], "source gains chain into the emitter gain");
 
+  context.currentTime = START_QUANTUM;
   backend.ExecuteActionOnPlayingID("stop", idA, 500);
 
-  assert.deepEqual(gainA.gain.ramps, [[0, 0.5]], "stopped source fades on its own gain");
-  assert.deepEqual(gainA.gain.cancellations, [0]);
-  assert.deepEqual(gainA.gain.sets, [[1, 0]], "the fade is anchored at the current gain");
-  assert.equal(sourceA.stoppedAt, 0.5);
+  assert.deepEqual(gainA.gain.ramps, [[0, START_QUANTUM + 0.5]], "stopped source fades on its own gain");
+  assert.deepEqual(gainA.gain.cancellations, [START_QUANTUM]);
+  assert.deepEqual(gainA.gain.sets, [[1, START_QUANTUM]], "the fade is anchored at the current gain");
+  assert.equal(sourceA.stoppedAt, START_QUANTUM + 0.5);
   assert.equal(gainB.gain.value, 1, "sibling gain value untouched");
   assert.deepEqual(gainB.gain.ramps, [], "sibling gain has no scheduled fade");
   assert.equal(sourceB.stoppedAt, null, "sibling source not stopped");
@@ -152,6 +248,202 @@ test("stopping one of two concurrent sources leaves the other's gain and lifetim
   assert.equal(backend.GetPlayingCount(), 1);
 });
 
+test("authored SFX action delay and fade-in schedule from the post time", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 1 },
+          delayMs: 500,
+          fadeInMs: 250,
+          fadeCurve: 4,
+        },
+      ],
+    }),
+  });
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "delayed_hit");
+
+  await tick();
+
+  const liveGain = context.gains[3].gain;
+  const actionFade = context.gains[4].gain;
+  const source = context.sources[0];
+
+  assert.equal(playingID, 1);
+  assert.equal(source.startedAt, 0.5);
+  assert.equal(source.connectedTo, context.gains[4]);
+  assert.equal(liveGain.value, 1);
+  assert.deepEqual(actionFade.cancellations, []);
+  assert.deepEqual(actionFade.sets, [ [ 0, 0.5 ] ]);
+  assert.deepEqual(actionFade.ramps, [ [ 1, 0.75 ] ]);
+});
+
+test("a seek before an authored delayed start leaves its schedule intact", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 1 },
+          delayMs: 500,
+        },
+      ],
+    }),
+  });
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "delayed_hit");
+
+  await tick();
+
+  assert.equal(backend.SeekOnEventMs(playingID, 250), false);
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].startedAt, 0.5);
+  assert.equal(context.sources[0].offset, 0);
+});
+
+test("a seek queued before media resolves preserves the authored delay", async () =>
+{
+  const pending = Deferred();
+  const { context, emitter, backend } = Harness({
+    loadBuffer: () => pending.promise,
+  });
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "delayed_hit");
+
+  assert.equal(backend.SeekOnEventMs(playingID, 250), true);
+  pending.resolve({
+    voices: [
+      {
+        buffer: { duration: 1 },
+        delayMs: 500,
+      },
+    ],
+  });
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].startedAt, 0.5);
+  assert.equal(context.sources[0].offset, 0.25);
+});
+
+test("stopping before an authored delayed start cancels and finishes once", async () =>
+{
+  const { context, finished, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 1 },
+          delayMs: 500,
+        },
+      ],
+    }),
+  });
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "delayed_hit");
+
+  await tick();
+  backend.ExecuteActionOnPlayingID("stop", playingID, 1000);
+
+  assert.equal(context.sources[0].stoppedAt, 0);
+  assert.deepEqual(context.gains[3].gain.ramps, []);
+  context.sources[0].onended?.();
+  context.sources[0].onended?.();
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("authored nonlinear SFX fades use the Wwise curve shape", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 1 },
+          fadeInMs: 250,
+          fadeCurve: 8,
+        },
+      ],
+    }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "faded_hit");
+  await tick();
+
+  const [ values, when, duration ] = context.gains[4].gain.curves[0];
+
+  assert.equal(when, START_QUANTUM);
+  assert.ok(Math.abs(duration - 0.25) < 1e-12);
+  assert.equal(values[0], 0);
+  assert.equal(values.at(-1), 1);
+  assert.ok(values[32] < 0.2, "Wwise Exp3 stays below a linear fade");
+});
+
+test("RTPC updates do not replace an in-progress authored fade", async () =>
+{
+  let controls;
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async (_eventID, _eventName, suppliedControls) =>
+    {
+      controls = suppliedControls;
+      return {
+        voices: [
+          {
+            buffer: { duration: 2 },
+            fadeInMs: 1000,
+            fadeCurve: 8,
+            getGain: () => controls.getRTPC("intensity") ?? 0,
+          },
+        ],
+      };
+    },
+  });
+
+  backend.SetRTPCValue("intensity", 0.25, 1);
+  backend.PostEvent(7, 1, 0, emitter, "faded_engine");
+  await tick();
+
+  const liveGain = context.gains[3].gain;
+  const actionFade = context.gains[4].gain;
+
+  assert.equal(liveGain.value, 0.25);
+  assert.equal(actionFade.curves.length, 1);
+  backend.SetRTPCValue("intensity", 0.75, 1);
+  assert.equal(liveGain.value, 0.75);
+  assert.equal(
+    actionFade.curves.length,
+    1,
+    "the authored envelope remains scheduled on its independent stage",
+  );
+});
+
+test("stop holds an in-progress Play fade before fading out", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 2 },
+          fadeInMs: 1000,
+          fadeCurve: 8,
+        },
+      ],
+    }),
+  });
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "faded_engine");
+
+  await tick();
+  context.currentTime = START_QUANTUM + 0.5;
+  backend.ExecuteActionOnPlayingID("stop", playingID, 500);
+
+  const liveGain = context.gains[3].gain;
+  const actionFade = context.gains[4].gain;
+  const held = actionFade.sets.at(-1);
+
+  assert.deepEqual(actionFade.cancellations, [ context.currentTime ]);
+  assert.equal(held[1], context.currentTime);
+  assert.ok(held[0] > 0 && held[0] < 0.5);
+  assert.deepEqual(liveGain.ramps, [ [ 0, context.currentTime + 0.5 ] ]);
+  assert.equal(context.sources[0].stoppedAt, context.currentTime + 0.5);
+});
+
 
 test("replaying on an emitter does not disturb a sibling's in-progress fade", async () =>
 {
@@ -159,14 +451,15 @@ test("replaying on an emitter does not disturb a sibling's in-progress fade", as
   const idA = backend.PostEvent(7, 1, 0, emitter, "engine_loop");
   await tick();
   const gainA = context.gains[3];
+  context.currentTime = START_QUANTUM;
   backend.ExecuteActionOnPlayingID("stop", idA, 1000);
-  assert.deepEqual(gainA.gain.ramps, [[0, 1]]);
+  assert.deepEqual(gainA.gain.ramps, [[0, START_QUANTUM + 1]]);
 
   backend.PostEvent(7, 1, 0, emitter, "engine_loop");
   await tick();
 
   assert.equal(context.sources[1].started, true, "replay starts on its own fresh gain");
-  assert.deepEqual(gainA.gain.ramps, [[0, 1]], "the fading source keeps its ramp");
+  assert.deepEqual(gainA.gain.ramps, [[0, START_QUANTUM + 1]], "the fading source keeps its ramp");
   assert.equal(gainA.gain.value, 1, "no hard reset was written onto the fading gain");
   assert.equal(context.gains[2].gain.value, 1, "emitter gain is never ramped or reset");
   assert.deepEqual(context.gains[2].gain.ramps, []);
@@ -181,18 +474,19 @@ test("an explicit zero fade stops immediately; only a missing duration uses the 
   const idC = backend.PostEvent(9, 1, 0, emitter, "shot_c");
   await tick();
 
+  context.currentTime = START_QUANTUM;
   backend.ExecuteActionOnPlayingID("stop", idA, 0);
   assert.equal(context.gains[3].gain.value, 0, "zero fade silences at once");
   assert.deepEqual(context.gains[3].gain.ramps, [], "zero fade schedules no ramp");
-  assert.equal(context.sources[0].stoppedAt, 0, "zero fade stops now, not after the default second");
+  assert.equal(context.sources[0].stoppedAt, START_QUANTUM, "zero fade stops now, not after the default second");
 
   backend.ExecuteActionOnPlayingID("stop", idB);
-  assert.deepEqual(context.gains[4].gain.ramps, [[0, 1]], "missing duration falls back to the 1s default");
-  assert.equal(context.sources[1].stoppedAt, 1);
+  assert.deepEqual(context.gains[4].gain.ramps, [[0, START_QUANTUM + 1]], "missing duration falls back to the 1s default");
+  assert.equal(context.sources[1].stoppedAt, START_QUANTUM + 1);
 
   backend.ExecuteActionOnPlayingID("stop", idC, 250);
-  assert.deepEqual(context.gains[5].gain.ramps, [[0, 0.25]], "explicit nonzero duration is honored");
-  assert.equal(context.sources[2].stoppedAt, 0.25);
+  assert.deepEqual(context.gains[5].gain.ramps, [[0, START_QUANTUM + 0.25]], "explicit nonzero duration is honored");
+  assert.equal(context.sources[2].stoppedAt, START_QUANTUM + 0.25);
 });
 
 
@@ -319,11 +613,12 @@ test("break halts only looping voices in a mixed authored event", async () =>
   const playingID = backend.PostEvent(7, 1, 0, emitter, "mixed");
 
   await tick();
+  context.currentTime = START_QUANTUM;
   backend.ExecuteActionOnPlayingID("break", playingID, 250);
 
-  assert.equal(context.sources[0].stoppedAt, 0.25);
+  assert.equal(context.sources[0].stoppedAt, START_QUANTUM + 0.25);
   assert.equal(context.sources[1].stoppedAt, null);
-  assert.deepEqual(context.gains[3].gain.ramps, [[0, 0.25]]);
+  assert.deepEqual(context.gains[3].gain.ramps, [[0, START_QUANTUM + 0.25]]);
   assert.deepEqual(context.gains[4].gain.ramps, []);
 
   assert.equal(backend.SeekOnEventMs(playingID, 500), true);
@@ -652,9 +947,9 @@ test("setter-only authored events update controls and complete without a voice",
 {
   const engine = new CjsSfxEngine({
     graph: {
-      schemaVersion: 1,
+      schemaVersion: 2,
       events: {},
-      eventActions: {
+      programs: {
         select_large: [
           { kind: "switch", group: "ship_size", value: "large" },
         ],
@@ -683,6 +978,683 @@ test("setter-only authored events update controls and complete without a voice",
   assert.equal(context.sources.length, 0);
   assert.deepEqual(finished, [ playingID ]);
   assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("an authored Play then Stop cancels its pending slot before media resolves", async () =>
+{
+  const pending = Deferred();
+  let signal = null;
+  const { backend, emitter, finished, context } = Harness({
+    loadBuffer: (_eventID, _eventName, controls) =>
+    {
+      signal = controls.signal;
+      controls.installSfxProgram([
+        {
+          kind: "play",
+          actionIndex: 0,
+          selections: [
+            {
+              actionIndex: 0,
+              leafIndex: 0,
+              matchIds: [ "200", "700" ],
+            },
+          ],
+        },
+        {
+          kind: "stop",
+          actionIndex: 1,
+          targetId: "700",
+          scope: "game-object",
+          mode: "element",
+          delayMs: 0,
+          transitionMs: 0,
+          curve: 4,
+          exceptions: [],
+        },
+      ]);
+      return pending.promise;
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "play_then_stop",
+  );
+
+  assert.equal(backend.GetPlayingCount(), 1);
+  assert.equal(context.sources.length, 0);
+  assert.deepEqual(finished, []);
+
+  await tick();
+
+  assert.equal(signal.aborted, true);
+  assert.equal(context.sources.length, 0);
+  assert.equal(backend.GetPlayingCount(), 0);
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("same-stack program planning lets a due Stop cancel an earlier post", () =>
+{
+  const pending = Deferred();
+  let playSignal = null;
+  const { backend, emitter, finished, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName, controls) =>
+    {
+      if (eventName === "delayed_stop")
+      {
+        return [
+          {
+            kind: "stop",
+            actionIndex: 0,
+            targetId: "700",
+            scope: "global",
+            mode: "element",
+            delayMs: 1000,
+            transitionMs: 0,
+            curve: 4,
+            exceptions: [],
+          },
+        ];
+      }
+
+      playSignal = controls.signal;
+      return [
+        {
+          kind: "play",
+          actionIndex: 0,
+          selections: [
+            {
+              actionIndex: 0,
+              leafIndex: 0,
+              matchIds: [ "200", "700" ],
+            },
+          ],
+        },
+      ];
+    },
+    loadBuffer: (_eventID, eventName) =>
+      eventName === "delayed_stop"
+        ? { voices: [] }
+        : pending.promise,
+  });
+  const stopID = backend.PostEvent(
+    8,
+    1,
+    0,
+    emitter,
+    "delayed_stop",
+  );
+
+  context.currentTime = 0.5;
+  const playID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "earlier_play",
+  );
+  context.currentTime = 1;
+  backend.RenderAudio();
+
+  assert.equal(playSignal.aborted, true);
+  assert.equal(context.sources.length, 0);
+  assert.equal(backend.GetPlayingCount(), 0);
+  assert.deepEqual(finished.sort(), [ stopID, playID ].sort());
+});
+
+test("an authored Stop then Play preserves the later same-time slot", async () =>
+{
+  const { backend, emitter, context } = Harness({
+    loadBuffer: async (_eventID, _eventName, controls) =>
+    {
+      controls.installSfxProgram([
+        {
+          kind: "stop",
+          actionIndex: 0,
+          targetId: "700",
+          scope: "game-object",
+          mode: "element",
+          delayMs: 0,
+          transitionMs: 0,
+          curve: 4,
+          exceptions: [],
+        },
+        {
+          kind: "play",
+          actionIndex: 1,
+          selections: [
+            {
+              actionIndex: 1,
+              leafIndex: 0,
+              matchIds: [ "200", "700" ],
+            },
+          ],
+        },
+      ]);
+      return {
+        voices: [
+          {
+            buffer: { duration: 2 },
+            programSlotId: "1:0",
+          },
+        ],
+      };
+    },
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "stop_then_play");
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].started, true);
+  assert.equal(context.sources[0].stoppedAt, null);
+});
+
+test("a delayed authored Stop keeps its owner alive and uses its transition curve", async () =>
+{
+  const { backend, emitter, finished, context } = Harness({
+    loadBuffer: async (_eventID, _eventName, controls) =>
+    {
+      controls.installSfxProgram([
+        {
+          kind: "play",
+          actionIndex: 0,
+          selections: [
+            {
+              actionIndex: 0,
+              leafIndex: 0,
+              matchIds: [ "200", "700" ],
+            },
+          ],
+        },
+        {
+          kind: "stop",
+          actionIndex: 1,
+          targetId: "700",
+          scope: "game-object",
+          mode: "element",
+          delayMs: 1000,
+          transitionMs: 250,
+          curve: 2,
+          exceptions: [],
+        },
+      ]);
+      return {
+        voices: [
+          {
+            buffer: { duration: 2 },
+            programSlotId: "0:0",
+          },
+        ],
+      };
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "delayed_stop",
+  );
+
+  await tick();
+  assert.equal(backend.GetPlayingCount(), 1);
+  assert.equal(context.sources[0].stoppedAt, null);
+
+  context.currentTime = 1;
+  backend.RenderAudio();
+
+  assert.equal(context.sources[0].stoppedAt, 1.25);
+  assert.equal(context.gains[3].gain.curves.length, 1);
+  assert.deepEqual(finished, []);
+  assert.equal(backend.GetPlayingCount(), 1);
+
+  context.sources[0].onended?.();
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("explicit stop clears an owned delayed Stop before the voice ends", async () =>
+{
+  const { backend, emitter, finished, context } = Harness({
+    loadBuffer: async (_eventID, _eventName, controls) =>
+    {
+      controls.installSfxProgram([
+        {
+          kind: "play",
+          actionIndex: 0,
+          selections: [
+            {
+              actionIndex: 0,
+              leafIndex: 0,
+              matchIds: [ "200", "700" ],
+            },
+          ],
+        },
+        {
+          kind: "stop",
+          actionIndex: 1,
+          targetId: "700",
+          scope: "game-object",
+          mode: "element",
+          delayMs: 10000,
+          transitionMs: 250,
+          curve: 4,
+          exceptions: [],
+        },
+      ]);
+      return {
+        voices: [
+          {
+            buffer: { duration: 20 },
+            programSlotId: "0:0",
+          },
+        ],
+      };
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "long_delayed_stop",
+  );
+
+  await tick();
+  backend.ExecuteActionOnPlayingID("stop", playingID, 0);
+  context.sources[0].onended?.();
+
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("an overdue authored Stop catches up instead of restarting its full fade", async () =>
+{
+  const { backend, emitter, context } = Harness({
+    loadBuffer: async (_eventID, _eventName, controls) =>
+    {
+      controls.installSfxProgram([
+        {
+          kind: "play",
+          actionIndex: 0,
+          selections: [
+            {
+              actionIndex: 0,
+              leafIndex: 0,
+              matchIds: [ "200", "700" ],
+            },
+          ],
+        },
+        {
+          kind: "stop",
+          actionIndex: 1,
+          targetId: "700",
+          scope: "game-object",
+          mode: "element",
+          delayMs: 1000,
+          transitionMs: 250,
+          curve: 2,
+          exceptions: [],
+        },
+      ]);
+      return {
+        voices: [
+          {
+            buffer: { duration: 20 },
+            programSlotId: "0:0",
+          },
+        ],
+      };
+    },
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "overdue_stop");
+  await tick();
+
+  context.currentTime = 2;
+  backend.RenderAudio();
+
+  assert.equal(context.sources[0].stoppedAt, 2);
+  assert.equal(context.gains[3].gain.value, 0);
+  assert.deepEqual(context.gains[3].gain.curves, []);
+});
+
+test("late media resolution applies an overdue Stop before realizing its voice", async () =>
+{
+  const pending = Deferred();
+  let loaderSignal = null;
+  const { backend, emitter, finished, context } = Harness({
+    resolveSfxProgram: () => [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "200", "700" ],
+          },
+        ],
+      },
+      {
+        kind: "stop",
+        actionIndex: 1,
+        targetId: "700",
+        scope: "game-object",
+        mode: "element",
+        delayMs: 1000,
+        transitionMs: 0,
+        curve: 4,
+        exceptions: [],
+      },
+    ],
+    loadBuffer: (_eventID, _eventName, controls) =>
+    {
+      loaderSignal = controls.signal;
+      return pending.promise;
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "late_media",
+  );
+
+  await tick();
+  context.currentTime = 2;
+  pending.resolve({
+    voices: [
+      {
+        buffer: { duration: 20 },
+        programSlotId: "0:0",
+      },
+    ],
+  });
+  await tick();
+
+  assert.equal(loaderSignal.aborted, true);
+  assert.equal(context.sources.length, 0);
+  assert.equal(backend.GetPlayingCount(), 0);
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("a later authored Stop can shorten an in-progress Stop fade", async () =>
+{
+  const resolveSfxProgram = (_eventID, eventName) =>
+  {
+    const transitionMs = eventName === "stop_long"
+      ? 5000
+      : eventName === "stop_now"
+        ? 0
+        : null;
+
+    if (transitionMs !== null)
+    {
+      return [
+        {
+          kind: "stop",
+          actionIndex: 0,
+          targetId: "700",
+          scope: "game-object",
+          mode: "element",
+          delayMs: 0,
+          transitionMs,
+          curve: 4,
+          exceptions: [],
+        },
+      ];
+    }
+
+    return [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "200", "700" ],
+          },
+        ],
+      },
+    ];
+  };
+  const loadBuffer = async (_eventID, eventName) =>
+    eventName === "stop_long" || eventName === "stop_now"
+      ? { voices: [] }
+      : {
+      voices: [
+        {
+          buffer: { duration: 20 },
+          programSlotId: "0:0",
+        },
+      ],
+    };
+  const { backend, emitter, context } = Harness({
+    loadBuffer,
+    resolveSfxProgram,
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "loop");
+  await tick();
+
+  context.currentTime = 0.1;
+  backend.PostEvent(8, 1, 0, emitter, "stop_long");
+  assert.equal(context.sources[0].stoppedAt, 5.1);
+
+  context.currentTime = 0.2;
+  backend.PostEvent(9, 1, 0, emitter, "stop_now");
+  assert.equal(context.sources[0].stoppedAt, 0.2);
+  assert.equal(context.gains[3].gain.value, 0);
+});
+
+test("game-object element Stops match raw hierarchy ids without crossing emitters", async () =>
+{
+  const loadBuffer = async (_eventID, eventName, controls) =>
+  {
+    const stop = eventName === "stop_parent";
+
+    controls.installSfxProgram(stop
+      ? [
+          {
+            kind: "stop",
+            actionIndex: 0,
+            targetId: "700",
+            scope: "game-object",
+            mode: "element",
+            delayMs: 0,
+            transitionMs: 0,
+            curve: 4,
+            exceptions: [],
+          },
+        ]
+      : [
+          {
+            kind: "play",
+            actionIndex: 0,
+            selections: [
+              {
+                actionIndex: 0,
+                leafIndex: 0,
+                matchIds: [ "200", "700" ],
+              },
+            ],
+          },
+        ]);
+    return stop
+      ? { voices: [] }
+      : {
+          voices: [
+            {
+              buffer: { duration: 2 },
+              programSlotId: "0:0",
+            },
+          ],
+        };
+  };
+  const { backend, emitter, context } = Harness({ loadBuffer });
+
+  backend.RegisterGameObj(2);
+  backend.PostEvent(7, 1, 0, emitter, "loop_a");
+  backend.PostEvent(7, 2, 0, emitter, "loop_b");
+  await tick();
+
+  backend.PostEvent(8, 1, 0, emitter, "stop_parent");
+  await tick();
+
+  assert.equal(context.sources[0].stoppedAt, 0);
+  assert.equal(
+    context.sources[1].stoppedAt,
+    null,
+    "game-object scope does not stop a matching hierarchy on another emitter",
+  );
+});
+
+test("global Stop-All exceptions protect matching hierarchy branches", async () =>
+{
+  const loadBuffer = async (_eventID, eventName, controls) =>
+  {
+    const stop = eventName === "stop_all_except";
+    const protectedVoice = eventName === "protected";
+
+    controls.installSfxProgram(stop
+      ? [
+          {
+            kind: "stop",
+            actionIndex: 0,
+            targetId: "0",
+            scope: "global",
+            mode: "all-except",
+            delayMs: 0,
+            transitionMs: 0,
+            curve: 4,
+            exceptions: [ { targetId: "700", targetFlags: 0 } ],
+          },
+        ]
+      : [
+          {
+            kind: "play",
+            actionIndex: 0,
+            selections: [
+              {
+                actionIndex: 0,
+                leafIndex: 0,
+                matchIds: protectedVoice
+                  ? [ "200", "700" ]
+                  : [ "300", "800" ],
+              },
+            ],
+          },
+        ]);
+    return stop
+      ? { voices: [] }
+      : {
+          voices: [
+            {
+              buffer: { duration: 2 },
+              programSlotId: "0:0",
+            },
+          ],
+        };
+  };
+  const { backend, emitter, context } = Harness({ loadBuffer });
+
+  backend.RegisterGameObj(2);
+  backend.PostEvent(7, 1, 0, emitter, "protected");
+  backend.PostEvent(7, 2, 0, emitter, "unprotected");
+  await tick();
+
+  backend.PostEvent(8, 1, 0, emitter, "stop_all_except");
+  await tick();
+
+  assert.equal(context.sources[0].stoppedAt, null);
+  assert.equal(context.sources[1].stoppedAt, 0);
+});
+
+test("game-object Stop-All includes flat fallback SFX but excludes other emitters", async () =>
+{
+  const stopProgram = [
+        {
+          kind: "stop",
+          actionIndex: 0,
+          targetId: "0",
+          scope: "game-object",
+          mode: "all",
+          delayMs: 0,
+          transitionMs: 0,
+          curve: 4,
+          exceptions: [],
+        },
+  ];
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) =>
+      eventName === "stop_all" ? stopProgram : null,
+    loadBuffer: async (_eventID, eventName) =>
+      eventName === "stop_all"
+        ? { voices: [] }
+        : { voices: [ { buffer: { duration: 20 } } ] },
+  });
+
+  backend.RegisterGameObj(2);
+  backend.PostEvent(7, 1, 0, emitter, "flat_a");
+  backend.PostEvent(7, 2, 0, emitter, "flat_b");
+  await tick();
+
+  backend.PostEvent(8, 1, 0, emitter, "stop_all");
+
+  assert.equal(context.sources[0].stoppedAt, 0);
+  assert.equal(context.sources[1].stoppedAt, null);
+});
+
+test("authored SFX Stop-All never dispatches into the music engine", async () =>
+{
+  const musicActions = [];
+  const musicEngine = {
+    HandlesEvent: eventName => eventName === "music_play",
+    PostEvent() {},
+    ExecuteAction: (...args) => musicActions.push(args),
+    Process() {},
+    Dispose() {},
+  };
+  const loadBuffer = async (_eventID, eventName, controls) =>
+  {
+    controls.installSfxProgram(eventName === "stop_all"
+      ? [
+          {
+            kind: "stop",
+            actionIndex: 0,
+            targetId: "0",
+            scope: "global",
+            mode: "all",
+            delayMs: 0,
+            transitionMs: 0,
+            curve: 4,
+            exceptions: [],
+          },
+        ]
+      : []);
+    return { voices: [] };
+  };
+  const { backend, emitter } = Harness({
+    loadBuffer,
+    musicEngine,
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "music_play");
+  backend.PostEvent(2, 1, 0, emitter, "stop_all");
+  await tick();
+
+  assert.deepEqual(musicActions, []);
+  assert.equal(
+    backend.GetPlayingCount(),
+    1,
+    "the music playing ID survives the SFX Stop-All",
+  );
 });
 
 test("parallel voices and seek restarts share one sample-time anchor", async () =>

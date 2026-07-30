@@ -7,7 +7,6 @@ import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
 // the builder accepts index values, metadata values, and optional injected
 // bank-byte/inspection capabilities without discovering files or services.
 const MUSIC_BANK_NAMES = Object.freeze(["music.bnk", "music_essential.bnk"]);
-const MUSIC_EVENT_BANK_NAME = "common.bnk";
 const MUSIC_HIRC_TYPES = new Set([10, 11, 12, 13]);
 const SFX_PLAY_ACTION = 0x0403;
 const SFX_PLAY_EVENT_ACTION = 0x2103;
@@ -15,6 +14,9 @@ const SFX_STOP_ACTION_FAMILY = 0x01;
 const SFX_SET_STATE_ACTION_FAMILY = 0x12;
 const SFX_SET_SWITCH_ACTION_FAMILY = 0x19;
 const SFX_UNSUPPORTED_PLAY_ACTIONS = new Set([0x0503]);
+const SFX_VOLUME_PROPERTY = 0;
+const SFX_PITCH_PROPERTY = 1;
+const SFX_INITIAL_DELAY_PROPERTY = 34;
 const AUDIO_LANGUAGE_TAGS = Object.freeze({
   chinese: "zh-cn",
   "chinese(prc)": "zh-cn",
@@ -140,14 +142,17 @@ class CjsAudioLibraryBuilder {
    */
   static createMusicGraph({
     inspections,
+    eventInspections = inspections,
     metadata,
     media = {},
     embeddedMedia = {},
-    musicBankNames = MUSIC_BANK_NAMES,
-    eventBankName = MUSIC_EVENT_BANK_NAME
+    musicBankNames = MUSIC_BANK_NAMES
   } = {}) {
     if (!Array.isArray(inspections)) {
       throw new TypeError("Audio music construction requires bank inspections");
+    }
+    if (!Array.isArray(eventInspections)) {
+      throw new TypeError("Audio music event construction requires bank inspections");
     }
     const byName = new Map();
     for (const inspection of inspections) {
@@ -160,7 +165,7 @@ class CjsAudioLibraryBuilder {
       }
       byName.set(name, inspection);
     }
-    const requiredNames = [...musicBankNames.map(bankSourceName), bankSourceName(eventBankName)];
+    const requiredNames = musicBankNames.map(bankSourceName);
     for (const name of requiredNames) {
       if (!byName.has(name)) {
         throw new Error(`Music construction requires inspected bank: ${name}`);
@@ -200,7 +205,11 @@ class CjsAudioLibraryBuilder {
       nodes[id] = node;
     }
     validateMusicNodeReferences(nodes, media, embeddedMedia);
-    const eventProjection = createMusicEventProjection(byName.get(bankSourceName(eventBankName)), metadata, nodes);
+    const eventProjection = this.createMusicEventProjection({
+      inspections: eventInspections,
+      metadata,
+      nodes
+    });
     return {
       schemaVersion: 1,
       generator: "@carbonenginejs/runtime-audio/library-builder",
@@ -208,6 +217,26 @@ class CjsAudioLibraryBuilder {
       nodes,
       ...eventProjection
     };
+  }
+
+  /**
+   * Projects typed Wwise actions from every selected bank onto music nodes.
+   *
+   * Music events are identified by their authored targets and argument
+   * groups, not by a bank location or event-name convention.
+   */
+  static createMusicEventProjection({
+    inspections,
+    metadata,
+    nodes
+  } = {}) {
+    if (!Array.isArray(inspections)) {
+      throw new TypeError("Audio music event projection requires bank inspections");
+    }
+    if (!nodes || typeof nodes !== "object" || Array.isArray(nodes)) {
+      throw new TypeError("Audio music event projection requires music nodes");
+    }
+    return createMusicEventProjection(inspections, metadata, nodes);
   }
 
   /** Classifies embedded media by its four-byte container magic. */
@@ -362,7 +391,7 @@ class CjsAudioLibraryBuilder {
         embeddedMedia: library.embeddedMedia ?? {}
       });
       options.onSfxDiagnostics?.(sfx.diagnostics);
-      if (Object.keys(sfx.events).length || Object.keys(sfx.eventActions).length) {
+      if (Object.keys(sfx.events).length || Object.keys(sfx.programs).length) {
         assembledOptions = {
           ...assembledOptions,
           bankProjection: sfx.metadataProjection,
@@ -374,7 +403,8 @@ class CjsAudioLibraryBuilder {
     }
     if (includeMusic) {
       const music = this.createMusicGraph({
-        inspections: inspections.filter(inspection => [MUSIC_EVENT_BANK_NAME, ...MUSIC_BANK_NAMES].includes(bankSourceName(inspection.source))),
+        inspections: inspections.filter(inspection => MUSIC_BANK_NAMES.includes(bankSourceName(inspection.source))),
+        eventInspections: graphInspections,
         metadata: library.metadata,
         media: library.media,
         embeddedMedia: library.embeddedMedia ?? {}
@@ -487,7 +517,7 @@ function LowerSfxGraph({
 }) {
   const nodes = {};
   const events = {};
-  const eventActions = {};
+  const programs = {};
   const lowered = new Map();
   const leavesByNode = new Map();
   const leavesByEvent = new Map();
@@ -524,6 +554,17 @@ function LowerSfxGraph({
       }))
     });
   };
+  const aggregateRoots = (roots, force = false) => {
+    if (roots.length === 1 && !force) {
+      return roots[0];
+    }
+    return {
+      nodeId: allocate({
+        type: "parallel",
+        children: roots
+      })
+    };
+  };
   const lower = rawID => {
     const id = String(Number(rawID) >>> 0);
     if (lowered.has(id)) {
@@ -549,6 +590,7 @@ function LowerSfxGraph({
       if (source.type === "sound") {
         const mediaID = String(source.sourceId >>> 0);
         const loopCount = parsed.nodeBases?.get(Number(id))?.loopCount;
+        const matchIds = CreateSfxMatchIds(parsed, id);
         if (source.pluginType !== 1) {
           throw new Error(`source plug-in sound ${id}`);
         }
@@ -558,6 +600,9 @@ function LowerSfxGraph({
         node = {
           type: "sound",
           mediaId: mediaID,
+          ...(matchIds.length > 1 ? {
+            matchIds
+          } : {}),
           ...(loopCount === 0 ? {
             loop: true
           } : Number.isSafeInteger(loopCount) && loopCount > 0 ? {
@@ -700,6 +745,7 @@ function LowerSfxGraph({
       } else {
         throw new Error(`unsupported node type ${source.type}`);
       }
+      Object.assign(node, CreateSfxNodeBasePlaybackProjection(parsed, id));
       nodes[id] = node;
       lowered.set(id, id);
       leavesByNode.set(id, leaves);
@@ -727,6 +773,7 @@ function LowerSfxGraph({
       leaves: new Set(),
       stopTargets: new Set(),
       setters: [],
+      program: [],
       unsupportedActions: []
     };
     activeEvents.add(eventID);
@@ -740,25 +787,57 @@ function LowerSfxGraph({
           throw new Error(`unsupported play action 0x${action.actionType.toString(16)}`);
         }
         if (action.actionType === SFX_PLAY_ACTION) {
-          result.roots.push({
+          const child = ReadSfxPlayActionChild({
             nodeId: lower(action.targetId)
+          }, action, true);
+          result.roots.push(child);
+          result.program.push({
+            kind: "play",
+            child
           });
           AddSet(result.leaves, leavesByNode.get(String(Number(action.targetId) >>> 0)));
         } else if (action.actionType === SFX_PLAY_EVENT_ACTION) {
           const nested = lowerEvent(action.targetId);
-          result.roots.push(...nested.roots);
+          const hasTiming = HasSfxPlayActionTiming(action, false);
+          if (hasTiming && (nested.setters.length || nested.program.some(value => value.kind === "stop"))) {
+            throw new Error(`scheduled Play-Event ${action.id} targets non-play actions`);
+          }
+          const actionChild = ReadSfxPlayActionChild(nested.roots.length ? aggregateRoots(nested.roots, hasTiming) : null, action, false);
+          if (actionChild) {
+            result.roots.push(actionChild);
+          }
+          if (hasTiming) {
+            if (actionChild) {
+              result.program.push({
+                kind: "play",
+                child: actionChild
+              });
+            }
+          } else {
+            result.program.push(...nested.program);
+          }
           AddSet(result.leaves, nested.leaves);
           AddSet(result.stopTargets, nested.stopTargets);
           result.setters.push(...nested.setters);
           result.unsupportedActions.push(...nested.unsupportedActions);
         } else if ((action.actionType >> 8 & 0xff) === SFX_STOP_ACTION_FAMILY) {
-          result.stopTargets.add(Number(action.targetId) >>> 0);
+          const stop = ReadSfxStopAction(action);
+          result.program.push(stop);
+          if (stop.mode === "element") {
+            result.stopTargets.add(Number(stop.targetId) >>> 0);
+          }
         } else if ((action.actionType >> 8 & 0xff) === SFX_SET_SWITCH_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_SET_STATE_ACTION_FAMILY) {
-          result.setters.push(ReadSfxSetterAction(action, names));
+          if (HasSfxPlayActionTiming(action, false)) {
+            throw new Error(`scheduled setter action ${action.id}`);
+          }
+          const setter = ReadSfxSetterAction(action, names);
+          result.setters.push(setter);
+          result.program.push(setter);
         } else {
           result.unsupportedActions.push(action.actionType);
         }
       }
+      result.roots = result.program.filter(action => action.kind === "play").map(action => action.child);
       loweredEvents.set(eventID, result);
       return result;
     } finally {
@@ -776,12 +855,13 @@ function LowerSfxGraph({
         leaves,
         stopTargets,
         setters,
+        program,
         unsupportedActions
       } = lowerEvent(eventID);
       if (stopTargets.size) {
         stopTargetsByEvent.set(name, stopTargets);
       }
-      if (roots.length || setters.length) {
+      if (program.length) {
         if (unsupportedActions.length) {
           throw new Error("mixed event actions " + unsupportedActions.map(value => `0x${value.toString(16)}`).join(", "));
         }
@@ -789,8 +869,8 @@ function LowerSfxGraph({
           events[name] = roots;
           leavesByEvent.set(name, leaves);
         }
-        if (setters.length) {
-          eventActions[name] = setters;
+        if (program.length) {
+          programs[name] = program;
         }
       }
     } catch (error) {
@@ -805,10 +885,10 @@ function LowerSfxGraph({
   const stopRelationships = CreateSfxStopRelationships(parsed, leavesByEvent, stopTargetsByEvent);
   const pruned = PruneSfxNodes(events, nodes);
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generator: "@carbonenginejs/runtime-audio/library-builder",
     events,
-    eventActions,
+    programs,
     nodes: pruned,
     metadataProjection: {
       Events: MergeSfxEventMetadata(spatial.events, stopRelationships.events)
@@ -820,6 +900,44 @@ function LowerSfxGraph({
       spatial: spatial.diagnostics
     }
   };
+}
+function HasSfxPlayActionTiming(action, includeFade) {
+  const details = action.action ?? action;
+  return details.delayTimeMs !== undefined || details.delayRangeMs !== undefined || details.probability !== undefined || includeFade;
+}
+function ReadSfxPlayActionChild(child, action, includeFade) {
+  if (!child) {
+    return null;
+  }
+  const details = action.action ?? action;
+  const result = {
+    ...child
+  };
+  if (details.delayTimeMs !== undefined) {
+    result.delayMs = Number(details.delayTimeMs);
+  }
+  if (details.delayRangeMs !== undefined) {
+    result.delayRangeMs = {
+      min: Number(details.delayRangeMs.min),
+      max: Number(details.delayRangeMs.max)
+    };
+  }
+  if (details.probability !== undefined) {
+    result.probability = Number(details.probability);
+  }
+  if (includeFade && (details.transitionTimeMs !== undefined || details.transitionRangeMs !== undefined)) {
+    if (details.transitionTimeMs !== undefined) {
+      result.fadeInMs = Number(details.transitionTimeMs);
+    }
+    if (details.transitionRangeMs !== undefined) {
+      result.fadeInRangeMs = {
+        min: Number(details.transitionRangeMs.min),
+        max: Number(details.transitionRangeMs.max)
+      };
+    }
+    result.fadeCurve = Number(details.fadeCurve ?? 4);
+  }
+  return result;
 }
 function ReadSfxSetterAction(action, names) {
   const family = Number(action.actionType) >> 8 & 0xff;
@@ -844,6 +962,96 @@ function ReadSfxSetterAction(action, names) {
     group: group.name,
     value
   };
+}
+function ReadSfxStopAction(action) {
+  const details = action.action ?? action;
+  const actionType = Number(action.actionType) >>> 0;
+  const targetFlags = Number(details.targetFlags ?? 0);
+  const actionFlags = Number(details.actionFlags ?? 6);
+  const mode = details.actionMode ?? SfxActionMode(actionType & 0xff);
+  const scope = details.actionScope ?? SfxActionScope(actionType & 0xff);
+  const targetId = Number(details.targetId ?? action.targetId) >>> 0;
+  const exceptions = Array.isArray(details.exceptions) ? details.exceptions : [];
+  if (details.targetIsBus || targetFlags & 0x01) {
+    throw new Error(`bus Stop action ${action.id}`);
+  }
+  if (mode !== "element" && mode !== "all" && mode !== "all-except") {
+    throw new Error(`unsupported Stop mode ${mode}`);
+  }
+  if (scope !== "game-object" && scope !== "global") {
+    throw new Error(`unsupported Stop scope ${scope}`);
+  }
+  if (mode === "element" && targetId === 0) {
+    throw new Error(`empty Stop target ${action.id}`);
+  }
+  if (actionFlags !== 6) {
+    throw new Error(`unsupported Stop action flags ${actionFlags}`);
+  }
+  const normalizedExceptions = exceptions.map(exception => {
+    const exceptionFlags = Number(exception.targetFlags ?? 0);
+    if (exception.targetIsBus || exceptionFlags & 0x01) {
+      throw new Error(`bus Stop exception ${action.id}`);
+    }
+    return {
+      targetId: String(Number(exception.targetId) >>> 0),
+      targetFlags: exceptionFlags
+    };
+  });
+  const result = {
+    kind: "stop",
+    targetId: String(targetId),
+    targetFlags,
+    scope,
+    mode,
+    curve: Number(details.fadeCurve ?? 4),
+    actionFlags,
+    exceptions: normalizedExceptions
+  };
+  if (details.delayTimeMs !== undefined) {
+    result.delayMs = Number(details.delayTimeMs);
+  }
+  if (details.delayRangeMs !== undefined) {
+    result.delayRangeMs = {
+      min: Number(details.delayRangeMs.min),
+      max: Number(details.delayRangeMs.max)
+    };
+  }
+  if (details.transitionTimeMs !== undefined) {
+    result.transitionMs = Number(details.transitionTimeMs);
+  }
+  if (details.transitionRangeMs !== undefined) {
+    result.transitionRangeMs = {
+      min: Number(details.transitionRangeMs.min),
+      max: Number(details.transitionRangeMs.max)
+    };
+  }
+  return result;
+}
+function SfxActionMode(value) {
+  if (value === 0x02 || value === 0x03) return "element";
+  if (value === 0x04 || value === 0x05) return "all";
+  if (value === 0x08 || value === 0x09) return "all-except";
+  return "unknown";
+}
+function SfxActionScope(value) {
+  if (value === 0x02 || value === 0x04 || value === 0x08) {
+    return "global";
+  }
+  if (value === 0x03 || value === 0x05 || value === 0x09) {
+    return "game-object";
+  }
+  return "unknown";
+}
+function CreateSfxMatchIds(parsed, rawID) {
+  const result = [];
+  const active = new Set();
+  let current = Number(rawID) >>> 0;
+  while (current && !active.has(current)) {
+    active.add(current);
+    result.push(String(current));
+    current = Number(parsed.nodeBases?.get(current)?.directParentId) >>> 0;
+  }
+  return result;
 }
 function CreateSfxStopRelationships(parsed, leavesByEvent, stopTargetsByEvent) {
   const events = {};
@@ -1057,6 +1265,88 @@ function AddSet(target, source) {
     target.add(value);
   }
 }
+function CreateSfxNodeBasePlaybackProjection(parsed, rawID) {
+  const chain = [];
+  const visited = new Set();
+  let currentID = Number(rawID) >>> 0;
+  while (currentID && !visited.has(currentID)) {
+    visited.add(currentID);
+    const nodeBase = parsed.nodeBases?.get(currentID);
+    if (!nodeBase) {
+      break;
+    }
+    chain.push(nodeBase);
+    const parentID = Number(nodeBase.directParentId) >>> 0;
+    if (!parentID || parsed.nodes.has(parentID)) {
+      break;
+    }
+    currentID = parentID;
+  }
+  let gainDb = 0;
+  let pitchCents = 0;
+  let initialDelayMs = 0;
+  const gainDbRanges = [];
+  const pitchCentsRanges = [];
+  const initialDelayRangesMs = [];
+  for (const nodeBase of chain.reverse()) {
+    for (const property of nodeBase.properties ?? []) {
+      const value = Number(property.floatValue);
+      if (!Number.isFinite(value)) {
+        continue;
+      }
+      if (property.id === SFX_VOLUME_PROPERTY) {
+        gainDb += value;
+      } else if (property.id === SFX_PITCH_PROPERTY) {
+        pitchCents += value;
+      } else if (property.id === SFX_INITIAL_DELAY_PROPERTY) {
+        initialDelayMs += value * 1000;
+      }
+    }
+    for (const range of nodeBase.ranges ?? []) {
+      const min = Number(range.minFloat);
+      const max = Number(range.maxFloat);
+      if (!Number.isFinite(min) || !Number.isFinite(max)) {
+        continue;
+      }
+      if (range.id === SFX_VOLUME_PROPERTY) {
+        gainDbRanges.push({
+          min,
+          max
+        });
+      } else if (range.id === SFX_PITCH_PROPERTY) {
+        pitchCentsRanges.push({
+          min,
+          max
+        });
+      } else if (range.id === SFX_INITIAL_DELAY_PROPERTY) {
+        initialDelayRangesMs.push({
+          min: min * 1000,
+          max: max * 1000
+        });
+      }
+    }
+  }
+  return {
+    ...(gainDb === 0 ? {} : {
+      gainDb
+    }),
+    ...(gainDbRanges.length ? {
+      gainDbRanges
+    } : {}),
+    ...(pitchCents === 0 ? {} : {
+      pitchCents
+    }),
+    ...(pitchCentsRanges.length ? {
+      pitchCentsRanges
+    } : {}),
+    ...(initialDelayMs === 0 ? {} : {
+      initialDelayMs
+    }),
+    ...(initialDelayRangesMs.length ? {
+      initialDelayRangesMs
+    } : {})
+  };
+}
 function CreateSfxNameCatalog(soundbanksInfo) {
   const groups = new Map();
   const parameters = new Map();
@@ -1234,7 +1524,7 @@ function requireMusicBanks(library, enabled) {
     return;
   }
   const names = new Set(Object.values(library.banks).map(bank => bankSourceName(bank.resPath)));
-  const missing = [MUSIC_EVENT_BANK_NAME, ...MUSIC_BANK_NAMES].filter(name => !names.has(name));
+  const missing = MUSIC_BANK_NAMES.filter(name => !names.has(name));
   if (missing.length) {
     throw new Error(`Audio music construction requires indexed banks: ${missing.join(", ")}`);
   }
@@ -1701,12 +1991,7 @@ function validateMusicNodeReferences(nodes, media, embeddedMedia) {
     }
   }
 }
-function createMusicEventProjection(inspection, metadata, nodes) {
-  const actionsByID = new Map();
-  const eventsByID = new Map();
-  for (const entry of inspection.hirc ?? []) {
-    if (entry.typeName === "event-action") actionsByID.set(entry.id, entry);else if (entry.typeName === "event") eventsByID.set(entry.id, entry);
-  }
+function createMusicEventProjection(inspections, metadata, nodes) {
   const eventNamesByID = new Map();
   for (const [name, record] of metadataEntries(metadata?.Events, "Audio metadata Events")) {
     eventNamesByID.set(Number(record.eventID) >>> 0, name);
@@ -1714,38 +1999,40 @@ function createMusicEventProjection(inspection, metadata, nodes) {
   const eventTargets = {};
   const eventStops = {};
   const switchSetters = {};
-  for (const [eventID, event] of eventsByID) {
-    const name = eventNamesByID.get(eventID >>> 0);
-    if (!name || !IsMusicEventName(name)) {
-      continue;
+  const musicGroups = MusicArgumentGroups(nodes);
+  for (const inspection of inspections) {
+    const actionsByID = new Map();
+    const eventsByID = new Map();
+    for (const entry of inspection.hirc ?? []) {
+      if (entry.typeName === "event-action") {
+        actionsByID.set(entry.id, entry);
+      } else if (entry.typeName === "event") {
+        eventsByID.set(entry.id, entry);
+      }
     }
-    for (const actionID of eventActionIDs(event)) {
-      const action = actionsByID.get(actionID);
-      if (!action) {
+    for (const [eventID, event] of eventsByID) {
+      const name = eventNamesByID.get(eventID >>> 0);
+      if (!name) {
         continue;
       }
-      const fields = actionFields(action);
-      const family = fields.actionType >> 8 & 0xff;
-      if (family === 0x04 && nodes[fields.targetID]) {
-        addEventTarget(eventTargets, name, fields.targetID);
-      } else if (family === 0x01 && nodes[fields.targetID]) {
-        addEventTarget(eventStops, name, fields.targetID);
-      } else if (family === 0x19 || family === 0x12) {
-        // runtime-resource types the action family and target. Wwise
-        // does not yet expose SetSwitch/SetState's two tail IDs, so
-        // this is the deliberately narrow remaining payload read.
-        if (!fields.payload || fields.payload.byteLength < 8) {
-          throw new Error(`Music setter action ${actionID} has a truncated payload`);
+      for (const actionID of eventActionIDs(event)) {
+        const action = actionsByID.get(actionID);
+        if (!action) {
+          continue;
         }
-        const view = new DataView(fields.payload.buffer, fields.payload.byteOffset, fields.payload.byteLength);
-        const groupID = view.getUint32(fields.payload.byteLength - 8, true);
-        const targetID = view.getUint32(fields.payload.byteLength - 4, true);
-        const values = switchSetters[name] ?? (switchSetters[name] = []);
-        values.push({
-          kind: family === 0x19 ? "switch" : "state",
-          groupId: groupID,
-          targetId: targetID
-        });
+        const fields = actionFields(action);
+        const family = fields.actionType >> 8 & 0xff;
+        if (family === 0x04 && nodes[fields.targetID]) {
+          addEventTarget(eventTargets, name, fields.targetID);
+        } else if (family === 0x01 && nodes[fields.targetID]) {
+          addEventTarget(eventStops, name, fields.targetID);
+        } else if (family === 0x19 || family === 0x12) {
+          const setter = ReadMusicSetterAction(fields, actionID, family);
+          if (musicGroups.has(setter.groupId)) {
+            const values = switchSetters[name] ?? (switchSetters[name] = []);
+            values.push(setter);
+          }
+        }
       }
     }
   }
@@ -1753,6 +2040,32 @@ function createMusicEventProjection(inspection, metadata, nodes) {
     eventTargets: normalizeTargetTable(eventTargets),
     eventStops: normalizeTargetTable(eventStops),
     switchSetters: normalizeSetterTable(switchSetters)
+  };
+}
+function MusicArgumentGroups(nodes) {
+  const result = new Set();
+  for (const node of Object.values(nodes)) {
+    for (const argument of node.argumentGroups ?? []) {
+      result.add(Number(argument.groupId) >>> 0);
+    }
+    if (node.switchParams?.groupId !== undefined) {
+      result.add(Number(node.switchParams.groupId) >>> 0);
+    }
+  }
+  return result;
+}
+function ReadMusicSetterAction(fields, actionID, family) {
+  // runtime-resource types the action family and target. Wwise does not yet
+  // expose SetSwitch/SetState's two tail IDs, so this is the deliberately
+  // narrow remaining payload read.
+  if (!fields.payload || fields.payload.byteLength < 8) {
+    throw new Error(`Music setter action ${actionID} has a truncated payload`);
+  }
+  const view = new DataView(fields.payload.buffer, fields.payload.byteOffset, fields.payload.byteLength);
+  return {
+    kind: family === 0x19 ? "switch" : "state",
+    groupId: view.getUint32(fields.payload.byteLength - 8, true),
+    targetId: view.getUint32(fields.payload.byteLength - 4, true)
   };
 }
 function eventActionIDs(entry) {

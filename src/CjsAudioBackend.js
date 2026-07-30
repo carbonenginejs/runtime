@@ -6,12 +6,18 @@
 //
 // Injectables keep this node-testable and decode-agnostic:
 // - context: an AudioContext (or compatible fake); never created here.
-// - loadBuffer(eventID, eventName, controls) -> Promise<AudioBuffer|voice set>
+// - resolveSfxProgram(eventID, eventName, controls) -> program|null
+//   - runs synchronously so authored controls and Stops exist before rendering.
+// - loadBuffer(eventID, eventName, controls, resolvedProgram)
+//   -> Promise<AudioBuffer|voice set>
 //   - the app wires runtime-resource's wem->ogg->decode chain behind this.
 // - isLoop(eventName) - loop flag source (usually the static data repository).
+import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
 
 const DEFAULT_FADE_SECONDS = 1;
 const DEFAULT_RENDER_QUANTUM_SECONDS = 128 / 48000;
+const LINEAR_FADE_CURVE = 4;
+const FADE_CURVE_SAMPLES = 65;
 
 /** WebAudio backend for the audio graph: emitter nodes, playing sources, listener pose. */
 export class CjsAudioBackend
@@ -22,6 +28,12 @@ export class CjsAudioBackend
 
     #isLoop = null;
 
+    #hasEventStops = null;
+
+    #hasSfxEvent = null;
+
+    #resolveSfxProgram = null;
+
     #masterGain = null;
 
     #sfxGain = null;
@@ -29,6 +41,8 @@ export class CjsAudioBackend
     #emitterNodes = new Map();
 
     #playing = new Map();
+
+    #scheduledSfxStops = [];
 
     #globalRtpcValues = new Map();
 
@@ -56,6 +70,9 @@ export class CjsAudioBackend
         context,
         loadBuffer,
         isLoop,
+        hasEventStops,
+        hasSfxEvent,
+        resolveSfxProgram,
         distanceScale,
         musicEngine,
         applyRTPC,
@@ -64,6 +81,15 @@ export class CjsAudioBackend
         this.#context = context ?? null;
         this.#loadBuffer = loadBuffer ?? null;
         this.#isLoop = isLoop ?? (() => false);
+        this.#hasEventStops = typeof hasEventStops === "function"
+            ? hasEventStops
+            : () => false;
+        this.#hasSfxEvent = typeof hasSfxEvent === "function"
+            ? hasSfxEvent
+            : null;
+        this.#resolveSfxProgram = typeof resolveSfxProgram === "function"
+            ? resolveSfxProgram
+            : null;
         this.#distanceScale = Number(distanceScale) || 1;
         this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
 
@@ -144,9 +170,8 @@ export class CjsAudioBackend
         {
             if (record.music && record.musicEngine === previous)
             {
-                record.stopped = true;
                 previous?.ExecuteAction?.("stop", playingID, 0);
-                this.#FinishPlaying(playingID);
+                this.#FinishMusicPlaying(playingID);
             }
         }
         this.#musicEngine = next;
@@ -229,13 +254,27 @@ export class CjsAudioBackend
         this.#objectSwitchValues.delete(gameObjID);
     }
 
+    /** Returns whether an installed authored program owns Stop execution. */
+    HandlesEventStops(eventName)
+    {
+        return this.#hasEventStops(String(eventName)) === true;
+    }
+
     /** Starts an event: allocates the playing id synchronously, starts when the media resolves. */
     PostEvent(eventID, gameObjID, additionalFlags, emitter, eventName)
     {
-        // Music-graph events route to the interactive-music engine.
-        if (this.#musicEngine?.HandlesEvent(eventName))
+        const music = this.#musicEngine?.HandlesEvent(eventName) === true;
+        const sfx = this.#hasSfxEvent
+            ? this.#hasSfxEvent(String(eventName)) === true
+            : true;
+
+        if (music && !sfx)
         {
             return this.#PostMusicEvent(eventName, { gameObjID, emitter });
+        }
+        if (!sfx)
+        {
+            return 0;
         }
         const nodes = this.#emitterNodes.get(gameObjID);
         if (!this.#context || !this.#loadBuffer || !nodes)
@@ -250,34 +289,95 @@ export class CjsAudioBackend
             eventName,
             controller,
             voices: [],
+            sfx: true,
+            sfxFinished: false,
+            music,
+            musicFinished: !music,
+            musicEngine: music ? this.#musicEngine : null,
             loaded: false,
             stopped: false,
             pendingBreak: false,
-            pendingSeek: null
+            pendingSeek: null,
+            postContextTime: Number(this.#context.currentTime) || 0,
+            sfxProgram: false,
+            programSlots: null,
+            pendingProgramStops: 0,
+            planningProgram: false,
+            loading: false,
+            posting: true,
         };
         this.#playing.set(playingID, record);
+
+        if (music)
+        {
+            this.#StartMusicComponent(playingID, record);
+        }
 
         const controls = this.#CreateSfxControls(
             gameObjID,
             controller.signal,
+            playingID,
+            record,
         );
 
+        let resolvedProgram = null;
+
+        try
+        {
+            if (this.#resolveSfxProgram)
+            {
+                resolvedProgram = this.#resolveSfxProgram(
+                    eventID,
+                    eventName,
+                    controls,
+                );
+                if (resolvedProgram !== null
+                    && resolvedProgram !== undefined)
+                {
+                    this.#InstallSfxProgram(
+                        playingID,
+                        record,
+                        resolvedProgram,
+                    );
+                }
+            }
+        }
+        catch
+        {
+            record.loading = false;
+            record.posting = false;
+            Promise.resolve().then(() =>
+                this.#FinishSfxPlaying(playingID));
+            return playingID;
+        }
+
+        record.posting = false;
         Promise.resolve().then(() =>
         {
-            if (record.stopped || !this.#playing.has(playingID))
+            this.#MaybeFinishSfxProgram(playingID, record);
+            if (record.stopped
+                || record.sfxFinished
+                || !this.#playing.has(playingID))
             {
                 return null;
             }
+
+            record.loading = true;
             return this.#loadBuffer(
                 eventID,
                 eventName,
                 controls,
+                resolvedProgram,
             );
         }).then(result =>
         {
+            record.loading = false;
+            // Rendering may have paused while media was pending. Apply every
+            // now-overdue Stop before a cancelled slot can become a voice.
+            this.#ProcessScheduledSfxStops();
             if (!result || record.stopped || !this.#playing.has(playingID))
             {
-                this.#FinishPlaying(playingID);
+                this.#FinishSfxPlaying(playingID);
                 return;
             }
 
@@ -286,24 +386,67 @@ export class CjsAudioBackend
                 () => !!this.#isLoop(record.eventName),
             );
 
+            const realizedSlots = new Set();
+
             for (const descriptor of descriptors)
             {
-                record.voices.push(this.#CreateVoice(
+                const slot = record.sfxProgram
+                    ? record.programSlots?.get(descriptor.programSlotId)
+                    : null;
+
+                if (record.sfxProgram
+                    && (!slot || slot.state !== "pending"))
+                {
+                    continue;
+                }
+
+                const voice = this.#CreateVoice(
                     descriptor,
                     nodes,
                     record.gameObjID,
-                ));
+                );
+
+                record.voices.push(voice);
+                if (slot)
+                {
+                    slot.state = "voice";
+                    slot.voice = voice;
+                    voice.programSlotId = slot.id;
+                    realizedSlots.add(slot.id);
+                }
+            }
+            if (record.sfxProgram)
+            {
+                for (const slot of record.programSlots.values())
+                {
+                    if (slot.state === "pending"
+                        && !realizedSlots.has(slot.id))
+                    {
+                        slot.state = "ended";
+                    }
+                }
             }
             record.loaded = true;
 
             if (!record.voices.length)
             {
-                this.#FinishPlaying(playingID);
+                if (record.sfxProgram)
+                {
+                    this.#MaybeFinishSfxProgram(playingID, record);
+                }
+                else
+                {
+                    this.#FinishSfxPlaying(playingID);
+                }
                 return;
             }
 
             this.#StartVoices(playingID, record);
-        }).catch(() => this.#FinishPlaying(playingID));
+        }).catch(() =>
+        {
+            record.loading = false;
+            this.#FinishSfxPlaying(playingID);
+        });
 
         return playingID;
     }
@@ -348,7 +491,10 @@ export class CjsAudioBackend
         if (record.music)
         {
             record.musicEngine?.ExecuteAction?.(action, playingID, fadeOutDuration);
-            return;
+            if (!record.sfx)
+            {
+                return;
+            }
         }
         if (action === "break" && !record.loaded)
         {
@@ -363,6 +509,9 @@ export class CjsAudioBackend
         if (!breaking)
         {
             record.stopped = true;
+            record.pendingProgramStops = 0;
+            this.#scheduledSfxStops = this.#scheduledSfxStops
+                .filter(stop => stop.ownerPlayingID !== playingID);
         }
         const active = record.voices?.filter(voice =>
             voice.source
@@ -417,6 +566,13 @@ export class CjsAudioBackend
                     }
                 }
                 voice.stopping = true;
+                if (voice.startContextTime > actionTime)
+                {
+                    SetAudioParam(voice.gain.gain, 0, this.#context);
+                    voice.source.stop(actionTime);
+                    continue;
+                }
+                this.#HoldVoiceFade(voice, actionTime);
                 if (seconds > 0)
                 {
                     const param = voice.gain.gain;
@@ -442,7 +598,7 @@ export class CjsAudioBackend
         }
         else if (!breaking)
         {
-            this.#FinishPlaying(playingID);
+            this.#FinishSfxPlaying(playingID);
         }
     }
 
@@ -476,7 +632,7 @@ export class CjsAudioBackend
         {
             return -1;
         }
-        if (record.music)
+        if (record.music && !record.sfx)
         {
             return record.musicEngine?.GetSourcePlayPosition?.(playingID) ?? -1;
         }
@@ -683,6 +839,7 @@ export class CjsAudioBackend
     /** WebAudio renders continuously; the tick drives music-engine lookahead scheduling. */
     RenderAudio()
     {
+        this.#ProcessScheduledSfxStops();
         this.#musicEngine?.Process();
     }
 
@@ -703,7 +860,7 @@ export class CjsAudioBackend
             {
                 record.musicEngine?.ExecuteAction?.("stop", playingID, 0);
             }
-            else
+            if (record.sfx)
             {
                 for (const voice of record.voices ?? [])
                 {
@@ -788,21 +945,58 @@ export class CjsAudioBackend
             source: null,
             sourceGain: null,
             stopped: false,
+            sfx: false,
+            sfxFinished: true,
             music: true,
+            musicFinished: false,
             musicEngine,
             onFinished
         };
         this.#playing.set(playingID, record);
+        this.#StartMusicComponent(playingID, record);
+        return playingID;
+    }
+
+    /**
+     * Starts one music side of an authored event and defers a synchronous
+     * custom-engine completion until the posting caller can retain its id.
+     */
+    #StartMusicComponent(playingID, record)
+    {
+        let posting = true;
+        let finished = false;
+        const complete = () =>
+        {
+            if (posting)
+            {
+                finished = true;
+                return;
+            }
+            this.#FinishMusicPlaying(playingID);
+        };
+
         try
         {
-            musicEngine.PostEvent(eventName, playingID, () => this.#FinishPlaying(playingID));
+            record.musicEngine.PostEvent(
+                record.eventName,
+                playingID,
+                complete,
+            );
         }
         catch
         {
-            this.#FinishPlaying(playingID);
-            return 0;
+            finished = true;
         }
-        return playingID;
+        finally
+        {
+            posting = false;
+        }
+
+        if (finished)
+        {
+            Promise.resolve().then(() =>
+                this.#FinishMusicPlaying(playingID));
+        }
     }
 
     /** Applies or defers a millisecond/percentage seek for one playing id. */
@@ -813,25 +1007,398 @@ export class CjsAudioBackend
         {
             return false;
         }
+        let handled = false;
+
         if (record.music)
         {
             const method = seek.kind === "percent" ? "SeekOnEventPercent" : "SeekOnEventMs";
-            return record.musicEngine?.[method]?.(playingID, seek.value) === true;
+            handled = record.musicEngine?.[method]?.(
+                playingID,
+                seek.value,
+            ) === true;
+            if (!record.sfx)
+            {
+                return handled;
+            }
         }
-        record.pendingSeek = seek;
         if (record.loaded)
         {
-            this.#StartVoices(playingID, record);
+            const now = Number(this.#context.currentTime) || 0;
+            const renderQuantum = RenderQuantumSeconds(this.#context);
+            const started = record.voices.filter(voice =>
+                voice.source
+                && !voice.ended
+                && voice.startContextTime <= now + renderQuantum);
+
+            if (!started.length)
+            {
+                return handled;
+            }
+
+            record.pendingSeek = seek;
+            this.#StartVoices(playingID, record, started);
+            return true;
         }
+        record.pendingSeek = seek;
         return true;
     }
 
+    /** Installs one synchronously resolved authored SFX program. */
+    #InstallSfxProgram(playingID, record, program)
+    {
+        if (!record
+            || this.#playing.get(playingID) !== record
+            || !Array.isArray(program))
+        {
+            throw new TypeError("Resolved SFX program is invalid");
+        }
+        if (record.sfxProgram)
+        {
+            throw new Error("Resolved SFX program was installed twice");
+        }
+
+        record.sfxProgram = true;
+        record.programSlots = new Map();
+        record.planningProgram = true;
+
+        try
+        {
+            for (const operation of program)
+            {
+                if (operation.kind === "play")
+                {
+                    for (const selection of operation.selections ?? [])
+                    {
+                        const actionIndex = Number(
+                            selection.actionIndex
+                            ?? operation.actionIndex,
+                        );
+                        const leafIndex = Number(selection.leafIndex);
+                        const id = `${actionIndex}:${leafIndex}`;
+
+                        if (record.programSlots.has(id))
+                        {
+                            throw new Error(
+                                `Duplicate SFX program slot ${id}`,
+                            );
+                        }
+
+                        record.programSlots.set(id, {
+                            id,
+                            playingID,
+                            actionIndex,
+                            leafIndex,
+                            actionTime: record.postContextTime
+                                + Math.max(
+                                    0,
+                                    Number(selection.delayMs) || 0,
+                                ) / 1000,
+                            matchIds: Object.freeze(
+                                (selection.matchIds ?? [])
+                                    .map(String),
+                            ),
+                            state: "pending",
+                            voice: null,
+                            controller: new AbortController(),
+                        });
+                    }
+                    continue;
+                }
+                if (operation.kind !== "stop")
+                {
+                    throw new TypeError(
+                        `Unsupported resolved SFX operation ${operation.kind}`,
+                    );
+                }
+
+                const stop = {
+                    ...operation,
+                    ownerPlayingID: playingID,
+                    gameObjID: record.gameObjID,
+                    actionTime: record.postContextTime
+                        + Math.max(
+                            0,
+                            Number(operation.delayMs) || 0,
+                        ) / 1000,
+                };
+                const now = Number(this.#context.currentTime) || 0;
+
+                if (stop.actionTime <= now)
+                {
+                    this.#ApplySfxStop(stop, now);
+                }
+                else
+                {
+                    record.pendingProgramStops++;
+                    this.#scheduledSfxStops.push(stop);
+                }
+            }
+
+            this.#scheduledSfxStops.sort(CompareStopActions);
+        }
+        finally
+        {
+            record.planningProgram = false;
+        }
+        this.#MaybeFinishSfxProgram(playingID, record);
+    }
+
+    /** Executes every authored Stop whose absolute action time has arrived. */
+    #ProcessScheduledSfxStops()
+    {
+        const now = Number(this.#context?.currentTime) || 0;
+
+        while (this.#scheduledSfxStops.length
+            && this.#scheduledSfxStops[0].actionTime <= now)
+        {
+            const stop = this.#scheduledSfxStops.shift();
+            const owner = this.#playing.get(stop.ownerPlayingID);
+
+            if (!owner || owner.stopped)
+            {
+                continue;
+            }
+
+            owner.pendingProgramStops = Math.max(
+                0,
+                owner.pendingProgramStops - 1,
+            );
+            this.#ApplySfxStop(stop, now);
+            this.#MaybeFinishSfxProgram(
+                stop.ownerPlayingID,
+                owner,
+            );
+        }
+    }
+
+    /** Applies one due Stop to eligible pending slots and live SFX voices. */
+    #ApplySfxStop(stop, now)
+    {
+        const actionTime = Math.max(
+            Number(stop.actionTime) || 0,
+            Number(now) || 0,
+        );
+
+        for (const [ playingID, record ] of this.#playing)
+        {
+            if (!record.sfx
+                || (stop.scope === "game-object"
+                    && record.gameObjID !== stop.gameObjID))
+            {
+                continue;
+            }
+            if (!record.sfxProgram)
+            {
+                if ((stop.mode === "all"
+                        || stop.mode === "all-except")
+                    && stop.exceptions.length === 0
+                    && CompareFallbackOrder(
+                        record,
+                        playingID,
+                        stop,
+                    ) <= 0)
+                {
+                    this.#StopFallbackRecord(
+                        playingID,
+                        record,
+                        stop,
+                        now,
+                    );
+                }
+                continue;
+            }
+
+            for (const slot of record.programSlots.values())
+            {
+                if (slot.state !== "pending"
+                    && slot.state !== "voice")
+                {
+                    continue;
+                }
+                if (CompareProgramOrder(slot, stop) > 0
+                    || !StopMatchesSlot(stop, slot))
+                {
+                    continue;
+                }
+
+                if (slot.state === "pending")
+                {
+                    slot.state = "cancelled";
+                    slot.controller?.abort();
+                    continue;
+                }
+                if (!slot.voice?.ended)
+                {
+                    this.#StopSfxProgramVoice(
+                        slot.voice,
+                        stop.actionTime,
+                        stop.transitionMs,
+                        stop.curve,
+                        actionTime,
+                    );
+                }
+            }
+
+            this.#MaybeFinishSfxProgram(playingID, record);
+        }
+    }
+
+    /** Applies one authored fade/stop without changing live RTPC controls. */
+    #StopSfxProgramVoice(
+        voice,
+        actionTime,
+        transitionMs,
+        curve,
+        now = actionTime,
+    )
+    {
+        if (!voice.source)
+        {
+            return;
+        }
+
+        const authoredActionTime = Number(actionTime) || 0;
+        const currentTime = Math.max(
+            authoredActionTime,
+            Number(now) || 0,
+        );
+        const seconds = Math.max(
+            0,
+            Number(transitionMs) || 0,
+        ) / 1000;
+        const authoredStopTime = authoredActionTime + seconds;
+        const stopTime = voice.startContextTime > authoredActionTime
+            || authoredStopTime <= currentTime
+            ? currentTime
+            : authoredStopTime;
+
+        if (voice.stopping
+            && Number.isFinite(voice.stopContextTime)
+            && voice.stopContextTime <= stopTime)
+        {
+            return;
+        }
+
+        voice.stopping = true;
+        voice.stopContextTime = stopTime;
+
+        if (voice.startContextTime > authoredActionTime
+            || authoredStopTime <= currentTime)
+        {
+            SilenceAudioParamAt(
+                voice.gain.gain,
+                currentTime,
+                this.#context,
+            );
+            voice.source.stop(currentTime);
+            return;
+        }
+
+        this.#HoldVoiceFade(voice, currentTime);
+
+        const param = voice.gain.gain;
+        const progress = seconds > 0
+            ? Math.max(
+                0,
+                Math.min(
+                    1,
+                    (currentTime - authoredActionTime) / seconds,
+                ),
+            )
+            : 1;
+        const remaining = Math.max(0, stopTime - currentTime);
+
+        if (remaining > 0)
+        {
+            if (typeof param?.cancelAndHoldAtTime === "function")
+            {
+                param.cancelAndHoldAtTime(currentTime);
+            }
+            else
+            {
+                param?.cancelScheduledValues?.(currentTime);
+            }
+
+            ScheduleWwiseFade(
+                param,
+                Number(param?.value) || 0,
+                0,
+                currentTime,
+                remaining,
+                Number(curve ?? LINEAR_FADE_CURVE),
+                progress,
+            );
+        }
+        else
+        {
+            SetAudioParam(param, 0, this.#context);
+        }
+        voice.source.stop(stopTime);
+    }
+
+    /** Applies a hierarchy-free Stop-All to one flat eventMedia record. */
+    #StopFallbackRecord(playingID, record, stop, now)
+    {
+        if (!record.loaded)
+        {
+            this.#FinishSfxPlaying(playingID);
+            return;
+        }
+
+        for (const voice of record.voices ?? [])
+        {
+            if (!voice.ended)
+            {
+                this.#StopSfxProgramVoice(
+                    voice,
+                    stop.actionTime,
+                    stop.transitionMs,
+                    stop.curve,
+                    now,
+                );
+            }
+        }
+    }
+
+    /** Closes a program record only after slots and delayed actions settle. */
+    #MaybeFinishSfxProgram(playingID, record)
+    {
+        if (!record?.sfxProgram
+            || record.posting
+            || record.planningProgram
+            || record.pendingProgramStops > 0)
+        {
+            return;
+        }
+
+        const settled = [ ...record.programSlots.values() ]
+            .every(slot =>
+                slot.state === "cancelled"
+                || slot.state === "ended");
+
+        if (settled)
+        {
+            this.#FinishSfxPlaying(playingID);
+        }
+    }
+
     /** Creates live control readers for one emitter's authored SFX post. */
-    #CreateSfxControls(gameObjID, signal = null)
+    #CreateSfxControls(
+        gameObjID,
+        signal = null,
+        playingID = 0,
+        record = null,
+    )
     {
         return Object.freeze({
             gameObjID,
             signal,
+            installSfxProgram: program =>
+                this.#InstallSfxProgram(
+                    playingID,
+                    record,
+                    program,
+                ),
             getSwitch: group =>
                 this.GetSwitchValue(group, gameObjID),
             getState: group =>
@@ -844,6 +1411,10 @@ export class CjsAudioBackend
                 this.SetSwitch(group, value, gameObjID),
             setState: (group, value) =>
                 this.SetGlobalState(group, value),
+            getSfxProgramSignal: programSlotId =>
+                record?.programSlots?.get(
+                    String(programSlotId),
+                )?.controller?.signal ?? signal,
         });
     }
 
@@ -851,6 +1422,9 @@ export class CjsAudioBackend
     #CreateVoice(descriptor, emitterNodes, gameObjID)
     {
         const gain = this.#context.createGain();
+        const fadeGain = descriptor.fadeInMs > 0
+            ? this.#context.createGain()
+            : null;
 
         if (descriptor.spatial)
         {
@@ -882,6 +1456,11 @@ export class CjsAudioBackend
             }
             gain.connect(emitterNodes.flatGain);
         }
+        if (fadeGain)
+        {
+            SetAudioParam(fadeGain.gain, 0, this.#context);
+            fadeGain.connect(gain);
+        }
 
         const voice = {
             buffer: descriptor.buffer,
@@ -890,12 +1469,19 @@ export class CjsAudioBackend
             playbackRate: descriptor.playbackRate,
             spatial: descriptor.spatial,
             getGain: descriptor.getGain,
+            delayMs: descriptor.delayMs,
+            fadeInMs: descriptor.fadeInMs,
+            fadeCurve: descriptor.fadeCurve,
             gain,
+            fadeGain,
+            fadeScheduled: false,
+            fadeStartContextTime: null,
             source: null,
             ended: false,
             stopping: false,
             startContextTime: null,
             scheduledEndContextTime: null,
+            stopContextTime: null,
             offsetSeconds: 0,
         };
 
@@ -904,7 +1490,7 @@ export class CjsAudioBackend
     }
 
     /** Starts or restarts every decoded voice owned by one logical event. */
-    #StartVoices(playingID, record)
+    #StartVoices(playingID, record, selectedVoices = null)
     {
         if (record.stopped
             || !record.loaded
@@ -916,10 +1502,7 @@ export class CjsAudioBackend
         const seek = record.pendingSeek;
         const pendingBreak = record.pendingBreak;
         const now = Number(this.#context.currentTime) || 0;
-        const sampleRate = Number(this.#context.sampleRate);
-        const renderQuantum = Number.isFinite(sampleRate) && sampleRate > 0
-            ? 128 / sampleRate
-            : DEFAULT_RENDER_QUANTUM_SECONDS;
+        const renderQuantum = RenderQuantumSeconds(this.#context);
         // Scheduling one render quantum ahead keeps every leaf of a parallel
         // event on the same still-future sample boundary.
         const startContextTime = now + renderQuantum;
@@ -927,12 +1510,13 @@ export class CjsAudioBackend
         record.pendingSeek = null;
         record.pendingBreak = false;
 
-        for (const voice of record.voices)
+        for (const voice of selectedVoices ?? record.voices)
         {
             if (pendingBreak && voice.loop)
             {
                 voice.ended = true;
                 voice.stopping = true;
+                this.#SetSfxProgramSlotEnded(record, voice);
                 continue;
             }
             if (pendingBreak && voice.playCount > 1)
@@ -943,18 +1527,36 @@ export class CjsAudioBackend
             {
                 continue;
             }
+            const voiceStartContextTime = voice.source === null
+                ? Math.max(
+                    startContextTime,
+                    record.postContextTime + voice.delayMs / 1000,
+                )
+                : startContextTime;
+
             this.#StartVoice(
                 playingID,
                 record,
                 voice,
                 seek,
-                startContextTime,
+                voiceStartContextTime,
             );
+            if (voice.ended)
+            {
+                this.#SetSfxProgramSlotEnded(record, voice);
+            }
         }
 
         if (record.voices.every(voice => voice.ended))
         {
-            this.#FinishPlaying(playingID);
+            if (record.sfxProgram)
+            {
+                this.#MaybeFinishSfxProgram(playingID, record);
+            }
+            else
+            {
+                this.#FinishSfxPlaying(playingID);
+            }
         }
     }
 
@@ -1022,7 +1624,7 @@ export class CjsAudioBackend
         {
             source.playbackRate.value = voice.playbackRate;
         }
-        source.connect(voice.gain);
+        source.connect(voice.fadeGain ?? voice.gain);
         source.onended = () =>
         {
             if (voice.source === source)
@@ -1034,6 +1636,19 @@ export class CjsAudioBackend
         voice.ended = false;
         voice.offsetSeconds = Math.max(0, offsetSeconds);
         voice.startContextTime = startContextTime;
+        if (!voice.fadeScheduled && voice.fadeGain)
+        {
+            ScheduleWwiseFade(
+                voice.fadeGain.gain,
+                0,
+                1,
+                startContextTime,
+                voice.fadeInMs / 1000,
+                voice.fadeCurve,
+            );
+            voice.fadeScheduled = true;
+            voice.fadeStartContextTime = startContextTime;
+        }
         voice.scheduledEndContextTime = null;
         this.#ApplyVoiceGain(voice);
         source.start(startContextTime, voice.offsetSeconds);
@@ -1055,9 +1670,32 @@ export class CjsAudioBackend
         voice.ended = true;
         voice.source?.disconnect?.();
 
-        if (record.voices.every(value => value.ended))
+        if (record.sfxProgram)
         {
-            this.#FinishPlaying(playingID);
+            this.#SetSfxProgramSlotEnded(record, voice);
+            this.#MaybeFinishSfxProgram(playingID, record);
+        }
+        else if (record.voices.every(value => value.ended))
+        {
+            this.#FinishSfxPlaying(playingID);
+        }
+    }
+
+    /** Marks the logical slot behind one realized program voice complete. */
+    #SetSfxProgramSlotEnded(record, voice)
+    {
+        if (!record.sfxProgram)
+        {
+            return;
+        }
+        const slot = record.programSlots?.get(
+            voice.programSlotId,
+        );
+
+        if (slot)
+        {
+            slot.state = "ended";
+            slot.voice = null;
         }
     }
 
@@ -1066,7 +1704,7 @@ export class CjsAudioBackend
     {
         for (const record of this.#playing.values())
         {
-            if (record.music
+            if (!record.sfx
                 || record.stopped
                 || (gameObjID !== null && record.gameObjID !== gameObjID))
             {
@@ -1097,12 +1735,87 @@ export class CjsAudioBackend
         }
 
         const gain = Number(value);
+        const target = Number.isFinite(gain) ? Math.max(0, gain) : 1;
+        const param = voice.gain?.gain;
 
         SetAudioParam(
-            voice.gain?.gain,
-            Number.isFinite(gain) ? Math.max(0, gain) : 1,
+            param,
+            target,
             this.#context,
         );
+    }
+
+    /**
+     * Freezes an in-progress authored Play fade before a Stop fade begins.
+     * Otherwise the rising Play envelope would multiply the falling Stop
+     * envelope and could become louder after the stop action.
+     */
+    #HoldVoiceFade(voice, actionTime)
+    {
+        const param = voice.fadeGain?.gain;
+        const start = voice.fadeStartContextTime;
+        const duration = voice.fadeInMs / 1000;
+
+        if (!param
+            || !voice.fadeScheduled
+            || !Number.isFinite(start)
+            || !Number.isFinite(duration)
+            || duration <= 0
+            || actionTime < start
+            || actionTime >= start + duration)
+        {
+            return;
+        }
+        if (typeof param.cancelAndHoldAtTime === "function")
+        {
+            param.cancelAndHoldAtTime(actionTime);
+            return;
+        }
+
+        const progress = (actionTime - start) / duration;
+        const value = evaluateWwiseInterpolation(
+            voice.fadeCurve,
+            progress,
+        );
+
+        param.cancelScheduledValues?.(actionTime);
+        param.setValueAtTime?.(value, actionTime);
+        if ("value" in param)
+        {
+            param.value = value;
+        }
+    }
+
+    /** Marks the SFX side complete and closes the shared id when music agrees. */
+    #FinishSfxPlaying(playingID)
+    {
+        const record = this.#playing.get(playingID);
+
+        if (!record || record.sfxFinished)
+        {
+            return;
+        }
+        record.sfxFinished = true;
+        if (!record.music || record.musicFinished)
+        {
+            this.#FinishPlaying(playingID);
+        }
+    }
+
+    /** Marks the music side complete and closes the shared id when SFX agrees. */
+    #FinishMusicPlaying(playingID)
+    {
+        const record = this.#playing.get(playingID);
+
+        if (!record || record.musicFinished)
+        {
+            return;
+        }
+        record.musicFinished = true;
+        if (!record.sfx || record.sfxFinished)
+        {
+            this.#FinishPlaying(playingID);
+        }
     }
 
     /** Finalizes one playing record and delivers completion callbacks once. */
@@ -1112,8 +1825,14 @@ export class CjsAudioBackend
         if (record)
         {
             this.#playing.delete(playingID);
+            this.#scheduledSfxStops = this.#scheduledSfxStops
+                .filter(stop => stop.ownerPlayingID !== playingID);
             record.stopped = true;
             record.controller?.abort();
+            for (const slot of record.programSlots?.values?.() ?? [])
+            {
+                slot.controller?.abort();
+            }
 
             for (const voice of record.voices ?? [])
             {
@@ -1134,6 +1853,7 @@ export class CjsAudioBackend
                 }
                 voice.source?.disconnect?.();
                 voice.gain?.disconnect?.();
+                voice.fadeGain?.disconnect?.();
             }
 
             if (record.source)
@@ -1154,6 +1874,118 @@ function SetAudioParam(param, value, context)
     {
         param.value = value;
     }
+}
+
+function RenderQuantumSeconds(context)
+{
+    const sampleRate = Number(context?.sampleRate);
+
+    return Number.isFinite(sampleRate) && sampleRate > 0
+        ? 128 / sampleRate
+        : DEFAULT_RENDER_QUANTUM_SECONDS;
+}
+
+function CompareStopActions(left, right)
+{
+    return CompareOrderTuples(
+        [
+            left.actionTime,
+            left.ownerPlayingID,
+            left.actionIndex,
+            Number.MAX_SAFE_INTEGER,
+        ],
+        [
+            right.actionTime,
+            right.ownerPlayingID,
+            right.actionIndex,
+            Number.MAX_SAFE_INTEGER,
+        ],
+    );
+}
+
+function CompareProgramOrder(slot, stop)
+{
+    return CompareOrderTuples(
+        [
+            slot.actionTime,
+            slot.playingID,
+            slot.actionIndex,
+            slot.leafIndex,
+        ],
+        [
+            stop.actionTime,
+            stop.ownerPlayingID,
+            stop.actionIndex,
+            Number.MAX_SAFE_INTEGER,
+        ],
+    );
+}
+
+function CompareFallbackOrder(record, playingID, stop)
+{
+    return CompareOrderTuples(
+        [
+            record.postContextTime,
+            playingID,
+            Number.MAX_SAFE_INTEGER,
+            Number.MAX_SAFE_INTEGER,
+        ],
+        [
+            stop.actionTime,
+            stop.ownerPlayingID,
+            stop.actionIndex,
+            Number.MAX_SAFE_INTEGER,
+        ],
+    );
+}
+
+function CompareOrderTuples(left, right)
+{
+    for (let index = 0; index < left.length; index++)
+    {
+        const result = Number(left[index]) - Number(right[index]);
+
+        if (result !== 0)
+        {
+            return result;
+        }
+    }
+    return 0;
+}
+
+function SilenceAudioParamAt(param, time, context)
+{
+    if (typeof param?.cancelAndHoldAtTime === "function")
+    {
+        param.cancelAndHoldAtTime(time);
+    }
+    else
+    {
+        param?.cancelScheduledValues?.(time);
+    }
+    param?.setValueAtTime?.(0, time);
+    SetAudioParam(param, 0, context);
+}
+
+function StopMatchesSlot(stop, slot)
+{
+    const matchIds = new Set(
+        (slot.matchIds ?? []).map(String),
+    );
+    const protectedByException = stop.exceptions
+        .some(exception =>
+            matchIds.has(String(exception.targetId)));
+
+    if (protectedByException)
+    {
+        return false;
+    }
+    if (stop.mode === "all" || stop.mode === "all-except")
+    {
+        return true;
+    }
+    return stop.mode === "element"
+        && matchIds.has(String(stop.targetId));
 }
 
 function NormalizeVoiceDescriptors(result, eventLoop)
@@ -1182,6 +2014,9 @@ function NormalizeVoiceDescriptors(result, eventLoop)
 
         const constantGain = Number(value.gain ?? 1);
         const playCount = Number(value.playCount ?? 1);
+        const delayMs = Number(value.delayMs ?? 0);
+        const fadeInMs = Number(value.fadeInMs ?? 0);
+        const fadeCurve = Number(value.fadeCurve ?? LINEAR_FADE_CURVE);
 
         if (!Number.isSafeInteger(playCount) || playCount <= 0)
         {
@@ -1193,6 +2028,34 @@ function NormalizeVoiceDescriptors(result, eventLoop)
         {
             throw new TypeError(
                 `Audio voice ${index} cannot combine loop and playCount`,
+            );
+        }
+        if (!Number.isFinite(delayMs) || delayMs < 0)
+        {
+            throw new TypeError(
+                `Audio voice ${index} delayMs must be non-negative`,
+            );
+        }
+        if (!Number.isFinite(fadeInMs) || fadeInMs < 0)
+        {
+            throw new TypeError(
+                `Audio voice ${index} fadeInMs must be non-negative`,
+            );
+        }
+        if (!Number.isSafeInteger(fadeCurve)
+            || fadeCurve < 0
+            || fadeCurve > 8)
+        {
+            throw new TypeError(
+                `Audio voice ${index} fadeCurve must be a Wwise curve value from 0 to 8`,
+            );
+        }
+        if (value.programSlotId !== undefined
+            && (typeof value.programSlotId !== "string"
+                || value.programSlotId.length === 0))
+        {
+            throw new TypeError(
+                `Audio voice ${index} programSlotId must be a non-empty string`,
             );
         }
 
@@ -1208,6 +2071,12 @@ function NormalizeVoiceDescriptors(result, eventLoop)
             spatial: value.spatial === undefined
                 ? true
                 : Boolean(value.spatial),
+            delayMs,
+            fadeInMs,
+            fadeCurve,
+            ...(value.programSlotId === undefined
+                ? {}
+                : { programSlotId: value.programSlotId }),
             getGain: typeof value.getGain === "function"
                 ? value.getGain
                 : () => (
@@ -1217,4 +2086,51 @@ function NormalizeVoiceDescriptors(result, eventLoop)
                 ),
         };
     });
+}
+
+function ScheduleWwiseFade(
+    param,
+    from,
+    to,
+    when,
+    duration,
+    curve,
+    progress = 0,
+)
+{
+    const startProgress = Math.max(0, Math.min(1, progress));
+    const curveID = Number(curve);
+    const startValue = from
+        + (to - from) * evaluateWwiseInterpolation(
+            curveID,
+            startProgress,
+        );
+
+    if ("value" in param)
+    {
+        param.value = startValue;
+    }
+    if (curveID === LINEAR_FADE_CURVE
+        || typeof param.setValueCurveAtTime !== "function")
+    {
+        param.setValueAtTime?.(startValue, when);
+        param.linearRampToValueAtTime?.(to, when + duration);
+        return;
+    }
+
+    const values = new Float32Array(FADE_CURVE_SAMPLES);
+
+    for (let index = 0; index < values.length; index++)
+    {
+        const ratio = index / (values.length - 1);
+        const sampleProgress = startProgress
+            + (1 - startProgress) * ratio;
+
+        values[index] = from
+            + (to - from) * evaluateWwiseInterpolation(
+                curveID,
+                sampleProgress,
+            );
+    }
+    param.setValueCurveAtTime(values, when, duration);
 }

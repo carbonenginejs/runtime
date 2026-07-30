@@ -750,7 +750,7 @@ export class AudGameObjResource extends CjsModel
   /** Carbon method ApplyEventStopRelationships: purge queued/playing events this event stops. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon relies on Wwise to execute the posted Stop action; the portable backend must dispatch the equivalent stop while applying the same metadata relationship.")
+  @impl.reason("Carbon relies on Wwise to execute the posted Stop action; the portable backend executes an installed authored program or falls back to the equivalent metadata stop.")
   ApplyEventStopRelationships(stoppingEventName)
   {
     const repository = AudGameObjResource.staticDataRepository;
@@ -758,6 +758,8 @@ export class AudGameObjResource extends CjsModel
     {
       return;
     }
+    const backendOwnsStop = AudGameObjResource.backend
+      ?.HandlesEventStops?.(stoppingEventName) === true;
     let changed = false;
     const playingIDsToStop = [];
     for (const queued of [...this.#eventsOnWake])
@@ -772,14 +774,20 @@ export class AudGameObjResource extends CjsModel
     {
       if (repository.EventIsStopped(playing, stoppingEventName))
       {
-        this.#pendingStoppedPlayingIDs.add(playingID);
-        playingIDsToStop.push(playingID);
-        changed = true;
+        if (!backendOwnsStop)
+        {
+          this.#pendingStoppedPlayingIDs.add(playingID);
+          playingIDsToStop.push(playingID);
+          changed = true;
+        }
       }
     }
-    for (const playingID of playingIDsToStop)
+    if (!backendOwnsStop)
     {
-      this.ExecuteActionOnPlayingID(playingID, "stop", 1000);
+      for (const playingID of playingIDsToStop)
+      {
+        this.ExecuteActionOnPlayingID(playingID, "stop", 1000);
+      }
     }
     if (changed)
     {

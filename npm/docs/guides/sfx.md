@@ -3,7 +3,7 @@
 Status: Experimental  
 Scope: `@carbonenginejs/runtime-audio`  
 Audience: Library producers and browser application authors  
-Summary: Describes optional portable SFX selection, layering, and RTPC gain behavior.
+Summary: Describes optional portable SFX selection, ordered actions, layering, and RTPC gain behavior.
 
 ## Purpose
 
@@ -23,13 +23,45 @@ is never used as an audible fallback.
 
 ```js
 {
-    schemaVersion: 1,
+    schemaVersion: 2,
     events: {
-        weapon_fire: [ { nodeId: "1" } ]
-    },
-    eventActions: {
         weapon_fire: [
-            { kind: "switch", group: "ship_size", value: "large" }
+            {
+                nodeId: "1",
+                delayMs: 100,
+                delayRangeMs: { min: -50, max: 100 },
+                probability: 75,
+                fadeInMs: 250,
+                fadeCurve: 4
+            }
+        ]
+    },
+    programs: {
+        weapon_fire: [
+            { kind: "switch", group: "ship_size", value: "large" },
+            {
+                kind: "play",
+                child: {
+                    nodeId: "1",
+                    delayMs: 100,
+                    delayRangeMs: { min: -50, max: 100 },
+                    probability: 75,
+                    fadeInMs: 250,
+                    fadeCurve: 4
+                }
+            },
+            {
+                kind: "stop",
+                targetId: "2",
+                targetFlags: 0,
+                scope: "game-object",
+                mode: "element",
+                delayMs: 1000,
+                transitionMs: 250,
+                curve: 4,
+                actionFlags: 6,
+                exceptions: []
+            }
         ]
     },
     nodes: {
@@ -65,6 +97,7 @@ is never used as an audible fallback.
         "10": {
             type: "sound",
             mediaId: "777",
+            matchIds: [ "10", "2" ],
             spatial: true
         },
         "11": {
@@ -83,6 +116,14 @@ Node IDs and media IDs are positive unsigned 32-bit identities serialized as
 strings. The validator rejects missing references and cycles before audio is
 enabled.
 
+SFX schema version 2 makes `programs` the ordered authoring source. When an
+event has a program, its `events` entry must be exactly the projection of that
+program's `play` actions. This keeps legacy root lookup available without
+allowing the static roots and the executable program to disagree. Supplied
+Stop actions are also qualified at validation time: bus targets, unsupported
+action flags, nonzero Stop-All targets, and element-target exceptions are
+rejected.
+
 ## Node behavior
 
 | Type | Behavior |
@@ -97,11 +138,39 @@ enabled.
 
 An event may have several roots; roots are parallel.
 
-`eventActions` carries ordered authored SetSwitch and SetState actions.
-Switches update the posting game object; states update the global state table.
-The actions run before the event roots are resolved, so a setter may select a
-switch/state branch in the same post. A setter-only event is valid and
-completes without creating a media voice.
+Play-action edges may carry `delayMs`, an optional randomized offset in
+`delayRangeMs`, a percentage `probability`, and `fadeInMs` with an optional
+`fadeInRangeMs` and Wwise `fadeCurve` from 0 through 8. Randomizer ranges are
+offsets from the base value. One set of values is sampled for the Play action
+and inherited by every sound leaf it selects. Delay is measured from the
+event post, and the fade begins when the delayed source starts.
+
+`programs` preserves the authored order of Play, Stop, SetSwitch, and
+SetState actions. Switches update the posting game object; states update the
+global state table. A setter therefore affects only later Play actions in the
+same post. The `events` table remains the static playable-root projection
+used for media discovery. A setter-only or Stop-only program is valid and
+completes without creating a media voice. Directly scheduled setters are
+omitted instead of being executed early.
+
+A Stop action has `scope: "game-object"` or `"global"`. `mode: "element"`
+matches the target HIRC identity, while `"all"` and `"all-except"` apply to
+all eligible SFX voices; Stop-All uses target ID `"0"`. Exceptions protect
+any voice whose selected hierarchy path contains their target identity.
+Builder-produced sound nodes retain omitted raw hierarchy parents in
+`matchIds`, beginning with the sound node's own identity, so an element Stop
+can still match a Sound through an Actor-Mixer that is not itself a playable
+runtime node.
+
+Stop delay is measured from the event post. `transitionMs`, its optional
+randomizer, and `curve` control the authored fade before the voice halts.
+Timing ranges are sampled once per post. Pending Play slots can be cancelled
+before their media resolves, and delayed Stop-only events remain alive until
+their action has executed. At equal scheduled times, authored action order is
+preserved: Play then Stop is stoppable, while Stop then Play leaves the later
+Play intact. Event metadata still carries conservative `eventsStoppedBy`
+relationships for culling and static inspection, but an installed authored
+program owns the actual Stop timing and avoids a duplicate fallback fade.
 
 Random and sequence state is kept independently per game object by default.
 Set `scope: "global"` on either container to share its history or position
@@ -200,14 +269,26 @@ are preserved by `runtime-resource`, but the builder does not currently infer
 caller metadata, or enrichment.
 
 Automatic construction currently accepts Wwise generator-version-150 codec
-sounds, Play, Stop, Play-Event, SetSwitch, and SetState actions, Step Random/Sequence containers
-without reverse restart, and named Step Switch/State containers without
-transition parameters. Play-Event recursively inlines the referenced event's
-playable and Stop program; missing targets and cycles are diagnosed and
-omitted. Trackless, non-continuous Layer/Blend containers lower to parallel
-playback. Non-continuous Layer crossfade tracks lower to live normalized-gain
-curves when their controller is a named Game Parameter and the Layer has no
-separate property RTPCs.
+sounds, Play, Stop, Play-Event, SetSwitch, and SetState actions, Step
+Random/Sequence containers without reverse restart, and named Step
+Switch/State containers without transition parameters. Play actions retain
+their authored delay, delay randomizer, probability, fade-in duration,
+fade-in randomizer, and curve. Play-Event recursively inlines the referenced
+event's playable program and merges its immediate setter and Stop
+relationships; its delay, delay randomizer, and probability wrap only the
+inlined playable roots. A scheduled or gated Play-Event that reaches a setter
+or Stop program is omitted rather than executing that non-play action early.
+Missing targets and cycles are diagnosed and omitted.
+Successfully lowered nodes also retain inherited NodeBase Volume, Pitch, and
+InitialDelay properties. Their independent authored random ranges are sampled
+once per post; Volume accumulates in decibels, Pitch becomes a Web Audio
+playback-rate ratio, and InitialDelay is added to the Play action delay.
+Hierarchy-only Actor-Mixer values are folded into the nearest playable node
+without turning the mixer into a playable container.
+Trackless, non-continuous Layer/Blend containers lower to parallel playback.
+Non-continuous Layer crossfade tracks lower to live normalized-gain curves
+when their controller is a named Game Parameter and the Layer has no separate
+property RTPCs.
 Transition and reset-after-stop policies authored on a Step Random/Sequence
 container are Continuous-only and therefore do not alter its
 one-child-per-post behavior. The builder omits an entire playable event when

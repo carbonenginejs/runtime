@@ -109,7 +109,10 @@ It performs no fetch, file-index discovery, cache access, or Node filesystem
 work. With `includeSfx: true`, inspected version-150 banks may also contribute
 a conservative authored SFX graph, exact typed-graph `eventMedia`
 reachability, and sparse inherited `is2D` event metadata; caller metadata and
-enrichment retain final precedence.
+enrichment retain final precedence. With `music: true`, the two authored music
+banks contribute the decoded music hierarchy while typed event actions are
+projected from every selected bank. Projection follows music targets and
+argument groups rather than bank-name or event-name conventions.
 
 ## Errors
 

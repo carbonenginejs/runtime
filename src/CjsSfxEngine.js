@@ -5,6 +5,10 @@
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
 
 const MIN_AUDIBLE_GAIN_DB = -96;
+const MIN_RELATIVE_GAIN_DB = -200;
+const MAX_RELATIVE_GAIN_DB = 200;
+const MIN_RELATIVE_PITCH_CENTS = -2400;
+const MAX_RELATIVE_PITCH_CENTS = 2400;
 
 /**
  * Resolves authored SFX containers into one or more playable media selections.
@@ -45,7 +49,14 @@ export class CjsSfxEngine
         const name = String(eventName);
 
         return Array.isArray(this.#graph.events?.[name])
-            || Array.isArray(this.#graph.eventActions?.[name]);
+            || Array.isArray(this.#graph.programs?.[name]);
+    }
+
+    /** Returns whether one authored event program contains a Stop action. */
+    HasStopAction(eventName)
+    {
+        return this.#graph.programs?.[String(eventName)]
+            ?.some(action => action.kind === "stop") === true;
     }
 
     /**
@@ -56,41 +67,116 @@ export class CjsSfxEngine
      */
     ResolveEvent(eventName, controls = {})
     {
+        const program = this.ResolveProgram(eventName, controls);
+
+        return program === null
+            ? []
+            : program.flatMap(action =>
+                action.kind === "play"
+                    ? action.selections.map(({
+                        actionIndex: _actionIndex,
+                        leafIndex: _leafIndex,
+                        matchIds: _matchIds,
+                        ...selection
+                    }) => Object.freeze(selection))
+                    : []);
+    }
+
+    /**
+     * Resolves one post into ordered Play and Stop operations.
+     *
+     * SetSwitch and SetState actions execute synchronously in their authored
+     * position so each later Play resolves against the updated controls.
+     */
+    ResolveProgram(eventName, controls = {})
+    {
         const name = String(eventName);
         const roots = this.#graph.events?.[name] ?? [];
-        const actions = this.#graph.eventActions?.[name] ?? [];
+        const program = this.#graph.programs?.[name] ?? null;
 
-        if (!Array.isArray(roots) || !Array.isArray(actions))
+        if (!Array.isArray(roots)
+            || (program !== null && !Array.isArray(program)))
         {
-            return [];
+            return null;
         }
 
-        for (const action of actions)
-        {
-            if (action.kind === "state")
-            {
-                controls.setState?.(action.group, action.value);
-            }
-            else if (action.kind === "switch")
-            {
-                controls.setSwitch?.(action.group, action.value);
-            }
-        }
-
-        const selections = [];
-
-        for (const root of roots)
+        const operations = [];
+        const resolve = (child, actionIndex, selections) =>
         {
             this.#ResolveChild(
-                root,
+                child,
                 controls,
-                { gainDb: 0, gainCurves: [] },
+                {
+                    gainDb: 0,
+                    gainCurves: [],
+                    pitchCents: 0,
+                    initialDelayMs: 0,
+                    delayMs: 0,
+                    fadeInMs: 0,
+                    fadeCurve: 4,
+                },
                 new Set(),
                 selections,
             );
+        };
+        const addPlay = (children, actionIndex) =>
+        {
+            const selections = [];
+
+            for (const child of children)
+            {
+                resolve(child, actionIndex, selections);
+            }
+            operations.push(Object.freeze({
+                kind: "play",
+                actionIndex,
+                selections: Object.freeze(selections.map(
+                    (selection, leafIndex) => Object.freeze({
+                        ...selection,
+                        actionIndex,
+                        leafIndex,
+                    }),
+                )),
+            }));
+        };
+
+        if (program !== null)
+        {
+            for (let actionIndex = 0;
+                actionIndex < program.length;
+                actionIndex++)
+            {
+                const action = program[actionIndex];
+
+                if (action.kind === "play")
+                {
+                    addPlay([ action.child ], actionIndex);
+                }
+                else if (action.kind === "stop")
+                {
+                    const stop = this.#ResolveStopAction(
+                        action,
+                        actionIndex,
+                    );
+
+                    if (stop)
+                    {
+                        operations.push(stop);
+                    }
+                }
+                else
+                {
+                    ApplySetter(action, controls);
+                }
+            }
+            return Object.freeze(operations);
         }
 
-        return selections;
+        if (roots.length)
+        {
+            addPlay(roots, 0);
+        }
+        return Object.freeze(operations);
     }
 
     /**
@@ -116,6 +202,11 @@ export class CjsSfxEngine
             }
         }
 
+        gainDb = Clamp(
+            gainDb,
+            MIN_RELATIVE_GAIN_DB,
+            MAX_RELATIVE_GAIN_DB,
+        );
         if (linearGain <= 0 || gainDb <= MIN_AUDIBLE_GAIN_DB)
         {
             return 0;
@@ -158,10 +249,18 @@ export class CjsSfxEngine
             );
         }
 
-        const terms = AddGain(
-            AddGain(inherited, edge),
+        const actionTiming = this.#ResolveActionTiming(edge, inherited);
+
+        if (actionTiming === null)
+        {
+            return;
+        }
+
+        const terms = this.#AddNodeTerms(
+            this.#AddNodeTerms(inherited, edge),
             node,
         );
+        Object.assign(terms, actionTiming);
         const nextActive = new Set(active);
 
         nextActive.add(edge.nodeId);
@@ -170,16 +269,39 @@ export class CjsSfxEngine
         {
             selections.push(Object.freeze({
                 mediaID: String(node.mediaId),
+                matchIds: Object.freeze([ ...new Set([
+                    ...nextActive,
+                    ...(node.matchIds ?? []),
+                ]) ]),
                 loop: node.loop,
                 ...(node.playCount === undefined
                     ? {}
                     : { playCount: node.playCount }),
-                playbackRate: node.playbackRate ?? 1,
+                playbackRate: (node.playbackRate ?? 1)
+                    * 2 ** (
+                        Clamp(
+                            terms.pitchCents,
+                            MIN_RELATIVE_PITCH_CENTS,
+                            MAX_RELATIVE_PITCH_CENTS,
+                        ) / 1200
+                    ),
                 ...(node.spatial === undefined
                     ? {}
                     : { spatial: node.spatial }),
                 gainDb: terms.gainDb,
                 gainCurves: Object.freeze([ ...terms.gainCurves ]),
+                ...(terms.delayMs + terms.initialDelayMs > 0
+                    ? {
+                        delayMs: terms.delayMs
+                            + terms.initialDelayMs,
+                    }
+                    : {}),
+                ...(terms.fadeInMs > 0
+                    ? {
+                        fadeInMs: terms.fadeInMs,
+                        fadeCurve: terms.fadeCurve,
+                    }
+                    : {}),
             }));
             return;
         }
@@ -267,6 +389,137 @@ export class CjsSfxEngine
         }
     }
 
+    /** Accumulates one hierarchy level's static and randomized properties. */
+    #AddNodeTerms(base, value)
+    {
+        return {
+            ...base,
+            gainDb: base.gainDb
+                + (Number(value?.gainDb) || 0)
+                + SampleRanges(
+                    value?.gainDbRanges,
+                    () => this.#SampleUnit(),
+                ),
+            gainCurves: [
+                ...base.gainCurves,
+                ...(value?.gainCurves ?? []),
+            ],
+            pitchCents: base.pitchCents
+                + (Number(value?.pitchCents) || 0)
+                + SampleRanges(
+                    value?.pitchCentsRanges,
+                    () => this.#SampleUnit(),
+                ),
+            initialDelayMs: base.initialDelayMs
+                + (Number(value?.initialDelayMs) || 0)
+                + SampleRanges(
+                    value?.initialDelayRangesMs,
+                    () => this.#SampleUnit(),
+                ),
+        };
+    }
+
+    /** Resolves one action edge's probability, delay, and fade-in randomizers. */
+    #ResolveActionTiming(edge, inherited)
+    {
+        const probability = edge.probability === undefined
+            ? 100
+            : Number(edge.probability);
+
+        if (probability <= 0)
+        {
+            return null;
+        }
+        if (probability < 100
+            && this.#SampleUnit() * 100 >= probability)
+        {
+            return null;
+        }
+
+        const delayMs = Math.max(
+            0,
+            Number(inherited.delayMs) || 0,
+        ) + SampleRandomizedValue(
+            edge.delayMs,
+            edge.delayRangeMs,
+            () => this.#SampleUnit(),
+        );
+        const ownsFade = edge.fadeInMs !== undefined
+            || edge.fadeInRangeMs !== undefined
+            || edge.fadeCurve !== undefined;
+        const fadeInMs = ownsFade
+            ? SampleRandomizedValue(
+                edge.fadeInMs,
+                edge.fadeInRangeMs,
+                () => this.#SampleUnit(),
+            )
+            : Math.max(0, Number(inherited.fadeInMs) || 0);
+        const fadeCurve = ownsFade
+            ? Number(edge.fadeCurve ?? 4)
+            : Number(inherited.fadeCurve ?? 4);
+
+        return {
+            delayMs,
+            fadeInMs,
+            fadeCurve,
+        };
+    }
+
+    /** Samples one authored Stop action once for this post. */
+    #ResolveStopAction(action, actionIndex)
+    {
+        const probability = action.probability === undefined
+            ? 100
+            : Number(action.probability);
+
+        if (probability <= 0
+            || (probability < 100
+                && this.#SampleUnit() * 100 >= probability))
+        {
+            return null;
+        }
+
+        return Object.freeze({
+            kind: "stop",
+            actionIndex,
+            targetId: String(Number(action.targetId) >>> 0),
+            targetFlags: Number(action.targetFlags ?? 0),
+            scope: action.scope,
+            mode: action.mode,
+            delayMs: Math.max(0, SampleRandomizedValue(
+                action.delayMs,
+                action.delayRangeMs,
+                () => this.#SampleUnit(),
+            )),
+            transitionMs: Math.max(0, SampleRandomizedValue(
+                action.transitionMs,
+                action.transitionRangeMs,
+                () => this.#SampleUnit(),
+            )),
+            curve: Number(action.curve ?? 4),
+            actionFlags: Number(action.actionFlags ?? 6),
+            exceptions: Object.freeze(action.exceptions.map(exception =>
+                Object.freeze({
+                    targetId: String(
+                        Number(exception.targetId) >>> 0,
+                    ),
+                    targetFlags: Number(
+                        exception.targetFlags ?? 0,
+                    ),
+                }))),
+        });
+    }
+
+    /** Returns one finite random sample clamped to Wwise's [0, 1) domain. */
+    #SampleUnit()
+    {
+        const sampled = Number(this.#random());
+
+        return Number.isFinite(sampled)
+            ? Math.max(0, Math.min(0.9999999999999999, sampled))
+            : 0;
+    }
+
     /** Selects one weighted random child with per-object repeat avoidance. */
     #SelectRandom(nodeID, node, gameObjID)
     {
@@ -316,12 +569,7 @@ export class CjsSfxEngine
             (sum, { child }) => sum + (Number(child.weight) || 1),
             0,
         );
-        const sampled = Number(this.#random());
-        let remaining = (
-            Number.isFinite(sampled)
-                ? Math.max(0, Math.min(0.9999999999999999, sampled))
-                : 0
-        ) * total;
+        let remaining = this.#SampleUnit() * total;
         let selected = available.at(-1)?.index ?? -1;
 
         for (const { child, index } of available)
@@ -375,6 +623,34 @@ export class CjsSfxEngine
     }
 }
 
+function SampleRandomizedValue(base, range, sample)
+{
+    const value = Number(base) || 0;
+
+    if (!range)
+    {
+        return Math.max(0, value);
+    }
+
+    const min = Number(range.min) || 0;
+    const max = Number(range.max) || 0;
+    const offset = min + (max - min) * sample();
+
+    return Math.max(0, value + offset);
+}
+
+function ApplySetter(action, controls)
+{
+    if (action.kind === "state")
+    {
+        controls.setState?.(action.group, action.value);
+    }
+    else if (action.kind === "switch")
+    {
+        controls.setSwitch?.(action.group, action.value);
+    }
+}
+
 function NormalizeChild(child)
 {
     if (child && typeof child === "object" && !Array.isArray(child))
@@ -384,15 +660,19 @@ function NormalizeChild(child)
     return { nodeId: String(child) };
 }
 
-function AddGain(base, value)
+function SampleRanges(ranges, sample)
 {
-    return {
-        gainDb: base.gainDb + (Number(value?.gainDb) || 0),
-        gainCurves: [
-            ...base.gainCurves,
-            ...(value?.gainCurves ?? []),
-        ],
-    };
+    let result = 0;
+
+    for (const range of ranges ?? [])
+    {
+        const min = Number(range.min) || 0;
+        const max = Number(range.max) || 0;
+
+        result += min + (max - min) * sample();
+    }
+
+    return result;
 }
 
 function ReadRTPC(curve, controls)
@@ -417,6 +697,11 @@ function NormalizeControlValue(value, fallback)
 {
     const number = Number(value);
     return Number.isFinite(number) ? number : fallback;
+}
+
+function Clamp(value, min, max)
+{
+    return Math.min(max, Math.max(min, value));
 }
 
 function EvaluateCurve(points, value)
