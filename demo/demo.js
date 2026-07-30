@@ -7,7 +7,7 @@
 //   Stage            canvas view, pointer interaction, hover card, drawing
 //   MusicUi          dynamic-music chips, play/stop, one-line status hud
 //   JukeboxUi        optional titled-track library and direct playlist controls
-//   SfxUi            authored random/sequence/parallel graph exercises
+//   SfxUi            authored containers, setters, and RTPC graph exercises
 //   Showcase         the prebuilt "Load demo" scene and its schedulers
 //   EffectListPanel  the searchable effect list on the left
 //   DemoApp          CjsAudioMan wiring, enablement, and the frame loop
@@ -171,35 +171,250 @@ class AudioLibrary
     }
 
     /**
+     * Returns the authored setters and interactive branch/gain controls
+     * reachable from one SFX event.
+     */
+    SfxControls(eventName)
+    {
+        const graph = this.sfx ?? {};
+        const roots = graph.events?.[eventName] ?? [];
+        const pending = roots.map(root => String(root.nodeId));
+        const visited = new Set();
+        const switches = new Map();
+        const rtpcs = new Map();
+        const collectCurves = value =>
+        {
+            for (const curve of value?.gainCurves ?? [])
+            {
+                const xs = (curve.points ?? [])
+                    .map(point => Number(point.x))
+                    .filter(Number.isFinite);
+
+                if (!xs.length)
+                {
+                    continue;
+                }
+
+                const key = `${curve.scope}:${curve.rtpc}`;
+                const current = rtpcs.get(key) ?? {
+                    name: curve.rtpc,
+                    scope: curve.scope,
+                    min: Math.min(...xs),
+                    max: Math.max(...xs),
+                };
+
+                current.min = Math.min(current.min, ...xs);
+                current.max = Math.max(current.max, ...xs);
+                rtpcs.set(key, current);
+            }
+        };
+
+        while (pending.length)
+        {
+            const id = pending.pop();
+
+            if (visited.has(id))
+            {
+                continue;
+            }
+            visited.add(id);
+
+            const node = graph.nodes?.[id];
+
+            if (!node)
+            {
+                continue;
+            }
+
+            collectCurves(node);
+            if (node.type === "switch")
+            {
+                const key = `${node.scope}:${node.group}`;
+                const current = switches.get(key) ?? {
+                    group: node.group,
+                    scope: node.scope,
+                    values: new Set(),
+                    value: null,
+                };
+                const entries = Object.entries(node.cases ?? {});
+
+                for (const [ value, child ] of entries)
+                {
+                    current.values.add(value);
+                    if (node.default
+                        && String(child.nodeId) === String(node.default.nodeId))
+                    {
+                        current.value = value;
+                    }
+                }
+                current.value ??= entries[0]?.[0] ?? "";
+                switches.set(key, current);
+            }
+            for (const child of node.children ?? [])
+            {
+                collectCurves(child);
+                pending.push(String(child.nodeId));
+            }
+            for (const child of Object.values(node.cases ?? {}))
+            {
+                collectCurves(child);
+                pending.push(String(child.nodeId));
+            }
+            if (node.default)
+            {
+                collectCurves(node.default);
+                pending.push(String(node.default.nodeId));
+            }
+        }
+
+        return {
+            actions: [ ...(graph.eventActions?.[eventName] ?? []) ],
+            switches: [ ...switches.values() ].map(control => ({
+                ...control,
+                values: [ ...control.values ],
+            })),
+            rtpcs: [ ...rtpcs.values() ],
+        };
+    }
+
+    /** Explains what one selected authored SFX example demonstrates. */
+    SfxDescription(type, eventName)
+    {
+        const controls = this.SfxControls(eventName);
+        const actionText = controls.actions
+            .map(action => `${action.kind} ${action.group}=${action.value}`)
+            .join(", then ");
+
+        if (type === "sound")
+        {
+            return "Posts one direct authored Sound leaf through the same media-selection and delivery path used by every other example.";
+        }
+        if (type === "random")
+        {
+            return "Chooses one eligible child per post using the container's authored random weights and repeat-avoidance rules.";
+        }
+        if (type === "sequence")
+        {
+            return "Repeated posts advance the authored Step sequence because this panel retains one emitter. Reset clears its sequence position.";
+        }
+        if (type === "parallel")
+        {
+            return "Resolves every authored child as simultaneous voices owned by one playing ID and started on the same sample boundary.";
+        }
+        if (type === "switch action" || type === "state action")
+        {
+            return `Before resolving its playable roots, this event applies ${actionText} in authored order.`;
+        }
+        if (type === "setter only")
+        {
+            return `Applies ${actionText} without posting an audio root. This is an authored control event, so silence is expected.`;
+        }
+        if (type === "switch container")
+        {
+            const control = controls.switches[0];
+            const cases = control?.values.join(", ") || "its authored cases";
+            const scope = control?.scope === "state"
+                ? "global state"
+                : "object switch";
+            const route = this.PlayableCandidates(eventName).length
+                ? "Only the selected branch is played."
+                : "Every decoded case in this build routes to authored silence.";
+
+            return `Reads the ${scope} ${control?.group ?? ""} and selects one of ${cases}. ${route}`;
+        }
+        if (type === "RTPC blend")
+        {
+            const control = controls.rtpcs[0];
+            const sounds = this.PlayableCandidates(eventName).length;
+
+            return `Uses the ${control?.scope ?? "object"} RTPC ${control?.name ?? ""} from ${FormatControlValue(control?.min ?? 0)} to ${FormatControlValue(control?.max ?? 0)} to change the live gains of ${sounds} authored sound layers. Move the slider during playback or post again at a new value.`;
+        }
+
+        return "Posts the selected authored SFX graph on one retained emitter.";
+    }
+
+    /**
      * Selects one deterministic, playable event for each authored container
      * family present in the demo library.
      */
     SfxExamples()
     {
-        const preferences = {
-            sound: [ "dungeon_particle_accelerator_play" ],
-            random: [ "Play_explosion_large" ],
-            sequence: [ "msg_fittingSlotHi_play" ],
-            parallel: [ "microjumpdrive_cycle_play" ],
-            switch: [],
-            blend: [],
-        };
+        const definitions = [
+            {
+                type: "sound",
+                preferred: [ "dungeon_particle_accelerator_play" ],
+                matches: name => this.SfxNodeTypes(name).includes("sound"),
+            },
+            {
+                type: "random",
+                preferred: [ "Play_explosion_large" ],
+                matches: name => this.SfxNodeTypes(name).includes("random"),
+            },
+            {
+                type: "sequence",
+                preferred: [ "msg_fittingSlotHi_play" ],
+                matches: name => this.SfxNodeTypes(name).includes("sequence"),
+            },
+            {
+                type: "parallel",
+                preferred: [ "microjumpdrive_cycle_play" ],
+                matches: name => this.SfxNodeTypes(name).includes("parallel"),
+            },
+            {
+                type: "switch action",
+                preferred: [ "es_screen_2_2_play" ],
+                matches: name => this.sfx?.eventActions?.[name]
+                    ?.some(action => action.kind === "switch")
+                    && Boolean(this.sfx?.events?.[name]),
+            },
+            {
+                type: "state action",
+                preferred: [ "isInsideFractureBubble_yes" ],
+                matches: name => this.sfx?.eventActions?.[name]
+                    ?.some(action => action.kind === "state")
+                    && Boolean(this.sfx?.events?.[name]),
+            },
+            {
+                type: "setter only",
+                preferred: [ "charge_abyssal_switch" ],
+                matches: name => Boolean(this.sfx?.eventActions?.[name])
+                    && !this.sfx?.events?.[name],
+            },
+            {
+                type: "switch container",
+                preferred: [ "phased_asteroid_collapsed" ],
+                matches: name => this.SfxNodeTypes(name).includes("switch"),
+            },
+            {
+                type: "RTPC blend",
+                preferred: [ "msg_newscan_probe_scan_results_play" ],
+                matches: name => this.SfxNodeTypes(name).includes("blend"),
+            },
+        ];
         const eventNames = Object.keys(this.sfx?.events ?? {}).sort();
+        const actionNames = Object.keys(this.sfx?.eventActions ?? {}).sort();
+        const allNames = [ ...new Set([ ...eventNames, ...actionNames ]) ];
         const examples = [];
+        const selected = new Set();
 
-        for (const type of Object.keys(preferences))
+        for (const definition of definitions)
         {
-            const preferred = preferences[type].find(name =>
-                this.SfxNodeTypes(name).includes(type));
-            const eventName = preferred ?? eventNames.find(name =>
-                this.SfxNodeTypes(name).includes(type));
+            const preferred = definition.preferred.find(name =>
+                definition.matches(name));
+            const eventName = preferred ?? allNames.find(name =>
+                !selected.has(name) && definition.matches(name));
 
             if (eventName)
             {
+                selected.add(eventName);
                 examples.push({
                     eventName,
-                    type,
+                    type: definition.type,
                     nodeTypes: this.SfxNodeTypes(eventName),
+                    description: this.SfxDescription(
+                        definition.type,
+                        eventName,
+                    ),
                 });
             }
         }
@@ -1698,8 +1913,9 @@ class JukeboxUi
 
 
 /**
- * Authored SFX laboratory: posts one real sound, random, sequence, or parallel
- * HIRC graph repeatedly on the same object and exposes manager delivery modes.
+ * Authored SFX laboratory: posts real HIRC graphs repeatedly on the same
+ * object and exposes authored setters, branch controls, live RTPC blends, and
+ * manager delivery modes.
  */
 class SfxUi
 {
@@ -1711,6 +1927,10 @@ class SfxUi
     #item = null;
 
     #examples = [];
+    #controls = null;
+    #description = null;
+    #details = null;
+    #controlValues = new Map();
     #postCount = 0;
     #select = null;
     #status = null;
@@ -1738,6 +1958,8 @@ class SfxUi
 
         document.getElementById("sfx").style.display = "";
         this.#select = document.getElementById("sfxExamples");
+        this.#controls = document.getElementById("sfxControls");
+        this.#description = document.getElementById("sfxDescription");
         this.#status = document.getElementById("sfxStatus");
 
         for (const example of this.#examples)
@@ -1750,7 +1972,11 @@ class SfxUi
             this.#select.appendChild(option);
         }
 
-        this.#select.onchange = () => this.Reset();
+        this.#select.onchange = () =>
+        {
+            this.Reset();
+            this.#BuildControls();
+        };
         document.getElementById("sfxPost").onclick = () => this.Post();
         document.getElementById("sfxReset").onclick = () => this.Reset();
         document.getElementById("delivery").onchange = event =>
@@ -1758,6 +1984,7 @@ class SfxUi
             this.#app.audio.SetDelivery(event.target.value);
             this.#Refresh();
         };
+        this.#BuildControls();
         this.#Refresh();
     }
 
@@ -1800,6 +2027,7 @@ class SfxUi
             this.#item = item;
         }
 
+        this.#ApplyControls();
         this.#item.emitter.SendEvent(eventName);
         this.#postCount++;
         this.#Refresh();
@@ -1816,6 +2044,113 @@ class SfxUi
         this.#Refresh();
     }
 
+    /** Rebuilds the controls exposed by the selected authored graph. */
+    #BuildControls()
+    {
+        if (!this.#controls || !this.#select)
+        {
+            return;
+        }
+
+        this.#controls.replaceChildren();
+        this.#controlValues.clear();
+        this.#details = this.#app.library.SfxControls(this.#select.value);
+
+        for (const control of this.#details.switches)
+        {
+            const row = document.createElement("label");
+            const select = document.createElement("select");
+            const key = `switch:${control.scope}:${control.group}`;
+
+            row.className = "sfxControl";
+            row.append(`${control.scope} switch ${control.group}`);
+            for (const value of control.values)
+            {
+                const option = document.createElement("option");
+
+                option.value = value;
+                option.textContent = value;
+                option.selected = value === control.value;
+                select.appendChild(option);
+            }
+            this.#controlValues.set(key, control.value);
+            select.onchange = () =>
+            {
+                this.#controlValues.set(key, select.value);
+                this.#ApplyControls();
+                this.#Refresh();
+            };
+            row.appendChild(select);
+            this.#controls.appendChild(row);
+        }
+
+        for (const control of this.#details.rtpcs)
+        {
+            const row = document.createElement("label");
+            const line = document.createElement("span");
+            const output = document.createElement("output");
+            const input = document.createElement("input");
+            const key = `rtpc:${control.scope}:${control.name}`;
+            const span = control.max - control.min;
+            const value = control.min;
+
+            row.className = "sfxControl";
+            line.textContent = `${control.scope} RTPC ${control.name}`;
+            output.value = FormatControlValue(value);
+            line.appendChild(output);
+            input.type = "range";
+            input.min = String(control.min);
+            input.max = String(control.max);
+            input.step = String(span > 0 ? span / 400 : 1);
+            input.value = String(value);
+            input.oninput = () =>
+            {
+                const next = Number(input.value);
+
+                output.value = FormatControlValue(next);
+                this.#controlValues.set(key, next);
+                this.#ApplyControls();
+                this.#Refresh();
+            };
+            this.#controlValues.set(key, value);
+            row.append(line, input);
+            this.#controls.appendChild(row);
+        }
+    }
+
+    /** Applies the current authored switch/RTPC values to the retained object. */
+    #ApplyControls()
+    {
+        for (const control of this.#details?.switches ?? [])
+        {
+            const key = `switch:${control.scope}:${control.group}`;
+            const value = this.#controlValues.get(key);
+
+            if (control.scope === "state")
+            {
+                this.#app.audio.SetState(control.group, value);
+            }
+            else
+            {
+                this.#item?.emitter.SetSwitch(control.group, value);
+            }
+        }
+        for (const control of this.#details?.rtpcs ?? [])
+        {
+            const key = `rtpc:${control.scope}:${control.name}`;
+            const value = this.#controlValues.get(key);
+
+            if (control.scope === "global")
+            {
+                this.#app.audio.SetGlobalRTPC(control.name, value);
+            }
+            else
+            {
+                this.#item?.emitter.SetRTPC(control.name, value);
+            }
+        }
+    }
+
     #Refresh()
     {
         if (!this.#status || !this.#select)
@@ -1824,12 +2159,24 @@ class SfxUi
         }
 
         const eventName = this.#select.value;
+        const example = this.#examples.find(value =>
+            value.eventName === eventName);
         const graphTypes = this.#app.library.SfxNodeTypes(eventName);
+        const details = this.#app.library.SfxControls(eventName);
+
+        if (this.#description)
+        {
+            this.#description.textContent = example?.description ?? "";
+        }
         const types = graphTypes
             .filter(type => type !== "sound");
         if (!types.length && graphTypes.includes("sound"))
         {
             types.push("sound");
+        }
+        if (!types.length)
+        {
+            types.push("setter");
         }
         const graph = this.#app.library.sfx;
         const delivery = document.getElementById("delivery").value;
@@ -1839,14 +2186,37 @@ class SfxUi
                 ? " · repeat to hear authored random selection"
                 : types.includes("parallel")
                     ? " · one post resolves simultaneous layer voices"
-                    : "";
+                    : types.includes("blend")
+                        ? " · move the RTPC while playing or post at a new value"
+                        : types.includes("switch")
+                            ? " · choose an authored branch before posting"
+                            : "";
+        const actionSummary = details.actions.length
+            ? ` · before roots: ${details.actions.map(action =>
+                `${action.kind} ${action.group}=${action.value}`).join(" → ")}`
+            : "";
+        const playable = this.#app.library.PlayableCandidates(eventName).length;
+        const silent = playable
+            ? ""
+            : " · no playable root (the authored route is silent)";
 
         const position = this.#item
             ? " · purple source is draggable; hollow means idle"
             : " · Post creates a draggable purple source";
-        this.#status.textContent = `${Object.keys(graph.events).length} events / ${Object.keys(graph.nodes).length} nodes · ${types.join(" + ")} · ${delivery} delivery · posts ${this.#postCount}${repeated}${position}`;
+        const eventCount = new Set([
+            ...Object.keys(graph.events),
+            ...Object.keys(graph.eventActions ?? {}),
+        ]).size;
+        this.#status.textContent = `${eventCount} events / ${Object.keys(graph.nodes).length} nodes · ${types.join(" + ")} · ${delivery} delivery · posts ${this.#postCount}${repeated}${actionSummary}${silent}${position}`;
     }
 
+}
+
+function FormatControlValue(value)
+{
+    return Number(value).toLocaleString(undefined, {
+        maximumFractionDigits: 3,
+    });
 }
 
 

@@ -37,6 +37,10 @@
   .buttonRow { display: flex; gap: 6px; margin-top: 7px; }
   .buttonRow button { flex: 1; padding: 6px 8px; font-size: 12px; }
   #sfxStatus { color: #7dd3fc; font-size: 11px; line-height: 1.4; margin-top: 7px; }
+  #sfxControls:empty { display: none; }
+  .sfxControl { display: block; margin-top: 7px; color: #94a3b8; font-size: 11px; }
+  .sfxControl select, .sfxControl input[type=range] { width: 100%; }
+  .sfxControl output { float: right; color: #7dd3fc; }
   .loop { color: #34d399; } .vital { color: #f59e0b; } .flat { color: #64748b; }
 </style>
 </head>
@@ -82,8 +86,9 @@
     </div>
     <div class="card" id="sfx" style="display:none">
       <h2>authored SFX</h2>
-      <p class="hint" style="margin:0 0 6px">real BNK/HIRC graphs interpreted by CjsAudioMan; repeat a selection to exercise its container state</p>
       <select id="sfxExamples" title="authored SFX example"></select>
+      <p id="sfxDescription" class="hint" style="margin:6px 0 0"></p>
+      <div id="sfxControls"></div>
       <div class="buttonRow">
         <button id="sfxPost" type="button">post again</button>
         <button id="sfxReset" type="button">reset object</button>
@@ -101,7 +106,7 @@
       <h2>runtime-audio demo</h2>
       <ul id="help">
         <li>click a panel item to play it</li>
-        <li>use authored SFX to hear random, Step sequence, and parallel graphs</li>
+        <li>use authored SFX to exercise containers, setter actions, switches, and RTPC blends</li>
         <li>download demo tracks with <code>npm run demo:music</code>, then use the classic jukebox</li>
         <li>drag the listener or an emitter to move it</li>
         <li>drag empty space to pan around the scene</li>
