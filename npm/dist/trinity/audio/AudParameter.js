@@ -40,6 +40,7 @@ class AudParameter extends CjsModel {
     this.#settledValue = next;
     if (changed && this.#gameObjID && _AudGameObjResource.manager?.enabled) {
       _AudGameObjResource.backend?.SetRTPCValue?.(this.name, next, this.#gameObjID);
+      _AudGameObjResource.manager.LogSetRTPC?.(this.#gameObjID, this.name, next);
     }
     return super.OnModified(options);
   }

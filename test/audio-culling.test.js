@@ -222,6 +222,55 @@ test("AudioCurveSetDriver falls back to the curve until the RTPC exists", async 
   }
 });
 
+test("AudManager refreshes monitored RTPC values after each enabled render", async () =>
+{
+  const { AudManager } = await import("../npm/dist/index.js");
+  const repository = new AudStaticDataRepository();
+  const order = [];
+  let value = 17;
+
+  repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
+  AudGameObjResource.staticDataRepository = repository;
+  AudGameObjResource.backend = {
+    Init: () => true,
+    LoadBank: (_name, callback) => callback(true),
+    RenderAudio: () => order.push("render"),
+    GetGlobalRTPCValue(name)
+    {
+      order.push(`query:${name}`);
+      return value;
+    },
+  };
+  const manager = new AudManager();
+  AudGameObjResource.manager = manager;
+
+  try
+  {
+    manager.Enable([]);
+    manager.RegisterParameter("boost");
+    manager.Process(0);
+    assert.deepEqual(order, [ "render", "query:boost" ]);
+    assert.deepEqual(manager.GetParameterInfo("boost"), {
+      parameterValue: 17,
+      parameterExists: true,
+      watchers: 1,
+    });
+
+    value = undefined;
+    manager.Process(1);
+    assert.equal(manager.GetParameterInfo("boost").parameterExists, false);
+    assert.equal(
+      manager.GetParameterInfo("boost").parameterValue,
+      17,
+      "Carbon retains the last value when the RTPC query no longer resolves",
+    );
+  }
+  finally
+  {
+    teardown();
+  }
+});
+
 
 test("AudManager lifecycle: enable, async bank load, deferred-event flush with bypassed prefix", async () =>
 {

@@ -23,10 +23,13 @@ The maintained graph includes:
 - per-object events, prefixes, RTPC values, switches, placement, culling, mute,
   and wake behavior;
 - root-runtime interpretation of supplied authored SFX random, step-sequence,
-  switch/state, parallel/blend, gain, and linear RTPC-curve data;
+  switch/state, parallel/blend, per-leaf spatial routing, gain, and linear
+  RTPC-curve data;
 - listener and emitter placement;
 - event metadata and sound prioritization;
-- event curves and RTPC-driven curve-set time;
+- event curves, direct emitter event handling, and RTPC-driven curve-set time;
+- post-render refresh of monitored RTPC values and action-log records for
+  object parameter changes;
 - UI and music emitters;
 - three-emitter stretch audio;
 - action-log records and callback flushing;

@@ -60,6 +60,7 @@ test("AudEventCurve key management matches Carbon semantics", () =>
   assert.equal(curve.GetKeyTime(0), 0.5, "keys resort on insert");
   assert.equal(curve.GetKeyValue(1), "b");
   assert.equal(curve.length, 2, "length tracks the last key");
+  assert.equal(curve.Length(), 2, "ITriCurveLength exposes the cached length");
   assert.ok(curve.keys[0] instanceof AudEventKey);
 
   assert.equal(curve.GetKeyTime(-1), 0, "out of range returns 0");
@@ -122,6 +123,61 @@ test("AudEventCurve dispatches crossed keys and holds the latest event until pla
   assert.deepEqual(events, [ "second", "first" ]);
 });
 
+test("AudEventCurve Reset preserves a placement-waiting event", () =>
+{
+  const emitter = new AudEmitter();
+  const events = [];
+  emitter.SendEvent = eventName => (events.push(eventName), events.length);
+  const observer = {
+    observer: emitter,
+    GetObserver() { return this.observer; },
+    SetObserver(value) { this.observer = value; },
+  };
+  const curve = AudEventCurve.from({
+    keys: [ { time: 0.25, value: "waiting" } ],
+  });
+
+  curve.SetSourceTriObserver(observer);
+  curve.UpdateValue(0.25);
+  curve.Reset();
+  emitter.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ 1, 2, 3 ]);
+  curve.UpdateValue(0.1);
+
+  assert.deepEqual(
+    events,
+    [ "waiting" ],
+    "Carbon keeps the queued event when only its playback cursor resets",
+  );
+});
+
+test("AudEmitter is an event-track listener and posts the received name", () =>
+{
+  const emitter = new AudEmitter();
+  const events = [];
+  emitter.PostEvent = eventName => (events.push(eventName), 73);
+
+  assert.equal(emitter.HandleEvent("curve_event"), 73);
+  assert.deepEqual(events, [ "curve_event" ]);
+});
+
+test("notified eventName changes stop the previous event before posting the replacement", () =>
+{
+  const emitter = new AudEmitter();
+  const actions = [];
+  emitter.StopAll = () => actions.push([ "stop" ]);
+  emitter.PostEvent = eventName => (actions.push([ "post", eventName ]), 1);
+
+  emitter.SetValues({ eventName: "first" });
+  emitter.SetValues({ name: "unrelated" });
+  emitter.SetValues({ eventName: "" });
+
+  assert.deepEqual(actions, [
+    [ "stop" ],
+    [ "post", "first" ],
+    [ "stop" ],
+  ]);
+});
+
 
 test("behavior method metadata reflects implementation status", () =>
 {
@@ -130,7 +186,9 @@ test("behavior method metadata reflects implementation status", () =>
 
   assert.equal(CjsSchema.getMethod(AudEventCurve, "AddKey").impl.status, "implemented");
   assert.equal(CjsSchema.getMethod(AudEventCurve, "UpdateValue").impl.status, "implemented");
+  assert.equal(CjsSchema.getMethod(AudEventCurve, "Length").impl.status, "implemented");
   assert.equal(CjsSchema.getMethod(AudEventCurve, "SetSourceTriObserver").impl.status, "implemented");
+  assert.equal(CjsSchema.getMethod(AudEmitter, "HandleEvent").impl.status, "implemented");
   assert.equal(CjsSchema.getMethod(AudStaticDataRepository, "Initialize").impl.status, "adapted");
 });
 

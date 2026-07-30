@@ -54,7 +54,7 @@ The package owns:
 - optional neutral catalog validation and direct playlist playback through
   caller-owned track acquisition and availability functions;
 - optional authored SFX random, step-sequence, switch/state, parallel/blend,
-  gain, and live RTPC-curve behavior;
+  per-leaf spatial routing, gain, and live RTPC-curve behavior;
 - immutable schema-v2 document validation and installation;
 - language/media representation selection;
 - individual-file, whole-original-file, and exact-range delivery;

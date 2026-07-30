@@ -172,13 +172,20 @@ export class AudEventCurve extends CjsModel
     return true;
   }
 
+  /** Carbon method Length (ITriCurveLength): returns the cached final key time. */
+  @carbon.method
+  @impl.implemented
+  Length()
+  {
+    return this.length;
+  }
+
   /** Carbon method Reset (ITriFunction, not Blue-mapped): rewind the playback cursor. */
   @carbon.method
   @impl.implemented
   Reset()
   {
     this.#currentKeyIndex = 0;
-    this.#queuedEvent = "";
   }
 
   /** Carbon method GetSourceTriObserver (MAP_METHOD_AND_WRAP). */

@@ -16,7 +16,7 @@ class AudEmitter extends _AudGameObjResource {
     } = _applyDecs2311(this, [type.define({
       className: "AudEmitter",
       family: "audio"
-    })], [[[io, io.notify, io, io.persist, type, type.quat], 16, "rotation"], [[io, io.read, type, type.vec3], 16, "front"], [[io, io.read, type, type.vec3], 16, "top"], [[io, io.persist, type, type.boolean], 16, "normalizeAttenuationScaling"], [[io, io.persist, type, type.float32], 16, "visualizationRadius"], [[io, io.persist, type, type.float32], 16, "maxNormalizedValue"], [[io, io.persist, type, type.float32], 16, "maxNormalizedScalingFactor"], [[io, io.persist, type, type.float32], 16, "minNormalizedValue"], [[io, io.persist, type, type.float32], 16, "minNormalizedScalingFactor"], [[void 0, carbon.renamed("__init__"), impl, impl.implemented], 18, "__init__"], [[void 0, carbon.renamed("SendEvent"), impl, impl.implemented], 18, "SendEvent"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetPosition"], [[void 0, carbon.renamed("SetPlacement"), impl, impl.implemented], 18, "SetPlacement"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdatePlacement"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetAttenuationScalingFactor"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetPrefix"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetVisibility"]], 0, void 0, _AudGameObjResource));
+    })], [[[io, io.notify, io, io.persist, type, type.quat], 16, "rotation"], [[io, io.read, type, type.vec3], 16, "front"], [[io, io.read, type, type.vec3], 16, "top"], [[io, io.persist, type, type.boolean], 16, "normalizeAttenuationScaling"], [[io, io.persist, type, type.float32], 16, "visualizationRadius"], [[io, io.persist, type, type.float32], 16, "maxNormalizedValue"], [[io, io.persist, type, type.float32], 16, "maxNormalizedScalingFactor"], [[io, io.persist, type, type.float32], 16, "minNormalizedValue"], [[io, io.persist, type, type.float32], 16, "minNormalizedScalingFactor"], [[void 0, carbon.renamed("__init__"), impl, impl.implemented], 18, "__init__"], [[void 0, carbon.renamed("SendEvent"), impl, impl.implemented], 18, "SendEvent"], [[carbon, carbon.method, impl, impl.implemented], 18, "HandleEvent"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetPosition"], [[void 0, carbon.renamed("SetPlacement"), impl, impl.implemented], 18, "SetPlacement"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdatePlacement"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetAttenuationScalingFactor"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetPrefix"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetVisibility"]], 0, void 0, _AudGameObjResource));
   }
   constructor(...args) {
     super(...args);
@@ -57,6 +57,11 @@ class AudEmitter extends _AudGameObjResource {
   /** Carbon method SendEvent -> PostEvent (ITr2AudEmitter). */
   SendEvent(name, bypassPrefix = false) {
     return this.PostEvent(name, bypassPrefix);
+  }
+
+  /** Carbon method HandleEvent (IBlueEventListener): event tracks post directly on this emitter. */
+  HandleEvent(eventName) {
+    return this.PostEvent(eventName);
   }
 
   /** Carbon method SetPosition: marks the emitter positioned (unblocks Wake), then stores/pushes. */

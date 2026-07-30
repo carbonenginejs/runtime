@@ -182,8 +182,7 @@ class CjsAudioMan {
     this.#listener = null;
     this.#musicPlayer = null;
     this.#sfxEngine?.Reset();
-    this.#decodedMedia.clear();
-    this.#wholeBanks.clear();
+    this.#InvalidateAcquisitions("Audio library replaced during media acquisition");
     this.#library = installed;
     this.#sfxEngine = installed.sfx ? new CjsSfxEngine({
       graph: installed.sfx,
@@ -268,9 +267,9 @@ class CjsAudioMan {
     if (this.#system?.manager?.enabled) {
       throw new Error("CjsAudioMan cannot replace its media provider while enabled");
     }
+    this.#InvalidateAcquisitions("Audio media provider replaced during acquisition");
+    this.#system?.ClearMusicMedia();
     this.#mediaProvider = provider;
-    this.#decodedMedia.clear();
-    this.#wholeBanks.clear();
     return this;
   }
 
@@ -286,6 +285,7 @@ class CjsAudioMan {
     if (value !== this.#delivery) {
       this.#delivery = value;
       this.#decodedMedia.clear();
+      this.#system?.ClearMusicMedia();
     }
     return this;
   }
@@ -297,6 +297,7 @@ class CjsAudioMan {
     if (values.join("\0") !== this.#languages.join("\0")) {
       this.#languages = values;
       this.#decodedMedia.clear();
+      this.#system?.ClearMusicMedia();
     }
     return this;
   }
@@ -337,7 +338,9 @@ class CjsAudioMan {
    * Reads, prepares, decodes, and optionally retains one audio media ID.
    *
    * Concurrent requests for the same selected representation share one
-   * pending operation. Failed operations are always evicted for retry.
+   * pending operation. `options.signal` cancels only the caller's lease;
+   * the provider is aborted after its final pending lease ends. Failed and
+   * orphaned operations are always evicted for retry.
    */
   LoadMedia(mediaID, options = {}) {
     if (!this.#context) {
@@ -350,21 +353,34 @@ class CjsAudioMan {
     } catch (error) {
       return Promise.reject(error);
     }
-    const retained = this.#decodedMedia.get(selection.selectionKey);
-    if (retained) {
-      return retained;
+    let entry = this.#decodedMedia.get(selection.selectionKey);
+    if (!entry) {
+      const controller = new AbortController();
+      entry = {
+        controller,
+        evict: () => {
+          if (this.#decodedMedia.get(selection.selectionKey) === entry) {
+            this.#decodedMedia.delete(selection.selectionKey);
+          }
+        },
+        leases: 0,
+        pending: true,
+        promise: null
+      };
+      entry.promise = this.#ReadAndDecode(selection, controller.signal).catch(error => {
+        entry.evict();
+        throw error;
+      }).then(buffer => {
+        if (!this.#cacheDecoded) {
+          entry.evict();
+        }
+        return buffer;
+      }).finally(() => {
+        entry.pending = false;
+      });
+      this.#decodedMedia.set(selection.selectionKey, entry);
     }
-    const operation = this.#ReadAndDecode(selection, options.signal).catch(error => {
-      this.#decodedMedia.delete(selection.selectionKey);
-      throw error;
-    }).then(buffer => {
-      if (!this.#cacheDecoded) {
-        this.#decodedMedia.delete(selection.selectionKey);
-      }
-      return buffer;
-    });
-    this.#decodedMedia.set(selection.selectionKey, operation);
-    return operation;
+    return this.#SubscribeSharedOperation(entry, options.signal);
   }
 
   /** Releases every retained decode variant for one media ID. */
@@ -394,6 +410,106 @@ class CjsAudioMan {
     const count = this.#wholeBanks.size;
     this.#wholeBanks.clear();
     return count;
+  }
+
+  /** Aborts every pending acquisition owned by an invalidated manager setup. */
+  #InvalidateAcquisitions(message) {
+    const entries = new Set([...this.#decodedMedia.values(), ...this.#wholeBanks.values()]);
+    const reason = new DOMException(message, "AbortError");
+    this.#decodedMedia.clear();
+    this.#wholeBanks.clear();
+    for (const entry of entries) {
+      if (entry.pending && !entry.controller.signal.aborted) {
+        entry.controller.abort(reason);
+      }
+    }
+  }
+
+  /**
+   * Returns one independently abortable view over a shared acquisition.
+   * The provider operation is aborted only after its final live lease ends.
+   */
+  #SubscribeSharedOperation(entry, signal) {
+    ThrowIfAborted(signal);
+    ThrowIfAborted(entry.controller.signal);
+    entry.leases++;
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const sharedSignal = entry.controller.signal;
+      const finish = (callback, value) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        signal?.removeEventListener?.("abort", onCallerAbort);
+        sharedSignal.removeEventListener?.("abort", onSharedAbort);
+        this.#ReleaseSharedOperation(entry, value);
+        callback(value);
+      };
+      const onCallerAbort = () => finish(reject, AbortReason(signal));
+      const onSharedAbort = () => finish(reject, AbortReason(sharedSignal));
+      signal?.addEventListener?.("abort", onCallerAbort, {
+        once: true
+      });
+      sharedSignal.addEventListener?.("abort", onSharedAbort, {
+        once: true
+      });
+      if (signal?.aborted) {
+        onCallerAbort();
+        return;
+      }
+      if (sharedSignal.aborted) {
+        onSharedAbort();
+        return;
+      }
+      entry.promise.then(value => finish(resolve, value), error => finish(reject, error));
+    });
+  }
+
+  /** Releases one shared-operation lease and cancels its orphaned work. */
+  #ReleaseSharedOperation(entry, reason = undefined) {
+    entry.leases = Math.max(0, entry.leases - 1);
+    if (entry.pending && entry.leases === 0 && !entry.controller.signal.aborted) {
+      entry.evict?.();
+      entry.controller.abort(reason);
+    }
+  }
+
+  /** Acquires shared complete-bank bytes under the caller's own lease. */
+  #LoadWholeBank(selection, signal) {
+    const bankKey = String(selection.bank.sourceID ?? selection.source.bank ?? selection.bank.resPath ?? selection.bank.storagePath);
+    let entry = this.#wholeBanks.get(bankKey);
+    if (!entry) {
+      const controller = new AbortController();
+      entry = {
+        controller,
+        evict: () => {
+          if (this.#wholeBanks.get(bankKey) === entry) {
+            this.#wholeBanks.delete(bankKey);
+          }
+        },
+        leases: 0,
+        pending: true,
+        promise: null
+      };
+      entry.promise = Promise.resolve().then(() => this.#mediaProvider.Read(selection.bank, {
+        signal: controller.signal,
+        kind: "bank",
+        mediaID: selection.mediaID
+      })).then(ToDetachedBytes).catch(error => {
+        entry.evict();
+        throw error;
+      }).then(bytes => {
+        if (!this.#cacheWholeBanks) {
+          entry.evict();
+        }
+        return bytes;
+      }).finally(() => {
+        entry.pending = false;
+      });
+      this.#wholeBanks.set(bankKey, entry);
+    }
+    return this.#SubscribeSharedOperation(entry, signal);
   }
 
   /** Attaches this manager to the static Carbon audio graph seams. */
@@ -600,8 +716,7 @@ class CjsAudioMan {
     this.#sfxEngine = null;
     this.#context = null;
     this.#banksWaitingToLoad.clear();
-    this.#decodedMedia.clear();
-    this.#wholeBanks.clear();
+    this.#InvalidateAcquisitions("Audio manager disposed during media acquisition");
   }
 
   /** Returns the installed lower-level system or rejects an uninstalled use. */
@@ -692,7 +807,7 @@ class CjsAudioMan {
 
   /** Selects and loads one media buffer for an event. */
   async #LoadEventBuffer(eventID, eventName, controls = {}) {
-    const spatial = !Boolean(this.#library?.metadata?.Events?.[eventName]?.is2D);
+    const eventSpatial = !Boolean(this.#library?.metadata?.Events?.[eventName]?.is2D);
     if (this.#sfxEngine?.HandlesEvent(eventName)) {
       const engine = this.#sfxEngine;
       const selections = engine.ResolveEvent(eventName, controls);
@@ -701,15 +816,25 @@ class CjsAudioMan {
           voices: []
         };
       }
-      const buffers = await Promise.all(selections.map(selection => this.LoadMedia(selection.mediaID)));
+      const buffers = await Promise.all(selections.map(selection => this.LoadMedia(selection.mediaID, {
+        signal: controls.signal
+      }).catch(error => {
+        if (controls.signal?.aborted || IsAbortError(error)) {
+          throw error;
+        }
+        return null;
+      })));
       return {
-        voices: selections.map((selection, index) => ({
+        voices: selections.flatMap((selection, index) => buffers[index] ? [{
           buffer: buffers[index],
           loop: selection.loop,
+          ...(selection.playCount === undefined ? {} : {
+            playCount: selection.playCount
+          }),
           playbackRate: selection.playbackRate,
-          spatial,
+          spatial: selection.spatial ?? eventSpatial,
           getGain: () => engine.EvaluateGain(selection, controls)
-        }))
+        }] : [])
       };
     }
     const values = this.#library?.eventMedia?.[eventName] ?? [];
@@ -730,8 +855,10 @@ class CjsAudioMan {
     }
     return {
       voices: [{
-        buffer: await this.LoadMedia(id),
-        spatial
+        buffer: await this.LoadMedia(id, {
+          signal: controls.signal
+        }),
+        spatial: eventSpatial
       }]
     };
   }
@@ -758,29 +885,17 @@ class CjsAudioMan {
       });
       result = await NormalizeRangeResult(result, selection);
     } else {
-      const bankKey = String(selection.bank.sourceID ?? selection.source.bank ?? selection.bank.resPath ?? selection.bank.storagePath);
-      let operation = this.#wholeBanks.get(bankKey);
-      if (!operation) {
-        operation = Promise.resolve(this.#mediaProvider.Read(selection.bank, {
-          signal,
-          kind: "bank",
-          mediaID: selection.mediaID
-        })).then(ToDetachedBytes);
-        this.#wholeBanks.set(bankKey, operation);
-        operation.catch(() => this.#wholeBanks.delete(bankKey));
-      }
-      const bytes = await operation;
+      const bytes = await this.#LoadWholeBank(selection, signal);
       const end = selection.offset + selection.byteLength;
       if (end > bytes.byteLength) {
         throw new RangeError(`Audio media ${selection.mediaID} exceeds bank bytes`);
       }
       result = bytes.slice(selection.offset, end);
-      if (!this.#cacheWholeBanks) {
-        this.#wholeBanks.delete(bankKey);
-      }
     }
     ThrowIfAborted(signal);
-    return this.#DecodeResult(result, selection.mediaType);
+    const decoded = await this.#DecodeResult(result, selection.mediaType);
+    ThrowIfAborted(signal);
+    return decoded;
   }
 
   /** Normalizes provider output and decodes it into an AudioBuffer-like value. */
@@ -947,6 +1062,12 @@ function ThrowIfAborted(signal) {
     signal.throwIfAborted();
   }
   throw signal.reason ?? new DOMException("Aborted", "AbortError");
+}
+function AbortReason(signal) {
+  return signal?.reason ?? new DOMException("Aborted", "AbortError");
+}
+function IsAbortError(error) {
+  return error?.name === "AbortError";
 }
 async function NormalizeRangeResult(result, selection) {
   const bytes = await ToDetachedBytes(result);

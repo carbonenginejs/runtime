@@ -112,6 +112,14 @@ Individual source records always use `Read(sourceRecord)`. The provider owns
 URLs, credentials, fetch policy, and cancellation. Runtime-audio owns media
 choice, validation, preparation, decoding, and caches.
 
+Both provider routes receive an `AbortSignal`. Runtime-audio deduplicates
+concurrent media and complete-bank reads without sharing caller
+cancellation: one stopped event releases only its own lease, and the
+provider signal aborts when no active event still needs the pending read.
+An authored `break` keeps a pending one-shot acquisition alive so it can
+finish naturally; `stop`, emitter release, `StopAllPlayingSounds()`, and
+disposal cancel pending SFX work.
+
 For authored random, sequence, switch, layered, or RTPC-controlled behavior,
 include the optional `sfx` program described in
 [Authored SFX programs](sfx.md). Its sound leaves still use these same
@@ -126,7 +134,11 @@ in [Optional jukebox](jukebox.md).
 Use `ReleaseMedia()` for one retained media identity, `ClearMedia()` for all
 decoded buffers, `ClearSourceData()` for retained whole-bank bytes,
 `ReleaseEmitter()` for one graph object, and `Dispose()` for the complete
-owner.
+owner. The three cache-release methods prevent future reuse but do not cancel
+active callers; callers cancel their own `LoadMedia()` lease with a signal.
+`Dispose()`, library replacement, and provider replacement invalidate all
+leases and abort pending provider work. Effective provider, delivery, and
+language changes also clear the built-in music engine's retained media cache.
 
 ## Related documentation
 

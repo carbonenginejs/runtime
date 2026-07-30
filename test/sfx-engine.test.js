@@ -180,6 +180,79 @@ test("authored step sequences advance independently and may terminate", () =>
     );
 });
 
+test("authored finite Sound play counts reach the backend selection", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { repeated_shot: [ 1 ] },
+            {
+                1: {
+                    type: "sound",
+                    mediaId: 100,
+                    playCount: 3,
+                },
+            },
+        ),
+    });
+
+    assert.deepEqual(
+        engine.ResolveEvent("repeated_shot", { gameObjID: 3 }),
+        [
+            {
+                mediaID: "100",
+                loop: undefined,
+                playCount: 3,
+                playbackRate: 1,
+                gainDb: 0,
+                gainCurves: [],
+            },
+        ],
+    );
+});
+
+test("SFX selections preserve authored and metadata infinite-loop fallbacks", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            {
+                authored_loop: [ 1 ],
+                metadata_loop: [ 2 ],
+            },
+            {
+                1: {
+                    type: "sound",
+                    mediaId: 100,
+                    loop: true,
+                    spatial: false,
+                },
+                2: {
+                    type: "sound",
+                    mediaId: 101,
+                },
+            },
+        ),
+    });
+    const authored = engine.ResolveEvent(
+        "authored_loop",
+        { gameObjID: 3 },
+    )[0];
+    const metadata = engine.ResolveEvent(
+        "metadata_loop",
+        { gameObjID: 3 },
+    )[0];
+
+    assert.equal(authored.loop, true);
+    assert.equal(authored.spatial, false);
+    assert.equal(Object.hasOwn(authored, "playCount"), false);
+    assert.equal(metadata.loop, undefined);
+    assert.equal(
+        Object.hasOwn(metadata, "spatial"),
+        false,
+        "unknown leaf routing retains the event-level fallback",
+    );
+    assert.equal(Object.hasOwn(metadata, "playCount"), false);
+});
+
 test("switch/state selection and parallel RTPC gains resolve without acquisition", () =>
 {
     let speed = 50;

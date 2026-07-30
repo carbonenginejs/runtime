@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { AudEmitter, AudUIPlayer, CjsAudioSystem, UI_GAME_OBJ_ID } from "../npm/dist/index.js";
 
+const START_QUANTUM = 128 / 48000;
 function Deferred()
 {
   let resolve;
@@ -116,14 +117,20 @@ test("AudUIPlayer is the fixed Carbon UI emitter and callbacks survive source re
     const firstSource = context.sources[0];
     const staleEnded = firstSource.onended;
     context.currentTime = 2;
-    assert.equal(player.GetEventPlayPosition(playingID), 2000);
+    assert.equal(
+      player.GetEventPlayPosition(playingID),
+      Math.round((2 - START_QUANTUM) * 1000),
+    );
 
     assert.equal(player.SeekOnEventMs(playingID, 4000), true);
     assert.equal(context.sources[1].starts[0].offset, 4);
     staleEnded();
     assert.equal(system.backend.GetPlayingCount(), 1, "the replaced source cannot finish the new voice");
     context.currentTime = 3;
-    assert.equal(player.GetEventPlayPosition(playingID), 5000);
+    assert.equal(
+      player.GetEventPlayPosition(playingID),
+      Math.round((5 - START_QUANTUM) * 1000),
+    );
 
     assert.equal(player.SeekOnEventPercent(playingID, 0.5), true);
     assert.equal(context.sources[2].starts[0].offset, 5);

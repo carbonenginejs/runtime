@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsAudioBackend } from "../npm/dist/index.js";
 
+const START_QUANTUM = 128 / 48000;
 
 // Per-source isolation contract (2026-07-19): every playing source owns its
 // gain node, so stop-fades, replays, and pending-load teardown on one event
@@ -35,6 +36,7 @@ function FakeContext()
 {
   const context = {
     currentTime: 0,
+    sampleRate: 48000,
     destination: { name: "destination" },
     gains: [],
     sources: [],
@@ -73,9 +75,12 @@ function FakeContext()
         {
           source.connectedTo = target;
         },
-        start()
+        start(time, offset)
         {
+          source.observedNow = context.currentTime;
           source.started = true;
+          source.startedAt = time;
+          source.offset = offset;
         },
         stop(time)
         {
@@ -104,7 +109,7 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
 // Gain creation order: gains[0] master, gains[1] the sfx bus, gains[2] the
 // emitter gain from RegisterGameObj; each PostEvent appends that source's
 // own gain after those.
-function Harness({ loadBuffer, isLoop } = {})
+function Harness({ loadBuffer, isLoop, applyRTPC } = {})
 {
   const context = FakeContext();
   const finished = [];
@@ -112,7 +117,8 @@ function Harness({ loadBuffer, isLoop } = {})
   const backend = new CjsAudioBackend({
     context,
     loadBuffer: loadBuffer ?? (async () => ({ fake: "buffer" })),
-    isLoop: isLoop ?? (eventName => String(eventName).includes("loop"))
+    isLoop: isLoop ?? (eventName => String(eventName).includes("loop")),
+    applyRTPC,
   });
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
@@ -238,6 +244,67 @@ test("pending sources: stop finishes once and break waits for authored loop desc
   assert.equal(context.sources.length, 1, "the broken pending loop never starts");
 });
 
+test("stopping an in-flight source aborts its loader and finishes exactly once", async () =>
+{
+  let loaderSignal = null;
+  let aborts = 0;
+  const { finished, emitter, backend } = Harness({
+    loadBuffer: (eventID, eventName, controls) =>
+    {
+      loaderSignal = controls.signal;
+      return new Promise((resolve, reject) =>
+      {
+        controls.signal.addEventListener("abort", () =>
+        {
+          aborts++;
+          reject(controls.signal.reason);
+        }, { once: true });
+      });
+    }
+  });
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "pending_shot");
+
+  await tick();
+  assert.ok(loaderSignal);
+  assert.equal(loaderSignal.aborted, false);
+
+  backend.ExecuteActionOnPlayingID("stop", playingID, 0);
+  assert.equal(loaderSignal.aborted, true);
+  assert.equal(aborts, 1);
+  assert.equal(backend.GetPlayingCount(), 0);
+  assert.deepEqual(finished, [playingID]);
+
+  await tick();
+  assert.equal(aborts, 1, "loader cancellation is delivered exactly once");
+  assert.deepEqual(finished, [playingID]);
+});
+
+test("breaking a pending one-shot preserves its loader signal", async () =>
+{
+  const pending = Deferred();
+  let loaderSignal = null;
+  const { context, emitter, backend } = Harness({
+    loadBuffer: (eventID, eventName, controls) =>
+    {
+      loaderSignal = controls.signal;
+      return pending.promise;
+    }
+  });
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "pending_shot");
+
+  await tick();
+  backend.ExecuteActionOnPlayingID("break", playingID, 0);
+  assert.equal(loaderSignal.aborted, false);
+
+  pending.resolve({
+    voices: [ { buffer: { duration: 1 }, loop: false } ]
+  });
+  await tick();
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].started, true);
+  assert.equal(loaderSignal.aborted, false);
+});
+
 
 test("break halts only looping voices in a mixed authored event", async () =>
 {
@@ -293,30 +360,188 @@ test("pending break honors per-voice loop overrides instead of event metadata", 
   assert.equal(context.sources[0].loop, false);
 });
 
+test("finite authored repeats play an exact number of complete buffers", async () =>
+{
+  const { context, finished, emitter, backend } = Harness({
+    isLoop: () => true,
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 3 },
+          playCount: 2
+        }
+      ]
+    })
+  });
+  const playingID = backend.PostEvent(7, 1, 0, emitter, "repeated_shot");
+
+  await tick();
+
+  assert.equal(context.sources[0].loop, true, "one source loops sample-accurately");
+  assert.equal(
+    context.sources[0].stoppedAt,
+    6 + START_QUANTUM,
+    "playCount overrides stale event loop metadata and schedules two plays"
+  );
+  assert.equal(backend.GetPlayingCount(), 1);
+
+  context.sources[0].onended?.();
+  assert.equal(backend.GetPlayingCount(), 0);
+  assert.deepEqual(finished, [playingID]);
+});
+
+test("a pre-start break preserves the first complete repeat boundary", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 4 },
+        playCount: 3,
+      } ],
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "repeated_shot",
+  );
+
+  await tick();
+  assert.equal(context.sources[0].startedAt, START_QUANTUM);
+
+  backend.ExecuteActionOnPlayingID("break", playingID, 0);
+  assert.equal(
+    context.sources[0].stoppedAt,
+    4 + START_QUANTUM,
+    "break waits for one full buffer after the scheduled start",
+  );
+});
+
+
+test("break lets the current finite repeat finish and stop overrides its schedule", async () =>
+{
+  const { context, finished, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 4 },
+          loop: false,
+          playCount: 3
+        }
+      ]
+    })
+  });
+  const broken = backend.PostEvent(7, 1, 0, emitter, "repeated_shot");
+
+  await tick();
+  assert.equal(context.sources[0].stoppedAt, 12 + START_QUANTUM);
+
+  context.currentTime = 1;
+  backend.ExecuteActionOnPlayingID("break", broken, 0);
+  assert.equal(
+    context.sources[0].stoppedAt,
+    4 + START_QUANTUM,
+    "break ends the repeated sound at the current buffer boundary"
+  );
+  context.sources[0].onended?.();
+  assert.deepEqual(finished, [broken]);
+
+  context.currentTime = 5;
+  const stopped = backend.PostEvent(8, 1, 0, emitter, "repeated_shot");
+  await tick();
+  assert.equal(context.sources[1].stoppedAt, 17 + START_QUANTUM);
+
+  context.currentTime = 5.5;
+  backend.ExecuteActionOnPlayingID("stop", stopped, 0);
+  assert.equal(
+    context.sources[1].stoppedAt,
+    5.5,
+    "stop replaces the authored finite-repeat end time"
+  );
+
+  context.currentTime = 20;
+  const overdue = backend.PostEvent(9, 1, 0, emitter, "repeated_shot");
+  await tick();
+  assert.equal(context.sources[2].stoppedAt, 32 + START_QUANTUM);
+
+  context.currentTime = 32.5;
+  backend.ExecuteActionOnPlayingID("break", overdue, 0);
+  assert.equal(
+    context.sources[2].stoppedAt,
+    32.5,
+    "a late break cannot replace the authored end with a later boundary"
+  );
+});
+
 
 test("UnregisterGameObj halts loaded sources and cancels in-flight loads", async () =>
 {
   const pending = Deferred();
   let calls = 0;
+  let inflightSignal = null;
   const { context, finished, emitter, backend } = Harness({
-    loadBuffer: () => ++calls === 1 ? Promise.resolve({ fake: "buffer" }) : pending.promise
+    loadBuffer: (eventID, eventName, controls) =>
+    {
+      calls++;
+      if (calls === 1)
+      {
+        return Promise.resolve({ fake: "buffer" });
+      }
+      inflightSignal = controls.signal;
+      return pending.promise;
+    }
   });
 
   const loaded = backend.PostEvent(7, 1, 0, emitter, "shot_loaded");
   await tick();
   const inflight = backend.PostEvent(8, 1, 0, emitter, "shot_inflight");
+  await tick();
   assert.equal(backend.GetPlayingCount(), 2);
+  assert.equal(inflightSignal.aborted, false);
 
   backend.UnregisterGameObj(1);
 
   assert.equal(backend.GetPlayingCount(), 0, "no playing record survives its emitter");
   assert.deepEqual(finished.sort(), [loaded, inflight].sort(), "both records finished exactly once");
   assert.equal(context.sources[0].stoppedAt, 0, "the loaded source halts immediately");
+  assert.equal(inflightSignal.aborted, true, "the in-flight load receives cancellation");
 
   pending.resolve({ fake: "buffer" });
   await tick();
   assert.equal(context.sources.length, 1, "the in-flight load never starts on the torn-down graph");
   assert.deepEqual(finished.sort(), [loaded, inflight].sort(), "resolution after teardown adds no callbacks");
+});
+
+test("StopAll aborts every pending non-music loader", async () =>
+{
+  const signals = [];
+  const { finished, emitter, backend } = Harness({
+    loadBuffer: (eventID, eventName, controls) =>
+    {
+      signals.push(controls.signal);
+      return new Promise((resolve, reject) =>
+      {
+        controls.signal.addEventListener("abort", () =>
+        {
+          reject(controls.signal.reason);
+        }, { once: true });
+      });
+    }
+  });
+  const first = backend.PostEvent(7, 1, 0, emitter, "pending_a");
+  const second = backend.PostEvent(8, 1, 0, emitter, "pending_b");
+
+  await tick();
+  assert.equal(signals.length, 2);
+  backend.StopAll();
+
+  assert.equal(signals.every(signal => signal.aborted), true);
+  assert.equal(backend.GetPlayingCount(), 0);
+  assert.deepEqual(finished.sort(), [ first, second ].sort());
+  await tick();
+  assert.deepEqual(finished.sort(), [ first, second ].sort());
 });
 
 
@@ -423,6 +648,70 @@ test("one authored event owns parallel voices with live per-object RTPC gains", 
   assert.equal(backend.GetPlayingCount(), 0);
 });
 
+test("parallel voices and seek restarts share one sample-time anchor", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 2 },
+          playCount: 2
+        },
+        {
+          buffer: { duration: 2 },
+          playCount: 2
+        }
+      ]
+    })
+  });
+  let now = 10;
+
+  Object.defineProperty(context, "currentTime", {
+    configurable: true,
+    get()
+    {
+      now += 0.00025;
+      return now;
+    }
+  });
+
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "layered_repeat",
+  );
+
+  await tick();
+  assert.equal(context.sources[0].startedAt, context.sources[1].startedAt);
+  assert.equal(context.sources[0].stoppedAt, context.sources[1].stoppedAt);
+  assert.ok(context.sources[0].startedAt > context.sources[0].observedNow);
+  assert.ok(context.sources[1].startedAt > context.sources[1].observedNow);
+
+  assert.equal(backend.SeekOnEventMs(playingID, 500), true);
+  assert.equal(context.sources.length, 4);
+  assert.equal(context.sources[2].startedAt, context.sources[3].startedAt);
+  assert.ok(context.sources[2].startedAt > context.sources[2].observedNow);
+  assert.ok(context.sources[3].startedAt > context.sources[3].observedNow);
+  assert.equal(context.sources[2].offset, 0.5);
+  assert.equal(context.sources[3].offset, 0.5);
+  assert.equal(context.sources[2].stoppedAt, context.sources[3].stoppedAt);
+  assert.equal(
+    context.sources[0].stoppedAt,
+    context.sources[1].stoppedAt,
+    "replaced sibling sources stop on the same restart boundary",
+  );
+
+  backend.ExecuteActionOnPlayingID("stop", playingID, 500);
+  assert.equal(context.sources[2].stoppedAt, context.sources[3].stoppedAt);
+  assert.deepEqual(
+    context.gains[3].gain.ramps,
+    context.gains[4].gain.ramps,
+    "parallel stop fades share one action-time anchor",
+  );
+});
+
 
 test("a non-spatial voice bypasses the emitter panner but keeps voice and SFX gain", async () =>
 {
@@ -451,4 +740,34 @@ test("a non-spatial voice bypasses the emitter panner but keeps voice and SFX ga
     "the voice retains an emitter-level gain before the 2D bus",
   );
   assert.notEqual(context.gains[3].connectedTo, context.gains[2]);
+});
+
+test("stored object RTPCs replay when the lazy non-spatial route is created", async () =>
+{
+  const applied = [];
+  const { context, emitter, backend } = Harness({
+    applyRTPC: value => applied.push(value),
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 2 },
+        spatial: false,
+      } ],
+    }),
+  });
+
+  backend.SetRTPCValue("ui_mix", 0.4, 1);
+  assert.equal(applied.length, 1);
+  assert.equal(applied[0].flatGain, null);
+
+  backend.PostEvent(7, 1, 0, emitter, "ui_click");
+  await tick();
+
+  assert.equal(applied.length, 2);
+  assert.equal(applied[1].rtpcName, "ui_mix");
+  assert.equal(applied[1].value, 0.4);
+  assert.equal(
+    applied[1].flatGain,
+    context.gains[4].gain,
+    "the adapter receives the newly created flat emitter gain",
+  );
 });

@@ -11,6 +11,7 @@
 // - isLoop(eventName) - loop flag source (usually the static data repository).
 
 const DEFAULT_FADE_SECONDS = 1;
+const DEFAULT_RENDER_QUANTUM_SECONDS = 128 / 48000;
 
 /** WebAudio backend for the audio graph: emitter nodes, playing sources, listener pose. */
 export class CjsAudioBackend
@@ -39,8 +40,6 @@ export class CjsAudioBackend
 
     #applyRTPC = null;
 
-    #releaseGameObj = null;
-
     #nextPlayingID = 1;
 
     // Wwise-scale world units -> WebAudio panner units. EVE positions run to
@@ -60,7 +59,6 @@ export class CjsAudioBackend
         distanceScale,
         musicEngine,
         applyRTPC,
-        releaseGameObj,
     } = {})
     {
         this.#context = context ?? null;
@@ -68,9 +66,6 @@ export class CjsAudioBackend
         this.#isLoop = isLoop ?? (() => false);
         this.#distanceScale = Number(distanceScale) || 1;
         this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
-        this.#releaseGameObj = typeof releaseGameObj === "function"
-            ? releaseGameObj
-            : null;
 
         if (this.#context)
         {
@@ -232,7 +227,6 @@ export class CjsAudioBackend
         }
         this.#objectRtpcValues.delete(gameObjID);
         this.#objectSwitchValues.delete(gameObjID);
-        this.#releaseGameObj?.(gameObjID);
     }
 
     /** Starts an event: allocates the playing id synchronously, starts when the media resolves. */
@@ -249,10 +243,12 @@ export class CjsAudioBackend
             return 0;
         }
         const playingID = this.#nextPlayingID++;
+        const controller = new AbortController();
         const record = {
             gameObjID,
             emitter,
             eventName,
+            controller,
             voices: [],
             loaded: false,
             stopped: false,
@@ -261,7 +257,10 @@ export class CjsAudioBackend
         };
         this.#playing.set(playingID, record);
 
-        const controls = this.#CreateSfxControls(gameObjID);
+        const controls = this.#CreateSfxControls(
+            gameObjID,
+            controller.signal,
+        );
 
         Promise.resolve().then(() =>
         {
@@ -289,7 +288,11 @@ export class CjsAudioBackend
 
             for (const descriptor of descriptors)
             {
-                record.voices.push(this.#CreateVoice(descriptor, nodes));
+                record.voices.push(this.#CreateVoice(
+                    descriptor,
+                    nodes,
+                    record.gameObjID,
+                ));
             }
             record.loaded = true;
 
@@ -364,7 +367,7 @@ export class CjsAudioBackend
         const active = record.voices?.filter(voice =>
             voice.source
             && !voice.ended
-            && (!breaking || voice.loop)) ?? [];
+            && (!breaking || voice.loop || voice.playCount > 1)) ?? [];
 
         if (active.length)
         {
@@ -372,14 +375,52 @@ export class CjsAudioBackend
             // duration falls back to the default fade.
             const ms = Number(fadeOutDuration);
             const seconds = Number.isFinite(ms) ? Math.max(0, ms) / 1000 : DEFAULT_FADE_SECONDS;
+            const actionTime = this.#context.currentTime;
 
             for (const voice of active)
             {
+                if (breaking && !voice.loop && voice.playCount > 1)
+                {
+                    voice.stopping = true;
+                    const duration = Number(voice.buffer?.duration);
+                    const rate = voice.playbackRate;
+
+                    if (Number.isFinite(duration)
+                        && duration > 0
+                        && Number.isFinite(rate)
+                        && rate > 0)
+                    {
+                        const now = actionTime;
+                        const elapsed = voice.offsetSeconds
+                            + Math.max(0, now - voice.startContextTime) * rate;
+                        const position = elapsed % duration;
+                        const remaining = position === 0 && elapsed > 0
+                            ? duration
+                            : duration - position;
+                        const boundaryBase = Math.max(
+                            now,
+                            voice.startContextTime,
+                        );
+                        const boundary = boundaryBase + remaining / rate;
+                        const stopAt = voice.scheduledEndContextTime === null
+                            ? boundary
+                            : Math.max(
+                                now,
+                                Math.min(
+                                    boundary,
+                                    voice.scheduledEndContextTime,
+                                ),
+                            );
+
+                        voice.source.stop(stopAt);
+                        continue;
+                    }
+                }
                 voice.stopping = true;
                 if (seconds > 0)
                 {
                     const param = voice.gain.gain;
-                    const now = this.#context.currentTime;
+                    const now = actionTime;
 
                     if (typeof param?.cancelAndHoldAtTime === "function")
                     {
@@ -396,7 +437,7 @@ export class CjsAudioBackend
                 {
                     SetAudioParam(voice.gain.gain, 0, this.#context);
                 }
-                voice.source.stop(this.#context.currentTime + seconds);
+                voice.source.stop(actionTime + seconds);
             }
         }
         else if (!breaking)
@@ -786,10 +827,11 @@ export class CjsAudioBackend
     }
 
     /** Creates live control readers for one emitter's authored SFX post. */
-    #CreateSfxControls(gameObjID)
+    #CreateSfxControls(gameObjID, signal = null)
     {
         return Object.freeze({
             gameObjID,
+            signal,
             getSwitch: group =>
                 this.GetSwitchValue(group, gameObjID),
             getState: group =>
@@ -802,7 +844,7 @@ export class CjsAudioBackend
     }
 
     /** Creates one decoded SFX voice and its independent gain stage. */
-    #CreateVoice(descriptor, emitterNodes)
+    #CreateVoice(descriptor, emitterNodes, gameObjID)
     {
         const gain = this.#context.createGain();
 
@@ -818,6 +860,21 @@ export class CjsAudioBackend
                 emitterNodes.flatGain.connect(
                     emitterNodes.analyser ?? this.#sfxGain,
                 );
+                // A 2D route is allocated lazily. Replay previously stored
+                // object RTPCs now that adapters can finally see flatGain.
+                for (const [ rtpcName, value ] of
+                    this.#objectRtpcValues.get(gameObjID) ?? [])
+                {
+                    this.#applyRTPC?.({
+                        gameObjID,
+                        rtpcName,
+                        value,
+                        context: this.#context,
+                        gain: emitterNodes.gain?.gain ?? null,
+                        flatGain: emitterNodes.flatGain.gain ?? null,
+                        panner: emitterNodes.panner ?? null,
+                    });
+                }
             }
             gain.connect(emitterNodes.flatGain);
         }
@@ -825,6 +882,7 @@ export class CjsAudioBackend
         const voice = {
             buffer: descriptor.buffer,
             loop: descriptor.loop,
+            playCount: descriptor.playCount,
             playbackRate: descriptor.playbackRate,
             spatial: descriptor.spatial,
             getGain: descriptor.getGain,
@@ -833,6 +891,7 @@ export class CjsAudioBackend
             ended: false,
             stopping: false,
             startContextTime: null,
+            scheduledEndContextTime: null,
             offsetSeconds: 0,
         };
 
@@ -852,6 +911,14 @@ export class CjsAudioBackend
 
         const seek = record.pendingSeek;
         const pendingBreak = record.pendingBreak;
+        const now = Number(this.#context.currentTime) || 0;
+        const sampleRate = Number(this.#context.sampleRate);
+        const renderQuantum = Number.isFinite(sampleRate) && sampleRate > 0
+            ? 128 / sampleRate
+            : DEFAULT_RENDER_QUANTUM_SECONDS;
+        // Scheduling one render quantum ahead keeps every leaf of a parallel
+        // event on the same still-future sample boundary.
+        const startContextTime = now + renderQuantum;
 
         record.pendingSeek = null;
         record.pendingBreak = false;
@@ -864,11 +931,21 @@ export class CjsAudioBackend
                 voice.stopping = true;
                 continue;
             }
+            if (pendingBreak && voice.playCount > 1)
+            {
+                voice.playCount = 1;
+            }
             if (voice.stopping)
             {
                 continue;
             }
-            this.#StartVoice(playingID, record, voice, seek);
+            this.#StartVoice(
+                playingID,
+                record,
+                voice,
+                seek,
+                startContextTime,
+            );
         }
 
         if (record.voices.every(voice => voice.ended))
@@ -878,7 +955,13 @@ export class CjsAudioBackend
     }
 
     /** Creates or replaces one Web Audio buffer source. */
-    #StartVoice(playingID, record, voice, seek)
+    #StartVoice(
+        playingID,
+        record,
+        voice,
+        seek,
+        startContextTime,
+    )
     {
         const duration = Number(voice.buffer.duration);
         let offsetSeconds = 0;
@@ -912,7 +995,7 @@ export class CjsAudioBackend
             previous.onended = null;
             try
             {
-                previous.stop(this.#context.currentTime);
+                previous.stop(startContextTime);
             }
             catch
             {
@@ -923,7 +1006,12 @@ export class CjsAudioBackend
 
         const source = this.#context.createBufferSource();
         source.buffer = voice.buffer;
-        source.loop = loops;
+        const finiteRepeats = !loops
+            && voice.playCount > 1
+            && Number.isFinite(duration)
+            && duration > 0;
+
+        source.loop = loops || finiteRepeats;
         if (source.playbackRate
             && typeof source.playbackRate === "object"
             && "value" in source.playbackRate)
@@ -941,9 +1029,20 @@ export class CjsAudioBackend
         voice.source = source;
         voice.ended = false;
         voice.offsetSeconds = Math.max(0, offsetSeconds);
-        voice.startContextTime = this.#context.currentTime;
+        voice.startContextTime = startContextTime;
+        voice.scheduledEndContextTime = null;
         this.#ApplyVoiceGain(voice);
-        source.start(this.#context.currentTime, voice.offsetSeconds);
+        source.start(startContextTime, voice.offsetSeconds);
+        if (finiteRepeats)
+        {
+            const firstPlay = duration - voice.offsetSeconds;
+            const remaining = firstPlay
+                + duration * (voice.playCount - 1);
+
+            voice.scheduledEndContextTime = startContextTime
+                + remaining / voice.playbackRate;
+            source.stop(voice.scheduledEndContextTime);
+        }
     }
 
     /** Marks one physical voice complete and closes its logical event at zero. */
@@ -1010,6 +1109,7 @@ export class CjsAudioBackend
         {
             this.#playing.delete(playingID);
             record.stopped = true;
+            record.controller?.abort();
 
             for (const voice of record.voices ?? [])
             {
@@ -1077,12 +1177,29 @@ function NormalizeVoiceDescriptors(result, eventLoop)
         }
 
         const constantGain = Number(value.gain ?? 1);
+        const playCount = Number(value.playCount ?? 1);
+
+        if (!Number.isSafeInteger(playCount) || playCount <= 0)
+        {
+            throw new TypeError(
+                `Audio voice ${index} playCount must be a positive integer`,
+            );
+        }
+        if (value.loop === true && value.playCount !== undefined)
+        {
+            throw new TypeError(
+                `Audio voice ${index} cannot combine loop and playCount`,
+            );
+        }
+
+        const loop = value.loop === undefined
+            ? value.playCount === undefined && Boolean(eventLoop())
+            : Boolean(value.loop);
 
         return {
             buffer: value.buffer,
-            loop: value.loop === undefined
-                ? Boolean(eventLoop())
-                : Boolean(value.loop),
+            loop,
+            playCount,
             playbackRate,
             spatial: value.spatial === undefined
                 ? true

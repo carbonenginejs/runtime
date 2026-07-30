@@ -186,6 +186,10 @@ function ChildMayLoop(child, nodes, fallback, active)
     }
     if (node.type === "sound")
     {
+        if (node.playCount !== undefined)
+        {
+            return false;
+        }
         return node.loop === undefined ? fallback : node.loop;
     }
     if (node.type === "silence")

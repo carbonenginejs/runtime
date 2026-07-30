@@ -72,8 +72,13 @@ version-1 portable SFX graph.
 - `delivery: "auto"` to choose from provider capabilities.
 
 The manager also accepts language and media-type preferences. Concurrent
-loads of one selected representation share work. `ReleaseMedia()`,
-`ClearMedia()`, and `ClearSourceData()` release retained state explicitly.
+loads of one selected representation share work. A caller may pass
+`signal`; cancellation releases only that caller's lease, and the provider
+read is aborted once its final pending lease ends. Whole-bank reads share
+the same lease model across embedded members. `ReleaseMedia()`,
+`ClearMedia()`, and `ClearSourceData()` release retained state explicitly
+without canceling active callers. Manager disposal and library/provider
+replacement invalidate all pending acquisitions.
 
 ## Lifecycle
 

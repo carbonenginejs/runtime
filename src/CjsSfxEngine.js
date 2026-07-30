@@ -145,7 +145,13 @@ export class CjsSfxEngine
             selections.push(Object.freeze({
                 mediaID: String(node.mediaId),
                 loop: node.loop,
+                ...(node.playCount === undefined
+                    ? {}
+                    : { playCount: node.playCount }),
                 playbackRate: node.playbackRate ?? 1,
+                ...(node.spatial === undefined
+                    ? {}
+                    : { spatial: node.spatial }),
                 gainDb: terms.gainDb,
                 gainCurves: Object.freeze([ ...terms.gainCurves ]),
             }));

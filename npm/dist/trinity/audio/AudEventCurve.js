@@ -18,7 +18,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "AudEventCurve",
         family: "audio"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("TRIEXTRAPOLATION")], 16, "extrapolation"], [[io, io.read, type, type.float64], 16, "time"], [[io, io.read, type, type.float32], 16, "length"], [[io, io.read, type, type.float32], 16, "localTime"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.string], 16, "value"], [[io, io.persist, void 0, type.model("ITriObserverLocal")], 16, "sourceTriObserver"], [[io, io.persistOnly, void 0, type.list("AudEventKey")], 16, "keys"], [[io, io.read, void 0, type.objectRef("AudEmitter")], 16, "audioEmitter"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddKey"], [[carbon, carbon.method, impl, impl.implemented], 18, "InsertKey"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetKeyCount"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetKeyTime"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetKeyValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetKeyTime"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetKeyValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "RemoveKey"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "Reset"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSourceTriObserver"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetSourceTriObserver"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The placement-observer contract is consumed structurally to keep runtime-audio independent of runtime-trinity.")], 18, "CreateAudioEmitter"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateValue"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("TRIEXTRAPOLATION")], 16, "extrapolation"], [[io, io.read, type, type.float64], 16, "time"], [[io, io.read, type, type.float32], 16, "length"], [[io, io.read, type, type.float32], 16, "localTime"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.string], 16, "value"], [[io, io.persist, void 0, type.model("ITriObserverLocal")], 16, "sourceTriObserver"], [[io, io.persistOnly, void 0, type.list("AudEventKey")], 16, "keys"], [[io, io.read, void 0, type.objectRef("AudEmitter")], 16, "audioEmitter"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddKey"], [[carbon, carbon.method, impl, impl.implemented], 18, "InsertKey"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetKeyCount"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetKeyTime"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetKeyValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetKeyTime"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetKeyValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "RemoveKey"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "Length"], [[carbon, carbon.method, impl, impl.implemented], 18, "Reset"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetSourceTriObserver"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetSourceTriObserver"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The placement-observer contract is consumed structurally to keep runtime-audio independent of runtime-trinity.")], 18, "CreateAudioEmitter"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateValue"]], 0, void 0, CjsModel));
     }
     /** m_extrapolation (TRIEXTRAPOLATION - enum TRIEXTRAPOLATION) [READWRITE, PERSIST, ENUM] */
     extrapolation = (_initProto(this), _init_extrapolation(this, 0));
@@ -126,10 +126,14 @@ new class extends _identity {
       return true;
     }
 
+    /** Carbon method Length (ITriCurveLength): returns the cached final key time. */
+    Length() {
+      return this.length;
+    }
+
     /** Carbon method Reset (ITriFunction, not Blue-mapped): rewind the playback cursor. */
     Reset() {
       this.#currentKeyIndex = 0;
-      this.#queuedEvent = "";
     }
 
     /** Carbon method GetSourceTriObserver (MAP_METHOD_AND_WRAP). */

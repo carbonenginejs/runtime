@@ -29,15 +29,28 @@ const audio = new CjsAudioSystem({
 });
 ```
 
-The built-in `CjsMusicEngine` supports authored event targets and stops,
-sequence and weighted-random playlists, switch and state decisions, segment
-cue scheduling, transition boundaries, linear source/destination fade timing
-and offsets, and transition-segment bridges with their fade envelopes and
-authored pre-entry/post-exit windows.
+The built-in `CjsMusicEngine` supports every playable target on an authored
+Play event under one public playing ID, authored stops, sequence and
+weighted-random playlists, switch and state decisions, segment cue scheduling,
+inherited or overridden meter settings, transition boundaries, and
+source/destination fade timing and offsets. Linear fades use Web Audio ramps;
+the other Wwise interpolation IDs use sampled browser-safe approximations.
+Natural playlist transitions apply their bottom-to-top transition matrix,
+including long source/destination fades and pre-entry/post-exit flags.
+Transition-segment bridges retain their fade envelopes and authored
+pre-entry/post-exit windows. Exact nested switch routes are retained:
+when two associations select the same music object, `continuePlayback: true`
+preserves its iterator and timeline, while `false` restarts it at the
+authored transition boundary. Reapplying the currently selected route is
+always a no-op. A nested association change uses that nested container's
+transition matrix and matches its directly selected child IDs, even when
+those children are themselves switch containers. Wwise `Nothing`
+associations use explicit ID zero and do not match `Any`; their rules also
+apply when playback first enters a target from silence.
 
 The source graph may preserve data that the current scheduler does not play.
 Stingers, Musical Instrument Digital Interface (MIDI) tracks, Synth One
-tracks, RTPC volume curves, and non-linear fade curves remain unsupported.
+tracks, and RTPC volume curves remain unsupported.
 
 ## Custom engine
 
@@ -74,7 +87,9 @@ application-owned event names do not require synthetic Wwise metadata.
 The built-in engine caches decoded buffers by source ID. Use
 `ReleaseMusicMedia(sourceID)` or `ClearMusicMedia()` to release inactive
 entries. `SetGraph()` and `Dispose()` cancel stale scheduling and clear
-graph-owned cache state.
+graph-owned cache state. When the engine is owned by `CjsAudioMan`, effective
+provider, delivery-mode, and language changes also clear its retained music
+media so a later post resolves against the new configuration.
 
 Active `AudioBufferSourceNode` objects retain their buffers until playback
 finishes. Cache release changes future reuse, not an already playing source.

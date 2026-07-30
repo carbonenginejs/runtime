@@ -46,6 +46,7 @@ function EmptyMetadata()
 test("AudParameter binds to its owning object and backend RTPC/switch state remains isolated", () =>
 {
   const applied = [];
+  const logged = [];
   const switches = [];
   const musicEngine = {
     HandlesEvent: () => false,
@@ -64,6 +65,9 @@ test("AudParameter binds to its owning object and backend RTPC/switch state rema
   system.Attach();
   try
   {
+    system.manager.log = {
+      LogSetRTPC: (...args) => logged.push(args),
+    };
     system.Enable();
     const first = system.CreateEmitter({ name: "first", position: [ 0, 0, 0 ] });
     const second = system.CreateEmitter({ name: "second", position: [ 1, 0, 0 ] });
@@ -77,6 +81,9 @@ test("AudParameter binds to its owning object and backend RTPC/switch state rema
     parameter.SetValues({ value: 3 });
     assert.equal(applied.length, 1);
     assert.equal(applied[0].gameObjID, first.ID);
+    assert.deepEqual(logged, [
+      [ first.ID, "renamed", 3, 0 ],
+    ]);
     assert.equal(system.backend.GetRTPCValue("renamed", first.ID), 3);
     assert.equal(system.backend.GetRTPCValue("renamed", second.ID), undefined);
 

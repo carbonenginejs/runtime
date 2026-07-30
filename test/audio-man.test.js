@@ -167,6 +167,19 @@ function PlaybackContext(log)
     return context;
 }
 
+function Deferred()
+{
+    let resolve;
+    let reject;
+    const promise = new Promise((next, fail) =>
+    {
+        resolve = next;
+        reject = fail;
+    });
+
+    return { promise, reject, resolve };
+}
+
 test("CjsAudioMan installs one immutable document and reads individual media", async () =>
 {
     const log = [];
@@ -200,6 +213,486 @@ test("CjsAudioMan installs one immutable document and reads individual media", a
     assert.equal(reads[0][1].kind, "media");
     assert.deepEqual([ ...log[0][1] ], [ 1, 2, 3, 4 ]);
     assert.equal(man.ReleaseMedia(777), 1);
+    man.Dispose();
+});
+
+test("shared media acquisition survives one cancelled subscriber", async () =>
+{
+    const log = [];
+    const read = Deferred();
+    let providerSignal = null;
+    let reads = 0;
+    const man = new CjsAudioMan(CreateDocument({
+        direct: {
+            sourceID: "prepared:777",
+            resPath: "res:/audio/777.ogg",
+            mediaType: "ogg",
+            byteLength: 4,
+        },
+    }), {
+        createContext: () => FakeContext(log),
+        mediaProvider: {
+            Read(source, context)
+            {
+                reads++;
+                providerSignal = context.signal;
+                return read.promise;
+            },
+        },
+    });
+    const firstController = new AbortController();
+    const secondController = new AbortController();
+
+    assert.equal(man.Enable(), true);
+    const first = man.LoadMedia(777, {
+        signal: firstController.signal,
+    });
+    const second = man.LoadMedia(777, {
+        signal: secondController.signal,
+    });
+
+    await new Promise(resolve => setImmediate(resolve));
+    firstController.abort();
+    await assert.rejects(first, { name: "AbortError" });
+    assert.equal(
+        providerSignal.aborted,
+        false,
+        "one subscriber cannot cancel a shared provider read",
+    );
+
+    read.resolve(new Uint8Array([ 1, 2, 3, 4 ]));
+    assert.equal((await second).byteLength, 4);
+    assert.equal(reads, 1);
+    assert.equal(providerSignal.aborted, false);
+    man.Dispose();
+});
+
+test("shared media acquisition aborts its provider after the final lease ends", async () =>
+{
+    for (const order of [ [ 0, 1 ], [ 1, 0 ] ])
+    {
+        const log = [];
+        let providerSignal = null;
+        const man = new CjsAudioMan(CreateDocument({
+            direct: {
+                sourceID: "prepared:777",
+                resPath: "res:/audio/777.ogg",
+                mediaType: "ogg",
+                byteLength: 4,
+            },
+        }), {
+            createContext: () => FakeContext(log),
+            mediaProvider: {
+                Read(source, context)
+                {
+                    providerSignal = context.signal;
+                    return new Promise((resolve, reject) =>
+                    {
+                        context.signal.addEventListener("abort", () =>
+                        {
+                            reject(context.signal.reason);
+                        }, { once: true });
+                    });
+                },
+            },
+        });
+        const controllers = [
+            new AbortController(),
+            new AbortController(),
+        ];
+
+        assert.equal(man.Enable(), true);
+        const loads = controllers.map(controller =>
+            man.LoadMedia(777, { signal: controller.signal }));
+
+        await new Promise(resolve => setImmediate(resolve));
+        controllers[order[0]].abort();
+        await assert.rejects(loads[order[0]], { name: "AbortError" });
+        assert.equal(
+            providerSignal.aborted,
+            false,
+            `the first cancellation in order ${order.join(",")} keeps the read alive`,
+        );
+
+        controllers[order[1]].abort();
+        await assert.rejects(loads[order[1]], { name: "AbortError" });
+        assert.equal(
+            providerSignal.aborted,
+            true,
+            `the final cancellation in order ${order.join(",")} aborts the read`,
+        );
+        man.Dispose();
+    }
+});
+
+test("an orphaned cancelled acquisition is evicted before its provider settles", async () =>
+{
+    const log = [];
+    const abandoned = Deferred();
+    let reads = 0;
+    const man = new CjsAudioMan(CreateDocument({
+        direct: {
+            sourceID: "prepared:777",
+            resPath: "res:/audio/777.ogg",
+            mediaType: "ogg",
+            byteLength: 4,
+        },
+    }), {
+        createContext: () => FakeContext(log),
+        mediaProvider: {
+            Read()
+            {
+                reads++;
+                return reads === 1
+                    ? abandoned.promise
+                    : new Uint8Array([ 1, 2, 3, 4 ]);
+            },
+        },
+    });
+    const controller = new AbortController();
+
+    assert.equal(man.Enable(), true);
+    const cancelled = man.LoadMedia(777, {
+        signal: controller.signal,
+    });
+
+    await new Promise(resolve => setImmediate(resolve));
+    controller.abort();
+    await assert.rejects(cancelled, { name: "AbortError" });
+
+    const replacement = await man.LoadMedia(777);
+
+    assert.equal(
+        replacement.byteLength,
+        4,
+        "a new caller does not inherit the abandoned operation",
+    );
+    assert.equal(reads, 2);
+
+    abandoned.resolve(new Uint8Array([ 9, 9, 9, 9 ]));
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(
+        await man.LoadMedia(777),
+        replacement,
+        "the late abandoned result cannot replace the retained retry",
+    );
+    assert.equal(reads, 2);
+    man.Dispose();
+});
+
+test("an orphaned whole-bank read cannot poison its immediate retry", async () =>
+{
+    const log = [];
+    const abandoned = Deferred();
+    let reads = 0;
+    const man = new CjsAudioMan(CreateDocument({ embedded: true }), {
+        createContext: () => FakeContext(log),
+        delivery: "whole",
+        mediaProvider: {
+            Read()
+            {
+                reads++;
+                return reads === 1
+                    ? abandoned.promise
+                    : new Uint8Array([
+                        0, 0, 0, 0,
+                        1, 2, 3, 4,
+                        0, 0, 0, 0,
+                    ]);
+            },
+        },
+    });
+    const controller = new AbortController();
+
+    assert.equal(man.Enable(), true);
+    const cancelled = man.LoadMedia(777, {
+        signal: controller.signal,
+    });
+
+    await new Promise(resolve => setImmediate(resolve));
+    controller.abort();
+    await assert.rejects(cancelled, { name: "AbortError" });
+
+    const replacement = await man.LoadMedia(777);
+
+    assert.equal(replacement.byteLength, 4);
+    assert.equal(reads, 2);
+
+    abandoned.resolve(new Uint8Array(12));
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(await man.LoadMedia(777), replacement);
+    assert.equal(reads, 2);
+    man.Dispose();
+});
+
+test("whole-bank delivery shares cancellation leases across embedded media", async () =>
+{
+    const log = [];
+    const library = CreateDocument({ embedded: true });
+
+    library.embeddedMedia["778"] = {
+        sourceID: "embedded:778:524:0",
+        bank: "524:0",
+        offset: 8,
+        byteLength: 4,
+        mediaType: "ogg",
+    };
+
+    let providerSignal = null;
+    let reads = 0;
+    const man = new CjsAudioMan(library, {
+        createContext: () => FakeContext(log),
+        delivery: "whole",
+        mediaProvider: {
+            Read(source, context)
+            {
+                reads++;
+                providerSignal = context.signal;
+                return new Promise((resolve, reject) =>
+                {
+                    context.signal.addEventListener("abort", () =>
+                    {
+                        reject(context.signal.reason);
+                    }, { once: true });
+                });
+            },
+        },
+    });
+    const firstController = new AbortController();
+    const secondController = new AbortController();
+
+    assert.equal(man.Enable(), true);
+    const first = man.LoadMedia(777, {
+        signal: firstController.signal,
+    });
+    const second = man.LoadMedia(778, {
+        signal: secondController.signal,
+    });
+
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(reads, 1, "both embedded members share one whole-bank read");
+
+    firstController.abort();
+    await assert.rejects(first, { name: "AbortError" });
+    assert.equal(
+        providerSignal.aborted,
+        false,
+        "the sibling embedded-media lease keeps the bank read alive",
+    );
+
+    secondController.abort();
+    await assert.rejects(second, { name: "AbortError" });
+    assert.equal(providerSignal.aborted, true);
+    man.Dispose();
+});
+
+test("cancellation during decode discards its late result and permits retry", async () =>
+{
+    const log = [];
+    const firstDecode = Deferred();
+    const context = FakeContext(log);
+    const decoded = {
+        byteLength: 4,
+        sampleRate: 48000,
+        getChannelData()
+        {
+            return new Float32Array(0);
+        },
+    };
+    let decodeCalls = 0;
+    let reads = 0;
+
+    context.decodeAudioData = () =>
+    {
+        decodeCalls++;
+        return decodeCalls === 1
+            ? firstDecode.promise
+            : Promise.resolve(decoded);
+    };
+
+    const man = new CjsAudioMan(CreateDocument({
+        direct: {
+            sourceID: "prepared:777",
+            resPath: "res:/audio/777.ogg",
+            mediaType: "ogg",
+            byteLength: 4,
+        },
+    }), {
+        createContext: () => context,
+        mediaProvider: {
+            Read()
+            {
+                reads++;
+                return new Uint8Array([ 1, 2, 3, 4 ]);
+            },
+        },
+    });
+    const controller = new AbortController();
+
+    assert.equal(man.Enable(), true);
+    const cancelled = man.LoadMedia(777, {
+        signal: controller.signal,
+    });
+
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(decodeCalls, 1);
+    controller.abort();
+    await assert.rejects(cancelled, { name: "AbortError" });
+
+    firstDecode.resolve(decoded);
+    await new Promise(resolve => setImmediate(resolve));
+    await assert.rejects(
+        Promise.resolve().then(() => cancelled),
+        { name: "AbortError" },
+    );
+
+    assert.equal(await man.LoadMedia(777), decoded);
+    assert.equal(reads, 2, "the aborted late decode was not retained");
+    man.Dispose();
+});
+
+test("manager invalidation aborts direct pending media acquisitions", async () =>
+{
+    for (const operation of [ "dispose", "provider", "library" ])
+    {
+        const log = [];
+        let providerSignal = null;
+        const library = CreateDocument({
+            direct: {
+                sourceID: "prepared:777",
+                resPath: "res:/audio/777.ogg",
+                mediaType: "ogg",
+                byteLength: 4,
+            },
+        });
+        const man = new CjsAudioMan(library, {
+            createContext: () => FakeContext(log),
+            mediaProvider: {
+                Read(source, context)
+                {
+                    providerSignal = context.signal;
+                    return new Promise(() => {});
+                },
+            },
+        });
+
+        assert.equal(man.Enable(), true);
+        const pending = man.LoadMedia(777);
+
+        await new Promise(resolve => setImmediate(resolve));
+        assert.equal(providerSignal.aborted, false);
+
+        if (operation === "dispose")
+        {
+            man.Dispose();
+        }
+        else
+        {
+            man.Disable();
+            if (operation === "provider")
+            {
+                man.SetMediaProvider({
+                    Read()
+                    {
+                        return new Uint8Array([ 1, 2, 3, 4 ]);
+                    },
+                });
+            }
+            else
+            {
+                man.InstallLibrary(library);
+            }
+        }
+
+        assert.equal(
+            providerSignal.aborted,
+            true,
+            `${operation} aborts the obsolete provider operation`,
+        );
+        await assert.rejects(pending, { name: "AbortError" });
+        man.Dispose();
+    }
+});
+
+test("stale failed media reads cannot evict a newer decoded operation", async () =>
+{
+    const log = [];
+    const stale = Deferred();
+    let reads = 0;
+    const man = new CjsAudioMan(CreateDocument({
+        direct: {
+            sourceID: "prepared:777",
+            resPath: "res:/audio/777.ogg",
+            mediaType: "ogg",
+            byteLength: 4,
+        },
+    }), {
+        createContext: () => FakeContext(log),
+        mediaProvider: {
+            Read()
+            {
+                reads++;
+                return reads === 1
+                    ? stale.promise
+                    : new Uint8Array([ 1, 2, 3, 4 ]);
+            },
+        },
+    });
+
+    assert.equal(man.Enable(), true);
+    const superseded = man.LoadMedia(777);
+
+    assert.equal(man.ReleaseMedia(777), 1);
+    const replacementBuffer = await man.LoadMedia(777);
+
+    stale.reject(new Error("superseded read failed"));
+    await assert.rejects(superseded, /superseded read failed/u);
+    assert.equal(
+        await man.LoadMedia(777),
+        replacementBuffer,
+        "the current decoded result remains retained",
+    );
+    assert.equal(reads, 2, "the stale rejection did not trigger a third read");
+    man.Dispose();
+});
+
+test("stale failed whole-bank reads cannot evict replacement bank bytes", async () =>
+{
+    const log = [];
+    const stale = Deferred();
+    let reads = 0;
+    const man = new CjsAudioMan(CreateDocument({
+        embedded: true,
+    }), {
+        createContext: () => FakeContext(log),
+        mediaProvider: {
+            Read()
+            {
+                reads++;
+                return reads === 1
+                    ? stale.promise
+                    : new Uint8Array(12);
+            },
+        },
+    });
+
+    assert.equal(man.Enable(), true);
+    const superseded = man.LoadMedia(777);
+
+    assert.equal(man.ClearMedia(), 1);
+    assert.equal(man.ClearSourceData(), 1);
+    await man.LoadMedia(777);
+
+    stale.reject(new Error("superseded bank read failed"));
+    await assert.rejects(superseded, /superseded bank read failed/u);
+
+    assert.equal(man.ReleaseMedia(777), 1);
+    await man.LoadMedia(777);
+    assert.equal(
+        reads,
+        2,
+        "the replacement whole-bank bytes remain retained",
+    );
     man.Dispose();
 });
 
@@ -238,6 +731,45 @@ test("CjsAudioMan lazily owns Carbon's fixed music-player singleton", () =>
     assert.equal(man.manager.GetAudioEmitter(3), first);
     assert.equal(man.ReleaseEmitter(first), true);
     assert.notEqual(man.GetMusicPlayer(), first);
+    man.Dispose();
+});
+
+test("effective media configuration changes clear the attached music cache", () =>
+{
+    const log = [];
+    let clears = 0;
+    const musicEngine = {
+        HandlesEvent: () => false,
+        PostEvent() {},
+        ExecuteAction() {},
+        Process() {},
+        Dispose() {},
+        ClearMedia()
+        {
+            clears++;
+            return 0;
+        },
+    };
+    const man = new CjsAudioMan(CreateDocument(), {
+        createContext: () => FakeContext(log),
+        mediaProvider: {
+            Read: () => new Uint8Array([ 1 ]),
+        },
+        musicEngine,
+    });
+
+    assert.equal(man.Enable(), true);
+    man.SetDelivery("whole");
+    assert.equal(clears, 1);
+    man.SetLanguages([ "en" ]);
+    assert.equal(clears, 2);
+
+    man.Disable();
+    man.SetMediaProvider({
+        Read: () => new Uint8Array([ 2 ]),
+    });
+    assert.equal(clears, 3);
+
     man.Dispose();
 });
 
@@ -390,6 +922,7 @@ test("CjsAudioMan resolves authored switch and blend nodes before media delivery
 {
     const log = [];
     const reads = [];
+    let missingLayer = false;
     const context = PlaybackContext(log);
     const library = {
         schema: "carbonenginejs.audioLibrary",
@@ -451,10 +984,12 @@ test("CjsAudioMan resolves authored switch and blend nodes before media delivery
                 "10": {
                     type: "sound",
                     mediaId: "777",
+                    spatial: true,
                 },
                 "11": {
                     type: "sound",
                     mediaId: "778",
+                    spatial: false,
                 },
             },
         },
@@ -465,6 +1000,10 @@ test("CjsAudioMan resolves authored switch and blend nodes before media delivery
             Read(source)
             {
                 reads.push(source.sourceID);
+                if (missingLayer && source.sourceID === "prepared:778")
+                {
+                    throw new Error("retired optional layer");
+                }
                 return new Uint8Array([ 1, 2, 3, 4 ]);
             },
         },
@@ -487,11 +1026,117 @@ test("CjsAudioMan resolves authored switch and blend nodes before media delivery
     assert.equal(context.sources.every(source => source.started), true);
     assert.equal(
         context.gains[4].connectedTo,
-        context.gains[5],
-        "authored 2D metadata bypasses the emitter panner",
+        context.gains[3],
+        "the authored 3D leaf routes through the emitter panner",
     );
-    assert.equal(context.gains[6].connectedTo, context.gains[5]);
-    assert.equal(context.gains[5].connectedTo, context.gains[1]);
+    assert.equal(
+        context.gains[5].connectedTo,
+        context.gains[6],
+        "the 2D sibling routes through the emitter's flat gain",
+    );
+    assert.equal(context.gains[6].connectedTo, context.gains[1]);
+
+    missingLayer = true;
+    assert.equal(man.ReleaseMedia(778), 1);
+    assert.ok(emitter.SendEvent("weapon_fire") > 0);
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(
+        context.sources.length,
+        3,
+        "a playable blend layer survives one unavailable sibling",
+    );
+    assert.equal(
+        context.gains[7].connectedTo,
+        context.gains[3],
+        "the surviving layer retains its own authored spatial route",
+    );
+    man.Dispose();
+});
+
+test("two events share acquisition until the final playing record stops", async () =>
+{
+    const context = PlaybackContext([]);
+    const library = CreateDocument({
+        direct: {
+            sourceID: "prepared:777",
+            resPath: "res:/audio/777.ogg",
+            mediaType: "ogg",
+            byteLength: 4,
+        },
+    });
+
+    library.metadata.Events.shared_shot = {
+        eventID: 42,
+        is2D: 0,
+        isLoop: 0,
+        soundbanks: [ "ships.bnk" ],
+    };
+    library.metadata.SoundBanks["ships.bnk"] = {
+        EssentialSoundBank: 0,
+    };
+    library.eventMedia = {
+        shared_shot: [ "777" ],
+    };
+
+    let providerSignal = null;
+    let reads = 0;
+    const man = new CjsAudioMan(library, {
+        createContext: () => context,
+        mediaProvider: {
+            Read(source, request)
+            {
+                reads++;
+                providerSignal = request.signal;
+                return new Promise((resolve, reject) =>
+                {
+                    request.signal.addEventListener("abort", () =>
+                    {
+                        reject(request.signal.reason);
+                    }, { once: true });
+                });
+            },
+        },
+    });
+
+    assert.equal(man.Enable([ "ships.bnk" ]), true);
+    const firstEmitter = man.CreateEmitter();
+    const secondEmitter = man.CreateEmitter();
+
+    for (const emitter of [ firstEmitter, secondEmitter ])
+    {
+        emitter.SetPosition(
+            [ 0, 0, 1 ],
+            [ 0, 1, 0 ],
+            [ 0, 0, 0 ],
+        );
+        emitter.Wake();
+    }
+
+    const first = firstEmitter.SendEvent("shared_shot");
+    const second = secondEmitter.SendEvent("shared_shot");
+
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(reads, 1);
+    assert.equal(providerSignal.aborted, false);
+
+    assert.equal(
+        firstEmitter.ExecuteActionOnPlayingID(first, "stop", 0),
+        true,
+    );
+    assert.equal(
+        providerSignal.aborted,
+        false,
+        "the second event retains its shared acquisition lease",
+    );
+
+    assert.equal(
+        secondEmitter.ExecuteActionOnPlayingID(second, "stop", 0),
+        true,
+    );
+    assert.equal(providerSignal.aborted, true);
+    assert.equal(man.system.backend.GetPlayingCount(), 0);
     man.Dispose();
 });
 

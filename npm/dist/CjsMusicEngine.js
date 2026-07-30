@@ -8,13 +8,16 @@
 // v1 semantics (documented simplifications):
 // - Segments chain at their exit cue; pre-entry clip audio plays when the
 //   schedule allows (first segment starts at its entry cue "now").
-// - Switch changes re-resolve the tree and transition at the rule's boundary:
-//   syncType 0 (Immediate) now, otherwise at the current segment's exit cue,
-//   with the rule's fade times on source and destination instance gains.
-// - Playlist groups: sequence in order, random weighted (avoid-repeat via
-//   shuffle history); step groups yield one child per visit. Loop 0 =
-//   infinite. Transition segments bridge source and destination with authored
-//   pre-entry/post-exit windows. Stingers and MIDI tracks are not played.
+// - Switch changes re-resolve the exact tree route and transition at the
+//   rule's boundary: syncType 0 (Immediate) now, otherwise at the current
+//   segment's exit cue, with the rule's fade times on source and destination
+//   instance gains. Shared targets continue or restart according to their
+//   switch container's Continue Playback flag.
+// - Playlist groups preserve Wwise's sequence/random and continuous/step
+//   modes, weighted standard/shuffle selection, repeat avoidance, and loop
+//   randomization. Loop 0 = infinite. Transition segments bridge source and
+//   destination with authored pre-entry/post-exit windows. Stingers and MIDI
+//   tracks are not played.
 
 const FNV_OFFSET = 2166136261;
 const FNV_PRIME = 16777619;
@@ -31,11 +34,77 @@ function wwiseIdFromName(name) {
 }
 const DEFAULT_FADE_SECONDS = 1;
 const SCHEDULE_HORIZON_SECONDS = 1.5;
+const MAX_SCHEDULE_HORIZON_SECONDS = 60;
+const LINEAR_FADE_CURVE = 4;
+const FADE_CURVE_SAMPLES = 65;
 function FadeDuration(fade) {
   return Math.max(0, Number(fade?.transitionTime) || 0) / 1000;
 }
 function FadeOffset(fade) {
   return (Number(fade?.fadeOffset) || 0) / 1000;
+}
+
+/** Lookahead needed to begin a playlist transition before its boundary. */
+function PlaylistScheduleHorizon(node) {
+  let seconds = SCHEDULE_HORIZON_SECONDS;
+  for (const rule of node?.rules ?? []) {
+    seconds = Math.max(seconds, FadeDuration(rule?.src) - FadeOffset(rule?.src), -FadeOffset(rule?.dst));
+  }
+  return Math.min(MAX_SCHEDULE_HORIZON_SECONDS, seconds);
+}
+
+/** Wwise AkCurveInterpolation sampled over normalized time. */
+function FadeCurveValue(curve, progress) {
+  const value = Math.max(0, Math.min(1, Number(progress) || 0));
+  switch (Number(curve)) {
+    case 0:
+      return 1 - (1 - value) ** 3;
+    // Log3
+    case 1:
+      return Math.sin(value * Math.PI / 2);
+    // Sine
+    case 2:
+      return Math.sqrt(value);
+    // Log1
+    case 3:
+      // Inverted S: fast at both ends, shallow through the middle.
+      return value < 0.5 ? Math.sqrt(value / 2) : 1 - Math.sqrt((1 - value) / 2);
+    case 5:
+      return value * value * (3 - 2 * value);
+    // S curve
+    case 6:
+      return value * value;
+    // Exp1
+    case 7:
+      return 1 - Math.cos(value * Math.PI / 2);
+    // Sine reciprocal
+    case 8:
+      return value ** 3;
+    // Exp3
+    default:
+      return value;
+  }
+}
+
+/** Schedules one linear or sampled Wwise interpolation on an AudioParam. */
+function ScheduleFade(param, from, to, when, duration, curve, progress = 0) {
+  const startProgress = Math.max(0, Math.min(1, progress));
+  const curveId = Number(curve);
+  const startValue = from + (to - from) * FadeCurveValue(curveId, startProgress);
+  if ("value" in param) param.value = startValue;
+  if (!Number.isInteger(curveId) || curveId === LINEAR_FADE_CURVE || typeof param.setValueCurveAtTime !== "function") {
+    param.setValueAtTime?.(startValue, when);
+    param.linearRampToValueAtTime?.(to, when + duration);
+    return startValue;
+  }
+  const values = new Float32Array(FADE_CURVE_SAMPLES);
+  for (let index = 0; index < values.length; index++) {
+    const ratio = index / (values.length - 1);
+    const sampleProgress = startProgress + (1 - startProgress) * ratio;
+    values[index] = from + (to - from) * FadeCurveValue(curveId, sampleProgress);
+  }
+  param.setValueCurveAtTime(values, when, duration);
+  return startValue;
 }
 function segmentCues(segment) {
   const positions = segment.markers.map(marker => marker.position).sort((a, b) => a - b);
@@ -45,6 +114,24 @@ function segmentCues(segment) {
     entry,
     exit
   };
+}
+
+/**
+ * Resolves Wwise music time settings at one hierarchy step.
+ *
+ * A root necessarily supplies the initial settings. Descendants inherit when
+ * Override parent is disabled; graphs predating the explicit flag retain
+ * their historical behavior by treating an absent flag as an override.
+ */
+function EffectiveMeter(inherited, node) {
+  const meter = node?.meter ?? null;
+  if (!meter) {
+    return inherited ?? null;
+  }
+  if (!inherited || node.meterOverride !== false) {
+    return meter;
+  }
+  return inherited;
 }
 
 /** Weighted pick over playlist children honoring an avoid-repeat history. */
@@ -84,19 +171,70 @@ function buildPlaylistTree(items) {
  */
 function createPlaylistIterator(playlistNode, random) {
   const root = buildPlaylistTree(playlistNode.playlist);
-  const history = [];
+  const histories = new Map();
+  const shufflePools = new Map();
+  const sequencePositions = new Map();
+  const selectRandom = node => {
+    const key = node.item.playlistItemId;
+    const avoid = Math.max(Number(node.item.avoidRepeatCount) || 0, node.item.shuffle ? 1 : 0);
+    const history = histories.get(key) ?? [];
+    let pool = node.children;
+    if (node.item.shuffle) {
+      let shuffle = shufflePools.get(key);
+      if (!shuffle?.length) {
+        shuffle = [...node.children];
+        shufflePools.set(key, shuffle);
+      }
+      pool = shuffle;
+    }
+    const child = pickWeighted(pool, history, avoid, random);
+    if (!child) {
+      return null;
+    }
+    history.push(child.item.playlistItemId);
+    while (history.length > avoid) {
+      history.shift();
+    }
+    histories.set(key, history);
+    if (node.item.shuffle) {
+      const shuffle = shufflePools.get(key) ?? [];
+      const index = shuffle.indexOf(child);
+      if (index !== -1) {
+        shuffle.splice(index, 1);
+      }
+    }
+    return child;
+  };
+  const selectSequenceStep = node => {
+    const key = node.item.playlistItemId;
+    const position = sequencePositions.get(key) ?? 0;
+    const child = node.children[position % node.children.length];
+    sequencePositions.set(key, position + 1);
+    return child;
+  };
   function* walk(node) {
-    const loops = node.item.loop === 0 ? Infinity : Math.max(1, node.item.loop);
+    const loops = PlaylistLoopCount(node.item, random);
     for (let i = 0; i < loops; i++) {
       if (!node.children.length) {
         if (node.item.segmentId) yield node.item.segmentId;
         continue;
       }
       const type = node.item.rsType;
-      if (type === 1 || type === 3) {
-        const child = pickWeighted(node.children, history, node.item.avoidRepeatCount, random);
-        history.push(child.item.playlistItemId);
+      if (type === 1) {
+        const child = selectSequenceStep(node);
         yield* walk(child);
+      } else if (type === 2) {
+        for (let index = 0; index < node.children.length; index++) {
+          const child = selectRandom(node);
+          if (child) {
+            yield* walk(child);
+          }
+        }
+      } else if (type === 3) {
+        const child = selectRandom(node);
+        if (child) {
+          yield* walk(child);
+        }
       } else {
         for (const child of node.children) {
           yield* walk(child);
@@ -111,24 +249,108 @@ function createPlaylistIterator(playlistNode, random) {
   };
 }
 
+/** Samples one playlist item's authored loop count; zero remains infinite. */
+function PlaylistLoopCount(item, random) {
+  const base = Math.trunc(Number(item.loop) || 0);
+  if (base === 0) {
+    return Infinity;
+  }
+  const minimum = Math.trunc(Number(item.loopMin) || 0);
+  const maximum = Math.trunc(Number(item.loopMax) || 0);
+  if (minimum === 0 && maximum === 0) {
+    return Math.max(1, base);
+  }
+  const low = Math.min(minimum, maximum);
+  const high = Math.max(minimum, maximum);
+  const sampled = Number(random());
+  const ratio = Number.isFinite(sampled) ? Math.max(0, Math.min(0.9999999999999999, sampled)) : 0;
+  const offset = low + Math.floor(ratio * (high - low + 1));
+  return Math.max(1, base + offset);
+}
+
 /**
- * Walks a switch container's decision tree with the current group values.
- * Returns null for "nothing plays": an unmatched value with no default path,
- * or a leaf whose audio node id is 0 (authored silence). EVE's trees also
- * reference node ids absent from every shipped bank - the caller treats
- * those exactly like authored silence.
+ * Walks one switch container's decision tree with the current group values.
+ * The terminal tree-node index is retained because two authored paths may
+ * deliberately select the same audio object with different continuation
+ * semantics.
  */
-function resolveSwitchTarget(node, getValue) {
+function resolveSwitchStep(node, getValue) {
   const depth = node.argumentGroups.length;
-  let current = node.treeNodes[0];
+  let currentIndex = 0;
+  let current = node.treeNodes[currentIndex];
   for (let level = 0; level < depth; level++) {
     const value = getValue(node.argumentGroups[level].groupId);
-    const children = node.treeNodes.slice(current.childrenIdx, current.childrenIdx + current.childrenCount);
-    if (!children.length) return null;
-    current = children.find(child => child.key === value) ?? children.find(child => child.key === 0) ?? null;
-    if (!current) return null;
+    const start = current.childrenIdx;
+    const children = node.treeNodes.slice(start, start + current.childrenCount);
+    if (!children.length) {
+      return {
+        targetId: null,
+        treeNodeIndex: currentIndex
+      };
+    }
+    let offset = children.findIndex(child => child.key === value);
+    if (offset === -1) {
+      offset = children.findIndex(child => child.key === 0);
+    }
+    if (offset === -1) {
+      return {
+        targetId: null,
+        treeNodeIndex: -1
+      };
+    }
+    currentIndex = start + offset;
+    current = node.treeNodes[currentIndex];
   }
-  return current.audioNodeId || null;
+  return {
+    targetId: current.audioNodeId || null,
+    treeNodeIndex: currentIndex
+  };
+}
+
+/** True when two selected switch-container paths are identical. */
+function RoutesEqual(left, right) {
+  if (left === right) {
+    return true;
+  }
+  if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+    return false;
+  }
+  return left.every((entry, index) => entry.containerId === right[index].containerId && entry.treeNodeIndex === right[index].treeNodeIndex);
+}
+
+/** Returns changed association owners in outer-to-inner route order. */
+function ChangedRouteOwners(previous, next) {
+  const before = new Map((previous ?? []).map(entry => [entry.containerId, entry]));
+  const after = new Map((next ?? []).map(entry => [entry.containerId, entry]));
+  const ordered = [...(next ?? []), ...(previous ?? []).filter(entry => !after.has(entry.containerId))];
+  const changed = [];
+  for (const entry of ordered) {
+    const left = before.get(entry.containerId);
+    const right = after.get(entry.containerId);
+
+    // Entered/left nested containers changed because an ancestor chose a
+    // different association. The common changed ancestor owns the rule.
+    if (!left || !right || left.treeNodeIndex === right.treeNodeIndex) {
+      continue;
+    }
+    changed.push(right);
+  }
+  return changed;
+}
+
+/** Finds the container whose transition matrix owns a route change. */
+function RouteTransitionOwner(previous, next) {
+  return ChangedRouteOwners(previous, next)[0]?.containerId ?? null;
+}
+
+/** Finds the outermost changed owner that disables Continue Playback. */
+function RouteRestartOwner(previous, next) {
+  return ChangedRouteOwners(previous, next).find(entry => entry.continuePlayback === false)?.containerId ?? null;
+}
+
+/** Returns one switch container's directly selected association target. */
+function RouteSelection(route, containerId) {
+  return (route ?? []).find(entry => entry.containerId === containerId)?.selectedTargetId ?? null;
 }
 
 /** One playing music instance: a posted event's active graph playback. */
@@ -137,17 +359,21 @@ class MusicInstance {
   constructor({
     playingID,
     rootId,
-    onFinished
+    group
   }) {
     this.playingID = playingID;
     this.rootId = rootId;
-    this.onFinished = onFinished;
+    this.group = group;
+    this.key = Symbol(`music:${playingID}:${rootId}`);
     this.gain = null;
     this.resolvedTargetId = null;
+    this.resolvedRoute = null;
     this.pendingTargetId = null;
+    this.pendingRoute = null;
     this.unavailableTargetId = null;
     this.pendingGeneration = 0;
-    this.nextSegmentId = null;
+    this.nextSegmentPlan = null;
+    this.nextSegmentPlayPreEntry = null;
     this.iterator = null;
     this.boundary = 0;
     this.scheduledThrough = 0;
@@ -156,9 +382,13 @@ class MusicInstance {
     this.stopAt = null;
     this.finished = false;
     this.exhausted = false;
+    this.trackSequencePositions = new Map();
     // Latest scheduled segment's musical timeline (for sync quantization):
     // { startCtx (ctx time of segment position 0), meter }.
     this.timeline = null;
+    this.targetMeter = null;
+    this.playlistPreviousSegmentId = null;
+    this.playlistPreviousScheduled = null;
   }
 }
 
@@ -172,6 +402,7 @@ class CjsMusicEngine {
   #random = Math.random;
   #switchValues = new Map();
   #instances = new Map();
+  #groups = new Map();
   #buffers = new Map();
   #nextScheduleId = 1;
   #epoch = 0;
@@ -282,7 +513,12 @@ class CjsMusicEngine {
     const setters = this.#graph.switchSetters?.[eventName];
     if (setters) {
       for (const setter of setters) {
-        this.#SetValue(setter.groupId, setter.targetId);
+        this.#switchValues.set(setter.groupId >>> 0, setter.targetId >>> 0);
+      }
+      for (const instance of this.#instances.values()) {
+        if (!instance.stopped) {
+          this.#ReevaluateInstance(instance);
+        }
       }
     }
     const stops = this.#graph.eventStops?.[eventName];
@@ -301,28 +537,40 @@ class CjsMusicEngine {
       queueMicrotask(() => onFinished?.());
       return false;
     }
-    const instance = new MusicInstance({
+    const group = {
       playingID,
-      rootId: targets[0],
-      onFinished
-    });
-    instance.gain = this.#context.createGain();
-    instance.gain.connect(this.#musicGain ?? this.#destination);
-    this.#instances.set(playingID, instance);
-    this.#ResolveInstance(instance, this.#context.currentTime);
+      onFinished,
+      instances: new Set(),
+      finished: false
+    };
+    this.#groups.set(playingID, group);
+    for (const rootId of targets) {
+      const instance = new MusicInstance({
+        playingID,
+        rootId,
+        group
+      });
+      instance.gain = this.#context.createGain();
+      instance.gain.connect(this.#musicGain ?? this.#destination);
+      group.instances.add(instance);
+      this.#instances.set(instance.key, instance);
+      this.#BeginInitialTarget(instance);
+    }
     this.Process();
     return true;
   }
 
   /** Stop ("stop") and break ("break") both fade the instance out. */
   ExecuteAction(action, playingID, fadeOutDuration = 1000) {
-    const instance = this.#instances.get(playingID);
-    if (!instance) {
+    const group = this.#groups.get(playingID);
+    if (!group) {
       return;
     }
     const ms = Number(fadeOutDuration);
     const seconds = Number.isFinite(ms) ? Math.max(0, ms) / 1000 : DEFAULT_FADE_SECONDS;
-    this.#StopInstance(instance, seconds);
+    for (const instance of [...group.instances]) {
+      this.#StopInstance(instance, seconds);
+    }
   }
 
   /** Switch/state input by name or id; music treats both as tree arguments. */
@@ -337,12 +585,13 @@ class CjsMusicEngine {
 
   /** Active instance count (introspection/tests). */
   GetPlayingCount() {
-    return this.#instances.size;
+    return this.#groups.size;
   }
 
   /** Currently resolved target node id of an instance (introspection/tests). */
   GetResolvedTarget(playingID) {
-    return this.#instances.get(playingID)?.resolvedTargetId ?? null;
+    const group = this.#groups.get(playingID);
+    return group ? [...group.instances][0]?.resolvedTargetId ?? null : null;
   }
 
   /**
@@ -365,18 +614,31 @@ class CjsMusicEngine {
         continue;
       }
       if (instance.exhausted) {
-        // Let the last scheduled audio play out to its boundary.
-        if (now >= instance.boundary) this.#FinishInstance(instance);
+        // The exit cue ends musical scheduling, but authored clips
+        // may remain audible after it. Finish only once those loaded
+        // tails end and no scheduled media is still preparing.
+        const pending = instance.active.some(scheduled => scheduled.sources.some(entry => !entry.source && !entry.cancelled));
+        const audibleEnd = instance.active.reduce((end, scheduled) => {
+          const naturalEnd = scheduled.audibleEndCtx ?? scheduled.endCtx;
+          const effectiveEnd = scheduled.fading ? Math.min(scheduled.fadeEndCtx ?? naturalEnd, naturalEnd) : naturalEnd;
+          return Math.max(end, effectiveEnd ?? end);
+        }, instance.boundary);
+        if (!pending && now >= audibleEnd) {
+          this.#FinishInstance(instance);
+        }
         continue;
       }
-      while (instance.boundary - now < SCHEDULE_HORIZON_SECONDS) {
+      const targetNode = this.#graph.nodes[instance.resolvedTargetId];
+      const scheduleHorizon = targetNode?.type === "music-playlist-container" ? PlaylistScheduleHorizon(targetNode) : SCHEDULE_HORIZON_SECONDS;
+      while (instance.boundary - now <= scheduleHorizon) {
         if (!this.#ScheduleNextSegment(instance)) break;
       }
       // Prune scheduled segments whose audible window has fully passed
       // (a fade cuts the window short), so nothing accumulates and
       // status consumers only ever see live entries.
       instance.active = instance.active.filter(scheduled => {
-        const effectiveEnd = scheduled.fading ? Math.min(scheduled.fadeEndCtx ?? scheduled.endCtx, scheduled.endCtx) : scheduled.endCtx;
+        const naturalEnd = scheduled.audibleEndCtx ?? scheduled.endCtx;
+        const effectiveEnd = scheduled.fading ? Math.min(scheduled.fadeEndCtx ?? naturalEnd, naturalEnd) : naturalEnd;
         return effectiveEnd === undefined || effectiveEnd + 2 > now;
       });
     }
@@ -393,6 +655,7 @@ class CjsMusicEngine {
     const now = this.#context?.currentTime ?? 0;
     return [...this.#instances.values()].map(instance => ({
       playingID: instance.playingID,
+      rootId: instance.rootId,
       now,
       resolvedTargetId: instance.resolvedTargetId,
       preparingTargetId: instance.pendingTargetId,
@@ -433,36 +696,120 @@ class CjsMusicEngine {
     return this.#switchValues.get(groupId >>> 0) ?? 0;
   }
 
-  /** Resolves the instance's playable target and primes its iterator. */
-  #ResolveInstance(instance, startTime) {
-    const target = this.#ResolveTargetId(instance.rootId);
-    instance.resolvedTargetId = target;
-    const node = this.#graph.nodes[target];
-    if (!node) {
-      this.#FinishInstance(instance);
+  /**
+   * Prepares an initial target before starting its musical timeline.
+   *
+   * Switch roots remain alive when their initial branch is silent or
+   * unavailable because a later setter can recover them. Direct targets
+   * have no alternate branch and finish when their media cannot sound.
+   */
+  #BeginInitialTarget(instance) {
+    const resolution = this.#ResolveTarget(instance.rootId);
+    const target = resolution.targetId;
+    const route = resolution.route;
+    const targetMeter = resolution.meter;
+    const root = this.#graph.nodes[instance.rootId];
+    const ruleTarget = root?.type === "music-switch-container" ? RouteSelection(route, instance.rootId) : target;
+    const rule = this.#FindRule(root, null, ruleTarget);
+    const recoverable = root?.type === "music-switch-container";
+    instance.boundary = this.#context.currentTime;
+    instance.resolvedTargetId = null;
+    instance.resolvedRoute = null;
+    instance.iterator = null;
+    instance.unavailableTargetId = null;
+    if (!this.#graph.nodes[target]) {
+      instance.resolvedRoute = route;
+      if (!recoverable) {
+        queueMicrotask(() => {
+          if (!instance.stopped) {
+            this.#FinishInstance(instance);
+          }
+        });
+      }
       return;
     }
-    if (node.type === "music-playlist-container") {
-      instance.iterator = createPlaylistIterator(node, this.#random);
-    } else {
-      let played = false;
-      instance.iterator = () => played ? null : (played = true, target);
-    }
-    instance.boundary = startTime;
-    instance.nextSegmentId = null;
+    const generation = ++instance.pendingGeneration;
+    instance.pendingTargetId = target;
+    instance.pendingRoute = route;
+    this.#PrepareTransition(instance, target, rule, generation, targetMeter, EffectiveMeter(null, root)).then(preparation => {
+      if (instance.stopped || instance.pendingGeneration !== generation) {
+        return;
+      }
+      if (!preparation) {
+        return;
+      }
+      instance.pendingTargetId = null;
+      instance.pendingRoute = null;
+      if (!preparation.available) {
+        instance.unavailableTargetId = target;
+        if (!recoverable) {
+          this.#FinishInstance(instance);
+        }
+        return;
+      }
+      const when = this.#TransitionTime(instance, rule) ?? instance.boundary;
+      this.#TransitionInstance(instance, rule, target, route, Math.max(when, this.#context.currentTime), preparation);
+    }).catch(() => {
+      if (instance.stopped || instance.pendingGeneration !== generation) {
+        return;
+      }
+      instance.pendingTargetId = null;
+      instance.pendingRoute = null;
+      instance.unavailableTargetId = target;
+      if (!recoverable) {
+        this.#FinishInstance(instance);
+      }
+    });
   }
 
-  /** Resolves through nested switch containers; null = nothing plays. */
-  #ResolveTargetId(rootId, getValue = groupId => this.#GetValue(groupId)) {
+  /**
+   * Resolves through nested switch containers and retains the exact path.
+   * A null target means authored silence, an unmatched path, or content
+   * absent from the installed graph.
+   */
+  #ResolveTarget(rootId, getValue = groupId => this.#GetValue(groupId)) {
     let currentId = rootId;
+    const route = [];
+    let meter = null;
     for (let hops = 0; hops < 8; hops++) {
-      if (currentId === null) return null;
+      if (currentId === null) {
+        return {
+          targetId: null,
+          route,
+          meter
+        };
+      }
       const node = this.#graph.nodes[currentId];
-      if (!node) return null;
-      if (node.type !== "music-switch-container") return currentId;
-      currentId = resolveSwitchTarget(node, getValue);
+      if (!node) {
+        return {
+          targetId: null,
+          route,
+          meter
+        };
+      }
+      meter = EffectiveMeter(meter, node);
+      if (node.type !== "music-switch-container") {
+        return {
+          targetId: currentId,
+          route,
+          meter
+        };
+      }
+      const selected = resolveSwitchStep(node, getValue);
+      route.push({
+        containerId: currentId,
+        treeNodeIndex: selected.treeNodeIndex,
+        selectedTargetId: selected.targetId,
+        continuePlayback: node.continuePlayback !== false,
+        meter
+      });
+      currentId = selected.targetId;
     }
-    return currentId;
+    return {
+      targetId: currentId,
+      route,
+      meter
+    };
   }
 
   /**
@@ -477,7 +824,7 @@ class CjsMusicEngine {
     for (const setter of this.#graph.switchSetters?.[eventName] ?? []) {
       overlay.set(setter.groupId >>> 0, setter.targetId >>> 0);
     }
-    return this.#ResolveTargetId(rootId, groupId => overlay.get(groupId >>> 0) ?? 0);
+    return this.#ResolveTarget(rootId, groupId => overlay.get(groupId >>> 0) ?? 0).targetId;
   }
 
   /**
@@ -488,112 +835,234 @@ class CjsMusicEngine {
    * transition is computed only once the destination can actually sound.
    */
   #ReevaluateInstance(instance) {
-    const target = this.#ResolveTargetId(instance.rootId);
-    if (target === instance.resolvedTargetId) {
+    const resolution = this.#ResolveTarget(instance.rootId);
+    const target = resolution.targetId;
+    const route = resolution.route;
+    const targetMeter = resolution.meter;
+    const sameTarget = target === instance.resolvedTargetId;
+    const transitionOwnerId = RouteTransitionOwner(instance.resolvedRoute, route);
+    const restartOwnerId = RouteRestartOwner(instance.resolvedRoute, route);
+    if (sameTarget && RoutesEqual(route, instance.resolvedRoute)) {
       // Switched back before a pending prepare landed - cancel it.
       instance.pendingTargetId = null;
+      instance.pendingRoute = null;
       instance.unavailableTargetId = null;
       instance.pendingGeneration++;
       return;
     }
-    if (instance.pendingTargetId !== null && target === instance.pendingTargetId) {
+    if (sameTarget && restartOwnerId === null) {
+      // The selected association changed, but every changed switch
+      // container allows the shared object to continue its timeline.
+      instance.resolvedRoute = route;
+      instance.pendingTargetId = null;
+      instance.pendingRoute = null;
+      instance.unavailableTargetId = null;
+      instance.pendingGeneration++;
+      return;
+    }
+    if (instance.pendingTargetId !== null && target === instance.pendingTargetId && RoutesEqual(route, instance.pendingRoute)) {
       return;
     }
     const rootNode = this.#graph.nodes[instance.rootId];
-    const rule = this.#FindRule(rootNode, instance.resolvedTargetId, target);
+    const ruleOwnerId = sameTarget ? restartOwnerId : transitionOwnerId;
+    const ruleNode = this.#graph.nodes[ruleOwnerId] ?? rootNode;
+    const ruleFromId = ruleNode?.type === "music-switch-container" ? RouteSelection(instance.resolvedRoute, ruleOwnerId ?? instance.rootId) : instance.resolvedTargetId;
+    const ruleToId = ruleNode?.type === "music-switch-container" ? RouteSelection(route, ruleOwnerId ?? instance.rootId) : target;
+    const rule = this.#FindRule(ruleNode, ruleFromId, ruleToId);
+    const ruleMeter = (route ?? []).find(entry => entry.containerId === ruleOwnerId)?.meter ?? (instance.resolvedRoute ?? []).find(entry => entry.containerId === ruleOwnerId)?.meter ?? EffectiveMeter(null, ruleNode);
     if (target === null) {
       // The state resolves to nothing (authored silence, or content
       // absent from every shipped bank): fade out at the sync point
       // and stay alive - the next state change resumes the music.
       instance.pendingTargetId = null;
+      instance.pendingRoute = null;
       instance.unavailableTargetId = null;
       instance.pendingGeneration++;
-      const when = Math.max(this.#TransitionTime(instance, rule) ?? instance.boundary, this.#context.currentTime);
+      const when = Math.max(this.#TransitionTime(instance, rule) ?? this.#CurrentSegmentBoundary(instance), this.#context.currentTime);
       const fadeSeconds = Math.max(0, rule?.src.transitionTime ?? 0) / 1000;
       for (const active of instance.active) {
         this.#FadeOutSources(active, when, fadeSeconds);
       }
       instance.resolvedTargetId = null;
+      instance.resolvedRoute = route;
       instance.iterator = null;
       return;
     }
     const generation = ++instance.pendingGeneration;
     instance.pendingTargetId = target;
+    instance.pendingRoute = route;
     instance.unavailableTargetId = null;
-    this.#PrepareTransition(target, rule).then(available => {
+    this.#PrepareTransition(instance, target, rule, generation, targetMeter, ruleMeter).then(preparation => {
       if (instance.stopped || instance.pendingGeneration !== generation) {
         return;
       }
+      if (!preparation) {
+        return;
+      }
       instance.pendingTargetId = null;
-      if (!available) {
+      instance.pendingRoute = null;
+      if (!preparation.available) {
         instance.unavailableTargetId = target;
         return;
       }
-      const when = this.#TransitionTime(instance, rule) ?? instance.boundary;
-      this.#TransitionInstance(instance, rule, target, Math.max(when, this.#context.currentTime));
+      const when = this.#TransitionTime(instance, rule) ?? this.#CurrentSegmentBoundary(instance);
+      this.#TransitionInstance(instance, rule, target, route, Math.max(when, this.#context.currentTime), preparation);
     });
   }
 
-  /** Preloads both the selected destination and its optional bridge segment. */
-  #PrepareTransition(targetId, rule) {
-    const operations = [this.#PrepareTarget(targetId)];
-    const transitionSegmentId = rule?.transitionSegment?.segmentId;
-    if (transitionSegmentId) {
-      operations.push(this.#PrepareTarget(transitionSegmentId));
-    }
-    return Promise.all(operations).then(results => results.every(Boolean));
+  /**
+   * Creates and preloads the exact bridge and destination plans that will
+   * later be scheduled. Sequence-track positions are projected on a clone
+   * and are committed only if the transition itself commits.
+   */
+  #PrepareTransition(instance, targetId, rule, generation, targetMeter, ruleMeter) {
+    return this.#PrepareSelection(instance, targetId, rule?.transitionSegment?.segmentId ?? null, generation, targetMeter, ruleMeter);
   }
 
   /**
-   * Preload the media a transition destination needs to become audible:
-   * the clips of its first reachable segments (first child of sequence
-   * groups, every child of random groups, bounded).
+   * Builds, preloads, and validates one exact selection transaction.
+   * Cursor or switch-track drift during loading causes a fresh plan under
+   * the same event generation; stale target/graph work returns null.
    */
-  #PrepareTarget(targetId) {
-    const sourceIds = new Set();
-    for (const segmentId of this.#FirstSegmentCandidates(targetId)) {
-      const segment = this.#graph.nodes[segmentId];
-      for (const trackId of segment?.children ?? []) {
+  #PrepareSelection(instance, targetId, transitionSegmentId, generation, targetMeter, ruleMeter) {
+    const epoch = this.#epoch;
+    const attempt = () => {
+      if (instance.stopped || instance.pendingGeneration !== generation || this.#epoch !== epoch) {
+        return Promise.resolve(null);
+      }
+      const transaction = this.#CreateSelectionTransaction(instance);
+      // Bridge selections precede destination selections in the same
+      // draft cursor transaction, matching their audible order.
+      const transitionPlan = transitionSegmentId ? this.#CreatePlaybackPlan(transitionSegmentId, transaction, EffectiveMeter(ruleMeter, this.#graph.nodes[transitionSegmentId])) : null;
+      const destinationPlan = this.#CreatePlaybackPlan(targetId, transaction, targetMeter);
+      const plans = [destinationPlan, ...(transitionSegmentId ? [transitionPlan] : [])];
+      return Promise.all(plans.map(plan => this.#PreparePlaybackPlan(plan))).then(results => {
+        if (instance.stopped || instance.pendingGeneration !== generation || this.#epoch !== epoch) {
+          return null;
+        }
+        if (!this.#ValidateSelectionTransaction(instance, transaction)) {
+          return attempt();
+        }
+        return {
+          available: results.every(Boolean),
+          destinationPlan,
+          transitionPlan,
+          transaction
+        };
+      });
+    };
+    return attempt();
+  }
+
+  /** Creates a draft over live sequence cursors and switch-track values. */
+  #CreateSelectionTransaction(instance) {
+    return {
+      sequencePositions: new Map(instance.trackSequencePositions),
+      sequenceBases: new Map(),
+      sequenceAdvances: new Map(),
+      switchValues: new Map()
+    };
+  }
+
+  /** True when no live cursor or switch dependency changed during loading. */
+  #ValidateSelectionTransaction(instance, transaction) {
+    for (const [trackId, base] of transaction.sequenceBases) {
+      if ((instance.trackSequencePositions.get(trackId) ?? 0) !== base) {
+        return false;
+      }
+    }
+    for (const [groupId, value] of transaction.switchValues) {
+      if (this.#GetValue(groupId) !== value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** Atomically applies draft sequence advances after successful prepare. */
+  #CommitSelectionTransaction(instance, transaction) {
+    for (const [trackId, advances] of transaction?.sequenceAdvances ?? []) {
+      const position = instance.trackSequencePositions.get(trackId) ?? 0;
+      instance.trackSequencePositions.set(trackId, position + advances);
+    }
+  }
+
+  /**
+   * Creates one target iterator and consumes its first exact segment,
+   * pinning every selected random/sequence/switch subtrack for scheduling.
+   */
+  #CreatePlaybackPlan(targetId, transaction, effectiveMeter = null) {
+    const node = this.#graph.nodes[targetId];
+    if (!node) {
+      return null;
+    }
+    let iterator;
+    if (node.type === "music-playlist-container") {
+      iterator = createPlaylistIterator(node, this.#random);
+    } else {
+      let played = false;
+      iterator = () => played ? null : (played = true, targetId);
+    }
+    const segmentId = iterator();
+    const segment = this.#graph.nodes[segmentId];
+    const targetMeter = effectiveMeter ?? EffectiveMeter(null, node);
+    const segmentMeter = node.type === "music-playlist-container" ? EffectiveMeter(targetMeter, segment) : targetMeter;
+    const subTracks = new Map();
+    if (segment?.type === "music-segment") {
+      for (const trackId of segment.children) {
         const track = this.#graph.nodes[trackId];
-        if (!track || track.type !== "music-track") continue;
-        for (const clip of track.clips ?? []) {
-          if (sourceIds.size >= 8) break;
+        if (!track || track.type !== "music-track" || !track.clips.length) {
+          continue;
+        }
+        subTracks.set(trackId, this.#SelectSubTrack(trackId, track, transaction.sequencePositions, transaction));
+      }
+    }
+    return {
+      targetId,
+      iterator,
+      segmentId,
+      targetMeter,
+      segmentMeter,
+      subTracks,
+      preparedBuffers: new Map()
+    };
+  }
+
+  /** Preloads only the media selected by one pinned first-segment plan. */
+  #PreparePlaybackPlan(plan) {
+    if (!plan) {
+      return Promise.resolve(false);
+    }
+    const segment = this.#graph.nodes[plan.segmentId];
+    if (plan.segmentId === null || plan.segmentId === undefined) {
+      return Promise.resolve(true);
+    }
+    if (!segment || segment.type !== "music-segment") {
+      return Promise.resolve(false);
+    }
+    const sourceIds = new Set();
+    for (const trackId of segment.children) {
+      const track = this.#graph.nodes[trackId];
+      const subTrack = plan.subTracks.get(trackId);
+      if (!track || track.type !== "music-track") {
+        continue;
+      }
+      for (const clip of track.clips ?? []) {
+        if ((clip.trackId ?? 0) === subTrack) {
           sourceIds.add(clip.sourceId);
         }
       }
     }
     if (!sourceIds.size) {
-      // Some valid authored destinations begin with an empty timing
-      // segment and become audible later in their sequence. With no
-      // media attempt there is no acquisition failure to reject.
+      // Authored empty timing segments are valid and may lead into
+      // audible content later in the iterator.
       return Promise.resolve(true);
     }
-    // A segment may layer optional or retired alternates. It can become
-    // audible when at least one prepared clip survives.
-    return Promise.all([...sourceIds].map(sourceId => this.#LoadBuffer(sourceId, null))).then(buffers => buffers.some(Boolean));
-  }
-
-  /** Returns bounded first-segment candidates used to prepare destination media. */
-  #FirstSegmentCandidates(targetId, limit = 4) {
-    const node = this.#graph.nodes[targetId];
-    if (!node) return [];
-    if (node.type === "music-segment") return [targetId];
-    if (node.type !== "music-playlist-container" || !node.playlist?.length) return [];
-    const results = [];
-    const queue = [buildPlaylistTree(node.playlist)];
-    while (queue.length && results.length < limit) {
-      const current = queue.shift();
-      if (!current.children.length) {
-        if (current.item.segmentId) results.push(current.item.segmentId);
-        continue;
-      }
-      if (current.item.rsType === 1 || current.item.rsType === 3) {
-        queue.push(...current.children);
-      } else {
-        queue.push(current.children[0]);
-      }
-    }
-    return results;
+    const ids = [...sourceIds];
+    return Promise.all(ids.map(sourceId => this.#LoadBuffer(sourceId, null))).then(buffers => {
+      plan.preparedBuffers = new Map(ids.map((sourceId, index) => [sourceId, buffers[index]]));
+      return buffers.some(Boolean);
+    });
   }
 
   /**
@@ -606,7 +1075,7 @@ class CjsMusicEngine {
     const now = this.#context.currentTime;
     const syncType = rule?.src.syncType ?? 7;
     if (syncType === 0) return now;
-    const timeline = instance.timeline;
+    const timeline = this.#CurrentScheduledSegment(instance)?.timeline ?? instance.timeline;
     const meter = timeline?.meter;
     if (!meter || syncType > 3) return null;
     let periodMs;
@@ -626,10 +1095,39 @@ class CjsMusicEngine {
     return when;
   }
 
+  /**
+   * Returns the segment whose authored entry/exit window contains now.
+   *
+   * Lookahead may already have queued later segments, so the last scheduled
+   * segment is not necessarily the segment that owns the current sync point.
+   */
+  #CurrentScheduledSegment(instance) {
+    const now = this.#context?.currentTime ?? 0;
+    let current = null;
+    for (const scheduled of instance.active) {
+      if (scheduled.startCtx <= now && scheduled.endCtx > now && (!current || scheduled.startCtx >= current.startCtx)) {
+        current = scheduled;
+      }
+    }
+    return current;
+  }
+
+  /** Returns the current segment exit without using the lookahead frontier. */
+  #CurrentSegmentBoundary(instance) {
+    return this.#CurrentScheduledSegment(instance)?.endCtx ?? instance.boundary;
+  }
+
   /** Selects the bottom-most matching Wwise transition rule. */
   #FindRule(node, fromId, toId) {
     if (!node?.rules) return null;
-    const match = (ids, id) => ids.includes(-1) || ids.includes(id | 0);
+    const match = (ids, id) => {
+      // Wwise's Nothing association is explicit ID zero. Any (-1)
+      // matches concrete music objects, but never Nothing.
+      if (id === null || id === undefined) {
+        return ids.includes(0);
+      }
+      return ids.includes(-1) || ids.includes(Number(id) | 0);
+    };
     // Wwise evaluates the transition matrix from bottom to top so that a
     // later, more-specific rule wins over an earlier Any-to-Any fallback.
     for (let index = node.rules.length - 1; index >= 0; index--) {
@@ -642,14 +1140,18 @@ class CjsMusicEngine {
   }
 
   /** Applies one authored rule and schedules its bridge and destination. */
-  #TransitionInstance(instance, rule, target, when) {
+  #TransitionInstance(instance, rule, target, route, when, preparation = null) {
+    this.#CommitSelectionTransaction(instance, preparation?.transaction);
     // Faded segments STAY in `active` until their fade completes (the
     // prune in Process removes them) - they are still audible, and
     // status consumers must see both sides of a crossfade.
     for (const active of instance.active) {
-      this.#ApplySourceFade(active, when, rule?.src);
+      const atExitCue = Math.abs(active.endCtx - when) < 1e-6;
+      const carriesPostExit = rule?.src?.playPostExit === true && atExitCue;
+      this.#ApplySourceFade(active, when, rule?.src, carriesPostExit, atExitCue);
     }
     instance.resolvedTargetId = target;
+    instance.resolvedRoute = route;
     instance.unavailableTargetId = null;
     let destinationTime = when;
     const transition = rule?.transitionSegment;
@@ -659,10 +1161,14 @@ class CjsMusicEngine {
         entry,
         exit
       } = segmentCues(transitionSegment);
+      const transitionPlan = preparation?.transitionPlan;
       const scheduledTransition = this.#ScheduleSegmentClips(instance, transitionSegment, transition.segmentId, when, entry, exit, {
         targetId: transition.segmentId,
         playPreEntry: transition.playPreEntry,
-        playPostExit: transition.playPostExit
+        playPostExit: transition.playPostExit,
+        meter: transitionPlan?.segmentMeter,
+        subTracks: transitionPlan?.subTracks,
+        preparedBuffers: transitionPlan?.preparedBuffers
       });
       destinationTime += Math.max(0.001, (exit - entry) / 1000);
       this.#ApplyFadeIn(scheduledTransition, when, transition.fadeIn);
@@ -670,19 +1176,18 @@ class CjsMusicEngine {
         this.#ApplySourceFade(scheduledTransition, destinationTime, transition.fadeOut);
       }
     }
-    this.#ResolveInstanceTo(instance, target, destinationTime);
+    this.#ResolveInstanceTo(instance, target, destinationTime, preparation?.destinationPlan);
     instance.nextSegmentFadeIn = rule?.dst ?? null;
-    if (transitionSegment?.type === "music-segment") {
-      // A transition segment can be longer than the normal scheduling
-      // horizon. Schedule the first destination now so its authored
-      // pre-entry can overlap the bridge and no late frame can miss it.
-      this.#ScheduleNextSegment(instance);
-    }
+    instance.nextSegmentPlayPreEntry = rule?.dst?.playPreEntry ?? true;
+    // The prepared first destination is always scheduled immediately,
+    // even when its authored sync point is in the future. This makes the
+    // transaction commit coincide with an actual pinned WebAudio source.
+    this.#ScheduleNextSegment(instance);
     this.Process();
   }
 
   /** Re-primes an instance iterator at a resolved graph target and time. */
-  #ResolveInstanceTo(instance, targetId, startTime) {
+  #ResolveInstanceTo(instance, targetId, startTime, plan = null) {
     const node = this.#graph.nodes[targetId];
     if (!node) {
       // Nothing to play for this target: go silent, stay alive.
@@ -690,20 +1195,42 @@ class CjsMusicEngine {
       instance.iterator = null;
       return;
     }
-    if (node.type === "music-playlist-container") {
+    if (plan?.targetId === targetId) {
+      instance.iterator = plan.iterator;
+      instance.nextSegmentPlan = plan;
+      instance.targetMeter = plan.targetMeter;
+    } else if (node.type === "music-playlist-container") {
       instance.iterator = createPlaylistIterator(node, this.#random);
+      instance.nextSegmentPlan = null;
+      instance.targetMeter = EffectiveMeter(null, node);
     } else {
       let played = false;
       instance.iterator = () => played ? null : (played = true, targetId);
+      instance.nextSegmentPlan = null;
+      instance.targetMeter = EffectiveMeter(null, node);
     }
     instance.boundary = startTime;
-    instance.nextSegmentId = null;
     instance.exhausted = false;
+    instance.playlistPreviousSegmentId = null;
+    instance.playlistPreviousScheduled = null;
   }
 
   /** Schedules one more segment at the instance boundary. False = done/starved. */
   #ScheduleNextSegment(instance) {
-    const segmentId = instance.iterator?.();
+    let segmentId;
+    let subTracks = null;
+    let preparedBuffers = null;
+    let meter = null;
+    let playPreEntry = instance.nextSegmentPlayPreEntry ?? true;
+    if (instance.nextSegmentPlan) {
+      segmentId = instance.nextSegmentPlan.segmentId;
+      subTracks = instance.nextSegmentPlan.subTracks;
+      preparedBuffers = instance.nextSegmentPlan.preparedBuffers;
+      meter = instance.nextSegmentPlan.segmentMeter;
+      instance.nextSegmentPlan = null;
+    } else {
+      segmentId = instance.iterator?.();
+    }
     if (segmentId === null || segmentId === undefined) {
       // Playlist exhausted: finish once scheduled audio reaches the
       // final boundary (Process polls for it).
@@ -714,6 +1241,12 @@ class CjsMusicEngine {
     if (!segment || segment.type !== "music-segment") {
       return false;
     }
+    const playlist = this.#graph.nodes[instance.resolvedTargetId];
+    const playlistRule = playlist?.type === "music-playlist-container" && instance.playlistPreviousSegmentId !== null ? this.#FindRule(playlist, instance.playlistPreviousSegmentId, segmentId) : null;
+    if (playlistRule) {
+      playPreEntry = playlistRule.dst?.playPreEntry ?? true;
+    }
+    meter ??= EffectiveMeter(instance.targetMeter, segment);
     const {
       entry,
       exit
@@ -721,13 +1254,25 @@ class CjsMusicEngine {
     const boundary = instance.boundary;
     instance.timeline = {
       startCtx: boundary - entry / 1000,
-      meter: segment.meter
+      meter
     };
-    const scheduled = this.#ScheduleSegmentClips(instance, segment, segmentId, boundary, entry, exit);
+    const scheduled = this.#ScheduleSegmentClips(instance, segment, segmentId, boundary, entry, exit, {
+      meter,
+      playPreEntry,
+      subTracks,
+      preparedBuffers
+    });
     if (instance.nextSegmentFadeIn) {
       this.#ApplyFadeIn(scheduled, boundary, instance.nextSegmentFadeIn);
       instance.nextSegmentFadeIn = null;
     }
+    if (playlistRule) {
+      this.#ApplySourceFade(instance.playlistPreviousScheduled, boundary, playlistRule.src, playlistRule.src?.playPostExit === true, true);
+      this.#ApplyFadeIn(scheduled, boundary, playlistRule.dst);
+    }
+    instance.nextSegmentPlayPreEntry = null;
+    instance.playlistPreviousSegmentId = segmentId;
+    instance.playlistPreviousScheduled = scheduled;
     instance.boundary = boundary + Math.max(0.001, (exit - entry) / 1000);
     return true;
   }
@@ -736,7 +1281,10 @@ class CjsMusicEngine {
   #ScheduleSegmentClips(instance, segment, segmentId, boundary, entryCueMs, exitCueMs, {
     targetId = instance.resolvedTargetId,
     playPreEntry = true,
-    playPostExit = true
+    playPostExit = true,
+    meter = segment.meter,
+    subTracks = null,
+    preparedBuffers = null
   } = {}) {
     // Each scheduled segment owns a gain so transitions can crossfade it
     // out without touching the incoming segment on the same instance.
@@ -750,6 +1298,11 @@ class CjsMusicEngine {
       gain,
       startCtx: boundary,
       endCtx: boundary + Math.max(0.001, (exitCueMs - entryCueMs) / 1000),
+      audibleEndCtx: boundary + Math.max(0.001, (exitCueMs - entryCueMs) / 1000),
+      timeline: {
+        startCtx: boundary - entryCueMs / 1000,
+        meter
+      },
       fading: false,
       fadeEndCtx: null
     };
@@ -757,23 +1310,35 @@ class CjsMusicEngine {
     for (const trackId of segment.children) {
       const track = this.#graph.nodes[trackId];
       if (!track || track.type !== "music-track" || !track.clips.length) continue;
-      const subTrack = this.#SelectSubTrack(track);
+      const subTrack = subTracks?.get(trackId) ?? this.#SelectSubTrack(trackId, track, instance.trackSequencePositions);
       for (const clip of track.clips) {
         if ((clip.trackId ?? 0) !== subTrack) continue;
-        this.#ScheduleClip(instance, scheduled, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit);
+        this.#ScheduleClip(instance, scheduled, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit, preparedBuffers);
       }
     }
     return scheduled;
   }
 
   /** Selects the active subtrack for normal, random, or switch track modes. */
-  #SelectSubTrack(track) {
+  #SelectSubTrack(trackId, track, sequencePositions, transaction = null) {
     const count = Math.max(1, track.subTrackCount || 1);
     if (track.trackType === 1) {
       return Math.floor(this.#random() * count);
     }
+    if (track.trackType === 2) {
+      const position = sequencePositions.get(trackId) ?? 0;
+      if (transaction) {
+        if (!transaction.sequenceBases.has(trackId)) {
+          transaction.sequenceBases.set(trackId, position);
+        }
+        transaction.sequenceAdvances.set(trackId, (transaction.sequenceAdvances.get(trackId) ?? 0) + 1);
+      }
+      sequencePositions.set(trackId, position + 1);
+      return position % count;
+    }
     if (track.trackType === 3 && track.switchParams) {
       const value = this.#GetValue(track.switchParams.groupId);
+      transaction?.switchValues.set(track.switchParams.groupId, value);
       const index = track.switchParams.assoc.indexOf(value);
       if (index >= 0) return index;
       const fallback = track.switchParams.assoc.indexOf(track.switchParams.defaultSwitch);
@@ -783,7 +1348,7 @@ class CjsMusicEngine {
   }
 
   /** Loads and schedules one clip within its allowed pre/post-entry window. */
-  #ScheduleClip(instance, scheduled, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit) {
+  #ScheduleClip(instance, scheduled, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit, preparedBuffers) {
     const context = this.#context;
     const clipStartMs = clip.playAt + clip.beginTrimOffset;
     const clipEndMs = clip.playAt + clip.srcDuration + clip.endTrimOffset;
@@ -806,8 +1371,15 @@ class CjsMusicEngine {
     };
     scheduled.sources.push(entry);
     const epoch = this.#epoch;
-    Promise.resolve(this.#LoadBuffer(clip.sourceId, track)).then(buffer => {
-      if (!buffer || entry.cancelled || instance.stopped || epoch !== this.#epoch) return;
+    const prepared = preparedBuffers?.has(clip.sourceId) ? preparedBuffers.get(clip.sourceId) : this.#LoadBuffer(clip.sourceId, track);
+    Promise.resolve(prepared).then(buffer => {
+      if (!buffer) {
+        entry.cancelled = true;
+        return;
+      }
+      if (entry.cancelled || instance.stopped || epoch !== this.#epoch) {
+        return;
+      }
       let resolvedWhen = when;
       let resolvedOffsetMs = offsetMs;
       if (resolvedWhen < context.currentTime) {
@@ -815,11 +1387,15 @@ class CjsMusicEngine {
         resolvedWhen = context.currentTime;
       }
       const resolvedDurationMs = audibleEndMs - audibleStartMs - (resolvedOffsetMs - initialOffsetMs);
-      if (resolvedDurationMs <= 0) return;
+      if (resolvedDurationMs <= 0) {
+        entry.cancelled = true;
+        return;
+      }
       if (scheduled.fading && scheduled.fadeEndCtx <= context.currentTime) {
         entry.cancelled = true;
         return;
       }
+      scheduled.audibleEndCtx = Math.max(scheduled.audibleEndCtx, resolvedWhen + resolvedDurationMs / 1000);
       const source = context.createBufferSource();
       source.buffer = buffer;
       source.connect(scheduled.gain);
@@ -828,7 +1404,9 @@ class CjsMusicEngine {
       if (scheduled.fading) {
         source.stop(scheduled.fadeEndCtx);
       }
-    }).catch(() => {});
+    }).catch(() => {
+      entry.cancelled = true;
+    });
   }
 
   /** Loads and retains one decoded music source, evicting failed results. */
@@ -859,20 +1437,24 @@ class CjsMusicEngine {
       return;
     }
     const effectiveStart = Math.max(start, now);
-    const startValue = Math.max(0, Math.min(1, (effectiveStart - start) / duration));
-    if ("value" in param) param.value = startValue;
-    param.setValueAtTime?.(startValue, effectiveStart);
-    param.linearRampToValueAtTime?.(1, end);
+    const progress = Math.max(0, Math.min(1, (effectiveStart - start) / duration));
+    ScheduleFade(param, 0, 1, effectiveStart, end - effectiveStart, fade?.fadeCurve, progress);
   }
 
   /** Applies an authored fade-out whose offset is relative to an exit cue. */
-  #ApplySourceFade(scheduledSegment, exitTime, fade) {
+  #ApplySourceFade(scheduledSegment, exitTime, fade, allowPostExit = false, atExitCue = false) {
     const duration = FadeDuration(fade);
+    const offset = FadeOffset(fade);
+    const effectiveOffset = atExitCue && !allowPostExit ? Math.min(offset, 0) : offset;
     if (!(duration > 0)) {
-      this.#FadeOutSources(scheduledSegment, exitTime, 0);
+      if (allowPostExit && offset === 0) {
+        return;
+      }
+      const stopAt = exitTime + effectiveOffset;
+      this.#FadeOutSources(scheduledSegment, Math.max(stopAt, this.#context?.currentTime ?? 0), 0);
       return;
     }
-    const end = exitTime + FadeOffset(fade);
+    const end = exitTime + effectiveOffset;
     const start = end - duration;
     const now = this.#context?.currentTime ?? 0;
     if (end <= now) {
@@ -880,12 +1462,13 @@ class CjsMusicEngine {
       return;
     }
     const effectiveStart = Math.max(start, now);
-    const startValue = Math.max(0, Math.min(1, (end - effectiveStart) / duration));
-    this.#FadeOutSources(scheduledSegment, effectiveStart, end - effectiveStart, startValue);
+    const progress = Math.max(0, Math.min(1, (effectiveStart - start) / duration));
+    const startValue = 1 - FadeCurveValue(fade?.fadeCurve, progress);
+    this.#FadeOutSources(scheduledSegment, effectiveStart, end - effectiveStart, startValue, fade?.fadeCurve, progress);
   }
 
   /** Fades a scheduled segment gain and stops loaded or future sources. */
-  #FadeOutSources(scheduledSegment, when, fadeSeconds, startValue = null) {
+  #FadeOutSources(scheduledSegment, when, fadeSeconds, startValue = null, fadeCurve = LINEAR_FADE_CURVE, progress = 0) {
     // First fade wins: an already-fading segment keeps its earlier
     // schedule (its sources already have stops queued).
     if (scheduledSegment.fading) return;
@@ -893,8 +1476,8 @@ class CjsMusicEngine {
     scheduledSegment.fadeEndCtx = when + fadeSeconds;
     if (fadeSeconds > 0 && scheduledSegment.gain?.gain) {
       const param = scheduledSegment.gain.gain;
-      param.setValueAtTime?.(startValue ?? param.value ?? 1, when);
-      param.linearRampToValueAtTime?.(0, when + fadeSeconds);
+      const authored = startValue !== null;
+      ScheduleFade(param, authored ? 1 : param.value ?? 1, 0, when, fadeSeconds, authored ? fadeCurve : LINEAR_FADE_CURVE, authored ? progress : 0);
     }
     for (const entry of scheduledSegment.sources) {
       if (entry.source) {
@@ -942,9 +1525,15 @@ class CjsMusicEngine {
   #FinalizeInstance(instance) {
     if (instance.finished) return;
     instance.finished = true;
-    this.#instances.delete(instance.playingID);
+    this.#instances.delete(instance.key);
     instance.gain?.disconnect?.();
-    instance.onFinished?.();
+    const group = instance.group;
+    group?.instances.delete(instance);
+    if (group && !group.instances.size && !group.finished) {
+      group.finished = true;
+      this.#groups.delete(group.playingID);
+      group.onFinished?.();
+    }
   }
 }
 

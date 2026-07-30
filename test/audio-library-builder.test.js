@@ -514,6 +514,66 @@ test("typed Wwise infinite Sound loops survive SFX lowering", () =>
     });
 });
 
+test("typed Wwise finite Sound play counts survive SFX lowering", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload({
+                            loopCount: 2,
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                repeated_shot: {
+                    eventID: 100,
+                },
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+
+    assert.deepEqual(result.diagnostics.parser.nodeBaseFailed, []);
+    assert.deepEqual(result.nodes["200"], {
+        type: "sound",
+        mediaId: "9001",
+        loop: false,
+        playCount: 2,
+    });
+});
+
 test("Step containers ignore Continuous-only transition and reset policies", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -662,6 +722,211 @@ test("trackless non-continuous Layer containers lower to parallel playback", () 
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("SFX Play-Event actions inline the referenced event program", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x2103,
+                        targetId: 101,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                chained_play: { eventID: 100 },
+                direct_play: { eventID: 101 },
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+
+    assert.deepEqual(result.events, {
+        chained_play: [ { nodeId: "200" } ],
+        direct_play: [ { nodeId: "200" } ],
+    });
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("SFX Play-Event cycles are diagnosed instead of recursing", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x2103,
+                        targetId: 101,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x2103,
+                        targetId: 100,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                cycle_a: { eventID: 100 },
+                cycle_b: { eventID: 101 },
+            },
+        },
+        media: {},
+    });
+
+    assert.deepEqual(result.events, {});
+    assert.equal(result.diagnostics.omittedEvents.length, 2);
+    assert.ok(result.diagnostics.omittedEvents.every(entry =>
+        entry.reason.startsWith("Play-Event cycle at event ")));
+});
+
+test("SFX Stop actions project event relationships through hierarchy-only parents", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload({
+                            directParentId: 700,
+                        }),
+                    },
+                    {
+                        type: 7,
+                        id: 700,
+                        payload: actorMixerPayload(),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0103,
+                        targetId: 700,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                ambience_play: { eventID: 100 },
+                ambience_stop: { eventID: 101 },
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+
+    assert.deepEqual(result.events, {
+        ambience_play: [ { nodeId: "200" } ],
+    });
+    assert.deepEqual(result.metadataProjection.Events.ambience_play, {
+        eventsStoppedBy: [ "ambience_stop" ],
+    });
+    assert.deepEqual(result.diagnostics.stopRelationships, {
+        projected: [
+            {
+                stopped: "ambience_play",
+                stopping: "ambience_stop",
+            },
+        ],
+        unresolved: [],
+    });
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
 test("SFX spatial projection resolves inherited and mixed playable leaves", () =>
 {
     const inspections = [
@@ -806,6 +1071,17 @@ test("SFX spatial projection resolves inherited and mixed playable leaves", () =
         local_2d: { is2D: 1 },
         mixed: { is2D: 0 },
     });
+    assert.equal(
+        result.nodes["200"].spatial,
+        true,
+        "the inherited 3D leaf retains its own panner route",
+    );
+    assert.equal(
+        result.nodes["201"].spatial,
+        false,
+        "the local 2D leaf bypasses the panner inside a mixed event",
+    );
+    assert.equal(result.nodes["203"].spatial, false);
     assert.deepEqual(result.diagnostics.spatial.omitted, []);
 });
 
@@ -871,6 +1147,11 @@ test("SFX spatial projection omits unresolved parent cycles", () =>
     });
 
     assert.deepEqual(result.metadataProjection.Events, {});
+    assert.equal(
+        Object.hasOwn(result.nodes["200"], "spatial"),
+        false,
+        "unknown leaf positioning retains the event metadata fallback",
+    );
     assert.equal(result.diagnostics.spatial.omitted.length, 1);
     assert.match(
         result.diagnostics.spatial.omitted[0].reasons[0],
@@ -984,6 +1265,10 @@ test("complete construction preserves the bank version for typed SFX lowering", 
                     eventID: 100,
                     soundbanks: [ "common.bnk" ],
                 },
+                weapon_stop: {
+                    eventID: 101,
+                    soundbanks: [ "common.bnk" ],
+                },
             },
             SoundBanks: {
                 "common.bnk": {
@@ -1040,6 +1325,19 @@ test("complete construction preserves the bank version for typed SFX lowering", 
                             actionIds: [ 300 ],
                             payload: new Uint8Array(),
                         },
+                        {
+                            type: 3,
+                            id: 301,
+                            actionType: 0x0103,
+                            targetId: 200,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 101,
+                            actionIds: [ 301 ],
+                            payload: new Uint8Array(),
+                        },
                     ],
                     media: [
                         {
@@ -1074,6 +1372,10 @@ test("complete construction preserves the bank version for typed SFX lowering", 
         },
     ]);
     assert.equal(library.metadata.Events.weapon_fire.is2D, 1);
+    assert.deepEqual(
+        library.metadata.Events.weapon_fire.eventsStoppedBy,
+        [ "weapon_stop" ],
+    );
 });
 
 test("bank spatial projection preserves caller metadata precedence", async () =>

@@ -25,7 +25,7 @@ It accepts a structural provider:
 
 ```js
 {
-    Read(sourceRecord, context),
+    Read(sourceRecord, { signal, kind, mediaID, ...context }),
     ReadRange?(bankRecord, { offset, byteLength, signal }),
     CanRead?(sourceRecord, context),
     CanReadRange?(bankRecord, context)
@@ -35,6 +35,17 @@ It accepts a structural provider:
 `Read` may return bytes, `{ bytes, mediaType }`, an `AudioBuffer`, or PCM
 channel data. `ReadRange` may return HTTP-206 bytes or a complete original
 file marked `complete: true`; the manager slices the latter locally.
+
+`LoadMedia(mediaID, { signal })` gives each caller an independently
+abortable view of a shared acquisition. The provider receives a
+runtime-owned signal: stopping one event does not cancel a read still leased
+by another event, while the final cancellation aborts the provider and
+evicts the orphaned operation for immediate retry. Complete-bank reads use
+the same lease rule across different embedded media members. Replacing the
+installed library or provider, and disposing the manager, invalidate and
+abort every pending acquisition from the old setup. Effective provider,
+delivery-mode, and language changes clear both the manager's decoded-media
+cache and the built-in music engine's retained-media cache.
 
 ## Document acquisition
 

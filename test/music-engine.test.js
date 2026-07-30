@@ -117,6 +117,7 @@ function FakeContext()
           value: 1,
           ramps: [],
           sets: [],
+          curves: [],
           setValueAtTime(v, t)
           {
             node.gain.value = v;
@@ -125,6 +126,14 @@ function FakeContext()
           linearRampToValueAtTime(v, t)
           {
             node.gain.ramps.push([ v, t ]);
+          },
+          setValueCurveAtTime(values, start, duration)
+          {
+            node.gain.curves.push([
+              Array.from(values),
+              start,
+              duration,
+            ]);
           }
         },
         connectedTo: null,
@@ -177,6 +186,105 @@ function Deferred()
   return { promise, resolve };
 }
 
+function PlaylistModeGraph({
+  rsType,
+  loop,
+  loopMin = 0,
+  loopMax = 0,
+  shuffle = false,
+  avoidRepeatCount = 0,
+  segments = [ 910, 920 ],
+})
+{
+  const nodes = {};
+  const playlist = [ {
+    segmentId: 0,
+    playlistItemId: 900,
+    childCount: segments.length,
+    rsType,
+    loop,
+    loopMin,
+    loopMax,
+    weight: 1,
+    avoidRepeatCount,
+    usingWeight: true,
+    shuffle,
+  } ];
+
+  for (const [ index, segmentId ] of segments.entries())
+  {
+    const trackId = segmentId + 1;
+
+    playlist.push({
+      segmentId,
+      playlistItemId: segmentId,
+      childCount: 0,
+      rsType: -1,
+      loop: 1,
+      loopMin: 0,
+      loopMax: 0,
+      weight: 1,
+      avoidRepeatCount: 0,
+      usingWeight: false,
+      shuffle: false,
+    });
+    nodes[segmentId] = {
+      type: "music-segment",
+      duration: 1000,
+      markers: [ { position: 0 }, { position: 1000 } ],
+      meter: { tempo: 120, beatsPerBar: 4, gridPeriod: 500, gridOffset: 0 },
+      children: [ trackId ],
+    };
+    nodes[trackId] = {
+      type: "music-track",
+      trackType: 0,
+      subTrackCount: 1,
+      switchParams: null,
+      clips: [ {
+        trackId: 0,
+        sourceId: 1000 + index,
+        playAt: 0,
+        beginTrimOffset: 0,
+        endTrimOffset: 0,
+        srcDuration: 1000,
+      } ],
+    };
+  }
+  nodes[900] = {
+    type: "music-playlist-container",
+    playlist,
+  };
+  return {
+    nodes,
+    eventTargets: { play: [ 900 ] },
+    eventStops: {},
+    switchSetters: {},
+  };
+}
+
+async function PlayPlaylistMode(options, samples)
+{
+  const context = FakeContext();
+  const values = [ ...samples ];
+  const engine = new CjsMusicEngine({
+    graph: PlaylistModeGraph(options),
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+    random: () => values.shift() ?? 0,
+  });
+
+  engine.PostEvent("play", 990, () => {});
+  await tick();
+  for (let time = 1; time <= 8; time++)
+  {
+    context.currentTime = time;
+    engine.Process();
+    await tick();
+  }
+  return context.sources.map(source => source.buffer.fake);
+}
+
 
 test("posting the music event schedules the resolved playlist's segment clips on time", async () =>
 {
@@ -186,9 +294,14 @@ test("posting the music event schedules the resolved playlist's segment clips on
 
   engine.PostEvent("music_test_play", 501, () => finished.push(501));
   assert.equal(engine.GetPlayingCount(), 1);
-  assert.equal(engine.GetResolvedTarget(501), PLAYLIST, "default switch value routes through key 0 to the playlist");
+  assert.equal(
+    engine.GetStatus()[0].preparingTargetId,
+    PLAYLIST,
+    "default switch value prepares the playlist before starting its timeline",
+  );
 
   await tick();
+  assert.equal(engine.GetResolvedTarget(501), PLAYLIST);
   assert.deepEqual(loaded, [ 111 ], "segment A's media requested once");
   const first = context.sources[0];
   // Clip starts 1s pre-entry: entry cue aligns at now (0), so the source
@@ -218,6 +331,702 @@ test("posting the music event schedules the resolved playlist's segment clips on
   assert.equal(engine.PreviewSwitchEvent("music_switch_unshipped", SWITCH), null, "unshipped content previews unavailable");
 });
 
+test("one music Play event realizes every authored target under one playing id", async () =>
+{
+  const { context, engine, finished } = Harness(graph =>
+  {
+    graph.eventTargets.music_multi_play = [ SEGMENT_A, SEGMENT_B ];
+  });
+
+  assert.equal(
+    engine.PostEvent(
+      "music_multi_play",
+      512,
+      () => finished.push(512),
+    ),
+    true,
+  );
+  await tick();
+
+  assert.equal(engine.GetPlayingCount(), 1, "one posted event remains one public playing id");
+  assert.deepEqual(
+    engine.GetStatus().map(status => status.rootId).sort((a, b) => a - b),
+    [ SEGMENT_A, SEGMENT_B ],
+  );
+  assert.deepEqual(
+    context.sources.map(source => source.buffer.fake).sort((a, b) => a - b),
+    [ 111, 222 ],
+    "both authored target layers schedule media",
+  );
+
+  engine.ExecuteAction("stop", 512, 0);
+  assert.equal(engine.GetPlayingCount(), 0);
+  assert.deepEqual(
+    finished,
+    [ 512 ],
+    "stopping the shared playing id completes once after both targets stop",
+  );
+});
+
+test("an unavailable music Play target does not cancel an audible sibling", async () =>
+{
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const finished = [];
+
+  graph.eventTargets.music_multi_play = [ SEGMENT_A, SEGMENT_B ];
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId =>
+      sourceId === 111 ? null : { fake: sourceId },
+  });
+
+  engine.PostEvent("music_multi_play", 513, () => finished.push(513));
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetPlayingCount(), 1);
+  assert.deepEqual(
+    context.sources.map(source => source.buffer.fake),
+    [ 222 ],
+    "the available target remains audible",
+  );
+  context.currentTime = 4;
+  engine.Process();
+  engine.Process();
+
+  assert.equal(engine.GetPlayingCount(), 0);
+  assert.deepEqual(finished, [ 513 ], "the group completes once its audible sibling ends");
+});
+
+test("Continue Playback preserves a shared target across switch routes", async () =>
+{
+  const { context, engine, loaded } = Harness();
+
+  engine.PostEvent("music_test_play", 520, () => {});
+  await tick();
+
+  const source = context.sources[0];
+  const scheduleId = engine.GetStatus()[0].segments[0].scheduleId;
+
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_calm", 521, () => {});
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetResolvedTarget(520), PLAYLIST);
+  assert.deepEqual(loaded, [ 111 ], "the shared target is not prepared again");
+  assert.equal(context.sources.length, 1, "no replacement source is created");
+  assert.equal(source.stoppedAt, null);
+  assert.equal(engine.GetStatus()[0].segments[0].scheduleId, scheduleId);
+
+  engine.PostEvent("music_switch_calm", 522, () => {});
+  await tick();
+  assert.equal(context.sources.length, 1, "reapplying the route is a no-op");
+});
+
+test("Continue Playback disabled restarts a shared target at its authored boundary", async () =>
+{
+  const { context, engine, loaded } = Harness(graph =>
+  {
+    graph.nodes[SWITCH].continuePlayback = false;
+    graph.nodes[SWITCH].rules[0].dst.playPreEntry = true;
+  });
+
+  engine.PostEvent("music_test_play", 523, () => {});
+  await tick();
+  const first = context.sources[0];
+
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_calm", 524, () => {});
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetResolvedTarget(523), PLAYLIST);
+  assert.deepEqual(loaded, [ 111 ], "the decoded buffer remains reusable");
+  assert.equal(first.stoppedAt, 8, "the old route reaches its exit cue");
+  assert.equal(context.sources.length, 2);
+  assert.equal(
+    context.sources[1].startedAt,
+    7,
+    "the restarted first segment preserves its one-second pre-entry audio",
+  );
+  assert.equal(
+    engine.GetStatus()[0].segments.at(-1).startCtx,
+    8,
+    "the shared playlist restarts from its first segment at the boundary",
+  );
+
+  engine.PostEvent("music_switch_calm", 525, () => {});
+  await tick();
+  assert.equal(
+    context.sources.length,
+    2,
+    "reapplying a Continue-disabled route still remains a no-op",
+  );
+});
+
+test("a cancelled same-target route prepare cannot restart stale music", async () =>
+{
+  const context = FakeContext();
+  const graph = fixtureGraph();
+  const restart = Deferred();
+  let loads = 0;
+
+  graph.nodes[SWITCH].continuePlayback = false;
+
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: () => ++loads === 1
+      ? Promise.resolve({ fake: 111 })
+      : restart.promise,
+  });
+
+  engine.PostEvent("music_test_play", 526, () => {});
+  await tick();
+  engine.ReleaseMedia(111);
+
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_calm", 527, () => {});
+  await tick();
+  assert.equal(engine.GetStatus()[0].preparingTargetId, PLAYLIST);
+
+  engine.SetSwitch(GROUP, 0);
+  assert.equal(engine.GetStatus()[0].preparingTargetId, null);
+
+  restart.resolve({ fake: 111 });
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].stoppedAt, null);
+});
+
+test("a failed same-target restart leaves the current route retryable", async () =>
+{
+  const context = FakeContext();
+  const graph = fixtureGraph();
+  let loads = 0;
+  let restartAvailable = false;
+
+  graph.nodes[SWITCH].continuePlayback = false;
+
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId =>
+    {
+      loads++;
+      return loads === 1 || restartAvailable
+        ? { fake: sourceId }
+        : null;
+    },
+  });
+
+  engine.PostEvent("music_test_play", 528, () => {});
+  await tick();
+  engine.ReleaseMedia(111);
+
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_calm", 529, () => {});
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].stoppedAt, null);
+  assert.equal(engine.GetStatus()[0].unavailableTargetId, PLAYLIST);
+
+  restartAvailable = true;
+  engine.PostEvent("music_switch_calm", 530, () => {});
+  await tick();
+  await tick();
+
+  assert.equal(
+    context.sources.length,
+    2,
+    "the unchanged requested route retries because the failed route never committed",
+  );
+  assert.equal(engine.GetStatus()[0].unavailableTargetId, null);
+});
+
+test("a nested Continue-disabled route restarts while unrelated groups do not", async () =>
+{
+  const INNER = 401;
+  const INNER_GROUP = wwiseIdFromName("music_inner");
+  const INNER_VALUE = wwiseIdFromName("music_inner_active");
+  const { context, engine } = Harness(graph =>
+  {
+    graph.nodes[SWITCH].children = [ INNER, SEGMENT_B ];
+    graph.nodes[SWITCH].treeNodes[1].audioNodeId = INNER;
+    graph.nodes[SWITCH].treeNodes[2].audioNodeId = INNER;
+    graph.nodes[INNER] = {
+      type: "music-switch-container",
+      children: [ PLAYLIST ],
+      rules: [ {
+        srcIds: [ PLAYLIST ],
+        dstIds: [ PLAYLIST ],
+        src: {
+          transitionTime: 0,
+          fadeCurve: 4,
+          fadeOffset: 0,
+          syncType: 0,
+        },
+        dst: {
+          transitionTime: 0,
+          fadeCurve: 4,
+          fadeOffset: 0,
+        },
+        transitionSegment: null,
+      } ],
+      continuePlayback: false,
+      argumentGroups: [ { groupId: INNER_GROUP, groupType: 0 } ],
+      treeNodes: [
+        {
+          key: 0,
+          audioNodeId: 0,
+          childrenIdx: 1,
+          childrenCount: 2,
+        },
+        {
+          key: 0,
+          audioNodeId: PLAYLIST,
+          childrenIdx: 0,
+          childrenCount: 0,
+        },
+        {
+          key: INNER_VALUE,
+          audioNodeId: PLAYLIST,
+          childrenIdx: 0,
+          childrenCount: 0,
+        },
+      ],
+    };
+    graph.switchSetters.music_switch_inner = [ {
+      kind: "switch",
+      groupId: INNER_GROUP,
+      targetId: INNER_VALUE,
+    } ];
+  });
+
+  engine.PostEvent("music_test_play", 531, () => {});
+  await tick();
+
+  engine.SetSwitch(wwiseIdFromName("unrelated"), 1);
+  await tick();
+  assert.equal(context.sources.length, 1);
+
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_inner", 532, () => {});
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 2);
+  assert.equal(
+    context.sources[0].stoppedAt,
+    2,
+    "the changed inner container owns its immediate transition rule",
+  );
+  assert.equal(engine.GetStatus()[0].segments.at(-1).startCtx, 2);
+  assert.equal(engine.GetResolvedTarget(531), PLAYLIST);
+});
+
+test("switch rules match their direct nested associations, not terminal leaves", async () =>
+{
+  const INNER_A = 401;
+  const INNER_B = 402;
+  const { context, engine } = Harness(graph =>
+  {
+    const fallback = graph.nodes[SWITCH].rules[0];
+    const innerNode = (groupId, targetId) => ({
+      type: "music-switch-container",
+      children: [ targetId ],
+      rules: [],
+      continuePlayback: true,
+      argumentGroups: [ { groupId, groupType: 0 } ],
+      treeNodes: [
+        {
+          key: 0,
+          audioNodeId: 0,
+          childrenIdx: 1,
+          childrenCount: 1,
+        },
+        {
+          key: 0,
+          audioNodeId: targetId,
+          childrenIdx: 0,
+          childrenCount: 0,
+        },
+      ],
+    });
+
+    graph.nodes[INNER_A] = innerNode(
+      wwiseIdFromName("nested_a"),
+      PLAYLIST,
+    );
+    graph.nodes[INNER_B] = innerNode(
+      wwiseIdFromName("nested_b"),
+      SEGMENT_B,
+    );
+    graph.nodes[SWITCH].children = [ INNER_A, INNER_B ];
+    graph.nodes[SWITCH].treeNodes[1].audioNodeId = INNER_A;
+    graph.nodes[SWITCH].treeNodes[2].audioNodeId = INNER_A;
+    graph.nodes[SWITCH].treeNodes[3].audioNodeId = INNER_B;
+    graph.nodes[SWITCH].rules = [
+      {
+        srcIds: [ 0 ],
+        dstIds: [ INNER_A ],
+        src: {
+          transitionTime: 0,
+          fadeCurve: 4,
+          fadeOffset: 0,
+          syncType: 0,
+        },
+        dst: {
+          transitionTime: 1000,
+          fadeCurve: 4,
+          fadeOffset: 0,
+        },
+        transitionSegment: null,
+      },
+      fallback,
+      {
+        srcIds: [ INNER_A ],
+        dstIds: [ INNER_B ],
+        src: {
+          transitionTime: 0,
+          fadeCurve: 4,
+          fadeOffset: 0,
+          syncType: 0,
+        },
+        dst: {
+          transitionTime: 0,
+          fadeCurve: 4,
+          fadeOffset: 0,
+        },
+        transitionSegment: null,
+      },
+    ];
+  });
+
+  engine.PostEvent("music_test_play", 535, () => {});
+  await tick();
+  assert.deepEqual(
+    context.gains[2].gain.ramps,
+    [ [ 1, 1 ] ],
+    "initial Nothing matching uses the root's direct nested child",
+  );
+
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_combat", 536, () => {});
+  await tick();
+
+  assert.equal(
+    context.sources[0].stoppedAt,
+    2,
+    "the direct-child specific rule wins over the exit-cue fallback",
+  );
+  assert.equal(
+    context.sources.find(source => source.buffer?.fake === 222)?.startedAt,
+    2,
+  );
+});
+
+test("Nothing transition rules beat Any fallbacks in both directions", async () =>
+{
+  const { context, engine } = Harness(graph =>
+  {
+    const fallback = graph.nodes[SWITCH].rules[0];
+
+    graph.nodes[SWITCH].rules = [
+      {
+        srcIds: [ 0 ],
+        dstIds: [ PLAYLIST ],
+        src: {
+          transitionTime: 0,
+          fadeCurve: 4,
+          fadeOffset: 0,
+          syncType: 0,
+        },
+        dst: {
+          transitionTime: 1000,
+          fadeCurve: 4,
+          fadeOffset: 0,
+        },
+        transitionSegment: null,
+      },
+      {
+        srcIds: [ PLAYLIST ],
+        dstIds: [ 0 ],
+        src: {
+          transitionTime: 0,
+          fadeCurve: 4,
+          fadeOffset: 0,
+          syncType: 0,
+        },
+        dst: {
+          transitionTime: 0,
+          fadeCurve: 4,
+          fadeOffset: 0,
+        },
+        transitionSegment: null,
+      },
+      fallback,
+    ];
+  });
+
+  engine.PostEvent("music_test_play", 533, () => {});
+  await tick();
+
+  assert.deepEqual(
+    context.gains[2].gain.sets,
+    [ [ 0, 0 ] ],
+    "the initial Nothing-to-target rule applies its destination fade",
+  );
+  assert.deepEqual(context.gains[2].gain.ramps, [ [ 1, 1 ] ]);
+
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_silent", 534, () => {});
+  await tick();
+
+  assert.equal(
+    context.sources[0].stoppedAt,
+    2,
+    "Any-to-Any does not steal the explicit target-to-Nothing rule",
+  );
+});
+
+test("initial music waits for media before anchoring its timeline", async () =>
+{
+  const context = FakeContext();
+  const pending = Deferred();
+  const engine = new CjsMusicEngine({
+    graph: fixtureGraph(),
+    context,
+    destination: context.destination,
+    loadMedia: () => pending.promise,
+  });
+
+  engine.PostEvent("music_test_play", 600, () => {});
+  await tick();
+
+  assert.equal(engine.GetStatus()[0].preparingTargetId, PLAYLIST);
+  assert.equal(context.sources.length, 0);
+
+  context.currentTime = 20;
+  pending.resolve({ fake: 111 });
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(
+    context.sources[0].startedAt,
+    20,
+    "slow acquisition does not consume the finite segment timeline",
+  );
+});
+
+test("an unavailable initial switch branch stays live and later recovers", async () =>
+{
+  const context = FakeContext();
+  const engine = new CjsMusicEngine({
+    graph: fixtureGraph(),
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId =>
+      sourceId === 111 ? null : { fake: sourceId },
+  });
+
+  engine.PostEvent("music_test_play", 601, () => {});
+  await tick();
+
+  assert.equal(engine.GetPlayingCount(), 1);
+  assert.equal(engine.GetStatus()[0].unavailableTargetId, PLAYLIST);
+  assert.equal(engine.GetStatus()[0].silent, true);
+
+  engine.PostEvent("music_switch_combat", 602, () => {});
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetResolvedTarget(601), SEGMENT_B);
+  assert.ok(
+    context.sources.some(source => source.buffer?.fake === 222),
+    "a later valid switch target starts the silent instance",
+  );
+});
+
+test("an initial authored-silence switch branch stays live and resumes", async () =>
+{
+  const { context, engine } = Harness();
+
+  engine.SetSwitch(GROUP, SILENT);
+  engine.PostEvent("music_test_play", 603, () => {});
+  await tick();
+
+  assert.equal(engine.GetPlayingCount(), 1);
+  assert.equal(engine.GetStatus()[0].silent, true);
+  assert.equal(context.sources.length, 0);
+
+  engine.SetSwitch(GROUP, COMBAT);
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetResolvedTarget(603), SEGMENT_B);
+  assert.ok(context.sources.some(source => source.buffer?.fake === 222));
+});
+
+test("an unavailable direct music target finishes instead of leaking silently", async () =>
+{
+  const context = FakeContext();
+  const finished = [];
+  const graph = fixtureGraph();
+
+  graph.eventTargets.direct_play = [ SEGMENT_A ];
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async () => null,
+  });
+
+  engine.PostEvent("direct_play", 604, () => finished.push(604));
+  await tick();
+
+  assert.equal(engine.GetPlayingCount(), 0);
+  assert.deepEqual(finished, [ 604 ]);
+});
+
+test("stopping during initial music preparation cannot revive stale playback", async () =>
+{
+  const context = FakeContext();
+  const pending = Deferred();
+  const finished = [];
+  const engine = new CjsMusicEngine({
+    graph: fixtureGraph(),
+    context,
+    destination: context.destination,
+    loadMedia: () => pending.promise,
+  });
+
+  engine.PostEvent("music_test_play", 605, () => finished.push(605));
+  await tick();
+  engine.StopAll(0);
+
+  assert.equal(engine.GetPlayingCount(), 0);
+  assert.deepEqual(finished, [ 605 ]);
+
+  pending.resolve({ fake: 111 });
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 0);
+  assert.deepEqual(finished, [ 605 ]);
+});
+
+test("finite music remains live through authored post-exit clip audio", async () =>
+{
+  const context = FakeContext();
+  const finished = [];
+  const graph = fixtureGraph();
+
+  graph.eventTargets.direct_play = [ SEGMENT_A ];
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+  });
+
+  engine.PostEvent("direct_play", 606, () => finished.push(606));
+  await tick();
+
+  context.currentTime = 7;
+  engine.Process();
+  context.currentTime = 8;
+  engine.Process();
+  assert.equal(
+    engine.GetPlayingCount(),
+    1,
+    "the exit cue ends scheduling but not the clip's audible tail",
+  );
+  assert.deepEqual(finished, []);
+
+  context.currentTime = 9;
+  engine.Process();
+  assert.equal(engine.GetPlayingCount(), 0);
+  assert.deepEqual(finished, [ 606 ]);
+});
+
+test("failed scheduled music media does not remain permanently pending", async () =>
+{
+  const context = FakeContext();
+  const graph = fixtureGraph();
+
+  graph.nodes[PLAYLIST].playlist = [
+    {
+      segmentId: 0,
+      playlistItemId: 1,
+      childCount: 2,
+      rsType: 0,
+      loop: 1,
+      loopMin: 0,
+      loopMax: 0,
+      weight: 1,
+      avoidRepeatCount: 0,
+      usingWeight: false,
+      shuffle: false,
+    },
+    {
+      segmentId: SEGMENT_A,
+      playlistItemId: 2,
+      childCount: 0,
+      rsType: -1,
+      loop: 1,
+      loopMin: 0,
+      loopMax: 0,
+      weight: 1,
+      avoidRepeatCount: 0,
+      usingWeight: false,
+      shuffle: false,
+    },
+    {
+      segmentId: SEGMENT_B,
+      playlistItemId: 3,
+      childCount: 0,
+      rsType: -1,
+      loop: 1,
+      loopMin: 0,
+      loopMax: 0,
+      weight: 1,
+      avoidRepeatCount: 0,
+      usingWeight: false,
+      shuffle: false,
+    },
+  ];
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId =>
+      sourceId === 111 ? { fake: sourceId } : null,
+  });
+
+  engine.PostEvent("music_test_play", 607, () => {});
+  await tick();
+  context.currentTime = 7;
+  engine.Process();
+  await tick();
+
+  const failed = engine.GetStatus()[0].segments.find(segment =>
+    segment.segmentId === SEGMENT_B);
+
+  assert.equal(failed?.pending, 0);
+});
+
 
 test("the looping playlist chains segment A at its exit-cue boundary, sample-accurately", async () =>
 {
@@ -232,6 +1041,655 @@ test("the looping playlist chains segment A at its exit-cue boundary, sample-acc
   const second = context.sources[1];
   assert.equal(second.startedAt, 7, "past pre-entry start collapses to now");
   assert.equal(second.startOffset, 0);
+});
+
+test("playlist transition matrices apply authored source and destination fades", async () =>
+{
+  const context = FakeContext();
+  const graph = PlaylistModeGraph({
+    rsType: 0,
+    loop: 1,
+  });
+
+  graph.nodes[900].rules = [ {
+    srcIds: [ -1 ],
+    dstIds: [ -1 ],
+    src: {
+      transitionTime: 500,
+      fadeCurve: 4,
+      fadeOffset: 0,
+      syncType: 7,
+      playPostExit: false,
+    },
+    dst: {
+      transitionTime: 500,
+      fadeCurve: 4,
+      fadeOffset: 0,
+      playPreEntry: false,
+    },
+    transitionSegment: null,
+  } ];
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+  });
+
+  engine.PostEvent("play", 991, () => {});
+  await tick();
+
+  const [ source, destination ] = context.sources;
+
+  assert.equal(source.stoppedAt, 1);
+  assert.deepEqual(
+    source.connectedTo.gain.sets,
+    [ [ 1, 0.5 ] ],
+  );
+  assert.deepEqual(
+    source.connectedTo.gain.ramps,
+    [ [ 0, 1 ] ],
+  );
+  assert.equal(destination.startedAt, 1);
+  assert.deepEqual(
+    destination.connectedTo.gain.sets,
+    [ [ 0, 1 ] ],
+  );
+  assert.deepEqual(
+    destination.connectedTo.gain.ramps,
+    [ [ 1, 1.5 ] ],
+  );
+});
+
+test("playlist scheduling expands its lookahead for long authored fades", async () =>
+{
+  const context = FakeContext();
+  const graph = PlaylistModeGraph({
+    rsType: 0,
+    loop: 1,
+    segments: [ 910, 920 ],
+  });
+
+  graph.nodes[910].duration = 12000;
+  graph.nodes[910].markers[1].position = 12000;
+  graph.nodes[911].clips[0].srcDuration = 12000;
+  graph.nodes[900].rules = [ {
+    srcIds: [ -1 ],
+    dstIds: [ -1 ],
+    src: {
+      transitionTime: 10000,
+      fadeCurve: 4,
+      fadeOffset: 0,
+      syncType: 7,
+      playPostExit: false,
+    },
+    dst: {
+      transitionTime: 0,
+      fadeCurve: 4,
+      fadeOffset: 0,
+      playPreEntry: true,
+    },
+    transitionSegment: null,
+  } ];
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+  });
+
+  engine.PostEvent("play", 992, () => {});
+  await tick();
+  context.currentTime = 2;
+  engine.Process();
+  await tick();
+
+  assert.equal(
+    context.sources.length,
+    2,
+    "the next segment is queued early enough to begin a ten-second fade",
+  );
+  assert.deepEqual(
+    context.sources[0].connectedTo.gain.sets,
+    [ [ 1, 2 ] ],
+  );
+  assert.deepEqual(
+    context.sources[0].connectedTo.gain.ramps,
+    [ [ 0, 12 ] ],
+  );
+});
+
+
+test("exit-cue transitions use the current segment, not the lookahead frontier", async () =>
+{
+  const { context, engine } = Harness();
+
+  engine.PostEvent("music_test_play", 508, () => {});
+  await tick();
+
+  context.currentTime = 6.6;
+  engine.Process();
+  await tick();
+  assert.equal(
+    engine.GetStatus()[0].boundary,
+    16,
+    "lookahead has already advanced beyond the current segment",
+  );
+
+  engine.PostEvent("music_switch_combat", 509, () => {});
+  await tick();
+
+  const destination = context.sources.find(source =>
+    source.buffer?.fake === 222);
+
+  assert.equal(
+    destination?.startedAt,
+    8,
+    "the destination enters at A1's exit rather than after queued A2",
+  );
+});
+
+test("playlist traversal preserves all four authored Wwise play modes", async () =>
+{
+  assert.deepEqual(
+    await PlayPlaylistMode({ rsType: 0, loop: 1 }, []),
+    [ 1000, 1001 ],
+    "Sequence Continuous plays the complete group in order",
+  );
+  assert.deepEqual(
+    await PlayPlaylistMode({ rsType: 1, loop: 2 }, [ 0.99, 0.99 ]),
+    [ 1000, 1001 ],
+    "Sequence Step advances rather than choosing a random child",
+  );
+  assert.deepEqual(
+    await PlayPlaylistMode({ rsType: 2, loop: 1 }, [ 0.99, 0 ]),
+    [ 1001, 1000 ],
+    "Random Continuous makes one random choice per child slot",
+  );
+  assert.deepEqual(
+    await PlayPlaylistMode({ rsType: 3, loop: 2 }, [ 0.99, 0 ]),
+    [ 1001, 1000 ],
+    "Random Step makes one random choice per authored loop",
+  );
+});
+
+test("playlist shuffle exhausts its pool and loop-count randomization is bounded", async () =>
+{
+  assert.deepEqual(
+    await PlayPlaylistMode({
+      rsType: 3,
+      loop: 4,
+      shuffle: true,
+      segments: [ 910, 920, 930 ],
+    }, [ 0, 0, 0, 0 ]),
+    [ 1000, 1001, 1002, 1000 ],
+    "shuffle avoids repeats until every child has played",
+  );
+  assert.deepEqual(
+    await PlayPlaylistMode({
+      rsType: 0,
+      loop: 2,
+      loopMin: -1,
+      loopMax: 1,
+      segments: [ 910 ],
+    }, [ 0.99 ]),
+    [ 1000, 1000, 1000 ],
+    "the sampled loop offset is added to the authored base count",
+  );
+});
+
+test("sequence music tracks advance their selected subtrack per instance", async () =>
+{
+  const context = FakeContext();
+  const graph = PlaylistModeGraph({
+    rsType: 0,
+    loop: 1,
+    segments: [ 910 ],
+  });
+  const item = graph.nodes[900].playlist[1];
+  const track = graph.nodes[911];
+
+  item.loop = 2;
+  track.trackType = 2;
+  track.subTrackCount = 2;
+  track.clips = [
+    { ...track.clips[0], trackId: 0, sourceId: 1000 },
+    { ...track.clips[0], trackId: 1, sourceId: 1001 },
+  ];
+
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+  });
+
+  engine.PostEvent("play", 991, () => {});
+  await tick();
+  context.currentTime = 1;
+  engine.Process();
+  await tick();
+
+  assert.deepEqual(
+    context.sources.map(source => source.buffer.fake),
+    [ 1000, 1001 ],
+  );
+});
+
+test("transition preparation pins one exact random playlist branch", async () =>
+{
+  const RANDOM_TARGET = 500;
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const reads = [];
+  const samples = [ 0.99, 0 ];
+  let randomCalls = 0;
+
+  graph.nodes[RANDOM_TARGET] = {
+    type: "music-playlist-container",
+    playlist: [
+      {
+        segmentId: 0,
+        playlistItemId: 500,
+        childCount: 2,
+        rsType: 3,
+        loop: 1,
+        loopMin: 0,
+        loopMax: 0,
+        weight: 1,
+        avoidRepeatCount: 0,
+        usingWeight: true,
+        shuffle: false,
+      },
+      {
+        segmentId: SEGMENT_A,
+        playlistItemId: 501,
+        childCount: 0,
+        rsType: -1,
+        loop: 1,
+        loopMin: 0,
+        loopMax: 0,
+        weight: 1,
+        avoidRepeatCount: 0,
+        usingWeight: false,
+        shuffle: false,
+      },
+      {
+        segmentId: SEGMENT_B,
+        playlistItemId: 502,
+        childCount: 0,
+        rsType: -1,
+        loop: 1,
+        loopMin: 0,
+        loopMax: 0,
+        weight: 1,
+        avoidRepeatCount: 0,
+        usingWeight: false,
+        shuffle: false,
+      },
+    ],
+  };
+  graph.nodes[SWITCH].treeNodes.find(node =>
+    node.key === COMBAT).audioNodeId = RANDOM_TARGET;
+
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId =>
+    {
+      reads.push(sourceId);
+      return sourceId === 222 ? null : { fake: sourceId };
+    },
+    random: () =>
+    {
+      randomCalls++;
+      return samples.shift() ?? 0;
+    },
+  });
+
+  engine.PostEvent("music_test_play", 700, () => {});
+  await tick();
+  const outgoing = context.sources[0];
+
+  engine.PostEvent("music_switch_combat", 701, () => {});
+  await tick();
+
+  assert.deepEqual(reads, [ 111, 222 ]);
+  assert.equal(randomCalls, 1, "preparation makes one branch choice");
+  assert.equal(engine.GetResolvedTarget(700), PLAYLIST);
+  assert.equal(engine.GetStatus()[0].unavailableTargetId, RANDOM_TARGET);
+  assert.equal(
+    outgoing.stoppedAt,
+    null,
+    "an unavailable selected branch cannot fade the current music",
+  );
+
+  engine.PostEvent("music_switch_combat", 702, () => {});
+  await tick();
+
+  assert.equal(engine.GetResolvedTarget(700), RANDOM_TARGET);
+  assert.equal(context.sources.at(-1).buffer.fake, 111);
+  assert.equal(
+    randomCalls,
+    2,
+    "scheduling consumes the pinned branch without rerolling",
+  );
+  assert.deepEqual(
+    reads,
+    [ 111, 222 ],
+    "the available alternate was reused from cache only after it was selected",
+  );
+});
+
+test("transition preparation pins one exact random music subtrack", async () =>
+{
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const reads = [];
+  let randomCalls = 0;
+  const track = graph.nodes[TRACK_B];
+  const clip = track.clips[0];
+
+  track.trackType = 1;
+  track.subTrackCount = 2;
+  track.clips = [
+    { ...clip, trackId: 0, sourceId: 222 },
+    { ...clip, trackId: 1, sourceId: 333 },
+  ];
+
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId =>
+    {
+      reads.push(sourceId);
+      return { fake: sourceId };
+    },
+    random: () =>
+    {
+      randomCalls++;
+      return 0.99;
+    },
+  });
+
+  engine.PostEvent("music_test_play", 703, () => {});
+  await tick();
+  engine.PostEvent("music_switch_combat", 704, () => {});
+  await tick();
+
+  assert.deepEqual(reads, [ 111, 333 ]);
+  assert.equal(randomCalls, 1);
+  assert.equal(context.sources.at(-1).buffer.fake, 333);
+});
+
+test("a cancelled prepare does not consume a sequence-track cursor", async () =>
+{
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const pending = Deferred();
+  const reads = [];
+  const track = graph.nodes[TRACK_B];
+  const clip = track.clips[0];
+
+  track.trackType = 2;
+  track.subTrackCount = 2;
+  track.clips = [
+    { ...clip, trackId: 0, sourceId: 222 },
+    { ...clip, trackId: 1, sourceId: 333 },
+  ];
+
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: sourceId =>
+    {
+      reads.push(sourceId);
+      if (sourceId === 222)
+      {
+        return pending.promise;
+      }
+      return Promise.resolve({ fake: sourceId });
+    },
+  });
+
+  engine.PostEvent("music_test_play", 705, () => {});
+  await tick();
+  engine.PostEvent("music_switch_combat", 706, () => {});
+  await tick();
+  engine.PostEvent("music_switch_calm", 707, () => {});
+
+  pending.resolve({ fake: 222 });
+  await tick();
+  engine.PostEvent("music_switch_combat", 708, () => {});
+  await tick();
+
+  assert.equal(engine.GetResolvedTarget(705), SEGMENT_B);
+  assert.equal(context.sources.at(-1).buffer.fake, 222);
+  assert.equal(
+    reads.includes(333),
+    false,
+    "the stale prepare never advanced the live sequence position",
+  );
+});
+
+test("sequence-track drift during loading replans before commit", async () =>
+{
+  const SEGMENT_C = 600;
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const pending = Deferred();
+  const track = graph.nodes[TRACK_B];
+  const clip = track.clips[0];
+
+  graph.nodes[PLAYLIST].playlist[1].segmentId = SEGMENT_B;
+  graph.nodes[SWITCH].treeNodes.find(node =>
+    node.key === COMBAT).audioNodeId = SEGMENT_C;
+  graph.nodes[SEGMENT_C] = {
+    ...graph.nodes[SEGMENT_B],
+    children: [ TRACK_B ],
+  };
+  track.trackType = 2;
+  track.subTrackCount = 2;
+  track.clips = [
+    { ...clip, trackId: 0, sourceId: 222 },
+    { ...clip, trackId: 1, sourceId: 333 },
+  ];
+
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: sourceId =>
+    {
+      if (sourceId === 333)
+      {
+        return pending.promise;
+      }
+      return Promise.resolve({ fake: sourceId });
+    },
+  });
+
+  engine.PostEvent("music_test_play", 709, () => {});
+  await tick();
+  engine.PostEvent("music_switch_combat", 710, () => {});
+  await tick();
+
+  context.currentTime = 3;
+  engine.Process();
+  pending.resolve({ fake: 333 });
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetResolvedTarget(709), SEGMENT_C);
+  assert.equal(
+    context.sources.at(-1).buffer.fake,
+    222,
+    "the destination was replanned from the cursor advanced by outgoing playback",
+  );
+});
+
+test("switch-track drift during loading replans to the current value", async () =>
+{
+  const TRACK_GROUP = wwiseIdFromName("track_mood");
+  const TRACK_SECOND = wwiseIdFromName("track_second");
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const pending = Deferred();
+  const reads = [];
+  const track = graph.nodes[TRACK_B];
+  const clip = track.clips[0];
+
+  track.trackType = 3;
+  track.subTrackCount = 2;
+  track.switchParams = {
+    groupId: TRACK_GROUP,
+    defaultSwitch: 0,
+    assoc: [ 0, TRACK_SECOND ],
+  };
+  track.clips = [
+    { ...clip, trackId: 0, sourceId: 222 },
+    { ...clip, trackId: 1, sourceId: 333 },
+  ];
+  graph.switchSetters.music_track_second = [ {
+    kind: "switch",
+    groupId: TRACK_GROUP,
+    targetId: TRACK_SECOND,
+  } ];
+
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: sourceId =>
+    {
+      reads.push(sourceId);
+      if (sourceId === 222)
+      {
+        return pending.promise;
+      }
+      return Promise.resolve({ fake: sourceId });
+    },
+  });
+
+  engine.PostEvent("music_test_play", 713, () => {});
+  await tick();
+  engine.PostEvent("music_switch_combat", 714, () => {});
+  await tick();
+  engine.PostEvent("music_track_second", 715, () => {});
+
+  pending.resolve({ fake: 222 });
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetResolvedTarget(713), SEGMENT_B);
+  assert.deepEqual(reads, [ 111, 222, 333 ]);
+  assert.equal(context.sources.at(-1).buffer.fake, 333);
+});
+
+test("prepared failed layers are omitted without an immediate second read", async () =>
+{
+  const TRACK_C = 202;
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const reads = new Map();
+  const baseTrack = graph.nodes[TRACK_B];
+  const clip = baseTrack.clips[0];
+
+  graph.nodes[SEGMENT_B].children = [ TRACK_B, TRACK_C ];
+  graph.nodes[TRACK_C] = {
+    ...baseTrack,
+    clips: [ { ...clip, sourceId: 333 } ],
+  };
+
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId =>
+    {
+      reads.set(sourceId, (reads.get(sourceId) ?? 0) + 1);
+      return sourceId === 333 ? null : { fake: sourceId };
+    },
+  });
+
+  engine.PostEvent("music_test_play", 711, () => {});
+  await tick();
+  engine.PostEvent("music_switch_combat", 712, () => {});
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetResolvedTarget(711), SEGMENT_B);
+  assert.equal(reads.get(222), 1);
+  assert.equal(reads.get(333), 1);
+  assert.equal(
+    context.sources.some(source => source.buffer?.fake === 333),
+    false,
+  );
+  assert.equal(
+    engine.GetStatus()[0].segments.find(segment =>
+      segment.segmentId === SEGMENT_B)?.pending,
+    0,
+  );
+});
+
+test("multi-setter music events reevaluate once from the combined state", async () =>
+{
+  const secondGroup = wwiseIdFromName("music_layer");
+  const firstValue = wwiseIdFromName("combat_enabled");
+  const secondValue = wwiseIdFromName("layer_enabled");
+  const { context, engine } = Harness(graph =>
+  {
+    graph.nodes[SWITCH].argumentGroups = [
+      { groupId: GROUP, groupType: 0 },
+      { groupId: secondGroup, groupType: 0 },
+    ];
+    graph.nodes[SWITCH].treeNodes = [
+      { key: 0, audioNodeId: 0, childrenIdx: 1, childrenCount: 2 },
+      { key: 0, audioNodeId: 0, childrenIdx: 3, childrenCount: 1 },
+      { key: firstValue, audioNodeId: 0, childrenIdx: 4, childrenCount: 2 },
+      { key: 0, audioNodeId: PLAYLIST, childrenIdx: 0, childrenCount: 0 },
+      { key: 0, audioNodeId: 0, childrenIdx: 0, childrenCount: 0 },
+      { key: secondValue, audioNodeId: SEGMENT_B, childrenIdx: 0, childrenCount: 0 },
+    ];
+    graph.nodes[SWITCH].rules = [ {
+      srcIds: [ PLAYLIST ],
+      dstIds: [ SEGMENT_B ],
+      src: {
+        transitionTime: 2000,
+        fadeCurve: 4,
+        fadeOffset: 2000,
+        syncType: 0,
+      },
+      dst: {
+        transitionTime: 0,
+        fadeCurve: 4,
+        fadeOffset: 0,
+      },
+      transitionSegment: null,
+    } ];
+    graph.switchSetters.music_switch_combined = [
+      { kind: "switch", groupId: GROUP, targetId: firstValue },
+      { kind: "switch", groupId: secondGroup, targetId: secondValue },
+    ];
+  });
+
+  engine.PostEvent("music_test_play", 992, () => {});
+  await tick();
+  const source = context.sources.find(value => value.buffer?.fake === 111);
+
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_combined", 993, () => {});
+  await tick();
+
+  assert.equal(engine.GetResolvedTarget(992), SEGMENT_B);
+  assert.equal(
+    source.stoppedAt,
+    4,
+    "no intermediate one-setter silence captures the outgoing fade",
+  );
 });
 
 
@@ -259,6 +1717,66 @@ test("a switch setter event transitions to segment B at the exit-cue boundary wi
   assert.equal(segmentBSource.startedAt, 8, "segment B enters at the boundary");
 });
 
+test("transition pre-entry and post-exit flags control the source windows", async () =>
+{
+  const transition = async ({ playPreEntry, playPostExit }) =>
+  {
+    const { context, engine } = Harness(graph =>
+    {
+      const rule = graph.nodes[SWITCH].rules[0];
+
+      rule.src.transitionTime = 0;
+      rule.src.playPostExit = playPostExit;
+      rule.dst.playPreEntry = playPreEntry;
+      graph.nodes[SEGMENT_B].duration = 5000;
+      graph.nodes[SEGMENT_B].markers = [
+        { id: 1, position: 1000, name: "" },
+        { id: 2, position: 4000, name: "" },
+      ];
+      graph.nodes[TRACK_B].clips[0].srcDuration = 5000;
+    });
+
+    engine.PostEvent("music_test_play", 516, () => {});
+    await tick();
+    context.currentTime = 6.6;
+    engine.PostEvent("music_switch_combat", 517, () => {});
+    await tick();
+
+    return {
+      outgoing: context.sources.find(source =>
+        source.buffer?.fake === 111),
+      destination: context.sources.find(source =>
+        source.buffer?.fake === 222),
+    };
+  };
+
+  const clipped = await transition({
+    playPreEntry: false,
+    playPostExit: false,
+  });
+
+  assert.equal(clipped.outgoing.stoppedAt, 8);
+  assert.equal(clipped.destination.startedAt, 8);
+  assert.equal(
+    clipped.destination.startOffset,
+    1,
+    "disabled pre-entry begins at the entry cue with the source advanced",
+  );
+
+  const retained = await transition({
+    playPreEntry: true,
+    playPostExit: true,
+  });
+
+  assert.equal(
+    retained.outgoing.stoppedAt,
+    null,
+    "enabled post-exit lets the authored tail finish naturally",
+  );
+  assert.equal(retained.destination.startedAt, 7);
+  assert.equal(retained.destination.startOffset, 0);
+});
+
 
 test("a NextBar rule transitions at the next bar boundary with a crossfade", async () =>
 {
@@ -284,6 +1802,51 @@ test("a NextBar rule transitions at the next bar boundary with a crossfade", asy
   const segmentBSource = context.sources.find(s => s.startDuration === 4);
   assert.ok(segmentBSource, "segment B scheduled");
   assert.equal(segmentBSource.startedAt, 3, "segment B enters at the bar boundary");
+});
+
+test("NextBar uses inherited music time settings until a child overrides them", async () =>
+{
+  const transitionAt = async meterOverride =>
+  {
+    const { context, engine } = Harness(graph =>
+    {
+      const root = graph.nodes[SWITCH];
+
+      root.meterOverride = true;
+      root.meter = {
+        gridPeriod: 750,
+        gridOffset: 0,
+        tempo: 80,
+        beatsPerBar: 4,
+        beatValue: 4,
+      };
+      root.rules[0].src.syncType = 2;
+      root.rules[0].src.transitionTime = 0;
+      // Exercise direct root -> segment inheritance rather than allowing the
+      // intervening playlist to establish a separate time-setting owner.
+      root.treeNodes[1].audioNodeId = SEGMENT_A;
+      root.treeNodes[2].audioNodeId = SEGMENT_A;
+      graph.nodes[SEGMENT_A].meterOverride = meterOverride;
+    });
+
+    engine.PostEvent("music_test_play", 518, () => {});
+    await tick();
+    context.currentTime = 2.3;
+    engine.PostEvent("music_switch_combat", 519, () => {});
+    await tick();
+    return context.sources[0].stoppedAt;
+  };
+
+  assert.equal(
+    await transitionAt(false),
+    5,
+    "80 BPM parent owns the next 3-second bar (timeline zero is ctx -1)",
+  );
+  assert.equal(
+    await transitionAt(true),
+    3,
+    "the child's authored 120 BPM override restores its 2-second bar",
+  );
 });
 
 test("later specific transition rules override an earlier Any-to-Any fallback", async () =>
@@ -487,6 +2050,53 @@ test("transition fade offsets are anchored to source exit and destination entry 
   );
 });
 
+test("authored nonlinear transition fades use sampled Wwise curve shapes", async () =>
+{
+  const { context, engine } = Harness(graph =>
+  {
+    const rule = graph.nodes[SWITCH].rules[0];
+
+    rule.src = {
+      ...rule.src,
+      transitionTime: 1000,
+      fadeCurve: 8,
+      fadeOffset: 1000,
+      syncType: 0
+    };
+    rule.dst = {
+      ...rule.dst,
+      transitionTime: 2000,
+      fadeCurve: 0,
+      fadeOffset: -500
+    };
+  });
+
+  engine.PostEvent("music_test_play", 516, () => {});
+  await tick();
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_combat", 517, () => {});
+  await tick();
+
+  const source = context.sources.find(value => value.buffer?.fake === 111);
+  const destination = context.sources.find(value => value.buffer?.fake === 222);
+  const [ sourceCurve ] = source.connectedTo.gain.curves;
+  const [ destinationCurve ] = destination.connectedTo.gain.curves;
+
+  assert.ok(sourceCurve, "Exp3 source fade is sampled");
+  assert.equal(sourceCurve[1], 2);
+  assert.equal(sourceCurve[2], 1);
+  assert.equal(sourceCurve[0][0], 1);
+  assert.ok(Math.abs(sourceCurve[0][32] - 0.875) < 1e-6);
+  assert.equal(sourceCurve[0][64], 0);
+
+  assert.ok(destinationCurve, "Log3 destination fade is sampled");
+  assert.equal(destinationCurve[1], 2);
+  assert.equal(destinationCurve[2], 1.5);
+  assert.ok(Math.abs(destinationCurve[0][0] - 0.578125) < 1e-6);
+  assert.ok(Math.abs(destinationCurve[0][32] - 0.947265625) < 1e-6);
+  assert.equal(destinationCurve[0][64], 1);
+});
+
 test("a destination whose media cannot load leaves the current music playing", async () =>
 {
   const context = FakeContext();
@@ -639,10 +2249,9 @@ test("decoded music cache can be released and null loads retry", async () =>
   assert.equal(calls, 1);
   assert.equal(engine.GetCachedMediaCount(), 0, "a null result is not cached forever");
 
-  context.currentTime = 7;
-  engine.Process();
+  engine.SetSwitch(GROUP, CALM);
   await tick();
-  assert.equal(calls, 2, "the next segment retries the missing source");
+  assert.equal(calls, 2, "reapplying a playable state retries the missing source");
   assert.equal(engine.GetCachedMediaCount(), 1);
   assert.equal(engine.ReleaseMedia(111), true);
   assert.equal(engine.GetCachedMediaCount(), 0);

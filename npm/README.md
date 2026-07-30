@@ -50,7 +50,9 @@ import {
 
 const audio = new CjsAudioMan(completeLibraryDocument, {
     mediaProvider: {
-        Read: source => fetch(source.url).then(response => response.arrayBuffer()),
+        Read: (source, { signal }) =>
+            fetch(source.url, { signal })
+                .then(response => response.arrayBuffer()),
         ReadRange: (bank, range) => readExactRange(bank, range)
     }
 });

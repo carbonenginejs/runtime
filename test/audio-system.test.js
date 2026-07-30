@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { AudEmitter, CjsAudioSystem } from "../npm/dist/index.js";
+import {
+  AudEmitter,
+  CjsAudioSystem,
+  CjsSfxEngine,
+} from "../npm/dist/index.js";
 
 
 function FakeParam()
@@ -109,6 +113,114 @@ test("CjsAudioSystem realizes an emitter event end to end on a fake AudioContext
   finally
   {
     system.Detach();
+  }
+});
+
+
+test("temporary culling preserves authored per-object SFX container state", () =>
+{
+  const log = [];
+  const sfx = new CjsSfxEngine({
+    graph: {
+      schemaVersion: 1,
+      events: {
+        step: [ { nodeId: "1" } ],
+      },
+      nodes: {
+        "1": {
+          type: "sequence",
+          scope: "object",
+          children: [
+            { nodeId: "2" },
+            { nodeId: "3" },
+          ],
+        },
+        "2": { type: "sound", mediaId: "10" },
+        "3": { type: "sound", mediaId: "11" },
+      },
+    },
+  });
+  const system = new CjsAudioSystem({
+    createContext: () => FakeContext(log),
+    releaseGameObj: gameObjID => sfx.ReleaseGameObj(gameObjID),
+    audioMetadata: {
+      Events: {},
+      SoundBanks: {},
+      WemFileIDs: {},
+    },
+  });
+
+  system.Attach();
+  try
+  {
+    assert.equal(system.Enable(), true);
+    const emitter = new AudEmitter();
+
+    emitter.SetPosition([ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
+    system.AdoptEmitter(emitter);
+
+    assert.equal(
+      sfx.ResolveEvent("step", { gameObjID: emitter.ID })[0].mediaID,
+      "10",
+    );
+    emitter.Cull();
+    emitter.Wake();
+    assert.equal(
+      sfx.ResolveEvent("step", { gameObjID: emitter.ID })[0].mediaID,
+      "11",
+      "Cull/Wake tears down WebAudio nodes without restarting the sequence",
+    );
+
+    assert.equal(system.ReleaseEmitter(emitter), true);
+    assert.equal(
+      sfx.ResolveEvent("step", { gameObjID: emitter.ID })[0].mediaID,
+      "10",
+      "permanent graph release clears object-scoped selection state",
+    );
+  }
+  finally
+  {
+    system.Dispose();
+  }
+});
+
+test("Dispose disables bank state and permits a full later enable", () =>
+{
+  const log = [];
+  let contexts = 0;
+  const system = new CjsAudioSystem({
+    createContext: () =>
+    {
+      contexts++;
+      return FakeContext(log);
+    },
+    audioMetadata: {
+      Events: {},
+      SoundBanks: {
+        "ships.bnk": { EssentialSoundBank: 0 },
+      },
+      WemFileIDs: {},
+    },
+  });
+
+  system.Attach();
+  assert.equal(system.Enable([ "ships.bnk" ]), true);
+  assert.equal(system.manager.GetSoundBankStatus("ships.bnk"), "loaded");
+  system.Dispose();
+
+  assert.equal(system.manager.GetState(), "disabled");
+  assert.deepEqual(system.manager.GetLoadedSoundBanks(), []);
+
+  system.Attach();
+  try
+  {
+    assert.equal(system.Enable([ "ships.bnk" ]), true);
+    assert.equal(system.manager.GetSoundBankStatus("ships.bnk"), "loaded");
+    assert.equal(contexts, 2, "re-enable creates and initializes a new backend");
+  }
+  finally
+  {
+    system.Dispose();
   }
 });
 

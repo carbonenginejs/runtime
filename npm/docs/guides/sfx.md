@@ -59,13 +59,16 @@ is never used as an audible fallback.
         },
         "10": {
             type: "sound",
-            mediaId: "777"
+            mediaId: "777",
+            spatial: true
         },
         "11": {
             type: "sound",
             mediaId: "778",
             playbackRate: 1,
-            loop: false
+            playCount: 2,
+            loop: false,
+            spatial: false
         }
     }
 }
@@ -79,7 +82,7 @@ enabled.
 
 | Type | Behavior |
 | --- | --- |
-| `sound` | Produces one media voice. Optional `loop` overrides event metadata and `playbackRate` controls the buffer source. |
+| `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, and `spatial` selects the panner (`true`) or flat SFX route (`false`). |
 | `silence` | Produces no voice. This preserves authored empty switch/state cases without falling through to the default. |
 | `random` | Chooses one weighted child. `mode: "shuffle"` exhausts a pool before refilling it; `avoidRepeat` excludes recent choices. |
 | `sequence` | Chooses the next child for each post; `loop: false` produces no further leaves after the final child. |
@@ -159,6 +162,19 @@ attenuation assignment is 2D; an event is 3D when any selected playable leaf
 resolves an attenuation assignment. Actor-Mixers remain inheritance-only and
 are never emitted as playable parallel nodes.
 
+The same ancestry walk projects authored Stop actions into each playable
+event's `eventsStoppedBy` metadata. A Stop action may target a Sound or one of
+its parent Actor-Mixers; posting that stopping event then stops every matching
+runtime event. Unmatched Stop targets are retained in
+`diagnostics.stopRelationships.unresolved` instead of being guessed.
+
+Known positioning is also retained as `spatial` on each sound leaf. This is
+more precise than the event-wide metadata for mixed parallel/blend events:
+one 3D leaf may use the emitter panner while its 2D sibling uses the flat SFX
+route. A missing leaf value falls back to event `is2D`. Caller event metadata
+still overrides the derived event-wide fallback; to override a known leaf,
+provide or enrich the `sfx` graph itself.
+
 Missing parents, parent cycles, unsupported NodeBase data, and incomplete
 events omit only the derived spatial patch and add diagnostics; they do not
 block otherwise valid sound playback. Automatic bank projection is applied
@@ -169,16 +185,20 @@ are preserved by `runtime-resource`, but the builder does not currently infer
 caller metadata, or enrichment.
 
 Automatic construction currently accepts Wwise generator-version-150 codec
-sounds, Step Random/Sequence containers without reverse restart, and named
-Step Switch/State containers without transition parameters. Trackless,
-non-continuous Layer/Blend containers lower to parallel playback. Transition
-and reset-after-stop policies authored on a Step Random/Sequence container are
-Continuous-only and therefore do not alter its one-child-per-post behavior.
-The builder omits an entire event when that event mixes unsupported actions or
-reaches an unsupported playable node; the optional diagnostics callback
-explains each omission. Continuous scheduling, Play-and-Continue, Play-Event,
-playable Actor-Mixer approximation, authored Layer/Blend tracks, and other
-unqualified HIRC semantics are never silently approximated.
+sounds, Play, Stop, and Play-Event actions, Step Random/Sequence containers
+without reverse restart, and named Step Switch/State containers without
+transition parameters. Play-Event recursively inlines the referenced event's
+playable and Stop program; missing targets and cycles are diagnosed and
+omitted. Trackless, non-continuous Layer/Blend containers lower to parallel
+playback.
+Transition and reset-after-stop policies authored on a Step Random/Sequence
+container are Continuous-only and therefore do not alter its
+one-child-per-post behavior. The builder omits an entire playable event when
+that event mixes other unsupported actions or reaches an unsupported playable
+node; the optional diagnostics callback explains each omission. Continuous
+scheduling, Play-and-Continue, playable Actor-Mixer approximation, authored
+Layer/Blend tracks, and other unqualified HIRC semantics are never silently
+approximated.
 
 For events that do lower, the builder walks every possible typed graph branch
 and emits the exact set of reachable media IDs into `eventMedia`. This keeps

@@ -169,6 +169,8 @@ export class AudGameObjResource extends CjsModel
 
   #appliedRotation = quat.create();
 
+  #settledEventName = "";
+
   // Mirrors Carbon's two ctors: default generates an entity id; the protected
   // (AkGameObjectID) variant takes a fixed id (AudListener passes 4) so the
   // id is correct BEFORE manager registration.
@@ -205,6 +207,7 @@ export class AudGameObjResource extends CjsModel
         this.#hasReceivedPosition = true;
       }
     }
+    this.#settledEventName = String(this.eventName ?? "");
     this.RegisterWwiseObject();
     this.SetPlacementFromParent([0, 0, 1], [0, 1, 0], this.position);
     if (this.eventName)
@@ -729,6 +732,7 @@ export class AudGameObjResource extends CjsModel
   {
     const changed = this.eventName !== eventName;
     this.eventName = String(eventName ?? "");
+    this.#settledEventName = this.eventName;
     if (changed)
     {
       this.PostEvent(this.eventName);
@@ -999,9 +1003,9 @@ export class AudGameObjResource extends CjsModel
     return this.#hasReceivedPosition;
   }
 
-  /** Values settle hook: changing authored rotation immediately refreshes the effective placement. */
+  /** Values settle hook: refresh notified event-name and rotation consequences. */
   @impl.adapted
-  @impl.reason("CjsModel hooks are broad-safe rather than field-addressed, so a cached quaternion detects the Carbon m_authoredRotation notification.")
+  @impl.reason("CjsModel hooks are broad-safe rather than field-addressed, so cached values detect Carbon's m_eventName and m_authoredRotation notifications.")
   OnModified(options = {})
   {
     for (const parameter of this.parameters)
@@ -1011,6 +1015,16 @@ export class AudGameObjResource extends CjsModel
     if (this.rotation && !quat.exactEquals(this.rotation, this.#appliedRotation))
     {
       this.RefreshPlacementFromRotation();
+    }
+    const eventName = String(this.eventName ?? "");
+    if (eventName !== this.#settledEventName)
+    {
+      this.#settledEventName = eventName;
+      this.StopAll();
+      if (eventName)
+      {
+        this.PostEvent(eventName);
+      }
     }
     return super.OnModified(options);
   }

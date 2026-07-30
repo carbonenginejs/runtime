@@ -139,7 +139,6 @@ export class CjsAudioSystem
                     isLoop: eventName => this.repository.EventIsLoop(eventName),
                     distanceScale: this.#distanceScale,
                     applyRTPC: this.#applyRTPC,
-                    releaseGameObj: this.#releaseGameObj,
                 });
                 if (!this.musicEngine)
                 {
@@ -317,6 +316,7 @@ export class CjsAudioSystem
         this.manager.RemoveCallbackGameObject(emitter.ID);
         this.manager.UnregisterGameObject(emitter.ID);
         this.#adoptedEmitters.delete(emitter);
+        this.#releaseGameObj?.(emitter.ID);
         return true;
     }
 
@@ -344,7 +344,7 @@ export class CjsAudioSystem
     /** Stops music, releases its decoded cache, and detaches graph seams. */
     Dispose()
     {
-        this.manager.StopAll();
+        this.manager.Disable();
         for (const emitter of [ ...this.#adoptedEmitters ])
         {
             this.ReleaseEmitter(emitter);

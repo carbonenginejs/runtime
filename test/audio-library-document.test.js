@@ -158,11 +158,42 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
                 type: "sound",
                 mediaId: "777",
                 loop: true,
+                spatial: false,
             },
         },
     };
 
     assert.equal(validateAudioLibraryDocument(valid), true);
+
+    const invalidSpatial = structuredClone(valid);
+
+    invalidSpatial.sfx.nodes["2"].spatial = 0;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidSpatial),
+        /spatial must be boolean/u,
+    );
+
+    const finiteRepeat = structuredClone(valid);
+
+    finiteRepeat.sfx.nodes["2"].loop = false;
+    finiteRepeat.sfx.nodes["2"].playCount = 2;
+    assert.equal(validateAudioLibraryDocument(finiteRepeat), true);
+
+    const invalidPlayCount = structuredClone(finiteRepeat);
+
+    invalidPlayCount.sfx.nodes["2"].playCount = 0;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidPlayCount),
+        /playCount must be a positive integer/u,
+    );
+
+    const conflictingLoop = structuredClone(finiteRepeat);
+
+    conflictingLoop.sfx.nodes["2"].loop = true;
+    assert.throws(
+        () => validateAudioLibraryDocument(conflictingLoop),
+        /cannot combine loop and playCount/u,
+    );
 
     const missing = structuredClone(valid);
 
@@ -244,6 +275,8 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
             "1": {
                 type: "sound",
                 mediaId: "0777",
+                playCount: "2",
+                spatial: false,
                 gainCurves: [
                     {
                         rtpc: "speed",
@@ -263,6 +296,8 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
         { nodeId: "1" },
     ]);
     assert.equal(installed.sfx.nodes["1"].mediaId, "777");
+    assert.equal(installed.sfx.nodes["1"].playCount, 2);
+    assert.equal(installed.sfx.nodes["1"].spatial, false);
     assert.deepEqual(installed.sfx.nodes["1"].gainCurves[0].points, [
         { x: 0, gainDb: -20 },
         { x: 1, gainDb: 0 },
@@ -309,6 +344,18 @@ test("installation projects authored sound loop overrides into event lifecycle m
         installAudioLibraryDocument(oneShot)
             .metadata.Events.engine_loop.isLoop,
         0,
+    );
+
+    const finiteRepeat = structuredClone(looping);
+
+    finiteRepeat.metadata.Events.engine_loop.isLoop = 1;
+    delete finiteRepeat.sfx.nodes["1"].loop;
+    finiteRepeat.sfx.nodes["1"].playCount = 2;
+    assert.equal(
+        installAudioLibraryDocument(finiteRepeat)
+            .metadata.Events.engine_loop.isLoop,
+        0,
+        "a finite play count overrides stale event-level loop metadata",
     );
 });
 

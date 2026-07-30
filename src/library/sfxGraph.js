@@ -81,11 +81,31 @@ export function validateSfxGraph(
                     `Audio library SFX sound ${id} loop must be boolean`,
                 );
             }
+            if (node.playCount !== undefined)
+            {
+                NormalizePositiveInteger(
+                    node.playCount,
+                    `Audio library SFX sound ${id} playCount`,
+                );
+                if (node.loop === true)
+                {
+                    throw new TypeError(
+                        `Audio library SFX sound ${id} cannot combine loop and playCount`,
+                    );
+                }
+            }
             if (node.playbackRate !== undefined)
             {
                 NormalizePositiveNumber(
                     node.playbackRate,
                     `Audio library SFX sound ${id} playbackRate`,
+                );
+            }
+            if (node.spatial !== undefined
+                && typeof node.spatial !== "boolean")
+            {
+                throw new TypeError(
+                    `Audio library SFX sound ${id} spatial must be boolean`,
                 );
             }
             continue;
@@ -279,9 +299,17 @@ function NormalizeNode(node)
         {
             result.loop = node.loop;
         }
+        if (node.playCount !== undefined)
+        {
+            result.playCount = Number(node.playCount);
+        }
         if (node.playbackRate !== undefined)
         {
             result.playbackRate = Number(node.playbackRate);
+        }
+        if (node.spatial !== undefined)
+        {
+            result.spatial = node.spatial;
         }
         return result;
     }
@@ -619,6 +647,17 @@ function NormalizeNonNegativeInteger(value, label)
     if (!Number.isSafeInteger(number) || number < 0)
     {
         throw new TypeError(`${label} must be a non-negative integer`);
+    }
+    return number;
+}
+
+function NormalizePositiveInteger(value, label)
+{
+    const number = Number(value);
+
+    if (!Number.isSafeInteger(number) || number <= 0)
+    {
+        throw new TypeError(`${label} must be a positive integer`);
     }
     return number;
 }

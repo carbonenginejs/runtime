@@ -74,6 +74,14 @@ export class AudEmitter extends AudGameObjResource
     return this.PostEvent(name, bypassPrefix);
   }
 
+  /** Carbon method HandleEvent (IBlueEventListener): event tracks post directly on this emitter. */
+  @carbon.method
+  @impl.implemented
+  HandleEvent(eventName)
+  {
+    return this.PostEvent(eventName);
+  }
+
   /** Carbon method SetPosition: marks the emitter positioned (unblocks Wake), then stores/pushes. */
   @carbon.method
   @impl.implemented

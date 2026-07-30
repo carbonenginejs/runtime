@@ -10,7 +10,9 @@ const MUSIC_BANK_NAMES = Object.freeze(["music.bnk", "music_essential.bnk"]);
 const MUSIC_EVENT_BANK_NAME = "common.bnk";
 const MUSIC_HIRC_TYPES = new Set([10, 11, 12, 13]);
 const SFX_PLAY_ACTION = 0x0403;
-const SFX_UNSUPPORTED_PLAY_ACTIONS = new Set([0x0503, 0x2103]);
+const SFX_PLAY_EVENT_ACTION = 0x2103;
+const SFX_STOP_ACTION_FAMILY = 0x01;
+const SFX_UNSUPPORTED_PLAY_ACTIONS = new Set([0x0503]);
 const AUDIO_LANGUAGE_TAGS = Object.freeze({
   chinese: "zh-cn",
   "chinese(prc)": "zh-cn",
@@ -486,6 +488,7 @@ function LowerSfxGraph({
   const lowered = new Map();
   const leavesByNode = new Map();
   const leavesByEvent = new Map();
+  const stopTargetsByEvent = new Map();
   const active = new Set();
   const omittedEvents = [];
   const usedIDs = new Set([...parsed.nodes.keys()].map(value => String(value >>> 0)));
@@ -552,11 +555,11 @@ function LowerSfxGraph({
         node = {
           type: "sound",
           mediaId: mediaID,
-          // The runtime graph currently represents infinite loops.
-          // Positive Wwise loop counts remain finite authored repeats
-          // and therefore must not become WebAudio infinite loops.
           ...(loopCount === 0 ? {
             loop: true
+          } : Number.isSafeInteger(loopCount) && loopCount > 0 ? {
+            loop: false,
+            playCount: loopCount
           } : {})
         };
         leaves.add(Number(id) >>> 0);
@@ -665,15 +668,28 @@ function LowerSfxGraph({
       active.delete(id);
     }
   };
-  for (const [eventID, event] of [...parsed.events.entries()].sort(([left], [right]) => left - right)) {
-    const name = eventNames.get(eventID >>> 0);
-    if (!name) {
-      continue;
+  const loweredEvents = new Map();
+  const activeEvents = new Set();
+  const lowerEvent = rawID => {
+    const eventID = Number(rawID) >>> 0;
+    if (loweredEvents.has(eventID)) {
+      return loweredEvents.get(eventID);
     }
+    if (activeEvents.has(eventID)) {
+      throw new Error(`Play-Event cycle at event ${eventID}`);
+    }
+    const event = parsed.events.get(eventID);
+    if (!event) {
+      throw new Error(`missing Play-Event target ${eventID}`);
+    }
+    const result = {
+      roots: [],
+      leaves: new Set(),
+      stopTargets: new Set(),
+      unsupportedActions: []
+    };
+    activeEvents.add(eventID);
     try {
-      const roots = [];
-      const leaves = new Set();
-      const unsupportedActions = [];
       for (const actionID of event.actionIds) {
         const action = parsed.actions.get(actionID);
         if (!action) {
@@ -683,13 +699,42 @@ function LowerSfxGraph({
           throw new Error(`unsupported play action 0x${action.actionType.toString(16)}`);
         }
         if (action.actionType === SFX_PLAY_ACTION) {
-          roots.push({
+          result.roots.push({
             nodeId: lower(action.targetId)
           });
-          AddSet(leaves, leavesByNode.get(String(Number(action.targetId) >>> 0)));
+          AddSet(result.leaves, leavesByNode.get(String(Number(action.targetId) >>> 0)));
+        } else if (action.actionType === SFX_PLAY_EVENT_ACTION) {
+          const nested = lowerEvent(action.targetId);
+          result.roots.push(...nested.roots);
+          AddSet(result.leaves, nested.leaves);
+          AddSet(result.stopTargets, nested.stopTargets);
+          result.unsupportedActions.push(...nested.unsupportedActions);
+        } else if ((action.actionType >> 8 & 0xff) === SFX_STOP_ACTION_FAMILY) {
+          result.stopTargets.add(Number(action.targetId) >>> 0);
         } else {
-          unsupportedActions.push(action.actionType);
+          result.unsupportedActions.push(action.actionType);
         }
+      }
+      loweredEvents.set(eventID, result);
+      return result;
+    } finally {
+      activeEvents.delete(eventID);
+    }
+  };
+  for (const [eventID, event] of [...parsed.events.entries()].sort(([left], [right]) => left - right)) {
+    const name = eventNames.get(eventID >>> 0);
+    if (!name) {
+      continue;
+    }
+    try {
+      const {
+        roots,
+        leaves,
+        stopTargets,
+        unsupportedActions
+      } = lowerEvent(eventID);
+      if (stopTargets.size) {
+        stopTargetsByEvent.set(name, stopTargets);
       }
       if (roots.length) {
         if (unsupportedActions.length) {
@@ -706,22 +751,101 @@ function LowerSfxGraph({
       });
     }
   }
+  const spatial = CreateSfxSpatialProjection(parsed, leavesByEvent, nodes);
+  const stopRelationships = CreateSfxStopRelationships(parsed, leavesByEvent, stopTargetsByEvent);
   const pruned = PruneSfxNodes(events, nodes);
-  const spatial = CreateSfxSpatialProjection(parsed, leavesByEvent);
   return {
     schemaVersion: 1,
     generator: "@carbonenginejs/runtime-audio/library-builder",
     events,
     nodes: pruned,
     metadataProjection: {
-      Events: spatial.events
+      Events: MergeSfxEventMetadata(spatial.events, stopRelationships.events)
     },
     diagnostics: {
       parser: parsed.diagnostics,
       omittedEvents,
+      stopRelationships: stopRelationships.diagnostics,
       spatial: spatial.diagnostics
     }
   };
+}
+function CreateSfxStopRelationships(parsed, leavesByEvent, stopTargetsByEvent) {
+  const events = {};
+  const projected = [];
+  const unresolved = [];
+  const ancestry = new Map();
+  const ancestors = leafID => {
+    const leaf = Number(leafID) >>> 0;
+    if (ancestry.has(leaf)) {
+      return ancestry.get(leaf);
+    }
+    const result = new Set();
+    const active = new Set();
+    let current = leaf;
+    while (current && !active.has(current)) {
+      active.add(current);
+      result.add(current);
+      const parent = Number(parsed.nodeBases?.get(current)?.directParentId) >>> 0;
+      current = parent;
+    }
+    ancestry.set(leaf, result);
+    return result;
+  };
+  const stopEntries = [...stopTargetsByEvent.entries()].sort(([left], [right]) => compareText(left, right));
+  for (const [stoppingName, targets] of stopEntries) {
+    const matchedTargets = new Set();
+    for (const [stoppedName, leaves] of [...leavesByEvent.entries()].sort(([left], [right]) => compareText(left, right))) {
+      const stops = [...targets].some(target => {
+        for (const leaf of leaves) {
+          if (ancestors(leaf).has(target)) {
+            matchedTargets.add(target);
+            return true;
+          }
+        }
+        return false;
+      });
+      if (!stops) {
+        continue;
+      }
+      const record = events[stoppedName] ?? (events[stoppedName] = {
+        eventsStoppedBy: []
+      });
+      record.eventsStoppedBy.push(stoppingName);
+      projected.push({
+        stopped: stoppedName,
+        stopping: stoppingName
+      });
+    }
+    for (const targetId of [...targets].sort((left, right) => left - right)) {
+      if (!matchedTargets.has(targetId)) {
+        unresolved.push({
+          event: stoppingName,
+          targetId
+        });
+      }
+    }
+  }
+  return {
+    events,
+    diagnostics: {
+      projected,
+      unresolved
+    }
+  };
+}
+function MergeSfxEventMetadata(...projections) {
+  const names = new Set();
+  for (const projection of projections) {
+    for (const name of Object.keys(projection ?? {})) {
+      names.add(name);
+    }
+  }
+  const result = {};
+  for (const name of [...names].sort(compareText)) {
+    result[name] = Object.assign({}, ...projections.map(projection => projection?.[name] ?? {}));
+  }
+  return result;
 }
 function CreateSfxEventMediaTable(sfx) {
   const events = sfx?.events;
@@ -764,7 +888,7 @@ function SfxNodeChildren(node) {
   }
   return node.children ?? [];
 }
-function CreateSfxSpatialProjection(parsed, leavesByEvent) {
+function CreateSfxSpatialProjection(parsed, leavesByEvent, nodes) {
   const cache = new Map();
   const active = new Set();
   const events = {};
@@ -820,6 +944,13 @@ function CreateSfxSpatialProjection(parsed, leavesByEvent) {
     const leafIds = [...leafSet].sort((left, right) => left - right);
     const resolved = leafIds.map(resolve);
     const unknown = resolved.filter(value => !value.known).map(value => value.reason);
+    for (let index = 0; index < leafIds.length; index++) {
+      const result = resolved[index];
+      const node = nodes[String(leafIds[index])];
+      if (result.known && node?.type === "sound") {
+        node.spatial = !result.is2D;
+      }
+    }
     if (!leafIds.length || unknown.length) {
       omitted.push({
         name,

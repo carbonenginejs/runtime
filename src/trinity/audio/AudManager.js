@@ -963,6 +963,10 @@ export class AudManager extends CjsModel
         this.soundPrioritization.CullAudio(now);
       }
       AudGameObjResource.backend?.RenderAudio?.();
+      // Carbon refreshes monitored values from its end-render callback. The
+      // portable backend has no Wwise callback thread, so Process owns the
+      // equivalent post-render refresh.
+      this.UpdateMonitoredParameters();
     }
     this.log?.Flush?.();
   }
