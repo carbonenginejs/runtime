@@ -165,6 +165,7 @@ class MusicInstance
         this.gain = null;
         this.resolvedTargetId = null;
         this.pendingTargetId = null;
+        this.unavailableTargetId = null;
         this.pendingGeneration = 0;
         this.nextSegmentId = null;
         this.iterator = null;
@@ -441,7 +442,8 @@ export class CjsMusicEngine
     /**
      * Introspection for UIs: one entry per playing instance with the playing
      * branch, any switch target still preparing (media loading - the fade
-     * deliberately waits for it), the scheduled segment windows, and whether
+     * deliberately waits for it), the last target rejected because none of
+     * its prepared media loaded, the scheduled segment windows, and whether
      * the instance is idling in an authored-silence state.
      */
     GetStatus()
@@ -452,6 +454,7 @@ export class CjsMusicEngine
             now,
             resolvedTargetId: instance.resolvedTargetId,
             preparingTargetId: instance.pendingTargetId,
+            unavailableTargetId: instance.unavailableTargetId,
             silent: instance.iterator === null,
             boundary: instance.boundary,
             segments: instance.active.map(scheduled => ({
@@ -561,6 +564,7 @@ export class CjsMusicEngine
         {
             // Switched back before a pending prepare landed - cancel it.
             instance.pendingTargetId = null;
+            instance.unavailableTargetId = null;
             instance.pendingGeneration++;
             return;
         }
@@ -576,6 +580,7 @@ export class CjsMusicEngine
             // absent from every shipped bank): fade out at the sync point
             // and stay alive - the next state change resumes the music.
             instance.pendingTargetId = null;
+            instance.unavailableTargetId = null;
             instance.pendingGeneration++;
             const when = Math.max(this.#TransitionTime(instance, rule) ?? instance.boundary, this.#context.currentTime);
             const fadeSeconds = Math.max(0, (rule?.src.transitionTime ?? 0)) / 1000;
@@ -589,13 +594,19 @@ export class CjsMusicEngine
         }
         const generation = ++instance.pendingGeneration;
         instance.pendingTargetId = target;
-        this.#PrepareTransition(target, rule).then(() =>
+        instance.unavailableTargetId = null;
+        this.#PrepareTransition(target, rule).then(available =>
         {
             if (instance.stopped || instance.pendingGeneration !== generation)
             {
                 return;
             }
             instance.pendingTargetId = null;
+            if (!available)
+            {
+                instance.unavailableTargetId = target;
+                return;
+            }
             const when = this.#TransitionTime(instance, rule) ?? instance.boundary;
             this.#TransitionInstance(instance, rule, target, Math.max(when, this.#context.currentTime));
         });
@@ -612,7 +623,8 @@ export class CjsMusicEngine
             operations.push(this.#PrepareTarget(transitionSegmentId));
         }
 
-        return Promise.all(operations).then(() => {});
+        return Promise.all(operations).then(results =>
+            results.every(Boolean));
     }
 
     /**
@@ -637,7 +649,19 @@ export class CjsMusicEngine
                 }
             }
         }
-        return Promise.all([ ...sourceIds ].map(sourceId => this.#LoadBuffer(sourceId, null))).then(() => {});
+        if (!sourceIds.size)
+        {
+            // Some valid authored destinations begin with an empty timing
+            // segment and become audible later in their sequence. With no
+            // media attempt there is no acquisition failure to reject.
+            return Promise.resolve(true);
+        }
+        // A segment may layer optional or retired alternates. It can become
+        // audible when at least one prepared clip survives.
+        return Promise.all(
+            [ ...sourceIds ].map(sourceId =>
+                this.#LoadBuffer(sourceId, null)),
+        ).then(buffers => buffers.some(Boolean));
     }
 
     /** Returns bounded first-segment candidates used to prepare destination media. */
@@ -733,6 +757,7 @@ export class CjsMusicEngine
             this.#ApplySourceFade(active, when, rule?.src);
         }
         instance.resolvedTargetId = target;
+        instance.unavailableTargetId = null;
         let destinationTime = when;
         const transition = rule?.transitionSegment;
         const transitionSegment = transition

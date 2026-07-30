@@ -487,6 +487,68 @@ test("transition fade offsets are anchored to source exit and destination entry 
   );
 });
 
+test("a destination whose media cannot load leaves the current music playing", async () =>
+{
+  const context = FakeContext();
+  const graph = fixtureGraph();
+  graph.nodes[TRACK_B].clips.push({
+    ...graph.nodes[TRACK_B].clips[0],
+    sourceId: 223
+  });
+  let destinationAvailable = false;
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId =>
+      sourceId === 223 || (sourceId === 222 && !destinationAvailable)
+        ? null
+        : { fake: sourceId },
+    random: () => 0.5
+  });
+
+  engine.PostEvent("music_test_play", 800, () => {});
+  await tick();
+  const source = context.sources.find(value => value.buffer?.fake === 111);
+
+  context.currentTime = 2;
+  engine.PostEvent("music_switch_combat", 801, () => {});
+  await tick();
+
+  assert.equal(
+    engine.GetResolvedTarget(800),
+    PLAYLIST,
+    "the failed destination does not replace the audible target"
+  );
+  assert.equal(source.stoppedAt, null, "the current source is not faded out");
+  assert.equal(
+    context.sources.some(value => value.buffer?.fake === 222),
+    false,
+    "no destination voice is scheduled from a missing buffer"
+  );
+  assert.equal(
+    engine.GetStatus()[0].unavailableTargetId,
+    SEGMENT_B,
+    "status identifies the destination rejected by preparation"
+  );
+
+  destinationAvailable = true;
+  engine.PostEvent("music_switch_calm", 802, () => {});
+  engine.PostEvent("music_switch_combat", 803, () => {});
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetResolvedTarget(800), SEGMENT_B);
+  context.currentTime = 6.6;
+  engine.Process();
+  await tick();
+  assert.ok(
+    context.sources.some(value => value.buffer?.fake === 222),
+    "a later state change retries the evicted failed buffer"
+  );
+  assert.equal(engine.GetStatus()[0].unavailableTargetId, null);
+});
+
 
 test("states that resolve to nothing fade to silence and the music resumes on the next state", async () =>
 {

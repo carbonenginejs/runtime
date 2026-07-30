@@ -1,11 +1,8 @@
 # Use the optional jukebox
 
 Status: Experimental
-
 Scope: `@carbonenginejs/runtime-audio`
-
 Audience: Browser application authors
-
 Summary: Supplies a neutral track catalog and caller-owned acquisition to `CjsJukebox`.
 
 ## Separate music systems

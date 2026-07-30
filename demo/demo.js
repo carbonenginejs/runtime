@@ -1316,6 +1316,7 @@ class MusicUi
     #dynamicRoot = null;
     #select = null;
     #moodEvents = [];
+    #unavailableTargets = new Set();
 
     constructor(app)
     {
@@ -1419,8 +1420,12 @@ class MusicUi
             if (changes) offered.add(target);
             if (!changes && label !== this.currentMood) continue;
             const option = document.createElement("option");
-            option.value = name;
-            option.textContent = label;
+            const unavailable = this.#unavailableTargets.has(target);
+            option.value = unavailable ? "" : name;
+            option.textContent = unavailable
+                ? `${label} (unavailable)`
+                : label;
+            option.disabled = unavailable;
             this.#select.appendChild(option);
             if (label === this.currentMood) activeOption = option;
         }
@@ -1451,7 +1456,10 @@ class MusicUi
 
     SelectRandomMood()
     {
-        const options = [ ...this.#select?.options ?? [] ].filter(o => o.value && o.textContent !== this.currentMood);
+        const options = [ ...this.#select?.options ?? [] ].filter(o =>
+            !o.disabled
+            && o.value
+            && o.textContent !== this.currentMood);
         if (!options.length) return;
         const option = options[Math.floor(Math.random() * options.length)];
         this.#select.value = option.value;
@@ -1470,6 +1478,16 @@ class MusicUi
             this.#hudElement.textContent = this.#app.library.music ? "music: stopped" : "";
             return;
         }
+        if (status.unavailableTargetId !== null
+            && status.unavailableTargetId !== undefined
+            && !this.#unavailableTargets.has(status.unavailableTargetId))
+        {
+            this.#unavailableTargets.add(status.unavailableTargetId);
+            this.currentMood = this.moodLabelByTarget.get(
+                status.resolvedTargetId,
+            ) ?? this.currentMood;
+            this.RefreshMoodAvailability();
+        }
         const now = status.now;
         const label = segment => PrettyName(this.moodLabelByTarget.get(segment.targetId) ?? `seg ${segment.segmentId}`);
         const visible = status.segments
@@ -1487,6 +1505,14 @@ class MusicUi
             parts.push(`· ${label(fadingOut)} fading out ${volume}%`);
         }
         if (status.preparingTargetId) parts.push(`· next: ${PrettyName(this.currentMood)} (loading…)`);
+        if (status.unavailableTargetId !== null
+            && status.unavailableTargetId !== undefined)
+        {
+            const unavailable = this.moodLabelByTarget.get(
+                status.unavailableTargetId,
+            ) ?? `target ${status.unavailableTargetId}`;
+            parts.push(`· ${PrettyName(unavailable)} unavailable`);
+        }
         this.#hudElement.textContent = parts.join(" ");
     }
 
