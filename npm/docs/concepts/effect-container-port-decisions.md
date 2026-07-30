@@ -37,6 +37,62 @@ that `payloadKind` belongs in the envelope header and never per-stage. Reaching
 those files needed no reader change — see the `macos-metal` overlay note under
 [Constraints](#constraints-that-stay-in-force).
 
+### Phase 2, WebGPU: emitter and reader are in, the switchover is not
+
+Four commits, each green, none of them yet changing what `packageEffect` writes:
+
+| commit | what landed |
+|---|---|
+| `0f9fb6e` | `buildCarbonEffectContainer` — the emitter, plus the sharing measurement |
+| `725d142` | `CewgpuContainer` — the reader, through derived views |
+| `fd74b28`, `a1c7646` | the corpus correction and the two mechanism names |
+| `428f700` | container version 2, separating it from the chunk package |
+
+**`packageEffect.js` still emits the chunk package.** The container is built and
+read beside it, proven against it, and not yet in place of it.
+
+That last step cannot be incremental, which is why it is not half-done. Emitting
+the container flips `readRaw`, `packageToJson`, `inspectWithValues` and the
+envelope validator in one move, because every one of them reads a chunk that
+stops existing. `test/formats/webgpu/cewgpu.test.mjs` asserts the chunk shape
+across 2620 lines, including one 59-case table. There is no ordering of those
+edits that leaves the tree green in between, so it wants a clean run at it rather
+than the tail of a long session.
+
+#### The exact next step
+
+1. `packageEffect.js` — replace the `buildPackage([...])` call (around line 268)
+   with `buildCarbonEffectContainer`. The rich return value (`info`, `analysis`,
+   `wgsl`, `backendBodySet`) stays as in-memory data for callers; only `bytes`
+   changes.
+2. `helpers.js` — `readRaw` dispatches on the version dword: 1 is the chunk
+   package, 2 is the container. `packageToJson` and `inspectWithValues` derive
+   from `CewgpuContainer`'s views.
+3. Replace `validateEffectPackageEnvelope` with a small container validator. Most
+   of `effectPackageValidation.js`'s 1762 lines validate JSON chunk shapes that
+   stop existing, so this is mostly deletion, not translation.
+4. Delete `CewgpuPackage`, `CewgpuPackageBuilder`, `cewgpu/binary.js`,
+   `cewgpu/tags.js`.
+5. Rewrite `cewgpu.test.mjs` against the container.
+6. Digest removal **in the same commit** as the three live-view fixes
+   (`reflectionBlobBytes`, `dxbc`, `GetBackendBodyPrograms`).
+
+Then `(2)`-webgl, which deletes the one fork flag and replaces the independent
+container reimplementation at `test/formats/webgl/synthetic.js:683-724` with the
+phase-1 writer.
+
+#### Reproducing the measurements
+
+The corpus lives outside the repo and is never committed — fetch it through
+tools-core at build 3444265 (see the `get-eve-resources` skill). Point
+`CARBON_EFFECT_CORPUS_DIR` at a directory holding `dx11/`, `dx12/`, `metal/`.
+`npm test` runs everything; without that variable the corpus proofs skip.
+
+The sweep that produced the corpus sharing figures builds every `dx11` file with
+`mode: "all"`, emits a container, reads it back, and counts distinct
+`(stage programs, backend block)` tuples per pass. It excludes the 92 files that
+fail the all-body build rather than scoring them zero.
+
 ## Decisions
 
 ### Offset-table density fails closed on read
@@ -747,7 +803,8 @@ The audit's findings are recorded even though the deletion is deferred:
 
 | item | owner |
 |---|---|
-| Phase 2 — the format rewrite, both backends | container port |
+| Phase 2 WebGPU — the switchover; emitter and reader are done, see [above](#phase-2-webgpu-emitter-and-reader-are-in-the-switchover-is-not) | container port |
+| Phase 2 WebGL — after WebGPU is complete and green; deletes the fork flag | container port |
 | Replace all eleven `localeCompare` sorts with a byte comparator, inside phase 2 | container port |
 | Phase 3a — the three one-body assumptions and `CjsWebGPUPackage`'s triple eager clone | container port |
 | Migrate `engine-webgpu` off format chunks and onto `Tr2Shader`; delete the ANLS compatibility view | layering cleanup, after the port |
