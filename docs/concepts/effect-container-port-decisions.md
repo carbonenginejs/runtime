@@ -494,29 +494,44 @@ Read the headline as **11.7% fewer distinct pass contents**, not 30%. 92 of 1611
 files are excluded because they fail the all-body build, consistent with the
 known-unsupported set; counting them as zero would flatter every ratio.
 
-**Do not misread the two 10.1% figures — they are different mechanisms that swapped
-places between the samples.** In the five-effect set, 10.1% is the digest-coarseness
-gap; corpus-wide, 10.1% is the positional gap and digest coarseness is 1.8%. The
-1.8% agrees exactly with the independent 420-of-23,213 measurement, which is the
-strongest evidence that the corpus figure is the trustworthy one.
+Two mechanisms produce the reduction. They are given **deliberately opposite names**,
+because they otherwise collide: each measures 10.1% in one of the two samples, and
+the tables sit close enough together that a skim merges them.
 
-Both mechanisms, named:
+- **Digest split — 1.8% corpus-wide.** Things the wire *joins* that today keeps
+  apart. `passUnitSignature` is computed before translation and keys on
+  `bytecodeDigest`, so bodies whose DXBC differs but whose WGSL is byte-identical
+  stay separate units. Concentrated in ubershader, 48 -> 24 at every tier.
+- **Positional merge — 10.1% corpus-wide.** Things the wire *derives* that today
+  stores. Units differing only in `key`, `techniqueName`, `passIndex` or
+  `layoutKey` collapse, because the record layout restores all four from position.
+  `Shadow.pass0` and `DynamicLightShadow.pass0` emit byte-identical WGSL and
+  byte-identical layouts and differ only in the technique name.
 
-- **Digest coarseness, 1.8%.** `passUnitSignature` is computed before translation
-  and keys on `bytecodeDigest`, so bodies whose DXBC differs but whose WGSL is
-  byte-identical stay separate. Concentrated in ubershader, 48 -> 24 at every tier.
-- **Positional recovery, 10.1%.** Units differing only in `key`, `techniqueName`,
-  `passIndex` or `layoutKey` collapse, because the record layout restores all four
-  from position. `Shadow.pass0` and `DynamicLightShadow.pass0` emit byte-identical
-  WGSL and byte-identical layouts and differ only in the technique name.
+One splits, one merges: if a sentence could take either name, it is about neither.
+In the five-effect sample the digest split measures 10.1% and the positional merge
+21.6%; corpus-wide they are 1.8% and 10.1%. **The recurring 10.1% is a coincidence
+of two different quantities, not a consistency.**
 
 Cross-technique sharing was not predicted and is the larger of the two. It also
 corroborates an older table that recorded `Shadow.pass0` and
 `DynamicLightShadow.pass0` at 144 body-passes, 4 units and 17 KiB unique WGSL —
 identical in every column, which was this same fact sitting unread.
 
-Per tier, positional recovery runs `.sm_lo` 12.6% > `.sm_depth` 9.7% > `.sm_hi`
-9.0%, matching the Carbon body-count trend rather than the unit-sharing trend.
+Per tier, the positional merge runs `.sm_lo` 12.6% > `.sm_depth` 9.7% > `.sm_hi`
+9.0%, matching the Carbon body-count trend rather than the unit-sharing trend. That
+is independent evidence it is a **body-level property rather than a translation
+artefact** — it tracks how bodies are structured, not how they are lowered.
+
+**Ratio agreement is not measurement agreement.** The 1.8% figure was confirmed
+independently before this run, and the confirmation was sound — but the absolute it
+came with (23,213 units) was inflated 2x by a sweep whose output file was appended
+to twice, double-counting 1,439 of 1,611 effect-tiers. Ratios survive
+double-counting; absolutes do not. Nothing broke, because the emit was measured
+against its own freshly captured baseline rather than that number — but had the
+23,213 been taken as the baseline, the comparison would have been broken *and* the
+agreement on 1.8% would have made it look sound. When a derived quantity agrees,
+check whether the quantity it was derived from does too.
 
 ### The mapping oracle: our producer's data into Carbon records
 
