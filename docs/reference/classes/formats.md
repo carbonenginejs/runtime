@@ -79,13 +79,23 @@ Little-endian byte cursor over HIRC payload bytes used to decode Wwise interacti
 - Visibility: Internal
 - Kind: Internal implementation class
 
-<!-- class:SfxCursor -->
-## `SfxCursor`
+<!-- class:WwiseCursor -->
+## `WwiseCursor`
 
-Bounds-aware little-endian cursor used for exact-end Wwise SFX-tail validation.
+Bounds-aware little-endian cursor used for exact Wwise v150 NodeBase, authored-SFX, and attenuation decoding.
 
 - Export: `None`
-- Source: `src/formats/bnk/core/sfxNodes.js`
+- Source: `src/formats/bnk/core/nodeBase.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:ActionCursor -->
+## `ActionCursor`
+
+Bounds-aware byte cursor used for exact Wwise v150 Event Action decoding.
+
+- Export: `None`
+- Source: `src/formats/bnk/core/eventAction.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 

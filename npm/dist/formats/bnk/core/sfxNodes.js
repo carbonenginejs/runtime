@@ -1,90 +1,21 @@
-import { readWwiseVar } from './helpers.js';
+import { WWISE_NODE_BASE_VERSION, parseNodeBaseRange, WwiseCursor, readNodeBase, boundedCount, finite, readInitialRtpcs, readCurvePoints, readInitialRtpc } from './nodeBase.js';
 
 // Wwise v150 authored-SFX node decoding. Like musicNodes.js, this interprets
 // inspect() payload views outside the BNK read path and accepts a suffix only
-// when one anchored candidate consumes the payload exactly.
+// when one anchored candidate consumes the payload exactly. Common NodeBase
+// facts and non-playable hierarchy/attenuation objects stay separate from the
+// playback-node map.
 
-const SUPPORTED_VERSION = 150;
+const SUPPORTED_VERSION = WWISE_NODE_BASE_VERSION;
 const SFX_CHILD_TYPES = new Set([2, 5, 6, 7, 9]);
 const TYPE_NAMES = Object.freeze({
   2: "sound",
   5: "random-sequence-container",
   6: "switch-container",
-  9: "blend-container"
+  7: "actor-mixer",
+  9: "blend-container",
+  14: "attenuation"
 });
-
-/**
- * Bounds-aware little-endian cursor used for exact-end Wwise SFX-tail
- * validation.
- */
-class SfxCursor {
-  /** Creates a cursor over one HIRC payload at a candidate tail offset. */
-  constructor(bytes, offset = 0) {
-    this.bytes = bytes;
-    this.view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    this.at = offset;
-  }
-
-  /** Returns the number of unread payload bytes. */
-  get remaining() {
-    return this.bytes.byteLength - this.at;
-  }
-
-  /** Verifies that a primitive read remains inside the HIRC payload. */
-  ensure(size) {
-    if (this.at + size > this.bytes.byteLength) {
-      throw new RangeError("truncated SFX node");
-    }
-  }
-
-  /** Reads an unsigned 8-bit integer. */
-  u8() {
-    this.ensure(1);
-    return this.view.getUint8(this.at++);
-  }
-
-  /** Reads an unsigned little-endian 16-bit integer. */
-  u16() {
-    this.ensure(2);
-    const value = this.view.getUint16(this.at, true);
-    this.at += 2;
-    return value;
-  }
-
-  /** Reads an unsigned little-endian 32-bit integer. */
-  u32() {
-    this.ensure(4);
-    const value = this.view.getUint32(this.at, true);
-    this.at += 4;
-    return value;
-  }
-
-  /** Reads a signed little-endian 32-bit integer. */
-  s32() {
-    this.ensure(4);
-    const value = this.view.getInt32(this.at, true);
-    this.at += 4;
-    return value;
-  }
-
-  /** Reads a little-endian 32-bit float. */
-  f32() {
-    this.ensure(4);
-    const value = this.view.getFloat32(this.at, true);
-    this.at += 4;
-    return value;
-  }
-
-  /** Reads one MSB-first Wwise variable-length unsigned integer. */
-  variable() {
-    const result = readWwiseVar(this.bytes, this.at);
-    if (!result) {
-      throw new RangeError("invalid Wwise variable integer");
-    }
-    this.at = result.nextOffset;
-    return result.value;
-  }
-}
 
 /**
  * Decodes one v150 HIRC 5 Random/Sequence payload.
@@ -123,6 +54,32 @@ function parseSfxLayer(payload, knownObjects, {
 }
 
 /**
+ * Decodes one exact v150 HIRC 7 Actor-Mixer hierarchy object.
+ *
+ * Actor-Mixers carry inherited NodeBase facts and child identities, but are
+ * not themselves playable container behavior.
+ *
+ * @returns {object|null} Typed hierarchy object, or null when invalid.
+ */
+function parseSfxActorMixer(payload, {
+  bankVersion = SUPPORTED_VERSION
+} = {}) {
+  return FindActorMixer(payload, bankVersion).node;
+}
+
+/**
+ * Decodes one exact v150 HIRC 14 attenuation object without assigning curve
+ * slots semantic names.
+ *
+ * @returns {object|null} Typed attenuation object, or null when invalid.
+ */
+function parseSfxAttenuation(payload, {
+  bankVersion = SUPPORTED_VERSION
+} = {}) {
+  return FindAttenuation(payload, bankVersion).node;
+}
+
+/**
  * Decodes typed SFX nodes, events, and actions across inspected v150 banks.
  *
  * Raw Wwise identities and semantics are preserved. Runtime schema lowering
@@ -148,9 +105,13 @@ function sfxNodesFromBanks(inspections) {
     }
   }
   const nodes = new Map();
+  const nodeBases = new Map();
+  const actorMixers = new Map();
+  const attenuations = new Map();
   const events = new Map();
   const actions = new Map();
   const failed = [];
+  const nodeBaseFailed = [];
   const ambiguous = [];
   const unsupportedVersions = [];
   const parsedByType = {};
@@ -182,6 +143,7 @@ function sfxNodesFromBanks(inspections) {
           bank,
           actionType: entry.actionType,
           targetId: entry.targetId,
+          action: entry.action ?? null,
           payload: entry.payload
         });
         continue;
@@ -210,8 +172,12 @@ function sfxNodesFromBanks(inspections) {
         result = FindRandomSequence(entry.payload, knownObjects, version);
       } else if (entry.type === 6) {
         result = FindSwitch(entry.payload, knownObjects, version);
+      } else if (entry.type === 7) {
+        result = FindActorMixer(entry.payload, version);
       } else if (entry.type === 9) {
         result = FindLayer(entry.payload, knownObjects, version);
+      } else if (entry.type === 14) {
+        result = FindAttenuation(entry.payload, version);
       } else {
         continue;
       }
@@ -231,25 +197,169 @@ function sfxNodesFromBanks(inspections) {
       }
       parsed++;
       parsedByType[result.node.type] = (parsedByType[result.node.type] ?? 0) + 1;
-      nodes.set(entry.id, {
+      if (entry.type === 14) {
+        attenuations.set(entry.id, {
+          id: entry.id,
+          bank,
+          ...result.node
+        });
+        continue;
+      }
+      if (entry.type === 7) {
+        actorMixers.set(entry.id, {
+          id: entry.id,
+          bank,
+          ...result.node
+        });
+        nodeBases.set(entry.id, result.node.nodeBase);
+        continue;
+      }
+      const node = {
         id: entry.id,
         bank,
         ...result.node
-      });
+      };
+      const nodeBaseResult = ReadEntryNodeBase(entry, result, version);
+      nodes.set(entry.id, node);
+      if (nodeBaseResult.nodeBase) {
+        nodeBases.set(entry.id, nodeBaseResult.nodeBase);
+      } else {
+        nodeBaseFailed.push({
+          bank,
+          version,
+          type: TYPE_NAMES[entry.type],
+          id: entry.id,
+          reason: nodeBaseResult.reason
+        });
+      }
     }
   }
   return {
     nodes,
+    nodeBases,
+    actorMixers,
+    attenuations,
     events,
     actions,
     diagnostics: {
       parsed,
       parsedByType,
       failed,
+      nodeBaseFailed,
       ambiguous,
       unsupportedVersions,
       duplicates
     }
+  };
+}
+function ReadEntryNodeBase(entry, result, bankVersion) {
+  if (entry.type === 2) {
+    const start = SoundNodeBaseOffset(entry);
+    if (start === null) {
+      return {
+        nodeBase: null,
+        reason: "sound NodeBase offset is unavailable"
+      };
+    }
+    const nodeBase = parseNodeBaseRange(entry.payload, start, entry.payload.byteLength, {
+      bankVersion
+    });
+    return {
+      nodeBase,
+      reason: nodeBase ? "" : "sound NodeBase did not consume its exact byte range"
+    };
+  }
+  if (result.anchor === undefined) {
+    return {
+      nodeBase: null,
+      reason: "container NodeBase anchor is unavailable"
+    };
+  }
+  const nodeBase = parseNodeBaseRange(entry.payload, 0, result.anchor, {
+    bankVersion
+  });
+  return {
+    nodeBase,
+    reason: nodeBase ? "" : "container NodeBase did not consume its exact byte range"
+  };
+}
+function SoundNodeBaseOffset(entry) {
+  const payload = entry?.payload;
+  if (!(payload instanceof Uint8Array) || payload.byteLength < 14) {
+    return null;
+  }
+  const pluginType = Number(entry.pluginType ?? entry.pluginId & 0x0f);
+  if (pluginType !== 2) {
+    return 14;
+  }
+  if (payload.byteLength < 18) {
+    return null;
+  }
+  const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+  const parameterSize = view.getUint32(14, true);
+  const start = 18 + parameterSize;
+  return Number.isSafeInteger(start) && start <= payload.byteLength ? start : null;
+}
+function FindActorMixer(payload, bankVersion) {
+  return ParseExact(payload, bankVersion, cursor => {
+    const nodeBase = readNodeBase(cursor);
+    const count = boundedCount(cursor.u32(), cursor.remaining, 4, 8192);
+    const children = [];
+    for (let index = 0; index < count; index++) {
+      children.push(cursor.u32());
+    }
+    return {
+      type: "actor-mixer",
+      nodeBase,
+      children
+    };
+  });
+}
+function FindAttenuation(payload, bankVersion) {
+  return ParseExact(payload, bankVersion, cursor => {
+    const heightSpreadRaw = cursor.u8();
+    const coneFlags = cursor.u8();
+    let cone = null;
+    if (coneFlags & 0x01) {
+      cone = {
+        insideDegrees: finite(cursor.f32()),
+        outsideDegrees: finite(cursor.f32()),
+        outsideVolume: finite(cursor.f32()),
+        lowPass: finite(cursor.f32()),
+        highPass: finite(cursor.f32())
+      };
+    }
+    const curveToUse = [];
+    for (let index = 0; index < 19; index++) {
+      curveToUse.push(cursor.s8());
+    }
+    const curveCount = boundedCount(cursor.u8(), cursor.remaining, 3, 19);
+    const curves = [];
+    for (let index = 0; index < curveCount; index++) {
+      const scaling = cursor.u8();
+      const pointCount = boundedCount(cursor.u16(), cursor.remaining, 12, 65535);
+      const rtpc = ReadInitialRTPCFromCurve(cursor, scaling, pointCount);
+      curves.push(rtpc);
+    }
+    return {
+      type: "attenuation",
+      heightSpreadRaw,
+      heightSpread: Boolean(heightSpreadRaw),
+      coneFlags,
+      cone,
+      curveToUse,
+      curves,
+      rtpcs: readInitialRtpcs(cursor)
+    };
+  });
+}
+function ReadInitialRTPCFromCurve(cursor, scaling, pointCount) {
+  if (![0, 2, 3, 4].includes(scaling)) {
+    throw new RangeError("invalid attenuation curve scaling");
+  }
+  return {
+    scaling,
+    points: readCurvePoints(cursor, pointCount)
   };
 }
 function FindRandomSequence(payload, knownObjects, bankVersion) {
@@ -257,9 +367,9 @@ function FindRandomSequence(payload, knownObjects, bankVersion) {
     const loopCount = cursor.u16();
     const loopModMin = cursor.u16();
     const loopModMax = cursor.u16();
-    const transitionTime = Finite(cursor.f32());
-    const transitionTimeModMin = Finite(cursor.f32());
-    const transitionTimeModMax = Finite(cursor.f32());
+    const transitionTime = finite(cursor.f32());
+    const transitionTimeModMin = finite(cursor.f32());
+    const transitionTimeModMax = finite(cursor.f32());
     const avoidRepeatCount = cursor.u16();
     const transitionMode = cursor.u8();
     const randomMode = cursor.u8();
@@ -269,7 +379,7 @@ function FindRandomSequence(payload, knownObjects, bankVersion) {
       throw new RangeError("invalid Random/Sequence enum");
     }
     const children = ReadChildren(cursor, knownObjects);
-    const playlistCount = BoundedCount(cursor.u16(), cursor.remaining, 8, 8192);
+    const playlistCount = boundedCount(cursor.u16(), cursor.remaining, 8, 8192);
     const childSet = new Set(children);
     const playlist = [];
     for (let index = 0; index < playlistCount; index++) {
@@ -314,11 +424,11 @@ function FindSwitch(payload, knownObjects, bankVersion) {
       throw new RangeError("invalid Switch enum");
     }
     const children = ReadChildren(cursor, knownObjects);
-    const assignmentCount = BoundedCount(cursor.u32(), cursor.remaining, 8, 8192);
+    const assignmentCount = boundedCount(cursor.u32(), cursor.remaining, 8, 8192);
     const assignments = [];
     for (let index = 0; index < assignmentCount; index++) {
       const valueId = cursor.u32();
-      const itemCount = BoundedCount(cursor.u32(), cursor.remaining, 4, 8192);
+      const itemCount = boundedCount(cursor.u32(), cursor.remaining, 4, 8192);
       const childIds = [];
       for (let item = 0; item < itemCount; item++) {
         const childId = cursor.u32();
@@ -329,7 +439,7 @@ function FindSwitch(payload, knownObjects, bankVersion) {
         childIds
       });
     }
-    const parameterCount = BoundedCount(cursor.u32(), cursor.remaining, 14, 8192);
+    const parameterCount = boundedCount(cursor.u32(), cursor.remaining, 14, 8192);
     const parameters = [];
     for (let index = 0; index < parameterCount; index++) {
       const childId = cursor.u32();
@@ -368,31 +478,31 @@ function FindLayer(payload, knownObjects, bankVersion) {
   return FindUnique(payload, bankVersion, cursor => {
     const children = ReadChildren(cursor, knownObjects);
     const childSet = new Set(children);
-    const layerCount = BoundedCount(cursor.u32(), cursor.remaining, 15, 1024);
+    const layerCount = boundedCount(cursor.u32(), cursor.remaining, 15, 1024);
     const layers = [];
     for (let index = 0; index < layerCount; index++) {
       const layerId = cursor.u32();
-      const initialRtpcCount = BoundedCount(cursor.u16(), cursor.remaining, 14, 4096);
+      const initialRtpcCount = boundedCount(cursor.u16(), cursor.remaining, 14, 4096);
       const initialRtpcs = [];
       for (let rtpc = 0; rtpc < initialRtpcCount; rtpc++) {
-        initialRtpcs.push(ReadInitialRTPC(cursor));
+        initialRtpcs.push(readInitialRtpc(cursor));
       }
       const controlId = cursor.u32();
       const controlType = cursor.u8();
-      const associationCount = BoundedCount(cursor.u32(), cursor.remaining, 8, 8192);
+      const associationCount = boundedCount(cursor.u32(), cursor.remaining, 8, 8192);
       const associations = [];
       if (controlType > 4) {
         throw new RangeError("invalid Layer control type");
       }
       for (let association = 0; association < associationCount; association++) {
         const childId = cursor.u32();
-        const pointCount = BoundedCount(cursor.u32(), cursor.remaining, 12, 65535);
+        const pointCount = boundedCount(cursor.u32(), cursor.remaining, 12, 65535);
         if (!childSet.has(childId)) {
           throw new RangeError("invalid Layer association child");
         }
         associations.push({
           childId,
-          points: ReadPoints(cursor, pointCount)
+          points: readCurvePoints(cursor, pointCount)
         });
       }
       layers.push({
@@ -415,46 +525,8 @@ function FindLayer(payload, knownObjects, bankVersion) {
     };
   });
 }
-function ReadInitialRTPC(cursor) {
-  const controlId = cursor.u32();
-  const controlType = cursor.u8();
-  const accumulation = cursor.u8();
-  const parameterId = cursor.variable();
-  const curveId = cursor.u32();
-  const scaling = cursor.u8();
-  const pointCount = BoundedCount(cursor.u16(), cursor.remaining, 12, 65535);
-  if (controlType > 4 || accumulation > 6 || scaling > 5) {
-    throw new RangeError("invalid initial RTPC enum");
-  }
-  return {
-    controlId,
-    controlType,
-    accumulation,
-    parameterId,
-    curveId,
-    scaling,
-    points: ReadPoints(cursor, pointCount)
-  };
-}
-function ReadPoints(cursor, count) {
-  const points = [];
-  for (let index = 0; index < count; index++) {
-    const from = Finite(cursor.f32());
-    const to = Finite(cursor.f32());
-    const interpolation = cursor.u32();
-    if (interpolation > 9) {
-      throw new RangeError("invalid curve interpolation");
-    }
-    points.push({
-      from,
-      to,
-      interpolation
-    });
-  }
-  return points;
-}
 function ReadChildren(cursor, knownObjects) {
-  const count = BoundedCount(cursor.u32(), cursor.remaining, 4, 8192);
+  const count = boundedCount(cursor.u32(), cursor.remaining, 4, 8192);
   const children = [];
   for (let index = 0; index < count; index++) {
     const id = cursor.u32();
@@ -476,10 +548,13 @@ function FindUnique(payload, bankVersion, parse) {
   const candidates = [];
   for (let anchor = 0; anchor < payload.byteLength; anchor++) {
     try {
-      const cursor = new SfxCursor(payload, anchor);
+      const cursor = new WwiseCursor(payload, anchor);
       const node = parse(cursor);
       if (cursor.at === payload.byteLength) {
-        candidates.push(node);
+        candidates.push({
+          node,
+          anchor
+        });
       }
     } catch {
       // This byte was not the exact type-tail anchor.
@@ -487,14 +562,51 @@ function FindUnique(payload, bankVersion, parse) {
   }
   if (candidates.length === 1) {
     return {
-      node: candidates[0],
+      node: candidates[0].node,
+      anchor: candidates[0].anchor,
       reason: ""
     };
+  }
+  if (candidates.length > 1) {
+    const exactNodeBase = candidates.filter(candidate => parseNodeBaseRange(payload, 0, candidate.anchor, {
+      bankVersion
+    }));
+    if (exactNodeBase.length === 1) {
+      return {
+        node: exactNodeBase[0].node,
+        anchor: exactNodeBase[0].anchor,
+        reason: ""
+      };
+    }
   }
   return {
     node: null,
     reason: candidates.length ? "ambiguous anchors" : "no exact anchor"
   };
+}
+function ParseExact(payload, bankVersion, parse) {
+  if (!(payload instanceof Uint8Array) || Number(bankVersion) !== SUPPORTED_VERSION) {
+    return {
+      node: null,
+      reason: "unsupported bank version"
+    };
+  }
+  try {
+    const cursor = new WwiseCursor(payload);
+    const node = parse(cursor);
+    return cursor.at === payload.byteLength ? {
+      node,
+      reason: ""
+    } : {
+      node: null,
+      reason: "trailing bytes"
+    };
+  } catch (cause) {
+    return {
+      node: null,
+      reason: cause instanceof Error ? cause.message : "invalid object"
+    };
+  }
 }
 function NormalizeKnownObjects(value) {
   if (value instanceof Map) {
@@ -515,18 +627,6 @@ function NormalizeKnownObjects(value) {
 function KnownType(value) {
   return typeof value === "number" ? value : value?.type;
 }
-function BoundedCount(value, remaining, stride, maximum) {
-  if (!Number.isSafeInteger(value) || value < 0 || value > maximum || value * stride > remaining) {
-    throw new RangeError("invalid SFX node count");
-  }
-  return value;
-}
-function Finite(value) {
-  if (!Number.isFinite(value)) {
-    throw new RangeError("non-finite SFX node value");
-  }
-  return value;
-}
 
-export { parseSfxLayer, parseSfxRandomSequence, parseSfxSwitch, sfxNodesFromBanks };
+export { parseSfxActorMixer, parseSfxAttenuation, parseSfxLayer, parseSfxRandomSequence, parseSfxSwitch, sfxNodesFromBanks };
 //# sourceMappingURL=sfxNodes.js.map

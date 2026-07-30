@@ -49,6 +49,7 @@ test("decodes typed HIRC fields for events, actions, sounds, and music tracks", 
 
     assert.equal(byId.get(0x5001).actionType, 0x0403);
     assert.equal(byId.get(0x5001).targetId, 0x6001);
+    assert.equal(byId.get(0x5001).action, null);
     assert.equal(byId.get(0x5002).actionType, 0x0103);
     assert.equal(byId.get(0x5002).targetId, 0x6001);
 
@@ -57,6 +58,7 @@ test("decodes typed HIRC fields for events, actions, sounds, and music tracks", 
     assert.equal(byId.get(0x6001).streamType, 0);
     assert.equal(byId.get(0x6001).sourceId, 901);
     assert.equal(byId.get(0x6001).inMemoryMediaSize, 64);
+    assert.equal(byId.get(0x6001).sourceBits, 0);
 
     assert.deepEqual(byId.get(0x7001).sources, [
         {

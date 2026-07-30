@@ -1,3 +1,5 @@
+import { parseEventAction } from "./eventAction.js";
+
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
 export const OUTPUT_BNK_JSON = "bnkJson";
@@ -237,8 +239,9 @@ function readHircListing(bytes, dataOffset, size, bankVersion)
  * - event-action (3): `u16 actionType` (high byte = family: 0x04 play,
  *   0x01 stop, 0x02 pause, 0x03 resume) + `u32 targetId`.
  * - sound (2): `u32 pluginId, u8 streamType, u32 sourceId,
- *   u32 inMemoryMediaSize` (streamType 0 = bank data, 1 = streaming
- *   prefetch, 2 = streamed). Only plugin type 1 is codec-backed WEM media.
+ *   u32 inMemoryMediaSize, u8 sourceBits` (streamType 0 = bank data,
+ *   1 = streaming prefetch, 2 = streamed). Only plugin type 1 is
+ *   codec-backed WEM media.
  * - music-track (11): `u8 flags, u32 sourceCount`, then per source the same
  *   plugin/stream/source/size quad as sound -> `sources`.
  *
@@ -270,6 +273,7 @@ function decodeHircFields(entry, bankVersion)
     {
         entry.actionType = body[0] | (body[1] << 8);
         entry.targetId = readU32(body, 2);
+        entry.action = parseEventAction(body, { bankVersion });
     }
     else if (entry.type === 2 && body.byteLength >= 13)
     {
@@ -278,6 +282,10 @@ function decodeHircFields(entry, bankVersion)
         entry.streamType = body[4];
         entry.sourceId = readU32(body, 5);
         entry.inMemoryMediaSize = readU32(body, 9);
+        if (body.byteLength >= 14)
+        {
+            entry.sourceBits = body[13];
+        }
     }
     else if (entry.type === 11 && body.byteLength >= 5)
     {
