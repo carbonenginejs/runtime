@@ -387,11 +387,39 @@ Each cell is 537 effects and 8722 rows. Individual effects go much further —
 `quadv5.sm_lo` is 480 rows over 24 bodies, 20:1, against 3.3:1 for the same effect at
 `.sm_hi`.
 
+`.sm_hi` and `.sm_depth` matching to three significant figures looked like a
+measurement artifact and is not. Checked per effect rather than in aggregate: dx11
+and metal have identical body counts in all 537 effects, dx12 in 528 of 537 — the
+nine exceptions are all organic/asteroid effects, differing by one or two bodies.
+And no effect anywhere has byte-identical `.sm_hi` and `.sm_depth` files, so this is
+not the same file counted twice. The two tiers are different code that collapses to
+the same number of distinct bodies, because the same permutation options drive body
+identity. dx12's nine exceptions are the useful part: they show the measurement can
+resolve a difference when one exists.
+
 This vindicates carrying every permutation rather than baking one. Sharing is
 cheapest exactly where it matters most: low-quality tiers collapse the most
-permutations, and low-quality tiers are what low-end devices fetch. dx11 also shares
-substantially better than dx12 or metal at every tier, which is worth remembering
-before reading a dx11 size ratio as representative of all three.
+permutations, and low-quality tiers are what low-end devices fetch.
+
+dx11 also shares substantially better than dx12 or metal at every tier, while dx12
+and metal land within 0.1 of each other. So a dx11 figure is not representative of
+all three, and a size report must stay per-backend as well as per-tier. The pattern
+says something about how the three compilers specialise: dx11 produces byte-identical
+code for permutations the other two distinguish, which means either its lowering is
+less sensitive to the options that vary, or dx12 and metal encode something
+option-dependent that dx11 does not.
+
+**Systemic guard, not a one-off fix.** The `*Raw` trap does not go away when the wire
+format changes, because those fields exist for the JSON hydration boundary and stay
+there. It simply relocates to the mapping seam, waiting for the next field somebody
+adds with that suffix. `carbon-raw-fields.test.js` therefore guards the class: no
+`*Raw` property may be read on a line that does not also reinterpret it, plus a
+behavioural check that `-FLT_MAX` bits map to the float and not to `4286578687`.
+
+The guard's first version had a three-line window and was verified against a
+deliberately reintroduced bug — it did not catch it, because a correct call on the
+neighbouring line vouched for the broken one. Tightened to same-line, which costs
+only that raw mappings be written on one line.
 
 ### The mapping oracle: our producer's data into Carbon records
 

@@ -149,6 +149,19 @@ carries inline length-prefixed strings instead of references. A test pins the
 property directly — the block's bytes must be identical whichever arena it is
 interned into. Any future arena entry must satisfy the same rule.
 
+### One field the container cannot round-trip
+
+For a **non-dynamic sampler, the name is not preserved.** The file stores one, but
+Carbon's reader nulls it (`Tr2EffectDescription.cpp:430-433`) before any producer
+sees it, so a package built from our reflection carries the empty string. Measured at
+738 occurrences across three effects.
+
+This is a property of the input, not a bug in the mapping: the name is unrecoverable
+by the time we receive the data, rather than dropped on the way out. Carbon nulls it
+precisely because a non-dynamic sampler is never looked up by name — `FindSamplerByName`
+only matters for the dynamic case. Recorded here because it will otherwise be
+rediscovered as a bug: a diff against the source effect will always show it.
+
 **Corollary: the container admits all six of Carbon's stage types.** `stages` is
 capped at `SHADER_TYPE_COUNT` = 6, matching `Tr2EffectDescription.cpp:529`, and the
 stage-type byte is Carbon's `InputStageType` numbering (`EffectData.h:15-22`) —

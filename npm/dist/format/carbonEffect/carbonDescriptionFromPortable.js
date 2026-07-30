@@ -142,6 +142,8 @@ function mapSampler(entry) {
     mipLODBias: floatFromRaw(descriptor.mipLODBiasRaw),
     maxAnisotropy: descriptor.maxAnisotropy,
     comparisonFunc: descriptor.comparisonFunc,
+    // On one line deliberately: the raw-field guard requires the
+    // reinterpretation to be visible on the same line as the raw access.
     borderColor: (descriptor.borderColorRaw ?? [0, 0, 0, 0]).slice(0, 4).map(floatFromRaw),
     minLOD: floatFromRaw(descriptor.minLODRaw),
     maxLOD: floatFromRaw(descriptor.maxLODRaw),
