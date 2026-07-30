@@ -471,6 +471,53 @@ the all-body build outright — storage-resource shape, typed buffer, geometry, 
 — consistent with the known-unsupported set, so they are excluded rather than
 counted as zero.
 
+### Measured, at corpus scale, with a sample-bias correction
+
+The emit landed and the sharing was measured twice: first on five named effects,
+then on the whole dx11 corpus. **The five-effect figure was wrong by 2.5x, and the
+error was sample bias, not measurement error.** Both measurements are internally
+correct and their accounting closes exactly; only the extrapolation from the small
+one was unsafe.
+
+The named-effect set was `specialfx/ubershader`, `v5/quad/quadv5`,
+`v5/fx/skinned_fxuberoverlayv5`, `interior/avatar/auraavatar` and `ui/ubershader` —
+two of five ubershaders, which is precisely the concentration that inflates it.
+
+| quantity | 5 effects x 3 tiers | dx11 corpus (1519 files) |
+|---|---|---|
+| `passUnits` | 710 | 11,773 |
+| `contentUnits` | 638 (**-10.1%**) | 11,563 (**-1.8%**) |
+| wire contents | 500 (**-21.6%**) | 10,393 (**-10.1%**) |
+| wire / `passUnits` | 70.4% | **88.3%** |
+
+Read the headline as **11.7% fewer distinct pass contents**, not 30%. 92 of 1611
+files are excluded because they fail the all-body build, consistent with the
+known-unsupported set; counting them as zero would flatter every ratio.
+
+**Do not misread the two 10.1% figures — they are different mechanisms that swapped
+places between the samples.** In the five-effect set, 10.1% is the digest-coarseness
+gap; corpus-wide, 10.1% is the positional gap and digest coarseness is 1.8%. The
+1.8% agrees exactly with the independent 420-of-23,213 measurement, which is the
+strongest evidence that the corpus figure is the trustworthy one.
+
+Both mechanisms, named:
+
+- **Digest coarseness, 1.8%.** `passUnitSignature` is computed before translation
+  and keys on `bytecodeDigest`, so bodies whose DXBC differs but whose WGSL is
+  byte-identical stay separate. Concentrated in ubershader, 48 -> 24 at every tier.
+- **Positional recovery, 10.1%.** Units differing only in `key`, `techniqueName`,
+  `passIndex` or `layoutKey` collapse, because the record layout restores all four
+  from position. `Shadow.pass0` and `DynamicLightShadow.pass0` emit byte-identical
+  WGSL and byte-identical layouts and differ only in the technique name.
+
+Cross-technique sharing was not predicted and is the larger of the two. It also
+corroborates an older table that recorded `Shadow.pass0` and
+`DynamicLightShadow.pass0` at 144 body-passes, 4 units and 17 KiB unique WGSL —
+identical in every column, which was this same fact sitting unread.
+
+Per tier, positional recovery runs `.sm_lo` 12.6% > `.sm_depth` 9.7% > `.sm_hi`
+9.0%, matching the Carbon body-count trend rather than the unit-sharing trend.
+
 ### The mapping oracle: our producer's data into Carbon records
 
 Every proof above is Carbon records in, the same Carbon records out, checked against
@@ -554,6 +601,24 @@ That assertion was missing from the backend block. `readBackendBlock` returned
 bytes parsed clean and discarded them silently — version skew arriving without a
 version bump, which is the case the `blobVersion` gate was meant to cover and does
 not, since it only rejects *higher* versions. Now asserted, with a test.
+
+### A test must enter through the door its caller uses
+
+`CjsCarbonEffectReader.readDescription` accepted no options at all, so it could not
+forward the backend gate: a container could be written with trailing blocks and
+never read back. There were tests for the gate. They passed. Every one of them
+called `readEffectDescription` directly — one layer *below* the hole — so they were
+real, correct, and positioned where the bug could not reach them.
+
+That is the same shape as the three-line window in the `*Raw` guard: not a missing
+test, but a test aimed slightly past its target. The window was too wide, so a
+neighbouring correct call vouched for a broken one; here the entry point was too
+deep, so the broken layer was never on the path.
+
+**So: when a test targets a behaviour, check it enters through the same door a
+caller would.** Applied to the container reader — its oracle goes through
+`CewgpuContainer.GetBackendBodyPrograms`, the accessor an engine calls, rather than
+through the block codec that accessor sits on.
 
 ## The layering defect in `engine-webgpu`
 
