@@ -419,6 +419,66 @@ test("a description blob with a trailing tail is rejected, not silently truncate
     );
 });
 
+test("a description blob one byte short is rejected too", () =>
+{
+    // The other direction of exhaustiveness. A long record is caught by the
+    // trailing-byte assertion; a short one has to be caught by the cursor running
+    // past its declared end, which is Carbon's own mechanism and the reason there
+    // is no per-field check to write.
+    const table = new CjsStringTable();
+    const description = buildSyntheticDescription();
+    writeEffectDescription(new CjsByteWriter(), description, { arena: collectArena(table) });
+    table.finish();
+
+    const writer = new CjsByteWriter();
+    writeEffectDescription(writer, description, { arena: internArena(table) });
+    const body = writer.toBytes();
+
+    const truncated = body.subarray(0, body.length - 1);
+    const reader = new CjsByteReader(truncated, {
+        stringTable: table.toBytes(),
+        stringTableSize: table.byteLength
+    });
+    assert.throws(() => readEffectDescription(reader), /Unexpected end of/);
+});
+
+test("alias grouping distinguishes a wrong grouping from a right one", () =>
+{
+    // Negative control for the corpus oracle's grouping comparison. If two bodies
+    // stop being byte-identical the grouping must change, or the comparison is
+    // asserting nothing.
+    const grouping = (records) =>
+    {
+        const byOffset = new Map();
+        for (let index = 0; index < records.length; index += 1)
+        {
+            if (!byOffset.has(records[index].offset)) byOffset.set(records[index].offset, []);
+            byOffset.get(records[index].offset).push(index);
+        }
+        return JSON.stringify(Array.from(byOffset.values()));
+    };
+
+    const shared = new CjsCarbonEffectReader(buildSyntheticContainer());
+    // Bodies 2 and 3 are built from the same label, so they alias.
+    assert.equal(shared.diagnostics.uniqueBodyCount, 3);
+    assert.equal(grouping(shared.records), JSON.stringify([ [ 0 ], [ 1 ], [ 2, 3 ] ]));
+
+    const writer = new CjsCarbonEffectWriter({
+        compilerVersion: COMPILER_VERSION,
+        sourceHash: SOURCE_HASH
+    });
+    for (const axis of SYNTHETIC_PERMUTATIONS) writer.addPermutation(axis);
+    writer.addBody(0, buildSyntheticDescription({ label: "A" }));
+    writer.addBody(1, buildSyntheticDescription({ label: "B" }));
+    writer.addBody(2, buildSyntheticDescription({ label: "C" }));
+    // One character different, so body 3 must no longer share with body 2.
+    writer.addBody(3, buildSyntheticDescription({ label: "D" }));
+
+    const distinct = new CjsCarbonEffectReader(writer.toBytes());
+    assert.equal(distinct.diagnostics.uniqueBodyCount, 4);
+    assert.notEqual(grouping(distinct.records), grouping(shared.records));
+});
+
 test("the reader rejects a body region that does not start where the header ends", () =>
 {
     const original = buildSyntheticContainer();

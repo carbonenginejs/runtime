@@ -421,6 +421,40 @@ deliberately reintroduced bug — it did not catch it, because a correct call on
 neighbouring line vouched for the broken one. Tightened to same-line, which costs
 only that raw mappings be written on one line.
 
+### Predicted before measuring: how our WGSL bodies should share
+
+The alias oracle proves we group *Carbon* bodies the way CCP's compiler does — dx11
+in, dx11 out. It says nothing about how our **WGSL** bodies group, and that is what
+actually determines package size. The mechanism is the same (byte identity of the
+description blob) but the ratio is unknown, so it is worth predicting before running
+it, while the prediction can still be wrong in public.
+
+**Prediction: our `.cewgpu` body count should be at or below dx11's** — that is,
+sharing at least as good as 2.45:1 at `.sm_hi` and 3.91:1 at `.sm_lo`. Two arguments
+point that way. Our reflection is derived from the same DXBC reflection Carbon
+reflects, so wherever Carbon's bodies are identical ours should be too; and lowering
+is a normalising step, so two DXBC bodies that differ only in ways the translation
+erases would collapse further than dx11 does. Neither more sharing nor a little less
+would be a defect.
+
+**Substantially less sharing would be a signal, and there is a named suspect.** The
+WGSL shader record carries `sourceMap`, whose entries are
+`{line, instructionIndex, dxbcOffset}`. `dxbcOffset` is a byte offset into the source
+DXBC. Two permutations that lower to character-identical WGSL will still carry
+different `dxbcOffset` values whenever their DXBC is laid out differently — so
+including `sourceMap` in the description blob would make bodies that are genuinely
+identical fail to share, for a reason that has nothing to do with the shader.
+
+That would be a real defect wearing a size number, and the fix is already implied by
+the plan: `sourceMap` is a translation intermediate and belongs in the diagnostics
+sidecar, not in the shared body. Body count is the cheapest available detector for
+translation-side noise of this kind, and the all-permutations change is the one run
+where it comes for free.
+
+If the measured ratio lands well below dx11's, the first thing to check is which
+per-body fields vary that should not — starting with `sourceMap`, then any generated
+symbol that encodes a permutation-dependent index.
+
 ### The mapping oracle: our producer's data into Carbon records
 
 Every proof above is Carbon records in, the same Carbon records out, checked against
@@ -452,6 +486,33 @@ before our producer ever sees it, so we emit the empty string. 738 occurrences. 
 name is unrecoverable from our input rather than dropped by our mapping, and Carbon
 nulls it precisely because a non-dynamic sampler is never looked up by name. Worth
 knowing that a re-read of our file cannot recover it.
+
+### Every check demonstrates its own failure
+
+A guard that passes on the bug it was written for is worse than no guard: it turns an
+open question into false confidence. Data that is accidentally right is a latent bug;
+a *check* that is accidentally right is a manufactured assurance, which is harder to
+find because nothing ever goes red.
+
+That is not hypothetical here. The `*Raw` class guard was written, passed, and then
+failed to catch the exact bug it existed for when that bug was deliberately
+reintroduced — a three-line window let the correct call on the next line vouch for
+the broken one. It only came to light because it was tested against its own target.
+
+So every check added in this phase carries a negative control:
+
+| check | negative control |
+|---|---|
+| body region starts at header end | slack inserted between header and bodies, rows shifted to match, so containment still holds |
+| exhaustiveness, long | description blob and backend block each with a trailing tail |
+| exhaustiveness, short | description blob truncated by one byte |
+| density fails closed | synthetic sparse table, and a misordered one |
+| alias grouping | one body altered by one character; grouping must change |
+| `*Raw` reinterpretation | reintroduced direct assignment; guard must name the field |
+| mapping oracle | found a real bug on its first run |
+
+The mapping oracle is the only one whose control came for free. The others had only
+ever passed, which is exactly the population where a three-line-window mistake hides.
 
 ### Two traps this surfaced
 
