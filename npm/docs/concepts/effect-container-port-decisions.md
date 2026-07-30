@@ -249,6 +249,81 @@ container makes redundant. webgl is also 4x the size of webgpu for the same effe
 **Deleting `ANLS` was never a size play.** It is 0.6%. The reason to stop storing it
 is duplication and layering, and it should be argued on those terms only.
 
+## The retained structural checks, audited against Carbon
+
+Every check that survives has to name the Carbon invariant it enforces, or declare
+itself our invention. This is the one place where keeping our own assumptions and
+renaming them would be indistinguishable from retargeting, and no test would catch
+it, because our checks pass on our own files by construction.
+
+The audit's headline result is that **the classification was wrong**. Of the ~436
+webgpu and ~185 webgl lines filed as "structural, retargeted at records", most are
+not invariants at all. They guard one thing, and it is not a Carbon concept: that a
+single logical tree, which the chunk container shattered into flat string-keyed
+arrays in separate chunks, still reassembles. `INFO`, `META`, `ANLS`, `WGSL`, `PGRF`
+and `WGSB` each hold a projection of the same effect, and the checks assert the
+projections agree. Carbon has no such surface — `Tr2EffectDescription::Read` walks
+one contiguous stream where a stage *is* inside its pass. Containment replaces
+reference, position replaces key, and the count word before an array replaces
+`Array.isArray`. Those lines belong in the **deleted** column.
+
+What genuinely survives is much smaller, and splits three ways.
+
+**Carbon-implied — keep, and these are the valuable ones.** Two clauses, each
+guarding something Carbon omits and would misbehave on:
+
+- **Duplicate stage type within one pass.** `Tr2EffectDescription.cpp:536` assigns
+  into `stageInputs[type]`, so a repeated type silently clobbers the earlier stage
+  and `shaderHandles`/`stageCount` (`:592`, `:650`) then disagree. Last-wins, no
+  error — the same failure class as the index clobber already on record org-wide.
+- **`stageType` value range.** The value indexes `stageInputs[type]` unchecked;
+  `SanityCheck` at `:529` bounds the *count*, never the value. Out of range is an
+  out-of-bounds write in Carbon.
+
+**Already enforced by phase 1 — do not write twice.** Count non-negativity (a
+fixed-width unsigned decode cannot produce a negative), the count caps, arena and
+offset-table containment, row density and positional indexing, and the version
+range. Retargeting these means the same check at two layers.
+
+**Our invention, correctly.** Everything guarding the two invented sections, plus the
+WebGPU enum tables. Fine, but labelled. Two are worse than invented and cannot be
+retargeted at all, because their operands never reach the wire:
+`validateBindingDescriptor`, whose `minBindingSize`/`hasDynamicOffset`/`sampleType`/
+`multisampled` are synthesised at realization, and the `viewDimension` clauses, which
+the reader restores from the family defaults. Retargeting either means inventing the
+value and then checking it against the rule that generated it.
+
+Also invention, and worth naming: `STAGE_SCHEMA`'s stage numbering is Carbon's
+(`EffectData.h:15-22`), but its *closure at three* is not — Carbon admits six stage
+types. A WebGPU restriction wearing Carbon's numbering.
+
+### Two traps this surfaced
+
+**`jsonEqual` must be deleted, not retargeted — retargeted it would always pass.**
+Its first line is `Object.is(left, right)`. All seven callers compare two copies of a
+datum a record layout stores once, so after the rewrite both operands come from the
+same decode walk and are frequently the same object: it returns `true` before
+comparing anything. A check that cannot fail, on our own files, is exactly what this
+audit existed to prevent. It also mishandles typed arrays in both directions — a
+`Uint32Array` fails `Array.isArray`, falls to the object branch, and compares equal
+to `{0:1,1:1,2:1}` while comparing unequal to `[1,1,1]`. Whatever genuinely must
+still be compared gets a field-wise numeric comparison instead.
+
+**`requireExactKeys` has no per-field successor, but exhaustiveness is still
+checkable.** "No missing field" is already enforced: a short record runs the cursor
+past its declared end and the reader throws. "No unknown field" survives as a
+per-blob obligation — after parsing a sized record at a known version, the cursor
+must land exactly on the declared end, because a tail means the writer knew fields
+this reader does not.
+
+That assertion was missing from the backend block. `readBackendBlock` returned
+`trailingBytes` and nothing checked it was zero, so a same-version block with extra
+bytes parsed clean and discarded them silently — version skew arriving without a
+version bump, which is the case the `blobVersion` gate was meant to cover and does
+not, since it only rejects *higher* versions. Now asserted, with a test.
+
+## The layering defect in `engine-webgpu`
+
 **This predates the container port and is not the port's to fix.** It is recorded
 here because the ANLS audit surfaced it and it must not be rediscovered.
 

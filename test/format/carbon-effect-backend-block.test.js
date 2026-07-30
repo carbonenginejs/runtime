@@ -181,6 +181,23 @@ test("identical blocks dedupe in the arena the way program source does", () =>
     assert.equal(table.entryCount, 1);
 });
 
+test("a same-version block with a trailing tail is rejected, not silently truncated", () =>
+{
+    // Version skew without a version bump: a newer writer added a field and did
+    // not raise blobVersion. Discarding the tail would parse clean and lose data.
+    const bytes = writeBackendBlock(sampleBlock());
+    const padded = new Uint8Array(bytes.length + 3);
+    padded.set(bytes, 0);
+
+    assert.throws(
+        () => readBackendBlock(padded),
+        /Backend block has 3 unparsed trailing byte\(s\) at version 1/
+    );
+
+    // And the exact-length case still reports a clean landing.
+    assert.equal(readBackendBlock(bytes).trailingBytes, 0);
+});
+
 test("a newer block version is skipped rather than misparsed", () =>
 {
     const bytes = Uint8Array.from(writeBackendBlock(sampleBlock()));

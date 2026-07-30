@@ -1,6 +1,6 @@
 import { CjsByteWriter } from "../CjsByteWriter.js";
 import { CjsByteReader } from "../CjsByteReader.js";
-import { CjsFormatWriteError } from "../CjsFormatError.js";
+import { CjsFormatReadError, CjsFormatWriteError } from "../CjsFormatError.js";
 
 /**
  * The one optional trailing block per pass: WebGPU bind-group layouts and
@@ -323,12 +323,27 @@ export function readBackendBlock(bytes, options = {})
         });
     }
 
+    // A sized record parsed at a known version must land exactly on its declared
+    // end. Trailing bytes mean the writer knew fields this reader does not — the
+    // same skew an unknown `blobVersion` reports, arriving without a version bump.
+    // This is the only surviving form of a closed-schema check: under a record
+    // layout a field either exists at its offset or the read fails, so there is
+    // nothing per-field left to assert, but exhaustiveness is still checkable and
+    // is exactly what a silently-discarded tail would violate.
+    if (reader.remaining !== 0)
+    {
+        throw new CjsFormatReadError(
+            `Backend block has ${reader.remaining} unparsed trailing byte(s) at version ${version}`,
+            { source: options.source ?? "backend block", version, trailingBytes: reader.remaining }
+        );
+    }
+
     return {
         version,
         unsupported: false,
         layoutKey,
         bindGroups,
         transforms,
-        trailingBytes: reader.remaining
+        trailingBytes: 0
     };
 }
