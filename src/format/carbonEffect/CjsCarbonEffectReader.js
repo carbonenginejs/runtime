@@ -56,7 +56,9 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
      * @param {ArrayBuffer|ArrayBufferView|Uint8Array} bytes Container bytes.
      * @param {object} [options] Read options.
      * @param {string} [options.source] Source name used in error details.
-     * @param {boolean} [options.strict] Reject a sparse or misordered offset table.
+     * @param {boolean} [options.permissive] Accept a sparse or misordered offset
+     *     table instead of rejecting it. For forensic inspection of a file already
+     *     known to be malformed; never for a load path.
      */
     constructor(bytes, options = {})
     {
@@ -91,7 +93,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
         this.headerEnd = this.offset;
         this.diagnostics = this.#inspect();
 
-        if (options.strict)
+        if (!options.permissive)
         {
             this.requireDensePermutationTable();
         }
@@ -122,12 +124,17 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
      * incidentally, from `g_compiledEffects` being a `std::map` densely keyed by
      * `AddPermutationsToWorkQueue`, and promises it nowhere.
      *
-     * Measured across the whole shipped corpus at build 3444265 — every
-     * `.sm_hi`/`.sm_lo`/`.sm_depth` under `effect.dx11` and `effect.dx12`, 3222
-     * files, 52,332 rows — both conditions hold in every file. That is why this
-     * check exists; it is opt-in rather than automatic because the compiler can
-     * still emit a sparse table when run with `--ignore-permutations`, which
-     * writes only key 0 while declaring every axis.
+     * Measured across the whole shipped corpus at build 3444265 — 4833 files and
+     * 78,498 rows across `effect.dx11`, `effect.dx12` and `effect.metal` — both
+     * conditions hold in every file, so this runs by default.
+     *
+     * `--ignore-permutations` does make CCP's compiler emit only key 0 while
+     * declaring every axis, so a sparse file is producible. That argues for an
+     * escape hatch, not for permissiveness: because Carbon indexes positionally,
+     * accepting such a file returns the wrong permutation's shader silently, which
+     * is exactly the failure class this container port exists to close.
+     * `{ permissive: true }` is the opt-in, for inspecting a file already known to
+     * be malformed.
      */
     requireDensePermutationTable()
     {

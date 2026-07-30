@@ -12,6 +12,7 @@
     "./resource/shader": "./dist/resource/shader/index.js",
     "./resource/texture": "./dist/resource/texture/index.js",
     "./worker": "./dist/worker/CjsResManWorker.js",
+    "./format": "./dist/format/index.js",
     "./formats": "./dist/formats/index.js",
     "./formats/black": "./dist/formats/black/index.js",
     "./formats/black/schema": "./dist/formats/black/core/blackSchema.js",

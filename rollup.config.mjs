@@ -17,6 +17,7 @@ export default {
     "src/resource/shader/index.js",
     "src/resource/texture/index.js",
     "src/worker/CjsResManWorker.js",
+    "src/format/index.js",
     "src/formats/index.js",
     "src/formats/black/index.js",
     "src/formats/black/core/blackSchema.js",

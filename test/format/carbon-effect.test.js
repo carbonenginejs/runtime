@@ -291,7 +291,7 @@ test("the reader rejects a count above Carbon's cap", () =>
     assert.throws(() => readEffectDescription(reader), /pipelineInputs count 65/);
 });
 
-test("a sparse offset table is reported and, in strict mode, rejected", () =>
+test("a sparse offset table is rejected by default and diagnosable when permitted", () =>
 {
     const table = new CjsStringTable();
     const axisName = table.addString("SKINNED");
@@ -320,17 +320,33 @@ test("a sparse offset table is reported and, in strict mode, rejected", () =>
         bodies: [ { index: 0, bytes: body.toBytes() } ]
     });
 
-    const lenient = new CjsCarbonEffectReader(bytes);
-    assert.equal(lenient.diagnostics.dense, false);
-    assert.equal(lenient.diagnostics.recordCount, 1);
-    assert.equal(lenient.diagnostics.permutationProduct, 2);
-    assert.equal(lenient.diagnostics.indicesMatchPosition, true);
+    // Carbon does not reject a sparse file; it silently returns the wrong
+    // permutation's shader, because it indexes the table positionally. So the
+    // default is to fail closed.
+    assert.throws(() => new CjsCarbonEffectReader(bytes), /offset table is sparse/);
 
-    assert.throws(() => lenient.requireDensePermutationTable(), /offset table is sparse/);
-    assert.throws(
-        () => new CjsCarbonEffectReader(bytes, { strict: true }),
-        /offset table is sparse/
-    );
+    const permissive = new CjsCarbonEffectReader(bytes, { permissive: true });
+    assert.equal(permissive.diagnostics.dense, false);
+    assert.equal(permissive.diagnostics.recordCount, 1);
+    assert.equal(permissive.diagnostics.permutationProduct, 2);
+    assert.equal(permissive.diagnostics.indicesMatchPosition, true);
+    assert.throws(() => permissive.requireDensePermutationTable(), /offset table is sparse/);
+});
+
+test("a misordered offset table is rejected by default", () =>
+{
+    const bytes = Uint8Array.from(buildSyntheticContainer());
+    const reader = new CjsCarbonEffectReader(bytes, { permissive: true });
+    const rowTableStart = reader.headerEnd - reader.records.length * 12;
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+
+    // Swap the stored index of row 0, which Carbon never reads.
+    view.setUint32(rowTableStart, 3, true);
+
+    assert.throws(() => new CjsCarbonEffectReader(bytes), /not positionally indexed/);
+    const permissive = new CjsCarbonEffectReader(bytes, { permissive: true });
+    assert.equal(permissive.diagnostics.indicesMatchPosition, false);
+    assert.deepEqual(permissive.diagnostics.firstIndexMismatch, { position: 0, storedIndex: 3 });
 });
 
 test("the writer refuses to emit a table the reader would index wrongly", () =>

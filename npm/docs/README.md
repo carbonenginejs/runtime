@@ -60,6 +60,9 @@ hydration boundary.
 - [concepts/shader-resource-model.md](concepts/shader-resource-model.md): how
   `Tr2EffectRes`, `Tr2Shader` and `Tr2Effect` relate, verified against Carbon —
   one file, many permutations, many effects sharing them.
+- [concepts/effect-container-port-decisions.md](concepts/effect-container-port-decisions.md):
+  decisions, measurements and deferred work from the Carbon v15 container port,
+  including the recorded `engine-webgpu` layering defect.
 - [reference/motherlode-cache.md](reference/motherlode-cache.md): canonical
   identity, byte-budget cache, payload retention, and purge contracts.
 - [reference/reload.md](reference/reload.md): the candidate-first atomic

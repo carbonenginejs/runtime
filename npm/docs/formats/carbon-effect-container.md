@@ -249,14 +249,19 @@ Given that, the checks are implemented as follows:
 
 - `CjsCarbonEffectReader` **always** collects `dense` and `indicesMatchPosition` as
   diagnostics, and **always** fails closed on an out-of-range row.
-- Failing closed on density is opt-in, via `{ strict: true }` or
-  `requireDensePermutationTable()`. It is not the default for a reason: the
-  compiler can still emit a sparse table when run with `--ignore-permutations`,
-  which writes only key 0 while declaring every axis. No such file ships, but the
-  tool that produces them exists.
+- Density and positional indexing **fail closed on read by default**.
+  `{ permissive: true }` skips the check and leaves the diagnostics in place, for
+  forensic inspection of a file already known to be malformed. It is not a load
+  option.
 - `writeCarbonEffectFile` **always** fails closed: it refuses to emit bodies that
   are not dense from index 0. Where we own the bytes there is no reason to be
   lenient.
+
+`--ignore-permutations` does make CCP's compiler emit only key 0 while declaring
+every axis, so a sparse file is producible. That argues for the escape hatch, not
+for permissive defaults: Carbon does not reject such a file, it returns the wrong
+permutation's shader silently, which is the failure class this port exists to
+close.
 
 ## The envelope
 

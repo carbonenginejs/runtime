@@ -19,5 +19,23 @@ class CjsFormatReadError extends Error {
   }
 }
 
-export { CjsFormatReadError };
+/**
+ * Error raised when shared binary format bytes cannot be encoded safely.
+ */
+class CjsFormatWriteError extends Error {
+  /**
+   * Creates a write error with structured writer-state details.
+   *
+   * @param {string} message Human-readable failure reason.
+   * @param {object} [details] Extra writer state such as offset or value.
+   */
+  constructor(message, details = {}) {
+    super(message);
+    this.name = "CjsFormatWriteError";
+    this.code = "CJS_FORMAT_WRITE_ERROR";
+    this.details = details;
+  }
+}
+
+export { CjsFormatReadError, CjsFormatWriteError };
 //# sourceMappingURL=CjsFormatError.js.map
