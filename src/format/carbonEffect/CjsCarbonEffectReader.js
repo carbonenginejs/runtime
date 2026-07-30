@@ -300,6 +300,23 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
             uniqueOffsets.add(record.offset);
         }
 
+        // The body region must begin exactly where the header ends. Carbon computes
+        // its first body offset as `4 + 4 + 32 + headerSize + stringTable.GetSize()`
+        // (`ShaderCompiler.cpp:801`), so a gap or an overlap means our reconstruction
+        // of that arithmetic disagrees with the writer's — which would silently
+        // misread every body rather than fail. Carbon's own reader does not check
+        // this; measured across 4833 shipped files, every one starts its body region
+        // flush against the header with no slack.
+        const firstBody = Math.min(...this.records.map((record) => record.offset));
+        if (firstBody !== headerEnd)
+        {
+            throw this._error("Carbon effect body region does not start where the header ends", {
+                firstBody,
+                headerEnd,
+                slack: firstBody - headerEnd
+            });
+        }
+
         return {
             recordCount: this.records.length,
             permutationProduct: this.permutationProduct,

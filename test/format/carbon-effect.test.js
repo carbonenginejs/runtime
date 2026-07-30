@@ -7,6 +7,7 @@ import { CjsStringTable } from "../../src/format/CjsStringTable.js";
 import {
     CARBON_EFFECT_DATA_VERSION,
     CARBON_EFFECT_COUNT_CAPS,
+    collectArena,
     compareAnnotationNames,
     internArena,
     passthroughArena,
@@ -390,6 +391,55 @@ test("the reader rejects a body record overlapping the header", () =>
     view.setUint32(rowTableStart + 4, 0, true);
 
     assert.throws(() => new CjsCarbonEffectReader(bytes), /body record 0 is out of range/);
+});
+
+test("a description blob with a trailing tail is rejected, not silently truncated", () =>
+{
+    // The universal exhaustiveness rule: this is what carries the weight of the
+    // cross-chunk agreement checks the container rewrite deletes. A writer bug
+    // either fails to parse or lands the cursor short of the declared end.
+    const table = new CjsStringTable();
+    const description = buildSyntheticDescription();
+    writeEffectDescription(new CjsByteWriter(), description, { arena: collectArena(table) });
+    table.finish();
+
+    const writer = new CjsByteWriter();
+    writeEffectDescription(writer, description, { arena: internArena(table) });
+    const body = writer.toBytes();
+
+    const padded = new Uint8Array(body.length + 2);
+    padded.set(body, 0);
+    const reader = new CjsByteReader(padded, {
+        stringTable: table.toBytes(),
+        stringTableSize: table.byteLength
+    });
+    assert.throws(
+        () => readEffectDescription(reader),
+        /description blob has 2 unparsed trailing byte\(s\)/
+    );
+});
+
+test("the reader rejects a body region that does not start where the header ends", () =>
+{
+    const original = buildSyntheticContainer();
+    const probe = new CjsCarbonEffectReader(original);
+
+    // Insert two bytes of slack between the header and the first body, and move
+    // every row past it, so containment still holds but the base arithmetic does not.
+    const shifted = new Uint8Array(original.length + 2);
+    shifted.set(original.subarray(0, probe.headerEnd), 0);
+    shifted.set(original.subarray(probe.headerEnd), probe.headerEnd + 2);
+    const view = new DataView(shifted.buffer);
+    const rowTableStart = probe.headerEnd - probe.records.length * 12;
+    for (let index = 0; index < probe.records.length; index += 1)
+    {
+        view.setUint32(rowTableStart + index * 12 + 4, probe.records[index].offset + 2, true);
+    }
+
+    assert.throws(
+        () => new CjsCarbonEffectReader(shifted),
+        /body region does not start where the header ends/
+    );
 });
 
 test("the reader rejects a version it has no authoritative writer for", () =>

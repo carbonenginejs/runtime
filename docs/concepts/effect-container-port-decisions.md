@@ -297,6 +297,44 @@ Also invention, and worth naming: `STAGE_SCHEMA`'s stage numbering is Carbon's
 (`EffectData.h:15-22`), but its *closure at three* is not — Carbon admits six stage
 types. A WebGPU restriction wearing Carbon's numbering.
 
+**Decided: the container admits Carbon's six.** A container that admits three is not
+Carbon's container. `STAGE_SCHEMA` stays in the webgpu validator, which is the
+backend layer, and rejects what WebGPU cannot express — it does not migrate into the
+container during the rewrite. The rule is the one held throughout: the Carbon region
+is backend-invariant, restrictions live in the backend. Already satisfied on our side,
+since `CARBON_EFFECT_COUNT_CAPS.stages` is 6.
+
+`validateBindingDescriptor` and the `viewDimension` clauses are deleted rather than
+retargeted. Their operands are synthesised at realization, so checking them here
+would be inventing a value and then testing it against the rule that generated it.
+`minBindingSize`, `sampleType` and `multisampled` may well deserve a check where they
+are actually derived from external inputs — but that is `engine-webgpu`'s realization
+path and out of this port's scope.
+
+### The final split
+
+Superseding the partition's estimate. `validateEffectPackageEnvelope` is apportioned
+by line span rather than counted whole.
+
+| | webgpu (of 1757) | webgl (of 609) |
+|---|---|---|
+| **deleted** — reconciliation, info-plumbing, meta-selection, digest | ~925 | ~283 |
+| **deleted** — shattered-tree bookkeeping previously filed as structural | ~330 | ~150 |
+| **deleted** — untargetable, operands never reach the wire | ~48 | 0 |
+| **retained, retargeted at records** | ~60 | ~35 |
+| **retained, moved to the backend layer** (WebGPU enum tables, `STAGE_SCHEMA`, bind-group and transform checks) | ~350 | 0 |
+| header, imports, JSDoc | ~336 | ~46 |
+
+The retargeted column is ~60 lines, not ~436. Two clauses in it are load-bearing;
+the rest is the per-blob exhaustiveness rule and the caps already in phase 1. The
+~350 retained-but-moved lines are not deleted and not retargeted — they keep working
+on WebGPU concepts, which is where they always belonged.
+
+This also shrinks the commit the backend split was partly sized to justify. The split
+still holds on its other grounds — webgl needs a measurement baseline, half-cost
+failure discovery, and `inspectWithValues` couples write to read within a backend but
+not across backends.
+
 ### Two traps this surfaced
 
 **`jsonEqual` must be deleted, not retargeted — retargeted it would always pass.**

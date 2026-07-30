@@ -117,7 +117,28 @@ an arithmetic error fails loudly rather than shifting every body.
    `{u32 size, u32 offset}` pair. `StringTable::Write` emits a `u32` payload size
    and the payload, nothing else; every reference site resolves its own entry.
 
-**Rule: anything placed in the arena must be arena-independent.** An arena entry
+## Two rules for anything added later
+
+Neither is visible from Carbon's own code, and both were found by implementing
+rather than by reading. They constrain every future addition to this format.
+
+**Rule 1: every sized record must parse to exactly its declared end.** Trailing
+bytes mean one of two things and both are fatal — the writer knew fields this reader
+does not, or the writer miscounted. Enforced for the description blob
+(`readEffectDescription`), for the per-pass backend block (`readBackendBlock`), and
+for the header, whose end must equal where the body region begins.
+
+This rule carries weight that used to live elsewhere. The chunk container it replaces
+spent roughly 600 lines asserting that its several projections of one effect still
+agreed with each other, and those checks caught a malformed *tree* — our writer
+emitting something structurally wrong — not only a malformed file. A record layout
+makes most of that question unaskable, because containment replaces reference and
+position replaces key. What remains is this: a writer bug either fails to parse,
+which announces itself, or it parses and leaves the cursor somewhere other than the
+declared end. Applying the rule to some sized records and not others is a gap that
+stays invisible until a writer bug hides in one of the others.
+
+**Rule 2: anything placed in the arena must be arena-independent.** An arena entry
 cannot contain an arena offset. Offsets are assigned by the content sort, the sort
 depends on every entry's bytes, so an entry that referred to the arena would have to
 be interned before its own contents could be computed — a circular dependency with
@@ -127,6 +148,14 @@ Our per-pass backend block is the first non-leaf candidate, and it is why that b
 carries inline length-prefixed strings instead of references. A test pins the
 property directly — the block's bytes must be identical whichever arena it is
 interned into. Any future arena entry must satisfy the same rule.
+
+**Corollary: the container admits all six of Carbon's stage types.** `stages` is
+capped at `SHADER_TYPE_COUNT` = 6, matching `Tr2EffectDescription.cpp:529`, and the
+stage-type byte is Carbon's `InputStageType` numbering (`EffectData.h:15-22`) —
+vertex, pixel, compute, geometry, hull, domain. A backend that can only express three
+of those rejects the rest in its own layer; the container does not narrow on its
+behalf. Same reasoning that puts `payloadKind` in the envelope rather than per-stage:
+the Carbon region is backend-invariant, and restrictions belong to the backend.
 
 `0xffffffff` is the null reference (`StringTable.cpp:52-68`). It is legal at
 **exactly one wire position**: a stage's default-constant-value offset when the

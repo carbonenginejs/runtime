@@ -246,6 +246,36 @@ function writeError(message, details)
 }
 
 /**
+ * Requires that a sized record parsed to exactly its declared end.
+ *
+ * This is the universal form of the rule the backend block discovered, and it
+ * carries real weight: it is the successor to roughly 600 lines of cross-chunk
+ * agreement checks that the container rewrite deletes. Those checks caught a
+ * malformed *tree* — our writer emitting something structurally wrong — not only a
+ * malformed file. Under a record layout a writer bug either fails to parse, which
+ * is self-announcing, or it parses and leaves the cursor somewhere other than the
+ * declared end. Trailing bytes therefore mean one of two things, both fatal: the
+ * writer knew fields this reader does not, or the writer miscounted.
+ *
+ * Applying it to some sized records and not others is a gap that stays invisible
+ * until a writer bug hides in one of the others, so every sized record gets it.
+ *
+ * @param {import("../CjsByteReader.js").CjsByteReader} reader Reader at the record end.
+ * @param {string} what Record name for the error message.
+ * @param {Function} makeError Error factory.
+ */
+function requireExhaustive(reader, what, makeError)
+{
+    if (reader.remaining !== 0)
+    {
+        throw makeError(
+            `Carbon effect ${what} has ${reader.remaining} unparsed trailing byte(s)`,
+            { trailingBytes: reader.remaining, offset: reader.offset, end: reader.end }
+        );
+    }
+}
+
+/**
  * Rejects a count above Carbon's inclusive limit for that field.
  *
  * @param {number} value Count read or about to be written.
@@ -931,6 +961,8 @@ export function readEffectDescription(reader, options = {})
     {
         annotations.push({ name: readStringRef(reader), annotations: readAnnotations(reader) });
     }
+
+    requireExhaustive(reader, "description blob", makeError);
 
     return { techniques, annotations };
 }
