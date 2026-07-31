@@ -1,5 +1,4 @@
-// EveSpaceScene CPU visibility/gather drive (SCENE-DRIVE-BLUEPRINT-2026-07-24
-// section 5, all eight fixtures). Carbon sources: EveSpaceScene.cpp
+// EveSpaceScene CPU visibility/gather drive. Carbon sources: EveSpaceScene.cpp
 // Update cpp:434-603, BeginRender cpp:1295-1427 (lighting blend cpp:1333-1363,
 // GatherLights cpp:1396-1416), GatherBatches cpp:1433-1525 ([VISIBILITY]
 // cpp:1443-1467, [GATHER] cpp:1470-1507), UpdatePostProcessAttributes
