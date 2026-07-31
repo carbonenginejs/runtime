@@ -100,11 +100,32 @@ in between. Nothing expires; the dependency is just in that order.
 
 Two consumers depend on it, and neither parses package bytes:
 
-- `engine-webgpu` reads `analysis.passes` and, per binding, `carbon.type`,
-  `carbon.isSRGB`, `heapView` and `annotations` — in `core/packageHelpers.js` and
-  `core/spaceObjectMainBindings.js`. `CjsWebGPUPackage.fromBytes` takes an
-  *injected* reader, so the wire format is invisible to it. The only way step 1
-  breaks the engine is if the returned document stops carrying that view.
+- `engine-webgpu` reads the view and nothing else. `CjsWebGPUPackage.fromBytes`
+  takes an *injected* reader and the package declares no dependencies at all, so
+  the wire format is invisible to it. The complete surface, at the call sites:
+
+  | field | read at |
+  |---|---|
+  | `metadata.metadataName` | `packageHelpers.js:704,720` |
+  | `metadata.carbon` | `:721,755,765` |
+  | `metadata.heapView` | `:719,833` |
+  | `metadata.annotations` | `:722,836` |
+  | `carbon.type`, `carbon.isSRGB`, `carbon.arrayElements` | `:862,870,869` |
+  | `carbon.hasLocalConstants`, `carbon.constantValueSize`, `carbon.constants[]` | `spaceObjectMainBindings.js:252-268,323` |
+
+  **`carbon.constants[]` is the one that fails silently.** It packs real `cb0`
+  material bytes, each record carrying `{name, offset, size, dimension, type,
+  elements}`. A view that emits `carbon` without it does not throw on read — it
+  reaches `fail("cb0 has no usable reflected local-constant layout")` inside
+  `packMaterial`, only when something actually draws. Nothing in the read chain
+  catches it. Assert it on a `Main.pass0.pixel` binding specifically, because that
+  is what `findMaterialBinding` selects.
+
+  Two of those are **derived, not stored**, so the adapter reconstructs rather
+  than copies: `constantValueSize` comes from the `defaultValues` blob at
+  `HlslEffectDescription.js:381` (the container carries the blob), and
+  `hasLocalConstants` is `registerIndex === 0 && stage.constants.length > 0`
+  (`HlslEffectBindingManifest.js:385`).
 - `tools-core`'s `CjsToolShaderBuilder` calls `format.inspect(outputBytes)` and
   stores the result as `packageInspection` in its manifest, and asserts the format
   exposes both `buildEffect` and `inspect`. So `inspect`'s *shape* is a contract,
@@ -115,12 +136,19 @@ The tempting shortcut does not work. `buildEffectAnalysis` is a pure function of
 the effect description via `HlslEffectBindingManifest.fromEffectDescription`, and
 the container carries the description — but two things block reuse:
 
-1. **Our per-pass trailing block makes the body unreadable by the stock reader.**
-   The block is eight bytes at the end of each pass, so Carbon's own description
-   reader desynchronises at the second pass. That is exactly what the `backend`
-   gate exists for, and it is the price of putting the block inside the record
-   layout rather than beside it. Only `readEffectDescription(reader, {backend:
-   true})` parses our bodies.
+1. **Our per-pass trailing block makes the body unreadable by the *stock* reader.**
+   The block is eight bytes at the end of each pass, so a reader that does not
+   expect it desynchronises at the second pass. Only
+   `readEffectDescription(reader, {backend: true})` parses our bodies.
+
+   **Read that with its second sentence, not alone.** It is not "our format is
+   incompatible with Carbon". The Carbon region stays byte-invariant with exactly
+   one optional block, and with the gate closed a Carbon file still produces
+   Carbon's own bytes unchanged — proven across all 4833 shipped files. Teaching a
+   Carbon reader to read our containers is *one conditional read at the end of a
+   pass*, not a redesign. The gate is the compatibility mechanism working as
+   designed, and the alternative trades that one conditional for bespoke
+   derivation code in every future reader.
 2. **The manifest wants the runtime shape, not ours.** It indexes
    `pass.stageInputs[stageType]` with `m_exists`, and reads `textures`, `samplers`
    and `uavs` as register-keyed maps. Our record tree carries the same data as
