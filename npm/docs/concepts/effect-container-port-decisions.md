@@ -61,8 +61,8 @@ than the tail of a long session.
 
 #### The exact next step
 
-0. **The derived ANLS view and its shape adapter — do this first.** Its only
-   oracle is the stored `ANLS` chunk, which step 1 deletes. See below.
+0. **The derived ANLS view and its shape adapter — do this first**, because step 2
+   emits it and steps 1-2 land together. See below.
 1. `packageEffect.js` — replace the `buildPackage([...])` call (around line 268)
    with `buildCarbonEffectContainer`. The rich return value (`info`, `analysis`,
    `wgsl`, `backendBodySet`) stays as in-memory data for callers; only `bytes`
@@ -83,11 +83,20 @@ Then `(2)`-webgl, which deletes the one fork flag and replaces the independent
 container reimplementation at `test/formats/webgl/synthetic.js:683-724` with the
 phase-1 writer.
 
-#### The derived ANLS view is step 0, and it is not free
+#### The derived ANLS view comes first, but not because an oracle expires
 
-The switchover's real first move is not the emit. It is the derived analysis view,
-because **today's stored `ANLS` chunk is its only oracle, and the emit deletes it.**
-Build and prove the view first, flip second.
+An earlier revision of this section claimed the view had to be built first because
+the stored `ANLS` chunk was its only oracle and the emit deletes it. **That was
+wrong.** The oracle is `buildEffectAnalysis`, which takes its input from
+`readEffectAnalysis(sourceBytes)` — the `.sm_hi` file, not the package. It survives
+the switchover untouched and can be called on any source effect at any time, so the
+reference answer is always reproducible. The mistake was treating a stored artifact
+as the thing that produces it, which is the exact conflation this port removes.
+
+The real reason to build it first is duller and still sufficient: **step 2 cannot be
+written without it.** `packageToJson` has to emit the view, so the view has to exist
+before the reader is retargeted, and steps 1 and 2 land together with no green state
+in between. Nothing expires; the dependency is just in that order.
 
 Two consumers depend on it, and neither parses package bytes:
 
@@ -122,9 +131,12 @@ shape the manifest already consumes — roughly 150 lines, no new semantics — 
 which `buildEffectAnalysis` runs unchanged and the view is the same function it
 has always been rather than a reimplementation that can drift.
 
-Its oracle, while it still exists: build an effect both ways and diff the derived
-view against the stored `ANLS` chunk, field for field, the way
-`carbon-mapping.test.js` diffs the Carbon region. Do this **before** step 1.
+Its oracle: run `buildEffectAnalysis` twice — once on `readEffectAnalysis(source)`
+as it is called today, once on the adapter's output from the container — and diff
+field for field, the way `carbon-mapping.test.js` diffs the Carbon region. Because
+both sides call the same function, the diff isolates exactly one thing: whether the
+adapter reconstructs the description faithfully. That property is permanent and the
+test is worth keeping after the switchover, not a temporary scaffold.
 
 #### Reproducing the measurements
 
