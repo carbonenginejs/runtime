@@ -34,6 +34,31 @@ wildcard listener dispatch, no `family.event` or ancestor routing, and no
 event payload history. Resource classes may emit their own state or domain
 events, but the emitter does not invent a resource lifecycle contract.
 
+## Resource lifecycle events
+
+`CjsResource.SetState()` supplies the resource-specific lifecycle contract. A
+state transition emits, in order:
+
+1. the lowercase state name with `(resource, ...details)`;
+2. `statechange` with `(resource, nextState, previousState)`; and
+3. `completed` with `(resource, ...details)` when the new state is
+   `prepared` or `failed`.
+
+`purged` is deliberately not completion. A purged handle may re-register and
+reload itself into the same identity, and listeners are not cleared by purge.
+A listener that remains registered for `completed` can therefore observe the
+initial outcome and a later purge/reload outcome.
+
+Raw `OnEvent()` and `OnceEvent()` never replay event history. The one
+state-aware registration helper is `CjsResource.OnCompleted(listener,
+source?)`: it calls the listener synchronously and stores nothing when the
+resource is already complete; otherwise it registers a persistent
+`completed` listener. This is the canonical check-then-subscribe operation for
+late consumers. A listener satisfied synchronously will not observe a later
+reload unless it explicitly subscribes again. Use `Ready()`/`GetObject()` when
+the caller needs a promise for the current load operation rather than a
+re-enterable lifecycle observer.
+
 ## Memory rules
 
 Event storage is the optional `events` member of the emitter's non-enumerable
