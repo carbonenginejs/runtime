@@ -178,6 +178,18 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
                 mediaId: "777",
                 loop: true,
                 spatial: false,
+                rtpcCurves: [
+                    {
+                        rtpc: "speed",
+                        scope: "object",
+                        property: "volume",
+                        scaling: 2,
+                        points: [
+                            { x: 0, value: -1, interpolation: 5 },
+                            { x: 1, value: 0, interpolation: 9 },
+                        ],
+                    },
+                ],
             },
         },
     };
@@ -308,6 +320,42 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
         /points must have non-decreasing x/u,
     );
 
+    const invalidRtpcScaling = structuredClone(valid);
+
+    invalidRtpcScaling.sfx.nodes["2"].rtpcCurves[0].scaling = 0;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidRtpcScaling),
+        /scaling must be 2 for volume/u,
+    );
+
+    const invalidRtpcProperty = structuredClone(valid);
+
+    invalidRtpcProperty.sfx.nodes["2"].rtpcCurves[0].property = "filter";
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidRtpcProperty),
+        /property must be volume, pitch, or initialDelay/u,
+    );
+
+    const invalidRtpcOrder = structuredClone(valid);
+
+    invalidRtpcOrder.sfx.nodes["2"].rtpcCurves[0].points.reverse();
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidRtpcOrder),
+        /points must have non-decreasing x/u,
+    );
+
+    const invalidRtpcInterpolation = structuredClone(valid);
+
+    invalidRtpcInterpolation
+        .sfx.nodes["2"]
+        .rtpcCurves[0]
+        .points[0]
+        .interpolation = 10;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidRtpcInterpolation),
+        /interpolation must be a Wwise curve value from 0 to 9/u,
+    );
+
     const cycle = structuredClone(valid);
 
     cycle.sfx.nodes["2"] = {
@@ -393,6 +441,25 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
                         ],
                     },
                 ],
+                rtpcCurves: [
+                    {
+                        rtpc: " load ",
+                        property: " pitch ",
+                        scaling: "0",
+                        points: [
+                            {
+                                x: "0",
+                                value: "-1200",
+                                interpolation: "5",
+                            },
+                            {
+                                x: "1",
+                                value: "1200",
+                                interpolation: "9",
+                            },
+                        ],
+                    },
+                ],
                 stateProperties: [
                     {
                         group: "combat",
@@ -427,6 +494,18 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
     assert.deepEqual(installed.sfx.nodes["1"].gainCurves[0].points, [
         { x: 0, gainDb: -20 },
         { x: 1, gainDb: 0 },
+    ]);
+    assert.deepEqual(installed.sfx.nodes["1"].rtpcCurves, [
+        {
+            rtpc: "load",
+            scope: "object",
+            property: "pitch",
+            scaling: 0,
+            points: [
+                { x: 0, value: -1200, interpolation: 5 },
+                { x: 1, value: 1200, interpolation: 9 },
+            ],
+        },
     ]);
     assert.deepEqual(installed.sfx.nodes["1"].stateProperties, [
         {

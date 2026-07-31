@@ -110,6 +110,7 @@ export class CjsSfxEngine
                     gainDb: 0,
                     gainCurves: [],
                     pitchCents: 0,
+                    rtpcCurves: [],
                     stateProperties: [],
                     initialDelayMs: 0,
                     delayMs: 0,
@@ -206,6 +207,10 @@ export class CjsSfxEngine
             selection?.stateProperties,
             controls,
         ).gainDb;
+        gainDb += EvaluateRtpcProperties(
+            selection?.rtpcCurves,
+            controls,
+        ).gainDb;
 
         gainDb = Clamp(
             gainDb,
@@ -233,11 +238,15 @@ export class CjsSfxEngine
             selection.stateProperties,
             controls,
         ).pitchCents;
+        const rtpcPitch = EvaluateRtpcProperties(
+            selection.rtpcCurves,
+            controls,
+        ).pitchCents;
 
         return selection.authoredPlaybackRate
             * 2 ** (
                 Clamp(
-                    selection.pitchCents + statePitch,
+                    selection.pitchCents + statePitch + rtpcPitch,
                     MIN_RELATIVE_PITCH_CENTS,
                     MAX_RELATIVE_PITCH_CENTS,
                 ) / 1200
@@ -297,9 +306,23 @@ export class CjsSfxEngine
 
         if (node.type === "sound")
         {
+            const rtpcCurves = Object.freeze([
+                ...terms.rtpcCurves,
+            ]);
             const stateProperties = Object.freeze([
                 ...terms.stateProperties,
             ]);
+            const dynamicPitch = stateProperties.length
+                || rtpcCurves.some(curve =>
+                    curve.property === "pitch");
+            const rtpcInitialDelayMs = EvaluateRtpcProperties(
+                rtpcCurves,
+                controls,
+            ).initialDelayMs;
+            const initialDelayMs = Math.max(
+                0,
+                terms.initialDelayMs + rtpcInitialDelayMs,
+            );
             const selection = {
                 mediaID: String(node.mediaId),
                 matchIds: Object.freeze([ ...new Set([
@@ -315,17 +338,17 @@ export class CjsSfxEngine
                     : { spatial: node.spatial }),
                 gainDb: terms.gainDb,
                 gainCurves: Object.freeze([ ...terms.gainCurves ]),
-                ...(stateProperties.length
+                ...(rtpcCurves.length ? { rtpcCurves } : {}),
+                ...(dynamicPitch
                     ? {
                         authoredPlaybackRate: node.playbackRate ?? 1,
                         pitchCents: terms.pitchCents,
                         stateProperties,
                     }
                     : {}),
-                ...(terms.delayMs + terms.initialDelayMs > 0
+                ...(terms.delayMs + initialDelayMs > 0
                     ? {
-                        delayMs: terms.delayMs
-                            + terms.initialDelayMs,
+                        delayMs: terms.delayMs + initialDelayMs,
                     }
                     : {}),
                 ...(terms.fadeInMs > 0
@@ -336,7 +359,7 @@ export class CjsSfxEngine
                     : {}),
             };
 
-            selection.playbackRate = stateProperties.length
+            selection.playbackRate = dynamicPitch
                 ? this.EvaluatePlaybackRate(selection, controls)
                 : (node.playbackRate ?? 1)
                     * 2 ** (
@@ -447,6 +470,10 @@ export class CjsSfxEngine
             gainCurves: [
                 ...base.gainCurves,
                 ...(value?.gainCurves ?? []),
+            ],
+            rtpcCurves: [
+                ...base.rtpcCurves,
+                ...(value?.rtpcCurves ?? []),
             ],
             stateProperties: [
                 ...base.stateProperties,
@@ -723,13 +750,20 @@ function SampleRanges(ranges, sample)
     return result;
 }
 
-function ReadRTPC(curve, controls)
+function ReadRTPC(
+    curve,
+    controls,
+    defaultToFirstPoint = true,
+)
 {
+    const fallback = curve.defaultValue
+        ?? (defaultToFirstPoint ? curve.points[0].x : undefined);
+
     if (curve.scope === "global")
     {
         return NormalizeControlValue(
             controls.getGlobalRTPC?.(curve.rtpc),
-            curve.defaultValue ?? curve.points[0].x,
+            fallback,
         );
     }
 
@@ -737,7 +771,7 @@ function ReadRTPC(curve, controls)
 
     return NormalizeControlValue(
         objectValue ?? controls.getGlobalRTPC?.(curve.rtpc),
-        curve.defaultValue ?? curve.points[0].x,
+        fallback,
     );
 }
 
@@ -760,8 +794,51 @@ function EvaluateStateProperties(properties, controls)
     return { gainDb, pitchCents };
 }
 
+function EvaluateRtpcProperties(curves, controls)
+{
+    let gainDb = 0;
+    let pitchCents = 0;
+    let initialDelayMs = 0;
+
+    for (const curve of curves ?? [])
+    {
+        const value = ReadRTPC(curve, controls, false);
+
+        if (value === undefined)
+        {
+            continue;
+        }
+
+        const output = EvaluateValueCurve(curve.points, value);
+
+        if (curve.property === "volume")
+        {
+            const raw = Clamp(output, -1, 1);
+
+            gainDb += raw === -1
+                ? -96.3
+                : 20 * Math.log10(raw + 1);
+        }
+        else if (curve.property === "pitch")
+        {
+            pitchCents += output;
+        }
+        else if (curve.property === "initialDelay")
+        {
+            initialDelayMs += output * 1000;
+        }
+    }
+
+    return { gainDb, pitchCents, initialDelayMs };
+}
+
 function NormalizeControlValue(value, fallback)
 {
+    if (value === undefined || value === null)
+    {
+        return fallback;
+    }
+
     const number = Number(value);
     return Number.isFinite(number) ? number : fallback;
 }
@@ -775,6 +852,16 @@ function EvaluateCurve(points, value)
 {
     const field = points[0].gain === undefined ? "gainDb" : "gain";
 
+    return EvaluateCurveField(points, value, field);
+}
+
+function EvaluateValueCurve(points, value)
+{
+    return EvaluateCurveField(points, value, "value");
+}
+
+function EvaluateCurveField(points, value, field)
+{
     if (value < points[0].x)
     {
         return points[0][field];

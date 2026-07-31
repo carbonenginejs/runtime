@@ -1268,7 +1268,7 @@ export class CjsAudioMan
                                 ? {}
                                 : { playCount: selection.playCount }),
                             playbackRate: selection.playbackRate,
-                            ...(selection.stateProperties?.length
+                            ...(selection.authoredPlaybackRate !== undefined
                                 ? {
                                     getPlaybackRate: () =>
                                         engine.EvaluatePlaybackRate(

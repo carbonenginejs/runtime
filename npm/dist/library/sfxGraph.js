@@ -2,6 +2,7 @@ const SFX_SCHEMA_VERSION = 2;
 const NODE_TYPES = new Set(["blend", "parallel", "random", "sequence", "silence", "sound", "switch"]);
 const SWITCH_SCOPES = new Set(["state", "switch"]);
 const RTPC_SCOPES = new Set(["global", "object"]);
+const RTPC_PROPERTY_SCALING = new Map([["initialDelay", 0], ["pitch", 0], ["volume", 2]]);
 const CONTAINER_SCOPES = new Set(["global", "object"]);
 const RANDOM_MODES = new Set(["random", "shuffle"]);
 const EVENT_ACTION_KINDS = new Set(["state", "switch"]);
@@ -27,6 +28,7 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
     }
     ValidateGain(node, `Audio library SFX node ${id}`);
     ValidateNodePlaybackProperties(node, `Audio library SFX node ${id}`);
+    ValidateRtpcCurves(node.rtpcCurves, `Audio library SFX node ${id} rtpcCurves`);
     ValidateStateProperties(node.stateProperties, `Audio library SFX node ${id} stateProperties`);
     if (node.type === "sound" || node.type === "silence") {
       if (node.type === "silence") {
@@ -187,6 +189,7 @@ function NormalizeNode(node) {
     type: node.type,
     ...NormalizeGain(node),
     ...NormalizeNodePlaybackProperties(node),
+    ...NormalizeRtpcCurves(node),
     ...NormalizeStateProperties(node)
   };
   if (node.type === "sound" || node.type === "silence") {
@@ -298,6 +301,29 @@ function NormalizeNodePlaybackProperties(value) {
     }
   }
   return result;
+}
+function NormalizeRtpcCurves(value) {
+  if (value.rtpcCurves === undefined) {
+    return {};
+  }
+  return {
+    rtpcCurves: value.rtpcCurves.map(curve => ({
+      rtpc: String(curve.rtpc).trim(),
+      scope: curve.scope ?? "object",
+      property: String(curve.property).trim(),
+      scaling: Number(curve.scaling),
+      ...(curve.defaultValue === undefined ? {} : {
+        defaultValue: Number(curve.defaultValue)
+      }),
+      points: curve.points.map(point => ({
+        x: Number(point.x),
+        value: Number(point.value),
+        ...(point.interpolation === undefined ? {} : {
+          interpolation: Number(point.interpolation)
+        })
+      }))
+    }))
+  };
 }
 function NormalizeStateProperties(value) {
   if (value.stateProperties === undefined) {
@@ -569,6 +595,48 @@ function ValidateNodePlaybackProperties(value, label) {
   }
   ValidateRandomRanges(value.pitchCentsRanges, `${label} pitchCentsRanges`);
   ValidateRandomRanges(value.initialDelayRangesMs, `${label} initialDelayRangesMs`);
+}
+function ValidateRtpcCurves(value, label) {
+  if (value === undefined) {
+    return;
+  }
+  if (!Array.isArray(value) || !value.length) {
+    throw new TypeError(`${label} must be a non-empty array`);
+  }
+  for (let index = 0; index < value.length; index++) {
+    const curve = RequireRecord(value[index], `${label} ${index}`);
+    const property = NormalizeName(curve.property, `${label} ${index} property`);
+    const expectedScaling = RTPC_PROPERTY_SCALING.get(property);
+    NormalizeName(curve.rtpc, `${label} ${index} rtpc`);
+    if (!RTPC_SCOPES.has(curve.scope ?? "object")) {
+      throw new TypeError(`${label} ${index} scope must be object or global`);
+    }
+    if (expectedScaling === undefined) {
+      throw new TypeError(`${label} ${index} property must be volume, pitch, or initialDelay`);
+    }
+    if (Number(curve.scaling) !== expectedScaling) {
+      throw new TypeError(`${label} ${index} scaling must be ${expectedScaling}` + ` for ${property}`);
+    }
+    if (curve.defaultValue !== undefined) {
+      NormalizeFiniteNumber(curve.defaultValue, `${label} ${index} defaultValue`);
+    }
+    if (!Array.isArray(curve.points) || !curve.points.length) {
+      throw new TypeError(`${label} ${index} must have points`);
+    }
+    let previous = -Infinity;
+    for (let pointIndex = 0; pointIndex < curve.points.length; pointIndex++) {
+      const point = RequireRecord(curve.points[pointIndex], `${label} ${index} point ${pointIndex}`);
+      const x = NormalizeFiniteNumber(point.x, `${label} ${index} point ${pointIndex} x`);
+      NormalizeFiniteNumber(point.value, `${label} ${index} point ${pointIndex} value`);
+      if (point.interpolation !== undefined && (!Number.isSafeInteger(Number(point.interpolation)) || Number(point.interpolation) < 0 || Number(point.interpolation) > 9)) {
+        throw new TypeError(`${label} ${index} point ${pointIndex}` + " interpolation must be a Wwise curve value from 0 to 9");
+      }
+      if (x < previous) {
+        throw new TypeError(`${label} ${index} points must have non-decreasing x`);
+      }
+      previous = x;
+    }
+  }
 }
 function ValidateStateProperties(value, label) {
   if (value === undefined) {

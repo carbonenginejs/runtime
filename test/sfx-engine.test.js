@@ -164,6 +164,201 @@ test("Immediate state properties add to inherited volume and pitch", () =>
     );
 });
 
+test("NodeBase RTPC curves add live volume and pitch but capture delay", () =>
+{
+    const objectValues = new Map([
+        [ "delay", 1 ],
+        [ "load", 0.5 ],
+        [ "speed", 1 ],
+    ]);
+    const globalValues = new Map([
+        [ "load", 0 ],
+    ]);
+    const controls = {
+        getRTPC: name => objectValues.get(name),
+        getGlobalRTPC: name => globalValues.get(name),
+        getState: () => "danger",
+    };
+    const curve = (
+        rtpc,
+        property,
+        scaling,
+        from,
+        to,
+    ) => ({
+        rtpc,
+        scope: "object",
+        property,
+        scaling,
+        points: [
+            { x: 0, value: from, interpolation: 4 },
+            { x: 1, value: to, interpolation: 4 },
+        ],
+    });
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            {
+                fire: [ { nodeId: "1", delayMs: 100 } ],
+            },
+            {
+                "1": {
+                    type: "blend",
+                    gainDb: -1,
+                    pitchCents: 100,
+                    initialDelayMs: 50,
+                    rtpcCurves: [
+                        curve("load", "volume", 2, 0, -0.5),
+                        curve("unset", "volume", 2, -1, -1),
+                        curve("speed", "pitch", 0, 0, 600),
+                        curve("delay", "initialDelay", 0, 0, -0.2),
+                    ],
+                    children: [ { nodeId: "2" } ],
+                },
+                "2": {
+                    type: "sound",
+                    mediaId: "100",
+                    gainDb: -2,
+                    pitchCents: 200,
+                    rtpcCurves: [
+                        curve("load", "volume", 2, 0, -0.5),
+                        curve("speed", "pitch", 0, 0, 600),
+                        curve("delay", "initialDelay", 0, 0, 0.1),
+                    ],
+                    stateProperties: [
+                        {
+                            group: "combat",
+                            cases: {
+                                danger: { pitchCents: 1100 },
+                            },
+                        },
+                    ],
+                },
+            },
+        ),
+    });
+    const selection = engine.ResolveEvent("fire", controls)[0];
+
+    assert.equal(
+        selection.delayMs,
+        100,
+        "negative NodeBase delay deltas clamp before Play-action delay",
+    );
+    assert.equal(
+        engine.EvaluatePlaybackRate(selection, controls),
+        4,
+        "static, State, and inherited RTPC pitch clamp together",
+    );
+    assert.ok(
+        Math.abs(
+            engine.EvaluateGain(selection, controls)
+                - 10 ** (-3 / 20) * 0.75 * 0.75,
+        ) < 1e-12,
+        "raw Volume outputs are interpolated before dB scaling",
+    );
+
+    objectValues.delete("load");
+    objectValues.set("speed", 0);
+    objectValues.set("delay", 0);
+
+    assert.ok(
+        Math.abs(
+            engine.EvaluateGain(selection, controls)
+                - 10 ** (-3 / 20),
+        ) < 1e-12,
+        "an absent object RTPC falls back to its global value",
+    );
+    assert.ok(
+        Math.abs(
+            engine.EvaluatePlaybackRate(selection, controls)
+                - 2 ** (1400 / 1200),
+        ) < 1e-12,
+    );
+    assert.equal(
+        selection.delayMs,
+        100,
+        "the post-time InitialDelay does not become a live control",
+    );
+    assert.equal(
+        engine.ResolveEvent("fire", controls)[0].delayMs,
+        150,
+        "the next post captures the current InitialDelay",
+    );
+
+    objectValues.delete("delay");
+    globalValues.delete("load");
+
+    assert.ok(
+        Math.abs(
+            engine.EvaluateGain(selection, controls)
+                - 10 ** (-3 / 20),
+        ) < 1e-12,
+        "an unset RTPC without an authored default preserves static gain",
+    );
+    assert.equal(
+        engine.ResolveEvent("fire", controls)[0].delayMs,
+        150,
+        "an unset RTPC without an authored default adds no delay",
+    );
+});
+
+test("NodeBase RTPC curves use enriched defaults and clamp raw volume", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            {
+                fire: [ { nodeId: "1" } ],
+            },
+            {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    rtpcCurves: [
+                        {
+                            rtpc: "load",
+                            scope: "object",
+                            property: "volume",
+                            scaling: 2,
+                            defaultValue: 0,
+                            points: [
+                                {
+                                    x: 0,
+                                    value: 2,
+                                    interpolation: 4,
+                                },
+                            ],
+                        },
+                        {
+                            rtpc: "speed",
+                            scope: "object",
+                            property: "pitch",
+                            scaling: 0,
+                            defaultValue: 0,
+                            points: [
+                                {
+                                    x: 0,
+                                    value: 600,
+                                    interpolation: 4,
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
+        ),
+    });
+    const selection = engine.ResolveEvent("fire")[0];
+
+    assert.ok(
+        Math.abs(engine.EvaluateGain(selection) - 2) < 1e-12,
+        "raw Volume values clamp at one before Wwise dB conversion",
+    );
+    assert.ok(
+        Math.abs(
+            engine.EvaluatePlaybackRate(selection) - Math.SQRT2,
+        ) < 1e-12,
+    );
+});
+
 test("authored random containers honor weights and per-object repeat avoidance", () =>
 {
     const samples = [ 0.1, 0.1, 0.99 ];

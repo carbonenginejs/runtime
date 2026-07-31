@@ -83,6 +83,7 @@ class CjsSfxEngine {
         gainDb: 0,
         gainCurves: [],
         pitchCents: 0,
+        rtpcCurves: [],
         stateProperties: [],
         initialDelayMs: 0,
         delayMs: 0,
@@ -143,6 +144,7 @@ class CjsSfxEngine {
       }
     }
     gainDb += EvaluateStateProperties(selection?.stateProperties, controls).gainDb;
+    gainDb += EvaluateRtpcProperties(selection?.rtpcCurves, controls).gainDb;
     gainDb = Clamp(gainDb, MIN_RELATIVE_GAIN_DB, MAX_RELATIVE_GAIN_DB);
     if (linearGain <= 0 || gainDb <= MIN_AUDIBLE_GAIN_DB) {
       return 0;
@@ -157,7 +159,8 @@ class CjsSfxEngine {
       return Number.isFinite(current) && current > 0 ? current : 1;
     }
     const statePitch = EvaluateStateProperties(selection.stateProperties, controls).pitchCents;
-    return selection.authoredPlaybackRate * 2 ** (Clamp(selection.pitchCents + statePitch, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
+    const rtpcPitch = EvaluateRtpcProperties(selection.rtpcCurves, controls).pitchCents;
+    return selection.authoredPlaybackRate * 2 ** (Clamp(selection.pitchCents + statePitch + rtpcPitch, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
   }
 
   /** Clears random history and step-sequence positions. */
@@ -194,7 +197,11 @@ class CjsSfxEngine {
     const nextActive = new Set(active);
     nextActive.add(edge.nodeId);
     if (node.type === "sound") {
+      const rtpcCurves = Object.freeze([...terms.rtpcCurves]);
       const stateProperties = Object.freeze([...terms.stateProperties]);
+      const dynamicPitch = stateProperties.length || rtpcCurves.some(curve => curve.property === "pitch");
+      const rtpcInitialDelayMs = EvaluateRtpcProperties(rtpcCurves, controls).initialDelayMs;
+      const initialDelayMs = Math.max(0, terms.initialDelayMs + rtpcInitialDelayMs);
       const selection = {
         mediaID: String(node.mediaId),
         matchIds: Object.freeze([...new Set([...nextActive, ...(node.matchIds ?? [])])]),
@@ -207,20 +214,23 @@ class CjsSfxEngine {
         }),
         gainDb: terms.gainDb,
         gainCurves: Object.freeze([...terms.gainCurves]),
-        ...(stateProperties.length ? {
+        ...(rtpcCurves.length ? {
+          rtpcCurves
+        } : {}),
+        ...(dynamicPitch ? {
           authoredPlaybackRate: node.playbackRate ?? 1,
           pitchCents: terms.pitchCents,
           stateProperties
         } : {}),
-        ...(terms.delayMs + terms.initialDelayMs > 0 ? {
-          delayMs: terms.delayMs + terms.initialDelayMs
+        ...(terms.delayMs + initialDelayMs > 0 ? {
+          delayMs: terms.delayMs + initialDelayMs
         } : {}),
         ...(terms.fadeInMs > 0 ? {
           fadeInMs: terms.fadeInMs,
           fadeCurve: terms.fadeCurve
         } : {})
       };
-      selection.playbackRate = stateProperties.length ? this.EvaluatePlaybackRate(selection, controls) : (node.playbackRate ?? 1) * 2 ** (Clamp(terms.pitchCents, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
+      selection.playbackRate = dynamicPitch ? this.EvaluatePlaybackRate(selection, controls) : (node.playbackRate ?? 1) * 2 ** (Clamp(terms.pitchCents, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
       selections.push(Object.freeze(selection));
       return;
     }
@@ -262,6 +272,7 @@ class CjsSfxEngine {
       ...base,
       gainDb: base.gainDb + (Number(value?.gainDb) || 0) + SampleRanges(value?.gainDbRanges, () => this.#SampleUnit()),
       gainCurves: [...base.gainCurves, ...(value?.gainCurves ?? [])],
+      rtpcCurves: [...base.rtpcCurves, ...(value?.rtpcCurves ?? [])],
       stateProperties: [...base.stateProperties, ...(value?.stateProperties ?? [])],
       pitchCents: base.pitchCents + (Number(value?.pitchCents) || 0) + SampleRanges(value?.pitchCentsRanges, () => this.#SampleUnit()),
       initialDelayMs: base.initialDelayMs + (Number(value?.initialDelayMs) || 0) + SampleRanges(value?.initialDelayRangesMs, () => this.#SampleUnit())
@@ -434,12 +445,13 @@ function SampleRanges(ranges, sample) {
   }
   return result;
 }
-function ReadRTPC(curve, controls) {
+function ReadRTPC(curve, controls, defaultToFirstPoint = true) {
+  const fallback = curve.defaultValue ?? (defaultToFirstPoint ? curve.points[0].x : undefined);
   if (curve.scope === "global") {
-    return NormalizeControlValue(controls.getGlobalRTPC?.(curve.rtpc), curve.defaultValue ?? curve.points[0].x);
+    return NormalizeControlValue(controls.getGlobalRTPC?.(curve.rtpc), fallback);
   }
   const objectValue = controls.getRTPC?.(curve.rtpc);
-  return NormalizeControlValue(objectValue ?? controls.getGlobalRTPC?.(curve.rtpc), curve.defaultValue ?? curve.points[0].x);
+  return NormalizeControlValue(objectValue ?? controls.getGlobalRTPC?.(curve.rtpc), fallback);
 }
 function EvaluateStateProperties(properties, controls) {
   let gainDb = 0;
@@ -455,7 +467,35 @@ function EvaluateStateProperties(properties, controls) {
     pitchCents
   };
 }
+function EvaluateRtpcProperties(curves, controls) {
+  let gainDb = 0;
+  let pitchCents = 0;
+  let initialDelayMs = 0;
+  for (const curve of curves ?? []) {
+    const value = ReadRTPC(curve, controls, false);
+    if (value === undefined) {
+      continue;
+    }
+    const output = EvaluateValueCurve(curve.points, value);
+    if (curve.property === "volume") {
+      const raw = Clamp(output, -1, 1);
+      gainDb += raw === -1 ? -96.3 : 20 * Math.log10(raw + 1);
+    } else if (curve.property === "pitch") {
+      pitchCents += output;
+    } else if (curve.property === "initialDelay") {
+      initialDelayMs += output * 1000;
+    }
+  }
+  return {
+    gainDb,
+    pitchCents,
+    initialDelayMs
+  };
+}
 function NormalizeControlValue(value, fallback) {
+  if (value === undefined || value === null) {
+    return fallback;
+  }
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
 }
@@ -464,6 +504,12 @@ function Clamp(value, min, max) {
 }
 function EvaluateCurve(points, value) {
   const field = points[0].gain === undefined ? "gainDb" : "gain";
+  return EvaluateCurveField(points, value, field);
+}
+function EvaluateValueCurve(points, value) {
+  return EvaluateCurveField(points, value, "value");
+}
+function EvaluateCurveField(points, value, field) {
   if (value < points[0].x) {
     return points[0][field];
   }

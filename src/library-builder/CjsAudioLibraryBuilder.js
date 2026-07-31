@@ -140,6 +140,7 @@ export class CjsAudioLibraryBuilder
         inspections,
         metadata,
         soundbanksInfo = null,
+        enrichment = null,
         media = {},
         embeddedMedia = {},
     } = {})
@@ -165,7 +166,7 @@ export class CjsAudioLibraryBuilder
         return LowerSfxGraph({
             parsed,
             eventNames,
-            names: CreateSfxNameCatalog(soundbanksInfo),
+            names: CreateSfxNameCatalog(soundbanksInfo, enrichment),
             media,
             embeddedMedia,
         });
@@ -563,6 +564,7 @@ export class CjsAudioLibraryBuilder
                 inspections: graphInspections,
                 metadata: library.metadata,
                 soundbanksInfo: options.soundbanksInfo,
+                enrichment: options.enrichment,
                 media: library.media,
                 embeddedMedia: library.embeddedMedia ?? {},
             });
@@ -1979,6 +1981,7 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
     const gainDbRanges = [];
     const pitchCentsRanges = [];
     const initialDelayRangesMs = [];
+    const rtpcCurves = [];
     const stateProperties = [];
 
     for (const nodeBase of chain.reverse())
@@ -2030,6 +2033,102 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
                     max: max * 1000,
                 });
             }
+        }
+
+        for (const rtpc of nodeBase.rtpcs ?? [])
+        {
+            const propertyID = Number(rtpc.parameterId);
+
+            if (Number(rtpc.controlType) !== 0
+                || (propertyID !== SFX_VOLUME_PROPERTY
+                    && propertyID !== SFX_PITCH_PROPERTY
+                    && propertyID !== SFX_INITIAL_DELAY_PROPERTY))
+            {
+                continue;
+            }
+
+            const property = propertyID === SFX_VOLUME_PROPERTY
+                ? "volume"
+                : propertyID === SFX_PITCH_PROPERTY
+                    ? "pitch"
+                    : "initialDelay";
+            const scaling = Number(rtpc.scaling);
+            const expectedScaling = property === "volume" ? 2 : 0;
+            const controlID = Number(rtpc.controlId) >>> 0;
+            const parameter = names.parameters.get(controlID);
+            const defaultValue = names.parameterDefaults.get(controlID);
+
+            if (!rtpc.points?.length)
+            {
+                throw new Error(
+                    `empty ${property} RTPC curve ${rtpc.curveId}`,
+                );
+            }
+            if (Number(rtpc.accumulation)
+                !== SFX_ADDITIVE_ACCUMULATION)
+            {
+                throw new Error(
+                    `unsupported RTPC accumulation ${rtpc.accumulation}`,
+                );
+            }
+            if (scaling !== expectedScaling)
+            {
+                throw new Error(
+                    `unsupported ${property} RTPC scaling ${rtpc.scaling}`,
+                );
+            }
+            if (!parameter)
+            {
+                throw new Error(
+                    `unnamed game parameter ${rtpc.controlId}`,
+                );
+            }
+
+            let previous = -Infinity;
+            const points = rtpc.points.map(point =>
+            {
+                const x = Number(point.from);
+                const value = Number(point.to);
+                const interpolation = Number(point.interpolation);
+
+                if (!Number.isFinite(x) || !Number.isFinite(value))
+                {
+                    throw new Error(
+                        `non-finite RTPC curve ${rtpc.curveId}`,
+                    );
+                }
+                if (!Number.isSafeInteger(interpolation)
+                    || interpolation < 0
+                    || interpolation > 9)
+                {
+                    throw new Error(
+                        `invalid RTPC interpolation ${rtpc.curveId}`,
+                    );
+                }
+                if (x < previous)
+                {
+                    throw new Error(
+                        `unsorted RTPC curve ${rtpc.curveId}`,
+                    );
+                }
+                previous = x;
+                return {
+                    x,
+                    value,
+                    interpolation,
+                };
+            });
+
+            rtpcCurves.push({
+                rtpc: parameter,
+                scope: "object",
+                property,
+                scaling,
+                ...(defaultValue === undefined
+                    ? {}
+                    : { defaultValue }),
+                points,
+            });
         }
 
         for (const group of nodeBase.state?.groups ?? [])
@@ -2134,60 +2233,139 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
         ...(initialDelayRangesMs.length
             ? { initialDelayRangesMs }
             : {}),
+        ...(rtpcCurves.length ? { rtpcCurves } : {}),
         ...(stateProperties.length
             ? { stateProperties }
             : {}),
     };
 }
 
-function CreateSfxNameCatalog(soundbanksInfo)
+function CreateSfxNameCatalog(soundbanksInfo, enrichment)
 {
     const groups = new Map();
     const parameters = new Map();
+    const parameterDefaults = new Map();
 
-    if (!soundbanksInfo)
+    if (soundbanksInfo)
     {
-        return { groups, parameters };
-    }
+        const parsed = CjsBnkFormat.wwise.parseSoundbanksInfo(
+            soundbanksInfo,
+        );
 
-    const parsed = CjsBnkFormat.wwise.parseSoundbanksInfo(soundbanksInfo);
-
-    for (const bank of parsed.banks)
-    {
-        for (const [ scope, entries, valuesField ] of [
-            [ "switch", bank.switchGroups, "switches" ],
-            [ "state", bank.stateGroups, "states" ],
-        ])
+        for (const bank of parsed.banks)
         {
-            for (const entry of entries)
+            for (const [ scope, entries, valuesField ] of [
+                [ "switch", bank.switchGroups, "switches" ],
+                [ "state", bank.stateGroups, "states" ],
+            ])
             {
-                const key = `${scope}:${Number(entry.id) >>> 0}`;
-                const group = groups.get(key) ?? {
-                    name: entry.name,
-                    values: new Map(),
-                };
-
-                for (const value of entry[valuesField])
+                for (const entry of entries)
                 {
-                    group.values.set(
-                        Number(value.id) >>> 0,
-                        value.name,
-                    );
+                    const key = `${scope}:${Number(entry.id) >>> 0}`;
+                    const group = groups.get(key) ?? {
+                        name: entry.name,
+                        values: new Map(),
+                    };
+
+                    for (const value of entry[valuesField])
+                    {
+                        group.values.set(
+                            Number(value.id) >>> 0,
+                            value.name,
+                        );
+                    }
+                    groups.set(key, group);
                 }
-                groups.set(key, group);
+            }
+
+            for (const parameter of bank.gameParameters)
+            {
+                parameters.set(
+                    Number(parameter.id) >>> 0,
+                    parameter.name,
+                );
             }
         }
+    }
 
-        for (const parameter of bank.gameParameters)
+    if (enrichment?.gameParameters !== undefined)
+    {
+        for (const [ rawID, value ] of metadataEntries(
+            enrichment.gameParameters,
+            "Audio enrichment gameParameters",
+        ))
         {
-            parameters.set(
-                Number(parameter.id) >>> 0,
-                parameter.name,
-            );
+            const id = NormalizeGameParameterID(rawID);
+
+            if (!value
+                || typeof value !== "object"
+                || Array.isArray(value))
+            {
+                throw new TypeError(
+                    `Audio enrichment gameParameters.${rawID}`
+                    + " must be an object",
+                );
+            }
+
+            if (value.name !== undefined)
+            {
+                const name = String(value.name).trim();
+
+                if (!name)
+                {
+                    throw new TypeError(
+                        `Audio enrichment gameParameters.${rawID}`
+                        + " name must be non-empty",
+                    );
+                }
+
+                const existing = parameters.get(id);
+
+                if (existing && existing !== name)
+                {
+                    throw new TypeError(
+                        `Audio enrichment gameParameters.${rawID}`
+                        + ` name conflicts with ${existing}`,
+                    );
+                }
+                parameters.set(id, name);
+            }
+
+            if (value.defaultValue !== undefined)
+            {
+                const defaultValue = Number(value.defaultValue);
+
+                if (!Number.isFinite(defaultValue))
+                {
+                    throw new TypeError(
+                        `Audio enrichment gameParameters.${rawID}`
+                        + " defaultValue must be finite",
+                    );
+                }
+                parameterDefaults.set(id, defaultValue);
+            }
         }
     }
 
-    return { groups, parameters };
+    return { groups, parameters, parameterDefaults };
+}
+
+function NormalizeGameParameterID(value)
+{
+    const text = String(value);
+    const number = Number(text);
+
+    if (!/^(?:0|[1-9]\d*)$/u.test(text)
+        || !Number.isSafeInteger(number)
+        || number < 0
+        || number > 0xffffffff)
+    {
+        throw new TypeError(
+            `Audio enrichment game parameter ID ${text} must be uint32`,
+        );
+    }
+
+    return number >>> 0;
 }
 
 function IsMusicEventName(name)

@@ -901,6 +901,269 @@ test("SFX lowering projects only wholly supported Immediate state properties", (
     ]);
 });
 
+test("SFX lowering preserves only exact additive NodeBase RTPC curves", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 7,
+                        id: 150,
+                        payload: actorMixerPayload({
+                            rtpcs: [
+                                {
+                                    controlId: 700,
+                                    parameterId: 0,
+                                    scaling: 2,
+                                    points: [
+                                        [ 0, 0, 4 ],
+                                        [ 1, -0.5, 4 ],
+                                    ],
+                                },
+                                {
+                                    controlId: 701,
+                                    parameterId: 1,
+                                    scaling: 0,
+                                    points: [
+                                        [ 0, 0, 4 ],
+                                        [ 1, 600, 4 ],
+                                    ],
+                                },
+                            ],
+                            children: [ 200 ],
+                        }),
+                    },
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: soundPayload({
+                            directParentId: 150,
+                            rtpcs: [
+                                {
+                                    controlId: 701,
+                                    parameterId: 1,
+                                    scaling: 0,
+                                    points: [
+                                        [ 0, 0, 4 ],
+                                        [ 1, 600, 4 ],
+                                    ],
+                                },
+                                {
+                                    controlId: 702,
+                                    parameterId: 34,
+                                    scaling: 0,
+                                    points: [
+                                        [ 0, 0, 4 ],
+                                        [ 1, 0.25, 4 ],
+                                    ],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 2,
+                        id: 201,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9002,
+                        inMemoryMediaSize: 64,
+                        payload: soundPayload({
+                            rtpcs: [
+                                {
+                                    controlId: 700,
+                                    parameterId: 0,
+                                    scaling: 2,
+                                    points: [ [ 0, 0, 4 ] ],
+                                },
+                                {
+                                    controlId: 700,
+                                    parameterId: 2,
+                                    scaling: 0,
+                                    points: [ [ 0, 1, 4 ] ],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 2,
+                        id: 202,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9003,
+                        inMemoryMediaSize: 64,
+                        payload: soundPayload({
+                            rtpcs: [
+                                {
+                                    controlId: 700,
+                                    parameterId: 0,
+                                    scaling: 0,
+                                    points: [ [ 0, 0, 4 ] ],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 302,
+                        actionType: 0x0403,
+                        targetId: 202,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 102,
+                        actionIds: [ 302 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                engine_play: { eventID: 100 },
+                filtered_play: { eventID: 101 },
+                invalid_play: { eventID: 102 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "1",
+                        ShortName: "common",
+                        GameParameters: [
+                            { Id: "700", Name: "engine_load" },
+                            { Id: "701", Name: "engine_speed" },
+                        ],
+                    },
+                ],
+            },
+        },
+        enrichment: {
+            gameParameters: {
+                700: { defaultValue: 0.25 },
+                701: { defaultValue: 0.5 },
+                702: {
+                    name: "impact_delay",
+                    defaultValue: 0.75,
+                },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+            "9002": { resPath: "res:/audio/9002.wem" },
+            "9003": { resPath: "res:/audio/9003.wem" },
+        },
+    });
+
+    assert.deepEqual(result.nodes["200"].rtpcCurves, [
+        {
+            rtpc: "engine_load",
+            scope: "object",
+            property: "volume",
+            scaling: 2,
+            defaultValue: 0.25,
+            points: [
+                { x: 0, value: 0, interpolation: 4 },
+                { x: 1, value: -0.5, interpolation: 4 },
+            ],
+        },
+        {
+            rtpc: "engine_speed",
+            scope: "object",
+            property: "pitch",
+            scaling: 0,
+            defaultValue: 0.5,
+            points: [
+                { x: 0, value: 0, interpolation: 4 },
+                { x: 1, value: 600, interpolation: 4 },
+            ],
+        },
+        {
+            rtpc: "engine_speed",
+            scope: "object",
+            property: "pitch",
+            scaling: 0,
+            defaultValue: 0.5,
+            points: [
+                { x: 0, value: 0, interpolation: 4 },
+                { x: 1, value: 600, interpolation: 4 },
+            ],
+        },
+        {
+            rtpc: "impact_delay",
+            scope: "object",
+            property: "initialDelay",
+            scaling: 0,
+            defaultValue: 0.75,
+            points: [
+                { x: 0, value: 0, interpolation: 4 },
+                { x: 1, value: 0.25, interpolation: 4 },
+            ],
+        },
+    ]);
+    assert.deepEqual(result.nodes["201"].rtpcCurves, [
+        {
+            rtpc: "engine_load",
+            scope: "object",
+            property: "volume",
+            scaling: 2,
+            defaultValue: 0.25,
+            points: [
+                { x: 0, value: 0, interpolation: 4 },
+            ],
+        },
+    ]);
+    assert.deepEqual(result.events.filtered_play, [
+        { nodeId: "201" },
+    ]);
+    assert.equal(result.events.invalid_play, undefined);
+    assert.equal(result.nodes["202"], undefined);
+    assert.deepEqual(result.diagnostics.omittedEvents, [
+        {
+            id: 102,
+            name: "invalid_play",
+            reason: "unsupported volume RTPC scaling 0",
+        },
+    ]);
+});
+
 test("typed Wwise infinite Sound loops survive SFX lowering", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -2819,6 +3082,7 @@ function soundPayload({
     loopCount = null,
     properties = [],
     ranges = [],
+    rtpcs = [],
     stateProperties = [],
     stateGroups = [],
 } = {})
@@ -2837,6 +3101,7 @@ function soundPayload({
             loopCount,
             properties,
             ranges,
+            rtpcs,
             stateProperties,
             stateGroups,
         }))
@@ -2935,6 +3200,7 @@ function actorMixerPayload({
     attenuationId = null,
     properties = [],
     ranges = [],
+    rtpcs = [],
     stateProperties = [],
     stateGroups = [],
     children = [],
@@ -2948,6 +3214,7 @@ function actorMixerPayload({
             attenuationId,
             properties,
             ranges,
+            rtpcs,
             stateProperties,
             stateGroups,
         }))
@@ -2981,6 +3248,7 @@ function nodeBasePayload({
     loopCount = null,
     properties: propertyValues = [],
     ranges = [],
+    rtpcs = [],
     stateProperties = [],
     stateGroups = [],
 } = {})
@@ -3085,7 +3353,30 @@ function nodeBasePayload({
         }
     }
 
-    return writer.u16(0).bytes();
+    writer.u16(rtpcs.length);
+    for (let index = 0; index < rtpcs.length; index++)
+    {
+        const rtpc = rtpcs[index];
+
+        writer
+            .u32(rtpc.controlId)
+            .u8(rtpc.controlType ?? 0)
+            .u8(rtpc.accumulation ?? 2)
+            .variable(rtpc.parameterId)
+            .u32(rtpc.curveId ?? index + 1)
+            .u8(rtpc.scaling)
+            .u16(rtpc.points.length);
+
+        for (const [ from, to, interpolation ] of rtpc.points)
+        {
+            writer
+                .f32(from)
+                .f32(to)
+                .u32(interpolation);
+        }
+    }
+
+    return writer.bytes();
 }
 
 class TestWriter
@@ -3119,6 +3410,20 @@ class TestWriter
     f32(value)
     {
         return this.#number(4, view => view.setFloat32(0, value, true));
+    }
+
+    variable(value)
+    {
+        const groups = [ value & 0x7f ];
+        let remaining = Math.floor(value / 128);
+
+        while (remaining)
+        {
+            groups.unshift((remaining & 0x7f) | 0x80);
+            remaining = Math.floor(remaining / 128);
+        }
+        this.values.push(...groups);
+        return this;
     }
 
     append(bytes)

@@ -152,9 +152,11 @@ function PlaybackContext(log)
             stoppedAt: null,
             connect() {},
             disconnect() {},
-            start()
+            start(time, offset)
             {
                 source.started = true;
+                source.startedAt = time;
+                source.offset = offset;
             },
             stop(time)
             {
@@ -1067,6 +1069,127 @@ test("CjsAudioMan resolves authored switch and blend nodes before media delivery
         context.gains[10].connectedTo,
         context.gains[3],
         "the surviving layer retains its own authored spatial route",
+    );
+    man.Dispose();
+});
+
+test("pending SFX keeps post-time RTPC delay but realizes live gain and pitch", async () =>
+{
+    const log = [];
+    const pending = Deferred();
+    const context = PlaybackContext(log);
+    const library = {
+        schema: "carbonenginejs.audioLibrary",
+        schemaVersion: 2,
+        metadata: {
+            Events: {
+                engine_play: {
+                    eventID: 42,
+                    eventsStoppedBy: [],
+                    is2D: 0,
+                    isLoop: 0,
+                    isVital: 0,
+                    maxRadiusAttenuation: 0,
+                    soundbanks: [ "ships.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "ships.bnk": {
+                    EssentialSoundBank: 0,
+                },
+            },
+            WemFileIDs: {},
+        },
+        media: {
+            "777": {
+                sourceID: "prepared:777",
+                resPath: "res:/audio/777.ogg",
+                mediaType: "ogg",
+            },
+        },
+        banks: {},
+        sfx: {
+            schemaVersion: 2,
+            events: {
+                engine_play: [ { nodeId: "1" } ],
+            },
+            nodes: {
+                "1": {
+                    type: "sound",
+                    mediaId: "777",
+                    rtpcCurves: [
+                        {
+                            rtpc: "load",
+                            scope: "object",
+                            property: "volume",
+                            scaling: 2,
+                            points: [
+                                { x: 0, value: 0, interpolation: 4 },
+                                { x: 1, value: -0.5, interpolation: 4 },
+                            ],
+                        },
+                        {
+                            rtpc: "speed",
+                            scope: "object",
+                            property: "pitch",
+                            scaling: 0,
+                            points: [
+                                { x: 0, value: 0, interpolation: 4 },
+                                { x: 1, value: 1200, interpolation: 4 },
+                            ],
+                        },
+                        {
+                            rtpc: "delay",
+                            scope: "object",
+                            property: "initialDelay",
+                            scaling: 0,
+                            points: [
+                                { x: 0, value: 0, interpolation: 4 },
+                                { x: 1, value: 1, interpolation: 4 },
+                            ],
+                        },
+                    ],
+                },
+            },
+        },
+    };
+    const man = new CjsAudioMan(library, {
+        createContext: () => context,
+        mediaProvider: {
+            Read()
+            {
+                return pending.promise;
+            },
+        },
+    });
+
+    assert.equal(man.Enable([ "ships.bnk" ]), true);
+
+    const emitter = man.CreateEmitter();
+
+    emitter.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
+    emitter.Wake();
+    assert.equal(emitter.SetRTPC("delay", 0.25), true);
+    assert.equal(emitter.SetRTPC("load", 0), true);
+    assert.equal(emitter.SetRTPC("speed", 0), true);
+    assert.ok(emitter.SendEvent("engine_play") > 0);
+
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(emitter.SetRTPC("delay", 0), true);
+    assert.equal(emitter.SetRTPC("load", 1), true);
+    assert.equal(emitter.SetRTPC("speed", 1), true);
+
+    pending.resolve(new Uint8Array([ 1, 2, 3, 4 ]));
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(context.sources.length, 1);
+    assert.equal(context.sources[0].playbackRate.value, 2);
+    assert.equal(context.gains[4].gain.value, 0.5);
+    assert.equal(
+        context.sources[0].startedAt,
+        0.25,
+        "InitialDelay is captured when the event is posted",
     );
     man.Dispose();
 });

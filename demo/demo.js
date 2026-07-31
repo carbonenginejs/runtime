@@ -182,30 +182,40 @@ class AudioLibrary
         const visited = new Set();
         const switches = new Map();
         const rtpcs = new Map();
+        const collectCurve = (curve, property) =>
+        {
+            const xs = (curve.points ?? [])
+                .map(point => Number(point.x))
+                .filter(Number.isFinite);
+
+            if (!xs.length)
+            {
+                return;
+            }
+
+            const key = `${curve.scope}:${curve.rtpc}`;
+            const current = rtpcs.get(key) ?? {
+                name: curve.rtpc,
+                scope: curve.scope,
+                min: Math.min(...xs),
+                max: Math.max(...xs),
+                properties: new Set(),
+            };
+
+            current.min = Math.min(current.min, ...xs);
+            current.max = Math.max(current.max, ...xs);
+            current.properties.add(property);
+            rtpcs.set(key, current);
+        };
         const collectCurves = value =>
         {
             for (const curve of value?.gainCurves ?? [])
             {
-                const xs = (curve.points ?? [])
-                    .map(point => Number(point.x))
-                    .filter(Number.isFinite);
-
-                if (!xs.length)
-                {
-                    continue;
-                }
-
-                const key = `${curve.scope}:${curve.rtpc}`;
-                const current = rtpcs.get(key) ?? {
-                    name: curve.rtpc,
-                    scope: curve.scope,
-                    min: Math.min(...xs),
-                    max: Math.max(...xs),
-                };
-
-                current.min = Math.min(current.min, ...xs);
-                current.max = Math.max(current.max, ...xs);
-                rtpcs.set(key, current);
+                collectCurve(curve, "layerGain");
+            }
+            for (const curve of value?.rtpcCurves ?? [])
+            {
+                collectCurve(curve, curve.property);
             }
         };
 
@@ -276,7 +286,10 @@ class AudioLibrary
                 ...control,
                 values: [ ...control.values ],
             })),
-            rtpcs: [ ...rtpcs.values() ],
+            rtpcs: [ ...rtpcs.values() ].map(control => ({
+                ...control,
+                properties: [ ...control.properties ],
+            })),
         };
     }
 
@@ -335,10 +348,23 @@ class AudioLibrary
         }
         if (type === "RTPC blend")
         {
-            const control = controls.rtpcs[0];
+            const control = controls.rtpcs.find(value =>
+                value.properties.includes("layerGain"));
             const sounds = this.PlayableCandidates(eventName).length;
 
             return `Uses the ${control?.scope ?? "object"} RTPC ${control?.name ?? ""} from ${FormatControlValue(control?.min ?? 0)} to ${FormatControlValue(control?.max ?? 0)} to change the live gains of ${sounds} authored sound layers. Move the slider during playback or post again at a new value.`;
+        }
+        if (type === "NodeBase RTPC")
+        {
+            const control = controls.rtpcs.find(value =>
+                value.properties.some(property =>
+                    property !== "layerGain"));
+            const properties = control?.properties
+                .filter(property => property !== "layerGain")
+                .map(FormatRtpcProperty)
+                .join(" and ") || "playback properties";
+
+            return `Uses the authored ${control?.scope ?? "object"} Game Parameter ${control?.name ?? ""} from ${FormatControlValue(control?.min ?? 0)} to ${FormatControlValue(control?.max ?? 0)} to change ${properties}. Volume and pitch stay live; initial delay is captured when you post.`;
         }
 
         return "Posts the selected authored SFX graph on one retained emitter.";
@@ -410,6 +436,13 @@ class AudioLibrary
                 type: "RTPC blend",
                 preferred: [ "msg_newscan_probe_scan_results_play" ],
                 matches: name => this.SfxNodeTypes(name).includes("blend"),
+            },
+            {
+                type: "NodeBase RTPC",
+                preferred: [ "Cyno_lightning_play" ],
+                matches: name => this.SfxControls(name).rtpcs
+                    .some(control => control.properties
+                        .some(property => property !== "layerGain")),
             },
         ];
         const eventNames = Object.keys(this.sfx?.events ?? {}).sort();
@@ -1935,8 +1968,8 @@ class JukeboxUi
 
 /**
  * Authored SFX laboratory: posts real HIRC graphs repeatedly on the same
- * object and exposes authored setters, branch controls, live RTPC blends, and
- * manager delivery modes.
+ * object and exposes authored setters, branch controls, live RTPC playback,
+ * and manager delivery modes.
  */
 class SfxUi
 {
@@ -2241,6 +2274,15 @@ function FormatControlValue(value)
     return Number(value).toLocaleString(undefined, {
         maximumFractionDigits: 3,
     });
+}
+
+function FormatRtpcProperty(value)
+{
+    if (value === "initialDelay")
+    {
+        return "initial delay";
+    }
+    return value;
 }
 
 function FormatSfxProgramAction(action)

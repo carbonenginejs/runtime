@@ -198,6 +198,52 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.ok(
         nodes.filter(node => node.initialDelayMs !== undefined).length > 30,
     );
+    assert.ok(
+        nodes.flatMap(node => node.rtpcCurves ?? []).length > 200,
+        "the exact demo graph carries playable NodeBase RTPC curves",
+    );
+    assert.deepEqual(
+        graph.nodes["22474881"].rtpcCurves,
+        [
+            {
+                rtpc: "lightning_intensity",
+                scope: "object",
+                property: "volume",
+                scaling: 2,
+                points: [
+                    {
+                        x: 0,
+                        value: -0.7488113641738892,
+                        interpolation: 4,
+                    },
+                    {
+                        x: 1,
+                        value: 0,
+                        interpolation: 4,
+                    },
+                ],
+            },
+            {
+                rtpc: "lightning_intensity",
+                scope: "object",
+                property: "pitch",
+                scaling: 0,
+                points: [
+                    {
+                        x: 0,
+                        value: 0,
+                        interpolation: 4,
+                    },
+                    {
+                        x: 1,
+                        value: 100,
+                        interpolation: 4,
+                    },
+                ],
+            },
+        ],
+        "one real lightning Sound carries live authored volume and pitch",
+    );
 
     assert.deepEqual(
         library.music.eventTargets.dungeon_music_pochven_mining,

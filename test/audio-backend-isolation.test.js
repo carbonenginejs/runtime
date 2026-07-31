@@ -1272,6 +1272,55 @@ test("global states remain live under an independent Stop fade", async () =>
   );
 });
 
+test("object RTPC gain and pitch remain live under an independent Stop fade", async () =>
+{
+  let controls;
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async (_eventID, _eventName, suppliedControls) =>
+    {
+      controls = suppliedControls;
+      return {
+        voices: [
+          {
+            buffer: { duration: 4 },
+            getGain: () => controls.getRTPC("load") ?? 1,
+            getPlaybackRate: () => controls.getRTPC("speed") ?? 1
+          }
+        ]
+      };
+    }
+  });
+
+  backend.SetRTPCValue("load", 1, 1);
+  backend.SetRTPCValue("speed", 1, 1);
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "rtpc_fade",
+  );
+
+  await tick();
+  context.currentTime = START_QUANTUM + 0.25;
+  backend.ExecuteActionOnPlayingID("stop", playingID, 1000);
+
+  const source = context.sources[0];
+  const controlGain = context.gains[3].gain;
+  const stopEnvelope = context.gains[4].gain;
+  const stopRamps = structuredClone(stopEnvelope.ramps);
+
+  context.currentTime += 0.25;
+  backend.SetRTPCValue("load", 0.5, 1);
+  backend.SetRTPCValue("speed", 2, 1);
+
+  assert.equal(context.sources[0], source);
+  assert.equal(controlGain.value, 0.5);
+  assert.equal(source.playbackRate.value, 2);
+  assert.deepEqual(stopEnvelope.ramps, stopRamps);
+  assert.equal(source.stoppedAt, START_QUANTUM + 1.25);
+});
+
 test("a state changed during acquisition is applied before the source starts", async () =>
 {
   const pending = Deferred();
