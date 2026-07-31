@@ -18,10 +18,15 @@ const ACTION_NAMES = Object.freeze({
   0x0305: "resume",
   0x0403: "play",
   0x0503: "play-and-continue",
+  0x0a02: "set-voice-volume",
+  0x0a03: "set-voice-volume",
+  0x0b02: "reset-voice-volume",
+  0x0b03: "reset-voice-volume",
   0x2103: "post-event"
 });
 const ACTIVE_ACTION_TYPES = new Set([0x0102, 0x0103, 0x0105, 0x0203, 0x0205, 0x0303, 0x0305]);
 const PLAY_ACTION_TYPES = new Set([0x0403, 0x0503]);
+const VOICE_VOLUME_ACTION_TYPES = new Set([0x0a02, 0x0a03, 0x0b02, 0x0b03]);
 
 /**
  * Decodes one exact Wwise v150 HIRC Event Action body.
@@ -87,6 +92,28 @@ function parseEventAction(payload, {
         });
       }
       result.exceptions = exceptions;
+    } else if (VOICE_VOLUME_ACTION_TYPES.has(actionType)) {
+      if (!HasExactVoiceVolumeProperties(properties) || ranges.length !== 0) {
+        return null;
+      }
+      const fadeCurve = cursor.u8();
+      const rawValueMode = cursor.u8();
+      const volumeDb = cursor.f32();
+      const volumeRangeDb = {
+        min: cursor.f32(),
+        max: cursor.f32()
+      };
+      const trailingFlags = cursor.u8();
+      const resetting = actionName === "reset-voice-volume";
+      if (targetFlags & ~0x01 || fadeCurve > 8 || rawValueMode !== 1 && rawValueMode !== 2 || !Number.isFinite(volumeDb) || !Number.isFinite(volumeRangeDb.min) || !Number.isFinite(volumeRangeDb.max) || resetting && (volumeDb !== 0 || volumeRangeDb.min !== 0 || volumeRangeDb.max !== 0) || trailingFlags !== 0) {
+        return null;
+      }
+      result.fadeCurve = fadeCurve;
+      if (!resetting) {
+        result.valueMode = rawValueMode === 1 ? "absolute" : "relative";
+        result.volumeDb = volumeDb;
+        result.volumeRangeDb = volumeRangeDb;
+      }
     }
     return cursor.at === payload.byteLength ? result : null;
   } catch (error) {
@@ -95,6 +122,10 @@ function parseEventAction(payload, {
     }
     throw error;
   }
+}
+function HasExactVoiceVolumeProperties(properties) {
+  const ids = properties.map(property => property.id);
+  return ids.every(id => id === 0x39 || id === 0x3a) && new Set(ids).size === ids.length;
 }
 function ReadProperties(cursor) {
   const count = cursor.u8();
@@ -238,6 +269,14 @@ class ActionCursor {
   u32() {
     this.require(4);
     const value = this.view.getUint32(this.at, true);
+    this.at += 4;
+    return value;
+  }
+
+  /** Reads a little-endian 32-bit floating-point number. */
+  f32() {
+    this.require(4);
+    const value = this.view.getFloat32(this.at, true);
     this.at += 4;
     return value;
   }

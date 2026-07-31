@@ -69,6 +69,91 @@ test("decodes exact v150 scoped Stop All exceptions", () =>
     ]);
 });
 
+test("decodes exact v150 Set and Reset Voice Volume actions", () =>
+{
+    const set = CjsBnkFormat.wwise.parseEventAction(concat(
+        u16(0x0a03),
+        u32(0x12345678),
+        [ 0 ],
+        [ 2, 0x39, 0x3a ],
+        i32(50),
+        i32(250),
+        [ 0 ],
+        [ 7, 2 ],
+        f32(-3),
+        f32(-3),
+        f32(1),
+        [ 0 ],
+    ));
+    const reset = CjsBnkFormat.wwise.parseEventAction(concat(
+        u16(0x0b02),
+        u32(0x87654321),
+        [ 0, 0, 0 ],
+        [ 4, 2 ],
+        f32(0),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    ));
+
+    assert.equal(set.actionName, "set-voice-volume");
+    assert.equal(set.actionScope, "game-object");
+    assert.equal(set.actionMode, "element");
+    assert.equal(set.delayTimeMs, 50);
+    assert.equal(set.transitionTimeMs, 250);
+    assert.equal(set.fadeCurve, 7);
+    assert.equal(set.valueMode, "relative");
+    assert.equal(set.volumeDb, -3);
+    assert.deepEqual(set.volumeRangeDb, { min: -3, max: 1 });
+
+    assert.equal(reset.actionName, "reset-voice-volume");
+    assert.equal(reset.actionScope, "global");
+    assert.equal(reset.valueMode, undefined);
+    assert.equal(reset.volumeDb, undefined);
+    assert.equal(reset.volumeRangeDb, undefined);
+});
+
+test("fails closed for inexact Voice Volume bodies", () =>
+{
+    const exact = concat(
+        u16(0x0a03),
+        u32(1234),
+        [ 0, 0, 0, 4, 1 ],
+        f32(-6),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const unsupportedProperty = concat(
+        u16(0x0a03),
+        u32(1234),
+        [ 0, 1, 0x3b ],
+        f32(100),
+        [ 0, 4, 1 ],
+        f32(-6),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(
+            concat(exact.subarray(0, exact.byteLength - 1), [ 1 ]),
+        ),
+        null,
+    );
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(
+            exact.subarray(0, exact.byteLength - 1),
+        ),
+        null,
+    );
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(unsupportedProperty),
+        null,
+    );
+});
+
 test("decodes Post Event and fails closed for inexact action bodies", () =>
 {
     const body = concat(
