@@ -1,6 +1,7 @@
 # Carbon compiled-effect container
 
 Status: Stable
+Visibility: Public
 Scope: `@carbonenginejs/runtime-resource` — `src/format/carbonEffect/`, `src/format/CjsByteReader.js`, `src/format/CjsByteWriter.js`, `src/format/CjsStringTable.js`
 Audience: Anyone reading or writing compiled shader effect bytes, or extending `.cewgpu` / `.cewg`
 Summary: The v15 binary layout of Carbon's compiled effect files, the shared byte reader and writer that implement it, and the arena offset policy a byte-exact re-emit depends on.
@@ -23,19 +24,18 @@ formats are built on.
 | `src/format/carbonEffect/carbonEffectRecords.js` | the v15 description-blob record codec |
 | `src/format/carbonEffect/CjsCarbonEffectReader.js` | container reader and structural checks |
 | `src/format/carbonEffect/CjsCarbonEffectWriter.js` | container writer, offset arithmetic and alias dedupe |
-| `src/format/carbonEffect/carbonEffectEnvelope.js` | the envelope our own containers prepend |
+| `src/format/carbonEffect/carbonEffectEnvelope.js` | legacy pre-switchover envelope compatibility; not part of the destination wire format |
 
 ## Why v15 only
 
 The reader and writer accept and emit version 15 and nothing else.
 
-Carbon's own reader takes 2..15 (`Tr2EffectRes.cpp:209`), but it annotates the
-v13/v14 field-order boundaries as unverified — `// CHECK IS IT IN RIGHT FUNCTION?`
-at `Tr2EffectDescription.cpp:177`, and a bare `// CHECK` at `:257` and `:578`, the
-last of which sits directly on the v14 reorder. Version 15 is the version with an
-authoritative writer to check against, and the entire shipped corpus at build
-3444265 is v15 — 3222 files across `effect.dx11` and `effect.dx12`, plus the same
-537 shaders again under `effect.metal`. Nothing older ships.
+Carbon's own reader accepts versions 2 through 15, but its v13/v14 branches mark
+the field-order boundaries as uncertain. Version 15 is the version with an
+authoritative writer to check against, and the entire audited shipped corpus at
+build 3444265 is v15 — 3222 files across `effect.dx11` and `effect.dx12`, plus
+the same 537 shaders again under `effect.metal`. Nothing older appears in that
+audited corpus.
 
 The v15 body is byte-identical to v14. Version 15 differs from 14 only by the 36
 extra header bytes: the compiler version and the source hash.
@@ -54,22 +54,20 @@ u32      recordCount     | recordCount x { u32 index, u32 offset, u32 size }
 description blobs
 ```
 
-Assembled at `ShaderCompiler.cpp:822-831`, read at `Tr2EffectRes.cpp:207-311`.
+The compiler writes this order and the runtime reads the same order.
 
-The compiler version is **four bytes, not a `u32`**. It is
-`constexpr uint8_t ShaderCompilerVersion[4]` (`ShaderCompilerConfig.h.in:5`), and
-Carbon's rebuild check compares only the first three (`ModifiedTime.cpp:77`). A
-shipped v15 header reads `01 02 06 00` — compiler 1.2.6.0, matching the
-ShaderCompiler project version. As a `u32` those bytes are `0x00060201`, which
-means nothing. `HlslEffectRes` historically read the field as a dword; it now also
-exposes `m_compilerVersionBytes`, which is the truthful reading and what new code
-should use. The dword form survives only because it is republished as
-`source.compilerVersion` in the portable reflection, where it is asserted to be an
-unsigned integer and covered by a package digest.
+The compiler version is **four bytes, not a `u32`**, and Carbon's rebuild check
+compares only the first three. A shipped v15 header reads `01 02 06 00` —
+compiler 1.2.6.0, matching the ShaderCompiler project version. As a `u32` those
+bytes are `0x00060201`, which means nothing. `HlslEffectRes` historically read
+the field as a dword; it now also exposes `m_compilerVersionBytes`, which is the
+truthful reading and what new code should use. The dword form survives only
+because it is republished as `source.compilerVersion` in the portable
+reflection, where it is asserted to be an unsigned integer and covered by a
+package digest.
 
-The 32-byte hash is read by the compiler's rebuild check
-(`ModifiedTime.cpp:52-92`) and **skipped by the runtime**
-(`Tr2EffectRes.cpp:246-252`). It is provenance, not integrity.
+The compiler's rebuild check reads the 32-byte hash, while the runtime skips it.
+It is provenance, not integrity.
 
 A permutation record is:
 
@@ -78,10 +76,10 @@ u32 nameOffset | u8 defaultOption | u32 descriptionOffset | u8 type | u8 optionC
 ```
 
 Note the field order: `defaultOption` sits between the name and the description.
-Carbon writes that byte inside a conditional loop (`ShaderCompiler.cpp:774-782`)
-with no `else`, so a permutation whose declared default matches no option would
-emit a record one byte short and desynchronise the entire rest of the header. Our
-writer always emits it.
+Carbon writes that byte inside a conditional loop with no `else`, so a
+permutation whose declared default matches no option would emit a record one
+byte short and desynchronise the entire rest of the header. Our writer always
+emits it.
 
 ### Body-offset arithmetic
 
@@ -91,31 +89,29 @@ headerSize = (recordCount * 3 + 1) * 4 + permutationBytes
 permutationBytes = 1 + Σ (11 + optionCount * 4)
 ```
 
-`ShaderCompiler.cpp:801` and `:765`. `GetSize()` **includes** the arena's own `u32`
-length prefix (`StringTable.cpp:82-85`), so the prefix is counted exactly once.
-Row offsets are absolute from byte 0 of the file. `CjsCarbonEffectWriter` asserts
-that the bytes it actually wrote before the first body equal this computed base, so
-an arithmetic error fails loudly rather than shifting every body.
+`GetSize()` **includes** the arena's own `u32` length prefix, so the prefix is
+counted exactly once. Row offsets are absolute from byte 0 of the file.
+`CjsCarbonEffectWriter` asserts that the bytes it actually wrote before the
+first body equal this computed base, so an arithmetic error fails loudly rather
+than shifting every body.
 
 ### The arena
 
 `CjsStringTable` is Carbon's `StringTable`. Three properties matter:
 
 1. **Offsets are assigned by a bytewise sort, not by insertion order.**
-   `StringTable::Sort` (`StringTable.cpp:92-108`) orders blobs by `Blob::operator<`
-   — `memcmp` over the shorter length, then shorter-wins on a tie
-   (`StringTable.h:109-122`) — and hands out cumulative offsets. Any writer that
-   assigns first-seen offsets produces a valid file that is not byte-identical to
+   The comparison is `memcmp` over the shorter length, then shorter-wins on a
+   tie, before cumulative offsets are assigned. Any writer that assigns
+   first-seen offsets produces a valid file that is not byte-identical to
    Carbon's.
-2. **Dedupe is on exact bytes with no suffix merging** (`Blob::operator==`,
-   `StringTable.h:104-107`). `"red"` gets its own entry even though it is a suffix
-   of `"shared"`.
+2. **Dedupe is on exact bytes with no suffix merging.** `"red"` gets its own
+   entry even though it is a suffix of `"shared"`.
 3. **There are two kinds of entry and no manifest.** A NUL-terminated string is
-   added with its terminator (`strlen + 1`, `StringTable.cpp:18-21`) and referenced
-   by a bare `u32` offset. A sized blob — shader bytecode, program source, default
-   constant values — is added with exactly its own bytes and referenced by a
-   `{u32 size, u32 offset}` pair. `StringTable::Write` emits a `u32` payload size
-   and the payload, nothing else; every reference site resolves its own entry.
+   added with its terminator and referenced by a bare `u32` offset. A sized blob
+   — shader bytecode, program source, default constant values — is added with
+   exactly its own bytes and referenced by a `{u32 size, u32 offset}` pair. The
+   arena writes a `u32` payload size and the payload, nothing else; every
+   reference site resolves its own entry.
 
 ## Two rules for anything added later
 
@@ -152,9 +148,8 @@ interned into. Any future arena entry must satisfy the same rule.
 ### One field the container cannot round-trip
 
 For a **non-dynamic sampler, the name is not preserved.** The file stores one, but
-Carbon's reader nulls it (`Tr2EffectDescription.cpp:430-433`) before any producer
-sees it, so a package built from our reflection carries the empty string. Measured at
-738 occurrences across three effects.
+Carbon's reader nulls it before any producer sees it, so a package built from
+our reflection carries the empty string.
 
 This is a property of the input, not a bug in the mapping: the name is unrecoverable
 by the time we receive the data, rather than dropped on the way out. Carbon nulls it
@@ -163,39 +158,34 @@ only matters for the dynamic case. Recorded here because it will otherwise be
 rediscovered as a bug: a diff against the source effect will always show it.
 
 **Corollary: the container admits all six of Carbon's stage types.** `stages` is
-capped at `SHADER_TYPE_COUNT` = 6, matching `Tr2EffectDescription.cpp:529`, and the
-stage-type byte is Carbon's `InputStageType` numbering (`EffectData.h:15-22`) —
-vertex, pixel, compute, geometry, hull, domain. A backend that can only express three
-of those rejects the rest in its own layer; the container does not narrow on its
-behalf. Same reasoning that puts `payloadKind` in the envelope rather than per-stage:
-the Carbon region is backend-invariant, and restrictions belong to the backend.
+capped at `SHADER_TYPE_COUNT` = 6, and the stage-type byte uses Carbon's
+`InputStageType` numbering: vertex, pixel, compute, geometry, hull, domain. A
+backend that can only express three of those rejects the rest in its own layer;
+the container does not narrow on its behalf. The Carbon region is
+backend-invariant, and restrictions belong to the backend.
 
-`0xffffffff` is the null reference (`StringTable.cpp:52-68`). It is legal at
-**exactly one wire position**: a stage's default-constant-value offset when the
-accompanying size is zero, which `ReadStringOptional` consumes without
-dereferencing (`Tr2EffectDescription.cpp:80-91`). Everywhere else a `0xffffffff`
-offset fails the load.
+`0xffffffff` is the null reference. It is legal at **exactly one wire
+position**: a stage's default-constant-value offset when the accompanying size
+is zero, which the optional-value reader consumes without dereferencing.
+Everywhere else a `0xffffffff` offset fails the load.
 
 Two deliberate departures from Carbon, both of which make byte-identical output
 more likely rather than less:
 
-- **`m_size` is initialised.** Carbon's constructor leaves it indeterminate
-  (`StringTable.cpp:9-12`) and gets away with it only because the one instance is a
-  zero-initialised global.
+- **`m_size` is initialised.** Carbon's constructor leaves it indeterminate and
+  gets away with it only because the one instance is a zero-initialised global.
 - **Adding after an offset has been handed out is an error.** In Carbon,
   `GetOffset` re-sorts a dirty table, which reassigns *every* offset — including
   offsets already baked into packed bodies. Carbon avoids the corruption by
-  interning all late strings before the packing pass (`ShaderCompiler.cpp:686-694`
-  before `:697-714`). `CjsCarbonEffectWriter` reproduces that discipline
-  structurally: it runs the record walk twice, once with `collectArena` to intern
-  and once with `internArena` to emit. Because both passes drive the same
-  `writeEffectDescription`, they cannot drift apart.
+  interning all late strings before the packing pass. `CjsCarbonEffectWriter`
+  reproduces that discipline structurally: it runs the record walk twice, once
+  with `collectArena` to intern and once with `internArena` to emit. Because both
+  passes drive the same `writeEffectDescription`, they cannot drift apart.
 
 ### Description blob, v15 field order
 
-Derived from `EffectData.h`'s `Save` methods and `Tr2EffectDescription.cpp`'s read
-order independently, and confirmed to agree field for field. Counts are `u8` unless
-marked.
+Derived independently from the writer's save order and the reader's load order,
+then confirmed to agree field for field. Counts are `u8` unless marked.
 
 ```
 u8  techniqueCount
@@ -245,25 +235,23 @@ Four places this is easy to get wrong:
 
 - **At v15 the program payload comes first and the signature tables follow.**
   `pipelineInputs` and `registers` sit *after* `shaderCode` and `threadGroupSize`.
-  Before v14 it was the other way round (`Tr2EffectDescription.cpp:538-546` versus
-  `:579-583`); v14 moved them, and Carbon marks its own v14 branch `// CHECK`.
+  Before v14 it was the other way round; v14 moved them, and Carbon marks its own
+  v14 branch as uncertain.
 - **A UAV record is one byte shorter than a texture record** — it has no `isSRGB`.
-  Carbon's reader hardcodes `isSRGB = false` (`:450`) and `Uav::Save` omits it.
-  Sharing one "resource" codec between the two silently corrupts every subsequent
-  field.
+  Carbon's reader hardcodes `isSRGB = false` and the writer omits it. Sharing one
+  "resource" codec between the two silently corrupts every subsequent field.
 - **`borderColor` is four floats on a sampler and one byte on a static sampler**
-  (`EffectData.h:453` versus `:565`). That is not sloppiness; it mirrors the two
-  D3D binding models.
+  because the two records mirror different D3D binding models.
 - **A non-string annotation value is four raw bytes.** Carbon writes it through the
   `float` member of a `{float,int32_t}` union and reads it back through a different
   union. The bytes round-trip; applying an int/float conversion does not. The codec
   keeps `rawValue` as bytes for exactly this reason.
 
 Carbon writes `textures`, `samplers`, `uavs` and render states in ascending key
-order because they are `std::map`s, and sorts annotation keys explicitly by
-`strcmp` (`EffectData.h:613-616`, `:839-842`). `compareAnnotationNames` implements
-that comparison over UTF-8 bytes, which is *not* the same as JavaScript's UTF-16
-code-unit order for names outside ASCII — `"Z"` sorts before `"a"`.
+order and sorts annotation keys by bytewise string comparison.
+`compareAnnotationNames` implements that comparison over UTF-8 bytes, which is
+*not* the same as JavaScript's UTF-16 code-unit order for names outside ASCII
+— `"Z"` sorts before `"a"`.
 
 ### The optional trailing block
 
@@ -310,25 +298,25 @@ misparsing it; the enclosing size makes it skippable.
 
 ### Count caps
 
-`CARBON_EFFECT_COUNT_CAPS` mirrors `SanityCheck`'s inclusive limits
-(`Tr2EffectDescription.cpp:28-36`). Carbon's compiler enforces none of them while
-its runtime rejects anything above them, so an over-large effect compiles and then
-fails to load; our writer checks on the way out. The caps Carbon does *not* have —
-techniques, registers, static samplers, constants, libraries, exports, annotation
-counts — are deliberately not invented here.
+`CARBON_EFFECT_COUNT_CAPS` mirrors the runtime's inclusive limits. Carbon's
+compiler enforces none of them while its runtime rejects anything above them,
+so an over-large effect compiles and then fails to load; our writer checks on
+the way out. The caps Carbon does *not* have — techniques, registers, static
+samplers, constants, libraries, exports, annotation counts — are deliberately
+not invented here.
 
 ### The alias path
 
 Carbon compares packed bodies pairwise and points a duplicate's row at the
-surviving twin (`ShaderCompiler.cpp:717-744`, `:804-820`). The row is **kept**, so
-the offset table stays dense while the file stores each distinct body once. Across
-the shipped corpus 22% of files alias, at roughly 2.1 rows per distinct body.
+surviving twin. The row is **kept**, so the offset table stays dense while the
+file stores each distinct body once. Across the shipped corpus 22% of files
+alias, at roughly 2.1 rows per distinct body.
 
 ## Offset-table density
 
-`Tr2EffectRes.cpp:121-126` indexes the offset table **positionally** and never
-reads each row's stored `index` field. A sparse or misordered table therefore does
-not fail — it silently returns the wrong shader body.
+Carbon indexes the offset table **positionally** and never reads each row's
+stored `index` field. A sparse or misordered table therefore does not fail — it
+silently returns the wrong shader body.
 
 Density is incidental in Carbon: it falls out of `g_compiledEffects` being a
 `std::map` densely keyed by the work-queue builder, and is promised nowhere.
@@ -359,57 +347,39 @@ for permissive defaults: Carbon does not reject such a file, it returns the wron
 permutation's shader silently, which is the failure class this port exists to
 close.
 
-## The envelope
+## Backend selection and envelope removal
 
-Our own containers prepend twelve bytes:
+**Current pre-switchover compatibility.** The legacy helper can prepend twelve
+bytes before Carbon's byte-compatible layout:
 
 ```
 magic(4) | u32 containerVersion | u32 payloadKind
 ```
 
-then Carbon's layout, byte-compatible. It is provably disjoint from a Carbon file
-rather than merely unlikely to collide: a Carbon file's first dword is its version,
-constrained to 2..15, so byte 0 is at most `0x0f` and bytes 1..3 are zero, while
-every printable-ASCII magic byte is at least `0x20`. No version bump inside
-Carbon's `u32` can change that.
+The prefix is disjoint from a Carbon file because Carbon's first dword is a
+version from 2 through 15, while the legacy magic begins with printable ASCII.
+It remains only until the coordinated WebGPU switchover.
 
-**Scheduled for removal in the WebGPU switchover, and the reasoning is worth
-keeping.** An earlier revision of this section cited
-`ccpwgl/Tw2EffectRes.js:52-63` as arriving at the same convention independently.
-**That was circular**: `IsCewgData` is an agent addition to ccpwgl, not part of
-Trinity's own design, so it corroborated nothing — it was our own decision cited
-back as evidence for itself. Verified with the maintainer.
+**Switchover decision.** The replacement files have no envelope, magic,
+`payloadKind`, or independent container version. Backend selection is by
+resource path — `effect.webgpu/` or `effect.webgl2/` — mirroring Carbon's
+`effect.dx11/`, `effect.dx12/`, and `effect.metal/` paths. The resulting bytes
+remain Carbon v15 with one optional per-pass backend block.
 
-With that removed, the envelope has no argument left, because backend selection is
-**by resource path** — `effect.webgpu/`, `effect.webgl2/`, mirroring Carbon's
-`effect.dx11/`, `effect.dx12/`, `effect.metal/` (`Tr2Effect.cpp:310-345`, where the
-platform name is a compile-time constant). Carbon carries no payload tag anywhere
-and does not need one; neither do we. `payloadKind` is redundant with the directory
-the file came from, and the magic only mattered for distinguishing our file from a
-Carbon one, which the same directory already answers.
+Without the prefix, `Tr2EffectRes` and `Tr2Shader` use the Carbon path rather
+than a bespoke format branch. The loader selects
+`readEffectDescription(reader, {backend: true})` from the resource path, and
+the description's declared size makes the optional block self-describing.
 
-What the removal buys is the point: without the twelve-byte prefix our containers
-**are** stock Carbon v15 files, so `Tr2EffectRes`/`Tr2Shader` read them through the
-Carbon path rather than a bespoke format branch. The only remaining reader delta is
-`readEffectDescription(reader, {backend: true})` — one conditional at the end of a
-pass, gated by a flag the loader sets from the path. A format an existing reader
-consumes with a flag beats one that needs a branch, and the branch cost would land
-on every future reader.
+Versioning remains local to what it versions: Carbon's version dword governs
+the Carbon region, while `blobVersion` governs the optional backend block. An
+unknown block version is skipped rather than misparsed. The package does not
+claim a version in CCP's namespace.
 
-Versioning survives intact: Carbon's own version dword versions the Carbon region,
-and `blobVersion` inside the trailing block versions our extension, where an
-unknown value is skipped rather than misparsed.
-
-The one case that would justify `payloadKind` — loose bytes with no path — is also
-the case where sniffing is cheap: DXBC opens with `"DXBC"`, AIR is bitcode
-(`BC 0xC0DE`), and WGSL against GLSL is `@group`/`fn` against `#version`/
-`precision`.
-
-`payloadKind` is **one header field, never per stage.** Carbon demonstrably has no
-per-stage language tag: `EffectCompilerMetal.cpp:5155-5156` stores compiled AIR
-through the same `StageInput::Save` slot as DXBC with no language field, and the
-platform is recovered from the resource path instead (`Tr2Effect.cpp:320-340`).
-That is confirmed on the wire — see below.
+Loose program bytes without a resource path can be identified from their
+payload: DXBC opens with `"DXBC"`, AIR is bitcode (`BC 0xC0DE`), and WGSL and
+GLSL have distinct text syntax. The stage record itself carries no language
+tag; program interpretation remains a backend/path responsibility.
 
 ## Verification
 
@@ -420,7 +390,8 @@ That is confirmed on the wire — see below.
 container exercising every record type — static samplers, UAVs, annotations of
 every value type, render states, a raytracing library with both stage-data blocks
 — and assert a byte-exact write → read → write round trip, the arena sort order,
-the caps, the structural checks and the envelope's disjointness.
+the caps, the structural checks and, until the switchover, the legacy envelope's
+disjointness.
 
 **Env-gated real-file proof.** `test/format/carbon-effect-corpus.test.js`, enabled
 with `CARBON_EFFECT_CORPUS_DIR`. Game bytes are never committed; fetch through
@@ -451,23 +422,20 @@ That result is the container port's central evidence. The same reader and the sa
 writer reproduce, byte for byte, files whose program payloads are DXBC in two
 dialects and AIR — with no language field anywhere in the format. The metadata
 region is backend-invariant as a measured fact rather than an argument from the
-writer, which is why `payloadKind` belongs in the envelope header and not in a
-per-stage record.
+writer. Backend selection therefore belongs at the resource-path boundary, not
+in an envelope or per-stage record.
 
 `effect.gles2` is deliberately not a validation target for **this package**: those
 shaders are v8, and nothing in the container port reads or writes them.
 
 **Do not read that as "obsolete".** `effect.gles2` is the shader tree ccpwgl
 actually renders with today — it is the only one that currently works end to end.
-An earlier revision of this line said "ten years old, and nothing depends on
-them", which was true of runtime-resource and false of the stack.
 
 The two statements coexist because **v15-only constrains what we write and
 validate against, not what a reader may accept.** Version-branching is the
-format's own mechanism: Carbon's reader takes 2..15 (`Tr2EffectRes.cpp:209`) and
-ccpwgl's `PrepareCCP` already gates `version < 2 || version > 8`. A reader that
-wants all of them branches on the version dword — v2..8 legacy gles2, v15
-everything current — which is one reader, not a bespoke path per format.
+format's own mechanism. A reader that wants all supported generations branches
+on the version dword — v2..8 legacy gles2, v15 everything current — which is one
+reader, not a bespoke path per format.
 
 **Our containers are v15, not a version of our own.** A "v16" was considered for
 the variant carrying the per-pass backend block and **rejected**: CCP owns that
@@ -476,9 +444,10 @@ field whose entire job is telling a reader how to parse. It also failed the rule
 the rest of this format is held to — invent something only because it *has to*
 exist, never because we think it should.
 
-The block needs no version of its own. Each description blob carries a declared
+The container needs no new version. Each description blob carries a declared
 size in the offset table, and [Rule 1](#two-rules-for-anything-added-later)
 already requires it to parse to exactly that end. A reader parses a blob without
 blocks and re-parses with them if the cursor misses the declared end, so the
-presence of the block is **self-describing** with no new field, no new version and
-no out-of-band flag. `blobVersion` inside the block versions our own extension.
+presence of the block is **self-describing** with no new field, no container
+version and no out-of-band flag. `blobVersion` inside the block versions the
+extension itself.

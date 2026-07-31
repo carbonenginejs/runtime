@@ -115,6 +115,86 @@ Internal base for construction-bound readers that are created for one source and
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:CjsFormatReadError -->
+## `CjsFormatReadError`
+
+Error raised when shared binary format bytes cannot be decoded safely.
+
+- Export: `@carbonenginejs/runtime-resource/format`
+- Source: `src/format/CjsFormatError.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsFormatWriteError -->
+## `CjsFormatWriteError`
+
+Error raised when shared binary format bytes cannot be encoded safely.
+
+- Export: `@carbonenginejs/runtime-resource/format`
+- Source: `src/format/CjsFormatError.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsByteReader -->
+## `CjsByteReader`
+
+Little-endian cursor over resource bytes, with optional string-table arena resolution.
+
+- Export: `@carbonenginejs/runtime-resource/format`
+- Source: `src/format/CjsByteReader.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsByteWriter -->
+## `CjsByteWriter`
+
+Growable little-endian append cursor with reserve-and-patch support.
+
+- Export: `@carbonenginejs/runtime-resource/format`
+- Source: `src/format/CjsByteWriter.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsStringTable -->
+## `CjsStringTable`
+
+Carbon's compiled-effect string table: a deduplicated blob arena whose offsets are assigned by a bytewise sort rather than by insertion order.
+
+- Export: `@carbonenginejs/runtime-resource/format`
+- Source: `src/format/CjsStringTable.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:CjsCarbonEffectBodyReader -->
+## `CjsCarbonEffectBodyReader`
+
+Plain byte cursor over one description blob, carrying the Carbon effect error class and message.
+
+- Export: `@carbonenginejs/runtime-resource/format`
+- Source: `src/format/carbonEffect/CjsCarbonEffectReader.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:CjsCarbonEffectReader -->
+## `CjsCarbonEffectReader`
+
+Reader for Carbon's compiled-effect container at version 15.
+
+- Export: `@carbonenginejs/runtime-resource/format`
+- Source: `src/format/carbonEffect/CjsCarbonEffectReader.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:CjsCarbonEffectWriter -->
+## `CjsCarbonEffectWriter`
+
+Builder for a Carbon compiled-effect container.
+
+- Export: `@carbonenginejs/runtime-resource/format`
+- Source: `src/format/carbonEffect/CjsCarbonEffectWriter.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
 <!-- class:CjsResourceProbe -->
 ## `CjsResourceProbe`
 

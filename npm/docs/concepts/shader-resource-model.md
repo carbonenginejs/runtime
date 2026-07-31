@@ -7,7 +7,7 @@ Summary: How an effect file, its permutations, and the objects that resolve them
 
 ## The target
 
-This is Carbon's model, verified against `E:\carbonengine`. It is the target and we
+This is Carbon's model, verified against the authoritative Carbon source. It is the target and we
 should not diverge from it. Where our code already matches, leave it alone; where
 it does not, the difference is a defect rather than a design choice.
 

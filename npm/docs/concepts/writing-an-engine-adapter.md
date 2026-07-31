@@ -76,8 +76,9 @@ Carbon put it there.
 `src/core/spaceObjectMainBindings.js` read `metadataName`, `heapView`,
 `carbon.type`, `carbon.isSRGB` and `carbon.constants[].{name, offset, size}`
 directly out of the format package, to pack real material uniform bytes. Twelve
-lines, two files, and a recorded defect — tracked in
-[effect-container-port-decisions.md](effect-container-port-decisions.md).
+lines, two files, and a known layering defect: engine code must consume the
+resource-owned `Tr2Shader` reflection graph rather than make format-package
+records its material API.
 
 It is deferred rather than fixed because nothing can use that path until the
 shader work lands, so the break is theoretical. That is a reason not to rush it,

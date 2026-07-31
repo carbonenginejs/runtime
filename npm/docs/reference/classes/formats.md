@@ -873,6 +873,16 @@ Builds a CEWGPU container from ordered, uniquely tagged chunks.
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:CewgpuContainer -->
+## `CewgpuContainer`
+
+Reader over one WebGPU effect container.
+
+- Export: `None`
+- Source: `src/formats/webgpu/core/cewgpu/CewgpuContainer.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:WebgpuReader -->
 ## `WebgpuReader`
 

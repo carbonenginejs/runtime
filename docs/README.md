@@ -60,9 +60,6 @@ hydration boundary.
 - [concepts/shader-resource-model.md](concepts/shader-resource-model.md): how
   `Tr2EffectRes`, `Tr2Shader` and `Tr2Effect` relate, verified against Carbon —
   one file, many permutations, many effects sharing them.
-- [concepts/effect-container-port-decisions.md](concepts/effect-container-port-decisions.md):
-  decisions, measurements and deferred work from the Carbon v15 container port,
-  including the recorded `engine-webgpu` layering defect.
 - [concepts/writing-an-engine-adapter.md](concepts/writing-an-engine-adapter.md):
   the coupling rules and the reflection/topology seam for engine packages —
   read before writing a second engine.
@@ -89,8 +86,8 @@ hydration boundary.
 - [formats/README.md](formats/README.md): format import map and per-format
   output notes.
 - [formats/carbon-effect-container.md](formats/carbon-effect-container.md): the
-  v15 compiled-effect binary layout, the shared byte reader and writer, and the
-  arena offset policy a byte-exact re-emit depends on.
+  public v15 compiled-effect binary layout, extension rules, shared byte reader
+  and writer, and arena offset policy a byte-exact re-emit depends on.
 - [formats/gr2.md](formats/gr2.md): Granny GR2/GSF reading, output modes,
   conversions, graph shape, and class hydration.
 - [formats/wwise.md](formats/wwise.md): Wwise soundbank and media readers.

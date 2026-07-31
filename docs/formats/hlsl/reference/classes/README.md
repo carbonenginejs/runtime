@@ -1,16 +1,11 @@
 # Class catalog
 
-Status: Evolving
+Status: Deprecated
 Scope: `@carbonenginejs/runtime-resource/formats/hlsl` maintained classes
 Audience: Users, maintainers, and automated readers
-Summary: Indexes the one-sentence purpose descriptors for every maintained class in the package.
+Summary: Points to the canonical package-wide catalogs after format-package consolidation.
 
-## Catalog pages
-
-- [Public API classes](public-api.md)
-- [Carbon compatibility classes](carbon-compatibility.md)
-- [Tr2 effect-model classes](tr2-effect-model.md)
-
-Public availability and stability are separate concerns. In particular,
-`Tr2EffectBindingManifest` is exported for advanced tooling but remains an
-experimental surface.
+The maintained HLSL format entries now live in the
+[package-wide formats class catalog](../../../../reference/classes/formats.md#hlsl).
+Canonical runtime effect-resource and shader-reflection entries live in the
+[resources class catalog](../../../../reference/classes/resources.md).
