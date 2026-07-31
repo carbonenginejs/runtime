@@ -13,8 +13,8 @@ The package owns:
 - Carbon type descriptors, schema metadata, models, lifecycle state,
   documents, hydration, and dehydration.
 
-Browser-client ownership is planned for `@carbonenginejs/tools-browser`; that
-package is not currently released. Node automation belongs in
+Browser clients, remote readers, inspectors, and browser integrations belong
+in `@carbonenginejs/tools-browser`. Node automation belongs in
 `@carbonenginejs/tools-core`.
 
 ## Install

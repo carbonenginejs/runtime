@@ -30,7 +30,7 @@ organization dependency cycles.
 ## Dependency direction
 
 ```text
-      runtime-* packages       tools-browser (planned; unreleased)
+      runtime-* packages                tools-browser
               \                    /
                \                  /
                 v                v
@@ -79,8 +79,8 @@ The [API reference](reference/api.md) is the exact current inventory.
 ## Ownership elsewhere
 
 - Browser-facing demos, clients, remote readers, inspectors, integration
-  helpers, and usable reference implementations have the planned owner
-  `@carbonenginejs/tools-browser`, which is not currently released.
+  helpers, and usable reference implementations belong in
+  `@carbonenginejs/tools-browser`.
 - Node filesystems, caches, credentials, servers, command-line interfaces, and
   build orchestration belong in `@carbonenginejs/tools-core`.
 - Runtime graph objects and domain readers belong in their owning

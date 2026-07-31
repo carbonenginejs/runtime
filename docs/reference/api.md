@@ -41,6 +41,7 @@ import { encodeUtf8 } from "@carbonenginejs/runtime-utils/text";
 | [`./lookup`](../../src/lookup.js) | Supplies stable string ordering and duplicate-safe map construction. | `compareCodeUnits`, `sortStrings`, `indexBy` |
 | [`./math`](../../src/math/index.js) | Aggregates scalar and container math. | Scalar exports plus math namespaces. |
 | [`./math/scalar`](../../src/math/scalar.js) | Supplies scalar limits, interpolation, angle conversion, wrapping, and smooth steps. | `defaultEpsilon`, `tau`, `clamp`, `saturate`, `lerp`, `approximatelyEqual`, `degreesToRadians`, `radiansToDegrees`, `wrapDegrees`, `wrapRadians`, `cubicHermite`, `cubicHermiteDerivative`, `smoothStep`, `smootherStep` |
+| [`./object`](../../src/object.js) | Provides promise-aware own-property lookup without changing the caller's object. | `hasOwnThen` |
 | [`./path`](../../src/path.js) | Normalizes generic and case-insensitive resource paths without filesystem access or dot-segment resolution. | `normalizePath`, `normalizeResourcePath`, `getResourceExtension`, `normalizeResourceExtension` |
 | [`./text`](../../src/text.js) | Encodes and decodes UTF-8 through Web-standard codecs. | `encodeUtf8`, `decodeUtf8` |
 | [`./validation`](../../src/validation.js) | Provides small labelled assertions for shared input contracts. | `isPlainObject`, `assertPlainObject`, `assertNonEmptyString`, `assertSupportedVersion` |
@@ -53,6 +54,7 @@ Constant families use `./media`, `./graphics`, `./render-context`, `./audio`,
 `./shader`, `./d3d`, and `./webgpu`; matching `./const/*` aliases are
 available. `render-context` stays out of the root because its numeric
 `PixelFormat` intentionally differs from graphics' string vocabulary.
+`./const/trinity` exports the shared `Tr2Lod` vocabulary.
 
 Carbon foundation families use `./types`, `./schema`, `./model`,
 `./document`, `./hydration`, and `./lifecycle`.
@@ -108,5 +110,6 @@ explicit unsupported-environment error rather than importing a Node fallback.
 ## Detailed family references
 
 See the package README, the retained
-[Carbon type/model guide](../core-types/README.md), and the source-backed
+[Carbon type/model guide](../core-types/README.md),
+[model lifecycle](../concepts/model-lifecycle.md), and the source-backed
 subpath tests for the complete per-family surface.

@@ -132,10 +132,11 @@ descriptor and keeps plain object values non-constructing.
 const node = DemoNode.from({ position: [1, 2, 3] });
 
 node.OnEvent("modified", (_target, payload) => {
-  console.log([...payload.properties]);
+  console.log(payload.source);
 });
 
-node.SetValues({ position: [4, 5, 6] });
+const changed = node.SetValues({ position: [4, 5, 6] });
+console.log([...changed]);
 node.Merge([{ position: [7, 8, 9] }, { position: [10, 11, 12] }]);
 
 const copy = new DemoNode();
@@ -148,11 +149,39 @@ metadata as its field contract. Every model class requires an explicit, stable
 `CjsSchema` `className`; runtime type identity never falls back to
 `Constructor.name`, which is not stable under minification.
 
+The ordinary settled `modified` event contains `{ source }`. The changed field
+names are returned by `SetValues`. A `properties` event field is reserved for
+the direct `markDirty: false` notification path.
+
 `Merge`/`merge` accept an ordered array of raw value bags or model instances,
 deep-merge them, and apply the final bag through one `CjsModel.set` update cycle.
 They return the same changed-set, boolean, or `false` result as `SetValues`.
 `Copy`/`copy` instead require an instantiated
 `CjsModel` source and forward the supplied `SetValues` options.
+
+### Enum-backed fields
+
+Enum metadata resolves lazily from the concrete model constructor's PascalCase
+static. Normal inherited-static lookup is supported.
+
+Imports accept:
+
+- declared member names;
+- declared numeric values; and
+- identity tuples.
+
+The importer prevalidates the complete update before mutating the target.
+Exports select one of:
+
+- `enumFormat: "values"` for numeric values;
+- `enumFormat: "names"` for member names; or
+- `enumFormat: "identity"` for identity tuples.
+
+When multiple names share one numeric value, name export uses the first
+declared key. Schema export includes resolved enum identity and members.
+
+A missing or unresolved enum static passes through without enum validation;
+strict missing-static enforcement is not provided by this version.
 
 ### Hide inherited schema fields
 
@@ -183,13 +212,17 @@ Naming a field that the parent schema does not expose throws during class
 registration.
 
 Each model owns one non-enumerable `__state` object. Model-owned
-`__state.dirty` tracks broad, property, and notification invalidation;
-`__state.rebuild` is an independent `Set` of deferred work; and
+`__state.dirty` is the generic settle marker; `__state.flags` contains
+consumer-cleared lazy invalidations; `__state.rebuild` is a separate
+consumer-cleared `Set` of deferred work; and
 `__state.updating` plus `__state.suppressEvents` coordinate update processing.
 The event emitter adds `__state.events` only while listeners exist. A lifecycle
 manager may install `__state.lifecycle` with `initializeLifecycleState()`;
 without it, the object remains ordinarily alive and unmanaged. Dirty
 consumption and clearing do not modify rebuild or lifecycle state.
+
+See [Model lifecycle](../concepts/model-lifecycle.md) for settlement,
+initialization, traversal, resource, and optional lifecycle-state details.
 
 ## Subpaths
 

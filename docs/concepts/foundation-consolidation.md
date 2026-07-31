@@ -46,8 +46,8 @@ There is one curated `runtime-utils/is` surface:
 - generally useful structural checks belong here;
 - vector and matrix checks join only with explicit math semantics;
 - domain checks remain with their domain package;
-- browser-specific checks remain outside this package; their planned,
-  unreleased owner is `tools-browser`;
+- browser-specific checks remain outside this package and belong in
+  `tools-browser`;
 - established core predicate behavior wins wherever old names overlap.
 
 The goal is a useful shared predicate library, not a reduced compatibility
