@@ -454,5 +454,17 @@ region is backend-invariant as a measured fact rather than an argument from the
 writer, which is why `payloadKind` belongs in the envelope header and not in a
 per-stage record.
 
-`effect.gles2` is deliberately not a validation target. Those shaders are v8, ten
-years old, and nothing here depends on them.
+`effect.gles2` is deliberately not a validation target for **this package**: those
+shaders are v8, and nothing in the container port reads or writes them.
+
+**Do not read that as "obsolete".** `effect.gles2` is the shader tree ccpwgl
+actually renders with today — it is the only one that currently works end to end.
+An earlier revision of this line said "ten years old, and nothing depends on
+them", which was true of runtime-resource and false of the stack.
+
+The two statements coexist because **v15-only constrains what we write and
+validate against, not what a reader may accept.** Version-branching is the
+format's own mechanism: Carbon's reader takes 2..15 (`Tr2EffectRes.cpp:209`) and
+ccpwgl's `PrepareCCP` already gates `version < 2 || version > 8`. A reader that
+wants all of them branches on the version dword — v2..8 legacy gles2, v15
+Carbon-era, v16 ours — which is one reader, not a bespoke path per format.
