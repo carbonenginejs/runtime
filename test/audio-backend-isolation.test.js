@@ -4209,6 +4209,420 @@ test("setter-only authored events update controls and complete without a voice",
   assert.equal(backend.GetPlayingCount(), 0);
 });
 
+test("Voice Volume persists across posts, isolates objects, and applies globally", async () =>
+{
+  const programs = {
+    play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "200", "700" ],
+          },
+        ],
+      },
+    ],
+    set_local: [
+      {
+        kind: "set-voice-volume",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        valueMode: "absolute",
+        volumeDb: -6,
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+      },
+    ],
+    set_global: [
+      {
+        kind: "set-voice-volume",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "global",
+        mode: "element",
+        valueMode: "absolute",
+        volumeDb: -12,
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+      },
+    ],
+    relative_local: [
+      {
+        kind: "set-voice-volume",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        valueMode: "relative",
+        volumeDb: 3,
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+      },
+    ],
+    reset_local: [
+      {
+        kind: "reset-voice-volume",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+      },
+    ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.kind === "play"
+          ? operation.selections.map(selection => ({
+              buffer: { duration: 2 },
+              loop: true,
+              programSlotId:
+                `${selection.actionIndex}:${selection.leafIndex}`,
+              actionIndex: selection.actionIndex,
+              leafIndex: selection.leafIndex,
+              matchIds: selection.matchIds,
+              getGain: () => 10 ** (
+                controls.getVoiceVolumeDb(selection.matchIds) / 20
+              ),
+              getGainAtVoiceVolumeDb: value => 10 ** (value / 20),
+            }))
+          : []),
+    }),
+  });
+  backend.RegisterGameObj(2);
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  backend.PostEvent(2, 2, 0, emitter, "play");
+  await tick();
+
+  const firstGain = context.sources[0].connectedTo.gain;
+  const secondGain = context.sources[1].connectedTo.gain;
+
+  backend.PostEvent(3, 1, 0, emitter, "set_local");
+  assert.ok(Math.abs(firstGain.value - 10 ** (-6 / 20)) < 1e-12);
+  assert.equal(secondGain.value, 1);
+
+  backend.PostEvent(4, 1, 0, emitter, "relative_local");
+  assert.ok(Math.abs(firstGain.value - 10 ** (-3 / 20)) < 1e-12);
+
+  backend.PostEvent(5, 1, 0, emitter, "set_global");
+  assert.ok(Math.abs(firstGain.value - 10 ** (-12 / 20)) < 1e-12);
+  assert.ok(Math.abs(secondGain.value - 10 ** (-12 / 20)) < 1e-12);
+
+  backend.PostEvent(6, 1, 0, emitter, "reset_local");
+  assert.equal(firstGain.value, 1);
+  assert.ok(Math.abs(secondGain.value - 10 ** (-12 / 20)) < 1e-12);
+});
+
+test("overdue Voice Volume actions intersect fades at authored action time", async () =>
+{
+  const programs = {
+    play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "200", "700" ],
+          },
+        ],
+      },
+    ],
+    fade: [
+      {
+        kind: "set-voice-volume",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        valueMode: "absolute",
+        volumeDb: -20,
+        delayMs: 1000,
+        transitionMs: 4000,
+        curve: 4,
+      },
+    ],
+    relative: [
+      {
+        kind: "set-voice-volume",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        valueMode: "relative",
+        volumeDb: 10,
+        delayMs: 2000,
+        transitionMs: 0,
+        curve: 4,
+      },
+    ],
+  };
+  const { backend, emitter, context, finished } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.kind === "play"
+          ? operation.selections.map(selection => ({
+              buffer: { duration: 2 },
+              loop: true,
+              programSlotId: "0:0",
+              matchIds: selection.matchIds,
+              getGain: () => 10 ** (
+                controls.getVoiceVolumeDb(selection.matchIds) / 20
+              ),
+              getGainAtVoiceVolumeDb: value => 10 ** (value / 20),
+            }))
+          : []),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  const fadeID = backend.PostEvent(2, 1, 0, emitter, "fade");
+  const relativeID = backend.PostEvent(3, 1, 0, emitter, "relative");
+  await tick();
+
+  context.currentTime = 1;
+  backend.RenderAudio();
+
+  const gainParam = context.sources[0].connectedTo.gain;
+  const scheduledFade = gainParam.curves.at(-1);
+
+  assert.equal(scheduledFade[1], 1);
+  assert.equal(scheduledFade[2], 4);
+  assert.ok(Math.abs(scheduledFade[0][0] - 1) < 1e-6);
+  assert.ok(Math.abs(scheduledFade[0].at(-1) - 0.1) < 1e-6);
+  assert.equal(gainParam.cancellations.at(-1), 0);
+
+  gainParam.holds = [];
+  gainParam.cancelAndHoldAtTime = time => gainParam.holds.push(time);
+  context.currentTime = 2;
+  backend.SetRTPCValue("unused", 1, 1);
+
+  const rescheduledFade = gainParam.curves.at(-1);
+
+  assert.deepEqual(gainParam.holds, [ 2 ]);
+  assert.equal(rescheduledFade[1], 2);
+  assert.equal(rescheduledFade[2], 3);
+
+  context.currentTime = 5;
+  backend.RenderAudio();
+
+  const gainAtSecondAction = 1 + (0.1 - 1) * 0.25;
+  const dbAtSecondAction = 20 * Math.log10(gainAtSecondAction);
+  const expected = 10 ** ((dbAtSecondAction + 10) / 20);
+
+  assert.ok(
+    Math.abs(gainParam.value - expected) < 1e-12,
+  );
+  assert.ok(finished.includes(fadeID));
+  assert.ok(finished.includes(relativeID));
+});
+
+test("Voice Volume sums parent and child hierarchy contributions", async () =>
+{
+  const volume = (targetId, valueMode, volumeDb, transitionMs = 0) => ({
+    kind: "set-voice-volume",
+    actionIndex: 0,
+    targetId,
+    targetFlags: 0,
+    scope: "game-object",
+    mode: "element",
+    valueMode,
+    volumeDb,
+    delayMs: 0,
+    transitionMs,
+    curve: 4,
+  });
+  const programs = {
+    play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "200", "700" ],
+          },
+        ],
+      },
+    ],
+    set_parent: [ volume("200", "absolute", -6) ],
+    set_child: [ volume("700", "absolute", -3) ],
+    relative_parent: [ volume("200", "relative", 2) ],
+    fade_parent: [ volume("200", "absolute", -6, 4000) ],
+    fade_child: [ volume("700", "absolute", -3, 2000) ],
+    reset_child: [
+      {
+        kind: "reset-voice-volume",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+      },
+    ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.kind === "play"
+          ? operation.selections.map(selection => ({
+              buffer: { duration: 2 },
+              loop: true,
+              programSlotId: "0:0",
+              matchIds: selection.matchIds,
+              getGain: () => 10 ** (
+                controls.getVoiceVolumeDb(selection.matchIds) / 20
+              ),
+              getGainAtVoiceVolumeDb: value => 10 ** (value / 20),
+            }))
+          : []),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+
+  const gain = context.sources[0].connectedTo.gain;
+
+  backend.PostEvent(2, 1, 0, emitter, "set_parent");
+  assert.ok(Math.abs(gain.value - 10 ** (-6 / 20)) < 1e-12);
+  backend.PostEvent(3, 1, 0, emitter, "set_child");
+  assert.ok(Math.abs(gain.value - 10 ** (-9 / 20)) < 1e-12);
+  backend.PostEvent(4, 1, 0, emitter, "relative_parent");
+  assert.ok(Math.abs(gain.value - 10 ** (-7 / 20)) < 1e-12);
+  backend.PostEvent(5, 1, 0, emitter, "reset_child");
+  assert.ok(Math.abs(gain.value - 10 ** (-4 / 20)) < 1e-12);
+
+  backend.PostEvent(6, 1, 0, emitter, "fade_parent");
+  backend.PostEvent(7, 1, 0, emitter, "fade_child");
+
+  const aggregateFade = gain.curves.at(-1);
+
+  assert.equal(aggregateFade[2], 4);
+  assert.ok(
+    Math.abs(aggregateFade[0][0] - 10 ** (-4 / 20)) < 1e-6,
+  );
+  assert.ok(
+    Math.abs(aggregateFade[0].at(-1) - 10 ** (-9 / 20)) < 1e-6,
+  );
+});
+
+test("unregister freezes Voice Volume for retired voices and resets a new generation", async () =>
+{
+  const programs = {
+    play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "200", "700" ],
+          },
+        ],
+      },
+    ],
+    set: [
+      {
+        kind: "set-voice-volume",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        valueMode: "absolute",
+        volumeDb: -6,
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+      },
+    ],
+    set_global: [
+      {
+        kind: "set-voice-volume",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "global",
+        mode: "element",
+        valueMode: "absolute",
+        volumeDb: -12,
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+      },
+    ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.kind === "play"
+          ? operation.selections.map(selection => ({
+              buffer: { duration: 2 },
+              loop: true,
+              programSlotId: "0:0",
+              matchIds: selection.matchIds,
+              getGain: () => 10 ** (
+                controls.getVoiceVolumeDb(selection.matchIds) / 20
+              ),
+              getGainAtVoiceVolumeDb: value => 10 ** (value / 20),
+            }))
+          : []),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+  backend.PostEvent(2, 1, 0, emitter, "set");
+
+  const retiredGain = context.sources[0].connectedTo.gain;
+
+  backend.UnregisterGameObj(1);
+  backend.RegisterGameObj(1);
+  backend.PostEvent(3, 1, 0, emitter, "play");
+  await tick();
+  backend.RenderAudio();
+
+  assert.ok(Math.abs(retiredGain.value - 10 ** (-6 / 20)) < 1e-12);
+  assert.equal(context.sources[1].connectedTo.gain.value, 1);
+
+  backend.PostEvent(4, 1, 0, emitter, "set_global");
+  assert.ok(Math.abs(retiredGain.value - 10 ** (-6 / 20)) < 1e-12);
+  assert.ok(
+    Math.abs(
+      context.sources[1].connectedTo.gain.value - 10 ** (-12 / 20)
+    ) < 1e-12,
+  );
+});
+
 test("an authored Play then Stop cancels its pending slot before media resolves", async () =>
 {
   const pending = Deferred();

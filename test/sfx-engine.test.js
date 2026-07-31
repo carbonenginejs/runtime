@@ -1629,6 +1629,102 @@ test("event programs preserve Stop order, hierarchy matches, and sampled timing"
     });
 });
 
+test("event programs preserve Set and Reset Voice Volume operations", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: {
+            schemaVersion: 2,
+            events: {
+                staged_volume: [ { nodeId: "1" } ],
+            },
+            programs: {
+                staged_volume: [
+                    {
+                        kind: "set-voice-volume",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        valueMode: "absolute",
+                        volumeDb: -12,
+                        transitionMs: 250,
+                        curve: 7,
+                    },
+                    { kind: "play", child: { nodeId: "1" } },
+                    {
+                        kind: "set-voice-volume",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        valueMode: "relative",
+                        volumeDb: 3,
+                        delayMs: 100,
+                        curve: 4,
+                    },
+                    {
+                        kind: "reset-voice-volume",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        curve: 4,
+                    },
+                ],
+            },
+            nodes: {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    matchIds: [ "1", "700" ],
+                },
+            },
+        },
+    });
+
+    const program = engine.ResolveProgram("staged_volume");
+
+    assert.deepEqual(
+        program.map(action => action.kind),
+        [
+            "set-voice-volume",
+            "play",
+            "set-voice-volume",
+            "reset-voice-volume",
+        ],
+    );
+    assert.deepEqual(program[0], {
+        kind: "set-voice-volume",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 250,
+        curve: 7,
+        valueMode: "absolute",
+        volumeDb: -12,
+    });
+    assert.equal(program[2].delayMs, 100);
+    assert.equal(program[2].valueMode, "relative");
+    assert.equal(program[2].volumeDb, 3);
+    assert.equal(program[3].volumeDb, undefined);
+    assert.ok(
+        Math.abs(engine.EvaluateGain(
+            program[1].selections[0],
+            { getVoiceVolumeDb: () => -6 },
+        ) - 10 ** (-6 / 20)) < 1e-12,
+    );
+    assert.ok(
+        Math.abs(engine.EvaluateGain(
+            program[1].selections[0],
+            { getVoiceVolumeDb: () => -6 },
+            3,
+        ) - 10 ** (3 / 20)) < 1e-12,
+    );
+});
+
 test("Play actions preserve probability, randomized delay, and fade-in", () =>
 {
     const samples = [ 0.49, 0.5, 0, 0.5 ];

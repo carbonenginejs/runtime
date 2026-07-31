@@ -1329,6 +1329,12 @@ export class CjsAudioMan
                                 selection,
                                 controls,
                             ),
+                            getGainAtVoiceVolumeDb: voiceVolumeDb =>
+                                engine.EvaluateGain(
+                                    selection,
+                                    controls,
+                                    voiceVolumeDb,
+                                ),
                             ...(selection.lowPass === undefined
                                 ? {}
                                 : {

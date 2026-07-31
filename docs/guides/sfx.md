@@ -120,9 +120,10 @@ SFX schema version 2 makes `programs` the ordered authoring source. When an
 event has a program, its `events` entry must be exactly the projection of that
 program's `play` actions. This keeps legacy root lookup available without
 allowing the static roots and the executable program to disagree. Supplied
-Stop actions are also qualified at validation time: bus targets, unsupported
-action flags, nonzero Stop-All targets, and element-target exceptions are
-rejected.
+Stop and Voice Volume actions are also qualified at validation time. Bus
+targets remain unsupported; Stop rejects unsupported action flags, nonzero
+Stop-All targets, and element-target exceptions, while Voice Volume accepts
+only exact element targets and its decoded dB contract.
 
 ## Node behavior
 
@@ -145,13 +146,14 @@ offsets from the base value. One set of values is sampled for the Play action
 and inherited by every sound leaf it selects. Delay is measured from the
 event post, and the fade begins when the delayed source starts.
 
-`programs` preserves the authored order of Play, Stop, SetSwitch, and
-SetState actions. Switches update the posting game object; states update the
-global state table. A setter therefore affects only later Play actions in the
-same post. The `events` table remains the static playable-root projection
-used for media discovery. A setter-only or Stop-only program is valid and
-completes without creating a media voice. Directly scheduled setters are
-omitted instead of being executed early.
+`programs` preserves the authored order of Play, Stop, SetSwitch, SetState,
+Set Voice Volume, and Reset Voice Volume actions. Switches update the posting
+game object; states update the global state table. A switch or state setter
+therefore affects only later Play actions in the same post. The `events` table
+remains the static playable-root projection used for media discovery. An
+action-only program is valid and completes without creating a media voice.
+Directly scheduled switch/state setters are omitted instead of being executed
+early.
 
 A Stop action has `scope: "game-object"` or `"global"`. `mode: "element"`
 matches the target HIRC identity, while `"all"` and `"all-except"` apply to
@@ -171,6 +173,27 @@ preserved: Play then Stop is stoppable, while Stop then Play leaves the later
 Play intact. Event metadata still carries conservative `eventsStoppedBy`
 relationships for culling and static inspection, but an installed authored
 program owns the actual Stop timing and avoids a duplicate fallback fade.
+
+Set Voice Volume stores one dB contribution for the target HIRC element on
+the affected game object. `valueMode: "absolute"` replaces that contribution;
+`"relative"` adds to its interpolated current value. Reset Voice Volume
+returns the contribution to `0 dB`. Contributions from distinct matching
+Sound, container, and Actor-Mixer identities add through `matchIds` before
+the final Wwise gain clamp, alongside authored hierarchy, State, and RTPC
+volume. They never replace Play fades, Continuous crossfades, Stop fades,
+emitter gain, or spatial attenuation.
+
+Game-object scope changes only the posting emitter. Global scope changes all
+currently registered emitters. The stored contribution affects voices that
+are already playing and voices created by later posts, and survives after the
+action-only posting ID completes. Unregistering an emitter ends that stored
+generation; already-playing voices retain the retired generation's stored
+contribution and finish any scheduled transition, while a newly registered
+generation starts at `0 dB`. Delay is measured from the action post. Value
+randomizers are signed dB offsets sampled once, and transitions use the
+decoded Wwise curve from the authored action time. Web Audio automation keeps
+those transitions continuous between `RenderAudio()` calls. The builder fails
+closed for bus, music, unresolved, and otherwise untyped targets.
 
 Random and sequence state is kept independently per game object by default.
 Set `scope: "global"` on either container to share its history or position
@@ -302,15 +325,16 @@ are preserved by `runtime-resource`, but the builder does not currently infer
 caller metadata, or enrichment.
 
 Automatic construction currently accepts Wwise generator-version-150 codec
-sounds, Play, Stop, Play-Event, SetSwitch, and SetState actions,
+sounds, Play, Stop, Set/Reset Voice Volume, Play-Event, SetSwitch, and SetState
+actions,
 Random/Sequence containers without reverse restart, and named Step
 Switch/State containers without transition parameters. Play actions retain
 their authored delay, delay randomizer, probability, fade-in duration,
 fade-in randomizer, and curve. Play-Event recursively inlines the referenced
-event's playable program and merges its immediate setter and Stop
-relationships; its delay, delay randomizer, and probability wrap only the
-inlined playable roots. A scheduled or gated Play-Event that reaches a setter
-or Stop program is omitted rather than executing that non-play action early.
+event's playable program and merges its immediate setter, Voice Volume, and Stop
+actions; its delay, delay randomizer, and probability wrap only the
+inlined playable roots. A scheduled or gated Play-Event that reaches any
+non-play program is omitted rather than executing that action early.
 Missing targets and cycles are diagnosed and omitted.
 Successfully lowered nodes also retain inherited NodeBase Volume, Pitch, and
 InitialDelay properties. Their independent authored random ranges are sampled
@@ -322,8 +346,9 @@ Hierarchy-only Actor-Mixer values are folded into the nearest playable node
 without turning the mixer into a playable container.
 Trackless, non-continuous Layer/Blend containers lower to parallel playback.
 Non-continuous Layer crossfade tracks lower to live normalized-gain curves
-when their controller is a named Game Parameter and the Layer has no separate
-property RTPCs.
+when their controller is a named Game Parameter. Supported Layer property
+RTPCs lower to live Volume, Pitch, low-pass, and high-pass curves on each
+affected child.
 Transition and reset-after-stop policies authored on a Step Random/Sequence
 container are Continuous-only and therefore do not alter its
 one-child-per-post behavior.
@@ -365,7 +390,8 @@ unsupported actions or reaches an unsupported playable node; the optional
 diagnostics callback explains each omission. Sample Accurate Continuous
 transitions, nested Continuous containers, Play-and-Continue,
 playable Actor-Mixer approximation, authored continuous Layers, Layer
-property RTPCs, and other unqualified HIRC semantics are never silently
+property RTPC semantics outside the supported Volume, Pitch, low-pass, and
+high-pass set, and other unqualified HIRC semantics are never silently
 approximated.
 
 For events that do lower, the builder walks every possible typed graph branch

@@ -28,6 +28,10 @@ const CONTINUOUS_TRANSITIONS = new Set([
 ]);
 const MIN_TRIGGER_RATE_MS = 21;
 const EVENT_ACTION_KINDS = new Set([ "state", "switch" ]);
+const VOICE_VOLUME_ACTION_KINDS = new Set([
+    "reset-voice-volume",
+    "set-voice-volume",
+]);
 const STOP_SCOPES = new Set([ "game-object", "global" ]);
 const STOP_MODES = new Set([ "all", "all-except", "element" ]);
 
@@ -330,6 +334,11 @@ export function validateSfxGraph(
                 ValidateStopAction(action, label);
                 continue;
             }
+            if (VOICE_VOLUME_ACTION_KINDS.has(action.kind))
+            {
+                ValidateVoiceVolumeAction(action, label);
+                continue;
+            }
             ValidateSetterAction(action, label);
         }
 
@@ -402,6 +411,10 @@ export function normalizeSfxGraph(graph, media = {}, embeddedMedia = {})
                 if (action.kind === "stop")
                 {
                     return NormalizeStopAction(action);
+                }
+                if (VOICE_VOLUME_ACTION_KINDS.has(action.kind))
+                {
+                    return NormalizeVoiceVolumeAction(action);
                 }
                 return NormalizeSetterAction(action);
             });
@@ -885,6 +898,114 @@ function ValidateSetterAction(value, label)
     NormalizeName(action.value, `${label} value`);
 }
 
+function ValidateVoiceVolumeAction(value, label)
+{
+    const action = RequireRecord(value, label);
+
+    if (!VOICE_VOLUME_ACTION_KINDS.has(action.kind))
+    {
+        throw new TypeError(
+            `${label} kind must be set-voice-volume or reset-voice-volume`,
+        );
+    }
+    if (!STOP_SCOPES.has(action.scope))
+    {
+        throw new TypeError(
+            `${label} scope must be game-object or global`,
+        );
+    }
+    if (action.mode !== "element")
+    {
+        throw new TypeError(`${label} mode must be element`);
+    }
+    NormalizePositiveID(action.targetId, `${label} targetId`);
+    if (action.targetFlags !== undefined)
+    {
+        const targetFlags = NormalizeByte(
+            action.targetFlags,
+            `${label} targetFlags`,
+        );
+
+        if (targetFlags !== 0)
+        {
+            throw new TypeError(
+                `${label} targetFlags must be 0`,
+            );
+        }
+    }
+
+    if (action.kind === "set-voice-volume")
+    {
+        if (action.valueMode !== "absolute"
+            && action.valueMode !== "relative")
+        {
+            throw new TypeError(
+                `${label} valueMode must be absolute or relative`,
+            );
+        }
+        ValidateVoiceVolumeDb(action.volumeDb, `${label} volumeDb`);
+        if (action.volumeRangeDb !== undefined)
+        {
+            const range = RequireRecord(
+                action.volumeRangeDb,
+                `${label} volumeRangeDb`,
+            );
+            const min = ValidateVoiceVolumeDb(
+                range.min,
+                `${label} volumeRangeDb min`,
+            );
+            const max = ValidateVoiceVolumeDb(
+                range.max,
+                `${label} volumeRangeDb max`,
+            );
+
+            if (min > max)
+            {
+                throw new TypeError(
+                    `${label} volumeRangeDb min must not exceed max`,
+                );
+            }
+            ValidateVoiceVolumeDb(
+                Number(action.volumeDb) + min,
+                `${label} minimum randomized volumeDb`,
+            );
+            ValidateVoiceVolumeDb(
+                Number(action.volumeDb) + max,
+                `${label} maximum randomized volumeDb`,
+            );
+        }
+    }
+    else if (action.valueMode !== undefined
+        || action.volumeDb !== undefined
+        || action.volumeRangeDb !== undefined)
+    {
+        throw new TypeError(
+            `${label} Reset cannot carry a volume value`,
+        );
+    }
+    if (action.probability !== undefined)
+    {
+        throw new TypeError(`${label} probability is unsupported`);
+    }
+
+    ValidateActionTiming({
+        delayMs: action.delayMs,
+        delayRangeMs: action.delayRangeMs,
+    }, label);
+    ValidateTransitionTiming(action, label);
+}
+
+function ValidateVoiceVolumeDb(value, label)
+{
+    const number = NormalizeFiniteNumber(value, label);
+
+    if (number < -200 || number > 200)
+    {
+        throw new TypeError(`${label} must be between -200 and 200 dB`);
+    }
+    return number;
+}
+
 function ValidateStopAction(value, label)
 {
     const action = RequireRecord(value, label);
@@ -1073,6 +1194,53 @@ function NormalizeStopAction(action)
             result[field] = {
                 min: Number(action[field].min),
                 max: Number(action[field].max),
+            };
+        }
+    }
+
+    return result;
+}
+
+function NormalizeVoiceVolumeAction(action)
+{
+    const result = {
+        kind: action.kind,
+        targetId: String(Number(action.targetId) >>> 0),
+        scope: action.scope,
+        mode: "element",
+        curve: Number(action.curve ?? 4),
+    };
+
+    for (const field of [
+        "targetFlags",
+        "delayMs",
+        "transitionMs",
+    ])
+    {
+        if (action[field] !== undefined)
+        {
+            result[field] = Number(action[field]);
+        }
+    }
+    for (const field of [ "delayRangeMs", "transitionRangeMs" ])
+    {
+        if (action[field] !== undefined)
+        {
+            result[field] = {
+                min: Number(action[field].min),
+                max: Number(action[field].max),
+            };
+        }
+    }
+    if (action.kind === "set-voice-volume")
+    {
+        result.valueMode = action.valueMode;
+        result.volumeDb = Number(action.volumeDb);
+        if (action.volumeRangeDb !== undefined)
+        {
+            result.volumeRangeDb = {
+                min: Number(action.volumeRangeDb.min),
+                max: Number(action.volumeRangeDb.max),
             };
         }
     }

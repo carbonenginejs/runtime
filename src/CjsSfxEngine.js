@@ -104,7 +104,7 @@ export class CjsSfxEngine
     }
 
     /**
-     * Resolves one post into ordered Play and Stop operations.
+     * Resolves one post into ordered Play, Stop, and Voice Volume operations.
      *
      * SetSwitch and SetState actions execute synchronously in their authored
      * position so each later Play resolves against the updated controls.
@@ -262,6 +262,19 @@ export class CjsSfxEngine
                     if (stop)
                     {
                         operations.push(stop);
+                    }
+                }
+                else if (action.kind === "set-voice-volume"
+                    || action.kind === "reset-voice-volume")
+                {
+                    const volume = this.#ResolveVoiceVolumeAction(
+                        action,
+                        actionIndex,
+                    );
+
+                    if (volume)
+                    {
+                        operations.push(volume);
                     }
                 }
                 else
@@ -652,7 +665,7 @@ export class CjsSfxEngine
     /**
      * Evaluates one resolved leaf's current linear gain from RTPC controls.
      */
-    EvaluateGain(selection, controls = {})
+    EvaluateGain(selection, controls = {}, voiceVolumeDb = undefined)
     {
         let gainDb = Number(selection?.gainDb) || 0;
         let linearGain = 1;
@@ -679,6 +692,11 @@ export class CjsSfxEngine
             selection?.rtpcCurves,
             controls,
         ).gainDb;
+        gainDb += voiceVolumeDb === undefined
+            ? Number(
+                controls.getVoiceVolumeDb?.(selection?.matchIds),
+            ) || 0
+            : Number(voiceVolumeDb) || 0;
 
         gainDb = Clamp(
             gainDb,
@@ -1341,6 +1359,47 @@ export class CjsSfxEngine
         });
     }
 
+    /** Samples one authored Voice Volume action once for this post. */
+    #ResolveVoiceVolumeAction(action, actionIndex)
+    {
+        const setting = action.kind === "set-voice-volume";
+        const volumeDb = setting
+            ? Math.max(-200, Math.min(200,
+                SampleSignedRandomizedValue(
+                    action.volumeDb,
+                    action.volumeRangeDb,
+                    () => this.#SampleUnit(),
+                ),
+            ))
+            : 0;
+
+        return Object.freeze({
+            kind: action.kind,
+            actionIndex,
+            targetId: String(Number(action.targetId) >>> 0),
+            targetFlags: Number(action.targetFlags ?? 0),
+            scope: action.scope,
+            mode: "element",
+            delayMs: Math.max(0, SampleRandomizedValue(
+                action.delayMs,
+                action.delayRangeMs,
+                () => this.#SampleUnit(),
+            )),
+            transitionMs: Math.max(0, SampleRandomizedValue(
+                action.transitionMs,
+                action.transitionRangeMs,
+                () => this.#SampleUnit(),
+            )),
+            curve: Number(action.curve ?? 4),
+            ...(setting
+                ? {
+                    valueMode: action.valueMode,
+                    volumeDb,
+                }
+                : {}),
+        });
+    }
+
     /** Returns one finite random sample clamped to Wwise's [0, 1) domain. */
     #SampleUnit()
     {
@@ -1613,6 +1672,21 @@ function SampleRandomizedValue(base, range, sample)
     const offset = min + (max - min) * sample();
 
     return Math.max(0, value + offset);
+}
+
+function SampleSignedRandomizedValue(base, range, sample)
+{
+    const value = Number(base) || 0;
+
+    if (!range)
+    {
+        return value;
+    }
+
+    const min = Number(range.min) || 0;
+    const max = Number(range.max) || 0;
+
+    return value + min + (max - min) * sample();
 }
 
 function ApplySetter(action, controls)

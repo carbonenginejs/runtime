@@ -471,6 +471,14 @@ class AudioLibrary
 
             return `Runs this ordered authored program: ${programText}. Stops use their decoded scope, hierarchy target, delay, transition, curve, and exceptions.`;
         }
+        if (type === "voice volume action")
+        {
+            const programText = controls.program
+                .map(FormatSfxProgramAction)
+                .join(", then ");
+
+            return `Runs this ordered authored program: ${programText}. Set Voice Volume persists on the target hierarchy element, Relative values accumulate, Reset returns its contribution to 0 dB, and authored delays and fades use the audio clock.`;
+        }
         if (type === "switch container")
         {
             const control = controls.switches[0];
@@ -592,6 +600,14 @@ class AudioLibrary
                 preferred: [ "Abyssal_exit_play" ],
                 matches: name => this.sfx?.programs?.[name]
                     ?.some(action => action.kind === "stop"),
+            },
+            {
+                type: "voice volume action",
+                preferred: [ "stagecoach_idle_loop_play" ],
+                matches: name => this.sfx?.programs?.[name]
+                    ?.some(action =>
+                        action.kind === "set-voice-volume"
+                        || action.kind === "reset-voice-volume"),
             },
             {
                 type: "setter only",
@@ -1188,8 +1204,7 @@ class Scene
     /**
      * One emitter walking the effect's lifecycle: loops hold then advance,
      * one-shots play out; advancing stops the previous loop through the
-     * engine's StopEvent (our backend does not execute Wwise-side stop
-     * actions).
+     * engine's StopEvent as explicit showcase choreography.
      */
     SpawnSequence(stem, fixedPosition = null)
     {
@@ -2464,9 +2479,13 @@ class SfxUi
         if (!types.length)
         {
             types.push(details.actions.some(action =>
-                action.kind === "stop")
-                ? "stop action"
-                : "setter");
+                action.kind === "set-voice-volume"
+                || action.kind === "reset-voice-volume")
+                ? "voice volume action"
+                : details.actions.some(action =>
+                    action.kind === "stop")
+                    ? "stop action"
+                    : "setter");
         }
         const graph = this.#app.library.sfx;
         const delivery = document.getElementById("delivery").value;
@@ -2539,6 +2558,21 @@ function FormatSfxProgramAction(action)
     if (action.kind === "play")
     {
         return `play ${action.child?.nodeId ?? ""}`.trim();
+    }
+    if (action.kind === "set-voice-volume"
+        || action.kind === "reset-voice-volume")
+    {
+        const delay = Number(action.delayMs) > 0
+            ? ` after ${FormatControlValue(action.delayMs)}ms`
+            : "";
+        const transition = Number(action.transitionMs) > 0
+            ? ` over ${FormatControlValue(action.transitionMs)}ms`
+            : "";
+        const verb = action.kind === "reset-voice-volume"
+            ? "reset voice volume"
+            : `${action.valueMode} voice volume ${FormatControlValue(action.volumeDb)}dB`;
+
+        return `${verb} on ${action.targetId} (${action.scope}${delay}${transition})`;
     }
     if (action.kind !== "stop")
     {

@@ -2748,6 +2748,123 @@ test("SFX Stop actions project event relationships through hierarchy-only parent
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("SFX Voice Volume actions lower into ordered portable programs", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload({
+                            directParentId: 700,
+                        }),
+                    },
+                    {
+                        type: 7,
+                        id: 700,
+                        payload: actorMixerPayload(),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0a03,
+                        targetId: 700,
+                        action: {
+                            actionMode: "element",
+                            actionScope: "game-object",
+                            targetId: 700,
+                            targetFlags: 0,
+                            targetIsBus: false,
+                            delayTimeMs: 100,
+                            transitionTimeMs: 250,
+                            fadeCurve: 7,
+                            valueMode: "relative",
+                            volumeDb: -3,
+                            volumeRangeDb: { min: -3, max: 1 },
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 302,
+                        actionType: 0x0b03,
+                        targetId: 700,
+                        action: {
+                            actionMode: "element",
+                            actionScope: "game-object",
+                            targetId: 700,
+                            targetFlags: 0,
+                            targetIsBus: false,
+                            fadeCurve: 4,
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300, 301, 302 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                staged_volume: { eventID: 100 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.deepEqual(result.events.staged_volume, [
+        { nodeId: "200" },
+    ]);
+    assert.deepEqual(result.programs.staged_volume, [
+        {
+            kind: "set-voice-volume",
+            targetId: "700",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            curve: 7,
+            valueMode: "relative",
+            volumeDb: -3,
+            volumeRangeDb: { min: -3, max: 1 },
+            delayMs: 100,
+            transitionMs: 250,
+        },
+        { kind: "play", child: { nodeId: "200" } },
+        {
+            kind: "reset-voice-volume",
+            targetId: "700",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            curve: 4,
+        },
+    ]);
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
 test("SFX spatial projection resolves inherited and mixed playable leaves", () =>
 {
     const inspections = [

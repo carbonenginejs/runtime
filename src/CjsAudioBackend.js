@@ -59,7 +59,7 @@ export class CjsAudioBackend
 
     #playing = new Map();
 
-    #scheduledSfxStops = [];
+    #scheduledSfxActions = [];
 
     #globalRtpcValues = new Map();
 
@@ -240,6 +240,7 @@ export class CjsAudioBackend
             panner,
             analyser,
             scalingFactor: 1,
+            voiceVolumes: new Map(),
         });
     }
 
@@ -346,7 +347,7 @@ export class CjsAudioBackend
             postContextTime: Number(this.#context.currentTime) || 0,
             sfxProgram: false,
             programSlots: null,
-            pendingProgramStops: 0,
+            pendingProgramActions: 0,
             planningProgram: false,
             loading: false,
             posting: true,
@@ -421,7 +422,7 @@ export class CjsAudioBackend
             record.loading = false;
             // Rendering may have paused while media was pending. Apply every
             // now-overdue Stop before a cancelled slot can become a voice.
-            this.#ProcessScheduledSfxStops();
+            this.#ProcessScheduledSfxActions();
             if (!result || record.stopped || !this.#playing.has(playingID))
             {
                 this.#FinishSfxPlaying(playingID);
@@ -696,9 +697,9 @@ export class CjsAudioBackend
                     slot.state = "cancelled";
                 }
             }
-            record.pendingProgramStops = 0;
-            this.#scheduledSfxStops = this.#scheduledSfxStops
-                .filter(stop => stop.ownerPlayingID !== playingID);
+            record.pendingProgramActions = 0;
+            this.#scheduledSfxActions = this.#scheduledSfxActions
+                .filter(value => value.ownerPlayingID !== playingID);
         }
         const active = record.voices?.filter(voice =>
             voice.source
@@ -1076,7 +1077,7 @@ export class CjsAudioBackend
     /** WebAudio renders continuously; the tick drives music-engine lookahead scheduling. */
     RenderAudio()
     {
-        this.#ProcessScheduledSfxStops();
+        this.#ProcessScheduledSfxActions();
         this.#ProcessTriggerRateSlots();
         this.#ProcessCrossfadeSlots();
         this.#musicEngine?.Process();
@@ -1724,17 +1725,20 @@ export class CjsAudioBackend
                     }
                     continue;
                 }
-                if (operation.kind !== "stop")
+                if (operation.kind !== "stop"
+                    && operation.kind !== "set-voice-volume"
+                    && operation.kind !== "reset-voice-volume")
                 {
                     throw new TypeError(
                         `Unsupported resolved SFX operation ${operation.kind}`,
                     );
                 }
 
-                const stop = {
+                const action = {
                     ...operation,
                     ownerPlayingID: playingID,
                     gameObjID: record.gameObjID,
+                    emitterNodes: record.emitterNodes,
                     actionTime: record.postContextTime
                         + Math.max(
                             0,
@@ -1743,18 +1747,18 @@ export class CjsAudioBackend
                 };
                 const now = Number(this.#context.currentTime) || 0;
 
-                if (stop.actionTime <= now)
+                if (action.actionTime <= now)
                 {
-                    this.#ApplySfxStop(stop, now);
+                    this.#ApplySfxProgramAction(action, now);
                 }
                 else
                 {
-                    record.pendingProgramStops++;
-                    this.#scheduledSfxStops.push(stop);
+                    record.pendingProgramActions++;
+                    this.#scheduledSfxActions.push(action);
                 }
             }
 
-            this.#scheduledSfxStops.sort(CompareStopActions);
+            this.#scheduledSfxActions.sort(CompareSfxActions);
         }
         finally
         {
@@ -1763,32 +1767,77 @@ export class CjsAudioBackend
         this.#MaybeFinishSfxProgram(playingID, record);
     }
 
-    /** Executes every authored Stop whose absolute action time has arrived. */
-    #ProcessScheduledSfxStops()
+    /** Executes every authored SFX action whose absolute time has arrived. */
+    #ProcessScheduledSfxActions()
     {
         const now = Number(this.#context?.currentTime) || 0;
 
-        while (this.#scheduledSfxStops.length
-            && this.#scheduledSfxStops[0].actionTime <= now)
+        while (this.#scheduledSfxActions.length
+            && this.#scheduledSfxActions[0].actionTime <= now)
         {
-            const stop = this.#scheduledSfxStops.shift();
-            const owner = this.#playing.get(stop.ownerPlayingID);
+            const action = this.#scheduledSfxActions.shift();
+            const owner = this.#playing.get(action.ownerPlayingID);
 
             if (!owner || owner.stopped)
             {
                 continue;
             }
 
-            owner.pendingProgramStops = Math.max(
+            owner.pendingProgramActions = Math.max(
                 0,
-                owner.pendingProgramStops - 1,
+                owner.pendingProgramActions - 1,
             );
-            this.#ApplySfxStop(stop, now);
+            this.#ApplySfxProgramAction(action, now);
             this.#MaybeFinishSfxProgram(
-                stop.ownerPlayingID,
+                action.ownerPlayingID,
                 owner,
             );
         }
+    }
+
+    /** Dispatches one due authored SFX operation. */
+    #ApplySfxProgramAction(action, now)
+    {
+        if (action.kind === "stop")
+        {
+            this.#ApplySfxStop(action, now);
+        }
+        else
+        {
+            this.#ApplySfxVoiceVolume(action, now);
+        }
+    }
+
+    /** Applies one persistent Voice Volume property mutation. */
+    #ApplySfxVoiceVolume(action)
+    {
+        const targetId = String(action.targetId);
+        const apply = nodes =>
+        {
+            ApplyVoiceVolumeAction(
+                nodes.voiceVolumes,
+                targetId,
+                action,
+            );
+        };
+
+        if (action.scope === "global")
+        {
+            for (const nodes of this.#emitterNodes.values())
+            {
+                apply(nodes);
+            }
+            this.#RefreshSfxVoiceVolumes();
+            return;
+        }
+
+        if (this.#emitterNodes.get(action.gameObjID)
+            !== action.emitterNodes)
+        {
+            return;
+        }
+        apply(action.emitterNodes);
+        this.#RefreshSfxVoiceVolumes(action.gameObjID);
     }
 
     /** Applies one due Stop to eligible pending slots and live SFX voices. */
@@ -2178,7 +2227,7 @@ export class CjsAudioBackend
         if (!record?.sfxProgram
             || record.posting
             || record.planningProgram
-            || record.pendingProgramStops > 0)
+            || record.pendingProgramActions > 0)
         {
             return;
         }
@@ -2221,6 +2270,12 @@ export class CjsAudioBackend
                     : this.GetRTPCValue(name, gameObjID),
             getGlobalRTPC: name =>
                 this.GetGlobalRTPCValue(name),
+            getVoiceVolumeDb: matchIds =>
+                EvaluateVoiceVolumeTargets(
+                    record?.emitterNodes?.voiceVolumes,
+                    matchIds,
+                    Number(this.#context?.currentTime) || 0,
+                ),
             setSwitch: (group, value) =>
                 this.SetSwitch(group, value, gameObjID),
             setState: (group, value) =>
@@ -2355,6 +2410,9 @@ export class CjsAudioBackend
             getPlaybackRate: descriptor.getPlaybackRate,
             spatial: descriptor.spatial,
             getGain: descriptor.getGain,
+            getGainAtVoiceVolumeDb:
+                descriptor.getGainAtVoiceVolumeDb,
+            voiceVolumeStates: emitterNodes.voiceVolumes,
             getLowPass: descriptor.getLowPass,
             getHighPass: descriptor.getHighPass,
             delayMs: descriptor.delayMs,
@@ -2848,7 +2906,7 @@ export class CjsAudioBackend
         {
             // Rendering may have paused while this boundary was acquiring.
             // Apply every now-overdue Stop before the new batch can realize.
-            this.#ProcessScheduledSfxStops();
+            this.#ProcessScheduledSfxActions();
             if (generation !== slot.generation
                 || slot.state !== "loading"
                 || record.stopped
@@ -3062,7 +3120,7 @@ export class CjsAudioBackend
                 program,
             )).then(result =>
         {
-            this.#ProcessScheduledSfxStops();
+            this.#ProcessScheduledSfxActions();
             if (batch.state !== "loading"
                 || slot.broken
                 || record.stopped
@@ -3321,7 +3379,7 @@ export class CjsAudioBackend
                 program,
             )).then(result =>
         {
-            this.#ProcessScheduledSfxStops();
+            this.#ProcessScheduledSfxActions();
             if (batch.state !== "loading"
                 || slot.broken
                 || record.stopped
@@ -3664,9 +3722,43 @@ export class CjsAudioBackend
         }
     }
 
+    /** Re-evaluates the live Voice Volume contribution during transitions. */
+    #RefreshSfxVoiceVolumes(gameObjID = null)
+    {
+        for (const record of this.#playing.values())
+        {
+            if (!record.sfx
+                || (gameObjID !== null
+                    && record.gameObjID !== gameObjID))
+            {
+                continue;
+            }
+            for (const voice of record.voices ?? [])
+            {
+                if (!voice.ended)
+                {
+                    this.#ApplyVoiceGain(voice);
+                }
+            }
+        }
+    }
+
     /** Applies one voice descriptor's current safe linear gain. */
     #ApplyVoiceGain(voice)
     {
+        const param = voice.gain?.gain;
+
+        if (typeof voice.getGainAtVoiceVolumeDb === "function"
+            && voice.voiceVolumeStates instanceof Map)
+        {
+            ScheduleVoiceVolumeGain(
+                param,
+                voice,
+                this.#context,
+            );
+            return;
+        }
+
         let value = 1;
 
         try
@@ -3680,8 +3772,6 @@ export class CjsAudioBackend
 
         const gain = Number(value);
         const target = Number.isFinite(gain) ? Math.max(0, gain) : 1;
-        const param = voice.gain?.gain;
-
         SetAudioParam(
             param,
             target,
@@ -3924,8 +4014,8 @@ export class CjsAudioBackend
         if (record)
         {
             this.#playing.delete(playingID);
-            this.#scheduledSfxStops = this.#scheduledSfxStops
-                .filter(stop => stop.ownerPlayingID !== playingID);
+            this.#scheduledSfxActions = this.#scheduledSfxActions
+                .filter(value => value.ownerPlayingID !== playingID);
             record.stopped = true;
             record.controller?.abort();
             for (const slot of record.programSlots?.values?.() ?? [])
@@ -4057,7 +4147,7 @@ function IsOverlappingAdvanceMode(value)
     return value === "crossfade" || value === "trigger-rate";
 }
 
-function CompareStopActions(left, right)
+function CompareSfxActions(left, right)
 {
     return CompareOrderTuples(
         [
@@ -4426,6 +4516,10 @@ function NormalizeVoiceDescriptors(result, eventLoop)
                         ? Math.max(0, constantGain)
                         : 1
                 ),
+            getGainAtVoiceVolumeDb:
+                typeof value.getGainAtVoiceVolumeDb === "function"
+                    ? value.getGainAtVoiceVolumeDb
+                    : null,
             getPlaybackRate: typeof value.getPlaybackRate === "function"
                 ? value.getPlaybackRate
                 : null,
@@ -4441,6 +4535,186 @@ function NormalizeVoiceDescriptors(result, eventLoop)
                     : () => constantHighPass,
         };
     });
+}
+
+function ApplyVoiceVolumeAction(states, targetId, action)
+{
+    const actionTime = Number(action.actionTime) || 0;
+    const fromDb = EvaluateVoiceVolumeState(
+        states.get(targetId),
+        actionTime,
+    );
+    const requested = action.kind === "reset-voice-volume"
+        ? 0
+        : action.valueMode === "relative"
+            ? fromDb + Number(action.volumeDb)
+            : Number(action.volumeDb);
+    const toDb = Math.max(
+        -200,
+        Math.min(200, Number.isFinite(requested) ? requested : 0),
+    );
+
+    states.set(targetId, {
+        fromDb,
+        toDb,
+        startTime: actionTime,
+        duration: Math.max(
+            0,
+            Number(action.transitionMs) || 0,
+        ) / 1000,
+        curve: Number(action.curve ?? LINEAR_FADE_CURVE),
+    });
+}
+
+function ScheduleVoiceVolumeGain(param, voice, context)
+{
+    if (!param)
+    {
+        return;
+    }
+
+    const now = Number(context?.currentTime) || 0;
+    const states = voice.voiceVolumeStates;
+    const matchIds = Array.isArray(voice.matchIds)
+        ? voice.matchIds
+        : [];
+    let endTime = now;
+
+    for (const value of new Set(matchIds.map(String)))
+    {
+        const state = states.get(value);
+        const end = Number(state?.startTime)
+            + Math.max(0, Number(state?.duration) || 0);
+
+        if (Number.isFinite(end) && end > endTime)
+        {
+            endTime = end;
+        }
+    }
+
+    const evaluate = at =>
+    {
+        let value = 1;
+
+        try
+        {
+            value = voice.getGainAtVoiceVolumeDb(
+                EvaluateVoiceVolumeTargets(states, matchIds, at),
+            );
+        }
+        catch
+        {
+            value = 1;
+        }
+
+        const gain = Number(value);
+
+        return Number.isFinite(gain) ? Math.max(0, gain) : 1;
+    };
+    const startValue = evaluate(now);
+    const duration = Math.max(0, endTime - now);
+
+    if (typeof param.cancelAndHoldAtTime === "function")
+    {
+        param.cancelAndHoldAtTime(now);
+    }
+    else
+    {
+        // A value curve is one event at its start time, so cancelling only
+        // from `now` cannot remove a curve that is already in progress.
+        // This gain stage owns no unrelated automation; clear its timeline
+        // and immediately restore the evaluated current value instead.
+        param.cancelScheduledValues?.(0);
+    }
+    param.setValueAtTime?.(startValue, now);
+    if ("value" in param)
+    {
+        param.value = startValue;
+    }
+    if (!(duration > 0))
+    {
+        return;
+    }
+
+    if (typeof param.setValueCurveAtTime === "function")
+    {
+        const values = new Float32Array(FADE_CURVE_SAMPLES);
+
+        for (let index = 0; index < values.length; index++)
+        {
+            const ratio = index / (values.length - 1);
+
+            values[index] = evaluate(now + duration * ratio);
+        }
+        param.setValueCurveAtTime(values, now, duration);
+    }
+    else
+    {
+        param.linearRampToValueAtTime?.(evaluate(endTime), endTime);
+    }
+}
+
+function EvaluateVoiceVolumeTargets(states, matchIds, at)
+{
+    if (!(states instanceof Map) || !Array.isArray(matchIds))
+    {
+        return 0;
+    }
+
+    let result = 0;
+    const seen = new Set();
+
+    for (const value of matchIds)
+    {
+        const targetId = String(value);
+
+        if (!seen.has(targetId))
+        {
+            seen.add(targetId);
+            result += EvaluateVoiceVolumeState(
+                states.get(targetId),
+                at,
+            );
+        }
+    }
+    return result;
+}
+
+function EvaluateVoiceVolumeState(state, at)
+{
+    if (!state)
+    {
+        return 0;
+    }
+
+    const duration = Number(state.duration) || 0;
+    const progress = duration <= 0
+        ? 1
+        : Math.max(
+            0,
+            Math.min(
+                1,
+                ((Number(at) || 0) - state.startTime) / duration,
+            ),
+        );
+
+    if (progress <= 0)
+    {
+        return state.fromDb;
+    }
+    if (progress >= 1)
+    {
+        return state.toDb;
+    }
+
+    const from = 10 ** (state.fromDb / 20);
+    const to = 10 ** (state.toDb / 20);
+    const gain = from + (to - from) * evaluateWwiseInterpolation(
+        state.curve,
+        progress,
+    );
+
+    return 20 * Math.log10(Math.max(1e-10, gain));
 }
 
 function ScheduleWwiseFade(

@@ -115,6 +115,32 @@ test("committed demo library carries authored SFX and music semantics", () =>
         },
     );
     assert.deepEqual(
+        graph.programs.stagecoach_idle_loop_play,
+        [
+            {
+                kind: "set-voice-volume",
+                targetId: "232039670",
+                scope: "game-object",
+                mode: "element",
+                curve: 4,
+                targetFlags: 0,
+                transitionMs: 10000,
+                valueMode: "absolute",
+                volumeDb: -12,
+                volumeRangeDb: { min: 0, max: 0 },
+            },
+            {
+                kind: "play",
+                child: {
+                    nodeId: "232039670",
+                    fadeInMs: 4000,
+                    fadeCurve: 4,
+                },
+            },
+        ],
+        "the demo includes one exact authored Set Voice Volume example",
+    );
+    assert.deepEqual(
         graph.programs.tutorial_music_5_05_aura_3765,
         [
             {

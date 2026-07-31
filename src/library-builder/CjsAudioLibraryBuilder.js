@@ -11,6 +11,8 @@ const MUSIC_HIRC_TYPES = new Set([ 10, 11, 12, 13 ]);
 const SFX_PLAY_ACTION = 0x0403;
 const SFX_PLAY_EVENT_ACTION = 0x2103;
 const SFX_STOP_ACTION_FAMILY = 0x01;
+const SFX_SET_VOICE_VOLUME_ACTION_FAMILY = 0x0a;
+const SFX_RESET_VOICE_VOLUME_ACTION_FAMILY = 0x0b;
 const SFX_SET_STATE_ACTION_FAMILY = 0x12;
 const SFX_SET_SWITCH_ACTION_FAMILY = 0x19;
 const SFX_UNSUPPORTED_PLAY_ACTIONS = new Set([ 0x0503 ]);
@@ -1398,9 +1400,8 @@ function LowerSfxGraph({
                     );
 
                     if (hasTiming
-                        && (nested.setters.length
-                            || nested.program.some(value =>
-                                value.kind === "stop")))
+                        && nested.program.some(value =>
+                            value.kind !== "play"))
                     {
                         throw new Error(
                             `scheduled Play-Event ${action.id} targets non-play actions`,
@@ -1451,6 +1452,15 @@ function LowerSfxGraph({
                             Number(stop.targetId) >>> 0,
                         );
                     }
+                }
+                else if (((action.actionType >> 8) & 0xff)
+                    === SFX_SET_VOICE_VOLUME_ACTION_FAMILY
+                    || ((action.actionType >> 8) & 0xff)
+                    === SFX_RESET_VOICE_VOLUME_ACTION_FAMILY)
+                {
+                    result.program.push(
+                        ReadSfxVoiceVolumeAction(action, parsed),
+                    );
                 }
                 else if (((action.actionType >> 8) & 0xff)
                     === SFX_SET_SWITCH_ACTION_FAMILY
@@ -1630,6 +1640,102 @@ function ReadSfxPlayActionChild(child, action, includeFade)
             };
         }
         result.fadeCurve = Number(details.fadeCurve ?? 4);
+    }
+
+    return result;
+}
+
+function ReadSfxVoiceVolumeAction(action, parsed)
+{
+    const details = action.action;
+    const actionType = Number(action.actionType) >>> 0;
+    const family = (actionType >> 8) & 0xff;
+
+    if (!details
+        || (family !== SFX_SET_VOICE_VOLUME_ACTION_FAMILY
+            && family !== SFX_RESET_VOICE_VOLUME_ACTION_FAMILY))
+    {
+        throw new Error(`untyped Voice Volume action ${action.id}`);
+    }
+
+    const targetId = Number(details.targetId) >>> 0;
+    const targetFlags = Number(details.targetFlags ?? 0);
+
+    if (details.actionMode !== "element"
+        || (details.actionScope !== "game-object"
+            && details.actionScope !== "global"))
+    {
+        throw new Error(
+            `unsupported Voice Volume target mode ${action.id}`,
+        );
+    }
+    if (!targetId || !parsed.nodeBases?.has(targetId))
+    {
+        throw new Error(
+            `unresolved Voice Volume target ${targetId}`,
+        );
+    }
+    if (details.targetIsBus || (targetFlags & 0x01))
+    {
+        throw new Error(`bus Voice Volume action ${action.id}`);
+    }
+    if (targetFlags !== 0)
+    {
+        throw new Error(
+            `unsupported Voice Volume target flags ${targetFlags}`,
+        );
+    }
+
+    const resetting = family === SFX_RESET_VOICE_VOLUME_ACTION_FAMILY;
+    const result = {
+        kind: resetting
+            ? "reset-voice-volume"
+            : "set-voice-volume",
+        targetId: String(targetId),
+        targetFlags,
+        scope: details.actionScope,
+        mode: "element",
+        curve: Number(details.fadeCurve ?? 4),
+    };
+
+    if (!resetting)
+    {
+        if (details.valueMode !== "absolute"
+            && details.valueMode !== "relative")
+        {
+            throw new Error(
+                `unsupported Voice Volume value mode ${action.id}`,
+            );
+        }
+        result.valueMode = details.valueMode;
+        result.volumeDb = Number(details.volumeDb);
+        result.volumeRangeDb = {
+            min: Number(details.volumeRangeDb?.min ?? 0),
+            max: Number(details.volumeRangeDb?.max ?? 0),
+        };
+    }
+
+    if (details.delayTimeMs !== undefined)
+    {
+        result.delayMs = Number(details.delayTimeMs);
+    }
+    if (details.delayRangeMs !== undefined)
+    {
+        result.delayRangeMs = {
+            min: Number(details.delayRangeMs.min),
+            max: Number(details.delayRangeMs.max),
+        };
+    }
+    if (details.transitionTimeMs !== undefined)
+    {
+        result.transitionMs = Number(details.transitionTimeMs);
+    }
+    if (details.transitionRangeMs !== undefined)
+    {
+        result.transitionRangeMs = {
+            min: Number(details.transitionRangeMs.min),
+            max: Number(details.transitionRangeMs.max),
+        };
     }
 
     return result;
