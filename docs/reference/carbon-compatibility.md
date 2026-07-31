@@ -23,8 +23,9 @@ The maintained graph includes:
 - per-object events, prefixes, RTPC values, switches, placement, culling, mute,
   and wake behavior;
 - root-runtime interpretation of supplied authored SFX random, step-sequence,
-  switch/state, parallel/blend, per-leaf spatial routing, gain, and linear
-  RTPC-curve data;
+  Continuous Disabled, Delay, Trigger Rate, and amplitude/power Crossfade
+  transitions, switch/state, parallel/blend, per-leaf spatial routing, gain,
+  and linear RTPC-curve data;
 - listener and emitter placement;
 - event metadata and sound prioritization;
 - event curves, direct emitter event handling, and RTPC-driven curve-set time;

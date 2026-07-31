@@ -328,18 +328,26 @@ Transition and reset-after-stop policies authored on a Step Random/Sequence
 container are Continuous-only and therefore do not alter its
 one-child-per-post behavior.
 
-Continuous Random/Sequence containers support Disabled, Delay, and Trigger
-Rate transitions. Disabled and Delay advance after the complete selected
-child batch ends; Delay then applies its independently sampled authored
-duration. Trigger Rate advances from the Web Audio clock, samples one duration
-for each selected child that has a successor, adds the selected child's
-Initial Delay, and permits earlier voices to overlap. This per-boundary
-sampling is runtime-audio's deterministic Wwise-compatible policy. Media
-acquisition does not serialize the cadence. If `RenderAudio()` arrives after
-a boundary, the runtime issues that boundary once and rebases the next one
-from current audio time instead of replaying a burst of missed triggers.
-Silent selected branches still consume their interval; a selected media leaf
-that cannot be acquired ends that traversal fail-closed.
+Continuous Random/Sequence containers support Disabled, Delay, Trigger Rate,
+Crossfade Amplitude, and Crossfade Power transitions. Disabled and Delay
+advance after the complete selected child batch ends; Delay then applies its
+independently sampled authored duration. Trigger Rate advances from the Web
+Audio clock, samples one duration for each selected child that has a successor,
+adds the selected child's Initial Delay, and permits earlier voices to overlap.
+This per-boundary sampling is runtime-audio's deterministic Wwise-compatible
+policy. Media acquisition does not serialize the cadence. If `RenderAudio()`
+arrives after a boundary, the runtime issues that boundary once and rebases the
+next one from current audio time instead of replaying a burst of missed
+triggers. Silent selected branches still consume their interval; a selected
+media leaf that cannot be acquired ends that traversal fail-closed.
+
+Crossfade prepares the next single-voice child before its boundary and fails
+closed if transactional preparation or media acquisition is unavailable. The
+independently sampled authored duration is clamped to half the outgoing source
+duration and its remaining play time. Amplitude uses opposing linear gain
+ramps; Power uses equal-power sine/cosine curves. A speculative Random or
+Sequence choice commits only when its successor becomes audible, so cancelled
+or failed preparation does not consume that choice.
 
 Continuous playback is object-scoped. Finite pass counts complete after every
 overlapping tail ends, without waiting through a nonexistent final interval.
@@ -354,8 +362,8 @@ voice production.
 
 The builder omits an entire playable event when that event mixes other
 unsupported actions or reaches an unsupported playable node; the optional
-diagnostics callback explains each omission. Crossfade and Sample Accurate
-Continuous transitions, nested Continuous containers, Play-and-Continue,
+diagnostics callback explains each omission. Sample Accurate Continuous
+transitions, nested Continuous containers, Play-and-Continue,
 playable Actor-Mixer approximation, authored continuous Layers, Layer
 property RTPCs, and other unqualified HIRC semantics are never silently
 approximated.

@@ -25,7 +25,7 @@ create an audio context, fetch data, or touch the DOM.
 | `CjsAudioMan` | Installs one document and owns selection, delivery, preparation, decode caches, desired bank state, listener/system lifecycle, and emitter adoption. |
 | `CjsAudioSystem` | Lower-level Carbon repository, manager, backend, graph-adoption, and music composition. |
 | `CjsAudioBackend` | Web Audio emitter, source, listener, gain, RTPC, switch, seek, fade, and completion realization. |
-| `CjsSfxEngine` | Browser-safe authored random, step-sequence, switch/state, blend, and RTPC-gain interpretation. |
+| `CjsSfxEngine` | Browser-safe authored random, step-sequence, continuous transition, switch/state, blend, and RTPC-gain interpretation. |
 | `CjsMusicEngine` | Authored interactive-music scheduling. |
 | `CjsJukebox` | Neutral browser playlist playback over caller-supplied catalog, acquisition, and availability functions. |
 | `CjsAudioLibraryBuilder` | Deterministic document construction without input acquisition. |
@@ -84,8 +84,14 @@ replacement invalidate all pending acquisitions.
 
 1. Construct with a document and provider, or call `InstallLibrary()`.
 2. Call `Enable(soundBanks)` during a browser gesture.
-3. Create/adopt emitters and drive `Process(now)`.
+3. Create/adopt emitters and drive `Process(updateContext)`.
 4. Release emitters/media or call `Dispose()`.
+
+The update context is optional. It may expose Carbon-style getters or
+equivalent `time`, `realTime`, `deltaTime`, and `frame` properties. When it is
+omitted, the system advances its own monotonic context. `Process()` returns the
+normalized current context. Audio playback remains scheduled on the browser
+`AudioContext` clock rather than host simulation or real time.
 
 Constructor option `defaultSoundBanks` protects banks that should be present
 whenever audio is enabled. Calls to `LoadSoundBank()` while disabled are

@@ -9,8 +9,9 @@ browser media provider. Runtime-audio consumes data; it never discovers an
 installation, downloads builder inputs, or requires Node.
 
 An optional SFX program in that document provides authored random,
-step-sequence, switch/state, parallel/blend, gain, and live RTPC-curve
-behavior without changing how media bytes are delivered.
+step-sequence, continuous scheduling and crossfades, switch/state,
+parallel/blend, gain, and live RTPC-curve behavior without changing how
+media bytes are delivered.
 
 An independent optional music-library input powers `CjsJukebox`. Song URLs
 and paths remain caller-owned; the browser application supplies acquisition
