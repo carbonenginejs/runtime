@@ -36,7 +36,7 @@ operations (a previous compiler boundary for higher-quality shader profiles):
   crack/z-fight artifact `precise` protects against;
 - precise-mask metadata is still validated structurally (well-formed mask,
   lanes covered by a destination write) in
-  `src/core/wgsl/precisionControls.js`.
+  `src/formats/webgpu/core/wgsl/precisionControls.js`.
 
 NOT promised: bit-exact arithmetic parity with native D3D11; differential
 tests against native output may differ in final ulps. Globally-non-refactorable
@@ -64,10 +64,10 @@ projections, and per-lane `movc` selects — in BOTH stages.
 
 SSA may resolve a post-join read to one arm's definition (the other path
 diverges via return/discard); structured WGSL scoping cannot express that
-directly. `src/core/wgsl/hoistEscapingValues.js` hoists escaping declarations
-to uninitialized function-top `var`s (WGSL zero-initializes) plus in-place
-assignments. The zero is unobservable — SSA proves the value is only read on
-assigning paths.
+directly. `src/formats/webgpu/core/wgsl/hoistEscapingValues.js` hoists
+escaping declarations to uninitialized function-top `var`s (WGSL
+zero-initializes) plus in-place assignments. The zero is unobservable — SSA
+proves the value is only read on assigning paths.
 
 ### Switch clauses without a `default` → empty WGSL `default`
 
@@ -1054,11 +1054,12 @@ sample form and in both stages.
   495 qualified packages are byte-identical. Every changed package carries
   exactly one two- or three-layer Detail transform.
 
-  This closes the compiler-side sampled-texture binding limit only. WGSL-set
-  version 3 is not yet accepted by the committed engine reader, and raw module
-  compilation does not prove resource realization or rendering. Runtime
-  support must consume the recipe explicitly before these packages are
-  render-ready.
+  This closes the compiler-side sampled-texture binding limit. Raw module
+  compilation alone does not prove resource realization or rendering, but the
+  current engine accepts WGSL-set version 3 and realizes the documented
+  `texture-2d-array` transform recipe. The Detail and HeatDetail families have
+  exact draw evidence; the Environment family remains unverified. See
+  [Consumer boundary: resource transforms](#consumer-boundary-resource-transforms).
 - **Immediate 2D sample offsets** — `sample`, `sample_b`, `sample_d`, and
   `sample_l` lower their signed `_aoffimmi(u,v,w)` record to WGSL's final
   constant `vec2<i32>(u, v)` sampling argument. Both APIs apply that
@@ -1221,13 +1222,14 @@ WGSL forbids screen-space derivatives — the `dpdx*`/`dpdy*` family and the
 implicit-LOD samples that derive internally (`textureSample` /
 `textureSampleBias`) — inside **non-uniform** control flow (a branch whose
 condition can differ between the pixels of a 2x2 quad), because the derivative
-compares neighbor pixels that may not all be present. `src/core/wgsl/
-uniformity.js` tags each SSA value uniform or varying; when the fragment lowerer
-finds one of these operations under a varying-conditioned branch it records
-`requiresDerivativeUniformityOptOut` on the program, and `emitWgsl` prepends the
-module-level filter `diagnostic(off, derivative_uniformity);` (a standard WGSL
-opt-out that Dawn/Tint and Naga both honor — browser-gate confirmed) rather than
-rejecting the shader.
+compares neighbor pixels that may not all be present.
+`src/formats/webgpu/core/wgsl/uniformity.js` tags each SSA value uniform or
+varying; when the fragment lowerer finds one of these operations under a
+varying-conditioned branch it records `requiresDerivativeUniformityOptOut` on
+the program, and `emitWgsl` prepends the module-level filter
+`diagnostic(off, derivative_uniformity);` (a standard WGSL opt-out that
+Dawn/Tint and Naga both honor — browser-gate confirmed) rather than rejecting
+the shader.
 
 Why the directive and not gradient hoisting: the DXBC came from HLSL that relied
 on **D3D11's permissive divergent-derivative behavior** (non-participating quad
@@ -1392,9 +1394,12 @@ shrinking the reported shader count.
 
 Translating every body is deliberately **not** treated as backend completeness.
 `backendComplete` and `runtimeComplete` remain false, matching the sibling
-WebGL package, because neither the engine's realization of these layouts and
-resource transforms nor an exact draw of them has been gated. `INFO` carries
-the honest scope in `backendBodyCoverage` instead.
+WebGL package. The engine now realizes the documented layouts and
+`texture-2d-array` transforms and has exact draw evidence for representative
+Detail and HeatDetail families. That proof does not cover every required
+translated program, layout, and transform, and complete resource hydration and
+selection also remain open. `INFO` carries the translated-body scope in
+`backendBodyCoverage` instead.
 
 Evidence for the introducing change: the every-permutation reader join resolves
 every permutation of a real Quad family package to translated programs and
