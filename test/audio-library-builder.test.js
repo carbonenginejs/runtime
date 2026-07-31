@@ -1379,6 +1379,207 @@ test("Step containers ignore Continuous-only transition and reset policies", () 
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("Continuous Random and Sequence containers preserve supported scheduling", () =>
+{
+    const build = payload => CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 5,
+                        id: 201,
+                        payload,
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                ambience_play: {
+                    eventID: 100,
+                },
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+    const random = build(randomSequencePayload({
+        childID: 200,
+        loopCount: 0,
+        transitionTime: 5000,
+        transitionTimeModMin: 0,
+        transitionTimeModMax: 15000,
+        transitionMode: 3,
+        flags: 0x18,
+    }));
+
+    assert.deepEqual(random.nodes["201"], {
+        type: "random",
+        scope: "global",
+        children: [ { nodeId: "200" } ],
+        mode: "random",
+        avoidRepeat: 0,
+        continuous: {
+            loopCount: 0,
+            transition: "delay",
+            transitionMs: 5000,
+            transitionRangeMs: {
+                min: 0,
+                max: 15000,
+            },
+        },
+    });
+    assert.deepEqual(random.diagnostics.omittedEvents, []);
+
+    const sequence = build(randomSequencePayload({
+        childID: 200,
+        loopCount: 4,
+        containerMode: 1,
+        flags: 0x0a,
+    }));
+
+    assert.deepEqual(sequence.nodes["201"], {
+        type: "sequence",
+        scope: "object",
+        children: [ { nodeId: "200" } ],
+        continuous: {
+            loopCount: 4,
+            transition: "disabled",
+            resetPlaylistEachPlay: true,
+        },
+    });
+
+    const crossfade = build(randomSequencePayload({
+        childID: 200,
+        transitionMode: 1,
+        flags: 0x08,
+    }));
+
+    assert.equal(crossfade.events.ambience_play, undefined);
+    assert.match(
+        crossfade.diagnostics.omittedEvents[0].reason,
+        /unsupported continuous transition 1/u,
+    );
+
+    const oversized = build(randomSequencePayload({
+        childID: 200,
+        loopCount: 32768,
+        flags: 0x08,
+    }));
+
+    assert.equal(oversized.events.ambience_play, undefined);
+    assert.match(
+        oversized.diagnostics.omittedEvents[0].reason,
+        /continuous loop count exceeds 32767/u,
+    );
+});
+
+test("transitively nested Continuous containers are omitted per event", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 5,
+                        id: 203,
+                        payload: randomSequencePayload({
+                            childID: 200,
+                            flags: 0x08,
+                        }),
+                    },
+                    {
+                        type: 5,
+                        id: 202,
+                        payload: randomSequencePayload({
+                            childID: 203,
+                            flags: 0,
+                        }),
+                    },
+                    {
+                        type: 5,
+                        id: 201,
+                        payload: randomSequencePayload({
+                            childID: 202,
+                            flags: 0x08,
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                nested_play: { eventID: 100 },
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+
+    assert.equal(result.events.nested_play, undefined);
+    assert.equal(result.programs.nested_play, undefined);
+    assert.match(
+        result.diagnostics.omittedEvents[0].reason,
+        /nested continuous container 201/u,
+    );
+});
+
 test("trackless non-continuous Layer containers lower to parallel playback", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -3000,7 +3201,15 @@ function uint32Bytes(value)
 
 function randomSequencePayload({
     childID,
+    loopCount = 1,
+    loopModMin = 0,
+    loopModMax = 0,
+    transitionTime = 0,
+    transitionTimeModMin = 0,
+    transitionTimeModMax = 0,
     transitionMode = 0,
+    randomMode = 0,
+    containerMode = 0,
     flags = 0,
 })
 {
@@ -3033,16 +3242,16 @@ function randomSequencePayload({
         offset += 4;
     };
 
-    u16(1);
-    u16(0);
-    u16(0);
-    f32(0);
-    f32(0);
-    f32(0);
+    u16(loopCount);
+    u16(loopModMin);
+    u16(loopModMax);
+    f32(transitionTime);
+    f32(transitionTimeModMin);
+    f32(transitionTimeModMax);
     u16(0);
     u8(transitionMode);
-    u8(0);
-    u8(0);
+    u8(randomMode);
+    u8(containerMode);
     u8(flags);
     u32(1);
     u32(childID);

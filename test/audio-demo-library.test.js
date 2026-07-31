@@ -166,6 +166,79 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "non-continuous Step switches retain every reachable impact variant",
     );
 
+    const continuousNodes = eventName =>
+    {
+        const pending = graph.events[eventName]
+            .map(child => String(child.nodeId));
+        const visited = new Set();
+        const result = [];
+
+        while (pending.length)
+        {
+            const id = pending.pop();
+
+            if (visited.has(id))
+            {
+                continue;
+            }
+            visited.add(id);
+            const node = graph.nodes[id];
+
+            if (node.continuous)
+            {
+                result.push(node);
+            }
+            for (const child of node.children ?? [])
+            {
+                pending.push(String(child.nodeId));
+            }
+            for (const child of Object.values(node.cases ?? {}))
+            {
+                pending.push(String(child.nodeId));
+            }
+            if (node.default)
+            {
+                pending.push(String(node.default.nodeId));
+            }
+        }
+        return result;
+    };
+
+    assert.ok(
+        continuousNodes("space_cathedral_play").some(node =>
+            node.type === "random"
+            && node.continuous.transition === "delay"),
+        "the demo carries an exact Continuous Random Delay example",
+    );
+    assert.ok(
+        continuousNodes("phase_anchor_atmo_play").some(node =>
+            node.type === "random"
+            && node.continuous.transition === "disabled"),
+        "the demo carries an exact completion-driven Continuous Random example",
+    );
+    assert.ok(
+        continuousNodes("pvp_arena_clock_tick_loop_play").some(node =>
+            node.type === "sequence"
+            && node.continuous.transition === "delay"),
+        "the demo carries an exact Continuous Sequence Delay example",
+    );
+    assert.ok(
+        continuousNodes("remote_hullrepair").some(node =>
+            node.type === "sequence"
+            && node.continuous.transition === "disabled"),
+        "the demo carries an exact completion-driven Continuous Sequence example",
+    );
+    assert.equal(
+        graph.events.OSSE_amarr_running_lights_play,
+        undefined,
+        "Trigger Rate remains fail-closed until overlap scheduling exists",
+    );
+    assert.equal(
+        graph.events.drone_grown_infested_structure_large_play,
+        undefined,
+        "amplitude crossfade remains fail-closed until fades overlap",
+    );
+
     const blendRoot = graph.nodes[
         graph.events.msg_newscan_probe_scan_results_play[0].nodeId
     ];

@@ -618,6 +618,207 @@ test("authored step sequences advance independently and may terminate", () =>
     );
 });
 
+test("Continuous Sequence advances whole child batches with authored Delay", () =>
+{
+    const samples = [ 0.25, 0.5, 0.75, 0 ];
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { ambience: [ 1 ] },
+            {
+                1: {
+                    type: "sequence",
+                    children: [ 10, 11 ],
+                    continuous: {
+                        loopCount: 2,
+                        transition: "delay",
+                        transitionMs: 100,
+                        transitionRangeMs: {
+                            min: 0,
+                            max: 200,
+                        },
+                        resetPlaylistEachPlay: true,
+                    },
+                },
+                10: {
+                    type: "parallel",
+                    children: [ 20, 21 ],
+                },
+                11: { type: "sound", mediaId: 300 },
+                20: { type: "sound", mediaId: 100 },
+                21: { type: "sound", mediaId: 200 },
+            },
+        ),
+        random: () => samples.shift(),
+    });
+    const first = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 7 },
+    )[0];
+    const token = first.continuations[0].token;
+    const slot = first.continuations[0].programSlotId;
+
+    assert.deepEqual(
+        first.selections.map(value => value.mediaID),
+        [ "100", "200" ],
+    );
+    assert.ok(first.selections.every(value =>
+        value.programSlotId === slot));
+
+    const second = engine.ContinueProgram(
+        token,
+        { gameObjID: 7 },
+    )[0];
+
+    assert.equal(second.continuations[0].delayMs, 150);
+    assert.deepEqual(
+        second.selections.map(value => value.mediaID),
+        [ "300" ],
+    );
+    assert.deepEqual(
+        engine.ContinueProgram(token, { gameObjID: 7 })[0]
+            .selections.map(value => value.mediaID),
+        [ "100", "200" ],
+    );
+    assert.deepEqual(
+        engine.ContinueProgram(token, { gameObjID: 7 })[0]
+            .selections.map(value => value.mediaID),
+        [ "300" ],
+    );
+    assert.deepEqual(
+        engine.ContinueProgram(token, { gameObjID: 7 }),
+        [],
+    );
+});
+
+test("interrupted Continuous Sequence resumes only when reset is disabled", () =>
+{
+    const graph = resetPlaylistEachPlay => Graph(
+        { ambience: [ 1 ] },
+        {
+            1: {
+                type: "sequence",
+                children: [ 10, 11 ],
+                continuous: {
+                    loopCount: 0,
+                    transition: "disabled",
+                    resetPlaylistEachPlay,
+                },
+            },
+            10: { type: "sound", mediaId: 100 },
+            11: { type: "sound", mediaId: 200 },
+        },
+    );
+    const retained = new CjsSfxEngine({
+        graph: graph(false),
+    });
+    const reset = new CjsSfxEngine({
+        graph: graph(true),
+    });
+    const firstMedia = engine => engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 9 },
+    )[0].selections[0].mediaID;
+
+    assert.equal(firstMedia(retained), "100");
+    assert.equal(
+        firstMedia(retained),
+        "200",
+        "a new post resumes after the interrupted active object",
+    );
+    assert.equal(firstMedia(reset), "100");
+    assert.equal(firstMedia(reset), "100");
+
+    retained.ReleaseGameObj(9);
+    assert.equal(firstMedia(retained), "100");
+});
+
+test("Continuous Random preserves selection scope and exact pass count", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { ambience: [ 1 ] },
+            {
+                1: {
+                    type: "random",
+                    scope: "global",
+                    mode: "random",
+                    avoidRepeat: 1,
+                    children: [ 10, 11 ],
+                    continuous: {
+                        loopCount: 1,
+                        transition: "disabled",
+                    },
+                },
+                10: { type: "sound", mediaId: 100 },
+                11: { type: "sound", mediaId: 200 },
+            },
+        ),
+        random: () => 0,
+    });
+    const first = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 1 },
+    )[0];
+    const token = first.continuations[0].token;
+
+    assert.equal(first.selections[0].mediaID, "100");
+    assert.equal(
+        engine.ContinueProgram(token, { gameObjID: 1 })[0]
+            .selections[0].mediaID,
+        "200",
+    );
+    assert.deepEqual(
+        engine.ContinueProgram(token, { gameObjID: 1 }),
+        [],
+    );
+});
+
+test("Continuous Shuffle never repeats the last child across a pool reset", () =>
+{
+    const samples = [ 0, 0, 0.99, 0 ];
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { ambience: [ 1 ] },
+            {
+                1: {
+                    type: "random",
+                    scope: "object",
+                    mode: "shuffle",
+                    avoidRepeat: 0,
+                    children: [ 10, 11 ],
+                    continuous: {
+                        loopCount: 2,
+                        transition: "disabled",
+                    },
+                },
+                10: { type: "sound", mediaId: 100 },
+                11: { type: "sound", mediaId: 200 },
+            },
+        ),
+        random: () => samples.shift() ?? 0,
+    });
+    const first = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 1 },
+    )[0];
+    const token = first.continuations[0].token;
+    const selected = [ first.selections[0].mediaID ];
+
+    for (let index = 0; index < 3; index++)
+    {
+        selected.push(
+            engine.ContinueProgram(token, { gameObjID: 1 })[0]
+                .selections[0].mediaID,
+        );
+    }
+
+    assert.deepEqual(selected, [ "100", "200", "100", "200" ]);
+    assert.deepEqual(
+        engine.ContinueProgram(token, { gameObjID: 1 }),
+        [],
+    );
+});
+
 test("authored finite Sound play counts reach the backend selection", () =>
 {
     const engine = new CjsSfxEngine({

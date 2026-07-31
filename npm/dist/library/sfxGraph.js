@@ -5,6 +5,7 @@ const RTPC_SCOPES = new Set(["global", "object"]);
 const RTPC_PROPERTY_SCALING = new Map([["highPass", 0], ["initialDelay", 0], ["lowPass", 0], ["pitch", 0], ["volume", 2]]);
 const CONTAINER_SCOPES = new Set(["global", "object"]);
 const RANDOM_MODES = new Set(["random", "shuffle"]);
+const CONTINUOUS_TRANSITIONS = new Set(["delay", "disabled"]);
 const EVENT_ACTION_KINDS = new Set(["state", "switch"]);
 const STOP_SCOPES = new Set(["game-object", "global"]);
 const STOP_MODES = new Set(["all", "all-except", "element"]);
@@ -101,6 +102,9 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
     if (node.type === "sequence" && node.loop !== undefined && typeof node.loop !== "boolean") {
       throw new TypeError(`Audio library SFX sequence ${id} loop must be boolean`);
     }
+    if ((node.type === "random" || node.type === "sequence") && node.continuous !== undefined) {
+      ValidateContinuousContainer(node.continuous, `Audio library SFX ${node.type} ${id} continuous`, node.type);
+    }
   }
   for (const [eventName, roots] of Object.entries(events)) {
     NormalizeName(eventName, "Audio library SFX event name");
@@ -136,6 +140,7 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
     }
   }
   ValidateAcyclic(events, nodes);
+  ValidateContinuousNesting(nodes);
   return true;
 }
 
@@ -240,7 +245,63 @@ function NormalizeNode(node) {
       result.loop = node.loop;
     }
   }
+  if ((node.type === "random" || node.type === "sequence") && node.continuous !== undefined) {
+    result.continuous = NormalizeContinuousContainer(node.continuous, node.type);
+  }
   return result;
+}
+function NormalizeContinuousContainer(value, type) {
+  const result = {
+    loopCount: Number(value.loopCount),
+    transition: value.transition
+  };
+  if (value.transition === "delay") {
+    result.transitionMs = Number(value.transitionMs ?? 0);
+    if (value.transitionRangeMs !== undefined) {
+      result.transitionRangeMs = {
+        min: Number(value.transitionRangeMs.min),
+        max: Number(value.transitionRangeMs.max)
+      };
+    }
+  }
+  if (type === "sequence") {
+    result.resetPlaylistEachPlay = value.resetPlaylistEachPlay !== false;
+  }
+  return result;
+}
+function ValidateContinuousContainer(value, label, type) {
+  const continuous = RequireRecord(value, label);
+  const loopCount = NormalizeNonNegativeInteger(continuous.loopCount, `${label} loopCount`);
+  if (loopCount > 32767) {
+    throw new TypeError(`${label} loopCount must not exceed 32767`);
+  }
+  if (!CONTINUOUS_TRANSITIONS.has(continuous.transition)) {
+    throw new TypeError(`${label} transition must be disabled or delay`);
+  }
+  if (continuous.transition === "disabled") {
+    if (continuous.transitionMs !== undefined || continuous.transitionRangeMs !== undefined) {
+      throw new TypeError(`${label} disabled transition cannot define timing`);
+    }
+  } else {
+    const transitionMs = NormalizeFiniteNumber(continuous.transitionMs ?? 0, `${label} transitionMs`);
+    if (transitionMs < 0) {
+      throw new TypeError(`${label} transitionMs must be non-negative`);
+    }
+    if (continuous.transitionRangeMs !== undefined) {
+      const range = RequireRecord(continuous.transitionRangeMs, `${label} transitionRangeMs`);
+      const min = NormalizeFiniteNumber(range.min, `${label} transitionRangeMs min`);
+      const max = NormalizeFiniteNumber(range.max, `${label} transitionRangeMs max`);
+      if (max < min) {
+        throw new TypeError(`${label} transitionRangeMs max must be at least min`);
+      }
+    }
+  }
+  if (type === "sequence" && continuous.resetPlaylistEachPlay !== undefined && typeof continuous.resetPlaylistEachPlay !== "boolean") {
+    throw new TypeError(`${label} resetPlaylistEachPlay must be boolean`);
+  }
+  if (type === "random" && continuous.resetPlaylistEachPlay !== undefined) {
+    throw new TypeError(`${label} resetPlaylistEachPlay is sequence-only`);
+  }
 }
 function NormalizeChild(child) {
   if (!IsRecord(child)) {
@@ -738,6 +799,26 @@ function ValidateAcyclic(events, nodes) {
   }
   for (const id of Object.keys(nodes)) {
     visit(id);
+  }
+}
+function ValidateContinuousNesting(nodes) {
+  const visit = (rawID, continuousParent) => {
+    const id = String(Number(IsRecord(rawID) ? rawID.nodeId : rawID) >>> 0);
+    const node = nodes[id];
+    if (continuousParent !== null && node.continuous !== undefined) {
+      throw new TypeError(`Audio library SFX Continuous container ${continuousParent}` + ` cannot contain Continuous container ${id}`);
+    }
+    const parent = continuousParent ?? (node.continuous === undefined ? null : id);
+    for (const child of NodeChildren(node)) {
+      visit(child, parent);
+    }
+  };
+  for (const [id, node] of Object.entries(nodes)) {
+    if (node.continuous !== undefined) {
+      for (const child of NodeChildren(node)) {
+        visit(child, id);
+      }
+    }
   }
 }
 function NodeChildren(node) {

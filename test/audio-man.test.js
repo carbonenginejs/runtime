@@ -1073,6 +1073,122 @@ test("CjsAudioMan resolves authored switch and blend nodes before media delivery
     man.Dispose();
 });
 
+test("CjsAudioMan acquires each Continuous Sequence child at its boundary", async () =>
+{
+    const log = [];
+    const reads = [];
+    const context = PlaybackContext(log);
+    const library = {
+        schema: "carbonenginejs.audioLibrary",
+        schemaVersion: 2,
+        metadata: {
+            Events: {
+                ambience_play: {
+                    eventID: 42,
+                    eventsStoppedBy: [],
+                    is2D: 1,
+                    isLoop: 0,
+                    isVital: 0,
+                    maxRadiusAttenuation: 0,
+                    soundbanks: [ "ships.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "ships.bnk": {
+                    EssentialSoundBank: 0,
+                },
+            },
+            WemFileIDs: {},
+        },
+        media: {
+            "777": {
+                sourceID: "prepared:777",
+                resPath: "res:/audio/777.ogg",
+                mediaType: "ogg",
+            },
+            "778": {
+                sourceID: "prepared:778",
+                resPath: "res:/audio/778.ogg",
+                mediaType: "ogg",
+            },
+        },
+        banks: {},
+        sfx: {
+            schemaVersion: 2,
+            events: {
+                ambience_play: [ { nodeId: "1" } ],
+            },
+            nodes: {
+                "1": {
+                    type: "sequence",
+                    children: [
+                        { nodeId: "10" },
+                        { nodeId: "11" },
+                    ],
+                    continuous: {
+                        loopCount: 1,
+                        transition: "delay",
+                        transitionMs: 500,
+                        resetPlaylistEachPlay: true,
+                    },
+                },
+                "10": {
+                    type: "sound",
+                    mediaId: "777",
+                },
+                "11": {
+                    type: "sound",
+                    mediaId: "778",
+                },
+            },
+        },
+    };
+    const man = new CjsAudioMan(library, {
+        createContext: () => context,
+        mediaProvider: {
+            Read(source)
+            {
+                reads.push(source.sourceID);
+                return new Uint8Array([ 1, 2, 3, 4 ]);
+            },
+        },
+    });
+
+    assert.equal(man.Enable([ "ships.bnk" ]), true);
+
+    const emitter = man.CreateEmitter();
+
+    emitter.SetPosition(
+        [ 0, 0, 1 ],
+        [ 0, 1, 0 ],
+        [ 0, 0, 0 ],
+    );
+    emitter.Wake();
+    assert.ok(emitter.SendEvent("ambience_play") > 0);
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.deepEqual(reads, [ "prepared:777" ]);
+    assert.equal(context.sources.length, 1);
+
+    context.currentTime = 1;
+    context.sources[0].onended();
+    for (let index = 0; index < 4; index++)
+    {
+        await new Promise(resolve => setImmediate(resolve));
+    }
+
+    assert.deepEqual(reads, [ "prepared:777", "prepared:778" ]);
+    assert.equal(context.sources.length, 2);
+    assert.equal(context.sources[1].startedAt, 1.5);
+
+    context.currentTime = 2.5;
+    context.sources[1].onended();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(man.system.backend.GetPlayingCount(), 0);
+    man.Dispose();
+});
+
 test("pending SFX keeps post-time RTPC delay but realizes live gain and pitch", async () =>
 {
     const log = [];
@@ -1438,6 +1554,151 @@ test("a selective Stop releases one pending leaf without blocking its sibling", 
     await new Promise(resolve => setImmediate(resolve));
 
     assert.deepEqual(reads.sort(), [ "prepared:777", "prepared:778" ]);
+    assert.equal(context.sources.length, 0);
+    assert.equal(firstSignal.aborted, false);
+
+    assert.ok(emitter.SendEvent("stop_first") > 0);
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(firstSignal.aborted, true);
+    assert.equal(context.sources.length, 1);
+    assert.equal(context.sources[0].started, true);
+    man.Dispose();
+});
+
+test("a selective Stop releases one pending leaf in a shared Continuous batch", async () =>
+{
+    const context = PlaybackContext([]);
+    const library = {
+        schema: "carbonenginejs.audioLibrary",
+        schemaVersion: 2,
+        metadata: {
+            Events: {
+                continuous_play: {
+                    eventID: 7,
+                    eventsStoppedBy: [],
+                    is2D: 0,
+                    isLoop: 0,
+                    isVital: 0,
+                    maxRadiusAttenuation: 0,
+                    soundbanks: [ "ships.bnk" ],
+                },
+                stop_first: {
+                    eventID: 8,
+                    eventsStoppedBy: [],
+                    is2D: 0,
+                    isLoop: 0,
+                    isVital: 0,
+                    maxRadiusAttenuation: 0,
+                    soundbanks: [ "ships.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "ships.bnk": {
+                    EssentialSoundBank: 0,
+                },
+            },
+            WemFileIDs: {},
+        },
+        media: {
+            "777": {
+                sourceID: "prepared:777",
+                resPath: "res:/audio/777.ogg",
+                mediaType: "ogg",
+            },
+            "778": {
+                sourceID: "prepared:778",
+                resPath: "res:/audio/778.ogg",
+                mediaType: "ogg",
+            },
+        },
+        banks: {},
+        sfx: {
+            schemaVersion: 2,
+            events: {
+                continuous_play: [ { nodeId: "100" } ],
+            },
+            programs: {
+                stop_first: [
+                    {
+                        kind: "stop",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        transitionMs: 0,
+                        curve: 4,
+                        actionFlags: 6,
+                        exceptions: [],
+                    },
+                ],
+            },
+            nodes: {
+                "100": {
+                    type: "sequence",
+                    children: [ { nodeId: "150" } ],
+                    continuous: {
+                        loopCount: 1,
+                        transition: "disabled",
+                        resetPlaylistEachPlay: true,
+                    },
+                },
+                "150": {
+                    type: "parallel",
+                    children: [
+                        { nodeId: "200" },
+                        { nodeId: "300" },
+                    ],
+                },
+                "200": {
+                    type: "sound",
+                    mediaId: "777",
+                    matchIds: [ "200", "700" ],
+                },
+                "300": {
+                    type: "sound",
+                    mediaId: "778",
+                    matchIds: [ "300", "800" ],
+                },
+            },
+        },
+    };
+    let firstSignal = null;
+    const man = new CjsAudioMan(library, {
+        createContext: () => context,
+        mediaProvider: {
+            Read(source, request)
+            {
+                if (source.sourceID === "prepared:777")
+                {
+                    firstSignal = request.signal;
+                    return new Promise((resolve, reject) =>
+                    {
+                        request.signal.addEventListener("abort", () =>
+                        {
+                            reject(request.signal.reason);
+                        }, { once: true });
+                    });
+                }
+                return new Uint8Array([ 1, 2, 3, 4 ]);
+            },
+        },
+    });
+
+    assert.equal(man.Enable([ "ships.bnk" ]), true);
+    const emitter = man.CreateEmitter();
+
+    emitter.SetPosition(
+        [ 0, 0, 1 ],
+        [ 0, 1, 0 ],
+        [ 0, 0, 0 ],
+    );
+    emitter.Wake();
+    assert.ok(emitter.SendEvent("continuous_play") > 0);
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
     assert.equal(context.sources.length, 0);
     assert.equal(firstSignal.aborted, false);
 

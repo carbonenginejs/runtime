@@ -286,6 +286,11 @@ export class CjsAudioMan
                         controls,
                     ) ?? []
                     : null,
+            continueSfxProgram: (token, controls) =>
+                this.#sfxEngine?.ContinueProgram(
+                    token,
+                    controls,
+                ) ?? [],
             hasEventStops: eventName =>
                 this.#sfxEngine?.HasStopAction(eventName) === true,
             hasSfxEvent: eventName =>
@@ -1231,10 +1236,14 @@ export class CjsAudioMan
             const buffers = await Promise.all(
                 selections.map(selection =>
                 {
-                    const programSlotId =
-                        `${selection.actionIndex}:${selection.leafIndex}`;
+                    const programSlotId = selection.programSlotId
+                        ?? `${selection.actionIndex}:${selection.leafIndex}`;
                     const selectionSignal =
-                        controls.getSfxProgramSignal?.(programSlotId)
+                        controls.getSfxProgramSignal?.(
+                            programSlotId,
+                            selection.actionIndex,
+                            selection.leafIndex,
+                        )
                         ?? controls.signal;
 
                     return this.LoadMedia(selection.mediaID, {
@@ -1268,6 +1277,11 @@ export class CjsAudioMan
                                 ? {}
                                 : { playCount: selection.playCount }),
                             playbackRate: selection.playbackRate,
+                            programSlotId: selection.programSlotId
+                                ?? `${selection.actionIndex}:${selection.leafIndex}`,
+                            actionIndex: selection.actionIndex,
+                            leafIndex: selection.leafIndex,
+                            matchIds: selection.matchIds,
                             ...(selection.authoredPlaybackRate !== undefined
                                 ? {
                                     getPlaybackRate: () =>
@@ -1278,7 +1292,6 @@ export class CjsAudioMan
                                 }
                                 : {}),
                             spatial: selection.spatial ?? eventSpatial,
-                            programSlotId: `${selection.actionIndex}:${selection.leafIndex}`,
                             ...(selection.delayMs === undefined
                                 ? {}
                                 : { delayMs: selection.delayMs }),

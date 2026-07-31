@@ -756,6 +756,7 @@ function LowerSfxGraph({
     const programs = {};
     const lowered = new Map();
     const leavesByNode = new Map();
+    const containsContinuousByNode = new Map();
     const leavesByEvent = new Map();
     const stopTargetsByEvent = new Map();
     const active = new Set();
@@ -840,12 +841,16 @@ function LowerSfxGraph({
         {
             let node;
             const leaves = new Set();
+            let childContainsContinuous = false;
             const lowerChild = (childID) =>
             {
                 const loweredID = lower(childID);
                 const childKey = String(Number(childID) >>> 0);
 
                 AddSet(leaves, leavesByNode.get(childKey));
+                childContainsContinuous ||= Boolean(
+                    containsContinuousByNode.get(childKey),
+                );
                 return loweredID;
             };
 
@@ -887,13 +892,31 @@ function LowerSfxGraph({
             else if (source.type === "random"
                 || source.type === "sequence")
             {
-                if (source.continuous)
-                {
-                    throw new Error(`continuous ${source.type} ${id}`);
-                }
                 if (source.restartBackward)
                 {
                     throw new Error(`reverse sequence ${id}`);
+                }
+                if (source.continuous
+                    && (source.loopModMin !== 0
+                        || source.loopModMax !== 0))
+                {
+                    throw new Error(
+                        `randomized continuous loop count ${id}`,
+                    );
+                }
+                if (source.continuous && source.loopCount > 32767)
+                {
+                    throw new Error(
+                        `continuous loop count exceeds 32767 at ${id}`,
+                    );
+                }
+                if (source.continuous
+                    && source.transitionMode !== 0
+                    && source.transitionMode !== 3)
+                {
+                    throw new Error(
+                        `unsupported continuous transition ${source.transitionMode} at ${id}`,
+                    );
                 }
 
                 const playlist = source.playlist.length
@@ -925,6 +948,10 @@ function LowerSfxGraph({
                 {
                     throw new Error(`empty ${source.type} ${id}`);
                 }
+                if (source.continuous && childContainsContinuous)
+                {
+                    throw new Error(`nested continuous container ${id}`);
+                }
 
                 node = {
                     type: source.type,
@@ -936,6 +963,39 @@ function LowerSfxGraph({
                                 ? "shuffle"
                                 : "random",
                             avoidRepeat: source.avoidRepeatCount,
+                        }
+                        : {}),
+                    ...(source.continuous
+                        ? {
+                            continuous: {
+                                loopCount: source.loopCount,
+                                transition: source.transitionMode === 3
+                                    ? "delay"
+                                    : "disabled",
+                                ...(source.transitionMode === 3
+                                    ? {
+                                        transitionMs:
+                                            source.transitionTime,
+                                        ...(
+                                            source.transitionTimeModMin !== 0
+                                            || source.transitionTimeModMax !== 0
+                                                ? {
+                                                    transitionRangeMs: {
+                                                        min: source.transitionTimeModMin,
+                                                        max: source.transitionTimeModMax,
+                                                    },
+                                                }
+                                                : {}
+                                        ),
+                                    }
+                                    : {}),
+                                ...(source.type === "sequence"
+                                    ? {
+                                        resetPlaylistEachPlay:
+                                            source.resetPlaylistEachPlay,
+                                    }
+                                    : {}),
+                            },
                         }
                         : {}),
                 };
@@ -1140,6 +1200,11 @@ function LowerSfxGraph({
             nodes[id] = node;
             lowered.set(id, id);
             leavesByNode.set(id, leaves);
+            containsContinuousByNode.set(
+                id,
+                childContainsContinuous
+                    || node.continuous !== undefined,
+            );
             return id;
         }
         finally

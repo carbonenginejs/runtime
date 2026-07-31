@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
     installAudioLibraryDocument,
+    normalizeSfxGraph,
     validateAudioLibraryDocument,
 } from "../npm/dist/library/index.js";
 
@@ -123,6 +124,91 @@ test("rejects invalid spatial event metadata", () =>
     assert.throws(
         () => validateAudioLibraryDocument(invalidRadius),
         /maxRadiusAttenuation must be a non-negative finite number/u,
+    );
+});
+
+test("Continuous container scheduling is normalized and validated", () =>
+{
+    const graph = {
+        schemaVersion: 2,
+        events: {
+            ambience: [ 1 ],
+        },
+        nodes: {
+            1: {
+                type: "sequence",
+                children: [ 2 ],
+                continuous: {
+                    loopCount: "4",
+                    transition: "delay",
+                    transitionMs: "5000",
+                    transitionRangeMs: {
+                        min: "0",
+                        max: "15000",
+                    },
+                    resetPlaylistEachPlay: false,
+                },
+            },
+            2: {
+                type: "sound",
+                mediaId: 777,
+            },
+        },
+    };
+    const normalized = normalizeSfxGraph(
+        graph,
+        { 777: { sourceID: "loose:777" } },
+    );
+
+    assert.deepEqual(normalized.nodes["1"].continuous, {
+        loopCount: 4,
+        transition: "delay",
+        transitionMs: 5000,
+        transitionRangeMs: {
+            min: 0,
+            max: 15000,
+        },
+        resetPlaylistEachPlay: false,
+    });
+
+    graph.nodes[1].continuous.loopCount = 32768;
+    assert.throws(
+        () => normalizeSfxGraph(
+            graph,
+            { 777: { sourceID: "loose:777" } },
+        ),
+        /loopCount must not exceed 32767/u,
+    );
+    graph.nodes[1].continuous.loopCount = 4;
+
+    graph.nodes[1].continuous.transition = "crossfade";
+    assert.throws(
+        () => normalizeSfxGraph(
+            graph,
+            { 777: { sourceID: "loose:777" } },
+        ),
+        /transition must be disabled or delay/u,
+    );
+
+    graph.nodes[1].continuous.transition = "disabled";
+    delete graph.nodes[1].continuous.transitionMs;
+    delete graph.nodes[1].continuous.transitionRangeMs;
+    graph.nodes[1].children = [ 3 ];
+    graph.nodes[3] = {
+        type: "sequence",
+        children: [ 2 ],
+        continuous: {
+            loopCount: 1,
+            transition: "disabled",
+        },
+    };
+
+    assert.throws(
+        () => normalizeSfxGraph(
+            graph,
+            { 777: { sourceID: "loose:777" } },
+        ),
+        /cannot contain Continuous container 3/u,
     );
 });
 

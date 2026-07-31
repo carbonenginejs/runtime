@@ -27,6 +27,10 @@ export class CjsSfxEngine
 
     #sequencePositions = new Map();
 
+    #continuousSequencePositions = new Map();
+
+    #continuousSessions = new WeakSet();
+
     /**
      * Creates an interpreter for an installed, validated SFX graph.
      */
@@ -103,7 +107,12 @@ export class CjsSfxEngine
         }
 
         const operations = [];
-        const resolve = (child, actionIndex, selections) =>
+        const resolve = (
+            child,
+            actionIndex,
+            selections,
+            continuousBranches,
+        ) =>
         {
             this.#ResolveChild(
                 child,
@@ -125,26 +134,60 @@ export class CjsSfxEngine
                 },
                 new Set(),
                 selections,
+                continuousBranches,
             );
         };
         const addPlay = (children, actionIndex) =>
         {
             const selections = [];
+            const continuousBranches = [];
 
             for (const child of children)
             {
-                resolve(child, actionIndex, selections);
+                resolve(
+                    child,
+                    actionIndex,
+                    selections,
+                    continuousBranches,
+                );
+            }
+            const continuations = [];
+            const resolved = [ ...selections ];
+
+            for (let index = 0;
+                index < continuousBranches.length;
+                index++)
+            {
+                const branch = continuousBranches[index];
+                const programSlotId = `${actionIndex}:c${index}`;
+
+                branch.token.actionIndex = actionIndex;
+                branch.token.programSlotId = programSlotId;
+                resolved.push(...branch.selections.map(selection => ({
+                    ...selection,
+                    programSlotId,
+                })));
+                continuations.push(Object.freeze({
+                    programSlotId,
+                    token: branch.token,
+                    delayMs: 0,
+                }));
             }
             operations.push(Object.freeze({
                 kind: "play",
                 actionIndex,
-                selections: Object.freeze(selections.map(
+                selections: Object.freeze(resolved.map(
                     (selection, leafIndex) => Object.freeze({
                         ...selection,
                         actionIndex,
                         leafIndex,
                     }),
                 )),
+                ...(continuations.length
+                    ? {
+                        continuations: Object.freeze(continuations),
+                    }
+                    : {}),
             }));
         };
 
@@ -185,6 +228,67 @@ export class CjsSfxEngine
             addPlay(roots, 0);
         }
         return Object.freeze(operations);
+    }
+
+    /**
+     * Resolves the next child batch of one active Continuous container.
+     *
+     * The opaque token comes from ResolveProgram and remains owned by this
+     * interpreter. Backend code only retains it between physical batches.
+     */
+    ContinueProgram(token, controls = {})
+    {
+        if (!token
+            || typeof token !== "object"
+            || !this.#continuousSessions.has(token))
+        {
+            throw new TypeError(
+                "CjsSfxEngine continuation token is invalid",
+            );
+        }
+        if (token.done)
+        {
+            return Object.freeze([]);
+        }
+
+        const selections = this.#ResolveContinuousBatch(
+            token,
+            controls,
+            false,
+        );
+
+        if (selections === null)
+        {
+            return Object.freeze([]);
+        }
+        const delayMs = token.node.continuous.transition === "delay"
+            ? SampleRandomizedValue(
+                token.node.continuous.transitionMs,
+                token.node.continuous.transitionRangeMs,
+                () => this.#SampleUnit(),
+            )
+            : 0;
+        return Object.freeze([
+            Object.freeze({
+                kind: "play",
+                actionIndex: token.actionIndex,
+                selections: Object.freeze(selections.map(
+                    (selection, leafIndex) => Object.freeze({
+                        ...selection,
+                        actionIndex: token.actionIndex,
+                        leafIndex,
+                        programSlotId: token.programSlotId,
+                    }),
+                )),
+                continuations: Object.freeze([
+                    Object.freeze({
+                        programSlotId: token.programSlotId,
+                        token,
+                        delayMs,
+                    }),
+                ]),
+            }),
+        ]);
     }
 
     /**
@@ -285,6 +389,7 @@ export class CjsSfxEngine
         this.#randomHistory.clear();
         this.#shufflePools.clear();
         this.#sequencePositions.clear();
+        this.#continuousSequencePositions.clear();
     }
 
     /** Releases object-scoped container state for one unregistered game object. */
@@ -295,10 +400,19 @@ export class CjsSfxEngine
         DeleteKeysWithPrefix(this.#randomHistory, prefix);
         DeleteKeysWithPrefix(this.#shufflePools, prefix);
         DeleteKeysWithPrefix(this.#sequencePositions, prefix);
+        DeleteKeysWithPrefix(this.#continuousSequencePositions, prefix);
     }
 
     /** Resolves one child edge and its target node. */
-    #ResolveChild(child, controls, inherited, active, selections)
+    #ResolveChild(
+        child,
+        controls,
+        inherited,
+        active,
+        selections,
+        continuousBranches = [],
+        allowContinuous = true,
+    )
     {
         const edge = NormalizeChild(child);
         const node = this.#graph.nodes?.[edge.nodeId];
@@ -426,6 +540,8 @@ export class CjsSfxEngine
                     terms,
                     nextActive,
                     selections,
+                    continuousBranches,
+                    allowContinuous,
                 );
             }
             return;
@@ -448,6 +564,8 @@ export class CjsSfxEngine
                     terms,
                     nextActive,
                     selections,
+                    continuousBranches,
+                    allowContinuous,
                 );
             }
             return;
@@ -455,6 +573,19 @@ export class CjsSfxEngine
 
         if (node.type === "random")
         {
+            if (node.continuous)
+            {
+                this.#ResolveContinuousNode(
+                    edge.nodeId,
+                    node,
+                    controls,
+                    terms,
+                    nextActive,
+                    continuousBranches,
+                    allowContinuous,
+                );
+                return;
+            }
             const index = this.#SelectRandom(
                 edge.nodeId,
                 node,
@@ -469,6 +600,8 @@ export class CjsSfxEngine
                     terms,
                     nextActive,
                     selections,
+                    continuousBranches,
+                    allowContinuous,
                 );
             }
             return;
@@ -476,6 +609,19 @@ export class CjsSfxEngine
 
         if (node.type === "sequence")
         {
+            if (node.continuous)
+            {
+                this.#ResolveContinuousNode(
+                    edge.nodeId,
+                    node,
+                    controls,
+                    terms,
+                    nextActive,
+                    continuousBranches,
+                    allowContinuous,
+                );
+                return;
+            }
             const index = this.#SelectSequence(
                 edge.nodeId,
                 node,
@@ -490,9 +636,155 @@ export class CjsSfxEngine
                     terms,
                     nextActive,
                     selections,
+                    continuousBranches,
+                    allowContinuous,
                 );
             }
         }
+    }
+
+    /** Creates one per-post Continuous container traversal. */
+    #ResolveContinuousNode(
+        nodeID,
+        node,
+        controls,
+        terms,
+        active,
+        continuousBranches,
+        allowContinuous,
+    )
+    {
+        if (!allowContinuous)
+        {
+            throw new Error(
+                `Nested Continuous container ${nodeID} is unsupported`,
+            );
+        }
+
+        const token = {
+            nodeID,
+            node,
+            gameObjID: controls.gameObjID,
+            initialTerms: terms,
+            continuationTerms: {
+                ...terms,
+                initialDelayMs: 0,
+                delayMs: 0,
+                fadeInMs: 0,
+            },
+            active,
+            passCount: 0,
+            remainingInPass: 0,
+            sequencePosition: node.type === "sequence"
+                ? this.#InitialContinuousSequencePosition(
+                    nodeID,
+                    node,
+                    controls.gameObjID,
+                )
+                : 0,
+            actionIndex: -1,
+            programSlotId: "",
+            done: false,
+        };
+
+        this.#continuousSessions.add(token);
+        continuousBranches.push({
+            token,
+            selections: this.#ResolveContinuousBatch(
+                token,
+                controls,
+                true,
+            ) ?? [],
+        });
+    }
+
+    /** Selects and resolves one child batch from an active traversal. */
+    #ResolveContinuousBatch(token, controls, initial)
+    {
+        const index = this.#SelectContinuousChild(token);
+
+        if (index === -1)
+        {
+            token.done = true;
+            return null;
+        }
+
+        const selections = [];
+        const nested = [];
+
+        this.#ResolveChild(
+            token.node.children[index],
+            controls,
+            initial ? token.initialTerms : token.continuationTerms,
+            token.active,
+            selections,
+            nested,
+            false,
+        );
+        if (nested.length)
+        {
+            throw new Error(
+                `Nested Continuous container ${token.nodeID} is unsupported`,
+            );
+        }
+        return selections;
+    }
+
+    /** Advances one Continuous pass and returns its next playlist index. */
+    #SelectContinuousChild(token)
+    {
+        const node = token.node;
+        const childCount = node.children.length;
+
+        if (token.remainingInPass === 0)
+        {
+            const loopCount = Number(node.continuous.loopCount);
+
+            if (loopCount !== 0 && token.passCount >= loopCount)
+            {
+                return -1;
+            }
+            token.passCount++;
+            token.remainingInPass = childCount;
+        }
+
+        let index;
+
+        if (node.type === "random")
+        {
+            index = this.#SelectRandom(
+                token.nodeID,
+                node,
+                ContainerObjectID(node, token.gameObjID),
+            );
+        }
+        else
+        {
+            index = token.sequencePosition % childCount;
+            token.sequencePosition = (index + 1) % childCount;
+
+            if (node.continuous.resetPlaylistEachPlay === false)
+            {
+                this.#continuousSequencePositions.set(
+                    StateKey(token.gameObjID, token.nodeID),
+                    token.sequencePosition,
+                );
+            }
+        }
+        token.remainingInPass--;
+        return index;
+    }
+
+    /** Reads the persisted next child for an interrupted Sequence traversal. */
+    #InitialContinuousSequencePosition(nodeID, node, gameObjID)
+    {
+        if (node.continuous.resetPlaylistEachPlay !== false)
+        {
+            return 0;
+        }
+        return this.#continuousSequencePositions.get(
+            StateKey(gameObjID, nodeID),
+        ) ?? 0;
     }
 
     /** Accumulates one hierarchy level's static and randomized properties. */
@@ -661,7 +953,10 @@ export class CjsSfxEngine
             Number(node.avoidRepeat) || 0,
             Math.max(0, node.children.length - 1),
         );
-        const excluded = new Set(history.slice(-avoid));
+        const historyLength = node.mode === "shuffle"
+            ? Math.max(1, avoid)
+            : avoid;
+        const excluded = new Set(history.slice(-historyLength));
         let available;
 
         if (node.mode === "shuffle")
@@ -714,10 +1009,10 @@ export class CjsSfxEngine
             }
         }
 
-        if (selected !== -1 && avoid > 0)
+        if (selected !== -1 && historyLength > 0)
         {
             history.push(selected);
-            while (history.length > avoid)
+            while (history.length > historyLength)
             {
                 history.shift();
             }

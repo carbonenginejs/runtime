@@ -150,6 +150,7 @@ function Harness({
   musicEngine,
   hasSfxEvent,
   resolveSfxProgram,
+  continueSfxProgram,
 } = {})
 {
   const context = FakeContext();
@@ -163,6 +164,7 @@ function Harness({
     musicEngine,
     hasSfxEvent,
     resolveSfxProgram,
+    continueSfxProgram,
   });
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
@@ -236,6 +238,779 @@ test("one authored event can keep SFX and music alive under one playing id", asy
 
   assert.deepEqual(finished, [ playingID ]);
   assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("Continuous slots wait for the whole batch and schedule authored Delay", async () =>
+{
+  const token = {};
+  const slot = "0:c0";
+  let advances = 0;
+  const play = (media, delayMs = 0) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: media.map((mediaID, leafIndex) => ({
+        actionIndex: 0,
+        leafIndex,
+        programSlotId: slot,
+        matchIds: [ "10", String(mediaID) ],
+      })),
+      continuations: [
+        {
+          programSlotId: slot,
+          token,
+          delayMs,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play([ 100, 200 ]),
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return advances === 1 ? play([ 300 ], 500) : [];
+    },
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.selections.map(selection => ({
+          buffer: { duration: 1 },
+          programSlotId: selection.programSlotId,
+        }))),
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous",
+  );
+
+  await tick();
+  assert.equal(context.sources.length, 2);
+
+  context.currentTime = 1;
+  context.sources[0].onended();
+  await tick();
+  assert.equal(
+    advances,
+    0,
+    "one parallel leaf cannot advance its shared child batch",
+  );
+
+  context.sources[1].onended();
+  await tick();
+  await tick();
+
+  assert.equal(advances, 1);
+  assert.equal(context.sources.length, 3);
+  assert.equal(context.sources[2].startedAt, 1.5);
+
+  context.currentTime = 2.5;
+  context.sources[2].onended();
+  await tick();
+
+  assert.equal(advances, 2);
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("Break lets the active Continuous object loop out without advancing", async () =>
+{
+  const token = {};
+  let advances = 0;
+  const program = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          matchIds: [ "10", "100" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          delayMs: 0,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => program,
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return program;
+    },
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 1 },
+          loop: true,
+          programSlotId: "0:c0",
+        },
+      ],
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous_loop",
+  );
+
+  await tick();
+  assert.equal(context.sources[0].loop, true);
+
+  backend.ExecuteActionOnPlayingID("break", playingID, 0);
+
+  assert.equal(context.sources[0].loop, false);
+  context.sources[0].onended();
+  await tick();
+
+  assert.equal(advances, 0);
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("Stop cancels a pending Continuous batch and discards its late result", async () =>
+{
+  const pending = Deferred();
+  const token = {};
+  let loads = 0;
+  let batchSignal = null;
+  const play = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          matchIds: [ "10", "100" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          delayMs: 0,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play,
+    continueSfxProgram: () => play,
+    loadBuffer: (_eventID, _eventName, controls) =>
+    {
+      loads++;
+      if (loads === 1)
+      {
+        return Promise.resolve({
+          voices: [
+            {
+              buffer: { duration: 1 },
+              programSlotId: "0:c0",
+            },
+          ],
+        });
+      }
+      batchSignal = controls.getSfxProgramSignal("0:c0");
+      return pending.promise;
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous",
+  );
+
+  await tick();
+  context.sources[0].onended();
+  await tick();
+
+  assert.equal(loads, 2);
+  assert.equal(batchSignal.aborted, false);
+
+  backend.ExecuteActionOnPlayingID("stop", playingID, 0);
+
+  assert.equal(batchSignal.aborted, true);
+  assert.deepEqual(finished, [ playingID ]);
+
+  pending.resolve({
+    voices: [
+      {
+        buffer: { duration: 1 },
+        programSlotId: "0:c0",
+      },
+    ],
+  });
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("Break aborts a loading Continuous continuation without reviving it", async () =>
+{
+  const pending = Deferred();
+  const token = {};
+  let loads = 0;
+  let batchSignal = null;
+  const play = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          matchIds: [ "10", "100" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          delayMs: 0,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play,
+    continueSfxProgram: () => play,
+    loadBuffer: (_eventID, _eventName, controls) =>
+    {
+      loads++;
+      if (loads === 1)
+      {
+        return Promise.resolve({
+          voices: [
+            {
+              buffer: { duration: 1 },
+              programSlotId: "0:c0",
+            },
+          ],
+        });
+      }
+      batchSignal = controls.getSfxProgramSignal("0:c0");
+      return pending.promise;
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous",
+  );
+
+  await tick();
+  context.sources[0].onended();
+  await tick();
+
+  assert.equal(loads, 2);
+  assert.equal(batchSignal.aborted, false);
+
+  backend.ExecuteActionOnPlayingID("break", playingID, 0);
+
+  assert.equal(batchSignal.aborted, true);
+  assert.deepEqual(finished, [ playingID ]);
+
+  pending.resolve({
+    voices: [
+      {
+        buffer: { duration: 1 },
+        programSlotId: "0:c0",
+      },
+    ],
+  });
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("Break cancels a decoded Continuous batch before its delayed start", async () =>
+{
+  const token = {};
+  let advances = 0;
+  const play = delayMs => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          matchIds: [ "10", "100" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          delayMs,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play(0),
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return play(5000);
+    },
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 1 },
+          programSlotId: "0:c0",
+        },
+      ],
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous",
+  );
+
+  await tick();
+  context.currentTime = 1;
+  context.sources[0].onended();
+  await tick();
+  await tick();
+
+  assert.equal(advances, 1);
+  assert.equal(context.sources.length, 2);
+  assert.equal(context.sources[1].startedAt, 6);
+
+  backend.ExecuteActionOnPlayingID("break", playingID, 0);
+
+  assert.equal(context.sources[1].stoppedAt, 1);
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("authored Stops compare each Continuous leaf's own delayed action time", async () =>
+{
+  const token = {};
+  const play = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          delayMs: 0,
+          programSlotId: "0:c0",
+          matchIds: [ "10", "100" ],
+        },
+        {
+          actionIndex: 0,
+          leafIndex: 1,
+          delayMs: 1000,
+          programSlotId: "0:c0",
+          matchIds: [ "10", "200" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          delayMs: 0,
+        },
+      ],
+    },
+  ];
+  const stop = [
+    {
+      kind: "stop",
+      actionIndex: 0,
+      targetId: "10",
+      scope: "game-object",
+      mode: "element",
+      delayMs: 0,
+      transitionMs: 0,
+      curve: 4,
+      exceptions: [],
+    },
+  ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: (_eventID, eventName) =>
+      eventName === "stop_parent" ? stop : play,
+    continueSfxProgram: () => [],
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        (operation.selections ?? []).map(selection => ({
+          buffer: { duration: 2 },
+          delayMs: selection.delayMs,
+          programSlotId: selection.programSlotId,
+        }))),
+    }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "continuous");
+  await tick();
+
+  context.currentTime = 0.5;
+  backend.PostEvent(8, 1, 0, emitter, "stop_parent");
+  await tick();
+
+  assert.equal(context.sources[0].stoppedAt, 0.5);
+  assert.equal(
+    context.sources[1].stoppedAt,
+    null,
+    "the Stop predates the second leaf's authored action time",
+  );
+});
+
+test("an empty Continuous continuation terminates instead of hot-looping", async () =>
+{
+  const token = {};
+  let advances = 0;
+  let loads = 0;
+  const play = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          matchIds: [ "10", "100" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          delayMs: 0,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play,
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return play;
+    },
+    loadBuffer: () =>
+    {
+      loads++;
+      return Promise.resolve(loads === 1
+        ? {
+            voices: [
+              {
+                buffer: { duration: 1 },
+                programSlotId: "0:c0",
+              },
+            ],
+          }
+        : { voices: [] });
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous",
+  );
+
+  await tick();
+  context.sources[0].onended();
+  await tick();
+  await tick();
+
+  assert.equal(advances, 1);
+  assert.equal(loads, 2);
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("synchronous continuation-loader failures settle the playing record", async () =>
+{
+  const token = {};
+  let loads = 0;
+  const play = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          matchIds: [ "10", "100" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          delayMs: 0,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play,
+    continueSfxProgram: () => play,
+    loadBuffer: () =>
+    {
+      loads++;
+      if (loads === 1)
+      {
+        return Promise.resolve({
+          voices: [
+            {
+              buffer: { duration: 1 },
+              programSlotId: "0:c0",
+            },
+          ],
+        });
+      }
+      throw new Error("sync continuation failure");
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous",
+  );
+
+  await tick();
+  context.sources[0].onended();
+  await tick();
+  await tick();
+
+  assert.equal(loads, 2);
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("overdue authored Stops cancel a loading Continuous boundary", async () =>
+{
+  const pending = Deferred();
+  const token = {};
+  let loads = 0;
+  let batchSignal = null;
+  const play = {
+    kind: "play",
+    actionIndex: 0,
+    selections: [
+      {
+        actionIndex: 0,
+        leafIndex: 0,
+        programSlotId: "0:c0",
+        matchIds: [ "10", "100" ],
+      },
+    ],
+    continuations: [
+      {
+        programSlotId: "0:c0",
+        token,
+        delayMs: 0,
+      },
+    ],
+  };
+  const program = [
+    play,
+    {
+      kind: "stop",
+      actionIndex: 1,
+      targetId: "10",
+      scope: "game-object",
+      mode: "element",
+      delayMs: 500,
+      transitionMs: 0,
+      curve: 4,
+      exceptions: [],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => program,
+    continueSfxProgram: () => [ play ],
+    loadBuffer: (_eventID, _eventName, controls) =>
+    {
+      loads++;
+      if (loads === 1)
+      {
+        return Promise.resolve({
+          voices: [
+            {
+              buffer: { duration: 0.1 },
+              programSlotId: "0:c0",
+            },
+          ],
+        });
+      }
+      batchSignal = controls.getSfxProgramSignal("0:c0");
+      return pending.promise;
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous",
+  );
+
+  await tick();
+  context.currentTime = 0.1;
+  context.sources[0].onended();
+  await tick();
+
+  assert.equal(loads, 2);
+  assert.equal(batchSignal.aborted, false);
+
+  context.currentTime = 1;
+  pending.resolve({
+    voices: [
+      {
+        buffer: { duration: 1 },
+        programSlotId: "0:c0",
+      },
+    ],
+  });
+  await tick();
+  await tick();
+
+  assert.equal(batchSignal.aborted, true);
+  assert.equal(context.sources.length, 1);
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("selective Stops isolate leaves inside a Continuous parallel batch", async () =>
+{
+  const cases = [
+    {
+      name: "element",
+      stop: {
+        targetId: "100",
+        mode: "element",
+        exceptions: [],
+      },
+    },
+    {
+      name: "all-except",
+      stop: {
+        targetId: "0",
+        mode: "all-except",
+        exceptions: [ { targetId: "200", targetFlags: 0 } ],
+      },
+    },
+  ];
+
+  for (const { name, stop } of cases)
+  {
+    const token = {};
+    let advances = 0;
+    const batch = (ids) => [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: ids.map((id, leafIndex) => ({
+          actionIndex: 0,
+          leafIndex,
+          programSlotId: "0:c0",
+          matchIds: [ "10", String(id) ],
+        })),
+        continuations: [
+          {
+            programSlotId: "0:c0",
+            token,
+            delayMs: 0,
+          },
+        ],
+      },
+    ];
+    const stopProgram = [
+      {
+        kind: "stop",
+        actionIndex: 0,
+        scope: "game-object",
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+        ...stop,
+      },
+    ];
+    const { backend, context, emitter } = Harness({
+      resolveSfxProgram: (_eventID, eventName) =>
+        eventName === `stop_${name}`
+          ? stopProgram
+          : batch([ 100, 200 ]),
+      continueSfxProgram: () =>
+      {
+        advances++;
+        return advances === 1 ? batch([ 300 ]) : [];
+      },
+      loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+        voices: program.flatMap(operation =>
+          (operation.selections ?? []).map(selection => ({
+            buffer: { duration: 1 },
+            programSlotId: selection.programSlotId,
+          }))),
+      }),
+    });
+
+    backend.PostEvent(7, 1, 0, emitter, "continuous");
+    await tick();
+
+    backend.PostEvent(8, 1, 0, emitter, `stop_${name}`);
+    await tick();
+
+    assert.equal(
+      context.sources[0].stoppedAt,
+      0,
+      `${name} stops the unprotected leaf`,
+    );
+    assert.equal(
+      context.sources[1].stoppedAt,
+      null,
+      `${name} leaves the sibling voice alone`,
+    );
+
+    context.sources[0].onended();
+    context.sources[1].onended();
+    await tick();
+    await tick();
+
+    assert.equal(
+      advances,
+      1,
+      `${name} does not suppress the Continuous traversal`,
+    );
+    assert.equal(context.sources.length, 3);
+  }
 });
 
 test("synchronous custom music completion is deferred past id retention", async () =>

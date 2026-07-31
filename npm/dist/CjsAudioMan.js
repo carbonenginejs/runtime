@@ -199,6 +199,7 @@ class CjsAudioMan {
       musicGraph: installed.music ?? null,
       loadBuffer: (eventID, eventName, controls, resolvedProgram) => this.#LoadEventBuffer(eventID, eventName, controls, resolvedProgram),
       resolveSfxProgram: (_eventID, eventName, controls) => this.#sfxEngine?.HandlesEvent(eventName) ? this.#sfxEngine.ResolveProgram(eventName, controls) ?? [] : null,
+      continueSfxProgram: (token, controls) => this.#sfxEngine?.ContinueProgram(token, controls) ?? [],
       hasEventStops: eventName => this.#sfxEngine?.HasStopAction(eventName) === true,
       hasSfxEvent: eventName => this.#sfxEngine?.HandlesEvent(eventName) === true || Array.isArray(installed.eventMedia?.[eventName]),
       loadMedia: sourceID => this.LoadMedia(sourceID),
@@ -823,8 +824,8 @@ class CjsAudioMan {
         };
       }
       const buffers = await Promise.all(selections.map(selection => {
-        const programSlotId = `${selection.actionIndex}:${selection.leafIndex}`;
-        const selectionSignal = controls.getSfxProgramSignal?.(programSlotId) ?? controls.signal;
+        const programSlotId = selection.programSlotId ?? `${selection.actionIndex}:${selection.leafIndex}`;
+        const selectionSignal = controls.getSfxProgramSignal?.(programSlotId, selection.actionIndex, selection.leafIndex) ?? controls.signal;
         return this.LoadMedia(selection.mediaID, {
           signal: selectionSignal
         }).catch(error => {
@@ -848,11 +849,14 @@ class CjsAudioMan {
             playCount: selection.playCount
           }),
           playbackRate: selection.playbackRate,
+          programSlotId: selection.programSlotId ?? `${selection.actionIndex}:${selection.leafIndex}`,
+          actionIndex: selection.actionIndex,
+          leafIndex: selection.leafIndex,
+          matchIds: selection.matchIds,
           ...(selection.authoredPlaybackRate !== undefined ? {
             getPlaybackRate: () => engine.EvaluatePlaybackRate(selection, controls)
           } : {}),
           spatial: selection.spatial ?? eventSpatial,
-          programSlotId: `${selection.actionIndex}:${selection.leafIndex}`,
           ...(selection.delayMs === undefined ? {} : {
             delayMs: selection.delayMs
           }),

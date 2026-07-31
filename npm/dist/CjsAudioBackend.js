@@ -29,6 +29,7 @@ class CjsAudioBackend {
   #hasEventStops = null;
   #hasSfxEvent = null;
   #resolveSfxProgram = null;
+  #continueSfxProgram = null;
   #masterGain = null;
   #sfxGain = null;
   #emitterNodes = new Map();
@@ -58,6 +59,7 @@ class CjsAudioBackend {
     hasEventStops,
     hasSfxEvent,
     resolveSfxProgram,
+    continueSfxProgram,
     distanceScale,
     musicEngine,
     applyRTPC
@@ -68,6 +70,7 @@ class CjsAudioBackend {
     this.#hasEventStops = typeof hasEventStops === "function" ? hasEventStops : () => false;
     this.#hasSfxEvent = typeof hasSfxEvent === "function" ? hasSfxEvent : null;
     this.#resolveSfxProgram = typeof resolveSfxProgram === "function" ? resolveSfxProgram : null;
+    this.#continueSfxProgram = typeof continueSfxProgram === "function" ? continueSfxProgram : null;
     this.#distanceScale = Number(distanceScale) || 1;
     this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
     if (this.#context) {
@@ -243,6 +246,7 @@ class CjsAudioBackend {
     const playingID = this.#nextPlayingID++;
     const controller = new AbortController();
     const record = {
+      eventID,
       gameObjID,
       emitter,
       emitterNodes: nodes,
@@ -264,13 +268,15 @@ class CjsAudioBackend {
       pendingProgramStops: 0,
       planningProgram: false,
       loading: false,
-      posting: true
+      posting: true,
+      sfxControls: null
     };
     this.#playing.set(playingID, record);
     if (music) {
       this.#StartMusicComponent(playingID, record);
     }
     const controls = this.#CreateSfxControls(gameObjID, controller.signal, playingID, record);
+    record.sfxControls = controls;
     let resolvedProgram = null;
     try {
       if (this.#resolveSfxProgram) {
@@ -306,26 +312,41 @@ class CjsAudioBackend {
       const realizedSlots = new Set();
       for (const descriptor of descriptors) {
         const slot = record.sfxProgram ? record.programSlots?.get(descriptor.programSlotId) : null;
-        if (record.sfxProgram && (!slot || slot.state !== "pending")) {
+        if (record.sfxProgram && (!slot || slot.state !== "pending" && !(slot.continuation && slot.state === "voice"))) {
           continue;
         }
-        const voice = this.#CreateVoice(descriptor, nodes, record.gameObjID);
+        if (slot?.cancelledSelectionKeys?.has(ProgramSelectionKey(descriptor))) {
+          continue;
+        }
+        const selectionMetadata = slot?.selections?.find(selection => ProgramSelectionKey(selection) === ProgramSelectionKey(descriptor));
+        const voice = this.#CreateVoice(selectionMetadata ? {
+          ...descriptor,
+          actionIndex: selectionMetadata.actionIndex,
+          leafIndex: selectionMetadata.leafIndex,
+          matchIds: selectionMetadata.matchIds
+        } : descriptor, nodes, record.gameObjID);
         record.voices.push(voice);
         if (slot) {
           slot.state = "voice";
           slot.voice = voice;
+          slot.voices.add(voice);
           voice.programSlotId = slot.id;
           realizedSlots.add(slot.id);
         }
       }
+      record.loaded = true;
       if (record.sfxProgram) {
         for (const slot of record.programSlots.values()) {
-          if (slot.state === "pending" && !realizedSlots.has(slot.id)) {
+          if (slot.state !== "pending" || realizedSlots.has(slot.id)) {
+            continue;
+          }
+          if (slot.continuation) {
+            this.#AdvanceSfxProgramSlot(playingID, record, slot, Number(this.#context.currentTime) || 0);
+          } else {
             slot.state = "ended";
           }
         }
       }
-      record.loaded = true;
       if (!record.voices.length) {
         if (record.sfxProgram) {
           this.#MaybeFinishSfxProgram(playingID, record);
@@ -379,6 +400,9 @@ class CjsAudioBackend {
         return;
       }
     }
+    if (action === "break") {
+      this.#BreakContinuousSlots(record);
+    }
     if (action === "break" && !record.loaded) {
       // Authored SFX leaves may override the event-level loop flag.
       // Keep the pending record until its descriptors resolve, then
@@ -389,10 +413,22 @@ class CjsAudioBackend {
     const breaking = action === "break";
     if (!breaking) {
       record.stopped = true;
+      for (const slot of record.programSlots?.values?.() ?? []) {
+        if (!slot.continuation) {
+          continue;
+        }
+        slot.continuation = null;
+        slot.broken = true;
+        slot.generation++;
+        AbortProgramSlot(slot);
+        if (slot.state === "pending" || slot.state === "loading") {
+          slot.state = "cancelled";
+        }
+      }
       record.pendingProgramStops = 0;
       this.#scheduledSfxStops = this.#scheduledSfxStops.filter(stop => stop.ownerPlayingID !== playingID);
     }
-    const active = record.voices?.filter(voice => voice.source && !voice.ended && (!breaking || voice.loop || voice.playCount > 1)) ?? [];
+    const active = record.voices?.filter(voice => voice.source && !voice.ended && (!breaking || !this.#IsContinuousProgramVoice(record, voice) && (voice.loop || voice.playCount > 1))) ?? [];
     if (active.length) {
       // An explicit 0 means an immediate stop; only a missing/invalid
       // duration falls back to the default fade.
@@ -442,6 +478,9 @@ class CjsAudioBackend {
       }
     } else if (!breaking) {
       this.#FinishSfxPlaying(playingID);
+    }
+    if (breaking) {
+      this.#MaybeFinishSfxProgram(playingID, record);
     }
   }
 
@@ -688,6 +727,54 @@ class CjsAudioBackend {
     }
   }
 
+  /** Prevents another Continuous batch while the current object loops out. */
+  #BreakContinuousSlots(record) {
+    const now = Number(this.#context.currentTime) || 0;
+    for (const slot of record.programSlots?.values?.() ?? []) {
+      if (!slot.continuation) {
+        continue;
+      }
+      slot.broken = true;
+      if (slot.state === "loading") {
+        slot.generation++;
+        AbortProgramSlot(slot);
+        slot.state = "ended";
+      }
+      for (const voice of slot.voices) {
+        if (!voice.ended && slot.generation > 0 && voice.startContextTime > now) {
+          voice.ended = true;
+          voice.stopping = true;
+          if (voice.source) {
+            voice.source.onended = null;
+            try {
+              voice.source.stop(now);
+            } catch {
+              // already stopped
+            }
+            voice.source.disconnect?.();
+          }
+          continue;
+        }
+        if (!voice.ended && voice.loop) {
+          voice.loop = false;
+          if (voice.source) {
+            voice.source.loop = false;
+          }
+        }
+      }
+      const active = [...slot.voices].filter(voice => !voice.ended);
+      slot.voice = active[0] ?? null;
+      if (slot.state === "voice" && !active.length) {
+        slot.state = "ended";
+      }
+    }
+  }
+
+  /** Returns whether a physical voice belongs to a Continuous batch slot. */
+  #IsContinuousProgramVoice(record, voice) {
+    return Boolean(voice.programSlotId !== undefined && record.programSlots?.get(voice.programSlotId)?.continuation);
+  }
+
   /**
    * Stops owned voices and disconnects WebAudio nodes. The AudioContext is
    * host-owned and is deliberately not closed here.
@@ -825,23 +912,69 @@ class CjsAudioBackend {
     try {
       for (const operation of program) {
         if (operation.kind === "play") {
+          const continuations = new Map();
+          for (const continuation of operation.continuations ?? []) {
+            const id = String(continuation.programSlotId ?? "");
+            if (!id || continuations.has(id) || record.programSlots.has(id)) {
+              throw new Error(`Invalid SFX continuation slot ${id}`);
+            }
+            const selections = operation.selections?.filter(selection => selection.programSlotId === id) ?? [];
+            const selectionMetadata = selections.map(selection => CreateProgramSelectionMetadata(selection, record.postContextTime));
+            const leafIndex = selections.length ? Math.min(...selections.map(selection => Number(selection.leafIndex))) : 0;
+            const matchIds = Object.freeze([...new Set(selections.flatMap(selection => (selection.matchIds ?? []).map(String)))]);
+            const slot = {
+              id,
+              playingID,
+              actionIndex: Number(operation.actionIndex),
+              leafIndex,
+              actionTime: selectionMetadata.length ? Math.min(...selectionMetadata.map(selection => selection.actionTime)) : record.postContextTime,
+              matchIds,
+              selections: Object.freeze(selectionMetadata),
+              cancelledSelectionKeys: new Set(),
+              selectionControllers: CreateProgramSelectionControllers(selectionMetadata),
+              state: "pending",
+              voice: null,
+              voices: new Set(),
+              controller: new AbortController(),
+              continuation: continuation.token,
+              transitionDelayMs: Math.max(0, Number(continuation.delayMs) || 0),
+              generation: 0,
+              broken: false
+            };
+            continuations.set(id, slot);
+            record.programSlots.set(id, slot);
+          }
           for (const selection of operation.selections ?? []) {
             const actionIndex = Number(selection.actionIndex ?? operation.actionIndex);
             const leafIndex = Number(selection.leafIndex);
-            const id = `${actionIndex}:${leafIndex}`;
-            if (record.programSlots.has(id)) {
-              throw new Error(`Duplicate SFX program slot ${id}`);
+            const selectionMetadata = CreateProgramSelectionMetadata(selection, record.postContextTime);
+            const id = selection.programSlotId ?? `${actionIndex}:${leafIndex}`;
+            const existing = record.programSlots.get(id);
+            if (existing) {
+              if (!continuations.has(id)) {
+                throw new Error(`Duplicate SFX program slot ${id}`);
+              }
+              existing.matchIds = Object.freeze([...new Set([...existing.matchIds, ...(selection.matchIds ?? []).map(String)])]);
+              continue;
             }
             record.programSlots.set(id, {
               id,
               playingID,
               actionIndex,
               leafIndex,
-              actionTime: record.postContextTime + Math.max(0, Number(selection.delayMs) || 0) / 1000,
+              actionTime: selectionMetadata.actionTime,
               matchIds: Object.freeze((selection.matchIds ?? []).map(String)),
+              selections: Object.freeze([selectionMetadata]),
+              cancelledSelectionKeys: new Set(),
+              selectionControllers: CreateProgramSelectionControllers([selectionMetadata]),
               state: "pending",
               voice: null,
-              controller: new AbortController()
+              voices: new Set(),
+              controller: new AbortController(),
+              continuation: null,
+              transitionDelayMs: 0,
+              generation: 0,
+              broken: false
             });
           }
           continue;
@@ -899,19 +1032,41 @@ class CjsAudioBackend {
         continue;
       }
       for (const slot of record.programSlots.values()) {
-        if (slot.state !== "pending" && slot.state !== "voice") {
+        if (slot.state !== "pending" && slot.state !== "loading" && slot.state !== "voice") {
           continue;
         }
-        if (CompareProgramOrder(slot, stop) > 0 || !StopMatchesSlot(stop, slot)) {
+        const selections = slot.selections ?? [];
+        const matchingSelections = selections.filter(selection => CompareProgramOrder(selection, slot, stop) <= 0 && StopMatchesProgramValue(stop, selection));
+        if (!matchingSelections.length) {
           continue;
         }
-        if (slot.state === "pending") {
-          slot.state = "cancelled";
-          slot.controller?.abort();
+        const stopsWholeSlot = matchingSelections.length === selections.length;
+        for (const selection of matchingSelections) {
+          const key = ProgramSelectionKey(selection);
+          slot.cancelledSelectionKeys?.add(key);
+          slot.selectionControllers?.get(key)?.abort();
+        }
+        if (slot.state === "pending" || slot.state === "loading") {
+          if (stopsWholeSlot) {
+            slot.continuation = null;
+            slot.broken = true;
+            slot.generation++;
+            slot.state = "cancelled";
+            AbortProgramSlot(slot);
+          }
           continue;
         }
-        if (!slot.voice?.ended) {
-          this.#StopSfxProgramVoice(slot.voice, stop.actionTime, stop.transitionMs, stop.curve, actionTime);
+        const matchingSelectionKeys = new Set(matchingSelections.map(ProgramSelectionKey));
+        for (const voice of slot.voices) {
+          if (!voice.ended && matchingSelectionKeys.has(ProgramSelectionKey(voice))) {
+            this.#StopSfxProgramVoice(voice, stop.actionTime, stop.transitionMs, stop.curve, actionTime);
+          }
+        }
+        if (stopsWholeSlot) {
+          slot.continuation = null;
+          slot.broken = true;
+          slot.generation++;
+          AbortProgramSlot(slot);
         }
       }
       this.#MaybeFinishSfxProgram(playingID, record);
@@ -992,7 +1147,14 @@ class CjsAudioBackend {
       getGlobalRTPC: name => this.GetGlobalRTPCValue(name),
       setSwitch: (group, value) => this.SetSwitch(group, value, gameObjID),
       setState: (group, value) => this.SetGlobalState(group, value),
-      getSfxProgramSignal: programSlotId => record?.programSlots?.get(String(programSlotId))?.controller?.signal ?? signal
+      getSfxProgramSignal: (programSlotId, actionIndex, leafIndex) => {
+        const slot = record?.programSlots?.get(String(programSlotId));
+        const selectionSignal = slot?.selectionControllers?.get(ProgramSelectionKey({
+          actionIndex,
+          leafIndex
+        }))?.signal;
+        return selectionSignal ?? slot?.controller?.signal ?? signal;
+      }
     });
   }
 
@@ -1059,6 +1221,9 @@ class CjsAudioBackend {
       delayMs: descriptor.delayMs,
       fadeInMs: descriptor.fadeInMs,
       fadeCurve: descriptor.fadeCurve,
+      actionIndex: descriptor.actionIndex,
+      leafIndex: descriptor.leafIndex,
+      matchIds: descriptor.matchIds,
       gain,
       fadeGain,
       stopGain,
@@ -1084,7 +1249,7 @@ class CjsAudioBackend {
   }
 
   /** Starts or restarts every decoded voice owned by one logical event. */
-  #StartVoices(playingID, record, selectedVoices = null) {
+  #StartVoices(playingID, record, selectedVoices = null, batchStartContextTime = null) {
     if (record.stopped || !record.loaded || this.#playing.get(playingID) !== record) {
       return;
     }
@@ -1098,22 +1263,27 @@ class CjsAudioBackend {
     record.pendingSeek = null;
     record.pendingBreak = false;
     for (const voice of selectedVoices ?? record.voices) {
-      if (pendingBreak && voice.loop) {
+      const programSlot = voice.programSlotId === undefined ? null : record.programSlots?.get(voice.programSlotId);
+      const continuous = Boolean(programSlot?.continuation);
+      if (pendingBreak && voice.loop && !continuous) {
         voice.ended = true;
         voice.stopping = true;
-        this.#SetSfxProgramSlotEnded(record, voice);
+        this.#SetSfxProgramSlotEnded(playingID, record, voice);
         continue;
       }
-      if (pendingBreak && voice.playCount > 1) {
+      if (pendingBreak && voice.loop && continuous) {
+        voice.loop = false;
+      }
+      if (pendingBreak && voice.playCount > 1 && !continuous) {
         voice.playCount = 1;
       }
       if (voice.stopping) {
         continue;
       }
-      const voiceStartContextTime = voice.source === null ? Math.max(startContextTime, record.postContextTime + voice.delayMs / 1000) : startContextTime;
+      const voiceStartContextTime = voice.source === null ? Math.max(startContextTime, (Number.isFinite(batchStartContextTime) ? batchStartContextTime : record.postContextTime) + voice.delayMs / 1000) : startContextTime;
       this.#StartVoice(playingID, record, voice, seek, voiceStartContextTime);
       if (voice.ended) {
-        this.#SetSfxProgramSlotEnded(record, voice);
+        this.#SetSfxProgramSlotEnded(playingID, record, voice);
       }
     }
     if (record.voices.every(voice => voice.ended)) {
@@ -1196,7 +1366,7 @@ class CjsAudioBackend {
     voice.ended = true;
     voice.source?.disconnect?.();
     if (record.sfxProgram) {
-      this.#SetSfxProgramSlotEnded(record, voice);
+      this.#SetSfxProgramSlotEnded(playingID, record, voice);
       this.#MaybeFinishSfxProgram(playingID, record);
     } else if (record.voices.every(value => value.ended)) {
       this.#FinishSfxPlaying(playingID);
@@ -1204,14 +1374,126 @@ class CjsAudioBackend {
   }
 
   /** Marks the logical slot behind one realized program voice complete. */
-  #SetSfxProgramSlotEnded(record, voice) {
+  #SetSfxProgramSlotEnded(playingID, record, voice) {
     if (!record.sfxProgram) {
       return;
     }
     const slot = record.programSlots?.get(voice.programSlotId);
     if (slot) {
-      slot.state = "ended";
+      if ([...slot.voices].some(value => !value.ended)) {
+        slot.voice = [...slot.voices].find(value => !value.ended) ?? null;
+        return;
+      }
       slot.voice = null;
+      if (slot.continuation && !slot.broken && !record.stopped) {
+        this.#AdvanceSfxProgramSlot(playingID, record, slot, Number(this.#context.currentTime) || 0);
+      } else {
+        slot.state = "ended";
+      }
+    }
+  }
+
+  /** Loads and starts the next child batch of one Continuous slot. */
+  #AdvanceSfxProgramSlot(playingID, record, slot, boundaryContextTime) {
+    if (!slot.continuation || slot.broken || record.stopped || this.#playing.get(playingID) !== record) {
+      slot.state = "ended";
+      return;
+    }
+    let program;
+    try {
+      program = this.#continueSfxProgram?.(slot.continuation, record.sfxControls) ?? [];
+    } catch {
+      slot.state = "ended";
+      return;
+    }
+    if (!Array.isArray(program) || !program.length) {
+      slot.state = "ended";
+      return;
+    }
+    const play = program.find(operation => operation.kind === "play");
+    const continuation = play?.continuations?.find(value => value.programSlotId === slot.id);
+    if (!play || !continuation) {
+      slot.state = "ended";
+      return;
+    }
+    const generation = ++slot.generation;
+    slot.state = "loading";
+    AbortProgramSlot(slot);
+    slot.controller = new AbortController();
+    slot.continuation = continuation.token;
+    slot.transitionDelayMs = Math.max(0, Number(continuation.delayMs) || 0);
+    const batchSelections = (play.selections ?? []).filter(selection => selection.programSlotId === slot.id);
+    const batchStartContextTime = boundaryContextTime + slot.transitionDelayMs / 1000;
+    const selectionMetadata = batchSelections.map(selection => CreateProgramSelectionMetadata(selection, batchStartContextTime));
+    slot.selections = Object.freeze(selectionMetadata);
+    slot.cancelledSelectionKeys = new Set();
+    slot.selectionControllers = CreateProgramSelectionControllers(selectionMetadata);
+    slot.leafIndex = selectionMetadata.length ? Math.min(...selectionMetadata.map(selection => selection.leafIndex)) : 0;
+    slot.actionTime = selectionMetadata.length ? Math.min(...selectionMetadata.map(selection => selection.actionTime)) : batchStartContextTime;
+    slot.matchIds = Object.freeze([...new Set(selectionMetadata.flatMap(selection => selection.matchIds))]);
+    this.#DisposeEndedSlotVoices(record, slot);
+    Promise.resolve().then(() => this.#loadBuffer(record.eventID, record.eventName, record.sfxControls, program)).then(result => {
+      // Rendering may have paused while this boundary was acquiring.
+      // Apply every now-overdue Stop before the new batch can realize.
+      this.#ProcessScheduledSfxStops();
+      if (generation !== slot.generation || slot.state !== "loading" || record.stopped || this.#playing.get(playingID) !== record) {
+        return;
+      }
+      const descriptors = NormalizeVoiceDescriptors(result, () => !!this.#isLoop(record.eventName)).filter(descriptor => descriptor.programSlotId === slot.id && !slot.cancelledSelectionKeys.has(ProgramSelectionKey(descriptor)));
+      const voices = descriptors.map(descriptor => {
+        const selection = slot.selections.find(value => ProgramSelectionKey(value) === ProgramSelectionKey(descriptor));
+        return this.#CreateVoice(selection ? {
+          ...descriptor,
+          actionIndex: selection.actionIndex,
+          leafIndex: selection.leafIndex,
+          matchIds: selection.matchIds
+        } : descriptor, record.emitterNodes, record.gameObjID);
+      });
+      slot.voices.clear();
+      for (const voice of voices) {
+        voice.programSlotId = slot.id;
+        if (slot.broken && voice.loop) {
+          voice.loop = false;
+        }
+        slot.voices.add(voice);
+        record.voices.push(voice);
+      }
+      slot.voice = voices[0] ?? null;
+      if (!voices.length) {
+        // A missing or aborted child made no audible progress. End
+        // fail-closed instead of hot-looping an infinite container.
+        slot.continuation = null;
+        slot.state = "ended";
+        this.#MaybeFinishSfxProgram(playingID, record);
+        return;
+      }
+      slot.state = "voice";
+      this.#StartVoices(playingID, record, voices, batchStartContextTime);
+    }).catch(() => {
+      if (generation === slot.generation && this.#playing.get(playingID) === record) {
+        slot.state = "ended";
+        this.#MaybeFinishSfxProgram(playingID, record);
+      }
+    });
+  }
+
+  /** Disconnects completed voices before a long-running slot advances. */
+  #DisposeEndedSlotVoices(record, slot) {
+    for (const voice of [...slot.voices]) {
+      if (!voice.ended) {
+        continue;
+      }
+      voice.source?.disconnect?.();
+      voice.lowPassFilter?.disconnect?.();
+      voice.highPassFilter?.disconnect?.();
+      voice.gain?.disconnect?.();
+      voice.fadeGain?.disconnect?.();
+      voice.stopGain?.disconnect?.();
+      slot.voices.delete(voice);
+      const index = record.voices.indexOf(voice);
+      if (index !== -1) {
+        record.voices.splice(index, 1);
+      }
     }
   }
 
@@ -1346,7 +1628,7 @@ class CjsAudioBackend {
       record.stopped = true;
       record.controller?.abort();
       for (const slot of record.programSlots?.values?.() ?? []) {
-        slot.controller?.abort();
+        AbortProgramSlot(slot);
       }
       for (const voice of record.voices ?? []) {
         if (voice.source) {
@@ -1427,8 +1709,8 @@ function RenderQuantumSeconds(context) {
 function CompareStopActions(left, right) {
   return CompareOrderTuples([left.actionTime, left.ownerPlayingID, left.actionIndex, Number.MAX_SAFE_INTEGER], [right.actionTime, right.ownerPlayingID, right.actionIndex, Number.MAX_SAFE_INTEGER]);
 }
-function CompareProgramOrder(slot, stop) {
-  return CompareOrderTuples([slot.actionTime, slot.playingID, slot.actionIndex, slot.leafIndex], [stop.actionTime, stop.ownerPlayingID, stop.actionIndex, Number.MAX_SAFE_INTEGER]);
+function CompareProgramOrder(value, slot, stop) {
+  return CompareOrderTuples([value.actionTime ?? slot.actionTime, slot.playingID, value.actionIndex ?? slot.actionIndex, value.leafIndex ?? slot.leafIndex], [stop.actionTime, stop.ownerPlayingID, stop.actionIndex, Number.MAX_SAFE_INTEGER]);
 }
 function CompareFallbackOrder(record, playingID, stop) {
   return CompareOrderTuples([record.postContextTime, playingID, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER], [stop.actionTime, stop.ownerPlayingID, stop.actionIndex, Number.MAX_SAFE_INTEGER]);
@@ -1451,8 +1733,8 @@ function SilenceAudioParamAt(param, time, context) {
   param?.setValueAtTime?.(0, time);
   SetAudioParam(param, 0);
 }
-function StopMatchesSlot(stop, slot) {
-  const matchIds = new Set((slot.matchIds ?? []).map(String));
+function StopMatchesProgramValue(stop, value) {
+  const matchIds = new Set((value.matchIds ?? []).map(String));
   const protectedByException = stop.exceptions.some(exception => matchIds.has(String(exception.targetId)));
   if (protectedByException) {
     return false;
@@ -1461,6 +1743,26 @@ function StopMatchesSlot(stop, slot) {
     return true;
   }
   return stop.mode === "element" && matchIds.has(String(stop.targetId));
+}
+function CreateProgramSelectionMetadata(selection, baseContextTime) {
+  return Object.freeze({
+    actionIndex: Number(selection.actionIndex),
+    leafIndex: Number(selection.leafIndex),
+    actionTime: Number(baseContextTime) + Math.max(0, Number(selection.delayMs) || 0) / 1000,
+    matchIds: Object.freeze((selection.matchIds ?? []).map(String))
+  });
+}
+function CreateProgramSelectionControllers(selections) {
+  return new Map(selections.map(selection => [ProgramSelectionKey(selection), new AbortController()]));
+}
+function AbortProgramSlot(slot) {
+  slot.controller?.abort();
+  for (const controller of slot.selectionControllers?.values?.() ?? []) {
+    controller.abort();
+  }
+}
+function ProgramSelectionKey(value) {
+  return `${Number(value.actionIndex)}:${Number(value.leafIndex)}`;
 }
 function NormalizeVoiceDescriptors(result, eventLoop) {
   const values = Array.isArray(result?.voices) ? result.voices : [{
@@ -1499,6 +1801,17 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
     if (value.programSlotId !== undefined && (typeof value.programSlotId !== "string" || value.programSlotId.length === 0)) {
       throw new TypeError(`Audio voice ${index} programSlotId must be a non-empty string`);
     }
+    const actionIndex = Number(value.actionIndex ?? 0);
+    const leafIndex = Number(value.leafIndex ?? index);
+    if (!Number.isSafeInteger(actionIndex) || actionIndex < 0) {
+      throw new TypeError(`Audio voice ${index} actionIndex must be a non-negative integer`);
+    }
+    if (!Number.isSafeInteger(leafIndex) || leafIndex < 0) {
+      throw new TypeError(`Audio voice ${index} leafIndex must be a non-negative integer`);
+    }
+    if (value.matchIds !== undefined && (!Array.isArray(value.matchIds) || value.matchIds.some(matchID => typeof matchID !== "string" && typeof matchID !== "number"))) {
+      throw new TypeError(`Audio voice ${index} matchIds must be an array of ids`);
+    }
     const loop = value.loop === undefined ? value.playCount === undefined && Boolean(eventLoop()) : Boolean(value.loop);
     return {
       buffer: value.buffer,
@@ -1509,6 +1822,9 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
       delayMs,
       fadeInMs,
       fadeCurve,
+      actionIndex,
+      leafIndex,
+      matchIds: Object.freeze((value.matchIds ?? []).map(String)),
       ...(value.programSlotId === undefined ? {} : {
         programSlotId: value.programSlotId
       }),

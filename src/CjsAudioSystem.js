@@ -55,6 +55,8 @@ export class CjsAudioSystem
 
     #resolveSfxProgram = null;
 
+    #continueSfxProgram = null;
+
     #createContext = null;
 
     #distanceScale = 1;
@@ -82,6 +84,7 @@ export class CjsAudioSystem
         hasEventStops,
         hasSfxEvent,
         resolveSfxProgram,
+        continueSfxProgram,
         audioMetadata,
         distanceScale,
         musicGraph,
@@ -103,6 +106,10 @@ export class CjsAudioSystem
         this.#resolveSfxProgram = typeof resolveSfxProgram === "function"
             ? resolveSfxProgram
             : null;
+        this.#continueSfxProgram =
+            typeof continueSfxProgram === "function"
+                ? continueSfxProgram
+                : null;
         this.#distanceScale = Number(distanceScale) || 1;
         this.#musicGraph = musicGraph ?? null;
         this.#loadMedia = loadMedia ?? null;
@@ -161,6 +168,7 @@ export class CjsAudioSystem
                     hasEventStops: this.#hasEventStops,
                     hasSfxEvent: this.#hasSfxEvent,
                     resolveSfxProgram: this.#resolveSfxProgram,
+                    continueSfxProgram: this.#continueSfxProgram,
                     distanceScale: this.#distanceScale,
                     applyRTPC: this.#applyRTPC,
                 });

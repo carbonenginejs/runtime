@@ -170,6 +170,54 @@ class AudioLibrary
         return [ ...types ];
     }
 
+    /** Returns every reachable Continuous container family and transition. */
+    SfxContinuousTypes(eventName)
+    {
+        const graph = this.sfx;
+        const roots = graph?.events?.[eventName] ?? [];
+        const pending = roots.map(root => String(root.nodeId));
+        const visited = new Set();
+        const types = new Set();
+
+        while (pending.length)
+        {
+            const id = pending.pop();
+
+            if (visited.has(id))
+            {
+                continue;
+            }
+            visited.add(id);
+
+            const node = graph.nodes[id];
+
+            if (!node)
+            {
+                continue;
+            }
+            if (node.continuous)
+            {
+                types.add(
+                    `${node.type}:${node.continuous.transition}`,
+                );
+            }
+            for (const child of node.children ?? [])
+            {
+                pending.push(String(child.nodeId));
+            }
+            for (const child of Object.values(node.cases ?? {}))
+            {
+                pending.push(String(child.nodeId));
+            }
+            if (node.default)
+            {
+                pending.push(String(node.default.nodeId));
+            }
+        }
+
+        return [ ...types ];
+    }
+
     /**
      * Returns the authored setters and interactive branch/gain controls
      * reachable from one SFX event.
@@ -313,6 +361,22 @@ class AudioLibrary
         {
             return "Repeated posts advance the authored Step sequence because this panel retains one emitter. Reset clears its sequence position.";
         }
+        if (type === "continuous random delay")
+        {
+            return "One post traverses the authored Continuous Random playlist. Each child begins only after the previous child finishes and its independently randomized Wwise Delay expires. Reset stops the active traversal.";
+        }
+        if (type === "continuous random")
+        {
+            return "One post traverses the authored Continuous Random playlist, selecting the next child at each completion boundary with its Random or Shuffle and repeat-avoidance rules. Reset stops the active traversal.";
+        }
+        if (type === "continuous sequence delay")
+        {
+            return "One post traverses the authored Continuous Sequence playlist in order. Each next child uses the container's Wwise Delay; Reset stops the active traversal.";
+        }
+        if (type === "continuous sequence")
+        {
+            return "One post traverses the authored Continuous Sequence playlist in order, advancing only when the complete current child batch finishes. Reset stops the active traversal.";
+        }
         if (type === "parallel")
         {
             return "Resolves every authored child as simultaneous voices owned by one playing ID and started on the same sample boundary.";
@@ -391,6 +455,30 @@ class AudioLibrary
                 type: "sequence",
                 preferred: [ "msg_fittingSlotHi_play" ],
                 matches: name => this.SfxNodeTypes(name).includes("sequence"),
+            },
+            {
+                type: "continuous random delay",
+                preferred: [ "space_cathedral_play" ],
+                matches: name => this.SfxContinuousTypes(name)
+                    .includes("random:delay"),
+            },
+            {
+                type: "continuous random",
+                preferred: [ "phase_anchor_atmo_play" ],
+                matches: name => this.SfxContinuousTypes(name)
+                    .includes("random:disabled"),
+            },
+            {
+                type: "continuous sequence delay",
+                preferred: [ "pvp_arena_clock_tick_loop_play" ],
+                matches: name => this.SfxContinuousTypes(name)
+                    .includes("sequence:delay"),
+            },
+            {
+                type: "continuous sequence",
+                preferred: [ "remote_hullrepair" ],
+                matches: name => this.SfxContinuousTypes(name)
+                    .includes("sequence:disabled"),
             },
             {
                 type: "parallel",
