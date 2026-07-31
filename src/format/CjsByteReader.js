@@ -8,8 +8,8 @@ const textDecoder = new TextDecoder("utf-8", { fatal: false });
  * Little-endian cursor over resource bytes, with optional string-table arena
  * resolution.
  *
- * This is the shared implementation behind `HlslReader`, `WebgpuReader` and
- * `WebglReader`, which previously each carried their own copy. Subclasses only
+ * This is the shared implementation behind `HlslReader`, `WebglReader`, and
+ * the Carbon-effect reader. Specialized readers only
  * replace the error class and the end-of-data message:
  *
  * ```js

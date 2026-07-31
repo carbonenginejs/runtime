@@ -7,10 +7,10 @@ Summary: Defines the package's compiler, container, dependency, and engine bound
 
 ## Purpose
 
-`format-webgpu` is the transformation and package layer between compiled
-Carbon-style effects and WebGPU engine realization. It converts supported
-shader programs into portable WGSL descriptors without creating live GPU
-objects.
+The WebGPU format subpath is the transformation and package layer between
+compiled Carbon effects and WebGPU engine realization. It converts supported
+shader programs into WGSL and writes Carbon version-15 effect records without
+creating live GPU objects.
 
 ## Dependency direction
 
@@ -35,12 +35,15 @@ then package data to the engine.
 
 ## Owned responsibilities
 
-- Reading, inspecting, and building the CEWGPU v1 chunk container.
+- Reading, inspecting, and building Carbon-record CEWGPU containers.
 - Resolving one compiled-effect permutation and complete pass.
-- Validating and preserving every source permutation index and raw-body alias
-  in a backend-neutral identity-only graph.
-- Packing every unique version-15 body's complete shared portable reflection,
-  with exact immutable byte vectors in one validated blob arena.
+- Preserving every source permutation row and representable non-program
+  description field; non-dynamic sampler names are unrecoverable and stage
+  order is canonicalized.
+  Stored-body identity is exact emitted-description-byte identity; it does not
+  promise to retain the source alias partition after programs are replaced.
+- Writing WGSL to program slots and bind-group/transform data to the optional
+  per-pass backend block.
 - Normalizing effect, stage, binding, and decoded DXBC analysis.
 - Building validated shader intermediate representation and structured control
   flow.
@@ -51,11 +54,11 @@ then package data to the engine.
 
 ## Ownership elsewhere
 
-- `format-hlsl` owns compiled-effect parsing, permutation resolution,
+- `@carbonenginejs/runtime-resource/formats/hlsl` owns compiled-effect parsing, permutation resolution,
   unique-body enumeration, binding-manifest interpretation, and the shared
   body-local portable reflection schema/validator.
-- `format-dxbc` owns DXBC container and instruction decoding.
-- `engine-webgpu` owns `GPUDevice`, shader-module compilation, bind groups,
+- `@carbonenginejs/runtime-resource/formats/dxbc` owns DXBC container and instruction decoding.
+- `@carbonenginejs/engine-webgpu` owns `GPUDevice`, shader-module compilation, bind groups,
   pipelines, resource realization, device loss, and draw execution.
 - Node tooling owns indexed input acquisition, filesystem adapters, caching,
   build reports, and optional native comparison.

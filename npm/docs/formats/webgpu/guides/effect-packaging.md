@@ -3,30 +3,18 @@
 Status: Evolving
 Scope: `@carbonenginejs/runtime-resource/formats/webgpu`
 Audience: Shader-tool authors and engine integrators
-Summary: Shows how to package the complete supported pass scope of one selected compiled-effect body as CEWGPU data.
+Summary: Shows how to translate version-15 compiled effects into Carbon-record CEWGPU bytes.
 
 ## Purpose
 
-Use `buildEffect` when an application or build tool already has compiled
-effect bytes and needs one structurally valid CEWGPU package for a selected
-effect body. The operation performs effect analysis, exact selection,
-DXBC-to-IR lowering, pass-global binding allocation, WGSL emission, package
-assembly, and structural qualification.
+Use `buildEffect` when a caller already has version-15 compiled-effect bytes
+and needs a WebGPU-targeted effect container. The operation parses the complete
+input, resolves a permutation, lowers supported DXBC, allocates pass-global
+bindings, emits WGSL, writes a Carbon v15 container, and validates the result.
 
-## Prerequisites
+The method is byte-oriented and does not open files or resource paths.
 
-- Caller-supplied compiled `.sm_*` effect bytes.
-- An exact technique, pass index, and complete stage list when deterministic
-  selection matters.
-- Permutation assertions for every axis whose value must not depend on effect
-  defaults.
-- A complete, internally consistent source permutation header: every ordered
-  axis must have valid names/options/defaults, and every Cartesian permutation
-  must have one correctly indexed, in-bounds body record. PGRF construction
-  validates the whole header even though only one body is translated. The
-  synchronous builder accepts at most 65,536 Cartesian permutations.
-
-## Build one pass
+## Build selected passes
 
 ```js
 import { CjsWebgpuFormat } from "@carbonenginejs/runtime-resource/formats/webgpu";
@@ -48,119 +36,111 @@ const packageBytes = result.bytes;
 const emittedShaders = result.wgsl;
 ```
 
-The `source` value is diagnostic provenance only. The method does not open
-that path. Callers may separately provide `sourceIdentity` with a canonical
-`logicalPath` plus optional `game`, `client`, `build`, `md5`, and `sha256`
-fields. Its logical path need not equal the diagnostic label. `BuildEffect`
-always computes the lower-case SHA-256 digest over the exact input byte view;
-when a caller supplies `sha256`, the build fails if it does not match.
+`source` is a caller-owned diagnostic label. An optional `sourceIdentity`
+records build provenance in the returned result; it does not change the wire
+identity, which belongs to the resource path used to load the emitted bytes.
+When `sourceIdentity.sha256` is supplied, the build checks it against the exact
+input bytes.
 
-Version-15 packages use INFO schema version 3 while the binary CEWGPU
-container remains version 1. INFO v3 identifies the `webgpu` target, the
-producing `@carbonenginejs/runtime-resource/formats/webgpu` package version, and the
-`dxbc-js-wgsl` translator version. Versions 8-14 use INFO v2 without
-reflection. The reader continues to accept legacy INFO v1 packages, INFO v2
-packages without PGRF, and INFO v2 packages with selected-body RFLX v1.
+## What the bytes contain
 
-Every new selected-effect package also includes a complete source permutation
-graph in `PGRF`. This preserves every axis, Cartesian permutation index,
-option-index tuple, compiler alias, and unique raw body identity even though
-only one selected body's WGSL is currently packaged. INFO v3 binds the exact
-PGRF bytes with SHA-256.
+The emitted bytes are a stock Carbon v15 effect container:
 
-For version-15 input, the package also includes complete portable reflection
-for every unique source body in RFLX v2 and its exact immutable byte payloads
-in one shared `RBLB`. These include authored parameter/resource metadata,
-constant defaults, stage/library source programs, signatures, static samplers,
-annotations, and the opaque native source hash. Earlier source versions keep
-the legacy package surface because portable reflection version 1 is
-intentionally version-15-only.
+- every source permutation remains in the dense offset table;
+- each distinct emitted description body is stored once, based on exact emitted
+  bytes rather than the source alias partition;
+- representable non-program description/reflection fields remain in the Carbon
+  tree; non-dynamic sampler names are unrecoverable and stage order is
+  canonicalized;
+- translated stage program slots contain UTF-8 WGSL;
+- untranslated or unsupported stage program slots have zero length; and
+- translated passes may carry a WebGPU backend block with bind-group layouts
+  and resource transforms.
 
-## Result
+Source-stage DXBC and the original source hash are not stored in CEWGPU bytes.
+Full portable source reflection remains available only in the in-memory
+`BuildEffect` result.
 
-The returned record contains:
+There are no stored `INFO`, `META`, `PGRF`, `RFLX`, `ANLS`, `WGSL`, or `WGSB`
+chunks. The read API derives compatible JSON views from the Carbon records.
+
+## Translation modes
+
+### Selected
+
+`mode: "selected"` is the default. It translates the resolved body's requested
+complete passes. Every permutation row and representable non-program
+description fields remain in the container, but untranslated program slots are
+empty.
+
+Selected mode does not discard permutations. It narrows backend translation.
+
+### All
+
+`mode: "all"` first lowers the resolved selection; an unsupported resolved body
+aborts the build. Once that precondition succeeds, later bodies that lower
+successfully carry WGSL and backend blocks. A later body outside the compiler's
+current boundary remains present with non-program description fields and empty
+program slots. The in-memory body-set view records its reason; a reread can
+report only that it carries no translated programs.
+
+Passes, rather than individual stages, are the translation unit because a pass
+owns one binding plan and resource-transform plan.
+
+The compatibility option `allPermutations: true` selects all mode.
+`allPermutations: false` selects the requested `mode` or the selected default.
+
+## Build result
+
+The returned record contains build-time evidence in addition to `bytes`:
 
 | Field | Purpose |
 | --- | --- |
-| `bytes` | Encoded CEWGPU package bytes. |
-| `info` | Translator and package information. |
-| `metadata` | Selection and caller provenance. |
-| `permutationGraph` | Complete source permutation topology and identity-only body table. |
-| `reflection` | Complete all-unique portable source reflection for version-15 input, otherwise `null`. |
-| `reflectionBlobs` | Exact RBLB bytes for reflected programs/defaults/native hash, otherwise `null`. |
-| `analysis` | Compact selected-body diagnostic binding/stage data; not lossless effect reflection. |
-| `wgsl` | Portable shader set and pass layouts. |
-| `inspection` | Summary produced by reading the built package. |
-| `qualification` | Structural conversion outcome. |
+| `bytes` | Carbon v15 CEWGPU bytes. |
+| `info` | Producer, source, translation-scope, and completeness evidence. |
+| `metadata` | Resolved selection and caller provenance. |
+| `permutationGraph` | Complete source permutation and body-alias view. |
+| `reflection` | Complete portable source reflection used while building. |
+| `reflectionBlobs` | Exact portable-reflection payload bytes. |
+| `analysis` | Selected-body diagnostic analysis. |
+| `wgsl` | Emitted shaders, layouts, and transforms. |
+| `backendBodySet` | All-body translation result, or `null` in selected mode. |
+| `inspection` | Summary obtained by rereading the emitted bytes. |
+| `qualification` | Structural build outcome and translation counts. |
 
-`mode: "selected"` is the default and currently the only supported backend
-body mode. The package retains normalized analysis for that resolved body while
-emitting WGSL for the selected complete passes. PGRF retains the complete
-source permutation graph and RFLX/RBLB retain every unique version-15 body's
-portable source reflection. `META.bodyIndex` selects a PGRF variant; its
-`bodyKey` selects the matching RFLX body. A raw reader exposes that join as
-`GetPortableEffectReflection(permutationIndex)`, returning a freshly owned,
-format-hlsl-validated single-body document with every byte reference expanded
-to `Uint8Array`. `runtime-resource` `Tr2EffectRes` consumes that document,
-hydrates a canonical device-free `Tr2Shader`, and caches it by selected body
-index. Engines still own prepared pipelines and GPU realization.
+These fields are returned data. They are not separate documents stored beside
+the Carbon records.
 
-`mode: "all"` additionally packages translated programs, layouts, and resource
-transforms for every unique body in a `WGSB` chunk, and
-`GetBackendBodyPrograms(permutationIndex)` resolves any permutation to them.
-Because one pass of one body is the translation unit, bodies whose pass is
-byte-identical share a single stored unit rather than duplicating its WGSL.
-Bodies the compiler cannot lower stay in the package as explicitly unsupported
-records with a reason, and never remove that body's source reflection.
+`qualification.packageValid` means the emitted container passed structural
+validation. It is not prepared-pipeline or rendered evidence.
+`backendComplete` and `runtimeComplete` remain false until the broader compiler,
+resource-hydration, selection, and execution gates are satisfied.
 
-JSON `Read` output exposes `reflection` with byte references and
-`reflectionBlobByteLength`. Consumers that need exact defaults or source
-program bytes use `Read(bytes, { emit: "raw" })`, then call
-`GetPortableEffectReflection(permutationIndex)`. Omit the index to use
-`META.bodyIndex`. For individual payload access,
-`GetReflectionBlob(referenceOrKey)` returns an owned `Uint8Array`; an object
-reference must exactly match its RFLX inventory entry.
+## Read the result
 
-Raw stage bytecode, decoded DXBC instruction trees, and compiler IR are
-transient build inputs and are not embedded in `ANLS`. Use `AnalyzeEffect`
-when return-only DXBC/IR diagnostics are required.
+```js
+const summary = CjsWebgpuFormat.inspect(packageBytes, {
+    source: "res:/graphics/effect.webgpu/example.sm_hi"
+});
 
-The qualification record distinguishes structural package validity from
-broader completeness. `packageValid` means only that the selected CEWGPU
-container passed required-chunk, schema, cross-document, key, layout, and
-selection reconciliation. Version-15 INFO v3 reports `sourceComplete: true`
-because PGRF plus RFLX/RBLB cover every unique body's portable reflection and
-immutable exact defaults for that exact input file. This does not embed raw
-body records or make CEWGPU an archive of the original `.sm_*` bytes.
-`backendComplete` would additionally require every required translated
-program, layout, and transform. `runtimeComplete` would require
-complete-resource hydration and selection. None of these fields is
-prepared-pipeline or rendered evidence. The same four booleans are retained
-under `INFO.completeness` in the package.
+const data = CjsWebgpuFormat.read(packageBytes, {
+    source: "res:/graphics/effect.webgpu/example.sm_hi"
+});
+```
 
-Shader-tier and permutation evidence remain orthogonal to source reflection.
-High is `.sm_depth`; Medium is `.sm_hi`; Low is `.sm_lo`. Source completeness
-applies only to the exact input tier. For unpacked Quad ship gates, explicitly
-select `SPACE_OBJECT_PPT_ENABLED=SOPPT_ENABLED`: an all-unique RFLX does not
-turn a PPT-disabled selected WGSL body into PPT-on backend evidence.
+The JSON read derives `info`, `metadata`, `permutationGraph`, `analysis`,
+`wgsl`, and `backendBodySet` views from the one record tree. It also exposes
+convenience `stages`, `shaders`, and `layouts` arrays.
 
-When exact semantic metadata and shader use prove an allowed physical resource
-coalescing, the returned WGSL document is a `CJS_WGSL_SET` version 3 record.
-Its `resourceTransforms` recipes are required runtime work, not optional
-diagnostics: the consumer must build the described resource and bind it through
-the matching transformed layout entry. See the package-format contract before
-passing version 3 output to an engine. Packages without transforms remain WGSL
-set version 2.
+Raw reads return the internal container reader. That surface is useful for
+current package integration but is not a second artifact and should not be
+persisted as a replacement wire format.
 
 ## Binding scope
 
-A D3D resource tuple is stage-local unless the caller has authoritative
-metadata proving that the vertex and fragment declarations name one compatible
-resource. Build one binding plan from the complete stage set; do not build
-independent stage plans and combine them afterward.
-
-When compatible sharing is proven, pass the base binding identity through
-`sharedIdentities`:
+A D3D resource tuple is stage-local unless authoritative metadata proves that
+the vertex and fragment declarations name one compatible resource. Build one
+binding plan from the complete stage set.
 
 ```js
 const plan = CjsWebgpuFormat.buildWgslBindingPlan(
@@ -169,31 +149,43 @@ const plan = CjsWebgpuFormat.buildWgslBindingPlan(
 );
 ```
 
-Unshared identities receive distinct `@vertex` or `@fragment` scopes and
-numeric binding slots.
+Unshared identities receive separate `@vertex` or `@fragment`
+`scopeIdentity` values and numeric slots. Shared identities retain one bare
+scope with combined visibility.
+
+## Resource transforms
+
+When semantic metadata proves that several logical textures may be represented
+by one physical array texture, the derived WGSL set uses version 3 and carries
+a `texture-2d-array` transform recipe.
+
+The consumer must assemble the named layers, match size/mips/sample
+type/format, and bind the resulting array through the transformed layout.
+Missing layers fail closed. A version-3 document is not executable evidence by
+itself.
 
 ## Errors
 
 Conversion fails explicitly when:
 
+- the source is not a version-15 compiled effect;
 - a permutation assertion is unknown or unresolved;
-- any axis/default/option or positional body record in the complete source
-  permutation header is malformed, out of bounds, partially overlapping, or
-  inconsistent, even when the selected body itself is translatable;
-- the Cartesian permutation product exceeds the 65,536-entry synchronous-build
-  limit;
+- the permutation table is sparse, misordered, out of bounds, or malformed;
 - the technique, pass, or requested stage does not exist;
-- the requested stage list is incomplete or duplicated;
+- the requested stage list is duplicated or incomplete;
 - the selected shader uses unsupported semantics;
-- resource declarations cannot form one unambiguous pass layout; or
-- emitted package records fail structural validation.
+- resource declarations cannot form one unambiguous pass layout;
+- a lowerer emits an entry point other than `main`; or
+- the emitted Carbon records or backend block fail structural validation.
 
-An unsupported requested shader aborts selected-pass packaging; no partially
-translated pass is emitted. This fail-closed behavior does not imply
-whole-effect completeness.
+Unsupported selected programs abort selected-mode packaging and also abort the
+initial selection gate in all mode. After that gate succeeds, an unsupported
+later body remains represented with empty program slots and an explicit
+in-memory derived status.
 
 ## Related documentation
 
+- [CEWGPU effect container](../formats/cewgpu.md)
 - [Public API reference](../reference/api.md)
-- [CEWGPU package format](../formats/cewgpu.md)
 - [WGSL compatibility](../reference/wgsl-compatibility.md)
+- [Carbon compiled-effect container](../../carbon-effect-container.md)

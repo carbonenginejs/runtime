@@ -25,7 +25,8 @@ const FORMAT_NAME = "CjsWebgpuFormat";
 
 /**
  * CarbonEngineJS-facing format surface for `.cewgpu` WebGPU packages, plus an
- * offline effect-analysis helper built on `format-hlsl` and `format-dxbc`.
+ * offline effect-analysis helper built on the runtime-resource HLSL and DXBC
+ * format subpaths.
  *
  * The package owns read/build, normalized shader analysis, and the current
  * bounded DXBC-to-WGSL profiles. Broader shader-semantic coverage remains an
@@ -262,7 +263,7 @@ export class CjsWebgpuFormat
      * Static payload sniff. Static methods use camelCase by convention.
      *
      * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate bytes.
-     * @returns {boolean} True when the payload starts with the CEWGPU magic.
+     * @returns {boolean} True when the payload has Carbon's version-15 shape.
      */
     static isCewgpu(input)
     {

@@ -1268,8 +1268,16 @@ is not emitted unnecessarily.
 
 ## Selected-effect package provenance
 
-`BuildEffect` emits selected-effect INFO schema version 2 while the binary
-CEWGPU container remains version 1. INFO v2 records the WebGPU target,
+The versioned checkpoints in this section describe the retired flat-chunk wire
+used before the Carbon-container switchover. Their corpus counts remain
+compiler and provenance evidence; `INFO`, `META`, `PGRF`, `RFLX`, `RBLB`,
+`ANLS`, and `WGSL` are no longer stored chunks. Current bytes are Carbon
+version-15 records with derived compatibility views. See
+[CEWGPU effect container](../formats/cewgpu.md).
+
+At the 0.4.2 checkpoint, `BuildEffect` emitted selected-effect INFO schema
+version 2 while the binary CEWGPU container remained version 1. INFO v2
+recorded the WebGPU target,
 backend-package and translator semantic versions, and a lower-case SHA-256
 digest computed over the exact compiled-effect input byte view. A conflicting
 caller digest fails closed. The reader retains legacy selected-effect INFO v1
@@ -1372,25 +1380,28 @@ gates compile with zero WGSL warnings.
 
 ## All-body backend packaging
 
-`mode: "all"` translates every unique source body and stores the result in a
-`WGSB` `CJS_WGSL_BODY_SET` chunk. Selected mode remains the default and is
-unchanged.
+`mode: "all"` attempts every unique source body after the resolved selection
+passes its initial translation gate. In the retired chunk wire, the result was
+stored as a `WGSB` `CJS_WGSL_BODY_SET` document. The current Carbon wire stores
+WGSL in stage program slots and bind-group/transform data in per-pass backend
+blocks; `backendBodySet` is now a derived compatibility view. Selected mode
+remains the default.
 
 The translation unit is deliberately one pass of one body rather than one
 stage. A pass owns its binding plan and resource-transform plan, so identical
 stage bytecode can legitimately translate differently when its pass-mates
-differ; sharing at stage granularity would be unsound. Bodies whose pass
-carries byte-identical stage bytecode, semantic bindings, and render states
-therefore share exactly one stored unit. On real uber-shader ship families this
-is the difference between storing every body's programs and storing a small
-fraction of them, because most permutation axes change only one stage of one
-pass.
+differ; sharing at stage granularity would be unsound. The Carbon wire has no
+unit table. Exact emitted program and backend-block bytes share storage through
+the arena's bytewise deduplication.
 
-A body the compiler cannot lower is retained as an explicitly unsupported
-record carrying its reason, and coverage degrades to `partial`. Its complete
-source reflection is untouched, so a partial backend never silently reduces
-source truth. This is the fail-closed alternative to dropping a body or
-shrinking the reported shader count.
+All mode first requires the resolved selection to lower successfully. After
+that gate, a later body the compiler cannot lower is retained with empty
+program slots and coverage degrades to `partial`. The in-memory build result
+retains its specific reason; the wire does not. A reread can say only that the
+body carries no translated programs. Permutation topology and representable
+non-program description fields remain present, but source-stage programs are
+not stored. Non-dynamic sampler names are unrecoverable and stage order is
+canonicalized.
 
 Translating every body is deliberately **not** treated as backend completeness.
 `backendComplete` and `runtimeComplete` remain false, matching the sibling
@@ -1398,13 +1409,15 @@ WebGL package. The engine now realizes the documented layouts and
 `texture-2d-array` transforms and has exact draw evidence for representative
 Detail and HeatDetail families. That proof does not cover every required
 translated program, layout, and transform, and complete resource hydration and
-selection also remain open. `INFO` carries the translated-body scope in
-`backendBodyCoverage` instead.
+selection also remain open. The `BuildEffect` result carries the
+translated-body scope in `info.backendBodyCoverage`; the bytes express it
+structurally through which bodies carry programs.
 
-Evidence for the introducing change: the every-permutation reader join resolves
+Historical evidence for the retired WGSB implementation: its
+every-permutation reader join resolved
 every permutation of a real Quad family package to translated programs and
-reaches every unique body; the selected body's shared units are byte-identical
-to that package's own `WGSL` chunk; a full corpus rebuild leaves every
+reached every unique body; the selected body's shared units were byte-identical
+to that package's derived `WGSL` view; a full corpus rebuild leaves every
 selected-mode package byte-identical with unchanged statuses; every effect in
 the corpus builds in all-body mode with no build failures, the small number of
 partial results losing bodies only to already-documented compiler boundaries;
@@ -1512,10 +1525,10 @@ Every shader-emission, layout, or transform compatibility change requires the
 package suite and a representative `engine-webgpu` browser gate on a real
 WebGPU device with zero WGSL warnings. Format-level qualification cannot detect
 every WGSL scoping or validator failure, so browser validation remains part of
-the compiler contract. A reviewed envelope-only schema change may omit a new
-browser run when corpus comparison proves unchanged status/errors and
-byte-identical runtime-consumed shader chunks, and downstream reader tolerance
-is separately confirmed.
+the compiler contract. A reviewed record-layout or derived-view-only change
+may omit a new browser run when corpus comparison proves unchanged
+status/errors and byte-identical runtime-consumed programs/backend blocks, and
+downstream reader tolerance is separately confirmed.
 
 The browser gate proves the emitted WGSL is *valid and runs*; it does not by
 itself prove the translation is *semantically equivalent to D3D*. Semantic

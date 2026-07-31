@@ -76,13 +76,14 @@ The `json` and `metadata` modes are the supported data contracts described in
 `Tr2EffectRes` objects, not the canonical runtime-resource class, and may
 change without a major version bump.
 
-## CLI
+## Repository metadata adapter
 
-The package installs a Node CLI that writes metadata JSON:
+The repository provides a development script that writes metadata JSON. It is
+not installed as a package `bin`:
 
 ```sh
-format-hlsl metadata effect.sm_hi
-format-hlsl metadata effect.sm_hi effect.json
+npm run metadata:hlsl -- effect.sm_hi
+npm run metadata:hlsl -- effect.sm_hi effect.json
 ```
 
 When the output path is omitted, the CLI writes `<input-name>.json` in the

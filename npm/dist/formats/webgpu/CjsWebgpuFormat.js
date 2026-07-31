@@ -5,13 +5,14 @@ import { buildWgslBindingPlan } from './core/wgsl/buildWgslBindingPlan.js';
 import { buildWgslSet } from './core/wgsl/buildWgslSet.js';
 import { buildEffectPackage } from './core/packageEffect.js';
 import { FORMAT_WEBGPU_PACKAGE_VERSION } from './core/packageMetadata.js';
-import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, buildPackage, analyzeEffectWithValues, toJsonValue, isCewgpu, OUTPUT_JSON, OUTPUT_RAW, CEWGPU_FORMAT, CEWGPU_ANALYSIS_FORMAT } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, analyzeEffectWithValues, toJsonValue, isCewgpu, OUTPUT_JSON, OUTPUT_RAW, CEWGPU_FORMAT, CEWGPU_ANALYSIS_FORMAT } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsWebgpuFormat";
 
 /**
  * CarbonEngineJS-facing format surface for `.cewgpu` WebGPU packages, plus an
- * offline effect-analysis helper built on `format-hlsl` and `format-dxbc`.
+ * offline effect-analysis helper built on the runtime-resource HLSL and DXBC
+ * format subpaths.
  *
  * The package owns read/build, normalized shader analysis, and the current
  * bounded DXBC-to-WGSL profiles. Broader shader-semantic coverage remains an
@@ -145,16 +146,6 @@ class CjsWebgpuFormat {
   }
 
   /**
-   * Assembles a CEWGPU package from ordered chunk payloads.
-   *
-   * @param {Array<[string, string|object|Uint8Array|ArrayBuffer|ArrayBufferView]>} chunks Ordered package chunks.
-   * @returns {Uint8Array} Package bytes.
-   */
-  Build(chunks) {
-    return buildPackage(chunks);
-  }
-
-  /**
    * Analyzes one compiled effect payload into a normalized WebGPU-facing
    * document using the current profile's values.
    *
@@ -243,7 +234,7 @@ class CjsWebgpuFormat {
    * Static payload sniff. Static methods use camelCase by convention.
    *
    * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate bytes.
-   * @returns {boolean} True when the payload starts with the CEWGPU magic.
+   * @returns {boolean} True when the payload has Carbon's version-15 shape.
    */
   static isCewgpu(input) {
     return isCewgpu(input);
@@ -269,16 +260,6 @@ class CjsWebgpuFormat {
    */
   static inspect(input, options = {}) {
     return inspectWithValues(input, normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME));
-  }
-
-  /**
-   * Static one-shot package build.
-   *
-   * @param {Array<[string, string|object|Uint8Array|ArrayBuffer|ArrayBufferView]>} chunks Ordered package chunks.
-   * @returns {Uint8Array} Package bytes.
-   */
-  static build(chunks) {
-    return buildPackage(chunks);
   }
 
   /**

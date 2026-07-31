@@ -3,7 +3,7 @@
 Status: Evolving  
 Scope: `@carbonenginejs/runtime-resource/formats`  
 Audience: Users and integrators  
-Summary: Maps every non-shader format subpath and records cross-format output conventions.
+Summary: Maps every owned format subpath and records cross-format output conventions.
 
 ## Import rule
 

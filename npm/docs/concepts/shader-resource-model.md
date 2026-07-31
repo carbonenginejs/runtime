@@ -2,148 +2,113 @@
 
 Status: Stable
 Scope: `@carbonenginejs/runtime-resource`, with notes on `@carbonenginejs/runtime-trinity`
-Audience: Anyone touching `Tr2EffectRes`, `Tr2Shader`, `Tr2Effect`, or the shader package formats
-Summary: How an effect file, its permutations, and the objects that resolve them relate — and why this matches Carbon exactly.
+Audience: Anyone touching `Tr2EffectRes`, `Tr2Shader`, `Tr2Effect`, or shader effect formats
+Summary: Explains how one effect file, its permutations, and the objects that resolve them relate.
 
-## The target
+## Three levels
 
-This is Carbon's model, verified against the authoritative Carbon source. It is the target and we
-should not diverge from it. Where our code already matches, leave it alone; where
-it does not, the difference is a defect rather than a design choice.
+The distinction between resource, resolved shader, and effect instance is
+load-bearing:
 
-Three levels, and the distinction between them is the thing people get wrong:
+| Level | Represents | Owns |
+| --- | --- | --- |
+| `Tr2EffectRes` | One effect file | Bytes, permutation axes, offset table, and a cache of resolved shaders |
+| `Tr2Shader` | One permutation | Techniques and passes for one option set |
+| `Tr2Effect` | One instance | Authored options, a resource reference, and the currently resolved shader |
 
-| level | is | owns |
-|---|---|---|
-| `Tr2EffectRes` | **the file** | the bytes, string table, permutation axes, offset table, and a cache of resolved shaders |
-| `Tr2Shader` | **one permutation** | all techniques and passes for that one option set |
-| `Tr2Effect` | **an instance** | its own `options`, a reference to the res, and a pointer to the shader those options resolve to |
+One file yields many shaders. One shader represents one permutation. Many
+effect instances may share the same resource and cached shader.
 
-The common error is assuming `Tr2EffectRes` is one permutation, or that `Tr2Shader`
-is "the shader" for a file. Neither is true. One file yields many shaders; one
-shader is one permutation; many effects share both.
+## Carbon model
 
-## Carbon
+Carbon's `Tr2EffectRes` retains the whole compiled file, its permutation
+records, and a map from permutation index to `Tr2Shader`. Its
+`GetShader(options, count)` resolves an option tuple to an index and reuses the
+cached shader for that index.
 
-`carbonengine/trinity/trinity/Resources/Tr2EffectRes.h`:
+`Tr2Effect` inherits the shader pointer from `Tr2Material`. Rebuilding an
+effect clears that pointer and resolves it again through the resource. This
+creates two deliberate caches:
 
-```cpp
-BLUE_CLASS( Tr2EffectRes ) : public BlueAsyncRes, public ICacheable, ...
-{
-    Tr2ShaderPtr GetShader( const Tr2ShaderOption* options, size_t count );
+- the resource caches one hydrated shader per permutation index; and
+- each effect instance caches its currently resolved pointer.
 
-protected:
-    // Per-permutation compiled file information
-    struct FileRecord { uint32_t index; uint32_t offset; uint32_t size; };
+Changing effect options therefore selects another shader from the same loaded
+file rather than loading another file.
 
-    CcpMallocBuffer   m_data;                                  // the whole file, retained
-    const char*       m_stringTable;
-    const FileRecord* m_offsets;   uint32_t m_offsetCount;     // one row per permutation
-    TrackableStdVector<Tr2ShaderPermutation>         m_permutations;  // the axes
-    TrackableStdUnorderedMap<uint32_t, Tr2ShaderPtr> m_shaders;       // index -> shader
-};
-```
+## Runtime-resource model
 
-`m_shaders` is a **map keyed by permutation index**, and `m_data` retains the whole
-file. `Tr2EffectRes` is `ICacheable` with `GetMemoryUsage()` — it is shared and
-long-lived, by design.
+`runtime-resource/src/resource/shader/Tr2EffectRes.js` follows the same shape:
 
-`Tr2Effect` inherits `Tr2Material`, which declares `Tr2ShaderPtr m_shader`
-(`Tr2Material.h:247` — it is *not* in `Tr2Effect.h`, which is why a quick grep
-suggests the member does not exist). It resolves in
-`Tr2Effect::RebuildCachedDataInternal`:
+| Carbon | Runtime-resource |
+| --- | --- |
+| shader map keyed by permutation index | private `#shaders` map |
+| `GetShader(options, count)` | option resolution followed by `GetShaderByIndex` |
+| permutation records | `permutationGraph.axes` and `variants` |
+| offset-table body lookup | portable reflection lookup; Carbon-record adapter pending |
+| retained file bytes | `GetPayload()` |
 
-```cpp
-m_shader = nullptr;
-if( m_effectResource )
-    m_shader = m_effectResource->GetShader( &m_options[0], m_options.size() );
-```
+`runtime-trinity`'s `Tr2Effect.RebuildCachedDataInternal` clears and
+re-resolves its shader through the effect resource. Renderer-owned pipelines,
+bind groups, and GPU handles are not part of this device-free graph.
 
-So there are **two** caches, deliberately:
+## Package coverage
 
-- the res caches shaders so many effects share one per permutation
-- each effect caches its resolved pointer so it is not re-resolving per draw
+Carbon effect files carry every permutation and select through a dense offset
+table. Representative source files demonstrate why body count and permutation
+count are different:
 
-Change an effect's options, rebuild, get a different shader out of the same file.
-
-## Ours
-
-`runtime-resource/src/resource/shader/Tr2EffectRes.js` matches:
-
-| Carbon | ours |
-|---|---|
-| `m_shaders` map<index, shader> | `#shaders = new Map()`, keyed by index |
-| `GetShader(options, count)` | `GetShader(options, count)` -> index -> `GetShaderByIndex` |
-| `m_permutations` | `getPermutationAxes(payload)` from `permutationGraph.axes` |
-| `m_offsets` FileRecord | `getPortableReflection(payload, index)` |
-| `m_data` | `GetPayload()` retains the package |
-
-```js
-GetShaderByIndex(index) {
-  if (this.#shaders.has(index)) return this.#shaders.get(index);
-  const portable = getPortableReflection(this.GetPayload(), index);
-  const shader = Tr2Shader.fromPortable(portable);
-  this.#shaders.set(index, shader);
-  return shader;
-}
-```
-
-`runtime-trinity`'s `Tr2Effect.RebuildCachedDataInternal` matches Carbon too — it
-clears and re-resolves through the res on rebuild. ccpwgl's `Tw2Effect` does the
-same thing; all three agree, so this is Carbon's shape and not a ccpwgl import.
-
-**The apparatus is right. What is missing is upstream.**
-
-## The gap: our packages carry one permutation
-
-Carbon effect files carry **every** permutation and select at read time through the
-offset table. Measured:
-
-| file | permutations | distinct bodies |
-|---|---|---|
+| File | Permutations | Distinct bodies |
+| --- | ---: | ---: |
 | `effect.dx11/.../unpacked_quadv5.sm_hi` | 480 | 144 |
 | `effect.gles2/.../geometryviewer.sm_hi` | 80 | 27 |
 | `effect.gles2/.../textureviewer.sm_hi` | 18 | 3 |
 
-Our `.cewgpu` / `.cewg` builder takes `{permutation, selection}` and bakes one body
-at build time, recording what it kept as `bodyIndex` / `bodyMode` /
-`selectedOptions` / `wgslSelection`. Those fields have no Carbon counterpart
-because Carbon's compiler never discards anything.
+Current `.cewgpu` bytes use Carbon's version-15 record layout and retain every
+permutation row and representable non-program description fields. Non-dynamic
+sampler names are unrecoverable and stage order is canonicalized. Emitted body
+dedupe follows exact emitted bytes, so it need not preserve the original source
+alias partition. `mode: "selected"` narrows which body receives translated
+WGSL; it does not discard source permutations. `mode: "all"` attempts every
+distinct body after the resolved selection passes the initial translation gate.
 
-The consequence is not a size inefficiency. It is that **`#shaders` can only ever
-hold one entry**, so:
+`.cewg` remains its own CEWG chunk format. Its current package contract also
+preserves complete source permutation topology and supports selected versus
+all backend coverage.
 
-- `Tr2Effect` cannot switch permutation options at runtime — there is nothing to
-  switch to
-- two effects with different options cannot both resolve correctly from one loaded
-  file, concurrently, which is the normal case (one ship with patterns, one
-  without, same frame)
-- every option an effect sets is silently ignored rather than failing loudly
+The selected/all distinction is therefore backend translation scope, not
+source cardinality. A resource can still reason about every option tuple even
+when some bodies have no translated backend program.
 
-**Requirement: a shader package must contain all of its permutations.** SOF and
-`Tr2Effect` must be able to enable and disable permutation options at will. This is
-functional, not a preference.
+## Current integration boundaries
 
-Tracked in `.agents/handoff/2026-07-30-cewgpu-cewg-binary-chunk-encoding.md`.
+The wire topology is complete, but two adapters still require focused
+regression proof:
 
-## Reading Carbon without getting it wrong
+- the raw CEWGPU container's Carbon description must be converted to the
+  portable envelope expected by `Tr2Shader.fromPortable`; and
+- the engine's derived body-program view must agree on stable pass-unit
+  identity.
 
-Three claims were made and retracted while establishing the above, all from
-partial reads. They are recorded because the same traps are still there:
+Until those adapters are reconciled, the presence of every permutation proves
+source preservation, not successful runtime hydration or execution.
 
-1. **"Carbon has no per-pass dedupe, so porting its offset table loses our
-   `Depth` 96->8 sharing."** Wrong. Shader code is a `{size, offset}` into the
-   shared string table (`shaderCode = stream.ReadString( shaderSize )`), so
-   identical passes already share across bodies. Carbon dedupes at two levels —
-   offset table for whole bodies, string table for code — which is simpler and
-   better than the two-level offset table that "fix" would have invented.
+## Reading the model without inventing gaps
 
-2. **"There is no `Tr2EffectRes` class."** There is; it is in `runtime-resource`,
-   not `runtime-trinity`. The search was scoped to one package.
+Three recurring mistakes explain most false conclusions in this area:
 
-3. **"`Tr2Effect` has no shader member, so our caching it is a ccpwgl import."**
-   It does; `m_shader` is declared on the `Tr2Material` base, not on `Tr2Effect`.
+1. **Searching only one package.** `Tr2EffectRes` is in runtime-resource while
+   `Tr2Effect` is in runtime-trinity.
+2. **Searching only the derived class.** The effect's shader pointer is
+   declared on its `Tr2Material` base.
+3. **Confusing permutation rows with stored bodies.** Several rows may alias
+   one description body while remaining distinct option selections.
 
-The pattern in all three: reading one file, finding an absence, and treating it as
-evidence. If Carbon's design looks deficient, assume the mechanism is somewhere you
-have not looked yet.
+When an expected mechanism appears absent, check the owner package, base
+classes, and record indirection before treating the absence as a design gap.
+
+## Related documentation
+
+- [CEWGPU effect container](../formats/webgpu/formats/cewgpu.md)
+- [Carbon compiled-effect container](../formats/carbon-effect-container.md)
+- [WebGPU effect packaging](../formats/webgpu/guides/effect-packaging.md)

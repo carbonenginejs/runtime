@@ -63,12 +63,13 @@ notice files are kept under `format-notices/gr2/`.
 ## Black definition snapshot
 
 The Black reader uses the package-owned generated definition snapshot at
-`src/formats/black/core/black-schema-v1-2026-07-11.json`. The Red format exposes
+`src/formats/black/core/black-schema-v1-2026-07-23.json`. The Red format exposes
 the same catalog for discovery, but its YAML reader currently accepts named
-fields without registry enforcement. The snapshot was copied from
-`format-carbon` revision `d2a3c67cf3d46e8ba78ca19e66558d868178ec24`
-with SHA-256
-`008ECB29E670EFC678B471A6EFF099600A29C2907912FC42B854995904604691`.
+fields without registry enforcement. The refreshed consumer snapshot landed
+in runtime-resource revision `6beda70` with SHA-256
+`9234DD86DBB5EB3676EF060E383ADBCE8F073941E76A32865D3528DD5DA7B737`.
+Its exact tools-core generator revision was not recorded and remains unknown;
+this page does not infer one from the consumer commit.
 
 This retained generated artifact keeps the published readers deterministic and
 browser-safe without a runtime dependency on a sibling checkout or an

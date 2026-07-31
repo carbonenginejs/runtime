@@ -3,28 +3,28 @@
 Status: Stable
 Visibility: Public
 Scope: `@carbonenginejs/runtime-resource` — `src/format/carbonEffect/`, `src/format/CjsByteReader.js`, `src/format/CjsByteWriter.js`, `src/format/CjsStringTable.js`
-Audience: Anyone reading or writing compiled shader effect bytes, or extending `.cewgpu` / `.cewg`
+Audience: Anyone reading or writing compiled shader effect bytes, or extending `.cewgpu`
 Summary: The v15 binary layout of Carbon's compiled effect files, the shared byte reader and writer that implement it, and the arena offset policy a byte-exact re-emit depends on.
 
 ## What this is
 
 Carbon's shader compiler emits one file per effect containing **every permutation**,
 selected at read time through an offset table. The format has three parts: a header,
-a deduplicated blob arena ("string table"), and one description blob per permutation.
+a deduplicated blob arena ("string table"), one dense offset-table row per
+permutation, and one stored description blob per distinct encoded body.
 
 This package implements it as a shared reader and writer, verified byte-exact against
-CCP's own shipped files. It is the foundation the `.cewgpu` and `.cewg` shader package
-formats are built on.
+CCP's own shipped files. It is the wire foundation for `.cewgpu`. The `.cewg`
+WebGL package retains its separate `CEWG` magic and chunk layout.
 
 | module | role |
 |---|---|
-| `src/format/CjsByteReader.js` | little-endian cursor plus the arena resolution primitives; the single implementation behind `HlslReader`, `WebgpuReader`, `WebglReader` |
+| `src/format/CjsByteReader.js` | little-endian cursor plus arena resolution primitives; shared by the HLSL, Carbon-effect, and WebGL readers |
 | `src/format/CjsByteWriter.js` | growable append cursor with reserve-and-patch |
 | `src/format/CjsStringTable.js` | the blob arena, with Carbon's bytewise-sorted offset assignment |
 | `src/format/carbonEffect/carbonEffectRecords.js` | the v15 description-blob record codec |
 | `src/format/carbonEffect/CjsCarbonEffectReader.js` | container reader and structural checks |
 | `src/format/carbonEffect/CjsCarbonEffectWriter.js` | container writer, offset arithmetic and alias dedupe |
-| `src/format/carbonEffect/carbonEffectEnvelope.js` | legacy pre-switchover envelope compatibility; not part of the destination wire format |
 
 ## Why v15 only
 
@@ -284,7 +284,7 @@ u8  transformCount
     u8 registerSpace | u8 registerIndex | str parameter
 ```
 
-`identity`, `scopeIdentity`, `group` on each binding, and a transform's `kind`,
+`identity` and `group` on each binding, and a transform's `kind`,
 `stage`, `representation`, `missingLayer`, `viewDimension`, `layerCount`,
 `output.identity`, `output.scopeIdentity`, `output.name`, `layoutKey` and every
 input's `layer` are restored on read, not stored. The family byte is what keeps them
@@ -292,6 +292,12 @@ derivable without pinning the format to one recognizer. `id` and each input's
 `parameter` stay on the wire deliberately — `id` because a caller may supply it,
 `parameter` because it keeps layer identity cross-checkable rather than asserted by
 position.
+
+Backend-block version 1 stores visibility but not the original
+`scopeIdentity`. The reader reconstructs `${identity}@${visibility[0]}`. A
+multi-stage shared binding therefore rereads as stage-qualified rather than
+recovering its original bare scope. Callers must not infer that original
+sharing decision from the wire view.
 
 An unknown `blobVersion` reports the pass as having no backend data rather than
 misparsing it; the enclosing size makes it skippable.
@@ -349,27 +355,20 @@ close.
 
 ## Backend selection and envelope removal
 
-**Current pre-switchover compatibility.** The legacy helper can prepend twelve
-bytes before Carbon's byte-compatible layout:
+**Historical compatibility.** Flat-package builds once prepended
+`magic | containerVersion | payloadKind` before Carbon's byte-compatible
+layout. Current packaging emits no such prefix and the former helper is no
+longer part of the package.
 
-```
-magic(4) | u32 containerVersion | u32 payloadKind
-```
+**Current WebGPU wire.** CEWGPU bytes have no envelope, magic, `payloadKind`,
+or independent container version. They are bare Carbon v15 records resolved
+from `effect.webgpu/`, with one optional per-pass backend block. `.cewg`
+remains a separate CEWG chunk format rather than this Carbon-record wire.
 
-The prefix is disjoint from a Carbon file because Carbon's first dword is a
-version from 2 through 15, while the legacy magic begins with printable ASCII.
-It remains only until the coordinated WebGPU switchover.
-
-**Switchover decision.** The replacement files have no envelope, magic,
-`payloadKind`, or independent container version. Backend selection is by
-resource path — `effect.webgpu/` or `effect.webgl2/` — mirroring Carbon's
-`effect.dx11/`, `effect.dx12/`, and `effect.metal/` paths. The resulting bytes
-remain Carbon v15 with one optional per-pass backend block.
-
-Without the prefix, `Tr2EffectRes` and `Tr2Shader` use the Carbon path rather
-than a bespoke format branch. The loader selects
-`readEffectDescription(reader, {backend: true})` from the resource path, and
-the description's declared size makes the optional block self-describing.
+`CewgpuContainer` reads the optional blocks, and the shared record reader can
+auto-detect them from a description's declared size. Direct conversion from
+those descriptions into the portable reflection envelope consumed by
+`Tr2EffectRes` remains an adapter boundary.
 
 Versioning remains local to what it versions: Carbon's version dword governs
 the Carbon region, while `blobVersion` governs the optional backend block. An
@@ -394,8 +393,9 @@ the caps, the structural checks and, until the switchover, the legacy envelope's
 disjointness.
 
 **Env-gated real-file proof.** `test/format/carbon-effect-corpus.test.js`, enabled
-with `CARBON_EFFECT_CORPUS_DIR`. Game bytes are never committed; fetch through
-tools-core at pinned build 3444265. It re-emits each file three ways:
+with `CARBON_EFFECT_CORPUS_DIR`. Game bytes are never committed. Supply a
+separately acquired corpus at pinned build 3444265. The test re-emits each file
+three ways:
 
 1. every description blob through the file's own arena — proves the field order;
 2. the whole container from raw bodies and the source arena — proves the header
@@ -414,9 +414,8 @@ Measured result over the complete corpus — 4833 files (537 shaders × 3 varian
 **all three modes byte-exact, with zero arena-rebuild divergences, zero sparse
 tables and zero misordered tables.** Not one shipped file retains an unreferenced
 arena blob, so the sorted-offset policy reproduces CCP's arena exactly.
-`effect.metal` is reachable only through the `macos-metal` overlay
-registered in `tools-core/data.local`; the mac client ships its own manifest and
-the default index path does not see it.
+Supply a separately acquired corpus and set `CARBON_EFFECT_CORPUS_DIR`; no
+corpus data ships with the package.
 
 That result is the container port's central evidence. The same reader and the same
 writer reproduce, byte for byte, files whose program payloads are DXBC in two

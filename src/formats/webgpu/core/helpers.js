@@ -284,8 +284,8 @@ export function readWithValues(input, values)
 }
 
 /**
- * Cheap inspection: version, chunk tags/sizes, analysis-stage counts, and
- * WGSL shader counts without building the full JSON package shape.
+ * Compact inspection: Carbon version and compiler bytes, body counts, and the
+ * resolved analysis/WGSL counts without building the full JSON package shape.
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU container payload.
  * @param {object} values Normalized format values.
