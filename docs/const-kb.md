@@ -12,8 +12,7 @@ Summary: Defines ownership and dependency rules for shared constant vocabularies
 This package provides stable constants that can be shared by:
 
 - `runtime-resource/formats/*` readers when emitting GPU-free semantic
-  payloads.
-- maintained standalone shader-format packages.
+  payloads, including the DXBC, HLSL, WebGL, and WebGPU subpaths.
 - `runtime-resource` when interpreting payloads and resource intent.
 - `engine-*` packages when mapping payloads to backend APIs.
 - tools and tests that need canonical media, graphics, audio, shader, D3D, or
@@ -46,14 +45,13 @@ Preferred direction:
 
 ```text
 runtime-resource/formats/*  may emit matching strings, imports runtime-utils
-shader format-*             may emit matching strings, import runtime-utils
 runtime-resource  may import/re-export runtime-utils
 engine-*          imports runtime-utils for backend mapping
 runtime-utils     imports no runtime-resource or engine packages
 ```
 
-Maintained shader format packages may remain standalone while emitting plain
-strings that match this package's constants.
+Shader formats are maintained as runtime-resource subpaths. Retired standalone
+format package names are provenance labels, not current dependency owners.
 
 ## Initial Domains
 

@@ -111,6 +111,34 @@ manual code can use `CjsSchema.SetConstructor(name, Constructor)`. A supplied
 scoped registry replaces the default constructor lookup and must implement
 `GetConstructor(name)`.
 
+### Decorators and imperative schema registration
+
+The decorator namespaces and imperative methods write the same metadata.
+Generated code and other tools may register a complete class with
+`CjsSchema.define`, then add individual entries with `defineField`,
+`defineMethod`, or `defineEnum`. They may instead apply the public decorators
+through `decorateField` and `decorateMethod`; those helpers do not require
+decorator syntax.
+
+`defineEnum(values, definition)` registers a stable enum name and optional
+member, source, family, and line metadata. Registration works for frozen enum
+objects through the schema registry; extensible objects also receive the
+exported `CJS_ENUM_NAME` symbol. A field decorated with `CjsSchema.enum(values)`
+or an enum name resolves that registered identity lazily.
+
+Jessica metadata is editor-facing presentation metadata:
+
+- `jessica.group(name)` groups a field in a compatible editor;
+- `jessica.hidden` asks an editor not to present the field;
+- `jessica.readOnly` asks an editor not to offer writes; and
+- `jessica.widget(name)` suggests one editor control.
+
+These declarations do not change runtime persistence, validation, or mutation.
+In particular, `jessica.hidden` is not `schema.hideInherited`, and
+`jessica.readOnly` does not block `SetValues`. A runtime restriction must be
+implemented by the owning runtime contract rather than inferred from Jessica
+metadata.
+
 ### Model references, value structs, and raw inline values
 
 Use `type.model("ClassName")` for reference-shaped fields that hydrate through
@@ -230,7 +258,7 @@ initialization, traversal, resource, and optional lifecycle-state details.
 import { CjsCarbonDocument, CjsDocumentHydrator } from "@carbonenginejs/runtime-utils/document";
 import { createLifecycleAdapter } from "@carbonenginejs/runtime-utils/hydration";
 import { CjsLifecycleState } from "@carbonenginejs/runtime-utils/lifecycle";
-import { CjsSchema, type, io, carbon, components } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, type, io, jessica, carbon, components } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel, CjsEventEmitter, CjsModelState } from "@carbonenginejs/runtime-utils/model";
 import { CARBON_TYPE, normalizeCarbonValue } from "@carbonenginejs/runtime-utils/types";
 ```
