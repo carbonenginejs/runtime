@@ -168,6 +168,10 @@ export class CjsCharacterVisemeSet extends CjsCharacterNode
         return CjsCharacterVisemeSet.#validateWeights(set, weights);
     }
 
+    /**
+     * Converts a weight map to finite in-range values for exact authored viseme
+     * IDs.
+     */
     static #validateWeights(set, weights)
     {
         const entries = weights instanceof Map
@@ -270,6 +274,7 @@ export class CjsCharacterVisemeSet extends CjsCharacterNode
         });
     }
 
+    /** Returns a validated viseme set, hydrating detached input when necessary. */
     static #getPrepared(value)
     {
         return value instanceof CjsCharacterVisemeSet
@@ -277,11 +282,13 @@ export class CjsCharacterVisemeSet extends CjsCharacterNode
             : CjsCharacterVisemeSet.prepare(value);
     }
 
+    /** Returns the exact authored record from a prepared set or null. */
     static #findViseme(set, visemeID)
     {
         return set.visemes.find(viseme => viseme.id === visemeID) || null;
     }
 
+    /** Builds the exact node/parameter key for one viseme in a prepared set. */
     static #getControlName(set, visemeID)
     {
         const id = CjsCharacterVisemeSet.normalizeID(visemeID);

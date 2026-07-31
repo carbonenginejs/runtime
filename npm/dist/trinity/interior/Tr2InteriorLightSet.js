@@ -5,7 +5,7 @@ import { Tr2InteriorPerObjectLightData as _Tr2InteriorPerObject } from './Tr2Int
 
 let _initProto, _initClass;
 
-/** Tr2InteriorLightSet (interior) - generated from schema shapeHash 848a64a9.... */
+/** Transient collection of active interior light sources and packed records. */
 let _Tr2InteriorLightSet;
 class Tr2InteriorLightSet extends CjsModel {
   static {

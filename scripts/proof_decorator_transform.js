@@ -18,10 +18,15 @@ import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import * as character from "${base}";
 
 export function capture() {
-  return Object.fromEntries(Object.entries(character).map(([name, Class]) => {
-    const value = new Class();
+  const entries = [];
+
+  for (const [name, Class] of Object.entries(character)) {
     const schema = CjsSchema.getSchema(Class);
-    return [name, {
+
+    if (!schema.className) continue;
+
+    const value = new Class();
+    entries.push([name, {
       className: schema.className,
       family: schema.family,
       fields: schema.fields.map(field => ({
@@ -30,7 +35,13 @@ export function capture() {
         persist: field.io?.persist === true,
         value: value[field.name]
       }))
-    }];
+    }]);
+  }
+
+  return JSON.parse(JSON.stringify(Object.fromEntries(entries), (_key, value) => {
+    if (value instanceof Map) return Object.fromEntries(value);
+    if (ArrayBuffer.isView(value)) return Array.from(value);
+    return value;
   }));
 }
 `;
@@ -67,4 +78,4 @@ await buildSourceBundle();
 const source = await import(pathToFileURL(sourceBundle));
 const dist = await import(pathToFileURL(distEntry));
 assert.deepEqual(source.capture(), dist.capture());
-console.log("decorator transform proof passed for all character classes");
+console.log("decorator transform proof passed for all decorated character classes");

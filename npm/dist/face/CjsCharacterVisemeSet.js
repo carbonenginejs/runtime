@@ -126,6 +126,12 @@ new class extends _identity {
       const set = _CjsCharacterVisemeSe.#getPrepared(value);
       return _CjsCharacterVisemeSe.#validateWeights(set, weights);
     }
+
+    /**
+     * Converts a weight map to finite in-range values for exact authored viseme
+     * IDs.
+     */
+
     /** Creates one neutral character-control layer from simultaneous viseme weights. */
     static createControlLayer(value, weights, {
       id = "visemes",
@@ -175,6 +181,12 @@ new class extends _identity {
         morphNames
       });
     }
+
+    /** Returns a validated viseme set, hydrating detached input when necessary. */
+
+    /** Returns the exact authored record from a prepared set or null. */
+
+    /** Builds the exact node/parameter key for one viseme in a prepared set. */
   }];
   #validateWeights(set, weights) {
     const entries = weights instanceof Map ? [...weights.entries()] : weights && typeof weights === "object" && !Array.isArray(weights) ? Object.entries(weights) : null;

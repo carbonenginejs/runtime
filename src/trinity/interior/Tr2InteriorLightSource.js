@@ -6,7 +6,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 
-/** Tr2InteriorLightSource (interior) - generated from schema shapeHash 8dfd8045.... */
+/**
+ * Authored interior light definition with position, color, falloff, cone, and
+ * animation settings.
+ */
 @type.define({ className: "Tr2InteriorLightSource", family: "interior" })
 export class Tr2InteriorLightSource extends CjsModel
 {

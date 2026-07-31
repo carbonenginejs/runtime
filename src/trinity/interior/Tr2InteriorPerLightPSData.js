@@ -7,7 +7,10 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { Tr2InteriorPerObjectLightData } from "./Tr2InteriorPerObjectLightData.js";
 
-/** Tr2InteriorPerLightPSData (interior) - generated from schema shapeHash 88416470.... */
+/**
+ * Per-light interior pixel-stage data holding light, mirror, shadow, bounds,
+ * and auxiliary parameters.
+ */
 @type.define({ className: "Tr2InteriorPerLightPSData", family: "interior" })
 export class Tr2InteriorPerLightPSData extends CjsModel
 {
@@ -40,6 +43,10 @@ export class Tr2InteriorPerLightPSData extends CjsModel
   @type.vec4
   additionalParameters = vec4.create();
 
+  /**
+   * Imports values while normalizing the three six-element shadow arrays to
+   * Carbon cardinality.
+   */
   @impl.custom
   @impl.reason("Preserves Carbon fixed-array cardinalities when importing plain JS values.")
   SetValues(values = {}, options = {})

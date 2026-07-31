@@ -24,6 +24,10 @@ export class Tr2SkinnedObjectLod
   #allowLodSelection = false;
   #currentLod = -1;
 
+  /**
+   * Repopulates availability when one of the three owned proxy references
+   * changes.
+   */
   @carbon.method
   @impl.implemented
   OnModified(value)
@@ -37,6 +41,7 @@ export class Tr2SkinnedObjectLod
     return true;
   }
 
+  /** Enables whole-model selection whenever at least one detail proxy is present. */
   @carbon.method
   @impl.implemented
   PopulateLods()
@@ -48,6 +53,10 @@ export class Tr2SkinnedObjectLod
     );
   }
 
+  /**
+   * Selects the best available or resident whole-model proxy for a projected
+   * pixel diameter.
+   */
   @carbon.method
   @impl.implemented
   SetLOD(_frustum, estimatedPixelDiameter)
@@ -114,6 +123,10 @@ export class Tr2SkinnedObjectLod
     return model;
   }
 
+  /**
+   * Replaces the object held by the existing high-detail proxy when both values
+   * are available.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
@@ -122,6 +135,10 @@ export class Tr2SkinnedObjectLod
     SetProxyObject(this.highDetailProxy, model);
   }
 
+  /**
+   * Replaces the object held by the existing medium-detail proxy when both
+   * values are available.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
@@ -130,6 +147,10 @@ export class Tr2SkinnedObjectLod
     SetProxyObject(this.mediumDetailProxy, model);
   }
 
+  /**
+   * Replaces the object held by the existing low-detail proxy when both values
+   * are available.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Uses an already supplied Blue proxy; proxy construction belongs to the outer runtime adapter.")
@@ -138,6 +159,10 @@ export class Tr2SkinnedObjectLod
     SetProxyObject(this.lowDetailProxy, model);
   }
 
+  /**
+   * Updates unselected proxy lifetimes on acceptable frame times while keeping
+   * the selected model resident.
+   */
   @carbon.method
   @impl.implemented
   UnloadLodIfNeeded(time, deltaTime)
@@ -156,6 +181,10 @@ export class Tr2SkinnedObjectLod
     return false;
   }
 
+  /**
+   * Overrides the selected whole-model detail index used by proxy lifecycle and
+   * capability queries.
+   */
   @carbon.method
   @impl.implemented
   SetCurrentLod(lod)
@@ -163,6 +192,7 @@ export class Tr2SkinnedObjectLod
     this.#currentLod = lod;
   }
 
+  /** Returns the selected whole-model detail index, or -1 before selection. */
   @carbon.method
   @impl.implemented
   GetCurrentLod()
@@ -170,6 +200,7 @@ export class Tr2SkinnedObjectLod
     return this.#currentLod;
   }
 
+  /** Reports whether at least one detail proxy permits whole-model selection. */
   @carbon.method
   @impl.implemented
   HaveLodSetup()
@@ -177,6 +208,7 @@ export class Tr2SkinnedObjectLod
     return this.#allowLodSelection;
   }
 
+  /** Allows shadow casting without selection or only for the high-detail model. */
   @carbon.method
   @impl.implemented
   IsCastingShadow()
@@ -184,6 +216,10 @@ export class Tr2SkinnedObjectLod
     return !this.#allowLodSelection || this.#currentLod === 0;
   }
 
+  /**
+   * Allows cloth simulation when selection is disabled or the current detail
+   * index is within the requested maximum.
+   */
   @carbon.method
   @impl.implemented
   IsSimulatingCloth(maxClothLod)
@@ -191,6 +227,10 @@ export class Tr2SkinnedObjectLod
     return !this.#allowLodSelection || this.#currentLod <= maxClothLod;
   }
 
+  /**
+   * Installs a changed model into the selected proxy, falling through to a lower
+   * proxy when it is absent.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("CarbonEngineJS proxies receive the model object when no native raw-root handle exists.")

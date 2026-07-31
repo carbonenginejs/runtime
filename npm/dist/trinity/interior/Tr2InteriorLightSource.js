@@ -6,7 +6,10 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
 let _initProto, _initClass, _init_coneDirection, _init_extra_coneDirection, _init_coneAlphaInner, _init_extra_coneAlphaInner, _init_coneAlphaOuter, _init_extra_coneAlphaOuter, _init_specularIntensity, _init_extra_specularIntensity, _init_curveSets, _init_extra_curveSets, _init_primaryLighting, _init_extra_primaryLighting, _init_falloff, _init_extra_falloff, _init_kelvinColor, _init_extra_kelvinColor, _init_radius, _init_extra_radius, _init_position, _init_extra_position, _init_color, _init_extra_color, _init_name, _init_extra_name, _init_useKelvinColor, _init_extra_useKelvinColor;
 
-/** Tr2InteriorLightSource (interior) - generated from schema shapeHash 8dfd8045.... */
+/**
+ * Authored interior light definition with position, color, falloff, cone, and
+ * animation settings.
+ */
 let _Tr2InteriorLightSour;
 class Tr2InteriorLightSource extends CjsModel {
   static {

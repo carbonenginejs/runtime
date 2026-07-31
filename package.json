@@ -13,9 +13,10 @@
   },
   "scripts": {
     "build:npm": "node scripts/build_npm.js && rollup -c",
+    "docs:classes": "node scripts/generate_class_catalog.js",
     "proof:decorators": "node scripts/proof_decorator_transform.js",
     "test": "npm run build:npm && node --test test/*.test.js",
-    "lint": "npm run build:npm && node --check npm/dist/index.js && node --check test/runtime-character.test.js && node --check scripts/build_npm.js && node --check scripts/proof_decorator_transform.js && node --check rollup.config.mjs",
+    "lint": "npm run build:npm && node --check npm/dist/index.js && node --check test/runtime-character.test.js && node --check scripts/build_npm.js && node --check scripts/class_catalog_metadata.js && node --check scripts/generate_class_catalog.js && node --check scripts/proof_decorator_transform.js && node --check rollup.config.mjs",
     "check": "npm run lint && npm test"
   },
   "keywords": [

@@ -6,7 +6,10 @@
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
-/** TriMatrix (trinityCore) - generated from schema shapeHash 5d7efaa1.... */
+/**
+ * Internal dropped shell for Carbon's row-major scripting matrix, retained
+ * pending an explicit conversion and serialization contract.
+ */
 @type.define({ className: "TriMatrix", family: "trinityCore" })
 export class TriMatrix extends CjsModel
 {

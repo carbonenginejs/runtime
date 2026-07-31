@@ -4,7 +4,10 @@ import { Tr2SkinnedObject as _Tr2SkinnedObject } from '../trinityCore/Tr2Skinned
 
 let _initProto, _initClass, _init_boundingSphereRadius, _init_extra_boundingSphereRadius, _init_depthOffset, _init_extra_depthOffset, _init_variableStore, _init_extra_variableStore;
 
-/** Tr2IntSkinnedObject (interior) - generated from schema shapeHash fd82f335.... */
+/**
+ * Interior skinned-object specialization carrying bounds, depth, and
+ * variable-store metadata.
+ */
 let _Tr2IntSkinnedObject;
 class Tr2IntSkinnedObject extends _Tr2SkinnedObject {
   static {

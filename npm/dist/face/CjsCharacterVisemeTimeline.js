@@ -107,6 +107,13 @@ new class extends _identity {
       const timeline = value instanceof _CjsCharacterVisemeTi ? _CjsCharacterVisemeTi.validate(value, visemeSet) : _CjsCharacterVisemeTi.prepare(value, visemeSet);
       return _CjsCharacterVisemeSe.createControlLayer(visemeSet, _CjsCharacterVisemeTi.sample(timeline, time), options);
     }
+
+    /**
+     * Converts frame weights to a validated map while preserving exact viseme
+     * IDs.
+     */
+
+    /** Linearly blends the union of two weight maps and omits zero results. */
   }];
   #prepareWeights(value) {
     const entries = value instanceof Map ? value.entries() : value && typeof value === "object" && !Array.isArray(value) ? Object.entries(value) : null;

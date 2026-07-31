@@ -7,7 +7,10 @@ import { Tr2InteriorPerObjectLightData as _Tr2InteriorPerObject } from './Tr2Int
 
 let _initProto, _initClass, _init_lightData, _init_extra_lightData, _init_mirrorToWorldMatrix, _init_extra_mirrorToWorldMatrix, _init_shadowMatrix, _init_extra_shadowMatrix, _init_shadowRect, _init_extra_shadowRect, _init_shadowInfluence, _init_extra_shadowInfluence, _init_boundingBox, _init_extra_boundingBox, _init_additionalParameters, _init_extra_additionalParameters;
 
-/** Tr2InteriorPerLightPSData (interior) - generated from schema shapeHash 88416470.... */
+/**
+ * Per-light interior pixel-stage data holding light, mirror, shadow, bounds,
+ * and auxiliary parameters.
+ */
 let _Tr2InteriorPerLightP;
 class Tr2InteriorPerLightPSData extends CjsModel {
   static {
@@ -49,6 +52,11 @@ class Tr2InteriorPerLightPSData extends CjsModel {
 
   /** additionalParameters (Vector4) */
   additionalParameters = (_init_extra_boundingBox(this), _init_additionalParameters(this, vec4.create()));
+
+  /**
+   * Imports values while normalizing the three six-element shadow arrays to
+   * Carbon cardinality.
+   */
   SetValues(values = {}, options = {}) {
     const normalized = {
       ...values

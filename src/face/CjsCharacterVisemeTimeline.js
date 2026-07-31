@@ -143,6 +143,10 @@ export class CjsCharacterVisemeTimeline extends CjsCharacterNode
         );
     }
 
+    /**
+     * Converts frame weights to a validated map while preserving exact viseme
+     * IDs.
+     */
     static #prepareWeights(value)
     {
         const entries = value instanceof Map
@@ -174,6 +178,7 @@ export class CjsCharacterVisemeTimeline extends CjsCharacterNode
         return result;
     }
 
+    /** Linearly blends the union of two weight maps and omits zero results. */
     static #interpolateWeights(left, right, amount)
     {
         const result = new Map();

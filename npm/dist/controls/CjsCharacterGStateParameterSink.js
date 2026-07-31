@@ -2,6 +2,11 @@
 class CjsCharacterGStateParameterSink {
   #defaults = new Map();
   #gStateAnimation;
+
+  /**
+   * Creates a sink over initialized persisted parameter records and captures
+   * baselines lazily.
+   */
   constructor(gStateAnimation) {
     if (!gStateAnimation || typeof gStateAnimation !== "object" && typeof gStateAnimation !== "function") {
       throw new TypeError("GState parameter sink requires an animation object");
@@ -147,6 +152,8 @@ class CjsCharacterGStateParameterSink {
     }
     return changed;
   }
+
+  /** Resolves an exact node/parameter key or throws when its record is absent. */
   #resolve(controlName) {
     const {
       nodeName,

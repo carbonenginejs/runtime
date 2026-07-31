@@ -5,7 +5,7 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 
 let _initProto, _initClass, _init_placeableResPath, _init_extra_placeableResPath, _init_transform, _init_extra_transform, _init_placeableRes, _init_extra_placeableRes, _init_display, _init_extra_display, _init_boundingSphereRadius, _init_extra_boundingSphereRadius, _init_depthOffset, _init_extra_depthOffset, _init_variableStore, _init_extra_variableStore, _init_name, _init_extra_name, _init_probeOffset, _init_extra_probeOffset, _init_isUnique, _init_extra_isUnique;
 
-/** Tr2InteriorPlaceable (interior) - generated from schema shapeHash 5fb7ec69.... */
+/** Authored state record for an interior placeable. */
 let _Tr2InteriorPlaceable;
 class Tr2InteriorPlaceable extends CjsModel {
   static {

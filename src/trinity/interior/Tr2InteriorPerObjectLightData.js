@@ -6,7 +6,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 
-/** Tr2InteriorPerObjectLightData (interior) - generated from schema shapeHash 2cecaf9d.... */
+/** Packed per-object interior light record for shader-facing data. */
 @type.define({ className: "Tr2InteriorPerObjectLightData", family: "interior" })
 export class Tr2InteriorPerObjectLightData extends CjsModel
 {

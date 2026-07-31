@@ -4,7 +4,7 @@
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
-/** Tr2GStateParameter (trinityCore) - generated from schema shapeHash cb552923.... */
+/** Named, node-scoped scalar value for a character GState animation. */
 @type.define({ className: "Tr2GStateParameter", family: "trinityCore" })
 export class Tr2GStateParameter extends CjsModel
 {
@@ -72,6 +72,10 @@ export class Tr2GStateParameter extends CjsModel
     this.value = Number(value);
   }
 
+  /**
+   * Reports successful portable initialization for the persisted parameter
+   * record.
+   */
   @carbon.method
   @impl.implemented
   Initialize()

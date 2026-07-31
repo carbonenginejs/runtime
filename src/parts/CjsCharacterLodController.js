@@ -48,6 +48,10 @@ export class CjsCharacterLodController
         return this.#Select(skinnedObject, diameter, frustum, null);
     }
 
+    /**
+     * Supplies projected-size context to a skinned-object LOD owner and returns
+     * a frozen selection summary.
+     */
     #Select(skinnedObject, diameter, frustum, requestedLod)
     {
         if (!skinnedObject

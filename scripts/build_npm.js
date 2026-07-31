@@ -17,7 +17,9 @@ await fs.mkdir(npmRoot, { recursive: true });
 await fs.rm(path.join(npmRoot, "dist"), { recursive: true, force: true });
 await fs.rm(path.join(npmRoot, "bin"), { recursive: true, force: true });
 await fs.rm(path.join(npmRoot, "tools"), { recursive: true, force: true });
+await fs.rm(path.join(npmRoot, "docs"), { recursive: true, force: true });
 await fs.copyFile(path.join(root, "npm.package.json"), path.join(npmRoot, "package.json"));
+await fs.cp(path.join(root, "docs"), path.join(npmRoot, "docs"), { recursive: true });
 
 for (const file of ["README.md", "LICENSE", "NOTICE"]) {
   await copyFileIfExists(file);

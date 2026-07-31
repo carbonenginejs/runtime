@@ -4,7 +4,7 @@
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
-/** Tr2Model (trinityCore) - generated from schema shapeHash f0e9beb8.... */
+/** Named character model record grouping its Trinity mesh objects. */
 @type.define({ className: "Tr2Model", family: "trinityCore" })
 export class Tr2Model extends CjsModel
 {

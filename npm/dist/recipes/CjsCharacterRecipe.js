@@ -3,6 +3,11 @@ import { type, io } from '@carbonenginejs/runtime-utils/schema';
 import { CjsCharacterNode as _CjsCharacterNode } from '../CjsCharacterNode.js';
 
 let _initClass, _init_id, _init_extra_id, _init_name, _init_extra_name, _init_sex, _init_extra_sex, _init_entries, _init_extra_entries;
+
+/**
+ * Named, sex-scoped character composition preset made from authored recipe
+ * entries.
+ */
 let _CjsCharacterRecipe;
 class CjsCharacterRecipe extends _CjsCharacterNode {
   static {

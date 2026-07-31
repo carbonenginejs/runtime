@@ -8,6 +8,11 @@ class CjsCharacterControlBinding {
   #morphs = new Map();
   #parameters = new Map();
   #sink;
+
+  /**
+   * Creates a full-snapshot binding for a structural sink with paired setters
+   * and resetters.
+   */
   constructor(sink) {
     if (!sink || typeof sink !== "object" && typeof sink !== "function") {
       throw new TypeError("Character control binding requires a sink object");
@@ -47,6 +52,11 @@ class CjsCharacterControlBinding {
     }
     return changed;
   }
+
+  /**
+   * Diffs one scalar control channel, resets removed names, and applies
+   * changed values.
+   */
   #ApplyScalarChannel(channel, current, next) {
     if (current.size === 0 && next.size === 0) {
       return false;
@@ -63,6 +73,11 @@ class CjsCharacterControlBinding {
     }
     return changed;
   }
+
+  /**
+   * Diffs translation offsets and clones values before forwarding and
+   * retaining them.
+   */
   #ApplyBoneOffsets(next) {
     if (this.#boneOffsets.size === 0 && next.size === 0) {
       return false;
@@ -80,6 +95,8 @@ class CjsCharacterControlBinding {
     }
     return changed;
   }
+
+  /** Resets the previous active pose before applying a changed replacement. */
   #ApplyPose(next) {
     if (next === this.#activePose) {
       return false;
@@ -95,9 +112,13 @@ class CjsCharacterControlBinding {
     }
     return true;
   }
+
+  /** Restores every translation offset currently owned by this binding. */
   #ResetBoneOffsets() {
     return this.#ResetScalarChannel("BoneOffset", this.#boneOffsets);
   }
+
+  /** Resets names absent from the next snapshot in stable lexical order. */
   #ResetRemoved(channel, current, next) {
     const reset = this.#sink[`Reset${channel}`].bind(this.#sink);
     let changed = false;
@@ -108,6 +129,8 @@ class CjsCharacterControlBinding {
     }
     return changed;
   }
+
+  /** Restores and forgets every applied value in one scalar channel. */
   #ResetScalarChannel(channel, current) {
     if (current.size === 0) {
       return false;
@@ -121,6 +144,11 @@ class CjsCharacterControlBinding {
     }
     return changed;
   }
+
+  /**
+   * Requires paired sink setters and resetters for every populated control
+   * channel.
+   */
   #ValidateCapabilities(next) {
     ValidateChannel(this.#sink, "Morph", this.#morphs.size || next.morphs.size);
     ValidateChannel(this.#sink, "Parameter", this.#parameters.size || next.parameters.size);

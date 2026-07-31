@@ -4,7 +4,7 @@ This folder holds only **verified Trinity classes, interfaces, and enums** for
 the character/interior domain, moved out of `runtime-trinity` and **owned by
 runtime-character** as of 2026-07-18. Every class identity under
 `src/trinity/` must correspond 1:1 to Trinity evidence in the Carbon C++ source
-(`E:\carbonengine`; schema authority is tools-core's carbon schema build —
+(`carbonengine`; schema authority is tools-core's Carbon schema build —
 format-carbon retired 2026-07-20). Everything **outside**
 this folder (the `CjsCharacter*` composition graph) is CarbonEngineJS-original
 and may be redesigned without claiming a Trinity counterpart.
@@ -76,7 +76,7 @@ backend upload lifecycle.
 ## Provenance rules (they differ INSIDE vs OUTSIDE this folder)
 
 Inside `src/trinity/`:
-- **Carbon C++ (`E:\carbonengine`) is truth.** Fields, families, and method
+- **Carbon C++ is truth.** Fields, families, and method
   signatures follow Carbon; mark Carbon methods `@carbon.method` with an
   `@impl.*` status. JS-only helpers should be free functions or `#private` —
   if a public method with no Carbon counterpart is unavoidable, mark it
@@ -94,7 +94,5 @@ no Carbon fidelity obligations, `Cjs` prefix required.
 ## Adapter pointer
 
 An outer interior/character adapter may follow the scene-owned frame-context
-conventions in `runtime-trinity/src/eve/scene/EveSpaceScene.js` and
-`runtime-trinity/../.agents/FRAME-CONTEXT-PLAN.md`. That adapter must remain
-outside `src/trinity/` and must not add non-native public methods to a Trinity
-class.
+conventions documented by `runtime-trinity`. That adapter must remain outside
+`src/trinity/` and must not add non-native public methods to a Trinity class.

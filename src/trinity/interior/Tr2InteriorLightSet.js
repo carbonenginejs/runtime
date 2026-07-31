@@ -5,7 +5,7 @@ import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { Tr2InteriorPerObjectLightData } from "./Tr2InteriorPerObjectLightData.js";
 
-/** Tr2InteriorLightSet (interior) - generated from schema shapeHash 848a64a9.... */
+/** Transient collection of active interior light sources and packed records. */
 @type.define({ className: "Tr2InteriorLightSet", family: "interior" })
 export class Tr2InteriorLightSet extends CjsModel
 {

@@ -4,7 +4,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initProto, _initClass, _init_resPath_, _init_extra_resPath_, _init_gStateResPath_, _init_extra_gStateResPath_, _init_model_, _init_extra_model_, _init_parameters, _init_extra_parameters, _init_grannyRes, _init_extra_grannyRes, _init_eventListener, _init_extra_eventListener, _init_animationEnabled, _init_extra_animationEnabled, _init_debugRenderJointNames, _init_extra_debugRenderJointNames, _init_debugRenderSkeleton, _init_extra_debugRenderSkeleton;
 
-/** Tr2GStateAnimation (trinityCore) - generated from schema shapeHash 0e108052.... */
+/** Character GState animation record for an external state-machine adapter. */
 let _Tr2GStateAnimation;
 class Tr2GStateAnimation extends CjsModel {
   static {
@@ -46,39 +46,81 @@ class Tr2GStateAnimation extends CjsModel {
 
   /** m_debugRenderSkeleton (bool) [READWRITE] */
   debugRenderSkeleton = (_init_extra_debugRenderJointNames(this), _init_debugRenderSkeleton(this, false));
+
+  /**
+   * Returns the authored Granny animation resource path stored by this graph
+   * shell.
+   */
   get resPath() {
     return this.GetResPath();
   }
+
+  /**
+   * Stores an authored Granny animation resource path without acquiring its
+   * resource.
+   */
   set resPath(value) {
     this.SetResPath(value);
   }
+
+  /** Returns the authored state-graph resource path stored by this graph shell. */
   get gStateResPath() {
     return this.GetGStateResPath();
   }
+
+  /**
+   * Stores an authored state-graph resource path without loading or evaluating
+   * it.
+   */
   set gStateResPath(value) {
     this.SetGStateResPath(value);
   }
+
+  /** Returns the authored Granny model name stored by this graph shell. */
   get model() {
     return this.GetModel();
   }
+
+  /**
+   * Stores an authored Granny model name without instantiating native model
+   * state.
+   */
   set model(value) {
     this.SetModel(value);
   }
+
+  /** Returns the persisted Granny animation path without resolving a resource. */
   GetResPath() {
     return this.resPath_;
   }
+
+  /**
+   * Persists the authored Granny animation path for an external resource
+   * adapter.
+   */
   SetResPath(value) {
     this.resPath_ = String(value ?? "");
   }
+
+  /** Returns the persisted state-graph path without resolving a resource. */
   GetGStateResPath() {
     return this.gStateResPath_;
   }
+
+  /**
+   * Persists the authored state-graph path for an external state-machine
+   * adapter.
+   */
   SetGStateResPath(value) {
     this.gStateResPath_ = String(value ?? "");
   }
+
+  /** Returns the persisted authored model name without instantiating it. */
   GetModel() {
     return this.model_;
   }
+
+  /** Persists the authored model name for an external Granny runtime adapter. */
   SetModel(value) {
     this.model_ = String(value ?? "");
   }

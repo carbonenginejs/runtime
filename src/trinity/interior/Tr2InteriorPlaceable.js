@@ -5,7 +5,7 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 
-/** Tr2InteriorPlaceable (interior) - generated from schema shapeHash 5fb7ec69.... */
+/** Authored state record for an interior placeable. */
 @type.define({ className: "Tr2InteriorPlaceable", family: "interior" })
 export class Tr2InteriorPlaceable extends CjsModel
 {

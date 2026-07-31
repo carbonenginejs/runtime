@@ -5,7 +5,10 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 
 let _initProto, _initClass, _init_geometryResPath, _init_extra_geometryResPath, _init_geometryRes, _init_extra_geometryRes, _init_skeletonName, _init_extra_skeletonName, _init_skinScale, _init_extra_skinScale;
 
-/** Tr2SkinnedModel (trinityCore) - generated from schema shapeHash 026a62f4.... */
+/**
+ * Skinned character model selecting a named skeleton from supplied geometry
+ * and coordinating mesh-to-rig bindings.
+ */
 let _Tr2SkinnedModel;
 class Tr2SkinnedModel extends _Tr2Model {
   static {

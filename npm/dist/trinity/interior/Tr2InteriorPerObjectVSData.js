@@ -7,7 +7,7 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
 let _initClass, _init_WorldMat, _init_extra_WorldMat, _init_uvLinearTransform, _init_extra_uvLinearTransform, _init_uvTranslation, _init_extra_uvTranslation, _init_padding, _init_extra_padding;
 
-/** Tr2InteriorPerObjectVSData (interior) - generated from schema shapeHash 31167b80.... */
+/** Per-object interior vertex-stage data containing world and UV transforms. */
 let _Tr2InteriorPerObject;
 class Tr2InteriorPerObjectVSData extends CjsModel {
   static {

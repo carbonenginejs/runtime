@@ -4,7 +4,10 @@
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
 
-/** Tr2IntSkinnedObject (interior) - generated from schema shapeHash fd82f335.... */
+/**
+ * Interior skinned-object specialization carrying bounds, depth, and
+ * variable-store metadata.
+ */
 @type.define({ className: "Tr2IntSkinnedObject", family: "interior" })
 export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 {

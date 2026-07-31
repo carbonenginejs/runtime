@@ -40,6 +40,11 @@ class CjsCharacterLodController {
     }
     return this.#Select(skinnedObject, diameter, frustum, null);
   }
+
+  /**
+   * Supplies projected-size context to a skinned-object LOD owner and returns
+   * a frozen selection summary.
+   */
   #Select(skinnedObject, diameter, frustum, requestedLod) {
     if (!skinnedObject || typeof skinnedObject.SetLOD !== "function" || typeof skinnedObject.GetCurrentLod !== "function") {
       throw new TypeError("Character LOD control requires a skinned-object LOD owner");

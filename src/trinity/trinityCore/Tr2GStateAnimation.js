@@ -4,7 +4,7 @@
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
-/** Tr2GStateAnimation (trinityCore) - generated from schema shapeHash 0e108052.... */
+/** Character GState animation record for an external state-machine adapter. */
 @type.define({ className: "Tr2GStateAnimation", family: "trinityCore" })
 export class Tr2GStateAnimation extends CjsModel
 {
@@ -54,36 +54,55 @@ export class Tr2GStateAnimation extends CjsModel
   @type.boolean
   debugRenderSkeleton = false;
 
+  /**
+   * Returns the authored Granny animation resource path stored by this graph
+   * shell.
+   */
   get resPath()
   {
     return this.GetResPath();
   }
 
+  /**
+   * Stores an authored Granny animation resource path without acquiring its
+   * resource.
+   */
   set resPath(value)
   {
     this.SetResPath(value);
   }
 
+  /** Returns the authored state-graph resource path stored by this graph shell. */
   get gStateResPath()
   {
     return this.GetGStateResPath();
   }
 
+  /**
+   * Stores an authored state-graph resource path without loading or evaluating
+   * it.
+   */
   set gStateResPath(value)
   {
     this.SetGStateResPath(value);
   }
 
+  /** Returns the authored Granny model name stored by this graph shell. */
   get model()
   {
     return this.GetModel();
   }
 
+  /**
+   * Stores an authored Granny model name without instantiating native model
+   * state.
+   */
   set model(value)
   {
     this.SetModel(value);
   }
 
+  /** Returns the persisted Granny animation path without resolving a resource. */
   @carbon.method
   @impl.implemented
   GetResPath()
@@ -91,6 +110,10 @@ export class Tr2GStateAnimation extends CjsModel
     return this.resPath_;
   }
 
+  /**
+   * Persists the authored Granny animation path for an external resource
+   * adapter.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Stores the authored path; Granny resource loading belongs to the resource/state-machine adapter.")
@@ -99,6 +122,7 @@ export class Tr2GStateAnimation extends CjsModel
     this.resPath_ = String(value ?? "");
   }
 
+  /** Returns the persisted state-graph path without resolving a resource. */
   @carbon.method
   @impl.implemented
   GetGStateResPath()
@@ -106,6 +130,10 @@ export class Tr2GStateAnimation extends CjsModel
     return this.gStateResPath_;
   }
 
+  /**
+   * Persists the authored state-graph path for an external state-machine
+   * adapter.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Stores the authored path; state-graph loading belongs to the resource/state-machine adapter.")
@@ -114,6 +142,7 @@ export class Tr2GStateAnimation extends CjsModel
     this.gStateResPath_ = String(value ?? "");
   }
 
+  /** Returns the persisted authored model name without instantiating it. */
   @carbon.method
   @impl.implemented
   GetModel()
@@ -121,6 +150,7 @@ export class Tr2GStateAnimation extends CjsModel
     return this.model_;
   }
 
+  /** Persists the authored model name for an external Granny runtime adapter. */
   @carbon.method
   @impl.adapted
   @impl.reason("Stores the authored model name; native model instantiation belongs to the Granny runtime adapter.")

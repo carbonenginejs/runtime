@@ -4,7 +4,10 @@
 import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
-/** WodBakingScene (wod) - generated from schema shapeHash 3b77adad.... */
+/**
+ * Baking-scene record pairing a skinned avatar with a diagnostic visualization
+ * mode.
+ */
 @type.define({ className: "WodBakingScene", family: "wod" })
 export class WodBakingScene extends CjsModel
 {

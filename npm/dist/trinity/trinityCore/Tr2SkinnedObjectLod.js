@@ -24,15 +24,27 @@ class Tr2SkinnedObjectLod {
   mediumDetailProxy = null;
   #allowLodSelection = false;
   #currentLod = -1;
+
+  /**
+   * Repopulates availability when one of the three owned proxy references
+   * changes.
+   */
   OnModified(value) {
     if (value === this.highDetailProxy || value === this.mediumDetailProxy || value === this.lowDetailProxy) {
       this.PopulateLods();
     }
     return true;
   }
+
+  /** Enables whole-model selection whenever at least one detail proxy is present. */
   PopulateLods() {
     this.#allowLodSelection = !!(this.highDetailProxy || this.mediumDetailProxy || this.lowDetailProxy);
   }
+
+  /**
+   * Selects the best available or resident whole-model proxy for a projected
+   * pixel diameter.
+   */
   SetLOD(_frustum, estimatedPixelDiameter) {
     if (!this.#allowLodSelection) {
       return null;
@@ -67,15 +79,35 @@ class Tr2SkinnedObjectLod {
     }
     return model;
   }
+
+  /**
+   * Replaces the object held by the existing high-detail proxy when both values
+   * are available.
+   */
   SetHighDetailModel(model) {
     SetProxyObject(this.highDetailProxy, model);
   }
+
+  /**
+   * Replaces the object held by the existing medium-detail proxy when both
+   * values are available.
+   */
   SetMediumDetailModel(model) {
     SetProxyObject(this.mediumDetailProxy, model);
   }
+
+  /**
+   * Replaces the object held by the existing low-detail proxy when both values
+   * are available.
+   */
   SetLowDetailModel(model) {
     SetProxyObject(this.lowDetailProxy, model);
   }
+
+  /**
+   * Updates unselected proxy lifetimes on acceptable frame times while keeping
+   * the selected model resident.
+   */
   UnloadLodIfNeeded(time, deltaTime) {
     if (!this.#allowLodSelection || Number(deltaTime) > UNLOAD_MAX_FRAME_TIME) {
       return false;
@@ -88,21 +120,42 @@ class Tr2SkinnedObjectLod {
     // older header comment describing a possible true result.
     return false;
   }
+
+  /**
+   * Overrides the selected whole-model detail index used by proxy lifecycle and
+   * capability queries.
+   */
   SetCurrentLod(lod) {
     this.#currentLod = lod;
   }
+
+  /** Returns the selected whole-model detail index, or -1 before selection. */
   GetCurrentLod() {
     return this.#currentLod;
   }
+
+  /** Reports whether at least one detail proxy permits whole-model selection. */
   HaveLodSetup() {
     return this.#allowLodSelection;
   }
+
+  /** Allows shadow casting without selection or only for the high-detail model. */
   IsCastingShadow() {
     return !this.#allowLodSelection || this.#currentLod === 0;
   }
+
+  /**
+   * Allows cloth simulation when selection is disabled or the current detail
+   * index is within the requested maximum.
+   */
   IsSimulatingCloth(maxClothLod) {
     return !this.#allowLodSelection || this.#currentLod <= maxClothLod;
   }
+
+  /**
+   * Installs a changed model into the selected proxy, falling through to a lower
+   * proxy when it is absent.
+   */
   OnModelChanged(model) {
     if (!model) {
       return;

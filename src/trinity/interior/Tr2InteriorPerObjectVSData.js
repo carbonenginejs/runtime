@@ -7,7 +7,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec2 } from "@carbonenginejs/runtime-utils/vec2";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 
-/** Tr2InteriorPerObjectVSData (interior) - generated from schema shapeHash 31167b80.... */
+/** Per-object interior vertex-stage data containing world and UV transforms. */
 @type.define({ className: "Tr2InteriorPerObjectVSData", family: "interior" })
 export class Tr2InteriorPerObjectVSData extends CjsModel
 {

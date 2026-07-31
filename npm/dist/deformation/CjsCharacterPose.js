@@ -3,6 +3,8 @@ import { type, io } from '@carbonenginejs/runtime-utils/schema';
 import { CjsCharacterNode as _CjsCharacterNode } from '../CjsCharacterNode.js';
 
 let _initClass, _init_id, _init_extra_id, _init_name, _init_extra_name, _init_bones, _init_extra_bones;
+
+/** Named character pose composed of authored per-bone transform values. */
 let _CjsCharacterPose;
 class CjsCharacterPose extends _CjsCharacterNode {
   static {

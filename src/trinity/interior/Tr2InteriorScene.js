@@ -6,7 +6,10 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 
-/** Tr2InteriorScene (interior) - generated from schema shapeHash 3a5a36e9.... */
+/**
+ * Interior-scene state record for authored dynamics, lights, environment, fog,
+ * sun, shadows, and diagnostics.
+ */
 @type.define({ className: "Tr2InteriorScene", family: "interior" })
 export class Tr2InteriorScene extends CjsModel
 {

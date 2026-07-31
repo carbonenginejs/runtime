@@ -8,7 +8,10 @@ import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { CjsCharacterRigBinding } from "../../controls/CjsCharacterRigBinding.js";
 import { Tr2SkinnedObjectLod } from "./Tr2SkinnedObjectLod.js";
 
-/** Tr2SkinnedObject (trinityCore) - generated from schema shapeHash ad7ba330.... */
+/**
+ * Skinned character object managing whole-model LOD selection and an immediate
+ * CPU skinning palette.
+ */
 @type.define({ className: "Tr2SkinnedObject", family: "trinityCore" })
 export class Tr2SkinnedObject extends CjsModel
 {
@@ -245,6 +248,10 @@ export class Tr2SkinnedObject extends CjsModel
     }
   }
 
+  /**
+   * Copies changed public proxy references into the native LOD helper and
+   * repopulates its selection state.
+   */
   #SyncLodProxies()
   {
     const changed = this.#highDetailProxy !== this.highDetailModel

@@ -145,6 +145,10 @@ export class CjsCharacterLibrary extends CjsCharacterNode
         };
     }
 
+    /**
+     * Creates an empty indexed library or hydrates and indexes the supplied
+     * prepared data.
+     */
     constructor(data = null)
     {
         super();

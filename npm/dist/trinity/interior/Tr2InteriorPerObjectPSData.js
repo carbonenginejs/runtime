@@ -7,7 +7,10 @@ import { Tr2InteriorPerObjectLightData as _Tr2InteriorPerObject$1 } from './Tr2I
 
 let _initProto, _initClass, _init_lightCount, _init_extra_lightCount, _init_padding, _init_extra_padding, _init_pointLights, _init_extra_pointLights, _init_shadowCaster, _init_extra_shadowCaster, _init_shadowCaster2, _init_extra_shadowCaster2, _init_spotLights, _init_extra_spotLights;
 
-/** Tr2InteriorPerObjectPSData (interior) - generated from schema shapeHash 774698be.... */
+/**
+ * Per-object interior pixel-stage data holding fixed-capacity light and shadow
+ * inputs.
+ */
 let _Tr2InteriorPerObject;
 class Tr2InteriorPerObjectPSData extends CjsModel {
   static {
@@ -47,6 +50,11 @@ class Tr2InteriorPerObjectPSData extends CjsModel {
   spotLights = (_init_extra_shadowCaster2(this), _init_spotLights(this, Array.from({
     length: 4
   }, () => mat4.create())));
+
+  /**
+   * Imports values while normalizing padding, ten point lights, and four
+   * spot-light matrices to Carbon cardinality.
+   */
   SetValues(values = {}, options = {}) {
     const normalized = {
       ...values

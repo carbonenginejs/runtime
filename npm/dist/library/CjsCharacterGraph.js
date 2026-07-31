@@ -34,6 +34,11 @@ class CjsCharacterGraph extends _CjsCharacterNode {
   complete = (_init_extra_resolutionIssues(this), _init_complete(this, true));
   metadata = (_init_extra_complete(this), _init_metadata(this, {}));
   state = (_init_extra_metadata(this), _init_state(this, {}));
+
+  /**
+   * Stores one finite named morph weight through the model change pipeline and
+   * returns this graph.
+   */
   SetMorph(name, value, options = {}) {
     if (typeof name !== "string" || !name.trim()) {
       throw new TypeError("Character morph name must be a non-empty string");
@@ -49,6 +54,11 @@ class CjsCharacterGraph extends _CjsCharacterNode {
     }, options);
     return this;
   }
+
+  /**
+   * Stores the desired pose name through the model change pipeline and returns
+   * this graph.
+   */
   SetActivePose(name, options = {}) {
     if (typeof name !== "string") {
       throw new TypeError("Character active pose must be a string");
@@ -58,6 +68,11 @@ class CjsCharacterGraph extends _CjsCharacterNode {
     }, options);
     return this;
   }
+
+  /**
+   * Returns a detached dependency list, optionally filtered to required
+   * resources.
+   */
   GetDependencies({
     requiredOnly = false
   } = {}) {

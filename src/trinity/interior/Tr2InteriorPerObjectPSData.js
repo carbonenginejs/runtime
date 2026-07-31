@@ -7,7 +7,10 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { Tr2InteriorPerObjectLightData } from "./Tr2InteriorPerObjectLightData.js";
 
-/** Tr2InteriorPerObjectPSData (interior) - generated from schema shapeHash 774698be.... */
+/**
+ * Per-object interior pixel-stage data holding fixed-capacity light and shadow
+ * inputs.
+ */
 @type.define({ className: "Tr2InteriorPerObjectPSData", family: "interior" })
 export class Tr2InteriorPerObjectPSData extends CjsModel
 {
@@ -39,6 +42,10 @@ export class Tr2InteriorPerObjectPSData extends CjsModel
   @type.array("mat4")
   spotLights = Array.from({ length: 4 }, () => mat4.create());
 
+  /**
+   * Imports values while normalizing padding, ten point lights, and four
+   * spot-light matrices to Carbon cardinality.
+   */
   @impl.custom
   @impl.reason("Preserves Carbon fixed-array cardinalities when importing plain JS values.")
   SetValues(values = {}, options = {})

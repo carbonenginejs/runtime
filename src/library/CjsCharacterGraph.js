@@ -69,6 +69,10 @@ export class CjsCharacterGraph extends CjsCharacterNode
     @io.persist
     state = {};
 
+    /**
+     * Stores one finite named morph weight through the model change pipeline and
+     * returns this graph.
+     */
     SetMorph(name, value, options = {})
     {
         if (typeof name !== "string" || !name.trim())
@@ -89,6 +93,10 @@ export class CjsCharacterGraph extends CjsCharacterNode
         return this;
     }
 
+    /**
+     * Stores the desired pose name through the model change pipeline and returns
+     * this graph.
+     */
     SetActivePose(name, options = {})
     {
         if (typeof name !== "string")
@@ -100,6 +108,10 @@ export class CjsCharacterGraph extends CjsCharacterNode
         return this;
     }
 
+    /**
+     * Returns a detached dependency list, optionally filtered to required
+     * resources.
+     */
     GetDependencies({ requiredOnly = false } = {})
     {
         return requiredOnly

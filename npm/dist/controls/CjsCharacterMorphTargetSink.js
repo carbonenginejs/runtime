@@ -2,6 +2,11 @@
 class CjsCharacterMorphTargetSink {
   #baselines = new Map();
   #targets;
+
+  /**
+   * Creates a sink over structural morph targets after validating their query
+   * and update surface.
+   */
   constructor(targets) {
     const values = Array.isArray(targets) ? targets : [targets];
     if (!values.length) {
@@ -103,6 +108,11 @@ class CjsCharacterMorphTargetSink {
     }
     return changed;
   }
+
+  /**
+   * Returns targets exposing one exact morph name and rejects duplicate
+   * declarations.
+   */
   #FindTargets(name) {
     return this.#targets.filter((target, index) => {
       const names = target.GetMorphTargetNames();

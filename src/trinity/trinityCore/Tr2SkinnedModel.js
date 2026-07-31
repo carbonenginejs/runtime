@@ -5,7 +5,10 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 
-/** Tr2SkinnedModel (trinityCore) - generated from schema shapeHash 026a62f4.... */
+/**
+ * Skinned character model selecting a named skeleton from supplied geometry
+ * and coordinating mesh-to-rig bindings.
+ */
 @type.define({ className: "Tr2SkinnedModel", family: "trinityCore" })
 export class Tr2SkinnedModel extends Tr2Model
 {

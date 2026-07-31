@@ -3,6 +3,10 @@ import { vec2 } from "@carbonenginejs/runtime-utils/vec2";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsCharacterNode } from "../CjsCharacterNode.js";
 
+/**
+ * Authored texture projection for a character, including texture and mask
+ * paths, head/body targeting, layer, mirroring, and spatial parameters.
+ */
 @type.define({ className: "CjsCharacterProjection", family: "character" })
 export class CjsCharacterProjection extends CjsCharacterNode
 {

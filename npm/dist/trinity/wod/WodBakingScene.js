@@ -4,7 +4,10 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_visualizeMethod, _init_extra_visualizeMethod, _init_Avatar, _init_extra_Avatar;
 
-/** WodBakingScene (wod) - generated from schema shapeHash 3b77adad.... */
+/**
+ * Baking-scene record pairing a skinned avatar with a diagnostic visualization
+ * mode.
+ */
 let _WodBakingScene;
 new class extends _identity {
   static [class WodBakingScene extends CjsModel {

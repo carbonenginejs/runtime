@@ -5,6 +5,11 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { CjsCharacterNode as _CjsCharacterNode } from '../CjsCharacterNode.js';
 
 let _initClass, _init_id, _init_extra_id, _init_label, _init_extra_label, _init_mode, _init_extra_mode, _init_angleRotation, _init_extra_angleRotation, _init_aspectRatio, _init_extra_aspectRatio, _init_azimuth, _init_extra_azimuth, _init_texturePath, _init_extra_texturePath, _init_maskPath, _init_extra_maskPath, _init_headEnabled, _init_extra_headEnabled, _init_bodyEnabled, _init_extra_bodyEnabled, _init_flipX, _init_extra_flipX, _init_flipY, _init_extra_flipY, _init_height, _init_extra_height, _init_incline, _init_extra_incline, _init_layer, _init_extra_layer, _init_maskPathEnabled, _init_extra_maskPathEnabled, _init_offset, _init_extra_offset, _init_pitch, _init_extra_pitch, _init_planarBeta, _init_extra_planarBeta, _init_planarScale, _init_extra_planarScale, _init_position, _init_extra_position, _init_radius, _init_extra_radius, _init_roll, _init_extra_roll, _init_scale, _init_extra_scale, _init_yaw, _init_extra_yaw;
+
+/**
+ * Authored texture projection for a character, including texture and mask
+ * paths, head/body targeting, layer, mirroring, and spatial parameters.
+ */
 let _CjsCharacterProjecti;
 class CjsCharacterProjection extends _CjsCharacterNode {
   static {

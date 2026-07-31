@@ -4,7 +4,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initStatic, _initClass;
 
-/** Tr2IntKeyGenerator (interior) - generated from schema shapeHash 22c2dcb4.... */
+/** Stable-sort policy for interior render batches. */
 let _Tr2IntKeyGenerator;
 new class extends _identity {
   static [class Tr2IntKeyGenerator extends CjsModel {

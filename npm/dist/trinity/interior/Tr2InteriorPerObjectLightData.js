@@ -6,7 +6,7 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
 let _initClass, _init_position, _init_extra_position, _init_radius, _init_extra_radius, _init_color, _init_extra_color, _init_pointLightFalloff, _init_extra_pointLightFalloff, _init_shadow0Influence, _init_extra_shadow0Influence, _init_shadow1Influence, _init_extra_shadow1Influence, _init_coneCosAlphaOuter, _init_extra_coneCosAlphaOuter, _init_coneCosAlphaInner, _init_extra_coneCosAlphaInner, _init_spotDirection, _init_extra_spotDirection, _init_unused, _init_extra_unused, _init_boxTransformRow, _init_extra_boxTransformRow, _init_boxTransformRow2, _init_extra_boxTransformRow2;
 
-/** Tr2InteriorPerObjectLightData (interior) - generated from schema shapeHash 2cecaf9d.... */
+/** Packed per-object interior light record for shader-facing data. */
 let _Tr2InteriorPerObject;
 class Tr2InteriorPerObjectLightData extends CjsModel {
   static {

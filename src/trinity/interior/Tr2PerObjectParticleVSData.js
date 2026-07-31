@@ -5,7 +5,10 @@ import { type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 
-/** Tr2PerObjectParticleVSData (interior) - generated from schema shapeHash b787b555.... */
+/**
+ * Per-object particle vertex-stage data containing world and inverse-view
+ * matrices.
+ */
 @type.define({ className: "Tr2PerObjectParticleVSData", family: "interior" })
 export class Tr2PerObjectParticleVSData extends CjsModel
 {

@@ -5,7 +5,10 @@ import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 
 let _initClass, _init_WorldMat, _init_extra_WorldMat, _init_InvViewMat, _init_extra_InvViewMat;
 
-/** Tr2PerObjectParticleVSData (interior) - generated from schema shapeHash b787b555.... */
+/**
+ * Per-object particle vertex-stage data containing world and inverse-view
+ * matrices.
+ */
 let _Tr2PerObjectParticle;
 class Tr2PerObjectParticleVSData extends CjsModel {
   static {
