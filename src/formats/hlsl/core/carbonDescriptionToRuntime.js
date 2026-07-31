@@ -462,6 +462,48 @@ function applyStageData(input, data, stageType, context)
         .map((record) => [ record.registerIndex, mapUavRecord(record) ]));
 
     input.annotation = (data.annotations ?? []).map(mapAnnotationRecord);
+
+    // Runs last, because it needs the sampler map. See the function's own note
+    // for why it exists.
+    for (const constant of input.constants) patchSamplerHeapIndexConstant(input, constant);
+}
+
+/**
+ * Grows the constant block to cover a sampler heap-index constant.
+ *
+ * Reproduces `HlslEffectDescription.js:773-791`, which the source reader applies
+ * to every constant once samplers are known: a `UINT`/dimension-1 constant whose
+ * name matches a sampler is a heap index, and the declared constant-value size
+ * can be smaller than the offset it sits at. The reader extends the block rather
+ * than reading out of bounds.
+ *
+ * **This is derived, not stored, and missing it is not cosmetic.** `packMaterial`
+ * allocates `new ArrayBuffer(constantValueSize)`, so an unpatched size
+ * under-allocates and the write runs past the end of the buffer the shader
+ * expects. It appears only on dx12 -- the whole dx11 corpus is unaffected --
+ * which is exactly why the analysis diff had to cover dx12 before this was
+ * trustworthy. On `quaddetailv5.sm_depth` the declared 608 becomes 620.
+ *
+ * @param {object} input Runtime stage input, with samplers already populated.
+ * @param {object} constant Runtime constant record.
+ */
+function patchSamplerHeapIndexConstant(input, constant)
+{
+    if (constant.type !== HlslEffectConstant.Type.UINT || constant.dimension !== 1) return;
+
+    for (const sampler of input.samplers.values())
+    {
+        if (sampler.name !== constant.name) continue;
+        const neededSize = constant.offset + constant.size;
+        if (neededSize > input.m_constantValueSize)
+        {
+            const next = new Uint8Array(neededSize);
+            next.set(input.constantValues);
+            input.constantValues = next;
+            input.m_constantValueSize = neededSize;
+        }
+        break;
+    }
 }
 
 /**
@@ -652,19 +694,31 @@ export function runtimeDescriptionFromCarbon(description, options = {})
     {
         const technique = new HlslEffectTechnique();
         technique.name = text(record.name);
-        // Raytracing libraries are carried on the wire and are not rebuilt here:
-        // nothing in the binding manifest or the analysis reads them, and no
-        // shipped WebGPU or WebGL effect declares one. Stated as an error rather
-        // than a silent drop, so the limitation announces itself the first time
-        // it stops being true instead of quietly producing a description that is
-        // missing a whole section.
-        if ((record.libraries ?? []).length)
-        {
-            throw new CjsFormatReadError(
-                "Carbon technique declares raytracing libraries, which the runtime adapter does not rebuild",
-                { technique: technique.name, libraryCount: record.libraries.length }
-            );
-        }
+        // Raytracing libraries are carried on the wire and are deliberately NOT
+        // rebuilt here. `libraries` stays empty.
+        //
+        // This began as a throw, on the reasoning that a silent drop hides a
+        // whole missing section and that no shipped effect declared one. The
+        // first half still stands; the second half was wrong, and the way it was
+        // wrong is the useful part. The dx11 corpus has no libraries at all —
+        // 1611 files, zero — so the refusal never fired. **Every dx12 body of
+        // `unpacked_quadv5.sm_hi` carries one**: technique `RtShadow`, a
+        // `ClosestHit` export, DXR raytracing shadows that dx11 has no analogue
+        // for. All 288 distinct bodies. So the refusal blocked every dx12
+        // package for a section nothing downstream reads.
+        //
+        // Dropping them is safe for a *specific, checked* reason rather than a
+        // hopeful one: `buildEffectAnalysis` reaches libraries through no path.
+        // `buildPasses` walks `technique.passes`; `buildStages` walks
+        // `pass.stageInputs`; neither touches `technique.libraries`. The source
+        // reader's heap-view pass does visit libraries, but only to populate
+        // `library.globalResourceSetDesc`, which the manifest never reads.
+        //
+        // That claim is measured, not argued: the corpus analysis diff compares
+        // source-derived against container-derived analysis over dx12 as well as
+        // dx11, so every one of those library-bearing bodies is proof that the
+        // drop is invisible to this view. If the analysis ever grows a library
+        // section, that test goes red rather than this comment going stale.
         technique.passes = (record.passes ?? []).map((pass) => buildPass(pass, context));
         for (const pass of technique.passes) technique.shaderTypeMask |= pass.shaderTypeMask;
         effectDescription.techniques.push(technique);

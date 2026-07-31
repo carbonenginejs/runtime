@@ -4,10 +4,12 @@ import { normalizeBytecodeBytes, readEffectAnalysis } from "./effectAnalysis.js"
 import { CewgpuContainer, looksLikeCewgpuContainer } from "./cewgpu/CewgpuContainer.js";
 import { validateEffectContainer } from "./cewgpu/validateContainer.js";
 import {
-    defaultPermutationIndex,
     deriveAnalysis,
+    deriveBackendBodySet,
     deriveInfo,
-    deriveWgsl
+    deriveMetadata,
+    deriveWgsl,
+    resolvedPermutationIndex
 } from "./cewgpu/containerViews.js";
 import { WebgpuReadError } from "./errors.js";
 import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
@@ -246,7 +248,7 @@ export function readRaw(input, values)
 export function packageToJson(container, options = {})
 {
     const source = options.source || container.sourcePath || "memory";
-    const permutationIndex = options.permutationIndex ?? defaultPermutationIndex(container);
+    const permutationIndex = options.permutationIndex ?? resolvedPermutationIndex(container);
     const analysis = deriveAnalysis(container, { source, permutationIndex });
     const wgsl = deriveWgsl(container, { permutationIndex });
 
@@ -255,9 +257,11 @@ export function packageToJson(container, options = {})
         version: container.carbon.version,
         sourcePath: source,
         info: deriveInfo(container, { source }),
+        metadata: deriveMetadata(container, { source, permutationIndex }),
         permutationGraph: container.permutationGraph,
         analysis,
         wgsl,
+        backendBodySet: deriveBackendBodySet(container),
         stages: analysis.stages ?? [],
         shaders: wgsl.shaders ?? [],
         layouts: wgsl.layouts ?? []
@@ -291,7 +295,7 @@ export function inspectWithValues(input, values)
 {
     const container = readRaw(input, values);
     const graph = container.permutationGraph;
-    const permutationIndex = defaultPermutationIndex(container);
+    const permutationIndex = resolvedPermutationIndex(container);
     const analysis = deriveAnalysis(container, { source: values.source, permutationIndex });
     const wgsl = deriveWgsl(container, { permutationIndex });
 

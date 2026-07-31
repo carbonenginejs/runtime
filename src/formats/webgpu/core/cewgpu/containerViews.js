@@ -4,6 +4,7 @@ import { hlslShaderStageName } from "../../../hlsl/core/tr2/HlslRenderContextEnu
 import { runtimeDescriptionFromCarbon } from "../../../hlsl/core/carbonDescriptionToRuntime.js";
 import { buildEffectAnalysis } from "../helpers.js";
 import { WGSL_SET_VERSION } from "../wgsl/buildWgslSet.js";
+import { sha256Utf8 } from "../../../../format/effect/sha256.js";
 
 /**
  * Derived compatibility views over a container.
@@ -167,6 +168,183 @@ export function deriveWgsl(container, options = {})
         shaders,
         layouts,
         ...(resourceTransforms.length ? { resourceTransforms } : {})
+    };
+}
+
+/**
+ * Derives the `WGSB` body-set view the chunk package used to store.
+ *
+ * `engine-webgpu` resolves a permutation's translated programs through this,
+ * which is part of the recorded layering defect -- it should read the shader,
+ * not a package document. The view keeps that path working unchanged while the
+ * wire format moves underneath it, and goes away with the cleanup.
+ *
+ * Nothing here is stored. A body's status is whether its stages carry programs,
+ * its passes are the record tree's passes, and a pass unit is that pass's
+ * shaders and layouts. Bodies are keyed by distinct stored offset, which is
+ * exactly what Carbon's alias dedupe produces.
+ *
+ * @param {object} container Loaded container.
+ * @returns {object} Body-set document.
+ */
+export function deriveBackendBodySet(container)
+{
+    const bodyKeys = container.bodyKeyByOffset;
+    const passUnits = [];
+    const bodies = [];
+    const seen = new Set();
+
+    for (let index = 0; index < container.carbon.records.length; index += 1)
+    {
+        const offset = container.carbon.records[index].offset;
+        if (seen.has(offset)) continue;
+        seen.add(offset);
+
+        const bodyKey = bodyKeys.get(offset);
+        const body = container.GetBackendBodyPrograms(index);
+
+        if (!body || body.status !== "translated")
+        {
+            bodies.push({
+                bodyKey,
+                representativePermutationIndex: index,
+                status: "unsupported",
+                error: body?.error ?? "body carries no translated programs",
+                passCount: 0,
+                passes: []
+            });
+            continue;
+        }
+
+        const passes = [];
+        for (const pass of body.passes)
+        {
+            const unit = {
+                key: `unit${passUnits.length}`,
+                // Hashed from the unit's own content. The chunk body set stored
+                // this digest to detect a unit drifting from what referenced it;
+                // derived from the content it identifies, it cannot.
+                sha256: sha256Utf8(`${JSON.stringify({
+                    shaders: pass.shaders,
+                    layouts: pass.layouts,
+                    resourceTransforms: pass.resourceTransforms ?? []
+                })}
+`),
+                wgslSetVersion: WGSL_SET_VERSION,
+                shaders: pass.shaders,
+                layouts: pass.layouts,
+                ...(pass.resourceTransforms?.length
+                    ? { resourceTransforms: pass.resourceTransforms }
+                    : {})
+            };
+            passUnits.push(unit);
+            passes.push({ passKey: pass.passKey, unitKey: unit.key });
+        }
+
+        bodies.push({
+            bodyKey,
+            representativePermutationIndex: index,
+            status: "translated",
+            error: null,
+            passCount: passes.length,
+            passes
+        });
+    }
+
+    return {
+        format: "CJS_WGSL_BODY_SET",
+        formatVersion: 1,
+        bodyCount: bodies.length,
+        translatedBodyCount: bodies.filter((body) => body.status === "translated").length,
+        passUnitCount: passUnits.length,
+        passUnits,
+        bodies
+    };
+}
+
+/**
+ * Finds the permutation a package resolves to.
+ *
+ * A "selected" package is not a different format -- the container always carries
+ * every permutation. What makes it selected is that exactly one body was
+ * translated, so the resolved permutation is the first one whose body carries
+ * programs. When every body is translated, there is nothing to single out and
+ * Carbon's own default applies.
+ *
+ * @param {object} container Loaded container.
+ * @returns {number} Permutation index.
+ */
+export function resolvedPermutationIndex(container)
+{
+    const translated = [];
+    const seen = new Set();
+
+    for (let index = 0; index < container.carbon.records.length; index += 1)
+    {
+        const offset = container.carbon.records[index].offset;
+        if (seen.has(offset)) continue;
+        seen.add(offset);
+
+        const body = container.GetBackendBodyPrograms(index);
+        if (body?.status === "translated") translated.push(index);
+        if (translated.length > 1) return defaultPermutationIndex(container);
+    }
+
+    return translated.length === 1 ? translated[0] : defaultPermutationIndex(container);
+}
+
+/**
+ * Derives the `META`-shaped view the chunk package used to store.
+ *
+ * Every field here is recovered from the records rather than carried:
+ * `selectedOptions` from the resolved permutation's option indices, and
+ * `wgslSelection` from which passes and stages actually hold programs. Build-time
+ * *policy* -- `bodyMode`, `sourceIdentity`, `completeness` -- is deliberately not
+ * here: it describes how the artifact was produced, not what it is, and Carbon
+ * stores none of it.
+ *
+ * @param {object} container Loaded container.
+ * @param {object} [options] View options.
+ * @param {string} [options.source] Source label.
+ * @param {number} [options.permutationIndex] Permutation to describe.
+ * @returns {object} Metadata document.
+ */
+export function deriveMetadata(container, options = {})
+{
+    const source = options.source || container.sourcePath || "memory";
+    const permutationIndex = options.permutationIndex ?? resolvedPermutationIndex(container);
+    const variant = container.permutationGraph.variants[permutationIndex];
+    const axes = container.carbon.permutations;
+
+    const selectedOptions = axes.map((axis, axisIndex) => ({
+        name: axis.name.value,
+        value: axis.options[variant?.optionIndices?.[axisIndex] ?? axis.defaultOption]?.value ?? null
+    }));
+
+    const body = container.GetBackendBodyPrograms(permutationIndex);
+    const selectedStageKeys = (body?.passes ?? [])
+        .flatMap((pass) => pass.shaders.map((shader) => shader.key));
+    const passKeys = (body?.passes ?? []).map((pass) => pass.passKey);
+
+    return {
+        effectName: source,
+        sourcePath: source,
+        bodyIndex: permutationIndex,
+        selectedOptions,
+        ...(passKeys.length === 1
+            ? {
+                wgslSelection: {
+                    mode: "explicit",
+                    completePasses: true,
+                    techniqueName: passKeys[0].slice(0, passKeys[0].lastIndexOf(".pass")),
+                    passIndex: Number(/\.pass([0-9]+)$/u.exec(passKeys[0])?.[1] ?? 0),
+                    requestedStageNames: Array.from(new Set(
+                        (body?.passes ?? []).flatMap((pass) => pass.shaders.map((shader) => shader.stageName))
+                    )),
+                    selectedStageKeys
+                }
+            }
+            : {})
     };
 }
 

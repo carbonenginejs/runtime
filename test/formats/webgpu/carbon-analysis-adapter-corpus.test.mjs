@@ -46,8 +46,20 @@ import { runtimeDescriptionFromCarbon } from "../../../src/formats/hlsl/core/car
  * total diff makes the harness's own assumptions load-bearing, and a harness
  * artefact reads precisely like a mapping bug.
  *
- * Measured at build 3444265 over `effect.dx11`: **1611 files, 26,166 permutation
- * bodies, 191,737 stages, zero divergences and zero errors.**
+ * Measured at build 3444265 over `effect.dx11` **and** `effect.dx12`: **3222
+ * files, 52,332 permutation bodies, 383,336 stages, zero divergences and zero
+ * errors.**
+ *
+ * dx12 was added because dx11 alone was not enough, and it proved that twice:
+ *
+ * - Every dx12 body of `unpacked_quadv5.sm_hi` carries an `RtShadow` raytracing
+ *   library. dx11 has none anywhere, so the adapter's original refusal to
+ *   rebuild libraries never fired there and would have blocked every dx12
+ *   package. These bodies are now the evidence that dropping libraries is
+ *   invisible to the analysis.
+ * - `patchSamplerHeapIndexConstant` grows a stage's constant-value size when a
+ *   heap-index constant sits past the declared end. It fires only on dx12, and
+ *   missing it under-allocates the buffer `packMaterial` writes into.
  *
  * The zero is a real measurement rather than a check that cannot fail. Earlier
  * revisions of this same sweep reported 651 and then 48 diverging files, and
@@ -55,9 +67,8 @@ import { runtimeDescriptionFromCarbon } from "../../../src/formats/hlsl/core/car
  * three-stage name table where Carbon has six, then the two harness artefacts
  * above. It demonstrated its own failure twice before reaching zero.
  *
- * Zero errors also settles a question the fixture could not: **no shipped dx11
- * effect declares a raytracing library**, so the adapter's refusal to rebuild
- * them costs nothing today.
+ * Zero errors also settles a question the fixture could not: every shipped body
+ * that reaches the adapter rebuilds, including the library-bearing dx12 ones.
  *
  *   CARBON_EFFECT_CORPUS_DIR=path/to/effects npm test
  *

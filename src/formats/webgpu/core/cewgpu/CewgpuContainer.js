@@ -3,6 +3,8 @@ import {
     readBackendBlock
 } from "../../../../format/carbonEffect/index.js";
 import { WGSL_ENTRY_POINT } from "../buildCarbonEffectContainer.js";
+import { sha256Bytes } from "../../../../format/effect/sha256.js";
+import { deriveBackendBodySet } from "./containerViews.js";
 
 /**
  * Reader for the WebGPU effect container.
@@ -56,6 +58,29 @@ export function looksLikeCewgpuContainer(bytes)
 }
 
 /**
+ * Decomposes a permutation index into per-axis option indices.
+ *
+ * The inverse of Carbon's own selection arithmetic: it accumulates
+ * `value * multiplier` over the axes in declaration order, multiplying the
+ * running radix by each axis's option count.
+ *
+ * @param {object[]} axes Permutation axis records.
+ * @param {number} permutationIndex Permutation index.
+ * @returns {number[]} Option index per axis.
+ */
+function optionIndicesFor(axes, permutationIndex)
+{
+    let remaining = permutationIndex;
+    return axes.map((axis) =>
+    {
+        const radix = axis.options.length || 1;
+        const value = remaining % radix;
+        remaining = Math.floor(remaining / radix);
+        return value;
+    });
+}
+
+/**
  * Reader over one WebGPU effect container.
  */
 export class CewgpuContainer
@@ -68,6 +93,7 @@ export class CewgpuContainer
         this.readError = null;
         this.sourcePath = "";
         this.containerVersion = 0;
+        this.bytes = null;
         this.carbon = null;
         this._descriptions = new Map();
         this._bodyKeyByOffset = null;
@@ -96,6 +122,7 @@ export class CewgpuContainer
                     ? new Uint8Array(source)
                     : new Uint8Array(source.buffer, source.byteOffset, source.byteLength));
 
+            this.bytes = bytes;
             this.carbon = new CjsCarbonEffectReader(bytes, {
                 source: this.sourcePath || "CEWGPU"
             });
@@ -181,13 +208,34 @@ export class CewgpuContainer
                 key,
                 offset,
                 byteLength: record.size,
+                // Hashed from the stored description blob. The chunk graph
+                // carried a digest per body; here it is a function of the bytes
+                // it identifies, so it cannot disagree with them. It is also what
+                // Tr2EffectRes uses to prove bodies are distinct -- aliased rows
+                // share one blob and therefore one digest, which is exactly the
+                // identity the offset table already expresses.
+                sha256: sha256Bytes(this.bytes.subarray(offset, offset + record.size)),
                 permutationCount: this.carbon.records
                     .filter((entry) => entry.offset === offset).length
             }));
         }
 
         return Object.freeze({
-            axes: Object.freeze(this.carbon.permutations.map((axis) => Object.freeze({
+            // The envelope the chunk `PGRF` document carried. Not provenance:
+            // `Tr2EffectRes.SetPayload` validates it before accepting a payload
+            // at all, so a graph without it is refused outright.
+            format: "CJS_EFFECT_PERMUTATION_GRAPH",
+            formatVersion: 1,
+            // Fixed by construction rather than recorded. A container always
+            // carries every permutation, the offset table gives body identity
+            // only, and source reflection is not a separate document.
+            coverage: Object.freeze({
+                permutations: "complete",
+                bodies: "identity-only",
+                reflection: "absent"
+            }),
+            axes: Object.freeze(this.carbon.permutations.map((axis, index) => Object.freeze({
+                index,
                 name: axis.name.value,
                 defaultOption: axis.defaultOption,
                 description: axis.description.value,
@@ -197,7 +245,21 @@ export class CewgpuContainer
             variants: Object.freeze(this.carbon.records.map((record, permutationIndex) =>
                 Object.freeze({
                     permutationIndex,
-                    bodyKey: bodyKeys.get(record.offset)
+                    bodyKey: bodyKeys.get(record.offset),
+                    // Mixed-radix decomposition of the index over the axes, which
+                    // is the inverse of the sum Carbon's GetShader() builds when
+                    // it walks options in declaration order.
+                    optionIndices: Object.freeze(
+                        optionIndicesFor(this.carbon.permutations, permutationIndex)
+                    ),
+                    // The offset-table row itself. Aliased permutations share a
+                    // row, so they share a source record -- which is how the
+                    // consumer proves that two permutations resolving to one body
+                    // really do point at the same bytes.
+                    sourceRecord: Object.freeze({
+                        offset: record.offset,
+                        byteLength: record.size
+                    })
                 }))),
             bodies: Object.freeze(bodies)
         });
@@ -286,6 +348,20 @@ export class CewgpuContainer
             error: translated ? null : "body carries no translated programs",
             passes: Object.freeze(passes)
         });
+    }
+
+    /**
+     * Derives the body-set view, for consumers holding the raw container.
+     *
+     * `packageToJson` exposes the same document. A consumer taking the raw emit
+     * reads it here instead, which is why this is a getter on the container
+     * rather than only a field in the JSON projection.
+     *
+     * @returns {object} Body-set document.
+     */
+    get backendBodySet()
+    {
+        return deriveBackendBodySet(this);
     }
 
     /**
