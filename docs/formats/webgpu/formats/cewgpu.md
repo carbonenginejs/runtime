@@ -456,10 +456,11 @@ The set builder fails closed unless every recipe:
 - matches the binding's identity, view dimension, and layer count; and
 - removes only the later input scopes from that recipe's owning pass.
 
-WGSL-set version 3 is currently a compiler/module contract. The committed
-`engine-webgpu` package reader accepts versions 1 and 2 and rejects version 3,
-so a runtime must add explicit recipe realization before it can consume these
-packages. Raw emitted modules may still be validated independently.
+WGSL-set version 3 is a compiler/module and engine-consumer contract. The
+committed `engine-webgpu` reader accepts versions 1, 2, and 3 and explicitly
+realizes the version-1 `texture-2d-array` recipe described above. Unsupported
+recipe kinds or versions fail closed. Raw emitted modules may still be
+validated independently of resource realization.
 
 ## Encoding values
 
