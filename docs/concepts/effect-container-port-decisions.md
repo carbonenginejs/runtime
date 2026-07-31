@@ -148,6 +148,24 @@ Two consumers depend on it, and neither parses package bytes:
   `undefined`, and `packMaterial` guards with `Array.isArray(constants) &&
   constants.length`. The silent branch is specifically `hasLocalConstants:
   undefined`, which is what a field-copying adapter produces.
+
+  **Checked before writing any adapter: there is no wire-format gap.** Every key
+  `metadata.toJSON()` emits for a texture is carried in the container record, so
+  the passthrough obligation is satisfiable and this stays a 150-line mechanical
+  job rather than an emitter change. But the two shapes are not the same shape,
+  and the differences are exactly what a copying adapter gets wrong:
+
+  | `metadata.toJSON()` | container record | conversion |
+  |---|---|---|
+  | `name: "NormalMap"` | `name: {offset, value}` | unwrap the string reference |
+  | `arrayElements` | `count` | **renamed** |
+  | `isSRGB: true` | `isSRGB: 0` | integer to boolean |
+  | `type`, `isAutoregister` | same | direct |
+
+  `arrayElements` is the sharp one. The container calls it `count`, so copying
+  fields yields `arrayElements: undefined` — read by the engine at
+  `packageHelpers.js:869`, silently. Verify the same way for samplers and UAVs
+  before trusting the mapping; only textures were checked here.
 - `tools-core`'s `CjsToolShaderBuilder` calls `format.inspect(outputBytes)` and
   stores the result as `packageInspection` in its manifest, and asserts the format
   exposes both `buildEffect` and `inspect`. So `inspect`'s *shape* is a contract,
