@@ -121,11 +121,33 @@ Two consumers depend on it, and neither parses package bytes:
   catches it. Assert it on a `Main.pass0.pixel` binding specifically, because that
   is what `findMaterialBinding` selects.
 
-  Two of those are **derived, not stored**, so the adapter reconstructs rather
-  than copies: `constantValueSize` comes from the `defaultValues` blob at
-  `HlslEffectDescription.js:381` (the container carries the blob), and
-  `hasLocalConstants` is `registerIndex === 0 && stage.constants.length > 0`
-  (`HlslEffectBindingManifest.js:385`).
+  **`carbonPayload` has two entirely different constructions, and conflating them
+  is the trap** (`HlslEffectBindingManifest.js:381-393`):
+
+  - **`constantBuffer` — fully synthesised.** All three fields are computed and
+    *nothing* is copied from `metadata`. `hasLocalConstants` is
+    `registerIndex === 0 && stage.constants.length > 0`; `constantValueSize` is
+    `stage.m_constantValueSize`, which is **already clamped** —
+    `Math.min(constantValueSize, SHADER_CONSTANTS_MAX)` at
+    `HlslEffectDescription.js:381-384`, 4096 bytes, matching
+    `CARBON_SHADER_CONSTANTS_MAX` in `carbonEffectRecords.js:57`. `packMaterial`
+    does `new ArrayBuffer(size)` with it, so an adapter that reconstructs the
+    *unclamped* size allocates the wrong buffer and writes past the layout the
+    shader expects — on any effect exceeding 4096 bytes of constants, which is
+    precisely the size a small fixture will not reach.
+  - **Every other kind — a wholesale `metadata.toJSON()`.** `type`, `isSRGB` and
+    `arrayElements` come from here. They are copies, but of an *object's
+    serialisation*, not of a field list.
+
+  So the adapter carries two obligations. On the passthrough path it must
+  reproduce whatever `metadata.toJSON()` produced, **not the handful of fields the
+  engine happens to read today** — enumerating them would pass a diff test on a
+  fixture and silently drop anything the engine starts reading later.
+
+  One thing that does fail safely: on the non-local path `constants` is `[]`, not
+  `undefined`, and `packMaterial` guards with `Array.isArray(constants) &&
+  constants.length`. The silent branch is specifically `hasLocalConstants:
+  undefined`, which is what a field-copying adapter produces.
 - `tools-core`'s `CjsToolShaderBuilder` calls `format.inspect(outputBytes)` and
   stores the result as `packageInspection` in its manifest, and asserts the format
   exposes both `buildEffect` and `inspect`. So `inspect`'s *shape* is a contract,
@@ -161,7 +183,11 @@ has always been rather than a reimplementation that can drift.
 
 Its oracle: run `buildEffectAnalysis` twice — once on `readEffectAnalysis(source)`
 as it is called today, once on the adapter's output from the container — and diff
-field for field, the way `carbon-mapping.test.js` diffs the Carbon region. Because
+the results. **Assert both `carbonPayload` constructions**: a `Main.pass0.pixel`
+`cb0` binding for the synthesised path, with all six constant-record fields, and at
+least one texture binding for the passthrough path — the latter diffed **as a whole
+object**, not field by field, since a field-list adapter looks correct exactly there.
+Because
 both sides call the same function, the diff isolates exactly one thing: whether the
 adapter reconstructs the description faithfully. That property is permanent and the
 test is worth keeping after the switchover, not a temporary scaffold.
