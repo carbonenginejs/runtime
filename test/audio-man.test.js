@@ -1028,15 +1028,25 @@ test("CjsAudioMan resolves authored switch and blend nodes before media delivery
     assert.equal(context.sources.every(source => source.started), true);
     assert.equal(
         context.gains[4].connectedTo,
-        context.gains[3],
-        "the authored 3D leaf routes through the emitter panner",
+        context.gains[5],
+        "the authored 3D leaf retains its live control gain",
     );
     assert.equal(
         context.gains[5].connectedTo,
-        context.gains[6],
-        "the 2D sibling routes through the emitter's flat gain",
+        context.gains[3],
+        "the authored 3D leaf's Stop envelope routes through the panner",
     );
-    assert.equal(context.gains[6].connectedTo, context.gains[1]);
+    assert.equal(
+        context.gains[6].connectedTo,
+        context.gains[7],
+        "the 2D sibling retains its live control gain",
+    );
+    assert.equal(
+        context.gains[7].connectedTo,
+        context.gains[8],
+        "the 2D sibling's Stop envelope routes through the flat gain",
+    );
+    assert.equal(context.gains[8].connectedTo, context.gains[1]);
 
     missingLayer = true;
     assert.equal(man.ReleaseMedia(778), 1);
@@ -1049,7 +1059,12 @@ test("CjsAudioMan resolves authored switch and blend nodes before media delivery
         "a playable blend layer survives one unavailable sibling",
     );
     assert.equal(
-        context.gains[7].connectedTo,
+        context.gains[9].connectedTo,
+        context.gains[10],
+        "the surviving layer keeps its independent Stop envelope",
+    );
+    assert.equal(
+        context.gains[10].connectedTo,
         context.gains[3],
         "the surviving layer retains its own authored spatial route",
     );

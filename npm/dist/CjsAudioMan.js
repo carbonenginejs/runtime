@@ -848,6 +848,9 @@ class CjsAudioMan {
             playCount: selection.playCount
           }),
           playbackRate: selection.playbackRate,
+          ...(selection.stateProperties?.length ? {
+            getPlaybackRate: () => engine.EvaluatePlaybackRate(selection, controls)
+          } : {}),
           spatial: selection.spatial ?? eventSpatial,
           programSlotId: `${selection.actionIndex}:${selection.leafIndex}`,
           ...(selection.delayMs === undefined ? {} : {

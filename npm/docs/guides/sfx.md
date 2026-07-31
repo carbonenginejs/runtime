@@ -201,6 +201,39 @@ present. Decibel values at or below -96 dB and linear gain zero become silence.
 Changing an RTPC updates gain on already playing SFX voices without restarting
 their buffers.
 
+## Immediate state properties
+
+Nodes may carry additive Wwise State deltas in `stateProperties`. Each entry
+names a global State Group and maps authored State names to relative volume or
+pitch changes:
+
+```js
+stateProperties: [
+    {
+        group: "combat",
+        cases: {
+            danger: {
+                gainDb: -6,
+                pitchCents: 1200
+            }
+        }
+    }
+]
+```
+
+Matching entries on every selected hierarchy level add to the static
+`gainDb` and `pitchCents` values. An unset group or a current state with no
+authored case contributes zero; the projected EVE tables therefore preserve
+Wwise's initial `None` behavior. State-name matching is case-insensitive.
+`SetState()` updates gain and playback rate on an already playing voice
+without restarting its buffer. Live State gain remains independent of an
+authored Stop envelope, so changes continue to apply during an audible fade.
+
+The bank builder projects only named, Immediate, additive Volume and Pitch
+state tables. If one selected hierarchy path mixes in a different
+synchronization mode, accumulation mode, or property, the builder omits and
+diagnoses its event instead of installing knowingly partial State behavior.
+
 ## Builder input
 
 The optional builder accepts the graph directly as `sfx`, or as

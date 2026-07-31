@@ -17,6 +17,8 @@ const SFX_UNSUPPORTED_PLAY_ACTIONS = new Set([0x0503]);
 const SFX_VOLUME_PROPERTY = 0;
 const SFX_PITCH_PROPERTY = 1;
 const SFX_INITIAL_DELAY_PROPERTY = 34;
+const SFX_ADDITIVE_ACCUMULATION = 2;
+const SFX_IMMEDIATE_STATE_SYNC = 0;
 const AUDIO_LANGUAGE_TAGS = Object.freeze({
   chinese: "zh-cn",
   "chinese(prc)": "zh-cn",
@@ -748,7 +750,7 @@ function LowerSfxGraph({
       } else {
         throw new Error(`unsupported node type ${source.type}`);
       }
-      Object.assign(node, CreateSfxNodeBasePlaybackProjection(parsed, id));
+      Object.assign(node, CreateSfxNodeBasePlaybackProjection(parsed, id, names));
       nodes[id] = node;
       lowered.set(id, id);
       leavesByNode.set(id, leaves);
@@ -1268,7 +1270,7 @@ function AddSet(target, source) {
     target.add(value);
   }
 }
-function CreateSfxNodeBasePlaybackProjection(parsed, rawID) {
+function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names) {
   const chain = [];
   const visited = new Set();
   let currentID = Number(rawID) >>> 0;
@@ -1291,6 +1293,7 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID) {
   const gainDbRanges = [];
   const pitchCentsRanges = [];
   const initialDelayRangesMs = [];
+  const stateProperties = [];
   for (const nodeBase of chain.reverse()) {
     for (const property of nodeBase.properties ?? []) {
       const value = Number(property.floatValue);
@@ -1328,6 +1331,54 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID) {
         });
       }
     }
+    for (const group of nodeBase.state?.groups ?? []) {
+      const activeStates = group.states?.filter(state => state.values?.length) ?? [];
+      if (!activeStates.length) {
+        continue;
+      }
+      const namedGroup = names.groups.get(`state:${Number(group.groupId) >>> 0}`);
+      const definitions = new Map((nodeBase.state?.properties ?? []).map(property => [Number(property.propertyId), property]));
+      const cases = {};
+      if (group.syncType !== SFX_IMMEDIATE_STATE_SYNC || !namedGroup?.name) {
+        throw new Error(group.syncType !== SFX_IMMEDIATE_STATE_SYNC ? `non-Immediate state group ${group.groupId}` : `unnamed state group ${group.groupId}`);
+      }
+      for (const state of activeStates) {
+        const stateName = namedGroup.values.get(Number(state.stateId) >>> 0);
+        let stateGainDb = 0;
+        let statePitchCents = 0;
+        if (!stateName) {
+          throw new Error(`unnamed state value ${state.stateId}`);
+        }
+        for (const value of state.values) {
+          const propertyID = Number(value.propertyId);
+          const definition = definitions.get(propertyID);
+          if (!definition || definition.accumulation !== SFX_ADDITIVE_ACCUMULATION || propertyID !== SFX_VOLUME_PROPERTY && propertyID !== SFX_PITCH_PROPERTY) {
+            throw new Error(`unsupported state property ${propertyID}`);
+          }
+          if (propertyID === SFX_VOLUME_PROPERTY) {
+            stateGainDb += Number(value.value);
+          } else {
+            statePitchCents += Number(value.value);
+          }
+        }
+        if (stateGainDb !== 0 || statePitchCents !== 0) {
+          cases[stateName] = {
+            ...(stateGainDb === 0 ? {} : {
+              gainDb: stateGainDb
+            }),
+            ...(statePitchCents === 0 ? {} : {
+              pitchCents: statePitchCents
+            })
+          };
+        }
+      }
+      if (Object.keys(cases).length) {
+        stateProperties.push({
+          group: namedGroup.name,
+          cases
+        });
+      }
+    }
   }
   return {
     ...(gainDb === 0 ? {} : {
@@ -1347,6 +1398,9 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID) {
     }),
     ...(initialDelayRangesMs.length ? {
       initialDelayRangesMs
+    } : {}),
+    ...(stateProperties.length ? {
+      stateProperties
     } : {})
   };
 }

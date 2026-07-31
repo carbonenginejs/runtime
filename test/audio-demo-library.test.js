@@ -55,18 +55,31 @@ test("committed demo library carries authored SFX and music semantics", () =>
             value: "yes",
         },
     );
+    assert.equal(
+        graph.programs.es_screen_2_2_play,
+        undefined,
+        "a mixed unsupported State path is omitted instead of degraded",
+    );
     assert.deepEqual(
-        graph.programs.es_screen_2_2_play.map(action => action.kind),
+        graph.nodes["464520479"].stateProperties,
         [
-            "state",
-            "stop",
-            "stop",
-            "stop",
-            "play",
-            "stop",
-            "switch",
+            {
+                group: "isInsideFractureBubble",
+                cases: {
+                    no: { gainDb: -108 },
+                },
+            },
+            {
+                group: "riftState",
+                cases: {
+                    global: {
+                        gainDb: -1,
+                        pitchCents: -400,
+                    },
+                },
+            },
         ],
-        "the real artifact keeps every control action around Play",
+        "the committed graph carries exact additive State gain and pitch",
     );
     assert.deepEqual(
         graph.programs.Abyssal_exit_play.map(action => action.kind),

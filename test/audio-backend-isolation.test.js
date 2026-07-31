@@ -83,7 +83,7 @@ function FakeContext()
     {
       const source = {
         buffer: null, loop: false, onended: null, started: false, stoppedAt: null,
-        connectedTo: null,
+        connectedTo: null, playbackRate: FakeParam(1),
         connect(target)
         {
           source.connectedTo = target;
@@ -119,9 +119,9 @@ function Deferred()
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
-// Gain creation order: gains[0] master, gains[1] the sfx bus, gains[2] the
-// emitter gain from RegisterGameObj; each PostEvent appends that source's
-// own gain after those.
+// Gain creation order: gains[0] master, gains[1] the SFX bus, gains[2] the
+// emitter gain from RegisterGameObj; each ordinary voice then appends its
+// live control gain and independent Stop envelope.
 function Harness({
   loadBuffer,
   isLoop,
@@ -258,20 +258,28 @@ test("stopping one of two concurrent sources leaves the other's gain and lifetim
   const idA = backend.PostEvent(7, 1, 0, emitter, "shot_a");
   const idB = backend.PostEvent(8, 1, 0, emitter, "shot_b");
   await tick();
-  const [gainA, gainB] = [context.gains[3], context.gains[4]];
+  const gainA = context.gains[3];
+  const stopA = context.gains[4];
+  const gainB = context.gains[5];
+  const stopB = context.gains[6];
   const [sourceA, sourceB] = context.sources;
   assert.ok(sourceA.started && sourceB.started);
-  assert.equal(gainA.connectedTo, context.gains[2], "source gains chain into the emitter gain");
+  assert.equal(gainA.connectedTo, stopA);
+  assert.equal(
+    stopA.connectedTo,
+    context.gains[2],
+    "the independent stop envelope chains into the emitter gain",
+  );
 
   context.currentTime = START_QUANTUM;
   backend.ExecuteActionOnPlayingID("stop", idA, 500);
 
-  assert.deepEqual(gainA.gain.ramps, [[0, START_QUANTUM + 0.5]], "stopped source fades on its own gain");
-  assert.deepEqual(gainA.gain.cancellations, [START_QUANTUM]);
-  assert.deepEqual(gainA.gain.sets, [[1, START_QUANTUM]], "the fade is anchored at the current gain");
+  assert.deepEqual(stopA.gain.ramps, [[0, START_QUANTUM + 0.5]], "stopped source fades on its own envelope");
+  assert.deepEqual(stopA.gain.cancellations, [START_QUANTUM]);
+  assert.deepEqual(stopA.gain.sets, [[1, START_QUANTUM]], "the fade is anchored at the current envelope");
   assert.equal(sourceA.stoppedAt, START_QUANTUM + 0.5);
   assert.equal(gainB.gain.value, 1, "sibling gain value untouched");
-  assert.deepEqual(gainB.gain.ramps, [], "sibling gain has no scheduled fade");
+  assert.deepEqual(stopB.gain.ramps, [], "sibling gain has no scheduled fade");
   assert.equal(sourceB.stoppedAt, null, "sibling source not stopped");
   assert.equal(backend.GetPlayingCount(), 2, "sibling record still alive before onended");
 
@@ -467,12 +475,14 @@ test("stop holds an in-progress Play fade before fading out", async () =>
 
   const liveGain = context.gains[3].gain;
   const actionFade = context.gains[4].gain;
+  const stopFade = context.gains[5].gain;
   const held = actionFade.sets.at(-1);
 
   assert.deepEqual(actionFade.cancellations, [ context.currentTime ]);
   assert.equal(held[1], context.currentTime);
   assert.ok(held[0] > 0 && held[0] < 0.5);
-  assert.deepEqual(liveGain.ramps, [ [ 0, context.currentTime + 0.5 ] ]);
+  assert.deepEqual(liveGain.ramps, []);
+  assert.deepEqual(stopFade.ramps, [ [ 0, context.currentTime + 0.5 ] ]);
   assert.equal(context.sources[0].stoppedAt, context.currentTime + 0.5);
 });
 
@@ -483,15 +493,16 @@ test("replaying on an emitter does not disturb a sibling's in-progress fade", as
   const idA = backend.PostEvent(7, 1, 0, emitter, "engine_loop");
   await tick();
   const gainA = context.gains[3];
+  const stopA = context.gains[4];
   context.currentTime = START_QUANTUM;
   backend.ExecuteActionOnPlayingID("stop", idA, 1000);
-  assert.deepEqual(gainA.gain.ramps, [[0, START_QUANTUM + 1]]);
+  assert.deepEqual(stopA.gain.ramps, [[0, START_QUANTUM + 1]]);
 
   backend.PostEvent(7, 1, 0, emitter, "engine_loop");
   await tick();
 
   assert.equal(context.sources[1].started, true, "replay starts on its own fresh gain");
-  assert.deepEqual(gainA.gain.ramps, [[0, START_QUANTUM + 1]], "the fading source keeps its ramp");
+  assert.deepEqual(stopA.gain.ramps, [[0, START_QUANTUM + 1]], "the fading source keeps its ramp");
   assert.equal(gainA.gain.value, 1, "no hard reset was written onto the fading gain");
   assert.equal(context.gains[2].gain.value, 1, "emitter gain is never ramped or reset");
   assert.deepEqual(context.gains[2].gain.ramps, []);
@@ -508,16 +519,16 @@ test("an explicit zero fade stops immediately; only a missing duration uses the 
 
   context.currentTime = START_QUANTUM;
   backend.ExecuteActionOnPlayingID("stop", idA, 0);
-  assert.equal(context.gains[3].gain.value, 0, "zero fade silences at once");
-  assert.deepEqual(context.gains[3].gain.ramps, [], "zero fade schedules no ramp");
+  assert.equal(context.gains[4].gain.value, 0, "zero fade silences at once");
+  assert.deepEqual(context.gains[4].gain.ramps, [], "zero fade schedules no ramp");
   assert.equal(context.sources[0].stoppedAt, START_QUANTUM, "zero fade stops now, not after the default second");
 
   backend.ExecuteActionOnPlayingID("stop", idB);
-  assert.deepEqual(context.gains[4].gain.ramps, [[0, START_QUANTUM + 1]], "missing duration falls back to the 1s default");
+  assert.deepEqual(context.gains[6].gain.ramps, [[0, START_QUANTUM + 1]], "missing duration falls back to the 1s default");
   assert.equal(context.sources[1].stoppedAt, START_QUANTUM + 1);
 
   backend.ExecuteActionOnPlayingID("stop", idC, 250);
-  assert.deepEqual(context.gains[5].gain.ramps, [[0, START_QUANTUM + 0.25]], "explicit nonzero duration is honored");
+  assert.deepEqual(context.gains[8].gain.ramps, [[0, START_QUANTUM + 0.25]], "explicit nonzero duration is honored");
   assert.equal(context.sources[2].stoppedAt, START_QUANTUM + 0.25);
 });
 
@@ -650,8 +661,8 @@ test("break halts only looping voices in a mixed authored event", async () =>
 
   assert.equal(context.sources[0].stoppedAt, START_QUANTUM + 0.25);
   assert.equal(context.sources[1].stoppedAt, null);
-  assert.deepEqual(context.gains[3].gain.ramps, [[0, START_QUANTUM + 0.25]]);
-  assert.deepEqual(context.gains[4].gain.ramps, []);
+  assert.deepEqual(context.gains[4].gain.ramps, [[0, START_QUANTUM + 0.25]]);
+  assert.deepEqual(context.gains[6].gain.ramps, []);
 
   assert.equal(backend.SeekOnEventMs(playingID, 500), true);
   assert.equal(context.sources.length, 3);
@@ -715,6 +726,85 @@ test("finite authored repeats play an exact number of complete buffers", async (
   context.sources[0].onended?.();
   assert.equal(backend.GetPlayingCount(), 0);
   assert.deepEqual(finished, [playingID]);
+});
+
+test("explicit Stop fades cannot extend finite authored repeats", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 3 },
+          playCount: 2,
+        },
+      ],
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "repeated_shot",
+  );
+
+  await tick();
+  const authoredEnd = 6 + START_QUANTUM;
+
+  assert.equal(context.sources[0].stoppedAt, authoredEnd);
+  context.currentTime = 1;
+  backend.ExecuteActionOnPlayingID("stop", playingID, 10000);
+
+  assert.deepEqual(context.gains[4].gain.ramps, [ [ 0, 11 ] ]);
+  assert.equal(
+    context.sources[0].stoppedAt,
+    authoredEnd,
+    "the physical source still ends after exactly two complete buffers",
+  );
+});
+
+test("live playback-rate changes reschedule finite-repeat completion", async () =>
+{
+  let playbackRate = 1;
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 4 },
+          loop: false,
+          playCount: 3,
+          getPlaybackRate: () => playbackRate,
+        },
+      ],
+    }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "stateful_repeated_shot");
+  await tick();
+
+  assert.equal(context.sources[0].stoppedAt, 12 + START_QUANTUM);
+
+  context.currentTime = 2;
+  playbackRate = 2;
+  backend.SetGlobalState("combat", "danger");
+
+  const acceleratedEnd = context.sources[0].stoppedAt;
+
+  assert.ok(
+    Math.abs(acceleratedEnd - (7 + START_QUANTUM / 2)) < 1e-12,
+  );
+
+  context.currentTime = 3;
+  playbackRate = 0.5;
+  backend.SetGlobalState("combat", "None");
+
+  assert.ok(
+    Math.abs(
+      context.sources[0].stoppedAt
+        - (19 + START_QUANTUM * 2),
+    ) < 1e-12,
+  );
+  assert.ok(context.sources[0].stoppedAt > acceleratedEnd);
 });
 
 test("a pre-start break preserves the first complete repeat boundary", async () =>
@@ -1067,7 +1157,7 @@ test("one authored event owns parallel voices with live per-object RTPC gains", 
 
   assert.equal(context.sources.length, 2);
   assert.equal(context.gains[3].gain.value, 0.25);
-  assert.equal(context.gains[4].gain.value, 0.5);
+  assert.equal(context.gains[5].gain.value, 0.5);
 
   backend.SetRTPCValue("intensity", 0.75, 1);
   assert.equal(
@@ -1075,7 +1165,7 @@ test("one authored event owns parallel voices with live per-object RTPC gains", 
     0.75,
     "an active authored curve updates without restarting its voice"
   );
-  assert.equal(context.gains[4].gain.value, 0.5);
+  assert.equal(context.gains[5].gain.value, 0.5);
 
   context.sources[0].onended?.();
   assert.equal(
@@ -1086,6 +1176,134 @@ test("one authored event owns parallel voices with live per-object RTPC gains", 
   context.sources[1].onended?.();
   assert.deepEqual(finished, [playingID]);
   assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("global states update one active voice's gain and pitch in place", async () =>
+{
+  let controls;
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async (_eventID, _eventName, suppliedControls) =>
+    {
+      controls = suppliedControls;
+      return {
+        voices: [
+          {
+            buffer: { duration: 2 },
+            getGain: () =>
+              controls.getState("combat") === "danger" ? 0.5 : 1,
+            getPlaybackRate: () =>
+              controls.getState("combat") === "danger" ? 2 : 1
+          }
+        ]
+      };
+    }
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "stateful_engine");
+  await tick();
+
+  const source = context.sources[0];
+
+  assert.equal(context.gains[3].gain.value, 1);
+  assert.equal(source.playbackRate.value, 1);
+
+  backend.SetGlobalState("combat", "danger");
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0], source);
+  assert.equal(context.gains[3].gain.value, 0.5);
+  assert.equal(source.playbackRate.value, 2);
+
+  backend.SetGlobalState("combat", "None");
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0], source);
+  assert.equal(context.gains[3].gain.value, 1);
+  assert.equal(source.playbackRate.value, 1);
+});
+
+test("global states remain live under an independent Stop fade", async () =>
+{
+  let controls;
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async (_eventID, _eventName, suppliedControls) =>
+    {
+      controls = suppliedControls;
+      return {
+        voices: [
+          {
+            buffer: { duration: 4 },
+            getGain: () =>
+              controls.getState("combat") === "danger" ? 0.5 : 1,
+            getPlaybackRate: () =>
+              controls.getState("combat") === "danger" ? 2 : 1
+          }
+        ]
+      };
+    }
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "stateful_fade",
+  );
+
+  await tick();
+  context.currentTime = START_QUANTUM + 0.25;
+  backend.ExecuteActionOnPlayingID("stop", playingID, 1000);
+
+  const source = context.sources[0];
+  const controlGain = context.gains[3].gain;
+  const stopEnvelope = context.gains[4].gain;
+  const stopRamps = structuredClone(stopEnvelope.ramps);
+
+  context.currentTime += 0.25;
+  backend.SetGlobalState("combat", "danger");
+
+  assert.equal(controlGain.value, 0.5);
+  assert.equal(source.playbackRate.value, 2);
+  assert.deepEqual(stopEnvelope.ramps, stopRamps);
+  assert.equal(
+    source.stoppedAt,
+    START_QUANTUM + 1.25,
+    "the live control change does not replace the Stop schedule",
+  );
+});
+
+test("a state changed during acquisition is applied before the source starts", async () =>
+{
+  const pending = Deferred();
+  let controls;
+  const { context, emitter, backend } = Harness({
+    loadBuffer: (_eventID, _eventName, suppliedControls) =>
+    {
+      controls = suppliedControls;
+      return pending.promise;
+    }
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "pending_stateful_engine");
+  await tick();
+
+  backend.SetGlobalState("combat", "danger");
+  pending.resolve({
+    voices: [
+      {
+        buffer: { duration: 2 },
+        getGain: () =>
+          controls.getState("combat") === "danger" ? 0.5 : 1,
+        getPlaybackRate: () =>
+          controls.getState("combat") === "danger" ? 2 : 1
+      }
+    ]
+  });
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.gains[3].gain.value, 0.5);
+  assert.equal(context.sources[0].playbackRate.value, 2);
 });
 
 test("setter-only authored events update controls and complete without a voice", async () =>
@@ -1352,13 +1570,69 @@ test("a delayed authored Stop keeps its owner alive and uses its transition curv
   backend.RenderAudio();
 
   assert.equal(context.sources[0].stoppedAt, 1.25);
-  assert.equal(context.gains[3].gain.curves.length, 1);
+  assert.equal(context.gains[4].gain.curves.length, 1);
   assert.deepEqual(finished, []);
   assert.equal(backend.GetPlayingCount(), 1);
 
   context.sources[0].onended?.();
   assert.deepEqual(finished, [ playingID ]);
   assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("authored Stop fades cannot extend finite authored repeats", async () =>
+{
+  const { backend, emitter, context } = Harness({
+    loadBuffer: async (_eventID, _eventName, controls) =>
+    {
+      controls.installSfxProgram([
+        {
+          kind: "play",
+          actionIndex: 0,
+          selections: [
+            {
+              actionIndex: 0,
+              leafIndex: 0,
+              matchIds: [ "200", "700" ],
+            },
+          ],
+        },
+        {
+          kind: "stop",
+          actionIndex: 1,
+          targetId: "700",
+          scope: "game-object",
+          mode: "element",
+          delayMs: 1000,
+          transitionMs: 10000,
+          curve: 2,
+          exceptions: [],
+        },
+      ]);
+      return {
+        voices: [
+          {
+            buffer: { duration: 2 },
+            playCount: 2,
+            programSlotId: "0:0",
+          },
+        ],
+      };
+    },
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "delayed_stop");
+  await tick();
+  const authoredEnd = 4 + START_QUANTUM;
+
+  context.currentTime = 1;
+  backend.RenderAudio();
+
+  assert.equal(context.gains[4].gain.curves[0][2], 10);
+  assert.equal(
+    context.sources[0].stoppedAt,
+    authoredEnd,
+    "the Stop envelope remains authored but cannot add extra repeats",
+  );
 });
 
 test("explicit stop clears an owned delayed Stop before the voice ends", async () =>
@@ -1463,8 +1737,68 @@ test("an overdue authored Stop catches up instead of restarting its full fade", 
   backend.RenderAudio();
 
   assert.equal(context.sources[0].stoppedAt, 2);
-  assert.equal(context.gains[3].gain.value, 0);
-  assert.deepEqual(context.gains[3].gain.curves, []);
+  assert.equal(context.gains[4].gain.value, 0);
+  assert.deepEqual(context.gains[4].gain.curves, []);
+});
+
+test("live pitch keeps the physical start time used by an overdue Stop", async () =>
+{
+  let controls;
+  const { backend, emitter, context } = Harness({
+    loadBuffer: async (_eventID, _eventName, suppliedControls) =>
+    {
+      controls = suppliedControls;
+      controls.installSfxProgram([
+        {
+          kind: "play",
+          actionIndex: 0,
+          selections: [
+            {
+              actionIndex: 0,
+              leafIndex: 0,
+              matchIds: [ "200", "700" ],
+            },
+          ],
+        },
+        {
+          kind: "stop",
+          actionIndex: 1,
+          targetId: "700",
+          scope: "game-object",
+          mode: "element",
+          delayMs: 4000,
+          transitionMs: 3000,
+          curve: 4,
+          exceptions: [],
+        },
+      ]);
+      return {
+        voices: [
+          {
+            buffer: { duration: 20 },
+            programSlotId: "0:0",
+            getPlaybackRate: () =>
+              controls.getState("combat") === "danger" ? 2 : 1,
+          },
+        ],
+      };
+    },
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "rate_then_stop");
+  await tick();
+
+  context.currentTime = 5;
+  backend.SetGlobalState("combat", "danger");
+  context.currentTime = 6;
+  backend.RenderAudio();
+
+  assert.equal(
+    context.sources[0].stoppedAt,
+    7,
+    "the overdue transition retains its authored end instead of stopping now",
+  );
+  assert.equal(context.sources[0].playbackRate.value, 2);
 });
 
 test("late media resolution applies an overdue Stop before realizing its voice", async () =>
@@ -1595,7 +1929,7 @@ test("a later authored Stop can shorten an in-progress Stop fade", async () =>
   context.currentTime = 0.2;
   backend.PostEvent(9, 1, 0, emitter, "stop_now");
   assert.equal(context.sources[0].stoppedAt, 0.2);
-  assert.equal(context.gains[3].gain.value, 0);
+  assert.equal(context.gains[4].gain.value, 0);
 });
 
 test("game-object element Stops match raw hierarchy ids without crossing emitters", async () =>
@@ -1860,8 +2194,8 @@ test("parallel voices and seek restarts share one sample-time anchor", async () 
   backend.ExecuteActionOnPlayingID("stop", playingID, 500);
   assert.equal(context.sources[2].stoppedAt, context.sources[3].stoppedAt);
   assert.deepEqual(
-    context.gains[3].gain.ramps,
     context.gains[4].gain.ramps,
+    context.gains[6].gain.ramps,
     "parallel stop fades share one action-time anchor",
   );
 });
@@ -1884,14 +2218,19 @@ test("a non-spatial voice bypasses the emitter panner but keeps voice and SFX ga
   await tick();
 
   assert.equal(
-    context.gains[4].connectedTo,
+    context.gains[5].connectedTo,
     context.gains[1],
     "the lazy 2D emitter gain feeds the SFX bus directly"
   );
   assert.equal(
     context.gains[3].connectedTo,
     context.gains[4],
-    "the voice retains an emitter-level gain before the 2D bus",
+    "the voice retains an independent stop envelope",
+  );
+  assert.equal(
+    context.gains[4].connectedTo,
+    context.gains[5],
+    "the stop envelope feeds the flat emitter route",
   );
   assert.notEqual(context.gains[3].connectedTo, context.gains[2]);
 });
@@ -1921,7 +2260,7 @@ test("stored object RTPCs replay when the lazy non-spatial route is created", as
   assert.equal(applied[1].value, 0.4);
   assert.equal(
     applied[1].flatGain,
-    context.gains[4].gain,
+    context.gains[5].gain,
     "the adapter receives the newly created flat emitter gain",
   );
 });

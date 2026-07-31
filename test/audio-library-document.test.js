@@ -393,6 +393,17 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
                         ],
                     },
                 ],
+                stateProperties: [
+                    {
+                        group: "combat",
+                        cases: {
+                            danger: {
+                                gainDb: "-6",
+                                pitchCents: "1200",
+                            },
+                        },
+                    },
+                ],
             },
         },
     };
@@ -417,6 +428,17 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
         { x: 0, gainDb: -20 },
         { x: 1, gainDb: 0 },
     ]);
+    assert.deepEqual(installed.sfx.nodes["1"].stateProperties, [
+        {
+            group: "combat",
+            cases: {
+                danger: {
+                    gainDb: -6,
+                    pitchCents: 1200,
+                },
+            },
+        },
+    ]);
 
     const linear = structuredClone(source);
 
@@ -439,6 +461,24 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
     assert.throws(
         () => installAudioLibraryDocument(invalid),
         /must be an unsigned 32-bit integer greater than zero/u,
+    );
+
+    const emptyStateCase = structuredClone(source);
+
+    emptyStateCase.sfx.nodes["1"].stateProperties[0].cases.danger = {};
+    assert.throws(
+        () => installAudioLibraryDocument(emptyStateCase),
+        /must define gainDb or pitchCents/u,
+    );
+
+    const duplicateStateCase = structuredClone(source);
+
+    duplicateStateCase.sfx.nodes["1"].stateProperties[0].cases.Danger = {
+        gainDb: -3,
+    };
+    assert.throws(
+        () => installAudioLibraryDocument(duplicateStateCase),
+        /has duplicate case Danger/u,
     );
 });
 

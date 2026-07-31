@@ -404,7 +404,7 @@ class CjsAudioBackend {
           const rate = voice.playbackRate;
           if (Number.isFinite(duration) && duration > 0 && Number.isFinite(rate) && rate > 0) {
             const now = actionTime;
-            const elapsed = voice.offsetSeconds + Math.max(0, now - voice.startContextTime) * rate;
+            const elapsed = voice.offsetSeconds + Math.max(0, now - voice.positionAnchorContextTime) * rate;
             const position = elapsed % duration;
             const remaining = position === 0 && elapsed > 0 ? duration : duration - position;
             const boundaryBase = Math.max(now, voice.startContextTime);
@@ -416,13 +416,13 @@ class CjsAudioBackend {
         }
         voice.stopping = true;
         if (voice.startContextTime > actionTime) {
-          SetAudioParam(voice.gain.gain, 0, this.#context);
+          SetAudioParam(voice.stopGain.gain, 0, this.#context);
           voice.source.stop(actionTime);
           continue;
         }
         this.#HoldVoiceFade(voice, actionTime);
         if (seconds > 0) {
-          const param = voice.gain.gain;
+          const param = voice.stopGain.gain;
           const now = actionTime;
           if (typeof param?.cancelAndHoldAtTime === "function") {
             param.cancelAndHoldAtTime(now);
@@ -432,9 +432,11 @@ class CjsAudioBackend {
           }
           param?.linearRampToValueAtTime?.(0, now + seconds);
         } else {
-          SetAudioParam(voice.gain.gain, 0, this.#context);
+          SetAudioParam(voice.stopGain.gain, 0, this.#context);
         }
-        voice.source.stop(actionTime + seconds);
+        const fadeStopTime = actionTime + seconds;
+        const sourceStopTime = voice.scheduledEndContextTime === null ? fadeStopTime : Math.max(actionTime, Math.min(fadeStopTime, voice.scheduledEndContextTime));
+        voice.source.stop(sourceStopTime);
       }
     } else if (!breaking) {
       this.#FinishSfxPlaying(playingID);
@@ -471,7 +473,7 @@ class CjsAudioBackend {
     if (!voice || voice.startContextTime === null) {
       return 0;
     }
-    let seconds = voice.offsetSeconds + Math.max(0, this.#context.currentTime - voice.startContextTime) * voice.playbackRate;
+    let seconds = voice.offsetSeconds + Math.max(0, this.#context.currentTime - voice.positionAnchorContextTime) * voice.playbackRate;
     const duration = Number(voice.buffer?.duration);
     if (Number.isFinite(duration) && duration > 0) {
       seconds = voice.source.loop ? seconds % duration : Math.min(seconds, duration);
@@ -553,7 +555,7 @@ class CjsAudioBackend {
       this.#objectRtpcValues.set(gameObjID, values);
     }
     values.set(name, numeric);
-    this.#RefreshSfxGains(gameObjID);
+    this.#RefreshSfxControls(gameObjID);
     const nodes = this.#emitterNodes.get(gameObjID) ?? null;
     this.#applyRTPC?.({
       gameObjID,
@@ -609,7 +611,7 @@ class CjsAudioBackend {
       return false;
     }
     this.#globalRtpcValues.set(name, numeric);
-    this.#RefreshSfxGains();
+    this.#RefreshSfxControls();
     if (name === "menu_main_master_level") {
       SetAudioParam(this.#masterGain?.gain, Math.max(0, Math.min(1, numeric || 0)), this.#context);
     } else if (name === "menu_main_music_level") {
@@ -621,6 +623,7 @@ class CjsAudioBackend {
   /** Global state group - feeds authored SFX and music tree arguments. */
   SetGlobalState(stateGroup, stateName) {
     this.#globalStateValues.set(String(stateGroup), String(stateName));
+    this.#RefreshSfxControls();
     this.#musicEngine?.SetState(stateGroup, stateName);
   }
 
@@ -922,21 +925,22 @@ class CjsAudioBackend {
     const currentTime = Math.max(authoredActionTime, Number(now) || 0);
     const seconds = Math.max(0, Number(transitionMs) || 0) / 1000;
     const authoredStopTime = authoredActionTime + seconds;
-    const stopTime = voice.startContextTime > authoredActionTime || authoredStopTime <= currentTime ? currentTime : authoredStopTime;
-    if (voice.stopping && Number.isFinite(voice.stopContextTime) && voice.stopContextTime <= stopTime) {
+    const fadeStopTime = voice.startContextTime > authoredActionTime || authoredStopTime <= currentTime ? currentTime : authoredStopTime;
+    const sourceStopTime = voice.scheduledEndContextTime === null ? fadeStopTime : Math.max(currentTime, Math.min(fadeStopTime, voice.scheduledEndContextTime));
+    if (voice.stopping && Number.isFinite(voice.stopContextTime) && voice.stopContextTime <= sourceStopTime) {
       return;
     }
     voice.stopping = true;
-    voice.stopContextTime = stopTime;
+    voice.stopContextTime = sourceStopTime;
     if (voice.startContextTime > authoredActionTime || authoredStopTime <= currentTime) {
-      SilenceAudioParamAt(voice.gain.gain, currentTime, this.#context);
+      SilenceAudioParamAt(voice.stopGain.gain, currentTime, this.#context);
       voice.source.stop(currentTime);
       return;
     }
     this.#HoldVoiceFade(voice, currentTime);
-    const param = voice.gain.gain;
+    const param = voice.stopGain.gain;
     const progress = seconds > 0 ? Math.max(0, Math.min(1, (currentTime - authoredActionTime) / seconds)) : 1;
-    const remaining = Math.max(0, stopTime - currentTime);
+    const remaining = Math.max(0, fadeStopTime - currentTime);
     if (remaining > 0) {
       if (typeof param?.cancelAndHoldAtTime === "function") {
         param.cancelAndHoldAtTime(currentTime);
@@ -947,7 +951,7 @@ class CjsAudioBackend {
     } else {
       SetAudioParam(param, 0, this.#context);
     }
-    voice.source.stop(stopTime);
+    voice.source.stop(sourceStopTime);
   }
 
   /** Applies a hierarchy-free Stop-All to one flat eventMedia record. */
@@ -994,8 +998,9 @@ class CjsAudioBackend {
   #CreateVoice(descriptor, emitterNodes, gameObjID) {
     const gain = this.#context.createGain();
     const fadeGain = descriptor.fadeInMs > 0 ? this.#context.createGain() : null;
+    const stopGain = this.#context.createGain();
     if (descriptor.spatial) {
-      gain.connect(emitterNodes.gain);
+      stopGain.connect(emitterNodes.gain);
     } else {
       if (!emitterNodes.flatGain) {
         emitterNodes.flatGain = this.#context.createGain();
@@ -1014,8 +1019,9 @@ class CjsAudioBackend {
           });
         }
       }
-      gain.connect(emitterNodes.flatGain);
+      stopGain.connect(emitterNodes.flatGain);
     }
+    gain.connect(stopGain);
     if (fadeGain) {
       SetAudioParam(fadeGain.gain, 0, this.#context);
       fadeGain.connect(gain);
@@ -1025,6 +1031,7 @@ class CjsAudioBackend {
       loop: descriptor.loop,
       playCount: descriptor.playCount,
       playbackRate: descriptor.playbackRate,
+      getPlaybackRate: descriptor.getPlaybackRate,
       spatial: descriptor.spatial,
       getGain: descriptor.getGain,
       delayMs: descriptor.delayMs,
@@ -1032,17 +1039,22 @@ class CjsAudioBackend {
       fadeCurve: descriptor.fadeCurve,
       gain,
       fadeGain,
+      stopGain,
       fadeScheduled: false,
       fadeStartContextTime: null,
       source: null,
       ended: false,
       stopping: false,
       startContextTime: null,
+      positionAnchorContextTime: null,
       scheduledEndContextTime: null,
+      repeatRemainingSeconds: null,
+      repeatAnchorContextTime: null,
       stopContextTime: null,
       offsetSeconds: 0
     };
     this.#ApplyVoiceGain(voice);
+    this.#ApplyVoicePlaybackRate(voice);
     return voice;
   }
 
@@ -1133,17 +1145,22 @@ class CjsAudioBackend {
     voice.ended = false;
     voice.offsetSeconds = Math.max(0, offsetSeconds);
     voice.startContextTime = startContextTime;
+    voice.positionAnchorContextTime = startContextTime;
     if (!voice.fadeScheduled && voice.fadeGain) {
       ScheduleWwiseFade(voice.fadeGain.gain, 0, 1, startContextTime, voice.fadeInMs / 1000, voice.fadeCurve);
       voice.fadeScheduled = true;
       voice.fadeStartContextTime = startContextTime;
     }
     voice.scheduledEndContextTime = null;
+    voice.repeatRemainingSeconds = null;
+    voice.repeatAnchorContextTime = null;
     this.#ApplyVoiceGain(voice);
     source.start(startContextTime, voice.offsetSeconds);
     if (finiteRepeats) {
       const firstPlay = duration - voice.offsetSeconds;
       const remaining = firstPlay + duration * (voice.playCount - 1);
+      voice.repeatRemainingSeconds = remaining;
+      voice.repeatAnchorContextTime = startContextTime;
       voice.scheduledEndContextTime = startContextTime + remaining / voice.playbackRate;
       source.stop(voice.scheduledEndContextTime);
     }
@@ -1173,15 +1190,16 @@ class CjsAudioBackend {
     }
   }
 
-  /** Re-evaluates authored live RTPC gain curves. */
-  #RefreshSfxGains(gameObjID = null) {
+  /** Re-evaluates authored live gain and playback-rate controls. */
+  #RefreshSfxControls(gameObjID = null) {
     for (const record of this.#playing.values()) {
-      if (!record.sfx || record.stopped || gameObjID !== null && record.gameObjID !== gameObjID || gameObjID !== null && record.emitterNodes !== this.#emitterNodes.get(record.gameObjID)) {
+      if (!record.sfx || gameObjID !== null && record.gameObjID !== gameObjID || gameObjID !== null && record.emitterNodes !== this.#emitterNodes.get(record.gameObjID)) {
         continue;
       }
       for (const voice of record.voices ?? []) {
-        if (!voice.stopping) {
+        if (!voice.ended) {
           this.#ApplyVoiceGain(voice);
+          this.#ApplyVoicePlaybackRate(voice);
         }
       }
     }
@@ -1199,6 +1217,43 @@ class CjsAudioBackend {
     const target = Number.isFinite(gain) ? Math.max(0, gain) : 1;
     const param = voice.gain?.gain;
     SetAudioParam(param, target, this.#context);
+  }
+
+  /** Applies one voice descriptor's current safe playback rate in place. */
+  #ApplyVoicePlaybackRate(voice) {
+    if (typeof voice.getPlaybackRate !== "function") {
+      return;
+    }
+    let value;
+    try {
+      value = Number(voice.getPlaybackRate());
+    } catch {
+      return;
+    }
+    if (!Number.isFinite(value) || value <= 0) {
+      return;
+    }
+    const previous = Number(voice.playbackRate);
+    const source = voice.source;
+    const now = Number(this.#context.currentTime) || 0;
+    if (source && Number.isFinite(previous) && previous > 0 && voice.positionAnchorContextTime !== null && now > voice.positionAnchorContextTime) {
+      voice.offsetSeconds += (now - voice.positionAnchorContextTime) * previous;
+      voice.positionAnchorContextTime = now;
+    }
+    if (source && !voice.stopping && Number.isFinite(previous) && previous > 0 && voice.repeatRemainingSeconds !== null && voice.repeatAnchorContextTime !== null) {
+      const anchor = voice.repeatAnchorContextTime;
+      const elapsed = Math.max(0, now - anchor) * previous;
+      voice.repeatRemainingSeconds = Math.max(0, voice.repeatRemainingSeconds - elapsed);
+      voice.repeatAnchorContextTime = Math.max(now, anchor);
+      voice.scheduledEndContextTime = voice.repeatAnchorContextTime + voice.repeatRemainingSeconds / value;
+      try {
+        source.stop(voice.scheduledEndContextTime);
+      } catch {
+        // already stopped
+      }
+    }
+    voice.playbackRate = value;
+    SetAudioParam(source?.playbackRate, value, this.#context);
   }
 
   /**
@@ -1275,6 +1330,7 @@ class CjsAudioBackend {
         voice.source?.disconnect?.();
         voice.gain?.disconnect?.();
         voice.fadeGain?.disconnect?.();
+        voice.stopGain?.disconnect?.();
       }
       if (record.source) {
         record.source.onended = null;
@@ -1398,7 +1454,8 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
       ...(value.programSlotId === undefined ? {} : {
         programSlotId: value.programSlotId
       }),
-      getGain: typeof value.getGain === "function" ? value.getGain : () => Number.isFinite(constantGain) ? Math.max(0, constantGain) : 1
+      getGain: typeof value.getGain === "function" ? value.getGain : () => Number.isFinite(constantGain) ? Math.max(0, constantGain) : 1,
+      getPlaybackRate: typeof value.getPlaybackRate === "function" ? value.getPlaybackRate : null
     };
   });
 }

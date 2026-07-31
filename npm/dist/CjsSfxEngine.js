@@ -83,6 +83,7 @@ class CjsSfxEngine {
         gainDb: 0,
         gainCurves: [],
         pitchCents: 0,
+        stateProperties: [],
         initialDelayMs: 0,
         delayMs: 0,
         fadeInMs: 0,
@@ -141,11 +142,22 @@ class CjsSfxEngine {
         gainDb += output;
       }
     }
+    gainDb += EvaluateStateProperties(selection?.stateProperties, controls).gainDb;
     gainDb = Clamp(gainDb, MIN_RELATIVE_GAIN_DB, MAX_RELATIVE_GAIN_DB);
     if (linearGain <= 0 || gainDb <= MIN_AUDIBLE_GAIN_DB) {
       return 0;
     }
     return linearGain * 10 ** (gainDb / 20);
+  }
+
+  /** Evaluates one resolved leaf's current playback rate from global states. */
+  EvaluatePlaybackRate(selection, controls = {}) {
+    if (selection?.authoredPlaybackRate === undefined) {
+      const current = Number(selection?.playbackRate);
+      return Number.isFinite(current) && current > 0 ? current : 1;
+    }
+    const statePitch = EvaluateStateProperties(selection.stateProperties, controls).pitchCents;
+    return selection.authoredPlaybackRate * 2 ** (Clamp(selection.pitchCents + statePitch, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
   }
 
   /** Clears random history and step-sequence positions. */
@@ -182,19 +194,24 @@ class CjsSfxEngine {
     const nextActive = new Set(active);
     nextActive.add(edge.nodeId);
     if (node.type === "sound") {
-      selections.push(Object.freeze({
+      const stateProperties = Object.freeze([...terms.stateProperties]);
+      const selection = {
         mediaID: String(node.mediaId),
         matchIds: Object.freeze([...new Set([...nextActive, ...(node.matchIds ?? [])])]),
         loop: node.loop,
         ...(node.playCount === undefined ? {} : {
           playCount: node.playCount
         }),
-        playbackRate: (node.playbackRate ?? 1) * 2 ** (Clamp(terms.pitchCents, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200),
         ...(node.spatial === undefined ? {} : {
           spatial: node.spatial
         }),
         gainDb: terms.gainDb,
         gainCurves: Object.freeze([...terms.gainCurves]),
+        ...(stateProperties.length ? {
+          authoredPlaybackRate: node.playbackRate ?? 1,
+          pitchCents: terms.pitchCents,
+          stateProperties
+        } : {}),
         ...(terms.delayMs + terms.initialDelayMs > 0 ? {
           delayMs: terms.delayMs + terms.initialDelayMs
         } : {}),
@@ -202,7 +219,9 @@ class CjsSfxEngine {
           fadeInMs: terms.fadeInMs,
           fadeCurve: terms.fadeCurve
         } : {})
-      }));
+      };
+      selection.playbackRate = stateProperties.length ? this.EvaluatePlaybackRate(selection, controls) : (node.playbackRate ?? 1) * 2 ** (Clamp(terms.pitchCents, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
+      selections.push(Object.freeze(selection));
       return;
     }
     if (node.type === "silence") {
@@ -243,6 +262,7 @@ class CjsSfxEngine {
       ...base,
       gainDb: base.gainDb + (Number(value?.gainDb) || 0) + SampleRanges(value?.gainDbRanges, () => this.#SampleUnit()),
       gainCurves: [...base.gainCurves, ...(value?.gainCurves ?? [])],
+      stateProperties: [...base.stateProperties, ...(value?.stateProperties ?? [])],
       pitchCents: base.pitchCents + (Number(value?.pitchCents) || 0) + SampleRanges(value?.pitchCentsRanges, () => this.#SampleUnit()),
       initialDelayMs: base.initialDelayMs + (Number(value?.initialDelayMs) || 0) + SampleRanges(value?.initialDelayRangesMs, () => this.#SampleUnit())
     };
@@ -420,6 +440,20 @@ function ReadRTPC(curve, controls) {
   }
   const objectValue = controls.getRTPC?.(curve.rtpc);
   return NormalizeControlValue(objectValue ?? controls.getGlobalRTPC?.(curve.rtpc), curve.defaultValue ?? curve.points[0].x);
+}
+function EvaluateStateProperties(properties, controls) {
+  let gainDb = 0;
+  let pitchCents = 0;
+  for (const property of properties ?? []) {
+    const state = controls.getState?.(property.group);
+    const stateCase = state === undefined || state === null ? null : FindCase(property.cases, state);
+    gainDb += Number(stateCase?.gainDb) || 0;
+    pitchCents += Number(stateCase?.pitchCents) || 0;
+  }
+  return {
+    gainDb,
+    pitchCents
+  };
 }
 function NormalizeControlValue(value, fallback) {
   const number = Number(value);

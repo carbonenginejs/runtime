@@ -27,6 +27,7 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
     }
     ValidateGain(node, `Audio library SFX node ${id}`);
     ValidateNodePlaybackProperties(node, `Audio library SFX node ${id}`);
+    ValidateStateProperties(node.stateProperties, `Audio library SFX node ${id} stateProperties`);
     if (node.type === "sound" || node.type === "silence") {
       if (node.type === "silence") {
         continue;
@@ -185,7 +186,8 @@ function NormalizeNode(node) {
   const result = {
     type: node.type,
     ...NormalizeGain(node),
-    ...NormalizeNodePlaybackProperties(node)
+    ...NormalizeNodePlaybackProperties(node),
+    ...NormalizeStateProperties(node)
   };
   if (node.type === "sound" || node.type === "silence") {
     if (node.type === "silence") {
@@ -296,6 +298,24 @@ function NormalizeNodePlaybackProperties(value) {
     }
   }
   return result;
+}
+function NormalizeStateProperties(value) {
+  if (value.stateProperties === undefined) {
+    return {};
+  }
+  return {
+    stateProperties: value.stateProperties.map(property => ({
+      group: String(property.group),
+      cases: Object.fromEntries(Object.keys(property.cases).sort().map(name => [name, {
+        ...(property.cases[name].gainDb === undefined ? {} : {
+          gainDb: Number(property.cases[name].gainDb)
+        }),
+        ...(property.cases[name].pitchCents === undefined ? {} : {
+          pitchCents: Number(property.cases[name].pitchCents)
+        })
+      }]))
+    }))
+  };
 }
 function NormalizeRandomRanges(ranges) {
   return ranges.map(range => ({
@@ -549,6 +569,42 @@ function ValidateNodePlaybackProperties(value, label) {
   }
   ValidateRandomRanges(value.pitchCentsRanges, `${label} pitchCentsRanges`);
   ValidateRandomRanges(value.initialDelayRangesMs, `${label} initialDelayRangesMs`);
+}
+function ValidateStateProperties(value, label) {
+  if (value === undefined) {
+    return;
+  }
+  if (!Array.isArray(value) || !value.length) {
+    throw new TypeError(`${label} must be a non-empty array`);
+  }
+  for (let index = 0; index < value.length; index++) {
+    const property = RequireRecord(value[index], `${label} ${index}`);
+    NormalizeName(property.group, `${label} ${index} group`);
+    const cases = RequireRecord(property.cases, `${label} ${index} cases`);
+    if (!Object.keys(cases).length) {
+      throw new TypeError(`${label} ${index} cases must not be empty`);
+    }
+    const normalizedNames = new Set();
+    for (const [name, rawCase] of Object.entries(cases)) {
+      const normalizedName = NormalizeName(name, `${label} ${index} case`).toLowerCase();
+      if (normalizedNames.has(normalizedName)) {
+        throw new TypeError(`${label} ${index} has duplicate case ${name}`);
+      }
+      normalizedNames.add(normalizedName);
+      const stateCase = RequireRecord(rawCase, `${label} ${index} case ${name}`);
+      const hasGain = stateCase.gainDb !== undefined;
+      const hasPitch = stateCase.pitchCents !== undefined;
+      if (!hasGain && !hasPitch) {
+        throw new TypeError(`${label} ${index} case ${name}` + " must define gainDb or pitchCents");
+      }
+      if (hasGain) {
+        NormalizeFiniteNumber(stateCase.gainDb, `${label} ${index} case ${name} gainDb`);
+      }
+      if (hasPitch) {
+        NormalizeFiniteNumber(stateCase.pitchCents, `${label} ${index} case ${name} pitchCents`);
+      }
+    }
+  }
 }
 function ValidateRandomRanges(value, label) {
   if (value === undefined) {

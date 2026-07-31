@@ -717,6 +717,190 @@ test("SFX lowering preserves inherited NodeBase playback properties", () =>
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("SFX lowering projects only wholly supported Immediate state properties", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 7,
+                        id: 150,
+                        payload: actorMixerPayload({
+                            stateProperties: [
+                                { propertyId: 0, accumulation: 2 },
+                            ],
+                            stateGroups: [
+                                {
+                                    groupId: 600,
+                                    states: [
+                                        {
+                                            stateId: 601,
+                                            values: [
+                                                {
+                                                    propertyId: 0,
+                                                    value: -6,
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                            children: [ 200 ],
+                        }),
+                    },
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: soundPayload({
+                            directParentId: 150,
+                            stateProperties: [
+                                { propertyId: 1, accumulation: 2 },
+                            ],
+                            stateGroups: [
+                                {
+                                    groupId: 600,
+                                    states: [
+                                        {
+                                            stateId: 601,
+                                            values: [
+                                                {
+                                                    propertyId: 1,
+                                                    value: 1200,
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 2,
+                        id: 201,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9002,
+                        inMemoryMediaSize: 64,
+                        payload: soundPayload({
+                            stateProperties: [
+                                { propertyId: 2, accumulation: 2 },
+                            ],
+                            stateGroups: [
+                                {
+                                    groupId: 600,
+                                    states: [
+                                        {
+                                            stateId: 601,
+                                            values: [
+                                                {
+                                                    propertyId: 2,
+                                                    value: 4,
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                weapon_fire: { eventID: 100 },
+                filtered_fire: { eventID: 101 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "1",
+                        ShortName: "common",
+                        StateGroups: [
+                            {
+                                Id: "600",
+                                Name: "combat",
+                                States: [
+                                    { Id: "601", Name: "danger" },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+            "9002": { resPath: "res:/audio/9002.wem" },
+        },
+    });
+
+    assert.deepEqual(result.nodes["200"].stateProperties, [
+        {
+            group: "combat",
+            cases: {
+                danger: { gainDb: -6 },
+            },
+        },
+        {
+            group: "combat",
+            cases: {
+                danger: { pitchCents: 1200 },
+            },
+        },
+    ]);
+    assert.equal(result.events.filtered_fire, undefined);
+    assert.equal(
+        result.nodes["201"],
+        undefined,
+        "an unsupported State path is not retained as degraded playback",
+    );
+    assert.deepEqual(result.diagnostics.omittedEvents, [
+        {
+            id: 101,
+            name: "filtered_fire",
+            reason: "unsupported state property 2",
+        },
+    ]);
+});
+
 test("typed Wwise infinite Sound loops survive SFX lowering", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -2635,6 +2819,8 @@ function soundPayload({
     loopCount = null,
     properties = [],
     ranges = [],
+    stateProperties = [],
+    stateGroups = [],
 } = {})
 {
     return new TestWriter()
@@ -2651,6 +2837,8 @@ function soundPayload({
             loopCount,
             properties,
             ranges,
+            stateProperties,
+            stateGroups,
         }))
         .bytes();
 }
@@ -2747,6 +2935,8 @@ function actorMixerPayload({
     attenuationId = null,
     properties = [],
     ranges = [],
+    stateProperties = [],
+    stateGroups = [],
     children = [],
 } = {})
 {
@@ -2758,6 +2948,8 @@ function actorMixerPayload({
             attenuationId,
             properties,
             ranges,
+            stateProperties,
+            stateGroups,
         }))
         .u32(children.length);
 
@@ -2789,6 +2981,8 @@ function nodeBasePayload({
     loopCount = null,
     properties: propertyValues = [],
     ranges = [],
+    stateProperties = [],
+    stateGroups = [],
 } = {})
 {
     const writer = new TestWriter()
@@ -2854,13 +3048,44 @@ function nodeBasePayload({
         writer.u8(spatialFlags);
     }
 
-    return writer
+    writer
         .u8(0).u32(0)
         .u8(0).u8(0).u16(0).u8(0).u8(0)
-        .u8(0)
-        .u8(0)
-        .u16(0)
-        .bytes();
+        .u8(stateProperties.length);
+
+    for (const property of stateProperties)
+    {
+        writer
+            .u8(property.propertyId)
+            .u8(property.accumulation)
+            .u8(property.inDb ? 1 : 0);
+    }
+
+    writer.u8(stateGroups.length);
+    for (const group of stateGroups)
+    {
+        writer
+            .u32(group.groupId)
+            .u8(group.syncType ?? 0)
+            .u8(group.states.length);
+
+        for (const state of group.states)
+        {
+            writer
+                .u32(state.stateId)
+                .u16(state.values.length);
+            for (const value of state.values)
+            {
+                writer.u16(value.propertyId);
+            }
+            for (const value of state.values)
+            {
+                writer.f32(value.value);
+            }
+        }
+    }
+
+    return writer.u16(0).bytes();
 }
 
 class TestWriter

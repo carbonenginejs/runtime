@@ -60,7 +60,7 @@ Only `schemaVersion: 2` is accepted:
 `embeddedMedia` identifies an original bank plus `offset` and `byteLength`.
 Every bank key and `sourceID` is its `bankID:languageID` identity.
 When present, `sfx` selects and layers those media identities using the
-version-1 portable SFX graph.
+version-2 portable SFX graph.
 
 ## Delivery
 

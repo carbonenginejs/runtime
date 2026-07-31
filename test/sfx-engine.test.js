@@ -73,6 +73,97 @@ test("authored relative volume and pitch clamp after hierarchy accumulation", ()
     assert.equal(engine.EvaluateGain(selection), 10 ** 10);
 });
 
+test("Immediate state properties add to inherited volume and pitch", () =>
+{
+    let currentState = null;
+    const controls = {
+        getState: () => currentState,
+    };
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { fire: [ { nodeId: "1" } ] },
+            {
+                "1": {
+                    type: "blend",
+                    gainDb: -4,
+                    pitchCents: 100,
+                    stateProperties: [
+                        {
+                            group: "combat",
+                            cases: {
+                                danger: {
+                                    gainDb: -6,
+                                    pitchCents: 200,
+                                },
+                            },
+                        },
+                    ],
+                    children: [ { nodeId: "2" } ],
+                },
+                "2": {
+                    type: "sound",
+                    mediaId: "100",
+                    gainDb: -2,
+                    pitchCents: 300,
+                    stateProperties: [
+                        {
+                            group: "combat",
+                            cases: {
+                                danger: {
+                                    gainDb: -3,
+                                    pitchCents: 600,
+                                },
+                            },
+                        },
+                    ],
+                },
+            },
+        ),
+    });
+    const selection = engine.ResolveEvent("fire", controls)[0];
+
+    assert.ok(
+        Math.abs(
+            engine.EvaluateGain(selection, controls) - 10 ** (-6 / 20),
+        ) < 1e-12,
+        "the initial None state contributes no authored delta",
+    );
+    assert.ok(
+        Math.abs(
+            engine.EvaluatePlaybackRate(selection, controls)
+                - 2 ** (400 / 1200),
+        ) < 1e-12,
+    );
+
+    currentState = "DANGER";
+
+    assert.ok(
+        Math.abs(
+            engine.EvaluateGain(selection, controls) - 10 ** (-15 / 20),
+        ) < 1e-12,
+        "matching inherited state deltas add to static gain",
+    );
+    assert.equal(
+        engine.EvaluatePlaybackRate(selection, controls),
+        2,
+        "matching inherited state deltas add to static pitch",
+    );
+
+    currentState = "unknown";
+
+    assert.ok(
+        Math.abs(
+            engine.EvaluateGain(selection, controls) - 10 ** (-6 / 20),
+        ) < 1e-12,
+    );
+    assert.ok(
+        Math.abs(
+            engine.EvaluatePlaybackRate(selection, controls)
+                - 2 ** (400 / 1200),
+        ) < 1e-12,
+    );
+});
+
 test("authored random containers honor weights and per-object repeat avoidance", () =>
 {
     const samples = [ 0.1, 0.1, 0.99 ];
