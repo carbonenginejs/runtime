@@ -39,9 +39,10 @@ the corresponding configured service's `Register()` method.
 
 `Initialize(options)` applies library values and marks the library initialized.
 `InitializeAsync({ dataPath, ...options })` additionally asks the configured
-SOF service to load the supplied data path. `Shutdown()` currently clears only
-the library's initialized flag; it does not invent a shutdown protocol for
-injected services.
+SOF service to load the supplied data path. `Shutdown()` disables and detaches
+the configured audio manager when those structural methods are present, then
+clears the initialized flag. It does not dispose caller-owned services or
+invent a general shutdown protocol for them.
 
 ## Request-policy boundary
 

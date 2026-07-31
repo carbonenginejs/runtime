@@ -54,6 +54,7 @@ platform.RegisterCapabilities(library);
 
 - [Package documentation](docs/README.md)
 - [Architecture](docs/architecture.md)
+- [Roadmap](docs/roadmap.md)
 - [Composing a library](docs/guides/composing-a-library.md)
 - [API reference](docs/reference/api.md)
 - [Resource request policy](docs/reference/resource-request-policy.md)

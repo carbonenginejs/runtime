@@ -36,6 +36,7 @@ hydrate a scene graph, or drive a frame loop.
 ## Start here
 
 - [Architecture](architecture.md)
+- [Roadmap](roadmap.md)
 - [Composing a library](guides/composing-a-library.md)
 - [API reference](reference/api.md)
 - [Resource request policy](reference/resource-request-policy.md)
