@@ -20,6 +20,50 @@ function ResetAudioSeams()
   AudGameObjResource.backend = null;
 }
 
+test("game-object controls propagate Wwise-compatible value failures", () =>
+{
+  const repository = new AudStaticDataRepository();
+  repository.Initialize({
+    Events: {},
+    SoundBanks: { "ships.bnk": { EssentialSoundBank: 0 } },
+    WemFileIDs: {},
+  });
+  const manager = new AudManager();
+
+  AudGameObjResource.manager = manager;
+  AudGameObjResource.staticDataRepository = repository;
+  AudGameObjResource.backend = {
+    Init: () => true,
+    LoadBank: (_name, callback) => callback(true),
+    RegisterGameObj: () => {},
+    SetPosition: () => {},
+    SetScalingFactor: (_gameObjID, value) =>
+      Number.isFinite(Number(value)) && Number(value) > 0,
+    SetRTPCValue: (_name, value) => Number.isFinite(Number(value)),
+    SetGlobalRTPCValue: (_name, value) => Number.isFinite(Number(value)),
+    RenderAudio: () => {},
+  };
+
+  try
+  {
+    manager.Enable([ "ships.bnk" ]);
+    const emitter = new AudEmitter();
+    emitter.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
+    emitter.Wake();
+
+    assert.equal(emitter.SetAttenuationScalingFactor(2), true);
+    assert.equal(emitter.scalingFactor, 2);
+    assert.equal(emitter.SetAttenuationScalingFactor(0), false);
+    assert.equal(emitter.scalingFactor, 2);
+    assert.equal(emitter.SetRTPC("speed", Infinity), false);
+    assert.equal(manager.SetGlobalRTPC("volume", Infinity), false);
+  }
+  finally
+  {
+    ResetAudioSeams();
+  }
+});
+
 test("AudActionLogCB receives Carbon-shaped records from live manager and emitter actions", () =>
 {
   const repository = new AudStaticDataRepository();

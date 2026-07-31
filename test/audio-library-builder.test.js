@@ -984,6 +984,200 @@ test("trackless non-continuous Layer containers lower to parallel playback", () 
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("non-continuous Step switches ignore dormant default Stop policies", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 2,
+                        id: 202,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9002,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 6,
+                        id: 201,
+                        payload: switchPayload({
+                            children: [ 200, 202 ],
+                            assignments: [
+                                { valueId: 501, childIds: [ 200 ] },
+                                { valueId: 502, childIds: [ 202 ] },
+                            ],
+                            parameters: [
+                                { childId: 200, onSwitchMode: 1 },
+                                { childId: 202, onSwitchMode: 1 },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                weapon_impact: { eventID: 100 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "1",
+                        ShortName: "common",
+                        SwitchGroups: [
+                            {
+                                Id: "500",
+                                Name: "impact_type",
+                                Switches: [
+                                    { Id: "501", Name: "armor" },
+                                    { Id: "502", Name: "shield" },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+            "9002": { resPath: "res:/audio/9002.wem" },
+        },
+    });
+
+    assert.deepEqual(result.nodes["201"], {
+        type: "switch",
+        scope: "switch",
+        group: "impact_type",
+        cases: {
+            armor: { nodeId: "200" },
+            shield: { nodeId: "202" },
+        },
+        default: { nodeId: "200" },
+    });
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("continuous and fading switches remain unsupported", () =>
+{
+    const build = (payload) => CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    { type: 6, id: 201, payload },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                weapon_impact: { eventID: 100 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "1",
+                        ShortName: "common",
+                        SwitchGroups: [
+                            {
+                                Id: "500",
+                                Name: "impact_type",
+                                Switches: [
+                                    { Id: "501", Name: "armor" },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.equal(
+        build(switchPayload({
+            continuousValidation: true,
+            children: [ 200 ],
+            assignments: [
+                { valueId: 501, childIds: [ 200 ] },
+            ],
+            parameters: [
+                { childId: 200, onSwitchMode: 1 },
+            ],
+        })).diagnostics.omittedEvents[0].reason,
+        "continuous switch 201",
+    );
+    assert.equal(
+        build(switchPayload({
+            children: [ 200 ],
+            assignments: [
+                { valueId: 501, childIds: [ 200 ] },
+            ],
+            parameters: [
+                { childId: 200, onSwitchMode: 1, fadeOutMs: 250 },
+            ],
+        })).diagnostics.omittedEvents[0].reason,
+        "transitioned switch 201",
+    );
+});
+
 test("non-continuous Layer crossfades lower to live linear-gain curves", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -2321,6 +2515,55 @@ function randomSequencePayload({
     return bytes;
 }
 
+function switchPayload({
+    groupType = 0,
+    groupId = 500,
+    defaultValueId = 501,
+    continuousValidation = false,
+    children,
+    assignments,
+    parameters,
+})
+{
+    const writer = new TestWriter()
+        .u8(0xaa).u8(0x55).u8(0x33)
+        .u8(groupType)
+        .u32(groupId)
+        .u32(defaultValueId)
+        .u8(continuousValidation ? 1 : 0)
+        .u32(children.length);
+
+    for (const childId of children)
+    {
+        writer.u32(childId);
+    }
+    writer.u32(assignments.length);
+    for (const assignment of assignments)
+    {
+        writer
+            .u32(assignment.valueId)
+            .u32(assignment.childIds.length);
+        for (const childId of assignment.childIds)
+        {
+            writer.u32(childId);
+        }
+    }
+    writer.u32(parameters.length);
+    for (const parameter of parameters)
+    {
+        const flags1 = (parameter.firstOnly ? 1 : 0)
+            | (parameter.continuePlayback ? 2 : 0);
+
+        writer
+            .u32(parameter.childId)
+            .u8(flags1)
+            .u8(parameter.onSwitchMode ?? 0)
+            .s32(parameter.fadeOutMs ?? 0)
+            .s32(parameter.fadeInMs ?? 0);
+    }
+    return writer.bytes();
+}
+
 function layerPayload(children)
 {
     const bytes = new Uint8Array(9 + children.length * 4);
@@ -2641,6 +2884,11 @@ class TestWriter
     u32(value)
     {
         return this.#number(4, view => view.setUint32(0, value, true));
+    }
+
+    s32(value)
+    {
+        return this.#number(4, view => view.setInt32(0, value, true));
     }
 
     f32(value)

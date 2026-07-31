@@ -650,7 +650,10 @@ function LowerSfxGraph({
         if (source.continuousValidation) {
           throw new Error(`continuous switch ${id}`);
         }
-        if (source.parameters.some(parameter => parameter.firstOnly || parameter.continuePlayback || parameter.onSwitchMode !== 0 || parameter.fadeOutMs !== 0 || parameter.fadeInMs !== 0)) {
+        // Step switches choose once per post, so their default Stop
+        // mode is dormant; only live-continuation flags or fades
+        // require the unsupported continuous-switch scheduler.
+        if (source.parameters.some(parameter => parameter.firstOnly || parameter.continuePlayback || parameter.fadeOutMs !== 0 || parameter.fadeInMs !== 0)) {
           throw new Error(`transitioned switch ${id}`);
         }
         const scope = source.groupType === 1 ? "state" : "switch";

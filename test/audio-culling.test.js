@@ -360,6 +360,89 @@ test("AudManager lifecycle: enable, async bank load, deferred-event flush with b
   }
 });
 
+test("permanent unregister purges deferred bank posts while culling preserves them", async () =>
+{
+  const repository = new AudStaticDataRepository();
+  repository.Initialize({
+    Events: {
+      fire: {
+        eventID: 7,
+        maxRadiusAttenuation: 50,
+        isLoop: 0,
+        is2D: 0,
+        isVital: 0,
+        eventsStoppedBy: [],
+        soundbanks: [ "weapons.bnk" ],
+      },
+    },
+    SoundBanks: {
+      "weapons.bnk": { EssentialSoundBank: 0 },
+    },
+    WemFileIDs: {},
+  });
+  AudGameObjResource.staticDataRepository = repository;
+  const posted = [];
+  AudGameObjResource.backend = {
+    Init: () => true,
+    LoadBank() {},
+    PostEvent: eventID =>
+    {
+      posted.push(eventID);
+      return 100 + posted.length;
+    },
+    RegisterGameObj() {},
+    UnregisterGameObj() {},
+    SetPosition() {},
+  };
+  const manager = new AudManager();
+
+  AudGameObjResource.manager = manager;
+
+  try
+  {
+    manager.Enable([ "weapons.bnk" ]);
+    const released = new AudEmitter();
+
+    released.SetPosition([ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
+    released.Wake();
+    assert.equal(released.PostEvent("fire"), 0);
+
+    manager.RemoveCallbackGameObject(released.ID);
+    manager.UnregisterGameObject(released.ID);
+    manager.RegisterGameObject(released.ID, released);
+    manager.UpdateSoundBankStatus("weapons", "loaded");
+    assert.deepEqual(
+      posted,
+      [],
+      "re-adoption cannot revive an event queued before permanent release"
+    );
+
+    manager.UnloadBank("weapons.bnk");
+    manager.UpdateSoundBankStatus("weapons", "not_loaded");
+    manager.LoadBank("weapons.bnk");
+    const culled = new AudEmitter();
+
+    culled.SetPosition([ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
+    culled.Wake();
+    assert.equal(culled.PostEvent("fire"), 0);
+    culled.Cull();
+    manager.UpdateSoundBankStatus("weapons", "loaded");
+    assert.deepEqual(posted, []);
+    culled.SetDistanceSqFromListener(0);
+    culled.CalculateCullingWeight();
+    culled.Wake();
+    assert.deepEqual(
+      posted,
+      [ 7 ],
+      "ordinary Cull/Wake preserves a deferred bank post"
+    );
+  }
+  finally
+  {
+    teardown();
+  }
+});
+
 test("AudManager ignores stale asynchronous bank callbacks", async () =>
 {
   const { AudManager } = await import("../npm/dist/index.js");

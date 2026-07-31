@@ -151,8 +151,14 @@ class CjsAudioSystem {
     if (this.#attached) {
       _AudGameObjResource.backend = this.backend;
     }
+    for (const emitter of this.#adoptedEmitters) {
+      this.#RecoverInitialEvent(emitter);
+    }
     this.manager.Enable(soundBanksToLoad);
     if (this.manager.enabled) {
+      for (const emitter of this.#adoptedEmitters) {
+        emitter.RealizePlacement?.();
+      }
       for (const driver of this.#adoptedCurveSetDrivers) {
         driver.Initialize();
       }
@@ -250,9 +256,18 @@ class CjsAudioSystem {
     });
     this.#adoptedEmitters.add(emitter);
     if (this.manager.enabled) {
+      this.#RecoverInitialEvent(emitter);
       emitter.Wake();
+      emitter.RealizePlacement?.();
     }
     return emitter;
+  }
+
+  /** Recovers one persisted Initialize-time event lost before graph seams existed. */
+  #RecoverInitialEvent(emitter) {
+    if (!emitter.isUsed && emitter.eventName) {
+      emitter.PostEvent(emitter.eventName);
+    }
   }
 
   /** Registers a preconstructed audio curve-set driver. */
@@ -288,11 +303,12 @@ class CjsAudioSystem {
 
   /** Stops and unregisters an adopted emitter. */
   ReleaseEmitter(emitter) {
-    if (!(emitter instanceof _AudGameObjResource)) {
+    if (!(emitter instanceof _AudGameObjResource) || !this.#adoptedEmitters.has(emitter) || this.manager.GetAudioEmitter(emitter.ID) !== emitter) {
       return false;
     }
     emitter.StopAll();
     emitter.UnregisterWwiseObject();
+    this.backend?.ReleaseGameObj?.(emitter.ID);
     this.manager.RemoveCallbackGameObject(emitter.ID);
     this.manager.UnregisterGameObject(emitter.ID);
     this.#adoptedEmitters.delete(emitter);

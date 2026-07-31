@@ -939,10 +939,12 @@ function LowerSfxGraph({
                 {
                     throw new Error(`continuous switch ${id}`);
                 }
+                // Step switches choose once per post, so their default Stop
+                // mode is dormant; only live-continuation flags or fades
+                // require the unsupported continuous-switch scheduler.
                 if (source.parameters.some(parameter =>
                     parameter.firstOnly
                     || parameter.continuePlayback
-                    || parameter.onSwitchMode !== 0
                     || parameter.fadeOutMs !== 0
                     || parameter.fadeInMs !== 0))
                 {

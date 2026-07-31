@@ -44,6 +44,7 @@ function FakeContext()
     sampleRate: 48000,
     destination: { name: "destination" },
     gains: [],
+    panners: [],
     sources: [],
     createGain()
     {
@@ -65,11 +66,18 @@ function FakeContext()
     },
     createPanner()
     {
-      return {
+      const node = {
         panningModel: "", distanceModel: "", refDistance: 1,
         positionX: FakeParam(0), positionY: FakeParam(0), positionZ: FakeParam(0),
-        connect: () => {}, disconnect: () => {}
+        disconnected: false,
+        connect: () => {},
+        disconnect: () =>
+        {
+          node.disconnected = true;
+        }
       };
+      context.panners.push(node);
+      return node;
     },
     createBufferSource()
     {
@@ -138,6 +146,30 @@ function Harness({
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
 }
+
+test("invalid RTPC and attenuation values fail without replacing live backend state", () =>
+{
+  const applied = [];
+  const { context, backend } = Harness({
+    applyRTPC: value => applied.push(value),
+  });
+
+  assert.equal(backend.SetRTPCValue("speed", 0.5, 1), true);
+  assert.equal(backend.SetRTPCValue("speed", Infinity, 1), false);
+  assert.equal(backend.GetRTPCValue("speed", 1), 0.5);
+  assert.equal(applied.length, 1);
+
+  assert.equal(backend.SetGlobalRTPCValue("volume", 0.75), true);
+  assert.equal(backend.SetGlobalRTPCValue("volume", NaN), false);
+  assert.equal(backend.GetGlobalRTPCValue("volume"), 0.75);
+
+  assert.equal(backend.SetScalingFactor(1, 2), true);
+  assert.equal(context.panners[0].refDistance, 2);
+  assert.equal(backend.SetScalingFactor(1, 0), false);
+  assert.equal(backend.SetScalingFactor(1, Infinity), false);
+  assert.equal(context.panners[0].refDistance, 2);
+  assert.equal(backend.SetScalingFactor(404, 1), false);
+});
 
 test("one authored event can keep SFX and music alive under one playing id", async () =>
 {
@@ -771,7 +803,7 @@ test("break lets the current finite repeat finish and stop overrides its schedul
 });
 
 
-test("UnregisterGameObj halts loaded sources and cancels in-flight loads", async () =>
+test("UnregisterGameObj retires its node generation while posted sounds finish", async () =>
 {
   const pending = Deferred();
   let calls = 0;
@@ -798,15 +830,128 @@ test("UnregisterGameObj halts loaded sources and cancels in-flight loads", async
 
   backend.UnregisterGameObj(1);
 
-  assert.equal(backend.GetPlayingCount(), 0, "no playing record survives its emitter");
-  assert.deepEqual(finished.sort(), [loaded, inflight].sort(), "both records finished exactly once");
-  assert.equal(context.sources[0].stoppedAt, 0, "the loaded source halts immediately");
-  assert.equal(inflightSignal.aborted, true, "the in-flight load receives cancellation");
+  assert.equal(backend.GetPlayingCount(), 2);
+  assert.deepEqual(finished, []);
+  assert.equal(context.sources[0].stoppedAt, null, "the loaded source keeps playing");
+  assert.equal(inflightSignal.aborted, false, "the in-flight load keeps its lease");
+  assert.equal(context.panners[0].disconnected, false);
+
+  backend.RegisterGameObj(1);
+  assert.equal(context.panners.length, 2, "re-registration creates a fresh node generation");
 
   pending.resolve({ fake: "buffer" });
   await tick();
-  assert.equal(context.sources.length, 1, "the in-flight load never starts on the torn-down graph");
-  assert.deepEqual(finished.sort(), [loaded, inflight].sort(), "resolution after teardown adds no callbacks");
+  assert.equal(context.sources.length, 2, "pending media realizes on the retired generation");
+
+  context.sources[0].onended();
+  assert.deepEqual(finished, [loaded]);
+  assert.equal(context.panners[0].disconnected, false, "the shared old generation remains");
+
+  context.sources[1].onended();
+  assert.deepEqual(finished, [loaded, inflight]);
+  assert.equal(context.panners[0].disconnected, true, "the old generation drains after its last sound");
+  assert.equal(context.panners[1].disconnected, false, "the current generation remains live");
+});
+
+test("retired voices freeze object RTPCs while global RTPCs stay live", async () =>
+{
+  const pending = Deferred();
+  const adapterValues = [];
+  let controls = null;
+  const { context, emitter, backend } = Harness({
+    applyRTPC: ({ value }) => adapterValues.push(value),
+    loadBuffer: (_eventID, _eventName, suppliedControls) =>
+    {
+      controls = suppliedControls;
+      return pending.promise;
+    }
+  });
+
+  backend.SetRTPCValue("intensity", 0.25, 1);
+  backend.SetGlobalRTPCValue("global_mix", 0.2);
+  backend.PostEvent(7, 1, 0, emitter, "pending_layer");
+  await tick();
+
+  backend.UnregisterGameObj(1);
+  backend.RegisterGameObj(1);
+  backend.SetRTPCValue("intensity", 0.75, 1);
+  assert.equal(controls.getRTPC("intensity"), 0.25);
+  assert.equal(controls.getGlobalRTPC("global_mix"), 0.2);
+  pending.resolve({
+    voices: [
+      {
+        buffer: { duration: 2 },
+        spatial: false,
+        getGain: () =>
+          controls.getRTPC("intensity")
+          * controls.getGlobalRTPC("global_mix")
+      }
+    ]
+  });
+  await tick();
+
+  assert.equal(
+    context.gains[4].gain.value,
+    0.05,
+    "pending voice realizes with the retired generation's object value"
+  );
+  assert.equal(
+    adapterValues.at(-1),
+    0.25,
+    "the retired lazy 2D route replays its own object RTPC snapshot"
+  );
+
+  backend.SetRTPCValue("intensity", 1, 1);
+  assert.equal(
+    context.gains[4].gain.value,
+    0.05,
+    "new-generation object RTPC changes cannot reach the retired voice"
+  );
+
+  backend.SetGlobalRTPCValue("global_mix", 0.8);
+  assert.equal(
+    context.gains[4].gain.value,
+    0.2,
+    "global RTPC changes continue to reach already-posted retired voices"
+  );
+});
+
+test("ReleaseGameObj halts loaded sources and cancels in-flight loads", async () =>
+{
+  const pending = Deferred();
+  let calls = 0;
+  let inflightSignal = null;
+  const { context, finished, emitter, backend } = Harness({
+    loadBuffer: (_eventID, _eventName, controls) =>
+    {
+      calls++;
+      if (calls === 1)
+      {
+        return Promise.resolve({ fake: "buffer" });
+      }
+      inflightSignal = controls.signal;
+      return pending.promise;
+    }
+  });
+
+  const loaded = backend.PostEvent(7, 1, 0, emitter, "shot_loaded");
+  await tick();
+  const inflight = backend.PostEvent(8, 1, 0, emitter, "shot_inflight");
+  await tick();
+
+  backend.ReleaseGameObj(1);
+
+  assert.equal(backend.GetPlayingCount(), 0);
+  assert.deepEqual(finished.sort(), [ loaded, inflight ].sort());
+  assert.equal(context.sources[0].stoppedAt, 0);
+  assert.equal(inflightSignal.aborted, true);
+  assert.equal(context.panners[0].disconnected, true);
+
+  backend.ReleaseGameObj(1);
+  pending.resolve({ fake: "buffer" });
+  await tick();
+  assert.equal(context.sources.length, 1);
+  assert.deepEqual(finished.sort(), [ loaded, inflight ].sort());
 });
 
 test("StopAll aborts every pending non-music loader", async () =>

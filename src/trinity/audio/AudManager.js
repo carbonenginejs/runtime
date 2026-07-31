@@ -859,12 +859,24 @@ export class AudManager extends CjsModel
     this.soundPrioritization.RegisterGameObject(gameObject);
   }
 
-  /** Carbon method UnregisterGameObject. */
+  /**
+   * Carbon method UnregisterGameObject.
+   *
+   * Carbon's deferred bank queue owns strong AudGameObjResourcePtr entries.
+   * Explicit JavaScript release instead purges those entries here.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Carbon keeps deferred emitters alive through strong pointers; CarbonEngineJS explicit release must prevent a stale post after re-adoption.")
   UnregisterGameObject(gameObjID)
   {
     this.soundPrioritization.UnregisterGameObject(gameObjID);
+    for (const info of this.#soundBankInfoMap.values())
+    {
+      info.waitingEventsAfterLoad = info.waitingEventsAfterLoad.filter(
+        ([ emitter ]) => emitter?.ID !== gameObjID
+      );
+    }
   }
 
   /** Carbon method RemoveCallbackGameObject. */

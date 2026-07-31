@@ -718,7 +718,10 @@ export class AudGameObjResource extends CjsModel
   {
     if (AudGameObjResource.manager?.enabled && this.#gameObjRegistered)
     {
-      AudGameObjResource.backend?.SetScalingFactor?.(this.ID, value);
+      if (AudGameObjResource.backend?.SetScalingFactor?.(this.ID, value) === false)
+      {
+        return false;
+      }
       this.scalingFactor = value;
       return true;
     }

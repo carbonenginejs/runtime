@@ -22,6 +22,8 @@ export class AudListener extends AudGameObjResource
 
   #cross = vec3.fromValues(-1, 0, 0);
 
+  #realizedBackend = null;
+
   /** Creates Carbon's fixed-id listener with non-cullable priority weight. */
   constructor()
   {
@@ -55,12 +57,37 @@ export class AudListener extends AudGameObjResource
       this.#normalizedTop,
       this.#cross);
     vec3.copy(this.position, positionValue);
-    AudGameObjResource.backend?.SetListenerPosition?.(
+    const backend = AudGameObjResource.backend;
+    if (typeof backend?.SetListenerPosition === "function")
+    {
+      backend.SetListenerPosition(
+        this.ID,
+        this.#effectiveFront,
+        this.#effectiveTop,
+        this.position);
+      this.#realizedBackend = backend;
+    }
+    return 1;
+  }
+
+  /** Pushes a stored listener pose once when a browser backend becomes available. */
+  @impl.custom
+  @impl.reason("Browser audio is created on a user gesture, after a headless listener may already have received its placement.")
+  RealizePlacement()
+  {
+    const backend = AudGameObjResource.backend;
+    if (typeof backend?.SetListenerPosition !== "function"
+      || backend === this.#realizedBackend)
+    {
+      return false;
+    }
+    backend.SetListenerPosition(
       this.ID,
       this.#effectiveFront,
       this.#effectiveTop,
       this.position);
-    return 1;
+    this.#realizedBackend = backend;
+    return true;
   }
 
 }

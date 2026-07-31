@@ -483,7 +483,9 @@ new class extends _identity {
     /** Carbon method SetAttenuationScalingFactor: stored only when live-applied (Carbon parity). */
     SetAttenuationScalingFactor(value) {
       if (_AudGameObjResource.manager?.enabled && this.#gameObjRegistered) {
-        _AudGameObjResource.backend?.SetScalingFactor?.(this.ID, value);
+        if (_AudGameObjResource.backend?.SetScalingFactor?.(this.ID, value) === false) {
+          return false;
+        }
         this.scalingFactor = value;
         return true;
       }

@@ -124,6 +124,22 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "small",
     ]);
 
+    const artillerySwitch = graph.nodes[
+        graph.events.Play_Impact_Artillery[0].nodeId
+    ];
+
+    assert.equal(artillerySwitch.type, "switch");
+    assert.equal(artillerySwitch.group, "Impact_On");
+    assert.deepEqual(Object.keys(artillerySwitch.cases), [
+        "Armor",
+        "Hull",
+        "Shield",
+    ]);
+    assert.ok(
+        library.eventMedia.Play_Impact_Artillery.length > 100,
+        "non-continuous Step switches retain every reachable impact variant",
+    );
+
     const blendRoot = graph.nodes[
         graph.events.msg_newscan_probe_scan_results_play[0].nodeId
     ];

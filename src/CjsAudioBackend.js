@@ -218,37 +218,54 @@ export class CjsAudioBackend
         });
     }
 
-    /** Tears down an emitter's node chain and halts its playing sources, loaded or pending. */
+    /**
+     * Logically unregisters an emitter while allowing already-posted sounds to
+     * finish on their retired node generation, matching Wwise.
+     */
     UnregisterGameObj(gameObjID)
     {
         const nodes = this.#emitterNodes.get(gameObjID);
         if (nodes)
         {
-            for (const [playingID, record] of [...this.#playing])
+            nodes.retiredRtpcValues = new Map(
+                this.#objectRtpcValues.get(gameObjID) ?? [],
+            );
+            this.#emitterNodes.delete(gameObjID);
+            this.#ReleaseRetiredEmitterNodes(gameObjID, nodes);
+        }
+        this.#objectRtpcValues.delete(gameObjID);
+        this.#objectSwitchValues.delete(gameObjID);
+    }
+
+    /** Permanently releases an emitter and every loaded or pending sound it owns. */
+    ReleaseGameObj(gameObjID)
+    {
+        for (const [playingID, record] of [ ...this.#playing ])
+        {
+            if (record.gameObjID !== gameObjID)
             {
-                if (record.gameObjID === gameObjID)
+                continue;
+            }
+            record.stopped = true;
+            if (record.music)
+            {
+                record.musicEngine?.ExecuteAction?.("stop", playingID, 0);
+            }
+            for (const voice of record.voices ?? [])
+            {
+                if (voice.source)
                 {
-                    record.stopped = true;
-                    if (record.music)
-                    {
-                        record.musicEngine?.ExecuteAction?.("stop", playingID, 0);
-                    }
-                    for (const voice of record.voices ?? [])
-                    {
-                        if (voice.source)
-                        {
-                            voice.source.onended = null;
-                            voice.source.stop?.(this.#context.currentTime);
-                        }
-                    }
-                    this.#FinishPlaying(playingID);
+                    voice.source.onended = null;
+                    voice.source.stop?.(this.#context.currentTime);
                 }
             }
-            nodes.gain.disconnect?.();
-            nodes.flatGain?.disconnect?.();
-            nodes.panner.disconnect?.();
-            nodes.analyser?.disconnect?.();
+            this.#FinishPlaying(playingID);
+        }
+        const nodes = this.#emitterNodes.get(gameObjID);
+        if (nodes)
+        {
             this.#emitterNodes.delete(gameObjID);
+            this.#DisconnectEmitterNodes(nodes);
         }
         this.#objectRtpcValues.delete(gameObjID);
         this.#objectSwitchValues.delete(gameObjID);
@@ -286,6 +303,7 @@ export class CjsAudioBackend
         const record = {
             gameObjID,
             emitter,
+            emitterNodes: nodes,
             eventName,
             controller,
             voices: [],
@@ -701,15 +719,22 @@ export class CjsAudioBackend
     /** Attenuation scaling -> panner distance scaling. */
     SetScalingFactor(gameObjID, value)
     {
-        const nodes = this.#emitterNodes.get(gameObjID);
-        if (nodes)
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric) || numeric <= 0)
         {
-            nodes.scalingFactor = value;
-            if (nodes.panner.refDistance !== undefined)
-            {
-                nodes.panner.refDistance = Math.max(1e-4, value);
-            }
+            return false;
         }
+        const nodes = this.#emitterNodes.get(gameObjID);
+        if (!nodes)
+        {
+            return false;
+        }
+        nodes.scalingFactor = numeric;
+        if (nodes.panner.refDistance !== undefined)
+        {
+            nodes.panner.refDistance = numeric;
+        }
+        return true;
     }
 
     /**
@@ -721,6 +746,10 @@ export class CjsAudioBackend
     {
         const name = String(rtpcName);
         const numeric = Number(value);
+        if (!Number.isFinite(numeric))
+        {
+            return false;
+        }
         let values = this.#objectRtpcValues.get(gameObjID);
         if (!values)
         {
@@ -739,6 +768,7 @@ export class CjsAudioBackend
             flatGain: nodes?.flatGain?.gain ?? null,
             panner: nodes?.panner ?? null
         });
+        return true;
     }
 
     /** Per-object RTPC query for adapters, diagnostics, and tests. */
@@ -785,6 +815,10 @@ export class CjsAudioBackend
     {
         const name = String(rtpcName);
         const numeric = Number(value);
+        if (!Number.isFinite(numeric))
+        {
+            return false;
+        }
         this.#globalRtpcValues.set(name, numeric);
         this.#RefreshSfxGains();
         if (name === "menu_main_master_level")
@@ -795,6 +829,7 @@ export class CjsAudioBackend
         {
             this.#musicEngine?.SetMusicVolume(numeric);
         }
+        return true;
     }
 
     /** Global state group - feeds authored SFX and music tree arguments. */
@@ -1404,7 +1439,9 @@ export class CjsAudioBackend
             getState: group =>
                 this.GetGlobalState(group),
             getRTPC: name =>
-                this.GetRTPCValue(name, gameObjID),
+                record?.emitterNodes?.retiredRtpcValues instanceof Map
+                    ? record.emitterNodes.retiredRtpcValues.get(String(name))
+                    : this.GetRTPCValue(name, gameObjID),
             getGlobalRTPC: name =>
                 this.GetGlobalRTPCValue(name),
             setSwitch: (group, value) =>
@@ -1441,7 +1478,9 @@ export class CjsAudioBackend
                 // A 2D route is allocated lazily. Replay previously stored
                 // object RTPCs now that adapters can finally see flatGain.
                 for (const [ rtpcName, value ] of
-                    this.#objectRtpcValues.get(gameObjID) ?? [])
+                    emitterNodes.retiredRtpcValues
+                        ?? this.#objectRtpcValues.get(gameObjID)
+                        ?? [])
                 {
                     this.#applyRTPC?.({
                         gameObjID,
@@ -1706,7 +1745,10 @@ export class CjsAudioBackend
         {
             if (!record.sfx
                 || record.stopped
-                || (gameObjID !== null && record.gameObjID !== gameObjID))
+                || (gameObjID !== null && record.gameObjID !== gameObjID)
+                || (gameObjID !== null
+                    && record.emitterNodes
+                        !== this.#emitterNodes.get(record.gameObjID)))
             {
                 continue;
             }
@@ -1864,7 +1906,33 @@ export class CjsAudioBackend
             record.sourceGain?.disconnect?.();
             record.emitter?.EventFinishedCallback?.(playingID);
             record.onFinished?.(playingID);
+            this.#ReleaseRetiredEmitterNodes(
+                record.gameObjID,
+                record.emitterNodes,
+            );
         }
+    }
+
+    /** Disconnects one emitter generation once no current or playing record owns it. */
+    #ReleaseRetiredEmitterNodes(gameObjID, nodes)
+    {
+        if (!nodes
+            || this.#emitterNodes.get(gameObjID) === nodes
+            || [ ...this.#playing.values() ]
+                .some(record => record.emitterNodes === nodes))
+        {
+            return;
+        }
+        this.#DisconnectEmitterNodes(nodes);
+    }
+
+    /** Disconnects a no-longer-used emitter node generation. */
+    #DisconnectEmitterNodes(nodes)
+    {
+        nodes.gain.disconnect?.();
+        nodes.flatGain?.disconnect?.();
+        nodes.panner.disconnect?.();
+        nodes.analyser?.disconnect?.();
     }
 }
 

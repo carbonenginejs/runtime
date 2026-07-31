@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   AudEmitter,
+  AudGameObjResource,
+  AudListener,
   AudioCurveSetDriver,
   CjsAudioSystem,
   CjsSfxEngine,
@@ -122,6 +124,158 @@ test("CjsAudioSystem realizes an emitter event end to end on a fake AudioContext
   }
 });
 
+test("pre-attachment authored eventName is recovered exactly once", async () =>
+{
+  const log = [];
+  const system = new CjsAudioSystem({
+    createContext: () => FakeContext(log),
+    loadBuffer: async () => ({ fake: "buffer" }),
+    audioMetadata: {
+      Events: {
+        engine_loop: {
+          eventID: 11,
+          maxRadiusAttenuation: 500,
+          isLoop: 1,
+          is2D: 0,
+          isVital: 0,
+          eventsStoppedBy: [],
+          soundbanks: [ "ships.bnk" ],
+        },
+      },
+      SoundBanks: { "ships.bnk": { EssentialSoundBank: 0 } },
+      WemFileIDs: {},
+    },
+  });
+  const emitter = AudEmitter.from({
+    eventName: "engine_loop",
+    position: [ 10, 0, 0 ],
+  });
+
+  system.AdoptEmitter(emitter);
+  system.Attach();
+  try
+  {
+    assert.equal(system.Enable([ "ships.bnk" ]), true);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(system.backend.GetPlayingCount(), 1);
+    assert.equal(log.filter(value => value === "start").length, 1);
+
+    system.AdoptEmitter(emitter);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(system.backend.GetPlayingCount(), 1);
+    assert.equal(log.filter(value => value === "start").length, 1);
+
+    system.Disable();
+    assert.equal(system.Enable([ "ships.bnk" ]), true);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(system.backend.GetPlayingCount(), 1);
+    assert.equal(
+      log.filter(value => value === "start").length,
+      2,
+      "re-enable performs only Carbon's normal loop wake replay",
+    );
+  }
+  finally
+  {
+    system.Dispose();
+  }
+});
+
+test("pre-backend listener placement realizes its actual stored orientation once", () =>
+{
+  let writes = 0;
+  const CountingParam = () =>
+  {
+    let current = 0;
+    return {
+      get value()
+      {
+        return current;
+      },
+      set value(value)
+      {
+        current = value;
+        writes++;
+      },
+    };
+  };
+  const context = FakeContext([]);
+  for (const name of [
+    "positionX", "positionY", "positionZ",
+    "forwardX", "forwardY", "forwardZ",
+    "upX", "upY", "upZ",
+  ])
+  {
+    context.listener[name] = CountingParam();
+  }
+  const system = new CjsAudioSystem({
+    createContext: () => context,
+    audioMetadata: {
+      Events: {},
+      SoundBanks: {},
+      WemFileIDs: {},
+    },
+  });
+  const listener = new AudListener();
+
+  listener.SetPosition([ 1, 0, 0 ], [ 0, 1, 0 ], [ 3, 4, 5 ]);
+  listener.MarkPositionReceived();
+  system.AdoptEmitter(listener);
+  system.Attach();
+  try
+  {
+    assert.equal(system.Enable(), true);
+    assert.deepEqual([
+      context.listener.positionX.value,
+      context.listener.positionY.value,
+      context.listener.positionZ.value,
+      context.listener.forwardX.value,
+      context.listener.forwardY.value,
+      context.listener.forwardZ.value,
+      context.listener.upX.value,
+      context.listener.upY.value,
+      context.listener.upZ.value,
+    ], [ 3, 4, 5, 1, 0, 0, 0, 1, 0 ]);
+    assert.equal(writes, 9);
+
+    system.AdoptEmitter(listener);
+    system.Disable();
+    assert.equal(system.Enable(), true);
+    assert.equal(writes, 9, "the same backend does not receive duplicate placement writes");
+
+    listener.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ 6, 7, 8 ]);
+    assert.equal(writes, 18, "live listener changes still apply immediately");
+  }
+  finally
+  {
+    system.Dispose();
+  }
+});
+
+test("listener realization retries when a backend gains placement support", () =>
+{
+  const backend = {};
+  const writes = [];
+
+  AudGameObjResource.backend = backend;
+  try
+  {
+    const listener = new AudListener();
+
+    listener.SetPosition([ 1, 0, 0 ], [ 0, 0, 1 ], [ 2, 3, 4 ]);
+    assert.equal(listener.RealizePlacement(), false);
+
+    backend.SetListenerPosition = (...values) => writes.push(values);
+    assert.equal(listener.RealizePlacement(), true);
+    assert.equal(listener.RealizePlacement(), false);
+    assert.equal(writes.length, 1);
+  }
+  finally
+  {
+    AudGameObjResource.backend = null;
+  }
+});
+
 
 test("temporary culling preserves authored per-object SFX container state", () =>
 {
@@ -174,15 +328,165 @@ test("temporary culling preserves authored per-object SFX container state", () =
     assert.equal(
       sfx.ResolveEvent("step", { gameObjID: emitter.ID })[0].mediaID,
       "11",
-      "Cull/Wake tears down WebAudio nodes without restarting the sequence",
+      "Cull/Wake preserves selection state across temporary node retirement",
+    );
+
+    const wrongInstance = new AudEmitter();
+
+    wrongInstance.ID = emitter.ID;
+    assert.equal(system.ReleaseEmitter(wrongInstance), false);
+    assert.equal(
+      system.manager.GetAudioEmitter(emitter.ID),
+      emitter,
+      "a different object reusing an ID cannot destructively release the owner",
     );
 
     assert.equal(system.ReleaseEmitter(emitter), true);
+    assert.equal(system.ReleaseEmitter(emitter), false);
     assert.equal(
       sfx.ResolveEvent("step", { gameObjID: emitter.ID })[0].mediaID,
       "10",
       "permanent graph release clears object-scoped selection state",
     );
+  }
+  finally
+  {
+    system.Dispose();
+  }
+});
+
+test("Cull composes loop retirement and one-shot range actions through the backend", async () =>
+{
+  const log = [];
+  const context = FakeContext(log);
+  const sources = [];
+
+  context.createBufferSource = () =>
+  {
+    const source = {
+      buffer: null,
+      loop: false,
+      onended: null,
+      stoppedAt: null,
+      connect() {},
+      disconnect() {},
+      start(time)
+      {
+        source.startedAt = time;
+      },
+      stop(time)
+      {
+        source.stoppedAt = time ?? context.currentTime;
+      },
+    };
+
+    sources.push(source);
+    return source;
+  };
+
+  const system = new CjsAudioSystem({
+    createContext: () => context,
+    loadBuffer: async () => ({ duration: 2 }),
+    audioMetadata: {
+      Events: {
+        engine_loop: {
+          eventID: 11,
+          maxRadiusAttenuation: 100,
+          isLoop: 1,
+          is2D: 0,
+          isVital: 0,
+          eventsStoppedBy: [],
+          soundbanks: [ "ships.bnk" ],
+        },
+        impact: {
+          eventID: 12,
+          maxRadiusAttenuation: 100,
+          isLoop: 0,
+          is2D: 0,
+          isVital: 0,
+          eventsStoppedBy: [],
+          soundbanks: [ "ships.bnk" ],
+        },
+      },
+      SoundBanks: {
+        "ships.bnk": { EssentialSoundBank: 0 },
+      },
+      WemFileIDs: {},
+    },
+  });
+
+  system.Attach();
+  try
+  {
+    assert.equal(system.Enable([ "ships.bnk" ]), true);
+    const emitter = new AudEmitter();
+
+    emitter.SetPosition([ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
+    emitter.SetDistanceSqFromListener(0);
+    system.AdoptEmitter(emitter);
+    emitter.CalculateCullingWeight();
+
+    const firstLoop = emitter.SendEvent("engine_loop");
+
+    await new Promise(resolve => setImmediate(resolve));
+    context.currentTime = 1;
+    emitter.Cull();
+    assert.equal(sources[0].stoppedAt, 4);
+    assert.equal(emitter.GetPlayingEvents().has(firstLoop), true);
+
+    emitter.Wake();
+    await new Promise(resolve => setImmediate(resolve));
+    const secondLoop = [ ...emitter.GetPlayingEvents().keys() ]
+      .find(value => value !== firstLoop);
+
+    assert.ok(secondLoop > firstLoop);
+    assert.equal(
+      log.filter(value => value?.positionX).length,
+      2,
+      "Wake realizes a fresh emitter node generation",
+    );
+
+    sources[0].onended?.();
+    assert.equal(emitter.GetPlayingEvents().has(firstLoop), false);
+    assert.equal(
+      emitter.GetPlayingEvents().has(secondLoop),
+      true,
+      "old-generation completion cannot remove the replayed loop",
+    );
+
+    emitter.StopSound(secondLoop, 0);
+    sources[1].onended?.();
+
+    emitter.SetDistanceSqFromListener(0);
+    emitter.CalculateCullingWeight();
+    const inRange = emitter.SendEvent("impact");
+
+    await new Promise(resolve => setImmediate(resolve));
+    context.currentTime = 2;
+    emitter.Cull();
+    assert.equal(
+      sources[2].stoppedAt,
+      null,
+      "Break lets an in-range one-shot finish naturally",
+    );
+    sources[2].onended?.();
+    assert.equal(emitter.GetPlayingEvents().has(inRange), false);
+
+    emitter.Wake();
+    emitter.SetDistanceSqFromListener(200 * 200);
+    const outOfRange = emitter.SendEvent("impact");
+
+    await new Promise(resolve => setImmediate(resolve));
+    emitter.CalculateCullingWeight();
+    context.currentTime = 3;
+    emitter.Cull();
+    assert.equal(
+      sources[3].stoppedAt,
+      4,
+      "an out-of-range one-shot receives Carbon's default one-second stop",
+    );
+    sources[3].onended?.();
+    assert.equal(emitter.GetPlayingEvents().has(outOfRange), false);
   }
   finally
   {

@@ -17,12 +17,13 @@ class AudListener extends _AudGameObjResource {
     } = _applyDecs2311(this, [type.define({
       className: "AudListener",
       family: "audio"
-    })], [[[void 0, carbon.renamed("SetPosition"), impl, impl.implemented], 18, "SetPosition"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Backend push (RH2LH::convertListener + default-listener registration) is realization; the headless graph stores the position.")], 18, "SetPlacementFromParent"]], 0, void 0, _AudGameObjResource));
+    })], [[[void 0, carbon.renamed("SetPosition"), impl, impl.implemented], 18, "SetPosition"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Backend push (RH2LH::convertListener + default-listener registration) is realization; the headless graph stores the position.")], 18, "SetPlacementFromParent"], [[impl, impl.custom, void 0, impl.reason("Browser audio is created on a user gesture, after a headless listener may already have received its placement.")], 18, "RealizePlacement"]], 0, void 0, _AudGameObjResource));
   }
   #effectiveFront = (_initProto(this), vec3.fromValues(0, 0, 1));
   #effectiveTop = vec3.fromValues(0, 1, 0);
   #normalizedTop = vec3.fromValues(0, 1, 0);
   #cross = vec3.fromValues(-1, 0, 0);
+  #realizedBackend = null;
 
   /** Creates Carbon's fixed-id listener with non-cullable priority weight. */
   constructor() {
@@ -43,8 +44,23 @@ class AudListener extends _AudGameObjResource {
   SetPlacementFromParent(front, top, positionValue) {
     _AudGameObjResource.Orthonormalize(this.#effectiveFront, this.#effectiveTop, front, top, this.#normalizedTop, this.#cross);
     vec3.copy(this.position, positionValue);
-    _AudGameObjResource.backend?.SetListenerPosition?.(this.ID, this.#effectiveFront, this.#effectiveTop, this.position);
+    const backend = _AudGameObjResource.backend;
+    if (typeof backend?.SetListenerPosition === "function") {
+      backend.SetListenerPosition(this.ID, this.#effectiveFront, this.#effectiveTop, this.position);
+      this.#realizedBackend = backend;
+    }
     return 1;
+  }
+
+  /** Pushes a stored listener pose once when a browser backend becomes available. */
+  RealizePlacement() {
+    const backend = _AudGameObjResource.backend;
+    if (typeof backend?.SetListenerPosition !== "function" || backend === this.#realizedBackend) {
+      return false;
+    }
+    backend.SetListenerPosition(this.ID, this.#effectiveFront, this.#effectiveTop, this.position);
+    this.#realizedBackend = backend;
+    return true;
   }
   static {
     _initClass();

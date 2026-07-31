@@ -536,10 +536,9 @@ class CjsAudioMan {
     const requested = new Set([...this.#defaultSoundBanks, ...this.#banksWaitingToLoad, ...NormalizeBankNames(soundBanksToLoad)]);
     system.Attach();
     const enabled = system.Enable([...requested]);
-    if (enabled && this.#listener) {
+    if (enabled) {
       this.#jukebox?.Attach(this.#context, system.backend?.masterGain ?? this.#context?.destination);
       this.#banksWaitingToLoad.clear();
-      this.#listener.SetPosition(this.#listener.GetFront(), this.#listener.GetTop(), this.#listener.GetPosition());
     } else if (!enabled) {
       for (const bank of requested) {
         this.#banksWaitingToLoad.add(bank);
