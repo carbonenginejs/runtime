@@ -369,6 +369,10 @@ class AudioLibrary
         {
             return "One post traverses the authored Continuous Random playlist on its Wwise Trigger Rate clock. A new child starts after the authored interval plus that child's Initial Delay, so longer sounds deliberately overlap. Reset stops future triggers and the active voices.";
         }
+        if (type === "continuous random crossfade")
+        {
+            return "One post traverses the authored Continuous Random playlist with Wwise constant-amplitude Crossfades. The next child is prefetched, begins before the current file ends, and overlaps through the authored duration (clamped to half the outgoing file). Reset stops the active traversal.";
+        }
         if (type === "continuous random")
         {
             return "One post traverses the authored Continuous Random playlist, selecting the next child at each completion boundary with its Random or Shuffle and repeat-avoidance rules. Reset stops the active traversal.";
@@ -471,6 +475,14 @@ class AudioLibrary
                 preferred: [ "OSSE_amarr_running_lights_play" ],
                 matches: name => this.SfxContinuousTypes(name)
                     .includes("random:trigger-rate"),
+            },
+            {
+                type: "continuous random crossfade",
+                preferred: [
+                    "drone_grown_infested_structure_large_play",
+                ],
+                matches: name => this.SfxContinuousTypes(name)
+                    .includes("random:crossfade-amplitude"),
             },
             {
                 type: "continuous random",
@@ -2759,6 +2771,10 @@ class DemoApp
     /** @type {EffectListPanel} */
     effectList = null;
 
+    frame = 0;
+
+    lastFrameTime = null;
+
     #frameStarted = false;
 
     constructor(library, jukeboxLibrary)
@@ -2909,7 +2925,15 @@ class DemoApp
     #Tick(now)
     {
         this.system.manager.soundPrioritization.SetMaxAwakeGameObjects(Number(document.getElementById("maxAwake").value));
-        this.system.Process(now);
+        this.system.Process({
+            time: now / 1000,
+            realTime: now / 1000,
+            deltaTime: this.lastFrameTime === null
+                ? 0
+                : (now - this.lastFrameTime) / 1000,
+            frame: ++this.frame,
+        });
+        this.lastFrameTime = now;
         this.scene.AdvanceSequences(now);
         this.scene.PruneFinished(now);
         this.stage.Draw();

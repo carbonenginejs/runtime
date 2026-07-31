@@ -13,6 +13,7 @@ import { AudStaticDataRepository } from "./trinity/audio/AudStaticDataRepository
 import { AudioCurveSetDriver } from "./trinity/audio/AudioCurveSetDriver.js";
 import { CjsAudioBackend } from "./CjsAudioBackend.js";
 import { CjsMusicEngine } from "./CjsMusicEngine.js";
+import { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";
 
 /** Audio system composition root: repository + manager + backend, attached to the graph seams. */
 export class CjsAudioSystem
@@ -45,6 +46,8 @@ export class CjsAudioSystem
 
     musicEngine = null;
 
+    updateContext = createAudioUpdateContext();
+
     #attached = false;
 
     #loadBuffer = null;
@@ -56,6 +59,8 @@ export class CjsAudioSystem
     #resolveSfxProgram = null;
 
     #continueSfxProgram = null;
+
+    #prepareSfxProgram = null;
 
     #createContext = null;
 
@@ -73,6 +78,8 @@ export class CjsAudioSystem
 
     #releaseGameObj = null;
 
+    #providedUpdateContext = null;
+
     #adoptedEmitters = new Set();
 
     #adoptedCurveSetDrivers = new Set();
@@ -85,6 +92,7 @@ export class CjsAudioSystem
         hasSfxEvent,
         resolveSfxProgram,
         continueSfxProgram,
+        prepareSfxProgram,
         audioMetadata,
         distanceScale,
         musicGraph,
@@ -93,6 +101,7 @@ export class CjsAudioSystem
         createMusicEngine,
         applyRTPC,
         releaseGameObj,
+        updateContext,
     } = {})
     {
         this.#createContext = createContext ?? null;
@@ -110,6 +119,10 @@ export class CjsAudioSystem
             typeof continueSfxProgram === "function"
                 ? continueSfxProgram
                 : null;
+        this.#prepareSfxProgram =
+            typeof prepareSfxProgram === "function"
+                ? prepareSfxProgram
+                : null;
         this.#distanceScale = Number(distanceScale) || 1;
         this.#musicGraph = musicGraph ?? null;
         this.#loadMedia = loadMedia ?? null;
@@ -119,6 +132,7 @@ export class CjsAudioSystem
         this.#releaseGameObj = typeof releaseGameObj === "function"
             ? releaseGameObj
             : null;
+        this.#providedUpdateContext = updateContext ?? null;
         if (audioMetadata)
         {
             this.repository.Initialize(audioMetadata);
@@ -169,6 +183,7 @@ export class CjsAudioSystem
                     hasSfxEvent: this.#hasSfxEvent,
                     resolveSfxProgram: this.#resolveSfxProgram,
                     continueSfxProgram: this.#continueSfxProgram,
+                    prepareSfxProgram: this.#prepareSfxProgram,
                     distanceScale: this.#distanceScale,
                     applyRTPC: this.#applyRTPC,
                 });
@@ -231,10 +246,19 @@ export class CjsAudioSystem
         this.backend?.StopAll();
     }
 
-    /** Per-frame drive: culling + render + log flush. */
-    Process(now)
+    /**
+     * Per-frame drive: captures optional host timing, then culls, renders and
+     * flushes. Carbon audio does not use host real/simulation time for playback.
+     */
+    Process(updateContext)
     {
-        this.manager.Process(now);
+        const source = updateContext === undefined
+            ? this.#providedUpdateContext
+            : updateContext;
+
+        this.updateContext.Update(source);
+        this.manager.Process();
+        return this.updateContext;
     }
 
     /**

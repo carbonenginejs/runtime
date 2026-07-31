@@ -151,6 +151,7 @@ function Harness({
   hasSfxEvent,
   resolveSfxProgram,
   continueSfxProgram,
+  prepareSfxProgram,
 } = {})
 {
   const context = FakeContext();
@@ -165,6 +166,15 @@ function Harness({
     hasSfxEvent,
     resolveSfxProgram,
     continueSfxProgram,
+    prepareSfxProgram: prepareSfxProgram ?? (
+      typeof continueSfxProgram === "function"
+        ? (token, controls) => ({
+            program: continueSfxProgram(token, controls),
+            commit() {},
+            rollback() {},
+          })
+        : undefined
+    ),
   });
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
@@ -416,6 +426,830 @@ test("Trigger Rate schedules overlapping batches from authored action times", as
   assert.deepEqual(finished, [ playingID ]);
   assert.equal(backend.GetPlayingCount(), 0);
 });
+
+test("Continuous amplitude Crossfade prefetches and clamps overlap to half the outgoing file", async () =>
+{
+  const token = {};
+  const slot = "0:c0";
+  let advances = 0;
+  const play = (batch, mediaID, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: slot,
+          programBatchId: `${slot}:b${batch}`,
+          matchIds: [ "10", String(mediaID) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: slot,
+          token,
+          containerId: "10",
+          advance: "crossfade",
+          crossfadeMode: "crossfade-amplitude",
+          delayMs: 10000,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play(0, 100),
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return advances === 1
+        ? play(1, 200, true)
+        : [];
+    },
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.selections.map(selection => ({
+          buffer: { duration: 4 },
+          programSlotId: selection.programSlotId,
+          programBatchId: selection.programBatchId,
+        }))),
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "crossfade",
+  );
+
+  await tick();
+  await tick();
+  await tick();
+
+  const boundary = START_QUANTUM + 2;
+  const end = START_QUANTUM + 4;
+
+  assert.equal(advances, 1, "the successor is selected for lookahead");
+  assert.equal(context.sources.length, 2);
+  assert.equal(context.sources[0].startedAt, START_QUANTUM);
+  assert.ok(
+    Math.abs(context.sources[1].startedAt - boundary) < 1e-9,
+  );
+  assert.equal(backend.SeekOnEventMs(playingID, 250), false);
+  assert.deepEqual(context.gains[4].gain.ramps, [ [ 0, end ] ]);
+  assert.deepEqual(context.gains[7].gain.ramps, [ [ 1, end ] ]);
+
+  context.currentTime = boundary;
+  backend.RenderAudio();
+
+  context.currentTime = end;
+  context.sources[0].onended();
+  assert.deepEqual(finished, []);
+
+  context.currentTime = boundary + 4;
+  context.sources[1].onended();
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("Crossfade fails closed when no transactional preparation provider exists", async () =>
+{
+  const token = {};
+  let destructiveAdvances = 0;
+  const play = (batch, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${batch}`,
+          matchIds: [ "10", String(batch) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "crossfade",
+          crossfadeMode: "crossfade-amplitude",
+          delayMs: 500,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const context = FakeContext();
+  const backend = new CjsAudioBackend({
+    context,
+    resolveSfxProgram: () => play(0),
+    continueSfxProgram: () =>
+    {
+      destructiveAdvances++;
+      return play(1, true);
+    },
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.selections.map(selection => ({
+          buffer: { duration: 1 },
+          programSlotId: selection.programSlotId,
+          programBatchId: selection.programBatchId,
+        }))),
+    }),
+  });
+
+  backend.RegisterGameObj(1);
+  backend.PostEvent(7, 1, 0, null, "crossfade");
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(destructiveAdvances, 0);
+});
+
+test("Continuous power Crossfade uses equal-power gain curves", async () =>
+{
+  const token = {};
+  const slot = "0:c0";
+  let advances = 0;
+  const play = (batch, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: slot,
+          programBatchId: `${slot}:b${batch}`,
+          matchIds: [ "10", String(batch) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: slot,
+          token,
+          containerId: "10",
+          advance: "crossfade",
+          crossfadeMode: "crossfade-power",
+          delayMs: 1000,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: () => play(0),
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return advances === 1 ? play(1, true) : [];
+    },
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.selections.map(selection => ({
+          buffer: { duration: 4 },
+          programSlotId: selection.programSlotId,
+          programBatchId: selection.programBatchId,
+        }))),
+    }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "crossfade_power");
+  await tick();
+  await tick();
+  await tick();
+
+  const outgoing = context.gains[4].gain.curves[0];
+  const incoming = context.gains[7].gain.curves[0];
+
+  assert.ok(
+    Math.abs(outgoing[1] - (START_QUANTUM + 3)) < 1e-9,
+  );
+  assert.ok(
+    Math.abs(incoming[1] - (START_QUANTUM + 3)) < 1e-9,
+  );
+  assert.equal(outgoing[2], 1);
+  assert.equal(incoming[2], 1);
+  assert.ok(Math.abs(outgoing[0][32] - Math.SQRT1_2) < 1e-6);
+  assert.ok(Math.abs(incoming[0][32] - Math.SQRT1_2) < 1e-6);
+});
+
+test("late Crossfade media rebases after the outgoing voice has ended", async () =>
+{
+  const pending = Deferred();
+  const token = {};
+  let loads = 0;
+  const play = (batch, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${batch}`,
+          matchIds: [ "10", String(batch) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "crossfade",
+          crossfadeMode: "crossfade-amplitude",
+          delayMs: 400,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play(0),
+    continueSfxProgram: () => play(1, true),
+    loadBuffer: (_eventID, _eventName, _controls, program) =>
+    {
+      loads++;
+      if (loads === 1)
+      {
+        return Promise.resolve({
+          voices: [
+            {
+              buffer: { duration: 1 },
+              programSlotId: "0:c0",
+              programBatchId: "0:c0:b0",
+            },
+          ],
+        });
+      }
+      return pending.promise;
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "late_crossfade",
+  );
+
+  await tick();
+  assert.equal(loads, 2, "the successor starts loading immediately");
+
+  context.currentTime = START_QUANTUM + 1;
+  context.sources[0].onended();
+  assert.deepEqual(finished, []);
+
+  pending.resolve({
+    voices: [
+      {
+        buffer: { duration: 1 },
+        programSlotId: "0:c0",
+        programBatchId: "0:c0:b1",
+      },
+    ],
+  });
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 2);
+  assert.ok(
+    Math.abs(
+      context.sources[1].startedAt
+        - (context.currentTime + START_QUANTUM),
+    ) < 1e-9,
+  );
+  assert.deepEqual(
+    context.gains[7].gain.ramps,
+    [],
+    "there is no orphan fade after the outgoing source has ended",
+  );
+
+  context.currentTime = context.sources[1].startedAt;
+  backend.RenderAudio();
+  context.sources[1].onended();
+
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("a Crossfade successor start failure discards its batch and settles", async () =>
+{
+  const token = {};
+  let sources = 0;
+  const play = (batch, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${batch}`,
+          matchIds: [ "10", String(batch) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "crossfade",
+          crossfadeMode: "crossfade-amplitude",
+          delayMs: 200,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const context = FakeContext();
+  const createBufferSource = context.createBufferSource;
+
+  context.createBufferSource = () =>
+  {
+    const source = createBufferSource();
+
+    sources++;
+    if (sources === 2)
+    {
+      source.start = () =>
+      {
+        throw new Error("crossfade source start failed");
+      };
+    }
+    return source;
+  };
+  const finished = [];
+  const emitter = {
+    EventFinishedCallback: playingID =>
+      finished.push(playingID),
+  };
+  const backend = new CjsAudioBackend({
+    context,
+    resolveSfxProgram: () => play(0),
+    prepareSfxProgram: () => ({
+      program: play(1, true),
+      commit() {},
+      rollback() {},
+    }),
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.selections.map(selection => ({
+          buffer: { duration: 1 },
+          programSlotId: selection.programSlotId,
+          programBatchId: selection.programBatchId,
+        }))),
+    }),
+  });
+
+  backend.RegisterGameObj(1);
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "crossfade_start_failure",
+  );
+
+  await tick();
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 2);
+  assert.deepEqual(finished, []);
+  context.sources[0].onended();
+
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("authored Stop cancels a prefetched Crossfade successor before it starts", async () =>
+{
+  const token = {};
+  const slot = "0:c0";
+  let commits = 0;
+  let rollbacks = 0;
+  const play = (batch, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: slot,
+          programBatchId: `${slot}:b${batch}`,
+          matchIds: [ "10", String(batch) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: slot,
+          token,
+          containerId: "10",
+          advance: "crossfade",
+          crossfadeMode: "crossfade-amplitude",
+          delayMs: 1000,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const stop = [
+    {
+      kind: "stop",
+      actionIndex: 0,
+      targetId: "10",
+      targetFlags: 0,
+      scope: "game-object",
+      mode: "element",
+      delayMs: 0,
+      transitionMs: 0,
+      curve: 4,
+      exceptions: [],
+    },
+  ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: (_eventID, eventName) =>
+      eventName === "stop_crossfade" ? stop : play(0),
+    prepareSfxProgram: () => ({
+      program: play(1, true),
+      commit()
+      {
+        commits++;
+      },
+      rollback()
+      {
+        rollbacks++;
+      },
+    }),
+    loadBuffer: async (_eventID, eventName, _controls, program) =>
+      eventName === "stop_crossfade"
+        ? { voices: [] }
+        : {
+            voices: program.flatMap(operation =>
+              operation.selections.map(selection => ({
+                buffer: { duration: 4 },
+                programSlotId: selection.programSlotId,
+                programBatchId: selection.programBatchId,
+              }))),
+          },
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "crossfade");
+  await tick();
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 2);
+  assert.ok(context.sources[1].startedAt > context.currentTime);
+
+  context.currentTime = 0.1;
+  backend.PostEvent(8, 1, 0, emitter, "stop_crossfade");
+  await tick();
+
+  assert.equal(
+    context.sources[1].stoppedAt,
+    0.1,
+    "the prestarted future source is cancelled with its container",
+  );
+  assert.equal(commits, 0);
+  assert.equal(rollbacks, 1);
+});
+
+test("public Stop commits a successor already heard during a render stall", async () =>
+{
+  const token = {};
+  let commits = 0;
+  let rollbacks = 0;
+  const play = (batch, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${batch}`,
+          matchIds: [ "10", String(batch) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "crossfade",
+          crossfadeMode: "crossfade-amplitude",
+          delayMs: 1000,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: () => play(0),
+    prepareSfxProgram: () => ({
+      program: play(1, true),
+      commit()
+      {
+        commits++;
+      },
+      rollback()
+      {
+        rollbacks++;
+      },
+    }),
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.selections.map(selection => ({
+          buffer: { duration: 4 },
+          programSlotId: selection.programSlotId,
+          programBatchId: selection.programBatchId,
+        }))),
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "crossfade",
+  );
+
+  await tick();
+  await tick();
+  await tick();
+
+  const boundary = context.sources[1].startedAt;
+
+  context.currentTime = boundary + 0.25;
+  backend.ExecuteActionOnPlayingID("stop", playingID, 500);
+
+  assert.equal(commits, 1);
+  assert.equal(rollbacks, 0);
+  assert.ok(
+    Math.abs(context.gains[7].gain.sets.at(-1)[0] - 0.25) < 1e-6,
+    "the incoming transition is frozen before the public Stop fade",
+  );
+});
+
+test("public Stop rolls back an unheard Crossfade successor after a stalled callback", async () =>
+{
+  const token = {};
+  let commits = 0;
+  let rollbacks = 0;
+  const play = (batch, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${batch}`,
+          matchIds: [ "10", String(batch) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "crossfade",
+          crossfadeMode: "crossfade-amplitude",
+          delayMs: 1000,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: () => play(0),
+    prepareSfxProgram: () => ({
+      program: play(1, true),
+      commit()
+      {
+        commits++;
+      },
+      rollback()
+      {
+        rollbacks++;
+      },
+    }),
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.selections.map(selection => ({
+          buffer: { duration: 4 },
+          programSlotId: selection.programSlotId,
+          programBatchId: selection.programBatchId,
+        }))),
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "crossfade",
+  );
+
+  await tick();
+  await tick();
+  await tick();
+
+  const successor = context.sources[1];
+  const boundary = successor.startedAt;
+
+  context.currentTime = boundary - 0.25;
+  backend.ExecuteActionOnPlayingID("stop", playingID, 0);
+
+  assert.equal(successor.stoppedAt, context.currentTime);
+  assert.equal(commits, 0);
+  assert.equal(rollbacks, 0);
+
+  context.currentTime = boundary + 0.25;
+  context.sources[0].onended();
+  successor.onended();
+
+  assert.equal(
+    commits,
+    0,
+    "crossing the scheduled start cannot make a cancelled source audible",
+  );
+  assert.equal(rollbacks, 1);
+});
+
+test("a stalled frame still advances a finished Crossfade successor to its next child", async () =>
+{
+  const token = {};
+  const slot = "0:c0";
+  let advances = 0;
+  const play = (batch, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: slot,
+          programBatchId: `${slot}:b${batch}`,
+          matchIds: [ "10", String(batch) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: slot,
+          token,
+          containerId: "10",
+          advance: "crossfade",
+          crossfadeMode: "crossfade-amplitude",
+          delayMs: 40,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: () => play(0),
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return play(advances, advances === 2);
+    },
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.selections.map(selection => ({
+          buffer: { duration: 0.1 },
+          programSlotId: selection.programSlotId,
+          programBatchId: selection.programBatchId,
+        }))),
+    }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "crossfade_stall");
+  await tick();
+  await tick();
+  await tick();
+  assert.equal(context.sources.length, 2);
+
+  context.currentTime = 0.3;
+  context.sources[0].onended();
+  context.sources[1].onended();
+  backend.RenderAudio();
+  await tick();
+  await tick();
+  await tick();
+
+  assert.equal(advances, 2);
+  assert.equal(context.sources.length, 3);
+  assert.ok(
+    Math.abs(
+      context.sources[2].startedAt
+        - (context.currentTime + START_QUANTUM),
+    ) < 1e-9,
+  );
+});
+
+for (const [ mode, expected ] of [
+  [ "crossfade-amplitude", 0.5 ],
+  [ "crossfade-power", Math.SQRT1_2 ],
+])
+{
+  test(`Stop freezes an active ${mode} envelope before fading out`, async () =>
+  {
+    const token = {};
+    const slot = "0:c0";
+    const play = (batch, doneAfterBatch = false) => [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            programSlotId: slot,
+            programBatchId: `${slot}:b${batch}`,
+            matchIds: [ "10", String(batch) ],
+          },
+        ],
+        continuations: [
+          {
+            programSlotId: slot,
+            token,
+            containerId: "10",
+            advance: "crossfade",
+            crossfadeMode: mode,
+            delayMs: 1000,
+            doneAfterBatch,
+          },
+        ],
+      },
+    ];
+    const stop = [
+      {
+        kind: "stop",
+        actionIndex: 0,
+        targetId: "10",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 500,
+        curve: 4,
+        exceptions: [],
+      },
+    ];
+    const { backend, context, emitter } = Harness({
+      resolveSfxProgram: (_eventID, eventName) =>
+        eventName === "stop_crossfade" ? stop : play(0),
+      continueSfxProgram: () => play(1, true),
+      loadBuffer: async (_eventID, eventName, _controls, program) =>
+        eventName === "stop_crossfade"
+          ? { voices: [] }
+          : {
+              voices: program.flatMap(operation =>
+                operation.selections.map(selection => ({
+                  buffer: { duration: 4 },
+                  programSlotId: selection.programSlotId,
+                  programBatchId: selection.programBatchId,
+                }))),
+            },
+    });
+
+    backend.PostEvent(7, 1, 0, emitter, "crossfade");
+    await tick();
+    await tick();
+    await tick();
+
+    const boundary = START_QUANTUM + 3;
+
+    context.currentTime = boundary;
+    backend.RenderAudio();
+    context.currentTime = boundary + 0.5;
+    backend.PostEvent(8, 1, 0, emitter, "stop_crossfade");
+    await tick();
+
+    const held = context.gains[4].gain.sets.at(-1);
+
+    assert.ok(Math.abs(held[0] - expected) < 1e-6);
+    assert.equal(held[1], context.currentTime);
+    assert.equal(
+      context.gains[4].gain.cancellations.at(-1),
+      context.currentTime,
+    );
+  });
+}
 
 test("finite Trigger Rate finishes with its final tail, not another interval", async () =>
 {

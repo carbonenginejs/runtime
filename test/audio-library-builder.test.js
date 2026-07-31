@@ -1505,17 +1505,36 @@ test("Continuous Random and Sequence containers preserve supported scheduling", 
     });
     assert.deepEqual(triggerRate.diagnostics.omittedEvents, []);
 
-    const crossfade = build(randomSequencePayload({
-        childID: 200,
-        transitionMode: 1,
-        flags: 0x08,
-    }));
+    for (const [ transitionMode, transition ] of [
+        [ 1, "crossfade-amplitude" ],
+        [ 2, "crossfade-power" ],
+    ])
+    {
+        const crossfade = build(randomSequencePayload({
+            childID: 200,
+            transitionTime: 1000,
+            transitionTimeModMin: -100,
+            transitionTimeModMax: 250,
+            transitionMode,
+            flags: 0x08,
+        }));
 
-    assert.equal(crossfade.events.ambience_play, undefined);
-    assert.match(
-        crossfade.diagnostics.omittedEvents[0].reason,
-        /unsupported continuous transition 1/u,
-    );
+        assert.deepEqual(crossfade.nodes["201"].continuous, {
+            loopCount: 1,
+            transition,
+            transitionMs: 1000,
+            transitionRangeMs: {
+                min: -100,
+                max: 250,
+            },
+        });
+        assert.equal(
+            crossfade.nodes["200"].loop,
+            false,
+            "Crossfade qualification serializes its finite leaf guarantee",
+        );
+        assert.deepEqual(crossfade.diagnostics.omittedEvents, []);
+    }
 
     const oversized = build(randomSequencePayload({
         childID: 200,
@@ -1682,6 +1701,100 @@ test("trackless non-continuous Layer containers lower to parallel playback", () 
         ],
     });
     assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("Continuous Crossfade fails closed when a child reaches a Layer", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 9,
+                        id: 201,
+                        payload: layerPayload([ 200 ]),
+                    },
+                    {
+                        type: 5,
+                        id: 202,
+                        payload: randomSequencePayload({
+                            childIDs: [ 201, 200 ],
+                            transitionTime: 1000,
+                            transitionMode: 1,
+                            flags: 0x08,
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 202,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                ambience_play: {
+                    eventID: 100,
+                },
+                ordinary_play: {
+                    eventID: 101,
+                },
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+
+    assert.equal(result.events.ambience_play, undefined);
+    assert.match(
+        result.diagnostics.omittedEvents[0].reason,
+        /crossfade container 202 reaches layer 201/u,
+    );
+    assert.deepEqual(result.events.ordinary_play, [
+        { nodeId: "200" },
+    ]);
+    assert.equal(
+        result.nodes["200"].loop,
+        undefined,
+        "a rejected Crossfade cannot mark a shared ordinary sound finite",
+    );
 });
 
 test("non-continuous Step switches ignore dormant default Stop policies", () =>
@@ -3229,6 +3342,7 @@ function uint32Bytes(value)
 
 function randomSequencePayload({
     childID,
+    childIDs,
     loopCount = 1,
     loopModMin = 0,
     loopModMax = 0,
@@ -3241,7 +3355,8 @@ function randomSequencePayload({
     flags = 0,
 })
 {
-    const bytes = new Uint8Array(42);
+    const children = childIDs ?? [ childID ];
+    const bytes = new Uint8Array(30 + children.length * 12);
     const view = new DataView(bytes.buffer);
     let offset = 0;
     const u8 = (value) =>
@@ -3281,11 +3396,17 @@ function randomSequencePayload({
     u8(randomMode);
     u8(containerMode);
     u8(flags);
-    u32(1);
-    u32(childID);
-    u16(1);
-    u32(childID);
-    s32(1);
+    u32(children.length);
+    for (const id of children)
+    {
+        u32(id);
+    }
+    u16(children.length);
+    for (const id of children)
+    {
+        u32(id);
+        s32(1);
+    }
 
     return bytes;
 }

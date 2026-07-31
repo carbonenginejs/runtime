@@ -752,6 +752,421 @@ test("Continuous Trigger Rate samples only intervals with a next child", () =>
     );
 });
 
+test("Continuous Crossfade samples only overlaps with a successor", () =>
+{
+    const samples = [ 0.25, 0.75 ];
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { ambience: [ 1 ] },
+            {
+                1: {
+                    type: "sequence",
+                    children: [ 10, 11 ],
+                    continuous: {
+                        loopCount: 1,
+                        transition: "crossfade-amplitude",
+                        transitionMs: 1000,
+                        transitionRangeMs: {
+                            min: -200,
+                            max: 200,
+                        },
+                        resetPlaylistEachPlay: true,
+                    },
+                },
+                10: { type: "sound", mediaId: 100 },
+                11: { type: "sound", mediaId: 200 },
+            },
+        ),
+        random: () => samples.shift(),
+    });
+    const first = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 7 },
+    )[0];
+    const continuation = first.continuations[0];
+
+    assert.equal(first.selections[0].mediaID, "100");
+    assert.equal(continuation.advance, "crossfade");
+    assert.equal(
+        continuation.crossfadeMode,
+        "crossfade-amplitude",
+    );
+    assert.equal(continuation.delayMs, 900);
+    assert.equal(continuation.doneAfterBatch, false);
+
+    const second = engine.ContinueProgram(
+        continuation.token,
+        { gameObjID: 7 },
+    )[0];
+
+    assert.equal(second.selections[0].mediaID, "200");
+    assert.equal(second.continuations[0].advance, "crossfade");
+    assert.equal(second.continuations[0].delayMs, 0);
+    assert.equal(second.continuations[0].doneAfterBatch, true);
+    assert.deepEqual(samples, [ 0.75 ]);
+});
+
+test("speculative Crossfade selection commits only at the audible boundary", () =>
+{
+    const graph = Graph(
+        { ambience: [ 1 ] },
+        {
+            1: {
+                type: "sequence",
+                children: [ 10, 11 ],
+                continuous: {
+                    loopCount: 0,
+                    transition: "crossfade-amplitude",
+                    transitionMs: 500,
+                    resetPlaylistEachPlay: false,
+                },
+            },
+            10: { type: "sound", mediaId: 100 },
+            11: { type: "sound", mediaId: 200 },
+        },
+    );
+    const rollbackEngine = new CjsSfxEngine({ graph });
+    const initial = rollbackEngine.ResolveProgram(
+        "ambience",
+        { gameObjID: 9 },
+    )[0];
+    const prepared = rollbackEngine.PrepareProgram(
+        initial.continuations[0].token,
+        { gameObjID: 9 },
+    );
+
+    assert.equal(prepared.program[0].selections[0].mediaID, "200");
+    prepared.rollback();
+    assert.equal(
+        rollbackEngine.ResolveProgram(
+            "ambience",
+            { gameObjID: 9 },
+        )[0].selections[0].mediaID,
+        "200",
+        "cancelled prefetch does not skip an unheard sequence child",
+    );
+
+    const commitEngine = new CjsSfxEngine({ graph });
+    const committedInitial = commitEngine.ResolveProgram(
+        "ambience",
+        { gameObjID: 9 },
+    )[0];
+    const committed = commitEngine.PrepareProgram(
+        committedInitial.continuations[0].token,
+        { gameObjID: 9 },
+    );
+
+    committed.commit();
+    assert.equal(
+        commitEngine.ResolveProgram(
+            "ambience",
+            { gameObjID: 9 },
+        )[0].selections[0].mediaID,
+        "100",
+        "audible prefetch commits the persistent next position",
+    );
+});
+
+test("speculative Crossfade sequence commits merge concurrent heard selections", () =>
+{
+    const graph = Graph(
+        { ambience: [ 1 ] },
+        {
+            1: {
+                type: "sequence",
+                children: [ 10, 11, 12 ],
+                continuous: {
+                    loopCount: 0,
+                    transition: "crossfade-amplitude",
+                    transitionMs: 500,
+                    resetPlaylistEachPlay: false,
+                },
+            },
+            10: { type: "sound", mediaId: 100 },
+            11: { type: "sound", mediaId: 200 },
+            12: { type: "sound", mediaId: 300 },
+        },
+    );
+    const engine = new CjsSfxEngine({ graph });
+    const initial = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 9 },
+    )[0];
+    const token = initial.continuations[0].token;
+    const prepared = engine.PrepareProgram(
+        token,
+        { gameObjID: 9 },
+    );
+    const concurrent = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 9 },
+    )[0];
+
+    assert.equal(prepared.program[0].selections[0].mediaID, "200");
+    assert.equal(
+        concurrent.selections[0].mediaID,
+        "200",
+        "cancellable Sequence prefetch does not shift a heard post",
+    );
+    prepared.commit();
+    assert.equal(
+        engine.ResolveProgram(
+            "ambience",
+            { gameObjID: 9 },
+        )[0].selections[0].mediaID,
+        "100",
+        "the prepared and concurrent heard batches both advance shared state",
+    );
+});
+
+test("rolled-back Crossfade sequence prefetch cannot repeat a concurrent post", () =>
+{
+    const graph = Graph(
+        { ambience: [ 1 ] },
+        {
+            1: {
+                type: "sequence",
+                children: [ 10, 11, 12 ],
+                continuous: {
+                    loopCount: 0,
+                    transition: "crossfade-amplitude",
+                    transitionMs: 500,
+                    resetPlaylistEachPlay: false,
+                },
+            },
+            10: { type: "sound", mediaId: 100 },
+            11: { type: "sound", mediaId: 200 },
+            12: { type: "sound", mediaId: 300 },
+        },
+    );
+    const engine = new CjsSfxEngine({ graph });
+    const initial = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 9 },
+    )[0];
+    const prepared = engine.PrepareProgram(
+        initial.continuations[0].token,
+        { gameObjID: 9 },
+    );
+    const concurrent = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 9 },
+    )[0];
+
+    assert.equal(prepared.program[0].selections[0].mediaID, "200");
+    assert.equal(concurrent.selections[0].mediaID, "200");
+    prepared.rollback();
+    assert.equal(
+        engine.ResolveProgram(
+            "ambience",
+            { gameObjID: 9 },
+        )[0].selections[0].mediaID,
+        "300",
+    );
+});
+
+test("rolled-back nested step-sequence prefetch preserves heard cursor order", () =>
+{
+    const graph = Graph(
+        { ambience: [ 1 ] },
+        {
+            1: {
+                type: "random",
+                children: [ 2 ],
+                continuous: {
+                    loopCount: 0,
+                    transition: "crossfade-amplitude",
+                    transitionMs: 500,
+                },
+            },
+            2: {
+                type: "sequence",
+                children: [ 10, 11, 12 ],
+            },
+            10: { type: "sound", mediaId: 100 },
+            11: { type: "sound", mediaId: 200 },
+            12: { type: "sound", mediaId: 300 },
+        },
+    );
+    const engine = new CjsSfxEngine({ graph });
+    const initial = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 9 },
+    )[0];
+    const prepared = engine.PrepareProgram(
+        initial.continuations[0].token,
+        { gameObjID: 9 },
+    );
+    const concurrent = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 9 },
+    )[0];
+
+    assert.equal(prepared.program[0].selections[0].mediaID, "200");
+    assert.equal(concurrent.selections[0].mediaID, "200");
+    prepared.rollback();
+    assert.equal(
+        engine.ResolveProgram(
+            "ambience",
+            { gameObjID: 9 },
+        )[0].selections[0].mediaID,
+        "300",
+    );
+});
+
+test("speculative Crossfade leases its continuation token until settlement", () =>
+{
+    const graph = Graph(
+        { ambience: [ 1 ] },
+        {
+            1: {
+                type: "sequence",
+                children: [ 10, 11, 12 ],
+                continuous: {
+                    loopCount: 0,
+                    transition: "crossfade-amplitude",
+                    transitionMs: 500,
+                    resetPlaylistEachPlay: false,
+                },
+            },
+            10: { type: "sound", mediaId: 100 },
+            11: { type: "sound", mediaId: 200 },
+            12: { type: "sound", mediaId: 300 },
+        },
+    );
+    const engine = new CjsSfxEngine({ graph });
+    const initial = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 9 },
+    )[0];
+    const token = initial.continuations[0].token;
+    const prepared = engine.PrepareProgram(
+        token,
+        { gameObjID: 9 },
+    );
+    assert.equal(prepared.program[0].selections[0].mediaID, "200");
+    assert.throws(
+        () => engine.ContinueProgram(
+            token,
+            { gameObjID: 9 },
+        ),
+        /continuation token is being prepared/u,
+    );
+    prepared.rollback();
+    assert.equal(
+        engine.ContinueProgram(
+            token,
+            { gameObjID: 9 },
+        )[0].selections[0].mediaID,
+        "200",
+    );
+});
+
+for (const mode of [ "random", "shuffle" ])
+{
+    test(`speculative Crossfade ${mode} commit merges current history`, () =>
+    {
+        const samples = [ 0, 0, 0.999, 0 ];
+        const engine = new CjsSfxEngine({
+            graph: Graph(
+                { ambience: [ 1 ] },
+                {
+                    1: {
+                        type: "random",
+                        mode,
+                        avoidRepeat: mode === "shuffle" ? 1 : 2,
+                        children: [ 10, 11, 12 ],
+                        continuous: {
+                            loopCount: 0,
+                            transition: "crossfade-amplitude",
+                            transitionMs: 500,
+                        },
+                    },
+                    10: { type: "sound", mediaId: 100 },
+                    11: { type: "sound", mediaId: 200 },
+                    12: { type: "sound", mediaId: 300 },
+                },
+            ),
+            random: () => samples.shift() ?? 0,
+        });
+        const initial = engine.ResolveProgram(
+            "ambience",
+            { gameObjID: 9 },
+        )[0];
+        const prepared = engine.PrepareProgram(
+            initial.continuations[0].token,
+            { gameObjID: 9 },
+        );
+        const concurrent = engine.ResolveProgram(
+            "ambience",
+            { gameObjID: 9 },
+        )[0];
+
+        assert.equal(initial.selections[0].mediaID, "100");
+        assert.equal(prepared.program[0].selections[0].mediaID, "200");
+        assert.equal(concurrent.selections[0].mediaID, "300");
+        prepared.commit();
+        assert.equal(
+            engine.ResolveProgram(
+                "ambience",
+                { gameObjID: 9 },
+            )[0].selections[0].mediaID,
+            "100",
+        );
+    });
+}
+
+for (const invalidate of [ "Reset", "ReleaseGameObj" ])
+{
+    test(`speculative Crossfade commit cannot resurrect ${invalidate} state`, () =>
+    {
+        const graph = Graph(
+            { ambience: [ 1 ] },
+            {
+                1: {
+                    type: "sequence",
+                    children: [ 10, 11, 12 ],
+                    continuous: {
+                        loopCount: 0,
+                        transition: "crossfade-amplitude",
+                        transitionMs: 500,
+                        resetPlaylistEachPlay: false,
+                    },
+                },
+                10: { type: "sound", mediaId: 100 },
+                11: { type: "sound", mediaId: 200 },
+                12: { type: "sound", mediaId: 300 },
+            },
+        );
+        const engine = new CjsSfxEngine({ graph });
+        const initial = engine.ResolveProgram(
+            "ambience",
+            { gameObjID: 9 },
+        )[0];
+        const prepared = engine.PrepareProgram(
+            initial.continuations[0].token,
+            { gameObjID: 9 },
+        );
+
+        engine[invalidate](...(invalidate === "Reset" ? [] : [ 9 ]));
+        assert.throws(
+            () => engine.ContinueProgram(
+                initial.continuations[0].token,
+                { gameObjID: 9 },
+            ),
+            /continuation token has been invalidated/u,
+        );
+        prepared.commit();
+        assert.equal(
+            engine.ResolveProgram(
+                "ambience",
+                { gameObjID: 9 },
+            )[0].selections[0].mediaID,
+            "100",
+        );
+    });
+}
+
 test("interrupted Continuous Sequence resumes only when reset is disabled", () =>
 {
     const graph = resetPlaylistEachPlay => Graph(

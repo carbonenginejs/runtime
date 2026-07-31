@@ -252,10 +252,24 @@ test("committed demo library carries authored SFX and music semantics", () =>
             && node.continuous.transitionMs === 2300),
         "the demo carries an exact object-scoped Trigger Rate example",
     );
+    const crossfadeNodes = continuousNodes(
+        "drone_grown_infested_structure_large_play",
+    ).filter(node =>
+        node.type === "random"
+        && node.scope === "object"
+        && node.continuous.transition === "crossfade-amplitude");
+
     assert.equal(
-        graph.events.drone_grown_infested_structure_large_play,
-        undefined,
-        "amplitude crossfade remains fail-closed until fades overlap",
+        crossfadeNodes.length,
+        2,
+        "the exact demo carries both authored drone Crossfade containers",
+    );
+    assert.ok(
+        crossfadeNodes.every(node =>
+            node.continuous.loopCount === 0
+            && node.continuous.transitionMs === 10000
+            && node.children.length === 5),
+        "the exact Crossfade duration, infinite traversal, and child set survive",
     );
 
     const blendRoot = graph.nodes[

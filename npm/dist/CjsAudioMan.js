@@ -60,7 +60,8 @@ class CjsAudioMan {
     applyRTPC = null,
     musicLibrary = null,
     loadMusicTrack = null,
-    isMusicTrackAvailable = null
+    isMusicTrackAvailable = null,
+    updateContext = null
   } = {}) {
     if (typeof createContext !== "function") {
       throw new TypeError("CjsAudioMan createContext must be a function");
@@ -84,7 +85,8 @@ class CjsAudioMan {
       distanceScale,
       musicEngine,
       createMusicEngine,
-      applyRTPC
+      applyRTPC,
+      updateContext
     };
     if (musicLibrary !== null || loadMusicTrack !== null || isMusicTrackAvailable !== null) {
       this.#jukebox = new CjsJukebox({
@@ -156,6 +158,11 @@ class CjsAudioMan {
     return this.#context;
   }
 
+  /** Returns the normalized host frame context owned by the audio system. */
+  get updateContext() {
+    return this.#system?.updateContext ?? null;
+  }
+
   /** Returns the protected default bank names in deterministic order. */
   get defaultSoundBanks() {
     return [...this.#defaultSoundBanks].sort();
@@ -200,6 +207,11 @@ class CjsAudioMan {
       loadBuffer: (eventID, eventName, controls, resolvedProgram) => this.#LoadEventBuffer(eventID, eventName, controls, resolvedProgram),
       resolveSfxProgram: (_eventID, eventName, controls) => this.#sfxEngine?.HandlesEvent(eventName) ? this.#sfxEngine.ResolveProgram(eventName, controls) ?? [] : null,
       continueSfxProgram: (token, controls) => this.#sfxEngine?.ContinueProgram(token, controls) ?? [],
+      prepareSfxProgram: (token, controls) => this.#sfxEngine?.PrepareProgram(token, controls) ?? {
+        program: [],
+        commit() {},
+        rollback() {}
+      },
       hasEventStops: eventName => this.#sfxEngine?.HasStopAction(eventName) === true,
       hasSfxEvent: eventName => this.#sfxEngine?.HandlesEvent(eventName) === true || Array.isArray(installed.eventMedia?.[eventName]),
       loadMedia: sourceID => this.LoadMedia(sourceID),
@@ -659,8 +671,8 @@ class CjsAudioMan {
   }
 
   /** Drives culling, backend rendering, music, and log flushing. */
-  Process(now) {
-    this.#system?.Process(now);
+  Process(updateContext) {
+    return this.#system?.Process(updateContext) ?? null;
   }
 
   /** Creates and adopts one Carbon audio emitter. */

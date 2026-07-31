@@ -22,6 +22,7 @@ export { Tr2AudGeometryData } from './trinity/trinityAudioApi/Tr2AudGeometryData
 export { CjsAudioBackend } from './CjsAudioBackend.js';
 export { CjsAudioMan } from './CjsAudioMan.js';
 export { CjsAudioSystem } from './CjsAudioSystem.js';
+export { createAudioUpdateContext } from './CjsAudioUpdateContext.js';
 export { CjsJukebox } from './CjsJukebox.js';
 export { CjsMusicEngine, wwiseIdFromName } from './CjsMusicEngine.js';
 export { CjsSfxEngine } from './CjsSfxEngine.js';

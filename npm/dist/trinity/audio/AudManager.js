@@ -671,13 +671,13 @@ class AudManager extends CjsModel {
   }
 
   /** Carbon method Process: cull (when enabled+flagged), render, flush the log. */
-  Process(now) {
+  Process() {
     if (this.#state === "uninitialized") {
       return;
     }
     if (this.#state === "enabled") {
       if (this.soundPrioritization.GetAudioCullingEnabled()) {
-        this.soundPrioritization.CullAudio(now);
+        this.soundPrioritization.CullAudio();
       }
       _AudGameObjResource.backend?.RenderAudio?.();
       // Carbon refreshes monitored values from its end-render callback. The

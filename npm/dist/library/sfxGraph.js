@@ -5,7 +5,7 @@ const RTPC_SCOPES = new Set(["global", "object"]);
 const RTPC_PROPERTY_SCALING = new Map([["highPass", 0], ["initialDelay", 0], ["lowPass", 0], ["pitch", 0], ["volume", 2]]);
 const CONTAINER_SCOPES = new Set(["global", "object"]);
 const RANDOM_MODES = new Set(["random", "shuffle"]);
-const CONTINUOUS_TRANSITIONS = new Set(["delay", "disabled", "trigger-rate"]);
+const CONTINUOUS_TRANSITIONS = new Set(["crossfade-amplitude", "crossfade-power", "delay", "disabled", "trigger-rate"]);
 const MIN_TRIGGER_RATE_MS = 21;
 const EVENT_ACTION_KINDS = new Set(["state", "switch"]);
 const STOP_SCOPES = new Set(["game-object", "global"]);
@@ -142,6 +142,7 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
   }
   ValidateAcyclic(events, nodes);
   ValidateContinuousNesting(nodes);
+  ValidateCrossfadeDescendants(nodes);
   return true;
 }
 
@@ -256,7 +257,7 @@ function NormalizeContinuousContainer(value, type) {
     loopCount: Number(value.loopCount),
     transition: value.transition
   };
-  if (value.transition === "delay" || value.transition === "trigger-rate") {
+  if (value.transition === "crossfade-amplitude" || value.transition === "crossfade-power" || value.transition === "delay" || value.transition === "trigger-rate") {
     result.transitionMs = Number(value.transitionMs ?? 0);
     if (value.transitionRangeMs !== undefined) {
       result.transitionRangeMs = {
@@ -277,7 +278,7 @@ function ValidateContinuousContainer(value, label, type) {
     throw new TypeError(`${label} loopCount must not exceed 32767`);
   }
   if (!CONTINUOUS_TRANSITIONS.has(continuous.transition)) {
-    throw new TypeError(`${label} transition must be disabled, delay, or trigger-rate`);
+    throw new TypeError(`${label} transition must be disabled, crossfade-amplitude, ` + "crossfade-power, delay, or trigger-rate");
   }
   if (continuous.transition === "disabled") {
     if (continuous.transitionMs !== undefined || continuous.transitionRangeMs !== undefined) {
@@ -824,6 +825,41 @@ function ValidateContinuousNesting(nodes) {
       for (const child of NodeChildren(node)) {
         visit(child, id);
       }
+    }
+  }
+}
+function ValidateCrossfadeDescendants(nodes) {
+  const visit = (rawID, containerID) => {
+    if (IsRecord(rawID) && rawID.probability !== undefined && Number(rawID.probability) !== 100) {
+      throw new TypeError(`Audio library SFX Crossfade container ${containerID}` + " requires every child edge to have 100% probability");
+    }
+    const id = String(Number(IsRecord(rawID) ? rawID.nodeId : rawID) >>> 0);
+    const node = nodes[id];
+    if (node.continuous !== undefined) {
+      throw new TypeError(`Audio library SFX Crossfade container ${containerID}` + ` cannot contain Continuous container ${id}`);
+    }
+    if (node.type === "sound") {
+      if (node.loop !== false && node.playCount === undefined) {
+        throw new TypeError(`Audio library SFX Crossfade container ${containerID}` + ` requires explicitly finite sound ${id}`);
+      }
+      return;
+    }
+    if (node.type === "silence" || node.type === "switch" || node.type === "blend" || node.type === "parallel") {
+      throw new TypeError(`Audio library SFX Crossfade container ${containerID}` + ` requires one voice per child; node ${id} is ${node.type}`);
+    }
+    if (node.type === "sequence" && node.loop === false) {
+      throw new TypeError(`Audio library SFX Crossfade container ${containerID}` + ` cannot contain exhaustible sequence ${id}`);
+    }
+    for (const child of NodeChildren(node)) {
+      visit(child, containerID);
+    }
+  };
+  for (const [id, node] of Object.entries(nodes)) {
+    if (node.continuous?.transition !== "crossfade-amplitude" && node.continuous?.transition !== "crossfade-power") {
+      continue;
+    }
+    for (const child of NodeChildren(node)) {
+      visit(child, id);
     }
   }
 }

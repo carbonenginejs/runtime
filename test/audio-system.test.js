@@ -7,6 +7,7 @@ import {
   AudioCurveSetDriver,
   CjsAudioSystem,
   CjsSfxEngine,
+  createAudioUpdateContext,
 } from "../npm/dist/index.js";
 
 
@@ -58,6 +59,98 @@ function FakeContext(log)
   };
   return context;
 }
+
+test("audio update context normalizes host timing without owning playback time", () =>
+{
+  const context = createAudioUpdateContext();
+
+  context.Update({
+    GetTime: () => 12,
+    GetRealTime: () => 15,
+    GetDeltaT: () => 0.25,
+    GetFrame: () => 41,
+  });
+
+  assert.equal(context.time, 12);
+  assert.equal(context.currentTime, 12);
+  assert.equal(context.realTime, 15);
+  assert.equal(context.deltaTime, 0.25);
+  assert.equal(context.frame, 41);
+  assert.equal(context.frameCount, 41);
+
+  context.Update({
+    time: 20,
+    currentTime: 99,
+    realTime: 21,
+    deltaTime: 0.5,
+    frame: 42,
+  });
+  assert.equal(context.time, 20);
+});
+
+test("audio update context supplies a standalone monotonic frame context", () =>
+{
+  const ticks = [ 2, 2.125 ];
+  const context = createAudioUpdateContext({
+    now: () => ticks.shift(),
+  });
+
+  context.Update();
+  assert.deepEqual(
+    {
+      time: context.time,
+      realTime: context.realTime,
+      deltaTime: context.deltaTime,
+      frame: context.frame,
+    },
+    { time: 2, realTime: 2, deltaTime: 0, frame: 1 },
+  );
+
+  context.Update();
+  assert.deepEqual(
+    {
+      time: context.time,
+      realTime: context.realTime,
+      deltaTime: context.deltaTime,
+      frame: context.frame,
+    },
+    { time: 2.125, realTime: 2.125, deltaTime: 0.125, frame: 2 },
+  );
+});
+
+test("CjsAudioSystem retains a caller-provided frame context but Carbon audio ignores its clocks", () =>
+{
+  const renders = [];
+  const supplied = {
+    time: 4,
+    realTime: 5,
+    deltaTime: 0.5,
+    frame: 8,
+  };
+  const system = new CjsAudioSystem({
+    updateContext: supplied,
+    audioMetadata: {
+      Events: {},
+      SoundBanks: {},
+      WemFileIDs: {},
+    },
+  });
+
+  system.manager.Process = (...args) => renders.push(args);
+  const context = system.Process();
+
+  assert.equal(context, system.updateContext);
+  assert.deepEqual(
+    {
+      time: context.time,
+      realTime: context.realTime,
+      deltaTime: context.deltaTime,
+      frame: context.frame,
+    },
+    supplied,
+  );
+  assert.deepEqual(renders, [ [] ]);
+});
 
 
 test("CjsAudioSystem realizes an emitter event end to end on a fake AudioContext", async () =>

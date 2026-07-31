@@ -31,6 +31,20 @@ export class CjsSfxEngine
 
     #continuousSessions = new WeakSet();
 
+    #selectionTransaction = null;
+
+    #selectionGeneration = 0;
+
+    #releasedGameObjGenerations = new Map();
+
+    #tokenGenerations = new WeakMap();
+
+    #leasedTokens = new WeakMap();
+
+    #preparingToken = null;
+
+    #selectionReservations = new Map();
+
     /**
      * Creates an interpreter for an installed, validated SFX graph.
      */
@@ -183,6 +197,10 @@ export class CjsSfxEngine
                         branch.token.node.continuous.transition
                             === "trigger-rate"
                             && hasMore
+                            || IsCrossfadeTransition(
+                                branch.token.node.continuous.transition,
+                            )
+                            && hasMore
                             ? this.#SampleContinuousTransition(
                                 branch.token,
                             )
@@ -192,6 +210,14 @@ export class CjsSfxEngine
                         branch.token.node.continuous.transition
                             === "trigger-rate"
                             ? { advance: "trigger-rate" }
+                            : IsCrossfadeTransition(
+                                branch.token.node.continuous.transition,
+                            )
+                                ? {
+                                    advance: "crossfade",
+                                    crossfadeMode:
+                                        branch.token.node.continuous.transition,
+                                }
                             : {}
                     ),
                 }));
@@ -269,6 +295,27 @@ export class CjsSfxEngine
                 "CjsSfxEngine continuation token is invalid",
             );
         }
+        const generation = this.#tokenGenerations.get(token);
+        const currentGameObjGeneration =
+            this.#releasedGameObjGenerations.get(
+                String(token.gameObjID),
+            ) ?? 0;
+
+        if (!generation
+            || generation.selection !== this.#selectionGeneration
+            || generation.gameObj !== currentGameObjGeneration)
+        {
+            throw new TypeError(
+                "CjsSfxEngine continuation token has been invalidated",
+            );
+        }
+        if (this.#leasedTokens.has(token)
+            && this.#preparingToken !== token)
+        {
+            throw new Error(
+                "CjsSfxEngine continuation token is being prepared",
+            );
+        }
         if (token.done)
         {
             return Object.freeze([]);
@@ -290,6 +337,7 @@ export class CjsSfxEngine
         const hasMore = this.#ContinuousHasMore(token);
         const delayMs = transition === "delay"
             || (hasMore && transition === "trigger-rate")
+            || (hasMore && IsCrossfadeTransition(transition))
             ? SampleRandomizedValue(
                 token.node.continuous.transitionMs,
                 token.node.continuous.transitionRangeMs,
@@ -319,11 +367,264 @@ export class CjsSfxEngine
                         doneAfterBatch: !hasMore,
                         ...(transition === "trigger-rate"
                             ? { advance: "trigger-rate" }
+                            : IsCrossfadeTransition(transition)
+                                ? {
+                                    advance: "crossfade",
+                                    crossfadeMode: transition,
+                                }
                             : {}),
                     }),
                 ]),
             }),
         ]);
+    }
+
+    /**
+     * Resolves a continuation speculatively for Crossfade media prefetch.
+     * Selection state is committed only when the prepared batch reaches its
+     * audible boundary; cancellation leaves the traversal unchanged.
+     */
+    PrepareProgram(token, controls = {})
+    {
+        if (!token
+            || typeof token !== "object"
+            || !this.#continuousSessions.has(token))
+        {
+            throw new TypeError(
+                "CjsSfxEngine continuation token is invalid",
+            );
+        }
+        if (this.#selectionTransaction)
+        {
+            throw new Error(
+                "CjsSfxEngine cannot nest speculative continuation selection",
+            );
+        }
+        if (this.#leasedTokens.has(token))
+        {
+            throw new Error(
+                "CjsSfxEngine continuation token is already being prepared",
+            );
+        }
+        const beforeToken = CaptureContinuationToken(token);
+        const transaction = {
+            snapshots: new Map(),
+            operations: [],
+            ownerGameObjID: String(token.gameObjID),
+            reservations: [],
+            invalidated: false,
+            token,
+        };
+        const selectionGeneration = this.#selectionGeneration;
+        const gameObjGeneration = this.#releasedGameObjGenerations.get(
+            String(token.gameObjID),
+        ) ?? 0;
+        let program;
+        let afterToken;
+
+        this.#leasedTokens.set(token, transaction);
+        this.#selectionTransaction = transaction;
+        this.#preparingToken = token;
+        try
+        {
+            program = this.ContinueProgram(token, controls);
+            afterToken = CaptureContinuationToken(token);
+        }
+        catch (error)
+        {
+            this.#leasedTokens.delete(token);
+            throw error;
+        }
+        finally
+        {
+            this.#preparingToken = null;
+            this.#selectionTransaction = null;
+            RestoreContinuationToken(token, beforeToken);
+            RestoreSelectionChanges(transaction.snapshots);
+        }
+        this.#ReserveSelectionOperations(transaction);
+
+        let settled = false;
+        return Object.freeze({
+            program,
+            commit: () =>
+            {
+                if (!settled)
+                {
+                    settled = true;
+                    this.#leasedTokens.delete(token);
+                    this.#ReleaseSelectionReservations(transaction);
+                    if (selectionGeneration !== this.#selectionGeneration
+                        || transaction.invalidated
+                        || gameObjGeneration !== (
+                            this.#releasedGameObjGenerations.get(
+                                String(token.gameObjID),
+                            ) ?? 0
+                        ))
+                    {
+                        return;
+                    }
+                    CommitContinuationToken(
+                        token,
+                        beforeToken,
+                        afterToken,
+                    );
+                    this.#CommitSelectionOperations(
+                        transaction.operations,
+                    );
+                }
+            },
+            rollback: () =>
+            {
+                settled = true;
+                this.#leasedTokens.delete(token);
+                this.#ReleaseSelectionReservations(transaction);
+            },
+        });
+    }
+
+    /** Captures one selection-state key before speculative mutation. */
+    #TrackSelectionMutation(map, key)
+    {
+        if (!this.#selectionTransaction)
+        {
+            return;
+        }
+        let mutations = this.#selectionTransaction.snapshots.get(map);
+
+        if (!mutations)
+        {
+            mutations = new Map();
+            this.#selectionTransaction.snapshots.set(map, mutations);
+        }
+        if (!mutations.has(key))
+        {
+            mutations.set(key, CaptureSelectionValue(map, key));
+        }
+    }
+
+    /** Records one mergeable selection effect for speculative commit. */
+    #RecordSelectionOperation(operation)
+    {
+        this.#selectionTransaction?.operations.push(operation);
+    }
+
+    /** Reserves speculative choices so later posts select around them. */
+    #ReserveSelectionOperations(transaction)
+    {
+        for (const operation of transaction.operations)
+        {
+            if (operation.kind !== "random")
+            {
+                continue;
+            }
+            const key = `random\0${operation.key}`;
+            const reservation = {
+                transaction,
+                selected: operation.selected,
+                advance: operation.advance ?? 0,
+            };
+            const reservations =
+                this.#selectionReservations.get(key) ?? [];
+
+            reservations.push(reservation);
+            this.#selectionReservations.set(key, reservations);
+            transaction.reservations.push({ key, reservation });
+        }
+    }
+
+    /** Removes every pending choice owned by one settled transaction. */
+    #ReleaseSelectionReservations(transaction)
+    {
+        for (const { key, reservation } of transaction.reservations)
+        {
+            const reservations = this.#selectionReservations.get(key)
+                ?.filter(value => value !== reservation) ?? [];
+
+            if (reservations.length)
+            {
+                this.#selectionReservations.set(key, reservations);
+            }
+            else
+            {
+                this.#selectionReservations.delete(key);
+            }
+        }
+        transaction.reservations.length = 0;
+    }
+
+    /** Returns speculative random children reserved on one state key. */
+    #ReservedRandomSelections(key)
+    {
+        return new Set(
+            (this.#selectionReservations.get(`random\0${key}`) ?? [])
+                .map(value => value.selected),
+        );
+    }
+
+    /** Merges heard speculative choices into the current shared state. */
+    #CommitSelectionOperations(operations)
+    {
+        for (const operation of operations)
+        {
+            if (operation.kind === "random")
+            {
+                if (operation.historyLength > 0)
+                {
+                    const history = [
+                        ...(this.#randomHistory.get(operation.key) ?? []),
+                        operation.selected,
+                    ].slice(-operation.historyLength);
+
+                    this.#randomHistory.set(operation.key, history);
+                }
+                if (operation.shuffle)
+                {
+                    let pool = this.#shufflePools.get(operation.key);
+
+                    if (!pool?.length)
+                    {
+                        pool = operation.children.map(
+                            (child, index) => ({ child, index }),
+                        );
+                    }
+                    else
+                    {
+                        pool = pool.map(value => ({ ...value }));
+                    }
+                    const index = pool.findIndex(value =>
+                        value.index === operation.selected);
+
+                    if (index !== -1)
+                    {
+                        pool.splice(index, 1);
+                    }
+                    this.#shufflePools.set(operation.key, pool);
+                }
+            }
+            else if (operation.kind === "sequence")
+            {
+                const position = this.#sequencePositions.get(
+                    operation.key,
+                ) ?? 0;
+
+                this.#sequencePositions.set(
+                    operation.key,
+                    position + operation.advance,
+                );
+            }
+            else if (operation.kind === "continuous-sequence")
+            {
+                const position = this.#continuousSequencePositions.get(
+                    operation.key,
+                ) ?? 0;
+
+                this.#continuousSequencePositions.set(
+                    operation.key,
+                    position + operation.advance,
+                );
+            }
+        }
     }
 
     /** Samples one authored Continuous transition duration. */
@@ -443,6 +744,9 @@ export class CjsSfxEngine
     /** Clears random history and step-sequence positions. */
     Reset()
     {
+        this.#selectionGeneration++;
+        this.#releasedGameObjGenerations.clear();
+        this.#selectionReservations.clear();
         this.#randomHistory.clear();
         this.#shufflePools.clear();
         this.#sequencePositions.clear();
@@ -452,8 +756,31 @@ export class CjsSfxEngine
     /** Releases object-scoped container state for one unregistered game object. */
     ReleaseGameObj(gameObjID)
     {
-        const prefix = `o:${String(gameObjID)}\0`;
+        const id = String(gameObjID);
+        const prefix = `o:${id}\0`;
 
+        this.#releasedGameObjGenerations.set(
+            id,
+            (this.#releasedGameObjGenerations.get(id) ?? 0) + 1,
+        );
+        const invalidated = new Set();
+
+        for (const reservations of this.#selectionReservations.values())
+        {
+            for (const { transaction } of reservations)
+            {
+                if (transaction.ownerGameObjID === id)
+                {
+                    invalidated.add(transaction);
+                }
+            }
+        }
+        for (const transaction of invalidated)
+        {
+            transaction.invalidated = true;
+            this.#leasedTokens.delete(transaction.token);
+            this.#ReleaseSelectionReservations(transaction);
+        }
         DeleteKeysWithPrefix(this.#randomHistory, prefix);
         DeleteKeysWithPrefix(this.#shufflePools, prefix);
         DeleteKeysWithPrefix(this.#sequencePositions, prefix);
@@ -746,6 +1073,12 @@ export class CjsSfxEngine
         };
 
         this.#continuousSessions.add(token);
+        this.#tokenGenerations.set(token, {
+            selection: this.#selectionGeneration,
+            gameObj: this.#releasedGameObjGenerations.get(
+                String(token.gameObjID),
+            ) ?? 0,
+        });
         continuousBranches.push({
             token,
             selections: this.#ResolveContinuousBatch(
@@ -823,10 +1156,24 @@ export class CjsSfxEngine
 
             if (node.continuous.resetPlaylistEachPlay === false)
             {
-                this.#continuousSequencePositions.set(
-                    StateKey(token.gameObjID, token.nodeID),
-                    token.sequencePosition,
+                const key = StateKey(token.gameObjID, token.nodeID);
+                const position =
+                    this.#continuousSequencePositions.get(key) ?? 0;
+
+                this.#TrackSelectionMutation(
+                    this.#continuousSequencePositions,
+                    key,
                 );
+                this.#continuousSequencePositions.set(
+                    key,
+                    position + 1,
+                );
+                this.#RecordSelectionOperation({
+                    kind: "continuous-sequence",
+                    key,
+                    advance: 1,
+                    childCount,
+                });
             }
         }
         token.remainingInPass--;
@@ -840,9 +1187,11 @@ export class CjsSfxEngine
         {
             return 0;
         }
-        return this.#continuousSequencePositions.get(
-            StateKey(gameObjID, nodeID),
-        ) ?? 0;
+        const key = StateKey(gameObjID, nodeID);
+        const position =
+            this.#continuousSequencePositions.get(key) ?? 0;
+
+        return position % node.children.length;
     }
 
     /** Accumulates one hierarchy level's static and randomized properties. */
@@ -1006,6 +1355,8 @@ export class CjsSfxEngine
     #SelectRandom(nodeID, node, gameObjID)
     {
         const key = StateKey(gameObjID, nodeID);
+        this.#TrackSelectionMutation(this.#randomHistory, key);
+        this.#TrackSelectionMutation(this.#shufflePools, key);
         const history = this.#randomHistory.get(key) ?? [];
         const avoid = Math.min(
             Number(node.avoidRepeat) || 0,
@@ -1014,7 +1365,11 @@ export class CjsSfxEngine
         const historyLength = node.mode === "shuffle"
             ? Math.max(1, avoid)
             : avoid;
-        const excluded = new Set(history.slice(-historyLength));
+        const reserved = this.#ReservedRandomSelections(key);
+        const excluded = new Set([
+            ...history.slice(-historyLength),
+            ...reserved,
+        ]);
         let available;
 
         if (node.mode === "shuffle")
@@ -1030,6 +1385,11 @@ export class CjsSfxEngine
                 this.#shufflePools.set(key, pool);
             }
             available = pool.filter(({ index }) => !excluded.has(index));
+            if (!available.length)
+            {
+                available = pool.filter(({ index }) =>
+                    !reserved.has(index));
+            }
             if (!available.length)
             {
                 available = pool;
@@ -1086,6 +1446,18 @@ export class CjsSfxEngine
                 pool.splice(poolIndex, 1);
             }
         }
+        if (selected !== -1
+            && (historyLength > 0 || node.mode === "shuffle"))
+        {
+            this.#RecordSelectionOperation({
+                kind: "random",
+                key,
+                selected,
+                historyLength,
+                shuffle: node.mode === "shuffle",
+                children: node.children,
+            });
+        }
 
         return selected;
     }
@@ -1103,9 +1475,128 @@ export class CjsSfxEngine
 
         const index = position % node.children.length;
 
+        this.#TrackSelectionMutation(this.#sequencePositions, key);
         this.#sequencePositions.set(key, position + 1);
+        this.#RecordSelectionOperation({
+            kind: "sequence",
+            key,
+            advance: 1,
+        });
         return index;
     }
+}
+
+function IsCrossfadeTransition(value)
+{
+    return value === "crossfade-amplitude"
+        || value === "crossfade-power";
+}
+
+function CaptureContinuationToken(token)
+{
+    return {
+        passCount: token.passCount,
+        remainingInPass: token.remainingInPass,
+        sequencePosition: token.sequencePosition,
+        batchIndex: token.batchIndex,
+        done: token.done,
+    };
+}
+
+function RestoreContinuationToken(token, snapshot)
+{
+    Object.assign(token, snapshot);
+}
+
+/** Merges one heard speculative continuation into its live token. */
+function CommitContinuationToken(token, before, after)
+{
+    const childCount = token.node.children.length;
+    const beforeSelections = ContinuationSelectionCount(
+        before,
+        childCount,
+    );
+    const afterSelections = ContinuationSelectionCount(
+        after,
+        childCount,
+    );
+    const currentSelections = ContinuationSelectionCount(
+        token,
+        childCount,
+    );
+    const maximumSelections = Number(token.node.continuous.loopCount) === 0
+        ? Infinity
+        : Number(token.node.continuous.loopCount) * childCount;
+    const selections = Math.min(
+        maximumSelections,
+        currentSelections + Math.max(
+            0,
+            afterSelections - beforeSelections,
+        ),
+    );
+
+    token.passCount = selections === 0
+        ? 0
+        : Math.ceil(selections / childCount);
+    token.remainingInPass = token.passCount * childCount - selections;
+    if (token.node.type === "sequence")
+    {
+        const advance = (
+            after.sequencePosition - before.sequencePosition + childCount
+        ) % childCount;
+
+        token.sequencePosition = (
+            token.sequencePosition + advance
+        ) % childCount;
+    }
+    token.batchIndex += Math.max(
+        0,
+        after.batchIndex - before.batchIndex,
+    );
+    token.done ||= after.done;
+}
+
+/** Returns the number of selected children represented by a token snapshot. */
+function ContinuationSelectionCount(snapshot, childCount)
+{
+    return snapshot.passCount * childCount
+        - snapshot.remainingInPass;
+}
+
+function RestoreSelectionChanges(changes)
+{
+    for (const [ map, mutations ] of changes)
+    {
+        for (const [ key, snapshot ] of mutations)
+        {
+            if (!snapshot.exists)
+            {
+                map.delete(key);
+            }
+            else
+            {
+                map.set(key, CloneSelectionValue(snapshot.value));
+            }
+        }
+    }
+}
+
+function CaptureSelectionValue(map, key)
+{
+    return {
+        exists: map.has(key),
+        value: CloneSelectionValue(map.get(key)),
+    };
+}
+
+function CloneSelectionValue(value)
+{
+    return Array.isArray(value)
+        ? value.map(item =>
+            item && typeof item === "object"
+                ? { ...item }
+                : item)
+        : value;
 }
 
 function SampleRandomizedValue(base, range, sample)

@@ -531,6 +531,7 @@ function LowerSfxGraph({
   const leavesByEvent = new Map();
   const stopTargetsByEvent = new Map();
   const active = new Set();
+  const crossfadeFiniteSounds = new Set();
   const omittedEvents = [];
   const usedIDs = new Set([...parsed.nodes.keys()].map(value => String(value >>> 0)));
   let syntheticID = 0xffffffff;
@@ -572,6 +573,44 @@ function LowerSfxGraph({
         children: roots
       })
     };
+  };
+  const qualifyCrossfadeChildren = (rawIDs, containerID) => {
+    const pending = [...rawIDs];
+    const visited = new Set();
+    const qualifiedSounds = new Set();
+    while (pending.length) {
+      const rawID = pending.pop();
+      const id = Number(rawID) >>> 0;
+      if (visited.has(id)) {
+        continue;
+      }
+      visited.add(id);
+      const source = parsed.nodes.get(id);
+      if (!source) {
+        throw new Error(`missing typed node ${id}`);
+      }
+      if (source.type === "switch" || source.type === "layer") {
+        throw new Error(`crossfade container ${containerID} reaches ` + `${source.type} ${id}`);
+      }
+      if ((source.type === "random" || source.type === "sequence") && source.continuous) {
+        throw new Error(`nested continuous container ${id}`);
+      }
+      if (source.type === "sound" && parsed.nodeBases?.get(id)?.loopCount === 0) {
+        throw new Error(`crossfade container ${containerID} reaches ` + `infinite sound ${id}`);
+      }
+      if (source.type === "sound") {
+        qualifiedSounds.add(String(id));
+      }
+      for (const childID of source.children ?? []) {
+        pending.push(childID);
+      }
+    }
+    for (const key of qualifiedSounds) {
+      crossfadeFiniteSounds.add(key);
+      if (nodes[key]?.type === "sound" && nodes[key].loop === undefined) {
+        nodes[key].loop = false;
+      }
+    }
   };
   const lower = rawID => {
     const id = String(Number(rawID) >>> 0);
@@ -618,6 +657,8 @@ function LowerSfxGraph({
           } : Number.isSafeInteger(loopCount) && loopCount > 0 ? {
             loop: false,
             playCount: loopCount
+          } : crossfadeFiniteSounds.has(id) ? {
+            loop: false
           } : {})
         };
         leaves.add(Number(id) >>> 0);
@@ -631,8 +672,11 @@ function LowerSfxGraph({
         if (source.continuous && source.loopCount > 32767) {
           throw new Error(`continuous loop count exceeds 32767 at ${id}`);
         }
-        if (source.continuous && source.transitionMode !== 0 && source.transitionMode !== 3 && source.transitionMode !== 5) {
+        if (source.continuous && source.transitionMode !== 0 && source.transitionMode !== 1 && source.transitionMode !== 2 && source.transitionMode !== 3 && source.transitionMode !== 5) {
           throw new Error(`unsupported continuous transition ${source.transitionMode} at ${id}`);
+        }
+        if (source.continuous && (source.transitionMode === 1 || source.transitionMode === 2)) {
+          qualifyCrossfadeChildren(source.playlist.length ? source.playlist.map(item => item.playId) : source.children, id);
         }
         if (source.continuous && source.transitionMode === 5 && source.transitionTime + source.transitionTimeModMin < 21) {
           throw new Error(`continuous trigger rate below 21ms at ${id}`);
@@ -672,8 +716,8 @@ function LowerSfxGraph({
           ...(source.continuous ? {
             continuous: {
               loopCount: source.loopCount,
-              transition: source.transitionMode === 3 ? "delay" : source.transitionMode === 5 ? "trigger-rate" : "disabled",
-              ...(source.transitionMode === 3 || source.transitionMode === 5 ? {
+              transition: source.transitionMode === 1 ? "crossfade-amplitude" : source.transitionMode === 2 ? "crossfade-power" : source.transitionMode === 3 ? "delay" : source.transitionMode === 5 ? "trigger-rate" : "disabled",
+              ...(source.transitionMode === 1 || source.transitionMode === 2 || source.transitionMode === 3 || source.transitionMode === 5 ? {
                 transitionMs: source.transitionTime,
                 ...(source.transitionTimeModMin !== 0 || source.transitionTimeModMax !== 0 ? {
                   transitionRangeMs: {

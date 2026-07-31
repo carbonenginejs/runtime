@@ -152,6 +152,7 @@ test("Continuous container scheduling is normalized and validated", () =>
             2: {
                 type: "sound",
                 mediaId: 777,
+                loop: false,
             },
         },
     };
@@ -217,13 +218,28 @@ test("Continuous container scheduling is normalized and validated", () =>
         max: 15000,
     };
 
+    for (const transition of [
+        "crossfade-amplitude",
+        "crossfade-power",
+    ])
+    {
+        graph.nodes[1].continuous.transition = transition;
+        assert.equal(
+            normalizeSfxGraph(
+                graph,
+                { 777: { sourceID: "loose:777" } },
+            ).nodes["1"].continuous.transition,
+            transition,
+        );
+    }
+
     graph.nodes[1].continuous.transition = "crossfade";
     assert.throws(
         () => normalizeSfxGraph(
             graph,
             { 777: { sourceID: "loose:777" } },
         ),
-        /transition must be disabled, delay, or trigger-rate/u,
+        /transition must be disabled, crossfade-amplitude, crossfade-power, delay, or trigger-rate/u,
     );
 
     graph.nodes[1].continuous.transition = "disabled";
@@ -245,6 +261,147 @@ test("Continuous container scheduling is normalized and validated", () =>
             { 777: { sourceID: "loose:777" } },
         ),
         /cannot contain Continuous container 3/u,
+    );
+});
+
+test("Crossfade descendants must resolve to exactly one finite voice", () =>
+{
+    const createGraph = child => ({
+        schemaVersion: 2,
+        events: {
+            ambience: [ 1 ],
+        },
+        nodes: {
+            1: {
+                type: "sequence",
+                children: [ 2 ],
+                continuous: {
+                    loopCount: 1,
+                    transition: "crossfade-amplitude",
+                    transitionMs: 500,
+                    resetPlaylistEachPlay: true,
+                },
+            },
+            2: child,
+            3: {
+                type: "sound",
+                mediaId: 777,
+                loop: false,
+            },
+        },
+    });
+    const media = { 777: { sourceID: "loose:777" } };
+
+    assert.doesNotThrow(() => normalizeSfxGraph(
+        createGraph({
+            type: "random",
+            children: [ 3 ],
+        }),
+        media,
+    ));
+
+    for (const [ child, message ] of [
+        [
+            {
+                type: "switch",
+                group: "mode",
+                cases: { active: 3 },
+            },
+            /node 2 is switch/u,
+        ],
+        [
+            {
+                type: "parallel",
+                children: [ 3 ],
+            },
+            /node 2 is parallel/u,
+        ],
+        [
+            {
+                type: "blend",
+                children: [ 3 ],
+            },
+            /node 2 is blend/u,
+        ],
+        [
+            {
+                type: "silence",
+            },
+            /node 2 is silence/u,
+        ],
+        [
+            {
+                type: "sound",
+                mediaId: 777,
+                loop: true,
+            },
+            /requires explicitly finite sound 2/u,
+        ],
+        [
+            {
+                type: "sound",
+                mediaId: 777,
+            },
+            /requires explicitly finite sound 2/u,
+        ],
+        [
+            {
+                type: "sequence",
+                loop: false,
+                children: [ 3 ],
+            },
+            /cannot contain exhaustible sequence 2/u,
+        ],
+    ])
+    {
+        assert.throws(
+            () => normalizeSfxGraph(createGraph(child), media),
+            message,
+        );
+    }
+
+    const finitePlayCount = createGraph({
+        type: "sound",
+        mediaId: 777,
+        playCount: 2,
+    });
+
+    assert.doesNotThrow(() =>
+        normalizeSfxGraph(finitePlayCount, media));
+
+    const certainEdge = createGraph({
+        type: "random",
+        children: [ { nodeId: 3, probability: 100 } ],
+    });
+
+    assert.doesNotThrow(() =>
+        normalizeSfxGraph(certainEdge, media));
+
+    for (const probability of [ 0, 50, 99.999 ])
+    {
+        const uncertainEdge = createGraph({
+            type: "random",
+            children: [ { nodeId: 3, probability } ],
+        });
+
+        assert.throws(
+            () => normalizeSfxGraph(uncertainEdge, media),
+            /requires every child edge to have 100% probability/u,
+        );
+    }
+
+    const uncertainOuterEdge = createGraph({
+        type: "sound",
+        mediaId: 777,
+        loop: false,
+    });
+
+    uncertainOuterEdge.nodes[1].children = [
+        { nodeId: 2, probability: 50 },
+    ];
+    assert.throws(
+        () => normalizeSfxGraph(uncertainOuterEdge, media),
+        /requires every child edge to have 100% probability/u,
     );
 });
 

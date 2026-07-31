@@ -49,6 +49,8 @@ export class CjsAudioBackend
 
     #continueSfxProgram = null;
 
+    #prepareSfxProgram = null;
+
     #masterGain = null;
 
     #sfxGain = null;
@@ -89,6 +91,7 @@ export class CjsAudioBackend
         hasSfxEvent,
         resolveSfxProgram,
         continueSfxProgram,
+        prepareSfxProgram,
         distanceScale,
         musicEngine,
         applyRTPC,
@@ -108,6 +111,9 @@ export class CjsAudioBackend
             : null;
         this.#continueSfxProgram = typeof continueSfxProgram === "function"
             ? continueSfxProgram
+            : null;
+        this.#prepareSfxProgram = typeof prepareSfxProgram === "function"
+            ? prepareSfxProgram
             : null;
         this.#distanceScale = Number(distanceScale) || 1;
         this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
@@ -299,6 +305,7 @@ export class CjsAudioBackend
     /** Starts an event: allocates the playing id synchronously, starts when the media resolves. */
     PostEvent(eventID, gameObjID, additionalFlags, emitter, eventName)
     {
+        this.#CommitHeardCrossfadeTransactions();
         const music = this.#musicEngine?.HandlesEvent(eventName) === true;
         const sfx = this.#hasSfxEvent
             ? this.#hasSfxEvent(String(eventName)) === true
@@ -437,14 +444,14 @@ export class CjsAudioBackend
 
                 if (record.sfxProgram
                     && (!slot
-                        || (slot.advanceMode !== "trigger-rate"
+                        || (!IsOverlappingAdvanceMode(slot.advanceMode)
                             && slot.state !== "pending"
                             && !(slot.continuation
                                 && slot.state === "voice"))))
                 {
                     continue;
                 }
-                const batch = slot?.advanceMode === "trigger-rate"
+                const batch = IsOverlappingAdvanceMode(slot?.advanceMode)
                     ? slot.batches?.get(
                         String(descriptor.programBatchId ?? ""),
                     ) ?? slot.currentBatch
@@ -475,6 +482,12 @@ export class CjsAudioBackend
                             leafIndex: selectionMetadata.leafIndex,
                             actionTime: selectionMetadata.actionTime,
                             matchIds: selectionMetadata.matchIds,
+                            ...(slot?.advanceMode === "crossfade"
+                                ? {
+                                    crossfadeMode:
+                                        slot.crossfadeMode,
+                                }
+                                : {}),
                         }
                         : descriptor,
                     nodes,
@@ -489,7 +502,7 @@ export class CjsAudioBackend
                     slot.voice = voice;
                     slot.voices.add(voice);
                     voice.programSlotId = slot.id;
-                    if (slot.advanceMode === "trigger-rate")
+                    if (IsOverlappingAdvanceMode(slot.advanceMode))
                     {
                         if (batch)
                         {
@@ -503,7 +516,7 @@ export class CjsAudioBackend
             }
             for (const slot of record.programSlots?.values?.() ?? [])
             {
-                if (slot.advanceMode !== "trigger-rate")
+                if (!IsOverlappingAdvanceMode(slot.advanceMode))
                 {
                     continue;
                 }
@@ -531,9 +544,9 @@ export class CjsAudioBackend
 
                 if (missingInitialSelection)
                 {
-                    this.#FailTriggerRateSlot(slot);
+                    this.#FailOverlappingSlot(slot);
                 }
-                this.#UpdateTriggerRateSlotState(slot);
+                this.#UpdateOverlappingSlotState(slot);
             }
             record.loaded = true;
             if (record.sfxProgram)
@@ -567,9 +580,9 @@ export class CjsAudioBackend
                 {
                     for (const slot of record.programSlots.values())
                     {
-                        if (slot.advanceMode === "trigger-rate")
+                        if (IsOverlappingAdvanceMode(slot.advanceMode))
                         {
-                            this.#UpdateTriggerRateSlotState(slot);
+                            this.#UpdateOverlappingSlotState(slot);
                         }
                     }
                     this.#MaybeFinishSfxProgram(playingID, record);
@@ -627,6 +640,7 @@ export class CjsAudioBackend
     /** Stop ("stop") fades then halts; break ("break") lets non-loops finish, halts loops at the fade. */
     ExecuteActionOnPlayingID(action, playingID, fadeOutDuration = 1000)
     {
+        this.#CommitHeardCrossfadeTransactions();
         const record = this.#playing.get(playingID);
         if (!record)
         {
@@ -746,6 +760,7 @@ export class CjsAudioBackend
                 voice.stopping = true;
                 if (voice.startContextTime > actionTime)
                 {
+                    voice.cancelledBeforeStart = true;
                     SetAudioParam(
                         voice.stopGain.gain,
                         0,
@@ -754,6 +769,7 @@ export class CjsAudioBackend
                     voice.source.stop(actionTime);
                     continue;
                 }
+                this.#HoldVoiceTransitionFade(voice, actionTime);
                 this.#HoldVoiceFade(voice, actionTime);
                 if (seconds > 0)
                 {
@@ -1062,6 +1078,7 @@ export class CjsAudioBackend
     {
         this.#ProcessScheduledSfxStops();
         this.#ProcessTriggerRateSlots();
+        this.#ProcessCrossfadeSlots();
         this.#musicEngine?.Process();
     }
 
@@ -1125,6 +1142,60 @@ export class CjsAudioBackend
             + slot.transitionDelayMs / 1000;
     }
 
+    /** Promotes due Crossfade successors and begins one-batch lookahead. */
+    #ProcessCrossfadeSlots()
+    {
+        const now = Number(this.#context?.currentTime) || 0;
+
+        for (const [ playingID, record ] of this.#playing)
+        {
+            if (!record.sfxProgram || record.stopped)
+            {
+                continue;
+            }
+            for (const slot of record.programSlots?.values?.() ?? [])
+            {
+                if (slot.advanceMode !== "crossfade"
+                    || slot.state === "ended"
+                    || slot.state === "cancelled"
+                    || slot.broken
+                    || !slot.preparedBatch
+                    || !Number.isFinite(slot.nextTriggerContextTime)
+                    || slot.nextTriggerContextTime > now)
+                {
+                    continue;
+                }
+
+                const batch = slot.preparedBatch;
+
+                this.#SettleCrossfadeBatchTransaction(
+                    batch,
+                    now,
+                );
+                slot.currentBatch = batch;
+                slot.preparedBatch = null;
+                slot.nextTriggerContextTime = null;
+                slot.continuation = batch.continuation;
+                slot.exhausted = batch.exhausted;
+                slot.transitionDelayMs = batch.transitionDelayMs;
+                slot.crossfadeMode = batch.crossfadeMode;
+                this.#UpdateOverlappingSlotState(slot);
+
+                if (!slot.exhausted
+                    && slot.continuation
+                    && batch.state !== "cancelled")
+                {
+                    this.#PrepareCrossfadeSuccessor(
+                        playingID,
+                        record,
+                        slot,
+                    );
+                }
+                this.#MaybeFinishSfxProgram(playingID, record);
+            }
+        }
+    }
+
     /** Active playing ids (introspection/tests). */
     GetPlayingCount()
     {
@@ -1184,6 +1255,16 @@ export class CjsAudioBackend
             slot.broken = true;
             slot.exhausted = true;
             slot.nextTriggerContextTime = null;
+            slot.preparingCrossfade = false;
+            if (slot.preparedBatch)
+            {
+                this.#DiscardTriggerRateBatch(
+                    record,
+                    slot,
+                    slot.preparedBatch,
+                );
+            }
+            slot.preparedBatch = null;
             for (const batch of slot.batches?.values?.() ?? [])
             {
                 if (batch.state === "loading"
@@ -1257,14 +1338,16 @@ export class CjsAudioBackend
         );
     }
 
-    /** Returns whether a voice descends from Trigger Rate Continuous play. */
-    #IsTriggerRateProgramVoice(record, voice)
+    /** Returns whether Wwise ignores Seek for this Continuous transition. */
+    #IsRestrictedContinuousProgramVoice(record, voice)
     {
-        return Boolean(
-            voice.programSlotId !== undefined
-            && record.programSlots?.get(voice.programSlotId)?.advanceMode
-                === "trigger-rate",
-        );
+        const mode = voice.programSlotId === undefined
+            ? null
+            : record.programSlots?.get(
+                voice.programSlotId,
+            )?.advanceMode;
+
+        return mode === "trigger-rate" || mode === "crossfade";
     }
 
     /**
@@ -1402,12 +1485,16 @@ export class CjsAudioBackend
                 return handled;
             }
         }
-        const hasTriggerRate = [
+        const hasRestrictedContinuous = [
             ...record.programSlots?.values?.() ?? [],
-        ].some(slot => slot.advanceMode === "trigger-rate");
+        ].some(slot =>
+            slot.advanceMode === "trigger-rate"
+            || slot.advanceMode === "crossfade");
         const canSeekSfx = !record.sfxProgram
             || [ ...record.programSlots?.values?.() ?? [] ]
-                .some(slot => slot.advanceMode !== "trigger-rate");
+                .some(slot =>
+                    slot.advanceMode !== "trigger-rate"
+                    && slot.advanceMode !== "crossfade");
 
         if (!canSeekSfx)
         {
@@ -1420,8 +1507,8 @@ export class CjsAudioBackend
             const started = record.voices.filter(voice =>
                 voice.source
                 && !voice.ended
-                && (!hasTriggerRate
-                    || !this.#IsTriggerRateProgramVoice(
+                && (!hasRestrictedContinuous
+                    || !this.#IsRestrictedContinuousProgramVoice(
                         record,
                         voice,
                     ))
@@ -1526,7 +1613,11 @@ export class CjsAudioBackend
                             advanceMode:
                                 continuation.advance === "trigger-rate"
                                     ? "trigger-rate"
-                                    : "completion",
+                                    : continuation.advance === "crossfade"
+                                        ? "crossfade"
+                                        : "completion",
+                            crossfadeMode:
+                                continuation.crossfadeMode ?? null,
                             transitionDelayMs: Math.max(
                                 0,
                                 Number(continuation.delayMs) || 0,
@@ -1538,20 +1629,32 @@ export class CjsAudioBackend
                             nextTriggerContextTime: null,
                             batches: null,
                             currentBatch: null,
+                            preparedBatch: null,
+                            preparingCrossfade: false,
                             batchSerial: 0,
                         };
 
-                        if (slot.advanceMode === "trigger-rate")
+                        if (IsOverlappingAdvanceMode(slot.advanceMode))
                         {
                             slot.batches = new Map();
                             const batch = CreateTriggerRateBatch(slot, {
                                 id: continuation.programBatchId,
+                                continuation: continuation.token,
+                                exhausted:
+                                    continuation.doneAfterBatch === true,
+                                transitionDelayMs:
+                                    slot.transitionDelayMs,
+                                crossfadeMode:
+                                    slot.crossfadeMode,
                             });
 
                             slot.batches.set(batch.id, batch);
                             slot.currentBatch = batch;
                             slot.state = "active";
-                            this.#ArmTriggerRateSlot(slot);
+                            if (slot.advanceMode === "trigger-rate")
+                            {
+                                this.#ArmTriggerRateSlot(slot);
+                            }
                         }
                         continuations.set(id, slot);
                         record.programSlots.set(id, slot);
@@ -1731,16 +1834,17 @@ export class CjsAudioBackend
                     && slot.state !== "loading"
                     && slot.state !== "voice")
                 {
-                    if (slot.advanceMode !== "trigger-rate"
+                    if (!IsOverlappingAdvanceMode(slot.advanceMode)
                         || slot.state === "ended"
                         || slot.state === "cancelled")
                     {
                         continue;
                     }
                 }
-                if (slot.advanceMode === "trigger-rate")
+                if (IsOverlappingAdvanceMode(slot.advanceMode))
                 {
                     this.#ApplyTriggerRateStop(
+                        record,
                         slot,
                         stop,
                         actionTime,
@@ -1795,7 +1899,7 @@ export class CjsAudioBackend
                             ? "voice"
                             : "cancelled";
                     }
-                    if (slot.advanceMode !== "trigger-rate")
+                    if (!IsOverlappingAdvanceMode(slot.advanceMode))
                     {
                         continue;
                     }
@@ -1826,7 +1930,7 @@ export class CjsAudioBackend
     }
 
     /** Applies one Stop across every overlapping Trigger Rate batch. */
-    #ApplyTriggerRateStop(slot, stop, actionTime)
+    #ApplyTriggerRateStop(record, slot, stop, actionTime)
     {
         const batches = [ ...slot.batches?.values?.() ?? [] ];
         const eligibleSelections = [];
@@ -1914,6 +2018,16 @@ export class CjsAudioBackend
             slot.broken = true;
             slot.exhausted = true;
             slot.nextTriggerContextTime = null;
+            slot.preparingCrossfade = false;
+            if (slot.preparedBatch)
+            {
+                this.#DiscardTriggerRateBatch(
+                    record,
+                    slot,
+                    slot.preparedBatch,
+                );
+                slot.preparedBatch = null;
+            }
             for (const batch of batches)
             {
                 if (batch.state === "loading"
@@ -1924,7 +2038,7 @@ export class CjsAudioBackend
                 }
             }
         }
-        this.#UpdateTriggerRateSlotState(slot);
+        this.#UpdateOverlappingSlotState(slot);
     }
 
     /** Applies one authored fade/stop without changing live RTPC controls. */
@@ -1978,6 +2092,10 @@ export class CjsAudioBackend
         if (voice.startContextTime > authoredActionTime
             || authoredStopTime <= currentTime)
         {
+            if (voice.startContextTime > currentTime)
+            {
+                voice.cancelledBeforeStart = true;
+            }
             SilenceAudioParamAt(
                 voice.stopGain.gain,
                 currentTime,
@@ -1987,6 +2105,7 @@ export class CjsAudioBackend
             return;
         }
 
+        this.#HoldVoiceTransitionFade(voice, currentTime);
         this.#HoldVoiceFade(voice, currentTime);
 
         const param = voice.stopGain.gain;
@@ -2140,6 +2259,9 @@ export class CjsAudioBackend
         const fadeGain = descriptor.fadeInMs > 0
             ? this.#context.createGain()
             : null;
+        const transitionGain = descriptor.crossfadeMode
+            ? this.#context.createGain()
+            : null;
         const stopGain = this.#context.createGain();
         const lowPassFilter = descriptor.getLowPass
             ? this.#context.createBiquadFilter?.() ?? null
@@ -2209,7 +2331,8 @@ export class CjsAudioBackend
             }
             stopGain.connect(emitterNodes.flatGain);
         }
-        gain.connect(stopGain);
+        gain.connect(transitionGain ?? stopGain);
+        transitionGain?.connect(stopGain);
         if (fadeGain)
         {
             SetAudioParam(fadeGain.gain, 0, this.#context);
@@ -2242,14 +2365,24 @@ export class CjsAudioBackend
             actionTime: descriptor.actionTime,
             matchIds: descriptor.matchIds,
             programBatchId: descriptor.programBatchId,
+            crossfadeMode: descriptor.crossfadeMode ?? null,
             gain,
             fadeGain,
+            transitionGain,
             stopGain,
             lowPassFilter,
             highPassFilter,
             fadeScheduled: false,
             fadeStartContextTime: null,
+            transitionFadeScheduled: false,
+            transitionFadeStartContextTime: null,
+            transitionFadeDuration: 0,
+            transitionFadeFrom: 1,
+            transitionFadeTo: 1,
+            transitionFadeMode: null,
             source: null,
+            sourceStarted: false,
+            cancelledBeforeStart: false,
             ended: false,
             stopping: false,
             startContextTime: null,
@@ -2284,7 +2417,7 @@ export class CjsAudioBackend
 
         const voices = selectedVoices ?? record.voices;
         const hasOrdinaryVoice = voices.some(voice =>
-            !this.#IsTriggerRateProgramVoice(record, voice));
+            !this.#IsRestrictedContinuousProgramVoice(record, voice));
         const seek = hasOrdinaryVoice
             ? record.pendingSeek
             : null;
@@ -2348,7 +2481,7 @@ export class CjsAudioBackend
                 playingID,
                 record,
                 voice,
-                this.#IsTriggerRateProgramVoice(record, voice)
+                this.#IsRestrictedContinuousProgramVoice(record, voice)
                     ? null
                     : seek,
                 voiceStartContextTime,
@@ -2360,6 +2493,30 @@ export class CjsAudioBackend
                     record,
                     voice,
                 );
+            }
+        }
+
+        if (batchStartContextTime === null)
+        {
+            const crossfadeSlots = new Set(
+                voices.map(voice =>
+                    record.programSlots?.get(
+                        voice.programSlotId,
+                    ))
+                    .filter(slot =>
+                        slot?.advanceMode === "crossfade"),
+            );
+
+            for (const slot of crossfadeSlots)
+            {
+                if (!slot.exhausted && slot.continuation)
+                {
+                    this.#PrepareCrossfadeSuccessor(
+                        playingID,
+                        record,
+                        slot,
+                    );
+                }
             }
         }
 
@@ -2475,7 +2632,10 @@ export class CjsAudioBackend
         voice.repeatRemainingSeconds = null;
         voice.repeatAnchorContextTime = null;
         this.#ApplyVoiceGain(voice);
+        voice.sourceStarted = false;
+        voice.cancelledBeforeStart = false;
         source.start(startContextTime, voice.offsetSeconds);
+        voice.sourceStarted = true;
         if (finiteRepeats)
         {
             const firstPlay = duration - voice.offsetSeconds;
@@ -2524,7 +2684,7 @@ export class CjsAudioBackend
 
         if (slot)
         {
-            if (slot.advanceMode === "trigger-rate")
+            if (IsOverlappingAdvanceMode(slot.advanceMode))
             {
                 const batch = slot.batches?.get(
                     String(voice.programBatchId ?? ""),
@@ -2539,7 +2699,7 @@ export class CjsAudioBackend
                     !value.ended);
 
                 slot.voice = active[0] ?? null;
-                this.#UpdateTriggerRateSlotState(slot);
+                this.#UpdateOverlappingSlotState(slot);
                 return;
             }
             if ([ ...slot.voices ].some(value => !value.ended))
@@ -2586,6 +2746,15 @@ export class CjsAudioBackend
                 record,
                 slot,
                 boundaryContextTime,
+            );
+            return;
+        }
+        if (slot.advanceMode === "crossfade")
+        {
+            this.#PrepareCrossfadeSuccessor(
+                playingID,
+                record,
+                slot,
             );
             return;
         }
@@ -2783,7 +2952,7 @@ export class CjsAudioBackend
             || record.stopped
             || this.#playing.get(playingID) !== record)
         {
-            this.#UpdateTriggerRateSlotState(slot);
+            this.#UpdateOverlappingSlotState(slot);
             return;
         }
 
@@ -2798,7 +2967,7 @@ export class CjsAudioBackend
         }
         catch
         {
-            this.#FailTriggerRateSlot(slot);
+            this.#FailOverlappingSlot(slot);
             return;
         }
 
@@ -2817,7 +2986,7 @@ export class CjsAudioBackend
             || (continuation
                 && continuation.advance !== "trigger-rate"))
         {
-            this.#FailTriggerRateSlot(slot);
+            this.#FailOverlappingSlot(slot);
             return;
         }
 
@@ -2849,7 +3018,7 @@ export class CjsAudioBackend
 
         if (slot.batches.has(batch.id))
         {
-            this.#FailTriggerRateSlot(slot);
+            this.#FailOverlappingSlot(slot);
             return;
         }
         slot.batches.set(batch.id, batch);
@@ -2881,7 +3050,7 @@ export class CjsAudioBackend
         if (!selectionMetadata.length)
         {
             batch.state = "ended";
-            this.#UpdateTriggerRateSlotState(slot);
+            this.#UpdateOverlappingSlotState(slot);
             this.#MaybeFinishSfxProgram(playingID, record);
             return;
         }
@@ -2957,18 +3126,18 @@ export class CjsAudioBackend
                     : "ended";
                 if (!intentionallyCancelled)
                 {
-                    this.#FailTriggerRateSlot(slot);
+                    this.#FailOverlappingSlot(slot);
                 }
                 else
                 {
-                    this.#UpdateTriggerRateSlotState(slot);
+                    this.#UpdateOverlappingSlotState(slot);
                 }
                 this.#MaybeFinishSfxProgram(playingID, record);
                 return;
             }
 
             batch.state = "voice";
-            this.#UpdateTriggerRateSlotState(slot);
+            this.#UpdateOverlappingSlotState(slot);
             this.#StartVoices(
                 playingID,
                 record,
@@ -2986,7 +3155,311 @@ export class CjsAudioBackend
                     slot,
                     batch,
                 );
-                this.#FailTriggerRateSlot(slot);
+                this.#FailOverlappingSlot(slot);
+                this.#MaybeFinishSfxProgram(playingID, record);
+            }
+        });
+    }
+
+    /** Prefetches and schedules one duration-clamped Crossfade successor. */
+    #PrepareCrossfadeSuccessor(
+        playingID,
+        record,
+        slot,
+    )
+    {
+        if (slot.advanceMode !== "crossfade"
+            || slot.preparingCrossfade
+            || slot.preparedBatch
+            || !slot.continuation
+            || slot.broken
+            || slot.exhausted
+            || record.stopped
+            || this.#playing.get(playingID) !== record)
+        {
+            this.#UpdateOverlappingSlotState(slot);
+            return;
+        }
+
+        const outgoingBatch = slot.currentBatch;
+        const outgoingVoices = [
+            ...outgoingBatch?.voices ?? [],
+        ];
+
+        if (outgoingVoices.length !== 1)
+        {
+            this.#FailOverlappingSlot(slot);
+            return;
+        }
+        const outgoingVoice = outgoingVoices[0];
+        const now = Number(this.#context.currentTime) || 0;
+        const timing = outgoingVoice.ended
+            ? {
+                boundary:
+                    now + RenderQuantumSeconds(this.#context),
+                duration: 0,
+                naturalEnd:
+                    now + RenderQuantumSeconds(this.#context),
+            }
+            : CrossfadeTiming(
+                outgoingVoice,
+                slot.transitionDelayMs,
+            );
+
+        if (!timing)
+        {
+            this.#FailOverlappingSlot(slot);
+            return;
+        }
+
+        let program;
+        let transaction = null;
+
+        try
+        {
+            if (!this.#prepareSfxProgram)
+            {
+                this.#FailOverlappingSlot(slot);
+                return;
+            }
+            transaction = this.#prepareSfxProgram(
+                slot.continuation,
+                record.sfxControls,
+            );
+            if (!transaction
+                || typeof transaction.commit !== "function"
+                || typeof transaction.rollback !== "function")
+            {
+                throw new TypeError(
+                    "Crossfade preparation must return a transaction",
+                );
+            }
+            program = transaction.program;
+        }
+        catch
+        {
+            this.#FailOverlappingSlot(slot);
+            return;
+        }
+
+        if (!Array.isArray(program) || !program.length)
+        {
+            transaction?.rollback?.();
+            this.#ExhaustSfxProgramSlot(slot);
+            return;
+        }
+
+        const play = program.find(operation =>
+            operation.kind === "play");
+        const continuation = play?.continuations?.find(value =>
+            value.programSlotId === slot.id);
+
+        if (!play
+            || !continuation
+            || continuation.advance !== "crossfade"
+            || (continuation.crossfadeMode !== "crossfade-amplitude"
+                && continuation.crossfadeMode !== "crossfade-power"))
+        {
+            transaction?.rollback?.();
+            this.#FailOverlappingSlot(slot);
+            return;
+        }
+
+        const batchSelections = (play.selections ?? [])
+            .filter(selection =>
+                selection.programSlotId === slot.id);
+
+        if (batchSelections.length !== 1)
+        {
+            transaction?.rollback?.();
+            this.#FailOverlappingSlot(slot);
+            return;
+        }
+
+        const selectionMetadata = batchSelections.map(selection =>
+            CreateProgramSelectionMetadata(
+                selection,
+                timing.boundary,
+            ));
+        const selectionControllers =
+            CreateProgramSelectionControllers(selectionMetadata);
+        const cancelledSelectionKeys = new Set();
+        const controller = new AbortController();
+        const batch = CreateTriggerRateBatch(slot, {
+            id: continuation.programBatchId,
+            actionTime: selectionMetadata[0].actionTime,
+            selections: Object.freeze(selectionMetadata),
+            selectionControllers,
+            cancelledSelectionKeys,
+            controller,
+            state: "loading",
+            continuation: continuation.token,
+            exhausted: continuation.doneAfterBatch === true,
+            transitionDelayMs: Math.max(
+                0,
+                Number(continuation.delayMs) || 0,
+            ),
+            crossfadeMode: continuation.crossfadeMode,
+            transaction,
+        });
+
+        if (slot.batches.has(batch.id))
+        {
+            transaction?.rollback?.();
+            this.#FailOverlappingSlot(slot);
+            return;
+        }
+
+        slot.preparingCrossfade = true;
+        slot.batches.set(batch.id, batch);
+        slot.state = "active";
+
+        Promise.resolve().then(() => this.#loadBuffer(
+                record.eventID,
+                record.eventName,
+                record.sfxControls,
+                program,
+            )).then(result =>
+        {
+            this.#ProcessScheduledSfxStops();
+            if (batch.state !== "loading"
+                || slot.broken
+                || record.stopped
+                || this.#playing.get(playingID) !== record)
+            {
+                return;
+            }
+
+            const descriptors = NormalizeVoiceDescriptors(
+                result,
+                () => !!this.#isLoop(record.eventName),
+            ).filter(descriptor =>
+                descriptor.programSlotId === slot.id
+                && descriptor.programBatchId === batch.id
+                && !batch.cancelledSelectionKeys.has(
+                    ProgramSelectionKey(descriptor),
+                ));
+
+            if (descriptors.length !== 1)
+            {
+                batch.state = "ended";
+                this.#FailOverlappingSlot(slot);
+                this.#MaybeFinishSfxProgram(playingID, record);
+                return;
+            }
+
+            const now = Number(this.#context.currentTime) || 0;
+            const boundary = outgoingVoice.ended
+                ? now + RenderQuantumSeconds(this.#context)
+                : Math.max(
+                    timing.boundary,
+                    now + RenderQuantumSeconds(this.#context),
+                );
+            const selection = batch.selections[0];
+            const actionTime = boundary
+                + Math.max(
+                    0,
+                    Number(descriptors[0].delayMs) || 0,
+                ) / 1000;
+            const voice = this.#CreateVoice(
+                {
+                    ...descriptors[0],
+                    actionIndex: selection.actionIndex,
+                    leafIndex: selection.leafIndex,
+                    actionTime,
+                    matchIds: selection.matchIds,
+                    crossfadeMode:
+                        continuation.crossfadeMode,
+                },
+                record.emitterNodes,
+                record.gameObjID,
+            );
+
+            voice.programSlotId = slot.id;
+            voice.programBatchId = batch.id;
+            SetAudioParam(
+                voice.transitionGain?.gain,
+                0,
+                this.#context,
+            );
+            batch.actionTime = actionTime;
+            batch.voices.add(voice);
+            slot.voices.add(voice);
+            record.voices.push(voice);
+            batch.state = "voice";
+            slot.preparingCrossfade = false;
+            slot.preparedBatch = batch;
+            slot.nextTriggerContextTime = actionTime;
+            slot.voice = outgoingVoice.ended
+                ? voice
+                : outgoingVoice;
+
+            this.#StartVoices(
+                playingID,
+                record,
+                [ voice ],
+                boundary,
+            );
+
+            const overlap = outgoingVoice.ended
+                ? 0
+                : Math.max(
+                    0,
+                    Math.min(
+                        timing.duration,
+                        timing.naturalEnd
+                            - voice.startContextTime,
+                    ),
+                );
+
+            if (overlap > 0)
+            {
+                this.#ScheduleVoiceCrossfade(
+                    outgoingVoice,
+                    1,
+                    0,
+                    voice.startContextTime,
+                    overlap,
+                    slot.crossfadeMode,
+                );
+                this.#ScheduleVoiceCrossfade(
+                    voice,
+                    0,
+                    1,
+                    voice.startContextTime,
+                    overlap,
+                    slot.crossfadeMode,
+                );
+            }
+            else
+            {
+                SetAudioParam(
+                    voice.transitionGain?.gain,
+                    1,
+                    this.#context,
+                );
+            }
+
+            this.#DisposeEndedSlotVoices(record, slot);
+            this.#UpdateOverlappingSlotState(slot);
+        }).catch(() =>
+        {
+            if (this.#playing.get(playingID) === record)
+            {
+                slot.preparingCrossfade = false;
+                if (batch.voices.size)
+                {
+                    this.#DiscardTriggerRateBatch(
+                        record,
+                        slot,
+                        batch,
+                    );
+                }
+                else
+                {
+                    batch.state = "ended";
+                }
+                this.#FailOverlappingSlot(slot);
                 this.#MaybeFinishSfxProgram(playingID, record);
             }
         });
@@ -3013,18 +3486,25 @@ export class CjsAudioBackend
             }
             voice.ended = true;
         }
+        this.#SettleCrossfadeBatchTransaction(batch, now);
         batch.state = "ended";
         this.#DisposeEndedSlotVoices(record, slot);
     }
 
     /** Cancels one Trigger Rate traversal after an acquisition failure. */
-    #FailTriggerRateSlot(slot)
+    #FailOverlappingSlot(slot)
     {
         slot.continuation = null;
         slot.exhausted = true;
         slot.nextTriggerContextTime = null;
+        slot.preparingCrossfade = false;
+        this.#SettleCrossfadeBatchTransaction(
+            slot.preparedBatch,
+        );
+        slot.preparedBatch = null;
         for (const batch of slot.batches?.values?.() ?? [])
         {
+            this.#SettleCrossfadeBatchTransaction(batch);
             if (batch.state === "loading"
                 || batch.state === "pending")
             {
@@ -3032,11 +3512,11 @@ export class CjsAudioBackend
                 AbortTriggerRateBatch(batch);
             }
         }
-        this.#UpdateTriggerRateSlotState(slot);
+        this.#UpdateOverlappingSlotState(slot);
     }
 
     /** Derives logical Trigger Rate activity from cadence, loads, and tails. */
-    #UpdateTriggerRateSlotState(slot)
+    #UpdateOverlappingSlotState(slot)
     {
         const activeVoices = [ ...slot.voices ]
             .filter(voice => !voice.ended);
@@ -3057,15 +3537,62 @@ export class CjsAudioBackend
             : "ended";
     }
 
+    /** Commits prefetched choices already heard by the Web Audio clock. */
+    #CommitHeardCrossfadeTransactions()
+    {
+        const now = Number(this.#context?.currentTime) || 0;
+
+        for (const record of this.#playing.values())
+        {
+            for (const slot of record.programSlots?.values?.() ?? [])
+            {
+                this.#SettleCrossfadeBatchTransaction(
+                    slot.preparedBatch,
+                    now,
+                    false,
+                );
+            }
+        }
+    }
+
+    /** Commits a heard Crossfade choice or rolls back an unheard discard. */
+    #SettleCrossfadeBatchTransaction(
+        batch,
+        now = Number(this.#context?.currentTime) || 0,
+        rollbackUnheard = true,
+    )
+    {
+        if (!batch?.transaction)
+        {
+            return;
+        }
+        const heard = [ ...batch.voices ].some(voice =>
+            voice.sourceStarted === true
+            && voice.cancelledBeforeStart !== true
+            && Number.isFinite(voice.startContextTime)
+            && voice.startContextTime <= now);
+
+        if (heard)
+        {
+            batch.transaction.commit();
+            batch.transaction = null;
+        }
+        else if (rollbackUnheard)
+        {
+            batch.transaction.rollback();
+            batch.transaction = null;
+        }
+    }
+
     /** Stops scheduling one traversal while preserving audible overlap tails. */
     #ExhaustSfxProgramSlot(slot)
     {
         slot.continuation = null;
         slot.exhausted = true;
         slot.nextTriggerContextTime = null;
-        if (slot.advanceMode === "trigger-rate")
+        if (IsOverlappingAdvanceMode(slot.advanceMode))
         {
-            this.#UpdateTriggerRateSlotState(slot);
+            this.#UpdateOverlappingSlotState(slot);
         }
         else
         {
@@ -3089,6 +3616,7 @@ export class CjsAudioBackend
             voice.highPassFilter?.disconnect?.();
             voice.gain?.disconnect?.();
             voice.fadeGain?.disconnect?.();
+            voice.transitionGain?.disconnect?.();
             voice.stopGain?.disconnect?.();
             slot.voices.delete(voice);
             const index = record.voices.indexOf(voice);
@@ -3101,6 +3629,7 @@ export class CjsAudioBackend
         for (const [ id, batch ] of slot.batches ?? [])
         {
             if (batch !== slot.currentBatch
+                && batch !== slot.preparedBatch
                 && (batch.state === "ended"
                     || batch.state === "cancelled")
                 && [ ...batch.voices ].every(voice => voice.ended))
@@ -3289,6 +3818,73 @@ export class CjsAudioBackend
         }
     }
 
+    /** Freezes one active Crossfade envelope before applying a Stop fade. */
+    #HoldVoiceTransitionFade(voice, actionTime)
+    {
+        const param = voice.transitionGain?.gain;
+        const start = voice.transitionFadeStartContextTime;
+        const duration = voice.transitionFadeDuration;
+
+        if (!param
+            || !voice.transitionFadeScheduled
+            || !Number.isFinite(start)
+            || !Number.isFinite(duration)
+            || duration <= 0
+            || actionTime < start
+            || actionTime >= start + duration)
+        {
+            return;
+        }
+        if (typeof param.cancelAndHoldAtTime === "function")
+        {
+            param.cancelAndHoldAtTime(actionTime);
+            voice.transitionFadeScheduled = false;
+            return;
+        }
+
+        const progress = (actionTime - start) / duration;
+        const value = EvaluateCrossfadeGain(
+            voice.transitionFadeFrom,
+            voice.transitionFadeTo,
+            progress,
+            voice.transitionFadeMode,
+        );
+
+        param.cancelScheduledValues?.(actionTime);
+        param.setValueAtTime?.(value, actionTime);
+        if ("value" in param)
+        {
+            param.value = value;
+        }
+        voice.transitionFadeScheduled = false;
+    }
+
+    /** Schedules and records one Crossfade envelope for later Stop holds. */
+    #ScheduleVoiceCrossfade(
+        voice,
+        from,
+        to,
+        when,
+        duration,
+        mode,
+    )
+    {
+        voice.transitionFadeScheduled = duration > 0;
+        voice.transitionFadeStartContextTime = when;
+        voice.transitionFadeDuration = duration;
+        voice.transitionFadeFrom = from;
+        voice.transitionFadeTo = to;
+        voice.transitionFadeMode = mode;
+        ScheduleCrossfadeGain(
+            voice.transitionGain?.gain,
+            from,
+            to,
+            when,
+            duration,
+            mode,
+        );
+    }
+
     /** Marks the SFX side complete and closes the shared id when music agrees. */
     #FinishSfxPlaying(playingID)
     {
@@ -3337,6 +3933,7 @@ export class CjsAudioBackend
                 AbortProgramSlot(slot);
                 for (const batch of slot.batches?.values?.() ?? [])
                 {
+                    this.#SettleCrossfadeBatchTransaction(batch);
                     AbortTriggerRateBatch(batch);
                 }
             }
@@ -3363,6 +3960,7 @@ export class CjsAudioBackend
                 voice.highPassFilter?.disconnect?.();
                 voice.gain?.disconnect?.();
                 voice.fadeGain?.disconnect?.();
+                voice.transitionGain?.disconnect?.();
                 voice.stopGain?.disconnect?.();
             }
 
@@ -3452,6 +4050,11 @@ function RenderQuantumSeconds(context)
     return Number.isFinite(sampleRate) && sampleRate > 0
         ? 128 / sampleRate
         : DEFAULT_RENDER_QUANTUM_SECONDS;
+}
+
+function IsOverlappingAdvanceMode(value)
+{
+    return value === "crossfade" || value === "trigger-rate";
 }
 
 function CompareStopActions(left, right)
@@ -3609,11 +4212,23 @@ function CreateTriggerRateBatch(slot, overrides = {})
         controller: overrides.controller ?? slot.controller,
         voices: new Set(),
         state: overrides.state ?? slot.state,
+        continuation:
+            overrides.continuation ?? slot.continuation,
+        exhausted:
+            overrides.exhausted ?? slot.exhausted,
+        transitionDelayMs:
+            overrides.transitionDelayMs
+            ?? slot.transitionDelayMs,
+        crossfadeMode:
+            overrides.crossfadeMode ?? slot.crossfadeMode,
+        transaction: overrides.transaction ?? null,
     };
 }
 
 function AbortTriggerRateBatch(batch)
 {
+    batch.transaction?.rollback?.();
+    batch.transaction = null;
     batch.controller?.abort();
     for (const controller of batch.selectionControllers?.values?.() ?? [])
     {
@@ -3873,4 +4488,106 @@ function ScheduleWwiseFade(
             );
     }
     param.setValueCurveAtTime(values, when, duration);
+}
+
+function CrossfadeTiming(voice, transitionMs)
+{
+    const duration = Number(voice?.buffer?.duration);
+    const rate = Number(voice?.playbackRate);
+    const start = Number(voice?.startContextTime);
+    const offset = Math.max(0, Number(voice?.offsetSeconds) || 0);
+    const playCount = Math.max(
+        1,
+        Number(voice?.playCount) || 1,
+    );
+
+    if (voice?.loop
+        || !Number.isFinite(duration)
+        || duration <= 0
+        || !Number.isFinite(rate)
+        || rate <= 0
+        || !Number.isFinite(start))
+    {
+        return null;
+    }
+
+    const remaining = Math.max(0, duration - offset)
+        + duration * (playCount - 1);
+    const naturalEnd = start + remaining / rate;
+    const authored = Math.max(
+        0,
+        Number(transitionMs) || 0,
+    ) / 1000;
+    const crossfadeDuration = Math.min(
+        authored,
+        duration / rate / 2,
+        remaining / rate,
+    );
+
+    return {
+        boundary: naturalEnd - crossfadeDuration,
+        duration: crossfadeDuration,
+        naturalEnd,
+    };
+}
+
+function ScheduleCrossfadeGain(
+    param,
+    from,
+    to,
+    when,
+    duration,
+    mode,
+)
+{
+    if (!param)
+    {
+        return;
+    }
+    if (!(duration > 0))
+    {
+        param.setValueAtTime?.(to, when);
+        if ("value" in param)
+        {
+            param.value = to;
+        }
+        return;
+    }
+    if (mode !== "crossfade-power"
+        || typeof param.setValueCurveAtTime !== "function")
+    {
+        param.setValueAtTime?.(from, when);
+        param.linearRampToValueAtTime?.(to, when + duration);
+        return;
+    }
+
+    const values = new Float32Array(FADE_CURVE_SAMPLES);
+    const incoming = to > from;
+
+    for (let index = 0; index < values.length; index++)
+    {
+        const ratio = index / (values.length - 1);
+
+        values[index] = incoming
+            ? Math.sin(ratio * Math.PI / 2)
+            : Math.cos(ratio * Math.PI / 2);
+    }
+    if ("value" in param)
+    {
+        param.value = from;
+    }
+    param.setValueCurveAtTime(values, when, duration);
+}
+
+function EvaluateCrossfadeGain(from, to, progress, mode)
+{
+    const ratio = Math.max(0, Math.min(1, Number(progress) || 0));
+
+    if (mode === "crossfade-power")
+    {
+        return to > from
+            ? Math.sin(ratio * Math.PI / 2)
+            : Math.cos(ratio * Math.PI / 2);
+    }
+    return from + (to - from) * ratio;
 }

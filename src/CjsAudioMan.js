@@ -89,6 +89,7 @@ export class CjsAudioMan
         musicLibrary = null,
         loadMusicTrack = null,
         isMusicTrackAvailable = null,
+        updateContext = null,
     } = {})
     {
         if (typeof createContext !== "function")
@@ -123,6 +124,7 @@ export class CjsAudioMan
             musicEngine,
             createMusicEngine,
             applyRTPC,
+            updateContext,
         };
 
         if (musicLibrary !== null
@@ -212,6 +214,12 @@ export class CjsAudioMan
         return this.#context;
     }
 
+    /** Returns the normalized host frame context owned by the audio system. */
+    get updateContext()
+    {
+        return this.#system?.updateContext ?? null;
+    }
+
     /** Returns the protected default bank names in deterministic order. */
     get defaultSoundBanks()
     {
@@ -291,6 +299,15 @@ export class CjsAudioMan
                     token,
                     controls,
                 ) ?? [],
+            prepareSfxProgram: (token, controls) =>
+                this.#sfxEngine?.PrepareProgram(
+                    token,
+                    controls,
+                ) ?? {
+                    program: [],
+                    commit() {},
+                    rollback() {},
+                },
             hasEventStops: eventName =>
                 this.#sfxEngine?.HasStopAction(eventName) === true,
             hasSfxEvent: eventName =>
@@ -972,9 +989,9 @@ export class CjsAudioMan
     }
 
     /** Drives culling, backend rendering, music, and log flushing. */
-    Process(now)
+    Process(updateContext)
     {
-        this.#system?.Process(now);
+        return this.#system?.Process(updateContext) ?? null;
     }
 
     /** Creates and adopts one Carbon audio emitter. */
