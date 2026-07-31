@@ -55,6 +55,46 @@ The authored effect path should remain the stable identity. Backend profile,
 shader model, translated cache path, and translation capabilities are
 resolution facts rather than changes a caller must make to its source path.
 
+## Format buffer ownership and destination reuse
+
+**Current:** The CMF, DDS, FBX, GIF, glTF, JPEG, MP3, MP4, Ogg, PNG, STL,
+TGA, WAV, WebM, and WebP byte normalizers preserve an existing `Uint8Array`.
+`ArrayBuffer` and other byte-addressable views are exposed through a
+`Uint8Array` view over the same backing storage rather than copied merely for
+input normalization. Decode operations that produce new pixel, sample,
+geometry, or decompression payloads currently allocate those result arrays
+internally. Resource payload references are shared read-only by default;
+[MotherLode retention](reference/motherlode-cache.md) defines the cases where
+a consumer must make an explicit copy.
+
+**Planned:** Known-size decode and transform operations should gain
+format-specific optional destination-array seams. Omitting the destination
+must preserve the convenient allocating call. Supplying a valid destination
+must fill and return that exact object. Each seam must:
+
+- require the correct typed-array kind and sufficient capacity before writing;
+- support non-zero-offset input and destination views;
+- leave input unchanged unless the operation explicitly documents an
+  in-place transform;
+- produce the same bytes and typed-array kind as the allocating form; and
+- behave deterministically when one destination is reused across sequential
+  calls.
+
+The first candidates are CMF decompression, FBX inflate and packed-array
+helpers, DDS block and uncompressed decoders, PNG row/RGBA decode, JPEG
+component and final RGBA output, TGA RGBA decode, GIF compositing canvas, WAV
+PCM decode, and glTF data-URI decode. Decoder workspaces such as JPEG
+coefficient blocks, cached lookup tables, CRC tables, and small fixed scratch
+arrays remain implementation-owned rather than becoming public output
+arguments.
+
+Some copies remain necessary: mutation of otherwise shared data,
+`ArrayBuffer` transfer/detachment, compacting a small retained range out of a
+large backing buffer, immutable frame history, and platform APIs that expose
+no destination seam. Those copies should stay explicit at the owning call
+site. This direction does not introduce a generic deep-copy operation for
+payload objects or typed-array bundles.
+
 ## Scoped lock token
 
 **Planned:** add `AcquireLock()` as an async-safe wrapper around the current
