@@ -61,8 +61,13 @@ than the tail of a long session.
 
 #### The exact next step
 
-0. **The derived ANLS view and its shape adapter — do this first**, because step 2
-   emits it and steps 1-2 land together. See below.
+0. ~~**The derived ANLS view and its shape adapter — do this first**, because step 2
+   emits it and steps 1-2 land together.~~ **Done.** The sampler and UAV field
+   check, `runtimeDescriptionFromCarbon`, and the two-sided diff are in; see
+   [the sampler and UAV check](#the-sampler-and-uav-check-done-and-neither-is-clean)
+   and [what landed](#what-landed-and-what-the-adapter-refuses). The switchover
+   from here is steps 1-6, and they still land together with no green state in
+   between.
 1. `packageEffect.js` — replace the `buildPackage([...])` call (around line 268)
    with `buildCarbonEffectContainer`. The rich return value (`info`, `analysis`,
    `wgsl`, `backendBodySet`) stays as in-memory data for callers; only `bytes`
@@ -237,6 +242,90 @@ Because
 both sides call the same function, the diff isolates exactly one thing: whether the
 adapter reconstructs the description faithfully. That property is permanent and the
 test is worth keeping after the switchover, not a temporary scaffold.
+
+#### The sampler and UAV check: done, and neither is clean
+
+Textures were checked and found clean — every key `metadata.toJSON()` emits is
+carried in the container record. **Samplers and UAVs are not**, and the three
+differences are each of the class that fails silently.
+
+The root cause is that the runtime shape and the wire shape were designed against
+different constraints, and two runtime classes are shared where the wire splits
+them:
+
+- **A UAV has no `isSRGB` on the wire, but `toJSON()` emits one.** Textures and
+  UAVs share `HlslEffectResource`, whose `toJSON()` is `{...this}`, so the key is
+  always present in the reference output. The wire record is deliberately one byte
+  shorter. It is **synthesised as `false`**, which is what Carbon's reader
+  hardcodes (`Tr2EffectDescription.cpp:450`) and what ours does explicitly
+  (`HlslEffectDescription.js:434`) — so this is a restoration, not an invention.
+- **The sampler record is flat on the wire and nested at runtime.** `toJSON()` on
+  `HlslSamplerSetup` emits `{name, sampler: {...fourteen fields}}`; the wire record
+  is one flat record. A copying adapter puts all fourteen descriptor fields at the
+  wrong depth in one move — the largest single miss available, and the one least
+  likely to be noticed as a *rename*, because nothing is renamed.
+- **A non-dynamic sampler's name must come back as `null`, not `""`.** Carbon
+  nulls it (`Tr2EffectDescription.cpp:430-433`) before any consumer sees it, so our
+  producer writes the empty string. This is the **fourth** member of the
+  accidentally-correct family, alongside `isSRGB`: `""` and `null` are both falsy,
+  so `metadataName` and the heap-view lookup behave identically either way, and
+  only a strict structural diff sees it. It was predicted that a fourth would be
+  hiding in `mapSampler`, and it was.
+
+`comparison` and `isDynamic` are `u8` on the wire and boolean at runtime, the same
+type difference as `isSRGB`. The `*Raw` companions are absent from `toJSON()` on
+both sides, so the raw-bits trap does not recur in this direction — it belongs to
+the producer.
+
+#### What landed, and what the adapter refuses
+
+`src/formats/hlsl/core/carbonDescriptionToRuntime.js` —
+`runtimeDescriptionFromCarbon`, with the closed mapping table, and
+`test/formats/webgpu/carbon-analysis-adapter.test.mjs`, the two-sided diff.
+
+**The diff is total: no excluded fields and no normalisation.** That was bought by
+a test design worth keeping — **one file, read two ways**. The synthetic effect is
+written once, and both sides read those same bytes: the reference through the HLSL
+reader, the candidate through the container reader and the adapter. Because the
+arena is shared, every offset agrees, so `stringTableOffset` needs no exemption and
+neither does anything else. An earlier design that rebuilt the container from the
+source would have forced a named exclusion for the reassigned arena offsets, and a
+diff with exclusions is exactly where a real difference hides.
+
+Four things are **derived rather than stored**, and all four are reproduced by
+running the derivation, not by carrying a field:
+
+| derived | how |
+|---|---|
+| `m_shader`, `shaderProgram`, `renderStates` | monotonic handles from `HlslEffectStateManager`; identical because registration happens in the same order |
+| `resourceSetDesc` and its `heapViews` | rebuilt by the same `IsHeapView`-annotation walk the source reader runs |
+| `pipelineInputs[].usageName` | looked up from the `usage` byte, as Carbon does via `GetStringForUsageCode` |
+| `registers[].dynamic` | the same predicate over register type, stage type and the per-frame start registers |
+
+The handles are the load-bearing one. They are pure counters, so **stages are
+walked in wire array order rather than by ascending stage type** — the source
+reader registers them in the order the file lists them, and any other order
+reproduces the shape with the handles permuted. That is also why the diff can be
+total: nothing about the handles needed excluding.
+
+`usageName` was **found by the diff, not by reading**. It is listed above under the
+three ANLS values with "no counterpart in the persisted records", which is true and
+was the reason it was not on any field list — and it still has to be derived, or
+the analysis differs. A value being correctly classified as unstored says nothing
+about whether the view still owes it.
+
+**Scope stated rather than left implicit: raytracing libraries are refused, not
+rebuilt.** Nothing in the binding manifest or the analysis reads them, so skipping
+them would produce a correct-looking document and the gap would be invisible. The
+adapter throws instead. If a shipped effect ever declares one, that is a loud
+failure at construction rather than a silent omission, which is the same trade the
+closed table makes everywhere else.
+
+Every check carries its negative control, per the rule below: the closed table is
+proven against an injected unknown key, the diff against a reverted rename and a
+reverted `isSRGB` conversion, and the fixture writes **four distinct bodies** so
+the agreement is a real comparison rather than four copies of one body agreeing
+with themselves.
 
 #### Reproducing the measurements
 
