@@ -1,9 +1,14 @@
 import CjsDxbcFormat from "../../dxbc/index.js";
 import { normalizeBytecodeBytes, readEffectAnalysis } from "./effectAnalysis.js";
 
-import { CewgpuPackage } from "./cewgpu/CewgpuPackage.js";
-import { CewgpuPackageBuilder } from "./cewgpu/CewgpuPackageBuilder.js";
-import { validateEffectPackageEnvelope } from "./effectPackageValidation.js";
+import { CewgpuContainer, looksLikeCewgpuContainer } from "./cewgpu/CewgpuContainer.js";
+import { validateEffectContainer } from "./cewgpu/validateContainer.js";
+import {
+    defaultPermutationIndex,
+    deriveAnalysis,
+    deriveInfo,
+    deriveWgsl
+} from "./cewgpu/containerViews.js";
 import { WebgpuReadError } from "./errors.js";
 import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
 import {
@@ -13,7 +18,6 @@ import {
 
 export const OUTPUT_JSON = "json";
 export const OUTPUT_RAW = "raw";
-export const CEWGPU_MAGIC = "CWGP";
 export const CEWGPU_FORMAT = "CEWGPU";
 export const CEWGPU_ANALYSIS_FORMAT = "CEWGPU_ANALYSIS";
 export const CEWGPU_ANALYSIS_VERSION = 1;
@@ -161,18 +165,22 @@ export function toBytes(input)
 }
 
 /**
- * Sniffs whether a payload starts with the CEWGPU container magic.
+ * Reports whether a payload has the Carbon v15 container shape.
+ *
+ * This is a **shape** check, not an identity check. Our containers are stock
+ * Carbon v15 files, so nothing in the bytes separates one from a shipped
+ * `effect.dx11` file -- and nothing should. Identity comes from the resource
+ * path the file was resolved through, exactly as it does for Carbon, whose own
+ * three backend trees are byte-format-identical with no language field anywhere.
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate payload.
- * @returns {boolean} True when the payload looks like a CEWGPU package.
+ * @returns {boolean} True when the payload opens on Carbon's v15 version dword.
  */
 export function isCewgpu(input)
 {
     try
     {
-        const bytes = toBytes(input);
-        return bytes.length >= CEWGPU_MAGIC.length
-            && CEWGPU_MAGIC.split("").every((char, index) => bytes[index] === char.charCodeAt(0));
+        return looksLikeCewgpuContainer(toBytes(input));
     }
     catch
     {
@@ -183,140 +191,121 @@ export function isCewgpu(input)
 /**
  * The shared read path used by the instance Read/Inspect and static one-shots.
  *
- * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU package payload.
+ * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU container payload.
  * @param {object} values Normalized format values.
- * @returns {CewgpuPackage} The loaded package.
+ * @returns {CewgpuContainer} The loaded container.
  */
 export function readRaw(input, values)
 {
     const bytes = toBytes(input);
-    const pkg = new CewgpuPackage();
-    const ok = pkg.Read(bytes, { sourcePath: values.source });
+    const container = new CewgpuContainer();
+    const ok = container.Read(bytes, { sourcePath: values.source });
 
     if (!ok)
     {
         throw new WebgpuReadError(
-            pkg.readError ? pkg.readError.message : "Failed to read CEWGPU package",
+            container.readError ? container.readError.message : "Failed to read CEWGPU container",
             {
                 source: values.source,
-                cause: pkg.readError || null
+                cause: container.readError || null
             }
         );
     }
 
     try
     {
-        validateEffectPackageEnvelope(pkg);
+        validateEffectContainer(container, { source: values.source });
     }
     catch (error)
     {
+        if (error instanceof WebgpuReadError) throw error;
         throw new WebgpuReadError(error.message, {
             source: values.source,
             cause: error
         });
     }
 
-    return pkg;
-}
-
-function analysisStages(pkg)
-{
-    const analysisJson = pkg.analysisJson;
-    return Array.isArray(analysisJson?.stages) ? analysisJson.stages : [];
-}
-
-function wgslShaders(pkg)
-{
-    const wgslJson = pkg.wgslJson;
-    return Array.isArray(wgslJson?.shaders) ? wgslJson.shaders : [];
-}
-
-function wgslLayouts(pkg)
-{
-    const wgslJson = pkg.wgslJson;
-    return Array.isArray(wgslJson?.layouts) ? wgslJson.layouts : [];
+    return container;
 }
 
 /**
- * Converts a loaded package to the documented plain JSON shape.
+ * Converts a loaded container to the documented plain JSON shape.
  *
- * @param {CewgpuPackage} pkg Loaded package.
+ * `analysis` and `wgsl` are **derived views**, not stored documents. The chunk
+ * package kept them beside the reflection they were computed from and carried
+ * digests to detect the two disagreeing; there is now one document, so there is
+ * nothing left to disagree and no digest to carry.
+ *
+ * `chunks` is gone. It described a container that no longer exists, and a record
+ * layout has no chunk table to translate it into.
+ *
+ * @param {CewgpuContainer} container Loaded container.
+ * @param {object} [options] View options.
  * @returns {object} Plain JSON data.
  */
-export function packageToJson(pkg)
+export function packageToJson(container, options = {})
 {
+    const source = options.source || container.sourcePath || "memory";
+    const permutationIndex = options.permutationIndex ?? defaultPermutationIndex(container);
+    const analysis = deriveAnalysis(container, { source, permutationIndex });
+    const wgsl = deriveWgsl(container, { permutationIndex });
+
     return toJsonValue({
         format: CEWGPU_FORMAT,
-        version: pkg.version,
-        sourcePath: pkg.sourcePath,
-        chunks: pkg.chunks.map(({ tag, size, offset }) => ({ tag, size, offset })),
-        info: pkg.info,
-        metadata: pkg.metadata,
-        permutationGraph: pkg.permutationGraph,
-        reflection: pkg.reflection,
-        reflectionBlobByteLength: pkg.reflectionBlobBytes?.byteLength ?? 0,
-        analysis: pkg.analysisJson !== null ? pkg.analysisJson : pkg.analysis,
-        wgsl: pkg.wgslJson !== null ? pkg.wgslJson : pkg.wgsl,
-        stages: analysisStages(pkg),
-        shaders: wgslShaders(pkg),
-        layouts: wgslLayouts(pkg)
+        version: container.carbon.version,
+        sourcePath: source,
+        info: deriveInfo(container, { source }),
+        permutationGraph: container.permutationGraph,
+        analysis,
+        wgsl,
+        stages: analysis.stages ?? [],
+        shaders: wgsl.shaders ?? [],
+        layouts: wgsl.layouts ?? []
     });
 }
 
 /**
  * Shared read entry honouring the emit mode.
  *
- * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU package payload.
+ * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU container payload.
  * @param {object} values Normalized format values.
- * @returns {CewgpuPackage|object} Raw package or plain JSON package data.
+ * @returns {CewgpuContainer|object} Raw container or plain JSON data.
  */
 export function readWithValues(input, values)
 {
-    const pkg = readRaw(input, values);
-    return values.emit === OUTPUT_RAW ? pkg : packageToJson(pkg);
+    const container = readRaw(input, values);
+    return values.emit === OUTPUT_RAW
+        ? container
+        : packageToJson(container, { source: values.source });
 }
 
 /**
  * Cheap inspection: version, chunk tags/sizes, analysis-stage counts, and
  * WGSL shader counts without building the full JSON package shape.
  *
- * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU package payload.
+ * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU container payload.
  * @param {object} values Normalized format values.
  * @returns {object} Plain summary data.
  */
 export function inspectWithValues(input, values)
 {
-    const pkg = readRaw(input, values);
-    const info = pkg.info;
-    const permutationGraph = pkg.permutationGraph;
+    const container = readRaw(input, values);
+    const graph = container.permutationGraph;
+    const permutationIndex = defaultPermutationIndex(container);
+    const analysis = deriveAnalysis(container, { source: values.source, permutationIndex });
+    const wgsl = deriveWgsl(container, { permutationIndex });
+
     return {
         source: values.source,
         isCewgpu: true,
-        version: pkg.version,
-        chunks: pkg.chunks.map(({ tag, size, offset }) => ({ tag, size, offset })),
-        permutationCount: permutationGraph?.variants?.length ?? 0,
-        uniqueBodyCount: permutationGraph?.bodies?.length ?? 0,
-        reflectionBodyCount: info?.effectReflection?.bodyCount ?? 0,
-        reflectionSourceProgramCount:
-            info?.effectReflection?.sourceProgramCount ?? 0,
-        reflectionBlobCount: info?.effectReflection?.blobCount ?? 0,
-        reflectionBlobByteLength:
-            info?.effectReflection?.blobByteLength ?? 0,
-        stageCount: analysisStages(pkg).length,
-        shaderCount: wgslShaders(pkg).length,
-        layoutCount: wgslLayouts(pkg).length
+        version: container.carbon.version,
+        compilerVersion: [ ...container.carbon.compilerVersion ],
+        permutationCount: graph.variants.length,
+        uniqueBodyCount: graph.bodies.length,
+        stageCount: analysis.stages.length,
+        shaderCount: wgsl.shaders.length,
+        layoutCount: wgsl.layouts.length
     };
-}
-
-/**
- * Assembles a CEWGPU package from ordered chunk payloads.
- *
- * @param {Array<[string, string|object|Uint8Array|ArrayBuffer|ArrayBufferView]>} chunks Ordered package chunks.
- * @returns {Uint8Array} Package bytes.
- */
-export function buildPackage(chunks)
-{
-    return CewgpuPackageBuilder.build(chunks);
 }
 
 function dxbcSource(source, key)

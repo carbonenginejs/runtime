@@ -1,6 +1,6 @@
 import { readEffectAnalysis } from "./effectAnalysis.js";
-import { EFFECT_INFO_VERSION } from "./effectPackageValidation.js";
-import { buildEffectAnalysis, buildPackage, inspectWithValues } from "./helpers.js";
+import { buildEffectAnalysis, inspectWithValues } from "./helpers.js";
+import { buildCarbonEffectContainer } from "./buildCarbonEffectContainer.js";
 import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
 import { buildWgslBindingPlan } from "./wgsl/buildWgslBindingPlan.js";
 import { buildWgsl } from "./wgsl/emitWgsl.js";
@@ -26,6 +26,7 @@ import {
 import {
     DXBC_WGSL_TRANSLATOR_NAME,
     DXBC_WGSL_TRANSLATOR_VERSION,
+    EFFECT_INFO_VERSION,
     FORMAT_WEBGPU_PACKAGE_NAME,
     FORMAT_WEBGPU_PACKAGE_VERSION,
     WEBGPU_BACKEND_NAME
@@ -265,18 +266,25 @@ export function buildEffectPackage(input, options = {})
         selectedOptions: analysis.selectedOptions,
         ...(wgslSelection ? { wgslSelection } : {})
     };
-    const bytes = buildPackage([
-        [ "INFO", info ],
-        [ "META", metadata ],
-        [ EFFECT_PERMUTATION_GRAPH_CHUNK, permutationGraph ],
-        ...(effectReflection ? [
-            [ EFFECT_REFLECTION_CHUNK, effectReflection.reflection ],
-            [ EFFECT_REFLECTION_BLOB_CHUNK, effectReflection.blobBytes ]
-        ] : []),
-        [ "ANLS", analysis ],
-        [ "WGSL", wgsl ],
-        ...(backendBodySet ? [ [ EFFECT_BACKEND_BODY_SET_CHUNK, backendBodySet ] ] : [])
-    ]);
+    // The switchover. Every chunk this replaced is now a *view* over one
+    // document rather than a stored copy: the permutation graph is the
+    // container's own permutation records and offset table, the reflection is
+    // the description tree, and a translated pass is that tree's shaderData plus
+    // its trailing block. The rich return value below stays as in-memory data
+    // for callers; only `bytes` changes.
+    //
+    // This also retires the digests. They existed to detect several projections
+    // of one effect disagreeing with each other. There is one projection now, so
+    // there is nothing left to disagree and nothing for a digest to catch.
+    const emittedBodySet = backendBodySet
+        ?? selectedModeBodySet(permutationGraph, wgsl, analysis.bodyIndex);
+    const container = buildCarbonEffectContainer(
+        resolved.effectRes,
+        permutationGraph,
+        emittedBodySet,
+        { compilerVersion: resolved.effectRes.m_compilerVersionBytes }
+    );
+    const bytes = container.bytes;
     const inspection = inspectWithValues(bytes, {
         source,
         emit: "json"
@@ -313,6 +321,84 @@ export function buildEffectPackage(input, options = {})
         inspection: Object.freeze(inspection),
         qualification
     });
+}
+
+/**
+ * Wraps a selected-mode translation as the body set the container emitter takes.
+ *
+ * `mode: "all"` builds a real body set covering every unique body. `mode:
+ * "selected"` translates exactly one, and the container still carries every
+ * permutation — that asymmetry is the format working as intended rather than a
+ * gap. An untranslated body keeps its complete source reflection and carries
+ * zero-length programs, which says what is true: the reflection is known, the
+ * program is not.
+ *
+ * So this does not translate anything. It reshapes the one translation already
+ * performed into the body-set contract, and marks every other body unsupported.
+ *
+ * @param {object} permutationGraph Validated permutation graph.
+ * @param {object} wgsl Emitted WGSL set for the selected body.
+ * @param {number} bodyIndex Selected permutation index.
+ * @returns {object} Body set covering one translated body.
+ */
+function selectedModeBodySet(permutationGraph, wgsl, bodyIndex)
+{
+    const selectedBodyKey = permutationGraph.variants
+        .find((variant) => variant.permutationIndex === bodyIndex)?.bodyKey
+        ?? permutationGraph.variants[0]?.bodyKey
+        ?? null;
+
+    const shadersByPass = new Map();
+    for (const shader of wgsl.shaders)
+    {
+        const passKey = `${shader.techniqueName}.pass${shader.passIndex}`;
+        if (!shadersByPass.has(passKey)) shadersByPass.set(passKey, []);
+        shadersByPass.get(passKey).push(shader);
+    }
+
+    const passUnits = [];
+    const passes = [];
+    for (const [ passKey, shaders ] of shadersByPass)
+    {
+        const transforms = (wgsl.resourceTransforms ?? [])
+            .filter((transform) => transform.layoutKey === passKey);
+        const unit = {
+            key: `unit${passUnits.length}`,
+            wgslSetVersion: wgsl.formatVersion,
+            shaders,
+            layouts: wgsl.layouts.filter((layout) => layout.key === passKey),
+            ...(transforms.length ? { resourceTransforms: transforms } : {})
+        };
+        passUnits.push(unit);
+        passes.push({ passKey, unitKey: unit.key });
+    }
+
+    const bodies = permutationGraph.bodies.map((body) => (body.key === selectedBodyKey
+        ? {
+            bodyKey: body.key,
+            representativePermutationIndex: bodyIndex,
+            status: "translated",
+            error: null,
+            passCount: passes.length,
+            passes
+        }
+        : {
+            bodyKey: body.key,
+            representativePermutationIndex: permutationGraph.variants
+                .find((variant) => variant.bodyKey === body.key)?.permutationIndex ?? 0,
+            status: "unsupported",
+            error: "not translated in selected mode",
+            passCount: 0,
+            passes: []
+        }));
+
+    return {
+        bodyCount: bodies.length,
+        translatedBodyCount: 1,
+        passUnitCount: passUnits.length,
+        passUnits,
+        bodies
+    };
 }
 
 function normalizeMode(value, allPermutations)

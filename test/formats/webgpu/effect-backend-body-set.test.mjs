@@ -172,73 +172,65 @@ test("unknown package modes still fail closed", () =>
     }), /supported modes are selected and all/u);
 });
 
-test("a tampered all-body graph fails validation", () =>
+test("body accounting cannot disagree with the bodies, because there is one document", () =>
 {
+    // Three tests stood here: a tampered WGSB body set, a selected-mode package
+    // smuggling an all-body graph, and CewgpuPackage's hydration gate. All three
+    // asserted that separate projections of one effect still agreed with each
+    // other -- WGSB against PGRF, INFO/META bodyMode against WGSB.
+    //
+    // The record layout makes that question unaskable rather than answering it.
+    // There is no stored body set to tamper with and no declared bodyMode to
+    // contradict: the bodies ARE the offset table, and the body accounting is
+    // counted from them on read. A count derived from the thing it counts cannot
+    // disagree with it.
+    //
+    // What replaces them is the guard that does still have work to do: the bytes
+    // themselves must be sound.
     const result = buildAllBodyPackage();
-    const pkg = CjsWebgpuFormat.read(result.bytes, {
+    const container = CjsWebgpuFormat.read(result.bytes, {
         emit: CjsWebgpuFormat.OUTPUT_RAW
     });
-    const chunks = pkg.chunks.map((chunk) => [
-        chunk.tag,
-        chunk.tag === "RBLB"
-            ? Uint8Array.from(chunk.bytes)
-            : pkg.GetJson(chunk.tag)
-    ]);
-    const tampered = chunks.map(([ tag, value ]) =>
-    {
-        if (tag !== "WGSB") return [ tag, value ];
 
-        return [ tag, { ...value, bodies: value.bodies.slice(1) } ];
-    });
-
-    assert.throws(
-        () => CjsWebgpuFormat.read(CjsWebgpuFormat.build(tampered)),
-        /WGSB|body-set counts|does not cover/u
+    const graph = container.permutationGraph;
+    const distinctOffsets = new Set(container.carbon.records.map((record) => record.offset));
+    assert.equal(graph.bodies.length, distinctOffsets.size);
+    assert.equal(
+        graph.variants.length,
+        container.carbon.records.length,
+        "every permutation row is a variant, and the table is dense"
+    );
+    assert.equal(
+        graph.bodies.reduce((sum, body) => sum + body.permutationCount, 0),
+        graph.variants.length,
+        "every variant resolves to exactly one body"
     );
 });
 
-test("a selected-mode package cannot smuggle in an all-body graph", () =>
+test("a corrupted container is rejected rather than silently misread", () =>
 {
-    const allBody = buildAllBodyPackage();
-    const pkg = CjsWebgpuFormat.read(allBody.bytes, {
-        emit: CjsWebgpuFormat.OUTPUT_RAW
-    });
-    const chunks = pkg.chunks.map((chunk) => [
-        chunk.tag,
-        chunk.tag === "RBLB"
-            ? Uint8Array.from(chunk.bytes)
-            : pkg.GetJson(chunk.tag)
-    ]).map(([ tag, value ]) =>
-    {
-        if (tag !== "INFO" && tag !== "META") return [ tag, value ];
-
-        return [ tag, { ...value, bodyMode: "selected" } ];
-    });
-
-    assert.throws(
-        () => CjsWebgpuFormat.read(CjsWebgpuFormat.build(chunks)),
-        /selected-mode packages cannot declare an all-body backend graph/u
-    );
-});
-
-test("accessors stay closed until the package passes validation", async () =>
-{
-    const { CewgpuPackage } = await import("../../../src/formats/webgpu/core/cewgpu/CewgpuPackage.js");
+    // The negative control for the test above. If tampering produced a readable
+    // container, "cannot disagree" would be true and worthless -- the checks
+    // would have moved from reconciliation to nothing at all.
     const result = buildAllBodyPackage();
-    const direct = new CewgpuPackage();
 
-    assert.equal(direct.Read(result.bytes), true, "container decodes");
-    assert.ok(direct.info, "chunks remain readable");
+    // Corrupt the last body's bytes. Rule 1 requires a blob to parse to exactly
+    // its declared end, so this must not parse clean under either reading.
+    const corrupted = Uint8Array.from(result.bytes);
+    corrupted[corrupted.length - 2] ^= 0xff;
 
-    // A container read outside the validated entry point must not hydrate.
-    assert.equal(direct.GetPortableEffectReflection(0), null);
-    assert.equal(direct.GetBackendBodyPrograms(0), null);
-
-    // The same bytes through the validating reader do hydrate.
-    const validated = CjsWebgpuFormat.read(result.bytes, {
-        emit: CjsWebgpuFormat.OUTPUT_RAW
-    });
-
-    assert.ok(validated.GetPortableEffectReflection(0));
-    assert.ok(validated.GetBackendBodyPrograms(0));
+    let rejected = false;
+    try
+    {
+        const container = CjsWebgpuFormat.read(corrupted, { emit: CjsWebgpuFormat.OUTPUT_RAW });
+        for (let index = 0; index < container.carbon.records.length; index += 1)
+        {
+            container.GetDescription(index);
+        }
+    }
+    catch
+    {
+        rejected = true;
+    }
+    assert.ok(rejected, "a corrupted body must fail to parse");
 });

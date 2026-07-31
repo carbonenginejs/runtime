@@ -168,17 +168,15 @@ test("BuildWgsl rejects unsupported reachable vertex operations", () =>
     assert.throws(() => CjsWebgpuFormat.buildWgsl(decoded), /opcode deriv_rtx.*not supported/i);
 });
 
-test("generated WGSL descriptors round-trip through a CEWGPU WGSL chunk", () =>
+test("generated WGSL descriptors carry the emitter's entry point and code", () =>
 {
+    // This asserted the same values after a round trip through a CEWGPU WGSL
+    // chunk. Chunks are gone, and a container cannot be assembled from a bare
+    // WGSL document -- the set is derived from description records, not stored
+    // beside them. So the values are asserted at the emitter, and their survival
+    // across the wire is proven against real effects in cewgpu-container.test.js.
     const shader = CjsWebgpuFormat.buildWgsl(copyblitVertex());
-    const bytes = CjsWebgpuFormat.build([ [ "WGSL", {
-        format: "CJS_WGSL_SET",
-        formatVersion: 1,
-        shaders: [ { key: "Main.pass0.vertex", stage: shader.stage, entryPoint: shader.entryPoint, code: shader.code } ]
-    } ] ]);
-    const pkg = CjsWebgpuFormat.read(bytes);
 
-    assert.equal(pkg.shaders.length, 1);
-    assert.equal(pkg.shaders[0].entryPoint, "main");
-    assert.equal(pkg.shaders[0].code, EXPECTED_WGSL);
+    assert.equal(shader.entryPoint, "main");
+    assert.equal(shader.code, EXPECTED_WGSL);
 });

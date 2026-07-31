@@ -83,10 +83,12 @@ test("BuildWgslSet freezes deterministic copyblit shaders and layouts", () =>
     assert.equal(Object.isFrozen(set.layouts[0].bindGroups[0].bindings[0].buffer), true);
     assert.deepEqual(CjsWebgpuFormat.buildWgslSet([ pixel, vertex ]), set);
 
-    const bytes = CjsWebgpuFormat.build([ [ "WGSL", set ] ]);
-    const roundTrip = CjsWebgpuFormat.read(bytes);
-    assert.deepEqual(roundTrip.shaders, set.shaders);
-    assert.deepEqual(roundTrip.layouts, set.layouts);
+    // The package round trip that used to close this test is gone with the chunk
+    // format: a container cannot be assembled from an arbitrary WGSL document,
+    // because the WGSL set is a *view* over description records rather than a
+    // stored chunk. The property it asserted -- shaders and layouts survive the
+    // wire unchanged -- is now proven where it actually lives, against real
+    // effects, in cewgpu-container.test.js's emitter/reader oracle.
 });
 
 test("BuildWgslSet unions compatible cross-stage visibility", () =>

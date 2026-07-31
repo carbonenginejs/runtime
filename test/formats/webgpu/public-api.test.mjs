@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 
 import CjsWebgpuFormat, { CjsWebgpuFormat as NamedCjsWebgpuFormat } from "../../../src/formats/webgpu/index.js";
-import { buildCewgpuPackage, buildMinimalStagedEffectBytes } from "./synthetic.js";
+import { buildMinimalStagedEffectBytes } from "./synthetic.js";
 
 class Package {}
 class Resource {}
@@ -12,19 +12,21 @@ class Resource {}
 // is the emitted producer/format version, no longer the host manifest version.
 const FORMAT_VERSION = "0.11.1";
 
-const SAMPLE_CHUNKS = [
-    [ "INFO", { format: "CEWGPU", formatVersion: 1, analyzer: "dxbc-phase1" } ],
-    [ "META", { effectName: "quadv5", stages: [] } ],
-    [ "ANLS", {
-        format: "CEWGPU_ANALYSIS",
-        formatVersion: 1,
-        stages: [ { key: "Main.pass0.vertex", stageName: "vertex" } ]
-    } ]
-];
-
+/**
+ * A real container, because there is no longer any other kind.
+ *
+ * These tests used to hand-assemble INFO/META/ANLS chunks. A container cannot be
+ * built that way and should not be: its documents are views over description
+ * records, so a package with hand-written analysis would assert agreement between
+ * two things that no longer exist separately.
+ *
+ * @returns {Uint8Array} Container bytes.
+ */
 function sampleBytes()
 {
-    return buildCewgpuPackage(SAMPLE_CHUNKS);
+    return CjsWebgpuFormat.buildEffect(buildMinimalStagedEffectBytes({ version: 15 }), {
+        source: "synthetic"
+    }).bytes;
 }
 
 test("package root exports one public class", async () =>
@@ -46,7 +48,6 @@ test("reader exposes the expected public profile API", () =>
         "BuildWgsl",
         "BuildWgslBindingPlan",
         "BuildWgslSet",
-        "Build",
         "GetClass",
         "GetValues",
         "HasClass",
@@ -97,30 +98,33 @@ test("static read and instance Read share one code path", () =>
     assert.deepEqual(fromStatic, fromInstance);
 });
 
-test("json emit parses INFO/META/ANLS chunks and lists stage records", () =>
+test("json emit exposes the derived info, analysis and stage records", () =>
 {
     const result = CjsWebgpuFormat.read(sampleBytes(), { source: "synthetic" });
 
     assert.equal(result.format, "CEWGPU");
-    assert.equal(result.version, 1);
-    assert.deepEqual(result.chunks.map((chunk) => chunk.tag), [ "INFO", "META", "ANLS" ]);
-    assert.equal(result.info.analyzer, "dxbc-phase1");
-    assert.equal(result.metadata.effectName, "quadv5");
+    // Carbon's own version dword. There is no container version of ours: the
+    // envelope was removed and a "v16" rejected, because CCP owns that space.
+    assert.equal(result.version, 15);
+    // `chunks` is gone rather than translated -- a record layout has no chunk
+    // table, and inventing one would describe a container that does not exist.
+    assert.equal("chunks" in result, false);
+    assert.equal(result.info.format, "CEWGPU");
+    assert.ok(result.permutationGraph.variants.length > 0);
     assert.equal(result.analysis.format, "CEWGPU_ANALYSIS");
-    assert.equal(result.stages.length, 1);
+    assert.ok(result.stages.length > 0);
     assert.equal(result.stages[0].key, "Main.pass0.vertex");
     assert.equal(typeof JSON.stringify(result), "string");
 });
 
-test("raw emit exposes the CewgpuPackage instance", () =>
+test("raw emit exposes the CewgpuContainer instance", () =>
 {
-    const pkg = CjsWebgpuFormat.read(sampleBytes(), { emit: CjsWebgpuFormat.OUTPUT_RAW });
+    const container = CjsWebgpuFormat.read(sampleBytes(), { emit: CjsWebgpuFormat.OUTPUT_RAW });
 
-    assert.equal(pkg.constructor.name, "CewgpuPackage");
-    assert.equal(pkg.IsGood(), true);
-    assert.equal(pkg.info.formatVersion, 1);
-    assert.equal(pkg.metadata.effectName, "quadv5");
-    assert.equal(pkg.analysisJson.stages[0].key, "Main.pass0.vertex");
+    assert.equal(container.constructor.name, "CewgpuContainer");
+    assert.equal(container.IsGood(), true);
+    assert.equal(container.carbon.version, 15);
+    assert.ok(container.GetBackendBodyPrograms(0));
 });
 
 test("inspect summarizes without building the full JSON shape", () =>
@@ -128,23 +132,33 @@ test("inspect summarizes without building the full JSON shape", () =>
     const summary = CjsWebgpuFormat.inspect(sampleBytes());
 
     assert.equal(summary.isCewgpu, true);
-    assert.equal(summary.version, 1);
-    assert.deepEqual(summary.chunks.map((chunk) => chunk.tag), [ "INFO", "META", "ANLS" ]);
-    assert.equal(summary.stageCount, 1);
-    assert.equal(summary.shaderCount, 0);
+    assert.equal(summary.version, 15);
+    assert.equal("chunks" in summary, false);
+    assert.ok(summary.stageCount > 0);
+    assert.ok(summary.permutationCount > 0);
     assert.equal("info" in summary, false);
 });
 
-test("isCewgpu sniffs the magic and rejects junk", () =>
+test("isCewgpu reports the Carbon v15 shape and rejects junk", () =>
 {
+    // A shape check, not an identity check. Our containers are stock Carbon v15
+    // files, so nothing in the bytes separates one from a shipped effect.dx11
+    // file -- identity comes from the resource path, exactly as it does for
+    // Carbon's own three backend trees.
     assert.equal(CjsWebgpuFormat.isCewgpu(sampleBytes()), true);
     assert.equal(CjsWebgpuFormat.isCewgpu(new Uint8Array([ 1, 2, 3 ])), false);
     assert.equal(CjsWebgpuFormat.isCewgpu(new TextEncoder().encode("GARBAGE!")), false);
+
+    // The old magic is now just junk: nothing prepends it any more.
+    assert.equal(CjsWebgpuFormat.isCewgpu(new TextEncoder().encode("CWGP\u0002\u0000\u0000\u0000")), false);
 });
 
-test("Read rejects a payload with a bad magic", () =>
+test("Read rejects a payload that is not a Carbon container", () =>
 {
-    assert.throws(() => CjsWebgpuFormat.read(new TextEncoder().encode("NOPE1234")), /CjsWebgpuReadError|Invalid CEWGPU magic/);
+    assert.throws(
+        () => CjsWebgpuFormat.read(new TextEncoder().encode("NOPE1234")),
+        /Unsupported Carbon effect version|CjsWebgpuReadError/u
+    );
 });
 
 test("toJSON converts typed arrays and nested structures", () =>
@@ -240,11 +254,21 @@ test("buildEffect exposes structurally qualified selected-body CEWGPU packaging"
     assert.equal(result.inspection.shaderCount, 1);
     assert.equal(result.inspection.permutationCount, 1);
     assert.equal(result.inspection.uniqueBodyCount, 1);
+    // Provenance is NOT on the wire, and that is a decision rather than a gap.
+    // `sourceIdentity`, `bodyMode` and `completeness` describe how this artifact
+    // was produced, not what it is; Carbon stores none of them, and adding
+    // fields because a package "ought to record where it came from" is the same
+    // invention the envelope was. They stay on the build result, which is where
+    // the only consumer reads them -- tools-core's validatePackageProvenance
+    // takes the result object, never a re-read package.
+    //
+    // What a reader does get back is the format itself.
     const packaged = CjsWebgpuFormat.read(result.bytes);
-    assert.deepEqual(packaged.info.sourceIdentity, result.info.sourceIdentity);
-    assert.equal(packaged.info.bodyMode, "selected");
-    assert.deepEqual(packaged.info.completeness, result.info.completeness);
-    assert.equal(packaged.metadata.bodyMode, "selected");
+    assert.equal(packaged.info.format, "CEWGPU");
+    assert.equal(packaged.version, 15);
+    assert.equal(packaged.permutationGraph.variants.length, 1);
+    assert.equal(packaged.stages[0].key, "Main.pass0.vertex");
+    assert.equal("sourceIdentity" in packaged.info, false);
 
     const distinctIdentity = CjsWebgpuFormat.buildEffect(source, {
         source: "diagnostic-label",

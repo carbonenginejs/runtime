@@ -12,7 +12,6 @@ import {
     OUTPUT_JSON,
     OUTPUT_RAW,
     analyzeEffectWithValues,
-    buildPackage,
     inspectWithValues,
     isCewgpu,
     normalizeValues,
@@ -167,17 +166,6 @@ export class CjsWebgpuFormat
     }
 
     /**
-     * Assembles a CEWGPU package from ordered chunk payloads.
-     *
-     * @param {Array<[string, string|object|Uint8Array|ArrayBuffer|ArrayBufferView]>} chunks Ordered package chunks.
-     * @returns {Uint8Array} Package bytes.
-     */
-    Build(chunks)
-    {
-        return buildPackage(chunks);
-    }
-
-    /**
      * Analyzes one compiled effect payload into a normalized WebGPU-facing
      * document using the current profile's values.
      *
@@ -303,17 +291,6 @@ export class CjsWebgpuFormat
     static inspect(input, options = {})
     {
         return inspectWithValues(input, normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME));
-    }
-
-    /**
-     * Static one-shot package build.
-     *
-     * @param {Array<[string, string|object|Uint8Array|ArrayBuffer|ArrayBufferView]>} chunks Ordered package chunks.
-     * @returns {Uint8Array} Package bytes.
-     */
-    static build(chunks)
-    {
-        return buildPackage(chunks);
     }
 
     /**
