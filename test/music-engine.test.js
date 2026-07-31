@@ -149,7 +149,9 @@ function FakeContext()
       const source = {
         buffer: null, onended: null, connectedTo: null,
         startedAt: null, startOffset: null, startDuration: null, stoppedAt: null,
+        disconnected: false,
         connect(target) { source.connectedTo = target; },
+        disconnect() { source.disconnected = true; },
         start(when, offset, duration) { source.startedAt = when; source.startOffset = offset; source.startDuration = duration; },
         stop(when) { source.stoppedAt = when; }
       };
@@ -299,6 +301,12 @@ test("posting the music event schedules the resolved playlist's segment clips on
     PLAYLIST,
     "default switch value prepares the playlist before starting its timeline",
   );
+  assert.equal(engine.GetStatus()[0].state, "preparing");
+  assert.equal(
+    engine.GetStatus()[0].silent,
+    false,
+    "a pending media load is not authored silence",
+  );
 
   await tick();
   assert.equal(engine.GetResolvedTarget(501), PLAYLIST);
@@ -323,7 +331,10 @@ test("posting the music event schedules the resolved playlist's segment clips on
   assert.equal(status.silent, false);
   assert.deepEqual(status.segments, [ {
     segmentId: SEGMENT_A, scheduleId: 1, targetId: PLAYLIST, startCtx: 0, endCtx: 8,
-    volume: 1, fading: false, fadeEndCtx: null, pending: 0
+    volume: 1, fading: false, fadeEndCtx: null,
+    scheduledSources: 1, realizedSources: 1, audibleSources: 1,
+    pendingSources: 0, failedSources: 0, missedSources: 0,
+    endedSources: 0, pending: 0
   } ], "scheduled window spans entry to exit cue with mix state and identity");
 
   assert.equal(engine.PreviewSwitchEvent("music_switch_combat", SWITCH), SEGMENT_B, "combat previews playable");
@@ -846,7 +857,8 @@ test("an unavailable initial switch branch stays live and later recovers", async
 
   assert.equal(engine.GetPlayingCount(), 1);
   assert.equal(engine.GetStatus()[0].unavailableTargetId, PLAYLIST);
-  assert.equal(engine.GetStatus()[0].silent, true);
+  assert.equal(engine.GetStatus()[0].state, "unavailable");
+  assert.equal(engine.GetStatus()[0].silent, false);
 
   engine.PostEvent("music_switch_combat", 602, () => {});
   await tick();
@@ -1025,6 +1037,169 @@ test("failed scheduled music media does not remain permanently pending", async (
     segment.segmentId === SEGMENT_B);
 
   assert.equal(failed?.pending, 0);
+  assert.equal(failed?.failedSources, 1);
+  assert.equal(failed?.audibleSources, 0);
+  assert.equal(engine.GetStatus()[0].state, "degraded");
+});
+
+test("a late music load that misses its authored window is reported and pruned", async () =>
+{
+  const context = FakeContext();
+  const graph = fixtureGraph();
+  const late = Deferred();
+
+  graph.nodes[PLAYLIST].playlist = [
+    {
+      segmentId: 0,
+      playlistItemId: 1,
+      childCount: 2,
+      rsType: 0,
+      loop: 1,
+      loopMin: 0,
+      loopMax: 0,
+      weight: 1,
+      avoidRepeatCount: 0,
+      usingWeight: false,
+      shuffle: false,
+    },
+    {
+      segmentId: SEGMENT_A,
+      playlistItemId: 2,
+      childCount: 0,
+      rsType: -1,
+      loop: 1,
+      loopMin: 0,
+      loopMax: 0,
+      weight: 1,
+      avoidRepeatCount: 0,
+      usingWeight: false,
+      shuffle: false,
+    },
+    {
+      segmentId: SEGMENT_B,
+      playlistItemId: 3,
+      childCount: 0,
+      rsType: -1,
+      loop: 1,
+      loopMin: 0,
+      loopMax: 0,
+      weight: 1,
+      avoidRepeatCount: 0,
+      usingWeight: false,
+      shuffle: false,
+    },
+  ];
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: sourceId =>
+      sourceId === 222 ? late.promise : Promise.resolve({ fake: sourceId }),
+  });
+
+  engine.PostEvent("music_test_play", 608, () => {});
+  await tick();
+  context.currentTime = 7;
+  engine.Process();
+  await tick();
+  context.currentTime = 13;
+  late.resolve({ fake: 222 });
+  await tick();
+
+  const missed = engine.GetStatus()[0].segments.find(segment =>
+    segment.segmentId === SEGMENT_B);
+
+  assert.equal(missed?.pendingSources, 0);
+  assert.equal(missed?.missedSources, 1);
+  assert.equal(missed?.audibleSources, 0);
+  assert.equal(engine.GetStatus()[0].state, "degraded");
+  assert.equal(
+    context.sources.some(source => source.buffer?.fake === 222),
+    false,
+    "expired media never creates a WebAudio source",
+  );
+  const segmentGain = context.gains.find(gain =>
+    gain !== context.gains[0]
+    && gain !== context.gains[1]
+    && !gain.disconnected
+    && gain.connectedTo === context.gains[1]);
+
+  context.currentTime = 15;
+  engine.Process();
+  assert.equal(
+    context.gains.filter(gain =>
+      gain.connectedTo === context.gains[1]
+      && !gain.disconnected).length,
+    0,
+    "expired segment gains are disconnected when pruned",
+  );
+  assert.ok(segmentGain, "the test observed at least one live segment gain");
+});
+
+test("an ended source disconnects and cannot extend an exhausted segment", async () =>
+{
+  const context = FakeContext();
+  const graph = fixtureGraph();
+  const finished = [];
+
+  graph.eventTargets.music_direct_play = [ SEGMENT_B ];
+  graph.nodes[TRACK_B].clips[0].srcDuration = 10000;
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+  });
+
+  engine.PostEvent("music_direct_play", 609, () => finished.push(609));
+  await tick();
+  const source = context.sources[0];
+
+  context.currentTime = 2;
+  source.onended();
+  assert.equal(source.disconnected, true);
+  assert.equal(engine.GetStatus()[0].endedSources, 1);
+  engine.Process();
+  assert.equal(engine.GetStatus()[0].boundary, 4);
+  assert.equal(engine.GetPlayingCount(), 1, "the authored exit boundary remains authoritative");
+
+  context.currentTime = 4;
+  engine.Process();
+  assert.equal(engine.GetPlayingCount(), 0, "the ended source does not extend the instance to its predicted tail");
+  assert.deepEqual(finished, [ 609 ]);
+});
+
+test("a WebAudio start failure is reported and disconnected", async () =>
+{
+  const context = FakeContext();
+  const createBufferSource = context.createBufferSource;
+
+  context.createBufferSource = () =>
+  {
+    const source = createBufferSource();
+
+    source.start = () =>
+    {
+      throw new Error("start failed");
+    };
+    return source;
+  };
+  const engine = new CjsMusicEngine({
+    graph: fixtureGraph(),
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+  });
+
+  engine.PostEvent("music_test_play", 610, () => {});
+  await tick();
+  const status = engine.GetStatus()[0];
+
+  assert.equal(status.failedSources, 1);
+  assert.equal(status.pendingSources, 0);
+  assert.equal(status.state, "degraded");
+  assert.equal(context.sources[0].disconnected, true);
+  assert.equal(context.sources[0].onended, null);
 });
 
 
@@ -2170,6 +2345,8 @@ test("states that resolve to nothing fade to silence and the music resumes on th
     const { context, engine, finished } = Harness();
     engine.PostEvent("music_test_play", 600, () => finished.push(600));
     await tick();
+    const outgoingSource = context.sources[0];
+    const outgoingSegmentGain = outgoingSource.connectedTo;
     context.currentTime = 2;
     engine.PostEvent(chip, 601, () => {});
     await tick();
@@ -2182,6 +2359,9 @@ test("states that resolve to nothing fade to silence and the music resumes on th
     context.currentTime = 30;
     engine.Process();
     assert.equal(engine.GetPlayingCount(), 1, `${chip}: still alive while silent`);
+    assert.equal(engine.GetStatus()[0].segments.length, 0, `${chip}: expired outgoing segment pruned`);
+    assert.equal(outgoingSource.disconnected, true, `${chip}: outgoing source disconnected`);
+    assert.equal(outgoingSegmentGain.disconnected, true, `${chip}: outgoing gain disconnected`);
 
     engine.PostEvent("music_switch_combat", 602, () => {});
     await tick();
@@ -2221,6 +2401,8 @@ test("stop fades the instance gain and finishes exactly once", async () =>
   engine.ExecuteAction("stop", 505, 1000);
   assert.deepEqual(context.gains[1].gain.ramps, [ [ 0, 3 ] ], "1s fade on the instance gain");
   assert.equal(context.sources[0].stoppedAt, 3, "source stops when the fade lands");
+  assert.equal(engine.GetStatus()[0].state, "stopping");
+  assert.equal(engine.GetStatus()[0].segments.length, 1, "status retains the audible fade");
   assert.deepEqual(finished, [], "completion waits for the audible fade");
   assert.equal(engine.GetPlayingCount(), 1);
   assert.equal(context.gains[1].disconnected, false, "instance output remains connected through the fade");

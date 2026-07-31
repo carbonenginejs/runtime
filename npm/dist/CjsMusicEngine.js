@@ -582,24 +582,14 @@ class CjsMusicEngine {
         }
         continue;
       }
+      this.#PruneScheduledSegments(instance, now);
       if (instance.iterator === null) {
         // Silent state (target resolves to nothing): stay alive and
         // idle until a switch/state change resumes the music.
         continue;
       }
       if (instance.exhausted) {
-        // The exit cue ends musical scheduling, but authored clips
-        // may remain audible after it. Finish only once those loaded
-        // tails end and no scheduled media is still preparing.
-        const pending = instance.active.some(scheduled => scheduled.sources.some(entry => !entry.source && !entry.cancelled));
-        const audibleEnd = instance.active.reduce((end, scheduled) => {
-          const naturalEnd = scheduled.audibleEndCtx ?? scheduled.endCtx;
-          const effectiveEnd = scheduled.fading ? Math.min(scheduled.fadeEndCtx ?? naturalEnd, naturalEnd) : naturalEnd;
-          return Math.max(end, effectiveEnd ?? end);
-        }, instance.boundary);
-        if (!pending && now >= audibleEnd) {
-          this.#FinishInstance(instance);
-        }
+        this.#FinishExhaustedInstance(instance, now);
         continue;
       }
       const targetNode = this.#graph.nodes[instance.resolvedTargetId];
@@ -607,53 +597,130 @@ class CjsMusicEngine {
       while (instance.boundary - now <= scheduleHorizon) {
         if (!this.#ScheduleNextSegment(instance)) break;
       }
-      // Prune scheduled segments whose audible window has fully passed
-      // (a fade cuts the window short), so nothing accumulates and
-      // status consumers only ever see live entries.
-      instance.active = instance.active.filter(scheduled => {
-        const naturalEnd = scheduled.audibleEndCtx ?? scheduled.endCtx;
-        const effectiveEnd = scheduled.fading ? Math.min(scheduled.fadeEndCtx ?? naturalEnd, naturalEnd) : naturalEnd;
-        return effectiveEnd === undefined || effectiveEnd + 2 > now;
-      });
+      if (instance.exhausted && this.#FinishExhaustedInstance(instance, now)) {
+        continue;
+      }
     }
+  }
+
+  /**
+   * Drops segment graphs whose audible window and callback grace period
+   * passed, including outgoing audio retained by an authored-silence state.
+   */
+  #PruneScheduledSegments(instance, now) {
+    instance.active = instance.active.filter(scheduled => {
+      const naturalEnd = scheduled.audibleEndCtx ?? scheduled.endCtx;
+      const effectiveEnd = scheduled.fading ? Math.min(scheduled.fadeEndCtx ?? naturalEnd, naturalEnd) : naturalEnd;
+      const live = effectiveEnd === undefined || effectiveEnd + 2 > now;
+      if (!live) {
+        this.#DisposeScheduledSegment(scheduled);
+      }
+      return live;
+    });
   }
 
   /**
    * Introspection for UIs: one entry per playing instance with the playing
    * branch, any switch target still preparing (media loading - the fade
    * deliberately waits for it), the last target rejected because none of
-   * its prepared media loaded, the scheduled segment windows, and whether
-   * the instance is idling in an authored-silence state.
+   * its prepared media loaded, a truthful lifecycle state, and realized,
+   * audible, pending, failed, missed, and ended source counts for each
+   * segment.
    */
   GetStatus() {
     const now = this.#context?.currentTime ?? 0;
-    return [...this.#instances.values()].map(instance => ({
-      playingID: instance.playingID,
-      rootId: instance.rootId,
-      now,
-      resolvedTargetId: instance.resolvedTargetId,
-      preparingTargetId: instance.pendingTargetId,
-      unavailableTargetId: instance.unavailableTargetId,
-      silent: instance.iterator === null,
-      boundary: instance.boundary,
-      segments: instance.active.map(scheduled => ({
-        segmentId: scheduled.segmentId,
-        // Stable identity for this scheduling (segment ids repeat in
-        // loops) and the resolved target it was scheduled under -
-        // UIs map targets back to the state/mood that selected them.
-        scheduleId: scheduled.scheduleId,
-        targetId: scheduled.targetId,
-        startCtx: scheduled.startCtx,
-        endCtx: scheduled.endCtx,
-        // Mix volume: the segment gain's instantaneous value (real
-        // AudioParams report mid-ramp values during crossfades).
-        volume: scheduled.gain?.gain?.value ?? 1,
-        fading: scheduled.fading,
-        fadeEndCtx: scheduled.fadeEndCtx,
-        // Clips whose media is still loading.
-        pending: scheduled.sources.filter(entry => !entry.source && !entry.cancelled).length
-      }))
-    }));
+    return [...this.#instances.values()].map(instance => {
+      const segments = instance.active.map(scheduled => {
+        const pendingSources = scheduled.sources.filter(entry => !entry.source && !entry.cancelled).length;
+        const realizedSources = scheduled.sources.filter(entry => entry.source).length;
+        const failedSources = scheduled.sources.filter(entry => entry.failed).length;
+        const missedSources = scheduled.sources.filter(entry => entry.missed).length;
+        const endedSources = scheduled.sources.filter(entry => entry.ended).length;
+        const audibleSources = scheduled.sources.filter(entry => {
+          const end = scheduled.fading ? Math.min(entry.endCtx ?? Infinity, scheduled.fadeEndCtx ?? Infinity) : entry.endCtx ?? Infinity;
+          return Boolean(entry.source && !entry.ended && (entry.startCtx ?? Infinity) <= now && now < end);
+        }).length;
+        return {
+          segmentId: scheduled.segmentId,
+          // Stable identity for this scheduling (segment ids repeat
+          // in loops) and the resolved target it was scheduled
+          // under - UIs map targets back to the state/mood that
+          // selected them.
+          scheduleId: scheduled.scheduleId,
+          targetId: scheduled.targetId,
+          startCtx: scheduled.startCtx,
+          endCtx: scheduled.endCtx,
+          // Mix volume: the segment gain's instantaneous value
+          // (real AudioParams report mid-ramp values during
+          // crossfades).
+          volume: scheduled.gain?.gain?.value ?? 1,
+          fading: scheduled.fading,
+          fadeEndCtx: scheduled.fadeEndCtx,
+          scheduledSources: scheduled.sources.length,
+          realizedSources,
+          audibleSources,
+          pendingSources,
+          failedSources,
+          missedSources,
+          endedSources,
+          // Kept as a compact alias for existing status consumers.
+          pending: pendingSources
+        };
+      });
+      const totals = segments.reduce((result, segment) => {
+        result.scheduled += segment.scheduledSources;
+        result.realized += segment.realizedSources;
+        result.audible += segment.audibleSources;
+        result.pending += segment.pendingSources;
+        result.failed += segment.failedSources;
+        result.missed += segment.missedSources;
+        result.ended += segment.endedSources;
+        return result;
+      }, {
+        scheduled: 0,
+        realized: 0,
+        audible: 0,
+        pending: 0,
+        failed: 0,
+        missed: 0,
+        ended: 0
+      });
+      let state = "scheduled";
+      if (instance.stopped) {
+        state = "stopping";
+      } else if (totals.audible) {
+        state = totals.failed || totals.missed ? "degraded" : "playing";
+      } else if (instance.pendingTargetId !== null || totals.pending) {
+        state = "preparing";
+      } else if (instance.unavailableTargetId !== null) {
+        state = "unavailable";
+      } else if (instance.iterator === null) {
+        state = "silent";
+      } else if (totals.failed || totals.missed) {
+        state = "degraded";
+      }
+      return {
+        playingID: instance.playingID,
+        rootId: instance.rootId,
+        now,
+        state,
+        stopped: instance.stopped,
+        stopAt: instance.stopAt,
+        resolvedTargetId: instance.resolvedTargetId,
+        preparingTargetId: instance.pendingTargetId,
+        unavailableTargetId: instance.unavailableTargetId,
+        silent: state === "silent",
+        boundary: instance.boundary,
+        scheduledSources: totals.scheduled,
+        realizedSources: totals.realized,
+        audibleSources: totals.audible,
+        pendingSources: totals.pending,
+        failedSources: totals.failed,
+        missedSources: totals.missed,
+        endedSources: totals.ended,
+        segments
+      };
+    });
   }
 
   /** Stores one switch/state argument and reevaluates every live instance. */
@@ -959,6 +1026,30 @@ class CjsMusicEngine {
       const position = instance.trackSequencePositions.get(trackId) ?? 0;
       instance.trackSequencePositions.set(trackId, position + advances);
     }
+  }
+
+  /**
+   * Finishes an exhausted iterator after its authored exit boundary and
+   * every still-live clip tail. Ended sources cannot extend the instance.
+   */
+  #FinishExhaustedInstance(instance, now) {
+    const pending = instance.active.some(scheduled => scheduled.sources.some(entry => !entry.source && !entry.cancelled));
+    const audibleEnd = instance.active.reduce((end, scheduled) => {
+      for (const entry of scheduled.sources) {
+        if (!entry.source || entry.cancelled || entry.ended) {
+          continue;
+        }
+        const naturalEnd = entry.endCtx ?? scheduled.audibleEndCtx ?? scheduled.endCtx;
+        const effectiveEnd = scheduled.fading ? Math.min(scheduled.fadeEndCtx ?? naturalEnd, naturalEnd) : naturalEnd;
+        end = Math.max(end, effectiveEnd ?? end);
+      }
+      return end;
+    }, instance.boundary);
+    if (pending || now < audibleEnd) {
+      return false;
+    }
+    this.#FinishInstance(instance);
+    return true;
   }
 
   /**
@@ -1340,8 +1431,14 @@ class CjsMusicEngine {
     const durationMs = audibleEndMs - audibleStartMs - (offsetMs - initialOffsetMs);
     if (durationMs <= 0) return;
     const entry = {
+      sourceId: clip.sourceId,
       source: null,
-      cancelled: false
+      startCtx: when,
+      endCtx: when + durationMs / 1000,
+      cancelled: false,
+      failed: false,
+      missed: false,
+      ended: false
     };
     scheduled.sources.push(entry);
     const epoch = this.#epoch;
@@ -1349,6 +1446,7 @@ class CjsMusicEngine {
     Promise.resolve(prepared).then(buffer => {
       if (!buffer) {
         entry.cancelled = true;
+        entry.failed = true;
         return;
       }
       if (entry.cancelled || instance.stopped || epoch !== this.#epoch) {
@@ -1363,6 +1461,7 @@ class CjsMusicEngine {
       const resolvedDurationMs = audibleEndMs - audibleStartMs - (resolvedOffsetMs - initialOffsetMs);
       if (resolvedDurationMs <= 0) {
         entry.cancelled = true;
+        entry.missed = true;
         return;
       }
       if (scheduled.fading && scheduled.fadeEndCtx <= context.currentTime) {
@@ -1373,13 +1472,27 @@ class CjsMusicEngine {
       const source = context.createBufferSource();
       source.buffer = buffer;
       source.connect(scheduled.gain);
+      source.onended = () => {
+        entry.ended = true;
+        source.onended = null;
+        source.disconnect?.();
+      };
+      try {
+        source.start(resolvedWhen, Math.max(0, resolvedOffsetMs) / 1000, resolvedDurationMs / 1000);
+      } catch (error) {
+        source.onended = null;
+        source.disconnect?.();
+        throw error;
+      }
       entry.source = source;
-      source.start(resolvedWhen, Math.max(0, resolvedOffsetMs) / 1000, resolvedDurationMs / 1000);
+      entry.startCtx = resolvedWhen;
+      entry.endCtx = resolvedWhen + resolvedDurationMs / 1000;
       if (scheduled.fading) {
         source.stop(scheduled.fadeEndCtx);
       }
     }).catch(() => {
       entry.cancelled = true;
+      entry.failed = true;
     });
   }
 
@@ -1479,7 +1592,6 @@ class CjsMusicEngine {
     for (const active of instance.active) {
       this.#FadeOutSources(active, now, fadeSeconds);
     }
-    instance.active = [];
     if (fadeSeconds > 0) {
       instance.stopAt = now + fadeSeconds;
     } else {
@@ -1495,11 +1607,29 @@ class CjsMusicEngine {
     this.#FinalizeInstance(instance);
   }
 
+  /** Cancels and disconnects every node owned by one scheduled segment. */
+  #DisposeScheduledSegment(scheduled) {
+    if (scheduled.disposed) return;
+    scheduled.disposed = true;
+    for (const entry of scheduled.sources) {
+      entry.cancelled = true;
+      if (entry.source) {
+        entry.source.onended = null;
+        entry.source.disconnect?.();
+      }
+    }
+    scheduled.gain?.disconnect?.();
+  }
+
   /** Removes one instance, disconnects its gain, and fires completion once. */
   #FinalizeInstance(instance) {
     if (instance.finished) return;
     instance.finished = true;
     this.#instances.delete(instance.key);
+    for (const scheduled of instance.active) {
+      this.#DisposeScheduledSegment(scheduled);
+    }
+    instance.active = [];
     instance.gain?.disconnect?.();
     const group = instance.group;
     group?.instances.delete(instance);

@@ -411,6 +411,53 @@ test("committed demo library carries authored SFX and music semantics", () =>
         [ 289339910 ],
         "one authored event may contain both SFX and music actions",
     );
+
+    const musicSourcePlugins = rootId =>
+    {
+        const pending = [ String(rootId) ];
+        const visited = new Set();
+        const plugins = [];
+
+        while (pending.length)
+        {
+            const id = pending.pop();
+
+            if (visited.has(id))
+            {
+                continue;
+            }
+            visited.add(id);
+            const node = library.music.nodes[id];
+
+            if (!node)
+            {
+                continue;
+            }
+            const sources = new Map((node.sources ?? []).map(source =>
+                [ String(source.sourceId), source.pluginId ]));
+
+            plugins.push(...(node.clips ?? []).map(clip =>
+                sources.get(String(clip.sourceId))));
+            pending.push(...(node.children ?? []).map(String));
+        }
+        return plugins;
+    };
+
+    const exordiumPlugins = musicSourcePlugins(212410920);
+    const dangerPlugins = musicSourcePlugins(735320614);
+
+    assert.ok(exordiumPlugins.length > 0, "Exordium retains its MIDI clips");
+    assert.ok(
+        exordiumPlugins.every(pluginId =>
+            pluginId === 0x00100001),
+        "Exordium is authored entirely as MIDI and is not a WebAudio mood",
+    );
+    assert.ok(dangerPlugins.length > 0, "Danger retains its WEM clips");
+    assert.ok(
+        dangerPlugins.every(pluginId =>
+            pluginId === 0x00040001),
+        "Danger is a WEM-backed mood whose availability depends on delivery",
+    );
 });
 
 test("committed demo library contains no optional enrichment payload", () =>

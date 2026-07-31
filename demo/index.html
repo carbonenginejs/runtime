@@ -41,6 +41,7 @@
   #mixTable input[type=range] { width: 130px; vertical-align: middle; }
   .buttonRow { display: flex; gap: 6px; margin-top: 7px; }
   .buttonRow button { flex: 1; padding: 6px 8px; font-size: 12px; }
+  #musicRetry { width: 100%; margin-top: 7px; padding: 6px 8px; font-size: 12px; }
   #sfxStatus { color: #7dd3fc; font-size: 11px; line-height: 1.4; margin-top: 7px; }
   #sfxControls:empty { display: none; }
   .sfxControl { display: block; margin-top: 7px; color: #94a3b8; font-size: 11px; }
@@ -75,6 +76,7 @@
     <div class="card" id="music" style="display:none">
       <h2>dynamic music <span class="headingActions"><button class="infoButton" type="button" aria-label="About dynamic music" data-tip="Plays the real EVE music graph. Changing mood steers its authored switch container; runtime-audio chooses and schedules the resulting music nodes.">i</button><input id="musicToggle" type="checkbox" title="play dynamic music"></span></h2>
       <select id="moods" title="mood"></select>
+      <button id="musicRetry" type="button" hidden>retry music</button>
     </div>
     <div class="card" id="jukebox">
       <h2>classic jukebox <button class="infoButton" type="button" aria-label="About the classic jukebox" data-tip="Plays 75 titled tracks supplied as a separate, optional music library. Download the demo tracks with npm run demo:music before starting this demo. Unavailable tracks are not offered for playback.">i</button></h2>

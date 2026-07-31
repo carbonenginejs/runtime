@@ -56,6 +56,8 @@ function IsEmitterBusy(emitter)
 class AudioLibrary
 {
 
+    #musicPlayableTargets = new Map();
+
     /** The raw library artifact (metadata, media tables, music graph) */
     raw = null;
 
@@ -118,6 +120,70 @@ class AudioLibrary
     get music()
     {
         return this.raw.music ?? null;
+    }
+
+    /**
+     * True when a music target reaches at least one WEM record the browser
+     * runtime can decode. MIDI-only authored destinations remain in the graph
+     * but are not useful choices for this WebAudio demo.
+     */
+    MusicTargetHasPlayableMedia(rootId)
+    {
+        const key = String(rootId);
+
+        if (this.#musicPlayableTargets.has(key))
+        {
+            return this.#musicPlayableTargets.get(key);
+        }
+        const graph = this.music;
+        const pending = [ key ];
+        const visited = new Set();
+        const hasWemRecord = sourceId =>
+        {
+            const values = [
+                this.raw.media?.[sourceId],
+                this.raw.embeddedMedia?.[sourceId],
+            ].flatMap(value => Array.isArray(value) ? value : [ value ]);
+
+            return values.some(value =>
+                value && (!value.mediaType || value.mediaType === "wem"));
+        };
+
+        while (pending.length)
+        {
+            const id = pending.pop();
+
+            if (visited.has(id))
+            {
+                continue;
+            }
+            visited.add(id);
+            const node = graph?.nodes?.[id];
+
+            if (!node)
+            {
+                continue;
+            }
+            const wemSources = new Set(
+                (node.sources ?? [])
+                    .filter(source => source.pluginId === 0x00040001)
+                    .map(source => String(source.sourceId)),
+            );
+
+            if ((node.clips ?? []).some(clip =>
+                wemSources.has(String(clip.sourceId))
+                && hasWemRecord(clip.sourceId)))
+            {
+                this.#musicPlayableTargets.set(key, true);
+                return true;
+            }
+            for (const child of node.children ?? [])
+            {
+                pending.push(String(child));
+            }
+        }
+        this.#musicPlayableTargets.set(key, false);
+        return false;
     }
 
     /** Authored SFX graph projected from the supplied BNK/HIRC data. */
@@ -983,7 +1049,11 @@ class MediaSource
             throw new Error("Audio source has no provider route");
         }
 
-        const response = await fetch(url, { signal });
+        const response = await fetch(url, { signal }).catch(error =>
+        {
+            this.stats.failed++;
+            throw error;
+        });
 
         if (!response.ok)
         {
@@ -1694,9 +1764,10 @@ class MusicUi
     #hudElement = null;
     #dynamicRoot = null;
     #select = null;
-    #moodEvents = [];
-    #unavailableTargets = new Set();
 
+    #retryButton = null;
+
+    #moodEvents = [];
     constructor(app)
     {
         this.#app = app;
@@ -1716,9 +1787,11 @@ class MusicUi
         this.musicPlayer = this.#app.audio.GetMusicPlayer();
         document.getElementById("music").style.display = "";
         this.#select = document.getElementById("moods");
+        this.#retryButton = document.getElementById("musicRetry");
         this.#dynamicRoot = musicGraph.eventTargets["music_eve_dynamic_play"]?.[0];
         this.#moodEvents = Object.keys(musicGraph.switchSetters).filter(n => n.startsWith("music_switch_")).sort();
         this.#select.onchange = () => this.#SteerTo(this.#select.value);
+        this.#retryButton.onclick = () => this.#Retry();
         this.RefreshMoodAvailability();
         document.getElementById("musicToggle").onchange = event => this.SetEnabled(event.target.checked);
     }
@@ -1740,10 +1813,9 @@ class MusicUi
         }
         this.#app.jukeboxUi.Stop();
         const engine = this.#app.audio.musicEngine;
-        // The Wwise tree's unset/default branch begins with a retired loose
-        // WEM. The game always supplies a gameplay music state before posting
-        // the dynamic play event, so seed a shipped state for the standalone
-        // demo as well. Later UI and showcase setters still steer normally.
+        // Seed the standalone demo with an essential-media branch so its first
+        // track is normally already present after acquiring the essential
+        // soundbanks. Later UI and showcase setters still steer normally.
         if (this.currentMood === "default")
         {
             const initialEvent = "music_switch_triglavian_space";
@@ -1773,15 +1845,10 @@ class MusicUi
     /**
      * Availability is STATE-DEPENDENT: a mood's destination depends on the
      * current switch combination, so the dropdown is rebuilt after every
-     * change, dropping moods that would resolve to nothing (unshipped/
-     * authored-silence states). A mood is offered only when it would CHANGE
-     * the music, and each DESTINATION is offered once: many moods alias the
-     * same target (from the default state, zero_danger and the dungeon
-     * levels all land on one playlist), so only the first alias
-     * (alphabetical) is listed - every entry is guaranteed to lead
-     * somewhere different. The active mood stays listed as the selected
-     * entry ("default" gets a placeholder - it is a starting state, not a
-     * settable mood).
+     * change. It drops authored-silence, retired, and MIDI-only destinations
+     * which this WebAudio demo cannot render. A mood is offered only when it
+     * changes the music, and each destination is offered once. The active mood
+     * stays listed as the selected entry.
      */
     RefreshMoodAvailability()
     {
@@ -1795,16 +1862,17 @@ class MusicUi
         {
             const label = name.slice("music_switch_".length);
             const target = engine.PreviewSwitchEvent(name, this.#dynamicRoot);
-            const changes = target !== null && target !== current && !offered.has(target);
+            const playable = target !== null
+                && this.#app.library.MusicTargetHasPlayableMedia(target);
+            const changes = playable
+                && target !== current
+                && !offered.has(target);
             if (changes) offered.add(target);
             if (!changes && label !== this.currentMood) continue;
             const option = document.createElement("option");
-            const unavailable = this.#unavailableTargets.has(target);
-            option.value = unavailable ? "" : name;
-            option.textContent = unavailable
-                ? `${label} (unavailable)`
-                : label;
-            option.disabled = unavailable;
+
+            option.value = name;
+            option.textContent = label;
             this.#select.appendChild(option);
             if (label === this.currentMood) activeOption = option;
         }
@@ -1851,33 +1919,55 @@ class MusicUi
      */
     UpdateHud()
     {
-        const [ status ] = this.#app.audio?.musicEngine?.GetStatus() ?? [];
+        const statuses = this.#app.audio?.musicEngine?.GetStatus() ?? [];
+        const candidates = statuses.filter(status =>
+            status.rootId === this.#dynamicRoot);
+        const status = [ ...candidates ].reverse().find(value =>
+            !value.stopped)
+            ?? candidates.at(-1);
+
         if (!status)
         {
             this.#hudElement.textContent = this.#app.library.music ? "music: stopped" : "";
+            if (this.#retryButton) this.#retryButton.hidden = true;
             return;
-        }
-        if (status.unavailableTargetId !== null
-            && status.unavailableTargetId !== undefined
-            && !this.#unavailableTargets.has(status.unavailableTargetId))
-        {
-            this.#unavailableTargets.add(status.unavailableTargetId);
-            this.currentMood = this.moodLabelByTarget.get(
-                status.resolvedTargetId,
-            ) ?? this.currentMood;
-            this.RefreshMoodAvailability();
         }
         const now = status.now;
         const label = segment => PrettyName(this.moodLabelByTarget.get(segment.targetId) ?? `seg ${segment.segmentId}`);
         const visible = status.segments
             .filter(s => now < (s.fading ? Math.min(s.fadeEndCtx ?? s.endCtx, s.endCtx) : s.endCtx));
-        const playing = visible.find(s => !s.fading && s.startCtx <= now);
-        const fadingOut = visible.find(s => s.fading && s.startCtx <= now);
+        const playing = visible.find(s =>
+            !s.fading && s.audibleSources > 0);
+        const fadingOut = visible.find(s =>
+            s.fading && s.audibleSources > 0);
         const parts = [];
-        if (status.silent) parts.push("music: silence (nothing shipped for this state)");
+
+        if (status.state === "stopping")
+        {
+            parts.push("music: stopping");
+        }
         else if (playing) parts.push(`music: ${label(playing)}`);
         else if (fadingOut) parts.push(`music: ${label(fadingOut)} fading out`);
-        else parts.push("music: starting…");
+        else if (status.state === "preparing")
+        {
+            parts.push(`music: ${PrettyName(this.currentMood)} loading…`);
+        }
+        else if (status.state === "unavailable")
+        {
+            parts.push(`music: ${PrettyName(this.currentMood)} unavailable (retryable)`);
+        }
+        else if (status.state === "silent")
+        {
+            parts.push("music: authored silence for this state");
+        }
+        else if (status.state === "degraded")
+        {
+            parts.push(`music: ${PrettyName(this.currentMood)} has no audible clips`);
+        }
+        else
+        {
+            parts.push(`music: ${PrettyName(this.currentMood)} scheduled`);
+        }
         if (playing && fadingOut)
         {
             const volume = Math.round(Math.max(0, Math.min(1, fadingOut.volume)) * 100);
@@ -1885,14 +1975,51 @@ class MusicUi
         }
         if (status.preparingTargetId) parts.push(`· next: ${PrettyName(this.currentMood)} (loading…)`);
         if (status.unavailableTargetId !== null
-            && status.unavailableTargetId !== undefined)
+            && status.unavailableTargetId !== undefined
+            && status.state !== "unavailable")
         {
             const unavailable = this.moodLabelByTarget.get(
                 status.unavailableTargetId,
             ) ?? `target ${status.unavailableTargetId}`;
-            parts.push(`· ${PrettyName(unavailable)} unavailable`);
+            parts.push(`· ${PrettyName(unavailable)} unavailable (retryable)`);
+        }
+        if (status.failedSources)
+        {
+            parts.push(
+                `· ${status.failedSources} clip${status.failedSources === 1 ? "" : "s"} unavailable`,
+            );
+        }
+        if (status.missedSources)
+        {
+            parts.push(
+                `· ${status.missedSources} clip${status.missedSources === 1 ? "" : "s"} missed its play window`,
+            );
+        }
+        if (this.#retryButton)
+        {
+            this.#retryButton.hidden = !(
+                status.state === "unavailable"
+                || status.state === "degraded"
+                || (
+                    status.unavailableTargetId !== null
+                    && status.unavailableTargetId !== undefined
+                )
+            );
         }
         this.#hudElement.textContent = parts.join(" ");
+    }
+
+    /** Restarts the authored graph at its current switch state. */
+    #Retry()
+    {
+        if (!document.getElementById("musicToggle").checked
+            || !this.#app.IsAudioEnabled())
+        {
+            return;
+        }
+        this.#retryButton.hidden = true;
+        this.SetEnabled(false);
+        this.SetEnabled(true);
     }
 
     #SteerTo(eventName)

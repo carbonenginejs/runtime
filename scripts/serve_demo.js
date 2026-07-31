@@ -162,10 +162,17 @@ http.createServer(async (request, response) =>
       return;
     }
 
+    // Resource-index storage paths are content-addressed. Successful bytes
+    // are immutable; failures retain the server-wide no-store policy so a
+    // transient CDN outage never becomes a year-long negative cache.
+    const cacheHeaders = {
+      "content-type": "application/octet-stream",
+      "cache-control": "public, max-age=31536000, immutable"
+    };
     const file = ResolveCachedFile(storagePath);
     if (file && fs.existsSync(file))
     {
-      response.writeHead(200, { "content-type": "application/octet-stream" });
+      response.writeHead(200, cacheHeaders);
       fs.createReadStream(file).pipe(response);
       return;
     }
@@ -173,7 +180,7 @@ http.createServer(async (request, response) =>
     try
     {
       const bytes = await FetchResource(storagePath);
-      response.writeHead(200, { "content-type": "application/octet-stream" });
+      response.writeHead(200, cacheHeaders);
       response.end(bytes);
     }
     catch
