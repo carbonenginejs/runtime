@@ -100,6 +100,8 @@ function normalizeOptions(options, diagnostics)
 
 function planDnaLayouts(dna, offsets, context, depth, parentBatchKey)
 {
+  // Carbon has no recursion guard here. Keep the explicit limit: rejecting an
+  // unsafe authored cycle is preferable to an unbounded build.
   if (depth > context.maxDepth)
   {
     context.plan.diagnostics.push({
@@ -287,6 +289,9 @@ function processPlacement(placement, path, layout, layoutPlan, dna, offsets, man
     }
     if (extensionDna.GetLayoutCount() > 0)
     {
+      // Carbon's nested SetupLayout call takes seedOverwrite's default zero.
+      // JavaScript intentionally propagates the caller's deterministic option
+      // through the complete nested plan.
       planDnaLayouts(extensionDna, transforms, context, depth + 1, batchKey);
     }
   }
@@ -368,6 +373,8 @@ function distributeLocators(distribution, locators, managed, context, layoutPlan
   const cap = Math.trunc(Number(distribution?.cap));
   if (!Number.isFinite(completeness) || completeness < 0 || completeness > 1 || !Number.isFinite(cap) || cap < 0)
   {
+    // Carbon assumes valid distribution input. Reject unsafe values rather than
+    // reproducing invalid counts or destructive locator removal.
     context.plan.diagnostics.push({
       code: "unsafe-layout-distribution",
       layoutKey: layoutPlan.key,
@@ -384,6 +391,9 @@ function distributeLocators(distribution, locators, managed, context, layoutPlan
 
   if (count > 0)
   {
+    // Carbon's std::sort comparators leave equal keys unspecified. sourceOrder
+    // is the deliberate deterministic JavaScript tie-break, not a native-order
+    // parity claim.
     const ranks = new Map(locators.map(locator => [locator.uniqueID, [0, 0, 0, 0]]));
     const bias = finiteVector(
       distribution.placementBias,

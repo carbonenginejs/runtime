@@ -1437,6 +1437,11 @@ function projectExtensionPlacement(value)
 function isExtensionPlacementGroup(value)
 {
   const className = getStableClassName(value);
+  // Carbon's unpacker currently casts Bucket through its concrete Placement
+  // lineage, so it does not recurse into Bucket. JavaScript deliberately keeps
+  // Bucket group-like because the authored type owns `placements`; retain this
+  // compatibility repair until authored data or a native fixture proves the
+  // native leaf behavior is required.
   if (className === "EveSOFDataHullExtensionBucket" || value?.IsBucket?.() === true) return true;
   if (className === "EveSOFDataHullExtensionPlacementGroup") return true;
   if (className === "EveSOFDataHullExtensionPlacement") return false;

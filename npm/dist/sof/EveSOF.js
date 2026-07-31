@@ -1774,6 +1774,9 @@ class EveSOF extends CjsModel {
 
   /** Emits the currently maintained Carbon attachment stages in source order. */
   SetupAttachments(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false) {
+    // Carbon caches this effect on the EveSOF instance. Document-local sharing
+    // avoids cross-build graph identity; do not widen it without an operational
+    // consumer that requires mutable identity across builds.
     const sharedSpriteEffect = {
       ref: null
     };
@@ -2218,6 +2221,9 @@ class EveSOF extends CjsModel {
   /** Emits Carbon haze geometry and authored SOF6 point-light descriptors. */
   SetupHazeSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false) {
     const hullOffset = [0, 0, 0];
+    // Carbon keeps three haze effects on the EveSOF instance. The document
+    // contract shares by path only inside this build, matching its identity
+    // boundary while the effects remain immutable.
     const effects = new Map();
     const getEffect = path => {
       if (!path) return null;

@@ -11,7 +11,7 @@ JavaScript convenience ideas.
 
 The package provides the SOF data surface, a map-backed
 `EveSOFDataMgr`, Carbon DNA parsing and validation through `EveSOFDNA`, and a
-first `EveSOF.BuildFromDNA` slice. The builder emits a versioned
+deterministic `EveSOF.BuildFromDNA` builder. The builder emits a versioned
 `carbon.document` graph that hydrates through `runtime-trinity`. Current output
 includes multi-hull bounds and locators, the space-object type and core flags,
 `Tr2Mesh`, routed mesh areas, shader parameters/resources, pattern masks,
@@ -129,7 +129,8 @@ ordinary declared data and appears in values output. The emitted animation
 document preserves the complete curve and binding graph.
 Texture path inserts remain
 deterministic and GPU-free through an optional synchronous resource-existence
-resolver. Remaining specialized stages are still in progress.
+resolver. Compatibility limits and remaining verification work are called out
+below.
 
 Decorated JavaScript under `src` is canonical source. `npm run build:npm`
 produces consumer ESM under `npm/dist`.
@@ -240,6 +241,48 @@ arrays, ...) is read-only by contract: mutating returned data is undefined
 behavior and may corrupt later builds. Projections copy authored inputs at
 `SetData` time (so mutating YOUR source data after handing it over is safe),
 but they do not defensively copy on every getter call.
+
+## Compatibility evidence
+
+### Current
+
+The implementation is source-aligned against Carbon C++/Blue, but it has no
+checked-in native-output differential harness. In this README, “exact” refers
+to an inspected algorithm and “parity” in the values section means equivalence
+between the two JavaScript projections; neither term claims end-to-end native
+Carbon equivalence.
+
+The layout planner deliberately replaces process-global and wall-clock state
+with injected deterministic inputs. It also keeps stable equal-key ordering,
+propagates `seedOverwrite` through nested layouts, and rejects unsafe recursion
+or distribution input. Extension Bucket records are traversed recursively
+because they author a `placements` collection, even though Carbon's current
+unpacker reaches Bucket through its concrete Placement lineage. These are
+intentional compatibility choices pending authored-data or native-fixture
+evidence.
+
+Sprite and haze effects share identity within one built document. Carbon keeps
+the corresponding effects on the factory instance and shares them across
+builds; no operational incompatibility is known while those effects remain
+immutable.
+
+At runtime-sof revision `68fb735` on 2026-07-31, lint passed and all 121 tests
+ran and passed with the sibling runtime-trinity build present. Nine hydration
+tests are currently conditional on that sibling build, so a standalone run can
+silently exercise a smaller integration surface.
+
+### Planned
+
+- Make the runtime-trinity hydration lane required and revision-controlled for
+  release evidence instead of allowing those integration tests to skip.
+- Add normalized native fixtures for representative stationary, mobile, ship,
+  swarm, and extension builds.
+- Recheck the deliberate Bucket traversal and deterministic layout differences
+  against those fixtures before changing either behavior.
+- Normalize Carbon source headers and implementation-reason metadata. At
+  `68fb735`, 29 adapted methods lacked `@impl.reason`, 93 source files retained
+  the legacy provenance header, and JavaScript-only helper methods still needed
+  annotation review.
 
 ## Checks
 
