@@ -82,10 +82,10 @@ invent offset semantics.
 A clone-safe format opts in with a static worker declaration:
 
 ```js
-static worker = Object.freeze({
+static worker = {
   module: import.meta.url,
   exportName: "CjsExampleFormat"
-});
+};
 ```
 
 The worker dynamically imports that exact module and invokes its static
@@ -98,12 +98,12 @@ their class identity.
 A declaration may restrict clone-safe outputs:
 
 ```js
-static worker = Object.freeze({
+static worker = {
   module: import.meta.url,
   exportName: "CjsExampleFormat",
-  outputTypes: Object.freeze([ "json", "payload" ]),
+  outputTypes: [ "json", "payload" ],
   defaultOutput: "json"
-});
+};
 ```
 
 Format options containing functions, symbols, non-plain instances, cycles, or
