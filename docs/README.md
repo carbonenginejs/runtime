@@ -97,4 +97,5 @@ hydration boundary.
 - [formats/stl.md](formats/stl.md): STL geometry export.
 - [formats/provenance.md](formats/provenance.md): format ownership, fork
   provenance, and retained snapshots.
-- [roadmap.md](roadmap.md): approved future direction that is not implemented.
+- [roadmap.md](roadmap.md): approved future direction with explicit current
+  boundary context where needed to interpret the plan.

@@ -3,9 +3,10 @@
 Status: Evolving  
 Scope: `@carbonenginejs/runtime-resource`  
 Audience: Integrators and maintainers  
-Summary: Records approved future direction and open design questions; nothing on this page is implemented.
+Summary: Records approved future direction, open design questions, and the current shader-format boundary needed to interpret that direction.
 
-Everything below is future work. Current behavior is documented in the
+Unless a section is explicitly marked **Current**, everything below is future
+work. Current behavior is documented in the
 [reference pages](reference/motherlode-cache.md); where this page and a
 reference page disagree, the reference page describes the shipped package.
 
@@ -29,10 +30,14 @@ resource preparation abstraction:
 
 ## Browser shader formats
 
-The HLSL, DXBC, WebGL, and WebGPU format packages are expected to migrate into
-runtime-resource as independently exported format entry points. HLSL and DXBC
-remain directly usable; WebGL and WebGPU may compose them to read DX11/DX12
-effect inputs and translate them in the browser.
+**Current:** HLSL, DXBC, WebGL, and WebGPU are consolidated into
+runtime-resource and exposed as independently importable
+`@carbonenginejs/runtime-resource/formats/<name>` entry points. HLSL and DXBC
+remain directly usable; WebGL and WebGPU compose them to read DX11/DX12 effect
+inputs and translate them.
+
+**Planned:** Browser delivery and fallback policy still needs a stable
+application-facing contract.
 
 Browser-targeted production modules must not import or require Node-only
 shader libraries. A format package may use local Node libraries as development
@@ -41,7 +46,7 @@ those libraries must not ship and must not be runtime dependencies.
 
 ccpwgl currently preserves an authored `.fx` path while `Tw2Device` maps it to
 a backend-specific remote namespace such as `effect.gles2` or `effect.webgl2`
-and appends the selected shader-model extension. The migrated resource/format
+and appends the selected shader-model extension. The resource/format
 contract must retain both use cases:
 
 - resolve and load a pretranslated backend artifact from a remote resource

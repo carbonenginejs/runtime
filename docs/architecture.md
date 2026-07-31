@@ -74,9 +74,9 @@ historical mapping.
 
 - WebGL/WebGPU realization, allocations, upload accounting, device budgets,
   capability limits, and device-loss recovery (engine packages).
-- Shader binary decoding, backend translation, and package serialization remain
-  in the standalone shader-format packages. Backend shader objects remain in
-  engine packages.
+- Shader binary decoding, backend translation, and package serialization live
+  in the explicit `runtime-resource/formats/{hlsl,dxbc,webgl,webgpu}` subpaths.
+  Backend shader objects remain in engine packages.
 - AudioBuffer construction, playback, or audio manager behavior.
 - Audio-library document construction, enrichment, media-ID interpretation,
   and delivery-route selection.
