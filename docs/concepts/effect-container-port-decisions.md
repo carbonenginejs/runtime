@@ -187,6 +187,13 @@ Two consumers depend on it, and neither parses package bytes:
   construction, not as `undefined` in the engine months later with nothing linking
   it back. Do the sampler and UAV check anyway; the table changes what happens
   when it misses something.
+
+  **The closed table and the two-sided diff are complementary, not redundant —
+  do not delete either as duplication.** They catch opposite failures: the table
+  catches *the wire has something we do not handle*, the diff catches *our output
+  differs from the reference*. Neither implies the other. A complete table can
+  still map a field wrongly, and a passing diff on one fixture says nothing about
+  a key that fixture never exercises.
 - `tools-core`'s `CjsToolShaderBuilder` calls `format.inspect(outputBytes)` and
   stores the result as `packageInspection` in its manifest, and asserts the format
   exposes both `buildEffect` and `inspect`. So `inspect`'s *shape* is a contract,
