@@ -367,12 +367,43 @@ Our own containers prepend twelve bytes:
 magic(4) | u32 containerVersion | u32 payloadKind
 ```
 
-then Carbon's layout, byte-compatible. This is the one deliberate divergence, and
-it is provably disjoint from a Carbon file rather than merely unlikely to collide:
-a Carbon file's first dword is its version, constrained to 2..15, so byte 0 is at
-most `0x0f` and bytes 1..3 are zero, while every printable-ASCII magic byte is at
-least `0x20`. No version bump inside Carbon's `u32` can change that. ccpwgl records
-the same convention independently (`Tw2EffectRes.js:52-63`).
+then Carbon's layout, byte-compatible. It is provably disjoint from a Carbon file
+rather than merely unlikely to collide: a Carbon file's first dword is its version,
+constrained to 2..15, so byte 0 is at most `0x0f` and bytes 1..3 are zero, while
+every printable-ASCII magic byte is at least `0x20`. No version bump inside
+Carbon's `u32` can change that.
+
+**Scheduled for removal in the WebGPU switchover, and the reasoning is worth
+keeping.** An earlier revision of this section cited
+`ccpwgl/Tw2EffectRes.js:52-63` as arriving at the same convention independently.
+**That was circular**: `IsCewgData` is an agent addition to ccpwgl, not part of
+Trinity's own design, so it corroborated nothing — it was our own decision cited
+back as evidence for itself. Verified with the maintainer.
+
+With that removed, the envelope has no argument left, because backend selection is
+**by resource path** — `effect.webgpu/`, `effect.webgl2/`, mirroring Carbon's
+`effect.dx11/`, `effect.dx12/`, `effect.metal/` (`Tr2Effect.cpp:310-345`, where the
+platform name is a compile-time constant). Carbon carries no payload tag anywhere
+and does not need one; neither do we. `payloadKind` is redundant with the directory
+the file came from, and the magic only mattered for distinguishing our file from a
+Carbon one, which the same directory already answers.
+
+What the removal buys is the point: without the twelve-byte prefix our containers
+**are** stock Carbon v15 files, so `Tr2EffectRes`/`Tr2Shader` read them through the
+Carbon path rather than a bespoke format branch. The only remaining reader delta is
+`readEffectDescription(reader, {backend: true})` — one conditional at the end of a
+pass, gated by a flag the loader sets from the path. A format an existing reader
+consumes with a flag beats one that needs a branch, and the branch cost would land
+on every future reader.
+
+Versioning survives intact: Carbon's own version dword versions the Carbon region,
+and `blobVersion` inside the trailing block versions our extension, where an
+unknown value is skipped rather than misparsed.
+
+The one case that would justify `payloadKind` — loose bytes with no path — is also
+the case where sniffing is cheap: DXBC opens with `"DXBC"`, AIR is bitcode
+(`BC 0xC0DE`), and WGSL against GLSL is `@group`/`fn` against `#version`/
+`precision`.
 
 `payloadKind` is **one header field, never per stage.** Carbon demonstrably has no
 per-stage language tag: `EffectCompilerMetal.cpp:5155-5156` stores compiled AIR
