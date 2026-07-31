@@ -427,6 +427,7 @@ export class CjsAudioBackend
             );
 
             const realizedSlots = new Set();
+            const initialVoices = [];
 
             for (const descriptor of descriptors)
             {
@@ -436,19 +437,33 @@ export class CjsAudioBackend
 
                 if (record.sfxProgram
                     && (!slot
-                        || (slot.state !== "pending"
+                        || (slot.advanceMode !== "trigger-rate"
+                            && slot.state !== "pending"
                             && !(slot.continuation
                                 && slot.state === "voice"))))
                 {
                     continue;
                 }
-                if (slot?.cancelledSelectionKeys?.has(
-                    ProgramSelectionKey(descriptor),
-                ))
+                const batch = slot?.advanceMode === "trigger-rate"
+                    ? slot.batches?.get(
+                        String(descriptor.programBatchId ?? ""),
+                    ) ?? slot.currentBatch
+                    : null;
+                const cancelledSelectionKeys =
+                    batch?.cancelledSelectionKeys
+                    ?? slot?.cancelledSelectionKeys;
+
+                if (slot?.broken
+                    || batch?.state === "cancelled"
+                    || cancelledSelectionKeys?.has(
+                        ProgramSelectionKey(descriptor),
+                    ))
                 {
                     continue;
                 }
-                const selectionMetadata = slot?.selections?.find(selection =>
+                const selectionMetadata =
+                    (batch?.selections ?? slot?.selections)
+                        ?.find(selection =>
                     ProgramSelectionKey(selection)
                         === ProgramSelectionKey(descriptor));
 
@@ -458,6 +473,7 @@ export class CjsAudioBackend
                             ...descriptor,
                             actionIndex: selectionMetadata.actionIndex,
                             leafIndex: selectionMetadata.leafIndex,
+                            actionTime: selectionMetadata.actionTime,
                             matchIds: selectionMetadata.matchIds,
                         }
                         : descriptor,
@@ -466,14 +482,58 @@ export class CjsAudioBackend
                 );
 
                 record.voices.push(voice);
+                initialVoices.push(voice);
                 if (slot)
                 {
                     slot.state = "voice";
                     slot.voice = voice;
                     slot.voices.add(voice);
                     voice.programSlotId = slot.id;
+                    if (slot.advanceMode === "trigger-rate")
+                    {
+                        if (batch)
+                        {
+                            voice.programBatchId = batch.id;
+                            batch.voices.add(voice);
+                            batch.state = "voice";
+                        }
+                    }
                     realizedSlots.add(slot.id);
                 }
+            }
+            for (const slot of record.programSlots?.values?.() ?? [])
+            {
+                if (slot.advanceMode !== "trigger-rate")
+                {
+                    continue;
+                }
+                for (const batch of slot.batches.values())
+                {
+                    if (batch.state === "pending")
+                    {
+                        batch.state = "ended";
+                    }
+                }
+                const initialBatch = [ ...slot.batches.values() ][0];
+                const realizedKeys = new Set(
+                    [ ...(initialBatch?.voices ?? []) ].map(
+                        ProgramSelectionKey,
+                    ),
+                );
+                const missingInitialSelection =
+                    initialBatch?.selections?.some(selection =>
+                        !initialBatch.cancelledSelectionKeys.has(
+                            ProgramSelectionKey(selection),
+                        )
+                        && !realizedKeys.has(
+                            ProgramSelectionKey(selection),
+                        ));
+
+                if (missingInitialSelection)
+                {
+                    this.#FailTriggerRateSlot(slot);
+                }
+                this.#UpdateTriggerRateSlotState(slot);
             }
             record.loaded = true;
             if (record.sfxProgram)
@@ -505,6 +565,13 @@ export class CjsAudioBackend
             {
                 if (record.sfxProgram)
                 {
+                    for (const slot of record.programSlots.values())
+                    {
+                        if (slot.advanceMode === "trigger-rate")
+                        {
+                            this.#UpdateTriggerRateSlotState(slot);
+                        }
+                    }
                     this.#MaybeFinishSfxProgram(playingID, record);
                 }
                 else
@@ -514,7 +581,11 @@ export class CjsAudioBackend
                 return;
             }
 
-            this.#StartVoices(playingID, record);
+            this.#StartVoices(
+                playingID,
+                record,
+                initialVoices,
+            );
         }).catch(() =>
         {
             record.loading = false;
@@ -596,6 +667,15 @@ export class CjsAudioBackend
                 slot.broken = true;
                 slot.generation++;
                 AbortProgramSlot(slot);
+                for (const batch of slot.batches?.values?.() ?? [])
+                {
+                    if (batch.state === "loading"
+                        || batch.state === "pending")
+                    {
+                        batch.state = "cancelled";
+                        AbortTriggerRateBatch(batch);
+                    }
+                }
                 if (slot.state === "pending"
                     || slot.state === "loading")
                 {
@@ -981,7 +1061,68 @@ export class CjsAudioBackend
     RenderAudio()
     {
         this.#ProcessScheduledSfxStops();
+        this.#ProcessTriggerRateSlots();
         this.#musicEngine?.Process();
+    }
+
+    /** Issues due Trigger Rate children from the Web Audio clock. */
+    #ProcessTriggerRateSlots()
+    {
+        const now = Number(this.#context?.currentTime) || 0;
+
+        for (const [ playingID, record ] of this.#playing)
+        {
+            if (!record.sfxProgram || record.stopped)
+            {
+                continue;
+            }
+            for (const slot of record.programSlots?.values?.() ?? [])
+            {
+                if (slot.advanceMode !== "trigger-rate"
+                    || slot.state === "ended"
+                    || slot.state === "cancelled"
+                    || !slot.continuation
+                    || slot.broken
+                    || slot.exhausted
+                    || !Number.isFinite(slot.nextTriggerContextTime)
+                    || slot.nextTriggerContextTime > now)
+                {
+                    continue;
+                }
+                const deadline = slot.nextTriggerContextTime;
+
+                slot.nextTriggerContextTime = null;
+                this.#AdvanceSfxProgramSlot(
+                    playingID,
+                    record,
+                    slot,
+                    Math.max(deadline, now),
+                );
+                this.#MaybeFinishSfxProgram(
+                    playingID,
+                    record,
+                );
+            }
+        }
+    }
+
+    /** Arms the next Trigger Rate deadline from this batch's first action. */
+    #ArmTriggerRateSlot(slot)
+    {
+        if (slot.advanceMode !== "trigger-rate"
+            || !slot.continuation
+            || slot.broken
+            || slot.exhausted)
+        {
+            slot.nextTriggerContextTime = null;
+            return;
+        }
+        const actionTime = Number(
+            slot.currentBatch?.actionTime ?? slot.actionTime,
+        );
+
+        slot.nextTriggerContextTime = actionTime
+            + slot.transitionDelayMs / 1000;
     }
 
     /** Active playing ids (introspection/tests). */
@@ -1031,6 +1172,8 @@ export class CjsAudioBackend
     #BreakContinuousSlots(record)
     {
         const now = Number(this.#context.currentTime) || 0;
+        const currentBoundary = now
+            + RenderQuantumSeconds(this.#context);
 
         for (const slot of record.programSlots?.values?.() ?? [])
         {
@@ -1039,18 +1182,27 @@ export class CjsAudioBackend
                 continue;
             }
             slot.broken = true;
+            slot.exhausted = true;
+            slot.nextTriggerContextTime = null;
+            for (const batch of slot.batches?.values?.() ?? [])
+            {
+                if (batch.state === "loading"
+                    || batch.state === "pending")
+                {
+                    batch.state = "cancelled";
+                    AbortTriggerRateBatch(batch);
+                }
+            }
             if (slot.state === "loading")
             {
                 slot.generation++;
                 AbortProgramSlot(slot);
-                slot.state = "ended";
             }
 
             for (const voice of slot.voices)
             {
                 if (!voice.ended
-                    && slot.generation > 0
-                    && voice.startContextTime > now)
+                    && voice.startContextTime > currentBoundary)
                 {
                     voice.ended = true;
                     voice.stopping = true;
@@ -1069,6 +1221,16 @@ export class CjsAudioBackend
                     }
                     continue;
                 }
+                if (!voice.ended
+                    && !voice.loop
+                    && voice.playCount > 1)
+                {
+                    StopFiniteRepeatAtBoundary(
+                        voice,
+                        now,
+                    );
+                    continue;
+                }
                 if (!voice.ended && voice.loop)
                 {
                     voice.loop = false;
@@ -1082,10 +1244,7 @@ export class CjsAudioBackend
                 !voice.ended);
 
             slot.voice = active[0] ?? null;
-            if (slot.state === "voice" && !active.length)
-            {
-                slot.state = "ended";
-            }
+            slot.state = active.length ? "voice" : "ended";
         }
     }
 
@@ -1094,7 +1253,17 @@ export class CjsAudioBackend
     {
         return Boolean(
             voice.programSlotId !== undefined
-            && record.programSlots?.get(voice.programSlotId)?.continuation,
+            && record.programSlots?.get(voice.programSlotId)?.advanceMode,
+        );
+    }
+
+    /** Returns whether a voice descends from Trigger Rate Continuous play. */
+    #IsTriggerRateProgramVoice(record, voice)
+    {
+        return Boolean(
+            voice.programSlotId !== undefined
+            && record.programSlots?.get(voice.programSlotId)?.advanceMode
+                === "trigger-rate",
         );
     }
 
@@ -1233,6 +1402,17 @@ export class CjsAudioBackend
                 return handled;
             }
         }
+        const hasTriggerRate = [
+            ...record.programSlots?.values?.() ?? [],
+        ].some(slot => slot.advanceMode === "trigger-rate");
+        const canSeekSfx = !record.sfxProgram
+            || [ ...record.programSlots?.values?.() ?? [] ]
+                .some(slot => slot.advanceMode !== "trigger-rate");
+
+        if (!canSeekSfx)
+        {
+            return handled;
+        }
         if (record.loaded)
         {
             const now = Number(this.#context.currentTime) || 0;
@@ -1240,6 +1420,11 @@ export class CjsAudioBackend
             const started = record.voices.filter(voice =>
                 voice.source
                 && !voice.ended
+                && (!hasTriggerRate
+                    || !this.#IsTriggerRateProgramVoice(
+                        record,
+                        voice,
+                    ))
                 && voice.startContextTime <= now + renderQuantum);
 
             if (!started.length)
@@ -1335,14 +1520,39 @@ export class CjsAudioBackend
                             voices: new Set(),
                             controller: new AbortController(),
                             continuation: continuation.token,
+                            continuousNodeId: String(
+                                continuation.containerId ?? "",
+                            ),
+                            advanceMode:
+                                continuation.advance === "trigger-rate"
+                                    ? "trigger-rate"
+                                    : "completion",
                             transitionDelayMs: Math.max(
                                 0,
                                 Number(continuation.delayMs) || 0,
                             ),
                             generation: 0,
                             broken: false,
+                            exhausted:
+                                continuation.doneAfterBatch === true,
+                            nextTriggerContextTime: null,
+                            batches: null,
+                            currentBatch: null,
+                            batchSerial: 0,
                         };
 
+                        if (slot.advanceMode === "trigger-rate")
+                        {
+                            slot.batches = new Map();
+                            const batch = CreateTriggerRateBatch(slot, {
+                                id: continuation.programBatchId,
+                            });
+
+                            slot.batches.set(batch.id, batch);
+                            slot.currentBatch = batch;
+                            slot.state = "active";
+                            this.#ArmTriggerRateSlot(slot);
+                        }
                         continuations.set(id, slot);
                         record.programSlots.set(id, slot);
                     }
@@ -1521,19 +1731,42 @@ export class CjsAudioBackend
                     && slot.state !== "loading"
                     && slot.state !== "voice")
                 {
+                    if (slot.advanceMode !== "trigger-rate"
+                        || slot.state === "ended"
+                        || slot.state === "cancelled")
+                    {
+                        continue;
+                    }
+                }
+                if (slot.advanceMode === "trigger-rate")
+                {
+                    this.#ApplyTriggerRateStop(
+                        slot,
+                        stop,
+                        actionTime,
+                    );
                     continue;
                 }
                 const selections = slot.selections ?? [];
                 const matchingSelections = selections.filter(selection =>
                     CompareProgramOrder(selection, slot, stop) <= 0
                     && StopMatchesProgramValue(stop, selection));
+                const matchingVoices = [ ...slot.voices ].filter(voice =>
+                    !voice.ended
+                    && CompareProgramOrder(voice, slot, stop) <= 0
+                    && StopMatchesProgramValue(stop, voice));
 
-                if (!matchingSelections.length)
+                if (!matchingSelections.length
+                    && !matchingVoices.length)
                 {
                     continue;
                 }
-                const stopsWholeSlot = matchingSelections.length
-                    === selections.length;
+                const stopsWholeSlot =
+                    slot.advanceMode === "trigger-rate"
+                        && stop.mode === "element"
+                        ? String(stop.targetId)
+                            === slot.continuousNodeId
+                        : matchingSelections.length === selections.length;
 
                 for (const selection of matchingSelections)
                 {
@@ -1550,35 +1783,39 @@ export class CjsAudioBackend
                     {
                         slot.continuation = null;
                         slot.broken = true;
+                        slot.exhausted = true;
+                        slot.nextTriggerContextTime = null;
                         slot.generation++;
-                        slot.state = "cancelled";
                         AbortProgramSlot(slot);
+                        if (slot.currentBatch)
+                        {
+                            slot.currentBatch.state = "cancelled";
+                        }
+                        slot.state = matchingVoices.length
+                            ? "voice"
+                            : "cancelled";
                     }
-                    continue;
-                }
-                const matchingSelectionKeys = new Set(
-                    matchingSelections.map(ProgramSelectionKey),
-                );
-                for (const voice of slot.voices)
-                {
-                    if (!voice.ended
-                        && matchingSelectionKeys.has(
-                            ProgramSelectionKey(voice),
-                        ))
+                    if (slot.advanceMode !== "trigger-rate")
                     {
-                        this.#StopSfxProgramVoice(
-                            voice,
-                            stop.actionTime,
-                            stop.transitionMs,
-                            stop.curve,
-                            actionTime,
-                        );
+                        continue;
                     }
+                }
+                for (const voice of matchingVoices)
+                {
+                    this.#StopSfxProgramVoice(
+                        voice,
+                        stop.actionTime,
+                        stop.transitionMs,
+                        stop.curve,
+                        actionTime,
+                    );
                 }
                 if (stopsWholeSlot)
                 {
                     slot.continuation = null;
                     slot.broken = true;
+                    slot.exhausted = true;
+                    slot.nextTriggerContextTime = null;
                     slot.generation++;
                     AbortProgramSlot(slot);
                 }
@@ -1586,6 +1823,108 @@ export class CjsAudioBackend
 
             this.#MaybeFinishSfxProgram(playingID, record);
         }
+    }
+
+    /** Applies one Stop across every overlapping Trigger Rate batch. */
+    #ApplyTriggerRateStop(slot, stop, actionTime)
+    {
+        const batches = [ ...slot.batches?.values?.() ?? [] ];
+        const eligibleSelections = [];
+        const matchingSelections = [];
+        const eligibleBatches = batches.filter(batch =>
+            CompareProgramOrder(
+                {
+                    actionTime: batch.actionTime,
+                    actionIndex: slot.actionIndex,
+                    leafIndex: slot.leafIndex,
+                },
+                slot,
+                stop,
+            ) <= 0);
+
+        for (const batch of batches)
+        {
+            for (const selection of batch.selections ?? [])
+            {
+                if (CompareProgramOrder(selection, slot, stop) > 0)
+                {
+                    continue;
+                }
+                eligibleSelections.push(selection);
+                if (StopMatchesProgramValue(stop, selection))
+                {
+                    matchingSelections.push({ batch, selection });
+                }
+            }
+        }
+        const matchingVoices = [ ...slot.voices ].filter(voice =>
+            !voice.ended
+            && CompareProgramOrder(voice, slot, stop) <= 0
+            && StopMatchesProgramValue(stop, voice));
+        const containerProtected = stop.exceptions.some(exception =>
+            String(exception.targetId) === slot.continuousNodeId);
+        const stopsWholeSlot = stop.mode === "element"
+            ? eligibleBatches.length > 0
+                && String(stop.targetId) === slot.continuousNodeId
+            : eligibleBatches.length > 0
+                && !containerProtected
+                && matchingSelections.length === eligibleSelections.length;
+
+        if (!matchingSelections.length
+            && !matchingVoices.length
+            && !stopsWholeSlot)
+        {
+            return;
+        }
+
+        for (const { batch, selection } of matchingSelections)
+        {
+            const key = ProgramSelectionKey(selection);
+
+            batch.cancelledSelectionKeys.add(key);
+            batch.selectionControllers?.get(key)?.abort();
+        }
+        for (const batch of batches)
+        {
+            if ((batch.state === "loading"
+                    || batch.state === "pending")
+                && (batch.selections?.length ?? 0) > 0
+                && batch.selections.every(selection =>
+                    batch.cancelledSelectionKeys.has(
+                        ProgramSelectionKey(selection),
+                    )))
+            {
+                batch.state = "cancelled";
+                AbortTriggerRateBatch(batch);
+            }
+        }
+        for (const voice of matchingVoices)
+        {
+            this.#StopSfxProgramVoice(
+                voice,
+                stop.actionTime,
+                stop.transitionMs,
+                stop.curve,
+                actionTime,
+            );
+        }
+        if (stopsWholeSlot)
+        {
+            slot.continuation = null;
+            slot.broken = true;
+            slot.exhausted = true;
+            slot.nextTriggerContextTime = null;
+            for (const batch of batches)
+            {
+                if (batch.state === "loading"
+                    || batch.state === "pending")
+                {
+                    batch.state = "cancelled";
+                    AbortTriggerRateBatch(batch);
+                }
+            }
+        }
+        this.#UpdateTriggerRateSlotState(slot);
     }
 
     /** Applies one authored fade/stop without changing live RTPC controls. */
@@ -1771,17 +2110,23 @@ export class CjsAudioBackend
                 programSlotId,
                 actionIndex,
                 leafIndex,
+                programBatchId,
             ) =>
             {
                 const slot = record?.programSlots?.get(
                     String(programSlotId),
                 );
-                const selectionSignal = slot?.selectionControllers?.get(
-                    ProgramSelectionKey({
-                        actionIndex,
-                        leafIndex,
-                    }),
-                )?.signal;
+                const batch = programBatchId === undefined
+                    ? null
+                    : slot?.batches?.get(String(programBatchId));
+                const selectionSignal =
+                    (batch?.selectionControllers
+                        ?? slot?.selectionControllers)
+                        ?.get(ProgramSelectionKey({
+                            actionIndex,
+                            leafIndex,
+                            programBatchId,
+                        }))?.signal;
 
                 return selectionSignal ?? slot?.controller?.signal ?? signal;
             },
@@ -1894,7 +2239,9 @@ export class CjsAudioBackend
             fadeCurve: descriptor.fadeCurve,
             actionIndex: descriptor.actionIndex,
             leafIndex: descriptor.leafIndex,
+            actionTime: descriptor.actionTime,
             matchIds: descriptor.matchIds,
+            programBatchId: descriptor.programBatchId,
             gain,
             fadeGain,
             stopGain,
@@ -1929,24 +2276,34 @@ export class CjsAudioBackend
     )
     {
         if (record.stopped
-            || !record.loaded
+            || (!record.loaded && selectedVoices === null)
             || this.#playing.get(playingID) !== record)
         {
             return;
         }
 
-        const seek = record.pendingSeek;
-        const pendingBreak = record.pendingBreak;
+        const voices = selectedVoices ?? record.voices;
+        const hasOrdinaryVoice = voices.some(voice =>
+            !this.#IsTriggerRateProgramVoice(record, voice));
+        const seek = hasOrdinaryVoice
+            ? record.pendingSeek
+            : null;
+        const pendingBreak = hasOrdinaryVoice
+            ? record.pendingBreak
+            : false;
         const now = Number(this.#context.currentTime) || 0;
         const renderQuantum = RenderQuantumSeconds(this.#context);
         // Scheduling one render quantum ahead keeps every leaf of a parallel
         // event on the same still-future sample boundary.
         const startContextTime = now + renderQuantum;
 
-        record.pendingSeek = null;
-        record.pendingBreak = false;
+        if (hasOrdinaryVoice)
+        {
+            record.pendingSeek = null;
+            record.pendingBreak = false;
+        }
 
-        for (const voice of selectedVoices ?? record.voices)
+        for (const voice of voices)
         {
             const programSlot = voice.programSlotId === undefined
                 ? null
@@ -1991,7 +2348,9 @@ export class CjsAudioBackend
                 playingID,
                 record,
                 voice,
-                seek,
+                this.#IsTriggerRateProgramVoice(record, voice)
+                    ? null
+                    : seek,
                 voiceStartContextTime,
             );
             if (voice.ended)
@@ -2165,6 +2524,24 @@ export class CjsAudioBackend
 
         if (slot)
         {
+            if (slot.advanceMode === "trigger-rate")
+            {
+                const batch = slot.batches?.get(
+                    String(voice.programBatchId ?? ""),
+                );
+
+                if (batch
+                    && [ ...batch.voices ].every(value => value.ended))
+                {
+                    batch.state = "ended";
+                }
+                const active = [ ...slot.voices ].filter(value =>
+                    !value.ended);
+
+                slot.voice = active[0] ?? null;
+                this.#UpdateTriggerRateSlotState(slot);
+                return;
+            }
             if ([ ...slot.voices ].some(value => !value.ended))
             {
                 slot.voice = [ ...slot.voices ]
@@ -2173,7 +2550,10 @@ export class CjsAudioBackend
             }
 
             slot.voice = null;
-            if (slot.continuation && !slot.broken && !record.stopped)
+            if (slot.continuation
+                && !slot.broken
+                && !slot.exhausted
+                && !record.stopped)
             {
                 this.#AdvanceSfxProgramSlot(
                     playingID,
@@ -2197,6 +2577,18 @@ export class CjsAudioBackend
         boundaryContextTime,
     )
     {
+        const triggerRate = slot.advanceMode === "trigger-rate";
+
+        if (triggerRate)
+        {
+            this.#AdvanceTriggerRateSlot(
+                playingID,
+                record,
+                slot,
+                boundaryContextTime,
+            );
+            return;
+        }
         if (!slot.continuation
             || slot.broken
             || record.stopped
@@ -2223,7 +2615,7 @@ export class CjsAudioBackend
 
         if (!Array.isArray(program) || !program.length)
         {
-            slot.state = "ended";
+            this.#ExhaustSfxProgramSlot(slot);
             return;
         }
 
@@ -2234,16 +2626,16 @@ export class CjsAudioBackend
 
         if (!play || !continuation)
         {
-            slot.state = "ended";
+            this.#ExhaustSfxProgramSlot(slot);
             return;
         }
-
         const generation = ++slot.generation;
 
         slot.state = "loading";
         AbortProgramSlot(slot);
         slot.controller = new AbortController();
         slot.continuation = continuation.token;
+        slot.exhausted = continuation.doneAfterBatch === true;
         slot.transitionDelayMs = Math.max(
             0,
             Number(continuation.delayMs) || 0,
@@ -2276,7 +2668,6 @@ export class CjsAudioBackend
             [ ...new Set(selectionMetadata.flatMap(selection =>
                 selection.matchIds)) ],
         );
-
         this.#DisposeEndedSlotVoices(record, slot);
 
         Promise.resolve().then(() => this.#loadBuffer(
@@ -2317,6 +2708,7 @@ export class CjsAudioBackend
                             ...descriptor,
                             actionIndex: selection.actionIndex,
                             leafIndex: selection.leafIndex,
+                            actionTime: selection.actionTime,
                             matchIds: selection.matchIds,
                         }
                         : descriptor,
@@ -2343,7 +2735,12 @@ export class CjsAudioBackend
                 // A missing or aborted child made no audible progress. End
                 // fail-closed instead of hot-looping an infinite container.
                 slot.continuation = null;
-                slot.state = "ended";
+                slot.exhausted = true;
+                slot.nextTriggerContextTime = null;
+                slot.state = [ ...slot.voices ]
+                    .some(voice => !voice.ended)
+                    ? "voice"
+                    : "ended";
                 this.#MaybeFinishSfxProgram(playingID, record);
                 return;
             }
@@ -2360,10 +2757,322 @@ export class CjsAudioBackend
             if (generation === slot.generation
                 && this.#playing.get(playingID) === record)
             {
-                slot.state = "ended";
+                slot.continuation = null;
+                slot.exhausted = true;
+                slot.nextTriggerContextTime = null;
+                slot.state = [ ...slot.voices ]
+                    .some(voice => !voice.ended)
+                    ? "voice"
+                    : "ended";
                 this.#MaybeFinishSfxProgram(playingID, record);
             }
         });
+    }
+
+    /** Loads one Trigger Rate child without serializing the authored clock. */
+    #AdvanceTriggerRateSlot(
+        playingID,
+        record,
+        slot,
+        boundaryContextTime,
+    )
+    {
+        if (!slot.continuation
+            || slot.broken
+            || slot.exhausted
+            || record.stopped
+            || this.#playing.get(playingID) !== record)
+        {
+            this.#UpdateTriggerRateSlotState(slot);
+            return;
+        }
+
+        let program;
+
+        try
+        {
+            program = this.#continueSfxProgram?.(
+                slot.continuation,
+                record.sfxControls,
+            ) ?? [];
+        }
+        catch
+        {
+            this.#FailTriggerRateSlot(slot);
+            return;
+        }
+
+        if (!Array.isArray(program) || !program.length)
+        {
+            this.#ExhaustSfxProgramSlot(slot);
+            return;
+        }
+
+        const play = program.find(operation =>
+            operation.kind === "play");
+        const continuation = play?.continuations?.find(value =>
+            value.programSlotId === slot.id);
+
+        if (!play
+            || (continuation
+                && continuation.advance !== "trigger-rate"))
+        {
+            this.#FailTriggerRateSlot(slot);
+            return;
+        }
+
+        const batchStartContextTime = Number(boundaryContextTime) || 0;
+        const batchSelections = (play.selections ?? [])
+            .filter(selection =>
+                selection.programSlotId === slot.id);
+        const selectionMetadata = batchSelections.map(selection =>
+            CreateProgramSelectionMetadata(
+                selection,
+                batchStartContextTime,
+            ));
+        const selectionControllers =
+            CreateProgramSelectionControllers(selectionMetadata);
+        const cancelledSelectionKeys = new Set();
+        const controller = new AbortController();
+        const batch = CreateTriggerRateBatch(slot, {
+            id: continuation?.programBatchId,
+            actionTime: selectionMetadata.length
+                ? Math.min(...selectionMetadata.map(selection =>
+                    selection.actionTime))
+                : batchStartContextTime,
+            selections: Object.freeze(selectionMetadata),
+            selectionControllers,
+            cancelledSelectionKeys,
+            controller,
+            state: "loading",
+        });
+
+        if (slot.batches.has(batch.id))
+        {
+            this.#FailTriggerRateSlot(slot);
+            return;
+        }
+        slot.batches.set(batch.id, batch);
+        slot.currentBatch = batch;
+        slot.selections = batch.selections;
+        slot.selectionControllers = batch.selectionControllers;
+        slot.cancelledSelectionKeys = batch.cancelledSelectionKeys;
+        slot.controller = batch.controller;
+        slot.actionTime = batch.actionTime;
+        slot.leafIndex = selectionMetadata.length
+            ? Math.min(...selectionMetadata.map(selection =>
+                selection.leafIndex))
+            : 0;
+        slot.matchIds = Object.freeze(
+            [ ...new Set(selectionMetadata.flatMap(selection =>
+                selection.matchIds)) ],
+        );
+        slot.continuation = continuation?.token ?? null;
+        slot.exhausted = !continuation
+            || continuation.doneAfterBatch === true;
+        slot.transitionDelayMs = Math.max(
+            0,
+            Number(continuation?.delayMs) || 0,
+        );
+        slot.state = "active";
+        this.#ArmTriggerRateSlot(slot);
+        this.#DisposeEndedSlotVoices(record, slot);
+
+        if (!selectionMetadata.length)
+        {
+            batch.state = "ended";
+            this.#UpdateTriggerRateSlotState(slot);
+            this.#MaybeFinishSfxProgram(playingID, record);
+            return;
+        }
+
+        Promise.resolve().then(() => this.#loadBuffer(
+                record.eventID,
+                record.eventName,
+                record.sfxControls,
+                program,
+            )).then(result =>
+        {
+            this.#ProcessScheduledSfxStops();
+            if (batch.state !== "loading"
+                || slot.broken
+                || record.stopped
+                || this.#playing.get(playingID) !== record)
+            {
+                return;
+            }
+
+            const descriptors = NormalizeVoiceDescriptors(
+                result,
+                () => !!this.#isLoop(record.eventName),
+            ).filter(descriptor =>
+                descriptor.programSlotId === slot.id
+                && descriptor.programBatchId === batch.id
+                && !batch.cancelledSelectionKeys.has(
+                    ProgramSelectionKey(descriptor),
+                ));
+            const voices = descriptors.map(descriptor =>
+            {
+                const selection = batch.selections.find(value =>
+                    ProgramSelectionKey(value)
+                        === ProgramSelectionKey(descriptor));
+
+                return this.#CreateVoice(
+                    selection
+                        ? {
+                            ...descriptor,
+                            actionIndex: selection.actionIndex,
+                            leafIndex: selection.leafIndex,
+                            actionTime: selection.actionTime,
+                            matchIds: selection.matchIds,
+                        }
+                        : descriptor,
+                    record.emitterNodes,
+                    record.gameObjID,
+                );
+            });
+
+            for (const voice of voices)
+            {
+                voice.programSlotId = slot.id;
+                voice.programBatchId = batch.id;
+                batch.voices.add(voice);
+                slot.voices.add(voice);
+                record.voices.push(voice);
+            }
+            slot.voice = voices[0]
+                ?? [ ...slot.voices ].find(voice => !voice.ended)
+                ?? null;
+
+            if (!voices.length)
+            {
+                const intentionallyCancelled = batch.selections.every(
+                    selection => batch.cancelledSelectionKeys.has(
+                        ProgramSelectionKey(selection),
+                    ),
+                );
+
+                batch.state = intentionallyCancelled
+                    ? "cancelled"
+                    : "ended";
+                if (!intentionallyCancelled)
+                {
+                    this.#FailTriggerRateSlot(slot);
+                }
+                else
+                {
+                    this.#UpdateTriggerRateSlotState(slot);
+                }
+                this.#MaybeFinishSfxProgram(playingID, record);
+                return;
+            }
+
+            batch.state = "voice";
+            this.#UpdateTriggerRateSlotState(slot);
+            this.#StartVoices(
+                playingID,
+                record,
+                voices,
+                batchStartContextTime,
+            );
+        }).catch(() =>
+        {
+            if ((batch.state === "loading"
+                    || batch.state === "voice")
+                && this.#playing.get(playingID) === record)
+            {
+                this.#DiscardTriggerRateBatch(
+                    record,
+                    slot,
+                    batch,
+                );
+                this.#FailTriggerRateSlot(slot);
+                this.#MaybeFinishSfxProgram(playingID, record);
+            }
+        });
+    }
+
+    /** Removes a failed physical batch without touching earlier overlap tails. */
+    #DiscardTriggerRateBatch(record, slot, batch)
+    {
+        const now = Number(this.#context.currentTime) || 0;
+
+        for (const voice of batch.voices)
+        {
+            if (voice.source && !voice.ended)
+            {
+                voice.source.onended = null;
+                try
+                {
+                    voice.source.stop(now);
+                }
+                catch
+                {
+                    // already stopped
+                }
+            }
+            voice.ended = true;
+        }
+        batch.state = "ended";
+        this.#DisposeEndedSlotVoices(record, slot);
+    }
+
+    /** Cancels one Trigger Rate traversal after an acquisition failure. */
+    #FailTriggerRateSlot(slot)
+    {
+        slot.continuation = null;
+        slot.exhausted = true;
+        slot.nextTriggerContextTime = null;
+        for (const batch of slot.batches?.values?.() ?? [])
+        {
+            if (batch.state === "loading"
+                || batch.state === "pending")
+            {
+                batch.state = "cancelled";
+                AbortTriggerRateBatch(batch);
+            }
+        }
+        this.#UpdateTriggerRateSlotState(slot);
+    }
+
+    /** Derives logical Trigger Rate activity from cadence, loads, and tails. */
+    #UpdateTriggerRateSlotState(slot)
+    {
+        const activeVoices = [ ...slot.voices ]
+            .filter(voice => !voice.ended);
+        const acquiring = [ ...slot.batches?.values?.() ?? [] ]
+            .some(batch =>
+                batch.state === "loading"
+                || batch.state === "pending");
+        const scheduled = Boolean(
+            slot.continuation
+            && !slot.broken
+            && !slot.exhausted
+            && Number.isFinite(slot.nextTriggerContextTime),
+        );
+
+        slot.voice = activeVoices[0] ?? null;
+        slot.state = activeVoices.length || acquiring || scheduled
+            ? "active"
+            : "ended";
+    }
+
+    /** Stops scheduling one traversal while preserving audible overlap tails. */
+    #ExhaustSfxProgramSlot(slot)
+    {
+        slot.continuation = null;
+        slot.exhausted = true;
+        slot.nextTriggerContextTime = null;
+        if (slot.advanceMode === "trigger-rate")
+        {
+            this.#UpdateTriggerRateSlotState(slot);
+        }
+        else
+        {
+            slot.state = [ ...slot.voices ].some(voice => !voice.ended)
+                ? "voice"
+                : "ended";
+        }
     }
 
     /** Disconnects completed voices before a long-running slot advances. */
@@ -2387,6 +3096,16 @@ export class CjsAudioBackend
             if (index !== -1)
             {
                 record.voices.splice(index, 1);
+            }
+        }
+        for (const [ id, batch ] of slot.batches ?? [])
+        {
+            if (batch !== slot.currentBatch
+                && (batch.state === "ended"
+                    || batch.state === "cancelled")
+                && [ ...batch.voices ].every(voice => voice.ended))
+            {
+                slot.batches.delete(id);
             }
         }
     }
@@ -2616,6 +3335,10 @@ export class CjsAudioBackend
             for (const slot of record.programSlots?.values?.() ?? [])
             {
                 AbortProgramSlot(slot);
+                for (const batch of slot.batches?.values?.() ?? [])
+                {
+                    AbortTriggerRateBatch(batch);
+                }
             }
 
             for (const voice of record.voices ?? [])
@@ -2839,6 +3562,9 @@ function CreateProgramSelectionMetadata(selection, baseContextTime)
     return Object.freeze({
         actionIndex: Number(selection.actionIndex),
         leafIndex: Number(selection.leafIndex),
+        ...(selection.programBatchId === undefined
+            ? {}
+            : { programBatchId: String(selection.programBatchId) }),
         actionTime: Number(baseContextTime)
             + Math.max(
                 0,
@@ -2858,6 +3584,79 @@ function CreateProgramSelectionControllers(selections)
     ]));
 }
 
+function CreateTriggerRateBatch(slot, overrides = {})
+{
+    const selections = overrides.selections ?? slot.selections;
+    const serial = Number(slot.batchSerial) || 0;
+
+    slot.batchSerial = serial + 1;
+    const id = String(
+        overrides.id
+        ?? selections?.[0]?.programBatchId
+        ?? `${slot.id}:b${serial}`,
+    );
+
+    return {
+        id,
+        actionTime: overrides.actionTime ?? slot.actionTime,
+        selections,
+        selectionControllers:
+            overrides.selectionControllers
+            ?? slot.selectionControllers,
+        cancelledSelectionKeys:
+            overrides.cancelledSelectionKeys
+            ?? slot.cancelledSelectionKeys,
+        controller: overrides.controller ?? slot.controller,
+        voices: new Set(),
+        state: overrides.state ?? slot.state,
+    };
+}
+
+function AbortTriggerRateBatch(batch)
+{
+    batch.controller?.abort();
+    for (const controller of batch.selectionControllers?.values?.() ?? [])
+    {
+        controller.abort();
+    }
+}
+
+function StopFiniteRepeatAtBoundary(voice, now)
+{
+    const duration = Number(voice.buffer?.duration);
+    const rate = Number(voice.playbackRate);
+
+    if (!voice.source
+        || !Number.isFinite(duration)
+        || duration <= 0
+        || !Number.isFinite(rate)
+        || rate <= 0)
+    {
+        return;
+    }
+    voice.stopping = true;
+    const elapsed = voice.offsetSeconds
+        + Math.max(
+            0,
+            now - voice.positionAnchorContextTime,
+        ) * rate;
+    const position = elapsed % duration;
+    const remaining = position === 0 && elapsed > 0
+        ? duration
+        : duration - position;
+    const boundaryBase = Math.max(now, voice.startContextTime);
+    const boundary = boundaryBase + remaining / rate;
+    const stopAt = voice.scheduledEndContextTime === null
+        ? boundary
+        : Math.max(
+            now,
+            Math.min(boundary, voice.scheduledEndContextTime),
+        );
+
+    voice.source.stop(stopAt);
+    voice.scheduledEndContextTime = stopAt;
+}
+
 function AbortProgramSlot(slot)
 {
     slot.controller?.abort();
@@ -2869,7 +3668,8 @@ function AbortProgramSlot(slot)
 
 function ProgramSelectionKey(value)
 {
-    return `${Number(value.actionIndex)}:${Number(value.leafIndex)}`;
+    return `${value.programBatchId ?? ""}:`
+        + `${Number(value.actionIndex)}:${Number(value.leafIndex)}`;
 }
 
 function NormalizeVoiceDescriptors(result, eventLoop)
@@ -2944,6 +3744,14 @@ function NormalizeVoiceDescriptors(result, eventLoop)
                 `Audio voice ${index} programSlotId must be a non-empty string`,
             );
         }
+        if (value.programBatchId !== undefined
+            && (typeof value.programBatchId !== "string"
+                || value.programBatchId.length === 0))
+        {
+            throw new TypeError(
+                `Audio voice ${index} programBatchId must be a non-empty string`,
+            );
+        }
         const actionIndex = Number(value.actionIndex ?? 0);
         const leafIndex = Number(value.leafIndex ?? index);
 
@@ -2993,6 +3801,9 @@ function NormalizeVoiceDescriptors(result, eventLoop)
             ...(value.programSlotId === undefined
                 ? {}
                 : { programSlotId: value.programSlotId }),
+            ...(value.programBatchId === undefined
+                ? {}
+                : { programBatchId: value.programBatchId }),
             getGain: typeof value.getGain === "function"
                 ? value.getGain
                 : () => (

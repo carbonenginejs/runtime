@@ -912,10 +912,20 @@ function LowerSfxGraph({
                 }
                 if (source.continuous
                     && source.transitionMode !== 0
-                    && source.transitionMode !== 3)
+                    && source.transitionMode !== 3
+                    && source.transitionMode !== 5)
                 {
                     throw new Error(
                         `unsupported continuous transition ${source.transitionMode} at ${id}`,
+                    );
+                }
+                if (source.continuous
+                    && source.transitionMode === 5
+                    && source.transitionTime
+                        + source.transitionTimeModMin < 21)
+                {
+                    throw new Error(
+                        `continuous trigger rate below 21ms at ${id}`,
                     );
                 }
 
@@ -955,7 +965,13 @@ function LowerSfxGraph({
 
                 node = {
                     type: source.type,
-                    scope: source.global ? "global" : "object",
+                    // Wwise applies Continuous playback per game object even
+                    // when the serialized container scope flag is global.
+                    scope: source.continuous
+                        ? "object"
+                        : source.global
+                            ? "global"
+                            : "object",
                     children,
                     ...(source.type === "random"
                         ? {
@@ -971,8 +987,11 @@ function LowerSfxGraph({
                                 loopCount: source.loopCount,
                                 transition: source.transitionMode === 3
                                     ? "delay"
-                                    : "disabled",
+                                    : source.transitionMode === 5
+                                        ? "trigger-rate"
+                                        : "disabled",
                                 ...(source.transitionMode === 3
+                                    || source.transitionMode === 5
                                     ? {
                                         transitionMs:
                                             source.transitionTime,

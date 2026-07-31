@@ -1443,7 +1443,7 @@ test("Continuous Random and Sequence containers preserve supported scheduling", 
 
     assert.deepEqual(random.nodes["201"], {
         type: "random",
-        scope: "global",
+        scope: "object",
         children: [ { nodeId: "200" } ],
         mode: "random",
         avoidRepeat: 0,
@@ -1476,6 +1476,34 @@ test("Continuous Random and Sequence containers preserve supported scheduling", 
             resetPlaylistEachPlay: true,
         },
     });
+
+    const triggerRate = build(randomSequencePayload({
+        childID: 200,
+        loopCount: 0,
+        transitionTime: 3000,
+        transitionTimeModMin: -1500,
+        transitionTimeModMax: 2000,
+        transitionMode: 5,
+        flags: 0x1a,
+    }));
+
+    assert.deepEqual(triggerRate.nodes["201"], {
+        type: "random",
+        scope: "object",
+        children: [ { nodeId: "200" } ],
+        mode: "random",
+        avoidRepeat: 0,
+        continuous: {
+            loopCount: 0,
+            transition: "trigger-rate",
+            transitionMs: 3000,
+            transitionRangeMs: {
+                min: -1500,
+                max: 2000,
+            },
+        },
+    });
+    assert.deepEqual(triggerRate.diagnostics.omittedEvents, []);
 
     const crossfade = build(randomSequencePayload({
         childID: 200,

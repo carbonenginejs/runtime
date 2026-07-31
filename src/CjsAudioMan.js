@@ -1243,6 +1243,7 @@ export class CjsAudioMan
                             programSlotId,
                             selection.actionIndex,
                             selection.leafIndex,
+                            selection.programBatchId,
                         )
                         ?? controls.signal;
 
@@ -1279,6 +1280,12 @@ export class CjsAudioMan
                             playbackRate: selection.playbackRate,
                             programSlotId: selection.programSlotId
                                 ?? `${selection.actionIndex}:${selection.leafIndex}`,
+                            ...(selection.programBatchId === undefined
+                                ? {}
+                                : {
+                                    programBatchId:
+                                        selection.programBatchId,
+                                }),
                             actionIndex: selection.actionIndex,
                             leafIndex: selection.leafIndex,
                             matchIds: selection.matchIds,

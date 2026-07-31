@@ -171,6 +171,24 @@ test("Continuous container scheduling is normalized and validated", () =>
         resetPlaylistEachPlay: false,
     });
 
+    graph.nodes[1].continuous.transition = "trigger-rate";
+    assert.deepEqual(
+        normalizeSfxGraph(
+            graph,
+            { 777: { sourceID: "loose:777" } },
+        ).nodes["1"].continuous,
+        {
+            loopCount: 4,
+            transition: "trigger-rate",
+            transitionMs: 5000,
+            transitionRangeMs: {
+                min: 0,
+                max: 15000,
+            },
+            resetPlaylistEachPlay: false,
+        },
+    );
+
     graph.nodes[1].continuous.loopCount = 32768;
     assert.throws(
         () => normalizeSfxGraph(
@@ -181,13 +199,31 @@ test("Continuous container scheduling is normalized and validated", () =>
     );
     graph.nodes[1].continuous.loopCount = 4;
 
+    graph.nodes[1].continuous.transitionMs = 20;
+    graph.nodes[1].continuous.transitionRangeMs = {
+        min: 0,
+        max: 100,
+    };
+    assert.throws(
+        () => normalizeSfxGraph(
+            graph,
+            { 777: { sourceID: "loose:777" } },
+        ),
+        /trigger-rate minimum must be at least 21ms/u,
+    );
+    graph.nodes[1].continuous.transitionMs = 5000;
+    graph.nodes[1].continuous.transitionRangeMs = {
+        min: 0,
+        max: 15000,
+    };
+
     graph.nodes[1].continuous.transition = "crossfade";
     assert.throws(
         () => normalizeSfxGraph(
             graph,
             { 777: { sourceID: "loose:777" } },
         ),
-        /transition must be disabled or delay/u,
+        /transition must be disabled, delay, or trigger-rate/u,
     );
 
     graph.nodes[1].continuous.transition = "disabled";

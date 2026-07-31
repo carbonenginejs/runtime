@@ -316,6 +316,1064 @@ test("Continuous slots wait for the whole batch and schedule authored Delay", as
   assert.equal(backend.GetPlayingCount(), 0);
 });
 
+test("Trigger Rate schedules overlapping batches from authored action times", async () =>
+{
+  const token = {};
+  const slot = "0:c0";
+  let advances = 0;
+  const play = (batch, mediaID, delayMs, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: slot,
+          programBatchId: `${slot}:b${batch}`,
+          delayMs,
+          matchIds: [ "10", String(mediaID) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: slot,
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play(0, 100, 100),
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return advances === 1
+        ? play(1, 200, 200, true)
+        : [];
+    },
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.selections.map(selection => ({
+          buffer: { duration: 2 },
+          delayMs: selection.delayMs,
+          programSlotId: selection.programSlotId,
+          programBatchId: selection.programBatchId,
+        }))),
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "trigger_rate",
+  );
+
+  await tick();
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].startedAt, 0.1);
+  assert.equal(backend.SeekOnEventMs(playingID, 250), false);
+  assert.equal(context.sources.length, 1);
+
+  context.currentTime = 0.599;
+  backend.RenderAudio();
+  await tick();
+  assert.equal(advances, 0);
+
+  context.currentTime = 0.6;
+  backend.RenderAudio();
+  await tick();
+  await tick();
+
+  assert.equal(advances, 1);
+  assert.equal(context.sources.length, 2);
+  assert.equal(context.sources[1].startedAt, 0.8);
+  assert.equal(
+    context.sources[0].stoppedAt,
+    null,
+    "the first voice keeps playing under the second trigger",
+  );
+
+  context.currentTime = 1.299;
+  backend.RenderAudio();
+  assert.equal(advances, 1);
+
+  context.currentTime = 1.3;
+  backend.RenderAudio();
+
+  assert.equal(advances, 1);
+  assert.deepEqual(finished, []);
+
+  context.sources[0].onended();
+  assert.deepEqual(finished, []);
+  context.sources[1].onended();
+
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("finite Trigger Rate finishes with its final tail, not another interval", async () =>
+{
+  const token = {};
+  const program = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b0",
+          matchIds: [ "10", "100" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+          doneAfterBatch: true,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => program,
+    continueSfxProgram: () => [],
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 0.1 },
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b0",
+        },
+      ],
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "trigger_rate",
+  );
+
+  await tick();
+  context.currentTime = 0.1;
+  context.sources[0].onended();
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("Trigger Rate cadence continues while earlier media is still loading", async () =>
+{
+  const token = {};
+  const pending = [ Deferred(), Deferred() ];
+  let advances = 0;
+  let loads = 0;
+  const play = (batch, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${batch}`,
+          matchIds: [ "10", String(100 + batch) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: () => play(0),
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return play(advances, advances === 2);
+    },
+    loadBuffer: (_eventID, _eventName, _controls, program) =>
+    {
+      const batch = program[0].selections[0].programBatchId;
+
+      if (loads++ === 0)
+      {
+        return Promise.resolve({
+          voices: [
+            {
+              buffer: { duration: 2 },
+              programSlotId: "0:c0",
+              programBatchId: batch,
+            },
+          ],
+        });
+      }
+      return pending[loads - 2].promise;
+    },
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "trigger_rate");
+  await tick();
+
+  context.currentTime = 0.5;
+  backend.RenderAudio();
+  await tick();
+  assert.equal(advances, 1);
+
+  context.currentTime = 1;
+  backend.RenderAudio();
+  await tick();
+  assert.equal(
+    advances,
+    2,
+    "the second boundary is not serialized behind the first cold load",
+  );
+
+  for (let index = 0; index < pending.length; index++)
+  {
+    pending[index].resolve({
+      voices: [
+        {
+          buffer: { duration: 1 },
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${index + 1}`,
+        },
+      ],
+    });
+  }
+  await tick();
+  await tick();
+  assert.equal(context.sources.length, 3);
+});
+
+test("a Trigger Rate source-start failure cleans its batch and settles", async () =>
+{
+  const token = {};
+  const initial = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b0",
+          matchIds: [ "10", "100" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+          doneAfterBatch: false,
+        },
+      ],
+    },
+  ];
+  const next = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [ 0, 1 ].map(leafIndex => ({
+        actionIndex: 0,
+        leafIndex,
+        programSlotId: "0:c0",
+        programBatchId: "0:c0:b1",
+        matchIds: [ "10", String(200 + leafIndex) ],
+      })),
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b1",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 0,
+          doneAfterBatch: true,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => initial,
+    continueSfxProgram: () => next,
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program[0].selections.map(selection => ({
+        buffer: { duration: 2 },
+        programSlotId: selection.programSlotId,
+        programBatchId: selection.programBatchId,
+      })),
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "trigger_rate",
+  );
+
+  await tick();
+  const createSource = context.createBufferSource;
+  let continuationCreates = 0;
+
+  context.createBufferSource = () =>
+  {
+    continuationCreates++;
+    if (continuationCreates === 2)
+    {
+      throw new Error("source start failed");
+    }
+    return createSource();
+  };
+
+  context.currentTime = 0.5;
+  backend.RenderAudio();
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 2);
+  assert.equal(context.sources[1].stoppedAt, 0.5);
+  assert.deepEqual(finished, []);
+
+  context.sources[0].onended();
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("an overdue Trigger Rate boundary rebases instead of replaying backlog", async () =>
+{
+  const token = {};
+  let advances = 0;
+  const play = batch => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+          doneAfterBatch: batch === 2,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: () => play(0),
+    continueSfxProgram: () => play(++advances),
+    loadBuffer: async () => ({ voices: [] }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "trigger_rate");
+  await tick();
+
+  context.currentTime = 5;
+  backend.RenderAudio();
+  backend.RenderAudio();
+  assert.equal(advances, 1);
+
+  context.currentTime = 5.499;
+  backend.RenderAudio();
+  assert.equal(advances, 1);
+
+  context.currentTime = 5.5;
+  backend.RenderAudio();
+  assert.equal(advances, 2);
+});
+
+test("silent Trigger Rate choices consume their authored cadence", async () =>
+{
+  const token = {};
+  let advances = 0;
+  const play = (batch, selections, doneAfterBatch) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections,
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: () => play(0, [], false),
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return advances < 3
+        ? play(advances, [], false)
+        : play(3, [
+            {
+              actionIndex: 0,
+              leafIndex: 0,
+              programSlotId: "0:c0",
+              programBatchId: "0:c0:b3",
+              matchIds: [ "10", "100" ],
+            },
+          ], true);
+    },
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program[0].selections.map(selection => ({
+        buffer: { duration: 1 },
+        programSlotId: selection.programSlotId,
+        programBatchId: selection.programBatchId,
+      })),
+    }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "trigger_rate");
+  await tick();
+
+  context.currentTime = 0.499;
+  backend.RenderAudio();
+  assert.equal(advances, 0);
+
+  context.currentTime = 0.5;
+  backend.RenderAudio();
+  assert.equal(advances, 1);
+  assert.equal(context.sources.length, 0);
+
+  context.currentTime = 1;
+  backend.RenderAudio();
+  assert.equal(advances, 2);
+  assert.equal(context.sources.length, 0);
+
+  context.currentTime = 1.5;
+  backend.RenderAudio();
+  await tick();
+  await tick();
+  assert.equal(advances, 3);
+  assert.equal(context.sources.length, 1);
+});
+
+test("missing initial Trigger Rate media fails the traversal closed", async () =>
+{
+  const token = {};
+  let advances = 0;
+  const program = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b0",
+          matchIds: [ "10", "100" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+          doneAfterBatch: false,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => program,
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return program;
+    },
+    loadBuffer: async () => ({ voices: [] }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "trigger_rate",
+  );
+
+  await tick();
+  assert.deepEqual(finished, [ playingID ]);
+
+  context.currentTime = 0.5;
+  backend.RenderAudio();
+  assert.equal(advances, 0);
+});
+
+test("Stop-All ends an all-silent Trigger Rate traversal", async () =>
+{
+  const token = {};
+  const silent = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+          doneAfterBatch: false,
+        },
+      ],
+    },
+  ];
+  const stopAll = [
+    {
+      kind: "stop",
+      actionIndex: 0,
+      targetId: null,
+      scope: "game-object",
+      mode: "all",
+      delayMs: 0,
+      transitionMs: 0,
+      curve: 4,
+      exceptions: [],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: (_eventID, eventName) =>
+      eventName === "stop_all" ? stopAll : silent,
+    continueSfxProgram: () => silent,
+    loadBuffer: async () => ({ voices: [] }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "trigger_rate",
+  );
+
+  await tick();
+  context.currentTime = 0.25;
+  backend.PostEvent(8, 1, 0, emitter, "stop_all");
+  await tick();
+
+  assert.ok(finished.includes(playingID));
+  context.currentTime = 0.5;
+  backend.RenderAudio();
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("Break preserves active Trigger Rate overlap and cancels its cadence", async () =>
+{
+  const token = {};
+  let advances = 0;
+  const play = batch => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${batch}`,
+          matchIds: [ "10", String(100 + batch) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play(0),
+    continueSfxProgram: () => play(++advances),
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program[0].selections.map(selection => ({
+        buffer: { duration: 2 },
+        programSlotId: selection.programSlotId,
+        programBatchId: selection.programBatchId,
+      })),
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "trigger_rate",
+  );
+
+  await tick();
+  context.currentTime = 0.5;
+  backend.RenderAudio();
+  await tick();
+  await tick();
+  assert.equal(context.sources.length, 2);
+
+  context.currentTime = 0.7;
+  backend.ExecuteActionOnPlayingID("break", playingID, 0);
+
+  assert.equal(context.sources[0].stoppedAt, null);
+  assert.equal(context.sources[1].stoppedAt, null);
+
+  context.currentTime = 2;
+  backend.RenderAudio();
+  assert.equal(advances, 1);
+
+  context.sources[0].onended();
+  assert.deepEqual(finished, []);
+  context.sources[1].onended();
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("Seek skips Trigger Rate descendants but restarts an ordinary sibling", async () =>
+{
+  const token = {};
+  const program = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b0",
+          matchIds: [ "10", "100" ],
+        },
+        {
+          actionIndex: 0,
+          leafIndex: 1,
+          programSlotId: "0:1",
+          matchIds: [ "200" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 0,
+          doneAfterBatch: true,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: () => program,
+    continueSfxProgram: () => [],
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 2 },
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b0",
+        },
+        {
+          buffer: { duration: 2 },
+          programSlotId: "0:1",
+        },
+      ],
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "mixed_seek",
+  );
+
+  await tick();
+  assert.equal(context.sources.length, 2);
+  assert.equal(backend.SeekOnEventMs(playingID, 500), true);
+  assert.equal(context.sources.length, 3);
+  assert.equal(
+    context.sources[0].stoppedAt,
+    null,
+    "the Trigger Rate child is not restarted",
+  );
+  assert.equal(context.sources[2].offset, 0.5);
+});
+
+test("a fast Trigger Rate continuation cannot consume a pending mixed seek", async () =>
+{
+  const token = {};
+  const initial = Deferred();
+  const program = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b0",
+          matchIds: [ "10", "100" ],
+        },
+        {
+          actionIndex: 0,
+          leafIndex: 1,
+          programSlotId: "0:1",
+          matchIds: [ "200" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+          doneAfterBatch: false,
+        },
+      ],
+    },
+  ];
+  const continuation = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b1",
+          matchIds: [ "10", "101" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          programBatchId: "0:c0:b1",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 0,
+          doneAfterBatch: true,
+        },
+      ],
+    },
+  ];
+  let loads = 0;
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: () => program,
+    continueSfxProgram: () => continuation,
+    loadBuffer: async (_eventID, _eventName, _controls, value) =>
+    {
+      if (loads++ === 0)
+      {
+        return initial.promise;
+      }
+      const selection = value[0].selections[0];
+
+      return {
+        voices: [
+          {
+            buffer: { duration: 2 },
+            programSlotId: selection.programSlotId,
+            programBatchId: selection.programBatchId,
+          },
+        ],
+      };
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "mixed_seek",
+  );
+
+  assert.equal(backend.SeekOnEventMs(playingID, 500), true);
+  context.currentTime = 0.5;
+  backend.RenderAudio();
+  await tick();
+  await tick();
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].offset, 0);
+
+  initial.resolve({
+    voices: [
+      {
+        buffer: { duration: 2 },
+        programSlotId: "0:c0",
+        programBatchId: "0:c0:b0",
+      },
+      {
+        buffer: { duration: 2 },
+        programSlotId: "0:1",
+      },
+    ],
+  });
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 3);
+  assert.equal(
+    context.sources[2].offset,
+    0.5,
+    "the ordinary sibling consumes the queued seek",
+  );
+});
+
+test("Stop aborts a loading Trigger Rate batch without reviving it", async () =>
+{
+  const pending = Deferred();
+  const token = {};
+  let loads = 0;
+  let continuationSignal = null;
+  const play = batch => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${batch}`,
+          matchIds: [ "10", String(100 + batch) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play(0),
+    continueSfxProgram: () => play(1),
+    loadBuffer: (_eventID, _eventName, controls, program) =>
+    {
+      loads++;
+      if (loads === 1)
+      {
+        return Promise.resolve({
+          voices: [
+            {
+              buffer: { duration: 2 },
+              programSlotId: "0:c0",
+              programBatchId: "0:c0:b0",
+            },
+          ],
+        });
+      }
+      continuationSignal = controls.getSfxProgramSignal(
+        "0:c0",
+        0,
+        0,
+        program[0].selections[0].programBatchId,
+      );
+      return pending.promise;
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "trigger_rate",
+  );
+
+  await tick();
+  context.currentTime = 0.5;
+  backend.RenderAudio();
+  await tick();
+  assert.equal(loads, 2);
+  assert.equal(continuationSignal.aborted, false);
+
+  backend.ExecuteActionOnPlayingID("stop", playingID, 0);
+
+  assert.equal(continuationSignal.aborted, true);
+  pending.resolve({
+    voices: [
+      {
+        buffer: { duration: 2 },
+        programSlotId: "0:c0",
+        programBatchId: "0:c0:b1",
+      },
+    ],
+  });
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  context.sources[0].onended();
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("targeted Stop cancels one loading Trigger Rate child, not its cadence", async () =>
+{
+  const token = {};
+  const pending = Deferred();
+  let advances = 0;
+  let cancelledSignal = null;
+  const play = (batch, mediaID, doneAfterBatch = false) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${batch}`,
+          matchIds: [ "10", String(mediaID) ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: 500,
+          doneAfterBatch,
+        },
+      ],
+    },
+  ];
+  const stop = [
+    {
+      kind: "stop",
+      actionIndex: 0,
+      targetId: "200",
+      scope: "game-object",
+      mode: "element",
+      delayMs: 0,
+      transitionMs: 0,
+      curve: 4,
+      exceptions: [],
+    },
+  ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: (_eventID, eventName) =>
+      eventName === "stop_child"
+        ? stop
+        : play(0, 100),
+    continueSfxProgram: () =>
+    {
+      advances++;
+      return advances === 1
+        ? play(1, 200)
+        : play(2, 300, true);
+    },
+    loadBuffer: (_eventID, eventName, controls, program) =>
+    {
+      if (eventName === "stop_child")
+      {
+        return Promise.resolve({ voices: [] });
+      }
+      const selection = program[0].selections[0];
+
+      if (selection.programBatchId === "0:c0:b1")
+      {
+        cancelledSignal = controls.getSfxProgramSignal(
+          "0:c0",
+          0,
+          0,
+          selection.programBatchId,
+        );
+        return pending.promise;
+      }
+      return Promise.resolve({
+        voices: [
+          {
+            buffer: { duration: 2 },
+            programSlotId: selection.programSlotId,
+            programBatchId: selection.programBatchId,
+          },
+        ],
+      });
+    },
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "trigger_rate");
+  await tick();
+
+  context.currentTime = 0.5;
+  backend.RenderAudio();
+  await tick();
+  assert.equal(cancelledSignal.aborted, false);
+
+  context.currentTime = 0.75;
+  backend.PostEvent(8, 1, 0, emitter, "stop_child");
+  await tick();
+  assert.equal(cancelledSignal.aborted, true);
+
+  context.currentTime = 1;
+  backend.RenderAudio();
+  await tick();
+  await tick();
+  assert.equal(advances, 2);
+  assert.equal(
+    context.sources.length,
+    2,
+    "the initial and later child play; the cancelled child does not",
+  );
+
+  pending.resolve({
+    voices: [
+      {
+        buffer: { duration: 1 },
+        programSlotId: "0:c0",
+        programBatchId: "0:c0:b1",
+      },
+    ],
+  });
+  await tick();
+  assert.equal(context.sources.length, 2);
+});
+
 test("Break lets the active Continuous object loop out without advancing", async () =>
 {
   const token = {};
@@ -376,6 +1434,67 @@ test("Break lets the active Continuous object loop out without advancing", async
   await tick();
 
   assert.equal(advances, 0);
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("Break ends a Continuous finite-repeat child at its current boundary", async () =>
+{
+  const token = {};
+  const program = [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          matchIds: [ "10", "100" ],
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          token,
+          delayMs: 0,
+          doneAfterBatch: true,
+        },
+      ],
+    },
+  ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => program,
+    continueSfxProgram: () => [],
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 1 },
+          playCount: 3,
+          programSlotId: "0:c0",
+        },
+      ],
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous_repeat",
+  );
+
+  await tick();
+  context.currentTime = 0.4;
+  backend.ExecuteActionOnPlayingID("break", playingID, 0);
+
+  assert.ok(
+    Math.abs(
+      context.sources[0].stoppedAt
+        - (START_QUANTUM + 1),
+    ) < 1e-9,
+  );
+  context.currentTime = START_QUANTUM + 1;
+  context.sources[0].onended();
   assert.deepEqual(finished, [ playingID ]);
 });
 

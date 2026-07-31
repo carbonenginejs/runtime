@@ -5,7 +5,8 @@ const RTPC_SCOPES = new Set(["global", "object"]);
 const RTPC_PROPERTY_SCALING = new Map([["highPass", 0], ["initialDelay", 0], ["lowPass", 0], ["pitch", 0], ["volume", 2]]);
 const CONTAINER_SCOPES = new Set(["global", "object"]);
 const RANDOM_MODES = new Set(["random", "shuffle"]);
-const CONTINUOUS_TRANSITIONS = new Set(["delay", "disabled"]);
+const CONTINUOUS_TRANSITIONS = new Set(["delay", "disabled", "trigger-rate"]);
+const MIN_TRIGGER_RATE_MS = 21;
 const EVENT_ACTION_KINDS = new Set(["state", "switch"]);
 const STOP_SCOPES = new Set(["game-object", "global"]);
 const STOP_MODES = new Set(["all", "all-except", "element"]);
@@ -255,7 +256,7 @@ function NormalizeContinuousContainer(value, type) {
     loopCount: Number(value.loopCount),
     transition: value.transition
   };
-  if (value.transition === "delay") {
+  if (value.transition === "delay" || value.transition === "trigger-rate") {
     result.transitionMs = Number(value.transitionMs ?? 0);
     if (value.transitionRangeMs !== undefined) {
       result.transitionRangeMs = {
@@ -276,7 +277,7 @@ function ValidateContinuousContainer(value, label, type) {
     throw new TypeError(`${label} loopCount must not exceed 32767`);
   }
   if (!CONTINUOUS_TRANSITIONS.has(continuous.transition)) {
-    throw new TypeError(`${label} transition must be disabled or delay`);
+    throw new TypeError(`${label} transition must be disabled, delay, or trigger-rate`);
   }
   if (continuous.transition === "disabled") {
     if (continuous.transitionMs !== undefined || continuous.transitionRangeMs !== undefined) {
@@ -287,6 +288,7 @@ function ValidateContinuousContainer(value, label, type) {
     if (transitionMs < 0) {
       throw new TypeError(`${label} transitionMs must be non-negative`);
     }
+    let minimumTransitionMs = transitionMs;
     if (continuous.transitionRangeMs !== undefined) {
       const range = RequireRecord(continuous.transitionRangeMs, `${label} transitionRangeMs`);
       const min = NormalizeFiniteNumber(range.min, `${label} transitionRangeMs min`);
@@ -294,6 +296,10 @@ function ValidateContinuousContainer(value, label, type) {
       if (max < min) {
         throw new TypeError(`${label} transitionRangeMs max must be at least min`);
       }
+      minimumTransitionMs += min;
+    }
+    if (continuous.transition === "trigger-rate" && minimumTransitionMs < MIN_TRIGGER_RATE_MS) {
+      throw new TypeError(`${label} trigger-rate minimum must be at least ` + `${MIN_TRIGGER_RATE_MS}ms`);
     }
   }
   if (type === "sequence" && continuous.resetPlaylistEachPlay !== undefined && typeof continuous.resetPlaylistEachPlay !== "boolean") {

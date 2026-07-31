@@ -302,7 +302,7 @@ are preserved by `runtime-resource`, but the builder does not currently infer
 caller metadata, or enrichment.
 
 Automatic construction currently accepts Wwise generator-version-150 codec
-sounds, Play, Stop, Play-Event, SetSwitch, and SetState actions, Step
+sounds, Play, Stop, Play-Event, SetSwitch, and SetState actions,
 Random/Sequence containers without reverse restart, and named Step
 Switch/State containers without transition parameters. Play actions retain
 their authored delay, delay randomizer, probability, fade-in duration,
@@ -314,8 +314,10 @@ or Stop program is omitted rather than executing that non-play action early.
 Missing targets and cycles are diagnosed and omitted.
 Successfully lowered nodes also retain inherited NodeBase Volume, Pitch, and
 InitialDelay properties. Their independent authored random ranges are sampled
-once per post; Volume accumulates in decibels, Pitch becomes a Web Audio
-playback-rate ratio, and InitialDelay is added to the Play action delay.
+when that node is selected. An ordinary node is selected once per post, while
+a Continuous child is selected again for each child batch. Volume accumulates
+in decibels, Pitch becomes a Web Audio playback-rate ratio, and InitialDelay is
+added to the Play action delay.
 Hierarchy-only Actor-Mixer values are folded into the nearest playable node
 without turning the mixer into a playable container.
 Trackless, non-continuous Layer/Blend containers lower to parallel playback.
@@ -324,12 +326,38 @@ when their controller is a named Game Parameter and the Layer has no separate
 property RTPCs.
 Transition and reset-after-stop policies authored on a Step Random/Sequence
 container are Continuous-only and therefore do not alter its
-one-child-per-post behavior. The builder omits an entire playable event when
-that event mixes other unsupported actions or reaches an unsupported playable
-node; the optional diagnostics callback explains each omission. Continuous
-scheduling, Play-and-Continue, playable Actor-Mixer approximation, authored
-continuous Layers, Layer property RTPCs, and other unqualified HIRC semantics
-are never silently
+one-child-per-post behavior.
+
+Continuous Random/Sequence containers support Disabled, Delay, and Trigger
+Rate transitions. Disabled and Delay advance after the complete selected
+child batch ends; Delay then applies its independently sampled authored
+duration. Trigger Rate advances from the Web Audio clock, samples one duration
+for each selected child that has a successor, adds the selected child's
+Initial Delay, and permits earlier voices to overlap. This per-boundary
+sampling is runtime-audio's deterministic Wwise-compatible policy. Media
+acquisition does not serialize the cadence. If `RenderAudio()` arrives after
+a boundary, the runtime issues that boundary once and rebases the next one
+from current audio time instead of replaying a burst of missed triggers.
+Silent selected branches still consume their interval; a selected media leaf
+that cannot be acquired ends that traversal fail-closed.
+
+Continuous playback is object-scoped. Finite pass counts complete after every
+overlapping tail ends, without waiting through a nonexistent final interval.
+Break cancels pending and future selections while allowing active children to
+finish their current iteration. Seek ignores only voices below a Trigger Rate
+container, so unrelated siblings in the same event remain seekable. Active
+Trigger Rate children receive runtime-audio's normal per-voice Stop fade; this
+is a browser adaptation of Wwise's restricted Trigger Rate Stop propagation.
+Duration RTPC modulation is not projected. Graphs whose minimum randomized
+Trigger Rate interval is below 21 ms are rejected to avoid unbounded browser
+voice production.
+
+The builder omits an entire playable event when that event mixes other
+unsupported actions or reaches an unsupported playable node; the optional
+diagnostics callback explains each omission. Crossfade and Sample Accurate
+Continuous transitions, nested Continuous containers, Play-and-Continue,
+playable Actor-Mixer approximation, authored continuous Layers, Layer
+property RTPCs, and other unqualified HIRC semantics are never silently
 approximated.
 
 For events that do lower, the builder walks every possible typed graph branch

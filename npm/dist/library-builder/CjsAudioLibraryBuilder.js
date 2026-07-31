@@ -631,8 +631,11 @@ function LowerSfxGraph({
         if (source.continuous && source.loopCount > 32767) {
           throw new Error(`continuous loop count exceeds 32767 at ${id}`);
         }
-        if (source.continuous && source.transitionMode !== 0 && source.transitionMode !== 3) {
+        if (source.continuous && source.transitionMode !== 0 && source.transitionMode !== 3 && source.transitionMode !== 5) {
           throw new Error(`unsupported continuous transition ${source.transitionMode} at ${id}`);
+        }
+        if (source.continuous && source.transitionMode === 5 && source.transitionTime + source.transitionTimeModMin < 21) {
+          throw new Error(`continuous trigger rate below 21ms at ${id}`);
         }
         const playlist = source.playlist.length ? source.playlist : source.children.map(playId => ({
           playId,
@@ -658,7 +661,9 @@ function LowerSfxGraph({
         }
         node = {
           type: source.type,
-          scope: source.global ? "global" : "object",
+          // Wwise applies Continuous playback per game object even
+          // when the serialized container scope flag is global.
+          scope: source.continuous ? "object" : source.global ? "global" : "object",
           children,
           ...(source.type === "random" ? {
             mode: source.randomMode === 1 ? "shuffle" : "random",
@@ -667,8 +672,8 @@ function LowerSfxGraph({
           ...(source.continuous ? {
             continuous: {
               loopCount: source.loopCount,
-              transition: source.transitionMode === 3 ? "delay" : "disabled",
-              ...(source.transitionMode === 3 ? {
+              transition: source.transitionMode === 3 ? "delay" : source.transitionMode === 5 ? "trigger-rate" : "disabled",
+              ...(source.transitionMode === 3 || source.transitionMode === 5 ? {
                 transitionMs: source.transitionTime,
                 ...(source.transitionTimeModMin !== 0 || source.transitionTimeModMax !== 0 ? {
                   transitionRangeMs: {

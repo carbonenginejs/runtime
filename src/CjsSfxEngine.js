@@ -83,6 +83,7 @@ export class CjsSfxEngine
                         actionIndex: _actionIndex,
                         leafIndex: _leafIndex,
                         matchIds: _matchIds,
+                        programBatchId: _programBatchId,
                         ...selection
                     }) => Object.freeze(selection))
                     : []);
@@ -160,17 +161,39 @@ export class CjsSfxEngine
             {
                 const branch = continuousBranches[index];
                 const programSlotId = `${actionIndex}:c${index}`;
+                const programBatchId =
+                    `${programSlotId}:b${branch.token.batchIndex++}`;
+                const hasMore = this.#ContinuousHasMore(
+                    branch.token,
+                );
 
                 branch.token.actionIndex = actionIndex;
                 branch.token.programSlotId = programSlotId;
                 resolved.push(...branch.selections.map(selection => ({
                     ...selection,
                     programSlotId,
+                    programBatchId,
                 })));
                 continuations.push(Object.freeze({
                     programSlotId,
+                    programBatchId,
                     token: branch.token,
-                    delayMs: 0,
+                    containerId: branch.token.nodeID,
+                    delayMs:
+                        branch.token.node.continuous.transition
+                            === "trigger-rate"
+                            && hasMore
+                            ? this.#SampleContinuousTransition(
+                                branch.token,
+                            )
+                            : 0,
+                    doneAfterBatch: !hasMore,
+                    ...(
+                        branch.token.node.continuous.transition
+                            === "trigger-rate"
+                            ? { advance: "trigger-rate" }
+                            : {}
+                    ),
                 }));
             }
             operations.push(Object.freeze({
@@ -261,7 +284,12 @@ export class CjsSfxEngine
         {
             return Object.freeze([]);
         }
-        const delayMs = token.node.continuous.transition === "delay"
+        const transition = token.node.continuous.transition;
+        const programBatchId =
+            `${token.programSlotId}:b${token.batchIndex++}`;
+        const hasMore = this.#ContinuousHasMore(token);
+        const delayMs = transition === "delay"
+            || (hasMore && transition === "trigger-rate")
             ? SampleRandomizedValue(
                 token.node.continuous.transitionMs,
                 token.node.continuous.transitionRangeMs,
@@ -278,17 +306,46 @@ export class CjsSfxEngine
                         actionIndex: token.actionIndex,
                         leafIndex,
                         programSlotId: token.programSlotId,
+                        programBatchId,
                     }),
                 )),
                 continuations: Object.freeze([
                     Object.freeze({
                         programSlotId: token.programSlotId,
+                        programBatchId,
                         token,
+                        containerId: token.nodeID,
                         delayMs,
+                        doneAfterBatch: !hasMore,
+                        ...(transition === "trigger-rate"
+                            ? { advance: "trigger-rate" }
+                            : {}),
                     }),
                 ]),
             }),
         ]);
+    }
+
+    /** Samples one authored Continuous transition duration. */
+    #SampleContinuousTransition(token)
+    {
+        return SampleRandomizedValue(
+            token.node.continuous.transitionMs,
+            token.node.continuous.transitionRangeMs,
+            () => this.#SampleUnit(),
+        );
+    }
+
+    /** Returns whether a selected Continuous child has a successor. */
+    #ContinuousHasMore(token)
+    {
+        if (token.remainingInPass > 0)
+        {
+            return true;
+        }
+        const loopCount = Number(token.node.continuous.loopCount);
+
+        return loopCount === 0 || token.passCount < loopCount;
     }
 
     /**
@@ -684,6 +741,7 @@ export class CjsSfxEngine
                 : 0,
             actionIndex: -1,
             programSlotId: "",
+            batchIndex: 0,
             done: false,
         };
 

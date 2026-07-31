@@ -825,7 +825,7 @@ class CjsAudioMan {
       }
       const buffers = await Promise.all(selections.map(selection => {
         const programSlotId = selection.programSlotId ?? `${selection.actionIndex}:${selection.leafIndex}`;
-        const selectionSignal = controls.getSfxProgramSignal?.(programSlotId, selection.actionIndex, selection.leafIndex) ?? controls.signal;
+        const selectionSignal = controls.getSfxProgramSignal?.(programSlotId, selection.actionIndex, selection.leafIndex, selection.programBatchId) ?? controls.signal;
         return this.LoadMedia(selection.mediaID, {
           signal: selectionSignal
         }).catch(error => {
@@ -850,6 +850,9 @@ class CjsAudioMan {
           }),
           playbackRate: selection.playbackRate,
           programSlotId: selection.programSlotId ?? `${selection.actionIndex}:${selection.leafIndex}`,
+          ...(selection.programBatchId === undefined ? {} : {
+            programBatchId: selection.programBatchId
+          }),
           actionIndex: selection.actionIndex,
           leafIndex: selection.leafIndex,
           matchIds: selection.matchIds,

@@ -365,6 +365,10 @@ class AudioLibrary
         {
             return "One post traverses the authored Continuous Random playlist. Each child begins only after the previous child finishes and its independently randomized Wwise Delay expires. Reset stops the active traversal.";
         }
+        if (type === "continuous random trigger rate")
+        {
+            return "One post traverses the authored Continuous Random playlist on its Wwise Trigger Rate clock. A new child starts after the authored interval plus that child's Initial Delay, so longer sounds deliberately overlap. Reset stops future triggers and the active voices.";
+        }
         if (type === "continuous random")
         {
             return "One post traverses the authored Continuous Random playlist, selecting the next child at each completion boundary with its Random or Shuffle and repeat-avoidance rules. Reset stops the active traversal.";
@@ -461,6 +465,12 @@ class AudioLibrary
                 preferred: [ "space_cathedral_play" ],
                 matches: name => this.SfxContinuousTypes(name)
                     .includes("random:delay"),
+            },
+            {
+                type: "continuous random trigger rate",
+                preferred: [ "OSSE_amarr_running_lights_play" ],
+                matches: name => this.SfxContinuousTypes(name)
+                    .includes("random:trigger-rate"),
             },
             {
                 type: "continuous random",

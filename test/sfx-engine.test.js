@@ -690,6 +690,68 @@ test("Continuous Sequence advances whole child batches with authored Delay", () 
     );
 });
 
+test("Continuous Trigger Rate samples only intervals with a next child", () =>
+{
+    const samples = [ 0.25, 0.75 ];
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { rapid: [ 1 ] },
+            {
+                1: {
+                    type: "sequence",
+                    children: [ 10, 11 ],
+                    continuous: {
+                        loopCount: 1,
+                        transition: "trigger-rate",
+                        transitionMs: 500,
+                        transitionRangeMs: {
+                            min: -100,
+                            max: 100,
+                        },
+                        resetPlaylistEachPlay: true,
+                    },
+                },
+                10: { type: "sound", mediaId: 100 },
+                11: { type: "sound", mediaId: 200 },
+            },
+        ),
+        random: () => samples.shift(),
+    });
+    const first = engine.ResolveProgram(
+        "rapid",
+        { gameObjID: 7 },
+    )[0];
+    const continuation = first.continuations[0];
+
+    assert.equal(first.selections[0].mediaID, "100");
+    assert.equal(continuation.advance, "trigger-rate");
+    assert.equal(continuation.programBatchId, "0:c0:b0");
+    assert.equal(continuation.delayMs, 450);
+    assert.equal(continuation.doneAfterBatch, false);
+
+    const second = engine.ContinueProgram(
+        continuation.token,
+        { gameObjID: 7 },
+    )[0];
+
+    assert.equal(second.selections[0].mediaID, "200");
+    assert.equal(second.continuations[0].advance, "trigger-rate");
+    assert.equal(
+        second.continuations[0].programBatchId,
+        "0:c0:b1",
+    );
+    assert.equal(second.continuations[0].delayMs, 0);
+    assert.equal(second.continuations[0].doneAfterBatch, true);
+    assert.deepEqual(samples, [ 0.75 ]);
+    assert.deepEqual(
+        engine.ContinueProgram(
+            continuation.token,
+            { gameObjID: 7 },
+        ),
+        [],
+    );
+});
+
 test("interrupted Continuous Sequence resumes only when reset is disabled", () =>
 {
     const graph = resetPlaylistEachPlay => Graph(

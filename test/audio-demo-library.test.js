@@ -228,10 +228,29 @@ test("committed demo library carries authored SFX and music semantics", () =>
             && node.continuous.transition === "disabled"),
         "the demo carries an exact completion-driven Continuous Sequence example",
     );
-    assert.equal(
-        graph.events.OSSE_amarr_running_lights_play,
-        undefined,
-        "Trigger Rate remains fail-closed until overlap scheduling exists",
+    const triggerRateEvents = [
+        "OSSE_amarr_running_lights_play",
+        "OSSE_gallente_running_lights_play",
+        "chjita_initial_docking_entrance_lights_play",
+        "dot_explosions_1_play",
+        "dot_explosions_2_play",
+        "dot_explosions_3_play",
+        "dot_explosions_4_play",
+        "dot_explosions_5_play",
+    ];
+
+    assert.ok(
+        triggerRateEvents.every(eventName =>
+            continuousNodes(eventName).some(node =>
+                node.continuous.transition === "trigger-rate")),
+        "the demo carries every currently lowerable exact Trigger Rate event",
+    );
+    assert.ok(
+        continuousNodes("OSSE_amarr_running_lights_play").some(node =>
+            node.type === "random"
+            && node.scope === "object"
+            && node.continuous.transitionMs === 2300),
+        "the demo carries an exact object-scoped Trigger Rate example",
     );
     assert.equal(
         graph.events.drone_grown_infested_structure_large_play,

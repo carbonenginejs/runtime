@@ -19,7 +19,12 @@ const RTPC_PROPERTY_SCALING = new Map([
 ]);
 const CONTAINER_SCOPES = new Set([ "global", "object" ]);
 const RANDOM_MODES = new Set([ "random", "shuffle" ]);
-const CONTINUOUS_TRANSITIONS = new Set([ "delay", "disabled" ]);
+const CONTINUOUS_TRANSITIONS = new Set([
+    "delay",
+    "disabled",
+    "trigger-rate",
+]);
+const MIN_TRIGGER_RATE_MS = 21;
 const EVENT_ACTION_KINDS = new Set([ "state", "switch" ]);
 const STOP_SCOPES = new Set([ "game-object", "global" ]);
 const STOP_MODES = new Set([ "all", "all-except", "element" ]);
@@ -509,7 +514,8 @@ function NormalizeContinuousContainer(value, type)
         transition: value.transition,
     };
 
-    if (value.transition === "delay")
+    if (value.transition === "delay"
+        || value.transition === "trigger-rate")
     {
         result.transitionMs = Number(value.transitionMs ?? 0);
         if (value.transitionRangeMs !== undefined)
@@ -545,7 +551,7 @@ function ValidateContinuousContainer(value, label, type)
     if (!CONTINUOUS_TRANSITIONS.has(continuous.transition))
     {
         throw new TypeError(
-            `${label} transition must be disabled or delay`,
+            `${label} transition must be disabled, delay, or trigger-rate`,
         );
     }
     if (continuous.transition === "disabled")
@@ -571,6 +577,8 @@ function ValidateContinuousContainer(value, label, type)
                 `${label} transitionMs must be non-negative`,
             );
         }
+        let minimumTransitionMs = transitionMs;
+
         if (continuous.transitionRangeMs !== undefined)
         {
             const range = RequireRecord(
@@ -592,6 +600,15 @@ function ValidateContinuousContainer(value, label, type)
                     `${label} transitionRangeMs max must be at least min`,
                 );
             }
+            minimumTransitionMs += min;
+        }
+        if (continuous.transition === "trigger-rate"
+            && minimumTransitionMs < MIN_TRIGGER_RATE_MS)
+        {
+            throw new TypeError(
+                `${label} trigger-rate minimum must be at least `
+                + `${MIN_TRIGGER_RATE_MS}ms`,
+            );
         }
     }
     if (type === "sequence"
