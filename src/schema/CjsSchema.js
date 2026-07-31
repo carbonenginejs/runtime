@@ -349,12 +349,12 @@ function fieldDecorator(namespace, value)
             if (context.kind !== "field") throw new TypeError("CjsSchema decorators only support class fields.");
             recordStage3FieldMetadata(context, namespace, value);
 
-            // Register field metadata on instance construction. addInitializer covers
-            // spec-compliant runtimes; the returned field initializer covers runtimes (e.g.
-            // Deno/SWC) that do NOT fire field-decorator addInitializer. Both register the same
-            // metadata (idempotent via mergeNamespace), so whichever the runtime honours, the
-            // schema is populated. Registration is lazy (first construction); the class decorator
-            // still registers the class eagerly at definition time.
+            // The class decorator replays the Stage-3 metadata recorded above, so
+            // schema inspection works before the first instance is constructed.
+            // Keep both runtime initializers as fallbacks: addInitializer covers
+            // spec-compliant runtimes, while the returned field initializer covers
+            // runtimes that do not fire field-decorator addInitializer. All paths
+            // register the same metadata idempotently through mergeNamespace.
             context.addInitializer(function initializeSchemaField()
             {
                 defineFieldMetadata(this.constructor, context.name, namespace, value);
