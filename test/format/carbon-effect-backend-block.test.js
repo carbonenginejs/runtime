@@ -341,11 +341,24 @@ test("the container reader honours the backend gate", () =>
         sampleBlock().bindGroups[0].bindings.map((binding) => binding.generatedSymbol)
     );
 
-    // Negative control: the same bytes read with the gate closed must fail. If
-    // this succeeded, honouring the option would be unobservable and the test
-    // would pass just as happily against the defect it was written for.
+    // Negative control: the same bytes read with the gate explicitly closed must
+    // fail. If this succeeded, honouring the option would be unobservable and the
+    // test would pass just as happily against the defect it was written for.
+    //
+    // `{ backend: false }` rather than a bare call, and the difference is not
+    // cosmetic. Omitting the option used to mean "gate closed"; it now means
+    // "detect from the blob's declared end", which is what replaced the envelope.
+    // A bare call therefore succeeds, and using it here would silently retire this
+    // control -- the exact way a check stops being able to fail.
     assert.throws(
-        () => reader.readDescription(0),
+        () => reader.readDescription(0, { backend: false }),
         /trailing byte|Invalid string-table offset|beyond|exceeds/iu
+    );
+
+    // And detection reaches the same answer as being told, which is the property
+    // that lets the container carry no envelope, no payload tag and no version.
+    assert.deepEqual(
+        reader.readDescription(0).techniques[0].passes[0].backendBlock.bytes,
+        resolved.bytes
     );
 });

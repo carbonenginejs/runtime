@@ -1,10 +1,7 @@
-import { CjsByteWriter } from "../../../format/CjsByteWriter.js";
 import {
-    CARBON_EFFECT_PAYLOAD_KIND,
     CjsCarbonEffectWriter,
     carbonDescriptionFromPortable,
-    writeBackendBlock,
-    writeCarbonEffectEnvelope
+    writeBackendBlock
 } from "../../../format/carbonEffect/index.js";
 import { buildEffectBodyReflection } from "../../hlsl/core/portableReflection.js";
 
@@ -20,24 +17,34 @@ import { buildEffectBodyReflection } from "../../hlsl/core/portableReflection.js
  * the same order.
  */
 
-/** Four printable-ASCII bytes, provably disjoint from a Carbon version dword. */
-export const CEWGPU_CONTAINER_MAGIC = "CWGP";
-
 /**
- * Container version, and the discriminator against the chunk package.
+ * There is no envelope, no magic and no version of our own. That is deliberate.
  *
- * The magic is deliberately shared with the chunk format this replaces — it is
- * the same logical format, reorganised — so the version dword is what tells them
- * apart. The chunk package is version 1; the record layout is 2. Anything else
- * would leave the two ambiguous in their first eight bytes, which they were at
- * version 1: a chunk package whose chunk count happened to be 1 was byte-
- * identical to a WGSL container for twelve bytes.
+ * A twelve-byte prefix (`magic | containerVersion | payloadKind`) was carried
+ * here and has been removed, along with a proposed "v16" for this variant.
+ * Neither survived the only question worth asking of an addition: what breaks
+ * without it?
  *
- * Being disjoint from a *Carbon* file is a separate property and is argued at
- * `writeCarbonEffectEnvelope`. Being disjoint from our own previous format is
- * this constant's job.
+ * - `payloadKind` is redundant with the directory the file came from. Backend
+ *   selection is by resource path — `effect.webgpu/`, `effect.webgl2/` — exactly
+ *   as Carbon selects `effect.dx11`/`effect.dx12`/`effect.metal`, and Carbon
+ *   carries no payload tag anywhere.
+ * - The magic only distinguished our file from a Carbon one, which the same
+ *   directory already answers, and which the file *name* answers too.
+ * - A version of our own would have claimed a number CCP owns, in the one field
+ *   whose job is telling a reader how to parse. A real v16 from them would then
+ *   collide with ours.
+ *
+ * What remains is a stock Carbon v15 file, so `Tr2EffectRes`/`Tr2Shader` read our
+ * containers through the Carbon path rather than a bespoke format branch — and
+ * that saving lands on every future reader, not only the one that exists today.
+ * The per-pass block is found by `CjsCarbonEffectReader.readDescription`, which
+ * detects it from the blob's declared end under Rule 1.
+ *
+ * The one addition that does survive the question is the block itself: WebGPU
+ * bind-group layouts come from the lowered IR and are not derivable from Carbon
+ * reflection, so without it there is no binding topology and no pipeline.
  */
-export const CEWGPU_CONTAINER_VERSION = 2;
 
 /**
  * The entry-point name every WGSL lowerer emits.
@@ -206,20 +213,8 @@ export function buildCarbonEffectContainer(
         writer.addBody(permutationIndex, description);
     }
 
-    const carbon = writer.toBytes();
-    const envelope = new CjsByteWriter(12);
-    writeCarbonEffectEnvelope(envelope, {
-        magic: CEWGPU_CONTAINER_MAGIC,
-        containerVersion: CEWGPU_CONTAINER_VERSION,
-        payloadKind: CARBON_EFFECT_PAYLOAD_KIND.WGSL
-    });
-
-    const bytes = new Uint8Array(envelope.length + carbon.length);
-    bytes.set(envelope.toBytes(), 0);
-    bytes.set(carbon, envelope.length);
-
     return {
-        bytes,
+        bytes: writer.toBytes(),
         permutationCount: permutationGraph.variants.length,
         bodyCount: describedByBodyKey.size
     };

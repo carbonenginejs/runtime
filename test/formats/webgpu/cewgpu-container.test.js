@@ -4,23 +4,63 @@ import path from "node:path";
 import { readFile, stat } from "node:fs/promises";
 
 import { buildEffectPackage } from "../../../src/formats/webgpu/core/packageEffect.js";
-import {
-    buildCarbonEffectContainer,
-    CEWGPU_CONTAINER_MAGIC,
-    CEWGPU_CONTAINER_VERSION
-} from "../../../src/formats/webgpu/core/buildCarbonEffectContainer.js";
+import { buildCarbonEffectContainer } from "../../../src/formats/webgpu/core/buildCarbonEffectContainer.js";
 import { readEffectAnalysis } from "../../../src/formats/webgpu/core/effectAnalysis.js";
 import { CewgpuContainer } from "../../../src/formats/webgpu/core/cewgpu/CewgpuContainer.js";
-import { CEWGPU_CHUNK_PACKAGE_VERSION } from "../../../src/formats/webgpu/core/cewgpu/CewgpuPackage.js";
 import {
     readBackendBlock,
     writeBackendBlock
 } from "../../../src/format/carbonEffect/carbonEffectBackendBlock.js";
-import {
-    CARBON_EFFECT_PAYLOAD_KIND,
-    writeCarbonEffectEnvelope
-} from "../../../src/format/carbonEffect/index.js";
+import { CjsCarbonEffectWriter } from "../../../src/format/carbonEffect/CjsCarbonEffectWriter.js";
 import { CjsByteWriter } from "../../../src/format/CjsByteWriter.js";
+import {
+    buildSyntheticDescription,
+    SYNTHETIC_PERMUTATIONS,
+    blob
+} from "../../format/carbonEffectSynthetic.js";
+
+/**
+ * Builds an always-green container carrying a per-pass backend block.
+ *
+ * The corpus oracle above needs real effects; these structural properties do
+ * not, and must stay green without game files.
+ *
+ * @returns {{bytes:Uint8Array}} Container bytes.
+ */
+function buildFixtureContainer()
+{
+    const block = writeBackendBlock({
+        bindGroups: [ { group: 0, bindings: [ {
+            group: 0,
+            binding: 0,
+            registerSpace: 0,
+            registerIndex: 0,
+            resourceKind: "sampled-resource",
+            visibility: [ "fragment" ],
+            type: "texture_2d<f32>",
+            generatedSymbol: "t0"
+        } ] } ],
+        transforms: []
+    });
+
+    const writer = new CjsCarbonEffectWriter({
+        backend: true,
+        compilerVersion: [ 1, 2, 6, 0 ],
+        sourceHash: "0123456789abcdef0123456789abcdef"
+    });
+    for (const axis of SYNTHETIC_PERMUTATIONS) writer.addPermutation(axis);
+    for (let index = 0; index < 4; index += 1)
+    {
+        const description = buildSyntheticDescription({ label: `Body${index}` });
+        for (const technique of description.techniques)
+        {
+            technique.libraries = [];
+            for (const pass of technique.passes) pass.backendBlock = blob(block);
+        }
+        writer.addBody(index, description);
+    }
+    return { bytes: writer.toBytes() };
+}
 
 /**
  * Effects chosen to span the shapes that reach different descriptor branches,
@@ -214,35 +254,69 @@ test(
     }
 );
 
-test("the container envelope cannot be confused with the chunk package", () =>
+test("a container is a stock Carbon v15 file, with nothing prepended", () =>
 {
-    // The magic is deliberately shared: this is the same logical format
-    // reorganised, not a different one. So the version dword has to carry the
-    // whole discrimination, and it does -- but only because the container is
-    // version 2. At version 1 the two formats were byte-identical for eight
-    // bytes, and a chunk package with exactly one chunk matched for twelve.
-    assert.notEqual(CEWGPU_CONTAINER_VERSION, CEWGPU_CHUNK_PACKAGE_VERSION);
+    // The point of the whole envelope removal: our first dword is Carbon's
+    // version, so Tr2EffectRes/Tr2Shader read our containers through the Carbon
+    // path rather than a bespoke format branch. Anything prepended here would
+    // put that back.
+    const built = buildFixtureContainer();
 
-    const envelope = new CjsByteWriter(12);
-    writeCarbonEffectEnvelope(envelope, {
-        magic: CEWGPU_CONTAINER_MAGIC,
-        containerVersion: CEWGPU_CONTAINER_VERSION,
-        payloadKind: CARBON_EFFECT_PAYLOAD_KIND.WGSL
-    });
-    const bytes = envelope.toBytes();
+    const view = new DataView(built.bytes.buffer, built.bytes.byteOffset);
+    assert.equal(view.getUint32(0, true), 15, "the container must open on Carbon's v15 version dword");
 
-    assert.equal(new TextDecoder().decode(bytes.subarray(0, 4)), CEWGPU_CONTAINER_MAGIC);
-    assert.equal(new DataView(bytes.buffer, bytes.byteOffset).getUint32(4, true), 2);
-
-    // Negative control: a chunk-package header must fail the container read at
-    // the version, not merely at some later field. If it were accepted here the
-    // discrimination would be happening somewhere unproven.
-    const chunkHeader = new CjsByteWriter(12);
-    chunkHeader.bytes(new TextEncoder().encode(CEWGPU_CONTAINER_MAGIC));
-    chunkHeader.u32(CEWGPU_CHUNK_PACKAGE_VERSION);
-    chunkHeader.u32(1);
+    // Negative control: a magic-prefixed header is NOT a container. If this were
+    // accepted, something would still be reading a prefix.
+    const prefixed = new CjsByteWriter(12);
+    prefixed.bytes(new TextEncoder().encode("CWGP"));
+    prefixed.u32(2);
+    prefixed.u32(0);
 
     const reader = new CewgpuContainer();
-    assert.equal(reader.Read(chunkHeader.toBytes(), { sourcePath: "chunk package" }), false);
-    assert.match(String(reader.readError?.message), /Unsupported container version 1/u);
+    assert.equal(reader.Read(prefixed.toBytes(), { sourcePath: "prefixed" }), false);
+    assert.ok(reader.readError, "a prefixed header must fail to read as a container");
+});
+
+test("the per-pass block is detected without being told, and without a version of its own", () =>
+{
+    // Rule 1 does the work: a body must parse to exactly its declared end, so
+    // the wrong interpretation either throws or lands short. That is why the
+    // container needs no envelope, no payload tag and no version number of ours
+    // -- three things that were carried or proposed and none of which anything
+    // required.
+    const built = buildFixtureContainer();
+    const container = new CewgpuContainer();
+    assert.ok(container.Read(built.bytes, { sourcePath: "auto-detect" }));
+
+    for (let index = 0; index < container.carbon.records.length; index += 1)
+    {
+        const told = container.carbon.readDescription(index, { backend: true });
+        const detected = container.carbon.readDescription(index);
+        assert.deepEqual(
+            detected.techniques.map((technique) => technique.passes.map((pass) => Boolean(pass.backendBlock))),
+            told.techniques.map((technique) => technique.passes.map((pass) => Boolean(pass.backendBlock))),
+            `body ${index} must detect the same blocks it is told about`
+        );
+    }
+
+    // Negative control: the same detection on a body with NO blocks must not
+    // invent one. Read our own bodies as plain Carbon and confirm the reading
+    // that ignores blocks is the one that fails, rather than both succeeding --
+    // if both parsed clean, detection would be choosing arbitrarily.
+    let refusedAsPlainCarbon = 0;
+    for (let index = 0; index < container.carbon.records.length; index += 1)
+    {
+        try
+        {
+            container.carbon.readDescription(index, { backend: false });
+        }
+        catch
+        {
+            refusedAsPlainCarbon += 1;
+        }
+    }
+    assert.ok(
+        refusedAsPlainCarbon > 0,
+        "bodies carrying blocks must not also parse cleanly as plain Carbon"
+    );
 });

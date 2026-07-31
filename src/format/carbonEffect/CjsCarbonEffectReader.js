@@ -156,9 +156,28 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
     /**
      * Reads and parses one permutation's description blob.
      *
+     * `backend` is **optional**, and omitting it is the interesting case. A
+     * Carbon file ends each pass at the render states; ours adds one eight-byte
+     * block reference. Nothing in the header distinguishes the two, and we
+     * deliberately do not add anything — no envelope, no version of our own,
+     * because CCP owns the version space and a container that announces itself
+     * is an invention nothing requires.
+     *
+     * Instead the blob describes itself, using a rule the format already has.
+     * Every sized record must parse to exactly its declared end (Rule 1), and a
+     * body's declared size is in the offset table. So the wrong interpretation
+     * either throws or leaves the cursor somewhere other than the end, and one
+     * retry settles it.
+     *
+     * Pass `backend` explicitly when the caller knows — the loader does, because
+     * backend selection is by resource path, mirroring Carbon's
+     * `effect.dx11`/`effect.dx12`/`effect.metal`. Auto-detection is for bytes
+     * that arrive without that context: tooling, caches, inspection.
+     *
      * @param {number} index Permutation index, positional in the offset table.
      * @param {object} [options] Read options.
-     * @param {boolean} [options.backend] Expect our optional per-pass trailing block.
+     * @param {boolean} [options.backend] Expect our optional per-pass trailing
+     *     block. Omit to detect it from the blob's declared end.
      * @returns {object} Description record tree.
      */
     readDescription(index, options = {})
@@ -171,6 +190,44 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
                 recordCount: this.records.length
             });
         }
+
+        if (options.backend !== undefined)
+        {
+            return this.#readDescriptionAs(record, options.backend === true);
+        }
+
+        // Plain Carbon first: it is the larger population, and it is the reading
+        // that must stay cheap.
+        try
+        {
+            return this.#readDescriptionAs(record, false);
+        }
+        catch (withoutBlocks)
+        {
+            try
+            {
+                return this.#readDescriptionAs(record, true);
+            }
+            catch
+            {
+                // Report the plain-Carbon failure. If neither reading works the
+                // blob is malformed, and the Carbon diagnosis is the useful one;
+                // the backend attempt's error would describe a misparse of bytes
+                // that were never a backend block.
+                throw withoutBlocks;
+            }
+        }
+    }
+
+    /**
+     * Parses one body under an exact backend-block assumption.
+     *
+     * @param {object} record Offset-table row.
+     * @param {boolean} backend Whether to expect the per-pass block.
+     * @returns {object} Description record tree.
+     */
+    #readDescriptionAs(record, backend)
+    {
         const reader = new this.constructor.BodyReader(this.bytes, {
             source: this.source,
             offset: record.offset,
@@ -178,7 +235,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
             stringTable: this.stringTableBytes,
             stringTableSize: this.stringTableSize
         });
-        return readEffectDescription(reader, { backend: options.backend === true });
+        return readEffectDescription(reader, { backend });
     }
 
     /**

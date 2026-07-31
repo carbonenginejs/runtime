@@ -1,15 +1,8 @@
 import {
-    CARBON_EFFECT_PAYLOAD_KIND,
     CjsCarbonEffectReader,
-    readBackendBlock,
-    readCarbonEffectEnvelope
+    readBackendBlock
 } from "../../../../format/carbonEffect/index.js";
-import { CjsByteReader } from "../../../../format/CjsByteReader.js";
-import {
-    CEWGPU_CONTAINER_MAGIC,
-    CEWGPU_CONTAINER_VERSION,
-    WGSL_ENTRY_POINT
-} from "../buildCarbonEffectContainer.js";
+import { WGSL_ENTRY_POINT } from "../buildCarbonEffectContainer.js";
 
 /**
  * Reader for the WebGPU effect container.
@@ -42,19 +35,24 @@ const WEBGPU_STAGE_NAME = Object.freeze({ 0: "vertex", 1: "pixel", 2: "compute" 
 const WEBGPU_STAGE = Object.freeze({ vertex: "vertex", pixel: "fragment", compute: "compute" });
 
 /**
- * Reports whether bytes carry a WebGPU effect container.
+ * Reports whether bytes look like a Carbon v15 effect container.
+ *
+ * This is a **shape** check, not an identity check, and the distinction is the
+ * point: our containers are stock Carbon v15 files, so nothing in the bytes
+ * separates ours from a shipped `effect.dx11` file. Identity comes from where
+ * the file was resolved — `effect.webgpu/` versus `effect.dx11/` — exactly as it
+ * does for Carbon, whose three backend trees are also byte-format-identical.
+ *
+ * Use this to reject something that is not a v15 container at all. Do not use it
+ * to decide what a payload is.
  *
  * @param {Uint8Array} bytes Candidate bytes.
- * @returns {boolean} True when the envelope matches.
+ * @returns {boolean} True when the first dword is Carbon's v15 version.
  */
 export function looksLikeCewgpuContainer(bytes)
 {
-    if (!bytes || bytes.length < 12) return false;
-    for (let index = 0; index < 4; index += 1)
-    {
-        if (bytes[index] !== CEWGPU_CONTAINER_MAGIC.charCodeAt(index)) return false;
-    }
-    return true;
+    if (!bytes || bytes.length < 4) return false;
+    return bytes[0] === 15 && bytes[1] === 0 && bytes[2] === 0 && bytes[3] === 0;
 }
 
 /**
@@ -70,7 +68,6 @@ export class CewgpuContainer
         this.readError = null;
         this.sourcePath = "";
         this.containerVersion = 0;
-        this.payloadKind = -1;
         this.carbon = null;
         this._descriptions = new Map();
         this._bodyKeyByOffset = null;
@@ -99,26 +96,10 @@ export class CewgpuContainer
                     ? new Uint8Array(source)
                     : new Uint8Array(source.buffer, source.byteOffset, source.byteLength));
 
-            const envelopeReader = new CjsByteReader(bytes, {
+            this.carbon = new CjsCarbonEffectReader(bytes, {
                 source: this.sourcePath || "CEWGPU"
             });
-            const envelope = readCarbonEffectEnvelope(envelopeReader, {
-                magic: CEWGPU_CONTAINER_MAGIC,
-                containerVersion: CEWGPU_CONTAINER_VERSION
-            });
-
-            if (envelope.payloadKind !== CARBON_EFFECT_PAYLOAD_KIND.WGSL)
-            {
-                throw new Error(
-                    `CEWGPU container carries payload kind ${envelope.payloadKind}, expected WGSL`
-                );
-            }
-
-            this.containerVersion = envelope.containerVersion;
-            this.payloadKind = envelope.payloadKind;
-            this.carbon = new CjsCarbonEffectReader(bytes.subarray(envelopeReader.offset), {
-                source: this.sourcePath || "CEWGPU"
-            });
+            this.containerVersion = this.carbon.version;
             return true;
         }
         catch (error)
@@ -334,8 +315,10 @@ export class CewgpuContainer
         const bodyKeys = this.bodyKeyByOffset;
         return Object.freeze({
             format: "CEWGPU",
+            // Carbon's own version dword, always 15. There is no container
+            // version of ours: see buildCarbonEffectContainer for why nothing
+            // announces the payload, and why identity comes from the path.
             containerVersion: this.containerVersion,
-            payloadKind: this.payloadKind,
             sourcePath: this.sourcePath,
             compilerVersion: Object.freeze([ ...this.carbon.compilerVersion ]),
             sourceHash: textDecoder.decode(this.carbon.sourceHash),

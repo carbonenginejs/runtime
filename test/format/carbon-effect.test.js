@@ -23,13 +23,6 @@ import {
     writeCarbonEffectFile
 } from "../../src/format/carbonEffect/CjsCarbonEffectWriter.js";
 import {
-    CARBON_EFFECT_ENVELOPE_BYTES,
-    CARBON_EFFECT_PAYLOAD_KIND,
-    looksLikeBareCarbonEffect,
-    readCarbonEffectEnvelope,
-    writeCarbonEffectEnvelope
-} from "../../src/format/carbonEffect/carbonEffectEnvelope.js";
-import {
     buildSyntheticDescription,
     SYNTHETIC_PERMUTATIONS,
     blob,
@@ -562,30 +555,27 @@ test("the writer rejects a source hash that is not 32 bytes", () =>
     );
 });
 
-test("the envelope is provably disjoint from a bare Carbon container", () =>
+test("our containers are bare Carbon files, with nothing prepended", () =>
 {
+    // A twelve-byte envelope (magic | containerVersion | payloadKind) used to sit
+    // in front of these bytes, and a "v16" was proposed to mark the variant. Both
+    // are gone. Neither answered the only question that matters for an addition:
+    // what breaks without it?
+    //
+    // Backend selection is by resource path -- effect.webgpu/, effect.webgl2/ --
+    // exactly as Carbon selects effect.dx11/dx12/metal, and Carbon carries no
+    // payload tag anywhere. A version of our own would have claimed a number CCP
+    // owns, in the field whose job is telling a reader how to parse.
+    //
+    // So the file opens on Carbon's version dword, and Tr2EffectRes/Tr2Shader
+    // read it through the Carbon path rather than a bespoke branch.
     const bare = buildSyntheticContainer();
-    assert.equal(looksLikeBareCarbonEffect(bare), true);
+    const view = new DataView(bare.buffer, bare.byteOffset);
+    assert.equal(view.getUint32(0, true), CARBON_EFFECT_DATA_VERSION);
 
-    const writer = new CjsByteWriter();
-    writeCarbonEffectEnvelope(writer, {
-        magic: "CWGP",
-        containerVersion: 2,
-        payloadKind: CARBON_EFFECT_PAYLOAD_KIND.WGSL
-    });
-    writer.bytes(bare);
-    const enveloped = writer.toBytes();
-
-    assert.equal(looksLikeBareCarbonEffect(enveloped), false);
-    assert.equal(enveloped.length, bare.length + CARBON_EFFECT_ENVELOPE_BYTES);
-
-    const reader = new CjsByteReader(enveloped);
-    const envelope = readCarbonEffectEnvelope(reader, { magic: "CWGP", containerVersion: 2 });
-    assert.equal(envelope.payloadKind, CARBON_EFFECT_PAYLOAD_KIND.WGSL);
-    assert.equal(reader.offset, CARBON_EFFECT_ENVELOPE_BYTES);
-
-    // Every Carbon version dword has byte 0 <= 0x0f and bytes 1..3 zero; every
-    // printable-ASCII magic byte is >= 0x20. The two ranges cannot overlap.
+    // Every Carbon version dword has byte 0 <= 0x0f and bytes 1..3 zero. Recorded
+    // because it is what made a printable-ASCII magic safe, and it is the reason
+    // the magic was defensible even though it was never necessary.
     for (let version = 2; version <= CARBON_EFFECT_DATA_VERSION; version += 1)
     {
         const probe = new CjsByteWriter();
@@ -596,41 +586,59 @@ test("the envelope is provably disjoint from a bare Carbon container", () =>
     }
 });
 
-test("the envelope rejects a non-printable magic and a foreign container", () =>
+test("the per-pass block is found by Rule 1, not by anything announcing it", () =>
 {
-    assert.throws(
-        () => writeCarbonEffectEnvelope(new CjsByteWriter(), {
-            magic: "BCD",
-            containerVersion: 2,
-            payloadKind: 0
-        }),
-        /must be printable ASCII/
-    );
-    assert.throws(
-        () => writeCarbonEffectEnvelope(new CjsByteWriter(), {
-            magic: "TOOLONG",
-            containerVersion: 2,
-            payloadKind: 0
-        }),
-        /must be exactly 4 bytes/
+    // Rule 1 -- every sized record parses to exactly its declared end -- is what
+    // replaces the envelope. A body's declared size is in the offset table, so
+    // the wrong reading either throws or lands short, and one retry settles it.
+    const table = new CjsStringTable();
+    const description = buildSyntheticDescription();
+    for (const technique of description.techniques)
+    {
+        technique.libraries = [];
+        for (const pass of technique.passes) pass.backendBlock = blob([ 1, 0, 0 ]);
+    }
+
+    const writer = new CjsCarbonEffectWriter({
+        backend: true,
+        compilerVersion: COMPILER_VERSION,
+        sourceHash: SOURCE_HASH
+    });
+    for (const axis of SYNTHETIC_PERMUTATIONS) writer.addPermutation(axis);
+    // Four bodies: the axes declare 2 x 2, and a sparse table fails closed.
+    for (let index = 0; index < 4; index += 1) writer.addBody(index, description);
+    const bytes = writer.toBytes();
+    assert.ok(table);
+
+    const reader = new CjsCarbonEffectReader(bytes);
+    const told = reader.readDescription(0, { backend: true });
+    const detected = reader.readDescription(0);
+
+    assert.deepEqual(
+        detected.techniques[0].passes.map((pass) => pass.backendBlock?.size ?? null),
+        told.techniques[0].passes.map((pass) => pass.backendBlock?.size ?? null)
     );
 
-    const writer = new CjsByteWriter();
-    writeCarbonEffectEnvelope(writer, { magic: "CEWG", containerVersion: 2, payloadKind: 2 });
-    assert.throws(
-        () => readCarbonEffectEnvelope(new CjsByteReader(writer.toBytes()), {
-            magic: "CWGP",
-            containerVersion: 2
-        }),
-        /Unexpected container magic "CEWG"/
-    );
-    assert.throws(
-        () => readCarbonEffectEnvelope(new CjsByteReader(writer.toBytes()), {
-            magic: "CEWG",
-            containerVersion: 3
-        }),
-        /Unsupported container version 2; expected 3/
-    );
+    // Negative control: the reading that ignores blocks must FAIL on this body.
+    // If both readings parsed clean, detection would be choosing arbitrarily and
+    // the property would be a coincidence rather than a rule.
+    assert.throws(() => reader.readDescription(0, { backend: false }));
+
+    // And the converse: a body with no blocks must not gain one.
+    const plainWriter = new CjsCarbonEffectWriter({
+        compilerVersion: COMPILER_VERSION,
+        sourceHash: SOURCE_HASH
+    });
+    for (const axis of SYNTHETIC_PERMUTATIONS) plainWriter.addPermutation(axis);
+    for (let index = 0; index < 4; index += 1)
+    {
+        plainWriter.addBody(index, buildSyntheticDescription());
+    }
+    const plain = new CjsCarbonEffectReader(plainWriter.toBytes());
+    for (const pass of plain.readDescription(0).techniques[0].passes)
+    {
+        assert.equal(pass.backendBlock, undefined);
+    }
 });
 
 test("a blob reference with bytes but zero declared size is not dereferenced", () =>
