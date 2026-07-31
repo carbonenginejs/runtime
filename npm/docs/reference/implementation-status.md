@@ -25,7 +25,7 @@ properties in generated and maintained source. It excludes the deliberate
 
 The current source contains:
 
-- 154 explicit methods across 50 classes; and
+- 152 explicit methods across 50 classes; and
 - no unknown properties.
 
 The remaining methods are concentrated in native, GPU, font, bitmap/atlas,
@@ -60,13 +60,41 @@ classes. Ten classes have 26 omitted methods:
 - no missing or ambiguous schemas; and
 - no unresolved non-`CjsModel` base classes.
 
+## Controller compatibility proof
+
+Controller and binding implementations are present and covered by JavaScript
+tests, but exact Carbon output and ordering parity is not yet proven. Passing
+the package suite establishes internal consistency, not equivalence to Carbon.
+Before accepting behavioral cleanup, compare Carbon and JavaScript traces for:
+
+1. initialization and linking order;
+2. repeated equal and unequal writes;
+3. scalar, boolean, array-fill, and swizzled binding destinations;
+4. destination-buffer writes and dirty-mask accumulation;
+5. same-frame multiple writes and frame-boundary mask consumption;
+6. state-machine transition evaluation and variable masks;
+7. source propagation and external events, confirming events do not affect
+   controller correctness; and
+8. output values and timing across representative update sequences.
+
+Generic binding destinations suppress equal-value writes unless the field is
+marked `@io.always`. Controller float variables deliberately carry that marker
+so equal writes still reach their destination and dirty mask. Initialization
+is silent, and the masks remain frame-consumed; those semantics are part of the
+parity gate rather than incidental test behavior.
+
 ## Current runtime limits
 
 - Device creation, GPU resources, draw submission, presentation, and
   device-loss recovery require an engine package.
-- Per-frame scene semantics remain engine-supplied because the Trinity graph
-  does not own complete frame, history, jitter, shadow, and presentation
-  state.
+- `EveSpaceScene` owns persistent per-frame record storage and fills scene,
+  lighting, fog, shadow-quality, and volumetric values. Its fill methods
+  consume stored history and jitter fields, but JavaScript does not yet
+  advance them; the host must provision them or they retain identity/zero
+  defaults. The driver supplies current render-context/device values, frame
+  counters, dimensions, gamma/mip/upscaling settings, atlas settings, and an
+  optional shadow map. Pixel fill precedes vertex fill because it resets the
+  upscaling amount read by the vertex record.
 - Per-object constant data is complete on the CPU side: every catalogued struct
   with a Carbon producer in this package is filled. The exceptions are values
   that are literally GPU addresses - bone-ring and morph-ring offsets - which
@@ -82,6 +110,10 @@ classes. Ten classes have 26 omitted methods:
   parameter type; additional types require corresponding schema emission.
 - Calculated whole-object bounds remain planned as a separate lazy cache and
   are not inferred through generic graph traversal.
+- The generated `EveSpaceSceneRenderDriver` is a data shell. Production
+  composition still needs a host or engine to order scene update, visibility,
+  batch collection, per-frame fills, render-job intent consumption, backend
+  realization, and dispatch.
 
 ## Planned completion gates
 

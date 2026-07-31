@@ -61,6 +61,32 @@ before an engine uploads or evaluates them.
 
 Trinity prepares morph records but does not perform GPU deformation or baking.
 
+## Frame context and transform modifiers
+
+`EveSpaceScene` owns one `EveUpdateContext` and reuses it across frames. Before
+`Update(realTime, simTime)`, the host stamps the current render context and
+device, then calls `StampFrameContext` with the frustum, visibility thresholds,
+LOD factor, and ray-tracing flag. `Update` adds time, origin shift, and the
+data-texture manager before driving the scene collections in Carbon order.
+
+Methods marked `@carbon.contextual` consume relocated Carbon-global state; the
+context is their first argument. Transform modifiers are folded in authored
+order, with the current transform passed from one modifier to the next.
+`EveSpaceScene.Update` owns and stamps the context rather than consuming one,
+so it is not contextual.
+
+`EveSpaceSceneRenderDriver` remains generated schema intake, not a production
+frame driver. Applications and engines still compose update, visibility,
+renderable collection, lights, batches, per-frame fills, intent consumption,
+and dispatch.
+
+The generated `EveChildParticleSystem` already folds transform modifiers and
+drives its portable emitter and particle-system updates. One narrower
+animation seam remains open: `EveChildContainer.UpdateAsyncronous` uses the
+palette threaded in its parent parameters instead of replacing it from the
+container's own animation owner before the modifier fold. Its visibility pass
+does obtain that owner's palette for attachments.
+
 ## Distribution contract
 
 The Eve distribution family is browser-portable CPU behavior. Locator,

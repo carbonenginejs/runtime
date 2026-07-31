@@ -70,21 +70,50 @@ and deterministic target/depth stack cleanup.
 `Run(realTime, simTime, executor)` receives an injected executor. A WebGL
 executor may perform work immediately while a WebGPU executor may encode pass
 boundaries, but both preserve the observable step order and yield boundary.
-Nested jobs receive the same executor identity. `TriRenderJob` and
-`TriRenderStep` expose their status and result vocabularies as class statics.
+The job snapshots its step list at the start of a run and retains its cursor
+when a step returns `RS_IN_PROGRESS`. Each enabled step is bracketed by
+begin/execute/end hooks; end still runs when execution throws. Nested jobs
+receive the same executor identity.
+
+Passing an executor directly to `Run` invokes its step hooks with
+`(step, realTime, simTime, job)`. An executor that also needs the active render
+context installs on that context with `SetStepExecutor(executor)`, and the job
+runs against the context. The context delegates implemented hooks with itself
+as a fifth argument and falls back to the step's own begin, execute, or end
+method for hooks the installed executor omits. Recorders that require render
+context state use this installed form rather than being passed directly.
+
+With `stackGuard` enabled, a job records render-target and depth-stencil stack
+depths, diagnoses underflow, and unwinds surplus pushes to the entry depth on
+success, yield, or failure. `TriRenderJob` and `TriRenderStep` expose their
+status and result vocabularies as class statics.
+
 The default `Tr2RenderContext` is a GPU-free intent and diagnostic surface.
+`GetIntents()` returns a copy of the full retained history. An executor uses
+`TakeIntents()` for incremental, exactly-once consumption; it advances the
+take cursor so nested jobs cannot realize the same intent twice. The package
+does not provide a production backend executor.
 
 ## Render-batch contract
 
 `Tr2RenderBatch`, `TriRenderBatchAccumulator`, and `TriRenderBatchMap` collect,
-sort, group, and expose neutral CPU data. Geometry references, effect keys,
-per-object values, render modes, and draw arguments describe work; they are
-not live GPU resources.
+sort, group, and expose neutral CPU data, including the area-block collectors
+used by overlay and shadow passes. Geometry references, effect keys, per-object
+values, render modes, and draw arguments describe work; they are not live GPU
+resources.
 
 `CjsBatchManager` is the current GPU-free orchestrator. It registers producer
-types, invokes injected `Realize` and `Build` hooks, collects renderables,
-finalizes accumulators, and observes shared rebuild tokens. The backend
-realizers supplied through those hooks remain engine-owned.
+types and scene-global collectors before `Initialize`, verifies required
+producer types, creates one map of accumulators, and clears it for each
+collection. For each pre-culled renderable it invokes an injected `Realize`
+hook before `Build`, or falls back to the renderable's `GetBatches`. It then
+collects transparent work back-to-front, invokes global collectors, and calls
+`Finalize` before returning the map.
+
+Backend realization, finalized-batch dispatch, pass policy, production
+composition, and concrete global collectors remain engine or application
+work. Rebuild tokens stay on the object or child that declared them; a realizer
+consumes the tokens for work it successfully completes.
 
 ## Per-frame and per-object data
 
@@ -92,9 +121,22 @@ Trinity can expose per-object values proven by graph state, including world
 transforms and maintained Eve per-object records. It does not invent missing
 renderer state.
 
-The active engine supplies complete per-frame values such as previous
-matrices, shadow state, resolution, jitter, presentation policy, and other
-backend-owned semantics before serialization or upload.
+`EveSpaceScene` owns and reuses persistent vertex and pixel per-frame records.
+Its fill methods consume stored previous-view/projection and jitter fields and
+populate environment rotation, sun, fog, shadow quality, scene lighting,
+volumetrics, and upscaling state. The JavaScript scene does not yet advance
+those history or jitter fields: until a production driver owns that frame
+transition, the host must provision them or they retain identity/zero
+defaults. The active driver also supplies the current render context and the
+frame values Carbon reads from renderer or device globals: render-target and
+viewport dimensions, aspect ratio, animation time, frame index, gamma, mip
+bias, atlas settings, the non-reversed projection used for FOV, upscaling
+amount, and an optional shadow map.
+
+The pixel record must be populated before the vertex record for a frame,
+because the pixel fill resets the scene's upscaling amount and the vertex fill
+then reads it. Engines serialize or upload the filled records and remain
+responsible for presentation and backend memory.
 
 ### Constant-data ownership
 

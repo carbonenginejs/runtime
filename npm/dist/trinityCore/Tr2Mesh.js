@@ -75,7 +75,7 @@ class Tr2Mesh extends _Tr2MeshBase {
     this.geometryResPath = "";
     this.geometry = resource ?? null;
     // Direct mutation bypasses SetValues, so schedule the declared consequence
-    // explicitly (kb section 8: class code may add rebuild tokens).
+    // explicitly; maintained class code may add declared rebuild tokens.
     this.__state.rebuild.add("geometry");
     this.InitializeMorphTargets();
   }

@@ -696,8 +696,8 @@ export class EveChildMesh extends EveChildTransform
     // Carbon (cpp:974-997): world AABB from the mesh bounds, world sphere
     // enclosing it. The skinned GetBounds overload (animation transforms +
     // morph targets, cpp:977-982) awaits the animation seam; Tr2MeshBase::
-    // GetBounds itself is a recorded gap (CARBON-PARITY-REVIEW-2026-07-23.md
-    // section 2.3), hence the duck call (Tr2InstancedMesh implements it).
+    // GetBounds itself remains an explicit @impl.notImplemented gap, hence the
+    // duck call (Tr2InstancedMesh implements it).
     this.#worldBoundsValid = false;
     const bounds = this.mesh?.GetBounds?.();
 

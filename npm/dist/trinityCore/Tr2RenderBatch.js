@@ -131,15 +131,12 @@ class Tr2RenderBatch {
     this.indexBuffer = null;
     this.indexStride = 0;
 
-    // DIVERGENCE FROM CARBON (under review). Carbon's Tr2MeshBase::CreateGeometryBatch
-    // bakes realized Tr2BufferAL allocations + computed draw args (startIndex,
-    // baseVertex, primCount) into the batch at collection time, gated on
-    // lod->m_allocationsValid. This field instead records a geometry-resource +
-    // area-range descriptor resolved later — which is ccpwgl's Tw2GeometryBatch /
-    // RenderAreas model, NOT Carbon's. It exists because GPU-free runtime-trinity
-    // has no realized allocations at collection. The faithful fix is to port
-    // Carbon's CreateGeometryBatch math against a duck-typed realized-LOD seam, or
-    // to move CreateGeometryBatch to the engine. See the 2026-07-23 handoff §10.
+    // GPU-free adaptation: Carbon's Tr2MeshBase::CreateGeometryBatch bakes
+    // realized buffer allocations and computed draw arguments into the batch
+    // during collection. Trinity instead records a geometry-resource and
+    // area-range descriptor; the engine resolves it to realized allocations
+    // and final draw arguments at dispatch. See the render-batch contract in
+    // docs/architecture.md.
     this.geometrySource = null;
     this.objectData = null;
     this.renderingMode = RenderingMode.RM_ANY;

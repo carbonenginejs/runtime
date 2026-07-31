@@ -57,6 +57,17 @@ family; only genuinely shared cross-package vocabulary belongs in
 Public methods that implement Carbon exposure use `@carbon.method`. The parity
 audit checks promoted classes for omitted and present-but-unexposed methods.
 
+`@carbon.contextual([...])` marks a method that consumes explicit context in
+place of Carbon renderer or process globals. The context argument comes first.
+The marker does not belong on the owner that constructs or stamps that context;
+for example, `EveSpaceScene.Update(realTime, simTime)` owns the scene context
+and is not contextual.
+
+When a JavaScript adaptation uses caller-owned output storage, the output
+argument stays last. The method's JSDoc and signature decide whether it is
+required or defaults to newly allocated storage; `@impl.adapted` does not make
+output buffers universally optional.
+
 ## Constraints
 
 - Generated wildcard subpaths are intake surfaces and can change when a class

@@ -90,12 +90,17 @@ explicit overrides provide them.
 
 ## Per-frame ownership
 
-The Trinity graph does not completely represent previous-frame policy, shadow
-state, projection conventions, gamma and mip policy, jitter, resolution,
-presentation, or other renderer-owned frame values.
+These extraction helpers do not build per-frame state. `EveSpaceScene` owns
+the persistent per-frame records. `PopulatePerFramePSData` and
+`PopulatePerFrameVSData` consume the scene's stored history and jitter fields
+and fill lighting, fog, shadow-quality, volumetric, and upscaling values. The
+JavaScript scene does not yet advance history or compute jitter; the host must
+provision those fields or they retain identity/zero defaults.
 
-The active engine supplies complete `perFrameVS` and `perFramePS` semantic
-objects before its serializer packs or uploads them.
+The active driver supplies the current render context plus renderer/device
+inputs such as dimensions, frame time and index, gamma, mip and upscaling
+settings, atlas settings, and an optional shadow map. It populates the pixel
+record before the vertex record, then the engine serializes or uploads both.
 
 ## Related documentation
 

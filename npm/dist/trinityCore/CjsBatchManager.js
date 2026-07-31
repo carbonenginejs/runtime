@@ -2,8 +2,8 @@ import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
 import { Tr2RenderReason } from '../generated/trinityCore/enums.js';
 import { TriRenderBatchMap } from './TriRenderBatchMap.js';
 
-// CarbonEngineJS composition class (no Carbon counterpart) - see
-// .agents/BATCH-PIPELINE-PLAN.md and DECISIONS.md 2026-07-23.
+// CarbonEngineJS composition class (no Carbon counterpart) - see the
+// render-batch contract in docs/architecture.md.
 //
 // Library-level batch orchestrator: one per backend/CjsLibrary, GPU-free. Owns
 // the producer registry ({ type -> { Build, Realize } } plus scene-global
@@ -232,8 +232,8 @@ class CjsBatchManager {
   }
 
   // True when the object advertises pending scheduled GPU work via the shared
-  // __state.rebuild token set (kb section 8). Realizers use this (plus their own
-  // per-token checks) to fast-exit when current.
+  // __state.rebuild token set. Realizers use this (plus their own per-token
+  // checks) to fast-exit when current.
 
   /**
    * Whether an object advertises pending scheduled GPU work through its shared
@@ -243,10 +243,10 @@ class CjsBatchManager {
     return (object?.__state?.rebuild?.size ?? 0) > 0;
   }
 
-  // Owner-propagation convention (BATCH-PIPELINE-PLAN / runtime-trinity
-  // DECORATOR-TODOS): child records (mesh areas, set items, effect children)
-  // carry their OWN declared rebuild tokens, and the OWNING realizer consumes
-  // child tokens alongside the owner's - no upward token copying is performed.
+  // Owner-propagation convention: child records (mesh areas, set items, effect
+  // children) carry their OWN declared rebuild tokens, and the OWNING realizer
+  // consumes child tokens alongside the owner's - no upward token copying is
+  // performed.
   // This helper answers "does the owner or any child advertise work"; the
   // realizer still clears each consumed token where it lives.
 
