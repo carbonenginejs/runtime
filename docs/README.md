@@ -31,20 +31,21 @@ build behavior in the Node toolchain.
 ## Where it fits
 
 ```text
-runtime-utils
-      ^
-      |
-tools-browser
-      ^
-      +---- browser applications
-      +---- demos and inspectors
-      +---- tools-core wrappers using injected Web APIs
+runtime-utils  runtime-audio  runtime-resource  runtime-trinity/perobject
+       ^             ^               ^                    ^
+       +-------------+---------------+--------------------+
+                             |
+                       tools-browser
+                             ^
+                             +---- browser applications
+                             +---- demos and inspectors
+                             +---- tools-core wrappers using injected Web APIs
 ```
 
 The package uses narrow browser-safe runtime subpaths when a domain tool needs
 an owning schema or reader. Its public families are remote audio acquisition,
-provider-neutral chat, remote file-index handling, and the Carbon realtime v1
-client.
+provider-neutral chat, remote file-index handling, per-object shader
+inspection/packing, and the Carbon realtime v1 client.
 
 ## Start here
 
@@ -83,12 +84,23 @@ import {
 } from "@carbonenginejs/tools-browser/chat";
 ```
 
+For Carbon per-object constant-buffer inspection, synthesis, and packing,
+start with:
+
+```js
+import {
+    CjsPerObjectDecoder,
+    CjsPerObjectPacker
+} from "@carbonenginejs/tools-browser/perobject";
+```
+
 ## Documentation map
 
 - [Architecture and boundaries](architecture.md)
 - [Audio-library guide](guides/audio-libraries.md)
 - [Chat guide](guides/chat.md)
 - [File-index guide](guides/file-indexes.md)
+- [Per-object tooling](perobject/README.md)
 - [Realtime guide](guides/realtime.md)
 - [Current API reference](reference/api.md)
 - [Class-purpose catalog](reference/classes/README.md)

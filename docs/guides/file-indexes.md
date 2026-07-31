@@ -57,6 +57,20 @@ resfileindex declarations such as `windows_prefetch`.
 loading, declared resfileindexes, sources, and manual overlays. It does not
 persist provider responses or resource bytes.
 
+## Provider and build contract
+
+A provider declares four distinct HTTP(S) endpoints:
+
+- `metadataBaseURL` for client build metadata;
+- `indexBaseURL` for `eveonline_<build>.txt`;
+- `appBaseURL` for app-index-declared resfileindexes; and
+- `resBaseURL` for the default resource source.
+
+An exact numeric build performs no metadata request. A named client resolves
+through that client's metadata. `latest` compares all configured clients, or
+one explicitly selected client, and keeps the highest exact build. Passing
+both a named build reference and a separate client is rejected.
+
 ## Overlay precedence
 
 Resolution order is:
@@ -70,6 +84,14 @@ Resolution order is:
 Ambiguous overlay matches at the same level fail instead of silently selecting
 one. Callers can also request one exact index or overlay by name.
 
+For the selected layer, compact source resolution uses this order:
+
+1. a source ID encoded in the entry location;
+2. the layer's declared `sourceID`; and
+3. the provider's `default` resource source.
+
+An unknown source ID fails rather than falling through to another endpoint.
+
 ## Errors and security
 
 Treat every location as untrusted. Parsing or resolution fails for:
@@ -78,7 +100,8 @@ Treat every location as untrusted. Parsing or resolution fails for:
 - dot-segment or encoded slash traversal;
 - malformed percent escapes;
 - query strings and fragments;
-- duplicate logical paths or layer names;
+- duplicate logical paths within one parsed index;
+- duplicate layer names or ambiguous same-level overlays;
 - locations whose compact source ID is unknown.
 
 Provider credentials, HTTP caching, retries, and filesystem acquisition belong

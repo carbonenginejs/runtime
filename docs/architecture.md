@@ -15,18 +15,21 @@ user-facing implementation.
 ## Dependency direction
 
 ```text
- runtime-utils        runtime-audio/library
-        ^                       ^
-        |                       |
-        +--------- tools-browser+
-                    ^
-                    |
-        browser applications and Node wrappers
+runtime-utils  runtime-audio  runtime-resource  runtime-trinity/perobject
+       ^             ^               ^                    ^
+       +-------------+---------------+--------------------+
+                             |
+                       tools-browser
+                             ^
+                             |
+                browser applications and Node wrappers
 ```
 
-Published source imports browser-safe runtime primitives, the canonical audio
-document installer, and local modules. Tests may use Node facilities, but no
-Node built-in enters `src/`.
+The manifest declares browser-safe dependencies on runtime-utils,
+runtime-audio, runtime-resource, and runtime-trinity. Published source imports
+only the contracts each current family uses, including the narrow device-free
+Trinity per-object layout. Tests may use Node facilities, but no Node built-in
+enters `src/`.
 
 ## Owned responsibilities
 
@@ -39,6 +42,8 @@ The implemented package currently owns:
   `CjsAudioMan`'s structural provider contract;
 - appfileindex and resfileindex parsing, discovery, immutable lookup, named
   overlays, and safe HTTP(S) source resolution;
+- naming, packing, synthesis, decoding, and shader inspection for Carbon
+  per-object constant-buffer layouts owned by runtime-trinity;
 - provider-neutral chat-room selection, browser-local filtering, disposable
   room listeners, and consumption of server-resolved presentation assets;
 - Carbon realtime v1 message validation, WebSocket consumption, exact
@@ -82,6 +87,9 @@ subpath, tests, documentation, and owned security boundary.
   `@carbonenginejs/runtime-resource`.
 - BNK/WEM parsing and conversion belong in
   `@carbonenginejs/runtime-resource`.
+- Canonical per-object field/layout definitions belong in
+  `@carbonenginejs/runtime-trinity/perobject`; tools-browser owns only the
+  browser-safe inspection and packing utilities around them.
 - Node filesystems, acquisition caches, provider credentials, servers,
   command-line interfaces, and build orchestration belong in
   `@carbonenginejs/tools-core`.
@@ -121,5 +129,6 @@ offline tests and compatible non-browser hosts.
 - [Audio-library guide](guides/audio-libraries.md)
 - [Chat guide](guides/chat.md)
 - [File-index guide](guides/file-indexes.md)
+- [Per-object tooling](perobject/README.md)
 - [Realtime guide](guides/realtime.md)
 - [Class-purpose catalog](reference/classes/README.md)

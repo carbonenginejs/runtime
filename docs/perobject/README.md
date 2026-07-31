@@ -22,7 +22,7 @@ the headers, which matters because the shader packages cannot supply it:
 
 | Buffer | Member names available? | From where |
 | --- | --- | --- |
-| `cb0` `$LocalConstants` | yes | `format-hlsl` binding manifest (`bindings[].carbon.constants`), carried by both `format-webgl` and `format-webgpu` |
+| `cb0` `$LocalConstants` | yes | `@carbonenginejs/runtime-resource/formats/hlsl` binding manifest (`bindings[].carbon.constants`), carried by the runtime-resource WebGL and WebGPU format subpaths |
 | `cb1`–`cb4` | **no, at any layer** | this package, from the Carbon C++ structs |
 
 `cb1`–`cb4` carry no names anywhere because Carbon's own shader compiler strips
@@ -188,27 +188,3 @@ record audited hulls authoring PPT **disabled**.
   `src/eve/perObjectData/*` declarations. `VerifyDefinition` exists for exactly
   this and will fail loud on drift, but `runtime-trinity` is not a dependency
   here, so nothing runs it yet.
-
-## Notes for the shader-format agents
-
-What this package needs, in priority order:
-
-1. **A permutation-complete effect package.** Today's CEWGPU is a
-   selected-body compiler package, not a complete effect resource: one body, one
-   permutation, no option lists. `format-webgl` already enumerates and
-   deduplicates the whole mixed-radix table and is the better precedent for the
-   variant/body graph — though its runtime factory zero-initializes constants
-   and clears annotations, so it is not a complete `Tr2EffectRes` model either.
-   Carbon's real contract additionally includes exact constant-default bytes,
-   annotations, render states, stage signatures, samplers/UAVs, and libraries.
-2. **`cb0` names surfaced into the readable export.** They already exist in the
-   `ANLS` chunk of `package.cewgpu` and in `format-webgl`'s
-   `glsl.stages[].contract.constants`; they are simply never written into the
-   emitted WGSL or the per-effect `manifest.json`. Surfacing them is a plumbing
-   change, not new reflection.
-3. **`.sm_depth` over `.sm_hi`** where the two differ in feature coverage.
-4. **Do not pin a permutation silently.** If an export fixes an axis, the
-   manifest should carry the full option list for every axis, not just the
-   selected value and that axis's default.
-
-Anything to hand over goes in this directory.
