@@ -467,4 +467,18 @@ validate against, not what a reader may accept.** Version-branching is the
 format's own mechanism: Carbon's reader takes 2..15 (`Tr2EffectRes.cpp:209`) and
 ccpwgl's `PrepareCCP` already gates `version < 2 || version > 8`. A reader that
 wants all of them branches on the version dword — v2..8 legacy gles2, v15
-Carbon-era, v16 ours — which is one reader, not a bespoke path per format.
+everything current — which is one reader, not a bespoke path per format.
+
+**Our containers are v15, not a version of our own.** A "v16" was considered for
+the variant carrying the per-pass backend block and **rejected**: CCP owns that
+number space, so claiming 16 would collide with any real v16 they ship, in the one
+field whose entire job is telling a reader how to parse. It also failed the rule
+the rest of this format is held to — invent something only because it *has to*
+exist, never because we think it should.
+
+The block needs no version of its own. Each description blob carries a declared
+size in the offset table, and [Rule 1](#two-rules-for-anything-added-later)
+already requires it to parse to exactly that end. A reader parses a blob without
+blocks and re-parses with them if the cursor misses the declared end, so the
+presence of the block is **self-describing** with no new field, no new version and
+no out-of-band flag. `blobVersion` inside the block versions our own extension.
