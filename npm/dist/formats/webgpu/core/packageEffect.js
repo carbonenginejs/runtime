@@ -17,9 +17,10 @@ import { normalizeEffectPermutation, validateResolvedPermutation, selectEffectSt
 /**
  * Build one structurally valid CEWGPU package from compiled Tr2 effect bytes.
  *
- * Version-15 packages preserve every unique body's source reflection while
- * resolving one backend body and emitting complete passes within the requested
- * stage selection. Filesystem concerns remain in callers.
+ * The version-15 build result retains every unique body's portable source
+ * reflection as in-memory evidence while the emitted Carbon wire stores WGSL
+ * or empty program slots plus representable non-program fields. Filesystem
+ * concerns remain in callers.
  *
  * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Compiled effect bytes.
  * @param {object} [options] Source, body-mode, permutation, and stage-selection policy.
@@ -188,16 +189,15 @@ function buildEffectPackage(input, options = {}) {
       wgslSelection
     } : {})
   };
-  // The switchover. Every chunk this replaced is now a *view* over one
-  // document rather than a stored copy: the permutation graph is the
-  // container's own permutation records and offset table, the reflection is
-  // the description tree, and a translated pass is that tree's shaderData plus
-  // its trailing block. The rich return value below stays as in-memory data
-  // for callers; only `bytes` changes.
+  // The switchover. Former stored chunks are now compatibility views over the
+  // Carbon records: the permutation graph comes from the header and offset
+  // table, and a translated pass comes from shaderData plus its trailing
+  // block. The description tree retains only representable non-program
+  // reflection; full portable source reflection remains in the rich
+  // in-memory return value below.
   //
-  // This also retires the digests. They existed to detect several projections
-  // of one effect disagreeing with each other. There is one projection now, so
-  // there is nothing left to disagree and nothing for a digest to catch.
+  // The wire no longer stores cross-chunk digests. The rich return value keeps
+  // hashes as build evidence; they are not records in the emitted container.
   const emittedBodySet = backendBodySet ?? selectedModeBodySet(permutationGraph, wgsl, analysis.bodyIndex);
   const container = buildCarbonEffectContainer(resolved.effectRes, permutationGraph, emittedBodySet, {
     compilerVersion: resolved.effectRes.m_compilerVersionBytes
@@ -244,9 +244,9 @@ function buildEffectPackage(input, options = {}) {
  * `mode: "all"` builds a real body set covering every unique body. `mode:
  * "selected"` translates exactly one, and the container still carries every
  * permutation — that asymmetry is the format working as intended rather than a
- * gap. An untranslated body keeps its complete source reflection and carries
- * zero-length programs, which says what is true: the reflection is known, the
- * program is not.
+ * gap. When the container emitter rebuilds an untranslated body, it retains
+ * representable non-program description fields and writes zero-length program
+ * slots.
  *
  * So this does not translate anything. It reshapes the one translation already
  * performed into the body-set contract, and marks every other body unsupported.

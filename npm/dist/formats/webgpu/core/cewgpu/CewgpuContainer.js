@@ -232,9 +232,8 @@ class CewgpuContainer {
         // it walks options in declaration order.
         optionIndices: Object.freeze(optionIndicesFor(this.carbon.permutations, permutationIndex)),
         // The offset-table row itself. Aliased permutations share a
-        // row, so they share a source record -- which is how the
-        // consumer proves that two permutations resolving to one body
-        // really do point at the same bytes.
+        // stored record, so the consumer can prove that two
+        // permutations resolve to the same emitted bytes.
         sourceRecord: Object.freeze({
           offset: record.offset,
           byteLength: record.size
@@ -327,15 +326,15 @@ class CewgpuContainer {
   }
 
   /**
-   * Returns the Carbon description for one permutation as the source
-   * reflection.
+   * Returns the Carbon description currently exposed through the legacy
+   * portable-reflection accessor.
    *
-   * Under the record layout the reflection is not a separate document that
-   * could drift from the programs; it is the same records the programs live
-   * in.
+   * This is not a `CJS_EFFECT_BODY_REFLECTION` envelope. Direct
+   * `Tr2EffectRes` hydration requires an adapter and remains an open
+   * integration boundary.
    *
    * @param {number} [permutationIndex] Permutation index.
-   * @returns {object|null} Description record tree.
+   * @returns {object|null} Raw Carbon description record tree.
    */
   GetPortableEffectReflection(permutationIndex = 0) {
     if (!this.IsGood()) return null;

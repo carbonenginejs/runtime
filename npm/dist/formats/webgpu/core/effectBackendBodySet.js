@@ -163,8 +163,8 @@ function translatePassUnit(pass, programForKey, source, bindingPolicy) {
  * is byte-for-byte identical.
  *
  * A body that cannot be lowered is retained as an explicitly unsupported
- * record. Its complete source reflection stays in `RFLX`, so a partial backend
- * never removes source truth.
+ * in-memory record carrying its reason. Portable source reflection is built
+ * separately from the same effect; this body-set document does not store it.
  *
  * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
  * @param {object} permutationGraph Validated `PGRF` document.

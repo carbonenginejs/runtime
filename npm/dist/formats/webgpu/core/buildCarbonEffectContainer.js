@@ -9,12 +9,11 @@ import { buildEffectBodyReflection } from '../../hlsl/core/portableReflection.js
  * Assembles the WebGPU effect container: Carbon's v15 record layout carrying
  * WGSL where a shipped file carries DXBC.
  *
- * The Carbon region is backend-invariant, which the corpus proves rather than
- * asserts — one reader and one writer reproduce dx11, dx12 and metal files byte
- * for byte with no language field anywhere. So a backend swaps exactly two
- * things: the bytes in each stage's `shaderData` slot, and the contents of the
- * one optional trailing block per pass. Everything else is the same records in
- * the same order.
+ * The Carbon record layout is shared across backends. CEWGPU replaces stage
+ * program bytes with WGSL or an empty slot and adds one optional trailing block
+ * per pass. The portable-to-Carbon mapping retains representable non-program
+ * fields; non-dynamic sampler names are unrecoverable and stage order is
+ * canonicalized.
  */
 
 /**
@@ -25,21 +24,20 @@ import { buildEffectBodyReflection } from '../../hlsl/core/portableReflection.js
  * Neither survived the only question worth asking of an addition: what breaks
  * without it?
  *
- * - `payloadKind` is redundant with the directory the file came from. Backend
- *   selection is by resource path — `effect.webgpu/`, `effect.webgl2/` — exactly
- *   as Carbon selects `effect.dx11`/`effect.dx12`/`effect.metal`, and Carbon
- *   carries no payload tag anywhere.
+ * - `payloadKind` is redundant with the directory the file came from. CEWGPU
+ *   identity belongs to the `effect.webgpu/` resource path; `.cewg` remains a
+ *   separate CEWG chunk format.
  * - The magic only distinguished our file from a Carbon one, which the same
  *   directory already answers, and which the file *name* answers too.
  * - A version of our own would have claimed a number CCP owns, in the one field
  *   whose job is telling a reader how to parse. A real v16 from them would then
  *   collide with ours.
  *
- * What remains is a stock Carbon v15 file, so `Tr2EffectRes`/`Tr2Shader` read our
- * containers through the Carbon path rather than a bespoke format branch — and
- * that saving lands on every future reader, not only the one that exists today.
- * The per-pass block is found by `CjsCarbonEffectReader.readDescription`, which
- * detects it from the blob's declared end under Rule 1.
+ * What remains is a bare Carbon v15 record file. `CewgpuContainer` reads it and
+ * the shared record reader detects the per-pass block from the description's
+ * declared end. Direct `Tr2EffectRes` hydration remains an adapter boundary:
+ * a Carbon description tree is not the portable reflection envelope consumed
+ * by `Tr2Shader.fromPortable`.
  *
  * The one addition that does survive the question is the block itself: WebGPU
  * bind-group layouts come from the lowered IR and are not derivable from Carbon
@@ -93,10 +91,11 @@ function unitsByPassKey(body, unitsByKey) {
 /**
  * Builds one body's Carbon description record tree with WGSL substituted in.
  *
- * A body the translator could not lower keeps its complete source reflection and
- * carries zero-length programs. Dropping it would remove source truth that the
- * container is the only remaining home for; emitting it with empty `shaderData`
- * says exactly what is true — the reflection is known, the program is not.
+ * A body the translator could not lower retains its representable non-program
+ * description fields and carries zero-length programs. Emitting empty
+ * `shaderData` says exactly what the wire knows: no backend program was stored.
+ * Full portable source reflection remains in the in-memory build result, not
+ * in this emitted body.
  *
  * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
  * @param {number} permutationIndex Representative permutation for this body.
@@ -173,10 +172,10 @@ function buildCarbonEffectContainer(effectRes, permutationGraph, backendBodySet,
     });
   }
 
-  // One description per unique body, reused by every permutation that resolves
-  // to it. The container's alias dedupe then collapses them to one stored copy
-  // while the offset table stays dense, which is exactly what CCP's compiler
-  // does and what the corpus confirms across 900 aliasing files.
+  // Build one emitted description per source body key and reuse it for each
+  // matching permutation. The writer may dedupe additional descriptions when
+  // their emitted bytes become identical after source programs are replaced;
+  // the offset table remains dense.
   const describedByBodyKey = new Map();
   for (const [permutationIndex, variant] of permutationGraph.variants.entries()) {
     let description = describedByBodyKey.get(variant.bodyKey);
