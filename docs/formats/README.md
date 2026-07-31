@@ -70,6 +70,29 @@ Detailed pages: [Granny GR2 and GSF](gr2.md),
 history, retained snapshots, and donor licensing are recorded in
 [provenance.md](provenance.md).
 
+## Black and Red reader boundary
+
+`CjsBlackReader` and `CjsRedReader` share `CjsBlueReader` as an output and
+hydration backend. The shared layer owns payload/runtime target creation,
+payload-reference markers, hydration-adapter coordination, reports, and
+runtime finalization. It does not own transport framing or graph traversal.
+
+Black retains its binary buffer and cursor, string tables, numeric reference
+tokens, schema/descriptor field resolution, skip behavior, and
+Black-specific property readers. Structure-list parsing and skipping therefore
+remain on the Black side. Red retains YAML parsing, anchors and aliases, typed
+table decoding, and lenient named-field assignment. Red is the YAML-encoded
+Blue graph transport; the generic `CjsYamlFormat` reader is separate and does
+not use the Blue backend.
+
+These readers are source-bound and garbage-collected rather than explicitly
+disposed. A read entry point resets its graph state before walking the same
+bound source again; Black also restores its binary cursor. Runtime hydration
+constructs a target when its node is encountered, applies that node's values
+after its children have been read, and defers all `finalize` calls until the
+complete graph is available. Untyped Red maps remain plain value objects and
+do not enter the runtime adapter lifecycle.
+
 ## Granny GR2/GSF
 
 `CjsGr2Format` reads `.gr2` geometry/skeleton/animation graphs and `.gsf`
