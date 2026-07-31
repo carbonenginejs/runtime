@@ -61,6 +61,8 @@ than the tail of a long session.
 
 #### The exact next step
 
+0. **The derived ANLS view and its shape adapter — do this first.** Its only
+   oracle is the stored `ANLS` chunk, which step 1 deletes. See below.
 1. `packageEffect.js` — replace the `buildPackage([...])` call (around line 268)
    with `buildCarbonEffectContainer`. The rich return value (`info`, `analysis`,
    `wgsl`, `backendBodySet`) stays as in-memory data for callers; only `bytes`
@@ -80,6 +82,49 @@ than the tail of a long session.
 Then `(2)`-webgl, which deletes the one fork flag and replaces the independent
 container reimplementation at `test/formats/webgl/synthetic.js:683-724` with the
 phase-1 writer.
+
+#### The derived ANLS view is step 0, and it is not free
+
+The switchover's real first move is not the emit. It is the derived analysis view,
+because **today's stored `ANLS` chunk is its only oracle, and the emit deletes it.**
+Build and prove the view first, flip second.
+
+Two consumers depend on it, and neither parses package bytes:
+
+- `engine-webgpu` reads `analysis.passes` and, per binding, `carbon.type`,
+  `carbon.isSRGB`, `heapView` and `annotations` — in `core/packageHelpers.js` and
+  `core/spaceObjectMainBindings.js`. `CjsWebGPUPackage.fromBytes` takes an
+  *injected* reader, so the wire format is invisible to it. The only way step 1
+  breaks the engine is if the returned document stops carrying that view.
+- `tools-core`'s `CjsToolShaderBuilder` calls `format.inspect(outputBytes)` and
+  stores the result as `packageInspection` in its manifest, and asserts the format
+  exposes both `buildEffect` and `inspect`. So `inspect`'s *shape* is a contract,
+  not a debugging convenience. (Another agent works in `tools-core` — coordinate,
+  do not edit.)
+
+The tempting shortcut does not work. `buildEffectAnalysis` is a pure function of
+the effect description via `HlslEffectBindingManifest.fromEffectDescription`, and
+the container carries the description — but two things block reuse:
+
+1. **Our per-pass trailing block makes the body unreadable by the stock reader.**
+   The block is eight bytes at the end of each pass, so Carbon's own description
+   reader desynchronises at the second pass. That is exactly what the `backend`
+   gate exists for, and it is the price of putting the block inside the record
+   layout rather than beside it. Only `readEffectDescription(reader, {backend:
+   true})` parses our bodies.
+2. **The manifest wants the runtime shape, not ours.** It indexes
+   `pass.stageInputs[stageType]` with `m_exists`, and reads `textures`, `samplers`
+   and `uavs` as register-keyed maps. Our record tree carries the same data as
+   ordered arrays with `{offset, value}` string references.
+
+So step 0 is a **shape adapter** from the parsed record tree to the description
+shape the manifest already consumes — roughly 150 lines, no new semantics — after
+which `buildEffectAnalysis` runs unchanged and the view is the same function it
+has always been rather than a reimplementation that can drift.
+
+Its oracle, while it still exists: build an effect both ways and diff the derived
+view against the stored `ANLS` chunk, field for field, the way
+`carbon-mapping.test.js` diffs the Carbon region. Do this **before** step 1.
 
 #### Reproducing the measurements
 
