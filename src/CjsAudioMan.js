@@ -1292,6 +1292,24 @@ export class CjsAudioMan
                                 selection,
                                 controls,
                             ),
+                            ...(selection.lowPass === undefined
+                                ? {}
+                                : {
+                                    getLowPass: () =>
+                                        engine.EvaluateLowPass(
+                                            selection,
+                                            controls,
+                                        ),
+                                }),
+                            ...(selection.highPass === undefined
+                                ? {}
+                                : {
+                                    getHighPass: () =>
+                                        engine.EvaluateHighPass(
+                                            selection,
+                                            controls,
+                                        ),
+                                }),
                         } ]
                         : []),
             };

@@ -17,7 +17,7 @@ function Graph(events, nodes)
 
 test("authored NodeBase properties and randomizers resolve once per post", () =>
 {
-    const samples = [ 0.75, 0.25, 0.5 ];
+    const samples = [ 0.75, 0.25, 0.5, 0.1, 0.9 ];
     const engine = new CjsSfxEngine({
         graph: Graph(
             { fire: [ { nodeId: "1" } ] },
@@ -32,6 +32,14 @@ test("authored NodeBase properties and randomizers resolve once per post", () =>
                     pitchCents: 1200,
                     pitchCentsRanges: [
                         { min: -100, max: 100 },
+                    ],
+                    lowPass: 10,
+                    lowPassRanges: [
+                        { min: 0, max: 20 },
+                    ],
+                    highPass: 5,
+                    highPassRanges: [
+                        { min: -5, max: 5 },
                     ],
                     initialDelayMs: 250,
                     initialDelayRangesMs: [
@@ -49,7 +57,9 @@ test("authored NodeBase properties and randomizers resolve once per post", () =>
     assert.ok(
         Math.abs(selection.playbackRate - 2 ** (1150 / 1200)) < 1e-12,
     );
-    assert.equal(selection.delayMs, 300);
+    assert.equal(engine.EvaluateLowPass(selection), 20);
+    assert.equal(engine.EvaluateHighPass(selection), 1);
+    assert.equal(selection.delayMs, 340);
     assert.deepEqual(samples, []);
 });
 
@@ -165,6 +175,84 @@ test("Immediate state properties add to inherited volume and pitch", () =>
                 - 2 ** (400 / 1200),
         ) < 1e-12,
     );
+});
+
+test("Wwise filters accumulate static, State, and live RTPC values", () =>
+{
+    let currentState = "danger";
+    const values = new Map([
+        [ "engine_filter", 0.5 ],
+        [ "engine_cut", 1 ],
+    ]);
+    const controls = {
+        getRTPC: name => values.get(name),
+        getState: () => currentState,
+    };
+    const curve = (rtpc, property, to) => ({
+        rtpc,
+        scope: "object",
+        property,
+        scaling: 0,
+        points: [
+            { x: 0, value: 0, interpolation: 4 },
+            { x: 1, value: to, interpolation: 4 },
+        ],
+    });
+    const stateProperties = [
+        {
+            group: "combat",
+            cases: {
+                danger: {
+                    lowPass: 5,
+                    highPass: 3,
+                },
+            },
+        },
+    ];
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { engine: [ { nodeId: "1" } ] },
+            {
+                "1": {
+                    type: "blend",
+                    lowPass: 5,
+                    highPass: 1,
+                    rtpcCurves: [
+                        curve("engine_filter", "lowPass", 50),
+                        curve("engine_cut", "highPass", 10),
+                    ],
+                    stateProperties,
+                    children: [ { nodeId: "2" } ],
+                },
+                "2": {
+                    type: "sound",
+                    mediaId: "100",
+                    lowPass: 10,
+                    highPass: 2,
+                    rtpcCurves: [
+                        curve("engine_filter", "lowPass", 50),
+                        curve("engine_cut", "highPass", 10),
+                    ],
+                    stateProperties,
+                },
+            },
+        ),
+    });
+    const selection = engine.ResolveEvent("engine", controls)[0];
+
+    assert.equal(engine.EvaluateLowPass(selection, controls), 75);
+    assert.equal(engine.EvaluateHighPass(selection, controls), 29);
+
+    values.set("engine_filter", 1);
+    values.set("engine_cut", 0);
+    currentState = "none";
+
+    assert.equal(
+        engine.EvaluateLowPass(selection, controls),
+        100,
+        "live RTPC changes update and clamp the already-resolved voice",
+    );
+    assert.equal(engine.EvaluateHighPass(selection, controls), 3);
 });
 
 test("NodeBase RTPC curves add live volume and pitch but capture delay", () =>

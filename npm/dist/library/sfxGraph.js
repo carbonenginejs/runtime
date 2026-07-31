@@ -2,7 +2,7 @@ const SFX_SCHEMA_VERSION = 2;
 const NODE_TYPES = new Set(["blend", "parallel", "random", "sequence", "silence", "sound", "switch"]);
 const SWITCH_SCOPES = new Set(["state", "switch"]);
 const RTPC_SCOPES = new Set(["global", "object"]);
-const RTPC_PROPERTY_SCALING = new Map([["initialDelay", 0], ["pitch", 0], ["volume", 2]]);
+const RTPC_PROPERTY_SCALING = new Map([["highPass", 0], ["initialDelay", 0], ["lowPass", 0], ["pitch", 0], ["volume", 2]]);
 const CONTAINER_SCOPES = new Set(["global", "object"]);
 const RANDOM_MODES = new Set(["random", "shuffle"]);
 const EVENT_ACTION_KINDS = new Set(["state", "switch"]);
@@ -251,6 +251,7 @@ function NormalizeChild(child) {
   const result = {
     nodeId: String(Number(child.nodeId) >>> 0),
     ...NormalizeGain(child),
+    ...NormalizeRtpcCurves(child),
     ...NormalizeActionTiming(child)
   };
   if (child.weight !== undefined) {
@@ -290,12 +291,12 @@ function NormalizeGain(value) {
 }
 function NormalizeNodePlaybackProperties(value) {
   const result = {};
-  for (const field of ["pitchCents", "initialDelayMs"]) {
+  for (const field of ["pitchCents", "lowPass", "highPass", "initialDelayMs"]) {
     if (value[field] !== undefined) {
       result[field] = Number(value[field]);
     }
   }
-  for (const field of ["pitchCentsRanges", "initialDelayRangesMs"]) {
+  for (const field of ["pitchCentsRanges", "lowPassRanges", "highPassRanges", "initialDelayRangesMs"]) {
     if (value[field] !== undefined) {
       result[field] = NormalizeRandomRanges(value[field]);
     }
@@ -338,6 +339,12 @@ function NormalizeStateProperties(value) {
         }),
         ...(property.cases[name].pitchCents === undefined ? {} : {
           pitchCents: Number(property.cases[name].pitchCents)
+        }),
+        ...(property.cases[name].lowPass === undefined ? {} : {
+          lowPass: Number(property.cases[name].lowPass)
+        }),
+        ...(property.cases[name].highPass === undefined ? {} : {
+          highPass: Number(property.cases[name].highPass)
         })
       }]))
     }))
@@ -376,6 +383,7 @@ function ValidateChild(child, nodes, label, allowWeight = false) {
   }
   if (IsRecord(child)) {
     ValidateGain(child, label);
+    ValidateRtpcCurves(child.rtpcCurves, `${label} rtpcCurves`);
     ValidateActionTiming(child, label);
     if (child.weight !== undefined) {
       if (!allowWeight) {
@@ -593,7 +601,14 @@ function ValidateNodePlaybackProperties(value, label) {
   if (value.initialDelayMs !== undefined && NormalizeFiniteNumber(value.initialDelayMs, `${label} initialDelayMs`) < 0) {
     throw new TypeError(`${label} initialDelayMs must be non-negative`);
   }
+  for (const field of ["lowPass", "highPass"]) {
+    if (value[field] !== undefined) {
+      NormalizeFiniteNumber(value[field], `${label} ${field}`);
+    }
+  }
   ValidateRandomRanges(value.pitchCentsRanges, `${label} pitchCentsRanges`);
+  ValidateRandomRanges(value.lowPassRanges, `${label} lowPassRanges`);
+  ValidateRandomRanges(value.highPassRanges, `${label} highPassRanges`);
   ValidateRandomRanges(value.initialDelayRangesMs, `${label} initialDelayRangesMs`);
 }
 function ValidateRtpcCurves(value, label) {
@@ -612,7 +627,7 @@ function ValidateRtpcCurves(value, label) {
       throw new TypeError(`${label} ${index} scope must be object or global`);
     }
     if (expectedScaling === undefined) {
-      throw new TypeError(`${label} ${index} property must be volume, pitch, or initialDelay`);
+      throw new TypeError(`${label} ${index} property must be volume, pitch, lowPass, highPass, or initialDelay`);
     }
     if (Number(curve.scaling) !== expectedScaling) {
       throw new TypeError(`${label} ${index} scaling must be ${expectedScaling}` + ` for ${property}`);
@@ -662,14 +677,22 @@ function ValidateStateProperties(value, label) {
       const stateCase = RequireRecord(rawCase, `${label} ${index} case ${name}`);
       const hasGain = stateCase.gainDb !== undefined;
       const hasPitch = stateCase.pitchCents !== undefined;
-      if (!hasGain && !hasPitch) {
-        throw new TypeError(`${label} ${index} case ${name}` + " must define gainDb or pitchCents");
+      const hasLowPass = stateCase.lowPass !== undefined;
+      const hasHighPass = stateCase.highPass !== undefined;
+      if (!hasGain && !hasPitch && !hasLowPass && !hasHighPass) {
+        throw new TypeError(`${label} ${index} case ${name}` + " must define gainDb, pitchCents, lowPass, or highPass");
       }
       if (hasGain) {
         NormalizeFiniteNumber(stateCase.gainDb, `${label} ${index} case ${name} gainDb`);
       }
       if (hasPitch) {
         NormalizeFiniteNumber(stateCase.pitchCents, `${label} ${index} case ${name} pitchCents`);
+      }
+      if (hasLowPass) {
+        NormalizeFiniteNumber(stateCase.lowPass, `${label} ${index} case ${name} lowPass`);
+      }
+      if (hasHighPass) {
+        NormalizeFiniteNumber(stateCase.highPass, `${label} ${index} case ${name} highPass`);
       }
     }
   }

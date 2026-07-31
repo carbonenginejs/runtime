@@ -860,7 +860,13 @@ class CjsAudioMan {
             fadeInMs: selection.fadeInMs,
             fadeCurve: selection.fadeCurve
           }),
-          getGain: () => engine.EvaluateGain(selection, controls)
+          getGain: () => engine.EvaluateGain(selection, controls),
+          ...(selection.lowPass === undefined ? {} : {
+            getLowPass: () => engine.EvaluateLowPass(selection, controls)
+          }),
+          ...(selection.highPass === undefined ? {} : {
+            getHighPass: () => engine.EvaluateHighPass(selection, controls)
+          })
         }] : [])
       };
     }

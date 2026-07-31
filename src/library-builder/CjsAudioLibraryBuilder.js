@@ -16,8 +16,11 @@ const SFX_SET_SWITCH_ACTION_FAMILY = 0x19;
 const SFX_UNSUPPORTED_PLAY_ACTIONS = new Set([ 0x0503 ]);
 const SFX_VOLUME_PROPERTY = 0;
 const SFX_PITCH_PROPERTY = 1;
+const SFX_LOW_PASS_PROPERTY = 2;
+const SFX_HIGH_PASS_PROPERTY = 3;
 const SFX_INITIAL_DELAY_PROPERTY = 34;
 const SFX_ADDITIVE_ACCUMULATION = 2;
+const SFX_FILTER_ACCUMULATION = 6;
 const SFX_IMMEDIATE_STATE_SYNC = 0;
 const AUDIO_LANGUAGE_TAGS = Object.freeze({
     chinese: "zh-cn",
@@ -1014,11 +1017,6 @@ function LowerSfxGraph({
                 {
                     throw new Error(`continuous layer ${id}`);
                 }
-                if (source.layers.some(layer =>
-                    layer.initialRtpcs.length))
-                {
-                    throw new Error(`layer property RTPCs ${id}`);
-                }
 
                 const children = source.children.map(nodeId => ({
                     nodeId: lowerChild(nodeId),
@@ -1033,26 +1031,30 @@ function LowerSfxGraph({
 
                 for (const layer of source.layers)
                 {
-                    const associations = layer.associations.filter(
-                        association => association.points.length,
-                    );
+                    const associations = layer.associations;
 
                     if (!associations.length)
                     {
                         continue;
                     }
-                    if (layer.controlType !== 0)
+                    if (layer.controlType !== 0
+                        && associations.some(association =>
+                            association.points.length))
                     {
                         throw new Error(
                             `unsupported layer control type ${layer.controlType}`,
                         );
                     }
 
-                    const parameter = names.parameters.get(
-                        Number(layer.controlId) >>> 0,
-                    );
+                    const parameter = associations.some(association =>
+                        association.points.length)
+                        ? names.parameters.get(
+                            Number(layer.controlId) >>> 0,
+                        )
+                        : null;
 
-                    if (!parameter)
+                    if (associations.some(association =>
+                        association.points.length) && !parameter)
                     {
                         throw new Error(
                             `unnamed game parameter ${layer.controlId}`,
@@ -1072,27 +1074,47 @@ function LowerSfxGraph({
                             );
                         }
 
-                        const points = association.points.map(point =>
+                        if (association.points.length)
                         {
-                            if (point.to < 0 || point.to > 1)
+                            const points = association.points.map(point =>
+                            {
+                                if (point.to < 0 || point.to > 1)
+                                {
+                                    throw new Error(
+                                        `invalid layer gain ${point.to}`,
+                                    );
+                                }
+                                return {
+                                    x: point.from,
+                                    gain: point.to,
+                                    interpolation: point.interpolation,
+                                };
+                            });
+
+                            (child.gainCurves ??= []).push({
+                                rtpc: parameter,
+                                scope: "object",
+                                points,
+                            });
+                            curveCount++;
+                        }
+
+                        for (const rtpc of layer.initialRtpcs)
+                        {
+                            const curve = CreateSfxRtpcCurve(
+                                rtpc,
+                                names,
+                            );
+
+                            if (!curve)
                             {
                                 throw new Error(
-                                    `invalid layer gain ${point.to}`,
+                                    "unsupported layer RTPC property "
+                                    + `${rtpc.parameterId}`,
                                 );
                             }
-                            return {
-                                x: point.from,
-                                gain: point.to,
-                                interpolation: point.interpolation,
-                            };
-                        });
-
-                        (child.gainCurves ??= []).push({
-                            rtpc: parameter,
-                            scope: "object",
-                            points,
-                        });
-                        curveCount++;
+                            (child.rtpcCurves ??= []).push(curve);
+                        }
                     }
                 }
 
@@ -1977,9 +1999,13 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
 
     let gainDb = 0;
     let pitchCents = 0;
+    let lowPass = 0;
+    let highPass = 0;
     let initialDelayMs = 0;
     const gainDbRanges = [];
     const pitchCentsRanges = [];
+    const lowPassRanges = [];
+    const highPassRanges = [];
     const initialDelayRangesMs = [];
     const rtpcCurves = [];
     const stateProperties = [];
@@ -2001,6 +2027,14 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
             else if (property.id === SFX_PITCH_PROPERTY)
             {
                 pitchCents += value;
+            }
+            else if (property.id === SFX_LOW_PASS_PROPERTY)
+            {
+                lowPass += value;
+            }
+            else if (property.id === SFX_HIGH_PASS_PROPERTY)
+            {
+                highPass += value;
             }
             else if (property.id === SFX_INITIAL_DELAY_PROPERTY)
             {
@@ -2026,6 +2060,14 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
             {
                 pitchCentsRanges.push({ min, max });
             }
+            else if (range.id === SFX_LOW_PASS_PROPERTY)
+            {
+                lowPassRanges.push({ min, max });
+            }
+            else if (range.id === SFX_HIGH_PASS_PROPERTY)
+            {
+                highPassRanges.push({ min, max });
+            }
             else if (range.id === SFX_INITIAL_DELAY_PROPERTY)
             {
                 initialDelayRangesMs.push({
@@ -2037,98 +2079,12 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
 
         for (const rtpc of nodeBase.rtpcs ?? [])
         {
-            const propertyID = Number(rtpc.parameterId);
+            const curve = CreateSfxRtpcCurve(rtpc, names);
 
-            if (Number(rtpc.controlType) !== 0
-                || (propertyID !== SFX_VOLUME_PROPERTY
-                    && propertyID !== SFX_PITCH_PROPERTY
-                    && propertyID !== SFX_INITIAL_DELAY_PROPERTY))
+            if (curve)
             {
-                continue;
+                rtpcCurves.push(curve);
             }
-
-            const property = propertyID === SFX_VOLUME_PROPERTY
-                ? "volume"
-                : propertyID === SFX_PITCH_PROPERTY
-                    ? "pitch"
-                    : "initialDelay";
-            const scaling = Number(rtpc.scaling);
-            const expectedScaling = property === "volume" ? 2 : 0;
-            const controlID = Number(rtpc.controlId) >>> 0;
-            const parameter = names.parameters.get(controlID);
-            const defaultValue = names.parameterDefaults.get(controlID);
-
-            if (!rtpc.points?.length)
-            {
-                throw new Error(
-                    `empty ${property} RTPC curve ${rtpc.curveId}`,
-                );
-            }
-            if (Number(rtpc.accumulation)
-                !== SFX_ADDITIVE_ACCUMULATION)
-            {
-                throw new Error(
-                    `unsupported RTPC accumulation ${rtpc.accumulation}`,
-                );
-            }
-            if (scaling !== expectedScaling)
-            {
-                throw new Error(
-                    `unsupported ${property} RTPC scaling ${rtpc.scaling}`,
-                );
-            }
-            if (!parameter)
-            {
-                throw new Error(
-                    `unnamed game parameter ${rtpc.controlId}`,
-                );
-            }
-
-            let previous = -Infinity;
-            const points = rtpc.points.map(point =>
-            {
-                const x = Number(point.from);
-                const value = Number(point.to);
-                const interpolation = Number(point.interpolation);
-
-                if (!Number.isFinite(x) || !Number.isFinite(value))
-                {
-                    throw new Error(
-                        `non-finite RTPC curve ${rtpc.curveId}`,
-                    );
-                }
-                if (!Number.isSafeInteger(interpolation)
-                    || interpolation < 0
-                    || interpolation > 9)
-                {
-                    throw new Error(
-                        `invalid RTPC interpolation ${rtpc.curveId}`,
-                    );
-                }
-                if (x < previous)
-                {
-                    throw new Error(
-                        `unsorted RTPC curve ${rtpc.curveId}`,
-                    );
-                }
-                previous = x;
-                return {
-                    x,
-                    value,
-                    interpolation,
-                };
-            });
-
-            rtpcCurves.push({
-                rtpc: parameter,
-                scope: "object",
-                property,
-                scaling,
-                ...(defaultValue === undefined
-                    ? {}
-                    : { defaultValue }),
-                points,
-            });
         }
 
         for (const group of nodeBase.state?.groups ?? [])
@@ -2169,6 +2125,8 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
                 );
                 let stateGainDb = 0;
                 let statePitchCents = 0;
+                let stateLowPass = 0;
+                let stateHighPass = 0;
 
                 if (!stateName)
                 {
@@ -2181,12 +2139,18 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
                 {
                     const propertyID = Number(value.propertyId);
                     const definition = definitions.get(propertyID);
+                    const isFilter = propertyID === SFX_LOW_PASS_PROPERTY
+                        || propertyID === SFX_HIGH_PASS_PROPERTY;
 
                     if (!definition
-                        || definition.accumulation
-                            !== SFX_ADDITIVE_ACCUMULATION
                         || (propertyID !== SFX_VOLUME_PROPERTY
-                            && propertyID !== SFX_PITCH_PROPERTY))
+                            && propertyID !== SFX_PITCH_PROPERTY
+                            && !isFilter)
+                        || definition.accumulation !== (
+                            isFilter
+                                ? SFX_FILTER_ACCUMULATION
+                                : SFX_ADDITIVE_ACCUMULATION
+                        ))
                     {
                         throw new Error(
                             `unsupported state property ${propertyID}`,
@@ -2198,10 +2162,24 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
                     }
                     else
                     {
-                        statePitchCents += Number(value.value);
+                        if (propertyID === SFX_PITCH_PROPERTY)
+                        {
+                            statePitchCents += Number(value.value);
+                        }
+                        else if (propertyID === SFX_LOW_PASS_PROPERTY)
+                        {
+                            stateLowPass += Number(value.value);
+                        }
+                        else
+                        {
+                            stateHighPass += Number(value.value);
+                        }
                     }
                 }
-                if (stateGainDb !== 0 || statePitchCents !== 0)
+                if (stateGainDb !== 0
+                    || statePitchCents !== 0
+                    || stateLowPass !== 0
+                    || stateHighPass !== 0)
                 {
                     cases[stateName] = {
                         ...(stateGainDb === 0 ? {} : {
@@ -2209,6 +2187,12 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
                         }),
                         ...(statePitchCents === 0 ? {} : {
                             pitchCents: statePitchCents,
+                        }),
+                        ...(stateLowPass === 0 ? {} : {
+                            lowPass: stateLowPass,
+                        }),
+                        ...(stateHighPass === 0 ? {} : {
+                            highPass: stateHighPass,
                         }),
                     };
                 }
@@ -2229,6 +2213,10 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
         ...(gainDbRanges.length ? { gainDbRanges } : {}),
         ...(pitchCents === 0 ? {} : { pitchCents }),
         ...(pitchCentsRanges.length ? { pitchCentsRanges } : {}),
+        ...(lowPass === 0 ? {} : { lowPass }),
+        ...(lowPassRanges.length ? { lowPassRanges } : {}),
+        ...(highPass === 0 ? {} : { highPass }),
+        ...(highPassRanges.length ? { highPassRanges } : {}),
         ...(initialDelayMs === 0 ? {} : { initialDelayMs }),
         ...(initialDelayRangesMs.length
             ? { initialDelayRangesMs }
@@ -2237,6 +2225,119 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
         ...(stateProperties.length
             ? { stateProperties }
             : {}),
+    };
+}
+
+function CreateSfxRtpcCurve(rtpc, names)
+{
+    const propertyID = Number(rtpc.parameterId);
+    const definitions = {
+        [SFX_VOLUME_PROPERTY]: {
+            property: "volume",
+            accumulation: SFX_ADDITIVE_ACCUMULATION,
+            scaling: 2,
+        },
+        [SFX_PITCH_PROPERTY]: {
+            property: "pitch",
+            accumulation: SFX_ADDITIVE_ACCUMULATION,
+            scaling: 0,
+        },
+        [SFX_LOW_PASS_PROPERTY]: {
+            property: "lowPass",
+            accumulation: SFX_FILTER_ACCUMULATION,
+            scaling: 0,
+        },
+        [SFX_HIGH_PASS_PROPERTY]: {
+            property: "highPass",
+            accumulation: SFX_FILTER_ACCUMULATION,
+            scaling: 0,
+        },
+        [SFX_INITIAL_DELAY_PROPERTY]: {
+            property: "initialDelay",
+            accumulation: SFX_ADDITIVE_ACCUMULATION,
+            scaling: 0,
+        },
+    };
+    const definition = definitions[propertyID];
+
+    if (Number(rtpc.controlType) !== 0 || !definition)
+    {
+        return null;
+    }
+
+    const controlID = Number(rtpc.controlId) >>> 0;
+    const parameter = names.parameters.get(controlID);
+    const defaultValue = names.parameterDefaults.get(controlID);
+
+    if (!rtpc.points?.length)
+    {
+        throw new Error(
+            `empty ${definition.property} RTPC curve ${rtpc.curveId}`,
+        );
+    }
+    if (Number(rtpc.accumulation) !== definition.accumulation)
+    {
+        throw new Error(
+            `unsupported RTPC accumulation ${rtpc.accumulation}`,
+        );
+    }
+    if (Number(rtpc.scaling) !== definition.scaling)
+    {
+        throw new Error(
+            `unsupported ${definition.property} RTPC scaling ${rtpc.scaling}`,
+        );
+    }
+    if (!parameter)
+    {
+        throw new Error(
+            `unnamed game parameter ${rtpc.controlId}`,
+        );
+    }
+
+    let previous = -Infinity;
+    const points = rtpc.points.map(point =>
+    {
+        const x = Number(point.from);
+        const value = Number(point.to);
+        const interpolation = Number(point.interpolation);
+
+        if (!Number.isFinite(x) || !Number.isFinite(value))
+        {
+            throw new Error(
+                `non-finite RTPC curve ${rtpc.curveId}`,
+            );
+        }
+        if (!Number.isSafeInteger(interpolation)
+            || interpolation < 0
+            || interpolation > 9)
+        {
+            throw new Error(
+                `invalid RTPC interpolation ${rtpc.curveId}`,
+            );
+        }
+        if (x < previous)
+        {
+            throw new Error(
+                `unsorted RTPC curve ${rtpc.curveId}`,
+            );
+        }
+        previous = x;
+        return {
+            x,
+            value,
+            interpolation,
+        };
+    });
+
+    return {
+        rtpc: parameter,
+        scope: "object",
+        property: definition.property,
+        scaling: definition.scaling,
+        ...(defaultValue === undefined
+            ? {}
+            : { defaultValue }),
+        points,
     };
 }
 

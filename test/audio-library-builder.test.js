@@ -638,10 +638,13 @@ test("SFX lowering preserves inherited NodeBase playback properties", () =>
                             properties: [
                                 { id: 0, value: -3 },
                                 { id: 1, value: 100 },
+                                { id: 2, value: 10 },
+                                { id: 3, value: 5 },
                                 { id: 34, value: 0.1 },
                             ],
                             ranges: [
                                 { id: 0, min: -1, max: 1 },
+                                { id: 2, min: -2, max: 2 },
                             ],
                             children: [ 200 ],
                         }),
@@ -659,10 +662,13 @@ test("SFX lowering preserves inherited NodeBase playback properties", () =>
                             properties: [
                                 { id: 0, value: -2 },
                                 { id: 1, value: 200 },
+                                { id: 2, value: 20 },
+                                { id: 3, value: 10 },
                                 { id: 34, value: 0.2 },
                             ],
                             ranges: [
                                 { id: 1, min: -50, max: 50 },
+                                { id: 3, min: -3, max: 3 },
                                 { id: 34, min: 0, max: 0.05 },
                             ],
                         }),
@@ -708,6 +714,14 @@ test("SFX lowering preserves inherited NodeBase playback properties", () =>
         pitchCents: 300,
         pitchCentsRanges: [
             { min: -50, max: 50 },
+        ],
+        lowPass: 30,
+        lowPassRanges: [
+            { min: -2, max: 2 },
+        ],
+        highPass: 15,
+        highPassRanges: [
+            { min: -3, max: 3 },
         ],
         initialDelayMs: 300.00000447034836,
         initialDelayRangesMs: [
@@ -799,7 +813,7 @@ test("SFX lowering projects only wholly supported Immediate state properties", (
                         inMemoryMediaSize: 64,
                         payload: soundPayload({
                             stateProperties: [
-                                { propertyId: 2, accumulation: 2 },
+                                { propertyId: 2, accumulation: 6 },
                             ],
                             stateGroups: [
                                 {
@@ -886,22 +900,21 @@ test("SFX lowering projects only wholly supported Immediate state properties", (
             },
         },
     ]);
-    assert.equal(result.events.filtered_fire, undefined);
-    assert.equal(
-        result.nodes["201"],
-        undefined,
-        "an unsupported State path is not retained as degraded playback",
-    );
-    assert.deepEqual(result.diagnostics.omittedEvents, [
+    assert.deepEqual(result.nodes["201"].stateProperties, [
         {
-            id: 101,
-            name: "filtered_fire",
-            reason: "unsupported state property 2",
+            group: "combat",
+            cases: {
+                danger: { lowPass: 4 },
+            },
         },
     ]);
+    assert.deepEqual(result.events.filtered_fire, [
+        { nodeId: "201" },
+    ]);
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
-test("SFX lowering preserves only exact additive NodeBase RTPC curves", () =>
+test("SFX lowering preserves exact NodeBase RTPC accumulation modes", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
         inspections: [
@@ -994,6 +1007,7 @@ test("SFX lowering preserves only exact additive NodeBase RTPC curves", () =>
                                 {
                                     controlId: 700,
                                     parameterId: 2,
+                                    accumulation: 6,
                                     scaling: 0,
                                     points: [ [ 0, 1, 4 ] ],
                                 },
@@ -1147,6 +1161,16 @@ test("SFX lowering preserves only exact additive NodeBase RTPC curves", () =>
             defaultValue: 0.25,
             points: [
                 { x: 0, value: 0, interpolation: 4 },
+            ],
+        },
+        {
+            rtpc: "engine_load",
+            scope: "object",
+            property: "lowPass",
+            scaling: 0,
+            defaultValue: 0.25,
+            points: [
+                { x: 0, value: 1, interpolation: 4 },
             ],
         },
     ]);
@@ -1659,6 +1683,27 @@ test("non-continuous Layer crossfades lower to live linear-gain curves", () =>
                         payload: trackedLayerPayload({
                             children: [ 200, 202 ],
                             controlId: 800,
+                            rtpcs: [
+                                {
+                                    controlId: 801,
+                                    parameterId: 1,
+                                    scaling: 0,
+                                    points: [
+                                        [ 0, 0, 4 ],
+                                        [ 1, 600, 4 ],
+                                    ],
+                                },
+                                {
+                                    controlId: 802,
+                                    parameterId: 2,
+                                    accumulation: 6,
+                                    scaling: 0,
+                                    points: [
+                                        [ 0, 100, 4 ],
+                                        [ 1, 0, 4 ],
+                                    ],
+                                },
+                            ],
                             associations: [
                                 {
                                     childId: 200,
@@ -1707,6 +1752,8 @@ test("non-continuous Layer crossfades lower to live linear-gain curves", () =>
                         ShortName: "interface",
                         GameParameters: [
                             { Id: "800", Name: "engine_speed" },
+                            { Id: "801", Name: "engine_pitch" },
+                            { Id: "802", Name: "engine_filter" },
                         ],
                     },
                 ],
@@ -1734,6 +1781,28 @@ test("non-continuous Layer crossfades lower to live linear-gain curves", () =>
                         ],
                     },
                 ],
+                rtpcCurves: [
+                    {
+                        rtpc: "engine_pitch",
+                        scope: "object",
+                        property: "pitch",
+                        scaling: 0,
+                        points: [
+                            { x: 0, value: 0, interpolation: 4 },
+                            { x: 1, value: 600, interpolation: 4 },
+                        ],
+                    },
+                    {
+                        rtpc: "engine_filter",
+                        scope: "object",
+                        property: "lowPass",
+                        scaling: 0,
+                        points: [
+                            { x: 0, value: 100, interpolation: 4 },
+                            { x: 1, value: 0, interpolation: 4 },
+                        ],
+                    },
+                ],
             },
             {
                 nodeId: "202",
@@ -1744,6 +1813,28 @@ test("non-continuous Layer crossfades lower to live linear-gain curves", () =>
                         points: [
                             { x: 0, gain: 0, interpolation: 5 },
                             { x: 1, gain: 1, interpolation: 9 },
+                        ],
+                    },
+                ],
+                rtpcCurves: [
+                    {
+                        rtpc: "engine_pitch",
+                        scope: "object",
+                        property: "pitch",
+                        scaling: 0,
+                        points: [
+                            { x: 0, value: 0, interpolation: 4 },
+                            { x: 1, value: 600, interpolation: 4 },
+                        ],
+                    },
+                    {
+                        rtpc: "engine_filter",
+                        scope: "object",
+                        property: "lowPass",
+                        scaling: 0,
+                        points: [
+                            { x: 0, value: 100, interpolation: 4 },
+                            { x: 1, value: 0, interpolation: 4 },
                         ],
                     },
                 ],
@@ -3030,6 +3121,7 @@ function trackedLayerPayload({
     children,
     controlId,
     associations,
+    rtpcs = [],
 })
 {
     const writer = new TestWriter()
@@ -3043,7 +3135,31 @@ function trackedLayerPayload({
     writer
         .u32(1)
         .u32(700)
-        .u16(0)
+        .u16(rtpcs.length);
+
+    for (let index = 0; index < rtpcs.length; index++)
+    {
+        const rtpc = rtpcs[index];
+
+        writer
+            .u32(rtpc.controlId)
+            .u8(rtpc.controlType ?? 0)
+            .u8(rtpc.accumulation ?? 2)
+            .variable(rtpc.parameterId)
+            .u32(rtpc.curveId ?? index + 1)
+            .u8(rtpc.scaling)
+            .u16(rtpc.points.length);
+
+        for (const [ from, to, interpolation ] of rtpc.points)
+        {
+            writer
+                .f32(from)
+                .f32(to)
+                .u32(interpolation);
+        }
+    }
+
+    writer
         .u32(controlId)
         .u8(0)
         .u32(associations.length);

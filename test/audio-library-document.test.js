@@ -333,7 +333,7 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     invalidRtpcProperty.sfx.nodes["2"].rtpcCurves[0].property = "filter";
     assert.throws(
         () => validateAudioLibraryDocument(invalidRtpcProperty),
-        /property must be volume, pitch, or initialDelay/u,
+        /property must be volume, pitch, lowPass, highPass, or initialDelay/u,
     );
 
     const invalidRtpcOrder = structuredClone(valid);
@@ -432,6 +432,14 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
                 mediaId: "0777",
                 playCount: "2",
                 spatial: false,
+                lowPass: "20",
+                lowPassRanges: [
+                    { min: "-2", max: "2" },
+                ],
+                highPass: "10",
+                highPassRanges: [
+                    { min: "-1", max: "1" },
+                ],
                 gainCurves: [
                     {
                         rtpc: "speed",
@@ -467,6 +475,8 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
                             danger: {
                                 gainDb: "-6",
                                 pitchCents: "1200",
+                                lowPass: "30",
+                                highPass: "15",
                             },
                         },
                     },
@@ -491,6 +501,14 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
     assert.equal(installed.sfx.nodes["1"].mediaId, "777");
     assert.equal(installed.sfx.nodes["1"].playCount, 2);
     assert.equal(installed.sfx.nodes["1"].spatial, false);
+    assert.equal(installed.sfx.nodes["1"].lowPass, 20);
+    assert.deepEqual(installed.sfx.nodes["1"].lowPassRanges, [
+        { min: -2, max: 2 },
+    ]);
+    assert.equal(installed.sfx.nodes["1"].highPass, 10);
+    assert.deepEqual(installed.sfx.nodes["1"].highPassRanges, [
+        { min: -1, max: 1 },
+    ]);
     assert.deepEqual(installed.sfx.nodes["1"].gainCurves[0].points, [
         { x: 0, gainDb: -20 },
         { x: 1, gainDb: 0 },
@@ -514,6 +532,8 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
                 danger: {
                     gainDb: -6,
                     pitchCents: 1200,
+                    lowPass: 30,
+                    highPass: 15,
                 },
             },
         },
@@ -547,7 +567,7 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
     emptyStateCase.sfx.nodes["1"].stateProperties[0].cases.danger = {};
     assert.throws(
         () => installAudioLibraryDocument(emptyStateCase),
-        /must define gainDb or pitchCents/u,
+        /must define gainDb, pitchCents, lowPass, or highPass/u,
     );
 
     const duplicateStateCase = structuredClone(source);

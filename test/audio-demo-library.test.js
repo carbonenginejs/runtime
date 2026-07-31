@@ -55,10 +55,23 @@ test("committed demo library carries authored SFX and music semantics", () =>
             value: "yes",
         },
     );
-    assert.equal(
-        graph.programs.es_screen_2_2_play,
-        undefined,
-        "a mixed unsupported State path is omitted instead of degraded",
+    assert.deepEqual(
+        graph.programs.es_screen_2_2_play
+            .map(action => action.kind),
+        [ "state", "stop", "stop", "stop", "play", "stop", "switch" ],
+        "a real filter-State path now retains its complete action order",
+    );
+    assert.deepEqual(
+        graph.nodes["472375073"].stateProperties,
+        [
+            {
+                group: "Pop_up_active",
+                cases: {
+                    Active: { lowPass: 25 },
+                },
+            },
+        ],
+        "the recovered path carries its authored low-pass State",
     );
     assert.deepEqual(
         graph.nodes["464520479"].stateProperties,
@@ -226,6 +239,24 @@ test("committed demo library carries authored SFX and music semantics", () =>
             {
                 rtpc: "lightning_intensity",
                 scope: "object",
+                property: "lowPass",
+                scaling: 0,
+                points: [
+                    {
+                        x: 0,
+                        value: 35,
+                        interpolation: 6,
+                    },
+                    {
+                        x: 1,
+                        value: 0,
+                        interpolation: 4,
+                    },
+                ],
+            },
+            {
+                rtpc: "lightning_intensity",
+                scope: "object",
                 property: "pitch",
                 scaling: 0,
                 points: [
@@ -241,8 +272,26 @@ test("committed demo library carries authored SFX and music semantics", () =>
                     },
                 ],
             },
+            {
+                rtpc: "lightning_intensity",
+                scope: "object",
+                property: "highPass",
+                scaling: 0,
+                points: [
+                    {
+                        x: 0,
+                        value: 18,
+                        interpolation: 4,
+                    },
+                    {
+                        x: 1,
+                        value: 0,
+                        interpolation: 4,
+                    },
+                ],
+            },
         ],
-        "one real lightning Sound carries live authored volume and pitch",
+        "one real lightning Sound carries live authored volume, pitch, and filters",
     );
 
     assert.deepEqual(

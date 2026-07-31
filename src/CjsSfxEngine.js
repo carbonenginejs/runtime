@@ -9,6 +9,8 @@ const MIN_RELATIVE_GAIN_DB = -200;
 const MAX_RELATIVE_GAIN_DB = 200;
 const MIN_RELATIVE_PITCH_CENTS = -2400;
 const MAX_RELATIVE_PITCH_CENTS = 2400;
+const MIN_FILTER_PERCENT = 0;
+const MAX_FILTER_PERCENT = 100;
 
 /**
  * Resolves authored SFX containers into one or more playable media selections.
@@ -110,6 +112,10 @@ export class CjsSfxEngine
                     gainDb: 0,
                     gainCurves: [],
                     pitchCents: 0,
+                    lowPass: 0,
+                    highPass: 0,
+                    hasLowPass: false,
+                    hasHighPass: false,
                     rtpcCurves: [],
                     stateProperties: [],
                     initialDelayMs: 0,
@@ -253,6 +259,26 @@ export class CjsSfxEngine
             );
     }
 
+    /** Evaluates one resolved leaf's current Wwise low-pass percentage. */
+    EvaluateLowPass(selection, controls = {})
+    {
+        return EvaluateFilterProperty(
+            "lowPass",
+            selection,
+            controls,
+        );
+    }
+
+    /** Evaluates one resolved leaf's current Wwise high-pass percentage. */
+    EvaluateHighPass(selection, controls = {})
+    {
+        return EvaluateFilterProperty(
+            "highPass",
+            selection,
+            controls,
+        );
+    }
+
     /** Clears random history and step-sequence positions. */
     Reset()
     {
@@ -312,9 +338,20 @@ export class CjsSfxEngine
             const stateProperties = Object.freeze([
                 ...terms.stateProperties,
             ]);
-            const dynamicPitch = stateProperties.length
+            const dynamicPitch = HasStateCaseField(
+                stateProperties,
+                "pitchCents",
+            )
                 || rtpcCurves.some(curve =>
                     curve.property === "pitch");
+            const hasLowPass = terms.hasLowPass
+                || HasStateCaseField(stateProperties, "lowPass")
+                || rtpcCurves.some(curve =>
+                    curve.property === "lowPass");
+            const hasHighPass = terms.hasHighPass
+                || HasStateCaseField(stateProperties, "highPass")
+                || rtpcCurves.some(curve =>
+                    curve.property === "highPass");
             const rtpcInitialDelayMs = EvaluateRtpcProperties(
                 rtpcCurves,
                 controls,
@@ -339,13 +376,15 @@ export class CjsSfxEngine
                 gainDb: terms.gainDb,
                 gainCurves: Object.freeze([ ...terms.gainCurves ]),
                 ...(rtpcCurves.length ? { rtpcCurves } : {}),
+                ...(stateProperties.length ? { stateProperties } : {}),
                 ...(dynamicPitch
                     ? {
                         authoredPlaybackRate: node.playbackRate ?? 1,
                         pitchCents: terms.pitchCents,
-                        stateProperties,
                     }
                     : {}),
+                ...(hasLowPass ? { lowPass: terms.lowPass } : {}),
+                ...(hasHighPass ? { highPass: terms.highPass } : {}),
                 ...(terms.delayMs + initialDelayMs > 0
                     ? {
                         delayMs: terms.delayMs + initialDelayMs,
@@ -485,6 +524,24 @@ export class CjsSfxEngine
                     value?.pitchCentsRanges,
                     () => this.#SampleUnit(),
                 ),
+            lowPass: base.lowPass
+                + (Number(value?.lowPass) || 0)
+                + SampleRanges(
+                    value?.lowPassRanges,
+                    () => this.#SampleUnit(),
+                ),
+            highPass: base.highPass
+                + (Number(value?.highPass) || 0)
+                + SampleRanges(
+                    value?.highPassRanges,
+                    () => this.#SampleUnit(),
+                ),
+            hasLowPass: base.hasLowPass
+                || value?.lowPass !== undefined
+                || Boolean(value?.lowPassRanges?.length),
+            hasHighPass: base.hasHighPass
+                || value?.highPass !== undefined
+                || Boolean(value?.highPassRanges?.length),
             initialDelayMs: base.initialDelayMs
                 + (Number(value?.initialDelayMs) || 0)
                 + SampleRanges(
@@ -779,6 +836,8 @@ function EvaluateStateProperties(properties, controls)
 {
     let gainDb = 0;
     let pitchCents = 0;
+    let lowPass = 0;
+    let highPass = 0;
 
     for (const property of properties ?? [])
     {
@@ -789,15 +848,19 @@ function EvaluateStateProperties(properties, controls)
 
         gainDb += Number(stateCase?.gainDb) || 0;
         pitchCents += Number(stateCase?.pitchCents) || 0;
+        lowPass += Number(stateCase?.lowPass) || 0;
+        highPass += Number(stateCase?.highPass) || 0;
     }
 
-    return { gainDb, pitchCents };
+    return { gainDb, pitchCents, lowPass, highPass };
 }
 
 function EvaluateRtpcProperties(curves, controls)
 {
     let gainDb = 0;
     let pitchCents = 0;
+    let lowPass = 0;
+    let highPass = 0;
     let initialDelayMs = 0;
 
     for (const curve of curves ?? [])
@@ -827,9 +890,50 @@ function EvaluateRtpcProperties(curves, controls)
         {
             initialDelayMs += output * 1000;
         }
+        else if (curve.property === "lowPass")
+        {
+            lowPass += output;
+        }
+        else if (curve.property === "highPass")
+        {
+            highPass += output;
+        }
     }
 
-    return { gainDb, pitchCents, initialDelayMs };
+    return {
+        gainDb,
+        pitchCents,
+        lowPass,
+        highPass,
+        initialDelayMs,
+    };
+}
+
+function EvaluateFilterProperty(property, selection, controls)
+{
+    const state = EvaluateStateProperties(
+        selection?.stateProperties,
+        controls,
+    );
+    const rtpc = EvaluateRtpcProperties(
+        selection?.rtpcCurves,
+        controls,
+    );
+
+    return Clamp(
+        (Number(selection?.[property]) || 0)
+            + state[property]
+            + rtpc[property],
+        MIN_FILTER_PERCENT,
+        MAX_FILTER_PERCENT,
+    );
+}
+
+function HasStateCaseField(properties, field)
+{
+    return properties.some(property =>
+        Object.values(property.cases ?? {}).some(stateCase =>
+            stateCase?.[field] !== undefined));
 }
 
 function NormalizeControlValue(value, fallback)

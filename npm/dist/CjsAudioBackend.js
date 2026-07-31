@@ -2,7 +2,8 @@ import { evaluateWwiseInterpolation } from './internal/wwiseCurve.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
-// source -> source gain -> emitter gain -> PannerNode(HRTF, inverse distance)
+// source -> authored voice filters -> source gain -> emitter gain
+// -> PannerNode(HRTF, inverse distance)
 // -> master gain -> destination. Each playing source owns the source gain so
 // stop-fades and replays cannot bleed across concurrent events on one emitter.
 //
@@ -18,6 +19,7 @@ const DEFAULT_FADE_SECONDS = 1;
 const DEFAULT_RENDER_QUANTUM_SECONDS = 128 / 48000;
 const LINEAR_FADE_CURVE = 4;
 const FADE_CURVE_SAMPLES = 65;
+const WWISE_FILTER_CUTOFF_HZ = Object.freeze([20000, 19567, 19133, 18700, 18267, 17833, 17400, 16967, 16533, 16100, 15667, 15233, 14800, 14367, 13933, 13500, 13067, 12633, 12200, 11767, 11333, 10900, 10467, 10033, 9600, 9167, 8733, 8300, 7867, 7433, 7000, 6422, 5892, 5405, 4959, 4550, 4174, 3829, 3513, 3223, 2957, 2713, 2489, 2283, 2095, 1922, 1763, 1618, 1484, 1361, 1249, 1146, 1051, 964, 885, 812, 745, 683, 627, 575, 528, 484, 444, 407, 374, 343, 315, 289, 265, 243, 223, 204, 188, 172, 158, 145, 133, 122, 112, 103, 94, 86, 79, 73, 67, 61, 56, 51, 47, 43, 40, 36, 33, 31, 28, 26, 24, 22, 20, 18, 17]);
 
 /** WebAudio backend for the audio graph: emitter nodes, playing sources, listener pose. */
 class CjsAudioBackend {
@@ -999,6 +1001,18 @@ class CjsAudioBackend {
     const gain = this.#context.createGain();
     const fadeGain = descriptor.fadeInMs > 0 ? this.#context.createGain() : null;
     const stopGain = this.#context.createGain();
+    const lowPassFilter = descriptor.getLowPass ? this.#context.createBiquadFilter?.() ?? null : null;
+    const highPassFilter = descriptor.getHighPass ? this.#context.createBiquadFilter?.() ?? null : null;
+    if (lowPassFilter) {
+      lowPassFilter.type = "lowpass";
+      SetAudioParam(lowPassFilter.frequency, WWISE_FILTER_CUTOFF_HZ[0], this.#context);
+      SetAudioParam(lowPassFilter.Q, Math.SQRT1_2, this.#context);
+    }
+    if (highPassFilter) {
+      highPassFilter.type = "highpass";
+      SetAudioParam(highPassFilter.frequency, WWISE_FILTER_CUTOFF_HZ[100], this.#context);
+      SetAudioParam(highPassFilter.Q, Math.SQRT1_2, this.#context);
+    }
     if (descriptor.spatial) {
       stopGain.connect(emitterNodes.gain);
     } else {
@@ -1026,6 +1040,12 @@ class CjsAudioBackend {
       SetAudioParam(fadeGain.gain, 0, this.#context);
       fadeGain.connect(gain);
     }
+    if (highPassFilter) {
+      highPassFilter.connect(fadeGain ?? gain);
+    }
+    if (lowPassFilter) {
+      lowPassFilter.connect(highPassFilter ?? fadeGain ?? gain);
+    }
     const voice = {
       buffer: descriptor.buffer,
       loop: descriptor.loop,
@@ -1034,12 +1054,16 @@ class CjsAudioBackend {
       getPlaybackRate: descriptor.getPlaybackRate,
       spatial: descriptor.spatial,
       getGain: descriptor.getGain,
+      getLowPass: descriptor.getLowPass,
+      getHighPass: descriptor.getHighPass,
       delayMs: descriptor.delayMs,
       fadeInMs: descriptor.fadeInMs,
       fadeCurve: descriptor.fadeCurve,
       gain,
       fadeGain,
       stopGain,
+      lowPassFilter,
+      highPassFilter,
       fadeScheduled: false,
       fadeStartContextTime: null,
       source: null,
@@ -1054,6 +1078,7 @@ class CjsAudioBackend {
       offsetSeconds: 0
     };
     this.#ApplyVoiceGain(voice);
+    this.#ApplyVoiceFilters(voice);
     this.#ApplyVoicePlaybackRate(voice);
     return voice;
   }
@@ -1135,7 +1160,7 @@ class CjsAudioBackend {
     if (source.playbackRate && typeof source.playbackRate === "object" && "value" in source.playbackRate) {
       source.playbackRate.value = voice.playbackRate;
     }
-    source.connect(voice.fadeGain ?? voice.gain);
+    source.connect(voice.lowPassFilter ?? voice.highPassFilter ?? voice.fadeGain ?? voice.gain);
     source.onended = () => {
       if (voice.source === source) {
         this.#VoiceEnded(playingID, record, voice);
@@ -1199,6 +1224,7 @@ class CjsAudioBackend {
       for (const voice of record.voices ?? []) {
         if (!voice.ended) {
           this.#ApplyVoiceGain(voice);
+          this.#ApplyVoiceFilters(voice);
           this.#ApplyVoicePlaybackRate(voice);
         }
       }
@@ -1217,6 +1243,12 @@ class CjsAudioBackend {
     const target = Number.isFinite(gain) ? Math.max(0, gain) : 1;
     const param = voice.gain?.gain;
     SetAudioParam(param, target, this.#context);
+  }
+
+  /** Applies live Wwise LPF/HPF percentages to per-voice WebAudio filters. */
+  #ApplyVoiceFilters(voice) {
+    ApplyVoiceFilter(voice.lowPassFilter, voice.getLowPass, false, this.#context);
+    ApplyVoiceFilter(voice.highPassFilter, voice.getHighPass, true, this.#context);
   }
 
   /** Applies one voice descriptor's current safe playback rate in place. */
@@ -1328,6 +1360,8 @@ class CjsAudioBackend {
           }
         }
         voice.source?.disconnect?.();
+        voice.lowPassFilter?.disconnect?.();
+        voice.highPassFilter?.disconnect?.();
         voice.gain?.disconnect?.();
         voice.fadeGain?.disconnect?.();
         voice.stopGain?.disconnect?.();
@@ -1363,6 +1397,28 @@ function SetAudioParam(param, value, context) {
   if (param && typeof param === "object" && "value" in param) {
     param.value = value;
   }
+}
+function ApplyVoiceFilter(node, readPercent, highPass, context) {
+  if (!node || typeof readPercent !== "function") {
+    return;
+  }
+  let value;
+  try {
+    value = Number(readPercent());
+  } catch {
+    return;
+  }
+  if (!Number.isFinite(value)) {
+    return;
+  }
+  const percent = Math.max(0, Math.min(100, value));
+  const tableValue = highPass ? 100 - percent : percent;
+  const leftIndex = Math.floor(tableValue);
+  const rightIndex = Math.ceil(tableValue);
+  const left = WWISE_FILTER_CUTOFF_HZ[leftIndex];
+  const right = WWISE_FILTER_CUTOFF_HZ[rightIndex];
+  const cutoff = left + (right - left) * (tableValue - leftIndex);
+  SetAudioParam(node.frequency, cutoff);
 }
 function RenderQuantumSeconds(context) {
   const sampleRate = Number(context?.sampleRate);
@@ -1419,6 +1475,8 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
       throw new TypeError(`Audio voice ${index} playbackRate must be positive`);
     }
     const constantGain = Number(value.gain ?? 1);
+    const constantLowPass = Number(value.lowPass ?? 0);
+    const constantHighPass = Number(value.highPass ?? 0);
     const playCount = Number(value.playCount ?? 1);
     const delayMs = Number(value.delayMs ?? 0);
     const fadeInMs = Number(value.fadeInMs ?? 0);
@@ -1455,7 +1513,9 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
         programSlotId: value.programSlotId
       }),
       getGain: typeof value.getGain === "function" ? value.getGain : () => Number.isFinite(constantGain) ? Math.max(0, constantGain) : 1,
-      getPlaybackRate: typeof value.getPlaybackRate === "function" ? value.getPlaybackRate : null
+      getPlaybackRate: typeof value.getPlaybackRate === "function" ? value.getPlaybackRate : null,
+      getLowPass: typeof value.getLowPass === "function" ? value.getLowPass : value.lowPass === undefined ? null : () => constantLowPass,
+      getHighPass: typeof value.getHighPass === "function" ? value.getHighPass : value.highPass === undefined ? null : () => constantHighPass
     };
   });
 }

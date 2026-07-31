@@ -44,6 +44,7 @@ function FakeContext()
     sampleRate: 48000,
     destination: { name: "destination" },
     gains: [],
+    filters: [],
     panners: [],
     sources: [],
     createGain()
@@ -77,6 +78,26 @@ function FakeContext()
         }
       };
       context.panners.push(node);
+      return node;
+    },
+    createBiquadFilter()
+    {
+      const node = {
+        type: "",
+        frequency: FakeParam(0),
+        Q: FakeParam(1),
+        connectedTo: null,
+        disconnected: false,
+        connect(target)
+        {
+          node.connectedTo = target;
+        },
+        disconnect()
+        {
+          node.disconnected = true;
+        },
+      };
+      context.filters.push(node);
       return node;
     },
     createBufferSource()
@@ -1176,6 +1197,74 @@ test("one authored event owns parallel voices with live per-object RTPC gains", 
   context.sources[1].onended?.();
   assert.deepEqual(finished, [playingID]);
   assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("authored per-voice LPF and HPF follow live RTPC controls", async () =>
+{
+  let controls;
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async (_eventID, _eventName, suppliedControls) =>
+    {
+      controls = suppliedControls;
+      return {
+        voices: [
+          {
+            buffer: { duration: 2 },
+            getLowPass: () => controls.getRTPC("low_pass") ?? 0,
+            getHighPass: () => controls.getRTPC("high_pass") ?? 0,
+          },
+        ],
+      };
+    },
+  });
+
+  backend.SetRTPCValue("low_pass", 30, 1);
+  backend.SetRTPCValue("high_pass", 70, 1);
+  backend.PostEvent(7, 1, 0, emitter, "filtered_engine");
+  await tick();
+
+  const source = context.sources[0];
+  const [ lowPass, highPass ] = context.filters;
+
+  assert.equal(lowPass.type, "lowpass");
+  assert.equal(highPass.type, "highpass");
+  assert.equal(lowPass.frequency.value, 7000);
+  assert.equal(highPass.frequency.value, 7000);
+  assert.equal(lowPass.Q.value, Math.SQRT1_2);
+  assert.equal(highPass.Q.value, Math.SQRT1_2);
+  assert.equal(source.connectedTo, lowPass);
+  assert.equal(lowPass.connectedTo, highPass);
+
+  backend.SetRTPCValue("low_pass", 45, 1);
+  backend.SetRTPCValue("high_pass", 45, 1);
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0], source);
+  assert.equal(lowPass.frequency.value, 1922);
+  assert.equal(highPass.frequency.value, 812);
+});
+
+test("invalid authored filter controls begin at transparent cutoff values", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 2 },
+          getLowPass: () => Number.NaN,
+          getHighPass: () => Number.NaN,
+        },
+      ],
+    }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "invalid_filtered_engine");
+  await tick();
+
+  const [ lowPass, highPass ] = context.filters;
+
+  assert.equal(lowPass.frequency.value, 20000);
+  assert.equal(highPass.frequency.value, 17);
 });
 
 test("global states update one active voice's gain and pitch in place", async () =>
