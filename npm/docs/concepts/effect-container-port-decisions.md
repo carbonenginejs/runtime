@@ -164,8 +164,29 @@ Two consumers depend on it, and neither parses package bytes:
 
   `arrayElements` is the sharp one. The container calls it `count`, so copying
   fields yields `arrayElements: undefined` — read by the engine at
-  `packageHelpers.js:869`, silently. Verify the same way for samplers and UAVs
-  before trusting the mapping; only textures were checked here.
+  `packageHelpers.js:869`, silently. **Comment the rename at the mapping site**: a
+  rename is invisible to every form of review that does not have both field lists
+  side by side, which is exactly the condition that will not hold again.
+
+  `isSRGB` is a different animal from the other two. It is a *type* difference,
+  not an absence, and it is **accidentally correct** — `0` is falsy and `1` is
+  truthy, so the engine's reads happen to work. It will therefore pass any
+  behavioural test and only a strict structural diff will catch it. Convert it
+  explicitly rather than leaving it to coincide, and make sure the diff test
+  compares *after* conversion or it will flag correct conversions as failures.
+
+  **The adapter fails closed on unmapped keys.** Build the output from an explicit
+  mapping table and throw on any source key with no rule — never spread, never
+  copy. Three instances of this failure class have now appeared by three different
+  routes (`hasLocalConstants` from field-copying, `arrayElements` from a rename,
+  `constantValueSize` from a clamp), so enumerating traps is losing strategy. With
+  a closed table, the sampler and UAV surfaces — **which have not been checked;
+  only textures were** — stop being a risk that depends on the checking being
+  exhaustive and become a risk that announces itself the first time the adapter
+  runs. A fourth rename hiding in `mapSampler` then surfaces as an error at
+  construction, not as `undefined` in the engine months later with nothing linking
+  it back. Do the sampler and UAV check anyway; the table changes what happens
+  when it misses something.
 - `tools-core`'s `CjsToolShaderBuilder` calls `format.inspect(outputBytes)` and
   stores the result as `packageInspection` in its manifest, and asserts the format
   exposes both `buildEffect` and `inspect`. So `inspect`'s *shape* is a contract,
