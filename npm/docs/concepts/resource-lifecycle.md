@@ -183,10 +183,13 @@ failure: destroy candidate -> LOADED (CPU payload retained)
 
 ccpwgl keeps every resource in `Tw2MotherLode` until it is explicitly cleared
 or auto-purged, and its `IsGood()` implicitly calls `KeepAlive()`, so many
-read/check paths keep resources resident. CarbonEngineJS is deliberately more
+read/check paths keep resources resident. CarbonEngineJS retains that behavior
+for the resource being queried, while keeping payload retention and hard locks
 explicit:
 
-- `IsGood()`, `IsPrepared()`, and `HasLoaded()` remain pure state checks.
+- `IsGood()` calls `KeepAlive()` before checking preparation. It renews this
+  handle and starts its bounded reload path when the handle is `PURGED`.
+- `IsPrepared()` and `HasLoaded()` remain pure state checks.
 - `KeepAlive()` and `KeepPayloadAlive()` are the explicit liveness operations.
 - `Lock()` / `Unlock()` maintain a non-underflowing count and prevent identity
   and payload eviction during a sweep.
@@ -194,6 +197,10 @@ explicit:
 - `CjsMotherLode.PurgeInactive()` scans only when explicitly requested and
   never infers JavaScript reachability. `CjsResMan.Update()` may request it
   only under an explicitly configured automatic policy.
+
+Generic liveness never walks arbitrary child fields. `IsGood()` renews only the
+handle on which it is called; an aggregate consumer that owns child resources
+must query or retain those children explicitly.
 
 The CPU/GPU split adds an axis that ccpwgl blurs: CPU payload memory and
 device memory are different budgets. Retention therefore distinguishes:

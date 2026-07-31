@@ -853,26 +853,6 @@ WebGPU shader format profile that translates compiled Carbon effects into CEWGPU
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
-<!-- class:CewgpuPackage -->
-## `CewgpuPackage`
-
-Reader for the flat CEWGPU container: chunk lookup, cached JSON decoding, and gated portable reflection and backend program access.
-
-- Export: `None`
-- Source: `src/formats/webgpu/core/cewgpu/CewgpuPackage.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CewgpuPackageBuilder -->
-## `CewgpuPackageBuilder`
-
-Builds a CEWGPU container from ordered, uniquely tagged chunks.
-
-- Export: `None`
-- Source: `src/formats/webgpu/core/cewgpu/CewgpuPackageBuilder.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
 <!-- class:CewgpuContainer -->
 ## `CewgpuContainer`
 
@@ -880,16 +860,6 @@ Reader over one WebGPU effect container.
 
 - Export: `None`
 - Source: `src/formats/webgpu/core/cewgpu/CewgpuContainer.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:WebgpuReader -->
-## `WebgpuReader`
-
-Bounded little-endian byte cursor over CEWGPU container bytes.
-
-- Export: `None`
-- Source: `src/formats/webgpu/core/cewgpu/binary.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 

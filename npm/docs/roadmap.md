@@ -24,9 +24,7 @@ resource preparation abstraction:
 - automatic resource/payload byte estimation and separate CPU/adapter
   budgets;
 - additional browser-source response types and configurable worker-pool
-  concurrency;
-- purged-resource/device-loss recovery policy (backend device-loss recovery
-  belongs to the engine's realization operation).
+  concurrency.
 
 ## Browser shader formats
 
@@ -57,32 +55,12 @@ The authored effect path should remain the stable identity. Backend profile,
 shader model, translated cache path, and translation capabilities are
 resolution facts rather than changes a caller must make to its source path.
 
-## Pre-adoption lifecycle API cleanup (approved, not implemented)
+## Scoped lock token
 
-No released consumer currently depends on the ccpwgl-compatible liveness
-names; the known ccpwgl format integrations are migration targets rather than
-a reason to preserve them. Before runtime-core or another public consumer
-adopts this contract, remove `KeepAlive()` and `KeepPayloadAlive()` instead
-of retaining or deprecating compatibility aliases.
-
-The public lifecycle should express caller intent directly:
-
-- `Ready()` obtains or reconstructs the CPU payload;
-- `AcquireLock()` returns a scoped hard-retention token;
-- `ReleasePayload()` explicitly drops the CPU payload; and
-- state queries remain pure.
-
-ResMan should update identity activity when a canonical resource is acquired
-and payload activity when it publishes or returns a ready payload. Those
-timestamps are cache-policy implementation details, not calls consumers
-should have to make. Cache admission and promotion must also be explicit
-manager operations: merely accessing a resource must not permanently move it
-from the byte-budget candidate set into an unbudgeted live set.
-
-Do not add `TouchIdentity()` or `TouchPayload()` to the initial public API
-unless a concrete soft-retention consumer appears. A consumer that needs a
-residency guarantee should acquire a lock; one that merely uses a resource
-should call `Ready()` and allow the configured cache policy to operate.
+**Planned:** add `AcquireLock()` as an async-safe wrapper around the current
+`Lock()`/`Unlock()` contract. Existing `KeepAlive()` and
+`KeepPayloadAlive()` behavior remains current package API; this roadmap does
+not propose removing it.
 
 Raw `Lock()` / `Unlock()` is easy to mis-pair across asynchronous success,
 failure, cancellation, and disposal. Prefer a JS-only acquired-lock API:
@@ -123,11 +101,8 @@ built from explicit tokens, not an implicit default on every loaded resource.
   buffers?
 - Should manually attached/dynamic resources default to locked, like ccpwgl's
   manual shader resources use `doNotPurge`?
-- What explicit `Reload()`/reconstruction API should restore purged resources
-  without introducing surprising browser or network work?
-- A resource-level `Purge()`/`Reload()` vocabulary remains future policy
-  work, as does whether `Unload()` should release engine adapter resources
-  and optionally CPU payloads.
+- Should a resource-level `Purge()` complement the existing automatic and
+  MotherLode-level eviction operations?
 
 ## Related documentation
 

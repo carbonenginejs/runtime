@@ -27,6 +27,12 @@ create a hidden second resource; reset the affected identity
 (`Delete`/`Clear`) or create a new manager. A changed output contract must use
 a new tag such as `@cmf2`.
 
+Do not restore a hidden execution-plan identity through function fingerprints,
+arbitrary option serialization, `buildKey`, or `buildVersion`. Those details
+cannot create a second canonical resource behind the same public path/output
+promise. A materially different promised result requires an explicit output
+tag.
+
 ## Ownership and replacement
 
 `CjsResMan` resolves each normalized path and promised output to one canonical
@@ -117,10 +123,16 @@ resource.ReleasePayload()
 `CjsResMan` binds resource-facing `KeepAlive()`, `KeepPayloadAlive()`,
 `Lock()`, and `Unlock()` to the resource's canonical MotherLode key.
 `SetPayload()` renews both identity and payload activity when it publishes a
-non-null payload. `GetPayload()`, `HasPayload()`, `IsGood()`, and other
-queries are pure; reading the payload does not implicitly renew its lease.
-Detached and purged handles retain deterministic no-op liveness methods rather
-than silently starting work.
+non-null payload. `GetPayload()`, `HasPayload()`, `IsPrepared()`, and other
+state/payload queries are pure; reading the payload does not implicitly renew
+its lease. `IsGood()` is the deliberate exception: it calls `KeepAlive()`,
+renewing this handle and starting its bounded reload path when it is `PURGED`.
+It does not recursively traverse or renew child resources.
+
+A handle detached by ordinary ownership removal has no live MotherLode
+controller. A purged handle retains the reload hook needed to re-register and
+refill that exact handle, so `IsGood()`/`KeepAlive()` can recover it as
+described under [Ownership and replacement](#ownership-and-replacement).
 
 A released CPU payload retains only the small request needed to reconstruct
 that same path/output from its source and `sourceRevision`. The retained
@@ -249,10 +261,12 @@ operation is still active. Lock release is conditional on the same captured
 ownership generation, so stale work cannot decrement a newly rebound handle's
 lock. Scheduling and active-work protection do not fetch or reload data.
 
-Cache trimming and automatic inactivity sweeps retain the strict no-reload
-rule. Application retention defaults, automatic resource/payload byte
-estimation, separate CPU/adapter budgets, and purged-resource/device-loss
-recovery policy are future work; see the [roadmap](../roadmap.md).
+Cache trimming and automatic inactivity sweeps never fetch or reload as part
+of the sweep itself. A later `IsGood()`/`KeepAlive()` call may recover the
+purged handle through its bounded reload path. Application retention defaults,
+automatic resource/payload byte estimation, and separate CPU/adapter budgets
+remain future work; backend device-loss recovery belongs to the engine
+realization contract. See the [roadmap](../roadmap.md).
 
 ## Related documentation
 

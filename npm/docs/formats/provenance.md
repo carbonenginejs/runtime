@@ -70,9 +70,14 @@ with SHA-256
 
 This retained generated artifact keeps the published readers deterministic and
 browser-safe without a runtime dependency on a sibling checkout or an
-unpublished `format-carbon` export. `format-carbon` remains the build-time
-authority for future schema regeneration; an updated snapshot must record its
-new source revision and digest here.
+unpublished generator export. Future schema generation is owned by
+`tools-core/schema`. A consumer of generated output is responsible for
+reviewing and copying the result into its own worktree; an updated snapshot
+must record the generator revision and new digest here.
+
+This generator boundary is transitional. As runtime classes gain embedded
+schema, the shared snapshot and its copy-in step can be reduced and eventually
+removed once every required class is self-describing.
 
 ## Native additions
 
@@ -162,9 +167,11 @@ snapshot must record its new source and digest here.
 - `format-gr2` migrated into `formats/gr2` on 2026-07-24 (see the dated
   table above) after its EUPL constraint was resolved; its standalone
   repository is now a frozen legacy distribution like the other donors.
-- `format-carbon` remains the schema emitter/generator and build-time schema
-  authority. Black consumes its published definitions; Red exposes the copied
-  catalog but does not yet enforce it while reading YAML fields.
+- `format-carbon` is historical provenance for the current copied snapshot,
+  not the authority for future regeneration. `tools-core/schema` owns schema
+  generation, while each consuming package reviews and copies generated output
+  into its own worktree. Black consumes the retained snapshot; Red exposes the
+  copied catalog but does not yet enforce it while reading YAML fields.
 - The shader formats were excluded from the original migration while their
   implementations were still being finished. That sequencing guard was lifted
   on 2026-07-29 and they moved in as ordinary formats. All four landed:
