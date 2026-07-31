@@ -45,15 +45,14 @@ The `CARBON_SCHEMA_ROOT` environment variable may provide the same location.
 The audit resolves JavaScript inheritance, checks `@carbon.method` exposure,
 and excludes deliberately quarantined classes.
 
-The current audit checks 344 promoted classes and excludes 19 quarantined
-classes. Ten classes have 26 omitted methods:
+The current audit checks 321 promoted classes and excludes 32 quarantined
+classes. Two classes have six omitted methods:
 
 | Contract | Classes | Omitted surface |
 | --- | --- | --- |
-| Pickable (16 omissions) | `EveMissile`, `EveMissileWarhead`, `EveMobile`, `EveRootTransform`, `EveSpaceObject2`, `EveSpaceObjectDecal`, `EveTransform`, `EveUiObject` | `GetPickingBatches` and `GetID` on each class. |
-| Renderable (10 omissions) | `EveSpaceObjectDecal`, `EveStretch2`, `EveTurretSet` | Batch, transparency, sort-value, and per-object-data methods as applicable to each class. |
+| Renderable (6 omissions) | `EveStretch2`, `EveTurretSet` | `HasTransparentBatches`, `GetSortValue`, and `GetBatches` on each class. |
 
-`EveSpaceObjectDecal` participates in both groups. The audit reports:
+The audit reports:
 
 - no present-but-unexposed Carbon methods;
 - no missing JavaScript classes;
@@ -108,6 +107,14 @@ parity gate rather than incidental test behavior.
 - The child reference and socket resource seam is synchronous and injected.
 - Socket parameter auto-creation currently covers the emitted string
   parameter type; additional types require corresponding schema emission.
+- Portable pick-batch and identity behavior is implemented for
+  `EveSpaceObject2`, `EveTransform`, and the inherited transform family.
+  GPU-readback scene picking remains explicit, as do decal pick-batch and
+  sphere-pin pick surfaces.
+- The cross-package bone-curve seam is incomplete. `Tr2BoneMatrixCurve`
+  currently supplies a bone name where the runtime-character skinned-object
+  surface accepts a numeric index, and it does not re-resolve that index when
+  the skeleton tag changes.
 - Calculated whole-object bounds remain planned as a separate lazy cache and
   are not inferred through generic graph traversal.
 - The generated `EveSpaceSceneRenderDriver` is a data shell. Production

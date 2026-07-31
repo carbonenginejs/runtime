@@ -149,12 +149,13 @@ fails at registration rather than at draw time. An engine that genuinely needs
 different memory transforms it downstream.
 
 `TriPoolAllocator` leases payloads from a per-engine arena; `RawData` is the
-write-mostly view over one slice. Values are written through the encoding
-(matrices transposed, integers bit-cast), never read back, and the arena is
-rewound rather than freed per payload. Declared defaults are re-applied on
-lease; an unwritten field otherwise retains the previous tenant's bytes, which
-preserves the source engine's own contract that a fill writes every field it
-relies on.
+view over one slice. Values enter through the encoding (matrices transposed,
+integers bit-cast) rather than direct layout writes. Transient fill paths are
+write-mostly, while persistent owners may read declared fields back across
+frames. The arena is rewound rather than freed per payload. Declared defaults
+are re-applied on lease; an unwritten field otherwise retains the previous
+tenant's bytes, which preserves the source engine's own contract that a fill
+writes every field it relies on.
 
 A renderable returns whichever shape its constant data actually has:
 

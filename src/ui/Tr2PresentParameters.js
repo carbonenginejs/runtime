@@ -1,6 +1,6 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/UI/Tr2PresentParameters.h
-// Hand-maintained from Carbon source; runtime-device owns the canonical JS class.
+// Hand-maintained from Carbon source; Trinity owns the graph class and engines realize live state.
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 

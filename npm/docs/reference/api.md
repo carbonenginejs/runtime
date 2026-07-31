@@ -26,6 +26,8 @@ focused `./sprite2d` package export in the current manifest.
 | `@carbonenginejs/runtime-trinity/generated/*` | Generated family barrel selected by package export pattern. |
 | `@carbonenginejs/runtime-trinity/generated/*.js` | Exact generated module selected by package export pattern. |
 | `@carbonenginejs/runtime-trinity/particle` | Maintained CPU particle data, emitters, forces, constraints, and systems. |
+| `@carbonenginejs/runtime-trinity/perframe` | Canonical per-frame constant-data layouts and layout lookup. |
+| `@carbonenginejs/runtime-trinity/perobject` | Canonical per-object constant-data layouts and layout lookup. |
 | `@carbonenginejs/runtime-trinity/postProcess` | Device-free post-process graph and attribute models. |
 | `@carbonenginejs/runtime-trinity/renderJob` | Ordered render-job and render-step graph classes. |
 | `@carbonenginejs/runtime-trinity/shader` | Mutable effect/material facade, parameters, options, sampler overrides, shader buffers, and identity-preserving compatibility reexports of resource-owned reflection classes. |
