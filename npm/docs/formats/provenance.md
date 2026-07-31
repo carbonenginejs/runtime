@@ -6,8 +6,10 @@ Audience: Users, integrators, and maintainers
 Summary: Records where each format implementation came from, retained snapshots and digests, and what was deliberately not copied.
 
 On 2026-07-13, the non-shader runtime format implementations below were copied
-once into `runtime-resource`. Their standalone repositories remain frozen with
-their existing APIs and names; they are not upstreams for the runtime copies.
+once into `runtime-resource`. The table records the donor revisions or
+working-tree states used for that migration; it does not assert that a
+standalone repository still exists. Any surviving standalone repository is
+historical provenance, not an upstream for the runtime copy.
 
 Copied paths were `src/` and the behavioral `test/` corpus. Package publishing
 scripts and CLIs were not copied. Exact donor license and notice files are kept
