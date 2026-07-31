@@ -327,6 +327,53 @@ reverted `isSRGB` conversion, and the fixture writes **four distinct bodies** so
 the agreement is a real comparison rather than four copies of one body agreeing
 with themselves.
 
+#### Proven at corpus scale, not fixture scale
+
+`carbon-analysis-adapter-corpus.test.mjs`, gated on `CARBON_EFFECT_CORPUS_DIR`.
+The same "one file, read two ways" design scales straight to shipped data,
+because a shipped `effect.dx11` file **is** a valid Carbon v15 container — nothing
+has to be rebuilt to compare against it.
+
+Measured at build 3444265 over `effect.dx11`: **1611 files, 26,166 permutation
+bodies, 191,737 stages, zero divergences and zero errors**, with the diff still
+total — no excluded fields, no normalisation, over real data.
+
+Every body, not the default one. The default is one row of a table that reaches
+480, and the fields most likely to vary are the ones a single-body check never
+sees.
+
+**The zero is a measurement, not a check that cannot fail.** Earlier revisions of
+this same sweep reported 651 and then 48 diverging files. Each difference was real
+and diagnosable, and none of the three was a mapping bug:
+
+| symptom | cause |
+|---|---|
+| `stageName: "geometry"` vs `null`, 9 files | a **WebGPU-narrowed three-stage name table** where Carbon has six — `hlslShaderStageName` knows all six |
+| `shaderHandle`/`renderStates` off by a constant | the reference shares one state-manager registry per file; the candidate was making a fresh one per body |
+| the same, but only on some files, and sometimes *lower* on the reference side | `readEffectAnalysis` resolves and parses the **default** permutation before the loop starts, consuming handles. `readRaw` does not |
+
+Two of those three are properties of the **harness**, not of the adapter, and that
+is the durable lesson: a total diff makes the harness's own assumptions
+load-bearing, and a harness artefact reads exactly like a mapping bug. The tell on
+the third was a file reporting `body2` handle 1 against the adapter's 5 — the
+reference had parsed body 2 first, because body 2 was its default.
+
+The first one is worth naming separately, because it is the same species already
+recorded under `STAGE_SCHEMA`: **a WebGPU restriction wearing Carbon's numbering.**
+The three-entry `{0: vertex, 1: pixel, 2: compute}` map is correct for the WebGPU
+container reader and wrong everywhere else, and it is the kind of constant that
+gets copied. Anything wiring `bytecodeFor` at the switchover must use
+`hlslShaderStageName`.
+
+**Zero errors settles the library question** the fixture could not: no shipped dx11
+effect declares a raytracing library, so the adapter's refusal to rebuild them
+costs nothing today. It stays fail-closed rather than becoming a silent skip.
+
+Not yet swept: `effect.dx12` and `effect.metal`. Both carry the same
+backend-invariant metadata region — that is a measured fact from phase 1, not an
+assumption — so the expectation is that they add nothing, but the expectation is
+untested and stated here rather than implied.
+
 #### Reproducing the measurements
 
 The corpus lives outside the repo and is never committed — fetch it through
