@@ -7,9 +7,6 @@
   body { font: 13px/1.5 system-ui, "Segoe UI", sans-serif; margin: 0; display: grid; grid-template-columns: 340px 1fr; height: 100vh; background: #0b0e14; color: #cdd6e4; }
   #panel { padding: 14px; overflow-y: auto; border-right: 1px solid #1e2633; }
   .hint { color: #7c8797; margin: 0 0 10px; }
-  #help { list-style: none; margin: 0; padding: 0; color: #7c8797; font-size: 12px; }
-  #help li { padding: 1px 0; }
-  #help li::before { content: "– "; color: #4b5563; }
   button { background: #1d4ed8; color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
   button:disabled { background: #334155; cursor: default; }
   input[type=search] { width: 100%; box-sizing: border-box; padding: 7px; margin: 0 0 6px; background: #131a26; color: #cdd6e4; border: 1px solid #2a3648; border-radius: 6px; }
@@ -26,6 +23,14 @@
   #controls { position: absolute; top: 10px; right: 12px; width: 252px; display: flex; flex-direction: column; gap: 10px; }
   .card { background: rgba(13,18,28,0.92); border: 1px solid #2a3648; border-radius: 8px; padding: 10px 12px; }
   .card h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #7c8797; margin: 0 0 6px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  .headingActions { display: inline-flex; align-items: center; gap: 8px; }
+  .fieldRow { display: flex; align-items: center; gap: 7px; }
+  .fieldRow select { flex: 1; min-width: 0; }
+  .infoButton { position: relative; flex: 0 0 auto; width: 17px; height: 17px; padding: 0; border: 1px solid #52647d; border-radius: 50%; background: transparent; color: #94a3b8; font: 600 11px/15px Georgia, serif; text-align: center; text-transform: none; letter-spacing: 0; cursor: help; }
+  .infoButton:hover, .infoButton:focus-visible { border-color: #7ea2d8; color: #cdd6e4; outline: none; }
+  .infoButton::after { content: attr(data-tip); position: absolute; display: block; visibility: hidden; opacity: 0; top: calc(100% + 7px); right: -1px; width: 225px; box-sizing: border-box; padding: 8px 10px; border: 1px solid #2a3648; border-radius: 6px; background: rgba(13,18,28,0.98); color: #cdd6e4; font: 11px/1.55 system-ui, "Segoe UI", sans-serif; letter-spacing: 0; text-align: left; text-transform: none; white-space: pre-line; pointer-events: none; z-index: 20; transition: opacity 100ms ease; }
+  .infoButton.tipUp::after { top: auto; bottom: calc(100% + 7px); }
+  .infoButton:hover::after, .infoButton:focus::after { visibility: visible; opacity: 1; }
   #tip { position: absolute; display: none; background: rgba(13,18,28,0.94); border: 1px solid #2a3648;
          border-radius: 6px; padding: 8px 10px; font-size: 11px; line-height: 1.55; color: #cdd6e4;
          pointer-events: none; white-space: pre; z-index: 5; }
@@ -56,7 +61,7 @@
   <div id="tip"></div>
   <div id="controls">
     <div class="card">
-      <h2>audio <input id="enable" type="checkbox" title="enable audio"></h2>
+      <h2>audio <span class="headingActions"><button class="infoButton" type="button" aria-label="About audio controls" data-tip="Enable starts browser audio. Max awake limits active emitters; the engine culls the rest. Volumes control the SFX and music buses. Ring opacity, world scale, and cull rings change only this visualization.">i</button><input id="enable" type="checkbox" title="enable audio"></span></h2>
       <table id="mixTable">
         <tr><td>demo</td><td><input id="demoToggle" type="checkbox" title="load the demo scene"></td></tr>
         <tr><td>max awake</td><td><input id="maxAwake" type="range" min="1" max="75" value="6"></td></tr>
@@ -68,13 +73,11 @@
       </table>
     </div>
     <div class="card" id="music" style="display:none">
-      <h2>dynamic music <input id="musicToggle" type="checkbox" title="play dynamic music"></h2>
-      <p class="hint" style="margin:0 0 6px">the real EVE music graph; moods steer the switch container</p>
+      <h2>dynamic music <span class="headingActions"><button class="infoButton" type="button" aria-label="About dynamic music" data-tip="Plays the real EVE music graph. Changing mood steers its authored switch container; runtime-audio chooses and schedules the resulting music nodes.">i</button><input id="musicToggle" type="checkbox" title="play dynamic music"></span></h2>
       <select id="moods" title="mood"></select>
     </div>
     <div class="card" id="jukebox">
-      <h2>classic jukebox</h2>
-      <p class="hint" style="margin:0 0 6px">75 titled tracks supplied as a separate optional music library</p>
+      <h2>classic jukebox <button class="infoButton" type="button" aria-label="About the classic jukebox" data-tip="Plays 75 titled tracks supplied as a separate, optional music library. Download the demo tracks with npm run demo:music before starting this demo. Unavailable tracks are not offered for playback.">i</button></h2>
       <select id="jukeboxTracks" title="classic EVE track"></select>
       <div class="buttonRow">
         <button id="jukeboxPrevious" type="button" title="previous track">previous</button>
@@ -86,14 +89,19 @@
     </div>
     <div class="card" id="sfx" style="display:none">
       <h2>authored SFX</h2>
-      <select id="sfxExamples" title="authored SFX example"></select>
-      <p id="sfxDescription" class="hint" style="margin:6px 0 0"></p>
+      <div class="fieldRow">
+        <select id="sfxExamples" title="authored SFX example"></select>
+        <button id="sfxInfo" class="infoButton" type="button" aria-label="About the selected authored SFX example" data-tip="">i</button>
+      </div>
       <div id="sfxControls"></div>
       <div class="buttonRow">
         <button id="sfxPost" type="button">post again</button>
         <button id="sfxReset" type="button">reset object</button>
       </div>
-      <label for="delivery">media delivery</label>
+      <div class="fieldRow">
+        <label for="delivery">media delivery</label>
+        <button class="infoButton tipUp" type="button" aria-label="About media delivery" data-tip="Chooses how runtime-audio receives WEM bytes: automatic selection, an individual file, an exact byte range from the original bank, or the whole original bank with a local slice.">i</button>
+      </div>
       <select id="delivery" title="CjsAudioMan media delivery">
         <option value="auto">auto</option>
         <option value="individual">individual file</option>
@@ -103,23 +111,7 @@
       <div id="sfxStatus"></div>
     </div>
     <div class="card">
-      <h2>runtime-audio demo</h2>
-      <ul id="help">
-        <li>click a panel item to play it</li>
-        <li>use authored SFX to exercise containers, setter actions, switches, RTPC blends, and live NodeBase parameters</li>
-        <li>download demo tracks with <code>npm run demo:music</code>, then use the classic jukebox</li>
-        <li>drag the listener or an emitter to move it</li>
-        <li>drag empty space to pan around the scene</li>
-        <li>right-click an emitter to remove it</li>
-        <li>wheel over an emitter to scale it</li>
-        <li>alt + wheel over an emitter to rotate it</li>
-        <li>wheel anywhere else to zoom</li>
-        <li><span style="color:#7dd3fc">blue tick</span> effective emitter direction</li>
-        <li><span style="color:#cbd5e1">white ring</span> hearing range</li>
-        <li><span style="color:#3b82f6">blue ring</span> engine cull range</li>
-        <li><span style="color:#c084fc">●</span> authored SFX active · <span style="color:#c084fc">○</span> idle retained state (Reset removes)</li>
-        <li><span style="color:#34d399">●</span> placed · <span style="color:#fbbf24">●</span> demo · <span style="color:#475569">●</span> culled</li>
-      </ul>
+      <h2>scene controls <button class="infoButton tipUp" type="button" aria-label="About scene controls and markers" data-tip="Click a library item to play it.&#10;Drag the listener, an emitter, or empty space to move around.&#10;Right-click an emitter to remove it.&#10;Wheel over an emitter to scale it; Alt + wheel rotates it. Wheel elsewhere zooms.&#10;&#10;Blue tick: effective direction&#10;White ring: hearing range&#10;Blue ring: engine cull range&#10;Purple: authored SFX (hollow when idle)&#10;Green: placed · amber: demo · grey: culled&#10;&#10;Hover any circle for its live engine details.">i</button></h2>
     </div>
   </div>
 </div>

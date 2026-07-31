@@ -2092,7 +2092,7 @@ class SfxUi
 
     #examples = [];
     #controls = null;
-    #description = null;
+    #info = null;
     #details = null;
     #controlValues = new Map();
     #postCount = 0;
@@ -2123,7 +2123,7 @@ class SfxUi
         document.getElementById("sfx").style.display = "";
         this.#select = document.getElementById("sfxExamples");
         this.#controls = document.getElementById("sfxControls");
-        this.#description = document.getElementById("sfxDescription");
+        this.#info = document.getElementById("sfxInfo");
         this.#status = document.getElementById("sfxStatus");
 
         for (const example of this.#examples)
@@ -2328,10 +2328,6 @@ class SfxUi
         const graphTypes = this.#app.library.SfxNodeTypes(eventName);
         const details = this.#app.library.SfxControls(eventName);
 
-        if (this.#description)
-        {
-            this.#description.textContent = example?.description ?? "";
-        }
         const types = graphTypes
             .filter(type => type !== "sound");
         if (!types.length && graphTypes.includes("sound"))
@@ -2374,7 +2370,19 @@ class SfxUi
             ...Object.keys(graph.events),
             ...Object.keys(graph.programs ?? {}),
         ]).size;
-        this.#status.textContent = `${eventCount} events / ${Object.keys(graph.nodes).length} nodes · ${types.join(" + ")} · ${delivery} delivery · posts ${this.#postCount}${repeated}${actionSummary}${silent}${position}`;
+        const detail = `${eventCount} events / ${Object.keys(graph.nodes).length} nodes · ${types.join(" + ")} · ${delivery} delivery · posts ${this.#postCount}${repeated}${actionSummary}${silent}${position}`;
+        const description = example?.description
+            ?? "Posts the selected authored SFX graph.";
+
+        if (this.#info)
+        {
+            this.#info.dataset.tip = `${description}\n\n${detail}`;
+            this.#info.setAttribute(
+                "aria-label",
+                `About ${example?.type ?? "the selected authored SFX"}: ${description} ${detail}`,
+            );
+        }
+        this.#status.textContent = `${this.#postCount} post${this.#postCount === 1 ? "" : "s"} · ${delivery} delivery${playable ? "" : " · silent authored route"}${this.#item ? " · source placed" : ""}`;
     }
 
 }
