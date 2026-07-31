@@ -35,7 +35,13 @@ const corpusDir = process.env.CARBON_EFFECT_CORPUS_DIR || null;
 const TARGETS = [
     "dx11/managed/space/spaceobject/v5/quad/quadv5.sm_hi",
     "dx11/utility/textureviewer.sm_hi",
-    "dx11/managed/space/spaceobject/v5/quad/quadv5.sm_depth"
+    "dx11/managed/space/spaceobject/v5/quad/quadv5.sm_depth",
+    // Carries a geometry stage, which is the only shape that exercises the stage
+    // ordering difference. None of the three effects above has one, which is
+    // exactly why the whole class stayed invisible until the oracle was run
+    // corpus-wide — depth was right about how to examine a difference and wrong
+    // about how many kinds exist.
+    "dx11/managed/space/specialfx/cloudsimple.sm_lo"
 ];
 
 /**
@@ -124,6 +130,50 @@ const EXPLAINED = [
     }
 ];
 
+/**
+ * Stage order is compared separately, and is a known legitimate difference.
+ *
+ * The runtime stores stages in a type-indexed array — `pass.stageInputs[type]`,
+ * Carbon's own design at `Tr2EffectDescription.cpp:536` — so a file's original
+ * stage order is not retained anywhere after reading, and the portable reflection
+ * emits ascending type order (`portableReflection.js:381-388`). Where a file
+ * writes `vertex, geometry, pixel` we write `vertex, pixel, geometry`.
+ *
+ * Carbon reconstructs identically either way, because it reads each stage's type
+ * byte and assigns by it. The consequence is only that our Carbon region is
+ * field-identical rather than byte-identical for those passes.
+ *
+ * It is compared as its own quantity rather than left to the field diff, because
+ * **a reordering masquerades as every field differing**: a positional comparison
+ * of misaligned stages reports `usedMask`, `registers`, `constants` and
+ * `shaderData` all disagreeing, which is the symptom count, not the cause count.
+ * Measured corpus-wide: 107 body-passes, every one of them `0,3,1` vs `0,1,3`.
+ *
+ * Aligns both sides' stages by type, and reports any order difference.
+ *
+ * @param {object} original Source-file description.
+ * @param {object} mapped Mapped description.
+ * @param {string} target Effect path, for reporting.
+ * @param {number} index Body index.
+ * @param {string[]} orderDiffs Collected order differences.
+ */
+function alignStagesByType(original, mapped, target, index, orderDiffs)
+{
+    for (let t = 0; t < original.techniques.length; t += 1)
+    {
+        for (let p = 0; p < original.techniques[t].passes.length; p += 1)
+        {
+            const left = original.techniques[t].passes[p].stages;
+            const right = mapped.techniques[t].passes[p].stages;
+            const before = left.map((entry) => entry.type).join(",");
+            const after = right.map((entry) => entry.type).join(",");
+            if (before !== after) orderDiffs.push(`${target}#${index} t${t}p${p}: ${before} vs ${after}`);
+            left.sort((a, b) => a.type - b.type);
+            right.sort((a, b) => a.type - b.type);
+        }
+    }
+}
+
 test(
     "our Carbon region matches the dx11 file it was derived from",
     { skip: corpusDir ? false : "set CARBON_EFFECT_CORPUS_DIR to run the mapping oracle" },
@@ -133,6 +183,7 @@ test(
 
         const unexplained = [];
         const explained = new Map();
+        const orderDiffs = [];
         let compared = 0;
 
         for (const target of TARGETS)
@@ -155,6 +206,8 @@ test(
                 const mapped = carbonDescriptionFromPortable(reflection);
                 const original = source.readDescription(index);
 
+                alignStagesByType(original, mapped, target, index, orderDiffs);
+
                 const differences = [];
                 diffRecords(original, mapped, `${target}#${index}`, differences);
                 compared += 1;
@@ -173,6 +226,11 @@ test(
         {
             console.log(`  explained x${count}: ${why}`);
         }
+        if (orderDiffs.length)
+        {
+            console.log(`  stage order differs in ${orderDiffs.length} passes (ascending by type)`);
+            for (const entry of orderDiffs.slice(0, 5)) console.log(`    ${entry}`);
+        }
         if (unexplained.length)
         {
             console.log(`  unexplained: ${unexplained.length}`);
@@ -184,6 +242,21 @@ test(
             unexplained.slice(0, 20),
             [],
             `${unexplained.length} unexplained differences between our Carbon region and the source file's`
+        );
+
+        // Our order is ascending by stage type, always. Any *other* reordering
+        // would be a real mapping bug rather than the known information loss, so
+        // the shape is asserted rather than the count.
+        const unexpectedOrder = orderDiffs.filter((entry) =>
+        {
+            const [ before, after ] = entry.split(": ")[1].split(" vs ");
+            const ascending = before.split(",").map(Number).sort((a, b) => a - b).join(",");
+            return after !== ascending;
+        });
+        assert.deepEqual(
+            unexpectedOrder,
+            [],
+            `stage reordering that is not simply ascending-by-type:\n${unexpectedOrder.join("\n")}`
         );
     }
 );

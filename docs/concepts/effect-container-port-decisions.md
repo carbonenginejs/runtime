@@ -907,12 +907,44 @@ the right length, the field is in the right place, the arena is sound. Only a
 comparison against the source file catches it. This is the failure class the other
 four proofs cannot see — mechanically perfect, semantically wrong.
 
-**One difference remains, and it is legitimate.** For non-dynamic samplers the file
-stores a name but Carbon's reader nulls it (`Tr2EffectDescription.cpp:430-433`)
-before our producer ever sees it, so we emit the empty string. 738 occurrences. The
-name is unrecoverable from our input rather than dropped by our mapping, and Carbon
-nulls it precisely because a non-dynamic sampler is never looked up by name. Worth
-knowing that a re-read of our file cannot recover it.
+**Two differences remain, and both are legitimate.** Measured at corpus scale over
+`effect.dx11` at build 3444265 — **1611 files, 9367 distinct bodies, zero errors,
+and zero unexplained differences** once these two are named. Both are information
+the *runtime shape* cannot carry, so both are unrecoverable from our input rather
+than dropped by our mapping.
+
+1. **Non-dynamic sampler names, 25,021 occurrences.** The file stores a name but
+   Carbon's reader nulls it (`Tr2EffectDescription.cpp:430-433`) before our
+   producer ever sees it, so we emit the empty string. Carbon nulls it precisely
+   because a non-dynamic sampler is never looked up by name.
+2. **Stage order within a pass, 107 body-passes.** Every instance is the same
+   shape: the file writes `vertex, geometry, pixel` and we write
+   `vertex, pixel, geometry`. The runtime stores stages in a **type-indexed
+   array** — `pass.stageInputs[type]`, which is Carbon's own design at
+   `Tr2EffectDescription.cpp:536` — so the file's original stage order is not
+   retained anywhere after reading, and `portableReflection.js:381-388` therefore
+   emits them in ascending type order. Any pass holding only vertex and pixel is
+   already ascending, which is why this appears **only** where a geometry stage
+   exists.
+
+Neither changes what Carbon reconstructs. Carbon reads a stage's type byte and
+assigns into `stageInputs[type]`, so a reordered stage list loads identically; our
+own analysis is likewise order-independent, because `buildStages` iterates stage
+types ascending regardless of wire order. What it does mean is that our emitted
+Carbon region is **field-identical but not byte-identical** to CCP's for those 107
+body-passes, and that `m_shader` registration order differs there — a derived
+handle, never persisted.
+
+**Breadth found what depth missed.** This oracle was deliberately run on three
+effects, on the reasoning that each difference needs judgement so depth beats
+breadth. That reasoning was sound and the conclusion was still incomplete: none of
+the three effects has a geometry stage, so the whole class was invisible. Depth
+was right about *how* to examine a difference and wrong about *how many kinds
+exist*. The corpus run reported 634 unexplained differences on its first pass —
+`usedMask`, `registers`, `constants`, `shaderData` all disagreeing — and every one
+of them was the same single root cause seen through a positional comparison of
+misaligned stages. **A reordering masquerades as every field differing**, so a
+diff that aligns by position reports the symptom count, not the cause count.
 
 ### Every check demonstrates its own failure
 
