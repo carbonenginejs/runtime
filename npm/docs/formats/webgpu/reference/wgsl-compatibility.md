@@ -1418,6 +1418,89 @@ preflight. The synthetic fixtures cannot express either condition, so an
 all-body corpus sweep is part of this feature's verification, not an optional
 extra.
 
+## Consumer boundary: resource transforms
+
+`engine-webgpu` accepts `CJS_WGSL_SET` versions 1, 2 and 3, and realizes
+`texture-2d-array` resource transforms. The discriminator is the **feature**,
+never the document version and never `texture.viewDimension`:
+
+- a **source-declared** `texture_2d_array` keeps every one of its bindings and
+  needs no assembly. Gating on `viewDimension` would reject the very packages
+  the exact draw gate renders — the selected Quad V5 body binds a plain
+  `texture_2d_array<f32>` with no transform, and both Quad families carry
+  `cube` bindings.
+- a **transformed** binding carries `transformId` and `arrayLayerCount`, and its
+  merged-away inputs are absent from the layout. It cannot be fed from one
+  source texture, so the consumer assembles the layers.
+
+Only `kind: texture-2d-array`, `version: 1`,
+`representation: native-or-rgba8`, and `missingLayer: reject` are realized.
+Anything else throws a diagnostic naming the offending field, because the
+failure mode of guessing is WGSL a device accepts and pixels that are quietly
+wrong.
+
+Both halves of the claim are validated, not just the record: exactly one binding
+must carry each declared transform, at the declared output identity, with a
+matching `arrayLayerCount`, a `texture_2d_array<f32>` type, visibility to the
+transform's stage, and **no surviving binding for any merged-away input**. A
+survivor would still be bindable and would silently receive a texture the shader
+never reads. Symmetrically, a binding claiming an undeclared transform, or
+declaring array layers without one, is rejected.
+
+### The analysis is pre-transform; the layout is post-transform
+
+This asymmetry is the one thing a consumer must not get wrong. The reflection
+still lists every declared resource under its own register, including inputs the
+producer merged away; the layout is shorter by exactly those inputs. Checking
+one against the other reports the merge as drift. The merged array occupies the
+**layer-0 input's slot**, which is required rather than assumed, so the binding a
+consumer must fill is unambiguous.
+
+Layers are written in declared order, layer *i* from `inputs[i]`, and must agree
+on size and format because one texture cannot hold layers that do not. A missing
+input is rejected rather than substituted: any stand-in layer would change the
+rendered result while still validating.
+
+Realized and drawn, all with zero WGSL warnings:
+
+| Family | Layers | Merged into | Evidence |
+| --- | --- | --- | --- |
+| `unpackedskinned_quadheatdetailv5` | 2 | `Detail1Map` slot | 22 over 22 bindings, 3 cases, detail changed 570/635 covered pixels |
+| `unpacked_quaddetailv5` | 3 | `Detail1Map` slot | both detail controls changed 1116/1116 covered pixels |
+| `unpackedskinned_quaddetailv5` | 3 | `Detail1Map` slot | 634/635 and 635/635, indexed non-identity bones observed |
+
+The `Detail1` and `Detail2` delta maps were **distinct** in every case. That is
+the assertion that matters: a collapsed or misordered assembly would produce
+identical deltas while still rendering and still validating.
+
+Source-declared array textures are now realized rather than merely accepted:
+the engine creates a layered 2D texture with a `2d-array` view and binds it
+through the same adapter, gated by a synthetic two-layer draw that asserts each
+layer's pixels exactly. A single-layer array view is legal and distinct from a
+plain 2D view, because a shader declaring `texture_2d_array<f32>` needs the
+array view whatever its layer count. A layout asking for the dimension the view
+was not created with fails closed, since a view's dimension is fixed at
+creation and cannot be reinterpreted.
+
+This matters beyond the transform case: the High `.sm_depth` Quad V5 `Main`
+pass binds `LightProfileArray` as a plain `texture_2d_array<f32>` with no
+transform at all, so array-texture realization is a prerequisite for any
+High-tier draw gate, not a detail of transform support.
+
+Array-texture realization is what made transform support possible: the engine
+allocates the array itself and fills layer *i* from `inputs[i]`, which is the
+only way a binding whose other inputs were removed can be filled at all. The
+Detail and HeatDetail family gates draw under this contract. The Environment
+family has not been exercised and should be treated as unverified rather than
+working.
+
+Accepting version 3 also tightened three structural checks that were written
+`=== 2` and would otherwise have silently downgraded every version-3 package to
+version-1 semantics: shared binding identities must span at least two stages,
+and explicit D3D and scope identities are both required. That downgrade would
+have been invisible to the exact draw gate, because DX11 and DX12 downgrade
+identically and the bit-exact comparison would have stayed green.
+
 ## Verification contract
 
 Every shader-emission, layout, or transform compatibility change requires the

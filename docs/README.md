@@ -63,6 +63,9 @@ hydration boundary.
 - [concepts/effect-container-port-decisions.md](concepts/effect-container-port-decisions.md):
   decisions, measurements and deferred work from the Carbon v15 container port,
   including the recorded `engine-webgpu` layering defect.
+- [concepts/writing-an-engine-adapter.md](concepts/writing-an-engine-adapter.md):
+  the coupling rules and the reflection/topology seam for engine packages —
+  read before writing a second engine.
 - [reference/motherlode-cache.md](reference/motherlode-cache.md): canonical
   identity, byte-budget cache, payload retention, and purge contracts.
 - [reference/reload.md](reference/reload.md): the candidate-first atomic
