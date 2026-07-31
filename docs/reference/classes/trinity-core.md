@@ -15,12 +15,12 @@ A packed constant-data slice bound to a resolved layout.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:RawDataStore -->
-## `RawDataStore`
+<!-- class:TriPoolAllocator -->
+## `TriPoolAllocator`
 
 Registers constant-data struct shapes and leases packed payloads from a per-engine arena.
 
 - Export: `@carbonenginejs/runtime-trinity/trinityCore`
-- Source: `src/trinityCore/rawData/RawDataStore.js`
+- Source: `src/trinityCore/rawData/TriPoolAllocator.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
