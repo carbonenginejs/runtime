@@ -106,6 +106,47 @@ test("a detail map that is not a plain 2D texture is refused", () =>
     }
 });
 
+test("an absent sRGB flag is refused rather than assumed linear", () =>
+{
+    // Carbon's reader always sets isSRGB, so a missing one means the caller is
+    // passing something that is not resource reflection. The layers of one array
+    // texture cannot disagree about sRGB decoding, so this fails closed.
+    const missing = texture("Detail2Map", 14);
+    delete missing.isSRGB;
+
+    assert.equal(recogniseDetailMapFamily([ texture("Detail1Map", 13), missing ]), null);
+});
+
+test("layers in different register spaces are refused", () =>
+{
+    // One array texture is one binding; it cannot be assembled from two spaces.
+    assert.equal(
+        recogniseDetailMapFamily([
+            texture("Detail1Map", 13, { registerSpace: 0 }),
+            texture("Detail2Map", 14, { registerSpace: 1 })
+        ]),
+        null
+    );
+});
+
+test("the parameter spelling is accepted in place of the name", () =>
+{
+    // The WGSL planner names its reflected resources `parameter`; both backends
+    // must reach the same decision from the same facts.
+    const asParameter = [ 13, 14, 15 ].map((registerIndex, index) =>
+    {
+        const resource = texture(`Detail${index + 1}Map`, registerIndex);
+        resource.parameter = resource.name;
+        delete resource.name;
+        return resource;
+    });
+
+    assert.deepEqual(
+        recogniseDetailMapFamily(asParameter),
+        recogniseDetailMapFamily(THREE_MAPS)
+    );
+});
+
 test("the transform carries the pass key in its identity", () =>
 {
     const transform = detailMapTransformFor(recogniseDetailMapFamily(THREE_MAPS), "Main.pass0");

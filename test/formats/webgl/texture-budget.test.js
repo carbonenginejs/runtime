@@ -16,9 +16,10 @@ import { buildEffectPackage } from "../../../src/formats/webgl/core/effectPackag
  *
  * Game assets are never committed, so this is opt-in:
  *
- *   WEBGL_DEPTH_CORPUS_DIR=path/to/effect.dx11/.../quad npm test
+ *   WEBGL_DEPTH_CORPUS_DIR=path/to/effect.dx11 npm test
  *
- * Point it at a directory containing `.sm_depth` files. See
+ * Point it at any directory above some `.sm_depth` files; the walk recurses, so
+ * an effect tree root works as well as one leaf directory. See
  * docs/contracts/webgl2-texture-budget.md — in particular, `.sm_hi` is the wrong
  * file: it carries no lights and peaks at 16, so measuring it proves nothing
  * about this constraint.
@@ -26,6 +27,20 @@ import { buildEffectPackage } from "../../../src/formats/webgl/core/effectPackag
 
 /** WebGL2's guaranteed texture image units per shader stage. */
 const WEBGL2_TEXTURE_UNITS = 16;
+
+/**
+ * Lists every `.sm_depth` file under a directory, recursively.
+ *
+ * @param {string} dir Corpus root.
+ * @returns {Promise<string[]>} Paths relative to the root.
+ */
+async function depthShadersUnder(dir)
+{
+    const entries = await readdir(dir, { recursive: true, withFileTypes: true });
+    return entries
+        .filter((entry) => entry.isFile() && entry.name.endsWith(".sm_depth"))
+        .map((entry) => path.relative(dir, path.join(entry.parentPath ?? entry.path, entry.name)));
+}
 
 const SAMPLER_DECLARATION = /uniform \w+ u?i?sampler\w+ \w+;/gu;
 
@@ -72,7 +87,7 @@ test(
     {
         assert.ok((await stat(corpusDir)).isDirectory(), `corpus dir not found: ${corpusDir}`);
 
-        const files = (await readdir(corpusDir)).filter((name) => name.endsWith(".sm_depth"));
+        const files = await depthShadersUnder(corpusDir);
         assert.ok(files.length, `no .sm_depth files under ${corpusDir}`);
 
         for (const name of files)
@@ -102,7 +117,7 @@ test(
         // stopped doing anything and the shaders happened to fit anyway. At
         // least one shader must be over the limit before lowering, and that same
         // shader must come under it after.
-        const files = (await readdir(corpusDir)).filter((name) => name.endsWith(".sm_depth"));
+        const files = await depthShadersUnder(corpusDir);
         let strained = 0;
 
         for (const name of files)

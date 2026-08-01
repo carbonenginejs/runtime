@@ -1,7 +1,10 @@
 import { compareUtf8 } from "../../../../format/compareUtf8.js";
+import {
+    DETAIL_MAP_ARRAY_NAME,
+    recogniseDetailMapFamily
+} from "../../../hlsl/core/detailMapFamily.js";
 
 const RESOURCE_IDENTITY = /^sampled-resource:(\d+):(\d+)$/u;
-const DETAIL_PARAMETER = /^Detail(\d+)Map$/u;
 const SAMPLE_OPCODES = new Set([ "sample_b" ]);
 
 function deepFreeze(value)
@@ -236,40 +239,25 @@ export function buildResourceTransformPlan(entries, options = {})
         throw new TypeError("WGSL resource transform planning requires version-1 IR and semantic bindings");
     }
     const semanticResources = fragments[0].semanticBindings.map(semanticResource).filter(Boolean);
-    const detailResources = semanticResources.filter((resource) => DETAIL_PARAMETER.test(resource.parameter));
-    if (!detailResources.length) return null;
-    const byName = new Map();
-    for (const resource of detailResources)
-    {
-        if (byName.has(resource.parameter)) return rejectCandidate();
-        byName.set(resource.parameter, resource);
-    }
-    const hasThird = byName.has("Detail3Map");
-    const parameters = hasThird
-        ? [ "Detail1Map", "Detail2Map", "Detail3Map" ]
-        : [ "Detail1Map", "Detail2Map" ];
-    if (byName.size !== parameters.length
-        || parameters.some((parameter) => !byName.has(parameter)))
-    {
-        return rejectCandidate();
-    }
+
+    // Which registers make up the family is a fact about Carbon's resources,
+    // not about WGSL, so it is decided by the recogniser WebGL uses too. Both
+    // backends therefore merge the same registers in the same layer order, and a
+    // change to that rule cannot land on one backend only. Everything below is
+    // the part WGSL has to prove for itself: that every use of those registers
+    // is a plain sample this planner can redirect at an array layer.
+    const family = recogniseDetailMapFamily(semanticResources);
+    if (!family) return null;
 
     const sources = [];
-    for (const parameter of parameters)
+    for (const { parameter, registerIndex, registerSpace } of family.layers)
     {
-        const semantic = byName.get(parameter);
-        if (!Number.isInteger(semantic.registerIndex) || semantic.registerIndex < 0
-            || !Number.isInteger(semantic.registerSpace) || semantic.registerSpace < 0
-            || semantic.arrayElements !== 1
-            || semantic.type !== 2
-            || semantic.isSRGB !== false)
-        {
-            return rejectCandidate();
-        }
+        const semantic = { parameter, registerIndex, registerSpace };
+        if (!Number.isInteger(registerSpace) || registerSpace < 0) return rejectCandidate();
         const matches = program.bindings.filter((binding) =>
             binding.resourceKind === "sampled-resource"
-            && bindingSpace(binding) === semantic.registerSpace
-            && bindingRegister(binding) === semantic.registerIndex);
+            && bindingSpace(binding) === registerSpace
+            && bindingRegister(binding) === registerIndex);
         if (matches.length !== 1) return rejectCandidate();
         const binding = matches[0];
         const returns = binding.returnType?.returnTypeNames || [];
@@ -283,13 +271,6 @@ export function buildResourceTransformPlan(entries, options = {})
             return rejectCandidate();
         }
         sources.push({ parameter, semantic, binding, identity: bindingIdentity(binding) });
-    }
-    if (sources.some((source, index) =>
-        index > 0
-        && (source.semantic.registerSpace !== sources[0].semantic.registerSpace
-            || source.semantic.registerIndex <= sources[index - 1].semantic.registerIndex)))
-    {
-        return rejectCandidate();
     }
 
     const sourceByIdentity = new Map(sources.map((source) => [ source.identity, source ]));
@@ -362,7 +343,7 @@ export function buildResourceTransformPlan(entries, options = {})
             stage: "fragment",
             inputs,
             output: {
-                name: "DetailMapArray",
+                name: DETAIL_MAP_ARRAY_NAME,
                 identity: first.identity,
                 scopeIdentity: first.scopeIdentity,
                 viewDimension: "2d-array",

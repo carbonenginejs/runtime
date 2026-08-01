@@ -190,6 +190,10 @@ test("detail resource planning rejects incomplete or semantically unsafe candida
             fixture.semanticBindings[0].registerIndex = fixture.semanticBindings[1].registerIndex;
             fixture.semanticBindings[1].registerIndex = first;
         },
+        // The next two are decided by the shared recogniser rather than by
+        // anything WGSL-specific, so they also prove it is in this path.
+        (fixture) => { fixture.semanticBindings[1].carbon.isSRGB = true; },
+        (fixture) => { delete fixture.semanticBindings[1].carbon.isSRGB; },
         (fixture) => {
             fixture.ir.bindings.find((binding) =>
                 (binding.range?.lowerBound ?? binding.registerIndex) === 5)
