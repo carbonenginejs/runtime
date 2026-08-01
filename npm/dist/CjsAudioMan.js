@@ -878,6 +878,9 @@ class CjsAudioMan {
             fadeInMs: selection.fadeInMs,
             fadeCurve: selection.fadeCurve
           }),
+          ...(selection.switchFadeInMs === undefined ? {} : {
+            switchFadeInMs: selection.switchFadeInMs
+          }),
           getGain: () => engine.EvaluateGain(selection, controls),
           getGainAtVoiceVolumeDb: voiceVolumeDb => engine.EvaluateGain(selection, controls, voiceVolumeDb),
           ...(selection.lowPass === undefined ? {} : {

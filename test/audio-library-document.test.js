@@ -264,6 +264,134 @@ test("Continuous container scheduling is normalized and validated", () =>
     );
 });
 
+test("Continuous Switch transitions are normalized and validated", () =>
+{
+    const graph = {
+        schemaVersion: 2,
+        events: {
+            engine: [ 1 ],
+        },
+        nodes: {
+            1: {
+                type: "switch",
+                scope: "switch",
+                group: "engine_mode",
+                cases: {
+                    idle: 2,
+                },
+                default: 2,
+                continuous: {
+                    transitions: {
+                        2: {
+                            fadeOutMs: "500",
+                            fadeInMs: "250",
+                        },
+                    },
+                },
+            },
+            2: {
+                type: "sound",
+                mediaId: 777,
+                loop: true,
+            },
+        },
+    };
+    const media = { 777: { sourceID: "loose:777" } };
+    const normalized = normalizeSfxGraph(graph, media);
+
+    assert.deepEqual(normalized.nodes["1"].continuous, {
+        transitions: {
+            "2": {
+                fadeOutMs: 500,
+                fadeInMs: 250,
+            },
+        },
+    });
+
+    graph.nodes[1].continuous.transitions[2].fadeInMs = -1;
+    assert.throws(
+        () => normalizeSfxGraph(graph, media),
+        /fadeInMs must be a non-negative integer/u,
+    );
+    graph.nodes[1].continuous.transitions[2].fadeInMs = 250;
+    graph.nodes[1].continuous.transitions[3] = {
+        fadeOutMs: 0,
+        fadeInMs: 0,
+    };
+    assert.throws(
+        () => normalizeSfxGraph(graph, media),
+        /references missing node 3/u,
+    );
+
+    graph.nodes[3] = {
+        type: "sound",
+        mediaId: 777,
+    };
+    assert.throws(
+        () => normalizeSfxGraph(graph, media),
+        /references unreachable node 3/u,
+    );
+
+    const nested = {
+        schemaVersion: 2,
+        events: {
+            wormhole: [ 1 ],
+        },
+        nodes: {
+            1: {
+                type: "switch",
+                group: "outer",
+                cases: {
+                    active: 2,
+                },
+                continuous: {
+                    transitions: {
+                        2: {
+                            fadeOutMs: 500,
+                            fadeInMs: 250,
+                        },
+                    },
+                },
+            },
+            2: {
+                type: "switch",
+                group: "inner",
+                cases: {
+                    safe: 3,
+                },
+                continuous: {
+                    transitions: {
+                        3: {
+                            fadeOutMs: 1000,
+                            fadeInMs: 500,
+                        },
+                    },
+                },
+            },
+            3: {
+                type: "sound",
+                mediaId: 777,
+                loop: true,
+            },
+        },
+    };
+
+    assert.doesNotThrow(() => normalizeSfxGraph(nested, media));
+
+    nested.nodes[2] = {
+        type: "sequence",
+        children: [ 3 ],
+        continuous: {
+            loopCount: 1,
+            transition: "disabled",
+        },
+    };
+    assert.throws(
+        () => normalizeSfxGraph(nested, media),
+        /Continuous container 1 cannot contain Continuous container 2/u,
+    );
+});
+
 test("Crossfade descendants must resolve to exactly one finite voice", () =>
 {
     const createGraph = child => ({
@@ -776,7 +904,7 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
                     probability: "75",
                     fadeInMs: "250",
                     fadeInRangeMs: { min: "-25", max: "25" },
-                    fadeCurve: "8",
+                    fadeCurve: "9",
                 },
             ],
         },
@@ -849,7 +977,7 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
             probability: 75,
             fadeInMs: 250,
             fadeInRangeMs: { min: -25, max: 25 },
-            fadeCurve: 8,
+            fadeCurve: 9,
         },
     ]);
     assert.equal(installed.sfx.nodes["1"].mediaId, "777");
@@ -906,6 +1034,14 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
             { x: 0, gain: 0, interpolation: 5 },
             { x: 1, gain: 1, interpolation: 9 },
         ],
+    );
+
+    const invalidFade = structuredClone(source);
+
+    invalidFade.sfx.events.engine_loop[0].fadeCurve = 10;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidFade),
+        /fadeCurve must be a Wwise curve value from 0 to 9/u,
     );
 
     const invalid = structuredClone(source);

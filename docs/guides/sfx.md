@@ -358,7 +358,7 @@ sounds, Play, Stop, Pause, Resume, Set/Reset Voice Volume, Set/Reset Voice
 Pitch, Play-Event,
 SetSwitch, and SetState actions,
 Random/Sequence containers without reverse restart, and named Step
-Switch/State containers without transition parameters. Play actions retain
+Switch/State containers. Play actions retain
 their authored delay, delay randomizer, probability, fade-in duration,
 fade-in randomizer, and curve. Play-Event recursively inlines the referenced
 event's playable program and merges its immediate setter, playback-control,
@@ -405,6 +405,18 @@ ramps; Power uses equal-power sine/cosine curves. A speculative Random or
 Sequence choice commits only when its successor becomes audible, so cancelled
 or failed preparation does not consume that choice.
 
+Continuous Switch/State containers are supported when `1st only` and
+`Continue to play` are disabled and a Switch/State change stops the outgoing
+object. The runtime follows each live game-sync decision, applies the authored
+per-child Fade Out and Fade In times independently, and keeps a dormant
+session through authored silence, natural completion, or temporarily missing
+media so a later value can resume it. Nested Continuous Switch/State
+containers are supported, including values that select the same final child;
+the complete decision path determines whether playback restarts. Routes that
+reach a non-switch Continuous container or a Continuous Layer are rejected.
+The two known cached Hangar switch roots that reach Continuous Layers therefore
+remain outside this supported subset.
+
 Continuous playback is object-scoped. Finite pass counts complete after every
 overlapping tail ends, without waiting through a nonexistent final interval.
 Break cancels pending and future selections while allowing active children to
@@ -419,8 +431,9 @@ voice production.
 The builder omits an entire playable event when that event mixes other
 unsupported actions or reaches an unsupported playable node; the optional
 diagnostics callback explains each omission. Sample Accurate Continuous
-transitions, nested Continuous containers, Play-and-Continue,
-playable Actor-Mixer approximation, authored continuous Layers, Layer
+transitions, `1st only`, `Continue to play`, Play-to-End switch changes,
+Play-and-Continue, playable Actor-Mixer approximation, authored Continuous
+Layers, Layer
 property RTPC semantics outside the supported Volume, Pitch, low-pass, and
 high-pass set, and other unqualified HIRC semantics are never silently
 approximated.

@@ -534,6 +534,7 @@ function LowerSfxGraph({
   const lowered = new Map();
   const leavesByNode = new Map();
   const containsContinuousByNode = new Map();
+  const containsNonSwitchContinuousByNode = new Map();
   const leavesByEvent = new Map();
   const stopTargetsByEvent = new Map();
   const active = new Set();
@@ -635,11 +636,13 @@ function LowerSfxGraph({
       let node;
       const leaves = new Set();
       let childContainsContinuous = false;
+      let childContainsNonSwitchContinuous = false;
       const lowerChild = childID => {
         const loweredID = lower(childID);
         const childKey = String(Number(childID) >>> 0);
         AddSet(leaves, leavesByNode.get(childKey));
         childContainsContinuous ||= Boolean(containsContinuousByNode.get(childKey));
+        childContainsNonSwitchContinuous ||= Boolean(containsNonSwitchContinuousByNode.get(childKey));
         return loweredID;
       };
       if (source.type === "sound") {
@@ -739,13 +742,13 @@ function LowerSfxGraph({
           } : {})
         };
       } else if (source.type === "switch") {
-        if (source.continuousValidation) {
-          throw new Error(`continuous switch ${id}`);
+        if (source.continuousValidation && source.parameters.some(parameter => parameter.firstOnly || parameter.continuePlayback || parameter.onSwitchMode !== 1)) {
+          throw new Error(`unsupported continuous switch ${id}`);
         }
         // Step switches choose once per post, so their default Stop
         // mode is dormant; only live-continuation flags or fades
         // require the unsupported continuous-switch scheduler.
-        if (source.parameters.some(parameter => parameter.firstOnly || parameter.continuePlayback || parameter.fadeOutMs !== 0 || parameter.fadeInMs !== 0)) {
+        if (!source.continuousValidation && source.parameters.some(parameter => parameter.firstOnly || parameter.continuePlayback || parameter.fadeOutMs !== 0 || parameter.fadeInMs !== 0)) {
           throw new Error(`transitioned switch ${id}`);
         }
         const scope = source.groupType === 1 ? "state" : "switch";
@@ -755,12 +758,28 @@ function LowerSfxGraph({
         }
         const cases = {};
         let defaultChild = null;
+        const transitions = {};
+        const parameters = new Map(source.parameters.map(parameter => [Number(parameter.childId) >>> 0, parameter]));
         for (const assignment of source.assignments) {
           const valueName = group.values.get(assignment.valueId);
           if (!valueName) {
             throw new Error(`unnamed ${scope} value ${assignment.valueId}`);
           }
-          const child = aggregate(assignment.childIds.map(lowerChild));
+          const childIDs = assignment.childIds.map(childID => {
+            const child = lowerChild(childID);
+            if (source.continuousValidation) {
+              const parameter = parameters.get(Number(childID) >>> 0);
+              if (!parameter) {
+                throw new Error(`missing continuous switch parameter ${childID} at ${id}`);
+              }
+              transitions[child] = {
+                fadeOutMs: parameter.fadeOutMs,
+                fadeInMs: parameter.fadeInMs
+              };
+            }
+            return child;
+          });
+          const child = aggregate(childIDs);
           cases[valueName] = {
             nodeId: child
           };
@@ -774,6 +793,9 @@ function LowerSfxGraph({
         if (defaultChild === null) {
           defaultChild = aggregate([]);
         }
+        if (source.continuousValidation && childContainsNonSwitchContinuous) {
+          throw new Error(`nested non-switch continuous container ${id}`);
+        }
         node = {
           type: "switch",
           scope,
@@ -781,7 +803,12 @@ function LowerSfxGraph({
           cases,
           default: {
             nodeId: defaultChild
-          }
+          },
+          ...(source.continuousValidation ? {
+            continuous: {
+              transitions
+            }
+          } : {})
         };
       } else if (source.type === "layer") {
         if (source.continuousValidation) {
@@ -851,6 +878,7 @@ function LowerSfxGraph({
       lowered.set(id, id);
       leavesByNode.set(id, leaves);
       containsContinuousByNode.set(id, childContainsContinuous || node.continuous !== undefined);
+      containsNonSwitchContinuousByNode.set(id, childContainsNonSwitchContinuous || node.continuous !== undefined && node.type !== "switch");
       return id;
     } finally {
       active.delete(id);
@@ -1184,13 +1212,10 @@ function ReadSfxVoicePitchAction(action, parsed) {
 function ReadSfxSetterAction(action, names) {
   const family = Number(action.actionType) >> 8 & 0xff;
   const scope = family === SFX_SET_SWITCH_ACTION_FAMILY ? "switch" : "state";
-  const payload = action.payload instanceof Uint8Array ? action.payload : null;
-  if (!payload || payload.byteLength < 8) {
-    throw new Error(`truncated ${scope} setter action ${action.id}`);
-  }
-  const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
-  const groupID = view.getUint32(payload.byteLength - 8, true);
-  const valueID = view.getUint32(payload.byteLength - 4, true);
+  const {
+    groupID,
+    valueID
+  } = ReadSetterActionIDs(action.action, action.payload, `${scope} setter action ${action.id}`);
   const group = names.groups.get(`${scope}:${groupID}`);
   const value = group?.values.get(valueID);
   if (!group?.name) {
@@ -2563,18 +2588,45 @@ function MusicArgumentGroups(nodes) {
   return result;
 }
 function ReadMusicSetterAction(fields, actionID, family) {
-  // runtime-resource types the action family and target. Wwise does not yet
-  // expose SetSwitch/SetState's two tail IDs, so this is the deliberately
-  // narrow remaining payload read.
-  if (!fields.payload || fields.payload.byteLength < 8) {
-    throw new Error(`Music setter action ${actionID} has a truncated payload`);
-  }
-  const view = new DataView(fields.payload.buffer, fields.payload.byteOffset, fields.payload.byteLength);
+  const {
+    groupID,
+    valueID
+  } = ReadSetterActionIDs(fields.action, fields.payload, `Music setter action ${actionID}`);
   return {
     kind: family === 0x19 ? "switch" : "state",
-    groupId: view.getUint32(fields.payload.byteLength - 8, true),
-    targetId: view.getUint32(fields.payload.byteLength - 4, true)
+    groupId: groupID,
+    targetId: valueID
   };
+}
+function ReadSetterActionIDs(action, rawPayload, label) {
+  const hasTypedGroup = action?.groupId !== undefined;
+  const hasTypedValue = action?.valueId !== undefined;
+  if (hasTypedGroup !== hasTypedValue) {
+    throw new Error(`${label} has incomplete typed fields`);
+  }
+  const payload = rawPayload instanceof Uint8Array ? rawPayload : null;
+  let raw = null;
+  if (payload?.byteLength >= 8) {
+    const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+    raw = {
+      groupID: view.getUint32(payload.byteLength - 8, true),
+      valueID: view.getUint32(payload.byteLength - 4, true)
+    };
+  }
+  if (hasTypedGroup) {
+    const typed = {
+      groupID: Number(action.groupId) >>> 0,
+      valueID: Number(action.valueId) >>> 0
+    };
+    if (raw && (raw.groupID !== typed.groupID || raw.valueID !== typed.valueID)) {
+      throw new Error(`${label} typed fields disagree with payload`);
+    }
+    return typed;
+  }
+  if (!raw) {
+    throw new Error(`${label} has a truncated payload`);
+  }
+  return raw;
 }
 function eventActionIDs(entry) {
   const actionIDs = entry.actionIds ?? entry.actions;
@@ -2593,6 +2645,7 @@ function actionFields(entry) {
   return {
     actionType: Number(actionType) >>> 0,
     targetID: Number(targetID) >>> 0,
+    action: entry.action ?? null,
     payload
   };
 }

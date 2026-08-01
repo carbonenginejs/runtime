@@ -202,12 +202,12 @@ export class CjsSfxEngine
                 index++)
             {
                 const branch = continuousBranches[index];
+                const switchSession = branch.token.kind === "switch";
                 const programSlotId = `${actionIndex}:c${index}`;
                 const programBatchId =
                     `${programSlotId}:b${branch.token.batchIndex++}`;
-                const hasMore = this.#ContinuousHasMore(
-                    branch.token,
-                );
+                const hasMore = switchSession
+                    || this.#ContinuousHasMore(branch.token);
 
                 branch.token.actionIndex = actionIndex;
                 branch.token.programSlotId = programSlotId;
@@ -223,7 +223,8 @@ export class CjsSfxEngine
                     token: branch.token,
                     containerId: branch.token.nodeID,
                     delayMs:
-                        branch.token.node.continuous.transition
+                        !switchSession
+                        && branch.token.node.continuous.transition
                             === "trigger-rate"
                             && hasMore
                             || IsCrossfadeTransition(
@@ -235,7 +236,17 @@ export class CjsSfxEngine
                             )
                             : 0,
                     doneAfterBatch: !hasMore,
-                    ...(
+                    ...(switchSession
+                        ? {
+                            advance: "switch",
+                            matchIds: Object.freeze([
+                                ...branch.token.active,
+                            ]),
+                            switchGroups: ContinuousSwitchGroups(
+                                branch.token.route,
+                            ),
+                        }
+                        : (
                         branch.token.node.continuous.transition
                             === "trigger-rate"
                             ? { advance: "trigger-rate" }
@@ -248,7 +259,7 @@ export class CjsSfxEngine
                                         branch.token.node.continuous.transition,
                                 }
                             : {}
-                    ),
+                        )),
                 }));
             }
             operations.push(Object.freeze({
@@ -380,6 +391,10 @@ export class CjsSfxEngine
         {
             return Object.freeze([]);
         }
+        if (token.kind === "switch")
+        {
+            return this.#ContinueSwitchProgram(token, controls);
+        }
 
         const selections = this.#ResolveContinuousBatch(
             token,
@@ -466,6 +481,12 @@ export class CjsSfxEngine
         {
             throw new Error(
                 "CjsSfxEngine continuation token is already being prepared",
+            );
+        }
+        if (token.kind === "switch")
+        {
+            throw new TypeError(
+                "CjsSfxEngine Continuous Switch sessions cannot be prepared",
             );
         }
         const beforeToken = CaptureContinuationToken(token);
@@ -889,6 +910,7 @@ export class CjsSfxEngine
         selections,
         continuousBranches = [],
         allowContinuous = true,
+        switchSession = null,
     )
     {
         const edge = NormalizeChild(child);
@@ -1021,6 +1043,7 @@ export class CjsSfxEngine
                     selections,
                     continuousBranches,
                     allowContinuous,
+                    switchSession,
                 );
             }
             return;
@@ -1028,6 +1051,35 @@ export class CjsSfxEngine
 
         if (node.type === "switch")
         {
+            if (node.continuous)
+            {
+                if (switchSession)
+                {
+                    this.#ResolveContinuousSwitchDecision(
+                        edge.nodeId,
+                        node,
+                        controls,
+                        terms,
+                        nextActive,
+                        selections,
+                        continuousBranches,
+                        switchSession,
+                    );
+                }
+                else
+                {
+                    this.#ResolveContinuousSwitch(
+                        edge.nodeId,
+                        node,
+                        controls,
+                        terms,
+                        nextActive,
+                        continuousBranches,
+                        allowContinuous,
+                    );
+                }
+                return;
+            }
             const value = node.scope === "state"
                 ? controls.getState?.(node.group)
                 : controls.getSwitch?.(node.group);
@@ -1045,6 +1097,7 @@ export class CjsSfxEngine
                     selections,
                     continuousBranches,
                     allowContinuous,
+                    switchSession,
                 );
             }
             return;
@@ -1081,6 +1134,7 @@ export class CjsSfxEngine
                     selections,
                     continuousBranches,
                     allowContinuous,
+                    switchSession,
                 );
             }
             return;
@@ -1117,9 +1171,238 @@ export class CjsSfxEngine
                     selections,
                     continuousBranches,
                     allowContinuous,
+                    switchSession,
                 );
             }
         }
+    }
+
+    /** Creates one live Continuous Switch topology session. */
+    #ResolveContinuousSwitch(
+        nodeID,
+        node,
+        controls,
+        terms,
+        active,
+        continuousBranches,
+        allowContinuous,
+    )
+    {
+        if (!allowContinuous)
+        {
+            throw new Error(
+                `Nested Continuous container ${nodeID} is unsupported`,
+            );
+        }
+
+        const token = {
+            kind: "switch",
+            nodeID,
+            node,
+            gameObjID: controls.gameObjID,
+            initialTerms: terms,
+            continuationTerms: {
+                ...terms,
+                initialDelayMs: 0,
+                delayMs: 0,
+                fadeInMs: 0,
+            },
+            active,
+            route: Object.freeze([]),
+            actionIndex: -1,
+            programSlotId: "",
+            batchIndex: 0,
+            done: false,
+        };
+        const resolved = this.#ResolveContinuousSwitchRoute(
+            token,
+            controls,
+            true,
+        );
+
+        token.route = resolved.route;
+        this.#continuousSessions.add(token);
+        this.#tokenGenerations.set(token, {
+            selection: this.#selectionGeneration,
+            gameObj: this.#releasedGameObjGenerations.get(
+                String(token.gameObjID),
+            ) ?? 0,
+        });
+        continuousBranches.push({
+            token,
+            selections: resolved.selections,
+        });
+    }
+
+    /** Resolves the currently active nested path of one Continuous Switch. */
+    #ResolveContinuousSwitchRoute(token, controls, initial)
+    {
+        const selections = [];
+        const continuousBranches = [];
+        const session = { route: [] };
+
+        this.#ResolveContinuousSwitchDecision(
+            token.nodeID,
+            token.node,
+            controls,
+            initial ? token.initialTerms : token.continuationTerms,
+            token.active,
+            selections,
+            continuousBranches,
+            session,
+        );
+        if (continuousBranches.length)
+        {
+            throw new Error(
+                `Continuous Switch ${token.nodeID} reaches a non-switch Continuous container`,
+            );
+        }
+
+        const route = Object.freeze(session.route.map(Object.freeze));
+        return {
+            route,
+            selections: selections.map(selection =>
+            {
+                const matchIDs = new Set(selection.matchIds.map(String));
+                const switchPath = Object.freeze(route.flatMap(decision =>
+                {
+                    const childID = Object.keys(
+                        decision.node.continuous.transitions,
+                    ).find(id => matchIDs.has(String(id)));
+
+                    if (childID === undefined)
+                    {
+                        return [];
+                    }
+                    const transition =
+                        decision.node.continuous.transitions[childID];
+
+                    return [ Object.freeze({
+                        containerId: decision.nodeID,
+                        scope: decision.scope,
+                        group: decision.group,
+                        value: decision.value,
+                        childId: childID,
+                        fadeOutMs: Number(transition.fadeOutMs) || 0,
+                        fadeInMs: Number(transition.fadeInMs) || 0,
+                    }) ];
+                }));
+
+                return Object.freeze(PreserveAuthoredPitch(selection, {
+                    ...selection,
+                    switchPath,
+                }));
+            }),
+        };
+    }
+
+    /** Records and resolves one active decision inside a switch session. */
+    #ResolveContinuousSwitchDecision(
+        nodeID,
+        node,
+        controls,
+        terms,
+        active,
+        selections,
+        continuousBranches,
+        session,
+    )
+    {
+        const value = node.scope === "state"
+            ? controls.getState?.(node.group)
+            : controls.getSwitch?.(node.group);
+        const selected = ResolveSwitchCase(node, value);
+
+        session.route.push({
+            nodeID: String(nodeID),
+            node,
+            scope: node.scope,
+            group: node.group,
+            value: NormalizeSwitchValue(value),
+        });
+        if (selected !== undefined)
+        {
+            this.#ResolveChild(
+                selected,
+                controls,
+                terms,
+                active,
+                selections,
+                continuousBranches,
+                true,
+                session,
+            );
+        }
+    }
+
+    /** Re-resolves one live Continuous Switch after a game-sync change. */
+    #ContinueSwitchProgram(token, controls)
+    {
+        const resolved = this.#ResolveContinuousSwitchRoute(
+            token,
+            controls,
+            false,
+        );
+        const changedIndex = FirstChangedSwitchDecision(
+            token.route,
+            resolved.route,
+        );
+
+        if (changedIndex === -1)
+        {
+            return Object.freeze([]);
+        }
+
+        const changedContainerId = String(
+            token.route[changedIndex]?.nodeID
+            ?? resolved.route[changedIndex]?.nodeID
+            ?? token.nodeID,
+        );
+        const programBatchId =
+            `${token.programSlotId}:b${token.batchIndex++}`;
+        const selections = resolved.selections.map(
+            (selection, leafIndex) =>
+            {
+                const transition = selection.switchPath.find(value =>
+                    value.containerId === changedContainerId);
+
+                return Object.freeze(PreserveAuthoredPitch(selection, {
+                    ...selection,
+                    actionIndex: token.actionIndex,
+                    leafIndex,
+                    programSlotId: token.programSlotId,
+                    programBatchId,
+                    switchFadeInMs: transition?.fadeInMs ?? 0,
+                }));
+            },
+        );
+
+        token.route = resolved.route;
+        return Object.freeze([
+            Object.freeze({
+                kind: "play",
+                actionIndex: token.actionIndex,
+                selections: Object.freeze(selections),
+                continuations: Object.freeze([
+                    Object.freeze({
+                        programSlotId: token.programSlotId,
+                        programBatchId,
+                        token,
+                        containerId: token.nodeID,
+                        delayMs: 0,
+                        doneAfterBatch: false,
+                        advance: "switch",
+                        matchIds: Object.freeze([
+                            ...token.active,
+                        ]),
+                        switchGroups: ContinuousSwitchGroups(
+                            token.route,
+                        ),
+                        changedContainerId,
+                    }),
+                ]),
+            }),
+        ]);
     }
 
     /** Creates one per-post Continuous container traversal. */
@@ -2053,6 +2336,55 @@ function FindCase(cases, value)
         name.toLowerCase() === normalized);
 
     return key === undefined ? undefined : cases[key];
+}
+
+function ResolveSwitchCase(node, value)
+{
+    return value === undefined || value === null
+        ? node.default
+        : FindCase(node.cases, value) ?? node.default;
+}
+
+function NormalizeSwitchValue(value)
+{
+    return value === undefined || value === null
+        ? null
+        : String(value).toLowerCase();
+}
+
+function FirstChangedSwitchDecision(previous, next)
+{
+    const length = Math.max(previous.length, next.length);
+
+    for (let index = 0; index < length; index++)
+    {
+        if (previous[index]?.nodeID !== next[index]?.nodeID
+            || previous[index]?.value !== next[index]?.value)
+        {
+            return index;
+        }
+    }
+    return -1;
+}
+
+function ContinuousSwitchGroups(route)
+{
+    const seen = new Set();
+
+    return Object.freeze(route.flatMap(decision =>
+    {
+        const key = `${decision.scope}\0${decision.group}`;
+
+        if (seen.has(key))
+        {
+            return [];
+        }
+        seen.add(key);
+        return [ Object.freeze({
+            scope: decision.scope,
+            group: decision.group,
+        }) ];
+    }));
 }
 
 function StateKey(gameObjID, nodeID)

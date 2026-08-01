@@ -180,6 +180,103 @@ function Harness({
   return { context, finished, emitter, backend };
 }
 
+function ContinuousSwitchGraph()
+{
+  return {
+    schemaVersion: 2,
+    events: {
+      continuous_switch: [ { nodeId: "10" } ],
+    },
+    programs: {
+      stop_switch_root: [
+        {
+          kind: "stop",
+          targetId: "10",
+          targetFlags: 0,
+          scope: "game-object",
+          mode: "element",
+          transitionMs: 0,
+          curve: 4,
+          exceptions: [],
+        },
+      ],
+      stop_switch_leaf: [
+        {
+          kind: "stop",
+          targetId: "11",
+          targetFlags: 0,
+          scope: "game-object",
+          mode: "element",
+          transitionMs: 0,
+          curve: 4,
+          exceptions: [],
+        },
+      ],
+    },
+    nodes: {
+      "10": {
+        type: "switch",
+        scope: "switch",
+        group: "mode",
+        cases: {
+          a: { nodeId: "11" },
+          b: { nodeId: "12" },
+          c: { nodeId: "13" },
+          mute: { nodeId: "14" },
+        },
+        default: { nodeId: "14" },
+        continuous: {
+          transitions: {
+            "11": { fadeOutMs: 100, fadeInMs: 200 },
+            "12": { fadeOutMs: 250, fadeInMs: 500 },
+            "13": { fadeOutMs: 750, fadeInMs: 300 },
+            "14": { fadeOutMs: 0, fadeInMs: 0 },
+          },
+        },
+      },
+      "11": { type: "sound", mediaId: "100" },
+      "12": { type: "sound", mediaId: "200" },
+      "13": { type: "sound", mediaId: "300" },
+      "14": { type: "silence" },
+    },
+  };
+}
+
+function ProgramVoiceResult(program, duration = 1)
+{
+  return {
+    voices: program.flatMap(operation =>
+      operation.kind === "play"
+        ? operation.selections.map(selection => ({
+            ...selection,
+            buffer: { duration },
+          }))
+        : []),
+  };
+}
+
+function ContinuousSwitchHarness({ loadBuffer, continueProgram } = {})
+{
+  const engine = new CjsSfxEngine({
+    graph: ContinuousSwitchGraph(),
+  });
+  return {
+    engine,
+    ...Harness({
+      resolveSfxProgram: (_eventID, eventName, controls) =>
+        engine.ResolveProgram(eventName, controls),
+      continueSfxProgram: continueProgram ?? ((token, controls) =>
+        engine.ContinueProgram(token, controls)),
+      loadBuffer: loadBuffer ?? (async (
+        _eventID,
+        _eventName,
+        _controls,
+        program,
+      ) => ProgramVoiceResult(program)),
+    }),
+  };
+}
+
 test("invalid RTPC and attenuation values fail without replacing live backend state", () =>
 {
   const applied = [];
@@ -324,6 +421,535 @@ test("Continuous slots wait for the whole batch and schedule authored Delay", as
   assert.equal(advances, 2);
   assert.deepEqual(finished, [ playingID ]);
   assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("Continuous Switch survives natural completion and authored silence", async () =>
+{
+  const { backend, context, emitter, finished } =
+    ContinuousSwitchHarness();
+
+  backend.SetSwitch("mode", "a", 1);
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous_switch",
+  );
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  context.sources[0].onended();
+
+  assert.equal(backend.GetPlayingCount(), 1);
+  assert.deepEqual(finished, []);
+
+  backend.SetSwitch("mode", "mute", 1);
+  await tick();
+  assert.equal(context.sources.length, 1);
+  assert.equal(backend.GetPlayingCount(), 1);
+
+  backend.SetSwitch("mode", "b", 1);
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 2);
+  assert.equal(context.sources[1].started, true);
+  assert.deepEqual(finished, []);
+
+  backend.ExecuteActionOnPlayingID("stop", playingID, 0);
+  context.sources[1].onended();
+});
+
+test("authored root Stop terminates a dormant Continuous Switch", async () =>
+{
+  const { backend, context, emitter, finished } =
+    ContinuousSwitchHarness();
+
+  backend.SetSwitch("mode", "mute", 1);
+  const switchID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous_switch",
+  );
+  await tick();
+
+  assert.equal(context.sources.length, 0);
+  assert.equal(backend.GetPlayingCount(), 1);
+
+  const stopID = backend.PostEvent(
+    8,
+    1,
+    0,
+    emitter,
+    "stop_switch_root",
+  );
+  await tick();
+
+  assert.equal(backend.GetPlayingCount(), 0);
+  assert.deepEqual(
+    finished.sort((left, right) => left - right),
+    [ switchID, stopID ].sort((left, right) => left - right),
+  );
+});
+
+test("a leaf Stop preserves its parent Continuous Switch session", async () =>
+{
+  const { backend, context, emitter, finished } =
+    ContinuousSwitchHarness();
+
+  backend.SetSwitch("mode", "a", 1);
+  const switchID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous_switch",
+  );
+  await tick();
+  const stopID = backend.PostEvent(
+    8,
+    1,
+    0,
+    emitter,
+    "stop_switch_leaf",
+  );
+  await tick();
+
+  assert.equal(context.sources[0].stoppedAt, context.currentTime);
+  context.sources[0].onended();
+  assert.equal(backend.GetPlayingCount(), 1);
+  assert.deepEqual(finished, [ stopID ]);
+
+  backend.SetSwitch("mode", "b", 1);
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 2);
+  assert.equal(context.sources[1].started, true);
+  assert.equal(backend.GetPlayingCount(), 1);
+  assert.equal(finished.includes(switchID), false);
+
+  backend.ExecuteActionOnPlayingID("stop", switchID, 0);
+  context.sources[1].onended();
+});
+
+test("Continuous Switch applies the outgoing and incoming child fades", async () =>
+{
+  const { backend, context, emitter } = ContinuousSwitchHarness();
+
+  backend.SetSwitch("mode", "a", 1);
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous_switch",
+  );
+  await tick();
+
+  context.currentTime = 1;
+  backend.SetSwitch("mode", "b", 1);
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 2);
+  assert.ok(Math.abs(context.sources[0].stoppedAt - 1.1) < 1e-9);
+
+  const transitionGain = context.sources[1].connectedTo.connectedTo;
+  assert.deepEqual(
+    transitionGain.gain.ramps,
+    [ [ 1, context.sources[1].startedAt + 0.5 ] ],
+  );
+
+  backend.ExecuteActionOnPlayingID("stop", playingID, 0);
+  context.sources[0].onended();
+  context.sources[1].onended();
+});
+
+test("rapid Continuous Switch changes discard stale route loads", async () =>
+{
+  const initial = Deferred();
+  const middle = Deferred();
+  let initialProgram;
+  let middleProgram;
+  let middleSignal;
+  const harness = ContinuousSwitchHarness({
+    loadBuffer: (
+      _eventID,
+      _eventName,
+      controls,
+      program,
+    ) =>
+    {
+      const selection = program.find(operation =>
+        operation.kind === "play")?.selections?.[0];
+
+      if (selection?.mediaID === "100")
+      {
+        initialProgram = program;
+        return initial.promise;
+      }
+      if (selection?.mediaID === "200")
+      {
+        middleProgram = program;
+        middleSignal = controls.getSfxProgramSignal(
+          selection.programSlotId,
+          selection.actionIndex,
+          selection.leafIndex,
+          selection.programBatchId,
+        );
+        return middle.promise;
+      }
+      return ProgramVoiceResult(program);
+    },
+  });
+  const { backend, context, emitter, finished } = harness;
+
+  backend.SetSwitch("mode", "a", 1);
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous_switch",
+  );
+  await tick();
+  assert.ok(initialProgram);
+
+  backend.SetSwitch("mode", "b", 1);
+  await tick();
+  assert.ok(middleProgram);
+
+  backend.SetSwitch("mode", "c", 1);
+  await tick();
+  await tick();
+
+  assert.equal(middleSignal.aborted, true);
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].buffer.duration, 1);
+
+  middle.resolve(ProgramVoiceResult(middleProgram));
+  initial.resolve(ProgramVoiceResult(initialProgram));
+  await tick();
+  await tick();
+
+  assert.equal(
+    context.sources.length,
+    1,
+    "neither obsolete route may revive after its load resolves",
+  );
+  assert.deepEqual(finished, []);
+
+  backend.ExecuteActionOnPlayingID("stop", playingID, 0);
+  context.sources[0].onended();
+});
+
+test("malformed Continuous Switch continuation settles a dormant session", async () =>
+{
+  const engine = new CjsSfxEngine({ graph: ContinuousSwitchGraph() });
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: (_eventID, eventName, controls) =>
+      engine.ResolveProgram(eventName, controls),
+    continueSfxProgram()
+    {
+      throw new Error("malformed continuation");
+    },
+    loadBuffer: async (
+      _eventID,
+      _eventName,
+      _controls,
+      program,
+    ) => ProgramVoiceResult(program),
+  });
+
+  backend.SetSwitch("mode", "a", 1);
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "continuous_switch",
+  );
+  await tick();
+  context.sources[0].onended();
+  assert.equal(backend.GetPlayingCount(), 1);
+
+  backend.SetSwitch("mode", "b", 1);
+
+  assert.equal(backend.GetPlayingCount(), 0);
+  assert.deepEqual(finished, [ playingID ]);
+});
+
+test("Continuous Switch sessions crossfade, remain dormant, and stop by container", async () =>
+{
+  const engine = new CjsSfxEngine({
+    graph: {
+      schemaVersion: 2,
+      events: {
+        start_switch: [ { nodeId: "1" } ],
+        stop_switch: [],
+      },
+      programs: {
+        stop_switch: [
+          {
+            kind: "stop",
+            targetId: "1",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            delayMs: 0,
+            transitionMs: 0,
+            curve: 4,
+            actionFlags: 6,
+            exceptions: [],
+          },
+        ],
+      },
+      nodes: {
+        "1": {
+          type: "switch",
+          scope: "switch",
+          group: "mode",
+          cases: {
+            a: { nodeId: "2" },
+            b: { nodeId: "3" },
+            silent: { nodeId: "4" },
+          },
+          default: { nodeId: "4" },
+          continuous: {
+            transitions: {
+              "2": { fadeOutMs: 500, fadeInMs: 100 },
+              "3": { fadeOutMs: 750, fadeInMs: 250 },
+              "4": { fadeOutMs: 1000, fadeInMs: 0 },
+            },
+          },
+        },
+        "2": { type: "sound", mediaId: "100", loop: false },
+        "3": { type: "sound", mediaId: "200", loop: false },
+        "4": { type: "silence" },
+      },
+    },
+  });
+  const loadBuffer = async (
+    _eventID,
+    _eventName,
+    _controls,
+    program,
+  ) => ({
+    voices: program.flatMap(operation =>
+      operation.kind === "play"
+        ? operation.selections.map(selection => ({
+            buffer: {
+              duration: 2,
+              mediaID: selection.mediaID,
+            },
+            loop: selection.loop,
+            playbackRate: selection.playbackRate,
+            programSlotId: selection.programSlotId,
+            programBatchId: selection.programBatchId,
+            actionIndex: selection.actionIndex,
+            leafIndex: selection.leafIndex,
+            matchIds: selection.matchIds,
+          }))
+        : []),
+  });
+  const { context, emitter, backend } = Harness({
+    loadBuffer,
+    hasSfxEvent: eventName => engine.HandlesEvent(eventName),
+    resolveSfxProgram: (eventID, eventName, controls) =>
+      engine.ResolveProgram(eventName, controls),
+    continueSfxProgram: (token, controls) =>
+      engine.ContinueProgram(token, controls),
+  });
+
+  backend.SetSwitch("mode", "a", 1);
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "start_switch",
+  );
+
+  await tick();
+  await tick();
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].buffer.mediaID, "100");
+
+  context.currentTime = 1;
+  backend.SetSwitch("mode", "b", 1);
+
+  assert.equal(
+    context.sources[0].stoppedAt,
+    1.5,
+    "the outgoing child uses its own authored Fade Out",
+  );
+
+  await tick();
+  await tick();
+  assert.equal(context.sources.length, 2);
+  assert.equal(context.sources[1].buffer.mediaID, "200");
+  const incomingTransition =
+    context.sources[1].connectedTo.connectedTo.gain;
+
+  assert.equal(incomingTransition.sets[0][0], 0);
+  assert.ok(
+    Math.abs(
+      incomingTransition.ramps.at(-1)[1]
+        - context.sources[1].startedAt
+        - 0.25,
+    ) < 1e-9,
+    "the incoming child uses its own authored Fade In",
+  );
+
+  context.sources[0].onended();
+  context.sources[1].onended();
+  assert.equal(
+    backend.GetPlayingCount(),
+    1,
+    "a Continuous Switch remains active after its one-shot ends",
+  );
+
+  backend.SetSwitch("mode", "silent", 1);
+  await tick();
+  assert.equal(context.sources.length, 2);
+  assert.equal(backend.GetPlayingCount(), 1);
+
+  backend.PostEvent(8, 1, 0, emitter, "stop_switch");
+  await tick();
+  await tick();
+
+  assert.equal(
+    backend.GetPlayingCount(),
+    0,
+    "an authored Stop targeting the container ends its dormant session",
+  );
+  assert.ok(playingID > 0);
+});
+
+test("Continuous Switch sessions recover from missing and stale route loads", async () =>
+{
+  const pendingB = Deferred();
+  let pendingBResult = null;
+  const engine = new CjsSfxEngine({
+    graph: {
+      schemaVersion: 2,
+      events: {
+        live_switch: [ { nodeId: "1" } ],
+      },
+      nodes: {
+        "1": {
+          type: "switch",
+          scope: "switch",
+          group: "mode",
+          cases: {
+            silent: { nodeId: "2" },
+            missing: { nodeId: "3" },
+            b: { nodeId: "4" },
+            c: { nodeId: "5" },
+          },
+          default: { nodeId: "2" },
+          continuous: {
+            transitions: {
+              "2": { fadeOutMs: 0, fadeInMs: 0 },
+              "3": { fadeOutMs: 0, fadeInMs: 0 },
+              "4": { fadeOutMs: 0, fadeInMs: 0 },
+              "5": { fadeOutMs: 0, fadeInMs: 0 },
+            },
+          },
+        },
+        "2": { type: "silence" },
+        "3": { type: "sound", mediaId: "100" },
+        "4": { type: "sound", mediaId: "200" },
+        "5": { type: "sound", mediaId: "300" },
+      },
+    },
+  });
+  const voiceResult = program => ({
+    voices: program.flatMap(operation =>
+      operation.kind === "play"
+        ? operation.selections.map(selection => ({
+            buffer: {
+              duration: 2,
+              mediaID: selection.mediaID,
+            },
+            playbackRate: selection.playbackRate,
+            programSlotId: selection.programSlotId,
+            programBatchId: selection.programBatchId,
+            actionIndex: selection.actionIndex,
+            leafIndex: selection.leafIndex,
+            matchIds: selection.matchIds,
+          }))
+        : []),
+  });
+  const { context, emitter, backend } = Harness({
+    loadBuffer: async (_eventID, _eventName, _controls, program) =>
+    {
+      const mediaID = program.flatMap(operation =>
+        operation.kind === "play" ? operation.selections : [])
+        [0]?.mediaID;
+
+      if (mediaID === "100")
+      {
+        return { voices: [] };
+      }
+      if (mediaID === "200")
+      {
+        pendingBResult = voiceResult(program);
+        return pendingB.promise;
+      }
+      return voiceResult(program);
+    },
+    hasSfxEvent: eventName => engine.HandlesEvent(eventName),
+    resolveSfxProgram: (_eventID, eventName, controls) =>
+      engine.ResolveProgram(eventName, controls),
+    continueSfxProgram: (token, controls) =>
+      engine.ContinueProgram(token, controls),
+  });
+
+  backend.SetSwitch("mode", "silent", 1);
+  backend.PostEvent(7, 1, 0, emitter, "live_switch");
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 0);
+  assert.equal(backend.GetPlayingCount(), 1);
+
+  backend.SetSwitch("mode", "missing", 1);
+  await tick();
+  await tick();
+  assert.equal(context.sources.length, 0);
+  assert.equal(
+    backend.GetPlayingCount(),
+    1,
+    "an unavailable branch does not destroy the switch session",
+  );
+
+  backend.SetSwitch("mode", "b", 1);
+  await tick();
+  assert.ok(pendingBResult);
+
+  backend.SetSwitch("mode", "c", 1);
+  await tick();
+  await tick();
+  assert.deepEqual(
+    context.sources.map(source => source.buffer.mediaID),
+    [ "300" ],
+  );
+
+  pendingB.resolve(pendingBResult);
+  await tick();
+  await tick();
+  assert.deepEqual(
+    context.sources.map(source => source.buffer.mediaID),
+    [ "300" ],
+    "a superseded acquisition cannot revive its stale child",
+  );
+
+  backend.StopAll();
 });
 
 test("Trigger Rate schedules overlapping batches from authored action times", async () =>

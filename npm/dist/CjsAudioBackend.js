@@ -310,16 +310,26 @@ class CjsAudioBackend {
       // Rendering may have paused while media was pending. Apply every
       // now-overdue Stop before a cancelled slot can become a voice.
       this.#ProcessScheduledSfxActions();
-      if (!result || record.stopped || !this.#playing.has(playingID)) {
+      if (record.stopped || !this.#playing.has(playingID)) {
         this.#FinishSfxPlaying(playingID);
         return;
+      }
+      if (!result) {
+        const dormantSwitch = record.sfxProgram && [...record.programSlots.values()].some(slot => slot.advanceMode === "switch" && slot.continuation && !slot.broken);
+        if (!dormantSwitch) {
+          this.#FinishSfxPlaying(playingID);
+          return;
+        }
+        result = {
+          voices: []
+        };
       }
       const descriptors = NormalizeVoiceDescriptors(result, () => !!this.#isLoop(record.eventName));
       const realizedSlots = new Set();
       const initialVoices = [];
       for (const descriptor of descriptors) {
         const slot = record.sfxProgram ? record.programSlots?.get(descriptor.programSlotId) : null;
-        if (record.sfxProgram && (!slot || !IsOverlappingAdvanceMode(slot.advanceMode) && slot.state !== "pending" && !(slot.continuation && slot.state === "voice"))) {
+        if (record.sfxProgram && (!slot || (slot.advanceMode === "switch" ? slot.generation !== 0 : !IsOverlappingAdvanceMode(slot.advanceMode) && slot.state !== "pending" && !(slot.continuation && slot.state === "voice")))) {
           continue;
         }
         const batch = IsOverlappingAdvanceMode(slot?.advanceMode) ? slot.batches?.get(String(descriptor.programBatchId ?? "")) ?? slot.currentBatch : null;
@@ -327,13 +337,19 @@ class CjsAudioBackend {
         if (slot?.broken || batch?.state === "cancelled" || cancelledSelectionKeys?.has(ProgramSelectionKey(descriptor))) {
           continue;
         }
-        const selectionMetadata = (batch?.selections ?? slot?.selections)?.find(selection => ProgramSelectionKey(selection) === ProgramSelectionKey(descriptor));
+        const candidateSelections = batch?.selections ?? slot?.selections;
+        const selectionMetadata = candidateSelections?.find(selection => ProgramSelectionKey(selection) === ProgramSelectionKey(descriptor)) ?? (candidateSelections?.length === 1 ? candidateSelections[0] : null);
+        if (record.sfxProgram && !selectionMetadata) {
+          continue;
+        }
         const voice = this.#CreateVoice(selectionMetadata ? {
           ...descriptor,
           actionIndex: selectionMetadata.actionIndex,
           leafIndex: selectionMetadata.leafIndex,
           actionTime: selectionMetadata.actionTime,
           matchIds: selectionMetadata.matchIds,
+          switchPath: selectionMetadata.switchPath,
+          switchFadeInMs: selectionMetadata.switchFadeInMs,
           ...(slot?.advanceMode === "crossfade" ? {
             crossfadeMode: slot.crossfadeMode
           } : {})
@@ -341,10 +357,13 @@ class CjsAudioBackend {
         record.voices.push(voice);
         initialVoices.push(voice);
         if (slot) {
-          slot.state = "voice";
+          slot.state = slot.advanceMode === "switch" ? "active" : "voice";
           slot.voice = voice;
           slot.voices.add(voice);
           voice.programSlotId = slot.id;
+          if (slot.advanceMode === "switch") {
+            voice.switchGeneration = slot.switchGeneration;
+          }
           if (IsOverlappingAdvanceMode(slot.advanceMode)) {
             if (batch) {
               voice.programBatchId = batch.id;
@@ -380,7 +399,11 @@ class CjsAudioBackend {
             continue;
           }
           if (slot.continuation) {
-            this.#AdvanceSfxProgramSlot(playingID, record, slot, Number(this.#context.currentTime) || 0);
+            if (slot.advanceMode === "switch") {
+              slot.state = "active";
+            } else {
+              this.#AdvanceSfxProgramSlot(playingID, record, slot, Number(this.#context.currentTime) || 0);
+            }
           } else {
             slot.state = "ended";
           }
@@ -402,6 +425,19 @@ class CjsAudioBackend {
       this.#StartVoices(playingID, record, initialVoices);
     }).catch(() => {
       record.loading = false;
+      const dormantSwitch = record.sfxProgram && [...record.programSlots.values()].some(slot => slot.advanceMode === "switch" && slot.continuation && !slot.broken);
+      if (dormantSwitch && !record.stopped && this.#playing.get(playingID) === record) {
+        record.loaded = true;
+        for (const slot of record.programSlots.values()) {
+          if (slot.advanceMode === "switch" && slot.continuation && !slot.broken) {
+            slot.state = "active";
+          } else if (slot.state === "pending") {
+            slot.state = "ended";
+          }
+        }
+        this.#MaybeFinishSfxProgram(playingID, record);
+        return;
+      }
       this.#FinishSfxPlaying(playingID);
     });
     return playingID;
@@ -691,7 +727,11 @@ class CjsAudioBackend {
       values = new Map();
       this.#objectSwitchValues.set(gameObjID, values);
     }
+    const changed = values.get(group) !== state;
     values.set(group, state);
+    if (changed) {
+      this.#AdvanceContinuousSwitchSlots("switch", group, gameObjID);
+    }
     if (gameObjID === 3) {
       this.#musicEngine?.SetSwitch?.(group, state, gameObjID);
     }
@@ -727,8 +767,14 @@ class CjsAudioBackend {
 
   /** Global state group - feeds authored SFX and music tree arguments. */
   SetGlobalState(stateGroup, stateName) {
-    this.#globalStateValues.set(String(stateGroup), String(stateName));
+    const group = String(stateGroup);
+    const state = String(stateName);
+    const changed = this.#globalStateValues.get(group) !== state;
+    this.#globalStateValues.set(group, state);
     this.#RefreshSfxControls();
+    if (changed) {
+      this.#AdvanceContinuousSwitchSlots("state", group);
+    }
     this.#musicEngine?.SetState(stateGroup, stateName);
   }
 
@@ -1072,13 +1118,14 @@ class CjsAudioBackend {
             const selections = operation.selections?.filter(selection => selection.programSlotId === id) ?? [];
             const selectionMetadata = selections.map(selection => CreateProgramSelectionMetadata(selection, record.postContextTime));
             const leafIndex = selections.length ? Math.min(...selections.map(selection => Number(selection.leafIndex))) : 0;
-            const matchIds = Object.freeze([...new Set(selections.flatMap(selection => (selection.matchIds ?? []).map(String)))]);
+            const matchIds = Object.freeze([...new Set([...(continuation.matchIds ?? []).map(String), ...selections.flatMap(selection => (selection.matchIds ?? []).map(String))])]);
             const slot = {
               id,
               playingID,
               actionIndex: Number(operation.actionIndex),
               leafIndex,
               actionTime: selectionMetadata.length ? Math.min(...selectionMetadata.map(selection => selection.actionTime)) : record.postContextTime,
+              continuousMatchIds: Object.freeze((continuation.matchIds ?? []).map(String)),
               matchIds,
               selections: Object.freeze(selectionMetadata),
               cancelledSelectionKeys: new Set(),
@@ -1090,7 +1137,9 @@ class CjsAudioBackend {
               controller: new AbortController(),
               continuation: continuation.token,
               continuousNodeId: String(continuation.containerId ?? ""),
-              advanceMode: continuation.advance === "trigger-rate" ? "trigger-rate" : continuation.advance === "crossfade" ? "crossfade" : "completion",
+              advanceMode: continuation.advance === "trigger-rate" ? "trigger-rate" : continuation.advance === "crossfade" ? "crossfade" : continuation.advance === "switch" ? "switch" : "completion",
+              switchGroups: NormalizeContinuousSwitchGroups(continuation.switchGroups),
+              switchGeneration: 0,
               crossfadeMode: continuation.crossfadeMode ?? null,
               transitionDelayMs: Math.max(0, Number(continuation.delayMs) || 0),
               generation: 0,
@@ -1433,6 +1482,155 @@ class CjsAudioBackend {
     }
   }
 
+  /** Advances every live Continuous Switch session reading one game sync. */
+  #AdvanceContinuousSwitchSlots(scope, group, gameObjID = null) {
+    const normalizedScope = scope === "state" ? "state" : "switch";
+    const normalizedGroup = String(group);
+    for (const [playingID, record] of this.#playing) {
+      if (!record.sfxProgram || record.stopped || record.planningProgram || normalizedScope === "switch" && record.gameObjID !== gameObjID) {
+        continue;
+      }
+      for (const slot of record.programSlots?.values?.() ?? []) {
+        if (slot.advanceMode !== "switch" || !slot.continuation || slot.broken || !slot.switchGroups.some(value => value.scope === normalizedScope && value.group === normalizedGroup)) {
+          continue;
+        }
+        this.#AdvanceContinuousSwitchSlot(playingID, record, slot);
+      }
+    }
+  }
+
+  /** Re-routes one live Continuous Switch without discarding fade tails. */
+  #AdvanceContinuousSwitchSlot(playingID, record, slot) {
+    if (!slot.continuation || slot.broken || record.stopped || this.#playing.get(playingID) !== record) {
+      return;
+    }
+    let program;
+    try {
+      program = this.#continueSfxProgram?.(slot.continuation, record.sfxControls) ?? [];
+    } catch {
+      slot.continuation = null;
+      slot.broken = true;
+      slot.exhausted = true;
+      slot.state = [...slot.voices].some(voice => !voice.ended) ? "voice" : "ended";
+      this.#MaybeFinishSfxProgram(playingID, record);
+      return;
+    }
+    if (!Array.isArray(program)) {
+      slot.continuation = null;
+      slot.broken = true;
+      slot.exhausted = true;
+      slot.state = [...slot.voices].some(voice => !voice.ended) ? "voice" : "ended";
+      this.#MaybeFinishSfxProgram(playingID, record);
+      return;
+    }
+    if (!program.length) {
+      return;
+    }
+    const play = program.find(operation => operation.kind === "play");
+    const continuation = play?.continuations?.find(value => value.programSlotId === slot.id);
+    if (!play || continuation?.advance !== "switch" || !continuation.token) {
+      slot.continuation = null;
+      slot.broken = true;
+      slot.exhausted = true;
+      slot.state = [...slot.voices].some(voice => !voice.ended) ? "voice" : "ended";
+      this.#MaybeFinishSfxProgram(playingID, record);
+      return;
+    }
+    const now = Number(this.#context.currentTime) || 0;
+    const previousSwitchGeneration = slot.switchGeneration;
+    const generation = ++slot.generation;
+    const switchGeneration = ++slot.switchGeneration;
+    const changedContainerId = String(continuation.changedContainerId ?? slot.continuousNodeId);
+    const selections = (play.selections ?? []).filter(selection => selection.programSlotId === slot.id);
+    const selectionMetadata = selections.map(selection => CreateProgramSelectionMetadata(selection, now));
+    AbortProgramSlot(slot);
+    slot.controller = new AbortController();
+    slot.continuation = continuation.token;
+    slot.exhausted = false;
+    slot.switchGroups = NormalizeContinuousSwitchGroups(continuation.switchGroups);
+    slot.selections = Object.freeze(selectionMetadata);
+    slot.cancelledSelectionKeys = new Set();
+    slot.selectionControllers = CreateProgramSelectionControllers(selectionMetadata);
+    slot.leafIndex = selectionMetadata.length ? Math.min(...selectionMetadata.map(selection => selection.leafIndex)) : 0;
+    slot.actionTime = selectionMetadata.length ? Math.min(...selectionMetadata.map(selection => selection.actionTime)) : now;
+    slot.matchIds = Object.freeze([...new Set([...(continuation.matchIds ?? []).map(String), ...selectionMetadata.flatMap(selection => selection.matchIds)])]);
+    slot.continuousMatchIds = Object.freeze((continuation.matchIds ?? []).map(String));
+    slot.state = "active";
+    for (const voice of slot.voices) {
+      if (voice.ended || voice.switchGeneration !== previousSwitchGeneration) {
+        continue;
+      }
+      const transition = voice.switchPath?.find(value => value.containerId === changedContainerId);
+      this.#StopSfxProgramVoice(voice, now, transition?.fadeOutMs ?? 0, LINEAR_FADE_CURVE, now);
+    }
+    this.#DisposeEndedSlotVoices(record, slot);
+    if (!selectionMetadata.length) {
+      slot.voice = [...slot.voices].find(voice => !voice.ended && voice.switchGeneration === switchGeneration) ?? null;
+      return;
+    }
+    Promise.resolve().then(() => this.#loadBuffer(record.eventID, record.eventName, record.sfxControls, program)).then(result => {
+      this.#ProcessScheduledSfxActions();
+      if (generation !== slot.generation || slot.broken || record.stopped || this.#playing.get(playingID) !== record) {
+        return;
+      }
+      const descriptors = NormalizeVoiceDescriptors(result ?? {
+        voices: []
+      }, () => !!this.#isLoop(record.eventName)).filter(descriptor => descriptor.programSlotId === slot.id && !slot.cancelledSelectionKeys.has(ProgramSelectionKey(descriptor)));
+      const voices = descriptors.flatMap(descriptor => {
+        const selection = slot.selections.find(value => ProgramSelectionKey(value) === ProgramSelectionKey(descriptor));
+        if (!selection) {
+          return [];
+        }
+        const voice = this.#CreateVoice({
+          ...descriptor,
+          actionIndex: selection.actionIndex,
+          leafIndex: selection.leafIndex,
+          actionTime: selection.actionTime,
+          matchIds: selection.matchIds,
+          switchPath: selection.switchPath,
+          switchFadeInMs: selection.switchFadeInMs,
+          switchGeneration
+        }, record.emitterNodes, record.gameObjID);
+        voice.programSlotId = slot.id;
+        ApplySlotPauseDepth(voice, slot);
+        return [voice];
+      });
+      for (const voice of voices) {
+        slot.voices.add(voice);
+        record.voices.push(voice);
+      }
+      slot.voice = voices[0] ?? null;
+      slot.state = "active";
+      this.#DisposeEndedSlotVoices(record, slot);
+      if (voices.length) {
+        try {
+          this.#StartVoices(playingID, record, voices, now);
+        } catch {
+          for (const voice of voices) {
+            if (voice.source) {
+              voice.source.onended = null;
+              try {
+                voice.source.stop?.(Number(this.#context.currentTime) || 0);
+              } catch {
+                // already stopped
+              }
+            }
+            voice.ended = true;
+          }
+          slot.voice = null;
+          slot.state = "active";
+          this.#DisposeEndedSlotVoices(record, slot);
+        }
+      }
+    }).catch(() => {
+      if (generation === slot.generation && !slot.broken && this.#playing.get(playingID) === record) {
+        slot.voice = [...slot.voices].find(voice => !voice.ended && voice.switchGeneration === switchGeneration) ?? null;
+        slot.state = "active";
+        this.#DisposeEndedSlotVoices(record, slot);
+      }
+    });
+  }
+
   /** Applies one due Stop to eligible pending slots and live SFX voices. */
   #ApplySfxStop(stop, now) {
     const actionTime = Math.max(Number(stop.actionTime) || 0, Number(now) || 0);
@@ -1447,6 +1645,10 @@ class CjsAudioBackend {
         continue;
       }
       for (const slot of record.programSlots.values()) {
+        if (slot.advanceMode === "switch") {
+          this.#ApplyContinuousSwitchStop(playingID, record, slot, stop, actionTime);
+          continue;
+        }
         if (slot.state !== "pending" && slot.state !== "loading" && slot.state !== "voice") {
           if (!IsOverlappingAdvanceMode(slot.advanceMode) || slot.state === "ended" || slot.state === "cancelled") {
             continue;
@@ -1501,6 +1703,47 @@ class CjsAudioBackend {
         }
       }
       this.#MaybeFinishSfxProgram(playingID, record);
+    }
+  }
+
+  /** Applies an authored Stop to a live or dormant Continuous Switch. */
+  #ApplyContinuousSwitchStop(playingID, record, slot, stop, actionTime) {
+    if (slot.state === "ended" || slot.state === "cancelled" || CompareProgramOrder(slot, slot, stop) > 0) {
+      return;
+    }
+    const sessionMatchIds = new Set((slot.continuousMatchIds ?? [slot.continuousNodeId]).map(String));
+    const protectedMatchIds = new Set((slot.matchIds ?? slot.continuousMatchIds ?? []).map(String));
+    const sessionProtected = stop.exceptions.some(exception => protectedMatchIds.has(String(exception.targetId)));
+    const stopsWholeSlot = stop.mode === "element" ? sessionMatchIds.has(String(stop.targetId)) : stop.mode === "all" || stop.mode === "all-except" && !sessionProtected;
+    const matchingSelections = (slot.selections ?? []).filter(selection => CompareProgramOrder(selection, slot, stop) <= 0 && PlaybackControlMatchesValue(stop, selection));
+    const matchingVoices = [...slot.voices].filter(voice => !voice.ended && CompareProgramOrder(voice, slot, stop) <= 0 && PlaybackControlMatchesValue(stop, voice));
+    if (!stopsWholeSlot && !matchingSelections.length && !matchingVoices.length) {
+      return;
+    }
+    if (stopsWholeSlot) {
+      slot.continuation = null;
+      slot.broken = true;
+      slot.exhausted = true;
+      slot.generation++;
+      slot.switchGeneration++;
+      AbortProgramSlot(slot);
+    } else {
+      for (const selection of matchingSelections) {
+        const key = ProgramSelectionKey(selection);
+        slot.cancelledSelectionKeys.add(key);
+        slot.selectionControllers?.get(key)?.abort();
+      }
+    }
+    const voices = stopsWholeSlot ? [...slot.voices].filter(voice => !voice.ended) : matchingVoices;
+    for (const voice of voices) {
+      this.#StopSfxProgramVoice(voice, stop.actionTime, stop.transitionMs, stop.curve, actionTime);
+      if (voice.ended) {
+        this.#SetSfxProgramSlotEnded(playingID, record, voice);
+      }
+    }
+    if (stopsWholeSlot) {
+      slot.voice = [...slot.voices].find(voice => !voice.ended) ?? null;
+      slot.state = slot.voice ? "voice" : "ended";
     }
   }
 
@@ -1682,7 +1925,7 @@ class CjsAudioBackend {
   #CreateVoice(descriptor, emitterNodes, gameObjID) {
     const gain = this.#context.createGain();
     const fadeGain = descriptor.fadeInMs > 0 ? this.#context.createGain() : null;
-    const transitionGain = descriptor.crossfadeMode ? this.#context.createGain() : null;
+    const transitionGain = descriptor.crossfadeMode || descriptor.switchFadeInMs > 0 ? this.#context.createGain() : null;
     const stopGain = this.#context.createGain();
     const lowPassFilter = descriptor.getLowPass ? this.#context.createBiquadFilter?.() ?? null : null;
     const highPassFilter = descriptor.getHighPass ? this.#context.createBiquadFilter?.() ?? null : null;
@@ -1720,6 +1963,9 @@ class CjsAudioBackend {
     }
     gain.connect(transitionGain ?? stopGain);
     transitionGain?.connect(stopGain);
+    if (transitionGain && descriptor.switchFadeInMs > 0) {
+      SetAudioParam(transitionGain.gain, 0, this.#context);
+    }
     if (fadeGain) {
       SetAudioParam(fadeGain.gain, 0, this.#context);
       fadeGain.connect(gain);
@@ -1746,11 +1992,14 @@ class CjsAudioBackend {
       getHighPass: descriptor.getHighPass,
       delayMs: descriptor.delayMs,
       fadeInMs: descriptor.fadeInMs,
+      switchFadeInMs: descriptor.switchFadeInMs,
       fadeCurve: descriptor.fadeCurve,
       actionIndex: descriptor.actionIndex,
       leafIndex: descriptor.leafIndex,
       actionTime: descriptor.actionTime,
       matchIds: descriptor.matchIds,
+      switchPath: descriptor.switchPath ?? Object.freeze([]),
+      switchGeneration: Math.max(0, Number(descriptor.switchGeneration) || 0),
       programBatchId: descriptor.programBatchId,
       crossfadeMode: descriptor.crossfadeMode ?? null,
       gain,
@@ -1767,6 +2016,7 @@ class CjsAudioBackend {
       transitionFadeFrom: 1,
       transitionFadeTo: 1,
       transitionFadeMode: null,
+      switchFadeScheduled: false,
       source: null,
       sourceStarted: false,
       cancelledBeforeStart: false,
@@ -1915,6 +2165,10 @@ class CjsAudioBackend {
       voice.fadeScheduled = true;
       voice.fadeStartContextTime = startContextTime;
     }
+    if (!voice.switchFadeScheduled && voice.switchFadeInMs > 0 && voice.transitionGain) {
+      this.#ScheduleVoiceCrossfade(voice, 0, 1, startContextTime, voice.switchFadeInMs / 1000, "crossfade-amplitude");
+      voice.switchFadeScheduled = true;
+    }
     voice.scheduledEndContextTime = null;
     voice.repeatRemainingSeconds = null;
     voice.repeatAnchorContextTime = null;
@@ -1952,6 +2206,13 @@ class CjsAudioBackend {
     }
     const slot = record.programSlots?.get(voice.programSlotId);
     if (slot) {
+      if (slot.advanceMode === "switch") {
+        const active = [...slot.voices].filter(value => !value.ended);
+        slot.voice = active.find(value => value.switchGeneration === slot.switchGeneration) ?? active[0] ?? null;
+        slot.state = slot.continuation && !slot.broken && !record.stopped ? "active" : active.length ? "voice" : "ended";
+        this.#DisposeEndedSlotVoices(record, slot);
+        return;
+      }
       if (IsOverlappingAdvanceMode(slot.advanceMode)) {
         const batch = slot.batches?.get(String(voice.programBatchId ?? ""));
         if (batch && [...batch.voices].every(value => value.ended)) {
@@ -2870,8 +3131,33 @@ function CreateProgramSelectionMetadata(selection, baseContextTime) {
       programBatchId: String(selection.programBatchId)
     }),
     actionTime: Number(baseContextTime) + Math.max(0, Number(selection.delayMs) || 0) / 1000,
-    matchIds: Object.freeze((selection.matchIds ?? []).map(String))
+    matchIds: Object.freeze((selection.matchIds ?? []).map(String)),
+    switchPath: NormalizeSwitchPath(selection.switchPath),
+    switchFadeInMs: Math.max(0, Number(selection.switchFadeInMs) || 0)
   });
+}
+function NormalizeContinuousSwitchGroups(value) {
+  if (!Array.isArray(value)) {
+    return Object.freeze([]);
+  }
+  return Object.freeze(value.map(item => Object.freeze({
+    scope: item?.scope === "state" ? "state" : "switch",
+    group: String(item?.group ?? "")
+  })).filter(item => item.group));
+}
+function NormalizeSwitchPath(value) {
+  if (!Array.isArray(value)) {
+    return Object.freeze([]);
+  }
+  return Object.freeze(value.map(item => Object.freeze({
+    containerId: String(item.containerId),
+    scope: item.scope === "state" ? "state" : "switch",
+    group: String(item.group),
+    value: item.value === null ? null : String(item.value),
+    childId: String(item.childId),
+    fadeOutMs: Math.max(0, Number(item.fadeOutMs) || 0),
+    fadeInMs: Math.max(0, Number(item.fadeInMs) || 0)
+  })));
 }
 function CreateProgramSelectionControllers(selections) {
   return new Map(selections.map(selection => [ProgramSelectionKey(selection), new AbortController()]));
@@ -2948,6 +3234,7 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
     const playCount = Number(value.playCount ?? 1);
     const delayMs = Number(value.delayMs ?? 0);
     const fadeInMs = Number(value.fadeInMs ?? 0);
+    const switchFadeInMs = Number(value.switchFadeInMs ?? 0);
     const fadeCurve = Number(value.fadeCurve ?? LINEAR_FADE_CURVE);
     if (!Number.isSafeInteger(playCount) || playCount <= 0) {
       throw new TypeError(`Audio voice ${index} playCount must be a positive integer`);
@@ -2961,8 +3248,11 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
     if (!Number.isFinite(fadeInMs) || fadeInMs < 0) {
       throw new TypeError(`Audio voice ${index} fadeInMs must be non-negative`);
     }
-    if (!Number.isSafeInteger(fadeCurve) || fadeCurve < 0 || fadeCurve > 8) {
-      throw new TypeError(`Audio voice ${index} fadeCurve must be a Wwise curve value from 0 to 8`);
+    if (!Number.isFinite(switchFadeInMs) || switchFadeInMs < 0) {
+      throw new TypeError(`Audio voice ${index} switchFadeInMs must be non-negative`);
+    }
+    if (!Number.isSafeInteger(fadeCurve) || fadeCurve < 0 || fadeCurve > 9) {
+      throw new TypeError(`Audio voice ${index} fadeCurve must be a Wwise curve value from 0 to 9`);
     }
     if (value.programSlotId !== undefined && (typeof value.programSlotId !== "string" || value.programSlotId.length === 0)) {
       throw new TypeError(`Audio voice ${index} programSlotId must be a non-empty string`);
@@ -2990,6 +3280,7 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
       spatial: value.spatial === undefined ? true : Boolean(value.spatial),
       delayMs,
       fadeInMs,
+      switchFadeInMs,
       fadeCurve,
       actionIndex,
       leafIndex,

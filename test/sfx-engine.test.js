@@ -1457,6 +1457,195 @@ test("switch/state selection and parallel RTPC gains resolve without acquisition
     );
 });
 
+test("Continuous Switch sessions follow nested game-sync decisions", () =>
+{
+    const values = new Map([
+        [ "mode", "idle" ],
+        [ "detail", "low" ],
+    ]);
+    const controls = {
+        gameObjID: 7,
+        getSwitch: group => values.get(group),
+    };
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { engine: [ { nodeId: "1" } ] },
+            {
+                "1": {
+                    type: "switch",
+                    scope: "switch",
+                    group: "mode",
+                    cases: {
+                        idle: { nodeId: "2" },
+                        combat: { nodeId: "6" },
+                        mute: { nodeId: "5" },
+                    },
+                    default: { nodeId: "2" },
+                    continuous: {
+                        transitions: {
+                            "2": { fadeOutMs: 100, fadeInMs: 200 },
+                            "6": { fadeOutMs: 300, fadeInMs: 500 },
+                            "5": { fadeOutMs: 600, fadeInMs: 700 },
+                        },
+                    },
+                },
+                "2": {
+                    type: "sound",
+                    mediaId: "100",
+                    loop: true,
+                },
+                "3": {
+                    type: "switch",
+                    scope: "switch",
+                    group: "detail",
+                    cases: {
+                        low: { nodeId: "4" },
+                        high: { nodeId: "4" },
+                    },
+                    default: { nodeId: "4" },
+                    continuous: {
+                        transitions: {
+                            "4": { fadeOutMs: 250, fadeInMs: 400 },
+                        },
+                    },
+                },
+                "4": {
+                    type: "sound",
+                    mediaId: "200",
+                    loop: true,
+                },
+                "5": { type: "silence" },
+                "6": {
+                    type: "sequence",
+                    loop: true,
+                    children: [ { nodeId: "3" } ],
+                },
+            },
+        ),
+    });
+    const initial = engine.ResolveProgram("engine", controls);
+    const initialPlay = initial.find(operation =>
+        operation.kind === "play");
+    const token = initialPlay.continuations[0].token;
+
+    assert.equal(initialPlay.selections[0].mediaID, "100");
+    assert.equal(initialPlay.continuations[0].advance, "switch");
+    assert.deepEqual(initialPlay.continuations[0].switchGroups, [
+        { scope: "switch", group: "mode" },
+    ]);
+
+    values.set("mode", "combat");
+    const combat = engine.ContinueProgram(token, controls)[0];
+
+    assert.equal(combat.selections[0].mediaID, "200");
+    assert.equal(combat.selections[0].switchFadeInMs, 500);
+    assert.deepEqual(
+        combat.selections[0].switchPath.map(value =>
+            value.containerId),
+        [ "1", "3" ],
+        "a Step Sequence preserves the parent switch session",
+    );
+    assert.equal(combat.continuations[0].changedContainerId, "1");
+    assert.deepEqual(combat.continuations[0].switchGroups, [
+        { scope: "switch", group: "mode" },
+        { scope: "switch", group: "detail" },
+    ]);
+
+    values.set("detail", "high");
+    const sharedChildRestart = engine.ContinueProgram(token, controls)[0];
+
+    assert.equal(sharedChildRestart.selections[0].mediaID, "200");
+    assert.equal(sharedChildRestart.selections[0].switchFadeInMs, 400);
+    assert.equal(
+        sharedChildRestart.continuations[0].changedContainerId,
+        "3",
+    );
+    assert.deepEqual(engine.ContinueProgram(token, controls), []);
+
+    values.set("mode", "mute");
+    const silent = engine.ContinueProgram(token, controls)[0];
+
+    assert.deepEqual(silent.selections, []);
+    assert.equal(silent.continuations[0].doneAfterBatch, false);
+
+    values.set("mode", "idle");
+    assert.equal(
+        engine.ContinueProgram(token, controls)[0].selections[0].mediaID,
+        "100",
+    );
+});
+
+test("Continuous Switch keeps distinct fades for parallel assigned children", () =>
+{
+    const values = new Map([ [ "mode", "layered" ] ]);
+    const controls = {
+        gameObjID: 9,
+        getSwitch: group => values.get(group),
+    };
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { layered: [ { nodeId: "1" } ] },
+            {
+                "1": {
+                    type: "switch",
+                    scope: "switch",
+                    group: "mode",
+                    cases: {
+                        layered: { nodeId: "2" },
+                        single: { nodeId: "5" },
+                    },
+                    default: { nodeId: "5" },
+                    continuous: {
+                        transitions: {
+                            "3": { fadeOutMs: 100, fadeInMs: 200 },
+                            "4": { fadeOutMs: 300, fadeInMs: 400 },
+                            "5": { fadeOutMs: 500, fadeInMs: 600 },
+                        },
+                    },
+                },
+                "2": {
+                    type: "parallel",
+                    children: [ { nodeId: "3" }, { nodeId: "4" } ],
+                },
+                "3": { type: "sound", mediaId: "100" },
+                "4": { type: "sound", mediaId: "200" },
+                "5": { type: "sound", mediaId: "300" },
+            },
+        ),
+    });
+    const initial = engine.ResolveProgram("layered", controls)[0];
+    const token = initial.continuations[0].token;
+
+    assert.deepEqual(
+        initial.selections.map(selection => ({
+            mediaID: selection.mediaID,
+            childId: selection.switchPath[0].childId,
+            fadeOutMs: selection.switchPath[0].fadeOutMs,
+            fadeInMs: selection.switchPath[0].fadeInMs,
+        })),
+        [
+            {
+                mediaID: "100",
+                childId: "3",
+                fadeOutMs: 100,
+                fadeInMs: 200,
+            },
+            {
+                mediaID: "200",
+                childId: "4",
+                fadeOutMs: 300,
+                fadeInMs: 400,
+            },
+        ],
+    );
+
+    values.set("mode", "single");
+    const next = engine.ContinueProgram(token, controls)[0];
+
+    assert.equal(next.selections[0].mediaID, "300");
+    assert.equal(next.selections[0].switchFadeInMs, 600);
+});
+
 test("event setters update controls before resolving the same post", () =>
 {
     const switches = new Map();

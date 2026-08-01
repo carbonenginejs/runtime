@@ -226,6 +226,15 @@ export function validateSfxGraph(
                     `Audio library SFX switch ${id} default`,
                 );
             }
+            if (node.continuous !== undefined)
+            {
+                ValidateContinuousSwitch(
+                    node.continuous,
+                    nodes,
+                    `Audio library SFX switch ${id} continuous`,
+                    node,
+                );
+            }
             continue;
         }
 
@@ -507,6 +516,12 @@ function NormalizeNode(node)
         {
             result.default = NormalizeChild(node.default);
         }
+        if (node.continuous !== undefined)
+        {
+            result.continuous = NormalizeContinuousSwitch(
+                node.continuous,
+            );
+        }
         return result;
     }
 
@@ -568,6 +583,102 @@ function NormalizeContinuousContainer(value, type)
             value.resetPlaylistEachPlay !== false;
     }
     return result;
+}
+
+function NormalizeContinuousSwitch(value)
+{
+    return {
+        transitions: Object.fromEntries(
+            Object.keys(value.transitions).sort((left, right) =>
+                Number(left) - Number(right)).map(nodeID => [
+                String(Number(nodeID) >>> 0),
+                {
+                    fadeOutMs: Number(
+                        value.transitions[nodeID].fadeOutMs,
+                    ),
+                    fadeInMs: Number(
+                        value.transitions[nodeID].fadeInMs,
+                    ),
+                },
+            ]),
+        ),
+    };
+}
+
+function ValidateContinuousSwitch(value, nodes, label, node)
+{
+    const continuous = RequireRecord(value, label);
+    const transitions = RequireRecord(
+        continuous.transitions,
+        `${label} transitions`,
+    );
+    const reachable = ReachableNodeIDs(NodeChildren(node), nodes);
+
+    for (const [ rawID, rawTransition ] of Object.entries(transitions))
+    {
+        const id = NormalizePositiveID(
+            rawID,
+            `${label} transition ${rawID}`,
+        );
+
+        if (!nodes[id])
+        {
+            throw new TypeError(
+                `${label} transition references missing node ${id}`,
+            );
+        }
+        if (!reachable.has(id))
+        {
+            throw new TypeError(
+                `${label} transition references unreachable node ${id}`,
+            );
+        }
+        const transition = RequireRecord(
+            rawTransition,
+            `${label} transition ${id}`,
+        );
+
+        NormalizeNonNegativeInteger(
+            transition.fadeOutMs,
+            `${label} transition ${id} fadeOutMs`,
+        );
+        NormalizeNonNegativeInteger(
+            transition.fadeInMs,
+            `${label} transition ${id} fadeInMs`,
+        );
+    }
+}
+
+function ReachableNodeIDs(children, nodes)
+{
+    const reachable = new Set();
+    const pending = [ ...children ];
+
+    while (pending.length)
+    {
+        const child = pending.pop();
+        const id = String(Number(
+            IsRecord(child) ? child.nodeId : child,
+        ) >>> 0);
+
+        if (reachable.has(id))
+        {
+            continue;
+        }
+        reachable.add(id);
+
+        const nested = nodes[id];
+        if (!nested || nested.type === "sound" || nested.type === "silence")
+        {
+            continue;
+        }
+        const nestedChildren = NodeChildren(nested);
+        if (Array.isArray(nestedChildren))
+        {
+            pending.push(...nestedChildren);
+        }
+    }
+    return reachable;
 }
 
 function ValidateContinuousContainer(value, label, type)
@@ -1506,10 +1617,10 @@ function ValidateActionTiming(value, label)
     if (value.fadeCurve !== undefined
         && (!Number.isSafeInteger(Number(value.fadeCurve))
             || Number(value.fadeCurve) < 0
-            || Number(value.fadeCurve) > 8))
+            || Number(value.fadeCurve) > 9))
     {
         throw new TypeError(
-            `${label} fadeCurve must be a Wwise curve value from 0 to 8`,
+            `${label} fadeCurve must be a Wwise curve value from 0 to 9`,
         );
     }
 }
@@ -1968,7 +2079,9 @@ function ValidateContinuousNesting(nodes)
         const node = nodes[id];
 
         if (continuousParent !== null
-            && node.continuous !== undefined)
+            && node.continuous !== undefined
+            && (nodes[continuousParent]?.type !== "switch"
+                || node.type !== "switch"))
         {
             throw new TypeError(
                 `Audio library SFX Continuous container ${continuousParent}`
@@ -1976,9 +2089,9 @@ function ValidateContinuousNesting(nodes)
             );
         }
 
-        const parent = continuousParent ?? (
-            node.continuous === undefined ? null : id
-        );
+        const parent = node.continuous === undefined
+            ? continuousParent
+            : id;
 
         for (const child of NodeChildren(node))
         {

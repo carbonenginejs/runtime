@@ -419,16 +419,18 @@ test("music event projection follows typed targets across every bank", () =>
                     {
                         typeName: "event-action",
                         id: 12,
-                        actionType: 0x1903,
+                        actionType: 0x1901,
                         targetId: 0,
+                        action: { groupId: 55, valueId: 66 },
                         payload: setterPayload(55, 66),
                     },
                     {
                         typeName: "event-action",
                         id: 13,
-                        actionType: 0x1903,
+                        actionType: 0x1901,
                         targetId: 0,
-                        payload: setterPayload(77, 88),
+                        action: { groupId: 77, valueId: 88 },
+                        payload: new Uint8Array(),
                     },
                     {
                         typeName: "event",
@@ -488,6 +490,48 @@ test("music event projection follows typed targets across every bank", () =>
             ],
         },
     });
+});
+
+test("music setter typed fields must agree with retained raw payloads", () =>
+{
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createMusicEventProjection({
+            inspections: [
+                {
+                    source: "music.bnk",
+                    hirc: [
+                        {
+                            typeName: "event-action",
+                            id: 12,
+                            actionType: 0x1901,
+                            targetId: 0,
+                            action: { groupId: 55, valueId: 66 },
+                            payload: setterPayload(55, 67),
+                        },
+                        {
+                            typeName: "event",
+                            id: 102,
+                            actionIds: [ 12 ],
+                        },
+                    ],
+                },
+            ],
+            metadata: {
+                Events: {
+                    danger: { eventID: 102 },
+                },
+            },
+            nodes: {
+                "1000": {
+                    type: "music-switch-container",
+                    argumentGroups: [
+                        { groupId: 55, groupType: 0 },
+                    ],
+                },
+            },
+        }),
+        /typed fields disagree with payload/u,
+    );
 });
 
 test("typed runtime-resource SFX nodes lower into the portable builder graph", () =>
@@ -1029,6 +1073,7 @@ test("SFX lowering preserves exact NodeBase RTPC accumulation modes", () =>
                                 {
                                     controlId: 702,
                                     parameterId: 34,
+                                    accumulation: 2,
                                     scaling: 0,
                                     points: [
                                         [ 0, 0, 4 ],
@@ -2040,7 +2085,7 @@ test("non-continuous Step switches ignore dormant default Stop policies", () =>
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
-test("continuous and fading switches remain unsupported", () =>
+test("Continuous Switches preserve supported child transitions", () =>
 {
     const build = (payload) => CjsAudioLibraryBuilder.createSfxGraph({
         inspections: [
@@ -2055,6 +2100,16 @@ test("continuous and fading switches remain unsupported", () =>
                         pluginType: 1,
                         streamType: 0,
                         sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 2,
+                        id: 202,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9002,
                         inMemoryMediaSize: 64,
                         payload: new Uint8Array(),
                     },
@@ -2101,9 +2156,72 @@ test("continuous and fading switches remain unsupported", () =>
         },
         media: {
             "9001": { resPath: "res:/audio/9001.wem" },
+            "9002": { resPath: "res:/audio/9002.wem" },
         },
     });
 
+    const continuous = build(switchPayload({
+        continuousValidation: true,
+        children: [ 200 ],
+        assignments: [
+            { valueId: 501, childIds: [ 200 ] },
+        ],
+        parameters: [
+            {
+                childId: 200,
+                onSwitchMode: 1,
+                fadeOutMs: 250,
+                fadeInMs: 500,
+            },
+        ],
+    }));
+
+    assert.deepEqual(continuous.nodes["201"], {
+        type: "switch",
+        scope: "switch",
+        group: "impact_type",
+        cases: {
+            armor: { nodeId: "200" },
+        },
+        default: { nodeId: "200" },
+        continuous: {
+            transitions: {
+                "200": {
+                    fadeOutMs: 250,
+                    fadeInMs: 500,
+                },
+            },
+        },
+    });
+    assert.deepEqual(continuous.diagnostics.omittedEvents, []);
+
+    const parallel = build(switchPayload({
+        continuousValidation: true,
+        children: [ 200, 202 ],
+        assignments: [
+            { valueId: 501, childIds: [ 200, 202 ] },
+        ],
+        parameters: [
+            {
+                childId: 200,
+                onSwitchMode: 1,
+                fadeOutMs: 100,
+                fadeInMs: 200,
+            },
+            {
+                childId: 202,
+                onSwitchMode: 1,
+                fadeOutMs: 300,
+                fadeInMs: 400,
+            },
+        ],
+    }));
+
+    assert.deepEqual(parallel.nodes["201"].continuous.transitions, {
+        "200": { fadeOutMs: 100, fadeInMs: 200 },
+        "202": { fadeOutMs: 300, fadeInMs: 400 },
+    });
+    assert.deepEqual(parallel.diagnostics.omittedEvents, []);
     assert.equal(
         build(switchPayload({
             continuousValidation: true,
@@ -2112,10 +2230,10 @@ test("continuous and fading switches remain unsupported", () =>
                 { valueId: 501, childIds: [ 200 ] },
             ],
             parameters: [
-                { childId: 200, onSwitchMode: 1 },
+                { childId: 200, onSwitchMode: 0 },
             ],
         })).diagnostics.omittedEvents[0].reason,
-        "continuous switch 201",
+        "unsupported continuous switch 201",
     );
     assert.equal(
         build(switchPayload({
@@ -2428,14 +2546,14 @@ test("scheduled Play-Event setters fail closed until actions are ordered", () =>
                     {
                         type: 3,
                         id: 301,
-                        actionType: 0x1903,
+                        actionType: 0x1901,
                         targetId: 0,
                         payload: setterPayload(500, 501),
                     },
                     {
                         type: 3,
                         id: 302,
-                        actionType: 0x1903,
+                        actionType: 0x1901,
                         targetId: 0,
                         action: {
                             delayTimeMs: 10000,
@@ -2531,8 +2649,9 @@ test("SFX SetSwitch and SetState actions lower to named event setters", () =>
                     {
                         type: 3,
                         id: 300,
-                        actionType: 0x1903,
+                        actionType: 0x1901,
                         targetId: 0,
+                        action: { groupId: 500, valueId: 501 },
                         payload: setterPayload(500, 501),
                     },
                     {
@@ -2545,14 +2664,15 @@ test("SFX SetSwitch and SetState actions lower to named event setters", () =>
                     {
                         type: 3,
                         id: 302,
-                        actionType: 0x1203,
+                        actionType: 0x1204,
                         targetId: 0,
-                        payload: setterPayload(600, 601),
+                        action: { groupId: 600, valueId: 601 },
+                        payload: new Uint8Array(),
                     },
                     {
                         type: 3,
                         id: 303,
-                        actionType: 0x1903,
+                        actionType: 0x1901,
                         targetId: 0,
                         payload: setterPayload(500, 501),
                     },
@@ -2690,7 +2810,7 @@ test("complete construction installs a setter-only SFX graph", async () =>
                         {
                             type: 3,
                             id: 300,
-                            actionType: 0x1903,
+                            actionType: 0x1901,
                             targetId: 0,
                             payload: setterPayload(500, 501),
                         },
