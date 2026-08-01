@@ -185,6 +185,60 @@ async function CheckManifests(errors)
       errors.push(`package.json: dependency ${name} links outside the package`);
     }
   }
+
+  await CheckLocalDependencyLinkSafety(authoring, errors);
+}
+
+/**
+ * Ensures a local `file:` dependency cannot be installed as a junction.
+ *
+ * `.agents/rules.md` makes this a hard rule: npm must pack and install an
+ * ordinary directory copy, never a symlink or Windows junction into a sibling
+ * repository. Without `install-links=true` a recursive delete through
+ * `node_modules` reaches a live repo, which is how a package was destroyed on
+ * 2026-07-31.
+ *
+ * The check is on devDependencies too, and that is the point: published
+ * dependencies are already rejected outright above, so the only `file:` deps
+ * that survive are development ones - exactly the case that went unguarded.
+ *
+ * An `.npmrc` enforcing this is worthless untracked, since a fresh clone would
+ * not have it, so the file must exist in the working tree the lint runs over.
+ *
+ * @param {object} authoring Parsed authoring manifest.
+ * @param {string[]} errors Collected lint errors.
+ */
+async function CheckLocalDependencyLinkSafety(authoring, errors)
+{
+  const linked = [
+    ...Object.entries(authoring.dependencies ?? {}),
+    ...Object.entries(authoring.devDependencies ?? {})
+  ].filter(([ , version ]) => /^(?:file:|link:)/iu.test(String(version)));
+
+  if (!linked.length) return;
+
+  let npmrc = null;
+  try
+  {
+    npmrc = await fs.readFile(path.join(root, ".npmrc"), "utf8");
+  }
+  catch
+  {
+    errors.push(
+      `.npmrc is missing but ${linked.length} local dependency/dependencies use file: `
+      + `(${linked.map(([ name ]) => name).join(", ")}); it must set install-links=true `
+      + "so npm installs a copy rather than a junction into a sibling repository"
+    );
+    return;
+  }
+
+  if (!/^\s*install-links\s*=\s*true\s*$/mu.test(npmrc))
+  {
+    errors.push(
+      ".npmrc must set install-links=true while local file: dependencies exist "
+      + `(${linked.map(([ name ]) => name).join(", ")})`
+    );
+  }
 }
 
 const errors = [];
