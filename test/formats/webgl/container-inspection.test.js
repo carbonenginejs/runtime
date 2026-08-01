@@ -41,7 +41,7 @@ function containerBytes()
         source: "synthetic.sm_depth",
         allowFailures: true
     });
-    return Uint8Array.from(result.container.bytes);
+    return Uint8Array.from(result.bytes);
 }
 
 test("container inspection reports the offset table, its aliasing and the permutation axes", () =>

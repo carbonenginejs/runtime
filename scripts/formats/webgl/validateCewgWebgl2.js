@@ -3,7 +3,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { readGlslEffectContainer } from "../../../src/formats/webgl/core/readGlslEffectContainer.js";
-import { inspectGlslEffectContainer } from "../../../src/formats/webgl/core/inspectGlslEffectContainer.js";
 import {
   isCewgComputeFragmentContract,
   inspectGlslContainerIntegrity,
@@ -466,7 +465,6 @@ async function main() {
   // first: the reader refuses to construct on a malformed container at all,
   // which is what `inspectCewgCoreChunks` was approximating by counting tags.
   const decoded = readGlslEffectContainer(packageBytes, { source: packagePath });
-  const summary = inspectGlslEffectContainer(packageBytes, { source: packagePath });
 
   const programs = packagePrograms(decoded);
   const completeness = inspectCewgRasterCompleteness(decoded.stages, decoded.shaders);
@@ -477,7 +475,7 @@ async function main() {
   const report = {
     generatedAt: new Date().toISOString(),
     packagePath: path.relative(projectRoot, packagePath),
-    container: summary,
+    container: { recordCount: decoded.recordCount, uniqueBodyCount: decoded.bodyCount },
     webgl2Available: validation.webgl2Available,
     renderer: validation.renderer,
     capabilities: validation.capabilities,

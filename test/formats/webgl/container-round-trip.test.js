@@ -152,7 +152,7 @@ async function packageOf(filePath)
         allPermutations: true,
         allowFailures: true
     });
-    return { pkg, bytes: Uint8Array.from(pkg.container.bytes), source };
+    return { pkg, bytes: Uint8Array.from(pkg.bytes), source };
 }
 
 /**

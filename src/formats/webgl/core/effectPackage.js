@@ -9,12 +9,8 @@ import {
     EFFECT_PERMUTATION_GRAPH_FORMAT,
     EFFECT_PERMUTATION_GRAPH_VERSION
 } from "../../../format/effect/effectPermutationGraph.js";
-import {
-    buildCompleteEffectReflection,
-    EFFECT_REFLECTION_BLOB_CHUNK,
-    EFFECT_REFLECTION_CHUNK
-} from "../../../format/effect/effectReflectionPackage.js";
-import { buildPackage, emitGlslWithOptions } from "./helpers.js";
+import { buildCompleteEffectReflection } from "../../../format/effect/effectReflectionPackage.js";
+import { emitGlslWithOptions } from "./helpers.js";
 import { inspectGlslEffectContainer } from "./inspectGlslEffectContainer.js";
 import { recogniseDetailMapFamily } from "../../hlsl/core/detailMapFamily.js";
 import {
@@ -297,9 +293,15 @@ export function buildEffectPackage(input, options = {})
     }
 
     // The container is built first because `inspection` below describes it. The
-    // chunk package that follows is still what `bytes` carries, and still what
-    // every current consumer reads, but it is no longer what gets inspected —
-    // the inspection moved to the artifact that is going to survive.
+    // The container is the effect. `bytes` is its bytes, and there is no second
+    // artifact — the chunk package this function used to build alongside it is
+    // gone, along with the chunk assembly that produced it.
+    //
+    // `info`, `metadata`, `glsl`, `permutationGraph` and the reflection are
+    // still returned. They are the in-memory build result, which is richer than
+    // anything the wire carries: the reasons a translation failed live there and
+    // nowhere else. What changed is that they are no longer *also* serialised
+    // into tagged chunks beside the container.
     const backendBodySet = buildGlslBackendBodySet({
         bodies,
         stages,
@@ -314,42 +316,15 @@ export function buildEffectPackage(input, options = {})
         { compilerVersion: effectRes.m_compilerVersionBytes }
     );
 
-    const chunks = [
-        [ "INFO", info ],
-        [ "META", metadata ],
-        [ EFFECT_PERMUTATION_GRAPH_CHUNK, permutationGraph ],
-        ...(reflectionPackage
-            ? [
-                [ EFFECT_REFLECTION_CHUNK, reflectionPackage.reflection ],
-                [ EFFECT_REFLECTION_BLOB_CHUNK, reflectionPackage.blobBytes ]
-            ]
-            : []),
-        [ "GLSL", glsl ]
-    ];
-
-    if (values.includeSourceEffect)
-    {
-        chunks.push([ "TR2E", values.sourceBytes ]);
-    }
-
-    const bytes = buildPackage(chunks);
-
-    // The switchover, second half. `bytes` above is still the chunk package and
-    // remains what every current consumer reads; `container` is the same effect
-    // emitted as a Carbon v15 record file, the shape WebGPU already ships and the
-    // shape the engine seam will consume.
-    //
-    // Both are built from the same translation, deliberately, so the two can be
-    // diffed against each other on real effects before the chunk path is
-    // deleted. What remains before `bytes` can flip is the completeness rules;
-    // the inspection has already moved.
-    const inspection = inspectGlslEffectContainer(container.bytes, {
+    const bytes = container.bytes;
+    const inspection = inspectGlslEffectContainer(bytes, {
         source: values.source
     });
 
     return Object.freeze({
         bytes,
-        container: Object.freeze(container),
+        permutationCount: container.permutationCount,
+        bodyCount: container.bodyCount,
         backendBodySet,
         info: Object.freeze(info),
         metadata: Object.freeze(metadata),
@@ -410,7 +385,6 @@ function normalizeOptions(input, options)
             : new Date(options.generatedAt).toISOString(),
         allPermutations: options.allPermutations !== false,
         allowFailures: options.allowFailures === true,
-        includeSourceEffect: options.includeSourceEffect === true,
         selection,
         // How to lower a recognised local-light family. Defaults to leaving it
         // alone, so a caller that does not ask gets the shader's own resources

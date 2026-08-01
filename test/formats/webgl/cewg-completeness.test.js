@@ -390,7 +390,7 @@ test("the rules run on a real container decoded from bytes", () =>
         { source: "synthetic.sm_hi", allowFailures: true }
     );
 
-    const decoded = readGlslEffectContainer(built.container.bytes, { source: "synthetic.sm_hi" });
+    const decoded = readGlslEffectContainer(built.bytes, { source: "synthetic.sm_hi" });
 
     assert.ok(decoded.stages.length > 0, "the decoder must produce stage records");
     assert.equal(decoded.stages.length, decoded.shaders.length,

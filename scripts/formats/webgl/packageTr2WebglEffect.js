@@ -31,6 +31,17 @@ const defaultOutput = path.join(projectRoot, "artifacts", "quadv5.webgl.cewg");
 const REMOVED_NATIVE_FLAGS = Object.freeze([ "--native", "--tool", "--lang", "--flags", "--work-dir" ]);
 
 /**
+ * Flags that only meant something while the output was a chunk package.
+ *
+ * `--include-source-effect` appended the original Tr2 bytes as a `TR2E` chunk.
+ * A Carbon container has no chunk to append them to, and inventing a place to
+ * hide them would make our files stop being stock Carbon files. Reported rather
+ * than silently accepted: a flag that runs and does nothing is worse than one
+ * that stops you.
+ */
+const REMOVED_CHUNK_FLAGS = Object.freeze([ "--include-source-effect" ]);
+
+/**
  * Parses command-line arguments.
  *
  * @param {string[]} argv Command-line arguments.
@@ -47,7 +58,7 @@ function parseArgs(argv) {
     technique: null,
     pass: null,
     stage: null,
-    includeSourceEffect: false,
+    removedChunkFlags: [],
     overwrite: false,
     allowFailures: false,
     allPermutations: true,
@@ -79,7 +90,7 @@ function parseArgs(argv) {
       args.pass = Number(value);
     }
     else if (arg === "--stage" && argv[i + 1]) args.stage = argv[++i].toLowerCase();
-    else if (arg === "--include-source-effect") args.includeSourceEffect = true;
+    else if (REMOVED_CHUNK_FLAGS.includes(arg)) args.removedChunkFlags.push(arg);
     else if (arg === "--overwrite" || arg === "--force") args.overwrite = true;
     else if (arg === "--allow-failures") args.allowFailures = true;
     else if (arg === "--selected-only") args.allPermutations = false;
@@ -116,7 +127,6 @@ function printUsage() {
     "  --technique <name>        Restrict to one technique.",
     "  --pass <index>            Restrict to one pass index.",
     "  --stage <name>            Restrict to one stage name.",
-    "  --include-source-effect   Add the original Tr2 effect bytes as TR2E.",
     "  --overwrite, --force      Explicitly replace an existing CEWG output file.",
     "  --allow-failures          Write partial packages even when translation fails.",
     "  --selected-only           Package only the default/selected permutation.",
@@ -170,6 +180,15 @@ async function main() {
     );
   }
 
+  if (args.removedChunkFlags.length)
+  {
+    throw new Error(
+      `${args.removedChunkFlags.join(", ")} appended extra chunks to the old chunk `
+      + "package. The output is a Carbon container, which has no chunk to append to. "
+      + "Drop them; the source effect is not carried in the output."
+    );
+  }
+
   if (sameFilePath(inputPath, outputPath)) {
     throw new Error("CEWG output must not overwrite the source effect file");
   }
@@ -197,7 +216,6 @@ async function main() {
     technique: args.technique,
     pass: args.pass,
     stage: args.stage,
-    includeSourceEffect: args.includeSourceEffect,
     allPermutations: args.allPermutations,
     allowFailures: args.allowFailures,
     localLights: args.localLights

@@ -1,5 +1,5 @@
 import { CjsCarbonEffectReader } from "../../../format/carbonEffect/CjsCarbonEffectReader.js";
-import { HlslShaderStageNames } from "../../hlsl/core/tr2/HlslRenderContextEnum.js";
+import { hlslShaderStageName } from "../../hlsl/core/tr2/HlslRenderContextEnum.js";
 
 /**
  * Cheap inspection of a WebGL effect container.
@@ -25,23 +25,6 @@ import { HlslShaderStageNames } from "../../hlsl/core/tr2/HlslRenderContextEnum.
  * row would make an inspection call cost more than the packaging that produced
  * the file.
  */
-
-/**
- * Names a Carbon stage type.
- *
- * `HlslShaderStageNames` is the enum, so it is used rather than a local table.
- * A hand-written `{0:"vertex",1:"pixel",5:"compute"}` was in the tree and is
- * wrong: Carbon's compute is 2 and 5 is domain, so it renamed domain stages to
- * "compute" and left real compute stages unnamed. Nothing caught it because no
- * effect in the corpus has either stage.
- *
- * @param {number} type Carbon stage type code.
- * @returns {string} Stage name.
- */
-function stageName(type)
-{
-    return HlslShaderStageNames[type] ?? `type${type}`;
-}
 
 /**
  * Counts programs and backend blocks across the container's distinct bodies.
@@ -82,7 +65,7 @@ function inspectBodies(reader)
                 if (pass.backendBlock?.size) backendBlockCount += 1;
                 for (const stage of pass.stages)
                 {
-                    stageNames.add(stageName(stage.type));
+                    stageNames.add(hlslShaderStageName(stage.type));
                     if (stage.shaderData?.size) programCount += 1;
                     else emptyProgramCount += 1;
                 }
