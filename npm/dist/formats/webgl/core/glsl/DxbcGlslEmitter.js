@@ -45,6 +45,8 @@ const NON_COMPARISON_TEXTURE_OPCODES = new Set(["sample", "sample_l", "sample_b"
  * Filtered-sample coordinate mask per resource dimension
  * (HLSLcc `TranslateTexCoord`, toGLSLInstruction.cpp:985-1031).
  */
+/** GLSL symbol for the merged detail-map array. */
+const DETAIL_MAP_ARRAY_SYMBOL = "sDetailMapArray";
 const COORD_MASK_BY_DIMENSION = {
   2: "x",
   3: "xy",
@@ -102,6 +104,12 @@ class DxbcGlslEmitter {
       stubResourceRegisters: [],
       lightConstantBuffer: null,
       lightPackedTexture: null,
+      // Resource (t#) registers to merge into one `sampler2DArray`, in
+      // layer order. Empty by default; the packager fills it from the
+      // backend-neutral detail-map recogniser. Merging three 2D textures
+      // into one array binding frees two texture units on shaders that
+      // sit exactly on WebGL2's 16-unit limit.
+      detailMapArrayRegisters: [],
       ...options.profile
     };
   }
@@ -207,6 +215,10 @@ class DxbcGlslEmitter {
       // declarations/bindings are dropped and every read of them lowers
       // to `uintBitsToFloat(0u)` (structured) / `vec4(0.0)` (sampled).
       stubbedResources: new Set(this.profile.stubResourceRegisters || []),
+      // Resource register -> array layer for the merged detail maps, and
+      // whether the one shared array declaration has been emitted yet.
+      detailMapArrayLayers: new Map((this.profile.detailMapArrayRegisters || []).map((register, layer) => [register, layer])),
+      detailMapArrayDeclared: false,
       inputMasks: new Map(),
       outputMasks: new Map(),
       bindings: [],
@@ -747,6 +759,10 @@ class DxbcGlslEmitter {
               source: state.sourceName,
               dimensionName: declaration.resourceDimensionName
             });
+          }
+          if (state.detailMapArrayLayers.has(register)) {
+            this._declareDetailMapArray(state, register, declaration, comparisonSamplers);
+            break;
           }
           const name = this.profile.samplerName(register, state.stageName);
           state.resourceDimensions.set(register, declaration.resourceDimension);
@@ -1690,6 +1706,82 @@ class DxbcGlslEmitter {
   }
 
   /**
+   * Declares the merged detail-map array, once, on the first member seen.
+   *
+   * Each member keeps its own entry in `resourceNames` pointing at the shared
+   * array, so every existing reference site resolves to it without knowing a
+   * merge happened. The declared dimension deliberately stays 2D: the layer is
+   * appended to the coordinate at each sample site rather than read out of the
+   * shader's own operand, which has no third component to give.
+   *
+   * @param {object} state Mutable emission state.
+   * @param {number} register Resource register being declared.
+   * @param {object} declaration Decoded resource declaration.
+   * @param {Set<number>|null} comparisonSamplers Comparison samplers, when any.
+   * @private
+   */
+  _declareDetailMapArray(state, register, declaration, comparisonSamplers) {
+    // A comparison-sampled or non-2D detail map is not the family the
+    // recogniser promised, so refuse rather than emit a wrong declaration.
+    if (comparisonSamplers || declaration.resourceDimension !== 3) {
+      throw new WebglReadError("Detail-map array merging requires plain 2D textures without comparison sampling", {
+        source: state.sourceName,
+        register,
+        dimensionName: declaration.resourceDimensionName
+      });
+    }
+    state.resourceDimensions.set(register, declaration.resourceDimension);
+    state.resourceNames.set(register, DETAIL_MAP_ARRAY_SYMBOL);
+    if (state.detailMapArrayDeclared) return;
+    state.detailMapArrayDeclared = true;
+    state.declarationLines.push(`uniform mediump sampler2DArray ${DETAIL_MAP_ARRAY_SYMBOL};`);
+    state.bindings.push({
+      kind: "resource",
+      registerIndex: register,
+      name: DETAIL_MAP_ARRAY_SYMBOL,
+      samplerType: "sampler2DArray",
+      dimensionName: "texture2darray",
+      arrayLayerCount: state.detailMapArrayLayers.size,
+      mergedFrom: [...state.detailMapArrayLayers.keys()]
+    });
+  }
+
+  /**
+   * Returns the array layer a texture operand maps to, when it was merged.
+   *
+   * @param {object} state Mutable emission state.
+   * @param {object} texOperand Texture resource operand.
+   * @returns {number|null} Layer index, or null when the register was not merged.
+   * @private
+   */
+  _detailMapArrayLayer(state, texOperand) {
+    const layer = state.detailMapArrayLayers.get(texOperand.registerIndex);
+    return layer === undefined ? null : layer;
+  }
+
+  /**
+   * Refuses an operation that cannot be redirected at an array layer.
+   *
+   * Recognising the detail family proves the resources are mergeable; it does
+   * not prove every *use* is. A texel fetch or a size query against a merged
+   * register would silently mean something different once the register became
+   * one layer of an array, so those fail the build instead.
+   *
+   * @param {object} state Mutable emission state.
+   * @param {object} instruction Decoded DXBC instruction.
+   * @param {object} texOperand Texture resource operand.
+   * @private
+   */
+  _rejectDetailMapArrayUse(state, instruction, texOperand) {
+    if (!state.detailMapArrayLayers.has(texOperand.registerIndex)) return;
+    throw new WebglReadError(`Detail map merged into an array is used by ${instruction.opcodeName}, ` + "which this emitter cannot redirect at an array layer", {
+      source: state.sourceName,
+      register: texOperand.registerIndex,
+      opcodeName: instruction.opcodeName
+    });
+  }
+
+  /**
    * Resolves and validates the declared dimension of a texture operand.
    *
    * @param {object} state Mutable emission state.
@@ -1765,7 +1857,11 @@ class DxbcGlslEmitter {
     }
     const dimension = this._resourceDimension(state, instruction, texOperand);
     const coordMask = COORD_MASK_BY_DIMENSION[dimension];
-    const coord = this._vecArg(state, coordOperand, coordMask);
+    const detailLayer = this._detailMapArrayLayer(state, texOperand);
+    const baseCoord = this._vecArg(state, coordOperand, coordMask);
+    // A merged detail map keeps its 2D coordinate and gains the layer as a
+    // literal third component; the register it came from is the layer.
+    const coord = detailLayer === null ? baseCoord : `vec3(${baseCoord}, ${detailLayer}.0)`;
     const texName = state.formatter.registerReference(texOperand);
     const returnSwizzle = [...mask].map(component => texOperand.swizzle ? texOperand.swizzle["xyzw".indexOf(component)] : component).join("");
     if (comparisonRefOperandIndex !== null) {
@@ -1832,6 +1928,7 @@ class DxbcGlslEmitter {
     } = this._destMask(state, instruction);
     const coordOperand = instruction.operands[1];
     const texOperand = instruction.operands[2];
+    this._rejectDetailMapArrayUse(state, instruction, texOperand);
     const dimension = this._resourceDimension(state, instruction, texOperand);
     const texName = state.formatter.registerReference(texOperand);
     const returnSwizzle = [...mask].map(component => texOperand.swizzle ? texOperand.swizzle["xyzw".indexOf(component)] : component).join("");
@@ -2535,6 +2632,7 @@ DxbcGlslEmitter.prototype._resinfo = function _resinfo(state, instruction) {
     as: "int"
   });
   const texOperand = instruction.operands[2];
+  this._rejectDetailMapArrayUse(state, instruction, texOperand);
   const dimension = this._resourceDimension(state, instruction, texOperand);
   const axisCount = dimension === 5 || dimension === 8 ? 3 : 2;
   const returnType = instruction.resinfoReturnTypeName || "float";
@@ -2604,8 +2702,14 @@ DxbcGlslEmitter.prototype._gather4 = function _gather4(state, instruction) {
       offset: instruction.offset
     });
   }
-  const helper = this.helpers.require(dimension === 8 ? "hlslcc_textureGather4ArrayEmulated" : "hlslcc_textureGather4Emulated");
-  const coord = this._vecArg(state, coordOperand, dimension === 8 ? "xyz" : "xy");
+  // A merged detail map is declared 2D but sampled through an array, so the
+  // array helper and the layered coordinate are selected by the merge rather
+  // than by the declared dimension.
+  const detailLayer = this._detailMapArrayLayer(state, texOperand);
+  const asArray = dimension === 8 || detailLayer !== null;
+  const helper = this.helpers.require(asArray ? "hlslcc_textureGather4ArrayEmulated" : "hlslcc_textureGather4Emulated");
+  const baseCoord = this._vecArg(state, coordOperand, dimension === 8 ? "xyz" : "xy");
+  const coord = detailLayer === null ? baseCoord : `vec3(${baseCoord}, ${detailLayer}.0)`;
   const texName = state.formatter.registerReference(texOperand);
   const channelLetter = this._gather4Channel(samplerOperand);
   const channelIndex = "xyzw".indexOf(channelLetter);

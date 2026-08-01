@@ -232,8 +232,8 @@ function inspectWithValues(input, values) {
 function buildPackage(chunks) {
   return CewgPackageBuilder.build(chunks);
 }
-const EMIT_GLSL_OPTION_KEYS = new Set(["constantBufferStyle", "pixelConstantBufferRemap", "samplerName", "vertexStructuredCapacity", "dataTextureWidth", "stubResourceRegisters", "lightConstantBuffer", "lightPackedTexture", "pairVaryings", "source"]);
-const EMIT_GLSL_PROFILE_KEYS = new Set(["constantBufferStyle", "pixelConstantBufferRemap", "samplerName", "vertexStructuredCapacity", "dataTextureWidth", "stubResourceRegisters", "lightConstantBuffer", "lightPackedTexture"]);
+const EMIT_GLSL_OPTION_KEYS = new Set(["constantBufferStyle", "pixelConstantBufferRemap", "samplerName", "vertexStructuredCapacity", "dataTextureWidth", "stubResourceRegisters", "detailMapArrayRegisters", "lightConstantBuffer", "lightPackedTexture", "pairVaryings", "source"]);
+const EMIT_GLSL_PROFILE_KEYS = new Set(["constantBufferStyle", "pixelConstantBufferRemap", "samplerName", "vertexStructuredCapacity", "dataTextureWidth", "stubResourceRegisters", "detailMapArrayRegisters", "lightConstantBuffer", "lightPackedTexture"]);
 
 /**
  * Translates one DXBC stage into GLSL ES 3.00 source, sharing one core path

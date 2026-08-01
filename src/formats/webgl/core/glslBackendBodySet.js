@@ -1,3 +1,5 @@
+import { detailMapTransformFor } from "../../hlsl/core/detailMapFamily.js";
+
 /**
  * Reshapes translated GLSL into the backend body set the Carbon container
  * writer consumes.
@@ -52,7 +54,8 @@ function unitSignature(unit)
     return JSON.stringify({
         passKey: unit.passKey,
         shaders: unit.shaders,
-        block: unit.block
+        block: unit.block,
+        resourceTransforms: unit.resourceTransforms
     });
 }
 
@@ -161,7 +164,10 @@ export function buildGlslBackendBodySet(input)
         for (const stage of stagesByBody.get(body.key) ?? [])
         {
             const key = passKeyFor(stage.techniqueName, stage.passIndex);
-            if (!passes.has(key)) passes.set(key, { passKey: key, shaders: [], block: {} });
+            if (!passes.has(key))
+            {
+                passes.set(key, { passKey: key, shaders: [], block: {}, transforms: [] });
+            }
 
             const shader = shadersByKey.get(stage.shaderKey);
             // A stage the translator could not lower carries no program. The
@@ -171,6 +177,16 @@ export function buildGlslBackendBodySet(input)
             if (!shader?.source) continue;
 
             const entry = passes.get(key);
+
+            // The merge is a property of the pass, not of one stage: the block's
+            // transform section says how to build the array the GLSL samples.
+            // Built here rather than at translation time because the transform's
+            // identity includes the pass key, which the translator does not know.
+            if (shader.detailMapArray && !entry.transforms.length)
+            {
+                entry.transforms.push(detailMapTransformFor(shader.detailMapArray, key));
+            }
+
             entry.shaders.push({
                 key: `${key}.${stage.stageName}`,
                 stageName: stage.stageName,
@@ -193,7 +209,8 @@ export function buildGlslBackendBodySet(input)
             const unit = {
                 passKey: pass.passKey,
                 shaders: pass.shaders,
-                block: Object.keys(pass.block).length ? pass.block : null
+                block: Object.keys(pass.block).length ? pass.block : null,
+                resourceTransforms: pass.transforms
             };
             const signature = unitSignature(unit);
             let unitKey = unitKeyBySignature.get(signature);

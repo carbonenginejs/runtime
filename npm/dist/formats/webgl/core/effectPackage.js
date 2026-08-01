@@ -8,6 +8,7 @@ import { HlslEffectBindingManifest } from '../../hlsl/core/tr2/shader/HlslEffect
 import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_PERMUTATION_GRAPH_FORMAT, EFFECT_PERMUTATION_GRAPH_CHUNK } from '../../../format/effect/effectPermutationGraph.js';
 import { buildCompleteEffectReflection, EFFECT_REFLECTION_CHUNK, EFFECT_REFLECTION_BLOB_CHUNK } from '../../../format/effect/effectReflectionPackage.js';
 import { buildPackage, inspectWithValues, emitGlslWithOptions } from './helpers.js';
+import { recogniseDetailMapFamily } from '../../hlsl/core/detailMapFamily.js';
 import { buildGlslBackendBodySet } from './glslBackendBodySet.js';
 import { buildGlslEffectContainer } from './buildGlslEffectContainer.js';
 import { sha256Utf8, sha256Bytes } from '../../../format/effect/sha256.js';
@@ -106,6 +107,7 @@ function buildEffectPackage(input, options = {}) {
         shaderSize: stage.bytecode.shaderSize,
         stringTableOffset: stage.bytecode.stringTableOffset,
         bytes: stage.bytecode.bytes,
+        detailMapArray: stage.detailMapArray,
         contracts: [{
           stageKey,
           techniqueName: stage.techniqueName,
@@ -453,7 +455,11 @@ function collectStages(effectDescription, selection) {
           resources: mapToJson(stageInput.resources),
           samplers: mapToJson(stageInput.samplers),
           uavs: mapToJson(stageInput.uavs),
-          constants: cloneJson(stageInput.constants ?? [])
+          constants: cloneJson(stageInput.constants ?? []),
+          // Recognised from reflection here, applied by the emitter.
+          // The recogniser is shared with WebGPU so both backends
+          // merge exactly the same registers.
+          detailMapArray: recogniseDetailMapFamily(mapToJson(stageInput.resources))
         });
       }
       if (!selection.stage && declaredStageCount === 0) {
@@ -474,6 +480,9 @@ function translateStages(shaderMap, stageMap, values) {
         source: `${values.source}#${record.firstStageKey}`,
         ...(pairVaryings?.length ? {
           pairVaryings
+        } : {}),
+        ...(record.detailMapArray ? {
+          detailMapArrayRegisters: record.detailMapArray.registers
         } : {})
       });
       const stageInterface = normalizeBitangentStageInterface(result, record);

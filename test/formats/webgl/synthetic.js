@@ -761,3 +761,60 @@ export function buildConstantBufferVertexDxbc(register = 4, sizeInVec4 = 27)
 {
     return buildContainer([ { fourCC: "SHEX", payload: buildConstantBufferVertexShex(register, sizeInVec4) } ]);
 }
+
+/**
+ * Builds a pixel shader declaring and sampling three 2D textures, standing in
+ * for `Detail1Map`/`Detail2Map`/`Detail3Map` at consecutive registers.
+ *
+ * Used to prove the detail-map array merge: without it the emitter declares
+ * three `sampler2D` uniforms, and with it one `sampler2DArray` sampled at three
+ * literal layers.
+ *
+ * @param {number[]} [registers=[3,4,5]] SRV (t#) register indexes, in layer order.
+ * @returns {Uint8Array} Complete synthetic pixel-shader DXBC container.
+ */
+export function buildDetailMapPixelDxbc(registers = [ 3, 4, 5 ])
+{
+    const DCL_RESOURCE = 88;
+    const DCL_SAMPLER = 90;
+    const DCL_TEMPS = 104;
+    const RET = 62;
+    const SAMPLE = 69;
+    const TEXTURE_2D = 3;
+
+    const tempDestination = 2 | (0 << 2) | (0xF << 4) | (0 << 12) | (1 << 20);
+    const tempSwizzleXyzw = 2 | (1 << 2) | (0xE4 << 4) | (0 << 12) | (1 << 20);
+    const resourceSwizzleXyzw = 2 | (1 << 2) | (0xE4 << 4) | (7 << 12) | (1 << 20);
+    const samplerSwizzleXyzw = 2 | (1 << 2) | (0xE4 << 4) | (6 << 12) | (1 << 20);
+
+    const declarations = [];
+    for (const register of registers)
+    {
+        declarations.push(
+            opcodeToken(DCL_RESOURCE, 4) | (TEXTURE_2D << 11), resourceSwizzleXyzw, register, 0x5555
+        );
+    }
+
+    const samples = [];
+    for (const register of registers)
+    {
+        samples.push(
+            opcodeToken(SAMPLE, 9),
+            tempDestination, 0,
+            tempSwizzleXyzw, 0,
+            resourceSwizzleXyzw, register,
+            samplerSwizzleXyzw, 0
+        );
+    }
+
+    const body = [
+        opcodeToken(DCL_TEMPS, 2), 1,
+        ...declarations,
+        opcodeToken(DCL_SAMPLER, 3), samplerSwizzleXyzw, 0,
+        ...samples,
+        opcodeToken(RET, 1)
+    ];
+
+    const tokens = new Uint32Array([ versionToken(0, 5, 0), body.length + 2, ...body ]);
+    return buildContainer([ { fourCC: "SHEX", payload: new Uint8Array(tokens.buffer.slice(0)) } ]);
+}

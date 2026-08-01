@@ -15,6 +15,7 @@ import {
     EFFECT_REFLECTION_CHUNK
 } from "../../../format/effect/effectReflectionPackage.js";
 import { buildPackage, emitGlslWithOptions, inspectWithValues } from "./helpers.js";
+import { recogniseDetailMapFamily } from "../../hlsl/core/detailMapFamily.js";
 import { buildGlslBackendBodySet } from "./glslBackendBodySet.js";
 import { buildGlslEffectContainer } from "./buildGlslEffectContainer.js";
 import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
@@ -138,6 +139,7 @@ export function buildEffectPackage(input, options = {})
                 shaderSize: stage.bytecode.shaderSize,
                 stringTableOffset: stage.bytecode.stringTableOffset,
                 bytes: stage.bytecode.bytes,
+                detailMapArray: stage.detailMapArray,
                 contracts: [ {
                     stageKey,
                     techniqueName: stage.techniqueName,
@@ -608,7 +610,11 @@ function collectStages(effectDescription, selection)
                     resources: mapToJson(stageInput.resources),
                     samplers: mapToJson(stageInput.samplers),
                     uavs: mapToJson(stageInput.uavs),
-                    constants: cloneJson(stageInput.constants ?? [])
+                    constants: cloneJson(stageInput.constants ?? []),
+                    // Recognised from reflection here, applied by the emitter.
+                    // The recogniser is shared with WebGPU so both backends
+                    // merge exactly the same registers.
+                    detailMapArray: recogniseDetailMapFamily(mapToJson(stageInput.resources))
                 });
             }
 
@@ -631,7 +637,10 @@ function translateStages(shaderMap, stageMap, values)
             const result = emitGlslWithOptions(record.bytes, {
                 ...values.emitterOptions,
                 source: `${values.source}#${record.firstStageKey}`,
-                ...(pairVaryings?.length ? { pairVaryings } : {})
+                ...(pairVaryings?.length ? { pairVaryings } : {}),
+                ...(record.detailMapArray
+                    ? { detailMapArrayRegisters: record.detailMapArray.registers }
+                    : {})
             });
             const stageInterface = normalizeBitangentStageInterface(
                 result,
