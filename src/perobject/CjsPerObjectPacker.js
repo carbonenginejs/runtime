@@ -59,8 +59,8 @@ export class CjsPerObjectPacker
     }
 
     /**
-     * The `RawDataStore` packer contract. Returns float offsets relative to one
-     * instance slot, or null when the struct is not covered by the ABI.
+     * Describes the canonical Carbon ABI. Returns float offsets relative to one
+     * instance slot, or null when the struct is not covered by this tool.
      *
      * `definition` is optional. When present it is checked field-for-field
      * against the ABI and a mismatch throws rather than resolving.

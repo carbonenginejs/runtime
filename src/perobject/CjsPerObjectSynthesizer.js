@@ -12,8 +12,9 @@
 //     so they take Carbon's documented neutral unless the caller passes one, and
 //     the result reports which ones fell back.
 //
-// Emitted values are LOGICAL and untransposed. `CjsPerObjectPacker.Pack` applies
-// Carbon's `= Transpose(m)` staging fill. Do not pre-transpose.
+// Emitted matrix values are already in Carbon's GPU-form transposed storage.
+// The result therefore reports `matrices: "raw"`; pass that mode straight to
+// `CjsPerObjectPacker.Pack` and do not transpose the matrices again.
 //
 // Carbon math is row-vector and runtime-utils (gl-matrix) is column-vector, so
 // every composition here swaps operands relative to the C++.
