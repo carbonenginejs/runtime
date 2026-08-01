@@ -26,16 +26,77 @@ WebGL package retains its separate `CEWG` magic and chunk layout.
 | `src/format/carbonEffect/CjsCarbonEffectReader.js` | container reader and structural checks |
 | `src/format/carbonEffect/CjsCarbonEffectWriter.js` | container writer, offset arithmetic and alias dedupe |
 
-## Why v15 only
+## Versioning: how Carbon does it, and what this reader does instead
 
-The reader and writer accept and emit version 15 and nothing else.
+### Carbon validates the version, then threads it through parsing
 
-Carbon's own reader accepts versions 2 through 15, but its v13/v14 branches mark
-the field-order boundaries as uncertain. Version 15 is the version with an
-authoritative writer to check against, and the entire audited shipped corpus at
-build 3444265 is v15 — 3222 files across `effect.dx11` and `effect.dx12`, plus
-the same 537 shaders again under `effect.metal`. Nothing older appears in that
-audited corpus.
+Carbon reads the version dword once, in `Tr2EffectRes`, and rejects anything
+outside 2..15 (`Tr2EffectRes.cpp:209`). Inside that range it never branches to
+accept or refuse again — the version becomes a *parsing input*. It is first used
+by the container reader itself, then **passed as a parameter** into the effect
+description's read call (`Tr2EffectRes.cpp:128`), alongside the buffer, its
+size, and the string table.
+
+From there it is threaded through every record reader in
+`Tr2EffectDescription.cpp` — `ReadConstant`, `ReadResource`,
+`ReadPipelineInputs`, `ReadRegisters`, `ReadInput`, and the pass/technique loop
+— which branch on it at 22 conditional sites using 16 distinct comparisons:
+
+| Threshold | What it decides |
+| --- | --- |
+| `> 8` | Whether a stage carries a register signature **at all** |
+| `< 14` | Where pipeline inputs are read, and whether registers are read beside them |
+| `< 11` | How a constant's type byte is decoded — older files remap a legacy enum, so the byte count is unchanged but its meaning is not |
+| `>= 13` | Whether a resource carries `arrayElements` at all; below 13 it is absent and defaults to 1 |
+| `< 5`, `< 4`, `>= 3`, `>= 4` | Stage-input presence and ordering |
+| `> 6`, `> 9`, `> 10`, `> 12`, `>= 8` | Per-record field presence |
+| `> 13`, `>= 14` | Library and pipeline-input placement |
+
+The consequence worth internalising: **the version determines the byte layout at
+nearly every level of the reflection graph**, not just the header. A v8 file and
+a v15 file are not the same records with a different preamble.
+
+Note where the version does *not* reach: `Tr2Shader` itself has no version field
+and no version-dependent branch. Container/header parsing and description
+parsing between them absorb every version difference before the graph reaches
+`Tr2Shader` — the container reader has its own branches (`Tr2EffectRes.cpp`
+handles `< 5` for the legacy header size, `>= 15` for the compiler version and
+source hash, and `> 5` for the permutation type), and the description reader
+handles the rest. What emerges carries no version, so consumers above that
+boundary are version-free. A port that preserves the same separation stays
+consistent with Carbon.
+
+### What this reader does: constant-folded to 15
+
+`readEffectDescription` takes no version parameter. This reader is
+constant-folded to version 15 and rejects everything else outright.
+
+That is a deliberate narrowing, and it is the missing piece if an older version
+is ever needed. Supporting v8 does **not** mean writing a second reader; it
+means restoring the parameter Carbon always had and implementing the branches
+above. The writer is unaffected — reading an old version does not imply emitting
+one, and this package emits v15 only.
+
+Rejecting is the correct failure mode rather than a limitation to route around.
+Applying v15 rules to an older layout can misalign fields — the comparisons
+above change which fields are present and how their bytes are interpreted — and
+must not be attempted. How such a read would fail in practice is not documented
+here, because no legacy container has been examined to establish it.
+
+The reader rejects with the version it read, and does not classify it further.
+A leading dword of 2..14 is a *recognized legacy version number*, not evidence
+that the bytes are an effect container: arbitrary data can begin with a small
+integer, and the version dword alone carries no magic or checksum to confirm it.
+Anything that reaches this rejection needs identifying by other means before it
+is treated as a porting question rather than a wrong file.
+
+### Why 15 is the version that got implemented
+
+Version 15 is the one with an authoritative writer to check against, and the
+entire audited shipped corpus at build 3444265 is v15 — 3222 files across
+`effect.dx11` and `effect.dx12`, plus the same 537 shaders again under
+`effect.metal`. Nothing older appears in that audited corpus. Carbon's own
+v13/v14 branches additionally mark their field-order boundaries as uncertain.
 
 The v15 body is byte-identical to v14. Version 15 differs from 14 only by the 36
 extra header bytes: the compiler version and the source hash.
