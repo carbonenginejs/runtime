@@ -1,16 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+// The real module, not a copy. A `test/formats/webgl/support/` duplicate of this
+// file used to stand in for it, which meant these tests passed regardless of
+// what the packager actually did.
 import {
-    DETAIL3_STUB_RESOURCE_NAMES,
     LIGHT_STUB_RESOURCE_NAMES,
-    resolveLightConstantBufferProfile,
-    resolveLightPackedTextureProfile,
     resolveStubResourceRegisters,
     resolveStubLightRegisters,
     stripResourcesFromManifest,
     stripLightResourcesFromManifest
-} from "./support/stubLightResources.js";
+} from "../../../scripts/formats/webgl/stubLightResources.js";
 
 test("LIGHT_STUB_RESOURCE_NAMES is exactly the three tiled-lighting resources", () =>
 {
@@ -18,12 +18,6 @@ test("LIGHT_STUB_RESOURCE_NAMES is exactly the three tiled-lighting resources", 
         [ ...LIGHT_STUB_RESOURCE_NAMES ].sort(),
         [ "LightBuffer", "LightIndexBuffer", "LightProfileArray" ]
     );
-});
-
-test("DETAIL3_STUB_RESOURCE_NAMES is reversible and separate from light stubs", () =>
-{
-    assert.deepEqual([ ...DETAIL3_STUB_RESOURCE_NAMES ], [ "Detail3Map" ]);
-    assert.equal(LIGHT_STUB_RESOURCE_NAMES.has("Detail3Map"), false);
 });
 
 test("resolveStubLightRegisters maps light resource names to their registers", () =>
@@ -74,79 +68,10 @@ test("resolveStubResourceRegisters maps arbitrary named resources to registers",
         { name: "LightBuffer", register: 14 },
         { name: "LightProfileArray", register: 15 }
     ] } } ] };
-    const dropNames = new Set([ ...DETAIL3_STUB_RESOURCE_NAMES, ...LIGHT_STUB_RESOURCE_NAMES ]);
+    const dropNames = new Set([ "Detail3Map", ...LIGHT_STUB_RESOURCE_NAMES ]);
 
-    assert.deepEqual(resolveStubResourceRegisters(record, DETAIL3_STUB_RESOURCE_NAMES), [ 12 ]);
+    assert.deepEqual(resolveStubResourceRegisters(record, new Set([ "Detail3Map" ])), [ 12 ]);
     assert.deepEqual(resolveStubResourceRegisters(record, dropNames), [ 12, 13, 14, 15 ]);
-});
-
-test("resolveLightConstantBufferProfile maps named tiled-light resources to cb6 by default", () =>
-{
-    const record = { contracts: [ { contract: { resources: [
-        { name: "AlbedoMap", register: 6 },
-        { name: "LightIndexBuffer", register: 11 },
-        { name: "LightBuffer", register: 12 },
-        { name: "LightProfileArray", register: 13 }
-    ] } } ] };
-
-    assert.deepEqual(resolveLightConstantBufferProfile(record), {
-        indexRegister: 11,
-        dataRegister: 12,
-        profileRegister: 13,
-        registerIndex: 6,
-        name: "cb6",
-        capacity: 40
-    });
-});
-
-test("resolveLightConstantBufferProfile requires both structured light buffers", () =>
-{
-    assert.equal(resolveLightConstantBufferProfile({ contracts: [ { contract: { resources: [
-        { name: "LightBuffer", register: 12 }
-    ] } } ] }), null);
-    assert.equal(resolveLightConstantBufferProfile({}), null);
-});
-
-test("resolveLightConstantBufferProfile accepts cb slot and capacity overrides", () =>
-{
-    const record = { contracts: [ { contract: { resources: [
-        { name: "LightIndexBuffer", registerIndex: 14 },
-        { name: "LightBuffer", registerIndex: 15 }
-    ] } } ] };
-    assert.deepEqual(resolveLightConstantBufferProfile(record, { registerIndex: 8, capacity: 12 }), {
-        indexRegister: 14,
-        dataRegister: 15,
-        profileRegister: null,
-        registerIndex: 8,
-        name: "cb8",
-        capacity: 12
-    });
-});
-
-test("resolveLightPackedTextureProfile maps named tiled-light resources to one texture profile", () =>
-{
-    const record = { contracts: [ { contract: { resources: [
-        { name: "LightIndexBuffer", registerIndex: 13 },
-        { name: "LightBuffer", registerIndex: 14 },
-        { name: "LightProfileArray", registerIndex: 15 }
-    ] } } ] };
-
-    assert.deepEqual(resolveLightPackedTextureProfile(record), {
-        indexRegister: 13,
-        dataRegister: 14,
-        profileRegister: 15,
-        registerIndex: 13,
-        name: "cewgLocalLightTexture",
-        dataTexelBase: 131072
-    });
-});
-
-test("resolveLightPackedTextureProfile requires both structured light buffers", () =>
-{
-    assert.equal(resolveLightPackedTextureProfile({ contracts: [ { contract: { resources: [
-        { name: "LightBuffer", register: 12 }
-    ] } } ] }), null);
-    assert.equal(resolveLightPackedTextureProfile({}), null);
 });
 
 test("stripResourcesFromManifest removes Detail3Map only when requested", () =>
@@ -158,7 +83,7 @@ test("stripResourcesFromManifest removes Detail3Map only when requested", () =>
         { kind: "sampler", registerIndex: 12, carbon: { name: "Detail3MapSampler" } }
     ] } ] };
 
-    const out = stripResourcesFromManifest(manifest, DETAIL3_STUB_RESOURCE_NAMES);
+    const out = stripResourcesFromManifest(manifest, new Set([ "Detail3Map" ]));
     const names = out.stages[0].bindings.map((b) => b.metadataName || b.carbon?.name);
 
     assert.deepEqual(names, [ "Detail2Map", "LightIndexBuffer", "Detail3MapSampler" ]);

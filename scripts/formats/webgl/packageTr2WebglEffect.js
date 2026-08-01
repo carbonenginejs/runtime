@@ -25,11 +25,7 @@ import {
   isCewgDiagnosticIntegrityError
 } from "./cewgCompleteness.js";
 import {
-  DETAIL3_STUB_RESOURCE_NAMES,
   LIGHT_STUB_RESOURCE_NAMES,
-  resolveLightConstantBufferProfile,
-  resolveLightPackedTextureProfile,
-  resolveStubResourceRegisters,
   resolveStubLightRegisters,
   stripResourcesFromManifest
 } from "./stubLightResources.js";
@@ -74,9 +70,10 @@ function parseArgs(argv) {
     allPermutations: true,
     native: false,
     stubLightResources: false,
-    lightConstantBuffer: false,
-    packedLightTexture: false,
-    dropDetail3Map: false,
+    // How the shared packager lowers a recognised local-light family. The two
+    // lowering flags below set this and no longer force the legacy path; the
+    // library owns the recognition and the profile constants.
+    localLights: "none",
     debugPackedLightLoop: false,
     debugPackedLightAccepted: false,
     debugPackedLightRadius: false,
@@ -114,9 +111,8 @@ function parseArgs(argv) {
     else if (arg === "--selected-only") args.allPermutations = false;
     else if (arg === "--all-permutations") args.allPermutations = true;
     else if (arg === "--stub-light-resources") args.stubLightResources = true;
-    else if (arg === "--light-constant-buffer") args.lightConstantBuffer = true;
-    else if (arg === "--packed-light-texture") args.packedLightTexture = true;
-    else if (arg === "--drop-detail3-map") args.dropDetail3Map = true;
+    else if (arg === "--light-constant-buffer") args.localLights = "constant-buffer";
+    else if (arg === "--packed-light-texture") args.localLights = "packed-texture";
     else if (arg === "--debug-packed-light-loop") args.debugPackedLightLoop = true;
     else if (arg === "--debug-packed-light-accepted") args.debugPackedLightAccepted = true;
     else if (arg === "--debug-packed-light-radius") args.debugPackedLightRadius = true;
@@ -137,8 +133,7 @@ function parseArgs(argv) {
     }
   }
 
-  const lightModes = [ args.stubLightResources, args.lightConstantBuffer, args.packedLightTexture ].filter(Boolean).length;
-  if (lightModes > 1)
+  if (args.stubLightResources && args.localLights !== "none")
   {
     throw new Error("--stub-light-resources, --light-constant-buffer, and --packed-light-texture are mutually exclusive");
   }
@@ -177,14 +172,13 @@ function printUsage() {
     "                            reads to zero, so fragment stages stay under",
     "                            MAX_TEXTURE_IMAGE_UNITS. Lighting is unsupported on the",
     "                            CEWG WebGL2 path; this frees the texture units they held.",
-    "  --light-constant-buffer   Lower tiled local-light resources to cb6 instead of",
-    "                            sampler-backed data textures. This keeps local lights",
-    "                            additive while freeing the three light sampler units.",
-    "  --packed-light-texture    Lower tiled local-light resources to one packed",
-    "                            RGBA32UI texture. Pair with --drop-detail3-map on",
-    "                            unpacked Quad V5 High-tier .sm_depth shaders to stay under 16 samplers.",
-    "  --drop-detail3-map        Drop Detail3Map and lower its reads to zero. This",
-    "                            frees one sampler unit on unpacked quad v5 shaders.",
+    "  --light-constant-buffer   Lower local-light resources to a constant buffer.",
+    "                            Frees all three light texture units, but caps the",
+    "                            light count; known to fail on busy scenes.",
+    "  --packed-light-texture    Lower local-light resources to one packed RGBA32UI",
+    "                            texture. Frees two of the three units and is the",
+    "                            route that works. Detail maps merge automatically,",
+    "                            so no extra flag is needed to fit .sm_depth shaders.",
     "  --debug-packed-light-loop Paint fragment output magenta when the packed",
     "                            local-light linked-list loop is entered.",
     "  --debug-packed-light-accepted",
@@ -557,7 +551,8 @@ async function main() {
       stage: args.stage,
       includeSourceEffect: args.includeSourceEffect,
       allPermutations: args.allPermutations,
-      allowFailures: args.allowFailures
+      allowFailures: args.allowFailures,
+      localLights: args.localLights
     });
 
     await mkdir(path.dirname(outputPath), { recursive: true });
@@ -621,13 +616,9 @@ async function main() {
     const stages = stageCollection.stages;
     let manifestJson = manifest.toJSON();
     const droppedManifestResources = new Set();
-    if (args.stubLightResources || args.lightConstantBuffer || args.packedLightTexture)
+    if (args.stubLightResources)
     {
       for (const name of LIGHT_STUB_RESOURCE_NAMES) droppedManifestResources.add(name);
-    }
-    if (args.dropDetail3Map)
-    {
-      for (const name of DETAIL3_STUB_RESOURCE_NAMES) droppedManifestResources.add(name);
     }
     if (droppedManifestResources.size) manifestJson = stripResourcesFromManifest(manifestJson, droppedManifestResources);
     const body = {
@@ -892,13 +883,13 @@ async function main() {
 
 function requiresLegacyDiagnosticPath(args, useNative)
 {
+  // The two local-light lowerings and the Detail3Map drop used to force this
+  // path. They no longer do: the shared packager recognises the light family and
+  // owns the lowering, and the detail-map array merge supersedes the drop.
   return useNative
     || args.language !== "es300"
     || args.flags !== null
     || args.stubLightResources
-    || args.lightConstantBuffer
-    || args.packedLightTexture
-    || args.dropDetail3Map
     || args.debugPackedLightLoop
     || args.debugPackedLightAccepted
     || args.debugPackedLightRadius
@@ -954,23 +945,13 @@ async function translateWithJsEmitter(shaderMap, stageMap, args, inputPath) {
       return;
     }
     try {
-      const stubResourceRegisters = new Set(args.stubLightResources ? resolveStubLightRegisters(record) : []);
-      if (args.dropDetail3Map)
-      {
-        for (const register of resolveStubResourceRegisters(record, DETAIL3_STUB_RESOURCE_NAMES))
-        {
-          stubResourceRegisters.add(register);
-        }
-      }
-      const stubResourceRegisterList = [ ...stubResourceRegisters ].sort((a, b) => a - b);
-      const lightConstantBuffer = args.lightConstantBuffer ? resolveLightConstantBufferProfile(record) : null;
-      const lightPackedTexture = args.packedLightTexture ? resolveLightPackedTextureProfile(record) : null;
+      const stubResourceRegisterList = args.stubLightResources
+        ? resolveStubLightRegisters(record)
+        : [];
       const result = CjsWebglFormat.emitGlsl(record.bytes, {
         source: record.key,
         pairVaryings: pairVaryings && pairVaryings.length ? pairVaryings : undefined,
-        ...(stubResourceRegisterList.length ? { stubResourceRegisters: stubResourceRegisterList } : {}),
-        ...(lightConstantBuffer ? { lightConstantBuffer } : {}),
-        ...(lightPackedTexture ? { lightPackedTexture } : {})
+        ...(stubResourceRegisterList.length ? { stubResourceRegisters: stubResourceRegisterList } : {})
       });
       record.emit = result;
       record.source = applyPackedLightDebugPaint(

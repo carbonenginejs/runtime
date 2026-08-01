@@ -20,13 +20,11 @@
  */
 export const LIGHT_STUB_RESOURCE_NAMES = new Set([ "LightBuffer", "LightIndexBuffer", "LightProfileArray" ]);
 
-/**
- * Optional material resource dropped to free one sampler unit on packed local
- * light builds. Kept separate from the light set so the removal is reversible
- * with a packager flag.
- * @type {Set<string>}
- */
-export const DETAIL3_STUB_RESOURCE_NAMES = new Set([ "Detail3Map" ]);
+// `DETAIL3_STUB_RESOURCE_NAMES` and `--drop-detail3-map` were removed. Dropping
+// Detail3Map freed one sampler unit and lost a texture, and it only helped
+// shaders carrying three detail maps — heat+detail carries two, so it stayed one
+// over. Merging the family into one array texture frees more and loses nothing;
+// see docs/contracts/detail-map-array.md.
 
 /**
  * Resolves the `t#` register indices of named resources from a shader record's
@@ -68,81 +66,10 @@ export function resolveStubLightRegisters(record)
   return resolveStubResourceRegisters(record, LIGHT_STUB_RESOURCE_NAMES);
 }
 
-/**
- * Resolves the tiled-lighting resource registers by semantic name for the
- * constant-buffer local-light lowering. Returns null unless both structured
- * buffers are present; the profile sampler is optional because some shaders do
- * not sample it for the selected permutation.
- *
- * @param {object} record Shader record carrying per-technique `contracts`.
- * @param {object} [options]
- * @param {number} [options.registerIndex=6] Constant-buffer slot to emit.
- * @param {number} [options.capacity=40] Maximum local lights in the cb payload.
- * @returns {object|null} Emitter `lightConstantBuffer` profile, or null.
- */
-export function resolveLightConstantBufferProfile(record, options = {})
-{
-  const byName = new Map();
-  for (const entry of record?.contracts || [])
-  {
-    for (const resource of entry.contract?.resources || [])
-    {
-      const register = resource?.register ?? resource?.registerIndex;
-      if (resource?.name && Number.isInteger(register) && !byName.has(resource.name))
-      {
-        byName.set(resource.name, register);
-      }
-    }
-  }
-
-  if (!byName.has("LightIndexBuffer") || !byName.has("LightBuffer")) return null;
-  const registerIndex = Number.isInteger(options.registerIndex) ? options.registerIndex : 6;
-  return {
-    indexRegister: byName.get("LightIndexBuffer"),
-    dataRegister: byName.get("LightBuffer"),
-    profileRegister: byName.has("LightProfileArray") ? byName.get("LightProfileArray") : null,
-    registerIndex,
-    name: `cb${registerIndex}`,
-    capacity: Number.isInteger(options.capacity) ? options.capacity : 40
-  };
-}
-
-/**
- * Resolves the tiled-lighting resource registers by semantic name for the
- * packed local-light texture lowering. Returns null unless both structured
- * buffers are present; the profile sampler is optional and lowers to neutral
- * attenuation when present.
- *
- * @param {object} record Shader record carrying per-technique `contracts`.
- * @param {object} [options]
- * @param {number} [options.dataTexelBase=131072] Fixed texel offset where packed Buffer B begins.
- * @returns {object|null} Emitter `lightPackedTexture` profile, or null.
- */
-export function resolveLightPackedTextureProfile(record, options = {})
-{
-  const byName = new Map();
-  for (const entry of record?.contracts || [])
-  {
-    for (const resource of entry.contract?.resources || [])
-    {
-      const register = resource?.register ?? resource?.registerIndex;
-      if (resource?.name && Number.isInteger(register) && !byName.has(resource.name))
-      {
-        byName.set(resource.name, register);
-      }
-    }
-  }
-
-  if (!byName.has("LightIndexBuffer") || !byName.has("LightBuffer")) return null;
-  return {
-    indexRegister: byName.get("LightIndexBuffer"),
-    dataRegister: byName.get("LightBuffer"),
-    profileRegister: byName.has("LightProfileArray") ? byName.get("LightProfileArray") : null,
-    registerIndex: byName.get("LightIndexBuffer"),
-    name: "cewgLocalLightTexture",
-    dataTexelBase: Number.isInteger(options.dataTexelBase) ? options.dataTexelBase : 131072
-  };
-}
+// The two light-lowering profile resolvers moved into the library, where
+// `buildEffectPackage`'s `localLights` option owns recognition and the profile
+// constants. Keeping a second copy here is what let the CLI and the library
+// drift in the first place. See formats/hlsl/core/localLightFamily.js.
 
 /**
  * Drops the tiled-lighting `resource` bindings from a manifest JSON so the CEWG
