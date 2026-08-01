@@ -77,10 +77,23 @@ test("version 15 CEWG preserves every permutation's portable reflection", () =>
         allowFailures: true
     });
 
+    // The inspection describes the container, not the chunk package. Four
+    // permutations over two distinct bodies is exactly the row-aliasing the
+    // container exists to do, so it is what the summary has to show: a tag list
+    // could not have said this, and the counts here are the ones a reader of a
+    // finished file would need to trust it.
+    assert.equal(result.inspection.isContainer, true);
+    assert.equal(result.inspection.version, 15);
+    assert.equal(result.inspection.recordCount, 4);
+    assert.equal(result.inspection.permutationProduct, 4);
+    assert.equal(result.inspection.dense, true);
+    assert.equal(result.inspection.uniqueBodyCount, 2);
+    assert.equal(result.inspection.aliasedRowCount, 2);
     assert.deepEqual(
-        result.inspection.chunks.map(({ tag }) => tag),
-        [ "INFO", "META", "PGRF", "RFLX", "RBLB", "GLSL" ]
+        result.inspection.permutationAxes.map(({ name, options }) => [ name, options ]),
+        [ [ "QUALITY", [ "LOW", "HIGH" ] ], [ "SKINNED", [ "OFF", "ON" ] ] ]
     );
+    assert.ok(!("chunks" in result.inspection), "container inspection must not report chunks");
     assert.equal(result.info.formatVersion, 3);
     assert.equal(result.info.sourceBodyCoverage, "all-unique");
     assert.equal(result.info.backendBodyCoverage, "all");

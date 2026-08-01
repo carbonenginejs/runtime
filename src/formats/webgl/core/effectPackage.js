@@ -14,7 +14,8 @@ import {
     EFFECT_REFLECTION_BLOB_CHUNK,
     EFFECT_REFLECTION_CHUNK
 } from "../../../format/effect/effectReflectionPackage.js";
-import { buildPackage, emitGlslWithOptions, inspectWithValues } from "./helpers.js";
+import { buildPackage, emitGlslWithOptions } from "./helpers.js";
+import { inspectGlslEffectContainer } from "./inspectGlslEffectContainer.js";
 import { recogniseDetailMapFamily } from "../../hlsl/core/detailMapFamily.js";
 import {
     recogniseLocalLightFamily,
@@ -295,6 +296,24 @@ export function buildEffectPackage(input, options = {})
         );
     }
 
+    // The container is built first because `inspection` below describes it. The
+    // chunk package that follows is still what `bytes` carries, and still what
+    // every current consumer reads, but it is no longer what gets inspected —
+    // the inspection moved to the artifact that is going to survive.
+    const backendBodySet = buildGlslBackendBodySet({
+        bodies,
+        stages,
+        shaders: translatedShaders,
+        variants,
+        permutationGraph
+    });
+    const container = buildGlslEffectContainer(
+        effectRes,
+        permutationGraph,
+        backendBodySet,
+        { compilerVersion: effectRes.m_compilerVersionBytes }
+    );
+
     const chunks = [
         [ "INFO", info ],
         [ "META", metadata ],
@@ -314,34 +333,19 @@ export function buildEffectPackage(input, options = {})
     }
 
     const bytes = buildPackage(chunks);
-    const inspection = inspectWithValues(bytes, {
-        emit: "json",
-        source: values.source
-    });
 
-    // The switchover, first half. `bytes` above is still the chunk package and
-    // remains what every current consumer reads; the container below is the same
-    // effect emitted as a Carbon v15 record file, the shape WebGPU already ships
-    // and the shape the engine seam will consume.
+    // The switchover, second half. `bytes` above is still the chunk package and
+    // remains what every current consumer reads; `container` is the same effect
+    // emitted as a Carbon v15 record file, the shape WebGPU already ships and the
+    // shape the engine seam will consume.
     //
     // Both are built from the same translation, deliberately, so the two can be
     // diffed against each other on real effects before the chunk path is
-    // deleted. `bytes` flips to the container once `inspectWithValues` and the
-    // completeness tests are retargeted; nothing else about this function
-    // changes when it does.
-    const backendBodySet = buildGlslBackendBodySet({
-        bodies,
-        stages,
-        shaders: translatedShaders,
-        variants,
-        permutationGraph
+    // deleted. What remains before `bytes` can flip is the completeness rules;
+    // the inspection has already moved.
+    const inspection = inspectGlslEffectContainer(container.bytes, {
+        source: values.source
     });
-    const container = buildGlslEffectContainer(
-        effectRes,
-        permutationGraph,
-        backendBodySet,
-        { compilerVersion: effectRes.m_compilerVersionBytes }
-    );
 
     return Object.freeze({
         bytes,
