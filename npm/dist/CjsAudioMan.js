@@ -868,9 +868,8 @@ class CjsAudioMan {
           actionIndex: selection.actionIndex,
           leafIndex: selection.leafIndex,
           matchIds: selection.matchIds,
-          ...(selection.authoredPlaybackRate !== undefined ? {
-            getPlaybackRate: () => engine.EvaluatePlaybackRate(selection, controls)
-          } : {}),
+          getPlaybackRate: () => engine.EvaluatePlaybackRate(selection, controls),
+          getPlaybackRateAtVoicePitchCents: value => engine.EvaluatePlaybackRate(selection, controls, value),
           spatial: selection.spatial ?? eventSpatial,
           ...(selection.delayMs === undefined ? {} : {
             delayMs: selection.delayMs

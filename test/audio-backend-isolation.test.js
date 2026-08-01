@@ -4330,6 +4330,295 @@ test("Voice Volume persists across posts, isolates objects, and applies globally
   assert.ok(Math.abs(secondGain.value - 10 ** (-12 / 20)) < 1e-12);
 });
 
+test("Voice Pitch persists across posts, isolates objects, and intersects transitions", async () =>
+{
+  const pitch = (
+    targetId,
+    valueMode,
+    pitchCents,
+    transitionMs = 0,
+    scope = "game-object",
+  ) => ({
+    kind: "set-voice-pitch",
+    actionIndex: 0,
+    targetId,
+    targetFlags: 0,
+    scope,
+    mode: "element",
+    valueMode,
+    pitchCents,
+    delayMs: 0,
+    transitionMs,
+    curve: 4,
+  });
+  const programs = {
+    play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "200", "700" ],
+          },
+        ],
+      },
+    ],
+    set_local: [ pitch("700", "absolute", 1200) ],
+    fade_local: [ pitch("700", "absolute", 1200, 2000) ],
+    relative_local: [ pitch("700", "relative", -600) ],
+    set_global: [
+      pitch("700", "absolute", -1200, 0, "global"),
+    ],
+    reset_local: [
+      {
+        kind: "reset-voice-pitch",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+      },
+    ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.kind === "play"
+          ? operation.selections.map(selection => ({
+              buffer: { duration: 2 },
+              loop: true,
+              programSlotId:
+                `${selection.actionIndex}:${selection.leafIndex}`,
+              actionIndex: selection.actionIndex,
+              leafIndex: selection.leafIndex,
+              matchIds: selection.matchIds,
+              getPlaybackRate: () => 2 ** (
+                controls.getVoicePitchCents(selection.matchIds) / 1200
+              ),
+              getPlaybackRateAtVoicePitchCents: value =>
+                2 ** (value / 1200),
+            }))
+          : []),
+    }),
+  });
+  backend.RegisterGameObj(2);
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  backend.PostEvent(2, 2, 0, emitter, "play");
+  await tick();
+
+  const firstRate = context.sources[0].playbackRate;
+  const secondRate = context.sources[1].playbackRate;
+
+  backend.PostEvent(3, 1, 0, emitter, "set_local");
+  assert.equal(firstRate.value, 2);
+  assert.equal(secondRate.value, 1);
+
+  backend.PostEvent(4, 1, 0, emitter, "relative_local");
+  assert.ok(Math.abs(firstRate.value - Math.SQRT2) < 1e-12);
+
+  backend.PostEvent(5, 1, 0, emitter, "set_global");
+  assert.equal(firstRate.value, 0.5);
+  assert.equal(secondRate.value, 0.5);
+
+  backend.PostEvent(6, 1, 0, emitter, "reset_local");
+  assert.equal(firstRate.value, 1);
+  assert.equal(secondRate.value, 0.5);
+
+  backend.PostEvent(7, 1, 0, emitter, "fade_local");
+  const transition = firstRate.curves.at(-1);
+
+  assert.equal(transition[1], 0);
+  assert.equal(transition[2], 2);
+  assert.equal(transition[0][0], 1);
+  assert.equal(transition[0].at(-1), 2);
+
+  context.currentTime = 1;
+  backend.PostEvent(8, 1, 0, emitter, "relative_local");
+  assert.equal(firstRate.value, 1);
+});
+
+test("Voice Pitch changes finite-repeat timing without restarting", async () =>
+{
+  const programs = {
+    play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "200", "700" ],
+          },
+        ],
+      },
+    ],
+    set_pitch: [
+      {
+        kind: "set-voice-pitch",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        valueMode: "absolute",
+        pitchCents: 1200,
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+      },
+    ],
+    reset_pitch: [
+      {
+        kind: "reset-voice-pitch",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+      },
+    ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.kind === "play"
+          ? operation.selections.map(selection => ({
+              buffer: { duration: 4 },
+              playCount: 3,
+              programSlotId:
+                `${selection.actionIndex}:${selection.leafIndex}`,
+              actionIndex: selection.actionIndex,
+              leafIndex: selection.leafIndex,
+              matchIds: selection.matchIds,
+              getPlaybackRate: () => 2 ** (
+                controls.getVoicePitchCents(selection.matchIds) / 1200
+              ),
+              getPlaybackRateAtVoicePitchCents: value =>
+                2 ** (value / 1200),
+            }))
+          : []),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+
+  assert.equal(context.sources[0].playbackRate.value, 1);
+  assert.ok(
+    Math.abs(context.sources[0].stoppedAt - (12 + START_QUANTUM))
+      < 1e-12,
+  );
+
+  context.currentTime = 2;
+  backend.PostEvent(2, 1, 0, emitter, "set_pitch");
+
+  assert.equal(context.sources[0].playbackRate.value, 2);
+  assert.ok(
+    Math.abs(context.sources[0].stoppedAt - (7 + START_QUANTUM / 2))
+      < 1e-12,
+  );
+
+  context.currentTime = 3;
+  backend.PostEvent(3, 1, 0, emitter, "reset_pitch");
+
+  assert.equal(context.sources[0].playbackRate.value, 1);
+  assert.ok(
+    Math.abs(context.sources[0].stoppedAt - (11 + START_QUANTUM))
+      < 1e-12,
+  );
+});
+
+test("overdue Voice Pitch preserves heard transport and integrates live queries", async () =>
+{
+  const programs = {
+    play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "200", "700" ],
+          },
+        ],
+      },
+    ],
+    fade: [
+      {
+        kind: "set-voice-pitch",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        valueMode: "absolute",
+        pitchCents: 1200,
+        delayMs: 1000,
+        transitionMs: 2000,
+        curve: 4,
+      },
+    ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.kind === "play"
+          ? operation.selections.map(selection => ({
+              buffer: { duration: 10 },
+              loop: true,
+              programSlotId: "0:0",
+              matchIds: selection.matchIds,
+              getPlaybackRate: () => 2 ** (
+                controls.getVoicePitchCents(selection.matchIds) / 1200
+              ),
+              getPlaybackRateAtVoicePitchCents: value =>
+                2 ** (value / 1200),
+            }))
+          : []),
+    }),
+  });
+
+  const playingID = backend.PostEvent(1, 1, 0, emitter, "play");
+
+  backend.PostEvent(2, 1, 0, emitter, "fade");
+  await tick();
+
+  context.currentTime = 2;
+  backend.RenderAudio();
+
+  assert.equal(
+    backend.GetSourcePlayPosition(playingID),
+    Math.round((2 - START_QUANTUM) * 1000),
+    "an overdue action cannot retroactively change audio already heard",
+  );
+
+  context.currentTime = 2.5;
+  const transitionedSeconds = 2 / Math.LN2
+    * (2 ** 0.75 - 2 ** 0.5);
+  const expectedMs = Math.round(
+    (2 - START_QUANTUM + transitionedSeconds) * 1000,
+  );
+
+  assert.ok(
+    Math.abs(backend.GetSourcePlayPosition(playingID) - expectedMs) <= 1,
+    "position queries integrate the scheduled pitch curve",
+  );
+});
+
 test("overdue Voice Volume actions intersect fades at authored action time", async () =>
 {
   const programs = {

@@ -3065,9 +3065,33 @@ test("SFX Voice Volume actions lower into ordered portable programs", () =>
                         payload: new Uint8Array(),
                     },
                     {
+                        type: 3,
+                        id: 303,
+                        actionType: 0x0a03,
+                        targetId: 999,
+                        action: {
+                            actionMode: "element",
+                            actionScope: "game-object",
+                            targetId: 999,
+                            targetFlags: 0,
+                            targetIsBus: false,
+                            fadeCurve: 4,
+                            valueMode: "absolute",
+                            volumeDb: -12,
+                            volumeRangeDb: { min: 0, max: 0 },
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
                         type: 4,
                         id: 100,
                         actionIds: [ 300, 301, 302 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 303, 301 ],
                         payload: new Uint8Array(),
                     },
                 ],
@@ -3076,6 +3100,7 @@ test("SFX Voice Volume actions lower into ordered portable programs", () =>
         metadata: {
             Events: {
                 staged_volume: { eventID: 100 },
+                stale_volume_target: { eventID: 101 },
             },
         },
         media: {
@@ -3109,6 +3134,160 @@ test("SFX Voice Volume actions lower into ordered portable programs", () =>
             mode: "element",
             curve: 4,
         },
+    ]);
+    assert.deepEqual(result.events.stale_volume_target, [
+        { nodeId: "200" },
+    ]);
+    assert.deepEqual(result.programs.stale_volume_target, [
+        { kind: "play", child: { nodeId: "200" } },
+    ]);
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("SFX Voice Pitch actions lower into ordered portable programs", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload({
+                            directParentId: 700,
+                        }),
+                    },
+                    {
+                        type: 7,
+                        id: 700,
+                        payload: actorMixerPayload(),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0803,
+                        targetId: 700,
+                        action: {
+                            actionMode: "element",
+                            actionScope: "game-object",
+                            targetId: 700,
+                            targetFlags: 0,
+                            targetIsBus: false,
+                            delayTimeMs: 100,
+                            transitionTimeMs: 250,
+                            fadeCurve: 7,
+                            valueMode: "relative",
+                            pitchCents: 240,
+                            pitchRangeCents: { min: -20, max: 30 },
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 302,
+                        actionType: 0x0903,
+                        targetId: 700,
+                        action: {
+                            actionMode: "element",
+                            actionScope: "game-object",
+                            targetId: 700,
+                            targetFlags: 0,
+                            targetIsBus: false,
+                            fadeCurve: 4,
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 303,
+                        actionType: 0x0803,
+                        targetId: 999,
+                        action: {
+                            actionMode: "element",
+                            actionScope: "game-object",
+                            targetId: 999,
+                            targetFlags: 0,
+                            targetIsBus: false,
+                            fadeCurve: 4,
+                            valueMode: "absolute",
+                            pitchCents: -1200,
+                            pitchRangeCents: { min: 0, max: 0 },
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300, 301, 302 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 303, 301 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                staged_pitch: { eventID: 100 },
+                stale_pitch_target: { eventID: 101 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.deepEqual(result.events.staged_pitch, [
+        { nodeId: "200" },
+    ]);
+    assert.deepEqual(result.programs.staged_pitch, [
+        {
+            kind: "set-voice-pitch",
+            targetId: "700",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            curve: 7,
+            valueMode: "relative",
+            pitchCents: 240,
+            pitchRangeCents: { min: -20, max: 30 },
+            delayMs: 100,
+            transitionMs: 250,
+        },
+        { kind: "play", child: { nodeId: "200" } },
+        {
+            kind: "reset-voice-pitch",
+            targetId: "700",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            curve: 4,
+        },
+    ]);
+    assert.deepEqual(result.events.stale_pitch_target, [
+        { nodeId: "200" },
+    ]);
+    assert.deepEqual(result.programs.stale_pitch_target, [
+        { kind: "play", child: { nodeId: "200" } },
     ]);
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });

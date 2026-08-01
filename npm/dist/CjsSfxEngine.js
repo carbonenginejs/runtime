@@ -11,6 +11,23 @@ const MIN_RELATIVE_PITCH_CENTS = -2400;
 const MAX_RELATIVE_PITCH_CENTS = 2400;
 const MIN_FILTER_PERCENT = 0;
 const MAX_FILTER_PERCENT = 100;
+const AUTHORED_PLAYBACK_RATE = Symbol("authoredPlaybackRate");
+const AUTHORED_PITCH_CENTS = Symbol("authoredPitchCents");
+function PreserveAuthoredPitch(source, target) {
+  const authoredPlaybackRate = source?.authoredPlaybackRate ?? source?.[AUTHORED_PLAYBACK_RATE];
+  const authoredPitchCents = source?.pitchCents ?? source?.[AUTHORED_PITCH_CENTS];
+  if (authoredPlaybackRate !== undefined) {
+    Object.defineProperties(target, {
+      [AUTHORED_PLAYBACK_RATE]: {
+        value: authoredPlaybackRate
+      },
+      [AUTHORED_PITCH_CENTS]: {
+        value: authoredPitchCents
+      }
+    });
+  }
+  return target;
+}
 
 /**
  * Resolves authored SFX containers into one or more playable media selections.
@@ -73,7 +90,7 @@ class CjsSfxEngine {
       matchIds: _matchIds,
       programBatchId: _programBatchId,
       ...selection
-    }) => Object.freeze(selection)) : []);
+    }, index, selections) => Object.freeze(PreserveAuthoredPitch(selections[index], selection))) : []);
   }
 
   /**
@@ -122,7 +139,7 @@ class CjsSfxEngine {
         const hasMore = this.#ContinuousHasMore(branch.token);
         branch.token.actionIndex = actionIndex;
         branch.token.programSlotId = programSlotId;
-        resolved.push(...branch.selections.map(selection => ({
+        resolved.push(...branch.selections.map(selection => PreserveAuthoredPitch(selection, {
           ...selection,
           programSlotId,
           programBatchId
@@ -145,11 +162,11 @@ class CjsSfxEngine {
       operations.push(Object.freeze({
         kind: "play",
         actionIndex,
-        selections: Object.freeze(resolved.map((selection, leafIndex) => Object.freeze({
+        selections: Object.freeze(resolved.map((selection, leafIndex) => Object.freeze(PreserveAuthoredPitch(selection, {
           ...selection,
           actionIndex,
           leafIndex
-        }))),
+        })))),
         ...(continuations.length ? {
           continuations: Object.freeze(continuations)
         } : {})
@@ -169,6 +186,11 @@ class CjsSfxEngine {
           const volume = this.#ResolveVoiceVolumeAction(action, actionIndex);
           if (volume) {
             operations.push(volume);
+          }
+        } else if (action.kind === "set-voice-pitch" || action.kind === "reset-voice-pitch") {
+          const pitch = this.#ResolveVoicePitchAction(action, actionIndex);
+          if (pitch) {
+            operations.push(pitch);
           }
         } else {
           ApplySetter(action, controls);
@@ -214,13 +236,13 @@ class CjsSfxEngine {
     return Object.freeze([Object.freeze({
       kind: "play",
       actionIndex: token.actionIndex,
-      selections: Object.freeze(selections.map((selection, leafIndex) => Object.freeze({
+      selections: Object.freeze(selections.map((selection, leafIndex) => Object.freeze(PreserveAuthoredPitch(selection, {
         ...selection,
         actionIndex: token.actionIndex,
         leafIndex,
         programSlotId: token.programSlotId,
         programBatchId
-      }))),
+      })))),
       continuations: Object.freeze([Object.freeze({
         programSlotId: token.programSlotId,
         programBatchId,
@@ -444,14 +466,18 @@ class CjsSfxEngine {
   }
 
   /** Evaluates one resolved leaf's current playback rate from global states. */
-  EvaluatePlaybackRate(selection, controls = {}) {
-    if (selection?.authoredPlaybackRate === undefined) {
+  EvaluatePlaybackRate(selection, controls = {}, voicePitchCents = undefined) {
+    const authoredPlaybackRate = selection?.authoredPlaybackRate ?? selection?.[AUTHORED_PLAYBACK_RATE];
+    const authoredPitchCents = selection?.pitchCents ?? selection?.[AUTHORED_PITCH_CENTS];
+    const actionPitch = voicePitchCents === undefined ? Number(controls.getVoicePitchCents?.(selection?.matchIds)) || 0 : Number(voicePitchCents) || 0;
+    if (authoredPlaybackRate === undefined) {
       const current = Number(selection?.playbackRate);
-      return Number.isFinite(current) && current > 0 ? current : 1;
+      const base = Number.isFinite(current) && current > 0 ? current : 1;
+      return base * 2 ** (Clamp(actionPitch, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
     }
     const statePitch = EvaluateStateProperties(selection.stateProperties, controls).pitchCents;
     const rtpcPitch = EvaluateRtpcProperties(selection.rtpcCurves, controls).pitchCents;
-    return selection.authoredPlaybackRate * 2 ** (Clamp(selection.pitchCents + statePitch + rtpcPitch, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
+    return authoredPlaybackRate * 2 ** (Clamp(authoredPitchCents + statePitch + rtpcPitch + actionPitch, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
   }
 
   /** Evaluates one resolved leaf's current Wwise low-pass percentage. */
@@ -563,7 +589,15 @@ class CjsSfxEngine {
           fadeCurve: terms.fadeCurve
         } : {})
       };
-      selection.playbackRate = dynamicPitch ? this.EvaluatePlaybackRate(selection, controls) : (node.playbackRate ?? 1) * 2 ** (Clamp(terms.pitchCents, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
+      Object.defineProperties(selection, {
+        [AUTHORED_PLAYBACK_RATE]: {
+          value: node.playbackRate ?? 1
+        },
+        [AUTHORED_PITCH_CENTS]: {
+          value: terms.pitchCents
+        }
+      });
+      selection.playbackRate = this.EvaluatePlaybackRate(selection, controls);
       selections.push(Object.freeze(selection));
       return;
     }
@@ -782,6 +816,27 @@ class CjsSfxEngine {
       ...(setting ? {
         valueMode: action.valueMode,
         volumeDb
+      } : {})
+    });
+  }
+
+  /** Samples one authored Voice Pitch action once for this post. */
+  #ResolveVoicePitchAction(action, actionIndex) {
+    const setting = action.kind === "set-voice-pitch";
+    const pitchCents = setting ? Math.max(-2400, Math.min(2400, SampleSignedRandomizedValue(action.pitchCents, action.pitchRangeCents, () => this.#SampleUnit()))) : 0;
+    return Object.freeze({
+      kind: action.kind,
+      actionIndex,
+      targetId: String(Number(action.targetId) >>> 0),
+      targetFlags: Number(action.targetFlags ?? 0),
+      scope: action.scope,
+      mode: "element",
+      delayMs: Math.max(0, SampleRandomizedValue(action.delayMs, action.delayRangeMs, () => this.#SampleUnit())),
+      transitionMs: Math.max(0, SampleRandomizedValue(action.transitionMs, action.transitionRangeMs, () => this.#SampleUnit())),
+      curve: Number(action.curve ?? 4),
+      ...(setting ? {
+        valueMode: action.valueMode,
+        pitchCents
       } : {})
     });
   }

@@ -13,6 +13,8 @@ const SFX_PLAY_EVENT_ACTION = 0x2103;
 const SFX_STOP_ACTION_FAMILY = 0x01;
 const SFX_PAUSE_ACTION_FAMILY = 0x02;
 const SFX_RESUME_ACTION_FAMILY = 0x03;
+const SFX_SET_VOICE_PITCH_ACTION_FAMILY = 0x08;
+const SFX_RESET_VOICE_PITCH_ACTION_FAMILY = 0x09;
 const SFX_SET_VOICE_VOLUME_ACTION_FAMILY = 0x0a;
 const SFX_RESET_VOICE_VOLUME_ACTION_FAMILY = 0x0b;
 const SFX_SET_STATE_ACTION_FAMILY = 0x12;
@@ -928,8 +930,16 @@ function LowerSfxGraph({
           if (kind === "stop" && playbackControl.mode === "element") {
             result.stopTargets.add(Number(playbackControl.targetId) >>> 0);
           }
+        } else if ((action.actionType >> 8 & 0xff) === SFX_SET_VOICE_PITCH_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_VOICE_PITCH_ACTION_FAMILY) {
+          const voicePitch = ReadSfxVoicePitchAction(action, parsed);
+          if (voicePitch) {
+            result.program.push(voicePitch);
+          }
         } else if ((action.actionType >> 8 & 0xff) === SFX_SET_VOICE_VOLUME_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_VOICE_VOLUME_ACTION_FAMILY) {
-          result.program.push(ReadSfxVoiceVolumeAction(action, parsed));
+          const voiceVolume = ReadSfxVoiceVolumeAction(action, parsed);
+          if (voiceVolume) {
+            result.program.push(voiceVolume);
+          }
         } else if ((action.actionType >> 8 & 0xff) === SFX_SET_SWITCH_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_SET_STATE_ACTION_FAMILY) {
           if (HasSfxPlayActionTiming(action, false)) {
             throw new Error(`scheduled setter action ${action.id}`);
@@ -1055,7 +1065,7 @@ function ReadSfxVoiceVolumeAction(action, parsed) {
   if (details.actionMode !== "element" || details.actionScope !== "game-object" && details.actionScope !== "global") {
     throw new Error(`unsupported Voice Volume target mode ${action.id}`);
   }
-  if (!targetId || !parsed.nodeBases?.has(targetId)) {
+  if (!targetId) {
     throw new Error(`unresolved Voice Volume target ${targetId}`);
   }
   if (details.targetIsBus || targetFlags & 0x01) {
@@ -1063,6 +1073,9 @@ function ReadSfxVoiceVolumeAction(action, parsed) {
   }
   if (targetFlags !== 0) {
     throw new Error(`unsupported Voice Volume target flags ${targetFlags}`);
+  }
+  if (!parsed.nodeBases?.has(targetId)) {
+    return null;
   }
   const resetting = family === SFX_RESET_VOICE_VOLUME_ACTION_FAMILY;
   const result = {
@@ -1082,6 +1095,70 @@ function ReadSfxVoiceVolumeAction(action, parsed) {
     result.volumeRangeDb = {
       min: Number(details.volumeRangeDb?.min ?? 0),
       max: Number(details.volumeRangeDb?.max ?? 0)
+    };
+  }
+  if (details.delayTimeMs !== undefined) {
+    result.delayMs = Number(details.delayTimeMs);
+  }
+  if (details.delayRangeMs !== undefined) {
+    result.delayRangeMs = {
+      min: Number(details.delayRangeMs.min),
+      max: Number(details.delayRangeMs.max)
+    };
+  }
+  if (details.transitionTimeMs !== undefined) {
+    result.transitionMs = Number(details.transitionTimeMs);
+  }
+  if (details.transitionRangeMs !== undefined) {
+    result.transitionRangeMs = {
+      min: Number(details.transitionRangeMs.min),
+      max: Number(details.transitionRangeMs.max)
+    };
+  }
+  return result;
+}
+function ReadSfxVoicePitchAction(action, parsed) {
+  const details = action.action;
+  const actionType = Number(action.actionType) >>> 0;
+  const family = actionType >> 8 & 0xff;
+  if (!details || family !== SFX_SET_VOICE_PITCH_ACTION_FAMILY && family !== SFX_RESET_VOICE_PITCH_ACTION_FAMILY) {
+    throw new Error(`untyped Voice Pitch action ${action.id}`);
+  }
+  const targetId = Number(details.targetId) >>> 0;
+  const targetFlags = Number(details.targetFlags ?? 0);
+  if (details.actionMode !== "element" || details.actionScope !== "game-object" && details.actionScope !== "global") {
+    throw new Error(`unsupported Voice Pitch target mode ${action.id}`);
+  }
+  if (!targetId) {
+    throw new Error(`unresolved Voice Pitch target ${targetId}`);
+  }
+  if (details.targetIsBus || targetFlags & 0x01) {
+    throw new Error(`bus Voice Pitch action ${action.id}`);
+  }
+  if (targetFlags !== 0) {
+    throw new Error(`unsupported Voice Pitch target flags ${targetFlags}`);
+  }
+  if (!parsed.nodeBases?.has(targetId)) {
+    return null;
+  }
+  const resetting = family === SFX_RESET_VOICE_PITCH_ACTION_FAMILY;
+  const result = {
+    kind: resetting ? "reset-voice-pitch" : "set-voice-pitch",
+    targetId: String(targetId),
+    targetFlags,
+    scope: details.actionScope,
+    mode: "element",
+    curve: Number(details.fadeCurve ?? 4)
+  };
+  if (!resetting) {
+    if (details.valueMode !== "absolute" && details.valueMode !== "relative") {
+      throw new Error(`unsupported Voice Pitch value mode ${action.id}`);
+    }
+    result.valueMode = details.valueMode;
+    result.pitchCents = Number(details.pitchCents);
+    result.pitchRangeCents = {
+      min: Number(details.pitchRangeCents?.min ?? 0),
+      max: Number(details.pitchRangeCents?.max ?? 0)
     };
   }
   if (details.delayTimeMs !== undefined) {

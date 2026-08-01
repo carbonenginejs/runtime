@@ -1793,6 +1793,131 @@ test("event programs preserve Set and Reset Voice Volume operations", () =>
     );
 });
 
+test("event programs preserve Set and Reset Voice Pitch operations", () =>
+{
+    const engine = new CjsSfxEngine({
+        random: () => 0.75,
+        graph: {
+            schemaVersion: 2,
+            events: {
+                staged_pitch: [ { nodeId: "1" } ],
+            },
+            programs: {
+                staged_pitch: [
+                    {
+                        kind: "set-voice-pitch",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        valueMode: "absolute",
+                        pitchCents: 200,
+                        pitchRangeCents: { min: -100, max: 100 },
+                        transitionMs: 250,
+                        curve: 7,
+                    },
+                    { kind: "play", child: { nodeId: "1" } },
+                    {
+                        kind: "set-voice-pitch",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        valueMode: "relative",
+                        pitchCents: -50,
+                        delayMs: 100,
+                        curve: 4,
+                    },
+                    {
+                        kind: "reset-voice-pitch",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        curve: 4,
+                    },
+                ],
+            },
+            nodes: {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    matchIds: [ "1", "700" ],
+                },
+            },
+        },
+    });
+
+    const program = engine.ResolveProgram("staged_pitch");
+
+    assert.deepEqual(
+        program.map(action => action.kind),
+        [
+            "set-voice-pitch",
+            "play",
+            "set-voice-pitch",
+            "reset-voice-pitch",
+        ],
+    );
+    assert.deepEqual(program[0], {
+        kind: "set-voice-pitch",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 250,
+        curve: 7,
+        valueMode: "absolute",
+        pitchCents: 250,
+    });
+    assert.equal(program[2].delayMs, 100);
+    assert.equal(program[2].valueMode, "relative");
+    assert.equal(program[2].pitchCents, -50);
+    assert.equal(program[3].pitchCents, undefined);
+    assert.equal(
+        engine.EvaluatePlaybackRate(
+            program[1].selections[0],
+            { getVoicePitchCents: () => 1200 },
+        ),
+        2,
+    );
+    assert.equal(
+        engine.EvaluatePlaybackRate(
+            program[1].selections[0],
+            { getVoicePitchCents: () => 1200 },
+            -1200,
+        ),
+        0.5,
+    );
+
+    const clampedEngine = new CjsSfxEngine({
+        graph: Graph(
+            { clamped: [ { nodeId: "1" } ] },
+            {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    matchIds: [ "1", "700" ],
+                    pitchCents: 2400,
+                },
+            },
+        ),
+    });
+    const clamped = clampedEngine.ResolveEvent("clamped")[0];
+
+    assert.equal(clamped.playbackRate, 4);
+    assert.equal(
+        clampedEngine.EvaluatePlaybackRate(
+            clamped,
+            { getVoicePitchCents: () => 2400 },
+        ),
+        4,
+        "NodeBase and Voice Pitch contributions clamp after accumulation",
+    );
+});
+
 test("Play actions preserve probability, randomized delay, and fade-in", () =>
 {
     const samples = [ 0.49, 0.5, 0, 0.5 ];

@@ -686,6 +686,81 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     );
 });
 
+test("installation validates and normalizes Voice Pitch actions", () =>
+{
+    const source = CreateDocument();
+
+    source.sfx = {
+        schemaVersion: 2,
+        events: {
+            engine_loop: [ { nodeId: "1" } ],
+        },
+        programs: {
+            engine_loop: [
+                {
+                    kind: "set-voice-pitch",
+                    targetId: "700",
+                    targetFlags: "0",
+                    scope: "game-object",
+                    mode: "element",
+                    valueMode: "relative",
+                    pitchCents: "200",
+                    pitchRangeCents: { min: "-50", max: "100" },
+                    transitionMs: "250",
+                    curve: "7",
+                },
+                { kind: "play", child: { nodeId: "1" } },
+                {
+                    kind: "reset-voice-pitch",
+                    targetId: "700",
+                    scope: "game-object",
+                    mode: "element",
+                    curve: "4",
+                },
+            ],
+        },
+        nodes: {
+            "1": {
+                type: "sound",
+                mediaId: "777",
+            },
+        },
+    };
+
+    const installed = installAudioLibraryDocument(source);
+
+    assert.deepEqual(installed.sfx.programs.engine_loop, [
+        {
+            kind: "set-voice-pitch",
+            targetId: "700",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            curve: 7,
+            transitionMs: 250,
+            valueMode: "relative",
+            pitchCents: 200,
+            pitchRangeCents: { min: -50, max: 100 },
+        },
+        { kind: "play", child: { nodeId: "1" } },
+        {
+            kind: "reset-voice-pitch",
+            targetId: "700",
+            scope: "game-object",
+            mode: "element",
+            curve: 4,
+        },
+    ]);
+
+    const invalid = structuredClone(source);
+
+    invalid.sfx.programs.engine_loop[0].pitchRangeCents.max = 2300;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalid),
+        /maximum randomized pitchCents must be between -2400 and 2400 cents/u,
+    );
+});
+
 test("installation canonicalizes authored SFX identifiers and curve numbers", () =>
 {
     const source = CreateDocument();

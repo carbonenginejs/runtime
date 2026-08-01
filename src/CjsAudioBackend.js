@@ -240,6 +240,7 @@ export class CjsAudioBackend
             panner,
             analyser,
             scalingFactor: 1,
+            voicePitches: new Map(),
             voiceVolumes: new Map(),
         });
     }
@@ -875,11 +876,12 @@ export class CjsAudioBackend
         if (!voice.paused
             && voice.positionAnchorContextTime !== null)
         {
-            seconds += Math.max(
-                0,
-                this.#context.currentTime
-                    - voice.positionAnchorContextTime,
-            ) * voice.playbackRate;
+            const from = Number(voice.positionAnchorContextTime);
+            const to = Number(this.#context.currentTime);
+
+            seconds += UsesVoicePitchAutomation(voice)
+                ? IntegrateVoicePitchPlaybackRate(voice, from, to)
+                : Math.max(0, to - from) * voice.playbackRate;
         }
         const duration = Number(voice.buffer?.duration);
         if (Number.isFinite(duration) && duration > 0)
@@ -1746,6 +1748,8 @@ export class CjsAudioBackend
                 if (operation.kind !== "stop"
                     && operation.kind !== "pause"
                     && operation.kind !== "resume"
+                    && operation.kind !== "set-voice-pitch"
+                    && operation.kind !== "reset-voice-pitch"
                     && operation.kind !== "set-voice-volume"
                     && operation.kind !== "reset-voice-volume")
                 {
@@ -1827,6 +1831,11 @@ export class CjsAudioBackend
         {
             this.#ApplySfxPlaybackControl(action, now);
         }
+        else if (action.kind === "set-voice-pitch"
+            || action.kind === "reset-voice-pitch")
+        {
+            this.#ApplySfxVoicePitch(action, now);
+        }
         else
         {
             this.#ApplySfxVoiceVolume(action, now);
@@ -1863,6 +1872,63 @@ export class CjsAudioBackend
         }
         apply(action.emitterNodes);
         this.#RefreshSfxVoiceVolumes(action.gameObjID);
+    }
+
+    /** Applies one persistent Voice Pitch property mutation. */
+    #ApplySfxVoicePitch(action, now)
+    {
+        const targetId = String(action.targetId);
+        const apply = nodes =>
+        {
+            this.#AdvanceMatchingSfxVoices(
+                nodes,
+                targetId,
+                now,
+            );
+            ApplyVoicePitchAction(
+                nodes.voicePitches,
+                targetId,
+                action,
+            );
+        };
+
+        if (action.scope === "global")
+        {
+            for (const nodes of this.#emitterNodes.values())
+            {
+                apply(nodes);
+            }
+            this.#RefreshSfxVoicePitches();
+            return;
+        }
+
+        if (this.#emitterNodes.get(action.gameObjID)
+            !== action.emitterNodes)
+        {
+            return;
+        }
+        apply(action.emitterNodes);
+        this.#RefreshSfxVoicePitches(action.gameObjID);
+    }
+
+    /** Advances matching voices before replacing their active pitch curve. */
+    #AdvanceMatchingSfxVoices(nodes, targetId, at)
+    {
+        for (const record of this.#playing.values())
+        {
+            if (!record.sfx || record.emitterNodes !== nodes)
+            {
+                continue;
+            }
+            for (const voice of record.voices ?? [])
+            {
+                if (!voice.ended
+                    && voice.matchIds?.map(String).includes(targetId))
+                {
+                    this.#AdvanceSfxVoiceTransport(voice, at);
+                }
+            }
+        }
     }
 
     /** Applies one authored Pause or Resume to matching live SFX instances. */
@@ -2669,6 +2735,12 @@ export class CjsAudioBackend
                     matchIds,
                     Number(this.#context?.currentTime) || 0,
                 ),
+            getVoicePitchCents: matchIds =>
+                EvaluateVoicePitchTargets(
+                    record?.emitterNodes?.voicePitches,
+                    matchIds,
+                    Number(this.#context?.currentTime) || 0,
+                ),
             setSwitch: (group, value) =>
                 this.SetSwitch(group, value, gameObjID),
             setState: (group, value) =>
@@ -2801,11 +2873,14 @@ export class CjsAudioBackend
             playCount: descriptor.playCount,
             playbackRate: descriptor.playbackRate,
             getPlaybackRate: descriptor.getPlaybackRate,
+            getPlaybackRateAtVoicePitchCents:
+                descriptor.getPlaybackRateAtVoicePitchCents,
             spatial: descriptor.spatial,
             getGain: descriptor.getGain,
             getGainAtVoiceVolumeDb:
                 descriptor.getGainAtVoiceVolumeDb,
             voiceVolumeStates: emitterNodes.voiceVolumes,
+            voicePitchStates: emitterNodes.voicePitches,
             getLowPass: descriptor.getLowPass,
             getHighPass: descriptor.getHighPass,
             delayMs: descriptor.delayMs,
@@ -3136,6 +3211,7 @@ export class CjsAudioBackend
                 + remaining / voice.playbackRate;
             source.stop(voice.scheduledEndContextTime);
         }
+        this.#ApplyVoicePlaybackRate(voice);
     }
 
     /** Marks one physical voice complete and closes its logical event at zero. */
@@ -4176,6 +4252,27 @@ export class CjsAudioBackend
         }
     }
 
+    /** Re-evaluates the live Voice Pitch contribution during transitions. */
+    #RefreshSfxVoicePitches(gameObjID = null)
+    {
+        for (const record of this.#playing.values())
+        {
+            if (!record.sfx
+                || (gameObjID !== null
+                    && record.gameObjID !== gameObjID))
+            {
+                continue;
+            }
+            for (const voice of record.voices ?? [])
+            {
+                if (!voice.ended)
+                {
+                    this.#ApplyVoicePlaybackRate(voice);
+                }
+            }
+        }
+    }
+
     /** Applies one voice descriptor's current safe linear gain. */
     #ApplyVoiceGain(voice)
     {
@@ -4235,19 +4332,22 @@ export class CjsAudioBackend
         const anchor = Number(voice.positionAnchorContextTime);
         const time = Number(contextTime);
         const rate = Number(voice.playbackRate);
+        const variablePitch = UsesVoicePitchAutomation(voice);
 
         if (!voice.source
             || voice.positionAnchorContextTime === null
             || !Number.isFinite(anchor)
             || !Number.isFinite(time)
-            || !Number.isFinite(rate)
-            || rate <= 0
+            || (!variablePitch
+                && (!Number.isFinite(rate) || rate <= 0))
             || time <= anchor)
         {
             return;
         }
 
-        const elapsedMedia = (time - anchor) * rate;
+        const elapsedMedia = variablePitch
+            ? IntegrateVoicePitchPlaybackRate(voice, anchor, time)
+            : (time - anchor) * rate;
         const duration = Number(voice.buffer?.duration);
         let offset = Math.max(0, Number(voice.offsetSeconds) || 0)
             + elapsedMedia;
@@ -4265,6 +4365,13 @@ export class CjsAudioBackend
         }
         voice.offsetSeconds = offset;
         voice.positionAnchorContextTime = time;
+        if (variablePitch)
+        {
+            voice.playbackRate = EvaluateVoicePitchPlaybackRate(
+                voice,
+                time,
+            );
+        }
 
         if (voice.repeatRemainingSeconds !== null)
         {
@@ -4284,6 +4391,46 @@ export class CjsAudioBackend
             return;
         }
 
+        const source = voice.source;
+        const now = Number(this.#context.currentTime) || 0;
+        const variablePitch = UsesVoicePitchAutomation(voice);
+
+        this.#AdvanceSfxVoiceTransport(voice, now);
+
+        if (variablePitch)
+        {
+            const value = EvaluateVoicePitchPlaybackRate(voice, now);
+
+            if (!Number.isFinite(value) || value <= 0)
+            {
+                return;
+            }
+
+            voice.playbackRate = value;
+            ScheduleVoicePitchPlaybackRate(
+                source?.playbackRate,
+                voice,
+                this.#context,
+            );
+            if (source
+                && !voice.stopping
+                && voice.repeatRemainingSeconds !== null
+                && voice.repeatAnchorContextTime !== null)
+            {
+                voice.scheduledEndContextTime =
+                    SolveVoicePitchRepeatEnd(voice, now);
+                try
+                {
+                    source.stop(voice.scheduledEndContextTime);
+                }
+                catch
+                {
+                    // already stopped
+                }
+            }
+            return;
+        }
+
         let value;
 
         try
@@ -4300,10 +4447,6 @@ export class CjsAudioBackend
         }
 
         const previous = Number(voice.playbackRate);
-        const source = voice.source;
-        const now = Number(this.#context.currentTime) || 0;
-
-        this.#AdvanceSfxVoiceTransport(voice, now);
 
         if (source
             && !voice.stopping
@@ -5081,6 +5224,10 @@ function NormalizeVoiceDescriptors(result, eventLoop)
             getPlaybackRate: typeof value.getPlaybackRate === "function"
                 ? value.getPlaybackRate
                 : null,
+            getPlaybackRateAtVoicePitchCents:
+                typeof value.getPlaybackRateAtVoicePitchCents === "function"
+                    ? value.getPlaybackRateAtVoicePitchCents
+                    : null,
             getLowPass: typeof value.getLowPass === "function"
                 ? value.getLowPass
                 : value.lowPass === undefined
@@ -5273,6 +5420,307 @@ function EvaluateVoiceVolumeState(state, at)
     );
 
     return 20 * Math.log10(Math.max(1e-10, gain));
+}
+
+function ApplyVoicePitchAction(states, targetId, action)
+{
+    const actionTime = Number(action.actionTime) || 0;
+    const fromCents = EvaluateVoicePitchState(
+        states.get(targetId),
+        actionTime,
+    );
+    const requested = action.kind === "reset-voice-pitch"
+        ? 0
+        : action.valueMode === "relative"
+            ? fromCents + Number(action.pitchCents)
+            : Number(action.pitchCents);
+    const toCents = Math.max(
+        -2400,
+        Math.min(
+            2400,
+            Number.isFinite(requested) ? requested : 0,
+        ),
+    );
+
+    states.set(targetId, {
+        fromCents,
+        toCents,
+        startTime: actionTime,
+        duration: Math.max(
+            0,
+            Number(action.transitionMs) || 0,
+        ) / 1000,
+        curve: Number(action.curve ?? LINEAR_FADE_CURVE),
+    });
+}
+
+function UsesVoicePitchAutomation(voice)
+{
+    return typeof voice?.getPlaybackRateAtVoicePitchCents === "function"
+        && voice.voicePitchStates instanceof Map;
+}
+
+function EvaluateVoicePitchTargets(states, matchIds, at)
+{
+    if (!(states instanceof Map) || !Array.isArray(matchIds))
+    {
+        return 0;
+    }
+
+    let result = 0;
+    const seen = new Set();
+
+    for (const value of matchIds)
+    {
+        const targetId = String(value);
+
+        if (!seen.has(targetId))
+        {
+            seen.add(targetId);
+            result += EvaluateVoicePitchState(
+                states.get(targetId),
+                at,
+            );
+        }
+    }
+    return result;
+}
+
+function EvaluateVoicePitchState(state, at)
+{
+    if (!state)
+    {
+        return 0;
+    }
+
+    const duration = Number(state.duration) || 0;
+    const progress = duration <= 0
+        ? 1
+        : Math.max(
+            0,
+            Math.min(
+                1,
+                ((Number(at) || 0) - state.startTime) / duration,
+            ),
+        );
+
+    if (progress <= 0)
+    {
+        return state.fromCents;
+    }
+    if (progress >= 1)
+    {
+        return state.toCents;
+    }
+    return state.fromCents
+        + (state.toCents - state.fromCents)
+            * evaluateWwiseInterpolation(state.curve, progress);
+}
+
+function VoicePitchTransitionEnd(voice, from)
+{
+    const states = voice.voicePitchStates;
+    const matchIds = Array.isArray(voice.matchIds)
+        ? voice.matchIds
+        : [];
+    let endTime = Number(from) || 0;
+
+    for (const value of new Set(matchIds.map(String)))
+    {
+        const state = states.get(value);
+        const end = Number(state?.startTime)
+            + Math.max(0, Number(state?.duration) || 0);
+
+        if (Number.isFinite(end) && end > endTime)
+        {
+            endTime = end;
+        }
+    }
+    return endTime;
+}
+
+function EvaluateVoicePitchPlaybackRate(voice, at)
+{
+    let value = 1;
+
+    try
+    {
+        value = voice.getPlaybackRateAtVoicePitchCents(
+            EvaluateVoicePitchTargets(
+                voice.voicePitchStates,
+                voice.matchIds,
+                at,
+            ),
+        );
+    }
+    catch
+    {
+        value = 1;
+    }
+
+    const rate = Number(value);
+
+    return Number.isFinite(rate) && rate > 0 ? rate : 1;
+}
+
+function IntegrateVoicePitchPlaybackRate(voice, from, to)
+{
+    const start = Number(from);
+    const end = Number(to);
+
+    if (!Number.isFinite(start)
+        || !Number.isFinite(end)
+        || end <= start)
+    {
+        return 0;
+    }
+
+    const boundaries = new Set([ start, end ]);
+
+    for (const value of new Set((voice.matchIds ?? []).map(String)))
+    {
+        const state = voice.voicePitchStates.get(value);
+        const transitionStart = Number(state?.startTime);
+        const transitionEnd = transitionStart
+            + Math.max(0, Number(state?.duration) || 0);
+
+        if (Number.isFinite(transitionStart)
+            && transitionStart > start
+            && transitionStart < end)
+        {
+            boundaries.add(transitionStart);
+        }
+        if (Number.isFinite(transitionEnd)
+            && transitionEnd > start
+            && transitionEnd < end)
+        {
+            boundaries.add(transitionEnd);
+        }
+    }
+
+    const ordered = [ ...boundaries ].sort((a, b) => a - b);
+    let result = 0;
+
+    for (let segment = 1; segment < ordered.length; segment++)
+    {
+        const segmentStart = ordered[segment - 1];
+        const segmentEnd = ordered[segment];
+        const step = (segmentEnd - segmentStart) / FADE_CURVE_SAMPLES;
+
+        for (let index = 0; index < FADE_CURVE_SAMPLES; index++)
+        {
+            result += EvaluateVoicePitchPlaybackRate(
+                voice,
+                segmentStart + (index + 0.5) * step,
+            ) * step;
+        }
+    }
+    return result;
+}
+
+function ScheduleVoicePitchPlaybackRate(param, voice, context)
+{
+    if (!param)
+    {
+        return;
+    }
+
+    const now = Number(context?.currentTime) || 0;
+    const endTime = VoicePitchTransitionEnd(voice, now);
+    const duration = Math.max(0, endTime - now);
+    const startValue = EvaluateVoicePitchPlaybackRate(voice, now);
+
+    if (typeof param.cancelAndHoldAtTime === "function")
+    {
+        param.cancelAndHoldAtTime(now);
+    }
+    else
+    {
+        param.cancelScheduledValues?.(0);
+    }
+    param.setValueAtTime?.(startValue, now);
+    if ("value" in param)
+    {
+        param.value = startValue;
+    }
+    if (!(duration > 0))
+    {
+        return;
+    }
+
+    if (typeof param.setValueCurveAtTime === "function")
+    {
+        const values = new Float32Array(FADE_CURVE_SAMPLES);
+
+        for (let index = 0; index < values.length; index++)
+        {
+            const ratio = index / (values.length - 1);
+
+            values[index] = EvaluateVoicePitchPlaybackRate(
+                voice,
+                now + duration * ratio,
+            );
+        }
+        param.setValueCurveAtTime(values, now, duration);
+    }
+    else
+    {
+        param.linearRampToValueAtTime?.(
+            EvaluateVoicePitchPlaybackRate(voice, endTime),
+            endTime,
+        );
+    }
+}
+
+function SolveVoicePitchRepeatEnd(voice, now)
+{
+    const start = Math.max(
+        Number(now) || 0,
+        Number(voice.repeatAnchorContextTime) || 0,
+    );
+    const remaining = Math.max(
+        0,
+        Number(voice.repeatRemainingSeconds) || 0,
+    );
+    const transitionEnd = VoicePitchTransitionEnd(voice, start);
+    const duringTransition = IntegrateVoicePitchPlaybackRate(
+        voice,
+        start,
+        transitionEnd,
+    );
+
+    if (remaining <= duringTransition && transitionEnd > start)
+    {
+        let low = start;
+        let high = transitionEnd;
+
+        for (let index = 0; index < 32; index++)
+        {
+            const middle = (low + high) * 0.5;
+
+            if (IntegrateVoicePitchPlaybackRate(
+                voice,
+                start,
+                middle,
+            ) < remaining)
+            {
+                low = middle;
+            }
+            else
+            {
+                high = middle;
+            }
+        }
+        return high;
+    }
+
+    const finalRate = EvaluateVoicePitchPlaybackRate(
+        voice,
+        transitionEnd,
+    );
+
+    return transitionEnd
+        + Math.max(0, remaining - duringTransition) / finalRate;
 }
 
 function ScheduleWwiseFade(

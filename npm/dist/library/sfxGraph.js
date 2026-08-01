@@ -9,6 +9,7 @@ const CONTINUOUS_TRANSITIONS = new Set(["crossfade-amplitude", "crossfade-power"
 const MIN_TRIGGER_RATE_MS = 21;
 const EVENT_ACTION_KINDS = new Set(["state", "switch"]);
 const VOICE_VOLUME_ACTION_KINDS = new Set(["reset-voice-volume", "set-voice-volume"]);
+const VOICE_PITCH_ACTION_KINDS = new Set(["reset-voice-pitch", "set-voice-pitch"]);
 const PLAYBACK_CONTROL_ACTION_KINDS = new Set(["pause", "resume", "stop"]);
 const PLAYBACK_CONTROL_SCOPES = new Set(["game-object", "global"]);
 const PLAYBACK_CONTROL_MODES = new Set(["all", "all-except", "element"]);
@@ -138,6 +139,10 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
         ValidateVoiceVolumeAction(action, label);
         continue;
       }
+      if (VOICE_PITCH_ACTION_KINDS.has(action.kind)) {
+        ValidateVoicePitchAction(action, label);
+        continue;
+      }
       ValidateSetterAction(action, label);
     }
     const projected = actions.filter(action => action.kind === "play").map(action => NormalizeChild(action.child));
@@ -186,6 +191,9 @@ function normalizeSfxGraph(graph, media = {}, embeddedMedia = {}) {
         }
         if (VOICE_VOLUME_ACTION_KINDS.has(action.kind)) {
           return NormalizeVoiceVolumeAction(action);
+        }
+        if (VOICE_PITCH_ACTION_KINDS.has(action.kind)) {
+          return NormalizeVoicePitchAction(action);
         }
         return NormalizeSetterAction(action);
       });
@@ -530,6 +538,58 @@ function ValidateVoiceVolumeDb(value, label) {
   }
   return number;
 }
+function ValidateVoicePitchAction(value, label) {
+  const action = RequireRecord(value, label);
+  if (!VOICE_PITCH_ACTION_KINDS.has(action.kind)) {
+    throw new TypeError(`${label} kind must be set-voice-pitch or reset-voice-pitch`);
+  }
+  if (!PLAYBACK_CONTROL_SCOPES.has(action.scope)) {
+    throw new TypeError(`${label} scope must be game-object or global`);
+  }
+  if (action.mode !== "element") {
+    throw new TypeError(`${label} mode must be element`);
+  }
+  NormalizePositiveID(action.targetId, `${label} targetId`);
+  if (action.targetFlags !== undefined) {
+    const targetFlags = NormalizeByte(action.targetFlags, `${label} targetFlags`);
+    if (targetFlags !== 0) {
+      throw new TypeError(`${label} targetFlags must be 0`);
+    }
+  }
+  if (action.kind === "set-voice-pitch") {
+    if (action.valueMode !== "absolute" && action.valueMode !== "relative") {
+      throw new TypeError(`${label} valueMode must be absolute or relative`);
+    }
+    ValidateVoicePitchCents(action.pitchCents, `${label} pitchCents`);
+    if (action.pitchRangeCents !== undefined) {
+      const range = RequireRecord(action.pitchRangeCents, `${label} pitchRangeCents`);
+      const min = ValidateVoicePitchCents(range.min, `${label} pitchRangeCents min`);
+      const max = ValidateVoicePitchCents(range.max, `${label} pitchRangeCents max`);
+      if (min > max) {
+        throw new TypeError(`${label} pitchRangeCents min must not exceed max`);
+      }
+      ValidateVoicePitchCents(Number(action.pitchCents) + min, `${label} minimum randomized pitchCents`);
+      ValidateVoicePitchCents(Number(action.pitchCents) + max, `${label} maximum randomized pitchCents`);
+    }
+  } else if (action.valueMode !== undefined || action.pitchCents !== undefined || action.pitchRangeCents !== undefined) {
+    throw new TypeError(`${label} Reset cannot carry a pitch value`);
+  }
+  if (action.probability !== undefined) {
+    throw new TypeError(`${label} probability is unsupported`);
+  }
+  ValidateActionTiming({
+    delayMs: action.delayMs,
+    delayRangeMs: action.delayRangeMs
+  }, label);
+  ValidateTransitionTiming(action, label);
+}
+function ValidateVoicePitchCents(value, label) {
+  const number = NormalizeFiniteNumber(value, label);
+  if (number < -2400 || number > 2400) {
+    throw new TypeError(`${label} must be between -2400 and 2400 cents`);
+  }
+  return number;
+}
 function ValidatePlaybackControlAction(value, label) {
   const action = RequireRecord(value, label);
   if (!PLAYBACK_CONTROL_ACTION_KINDS.has(action.kind)) {
@@ -668,6 +728,39 @@ function NormalizeVoiceVolumeAction(action) {
       result.volumeRangeDb = {
         min: Number(action.volumeRangeDb.min),
         max: Number(action.volumeRangeDb.max)
+      };
+    }
+  }
+  return result;
+}
+function NormalizeVoicePitchAction(action) {
+  const result = {
+    kind: action.kind,
+    targetId: String(Number(action.targetId) >>> 0),
+    scope: action.scope,
+    mode: "element",
+    curve: Number(action.curve ?? 4)
+  };
+  for (const field of ["targetFlags", "delayMs", "transitionMs"]) {
+    if (action[field] !== undefined) {
+      result[field] = Number(action[field]);
+    }
+  }
+  for (const field of ["delayRangeMs", "transitionRangeMs"]) {
+    if (action[field] !== undefined) {
+      result[field] = {
+        min: Number(action[field].min),
+        max: Number(action[field].max)
+      };
+    }
+  }
+  if (action.kind === "set-voice-pitch") {
+    result.valueMode = action.valueMode;
+    result.pitchCents = Number(action.pitchCents);
+    if (action.pitchRangeCents !== undefined) {
+      result.pitchRangeCents = {
+        min: Number(action.pitchRangeCents.min),
+        max: Number(action.pitchRangeCents.max)
       };
     }
   }
