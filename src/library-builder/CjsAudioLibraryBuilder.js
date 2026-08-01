@@ -2449,7 +2449,12 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
 
         for (const rtpc of nodeBase.rtpcs ?? [])
         {
-            rtpcCurves.push(CreateSfxRtpcCurve(rtpc, names));
+            const curve = CreateSfxRtpcCurve(rtpc, names);
+
+            if (curve)
+            {
+                rtpcCurves.push(curve);
+            }
         }
 
         for (const group of nodeBase.state?.groups ?? [])
@@ -2625,15 +2630,9 @@ function CreateSfxRtpcCurve(rtpc, names)
     };
     const definition = definitions[propertyID];
 
-    if (Number(rtpc.controlType) !== 0)
+    if (Number(rtpc.controlType) !== 0 || !definition)
     {
-        throw new Error(
-            `unsupported RTPC control type ${rtpc.controlType}`,
-        );
-    }
-    if (!definition)
-    {
-        throw new Error(`unsupported RTPC property ${propertyID}`);
+        return null;
     }
 
     const controlID = Number(rtpc.controlId) >>> 0;

@@ -1247,26 +1247,26 @@ test("SFX lowering preserves exact NodeBase RTPC accumulation modes", () =>
         { nodeId: "201" },
     ]);
     assert.equal(result.events.invalid_play, undefined);
-    assert.equal(result.events.unsupported_property_play, undefined);
-    assert.equal(result.events.unsupported_control_play, undefined);
+    assert.deepEqual(result.events.unsupported_property_play, [
+        { nodeId: "203" },
+    ]);
+    assert.deepEqual(result.events.unsupported_control_play, [
+        { nodeId: "204" },
+    ]);
     assert.equal(result.nodes["202"], undefined);
-    assert.equal(result.nodes["203"], undefined);
-    assert.equal(result.nodes["204"], undefined);
+    assert.deepEqual(result.nodes["203"], {
+        type: "sound",
+        mediaId: "9004",
+    });
+    assert.deepEqual(result.nodes["204"], {
+        type: "sound",
+        mediaId: "9005",
+    });
     assert.deepEqual(result.diagnostics.omittedEvents, [
         {
             id: 102,
             name: "invalid_play",
             reason: "unsupported volume RTPC scaling 0",
-        },
-        {
-            id: 103,
-            name: "unsupported_property_play",
-            reason: "unsupported RTPC property 5",
-        },
-        {
-            id: 104,
-            name: "unsupported_control_play",
-            reason: "unsupported RTPC control type 1",
         },
     ]);
 });
