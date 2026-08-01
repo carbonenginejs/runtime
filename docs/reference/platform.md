@@ -38,7 +38,32 @@ Capabilities that cannot be established from browser-visible facts remain
 false. Temporal anti-aliasing is an application/engine choice and is enabled
 only through the explicit `taa` detection option.
 
-## Adapter and driver snapshots
+## Capability-driven shader variant substitution
+
+Some shader variants cannot fit a backend's texture-unit limit. Where that
+happens the engine substitutes a cheaper variant **once, when the engine is
+identified**, rather than degrading the shader. It is not a per-draw or
+per-effect decision.
+
+| Backend | Condition | Substitution |
+| --- | --- | --- |
+| WebGL 2 | always | `heatdetail` → `heat` |
+| WebGPU | device texture limit is 16 | `heatdetail` → `heat` |
+| WebGPU | device allows more than 16 | none |
+
+WebGL 2 guarantees 16 texture image units per stage, so its condition is constant
+and the substitution unconditional. WebGPU's limit is requestable and commonly
+higher, so it is a genuine runtime check against the adapter's reported limits.
+
+The heat+detail space-object shader needs 17 units after every available saving,
+including merging its detail maps into one array texture and packing the local
+light buffers. Substituting the plain heat variant costs the detail layer on
+heat-shaded objects and nothing else — notably no lighting quality, which the
+alternatives would have cost.
+
+This package owns the *capability* (the reported limit); the substitution
+*policy* is engine-level. Both variants remain valid packaged outputs, and a
+device able to run `heatdetail` runs it.
 
 `Tr2VideoAdapter.FromGPUAdapter(adapter)` snapshots the browser-visible
 adapter info, sorted feature names, numeric limits, fallback status, and a
