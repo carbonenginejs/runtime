@@ -113,32 +113,86 @@ const DATA_TEXTURE_FORMAT = Object.freeze({
 const ABSENT_U8 = 0xff;
 
 /**
- * Rejects the local-light lowering profiles.
+ * Local-light lowering roles, as a wire index.
  *
- * `--packed-light-texture` and `--light-constant-buffer` synthesise a data
- * texture or a capacity-sized UBO to stand in for local lights, and tag the
- * binding with a `cewgSemantic`. Those profiles are off by default and are not
- * carried into this container: local lights reach a shader through a constant
- * buffer whose register index carries its meaning
- * (docs/contracts/constant-buffer-slots.md), and a synthesised substitute would
- * put a second, undocumented mechanism next to that contract.
+ * Carbon puts local lights in two structured buffers plus a profile texture.
+ * WebGL 2 has no structured buffers at all, so they have to be re-expressed —
+ * this is a *storage* change, not a shading one, and without it the affected
+ * shaders cannot bind their lights.
  *
- * This fails closed rather than dropping the field, so enabling a profile
- * produces an error naming the binding instead of a container that packages
- * cleanly and renders without lights.
+ * The emitter still spells the role `cewgSemantic` on its binding records. That
+ * name is not carried onto the wire: it names a defunct package format rather
+ * than the thing it describes. Renaming it at the emitter is a separate change.
+ */
+export const GLSL_LOCAL_LIGHT_ROLE = Object.freeze([ "packed-texture", "constant-buffer" ]);
+
+/** Emitter `cewgSemantic` values, in the same order as the roles above. */
+const EMITTER_LIGHT_SEMANTIC = Object.freeze([ "packedLocalLights", "localLights" ]);
+
+/**
+ * Writes the optional local-light lowering record.
  *
+ * Carries the source registers so a consumer can tie the synthesised resource
+ * back to the Carbon resources it replaced, which is otherwise unrecoverable:
+ * the shader no longer declares them.
+ *
+ * @param {CjsByteWriter} writer Target writer.
  * @param {object} binding Emitter binding record.
  */
-function rejectLightProfileBinding(binding)
+function writeLocalLightRecord(writer, binding)
 {
-    if (!binding.cewgSemantic) return;
+    const role = EMITTER_LIGHT_SEMANTIC.indexOf(binding.cewgSemantic);
 
-    throw new CjsFormatWriteError(
-        `Binding "${binding.name}" carries the "${binding.cewgSemantic}" local-light lowering `
-        + "profile, which the WebGL container does not encode; build without "
-        + "--packed-light-texture / --light-constant-buffer",
-        { name: binding.name, semantic: binding.cewgSemantic }
-    );
+    if (!binding.cewgSemantic)
+    {
+        writer.u8(0);
+        return;
+    }
+
+    if (role < 0)
+    {
+        throw new CjsFormatWriteError(
+            `Binding "${binding.name}" carries unknown local-light role "${binding.cewgSemantic}"`,
+            { name: binding.name, semantic: binding.cewgSemantic }
+        );
+    }
+
+    writer.u8(1);
+    writer.u8(role);
+    writer.u8(binding.lightIndexRegister);
+    writer.u8(binding.lightDataRegister);
+    // The profile array is optional: some permutations never sample it, and the
+    // lowering replaces it with neutral attenuation when it is absent.
+    writer.u8(binding.lightProfileRegister ?? ABSENT_U8);
+    writer.u32(binding.dataTexelBase ?? 0);
+    writer.u16(binding.capacityLights ?? 0);
+}
+
+/**
+ * Reads the optional local-light lowering record.
+ *
+ * @param {CjsByteReader} reader Source reader.
+ * @returns {object|null} Local-light fields, or null when the binding is ordinary.
+ */
+function readLocalLightRecord(reader)
+{
+    if (!reader.readUint8()) return null;
+
+    const role = GLSL_LOCAL_LIGHT_ROLE[reader.readUint8()];
+    const lightIndexRegister = reader.readUint8();
+    const lightDataRegister = reader.readUint8();
+    const profile = reader.readUint8();
+    const dataTexelBase = reader.readUint32();
+    const capacityLights = reader.readUint16();
+
+    return {
+        localLightRole: role,
+        lightIndexRegister,
+        lightDataRegister,
+        lightProfileRegister: profile === ABSENT_U8 ? null : profile,
+        ...(role === "packed-texture" ? { dataTexelBase } : {}),
+        ...(role === "constant-buffer" ? { capacityLights } : {})
+    };
 }
 
 /**
@@ -161,6 +215,7 @@ function writeBindingBody(writer, binding)
             }
             writer.u16(binding.sizeInVec4);
             writer.u8(style);
+            writeLocalLightRecord(writer, binding);
             break;
         }
         case "resource": {
@@ -185,6 +240,7 @@ function writeBindingBody(writer, binding)
         case "structuredTexture":
             writer.u32(binding.strideBytes ?? 0);
             writer.u16(binding.width);
+            writeLocalLightRecord(writer, binding);
             break;
         case "structuredUbo":
             writer.u32(binding.strideBytes ?? 0);
@@ -215,11 +271,11 @@ function readBindingBody(reader, kind)
 {
     switch (kind)
     {
-        case "constantBuffer":
-            return {
-                sizeInVec4: reader.readUint16(),
-                style: GLSL_BACKEND_CONSTANT_BUFFER_STYLE[reader.readUint8()]
-            };
+        case "constantBuffer": {
+            const sizeInVec4 = reader.readUint16();
+            const style = GLSL_BACKEND_CONSTANT_BUFFER_STYLE[reader.readUint8()];
+            return { sizeInVec4, style, ...(readLocalLightRecord(reader) ?? {}) };
+        }
         case "resource": {
             const dimension = reader.readUint8();
             const samplerCount = reader.readUint8();
@@ -253,12 +309,16 @@ function readBindingBody(reader, kind)
                 width: reader.readUint16(),
                 returnTypes: readStringList(reader)
             };
-        case "structuredTexture":
+        case "structuredTexture": {
+            const strideBytes = reader.readUint32();
+            const width = reader.readUint16();
             return {
-                strideBytes: reader.readUint32(),
+                strideBytes,
                 format: DATA_TEXTURE_FORMAT.structuredTexture,
-                width: reader.readUint16()
+                width,
+                ...(readLocalLightRecord(reader) ?? {})
             };
+        }
         case "structuredUbo":
             return {
                 strideBytes: reader.readUint32(),
@@ -404,8 +464,6 @@ export function writeGlslBackendBlock(block)
         writer.u8(bindings.length);
         for (const binding of bindings)
         {
-            rejectLightProfileBinding(binding);
-
             const kind = GLSL_BACKEND_BINDING_KIND.indexOf(binding.kind);
             if (kind < 0)
             {

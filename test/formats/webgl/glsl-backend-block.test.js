@@ -173,7 +173,82 @@ test("stage order is canonical, so identical lowering dedupes in the arena", () 
     assert.deepEqual(writeGlslBackendBlock(reordered), writeGlslBackendBlock(BLOCK));
 });
 
-test("a local-light lowering profile fails the build rather than being dropped", () =>
+/**
+ * Carbon puts local lights in two structured buffers plus a profile texture.
+ * WebGL 2 has no structured buffers, so they are re-expressed as a packed data
+ * texture or a constant buffer. Without this the affected shaders cannot bind
+ * their lights at all, so the block has to carry the lowering.
+ */
+test("the packed-texture local-light lowering survives a round trip", () =>
+{
+    const binding = {
+        kind: "structuredTexture",
+        registerIndex: 13,
+        name: "sb13",
+        strideBytes: 0,
+        format: "RGBA32UI",
+        width: 2048,
+        cewgSemantic: "packedLocalLights",
+        lightIndexRegister: 13,
+        lightDataRegister: 14,
+        lightProfileRegister: 15,
+        dataTexelBase: 131072
+    };
+
+    const block = readGlslBackendBlock(writeGlslBackendBlock({
+        stages: { pixel: { bindings: [ binding ], stageInputs: [] } }
+    }));
+    const decoded = block.stages.pixel.bindings[0];
+
+    assert.equal(decoded.localLightRole, "packed-texture");
+    assert.equal(decoded.lightIndexRegister, 13);
+    assert.equal(decoded.lightDataRegister, 14);
+    assert.equal(decoded.lightProfileRegister, 15);
+    // Buffer B's texel offset is not derivable; losing it misreads every light.
+    assert.equal(decoded.dataTexelBase, 131072);
+});
+
+test("the constant-buffer local-light lowering survives a round trip", () =>
+{
+    const binding = {
+        kind: "constantBuffer",
+        registerIndex: 6,
+        name: "cb6",
+        sizeInVec4: 121,
+        style: "array",
+        cewgSemantic: "localLights",
+        capacityLights: 40,
+        lightIndexRegister: 13,
+        lightDataRegister: 14,
+        lightProfileRegister: null
+    };
+
+    const block = readGlslBackendBlock(writeGlslBackendBlock({
+        stages: { pixel: { bindings: [ binding ], stageInputs: [] } }
+    }));
+    const decoded = block.stages.pixel.bindings[0];
+
+    assert.equal(decoded.localLightRole, "constant-buffer");
+    assert.equal(decoded.capacityLights, 40);
+    // Absent is a real state: some permutations never sample the profile array,
+    // and the lowering substitutes neutral attenuation for it.
+    assert.equal(decoded.lightProfileRegister, null);
+});
+
+test("an ordinary binding carries no local-light record", () =>
+{
+    const block = readGlslBackendBlock(writeGlslBackendBlock(BLOCK));
+
+    for (const stage of Object.values(block.stages))
+    {
+        for (const binding of stage.bindings)
+        {
+            assert.equal(binding.localLightRole, undefined, binding.name);
+        }
+    }
+});
+
+test("an unknown local-light role fails the build rather than being dropped", () =>
 {
     const block = {
         stages: {
@@ -184,14 +259,14 @@ test("a local-light lowering profile fails the build rather than being dropped",
                     name: "cb11",
                     sizeInVec4: 64,
                     style: "array",
-                    cewgSemantic: "localLights"
+                    cewgSemantic: "somethingElse"
                 } ],
                 stageInputs: []
             }
         }
     };
 
-    assert.throws(() => writeGlslBackendBlock(block), /localLights/u);
+    assert.throws(() => writeGlslBackendBlock(block), /somethingElse/u);
 });
 
 test("a newer block version reports as unsupported instead of misparsing", () =>
