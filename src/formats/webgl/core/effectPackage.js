@@ -11,6 +11,7 @@ import {
 import { buildCompleteEffectReflection } from "../../../format/effect/effectReflectionPackage.js";
 import { emitGlslWithOptions } from "./helpers.js";
 import { inspectGlslEffectContainer } from "./inspectGlslEffectContainer.js";
+import { inspectCewgRasterCompleteness } from "./cewgCompleteness.js";
 import { recogniseDetailMapFamily } from "../../hlsl/core/detailMapFamily.js";
 import {
     recogniseLocalLightFamily,
@@ -182,7 +183,12 @@ export function buildEffectPackage(input, options = {})
         !record.hlsl2webgl?.ok && !record.excluded);
     const excludedShaders = translatedShaders.filter((record) => record.excluded);
     const failedBodies = bodies.filter((body) => body.error);
-    const rasterCompleteness = inspectRasterCompleteness(stages, translatedShaders);
+    // The same rule the validator applies to a finished file. This function used
+    // to carry its own copy, and the two had already drifted: the local one had
+    // dropped `hlsl2webgl.reason` from its reason chain, so the library and the
+    // validator could describe one incomplete pass two different ways. If two
+    // places must agree, one of them calls the other.
+    const rasterCompleteness = inspectCewgRasterCompleteness(stages, translatedShaders);
     const availableShaderCount = translatedShaders.filter((record) =>
         record.hlsl2webgl?.ok && record.source).length;
     const info = {
@@ -1034,95 +1040,6 @@ function validateStageSourceShape(record)
     }
 
     return null;
-}
-
-function inspectRasterCompleteness(stages, shaders)
-{
-    const shaderMap = new Map(shaders.map((shader) => [ shader.key, shader ]));
-    const groups = new Map();
-
-    for (const stage of stages)
-    {
-        if (![ "vertex", "pixel" ].includes(stage.stageName))
-        {
-            continue;
-        }
-
-        const key = `${stage.bodyKey}:${stage.techniqueName}:${stage.passIndex}`;
-        const group = groups.get(key) ?? {
-            key,
-            bodyKey: stage.bodyKey,
-            techniqueName: stage.techniqueName,
-            passIndex: stage.passIndex,
-            vertex: null,
-            pixel: null,
-            duplicateStages: []
-        };
-
-        if (group[stage.stageName])
-        {
-            group.duplicateStages.push(stage.stageName);
-        }
-
-        group[stage.stageName] = stage;
-        groups.set(key, group);
-    }
-
-    const incompletePasses = [];
-    let completePassCount = 0;
-
-    for (const group of groups.values())
-    {
-        const missingStages = [];
-        const unavailableStages = [];
-
-        for (const stageName of [ "vertex", "pixel" ])
-        {
-            const stage = group[stageName];
-
-            if (!stage)
-            {
-                missingStages.push(stageName);
-                continue;
-            }
-
-            const shader = shaderMap.get(stage.shaderKey);
-
-            if (!shader?.hlsl2webgl?.ok || !shader.source)
-            {
-                unavailableStages.push({
-                    stageName,
-                    stageKey: stage.key,
-                    shaderKey: stage.shaderKey,
-                    reason: shader?.hlsl2webgl?.validationError
-                        || shader?.hlsl2webgl?.error
-                        || shader?.excluded?.reason
-                        || "translated source is unavailable"
-                });
-            }
-        }
-
-        if (!missingStages.length && !unavailableStages.length
-            && !group.duplicateStages.length)
-        {
-            completePassCount++;
-        }
-        else
-        {
-            incompletePasses.push({
-                ...group,
-                missingStages,
-                unavailableStages,
-                duplicateStages: [ ...new Set(group.duplicateStages) ].sort()
-            });
-        }
-    }
-
-    return {
-        expectedPassCount: groups.size,
-        completePassCount,
-        incompletePasses
-    };
 }
 
 function normalizeSourceIdentity(values)
