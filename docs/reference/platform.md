@@ -48,18 +48,21 @@ per-effect decision.
 | Backend | Condition | Substitution |
 | --- | --- | --- |
 | WebGL 2 | always | `heatdetail` → `heat` |
-| WebGPU | device texture limit is 16 | `heatdetail` → `heat` |
-| WebGPU | device allows more than 16 | none |
+| WebGPU | any | none |
 
-WebGL 2 guarantees 16 texture image units per stage, so its condition is constant
-and the substitution unconditional. WebGPU's limit is requestable and commonly
-higher, so it is a genuine runtime check against the adapter's reported limits.
+WebGL 2 guarantees 16 texture image units per stage, and the heat+detail
+space-object shader needs 17 there after every available saving — including
+merging its detail maps into one array texture and packing the local light
+buffers. Substituting the plain heat variant costs the detail layer on heat-shaded
+objects and nothing else; notably no lighting quality, which the alternatives
+would have cost.
 
-The heat+detail space-object shader needs 17 units after every available saving,
-including merging its detail maps into one array texture and packing the local
-light buffers. Substituting the plain heat variant costs the detail layer on
-heat-shaded objects and nothing else — notably no lighting quality, which the
-alternatives would have cost.
+WebGPU needs no substitution, including at its default limits. Carbon's local
+lights are structured buffers, which WebGPU has natively and which cost no
+texture units; the same resources have to become data textures on WebGL 2. The
+measured shader fits every default per-stage limit, though with no spare texture
+units, so a device offering a higher `maxSampledTexturesPerShaderStage` is worth
+requesting as margin.
 
 This package owns the *capability* (the reported limit); the substitution
 *policy* is engine-level. Both variants remain valid packaged outputs, and a
