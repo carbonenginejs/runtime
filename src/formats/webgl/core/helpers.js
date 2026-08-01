@@ -12,6 +12,7 @@
 import { CewgPackage } from "./cewg/CewgPackage.js";
 import { CewgPackageBuilder } from "./cewg/CewgPackageBuilder.js";
 import { DxbcGlslEmitter } from "./glsl/DxbcGlslEmitter.js";
+import { applyPackedLightFixups } from "./glsl/packedLightFixups.js";
 import { WebglReadError } from "./errors.js";
 import { validateEffectPackageEnvelope } from "./effectPackageValidation.js";
 
@@ -311,10 +312,21 @@ export function emitGlslWithOptions(dxbcBytes, options = {})
     }
 
     const emitter = new DxbcGlslEmitter({ profile });
-    return emitter.Emit(dxbcBytes, {
+    const result = emitter.Emit(dxbcBytes, {
         source: options.source,
         pairVaryings: options.pairVaryings
     });
+
+    // The packed local-light lowering leaves two idioms that must not reach a
+    // driver: a flag mask round-tripped through a float, and an all-bits mask
+    // stored as a float and then used for branch control, where 0xFFFFFFFF is a
+    // NaN. Applied here rather than at a call site so every caller gets them.
+    if (!options.lightPackedTexture) return result;
+
+    return {
+        ...result,
+        source: applyPackedLightFixups(result.source, result.stageName)
+    };
 }
 
 /**
