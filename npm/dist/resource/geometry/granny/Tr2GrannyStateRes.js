@@ -1,9 +1,8 @@
-import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
-import { type } from '@carbonenginejs/runtime-utils/schema';
-import { CjsResource as _CjsResource } from '../../CjsResource.js';
+import { CjsSchema } from '@carbonenginejs/runtime-utils/schema';
+import { CjsResource } from '../../CjsResource.js';
 import { assertResourcePayloadObject, resourcePayloadError } from '../../resourceBoundary.js';
 
-let _initClass;
+// Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
 
 /**
  * Runtime-owned GState resource.
@@ -12,34 +11,26 @@ let _initClass;
  * without models. Consumers inspect its plain payload rather than assuming the
  * model-bearing TriGrannyRes payload shape.
  */
-let _Tr2GrannyStateRes;
-new class extends _identity {
-  static [class Tr2GrannyStateRes extends _CjsResource {
-    static {
-      [_Tr2GrannyStateRes, _initClass] = _applyDecs2311(this, [type.define({
-        className: "Tr2GrannyStateRes",
-        family: "resources"
-      })], [], 0, void 0, _CjsResource).c;
-    }
-    /** Updates payload in the current resource payload lifecycle. */
-    SetPayload(payload = null) {
-      if (payload === null) {
-        super.SetPayload(null);
-        return this;
-      }
-      assertResourcePayloadObject("Tr2GrannyStateRes", payload);
-      if (!payload.skeleton && !Array.isArray(payload.additiveAnimations)) {
-        throw resourcePayloadError("Tr2GrannyStateRes", "Expected skeleton data or an additiveAnimations array.");
-      }
-      super.SetPayload(payload);
+class Tr2GrannyStateRes extends CjsResource {
+  /** Updates payload in the current resource payload lifecycle. */
+  SetPayload(payload = null) {
+    if (payload === null) {
+      super.SetPayload(null);
       return this;
     }
-  }];
-  payload = "granny-state";
-  constructor() {
-    super(_Tr2GrannyStateRes), _initClass();
+    assertResourcePayloadObject("Tr2GrannyStateRes", payload);
+    if (!payload.skeleton && !Array.isArray(payload.additiveAnimations)) {
+      throw resourcePayloadError("Tr2GrannyStateRes", "Expected skeleton data or an additiveAnimations array.");
+    }
+    super.SetPayload(payload);
+    return this;
   }
-}();
+  static payload = "granny-state";
+}
+CjsSchema.define(Tr2GrannyStateRes, {
+  className: "Tr2GrannyStateRes",
+  family: "resources"
+});
 
-export { _Tr2GrannyStateRes as Tr2GrannyStateRes };
+export { Tr2GrannyStateRes };
 //# sourceMappingURL=Tr2GrannyStateRes.js.map

@@ -1,4 +1,4 @@
-import { CjsSchema, type, schema, impl } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, type, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { dwordToFloat } from '@carbonenginejs/runtime-utils/math/num';
 import { isPlainObject, isUint32 } from '@carbonenginejs/runtime-utils/is';
@@ -89,15 +89,17 @@ class Tr2EffectParameterAnnotation extends CjsModel {
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectParameterAnnotation, {
   className: "Tr2EffectParameterAnnotation",
-  family: "shader"
+  family: "shader",
+  fields: {
+    name: type.string,
+    type: [type.int32, schema.enum("Type")],
+    boolValue: type.boolean,
+    rawValue: [impl.adapted, impl.reason("Carbon reads numeric annotations into typed values; the portable source contract retains the exact uint32 payload so NaN, negative zero, and integer bit patterns round-trip losslessly."), type.uint32],
+    intValue: type.int32,
+    floatValue: type.float32,
+    stringValue: type.string
+  }
 });
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "name", type.string);
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "type", type.int32, schema.enum("Type"));
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "boolValue", type.boolean);
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "rawValue", impl.adapted, impl.reason("Carbon reads numeric annotations into typed values; the portable source contract retains the exact uint32 payload so NaN, negative zero, and integer bit patterns round-trip losslessly."), type.uint32);
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "intValue", type.int32);
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "floatValue", type.float32);
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "stringValue", type.string);
 
 export { Tr2EffectParameterAnnotation };
 //# sourceMappingURL=Tr2EffectParameterAnnotation.js.map

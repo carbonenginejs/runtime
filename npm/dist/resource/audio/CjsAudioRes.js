@@ -1,5 +1,5 @@
 import { CjsError } from '@carbonenginejs/runtime-utils/errors';
-import { CjsResource as _CjsResource } from '../CjsResource.js';
+import { CjsResource } from '../CjsResource.js';
 import { CjsAudioBufferRes } from './CjsAudioBufferRes.js';
 
 /**
@@ -9,7 +9,7 @@ import { CjsAudioBufferRes } from './CjsAudioBufferRes.js';
  * Loose files, prepared files, API results, and bank windows therefore expose
  * the same byte and lifetime methods.
  */
-class CjsAudioRes extends _CjsResource {
+class CjsAudioRes extends CjsResource {
   #audioInfo = Object.freeze({});
   #backing = null;
   #backingLocks = 0;

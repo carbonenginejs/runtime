@@ -646,9 +646,11 @@ function normalizeShaderOptions(options)
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectRes, {
   className: "Tr2EffectRes",
-  family: "resources"
+  family: "resources",
+  methods: {
+    GetShader: [ carbon.method, impl.adapted, impl.reason("Carbon reads the selected body directly from compiled effect bytes and registers renderer handles; CarbonEngineJS hydrates the format package's validated portable reflection without realizing GPU state.") ],
+    GetShaderByIndex: [ impl.custom, impl.reason("Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact package-index hydration for deterministic package consumers and tests.") ],
+    GetPermutationDescription: [ carbon.method, impl.adapted, impl.reason("Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a JSON-friendly plain axis description.") ],
+    ReleaseResources: [ carbon.method, impl.adapted, impl.reason("Backend resources are engine-owned; the resource-side release clears only hydrated device-free shader graphs.") ]
+  }
 });
-CjsSchema.decorateMethod(Tr2EffectRes, "GetShader", carbon.method, impl.adapted, impl.reason("Carbon reads the selected body directly from compiled effect bytes and registers renderer handles; CarbonEngineJS hydrates the format package's validated portable reflection without realizing GPU state."));
-CjsSchema.decorateMethod(Tr2EffectRes, "GetShaderByIndex", impl.custom, impl.reason("Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact package-index hydration for deterministic package consumers and tests."));
-CjsSchema.decorateMethod(Tr2EffectRes, "GetPermutationDescription", carbon.method, impl.adapted, impl.reason("Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a JSON-friendly plain axis description."));
-CjsSchema.decorateMethod(Tr2EffectRes, "ReleaseResources", carbon.method, impl.adapted, impl.reason("Backend resources are engine-owned; the resource-side release clears only hydrated device-free shader graphs."));

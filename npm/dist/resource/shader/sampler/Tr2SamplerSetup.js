@@ -1,4 +1,4 @@
-import { CjsSchema, type, impl } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, impl, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
 import { cloneCarbonValue } from '@carbonenginejs/runtime-utils/types';
@@ -64,12 +64,14 @@ class Tr2SamplerSetup extends CjsModel {
 // would register a static as an instance field.
 CjsSchema.define(Tr2SamplerSetup, {
   className: "Tr2SamplerSetup",
-  family: "shader"
+  family: "shader",
+  fields: {
+    name: type.string,
+    hasName: [impl.adapted, impl.reason("The schema string field cannot distinguish an authored null sampler name from an empty name; portable reflection must retain that distinction for static sampler records."), type.boolean],
+    sampler: type.rawStruct("Tr2SamplerStateAL"),
+    isDynamic: [impl.adapted, impl.reason("The portable effect contract distinguishes dynamic and static sampler declarations before an engine creates sampler state."), type.boolean]
+  }
 });
-CjsSchema.decorateField(Tr2SamplerSetup, "name", type.string);
-CjsSchema.decorateField(Tr2SamplerSetup, "hasName", impl.adapted, impl.reason("The schema string field cannot distinguish an authored null sampler name from an empty name; portable reflection must retain that distinction for static sampler records."), type.boolean);
-CjsSchema.decorateField(Tr2SamplerSetup, "sampler", type.rawStruct("Tr2SamplerStateAL"));
-CjsSchema.decorateField(Tr2SamplerSetup, "isDynamic", impl.adapted, impl.reason("The portable effect contract distinguishes dynamic and static sampler declarations before an engine creates sampler state."), type.boolean);
 
 export { Tr2SamplerSetup };
 //# sourceMappingURL=Tr2SamplerSetup.js.map

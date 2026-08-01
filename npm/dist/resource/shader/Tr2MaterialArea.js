@@ -25,10 +25,12 @@ class Tr2MaterialArea extends CjsModel {
 // would register a static as an instance field.
 CjsSchema.define(Tr2MaterialArea, {
   className: "Tr2MaterialArea",
-  family: "resources"
+  family: "resources",
+  fields: {
+    material: [io.persist, type.objectRef("Tr2MaterialParameterStore")],
+    metatype: [io.persist, type.string]
+  }
 });
-CjsSchema.decorateField(Tr2MaterialArea, "material", io.persist, type.objectRef("Tr2MaterialParameterStore"));
-CjsSchema.decorateField(Tr2MaterialArea, "metatype", io.persist, type.string);
 
 export { Tr2MaterialArea };
 //# sourceMappingURL=Tr2MaterialArea.js.map

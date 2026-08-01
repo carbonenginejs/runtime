@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes.h
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
-import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../CjsResource.js";
 import { validateRgbaPayload } from "../../format/payloadContract.js";
 import { validateResourcePayload } from "../resourceBoundary.js";
@@ -12,16 +12,11 @@ import { validateResourcePayload } from "../resourceBoundary.js";
  * Carbon treats this as image payload data. Engine-gpu decides whether it ever
  * becomes device texture state.
  */
-@type.define({ className: "Tr2ImageRes", family: "resources" })
 export class Tr2ImageRes extends CjsResource
 {
 
-  @io.persist
-  @type.uint32
   width = 0;
 
-  @io.persist
-  @type.uint32
   height = 0;
 
   /** Creates a Tr2ImageRes with caller-provided initial state. */
@@ -62,8 +57,6 @@ export class Tr2ImageRes extends CjsResource
    *
    * @returns {number}
    */
-  @carbon.method
-  @impl.adapted
   GetWidth()
   {
     return this.width || 0;
@@ -74,8 +67,6 @@ export class Tr2ImageRes extends CjsResource
    *
    * @returns {number}
    */
-  @carbon.method
-  @impl.adapted
   GetHeight()
   {
     return this.height || 0;
@@ -88,8 +79,6 @@ export class Tr2ImageRes extends CjsResource
    * @param {number} y
    * @returns {*}
    */
-  @carbon.method
-  @impl.adapted
   GetPixelColor(x = 0, y = 0)
   {
     const payload = this.GetPayload();
@@ -108,8 +97,6 @@ export class Tr2ImageRes extends CjsResource
    * @param {number} y
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.adapted
   IsPixelOpaque(x = 0, y = 0)
   {
     const color = this.GetPixelColor(x, y);
@@ -119,3 +106,21 @@ export class Tr2ImageRes extends CjsResource
 
   static payload = "image";
 }
+
+// Declared as data rather than with decorators, so the resource tree loads from
+// source without a transform. Field order is key order, and GetValues() exports
+// in that order.
+CjsSchema.define(Tr2ImageRes, {
+  className: "Tr2ImageRes",
+  family: "resources",
+  fields: {
+    width: [ type.uint32, io.persist ],
+    height: [ type.uint32, io.persist ]
+  },
+  methods: {
+    GetWidth: [ carbon.method, impl.adapted ],
+    GetHeight: [ carbon.method, impl.adapted ],
+    GetPixelColor: [ carbon.method, impl.adapted ],
+    IsPixelOpaque: [ carbon.method, impl.adapted ]
+  }
+});

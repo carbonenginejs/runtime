@@ -121,9 +121,6 @@ function _checkInRHS(e) {
   if (Object(e) !== e) throw TypeError("right-hand side of 'in' should be an object, got " + (null !== e ? typeof e : "null"));
   return e;
 }
-function _identity(t) {
-  return t;
-}
 function _setFunctionName(e, t, n) {
   "symbol" == typeof t && (t = (t = t.description) ? "[" + t + "]" : "");
   try {
@@ -149,5 +146,5 @@ function _toPropertyKey(t) {
   return "symbol" == typeof i ? i : i + "";
 }
 
-export { _applyDecs2311 as applyDecs2311, _checkInRHS as checkInRHS, _identity as identity, _setFunctionName as setFunctionName, _toPrimitive as toPrimitive, _toPropertyKey as toPropertyKey };
+export { _applyDecs2311 as applyDecs2311, _checkInRHS as checkInRHS, _setFunctionName as setFunctionName, _toPrimitive as toPrimitive, _toPropertyKey as toPropertyKey };
 //# sourceMappingURL=_rollupPluginBabelHelpers.js.map

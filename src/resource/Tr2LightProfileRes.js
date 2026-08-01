@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/Tr2LightProfileRes.h
-import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "./CjsResource.js";
 import { assertResourcePayloadObject } from "./resourceBoundary.js";
 
@@ -9,7 +9,6 @@ import { assertResourcePayloadObject } from "./resourceBoundary.js";
  * The attached plain payload may be richer than the data retained by the
  * resource or active engine adapter.
  */
-@type.define({ className: "Tr2LightProfileRes", family: "resources" })
 export class Tr2LightProfileRes extends CjsResource
 {
   /** Updates payload in the current resource payload lifecycle. */
@@ -27,3 +26,8 @@ export class Tr2LightProfileRes extends CjsResource
 
   static payload = "light-profile";
 }
+
+CjsSchema.define(Tr2LightProfileRes, {
+  className: "Tr2LightProfileRes",
+  family: "resources"
+});

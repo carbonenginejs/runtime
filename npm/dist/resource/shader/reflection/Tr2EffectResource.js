@@ -72,13 +72,15 @@ class Tr2EffectResource extends CjsModel {
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectResource, {
   className: "Tr2EffectResource",
-  family: "shader"
+  family: "shader",
+  fields: {
+    isSRGB: type.boolean,
+    isAutoregister: type.boolean,
+    name: type.string,
+    type: [type.int32, schema.enum("Type")],
+    arrayElements: type.uint32
+  }
 });
-CjsSchema.decorateField(Tr2EffectResource, "isSRGB", type.boolean);
-CjsSchema.decorateField(Tr2EffectResource, "isAutoregister", type.boolean);
-CjsSchema.decorateField(Tr2EffectResource, "name", type.string);
-CjsSchema.decorateField(Tr2EffectResource, "type", type.int32, schema.enum("Type"));
-CjsSchema.decorateField(Tr2EffectResource, "arrayElements", type.uint32);
 
 export { Tr2EffectResource };
 //# sourceMappingURL=Tr2EffectResource.js.map

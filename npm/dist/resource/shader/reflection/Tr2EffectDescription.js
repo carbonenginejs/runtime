@@ -98,10 +98,12 @@ class Tr2EffectDescription extends CjsModel {
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectDescription, {
   className: "Tr2EffectDescription",
-  family: "shader"
+  family: "shader",
+  fields: {
+    techniques: type.list("Tr2EffectTechnique"),
+    annotations: type.map("Tr2EffectParameterAnnotationMap")
+  }
 });
-CjsSchema.decorateField(Tr2EffectDescription, "techniques", type.list("Tr2EffectTechnique"));
-CjsSchema.decorateField(Tr2EffectDescription, "annotations", type.map("Tr2EffectParameterAnnotationMap"));
 
 export { Tr2EffectDescription };
 //# sourceMappingURL=Tr2EffectDescription.js.map

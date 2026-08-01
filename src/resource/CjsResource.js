@@ -28,7 +28,6 @@ import { CjsSchema, carbon, impl, type } from "@carbonenginejs/runtime-utils/sch
  * @property {Function} [unlock] Releases one inactivity-purge lock and returns its count.
  */
 
-@type.define({ className: "CjsResource", family: "resource" })
 /**
  * ResMan-owned runtime resource.
  *
@@ -52,16 +51,12 @@ export class CjsResource extends CjsEventEmitter
    */
   static maxReloadAttempts = 3;
 
-  @type.path
   path = "";
 
-  @type.string
   ext = "";
 
-  @type.string
   requirement = "";
 
-  @type.string
   state = CjsResource.State.EMPTY;
 
   /**
@@ -162,8 +157,6 @@ export class CjsResource extends CjsEventEmitter
    * @param {string|null} requirement
    * @returns {CjsResource}
    */
-  @carbon.method
-  @impl.adapted
   Initialize(path, ext = null, requirement = "") {
     this.path = normalizeResourcePath(path);
     this.ext = ext ? normalizeResourceExtension(ext) : getResourceExtension(this.path);
@@ -180,8 +173,6 @@ export class CjsResource extends CjsEventEmitter
    *
    * @returns {string}
    */
-  @carbon.method
-  @impl.adapted
   GetPath() {
     return this.path;
   }
@@ -191,8 +182,6 @@ export class CjsResource extends CjsEventEmitter
    *
    * @returns {string}
    */
-  @carbon.method
-  @impl.adapted
   GetExt() {
     return this.ext;
   }
@@ -212,8 +201,6 @@ export class CjsResource extends CjsEventEmitter
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.adapted
   IsLoading() {
     return this.state === CjsResource.State.REQUESTED || this.state === CjsResource.State.LOADING;
   }
@@ -223,8 +210,6 @@ export class CjsResource extends CjsEventEmitter
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.adapted
   HasLoaded() {
     return this.state === CjsResource.State.LOADED
       || this.state === CjsResource.State.PREPARING
@@ -236,8 +221,6 @@ export class CjsResource extends CjsEventEmitter
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.adapted
   IsPrepared() {
     return this.state === CjsResource.State.PREPARED;
   }
@@ -271,8 +254,6 @@ export class CjsResource extends CjsEventEmitter
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.adapted
   IsGood() {
     this.KeepAlive();
     return this.IsPrepared();
@@ -283,8 +264,6 @@ export class CjsResource extends CjsEventEmitter
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.adapted
   IsFailed() {
     return this.state === CjsResource.State.FAILED;
   }
@@ -825,6 +804,32 @@ export class CjsResource extends CjsEventEmitter
       || state === CjsResource.State.UNLOADED;
   }
 }
+
+// Declared as data rather than with decorators, so the resource tree stays
+// plain ESM that loads from source without a transform. Resources are not model
+// graph nodes - there is no Copy or Clone here, and SetValues/GetValues are a
+// flat schema-driven property copy - so nothing here needed the decorator form.
+// Field order is key order, and GetValues() exports in that order.
+CjsSchema.define(CjsResource, {
+  className: "CjsResource",
+  family: "resource",
+  fields: {
+    path: type.path,
+    ext: type.string,
+    requirement: type.string,
+    state: type.string
+  },
+  methods: {
+    Initialize: [ carbon.method, impl.adapted ],
+    GetPath: [ carbon.method, impl.adapted ],
+    GetExt: [ carbon.method, impl.adapted ],
+    IsLoading: [ carbon.method, impl.adapted ],
+    HasLoaded: [ carbon.method, impl.adapted ],
+    IsPrepared: [ carbon.method, impl.adapted ],
+    IsGood: [ carbon.method, impl.adapted ],
+    IsFailed: [ carbon.method, impl.adapted ]
+  }
+});
 
 function destroyAdapterValue(value) {
   if (!value || typeof value !== "object") return;

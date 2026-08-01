@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/TriGrannyRes.h
-import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../../CjsResource.js";
 import { assertResourcePayloadObject, resourcePayloadError } from "../../resourceBoundary.js";
 
@@ -9,7 +9,6 @@ import { assertResourcePayloadObject, resourcePayloadError } from "../../resourc
  * The attached plain payload carries decoded Granny data. This resource
  * owns lifecycle identity; reader and engine-specific behavior stays outside.
  */
-@type.define({ className: "TriGrannyRes", family: "resources" })
 export class TriGrannyRes extends CjsResource
 {
   /** Updates payload in the current resource payload lifecycle. */
@@ -35,3 +34,8 @@ export class TriGrannyRes extends CjsResource
 
   static payload = "granny";
 }
+
+CjsSchema.define(TriGrannyRes, {
+  className: "TriGrannyRes",
+  family: "resources"
+});

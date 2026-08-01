@@ -132,12 +132,14 @@ export class Tr2Pass extends CjsModel
 // would register a static as an instance field.
 CjsSchema.define(Tr2Pass, {
   className: "Tr2Pass",
-  family: "shader"
+  family: "shader",
+  fields: {
+    stageInputs: type.list("Tr2EffectStageInput"),
+    renderStates: type.uint32,
+    shaderTypeMask: type.uint32,
+    shaderProgram: type.uint32,
+    resourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
+    indirectLayout: type.rawStruct("Tr2IndirectDrawBufferLayout"),
+    renderStateValues: [ impl.adapted, impl.reason("Carbon stores a renderer-owned render-state handle; the device-free graph retains the authored state/value pairs until an engine realizes them."), type.rawStruct("CjsEffectRenderStateValues") ]
+  }
 });
-CjsSchema.decorateField(Tr2Pass, "stageInputs", type.list("Tr2EffectStageInput"));
-CjsSchema.decorateField(Tr2Pass, "renderStates", type.uint32);
-CjsSchema.decorateField(Tr2Pass, "shaderTypeMask", type.uint32);
-CjsSchema.decorateField(Tr2Pass, "shaderProgram", type.uint32);
-CjsSchema.decorateField(Tr2Pass, "resourceSetDesc", type.rawStruct("Tr2ResourceSetDescriptionAL"));
-CjsSchema.decorateField(Tr2Pass, "indirectLayout", type.rawStruct("Tr2IndirectDrawBufferLayout"));
-CjsSchema.decorateField(Tr2Pass, "renderStateValues", impl.adapted, impl.reason("Carbon stores a renderer-owned render-state handle; the device-free graph retains the authored state/value pairs until an engine realizes them."), type.rawStruct("CjsEffectRenderStateValues"));

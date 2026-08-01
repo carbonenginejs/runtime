@@ -312,17 +312,19 @@ export class Tr2EffectStageInput extends CjsModel
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectStageInput, {
   className: "Tr2EffectStageInput",
-  family: "shader"
+  family: "shader",
+  fields: {
+    stageType: [ impl.adapted, impl.reason("The source format identifies stage inputs by array index; the device-free graph retains the index explicitly for serialization and engine adapters."), type.int32 ],
+    exists: type.boolean,
+    resources: type.map("Tr2EffectResource"),
+    uavs: type.map("Tr2EffectResource"),
+    samplers: type.map("Tr2SamplerSetup"),
+    shader: type.uint32,
+    constants: type.list("Tr2EffectConstant"),
+    constantValueSize: type.uint32,
+    constantValues: type.typedArray("Uint8Array"),
+    signature: type.rawStruct("Tr2ShaderSignatureAL"),
+    annotation: type.list("Tr2EffectParameterAnnotation"),
+    sourceProgram: [ impl.adapted, impl.reason("Carbon replaces source program data with renderer handles while reading; the device-free resource graph must retain the portable source program for later engine realization."), type.rawStruct("CjsEffectSourceProgram") ]
+  }
 });
-CjsSchema.decorateField(Tr2EffectStageInput, "stageType", impl.adapted, impl.reason("The source format identifies stage inputs by array index; the device-free graph retains the index explicitly for serialization and engine adapters."), type.int32);
-CjsSchema.decorateField(Tr2EffectStageInput, "exists", type.boolean);
-CjsSchema.decorateField(Tr2EffectStageInput, "resources", type.map("Tr2EffectResource"));
-CjsSchema.decorateField(Tr2EffectStageInput, "uavs", type.map("Tr2EffectResource"));
-CjsSchema.decorateField(Tr2EffectStageInput, "samplers", type.map("Tr2SamplerSetup"));
-CjsSchema.decorateField(Tr2EffectStageInput, "shader", type.uint32);
-CjsSchema.decorateField(Tr2EffectStageInput, "constants", type.list("Tr2EffectConstant"));
-CjsSchema.decorateField(Tr2EffectStageInput, "constantValueSize", type.uint32);
-CjsSchema.decorateField(Tr2EffectStageInput, "constantValues", type.typedArray("Uint8Array"));
-CjsSchema.decorateField(Tr2EffectStageInput, "signature", type.rawStruct("Tr2ShaderSignatureAL"));
-CjsSchema.decorateField(Tr2EffectStageInput, "annotation", type.list("Tr2EffectParameterAnnotation"));
-CjsSchema.decorateField(Tr2EffectStageInput, "sourceProgram", impl.adapted, impl.reason("Carbon replaces source program data with renderer handles while reading; the device-free resource graph must retain the portable source program for later engine realization."), type.rawStruct("CjsEffectSourceProgram"));

@@ -1,4 +1,4 @@
-import { CjsSchema, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
+import { impl, CjsSchema, carbon, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { validateEffectBodyReflection, isEffectBodyReflection } from '../../formats/hlsl/core/portableReflection.js';
 import { Tr2EffectDescription } from './reflection/Tr2EffectDescription.js';
@@ -228,29 +228,34 @@ class Tr2Shader extends CjsModel {
   }
 }
 
-// Declared imperatively rather than with decorators, so this module stays
-// plain ESM that loads from source without a transform. The decorator
-// expressions are reused verbatim, so the registered metadata is identical.
-// Statics belong in `methods`: decorateMethod targets the prototype and
-// would register a static as an instance field.
+// Declared as data rather than with decorators, so this module stays plain ESM
+// that loads from source without a transform. The decorator vocabulary is used
+// verbatim as values, so the registered metadata is identical to the decorated
+// form. Field order is key order, and it drives GetValues() export order.
+// Statics belong in `methods`: the prototype is what carries instance fields.
+const UNVALIDATED_TECHNIQUE_INDEX = impl.reason("Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index.");
 CjsSchema.define(Tr2Shader, {
   className: "Tr2Shader",
-  family: "shader"
+  family: "shader",
+  fields: {
+    sortValue: type.uint32,
+    effect: type.rawStruct("Tr2EffectDescription"),
+    hasVertexBufferAccessInRtShadow: type.boolean
+  },
+  methods: {
+    GetTechniqueIndex: [carbon.method, impl.adapted, impl.reason("Carbon returns success through a bool plus output index; CarbonEngineJS returns the index directly or -1 while preserving exact name lookup.")],
+    GetPassCount: [carbon.method, impl.adapted, UNVALIDATED_TECHNIQUE_INDEX],
+    GetConstant: [carbon.method, impl.implemented],
+    GetResource: [carbon.method, impl.implemented],
+    GetParameterAnnotations: [carbon.method, impl.implemented],
+    GetSortValue: [carbon.method, impl.implemented],
+    GetEffectDescription: [carbon.method, impl.implemented],
+    GetEffect: [carbon.method, impl.implemented],
+    GetShaderTypeMask: [carbon.method, impl.adapted, UNVALIDATED_TECHNIQUE_INDEX],
+    ProcessEffect: [carbon.method, impl.adapted, impl.reason("Carbon packs renderer handles assigned while reading; the device-free graph leaves the sort key zero until an engine assigns valid handles.")],
+    HasVertexBufferAccessInRtShadow: [carbon.method, impl.implemented]
+  }
 });
-CjsSchema.decorateField(Tr2Shader, "sortValue", type.uint32);
-CjsSchema.decorateField(Tr2Shader, "effect", type.rawStruct("Tr2EffectDescription"));
-CjsSchema.decorateField(Tr2Shader, "hasVertexBufferAccessInRtShadow", type.boolean);
-CjsSchema.decorateMethod(Tr2Shader, "GetTechniqueIndex", carbon.method, impl.adapted, impl.reason("Carbon returns success through a bool plus output index; CarbonEngineJS returns the index directly or -1 while preserving exact name lookup."));
-CjsSchema.decorateMethod(Tr2Shader, "GetPassCount", carbon.method, impl.adapted, impl.reason("Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index."));
-CjsSchema.decorateMethod(Tr2Shader, "GetConstant", carbon.method, impl.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetResource", carbon.method, impl.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetParameterAnnotations", carbon.method, impl.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetSortValue", carbon.method, impl.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetEffectDescription", carbon.method, impl.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetEffect", carbon.method, impl.implemented);
-CjsSchema.decorateMethod(Tr2Shader, "GetShaderTypeMask", carbon.method, impl.adapted, impl.reason("Carbon assumes an already-validated technique index; CarbonEngineJS safely returns zero for an unavailable index."));
-CjsSchema.decorateMethod(Tr2Shader, "ProcessEffect", carbon.method, impl.adapted, impl.reason("Carbon packs renderer handles assigned while reading; the device-free graph leaves the sort key zero until an engine assigns valid handles."));
-CjsSchema.decorateMethod(Tr2Shader, "HasVertexBufferAccessInRtShadow", carbon.method, impl.implemented);
 
 export { Tr2Shader };
 //# sourceMappingURL=Tr2Shader.js.map

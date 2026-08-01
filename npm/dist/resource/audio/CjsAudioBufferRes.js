@@ -1,5 +1,5 @@
 import { CjsError } from '@carbonenginejs/runtime-utils/errors';
-import { CjsResource as _CjsResource } from '../CjsResource.js';
+import { CjsResource } from '../CjsResource.js';
 
 /**
  * Physical audio byte-owner resource whose payload may back one complete file or several logical audio files.
@@ -8,7 +8,7 @@ import { CjsResource as _CjsResource } from '../CjsResource.js';
  * class only exposes the loaded payload as bytes without interpreting BNK or
  * media semantics.
  */
-class CjsAudioBufferRes extends _CjsResource {
+class CjsAudioBufferRes extends CjsResource {
   #audioInfo = Object.freeze({});
 
   /** Creates an unregistered physical audio resource with optional metadata. */

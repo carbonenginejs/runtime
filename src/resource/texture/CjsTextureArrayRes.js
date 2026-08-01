@@ -1,4 +1,4 @@
-import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { normalizeResourcePath } from "@carbonenginejs/runtime-utils/path";
 import { CjsResource } from "../CjsResource.js";
 import { CjsTextureArrayResParameterProxy } from "./CjsTextureArrayResParameterProxy.js";
@@ -10,7 +10,6 @@ import { CjsTextureArrayResParameterProxy } from "./CjsTextureArrayResParameterP
  * manager or engine scheduler consumes the coalesced update on a later frame
  * and prepares the corresponding immutable/cached texture-array payload.
  */
-@type.define({ className: "CjsTextureArrayRes", family: "resource" })
 export class CjsTextureArrayRes extends CjsResource
 {
   #layers = [];
@@ -538,3 +537,8 @@ function destroyAdapterValue(value)
   const destroy = value.Destroy || value.Dispose || value.destroy || value.dispose;
   if (typeof destroy === "function") destroy.call(value);
 }
+
+CjsSchema.define(CjsTextureArrayRes, {
+  className: "CjsTextureArrayRes",
+  family: "resource"
+});

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
-import { type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../../CjsResource.js";
 import { assertResourcePayloadObject, resourcePayloadError } from "../../resourceBoundary.js";
 
@@ -10,7 +10,6 @@ import { assertResourcePayloadObject, resourcePayloadError } from "../../resourc
  * without models. Consumers inspect its plain payload rather than assuming the
  * model-bearing TriGrannyRes payload shape.
  */
-@type.define({ className: "Tr2GrannyStateRes", family: "resources" })
 export class Tr2GrannyStateRes extends CjsResource
 {
   /** Updates payload in the current resource payload lifecycle. */
@@ -35,3 +34,8 @@ export class Tr2GrannyStateRes extends CjsResource
 
   static payload = "granny-state";
 }
+
+CjsSchema.define(Tr2GrannyStateRes, {
+  className: "Tr2GrannyStateRes",
+  family: "resources"
+});

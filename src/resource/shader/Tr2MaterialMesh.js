@@ -24,6 +24,8 @@ export class Tr2MaterialMesh extends CjsModel
 // would register a static as an instance field.
 CjsSchema.define(Tr2MaterialMesh, {
   className: "Tr2MaterialMesh",
-  family: "resources"
+  family: "resources",
+  fields: {
+    areas: [ io.persist, type.objectRef("Tr2MaterialAreaDict") ]
+  }
 });
-CjsSchema.decorateField(Tr2MaterialMesh, "areas", io.persist, type.objectRef("Tr2MaterialAreaDict"));

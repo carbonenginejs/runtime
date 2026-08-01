@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TriTextureRes.h
 // Source: trinity/trinity/Resources/TriTextureRes.cpp
 // Source: trinity/trinity/Resources/TriTextureRes_Blue.cpp
-import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../CjsResource.js";
 import {
   ResourcePayloadType,
@@ -22,83 +22,26 @@ import {
  *
  * The resource never creates or retains a backend texture.
  */
-@type.define({ className: "TriTextureRes", family: "resources" })
 export class TriTextureRes extends CjsResource
 {
-  @io.read
-  @type.unknown
   format = null;
-
-  @io.persist
-  @type.unknown
   type = null;
-
-  @io.read
-  @type.color
   averageColor = [0, 0, 0, 0];
-
-  @io.read
-  @type.uint32
   depth = 0;
-
-  @io.readwrite
-  @type.float32
   cutoutHeight = 1;
-
-  @io.read
-  @type.uint32
   height = 0;
-
-  @io.read
-  @type.boolean
   lodEnabled = false;
-
-  @io.read
-  @type.boolean
   hadLodRequests = false;
-
-  @io.read
-  @type.uint32
   cpuMip = 0;
-
-  @io.read
-  @type.uint32
   gpuMip = 0;
-
-  @io.read
-  @type.unknown
   wrappedRenderTarget = null;
-
-  @io.read
-  @type.uint32
   originalResolution = 0;
-
-  @io.read
-  @type.uint64
   originalMemoryUsage = 0;
-
-  @io.readwrite
-  @type.string
   name = "";
-
-  @io.read
-  @type.uint32
   arraySize = 0;
-
-  @io.readwrite
-  @type.float32
   cutoutWidth = 1;
-
-  @io.read
-  @type.uint32
   width = 0;
-
-  @io.readwrite
-  @type.float32
   cutoutX = 0;
-
-  @io.readwrite
-  @type.float32
   cutoutY = 0;
 
   /** Creates a TriTextureRes with caller-provided initial state. */
@@ -162,8 +105,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {number}
    */
-  @carbon.method
-  @impl.adapted
   GetMipCount() {
     return this.GetPayload()?.mipCount || this.cpuMip || 0;
   }
@@ -173,8 +114,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {number}
    */
-  @carbon.method
-  @impl.adapted
   GetMsaaType() {
     const payload = this.GetPayload();
     return payload?.multiSampleType ?? payload?.msaaType ?? payload?.samples ?? 1;
@@ -185,8 +124,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {number}
    */
-  @carbon.method
-  @impl.adapted
   GetMsaaQuality() {
     const payload = this.GetPayload();
     return payload?.multiSampleQuality ?? payload?.msaaQuality ?? 0;
@@ -197,8 +134,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.adapted
   HadLodRequests() {
     return this.hadLodRequests;
   }
@@ -208,8 +143,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {number}
    */
-  @carbon.method
-  @impl.notSupported
   GetSrvIndexInHeap() {
     throw resourceBoundaryError("TriTextureRes", "GetSrvIndexInHeap", "Runtime-resource does not own descriptor heaps.");
   }
@@ -220,8 +153,6 @@ export class TriTextureRes extends CjsResource
    * @param {string} path
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.notSupported
   SaveAsync(path = "") {
     throw resourceBoundaryError(
       "TriTextureRes",
@@ -236,8 +167,6 @@ export class TriTextureRes extends CjsResource
    * @param {string} path
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.notSupported
   Save(path = "") {
     throw resourceBoundaryError(
       "TriTextureRes",
@@ -251,8 +180,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.noop
   IsSaving() {
     return false;
   }
@@ -262,8 +189,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.noop
   IsSaveCompleted() {
     return true;
   }
@@ -273,8 +198,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.noop
   IsSaveSucceeded() {
     return false;
   }
@@ -284,8 +207,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.noop
   WaitForSave() {
     return this.IsSaveCompleted();
   }
@@ -295,8 +216,6 @@ export class TriTextureRes extends CjsResource
    *
    * @throws {Error}
    */
-  @carbon.method
-  @impl.notSupported
   CreateEmptyTexture() {
     throw resourceBoundaryError("TriTextureRes", "CreateEmptyTexture", "Use engine-gpu to allocate device textures.");
   }
@@ -306,8 +225,6 @@ export class TriTextureRes extends CjsResource
    *
    * @throws {Error}
    */
-  @carbon.method
-  @impl.notSupported
   SetFromRenderTarget() {
     throw resourceBoundaryError("TriTextureRes", "SetFromRenderTarget", "Runtime-resource does not own render targets.");
   }
@@ -317,8 +234,6 @@ export class TriTextureRes extends CjsResource
    *
    * @throws {Error}
    */
-  @carbon.method
-  @impl.notSupported
   CreateAndCopyFromRenderTarget() {
     throw resourceBoundaryError("TriTextureRes", "CreateAndCopyFromRenderTarget", "Runtime-resource does not own render targets.");
   }
@@ -328,8 +243,6 @@ export class TriTextureRes extends CjsResource
    *
    * @throws {Error}
    */
-  @carbon.method
-  @impl.notSupported
   CreateFromHostBitmap() {
     throw resourceBoundaryError("TriTextureRes", "CreateFromHostBitmap", "Use engine-gpu to allocate and upload texture data.");
   }
@@ -339,8 +252,6 @@ export class TriTextureRes extends CjsResource
    *
    * @throws {Error}
    */
-  @carbon.method
-  @impl.notSupported
   CreateFromTexture() {
     throw resourceBoundaryError("TriTextureRes", "CreateFromTexture", "Use engine-gpu to copy device textures.");
   }
@@ -352,8 +263,6 @@ export class TriTextureRes extends CjsResource
    * @param {string|number} object
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.adapted
   HasALObject(type, object) {
     return this.HasAdapterResource(`${type}:${object}`);
   }
@@ -363,8 +272,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {*}
    */
-  @carbon.method
-  @impl.adapted
   GetPipeline() {
     return this.GetAdapterResource("pipeline");
   }
@@ -374,8 +281,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {number}
    */
-  @carbon.method
-  @impl.adapted
   GetOriginalMemoryUsage() {
     return this.originalMemoryUsage || getPayloadMemoryUsage(this.GetPayload());
   }
@@ -389,8 +294,6 @@ export class TriTextureRes extends CjsResource
    * @param {number} alpha
    * @returns {TriTextureRes}
    */
-  @carbon.method
-  @impl.adapted
   SetAverageColor(red = 0, green = 0, blue = 0, alpha = 0) {
     this.averageColor = [red, green, blue, alpha];
     return this;
@@ -401,8 +304,6 @@ export class TriTextureRes extends CjsResource
    *
    * @throws {Error}
    */
-  @carbon.method
-  @impl.notSupported
   UpdateSubresource() {
     throw resourceBoundaryError("TriTextureRes", "UpdateSubresource", "Use engine-gpu to upload texture bytes.");
   }
@@ -412,8 +313,6 @@ export class TriTextureRes extends CjsResource
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.adapted
   PrepareResources() {
     return this.IsPrepared();
   }
@@ -432,3 +331,56 @@ function getPayloadMemoryUsage(payload)
     ? payload.data.byteLength
     : 0;
 }
+
+// Declared as data rather than with decorators, so the resource tree loads from
+// source without a transform. Field order is key order, and GetValues() exports
+// in that order.
+CjsSchema.define(TriTextureRes, {
+  className: "TriTextureRes",
+  family: "resources",
+  fields: {
+    format: [ type.unknown, io.read ],
+    type: [ type.unknown, io.persist ],
+    averageColor: [ type.color, io.read ],
+    depth: [ type.uint32, io.read ],
+    cutoutHeight: [ type.float32, io.readwrite ],
+    height: [ type.uint32, io.read ],
+    lodEnabled: [ type.boolean, io.read ],
+    hadLodRequests: [ type.boolean, io.read ],
+    cpuMip: [ type.uint32, io.read ],
+    gpuMip: [ type.uint32, io.read ],
+    wrappedRenderTarget: [ type.unknown, io.read ],
+    originalResolution: [ type.uint32, io.read ],
+    originalMemoryUsage: [ type.uint64, io.read ],
+    name: [ type.string, io.readwrite ],
+    arraySize: [ type.uint32, io.read ],
+    cutoutWidth: [ type.float32, io.readwrite ],
+    width: [ type.uint32, io.read ],
+    cutoutX: [ type.float32, io.readwrite ],
+    cutoutY: [ type.float32, io.readwrite ]
+  },
+  methods: {
+    GetMipCount: [ carbon.method, impl.adapted ],
+    GetMsaaType: [ carbon.method, impl.adapted ],
+    GetMsaaQuality: [ carbon.method, impl.adapted ],
+    HadLodRequests: [ carbon.method, impl.adapted ],
+    GetSrvIndexInHeap: [ carbon.method, impl.notSupported ],
+    SaveAsync: [ carbon.method, impl.notSupported ],
+    Save: [ carbon.method, impl.notSupported ],
+    IsSaving: [ carbon.method, impl.noop ],
+    IsSaveCompleted: [ carbon.method, impl.noop ],
+    IsSaveSucceeded: [ carbon.method, impl.noop ],
+    WaitForSave: [ carbon.method, impl.noop ],
+    CreateEmptyTexture: [ carbon.method, impl.notSupported ],
+    SetFromRenderTarget: [ carbon.method, impl.notSupported ],
+    CreateAndCopyFromRenderTarget: [ carbon.method, impl.notSupported ],
+    CreateFromHostBitmap: [ carbon.method, impl.notSupported ],
+    CreateFromTexture: [ carbon.method, impl.notSupported ],
+    HasALObject: [ carbon.method, impl.adapted ],
+    GetPipeline: [ carbon.method, impl.adapted ],
+    GetOriginalMemoryUsage: [ carbon.method, impl.adapted ],
+    SetAverageColor: [ carbon.method, impl.adapted ],
+    UpdateSubresource: [ carbon.method, impl.notSupported ],
+    PrepareResources: [ carbon.method, impl.adapted ]
+  }
+});

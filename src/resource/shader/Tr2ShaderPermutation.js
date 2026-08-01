@@ -37,10 +37,12 @@ export class Tr2ShaderPermutation extends CjsModel
 // would register a static as an instance field.
 CjsSchema.define(Tr2ShaderPermutation, {
   className: "Tr2ShaderPermutation",
-  family: "resources"
+  family: "resources",
+  fields: {
+    name: type.string,
+    options: type.list("BlueSharedString"),
+    defaultOption: type.uint64,
+    description: type.string,
+    type: type.uint8
+  }
 });
-CjsSchema.decorateField(Tr2ShaderPermutation, "name", type.string);
-CjsSchema.decorateField(Tr2ShaderPermutation, "options", type.list("BlueSharedString"));
-CjsSchema.decorateField(Tr2ShaderPermutation, "defaultOption", type.uint64);
-CjsSchema.decorateField(Tr2ShaderPermutation, "description", type.string);
-CjsSchema.decorateField(Tr2ShaderPermutation, "type", type.uint8);

@@ -1,5 +1,5 @@
 import { CjsSchema, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { CjsResource as _CjsResource } from '../CjsResource.js';
+import { CjsResource } from '../CjsResource.js';
 import { validateResourcePayload } from '../resourceBoundary.js';
 import { Tr2Shader } from './Tr2Shader.js';
 
@@ -18,7 +18,7 @@ const MAX_EFFECT_PERMUTATIONS = 0x10000;
  * This stores effect/shader payload facts. Engine-gpu decides shader module,
  * pipeline, bind group, and sampler realization.
  */
-class Tr2EffectRes extends _CjsResource {
+class Tr2EffectRes extends CjsResource {
   #shaders = new Map();
 
   /** Creates a Tr2EffectRes with caller-provided initial state. */
@@ -418,12 +418,14 @@ function normalizeShaderOptions(options) {
 // would register a static as an instance field.
 CjsSchema.define(Tr2EffectRes, {
   className: "Tr2EffectRes",
-  family: "resources"
+  family: "resources",
+  methods: {
+    GetShader: [carbon.method, impl.adapted, impl.reason("Carbon reads the selected body directly from compiled effect bytes and registers renderer handles; CarbonEngineJS hydrates the format package's validated portable reflection without realizing GPU state.")],
+    GetShaderByIndex: [impl.custom, impl.reason("Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact package-index hydration for deterministic package consumers and tests.")],
+    GetPermutationDescription: [carbon.method, impl.adapted, impl.reason("Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a JSON-friendly plain axis description.")],
+    ReleaseResources: [carbon.method, impl.adapted, impl.reason("Backend resources are engine-owned; the resource-side release clears only hydrated device-free shader graphs.")]
+  }
 });
-CjsSchema.decorateMethod(Tr2EffectRes, "GetShader", carbon.method, impl.adapted, impl.reason("Carbon reads the selected body directly from compiled effect bytes and registers renderer handles; CarbonEngineJS hydrates the format package's validated portable reflection without realizing GPU state."));
-CjsSchema.decorateMethod(Tr2EffectRes, "GetShaderByIndex", impl.custom, impl.reason("Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact package-index hydration for deterministic package consumers and tests."));
-CjsSchema.decorateMethod(Tr2EffectRes, "GetPermutationDescription", carbon.method, impl.adapted, impl.reason("Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a JSON-friendly plain axis description."));
-CjsSchema.decorateMethod(Tr2EffectRes, "ReleaseResources", carbon.method, impl.adapted, impl.reason("Backend resources are engine-owned; the resource-side release clears only hydrated device-free shader graphs."));
 
 export { GetGlobalEffectOptions, ModifyGlobalEffectOptions, Tr2EffectRes };
 //# sourceMappingURL=Tr2EffectRes.js.map

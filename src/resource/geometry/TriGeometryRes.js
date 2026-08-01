@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
 // Source: trinity/trinity/Resources/TriGeometryRes_Blue.cpp
-import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { box3 } from "@carbonenginejs/runtime-utils/box3";
 import { triangleNormalTo } from "@carbonenginejs/runtime-utils/mesh";
 import { ray3 } from "@carbonenginejs/runtime-utils/ray3";
@@ -24,20 +24,10 @@ import {
  * Geometry inspection composes the generic math supplied by runtime-utils
  * with resource-specific payload traversal.
  */
-@type.define({ className: "TriGeometryRes", family: "resources" })
 export class TriGeometryRes extends CjsResource
 {
-
-  @io.readwrite
-  @type.boolean
   forceLod = false;
-
-  @io.readwrite
-  @type.int32
   forcedLodIndex = -1;
-
-  @io.readwrite
-  @type.string
   name = "";
 
   /** Creates a TriGeometryRes with caller-provided initial state. */
@@ -84,8 +74,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {number}
    */
-  @carbon.method
-  @impl.adapted
   GetMeshCount()
   {
     return this.GetPayload()?.meshes?.length || 0;
@@ -96,8 +84,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {number}
    */
-  @carbon.method
-  @impl.adapted
   GetAnimationCount()
   {
     return this.GetPayload()?.animations?.length || 0;
@@ -108,8 +94,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {number}
    */
-  @carbon.method
-  @impl.adapted
   GetSkeletonCount()
   {
     return this.GetPayload()?.skeletons?.length || 0;
@@ -121,8 +105,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} skeletonIndex
    * @returns {*}
    */
-  @carbon.method
-  @impl.adapted
   GetSkeletonData(skeletonIndex = 0)
   {
     const index = Number(skeletonIndex);
@@ -141,8 +123,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} meshIndex
    * @returns {number}
    */
-  @carbon.method
-  @impl.adapted
   GetMeshAreaCount(meshIndex = 0)
   {
     const mesh = this.GetPayload()?.meshes?.[meshIndex];
@@ -155,8 +135,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} meshIndex
    * @returns {string}
    */
-  @carbon.method
-  @impl.adapted
   GetMeshName(meshIndex = 0)
   {
     return this.GetPayload()?.meshes?.[meshIndex]?.name || "";
@@ -169,8 +147,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} areaIndex
    * @returns {string}
    */
-  @carbon.method
-  @impl.adapted
   GetMeshAreaName(meshIndex = 0, areaIndex = 0)
   {
     return this.GetPayload()?.meshes?.[meshIndex]?.areas?.[areaIndex]?.name || "";
@@ -185,8 +161,6 @@ export class TriGeometryRes extends CjsResource
    * @param {ArrayLike<number>|null} outMax
    * @returns {*|boolean}
    */
-  @carbon.method
-  @impl.adapted
   GetAreaBoundingBox(meshIndex = 0, areaIndex = 0, outMin = null, outMax = null)
   {
     const area = TriGeometryRes.getMeshAreas(this.GetPayload()?.meshes?.[meshIndex])?.[areaIndex];
@@ -201,8 +175,6 @@ export class TriGeometryRes extends CjsResource
    * @param {ArrayLike<number>|null} outMax
    * @returns {*|boolean}
    */
-  @carbon.method
-  @impl.adapted
   GetBoundingBox(meshIndex = 0, outMin = null, outMax = null)
   {
     const payload = this.GetPayload();
@@ -217,8 +189,6 @@ export class TriGeometryRes extends CjsResource
    * @param {ArrayLike<number>|null} out
    * @returns {*|boolean}
    */
-  @carbon.method
-  @impl.adapted
   GetBoundingSphere(meshIndex = 0, out = null)
   {
     const payload = this.GetPayload();
@@ -240,8 +210,6 @@ export class TriGeometryRes extends CjsResource
    * @param {ArrayLike<number>} transform
    * @returns {{min: number[], max: number[]}|null}
    */
-  @carbon.method
-  @impl.adapted
   CalculateBoundingBoxFromTransform(meshIndex = 0, transform = null)
   {
     if (!transform || transform.length < 16)
@@ -282,8 +250,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {boolean}
    */
-  @carbon.method
-  @impl.adapted
   RecalculateBoundingSphere()
   {
     let updated = false;
@@ -313,8 +279,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @throws {Error}
    */
-  @carbon.method
-  @impl.notSupported
   Reload() {
     throw resourceBoundaryError(
       "TriGeometryRes",
@@ -330,8 +294,6 @@ export class TriGeometryRes extends CjsResource
    * @param {ArrayLike<number>} direction
    * @returns {object}
    */
-  @carbon.method
-  @impl.adapted
   GetIntersectionPointNormalBone(position, direction)
   {
     return TriGeometryRes.intersectGeometry(
@@ -350,8 +312,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} areaIndex
    * @returns {object}
    */
-  @carbon.method
-  @impl.adapted
   GetAreaIntersectionPointNormalBone(position, direction, areaIndex = -1)
   {
     if (!Number.isInteger(areaIndex) || areaIndex < -1)
@@ -372,8 +332,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} meshIndex
    * @returns {Array<*>}
    */
-  @carbon.method
-  @impl.adapted
   GetMeshVertexElements(meshIndex = 0)
   {
     return this.GetPayload()?.meshes?.[meshIndex]?.vertexElements || [];
@@ -384,8 +342,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @throws {Error}
    */
-  @carbon.method
-  @impl.notSupported
   SaveMesh()
   {
     throw resourceBoundaryError(
@@ -864,3 +820,35 @@ export class TriGeometryRes extends CjsResource
   }
 
 }
+
+// Declared as data rather than with decorators, so the resource tree loads from
+// source without a transform. Field order is key order, and GetValues() exports
+// in that order.
+CjsSchema.define(TriGeometryRes, {
+  className: "TriGeometryRes",
+  family: "resources",
+  fields: {
+    forceLod: [ type.boolean, io.readwrite ],
+    forcedLodIndex: [ type.int32, io.readwrite ],
+    name: [ type.string, io.readwrite ]
+  },
+  methods: {
+    GetMeshCount: [ carbon.method, impl.adapted ],
+    GetAnimationCount: [ carbon.method, impl.adapted ],
+    GetSkeletonCount: [ carbon.method, impl.adapted ],
+    GetSkeletonData: [ carbon.method, impl.adapted ],
+    GetMeshAreaCount: [ carbon.method, impl.adapted ],
+    GetMeshName: [ carbon.method, impl.adapted ],
+    GetMeshAreaName: [ carbon.method, impl.adapted ],
+    GetAreaBoundingBox: [ carbon.method, impl.adapted ],
+    GetBoundingBox: [ carbon.method, impl.adapted ],
+    GetBoundingSphere: [ carbon.method, impl.adapted ],
+    CalculateBoundingBoxFromTransform: [ carbon.method, impl.adapted ],
+    RecalculateBoundingSphere: [ carbon.method, impl.adapted ],
+    Reload: [ carbon.method, impl.notSupported ],
+    GetIntersectionPointNormalBone: [ carbon.method, impl.adapted ],
+    GetAreaIntersectionPointNormalBone: [ carbon.method, impl.adapted ],
+    GetMeshVertexElements: [ carbon.method, impl.adapted ],
+    SaveMesh: [ carbon.method, impl.notSupported ]
+  }
+});

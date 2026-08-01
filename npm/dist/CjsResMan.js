@@ -2,7 +2,7 @@ import { CjsMotherLode, getMotherLodeKey } from './CjsMotherLode.js';
 import { CjsEventEmitter } from '@carbonenginejs/runtime-utils/model';
 import { hasOwnThen } from '@carbonenginejs/runtime-utils/object';
 import { normalizeResourcePath, normalizePath, normalizeResourceExtension, getResourceExtension } from '@carbonenginejs/runtime-utils/path';
-import { CjsResource as _CjsResource } from './resource/CjsResource.js';
+import { CjsResource } from './resource/CjsResource.js';
 import { CjsResManWorkQueue, CjsResManQueue } from './CjsResManWorkQueue.js';
 import { CjsResManMainThreadLoader } from './worker/CjsResManMainThreadLoader.js';
 import { CjsResManWorkerLoader } from './worker/CjsResManWorkerLoader.js';
@@ -1640,7 +1640,7 @@ class CjsResMan extends CjsEventEmitter {
    */
   #PublishResourceObjectValue(resource, object, options) {
     let result = object;
-    if (resource.constructor !== _CjsResource && typeof resource.SetPayload === "function") {
+    if (resource.constructor !== CjsResource && typeof resource.SetPayload === "function") {
       resource.SetPayload(object, options);
       resource.object = resource;
       result = resource;
@@ -2184,7 +2184,7 @@ class CjsResMan extends CjsEventEmitter {
     if (requested && this.resourceTypes.has(requested)) return this.resourceTypes.get(requested);
     const emitted = normalizeRequirement(options.emit);
     if (emitted && this.resourceTypes.has(emitted)) return this.resourceTypes.get(emitted);
-    return _CjsResource;
+    return CjsResource;
   }
 
   /**
@@ -3122,7 +3122,7 @@ function createPrepareContext(resMan, resource, bytes, options, stage) {
  * @returns {*} Resident public object outcome.
  */
 function getPublishedResourceObject(resource) {
-  return resource.constructor !== _CjsResource ? resource : resource.GetPayload();
+  return resource.constructor !== CjsResource ? resource : resource.GetPayload();
 }
 function assertPositiveInteger(value, name) {
   if (!Number.isInteger(value) || value < 1) {
