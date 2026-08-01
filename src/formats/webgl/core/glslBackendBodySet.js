@@ -65,9 +65,14 @@ function unitSignature(unit)
  * float. The GLSL text declares them but does not say how to build or bind
  * them, and reflection does not know they happened.
  *
- * Identifiers themselves are deliberately absent: `cb{n}`, `s{n}` and
- * `attr{n}` are functions of the register index, so a consumer derives them
- * rather than reading them back. See docs/contracts/constant-buffer-slots.md.
+ * Identifiers are kept. An earlier version of this comment claimed `cb{n}`,
+ * `s{n}` and `attr{n}` are functions of the register index alone and so need not
+ * be stored. They are not: the pixel stage remaps constant-buffer slot 0 to
+ * `cb7` (`DxbcGlslEmitter.js`, `pixelConstantBufferRemap`), so an identifier
+ * depends on the register *and* the stage, through a profile table. Deriving it
+ * downstream would re-implement that policy, and a divergence would show up as a
+ * uniform that never binds rather than as an error.
+ * See docs/contracts/constant-buffer-slots.md.
  *
  * @param {object} shader Translated shader record.
  * @returns {object|null} Stage block data, or null when the stage adds nothing.

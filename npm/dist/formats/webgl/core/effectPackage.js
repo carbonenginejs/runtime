@@ -8,6 +8,8 @@ import { HlslEffectBindingManifest } from '../../hlsl/core/tr2/shader/HlslEffect
 import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_PERMUTATION_GRAPH_FORMAT, EFFECT_PERMUTATION_GRAPH_CHUNK } from '../../../format/effect/effectPermutationGraph.js';
 import { buildCompleteEffectReflection, EFFECT_REFLECTION_CHUNK, EFFECT_REFLECTION_BLOB_CHUNK } from '../../../format/effect/effectReflectionPackage.js';
 import { buildPackage, inspectWithValues, emitGlslWithOptions } from './helpers.js';
+import { buildGlslBackendBodySet } from './glslBackendBodySet.js';
+import { buildGlslEffectContainer } from './buildGlslEffectContainer.js';
 import { sha256Utf8, sha256Bytes } from '../../../format/effect/sha256.js';
 
 const PACKAGE_VERSION = "0.11.1";
@@ -247,8 +249,31 @@ function buildEffectPackage(input, options = {}) {
   const inspection = inspectWithValues(bytes, {
     source: values.source
   });
+
+  // The switchover, first half. `bytes` above is still the chunk package and
+  // remains what every current consumer reads; the container below is the same
+  // effect emitted as a Carbon v15 record file, the shape WebGPU already ships
+  // and the shape the engine seam will consume.
+  //
+  // Both are built from the same translation, deliberately, so the two can be
+  // diffed against each other on real effects before the chunk path is
+  // deleted. `bytes` flips to the container once `inspectWithValues` and the
+  // completeness tests are retargeted; nothing else about this function
+  // changes when it does.
+  const backendBodySet = buildGlslBackendBodySet({
+    bodies,
+    stages,
+    shaders: translatedShaders,
+    variants,
+    permutationGraph
+  });
+  const container = buildGlslEffectContainer(effectRes, permutationGraph, backendBodySet, {
+    compilerVersion: effectRes.m_compilerVersionBytes
+  });
   return Object.freeze({
     bytes,
+    container: Object.freeze(container),
+    backendBodySet,
     info: Object.freeze(info),
     metadata: Object.freeze(metadata),
     permutationGraph,

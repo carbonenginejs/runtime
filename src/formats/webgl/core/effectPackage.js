@@ -15,6 +15,8 @@ import {
     EFFECT_REFLECTION_CHUNK
 } from "../../../format/effect/effectReflectionPackage.js";
 import { buildPackage, emitGlslWithOptions, inspectWithValues } from "./helpers.js";
+import { buildGlslBackendBodySet } from "./glslBackendBodySet.js";
+import { buildGlslEffectContainer } from "./buildGlslEffectContainer.js";
 import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
 
 const PACKAGE_VERSION = "0.11.1";
@@ -306,8 +308,34 @@ export function buildEffectPackage(input, options = {})
         source: values.source
     });
 
+    // The switchover, first half. `bytes` above is still the chunk package and
+    // remains what every current consumer reads; the container below is the same
+    // effect emitted as a Carbon v15 record file, the shape WebGPU already ships
+    // and the shape the engine seam will consume.
+    //
+    // Both are built from the same translation, deliberately, so the two can be
+    // diffed against each other on real effects before the chunk path is
+    // deleted. `bytes` flips to the container once `inspectWithValues` and the
+    // completeness tests are retargeted; nothing else about this function
+    // changes when it does.
+    const backendBodySet = buildGlslBackendBodySet({
+        bodies,
+        stages,
+        shaders: translatedShaders,
+        variants,
+        permutationGraph
+    });
+    const container = buildGlslEffectContainer(
+        effectRes,
+        permutationGraph,
+        backendBodySet,
+        { compilerVersion: effectRes.m_compilerVersionBytes }
+    );
+
     return Object.freeze({
         bytes,
+        container: Object.freeze(container),
+        backendBodySet,
         info: Object.freeze(info),
         metadata: Object.freeze(metadata),
         permutationGraph,
