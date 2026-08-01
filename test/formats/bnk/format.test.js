@@ -71,7 +71,7 @@ test("decodes typed HIRC fields for events, actions, sounds, and music tracks", 
     ]);
 });
 
-test("attaches exact typed Set State and Set Switch actions to HIRC entries", () =>
+test("attaches exact typed setters to HIRC entries", () =>
 {
     const stateBody = concatBytes(
         u16Bytes(0x1204),
@@ -89,9 +89,19 @@ test("attaches exact typed Set State and Set Switch actions to HIRC entries", ()
         u32Bytes(0x50000001),
         u32Bytes(0x50000002),
     );
+    const gameParameterBody = concatBytes(
+        u16Bytes(0x1303),
+        u32Bytes(0x70000001),
+        Uint8Array.from([ 0, 0, 0, 4, 0, 1 ]),
+        f32Bytes(10),
+        f32Bytes(0),
+        f32Bytes(0),
+        Uint8Array.from([ 0 ]),
+    );
     const info = CjsBnkFormat.inspect(makeActionBnk([
         { id: 0x12040001, body: stateBody },
         { id: 0x19010001, body: switchBody },
+        { id: 0x13030001, body: gameParameterBody },
     ]));
     const byId = new Map(info.hirc.map(entry => [ entry.id, entry ]));
 
@@ -118,6 +128,11 @@ test("attaches exact typed Set State and Set Switch actions to HIRC entries", ()
     assert.equal(byId.get(0x19010001).action.actionName, "set-switch");
     assert.equal(byId.get(0x19010001).action.groupId, 0x50000001);
     assert.equal(byId.get(0x19010001).action.valueId, 0x50000002);
+    assert.equal(
+        byId.get(0x13030001).action.actionName,
+        "set-game-parameter",
+    );
+    assert.equal(byId.get(0x13030001).action.gameParameterValue, 10);
 });
 
 test("extracts embedded media as views and flags wem payloads", () =>
@@ -528,6 +543,14 @@ function i32Bytes(value)
     const bytes = new Uint8Array(4);
 
     new DataView(bytes.buffer).setInt32(0, value, true);
+    return bytes;
+}
+
+function f32Bytes(value)
+{
+    const bytes = new Uint8Array(4);
+
+    new DataView(bytes.buffer).setFloat32(0, value, true);
     return bytes;
 }
 

@@ -27,6 +27,10 @@ const ACTION_NAMES = Object.freeze({
     0x0b02: "reset-voice-volume",
     0x0b03: "reset-voice-volume",
     0x1204: "set-state",
+    0x1302: "set-game-parameter",
+    0x1303: "set-game-parameter",
+    0x1402: "reset-game-parameter",
+    0x1403: "reset-game-parameter",
     0x1901: "set-switch",
     0x2103: "post-event",
 });
@@ -58,6 +62,13 @@ const VOICE_PITCH_ACTION_TYPES = new Set([
 const GAME_SYNC_ACTION_TYPES = new Set([
     0x1204,
     0x1901,
+]);
+
+const GAME_PARAMETER_ACTION_TYPES = new Set([
+    0x1302,
+    0x1303,
+    0x1402,
+    0x1403,
 ]);
 
 /**
@@ -122,27 +133,7 @@ export function parseEventAction(
         {
             result.fadeCurve = cursor.u8();
             result.actionFlags = cursor.u8();
-            const exceptionCount = cursor.varUint();
-            const exceptions = [];
-
-            if (exceptionCount > 65536)
-            {
-                return null;
-            }
-
-            for (let index = 0; index < exceptionCount; index++)
-            {
-                const exceptionTargetId = cursor.u32();
-                const exceptionTargetFlags = cursor.u8();
-
-                exceptions.push({
-                    targetId: exceptionTargetId,
-                    targetIsBus: (exceptionTargetFlags & 0x01) !== 0,
-                    targetFlags: exceptionTargetFlags,
-                });
-            }
-
-            result.exceptions = exceptions;
+            result.exceptions = ReadExceptions(cursor);
         }
         else if (VOICE_PITCH_ACTION_TYPES.has(actionType))
         {
@@ -237,6 +228,53 @@ export function parseEventAction(
             result.groupId = cursor.u32();
             result.valueId = cursor.u32();
         }
+        else if (GAME_PARAMETER_ACTION_TYPES.has(actionType))
+        {
+            if (targetFlags & ~0x01
+                || !HasExactTimingProperties(properties)
+                || !HasExactTimingProperties(ranges))
+            {
+                return null;
+            }
+
+            const fadeCurve = cursor.u8();
+            const bypassTransition = cursor.u8();
+            const rawValueMode = cursor.u8();
+            const gameParameterValue = cursor.f32();
+            const gameParameterRange = {
+                min: cursor.f32(),
+                max: cursor.f32(),
+            };
+
+            const resetting = actionName === "reset-game-parameter";
+
+            if (fadeCurve > 9
+                || (resetting
+                    ? rawValueMode !== 0
+                    : rawValueMode !== 1 && rawValueMode !== 2)
+                || !Number.isFinite(gameParameterValue)
+                || !Number.isFinite(gameParameterRange.min)
+                || !Number.isFinite(gameParameterRange.max)
+                || (resetting
+                    && (gameParameterValue !== 0
+                        || gameParameterRange.min !== 0
+                        || gameParameterRange.max !== 0)))
+            {
+                return null;
+            }
+
+            result.fadeCurve = fadeCurve;
+            result.bypassTransition = bypassTransition !== 0;
+            if (!resetting)
+            {
+                result.valueMode = rawValueMode === 1
+                    ? "absolute"
+                    : "relative";
+                result.gameParameterValue = gameParameterValue;
+                result.gameParameterRange = gameParameterRange;
+            }
+            result.exceptions = ReadExceptions(cursor);
+        }
 
         return cursor.at === payload.byteLength ? result : null;
     }
@@ -256,6 +294,38 @@ function HasExactVoicePropertyActionProperties(properties)
 
     return ids.every(id => id === 0x39 || id === 0x3a)
         && new Set(ids).size === ids.length;
+}
+
+function HasExactTimingProperties(values)
+{
+    const ids = values.map(value => value.id);
+
+    return ids.every(id => id === 0x39 || id === 0x3a)
+        && new Set(ids).size === ids.length;
+}
+
+function ReadExceptions(cursor)
+{
+    const exceptionCount = cursor.varUint();
+    const exceptions = [];
+
+    if (exceptionCount > 65536)
+    {
+        throw new RangeError("Event Action exception count is too large");
+    }
+
+    for (let index = 0; index < exceptionCount; index++)
+    {
+        const targetId = cursor.u32();
+        const targetFlags = cursor.u8();
+
+        exceptions.push({
+            targetId,
+            targetIsBus: (targetFlags & 0x01) !== 0,
+            targetFlags,
+        });
+    }
+    return exceptions;
 }
 
 function ReadProperties(cursor)

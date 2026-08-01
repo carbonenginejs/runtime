@@ -297,6 +297,206 @@ test("decodes exact v150 Set State and Set Switch actions", () =>
     }
 });
 
+test("decodes exact v150 Set and Reset Game Parameter actions", () =>
+{
+    const setGlobalBody = concat(
+        u16(0x1302),
+        u32(0x70000001),
+        [ 0 ],
+        [ 2, 0x39, 0x3a ],
+        i32(250),
+        i32(1000),
+        [ 2, 0x39, 0x3a ],
+        i32(-25),
+        i32(75),
+        i32(-100),
+        i32(200),
+        [ 4, 0, 1 ],
+        f32(75),
+        f32(-5),
+        f32(5),
+        [ 0 ],
+    );
+    const setObjectBody = concat(
+        u16(0x1303),
+        u32(0x70000002),
+        [ 0, 0, 0 ],
+        [ 9, 1, 2 ],
+        f32(-10),
+        f32(0),
+        f32(0),
+        [ 1 ],
+        u32(0x71000001),
+        [ 0 ],
+    );
+    const resetObjectBody = concat(
+        u16(0x1403),
+        u32(0x70000003),
+        [ 0, 0, 0 ],
+        [ 4, 0, 0 ],
+        f32(0),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const setGlobal = CjsBnkFormat.wwise.parseEventAction(setGlobalBody);
+    const setObject = CjsBnkFormat.wwise.parseEventAction(setObjectBody);
+    const resetObject = CjsBnkFormat.wwise.parseEventAction(resetObjectBody);
+
+    assert.equal(setGlobal.actionName, "set-game-parameter");
+    assert.equal(setGlobal.actionScope, "global");
+    assert.equal(setGlobal.delayTimeMs, 250);
+    assert.deepEqual(setGlobal.delayRangeMs, { min: -25, max: 75 });
+    assert.equal(setGlobal.transitionTimeMs, 1000);
+    assert.deepEqual(setGlobal.transitionRangeMs, { min: -100, max: 200 });
+    assert.equal(setGlobal.fadeCurve, 4);
+    assert.equal(setGlobal.bypassTransition, false);
+    assert.equal(setGlobal.valueMode, "absolute");
+    assert.equal(setGlobal.gameParameterValue, 75);
+    assert.deepEqual(setGlobal.gameParameterRange, { min: -5, max: 5 });
+    assert.deepEqual(setGlobal.exceptions, []);
+
+    assert.equal(setObject.actionScope, "game-object");
+    assert.equal(setObject.fadeCurve, 9);
+    assert.equal(setObject.bypassTransition, true);
+    assert.equal(setObject.valueMode, "relative");
+    assert.equal(setObject.gameParameterValue, -10);
+    assert.deepEqual(setObject.exceptions, [ {
+        targetId: 0x71000001,
+        targetIsBus: false,
+        targetFlags: 0,
+    } ]);
+
+    assert.equal(resetObject.actionName, "reset-game-parameter");
+    assert.equal(resetObject.valueMode, undefined);
+    assert.equal(resetObject.gameParameterValue, undefined);
+    assert.equal(resetObject.gameParameterRange, undefined);
+});
+
+test("fails closed for inexact Game Parameter action bodies", () =>
+{
+    const exact = concat(
+        u16(0x1303),
+        u32(1234),
+        [ 0, 0, 0, 4, 0, 1 ],
+        f32(10),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const invalidCurve = concat(
+        u16(0x1303),
+        u32(1234),
+        [ 0, 0, 0, 10, 0, 1 ],
+        f32(10),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const invalidValueMode = concat(
+        u16(0x1303),
+        u32(1234),
+        [ 0, 0, 0, 4, 0, 3 ],
+        f32(10),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const invalidResetMeaning = concat(
+        u16(0x1403),
+        u32(1234),
+        [ 0, 0, 0, 4, 0, 1 ],
+        f32(0),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const invalidResetValue = concat(
+        u16(0x1403),
+        u32(1234),
+        [ 0, 0, 0, 4, 0, 0 ],
+        f32(1),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const reservedTargetFlags = concat(
+        u16(0x1303),
+        u32(1234),
+        [ 0x80, 0, 0, 4, 0, 1 ],
+        f32(10),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const unsupportedProperty = concat(
+        u16(0x1303),
+        u32(1234),
+        [ 0, 1, 0x3b ],
+        f32(50),
+        [ 0, 4, 0, 1 ],
+        f32(10),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const duplicateTransitionProperty = concat(
+        u16(0x1303),
+        u32(1234),
+        [ 0, 2, 0x3a, 0x3a ],
+        i32(100),
+        i32(200),
+        [ 0, 4, 0, 1 ],
+        f32(10),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const nonCanonicalExceptions = concat(
+        exact.subarray(0, exact.byteLength - 1),
+        [ 0x80, 0 ],
+    );
+
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(
+            exact.subarray(0, exact.byteLength - 1),
+        ),
+        null,
+    );
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(concat(exact, [ 0 ])),
+        null,
+    );
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(invalidCurve),
+        null,
+    );
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(invalidValueMode),
+        null,
+    );
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(invalidResetMeaning),
+        null,
+    );
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(invalidResetValue),
+        null,
+    );
+    for (const invalid of [
+        reservedTargetFlags,
+        unsupportedProperty,
+        duplicateTransitionProperty,
+    ])
+    {
+        assert.equal(CjsBnkFormat.wwise.parseEventAction(invalid), null);
+    }
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(nonCanonicalExceptions),
+        null,
+    );
+});
+
 test("decodes Post Event and fails closed for inexact action bodies", () =>
 {
     const body = concat(
