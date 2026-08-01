@@ -73,17 +73,7 @@ function parseArgs(argv) {
     // How the shared packager lowers a recognised local-light family. The two
     // lowering flags below set this and no longer force the legacy path; the
     // library owns the recognition and the profile constants.
-    localLights: "none",
-    debugPackedLightLoop: false,
-    debugPackedLightAccepted: false,
-    debugPackedLightRadius: false,
-    debugPackedLightEnabled: false,
-    debugPackedLightFlagFetch: false,
-    debugPackedLightForceWhite: false,
-    debugPackedLightForceAccepted: false,
-    debugPackedLightForceCombined: false,
-    debugPackedLightForceMaskState: false,
-    debugPackedLightMainPaint: false
+    localLights: "none"
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -113,16 +103,6 @@ function parseArgs(argv) {
     else if (arg === "--stub-light-resources") args.stubLightResources = true;
     else if (arg === "--light-constant-buffer") args.localLights = "constant-buffer";
     else if (arg === "--packed-light-texture") args.localLights = "packed-texture";
-    else if (arg === "--debug-packed-light-loop") args.debugPackedLightLoop = true;
-    else if (arg === "--debug-packed-light-accepted") args.debugPackedLightAccepted = true;
-    else if (arg === "--debug-packed-light-radius") args.debugPackedLightRadius = true;
-    else if (arg === "--debug-packed-light-enabled") args.debugPackedLightEnabled = true;
-    else if (arg === "--debug-packed-light-flag-fetch") args.debugPackedLightFlagFetch = true;
-    else if (arg === "--debug-packed-light-force-white") args.debugPackedLightForceWhite = true;
-    else if (arg === "--debug-packed-light-force-accepted") args.debugPackedLightForceAccepted = true;
-    else if (arg === "--debug-packed-light-force-combined") args.debugPackedLightForceCombined = true;
-    else if (arg === "--debug-packed-light-force-mask-state") args.debugPackedLightForceMaskState = true;
-    else if (arg === "--debug-packed-light-main-paint") args.debugPackedLightMainPaint = true;
     else if (arg === "--help" || arg === "-h") {
       printUsage();
       process.exit(0);
@@ -167,11 +147,11 @@ function printUsage() {
     "  --allow-failures          Write partial packages even when translation fails.",
     "  --selected-only           Package only the default/selected permutation.",
     "  --all-permutations        Package every permutation record. This is the default.",
-    "  --stub-light-resources    Drop the tiled-lighting resources (LightBuffer,",
+    "  --stub-light-resources    Drop the local-light resources (LightBuffer,",
     "                            LightIndexBuffer, LightProfileArray) and lower their",
-    "                            reads to zero, so fragment stages stay under",
-    "                            MAX_TEXTURE_IMAGE_UNITS. Lighting is unsupported on the",
-    "                            CEWG WebGL2 path; this frees the texture units they held.",
+    "                            reads to zero. Produces unlit output and takes the",
+    "                            legacy diagnostic path; prefer --packed-light-texture,",
+    "                            which keeps lights and still fits the texture budget.",
     "  --light-constant-buffer   Lower local-light resources to a constant buffer.",
     "                            Frees all three light texture units, but caps the",
     "                            light count; known to fail on busy scenes.",
@@ -179,36 +159,6 @@ function printUsage() {
     "                            texture. Frees two of the three units and is the",
     "                            route that works. Detail maps merge automatically,",
     "                            so no extra flag is needed to fit .sm_depth shaders.",
-    "  --debug-packed-light-loop Paint fragment output magenta when the packed",
-    "                            local-light linked-list loop is entered.",
-    "  --debug-packed-light-accepted",
-    "                            Paint fragment output green when a packed local",
-    "                            light passes the radius/enabled branch.",
-    "  --debug-packed-light-radius",
-    "                            Paint fragment output yellow when a packed local",
-    "                            light passes the radius test, ignoring enabled flags.",
-    "  --debug-packed-light-enabled",
-    "                            Paint fragment output blue when a packed local",
-    "                            light has the enabled flag, ignoring distance.",
-    "  --debug-packed-light-flag-fetch",
-    "                            Paint fragment output cyan immediately after",
-    "                            fetching the packed flags texel.",
-    "  --debug-packed-light-force-white",
-    "                            Force every fetched packed local light to be",
-    "                            enabled, in range, and bright white while",
-    "                            preserving the downstream contribution path.",
-    "  --debug-packed-light-force-accepted",
-    "                            Force every fetched packed local light and paint",
-    "                            red immediately inside the accepted branch.",
-    "  --debug-packed-light-force-combined",
-    "                            Force every fetched packed local light and paint",
-    "                            orange immediately after mask combination.",
-    "  --debug-packed-light-force-mask-state",
-    "                            Force every fetched packed local light and paint",
-    "                            mask state as RGB after radius/flag tests.",
-    "  --debug-packed-light-main-paint",
-    "                            Paint packed-light pixel shaders magenta at",
-    "                            main entry, before any light-list logic."
   ].join("\n"));
 }
 
@@ -883,23 +833,21 @@ async function main() {
 
 function requiresLegacyDiagnosticPath(args, useNative)
 {
-  // The two local-light lowerings and the Detail3Map drop used to force this
-  // path. They no longer do: the shared packager recognises the light family and
-  // owns the lowering, and the detail-map array merge supersedes the drop.
+  // What used to force this path and no longer does: the two local-light
+  // lowerings and --drop-detail3-map, now that the shared packager owns light
+  // recognition and the detail-map merge supersedes the drop; and ten
+  // --debug-packed-light-* paints, deleted with the lighting bring-up they
+  // served.
+  //
+  // What remains is the native hlsl2webgl tool and its language/flags options,
+  // plus --stub-light-resources. The tool is a different translator from the JS
+  // emitter every other build uses, and stubbing drops lights entirely, which
+  // the working lowering makes unnecessary. Retiring both would remove this
+  // path and roughly a third of this file.
   return useNative
     || args.language !== "es300"
     || args.flags !== null
-    || args.stubLightResources
-    || args.debugPackedLightLoop
-    || args.debugPackedLightAccepted
-    || args.debugPackedLightRadius
-    || args.debugPackedLightEnabled
-    || args.debugPackedLightFlagFetch
-    || args.debugPackedLightForceWhite
-    || args.debugPackedLightForceAccepted
-    || args.debugPackedLightForceCombined
-    || args.debugPackedLightForceMaskState
-    || args.debugPackedLightMainPaint;
+    || args.stubLightResources;
 }
 
 function sameFilePath(left, right) {
@@ -1057,343 +1005,13 @@ async function translateWithJsEmitter(shaderMap, stageMap, args, inputPath) {
 // diagnostic branch. They were dead here once the light flags routed through the
 // library, and a second copy is how the two drift apart.
 
+// The packed local-light debug paints were removed. Ten `--debug-packed-light-*`
+// flags painted fragment output magenta, green, yellow and so on to trace the
+// tiled-light linked-list traversal while it was being brought up. The lighting
+// works and fits the texture budget now, so the scaffolding has served its
+// purpose; it was also the only remaining reason most builds reached the legacy
+// diagnostic path.
 
-/**
- * Applies temporary packed-light fragment debug paints.
- *
- * @param {string} source GLSL source.
- * @param {object} record Shader record.
- * @param {object} args Parsed options.
- * @returns {string} Debug-painted GLSL source.
- */
-function applyPackedLightDebugPaint(source, record, args)
-{
-  if (args.debugPackedLightMainPaint)
-  {
-    return injectPackedLightMainPaint(source, record);
-  }
-  if (args.debugPackedLightForceWhite)
-  {
-    return injectPackedLightForceWhite(source, record);
-  }
-  if (args.debugPackedLightForceAccepted)
-  {
-    return injectPackedLightForceAcceptedDebugPaint(source, record);
-  }
-  if (args.debugPackedLightForceCombined)
-  {
-    return injectPackedLightForceCombinedDebugPaint(source, record);
-  }
-  if (args.debugPackedLightForceMaskState)
-  {
-    return injectPackedLightForceMaskStateDebugPaint(source, record);
-  }
-  if (args.debugPackedLightFlagFetch)
-  {
-    return injectPackedLightFlagFetchDebugPaint(source, record);
-  }
-  if (args.debugPackedLightEnabled)
-  {
-    return injectPackedLightEnabledDebugPaint(source, record);
-  }
-  if (args.debugPackedLightAccepted)
-  {
-    return injectPackedLightAcceptedDebugPaint(source, record);
-  }
-  if (args.debugPackedLightRadius)
-  {
-    return injectPackedLightRadiusDebugPaint(source, record);
-  }
-  if (args.debugPackedLightLoop)
-  {
-    return injectPackedLightLoopDebugPaint(source, record);
-  }
-  return source;
-}
-
-/**
- * Paints a packed-light pixel shader immediately at main entry.
- *
- * @param {string} source GLSL source.
- * @param {object} record Shader record.
- * @returns {string} Rewritten GLSL source.
- */
-function injectPackedLightMainPaint(source, record)
-{
-  if (record?.stageName !== "pixel" || !source.includes("cewgLocalLightTexture")) return source;
-
-  const paint = buildDebugTargetWrites(source, "vec4(1.0, 0.0, 1.0, 1.0)");
-  if (!paint) return source;
-
-  return source.replace(/void main\(\) \{\r?\n/, match => `${match}${paint}`);
-}
-
-/**
- * Injects a temporary fragment debug paint after the packed local-light loop
- * has proven it has a nonzero linked-list node.
- *
- * @param {string} source GLSL source.
- * @param {object} record Shader record.
- * @returns {string} Debug-painted GLSL source.
- */
-function injectPackedLightLoopDebugPaint(source, record)
-{
-  if (record?.stageName !== "pixel" || !source.includes("cewgLocalLightTexture")) return source;
-
-  const paint = buildDebugTargetWrites(source, "vec4(1.0, 0.0, 1.0, 1.0)");
-  if (!paint) return source;
-
-  let replaced = false;
-  const out = source.replace(
-    /(\s*while\(true\)\{\r?\n\s*if \(floatBitsToUint\([^)\r\n]+\) == 0u\) \{break;\}\r?\n)/,
-    (match) => {
-      replaced = true;
-      return `${match}${paint}`;
-    }
-  );
-  return replaced ? out : source;
-}
-
-/**
- * Injects a temporary fragment debug paint after a local light passes the
- * packed light radius test and enabled-flag mask.
- *
- * @param {string} source GLSL source.
- * @param {object} record Shader record.
- * @returns {string} Debug-painted GLSL source.
- */
-function injectPackedLightAcceptedDebugPaint(source, record)
-{
-  if (record?.stageName !== "pixel" || !source.includes("cewgLocalLightTexture")) return source;
-
-  const paint = buildDebugTargetWrites(source, "vec4(0.0, 1.0, 0.0, 1.0)");
-  if (!paint) return source;
-
-  const enabledFlagIndex = source.indexOf("& 65536u");
-  if (enabledFlagIndex === -1) return source;
-
-  const branchPattern = /\s*if \(floatBitsToUint\([^)\r\n]+\) != 0u\) \{\r?\n/g;
-  branchPattern.lastIndex = enabledFlagIndex;
-  const match = branchPattern.exec(source);
-  if (!match) return source;
-
-  const insertAt = branchPattern.lastIndex;
-  return `${source.slice(0, insertAt)}${paint}${source.slice(insertAt)}`;
-}
-
-/**
- * Forces packed local lights and paints immediately inside the accepted branch.
- *
- * @param {string} source GLSL source.
- * @param {object} record Shader record.
- * @returns {string} Debug-painted GLSL source.
- */
-function injectPackedLightForceAcceptedDebugPaint(source, record)
-{
-  const forced = injectPackedLightForceWhite(source, record);
-  if (forced === source) return source;
-  const branchSafe = forced.replace(
-    /if \(\(([^;\r\n]+?)\) && \(\(floatBitsToUint\([^;\r\n]+?\) & 65536u\) != 0u\)\) \{/g,
-    "if (($1)) {"
-  );
-
-  const paint = buildDebugTargetWrites(branchSafe, "vec4(1.0, 0.0, 0.0, 1.0)");
-  if (!paint) return branchSafe;
-
-  const flagIndex = branchSafe.indexOf("& 65536u");
-  const searchStart = flagIndex === -1 ? branchSafe.indexOf("r5.w <") : flagIndex;
-  if (searchStart === -1) return branchSafe;
-
-  const branchPattern = /\s*if \(\([^;\r\n]+?\)\) \{\r?\n|\s*if \(\([^;\r\n]+?\) && \(\(floatBitsToUint\([^;\r\n]+?\) & 65536u\) != 0u\)\) \{\r?\n|\s*if \(\(floatBitsToUint\([^)\r\n]+\) & floatBitsToUint\([^)\r\n]+\)\) != 0u\) \{\r?\n|\s*if \(floatBitsToUint\([^)\r\n]+\) != 0u\) \{\r?\n/g;
-  branchPattern.lastIndex = Math.max(0, searchStart - 240);
-  const match = branchPattern.exec(branchSafe);
-  if (!match) return branchSafe;
-
-  return `${branchSafe.slice(0, branchPattern.lastIndex)}${paint}${branchSafe.slice(branchPattern.lastIndex)}`;
-}
-
-/**
- * Forces packed local lights and paints immediately after radius/enabled masks
- * are combined, before the accepted branch.
- *
- * @param {string} source GLSL source.
- * @param {object} record Shader record.
- * @returns {string} Debug-painted GLSL source.
- */
-function injectPackedLightForceCombinedDebugPaint(source, record)
-{
-  const forced = injectPackedLightForceWhite(source, record);
-  if (forced === source) return source;
-
-  const paint = buildDebugTargetWrites(forced, "vec4(1.0, 0.5, 0.0, 1.0)");
-  if (!paint) return forced;
-
-  const combinePattern = /(\s*[A-Za-z_][A-Za-z0-9_]*(?:\.[xyzw])? = uintBitsToFloat\(floatBitsToUint\([^)]+\) & floatBitsToUint\([^)]+\)\);\r?\n)/;
-  const match = combinePattern.exec(forced);
-  if (!match) return forced;
-
-  return `${forced.slice(0, match.index + match[0].length)}${paint}${forced.slice(match.index + match[0].length)}`;
-}
-
-/**
- * Forces packed local lights and paints radius/flag/combined mask state as RGB.
- *
- * @param {string} source GLSL source.
- * @param {object} record Shader record.
- * @returns {string} Debug-painted GLSL source.
- */
-function injectPackedLightForceMaskStateDebugPaint(source, record)
-{
-  const forced = injectPackedLightForceWhite(source, record);
-  if (forced === source) return source;
-
-  const outputs = [ ...forced.matchAll(/\blayout\(location\s*=\s*(\d+)\)\s*out\s+vec4\s+(SV_Target\d+)\s*;/g) ]
-    .map((match) => ({ location: Number(match[1]), name: match[2] }))
-    .sort((a, b) => a.location - b.location);
-  if (!outputs.length) return forced;
-
-  const maskPattern = /(\s*([A-Za-z_][A-Za-z0-9_]*(?:\.[xyzw])?) = uintBitsToFloat\(\([^;\r\n]+?\) \? 1u : 0u\);\r?\n\s*([A-Za-z_][A-Za-z0-9_]*(?:\.[xyzw])?) = uintBitsToFloat\(\(\(floatBitsToUint\([^;\r\n]+?\) & 65536u\) != 0u\) \? 1u : 0u\);\r?\n)/;
-  const match = maskPattern.exec(forced);
-  if (!match) return forced;
-
-  const radiusMask = match[2];
-  const flagMask = match[3];
-  const color = `vec4(float(floatBitsToUint(${radiusMask}) != 0u), float(floatBitsToUint(${flagMask}) != 0u), float((floatBitsToUint(${radiusMask}) & floatBitsToUint(${flagMask})) != 0u), 1.0)`;
-  const lines = [];
-  for (const output of outputs)
-  {
-    lines.push(`        ${output.name} = ${output.location === 0 ? color : "vec4(0.0, 0.0, 0.0, 1.0)"};`);
-  }
-  lines.push("        return;");
-  const paint = `${lines.join("\n")}\n`;
-
-  return `${forced.slice(0, match.index + match[0].length)}${paint}${forced.slice(match.index + match[0].length)}`;
-}
-
-/**
- * Injects a temporary fragment debug paint when the distance/radius mask passes,
- * ignoring the enabled flag.
- *
- * @param {string} source GLSL source.
- * @param {object} record Shader record.
- * @returns {string} Debug-painted GLSL source.
- */
-function injectPackedLightRadiusDebugPaint(source, record)
-{
-  if (record?.stageName !== "pixel" || !source.includes("cewgLocalLightTexture")) return source;
-
-  const paint = buildDebugTargetWrites(source, "vec4(1.0, 1.0, 0.0, 1.0)");
-  if (!paint) return source;
-
-  const radiusPattern = /(\s*([A-Za-z_][A-Za-z0-9_]*(?:\.[xyzw])?) = uintBitsToFloat\(\([^)]+\s*<\s*[^)]+\) \? 0xFFFFFFFFu : 0u\);\r?\n)/g;
-  const match = radiusPattern.exec(source);
-  if (!match) return source;
-
-  return `${source.slice(0, radiusPattern.lastIndex)}        if (floatBitsToUint(${match[2]}) != 0u) {\n${paint}        }\n${source.slice(radiusPattern.lastIndex)}`;
-}
-
-/**
- * Injects a temporary fragment debug paint after a packed local light's enabled
- * flag mask is evaluated, ignoring the distance/radius test.
- *
- * @param {string} source GLSL source.
- * @param {object} record Shader record.
- * @returns {string} Debug-painted GLSL source.
- */
-function injectPackedLightEnabledDebugPaint(source, record)
-{
-  if (record?.stageName !== "pixel" || !source.includes("cewgLocalLightTexture")) return source;
-
-  const paint = buildDebugTargetWrites(source, "vec4(0.0, 0.0, 1.0, 1.0)");
-  if (!paint) return source;
-
-  const flagPattern = /(\s*([A-Za-z_][A-Za-z0-9_]*(?:\.[xyzw])?) = uintBitsToFloat\(floatBitsToUint\([^)]+\) & 65536u\);\r?\n\s*\2 = uintBitsToFloat\(\(floatBitsToInt\(\2\) != 0\) \? 0xFFFFFFFFu : 0u\);\r?\n)/g;
-  const match = flagPattern.exec(source);
-  if (!match) return source;
-
-  return `${source.slice(0, flagPattern.lastIndex)}        if (floatBitsToUint(${match[2]}) != 0u) {\n${paint}        }\n${source.slice(flagPattern.lastIndex)}`;
-}
-
-/**
- * Injects a temporary fragment debug paint immediately after Buffer B row1.w
- * (flags) is fetched from the packed local-light texture.
- *
- * @param {string} source GLSL source.
- * @param {object} record Shader record.
- * @returns {string} Debug-painted GLSL source.
- */
-function injectPackedLightFlagFetchDebugPaint(source, record)
-{
-  if (record?.stageName !== "pixel" || !source.includes("cewgLocalLightTexture")) return source;
-
-  const paint = buildDebugTargetWrites(source, "vec4(0.0, 1.0, 1.0, 1.0)");
-  if (!paint) return source;
-
-  const fetchPattern = /(\s*[A-Za-z_][A-Za-z0-9_]*\.w = uintBitsToFloat\(texelFetch\(cewgLocalLightTexture, ivec2\(\(\(131072 \+ \(\(\(floatBitsToInt\([^)]+\)\) \* 12 \+ 7\) >> 2\)\)\)[^\r\n]+;\r?\n)/;
-  const match = fetchPattern.exec(source);
-  if (!match) return source;
-
-  return `${source.slice(0, match.index + match[0].length)}${paint}${source.slice(match.index + match[0].length)}`;
-}
-
-/**
- * Forces each fetched packed local light to be enabled, in range, and bright
- * white, then lets the shader's normal downstream contribution code run.
- *
- * @param {string} source GLSL source.
- * @param {object} record Shader record.
- * @returns {string} Rewritten GLSL source.
- */
-function injectPackedLightForceWhite(source, record)
-{
-  if (record?.stageName !== "pixel" || !source.includes("cewgLocalLightTexture")) return source;
-
-  const row0Match = /(\s*([A-Za-z_][A-Za-z0-9_]*)\.w = uintBitsToFloat\(texelFetch\(cewgLocalLightTexture, ivec2\(\(\(131072 \+ \(\(\(floatBitsToInt\([^)]+\)\) \* 12 \+ 3\) >> 2\)\)\)[^\r\n]+;\r?\n)/.exec(source);
-  const row1Match = /(\s*([A-Za-z_][A-Za-z0-9_]*)\.w = uintBitsToFloat\(texelFetch\(cewgLocalLightTexture, ivec2\(\(\(131072 \+ \(\(\(floatBitsToInt\([^)]+\)\) \* 12 \+ 7\) >> 2\)\)\)[^\r\n]+;\r?\n)/.exec(source);
-  if (!row0Match || !row1Match || !source.includes("vs_r10")) return source;
-
-  const positionVar = row0Match[2];
-  const colorVar = row1Match[2];
-  const insertAt = row1Match.index + row1Match[0].length;
-  const force = [
-    `        ${positionVar}.xyz = vs_r10.xyz + vec3(100.0, 0.0, 0.0);`,
-    `        ${positionVar}.w = 1000000000.0;`,
-    `        ${colorVar}.xyz = vec3(50.0, 50.0, 50.0);`,
-    `        ${colorVar}.w = uintBitsToFloat(0x10000u);`
-  ].join("\n");
-
-  return `${source.slice(0, insertAt)}${force}\n${source.slice(insertAt)}`;
-}
-
-/**
- * Builds GLSL writes for all declared fragment outputs, then returns.
- *
- * @param {string} source GLSL source.
- * @param {string} colorExpression GLSL vec4 expression for output 0.
- * @returns {string} Indented GLSL statements.
- */
-function buildDebugTargetWrites(source, colorExpression)
-{
-  const outputs = [ ...source.matchAll(/\blayout\(location\s*=\s*(\d+)\)\s*out\s+vec4\s+(SV_Target\d+)\s*;/g) ]
-    .map((match) => ({ location: Number(match[1]), name: match[2] }))
-    .sort((a, b) => a.location - b.location);
-  if (!outputs.length) return "";
-
-  const lines = [];
-  for (const output of outputs)
-  {
-    lines.push(`        ${output.name} = ${output.location === 0 ? colorExpression : "vec4(0.0, 0.0, 0.0, 1.0)"};`);
-  }
-  lines.push("        return;");
-  return `${lines.join("\n")}\n`;
-}
-
-/**
- * JSON-clones simple metadata.
- *
- * @param {*} value Value to clone.
- * @returns {*} JSON-safe clone.
- */
 function cloneJson(value) {
   if (value === undefined || value === null) return value;
   return JSON.parse(JSON.stringify(value));
