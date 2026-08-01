@@ -141,7 +141,7 @@ class CjsAudioLibraryBuilder {
     return LowerSfxGraph({
       parsed,
       eventNames,
-      names: CreateSfxNameCatalog(soundbanksInfo, enrichment),
+      names: CreateSfxNameCatalog(soundbanksInfo, enrichment, inspections),
       media,
       embeddedMedia
     });
@@ -1939,7 +1939,7 @@ function CreateSfxRtpcCurve(rtpc, names) {
     points
   };
 }
-function CreateSfxNameCatalog(soundbanksInfo, enrichment) {
+function CreateSfxNameCatalog(soundbanksInfo, enrichment, inspections) {
   const groups = new Map();
   const parameters = new Map();
   const parameterDefaults = new Map();
@@ -1964,6 +1964,30 @@ function CreateSfxNameCatalog(soundbanksInfo, enrichment) {
       }
     }
   }
+  for (const inspection of inspections) {
+    const globalSettings = inspection?.globalSettings;
+    if (globalSettings === null || globalSettings === undefined) {
+      continue;
+    }
+    if (!globalSettings || typeof globalSettings !== "object" || !Array.isArray(globalSettings.rtpcParameters)) {
+      throw new TypeError("Audio STMG globalSettings must contain rtpcParameters");
+    }
+    for (const parameter of globalSettings.rtpcParameters) {
+      if (!parameter || typeof parameter !== "object" || Array.isArray(parameter)) {
+        throw new TypeError("Audio STMG RTPC parameter must be an object");
+      }
+      const id = NormalizeGameParameterID(parameter.id);
+      const defaultValue = Number(parameter.defaultValue);
+      if (!Number.isFinite(defaultValue)) {
+        throw new TypeError(`Audio STMG game parameter ${id}` + " defaultValue must be finite");
+      }
+      const existing = parameterDefaults.get(id);
+      if (existing !== undefined && existing !== defaultValue) {
+        throw new TypeError(`Audio STMG game parameter ${id}` + ` defaultValue conflicts with ${existing}`);
+      }
+      parameterDefaults.set(id, defaultValue);
+    }
+  }
   if (enrichment?.gameParameters !== undefined) {
     for (const [rawID, value] of metadataEntries(enrichment.gameParameters, "Audio enrichment gameParameters")) {
       const id = NormalizeGameParameterID(rawID);
@@ -1986,6 +2010,10 @@ function CreateSfxNameCatalog(soundbanksInfo, enrichment) {
         if (!Number.isFinite(defaultValue)) {
           throw new TypeError(`Audio enrichment gameParameters.${rawID}` + " defaultValue must be finite");
         }
+        const existing = parameterDefaults.get(id);
+        if (existing !== undefined && existing !== defaultValue) {
+          throw new TypeError(`Audio enrichment gameParameters.${rawID}` + ` defaultValue conflicts with ${existing}`);
+        }
         parameterDefaults.set(id, defaultValue);
       }
     }
@@ -2000,7 +2028,7 @@ function NormalizeGameParameterID(value) {
   const text = String(value);
   const number = Number(text);
   if (!/^(?:0|[1-9]\d*)$/u.test(text) || !Number.isSafeInteger(number) || number < 0 || number > 0xffffffff) {
-    throw new TypeError(`Audio enrichment game parameter ID ${text} must be uint32`);
+    throw new TypeError(`Audio game parameter ID ${text} must be uint32`);
   }
   return number >>> 0;
 }
@@ -2099,6 +2127,13 @@ function compactBankInspection(value, source, bank) {
   const bankId = Number(normalizeUnsignedID(value.bankId, `Audio bank ${bank.resPath} inspected bankId`));
   const languageId = Number(normalizeUnsignedID(value.languageId ?? 0, `Audio bank ${bank.resPath} inspected languageId`));
   const bankVersion = Number(normalizeUnsignedID(value.bankVersion ?? 0, `Audio bank ${bank.resPath} inspected bankVersion`));
+  let globalSettings = null;
+  if (value.globalSettings !== null && value.globalSettings !== undefined) {
+    if (!value.globalSettings || typeof value.globalSettings !== "object" || Array.isArray(value.globalSettings)) {
+      throw new TypeError(`Audio bank ${bank.resPath} contains invalid globalSettings`);
+    }
+    globalSettings = structuredClone(value.globalSettings);
+  }
   const hirc = Array.from(value.hirc ?? [], entry => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
       throw new TypeError(`Audio bank ${bank.resPath} contains an invalid HIRC entry`);
@@ -2139,6 +2174,7 @@ function compactBankInspection(value, source, bank) {
     languageId,
     bankVersion,
     language: bank.language,
+    globalSettings,
     hirc,
     media
   };

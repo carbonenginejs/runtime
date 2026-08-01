@@ -247,9 +247,11 @@ clean.
 
 The portable action model deliberately retains `bypassTransition` even though
 the currently qualified EVE parameter targets use no internal STMG ramping.
-STMG defaults and ramp policies are a separate reader/runtime enrichment, not
-a reason to discard the serialized flag or reject otherwise valid future
-banks.
+Exact STMG inspection now supplies the builder's authoritative parameter
+defaults, including Reset values and unset RTPC-curve fallbacks. The reader
+also preserves all ramp policies and built-in bindings. Realizing those
+manager-level policies is separate runtime work, not a reason to discard the
+serialized flag or reject otherwise valid future banks.
 
 Random and sequence state is kept independently per game object by default.
 Set `scope: "global"` on either container to share its history or position

@@ -2839,6 +2839,113 @@ test("complete construction installs a setter-only SFX graph", async () =>
     });
 });
 
+test("complete construction carries STMG defaults into Game Parameter actions", async () =>
+{
+    const library = await CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                set_timer: {
+                    eventID: 100,
+                    soundbanks: [ "init.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "init.bnk": {
+                    name: "init",
+                    path: "\\SoundBanks\\init.bnk",
+                    shortId: 200,
+                },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "200",
+                    ShortName: "init",
+                    GameParameters: [ {
+                        Id: "800",
+                        Name: "ship_Warp_Timer",
+                    } ],
+                } ],
+            },
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/init.bnk",
+            storagePath: "banks/init.bnk",
+            byteLength: 128,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    globalSettings: {
+                        filterBehavior: 1,
+                        stateGroups: [],
+                        switchGroups: [],
+                        rtpcParameters: [ {
+                            id: 800,
+                            defaultValue: 0.05,
+                            rampType: 0,
+                            rampUp: 0,
+                            rampDown: 0,
+                            builtInParameter: 0,
+                        } ],
+                        acousticTextures: [],
+                    },
+                    hirc: [
+                        {
+                            type: 3,
+                            id: 300,
+                            actionType: 0x1302,
+                            targetId: 800,
+                            action: {
+                                actionName: "set-game-parameter",
+                                actionMode: "element",
+                                actionScope: "global",
+                                targetId: 800,
+                                targetFlags: 0,
+                                targetIsBus: false,
+                                properties: [],
+                                ranges: [],
+                                fadeCurve: 4,
+                                bypassTransition: false,
+                                exceptions: [],
+                                valueMode: "absolute",
+                                gameParameterValue: 1,
+                                gameParameterRange: { min: 0, max: 0 },
+                            },
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 300 ],
+                            payload: new Uint8Array(),
+                        },
+                    ],
+                    media: [],
+                },
+            };
+        },
+    });
+
+    assert.deepEqual(library.sfx.programs.set_timer, [ {
+        kind: "set-game-parameter",
+        rtpc: "ship_Warp_Timer",
+        scope: "global",
+        curve: 4,
+        bypassTransition: false,
+        defaultValue: 0.05,
+        valueMode: "absolute",
+        gameParameterValue: 1,
+        gameParameterRange: { min: 0, max: 0 },
+    } ]);
+});
+
 test("SFX Play-Event cycles are diagnosed instead of recursing", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -3444,11 +3551,21 @@ test("SFX Game Parameter actions lower into ordered and action-only programs", (
                 gameParameterRange: { min: 0, max: 0 },
             }),
     });
-    const result = CjsAudioLibraryBuilder.createSfxGraph({
+    const request = {
         inspections: [
             {
                 source: "common.bnk",
                 bankVersion: 150,
+                globalSettings: {
+                    rtpcParameters: [ {
+                        id: 800,
+                        defaultValue: 0,
+                        rampType: 0,
+                        rampUp: 0,
+                        rampDown: 0,
+                        builtInParameter: 0,
+                    } ],
+                },
                 hirc: [
                     {
                         type: 2,
@@ -3543,15 +3660,11 @@ test("SFX Game Parameter actions lower into ordered and action-only programs", (
                 } ],
             },
         },
-        enrichment: {
-            gameParameters: {
-                800: { defaultValue: 0 },
-            },
-        },
         media: {
             "9001": { resPath: "res:/audio/9001.wem" },
         },
-    });
+    };
+    const result = CjsAudioLibraryBuilder.createSfxGraph(request);
 
     assert.deepEqual(result.events.warp, [ { nodeId: "200" } ]);
     assert.deepEqual(result.programs.warp, [
@@ -3594,6 +3707,18 @@ test("SFX Game Parameter actions lower into ordered and action-only programs", (
         result.diagnostics.omittedEvents.find(entry =>
             entry.name === "unnamed_parameter").reason,
         /unnamed game parameter 999/u,
+    );
+
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph({
+            ...request,
+            enrichment: {
+                gameParameters: {
+                    800: { defaultValue: 1 },
+                },
+            },
+        }),
+        /defaultValue conflicts with 0/u,
     );
 });
 
