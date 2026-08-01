@@ -5,13 +5,18 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
+// Deep imports rather than index re-exports: this is a build script, so it may
+// reach package internals, and widening the public surface to satisfy a tool
+// would be the wrong trade. The Tr2*/tr2* spellings below were renamed to
+// Hlsl*/hlsl* when format-hlsl merged into runtime-resource, which is what left
+// this script unable to load.
+import { CjsHlslFormat } from "../../../src/formats/hlsl/index.js";
+import { HlslEffectBindingManifest } from "../../../src/formats/hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
 import {
-  CjsFormatHlsl,
-  Tr2EffectBindingManifest,
-  Tr2RenderContextEnum,
-  tr2ShaderStageName
-} from "../../../src/formats/hlsl/index.js";
-import { CjsFormatWebgl } from "../../../src/formats/webgl/index.js";
+  HlslRenderContextEnum,
+  hlslShaderStageName
+} from "../../../src/formats/hlsl/core/tr2/HlslRenderContextEnum.js";
+import { CjsWebglFormat } from "../../../src/formats/webgl/index.js";
 import {
   formatCewgIntegrityErrors,
   formatIncompleteCewgPasses,
@@ -420,11 +425,11 @@ function collectStages(effectDescription, args) {
       const pass = technique.passes[passIndex];
       let declaredStageCount = 0;
 
-      for (let stageType = 0; stageType < Tr2RenderContextEnum.SHADER_TYPE_COUNT; stageType += 1) {
+      for (let stageType = 0; stageType < HlslRenderContextEnum.SHADER_TYPE_COUNT; stageType += 1) {
         const stageInput = pass.stageInputs[stageType];
         if (!stageInput?.m_exists) continue;
         declaredStageCount += 1;
-        const stageName = tr2ShaderStageName(stageType);
+        const stageName = hlslShaderStageName(stageType);
         if (args.stage && stageName !== args.stage) continue;
         if (!stageInput.cjsShaderBytecode) {
           errors.push(
@@ -542,7 +547,7 @@ async function main() {
       md5: createHash("md5").update(sourceBytes).digest("hex"),
       sha256: createHash("sha256").update(sourceBytes).digest("hex")
     };
-    const result = CjsFormatWebgl.buildEffect(sourceBytes, {
+    const result = CjsWebglFormat.buildEffect(sourceBytes, {
       source: path.relative(projectRoot, inputPath),
       outputPath: path.relative(projectRoot, outputPath),
       sourceIdentity,
@@ -580,7 +585,7 @@ async function main() {
     "Using the legacy native/debug CEWG diagnostic path; this path does not "
     + "claim source-complete portable reflection."
   );
-  const effectRes = await CjsFormatHlsl.readFile(inputPath, { emit: "raw" });
+  const effectRes = await CjsHlslFormat.readFile(inputPath, { emit: "raw" });
   if (!effectRes.IsGood()) {
     throw effectRes.loadError || new Error("Tr2EffectRes failed to load input");
   }
@@ -611,7 +616,7 @@ async function main() {
     }
 
     const effectDescription = shader.GetEffectDescription();
-    const manifest = Tr2EffectBindingManifest.fromEffectDescription(effectDescription);
+    const manifest = HlslEffectBindingManifest.fromEffectDescription(effectDescription);
     const stageCollection = collectStages(effectDescription, args);
     const stages = stageCollection.stages;
     let manifestJson = manifest.toJSON();
@@ -862,7 +867,7 @@ async function main() {
     ].filter(Boolean).join(" "));
   }
 
-  await writeFileAtomic(outputPath, CjsFormatWebgl.build(chunks));
+  await writeFileAtomic(outputPath, CjsWebglFormat.build(chunks));
 
   const summary = {
     output: path.relative(projectRoot, outputPath),
@@ -960,7 +965,7 @@ async function translateWithJsEmitter(shaderMap, stageMap, args, inputPath) {
       const stubResourceRegisterList = [ ...stubResourceRegisters ].sort((a, b) => a - b);
       const lightConstantBuffer = args.lightConstantBuffer ? resolveLightConstantBufferProfile(record) : null;
       const lightPackedTexture = args.packedLightTexture ? resolveLightPackedTextureProfile(record) : null;
-      const result = CjsFormatWebgl.emitGlsl(record.bytes, {
+      const result = CjsWebglFormat.emitGlsl(record.bytes, {
         source: record.key,
         pairVaryings: pairVaryings && pairVaryings.length ? pairVaryings : undefined,
         ...(stubResourceRegisterList.length ? { stubResourceRegisters: stubResourceRegisterList } : {}),
