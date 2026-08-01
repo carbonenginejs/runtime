@@ -2,10 +2,11 @@
   "name": "@carbonenginejs/runtime-character",
   "version": "0.1.2",
   "private": true,
-  "description": "GPU-free, I/O-free character composition graph and data contracts for CarbonEngineJS.",
+  "description": "GPU-free, I/O-free character source documents and native Trinity character classes for CarbonEngineJS.",
   "type": "module",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./library-builder": "./src/library-builder/index.js"
   },
   "sideEffects": false,
   "engines": {
@@ -16,7 +17,7 @@
     "docs:classes": "node scripts/generate_class_catalog.js",
     "proof:decorators": "node scripts/proof_decorator_transform.js",
     "test": "npm run build:npm && node --test test/*.test.js",
-    "lint": "npm run build:npm && node --check npm/dist/index.js && node --check test/runtime-character.test.js && node --check scripts/build_npm.js && node --check scripts/class_catalog_metadata.js && node --check scripts/generate_class_catalog.js && node --check scripts/proof_decorator_transform.js && node --check rollup.config.mjs",
+    "lint": "npm run build:npm && node --check npm/dist/index.js && node --check npm/dist/library-builder/index.js && node --check test/character-library-builder.test.js && node --check test/character-rig-binding.test.js && node --check test/incarna-hydration.test.js && node --check test/trinity-classes.test.js && node --check scripts/build_npm.js && node --check scripts/class_catalog_metadata.js && node --check scripts/generate_class_catalog.js && node --check scripts/proof_decorator_transform.js && node --check rollup.config.mjs",
     "check": "npm run lint && npm test"
   },
   "keywords": [
@@ -24,7 +25,7 @@
     "character",
     "paperdoll",
     "avatar",
-    "graph"
+    "trinity"
   ],
   "license": "MIT",
   "devDependencies": {

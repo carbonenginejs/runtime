@@ -1,51 +1,47 @@
 # Runtime character roadmap
 
 Status: Evolving
-Scope: Planned `@carbonenginejs/runtime-character` work
-Audience: Character-runtime integrators and maintainers
-Summary: Separates implemented character contracts from approved but unavailable runtime work.
+Scope: `@carbonenginejs/runtime-character`
+Audience: Maintainers
+Summary: Tracks evidence-backed work after replacing the speculative v1/v2 character model.
 
 ## Current baseline
 
-The current package hydrates prepared libraries, resolves explicit part and
-prepared-recipe selections, preserves atomic model LOD bundles, composes live
-controls, exposes structural sinks, and constructs an immediate CPU skinning
-palette for the bounded supported rig path.
+- schema-v3 transparent JSON construction and validation;
+- proven `_id`/`_ref` relationship projection;
+- document-only lookup without legacy model hydration;
+- current source-backed native character/interior classes under `src/trinity`;
+- exact-name CPU rig binding used by `Tr2SkinnedObject`; and
+- an explicit empty `src/incarna` home for historical-only identities.
 
-See [architecture](architecture.md) and the
-[prepared-library contract](reference/prepared-libraries.md) for the available
-surface.
+The old schema-v1/v2 `CjsCharacter*` graph and model family is removed.
 
-## Planned graph application
+## Next semantic models
 
-A future package-owned applicator may consume a resolved graph and associate
-its declared dependencies with prepared runtime-resource results. It must keep
-configuration and geometry from the same LOD bundle and remain independent of
-a concrete GPU engine.
+Add a semantic `CjsCharacter*` class only when current document evidence and a
+real consumer establish its fields and behavior. New models should extend
+`CjsModel`, carry schema decorators, and hydrate directly through
+`CjsCharacterThing.from(jsonRecord)`.
 
-This applicator is not currently exported.
+A document-name-to-constructor registry may be added when the first such
+consumer exists. Current document names already provide the type scope, so no
+record-level `_type` is planned.
 
-## Planned texture operations
+## Document-to-native adapters
 
-Prepared character data needs typed texture-composition operations rather than
-one generic normal input. The planned model preserves three independent cases:
+Do not connect schema-v3 records to `Tr2*` objects by filename or old v1/v2
+assumptions. Each adapter requires a proven source relationship, focused
+synthetic tests, and a clear resource-owner boundary.
 
-- direct or full-normal input;
-- masked-normal replacement;
-- additive detail-normal contribution.
+## Native Carbon work
 
-The package must not collapse these operations or infer them from filename
-suffixes. Runtime-resource may provide prepared pixel data; an engine owns the
-actual composition passes and texture realization.
+Continue verifying maintained `src/trinity` classes against current Carbon
+headers and implementations. Generated shells, schema registration, or passing
+hydration are not behavioral parity.
 
-No typed texture-operation API is currently exported.
+## Historical Incarna work
 
-## Planned animation-state work
-
-The source-backed `Tr2GStateAnimation` and `Tr2GStateParameter` shapes are
-available, and structural parameter sinks can receive named control values.
-Authored state transitions, GState graph evaluation, cloth synchronization,
-delayed palette queues, and GPU palette upload remain unavailable.
-
-Any future state evaluator requires a legally distributable, source-backed
-prepared graph. It must not treat a hydrated shell as behavioral parity.
+When pinned Incarna assets require an identity absent from current Carbon, add
+the smallest honest hydration contract under `src/incarna`. Keep current
+Carbon identities in `src/trinity`, and do not recreate unavailable lighting or
+rendering systems by guesswork.

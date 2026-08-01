@@ -10,433 +10,23 @@ Generated from reviewed class-level JSDoc and explicit export metadata in
 `scripts/generate_class_catalog.js`.
 Update source purposes and regenerate; do not edit catalog entries directly.
 
-<!-- class:CjsCharacterBlendshapeLimits -->
-## `CjsCharacterBlendshapeLimits`
+<!-- class:CjsCharacterDocumentLibrary -->
+## `CjsCharacterDocumentLibrary`
 
-Per-head minimum and maximum values for named blendshape controls.
+Indexes schema-v3 source documents without hydrating legacy character models.
 
 - Export: `@carbonenginejs/runtime-character`
-- Source: `src/deformation/CjsCharacterBlendshapeLimits.js`
+- Source: `src/library/CjsCharacterDocumentLibrary.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CjsCharacterBonePose -->
-## `CjsCharacterBonePose`
+<!-- class:CjsCharacterLibraryBuilder -->
+## `CjsCharacterLibraryBuilder`
 
-Authored transform values for one named character bone.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/deformation/CjsCharacterBonePose.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterCapabilityCoverage -->
-## `CjsCharacterCapabilityCoverage`
-
-One independently evidenced complete, partial, none, or unknown capability axis.
+Builds a deterministic character-library document from caller-supplied JSON.
 
 - Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterCapabilityCoverage.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterCapabilityRequirement -->
-## `CjsCharacterCapabilityRequirement`
-
-Exact named rig and morph controls required by one character feature.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterCapabilityRequirement.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterControlApplicator -->
-## `CjsCharacterControlApplicator`
-
-Pure deterministic composer for authored, expression, viseme, and similar controls.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/controls/CjsCharacterControlApplicator.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterControlBinding -->
-## `CjsCharacterControlBinding`
-
-Stateful full-snapshot binding from neutral character controls to a structural sink.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/controls/CjsCharacterControlBinding.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterControlLayer -->
-## `CjsCharacterControlLayer`
-
-One backend-neutral live-control layer, such as expression or viseme input.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/controls/CjsCharacterControlLayer.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterControlState -->
-## `CjsCharacterControlState`
-
-Detached composed snapshot of live controls over a character graph.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/controls/CjsCharacterControlState.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterDependency -->
-## `CjsCharacterDependency`
-
-Inert resource dependency; loading belongs to an outer adapter.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/library/CjsCharacterDependency.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterFaceAnimationProfile -->
-## `CjsCharacterFaceAnimationProfile`
-
-Female and male face-animation settings for one ancestry.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/face/CjsCharacterFaceAnimationProfile.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterFaceAnimationSetting -->
-## `CjsCharacterFaceAnimationSetting`
-
-Authored face-animation multipliers for one ancestry and sex.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/face/CjsCharacterFaceAnimationSetting.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterFaceControls -->
-## `CjsCharacterFaceControls`
-
-Lossless authored face-control tuples, separated by sex.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/face/CjsCharacterFaceControls.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterFaceSetup -->
-## `CjsCharacterFaceSetup`
-
-Authored bind poses, animation values, controls, and shader tuning for faces.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/face/CjsCharacterFaceSetup.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterFaceTweakSettings -->
-## `CjsCharacterFaceTweakSettings`
-
-Global wrinkle and correction-map tuning used by facial controls.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/face/CjsCharacterFaceTweakSettings.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterGraph -->
-## `CjsCharacterGraph`
-
-Complete GPU-free and I/O-free character composition graph.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/library/CjsCharacterGraph.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterGStateParameterSink -->
-## `CjsCharacterGStateParameterSink`
-
-Structural character-control sink for persisted GState parameter records.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/controls/CjsCharacterGStateParameterSink.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterLibrary -->
-## `CjsCharacterLibrary`
-
-Hydrates library data and owns transient catalog indexes.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/library/CjsCharacterLibrary.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterLibraryData -->
-## `CjsCharacterLibraryData`
-
-Deterministic serialized root produced once from character source records.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/library/CjsCharacterLibraryData.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterLibrarySource -->
-## `CjsCharacterLibrarySource`
-
-Metadata for one path in the containing library's sourceRefs table.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/library/CjsCharacterLibrarySource.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterLodBundle -->
-## `CjsCharacterLodBundle`
-
-One atomic character configuration and geometry selection.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterLodBundle.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterLodCapability -->
-## `CjsCharacterLodCapability`
-
-Capability evidence tied to one selected atomic character LOD target.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterLodCapability.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterLodController -->
-## `CjsCharacterLodController`
-
-Outer projected-size driver for the verified whole-model Trinity LOD owner.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterLodController.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterMaterial -->
-## `CjsCharacterMaterial`
-
-Character material descriptor for a slot, including colors, pattern controls, parameters, and resource paths.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterMaterial.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterMeshCapability -->
-## `CjsCharacterMeshCapability`
-
-Per-mesh evidence that keeps declared and actively referenced palettes distinct.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterMeshCapability.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterModifierNames -->
-## `CjsCharacterModifierNames`
-
-Sex-specific authored modifier-name inventories.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/face/CjsCharacterModifierNames.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterModifierNameSet -->
-## `CjsCharacterModifierNameSet`
-
-Ordered authored modifier-name inventories for one sex.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/face/CjsCharacterModifierNameSet.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterMorphTargetSink -->
-## `CjsCharacterMorphTargetSink`
-
-Structural morph-control sink that restores each target's captured authored weights.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/controls/CjsCharacterMorphTargetSink.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterNode -->
-## `CjsCharacterNode`
-
-Base for schema-backed, GPU-free character graph records.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/CjsCharacterNode.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterPartAuthoring -->
-## `CjsCharacterPartAuthoring`
-
-Non-runtime DCC/exporter metadata retained with a paperdoll part source.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterPartAuthoring.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterPartDefinition -->
-## `CjsCharacterPartDefinition`
-
-One selectable paperdoll part in the built character library.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterPartDefinition.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterPartMetadata -->
-## `CjsCharacterPartMetadata`
-
-Composition rules normalized from paperdoll part metadata.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterPartMetadata.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterPose -->
-## `CjsCharacterPose`
-
-Named character pose composed of authored per-bone transform values.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/deformation/CjsCharacterPose.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterPresentation -->
-## `CjsCharacterPresentation`
-
-Authored portrait and character-presentation profiles grouped by purpose.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/library/CjsCharacterPresentation.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterProjection -->
-## `CjsCharacterProjection`
-
-Authored texture projection for a character, including texture and mask paths, head/body targeting, layer, mirroring, and spatial parameters.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/deformation/CjsCharacterProjection.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterRecipe -->
-## `CjsCharacterRecipe`
-
-Named, sex-scoped character composition preset made from authored recipe entries.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/recipes/CjsCharacterRecipe.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterRecipeEntry -->
-## `CjsCharacterRecipeEntry`
-
-One category/path/weight selection in a character recipe.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/recipes/CjsCharacterRecipeEntry.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterRecipeLink -->
-## `CjsCharacterRecipeLink`
-
-One prepared, index-aligned interpretation of an authored recipe entry.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/recipes/CjsCharacterRecipeLink.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterRecipeLinkSet -->
-## `CjsCharacterRecipeLinkSet`
-
-Prepared links for one recipe, aligned by authored entry index.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/recipes/CjsCharacterRecipeLinkSet.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterRecipeResolution -->
-## `CjsCharacterRecipeResolution`
-
-Prepared runtime result that never hides ambiguous or unresolved recipe entries.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/recipes/CjsCharacterRecipeResolution.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterResolutionIssue -->
-## `CjsCharacterResolutionIssue`
-
-One explicit diagnostic produced while resolving an authored recipe.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/recipes/CjsCharacterResolutionIssue.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterResolvedPart -->
-## `CjsCharacterResolvedPart`
-
-One explicit library selection prepared for a backend-neutral character graph.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterResolvedPart.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterResolvedRule -->
-## `CjsCharacterResolvedRule`
-
-One metadata-only composition node activated by an authored recipe entry.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/recipes/CjsCharacterResolvedRule.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterResourceSet -->
-## `CjsCharacterResourceSet`
-
-Configuration and texture resources owned by a non-paperdoll character profile.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/parts/CjsCharacterResourceSet.js`
+- Source: `src/library-builder/CjsCharacterLibraryBuilder.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -450,85 +40,25 @@ CPU-only mapping from animation-rig world transforms to a render-rig skinning pa
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CjsCharacterSculptField -->
-## `CjsCharacterSculptField`
+<!-- class:Tr2ColorCurve -->
+## `Tr2ColorCurve`
 
-Triangle field mapping a two-dimensional control surface to morph weights.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/deformation/CjsCharacterSculptField.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterSculptTriangle -->
-## `CjsCharacterSculptTriangle`
-
-Three vertex indexes forming one sculpting-field triangle.
+Historical Curve2 color layout used by Incarna Black assets.
 
 - Export: `@carbonenginejs/runtime-character`
-- Source: `src/deformation/CjsCharacterSculptTriangle.js`
+- Source: `src/incarna/curves/Tr2ColorCurve.js`
 - Visibility: Public
-- Kind: CarbonEngineJS
+- Kind: Historical Incarna hydration class
 
-<!-- class:CjsCharacterSculptVertex -->
-## `CjsCharacterSculptVertex`
+<!-- class:Tr2ColorKey -->
+## `Tr2ColorKey`
 
-One normalized vertex in a character sculpting control field.
+One key in a historical Incarna color curve.
 
 - Export: `@carbonenginejs/runtime-character`
-- Source: `src/deformation/CjsCharacterSculptVertex.js`
+- Source: `src/incarna/curves/Tr2ColorKey.js`
 - Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterUniqueCharacter -->
-## `CjsCharacterUniqueCharacter`
-
-Authored defaults and owned resources for one unique character-select model.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/library/CjsCharacterUniqueCharacter.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterViseme -->
-## `CjsCharacterViseme`
-
-One exact authored speech control and its optional skeletal animation source.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/face/CjsCharacterViseme.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterVisemeFrame -->
-## `CjsCharacterVisemeFrame`
-
-One timed snapshot of independent authored viseme weights.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/face/CjsCharacterVisemeFrame.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterVisemeSet -->
-## `CjsCharacterVisemeSet`
-
-Ordered, data-driven speech controls for one authored character state graph.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/face/CjsCharacterVisemeSet.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsCharacterVisemeTimeline -->
-## `CjsCharacterVisemeTimeline`
-
-Backend-neutral timed viseme weights for speech or captured facial input.
-
-- Export: `@carbonenginejs/runtime-character`
-- Source: `src/face/CjsCharacterVisemeTimeline.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
+- Kind: Historical Incarna hydration class
 
 <!-- class:Tr2GStateAnimation -->
 ## `Tr2GStateAnimation`
@@ -549,6 +79,16 @@ Named, node-scoped scalar value for a character GState animation.
 - Source: `src/trinity/trinityCore/Tr2GStateParameter.js`
 - Visibility: Public
 - Kind: Adapted Carbon class
+
+<!-- class:Tr2InteriorCell -->
+## `Tr2InteriorCell`
+
+Minimal persisted cell record used by historical Incarna interior scenes.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/incarna/interior/Tr2InteriorCell.js`
+- Visibility: Public
+- Kind: Historical Incarna hydration class
 
 <!-- class:Tr2InteriorLightSet -->
 ## `Tr2InteriorLightSet`
@@ -670,6 +210,26 @@ Per-object particle vertex-stage data containing world and inverse-view matrices
 - Visibility: Public
 - Kind: Adapted Carbon class
 
+<!-- class:Tr2ScalarCurve -->
+## `Tr2ScalarCurve`
+
+Historical Curve2 scalar layout used by Incarna Black assets.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/incarna/curves/Tr2ScalarCurve.js`
+- Visibility: Public
+- Kind: Historical Incarna hydration class
+
+<!-- class:Tr2ScalarKey -->
+## `Tr2ScalarKey`
+
+One key in a historical Incarna scalar curve.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/incarna/curves/Tr2ScalarKey.js`
+- Visibility: Public
+- Kind: Historical Incarna hydration class
+
 <!-- class:Tr2SkinnedModel -->
 ## `Tr2SkinnedModel`
 
@@ -703,12 +263,12 @@ Native helper owned by Tr2SkinnedObject.
 <!-- class:TriMatrix -->
 ## `TriMatrix`
 
-Internal dropped shell for Carbon's row-major scripting matrix, retained pending an explicit conversion and serialization contract.
+Unexported current Carbon row-major scripting matrix pending an explicit conversion contract.
 
 - Export: None
-- Source: `src/dropped/TriMatrix.js`
+- Source: `src/trinity/trinityCore/TriMatrix.js`
 - Visibility: Internal
-- Kind: Dropped Carbon schema class
+- Kind: Unexported current Carbon class
 
 <!-- class:WodBakingScene -->
 ## `WodBakingScene`

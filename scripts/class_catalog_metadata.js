@@ -1,58 +1,9 @@
 const publicExport = "`@carbonenginejs/runtime-character`";
 
 const carbonEngineJs = [
-    ["CjsCharacterBlendshapeLimits", "src/deformation/CjsCharacterBlendshapeLimits.js"],
-    ["CjsCharacterBonePose", "src/deformation/CjsCharacterBonePose.js"],
-    ["CjsCharacterCapabilityCoverage", "src/parts/CjsCharacterCapabilityCoverage.js"],
-    ["CjsCharacterCapabilityRequirement", "src/parts/CjsCharacterCapabilityRequirement.js"],
-    ["CjsCharacterControlApplicator", "src/controls/CjsCharacterControlApplicator.js"],
-    ["CjsCharacterControlBinding", "src/controls/CjsCharacterControlBinding.js"],
-    ["CjsCharacterControlLayer", "src/controls/CjsCharacterControlLayer.js"],
-    ["CjsCharacterControlState", "src/controls/CjsCharacterControlState.js"],
-    ["CjsCharacterDependency", "src/library/CjsCharacterDependency.js"],
-    ["CjsCharacterFaceAnimationProfile", "src/face/CjsCharacterFaceAnimationProfile.js"],
-    ["CjsCharacterFaceAnimationSetting", "src/face/CjsCharacterFaceAnimationSetting.js"],
-    ["CjsCharacterFaceControls", "src/face/CjsCharacterFaceControls.js"],
-    ["CjsCharacterFaceSetup", "src/face/CjsCharacterFaceSetup.js"],
-    ["CjsCharacterFaceTweakSettings", "src/face/CjsCharacterFaceTweakSettings.js"],
-    ["CjsCharacterGraph", "src/library/CjsCharacterGraph.js"],
-    ["CjsCharacterGStateParameterSink", "src/controls/CjsCharacterGStateParameterSink.js"],
-    ["CjsCharacterLibrary", "src/library/CjsCharacterLibrary.js"],
-    ["CjsCharacterLibraryData", "src/library/CjsCharacterLibraryData.js"],
-    ["CjsCharacterLibrarySource", "src/library/CjsCharacterLibrarySource.js"],
-    ["CjsCharacterLodBundle", "src/parts/CjsCharacterLodBundle.js"],
-    ["CjsCharacterLodCapability", "src/parts/CjsCharacterLodCapability.js"],
-    ["CjsCharacterLodController", "src/parts/CjsCharacterLodController.js"],
-    ["CjsCharacterMaterial", "src/parts/CjsCharacterMaterial.js"],
-    ["CjsCharacterMeshCapability", "src/parts/CjsCharacterMeshCapability.js"],
-    ["CjsCharacterModifierNames", "src/face/CjsCharacterModifierNames.js"],
-    ["CjsCharacterModifierNameSet", "src/face/CjsCharacterModifierNameSet.js"],
-    ["CjsCharacterMorphTargetSink", "src/controls/CjsCharacterMorphTargetSink.js"],
-    ["CjsCharacterNode", "src/CjsCharacterNode.js"],
-    ["CjsCharacterPartAuthoring", "src/parts/CjsCharacterPartAuthoring.js"],
-    ["CjsCharacterPartDefinition", "src/parts/CjsCharacterPartDefinition.js"],
-    ["CjsCharacterPartMetadata", "src/parts/CjsCharacterPartMetadata.js"],
-    ["CjsCharacterPose", "src/deformation/CjsCharacterPose.js"],
-    ["CjsCharacterPresentation", "src/library/CjsCharacterPresentation.js"],
-    ["CjsCharacterProjection", "src/deformation/CjsCharacterProjection.js"],
-    ["CjsCharacterRecipe", "src/recipes/CjsCharacterRecipe.js"],
-    ["CjsCharacterRecipeEntry", "src/recipes/CjsCharacterRecipeEntry.js"],
-    ["CjsCharacterRecipeLink", "src/recipes/CjsCharacterRecipeLink.js"],
-    ["CjsCharacterRecipeLinkSet", "src/recipes/CjsCharacterRecipeLinkSet.js"],
-    ["CjsCharacterRecipeResolution", "src/recipes/CjsCharacterRecipeResolution.js"],
-    ["CjsCharacterResolutionIssue", "src/recipes/CjsCharacterResolutionIssue.js"],
-    ["CjsCharacterResolvedPart", "src/parts/CjsCharacterResolvedPart.js"],
-    ["CjsCharacterResolvedRule", "src/recipes/CjsCharacterResolvedRule.js"],
-    ["CjsCharacterResourceSet", "src/parts/CjsCharacterResourceSet.js"],
-    ["CjsCharacterRigBinding", "src/controls/CjsCharacterRigBinding.js"],
-    ["CjsCharacterSculptField", "src/deformation/CjsCharacterSculptField.js"],
-    ["CjsCharacterSculptTriangle", "src/deformation/CjsCharacterSculptTriangle.js"],
-    ["CjsCharacterSculptVertex", "src/deformation/CjsCharacterSculptVertex.js"],
-    ["CjsCharacterUniqueCharacter", "src/library/CjsCharacterUniqueCharacter.js"],
-    ["CjsCharacterViseme", "src/face/CjsCharacterViseme.js"],
-    ["CjsCharacterVisemeFrame", "src/face/CjsCharacterVisemeFrame.js"],
-    ["CjsCharacterVisemeSet", "src/face/CjsCharacterVisemeSet.js"],
-    ["CjsCharacterVisemeTimeline", "src/face/CjsCharacterVisemeTimeline.js"]
+    ["CjsCharacterDocumentLibrary", "src/library/CjsCharacterDocumentLibrary.js"],
+    ["CjsCharacterLibraryBuilder", "src/library-builder/CjsCharacterLibraryBuilder.js"],
+    ["CjsCharacterRigBinding", "src/controls/CjsCharacterRigBinding.js"]
 ];
 
 const adaptedCarbon = [
@@ -76,8 +27,16 @@ const adaptedCarbon = [
     ["WodBakingScene", "src/trinity/wod/WodBakingScene.js"]
 ];
 
-const droppedCarbon = [
-    ["TriMatrix", "src/dropped/TriMatrix.js"]
+const internalCarbon = [
+    ["TriMatrix", "src/trinity/trinityCore/TriMatrix.js"]
+];
+
+const historicalIncarna = [
+    ["Tr2ColorCurve", "src/incarna/curves/Tr2ColorCurve.js"],
+    ["Tr2ColorKey", "src/incarna/curves/Tr2ColorKey.js"],
+    ["Tr2InteriorCell", "src/incarna/interior/Tr2InteriorCell.js"],
+    ["Tr2ScalarCurve", "src/incarna/curves/Tr2ScalarCurve.js"],
+    ["Tr2ScalarKey", "src/incarna/curves/Tr2ScalarKey.js"]
 ];
 
 export const classCatalogMetadata = [
@@ -95,11 +54,18 @@ export const classCatalogMetadata = [
         export: publicExport,
         kind: "Adapted Carbon class"
     })),
-    ...droppedCarbon.map(([name, source]) => ({
+    ...historicalIncarna.map(([name, source]) => ({
+        name,
+        source,
+        visibility: "Public",
+        export: publicExport,
+        kind: "Historical Incarna hydration class"
+    })),
+    ...internalCarbon.map(([name, source]) => ({
         name,
         source,
         visibility: "Internal",
         export: "None",
-        kind: "Dropped Carbon schema class"
+        kind: "Unexported current Carbon class"
     }))
 ];

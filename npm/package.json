@@ -1,10 +1,11 @@
 {
   "name": "@carbonenginejs/runtime-character",
   "version": "0.1.2",
-  "description": "GPU-free, I/O-free character composition graph and data contracts for CarbonEngineJS.",
+  "description": "GPU-free, I/O-free character source documents and native Trinity character classes for CarbonEngineJS.",
   "type": "module",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./library-builder": "./dist/library-builder/index.js"
   },
   "sideEffects": false,
   "engines": {

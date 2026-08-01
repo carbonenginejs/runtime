@@ -1,10 +1,10 @@
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 
-const IDENTITY_PALETTE = Object.freeze([
+const IDENTITY_PALETTE = [
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0
-]);
+];
 
 /** CPU-only mapping from animation-rig world transforms to a render-rig skinning palette. */
 export class CjsCharacterRigBinding

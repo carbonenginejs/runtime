@@ -4,7 +4,8 @@ const external = id => id.startsWith("@carbonenginejs/") || id.startsWith("node:
 
 export default {
   input: [
-    "src/index.js"
+    "src/index.js",
+    "src/library-builder/index.js"
   ],
   external,
   output: {

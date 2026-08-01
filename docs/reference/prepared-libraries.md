@@ -1,73 +1,106 @@
-# Prepared character libraries
+# Character document libraries
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-character` prepared-library input and hydration
+Scope: `@carbonenginejs/runtime-character` schema-v3 input and lookup
 Audience: Library producers, runtime integrators, and maintainers
-Summary: Defines the current normalized and compact character-library contract and its opaque fields.
+Summary: Defines the transparent source-neutral character JSON contract.
 
-## Current inputs
+## Document shape
 
-`CjsCharacterLibrary` accepts normalized schema-v1 data and compact schema-v2
-artifacts supplied by the caller. Compact catalogs and shared part sources are
-expanded before `CjsCharacterLibraryData` hydration.
+`CjsCharacterLibraryBuilder` produces:
 
-```js
-import {
-  CjsCharacterLibrary
-} from "@carbonenginejs/runtime-character";
-
-const library = new CjsCharacterLibrary(preparedLibraryData);
-const normalized = CjsCharacterLibrary.expandData(preparedLibraryData);
+```json
+{
+  "schema": "carbonenginejs.characterLibrary",
+  "schemaVersion": 3,
+  "documents": {
+    "ancestries": {},
+    "archetypes": {},
+    "bloodlines": {},
+    "characterAvatarBehaviors": {},
+    "characterColorLocations": {},
+    "characterColorNames": {},
+    "characterModifierLocations": {},
+    "characterPortraitResources": {},
+    "characterResources": {},
+    "characterSculptingLocations": {},
+    "paperdolls": {},
+    "races": {}
+  }
+}
 ```
 
-`expandData()` returns schema-v1 input unchanged because that form is already
-normalized. It returns a detached normalized record when expanding schema-v2
-input. The library hydrates its own model graph and does not mutate the
-producer's artifact.
+Every document is a plain JSON object keyed by source record identity. All
+twelve named documents are required, even when a source supplies an empty
+record map. Additional named record maps are retained in deterministic name
+order.
 
-## Opaque authored values
+## Transparent records
 
-Several records are preserved for lossless interchange but have no runtime
-applicator semantics:
+Unknown fields are copied unchanged. The builder does not infer meaning from
+paths, names, values, or optional fields. Record identities are serialized as
+strings so large integers remain lossless.
 
-- `CjsCharacterProjection.mode` is an opaque numeric authored value.
-- Bone-pose `orientation` and `rotation` remain distinct authored vectors. The
-  package does not collapse them or invent an application order.
-- Face-control tuples and presentation payloads are retained without assigning
-  undocumented element meanings.
-- Part-metadata `soundTag` and `wap` values are retained but are not interpreted
-  by this package.
-- Modifier names remain ordered discovery aids. They are not a runtime
-  whitelist and do not prove that a named morph or control is present.
+The document name is the record-type scope. `_type` is not added because each
+current document has one named record family. A future mixed-type document may
+justify a discriminator when a real consumer requires it.
 
-Callers must not infer package ownership, texture role, or material operation
-from a directory or filename alone. Those meanings require explicit prepared
-metadata or a source-backed adapter.
+## Relationships
 
-## Catalog identity
+Only established relationships are rewritten:
 
-Selectable parts use the library's `id` as their primary key and may also carry
-an exact external `typeID` and display `name`. A name resolves only when it is
-unambiguous. Prepared recipe links are aligned to authored entry indexes and
-keep unresolved or ambiguous choices as typed issues.
+- `ancestries.bloodlineID` → `bloodlines`;
+- `bloodlines.raceID` → `races`;
+- paperdoll modifier locations → `characterModifierLocations`;
+- paperdoll resources → `characterResources`;
+- paperdoll color locations → `characterColorLocations`;
+- paperdoll color names → `characterColorNames`; and
+- paperdoll sculpt locations → `characterSculptingLocations`.
 
-Strict graph construction rejects blocking resolution issues. Diagnostic tools
-may request an explicitly incomplete graph.
+For those fields, the authored identifier becomes `{ "_ref": id }`. An
+existing target receives `_id` only when at least one relationship references
+it. Missing targets remain dangling `_ref` values; the builder does not add a
+placeholder or discard the authored value.
 
-## Atomic model selection
+```json
+{
+  "ancestries": {
+    "100": {
+      "bloodlineID": { "_ref": "10" }
+    }
+  },
+  "bloodlines": {
+    "10": {
+      "_id": "10",
+      "raceID": { "_ref": "1" }
+    }
+  }
+}
+```
 
-Each `CjsCharacterLodBundle` pairs one configuration path with its matching
-geometry path. Resolution prefers an exact complete bundle, then an unsuffixed
-base, then the nearest complete numbered bundle. It never falls back the two
-paths independently.
+Identities are scoped to their target document. Resolving a reference therefore
+always requires the target document name.
 
-Alternate LOD resources are not copied into the selected dependency set.
-Capability inspection must be repeated after a model, geometry, or skeleton
-identity changes.
+## Runtime wrapper
+
+`CjsCharacterDocumentLibrary` validates and detaches one schema-v3 value. It
+provides document listing, record lookup, and explicit reference resolution.
+It does not hydrate any record into a semantic `CjsModel`.
+
+When a source-backed semantic model is added, callers may hydrate it directly:
+
+```js
+const value = CjsCharacterRace.from(
+    library.Get("races", raceID)
+);
+```
+
+No schema-v1/v2 compatibility conversion is provided. The former normalized
+graph model was based on superseded data structures and has been removed.
 
 ## Producer boundary
 
-Tools-core owns prepared-library discovery, normalization, linking, and
-deterministic artifact generation. This package owns hydration and runtime
-interpretation of the published contract. It does not read YAML, inspect an
-installed client, acquire resources, or write producer output.
+Acquisition adapters own source selection and exact-build policy. This package
+owns deterministic in-memory construction, relationship projection,
+validation, and lookup. It does not inspect an installed client, download
+inputs, decode source formats, write artifacts, or fetch character assets.

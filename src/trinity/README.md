@@ -5,9 +5,9 @@ the character/interior domain, moved out of `runtime-trinity` and **owned by
 runtime-character** as of 2026-07-18. Every class identity under
 `src/trinity/` must correspond 1:1 to Trinity evidence in the Carbon C++ source
 (`carbonengine`; schema authority is tools-core's Carbon schema build —
-format-carbon retired 2026-07-20). Everything **outside**
-this folder (the `CjsCharacter*` composition graph) is CarbonEngineJS-original
-and may be redesigned without claiming a Trinity counterpart.
+format-carbon retired 2026-07-20). Everything **outside** this folder is
+CarbonEngineJS-owned document or adapter code and must not claim a Trinity
+counterpart.
 
 That is the whole reason this folder exists: **verified Trinity identities and
 invented CarbonEngineJS identities never mix in one directory.** A source-
@@ -20,16 +20,55 @@ lives outside with a `Cjs` prefix.
 |---|---|
 | `interior/` | ITr2InteriorLight (type-only Carbon interface), Tr2InteriorScene, Tr2InteriorPlaceable, Tr2IntSkinnedObject, Tr2IntKeyGenerator, Tr2InteriorLightSet, Tr2InteriorLightSource, Tr2InteriorPerLightPSData, Tr2InteriorPerObjectLightData, Tr2InteriorPerObjectPSData, Tr2InteriorPerObjectVSData, Tr2PerObjectParticleVSData, + `enums.js` |
 | `wod/` | WodBakingScene |
-| `trinityCore/` | ITr2AnimationUpdater and ITr2SkinnedObject (type-only Carbon interfaces), Tr2GStateAnimation, Tr2GStateParameter, Tr2Model, Tr2SkinnedModel, Tr2SkinnedObject, Tr2SkinnedObjectLod (non-Blue native helper) |
+| `trinityCore/` | ITr2AnimationUpdater and ITr2SkinnedObject (type-only Carbon interfaces), Tr2GStateAnimation, Tr2GStateParameter, Tr2Model, Tr2SkinnedModel, Tr2SkinnedObject, Tr2SkinnedObjectLod (non-Blue native helper), and the intentionally unexported TriMatrix conversion shell |
+
+`WodBakingScene` is the package-owned Carbon identity for the character bake
+scene. Carbon renders its `Avatar` (`Tr2SkinnedObject`) through the normal
+managed opaque skinned-object batch path; runtime-character keeps the scene
+record and method obligations, while texture render-target work, material
+realization, and GPU draw execution remain engine or adapter responsibilities.
+The only `WodAvatar2Builder` evidence found in this Carbon checkout is the
+friend declaration on `Tr2IntSkinnedObject`; no constructible runtime-character
+class is claimed until matching source is available.
 
 Note: `WodPlaceableRes` is NOT here despite being wod-family - it is a `*Res`
 resource class, owned by **runtime-resource** (trinity's generator skips it with
 that reason; resource ownership wins over the character family rule).
 
-`TriMatrix` is also owned here, but deliberately lives in `src/dropped` rather
-than this maintained tree. Its only runtime schema consumers are
-`Tr2InteriorPlaceable.transform` and `Tr2SkinnedObject.transform`; see the
-dropped README for the row-major serialization issue and revival rule.
+## Incarna recovery boundary
+
+The local tools-core Incarna fallback index is discovery evidence for old
+interior Black graphs. It does not make downloaded assets, decoded corpora, or
+tools-core readers package content, and runtime-character must stay GPU-free
+and I/O-free.
+
+The current Carbon checkout only has the modern `Interior/` and `Wod/` source
+listed above. Recovered Incarna Black root counts from the pinned organization
+research identify these legacy class names as likely required for scene loading
+but not source-backed by current Carbon:
+
+- `Tr2InteriorStatic`;
+- `Tr2InteriorFlare`;
+- `Tr2InteriorParticleObject`;
+- `Tr2HighLevelShader`; and
+- `Tr2ShaderManager`.
+
+Do not silently invent these as full native parity classes. If pinned evidence
+requires them, add only the smallest reviewed hydration contracts under
+`src/incarna`, cite the reproducible overlay or recovery evidence, and keep
+rendering, effect realization, acquisition, and cache access with their owning
+packages/adapters.
+
+The Incarna lighting system is out of scope. It appears to have depended on
+third-party or otherwise unavailable lighting data, so future visual proofs
+should use supported direct lights and documented neutral fallbacks rather than
+trying to recreate the original indirect/radiosity stack.
+
+`TriMatrix` is current Carbon and therefore lives in `src/trinity/trinityCore`.
+It remains intentionally unexported because its row-major Blue wrapper still
+needs an explicit conversion contract with runtime-utils matrices. Its only
+runtime schema consumers are `Tr2InteriorPlaceable.transform` and
+`Tr2SkinnedObject.transform`.
 
 `Tr2GStateAnimation` and `Tr2GStateParameter` are character runtime classes,
 not general Granny resource classes. The parameter value record is usable now.
@@ -70,8 +109,6 @@ backend upload lifecycle.
   type-only contracts. They are not registered as constructible models; the
   nested `LightSourceItem` fields belong to a native helper struct, not to the
   interface.
-- Every file moved to `src/dropped` must have its own disposition row explaining
-  ownership, rejection, replacement, and any revival condition.
 
 ## Provenance rules (they differ INSIDE vs OUTSIDE this folder)
 
@@ -88,8 +125,8 @@ Inside `src/trinity/`:
   verified Trinity counterpart; incomplete native behavior may remain an
   explicitly marked throwing method until its engine/runtime owner exists.
 
-Outside `src/trinity/` (the `CjsCharacter*` graph): CarbonEngineJS-original,
-no Carbon fidelity obligations, `Cjs` prefix required.
+Outside `src/trinity/`: CarbonEngineJS-original document and adapter code, no
+Carbon fidelity obligations, `Cjs` prefix required for public classes.
 
 ## Adapter pointer
 
