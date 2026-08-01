@@ -35,13 +35,18 @@ const DETAIL_MAP_ARRAY_FAMILY = "detail-map-array";
  *
  * Requires the maps to be contiguous from `Detail1Map` with no gap, in one
  * register space, at strictly ascending registers, and each an ordinary
- * non-sRGB single-element 2D texture. Anything else returns null: a partial or
- * unusual family is not merged, because guessing produces a shader that links
- * and samples the wrong thing.
+ * single-element 2D texture declared linear. Anything else returns null: a
+ * partial or unusual family is not merged, because guessing produces a shader
+ * that links and samples the wrong thing.
+ *
+ * `isSRGB` must be present and false rather than merely not true. Carbon's
+ * reader always sets it, so an absent flag means the caller is passing
+ * something other than resource reflection, and the layers of one array texture
+ * cannot disagree about whether sampling decodes sRGB.
  *
  * @param {Array<object>} resources Reflected resources, each carrying
- *   `registerIndex`, `name`, `type`, and optionally `registerSpace`,
- *   `arrayElements` and `isSRGB`.
+ *   `registerIndex`, `name`, `type`, `isSRGB`, and optionally `registerSpace`
+ *   and `arrayElements`. `parameter` is accepted in place of `name`.
  * @param {object} [options] Recognition options.
  * @param {number} [options.registerSpace] Default register space.
  * @returns {object|null} Frozen plan, or null when the family is absent or unusable.
@@ -51,7 +56,7 @@ function recogniseDetailMapFamily(resources, options = {}) {
   const byParameter = new Map();
   for (const resource of resources ?? []) {
     const value = resource?.toJSON?.() ?? resource;
-    const name = value?.name;
+    const name = value?.name ?? value?.parameter;
     if (typeof name !== "string" || !DETAIL_PARAMETERS.includes(name)) continue;
 
     // A duplicate name means the reflection is not what this recogniser
@@ -73,15 +78,20 @@ function recogniseDetailMapFamily(resources, options = {}) {
       registerIndex,
       value
     } = byParameter.get(parameter);
-    if (!Number.isInteger(registerIndex) || registerIndex < 0 || value.type !== CARBON_TEXTURE_2D || (value.arrayElements ?? 1) !== 1 || value.isSRGB === true) {
+    if (!Number.isInteger(registerIndex) || registerIndex < 0 || value.type !== CARBON_TEXTURE_2D || (value.arrayElements ?? 1) !== 1 || value.isSRGB !== false) {
       return null;
     }
+    const space = value.registerSpace ?? registerSpace;
+
+    // One array texture occupies one binding, so the layers cannot come
+    // from different register spaces.
+    if (layer > 0 && space !== layers[layer - 1].registerSpace) return null;
     if (layer > 0 && registerIndex <= layers[layer - 1].registerIndex) return null;
     layers.push({
       parameter,
       layer,
       registerIndex,
-      registerSpace: value.registerSpace ?? registerSpace
+      registerSpace: space
     });
   }
   return Object.freeze({
