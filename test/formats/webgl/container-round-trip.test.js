@@ -6,6 +6,7 @@ import path from "node:path";
 import { buildEffectPackage } from "../../../src/formats/webgl/core/effectPackage.js";
 import { CjsCarbonEffectReader } from "../../../src/format/carbonEffect/CjsCarbonEffectReader.js";
 import { writeGlslBackendBlock } from "../../../src/formats/webgl/core/glslBackendBlock.js";
+import { HlslShaderStageNames } from "../../../src/formats/hlsl/core/tr2/HlslRenderContextEnum.js";
 
 /**
  * Proves the emitted container carries the same translation the packager built.
@@ -28,8 +29,16 @@ import { writeGlslBackendBlock } from "../../../src/formats/webgl/core/glslBacke
 
 const SHADER_EXTENSIONS = new Set([ ".sm_hi", ".sm_lo", ".sm_depth" ]);
 
-/** Carbon stage type codes, as the container stores them. */
-const STAGE_NAME = Object.freeze({ 0: "vertex", 1: "pixel", 5: "compute" });
+/**
+ * Stage names come from the enum, not a local table.
+ *
+ * This file used to carry `{0:"vertex",1:"pixel",5:"compute"}`, which is wrong:
+ * Carbon's compute is 2 and 5 is domain. The corpus has neither stage, so the
+ * safety net could not have caught its own error — a compute stage would have
+ * been looked up under an undefined name and counted as a mismatch, and a domain
+ * stage would have been compared as if it were compute.
+ */
+const STAGE_NAME = HlslShaderStageNames;
 
 const corpusDir = process.env.WEBGL_CORPUS_DIR || null;
 const decoder = new TextDecoder();

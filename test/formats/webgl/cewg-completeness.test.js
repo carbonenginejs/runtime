@@ -3,25 +3,42 @@ import test from "node:test";
 
 import {
     isCewgComputeFragmentContract,
-    isCewgDiagnosticIntegrityError,
-    inspectCewgCoreChunks,
-    inspectCewgPackageIntegrity,
+    inspectGlslContainerIntegrity,
     inspectCewgRasterCompleteness
 } from "../../../src/formats/webgl/core/cewgCompleteness.js";
+import { readGlslEffectContainer } from "../../../src/formats/webgl/core/readGlslEffectContainer.js";
+import { CjsWebglFormat } from "../../../src/formats/webgl/index.js";
+import { buildMinimalStagedEffectBytes } from "./synthetic.js";
 
-function stage(stageName, shaderKey, bodyKey = "body_1")
+/**
+ * The rules run from container bytes, so the fixture builds what a decoded
+ * container yields: stage records with pass coordinates and their own Carbon
+ * reflection, and a shader table they reference by key.
+ *
+ * The old fixture hand-built `info`/`metadata`/`glsl` objects mirroring the
+ * INFO/META/GLSL chunks, because the rules cross-checked those three against
+ * each other. That is not what the rules read now, and there is no container to
+ * disagree with itself, so the tri-split is gone rather than ported.
+ *
+ * No test here builds container *bytes* to satisfy a fixture — a fixture that
+ * builds a container is testing the container builder. The decoder is what gets
+ * held against real bytes, in the last test below and in the corpus round trip.
+ */
+
+const STAGE_TYPES = { vertex: 0, pixel: 1, compute: 2, geometry: 3, hull: 4, domain: 5 };
+
+function stage(stageName, shaderKey, bodyKey = "body_1", overrides = {})
 {
-    const localKey = `Main.pass0.${stageName}`;
-    const stageTypes = { vertex: 0, pixel: 1, compute: 2, geometry: 3, hull: 4, domain: 5 };
     return {
-        key: `${bodyKey}.${localKey}`,
+        key: `${bodyKey}.Main.pass0.${stageName}`,
         bodyKey,
-        localKey,
         techniqueName: "Main",
         passIndex: 0,
         stageName,
-        stageType: stageTypes[stageName],
-        shaderKey
+        stageType: STAGE_TYPES[stageName],
+        shaderKey,
+        manifest: { pipelineInputs: [], bindings: [] },
+        ...overrides
     };
 }
 
@@ -38,12 +55,17 @@ function shader(key, overrides = {})
         hlsl2webgl: { ok: true },
         bindings: [],
         stageInputs: [],
-        stageOutputs: [],
         ...overrides
     };
 }
 
-test("CEWG completeness accepts translated vertex/pixel pairs", () =>
+/** A decoded-container graph, which is all the rules consume. */
+function containerGraph(stages, shaders)
+{
+    return { stages, shaders };
+}
+
+test("raster completeness accepts translated vertex/pixel pairs", () =>
 {
     const result = inspectCewgRasterCompleteness(
         [ stage("vertex", "vs"), stage("pixel", "ps") ],
@@ -57,7 +79,7 @@ test("CEWG completeness accepts translated vertex/pixel pairs", () =>
     });
 });
 
-test("CEWG completeness reports absent and excluded raster stages", () =>
+test("raster completeness reports absent and excluded raster stages", () =>
 {
     const missing = inspectCewgRasterCompleteness(
         [ stage("vertex", "vs") ],
@@ -78,10 +100,10 @@ test("CEWG completeness reports absent and excluded raster stages", () =>
     );
     assert.equal(excluded.completePassCount, 0);
     assert.equal(excluded.incompletePasses[0].unavailableStages[0].stageName, "pixel");
-    assert.match(excluded.incompletePasses[0].unavailableStages[0].reason, /ld_uav_typed/);
+    assert.match(excluded.incompletePasses[0].unavailableStages[0].reason, /ld_uav_typed/u);
 });
 
-test("CEWG completeness ignores standalone compute and geometry records", () =>
+test("raster completeness ignores standalone compute and geometry records", () =>
 {
     const result = inspectCewgRasterCompleteness(
         [ stage("compute", "cs"), stage("geometry", "gs") ],
@@ -95,20 +117,7 @@ test("CEWG completeness ignores standalone compute and geometry records", () =>
     });
 });
 
-test("CEWG completeness supports the legacy selected-only embedded shader shape", () =>
-{
-    const stages = [
-        { ...stage("vertex", "vs"), ...shader("vs") },
-        { ...stage("pixel", "ps"), ...shader("ps") }
-    ];
-    const result = inspectCewgRasterCompleteness(stages, undefined);
-
-    assert.equal(result.expectedPassCount, 1);
-    assert.equal(result.completePassCount, 1);
-    assert.deepEqual(result.incompletePasses, []);
-});
-
-test("CEWG completeness rejects duplicate stages in one raster pass", () =>
+test("raster completeness rejects duplicate stages in one raster pass", () =>
 {
     const result = inspectCewgRasterCompleteness(
         [
@@ -123,56 +132,7 @@ test("CEWG completeness rejects duplicate stages in one raster pass", () =>
     assert.deepEqual(result.incompletePasses[0].duplicateStages, [ "vertex" ]);
 });
 
-test("CEWG integrity accepts one complete all-permutation body", () =>
-{
-    const vertex = stage("vertex", "vs");
-    const pixel = stage("pixel", "ps");
-    const data = packageGraph([ vertex, pixel ], [ shader("vs"), shader("ps") ]);
-    const result = inspectCewgPackageIntegrity(data.info, data.metadata, data.glsl);
-
-    assert.deepEqual(result, { ok: true, errors: [] });
-});
-
-test("CEWG integrity rejects declared partial packages and broken body graphs", () =>
-{
-    const vertex = stage("vertex", "vs");
-    const pixel = stage("pixel", "ps");
-    const data = packageGraph([ vertex, pixel ], [ shader("vs"), shader("ps") ]);
-    data.info.excludedShaderCount = 1;
-    data.glsl.variants[0].bodyKey = "body_missing";
-    const result = inspectCewgPackageIntegrity(data.info, data.metadata, data.glsl);
-    const codes = result.errors.map((entry) => entry.code);
-
-    assert.equal(result.ok, false);
-    assert.ok(codes.includes("declared_partial_package"));
-    assert.ok(codes.includes("missing_variant_body"));
-});
-
-test("CEWG integrity rejects referenced bodies without runnable programs", () =>
-{
-    const data = packageGraph([], []);
-    const result = inspectCewgPackageIntegrity(data.info, data.metadata, data.glsl);
-
-    assert.ok(result.errors.some((entry) => entry.code === "variant_body_has_no_program"));
-});
-
-test("CEWG integrity rejects unsupported and unadapted native stages", () =>
-{
-    const geometry = stage("geometry", "gs");
-    const compute = stage("compute", "cs", "body_2");
-    const data = packageGraph(
-        [ geometry, compute ],
-        [ shader("gs"), shader("cs") ],
-        [ "body_1", "body_2" ]
-    );
-    const result = inspectCewgPackageIntegrity(data.info, data.metadata, data.glsl);
-    const codes = result.errors.map((entry) => entry.code);
-
-    assert.ok(codes.includes("unsupported_stage"));
-    assert.ok(codes.includes("unadapted_compute_stage"));
-});
-
-test("CEWG compute-fragment integrity requires the emitted host contract", () =>
+test("the compute-fragment host contract is checked in full, not by a marker", () =>
 {
     const contract = {
         threadGroup: [ 8, 8, 1 ],
@@ -193,18 +153,11 @@ test("CEWG compute-fragment integrity requires the emitted host contract", () =>
         ]
     }), false);
 
-    const compute = stage("compute", "cs");
-    const valid = packageGraph([ compute ], [ shader("cs", {
+    const computeShader = shader("cs", {
         computeFragment: contract,
         bindings: [
             { kind: "dispatchUniform", name: "cewgDispatchOrigin" },
-            {
-                kind: "uavTexture",
-                registerIndex: 0,
-                slice: null,
-                location: 0,
-                name: "cewgUav0"
-            }
+            { kind: "uavTexture", registerIndex: 0, slice: null, location: 0, name: "cewgUav0" }
         ],
         source: [
             "#version 300 es",
@@ -212,293 +165,250 @@ test("CEWG compute-fragment integrity requires the emitted host contract", () =>
             "layout(location = 0) out highp vec4 cewgUav0;",
             "void main() { cewgUav0 = vec4(1.0); }"
         ].join("\n")
-    }) ]);
-    assert.deepEqual(inspectCewgPackageIntegrity(valid.info, valid.metadata, valid.glsl), {
-        ok: true,
-        errors: []
     });
 
-    const markerOnly = packageGraph([ compute ], [ shader("cs", { computeFragment: true }) ]);
-    assert.ok(inspectCewgPackageIntegrity(markerOnly.info, markerOnly.metadata, markerOnly.glsl).errors
-        .some((entry) => entry.code === "unadapted_compute_stage"));
+    assert.deepEqual(
+        inspectGlslContainerIntegrity(containerGraph([ stage("compute", "cs") ], [ computeShader ])),
+        { ok: true, errors: [] }
+    );
+
+    // A boolean marker is the failure this rule exists to catch: it reads as
+    // "yes, adapted" and carries none of the routing the host needs.
+    const markerOnly = inspectGlslContainerIntegrity(
+        containerGraph([ stage("compute", "cs") ], [ shader("cs", { computeFragment: true }) ])
+    );
+    assert.ok(markerOnly.errors.some((entry) => entry.code === "unadapted_compute_stage"));
+
+    // The UAV route must be declared at the location the contract claims, not
+    // merely present in the metadata.
+    const undeclared = inspectGlslContainerIntegrity(containerGraph(
+        [ stage("compute", "cs") ],
+        [ { ...computeShader, source: computeShader.source.replace("location = 0", "location = 1") } ]
+    ));
+    assert.ok(undeclared.errors.some((entry) => entry.code === "unadapted_compute_stage"));
 });
 
-test("CEWG integrity rejects permutation-table mismatches and duplicate keys", () =>
+test("container integrity rejects unsupported stages and stages with no program", () =>
 {
-    const data = packageGraph(
+    const unsupported = inspectGlslContainerIntegrity(
+        containerGraph([ stage("geometry", "gs") ], [ shader("gs") ])
+    );
+    assert.ok(unsupported.errors.some((entry) => entry.code === "unsupported_stage"));
+
+    // This is the shape a container gives for a body the translator could not
+    // lower: the stage is declared, the program is empty.
+    const absent = inspectGlslContainerIntegrity(containerGraph(
+        [ stage("vertex", "vs"), stage("pixel", "ps") ],
+        [ shader("vs"), shader("ps", { source: "", hlsl2webgl: { ok: false, reason: "no program was stored" } }) ]
+    ));
+    assert.ok(absent.errors.some((entry) => entry.code === "unavailable_stage_shader"));
+});
+
+test("container integrity requires one vertex/pixel pair or one compute stage per pass", () =>
+{
+    const lonely = inspectGlslContainerIntegrity(
+        containerGraph([ stage("vertex", "vs") ], [ shader("vs") ])
+    );
+    assert.ok(lonely.errors.some((entry) => entry.code === "incomplete_pass_stage_family"));
+
+    const mixed = inspectGlslContainerIntegrity(containerGraph(
+        [ stage("vertex", "vs"), stage("pixel", "ps"), stage("compute", "cs") ],
+        [ shader("vs"), shader("ps"), shader("cs") ]
+    ));
+    assert.ok(mixed.errors.some((entry) => entry.code === "invalid_pass_stage_family"));
+
+    const paired = inspectGlslContainerIntegrity(containerGraph(
         [ stage("vertex", "vs"), stage("pixel", "ps") ],
         [ shader("vs"), shader("ps") ]
-    );
-    data.metadata.variants[0].tableIndexMatchesPermutationIndex = false;
-    data.glsl.shaders.push({ ...data.glsl.shaders[0] });
-    data.info.uniqueShaderCount += 1;
-    const result = inspectCewgPackageIntegrity(data.info, data.metadata, data.glsl);
-    const codes = result.errors.map((entry) => entry.code);
-
-    assert.ok(codes.includes("permutation_table_mismatch"));
-    assert.ok(codes.includes("duplicate_shader_key"));
+    ));
+    assert.deepEqual(paired.errors, []);
 });
 
-test("CEWG integrity requires variants and cross-correlates metadata", () =>
+test("container integrity holds emitted GLSL to the vertex input ABI", () =>
 {
-    const data = packageGraph(
-        [ stage("vertex", "vs"), stage("pixel", "ps") ],
-        [ shader("vs"), shader("ps") ]
-    );
-    data.glsl.variants = [];
-    data.metadata.variants = [];
-    data.info.permutationCount = 0;
-    let codes = inspectCewgPackageIntegrity(data.info, data.metadata, data.glsl).errors
-        .map((entry) => entry.code);
-    assert.ok(codes.includes("missing_variants"));
-    assert.ok(codes.includes("orphan_body"));
+    // If the emitted `in` name does not match the reflection's attribute, nothing
+    // fails loudly: the program links and the attribute silently never binds.
+    const manifest = {
+        pipelineInputs: [
+            { registerIndex: 0, usageName: "POSITION", usageIndex: 0, usedMask: 7 }
+        ],
+        bindings: []
+    };
+    const vertex = stage("vertex", "vs", "body_1", { manifest });
+    const inputs = [ { register: 0, name: "in_POSITION0", semanticName: "POSITION", semanticIndex: 0 } ];
 
-    const mismatch = packageGraph(
-        [ stage("vertex", "vs"), stage("pixel", "ps") ],
-        [ shader("vs"), shader("ps") ]
-    );
-    mismatch.metadata.variants[0].bodyKey = "body_other";
-    codes = inspectCewgPackageIntegrity(mismatch.info, mismatch.metadata, mismatch.glsl).errors
-        .map((entry) => entry.code);
-    assert.ok(codes.includes("variant_metadata_mismatch"));
-});
-
-test("CEWG integrity rejects duplicate permutation indexes and invalid envelopes", () =>
-{
-    const stages = [
-        stage("vertex", "vs1", "body_1"),
-        stage("pixel", "ps1", "body_1"),
-        stage("vertex", "vs2", "body_2"),
-        stage("pixel", "ps2", "body_2")
-    ];
-    const data = packageGraph(
-        stages,
-        [ shader("vs1"), shader("ps1"), shader("vs2"), shader("ps2") ],
-        [ "body_1", "body_2" ]
-    );
-    data.glsl.variants[1].permutationIndex = 0;
-    data.metadata.variants[1].permutationIndex = 0;
-    data.info.format = "wrong";
-    data.info.packageKind = "wrong";
-    data.info.failedShaderCount = -1;
-    data.glsl.permutationMode = "selected";
-    const codes = inspectCewgPackageIntegrity(data.info, data.metadata, data.glsl).errors
-        .map((entry) => entry.code);
-
-    assert.ok(codes.includes("duplicate_permutation_index"));
-    assert.ok(codes.includes("invalid_package_envelope"));
-    assert.ok(codes.includes("unsupported_package_kind"));
-    assert.ok(codes.includes("invalid_declared_count"));
-    assert.ok(codes.includes("package_mode_mismatch"));
-});
-
-test("CEWG integrity rejects shared-graph downgrades and filtered production scope", () =>
-{
-    const data = packageGraph(
-        [ stage("vertex", "vs"), stage("pixel", "ps") ],
-        [ shader("vs"), shader("ps") ]
-    );
-    delete data.glsl.shaders;
-    let errors = inspectCewgPackageIntegrity(data.info, data.metadata, data.glsl).errors;
-    assert.ok(errors.some((entry) => entry.code === "missing_graph_array"));
-
-    const filtered = packageGraph(
-        [ stage("vertex", "vs"), stage("pixel", "ps") ],
-        [ shader("vs"), shader("ps") ]
-    );
-    filtered.info.selection.technique = "Main";
-    filtered.glsl.selection.technique = "Main";
-    errors = inspectCewgPackageIntegrity(filtered.info, filtered.metadata, filtered.glsl).errors;
-    const scopeError = errors.find((entry) => entry.code === "filtered_package_scope");
-    assert.equal(isCewgDiagnosticIntegrityError(scopeError), true);
-    assert.equal(isCewgDiagnosticIntegrityError({ code: "duplicate_shader_key" }), false);
-});
-
-test("CEWG integrity validates vertex names and comparison sampler ABI", () =>
-{
-    const vertex = stage("vertex", "vs");
-    const pixel = stage("pixel", "ps");
-    const data = packageGraph([ vertex, pixel ], [
-        shader("vs", {
-            stageInputs: [ {
-                register: 0,
-                mask: 7,
-                name: "wrongName",
-                semanticName: "POSITION",
-                semanticIndex: 0
-            } ],
-            source: "#version 300 es\nin highp vec3 actualName;\nvoid main() { gl_Position=vec4(actualName,1.0); }"
-        }),
-        shader("ps", {
-            bindings: [ {
-                kind: "resource",
-                registerIndex: 4,
-                name: "shadowMap",
-                samplerType: "sampler2DShadow",
-                comparison: false,
-                samplerRegisterIndices: [ 2 ]
-            } ],
-            source: "#version 300 es\nuniform mediump sampler2DShadow shadowMap;\nout vec4 c;\nvoid main(){c=vec4(1.0);}"
-        })
-    ]);
-    data.metadata.bodies[0].manifest.stages[0].pipelineInputs = [ {
-        registerIndex: 0,
-        usedMask: 7,
-        usageName: "POSITION",
-        usageIndex: 0
-    } ];
-    data.metadata.bodies[0].manifest.stages[1].bindings = [
-        { kind: "resource", registerIndex: 4 },
-        { kind: "sampler", registerIndex: 2, carbon: { sampler: { comparison: true } } }
-    ];
-    const codes = inspectCewgPackageIntegrity(data.info, data.metadata, data.glsl).errors
-        .map((entry) => entry.code);
-
-    assert.ok(codes.includes("vertex_input_declaration_mismatch"));
-    assert.ok(codes.includes("comparison_sampler_contract_mismatch"));
-});
-
-test("CEWG vertex ABI accepts Carbon semantic aliases and signature-width masks", () =>
-{
-    const data = packageGraph(
-        [ stage("vertex", "vs"), stage("pixel", "ps") ],
+    const good = inspectGlslContainerIntegrity(containerGraph(
+        [ vertex, stage("pixel", "ps") ],
         [
             shader("vs", {
-                stageInputs: [ {
-                    register: 7,
-                    mask: 15,
-                    name: "in_BLENDWEIGHT0",
-                    semanticName: "BLENDWEIGHT",
-                    semanticIndex: 0
-                } ],
-                source: "#version 300 es\nin highp vec4 in_BLENDWEIGHT0;\nvoid main(){gl_Position=in_BLENDWEIGHT0;}"
+                stageInputs: inputs,
+                source: "#version 300 es\nin vec3 in_POSITION0;\nvoid main() {}"
             }),
             shader("ps")
         ]
-    );
-    data.metadata.bodies[0].manifest.stages[0].pipelineInputs = [ {
-        registerIndex: 7,
-        usedMask: 3,
-        usageName: "BLENDWEIGHTS",
-        usageIndex: 0
-    } ];
+    ));
+    assert.deepEqual(good.errors, []);
 
-    assert.deepEqual(inspectCewgPackageIntegrity(data.info, data.metadata, data.glsl), {
-        ok: true,
-        errors: []
-    });
-});
+    const undeclared = inspectGlslContainerIntegrity(containerGraph(
+        [ vertex, stage("pixel", "ps") ],
+        [
+            shader("vs", {
+                stageInputs: inputs,
+                source: "#version 300 es\nin vec3 in_SOMETHING_ELSE;\nvoid main() {}"
+            }),
+            shader("ps")
+        ]
+    ));
+    assert.ok(undeclared.errors.some((entry) => entry.code === "vertex_input_declaration_mismatch"));
 
-test("CEWG integrity requires exact permutation coverage and one stage family per pass", () =>
-{
-    const data = packageGraph(
-        [ stage("vertex", "vs"), stage("pixel", "ps"), stage("compute", "cs") ],
-        [ shader("vs"), shader("ps"), shader("cs") ]
-    );
-    data.metadata.permutations = [ {
-        name: "QUALITY",
-        options: [ "LOW", "HIGH" ],
-        defaultOption: 0
-    } ];
-    const codes = inspectCewgPackageIntegrity(data.info, data.metadata, data.glsl).errors
-        .map((entry) => entry.code);
-
-    assert.ok(codes.includes("incomplete_permutation_coverage"));
-    assert.ok(codes.includes("invalid_pass_stage_family"));
-});
-
-test("CEWG core chunk integrity rejects missing and duplicate runtime chunks", () =>
-{
-    assert.equal(inspectCewgCoreChunks([
-        { tag: "INFO" }, { tag: "META" }, { tag: "GLSL" }
-    ]).ok, true);
-    const result = inspectCewgCoreChunks([
-        { tag: "INFO" }, { tag: "INFO" }, { tag: "GLSL" }
-    ]);
-    assert.equal(result.ok, false);
-    assert.deepEqual(result.errors.map((entry) => entry.tag), [ "INFO", "META" ]);
-});
-
-function packageGraph(stages, shaders, bodyKeys = [ "body_1" ])
-{
-    const bodies = bodyKeys.map((key) => ({
-        key,
-        error: null,
-        stages: stages.filter((entry) => entry.bodyKey === key).map((entry) => entry.key)
-    }));
-    const variants = bodyKeys.map((bodyKey, index) => ({
-        key: `variant_${index}`,
-        permutationIndex: index,
-        bodyKey
-    }));
-    const completeness = inspectCewgRasterCompleteness(stages, shaders);
-    const excludedShaderCount = shaders.filter((entry) => entry.excluded).length;
-    const failedShaderCount = shaders.filter((entry) => !entry.hlsl2webgl?.ok && !entry.excluded).length;
-    const availableShaderCount = shaders.filter((entry) => entry.hlsl2webgl?.ok && entry.source).length;
-
-    return {
-        info: {
-            format: "CEWG",
-            formatVersion: 1,
-            packageKind: "tr2-effect-webgl-permutations",
-            permutationMode: "all",
-            selection: { technique: null, pass: null, stage: null },
-            sourceByteLength: 1,
-            sourceMd5: "00000000000000000000000000000000",
-            sourceSha256: "0000000000000000000000000000000000000000000000000000000000000000",
-            sourceIdentity: {
-                filePath: "fixture.sm_hi",
-                logicalPath: null,
-                game: null,
-                client: null,
-                build: null,
-                byteLength: 1,
-                md5: "00000000000000000000000000000000",
-                sha256: "0000000000000000000000000000000000000000000000000000000000000000"
-            },
-            permutationCount: variants.length,
-            uniqueBodyCount: bodies.length,
-            bodyStageCount: stages.length,
-            uniqueShaderCount: shaders.length,
-            translatedShaderCount: shaders.length - failedShaderCount - excludedShaderCount,
-            failedShaderCount,
-            excludedShaderCount,
-            failedBodyCount: bodies.filter((entry) => entry.error).length,
-            availableShaderCount,
-            expectedRasterPassCount: completeness.expectedPassCount,
-            completeRasterPassCount: completeness.completePassCount,
-            incompleteRasterPassCount: completeness.incompletePasses.length
-        },
-        metadata: {
-            permutations: [],
-            variants: variants.map((entry, index) => ({
-                ...entry,
-                tableIndexMatchesPermutationIndex: true,
-                tableIndex: index
-            })),
-            bodies: bodies.map((body) => ({
-                key: body.key,
-                error: body.error,
+    // BITANGENT/BINORMAL and BLENDWEIGHTS/BLENDWEIGHT are the same semantic under
+    // two names. Without the alias the rule would reject correct shaders, which
+    // is why the negative control matters as much as the positive one.
+    const aliased = inspectGlslContainerIntegrity(containerGraph(
+        [
+            stage("vertex", "vs", "body_1", {
                 manifest: {
-                    stages: stages.filter((entry) => entry.bodyKey === body.key).map((entry) => ({
-                        techniqueName: entry.techniqueName,
-                        passIndex: entry.passIndex,
-                        stageType: entry.stageType,
-                        stageName: entry.stageName,
-                        pipelineInputs: []
-                    }))
+                    pipelineInputs: [
+                        { registerIndex: 0, usageName: "BINORMAL", usageIndex: 0, usedMask: 7 }
+                    ],
+                    bindings: []
                 }
-            }))
-        },
-        glsl: {
-            format: "CEWG_GLSL_SET",
-            formatVersion: 1,
-            permutationMode: "all",
-            selection: { technique: null, pass: null, stage: null },
-            variants,
-            bodies,
-            stages,
-            shaders
-        }
+            }),
+            stage("pixel", "ps")
+        ],
+        [
+            shader("vs", {
+                stageInputs: [ { register: 0, name: "in_BITANGENT0", semanticName: "BITANGENT", semanticIndex: 0 } ],
+                source: "#version 300 es\nin vec3 in_BITANGENT0;\nvoid main() {}"
+            }),
+            shader("ps")
+        ]
+    ));
+    assert.deepEqual(aliased.errors, []);
+});
+
+test("container integrity holds comparison samplers to Carbon's sampler flag", () =>
+{
+    // A `sampler2DShadow` in GLSL must correspond to a Carbon sampler declared
+    // comparison; otherwise the sampler state is wrong at runtime and the depth
+    // compare silently does not happen.
+    const manifest = {
+        pipelineInputs: [],
+        bindings: [
+            { kind: "resource", registerIndex: 0 },
+            { kind: "sampler", registerIndex: 0, carbon: { sampler: { comparison: true } } }
+        ]
     };
-}
+    const pixel = stage("pixel", "ps", "body_1", { manifest });
+    const shadowShader = (overrides = {}) => shader("ps", {
+        bindings: [ {
+            kind: "texture",
+            registerIndex: 0,
+            name: "shadowMap",
+            samplerType: "sampler2DShadow",
+            comparison: true,
+            samplerRegisterIndices: [ 0 ]
+        } ],
+        source: "#version 300 es\nuniform highp sampler2DShadow shadowMap;\nvoid main() {}",
+        ...overrides
+    });
+
+    const good = inspectGlslContainerIntegrity(
+        containerGraph([ stage("vertex", "vs"), pixel ], [ shader("vs"), shadowShader() ])
+    );
+    assert.deepEqual(good.errors, []);
+
+    // Two independent ways this contract breaks, asserted separately because
+    // they share an error code. Asserting only the code would let either rule be
+    // deleted while the test kept passing on the other one.
+
+    // (1) The binding's own flag disagrees with its GLSL sampler type. Carbon's
+    // manifest is left correct so only this rule can fire.
+    const flagDisagrees = inspectGlslContainerIntegrity(containerGraph(
+        [ stage("vertex", "vs"), pixel ],
+        [ shader("vs"), shadowShader({
+            bindings: [ {
+                kind: "texture",
+                registerIndex: 0,
+                name: "shadowMap",
+                samplerType: "sampler2DShadow",
+                comparison: false,
+                samplerRegisterIndices: [ 0 ]
+            } ]
+        }) ]
+    ));
+    assert.ok(
+        flagDisagrees.errors.some((entry) => entry.code === "comparison_sampler_contract_mismatch"),
+        "a binding claiming no comparison on a sampler2DShadow must be rejected"
+    );
+
+    // (2) Carbon says the paired sampler does not compare. The binding is left
+    // self-consistent so only the manifest-pairing rule can fire.
+    const manifestDisagrees = inspectGlslContainerIntegrity(containerGraph(
+        [
+            stage("vertex", "vs"),
+            stage("pixel", "ps", "body_1", {
+                manifest: {
+                    pipelineInputs: [],
+                    bindings: [
+                        { kind: "resource", registerIndex: 0 },
+                        { kind: "sampler", registerIndex: 0, carbon: { sampler: { comparison: false } } }
+                    ]
+                }
+            })
+        ],
+        [ shader("vs"), shadowShader() ]
+    ));
+    assert.ok(
+        manifestDisagrees.errors.some((entry) => entry.code === "comparison_sampler_contract_mismatch"),
+        "a Carbon sampler that does not compare must not pair with a sampler2DShadow"
+    );
+
+    // The GLSL must actually declare the sampler at the type the binding claims.
+    const undeclared = inspectGlslContainerIntegrity(containerGraph(
+        [ stage("vertex", "vs"), pixel ],
+        [ shader("vs"), shadowShader({ source: "#version 300 es\nuniform highp sampler2D shadowMap;\nvoid main() {}" }) ]
+    ));
+    assert.ok(undeclared.errors.some((entry) => entry.code === "sampler_binding_declaration_mismatch"));
+});
+
+test("the rules run on a real container decoded from bytes", () =>
+{
+    // The fixtures above are hand-built records. This one closes the loop: build
+    // an effect, decode the container it emitted, and run the rules on what came
+    // back. If the decoder ever stopped producing the vocabulary the rules read,
+    // every test above would still pass and this one would not.
+    const built = CjsWebglFormat.buildEffect(
+        buildMinimalStagedEffectBytes({
+            version: 15,
+            permutations: [
+                { name: "QUALITY", options: [ "LOW", "HIGH" ], defaultOption: 1, description: "quality", type: 1 }
+            ],
+            bodyPassCounts: [ 1, 2 ],
+            distinctBodyRanges: true
+        }),
+        { source: "synthetic.sm_hi", allowFailures: true }
+    );
+
+    const decoded = readGlslEffectContainer(built.container.bytes, { source: "synthetic.sm_hi" });
+
+    assert.ok(decoded.stages.length > 0, "the decoder must produce stage records");
+    assert.equal(decoded.stages.length, decoded.shaders.length,
+        "this fixture translates nothing, so every stage has its own absent-program record");
+
+    for (const stageRecord of decoded.stages)
+    {
+        assert.ok(stageRecord.manifest, "every decoded stage carries its Carbon reflection");
+        assert.equal(typeof stageRecord.techniqueName, "string");
+        assert.equal(typeof stageRecord.passIndex, "number");
+    }
+
+    // Synthetic DXBC does not lower, so the container stores declared stages with
+    // empty programs — and the rules must say so rather than report a clean file.
+    const integrity = inspectGlslContainerIntegrity(decoded);
+    assert.equal(integrity.ok, false);
+    assert.ok(integrity.errors.some((entry) => entry.code === "unavailable_stage_shader"));
+
+    const completeness = inspectCewgRasterCompleteness(decoded.stages, decoded.shaders);
+    assert.equal(completeness.completePassCount, 0);
+});

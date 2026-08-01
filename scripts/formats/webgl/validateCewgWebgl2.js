@@ -2,11 +2,11 @@ import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { CjsFormatWebgl } from "../../../src/formats/webgl/index.js";
+import { readGlslEffectContainer } from "../../../src/formats/webgl/core/readGlslEffectContainer.js";
+import { inspectGlslEffectContainer } from "../../../src/formats/webgl/core/inspectGlslEffectContainer.js";
 import {
   isCewgComputeFragmentContract,
-  inspectCewgCoreChunks,
-  inspectCewgPackageIntegrity,
+  inspectGlslContainerIntegrity,
   inspectCewgRasterCompleteness
 } from "./cewgCompleteness.js";
 import { writeFileAtomic } from "./atomicWrite.js";
@@ -98,22 +98,13 @@ async function loadPlaywright() {
 }
 
 /**
- * Builds linkable vertex/pixel program records from a CEWG package.
+ * Builds linkable vertex/pixel program records from a decoded container.
  *
- * @param {object} pkg Parsed CEWG package.
+ * @param {{stages:object[], shaders:object[]}} decoded Decoded container graph.
  * @returns {object[]} Program records.
  */
-function packagePrograms(pkg) {
-  const glsl = pkg.glslJson;
-  if (!glsl) {
-    throw new Error("CEWG GLSL chunk is raw text; expected a CEWG_GLSL_SET JSON stage set");
-  }
-
-  if (Array.isArray(glsl.shaders)) {
-    return [...allPermutationPrograms(glsl), ...computeFragmentPrograms(glsl)];
-  }
-
-  return [...selectedPermutationPrograms(glsl), ...computeFragmentPrograms(glsl)];
+function packagePrograms(decoded) {
+  return [...allPermutationPrograms(decoded), ...computeFragmentPrograms(decoded)];
 }
 
 /**
@@ -126,53 +117,30 @@ function packagePrograms(pkg) {
  */
 function computeFragmentPrograms(glsl) {
   const programs = [];
-
-  if (Array.isArray(glsl.shaders)) {
-    const shaderMap = new Map(glsl.shaders.map((shader) => [shader.key, shader]));
-    for (const stage of glsl.stages || []) {
-      if (stage.stageName !== "compute") continue;
-      const shader = shaderMap.get(stage.shaderKey);
-      if (!isCewgComputeFragmentContract(shader?.computeFragment)
-        || !shader?.hlsl2webgl?.ok
-        || !shader.source) continue;
-      programs.push({
-        programKind: "compute-fragment",
-        bodyKey: stage.bodyKey,
-        techniqueName: stage.techniqueName,
-        passIndex: stage.passIndex,
-        vertexStageKey: "cewg_fixed_vs",
-        pixelStageKey: stage.key,
-        vertexShaderKey: "cewg_fixed_vs",
-        pixelShaderKey: stage.shaderKey,
-        vertexSource: COMPUTE_FRAGMENT_VERTEX_SOURCE,
-        pixelSource: shader.source,
-        vertexInputs: [],
-        computeFragment: shader.computeFragment
-      });
-    }
-    return programs;
-  }
+  const shaderMap = new Map(glsl.shaders.map((shader) => [shader.key, shader]));
 
   for (const stage of glsl.stages || []) {
-    if (stage.stageName !== "compute"
-      || !isCewgComputeFragmentContract(stage.computeFragment)
-      || !stage.hlsl2webgl?.ok
-      || !stage.source) continue;
+    if (stage.stageName !== "compute") continue;
+    const shader = shaderMap.get(stage.shaderKey);
+    if (!isCewgComputeFragmentContract(shader?.computeFragment)
+      || !shader?.hlsl2webgl?.ok
+      || !shader.source) continue;
     programs.push({
       programKind: "compute-fragment",
-      bodyKey: "selected",
+      bodyKey: stage.bodyKey,
       techniqueName: stage.techniqueName,
       passIndex: stage.passIndex,
       vertexStageKey: "cewg_fixed_vs",
       pixelStageKey: stage.key,
       vertexShaderKey: "cewg_fixed_vs",
-      pixelShaderKey: stage.key,
+      pixelShaderKey: stage.shaderKey,
       vertexSource: COMPUTE_FRAGMENT_VERTEX_SOURCE,
-      pixelSource: stage.source,
+      pixelSource: shader.source,
       vertexInputs: [],
-      computeFragment: stage.computeFragment
+      computeFragment: shader.computeFragment
     });
   }
+
   return programs;
 }
 
@@ -223,48 +191,6 @@ function allPermutationPrograms(glsl) {
       vertexSource: entry.stages.vertex.source,
       pixelSource: entry.stages.pixel.source,
       vertexInputs: entry.stages.vertex.stageInputs,
-      computeFragment: null
-    }));
-}
-
-/**
- * Builds programs from the selected-only CEWG shape.
- *
- * @param {object} glsl GLSL stage set.
- * @returns {object[]} Program records.
- */
-function selectedPermutationPrograms(glsl) {
-  const groups = new Map();
-  for (const stage of glsl.stages || []) {
-    if (!stage.hlsl2webgl?.ok || !stage.source) continue;
-    const key = `${stage.techniqueName} ${stage.passIndex}`;
-    let group = groups.get(key);
-    if (!group) {
-      group = {
-        bodyKey: "selected",
-        techniqueName: stage.techniqueName,
-        passIndex: stage.passIndex,
-        stages: {}
-      };
-      groups.set(key, group);
-    }
-    group.stages[stage.stageName] = stage;
-  }
-
-  return Array.from(groups.values())
-    .filter((entry) => entry.stages.vertex && entry.stages.pixel)
-    .map((entry) => ({
-      programKind: "raster",
-      bodyKey: entry.bodyKey,
-      techniqueName: entry.techniqueName,
-      passIndex: entry.passIndex,
-      vertexStageKey: entry.stages.vertex.key,
-      pixelStageKey: entry.stages.pixel.key,
-      vertexShaderKey: entry.stages.vertex.key,
-      pixelShaderKey: entry.stages.pixel.key,
-      vertexSource: entry.stages.vertex.source,
-      pixelSource: entry.stages.pixel.source,
-      vertexInputs: entry.stages.vertex.stageInputs || [],
       computeFragment: null
     }));
 }
@@ -448,7 +374,8 @@ function markdownReport(report) {
     "# CEWG WebGL2 Validation",
     "",
     `- Package: \`${report.packagePath}\``,
-    `- Package kind: \`${report.packageKind}\``,
+    `- Container: ${report.container.recordCount} record(s) over `
+      + `${report.container.uniqueBodyCount} body(ies)`,
     `- WebGL2 available: ${report.webgl2Available ? "yes" : "no"}`,
     `- Programs: ${report.programCount}`,
     `- Passed: ${report.passedProgramCount}`,
@@ -535,21 +462,22 @@ async function main() {
   const packagePath = path.resolve(args.input);
   assertDistinctOutputPaths(packagePath, args.output, args.markdown);
   const packageBytes = await readFile(packagePath);
-  const pkg = CjsFormatWebgl.read(packageBytes, { emit: "raw", source: packagePath });
-  const chunkIntegrity = inspectCewgCoreChunks(pkg.chunks);
-  if (!chunkIntegrity.ok) throw new Error(chunkIntegrity.errors.map((error) => error.message).join("; "));
+  // The package is container bytes. There is no chunk-cardinality check to run
+  // first: the reader refuses to construct on a malformed container at all,
+  // which is what `inspectCewgCoreChunks` was approximating by counting tags.
+  const decoded = readGlslEffectContainer(packageBytes, { source: packagePath });
+  const summary = inspectGlslEffectContainer(packageBytes, { source: packagePath });
 
-  const programs = packagePrograms(pkg);
-  const completeness = inspectCewgRasterCompleteness(pkg.glslJson?.stages, pkg.glslJson?.shaders);
-  const integrity = inspectCewgPackageIntegrity(pkg.info, pkg.metadata, pkg.glslJson);
+  const programs = packagePrograms(decoded);
+  const completeness = inspectCewgRasterCompleteness(decoded.stages, decoded.shaders);
+  const integrity = inspectGlslContainerIntegrity(decoded);
   const playwright = await loadPlaywright();
   const validation = await validateInBrowser(playwright, programs, args.keepBrowserOpen);
 
   const report = {
     generatedAt: new Date().toISOString(),
     packagePath: path.relative(projectRoot, packagePath),
-    packageKind: pkg.info?.packageKind || "",
-    packageInfo: pkg.info,
+    container: summary,
     webgl2Available: validation.webgl2Available,
     renderer: validation.renderer,
     capabilities: validation.capabilities,
@@ -573,7 +501,8 @@ async function main() {
   console.log(JSON.stringify({
     output: path.relative(projectRoot, args.output),
     markdown: path.relative(projectRoot, args.markdown),
-    packageKind: report.packageKind,
+    recordCount: report.container.recordCount,
+    uniqueBodyCount: report.container.uniqueBodyCount,
     programCount: report.programCount,
     passedProgramCount: report.passedProgramCount,
     failedProgramCount: report.failedProgramCount,
