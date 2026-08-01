@@ -373,5 +373,25 @@ class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader {
   }
 }
 
-export { CARBON_EFFECT_RECORD_BYTES, CARBON_EFFECT_SOURCE_HASH_BYTES, CjsCarbonEffectBodyReader, CjsCarbonEffectReader };
+/**
+ * Reports whether a payload has the Carbon effect container shape.
+ *
+ * A **shape** check, not an identity check, and the distinction is the point:
+ * our containers are stock Carbon files, so nothing in the bytes separates one
+ * from a shipped `effect.dx11`. Identity comes from the resource path the file
+ * was resolved through - `effect.webgl/` versus `effect.dx11/` - exactly as it
+ * does for Carbon, whose own backend trees are byte-format-identical.
+ *
+ * Both backend sniffs call this rather than each keeping a copy of the version
+ * dword. Two hand-written copies of one constant are two chances to disagree.
+ *
+ * @param {Uint8Array} bytes Candidate payload.
+ * @returns {boolean} True when the payload opens on Carbon's version dword.
+ */
+function looksLikeCarbonEffectContainer(bytes) {
+  if (!bytes || bytes.length < 4) return false;
+  return bytes[0] === CARBON_EFFECT_DATA_VERSION && bytes[1] === 0 && bytes[2] === 0 && bytes[3] === 0;
+}
+
+export { CARBON_EFFECT_RECORD_BYTES, CARBON_EFFECT_SOURCE_HASH_BYTES, CjsCarbonEffectBodyReader, CjsCarbonEffectReader, looksLikeCarbonEffectContainer };
 //# sourceMappingURL=CjsCarbonEffectReader.js.map

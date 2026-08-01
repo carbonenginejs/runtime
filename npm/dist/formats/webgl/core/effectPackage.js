@@ -1,4 +1,3 @@
-import { EFFECT_INFO_VERSION } from './effectPackageValidation.js';
 import { CjsHlslFormat } from '../../hlsl/CjsHlslFormat.js';
 import { HlslRenderContextEnum, hlslShaderStageName } from '../../hlsl/core/tr2/HlslRenderContextEnum.js';
 import '../../../format/CjsByteReader.js';
@@ -6,14 +5,23 @@ import '@carbonenginejs/runtime-utils/bytes';
 import '../../hlsl/core/tr2/shader/HlslEffectResource.js';
 import { HlslEffectBindingManifest } from '../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js';
 import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_PERMUTATION_GRAPH_FORMAT, EFFECT_PERMUTATION_GRAPH_CHUNK } from '../../../format/effect/effectPermutationGraph.js';
-import { buildCompleteEffectReflection, EFFECT_REFLECTION_CHUNK, EFFECT_REFLECTION_BLOB_CHUNK } from '../../../format/effect/effectReflectionPackage.js';
-import { buildPackage, inspectWithValues, emitGlslWithOptions } from './helpers.js';
+import { buildCompleteEffectReflection } from '../../../format/effect/effectReflectionPackage.js';
+import { emitGlslWithOptions } from './helpers.js';
+import { inspectGlslEffectContainer } from './inspectGlslEffectContainer.js';
 import { recogniseDetailMapFamily } from '../../hlsl/core/detailMapFamily.js';
 import { stripLocalLightBindings, recogniseLocalLightFamily } from '../../hlsl/core/localLightFamily.js';
 import { buildGlslBackendBodySet } from './glslBackendBodySet.js';
 import { buildGlslEffectContainer } from './buildGlslEffectContainer.js';
 import { sha256Utf8, sha256Bytes } from '../../../format/effect/sha256.js';
 
+/**
+ * INFO record version for the in-memory build result.
+ *
+ * This lived in effectPackageValidation.js, which validated a written chunk
+ * package by reading it back. There is no chunk package to read back, so that
+ * file is gone and its one surviving constant lives with its only user.
+ */
+const EFFECT_INFO_VERSION = 3;
 const PACKAGE_VERSION = "0.11.1";
 
 /**
@@ -247,25 +255,16 @@ function buildEffectPackage(input, options = {}) {
   if (!qualification.ok && !values.allowFailures) {
     throw new Error(`CEWG target is incomplete; output was not built. ${qualification.errors.join("; ")}`);
   }
-  const chunks = [["INFO", info], ["META", metadata], [EFFECT_PERMUTATION_GRAPH_CHUNK, permutationGraph], ...(reflectionPackage ? [[EFFECT_REFLECTION_CHUNK, reflectionPackage.reflection], [EFFECT_REFLECTION_BLOB_CHUNK, reflectionPackage.blobBytes]] : []), ["GLSL", glsl]];
-  if (values.includeSourceEffect) {
-    chunks.push(["TR2E", values.sourceBytes]);
-  }
-  const bytes = buildPackage(chunks);
-  const inspection = inspectWithValues(bytes, {
-    source: values.source
-  });
 
-  // The switchover, first half. `bytes` above is still the chunk package and
-  // remains what every current consumer reads; the container below is the same
-  // effect emitted as a Carbon v15 record file, the shape WebGPU already ships
-  // and the shape the engine seam will consume.
+  // The container is the effect. `bytes` is its bytes, and there is no second
+  // artifact — the chunk package this function used to build alongside it is
+  // gone, along with the chunk assembly that produced it.
   //
-  // Both are built from the same translation, deliberately, so the two can be
-  // diffed against each other on real effects before the chunk path is
-  // deleted. `bytes` flips to the container once `inspectWithValues` and the
-  // completeness tests are retargeted; nothing else about this function
-  // changes when it does.
+  // `info`, `metadata`, `glsl`, `permutationGraph` and the reflection are
+  // still returned. They are the in-memory build result, which is richer than
+  // anything the wire carries: the reasons a translation failed live there and
+  // nowhere else. What changed is that they are no longer *also* serialised
+  // into tagged chunks beside the container.
   const backendBodySet = buildGlslBackendBodySet({
     bodies,
     stages,
@@ -276,9 +275,14 @@ function buildEffectPackage(input, options = {}) {
   const container = buildGlslEffectContainer(effectRes, permutationGraph, backendBodySet, {
     compilerVersion: effectRes.m_compilerVersionBytes
   });
+  const bytes = container.bytes;
+  const inspection = inspectGlslEffectContainer(bytes, {
+    source: values.source
+  });
   return Object.freeze({
     bytes,
-    container: Object.freeze(container),
+    permutationCount: container.permutationCount,
+    bodyCount: container.bodyCount,
     backendBodySet,
     info: Object.freeze(info),
     metadata: Object.freeze(metadata),
@@ -318,7 +322,6 @@ function normalizeOptions(input, options) {
     generatedAt: options.generatedAt === undefined || options.generatedAt === null ? null : new Date(options.generatedAt).toISOString(),
     allPermutations: options.allPermutations !== false,
     allowFailures: options.allowFailures === true,
-    includeSourceEffect: options.includeSourceEffect === true,
     selection,
     // How to lower a recognised local-light family. Defaults to leaving it
     // alone, so a caller that does not ask gets the shader's own resources

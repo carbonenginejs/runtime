@@ -1,6 +1,6 @@
 import '../../../../format/compareUtf8.js';
 import { readBackendBlock } from '../../../../format/carbonEffect/carbonEffectBackendBlock.js';
-import { CjsCarbonEffectReader } from '../../../../format/carbonEffect/CjsCarbonEffectReader.js';
+import { looksLikeCarbonEffectContainer, CjsCarbonEffectReader } from '../../../../format/carbonEffect/CjsCarbonEffectReader.js';
 import '../../../../format/carbonEffect/CjsCarbonEffectWriter.js';
 import { WGSL_ENTRY_POINT } from '../buildCarbonEffectContainer.js';
 import { sha256Bytes } from '../../../../format/effect/sha256.js';
@@ -62,8 +62,10 @@ const WEBGPU_STAGE = Object.freeze({
  * @returns {boolean} True when the first dword is Carbon's v15 version.
  */
 function looksLikeCewgpuContainer(bytes) {
-  if (!bytes || bytes.length < 4) return false;
-  return bytes[0] === 15 && bytes[1] === 0 && bytes[2] === 0 && bytes[3] === 0;
+  // Delegates rather than repeating the version dword. WebGL needs the same
+  // check, and a second hand-written copy of one constant is a second chance
+  // to disagree with it.
+  return looksLikeCarbonEffectContainer(bytes);
 }
 
 /**

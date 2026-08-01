@@ -1,7 +1,7 @@
 import { CjsByteWriter } from '../../../format/CjsByteWriter.js';
-import '../../../format/CjsByteReader.js';
-import { CjsFormatWriteError } from '../../../format/CjsFormatError.js';
-import { writeInlineString, writeTransformSection } from '../../../format/carbonEffect/carbonEffectResourceTransform.js';
+import { CjsByteReader } from '../../../format/CjsByteReader.js';
+import { CjsFormatReadError, CjsFormatWriteError } from '../../../format/CjsFormatError.js';
+import { readInlineString, readTransformSection, writeInlineString, writeTransformSection } from '../../../format/carbonEffect/carbonEffectResourceTransform.js';
 import { DxbcComponentTypeNames } from '../../dxbc/core/signature.js';
 import { DxbcResourceDimensionNames } from '../../dxbc/core/decoder.js';
 
@@ -74,8 +74,44 @@ const GLSL_BACKEND_BINDING_KIND = Object.freeze(["constantBuffer", "resource", "
 /** Constant-buffer declaration styles. */
 const GLSL_BACKEND_CONSTANT_BUFFER_STYLE = Object.freeze(["array", "std140"]);
 
+/** Sampler type per WebGL2-supported DXBC resource dimension. */
+const SAMPLER_TYPE_BY_DIMENSION = Object.freeze({
+  2: "sampler2D",
+  3: "sampler2D",
+  5: "sampler3D",
+  6: "samplerCube",
+  8: "sampler2DArray"
+});
+
+/** Shadow-sampler type per WebGL2-supported DXBC resource dimension. */
+const SHADOW_SAMPLER_TYPE_BY_DIMENSION = Object.freeze({
+  3: "sampler2DShadow",
+  6: "samplerCubeShadow",
+  8: "sampler2DArrayShadow"
+});
+
+/** Texel formats a synthesised data texture always uses, by binding kind. */
+const DATA_TEXTURE_FORMAT = Object.freeze({
+  bufferTexture: "RGBA32F",
+  structuredTexture: "RGBA32UI"
+});
+
 /** Marks an absent optional `u8`. */
 const ABSENT_U8 = 0xff;
+
+/**
+ * Local-light lowering roles, as a wire index.
+ *
+ * Carbon puts local lights in two structured buffers plus a profile texture.
+ * WebGL 2 has no structured buffers at all, so they have to be re-expressed —
+ * this is a *storage* change, not a shading one, and without it the affected
+ * shaders cannot bind their lights.
+ *
+ * The emitter still spells the role `cewgSemantic` on its binding records. That
+ * name is not carried onto the wire: it names a defunct package format rather
+ * than the thing it describes. Renaming it at the emitter is a separate change.
+ */
+const GLSL_LOCAL_LIGHT_ROLE = Object.freeze(["packed-texture", "constant-buffer"]);
 
 /** Emitter `cewgSemantic` values, in the same order as the roles above. */
 const EMITTER_LIGHT_SEMANTIC = Object.freeze(["packedLocalLights", "localLights"]);
@@ -111,6 +147,34 @@ function writeLocalLightRecord(writer, binding) {
   writer.u8(binding.lightProfileRegister ?? ABSENT_U8);
   writer.u32(binding.dataTexelBase ?? 0);
   writer.u16(binding.capacityLights ?? 0);
+}
+
+/**
+ * Reads the optional local-light lowering record.
+ *
+ * @param {CjsByteReader} reader Source reader.
+ * @returns {object|null} Local-light fields, or null when the binding is ordinary.
+ */
+function readLocalLightRecord(reader) {
+  if (!reader.readUint8()) return null;
+  const role = GLSL_LOCAL_LIGHT_ROLE[reader.readUint8()];
+  const lightIndexRegister = reader.readUint8();
+  const lightDataRegister = reader.readUint8();
+  const profile = reader.readUint8();
+  const dataTexelBase = reader.readUint32();
+  const capacityLights = reader.readUint16();
+  return {
+    localLightRole: role,
+    lightIndexRegister,
+    lightDataRegister,
+    lightProfileRegister: profile === ABSENT_U8 ? null : profile,
+    ...(role === "packed-texture" ? {
+      dataTexelBase
+    } : {}),
+    ...(role === "constant-buffer" ? {
+      capacityLights
+    } : {})
+  };
 }
 
 /**
@@ -176,6 +240,90 @@ function writeBindingBody(writer, binding) {
 }
 
 /**
+ * Reads one binding's kind-specific payload, restoring derived fields.
+ *
+ * @param {CjsByteReader} reader Source reader.
+ * @param {string} kind Binding kind.
+ * @returns {object} Kind-specific fields.
+ */
+function readBindingBody(reader, kind) {
+  switch (kind) {
+    case "constantBuffer":
+      {
+        const sizeInVec4 = reader.readUint16();
+        const style = GLSL_BACKEND_CONSTANT_BUFFER_STYLE[reader.readUint8()];
+        return {
+          sizeInVec4,
+          style,
+          ...(readLocalLightRecord(reader) ?? {})
+        };
+      }
+    case "resource":
+      {
+        const dimension = reader.readUint8();
+        const samplerCount = reader.readUint8();
+        const samplerRegisterIndices = [];
+        for (let index = 0; index < samplerCount; index += 1) {
+          samplerRegisterIndices.push(reader.readUint8());
+        }
+        const comparison = samplerCount > 0;
+        const samplerType = comparison ? SHADOW_SAMPLER_TYPE_BY_DIMENSION[dimension] : SAMPLER_TYPE_BY_DIMENSION[dimension];
+        if (!samplerType) {
+          throw new CjsFormatReadError(`Resource dimension ${dimension} has no ${comparison ? "shadow " : ""}sampler type`, {
+            dimension,
+            comparison
+          });
+        }
+        return {
+          samplerType,
+          dimensionName: DxbcResourceDimensionNames[dimension] ?? `dimension_${dimension}`,
+          ...(comparison ? {
+            comparison: true,
+            samplerRegisterIndices
+          } : {})
+        };
+      }
+    case "bufferTexture":
+      return {
+        format: DATA_TEXTURE_FORMAT.bufferTexture,
+        width: reader.readUint16(),
+        returnTypes: readStringList(reader)
+      };
+    case "structuredTexture":
+      {
+        const strideBytes = reader.readUint32();
+        const width = reader.readUint16();
+        return {
+          strideBytes,
+          format: DATA_TEXTURE_FORMAT.structuredTexture,
+          width,
+          ...(readLocalLightRecord(reader) ?? {})
+        };
+      }
+    case "structuredUbo":
+      return {
+        strideBytes: reader.readUint32(),
+        capacityElements: reader.readUint16()
+      };
+    case "uavTexture":
+      {
+        const slice = reader.readUint8();
+        return {
+          slice: slice === ABSENT_U8 ? null : slice,
+          location: reader.readUint8(),
+          returnTypes: readStringList(reader)
+        };
+      }
+    case "dispatchUniform":
+      return {};
+    default:
+      throw new CjsFormatReadError(`Unknown binding kind "${kind}"`, {
+        kind
+      });
+  }
+}
+
+/**
  * Writes an optional count-prefixed string list.
  *
  * @param {CjsByteWriter} writer Target writer.
@@ -185,6 +333,20 @@ function writeStringList(writer, values) {
   const list = Array.isArray(values) ? values : [];
   writer.u8(list.length);
   for (const value of list) writeInlineString(writer, value);
+}
+
+/**
+ * Reads an optional count-prefixed string list.
+ *
+ * @param {CjsByteReader} reader Source reader.
+ * @returns {string[]|null} String list, or null when empty.
+ */
+function readStringList(reader) {
+  const count = reader.readUint8();
+  if (!count) return null;
+  const values = [];
+  for (let index = 0; index < count; index += 1) values.push(readInlineString(reader));
+  return values;
 }
 
 /**
@@ -211,6 +373,35 @@ function writeComputeFragment(writer, computeFragment) {
     writer.u8(output.location);
     writeInlineString(writer, output.glslName);
   }
+}
+
+/**
+ * Reads the compute-as-fragment section.
+ *
+ * @param {CjsByteReader} reader Source reader.
+ * @returns {object|null} Compute-fragment contract, or null.
+ */
+function readComputeFragment(reader) {
+  if (!reader.readUint8()) return null;
+  const threadGroup = reader.readUint8() ? [reader.readUint16(), reader.readUint16(), reader.readUint16()] : null;
+  const dispatchOriginUniform = readInlineString(reader);
+  const uavOutputs = [];
+  const outputCount = reader.readUint8();
+  for (let index = 0; index < outputCount; index += 1) {
+    const register = reader.readUint8();
+    const slice = reader.readUint8();
+    uavOutputs.push({
+      register,
+      slice: slice === ABSENT_U8 ? null : slice,
+      location: reader.readUint8(),
+      glslName: readInlineString(reader)
+    });
+  }
+  return {
+    threadGroup,
+    dispatchOriginUniform: dispatchOriginUniform === "" ? null : dispatchOriginUniform,
+    uavOutputs
+  };
 }
 
 /**
@@ -269,5 +460,93 @@ function writeGlslBackendBlock(block) {
   return writer.toBytes();
 }
 
-export { GLSL_BACKEND_BINDING_KIND, GLSL_BACKEND_BLOCK_VERSION, GLSL_BACKEND_CONSTANT_BUFFER_STYLE, GLSL_BACKEND_STAGE, writeGlslBackendBlock };
+/**
+ * Parses one pass's GLSL backend block, restoring every derived field.
+ *
+ * @param {ArrayBuffer|ArrayBufferView|Uint8Array} bytes Block bytes.
+ * @param {object} [options] Read options.
+ * @param {string} [options.layoutKey] Enclosing pass key, restored onto records.
+ * @param {string} [options.source] Source name for error details.
+ * @returns {object} Block contents with derived fields restored.
+ */
+function readGlslBackendBlock(bytes, options = {}) {
+  const reader = new CjsByteReader(bytes, {
+    source: options.source ?? "glsl backend block"
+  });
+  const layoutKey = options.layoutKey ?? null;
+  const version = reader.readUint8();
+  if (version > GLSL_BACKEND_BLOCK_VERSION) {
+    // Forward compatibility: an unknown block version means a newer writer
+    // added fields. Report the pass as having no backend data rather than
+    // misparsing it; the enclosing `{size, offset}` pair makes it skippable.
+    return {
+      version,
+      unsupported: true,
+      stages: {},
+      transforms: []
+    };
+  }
+  const stages = {};
+  const stageCount = reader.readUint8();
+  for (let index = 0; index < stageCount; index += 1) {
+    const stageName = GLSL_BACKEND_STAGE[reader.readUint8()];
+    const bindings = [];
+    const bindingCount = reader.readUint8();
+    for (let bindingIndex = 0; bindingIndex < bindingCount; bindingIndex += 1) {
+      const kind = GLSL_BACKEND_BINDING_KIND[reader.readUint8()];
+      const registerIndex = reader.readUint8();
+      const name = readInlineString(reader);
+      bindings.push({
+        kind,
+        ...(registerIndex === ABSENT_U8 ? {} : {
+          registerIndex
+        }),
+        name,
+        ...readBindingBody(reader, kind)
+      });
+    }
+    const stageInputs = [];
+    const stageInputCount = reader.readUint8();
+    for (let inputIndex = 0; inputIndex < stageInputCount; inputIndex += 1) {
+      stageInputs.push({
+        register: reader.readUint8(),
+        name: readInlineString(reader),
+        semanticName: readInlineString(reader),
+        semanticIndex: reader.readUint8(),
+        componentTypeName: DxbcComponentTypeNames[reader.readUint8()],
+        mask: reader.readUint8()
+      });
+    }
+    const computeFragment = readComputeFragment(reader);
+    stages[stageName] = {
+      bindings,
+      stageInputs,
+      ...(computeFragment ? {
+        computeFragment
+      } : {})
+    };
+  }
+  const transforms = readTransformSection(reader, layoutKey);
+
+  // A sized record parsed at a known version must land exactly on its declared
+  // end. Trailing bytes mean the writer knew fields this reader does not - the
+  // same skew an unknown version reports, arriving without a version bump.
+  if (reader.remaining !== 0) {
+    throw new CjsFormatReadError(`GLSL backend block has ${reader.remaining} unparsed trailing byte(s) at version ${version}`, {
+      source: options.source ?? "glsl backend block",
+      version,
+      trailingBytes: reader.remaining
+    });
+  }
+  return {
+    version,
+    unsupported: false,
+    layoutKey,
+    stages,
+    transforms,
+    trailingBytes: 0
+  };
+}
+
+export { GLSL_BACKEND_BINDING_KIND, GLSL_BACKEND_BLOCK_VERSION, GLSL_BACKEND_CONSTANT_BUFFER_STYLE, GLSL_BACKEND_STAGE, GLSL_LOCAL_LIGHT_ROLE, readGlslBackendBlock, writeGlslBackendBlock };
 //# sourceMappingURL=glslBackendBlock.js.map

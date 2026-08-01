@@ -1,30 +1,23 @@
-import { CewgPackage } from './cewg/CewgPackage.js';
-import { CewgPackageBuilder } from './cewg/CewgPackageBuilder.js';
 import { DxbcGlslEmitter } from './glsl/DxbcGlslEmitter.js';
 import { applyPackedLightFixups } from './glsl/packedLightFixups.js';
-import { WebglReadError } from './errors.js';
-import { validateEffectPackageEnvelope } from './effectPackageValidation.js';
+import { looksLikeCarbonEffectContainer } from '../../../format/carbonEffect/CjsCarbonEffectReader.js';
 
 /**
- * Internal read-pipeline glue for CjsWebglFormat.
+ * Internal glue for CjsWebglFormat.
  *
- * Keeps the public class file small: input/option normalization, the shared
- * CEWG package read path used by both the instance and the static one-shots,
- * package construction, DXBC-to-GLSL emission, and JSON conversion all live
- * here. The CEWG container parser lives under src/core/cewg (internal parsing
- * machinery, not part of this package's public surface); the GLSL emitter
- * lives under src/core/glsl.
+ * Keeps the public class file small: input/option normalization, DXBC-to-GLSL
+ * emission, and JSON conversion live here. Reading an effect is
+ * `readGlslEffectContainer` and summarising one is `inspectGlslEffectContainer`;
+ * neither needs glue, so neither is wrapped here. The GLSL emitter lives under
+ * src/formats/webgl/core/glsl.
  */
 
 const OUTPUT_JSON = "json";
-const OUTPUT_RAW = "raw";
-const CEWG_MAGIC = "CEWG";
-const CEWG_FORMAT = "CEWG";
 const DEFAULT_VALUES = Object.freeze({
   emit: OUTPUT_JSON,
   source: "memory"
 });
-const VALID_EMITS = new Set([OUTPUT_JSON, OUTPUT_RAW]);
+const VALID_EMITS = new Set([OUTPUT_JSON]);
 const OPTION_KEYS = new Set(["emit", "source"]);
 
 /**
@@ -49,7 +42,7 @@ function normalizeValues(base, options = {}, readerName = "CjsWebglFormat") {
     ...options
   };
   if (!VALID_EMITS.has(values.emit)) {
-    throw new TypeError(`${readerName}: emit must be "${OUTPUT_JSON}" or "${OUTPUT_RAW}", got ${JSON.stringify(values.emit)}`);
+    throw new TypeError(`${readerName}: emit must be "${OUTPUT_JSON}", got ${JSON.stringify(values.emit)}`);
   }
   if (typeof values.source !== "string" || !values.source) {
     values.source = DEFAULT_VALUES.source;
@@ -74,164 +67,21 @@ function toBytes(input) {
 }
 
 /**
- * Sniffs whether a payload starts with the CEWG container magic.
+ * Reports whether a payload has the Carbon effect container shape.
+ *
+ * A shape check, not an identity check: our files are stock Carbon containers,
+ * so nothing in the bytes distinguishes a WebGL one from a shipped
+ * `effect.dx11`. Identity comes from the path the file was resolved through.
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate payload.
- * @returns {boolean} True when the payload looks like a CEWG package.
+ * @returns {boolean} True when the payload has the container shape.
  */
-function isCewg(input) {
+function isWebglEffectContainer(input) {
   try {
-    const bytes = toBytes(input);
-    return bytes.length >= CEWG_MAGIC.length && CEWG_MAGIC.split("").every((char, index) => bytes[index] === char.charCodeAt(0));
+    return looksLikeCarbonEffectContainer(toBytes(input));
   } catch {
     return false;
   }
-}
-
-/**
- * The shared read path used by the instance Read/Inspect and the static
- * one-shots: normalizes input bytes and loads a CewgPackage.
- *
- * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWG package payload.
- * @param {object} values Normalized format values.
- * @returns {CewgPackage} The loaded package.
- */
-function readRaw(input, values) {
-  const bytes = toBytes(input);
-  const pkg = new CewgPackage();
-  const ok = pkg.Read(bytes, {
-    sourcePath: values.source
-  });
-  if (!ok) {
-    throw new WebglReadError(pkg.readError ? pkg.readError.message : "Failed to read CEWG package", {
-      source: values.source,
-      cause: pkg.readError || null
-    });
-  }
-  try {
-    validateEffectPackageEnvelope(pkg);
-  } catch (error) {
-    throw new WebglReadError(error.message, {
-      source: values.source,
-      cause: error
-    });
-  }
-  return pkg;
-}
-
-/**
- * Reads the `GLSL` chunk's shader records, when present.
- *
- * @param {CewgPackage} pkg Loaded package.
- * @returns {object[]} Shader records, or an empty array when absent.
- */
-function glslShaders(pkg) {
-  const glslJson = pkg.glslJson;
-  return Array.isArray(glslJson?.shaders) ? glslJson.shaders : [];
-}
-
-/**
- * Reads the `GLSL` chunk's stage records, when present.
- *
- * @param {CewgPackage} pkg Loaded package.
- * @returns {object[]} Stage records, or an empty array when absent.
- */
-function glslStages(pkg) {
-  const glslJson = pkg.glslJson;
-  return Array.isArray(glslJson?.stages) ? glslJson.stages : [];
-}
-
-/**
- * Converts a loaded package to the documented plain JSON shape.
- *
- * @param {CewgPackage} pkg Loaded package.
- * @returns {object} Plain JSON data.
- */
-function packageToJson(pkg) {
-  return toJsonValue({
-    format: CEWG_FORMAT,
-    version: pkg.version,
-    sourcePath: pkg.sourcePath,
-    chunks: pkg.chunks.map(({
-      tag,
-      size,
-      offset
-    }) => ({
-      tag,
-      size,
-      offset
-    })),
-    info: pkg.info,
-    metadata: pkg.metadata,
-    permutationGraph: pkg.permutationGraph,
-    reflection: pkg.reflection,
-    reflectionBlobByteLength: pkg.reflectionBlobBytes?.byteLength ?? 0,
-    glsl: pkg.glslJson !== null ? pkg.glslJson : pkg.glsl,
-    shaders: glslShaders(pkg)
-  });
-}
-
-/**
- * Shared read entry honouring the emit mode.
- *
- * `emit: "raw"` returns the live CewgPackage instance — internal, unstable,
- * not schema-guaranteed. `emit: "json"` (the default) returns the documented
- * plain-data package shape: parsed INFO/META/GLSL chunks plus a flat shader
- * record list.
- *
- * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWG package payload.
- * @param {object} values Normalized format values.
- * @returns {CewgPackage|object} The raw package instance, or the documented JSON shape.
- */
-function readWithValues(input, values) {
-  const pkg = readRaw(input, values);
-  return values.emit === OUTPUT_RAW ? pkg : packageToJson(pkg);
-}
-
-/**
- * Cheap inspection: version, chunk tags/sizes, and GLSL shader/stage counts,
- * without building the full JSON package shape.
- *
- * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWG package payload.
- * @param {object} values Normalized format values.
- * @returns {object} Plain summary data.
- */
-function inspectWithValues(input, values) {
-  const pkg = readRaw(input, values);
-  const info = pkg.info;
-  const permutationGraph = pkg.permutationGraph;
-  return {
-    source: values.source,
-    isCewg: true,
-    version: pkg.version,
-    chunks: pkg.chunks.map(({
-      tag,
-      size,
-      offset
-    }) => ({
-      tag,
-      size,
-      offset
-    })),
-    shaderCount: glslShaders(pkg).length,
-    stageCount: glslStages(pkg).length,
-    permutationCount: permutationGraph?.variants?.length ?? 0,
-    uniqueBodyCount: permutationGraph?.bodies?.length ?? 0,
-    reflectionBodyCount: info?.effectReflection?.bodyCount ?? 0,
-    reflectionSourceProgramCount: info?.effectReflection?.sourceProgramCount ?? 0,
-    reflectionBlobCount: info?.effectReflection?.blobCount ?? 0,
-    reflectionBlobByteLength: info?.effectReflection?.blobByteLength ?? 0
-  };
-}
-
-/**
- * Assembles a CEWG package from ordered chunk payloads.
- *
- * @param {Array<[string, string|object|Uint8Array|ArrayBuffer|ArrayBufferView]>} chunks Ordered package chunks.
- * @returns {Uint8Array} Package bytes.
- */
-function buildPackage(chunks) {
-  return CewgPackageBuilder.build(chunks);
 }
 const EMIT_GLSL_OPTION_KEYS = new Set(["constantBufferStyle", "pixelConstantBufferRemap", "samplerName", "vertexStructuredCapacity", "dataTextureWidth", "stubResourceRegisters", "detailMapArrayRegisters", "lightConstantBuffer", "lightPackedTexture", "pairVaryings", "source"]);
 const EMIT_GLSL_PROFILE_KEYS = new Set(["constantBufferStyle", "pixelConstantBufferRemap", "samplerName", "vertexStructuredCapacity", "dataTextureWidth", "stubResourceRegisters", "detailMapArrayRegisters", "lightConstantBuffer", "lightPackedTexture"]);
@@ -313,5 +163,5 @@ function toJsonValue(value) {
   return null;
 }
 
-export { CEWG_FORMAT, CEWG_MAGIC, DEFAULT_VALUES, OUTPUT_JSON, OUTPUT_RAW, WebglReadError, buildPackage, emitGlslWithOptions, inspectWithValues, isCewg, normalizeValues, packageToJson, readRaw, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, OUTPUT_JSON, emitGlslWithOptions, isWebglEffectContainer, normalizeValues, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map
