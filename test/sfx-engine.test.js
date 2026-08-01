@@ -177,6 +177,62 @@ test("Immediate state properties add to inherited volume and pitch", () =>
     );
 });
 
+test("State-property weights interpolate every supported live property", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { fire: [ { nodeId: "1" } ] },
+            {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    stateProperties: [ {
+                        group: "combat",
+                        cases: {
+                            calm: {
+                                gainDb: -2,
+                                pitchCents: 100,
+                                lowPass: 10,
+                                highPass: 20,
+                            },
+                            danger: {
+                                gainDb: -10,
+                                pitchCents: 900,
+                                lowPass: 50,
+                                highPass: 60,
+                            },
+                        },
+                    } ],
+                },
+            },
+        ),
+    });
+    const controls = {
+        getState: () => "danger",
+        getStatePropertyWeights: (_group, at) => [
+            { state: "calm", weight: 1 - at },
+            { state: "danger", weight: at },
+        ],
+    };
+    const selection = engine.ResolveEvent("fire", controls)[0];
+
+    assert.ok(Math.abs(
+        engine.EvaluateGain(selection, controls, undefined, 0.25)
+            - 10 ** (-4 / 20),
+    ) < 1e-12);
+    assert.ok(Math.abs(
+        engine.EvaluatePlaybackRate(selection, controls, undefined, 0.25)
+            - 2 ** (300 / 1200),
+    ) < 1e-12);
+    assert.equal(engine.EvaluateLowPass(selection, controls, 0.25), 20);
+    assert.equal(engine.EvaluateHighPass(selection, controls, 0.25), 30);
+    assert.equal(
+        engine.EvaluateLowPass(selection, { getState: () => "danger" }),
+        50,
+        "callers without a weight reader retain immediate-State behavior",
+    );
+});
+
 test("Wwise filters accumulate static, State, and live RTPC values", () =>
 {
     let currentState = "danger";

@@ -38,6 +38,8 @@ class CjsAudioBackend {
   #scheduledSfxActions = [];
   #globalRtpcValues = new Map();
   #globalStateValues = new Map();
+  #stateTransitionCatalog = new Map();
+  #statePropertyTransitions = new Map();
   #objectRtpcValues = new Map();
   #objectSwitchValues = new Map();
   #rtpcTransitions = new Map();
@@ -64,6 +66,7 @@ class CjsAudioBackend {
     resolveSfxProgram,
     continueSfxProgram,
     prepareSfxProgram,
+    stateTransitions,
     distanceScale,
     musicEngine,
     applyRTPC
@@ -76,6 +79,7 @@ class CjsAudioBackend {
     this.#resolveSfxProgram = typeof resolveSfxProgram === "function" ? resolveSfxProgram : null;
     this.#continueSfxProgram = typeof continueSfxProgram === "function" ? continueSfxProgram : null;
     this.#prepareSfxProgram = typeof prepareSfxProgram === "function" ? prepareSfxProgram : null;
+    this.#stateTransitionCatalog = IndexStateTransitionCatalog(stateTransitions);
     this.#distanceScale = Number(distanceScale) || 1;
     this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
     if (this.#context) {
@@ -781,11 +785,33 @@ class CjsAudioBackend {
 
   /** Global state group - feeds authored SFX and music tree arguments. */
   SetGlobalState(stateGroup, stateName) {
-    const group = String(stateGroup);
-    const state = String(stateName);
-    const changed = this.#globalStateValues.get(group) !== state;
+    const catalogGroup = this.#stateTransitionCatalog.get(NormalizeStateIdentity(stateGroup));
+    const group = CanonicalStateGroup(catalogGroup, stateGroup);
+    const state = CanonicalStateValue(catalogGroup, stateName);
+    const previous = this.#globalStateValues.get(group);
+    const changed = previous !== state;
+    if (changed) {
+      const now = Number(this.#context?.currentTime) || 0;
+
+      // Pitch is a transport control. Capture elapsed media under the
+      // old State-property blend before rebasing an interrupted change.
+      this.#AdvanceRtpcVoices("global", undefined, now);
+      const fromWeights = this.#ReadStatePropertyWeights(group, now);
+      const duration = this.#StateTransitionDuration(group, previous, state) / 1000;
+      if (duration > 0 && !StateWeightsEqualTarget(fromWeights, state)) {
+        this.#statePropertyTransitions.set(NormalizeStateIdentity(group), {
+          fromWeights,
+          toState: state,
+          startTime: now,
+          duration
+        });
+      } else {
+        this.#statePropertyTransitions.delete(NormalizeStateIdentity(group));
+      }
+    }
     this.#globalStateValues.set(group, state);
-    this.#RefreshSfxControls();
+    const transition = this.#statePropertyTransitions.get(NormalizeStateIdentity(group));
+    this.#RefreshSfxControls(null, transition ? transition.startTime + transition.duration : null);
     if (changed) {
       this.#AdvanceContinuousSwitchSlots("state", group);
     }
@@ -794,7 +820,45 @@ class CjsAudioBackend {
 
   /** Global state query for authored SFX selection. */
   GetGlobalState(stateGroup) {
-    return this.#globalStateValues.get(String(stateGroup));
+    const catalogGroup = this.#stateTransitionCatalog.get(NormalizeStateIdentity(stateGroup));
+    return this.#globalStateValues.get(CanonicalStateGroup(catalogGroup, stateGroup));
+  }
+
+  /** Returns the current weighted State-property mix for one State group. */
+  #ReadStatePropertyWeights(stateGroup, at) {
+    const group = String(stateGroup);
+    const transition = this.#statePropertyTransitions.get(NormalizeStateIdentity(group));
+    if (transition) {
+      return EvaluateStatePropertyTransition(transition, at);
+    }
+    const state = this.GetGlobalState(group);
+    return state === undefined || state === null ? [] : [{
+      state,
+      weight: 1
+    }];
+  }
+
+  /** Resolves one directed custom State duration, then the group default. */
+  #StateTransitionDuration(stateGroup, fromState, toState) {
+    const group = this.#stateTransitionCatalog.get(NormalizeStateIdentity(stateGroup));
+    if (!group) {
+      return 0;
+    }
+    const custom = group.transitions.find(transition => StateTransitionEndpointMatches(transition.from, transition.fromId, fromState ?? group.noneState) && StateTransitionEndpointMatches(transition.to, transition.toId, toState));
+    return custom?.transitionMs ?? group.defaultTransitionMs;
+  }
+
+  /** Collapses completed State-property blends onto their logical target. */
+  #ProcessStatePropertyTransitions() {
+    const now = Number(this.#context?.currentTime) || 0;
+    for (const [key, transition] of this.#statePropertyTransitions) {
+      if (transition.startTime + transition.duration <= now) {
+        // Preserve pitch-controlled media position before discarding
+        // the historical blend that the transport integrator reads.
+        this.#AdvanceRtpcVoices("global", undefined, now);
+        this.#statePropertyTransitions.delete(key);
+      }
+    }
   }
 
   /** Monitored-parameter query source. */
@@ -820,6 +884,7 @@ class CjsAudioBackend {
   RenderAudio() {
     this.#ProcessScheduledSfxActions();
     this.#ProcessRtpcTransitions();
+    this.#ProcessStatePropertyTransitions();
     this.#FinalizeDueSfxPauses();
     this.#ProcessTriggerRateSlots();
     this.#ProcessCrossfadeSlots();
@@ -996,6 +1061,7 @@ class CjsAudioBackend {
     this.#objectRtpcValues.clear();
     this.#objectSwitchValues.clear();
     this.#rtpcTransitions.clear();
+    this.#statePropertyTransitions.clear();
     this.#globalRtpcValues.clear();
     this.#globalStateValues.clear();
     this.#sfxGain?.disconnect?.();
@@ -1420,16 +1486,29 @@ class CjsAudioBackend {
     }
   }
   #RtpcTransitionEndForRecord(record, from) {
-    let end = Number(from) || 0;
+    return this.#ControlTransitionBoundariesForRecord(record, from).at(-1) ?? (Number(from) || 0);
+  }
+  #ControlTransitionBoundariesForRecord(record, from) {
+    const start = Number(from) || 0;
+    const boundaries = new Set();
+    const add = transition => {
+      const end = Number(transition?.startTime) + Math.max(0, Number(transition?.duration) || 0);
+      if (Number.isFinite(end) && end > start) {
+        boundaries.add(end);
+      }
+    };
+    for (const transition of this.#statePropertyTransitions.values()) {
+      add(transition);
+    }
     for (const transition of this.#rtpcTransitions.values()) {
       if (transition.scope === "global" || transition.scope === "game-object" && record.gameObjID === transition.gameObjID && record.emitterNodes === this.#emitterNodes.get(record.gameObjID)) {
-        end = Math.max(end, transition.startTime + transition.duration);
+        add(transition);
       }
     }
     for (const transition of record.emitterNodes?.retiredRtpcTransitions?.values?.() ?? []) {
-      end = Math.max(end, transition.startTime + transition.duration);
+      add(transition);
     }
-    return end;
+    return [...boundaries].sort((left, right) => left - right);
   }
   #RtpcTransitionKey(scope, name, gameObjID = "") {
     return scope === "global" ? `g\0${name}` : `o\0${String(gameObjID)}\0${name}`;
@@ -2080,6 +2159,7 @@ class CjsAudioBackend {
       installSfxProgram: program => this.#InstallSfxProgram(playingID, record, program),
       getSwitch: group => this.GetSwitchValue(group, gameObjID),
       getState: group => this.GetGlobalState(group),
+      getStatePropertyWeights: (group, at = undefined) => this.#ReadStatePropertyWeights(group, at ?? (Number(this.#context?.currentTime) || 0)),
       getRTPC: (name, at = undefined) => record?.emitterNodes?.retiredRtpcValues instanceof Map ? ReadRetiredRtpcValue(record.emitterNodes, String(name), at ?? (Number(this.#context?.currentTime) || 0)) : this.#ReadRtpcValue("game-object", String(name), gameObjID, at ?? (Number(this.#context?.currentTime) || 0)),
       getGlobalRTPC: (name, at = undefined) => this.#ReadRtpcValue("global", String(name), undefined, at ?? (Number(this.#context?.currentTime) || 0)),
       getVoiceVolumeDb: matchIds => EvaluateVoiceVolumeTargets(record?.emitterNodes?.voiceVolumes, matchIds, Number(this.#context?.currentTime) || 0),
@@ -2168,6 +2248,10 @@ class CjsAudioBackend {
       voiceVolumeStates: emitterNodes.voiceVolumes,
       voicePitchStates: emitterNodes.voicePitches,
       rtpcTransitionEnd: this.#RtpcTransitionEndForRecord({
+        gameObjID,
+        emitterNodes
+      }, Number(this.#context?.currentTime) || 0),
+      controlTransitionBoundaries: this.#ControlTransitionBoundariesForRecord({
         gameObjID,
         emitterNodes
       }, Number(this.#context?.currentTime) || 0),
@@ -2896,7 +2980,14 @@ class CjsAudioBackend {
       }
       for (const voice of record.voices ?? []) {
         if (!voice.ended) {
-          voice.rtpcTransitionEnd = Math.max(now, Number(transitionEnd) || this.#RtpcTransitionEndForRecord(record, now));
+          const boundaries = this.#ControlTransitionBoundariesForRecord(record, now);
+          const explicit = Number(transitionEnd);
+          if (Number.isFinite(explicit) && explicit > now) {
+            boundaries.push(explicit);
+            boundaries.sort((left, right) => left - right);
+          }
+          voice.controlTransitionBoundaries = [...new Set(boundaries)];
+          voice.rtpcTransitionEnd = voice.controlTransitionBoundaries.at(-1) ?? now;
           this.#ApplyVoiceGain(voice);
           this.#ApplyVoiceFilters(voice);
           this.#ApplyVoicePlaybackRate(voice);
@@ -2959,8 +3050,8 @@ class CjsAudioBackend {
 
   /** Applies live Wwise LPF/HPF percentages to per-voice WebAudio filters. */
   #ApplyVoiceFilters(voice) {
-    ApplyVoiceFilter(voice.lowPassFilter, voice.getLowPass, false, this.#context, voice.rtpcTransitionEnd);
-    ApplyVoiceFilter(voice.highPassFilter, voice.getHighPass, true, this.#context, voice.rtpcTransitionEnd);
+    ApplyVoiceFilter(voice.lowPassFilter, voice.getLowPass, false, this.#context, voice.controlTransitionBoundaries);
+    ApplyVoiceFilter(voice.highPassFilter, voice.getHighPass, true, this.#context, voice.controlTransitionBoundaries);
   }
 
   /** Advances one live voice's media and finite-repeat clocks to a context time. */
@@ -3190,6 +3281,161 @@ function SetAudioParam(param, value, context) {
     param.value = value;
   }
 }
+function IndexStateTransitionCatalog(value) {
+  const result = new Map();
+  if (value === null || value === undefined) {
+    return result;
+  }
+  if (!Array.isArray(value)) {
+    throw new TypeError("State transition catalog must be an array");
+  }
+  for (const rawGroup of value) {
+    if (!rawGroup || typeof rawGroup !== "object" || Array.isArray(rawGroup) || !Array.isArray(rawGroup.transitions)) {
+      throw new TypeError("State transition group must contain transitions");
+    }
+    const defaultTransitionMs = Number(rawGroup.defaultTransitionMs);
+    if (!Number.isSafeInteger(defaultTransitionMs) || defaultTransitionMs < 0) {
+      throw new TypeError("State transition defaultTransitionMs" + " must be a non-negative integer");
+    }
+    const group = {
+      groupId: String(rawGroup.groupId),
+      ...(rawGroup.group === undefined ? {} : {
+        group: String(rawGroup.group).trim()
+      }),
+      defaultTransitionMs,
+      stateAliases: new Map(),
+      transitions: rawGroup.transitions.map(raw => {
+        const transitionMs = Number(raw?.transitionMs);
+        if (!raw || typeof raw !== "object" || Array.isArray(raw) || !Number.isSafeInteger(transitionMs) || transitionMs < 0) {
+          throw new TypeError("State transition must define a non-negative" + " integer transitionMs");
+        }
+        return {
+          fromId: String(raw.fromId),
+          ...(raw.from === undefined ? {} : {
+            from: String(raw.from)
+          }),
+          toId: String(raw.toId),
+          ...(raw.to === undefined ? {} : {
+            to: String(raw.to)
+          }),
+          transitionMs
+        };
+      })
+    };
+    const stateIdentities = new Map();
+    if (rawGroup.states !== undefined) {
+      if (!Array.isArray(rawGroup.states)) {
+        throw new TypeError("State transition states must be an array");
+      }
+      for (const state of rawGroup.states) {
+        AddRuntimeStateAlias(group.stateAliases, stateIdentities, state?.stateId, state?.state);
+      }
+    }
+    for (const transition of group.transitions) {
+      ReserveRuntimeStateIdentity(stateIdentities, transition.fromId, transition.fromId);
+      ReserveRuntimeStateIdentity(stateIdentities, transition.toId, transition.toId);
+      if (transition.from !== undefined) {
+        AddRuntimeStateAlias(group.stateAliases, stateIdentities, transition.fromId, transition.from);
+      }
+      if (transition.to !== undefined) {
+        AddRuntimeStateAlias(group.stateAliases, stateIdentities, transition.toId, transition.to);
+      }
+    }
+    for (const transition of group.transitions) {
+      for (const [nameField, idField] of [["from", "fromId"], ["to", "toId"]]) {
+        if (transition[nameField] !== undefined) {
+          continue;
+        }
+        const alias = group.stateAliases.get(NormalizeStateIdentity(transition[idField]));
+        if (alias !== undefined) {
+          transition[nameField] = alias;
+        }
+      }
+    }
+    group.noneState = group.stateAliases.get("none");
+    for (const identity of [group.groupId, group.group]) {
+      if (identity === undefined) {
+        continue;
+      }
+      const key = NormalizeStateIdentity(identity);
+      if (result.has(key) && result.get(key) !== group) {
+        throw new TypeError(`Duplicate State transition group ${identity}`);
+      }
+      result.set(key, group);
+    }
+  }
+  return result;
+}
+function NormalizeStateIdentity(value) {
+  return String(value).trim().toLowerCase();
+}
+function AddRuntimeStateAlias(aliases, identities, id, name) {
+  const stateId = String(id);
+  const state = String(name ?? "").trim();
+  if (!state) {
+    throw new TypeError("State transition alias must be non-empty");
+  }
+  ReserveRuntimeStateIdentity(identities, stateId, stateId);
+  ReserveRuntimeStateIdentity(identities, state, stateId);
+  const canonical = state;
+  for (const alias of [stateId, state]) {
+    const key = NormalizeStateIdentity(alias);
+    const existing = aliases.get(key);
+    if (existing !== undefined && existing !== canonical) {
+      throw new TypeError(`Conflicting State transition alias ${alias}`);
+    }
+    aliases.set(key, canonical);
+  }
+}
+function ReserveRuntimeStateIdentity(identities, alias, stateId) {
+  const key = NormalizeStateIdentity(alias);
+  const canonical = String(stateId);
+  const existing = identities.get(key);
+  if (existing !== undefined && existing !== canonical) {
+    throw new TypeError(`Conflicting State transition identity ${alias}`);
+  }
+  identities.set(key, canonical);
+}
+function CanonicalStateGroup(group, fallback) {
+  return group?.group ?? group?.groupId ?? String(fallback);
+}
+function CanonicalStateValue(group, fallback) {
+  return group?.stateAliases.get(NormalizeStateIdentity(fallback)) ?? String(fallback);
+}
+function StateTransitionEndpointMatches(name, id, value) {
+  if (name !== undefined) {
+    return value !== undefined && value !== null && (NormalizeStateIdentity(name) === NormalizeStateIdentity(value) || String(id) === String(value));
+  }
+  return value !== undefined && value !== null && String(id) === String(value);
+}
+function EvaluateStatePropertyTransition(transition, at) {
+  const duration = Math.max(0, Number(transition?.duration) || 0);
+  const progress = duration === 0 ? 1 : Math.max(0, Math.min(1, ((Number(at) || 0) - Number(transition.startTime)) / duration));
+  const weights = new Map();
+  for (const entry of transition.fromWeights ?? []) {
+    const weight = (Number(entry?.weight) || 0) * (1 - progress);
+    if (weight > 0) {
+      const key = NormalizeStateIdentity(entry.state);
+      const existing = weights.get(key);
+      weights.set(key, {
+        state: existing?.state ?? String(entry.state),
+        weight: (existing?.weight ?? 0) + weight
+      });
+    }
+  }
+  if (progress > 0) {
+    const key = NormalizeStateIdentity(transition.toState);
+    const existing = weights.get(key);
+    weights.set(key, {
+      state: existing?.state ?? String(transition.toState),
+      weight: (existing?.weight ?? 0) + progress
+    });
+  }
+  return [...weights.values()];
+}
+function StateWeightsEqualTarget(weights, target) {
+  return weights.length === 1 && NormalizeStateIdentity(weights[0].state) === NormalizeStateIdentity(target) && Math.abs(Number(weights[0].weight) - 1) < 1e-12;
+}
 function EvaluateRtpcTransition(transition, at) {
   const duration = Math.max(0, Number(transition?.duration) || 0);
   const progress = duration === 0 ? 1 : Math.max(0, Math.min(1, ((Number(at) || 0) - Number(transition.startTime)) / duration));
@@ -3199,7 +3445,7 @@ function ReadRetiredRtpcValue(nodes, name, at) {
   const transition = nodes.retiredRtpcTransitions?.get(name);
   return transition ? EvaluateRtpcTransition(transition, at) : nodes.retiredRtpcValues?.get(name);
 }
-function ApplyVoiceFilter(node, readPercent, highPass, context, transitionEnd = 0) {
+function ApplyVoiceFilter(node, readPercent, highPass, context, transitionBoundaries = []) {
   if (!node || typeof readPercent !== "function") {
     return;
   }
@@ -3227,7 +3473,7 @@ function ApplyVoiceFilter(node, readPercent, highPass, context, transitionEnd = 
     return;
   }
   const param = node.frequency;
-  const end = Math.max(now, Number(transitionEnd) || 0);
+  const boundaries = FutureAutomationBoundaries(transitionBoundaries, now);
   if (typeof param?.cancelAndHoldAtTime === "function") {
     param.cancelAndHoldAtTime(now);
   } else {
@@ -3237,19 +3483,24 @@ function ApplyVoiceFilter(node, readPercent, highPass, context, transitionEnd = 
   }
   param?.setValueAtTime?.(cutoff, now);
   SetAudioParam(param, cutoff);
-  if (end <= now) {
-    return;
-  }
-  if (typeof param?.setValueCurveAtTime === "function") {
-    const values = new Float32Array(FADE_CURVE_SAMPLES);
-    for (let index = 0; index < values.length; index++) {
-      const at = now + (end - now) * index / (values.length - 1);
-      values[index] = cutoffAt(at) ?? cutoff;
+  let segmentStart = now;
+  for (const segmentEnd of boundaries) {
+    if (typeof param?.setValueCurveAtTime === "function") {
+      const values = new Float32Array(FADE_CURVE_SAMPLES);
+      for (let index = 0; index < values.length; index++) {
+        const at = segmentStart + (segmentEnd - segmentStart) * index / (values.length - 1);
+        values[index] = cutoffAt(at) ?? cutoff;
+      }
+      param.setValueCurveAtTime(values, segmentStart, segmentEnd - segmentStart);
+    } else {
+      param?.linearRampToValueAtTime?.(cutoffAt(segmentEnd) ?? cutoff, segmentEnd);
     }
-    param.setValueCurveAtTime(values, now, end - now);
-  } else {
-    param?.linearRampToValueAtTime?.(cutoffAt(end) ?? cutoff, end);
+    segmentStart = segmentEnd;
   }
+}
+function FutureAutomationBoundaries(value, from) {
+  const start = Number(from) || 0;
+  return [...new Set((Array.isArray(value) ? value : [value]).map(Number).filter(boundary => Number.isFinite(boundary) && boundary > start))].sort((left, right) => left - right);
 }
 function RenderQuantumSeconds(context) {
   const sampleRate = Number(context?.sampleRate);
@@ -3553,15 +3804,14 @@ function ScheduleVoiceVolumeGain(param, voice, context) {
   const now = Number(context?.currentTime) || 0;
   const states = voice.voiceVolumeStates;
   const matchIds = Array.isArray(voice.matchIds) ? voice.matchIds : [];
-  let endTime = now;
+  const rawBoundaries = [...(voice.controlTransitionBoundaries ?? [])];
   for (const value of new Set(matchIds.map(String))) {
     const state = states.get(value);
+    const start = Number(state?.startTime);
     const end = Number(state?.startTime) + Math.max(0, Number(state?.duration) || 0);
-    if (Number.isFinite(end) && end > endTime) {
-      endTime = end;
-    }
+    rawBoundaries.push(start, end);
   }
-  endTime = Math.max(endTime, Number(voice.rtpcTransitionEnd) || now);
+  const boundaries = FutureAutomationBoundaries(rawBoundaries, now);
   const evaluate = at => {
     let value = 1;
     try {
@@ -3573,7 +3823,6 @@ function ScheduleVoiceVolumeGain(param, voice, context) {
     return Number.isFinite(gain) ? Math.max(0, gain) : 1;
   };
   const startValue = evaluate(now);
-  const duration = Math.max(0, endTime - now);
   if (typeof param.cancelAndHoldAtTime === "function") {
     param.cancelAndHoldAtTime(now);
   } else {
@@ -3587,18 +3836,19 @@ function ScheduleVoiceVolumeGain(param, voice, context) {
   if ("value" in param) {
     param.value = startValue;
   }
-  if (!(duration > 0)) {
-    return;
-  }
-  if (typeof param.setValueCurveAtTime === "function") {
-    const values = new Float32Array(FADE_CURVE_SAMPLES);
-    for (let index = 0; index < values.length; index++) {
-      const ratio = index / (values.length - 1);
-      values[index] = evaluate(now + duration * ratio);
+  let segmentStart = now;
+  for (const segmentEnd of boundaries) {
+    if (typeof param.setValueCurveAtTime === "function") {
+      const values = new Float32Array(FADE_CURVE_SAMPLES);
+      for (let index = 0; index < values.length; index++) {
+        const ratio = index / (values.length - 1);
+        values[index] = evaluate(segmentStart + (segmentEnd - segmentStart) * ratio);
+      }
+      param.setValueCurveAtTime(values, segmentStart, segmentEnd - segmentStart);
+    } else {
+      param.linearRampToValueAtTime?.(evaluate(segmentEnd), segmentEnd);
     }
-    param.setValueCurveAtTime(values, now, duration);
-  } else {
-    param.linearRampToValueAtTime?.(evaluate(endTime), endTime);
+    segmentStart = segmentEnd;
   }
 }
 function EvaluateVoiceVolumeTargets(states, matchIds, at) {
@@ -3679,18 +3929,19 @@ function EvaluateVoicePitchState(state, at) {
   return state.fromCents + (state.toCents - state.fromCents) * evaluateWwiseInterpolation(state.curve, progress);
 }
 function VoicePitchTransitionEnd(voice, from) {
+  return VoicePitchTransitionBoundaries(voice, from).at(-1) ?? (Number(from) || 0);
+}
+function VoicePitchTransitionBoundaries(voice, from) {
   const states = voice.voicePitchStates;
   const matchIds = Array.isArray(voice.matchIds) ? voice.matchIds : [];
-  let endTime = Number(from) || 0;
-  endTime = Math.max(endTime, Number(voice.rtpcTransitionEnd) || endTime);
+  const boundaries = [...(voice.controlTransitionBoundaries ?? [])];
   for (const value of new Set(matchIds.map(String))) {
     const state = states.get(value);
+    const start = Number(state?.startTime);
     const end = Number(state?.startTime) + Math.max(0, Number(state?.duration) || 0);
-    if (Number.isFinite(end) && end > endTime) {
-      endTime = end;
-    }
+    boundaries.push(start, end);
   }
-  return endTime;
+  return FutureAutomationBoundaries(boundaries, from);
 }
 function EvaluateVoicePitchPlaybackRate(voice, at) {
   let value = 1;
@@ -3709,6 +3960,11 @@ function IntegrateVoicePitchPlaybackRate(voice, from, to) {
     return 0;
   }
   const boundaries = new Set([start, end]);
+  for (const boundary of VoicePitchTransitionBoundaries(voice, start)) {
+    if (boundary < end) {
+      boundaries.add(boundary);
+    }
+  }
   for (const value of new Set((voice.matchIds ?? []).map(String))) {
     const state = voice.voicePitchStates.get(value);
     const transitionStart = Number(state?.startTime);
@@ -3737,8 +3993,7 @@ function ScheduleVoicePitchPlaybackRate(param, voice, context) {
     return;
   }
   const now = Number(context?.currentTime) || 0;
-  const endTime = VoicePitchTransitionEnd(voice, now);
-  const duration = Math.max(0, endTime - now);
+  const boundaries = VoicePitchTransitionBoundaries(voice, now);
   const startValue = EvaluateVoicePitchPlaybackRate(voice, now);
   if (typeof param.cancelAndHoldAtTime === "function") {
     param.cancelAndHoldAtTime(now);
@@ -3749,18 +4004,19 @@ function ScheduleVoicePitchPlaybackRate(param, voice, context) {
   if ("value" in param) {
     param.value = startValue;
   }
-  if (!(duration > 0)) {
-    return;
-  }
-  if (typeof param.setValueCurveAtTime === "function") {
-    const values = new Float32Array(FADE_CURVE_SAMPLES);
-    for (let index = 0; index < values.length; index++) {
-      const ratio = index / (values.length - 1);
-      values[index] = EvaluateVoicePitchPlaybackRate(voice, now + duration * ratio);
+  let segmentStart = now;
+  for (const segmentEnd of boundaries) {
+    if (typeof param.setValueCurveAtTime === "function") {
+      const values = new Float32Array(FADE_CURVE_SAMPLES);
+      for (let index = 0; index < values.length; index++) {
+        const ratio = index / (values.length - 1);
+        values[index] = EvaluateVoicePitchPlaybackRate(voice, segmentStart + (segmentEnd - segmentStart) * ratio);
+      }
+      param.setValueCurveAtTime(values, segmentStart, segmentEnd - segmentStart);
+    } else {
+      param.linearRampToValueAtTime?.(EvaluateVoicePitchPlaybackRate(voice, segmentEnd), segmentEnd);
     }
-    param.setValueCurveAtTime(values, now, duration);
-  } else {
-    param.linearRampToValueAtTime?.(EvaluateVoicePitchPlaybackRate(voice, endTime), endTime);
+    segmentStart = segmentEnd;
   }
 }
 function SolveVoicePitchRepeatEnd(voice, now) {

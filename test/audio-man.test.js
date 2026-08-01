@@ -184,6 +184,36 @@ function Deferred()
     return { promise, reject, resolve };
 }
 
+test("CjsAudioMan installs State ID/name aliases through its backend", () =>
+{
+    const library = CreateDocument();
+    const context = PlaybackContext([]);
+
+    library.sfx = {
+        schemaVersion: 2,
+        events: {},
+        nodes: {},
+        stateTransitions: [ {
+            groupId: "10",
+            group: "combat",
+            defaultTransitionMs: 1000,
+            states: [
+                { stateId: "11", state: "calm" },
+                { stateId: "12", state: "danger" },
+            ],
+            transitions: [],
+        } ],
+    };
+    const man = new CjsAudioMan(library, {
+        createContext: () => context,
+    });
+
+    assert.equal(man.Enable(), true);
+    man.system.backend.SetGlobalState("10", "11");
+    assert.equal(man.system.backend.GetGlobalState("combat"), "calm");
+    man.Dispose();
+});
+
 test("CjsAudioMan installs one immutable document and reads individual media", async () =>
 {
     const log = [];

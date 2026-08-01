@@ -81,6 +81,11 @@ export function validateSfxGraph(
             "Audio library SFX programs",
         );
 
+    ValidateStateTransitions(
+        graph.stateTransitions,
+        "Audio library SFX stateTransitions",
+    );
+
     for (const [ rawID, node ] of Object.entries(nodes))
     {
         const id = NormalizePositiveID(
@@ -424,6 +429,13 @@ export function normalizeSfxGraph(graph, media = {}, embeddedMedia = {})
         events,
         nodes,
     };
+
+    if (graph.stateTransitions?.length)
+    {
+        result.stateTransitions = NormalizeStateTransitions(
+            graph.stateTransitions,
+        );
+    }
 
     if (graph.programs && Object.keys(graph.programs).length)
     {
@@ -960,6 +972,58 @@ function NormalizeStateProperties(value)
             ),
         })),
     };
+}
+
+function NormalizeStateTransitions(value)
+{
+    return [ ...value ]
+        .sort((left, right) =>
+            Number(left.groupId) - Number(right.groupId))
+        .map(group => ({
+            groupId: NormalizeUnsignedID(
+                group.groupId,
+                "Audio library SFX State groupId",
+            ),
+            ...(group.group === undefined
+                ? {}
+                : { group: String(group.group).trim() }),
+            defaultTransitionMs: Number(group.defaultTransitionMs),
+            ...(group.states === undefined
+                ? {}
+                : {
+                    states: [ ...group.states ]
+                        .sort((left, right) =>
+                            Number(left.stateId) - Number(right.stateId))
+                        .map(state => ({
+                            stateId: NormalizeUnsignedID(
+                                state.stateId,
+                                "Audio library SFX State stateId",
+                            ),
+                            state: String(state.state).trim(),
+                        })),
+                }),
+            transitions: [ ...group.transitions ]
+                .sort((left, right) =>
+                    Number(left.fromId) - Number(right.fromId)
+                    || Number(left.toId) - Number(right.toId))
+                .map(transition => ({
+                    fromId: NormalizeUnsignedID(
+                        transition.fromId,
+                        "Audio library SFX State transition fromId",
+                    ),
+                    ...(transition.from === undefined
+                        ? {}
+                        : { from: String(transition.from).trim() }),
+                    toId: NormalizeUnsignedID(
+                        transition.toId,
+                        "Audio library SFX State transition toId",
+                    ),
+                    ...(transition.to === undefined
+                        ? {}
+                        : { to: String(transition.to).trim() }),
+                    transitionMs: Number(transition.transitionMs),
+                })),
+        }));
 }
 
 function NormalizeRandomRanges(ranges)
@@ -2144,6 +2208,243 @@ function ValidateStateProperties(value, label)
     }
 }
 
+function ValidateStateTransitions(value, label)
+{
+    if (value === undefined)
+    {
+        return;
+    }
+    if (!Array.isArray(value) || !value.length)
+    {
+        throw new TypeError(`${label} must be a non-empty array`);
+    }
+
+    const groupIds = new Set();
+    const groupNames = new Set();
+    const groupAliases = new Map();
+
+    for (let index = 0; index < value.length; index++)
+    {
+        const group = RequireRecord(value[index], `${label} ${index}`);
+        const groupId = NormalizeUnsignedID(
+            group.groupId,
+            `${label} ${index} groupId`,
+        );
+
+        if (groupIds.has(groupId))
+        {
+            throw new TypeError(`${label} has duplicate groupId ${groupId}`);
+        }
+        groupIds.add(groupId);
+        RegisterIdentityAlias(
+            groupAliases,
+            groupId,
+            groupId,
+            label,
+            "group",
+        );
+        if (group.group !== undefined)
+        {
+            const name = NormalizeName(
+                group.group,
+                `${label} ${index} group`,
+            ).toLowerCase();
+
+            if (groupNames.has(name))
+            {
+                throw new TypeError(
+                    `${label} has duplicate group ${group.group}`,
+                );
+            }
+            groupNames.add(name);
+            RegisterIdentityAlias(
+                groupAliases,
+                name,
+                groupId,
+                label,
+                "group",
+            );
+        }
+        NormalizeUint32Number(
+            group.defaultTransitionMs,
+            `${label} ${index} defaultTransitionMs`,
+        );
+        const aliasesById = new Map();
+        const idsByAlias = new Map();
+        const stateIdentities = new Map();
+
+        if (group.states !== undefined)
+        {
+            if (!Array.isArray(group.states) || !group.states.length)
+            {
+                throw new TypeError(
+                    `${label} ${index} states must be a non-empty array`,
+                );
+            }
+            for (let stateIndex = 0;
+                stateIndex < group.states.length;
+                stateIndex++)
+            {
+                const state = RequireRecord(
+                    group.states[stateIndex],
+                    `${label} ${index} state ${stateIndex}`,
+                );
+                const stateId = NormalizeUnsignedID(
+                    state.stateId,
+                    `${label} ${index} state ${stateIndex} stateId`,
+                );
+                const stateName = NormalizeName(
+                    state.state,
+                    `${label} ${index} state ${stateIndex} state`,
+                );
+
+                RegisterStateAlias(
+                    aliasesById,
+                    idsByAlias,
+                    stateIdentities,
+                    stateId,
+                    stateName,
+                    `${label} ${index}`,
+                );
+            }
+        }
+        if (!Array.isArray(group.transitions))
+        {
+            throw new TypeError(
+                `${label} ${index} transitions must be an array`,
+            );
+        }
+
+        const routes = new Set();
+
+        for (let transitionIndex = 0;
+            transitionIndex < group.transitions.length;
+            transitionIndex++)
+        {
+            const transition = RequireRecord(
+                group.transitions[transitionIndex],
+                `${label} ${index} transition ${transitionIndex}`,
+            );
+            const fromId = NormalizeUnsignedID(
+                transition.fromId,
+                `${label} ${index} transition ${transitionIndex} fromId`,
+            );
+            const toId = NormalizeUnsignedID(
+                transition.toId,
+                `${label} ${index} transition ${transitionIndex} toId`,
+            );
+            const route = `${fromId}:${toId}`;
+
+            RegisterIdentityAlias(
+                stateIdentities,
+                fromId,
+                fromId,
+                `${label} ${index}`,
+                "state",
+            );
+            RegisterIdentityAlias(
+                stateIdentities,
+                toId,
+                toId,
+                `${label} ${index}`,
+                "state",
+            );
+
+            if (routes.has(route))
+            {
+                throw new TypeError(
+                    `${label} ${index} has duplicate transition ${route}`,
+                );
+            }
+            routes.add(route);
+            if (transition.from !== undefined)
+            {
+                const from = NormalizeName(
+                    transition.from,
+                    `${label} ${index} transition ${transitionIndex} from`,
+                );
+
+                RegisterStateAlias(
+                    aliasesById,
+                    idsByAlias,
+                    stateIdentities,
+                    fromId,
+                    from,
+                    `${label} ${index}`,
+                );
+            }
+            if (transition.to !== undefined)
+            {
+                const to = NormalizeName(
+                    transition.to,
+                    `${label} ${index} transition ${transitionIndex} to`,
+                );
+
+                RegisterStateAlias(
+                    aliasesById,
+                    idsByAlias,
+                    stateIdentities,
+                    toId,
+                    to,
+                    `${label} ${index}`,
+                );
+            }
+            NormalizeUint32Number(
+                transition.transitionMs,
+                `${label} ${index} transition ${transitionIndex} transitionMs`,
+            );
+        }
+    }
+}
+
+function RegisterStateAlias(
+    byId,
+    byAlias,
+    identities,
+    id,
+    name,
+    label,
+)
+{
+    const alias = name.toLowerCase();
+    const existingName = byId.get(id);
+    const existingId = byAlias.get(alias);
+
+    if (existingName !== undefined && existingName !== name)
+    {
+        throw new TypeError(
+            `${label} stateId ${id} conflicts between`
+            + ` ${existingName} and ${name}`,
+        );
+    }
+    if (existingId !== undefined && existingId !== id)
+    {
+        throw new TypeError(
+            `${label} state ${name} conflicts between`
+            + ` stateId ${existingId} and ${id}`,
+        );
+    }
+    byId.set(id, name);
+    byAlias.set(alias, id);
+    RegisterIdentityAlias(identities, id, id, label, "state");
+    RegisterIdentityAlias(identities, alias, id, label, "state");
+}
+
+function RegisterIdentityAlias(aliases, alias, id, label, kind)
+{
+    const key = String(alias).toLowerCase();
+    const existing = aliases.get(key);
+
+    if (existing !== undefined && existing !== id)
+    {
+        throw new TypeError(
+            `${label} ${kind} alias ${alias} conflicts between`
+            + ` ${existing} and ${id}`,
+        );
+    }
+    aliases.set(key, id);
+}
+
 function ValidateRandomRanges(value, label)
 {
     if (value === undefined)
@@ -2448,6 +2749,19 @@ function NormalizeFiniteNumber(value, label)
     if (!Number.isFinite(number))
     {
         throw new TypeError(`${label} must be a finite number`);
+    }
+    return number;
+}
+
+function NormalizeUint32Number(value, label)
+{
+    const number = Number(value);
+
+    if (!Number.isSafeInteger(number)
+        || number < 0
+        || number > 0xffffffff)
+    {
+        throw new TypeError(`${label} must be an unsigned 32-bit integer`);
     }
     return number;
 }

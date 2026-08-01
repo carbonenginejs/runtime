@@ -792,6 +792,7 @@ export class CjsSfxEngine
         gainDb += EvaluateStateProperties(
             selection?.stateProperties,
             controls,
+            at,
         ).gainDb;
         gainDb += EvaluateRtpcProperties(
             selection?.rtpcCurves,
@@ -853,6 +854,7 @@ export class CjsSfxEngine
         const statePitch = EvaluateStateProperties(
             selection.stateProperties,
             controls,
+            at,
         ).pitchCents;
         const rtpcPitch = EvaluateRtpcProperties(
             selection.rtpcCurves,
@@ -2280,7 +2282,7 @@ function ReadRTPC(
     );
 }
 
-function EvaluateStateProperties(properties, controls)
+function EvaluateStateProperties(properties, controls, at = undefined)
 {
     let gainDb = 0;
     let pitchCents = 0;
@@ -2289,6 +2291,31 @@ function EvaluateStateProperties(properties, controls)
 
     for (const property of properties ?? [])
     {
+        const weights = controls.getStatePropertyWeights?.(
+            property.group,
+            at,
+        );
+
+        if (Array.isArray(weights))
+        {
+            for (const entry of weights)
+            {
+                const weight = Number(entry?.weight);
+
+                if (!Number.isFinite(weight) || weight <= 0)
+                {
+                    continue;
+                }
+                const stateCase = FindCase(property.cases, entry.state);
+
+                gainDb += (Number(stateCase?.gainDb) || 0) * weight;
+                pitchCents += (Number(stateCase?.pitchCents) || 0) * weight;
+                lowPass += (Number(stateCase?.lowPass) || 0) * weight;
+                highPass += (Number(stateCase?.highPass) || 0) * weight;
+            }
+            continue;
+        }
+
         const state = controls.getState?.(property.group);
         const stateCase = state === undefined || state === null
             ? null
@@ -2362,6 +2389,7 @@ function EvaluateFilterProperty(property, selection, controls, at = undefined)
     const state = EvaluateStateProperties(
         selection?.stateProperties,
         controls,
+        at,
     );
     const rtpc = EvaluateRtpcProperties(
         selection?.rtpcCurves,

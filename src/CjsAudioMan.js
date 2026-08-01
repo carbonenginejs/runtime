@@ -308,6 +308,7 @@ export class CjsAudioMan
                     commit() {},
                     rollback() {},
                 },
+            stateTransitions: installed.sfx?.stateTransitions ?? null,
             hasEventStops: eventName =>
                 this.#sfxEngine?.HasStopAction(eventName) === true,
             hasSfxEvent: eventName =>

@@ -2867,6 +2867,16 @@ test("complete construction carries STMG defaults into Game Parameter actions", 
                         Id: "800",
                         Name: "ship_Warp_Timer",
                     } ],
+                    StateGroups: [ {
+                        Id: "600",
+                        Name: "ship_state",
+                        States: [
+                            { Id: "601", Name: "idle" },
+                            { Id: "602", Name: "warp" },
+                            { Id: "603", Name: "docked" },
+                            { Id: "699", Name: "None" },
+                        ],
+                    } ],
                 } ],
             },
         },
@@ -2884,7 +2894,22 @@ test("complete construction carries STMG defaults into Game Parameter actions", 
                     bankVersion: 150,
                     globalSettings: {
                         filterBehavior: 1,
-                        stateGroups: [],
+                        stateGroups: [ {
+                            id: 600,
+                            defaultTransitionTimeMs: 2000,
+                            transitions: [
+                                {
+                                    fromId: 601,
+                                    toId: 602,
+                                    transitionTimeMs: 7000,
+                                },
+                                {
+                                    fromId: 999,
+                                    toId: 601,
+                                    transitionTimeMs: 500,
+                                },
+                            ],
+                        } ],
                         switchGroups: [],
                         rtpcParameters: [ {
                             id: 800,
@@ -2943,6 +2968,111 @@ test("complete construction carries STMG defaults into Game Parameter actions", 
         valueMode: "absolute",
         gameParameterValue: 1,
         gameParameterRange: { min: 0, max: 0 },
+    } ]);
+    assert.deepEqual(library.sfx.stateTransitions, [ {
+        groupId: "600",
+        group: "ship_state",
+        defaultTransitionMs: 2000,
+        states: [
+            { stateId: "601", state: "idle" },
+            { stateId: "602", state: "warp" },
+            { stateId: "603", state: "docked" },
+            { stateId: "699", state: "None" },
+        ],
+        transitions: [
+            {
+                fromId: "601",
+                from: "idle",
+                toId: "602",
+                to: "warp",
+                transitionMs: 7000,
+            },
+            {
+                fromId: "999",
+                toId: "601",
+                to: "idle",
+                transitionMs: 500,
+            },
+        ],
+    } ]);
+});
+
+test("SFX State catalogs fail closed on malformed or conflicting names", () =>
+{
+    const inspection = {
+        source: "init.bnk",
+        bankVersion: 150,
+        globalSettings: {
+            stateGroups: [ {
+                id: 600,
+                defaultTransitionTimeMs: 1000,
+                transitions: [ {
+                    fromId: 601,
+                    toId: 602,
+                    transitionTimeMs: 250,
+                } ],
+            } ],
+            rtpcParameters: [],
+        },
+        hirc: [],
+    };
+    const request = soundbanksInfo => ({
+        inspections: [ inspection ],
+        metadata: { Events: {} },
+        soundbanksInfo: {
+            SoundBanksInfo: { SoundBanks: soundbanksInfo },
+        },
+    });
+    const bank = (name, first = "idle") => ({
+        Id: "1",
+        ShortName: "init",
+        StateGroups: [ {
+            Id: "600",
+            Name: name,
+            States: [
+                { Id: "601", Name: first },
+                { Id: "602", Name: "warp" },
+            ],
+        } ],
+    });
+
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph(
+            request([ bank("alpha"), bank("beta") ]),
+        ),
+        /name conflicts between alpha and beta/u,
+    );
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph(
+            request([ bank("ship_state"), bank("ship_state", "calm") ]),
+        ),
+        /value 601 name conflicts between idle and calm/u,
+    );
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph({
+            ...request([ bank("ship_state") ]),
+            inspections: [ {
+                ...inspection,
+                globalSettings: { rtpcParameters: [] },
+            } ],
+        }),
+        /must contain stateGroups and rtpcParameters/u,
+    );
+
+    const unnamed = CjsAudioLibraryBuilder.createSfxGraph(
+        request([ bank(" ", " ") ]),
+    );
+
+    assert.deepEqual(unnamed.stateTransitions, [ {
+        groupId: "600",
+        defaultTransitionMs: 1000,
+        states: [ { stateId: "602", state: "warp" } ],
+        transitions: [ {
+            fromId: "601",
+            toId: "602",
+            to: "warp",
+            transitionMs: 250,
+        } ],
     } ]);
 });
 
@@ -3557,6 +3687,7 @@ test("SFX Game Parameter actions lower into ordered and action-only programs", (
                 source: "common.bnk",
                 bankVersion: 150,
                 globalSettings: {
+                    stateGroups: [],
                     rtpcParameters: [ {
                         id: 800,
                         defaultValue: 0,

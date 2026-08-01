@@ -212,6 +212,7 @@ class CjsAudioMan {
         commit() {},
         rollback() {}
       },
+      stateTransitions: installed.sfx?.stateTransitions ?? null,
       hasEventStops: eventName => this.#sfxEngine?.HasStopAction(eventName) === true,
       hasSfxEvent: eventName => this.#sfxEngine?.HandlesEvent(eventName) === true || Array.isArray(installed.eventMedia?.[eventName]),
       loadMedia: sourceID => this.LoadMedia(sourceID),

@@ -152,6 +152,7 @@ function Harness({
   resolveSfxProgram,
   continueSfxProgram,
   prepareSfxProgram,
+  stateTransitions,
 } = {})
 {
   const context = FakeContext();
@@ -175,6 +176,7 @@ function Harness({
           })
         : undefined
     ),
+    stateTransitions,
   });
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
@@ -4665,6 +4667,394 @@ test("global states update one active voice's gain and pitch in place", async ()
   assert.equal(source.playbackRate.value, 1);
 });
 
+test("authored State timing rebases interrupted gain, pitch, and filter blends", async () =>
+{
+  const graph = {
+    schemaVersion: 2,
+    events: { stateful_engine: [ { nodeId: "1" } ] },
+    nodes: {
+      "1": {
+        type: "sound",
+        mediaId: "100",
+        stateProperties: [ {
+          group: "combat",
+          cases: {
+            calm: {
+              gainDb: 0,
+              pitchCents: 0,
+              lowPass: 0,
+              highPass: 0,
+            },
+            danger: {
+              gainDb: -6.020599913279624,
+              pitchCents: 1200,
+              lowPass: 50,
+              highPass: 40,
+            },
+          },
+        } ],
+      },
+    },
+    stateTransitions: [ {
+      groupId: "10",
+      group: "combat",
+      defaultTransitionMs: 1000,
+      states: [
+        { stateId: "100", state: "None" },
+        { stateId: "11", state: "calm" },
+        { stateId: "12", state: "danger" },
+      ],
+      transitions: [
+        {
+          fromId: "100",
+          from: "None",
+          toId: "11",
+          to: "calm",
+          transitionMs: 0,
+        },
+        {
+          fromId: "11",
+          toId: "12",
+          transitionMs: 2000,
+        },
+        {
+          fromId: "12",
+          from: "danger",
+          toId: "11",
+          to: "calm",
+          transitionMs: 4000,
+        },
+      ],
+    } ],
+  };
+  const engine = new CjsSfxEngine({ graph });
+  let controls;
+  const { context, emitter, backend } = Harness({
+    stateTransitions: graph.stateTransitions,
+    loadBuffer: async (_eventID, eventName, suppliedControls) =>
+    {
+      controls = suppliedControls;
+      const selection = engine.ResolveEvent(eventName, controls)[0];
+
+      return {
+        voices: [ {
+          buffer: { duration: 10 },
+          playbackRate: selection.playbackRate,
+          matchIds: selection.matchIds,
+          getGain: at => engine.EvaluateGain(
+            selection,
+            controls,
+            undefined,
+            at,
+          ),
+          getGainAtVoiceVolumeDb: (value, at) => engine.EvaluateGain(
+            selection,
+            controls,
+            value,
+            at,
+          ),
+          getPlaybackRate: at => engine.EvaluatePlaybackRate(
+            selection,
+            controls,
+            undefined,
+            at,
+          ),
+          getPlaybackRateAtVoicePitchCents: (value, at) =>
+            engine.EvaluatePlaybackRate(
+              selection,
+              controls,
+              value,
+              at,
+            ),
+          getLowPass: at => engine.EvaluateLowPass(
+            selection,
+            controls,
+            at,
+          ),
+          getHighPass: at => engine.EvaluateHighPass(
+            selection,
+            controls,
+            at,
+          ),
+        } ],
+      };
+    },
+  });
+
+  backend.SetGlobalState("10", "11");
+  backend.PostEvent(7, 1, 0, emitter, "stateful_engine");
+  await tick();
+
+  const gain = context.gains[3].gain;
+  const sourceRate = context.sources[0].playbackRate;
+
+  assert.deepEqual(gain.curves, []);
+  assert.equal(controls.getState("combat"), "calm");
+  assert.equal(backend.GetGlobalState("10"), "calm");
+
+  backend.SetGlobalState("10", "12");
+  assert.equal(controls.getState("combat"), "danger");
+  assert.equal(gain.curves.at(-1)[2], 2);
+  assert.ok(Math.abs(gain.curves.at(-1)[0].at(-1) - 0.5) < 1e-6);
+  assert.equal(sourceRate.curves.at(-1)[2], 2);
+  assert.ok(Math.abs(sourceRate.curves.at(-1)[0].at(-1) - 2) < 1e-6);
+
+  context.currentTime = 1;
+  backend.PostEvent(7, 1, 0, emitter, "stateful_engine");
+  await tick();
+
+  assert.ok(
+    Math.abs(context.gains[5].gain.value - Math.SQRT1_2) < 1e-5,
+    "a new voice joins the current State-property gain blend",
+  );
+  assert.ok(
+    Math.abs(context.sources[1].playbackRate.value - Math.SQRT2) < 1e-5,
+    "a new voice joins the current State-property pitch blend",
+  );
+  assert.equal(context.gains[5].gain.curves.at(-1)[2], 1);
+  assert.equal(context.filters[2].frequency.curves.at(-1)[2], 1);
+  assert.equal(context.filters[3].frequency.curves.at(-1)[2], 1);
+
+  backend.SetGlobalState("combat", "calm");
+
+  const gainCurve = gain.curves.at(-1);
+  const pitchCurve = sourceRate.curves.at(-1);
+
+  assert.equal(controls.getState("combat"), "calm");
+  assert.equal(gainCurve[2], 4, "the directed danger-to-calm override wins");
+  assert.ok(
+    Math.abs(gainCurve[0][0] - Math.SQRT1_2) < 1e-5,
+    "the interrupted gain transition starts at its current blend",
+  );
+  assert.ok(Math.abs(gainCurve[0].at(-1) - 1) < 1e-6);
+  assert.equal(pitchCurve[2], 4);
+  assert.ok(Math.abs(pitchCurve[0][0] - Math.SQRT2) < 1e-5);
+  assert.ok(Math.abs(pitchCurve[0].at(-1) - 1) < 1e-6);
+  assert.equal(context.filters[0].frequency.curves.at(-1)[2], 4);
+  assert.equal(context.filters[1].frequency.curves.at(-1)[2], 4);
+
+  context.currentTime = 2;
+  backend.SetGlobalState("combat", "unknown");
+  assert.equal(
+    gain.curves.at(-1)[2],
+    1,
+    "an unmatched directed route uses the State Group default",
+  );
+});
+
+test("a shorter State transition preserves concurrent longer automation", async () =>
+{
+  const graph = {
+    schemaVersion: 2,
+    events: { layered_state: [ { nodeId: "1" } ] },
+    nodes: {
+      "1": {
+        type: "sound",
+        mediaId: "100",
+        stateProperties: [
+          {
+            group: "weather",
+            cases: {
+              clear: {
+                gainDb: 0,
+                pitchCents: 0,
+                lowPass: 0,
+                highPass: 0,
+              },
+              storm: {
+                gainDb: -6.020599913279624,
+                pitchCents: 600,
+                lowPass: 20,
+                highPass: 10,
+              },
+            },
+          },
+          {
+            group: "combat",
+            cases: {
+              calm: {
+                gainDb: 0,
+                pitchCents: 0,
+                lowPass: 0,
+                highPass: 0,
+              },
+              danger: {
+                gainDb: -6.020599913279624,
+                pitchCents: 600,
+                lowPass: 20,
+                highPass: 10,
+              },
+            },
+          },
+        ],
+      },
+    },
+  };
+  const transitions = [
+    {
+      groupId: "20",
+      group: "weather",
+      defaultTransitionMs: 7000,
+      states: [
+        { stateId: "29", state: "None" },
+      ],
+      transitions: [
+        {
+          fromId: "21",
+          toId: "22",
+          transitionMs: 5000,
+        },
+        {
+          fromId: "29",
+          from: "None",
+          toId: "21",
+          to: "clear",
+          transitionMs: 0,
+        },
+        {
+          fromId: "22",
+          from: "storm",
+          toId: "23",
+          to: "after_storm",
+          transitionMs: 0,
+        },
+      ],
+    },
+    {
+      groupId: "10",
+      group: "combat",
+      defaultTransitionMs: 1000,
+      states: [
+        { stateId: "19", state: "None" },
+        { stateId: "11", state: "calm" },
+        { stateId: "12", state: "danger" },
+      ],
+      transitions: [ {
+        fromId: "19",
+        from: "None",
+        toId: "11",
+        to: "calm",
+        transitionMs: 0,
+      } ],
+    },
+  ];
+  const engine = new CjsSfxEngine({ graph });
+  let controls;
+  const { context, emitter, backend } = Harness({
+    stateTransitions: transitions,
+    loadBuffer: async (_eventID, eventName, suppliedControls) =>
+    {
+      controls = suppliedControls;
+      const selection = engine.ResolveEvent(eventName, controls)[0];
+
+      return { voices: [ {
+        buffer: { duration: 10 },
+        getGain: at => engine.EvaluateGain(
+          selection,
+          controls,
+          undefined,
+          at,
+        ),
+        getGainAtVoiceVolumeDb: (value, at) => engine.EvaluateGain(
+          selection,
+          controls,
+          value,
+          at,
+        ),
+        getPlaybackRate: at => engine.EvaluatePlaybackRate(
+          selection,
+          controls,
+          undefined,
+          at,
+        ),
+        getPlaybackRateAtVoicePitchCents: (value, at) =>
+          engine.EvaluatePlaybackRate(selection, controls, value, at),
+        getLowPass: at => engine.EvaluateLowPass(
+          selection,
+          controls,
+          at,
+        ),
+        getHighPass: at => engine.EvaluateHighPass(
+          selection,
+          controls,
+          at,
+        ),
+      } ] };
+    },
+  });
+
+  backend.SetGlobalState("weather", "clear");
+  backend.SetGlobalState("combat", "calm");
+  backend.PostEvent(7, 1, 0, emitter, "layered_state");
+  await tick();
+
+  backend.SetGlobalState("weather", "storm");
+  backend.SetGlobalState("combat", "danger");
+
+  const gainCurves = context.gains[3].gain.curves.slice(-2);
+  const pitchCurves = context.sources[0].playbackRate.curves.slice(-2);
+  const lowPassCurves = context.filters[0].frequency.curves.slice(-2);
+  const highPassCurves = context.filters[1].frequency.curves.slice(-2);
+
+  for (const curves of [
+    gainCurves,
+    pitchCurves,
+    lowPassCurves,
+    highPassCurves,
+  ])
+  {
+    assert.deepEqual(
+      curves.map(curve => [ curve[1], curve[2] ]),
+      [ [ 0, 1 ], [ 1, 4 ] ],
+      "each live property lands on the 1s boundary before continuing to 5s",
+    );
+  }
+  assert.ok(Math.abs(gainCurves[0][0].at(-1) - 0.5 ** 1.2) < 1e-6);
+  assert.ok(Math.abs(gainCurves[1][0].at(-1) - 0.25) < 1e-6);
+});
+
+test("State aliasing preserves numeric music-engine setter arguments", () =>
+{
+  const calls = [];
+  const { backend } = Harness({
+    musicEngine: {
+      SetState: (...args) => calls.push(args),
+    },
+    stateTransitions: [ {
+      groupId: "10",
+      group: "combat",
+      defaultTransitionMs: 0,
+      states: [ { stateId: "11", state: "calm" } ],
+      transitions: [],
+    } ],
+  });
+
+  backend.SetGlobalState(10, 11);
+
+  assert.deepEqual(calls, [ [ 10, 11 ] ]);
+  assert.equal(backend.GetGlobalState("combat"), "calm");
+});
+
+test("direct State catalogs reject endpoint identity collisions", () =>
+{
+  assert.throws(
+    () => Harness({
+      stateTransitions: [ {
+        groupId: "10",
+        defaultTransitionMs: 0,
+        states: [ { stateId: "12", state: "11" } ],
+        transitions: [ {
+          fromId: "11",
+          toId: "12",
+          to: "11",
+          transitionMs: 0,
+        } ],
+      } ],
+    }),
+    /Conflicting State transition identity 11/,
+  );
+});
+
 test("global states remain live under an independent Stop fade", async () =>
 {
   let controls;
@@ -5770,11 +6160,19 @@ test("Voice Volume sums parent and child hierarchy contributions", async () =>
   backend.PostEvent(6, 1, 0, emitter, "fade_parent");
   backend.PostEvent(7, 1, 0, emitter, "fade_child");
 
-  const aggregateFade = gain.curves.at(-1);
+  const [ childBoundary, aggregateFade ] = gain.curves.slice(-2);
 
-  assert.equal(aggregateFade[2], 4);
+  assert.equal(childBoundary[1], 0);
+  assert.equal(childBoundary[2], 2);
+  assert.equal(aggregateFade[1], 2);
+  assert.equal(aggregateFade[2], 2);
   assert.ok(
-    Math.abs(aggregateFade[0][0] - 10 ** (-4 / 20)) < 1e-6,
+    Math.abs(childBoundary[0][0] - 10 ** (-4 / 20)) < 1e-6,
+  );
+  assert.ok(
+    Math.abs(
+      childBoundary[0].at(-1) - aggregateFade[0][0]
+    ) < 1e-12,
   );
   assert.ok(
     Math.abs(aggregateFade[0].at(-1) - 10 ** (-9 / 20)) < 1e-6,

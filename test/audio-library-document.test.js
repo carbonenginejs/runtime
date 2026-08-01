@@ -1191,6 +1191,153 @@ test("installation canonicalizes authored SFX identifiers and curve numbers", ()
     );
 });
 
+test("SFX State transition catalogs preserve IDs, names, and directed overrides", () =>
+{
+    const normalized = normalizeSfxGraph({
+        schemaVersion: 2,
+        events: {},
+        nodes: {},
+        stateTransitions: [
+            {
+                groupId: 20,
+                defaultTransitionMs: 4000,
+                transitions: [],
+            },
+            {
+                groupId: "10",
+                group: "combat",
+                defaultTransitionMs: 1000,
+                states: [
+                    { stateId: "12", state: "danger" },
+                    { stateId: "11", state: "calm" },
+                ],
+                transitions: [
+                    {
+                        fromId: "12",
+                        from: "danger",
+                        toId: "11",
+                        to: "calm",
+                        transitionMs: 5000,
+                    },
+                    {
+                        fromId: 0,
+                        toId: 12,
+                        to: "danger",
+                        transitionMs: 250,
+                    },
+                ],
+            },
+        ],
+    });
+
+    assert.deepEqual(normalized.stateTransitions, [
+        {
+            groupId: "10",
+            group: "combat",
+            defaultTransitionMs: 1000,
+            states: [
+                { stateId: "11", state: "calm" },
+                { stateId: "12", state: "danger" },
+            ],
+            transitions: [
+                {
+                    fromId: "0",
+                    toId: "12",
+                    to: "danger",
+                    transitionMs: 250,
+                },
+                {
+                    fromId: "12",
+                    from: "danger",
+                    toId: "11",
+                    to: "calm",
+                    transitionMs: 5000,
+                },
+            ],
+        },
+        {
+            groupId: "20",
+            defaultTransitionMs: 4000,
+            transitions: [],
+        },
+    ]);
+
+    const duplicate = structuredClone(normalized);
+
+    duplicate.stateTransitions.push({
+        groupId: "10",
+        defaultTransitionMs: 0,
+        transitions: [],
+    });
+    assert.throws(
+        () => normalizeSfxGraph(duplicate),
+        /duplicate groupId 10/u,
+    );
+
+    const conflictingId = structuredClone(normalized);
+
+    conflictingId.stateTransitions[0].transitions[1].from = "not_danger";
+    assert.throws(
+        () => normalizeSfxGraph(conflictingId),
+        /stateId 12 conflicts between/u,
+    );
+
+    const conflictingName = structuredClone(normalized);
+
+    conflictingName.stateTransitions[0].states.push({
+        stateId: "13",
+        state: "calm",
+    });
+    assert.throws(
+        () => normalizeSfxGraph(conflictingName),
+        /state calm conflicts between stateId 11 and 13/u,
+    );
+
+    const oversizedDuration = structuredClone(normalized);
+
+    oversizedDuration.stateTransitions[0].defaultTransitionMs = 0x100000000;
+    assert.throws(
+        () => normalizeSfxGraph(oversizedDuration),
+        /must be an unsigned 32-bit integer/u,
+    );
+
+    const numericGroupAlias = structuredClone(normalized);
+
+    numericGroupAlias.stateTransitions[0].group = "20";
+    assert.throws(
+        () => normalizeSfxGraph(numericGroupAlias),
+        /group alias 20 conflicts between 10 and 20/u,
+    );
+
+    const numericStateAlias = structuredClone(normalized);
+
+    numericStateAlias.stateTransitions[0].states[1].state = "11";
+    assert.throws(
+        () => normalizeSfxGraph(numericStateAlias),
+        /state alias 11 conflicts between 11 and 12/u,
+    );
+
+    assert.throws(
+        () => normalizeSfxGraph({
+            schemaVersion: 2,
+            events: {},
+            nodes: {},
+            stateTransitions: [ {
+                groupId: "10",
+                defaultTransitionMs: 0,
+                states: [ { stateId: "12", state: "11" } ],
+                transitions: [ {
+                    fromId: "11",
+                    toId: "12",
+                    to: "11",
+                    transitionMs: 0,
+                } ],
+            } ],
+        }),
+        /state alias 11 conflicts between 12 and 11/u,
+    );
+});
+
 test("installation projects authored sound loop overrides into event lifecycle metadata", () =>
 {
     const looping = CreateDocument();

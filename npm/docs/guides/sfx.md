@@ -282,11 +282,11 @@ present. Decibel values at or below -96 dB and linear gain zero become silence.
 Changing an RTPC updates gain on already playing SFX voices without restarting
 their buffers.
 
-## Immediate state properties
+## State properties and transition timing
 
 Nodes may carry additive Wwise State deltas in `stateProperties`. Each entry
-names a global State Group and maps authored State names to relative volume or
-pitch changes:
+names a global State Group and maps authored State names to relative volume,
+pitch, low-pass, or high-pass changes:
 
 ```js
 stateProperties: [
@@ -306,9 +306,22 @@ Matching entries on every selected hierarchy level add to the static
 `gainDb` and `pitchCents` values. An unset group or a current state with no
 authored case contributes zero; the projected EVE tables therefore preserve
 Wwise's initial `None` behavior. State-name matching is case-insensitive.
-`SetState()` updates gain and playback rate on an already playing voice
-without restarting its buffer. Live State gain remains independent of an
-authored Stop envelope, so changes continue to apply during an audible fade.
+`SetState()` changes the logical State immediately, so later Play actions,
+Switch/State routing, Continuous sessions, and music reevaluation see the new
+value in authored order. The affected NodeBase property offsets follow the
+STMG State Group's default transition time or an exact directed custom
+override. Gain, playback rate, low-pass, and high-pass update on already
+playing voices without restarting their buffers. New voices join the current
+blend, and a second State change rebases from the in-progress property values.
+Live State gain remains independent of an authored Stop envelope, so changes
+continue to apply during an audible fade.
+
+The optional graph-level `stateTransitions` array retains each numeric State
+Group identity, its optional name, the complete known State ID/name catalog,
+default duration, and every directed custom route. From/to numeric IDs remain
+present when SoundBanksInfo cannot name an endpoint, so future tooling does not
+lose the authored rule. Named and numeric group/State setters share one
+canonical runtime value whenever the catalog supplies that alias.
 
 The bank builder projects only named, Immediate Volume, Pitch, and filter
 state tables with their exact supported accumulation modes. A group containing

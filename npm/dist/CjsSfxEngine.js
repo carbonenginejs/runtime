@@ -478,7 +478,7 @@ class CjsSfxEngine {
         gainDb += output;
       }
     }
-    gainDb += EvaluateStateProperties(selection?.stateProperties, controls).gainDb;
+    gainDb += EvaluateStateProperties(selection?.stateProperties, controls, at).gainDb;
     gainDb += EvaluateRtpcProperties(selection?.rtpcCurves, controls, at).gainDb;
     gainDb += voiceVolumeDb === undefined ? Number(controls.getVoiceVolumeDb?.(selection?.matchIds)) || 0 : Number(voiceVolumeDb) || 0;
     gainDb = Clamp(gainDb, MIN_RELATIVE_GAIN_DB, MAX_RELATIVE_GAIN_DB);
@@ -498,7 +498,7 @@ class CjsSfxEngine {
       const base = Number.isFinite(current) && current > 0 ? current : 1;
       return base * 2 ** (Clamp(actionPitch, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
     }
-    const statePitch = EvaluateStateProperties(selection.stateProperties, controls).pitchCents;
+    const statePitch = EvaluateStateProperties(selection.stateProperties, controls, at).pitchCents;
     const rtpcPitch = EvaluateRtpcProperties(selection.rtpcCurves, controls, at).pitchCents;
     return authoredPlaybackRate * 2 ** (Clamp(authoredPitchCents + statePitch + rtpcPitch + actionPitch, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
   }
@@ -1266,12 +1266,27 @@ function ReadRTPC(curve, controls, defaultToFirstPoint = true, at = undefined) {
   const objectValue = controls.getRTPC?.(curve.rtpc, at);
   return NormalizeControlValue(objectValue ?? controls.getGlobalRTPC?.(curve.rtpc, at), fallback);
 }
-function EvaluateStateProperties(properties, controls) {
+function EvaluateStateProperties(properties, controls, at = undefined) {
   let gainDb = 0;
   let pitchCents = 0;
   let lowPass = 0;
   let highPass = 0;
   for (const property of properties ?? []) {
+    const weights = controls.getStatePropertyWeights?.(property.group, at);
+    if (Array.isArray(weights)) {
+      for (const entry of weights) {
+        const weight = Number(entry?.weight);
+        if (!Number.isFinite(weight) || weight <= 0) {
+          continue;
+        }
+        const stateCase = FindCase(property.cases, entry.state);
+        gainDb += (Number(stateCase?.gainDb) || 0) * weight;
+        pitchCents += (Number(stateCase?.pitchCents) || 0) * weight;
+        lowPass += (Number(stateCase?.lowPass) || 0) * weight;
+        highPass += (Number(stateCase?.highPass) || 0) * weight;
+      }
+      continue;
+    }
     const state = controls.getState?.(property.group);
     const stateCase = state === undefined || state === null ? null : FindCase(property.cases, state);
     gainDb += Number(stateCase?.gainDb) || 0;
@@ -1320,7 +1335,7 @@ function EvaluateRtpcProperties(curves, controls, at = undefined) {
   };
 }
 function EvaluateFilterProperty(property, selection, controls, at = undefined) {
-  const state = EvaluateStateProperties(selection?.stateProperties, controls);
+  const state = EvaluateStateProperties(selection?.stateProperties, controls, at);
   const rtpc = EvaluateRtpcProperties(selection?.rtpcCurves, controls, at);
   return Clamp((Number(selection?.[property]) || 0) + state[property] + rtpc[property], MIN_FILTER_PERCENT, MAX_FILTER_PERCENT);
 }
