@@ -120,14 +120,15 @@ SFX schema version 2 makes `programs` the ordered authoring source. When an
 event has a program, its `events` entry must be exactly the projection of that
 program's `play` actions. This keeps legacy root lookup available without
 allowing the static roots and the executable program to disagree. Supplied
-Stop, Pause, Resume, Voice Volume, Voice Pitch, Voice LPF/HPF, and Set/Reset
-Game Parameter actions are also qualified at validation time. Bus targets
-remain unsupported;
+Stop, Pause, Resume, Voice Volume, Bus Volume, Voice Pitch, Voice LPF/HPF,
+and Set/Reset Game Parameter actions are also qualified at validation time.
 playback controls reject unsupported action flags, nonzero All targets, and
 element-target exceptions. Voice Volume and Voice Pitch accept only exact
 element targets and their decoded value contracts. Voice LPF/HPF Set accepts
 an exact element target; Reset additionally retains the qualified element,
-All, and All-Except modes. Game Parameter actions
+All, and All-Except modes. Bus Volume retains the complete valid v150 family:
+global/object Set and Reset Element plus global Reset All and All-Except, with
+bus-flagged targets and exceptions. Game Parameter actions
 retain their authored object/global scope, absolute/relative value mode,
 delay, transition, curve, and transition-bypass flag. Every portable Game
 Parameter action carries its catalog default so unset relative values and
@@ -156,8 +157,8 @@ and inherited by every sound leaf it selects. Delay is measured from the
 event post, and the fade begins when the delayed source starts.
 
 `programs` preserves the authored order of Play, Stop, Pause, Resume,
-SetSwitch, SetState, Set/Reset Voice Volume, Set/Reset Voice Pitch, Set/Reset
-Voice LPF/HPF, and Set/Reset Game Parameter actions.
+SetSwitch, SetState, Set/Reset Voice Volume, Set/Reset Bus Volume, Set/Reset
+Voice Pitch, Set/Reset Voice LPF/HPF, and Set/Reset Game Parameter actions.
 Switches update the posting game object; states update the global state table.
 A switch or state setter therefore affects only later Play actions in the same
 post. The `events` table remains the static playable-root projection used for
@@ -205,6 +206,16 @@ the final Wwise gain clamp, alongside authored hierarchy, State, and RTPC
 volume. They never replace Play fades, Continuous crossfades, Stop fades,
 emitter gain, or spatial attenuation.
 
+Set Bus Volume stores a dB property state for the target Wwise bus on the
+affected emitter generation. Absolute mode replaces the current value;
+relative mode adds to its interpolated value; Reset returns it to `0 dB`.
+Builder-produced sounds retain their nearest inherited NodeBase
+`overrideBusId`, and resolved selections expose that identity separately from
+the object hierarchy. A dedicated gain stage applies the state only to live
+and future voices whose retained bus route contains the target, without
+changing application master, SFX, or music controls. Reset All and All-Except
+use qualified exact stored bus identities; EVE currently exercises Element.
+
 Set Voice Pitch stores one cents contribution for the target HIRC element.
 `valueMode: "absolute"` replaces that contribution; `"relative"` adds to its
 interpolated current value. Reset Voice Pitch returns the contribution to
@@ -244,13 +255,22 @@ an emitter registered later inherits the template's original transition
 timeline and therefore joins its remaining fade or final value. A retired
 generation keeps its independent filter map and is not changed by later
 global filter actions.
+Bus Volume uses the same per-generation isolation, while global actions also
+update a persistent template for emitters registered later and continue to
+affect live voices on retired generations. This is an audible exact-route
+adaptation, not full Wwise bus processing. Bus ancestry, authored base bus
+gain, and music output routing remain follow-up work after the typed
+resource-reader seam described in the
+[routing requirements](../reference/wwise-resource-routing-handoff.md).
 Delay is measured from the action post. Value randomizers are signed offsets
 sampled once, and transitions use the decoded Wwise curve from the authored
 action time. Web Audio automation keeps those transitions continuous between
-`RenderAudio()` calls. The builder fails
-closed for bus, music, and otherwise untyped targets. An element target absent
-from every loaded SFX NodeBase cannot match a projected voice, so that action
-is omitted as a no-op while the event's other authored actions remain usable.
+`RenderAudio()` calls. The builder fails closed for otherwise untyped object
+targets. Bus actions remain portable even when the current asset set has no
+matching route, so future banks can use the same valid action without
+rebuilding policy. A Voice property element target absent from every loaded
+SFX NodeBase cannot match a projected voice, so that action is omitted as a
+no-op while the event's other authored actions remain usable.
 
 Set Game Parameter writes a named object or global RTPC. Absolute mode replaces
 the scope's current value; relative mode adds to its interpolated value at the
@@ -426,17 +446,18 @@ before caller `metadata` and `enrichment`, so explicit caller data remains
 authoritative.
 
 Automatic construction currently accepts Wwise generator-version-150 codec
-sounds, Play, Stop, Pause, Resume, Set/Reset Voice Volume, Set/Reset Voice
-Pitch, Set/Reset Voice LPF/HPF, Play-Event,
+sounds, Play, Stop, Pause, Resume, Set/Reset Voice Volume, Set/Reset Bus
+Volume, Set/Reset Voice Pitch, Set/Reset Voice LPF/HPF, Play-Event,
 SetSwitch, and SetState actions,
 Random/Sequence containers without reverse restart, and named Step
 Switch/State containers. Play actions retain
 their authored delay, delay randomizer, probability, fade-in duration,
 fade-in randomizer, and curve. Play-Event recursively inlines the referenced
 event's playable program and merges its immediate setter, playback-control,
-Voice Volume, Voice Pitch, and Voice LPF/HPF actions; its delay, delay
-randomizer, and
-probability wrap only the inlined playable roots. A scheduled or gated
+Voice Volume, Bus Volume, Voice Pitch, and Voice LPF/HPF actions; its delay,
+delay randomizer, and probability wrap only the inlined playable roots.
+Music-prefixed events retain Bus Volume actions while their music Play targets
+stay owned by the music graph. A scheduled or gated
 Play-Event that reaches any
 non-play program is omitted rather than executing that action early.
 Missing targets and cycles are diagnosed and omitted.

@@ -69,6 +69,8 @@ export class CjsAudioBackend
 
     #globalVoiceLowPasses = new Map();
 
+    #globalBusVolumes = new Map();
+
     #stateTransitionCatalog = new Map();
 
     #statePropertyTransitions = new Map();
@@ -260,6 +262,7 @@ export class CjsAudioBackend
             voiceLowPasses: new Map(this.#globalVoiceLowPasses),
             voicePitches: new Map(),
             voiceVolumes: new Map(),
+            busVolumes: new Map(this.#globalBusVolumes),
         });
     }
 
@@ -543,6 +546,7 @@ export class CjsAudioBackend
                             leafIndex: selectionMetadata.leafIndex,
                             actionTime: selectionMetadata.actionTime,
                             matchIds: selectionMetadata.matchIds,
+                            busPathIds: selectionMetadata.busPathIds,
                             switchPath: selectionMetadata.switchPath,
                             switchFadeInMs:
                                 selectionMetadata.switchFadeInMs,
@@ -1653,6 +1657,7 @@ export class CjsAudioBackend
         this.#globalStateValues.clear();
         this.#globalVoiceHighPasses.clear();
         this.#globalVoiceLowPasses.clear();
+        this.#globalBusVolumes.clear();
         this.#sfxGain?.disconnect?.();
         this.#masterGain?.disconnect?.();
         this.#sfxGain = null;
@@ -2034,6 +2039,8 @@ export class CjsAudioBackend
                     && operation.kind !== "reset-voice-pitch"
                     && operation.kind !== "set-voice-volume"
                     && operation.kind !== "reset-voice-volume"
+                    && operation.kind !== "set-bus-volume"
+                    && operation.kind !== "reset-bus-volume"
                     && operation.kind !== "set-voice-low-pass"
                     && operation.kind !== "reset-voice-low-pass"
                     && operation.kind !== "set-voice-high-pass"
@@ -2136,6 +2143,11 @@ export class CjsAudioBackend
         {
             this.#ApplySfxVoiceFilter(action);
         }
+        else if (action.kind === "set-bus-volume"
+            || action.kind === "reset-bus-volume")
+        {
+            this.#ApplySfxBusVolume(action);
+        }
         else
         {
             this.#ApplySfxVoiceVolume(action, now);
@@ -2172,6 +2184,38 @@ export class CjsAudioBackend
         }
         apply(action.emitterNodes);
         this.#RefreshSfxVoiceVolumes(action.gameObjID);
+    }
+
+    /** Applies one persistent Wwise Bus Volume property mutation. */
+    #ApplySfxBusVolume(action)
+    {
+        if (action.scope === "global")
+        {
+            ApplyBusVolumeAction(this.#globalBusVolumes, action);
+            const generations = new Set(this.#emitterNodes.values());
+
+            for (const record of this.#playing.values())
+            {
+                if (record.emitterNodes)
+                {
+                    generations.add(record.emitterNodes);
+                }
+            }
+            for (const nodes of generations)
+            {
+                ApplyBusVolumeAction(nodes.busVolumes, action);
+            }
+            this.#RefreshSfxBusVolumes();
+            return;
+        }
+
+        if (this.#emitterNodes.get(action.gameObjID)
+            !== action.emitterNodes)
+        {
+            return;
+        }
+        ApplyBusVolumeAction(action.emitterNodes.busVolumes, action);
+        this.#RefreshSfxBusVolumes(action.gameObjID);
     }
 
     /** Applies one persistent Voice Pitch property mutation. */
@@ -2404,6 +2448,7 @@ export class CjsAudioBackend
         return value;
     }
 
+    /** Reads one RTPC value at a requested point on its active timeline. */
     #ReadRtpcValue(scope, name, gameObjID, at)
     {
         const transition = this.#rtpcTransitions.get(
@@ -2419,6 +2464,7 @@ export class CjsAudioBackend
             : this.#objectRtpcValues.get(gameObjID)?.get(name);
     }
 
+    /** Advances affected SFX voice transport before an RTPC mutation. */
     #AdvanceRtpcVoices(scope, gameObjID, at)
     {
         for (const record of this.#playing.values())
@@ -2441,6 +2487,7 @@ export class CjsAudioBackend
         }
     }
 
+    /** Returns the last relevant control-transition boundary for a record. */
     #RtpcTransitionEndForRecord(record, from)
     {
         return this.#ControlTransitionBoundariesForRecord(
@@ -2449,6 +2496,7 @@ export class CjsAudioBackend
         ).at(-1) ?? (Number(from) || 0);
     }
 
+    /** Collects future State and RTPC transition boundaries for a record. */
     #ControlTransitionBoundariesForRecord(record, from)
     {
         const start = Number(from) || 0;
@@ -2488,6 +2536,7 @@ export class CjsAudioBackend
         return [ ...boundaries ].sort((left, right) => left - right);
     }
 
+    /** Creates the stable map key for one scoped RTPC transition. */
     #RtpcTransitionKey(scope, name, gameObjID = "")
     {
         return scope === "global"
@@ -2495,6 +2544,7 @@ export class CjsAudioBackend
             : `o\0${String(gameObjID)}\0${name}`;
     }
 
+    /** Cancels one active scoped RTPC transition. */
     #CancelRtpcTransition(scope, name, gameObjID = "")
     {
         this.#rtpcTransitions.delete(
@@ -2502,6 +2552,7 @@ export class CjsAudioBackend
         );
     }
 
+    /** Cancels every active RTPC transition for one game object. */
     #CancelObjectRtpcTransitions(gameObjID)
     {
         const objectID = String(gameObjID);
@@ -2516,6 +2567,7 @@ export class CjsAudioBackend
         }
     }
 
+    /** Writes one resolved RTPC value through its selected scope. */
     #WriteRtpcValue(scope, name, value, gameObjID)
     {
         return scope === "global"
@@ -2523,6 +2575,7 @@ export class CjsAudioBackend
             : this.#WriteObjectRtpcValue(name, value, gameObjID);
     }
 
+    /** Stores one object RTPC value and refreshes affected realization. */
     #WriteObjectRtpcValue(name, value, gameObjID)
     {
         let values = this.#objectRtpcValues.get(gameObjID);
@@ -2548,6 +2601,7 @@ export class CjsAudioBackend
         return true;
     }
 
+    /** Stores one global RTPC value and refreshes affected realization. */
     #WriteGlobalRtpcValue(name, value)
     {
         this.#globalRtpcValues.set(name, value);
@@ -3141,6 +3195,7 @@ export class CjsAudioBackend
                         leafIndex: selection.leafIndex,
                         actionTime: selection.actionTime,
                         matchIds: selection.matchIds,
+                        busPathIds: selection.busPathIds,
                         switchPath: selection.switchPath,
                         switchFadeInMs: selection.switchFadeInMs,
                         switchGeneration,
@@ -3857,6 +3912,9 @@ export class CjsAudioBackend
     #CreateVoice(descriptor, emitterNodes, gameObjID)
     {
         const gain = this.#context.createGain();
+        const busGain = descriptor.busPathIds.length
+            ? this.#context.createGain()
+            : null;
         const fadeGain = descriptor.fadeInMs > 0
             ? this.#context.createGain()
             : null;
@@ -3933,8 +3991,9 @@ export class CjsAudioBackend
             }
             stopGain.connect(emitterNodes.flatGain);
         }
-        gain.connect(transitionGain ?? stopGain);
-        transitionGain?.connect(stopGain);
+        gain.connect(transitionGain ?? busGain ?? stopGain);
+        transitionGain?.connect(busGain ?? stopGain);
+        busGain?.connect(stopGain);
         if (transitionGain && descriptor.switchFadeInMs > 0)
         {
             SetAudioParam(
@@ -3974,6 +4033,7 @@ export class CjsAudioBackend
             voicePitchStates: emitterNodes.voicePitches,
             voiceLowPassStates: emitterNodes.voiceLowPasses,
             voiceHighPassStates: emitterNodes.voiceHighPasses,
+            busVolumeStates: emitterNodes.busVolumes,
             rtpcTransitionEnd: this.#RtpcTransitionEndForRecord(
                 { gameObjID, emitterNodes },
                 Number(this.#context?.currentTime) || 0,
@@ -3993,6 +4053,7 @@ export class CjsAudioBackend
             leafIndex: descriptor.leafIndex,
             actionTime: descriptor.actionTime,
             matchIds: descriptor.matchIds,
+            busPathIds: descriptor.busPathIds,
             switchPath: descriptor.switchPath ?? Object.freeze([]),
             switchGeneration: Math.max(
                 0,
@@ -4001,6 +4062,7 @@ export class CjsAudioBackend
             programBatchId: descriptor.programBatchId,
             crossfadeMode: descriptor.crossfadeMode ?? null,
             gain,
+            busGain,
             fadeGain,
             transitionGain,
             stopGain,
@@ -4035,6 +4097,7 @@ export class CjsAudioBackend
         };
 
         this.#ApplyVoiceGain(voice);
+        this.#ApplyVoiceBusGain(voice);
         this.#ApplyVoiceFilters(voice);
         this.#ApplyVoicePlaybackRate(voice);
         return voice;
@@ -4585,6 +4648,7 @@ export class CjsAudioBackend
                             leafIndex: selection.leafIndex,
                             actionTime: selection.actionTime,
                             matchIds: selection.matchIds,
+                            busPathIds: selection.busPathIds,
                         }
                         : descriptor,
                     record.emitterNodes,
@@ -4801,6 +4865,7 @@ export class CjsAudioBackend
                             leafIndex: selection.leafIndex,
                             actionTime: selection.actionTime,
                             matchIds: selection.matchIds,
+                            busPathIds: selection.busPathIds,
                         }
                         : descriptor,
                     record.emitterNodes,
@@ -5076,6 +5141,7 @@ export class CjsAudioBackend
                     leafIndex: selection.leafIndex,
                     actionTime,
                     matchIds: selection.matchIds,
+                    busPathIds: selection.busPathIds,
                     crossfadeMode:
                         continuation.crossfadeMode,
                 },
@@ -5326,6 +5392,7 @@ export class CjsAudioBackend
             voice.gain?.disconnect?.();
             voice.fadeGain?.disconnect?.();
             voice.transitionGain?.disconnect?.();
+            voice.busGain?.disconnect?.();
             voice.stopGain?.disconnect?.();
             slot.voices.delete(voice);
             const index = record.voices.indexOf(voice);
@@ -5421,6 +5488,31 @@ export class CjsAudioBackend
         }
     }
 
+    /** Re-evaluates live Wwise Bus Volume contributions. */
+    #RefreshSfxBusVolumes(gameObjID = null)
+    {
+        if (this.#deferSfxControlRefresh)
+        {
+            return;
+        }
+        for (const record of this.#playing.values())
+        {
+            if (!record.sfx
+                || (gameObjID !== null
+                    && record.gameObjID !== gameObjID))
+            {
+                continue;
+            }
+            for (const voice of record.voices ?? [])
+            {
+                if (!voice.ended)
+                {
+                    this.#ApplyVoiceBusGain(voice);
+                }
+            }
+        }
+    }
+
     /** Re-evaluates the live Voice Pitch contribution during transitions. */
     #RefreshSfxVoicePitches(gameObjID = null)
     {
@@ -5505,6 +5597,20 @@ export class CjsAudioBackend
         SetAudioParam(
             param,
             target,
+            this.#context,
+        );
+    }
+
+    /** Applies the current authored Wwise bus contribution to one voice. */
+    #ApplyVoiceBusGain(voice)
+    {
+        if (!voice.busGain)
+        {
+            return;
+        }
+        ScheduleBusVolumeGain(
+            voice.busGain.gain,
+            voice,
             this.#context,
         );
     }
@@ -5874,6 +5980,7 @@ export class CjsAudioBackend
                 voice.gain?.disconnect?.();
                 voice.fadeGain?.disconnect?.();
                 voice.transitionGain?.disconnect?.();
+                voice.busGain?.disconnect?.();
                 voice.stopGain?.disconnect?.();
             }
 
@@ -6571,6 +6678,9 @@ function CreateProgramSelectionMetadata(selection, baseContextTime)
         matchIds: Object.freeze(
             (selection.matchIds ?? []).map(String),
         ),
+        busPathIds: Object.freeze(
+            (selection.busPathIds ?? []).map(String),
+        ),
         switchPath: NormalizeSwitchPath(selection.switchPath),
         switchFadeInMs: Math.max(
             0,
@@ -6829,6 +6939,31 @@ function NormalizeVoiceDescriptors(result, eventLoop)
                 `Audio voice ${index} matchIds must be an array of ids`,
             );
         }
+        if (value.busPathIds !== undefined
+            && (!Array.isArray(value.busPathIds)
+                || !value.busPathIds.length
+                || value.busPathIds.some(busID =>
+                {
+                    const normalized = Number(busID);
+
+                    return !Number.isSafeInteger(normalized)
+                        || normalized <= 0
+                        || normalized > 0xffffffff;
+                })))
+        {
+            throw new TypeError(
+                `Audio voice ${index} busPathIds must be a non-empty array of positive ids`,
+            );
+        }
+        const busPathIds = (value.busPathIds ?? []).map(busID =>
+            String(Number(busID) >>> 0));
+
+        if (new Set(busPathIds).size !== busPathIds.length)
+        {
+            throw new TypeError(
+                `Audio voice ${index} busPathIds must not contain duplicates`,
+            );
+        }
 
         const loop = value.loop === undefined
             ? value.playCount === undefined && Boolean(eventLoop())
@@ -6851,6 +6986,7 @@ function NormalizeVoiceDescriptors(result, eventLoop)
             matchIds: Object.freeze(
                 (value.matchIds ?? []).map(String),
             ),
+            busPathIds: Object.freeze(busPathIds),
             ...(value.programSlotId === undefined
                 ? {}
                 : { programSlotId: value.programSlotId }),
@@ -6916,6 +7052,56 @@ function ApplyVoiceVolumeAction(states, targetId, action)
         ) / 1000,
         curve: Number(action.curve ?? LINEAR_FADE_CURVE),
     });
+}
+
+function ApplyBusVolumeAction(states, action)
+{
+    if (!(states instanceof Map))
+    {
+        return;
+    }
+    // All/All-Except operate on the exact bus identities represented in the
+    // current property map. The serialized exceptions carry no descendant
+    // expansion, and EVE currently exercises Element only.
+    const excluded = new Set(
+        (action.exceptions ?? []).map(value => String(value.targetId)),
+    );
+    const targets = action.mode === "element"
+        ? [ String(action.targetId) ]
+        : [ ...states.keys() ].filter(targetId =>
+            action.mode !== "all-except" || !excluded.has(targetId));
+
+    for (const targetId of targets)
+    {
+        const actionTime = Number(action.actionTime) || 0;
+        const fromDb = EvaluateVoiceVolumeState(
+            states.get(targetId),
+            actionTime,
+        );
+        const requested = action.kind === "reset-bus-volume"
+            ? 0
+            : action.valueMode === "relative"
+                ? fromDb + Number(action.busVolumeDb)
+                : Number(action.busVolumeDb);
+        const toDb = Math.max(
+            -200,
+            Math.min(
+                200,
+                Number.isFinite(requested) ? requested : 0,
+            ),
+        );
+
+        states.set(targetId, {
+            fromDb,
+            toDb,
+            startTime: actionTime,
+            duration: Math.max(
+                0,
+                Number(action.transitionMs) || 0,
+            ) / 1000,
+            curve: Number(action.curve ?? LINEAR_FADE_CURVE),
+        });
+    }
 }
 
 function ApplyVoiceFilterAction(states, action, property)
@@ -7106,6 +7292,74 @@ function ScheduleVoiceVolumeGain(param, voice, context)
         // from `now` cannot remove a curve that is already in progress.
         // This gain stage owns no unrelated automation; clear its timeline
         // and immediately restore the evaluated current value instead.
+        param.cancelScheduledValues?.(0);
+    }
+    param.setValueAtTime?.(startValue, now);
+    if ("value" in param)
+    {
+        param.value = startValue;
+    }
+    let segmentStart = now;
+
+    for (const segmentEnd of boundaries)
+    {
+        if (typeof param.setValueCurveAtTime === "function")
+        {
+            const values = new Float32Array(FADE_CURVE_SAMPLES);
+
+            for (let index = 0; index < values.length; index++)
+            {
+                const ratio = index / (values.length - 1);
+
+                values[index] = evaluate(
+                    segmentStart
+                    + (segmentEnd - segmentStart) * ratio,
+                );
+            }
+            param.setValueCurveAtTime(
+                values,
+                segmentStart,
+                segmentEnd - segmentStart,
+            );
+        }
+        else
+        {
+            param.linearRampToValueAtTime?.(
+                evaluate(segmentEnd),
+                segmentEnd,
+            );
+        }
+        segmentStart = segmentEnd;
+    }
+}
+
+function ScheduleBusVolumeGain(param, voice, context)
+{
+    if (!param)
+    {
+        return;
+    }
+    const now = Number(context?.currentTime) || 0;
+    const states = voice.busVolumeStates;
+    const busPathIds = Array.isArray(voice.busPathIds)
+        ? voice.busPathIds
+        : [];
+    const boundaries = VoiceTargetTransitionBoundaries(
+        states,
+        busPathIds,
+        now,
+    );
+    const evaluate = at => 10 ** (
+        EvaluateVoiceVolumeTargets(states, busPathIds, at) / 20
+    );
+    const startValue = evaluate(now);
+
+    if (typeof param.cancelAndHoldAtTime === "function")
+    {
+        param.cancelAndHoldAtTime(now);
+    }
+    else
+    {
         param.cancelScheduledValues?.(0);
     }
     param.setValueAtTime?.(startValue, now);

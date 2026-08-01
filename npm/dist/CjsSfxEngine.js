@@ -211,6 +211,8 @@ class CjsSfxEngine {
           if (volume) {
             operations.push(volume);
           }
+        } else if (action.kind === "set-bus-volume" || action.kind === "reset-bus-volume") {
+          operations.push(this.#ResolveBusVolumeAction(action, actionIndex));
         } else if (action.kind === "set-voice-pitch" || action.kind === "reset-voice-pitch") {
           const pitch = this.#ResolveVoicePitchAction(action, actionIndex);
           if (pitch) {
@@ -593,6 +595,9 @@ class CjsSfxEngine {
       const selection = {
         mediaID: String(node.mediaId),
         matchIds,
+        ...(node.outputBusId === undefined ? {} : {
+          busPathIds: Object.freeze(node.busPathIds.map(String))
+        }),
         loop: node.loop,
         ...(node.playCount === undefined ? {} : {
           playCount: node.playCount
@@ -994,6 +999,31 @@ class CjsSfxEngine {
       ...(setting ? {
         valueMode: action.valueMode,
         volumeDb
+      } : {})
+    });
+  }
+
+  /** Samples one authored Bus Volume action once for this post. */
+  #ResolveBusVolumeAction(action, actionIndex) {
+    const setting = action.kind === "set-bus-volume";
+    const busVolumeDb = setting ? Math.max(-200, Math.min(200, SampleSignedRandomizedValue(action.busVolumeDb, action.busVolumeRangeDb, () => this.#SampleUnit()))) : 0;
+    return Object.freeze({
+      kind: action.kind,
+      actionIndex,
+      targetId: String(Number(action.targetId) >>> 0),
+      targetFlags: Number(action.targetFlags),
+      scope: action.scope,
+      mode: action.mode,
+      delayMs: Math.max(0, SampleRandomizedValue(action.delayMs, action.delayRangeMs, () => this.#SampleUnit())),
+      transitionMs: Math.max(0, SampleRandomizedValue(action.transitionMs, action.transitionRangeMs, () => this.#SampleUnit())),
+      curve: Number(action.curve ?? 4),
+      exceptions: Object.freeze(action.exceptions.map(exception => Object.freeze({
+        targetId: String(Number(exception.targetId) >>> 0),
+        targetFlags: Number(exception.targetFlags)
+      }))),
+      ...(setting ? {
+        valueMode: action.valueMode,
+        busVolumeDb
       } : {})
     });
   }

@@ -869,6 +869,7 @@ class CjsAudioMan {
           actionIndex: selection.actionIndex,
           leafIndex: selection.leafIndex,
           matchIds: selection.matchIds,
+          busPathIds: selection.busPathIds,
           getPlaybackRate: (at = undefined) => engine.EvaluatePlaybackRate(selection, controls, undefined, at),
           getPlaybackRateAtVoicePitchCents: (value, at = undefined) => engine.EvaluatePlaybackRate(selection, controls, value, at),
           spatial: selection.spatial ?? eventSpatial,

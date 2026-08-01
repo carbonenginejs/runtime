@@ -5679,6 +5679,470 @@ test("Voice Volume persists across posts, isolates objects, and applies globally
   assert.ok(Math.abs(secondGain.value - 10 ** (-12 / 20)) < 1e-12);
 });
 
+test("Bus Volume targets routed live and future voices without touching other buses", async () =>
+{
+  const bus = (scope, valueMode, busVolumeDb) => ({
+    kind: "set-bus-volume",
+    actionIndex: 0,
+    targetId: "928",
+    targetFlags: 1,
+    scope,
+    mode: "element",
+    valueMode,
+    busVolumeDb,
+    delayMs: 0,
+    transitionMs: 0,
+    curve: 4,
+    exceptions: [],
+  });
+  const play = busPathIds => [ {
+    kind: "play",
+    actionIndex: 0,
+    selections: [ {
+      actionIndex: 0,
+      leafIndex: 0,
+      matchIds: [ "200" ],
+      busPathIds,
+    } ],
+  } ];
+  const programs = {
+    play_warp: play([ "928", "500" ]),
+    play_music: play([ "399", "1" ]),
+    set_local: [ bus("game-object", "absolute", -6) ],
+    set_global: [ bus("global", "absolute", -12) ],
+    set_parent: [ {
+      ...bus("global", "absolute", -9),
+      targetId: "500",
+    } ],
+    relative_local: [ bus("game-object", "relative", 3) ],
+    reset_local: [ {
+      kind: "reset-bus-volume",
+      actionIndex: 0,
+      targetId: "928",
+      targetFlags: 1,
+      scope: "game-object",
+      mode: "element",
+      delayMs: 0,
+      transitionMs: 0,
+      curve: 4,
+      exceptions: [],
+    } ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.kind === "play"
+          ? operation.selections.map(selection => ({
+              buffer: { duration: 2 },
+              loop: true,
+              programSlotId:
+                `${selection.actionIndex}:${selection.leafIndex}`,
+              actionIndex: selection.actionIndex,
+              leafIndex: selection.leafIndex,
+              matchIds: selection.matchIds,
+              busPathIds: selection.busPathIds,
+              getGain: () => 1,
+            }))
+          : []),
+    }),
+  });
+  backend.RegisterGameObj(2);
+
+  backend.PostEvent(1, 1, 0, emitter, "play_warp");
+  backend.PostEvent(2, 2, 0, emitter, "play_warp");
+  backend.PostEvent(3, 1, 0, emitter, "play_music");
+  await tick();
+
+  const firstWarp = context.sources[0].connectedTo.connectedTo.gain;
+  const secondWarp = context.sources[1].connectedTo.connectedTo.gain;
+  const music = context.sources[2].connectedTo.connectedTo.gain;
+
+  backend.PostEvent(4, 1, 0, emitter, "set_local");
+  assert.ok(Math.abs(firstWarp.value - 10 ** (-6 / 20)) < 1e-12);
+  assert.equal(secondWarp.value, 1);
+  assert.equal(music.value, 1);
+
+  backend.PostEvent(5, 1, 0, emitter, "relative_local");
+  assert.ok(Math.abs(firstWarp.value - 10 ** (-3 / 20)) < 1e-12);
+
+  backend.PostEvent(6, 1, 0, emitter, "set_global");
+  assert.ok(Math.abs(firstWarp.value - 10 ** (-12 / 20)) < 1e-12);
+  assert.ok(Math.abs(secondWarp.value - 10 ** (-12 / 20)) < 1e-12);
+  assert.equal(music.value, 1);
+
+  backend.PostEvent(7, 1, 0, emitter, "play_warp");
+  backend.RegisterGameObj(3);
+  backend.PostEvent(8, 3, 0, emitter, "play_warp");
+  await tick();
+  const futureWarp = context.sources[3].connectedTo.connectedTo.gain;
+  const newEmitterWarp = context.sources[4].connectedTo.connectedTo.gain;
+
+  assert.ok(Math.abs(futureWarp.value - 10 ** (-12 / 20)) < 1e-12);
+  assert.ok(
+    Math.abs(newEmitterWarp.value - 10 ** (-12 / 20)) < 1e-12,
+  );
+
+  backend.PostEvent(9, 1, 0, emitter, "reset_local");
+  assert.equal(firstWarp.value, 1);
+  assert.equal(futureWarp.value, 1);
+  assert.ok(Math.abs(secondWarp.value - 10 ** (-12 / 20)) < 1e-12);
+  assert.ok(
+    Math.abs(newEmitterWarp.value - 10 ** (-12 / 20)) < 1e-12,
+  );
+
+  backend.PostEvent(10, 1, 0, emitter, "set_parent");
+  assert.ok(Math.abs(firstWarp.value - 10 ** (-9 / 20)) < 1e-12);
+  assert.ok(Math.abs(secondWarp.value - 10 ** (-21 / 20)) < 1e-12);
+  assert.ok(Math.abs(futureWarp.value - 10 ** (-9 / 20)) < 1e-12);
+  assert.ok(
+    Math.abs(newEmitterWarp.value - 10 ** (-21 / 20)) < 1e-12,
+  );
+  assert.equal(music.value, 1);
+});
+
+test("Bus Volume transitions rebase from authored linear-gain time", async () =>
+{
+  const programs = {
+    play: [ {
+      kind: "play",
+      actionIndex: 0,
+      selections: [ {
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: [ "200" ],
+        busPathIds: [ "928" ],
+      } ],
+    } ],
+    fade: [ {
+      kind: "set-bus-volume",
+      actionIndex: 0,
+      targetId: "928",
+      targetFlags: 1,
+      scope: "game-object",
+      mode: "element",
+      valueMode: "absolute",
+      busVolumeDb: -20,
+      delayMs: 1000,
+      transitionMs: 4000,
+      curve: 4,
+      exceptions: [],
+    } ],
+    relative: [ {
+      kind: "set-bus-volume",
+      actionIndex: 0,
+      targetId: "928",
+      targetFlags: 1,
+      scope: "game-object",
+      mode: "element",
+      valueMode: "relative",
+      busVolumeDb: 10,
+      delayMs: 2000,
+      transitionMs: 2000,
+      curve: 4,
+      exceptions: [],
+    } ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 2 },
+        loop: true,
+        programSlotId: "0:0",
+        actionIndex: 0,
+        leafIndex: 0,
+        getGain: () => 1,
+      } ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  backend.PostEvent(2, 1, 0, emitter, "fade");
+  backend.PostEvent(3, 1, 0, emitter, "relative");
+  await tick();
+
+  context.currentTime = 1;
+  backend.RenderAudio();
+  const busParam = context.sources[0].connectedTo.connectedTo.gain;
+  const fade = busParam.curves.at(-1);
+
+  assert.equal(fade[1], 1);
+  assert.equal(fade[2], 4);
+  assert.ok(Math.abs(fade[0][0] - 1) < 1e-6);
+  assert.ok(Math.abs(fade[0].at(-1) - 0.1) < 1e-6);
+
+  context.currentTime = 1.5;
+  backend.PostEvent(4, 1, 0, emitter, "play");
+  await tick();
+  const futureBusParam = context.sources[1].connectedTo.connectedTo.gain;
+  const expectedAtFuturePost = 1 + (0.1 - 1) * 0.125;
+
+  assert.ok(
+    Math.abs(futureBusParam.value - expectedAtFuturePost) < 1e-12,
+  );
+
+  context.currentTime = 2;
+  backend.RenderAudio();
+  const gainAtSecondAction = 1 + (0.1 - 1) * 0.25;
+  const dbAtSecondAction = 20 * Math.log10(gainAtSecondAction);
+  const expectedAfterRelative = 10 ** ((dbAtSecondAction + 10) / 20);
+
+  assert.ok(Math.abs(busParam.value - gainAtSecondAction) < 1e-12);
+  const rebased = busParam.curves.at(-1);
+
+  assert.equal(rebased[1], 2);
+  assert.equal(rebased[2], 2);
+  assert.ok(Math.abs(rebased[0][0] - gainAtSecondAction) < 1e-6);
+  assert.ok(Math.abs(rebased[0].at(-1) - expectedAfterRelative) < 1e-6);
+  assert.ok(
+    Math.abs(futureBusParam.value - gainAtSecondAction) < 1e-12,
+  );
+});
+
+test("new emitters inherit an in-progress global Bus Volume timeline", async () =>
+{
+  const programs = {
+    fade: [ {
+      kind: "set-bus-volume",
+      actionIndex: 0,
+      targetId: "928",
+      targetFlags: 1,
+      scope: "global",
+      mode: "element",
+      valueMode: "absolute",
+      busVolumeDb: -20,
+      delayMs: 0,
+      transitionMs: 4000,
+      curve: 4,
+      exceptions: [],
+    } ],
+    play: [ {
+      kind: "play",
+      actionIndex: 0,
+      selections: [ {
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: [ "200" ],
+        busPathIds: [ "928" ],
+      } ],
+    } ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation => operation.kind === "play"
+        ? operation.selections.map(selection => ({
+            buffer: { duration: 20 },
+            loop: true,
+            programSlotId: "0:0",
+            matchIds: selection.matchIds,
+            busPathIds: selection.busPathIds,
+            getGain: () => 1,
+          }))
+        : []),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "fade");
+  context.currentTime = 1;
+  backend.RenderAudio();
+  backend.RegisterGameObj(2);
+  backend.PostEvent(2, 2, 0, emitter, "play");
+  await tick();
+
+  const busParam = context.sources[0].connectedTo.connectedTo.gain;
+  const expectedAtRegistration = 1 + (0.1 - 1) * 0.25;
+  const remainder = busParam.curves.at(-1);
+
+  assert.ok(Math.abs(busParam.value - expectedAtRegistration) < 1e-12);
+  assert.equal(remainder[1], 1);
+  assert.equal(remainder[2], 3);
+  assert.ok(Math.abs(remainder[0][0] - expectedAtRegistration) < 1e-6);
+  assert.ok(Math.abs(remainder[0].at(-1) - 0.1) < 1e-6);
+});
+
+test("Bus Volume Reset All and All-Except operate on exact bus keys", async () =>
+{
+  const action = ({
+    kind = "set-bus-volume",
+    targetId,
+    mode = "element",
+    busVolumeDb,
+    exceptions = [],
+  }) => ({
+    kind,
+    actionIndex: 0,
+    targetId,
+    targetFlags: 1,
+    scope: "global",
+    mode,
+    valueMode: "absolute",
+    busVolumeDb,
+    delayMs: 0,
+    transitionMs: 0,
+    curve: 4,
+    exceptions,
+  });
+  const programs = {
+    play: [ {
+      kind: "play",
+      actionIndex: 0,
+      selections: [ {
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: [ "200" ],
+        busPathIds: [ "928", "500" ],
+      } ],
+    } ],
+    set_child: [ action({ targetId: "928", busVolumeDb: -6 }) ],
+    set_parent: [ action({ targetId: "500", busVolumeDb: -9 }) ],
+    reset_except_parent: [ action({
+      kind: "reset-bus-volume",
+      targetId: "0",
+      mode: "all-except",
+      exceptions: [ { targetId: "500", targetFlags: 1 } ],
+    }) ],
+    reset_all: [ action({
+      kind: "reset-bus-volume",
+      targetId: "0",
+      mode: "all",
+    }) ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation => operation.kind === "play"
+        ? operation.selections.map(selection => ({
+            buffer: { duration: 20 },
+            loop: true,
+            programSlotId: "0:0",
+            matchIds: selection.matchIds,
+            busPathIds: selection.busPathIds,
+            getGain: () => 1,
+          }))
+        : []),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "set_child");
+  backend.PostEvent(2, 1, 0, emitter, "set_parent");
+  backend.PostEvent(3, 1, 0, emitter, "play");
+  await tick();
+
+  const busGain = context.sources[0].connectedTo.connectedTo.gain;
+
+  assert.ok(Math.abs(busGain.value - 10 ** (-15 / 20)) < 1e-12);
+
+  backend.PostEvent(4, 1, 0, emitter, "reset_except_parent");
+  assert.ok(
+    Math.abs(busGain.value - 10 ** (-9 / 20)) < 1e-12,
+    "the exact parent exception preserves only its own contribution",
+  );
+
+  backend.PostEvent(5, 1, 0, emitter, "reset_all");
+  assert.equal(busGain.value, 1);
+});
+
+test("Bus Volume isolates object generations and cancels stale delayed actions", async () =>
+{
+  const setBus = ({
+    scope,
+    busVolumeDb,
+    delayMs = 0,
+  }) => ({
+    kind: "set-bus-volume",
+    actionIndex: 0,
+    targetId: "928",
+    targetFlags: 1,
+    scope,
+    mode: "element",
+    valueMode: "absolute",
+    busVolumeDb,
+    delayMs,
+    transitionMs: 0,
+    curve: 4,
+    exceptions: [],
+  });
+  const play = {
+    kind: "play",
+    actionIndex: 0,
+    selections: [ {
+      actionIndex: 0,
+      leafIndex: 0,
+      matchIds: [ "200" ],
+      busPathIds: [ "928" ],
+    } ],
+  };
+  const programs = {
+    play: [ play ],
+    local: [ setBus({ scope: "game-object", busVolumeDb: -6 }) ],
+    current_local: [ setBus({ scope: "game-object", busVolumeDb: -12 }) ],
+    global: [ setBus({ scope: "global", busVolumeDb: -9 }) ],
+    delayed_local: [ setBus({
+      scope: "game-object",
+      busVolumeDb: -30,
+      delayMs: 1000,
+    }) ],
+  };
+  const { backend, emitter, context, finished } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation => operation.kind === "play"
+        ? operation.selections.map(selection => ({
+            buffer: { duration: 20 },
+            loop: true,
+            programSlotId: "0:0",
+            matchIds: selection.matchIds,
+            busPathIds: selection.busPathIds,
+            getGain: () => 1,
+          }))
+        : []),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "local");
+  backend.PostEvent(2, 1, 0, emitter, "play");
+  await tick();
+  const retiredGain = context.sources[0].connectedTo.connectedTo.gain;
+
+  backend.UnregisterGameObj(1);
+  backend.RegisterGameObj(1);
+  backend.PostEvent(3, 1, 0, emitter, "play");
+  await tick();
+  const currentGain = context.sources[1].connectedTo.connectedTo.gain;
+
+  assert.ok(Math.abs(retiredGain.value - 10 ** (-6 / 20)) < 1e-12);
+  assert.equal(currentGain.value, 1);
+
+  backend.PostEvent(4, 1, 0, emitter, "current_local");
+  assert.ok(Math.abs(retiredGain.value - 10 ** (-6 / 20)) < 1e-12);
+  assert.ok(Math.abs(currentGain.value - 10 ** (-12 / 20)) < 1e-12);
+
+  backend.PostEvent(5, 1, 0, emitter, "global");
+  assert.ok(Math.abs(retiredGain.value - 10 ** (-9 / 20)) < 1e-12);
+  assert.ok(Math.abs(currentGain.value - 10 ** (-9 / 20)) < 1e-12);
+
+  backend.RegisterGameObj(2);
+  backend.PostEvent(6, 2, 0, emitter, "play");
+  const stale = backend.PostEvent(7, 1, 0, emitter, "delayed_local");
+  await tick();
+  const futureGain = context.sources[2].connectedTo.connectedTo.gain;
+
+  assert.ok(Math.abs(futureGain.value - 10 ** (-9 / 20)) < 1e-12);
+
+  backend.UnregisterGameObj(1);
+  backend.RegisterGameObj(1);
+  backend.PostEvent(8, 1, 0, emitter, "play");
+  await tick();
+  const newestGain = context.sources[3].connectedTo.connectedTo.gain;
+
+  context.currentTime = 1;
+  backend.RenderAudio();
+  assert.ok(Math.abs(newestGain.value - 10 ** (-9 / 20)) < 1e-12);
+  assert.ok(finished.includes(stale));
+});
+
 test("Voice LPF and HPF actions provision filters and preserve reset semantics", async () =>
 {
   const filter = ({

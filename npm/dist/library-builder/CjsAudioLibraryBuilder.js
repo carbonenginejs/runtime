@@ -17,6 +17,8 @@ const SFX_SET_VOICE_PITCH_ACTION_FAMILY = 0x08;
 const SFX_RESET_VOICE_PITCH_ACTION_FAMILY = 0x09;
 const SFX_SET_VOICE_VOLUME_ACTION_FAMILY = 0x0a;
 const SFX_RESET_VOICE_VOLUME_ACTION_FAMILY = 0x0b;
+const SFX_SET_BUS_VOLUME_ACTION_FAMILY = 0x0c;
+const SFX_RESET_BUS_VOLUME_ACTION_FAMILY = 0x0d;
 const SFX_SET_VOICE_LOW_PASS_ACTION_FAMILY = 0x0e;
 const SFX_RESET_VOICE_LOW_PASS_ACTION_FAMILY = 0x0f;
 const SFX_SET_STATE_ACTION_FAMILY = 0x12;
@@ -42,6 +44,31 @@ const SFX_VOICE_FILTER_ACTION_FORMS = new Map([[0x02, {
   mode: "all-except"
 }], [0x09, {
   scope: "game-object",
+  mode: "all-except"
+}]]);
+const SFX_BUS_VOLUME_ACTION_FORMS = new Map([[0x0c02, {
+  setting: true,
+  scope: "global",
+  mode: "element"
+}], [0x0c03, {
+  setting: true,
+  scope: "game-object",
+  mode: "element"
+}], [0x0d02, {
+  setting: false,
+  scope: "global",
+  mode: "element"
+}], [0x0d03, {
+  setting: false,
+  scope: "game-object",
+  mode: "element"
+}], [0x0d04, {
+  setting: false,
+  scope: "global",
+  mode: "all"
+}], [0x0d08, {
+  setting: false,
+  scope: "global",
   mode: "all-except"
 }]]);
 const SFX_UNSUPPORTED_PLAY_ACTIONS = new Set([0x0503]);
@@ -164,6 +191,7 @@ class CjsAudioLibraryBuilder {
     return LowerSfxGraph({
       parsed,
       eventNames,
+      musicNodeIds: new Set(inspections.flatMap(inspection => (inspection.hirc ?? []).filter(entry => MUSIC_HIRC_TYPES.has(entry.type)).map(entry => Number(entry.id) >>> 0))),
       names: CreateSfxNameCatalog(soundbanksInfo, enrichment, inspections),
       media,
       embeddedMedia
@@ -549,6 +577,7 @@ class CjsAudioLibraryBuilder {
 function LowerSfxGraph({
   parsed,
   eventNames,
+  musicNodeIds,
   names,
   media,
   embeddedMedia
@@ -674,6 +703,7 @@ function LowerSfxGraph({
         const mediaID = String(source.sourceId >>> 0);
         const loopCount = parsed.nodeBases?.get(Number(id))?.loopCount;
         const matchIds = CreateSfxMatchIds(parsed, id);
+        const outputBusId = CreateSfxOutputBusId(parsed, id);
         if (source.pluginType !== 1) {
           throw new Error(`source plug-in sound ${id}`);
         }
@@ -686,6 +716,10 @@ function LowerSfxGraph({
           ...(matchIds.length > 1 ? {
             matchIds
           } : {}),
+          ...(outputBusId === null ? {} : {
+            outputBusId,
+            busPathIds: [outputBusId]
+          }),
           ...(loopCount === 0 ? {
             loop: true
           } : Number.isSafeInteger(loopCount) && loopCount > 0 ? {
@@ -942,6 +976,9 @@ function LowerSfxGraph({
           throw new Error(`unsupported play action 0x${action.actionType.toString(16)}`);
         }
         if (action.actionType === SFX_PLAY_ACTION) {
+          if (musicNodeIds.has(Number(action.targetId) >>> 0)) {
+            continue;
+          }
           const child = ReadSfxPlayActionChild({
             nodeId: lower(action.targetId)
           }, action, true);
@@ -993,6 +1030,8 @@ function LowerSfxGraph({
           if (voiceVolume) {
             result.program.push(voiceVolume);
           }
+        } else if ((action.actionType >> 8 & 0xff) === SFX_SET_BUS_VOLUME_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_BUS_VOLUME_ACTION_FAMILY) {
+          result.program.push(ReadSfxBusVolumeAction(action));
         } else if ([SFX_SET_VOICE_LOW_PASS_ACTION_FAMILY, SFX_RESET_VOICE_LOW_PASS_ACTION_FAMILY, SFX_SET_VOICE_HIGH_PASS_ACTION_FAMILY, SFX_RESET_VOICE_HIGH_PASS_ACTION_FAMILY].includes(action.actionType >> 8 & 0xff)) {
           const voiceFilter = ReadSfxVoiceFilterAction(action, parsed);
           if (voiceFilter) {
@@ -1011,6 +1050,13 @@ function LowerSfxGraph({
           result.unsupportedActions.push(action.actionType);
         }
       }
+      if (IsMusicEventName(eventNames.get(eventID))) {
+        result.program = result.program.filter(value => value.kind === "set-bus-volume" || value.kind === "reset-bus-volume");
+        result.leaves.clear();
+        result.stopTargets.clear();
+        result.setters.length = 0;
+        result.unsupportedActions.length = 0;
+      }
       result.roots = result.program.filter(action => action.kind === "play").map(action => action.child);
       loweredEvents.set(eventID, result);
       return result;
@@ -1020,7 +1066,7 @@ function LowerSfxGraph({
   };
   for (const [eventID, event] of [...parsed.events.entries()].sort(([left], [right]) => left - right)) {
     const name = eventNames.get(eventID >>> 0);
-    if (!name || IsMusicEventName(name)) {
+    if (!name) {
       continue;
     }
     try {
@@ -1035,17 +1081,17 @@ function LowerSfxGraph({
       if (stopTargets.size) {
         stopTargetsByEvent.set(name, stopTargets);
       }
-      if (program.length) {
-        if (unsupportedActions.length) {
-          throw new Error("mixed event actions " + unsupportedActions.map(value => `0x${value.toString(16)}`).join(", "));
+      const retainedProgram = IsMusicEventName(name) ? program.filter(action => action.kind === "set-bus-volume" || action.kind === "reset-bus-volume") : program;
+      const retainedUnsupportedActions = IsMusicEventName(name) ? [] : unsupportedActions;
+      if (retainedProgram.length) {
+        if (retainedUnsupportedActions.length) {
+          throw new Error("mixed event actions " + retainedUnsupportedActions.map(value => `0x${value.toString(16)}`).join(", "));
         }
-        if (roots.length) {
+        if (roots.length && !IsMusicEventName(name)) {
           events[name] = roots;
           leavesByEvent.set(name, leaves);
         }
-        if (program.length) {
-          programs[name] = program;
-        }
+        programs[name] = retainedProgram;
       }
     } catch (error) {
       omittedEvents.push({
@@ -1223,6 +1269,111 @@ function ReadSfxVoicePitchAction(action, parsed) {
       min: Number(details.pitchRangeCents?.min ?? 0),
       max: Number(details.pitchRangeCents?.max ?? 0)
     };
+  }
+  if (details.delayTimeMs !== undefined) {
+    result.delayMs = Number(details.delayTimeMs);
+  }
+  if (details.delayRangeMs !== undefined) {
+    result.delayRangeMs = {
+      min: Number(details.delayRangeMs.min),
+      max: Number(details.delayRangeMs.max)
+    };
+  }
+  if (details.transitionTimeMs !== undefined) {
+    result.transitionMs = Number(details.transitionTimeMs);
+  }
+  if (details.transitionRangeMs !== undefined) {
+    result.transitionRangeMs = {
+      min: Number(details.transitionRangeMs.min),
+      max: Number(details.transitionRangeMs.max)
+    };
+  }
+  return result;
+}
+function ReadSfxBusVolumeAction(action) {
+  const details = action.action;
+  const actionType = Number(action.actionType) >>> 0;
+  const form = SFX_BUS_VOLUME_ACTION_FORMS.get(actionType);
+  const kind = form?.setting ? "set-bus-volume" : "reset-bus-volume";
+  if (!details) {
+    throw new Error(`untyped Bus Volume action ${action.id}`);
+  }
+  if (!form) {
+    throw new Error(`unsupported Bus Volume alias ${action.id}`);
+  }
+  if (details.actionName !== kind) {
+    throw new Error(`untyped Bus Volume action ${action.id}`);
+  }
+  if (details.actionType !== undefined && Number(details.actionType) >>> 0 !== actionType) {
+    throw new Error(`Bus Volume action type mismatch ${action.id}`);
+  }
+  if (details.actionScope !== form.scope || details.actionMode !== form.mode) {
+    throw new Error(`Bus Volume scope/mode mismatch ${action.id}`);
+  }
+  if (details.probability !== undefined) {
+    throw new Error(`probabilistic Bus Volume action ${action.id}`);
+  }
+  for (const field of ["properties", "ranges"]) {
+    if (details[field] === undefined) {
+      continue;
+    }
+    const ids = Array.isArray(details[field]) ? details[field].map(value => Number(value?.id)) : null;
+    if (!ids || ids.some(id => id !== 0x39 && id !== 0x3a) || new Set(ids).size !== ids.length) {
+      throw new Error(`invalid Bus Volume ${field} ${action.id}`);
+    }
+  }
+  if (!Array.isArray(details.exceptions)) {
+    throw new Error(`invalid Bus Volume exceptions ${action.id}`);
+  }
+  const targetId = NormalizeWwiseUint32(details.targetId, `Bus Volume action ${action.id} targetId`);
+  const shallowTargetId = NormalizeWwiseUint32(action.targetId, `Bus Volume action ${action.id} shallow targetId`);
+  const targetFlags = Number(details.targetFlags ?? 0);
+  if (targetId !== shallowTargetId) {
+    throw new Error(`Bus Volume target mismatch ${action.id}`);
+  }
+  if (form.mode === "element" ? !targetId : targetId !== 0) {
+    throw new Error(`invalid Bus Volume target ${action.id}`);
+  }
+  if (details.targetIsBus !== true || targetFlags !== 1) {
+    throw new Error(`invalid Bus Volume target flags ${action.id}`);
+  }
+  if (form.mode !== "all-except" && details.exceptions.length) {
+    throw new Error(`unexpected Bus Volume exceptions ${action.id}`);
+  }
+  const exceptionIds = new Set();
+  const exceptions = details.exceptions.map(exception => {
+    const exceptionId = NormalizeWwiseUint32(exception.targetId, `Bus Volume action ${action.id} exception targetId`);
+    const exceptionFlags = Number(exception.targetFlags ?? 0);
+    if (!exceptionId || exceptionIds.has(exceptionId) || exception.targetIsBus !== true || exceptionFlags !== 1) {
+      throw new Error(`invalid Bus Volume exception ${action.id}`);
+    }
+    exceptionIds.add(exceptionId);
+    return {
+      targetId: String(exceptionId),
+      targetFlags: exceptionFlags
+    };
+  });
+  const result = {
+    kind,
+    targetId: String(targetId),
+    targetFlags,
+    scope: form.scope,
+    mode: form.mode,
+    curve: Number(details.fadeCurve ?? 4),
+    exceptions
+  };
+  if (form.setting) {
+    if (details.valueMode !== "absolute" && details.valueMode !== "relative") {
+      throw new Error(`unsupported Bus Volume value mode ${action.id}`);
+    }
+    result.valueMode = details.valueMode;
+    result.busVolumeDb = Number(details.busVolumeDb);
+    result.busVolumeRangeDb = {
+      min: Number(details.busVolumeRangeDb?.min ?? 0),
+      max: Number(details.busVolumeRangeDb?.max ?? 0)
+    };
+  } else if (details.valueMode !== undefined || details.busVolumeDb !== undefined || details.busVolumeRangeDb !== undefined) {
+    throw new Error(`Bus Volume Reset carries a value ${action.id}`);
   }
   if (details.delayTimeMs !== undefined) {
     result.delayMs = Number(details.delayTimeMs);
@@ -1573,6 +1724,23 @@ function CreateSfxMatchIds(parsed, rawID) {
     current = Number(parsed.nodeBases?.get(current)?.directParentId) >>> 0;
   }
   return result;
+}
+function CreateSfxOutputBusId(parsed, rawID) {
+  const active = new Set();
+  let current = Number(rawID) >>> 0;
+  while (current && !active.has(current)) {
+    active.add(current);
+    const nodeBase = parsed.nodeBases?.get(current);
+    if (!nodeBase) {
+      return null;
+    }
+    const outputBusId = Number(nodeBase.overrideBusId) >>> 0;
+    if (outputBusId) {
+      return String(outputBusId);
+    }
+    current = Number(nodeBase.directParentId) >>> 0;
+  }
+  return null;
 }
 function CreateSfxStopRelationships(parsed, leavesByEvent, stopTargetsByEvent) {
   const events = {};

@@ -2038,6 +2038,86 @@ test("event programs preserve Set and Reset Voice Volume operations", () =>
     );
 });
 
+test("event programs preserve Bus Volume forms and bus routing", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: {
+            schemaVersion: 2,
+            events: {
+                staged_bus: [ { nodeId: "1" } ],
+            },
+            programs: {
+                staged_bus: [
+                    {
+                        kind: "set-bus-volume",
+                        targetId: "928",
+                        targetFlags: 1,
+                        scope: "global",
+                        mode: "element",
+                        valueMode: "absolute",
+                        busVolumeDb: -12,
+                        busVolumeRangeDb: { min: 0, max: 0 },
+                        transitionMs: 250,
+                        curve: 7,
+                        exceptions: [],
+                    },
+                    { kind: "play", child: { nodeId: "1" } },
+                    {
+                        kind: "reset-bus-volume",
+                        targetId: "0",
+                        targetFlags: 1,
+                        scope: "global",
+                        mode: "all-except",
+                        curve: 4,
+                        exceptions: [ {
+                            targetId: "929",
+                            targetFlags: 1,
+                        } ],
+                    },
+                ],
+            },
+            nodes: {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    outputBusId: "928",
+                    busPathIds: [ "928" ],
+                },
+            },
+        },
+    });
+
+    const program = engine.ResolveProgram("staged_bus");
+
+    assert.deepEqual(program.map(action => action.kind), [
+        "set-bus-volume",
+        "play",
+        "reset-bus-volume",
+    ]);
+    assert.deepEqual(program[0], {
+        kind: "set-bus-volume",
+        actionIndex: 0,
+        targetId: "928",
+        targetFlags: 1,
+        scope: "global",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 250,
+        curve: 7,
+        exceptions: [],
+        valueMode: "absolute",
+        busVolumeDb: -12,
+    });
+    assert.deepEqual(
+        program[1].selections[0].busPathIds,
+        [ "928" ],
+    );
+    assert.deepEqual(program[2].exceptions, [ {
+        targetId: "929",
+        targetFlags: 1,
+    } ]);
+});
+
 test("event programs preserve Set and Reset Voice Pitch operations", () =>
 {
     const engine = new CjsSfxEngine({

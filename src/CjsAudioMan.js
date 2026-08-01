@@ -1307,6 +1307,7 @@ export class CjsAudioMan
                             actionIndex: selection.actionIndex,
                             leafIndex: selection.leafIndex,
                             matchIds: selection.matchIds,
+                            busPathIds: selection.busPathIds,
                             getPlaybackRate: (at = undefined) =>
                                 engine.EvaluatePlaybackRate(
                                     selection,

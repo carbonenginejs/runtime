@@ -3501,6 +3501,261 @@ test("SFX Voice Volume actions lower into ordered portable programs", () =>
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("SFX Bus Volume preserves every valid v150 form and output routing", () =>
+{
+    let nextActionId = 300;
+    const busAction = ({
+        actionType,
+        name,
+        targetId,
+        scope,
+        mode,
+        valueMode,
+        busVolumeDb,
+        exceptions = [],
+    }) => ({
+        type: 3,
+        id: nextActionId++,
+        actionType,
+        targetId,
+        action: {
+            actionName: name,
+            actionType,
+            actionMode: mode,
+            actionScope: scope,
+            targetId,
+            targetFlags: 1,
+            targetIsBus: true,
+            fadeCurve: 4,
+            exceptions,
+            ...(valueMode === undefined
+                ? {}
+                : {
+                    valueMode,
+                    busVolumeDb,
+                    busVolumeRangeDb: { min: 0, max: 0 },
+                }),
+        },
+        payload: new Uint8Array(),
+    });
+    const actions = [
+        busAction({
+            actionType: 0x0c02,
+            name: "set-bus-volume",
+            targetId: 928,
+            scope: "global",
+            mode: "element",
+            valueMode: "absolute",
+            busVolumeDb: -15,
+        }),
+        busAction({
+            actionType: 0x0c03,
+            name: "set-bus-volume",
+            targetId: 928,
+            scope: "game-object",
+            mode: "element",
+            valueMode: "relative",
+            busVolumeDb: 3,
+        }),
+        busAction({
+            actionType: 0x0d02,
+            name: "reset-bus-volume",
+            targetId: 928,
+            scope: "global",
+            mode: "element",
+        }),
+        busAction({
+            actionType: 0x0d03,
+            name: "reset-bus-volume",
+            targetId: 928,
+            scope: "game-object",
+            mode: "element",
+        }),
+        busAction({
+            actionType: 0x0d04,
+            name: "reset-bus-volume",
+            targetId: 0,
+            scope: "global",
+            mode: "all",
+        }),
+        busAction({
+            actionType: 0x0d08,
+            name: "reset-bus-volume",
+            targetId: 0,
+            scope: "global",
+            mode: "all-except",
+            exceptions: [ {
+                targetId: 929,
+                targetFlags: 1,
+                targetIsBus: true,
+            } ],
+        }),
+    ];
+    const play = {
+        type: 3,
+        id: 399,
+        actionType: 0x0403,
+        targetId: 200,
+        payload: new Uint8Array(),
+    };
+    const musicBus = busAction({
+        actionType: 0x0c02,
+        name: "set-bus-volume",
+        targetId: 399,
+        scope: "global",
+        mode: "element",
+        valueMode: "absolute",
+        busVolumeDb: -96.3,
+    });
+    const invalidObjectAll = busAction({
+        actionType: 0x0d05,
+        name: "reset-bus-volume",
+        targetId: 0,
+        scope: "game-object",
+        mode: "all",
+    });
+    const invalidObjectAllExcept = busAction({
+        actionType: 0x0d09,
+        name: "reset-bus-volume",
+        targetId: 0,
+        scope: "game-object",
+        mode: "all-except",
+        exceptions: [ {
+            targetId: 929,
+            targetFlags: 1,
+            targetIsBus: true,
+        } ],
+    });
+    const musicPlay = {
+        type: 3,
+        id: 398,
+        actionType: 0x0403,
+        targetId: 800,
+        payload: new Uint8Array(),
+    };
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 2,
+                    id: 200,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    sourceBits: 0,
+                    payload: soundPayload({ directParentId: 700 }),
+                },
+                {
+                    type: 7,
+                    id: 700,
+                    payload: actorMixerPayload({ overrideBusId: 928 }),
+                },
+                ...actions,
+                play,
+                {
+                    type: 12,
+                    id: 800,
+                    payload: new Uint8Array(),
+                },
+                musicBus,
+                invalidObjectAll,
+                invalidObjectAllExcept,
+                musicPlay,
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ ...actions.map(value => value.id), 399 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 101,
+                    actionIds: [ musicPlay.id, musicBus.id ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 102,
+                    actionIds: [ invalidObjectAll.id ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 103,
+                    actionIds: [ invalidObjectAllExcept.id ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: {
+                bus_forms: { eventID: 100 },
+                music_future_duck: { eventID: 101 },
+                invalid_bus_all: { eventID: 102 },
+                invalid_bus_all_except: { eventID: 103 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.equal(result.nodes["200"].outputBusId, "928");
+    assert.deepEqual(result.nodes["200"].busPathIds, [ "928" ]);
+    assert.deepEqual(
+        result.programs.bus_forms.map(action => action.kind),
+        [
+            "set-bus-volume",
+            "set-bus-volume",
+            "reset-bus-volume",
+            "reset-bus-volume",
+            "reset-bus-volume",
+            "reset-bus-volume",
+            "play",
+        ],
+    );
+    assert.deepEqual(result.programs.bus_forms[0], {
+        kind: "set-bus-volume",
+        targetId: "928",
+        targetFlags: 1,
+        scope: "global",
+        mode: "element",
+        curve: 4,
+        exceptions: [],
+        valueMode: "absolute",
+        busVolumeDb: -15,
+        busVolumeRangeDb: { min: 0, max: 0 },
+    });
+    assert.deepEqual(result.programs.bus_forms[5].exceptions, [ {
+        targetId: "929",
+        targetFlags: 1,
+    } ]);
+    assert.equal(result.events.music_future_duck, undefined);
+    assert.deepEqual(result.programs.music_future_duck, [ {
+        kind: "set-bus-volume",
+        targetId: "399",
+        targetFlags: 1,
+        scope: "global",
+        mode: "element",
+        curve: 4,
+        exceptions: [],
+        valueMode: "absolute",
+        busVolumeDb: -96.3,
+        busVolumeRangeDb: { min: 0, max: 0 },
+    } ]);
+    assert.deepEqual(
+        result.diagnostics.omittedEvents.map(value => value.reason),
+        [
+            `unsupported Bus Volume alias ${invalidObjectAll.id}`,
+            `unsupported Bus Volume alias ${invalidObjectAllExcept.id}`,
+        ],
+    );
+});
+
 test("SFX Voice Pitch actions lower into ordered portable programs", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -5251,6 +5506,7 @@ function attenuationPayload(maximumDistance)
 }
 
 function soundPayload({
+    overrideBusId = 0,
     directParentId = 0,
     positioningFlags = 0,
     spatialFlags = 0,
@@ -5270,6 +5526,7 @@ function soundPayload({
         .u32(64)
         .u8(0)
         .append(nodeBasePayload({
+            overrideBusId,
             directParentId,
             positioningFlags,
             spatialFlags,
@@ -5370,6 +5627,7 @@ function BuildSpatialPrecedenceLibrary(overrides = {})
 }
 
 function actorMixerPayload({
+    overrideBusId = 0,
     directParentId = 0,
     positioningFlags = 0,
     spatialFlags = 0,
@@ -5384,6 +5642,7 @@ function actorMixerPayload({
 {
     const writer = new TestWriter()
         .append(nodeBasePayload({
+            overrideBusId,
             directParentId,
             positioningFlags,
             spatialFlags,
@@ -5417,6 +5676,7 @@ function concatBytes(...values)
 }
 
 function nodeBasePayload({
+    overrideBusId = 0,
     directParentId = 0,
     positioningFlags = 0,
     spatialFlags = 0,
@@ -5432,7 +5692,7 @@ function nodeBasePayload({
     const writer = new TestWriter()
         .u8(0).u8(0)
         .u8(0).u8(0)
-        .u32(0)
+        .u32(overrideBusId)
         .u32(directParentId)
         .u8(0);
 
