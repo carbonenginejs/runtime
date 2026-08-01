@@ -23,3 +23,9 @@ _review/
 carbonenginejs.md
 resource-kb.md
 /DECORATOR-TODOS.md
+
+# Locally materialised test fixtures extracted from CCP game files. These are
+# never committed: the compute tests in test/formats/webgl/ expect you to
+# extract real EVE stages locally, and their own comment already promised this
+# rule existed. It did not, so a materialised fixture was committable.
+test/formats/webgl/fixtures/
