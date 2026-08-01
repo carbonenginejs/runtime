@@ -2488,6 +2488,15 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
                 );
             }
 
+            const supported = activeStates.every(state =>
+                state.values.every(value =>
+                    IsSupportedSfxStateValue(value, definitions)));
+
+            if (!supported)
+            {
+                continue;
+            }
+
             for (const state of activeStates)
             {
                 const stateName = namedGroup.values.get(
@@ -2508,24 +2517,7 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
                 for (const value of state.values)
                 {
                     const propertyID = Number(value.propertyId);
-                    const definition = definitions.get(propertyID);
-                    const isFilter = propertyID === SFX_LOW_PASS_PROPERTY
-                        || propertyID === SFX_HIGH_PASS_PROPERTY;
 
-                    if (!definition
-                        || (propertyID !== SFX_VOLUME_PROPERTY
-                            && propertyID !== SFX_PITCH_PROPERTY
-                            && !isFilter)
-                        || definition.accumulation !== (
-                            isFilter
-                                ? SFX_FILTER_ACCUMULATION
-                                : SFX_ADDITIVE_ACCUMULATION
-                        ))
-                    {
-                        throw new Error(
-                            `unsupported state property ${propertyID}`,
-                        );
-                    }
                     if (propertyID === SFX_VOLUME_PROPERTY)
                     {
                         stateGainDb += Number(value.value);
@@ -2596,6 +2588,24 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
             ? { stateProperties }
             : {}),
     };
+}
+
+function IsSupportedSfxStateValue(value, definitions)
+{
+    const propertyID = Number(value.propertyId);
+    const definition = definitions.get(propertyID);
+    const isFilter = propertyID === SFX_LOW_PASS_PROPERTY
+        || propertyID === SFX_HIGH_PASS_PROPERTY;
+
+    return Boolean(definition)
+        && (propertyID === SFX_VOLUME_PROPERTY
+            || propertyID === SFX_PITCH_PROPERTY
+            || isFilter)
+        && definition.accumulation === (
+            isFilter
+                ? SFX_FILTER_ACCUMULATION
+                : SFX_ADDITIVE_ACCUMULATION
+        );
 }
 
 function CreateSfxRtpcCurve(rtpc, names)

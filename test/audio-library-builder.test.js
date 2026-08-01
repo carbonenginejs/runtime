@@ -841,6 +841,48 @@ test("SFX lowering projects only wholly supported Immediate state properties", (
                         payload: new Uint8Array(),
                     },
                     {
+                        type: 2,
+                        id: 202,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9003,
+                        inMemoryMediaSize: 64,
+                        payload: soundPayload({
+                            stateProperties: [
+                                { propertyId: 0, accumulation: 2 },
+                                { propertyId: 5, accumulation: 2 },
+                            ],
+                            stateGroups: [
+                                {
+                                    groupId: 600,
+                                    states: [
+                                        {
+                                            stateId: 601,
+                                            values: [
+                                                {
+                                                    propertyId: 0,
+                                                    value: -6,
+                                                },
+                                                {
+                                                    propertyId: 5,
+                                                    value: -12,
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 302,
+                        actionType: 0x0403,
+                        targetId: 202,
+                        payload: new Uint8Array(),
+                    },
+                    {
                         type: 4,
                         id: 100,
                         actionIds: [ 300 ],
@@ -852,6 +894,12 @@ test("SFX lowering projects only wholly supported Immediate state properties", (
                         actionIds: [ 301 ],
                         payload: new Uint8Array(),
                     },
+                    {
+                        type: 4,
+                        id: 102,
+                        actionIds: [ 302 ],
+                        payload: new Uint8Array(),
+                    },
                 ],
             },
         ],
@@ -859,6 +907,7 @@ test("SFX lowering projects only wholly supported Immediate state properties", (
             Events: {
                 weapon_fire: { eventID: 100 },
                 filtered_fire: { eventID: 101 },
+                unsupported_state_fire: { eventID: 102 },
             },
         },
         soundbanksInfo: {
@@ -883,6 +932,7 @@ test("SFX lowering projects only wholly supported Immediate state properties", (
         media: {
             "9001": { resPath: "res:/audio/9001.wem" },
             "9002": { resPath: "res:/audio/9002.wem" },
+            "9003": { resPath: "res:/audio/9003.wem" },
         },
     });
 
@@ -912,6 +962,13 @@ test("SFX lowering projects only wholly supported Immediate state properties", (
         { nodeId: "201" },
     ]);
     assert.deepEqual(result.diagnostics.omittedEvents, []);
+    assert.deepEqual(result.events.unsupported_state_fire, [
+        { nodeId: "202" },
+    ]);
+    assert.deepEqual(result.nodes["202"], {
+        type: "sound",
+        mediaId: "9003",
+    });
 });
 
 test("SFX lowering preserves exact NodeBase RTPC accumulation modes", () =>

@@ -264,10 +264,12 @@ Wwise's initial `None` behavior. State-name matching is case-insensitive.
 without restarting its buffer. Live State gain remains independent of an
 authored Stop envelope, so changes continue to apply during an audible fade.
 
-The bank builder projects only named, Immediate, additive Volume and Pitch
-state tables. If one selected hierarchy path mixes in a different
-synchronization mode, accumulation mode, or property, the builder omits and
-diagnoses its event instead of installing knowingly partial State behavior.
+The bank builder projects only named, Immediate Volume, Pitch, and filter
+state tables with their exact supported accumulation modes. A group containing
+another property or accumulation mode is omitted whole, rather than partially
+emulated, while the event and its other supported groups remain playable.
+Active non-Immediate or unnamed groups still fail closed because their authored
+selection behavior cannot be represented safely.
 
 ## Builder input
 
