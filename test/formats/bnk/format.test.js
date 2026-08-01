@@ -71,6 +71,55 @@ test("decodes typed HIRC fields for events, actions, sounds, and music tracks", 
     ]);
 });
 
+test("attaches exact typed Set State and Set Switch actions to HIRC entries", () =>
+{
+    const stateBody = concatBytes(
+        u16Bytes(0x1204),
+        u32Bytes(0x60000002),
+        Uint8Array.from([ 0, 1, 0x39 ]),
+        i32Bytes(125),
+        Uint8Array.from([ 0 ]),
+        u32Bytes(0x60000001),
+        u32Bytes(0x60000002),
+    );
+    const switchBody = concatBytes(
+        u16Bytes(0x1901),
+        u32Bytes(0x50000002),
+        Uint8Array.from([ 0, 0, 0 ]),
+        u32Bytes(0x50000001),
+        u32Bytes(0x50000002),
+    );
+    const info = CjsBnkFormat.inspect(makeActionBnk([
+        { id: 0x12040001, body: stateBody },
+        { id: 0x19010001, body: switchBody },
+    ]));
+    const byId = new Map(info.hirc.map(entry => [ entry.id, entry ]));
+
+    assert.deepEqual(byId.get(0x12040001).action, {
+        actionType: 0x1204,
+        actionName: "set-state",
+        actionFamily: 0x12,
+        actionMode: "all",
+        actionScope: "global",
+        targetId: 0x60000002,
+        targetIsBus: false,
+        targetFlags: 0,
+        properties: [ {
+            id: 0x39,
+            name: "delayTime",
+            value: 125,
+            rawValue: 125,
+        } ],
+        ranges: [],
+        delayTimeMs: 125,
+        groupId: 0x60000001,
+        valueId: 0x60000002,
+    });
+    assert.equal(byId.get(0x19010001).action.actionName, "set-switch");
+    assert.equal(byId.get(0x19010001).action.groupId, 0x50000001);
+    assert.equal(byId.get(0x19010001).action.valueId, 0x50000002);
+});
+
 test("extracts embedded media as views and flags wem payloads", () =>
 {
     const bytes = makeBnk();
@@ -418,6 +467,82 @@ function makeGraphBnk()
     {
         bytes.set(entry, offset);
         offset += entry.length;
+    }
+    return bytes;
+}
+
+function makeActionBnk(actions)
+{
+    const objects = actions.map(({ id, body }) =>
+    {
+        const bytes = new Uint8Array(9 + body.byteLength);
+
+        bytes[0] = 3;
+        writeU32LE(bytes, 1, 4 + body.byteLength);
+        writeU32LE(bytes, 5, id);
+        bytes.set(body, 9);
+        return bytes;
+    });
+    const hircBodyLength = objects.reduce(
+        (total, object) => total + object.byteLength,
+        4,
+    );
+    const bytes = new Uint8Array(8 + 20 + 8 + hircBodyLength);
+
+    writeAscii(bytes, 0, "BKHD");
+    writeU32LE(bytes, 4, 20);
+    writeU32LE(bytes, 8, 150);
+    writeU32LE(bytes, 12, 123456);
+    writeAscii(bytes, 28, "HIRC");
+    writeU32LE(bytes, 32, hircBodyLength);
+    writeU32LE(bytes, 36, objects.length);
+
+    let offset = 40;
+
+    for (const object of objects)
+    {
+        bytes.set(object, offset);
+        offset += object.byteLength;
+    }
+    return bytes;
+}
+
+function u16Bytes(value)
+{
+    const bytes = new Uint8Array(2);
+
+    new DataView(bytes.buffer).setUint16(0, value, true);
+    return bytes;
+}
+
+function u32Bytes(value)
+{
+    const bytes = new Uint8Array(4);
+
+    new DataView(bytes.buffer).setUint32(0, value >>> 0, true);
+    return bytes;
+}
+
+function i32Bytes(value)
+{
+    const bytes = new Uint8Array(4);
+
+    new DataView(bytes.buffer).setInt32(0, value, true);
+    return bytes;
+}
+
+function concatBytes(...parts)
+{
+    const bytes = new Uint8Array(parts.reduce(
+        (total, part) => total + part.byteLength,
+        0,
+    ));
+    let offset = 0;
+
+    for (const part of parts)
+    {
+        bytes.set(part, offset);
+        offset += part.byteLength;
     }
     return bytes;
 }

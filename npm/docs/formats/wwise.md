@@ -20,6 +20,8 @@ lists, action type/target, sound and music-track source ids). For bank
 generator version 150, recognized Event Actions additionally expose exact
 scope/mode, property and range bundles, delay/transition/probability values,
 fade and action flags, exceptions, and Play bank identities. The
+recognized action-specific tails include Voice Volume/Pitch values and
+Set State/Switch group/value identities. The
 Wwise-domain toolkit is grouped under the `CjsBnkFormat.wwise` static: the
 SoundbanksInfo catalog helpers, the FNV-1 id hash, event-to-media resolution,
 typed Event Actions, and typed authored-SFX nodes:

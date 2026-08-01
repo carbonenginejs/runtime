@@ -89,7 +89,7 @@ test("decodes exact v150 Set and Reset Voice Volume actions", () =>
         u16(0x0b02),
         u32(0x87654321),
         [ 0, 0, 0 ],
-        [ 4, 2 ],
+        [ 9, 2 ],
         f32(0),
         f32(0),
         f32(0),
@@ -108,9 +108,52 @@ test("decodes exact v150 Set and Reset Voice Volume actions", () =>
 
     assert.equal(reset.actionName, "reset-voice-volume");
     assert.equal(reset.actionScope, "global");
+    assert.equal(reset.fadeCurve, 9);
     assert.equal(reset.valueMode, undefined);
     assert.equal(reset.volumeDb, undefined);
     assert.equal(reset.volumeRangeDb, undefined);
+});
+
+test("decodes exact v150 Set and Reset Voice Pitch actions", () =>
+{
+    const set = CjsBnkFormat.wwise.parseEventAction(concat(
+        u16(0x0803),
+        u32(0x12345678),
+        [ 0 ],
+        [ 1, 0x3a ],
+        i32(250),
+        [ 0 ],
+        [ 9, 2 ],
+        f32(240),
+        f32(-20),
+        f32(30),
+        [ 0 ],
+    ));
+    const reset = CjsBnkFormat.wwise.parseEventAction(concat(
+        u16(0x0903),
+        u32(0x87654321),
+        [ 0, 0, 0 ],
+        [ 4, 1 ],
+        f32(0),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    ));
+
+    assert.equal(set.actionName, "set-voice-pitch");
+    assert.equal(set.actionScope, "game-object");
+    assert.equal(set.actionMode, "element");
+    assert.equal(set.transitionTimeMs, 250);
+    assert.equal(set.fadeCurve, 9);
+    assert.equal(set.valueMode, "relative");
+    assert.equal(set.pitchCents, 240);
+    assert.deepEqual(set.pitchRangeCents, { min: -20, max: 30 });
+
+    assert.equal(reset.actionName, "reset-voice-pitch");
+    assert.equal(reset.actionScope, "game-object");
+    assert.equal(reset.valueMode, undefined);
+    assert.equal(reset.pitchCents, undefined);
+    assert.equal(reset.pitchRangeCents, undefined);
 });
 
 test("fails closed for inexact Voice Volume bodies", () =>
@@ -152,6 +195,106 @@ test("fails closed for inexact Voice Volume bodies", () =>
         CjsBnkFormat.wwise.parseEventAction(unsupportedProperty),
         null,
     );
+});
+
+test("fails closed for inexact Voice Pitch bodies", () =>
+{
+    const exact = concat(
+        u16(0x0803),
+        u32(1234),
+        [ 0, 0, 0, 4, 1 ],
+        f32(240),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const nonzeroReset = concat(
+        u16(0x0903),
+        u32(1234),
+        [ 0, 0, 0, 4, 1 ],
+        f32(1),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+    const invalidCurve = concat(
+        u16(0x0803),
+        u32(1234),
+        [ 0, 0, 0, 10, 1 ],
+        f32(240),
+        f32(0),
+        f32(0),
+        [ 0 ],
+    );
+
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(
+            concat(exact.subarray(0, exact.byteLength - 1), [ 1 ]),
+        ),
+        null,
+    );
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(
+            exact.subarray(0, exact.byteLength - 1),
+        ),
+        null,
+    );
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(nonzeroReset),
+        null,
+    );
+    assert.equal(
+        CjsBnkFormat.wwise.parseEventAction(invalidCurve),
+        null,
+    );
+});
+
+test("decodes exact v150 Set State and Set Switch actions", () =>
+{
+    const setStateBody = concat(
+        u16(0x1204),
+        u32(0x60000002),
+        [ 0 ],
+        [ 1, 0x39 ],
+        i32(250),
+        [ 0 ],
+        u32(0x60000001),
+        u32(0x60000002),
+    );
+    const setSwitchBody = concat(
+        u16(0x1901),
+        u32(0x50000002),
+        [ 0, 0, 0 ],
+        u32(0x50000001),
+        u32(0x50000002),
+    );
+    const setState = CjsBnkFormat.wwise.parseEventAction(setStateBody);
+    const setSwitch = CjsBnkFormat.wwise.parseEventAction(setSwitchBody);
+
+    assert.equal(setState.actionName, "set-state");
+    assert.equal(setState.targetId, 0x60000002);
+    assert.equal(setState.delayTimeMs, 250);
+    assert.equal(setState.groupId, 0x60000001);
+    assert.equal(setState.valueId, 0x60000002);
+
+    assert.equal(setSwitch.actionName, "set-switch");
+    assert.equal(setSwitch.targetId, 0x50000002);
+    assert.equal(setSwitch.groupId, 0x50000001);
+    assert.equal(setSwitch.valueId, 0x50000002);
+
+    for (const body of [ setStateBody, setSwitchBody ])
+    {
+        assert.equal(
+            CjsBnkFormat.wwise.parseEventAction(
+                body.subarray(0, body.byteLength - 1),
+            ),
+            null,
+        );
+        assert.equal(
+            CjsBnkFormat.wwise.parseEventAction(concat(body, [ 0 ])),
+            null,
+        );
+    }
 });
 
 test("decodes Post Event and fails closed for inexact action bodies", () =>

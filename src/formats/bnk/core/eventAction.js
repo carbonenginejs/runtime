@@ -20,10 +20,14 @@ const ACTION_NAMES = Object.freeze({
     0x0305: "resume",
     0x0403: "play",
     0x0503: "play-and-continue",
+    0x0803: "set-voice-pitch",
+    0x0903: "reset-voice-pitch",
     0x0a02: "set-voice-volume",
     0x0a03: "set-voice-volume",
     0x0b02: "reset-voice-volume",
     0x0b03: "reset-voice-volume",
+    0x1204: "set-state",
+    0x1901: "set-switch",
     0x2103: "post-event",
 });
 
@@ -44,6 +48,16 @@ const VOICE_VOLUME_ACTION_TYPES = new Set([
     0x0a03,
     0x0b02,
     0x0b03,
+]);
+
+const VOICE_PITCH_ACTION_TYPES = new Set([
+    0x0803,
+    0x0903,
+]);
+
+const GAME_SYNC_ACTION_TYPES = new Set([
+    0x1204,
+    0x1901,
 ]);
 
 /**
@@ -130,9 +144,53 @@ export function parseEventAction(
 
             result.exceptions = exceptions;
         }
+        else if (VOICE_PITCH_ACTION_TYPES.has(actionType))
+        {
+            if (!HasExactVoicePropertyActionProperties(properties)
+                || ranges.length !== 0)
+            {
+                return null;
+            }
+
+            const fadeCurve = cursor.u8();
+            const rawValueMode = cursor.u8();
+            const pitchCents = cursor.f32();
+            const pitchRangeCents = {
+                min: cursor.f32(),
+                max: cursor.f32(),
+            };
+            const trailingFlags = cursor.u8();
+
+            const resetting = actionName === "reset-voice-pitch";
+
+            if (targetFlags & ~0x01
+                || fadeCurve > 9
+                || (rawValueMode !== 1 && rawValueMode !== 2)
+                || !Number.isFinite(pitchCents)
+                || !Number.isFinite(pitchRangeCents.min)
+                || !Number.isFinite(pitchRangeCents.max)
+                || (resetting
+                    && (pitchCents !== 0
+                        || pitchRangeCents.min !== 0
+                        || pitchRangeCents.max !== 0))
+                || trailingFlags !== 0)
+            {
+                return null;
+            }
+
+            result.fadeCurve = fadeCurve;
+            if (!resetting)
+            {
+                result.valueMode = rawValueMode === 1
+                    ? "absolute"
+                    : "relative";
+                result.pitchCents = pitchCents;
+                result.pitchRangeCents = pitchRangeCents;
+            }
+        }
         else if (VOICE_VOLUME_ACTION_TYPES.has(actionType))
         {
-            if (!HasExactVoiceVolumeProperties(properties)
+            if (!HasExactVoicePropertyActionProperties(properties)
                 || ranges.length !== 0)
             {
                 return null;
@@ -150,7 +208,7 @@ export function parseEventAction(
             const resetting = actionName === "reset-voice-volume";
 
             if (targetFlags & ~0x01
-                || fadeCurve > 8
+                || fadeCurve > 9
                 || (rawValueMode !== 1 && rawValueMode !== 2)
                 || !Number.isFinite(volumeDb)
                 || !Number.isFinite(volumeRangeDb.min)
@@ -174,6 +232,11 @@ export function parseEventAction(
                 result.volumeRangeDb = volumeRangeDb;
             }
         }
+        else if (GAME_SYNC_ACTION_TYPES.has(actionType))
+        {
+            result.groupId = cursor.u32();
+            result.valueId = cursor.u32();
+        }
 
         return cursor.at === payload.byteLength ? result : null;
     }
@@ -187,7 +250,7 @@ export function parseEventAction(
     }
 }
 
-function HasExactVoiceVolumeProperties(properties)
+function HasExactVoicePropertyActionProperties(properties)
 {
     const ids = properties.map(property => property.id);
 
