@@ -698,9 +698,13 @@ export class CjsMusicEngine
         return true;
     }
 
-    /** Stop ("stop") and break ("break") both fade the instance out. */
+    /** Stops authored music; Wwise Break does not affect music objects. */
     ExecuteAction(action, playingID, fadeOutDuration = 1000)
     {
+        if (action !== "stop")
+        {
+            return;
+        }
         const group = this.#groups.get(playingID);
         if (!group)
         {

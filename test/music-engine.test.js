@@ -2415,6 +2415,24 @@ test("stop fades the instance gain and finishes exactly once", async () =>
   assert.deepEqual(finished, [ 505 ], "second stop is a no-op");
 });
 
+test("Break leaves authored interactive music playing", async () =>
+{
+  const { context, engine, finished } = Harness();
+  engine.PostEvent("music_test_play", 508, () => finished.push(508));
+  await tick();
+
+  engine.ExecuteAction("break", 508, 1000);
+
+  assert.equal(engine.GetPlayingCount(), 1);
+  assert.deepEqual(context.gains[1].gain.ramps, []);
+  assert.equal(context.sources[0].stoppedAt, null);
+  assert.deepEqual(finished, []);
+
+  engine.ExecuteAction("stop", 508, 0);
+  engine.Process();
+  assert.deepEqual(finished, [ 508 ]);
+});
+
 test("decoded music cache can be released and null loads retry", async () =>
 {
   const context = FakeContext();
