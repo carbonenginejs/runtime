@@ -124,11 +124,6 @@ function printUsage() {
     "",
     "Options:",
     "  --out <path>              Output CEWG path. Defaults to artifacts/quadv5.webgl.cewg.",
-    "  --work-dir <dir>          Stage DXBC/GLSL output directory.",
-    "  --native                  Translate with the native hlsl2webgl tool instead of the JS emitter.",
-    "  --tool <exe>              hlsl2webgl executable (implies --native paths). Defaults to HLSL2WEBGL.",
-    "  --lang <lang>             hlsl2webgl target language, default es300.",
-    "  --flags <value>           hlsl2webgl numeric flags override.",
     "  --source-game <name>      Source game identity (for example Frontier).",
     "  --source-client <name>    Source client identity (for example stillness).",
     "  --source-build <id>       Immutable source build identity.",
@@ -456,8 +451,18 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   const inputPath = path.resolve(args.input);
   const outputPath = path.resolve(args.output);
-  const useNative = args.native || Boolean(args.tool);
-  const toolPath = useNative ? await findHlsl2Webgl(args.tool) : null;
+  // The native hlsl2webgl path is gone. It ran a second DXBC-to-GLSL
+  // implementation to compare against the JS emitter, and its executable was
+  // never part of this repository, so it could not succeed here. The .cewg
+  // baselines and the corpus tests serve that role without needing a Windows
+  // binary to exist.
+  if (args.native || args.tool || args.language !== "es300" || args.flags !== null)
+  {
+    throw new Error(
+      "--native/--tool/--lang/--flags selected the native hlsl2webgl comparison "
+      + "harness, which has been removed. Drop them to package with the JS emitter."
+    );
+  }
 
   if (sameFilePath(inputPath, outputPath)) {
     throw new Error("CEWG output must not overwrite the source effect file");
@@ -467,12 +472,7 @@ async function main() {
     throw new Error(`CEWG output already exists; pass --overwrite to replace it: ${outputPath}`);
   }
 
-  if (useNative && !toolPath) {
-    throw new Error("hlsl2webgl executable not found. Run npm.cmd run eve-hlslcc:build, or pass --tool <path>.");
-  }
-
   const sourceBytes = await readFile(inputPath);
-  if (!requiresLegacyDiagnosticPath(args, useNative))
   {
     const sourceIdentity = {
       filePath: path.relative(projectRoot, inputPath),
@@ -519,329 +519,18 @@ async function main() {
     return;
   }
 
-  console.warn(
-    "Using the legacy native/debug CEWG diagnostic path; this path does not "
-    + "claim source-complete portable reflection."
+  // The legacy diagnostic path is gone, and with it the native hlsl2webgl
+  // translator it existed to run. That tool was a comparison harness — a second
+  // DXBC-to-GLSL implementation used to check the JS emitter's output — and its
+  // executable was never in this repository, so this branch could not succeed.
+  // The .cewg baselines and the corpus tests serve that role now without
+  // needing a Windows binary to exist.
+  throw new Error(
+    "The native hlsl2webgl path was removed; it was a comparison harness whose "
+    + "executable is not part of this repository. Drop --native/--tool/--lang/"
+    + "--flags to package with the JS emitter."
   );
-  const effectRes = await CjsHlslFormat.readFile(inputPath, { emit: "raw" });
-  if (!effectRes.IsGood()) {
-    throw effectRes.loadError || new Error("Tr2EffectRes failed to load input");
-  }
-
-  await mkdir(args.workDir, { recursive: true });
-  await mkdir(path.dirname(outputPath), { recursive: true });
-
-  const variants = buildExportVariants(effectRes, args);
-  const bodyMap = new Map();
-  const stageMap = new Map();
-  const shaderMap = new Map();
-
-  for (const variant of variants) {
-    if (bodyMap.has(variant.bodyKey)) continue;
-
-    const shader = effectRes.GetShader(toShaderOptions(variant.options));
-    if (!shader) {
-      bodyMap.set(variant.bodyKey, {
-        key: variant.bodyKey,
-        bodyOffset: variant.bodyOffset,
-        bodySize: variant.bodySize,
-        firstVariantKey: variant.key,
-        error: "Tr2EffectRes.GetShader returned null",
-        manifest: null,
-        stages: []
-      });
-      continue;
-    }
-
-    const effectDescription = shader.GetEffectDescription();
-    const manifest = HlslEffectBindingManifest.fromEffectDescription(effectDescription);
-    const stageCollection = collectStages(effectDescription, args);
-    const stages = stageCollection.stages;
-    let manifestJson = manifest.toJSON();
-    const droppedManifestResources = new Set();
-    if (args.stubLightResources)
-    {
-      for (const name of LIGHT_STUB_RESOURCE_NAMES) droppedManifestResources.add(name);
-    }
-    if (droppedManifestResources.size) manifestJson = stripResourcesFromManifest(manifestJson, droppedManifestResources);
-    const body = {
-      key: variant.bodyKey,
-      bodyOffset: variant.bodyOffset,
-      bodySize: variant.bodySize,
-      firstVariantKey: variant.key,
-      error: stageCollection.errors.length ? stageCollection.errors.join("; ") : null,
-      manifest: manifestJson,
-      stages: []
-    };
-
-    for (const stage of stages) {
-      const shaderKey = `dxbc_${hashBytes(stage.bytecode.bytes)}`;
-      const stageKey = `${variant.bodyKey}.${stage.key}`;
-      const stageRecord = {
-        key: stageKey,
-        bodyKey: variant.bodyKey,
-        localKey: stage.key,
-        techniqueName: stage.techniqueName,
-        passIndex: stage.passIndex,
-        stageType: stage.stageType,
-        stageName: stage.stageName,
-        shaderHandle: stage.shaderHandle,
-        shaderSize: stage.bytecode.shaderSize,
-        stringTableOffset: stage.bytecode.stringTableOffset,
-        shaderKey,
-        contract: buildStageContract(stage)
-      };
-      stageMap.set(stageKey, stageRecord);
-      body.stages.push(stageKey);
-
-      if (!shaderMap.has(shaderKey)) {
-        shaderMap.set(shaderKey, {
-          key: shaderKey,
-          firstStageKey: stageKey,
-          firstBodyKey: variant.bodyKey,
-          stageName: stage.stageName,
-          shaderSize: stage.bytecode.shaderSize,
-          stringTableOffset: stage.bytecode.stringTableOffset,
-          bytes: stage.bytecode.bytes,
-          isDxbc: isDxbc(stage.bytecode.bytes),
-          dxbcPath: null,
-          glslPath: null,
-          hlsl2webgl: null,
-          source: null,
-          contracts: []
-        });
-      }
-
-      shaderMap.get(shaderKey).contracts.push({
-        stageKey,
-        techniqueName: stage.techniqueName,
-        passIndex: stage.passIndex,
-        stageName: stage.stageName,
-        contract: stageRecord.contract
-      });
-    }
-
-    bodyMap.set(variant.bodyKey, body);
-  }
-
-  if (useNative) {
-    for (const shaderRecord of shaderMap.values()) {
-      const stageBase = [
-        safeName(path.basename(inputPath)),
-        safeName(shaderRecord.key.slice(0, 21)),
-        safeName(shaderRecord.stageName)
-      ].join(".");
-      const dxbcPath = path.join(args.workDir, `${stageBase}.dxbc`);
-      const glslPath = path.join(args.workDir, `${stageBase}.${args.language}.glsl`);
-
-      await writeFile(dxbcPath, shaderRecord.bytes);
-      shaderRecord.dxbcPath = path.relative(projectRoot, dxbcPath);
-      shaderRecord.glslPath = path.relative(projectRoot, glslPath);
-
-      if (!shaderRecord.isDxbc) {
-        shaderRecord.hlsl2webgl = {
-          ok: false,
-          skipped: true,
-          reason: "stage bytecode is not DXBC"
-        };
-      } else {
-        shaderRecord.hlsl2webgl = await runHlsl2Webgl(toolPath, dxbcPath, glslPath, args);
-        if (shaderRecord.hlsl2webgl.ok) {
-          shaderRecord.source = normalizeWebgl2StageSource(await readFile(glslPath, "utf8"), shaderRecord);
-          const sourceIssue = validateStageSourceShape(shaderRecord);
-          if (sourceIssue) {
-            shaderRecord.hlsl2webgl = {
-              ...shaderRecord.hlsl2webgl,
-              ok: false,
-              validationError: sourceIssue
-            };
-            shaderRecord.source = null;
-          }
-        }
-      }
-    }
-  } else {
-    await translateWithJsEmitter(shaderMap, stageMap, args, inputPath);
-  }
-
-  const bodies = Array.from(bodyMap.values());
-  const stages = Array.from(stageMap.values());
-  const translatedShaders = Array.from(shaderMap.values()).map((shaderRecord) => {
-    const { bytes, emit, ...jsonRecord } = shaderRecord;
-    jsonRecord.primaryContract = mergeShaderContracts(jsonRecord.contracts);
-    return jsonRecord;
-  });
-  const excludedShaders = translatedShaders.filter((shaderRecord) => shaderRecord.excluded);
-  const failedShaders = translatedShaders.filter(
-    (shaderRecord) => !shaderRecord.hlsl2webgl?.ok && !shaderRecord.excluded
-  );
-  const failedBodies = bodies.filter((body) => body.error);
-  const rasterCompleteness = inspectCewgRasterCompleteness(stages, translatedShaders);
-  const availableShaderCount = translatedShaders.filter(
-    (shaderRecord) => shaderRecord.hlsl2webgl?.ok && shaderRecord.source
-  ).length;
-  const selection = {
-    technique: args.technique,
-    pass: Number.isInteger(args.pass) ? args.pass : null,
-    stage: args.stage
-  };
-  const sourceIdentity = {
-    filePath: path.relative(projectRoot, inputPath),
-    logicalPath: args.sourceLogicalPath,
-    game: args.sourceGame,
-    client: args.sourceClient,
-    build: args.sourceBuild,
-    byteLength: sourceBytes.byteLength,
-    md5: createHash("md5").update(sourceBytes).digest("hex"),
-    sha256: createHash("sha256").update(sourceBytes).digest("hex")
-  };
-  const info = {
-    format: "CEWG",
-    formatVersion: 1,
-    packageKind: args.allPermutations ? "tr2-effect-webgl-permutations" : "tr2-effect-webgl",
-    generatedAt: new Date().toISOString(),
-    sourcePath: path.relative(projectRoot, inputPath),
-    sourceByteLength: sourceIdentity.byteLength,
-    sourceMd5: sourceIdentity.md5,
-    sourceSha256: sourceIdentity.sha256,
-    sourceIdentity,
-    translator: useNative ? "hlsl2webgl" : "dxbc-js-emitter",
-    hlsl2webglPath: toolPath ? path.relative(projectRoot, toolPath) : null,
-    language: args.language,
-    flags: args.flags,
-    selection,
-    permutationMode: args.allPermutations ? "all" : "selected",
-    permutationCount: variants.length,
-    uniqueBodyCount: bodies.length,
-    bodyStageCount: stages.length,
-    uniqueShaderCount: translatedShaders.length,
-    translatedShaderCount: translatedShaders.length - failedShaders.length - excludedShaders.length,
-    excludedShaderCount: excludedShaders.length,
-    failedShaderCount: failedShaders.length,
-    failedBodyCount: failedBodies.length,
-    expectedRasterPassCount: rasterCompleteness.expectedPassCount,
-    completeRasterPassCount: rasterCompleteness.completePassCount,
-    incompleteRasterPassCount: rasterCompleteness.incompletePasses.length,
-    availableShaderCount,
-    allowFailures: args.allowFailures
-  };
-
-  const metadata = {
-    generatedAt: info.generatedAt,
-    sourcePath: info.sourcePath,
-    effectResource: effectRes.toJSON(),
-    permutations: effectRes.GetPermutationDescription(),
-    variants,
-    bodies: bodies.map((body) => ({
-      key: body.key,
-      bodyOffset: body.bodyOffset,
-      bodySize: body.bodySize,
-      firstVariantKey: body.firstVariantKey,
-      error: body.error,
-      manifest: body.manifest
-    }))
-  };
-
-  const glslSet = {
-    format: "CEWG_GLSL_SET",
-    formatVersion: 1,
-    language: args.language,
-    permutationMode: info.permutationMode,
-    selection,
-    variants: variants.map((variant) => ({
-      key: variant.key,
-      permutationIndex: variant.permutationIndex,
-      bodyKey: variant.bodyKey
-    })),
-    bodies: bodies.map((body) => ({
-      key: body.key,
-      error: body.error,
-      stages: body.stages
-    })),
-    stages,
-    shaders: translatedShaders
-  };
-
-  const chunks = [
-    ["INFO", info],
-    ["META", metadata],
-    ["GLSL", glslSet]
-  ];
-  if (args.includeSourceEffect) {
-    chunks.push(["TR2E", sourceBytes]);
-  }
-
-  const integrity = inspectCewgPackageIntegrity(info, metadata, glslSet);
-  const hardIntegrityErrors = integrity.errors.filter((error) => !isCewgDiagnosticIntegrityError(error));
-
-  if (hardIntegrityErrors.length) {
-    throw new Error([
-      "CEWG target graph is invalid; output was not written.",
-      formatCewgIntegrityErrors(hardIntegrityErrors),
-      "Structural package errors cannot be bypassed with --allow-failures."
-    ].filter(Boolean).join(" "));
-  }
-
-  const strictFailure = failedShaders.length
-    || excludedShaders.length
-    || failedBodies.length
-    || rasterCompleteness.incompletePasses.length
-    || !availableShaderCount
-    || integrity.errors.length;
-  if (strictFailure && !args.allowFailures) {
-    const details = formatIncompleteCewgPasses(rasterCompleteness.incompletePasses);
-    throw new Error([
-      "CEWG target is incomplete; output was not written.",
-      `${failedShaders.length} failed shader(s), ${excludedShaders.length} excluded shader(s), ` +
-        `${failedBodies.length} failed body/bodies, ${rasterCompleteness.incompletePasses.length} incomplete raster pass(es), ` +
-        `${availableShaderCount} available shader(s).`,
-      details,
-      formatCewgIntegrityErrors(integrity.errors),
-      "Pass --allow-failures only when a partial diagnostic package is intentional."
-    ].filter(Boolean).join(" "));
-  }
-
-  await writeFileAtomic(outputPath, CjsWebglFormat.build(chunks));
-
-  const summary = {
-    output: path.relative(projectRoot, outputPath),
-    permutationCount: info.permutationCount,
-    uniqueBodyCount: info.uniqueBodyCount,
-    bodyStageCount: info.bodyStageCount,
-    uniqueShaderCount: info.uniqueShaderCount,
-    translatedShaderCount: info.translatedShaderCount,
-    excludedShaderCount: info.excludedShaderCount,
-    failedShaderCount: info.failedShaderCount,
-    failedBodyCount: info.failedBodyCount,
-    expectedRasterPassCount: info.expectedRasterPassCount,
-    completeRasterPassCount: info.completeRasterPassCount,
-    incompleteRasterPassCount: info.incompleteRasterPassCount,
-    availableShaderCount: info.availableShaderCount,
-    translator: info.translator,
-    hlsl2webglPath: info.hlsl2webglPath
-  };
-  console.log(JSON.stringify(summary, null, 2));
-
 }
-
-function requiresLegacyDiagnosticPath(args, useNative)
-{
-  // Only the native hlsl2webgl tool reaches this path now. Everything else that
-  // used to force it goes through the shared packager: both local-light
-  // lowerings, dropping the lights entirely, and the Detail3Map drop that the
-  // detail-map merge supersedes. Ten --debug-packed-light-* paints were deleted
-  // with the lighting bring-up they served.
-  //
-  // hlsl2webgl is a comparison harness — a second DXBC-to-GLSL translator used
-  // to check the JS emitter's output. Its executable is not in this repository
-  // and the build script the error message names does not exist, so --native
-  // cannot currently succeed. Retiring it would delete this path and roughly a
-  // third of this file.
-  return useNative
-    || args.language !== "es300"
-    || args.flags !== null;
-}
-
 function sameFilePath(left, right) {
   const normalize = (value) => process.platform === "win32" ? value.toLowerCase() : value;
   return normalize(path.resolve(left)) === normalize(path.resolve(right));
