@@ -4,10 +4,10 @@ import { fileURLToPath } from "node:url";
 
 import { readGlslEffectContainer } from "../../../src/formats/webgl/core/readGlslEffectContainer.js";
 import {
-  isCewgComputeFragmentContract,
+  isComputeFragmentContract,
   inspectGlslContainerIntegrity,
-  inspectCewgRasterCompleteness
-} from "./cewgCompleteness.js";
+  inspectRasterCompleteness
+} from "./glslEffectCompleteness.js";
 import { writeFileAtomic } from "./atomicWrite.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -67,7 +67,7 @@ function parseArgs(argv) {
  */
 function printUsage() {
   console.log([
-    "Usage: node scripts/validateCewgWebgl2.js [package.cewg] [options]",
+    "Usage: node scripts/formats/webgl/validateWebgl2Effect.js [effect.cewg] [options]",
     "",
     "Options:",
     "  --out <path>              Output JSON path.",
@@ -121,7 +121,7 @@ function computeFragmentPrograms(glsl) {
   for (const stage of glsl.stages || []) {
     if (stage.stageName !== "compute") continue;
     const shader = shaderMap.get(stage.shaderKey);
-    if (!isCewgComputeFragmentContract(shader?.computeFragment)
+    if (!isComputeFragmentContract(shader?.computeFragment)
       || !shader?.hlsl2webgl?.ok
       || !shader.source) continue;
     programs.push({
@@ -370,7 +370,7 @@ async function validateInBrowser(playwright, programs, keepBrowserOpen) {
  */
 function markdownReport(report) {
   const lines = [
-    "# CEWG WebGL2 Validation",
+    "# WebGL 2 effect validation",
     "",
     `- Package: \`${report.packagePath}\``,
     `- Container: ${report.container.recordCount} record(s) over `
@@ -467,7 +467,7 @@ async function main() {
   const decoded = readGlslEffectContainer(packageBytes, { source: packagePath });
 
   const programs = packagePrograms(decoded);
-  const completeness = inspectCewgRasterCompleteness(decoded.stages, decoded.shaders);
+  const completeness = inspectRasterCompleteness(decoded.stages, decoded.shaders);
   const integrity = inspectGlslContainerIntegrity(decoded);
   const playwright = await loadPlaywright();
   const validation = await validateInBrowser(playwright, programs, args.keepBrowserOpen);

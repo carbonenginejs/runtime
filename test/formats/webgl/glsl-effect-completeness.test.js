@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-    isCewgComputeFragmentContract,
+    isComputeFragmentContract,
     inspectGlslContainerIntegrity,
-    inspectCewgRasterCompleteness
-} from "../../../src/formats/webgl/core/cewgCompleteness.js";
+    inspectRasterCompleteness
+} from "../../../src/formats/webgl/core/glslEffectCompleteness.js";
 import { readGlslEffectContainer } from "../../../src/formats/webgl/core/readGlslEffectContainer.js";
 import { CjsWebglFormat } from "../../../src/formats/webgl/index.js";
 import { buildMinimalStagedEffectBytes } from "./synthetic.js";
@@ -67,7 +67,7 @@ function containerGraph(stages, shaders)
 
 test("raster completeness accepts translated vertex/pixel pairs", () =>
 {
-    const result = inspectCewgRasterCompleteness(
+    const result = inspectRasterCompleteness(
         [ stage("vertex", "vs"), stage("pixel", "ps") ],
         [ shader("vs"), shader("ps") ]
     );
@@ -81,13 +81,13 @@ test("raster completeness accepts translated vertex/pixel pairs", () =>
 
 test("raster completeness reports absent and excluded raster stages", () =>
 {
-    const missing = inspectCewgRasterCompleteness(
+    const missing = inspectRasterCompleteness(
         [ stage("vertex", "vs") ],
         [ shader("vs") ]
     );
     assert.deepEqual(missing.incompletePasses[0].missingStages, [ "pixel" ]);
 
-    const excluded = inspectCewgRasterCompleteness(
+    const excluded = inspectRasterCompleteness(
         [ stage("vertex", "vs"), stage("pixel", "ps") ],
         [
             shader("vs"),
@@ -105,7 +105,7 @@ test("raster completeness reports absent and excluded raster stages", () =>
 
 test("raster completeness ignores standalone compute and geometry records", () =>
 {
-    const result = inspectCewgRasterCompleteness(
+    const result = inspectRasterCompleteness(
         [ stage("compute", "cs"), stage("geometry", "gs") ],
         [ shader("cs"), shader("gs") ]
     );
@@ -119,7 +119,7 @@ test("raster completeness ignores standalone compute and geometry records", () =
 
 test("raster completeness rejects duplicate stages in one raster pass", () =>
 {
-    const result = inspectCewgRasterCompleteness(
+    const result = inspectRasterCompleteness(
         [
             stage("vertex", "vs-a"),
             { ...stage("vertex", "vs-b"), key: "body_1.Main.pass0.vertex.duplicate" },
@@ -141,11 +141,11 @@ test("the compute-fragment host contract is checked in full, not by a marker", (
             { register: 0, slice: null, location: 0, glslName: "cewgUav0" }
         ]
     };
-    assert.equal(isCewgComputeFragmentContract(contract), true);
-    assert.equal(isCewgComputeFragmentContract({ ...contract, dispatchOriginUniform: null }), true);
-    assert.equal(isCewgComputeFragmentContract(true), false);
-    assert.equal(isCewgComputeFragmentContract({ ...contract, uavOutputs: [] }), false);
-    assert.equal(isCewgComputeFragmentContract({
+    assert.equal(isComputeFragmentContract(contract), true);
+    assert.equal(isComputeFragmentContract({ ...contract, dispatchOriginUniform: null }), true);
+    assert.equal(isComputeFragmentContract(true), false);
+    assert.equal(isComputeFragmentContract({ ...contract, uavOutputs: [] }), false);
+    assert.equal(isComputeFragmentContract({
         ...contract,
         uavOutputs: [
             ...contract.uavOutputs,
@@ -409,6 +409,6 @@ test("the rules run on a real container decoded from bytes", () =>
     assert.equal(integrity.ok, false);
     assert.ok(integrity.errors.some((entry) => entry.code === "unavailable_stage_shader"));
 
-    const completeness = inspectCewgRasterCompleteness(decoded.stages, decoded.shaders);
+    const completeness = inspectRasterCompleteness(decoded.stages, decoded.shaders);
     assert.equal(completeness.completePassCount, 0);
 });

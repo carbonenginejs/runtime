@@ -11,7 +11,7 @@ import {
 import { buildCompleteEffectReflection } from "../../../format/effect/effectReflectionPackage.js";
 import { emitGlslWithOptions } from "./helpers.js";
 import { inspectGlslEffectContainer } from "./inspectGlslEffectContainer.js";
-import { inspectCewgRasterCompleteness } from "./cewgCompleteness.js";
+import { inspectRasterCompleteness } from "./glslEffectCompleteness.js";
 import { recogniseDetailMapFamily } from "../../hlsl/core/detailMapFamily.js";
 import {
     recogniseLocalLightFamily,
@@ -188,7 +188,7 @@ export function buildEffectPackage(input, options = {})
     // dropped `hlsl2webgl.reason` from its reason chain, so the library and the
     // validator could describe one incomplete pass two different ways. If two
     // places must agree, one of them calls the other.
-    const rasterCompleteness = inspectCewgRasterCompleteness(stages, translatedShaders);
+    const rasterCompleteness = inspectRasterCompleteness(stages, translatedShaders);
     const availableShaderCount = translatedShaders.filter((record) =>
         record.hlsl2webgl?.ok && record.source).length;
     const info = {

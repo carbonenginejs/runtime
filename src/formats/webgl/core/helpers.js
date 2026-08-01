@@ -75,7 +75,7 @@ export function toBytes(input)
     if (input instanceof Uint8Array) return input;
     if (typeof ArrayBuffer !== "undefined" && input instanceof ArrayBuffer) return new Uint8Array(input);
     if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("CjsWebglFormat: input must be CEWG package bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
+    throw new TypeError("CjsWebglFormat: input must be effect container bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
 }
 
 /**

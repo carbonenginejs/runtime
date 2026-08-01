@@ -61,7 +61,7 @@
     "qualify:effects": "node scripts/formats/webgpu/qualify-effect-pairs.js",
     "qualify:matrix": "node scripts/formats/webgpu/qualify-effect-matrix.js",
     "package:webgl": "node scripts/formats/webgl/packageTr2WebglEffect.js",
-    "validate:webgl2": "node scripts/formats/webgl/validateCewgWebgl2.js",
+    "validate:webgl2": "node scripts/formats/webgl/validateWebgl2Effect.js",
     "check": "npm run build:npm && npm run proof:decorators",
     "test": "npm run check && node --test \"test/**/*.test.js\" \"test/**/*.test.mjs\""
   },

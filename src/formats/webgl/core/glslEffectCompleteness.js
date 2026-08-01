@@ -14,7 +14,7 @@
  * @param {object[]} shaders Translated shader records.
  * @returns {{ expectedPassCount: number, completePassCount: number, incompletePasses: object[] }}
  */
-export function inspectCewgRasterCompleteness(stages, shaders)
+export function inspectRasterCompleteness(stages, shaders)
 {
     const shaderMap = new Map((shaders || []).map((shader) => [ shader.key, shader ]));
     const groups = new Map();
@@ -112,7 +112,7 @@ export function inspectCewgRasterCompleteness(stages, shaders)
  * programs. A boolean marker is insufficient: the runtime needs the original
  * dispatch shape, dispatch-origin uniform, and every UAV render-target route.
  */
-export function isCewgComputeFragmentContract(value)
+export function isComputeFragmentContract(value)
 {
     if (!value || typeof value !== "object" || Array.isArray(value)) return false;
     if (!Array.isArray(value.threadGroup)
@@ -147,7 +147,7 @@ export function isCewgComputeFragmentContract(value)
 /**
  * Inspects a decoded effect container for the contracts a WebGL 2 runtime needs.
  *
- * This replaces `inspectCewgPackageIntegrity`, which took the chunk package's
+ * This replaces `inspectGlslContainerIntegrity`, which took the chunk package's
  * INFO, META and GLSL records. Most of that function was bookkeeping about the
  * chunk format rather than about the effect, and it is not carried across:
  *
@@ -281,7 +281,7 @@ export function inspectGlslContainerIntegrity(decoded)
 function computeFragmentShaderIssue(shader)
 {
     const contract = shader?.computeFragment;
-    if (!isCewgComputeFragmentContract(contract)) return "has no valid compute-fragment host contract";
+    if (!isComputeFragmentContract(contract)) return "has no valid compute-fragment host contract";
     if (!Array.isArray(shader.bindings)) return "has no binding metadata for its compute-fragment host contract";
 
     const bindings = shader.bindings.filter((binding) => binding?.kind === "uavTexture");

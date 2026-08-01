@@ -119,7 +119,7 @@ function printUsage() {
     "Usage: node scripts/packageTr2WebglEffect.js [effect-file] [options]",
     "",
     "Options:",
-    "  --out <path>              Output CEWG path. Defaults to artifacts/quadv5.webgl.cewg.",
+    "  --out <path>              Output .cewg path. Defaults to artifacts/quadv5.webgl.cewg.",
     "  --source-game <name>      Source game identity (for example Frontier).",
     "  --source-client <name>    Source client identity (for example stillness).",
     "  --source-build <id>       Immutable source build identity.",
@@ -127,7 +127,7 @@ function printUsage() {
     "  --technique <name>        Restrict to one technique.",
     "  --pass <index>            Restrict to one pass index.",
     "  --stage <name>            Restrict to one stage name.",
-    "  --overwrite, --force      Explicitly replace an existing CEWG output file.",
+    "  --overwrite, --force      Explicitly replace an existing output file.",
     "  --allow-failures          Write partial packages even when translation fails.",
     "  --selected-only           Package only the default/selected permutation.",
     "  --all-permutations        Package every permutation record. This is the default.",
@@ -190,11 +190,11 @@ async function main() {
   }
 
   if (sameFilePath(inputPath, outputPath)) {
-    throw new Error("CEWG output must not overwrite the source effect file");
+    throw new Error("Output must not overwrite the source effect file");
   }
 
   if (!args.overwrite && await pathExists(outputPath)) {
-    throw new Error(`CEWG output already exists; pass --overwrite to replace it: ${outputPath}`);
+    throw new Error(`Output already exists; pass --overwrite to replace it: ${outputPath}`);
   }
 
   const sourceBytes = await readFile(inputPath);

@@ -37,7 +37,7 @@ import "./formats/webp/format.test.js";
 import "./formats/bnk/graph.test.js";
 import "./formats/wem/format.test.js";
 import "./formats/yaml/public-api.test.mjs";
-import "./formats/webgl/cewg-completeness.test.js";
+import "./formats/webgl/glsl-effect-completeness.test.js";
 import "./formats/webgl/effect-package.test.js";
 import "./formats/webgl/glsl-emitter.test.js";
 import "./formats/webgl/glsl-emitter-compute.test.js";
