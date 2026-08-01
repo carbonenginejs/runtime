@@ -115,7 +115,7 @@ test("version 15 CEWG preserves every permutation's portable reflection", () =>
     //
     // That was a property of the chunk format. A Carbon container carries
     // Carbon's own per-stage reflection inside each body description instead —
-    // `readGlslEffectContainer` reads it, and `cewg-completeness.test.js` holds
+    // `readGlslEffectContainer` reads it, and `glsl-effect-completeness.test.js` holds
     // the emitted GLSL against it. Serving portable reflection *from a container*
     // is the engine seam's job and does not exist yet, so the property is not
     // restated here in a weaker form; a stand-in assertion would read as coverage
