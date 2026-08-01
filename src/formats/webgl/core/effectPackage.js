@@ -16,6 +16,7 @@ import {
 } from "../../../format/effect/effectReflectionPackage.js";
 import { buildPackage, emitGlslWithOptions, inspectWithValues } from "./helpers.js";
 import { recogniseDetailMapFamily } from "../../hlsl/core/detailMapFamily.js";
+import { recogniseLocalLightFamily } from "../../hlsl/core/localLightFamily.js";
 import { buildGlslBackendBodySet } from "./glslBackendBodySet.js";
 import { buildGlslEffectContainer } from "./buildGlslEffectContainer.js";
 import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
@@ -140,6 +141,7 @@ export function buildEffectPackage(input, options = {})
                 stringTableOffset: stage.bytecode.stringTableOffset,
                 bytes: stage.bytecode.bytes,
                 detailMapArray: stage.detailMapArray,
+                localLights: stage.localLights,
                 contracts: [ {
                     stageKey,
                     techniqueName: stage.techniqueName,
@@ -399,6 +401,10 @@ function normalizeOptions(input, options)
         allowFailures: options.allowFailures === true,
         includeSourceEffect: options.includeSourceEffect === true,
         selection,
+        // How to lower a recognised local-light family. Defaults to leaving it
+        // alone, so a caller that does not ask gets the shader's own resources
+        // and the honest texture count.
+        localLights: normalizeLocalLightMode(options.localLights),
         emitterOptions: { ...(options.emitterOptions ?? {}) }
     };
 }
@@ -614,7 +620,8 @@ function collectStages(effectDescription, selection)
                     // Recognised from reflection here, applied by the emitter.
                     // The recogniser is shared with WebGPU so both backends
                     // merge exactly the same registers.
-                    detailMapArray: recogniseDetailMapFamily(mapToJson(stageInput.resources))
+                    detailMapArray: recogniseDetailMapFamily(mapToJson(stageInput.resources)),
+                    localLights: recogniseLocalLightFamily(mapToJson(stageInput.resources))
                 });
             }
 
@@ -626,6 +633,84 @@ function collectStages(effectDescription, selection)
     }
 
     return { stages, errors };
+}
+
+/** Local-light lowering modes this packager accepts. */
+const LOCAL_LIGHT_MODES = Object.freeze([ "none", "packed-texture", "constant-buffer" ]);
+
+/**
+ * Normalizes the local-light lowering mode.
+ *
+ * @param {string|undefined|null} value Requested mode.
+ * @returns {string} Normalized mode.
+ */
+function normalizeLocalLightMode(value)
+{
+    if (value === undefined || value === null) return "none";
+
+    const mode = String(value);
+    if (!LOCAL_LIGHT_MODES.includes(mode))
+    {
+        throw new TypeError(
+            `CEWG localLights must be one of ${LOCAL_LIGHT_MODES.join(", ")}; got "${mode}"`
+        );
+    }
+    return mode;
+}
+
+/**
+ * Builds the emitter profile that lowers a recognised local-light family.
+ *
+ * Carbon's local lights are two structured buffers plus an optional profile
+ * texture. WebGL 2 has no structured buffers, so one of these lowerings is
+ * required for the shader to bind its lights at all; WebGPU needs none of it and
+ * binds them natively.
+ *
+ * The constants here match the CLI packager's resolvers exactly, so the two
+ * pipelines produce identical output while they still both exist. They are not
+ * endorsements: `dataTexelBase` and `capacity` are values that happened to work,
+ * and the constant-buffer route is known to fail on light count.
+ *
+ * @param {object} plan Recognised local-light family.
+ * @param {string} mode Lowering mode.
+ * @returns {object|null} Emitter options fragment, or null when not lowering.
+ */
+function localLightEmitterOptions(plan, mode)
+{
+    if (!plan || mode === "none") return null;
+
+    if (mode === "packed-texture")
+    {
+        return {
+            lightPackedTexture: {
+                indexRegister: plan.indexRegister,
+                dataRegister: plan.dataRegister,
+                profileRegister: plan.profileRegister,
+                registerIndex: plan.indexRegister,
+                name: "cewgLocalLightTexture",
+                dataTexelBase: 131072
+            }
+        };
+    }
+
+    if (mode === "constant-buffer")
+    {
+        // Slot 6 is `g_uiTransforms` in the constant-buffer slot contract. There
+        // is no collision on space-object shaders, which carry no UI transforms,
+        // but this is squatting on a reserved number and should move.
+        return {
+            lightConstantBuffer: {
+                indexRegister: plan.indexRegister,
+                dataRegister: plan.dataRegister,
+                profileRegister: plan.profileRegister,
+                registerIndex: 6,
+                name: "cb6",
+                capacity: 40
+            }
+        };
+    }
+
+    throw new Error(`Unknown local-light lowering mode "${mode}"`);
 }
 
 function translateStages(shaderMap, stageMap, values)
@@ -640,7 +725,8 @@ function translateStages(shaderMap, stageMap, values)
                 ...(pairVaryings?.length ? { pairVaryings } : {}),
                 ...(record.detailMapArray
                     ? { detailMapArrayRegisters: record.detailMapArray.registers }
-                    : {})
+                    : {}),
+                ...(localLightEmitterOptions(record.localLights, values.localLights) ?? {})
             });
             const stageInterface = normalizeBitangentStageInterface(
                 result,
