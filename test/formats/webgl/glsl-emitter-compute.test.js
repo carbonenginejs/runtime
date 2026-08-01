@@ -101,7 +101,11 @@ fixtureTest("keeps single-store UAVs on the single-output lowering (NonSmartHalf
     });
 });
 
-fixtureTest("rejects multiple UAV stores with a dynamic array slice as not map-style", () =>
+// Synthetic DXBC, so these two do not need the game-derived fixtures above and
+// must not be gated behind them: they were skipping silently, which left the
+// map-style kill list - the rule that decides whether a compute stage can be
+// lowered to fragment at all - with no coverage whatsoever.
+test("rejects multiple UAV stores with a dynamic array slice as not map-style", () =>
 {
     assert.throws(
         () => CjsWebglFormat.emitGlsl(buildDoubleStoreComputeDxbc(8), { source: "synthetic" }),
@@ -109,7 +113,7 @@ fixtureTest("rejects multiple UAV stores with a dynamic array slice as not map-s
     );
 });
 
-fixtureTest("rejects multiple stores to one non-array UAV as not map-style", () =>
+test("rejects multiple stores to one non-array UAV as not map-style", () =>
 {
     assert.throws(
         () => CjsWebglFormat.emitGlsl(buildDoubleStoreComputeDxbc(3), { source: "synthetic" }),
