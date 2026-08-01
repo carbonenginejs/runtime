@@ -171,10 +171,18 @@ runnable WebGL2 GLSL for, restricted to the `BoneTransforms` skinning case
    byteOffset" agreement check, silently no-opping the rewrite. The previous
    worked example here was internally inconsistent with the very rewrite
    contract it was illustrating.
-2. A package-time rewrite pass (`scripts/packageTr2WebglEffect.js`,
-   functions `lowerWebgl2SkinningAbi` at lines 826-864 and
-   `lowerStructuredBoneLoad` at lines 873-902) runs over that generated GLSL text
-   and performs, **in this exact order**:
+2. A package-time rewrite pass over the generated GLSL text, performing the
+   steps below **in this exact order**.
+
+   > **Superseded (2026-08-02).** This pass no longer exists. The emitter now
+   > declares vertex-stage structured buffers as `std140` UBOs when it emits the
+   > shader, with real bindings, rather than rewriting text afterwards — see
+   > `DxbcGlslEmitter.js`, the `dcl_resource_structured` vertex branch. The
+   > regex functions it describes were deleted from
+   > `scripts/packageTr2WebglEffect.js`, so the line citations below point at
+   > nothing. The section is kept because it records *why* each rewrite was
+   > needed, which the ccpwgl runtime ABI still constrains; read it as history,
+   > not as a description of the code.
    1. Strip the `#ifdef GL_ARB_shader_storage_buffer_object` /
       `GL_ARB_shader_image_load_store` extension guard blocks (regexes at
       `packageTr2WebglEffect.js:832-833`).
@@ -229,8 +237,19 @@ pixel `usampler2D` data textures (see `DxbcGlslEmitter.js` `dcl_resource_structu
 pixel branch), which compiles but consumes a texture unit each; on real drivers
 the `_depth` quad variants overflow `MAX_TEXTURE_IMAGE_UNITS`(16).
 
-**Resolution (2026-07-08) — stub, not rewrite.** Since CEWG does not support this
-tiled lighting, the packager can DROP it instead of lowering it. Run
+**Superseded (2026-08-02) — the lights fit, and are kept.** The two light
+buffers now lower to a single packed `RGBA32UI` data texture rather than one
+texture each, which frees two units, and the `Detail1/2/3Map` textures merge into
+one array texture, which frees one or two more. Both `.sm_depth` quad variants
+land at or under 16 with lighting intact: `unpackedskinned_quaddetailv5` at 15,
+`unpackedskinned_quadheatdetailv5` at 16. See
+`/docs/contracts/webgl2-texture-budget.md`. Dropping the lights is still
+available as `--stub-light-resources` for isolating a lighting problem, but it is
+no longer the answer to the budget. The paragraph below describes that opt-in
+path and remains accurate.
+
+**Earlier resolution (2026-07-08) — stub, not rewrite.** Since CEWG does not
+support this tiled lighting, the packager can DROP it instead of lowering it. Run
 `packageTr2WebglEffect.js --stub-light-resources`: it resolves the light resource
 names (`LightBuffer`, `LightIndexBuffer`, `LightProfileArray`) to `t#` registers
 from the Carbon `.sm` reflection (RDEF is stripped, so names live only there —

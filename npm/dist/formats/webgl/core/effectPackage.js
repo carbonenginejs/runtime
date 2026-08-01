@@ -9,7 +9,7 @@ import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_P
 import { buildCompleteEffectReflection, EFFECT_REFLECTION_CHUNK, EFFECT_REFLECTION_BLOB_CHUNK } from '../../../format/effect/effectReflectionPackage.js';
 import { buildPackage, inspectWithValues, emitGlslWithOptions } from './helpers.js';
 import { recogniseDetailMapFamily } from '../../hlsl/core/detailMapFamily.js';
-import { recogniseLocalLightFamily } from '../../hlsl/core/localLightFamily.js';
+import { stripLocalLightBindings, recogniseLocalLightFamily } from '../../hlsl/core/localLightFamily.js';
 import { buildGlslBackendBodySet } from './glslBackendBodySet.js';
 import { buildGlslEffectContainer } from './buildGlslEffectContainer.js';
 import { sha256Utf8, sha256Bytes } from '../../../format/effect/sha256.js';
@@ -77,7 +77,9 @@ function buildEffectPackage(input, options = {}) {
       bodySize: variant.bodySize,
       firstVariantKey: variant.key,
       error: collection.errors.length ? collection.errors.join("; ") : null,
-      manifest: manifest.toJSON(),
+      // Dropping the light family removes its declarations from the
+      // shader, so the manifest must stop advertising them too.
+      manifest: values.localLights === "drop" ? stripLocalLightBindings(manifest.toJSON()) : manifest.toJSON(),
       stages: []
     };
     for (const stage of collection.stages) {
@@ -481,7 +483,7 @@ function collectStages(effectDescription, selection) {
 }
 
 /** Local-light lowering modes this packager accepts. */
-const LOCAL_LIGHT_MODES = Object.freeze(["none", "packed-texture", "constant-buffer"]);
+const LOCAL_LIGHT_MODES = Object.freeze(["none", "packed-texture", "constant-buffer", "drop"]);
 
 /**
  * Normalizes the local-light lowering mode.
@@ -517,6 +519,14 @@ function normalizeLocalLightMode(value) {
  */
 function localLightEmitterOptions(plan, mode) {
   if (!plan || mode === "none") return null;
+  if (mode === "drop") {
+    // No lighting at all: the declarations go and every read lowers to zero.
+    // Kept because isolating a lighting problem is easier without lights,
+    // not because the texture budget needs it any more.
+    return {
+      stubResourceRegisters: plan.registers
+    };
+  }
   if (mode === "packed-texture") {
     return {
       lightPackedTexture: {

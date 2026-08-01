@@ -18,24 +18,59 @@ const ACTION_NAMES = Object.freeze({
   0x0305: "resume",
   0x0403: "play",
   0x0503: "play-and-continue",
+  0x0802: "set-voice-pitch",
   0x0803: "set-voice-pitch",
+  0x0902: "reset-voice-pitch",
   0x0903: "reset-voice-pitch",
+  0x0904: "reset-voice-pitch",
+  0x0905: "reset-voice-pitch",
+  0x0908: "reset-voice-pitch",
+  0x0909: "reset-voice-pitch",
   0x0a02: "set-voice-volume",
   0x0a03: "set-voice-volume",
   0x0b02: "reset-voice-volume",
   0x0b03: "reset-voice-volume",
+  0x0b04: "reset-voice-volume",
+  0x0b05: "reset-voice-volume",
+  0x0b08: "reset-voice-volume",
+  0x0b09: "reset-voice-volume",
+  0x0c02: "set-bus-volume",
+  0x0c03: "set-bus-volume",
+  0x0d02: "reset-bus-volume",
+  0x0d03: "reset-bus-volume",
+  0x0d04: "reset-bus-volume",
+  0x0d08: "reset-bus-volume",
+  0x0e02: "set-voice-low-pass",
+  0x0e03: "set-voice-low-pass",
+  0x0f02: "reset-voice-low-pass",
+  0x0f03: "reset-voice-low-pass",
+  0x0f04: "reset-voice-low-pass",
+  0x0f05: "reset-voice-low-pass",
+  0x0f08: "reset-voice-low-pass",
+  0x0f09: "reset-voice-low-pass",
   0x1204: "set-state",
   0x1302: "set-game-parameter",
   0x1303: "set-game-parameter",
   0x1402: "reset-game-parameter",
   0x1403: "reset-game-parameter",
   0x1901: "set-switch",
-  0x2103: "post-event"
+  0x2002: "set-voice-high-pass",
+  0x2003: "set-voice-high-pass",
+  0x2103: "post-event",
+  0x3002: "reset-voice-high-pass",
+  0x3003: "reset-voice-high-pass",
+  0x3004: "reset-voice-high-pass",
+  0x3005: "reset-voice-high-pass",
+  0x3008: "reset-voice-high-pass",
+  0x3009: "reset-voice-high-pass"
 });
 const ACTIVE_ACTION_TYPES = new Set([0x0102, 0x0103, 0x0105, 0x0203, 0x0205, 0x0303, 0x0305]);
 const PLAY_ACTION_TYPES = new Set([0x0403, 0x0503]);
-const VOICE_VOLUME_ACTION_TYPES = new Set([0x0a02, 0x0a03, 0x0b02, 0x0b03]);
-const VOICE_PITCH_ACTION_TYPES = new Set([0x0803, 0x0903]);
+const VOICE_VOLUME_ACTION_TYPES = new Set([0x0a02, 0x0a03, 0x0b02, 0x0b03, 0x0b04, 0x0b05, 0x0b08, 0x0b09]);
+const VOICE_PITCH_ACTION_TYPES = new Set([0x0802, 0x0803, 0x0902, 0x0903, 0x0904, 0x0905, 0x0908, 0x0909]);
+const BUS_VOLUME_ACTION_TYPES = new Set([0x0c02, 0x0c03, 0x0d02, 0x0d03, 0x0d04, 0x0d08]);
+const VOICE_LOW_PASS_ACTION_TYPES = new Set([0x0e02, 0x0e03, 0x0f02, 0x0f03, 0x0f04, 0x0f05, 0x0f08, 0x0f09]);
+const VOICE_HIGH_PASS_ACTION_TYPES = new Set([0x2002, 0x2003, 0x3002, 0x3003, 0x3004, 0x3005, 0x3008, 0x3009]);
 const GAME_SYNC_ACTION_TYPES = new Set([0x1204, 0x1901]);
 const GAME_PARAMETER_ACTION_TYPES = new Set([0x1302, 0x1303, 0x1402, 0x1403]);
 
@@ -89,50 +124,29 @@ function parseEventAction(payload, {
       result.fadeCurve = cursor.u8();
       result.actionFlags = cursor.u8();
       result.exceptions = ReadExceptions(cursor);
-    } else if (VOICE_PITCH_ACTION_TYPES.has(actionType)) {
-      if (!HasExactVoicePropertyActionProperties(properties) || ranges.length !== 0) {
+    } else if (VOICE_PITCH_ACTION_TYPES.has(actionType) || VOICE_VOLUME_ACTION_TYPES.has(actionType) || BUS_VOLUME_ACTION_TYPES.has(actionType) || VOICE_LOW_PASS_ACTION_TYPES.has(actionType) || VOICE_HIGH_PASS_ACTION_TYPES.has(actionType)) {
+      if (!HasExactVoicePropertyActionProperties(properties) || !HasExactTimingProperties(ranges)) {
         return null;
       }
       const fadeCurve = cursor.u8();
       const rawValueMode = cursor.u8();
-      const pitchCents = cursor.f32();
-      const pitchRangeCents = {
+      const value = cursor.f32();
+      const valueRange = {
         min: cursor.f32(),
         max: cursor.f32()
       };
-      const trailingFlags = cursor.u8();
-      const resetting = actionName === "reset-voice-pitch";
-      if (targetFlags & ~0x01 || fadeCurve > 9 || rawValueMode !== 1 && rawValueMode !== 2 || !Number.isFinite(pitchCents) || !Number.isFinite(pitchRangeCents.min) || !Number.isFinite(pitchRangeCents.max) || resetting && (pitchCents !== 0 || pitchRangeCents.min !== 0 || pitchRangeCents.max !== 0) || trailingFlags !== 0) {
+      const resetting = actionName.startsWith("reset-");
+      if (targetFlags & ~0x01 || fadeCurve > 9 || (resetting ? rawValueMode !== 0 && rawValueMode !== 1 && rawValueMode !== 2 : rawValueMode !== 1 && rawValueMode !== 2) || !Number.isFinite(value) || !Number.isFinite(valueRange.min) || !Number.isFinite(valueRange.max) || resetting && (value !== 0 || valueRange.min !== 0 || valueRange.max !== 0)) {
         return null;
       }
       result.fadeCurve = fadeCurve;
       if (!resetting) {
         result.valueMode = rawValueMode === 1 ? "absolute" : "relative";
-        result.pitchCents = pitchCents;
-        result.pitchRangeCents = pitchRangeCents;
+        const fields = VoicePropertyFields(actionType);
+        result[fields.value] = value;
+        result[fields.range] = valueRange;
       }
-    } else if (VOICE_VOLUME_ACTION_TYPES.has(actionType)) {
-      if (!HasExactVoicePropertyActionProperties(properties) || ranges.length !== 0) {
-        return null;
-      }
-      const fadeCurve = cursor.u8();
-      const rawValueMode = cursor.u8();
-      const volumeDb = cursor.f32();
-      const volumeRangeDb = {
-        min: cursor.f32(),
-        max: cursor.f32()
-      };
-      const trailingFlags = cursor.u8();
-      const resetting = actionName === "reset-voice-volume";
-      if (targetFlags & ~0x01 || fadeCurve > 9 || rawValueMode !== 1 && rawValueMode !== 2 || !Number.isFinite(volumeDb) || !Number.isFinite(volumeRangeDb.min) || !Number.isFinite(volumeRangeDb.max) || resetting && (volumeDb !== 0 || volumeRangeDb.min !== 0 || volumeRangeDb.max !== 0) || trailingFlags !== 0) {
-        return null;
-      }
-      result.fadeCurve = fadeCurve;
-      if (!resetting) {
-        result.valueMode = rawValueMode === 1 ? "absolute" : "relative";
-        result.volumeDb = volumeDb;
-        result.volumeRangeDb = volumeRangeDb;
-      }
+      result.exceptions = ReadExceptions(cursor);
     } else if (GAME_SYNC_ACTION_TYPES.has(actionType)) {
       result.groupId = cursor.u32();
       result.valueId = cursor.u32();
@@ -172,6 +186,36 @@ function parseEventAction(payload, {
 function HasExactVoicePropertyActionProperties(properties) {
   const ids = properties.map(property => property.id);
   return ids.every(id => id === 0x39 || id === 0x3a) && new Set(ids).size === ids.length;
+}
+function VoicePropertyFields(actionType) {
+  if (VOICE_PITCH_ACTION_TYPES.has(actionType)) {
+    return {
+      value: "pitchCents",
+      range: "pitchRangeCents"
+    };
+  }
+  if (VOICE_VOLUME_ACTION_TYPES.has(actionType)) {
+    return {
+      value: "volumeDb",
+      range: "volumeRangeDb"
+    };
+  }
+  if (VOICE_LOW_PASS_ACTION_TYPES.has(actionType)) {
+    return {
+      value: "lowPass",
+      range: "lowPassRange"
+    };
+  }
+  if (BUS_VOLUME_ACTION_TYPES.has(actionType)) {
+    return {
+      value: "busVolumeDb",
+      range: "busVolumeRangeDb"
+    };
+  }
+  return {
+    value: "highPass",
+    range: "highPassRange"
+  };
 }
 function HasExactTimingProperties(values) {
   const ids = values.map(value => value.id);
