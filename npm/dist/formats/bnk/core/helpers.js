@@ -1,4 +1,5 @@
 import { parseEventAction } from './eventAction.js';
+import { parseGlobalSettings } from './globalSettings.js';
 
 const OUTPUT_RAW = "raw";
 const OUTPUT_JSON = "json";
@@ -87,9 +88,9 @@ function isBNK(bytes) {
  * Inspect Wwise soundbank bytes without copying media payloads.
  *
  * Walks the chunk sequence and decodes the bank header (BKHD), embedded media
- * index (DIDX/DATA), object hierarchy listing (HIRC), and referenced bank
- * names (STID). Unknown chunks are recorded, never rejected; a truncated
- * trailing chunk stops the walk and is flagged.
+ * index (DIDX/DATA), global settings (STMG), object hierarchy listing (HIRC),
+ * and referenced bank names (STID). Unknown chunks are recorded, never
+ * rejected; a truncated trailing chunk stops the walk and is flagged.
  *
  * Wwise soundbanks are written little-endian on all platforms EVE ships on;
  * this reader assumes little-endian data.
@@ -106,11 +107,14 @@ function inspectBNK(bytes) {
     media: [],
     hirc: [],
     names: [],
+    globalSettings: null,
     chunks: []
   };
   let dataChunkOffset = 0;
   let dataChunkSize = 0;
   let mediaIndex = [];
+  let globalSettingsPayload = null;
+  let duplicateGlobalSettings = false;
   let offset = 0;
   while (offset + 8 <= bytes.byteLength) {
     const id = fourCc(bytes, offset);
@@ -147,6 +151,13 @@ function inspectBNK(bytes) {
     if (id === "HIRC") {
       info.hirc = readHircListing(bytes, dataOffset, size, info.bankVersion);
     }
+    if (id === "STMG") {
+      if (globalSettingsPayload) {
+        duplicateGlobalSettings = true;
+      } else {
+        globalSettingsPayload = bytes.subarray(dataOffset, dataOffset + size);
+      }
+    }
     if (id === "STID") {
       info.names = readNameTable(bytes, dataOffset, size);
     }
@@ -163,6 +174,11 @@ function inspectBNK(bytes) {
       available
     };
   });
+  if (globalSettingsPayload && !duplicateGlobalSettings) {
+    info.globalSettings = parseGlobalSettings(globalSettingsPayload, {
+      bankVersion: info.bankVersion
+    });
+  }
   info.mediaCount = info.media.length;
   info.hircCount = info.hirc.length;
   return info;

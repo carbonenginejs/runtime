@@ -23,6 +23,7 @@ import {
 } from "./core/helpers.js";
 import { eventMediaFromBanks } from "./core/graph.js";
 import { parseEventAction } from "./core/eventAction.js";
+import { parseGlobalSettings } from "./core/globalSettings.js";
 import {
     musicNodesFromBanks,
     parseMusicPlaylist,
@@ -44,12 +45,13 @@ const FORMAT_NAME = "CjsBnkFormat";
 /**
  * Reader for Audiokinetic Wwise soundbank (.bnk) containers.
  *
- * Inspection decodes the bank header, embedded media index, object hierarchy
- * listing (with version-stable typed fields), and referenced bank names
- * without copying payloads. Read can emit the raw bank, debug JSON, or the
- * embedded media items undecoded. The read path stays a pure container
- * reader; the Wwise-domain toolkit (SoundbanksInfo catalog helpers, id hash,
- * event -> media graph resolution) is grouped under the `wwise` static.
+ * Inspection decodes the bank header, embedded media index, exact v150 global
+ * settings, object hierarchy listing (with version-stable typed fields), and
+ * referenced bank names without copying payloads. Read can emit the raw bank,
+ * debug JSON, or the embedded media items undecoded. The read path stays a
+ * pure container reader; the Wwise-domain toolkit (SoundbanksInfo catalog
+ * helpers, id hash, event -> media graph resolution) is grouped under the
+ * `wwise` static.
  */
 export class CjsBnkFormat
 {
@@ -267,8 +269,8 @@ export class CjsBnkFormat
      * core/musicNodes.js for the anchored, exact-end-validated parse.
      *
      * The v150 authored-SFX decoders (`sfxNodesFromBanks` and the per-type
-     * Event Action, Random/Sequence, Switch, Layer, Actor-Mixer, and
-     * Attenuation parsers)
+     * Global Settings, Event Action, Random/Sequence, Switch, Layer,
+     * Actor-Mixer, and Attenuation parsers)
      * preserve raw Wwise semantics for runtime-audio's optional builder.
      * NodeBase facts, hierarchy-only Actor-Mixers, and attenuation objects
      * remain distinct from playable container behavior.
@@ -280,6 +282,7 @@ export class CjsBnkFormat
         joinSoundbanksInfo,
         wwiseIdFromName,
         eventMediaFromBanks,
+        parseGlobalSettings,
         parseEventAction,
         musicNodesFromBanks,
         parseMusicSegment,

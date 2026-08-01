@@ -25,10 +25,9 @@ Set State/Switch group/value identities, and Set/Reset Game Parameter values,
 scopes, absolute/relative meaning, default, randomized delay/transition,
 curve, transition-bypass flag, and exceptions. These fields are preserved by
 the reader even when the currently inspected EVE corpus uses only a subset.
-The
-Wwise-domain toolkit is grouped under the `CjsBnkFormat.wwise` static: the
+The Wwise-domain toolkit is grouped under the `CjsBnkFormat.wwise` static: the
 SoundbanksInfo catalog helpers, the FNV-1 id hash, event-to-media resolution,
-typed Event Actions, and typed authored-SFX nodes:
+typed Global Settings and Event Actions, and typed authored-SFX nodes:
 
 ```js
 import { CjsBnkFormat } from "@carbonenginejs/runtime-resource/formats/bnk";
@@ -36,6 +35,9 @@ import { CjsWemFormat } from "@carbonenginejs/runtime-resource/formats/wem";
 
 const inspections = bankByteArrays.map(bytes => CjsBnkFormat.inspect(bytes));
 const action = CjsBnkFormat.wwise.parseEventAction(actionPayload, {
+    bankVersion: 150
+});
+const globalSettings = CjsBnkFormat.wwise.parseGlobalSettings(stmgPayload, {
     bankVersion: 150
 });
 const { eventMedia } = CjsBnkFormat.wwise.eventMediaFromBanks(inspections);
@@ -69,6 +71,14 @@ Typed authored-SFX tail decoding is deliberately pinned to bank generator
 version 150. Recognized Event Actions are accepted only when the whole body
 is consumed; unknown, truncated, other-version, or trailing-byte bodies retain
 their shallow action type/target and raw payload, with `action: null`.
+Exact v150 STMG chunks attach `globalSettings` to an inspection and expose
+state groups and custom transitions, switch groups and graph points, RTPC
+defaults and ramp policies, built-in parameter bindings, acoustic textures,
+and the global voice/filter settings. Numeric enum values and both directional
+ramp values are retained even when current EVE events do not exercise them.
+Invalid, duplicate, truncated, other-version, or trailing-byte STMG payloads
+leave `globalSettings: null`; their raw chunk records remain available in
+`chunks`.
 `nodes` contains playable Sound, Random/Sequence, Switch/State, and Layer
 objects. The separate `nodeBases` map preserves common authored properties
 and positioning facts for playable nodes and Actor-Mixers.
