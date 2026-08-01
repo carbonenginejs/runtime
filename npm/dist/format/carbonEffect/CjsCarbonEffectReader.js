@@ -39,10 +39,26 @@ class CjsCarbonEffectBodyReader extends CjsByteReader {
  * description blobs
  * ```
  *
- * Only version 15 is accepted. Carbon's own reader takes 2..15
- * (`Tr2EffectRes.cpp:209`) but marks the v13/v14 field-order boundaries
- * unverified, and every file in the shipped dx11/dx12 corpus is v15, so a
- * lower version here means something unexpected rather than something old.
+ * Only version 15 is accepted, and every earlier version is rejected outright.
+ *
+ * Carbon validates the version at 2..15 (`Tr2EffectRes.cpp:209`), then threads
+ * it through parsing rather than gating on it again. Its own container reader
+ * branches on it, and it forwards the version into the description reader
+ * (`Tr2EffectRes.cpp:128`), where `Tr2EffectDescription.cpp` branches at 22
+ * conditional sites using 16 distinct comparisons, from `< 4` to `>= 14`. The
+ * version decides the byte layout at nearly every level - whether a stage
+ * carries a register signature at all (`> 8`), where pipeline inputs are read
+ * (`< 14`), how a constant's type byte is decoded (`< 11`), and whether a
+ * resource carries `arrayElements` at all (`>= 13`).
+ *
+ * This reader has no such parameter: it is constant-folded to 15, which every
+ * file in the shipped dx11/dx12 corpus is. Supporting an older version means
+ * restoring the parameter Carbon always had, not adding a second reader - and
+ * it is deliberately not done here. Rejecting is honest: applying v15 rules to
+ * an older layout can misalign fields, since the comparisons above change which
+ * fields are present and how their bytes are interpreted. How such a read would
+ * fail in practice is not recorded, because no legacy container has been
+ * examined to establish it.
  */
 class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader {
   /** Cursor class used for description blobs. */
