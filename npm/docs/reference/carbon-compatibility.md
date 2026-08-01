@@ -27,6 +27,9 @@ The maintained graph includes:
   transitions, Step Switch/State, the qualified Continuous Switch/State subset
   with per-child fades and nested switch sessions, parallel/blend, per-leaf
   spatial routing, gain, and linear RTPC-curve data;
+- ordered object/global Set and Reset Game Parameter actions with absolute or
+  relative values, randomized delays, Wwise transition curves, persistent
+  timelines, capture-time ordering, and live gain, pitch, and filter updates;
 - listener and emitter placement;
 - event metadata and sound prioritization;
 - event curves, direct emitter event handling, and RTPC-driven curve-set time;

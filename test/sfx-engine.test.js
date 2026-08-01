@@ -2107,6 +2107,117 @@ test("event programs preserve Set and Reset Voice Pitch operations", () =>
     );
 });
 
+test("Game Parameter programs sample once and overlay capture-time RTPCs in order", () =>
+{
+    const delayCurve = {
+        rtpc: "engine_load",
+        scope: "object",
+        property: "initialDelay",
+        scaling: 0,
+        defaultValue: 0,
+        points: [
+            { x: 0, value: 0, interpolation: 4 },
+            { x: 2, value: 2, interpolation: 4 },
+        ],
+    };
+    const engine = new CjsSfxEngine({
+        random: () => 0.75,
+        graph: {
+            schemaVersion: 2,
+            events: {
+                staged_rtpc: [
+                    { nodeId: "1" },
+                    { nodeId: "1" },
+                ],
+                play_then_set: [ { nodeId: "1" } ],
+            },
+            programs: {
+                staged_rtpc: [
+                    {
+                        kind: "set-game-parameter",
+                        rtpc: "engine_load",
+                        scope: "game-object",
+                        valueMode: "absolute",
+                        gameParameterValue: 1,
+                        gameParameterRange: { min: -0.5, max: 0.5 },
+                        defaultValue: 0,
+                        curve: 4,
+                        bypassTransition: false,
+                    },
+                    { kind: "play", child: { nodeId: "1" } },
+                    {
+                        kind: "reset-game-parameter",
+                        rtpc: "engine_load",
+                        scope: "game-object",
+                        defaultValue: 0.25,
+                        curve: 4,
+                        bypassTransition: false,
+                    },
+                    { kind: "play", child: { nodeId: "1" } },
+                    {
+                        kind: "set-game-parameter",
+                        rtpc: "engine_load",
+                        scope: "game-object",
+                        valueMode: "relative",
+                        gameParameterValue: 2,
+                        defaultValue: 0,
+                        delayMs: 100,
+                        curve: 9,
+                        bypassTransition: true,
+                    },
+                ],
+                play_then_set: [
+                    { kind: "play", child: { nodeId: "1" } },
+                    {
+                        kind: "set-game-parameter",
+                        rtpc: "engine_load",
+                        scope: "game-object",
+                        valueMode: "absolute",
+                        gameParameterValue: 2,
+                        defaultValue: 0,
+                        curve: 4,
+                        bypassTransition: false,
+                    },
+                ],
+            },
+            nodes: {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    rtpcCurves: [ delayCurve ],
+                },
+            },
+        },
+    });
+    const controls = {
+        getRTPC: () => 0,
+        getGlobalRTPC: () => 0,
+    };
+    const program = engine.ResolveProgram("staged_rtpc", controls);
+
+    assert.deepEqual(program.map(action => action.kind), [
+        "set-game-parameter",
+        "play",
+        "reset-game-parameter",
+        "play",
+        "set-game-parameter",
+    ]);
+    assert.equal(program[0].actionIndex, 0);
+    assert.equal(program[0].gameParameterValue, 1.25);
+    assert.equal(program[1].selections[0].delayMs, 1250);
+    assert.equal(program[2].defaultValue, 0.25);
+    assert.equal(program[3].selections[0].delayMs, 250);
+    assert.equal(program[4].delayMs, 100);
+    assert.equal(program[4].gameParameterValue, 2);
+    assert.equal(program[4].bypassTransition, true);
+    assert.equal(
+        engine.ResolveProgram("play_then_set", controls)[0]
+            .selections[0].delayMs,
+        undefined,
+        "a later setter cannot change an earlier Play capture",
+    );
+});
+
 test("Play actions preserve probability, randomized delay, and fade-in", () =>
 {
     const samples = [ 0.49, 0.5, 0, 0.5 ];

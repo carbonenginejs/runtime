@@ -889,6 +889,126 @@ test("installation validates and normalizes Voice Pitch actions", () =>
     );
 });
 
+test("installation validates and normalizes Game Parameter actions", () =>
+{
+    const source = CreateDocument();
+
+    source.sfx = {
+        schemaVersion: 2,
+        events: {
+            engine_loop: [ { nodeId: "1" } ],
+        },
+        programs: {
+            engine_loop: [
+                {
+                    kind: "set-game-parameter",
+                    rtpc: "engine_load",
+                    scope: "game-object",
+                    bypassTransition: false,
+                    valueMode: "relative",
+                    gameParameterValue: "2",
+                    gameParameterRange: { min: "-1", max: "3" },
+                    defaultValue: "0.5",
+                    delayMs: "100",
+                    delayRangeMs: { min: "-25", max: "25" },
+                    transitionMs: "250",
+                    transitionRangeMs: { min: "-50", max: "50" },
+                    curve: "9",
+                },
+                { kind: "play", child: { nodeId: "1" } },
+                {
+                    kind: "reset-game-parameter",
+                    rtpc: "engine_load",
+                    scope: "global",
+                    defaultValue: "0.5",
+                },
+            ],
+        },
+        nodes: {
+            "1": { type: "sound", mediaId: "777" },
+        },
+    };
+
+    const installed = installAudioLibraryDocument(source);
+
+    assert.deepEqual(installed.sfx.programs.engine_loop, [
+        {
+            kind: "set-game-parameter",
+            rtpc: "engine_load",
+            scope: "game-object",
+            curve: 9,
+            bypassTransition: false,
+            defaultValue: 0.5,
+            delayMs: 100,
+            delayRangeMs: { min: -25, max: 25 },
+            transitionMs: 250,
+            transitionRangeMs: { min: -50, max: 50 },
+            valueMode: "relative",
+            gameParameterValue: 2,
+            gameParameterRange: { min: -1, max: 3 },
+        },
+        { kind: "play", child: { nodeId: "1" } },
+        {
+            kind: "reset-game-parameter",
+            rtpc: "engine_load",
+            scope: "global",
+            curve: 4,
+            bypassTransition: false,
+            defaultValue: 0.5,
+        },
+    ]);
+
+    for (const [ mutate, pattern ] of [
+        [
+            action => { action.bypassTransition = 1; },
+            /bypassTransition must be boolean/u,
+        ],
+        [
+            action => { action.gameParameterRange.max = -2; },
+            /gameParameterRange min must not exceed max/u,
+        ],
+        [
+            action => { action.gameParameterValue = Infinity; },
+            /gameParameterValue must be a finite number/u,
+        ],
+        [
+            action => { action.probability = 50; },
+            /probability is unsupported/u,
+        ],
+    ])
+    {
+        const invalid = structuredClone(source);
+
+        mutate(invalid.sfx.programs.engine_loop[0]);
+        assert.throws(
+            () => validateAudioLibraryDocument(invalid),
+            pattern,
+        );
+    }
+
+    const invalidReset = structuredClone(source);
+
+    invalidReset.sfx.programs.engine_loop[2].gameParameterValue = 0;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidReset),
+        /Reset cannot carry a game-parameter value/u,
+    );
+    delete invalidReset.sfx.programs.engine_loop[2].gameParameterValue;
+    delete invalidReset.sfx.programs.engine_loop[2].defaultValue;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidReset),
+        /requires an authored defaultValue/u,
+    );
+
+    const invalidSet = structuredClone(source);
+
+    delete invalidSet.sfx.programs.engine_loop[0].defaultValue;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidSet),
+        /requires an authored defaultValue/u,
+    );
+});
+
 test("installation canonicalizes authored SFX identifiers and curve numbers", () =>
 {
     const source = CreateDocument();

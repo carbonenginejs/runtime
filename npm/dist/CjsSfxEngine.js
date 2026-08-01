@@ -94,10 +94,11 @@ class CjsSfxEngine {
   }
 
   /**
-   * Resolves one post into ordered Play, Stop, and Voice Volume operations.
+   * Resolves one post into ordered Play, playback-control, Voice-property,
+   * and Game Parameter operations.
    *
-   * SetSwitch and SetState actions execute synchronously in their authored
-   * position so each later Play resolves against the updated controls.
+   * Immediate SetSwitch, SetState, and Game Parameter actions execute in
+   * their authored position so each later Play sees the updated controls.
    */
   ResolveProgram(eventName, controls = {}) {
     const name = String(eventName);
@@ -107,8 +108,15 @@ class CjsSfxEngine {
       return null;
     }
     const operations = [];
+    const objectRtpcOverlay = new Map();
+    const globalRtpcOverlay = new Map();
+    const resolvedControls = {
+      ...controls,
+      getRTPC: (rtpc, at) => objectRtpcOverlay.has(String(rtpc)) ? objectRtpcOverlay.get(String(rtpc)) : controls.getRTPC?.(rtpc, at),
+      getGlobalRTPC: (rtpc, at) => globalRtpcOverlay.has(String(rtpc)) ? globalRtpcOverlay.get(String(rtpc)) : controls.getGlobalRTPC?.(rtpc, at)
+    };
     const resolve = (child, actionIndex, selections, continuousBranches) => {
-      this.#ResolveChild(child, controls, {
+      this.#ResolveChild(child, resolvedControls, {
         gainDb: 0,
         gainCurves: [],
         pitchCents: 0,
@@ -197,8 +205,12 @@ class CjsSfxEngine {
           if (pitch) {
             operations.push(pitch);
           }
+        } else if (action.kind === "set-game-parameter" || action.kind === "reset-game-parameter") {
+          const gameParameter = this.#ResolveGameParameterAction(action, actionIndex);
+          ApplyGameParameterOverlay(gameParameter, resolvedControls, objectRtpcOverlay, globalRtpcOverlay);
+          operations.push(gameParameter);
         } else {
-          ApplySetter(action, controls);
+          ApplySetter(action, resolvedControls);
         }
       }
       return Object.freeze(operations);
@@ -454,11 +466,11 @@ class CjsSfxEngine {
   /**
    * Evaluates one resolved leaf's current linear gain from RTPC controls.
    */
-  EvaluateGain(selection, controls = {}, voiceVolumeDb = undefined) {
+  EvaluateGain(selection, controls = {}, voiceVolumeDb = undefined, at = undefined) {
     let gainDb = Number(selection?.gainDb) || 0;
     let linearGain = 1;
     for (const curve of selection?.gainCurves ?? []) {
-      const value = ReadRTPC(curve, controls);
+      const value = ReadRTPC(curve, controls, true, at);
       const output = EvaluateCurve(curve.points, value);
       if (curve.points[0].gain !== undefined) {
         linearGain *= Math.max(0, output);
@@ -467,7 +479,7 @@ class CjsSfxEngine {
       }
     }
     gainDb += EvaluateStateProperties(selection?.stateProperties, controls).gainDb;
-    gainDb += EvaluateRtpcProperties(selection?.rtpcCurves, controls).gainDb;
+    gainDb += EvaluateRtpcProperties(selection?.rtpcCurves, controls, at).gainDb;
     gainDb += voiceVolumeDb === undefined ? Number(controls.getVoiceVolumeDb?.(selection?.matchIds)) || 0 : Number(voiceVolumeDb) || 0;
     gainDb = Clamp(gainDb, MIN_RELATIVE_GAIN_DB, MAX_RELATIVE_GAIN_DB);
     if (linearGain <= 0 || gainDb <= MIN_AUDIBLE_GAIN_DB) {
@@ -477,7 +489,7 @@ class CjsSfxEngine {
   }
 
   /** Evaluates one resolved leaf's current playback rate from global states. */
-  EvaluatePlaybackRate(selection, controls = {}, voicePitchCents = undefined) {
+  EvaluatePlaybackRate(selection, controls = {}, voicePitchCents = undefined, at = undefined) {
     const authoredPlaybackRate = selection?.authoredPlaybackRate ?? selection?.[AUTHORED_PLAYBACK_RATE];
     const authoredPitchCents = selection?.pitchCents ?? selection?.[AUTHORED_PITCH_CENTS];
     const actionPitch = voicePitchCents === undefined ? Number(controls.getVoicePitchCents?.(selection?.matchIds)) || 0 : Number(voicePitchCents) || 0;
@@ -487,18 +499,18 @@ class CjsSfxEngine {
       return base * 2 ** (Clamp(actionPitch, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
     }
     const statePitch = EvaluateStateProperties(selection.stateProperties, controls).pitchCents;
-    const rtpcPitch = EvaluateRtpcProperties(selection.rtpcCurves, controls).pitchCents;
+    const rtpcPitch = EvaluateRtpcProperties(selection.rtpcCurves, controls, at).pitchCents;
     return authoredPlaybackRate * 2 ** (Clamp(authoredPitchCents + statePitch + rtpcPitch + actionPitch, MIN_RELATIVE_PITCH_CENTS, MAX_RELATIVE_PITCH_CENTS) / 1200);
   }
 
   /** Evaluates one resolved leaf's current Wwise low-pass percentage. */
-  EvaluateLowPass(selection, controls = {}) {
-    return EvaluateFilterProperty("lowPass", selection, controls);
+  EvaluateLowPass(selection, controls = {}, at = undefined) {
+    return EvaluateFilterProperty("lowPass", selection, controls, at);
   }
 
   /** Evaluates one resolved leaf's current Wwise high-pass percentage. */
-  EvaluateHighPass(selection, controls = {}) {
-    return EvaluateFilterProperty("highPass", selection, controls);
+  EvaluateHighPass(selection, controls = {}, at = undefined) {
+    return EvaluateFilterProperty("highPass", selection, controls, at);
   }
 
   /** Clears random history and step-sequence positions. */
@@ -993,6 +1005,29 @@ class CjsSfxEngine {
     });
   }
 
+  /** Samples one authored Set or Reset Game Parameter action per post. */
+  #ResolveGameParameterAction(action, actionIndex) {
+    const setting = action.kind === "set-game-parameter";
+    const value = setting ? SampleSignedRandomizedValue(action.gameParameterValue, action.gameParameterRange, () => this.#SampleUnit()) : 0;
+    return Object.freeze({
+      kind: action.kind,
+      actionIndex,
+      rtpc: String(action.rtpc),
+      scope: action.scope,
+      delayMs: Math.max(0, SampleRandomizedValue(action.delayMs, action.delayRangeMs, () => this.#SampleUnit())),
+      transitionMs: Math.max(0, SampleRandomizedValue(action.transitionMs, action.transitionRangeMs, () => this.#SampleUnit())),
+      curve: Number(action.curve ?? 4),
+      bypassTransition: Boolean(action.bypassTransition ?? false),
+      ...(action.defaultValue === undefined ? {} : {
+        defaultValue: Number(action.defaultValue)
+      }),
+      ...(setting ? {
+        valueMode: action.valueMode,
+        gameParameterValue: value
+      } : {})
+    });
+  }
+
   /** Returns one finite random sample clamped to Wwise's [0, 1) domain. */
   #SampleUnit() {
     const sampled = Number(this.#random());
@@ -1192,6 +1227,20 @@ function ApplySetter(action, controls) {
     controls.setSwitch?.(action.group, action.value);
   }
 }
+function ApplyGameParameterOverlay(action, controls, objectValues, globalValues) {
+  if (action.delayMs > 0) {
+    return;
+  }
+  const name = String(action.rtpc);
+  const values = action.scope === "global" ? globalValues : objectValues;
+  const current = values.has(name) ? values.get(name) : action.scope === "global" ? controls.getGlobalRTPC?.(name) ?? action.defaultValue : controls.getRTPC?.(name) ?? controls.getGlobalRTPC?.(name) ?? action.defaultValue;
+  const target = action.kind === "reset-game-parameter" ? action.defaultValue : action.valueMode === "relative" ? Number(current) + Number(action.gameParameterValue) : Number(action.gameParameterValue);
+  if (Number.isFinite(target) && ((Number(action.transitionMs) || 0) === 0 || !Number.isFinite(Number(current)))) {
+    values.set(name, target);
+  } else if (Number.isFinite(Number(current))) {
+    values.set(name, Number(current));
+  }
+}
 function NormalizeChild(child) {
   if (child && typeof child === "object" && !Array.isArray(child)) {
     return child;
@@ -1209,13 +1258,13 @@ function SampleRanges(ranges, sample) {
   }
   return result;
 }
-function ReadRTPC(curve, controls, defaultToFirstPoint = true) {
+function ReadRTPC(curve, controls, defaultToFirstPoint = true, at = undefined) {
   const fallback = curve.defaultValue ?? (defaultToFirstPoint ? curve.points[0].x : undefined);
   if (curve.scope === "global") {
-    return NormalizeControlValue(controls.getGlobalRTPC?.(curve.rtpc), fallback);
+    return NormalizeControlValue(controls.getGlobalRTPC?.(curve.rtpc, at), fallback);
   }
-  const objectValue = controls.getRTPC?.(curve.rtpc);
-  return NormalizeControlValue(objectValue ?? controls.getGlobalRTPC?.(curve.rtpc), fallback);
+  const objectValue = controls.getRTPC?.(curve.rtpc, at);
+  return NormalizeControlValue(objectValue ?? controls.getGlobalRTPC?.(curve.rtpc, at), fallback);
 }
 function EvaluateStateProperties(properties, controls) {
   let gainDb = 0;
@@ -1237,14 +1286,14 @@ function EvaluateStateProperties(properties, controls) {
     highPass
   };
 }
-function EvaluateRtpcProperties(curves, controls) {
+function EvaluateRtpcProperties(curves, controls, at = undefined) {
   let gainDb = 0;
   let pitchCents = 0;
   let lowPass = 0;
   let highPass = 0;
   let initialDelayMs = 0;
   for (const curve of curves ?? []) {
-    const value = ReadRTPC(curve, controls, false);
+    const value = ReadRTPC(curve, controls, false, at);
     if (value === undefined) {
       continue;
     }
@@ -1270,9 +1319,9 @@ function EvaluateRtpcProperties(curves, controls) {
     initialDelayMs
   };
 }
-function EvaluateFilterProperty(property, selection, controls) {
+function EvaluateFilterProperty(property, selection, controls, at = undefined) {
   const state = EvaluateStateProperties(selection?.stateProperties, controls);
-  const rtpc = EvaluateRtpcProperties(selection?.rtpcCurves, controls);
+  const rtpc = EvaluateRtpcProperties(selection?.rtpcCurves, controls, at);
   return Clamp((Number(selection?.[property]) || 0) + state[property] + rtpc[property], MIN_FILTER_PERCENT, MAX_FILTER_PERCENT);
 }
 function HasStateCaseField(properties, field) {

@@ -1306,16 +1306,22 @@ export class CjsAudioMan
                             actionIndex: selection.actionIndex,
                             leafIndex: selection.leafIndex,
                             matchIds: selection.matchIds,
-                            getPlaybackRate: () =>
+                            getPlaybackRate: (at = undefined) =>
                                 engine.EvaluatePlaybackRate(
                                     selection,
                                     controls,
+                                    undefined,
+                                    at,
                                 ),
-                            getPlaybackRateAtVoicePitchCents: value =>
+                            getPlaybackRateAtVoicePitchCents: (
+                                value,
+                                at = undefined,
+                            ) =>
                                 engine.EvaluatePlaybackRate(
                                     selection,
                                     controls,
                                     value,
+                                    at,
                                 ),
                             spatial: selection.spatial ?? eventSpatial,
                             ...(selection.delayMs === undefined
@@ -1333,32 +1339,40 @@ export class CjsAudioMan
                                     switchFadeInMs:
                                         selection.switchFadeInMs,
                                 }),
-                            getGain: () => engine.EvaluateGain(
+                            getGain: (at = undefined) => engine.EvaluateGain(
                                 selection,
                                 controls,
+                                undefined,
+                                at,
                             ),
-                            getGainAtVoiceVolumeDb: voiceVolumeDb =>
+                            getGainAtVoiceVolumeDb: (
+                                voiceVolumeDb,
+                                at = undefined,
+                            ) =>
                                 engine.EvaluateGain(
                                     selection,
                                     controls,
                                     voiceVolumeDb,
+                                    at,
                                 ),
                             ...(selection.lowPass === undefined
                                 ? {}
                                 : {
-                                    getLowPass: () =>
+                                    getLowPass: (at = undefined) =>
                                         engine.EvaluateLowPass(
                                             selection,
                                             controls,
+                                            at,
                                         ),
                                 }),
                             ...(selection.highPass === undefined
                                 ? {}
                                 : {
-                                    getHighPass: () =>
+                                    getHighPass: (at = undefined) =>
                                         engine.EvaluateHighPass(
                                             selection,
                                             controls,
+                                            at,
                                         ),
                                 }),
                         } ]

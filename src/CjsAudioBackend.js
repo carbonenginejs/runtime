@@ -69,6 +69,10 @@ export class CjsAudioBackend
 
     #objectSwitchValues = new Map();
 
+    #rtpcTransitions = new Map();
+
+    #deferSfxControlRefresh = false;
+
     #applyRTPC = null;
 
     #nextPlayingID = 1;
@@ -257,9 +261,23 @@ export class CjsAudioBackend
             nodes.retiredRtpcValues = new Map(
                 this.#objectRtpcValues.get(gameObjID) ?? [],
             );
+            nodes.retiredRtpcTransitions = new Map();
+            for (const transition of this.#rtpcTransitions.values())
+            {
+                if (transition.scope === "game-object"
+                    && String(transition.gameObjID)
+                        === String(gameObjID))
+                {
+                    nodes.retiredRtpcTransitions.set(
+                        transition.name,
+                        { ...transition },
+                    );
+                }
+            }
             this.#emitterNodes.delete(gameObjID);
             this.#ReleaseRetiredEmitterNodes(gameObjID, nodes);
         }
+        this.#CancelObjectRtpcTransitions(gameObjID);
         this.#objectRtpcValues.delete(gameObjID);
         this.#objectSwitchValues.delete(gameObjID);
     }
@@ -267,6 +285,7 @@ export class CjsAudioBackend
     /** Permanently releases an emitter and every loaded or pending sound it owns. */
     ReleaseGameObj(gameObjID)
     {
+        this.#CancelObjectRtpcTransitions(gameObjID);
         for (const [playingID, record] of [ ...this.#playing ])
         {
             if (record.gameObjID !== gameObjID)
@@ -308,6 +327,7 @@ export class CjsAudioBackend
     PostEvent(eventID, gameObjID, additionalFlags, emitter, eventName)
     {
         this.#CommitHeardCrossfadeTransactions();
+        this.#ProcessScheduledSfxActions();
         const music = this.#musicEngine?.HandlesEvent(eventName) === true;
         const sfx = this.#hasSfxEvent
             ? this.#hasSfxEvent(String(eventName)) === true
@@ -1037,31 +1057,45 @@ export class CjsAudioBackend
         {
             return false;
         }
-        let values = this.#objectRtpcValues.get(gameObjID);
-        if (!values)
+        this.#deferSfxControlRefresh = true;
+        let result;
+
+        try
         {
-            values = new Map();
-            this.#objectRtpcValues.set(gameObjID, values);
+            this.#ProcessScheduledSfxActions();
+            this.#AdvanceRtpcVoices(
+                "game-object",
+                gameObjID,
+                Number(this.#context?.currentTime) || 0,
+            );
+            this.#CancelRtpcTransition("game-object", name, gameObjID);
+            result = this.#WriteObjectRtpcValue(
+                name,
+                numeric,
+                gameObjID,
+            );
         }
-        values.set(name, numeric);
-        this.#RefreshSfxControls(gameObjID);
-        const nodes = this.#emitterNodes.get(gameObjID) ?? null;
-        this.#applyRTPC?.({
-            gameObjID,
-            rtpcName: name,
-            value: numeric,
-            context: this.#context,
-            gain: nodes?.gain?.gain ?? null,
-            flatGain: nodes?.flatGain?.gain ?? null,
-            panner: nodes?.panner ?? null
-        });
-        return true;
+        finally
+        {
+            this.#deferSfxControlRefresh = false;
+        }
+        // Processing overdue actions above may have changed global RTPCs or
+        // another emitter. Flush every suppressed refresh before returning.
+        this.#RefreshSfxControls();
+        return result;
     }
 
     /** Per-object RTPC query for adapters, diagnostics, and tests. */
     GetRTPCValue(rtpcName, gameObjID)
     {
-        return this.#objectRtpcValues.get(gameObjID)?.get(String(rtpcName));
+        const name = String(rtpcName);
+
+        return this.#ReadRtpcValue(
+            "game-object",
+            name,
+            gameObjID,
+            Number(this.#context?.currentTime) || 0,
+        );
     }
 
     /**
@@ -1116,17 +1150,26 @@ export class CjsAudioBackend
         {
             return false;
         }
-        this.#globalRtpcValues.set(name, numeric);
+        this.#deferSfxControlRefresh = true;
+        let result;
+
+        try
+        {
+            this.#ProcessScheduledSfxActions();
+            this.#AdvanceRtpcVoices(
+                "global",
+                undefined,
+                Number(this.#context?.currentTime) || 0,
+            );
+            this.#CancelRtpcTransition("global", name);
+            result = this.#WriteGlobalRtpcValue(name, numeric);
+        }
+        finally
+        {
+            this.#deferSfxControlRefresh = false;
+        }
         this.#RefreshSfxControls();
-        if (name === "menu_main_master_level")
-        {
-            SetAudioParam(this.#masterGain?.gain, Math.max(0, Math.min(1, numeric || 0)), this.#context);
-        }
-        else if (name === "menu_main_music_level")
-        {
-            this.#musicEngine?.SetMusicVolume(numeric);
-        }
-        return true;
+        return result;
     }
 
     /** Global state group - feeds authored SFX and music tree arguments. */
@@ -1154,7 +1197,14 @@ export class CjsAudioBackend
     /** Monitored-parameter query source. */
     GetGlobalRTPCValue(rtpcName)
     {
-        return this.#globalRtpcValues.get(String(rtpcName));
+        const name = String(rtpcName);
+
+        return this.#ReadRtpcValue(
+            "global",
+            name,
+            undefined,
+            Number(this.#context?.currentTime) || 0,
+        );
     }
 
     /** Banks are virtual on the catalog route: media resolves per event, so loads complete immediately. */
@@ -1178,6 +1228,7 @@ export class CjsAudioBackend
     RenderAudio()
     {
         this.#ProcessScheduledSfxActions();
+        this.#ProcessRtpcTransitions();
         this.#FinalizeDueSfxPauses();
         this.#ProcessTriggerRateSlots();
         this.#ProcessCrossfadeSlots();
@@ -1466,6 +1517,7 @@ export class CjsAudioBackend
         }
         this.#objectRtpcValues.clear();
         this.#objectSwitchValues.clear();
+        this.#rtpcTransitions.clear();
         this.#globalRtpcValues.clear();
         this.#globalStateValues.clear();
         this.#sfxGain?.disconnect?.();
@@ -1848,7 +1900,9 @@ export class CjsAudioBackend
                     && operation.kind !== "set-voice-pitch"
                     && operation.kind !== "reset-voice-pitch"
                     && operation.kind !== "set-voice-volume"
-                    && operation.kind !== "reset-voice-volume")
+                    && operation.kind !== "reset-voice-volume"
+                    && operation.kind !== "set-game-parameter"
+                    && operation.kind !== "reset-game-parameter")
                 {
                     throw new TypeError(
                         `Unsupported resolved SFX operation ${operation.kind}`,
@@ -1933,6 +1987,11 @@ export class CjsAudioBackend
         {
             this.#ApplySfxVoicePitch(action, now);
         }
+        else if (action.kind === "set-game-parameter"
+            || action.kind === "reset-game-parameter")
+        {
+            this.#ApplySfxGameParameter(action, now);
+        }
         else
         {
             this.#ApplySfxVoiceVolume(action, now);
@@ -2006,6 +2065,305 @@ export class CjsAudioBackend
         }
         apply(action.emitterNodes);
         this.#RefreshSfxVoicePitches(action.gameObjID);
+    }
+
+    /** Applies one persistent Set or Reset Game Parameter mutation. */
+    #ApplySfxGameParameter(action, now)
+    {
+        const scope = action.scope;
+        const name = String(action.rtpc);
+        const gameObjID = action.gameObjID;
+
+        if (scope === "game-object"
+            && this.#emitterNodes.get(gameObjID)
+                !== action.emitterNodes)
+        {
+            return false;
+        }
+
+        const currentTime = Number(now) || 0;
+        const at = Math.min(
+            currentTime,
+            Math.max(0, Number(action.actionTime) || 0),
+        );
+        const key = this.#RtpcTransitionKey(scope, name, gameObjID);
+
+        this.#AdvanceRtpcVoices(scope, gameObjID, currentTime);
+
+        const defaultValue = Number(action.defaultValue);
+        const fallback = scope === "game-object"
+            ? this.#ReadRtpcValue("global", name, undefined, at)
+                ?? (Number.isFinite(defaultValue)
+                    ? defaultValue
+                    : undefined)
+            : Number.isFinite(defaultValue)
+                ? defaultValue
+                : undefined;
+        const stored = this.#ReadRtpcValue(
+            scope,
+            name,
+            gameObjID,
+            at,
+        );
+        const current = stored ?? fallback ?? 0;
+        const resetting = action.kind === "reset-game-parameter";
+        const authoredValue = Number(action.gameParameterValue);
+        const target = resetting
+            ? defaultValue
+            : action.valueMode === "relative"
+                ? current + authoredValue
+                : authoredValue;
+
+        this.#rtpcTransitions.delete(key);
+        if (!Number.isFinite(target))
+        {
+            return false;
+        }
+
+        const transitionMs = Math.max(
+            0,
+            Number(action.transitionMs) || 0,
+        );
+
+        if (transitionMs === 0
+            || current === target
+            || at + transitionMs / 1000 <= currentTime)
+        {
+            this.#WriteRtpcValue(scope, name, target, gameObjID);
+            return true;
+        }
+
+        this.#rtpcTransitions.set(key, {
+            key,
+            scope,
+            name,
+            gameObjID,
+            emitterNodes: action.emitterNodes ?? null,
+            from: current,
+            to: target,
+            startTime: at,
+            duration: transitionMs / 1000,
+            curve: Number(action.curve ?? LINEAR_FADE_CURVE),
+            resetting,
+            // The action's bypass flag addresses Wwise's separate internal
+            // Game Parameter interpolation. runtime-resource does not expose
+            // that STMG policy yet, so the authored action transition remains
+            // exact while the flag is retained for future realization.
+            bypassTransition: action.bypassTransition === true,
+        });
+        this.#RefreshSfxControls(
+            scope === "game-object" ? gameObjID : null,
+            at + transitionMs / 1000,
+        );
+        return true;
+    }
+
+    /** Advances every live authored Game Parameter transition. */
+    #ProcessRtpcTransitions()
+    {
+        const now = Number(this.#context?.currentTime) || 0;
+
+        for (const [ key, transition ] of [ ...this.#rtpcTransitions ])
+        {
+            if (transition.startTime + transition.duration <= now)
+            {
+                this.#AdvanceRtpcVoices(
+                    transition.scope,
+                    transition.gameObjID,
+                    now,
+                );
+                this.#AdvanceRtpcTransition(key, now);
+            }
+        }
+    }
+
+    /** Advances one transition and returns its current effective value. */
+    #AdvanceRtpcTransition(key, now)
+    {
+        const transition = this.#rtpcTransitions.get(key);
+
+        if (!transition)
+        {
+            return undefined;
+        }
+        if (transition.scope === "game-object"
+            && this.#emitterNodes.get(transition.gameObjID)
+                !== transition.emitterNodes)
+        {
+            this.#rtpcTransitions.delete(key);
+            return undefined;
+        }
+
+        const progress = transition.duration <= 0
+            ? 1
+            : Math.max(0, Math.min(
+                1,
+                (Number(now) - transition.startTime)
+                    / transition.duration,
+            ));
+        const amount = evaluateWwiseInterpolation(
+            transition.curve,
+            progress,
+        );
+        const value = transition.from
+            + (transition.to - transition.from) * amount;
+
+        if (progress >= 1)
+        {
+            this.#rtpcTransitions.delete(key);
+            this.#WriteRtpcValue(
+                transition.scope,
+                transition.name,
+                transition.to,
+                transition.gameObjID,
+            );
+        }
+        return value;
+    }
+
+    #ReadRtpcValue(scope, name, gameObjID, at)
+    {
+        const transition = this.#rtpcTransitions.get(
+            this.#RtpcTransitionKey(scope, name, gameObjID),
+        );
+
+        if (transition)
+        {
+            return EvaluateRtpcTransition(transition, at);
+        }
+        return scope === "global"
+            ? this.#globalRtpcValues.get(name)
+            : this.#objectRtpcValues.get(gameObjID)?.get(name);
+    }
+
+    #AdvanceRtpcVoices(scope, gameObjID, at)
+    {
+        for (const record of this.#playing.values())
+        {
+            if (!record.sfx
+                || (scope === "game-object"
+                    && (record.gameObjID !== gameObjID
+                        || record.emitterNodes
+                            !== this.#emitterNodes.get(gameObjID))))
+            {
+                continue;
+            }
+            for (const voice of record.voices ?? [])
+            {
+                if (!voice.ended)
+                {
+                    this.#AdvanceSfxVoiceTransport(voice, at);
+                }
+            }
+        }
+    }
+
+    #RtpcTransitionEndForRecord(record, from)
+    {
+        let end = Number(from) || 0;
+
+        for (const transition of this.#rtpcTransitions.values())
+        {
+            if (transition.scope === "global"
+                || (transition.scope === "game-object"
+                    && record.gameObjID === transition.gameObjID
+                    && record.emitterNodes
+                        === this.#emitterNodes.get(record.gameObjID)))
+            {
+                end = Math.max(
+                    end,
+                    transition.startTime + transition.duration,
+                );
+            }
+        }
+        for (const transition of
+            record.emitterNodes?.retiredRtpcTransitions?.values?.() ?? [])
+        {
+            end = Math.max(
+                end,
+                transition.startTime + transition.duration,
+            );
+        }
+        return end;
+    }
+
+    #RtpcTransitionKey(scope, name, gameObjID = "")
+    {
+        return scope === "global"
+            ? `g\0${name}`
+            : `o\0${String(gameObjID)}\0${name}`;
+    }
+
+    #CancelRtpcTransition(scope, name, gameObjID = "")
+    {
+        this.#rtpcTransitions.delete(
+            this.#RtpcTransitionKey(scope, name, gameObjID),
+        );
+    }
+
+    #CancelObjectRtpcTransitions(gameObjID)
+    {
+        const objectID = String(gameObjID);
+
+        for (const [ key, transition ] of this.#rtpcTransitions)
+        {
+            if (transition.scope === "game-object"
+                && String(transition.gameObjID) === objectID)
+            {
+                this.#rtpcTransitions.delete(key);
+            }
+        }
+    }
+
+    #WriteRtpcValue(scope, name, value, gameObjID)
+    {
+        return scope === "global"
+            ? this.#WriteGlobalRtpcValue(name, value)
+            : this.#WriteObjectRtpcValue(name, value, gameObjID);
+    }
+
+    #WriteObjectRtpcValue(name, value, gameObjID)
+    {
+        let values = this.#objectRtpcValues.get(gameObjID);
+
+        if (!values)
+        {
+            values = new Map();
+            this.#objectRtpcValues.set(gameObjID, values);
+        }
+        values.set(name, value);
+        this.#RefreshSfxControls(gameObjID);
+        const nodes = this.#emitterNodes.get(gameObjID) ?? null;
+
+        this.#applyRTPC?.({
+            gameObjID,
+            rtpcName: name,
+            value,
+            context: this.#context,
+            gain: nodes?.gain?.gain ?? null,
+            flatGain: nodes?.flatGain?.gain ?? null,
+            panner: nodes?.panner ?? null,
+        });
+        return true;
+    }
+
+    #WriteGlobalRtpcValue(name, value)
+    {
+        this.#globalRtpcValues.set(name, value);
+        this.#RefreshSfxControls();
+        if (name === "menu_main_master_level")
+        {
+            SetAudioParam(
+                this.#masterGain?.gain,
+                Math.max(0, Math.min(1, value || 0)),
+                this.#context,
+            );
+        }
+        else if (name === "menu_main_music_level")
+        {
+            this.#musicEngine?.SetMusicVolume(value);
+        }
+        return true;
     }
 
     /** Advances matching voices before replacing their active pitch curve. */
@@ -3214,12 +3572,26 @@ export class CjsAudioBackend
                 this.GetSwitchValue(group, gameObjID),
             getState: group =>
                 this.GetGlobalState(group),
-            getRTPC: name =>
+            getRTPC: (name, at = undefined) =>
                 record?.emitterNodes?.retiredRtpcValues instanceof Map
-                    ? record.emitterNodes.retiredRtpcValues.get(String(name))
-                    : this.GetRTPCValue(name, gameObjID),
-            getGlobalRTPC: name =>
-                this.GetGlobalRTPCValue(name),
+                    ? ReadRetiredRtpcValue(
+                        record.emitterNodes,
+                        String(name),
+                        at ?? (Number(this.#context?.currentTime) || 0),
+                    )
+                    : this.#ReadRtpcValue(
+                        "game-object",
+                        String(name),
+                        gameObjID,
+                        at ?? (Number(this.#context?.currentTime) || 0),
+                    ),
+            getGlobalRTPC: (name, at = undefined) =>
+                this.#ReadRtpcValue(
+                    "global",
+                    String(name),
+                    undefined,
+                    at ?? (Number(this.#context?.currentTime) || 0),
+                ),
             getVoiceVolumeDb: matchIds =>
                 EvaluateVoiceVolumeTargets(
                     record?.emitterNodes?.voiceVolumes,
@@ -3368,6 +3740,7 @@ export class CjsAudioBackend
         }
 
         const voice = {
+            gameObjID,
             buffer: descriptor.buffer,
             loop: descriptor.loop,
             playCount: descriptor.playCount,
@@ -3381,6 +3754,10 @@ export class CjsAudioBackend
                 descriptor.getGainAtVoiceVolumeDb,
             voiceVolumeStates: emitterNodes.voiceVolumes,
             voicePitchStates: emitterNodes.voicePitches,
+            rtpcTransitionEnd: this.#RtpcTransitionEndForRecord(
+                { gameObjID, emitterNodes },
+                Number(this.#context?.currentTime) || 0,
+            ),
             getLowPass: descriptor.getLowPass,
             getHighPass: descriptor.getHighPass,
             delayMs: descriptor.delayMs,
@@ -4747,8 +5124,14 @@ export class CjsAudioBackend
     }
 
     /** Re-evaluates authored live gain and playback-rate controls. */
-    #RefreshSfxControls(gameObjID = null)
+    #RefreshSfxControls(gameObjID = null, transitionEnd = null)
     {
+        if (this.#deferSfxControlRefresh)
+        {
+            return;
+        }
+        const now = Number(this.#context?.currentTime) || 0;
+
         for (const record of this.#playing.values())
         {
             if (!record.sfx
@@ -4763,6 +5146,14 @@ export class CjsAudioBackend
             {
                 if (!voice.ended)
                 {
+                    voice.rtpcTransitionEnd = Math.max(
+                        now,
+                        Number(transitionEnd)
+                            || this.#RtpcTransitionEndForRecord(
+                                record,
+                                now,
+                            ),
+                    );
                     this.#ApplyVoiceGain(voice);
                     this.#ApplyVoiceFilters(voice);
                     this.#ApplyVoicePlaybackRate(voice);
@@ -4774,6 +5165,10 @@ export class CjsAudioBackend
     /** Re-evaluates the live Voice Volume contribution during transitions. */
     #RefreshSfxVoiceVolumes(gameObjID = null)
     {
+        if (this.#deferSfxControlRefresh)
+        {
+            return;
+        }
         for (const record of this.#playing.values())
         {
             if (!record.sfx
@@ -4795,6 +5190,10 @@ export class CjsAudioBackend
     /** Re-evaluates the live Voice Pitch contribution during transitions. */
     #RefreshSfxVoicePitches(gameObjID = null)
     {
+        if (this.#deferSfxControlRefresh)
+        {
+            return;
+        }
         for (const record of this.#playing.values())
         {
             if (!record.sfx
@@ -4833,7 +5232,9 @@ export class CjsAudioBackend
 
         try
         {
-            value = voice.getGain();
+            value = voice.getGain(
+                Number(this.#context?.currentTime) || 0,
+            );
         }
         catch
         {
@@ -4857,12 +5258,14 @@ export class CjsAudioBackend
             voice.getLowPass,
             false,
             this.#context,
+            voice.rtpcTransitionEnd,
         );
         ApplyVoiceFilter(
             voice.highPassFilter,
             voice.getHighPass,
             true,
             this.#context,
+            voice.rtpcTransitionEnd,
         );
     }
 
@@ -4975,7 +5378,7 @@ export class CjsAudioBackend
 
         try
         {
-            value = Number(voice.getPlaybackRate());
+            value = Number(voice.getPlaybackRate(now));
         }
         catch
         {
@@ -5245,37 +5648,115 @@ function SetAudioParam(param, value, context)
     }
 }
 
-function ApplyVoiceFilter(node, readPercent, highPass, context)
+function EvaluateRtpcTransition(transition, at)
+{
+    const duration = Math.max(0, Number(transition?.duration) || 0);
+    const progress = duration === 0
+        ? 1
+        : Math.max(0, Math.min(
+            1,
+            ((Number(at) || 0) - Number(transition.startTime))
+                / duration,
+        ));
+
+    return Number(transition.from)
+        + (Number(transition.to) - Number(transition.from))
+            * evaluateWwiseInterpolation(transition.curve, progress);
+}
+
+function ReadRetiredRtpcValue(nodes, name, at)
+{
+    const transition = nodes.retiredRtpcTransitions?.get(name);
+
+    return transition
+        ? EvaluateRtpcTransition(transition, at)
+        : nodes.retiredRtpcValues?.get(name);
+}
+
+function ApplyVoiceFilter(
+    node,
+    readPercent,
+    highPass,
+    context,
+    transitionEnd = 0,
+)
 {
     if (!node || typeof readPercent !== "function")
     {
         return;
     }
 
-    let value;
+    const now = Number(context?.currentTime) || 0;
+    const cutoffAt = at =>
+    {
+        const value = Number(readPercent(at));
+
+        if (!Number.isFinite(value))
+        {
+            return null;
+        }
+        const percent = Math.max(0, Math.min(100, value));
+        const tableValue = highPass ? 100 - percent : percent;
+        const leftIndex = Math.floor(tableValue);
+        const rightIndex = Math.ceil(tableValue);
+        const left = WWISE_FILTER_CUTOFF_HZ[leftIndex];
+        const right = WWISE_FILTER_CUTOFF_HZ[rightIndex];
+
+        return left + (right - left) * (tableValue - leftIndex);
+    };
+    let cutoff;
 
     try
     {
-        value = Number(readPercent());
+        cutoff = cutoffAt(now);
     }
     catch
     {
         return;
     }
-    if (!Number.isFinite(value))
+    if (!Number.isFinite(cutoff))
     {
         return;
     }
+    const param = node.frequency;
+    const end = Math.max(now, Number(transitionEnd) || 0);
 
-    const percent = Math.max(0, Math.min(100, value));
-    const tableValue = highPass ? 100 - percent : percent;
-    const leftIndex = Math.floor(tableValue);
-    const rightIndex = Math.ceil(tableValue);
-    const left = WWISE_FILTER_CUTOFF_HZ[leftIndex];
-    const right = WWISE_FILTER_CUTOFF_HZ[rightIndex];
-    const cutoff = left + (right - left) * (tableValue - leftIndex);
+    if (typeof param?.cancelAndHoldAtTime === "function")
+    {
+        param.cancelAndHoldAtTime(now);
+    }
+    else
+    {
+        // A value curve is one event at its start time. Cancelling from `now`
+        // cannot remove a curve which began earlier and is still in progress.
+        param?.cancelScheduledValues?.(0);
+    }
+    param?.setValueAtTime?.(cutoff, now);
+    SetAudioParam(param, cutoff, context);
+    if (end <= now)
+    {
+        return;
+    }
+    if (typeof param?.setValueCurveAtTime === "function")
+    {
+        const values = new Float32Array(FADE_CURVE_SAMPLES);
 
-    SetAudioParam(node.frequency, cutoff, context);
+        for (let index = 0; index < values.length; index++)
+        {
+            const at = now
+                + (end - now) * index / (values.length - 1);
+
+            values[index] = cutoffAt(at) ?? cutoff;
+        }
+        param.setValueCurveAtTime(values, now, end - now);
+    }
+    else
+    {
+        param?.linearRampToValueAtTime?.(
+            cutoffAt(end) ?? cutoff,
+            end,
+        );
+    }
 }
 
 function RenderQuantumSeconds(context)
@@ -5879,6 +6360,10 @@ function ScheduleVoiceVolumeGain(param, voice, context)
             endTime = end;
         }
     }
+    endTime = Math.max(
+        endTime,
+        Number(voice.rtpcTransitionEnd) || now,
+    );
 
     const evaluate = at =>
     {
@@ -5888,6 +6373,7 @@ function ScheduleVoiceVolumeGain(param, voice, context)
         {
             value = voice.getGainAtVoiceVolumeDb(
                 EvaluateVoiceVolumeTargets(states, matchIds, at),
+                at,
             );
         }
         catch
@@ -6108,6 +6594,11 @@ function VoicePitchTransitionEnd(voice, from)
         : [];
     let endTime = Number(from) || 0;
 
+    endTime = Math.max(
+        endTime,
+        Number(voice.rtpcTransitionEnd) || endTime,
+    );
+
     for (const value of new Set(matchIds.map(String)))
     {
         const state = states.get(value);
@@ -6134,6 +6625,7 @@ function EvaluateVoicePitchPlaybackRate(voice, at)
                 voice.matchIds,
                 at,
             ),
+            at,
         );
     }
     catch

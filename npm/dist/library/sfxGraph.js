@@ -10,6 +10,7 @@ const MIN_TRIGGER_RATE_MS = 21;
 const EVENT_ACTION_KINDS = new Set(["state", "switch"]);
 const VOICE_VOLUME_ACTION_KINDS = new Set(["reset-voice-volume", "set-voice-volume"]);
 const VOICE_PITCH_ACTION_KINDS = new Set(["reset-voice-pitch", "set-voice-pitch"]);
+const GAME_PARAMETER_ACTION_KINDS = new Set(["reset-game-parameter", "set-game-parameter"]);
 const PLAYBACK_CONTROL_ACTION_KINDS = new Set(["pause", "resume", "stop"]);
 const PLAYBACK_CONTROL_SCOPES = new Set(["game-object", "global"]);
 const PLAYBACK_CONTROL_MODES = new Set(["all", "all-except", "element"]);
@@ -146,6 +147,10 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
         ValidateVoicePitchAction(action, label);
         continue;
       }
+      if (GAME_PARAMETER_ACTION_KINDS.has(action.kind)) {
+        ValidateGameParameterAction(action, label);
+        continue;
+      }
       ValidateSetterAction(action, label);
     }
     const projected = actions.filter(action => action.kind === "play").map(action => NormalizeChild(action.child));
@@ -197,6 +202,9 @@ function normalizeSfxGraph(graph, media = {}, embeddedMedia = {}) {
         }
         if (VOICE_PITCH_ACTION_KINDS.has(action.kind)) {
           return NormalizeVoicePitchAction(action);
+        }
+        if (GAME_PARAMETER_ACTION_KINDS.has(action.kind)) {
+          return NormalizeGameParameterAction(action);
         }
         return NormalizeSetterAction(action);
       });
@@ -583,6 +591,48 @@ function ValidateVoiceVolumeAction(value, label) {
   }, label);
   ValidateTransitionTiming(action, label);
 }
+function ValidateGameParameterAction(value, label) {
+  const action = RequireRecord(value, label);
+  if (!GAME_PARAMETER_ACTION_KINDS.has(action.kind)) {
+    throw new TypeError(`${label} kind must be set-game-parameter or reset-game-parameter`);
+  }
+  NormalizeName(action.rtpc, `${label} rtpc`);
+  if (!PLAYBACK_CONTROL_SCOPES.has(action.scope)) {
+    throw new TypeError(`${label} scope must be game-object or global`);
+  }
+  if (action.bypassTransition !== undefined && typeof action.bypassTransition !== "boolean") {
+    throw new TypeError(`${label} bypassTransition must be boolean`);
+  }
+  if (action.defaultValue === undefined) {
+    throw new TypeError(`${label} requires an authored defaultValue`);
+  } else {
+    NormalizeFiniteNumber(action.defaultValue, `${label} defaultValue`);
+  }
+  if (action.kind === "set-game-parameter") {
+    if (action.valueMode !== "absolute" && action.valueMode !== "relative") {
+      throw new TypeError(`${label} valueMode must be absolute or relative`);
+    }
+    NormalizeFiniteNumber(action.gameParameterValue, `${label} gameParameterValue`);
+    if (action.gameParameterRange !== undefined) {
+      const range = RequireRecord(action.gameParameterRange, `${label} gameParameterRange`);
+      const min = NormalizeFiniteNumber(range.min, `${label} gameParameterRange min`);
+      const max = NormalizeFiniteNumber(range.max, `${label} gameParameterRange max`);
+      if (min > max) {
+        throw new TypeError(`${label} gameParameterRange min must not exceed max`);
+      }
+    }
+  } else if (action.valueMode !== undefined || action.gameParameterValue !== undefined || action.gameParameterRange !== undefined) {
+    throw new TypeError(`${label} Reset cannot carry a game-parameter value`);
+  }
+  if (action.probability !== undefined) {
+    throw new TypeError(`${label} probability is unsupported`);
+  }
+  ValidateActionTiming({
+    delayMs: action.delayMs,
+    delayRangeMs: action.delayRangeMs
+  }, label);
+  ValidateTransitionTiming(action, label);
+}
 function ValidateVoiceVolumeDb(value, label) {
   const number = NormalizeFiniteNumber(value, label);
   if (number < -200 || number > 200) {
@@ -813,6 +863,39 @@ function NormalizeVoicePitchAction(action) {
       result.pitchRangeCents = {
         min: Number(action.pitchRangeCents.min),
         max: Number(action.pitchRangeCents.max)
+      };
+    }
+  }
+  return result;
+}
+function NormalizeGameParameterAction(action) {
+  const result = {
+    kind: action.kind,
+    rtpc: String(action.rtpc),
+    scope: action.scope,
+    curve: Number(action.curve ?? 4),
+    bypassTransition: Boolean(action.bypassTransition ?? false)
+  };
+  for (const field of ["defaultValue", "delayMs", "transitionMs"]) {
+    if (action[field] !== undefined) {
+      result[field] = Number(action[field]);
+    }
+  }
+  for (const field of ["delayRangeMs", "transitionRangeMs"]) {
+    if (action[field] !== undefined) {
+      result[field] = {
+        min: Number(action[field].min),
+        max: Number(action[field].max)
+      };
+    }
+  }
+  if (action.kind === "set-game-parameter") {
+    result.valueMode = action.valueMode;
+    result.gameParameterValue = Number(action.gameParameterValue);
+    if (action.gameParameterRange !== undefined) {
+      result.gameParameterRange = {
+        min: Number(action.gameParameterRange.min),
+        max: Number(action.gameParameterRange.max)
       };
     }
   }

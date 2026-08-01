@@ -3412,6 +3412,191 @@ test("SFX Voice Pitch actions lower into ordered portable programs", () =>
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("SFX Game Parameter actions lower into ordered and action-only programs", () =>
+{
+    const typed = ({
+        name = "set-game-parameter",
+        scope = "game-object",
+        targetId = 800,
+        transitionTimeMs,
+        valueMode = "absolute",
+        value = 12,
+    } = {}) => ({
+        actionName: name,
+        actionMode: "element",
+        actionScope: scope,
+        targetId,
+        targetFlags: 0,
+        targetIsBus: false,
+        properties: transitionTimeMs === undefined
+            ? []
+            : [ { id: 0x3a } ],
+        ranges: [],
+        ...(transitionTimeMs === undefined ? {} : { transitionTimeMs }),
+        fadeCurve: 4,
+        bypassTransition: false,
+        exceptions: [],
+        ...(name === "reset-game-parameter"
+            ? {}
+            : {
+                valueMode,
+                gameParameterValue: value,
+                gameParameterRange: { min: 0, max: 0 },
+            }),
+    });
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload(),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x1303,
+                        targetId: 800,
+                        action: typed({ transitionTimeMs: 12000 }),
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 302,
+                        actionType: 0x1403,
+                        targetId: 800,
+                        action: typed({ name: "reset-game-parameter" }),
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 303,
+                        actionType: 0x1302,
+                        targetId: 800,
+                        action: typed({
+                            scope: "global",
+                            value: 100,
+                            transitionTimeMs: 100,
+                        }),
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 304,
+                        actionType: 0x1303,
+                        targetId: 999,
+                        action: typed({ targetId: 999 }),
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300, 301, 302 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 303 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 102,
+                        actionIds: [ 304 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                warp: { eventID: 100 },
+                set_mwd: { eventID: 101 },
+                unnamed_parameter: { eventID: 102 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "1",
+                    ShortName: "common",
+                    GameParameters: [
+                        { Id: "800", Name: "ship_Warp_Timer" },
+                    ],
+                } ],
+            },
+        },
+        enrichment: {
+            gameParameters: {
+                800: { defaultValue: 0 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.deepEqual(result.events.warp, [ { nodeId: "200" } ]);
+    assert.deepEqual(result.programs.warp, [
+        {
+            kind: "set-game-parameter",
+            rtpc: "ship_Warp_Timer",
+            scope: "game-object",
+            curve: 4,
+            bypassTransition: false,
+            defaultValue: 0,
+            valueMode: "absolute",
+            gameParameterValue: 12,
+            gameParameterRange: { min: 0, max: 0 },
+            transitionMs: 12000,
+        },
+        { kind: "play", child: { nodeId: "200" } },
+        {
+            kind: "reset-game-parameter",
+            rtpc: "ship_Warp_Timer",
+            scope: "game-object",
+            curve: 4,
+            bypassTransition: false,
+            defaultValue: 0,
+        },
+    ]);
+    assert.equal(result.events.set_mwd, undefined);
+    assert.deepEqual(result.programs.set_mwd, [ {
+        kind: "set-game-parameter",
+        rtpc: "ship_Warp_Timer",
+        scope: "global",
+        curve: 4,
+        bypassTransition: false,
+        defaultValue: 0,
+        valueMode: "absolute",
+        gameParameterValue: 100,
+        gameParameterRange: { min: 0, max: 0 },
+        transitionMs: 100,
+    } ]);
+    assert.match(
+        result.diagnostics.omittedEvents.find(entry =>
+            entry.name === "unnamed_parameter").reason,
+        /unnamed game parameter 999/u,
+    );
+});
+
 test("SFX spatial projection resolves inherited and mixed playable leaves", () =>
 {
     const inspections = [

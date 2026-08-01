@@ -4835,6 +4835,339 @@ test("setter-only authored events update controls and complete without a voice",
   assert.equal(backend.GetPlayingCount(), 0);
 });
 
+test("Game Parameter actions persist, transition, rebase, reset, and cancel externally", async () =>
+{
+  const programs = {
+    initialize: [
+      {
+        kind: "set-game-parameter",
+        actionIndex: 0,
+        rtpc: "engine_load",
+        scope: "global",
+        valueMode: "absolute",
+        gameParameterValue: 10,
+        defaultValue: 0,
+        delayMs: 0,
+        transitionMs: 1000,
+        curve: 4,
+        bypassTransition: false,
+      },
+      {
+        kind: "set-game-parameter",
+        actionIndex: 1,
+        rtpc: "engine_load",
+        scope: "game-object",
+        valueMode: "absolute",
+        gameParameterValue: 20,
+        defaultValue: 0,
+        delayMs: 0,
+        transitionMs: 2000,
+        curve: 4,
+        bypassTransition: false,
+      },
+    ],
+    relative: [
+      {
+        kind: "set-game-parameter",
+        actionIndex: 0,
+        rtpc: "engine_load",
+        scope: "game-object",
+        valueMode: "relative",
+        gameParameterValue: 5,
+        defaultValue: 0,
+        delayMs: 0,
+        transitionMs: 500,
+        curve: 4,
+        bypassTransition: false,
+      },
+    ],
+    reset: [
+      {
+        kind: "reset-game-parameter",
+        actionIndex: 0,
+        rtpc: "engine_load",
+        scope: "game-object",
+        defaultValue: 0.05,
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+        bypassTransition: false,
+      },
+    ],
+  };
+  const { backend, emitter, context, finished } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async () => ({ voices: [] }),
+  });
+
+  const initialized = backend.PostEvent(1, 1, 0, emitter, "initialize");
+  await tick();
+
+  context.currentTime = 0.5;
+  assert.equal(backend.GetGlobalRTPCValue("engine_load"), 5);
+  assert.equal(backend.GetRTPCValue("engine_load", 1), 5);
+  assert.ok(finished.includes(initialized));
+
+  backend.SetRTPCValue("engine_load", 7, 1);
+  context.currentTime = 1;
+  assert.equal(
+    backend.GetRTPCValue("engine_load", 1),
+    7,
+    "an external setter cancels the object transition only",
+  );
+  assert.equal(backend.GetGlobalRTPCValue("engine_load"), 10);
+
+  backend.PostEvent(2, 1, 0, emitter, "relative");
+  context.currentTime = 1.25;
+  assert.equal(backend.GetRTPCValue("engine_load", 1), 9.5);
+  context.currentTime = 1.5;
+  assert.equal(backend.GetRTPCValue("engine_load", 1), 12);
+
+  backend.PostEvent(3, 1, 0, emitter, "reset");
+  assert.equal(
+    backend.GetRTPCValue("engine_load", 1),
+    0.05,
+    "Reset restores the authored project default",
+  );
+  assert.equal(backend.GetGlobalRTPCValue("engine_load"), 10);
+});
+
+test("overdue Game Parameter actions run before a new post captures RTPCs", async () =>
+{
+  const delayed = [{
+    kind: "set-game-parameter",
+    actionIndex: 0,
+    rtpc: "capture_delay",
+    scope: "game-object",
+    valueMode: "absolute",
+    gameParameterValue: 1,
+    defaultValue: 0,
+    delayMs: 1000,
+    transitionMs: 0,
+    curve: 4,
+    bypassTransition: false,
+  }];
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName, controls) =>
+      eventName === "delayed"
+        ? delayed
+        : [{
+            kind: "play",
+            actionIndex: 0,
+            selections: [{
+              actionIndex: 0,
+              leafIndex: 0,
+              programSlotId: "0:0",
+              delayMs: (controls.getRTPC("capture_delay") ?? 0) * 1000,
+            }],
+          }],
+    loadBuffer: async (_eventID, _eventName, _controls, program) =>
+      ProgramVoiceResult(program),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "delayed");
+  await tick();
+  context.currentTime = 1;
+  backend.PostEvent(2, 1, 0, emitter, "play");
+  await tick();
+
+  assert.equal(backend.GetRTPCValue("capture_delay", 1), 1);
+  assert.equal(context.sources[0].startedAt, 2);
+});
+
+test("external object RTPC writes flush other due Game Parameter scopes", async () =>
+{
+  const programs = {
+    play: [{
+      kind: "play",
+      actionIndex: 0,
+      selections: [{
+        actionIndex: 0,
+        leafIndex: 0,
+        programSlotId: "0:0",
+      }],
+    }],
+    delayed: [{
+      kind: "set-game-parameter",
+      actionIndex: 0,
+      rtpc: "global_automation",
+      scope: "global",
+      valueMode: "absolute",
+      gameParameterValue: 1,
+      defaultValue: 0,
+      delayMs: 1000,
+      transitionMs: 1000,
+      curve: 4,
+      bypassTransition: false,
+    }],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, controls, program) => ({
+      voices: program.flatMap(operation => operation.kind === "play"
+        ? operation.selections.map(selection => ({
+            ...selection,
+            buffer: { duration: 4 },
+            loop: true,
+            getGain: at =>
+              1 + (controls.getGlobalRTPC("global_automation", at) ?? 0),
+            getGainAtVoiceVolumeDb: (_voiceVolumeDb, at) =>
+              1 + (controls.getGlobalRTPC("global_automation", at) ?? 0),
+          }))
+        : []),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+  backend.PostEvent(2, 1, 0, emitter, "delayed");
+  await tick();
+
+  context.currentTime = 1;
+  backend.SetRTPCValue("unrelated", 5, 1);
+
+  const curve = context.gains[3].gain.curves.at(-1);
+
+  assert.equal(backend.GetGlobalRTPCValue("global_automation"), 0);
+  assert.equal(curve[1], 1);
+  assert.equal(curve[2], 1);
+  assert.equal(curve[0][0], 1);
+  assert.equal(curve[0].at(-1), 2);
+});
+
+test("delayed Game Parameter actions cancel on Stop and reject stale emitter generations", async () =>
+{
+  const delayed = [
+    {
+      kind: "set-game-parameter",
+      actionIndex: 0,
+      rtpc: "engine_load",
+      scope: "game-object",
+      valueMode: "absolute",
+      gameParameterValue: 9,
+      defaultValue: 0,
+      delayMs: 1000,
+      transitionMs: 0,
+      curve: 4,
+      bypassTransition: false,
+    },
+  ];
+  const { backend, emitter, context, finished } = Harness({
+    resolveSfxProgram: () => delayed,
+    loadBuffer: async () => ({ voices: [] }),
+  });
+  const stopped = backend.PostEvent(1, 1, 0, emitter, "delayed");
+
+  await tick();
+  context.currentTime = 0.5;
+  backend.ExecuteActionOnPlayingID("stop", stopped, 0);
+  context.currentTime = 1;
+  backend.RenderAudio();
+  assert.equal(backend.GetRTPCValue("engine_load", 1), undefined);
+  assert.ok(finished.includes(stopped));
+
+  context.currentTime = 2;
+  const stale = backend.PostEvent(2, 1, 0, emitter, "delayed");
+  await tick();
+  backend.UnregisterGameObj(1);
+  backend.RegisterGameObj(1);
+  context.currentTime = 3;
+  backend.RenderAudio();
+
+  assert.equal(backend.GetRTPCValue("engine_load", 1), undefined);
+  assert.ok(finished.includes(stale));
+});
+
+test("Game Parameter transitions automate live gain, pitch transport, LPF, and HPF", async () =>
+{
+  const programs = {
+    play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          { actionIndex: 0, leafIndex: 0, matchIds: [ "200" ] },
+        ],
+      },
+    ],
+    automate: [
+      {
+        kind: "set-game-parameter",
+        actionIndex: 0,
+        rtpc: "automation",
+        scope: "game-object",
+        valueMode: "absolute",
+        gameParameterValue: 1,
+        defaultValue: 0,
+        delayMs: 0,
+        transitionMs: 1000,
+        curve: 4,
+        bypassTransition: false,
+      },
+    ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, controls, program) => ({
+      voices: program.flatMap(operation => operation.kind === "play"
+        ? [ {
+            buffer: { duration: 4 },
+            loop: true,
+            programSlotId: "0:0",
+            matchIds: [ "200" ],
+            getGain: at => 1 + (controls.getRTPC("automation", at) ?? 0),
+            getGainAtVoiceVolumeDb: (_voiceDb, at) =>
+              1 + (controls.getRTPC("automation", at) ?? 0),
+            getPlaybackRate: at =>
+              1 + (controls.getRTPC("automation", at) ?? 0),
+            getPlaybackRateAtVoicePitchCents: (_voicePitch, at) =>
+              1 + (controls.getRTPC("automation", at) ?? 0),
+            getLowPass: at =>
+              (controls.getRTPC("automation", at) ?? 0) * 100,
+            getHighPass: at =>
+              (controls.getRTPC("automation", at) ?? 0) * 100,
+          } ]
+        : []),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+  backend.PostEvent(2, 1, 0, emitter, "automate");
+
+  const gainCurve = context.gains[3].gain.curves.at(-1);
+  const pitchCurve = context.sources[0].playbackRate.curves.at(-1);
+  const lowPassCurve = context.filters[0].frequency.curves.at(-1);
+  const highPassCurve = context.filters[1].frequency.curves.at(-1);
+
+  for (const curve of [ gainCurve, pitchCurve, lowPassCurve, highPassCurve ])
+  {
+    assert.equal(curve[1], 0);
+    assert.equal(curve[2], 1);
+    assert.equal(curve[0].length, 65);
+  }
+  assert.equal(gainCurve[0][0], 1);
+  assert.equal(gainCurve[0].at(-1), 2);
+  assert.equal(pitchCurve[0][0], 1);
+  assert.equal(pitchCurve[0].at(-1), 2);
+  assert.equal(lowPassCurve[0][0], 20000);
+  assert.equal(lowPassCurve[0].at(-1), 17);
+  assert.equal(highPassCurve[0][0], 17);
+  assert.equal(highPassCurve[0].at(-1), 20000);
+
+  context.currentTime = 0.5;
+  const position = backend.GetSourcePlayPosition(1);
+  const elapsed = 0.5 - START_QUANTUM;
+  const expectedPosition = Math.round(
+    (elapsed + (0.5 ** 2 - START_QUANTUM ** 2) / 2) * 1000,
+  );
+
+  assert.ok(
+    Math.abs(position - expectedPosition) <= 1,
+    "playback position integrates the RTPC-driven pitch ramp",
+  );
+});
+
 test("Voice Volume persists across posts, isolates objects, and applies globally", async () =>
 {
   const programs = {
@@ -5331,7 +5664,7 @@ test("overdue Voice Volume actions intersect fades at authored action time", asy
   gainParam.holds = [];
   gainParam.cancelAndHoldAtTime = time => gainParam.holds.push(time);
   context.currentTime = 2;
-  backend.SetRTPCValue("unused", 1, 1);
+  backend.SetGlobalState("unused", "refresh");
 
   const rescheduledFade = gainParam.curves.at(-1);
 

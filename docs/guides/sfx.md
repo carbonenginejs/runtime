@@ -120,11 +120,16 @@ SFX schema version 2 makes `programs` the ordered authoring source. When an
 event has a program, its `events` entry must be exactly the projection of that
 program's `play` actions. This keeps legacy root lookup available without
 allowing the static roots and the executable program to disagree. Supplied
-Stop, Pause, Resume, Voice Volume, and Voice Pitch actions are also qualified
-at validation time. Bus targets remain unsupported; playback controls reject
-unsupported action flags, nonzero All targets, and element-target exceptions,
-while Voice Volume and Voice Pitch accept only exact element targets and their
-decoded value contracts.
+Stop, Pause, Resume, Voice Volume, Voice Pitch, and Set/Reset Game Parameter
+actions are also qualified at validation time. Bus targets remain unsupported;
+playback controls reject unsupported action flags, nonzero All targets, and
+element-target exceptions. Voice Volume and Voice Pitch accept only exact
+element targets and their decoded value contracts. Game Parameter actions
+retain their authored object/global scope, absolute/relative value mode,
+delay, transition, curve, and transition-bypass flag. Every portable Game
+Parameter action carries its catalog default so unset relative values and
+transition start points never guess zero; the library builder also requires an
+exact parameter-name catalog match.
 
 ## Node behavior
 
@@ -148,7 +153,8 @@ and inherited by every sound leaf it selects. Delay is measured from the
 event post, and the fade begins when the delayed source starts.
 
 `programs` preserves the authored order of Play, Stop, Pause, Resume,
-SetSwitch, SetState, Set/Reset Voice Volume, and Set/Reset Voice Pitch actions.
+SetSwitch, SetState, Set/Reset Voice Volume, Set/Reset Voice Pitch, and
+Set/Reset Game Parameter actions.
 Switches update the posting game object; states update the global state table.
 A switch or state setter therefore affects only later Play actions in the same
 post. The `events` table remains the static playable-root projection used for
@@ -219,6 +225,31 @@ action time. Web Audio automation keeps those transitions continuous between
 closed for bus, music, and otherwise untyped targets. An element target absent
 from every loaded SFX NodeBase cannot match a projected voice, so that action
 is omitted as a no-op while the event's other authored actions remain usable.
+
+Set Game Parameter writes a named object or global RTPC. Absolute mode replaces
+the scope's current value; relative mode adds to its interpolated value at the
+authored action time. Reset writes the catalog's authored default instead of
+deleting the scope and falling through to another value. Delay and value
+randomizers are sampled once per post, while a nonzero transition persists
+after the posting ID completes. A later action rebases from the interpolated
+value, and an external `SetRTPCValue()` or `SetGlobalRTPCValue()` first applies
+overdue authored actions and then cancels the active transition for that same
+scope and parameter.
+
+Ordered capture uses an in-memory RTPC overlay, so an immediate parameter
+action affects only later Play actions in that program without exposing a
+partial update if program resolution fails. Already-playing voices receive
+Web Audio automation for gain, pitch, low-pass, and high-pass RTPC properties;
+pitch automation also participates in transport and finite-repeat timing.
+Object-scoped values and transitions remain attached to a retired emitter
+generation until its voices finish, while a replacement generation starts
+clean.
+
+The portable action model deliberately retains `bypassTransition` even though
+the currently qualified EVE parameter targets use no internal STMG ramping.
+STMG defaults and ramp policies are a separate reader/runtime enrichment, not
+a reason to discard the serialized flag or reject otherwise valid future
+banks.
 
 Random and sequence state is kept independently per game object by default.
 Set `scope: "global"` on either container to share its history or position
