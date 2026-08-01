@@ -36,6 +36,19 @@ import { DxbcResourceDimensionNames } from '../../dxbc/core/decoder.js';
  * What is genuinely derived: the sampler type (a total function of the DXBC
  * resource dimension and whether comparison sampling is used) and the data
  * texture formats (constant per binding kind).
+ *
+ * ## What this block deliberately does not carry
+ *
+ * **Resource names.** The enclosing Carbon description already lists every
+ * texture with its name and register, interned in the string table exactly as a
+ * shipped Carbon file does. That is the name authority, and duplicating it here
+ * would create two places to disagree.
+ *
+ * **Merge layer counts.** A merged detail-map array's layer count is the number
+ * of inputs on its transform in the section below. The emitter also reports
+ * `arrayLayerCount` and `mergedFrom` on the binding for standalone callers with
+ * no container around them, and those are intentionally not stored: inside a
+ * container the transform is the single source of truth for what merged.
  */
 
 /** Current block version. Bump when a field is added; readers may skip unknown. */
