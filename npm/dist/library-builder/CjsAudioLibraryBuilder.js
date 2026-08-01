@@ -17,10 +17,33 @@ const SFX_SET_VOICE_PITCH_ACTION_FAMILY = 0x08;
 const SFX_RESET_VOICE_PITCH_ACTION_FAMILY = 0x09;
 const SFX_SET_VOICE_VOLUME_ACTION_FAMILY = 0x0a;
 const SFX_RESET_VOICE_VOLUME_ACTION_FAMILY = 0x0b;
+const SFX_SET_VOICE_LOW_PASS_ACTION_FAMILY = 0x0e;
+const SFX_RESET_VOICE_LOW_PASS_ACTION_FAMILY = 0x0f;
 const SFX_SET_STATE_ACTION_FAMILY = 0x12;
 const SFX_SET_GAME_PARAMETER_ACTION_FAMILY = 0x13;
 const SFX_RESET_GAME_PARAMETER_ACTION_FAMILY = 0x14;
 const SFX_SET_SWITCH_ACTION_FAMILY = 0x19;
+const SFX_SET_VOICE_HIGH_PASS_ACTION_FAMILY = 0x20;
+const SFX_RESET_VOICE_HIGH_PASS_ACTION_FAMILY = 0x30;
+const SFX_VOICE_FILTER_ACTION_FORMS = new Map([[0x02, {
+  scope: "global",
+  mode: "element"
+}], [0x03, {
+  scope: "game-object",
+  mode: "element"
+}], [0x04, {
+  scope: "global",
+  mode: "all"
+}], [0x05, {
+  scope: "game-object",
+  mode: "all"
+}], [0x08, {
+  scope: "global",
+  mode: "all-except"
+}], [0x09, {
+  scope: "game-object",
+  mode: "all-except"
+}]]);
 const SFX_UNSUPPORTED_PLAY_ACTIONS = new Set([0x0503]);
 const SFX_VOLUME_PROPERTY = 0;
 const SFX_PITCH_PROPERTY = 1;
@@ -970,6 +993,11 @@ function LowerSfxGraph({
           if (voiceVolume) {
             result.program.push(voiceVolume);
           }
+        } else if ([SFX_SET_VOICE_LOW_PASS_ACTION_FAMILY, SFX_RESET_VOICE_LOW_PASS_ACTION_FAMILY, SFX_SET_VOICE_HIGH_PASS_ACTION_FAMILY, SFX_RESET_VOICE_HIGH_PASS_ACTION_FAMILY].includes(action.actionType >> 8 & 0xff)) {
+          const voiceFilter = ReadSfxVoiceFilterAction(action, parsed);
+          if (voiceFilter) {
+            result.program.push(voiceFilter);
+          }
         } else if ((action.actionType >> 8 & 0xff) === SFX_SET_GAME_PARAMETER_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_GAME_PARAMETER_ACTION_FAMILY) {
           result.program.push(ReadSfxGameParameterAction(action, names));
         } else if ((action.actionType >> 8 & 0xff) === SFX_SET_SWITCH_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_SET_STATE_ACTION_FAMILY) {
@@ -1195,6 +1223,133 @@ function ReadSfxVoicePitchAction(action, parsed) {
       min: Number(details.pitchRangeCents?.min ?? 0),
       max: Number(details.pitchRangeCents?.max ?? 0)
     };
+  }
+  if (details.delayTimeMs !== undefined) {
+    result.delayMs = Number(details.delayTimeMs);
+  }
+  if (details.delayRangeMs !== undefined) {
+    result.delayRangeMs = {
+      min: Number(details.delayRangeMs.min),
+      max: Number(details.delayRangeMs.max)
+    };
+  }
+  if (details.transitionTimeMs !== undefined) {
+    result.transitionMs = Number(details.transitionTimeMs);
+  }
+  if (details.transitionRangeMs !== undefined) {
+    result.transitionRangeMs = {
+      min: Number(details.transitionRangeMs.min),
+      max: Number(details.transitionRangeMs.max)
+    };
+  }
+  return result;
+}
+function ReadSfxVoiceFilterAction(action, parsed) {
+  const details = action.action;
+  const actionType = Number(action.actionType) >>> 0;
+  const family = actionType >> 8 & 0xff;
+  const lowPass = family === SFX_SET_VOICE_LOW_PASS_ACTION_FAMILY || family === SFX_RESET_VOICE_LOW_PASS_ACTION_FAMILY;
+  const setting = family === SFX_SET_VOICE_LOW_PASS_ACTION_FAMILY || family === SFX_SET_VOICE_HIGH_PASS_ACTION_FAMILY;
+  const resetting = family === SFX_RESET_VOICE_LOW_PASS_ACTION_FAMILY || family === SFX_RESET_VOICE_HIGH_PASS_ACTION_FAMILY;
+  const property = lowPass ? "lowPass" : "highPass";
+  const rangeField = `${property}Range`;
+  const kind = `${setting ? "set" : "reset"}-voice-${lowPass ? "low-pass" : "high-pass"}`;
+  if (!details || !setting && !resetting || details.actionName !== kind) {
+    throw new Error(`untyped Voice Filter action ${action.id}`);
+  }
+  const actionForm = SFX_VOICE_FILTER_ACTION_FORMS.get(actionType & 0xff);
+  if (!actionForm || setting && actionForm.mode !== "element") {
+    throw new Error(`unsupported Voice Filter alias ${action.id}`);
+  }
+  if (details.actionType !== undefined && Number(details.actionType) >>> 0 !== actionType) {
+    throw new Error(`Voice Filter action type mismatch ${action.id}`);
+  }
+  const wrongProperty = lowPass ? "highPass" : "lowPass";
+  if (details[wrongProperty] !== undefined || details[`${wrongProperty}Range`] !== undefined) {
+    throw new Error(`Voice Filter action ${action.id} carries ${wrongProperty}`);
+  }
+  if (details.probability !== undefined) {
+    throw new Error(`probabilistic Voice Filter action ${action.id}`);
+  }
+  for (const field of ["properties", "ranges"]) {
+    if (details[field] === undefined) {
+      continue;
+    }
+    const ids = Array.isArray(details[field]) ? details[field].map(value => Number(value?.id)) : null;
+    if (!ids || ids.some(id => id !== 0x39 && id !== 0x3a) || new Set(ids).size !== ids.length) {
+      throw new Error(`invalid Voice Filter ${field} ${action.id}`);
+    }
+  }
+  if (!Array.isArray(details.exceptions)) {
+    throw new Error(`invalid Voice Filter exceptions ${action.id}`);
+  }
+  const targetId = NormalizeWwiseUint32(details.targetId, `Voice Filter action ${action.id} targetId`);
+  const shallowTargetId = NormalizeWwiseUint32(action.targetId, `Voice Filter action ${action.id} shallow targetId`);
+  const targetFlags = Number(details.targetFlags ?? 0);
+  const mode = details.actionMode;
+  const scope = details.actionScope;
+  const exceptions = details.exceptions;
+  if (scope !== actionForm.scope || mode !== actionForm.mode) {
+    throw new Error(`Voice Filter scope/mode mismatch ${action.id}`);
+  }
+  if (mode === "element" && !targetId) {
+    throw new Error(`unresolved Voice Filter target ${action.id}`);
+  }
+  if (targetId !== shallowTargetId) {
+    throw new Error(`Voice Filter target mismatch ${action.id}`);
+  }
+  if (mode !== "element" && targetId !== 0) {
+    throw new Error(`Voice Filter ${mode} target must be 0 ${action.id}`);
+  }
+  if (details.targetIsBus || targetFlags & 0x01) {
+    throw new Error(`bus Voice Filter action ${action.id}`);
+  }
+  if (targetFlags !== 0) {
+    throw new Error(`unsupported Voice Filter target flags ${targetFlags}`);
+  }
+  if (mode !== "all-except" && exceptions.length) {
+    throw new Error(`unexpected Voice Filter exceptions ${action.id}`);
+  }
+  if (mode === "element" && !parsed.nodeBases?.has(targetId)) {
+    return null;
+  }
+  const exceptionIds = new Set();
+  const normalizedExceptions = exceptions.map(exception => {
+    const exceptionFlags = Number(exception.targetFlags ?? 0);
+    const exceptionId = NormalizeWwiseUint32(exception.targetId, `Voice Filter action ${action.id} exception targetId`);
+    if (exception.targetIsBus || exceptionFlags & 0x01 || exceptionFlags !== 0) {
+      throw new Error(`bus Voice Filter exception ${action.id}`);
+    }
+    if (!exceptionId || exceptionIds.has(exceptionId)) {
+      throw new Error(`invalid Voice Filter exception ${action.id}`);
+    }
+    exceptionIds.add(exceptionId);
+    return {
+      targetId: String(exceptionId),
+      targetFlags: exceptionFlags
+    };
+  });
+  const result = {
+    kind,
+    targetId: String(targetId),
+    targetFlags,
+    scope,
+    mode,
+    curve: Number(details.fadeCurve ?? 4),
+    exceptions: normalizedExceptions
+  };
+  if (setting) {
+    if (details.valueMode !== "absolute" && details.valueMode !== "relative") {
+      throw new Error(`unsupported Voice Filter value mode ${action.id}`);
+    }
+    result.valueMode = details.valueMode;
+    result[property] = Number(details[property]);
+    result[rangeField] = {
+      min: Number(details[rangeField]?.min ?? 0),
+      max: Number(details[rangeField]?.max ?? 0)
+    };
+  } else if (details.valueMode !== undefined || details.lowPass !== undefined || details.lowPassRange !== undefined || details.highPass !== undefined || details.highPassRange !== undefined) {
+    throw new Error(`Voice Filter Reset carries a value ${action.id}`);
   }
   if (details.delayTimeMs !== undefined) {
     result.delayMs = Number(details.delayTimeMs);

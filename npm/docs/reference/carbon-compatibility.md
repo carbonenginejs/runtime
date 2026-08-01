@@ -30,6 +30,10 @@ The maintained graph includes:
 - ordered object/global Set and Reset Game Parameter actions with absolute or
   relative values, randomized delays, Wwise transition curves, persistent
   timelines, capture-time ordering, and live gain, pitch, and filter updates;
+- ordered Voice LPF/HPF Set and Reset actions with signed randomizers,
+  interruptible Wwise curves, hierarchy accumulation, action-aware filter
+  provisioning, persistent global templates, and qualified Reset All/Except
+  modes;
 - exact STMG State Group defaults and directed overrides, with immediate
   logical routing plus interruptible live Volume, Pitch, low-pass, and
   high-pass property interpolation;

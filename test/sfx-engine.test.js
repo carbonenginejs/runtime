@@ -2163,6 +2163,129 @@ test("event programs preserve Set and Reset Voice Pitch operations", () =>
     );
 });
 
+test("event programs preserve Voice LPF and HPF operations", () =>
+{
+    const engine = new CjsSfxEngine({
+        random: () => 0.75,
+        graph: {
+            schemaVersion: 2,
+            events: {
+                staged_filters: [ { nodeId: "1" } ],
+            },
+            programs: {
+                staged_filters: [
+                    {
+                        kind: "set-voice-low-pass",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        valueMode: "absolute",
+                        lowPass: 20,
+                        lowPassRange: { min: -10, max: 10 },
+                        transitionMs: 250,
+                        curve: 7,
+                        exceptions: [],
+                    },
+                    { kind: "play", child: { nodeId: "1" } },
+                    {
+                        kind: "reset-voice-low-pass",
+                        targetId: "0",
+                        targetFlags: 0,
+                        scope: "global",
+                        mode: "all-except",
+                        curve: 4,
+                        exceptions: [ {
+                            targetId: "701",
+                            targetFlags: 0,
+                        } ],
+                    },
+                    {
+                        kind: "set-voice-high-pass",
+                        targetId: "700",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        valueMode: "relative",
+                        highPass: -20,
+                        delayMs: 100,
+                        curve: 4,
+                        exceptions: [],
+                    },
+                    {
+                        kind: "reset-voice-high-pass",
+                        targetId: "0",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "all",
+                        curve: 4,
+                        exceptions: [],
+                    },
+                ],
+            },
+            nodes: {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    matchIds: [ "1", "700" ],
+                },
+            },
+        },
+    });
+
+    const program = engine.ResolveProgram("staged_filters");
+
+    assert.deepEqual(
+        program.map(action => action.kind),
+        [
+            "set-voice-low-pass",
+            "play",
+            "reset-voice-low-pass",
+            "set-voice-high-pass",
+            "reset-voice-high-pass",
+        ],
+    );
+    assert.deepEqual(program[0], {
+        kind: "set-voice-low-pass",
+        actionIndex: 0,
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 250,
+        curve: 7,
+        exceptions: [],
+        valueMode: "absolute",
+        lowPass: 25,
+    });
+    assert.equal(program[2].mode, "all-except");
+    assert.deepEqual(program[2].exceptions, [ {
+        targetId: "701",
+        targetFlags: 0,
+    } ]);
+    assert.equal(program[3].delayMs, 100);
+    assert.equal(program[3].valueMode, "relative");
+    assert.equal(program[3].highPass, -20);
+    assert.equal(program[4].mode, "all");
+    assert.equal(program[1].selections[0].lowPass, 0);
+    assert.equal(program[1].selections[0].highPass, 0);
+    assert.equal(
+        engine.EvaluateLowPass(
+            program[1].selections[0],
+            { getVoiceLowPass: () => 30 },
+        ),
+        30,
+    );
+    assert.equal(
+        engine.EvaluateHighPass(
+            program[1].selections[0],
+            { getVoiceHighPass: () => 30 },
+        ),
+        30,
+    );
+});
+
 test("Game Parameter programs sample once and overlay capture-time RTPCs in order", () =>
 {
     const delayCurve = {

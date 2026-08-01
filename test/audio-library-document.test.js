@@ -889,6 +889,182 @@ test("installation validates and normalizes Voice Pitch actions", () =>
     );
 });
 
+test("installation validates and normalizes Voice LPF and HPF actions", () =>
+{
+    const source = CreateDocument();
+
+    source.sfx = {
+        schemaVersion: 2,
+        events: {
+            engine_loop: [ { nodeId: "1" } ],
+        },
+        programs: {
+            engine_loop: [
+                {
+                    kind: "set-voice-low-pass",
+                    targetId: "700",
+                    targetFlags: "0",
+                    scope: "game-object",
+                    mode: "element",
+                    valueMode: "absolute",
+                    lowPass: "-20",
+                    lowPassRange: { min: "-10", max: "15" },
+                    delayMs: "100",
+                    delayRangeMs: { min: "-20", max: "20" },
+                    transitionMs: "250",
+                    transitionRangeMs: { min: "-50", max: "50" },
+                    curve: "7",
+                    exceptions: [],
+                },
+                {
+                    kind: "reset-voice-low-pass",
+                    targetId: "700",
+                    scope: "game-object",
+                    mode: "element",
+                    curve: "4",
+                    exceptions: [],
+                },
+                {
+                    kind: "set-voice-high-pass",
+                    targetId: "700",
+                    scope: "global",
+                    mode: "element",
+                    valueMode: "relative",
+                    highPass: "20",
+                    highPassRange: { min: "-5", max: "10" },
+                    curve: "8",
+                    exceptions: [],
+                },
+                {
+                    kind: "reset-voice-high-pass",
+                    targetId: "0",
+                    targetFlags: "0",
+                    scope: "game-object",
+                    mode: "all-except",
+                    curve: "4",
+                    exceptions: [ {
+                        targetId: "701",
+                        targetFlags: "0",
+                    } ],
+                },
+                { kind: "play", child: { nodeId: "1" } },
+            ],
+        },
+        nodes: {
+            "1": { type: "sound", mediaId: "777" },
+        },
+    };
+
+    const installed = installAudioLibraryDocument(source);
+
+    assert.deepEqual(installed.sfx.programs.engine_loop, [
+        {
+            kind: "set-voice-low-pass",
+            targetId: "700",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            curve: 7,
+            exceptions: [],
+            delayMs: 100,
+            delayRangeMs: { min: -20, max: 20 },
+            transitionMs: 250,
+            transitionRangeMs: { min: -50, max: 50 },
+            valueMode: "absolute",
+            lowPass: -20,
+            lowPassRange: { min: -10, max: 15 },
+        },
+        {
+            kind: "reset-voice-low-pass",
+            targetId: "700",
+            scope: "game-object",
+            mode: "element",
+            curve: 4,
+            exceptions: [],
+        },
+        {
+            kind: "set-voice-high-pass",
+            targetId: "700",
+            scope: "global",
+            mode: "element",
+            curve: 8,
+            exceptions: [],
+            valueMode: "relative",
+            highPass: 20,
+            highPassRange: { min: -5, max: 10 },
+        },
+        {
+            kind: "reset-voice-high-pass",
+            targetId: "0",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "all-except",
+            curve: 4,
+            exceptions: [ { targetId: "701", targetFlags: 0 } ],
+        },
+        { kind: "play", child: { nodeId: "1" } },
+    ]);
+
+    for (const [ mutate, pattern ] of [
+        [
+            action => { action.targetFlags = 1; },
+            /targetFlags must be 0/u,
+        ],
+        [
+            action => { action.lowPass = -101; },
+            /lowPass must be between -100 and 100 percent/u,
+        ],
+        [
+            action => { action.highPass = 1; },
+            /cannot carry highPass fields/u,
+        ],
+        [
+            action => { action.lowPassRange.min = -90; },
+            /minimum randomized lowPass must be between -100 and 100 percent/u,
+        ],
+        [
+            action => { action.exceptions.push({ targetId: "701" }); },
+            /exceptions require all-except mode/u,
+        ],
+    ])
+    {
+        const invalid = structuredClone(source);
+
+        mutate(invalid.sfx.programs.engine_loop[0]);
+        assert.throws(
+            () => validateAudioLibraryDocument(invalid),
+            pattern,
+        );
+    }
+
+    const invalidAllTarget = structuredClone(source);
+
+    invalidAllTarget.sfx.programs.engine_loop[3].targetId = "700";
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidAllTarget),
+        /all-except targetId must be 0/u,
+    );
+
+    const duplicateException = structuredClone(source);
+
+    duplicateException.sfx.programs.engine_loop[3].exceptions.push({
+        targetId: "701",
+        targetFlags: 0,
+    });
+    assert.throws(
+        () => validateAudioLibraryDocument(duplicateException),
+        /duplicate exception 701/u,
+    );
+
+    const resetWithValue = structuredClone(source);
+
+    resetWithValue.sfx.programs.engine_loop[1].lowPass = 20;
+    assert.throws(
+        () => validateAudioLibraryDocument(resetWithValue),
+        /Reset cannot carry a filter value/u,
+    );
+});
+
 test("installation validates and normalizes Game Parameter actions", () =>
 {
     const source = CreateDocument();

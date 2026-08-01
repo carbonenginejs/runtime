@@ -120,11 +120,14 @@ SFX schema version 2 makes `programs` the ordered authoring source. When an
 event has a program, its `events` entry must be exactly the projection of that
 program's `play` actions. This keeps legacy root lookup available without
 allowing the static roots and the executable program to disagree. Supplied
-Stop, Pause, Resume, Voice Volume, Voice Pitch, and Set/Reset Game Parameter
-actions are also qualified at validation time. Bus targets remain unsupported;
+Stop, Pause, Resume, Voice Volume, Voice Pitch, Voice LPF/HPF, and Set/Reset
+Game Parameter actions are also qualified at validation time. Bus targets
+remain unsupported;
 playback controls reject unsupported action flags, nonzero All targets, and
 element-target exceptions. Voice Volume and Voice Pitch accept only exact
-element targets and their decoded value contracts. Game Parameter actions
+element targets and their decoded value contracts. Voice LPF/HPF Set accepts
+an exact element target; Reset additionally retains the qualified element,
+All, and All-Except modes. Game Parameter actions
 retain their authored object/global scope, absolute/relative value mode,
 delay, transition, curve, and transition-bypass flag. Every portable Game
 Parameter action carries its catalog default so unset relative values and
@@ -153,8 +156,8 @@ and inherited by every sound leaf it selects. Delay is measured from the
 event post, and the fade begins when the delayed source starts.
 
 `programs` preserves the authored order of Play, Stop, Pause, Resume,
-SetSwitch, SetState, Set/Reset Voice Volume, Set/Reset Voice Pitch, and
-Set/Reset Game Parameter actions.
+SetSwitch, SetState, Set/Reset Voice Volume, Set/Reset Voice Pitch, Set/Reset
+Voice LPF/HPF, and Set/Reset Game Parameter actions.
 Switches update the posting game object; states update the global state table.
 A switch or state setter therefore affects only later Play actions in the same
 post. The `events` table remains the static playable-root projection used for
@@ -211,6 +214,24 @@ playback-rate ratio. A transition changes already-playing voices continuously
 without restarting their buffers, and finite authored repeat timing follows
 the changing playback rate.
 
+Set Voice LPF and HPF store independent signed percentage contributions for
+the target HIRC element. Absolute mode replaces the selected property's
+contribution, while relative mode adds to its interpolated current value.
+Reset Element returns one stored target contribution to zero. Reset All visits
+every stored target contribution for that property, and All-Except retains
+the exact stored target IDs listed by the action. Contributions from matching
+Sound, container, and Actor-Mixer identities add to authored, State, and RTPC
+filter values before the final `0..100` clamp. A Set action also provisions a
+neutral Web Audio filter for matching leaves that have no authored filter, so
+Set-before-Play and later action-only posts remain audible.
+
+The exact-target interpretation of Voice Filter All-Except is the strongest
+structural reading of the v150 action record and its object-owned property
+state, but public Wwise documentation does not specify descendant behavior.
+The inspected EVE actions are all element mode and carry no exceptions, so
+All/All-Except behavior is broader qualified coverage pending an Authoring
+Profiler experiment rather than an EVE parity claim.
+
 Game-object scope changes only the posting emitter. Global scope changes all
 currently registered emitters. The stored contribution affects voices that
 are already playing and voices created by later posts, and survives after the
@@ -218,6 +239,11 @@ action-only posting ID completes. Unregistering an emitter ends that stored
 generation; already-playing voices retain the retired generation's stored
 contribution and finish any scheduled transition, while a newly registered
 generation starts with neutral Voice Volume and Voice Pitch contributions.
+Global Voice LPF/HPF actions additionally update a persistent global template:
+an emitter registered later inherits the template's original transition
+timeline and therefore joins its remaining fade or final value. A retired
+generation keeps its independent filter map and is not changed by later
+global filter actions.
 Delay is measured from the action post. Value randomizers are signed offsets
 sampled once, and transitions use the decoded Wwise curve from the authored
 action time. Web Audio automation keeps those transitions continuous between
@@ -401,14 +427,15 @@ authoritative.
 
 Automatic construction currently accepts Wwise generator-version-150 codec
 sounds, Play, Stop, Pause, Resume, Set/Reset Voice Volume, Set/Reset Voice
-Pitch, Play-Event,
+Pitch, Set/Reset Voice LPF/HPF, Play-Event,
 SetSwitch, and SetState actions,
 Random/Sequence containers without reverse restart, and named Step
 Switch/State containers. Play actions retain
 their authored delay, delay randomizer, probability, fade-in duration,
 fade-in randomizer, and curve. Play-Event recursively inlines the referenced
 event's playable program and merges its immediate setter, playback-control,
-Voice Volume, and Voice Pitch actions; its delay, delay randomizer, and
+Voice Volume, Voice Pitch, and Voice LPF/HPF actions; its delay, delay
+randomizer, and
 probability wrap only the inlined playable roots. A scheduled or gated
 Play-Event that reaches any
 non-play program is omitted rather than executing that action early.

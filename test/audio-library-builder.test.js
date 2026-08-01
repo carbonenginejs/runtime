@@ -3649,6 +3649,567 @@ test("SFX Voice Pitch actions lower into ordered portable programs", () =>
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("SFX Voice LPF and HPF actions lower every reset mode", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload({
+                            directParentId: 700,
+                        }),
+                    },
+                    {
+                        type: 7,
+                        id: 700,
+                        payload: actorMixerPayload(),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0e03,
+                        targetId: 700,
+                        action: {
+                            actionName: "set-voice-low-pass",
+                            actionMode: "element",
+                            actionScope: "game-object",
+                            targetId: 700,
+                            targetFlags: 0,
+                            targetIsBus: false,
+                            delayTimeMs: 100,
+                            delayRangeMs: { min: -20, max: 20 },
+                            transitionTimeMs: 250,
+                            transitionRangeMs: { min: -50, max: 50 },
+                            fadeCurve: 7,
+                            valueMode: "relative",
+                            lowPass: 30,
+                            lowPassRange: { min: -5, max: 10 },
+                            exceptions: [],
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 302,
+                        actionType: 0x0f08,
+                        targetId: 0,
+                        action: {
+                            actionName: "reset-voice-low-pass",
+                            actionMode: "all-except",
+                            actionScope: "global",
+                            targetId: 0,
+                            targetFlags: 0,
+                            targetIsBus: false,
+                            fadeCurve: 4,
+                            exceptions: [ {
+                                targetId: 701,
+                                targetFlags: 0,
+                                targetIsBus: false,
+                            } ],
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 303,
+                        actionType: 0x2002,
+                        targetId: 700,
+                        action: {
+                            actionName: "set-voice-high-pass",
+                            actionMode: "element",
+                            actionScope: "global",
+                            targetId: 700,
+                            targetFlags: 0,
+                            targetIsBus: false,
+                            fadeCurve: 9,
+                            valueMode: "absolute",
+                            highPass: 60,
+                            highPassRange: { min: 0, max: 0 },
+                            exceptions: [],
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 304,
+                        actionType: 0x3005,
+                        targetId: 0,
+                        action: {
+                            actionName: "reset-voice-high-pass",
+                            actionMode: "all",
+                            actionScope: "game-object",
+                            targetId: 0,
+                            targetFlags: 0,
+                            targetIsBus: false,
+                            fadeCurve: 4,
+                            exceptions: [],
+                        },
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300, 301, 302, 303, 304 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                staged_filters: { eventID: 100 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.deepEqual(result.events.staged_filters, [
+        { nodeId: "200" },
+    ]);
+    assert.deepEqual(result.programs.staged_filters, [
+        {
+            kind: "set-voice-low-pass",
+            targetId: "700",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            curve: 7,
+            exceptions: [],
+            valueMode: "relative",
+            lowPass: 30,
+            lowPassRange: { min: -5, max: 10 },
+            delayMs: 100,
+            delayRangeMs: { min: -20, max: 20 },
+            transitionMs: 250,
+            transitionRangeMs: { min: -50, max: 50 },
+        },
+        { kind: "play", child: { nodeId: "200" } },
+        {
+            kind: "reset-voice-low-pass",
+            targetId: "0",
+            targetFlags: 0,
+            scope: "global",
+            mode: "all-except",
+            curve: 4,
+            exceptions: [ {
+                targetId: "701",
+                targetFlags: 0,
+            } ],
+        },
+        {
+            kind: "set-voice-high-pass",
+            targetId: "700",
+            targetFlags: 0,
+            scope: "global",
+            mode: "element",
+            curve: 9,
+            exceptions: [],
+            valueMode: "absolute",
+            highPass: 60,
+            highPassRange: { min: 0, max: 0 },
+        },
+        {
+            kind: "reset-voice-high-pass",
+            targetId: "0",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "all",
+            curve: 4,
+            exceptions: [],
+        },
+    ]);
+});
+
+test("EVE v150 element Voice LPF and HPF aliases lower exactly", () =>
+{
+    const typed = ({
+        name,
+        valueMode,
+        lowPass,
+        highPass,
+    }) => ({
+        actionName: name,
+        actionMode: "element",
+        actionScope: "game-object",
+        targetId: 700,
+        targetFlags: 0,
+        targetIsBus: false,
+        fadeCurve: 4,
+        exceptions: [],
+        ...(valueMode === undefined
+            ? {}
+            : {
+                valueMode,
+                ...(lowPass === undefined
+                    ? {
+                        highPass,
+                        highPassRange: { min: 0, max: 0 },
+                    }
+                    : {
+                        lowPass,
+                        lowPassRange: { min: 0, max: 0 },
+                    }),
+            }),
+    });
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload({ directParentId: 700 }),
+                    },
+                    {
+                        type: 7,
+                        id: 700,
+                        payload: actorMixerPayload(),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0e03,
+                        targetId: 700,
+                        action: typed({
+                            name: "set-voice-low-pass",
+                            valueMode: "absolute",
+                            lowPass: 80,
+                        }),
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0f03,
+                        targetId: 700,
+                        action: typed({
+                            name: "reset-voice-low-pass",
+                        }),
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 302,
+                        actionType: 0x2003,
+                        targetId: 700,
+                        action: typed({
+                            name: "set-voice-high-pass",
+                            valueMode: "relative",
+                            highPass: 20,
+                        }),
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 303,
+                        actionType: 0x3003,
+                        targetId: 700,
+                        action: typed({
+                            name: "reset-voice-high-pass",
+                        }),
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 304,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300, 301, 302, 303, 304 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                eve_element_filters: { eventID: 100 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.deepEqual(
+        result.programs.eve_element_filters.map(action => action.kind),
+        [
+            "set-voice-low-pass",
+            "reset-voice-low-pass",
+            "set-voice-high-pass",
+            "reset-voice-high-pass",
+            "play",
+        ],
+    );
+    assert.deepEqual(result.programs.eve_element_filters[0], {
+        kind: "set-voice-low-pass",
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        curve: 4,
+        exceptions: [],
+        valueMode: "absolute",
+        lowPass: 80,
+        lowPassRange: { min: 0, max: 0 },
+    });
+    assert.deepEqual(result.programs.eve_element_filters[1], {
+        kind: "reset-voice-low-pass",
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        curve: 4,
+        exceptions: [],
+    });
+    assert.deepEqual(result.programs.eve_element_filters[2], {
+        kind: "set-voice-high-pass",
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        curve: 4,
+        exceptions: [],
+        valueMode: "relative",
+        highPass: 20,
+        highPassRange: { min: 0, max: 0 },
+    });
+    assert.deepEqual(result.programs.eve_element_filters[3], {
+        kind: "reset-voice-high-pass",
+        targetId: "700",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        curve: 4,
+        exceptions: [],
+    });
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("SFX Voice Filter lowering rejects contradictory typed records", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0e03,
+                    targetId: 700,
+                    action: {
+                        actionName: "set-voice-low-pass",
+                        actionMode: "element",
+                        actionScope: "global",
+                        targetId: 700,
+                        targetFlags: 0,
+                        targetIsBus: false,
+                        fadeCurve: 4,
+                        valueMode: "absolute",
+                        lowPass: 20,
+                        lowPassRange: { min: 0, max: 0 },
+                        exceptions: [],
+                    },
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 301,
+                    actionType: 0x0f05,
+                    targetId: 0,
+                    action: {
+                        actionName: "reset-voice-low-pass",
+                        actionMode: "all",
+                        actionScope: "game-object",
+                        targetId: 0,
+                        targetFlags: 0,
+                        targetIsBus: false,
+                        fadeCurve: 4,
+                        lowPass: 20,
+                        exceptions: [],
+                    },
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 302,
+                    actionType: 0x0f08,
+                    targetId: 0,
+                    action: {
+                        actionName: "reset-voice-low-pass",
+                        actionMode: "all-except",
+                        actionScope: "global",
+                        targetId: 0,
+                        targetFlags: 0,
+                        targetIsBus: false,
+                        fadeCurve: 4,
+                        exceptions: { targetId: 701 },
+                    },
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 303,
+                    actionType: 0x2003,
+                    targetId: 700,
+                    action: {
+                        actionName: "set-voice-high-pass",
+                        actionMode: "element",
+                        actionScope: "game-object",
+                        targetId: 700,
+                        targetFlags: 0,
+                        targetIsBus: false,
+                        fadeCurve: 4,
+                        valueMode: "relative",
+                        highPass: 20,
+                        highPassRange: { min: 0, max: 0 },
+                        probability: 50,
+                        exceptions: [],
+                    },
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 304,
+                    actionType: 0x3005,
+                    targetId: 0,
+                    action: {
+                        actionName: "reset-voice-high-pass",
+                        actionMode: "all",
+                        actionScope: "game-object",
+                        targetId: "not-an-id",
+                        targetFlags: 0,
+                        targetIsBus: false,
+                        fadeCurve: 4,
+                        exceptions: [],
+                    },
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 305,
+                    actionType: 0x0e03,
+                    targetId: 700,
+                    action: {
+                        actionName: "set-voice-low-pass",
+                        actionMode: "element",
+                        actionScope: "game-object",
+                        targetId: 700,
+                        targetFlags: 0,
+                        targetIsBus: false,
+                        properties: [ { id: 0x3b } ],
+                        ranges: [],
+                        fadeCurve: 4,
+                        valueMode: "relative",
+                        lowPass: 20,
+                        lowPassRange: { min: 0, max: 0 },
+                        exceptions: [],
+                    },
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 300 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 101,
+                    actionIds: [ 301 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 102,
+                    actionIds: [ 302 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 103,
+                    actionIds: [ 303 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 104,
+                    actionIds: [ 304 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 105,
+                    actionIds: [ 305 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: {
+                mismatched_scope: { eventID: 100 },
+                reset_with_value: { eventID: 101 },
+                invalid_exceptions: { eventID: 102 },
+                probabilistic_filter: { eventID: 103 },
+                invalid_all_target: { eventID: 104 },
+                invalid_property_bundle: { eventID: 105 },
+            },
+        },
+        media: {},
+    });
+
+    assert.equal(result.programs.mismatched_scope, undefined);
+    assert.equal(result.programs.reset_with_value, undefined);
+    assert.equal(result.programs.invalid_exceptions, undefined);
+    assert.equal(result.programs.probabilistic_filter, undefined);
+    assert.equal(result.programs.invalid_all_target, undefined);
+    assert.equal(result.programs.invalid_property_bundle, undefined);
+    assert.deepEqual(
+        result.diagnostics.omittedEvents.map(value => value.reason),
+        [
+            "Voice Filter scope/mode mismatch 300",
+            "Voice Filter Reset carries a value 301",
+            "invalid Voice Filter exceptions 302",
+            "probabilistic Voice Filter action 303",
+            "Voice Filter action 304 targetId must be uint32",
+            "invalid Voice Filter properties 305",
+        ],
+    );
+});
+
 test("SFX Game Parameter actions lower into ordered and action-only programs", () =>
 {
     const typed = ({

@@ -5679,6 +5679,414 @@ test("Voice Volume persists across posts, isolates objects, and applies globally
   assert.ok(Math.abs(secondGain.value - 10 ** (-12 / 20)) < 1e-12);
 });
 
+test("Voice LPF and HPF actions provision filters and preserve reset semantics", async () =>
+{
+  const filter = ({
+    kind,
+    actionIndex = 0,
+    targetId = "700",
+    scope = "game-object",
+    mode = "element",
+    valueMode,
+    value,
+    transitionMs = 0,
+    exceptions = [],
+  }) => ({
+    kind,
+    actionIndex,
+    targetId,
+    targetFlags: 0,
+    scope,
+    mode,
+    transitionMs,
+    curve: 4,
+    exceptions,
+    ...(valueMode === undefined
+      ? {}
+      : {
+          valueMode,
+          [kind.endsWith("low-pass") ? "lowPass" : "highPass"]:
+            value,
+        }),
+  });
+  const play = {
+    kind: "play",
+    actionIndex: 0,
+    selections: [
+      {
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: [ "200", "700", "701" ],
+        lowPass: 0,
+        highPass: 0,
+      },
+    ],
+  };
+  const programs = {
+    set_then_play: [
+      filter({
+        kind: "set-voice-low-pass",
+        valueMode: "absolute",
+        value: 80,
+        transitionMs: 10000,
+      }),
+      filter({
+        kind: "set-voice-high-pass",
+        valueMode: "absolute",
+        value: 20,
+      }),
+      play,
+    ],
+    play: [ play ],
+    reset_parent: [ filter({
+      kind: "reset-voice-low-pass",
+      transitionMs: 2000,
+    }) ],
+    set_child: [ filter({
+      kind: "set-voice-low-pass",
+      targetId: "701",
+      valueMode: "relative",
+      value: 20,
+    }) ],
+    reset_all_except_child: [ filter({
+      kind: "reset-voice-low-pass",
+      targetId: "0",
+      mode: "all-except",
+      exceptions: [ { targetId: "701", targetFlags: 0 } ],
+    }) ],
+    reset_all: [ filter({
+      kind: "reset-voice-low-pass",
+      targetId: "0",
+      mode: "all",
+    }) ],
+    same_time: [
+      filter({
+        kind: "set-voice-low-pass",
+        actionIndex: 0,
+        valueMode: "absolute",
+        value: 10,
+      }),
+      filter({
+        kind: "set-voice-low-pass",
+        actionIndex: 1,
+        valueMode: "relative",
+        value: 20,
+      }),
+    ],
+    delayed_high: [ {
+      ...filter({
+        kind: "set-voice-high-pass",
+        valueMode: "relative",
+        value: 40,
+        transitionMs: 4000,
+      }),
+      delayMs: 1000,
+      curve: 8,
+    } ],
+    reset_high_all: [ filter({
+      kind: "reset-voice-high-pass",
+      targetId: "0",
+      mode: "all",
+    }) ],
+  };
+  const { backend, emitter, context, finished } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, controls, program) => ({
+      voices: program.flatMap(operation => operation.kind === "play"
+        ? operation.selections.map(selection => ({
+            buffer: { duration: 20 },
+            loop: true,
+            programSlotId: "0:0",
+            matchIds: selection.matchIds,
+            ...(selection.lowPass === undefined
+              ? {}
+              : {
+                  getLowPass: at => controls.getVoiceLowPass(
+                    selection.matchIds,
+                    at,
+                  ),
+                }),
+            ...(selection.highPass === undefined
+              ? {}
+              : {
+                  getHighPass: at => controls.getVoiceHighPass(
+                    selection.matchIds,
+                    at,
+                  ),
+                }),
+          }))
+        : []),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "set_then_play");
+  await tick();
+
+  assert.equal(context.filters.length, 2);
+  assert.equal(context.filters[0].type, "lowpass");
+  assert.equal(context.filters[1].type, "highpass");
+  assert.equal(context.filters[0].frequency.value, 20000);
+  assert.equal(context.filters[1].frequency.value, 94);
+  const initialFade = context.filters[0].frequency.curves.at(-1);
+
+  assert.equal(initialFade[1], 0);
+  assert.equal(initialFade[2], 10);
+  assert.equal(initialFade[0][0], 20000);
+  assert.equal(initialFade[0].at(-1), 94);
+
+  context.currentTime = 4;
+  backend.PostEvent(2, 1, 0, emitter, "play");
+  await tick();
+
+  assert.equal(context.filters[2].frequency.value, 5892);
+  const inheritedFade = context.filters[2].frequency.curves.at(-1);
+
+  assert.equal(inheritedFade[1], 4);
+  assert.equal(inheritedFade[2], 6);
+  assert.equal(inheritedFade[0][0], 5892);
+  assert.equal(inheritedFade[0].at(-1), 94);
+
+  backend.PostEvent(3, 1, 0, emitter, "reset_parent");
+  const interrupted = context.filters[0].frequency.curves.at(-1);
+
+  assert.equal(interrupted[1], 4);
+  assert.equal(interrupted[2], 2);
+  assert.equal(interrupted[0][0], 5892);
+  assert.equal(interrupted[0].at(-1), 20000);
+  assert.equal(context.filters[1].frequency.value, 94);
+
+  context.currentTime = 5;
+  backend.PostEvent(4, 1, 0, emitter, "set_child");
+  assert.equal(context.filters[0].frequency.value, 4174);
+
+  backend.PostEvent(5, 1, 0, emitter, "reset_all_except_child");
+  assert.equal(
+    context.filters[0].frequency.value,
+    11333,
+    "the exact child exception keeps only the child contribution",
+  );
+
+  backend.PostEvent(6, 1, 0, emitter, "reset_all");
+  assert.equal(context.filters[0].frequency.value, 20000);
+  assert.equal(
+    context.filters[1].frequency.value,
+    94,
+    "LPF resets do not alter the independent HPF property",
+  );
+
+  backend.PostEvent(7, 1, 0, emitter, "same_time");
+  assert.equal(
+    context.filters[0].frequency.value,
+    7000,
+    "same-time filter actions retain authored actionIndex order",
+  );
+
+  context.currentTime = 6;
+  const delayedHigh = backend.PostEvent(
+    8,
+    1,
+    0,
+    emitter,
+    "delayed_high",
+  );
+  await tick();
+  context.currentTime = 8;
+  backend.RenderAudio();
+
+  assert.ok(
+    Math.abs(context.filters[1].frequency.value - 99.625) < 1e-12,
+    "an overdue nonlinear HPF fade starts at its authored progress: "
+      + context.filters[1].frequency.value,
+  );
+  const highPassRemainder = context.filters[1].frequency.curves.at(-1);
+
+  assert.equal(highPassRemainder[1], 8);
+  assert.equal(highPassRemainder[2], 3);
+  assert.ok(Math.abs(highPassRemainder[0][0] - 99.625) < 1e-6);
+  assert.equal(highPassRemainder[0].at(-1), 2957);
+  assert.ok(finished.includes(delayedHigh));
+
+  backend.PostEvent(9, 1, 0, emitter, "reset_high_all");
+  assert.equal(context.filters[1].frequency.value, 17);
+  assert.equal(
+    context.filters[0].frequency.value,
+    7000,
+    "HPF Reset All does not alter the independent LPF property",
+  );
+});
+
+test("global Voice Filter state survives registration and isolates retired generations", async () =>
+{
+  const setLowPass = ({
+    scope,
+    valueMode,
+    lowPass,
+    delayMs = 0,
+    transitionMs = 0,
+  }) => ({
+    kind: "set-voice-low-pass",
+    actionIndex: 0,
+    targetId: "700",
+    targetFlags: 0,
+    scope,
+    mode: "element",
+    valueMode,
+    lowPass,
+    delayMs,
+    transitionMs,
+    curve: 4,
+    exceptions: [],
+  });
+  const play = {
+    kind: "play",
+    actionIndex: 0,
+    selections: [ {
+      actionIndex: 0,
+      leafIndex: 0,
+      matchIds: [ "200", "700" ],
+      lowPass: 0,
+    } ],
+  };
+  const programs = {
+    play: [ play ],
+    global_fade: [ setLowPass({
+      scope: "global",
+      valueMode: "absolute",
+      lowPass: 60,
+      transitionMs: 10000,
+    }) ],
+    local_override: [ setLowPass({
+      scope: "game-object",
+      valueMode: "absolute",
+      lowPass: 30,
+    }) ],
+    global_relative: [ setLowPass({
+      scope: "global",
+      valueMode: "relative",
+      lowPass: 20,
+    }) ],
+    delayed_local: [ setLowPass({
+      scope: "game-object",
+      valueMode: "absolute",
+      lowPass: 90,
+      delayMs: 1000,
+    }) ],
+    global_reset_all: [ {
+      kind: "reset-voice-low-pass",
+      actionIndex: 0,
+      targetId: "0",
+      targetFlags: 0,
+      scope: "global",
+      mode: "all",
+      transitionMs: 0,
+      curve: 4,
+      exceptions: [],
+    } ],
+  };
+  const { backend, emitter, context, finished } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, controls, program) => ({
+      voices: program.flatMap(operation => operation.kind === "play"
+        ? operation.selections.map(selection => ({
+            buffer: { duration: 20 },
+            loop: true,
+            programSlotId: "0:0",
+            matchIds: selection.matchIds,
+            getLowPass: at => controls.getVoiceLowPass(
+              selection.matchIds,
+              at,
+            ),
+          }))
+        : []),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "global_fade");
+  context.currentTime = 2;
+  backend.PostEvent(2, 1, 0, emitter, "local_override");
+
+  context.currentTime = 4;
+  backend.RegisterGameObj(2);
+  backend.PostEvent(3, 2, 0, emitter, "play");
+  await tick();
+
+  assert.equal(context.filters[0].frequency.value, 9600);
+  const inheritedGlobalFade = context.filters[0].frequency.curves.at(-1);
+
+  assert.equal(inheritedGlobalFade[1], 4);
+  assert.equal(inheritedGlobalFade[2], 6);
+  assert.equal(inheritedGlobalFade[0].at(-1), 528);
+
+  backend.PostEvent(4, 1, 0, emitter, "global_relative");
+  assert.equal(context.filters[0].frequency.value, 2095);
+
+  backend.RegisterGameObj(3);
+  backend.PostEvent(5, 1, 0, emitter, "play");
+  backend.PostEvent(6, 3, 0, emitter, "play");
+  await tick();
+
+  assert.equal(
+    context.filters[1].frequency.value,
+    1249,
+    "the global relative action rebases the locally diverged object",
+  );
+  assert.equal(
+    context.filters[2].frequency.value,
+    2095,
+    "a later object inherits the canonical global result",
+  );
+
+  const stale = backend.PostEvent(7, 1, 0, emitter, "delayed_local");
+  await tick();
+  backend.UnregisterGameObj(1);
+  backend.RegisterGameObj(1);
+  backend.PostEvent(8, 1, 0, emitter, "play");
+  await tick();
+
+  assert.equal(context.filters[3].frequency.value, 2095);
+  context.currentTime = 5;
+  backend.RenderAudio();
+  assert.equal(
+    context.filters[3].frequency.value,
+    2095,
+    "a delayed action cannot cross an emitter generation",
+  );
+
+  backend.PostEvent(9, 2, 0, emitter, "global_reset_all");
+  assert.equal(context.filters[0].frequency.value, 20000);
+  assert.equal(
+    context.filters[1].frequency.value,
+    1249,
+    "a retired voice keeps its retired object-local filter map",
+  );
+  assert.equal(context.filters[2].frequency.value, 20000);
+  assert.equal(context.filters[3].frequency.value, 20000);
+
+  backend.RegisterGameObj(4);
+  backend.PostEvent(10, 4, 0, emitter, "play");
+  await tick();
+  assert.equal(
+    context.filters[4].frequency.value,
+    20000,
+    "registration after global Reset All inherits the reset template",
+  );
+  assert.ok(finished.includes(stale));
+
+  const cancelled = backend.PostEvent(
+    11,
+    2,
+    0,
+    emitter,
+    "delayed_local",
+  );
+  await tick();
+  backend.ExecuteActionOnPlayingID("stop", cancelled, 0);
+  context.currentTime = 6;
+  backend.RenderAudio();
+  assert.equal(context.filters[0].frequency.value, 20000);
+  assert.ok(finished.includes(cancelled));
+});
+
 test("Voice Pitch persists across posts, isolates objects, and intersects transitions", async () =>
 {
   const pitch = (

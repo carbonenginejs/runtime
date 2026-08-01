@@ -38,6 +38,8 @@ class CjsAudioBackend {
   #scheduledSfxActions = [];
   #globalRtpcValues = new Map();
   #globalStateValues = new Map();
+  #globalVoiceHighPasses = new Map();
+  #globalVoiceLowPasses = new Map();
   #stateTransitionCatalog = new Map();
   #statePropertyTransitions = new Map();
   #objectRtpcValues = new Map();
@@ -185,6 +187,8 @@ class CjsAudioBackend {
       panner,
       analyser,
       scalingFactor: 1,
+      voiceHighPasses: new Map(this.#globalVoiceHighPasses),
+      voiceLowPasses: new Map(this.#globalVoiceLowPasses),
       voicePitches: new Map(),
       voiceVolumes: new Map()
     });
@@ -1064,6 +1068,8 @@ class CjsAudioBackend {
     this.#statePropertyTransitions.clear();
     this.#globalRtpcValues.clear();
     this.#globalStateValues.clear();
+    this.#globalVoiceHighPasses.clear();
+    this.#globalVoiceLowPasses.clear();
     this.#sfxGain?.disconnect?.();
     this.#masterGain?.disconnect?.();
     this.#sfxGain = null;
@@ -1290,7 +1296,7 @@ class CjsAudioBackend {
           }
           continue;
         }
-        if (operation.kind !== "stop" && operation.kind !== "pause" && operation.kind !== "resume" && operation.kind !== "set-voice-pitch" && operation.kind !== "reset-voice-pitch" && operation.kind !== "set-voice-volume" && operation.kind !== "reset-voice-volume" && operation.kind !== "set-game-parameter" && operation.kind !== "reset-game-parameter") {
+        if (operation.kind !== "stop" && operation.kind !== "pause" && operation.kind !== "resume" && operation.kind !== "set-voice-pitch" && operation.kind !== "reset-voice-pitch" && operation.kind !== "set-voice-volume" && operation.kind !== "reset-voice-volume" && operation.kind !== "set-voice-low-pass" && operation.kind !== "reset-voice-low-pass" && operation.kind !== "set-voice-high-pass" && operation.kind !== "reset-voice-high-pass" && operation.kind !== "set-game-parameter" && operation.kind !== "reset-game-parameter") {
           throw new TypeError(`Unsupported resolved SFX operation ${operation.kind}`);
         }
         const action = {
@@ -1340,6 +1346,8 @@ class CjsAudioBackend {
       this.#ApplySfxVoicePitch(action, now);
     } else if (action.kind === "set-game-parameter" || action.kind === "reset-game-parameter") {
       this.#ApplySfxGameParameter(action, now);
+    } else if (action.kind === "set-voice-low-pass" || action.kind === "reset-voice-low-pass" || action.kind === "set-voice-high-pass" || action.kind === "reset-voice-high-pass") {
+      this.#ApplySfxVoiceFilter(action);
     } else {
       this.#ApplySfxVoiceVolume(action, now);
     }
@@ -1384,6 +1392,27 @@ class CjsAudioBackend {
     }
     apply(action.emitterNodes);
     this.#RefreshSfxVoicePitches(action.gameObjID);
+  }
+
+  /** Applies one persistent Voice LPF or HPF property mutation. */
+  #ApplySfxVoiceFilter(action) {
+    const lowPass = action.kind.endsWith("low-pass");
+    const apply = nodes => {
+      ApplyVoiceFilterAction(lowPass ? nodes.voiceLowPasses : nodes.voiceHighPasses, action, lowPass ? "lowPass" : "highPass");
+    };
+    if (action.scope === "global") {
+      ApplyVoiceFilterAction(lowPass ? this.#globalVoiceLowPasses : this.#globalVoiceHighPasses, action, lowPass ? "lowPass" : "highPass");
+      for (const nodes of this.#emitterNodes.values()) {
+        apply(nodes);
+      }
+      this.#RefreshSfxVoiceFilters();
+      return;
+    }
+    if (this.#emitterNodes.get(action.gameObjID) !== action.emitterNodes) {
+      return;
+    }
+    apply(action.emitterNodes);
+    this.#RefreshSfxVoiceFilters(action.gameObjID);
   }
 
   /** Applies one persistent Set or Reset Game Parameter mutation. */
@@ -2164,6 +2193,8 @@ class CjsAudioBackend {
       getGlobalRTPC: (name, at = undefined) => this.#ReadRtpcValue("global", String(name), undefined, at ?? (Number(this.#context?.currentTime) || 0)),
       getVoiceVolumeDb: matchIds => EvaluateVoiceVolumeTargets(record?.emitterNodes?.voiceVolumes, matchIds, Number(this.#context?.currentTime) || 0),
       getVoicePitchCents: matchIds => EvaluateVoicePitchTargets(record?.emitterNodes?.voicePitches, matchIds, Number(this.#context?.currentTime) || 0),
+      getVoiceLowPass: (matchIds, at = undefined) => EvaluateVoiceFilterTargets(record?.emitterNodes?.voiceLowPasses, matchIds, at ?? (Number(this.#context?.currentTime) || 0)),
+      getVoiceHighPass: (matchIds, at = undefined) => EvaluateVoiceFilterTargets(record?.emitterNodes?.voiceHighPasses, matchIds, at ?? (Number(this.#context?.currentTime) || 0)),
       setSwitch: (group, value) => this.SetSwitch(group, value, gameObjID),
       setState: (group, value) => this.SetGlobalState(group, value),
       getSfxProgramSignal: (programSlotId, actionIndex, leafIndex, programBatchId) => {
@@ -2247,6 +2278,8 @@ class CjsAudioBackend {
       getGainAtVoiceVolumeDb: descriptor.getGainAtVoiceVolumeDb,
       voiceVolumeStates: emitterNodes.voiceVolumes,
       voicePitchStates: emitterNodes.voicePitches,
+      voiceLowPassStates: emitterNodes.voiceLowPasses,
+      voiceHighPassStates: emitterNodes.voiceHighPasses,
       rtpcTransitionEnd: this.#RtpcTransitionEndForRecord({
         gameObjID,
         emitterNodes
@@ -3030,6 +3063,23 @@ class CjsAudioBackend {
     }
   }
 
+  /** Re-evaluates live Voice LPF and HPF action contributions. */
+  #RefreshSfxVoiceFilters(gameObjID = null) {
+    if (this.#deferSfxControlRefresh) {
+      return;
+    }
+    for (const record of this.#playing.values()) {
+      if (!record.sfx || gameObjID !== null && record.gameObjID !== gameObjID) {
+        continue;
+      }
+      for (const voice of record.voices ?? []) {
+        if (!voice.ended) {
+          this.#ApplyVoiceFilters(voice);
+        }
+      }
+    }
+  }
+
   /** Applies one voice descriptor's current safe linear gain. */
   #ApplyVoiceGain(voice) {
     const param = voice.gain?.gain;
@@ -3050,8 +3100,9 @@ class CjsAudioBackend {
 
   /** Applies live Wwise LPF/HPF percentages to per-voice WebAudio filters. */
   #ApplyVoiceFilters(voice) {
-    ApplyVoiceFilter(voice.lowPassFilter, voice.getLowPass, false, this.#context, voice.controlTransitionBoundaries);
-    ApplyVoiceFilter(voice.highPassFilter, voice.getHighPass, true, this.#context, voice.controlTransitionBoundaries);
+    const now = Number(this.#context?.currentTime) || 0;
+    ApplyVoiceFilter(voice.lowPassFilter, voice.getLowPass, false, this.#context, [...(voice.controlTransitionBoundaries ?? []), ...VoiceTargetTransitionBoundaries(voice.voiceLowPassStates, voice.matchIds, now)]);
+    ApplyVoiceFilter(voice.highPassFilter, voice.getHighPass, true, this.#context, [...(voice.controlTransitionBoundaries ?? []), ...VoiceTargetTransitionBoundaries(voice.voiceHighPassStates, voice.matchIds, now)]);
   }
 
   /** Advances one live voice's media and finite-repeat clocks to a context time. */
@@ -3796,6 +3847,72 @@ function ApplyVoiceVolumeAction(states, targetId, action) {
     duration: Math.max(0, Number(action.transitionMs) || 0) / 1000,
     curve: Number(action.curve ?? LINEAR_FADE_CURVE)
   });
+}
+function ApplyVoiceFilterAction(states, action, property) {
+  if (!(states instanceof Map)) {
+    return;
+  }
+  const resetting = action.kind.startsWith("reset-");
+  // Voice-property state is stored on exact Wwise object identities. Because
+  // the serialized exception contains only an object ID/flags, the current
+  // qualified interpretation excludes exact keys rather than hierarchy
+  // branches; EVE does not exercise this broader mode.
+  const excluded = new Set((action.exceptions ?? []).map(value => String(value.targetId)));
+  const targets = action.mode === "element" ? [String(action.targetId)] : [...states.keys()].filter(targetId => action.mode !== "all-except" || !excluded.has(targetId));
+  for (const targetId of targets) {
+    const actionTime = Number(action.actionTime) || 0;
+    const fromPercent = EvaluateVoiceFilterState(states.get(targetId), actionTime);
+    const authored = Number(action[property]);
+    const requested = resetting ? 0 : action.valueMode === "relative" ? fromPercent + authored : authored;
+    const toPercent = Math.max(-100, Math.min(100, Number.isFinite(requested) ? requested : 0));
+    states.set(targetId, {
+      fromPercent,
+      toPercent,
+      startTime: actionTime,
+      duration: Math.max(0, Number(action.transitionMs) || 0) / 1000,
+      curve: Number(action.curve ?? LINEAR_FADE_CURVE)
+    });
+  }
+}
+function EvaluateVoiceFilterTargets(states, matchIds, at) {
+  if (!(states instanceof Map) || !Array.isArray(matchIds)) {
+    return 0;
+  }
+  let result = 0;
+  const seen = new Set();
+  for (const value of matchIds) {
+    const targetId = String(value);
+    if (!seen.has(targetId)) {
+      seen.add(targetId);
+      result += EvaluateVoiceFilterState(states.get(targetId), at);
+    }
+  }
+  return result;
+}
+function EvaluateVoiceFilterState(state, at) {
+  if (!state) {
+    return 0;
+  }
+  const duration = Number(state.duration) || 0;
+  const progress = duration <= 0 ? 1 : Math.max(0, Math.min(1, ((Number(at) || 0) - state.startTime) / duration));
+  if (progress <= 0) {
+    return state.fromPercent;
+  }
+  if (progress >= 1) {
+    return state.toPercent;
+  }
+  return state.fromPercent + (state.toPercent - state.fromPercent) * evaluateWwiseInterpolation(state.curve, progress);
+}
+function VoiceTargetTransitionBoundaries(states, matchIds, from) {
+  if (!(states instanceof Map) || !Array.isArray(matchIds)) {
+    return [];
+  }
+  const boundaries = [];
+  for (const value of new Set(matchIds.map(String))) {
+    const state = states.get(value);
+    boundaries.push(Number(state?.startTime), Number(state?.startTime) + Math.max(0, Number(state?.duration) || 0));
+  }
+  return FutureAutomationBoundaries(boundaries, from);
 }
 function ScheduleVoiceVolumeGain(param, voice, context) {
   if (!param) {

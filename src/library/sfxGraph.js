@@ -36,6 +36,12 @@ const VOICE_PITCH_ACTION_KINDS = new Set([
     "reset-voice-pitch",
     "set-voice-pitch",
 ]);
+const VOICE_FILTER_ACTION_KINDS = new Set([
+    "reset-voice-high-pass",
+    "reset-voice-low-pass",
+    "set-voice-high-pass",
+    "set-voice-low-pass",
+]);
 const GAME_PARAMETER_ACTION_KINDS = new Set([
     "reset-game-parameter",
     "set-game-parameter",
@@ -371,6 +377,11 @@ export function validateSfxGraph(
                 ValidateVoicePitchAction(action, label);
                 continue;
             }
+            if (VOICE_FILTER_ACTION_KINDS.has(action.kind))
+            {
+                ValidateVoiceFilterAction(action, label);
+                continue;
+            }
             if (GAME_PARAMETER_ACTION_KINDS.has(action.kind))
             {
                 ValidateGameParameterAction(action, label);
@@ -463,6 +474,10 @@ export function normalizeSfxGraph(graph, media = {}, embeddedMedia = {})
                 if (VOICE_PITCH_ACTION_KINDS.has(action.kind))
                 {
                     return NormalizeVoicePitchAction(action);
+                }
+                if (VOICE_FILTER_ACTION_KINDS.has(action.kind))
+                {
+                    return NormalizeVoiceFilterAction(action);
                 }
                 if (GAME_PARAMETER_ACTION_KINDS.has(action.kind))
                 {
@@ -1419,6 +1434,194 @@ function ValidateVoicePitchCents(value, label)
     return number;
 }
 
+function ValidateVoiceFilterAction(value, label)
+{
+    const action = RequireRecord(value, label);
+
+    if (!VOICE_FILTER_ACTION_KINDS.has(action.kind))
+    {
+        throw new TypeError(
+            `${label} kind must be a Voice LPF or HPF action`,
+        );
+    }
+    if (!PLAYBACK_CONTROL_SCOPES.has(action.scope))
+    {
+        throw new TypeError(
+            `${label} scope must be game-object or global`,
+        );
+    }
+    const setting = action.kind.startsWith("set-");
+
+    if ((setting && action.mode !== "element")
+        || (!setting && !PLAYBACK_CONTROL_MODES.has(action.mode)))
+    {
+        throw new TypeError(
+            `${label} has an unsupported Voice Filter mode`,
+        );
+    }
+    if (action.mode === "element")
+    {
+        NormalizePositiveID(action.targetId, `${label} targetId`);
+    }
+    else
+    {
+        const targetId = NormalizeUnsignedID(
+            action.targetId,
+            `${label} targetId`,
+        );
+
+        if (targetId !== "0")
+        {
+            throw new TypeError(
+                `${label} ${action.mode} targetId must be 0`,
+            );
+        }
+    }
+    if (action.targetFlags !== undefined)
+    {
+        const targetFlags = NormalizeByte(
+            action.targetFlags,
+            `${label} targetFlags`,
+        );
+
+        if (targetFlags !== 0)
+        {
+            throw new TypeError(`${label} targetFlags must be 0`);
+        }
+    }
+    if (!Array.isArray(action.exceptions))
+    {
+        throw new TypeError(`${label} exceptions must be an array`);
+    }
+    if (action.mode !== "all-except" && action.exceptions.length)
+    {
+        throw new TypeError(
+            `${label} exceptions require all-except mode`,
+        );
+    }
+    const exceptionIds = new Set();
+
+    for (let index = 0; index < action.exceptions.length; index++)
+    {
+        const exception = RequireRecord(
+            action.exceptions[index],
+            `${label} exception ${index}`,
+        );
+
+        const exceptionId = NormalizePositiveID(
+            exception.targetId,
+            `${label} exception ${index} targetId`,
+        );
+        if (exceptionIds.has(exceptionId))
+        {
+            throw new TypeError(
+                `${label} has duplicate exception ${exceptionId}`,
+            );
+        }
+        exceptionIds.add(exceptionId);
+        if (exception.targetFlags !== undefined
+            && NormalizeByte(
+                exception.targetFlags,
+                `${label} exception ${index} targetFlags`,
+            ) !== 0)
+        {
+            throw new TypeError(
+                `${label} exception ${index} targetFlags must be 0`,
+            );
+        }
+    }
+
+    const lowPass = action.kind.endsWith("low-pass");
+    const property = lowPass ? "lowPass" : "highPass";
+    const rangeField = `${property}Range`;
+    const wrongProperty = lowPass ? "highPass" : "lowPass";
+    const wrongRangeField = `${wrongProperty}Range`;
+
+    if (action[wrongProperty] !== undefined
+        || action[wrongRangeField] !== undefined)
+    {
+        throw new TypeError(
+            `${label} cannot carry ${wrongProperty} fields`,
+        );
+    }
+
+    if (setting)
+    {
+        if (action.valueMode !== "absolute"
+            && action.valueMode !== "relative")
+        {
+            throw new TypeError(
+                `${label} valueMode must be absolute or relative`,
+            );
+        }
+        const base = ValidateVoiceFilterPercent(
+            action[property],
+            `${label} ${property}`,
+        );
+        if (action[rangeField] !== undefined)
+        {
+            const range = RequireRecord(
+                action[rangeField],
+                `${label} ${rangeField}`,
+            );
+            const min = ValidateVoiceFilterPercent(
+                range.min,
+                `${label} ${rangeField} min`,
+            );
+            const max = ValidateVoiceFilterPercent(
+                range.max,
+                `${label} ${rangeField} max`,
+            );
+
+            if (min > max)
+            {
+                throw new TypeError(
+                    `${label} ${rangeField} min must not exceed max`,
+                );
+            }
+            ValidateVoiceFilterPercent(
+                base + min,
+                `${label} minimum randomized ${property}`,
+            );
+            ValidateVoiceFilterPercent(
+                base + max,
+                `${label} maximum randomized ${property}`,
+            );
+        }
+    }
+    else if (action.valueMode !== undefined
+        || action.lowPass !== undefined
+        || action.lowPassRange !== undefined
+        || action.highPass !== undefined
+        || action.highPassRange !== undefined)
+    {
+        throw new TypeError(
+            `${label} Reset cannot carry a filter value`,
+        );
+    }
+    if (action.probability !== undefined)
+    {
+        throw new TypeError(`${label} probability is unsupported`);
+    }
+
+    ValidateActionTiming({
+        delayMs: action.delayMs,
+        delayRangeMs: action.delayRangeMs,
+    }, label);
+    ValidateTransitionTiming(action, label);
+}
+
+function ValidateVoiceFilterPercent(value, label)
+{
+    const number = NormalizeFiniteNumber(value, label);
+
+    if (number < -100 || number > 100)
+    {
+        throw new TypeError(`${label} must be between -100 and 100 percent`);
+    }
+    return number;
+}
+
 function ValidatePlaybackControlAction(value, label)
 {
     const action = RequireRecord(value, label);
@@ -1713,6 +1916,63 @@ function NormalizeVoicePitchAction(action)
             result.pitchRangeCents = {
                 min: Number(action.pitchRangeCents.min),
                 max: Number(action.pitchRangeCents.max),
+            };
+        }
+    }
+
+    return result;
+}
+
+function NormalizeVoiceFilterAction(action)
+{
+    const result = {
+        kind: action.kind,
+        targetId: NormalizeUnsignedID(
+            action.targetId,
+            "Audio library SFX Voice Filter targetId",
+        ),
+        scope: action.scope,
+        mode: action.mode,
+        curve: Number(action.curve ?? 4),
+        exceptions: action.exceptions.map(exception => ({
+            targetId: String(Number(exception.targetId) >>> 0),
+            ...(exception.targetFlags === undefined
+                ? {}
+                : { targetFlags: Number(exception.targetFlags) }),
+        })),
+    };
+
+    for (const field of [ "targetFlags", "delayMs", "transitionMs" ])
+    {
+        if (action[field] !== undefined)
+        {
+            result[field] = Number(action[field]);
+        }
+    }
+    for (const field of [ "delayRangeMs", "transitionRangeMs" ])
+    {
+        if (action[field] !== undefined)
+        {
+            result[field] = {
+                min: Number(action[field].min),
+                max: Number(action[field].max),
+            };
+        }
+    }
+    if (action.kind.startsWith("set-"))
+    {
+        const property = action.kind.endsWith("low-pass")
+            ? "lowPass"
+            : "highPass";
+        const rangeField = `${property}Range`;
+
+        result.valueMode = action.valueMode;
+        result[property] = Number(action[property]);
+        if (action[rangeField] !== undefined)
+        {
+            result[rangeField] = {
+                min: Number(action[rangeField].min),
+                max: Number(action[rangeField].max),
             };
         }
     }

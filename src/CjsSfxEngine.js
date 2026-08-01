@@ -68,6 +68,10 @@ export class CjsSfxEngine
 
     #selectionReservations = new Map();
 
+    #voiceLowPassTargets = new Set();
+
+    #voiceHighPassTargets = new Set();
+
     /**
      * Creates an interpreter for an installed, validated SFX graph.
      */
@@ -84,6 +88,20 @@ export class CjsSfxEngine
 
         this.#graph = graph;
         this.#random = random;
+        for (const program of Object.values(graph.programs ?? {}))
+        {
+            for (const action of program ?? [])
+            {
+                if (action.kind === "set-voice-low-pass")
+                {
+                    this.#voiceLowPassTargets.add(String(action.targetId));
+                }
+                else if (action.kind === "set-voice-high-pass")
+                {
+                    this.#voiceHighPassTargets.add(String(action.targetId));
+                }
+            }
+        }
     }
 
     /** Returns whether the graph owns one event name. */
@@ -347,6 +365,18 @@ export class CjsSfxEngine
                     {
                         operations.push(pitch);
                     }
+                }
+                else if (action.kind === "set-voice-low-pass"
+                    || action.kind === "reset-voice-low-pass"
+                    || action.kind === "set-voice-high-pass"
+                    || action.kind === "reset-voice-high-pass")
+                {
+                    operations.push(
+                        this.#ResolveVoiceFilterAction(
+                            action,
+                            actionIndex,
+                        ),
+                    );
                 }
                 else if (action.kind === "set-game-parameter"
                     || action.kind === "reset-game-parameter")
@@ -999,14 +1029,22 @@ export class CjsSfxEngine
             )
                 || rtpcCurves.some(curve =>
                     curve.property === "pitch");
+            const matchIds = Object.freeze([ ...new Set([
+                ...nextActive,
+                ...(node.matchIds ?? []),
+            ]) ]);
             const hasLowPass = terms.hasLowPass
                 || HasStateCaseField(stateProperties, "lowPass")
                 || rtpcCurves.some(curve =>
-                    curve.property === "lowPass");
+                    curve.property === "lowPass")
+                || matchIds.some(value =>
+                    this.#voiceLowPassTargets.has(String(value)));
             const hasHighPass = terms.hasHighPass
                 || HasStateCaseField(stateProperties, "highPass")
                 || rtpcCurves.some(curve =>
-                    curve.property === "highPass");
+                    curve.property === "highPass")
+                || matchIds.some(value =>
+                    this.#voiceHighPassTargets.has(String(value)));
             const rtpcInitialDelayMs = EvaluateRtpcProperties(
                 rtpcCurves,
                 controls,
@@ -1017,10 +1055,7 @@ export class CjsSfxEngine
             );
             const selection = {
                 mediaID: String(node.mediaId),
-                matchIds: Object.freeze([ ...new Set([
-                    ...nextActive,
-                    ...(node.matchIds ?? []),
-                ]) ]),
+                matchIds,
                 loop: node.loop,
                 ...(node.playCount === undefined
                     ? {}
@@ -1846,6 +1881,57 @@ export class CjsSfxEngine
         });
     }
 
+    /** Samples one authored Voice LPF or HPF action once per post. */
+    #ResolveVoiceFilterAction(action, actionIndex)
+    {
+        const setting = action.kind.startsWith("set-");
+        const lowPass = action.kind.endsWith("low-pass");
+        const property = lowPass ? "lowPass" : "highPass";
+        const rangeField = `${property}Range`;
+        const filterValue = setting
+            ? Math.max(-100, Math.min(100,
+                SampleSignedRandomizedValue(
+                    action[property],
+                    action[rangeField],
+                    () => this.#SampleUnit(),
+                ),
+            ))
+            : 0;
+
+        return Object.freeze({
+            kind: action.kind,
+            actionIndex,
+            targetId: String(Number(action.targetId) >>> 0),
+            targetFlags: Number(action.targetFlags ?? 0),
+            scope: action.scope,
+            mode: action.mode,
+            delayMs: Math.max(0, SampleRandomizedValue(
+                action.delayMs,
+                action.delayRangeMs,
+                () => this.#SampleUnit(),
+            )),
+            transitionMs: Math.max(0, SampleRandomizedValue(
+                action.transitionMs,
+                action.transitionRangeMs,
+                () => this.#SampleUnit(),
+            )),
+            curve: Number(action.curve ?? 4),
+            exceptions: Object.freeze(action.exceptions.map(exception =>
+                Object.freeze({
+                    targetId: String(
+                        Number(exception.targetId) >>> 0,
+                    ),
+                    targetFlags: Number(exception.targetFlags ?? 0),
+                }))),
+            ...(setting
+                ? {
+                    valueMode: action.valueMode,
+                    [property]: filterValue,
+                }
+                : {}),
+        });
+    }
+
     /** Samples one authored Set or Reset Game Parameter action per post. */
     #ResolveGameParameterAction(action, actionIndex)
     {
@@ -2396,11 +2482,17 @@ function EvaluateFilterProperty(property, selection, controls, at = undefined)
         controls,
         at,
     );
+    const action = Number(
+        property === "lowPass"
+            ? controls.getVoiceLowPass?.(selection?.matchIds, at)
+            : controls.getVoiceHighPass?.(selection?.matchIds, at),
+    ) || 0;
 
     return Clamp(
         (Number(selection?.[property]) || 0)
             + state[property]
-            + rtpc[property],
+            + rtpc[property]
+            + action,
         MIN_FILTER_PERCENT,
         MAX_FILTER_PERCENT,
     );
