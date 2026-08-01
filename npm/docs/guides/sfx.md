@@ -327,14 +327,15 @@ route. A missing leaf value falls back to event `is2D`. Caller event metadata
 still overrides the derived event-wide fallback; to override a known leaf,
 provide or enrich the `sfx` graph itself.
 
-Missing parents, parent cycles, unsupported NodeBase data, and incomplete
-events omit only the derived spatial patch and add diagnostics; they do not
-block otherwise valid sound playback. Automatic bank projection is applied
+Missing parents, parent cycles, and incomplete positioning data omit only the
+derived spatial patch and add diagnostics; they do not block otherwise valid
+sound playback. A resolved v150 attenuation projects the dry-volume curve's
+authored maximum distance into `maxRadiusAttenuation`; mixed spatial events use
+the largest complete leaf radius. Unsupported NodeBase RTPC controls or
+properties instead omit and diagnose the affected event so authored live
+behavior is not silently discarded. Automatic bank projection is applied
 after SoundbanksInfo metadata and before caller `metadata` and `enrichment`,
-so explicit caller data remains authoritative. Raw HIRC attenuation curves
-are preserved by `runtime-resource`, but the builder does not currently infer
-`maxRadiusAttenuation` from them. Supply that value through SoundbanksInfo,
-caller metadata, or enrichment.
+so explicit caller data remains authoritative.
 
 Automatic construction currently accepts Wwise generator-version-150 codec
 sounds, Play, Stop, Pause, Resume, Set/Reset Voice Volume, Play-Event,

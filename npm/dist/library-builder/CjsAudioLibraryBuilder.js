@@ -1371,6 +1371,8 @@ function CreateSfxSpatialProjection(parsed, leavesByEvent, nodes) {
     let result;
     try {
       if (nodeBase.positioning?.overrideParent) {
+        const attenuationId = Number(nodeBase.attenuationId) >>> 0;
+        const maxRadiusAttenuation = attenuationId ? GetSfxAttenuationMaxRadius(parsed, attenuationId) : null;
         result = {
           known: true,
           // Carbon's generated is2D metadata follows the resolved
@@ -1378,7 +1380,10 @@ function CreateSfxSpatialProjection(parsed, leavesByEvent, nodes) {
           // Wwise's listener-relative-routing bit. A v150
           // Common+Effects+Modules corpus comparison matched the
           // source audio metadata for every fully lowered event.
-          is2D: nodeBase.attenuationId === null || nodeBase.attenuationId === 0
+          is2D: attenuationId === 0,
+          ...(maxRadiusAttenuation === null ? {} : {
+            maxRadiusAttenuation
+          })
         };
       } else {
         const parentId = Number(nodeBase.directParentId) >>> 0;
@@ -1413,13 +1418,23 @@ function CreateSfxSpatialProjection(parsed, leavesByEvent, nodes) {
       continue;
     }
     const is2D = resolved.every(value => value.is2D) ? 1 : 0;
+    const spatialLeaves = resolved.filter(value => !value.is2D);
+    const radii = spatialLeaves.map(value => value.maxRadiusAttenuation);
+    const hasCompleteRadius = spatialLeaves.length > 0 && radii.every(value => Number.isFinite(value));
+    const maxRadiusAttenuation = hasCompleteRadius ? Math.max(...radii) : null;
     events[name] = {
-      is2D
+      is2D,
+      ...(maxRadiusAttenuation === null ? {} : {
+        maxRadiusAttenuation
+      })
     };
     projected.push({
       name,
       leafIds,
-      is2D
+      is2D,
+      ...(maxRadiusAttenuation === null ? {} : {
+        maxRadiusAttenuation
+      })
     });
   }
   return {
@@ -1429,6 +1444,28 @@ function CreateSfxSpatialProjection(parsed, leavesByEvent, nodes) {
       omitted
     }
   };
+}
+
+/** Returns the authored dry-volume curve's maximum distance when complete. */
+function GetSfxAttenuationMaxRadius(parsed, attenuationId) {
+  const attenuation = parsed.attenuations?.get(attenuationId);
+  const curveIndex = Number(attenuation?.curveToUse?.[0]);
+  if (!Number.isSafeInteger(curveIndex) || curveIndex < 0) {
+    return null;
+  }
+  const points = attenuation.curves?.[curveIndex]?.points;
+  if (!Array.isArray(points) || !points.length) {
+    return null;
+  }
+  let maximum = -Infinity;
+  for (const point of points) {
+    const distance = Number(point.from);
+    if (!Number.isFinite(distance) || distance < 0) {
+      return null;
+    }
+    maximum = Math.max(maximum, distance);
+  }
+  return Number.isFinite(maximum) ? maximum : null;
 }
 function AddSet(target, source) {
   for (const value of source ?? []) {
@@ -1516,10 +1553,7 @@ function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names) {
       }
     }
     for (const rtpc of nodeBase.rtpcs ?? []) {
-      const curve = CreateSfxRtpcCurve(rtpc, names);
-      if (curve) {
-        rtpcCurves.push(curve);
-      }
+      rtpcCurves.push(CreateSfxRtpcCurve(rtpc, names));
     }
     for (const group of nodeBase.state?.groups ?? []) {
       const activeStates = group.states?.filter(state => state.values?.length) ?? [];
@@ -1654,8 +1688,11 @@ function CreateSfxRtpcCurve(rtpc, names) {
     }
   };
   const definition = definitions[propertyID];
-  if (Number(rtpc.controlType) !== 0 || !definition) {
-    return null;
+  if (Number(rtpc.controlType) !== 0) {
+    throw new Error(`unsupported RTPC control type ${rtpc.controlType}`);
+  }
+  if (!definition) {
+    throw new Error(`unsupported RTPC property ${propertyID}`);
   }
   const controlID = Number(rtpc.controlId) >>> 0;
   const parameter = names.parameters.get(controlID);

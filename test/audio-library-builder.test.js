@@ -1048,6 +1048,59 @@ test("SFX lowering preserves exact NodeBase RTPC accumulation modes", () =>
                         payload: new Uint8Array(),
                     },
                     {
+                        type: 2,
+                        id: 203,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9004,
+                        inMemoryMediaSize: 64,
+                        payload: soundPayload({
+                            rtpcs: [
+                                {
+                                    controlId: 700,
+                                    parameterId: 5,
+                                    scaling: 0,
+                                    points: [ [ 0, 0, 4 ] ],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 303,
+                        actionType: 0x0403,
+                        targetId: 203,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 2,
+                        id: 204,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9005,
+                        inMemoryMediaSize: 64,
+                        payload: soundPayload({
+                            rtpcs: [
+                                {
+                                    controlId: 700,
+                                    controlType: 1,
+                                    parameterId: 0,
+                                    scaling: 2,
+                                    points: [ [ 0, 0, 4 ] ],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 304,
+                        actionType: 0x0403,
+                        targetId: 204,
+                        payload: new Uint8Array(),
+                    },
+                    {
                         type: 4,
                         id: 100,
                         actionIds: [ 300 ],
@@ -1065,6 +1118,18 @@ test("SFX lowering preserves exact NodeBase RTPC accumulation modes", () =>
                         actionIds: [ 302 ],
                         payload: new Uint8Array(),
                     },
+                    {
+                        type: 4,
+                        id: 103,
+                        actionIds: [ 303 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 104,
+                        actionIds: [ 304 ],
+                        payload: new Uint8Array(),
+                    },
                 ],
             },
         ],
@@ -1073,6 +1138,8 @@ test("SFX lowering preserves exact NodeBase RTPC accumulation modes", () =>
                 engine_play: { eventID: 100 },
                 filtered_play: { eventID: 101 },
                 invalid_play: { eventID: 102 },
+                unsupported_property_play: { eventID: 103 },
+                unsupported_control_play: { eventID: 104 },
             },
         },
         soundbanksInfo: {
@@ -1103,6 +1170,8 @@ test("SFX lowering preserves exact NodeBase RTPC accumulation modes", () =>
             "9001": { resPath: "res:/audio/9001.wem" },
             "9002": { resPath: "res:/audio/9002.wem" },
             "9003": { resPath: "res:/audio/9003.wem" },
+            "9004": { resPath: "res:/audio/9004.wem" },
+            "9005": { resPath: "res:/audio/9005.wem" },
         },
     });
 
@@ -1178,12 +1247,26 @@ test("SFX lowering preserves exact NodeBase RTPC accumulation modes", () =>
         { nodeId: "201" },
     ]);
     assert.equal(result.events.invalid_play, undefined);
+    assert.equal(result.events.unsupported_property_play, undefined);
+    assert.equal(result.events.unsupported_control_play, undefined);
     assert.equal(result.nodes["202"], undefined);
+    assert.equal(result.nodes["203"], undefined);
+    assert.equal(result.nodes["204"], undefined);
     assert.deepEqual(result.diagnostics.omittedEvents, [
         {
             id: 102,
             name: "invalid_play",
             reason: "unsupported volume RTPC scaling 0",
+        },
+        {
+            id: 103,
+            name: "unsupported_property_play",
+            reason: "unsupported RTPC property 5",
+        },
+        {
+            id: 104,
+            name: "unsupported_control_play",
+            reason: "unsupported RTPC control type 1",
         },
     ]);
 });
@@ -3032,6 +3115,11 @@ test("SFX spatial projection resolves inherited and mixed playable leaves", () =
                     }),
                 },
                 {
+                    type: 14,
+                    id: 800,
+                    payload: attenuationPayload(500),
+                },
+                {
                     type: 9,
                     id: 202,
                     payload: concatBytes(
@@ -3112,10 +3200,16 @@ test("SFX spatial projection resolves inherited and mixed playable leaves", () =
     });
 
     assert.deepEqual(result.metadataProjection.Events, {
-        inherited_3d: { is2D: 0 },
+        inherited_3d: {
+            is2D: 0,
+            maxRadiusAttenuation: 500,
+        },
         listener_relative_with_zero_attenuation: { is2D: 1 },
         local_2d: { is2D: 1 },
-        mixed: { is2D: 0 },
+        mixed: {
+            is2D: 0,
+            maxRadiusAttenuation: 500,
+        },
     });
     assert.equal(
         result.nodes["200"].spatial,
@@ -3770,6 +3864,31 @@ function setterPayload(groupID, valueID)
     return new TestWriter()
         .u32(groupID)
         .u32(valueID)
+        .bytes();
+}
+
+function attenuationPayload(maximumDistance)
+{
+    const writer = new TestWriter()
+        .u8(1)
+        .u8(0);
+
+    for (let index = 0; index < 19; index++)
+    {
+        writer.u8(index === 0 ? 0 : -2);
+    }
+
+    return writer
+        .u8(1)
+        .u8(2)
+        .u16(2)
+        .f32(0)
+        .f32(0)
+        .u32(4)
+        .f32(maximumDistance)
+        .f32(-1)
+        .u32(4)
+        .u16(0)
         .bytes();
 }
 
