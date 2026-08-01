@@ -252,16 +252,19 @@ export class CjsSfxEngine
                 {
                     addPlay([ action.child ], actionIndex);
                 }
-                else if (action.kind === "stop")
+                else if (action.kind === "stop"
+                    || action.kind === "pause"
+                    || action.kind === "resume")
                 {
-                    const stop = this.#ResolveStopAction(
+                    const playbackControl =
+                        this.#ResolvePlaybackControlAction(
                         action,
                         actionIndex,
                     );
 
-                    if (stop)
+                    if (playbackControl)
                     {
-                        operations.push(stop);
+                        operations.push(playbackControl);
                     }
                 }
                 else if (action.kind === "set-voice-volume"
@@ -1314,8 +1317,8 @@ export class CjsSfxEngine
         };
     }
 
-    /** Samples one authored Stop action once for this post. */
-    #ResolveStopAction(action, actionIndex)
+    /** Samples one authored Stop, Pause, or Resume action once per post. */
+    #ResolvePlaybackControlAction(action, actionIndex)
     {
         const probability = action.probability === undefined
             ? 100
@@ -1329,7 +1332,7 @@ export class CjsSfxEngine
         }
 
         return Object.freeze({
-            kind: "stop",
+            kind: action.kind,
             actionIndex,
             targetId: String(Number(action.targetId) >>> 0),
             targetFlags: Number(action.targetFlags ?? 0),
@@ -1346,7 +1349,10 @@ export class CjsSfxEngine
                 () => this.#SampleUnit(),
             )),
             curve: Number(action.curve ?? 4),
-            actionFlags: Number(action.actionFlags ?? 6),
+            actionFlags: Number(
+                action.actionFlags
+                ?? (action.kind === "pause" ? 7 : 6),
+            ),
             exceptions: Object.freeze(action.exceptions.map(exception =>
                 Object.freeze({
                     targetId: String(

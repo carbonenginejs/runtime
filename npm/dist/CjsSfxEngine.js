@@ -160,10 +160,10 @@ class CjsSfxEngine {
         const action = program[actionIndex];
         if (action.kind === "play") {
           addPlay([action.child], actionIndex);
-        } else if (action.kind === "stop") {
-          const stop = this.#ResolveStopAction(action, actionIndex);
-          if (stop) {
-            operations.push(stop);
+        } else if (action.kind === "stop" || action.kind === "pause" || action.kind === "resume") {
+          const playbackControl = this.#ResolvePlaybackControlAction(action, actionIndex);
+          if (playbackControl) {
+            operations.push(playbackControl);
           }
         } else if (action.kind === "set-voice-volume" || action.kind === "reset-voice-volume") {
           const volume = this.#ResolveVoiceVolumeAction(action, actionIndex);
@@ -741,14 +741,14 @@ class CjsSfxEngine {
     };
   }
 
-  /** Samples one authored Stop action once for this post. */
-  #ResolveStopAction(action, actionIndex) {
+  /** Samples one authored Stop, Pause, or Resume action once per post. */
+  #ResolvePlaybackControlAction(action, actionIndex) {
     const probability = action.probability === undefined ? 100 : Number(action.probability);
     if (probability <= 0 || probability < 100 && this.#SampleUnit() * 100 >= probability) {
       return null;
     }
     return Object.freeze({
-      kind: "stop",
+      kind: action.kind,
       actionIndex,
       targetId: String(Number(action.targetId) >>> 0),
       targetFlags: Number(action.targetFlags ?? 0),
@@ -757,7 +757,7 @@ class CjsSfxEngine {
       delayMs: Math.max(0, SampleRandomizedValue(action.delayMs, action.delayRangeMs, () => this.#SampleUnit())),
       transitionMs: Math.max(0, SampleRandomizedValue(action.transitionMs, action.transitionRangeMs, () => this.#SampleUnit())),
       curve: Number(action.curve ?? 4),
-      actionFlags: Number(action.actionFlags ?? 6),
+      actionFlags: Number(action.actionFlags ?? (action.kind === "pause" ? 7 : 6)),
       exceptions: Object.freeze(action.exceptions.map(exception => Object.freeze({
         targetId: String(Number(exception.targetId) >>> 0),
         targetFlags: Number(exception.targetFlags ?? 0)

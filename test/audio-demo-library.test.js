@@ -141,6 +141,46 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "the demo includes one exact authored Set Voice Volume example",
     );
     assert.deepEqual(
+        graph.programs.voc_Aura_2850_1_play_01,
+        [
+            {
+                kind: "play",
+                child: { nodeId: "735447374" },
+            },
+        ],
+    );
+    assert.deepEqual(
+        graph.programs.voc_Aura_2850_1_pause,
+        [
+            {
+                kind: "pause",
+                targetId: "735447374",
+                scope: "game-object",
+                mode: "element",
+                curve: 4,
+                exceptions: [],
+                targetFlags: 0,
+                actionFlags: 7,
+            },
+        ],
+    );
+    assert.deepEqual(
+        graph.programs.voc_Aura_2850_1_resume,
+        [
+            {
+                kind: "resume",
+                targetId: "735447374",
+                scope: "game-object",
+                mode: "element",
+                curve: 4,
+                exceptions: [],
+                targetFlags: 0,
+                actionFlags: 6,
+            },
+        ],
+        "the demo includes one exact authored Pause/Resume voice trio",
+    );
+    assert.deepEqual(
         graph.programs.tutorial_music_5_05_aura_3765,
         [
             {

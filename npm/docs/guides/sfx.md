@@ -120,10 +120,10 @@ SFX schema version 2 makes `programs` the ordered authoring source. When an
 event has a program, its `events` entry must be exactly the projection of that
 program's `play` actions. This keeps legacy root lookup available without
 allowing the static roots and the executable program to disagree. Supplied
-Stop and Voice Volume actions are also qualified at validation time. Bus
-targets remain unsupported; Stop rejects unsupported action flags, nonzero
-Stop-All targets, and element-target exceptions, while Voice Volume accepts
-only exact element targets and its decoded dB contract.
+Stop, Pause, Resume, and Voice Volume actions are also qualified at validation
+time. Bus targets remain unsupported; playback controls reject unsupported
+action flags, nonzero All targets, and element-target exceptions, while Voice
+Volume accepts only exact element targets and its decoded dB contract.
 
 ## Node behavior
 
@@ -146,14 +146,14 @@ offsets from the base value. One set of values is sampled for the Play action
 and inherited by every sound leaf it selects. Delay is measured from the
 event post, and the fade begins when the delayed source starts.
 
-`programs` preserves the authored order of Play, Stop, SetSwitch, SetState,
-Set Voice Volume, and Reset Voice Volume actions. Switches update the posting
-game object; states update the global state table. A switch or state setter
-therefore affects only later Play actions in the same post. The `events` table
-remains the static playable-root projection used for media discovery. An
-action-only program is valid and completes without creating a media voice.
-Directly scheduled switch/state setters are omitted instead of being executed
-early.
+`programs` preserves the authored order of Play, Stop, Pause, Resume,
+SetSwitch, SetState, Set Voice Volume, and Reset Voice Volume actions.
+Switches update the posting game object; states update the global state table.
+A switch or state setter therefore affects only later Play actions in the same
+post. The `events` table remains the static playable-root projection used for
+media discovery. An action-only program is valid and completes without
+creating a media voice. Directly scheduled switch/state setters are omitted
+instead of being executed early.
 
 A Stop action has `scope: "game-object"` or `"global"`. `mode: "element"`
 matches the target HIRC identity, while `"all"` and `"all-except"` apply to
@@ -173,6 +173,18 @@ preserved: Play then Stop is stoppable, while Stop then Play leaves the later
 Play intact. Event metadata still carries conservative `eventsStoppedBy`
 relationships for culling and static inspection, but an installed authored
 program owns the actual Stop timing and avoids a duplicate fallback fade.
+
+Pause and Resume use the same scope, target hierarchy, mode, action ordering,
+and exception contract as Stop. Pause retains the target playing ID and media
+position instead of reporting completion. Pauses stack, so a voice resumes
+only after receiving the matching number of Resume actions. A matching Play
+selection that is still acquiring media remains silent until resumed. Web
+Audio buffer sources cannot restart, so the backend stops the disposable
+source on Pause and creates a replacement at the preserved position on
+Resume. Infinite loops retain their wrapped offset, while finite repeat counts
+retain their aggregate remaining duration rather than restarting the authored
+count. Delay and transition values use the same audio-clock scheduling path as
+other program actions.
 
 Set Voice Volume stores one dB contribution for the target HIRC element on
 the affected game object. `valueMode: "absolute"` replaces that contribution;
@@ -325,15 +337,15 @@ are preserved by `runtime-resource`, but the builder does not currently infer
 caller metadata, or enrichment.
 
 Automatic construction currently accepts Wwise generator-version-150 codec
-sounds, Play, Stop, Set/Reset Voice Volume, Play-Event, SetSwitch, and SetState
-actions,
+sounds, Play, Stop, Pause, Resume, Set/Reset Voice Volume, Play-Event,
+SetSwitch, and SetState actions,
 Random/Sequence containers without reverse restart, and named Step
 Switch/State containers without transition parameters. Play actions retain
 their authored delay, delay randomizer, probability, fade-in duration,
 fade-in randomizer, and curve. Play-Event recursively inlines the referenced
-event's playable program and merges its immediate setter, Voice Volume, and Stop
-actions; its delay, delay randomizer, and probability wrap only the
-inlined playable roots. A scheduled or gated Play-Event that reaches any
+event's playable program and merges its immediate setter, playback-control,
+and Voice Volume actions; its delay, delay randomizer, and probability wrap
+only the inlined playable roots. A scheduled or gated Play-Event that reaches any
 non-play program is omitted rather than executing that action early.
 Missing targets and cycles are diagnosed and omitted.
 Successfully lowered nodes also retain inherited NodeBase Volume, Pitch, and

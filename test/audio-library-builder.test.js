@@ -2748,6 +2748,114 @@ test("SFX Stop actions project event relationships through hierarchy-only parent
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("SFX Pause and Resume actions lower as typed ordered programs", () =>
+{
+    const control = (id, actionType, actionName, actionFlags) => ({
+        type: 3,
+        id,
+        actionType,
+        targetId: 200,
+        action: {
+            actionName,
+            actionMode: "element",
+            actionScope: "game-object",
+            targetId: 200,
+            targetFlags: 0,
+            targetIsBus: false,
+            fadeCurve: 4,
+            actionFlags,
+            exceptions: [],
+        },
+        payload: new Uint8Array(),
+    });
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "voice.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload(),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    control(301, 0x0203, "pause", 7),
+                    control(302, 0x0303, "resume", 6),
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 102,
+                        actionIds: [ 302 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                voice_play: { eventID: 100 },
+                voice_pause: { eventID: 101 },
+                voice_resume: { eventID: 102 },
+            },
+        },
+        media: {
+            "9001": {
+                resPath: "res:/audio/9001.wem",
+            },
+        },
+    });
+
+    assert.deepEqual(result.programs.voice_pause, [
+        {
+            kind: "pause",
+            targetId: "200",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            curve: 4,
+            actionFlags: 7,
+            exceptions: [],
+        },
+    ]);
+    assert.deepEqual(result.programs.voice_resume, [
+        {
+            kind: "resume",
+            targetId: "200",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            curve: 4,
+            actionFlags: 6,
+            exceptions: [],
+        },
+    ]);
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
 test("SFX Voice Volume actions lower into ordered portable programs", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({

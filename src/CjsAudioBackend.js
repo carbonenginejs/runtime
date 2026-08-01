@@ -512,6 +512,7 @@ export class CjsAudioBackend
                             batch.state = "voice";
                         }
                     }
+                    ApplySlotPauseDepth(voice, slot);
                     realizedSlots.add(slot.id);
                 }
             }
@@ -721,6 +722,9 @@ export class CjsAudioBackend
                 if (breaking && !voice.loop && voice.playCount > 1)
                 {
                     voice.stopping = true;
+                    voice.pausing = false;
+                    voice.pauseContextTime = null;
+                    voice.pauseSource = null;
                     const duration = Number(voice.buffer?.duration);
                     const rate = voice.playbackRate;
 
@@ -759,6 +763,9 @@ export class CjsAudioBackend
                     }
                 }
                 voice.stopping = true;
+                voice.pausing = false;
+                voice.pauseContextTime = null;
+                voice.pauseSource = null;
                 if (voice.startContextTime > actionTime)
                 {
                     voice.cancelledBeforeStart = true;
@@ -856,22 +863,30 @@ export class CjsAudioBackend
             return record.musicEngine?.GetSourcePlayPosition?.(playingID) ?? -1;
         }
         const voice = record.voices?.find(value =>
-            value.source && !value.ended);
+            !value.ended
+            && (value.source || value.paused || value.pausing));
 
         if (!voice || voice.startContextTime === null)
         {
             return 0;
         }
-        let seconds = voice.offsetSeconds
-            + Math.max(
+        let seconds = voice.offsetSeconds;
+
+        if (!voice.paused
+            && voice.positionAnchorContextTime !== null)
+        {
+            seconds += Math.max(
                 0,
                 this.#context.currentTime
                     - voice.positionAnchorContextTime,
             ) * voice.playbackRate;
+        }
         const duration = Number(voice.buffer?.duration);
         if (Number.isFinite(duration) && duration > 0)
         {
-            seconds = voice.source.loop
+            seconds = (voice.source?.loop
+                || voice.loop
+                || voice.playCount > 1)
                 ? seconds % duration
                 : Math.min(seconds, duration);
         }
@@ -1078,6 +1093,7 @@ export class CjsAudioBackend
     RenderAudio()
     {
         this.#ProcessScheduledSfxActions();
+        this.#FinalizeDueSfxPauses();
         this.#ProcessTriggerRateSlots();
         this.#ProcessCrossfadeSlots();
         this.#musicEngine?.Process();
@@ -1599,6 +1615,7 @@ export class CjsAudioBackend
                             matchIds,
                             selections: Object.freeze(selectionMetadata),
                             cancelledSelectionKeys: new Set(),
+                            pauseDepths: new Map(),
                             selectionControllers:
                                 CreateProgramSelectionControllers(
                                     selectionMetadata,
@@ -1709,6 +1726,7 @@ export class CjsAudioBackend
                                 selectionMetadata,
                             ]),
                             cancelledSelectionKeys: new Set(),
+                            pauseDepths: new Map(),
                             selectionControllers:
                                 CreateProgramSelectionControllers([
                                     selectionMetadata,
@@ -1726,6 +1744,8 @@ export class CjsAudioBackend
                     continue;
                 }
                 if (operation.kind !== "stop"
+                    && operation.kind !== "pause"
+                    && operation.kind !== "resume"
                     && operation.kind !== "set-voice-volume"
                     && operation.kind !== "reset-voice-volume")
                 {
@@ -1802,6 +1822,11 @@ export class CjsAudioBackend
         {
             this.#ApplySfxStop(action, now);
         }
+        else if (action.kind === "pause"
+            || action.kind === "resume")
+        {
+            this.#ApplySfxPlaybackControl(action, now);
+        }
         else
         {
             this.#ApplySfxVoiceVolume(action, now);
@@ -1838,6 +1863,346 @@ export class CjsAudioBackend
         }
         apply(action.emitterNodes);
         this.#RefreshSfxVoiceVolumes(action.gameObjID);
+    }
+
+    /** Applies one authored Pause or Resume to matching live SFX instances. */
+    #ApplySfxPlaybackControl(action, now)
+    {
+        const pausing = action.kind === "pause";
+
+        for (const [ playingID, record ] of this.#playing)
+        {
+            if (!record.sfx
+                || (action.scope === "game-object"
+                    && record.gameObjID !== action.gameObjID))
+            {
+                continue;
+            }
+
+            if (!record.sfxProgram)
+            {
+                if (CompareFallbackOrder(
+                    record,
+                    playingID,
+                    action,
+                ) > 0)
+                {
+                    continue;
+                }
+                for (const voice of record.voices ?? [])
+                {
+                    if (!voice.ended
+                        && PlaybackControlMatchesValue(action, voice))
+                    {
+                        this.#ApplySfxVoicePauseDepth(
+                            playingID,
+                            record,
+                            voice,
+                            action,
+                            now,
+                            pausing,
+                        );
+                    }
+                }
+                continue;
+            }
+
+            for (const slot of record.programSlots.values())
+            {
+                if (slot.state === "ended"
+                    || slot.state === "cancelled")
+                {
+                    continue;
+                }
+
+                for (const selection of ProgramSlotSelections(slot))
+                {
+                    if (CompareProgramOrder(
+                        selection,
+                        slot,
+                        action,
+                    ) > 0
+                        || !PlaybackControlMatchesValue(
+                            action,
+                            selection,
+                        ))
+                    {
+                        continue;
+                    }
+                    AdjustPauseDepth(
+                        slot.pauseDepths,
+                        ProgramSelectionKey(selection),
+                        pausing,
+                    );
+                }
+
+                for (const voice of slot.voices)
+                {
+                    if (voice.ended
+                        || CompareProgramOrder(
+                            voice,
+                            slot,
+                            action,
+                        ) > 0
+                        || !PlaybackControlMatchesValue(action, voice))
+                    {
+                        continue;
+                    }
+                    this.#ApplySfxVoicePauseDepth(
+                        playingID,
+                        record,
+                        voice,
+                        action,
+                        now,
+                        pausing,
+                    );
+                }
+            }
+        }
+    }
+
+    /** Adjusts one logical voice's stacked Wwise pause depth. */
+    #ApplySfxVoicePauseDepth(
+        playingID,
+        record,
+        voice,
+        action,
+        now,
+        pausing,
+    )
+    {
+        const previous = Math.max(0, Number(voice.pauseDepth) || 0);
+        const next = pausing
+            ? previous + 1
+            : Math.max(0, previous - 1);
+
+        voice.pauseDepth = next;
+        if (previous === 0 && next === 1)
+        {
+            this.#PauseSfxVoice(voice, action, now);
+        }
+        else if (previous === 1 && next === 0)
+        {
+            this.#ResumeSfxVoice(
+                playingID,
+                record,
+                voice,
+                action,
+                now,
+            );
+        }
+    }
+
+    /** Stops one disposable WebAudio source while retaining its logical voice. */
+    #PauseSfxVoice(voice, action, now)
+    {
+        if (voice.stopping || voice.ended)
+        {
+            return;
+        }
+
+        const actionTime = Number(action.actionTime) || 0;
+        const seconds = Math.max(
+            0,
+            Number(action.transitionMs) || 0,
+        ) / 1000;
+        const pauseTime = actionTime + seconds;
+        const currentTime = Math.max(actionTime, Number(now) || 0);
+
+        if (!voice.source || pauseTime <= currentTime)
+        {
+            this.#FinalizeSfxVoicePause(
+                voice,
+                Math.min(pauseTime, currentTime),
+            );
+            return;
+        }
+
+        const progress = seconds > 0
+            ? Math.max(
+                0,
+                Math.min(1, (currentTime - actionTime) / seconds),
+            )
+            : 1;
+        const remaining = Math.max(0, pauseTime - currentTime);
+        const param = voice.stopGain.gain;
+
+        param?.cancelScheduledValues?.(currentTime);
+        ScheduleWwiseFade(
+            param,
+            1,
+            0,
+            currentTime,
+            remaining,
+            Number(action.curve ?? LINEAR_FADE_CURVE),
+            progress,
+        );
+        voice.pausing = true;
+        voice.pauseContextTime = pauseTime;
+        const naturalEnd = SfxVoiceNaturalEndContextTime(voice);
+
+        if (!Number.isFinite(naturalEnd) || pauseTime < naturalEnd)
+        {
+            voice.pauseSource = voice.source;
+            voice.source.stop(pauseTime);
+        }
+        else
+        {
+            // Let an earlier authored/natural ending win. Its onended callback
+            // closes the logical voice instead of retaining a dead pause.
+            voice.pauseSource = null;
+        }
+    }
+
+    /** Finalizes a due pause without reporting EndOfEvent. */
+    #FinalizeSfxVoicePause(voice, pauseTime)
+    {
+        if (voice.ended || voice.stopping || voice.paused)
+        {
+            return;
+        }
+
+        const now = Number(this.#context.currentTime) || 0;
+
+        this.#AdvanceSfxVoiceTransport(
+            voice,
+            Number.isFinite(Number(pauseTime))
+                ? Number(pauseTime)
+                : now,
+        );
+
+        const source = voice.source;
+
+        if (source)
+        {
+            source.onended = null;
+            try
+            {
+                source.stop(now);
+            }
+            catch
+            {
+                // already stopped
+            }
+            source.disconnect?.();
+        }
+        voice.source = null;
+        voice.sourceStarted = false;
+        voice.positionAnchorContextTime = null;
+        voice.repeatAnchorContextTime = null;
+        voice.pausing = false;
+        voice.paused = true;
+        voice.pauseContextTime = null;
+        voice.pauseSource = null;
+        SetAudioParam(voice.stopGain.gain, 0, this.#context);
+    }
+
+    /** Restarts one paused logical voice at its preserved media position. */
+    #ResumeSfxVoice(playingID, record, voice, action, now)
+    {
+        if (voice.stopping || voice.ended || voice.pauseDepth > 0)
+        {
+            return;
+        }
+
+        const currentTime = Number(now) || 0;
+
+        if (voice.pausing && voice.source)
+        {
+            this.#AdvanceSfxVoiceTransport(voice, currentTime);
+            const source = voice.source;
+
+            source.onended = null;
+            try
+            {
+                source.stop(currentTime);
+            }
+            catch
+            {
+                // already stopped
+            }
+            source.disconnect?.();
+            voice.source = null;
+        }
+
+        ClearPauseFadeForResume(
+            voice.stopGain.gain,
+            currentTime,
+        );
+
+        const repeatRemaining = voice.repeatRemainingSeconds;
+
+        if (repeatRemaining !== null && repeatRemaining <= 0)
+        {
+            voice.paused = false;
+            voice.pausing = false;
+            voice.ended = true;
+            this.#SetSfxProgramSlotEnded(playingID, record, voice);
+            this.#MaybeFinishSfxProgram(playingID, record);
+            return;
+        }
+
+        voice.paused = false;
+        voice.pausing = false;
+        voice.pauseContextTime = null;
+        voice.pauseSource = null;
+        const startTime = currentTime
+            + RenderQuantumSeconds(this.#context);
+
+        this.#StartVoice(
+            playingID,
+            record,
+            voice,
+            {
+                kind: "resume",
+                offsetSeconds: voice.offsetSeconds,
+                repeatRemainingSeconds: repeatRemaining,
+            },
+            startTime,
+        );
+
+        const seconds = Math.max(
+            0,
+            Number(action.transitionMs) || 0,
+        ) / 1000;
+
+        if (seconds > 0)
+        {
+            ScheduleWwiseFade(
+                voice.stopGain.gain,
+                0,
+                1,
+                startTime,
+                seconds,
+                Number(action.curve ?? LINEAR_FADE_CURVE),
+            );
+        }
+        else
+        {
+            SetAudioParam(voice.stopGain.gain, 1, this.#context);
+        }
+    }
+
+    /** Finalizes scheduled Pause transitions even if a host delays onended. */
+    #FinalizeDueSfxPauses()
+    {
+        const now = Number(this.#context?.currentTime) || 0;
+
+        for (const record of this.#playing.values())
+        {
+            for (const voice of record.voices ?? [])
+            {
+                if (voice.pausing
+                    && voice.pauseSource === voice.source
+                    && Number(voice.pauseContextTime) <= now)
+                {
+                    this.#FinalizeSfxVoicePause(
+                        voice,
+                        voice.pauseContextTime,
+                    );
+                }
+            }
+        }
     }
 
     /** Applies one due Stop to eligible pending slots and live SFX voices. */
@@ -1903,11 +2268,11 @@ export class CjsAudioBackend
                 const selections = slot.selections ?? [];
                 const matchingSelections = selections.filter(selection =>
                     CompareProgramOrder(selection, slot, stop) <= 0
-                    && StopMatchesProgramValue(stop, selection));
+                    && PlaybackControlMatchesValue(stop, selection));
                 const matchingVoices = [ ...slot.voices ].filter(voice =>
                     !voice.ended
                     && CompareProgramOrder(voice, slot, stop) <= 0
-                    && StopMatchesProgramValue(stop, voice));
+                    && PlaybackControlMatchesValue(stop, voice));
 
                 if (!matchingSelections.length
                     && !matchingVoices.length)
@@ -1962,6 +2327,14 @@ export class CjsAudioBackend
                         stop.curve,
                         actionTime,
                     );
+                    if (voice.ended)
+                    {
+                        this.#SetSfxProgramSlotEnded(
+                            playingID,
+                            record,
+                            voice,
+                        );
+                    }
                 }
                 if (stopsWholeSlot)
                 {
@@ -2004,7 +2377,7 @@ export class CjsAudioBackend
                     continue;
                 }
                 eligibleSelections.push(selection);
-                if (StopMatchesProgramValue(stop, selection))
+                if (PlaybackControlMatchesValue(stop, selection))
                 {
                     matchingSelections.push({ batch, selection });
                 }
@@ -2013,7 +2386,7 @@ export class CjsAudioBackend
         const matchingVoices = [ ...slot.voices ].filter(voice =>
             !voice.ended
             && CompareProgramOrder(voice, slot, stop) <= 0
-            && StopMatchesProgramValue(stop, voice));
+            && PlaybackControlMatchesValue(stop, voice));
         const containerProtected = stop.exceptions.some(exception =>
             String(exception.targetId) === slot.continuousNodeId);
         const stopsWholeSlot = stop.mode === "element"
@@ -2060,6 +2433,14 @@ export class CjsAudioBackend
                 stop.curve,
                 actionTime,
             );
+            if (voice.ended)
+            {
+                this.#SetSfxProgramSlotEnded(
+                    slot.playingID,
+                    record,
+                    voice,
+                );
+            }
         }
         if (stopsWholeSlot)
         {
@@ -2101,6 +2482,15 @@ export class CjsAudioBackend
     {
         if (!voice.source)
         {
+            if (voice.paused || voice.pauseDepth > 0)
+            {
+                voice.pauseDepth = 0;
+                voice.paused = false;
+                voice.pausing = false;
+                voice.pauseContextTime = null;
+                voice.stopping = true;
+                voice.ended = true;
+            }
             return;
         }
 
@@ -2137,6 +2527,9 @@ export class CjsAudioBackend
 
         voice.stopping = true;
         voice.stopContextTime = sourceStopTime;
+        voice.pausing = false;
+        voice.pauseContextTime = null;
+        voice.pauseSource = null;
 
         if (voice.startContextTime > authoredActionTime
             || authoredStopTime <= currentTime)
@@ -2443,6 +2836,11 @@ export class CjsAudioBackend
             cancelledBeforeStart: false,
             ended: false,
             stopping: false,
+            pauseDepth: 0,
+            paused: false,
+            pausing: false,
+            pauseContextTime: null,
+            pauseSource: null,
             startContextTime: null,
             positionAnchorContextTime: null,
             scheduledEndContextTime: null,
@@ -2520,7 +2918,10 @@ export class CjsAudioBackend
             {
                 voice.playCount = 1;
             }
-            if (voice.stopping)
+            if (voice.stopping
+                || voice.pauseDepth > 0
+                || voice.paused
+                || voice.pausing)
             {
                 continue;
             }
@@ -2602,8 +3003,13 @@ export class CjsAudioBackend
     {
         const duration = Number(voice.buffer.duration);
         let offsetSeconds = 0;
+        const resumed = seek?.kind === "resume";
 
-        if (seek?.kind === "ms")
+        if (resumed)
+        {
+            offsetSeconds = Number(seek.offsetSeconds) || 0;
+        }
+        else if (seek?.kind === "ms")
         {
             offsetSeconds = seek.value / 1000;
         }
@@ -2643,8 +3049,13 @@ export class CjsAudioBackend
 
         const source = this.#context.createBufferSource();
         source.buffer = voice.buffer;
+        const resumeRepeatRemaining = resumed
+            && Number.isFinite(seek.repeatRemainingSeconds)
+                ? Math.max(0, Number(seek.repeatRemainingSeconds))
+                : null;
         const finiteRepeats = !loops
-            && voice.playCount > 1
+            && (resumeRepeatRemaining !== null
+                || voice.playCount > 1)
             && Number.isFinite(duration)
             && duration > 0;
 
@@ -2665,11 +3076,30 @@ export class CjsAudioBackend
         {
             if (voice.source === source)
             {
-                this.#VoiceEnded(playingID, record, voice);
+                if (voice.stopping)
+                {
+                    this.#VoiceEnded(playingID, record, voice);
+                }
+                else if (voice.pausing
+                    && voice.pauseSource === source)
+                {
+                    this.#FinalizeSfxVoicePause(
+                        voice,
+                        voice.pauseContextTime,
+                    );
+                }
+                else
+                {
+                    this.#VoiceEnded(playingID, record, voice);
+                }
             }
         };
         voice.source = source;
         voice.ended = false;
+        voice.paused = false;
+        voice.pausing = false;
+        voice.pauseContextTime = null;
+        voice.pauseSource = null;
         voice.offsetSeconds = Math.max(0, offsetSeconds);
         voice.startContextTime = startContextTime;
         voice.positionAnchorContextTime = startContextTime;
@@ -2696,9 +3126,9 @@ export class CjsAudioBackend
         voice.sourceStarted = true;
         if (finiteRepeats)
         {
-            const firstPlay = duration - voice.offsetSeconds;
-            const remaining = firstPlay
-                + duration * (voice.playCount - 1);
+            const remaining = resumeRepeatRemaining
+                ?? (duration - voice.offsetSeconds
+                    + duration * (voice.playCount - 1));
 
             voice.repeatRemainingSeconds = remaining;
             voice.repeatAnchorContextTime = startContextTime;
@@ -2948,6 +3378,7 @@ export class CjsAudioBackend
             for (const voice of voices)
             {
                 voice.programSlotId = slot.id;
+                ApplySlotPauseDepth(voice, slot);
                 if (slot.broken && voice.loop)
                 {
                     voice.loop = false;
@@ -3163,6 +3594,7 @@ export class CjsAudioBackend
             {
                 voice.programSlotId = slot.id;
                 voice.programBatchId = batch.id;
+                ApplySlotPauseDepth(voice, slot);
                 batch.voices.add(voice);
                 slot.voices.add(voice);
                 record.voices.push(voice);
@@ -3435,6 +3867,7 @@ export class CjsAudioBackend
 
             voice.programSlotId = slot.id;
             voice.programBatchId = batch.id;
+            ApplySlotPauseDepth(voice, slot);
             SetAudioParam(
                 voice.transitionGain?.gain,
                 0,
@@ -3796,6 +4229,53 @@ export class CjsAudioBackend
         );
     }
 
+    /** Advances one live voice's media and finite-repeat clocks to a context time. */
+    #AdvanceSfxVoiceTransport(voice, contextTime)
+    {
+        const anchor = Number(voice.positionAnchorContextTime);
+        const time = Number(contextTime);
+        const rate = Number(voice.playbackRate);
+
+        if (!voice.source
+            || voice.positionAnchorContextTime === null
+            || !Number.isFinite(anchor)
+            || !Number.isFinite(time)
+            || !Number.isFinite(rate)
+            || rate <= 0
+            || time <= anchor)
+        {
+            return;
+        }
+
+        const elapsedMedia = (time - anchor) * rate;
+        const duration = Number(voice.buffer?.duration);
+        let offset = Math.max(0, Number(voice.offsetSeconds) || 0)
+            + elapsedMedia;
+
+        if (Number.isFinite(duration) && duration > 0)
+        {
+            if (voice.loop || voice.repeatRemainingSeconds !== null)
+            {
+                offset %= duration;
+            }
+            else
+            {
+                offset = Math.min(offset, duration);
+            }
+        }
+        voice.offsetSeconds = offset;
+        voice.positionAnchorContextTime = time;
+
+        if (voice.repeatRemainingSeconds !== null)
+        {
+            voice.repeatRemainingSeconds = Math.max(
+                0,
+                voice.repeatRemainingSeconds - elapsedMedia,
+            );
+            voice.repeatAnchorContextTime = time;
+        }
+    }
+
     /** Applies one voice descriptor's current safe playback rate in place. */
     #ApplyVoicePlaybackRate(voice)
     {
@@ -3823,17 +4303,7 @@ export class CjsAudioBackend
         const source = voice.source;
         const now = Number(this.#context.currentTime) || 0;
 
-        if (source
-            && Number.isFinite(previous)
-            && previous > 0
-            && voice.positionAnchorContextTime !== null
-            && now > voice.positionAnchorContextTime)
-        {
-            voice.offsetSeconds += (
-                now - voice.positionAnchorContextTime
-            ) * previous;
-            voice.positionAnchorContextTime = now;
-        }
+        this.#AdvanceSfxVoiceTransport(voice, now);
 
         if (source
             && !voice.stopping
@@ -3842,14 +4312,6 @@ export class CjsAudioBackend
             && voice.repeatRemainingSeconds !== null
             && voice.repeatAnchorContextTime !== null)
         {
-            const anchor = voice.repeatAnchorContextTime;
-            const elapsed = Math.max(0, now - anchor) * previous;
-
-            voice.repeatRemainingSeconds = Math.max(
-                0,
-                voice.repeatRemainingSeconds - elapsed,
-            );
-            voice.repeatAnchorContextTime = Math.max(now, anchor);
             voice.scheduledEndContextTime =
                 voice.repeatAnchorContextTime
                 + voice.repeatRemainingSeconds / value;
@@ -4229,12 +4691,69 @@ function SilenceAudioParamAt(param, time, context)
     SetAudioParam(param, 0, context);
 }
 
-function StopMatchesProgramValue(stop, value)
+/** Clears the Pause envelope before a replacement source fades back in. */
+function ClearPauseFadeForResume(param, time)
+{
+    if (!param)
+    {
+        return;
+    }
+    if (typeof param.cancelAndHoldAtTime === "function")
+    {
+        param.cancelAndHoldAtTime(time);
+    }
+    else
+    {
+        // A value curve is one event at its start time, so cancelling from
+        // `time` cannot remove a curve that is already in progress.
+        param.cancelScheduledValues?.(0);
+    }
+    param.setValueAtTime?.(0, time);
+    if ("value" in param)
+    {
+        param.value = 0;
+    }
+}
+
+/** Returns the current disposable source's authored/natural end time. */
+function SfxVoiceNaturalEndContextTime(voice)
+{
+    if (voice.scheduledEndContextTime !== null)
+    {
+        const scheduled = Number(voice.scheduledEndContextTime);
+
+        if (Number.isFinite(scheduled))
+        {
+            return scheduled;
+        }
+    }
+    if (voice.loop)
+    {
+        return Infinity;
+    }
+
+    const duration = Number(voice.buffer?.duration);
+    const rate = Number(voice.playbackRate);
+    const start = Number(voice.startContextTime);
+    const offset = Math.max(0, Number(voice.offsetSeconds) || 0);
+
+    if (!Number.isFinite(duration)
+        || duration <= 0
+        || !Number.isFinite(rate)
+        || rate <= 0
+        || !Number.isFinite(start))
+    {
+        return Infinity;
+    }
+    return start + Math.max(0, duration - offset) / rate;
+}
+
+function PlaybackControlMatchesValue(action, value)
 {
     const matchIds = new Set(
         (value.matchIds ?? []).map(String),
     );
-    const protectedByException = stop.exceptions
+    const protectedByException = action.exceptions
         .some(exception =>
             matchIds.has(String(exception.targetId)));
 
@@ -4242,12 +4761,51 @@ function StopMatchesProgramValue(stop, value)
     {
         return false;
     }
-    if (stop.mode === "all" || stop.mode === "all-except")
+    if (action.mode === "all" || action.mode === "all-except")
     {
         return true;
     }
-    return stop.mode === "element"
-        && matchIds.has(String(stop.targetId));
+    return action.mode === "element"
+        && matchIds.has(String(action.targetId));
+}
+
+function ProgramSlotSelections(slot)
+{
+    if (!IsOverlappingAdvanceMode(slot.advanceMode))
+    {
+        return slot.selections ?? [];
+    }
+    return [ ...slot.batches?.values?.() ?? [] ]
+        .flatMap(batch => batch.selections ?? []);
+}
+
+function AdjustPauseDepth(depths, key, pausing)
+{
+    const previous = Math.max(0, Number(depths.get(key)) || 0);
+    const next = pausing
+        ? previous + 1
+        : Math.max(0, previous - 1);
+
+    if (next > 0)
+    {
+        depths.set(key, next);
+    }
+    else
+    {
+        depths.delete(key);
+    }
+    return next;
+}
+
+function ApplySlotPauseDepth(voice, slot)
+{
+    const depth = Math.max(
+        0,
+        Number(slot.pauseDepths?.get(ProgramSelectionKey(voice))) || 0,
+    );
+
+    voice.pauseDepth = depth;
+    voice.paused = depth > 0;
 }
 
 function CreateProgramSelectionMetadata(selection, baseContextTime)

@@ -4623,6 +4623,469 @@ test("unregister freezes Voice Volume for retired voices and resets a new genera
   );
 });
 
+test("authored Pause and Resume preserve position and stack per voice", async () =>
+{
+  const control = kind => [
+    {
+      kind,
+      actionIndex: 0,
+      targetId: "735447374",
+      targetFlags: 0,
+      scope: "game-object",
+      mode: "element",
+      delayMs: 0,
+      transitionMs: 0,
+      curve: 4,
+      actionFlags: kind === "pause" ? 7 : 6,
+      exceptions: [],
+    },
+  ];
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) =>
+      eventName === "voice_play"
+        ? [
+            {
+              kind: "play",
+              actionIndex: 0,
+              selections: [
+                {
+                  actionIndex: 0,
+                  leafIndex: 0,
+                  matchIds: [ "735447374", "640431925" ],
+                },
+              ],
+            },
+          ]
+        : control(eventName === "voice_pause" ? "pause" : "resume"),
+    loadBuffer: async (_eventID, eventName) =>
+      eventName === "voice_play"
+        ? {
+            voices: [
+              {
+                buffer: { duration: 10 },
+                loop: true,
+                programSlotId: "0:0",
+              },
+            ],
+          }
+        : { voices: [] },
+  });
+  const playingID = backend.PostEvent(
+    1,
+    1,
+    0,
+    emitter,
+    "voice_play",
+  );
+
+  await tick();
+  context.currentTime = 1;
+  backend.PostEvent(2, 1, 0, emitter, "voice_pause");
+
+  const pausedAt = backend.GetSourcePlayPosition(playingID);
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].stoppedAt, 1);
+  assert.ok(pausedAt > 990 && pausedAt < 1000);
+
+  context.currentTime = 2;
+  backend.PostEvent(2, 1, 0, emitter, "voice_pause");
+  context.currentTime = 3;
+  backend.PostEvent(3, 1, 0, emitter, "voice_resume");
+
+  assert.equal(context.sources.length, 1, "one Resume leaves one pause layer");
+  assert.equal(backend.GetSourcePlayPosition(playingID), pausedAt);
+
+  context.currentTime = 4;
+  backend.PostEvent(3, 1, 0, emitter, "voice_resume");
+
+  assert.equal(context.sources.length, 2);
+  assert.ok(
+    Math.abs(context.sources[1].offset - pausedAt / 1000) < 0.001,
+  );
+
+  context.currentTime = 5;
+  assert.ok(backend.GetSourcePlayPosition(playingID) > pausedAt + 990);
+  assert.equal(backend.GetPlayingCount() >= 1, true);
+});
+
+test("Pause holds pending media and Resume retains finite-repeat progress", async () =>
+{
+  const pending = Deferred();
+  const programs = {
+    voice_play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "735447374" ],
+          },
+        ],
+      },
+    ],
+    voice_pause: [
+      {
+        kind: "pause",
+        actionIndex: 0,
+        targetId: "735447374",
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+        actionFlags: 7,
+        exceptions: [],
+      },
+    ],
+    voice_resume: [
+      {
+        kind: "resume",
+        actionIndex: 0,
+        targetId: "735447374",
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+        actionFlags: 6,
+        exceptions: [],
+      },
+    ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: (_eventID, eventName) =>
+      eventName === "voice_play"
+        ? pending.promise
+        : { voices: [] },
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "voice_play");
+  context.currentTime = 0.1;
+  backend.PostEvent(2, 1, 0, emitter, "voice_pause");
+  pending.resolve({
+    voices: [
+      {
+        buffer: { duration: 2 },
+        playCount: 3,
+        programSlotId: "0:0",
+      },
+    ],
+  });
+  await tick();
+
+  assert.equal(context.sources.length, 0, "paused acquisition stays silent");
+
+  context.currentTime = 0.2;
+  backend.PostEvent(3, 1, 0, emitter, "voice_resume");
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].offset, 0);
+
+  context.currentTime = 2.5;
+  backend.PostEvent(2, 1, 0, emitter, "voice_pause");
+  context.currentTime = 4;
+  backend.PostEvent(3, 1, 0, emitter, "voice_resume");
+
+  assert.equal(context.sources.length, 2);
+  assert.ok(context.sources[1].offset > 0.29);
+  assert.ok(context.sources[1].offset < 0.31);
+  assert.ok(context.sources[1].stoppedAt > 7.7);
+  assert.ok(context.sources[1].stoppedAt < 7.71);
+});
+
+test("a targeted Stop settles a paused voice without reviving its source", async () =>
+{
+  const programs = {
+    voice_play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "735447374" ],
+          },
+        ],
+      },
+    ],
+    voice_pause: [
+      {
+        kind: "pause",
+        actionIndex: 0,
+        targetId: "735447374",
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+        actionFlags: 7,
+        exceptions: [],
+      },
+    ],
+    voice_stop: [
+      {
+        kind: "stop",
+        actionIndex: 0,
+        targetId: "735447374",
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+        actionFlags: 6,
+        exceptions: [],
+      },
+    ],
+  };
+  const { backend, emitter, finished, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, eventName) =>
+      eventName === "voice_play"
+        ? {
+            voices: [
+              {
+                buffer: { duration: 10 },
+                loop: true,
+                programSlotId: "0:0",
+              },
+            ],
+          }
+        : { voices: [] },
+  });
+  const playingID = backend.PostEvent(
+    1,
+    1,
+    0,
+    emitter,
+    "voice_play",
+  );
+
+  await tick();
+  context.currentTime = 1;
+  backend.PostEvent(2, 1, 0, emitter, "voice_pause");
+  backend.PostEvent(3, 1, 0, emitter, "voice_stop");
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(backend.GetSourcePlayPosition(playingID), -1);
+  assert.ok(finished.includes(playingID));
+});
+
+test("Stop during a Pause fade settles the logical voice", async () =>
+{
+  const control = (kind, transitionMs = 0) => [
+    {
+      kind,
+      actionIndex: 0,
+      targetId: "735447374",
+      targetFlags: 0,
+      scope: "game-object",
+      mode: "element",
+      delayMs: 0,
+      transitionMs,
+      curve: 0,
+      actionFlags: kind === "pause" ? 7 : 6,
+      exceptions: [],
+    },
+  ];
+  const { backend, emitter, context, finished } = Harness({
+    resolveSfxProgram: (_eventID, eventName) =>
+      eventName === "voice_play"
+        ? [
+            {
+              kind: "play",
+              actionIndex: 0,
+              selections: [
+                {
+                  actionIndex: 0,
+                  leafIndex: 0,
+                  matchIds: [ "735447374" ],
+                },
+              ],
+            },
+          ]
+        : eventName === "voice_pause"
+          ? control("pause", 4000)
+          : control("stop"),
+    loadBuffer: async (_eventID, eventName) =>
+      eventName === "voice_play"
+        ? {
+            voices: [
+              {
+                buffer: { duration: 10 },
+                loop: true,
+                programSlotId: "0:0",
+              },
+            ],
+          }
+        : { voices: [] },
+  });
+  const playingID = backend.PostEvent(1, 1, 0, emitter, "voice_play");
+
+  await tick();
+  context.currentTime = 1;
+  backend.PostEvent(2, 1, 0, emitter, "voice_pause");
+  assert.equal(context.sources[0].stoppedAt, 5);
+
+  context.currentTime = 2;
+  backend.PostEvent(3, 1, 0, emitter, "voice_stop");
+  assert.equal(context.sources[0].stoppedAt, 2);
+  context.sources[0].onended();
+
+  assert.equal(backend.GetSourcePlayPosition(playingID), -1);
+  assert.ok(finished.includes(playingID));
+});
+
+test("Resume cancels an in-progress Pause envelope before fading in", async () =>
+{
+  const programs = {
+    voice_play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "735447374" ],
+          },
+        ],
+      },
+    ],
+    voice_pause: [
+      {
+        kind: "pause",
+        actionIndex: 0,
+        targetId: "735447374",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 4000,
+        curve: 0,
+        actionFlags: 7,
+        exceptions: [],
+      },
+    ],
+    voice_resume: [
+      {
+        kind: "resume",
+        actionIndex: 0,
+        targetId: "735447374",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 1000,
+        curve: 0,
+        actionFlags: 6,
+        exceptions: [],
+      },
+    ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, eventName) =>
+      eventName === "voice_play"
+        ? {
+            voices: [
+              {
+                buffer: { duration: 10 },
+                loop: true,
+                programSlotId: "0:0",
+              },
+            ],
+          }
+        : { voices: [] },
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "voice_play");
+  await tick();
+  const stopParam = context.sources[0].connectedTo.connectedTo.gain;
+
+  context.currentTime = 1;
+  backend.PostEvent(2, 1, 0, emitter, "voice_pause");
+  assert.equal(stopParam.curves.length, 1);
+
+  context.currentTime = 2;
+  backend.PostEvent(3, 1, 0, emitter, "voice_resume");
+
+  assert.equal(context.sources.length, 2);
+  assert.ok(stopParam.cancellations.includes(0));
+  assert.equal(stopParam.curves.length, 2);
+  assert.ok(stopParam.curves.at(-1)[1] > 2);
+});
+
+test("a natural end wins when it precedes the Pause boundary", async () =>
+{
+  const programs = {
+    voice_play: [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            matchIds: [ "735447374" ],
+          },
+        ],
+      },
+    ],
+    voice_pause: [
+      {
+        kind: "pause",
+        actionIndex: 0,
+        targetId: "735447374",
+        targetFlags: 0,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 3000,
+        curve: 4,
+        actionFlags: 7,
+        exceptions: [],
+      },
+    ],
+  };
+  const { backend, emitter, context, finished } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, eventName) =>
+      eventName === "voice_play"
+        ? {
+            voices: [
+              {
+                buffer: { duration: 1 },
+                playCount: 2,
+                programSlotId: "0:0",
+              },
+            ],
+          }
+        : { voices: [] },
+  });
+  const playingID = backend.PostEvent(1, 1, 0, emitter, "voice_play");
+
+  await tick();
+  const naturalEnd = context.sources[0].stoppedAt;
+
+  context.currentTime = 0.1;
+  backend.PostEvent(2, 1, 0, emitter, "voice_pause");
+
+  assert.ok(naturalEnd > 2 && naturalEnd < 2.01);
+  assert.equal(context.sources[0].stoppedAt, naturalEnd);
+
+  context.currentTime = naturalEnd;
+  context.sources[0].onended();
+
+  assert.equal(backend.GetSourcePlayPosition(playingID), -1);
+  assert.ok(finished.includes(playingID));
+});
+
 test("an authored Play then Stop cancels its pending slot before media resolves", async () =>
 {
   const pending = Deferred();

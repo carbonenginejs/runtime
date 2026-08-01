@@ -9,8 +9,9 @@ const CONTINUOUS_TRANSITIONS = new Set(["crossfade-amplitude", "crossfade-power"
 const MIN_TRIGGER_RATE_MS = 21;
 const EVENT_ACTION_KINDS = new Set(["state", "switch"]);
 const VOICE_VOLUME_ACTION_KINDS = new Set(["reset-voice-volume", "set-voice-volume"]);
-const STOP_SCOPES = new Set(["game-object", "global"]);
-const STOP_MODES = new Set(["all", "all-except", "element"]);
+const PLAYBACK_CONTROL_ACTION_KINDS = new Set(["pause", "resume", "stop"]);
+const PLAYBACK_CONTROL_SCOPES = new Set(["game-object", "global"]);
+const PLAYBACK_CONTROL_MODES = new Set(["all", "all-except", "element"]);
 
 /**
  * Validates one browser-portable authored SFX graph against installed media.
@@ -129,8 +130,8 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
         ValidateChild(action.child, nodes, `${label} child`);
         continue;
       }
-      if (action.kind === "stop") {
-        ValidateStopAction(action, label);
+      if (PLAYBACK_CONTROL_ACTION_KINDS.has(action.kind)) {
+        ValidatePlaybackControlAction(action, label);
         continue;
       }
       if (VOICE_VOLUME_ACTION_KINDS.has(action.kind)) {
@@ -180,8 +181,8 @@ function normalizeSfxGraph(graph, media = {}, embeddedMedia = {}) {
             child: NormalizeChild(action.child)
           };
         }
-        if (action.kind === "stop") {
-          return NormalizeStopAction(action);
+        if (PLAYBACK_CONTROL_ACTION_KINDS.has(action.kind)) {
+          return NormalizePlaybackControlAction(action);
         }
         if (VOICE_VOLUME_ACTION_KINDS.has(action.kind)) {
           return NormalizeVoiceVolumeAction(action);
@@ -482,7 +483,7 @@ function ValidateVoiceVolumeAction(value, label) {
   if (!VOICE_VOLUME_ACTION_KINDS.has(action.kind)) {
     throw new TypeError(`${label} kind must be set-voice-volume or reset-voice-volume`);
   }
-  if (!STOP_SCOPES.has(action.scope)) {
+  if (!PLAYBACK_CONTROL_SCOPES.has(action.scope)) {
     throw new TypeError(`${label} scope must be game-object or global`);
   }
   if (action.mode !== "element") {
@@ -529,12 +530,15 @@ function ValidateVoiceVolumeDb(value, label) {
   }
   return number;
 }
-function ValidateStopAction(value, label) {
+function ValidatePlaybackControlAction(value, label) {
   const action = RequireRecord(value, label);
-  if (!STOP_SCOPES.has(action.scope)) {
+  if (!PLAYBACK_CONTROL_ACTION_KINDS.has(action.kind)) {
+    throw new TypeError(`${label} kind must be pause, resume, or stop`);
+  }
+  if (!PLAYBACK_CONTROL_SCOPES.has(action.scope)) {
     throw new TypeError(`${label} scope must be game-object or global`);
   }
-  if (!STOP_MODES.has(action.mode)) {
+  if (!PLAYBACK_CONTROL_MODES.has(action.mode)) {
     throw new TypeError(`${label} mode must be element, all, or all-except`);
   }
   const targetID = NormalizeUnsignedID(action.targetId, `${label} targetId`);
@@ -542,7 +546,7 @@ function ValidateStopAction(value, label) {
     throw new TypeError(`${label} element targetId must be greater than zero`);
   }
   if (action.mode !== "element" && targetID !== "0") {
-    throw new TypeError(`${label} Stop-All targetId must be zero`);
+    throw new TypeError(action.kind === "stop" ? `${label} Stop-All targetId must be zero` : `${label} ${action.kind} All targetId must be zero`);
   }
   if (action.targetFlags !== undefined) {
     const targetFlags = NormalizeByte(action.targetFlags, `${label} targetFlags`);
@@ -552,8 +556,9 @@ function ValidateStopAction(value, label) {
   }
   if (action.actionFlags !== undefined) {
     const actionFlags = NormalizeByte(action.actionFlags, `${label} actionFlags`);
-    if (actionFlags !== 6) {
-      throw new TypeError(`${label} actionFlags must be 6`);
+    const expected = action.kind === "pause" ? 7 : 6;
+    if (actionFlags !== expected) {
+      throw new TypeError(`${label} actionFlags must be ${expected}`);
     }
   }
   if (!Array.isArray(action.exceptions)) {
@@ -561,7 +566,7 @@ function ValidateStopAction(value, label) {
   }
   const seen = new Set();
   if (action.mode === "element" && action.exceptions.length) {
-    throw new TypeError(`${label} element Stops cannot have exceptions`);
+    throw new TypeError(action.kind === "stop" ? `${label} element Stops cannot have exceptions` : `${label} element ${action.kind} actions cannot have exceptions`);
   }
   for (let index = 0; index < action.exceptions.length; index++) {
     const exception = RequireRecord(action.exceptions[index], `${label} exception ${index}`);
@@ -606,9 +611,9 @@ function ValidateMatchIds(value, nodeID, label) {
     throw new TypeError(`${label} must not contain duplicates`);
   }
 }
-function NormalizeStopAction(action) {
+function NormalizePlaybackControlAction(action) {
   const result = {
-    kind: "stop",
+    kind: action.kind,
     targetId: String(Number(action.targetId) >>> 0),
     scope: action.scope,
     mode: action.mode,

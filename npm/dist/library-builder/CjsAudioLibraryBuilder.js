@@ -11,6 +11,8 @@ const MUSIC_HIRC_TYPES = new Set([10, 11, 12, 13]);
 const SFX_PLAY_ACTION = 0x0403;
 const SFX_PLAY_EVENT_ACTION = 0x2103;
 const SFX_STOP_ACTION_FAMILY = 0x01;
+const SFX_PAUSE_ACTION_FAMILY = 0x02;
+const SFX_RESUME_ACTION_FAMILY = 0x03;
 const SFX_SET_VOICE_VOLUME_ACTION_FAMILY = 0x0a;
 const SFX_RESET_VOICE_VOLUME_ACTION_FAMILY = 0x0b;
 const SFX_SET_STATE_ACTION_FAMILY = 0x12;
@@ -918,11 +920,13 @@ function LowerSfxGraph({
           AddSet(result.stopTargets, nested.stopTargets);
           result.setters.push(...nested.setters);
           result.unsupportedActions.push(...nested.unsupportedActions);
-        } else if ((action.actionType >> 8 & 0xff) === SFX_STOP_ACTION_FAMILY) {
-          const stop = ReadSfxStopAction(action);
-          result.program.push(stop);
-          if (stop.mode === "element") {
-            result.stopTargets.add(Number(stop.targetId) >>> 0);
+        } else if ([SFX_STOP_ACTION_FAMILY, SFX_PAUSE_ACTION_FAMILY, SFX_RESUME_ACTION_FAMILY].includes(action.actionType >> 8 & 0xff)) {
+          const family = action.actionType >> 8 & 0xff;
+          const kind = family === SFX_STOP_ACTION_FAMILY ? "stop" : family === SFX_PAUSE_ACTION_FAMILY ? "pause" : "resume";
+          const playbackControl = ReadSfxPlaybackControlAction(action, kind);
+          result.program.push(playbackControl);
+          if (kind === "stop" && playbackControl.mode === "element") {
+            result.stopTargets.add(Number(playbackControl.targetId) >>> 0);
           }
         } else if ((action.actionType >> 8 & 0xff) === SFX_SET_VOICE_VOLUME_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_VOICE_VOLUME_ACTION_FAMILY) {
           result.program.push(ReadSfxVoiceVolumeAction(action, parsed));
@@ -1124,34 +1128,36 @@ function ReadSfxSetterAction(action, names) {
     value
   };
 }
-function ReadSfxStopAction(action) {
+function ReadSfxPlaybackControlAction(action, kind) {
   const details = action.action ?? action;
   const actionType = Number(action.actionType) >>> 0;
   const targetFlags = Number(details.targetFlags ?? 0);
-  const actionFlags = Number(details.actionFlags ?? 6);
+  const actionFlags = Number(details.actionFlags ?? (kind === "pause" ? 7 : 6));
   const mode = details.actionMode ?? SfxActionMode(actionType & 0xff);
   const scope = details.actionScope ?? SfxActionScope(actionType & 0xff);
   const targetId = Number(details.targetId ?? action.targetId) >>> 0;
   const exceptions = Array.isArray(details.exceptions) ? details.exceptions : [];
+  const label = kind === "stop" ? "Stop" : kind === "pause" ? "Pause" : "Resume";
   if (details.targetIsBus || targetFlags & 0x01) {
-    throw new Error(`bus Stop action ${action.id}`);
+    throw new Error(`bus ${label} action ${action.id}`);
   }
   if (mode !== "element" && mode !== "all" && mode !== "all-except") {
-    throw new Error(`unsupported Stop mode ${mode}`);
+    throw new Error(`unsupported ${label} mode ${mode}`);
   }
   if (scope !== "game-object" && scope !== "global") {
-    throw new Error(`unsupported Stop scope ${scope}`);
+    throw new Error(`unsupported ${label} scope ${scope}`);
   }
   if (mode === "element" && targetId === 0) {
-    throw new Error(`empty Stop target ${action.id}`);
+    throw new Error(`empty ${label} target ${action.id}`);
   }
-  if (actionFlags !== 6) {
-    throw new Error(`unsupported Stop action flags ${actionFlags}`);
+  const expectedActionFlags = kind === "pause" ? 7 : 6;
+  if (actionFlags !== expectedActionFlags) {
+    throw new Error(`unsupported ${label} action flags ${actionFlags}`);
   }
   const normalizedExceptions = exceptions.map(exception => {
     const exceptionFlags = Number(exception.targetFlags ?? 0);
     if (exception.targetIsBus || exceptionFlags & 0x01) {
-      throw new Error(`bus Stop exception ${action.id}`);
+      throw new Error(`bus ${label} exception ${action.id}`);
     }
     return {
       targetId: String(Number(exception.targetId) >>> 0),
@@ -1159,7 +1165,7 @@ function ReadSfxStopAction(action) {
     };
   });
   const result = {
-    kind: "stop",
+    kind,
     targetId: String(targetId),
     targetFlags,
     scope,
@@ -1185,6 +1191,9 @@ function ReadSfxStopAction(action) {
       min: Number(details.transitionRangeMs.min),
       max: Number(details.transitionRangeMs.max)
     };
+  }
+  if (details.probability !== undefined) {
+    result.probability = Number(details.probability);
   }
   return result;
 }

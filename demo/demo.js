@@ -471,6 +471,10 @@ class AudioLibrary
 
             return `Runs this ordered authored program: ${programText}. Stops use their decoded scope, hierarchy target, delay, transition, curve, and exceptions.`;
         }
+        if (type === "pause/resume actions")
+        {
+            return "Posts one exact Aura voice, then sends its authored Wwise Pause and Resume control events to the same retained game object. Pause preserves the playing ID and media position; stacked pauses require matching resumes.";
+        }
         if (type === "voice volume action")
         {
             const programText = controls.program
@@ -602,6 +606,17 @@ class AudioLibrary
                     ?.some(action => action.kind === "stop"),
             },
             {
+                type: "pause/resume actions",
+                preferred: [ "voc_Aura_2850_1_play_01" ],
+                pauseEvent: "voc_Aura_2850_1_pause",
+                resumeEvent: "voc_Aura_2850_1_resume",
+                matches: name => Boolean(this.sfx?.events?.[name])
+                    && this.sfx?.programs?.voc_Aura_2850_1_pause
+                        ?.some(action => action.kind === "pause")
+                    && this.sfx?.programs?.voc_Aura_2850_1_resume
+                        ?.some(action => action.kind === "resume"),
+            },
+            {
                 type: "voice volume action",
                 preferred: [ "stagecoach_idle_loop_play" ],
                 matches: name => this.sfx?.programs?.[name]
@@ -656,6 +671,12 @@ class AudioLibrary
                 examples.push({
                     eventName,
                     type: definition.type,
+                    ...(definition.pauseEvent
+                        ? { pauseEvent: definition.pauseEvent }
+                        : {}),
+                    ...(definition.resumeEvent
+                        ? { resumeEvent: definition.resumeEvent }
+                        : {}),
                     nodeTypes: this.SfxNodeTypes(eventName),
                     description: this.SfxDescription(
                         definition.type,
@@ -2236,6 +2257,9 @@ class SfxUi
     #controls = null;
     #info = null;
     #details = null;
+    #pause = null;
+    #resume = null;
+    #lastTransportAction = null;
     #controlValues = new Map();
     #postCount = 0;
     #select = null;
@@ -2266,6 +2290,8 @@ class SfxUi
         this.#select = document.getElementById("sfxExamples");
         this.#controls = document.getElementById("sfxControls");
         this.#info = document.getElementById("sfxInfo");
+        this.#pause = document.getElementById("sfxPause");
+        this.#resume = document.getElementById("sfxResume");
         this.#status = document.getElementById("sfxStatus");
 
         for (const example of this.#examples)
@@ -2284,6 +2310,8 @@ class SfxUi
             this.#BuildControls();
         };
         document.getElementById("sfxPost").onclick = () => this.Post();
+        this.#pause.onclick = () => this.#SendTransportAction("pause");
+        this.#resume.onclick = () => this.#SendTransportAction("resume");
         document.getElementById("sfxReset").onclick = () => this.Reset();
         document.getElementById("delivery").onchange = event =>
         {
@@ -2328,6 +2356,7 @@ class SfxUi
                 if (this.#item !== item) return;
                 this.#item = null;
                 this.#postCount = 0;
+                this.#lastTransportAction = null;
                 this.#Refresh();
             };
             this.#item = item;
@@ -2347,6 +2376,25 @@ class SfxUi
             this.#app.scene.Remove(this.#item, 0);
         }
         this.#postCount = 0;
+        this.#lastTransportAction = null;
+        this.#Refresh();
+    }
+
+    /** Sends the selected example's exact authored Pause or Resume event. */
+    #SendTransportAction(kind)
+    {
+        const example = this.#examples.find(value =>
+            value.eventName === this.#select?.value);
+        const eventName = kind === "pause"
+            ? example?.pauseEvent
+            : example?.resumeEvent;
+
+        if (!eventName || !this.#item || !this.#app.IsAudioEnabled())
+        {
+            return;
+        }
+        this.#item.emitter.SendEvent(eventName);
+        this.#lastTransportAction = kind;
         this.#Refresh();
     }
 
@@ -2519,6 +2567,17 @@ class SfxUi
         const detail = `${eventCount} events / ${Object.keys(graph.nodes).length} nodes · ${types.join(" + ")} · ${delivery} delivery · posts ${this.#postCount}${repeated}${actionSummary}${silent}${position}`;
         const description = example?.description
             ?? "Posts the selected authored SFX graph.";
+        const hasTransport = Boolean(
+            example?.pauseEvent && example?.resumeEvent,
+        );
+
+        if (this.#pause && this.#resume)
+        {
+            this.#pause.hidden = !hasTransport;
+            this.#resume.hidden = !hasTransport;
+            this.#pause.disabled = !this.#item;
+            this.#resume.disabled = !this.#item;
+        }
 
         if (this.#info)
         {
@@ -2528,7 +2587,7 @@ class SfxUi
                 `About ${example?.type ?? "the selected authored SFX"}: ${description} ${detail}`,
             );
         }
-        this.#status.textContent = `${this.#postCount} post${this.#postCount === 1 ? "" : "s"} · ${delivery} delivery${playable ? "" : " · silent authored route"}${this.#item ? " · source placed" : ""}`;
+        this.#status.textContent = `${this.#postCount} post${this.#postCount === 1 ? "" : "s"} · ${delivery} delivery${playable ? "" : " · silent authored route"}${this.#item ? " · source placed" : ""}${this.#lastTransportAction ? ` · last ${this.#lastTransportAction}` : ""}`;
     }
 
 }
@@ -2574,7 +2633,9 @@ function FormatSfxProgramAction(action)
 
         return `${verb} on ${action.targetId} (${action.scope}${delay}${transition})`;
     }
-    if (action.kind !== "stop")
+    if (action.kind !== "stop"
+        && action.kind !== "pause"
+        && action.kind !== "resume")
     {
         return String(action.kind);
     }
@@ -2591,7 +2652,7 @@ function FormatSfxProgramAction(action)
         ? ` over ${FormatControlValue(action.transitionMs)}ms`
         : "";
 
-    return `stop ${target} (${action.scope}${delay}${transition})`;
+    return `${action.kind} ${target} (${action.scope}${delay}${transition})`;
 }
 
 

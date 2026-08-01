@@ -1629,6 +1629,74 @@ test("event programs preserve Stop order, hierarchy matches, and sampled timing"
     });
 });
 
+test("event programs preserve stacked Pause and Resume transport actions", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: {
+            schemaVersion: 2,
+            events: {},
+            programs: {
+                voice_pause: [
+                    {
+                        kind: "pause",
+                        targetId: "735447374",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        curve: 4,
+                        actionFlags: 7,
+                        exceptions: [],
+                    },
+                ],
+                voice_resume: [
+                    {
+                        kind: "resume",
+                        targetId: "735447374",
+                        targetFlags: 0,
+                        scope: "game-object",
+                        mode: "element",
+                        curve: 4,
+                        actionFlags: 6,
+                        exceptions: [],
+                    },
+                ],
+            },
+            nodes: {},
+        },
+    });
+
+    assert.deepEqual(engine.ResolveProgram("voice_pause"), [
+        {
+            kind: "pause",
+            actionIndex: 0,
+            targetId: "735447374",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            delayMs: 0,
+            transitionMs: 0,
+            curve: 4,
+            actionFlags: 7,
+            exceptions: [],
+        },
+    ]);
+    assert.deepEqual(engine.ResolveProgram("voice_resume"), [
+        {
+            kind: "resume",
+            actionIndex: 0,
+            targetId: "735447374",
+            targetFlags: 0,
+            scope: "game-object",
+            mode: "element",
+            delayMs: 0,
+            transitionMs: 0,
+            curve: 4,
+            actionFlags: 6,
+            exceptions: [],
+        },
+    ]);
+});
+
 test("event programs preserve Set and Reset Voice Volume operations", () =>
 {
     const engine = new CjsSfxEngine({
