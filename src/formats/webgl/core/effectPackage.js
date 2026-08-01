@@ -16,7 +16,10 @@ import {
 } from "../../../format/effect/effectReflectionPackage.js";
 import { buildPackage, emitGlslWithOptions, inspectWithValues } from "./helpers.js";
 import { recogniseDetailMapFamily } from "../../hlsl/core/detailMapFamily.js";
-import { recogniseLocalLightFamily } from "../../hlsl/core/localLightFamily.js";
+import {
+    recogniseLocalLightFamily,
+    stripLocalLightBindings
+} from "../../hlsl/core/localLightFamily.js";
 import { buildGlslBackendBodySet } from "./glslBackendBodySet.js";
 import { buildGlslEffectContainer } from "./buildGlslEffectContainer.js";
 import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
@@ -106,7 +109,11 @@ export function buildEffectPackage(input, options = {})
             bodySize: variant.bodySize,
             firstVariantKey: variant.key,
             error: collection.errors.length ? collection.errors.join("; ") : null,
-            manifest: manifest.toJSON(),
+            // Dropping the light family removes its declarations from the
+            // shader, so the manifest must stop advertising them too.
+            manifest: values.localLights === "drop"
+                ? stripLocalLightBindings(manifest.toJSON())
+                : manifest.toJSON(),
             stages: []
         };
 
@@ -636,7 +643,7 @@ function collectStages(effectDescription, selection)
 }
 
 /** Local-light lowering modes this packager accepts. */
-const LOCAL_LIGHT_MODES = Object.freeze([ "none", "packed-texture", "constant-buffer" ]);
+const LOCAL_LIGHT_MODES = Object.freeze([ "none", "packed-texture", "constant-buffer", "drop" ]);
 
 /**
  * Normalizes the local-light lowering mode.
@@ -678,6 +685,14 @@ function normalizeLocalLightMode(value)
 function localLightEmitterOptions(plan, mode)
 {
     if (!plan || mode === "none") return null;
+
+    if (mode === "drop")
+    {
+        // No lighting at all: the declarations go and every read lowers to zero.
+        // Kept because isolating a lighting problem is easier without lights,
+        // not because the texture budget needs it any more.
+        return { stubResourceRegisters: plan.registers };
+    }
 
     if (mode === "packed-texture")
     {

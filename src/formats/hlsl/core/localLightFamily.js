@@ -87,4 +87,30 @@ export function recogniseLocalLightFamily(resources)
     });
 }
 
+/**
+ * Removes the local-light resource bindings from a binding manifest.
+ *
+ * Needed when the family is dropped rather than lowered: the emitter no longer
+ * declares those resources, and a consumer that still sees them in the manifest
+ * tries to build textures for resources the shader does not have.
+ *
+ * Mutates in place, matching the manifest's own conventions.
+ *
+ * @param {object} manifestJson Serialized binding manifest.
+ * @returns {object} The same manifest, light resource bindings removed.
+ */
+export function stripLocalLightBindings(manifestJson)
+{
+    for (const stage of manifestJson?.stages ?? [])
+    {
+        stage.bindings = (stage.bindings ?? []).filter((binding) =>
+        {
+            if (binding?.kind !== "resource") return true;
+            const name = binding.metadataName || binding.carbon?.name;
+            return !LOCAL_LIGHT_RESOURCE_NAMES.includes(name);
+        });
+    }
+    return manifestJson;
+}
+
 export default recogniseLocalLightFamily;

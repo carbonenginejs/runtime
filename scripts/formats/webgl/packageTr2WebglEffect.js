@@ -69,7 +69,6 @@ function parseArgs(argv) {
     allowFailures: false,
     allPermutations: true,
     native: false,
-    stubLightResources: false,
     // How the shared packager lowers a recognised local-light family. The two
     // lowering flags below set this and no longer force the legacy path; the
     // library owns the recognition and the profile constants.
@@ -100,7 +99,7 @@ function parseArgs(argv) {
     else if (arg === "--allow-failures") args.allowFailures = true;
     else if (arg === "--selected-only") args.allPermutations = false;
     else if (arg === "--all-permutations") args.allPermutations = true;
-    else if (arg === "--stub-light-resources") args.stubLightResources = true;
+    else if (arg === "--stub-light-resources") args.localLights = "drop";
     else if (arg === "--light-constant-buffer") args.localLights = "constant-buffer";
     else if (arg === "--packed-light-texture") args.localLights = "packed-texture";
     else if (arg === "--help" || arg === "-h") {
@@ -111,11 +110,6 @@ function parseArgs(argv) {
     } else {
       throw new Error(`Unknown or incomplete argument: ${arg}`);
     }
-  }
-
-  if (args.stubLightResources && args.localLights !== "none")
-  {
-    throw new Error("--stub-light-resources, --light-constant-buffer, and --packed-light-texture are mutually exclusive");
   }
 
   return args;
@@ -147,18 +141,17 @@ function printUsage() {
     "  --allow-failures          Write partial packages even when translation fails.",
     "  --selected-only           Package only the default/selected permutation.",
     "  --all-permutations        Package every permutation record. This is the default.",
-    "  --stub-light-resources    Drop the local-light resources (LightBuffer,",
-    "                            LightIndexBuffer, LightProfileArray) and lower their",
-    "                            reads to zero. Produces unlit output and takes the",
-    "                            legacy diagnostic path; prefer --packed-light-texture,",
-    "                            which keeps lights and still fits the texture budget.",
+    "  --stub-light-resources    Drop the local-light resources and lower their reads",
+    "                            to zero, producing unlit output. Useful for isolating",
+    "                            a lighting problem; --packed-light-texture keeps lights",
+    "                            and still fits the texture budget.",
     "  --light-constant-buffer   Lower local-light resources to a constant buffer.",
     "                            Frees all three light texture units, but caps the",
     "                            light count; known to fail on busy scenes.",
     "  --packed-light-texture    Lower local-light resources to one packed RGBA32UI",
     "                            texture. Frees two of the three units and is the",
     "                            route that works. Detail maps merge automatically,",
-    "                            so no extra flag is needed to fit .sm_depth shaders.",
+    "                            so no extra flag is needed to fit .sm_depth shaders."
   ].join("\n"));
 }
 
@@ -833,21 +826,20 @@ async function main() {
 
 function requiresLegacyDiagnosticPath(args, useNative)
 {
-  // What used to force this path and no longer does: the two local-light
-  // lowerings and --drop-detail3-map, now that the shared packager owns light
-  // recognition and the detail-map merge supersedes the drop; and ten
-  // --debug-packed-light-* paints, deleted with the lighting bring-up they
-  // served.
+  // Only the native hlsl2webgl tool reaches this path now. Everything else that
+  // used to force it goes through the shared packager: both local-light
+  // lowerings, dropping the lights entirely, and the Detail3Map drop that the
+  // detail-map merge supersedes. Ten --debug-packed-light-* paints were deleted
+  // with the lighting bring-up they served.
   //
-  // What remains is the native hlsl2webgl tool and its language/flags options,
-  // plus --stub-light-resources. The tool is a different translator from the JS
-  // emitter every other build uses, and stubbing drops lights entirely, which
-  // the working lowering makes unnecessary. Retiring both would remove this
-  // path and roughly a third of this file.
+  // hlsl2webgl is a comparison harness — a second DXBC-to-GLSL translator used
+  // to check the JS emitter's output. Its executable is not in this repository
+  // and the build script the error message names does not exist, so --native
+  // cannot currently succeed. Retiring it would delete this path and roughly a
+  // third of this file.
   return useNative
     || args.language !== "es300"
-    || args.flags !== null
-    || args.stubLightResources;
+    || args.flags !== null;
 }
 
 function sameFilePath(left, right) {
