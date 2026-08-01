@@ -11,6 +11,11 @@ const ENUM_SCHEMA_BY_NAME = new Map();
 const ENUM_SCHEMA_BY_OBJECT = new WeakMap();
 const STAGE3_FIELD_METADATA = Symbol("carbonenginejs.schema.stage3Fields");
 
+// Declared here rather than beside describeDecorator: the CjsSchema class body
+// builds every decorator namespace in its static initializer, which runs before
+// any const declared after the class is initialized.
+const DECORATOR_METADATA = Symbol("carbonenginejs.schema.decoratorMetadata");
+
 export const CJS_ENUM_NAME = Symbol.for("carbonenginejs.enum.name");
 
 /**
@@ -308,7 +313,8 @@ export class CjsSchema
                 contextual: true,
                 contextTiers: Object.freeze(normalized)
             });
-            return function contextualMethodDecorator(targetOrValue, contextOrMethodName)
+            const described = getDecoratorMetadata(base);
+            return describeDecorator(function contextualMethodDecorator(targetOrValue, contextOrMethodName)
             {
                 // Contextual methods are validated context-first at decoration
                 // time: the first declared parameter must be the frame context.
@@ -321,7 +327,7 @@ export class CjsSchema
                     assertContextFirstMethod(targetOrValue[contextOrMethodName], contextOrMethodName);
                 }
                 return base(targetOrValue, contextOrMethodName);
-            };
+            }, described.namespace, described.value);
         }
     });
 
@@ -339,9 +345,33 @@ function createComponentsNamespace()
     return Object.freeze(components);
 }
 
+// Every decorator carries the namespace and value it would install. That is
+// what lets one vocabulary serve both forms: `type.uint32` applied as a
+// decorator, and `type.uint32` written as data in a CjsSchema.define() member.
+// Without it the object form would need its own spelling of every namespace
+// value, and two spellings of `impl.adapted` will eventually disagree.
+function describeDecorator(decorator, namespace, value)
+{
+    Object.defineProperty(decorator, DECORATOR_METADATA, {
+        value: { namespace, value }
+    });
+    return decorator;
+}
+
+/**
+ * The namespace/value a decorator installs, or null when it is not one.
+ *
+ * @param {*} candidate Possible decorator.
+ * @returns {{namespace:string, value:*}|null} Installed metadata.
+ */
+function getDecoratorMetadata(candidate)
+{
+    return typeof candidate === "function" ? candidate[DECORATOR_METADATA] || null : null;
+}
+
 function fieldDecorator(namespace, value)
 {
-    return function schemaFieldDecorator(targetOrValue, contextOrFieldName)
+    return describeDecorator(function schemaFieldDecorator(targetOrValue, contextOrFieldName)
     {
         if (contextOrFieldName && typeof contextOrFieldName === "object")
         {
@@ -374,7 +404,7 @@ function fieldDecorator(namespace, value)
         }
 
         defineFieldMetadata(Constructor, contextOrFieldName, namespace, value);
-    };
+    }, namespace, value);
 }
 
 function classDefinitionDecorator(definition)
@@ -437,7 +467,7 @@ function assertContextFirstMethod(fn, methodName)
 
 function methodDecorator(namespace, value)
 {
-    return function schemaMethodDecorator(targetOrValue, contextOrMethodName)
+    return describeDecorator(function schemaMethodDecorator(targetOrValue, contextOrMethodName)
     {
         if (contextOrMethodName && typeof contextOrMethodName === "object")
         {
@@ -459,14 +489,14 @@ function methodDecorator(namespace, value)
         }
 
         defineMethodMetadata(Constructor, contextOrMethodName, namespace, value);
-    };
+    }, namespace, value);
 }
 
 function memberDecorator(namespace, value)
 {
     const forMethods = methodDecorator(namespace, value);
     const forFields = fieldDecorator(namespace, value);
-    return function schemaMemberDecorator(targetOrValue, contextOrMemberName)
+    return describeDecorator(function schemaMemberDecorator(targetOrValue, contextOrMemberName)
     {
         if (contextOrMemberName && typeof contextOrMemberName === "object")
         {
@@ -480,7 +510,7 @@ function memberDecorator(namespace, value)
         return targetOrValue && contextOrMemberName && typeof targetOrValue[contextOrMemberName] === "function"
             ? forMethods(targetOrValue, contextOrMemberName)
             : forFields(targetOrValue, contextOrMemberName);
-    };
+    }, namespace, value);
 }
 
 function defineFieldMetadata(Constructor, fieldName, namespace, value)
@@ -649,6 +679,23 @@ function buildSchema(Constructor, namespaces)
         fields.push(enrichEnumField(exportField(field, namespaces), Constructor));
     }
 
+    // KNOWN DEFECT: methods are read from this class only, while fields resolve
+    // through the whole lineage above. A subclass therefore reports no inherited
+    // methods, and the decorated form hides that behind a second bug that
+    // cancels it out: method decorators register through addInitializer, where
+    // `this.constructor` is the *instance's* class, so constructing one
+    // Tr2LightProfileRes writes CjsResource's methods onto Tr2LightProfileRes.
+    // Which class owns which methods then depends on construction order, and
+    // before any instance exists a class reports no methods at all.
+    //
+    // Declaring metadata as data (CjsSchema.define fields/methods) registers on
+    // the declaring class at module load, so it is deterministic - and it makes
+    // the missing inheritance visible rather than accidentally papered over.
+    //
+    // Left unfixed deliberately: nothing reads .methods off a runtime schema
+    // today (tools-core classTool parses source documents, not these), and the
+    // fix - walking the lineage here as getEffectiveFields does - changes
+    // exported schemas for every decorator-using class in the org.
     for (const method of schema?.methods || [])
     {
         methods.push(exportField(method, namespaces));
@@ -860,25 +907,96 @@ function normalizeClassDefinition(Constructor, definition)
     return result;
 }
 
+/**
+ * Normalize a definition's `fields`/`methods` into internal member records.
+ *
+ * Two spellings are accepted. A name-keyed object is the one to write:
+ * declaration order is key order, which is what drives GetValues() export
+ * order, and the name appears once rather than as a property of its own record.
+ * The array of `{name, ...}` records predates it and still parses, because it
+ * is what the internal schema stores.
+ *
+ * @param {object|Array<object>|null} members Declared members.
+ * @param {string} memberType Either "fields" or "methods", for messages.
+ * @returns {Array<object>} Internal member records.
+ */
 function normalizeManualMembers(members, memberType)
 {
     if (members === undefined || members === null) return [];
-    if (!Array.isArray(members))
+
+    if (Array.isArray(members))
     {
-        throw new TypeError(`CjsSchema.define ${memberType} must be an array.`);
+        return members.map((member, index) =>
+        {
+            if (!isPlainObject(member) || typeof member.name !== "string" || !member.name.trim())
+            {
+                throw new TypeError(`CjsSchema.define ${memberType}[${index}] requires a non-empty name.`);
+            }
+            const { name, ...namespaces } = member;
+            return normalizeManualMember(name.trim(), namespaces, memberType);
+        });
     }
 
-    return members.map((member, index) =>
+    if (!isPlainObject(members))
     {
-        if (!isPlainObject(member) || typeof member.name !== "string" || !member.name.trim())
+        throw new TypeError(
+            `CjsSchema.define ${memberType} must be a name-keyed object or an array of named records.`
+        );
+    }
+
+    return Object.entries(members).map(([ name, definition ]) =>
+    {
+        if (!name.trim())
         {
-            throw new TypeError(`CjsSchema.define ${memberType}[${index}] requires a non-empty name.`);
+            throw new TypeError(`CjsSchema.define ${memberType} requires a non-empty name.`);
         }
-        return {
-            ...member,
-            name: member.name.trim()
-        };
+        return normalizeManualMember(name.trim(), definition, memberType);
     });
+}
+
+/**
+ * Collapse one member's declaration into a namespace map.
+ *
+ * A declaration is a decorator, a namespace object, or an array mixing both.
+ * Decorators are accepted as data so the object form reuses the vocabulary the
+ * decorators already define rather than restating it: `impl.adapted` written
+ * twice in two spellings is two things that can disagree.
+ *
+ * @param {string} name Member name.
+ * @param {*} definition Declared metadata.
+ * @param {string} memberType Either "fields" or "methods", for messages.
+ * @returns {object} Internal member record.
+ */
+function normalizeManualMember(name, definition, memberType)
+{
+    const member = { name };
+
+    for (const entry of Array.isArray(definition) ? definition : [ definition ])
+    {
+        if (entry === undefined || entry === null) continue;
+
+        const decorator = getDecoratorMetadata(entry);
+        if (decorator)
+        {
+            member[decorator.namespace] = mergeNamespace(member[decorator.namespace], decorator.value);
+            continue;
+        }
+
+        if (!isPlainObject(entry))
+        {
+            throw new TypeError(
+                `CjsSchema.define ${memberType} "${name}" accepts schema decorators, ` +
+                "namespace objects, or an array of them."
+            );
+        }
+
+        for (const [ namespace, value ] of Object.entries(entry))
+        {
+            member[namespace] = mergeNamespace(member[namespace], value);
+        }
+    }
+
+    return member;
 }
 
 function registerClassMetadata(Constructor, schema)
