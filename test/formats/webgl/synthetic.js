@@ -1,11 +1,15 @@
 /**
- * Synthetic DXBC and CEWG builders for self-contained tests.
+ * Synthetic DXBC and compiled-effect builders for self-contained tests.
  *
- * The DXBC layouts mirror the sibling `formats/dxbc` container/program
- * encoding (copied from that package's own `test/synthetic.js`); the CEWG
- * builder mirrors `src/core/cewg/CewgPackage.js`'s chunk layout. Tests must
- * run without any game assets (org rule), so containers/packages are
- * assembled here from the documented token/chunk encodings only.
+ * The DXBC layouts mirror the sibling `formats/dxbc` container/program encoding
+ * (copied from that package's own `test/synthetic.js`). Tests must run without
+ * any game assets (org rule), so inputs are assembled here from the documented
+ * token encodings only.
+ *
+ * The chunk-package builder that used to live here is gone with the chunk
+ * format. Nothing hand-forges an effect package now: a container is built by
+ * `buildEffect` from a synthetic compiled effect, which is the same path
+ * production takes.
  */
 
 const DXBC_MAGIC = [ 0x44, 0x58, 0x42, 0x43 ];
@@ -636,91 +640,6 @@ export function buildDoubleStoreComputeShex(resourceDimension)
 export function buildDoubleStoreComputeDxbc(resourceDimension)
 {
     return buildContainer([ { fourCC: "SHEX", payload: buildDoubleStoreComputeShex(resourceDimension) } ]);
-}
-
-/**
- * Appends ASCII text to a byte array.
- *
- * @param {number[]} out Output byte array.
- * @param {string} value ASCII text.
- */
-function pushAscii(out, value)
-{
-    for (let i = 0; i < value.length; i += 1)
-    {
-        out.push(value.charCodeAt(i));
-    }
-}
-
-/**
- * Appends a four-character ASCII chunk tag to a byte array.
- *
- * @param {number[]} out Output byte array.
- * @param {string} value Four-character ASCII chunk tag.
- */
-function pushTag(out, value)
-{
-    if (value.length !== 4)
-    {
-        throw new Error(`CEWG chunk tag must be four characters: ${value}`);
-    }
-    pushAscii(out, value);
-}
-
-/**
- * Appends a little-endian uint32 to a byte array.
- *
- * @param {number[]} out Output byte array.
- * @param {number} value Unsigned value.
- */
-function pushU32(out, value)
-{
-    out.push(value & 0xff, (value >>> 8) & 0xff, (value >>> 16) & 0xff, (value >>> 24) & 0xff);
-}
-
-/**
- * Normalizes one chunk payload to bytes: strings are UTF-8 encoded, plain
- * objects are JSON-encoded (mirroring `CewgPackageBuilder`'s own chunk-value
- * handling), and byte buffers/views pass through.
- *
- * @param {string|object|Uint8Array|ArrayBuffer|ArrayBufferView} value Chunk payload.
- * @returns {Uint8Array} Payload bytes.
- */
-function toChunkBytes(value)
-{
-    if (typeof value === "string") return new TextEncoder().encode(value);
-    if (value instanceof Uint8Array) return value;
-    if (value instanceof ArrayBuffer) return new Uint8Array(value);
-    if (ArrayBuffer.isView(value)) return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
-    if (value && typeof value === "object") return new TextEncoder().encode(`${JSON.stringify(value)}\n`);
-    throw new Error("Unsupported CEWG chunk value");
-}
-
-/**
- * Build a CEWG v1 package (magic + version + chunk directory) directly from
- * chunk tag/payload pairs, independent of `CewgPackageBuilder` — this is the
- * container-format cross-check used by the CEWG round-trip test.
- *
- * @param {Array<[string, string|object|Uint8Array|ArrayBuffer|ArrayBufferView]>} chunks
- *   Ordered [tag, payload] pairs.
- * @returns {Uint8Array} Package bytes.
- */
-export function buildCewgPackage(chunks)
-{
-    const out = [];
-    pushAscii(out, "CEWG");
-    pushU32(out, 1);
-    pushU32(out, chunks.length);
-
-    for (const [ tag, value ] of chunks)
-    {
-        const bytes = toChunkBytes(value);
-        pushTag(out, tag);
-        pushU32(out, bytes.length);
-        for (const byte of bytes) out.push(byte);
-    }
-
-    return Uint8Array.from(out);
 }
 
 /**

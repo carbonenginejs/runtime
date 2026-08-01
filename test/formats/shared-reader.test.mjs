@@ -6,7 +6,6 @@ import { CjsByteReader } from "../../src/format/CjsByteReader.js";
 import { CjsReader } from "../../src/format/CjsReader.js";
 import { CjsCarbonEffectReader } from "../../src/format/carbonEffect/CjsCarbonEffectReader.js";
 import { HlslReader } from "../../src/formats/hlsl/core/HlslReader.js";
-import { WebglReader } from "../../src/formats/webgl/core/cewg/binary.js";
 import { CjsBlackReader } from "../../src/formats/black/core/CjsBlackReader.js";
 import {
     CJS_BLACK_FOURCC,
@@ -26,10 +25,10 @@ test("Blue format readers share hydration and output infrastructure", () =>
 
 test("byte-cursor readers share one little-endian implementation", () =>
 {
-    // WebgpuReader is gone with the chunk package: the WebGPU path reads through
-    // CjsCarbonEffectReader now, which this list already covers. WebglReader
-    // stays until webgl makes the same move.
-    for (const Reader of [ HlslReader, WebglReader, CjsCarbonEffectReader ])
+    // Both backend chunk readers are gone. WebgpuReader went with the WebGPU
+    // chunk package and WebglReader with the WebGL one; both backends read
+    // through CjsCarbonEffectReader now, which this list covers.
+    for (const Reader of [ HlslReader, CjsCarbonEffectReader ])
     {
         assert.equal(Reader.prototype instanceof CjsByteReader, true);
         assert.equal(Reader.prototype instanceof CjsReader, true);
@@ -41,7 +40,10 @@ test("byte-cursor readers share one little-endian implementation", () =>
     // Each format keeps its own error identity while sharing the cursor.
     const bytes = new Uint8Array(2);
     assert.throws(() => new HlslReader(bytes).readUint32(), /Unexpected end of effect data/);
-    assert.throws(() => new WebglReader(bytes).readUint32(), /Unexpected end of CEWG package data/);
+    assert.throws(
+        () => new CjsCarbonEffectReader(bytes).readUint32(),
+        /Unexpected end of Carbon effect data/u
+    );
 });
 
 test("YAML shares only the generic construction-bound lifecycle", () =>

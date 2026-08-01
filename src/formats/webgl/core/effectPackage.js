@@ -1,4 +1,3 @@
-import { EFFECT_INFO_VERSION } from "./effectPackageValidation.js";
 import { CjsHlslFormat } from "../../hlsl/index.js";
 import { HlslEffectBindingManifest } from "../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
 import { HlslRenderContextEnum, hlslShaderStageName } from "../../hlsl/core/tr2/HlslRenderContextEnum.js";
@@ -20,6 +19,15 @@ import {
 import { buildGlslBackendBodySet } from "./glslBackendBodySet.js";
 import { buildGlslEffectContainer } from "./buildGlslEffectContainer.js";
 import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
+
+/**
+ * INFO record version for the in-memory build result.
+ *
+ * This lived in effectPackageValidation.js, which validated a written chunk
+ * package by reading it back. There is no chunk package to read back, so that
+ * file is gone and its one surviving constant lives with its only user.
+ */
+const EFFECT_INFO_VERSION = 3;
 
 const PACKAGE_VERSION = "0.11.1";
 
@@ -292,7 +300,6 @@ export function buildEffectPackage(input, options = {})
         );
     }
 
-    // The container is built first because `inspection` below describes it. The
     // The container is the effect. `bytes` is its bytes, and there is no second
     // artifact — the chunk package this function used to build alongside it is
     // gone, along with the chunk assembly that produced it.

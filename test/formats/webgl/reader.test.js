@@ -2,22 +2,23 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import CjsWebglFormat, { CjsWebglFormat as NamedCjsWebglFormat } from "../../../src/formats/webgl/index.js";
-import { buildCewgPackage } from "./synthetic.js";
+import { buildMinimalStagedEffectBytes } from "./synthetic.js";
 
-const SAMPLE_CHUNKS = [
-    [ "INFO", { format: "CEWG", formatVersion: 1, translator: "dxbc-js-emitter" } ],
-    [ "META", { effectName: "quadv5", stages: [] } ],
-    [ "GLSL", {
-        format: "CEWG_GLSL_SET",
-        formatVersion: 1,
-        stages: [ { key: "Main.pass0.vertex", shaderKey: "dxbc_abc" } ],
-        shaders: [ { key: "dxbc_abc", stageName: "vertex", source: "#version 300 es\nvoid main(){}\n" } ]
-    } ]
-];
+/**
+ * The format surface, now that a WebGL effect is a Carbon container.
+ *
+ * The fixture is a real container rather than hand-forged bytes, because there
+ * is no longer a hand-forgeable chunk layout to mirror: the old `SAMPLE_CHUNKS`
+ * plus `buildCewgPackage` existed to build INFO/META/GLSL by hand, and both are
+ * gone with the format they described.
+ */
 
 function sampleBytes()
 {
-    return buildCewgPackage(SAMPLE_CHUNKS);
+    return CjsWebglFormat.buildEffect(
+        buildMinimalStagedEffectBytes({ version: 15 }),
+        { source: "synthetic.sm_hi", allowFailures: true }
+    ).bytes;
 }
 
 test("package root exports one public class", async () =>
@@ -38,65 +39,64 @@ test("static read and instance Read share one code path", () =>
     assert.deepEqual(fromStatic, fromInstance);
 });
 
-test("json emit parses INFO/META/GLSL chunks and lists shader records", () =>
+test("read decodes a container into stage and shader records", () =>
 {
     const result = CjsWebglFormat.read(sampleBytes(), { source: "synthetic" });
 
-    assert.equal(result.format, "CEWG");
-    assert.equal(result.version, 1);
-    assert.deepEqual(result.chunks.map((chunk) => chunk.tag), [ "INFO", "META", "GLSL" ]);
-    assert.equal(result.info.translator, "dxbc-js-emitter");
-    assert.equal(result.metadata.effectName, "quadv5");
-    assert.equal(result.glsl.format, "CEWG_GLSL_SET");
-    assert.equal(result.shaders.length, 1);
-    assert.equal(result.shaders[0].key, "dxbc_abc");
+    assert.ok(Array.isArray(result.stages) && result.stages.length > 0);
+    assert.ok(Array.isArray(result.shaders) && result.shaders.length > 0);
+    assert.equal(result.stages[0].stageName, "vertex");
+    assert.equal(result.stages[0].techniqueName, "Main");
+    assert.equal(typeof result.stages[0].shaderKey, "string");
+    assert.ok(result.stages[0].manifest, "each stage carries its Carbon reflection");
     assert.equal(typeof JSON.stringify(result), "string");
 });
 
-test("raw emit exposes the CewgPackage instance", () =>
-{
-    const pkg = CjsWebglFormat.read(sampleBytes(), { emit: CjsWebglFormat.OUTPUT_RAW });
-
-    assert.equal(pkg.constructor.name, "CewgPackage");
-    assert.equal(pkg.IsGood(), true);
-    assert.equal(pkg.GetJson("INFO").format, "CEWG");
-    assert.equal(pkg.info.formatVersion, 1);
-    assert.equal(pkg.metadata.effectName, "quadv5");
-    assert.equal(pkg.glslJson.shaders[0].key, "dxbc_abc");
-});
-
-test("inspect summarizes without building the full JSON shape", () =>
+test("inspect summarizes without decoding every record", () =>
 {
     const summary = CjsWebglFormat.inspect(sampleBytes());
 
-    assert.equal(summary.isCewg, true);
-    assert.equal(summary.version, 1);
-    assert.deepEqual(summary.chunks.map((chunk) => chunk.tag), [ "INFO", "META", "GLSL" ]);
-    assert.equal(summary.shaderCount, 1);
-    assert.equal(summary.stageCount, 1);
-    assert.equal("info" in summary, false);
+    assert.equal(summary.isContainer, true);
+    assert.equal(summary.version, 15);
+    assert.equal(typeof summary.recordCount, "number");
+    assert.equal(typeof summary.uniqueBodyCount, "number");
+
+    // The point of `inspect` is that it is cheaper than `read`: it reports
+    // structure and counts without handing back the records themselves.
+    assert.equal("stages" in summary, false);
+    assert.equal("shaders" in summary, false);
 });
 
-test("isCewg sniffs the magic and rejects junk", () =>
+test("the container sniff accepts a container and rejects junk", () =>
 {
-    assert.equal(CjsWebglFormat.isCewg(sampleBytes()), true);
-    assert.equal(CjsWebglFormat.isCewg(new Uint8Array([ 1, 2, 3 ])), false);
-    assert.equal(CjsWebglFormat.isCewg(new TextEncoder().encode("GARBAGE!")), false);
+    assert.equal(CjsWebglFormat.isWebglEffectContainer(sampleBytes()), true);
+    assert.equal(CjsWebglFormat.isWebglEffectContainer(new Uint8Array([ 1, 2, 3 ])), false);
+    assert.equal(CjsWebglFormat.isWebglEffectContainer(new TextEncoder().encode("GARBAGE!")), false);
+
+    // The old chunk magic is not a container, and must not be mistaken for one.
+    assert.equal(CjsWebglFormat.isWebglEffectContainer(new TextEncoder().encode("CEWG0000")), false);
 });
 
-test("read rejects a payload with a bad magic", () =>
+test("read rejects a payload that is not a container", () =>
 {
-    assert.throws(() => CjsWebglFormat.read(new TextEncoder().encode("NOPE1234")), /CjsWebglReadError|Invalid CEWG magic/);
+    assert.throws(
+        () => CjsWebglFormat.read(new TextEncoder().encode("NOPE1234")),
+        /Unsupported Carbon effect version/u
+    );
 });
 
 test("profiles hold values and reject invalid emits/unknown options", () =>
 {
-    const reader = new CjsWebglFormat({ emit: CjsWebglFormat.OUTPUT_RAW, source: "profile" });
-    assert.equal(reader.GetValues().emit, CjsWebglFormat.OUTPUT_RAW);
+    const reader = new CjsWebglFormat({ source: "profile" });
+    assert.equal(reader.GetValues().emit, CjsWebglFormat.OUTPUT_JSON);
     assert.equal(reader.GetValues({ source: "override" }).source, "override");
     assert.equal(reader.GetValues().source, "profile");
-    assert.throws(() => new CjsWebglFormat({ emit: "nonsense" }), /emit must be/);
-    assert.throws(() => new CjsWebglFormat({ bogus: true }), /unknown option/);
+    assert.throws(() => new CjsWebglFormat({ emit: "nonsense" }), /emit must be/u);
+    assert.throws(() => new CjsWebglFormat({ bogus: true }), /unknown option/u);
+
+    // "raw" used to select the live CewgPackage instance. There is no second
+    // output any more, so it is not silently accepted as if there were.
+    assert.throws(() => new CjsWebglFormat({ emit: "raw" }), /emit must be/u);
 });
 
 test("toJSON converts typed arrays and nested structures", () =>

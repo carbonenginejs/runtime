@@ -11,12 +11,14 @@ import { HlslShaderStageNames } from "../../../src/formats/hlsl/core/tr2/HlslRen
 /**
  * Proves the emitted container carries the same translation the packager built.
  *
- * This is the switchover's safety net. `effectPackage` currently returns both a
- * chunk package and a Carbon v15 container, built from one translation so the two
- * can be compared on real effects before the chunk path is deleted. What is being
- * checked is not that the container parses — that is table stakes — but that
- * every program text and every per-pass backend block survives the round trip
- * unchanged, for every permutation the effect declares.
+ * This was the switchover's safety net while `effectPackage` returned both a
+ * chunk package and a container, so the two could be compared on real effects.
+ * The chunk path is gone and `bytes` is the container, so what this now guards
+ * is the container against the translation it was built from -- which is the
+ * comparison that mattered all along. What is checked is not that the container
+ * parses, which is table stakes, but that every program text and every per-pass
+ * backend block survives the round trip unchanged, for every permutation the
+ * effect declares.
  *
  * Game assets are never committed, so this is opt-in:
  *
