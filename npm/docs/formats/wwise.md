@@ -20,11 +20,15 @@ lists, action type/target, sound and music-track source ids). For bank
 generator version 150, recognized Event Actions additionally expose exact
 scope/mode, property and range bundles, delay/transition/probability values,
 fade and action flags, exceptions, and Play bank identities. The
-recognized action-specific tails include Voice Volume/Pitch values,
+recognized action-specific tails include Voice Volume/Pitch, Bus Volume, and
+Voice low-pass/high-pass values,
 Set State/Switch group/value identities, and Set/Reset Game Parameter values,
 scopes, absolute/relative meaning, default, randomized delay/transition,
-curve, transition-bypass flag, and exceptions. These fields are preserved by
-the reader even when the currently inspected EVE corpus uses only a subset.
+curve, transition-bypass flag, and exceptions. Voice property actions retain
+the real variable-length exception records after their value bundle; timing
+randomizers in the common property bundle are accepted independently of the
+action-specific value randomizer. These fields are preserved by the reader
+even when the currently inspected EVE corpus uses only a subset.
 The Wwise-domain toolkit is grouped under the `CjsBnkFormat.wwise` static: the
 SoundbanksInfo catalog helpers, the FNV-1 id hash, event-to-media resolution,
 typed Global Settings and Event Actions, and typed authored-SFX nodes:
@@ -71,6 +75,18 @@ Typed authored-SFX tail decoding is deliberately pinned to bank generator
 version 150. Recognized Event Actions are accepted only when the whole body
 is consumed; unknown, truncated, other-version, or trailing-byte bodies retain
 their shallow action type/target and raw payload, with `action: null`.
+The v150 Voice Pitch, Volume, Bus Volume, LPF, and HPF action sets retain their
+wwiser-corroborated element Set/Reset and available All/All-Except Reset
+aliases. The inspected EVE CCP build 3453885 `Common.bnk` uses 47 LPF/HPF
+actions, all
+game-object-scoped element actions with non-bus targets; the broader aliases
+remain structurally decoded so future banks do not lose valid action data.
+The same bank uses 22 global element Bus Volume actions across 11 events:
+21 Sets and one Reset targeting the `Music` and `Engines_Warp` buses. The
+object-scoped Set/Reset and global Reset All/All-Except aliases remain decoded;
+the nonexistent v150 game-object Reset All/All-Except aliases remain
+unsupported.
+Their runtime policy is owned by `runtime-audio`, not this container reader.
 Exact v150 STMG chunks attach `globalSettings` to an inspection and expose
 state groups and custom transitions, switch groups and graph points, RTPC
 defaults and ramp policies, built-in parameter bindings, acoustic textures,
