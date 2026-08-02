@@ -131,17 +131,25 @@ instance/object scope cannot drive a fader shared by unrelated signals. Each
 qualified physical Bus now owns an exact post-effect fader for static Bus
 Volume, global Bus Volume RTPC, and Immediate State gain. The existing
 dry-route stages retain Make-Up Gain, effective NodeBase Output Bus Volume,
-ducking, Bus Volume actions, Voice Volume, and State pitch/filter properties.
+Bus Volume actions, Voice Volume, State pitch, and the additive whole-ancestry
+LPF/HPF fallback. The exact audible SFX Aux shape instead evaluates one
+complete dry-path and one complete wet-path filter pair before their respective
+Bus-target duck gains.
 Those route-/voice-local controls still block audible shared effects, while
 gain-only Bus RTPC/State paths may cross a qualified static effect sequence.
-A static user-aux send may also be
-omitted when the complete return is provably silent; absolute or
-positive-relative action risk, amplifying controls, active effects, filters,
-dynamic sends, reflections, and wet-path escapes all retain the barrier. Meter
+A static user-aux send may also be omitted when the complete return is provably
+silent. SFX additionally realizes one static, neutral-filter user send when its
+qualified Auxiliary return rejoins the dry ancestry without branch-asymmetric
+Pitch, gain placement, actions, or audible effects. The route entry fans out
+after spatialization, applies additive State filtering and Bus-target ducking
+per whole leg, and merges once at the common Bus. Mixed Voice/Bus rules from
+one duck source and wet-only duck sources or Voice targets remain barriers.
+Absolute or positive-relative action risk, unsupported filters, dynamic sends,
+reflections, and wet-path escapes all retain the barrier. Meter
 telemetry remains unsupported.
 Voice Volume RTPCs use a distinct pre-bus SFX gain on qualified transparent
 paths. Unsupported RTPC bindings, route-local controls crossing an audible shared effect,
-Voice-target placement across audible auxiliary sends, other effect processing
+other audible auxiliary sends, other effect processing
 and tails, feedback-capable meters, and virtual-voice behavior remain deferred
 as described in the
 [Wwise routing requirements](wwise-resource-routing-handoff.md).

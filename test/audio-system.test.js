@@ -12,6 +12,7 @@ import {
 import { CjsBusGraphRuntime } from "../src/internal/busGraphRuntime.js";
 import { CjsSharedBusMixer } from "../src/internal/busGraphMixer.js";
 import { CjsBusDuckingController } from "../src/internal/busDucking.js";
+import { wwiseFilterPercentToHz } from "../src/internal/wwiseFilter.js";
 
 
 function FakeParam()
@@ -346,6 +347,16 @@ function AddSilentAuxReturn(catalog)
   };
 }
 
+function AddAudibleAuxReturn(catalog, gainDb = -14)
+{
+  catalog.buses["700"] = MixerBus({
+    type: "auxiliary-bus",
+    parentBusId: "1",
+    requiresProcessing: [ "auxiliary-bus" ],
+  });
+  catalog.routes[0].userAuxSends = [ StaticAuxSend("700", { gainDb }) ];
+}
+
 function SharedControlReaders({ rtpc, state } = {})
 {
   return {
@@ -430,9 +441,28 @@ function MixerContext()
     },
     createBiquadFilter()
     {
+      const frequency = {
+        value: 0,
+        holds: [],
+        sets: [],
+        curves: [],
+        cancelAndHoldAtTime(time)
+        {
+          frequency.holds.push(time);
+        },
+        setValueAtTime(value, time)
+        {
+          frequency.sets.push([ value, time ]);
+          frequency.value = value;
+        },
+        setValueCurveAtTime(values, time, duration)
+        {
+          frequency.curves.push([ Array.from(values), time, duration ]);
+        },
+      };
       const node = {
         type: "",
-        frequency: { value: 0 },
+        frequency,
         Q: { value: 1 },
         gain: { value: 0 },
         connectedTo: null,
@@ -1155,7 +1185,6 @@ test("strict shared Bus mixer omits only provably silenced static Aux returns", 
   const mutations = [
     value => { value.routes[0].userAuxSends[0].dynamic = true; },
     value => { value.routes[0].userAuxSends[0].lowPass = 1; },
-    value => { value.buses["800"].busVolumeDb = -95.99; },
     value => { value.buses["800"].makeUpGainDb = 1; },
     value => { value.buses["800"].busVolumeMayIncrease = true; },
     value =>
@@ -1215,27 +1244,494 @@ test("strict shared Bus mixer omits only provably silenced static Aux returns", 
     ],
   ])
   {
-    const blockedCatalog = MixerCatalog();
-    const blockedControls = AddSilentAuxReturn(blockedCatalog);
+    const realizedCatalog = MixerCatalog();
+    const realizedControls = AddSilentAuxReturn(realizedCatalog);
 
-    blockedCatalog.routes[0].userAuxSends = [ StaticAuxSend("700") ];
-    catalogMutation(blockedCatalog);
-    controlMutation(blockedControls);
-    const blockedContext = MixerContext();
-    const blockedRuntime = new CjsBusGraphRuntime(blockedCatalog);
-    const blockedMixer = new CjsSharedBusMixer({
-      context: blockedContext,
-      runtime: blockedRuntime,
-      destination: blockedContext.destination,
-      ...blockedControls,
+    realizedCatalog.routes[0].userAuxSends = [ StaticAuxSend("700") ];
+    catalogMutation(realizedCatalog);
+    controlMutation(realizedControls);
+    const realizedContext = MixerContext();
+    const realizedRuntime = new CjsBusGraphRuntime(realizedCatalog);
+    const realizedMixer = new CjsSharedBusMixer({
+      context: realizedContext,
+      runtime: realizedRuntime,
+      destination: realizedContext.destination,
+      ...realizedControls,
       ...SharedControlReaders(),
     });
 
-    assert.equal(
-      blockedMixer.GetInput(blockedRuntime.ResolveSfxRoute("100"), "sfx"),
-      null,
+    const realizedInput = realizedMixer.GetInput(
+      realizedRuntime.ResolveSfxRoute("100"),
+      "sfx",
     );
-    assert.equal(blockedContext.gains.length, 0);
+
+    assert.ok(
+      realizedInput,
+      "a return that is no longer provably silent uses the exact Aux path",
+    );
+    assert.equal(
+      realizedInput.connections.length,
+      2,
+      "the no-longer-silent return allocates a dry/wet fan-out",
+    );
+  }
+});
+
+test("shared Bus mixer realizes one exact static SFX Aux fan-out", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+
+  AddAudibleAuxReturn(catalog);
+  catalog.buses["500"].requiresProcessing = [ "state" ];
+  catalog.buses["1"].requiresProcessing = [ "state" ];
+  const busStates = {
+    schemaVersion: 2,
+    buses: {
+      "500": [ {
+        group: "dry_filter",
+        groupId: "10",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ { stateId: "20", state: "on", lowPass: -70 } ],
+      } ],
+      "1": [ {
+        group: "common_filter",
+        groupId: "11",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ {
+          stateId: "21",
+          state: "on",
+          lowPass: 100,
+          highPass: 20,
+        } ],
+      } ],
+    },
+  };
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    busStates,
+    getGlobalStatePropertyWeights: () => [ { state: "on", weight: 1 } ],
+    getGlobalStateTransitionBoundaries: () => [ 2 ],
+  });
+  const input = mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx");
+  const dryFilter = input.connections[0];
+  const sendGain = input.connections[1];
+  const dryHighPass = dryFilter.connectedTo;
+  const dryInput = dryHighPass.connectedTo;
+  const commonInput = dryInput.connectedTo;
+  const wetFilter = sendGain.connectedTo;
+  const wetHighPass = wetFilter.connectedTo;
+  const auxInput = wetHighPass.connectedTo;
+
+  assert.equal(input.connections.length, 2, "the route entry fans out once");
+  assert.ok(Math.abs(sendGain.gain.value - 10 ** (-14 / 20)) < 1e-12);
+  assert.equal(auxInput.connectedTo, commonInput, "wet and dry merge once");
+  assert.equal(dryFilter.type, "lowpass");
+  assert.equal(dryHighPass.type, "highpass");
+  assert.equal(wetFilter.type, "lowpass");
+  assert.equal(wetHighPass.type, "highpass");
+  assert.equal(commonInput.connectedTo, context.destination);
+  assert.equal(
+    dryFilter.frequency.value,
+    wwiseFilterPercentToHz(30),
+    "signed child and parent LPF values add before the final clamp",
+  );
+  assert.equal(wetFilter.frequency.value, wwiseFilterPercentToHz(100));
+  assert.equal(context.filters.length, 4, "each route leg owns one LPF/HPF pair");
+  assert.equal(dryFilter.frequency.curves.length, 1);
+  assert.equal(wetFilter.frequency.curves.length, 1);
+  assert.equal(
+    mixer.GetInput(runtime.ResolveMusicRoute("200"), "music"),
+    null,
+    "audible route-level Aux remains SFX-only",
+  );
+
+  context.currentTime = 0.5;
+  mixer.RefreshBusControls();
+  assert.equal(dryFilter.frequency.holds.at(-1), 0.5);
+  assert.equal(wetFilter.frequency.holds.at(-1), 0.5);
+
+  const nodes = [ ...context.gains, ...context.filters ];
+
+  mixer.Dispose();
+  assert.ok(nodes.every(node => node.disconnected));
+});
+
+test("exact SFX Aux legs place Bus ducks after additive State filters", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+
+  context.currentTime = 1;
+  AddAudibleAuxReturn(catalog);
+  catalog.buses["500"].requiresProcessing = [ "state" ];
+  catalog.buses["1"].requiresProcessing = [ "state" ];
+  const busStates = {
+    schemaVersion: 2,
+    buses: {
+      "500": [ {
+        group: "dry_filter",
+        groupId: "10",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ { stateId: "20", state: "on", lowPass: -70 } ],
+      } ],
+      "1": [ {
+        group: "common_filter",
+        groupId: "11",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ { stateId: "21", state: "on", lowPass: 100 } ],
+      } ],
+    },
+  };
+  const controller = new CjsBusDuckingController({
+    schemaVersion: 1,
+    sources: {
+      "900": {
+        recoveryMs: 0,
+        maxDuckVolumeDb: -96,
+        targets: [ {
+          targetBusId: "500",
+          volumeDb: -6,
+          fadeOutMs: 0,
+          fadeInMs: 0,
+          curve: 4,
+          targetProperty: "bus-volume",
+        } ],
+      },
+      "901": {
+        recoveryMs: 0,
+        maxDuckVolumeDb: -96,
+        targets: [ {
+          targetBusId: "1",
+          volumeDb: -9,
+          fadeOutMs: 0,
+          fadeInMs: 0,
+          curve: 4,
+          targetProperty: "voice-volume",
+        } ],
+      },
+      "902": {
+        recoveryMs: 0,
+        maxDuckVolumeDb: -96,
+        targets: [ {
+          targetBusId: "1",
+          volumeDb: -3,
+          fadeOutMs: 0,
+          fadeInMs: 0,
+          curve: 4,
+          targetProperty: "bus-volume",
+        } ],
+      },
+    },
+  });
+
+  controller.ScheduleActivity([ "900", "901", "902" ], 0, 10);
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    busStates,
+    busDuckingController: controller,
+    getGlobalStatePropertyWeights: () => [ { state: "on", weight: 1 } ],
+    getGlobalStateTransitionBoundaries: () => [],
+  });
+  const input = mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx");
+  const dryFilter = input.connections[0];
+  const sendGain = input.connections[1];
+  const dryDuck = dryFilter.connectedTo;
+  const wetFilter = sendGain.connectedTo;
+  const wetDuck = wetFilter.connectedTo;
+
+  assert.equal(dryFilter.type, "lowpass");
+  assert.equal(wetFilter.type, "lowpass");
+  assert.equal(
+    dryFilter.frequency.value,
+    wwiseFilterPercentToHz(30),
+    "the dry leg adds every State filter offset before clamping",
+  );
+  assert.equal(wetFilter.frequency.value, wwiseFilterPercentToHz(100));
+  assert.ok(Math.abs(dryDuck.gain.value - 10 ** (-9 / 20)) < 1e-12);
+  assert.ok(Math.abs(wetDuck.gain.value - 10 ** (-3 / 20)) < 1e-12);
+  assert.notEqual(
+    dryDuck.gain.value,
+    10 ** (-18 / 20),
+    "Voice-target ducking remains at the pre-split voice stage",
+  );
+  assert.equal(dryDuck.connectedTo.connectedTo, wetDuck.connectedTo.connectedTo);
+
+  context.currentTime = 11;
+  controller.ScheduleActivity([ "900", "902" ], 11, 15);
+  mixer.RefreshBusControls();
+  assert.equal(dryDuck.gain.holds.at(-1), 11);
+  assert.equal(wetDuck.gain.holds.at(-1), 11);
+  assert.ok(dryDuck.gain.curves.length > 0);
+  assert.ok(wetDuck.gain.curves.length > 0);
+
+  mixer.Dispose();
+  controller.Dispose();
+});
+
+test("exact SFX Aux rejects a source whose duck floor spans Voice and Bus stages", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+
+  AddAudibleAuxReturn(catalog);
+  const controller = new CjsBusDuckingController({
+    schemaVersion: 1,
+    sources: {
+      "900": {
+        recoveryMs: 0,
+        maxDuckVolumeDb: -10,
+        targets: [
+          {
+            targetBusId: "500",
+            volumeDb: -8,
+            fadeOutMs: 0,
+            fadeInMs: 0,
+            curve: 4,
+            targetProperty: "bus-volume",
+          },
+          {
+            targetBusId: "1",
+            volumeDb: -8,
+            fadeOutMs: 0,
+            fadeInMs: 0,
+            curve: 4,
+            targetProperty: "voice-volume",
+          },
+        ],
+      },
+    },
+  });
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    busDuckingController: controller,
+  });
+
+  assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+  assert.equal(context.gains.length, 0, "failed placement allocates no graph");
+});
+
+test("exact SFX Aux rejects one duck source split across opposite branches", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+
+  AddAudibleAuxReturn(catalog);
+  const controller = new CjsBusDuckingController({
+    schemaVersion: 1,
+    sources: {
+      "900": {
+        recoveryMs: 0,
+        maxDuckVolumeDb: -10,
+        targets: [
+          {
+            targetBusId: "500",
+            volumeDb: -8,
+            fadeOutMs: 0,
+            fadeInMs: 0,
+            curve: 4,
+            targetProperty: "voice-volume",
+          },
+          {
+            targetBusId: "700",
+            volumeDb: -8,
+            fadeOutMs: 0,
+            fadeInMs: 0,
+            curve: 4,
+            targetProperty: "bus-volume",
+          },
+        ],
+      },
+    },
+  });
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    busDuckingController: controller,
+  });
+
+  assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+  assert.equal(context.gains.length, 0, "the union placement fails atomically");
+});
+
+test("exact SFX Aux rejects wet-only duck sources and Voice targets", () =>
+{
+  for (const [ sourceBusId, targetBusId, targetProperty ] of [
+    [ "700", "1", "bus-volume" ],
+    [ "900", "700", "voice-volume" ],
+  ])
+  {
+    const context = MixerContext();
+    const catalog = MixerCatalog();
+
+    AddAudibleAuxReturn(catalog);
+    if (sourceBusId === "700")
+    {
+      catalog.buses["700"].requiresProcessing.push("ducking");
+    }
+    const controller = new CjsBusDuckingController({
+      schemaVersion: 1,
+      sources: {
+        [sourceBusId]: {
+          recoveryMs: 0,
+          maxDuckVolumeDb: -96,
+          targets: [ {
+            targetBusId,
+            volumeDb: -6,
+            fadeOutMs: 0,
+            fadeInMs: 0,
+            curve: 4,
+            targetProperty,
+          } ],
+        },
+      },
+    });
+    const runtime = new CjsBusGraphRuntime(catalog);
+    const mixer = new CjsSharedBusMixer({
+      context,
+      runtime,
+      destination: context.destination,
+      busDuckingController: controller,
+    });
+
+    assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+    assert.equal(context.gains.length, 0, "wet-only ducking allocates no graph");
+  }
+});
+
+test("audible route Aux qualification fails atomically at asymmetric controls", () =>
+{
+  const mutations = [
+    value => { value.routes[0].userAuxSends[0].dynamic = true; },
+    value => { value.routes[0].userAuxSends[0].lowPass = 1; },
+    value =>
+    {
+      value.routes[0].reflectionsAuxSend = {
+        targetBusId: "700",
+        gainDb: -20,
+        dynamic: false,
+      };
+    },
+    value =>
+    {
+      value.routes[0].userAuxSends.push(
+        StaticAuxSend("700", { slotIndex: 1, gainDb: -20 }),
+      );
+    },
+    value => { value.routes[0].authoredBusMakeUpGainDb = 1; },
+    value => { value.routes[0].authoredOutputBusVolumeDb = 1; },
+    value => { value.buses["500"].makeUpGainDb = 1; },
+    value => { value.buses["700"].outputBusVolumeDb = 1; },
+    value => { value.buses["500"].busVolumeActionControlled = true; },
+    value => { value.buses["700"].busVolumeMayIncrease = true; },
+    value =>
+    {
+      AddGraphEffect(value, "700", "920", 0, ParametricEqParameters());
+      value.buses["700"].requiresProcessing.push("auxiliary-bus");
+    },
+  ];
+
+  for (const mutate of mutations)
+  {
+    const context = MixerContext();
+    const catalog = MixerCatalog();
+
+    AddAudibleAuxReturn(catalog);
+    mutate(catalog);
+    const runtime = new CjsBusGraphRuntime(catalog);
+    const mixer = new CjsSharedBusMixer({
+      context,
+      runtime,
+      destination: context.destination,
+    });
+
+    assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+    assert.equal(context.gains.length, 0);
+    assert.equal(context.filters.length, 0);
+  }
+
+  for (const busId of [ "500", "700" ])
+  {
+    const context = MixerContext();
+    const catalog = MixerCatalog();
+
+    AddAudibleAuxReturn(catalog);
+    catalog.buses[busId].requiresProcessing.push("state");
+    const runtime = new CjsBusGraphRuntime(catalog);
+    const mixer = new CjsSharedBusMixer({
+      context,
+      runtime,
+      destination: context.destination,
+      busStates: {
+        schemaVersion: 2,
+        buses: {
+          [busId]: [ {
+            group: "pitch",
+            groupId: "10",
+            syncType: 0,
+            effectiveSyncType: 0,
+            states: [ { stateId: "20", state: "on", pitchCents: -100 } ],
+          } ],
+        },
+      },
+      ...SharedControlReaders({ state: "on" }),
+    });
+
+    assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+    assert.equal(context.gains.length, 0, "branch-only pitch allocates nothing");
+  }
+
+  {
+    const context = MixerContext();
+    const catalog = MixerCatalog();
+
+    AddAudibleAuxReturn(catalog);
+    catalog.buses["800"] = MixerBus({
+      parentBusId: "1",
+      requiresProcessing: [ "state" ],
+    });
+    catalog.buses["700"].parentBusId = "800";
+    const runtime = new CjsBusGraphRuntime(catalog);
+    const mixer = new CjsSharedBusMixer({
+      context,
+      runtime,
+      destination: context.destination,
+      busStates: {
+        schemaVersion: 2,
+        buses: {
+          "800": [ {
+            group: "pitch",
+            groupId: "10",
+            syncType: 0,
+            effectiveSyncType: 0,
+            states: [ { stateId: "20", state: "on", pitchCents: -100 } ],
+          } ],
+        },
+      },
+      ...SharedControlReaders({ state: "on" }),
+    });
+
+    assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+    assert.equal(
+      context.gains.length,
+      0,
+      "pitch on an intermediate wet-only Bus allocates nothing",
+    );
   }
 });
 

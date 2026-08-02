@@ -109,14 +109,41 @@ class CjsBusDuckingController {
     return !this.#disposed && this.#catalog.has(String(busId));
   }
 
-  /** Returns whether one Bus receives an authored ducking rule. */
-  HasTarget(busId) {
-    return !this.#disposed && this.#targetBusIds.has(String(busId));
+  /** Returns whether one Bus receives an authored ducking rule/property. */
+  HasTarget(busId, targetProperty = null) {
+    const id = String(busId);
+    if (this.#disposed || !this.#targetBusIds.has(id)) return false;
+    if (targetProperty === null) return true;
+    const property = String(targetProperty);
+    for (const source of this.#catalog.values()) {
+      if (source.targets.some(target => target.targetBusId === id && target.targetProperty === property)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Returns whether one dry ancestry receives authored ducking. */
-  PathHasTarget(busPathIds) {
-    return !this.#disposed && (busPathIds ?? []).some(busId => this.#targetBusIds.has(String(busId)));
+  PathHasTarget(busPathIds, targetProperty = null) {
+    return !this.#disposed && (busPathIds ?? []).some(busId => this.HasTarget(busId, targetProperty));
+  }
+
+  /**
+   * Proves Voice- and Bus-target contributions can be placed on opposite
+   * sides of one dry/wet split without splitting a source's collective
+   * maximum-duck floor.
+   */
+  CanSplitTargetProperties(busPathIds) {
+    if (this.#disposed) return false;
+    const path = new Set((busPathIds ?? []).map(String));
+    for (const source of this.#catalog.values()) {
+      const matching = source.targets.filter(target => path.has(target.targetBusId));
+      const busTargets = matching.filter(target => target.targetProperty === "bus-volume");
+      if (busTargets.length && matching.some(target => target.targetProperty === "voice-volume")) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** Subscribes a route scheduler to activity/timing changes. */
@@ -185,7 +212,7 @@ class CjsBusDuckingController {
   }
 
   /** Returns every future point at which one route's duck envelope changes. */
-  TransitionBoundaries(busPathIds, from = 0) {
+  TransitionBoundaries(busPathIds, from = 0, targetProperty = null) {
     if (this.#disposed || !this.#catalog.size) {
       return [];
     }
@@ -193,7 +220,7 @@ class CjsBusDuckingController {
     const after = Number(from) || 0;
     const result = [];
     for (const source of this.#catalog.values()) {
-      const targets = source.targets.filter(target => path.has(target.targetBusId));
+      const targets = source.targets.filter(target => path.has(target.targetBusId) && (targetProperty === null || target.targetProperty === targetProperty));
       if (!targets.length) continue;
       const records = [...this.#activities.get(source.sourceBusId).values()];
       for (const record of records) {

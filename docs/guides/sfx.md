@@ -297,14 +297,16 @@ source begins each target's Fade Out, overlapping sources on the same bus hold
 one duck, and the last end starts Recovery followed by Fade In. Different
 source buses add in decibels, and nonlinear fades interpolate in linear gain
 with the authored Wwise curve. Voice Volume and Bus Volume targets remain
-distinct in the portable catalog, although the current collapsed dry route
-sums both into its per-route bus gain.
+distinct in the portable catalog. Collapsed dry routes may schedule both on
+their route gain; the qualified audible SFX Aux shape keeps Voice targets
+before fan-out and schedules Bus targets independently on the complete dry and
+wet legs.
 
 This remains a focused audible adaptation rather than full Wwise bus
-processing. Voice Volume must move before a future dry/wet send split, while
-Bus Volume belongs at the final bus stage. Static Parametric EQ and static
-Wwise Delay have qualified shared-Bus adapters; auxiliary sends, nonlinear
-effects, meters, and effect-tail-driven bus activity remain deferred as
+processing. Voice Volume is before the qualified dry/wet send split, while Bus
+Volume ducking is after each leg's additive State filters. Static Parametric EQ
+and static Wwise Delay have qualified shared-Bus adapters; general auxiliary
+sends, nonlinear effects, meters, and effect-tail-driven bus activity remain deferred as
 described in the
 [routing reference](../reference/wwise-resource-routing-handoff.md).
 Delay is measured from the action post. Value randomizers are signed offsets
@@ -544,16 +546,28 @@ State gain. Each physical Bus owns one post-effect fader that combines its
 static Bus Volume with only that Bus's matching global RTPC and State gain;
 the route aggregate is admitted only when it exactly equals the sum of those
 physical Bus values. Voice Volume remains before the Bus, while Make-Up Gain,
-effective NodeBase Output Bus Volume, ducking, and live Set/Reset Bus Volume
-actions remain on the route-local stage. State Pitch/LPF/HPF also remain local.
+effective NodeBase Output Bus Volume, and live Set/Reset Bus Volume actions
+remain on the route-local stage. State Pitch remains source-local. State
+LPF/HPF retain the additive whole-ancestry contract: ordinary and blocked
+routes use their source-/track-local filter pair, while the exact audible SFX
+Aux shape uses one independently evaluated filter pair for each complete dry
+and wet path before the corresponding Bus-target duck gain.
 `busVolumeActionControlled` likewise marks every Bus targeted by a retained Set
 or Reset Bus Volume action. An audible effect combined with Voice Volume,
 filtering or pitch, ducking, or action control remains blocked so per-voice
-state and an effect tail cannot silently cross the shared Bus fader. The only
-auxiliary
-exception is the proven static-silence omission above. Audible or dynamic sends,
-reflections sends, unsupported RTPC bindings, and every other incomplete ordered
-effect path remain blocked until their complete reachable path has adapters.
+state and an effect tail cannot silently cross the shared Bus fader. The
+auxiliary exceptions are the proven static-silence omission above and one exact
+SFX-only user-send shape. The audible shape is one static finite send with
+neutral send filters whose Auxiliary Bus return rejoins the dry ancestry. Its
+route entry fans out after spatialization into the dry Bus and a dB-scaled wet
+gain, then both branches reuse the same physical common ancestors. Bus-target
+ducking is evaluated after the filters over each whole route leg, preserving a
+source's collective maximum-duck floor. A source whose rules span Voice and
+Bus targets on the split path, a wet-only duck source or Voice target,
+branch-only Pitch, Bus Volume action targets, Make-Up/Output Bus Volume, effects other than the
+feedback-free Meter omission, dynamic or multiple sends, Bus cascades, and
+reflections fail closed before allocating nodes. Music and every other
+incomplete auxiliary/effect path remain blocked.
 
 Installation cross-checks every playable routed SFX Sound and music track
 against its `busGraph` route, including dry ancestry and all three authored
@@ -569,8 +583,9 @@ enters a 3D route panner. Placement, scaling, RTPC replay, retirement, and
 disposal remain generation-scoped. Branch outputs still feed the existing SFX
 destination unless the strict shared mixer qualifies their complete dry path.
 Qualified branches feed the stable SFX category input after spatialization;
-blocked branches retain the existing destination. This does not yet make shared
-nonlinear effects or audible auxiliary sends.
+blocked branches retain the existing destination. The qualified static SFX Aux
+shape is the only audible wet-path exception; it does not imply shared nonlinear
+effects or general auxiliary routing.
 
 A custom `applyRTPC` adapter continues to receive the legacy emitter target and
 also receives one update per graph-backed route branch. Branch updates include
@@ -578,8 +593,8 @@ also receives one update per graph-backed route branch. Branch updates include
 the route's spatial mode, and spatial branches include their exact `panner`.
 
 The audio-system generation also owns a strict shared-Bus mixer. Its
-qualification accepts only dry audio-bus ancestry with default channel layout,
-no active Bus positioning or HDR, and no audible sends. Authored positioning/HDR
+qualification accepts only default-channel ancestry with no active Bus
+positioning or HDR. Authored positioning/HDR
 override flags are allowed only when their decoded values prove both features
 inactive. Processing may include a complete source-proven static Parametric
 EQ/Delay/Meter sequence with static Bus Volume, Bus Volume RTPC, and Immediate
@@ -588,12 +603,15 @@ matching RTPC/State catalog entry and live ducking source must be installed for
 each declared control. An incoming duck target also counts as a route control,
 even though Wwise declares that rule on its separate source Bus. Qualified
 routes receive stable SFX and music category entries and share one node per
-common Bus ancestor. Provably silenced static user sends allocate no wet nodes;
-all other auxiliary routes remain blocked. SFX and music category entries
+common Bus ancestor. Provably silenced static user sends allocate no wet nodes.
+The exact audible SFX shape above allocates one send gain and one shared
+Auxiliary return; all other auxiliary routes remain blocked. SFX and music category entries
 remain separate so application volume controls cannot merge unrelated routes
-prematurely. Audible effects still reject Voice
-Volume RTPCs, State pitch/filter properties, ducking, and Bus Volume action
-targets because those controls remain route- or voice-local.
+prematurely. State LPF/HPF add across the complete ancestry before one final
+clamp; the exact Aux shape preserves that rule separately on its dry and wet
+legs. Audible effects still reject Voice Volume RTPCs, State pitch, ducking,
+and Bus Volume action targets because those controls remain route- or
+voice-local.
 A blocked route returns no mixer input and
 allocates no partial graph. Qualified SFX route branches now consume these
 entries, including per-branch analyser stages that preserve aggregate emitter

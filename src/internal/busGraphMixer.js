@@ -10,6 +10,8 @@ import {
     busStatePathUses,
     indexBusStateCatalog,
 } from "./busState.js";
+import { scheduleSharedBusFilter } from "./busFilter.js";
+import { scheduleSharedBusDuckGain } from "./busDuckGain.js";
 import { scheduleSharedBusFader } from "./busFader.js";
 import { wwiseDbRtpcValueToDb } from "./wwiseRtpc.js";
 
@@ -48,6 +50,8 @@ export class CjsSharedBusMixer
 
     #qualification = new Map();
 
+    #routeAuxSends = new Map();
+
     #busEffects = new Map();
 
     #busRtpcs = new Map();
@@ -55,6 +59,12 @@ export class CjsSharedBusMixer
     #busStates = new Map();
 
     #silentAuxReturnGains = new Map();
+
+    #auxSendGains = new Map();
+
+    #routeFilters = new Map();
+
+    #routeDuckGains = new Map();
 
     #busDuckingController = null;
 
@@ -135,7 +145,7 @@ export class CjsSharedBusMixer
      * Gets a stable category entry for a qualified route, or null when any
      * authored processing barrier remains on its dry ancestry.
      */
-    GetInput(handle, kind)
+    GetInput(handle, kind, { allowAudibleAux = true } = {})
     {
         if (this.#disposed || !this.#runtime?.OwnsRouteHandle(handle))
         {
@@ -163,6 +173,18 @@ export class CjsSharedBusMixer
         {
             return null;
         }
+        const auxSends = this.#routeAuxSends.get(handle) ?? [];
+
+        // The first exact wet-path slice is SFX-only. Music remains
+        // fail-closed until its lifetime and transport tests cover fan-out.
+        if (category === "music" && auxSends.length)
+        {
+            return null;
+        }
+        if (!allowAudibleAux && auxSends.length)
+        {
+            return null;
+        }
         const key = `${handle.index}:${category}`;
         let entry = this.#entries.get(key);
 
@@ -170,10 +192,52 @@ export class CjsSharedBusMixer
         {
             entry = this.#context.createGain();
             SetParam(entry.gain, this.#categoryVolumes.get(category));
-            entry.connect(this.#GetBusInput(handle.route.outputBusId));
+            const dryFilters = this.#CreateRouteFilters(
+                auxSends.length ? auxSends[0].dryPathIds : [],
+            );
+            const dryDuck = this.#CreateRouteDuckGain(
+                auxSends.length ? auxSends[0].dryPathIds : [],
+            );
+            const dryInput = this.#GetBusInput(handle.route.outputBusId);
+
+            entry.connect(dryFilters?.input ?? dryDuck?.node ?? dryInput);
+            dryFilters?.output.connect(dryDuck?.node ?? dryInput);
+            dryDuck?.node.connect(dryInput);
+            const sendGains = [];
+            const filterRecords = [ ...(dryFilters?.records ?? []) ];
+            const duckRecords = [ ...(dryDuck ? [ dryDuck ] : []) ];
+
+            for (const send of auxSends)
+            {
+                const sendGain = this.#context.createGain();
+                const wetFilters = this.#CreateRouteFilters(send.wetPathIds);
+                const wetDuck = this.#CreateRouteDuckGain(send.wetPathIds);
+                const wetInput = this.#GetBusInput(send.targetBusId);
+
+                SetParam(sendGain.gain, 10 ** (send.gainDb / 20));
+                entry.connect(sendGain);
+                sendGain.connect(wetFilters?.input ?? wetDuck?.node ?? wetInput);
+                wetFilters?.output.connect(wetDuck?.node ?? wetInput);
+                wetDuck?.node.connect(wetInput);
+                sendGains.push(sendGain);
+                filterRecords.push(...(wetFilters?.records ?? []));
+                if (wetDuck) duckRecords.push(wetDuck);
+            }
+            if (sendGains.length) this.#auxSendGains.set(key, sendGains);
+            if (filterRecords.length) this.#routeFilters.set(key, filterRecords);
+            if (duckRecords.length) this.#routeDuckGains.set(key, duckRecords);
             this.#entries.set(key, entry);
         }
         return entry;
+    }
+
+    /** Returns whether this mixer owns whole-path State filters for a route. */
+    OwnsRouteStateFilters(handle)
+    {
+        return !this.#disposed
+            && this.#runtime?.OwnsRouteHandle(handle)
+            && this.#IsRouteQualified(handle)
+            && (this.#routeAuxSends.get(handle)?.length ?? 0) > 0;
     }
 
     /** Updates existing and future category entries without merging routes. */
@@ -197,8 +261,8 @@ export class CjsSharedBusMixer
         }
     }
 
-    /** Re-evaluates every allocated physical Bus fader. */
-    RefreshBusFaders()
+    /** Re-evaluates every allocated physical Bus fader and State filter. */
+    RefreshBusControls()
     {
         if (this.#disposed) return;
         for (const [ busId, realized ] of this.#buses)
@@ -208,6 +272,20 @@ export class CjsSharedBusMixer
                 this.#ScheduleBusFader(busId, realized.busGain.gain);
             }
         }
+        for (const records of this.#routeFilters.values())
+        {
+            for (const record of records) this.#ScheduleRouteFilter(record);
+        }
+        for (const records of this.#routeDuckGains.values())
+        {
+            for (const record of records) this.#ScheduleRouteDuckGain(record);
+        }
+    }
+
+    /** @deprecated Use RefreshBusControls. */
+    RefreshBusFaders()
+    {
+        this.RefreshBusControls();
     }
 
     /** Disconnects every entry and shared Bus node. Safe to call repeatedly. */
@@ -216,6 +294,18 @@ export class CjsSharedBusMixer
         if (this.#disposed) return;
         this.#disposed = true;
         for (const entry of this.#entries.values()) entry.disconnect?.();
+        for (const gains of this.#auxSendGains.values())
+        {
+            for (const gain of gains) gain.disconnect?.();
+        }
+        for (const records of this.#routeFilters.values())
+        {
+            for (const record of records) record.node.disconnect?.();
+        }
+        for (const records of this.#routeDuckGains.values())
+        {
+            for (const record of records) record.node.disconnect?.();
+        }
         for (const bus of this.#buses.values())
         {
             bus.input.disconnect?.();
@@ -225,10 +315,14 @@ export class CjsSharedBusMixer
         this.#entries.clear();
         this.#buses.clear();
         this.#qualification.clear();
+        this.#routeAuxSends.clear();
         this.#busEffects.clear();
         this.#busRtpcs.clear();
         this.#busStates.clear();
         this.#silentAuxReturnGains.clear();
+        this.#auxSendGains.clear();
+        this.#routeFilters.clear();
+        this.#routeDuckGains.clear();
         this.#busDuckingController = null;
         this.#readGlobalRtpc = null;
         this.#readGlobalRtpcTransitionBoundaries = null;
@@ -251,8 +345,7 @@ export class CjsSharedBusMixer
         const route = handle.route;
         let qualified = Array.isArray(route?.busPathIds)
             && route.busPathIds.length > 0
-            && route.outputBusId === route.busPathIds[0]
-            && this.#HasOnlySilentUserAuxSends(route);
+            && route.outputBusId === route.busPathIds[0];
         const pathIds = new Set();
         let hasDistributedControls = Boolean(
             this.#busDuckingController?.PathHasTarget?.(route.busPathIds),
@@ -312,10 +405,23 @@ export class CjsSharedBusMixer
         {
             qualified = false;
         }
+        const auxSends = qualified
+            ? this.#GetRouteAuxSends(route, pathIds)
+            : null;
+
+        if (auxSends === null)
+        {
+            qualified = false;
+        }
+        else if (qualified)
+        {
+            this.#routeAuxSends.set(handle, auxSends);
+        }
         this.#qualification.set(handle, qualified);
         return qualified;
     }
 
+    /** Returns whether one physical Bus fader has every required live reader. */
     #CanRealizeBusFader(busId, bus)
     {
         const path = [ String(busId) ];
@@ -363,6 +469,10 @@ export class CjsSharedBusMixer
             const allowedReasons = new Set(DISTRIBUTED_CONTROL_REASONS);
 
             if (activeSlots.length) allowedReasons.add("effects");
+            if (bus?.type === "auxiliary-bus")
+            {
+                allowedReasons.add("auxiliary-bus");
+            }
             if (bus?.userAuxSends?.length
                 && this.#HasOnlySilentUserAuxSends(bus))
             {
@@ -427,6 +537,157 @@ export class CjsSharedBusMixer
         }
         this.#busEffects.set(id, effects);
         return effects;
+    }
+
+    /**
+     * Qualifies one exact route-level static user send, or proves all sends
+     * silent. The wet branch must rejoin the dry ancestry before any
+     * branch-exclusive pitch, action, or gain-placement ambiguity.
+     */
+    #GetRouteAuxSends(route, dryPathIds)
+    {
+        if (!route
+            || !Array.isArray(route.userAuxSends)
+            || route.reflectionsAuxSend !== undefined)
+        {
+            return null;
+        }
+        if (this.#HasOnlySilentUserAuxSends(route)) return Object.freeze([]);
+        if (route.userAuxSends.length !== 1
+            || Number(route.authoredBusMakeUpGainDb ?? 0) !== 0
+            || Number(route.authoredOutputBusVolumeDb ?? 0) !== 0)
+        {
+            return null;
+        }
+        const send = route.userAuxSends[0];
+
+        if (!send
+            || send.dynamic !== false
+            || Number(send.lowPass) !== 0
+            || Number(send.highPass) !== 0
+            || !Number.isFinite(Number(send.gainDb)))
+        {
+            return null;
+        }
+        const wetExclusive = [];
+        const active = new Set();
+        let current = String(send.targetBusId ?? "");
+        let joinBusId = "";
+
+        while (current)
+        {
+            if (dryPathIds.has(current))
+            {
+                joinBusId = current;
+                break;
+            }
+            if (active.has(current)) return null;
+            active.add(current);
+            wetExclusive.push(current);
+            current = String(this.#catalog.buses?.[current]?.parentBusId ?? "");
+        }
+        if (!joinBusId || !wetExclusive.length) return null;
+        const dryPath = [ ...dryPathIds ];
+        const joinIndex = dryPath.indexOf(joinBusId);
+        const dryExclusive = dryPath.slice(0, joinIndex);
+        const wetPath = [
+            ...wetExclusive,
+            ...dryPath.slice(joinIndex),
+        ];
+        const combined = [ ...wetExclusive, ...dryPath ];
+
+        if (!this.#CanSplitDuckingProperties(combined)
+            || !this.#CanRealizeRouteFilters(dryPath)
+            || !this.#CanRealizeRouteFilters(wetPath)
+            || this.#busDuckingController?.PathHasTarget?.(
+                wetExclusive,
+                "voice-volume",
+            ))
+        {
+            return null;
+        }
+
+        for (let index = 0; index < combined.length; index++)
+        {
+            const busId = combined[index];
+            const bus = this.#catalog.buses?.[busId];
+            const effects = this.#GetQualifiedBusEffects(busId, bus);
+            const wetIndex = wetExclusive.indexOf(busId);
+            const expectedType = wetIndex === 0
+                ? "auxiliary-bus"
+                : "audio-bus";
+
+            if (!bus
+                || (wetIndex >= 0 && bus.type !== expectedType)
+                || (wetIndex < 0 && bus.type !== "audio-bus")
+                || bus.channelConfig?.raw !== 0
+                || !IsNeutralPositioning(bus.positioning)
+                || !IsDisabledHdr(bus.hdr)
+                || bus.userAuxSends?.length !== 0
+                || bus.reflectionsAuxSend !== undefined
+                || bus.busVolumeActionControlled === true
+                || bus.busVolumeMayIncrease === true
+                || (Number(bus.makeUpGainDb) || 0) !== 0
+                || (Number(bus.outputBusVolumeDb) || 0) !== 0
+                || !this.#CanRealizeBusFader(busId, bus)
+                || effects === null
+                || effects.some(effect => effect.type !== "meter-omission"))
+            {
+                return null;
+            }
+        }
+        for (const busId of [ ...dryExclusive, ...wetExclusive ])
+        {
+            const wetOnly = wetExclusive.includes(busId);
+
+            if (busStatePathUses(this.#busStates, [ busId ], "pitchCents")
+                || (wetOnly
+                    && this.#busDuckingController?.HasSource?.(busId))
+                || (wetExclusive.includes(busId)
+                    && busRtpcPathUses(
+                        this.#busRtpcs,
+                        [ busId ],
+                        "voice-volume",
+                    ))
+                )
+            {
+                return null;
+            }
+        }
+        return Object.freeze([ Object.freeze({
+            targetBusId: String(send.targetBusId),
+            gainDb: Number(send.gainDb),
+            dryPathIds: Object.freeze(dryPath),
+            wetPathIds: Object.freeze(wetPath),
+        }) ]);
+    }
+
+    /** Proves one combined dry/wet ancestry can separate duck properties. */
+    #CanSplitDuckingProperties(busPathIds)
+    {
+        return !this.#busDuckingController
+            || this.#busDuckingController.CanSplitTargetProperties?.(
+                busPathIds,
+            ) === true;
+    }
+
+    /** Returns whether one whole-route State filter has every required seam. */
+    #CanRealizeRouteFilters(busPathIds)
+    {
+        const usesFilters = busStatePathUses(
+            this.#busStates,
+            busPathIds,
+            "lowPass",
+        ) || busStatePathUses(
+            this.#busStates,
+            busPathIds,
+            "highPass",
+        );
+
+        return !usesFilters
+            || (this.#readGlobalStateWeights
+                && this.#readGlobalStateTransitionBoundaries
+                && typeof this.#context.createBiquadFilter === "function");
     }
 
     /** Returns whether every authored user send is provably below Wwise silence. */
@@ -663,6 +924,7 @@ export class CjsSharedBusMixer
         return input;
     }
 
+    /** Returns whether one physical Bus needs a non-neutral shared fader. */
     #BusNeedsFader(busId, bus)
     {
         const path = [ String(busId) ];
@@ -672,6 +934,7 @@ export class CjsSharedBusMixer
             || busStatePathUses(this.#busStates, path, "gainDb");
     }
 
+    /** Schedules all globally shared gain contributions for one Bus fader. */
     #ScheduleBusFader(busId, param)
     {
         scheduleSharedBusFader({
@@ -687,6 +950,102 @@ export class CjsSharedBusMixer
             readGlobalStateWeights: this.#readGlobalStateWeights,
             readGlobalStateTransitionBoundaries:
                 this.#readGlobalStateTransitionBoundaries,
+        });
+    }
+
+    /** Creates the additive LPF/HPF pair for one complete dry or wet leg. */
+    #CreateRouteFilters(busPathIds)
+    {
+        const path = Object.freeze((busPathIds ?? []).map(String));
+        const lowPassFilter = busStatePathUses(
+            this.#busStates,
+            path,
+            "lowPass",
+        ) ? this.#context.createBiquadFilter() : null;
+        const highPassFilter = busStatePathUses(
+            this.#busStates,
+            path,
+            "highPass",
+        ) ? this.#context.createBiquadFilter() : null;
+
+        if (!lowPassFilter && !highPassFilter) return null;
+        if (lowPassFilter)
+        {
+            lowPassFilter.type = "lowpass";
+            SetParam(lowPassFilter.Q, Math.SQRT1_2);
+        }
+        if (highPassFilter)
+        {
+            highPassFilter.type = "highpass";
+            SetParam(highPassFilter.Q, Math.SQRT1_2);
+        }
+        if (lowPassFilter && highPassFilter)
+        {
+            lowPassFilter.connect(highPassFilter);
+        }
+        const records = [
+            ...(lowPassFilter ? [ {
+                node: lowPassFilter,
+                busPathIds: path,
+                property: "lowPass",
+                highPass: false,
+            } ] : []),
+            ...(highPassFilter ? [ {
+                node: highPassFilter,
+                busPathIds: path,
+                property: "highPass",
+                highPass: true,
+            } ] : []),
+        ];
+
+        for (const record of records) this.#ScheduleRouteFilter(record);
+        return {
+            input: lowPassFilter ?? highPassFilter,
+            output: highPassFilter ?? lowPassFilter,
+            records,
+        };
+    }
+
+    /** Schedules one whole-route State LPF or HPF record. */
+    #ScheduleRouteFilter(record)
+    {
+        scheduleSharedBusFilter({
+            ...record,
+            context: this.#context,
+            busStates: this.#busStates,
+            readGlobalStateWeights: this.#readGlobalStateWeights,
+            readGlobalStateTransitionBoundaries:
+                this.#readGlobalStateTransitionBoundaries,
+        });
+    }
+
+    /** Creates one whole-route Bus-target duck gain when the path needs it. */
+    #CreateRouteDuckGain(busPathIds)
+    {
+        if (!this.#busDuckingController?.PathHasTarget?.(
+            busPathIds,
+            "bus-volume",
+        ))
+        {
+            return null;
+        }
+        const record = {
+            node: this.#context.createGain(),
+            busPathIds: Object.freeze(busPathIds.map(String)),
+        };
+
+        this.#ScheduleRouteDuckGain(record);
+        return record;
+    }
+
+    /** Schedules one whole-route Bus-target duck gain record. */
+    #ScheduleRouteDuckGain(record)
+    {
+        scheduleSharedBusDuckGain({
+            param: record.node.gain,
+            busPathIds: record.busPathIds,
+            context: this.#context,
+            busDuckingController: this.#busDuckingController,
         });
     }
 }

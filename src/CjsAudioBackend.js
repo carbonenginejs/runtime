@@ -4130,6 +4130,9 @@ export class CjsAudioBackend
             busGraphRoute,
             "sfx",
         ) ?? null;
+        const sharedBusFilters = Boolean(mixerInput)
+            && this.#busMixer?.OwnsRouteStateFilters?.(busGraphRoute) === true;
+        const sharedBusDucking = sharedBusFilters;
         const analyser = mixerInput
             ? this.#context.createAnalyser?.() ?? null
             : null;
@@ -4144,7 +4147,7 @@ export class CjsAudioBackend
             ?? emitterNodes.analyser
             ?? this.#sfxGain;
 
-        if (mode)
+        if (spatial)
         {
             const gain = this.#context.createGain();
             const panner = this.#context.createPanner();
@@ -4172,6 +4175,8 @@ export class CjsAudioBackend
                 analyser,
                 mixerInput,
                 sharedBusFaders: Boolean(mixerInput),
+                sharedBusFilters,
+                sharedBusDucking,
             };
         }
         else
@@ -4187,6 +4192,8 @@ export class CjsAudioBackend
                 analyser,
                 mixerInput,
                 sharedBusFaders: Boolean(mixerInput),
+                sharedBusFilters,
+                sharedBusDucking,
             };
         }
         modes.set(mode, branch);
@@ -4271,12 +4278,20 @@ export class CjsAudioBackend
                 outputBusId: descriptor.busPathIds[0],
             },
         ) ?? null;
-        const emitterRouteBranch = this.#GetEmitterRouteBranch(
-            emitterNodes,
-            gameObjID,
-            descriptor.spatial,
-            busGraphRoute,
-        );
+        const allowAudibleAux = !descriptor.getLowPass
+            && !descriptor.getLowPassAtAdditionalPercent
+            && !descriptor.getHighPass
+            && !descriptor.getHighPassAtAdditionalPercent;
+        const mixerOwnsRouteFilters = this.#busMixer
+            ?.OwnsRouteStateFilters?.(busGraphRoute) === true;
+        const emitterRouteBranch = mixerOwnsRouteFilters && !allowAudibleAux
+            ? null
+            : this.#GetEmitterRouteBranch(
+                emitterNodes,
+                gameObjID,
+                descriptor.spatial,
+                busGraphRoute,
+            );
         const gain = this.#context.createGain();
         const busVoiceGain = busRtpcPathUses(
             this.#busRtpcCatalog,
@@ -4309,14 +4324,15 @@ export class CjsAudioBackend
             descriptor.busPathIds,
             "highPass",
         );
+        const sharedBusFilters = emitterRouteBranch?.sharedBusFilters === true;
         const lowPassFilter = (descriptor.getLowPass
             || descriptor.getLowPassAtAdditionalPercent
-            || usesBusLowPass)
+            || (usesBusLowPass && !sharedBusFilters))
             ? this.#context.createBiquadFilter?.() ?? null
             : null;
         const highPassFilter = (descriptor.getHighPass
             || descriptor.getHighPassAtAdditionalPercent
-            || usesBusHighPass)
+            || (usesBusHighPass && !sharedBusFilters))
             ? this.#context.createBiquadFilter?.() ?? null
             : null;
         const busEffectChain = emitterRouteBranch?.mixerInput
@@ -4426,6 +4442,9 @@ export class CjsAudioBackend
             busGraphRoute,
             emitterRouteBranch,
             sharedBusFaders: emitterRouteBranch?.sharedBusFaders === true,
+            sharedBusFilters,
+            sharedBusDucking:
+                emitterRouteBranch?.sharedBusDucking === true,
             buffer: descriptor.buffer,
             loop: descriptor.loop,
             playCount: descriptor.playCount,
@@ -5947,7 +5966,7 @@ export class CjsAudioBackend
                 }
             }
         }
-        this.#busMixer?.RefreshBusFaders?.();
+        this.#busMixer?.RefreshBusControls?.();
     }
 
     /** Re-evaluates the live Voice Volume contribution during transitions. */
@@ -6144,6 +6163,7 @@ export class CjsAudioBackend
             }
         }
         this.#musicEngine?.RefreshBusDucking?.();
+        this.#busMixer?.RefreshBusControls?.();
     }
 
     /** Settles one disposable source's bus activity exactly once. */
@@ -6160,7 +6180,9 @@ export class CjsAudioBackend
     #ApplyVoiceFilters(voice)
     {
         const now = Number(this.#context?.currentTime) || 0;
-        const evaluateBus = at => voice.getBusStateProperties?.(at) ?? {
+        const evaluateBus = at => voice.sharedBusFilters
+            ? { lowPass: 0, highPass: 0 }
+            : voice.getBusStateProperties?.(at) ?? {
             lowPass: 0,
             highPass: 0,
         };
@@ -8128,6 +8150,7 @@ function ScheduleBusVolumeGain(
         ...(busDuckingController?.TransitionBoundaries?.(
             busPathIds,
             now,
+            voice.sharedBusDucking ? "voice-volume" : null,
         ) ?? []),
     ]) ].sort((left, right) => left - right);
     const authoredBusVolumeDb = Number(voice.authoredBusVolumeDb) || 0;
@@ -8155,6 +8178,7 @@ function ScheduleBusVolumeGain(
         + (busDuckingController?.EvaluateGainDb?.(
             busPathIds,
             at,
+            voice.sharedBusDucking ? "voice-volume" : null,
         ) ?? 0)
     ) / 20);
     const startValue = evaluate(now);

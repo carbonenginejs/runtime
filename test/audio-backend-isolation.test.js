@@ -56,10 +56,12 @@ function FakeContext({ withAnalyser = false } = {})
       const node = {
         gain: FakeParam(1),
         connectedTo: null,
+        connections: [],
         disconnected: false,
         connect(target)
         {
           node.connectedTo = target;
+          node.connections.push(target);
         },
         disconnect()
         {
@@ -402,6 +404,30 @@ function RouteRuntime({
     } ];
     catalog.buses["900"].requiresProcessing = [ "effects" ];
   }
+  return new CjsBusGraphRuntime(catalog);
+}
+
+function AuxRouteRuntime()
+{
+  const base = RouteRuntime();
+  const catalog = structuredClone(base.GetCatalog());
+
+  base.Dispose();
+  catalog.buses["700"] = {
+    ...structuredClone(catalog.buses["900"]),
+    type: "auxiliary-bus",
+    parentBusId: "1",
+    requiresProcessing: [ "auxiliary-bus" ],
+  };
+  catalog.buses["900"].requiresProcessing = [ "state" ];
+  catalog.routes[0].userAuxSends = [ {
+    slotIndex: 0,
+    targetBusId: "700",
+    gainDb: -14,
+    lowPass: 0,
+    highPass: 0,
+    dynamic: false,
+  } ];
   return new CjsBusGraphRuntime(catalog);
 }
 
@@ -782,6 +808,128 @@ test("qualified SFX keeps local gain while the shared Bus owns post-effect volum
   assert.equal(sharedFader.disconnected, false);
   mixer.Dispose();
   assert.equal(sharedFader.disconnected, true);
+});
+
+test("qualified SFX Aux splits after spatialization and shares route filters", async () =>
+{
+  const runtime = AuxRouteRuntime();
+  const busStates = {
+    schemaVersion: 2,
+    buses: {
+      "900": [ {
+        group: "dry_filter",
+        groupId: "10",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ { stateId: "20", state: "on", lowPass: 70 } ],
+      } ],
+    },
+  };
+  let mixer = null;
+  const { context, emitter, backend } = Harness({
+    busStates,
+    busGraphRuntime: runtime,
+    busMixerFactory: audioContext =>
+    {
+      mixer = new CjsSharedBusMixer({
+        context: audioContext,
+        runtime,
+        destination: audioContext.destination,
+        busStates,
+        getGlobalStatePropertyWeights: () => [],
+        getGlobalStateTransitionBoundaries: () => [],
+      });
+      return mixer;
+    },
+    loadBuffer: async () => ({ voices: [ RoutedVoice("100") ] }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "shared_aux_a");
+  backend.PostEvent(2, 1, 0, emitter, "shared_aux_b");
+  await tick();
+
+  const firstBranch = RouteBranchForSource(context.sources[0]);
+  const secondBranch = RouteBranchForSource(context.sources[1]);
+  const panner = firstBranch.connectedTo;
+  const mixerInput = panner.connectedTo;
+  const routeFilter = mixerInput.connections[0];
+  const sendGain = mixerInput.connections[1];
+  const dryInput = routeFilter.connectedTo;
+  const commonInput = dryInput.connectedTo;
+
+  assert.equal(secondBranch, firstBranch, "voices share one route branch");
+  assert.equal(mixerInput.connections.length, 2, "fan-out follows one panner");
+  assert.ok(Math.abs(sendGain.gain.value - 10 ** (-14 / 20)) < 1e-12);
+  assert.equal(sendGain.connectedTo.connectedTo, commonInput);
+  assert.equal(routeFilter.type, "lowpass");
+  assert.equal(
+    context.filters.length,
+    1,
+    "the complete dry-route State LPF is not duplicated per voice",
+  );
+
+  context.sources[0].onended();
+  context.sources[1].onended();
+  assert.equal(routeFilter.disconnected, false);
+  backend.Dispose();
+  assert.equal(routeFilter.disconnected, false);
+  mixer.Dispose();
+  assert.equal(routeFilter.disconnected, true);
+});
+
+test("SFX Aux with explicit Voice filters falls back to the complete dry route", async () =>
+{
+  const runtime = AuxRouteRuntime();
+  const busStates = {
+    schemaVersion: 2,
+    buses: {
+      "900": [ {
+        group: "dry_filter",
+        groupId: "10",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ { stateId: "20", state: "on", lowPass: 70 } ],
+      } ],
+    },
+  };
+  let mixer = null;
+  const { context, emitter, backend } = Harness({
+    busStates,
+    busGraphRuntime: runtime,
+    busMixerFactory: audioContext =>
+    {
+      mixer = new CjsSharedBusMixer({
+        context: audioContext,
+        runtime,
+        destination: audioContext.destination,
+        busStates,
+        getGlobalStatePropertyWeights: () => [],
+        getGlobalStateTransitionBoundaries: () => [],
+      });
+      return mixer;
+    },
+    loadBuffer: async () => ({
+      voices: [ RoutedVoice("100", true, { getLowPass: () => 20 }) ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "explicit_voice_filter_aux_barrier");
+  await tick();
+
+  const chain = [];
+  let node = context.sources[0];
+
+  for (let index = 0; node?.connectedTo && index < 12; index++)
+  {
+    node = node.connectedTo;
+    chain.push(node);
+  }
+  assert.equal(context.panners.length, 1, "no Aux route panner is allocated");
+  assert.ok(chain.includes(context.panners[0]), "the legacy dry panner is used");
+  assert.equal(context.filters.length, 1, "Voice and Bus LPF stay source-local");
+
+  backend.Dispose();
+  mixer.Dispose();
 });
 
 test("blocked SFX routes retain the legacy destination without partial mixer use", async () =>

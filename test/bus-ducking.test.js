@@ -163,6 +163,72 @@ test("same-source overlap is boolean while different sources accumulate", () =>
     );
 });
 
+test("duck target-property queries preserve placement and collective floors", () =>
+{
+    const controller = new CjsBusDuckingController(Catalog({
+        "1": Source({
+            recoveryMs: 0,
+            maxDuckVolumeDb: -10,
+            targets: [
+                Target("10", {
+                    volumeDb: -8,
+                    fadeOutMs: 0,
+                    fadeInMs: 0,
+                    targetProperty: "bus-volume",
+                }),
+                Target("11", {
+                    volumeDb: -8,
+                    fadeOutMs: 0,
+                    fadeInMs: 0,
+                    targetProperty: "voice-volume",
+                }),
+            ],
+        }),
+        "2": Source({
+            recoveryMs: 0,
+            targets: [ Target("11", {
+                volumeDb: -3,
+                fadeOutMs: 0,
+                fadeInMs: 0,
+                targetProperty: "bus-volume",
+            }) ],
+        }),
+    }));
+
+    controller.ScheduleActivity([ "1", "2" ], 0, 10);
+
+    assert.equal(controller.HasTarget("10", "bus-volume"), true);
+    assert.equal(controller.HasTarget("10", "voice-volume"), false);
+    assert.equal(controller.PathHasTarget([ "10" ], "bus-volume"), true);
+    assert.equal(controller.EvaluateGainDb(
+        [ "10", "11" ],
+        1,
+        "bus-volume",
+    ), -11);
+    assert.equal(controller.EvaluateGainDb(
+        [ "10", "11" ],
+        1,
+        "voice-volume",
+    ), -8);
+    assert.equal(
+        controller.CanSplitTargetProperties([ "10", "11" ]),
+        false,
+        "one source cannot have its collective floor split across stages",
+    );
+    assert.equal(
+        controller.CanSplitTargetProperties([ "10" ]),
+        true,
+    );
+    assert.deepEqual(
+        controller.TransitionBoundaries(
+            [ "10", "11" ],
+            0,
+            "bus-volume",
+        ),
+        [ 10 ],
+    );
+});
+
 test("reactivation during recovery does not restart fade-out", () =>
 {
     const controller = new CjsBusDuckingController(Catalog({

@@ -96,13 +96,16 @@ that action risk with the installed RTPC/State catalogs when proving that a
 static Auxiliary Bus return can be omitted below Wwise's silence threshold.
 `busVolumeActionControlled` separately marks every reachable Bus targeted by a
 retained Set or Reset Bus Volume action. Audible shared effects remain blocked
-on any such ancestry until the Bus fader moves to its exact physical stage, so
-an action cannot affect only new input while leaving an existing effect tail at
-the wrong gain.
+on any such ancestry because a playing-instance or game-object action cannot
+safely drive the physical fader shared by unrelated signals; otherwise it could
+affect only new effect input while leaving an existing tail at the wrong gain.
 The catalog is descriptive until a route is accepted by a qualified shared-bus
 runtime. That runtime can decode qualified static Parametric EQ and Wwise Delay
-records into ordered shared Web Audio stages, but the catalog's presence alone
-does not make unsupported auxiliary, dynamic, or nonlinear effect paths audible.
+records into ordered shared Web Audio stages. SFX also admits one static,
+neutral-filter user send whose Auxiliary return rejoins the dry ancestry; it
+evaluates additive State filters and Bus-target ducking independently across
+the complete dry and wet legs. The catalog's presence alone does not make any
+other auxiliary, dynamic, or nonlinear effect path audible.
 
 ## Delivery
 

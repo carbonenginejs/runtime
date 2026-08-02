@@ -20,8 +20,10 @@ sliders.
 Qualified graph routes apply static Bus Volume, global Bus Volume RTPC, and
 Immediate State gain at one shared post-effect fader per physical Bus. The
 route-local stage retains Make-Up Gain, effective NodeBase Output Bus Volume,
-ducking, and Bus Volume actions; SFX Voice Volume remains a separate pre-Bus
-stage.
+Bus Volume actions, and collapsed-route ducking; SFX Voice Volume remains a
+separate pre-Bus stage. The exact SFX Aux shape keeps Voice-target ducking
+before its split and applies Bus-target ducking after the additive State filter
+on each complete dry/wet leg.
 It also projects v150 Audio Bus auto-ducking and coordinates actual scheduled
 SFX and built-in music source activity through one shared clock.
 Routed static Wwise Parametric EQ slots are projected into one portable catalog
@@ -31,7 +33,8 @@ The strict shared
 mixer also decodes source-proven v150 Wwise Meter records and may omit only
 audio-transparent instances that cannot feed telemetry back into the graph.
 It may likewise omit a static user-aux send only when the complete return is
-proven to remain at or below Wwise's `-96 dB` silence threshold.
+proven to remain at or below Wwise's `-96 dB` silence threshold, or realize the
+narrow exact SFX return shape documented below.
 
 ## Music NodeBase contract
 
@@ -136,9 +139,11 @@ before converting `-1` to `-96.3 dB` and other values with
 future placement when real bus and effect stages replace the collapsed gain.
 Static v150 Parametric EQ and Wwise Delay are the implemented DSP adapters. Feedback-free
 v150 Meter records have a qualified audio-transparent omission contract, but
-Meter telemetry is not implemented. Audible auxiliary
-sends and complete ordered effect chaining, dynamic effect controls, nonlinear
-effects, wet-path duck placement, effect-tail bus activity, Meter telemetry,
+Meter telemetry is not implemented. One qualified SFX-only static user send is
+implemented when its neutral-filter Auxiliary return rejoins the dry ancestry;
+all other audible auxiliary sends and complete ordered effect chaining, dynamic
+effect controls, nonlinear effects, general wet-path duck placement,
+effect-tail bus activity, Meter telemetry,
 virtual-voice behavior, and spatial diffraction remain separate runtime
 slices. Those
 features need their complete effective send/property projection, qualified
@@ -239,12 +244,14 @@ collective source-bus floor across its listed targets; a v150 differential
 Authoring fixture remains desirable because older documentation used
 target-oriented wording.
 
-Voice Volume and Bus Volume remain separate typed target properties. The
-present engine has no auxiliary-send or complete shared effect graph, so both
-contributions are audibly combined only on its collapsed dry-route gain. This
-does not claim
-future wet-path equivalence: Voice Volume must also affect sends, Bus Volume
-targets final bus volume, and source-side effect tails may extend activity.
+Voice Volume and Bus Volume remain separate typed target properties. Voice
+Volume applies before the qualified SFX dry/wet split, while Bus Volume targets
+are evaluated after State filtering over each complete route leg. A duck source
+that would place part of its collective maximum floor at Voice Volume and part
+at Bus Volume fails closed, as does a duck source or Voice target on the
+wet-only ancestry. This narrow placement proof does not claim general wet-path
+equivalence: source-side effect tails may extend activity and unsupported Aux
+shapes remain blocked.
 See Audiokinetic's
 [Auto-Ducking reference](https://www.audiokinetic.com/en/public-library/2025.1.3_9037/?id=auto_ducking_tab&source=Help)
 and [voice pipeline](https://www.audiokinetic.com/en/library/edge/?id=understanding_voice_pipeline&source=Help).
@@ -313,6 +320,24 @@ game object and therefore cannot safely drive one physical fader shared by
 unrelated voices and music. Otherwise an action could attenuate only new Delay
 input while an existing feedback tail continued at the old gain.
 
+Auxiliary Bus `3235074386` supplies the first exact audible return. Eleven SFX
+references on routes 83 and 199 author one static neutral-filter send at `-14`
+or `-20 dB`; their dry and wet branches rejoin at Bus `3161330387`. The route
+entry fans out after spatialization. Each branch adds State LPF/HPF across its
+complete ancestry before one final clamp, then applies its complete Bus-target
+duck contribution before entering the physical buses and sharing the common
+suffix. Voice Volume and Voice-target ducking remain before the split. This raises the qualified SFX
+total to 7,607. Route 68 remains blocked: only its wet branch crosses Bus
+`2609808943`, whose active State authors `-100` cents of Pitch, and one source
+playback rate cannot pitch only the wet copy.
+
+The admitted EVE leaves are `308284283` on route 83 and `32756389`,
+`179741258`, `180881900`, `311848135`, `552000032`, `746615656`, `859755539`,
+`865594407`, `1046944186`, and `1049068182` on route 199. They are reached by
+`triglavian_controlled_gate_inactive_ambience_play` and the four
+`medium_structure_amarr_play`, `medium_structure_caldari_play`,
+`medium_structure_gallente_play`, and `medium_structure_minmatar_play` events.
+
 `1912148245` cascades to `518379211`; their audible paths contain ordered
 Compressor, Parametric EQ, Convolution Reverb, and Peak Limiter stages. The
 Convolution ShareSet `3019852427` references embedded source `154360724`, a
@@ -342,7 +367,7 @@ blocked tracks retain the legacy music path.
 
 The system owns a fail-closed shared mixer contract. It allocates stable
 SFX/music category entries and one shared input node per common ancestor only
-for strict dry audio-bus paths with default channel layout and no sends.
+for strict default-channel paths plus the exact SFX Aux shape above.
 Decoded positioning and HDR override metadata is neutral only when positioning
 and HDR are both inactive; unknown flags and active behavior remain barriers.
 Effect records are decoded from the authoritative graph bytes before any node
@@ -354,12 +379,14 @@ ordered effects and before its parent; that fader owns its static Bus Volume,
 global Bus Volume RTPC, and Immediate State gain. Qualification requires the
 route's authored Bus-volume aggregate to exactly equal the sum of the physical
 Bus values and requires live RTPC/State readers whenever those catalogs are
-used. Make-Up Gain, effective NodeBase Output Bus Volume, ducking, and Bus
-Volume actions stay on the existing per-voice or per-track stage. Voice Volume
-stays pre-Bus, and State pitch/filter properties stay route-local. Incoming
+used. Make-Up Gain, effective NodeBase Output Bus Volume, and Bus Volume
+actions stay on the existing per-voice or per-track stage. Voice Volume and
+State Pitch stay source-local. Immediate State LPF/HPF retain one additive
+whole-route filter pair; the exact SFX Aux path evaluates separate whole dry
+and wet ancestries, followed by their Bus-target duck gains. Incoming
 duck targets count as route controls even though the portable graph declares
 each duck on its source Bus. Unsupported RTPC bindings, dynamic effect controls,
-media, rendered slots, auxiliary sends, mixed/unknown effects, and any
+media, rendered slots, unsupported auxiliary sends, mixed/unknown effects, and any
 voice-/route-local control crossing an audible shared effect remain barriers.
 
 Qualified SFX branches now connect after their flat/spatial route stage to the
@@ -370,7 +397,7 @@ legacy SFX destination and allocate no partial mixer graph. Qualified music
 routes likewise retain route identity through segment and instance envelope
 lanes; their category volume is applied by the shared mixer rather than the
 legacy music output. A full build-and-realize audit of EVE 3444265 qualifies
-7,596 of 16,255 SFX references and 2,349 of 2,484 music references across its
+7,607 of 16,255 SFX references and 2,349 of 2,484 music references across its
 262 dry-route records. Before silent-aux omission, the dry-only population was
 4,419 SFX references and two music references. That SFX subtotal comprised
 1,050 effect-free RTPC/State
@@ -379,7 +406,8 @@ effect-free RTPC/State/ducking references, and 1,354 RTPC/State/ducking
 references with only feedback-free Meter stages, plus 963 Voice Volume RTPC
 references whose effects are only feedback-free Meters. The additional 3,177
 SFX and 2,347 music references cross only the three proven-silent static aux
-returns; no audible send is rendered.
+returns. The final 11 SFX references use the exact audible return through
+`3235074386`; no other audible send is rendered.
 
 Pinned wwiser proves the v150 Wwise Meter's 28-byte layout: five float32 attack,
 release, minimum, maximum, and hold values; four one-byte infinite-hold, mode,
