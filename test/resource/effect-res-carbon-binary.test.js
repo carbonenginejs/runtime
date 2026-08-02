@@ -37,10 +37,10 @@ function buildContainer()
 
 function prepared()
 {
-    return new Tr2EffectRes().PrepareCarbonBinary(buildContainer());
+    return new Tr2EffectRes().DoLoad(buildContainer());
 }
 
-test("PrepareCarbonBinary exposes the container's permutation axes", () =>
+test("DoLoad exposes the container's permutation axes", () =>
 {
     const res = prepared();
     const axes = res.GetPermutationDescription();
@@ -192,7 +192,7 @@ function stageInputWithSampler(overrides)
     writer.addBody(1, description);
 
     return new Tr2EffectRes()
-        .PrepareCarbonBinary(writer.toBytes())
+        .DoLoad(writer.toBytes())
         .GetShaderByIndex(0)
         .effect.techniques[0].passes[0].stageInputs[0];
 }
@@ -334,10 +334,10 @@ test("attaching a plain payload drops the retained reader", () =>
     assert.equal(res.GetShaderByIndex(0), null);
 });
 
-test("PrepareCarbonBinary rejects bytes that are not a v15 container", () =>
+test("DoLoad rejects bytes that are not a v15 container", () =>
 {
     assert.throws(
-        () => new Tr2EffectRes().PrepareCarbonBinary(Uint8Array.of(9, 0, 0, 0)),
+        () => new Tr2EffectRes().DoLoad(Uint8Array.of(9, 0, 0, 0)),
         /Unsupported Carbon effect version/u
     );
 });

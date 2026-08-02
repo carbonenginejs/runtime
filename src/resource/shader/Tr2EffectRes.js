@@ -29,6 +29,13 @@ export class Tr2EffectRes extends CjsResource
   /**
    * Read a Carbon effect container and take ownership of its reader.
    *
+   * Carbon's `DoLoad` (`Tr2EffectRes.cpp:137`) does exactly this work: it clears
+   * the previous state, then fills `m_version`, the string table, the permutation
+   * axes and the offset table from the file, and stops there. Bodies are read
+   * later, one at a time, by `GetShader`. The one difference is where the bytes
+   * come from — Carbon locks its own data stream, and this takes them as an
+   * argument.
+   *
    * The container is parsed once, here: version, arena, permutation axes and
    * offset table. Bodies are not. Each one is decoded on first request and
    * memoised, by seeking the retained reader rather than re-reading the header —
@@ -42,7 +49,7 @@ export class Tr2EffectRes extends CjsResource
    * @param {object|null} options Model values applied after the read.
    * @returns {Tr2EffectRes}
    */
-  PrepareCarbonBinary(data, options = null)
+  DoLoad(data, options = null)
   {
     const reader = new CjsCarbonEffectReader(data);
     this.#shaders.clear();
