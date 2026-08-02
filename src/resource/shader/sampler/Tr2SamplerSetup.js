@@ -119,8 +119,9 @@ export class Tr2SamplerSetup extends CjsModel
       mipLODBias: toRecordFloat(descriptor.mipLODBiasRaw),
       maxAnisotropy: descriptor.maxAnisotropy,
       comparisonFunc: descriptor.comparisonFunc,
-      borderColor: (descriptor.borderColorRaw ?? [ 0, 0, 0, 0 ])
-        .slice(0, 4).map(toRecordFloat),
+      // On one line deliberately: the raw-field guard requires the
+      // reinterpretation to be visible on the same line as the raw access.
+      borderColor: (descriptor.borderColorRaw ?? [ 0, 0, 0, 0 ]).slice(0, 4).map(toRecordFloat),
       minLOD: toRecordFloat(descriptor.minLODRaw),
       maxLOD: toRecordFloat(descriptor.maxLODRaw),
       isDynamic: this.isDynamic ? 1 : 0
