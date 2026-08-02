@@ -2497,6 +2497,7 @@ test("music track routes combine authored base gain with live ancestor Bus Volum
       busPathIds: [ "928", "500", "1" ],
       authoredBusVolumeDb: -6,
       authoredBusMakeUpGainDb: 2,
+      authoredOutputBusVolumeDb: 3,
     });
   });
   const states = new Map([
@@ -2523,12 +2524,12 @@ test("music track routes combine authored base gain with live ancestor Bus Volum
 
   assert.ok(routeGain, "the routed track owns a separate gain stage");
   assert.equal(context.sources[0].connectedTo, routeGain);
-  assert.ok(Math.abs(routeGain.gain.value - 10 ** (-10 / 20)) < 1e-6);
+  assert.ok(Math.abs(routeGain.gain.value - 10 ** (-7 / 20)) < 1e-6);
   assert.equal(routeGain.gain.curves.length, 1);
   assert.equal(routeGain.gain.curves[0][1], 0);
   assert.equal(routeGain.gain.curves[0][2], 4);
   assert.ok(
-    Math.abs(routeGain.gain.curves[0][0].at(-1) - 10 ** (-16 / 20))
+    Math.abs(routeGain.gain.curves[0][0].at(-1) - 10 ** (-13 / 20))
       < 1e-6,
     "the live transition ends after the authored base remains applied",
   );
@@ -2542,13 +2543,13 @@ test("music track routes combine authored base gain with live ancestor Bus Volum
   });
   engine.RefreshBusVolumeGains();
   assert.ok(
-    Math.abs(routeGain.gain.value - 10 ** (-4 / 20)) < 1e-6,
-    "Reset preserves authored Bus Volume and Make-Up Gain",
+    Math.abs(routeGain.gain.value - 10 ** (-1 / 20)) < 1e-6,
+    "Reset preserves authored Bus Volume, Make-Up Gain, and Output Bus Volume",
   );
 
   engine.SetMusicVolume(0.25);
   assert.equal(context.gains[0].gain.value, 0.25);
-  assert.ok(Math.abs(routeGain.gain.value - 10 ** (-4 / 20)) < 1e-6);
+  assert.ok(Math.abs(routeGain.gain.value - 10 ** (-1 / 20)) < 1e-6);
 
   engine.ExecuteAction("stop", 703, 0);
   engine.Process();

@@ -602,6 +602,9 @@ class CjsSfxEngine {
           }),
           ...(node.authoredBusMakeUpGainDb === undefined ? {} : {
             authoredBusMakeUpGainDb: Number(node.authoredBusMakeUpGainDb)
+          }),
+          ...(node.authoredOutputBusVolumeDb === undefined ? {} : {
+            authoredOutputBusVolumeDb: Number(node.authoredOutputBusVolumeDb)
           })
         }),
         loop: node.loop,

@@ -217,11 +217,12 @@ function ValidateMusicBusRouting(node, id) {
   const hasPath = node.busPathIds !== undefined;
   const hasAuthored = node.authoredBusVolumeDb !== undefined;
   const hasMakeUp = node.authoredBusMakeUpGainDb !== undefined;
-  if (node.type !== "music-track" && (hasOutput || hasPath || hasAuthored || hasMakeUp)) {
+  const hasOutputVolume = node.authoredOutputBusVolumeDb !== undefined;
+  if (node.type !== "music-track" && (hasOutput || hasPath || hasAuthored || hasMakeUp || hasOutputVolume)) {
     throw new TypeError(`Audio library music node ${id} bus routing is track-only`);
   }
   if (!hasOutput) {
-    if (hasPath || hasAuthored || hasMakeUp) {
+    if (hasPath || hasAuthored || hasMakeUp || hasOutputVolume) {
       throw new TypeError(`Audio library music node ${id} bus routing requires outputBusId`);
     }
     return;
@@ -239,6 +240,9 @@ function ValidateMusicBusRouting(node, id) {
   }
   if (hasMakeUp && !Number.isFinite(Number(node.authoredBusMakeUpGainDb))) {
     throw new TypeError(`Audio library music node ${id} authoredBusMakeUpGainDb must be finite`);
+  }
+  if (hasOutputVolume && !Number.isFinite(Number(node.authoredOutputBusVolumeDb))) {
+    throw new TypeError(`Audio library music node ${id} authoredOutputBusVolumeDb must be finite`);
   }
 }
 function RequireRecord(value, label) {

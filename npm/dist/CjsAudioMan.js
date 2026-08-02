@@ -872,6 +872,7 @@ class CjsAudioMan {
           busPathIds: selection.busPathIds,
           authoredBusVolumeDb: selection.authoredBusVolumeDb,
           authoredBusMakeUpGainDb: selection.authoredBusMakeUpGainDb,
+          authoredOutputBusVolumeDb: selection.authoredOutputBusVolumeDb,
           getPlaybackRate: (at = undefined) => engine.EvaluatePlaybackRate(selection, controls, undefined, at),
           getPlaybackRateAtVoicePitchCents: (value, at = undefined) => engine.EvaluatePlaybackRate(selection, controls, value, at),
           spatial: selection.spatial ?? eventSpatial,

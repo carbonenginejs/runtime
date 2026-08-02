@@ -149,6 +149,7 @@ test("validates and installs routed music-track bus metadata", () =>
                 busPathIds: [ "928", "500", "1" ],
                 authoredBusVolumeDb: -9,
                 authoredBusMakeUpGainDb: 3,
+                authoredOutputBusVolumeDb: 4,
             },
         },
         eventTargets: {},
@@ -166,6 +167,10 @@ test("validates and installs routed music-track bus metadata", () =>
         installed.music.nodes["101"].authoredBusMakeUpGainDb,
         3,
     );
+    assert.equal(
+        installed.music.nodes["101"].authoredOutputBusVolumeDb,
+        4,
+    );
     assert.equal(Object.isFrozen(installed.music.nodes["101"].busPathIds), true);
 
     for (const mutate of [
@@ -173,6 +178,7 @@ test("validates and installs routed music-track bus metadata", () =>
         node => { node.busPathIds = [ "928", "928" ]; },
         node => { node.authoredBusVolumeDb = Number.NaN; },
         node => { node.authoredBusMakeUpGainDb = Number.NaN; },
+        node => { node.authoredOutputBusVolumeDb = Number.NaN; },
         node => { delete node.outputBusId; },
     ])
     {

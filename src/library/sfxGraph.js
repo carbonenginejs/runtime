@@ -213,10 +213,18 @@ export function validateSfxGraph(
                         `Audio library SFX sound ${id} authoredBusMakeUpGainDb`,
                     );
                 }
+                if (node.authoredOutputBusVolumeDb !== undefined)
+                {
+                    NormalizeFiniteNumber(
+                        node.authoredOutputBusVolumeDb,
+                        `Audio library SFX sound ${id} authoredOutputBusVolumeDb`,
+                    );
+                }
             }
             else if (node.busPathIds !== undefined
                 || node.authoredBusVolumeDb !== undefined
-                || node.authoredBusMakeUpGainDb !== undefined)
+                || node.authoredBusMakeUpGainDb !== undefined
+                || node.authoredOutputBusVolumeDb !== undefined)
             {
                 throw new TypeError(
                     `Audio library SFX sound ${id} bus routing requires outputBusId`,
@@ -607,6 +615,12 @@ function NormalizeNode(node)
             {
                 result.authoredBusMakeUpGainDb = Number(
                     node.authoredBusMakeUpGainDb,
+                );
+            }
+            if (node.authoredOutputBusVolumeDb !== undefined)
+            {
+                result.authoredOutputBusVolumeDb = Number(
+                    node.authoredOutputBusVolumeDb,
                 );
             }
         }

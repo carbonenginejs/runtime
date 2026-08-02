@@ -76,7 +76,10 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
         if (node.authoredBusMakeUpGainDb !== undefined) {
           NormalizeFiniteNumber(node.authoredBusMakeUpGainDb, `Audio library SFX sound ${id} authoredBusMakeUpGainDb`);
         }
-      } else if (node.busPathIds !== undefined || node.authoredBusVolumeDb !== undefined || node.authoredBusMakeUpGainDb !== undefined) {
+        if (node.authoredOutputBusVolumeDb !== undefined) {
+          NormalizeFiniteNumber(node.authoredOutputBusVolumeDb, `Audio library SFX sound ${id} authoredOutputBusVolumeDb`);
+        }
+      } else if (node.busPathIds !== undefined || node.authoredBusVolumeDb !== undefined || node.authoredBusMakeUpGainDb !== undefined || node.authoredOutputBusVolumeDb !== undefined) {
         throw new TypeError(`Audio library SFX sound ${id} bus routing requires outputBusId`);
       }
       continue;
@@ -289,6 +292,9 @@ function NormalizeNode(node) {
       }
       if (node.authoredBusMakeUpGainDb !== undefined) {
         result.authoredBusMakeUpGainDb = Number(node.authoredBusMakeUpGainDb);
+      }
+      if (node.authoredOutputBusVolumeDb !== undefined) {
+        result.authoredOutputBusVolumeDb = Number(node.authoredOutputBusVolumeDb);
       }
     }
     return result;

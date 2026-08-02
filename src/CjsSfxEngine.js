@@ -1086,6 +1086,13 @@ export class CjsSfxEngine
                                     node.authoredBusMakeUpGainDb,
                                 ),
                             }),
+                        ...(node.authoredOutputBusVolumeDb === undefined
+                            ? {}
+                            : {
+                                authoredOutputBusVolumeDb: Number(
+                                    node.authoredOutputBusVolumeDb,
+                                ),
+                            }),
                     }),
                 loop: node.loop,
                 ...(node.playCount === undefined

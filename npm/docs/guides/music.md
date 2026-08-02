@@ -52,7 +52,9 @@ Builder-produced music tracks retain their effective v150 dry-output route as
 an ordered bus ancestry. Each scheduled track owns a route gain upstream of
 segment transitions and downstream of source playback. Authored base Bus
 Volume, any bus Make-Up Gain on that dry ancestry, and live Set/Reset Bus
-Volume contributions add there, while the
+Volume contributions add there. The NodeBase that supplies the effective output
+bus also contributes its separate Output Bus Volume; values on descendants
+without an output-bus override do not apply. The
 application music slider remains an independent downstream control.
 
 The library builder identifies authored music by typed Play/Stop targets and

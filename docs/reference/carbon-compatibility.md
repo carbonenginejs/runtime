@@ -93,9 +93,9 @@ The package does not emulate:
 - Wwise middleware rendering.
 
 Bus Volume is an audible routed adaptation with complete dry-output ancestry,
-authored base Bus Volume, bus Make-Up Gain, and independent SFX/music
-realization. Output Bus Volume, effects, auxiliary sends, ducking, meters, and
-virtual-voice behavior remain deferred as described in the
+authored base Bus Volume, bus Make-Up Gain, effective NodeBase Output Bus
+Volume, and independent SFX/music realization. Effects, auxiliary sends,
+ducking, meters, and virtual-voice behavior remain deferred as described in the
 [Wwise routing requirements](wwise-resource-routing-handoff.md).
 
 Unsupported Carbon methods remain visible with explicit implementation

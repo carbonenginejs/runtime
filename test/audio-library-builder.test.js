@@ -399,7 +399,10 @@ test("music tracks inherit typed bus routes without leaking NodeBase", () =>
     const trackID = 4101;
     const segment = new TestWriter()
         .u8(0)
-        .append(nodeBasePayload({ overrideBusId: 928 }))
+        .append(nodeBasePayload({
+            overrideBusId: 928,
+            properties: [ { id: 0x0d, value: 4 } ],
+        }))
         .u32(1).u32(trackID)
         .f64(1000).f64(0).f32(120).u8(4).u8(4)
         .u8(1)
@@ -412,7 +415,10 @@ test("music tracks inherit typed bus routes without leaking NodeBase", () =>
         .u32(0)
         .u32(0)
         .u32(0)
-        .append(nodeBasePayload({ directParentId: segmentID }))
+        .append(nodeBasePayload({
+            directParentId: segmentID,
+            properties: [ { id: 0x0d, value: -12 } ],
+        }))
         .u8(0)
         .s32(-100)
         .bytes();
@@ -446,6 +452,7 @@ test("music tracks inherit typed bus routes without leaking NodeBase", () =>
     assert.deepEqual(graph.nodes[trackID].busPathIds, [ "928", "500" ]);
     assert.equal(graph.nodes[trackID].authoredBusVolumeDb, -9);
     assert.equal(graph.nodes[trackID].authoredBusMakeUpGainDb, 5);
+    assert.equal(graph.nodes[trackID].authoredOutputBusVolumeDb, 4);
 });
 
 test("music event projection follows typed targets across every bank", () =>
@@ -3702,12 +3709,18 @@ test("SFX Bus Volume preserves every valid v150 form and output routing", () =>
                     sourceId: 9001,
                     inMemoryMediaSize: 64,
                     sourceBits: 0,
-                    payload: soundPayload({ directParentId: 700 }),
+                    payload: soundPayload({
+                        directParentId: 700,
+                        properties: [ { id: 0x0d, value: -12 } ],
+                    }),
                 },
                 {
                     type: 7,
                     id: 700,
-                    payload: actorMixerPayload({ overrideBusId: 928 }),
+                    payload: actorMixerPayload({
+                        overrideBusId: 928,
+                        properties: [ { id: 0x0d, value: 4 } ],
+                    }),
                 },
                 ...actions,
                 play,
@@ -3775,6 +3788,7 @@ test("SFX Bus Volume preserves every valid v150 form and output routing", () =>
     );
     assert.equal(result.nodes["200"].authoredBusVolumeDb, -9);
     assert.equal(result.nodes["200"].authoredBusMakeUpGainDb, 3);
+    assert.equal(result.nodes["200"].authoredOutputBusVolumeDb, 4);
     assert.deepEqual(
         result.programs.bus_forms.map(action => action.kind),
         [

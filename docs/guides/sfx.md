@@ -212,10 +212,12 @@ relative mode adds to its interpolated value; Reset returns it to `0 dB`.
 Builder-produced sounds retain their inherited NodeBase `overrideBusId`, its
 ordered dry Audio/Auxiliary Bus ancestry, and the summed authored base Bus
 Volume. The route also retains summed bus Make-Up Gain when it occurs in that
-dry ancestry; it is applied after voice volume evaluation. A dedicated bus
-gain stage applies both authored gains plus live state only to voices whose
-route contains the target, without changing voice gain or the application
-master, SFX, or music controls. Reset
+dry ancestry, plus the Output Bus Volume on the NodeBase that supplies the
+effective output-bus override. A descendant value without its own override is
+not active. These contributions are applied after voice volume evaluation. A
+dedicated bus gain stage applies the authored gains plus live state only to
+voices whose route contains the target, without changing voice gain or the
+application master, SFX, or music controls. Reset
 All and All-Except use qualified exact stored bus identities; EVE currently
 exercises Element.
 
@@ -262,9 +264,10 @@ Bus Volume uses the same per-generation isolation, while global actions also
 update a persistent template for emitters registered later and continue to
 affect live voices on retired generations. SFX and music routes include full
 dry-output bus ancestry, authored base Bus Volume, and any bus Make-Up Gain on
-that ancestry. This remains a focused audible adaptation rather than full
-Wwise bus processing; Output Bus Volume, effects, auxiliary sends, and ducking
-remain deferred as
+that ancestry. The effective NodeBase Output Bus Volume remains a separate
+authored contribution on the same collapsed route. This remains a focused
+audible adaptation rather than full Wwise bus processing; effects, auxiliary
+sends, and ducking remain deferred as
 described in the
 [routing reference](../reference/wwise-resource-routing-handoff.md).
 Delay is measured from the action post. Value randomizers are signed offsets

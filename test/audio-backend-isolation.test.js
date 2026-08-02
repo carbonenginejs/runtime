@@ -5813,6 +5813,7 @@ test("authored Bus Volume remains on the bus stage below the voice silence thres
       busPathIds: [ "928" ],
       authoredBusVolumeDb: -100,
       authoredBusMakeUpGainDb: 3,
+      authoredOutputBusVolumeDb: 2,
     } ],
   };
   const lower = {
@@ -5843,6 +5844,7 @@ test("authored Bus Volume remains on the bus stage below the voice silence thres
         busPathIds: selection.busPathIds,
         authoredBusVolumeDb: selection.authoredBusVolumeDb,
         authoredBusMakeUpGainDb: selection.authoredBusMakeUpGainDb,
+        authoredOutputBusVolumeDb: selection.authoredOutputBusVolumeDb,
         getGain: () => 1,
       })),
     }),
@@ -5855,11 +5857,11 @@ test("authored Bus Volume remains on the bus stage below the voice silence thres
   const busGain = context.sources[0].connectedTo.connectedTo.gain;
 
   assert.equal(voiceGain.value, 1);
-  assert.ok(Math.abs(busGain.value - 10 ** (-97 / 20)) < 1e-12);
+  assert.ok(Math.abs(busGain.value - 10 ** (-95 / 20)) < 1e-12);
 
   backend.PostEvent(2, 1, 0, emitter, "lower");
   assert.equal(voiceGain.value, 1);
-  assert.ok(Math.abs(busGain.value - 10 ** (-103 / 20)) < 1e-12);
+  assert.ok(Math.abs(busGain.value - 10 ** (-101 / 20)) < 1e-12);
 });
 
 test("music receives its emitter Bus Volume state map and refresh notifications", () =>

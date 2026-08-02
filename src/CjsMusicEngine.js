@@ -145,6 +145,7 @@ function ScheduleMusicBusGain(
     busPathIds,
     authoredBusVolumeDb,
     authoredBusMakeUpGainDb,
+    authoredOutputBusVolumeDb,
     context,
 )
 {
@@ -152,7 +153,8 @@ function ScheduleMusicBusGain(
     const now = Number(context?.currentTime) || 0;
     const path = Array.isArray(busPathIds) ? busPathIds.map(String) : [];
     const baseDb = (Number(authoredBusVolumeDb) || 0)
-        + (Number(authoredBusMakeUpGainDb) || 0);
+        + (Number(authoredBusMakeUpGainDb) || 0)
+        + (Number(authoredOutputBusVolumeDb) || 0);
     const evaluate = at =>
     {
         let db = baseDb;
@@ -1559,6 +1561,7 @@ export class CjsMusicEngine
                         route.busPathIds,
                         route.authoredBusVolumeDb,
                         route.authoredBusMakeUpGainDb,
+                        route.authoredOutputBusVolumeDb,
                         this.#context,
                     );
                 }
@@ -2347,8 +2350,12 @@ export class CjsMusicEngine
         const authoredBusMakeUpGainDb = Number(
             track.authoredBusMakeUpGainDb ?? 0,
         );
+        const authoredOutputBusVolumeDb = Number(
+            track.authoredOutputBusVolumeDb ?? 0,
+        );
         const busPathIds = track.busPathIds.map(String);
         const key = `${authoredBusVolumeDb}:${authoredBusMakeUpGainDb}:`
+            + `${authoredOutputBusVolumeDb}:`
             + busPathIds.join("/");
 
         if (scheduled.routeGains.has(key))
@@ -2362,6 +2369,7 @@ export class CjsMusicEngine
             busPathIds,
             authoredBusVolumeDb,
             authoredBusMakeUpGainDb,
+            authoredOutputBusVolumeDb,
         };
 
         gain.connect(scheduled.gain);
@@ -2371,6 +2379,7 @@ export class CjsMusicEngine
             busPathIds,
             authoredBusVolumeDb,
             authoredBusMakeUpGainDb,
+            authoredOutputBusVolumeDb,
             this.#context,
         );
         scheduled.routeGains.set(key, route);

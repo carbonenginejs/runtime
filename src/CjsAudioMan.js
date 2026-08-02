@@ -1312,6 +1312,8 @@ export class CjsAudioMan
                                 selection.authoredBusVolumeDb,
                             authoredBusMakeUpGainDb:
                                 selection.authoredBusMakeUpGainDb,
+                            authoredOutputBusVolumeDb:
+                                selection.authoredOutputBusVolumeDb,
                             getPlaybackRate: (at = undefined) =>
                                 engine.EvaluatePlaybackRate(
                                     selection,

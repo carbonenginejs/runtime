@@ -2084,6 +2084,7 @@ test("event programs preserve Bus Volume forms and bus routing", () =>
                     busPathIds: [ "928" ],
                     authoredBusVolumeDb: -100,
                     authoredBusMakeUpGainDb: 3,
+                    authoredOutputBusVolumeDb: 2,
                 },
             },
         },
@@ -2116,6 +2117,7 @@ test("event programs preserve Bus Volume forms and bus routing", () =>
     );
     assert.equal(program[1].selections[0].authoredBusVolumeDb, -100);
     assert.equal(program[1].selections[0].authoredBusMakeUpGainDb, 3);
+    assert.equal(program[1].selections[0].authoredOutputBusVolumeDb, 2);
     assert.equal(program[1].selections[0].gainDb, 0);
     assert.deepEqual(program[2].exceptions, [ {
         targetId: "929",

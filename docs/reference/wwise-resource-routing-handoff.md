@@ -12,8 +12,9 @@ ShareSet, and Fx Custom bodies and retains every music node's qualified
 NodeBase. `runtime-audio` consumes the routing records only in its optional
 builder. Portable SFX sounds and music tracks
 carry their effective output bus, ordered cycle-safe ancestry, summed authored
-base Bus Volume, and summed Make-Up Gain. Playback adds live Bus Volume action
-state without changing the application SFX or music sliders.
+base Bus Volume, summed Make-Up Gain, and the Output Bus Volume authored by the
+NodeBase that supplies the effective output-bus override. Playback adds live
+Bus Volume action state without changing the application SFX or music sliders.
 
 ## Music NodeBase contract
 
@@ -26,7 +27,9 @@ as `nodeBase` using these ranges:
 - Track: `[headEnd, typeAt)` or `[headEnd, simpleAt)`.
 
 The audio builder walks `directParentId` from a leaf and selects the first
-nonzero `overrideBusId`. Track `iLookAheadTime` is read as a signed `s32`.
+nonzero `overrideBusId`. Only that same NodeBase contributes Output Bus Volume;
+a value stored on a descendant that does not override the output bus is not an
+active routing contribution. Track `iLookAheadTime` is read as a signed `s32`.
 
 ## Audio, Auxiliary Bus, and effect contract
 
@@ -105,18 +108,30 @@ media rather than WEM audio.
 ## Remaining work
 
 The dry-output route applies Bus Volume and Make-Up Gain when those properties
-occur in the selected dry ancestry. The typed reader also preserves Output Bus
-Volume, but playback does not apply it yet. Effects, auxiliary sends and
+occur in the selected dry ancestry. It separately applies the effective
+NodeBase Output Bus Volume at the collapsed route gain. Keeping the three
+authored contributions distinct preserves their future placement when real bus
+and effect stages replace the collapsed gain. Effects, auxiliary sends and
 chaining, formal ducking, meters, virtual-voice behavior, and spatial
 diffraction remain separate runtime slices. Those features need their complete
 effective send/property projection, qualified plug-in adapters, and signal
 semantics; the typed catalogs do not imply that playback is implemented.
 
+EVE build 3444265 contains three sounds with an effective nonzero Output Bus
+Volume: `1030460440` (`+3 dB`), `315857869` (`+8 dB`), and `577594853`
+(`+6 dB`). They all route through bus `3429521127`; its dry ancestry contains
+only a Wwise Meter, which is signal-transparent. The current scalar realization
+therefore produces the authored amplitude for these sounds while meter behavior
+itself remains unsupported.
+
 In EVE build 3444265, the two buses that author Make-Up Gain are Auxiliary
 Buses. No SFX leaf or music track reaches either bus through its dry-output
-ancestry. A total of 516 SFX leaves reach them only through auxiliary sends,
-and both routes contain effect processing. Consequently, the implemented dry
-route retains the correct separate Make-Up Gain contract but does not yet make
-those EVE values audible. The next EVE-effective slice must decode and realize
-auxiliary routing together with its ordered effect chains; routing those sends
-as dry parallel copies would not be a parity implementation.
+ancestry. A structural walk finds 516 candidate SFX leaves, but eight descendants
+replace the inherited user-aux list; the qualified effective count is 508.
+Both routes contain effect processing. The Convolution Reverb also consumes an
+opaque `PLUG` payload rather than WEM audio, and the complete paths include a
+Wwise Peak Limiter. Consequently, the implemented dry route retains the correct
+separate Make-Up Gain contract but does not yet make those EVE values audible.
+The next aux/effect slice must realize the effective auxiliary routing together
+with its ordered qualified effect chains; routing those sends as dry parallel
+copies would not be a parity implementation.

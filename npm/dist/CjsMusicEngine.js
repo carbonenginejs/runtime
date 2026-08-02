@@ -91,11 +91,11 @@ function EvaluateBusVolumeState(state, at) {
   const gain = from + (to - from) * evaluateWwiseInterpolation(state.curve, progress);
   return 20 * Math.log10(Math.max(1e-10, gain));
 }
-function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, context) {
+function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, context) {
   if (!param) return;
   const now = Number(context?.currentTime) || 0;
   const path = Array.isArray(busPathIds) ? busPathIds.map(String) : [];
-  const baseDb = (Number(authoredBusVolumeDb) || 0) + (Number(authoredBusMakeUpGainDb) || 0);
+  const baseDb = (Number(authoredBusVolumeDb) || 0) + (Number(authoredBusMakeUpGainDb) || 0) + (Number(authoredOutputBusVolumeDb) || 0);
   const evaluate = at => {
     let db = baseDb;
     const seen = new Set();
@@ -1098,7 +1098,7 @@ class CjsMusicEngine {
     for (const instance of this.#instances.values()) {
       for (const scheduled of instance.active) {
         for (const route of scheduled.routeGains?.values?.() ?? []) {
-          ScheduleMusicBusGain(route.gain.gain, instance.busVolumeStates, route.busPathIds, route.authoredBusVolumeDb, route.authoredBusMakeUpGainDb, this.#context);
+          ScheduleMusicBusGain(route.gain.gain, instance.busVolumeStates, route.busPathIds, route.authoredBusVolumeDb, route.authoredBusMakeUpGainDb, route.authoredOutputBusVolumeDb, this.#context);
         }
       }
     }
@@ -1589,8 +1589,9 @@ class CjsMusicEngine {
     }
     const authoredBusVolumeDb = Number(track.authoredBusVolumeDb ?? 0);
     const authoredBusMakeUpGainDb = Number(track.authoredBusMakeUpGainDb ?? 0);
+    const authoredOutputBusVolumeDb = Number(track.authoredOutputBusVolumeDb ?? 0);
     const busPathIds = track.busPathIds.map(String);
-    const key = `${authoredBusVolumeDb}:${authoredBusMakeUpGainDb}:` + busPathIds.join("/");
+    const key = `${authoredBusVolumeDb}:${authoredBusMakeUpGainDb}:` + `${authoredOutputBusVolumeDb}:` + busPathIds.join("/");
     if (scheduled.routeGains.has(key)) {
       return scheduled.routeGains.get(key).gain;
     }
@@ -1599,10 +1600,11 @@ class CjsMusicEngine {
       gain,
       busPathIds,
       authoredBusVolumeDb,
-      authoredBusMakeUpGainDb
+      authoredBusMakeUpGainDb,
+      authoredOutputBusVolumeDb
     };
     gain.connect(scheduled.gain);
-    ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, this.#context);
+    ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, this.#context);
     scheduled.routeGains.set(key, route);
     return gain;
   }

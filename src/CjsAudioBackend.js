@@ -551,6 +551,8 @@ export class CjsAudioBackend
                                 selectionMetadata.authoredBusVolumeDb,
                             authoredBusMakeUpGainDb:
                                 selectionMetadata.authoredBusMakeUpGainDb,
+                            authoredOutputBusVolumeDb:
+                                selectionMetadata.authoredOutputBusVolumeDb,
                             switchPath: selectionMetadata.switchPath,
                             switchFadeInMs:
                                 selectionMetadata.switchFadeInMs,
@@ -3211,6 +3213,8 @@ export class CjsAudioBackend
                             selection.authoredBusVolumeDb,
                         authoredBusMakeUpGainDb:
                             selection.authoredBusMakeUpGainDb,
+                        authoredOutputBusVolumeDb:
+                            selection.authoredOutputBusVolumeDb,
                         switchPath: selection.switchPath,
                         switchFadeInMs: selection.switchFadeInMs,
                         switchGeneration,
@@ -4052,6 +4056,8 @@ export class CjsAudioBackend
             authoredBusVolumeDb: descriptor.authoredBusVolumeDb,
             authoredBusMakeUpGainDb:
                 descriptor.authoredBusMakeUpGainDb,
+            authoredOutputBusVolumeDb:
+                descriptor.authoredOutputBusVolumeDb,
             rtpcTransitionEnd: this.#RtpcTransitionEndForRecord(
                 { gameObjID, emitterNodes },
                 Number(this.#context?.currentTime) || 0,
@@ -4671,6 +4677,8 @@ export class CjsAudioBackend
                                 selection.authoredBusVolumeDb,
                             authoredBusMakeUpGainDb:
                                 selection.authoredBusMakeUpGainDb,
+                            authoredOutputBusVolumeDb:
+                                selection.authoredOutputBusVolumeDb,
                         }
                         : descriptor,
                     record.emitterNodes,
@@ -4892,6 +4900,8 @@ export class CjsAudioBackend
                                 selection.authoredBusVolumeDb,
                             authoredBusMakeUpGainDb:
                                 selection.authoredBusMakeUpGainDb,
+                            authoredOutputBusVolumeDb:
+                                selection.authoredOutputBusVolumeDb,
                         }
                         : descriptor,
                     record.emitterNodes,
@@ -5172,6 +5182,8 @@ export class CjsAudioBackend
                         selection.authoredBusVolumeDb,
                     authoredBusMakeUpGainDb:
                         selection.authoredBusMakeUpGainDb,
+                    authoredOutputBusVolumeDb:
+                        selection.authoredOutputBusVolumeDb,
                     crossfadeMode:
                         continuation.crossfadeMode,
                 },
@@ -6725,6 +6737,13 @@ function CreateProgramSelectionMetadata(selection, baseContextTime)
                     selection.authoredBusMakeUpGainDb,
                 ),
             }),
+        ...(selection.authoredOutputBusVolumeDb === undefined
+            ? {}
+            : {
+                authoredOutputBusVolumeDb: Number(
+                    selection.authoredOutputBusVolumeDb,
+                ),
+            }),
         switchPath: NormalizeSwitchPath(selection.switchPath),
         switchFadeInMs: Math.max(
             0,
@@ -7009,6 +7028,11 @@ function NormalizeVoiceDescriptors(result, eventLoop)
         const authoredBusMakeUpGainDb = Number(
             value.authoredBusMakeUpGainDb,
         );
+        const hasAuthoredOutputBusVolume =
+            value.authoredOutputBusVolumeDb !== undefined;
+        const authoredOutputBusVolumeDb = Number(
+            value.authoredOutputBusVolumeDb,
+        );
 
         if (hasAuthoredBusVolume
             && (!busPathIds.length
@@ -7024,6 +7048,14 @@ function NormalizeVoiceDescriptors(result, eventLoop)
         {
             throw new TypeError(
                 `Audio voice ${index} authoredBusMakeUpGainDb requires a bus route and must be finite`,
+            );
+        }
+        if (hasAuthoredOutputBusVolume
+            && (!busPathIds.length
+                || !Number.isFinite(authoredOutputBusVolumeDb)))
+        {
+            throw new TypeError(
+                `Audio voice ${index} authoredOutputBusVolumeDb requires a bus route and must be finite`,
             );
         }
 
@@ -7059,6 +7091,9 @@ function NormalizeVoiceDescriptors(result, eventLoop)
             ...(hasAuthoredBusVolume ? { authoredBusVolumeDb } : {}),
             ...(hasAuthoredBusMakeUpGain
                 ? { authoredBusMakeUpGainDb }
+                : {}),
+            ...(hasAuthoredOutputBusVolume
+                ? { authoredOutputBusVolumeDb }
                 : {}),
             ...(value.programSlotId === undefined
                 ? {}
@@ -7425,9 +7460,12 @@ function ScheduleBusVolumeGain(param, voice, context)
     const authoredBusVolumeDb = Number(voice.authoredBusVolumeDb) || 0;
     const authoredBusMakeUpGainDb =
         Number(voice.authoredBusMakeUpGainDb) || 0;
+    const authoredOutputBusVolumeDb =
+        Number(voice.authoredOutputBusVolumeDb) || 0;
     const evaluate = at => 10 ** ((
         authoredBusVolumeDb
         + authoredBusMakeUpGainDb
+        + authoredOutputBusVolumeDb
         + EvaluateVoiceVolumeTargets(states, busPathIds, at)
     ) / 20);
     const startValue = evaluate(now);

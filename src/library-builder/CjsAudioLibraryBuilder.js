@@ -49,6 +49,7 @@ const SFX_PITCH_PROPERTY = 1;
 const SFX_LOW_PASS_PROPERTY = 2;
 const SFX_HIGH_PASS_PROPERTY = 3;
 const SFX_INITIAL_DELAY_PROPERTY = 34;
+const WWISE_OUTPUT_BUS_VOLUME_PROPERTY = 0x0d;
 const SFX_ADDITIVE_ACCUMULATION = 2;
 const SFX_FILTER_ACCUMULATION = 6;
 const SFX_IMMEDIATE_STATE_SYNC = 0;
@@ -2794,7 +2795,11 @@ function CreateSfxBusRouting(parsed, rawID, buses)
 
         if (outputBusId)
         {
-            return CreateBusRouting(outputBusId, buses);
+            return CreateBusRouting(
+                outputBusId,
+                buses,
+                ReadOutputBusVolume(nodeBase, current),
+            );
         }
         current = Number(nodeBase.directParentId) >>> 0;
     }
@@ -2820,22 +2825,67 @@ function CreateMusicBusRouting(nodes, rawID, buses)
 
         if (outputBusId)
         {
-            return CreateBusRouting(outputBusId, buses);
+            return CreateBusRouting(
+                outputBusId,
+                buses,
+                ReadOutputBusVolume(nodeBase, current),
+            );
         }
         current = Number(nodeBase.directParentId) >>> 0;
     }
     return null;
 }
 
-function CreateBusRouting(rawOutputBusId, buses)
+function ReadOutputBusVolume(nodeBase, nodeID)
+{
+    const properties = (nodeBase.properties ?? []).filter(property =>
+        Number(property.id) === WWISE_OUTPUT_BUS_VOLUME_PROPERTY);
+
+    if (properties.length > 1)
+    {
+        throw new Error(
+            `Wwise NodeBase ${nodeID} has duplicate Output Bus Volume properties`,
+        );
+    }
+    if (!properties.length)
+    {
+        return undefined;
+    }
+
+    const value = Number(properties[0].floatValue);
+
+    if (!Number.isFinite(value))
+    {
+        throw new Error(
+            `Wwise NodeBase ${nodeID} has invalid Output Bus Volume`,
+        );
+    }
+    return value;
+}
+
+function CreateBusRouting(
+    rawOutputBusId,
+    buses,
+    authoredOutputBusVolumeDb = undefined,
+)
 {
     const outputBusId = String(Number(rawOutputBusId) >>> 0);
+
+    if (authoredOutputBusVolumeDb !== undefined
+        && !Number.isFinite(Number(authoredOutputBusVolumeDb)))
+    {
+        throw new Error("Wwise Output Bus Volume must be finite");
+    }
+    const outputBusVolumeDb = Number(authoredOutputBusVolumeDb) || 0;
 
     if (!(buses instanceof Map))
     {
         return {
             outputBusId,
             busPathIds: [ outputBusId ],
+            ...(outputBusVolumeDb === 0
+                ? {}
+                : { authoredOutputBusVolumeDb: outputBusVolumeDb }),
         };
     }
 
@@ -2893,6 +2943,9 @@ function CreateBusRouting(rawOutputBusId, buses)
         ...(authoredBusMakeUpGainDb === 0
             ? {}
             : { authoredBusMakeUpGainDb }),
+        ...(outputBusVolumeDb === 0
+            ? {}
+            : { authoredOutputBusVolumeDb: outputBusVolumeDb }),
     };
 }
 
@@ -5592,9 +5645,10 @@ function ValidateMusicBusRouting(node, id)
     const hasPath = node.busPathIds !== undefined;
     const hasAuthored = node.authoredBusVolumeDb !== undefined;
     const hasMakeUp = node.authoredBusMakeUpGainDb !== undefined;
+    const hasOutputVolume = node.authoredOutputBusVolumeDb !== undefined;
 
     if (node.type !== "music-track"
-        && (hasOutput || hasPath || hasAuthored || hasMakeUp))
+        && (hasOutput || hasPath || hasAuthored || hasMakeUp || hasOutputVolume))
     {
         throw new TypeError(
             `Audio library music node ${id} bus routing is track-only`,
@@ -5603,7 +5657,7 @@ function ValidateMusicBusRouting(node, id)
 
     if (!hasOutput)
     {
-        if (hasPath || hasAuthored || hasMakeUp)
+        if (hasPath || hasAuthored || hasMakeUp || hasOutputVolume)
         {
             throw new TypeError(
                 `Audio library music node ${id} bus routing requires outputBusId`,
@@ -5647,6 +5701,13 @@ function ValidateMusicBusRouting(node, id)
     {
         throw new TypeError(
             `Audio library music node ${id} authoredBusMakeUpGainDb must be finite`,
+        );
+    }
+    if (hasOutputVolume
+        && !Number.isFinite(Number(node.authoredOutputBusVolumeDb)))
+    {
+        throw new TypeError(
+            `Audio library music node ${id} authoredOutputBusVolumeDb must be finite`,
         );
     }
 }
