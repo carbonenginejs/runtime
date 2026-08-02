@@ -12,10 +12,10 @@
 //   - a blob is `{size, offset, bytes}` with `offset === 0xffffffff` meaning the
 //     reference was never set, which is not the same as an empty payload.
 //
-// These are read-direction only. The write direction lives in
-// `carbonDescriptionFromPortable.js` and must not import from here: the two
-// directions are checked against each other by the round-trip tests, and sharing
-// a helper would let one mistake satisfy both sides.
+// Both directions live here, as `recordX` and `toRecordX` pairs. They are held
+// apart by the round trip rather than by separation: records in, classes, records
+// out, compared byte for byte over the shipped corpus, so a mistake that
+// satisfied both sides would have to be an exact inverse of itself.
 
 const rawValueBuffer = new DataView(new ArrayBuffer(4));
 
