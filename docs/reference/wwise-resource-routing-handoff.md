@@ -23,6 +23,8 @@ Routed static Wwise Parametric EQ slots are projected into one portable catalog
 and realized on the corresponding collapsed dry routes. The strict shared
 mixer also decodes source-proven v150 Wwise Meter records and may omit only
 audio-transparent instances that cannot feed telemetry back into the graph.
+It may likewise omit a static user-aux send only when the complete return is
+proven to remain at or below Wwise's `-96 dB` silence threshold.
 
 ## Music NodeBase contract
 
@@ -126,7 +128,7 @@ before converting `-1` to `-96.3 dB` and other values with
 future placement when real bus and effect stages replace the collapsed gain.
 Static v150 Parametric EQ is the one implemented DSP adapter. Feedback-free
 v150 Meter records have a qualified audio-transparent omission contract, but
-Meter telemetry is not implemented. Auxiliary
+Meter telemetry is not implemented. Audible auxiliary
 sends and complete ordered effect chaining, dynamic effect controls, nonlinear
 effects, wet-path duck placement, effect-tail bus activity, Meter telemetry,
 virtual-voice behavior, and spatial diffraction remain separate runtime
@@ -256,7 +258,7 @@ with its ordered qualified effect chains; routing those sends as dry parallel
 copies would not be a parity implementation.
 
 The portable `busGraph` checkpoint now preserves the complete reachable
-topology without making it audible. EVE 3444265 projects 14 authored bus aux
+topology. EVE 3444265 projects 14 authored bus aux
 links from ten source buses to five targets. A wwiser-correct NodeBase walk
 finds 3,645 SFX Sounds with effective direct user sends (4,288 send references);
 root Actor-Mixer `513700882` is the important inheritance edge because its
@@ -268,7 +270,16 @@ send to `1475559705`.
 
 The five wet targets divide cleanly. `3845478417`, `3243121821`, and
 `1475559705` return through a `-96 dB` parent and have only bypassed EQ/Meter
-slots. `1912148245` cascades to `518379211`; their audible paths contain ordered
+slots. Their sends are static, use neutral send filters, and their installed
+RTPC/State upper bounds cannot amplify the return. The mixer therefore omits
+only those provably silent paths and allocates no wet nodes for them. This adds
+3,177 qualified SFX references and 2,347 music references: totals become 7,596
+of 16,255 SFX and 2,349 of 2,484 music, across 50 SFX and seven music route
+records. Absolute and positive-relative Bus Volume Set actions are projected as
+`busVolumeMayIncrease` barriers so a future authored action cannot invalidate
+the proof.
+
+`1912148245` cascades to `518379211`; their audible paths contain ordered
 Compressor, Parametric EQ, Convolution Reverb, and Peak Limiter stages. The
 Convolution ShareSet `3019852427` references embedded source `154360724`, a
 3,179,376-byte `PLUG` payload in `hangar.bnk`, not WEM. The catalog retains that
@@ -323,13 +334,16 @@ legacy SFX destination and allocate no partial mixer graph. Qualified music
 routes likewise retain route identity through segment and instance envelope
 lanes; their category volume is applied by the shared mixer rather than the
 legacy music output. A full build-and-realize audit of EVE 3444265 qualifies
-4,419 of 16,255 SFX references and two of 2,484 music references across its 262
-dry-route records. The SFX total comprises 1,050 effect-free RTPC/State
+7,596 of 16,255 SFX references and 2,349 of 2,484 music references across its
+262 dry-route records. Before silent-aux omission, the dry-only population was
+4,419 SFX references and two music references. That SFX subtotal comprised
+1,050 effect-free RTPC/State
 references, 976 RTPC/State references with only feedback-free Meter stages, 76
 effect-free RTPC/State/ducking references, and 1,354 RTPC/State/ducking
 references with only feedback-free Meter stages, plus 963 Voice Volume RTPC
-references whose effects are only feedback-free Meters. Both music references
-are effect-free RTPC/State/ducking paths.
+references whose effects are only feedback-free Meters. The additional 3,177
+SFX and 2,347 music references cross only the three proven-silent static aux
+returns; no audible send is rendered.
 
 Pinned wwiser proves the v150 Wwise Meter's 28-byte layout: five float32 attack,
 release, minimum, maximum, and hold values; four one-byte infinite-hold, mode,

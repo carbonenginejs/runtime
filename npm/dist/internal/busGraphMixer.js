@@ -1,9 +1,12 @@
 import { parseGraphSharedBusEffect, createBusEffectChain } from './busEffects.js';
 import { indexBusRtpcCatalog, busRtpcPathUses } from './busRtpc.js';
 import { indexBusStateCatalog } from './busState.js';
+import { wwiseDbRtpcValueToDb } from './wwiseRtpc.js';
 
 const KINDS = new Set(["sfx", "music"]);
 const DISTRIBUTED_CONTROL_REASONS = new Set(["ducking", "rtpc", "state"]);
+const MIN_AUDIBLE_GAIN_DB = -96;
+const SILENT_AUX_REASONS = new Set(["auxiliary-bus", "rtpc", "state"]);
 
 /**
  * Owns the shared Web Audio node topology for strictly qualified Bus routes.
@@ -21,6 +24,7 @@ class CjsSharedBusMixer {
   #busEffects = new Map();
   #busRtpcs = new Map();
   #busStates = new Map();
+  #silentAuxReturnGains = new Map();
   #busDuckingController = null;
   #categoryVolumes = new Map([["sfx", 1], ["music", 1]]);
   #disposed = false;
@@ -118,6 +122,7 @@ class CjsSharedBusMixer {
     this.#busEffects.clear();
     this.#busRtpcs.clear();
     this.#busStates.clear();
+    this.#silentAuxReturnGains.clear();
     this.#busDuckingController = null;
     this.#categoryVolumes.clear();
     this.#catalog = null;
@@ -132,7 +137,7 @@ class CjsSharedBusMixer {
       return this.#qualification.get(handle);
     }
     const route = handle.route;
-    let qualified = Array.isArray(route?.busPathIds) && route.busPathIds.length > 0 && route.outputBusId === route.busPathIds[0] && route.userAuxSends?.length === 0 && route.reflectionsAuxSend === undefined;
+    let qualified = Array.isArray(route?.busPathIds) && route.busPathIds.length > 0 && route.outputBusId === route.busPathIds[0] && this.#HasOnlySilentUserAuxSends(route);
     const pathIds = new Set();
     let hasDistributedControls = Boolean(this.#busDuckingController?.PathHasTarget?.(route.busPathIds));
     let hasAudibleEffect = false;
@@ -141,7 +146,7 @@ class CjsSharedBusMixer {
       const bus = this.#catalog.buses?.[busId];
       const parentBusId = index + 1 < route.busPathIds.length ? route.busPathIds[index + 1] : undefined;
       const effects = this.#GetQualifiedBusEffects(busId, bus);
-      if (pathIds.has(busId) || !bus || bus.parentBusId !== parentBusId || bus.type !== "audio-bus" || bus.channelConfig?.raw !== 0 || !IsNeutralPositioning(bus.positioning) || !IsDisabledHdr(bus.hdr) || bus.userAuxSends?.length !== 0 || bus.reflectionsAuxSend !== undefined || effects === null) {
+      if (pathIds.has(busId) || !bus || bus.parentBusId !== parentBusId || bus.type !== "audio-bus" || bus.channelConfig?.raw !== 0 || !IsNeutralPositioning(bus.positioning) || !IsDisabledHdr(bus.hdr) || !this.#HasOnlySilentUserAuxSends(bus) || effects === null) {
         qualified = false;
         break;
       }
@@ -173,6 +178,9 @@ class CjsSharedBusMixer {
       const reasonSet = new Set(reasons);
       const allowedReasons = new Set(DISTRIBUTED_CONTROL_REASONS);
       if (activeSlots.length) allowedReasons.add("effects");
+      if (bus?.userAuxSends?.length && this.#HasOnlySilentUserAuxSends(bus)) {
+        allowedReasons.add("aux-sends");
+      }
       if (reasonSet.size !== reasons.length || reasonSet.has("effects") !== Boolean(activeSlots.length) || reasons.some(reason => !allowedReasons.has(reason))) {
         throw new TypeError("Audio Bus has unsupported processing");
       }
@@ -200,6 +208,121 @@ class CjsSharedBusMixer {
     }
     this.#busEffects.set(id, effects);
     return effects;
+  }
+
+  /** Returns whether every authored user send is provably below Wwise silence. */
+  #HasOnlySilentUserAuxSends(owner) {
+    if (!owner || !Array.isArray(owner.userAuxSends) || owner.reflectionsAuxSend !== undefined) {
+      return false;
+    }
+    return owner.userAuxSends.every(send => send && send.dynamic === false && Number(send.lowPass) === 0 && Number(send.highPass) === 0 && Number.isFinite(Number(send.gainDb)) && this.#SilentAuxReturnGainDb(send.targetBusId) !== null && Number(send.gainDb) + this.#SilentAuxReturnGainDb(send.targetBusId) <= MIN_AUDIBLE_GAIN_DB);
+  }
+
+  /**
+   * Proves one static Auxiliary Bus return cannot rise above Wwise's
+   * -96 dB silence threshold. Audible, dynamic, or signal-escaping wet paths
+   * remain barriers; this is an omission proof rather than aux realization.
+   */
+  #SilentAuxReturnGainDb(targetBusId) {
+    const targetId = String(targetBusId ?? "");
+    if (this.#silentAuxReturnGains.has(targetId)) {
+      return this.#silentAuxReturnGains.get(targetId);
+    }
+    let gainDb = 0;
+    let current = targetId;
+    const path = [];
+    const active = new Set();
+    let valid = Boolean(current);
+    while (valid && current) {
+      if (active.has(current)) {
+        valid = false;
+        break;
+      }
+      active.add(current);
+      path.push(current);
+      const bus = this.#catalog.buses?.[current];
+      const reasons = bus?.requiresProcessing;
+      const first = path.length === 1;
+      if (!bus || first && bus.type !== "auxiliary-bus" || bus.type !== "audio-bus" && bus.type !== "auxiliary-bus" || bus.channelConfig?.raw !== 0 || !IsNeutralPositioning(bus.positioning) || !IsDisabledHdr(bus.hdr) || !Array.isArray(bus.userAuxSends) || bus.userAuxSends.length !== 0 || bus.reflectionsAuxSend !== undefined || !Array.isArray(bus.effects) || !Array.isArray(reasons) || reasons.some(reason => !SILENT_AUX_REASONS.has(reason)) || bus.busVolumeMayIncrease === true || !this.#HasOnlyInertBypassedEffects(bus) || !this.#AccumulateSilentControlUpperBound(current, reasons, value => {
+        gainDb += value;
+      })) {
+        valid = false;
+        break;
+      }
+      for (const field of ["busVolumeDb", "makeUpGainDb", "outputBusVolumeDb"]) {
+        if (bus[field] === undefined) continue;
+        const value = Number(bus[field]);
+        if (!Number.isFinite(value)) {
+          valid = false;
+          break;
+        }
+        gainDb += value;
+      }
+      current = bus.parentBusId === undefined ? "" : String(bus.parentBusId);
+    }
+    if (valid && this.#busDuckingController?.PathHasTarget?.(path)) {
+      valid = false;
+    }
+    const result = valid && gainDb <= MIN_AUDIBLE_GAIN_DB ? gainDb : null;
+    this.#silentAuxReturnGains.set(targetId, result);
+    return result;
+  }
+
+  /** Rejects bypassed slots that still carry media, controls, or rendering. */
+  #HasOnlyInertBypassedEffects(bus) {
+    for (const slot of bus.effects) {
+      if (!bus.bypassAllEffects && slot?.bypass !== true || slot?.rendered !== false) {
+        return false;
+      }
+      const effect = this.#catalog.effects?.[slot.effectId];
+      const controls = effect?.controls;
+      if (!effect || !Array.isArray(effect.media) || effect.media.length !== 0 || !controls || controls.rtpcCount !== 0 || controls.statePropertyCount !== 0 || controls.stateGroupCount !== 0 || controls.propertyValueCount !== 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** Adds maximum installed RTPC gain and rejects any control that can amplify. */
+  #AccumulateSilentControlUpperBound(busId, reasons, add) {
+    const id = String(busId);
+    const curves = this.#busRtpcs.get(id) ?? [];
+    const groups = this.#busStates.get(id) ?? [];
+    const hasRtpcs = curves.length > 0;
+    const hasStates = groups.length > 0;
+    if (reasons.includes("rtpc") !== hasRtpcs || reasons.includes("state") !== hasStates) {
+      return false;
+    }
+    for (const curve of curves) {
+      if (!Array.isArray(curve?.points) || curve.points.length === 0) {
+        return false;
+      }
+      let maximum = -Infinity;
+      for (const point of curve.points) {
+        const raw = Number(point?.value);
+        if (!Number.isFinite(raw) || raw < -1 || raw > 1) {
+          return false;
+        }
+        maximum = Math.max(maximum, wwiseDbRtpcValueToDb(raw));
+      }
+      if (!Number.isFinite(maximum) || maximum > 0) {
+        return false;
+      }
+      // Voice Volume belongs before the voice's dry/wet split. It may
+      // prove non-amplifying here, but it cannot be credited as
+      // attenuation on the already-mixed Auxiliary Bus return.
+      if (curve.property !== "voice-volume") add(maximum);
+    }
+    for (const group of groups) {
+      if (!(group?.states instanceof Map)) return false;
+      for (const state of new Set(group.states.values())) {
+        const value = state?.gainDb === undefined ? 0 : Number(state.gainDb);
+        if (!Number.isFinite(value) || value > 0) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /** Lazily realizes and returns one shared physical Bus input. */

@@ -53,6 +53,9 @@ The maintained graph includes:
 - source-proven v150 Wwise Meter decoding with fail-closed omission limited to
   audio-transparent records that cannot write a Game Parameter or apply
   downstream volume; Meter telemetry itself remains unsupported;
+- fail-closed omission of static user-aux returns only when their complete
+  inactive-effect path and maximum installed gain remain at or below Wwise's
+  `-96 dB` silence threshold;
 - exact STMG State Group defaults and directed overrides, with immediate
   logical routing plus interruptible live Volume, Pitch, low-pass, and
   high-pass property interpolation;
@@ -122,10 +125,14 @@ or ducking path may enter the shared unity topology only when every declared
 control has its matching installed runtime catalog and the route is effect-free
 or contains only decoded feedback-free Meters. The existing dry-route stages
 continue to realize those controls upstream, so this exception preserves
-placement rather than adding Wwise DSP. Meter telemetry remains unsupported.
+placement rather than adding Wwise DSP. A static user-aux send may also be
+omitted when the complete return is provably silent; absolute or
+positive-relative action risk, amplifying controls, active effects, filters,
+dynamic sends, reflections, and wet-path escapes all retain the barrier. Meter
+telemetry remains unsupported.
 Voice Volume RTPCs use a distinct pre-bus SFX gain on qualified transparent
 paths. Unsupported RTPC bindings, controls crossing an audible shared effect,
-Voice-target placement across future auxiliary sends, other effect processing
+Voice-target placement across audible auxiliary sends, other effect processing
 and tails, feedback-capable meters, and virtual-voice behavior remain deferred
 as described in the
 [Wwise routing requirements](wwise-resource-routing-handoff.md).

@@ -90,6 +90,10 @@ Sound and music-track IDs to those routes, preserves reachable bus ancestry,
 authored user/reflections sends, exact channel configuration, ordered effect
 slots and bypass state, opaque parameter blocks, and plug-in media identities.
 Dynamic send slots are marked explicitly as realization barriers.
+`busVolumeMayIncrease` marks a reachable Bus that any retained absolute or
+positive-relative Bus Volume Set action can amplify. The strict mixer combines
+that action risk with the installed RTPC/State catalogs when proving that a
+static Auxiliary Bus return can be omitted below Wwise's silence threshold.
 The catalog is descriptive until a route is accepted by a qualified shared-bus
 runtime; its presence does not make unsupported auxiliary or nonlinear effect
 paths audible.

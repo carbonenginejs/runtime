@@ -1,4 +1,4 @@
-import { wwiseDbRtpcValueToDb, evaluateWwiseRtpcCurve } from './internal/wwiseRtpc.js';
+import { evaluateWwiseRtpcCurve, wwiseDbRtpcValueToDb } from './internal/wwiseRtpc.js';
 
 // CarbonEngineJS original (no Carbon counterpart). Browser-safe interpreter
 // for the optional authored SFX program installed with one audio library.

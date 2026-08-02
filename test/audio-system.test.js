@@ -222,6 +222,87 @@ function AddGraphMeter(catalog, busId, effectId, bytes = MeterParameters())
   catalog.buses[busId].requiresProcessing = [ "effects" ];
 }
 
+function StaticAuxSend(targetBusId, overrides = {})
+{
+  return {
+    slotIndex: 0,
+    targetBusId,
+    gainDb: 0,
+    lowPass: 0,
+    highPass: 0,
+    dynamic: false,
+    ...overrides,
+  };
+}
+
+function AddSilentAuxReturn(catalog)
+{
+  catalog.effects["920"] = GraphParametricEq();
+  catalog.buses["700"] = MixerBus({
+    type: "auxiliary-bus",
+    parentBusId: "800",
+    positioning: {
+      flags: 1,
+      overrideParent: true,
+      listenerRelative: false,
+      pannerType: 0,
+      positionType: 0,
+    },
+    hdr: {
+      flags: 2,
+      enabled: false,
+      exponentialRelease: true,
+    },
+    effects: [ {
+      slotIndex: 0,
+      effectId: "920",
+      bypass: true,
+      shareSet: true,
+      rendered: false,
+    } ],
+    requiresProcessing: [ "auxiliary-bus" ],
+  });
+  catalog.buses["800"] = MixerBus({
+    parentBusId: "1",
+    busVolumeDb: -96,
+  });
+  catalog.buses["1"].requiresProcessing = [ "rtpc", "state" ];
+  return {
+    busRtpcs: {
+      schemaVersion: 2,
+      buses: {
+        "1": [ {
+          curveId: 78,
+          property: "bus-volume",
+          rtpc: "volume_master",
+          defaultValue: 1,
+          scaling: 2,
+          points: [
+            { x: 0, value: -1, interpolation: 4 },
+            { x: 1, value: 0, interpolation: 4 },
+          ],
+        } ],
+      },
+    },
+    busStates: {
+      schemaVersion: 2,
+      buses: {
+        "1": [ {
+          group: "damp_master",
+          groupId: "10",
+          syncType: 0,
+          effectiveSyncType: 0,
+          states: [ {
+            stateId: "20",
+            state: "on",
+            gainDb: -200,
+          } ],
+        } ],
+      },
+    },
+  };
+}
+
 function MixerContext()
 {
   const context = {
@@ -723,6 +804,114 @@ test("strict shared Bus mixer omits only feedback-free Wwise Meter telemetry", (
     );
     assert.equal(blockedContext.gains.length, 0);
     assert.equal(blockedContext.filters.length, 0);
+  }
+});
+
+test("strict shared Bus mixer omits only provably silenced static Aux returns", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+  const controls = AddSilentAuxReturn(catalog);
+  const send = StaticAuxSend("700");
+
+  catalog.routes[0].userAuxSends = [ send ];
+  catalog.buses["500"].userAuxSends = [ send ];
+  catalog.buses["500"].requiresProcessing = [ "aux-sends" ];
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    ...controls,
+  });
+  const input = mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx");
+
+  assert.ok(input);
+  assert.equal(context.gains.length, 3, "the omitted wet return allocates no nodes");
+  assert.equal(input.connectedTo.connectedTo.connectedTo, context.destination);
+
+  const mutations = [
+    value => { value.routes[0].userAuxSends[0].dynamic = true; },
+    value => { value.routes[0].userAuxSends[0].lowPass = 1; },
+    value => { value.buses["800"].busVolumeDb = -95.99; },
+    value => { value.buses["800"].makeUpGainDb = 1; },
+    value => { value.buses["800"].busVolumeMayIncrease = true; },
+    value =>
+    {
+      value.buses["700"].effects[0].bypass = false;
+      value.buses["700"].requiresProcessing.push("effects");
+    },
+    value =>
+    {
+      value.buses["700"].userAuxSends = [ StaticAuxSend("700") ];
+      value.buses["700"].requiresProcessing.push("aux-sends");
+    },
+  ];
+
+  for (const mutate of mutations)
+  {
+    const blockedCatalog = MixerCatalog();
+    const blockedControls = AddSilentAuxReturn(blockedCatalog);
+
+    blockedCatalog.routes[0].userAuxSends = [ StaticAuxSend("700") ];
+    mutate(blockedCatalog);
+    const blockedContext = MixerContext();
+    const blockedRuntime = new CjsBusGraphRuntime(blockedCatalog);
+    const blockedMixer = new CjsSharedBusMixer({
+      context: blockedContext,
+      runtime: blockedRuntime,
+      destination: blockedContext.destination,
+      ...blockedControls,
+    });
+
+    assert.equal(
+      blockedMixer.GetInput(blockedRuntime.ResolveSfxRoute("100"), "sfx"),
+      null,
+    );
+    assert.equal(blockedContext.gains.length, 0);
+  }
+
+  for (const [ catalogMutation, controlMutation ] of [
+    [
+      () => {},
+      value => { value.busRtpcs.buses["1"][0].points[1].value = 0.1; },
+    ],
+    [
+      () => {},
+      value => { value.busStates.buses["1"][0].states[0].gainDb = 1; },
+    ],
+    [
+      value => { value.buses["800"].busVolumeDb = -50; },
+      value =>
+      {
+        const curve = value.busRtpcs.buses["1"][0];
+
+        curve.property = "voice-volume";
+        curve.points[1].value = -1;
+      },
+    ],
+  ])
+  {
+    const blockedCatalog = MixerCatalog();
+    const blockedControls = AddSilentAuxReturn(blockedCatalog);
+
+    blockedCatalog.routes[0].userAuxSends = [ StaticAuxSend("700") ];
+    catalogMutation(blockedCatalog);
+    controlMutation(blockedControls);
+    const blockedContext = MixerContext();
+    const blockedRuntime = new CjsBusGraphRuntime(blockedCatalog);
+    const blockedMixer = new CjsSharedBusMixer({
+      context: blockedContext,
+      runtime: blockedRuntime,
+      destination: blockedContext.destination,
+      ...blockedControls,
+    });
+
+    assert.equal(
+      blockedMixer.GetInput(blockedRuntime.ResolveSfxRoute("100"), "sfx"),
+      null,
+    );
+    assert.equal(blockedContext.gains.length, 0);
   }
 });
 

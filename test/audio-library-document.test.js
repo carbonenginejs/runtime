@@ -678,6 +678,70 @@ test("validates and freezes the portable ordered Audio Bus graph", () =>
     );
 });
 
+test("Bus graphs declare every bus that an authored action can amplify", () =>
+{
+    const source = CreateDocument();
+
+    source.sfx = {
+        schemaVersion: 2,
+        events: { engine_loop: [ { nodeId: "100" } ] },
+        programs: {
+            engine_loop: [
+                {
+                    kind: "set-bus-volume",
+                    targetId: "500",
+                    targetFlags: 1,
+                    scope: "global",
+                    mode: "element",
+                    curve: 4,
+                    exceptions: [],
+                    valueMode: "absolute",
+                    busVolumeDb: -50,
+                    busVolumeRangeDb: { min: 0, max: 0 },
+                },
+                { kind: "play", child: { nodeId: "100" } },
+            ],
+        },
+        nodes: {
+            "100": {
+                type: "sound",
+                mediaId: "777",
+                loop: false,
+                outputBusId: "500",
+                busPathIds: [ "500" ],
+            },
+        },
+    };
+    source.busGraph = {
+        schemaVersion: 1,
+        effects: {},
+        buses: { "500": BusGraphBus() },
+        routes: [ {
+            outputBusId: "500",
+            busPathIds: [ "500" ],
+            userAuxSends: [],
+        } ],
+        sfxRoutes: { "100": 0 },
+        musicRoutes: {},
+    };
+
+    assert.throws(
+        () => validateAudioLibraryDocument(source),
+        /omits volume-increase risk for bus 500/u,
+    );
+
+    source.busGraph.buses["500"].busVolumeMayIncrease = true;
+    const installed = installAudioLibraryDocument(source);
+
+    assert.equal(installed.busGraph.buses["500"].busVolumeMayIncrease, true);
+
+    source.busGraph.buses["500"].busVolumeMayIncrease = "yes";
+    assert.throws(
+        () => validateAudioLibraryDocument(source),
+        /busVolumeMayIncrease must be boolean/u,
+    );
+});
+
 test("validates and installs routed music-track bus metadata", () =>
 {
     const source = CreateDocument();

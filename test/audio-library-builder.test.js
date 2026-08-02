@@ -89,6 +89,104 @@ test("optional library builder accepts supplied data and optional enrichment", (
     );
 });
 
+test("library builder marks buses that authored actions can amplify", () =>
+{
+    const bus = overrides => ({
+        type: "audio-bus",
+        channelConfig: {
+            raw: 0,
+            channelCount: 0,
+            configType: 0,
+            channelMask: 0,
+        },
+        properties: [],
+        positioning: {
+            flags: 0,
+            overrideParent: false,
+            listenerRelative: false,
+            pannerType: 0,
+            positionType: 0,
+        },
+        hdr: {
+            flags: 0,
+            enabled: false,
+            exponentialRelease: false,
+        },
+        auxFlags: 0,
+        bypassAllEffects: false,
+        userAuxSends: [],
+        effects: [],
+        requiresProcessing: [],
+        ...overrides,
+    });
+    const options = {
+        indexEntries: CjsAudioLibraryBuilder.parseIndexEntries(INDEX_TEXT),
+        soundbanksInfo: SOUNDBANKS_INFO,
+        sfx: {
+            schemaVersion: 2,
+            events: { engine_loop: [ { nodeId: "1" } ] },
+            programs: {
+                engine_loop: [
+                    {
+                        kind: "set-bus-volume",
+                        targetId: "1",
+                        targetFlags: 1,
+                        scope: "global",
+                        mode: "element",
+                        curve: 4,
+                        exceptions: [],
+                        valueMode: "relative",
+                        busVolumeDb: 1,
+                        busVolumeRangeDb: { min: -1, max: 2 },
+                    },
+                    { kind: "play", child: { nodeId: "1" } },
+                ],
+            },
+            nodes: {
+                "1": {
+                    type: "sound",
+                    mediaId: "777",
+                    loop: true,
+                    outputBusId: "500",
+                    busPathIds: [ "500" ],
+                },
+            },
+        },
+        busGraph: {
+            schemaVersion: 1,
+            effects: {},
+            buses: { "500": bus({}) },
+            routes: [ {
+                outputBusId: "500",
+                busPathIds: [ "500" ],
+                userAuxSends: [],
+            } ],
+            sfxRoutes: { "1": 0 },
+            musicRoutes: {},
+        },
+    };
+    const library = CjsAudioLibraryBuilder.build(options);
+
+    assert.equal(library.busGraph.buses["500"].busVolumeMayIncrease, undefined);
+    assert.equal(library.busGraph.buses["1"], undefined);
+
+    options.sfx.programs.engine_loop[0].targetId = "500";
+    const amplified = CjsAudioLibraryBuilder.build(options);
+
+    assert.equal(amplified.busGraph.buses["500"].busVolumeMayIncrease, true);
+
+    options.sfx.programs.engine_loop[0].valueMode = "absolute";
+    options.sfx.programs.engine_loop[0].busVolumeDb = -50;
+    options.sfx.programs.engine_loop[0].busVolumeRangeDb = { min: 0, max: 0 };
+    const absolute = CjsAudioLibraryBuilder.build(options);
+
+    assert.equal(
+        absolute.busGraph.buses["500"].busVolumeMayIncrease,
+        true,
+        "an absolute negative value can still replace a quieter authored Bus",
+    );
+});
+
 test("library construction rejects invalid schema-v2 spatial metadata", () =>
 {
     const metadata = {

@@ -80,7 +80,10 @@ function normalizeBusGraphCatalog(value, embeddedMedia = {}) {
       bypassAllEffects: BooleanValue(raw.bypassAllEffects, `Audio Bus graph bus ${busId} bypassAllEffects`),
       userAuxSends: NormalizeAuxSends(raw.userAuxSends ?? [], `Audio Bus graph bus ${busId}`),
       effects: NormalizeEffectSlots(raw.effects ?? [], busId, effects),
-      requiresProcessing: NormalizeProcessingReasons(raw.requiresProcessing ?? [], busId)
+      requiresProcessing: NormalizeProcessingReasons(raw.requiresProcessing ?? [], busId),
+      ...(raw.busVolumeMayIncrease === undefined ? {} : {
+        busVolumeMayIncrease: BooleanValue(raw.busVolumeMayIncrease, `Audio Bus graph bus ${busId} busVolumeMayIncrease`)
+      })
     };
     if (bus.channelConfig.raw !== (bus.channelConfig.channelCount | bus.channelConfig.configType << 8 | bus.channelConfig.channelMask << 12) >>> 0) {
       throw new TypeError(`Audio Bus graph bus ${busId} has inconsistent channel configuration`);

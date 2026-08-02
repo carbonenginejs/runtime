@@ -83,8 +83,10 @@ the existing route stages upstream. Qualification requires matching installed
 catalog entries for every declared control. A property-0 Voice Volume RTPC
 keeps a music route out of the shared mixer until music owns the corresponding
 per-voice stage; it is never reinterpreted as Bus Volume. EVE build 3444265
-qualifies exactly two effect-free music tracks under this rule; routes that
-cross an audible effect with those controls remain blocked.
+qualifies 2,349 music-track references: two effect-free tracks plus 2,347 whose
+only additional barrier was the static send to a return proven silenced at
+`-96 dB`. The mixer allocates no wet nodes for that omission. Routes that cross
+an audible effect with those controls remain blocked.
 
 A source-proven v150 Wwise Meter may coexist in that sequence only when it
 writes no Game Parameter, does not apply downstream volume, and has no dynamic

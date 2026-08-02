@@ -226,6 +226,14 @@ export function normalizeBusGraphCatalog(value, embeddedMedia = {})
                 raw.requiresProcessing ?? [],
                 busId,
             ),
+            ...(raw.busVolumeMayIncrease === undefined
+                ? {}
+                : {
+                    busVolumeMayIncrease: BooleanValue(
+                        raw.busVolumeMayIncrease,
+                        `Audio Bus graph bus ${busId} busVolumeMayIncrease`,
+                    ),
+                }),
         };
 
         if (bus.channelConfig.raw !== (

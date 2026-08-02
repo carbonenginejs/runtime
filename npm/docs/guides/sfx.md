@@ -521,8 +521,12 @@ unreachable records, and out-of-range route references.
 Each user/reflections send also carries a `dynamic` barrier flag when its
 active slot has an authored randomizer, RTPC, or State property. The topology
 keeps the static base value and refuses to imply that the dynamic contribution
-is already realizable; a later adapter must project that control table before
-the route can sound.
+is already realizable. A static user send may be omitted only when the complete
+Auxiliary Bus return is proven to stay at or below Wwise's `-96 dB` silence
+threshold. The proof includes authored gains, maximum installed RTPC and State
+contributions, absolute or positive-relative Bus Volume action risk, inactive
+effects, and the absence of another wet-path escape. This admits an inaudible route without
+claiming that its auxiliary signal was rendered.
 
 Aux inheritance follows wwiser's root rule: a root NodeBase's authored list is
 effective even when its override bit is clear, because it has no parent. A
@@ -533,10 +537,10 @@ complete static Parametric EQ sequence without distributed controls, or an
 effect-free/feedback-free-Meter path whose supported Voice/Bus Volume RTPC,
 State, and ducking records all have matching installed runtime catalogs. Those
 controls remain on the existing dry-route stages upstream of the shared unity
-path. Auxiliary
-sends, unsupported RTPC bindings, audible effects combined with those controls,
-and every other incomplete ordered effect path remain blocked until their
-complete reachable path has adapters.
+path. The only auxiliary exception is the proven static-silence omission above.
+Audible or dynamic sends, reflections sends, unsupported RTPC bindings, audible
+effects combined with those controls, and every other incomplete ordered effect
+path remain blocked until their complete reachable path has adapters.
 
 Installation cross-checks every playable routed SFX Sound and music track
 against its `busGraph` route, including dry ancestry and all three authored
@@ -553,7 +557,7 @@ disposal remain generation-scoped. Branch outputs still feed the existing SFX
 destination unless the strict shared mixer qualifies their complete dry path.
 Qualified branches feed the stable SFX category input after spatialization;
 blocked branches retain the existing destination. This does not yet make shared
-nonlinear effects or auxiliary sends audible.
+nonlinear effects or audible auxiliary sends.
 
 A custom `applyRTPC` adapter continues to receive the legacy emitter target and
 also receives one update per graph-backed route branch. Branch updates include
@@ -562,7 +566,7 @@ the route's spatial mode, and spatial branches include their exact `panner`.
 
 The audio-system generation also owns a strict shared-Bus mixer. Its
 qualification accepts only dry audio-bus ancestry with default channel layout,
-no active Bus positioning or HDR, and no sends. Authored positioning/HDR
+no active Bus positioning or HDR, and no audible sends. Authored positioning/HDR
 override flags are allowed only when their decoded values prove both features
 inactive. Processing may be either a complete source-proven static Parametric
 EQ/Meter sequence without distributed controls, or complete Bus Volume RTPC,
@@ -571,7 +575,8 @@ matching RTPC/State catalog entry and live ducking source must be installed for
 each declared control. An incoming duck target also counts as a route control,
 even though Wwise declares that rule on its separate source Bus. Qualified
 routes receive stable SFX and music category entries and share one node per
-common Bus ancestor;
+common Bus ancestor. Provably silenced static user sends allocate no wet nodes;
+all other auxiliary routes remain blocked.
 category entries remain separate so application volume controls cannot merge
 unrelated routes prematurely. A blocked route returns no mixer input and
 allocates no partial graph. Qualified SFX route branches now consume these

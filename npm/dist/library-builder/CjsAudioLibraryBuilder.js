@@ -620,7 +620,7 @@ class CjsAudioLibraryBuilder {
       library.busEffects = NormalizeBusEffectCatalog(busEffects);
     }
     if (busGraph !== null && Object.keys(busGraph.buses ?? {}).length) {
-      library.busGraph = normalizeBusGraphCatalog(busGraph, library.embeddedMedia ?? {});
+      library.busGraph = normalizeBusGraphCatalog(MarkBusGraphVolumeIncreaseRisk(busGraph, library.sfx), library.embeddedMedia ?? {});
     }
     if (source) {
       library.sourceTarget = source.target;
@@ -634,6 +634,29 @@ class CjsAudioLibraryBuilder {
     validateAudioLibraryDocument(library);
     return library;
   }
+}
+function MarkBusGraphVolumeIncreaseRisk(busGraph, sfx) {
+  const buses = Object.fromEntries(Object.entries(busGraph.buses ?? {}).map(([busId, bus]) => [busId, {
+    ...bus
+  }]));
+  const busIds = Object.keys(buses);
+  for (const actions of Object.values(sfx?.programs ?? {})) {
+    for (const action of actions) {
+      if (action?.kind !== "set-bus-volume") continue;
+      const maximum = Number(action.busVolumeDb) + Number(action.busVolumeRangeDb?.max ?? 0);
+      const mayIncrease = action.valueMode === "absolute" || !Number.isFinite(maximum) || maximum > 0;
+      if (!mayIncrease) continue;
+      const excluded = new Set((action.exceptions ?? []).map(value => String(value.targetId)));
+      const targets = action.mode === "element" ? [String(action.targetId)] : busIds.filter(busId => action.mode !== "all-except" || !excluded.has(busId));
+      for (const busId of targets) {
+        if (buses[busId]) buses[busId].busVolumeMayIncrease = true;
+      }
+    }
+  }
+  return {
+    ...busGraph,
+    buses
+  };
 }
 function LowerSfxGraph({
   parsed,
