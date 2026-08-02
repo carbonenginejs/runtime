@@ -7,6 +7,7 @@
 //   Stage            canvas view, pointer interaction, hover card, drawing
 //   MusicUi          dynamic-music chips, play/stop, one-line status hud
 //   JukeboxUi        optional titled-track library and direct playlist controls
+//   BusGraphLabUi     audible shared EQ + feedback-free Meter qualification
 //   SfxUi            authored containers, setters, and RTPC graph exercises
 //   Showcase         the prebuilt "Load demo" scene and its schedulers
 //   EffectListPanel  the searchable effect list on the left
@@ -16,6 +17,8 @@ import {
     CjsAudioMan,
     CjsMusicEngine,
 } from "/runtime-audio/npm/dist/index.js";
+import { CjsSharedBusMixer } from "/runtime-audio/npm/dist/internal/busGraphMixer.js";
+import { CjsBusGraphRuntime } from "/runtime-audio/npm/dist/internal/busGraphRuntime.js";
 
 // One acoustic scale everywhere: world units -> panner units.
 const ACOUSTIC_SCALE = 1 / 150;
@@ -1017,6 +1020,12 @@ class MediaSource
     CreateContext()
     {
         return this.#context = new AudioContext();
+    }
+
+    /** The user-gesture-created context used by the demo-only Bus graph lab. */
+    get context()
+    {
+        return this.#context;
     }
 
     ResumeContext()
@@ -2239,6 +2248,412 @@ class JukeboxUi
 }
 
 
+function CreateBusGraphLabCatalog({ gameParameterId = 0 } = {})
+{
+    const meterBytes = new Uint8Array(28);
+    const meter = new DataView(meterBytes.buffer);
+
+    meter.setFloat32(0, 0, true);
+    meter.setFloat32(4, 0.3, true);
+    meter.setFloat32(8, -48, true);
+    meter.setFloat32(12, 0, true);
+    meter.setFloat32(16, 0, true);
+    meter.setUint8(20, 0);
+    meter.setUint8(21, 0);
+    meter.setUint8(22, 0);
+    meter.setUint8(23, 0);
+    meter.setUint32(24, gameParameterId, true);
+    const eqBytes = new Uint8Array(56);
+    const eq = new DataView(eqBytes.buffer);
+    const bands = [
+        [ 0, 0, 620, 0.707, 1 ],
+        [ 0, 0, 8000, 0.707, 0 ],
+        [ 0, 0, 12000, 1, 0 ],
+    ];
+    let at = 0;
+
+    for (const [ type, gain, frequency, q, enabled ] of bands)
+    {
+        eq.setUint32(at, type, true);
+        eq.setFloat32(at + 4, gain, true);
+        eq.setFloat32(at + 8, frequency, true);
+        eq.setFloat32(at + 12, q, true);
+        eq.setUint8(at + 16, enabled);
+        at += 17;
+    }
+    eq.setFloat32(at, 0, true);
+    eq.setUint8(at + 4, 1);
+    const controls = {
+        rtpcCount: 0,
+        statePropertyCount: 0,
+        stateGroupCount: 0,
+        propertyValueCount: 0,
+    };
+    const bus = overrides => ({
+        type: "audio-bus",
+        channelConfig: { raw: 0 },
+        positioning: { flags: 0 },
+        hdr: { flags: 0 },
+        bypassAllEffects: false,
+        userAuxSends: [],
+        effects: [],
+        requiresProcessing: [],
+        ...overrides,
+    });
+    const effect = (type, pluginId, bytes) => ({
+        type,
+        pluginId,
+        parameterByteLength: bytes.byteLength,
+        parametersBase64: BytesToBase64(bytes),
+        media: [],
+        controls: { ...controls },
+    });
+
+    return {
+        schemaVersion: 1,
+        effects: {
+            "900": effect("effect-share-set", 0x00810003, meterBytes),
+            "901": effect("effect-share-set", 0x00690003, eqBytes),
+        },
+        buses: {
+            "1": bus(),
+            "500": bus({
+                parentBusId: "1",
+                effects: [
+                    {
+                        slotIndex: 0,
+                        effectId: "900",
+                        bypass: false,
+                        shareSet: true,
+                        rendered: false,
+                    },
+                    {
+                        slotIndex: 1,
+                        effectId: "901",
+                        bypass: false,
+                        shareSet: true,
+                        rendered: false,
+                    },
+                ],
+                requiresProcessing: [ "effects" ],
+            }),
+        },
+        routes: [ {
+            outputBusId: "500",
+            busPathIds: [ "500", "1" ],
+            userAuxSends: [],
+        } ],
+        sfxRoutes: { "100": 0 },
+        musicRoutes: { "200": 0 },
+    };
+}
+
+function BytesToBase64(bytes)
+{
+    let binary = "";
+
+    for (const value of bytes) binary += String.fromCharCode(value);
+    return btoa(binary);
+}
+
+
+/**
+ * Audible synthetic coverage for the strict shared Wwise Bus mixer. The lab
+ * uses exact portable v150 effect records so it exercises the same raw-graph
+ * decoder as an installed library without acquiring or bundling game media.
+ */
+class BusGraphLabUi
+{
+
+    /** @type {DemoApp} */
+    #app = null;
+
+    #input = null;
+
+    #mixer = null;
+
+    #runtime = null;
+
+    #sources = new Set();
+
+    #status = null;
+
+    constructor(app)
+    {
+        this.#app = app;
+        this.#status = document.getElementById("busGraphStatus");
+        document.getElementById("busGraphDry").onclick = () =>
+            this.#Play(false, 1);
+        document.getElementById("busGraphRouted").onclick = () =>
+            this.#Play(true, 1);
+        document.getElementById("busGraphShared").onclick = () =>
+            this.#Play(true, 2);
+    }
+
+    /** Builds one feedback-free Meter -> low-pass EQ Bus and audits EVE routes. */
+    Initialize()
+    {
+        this.Dispose(false);
+        document.getElementById("busGraphPlayback").textContent = "";
+        const context = this.#app.media.context;
+        const destination = this.#app.audio?.backend?.masterGain;
+
+        if (!context || !destination)
+        {
+            this.#SetStatus("unavailable", "Web Audio backend unavailable");
+            return;
+        }
+        try
+        {
+            const catalog = CreateBusGraphLabCatalog();
+
+            this.#runtime = new CjsBusGraphRuntime(catalog);
+            this.#mixer = new CjsSharedBusMixer({
+                context,
+                runtime: this.#runtime,
+                destination,
+            });
+            const sfxHandle = this.#runtime.ResolveSfxRoute("100");
+            const musicHandle = this.#runtime.ResolveMusicRoute("200");
+            const sfxInput = this.#mixer.GetInput(sfxHandle, "sfx");
+            const musicInput = this.#mixer.GetInput(musicHandle, "music");
+            const stableInput = sfxInput
+                && this.#mixer.GetInput(sfxHandle, "sfx") === sfxInput;
+            const categoriesSeparated = sfxInput && musicInput
+                && sfxInput !== musicInput;
+            const feedbackRejected = this.#FeedbackMeterIsRejected(context);
+
+            this.#input = sfxInput;
+            const installed = this.#AuditInstalledGraph(context);
+            const syntheticPass = Boolean(
+                stableInput
+                && categoriesSeparated
+                && feedbackRejected,
+            );
+            const installedText = installed
+                ? `EVE ${installed.qualifiedSfx}/${installed.sfxRefs} SFX, `
+                    + `${installed.qualifiedMusic}/${installed.musicRefs} music; `
+                    + `${installed.eqEffects} EQ / ${installed.meterEffects} Meter definitions`
+                : "installed library has no Bus graph";
+
+            this.#SetStatus(
+                syntheticPass ? "pass" : "failed",
+                `synthetic ${syntheticPass ? "PASS" : "FAIL"} · ${installedText}`,
+            );
+            this.#SetButtonsEnabled(syntheticPass);
+        }
+        catch (error)
+        {
+            this.Dispose(false);
+            this.#SetStatus(
+                "failed",
+                `Bus graph lab failed: ${error?.message ?? error}`,
+            );
+            console.error("Wwise Bus graph lab initialization failed", error);
+        }
+    }
+
+    /** Stops demo-only sources and disconnects every synthetic shared node. */
+    Dispose(showDisabled = true)
+    {
+        const now = Number(this.#app.media.context?.currentTime) || 0;
+
+        for (const source of this.#sources)
+        {
+            try
+            {
+                source.stop(now);
+            }
+            catch
+            {
+                // A source whose onended already ran is already detached.
+            }
+            source.disconnect?.();
+        }
+        this.#sources.clear();
+        this.#mixer?.Dispose();
+        this.#runtime?.Dispose();
+        this.#mixer = null;
+        this.#runtime = null;
+        this.#input = null;
+        this.#SetButtonsEnabled(false);
+        if (showDisabled)
+        {
+            this.#SetStatus("idle", "enable audio to initialize the Bus graph lab");
+            document.getElementById("busGraphPlayback").textContent = "";
+        }
+    }
+
+    #Play(routed, count)
+    {
+        if (!this.#app.IsAudioEnabled() || (routed && !this.#input))
+        {
+            this.#SetStatus("unavailable", "enable audio before playing a Bus graph probe");
+            return;
+        }
+        const context = this.#app.media.context;
+        const destination = routed
+            ? this.#input
+            : this.#app.audio.backend.masterGain;
+        const start = context.currentTime + 0.02;
+        const duration = 1.1;
+
+        this.#app.media.ResumeContext();
+        for (let index = 0; index < count; index++)
+        {
+            const source = context.createBufferSource();
+            const envelope = context.createGain();
+            const buffer = context.createBuffer(
+                1,
+                Math.ceil(context.sampleRate * duration),
+                context.sampleRate,
+            );
+            const samples = buffer.getChannelData(0);
+            const lowHz = 180 + index * 70;
+            const highHz = 5200 - index * 700;
+            const frequencyRatio = highHz / lowHz;
+            let phase = 0;
+
+            for (let at = 0; at < samples.length; at++)
+            {
+                const seconds = at / context.sampleRate;
+                const progress = seconds / duration;
+                const frequency = lowHz * frequencyRatio ** progress;
+                const pulse = 0.78
+                    + 0.22 * Math.sin(2 * Math.PI * 4 * seconds);
+
+                phase += 2 * Math.PI * frequency / context.sampleRate;
+                samples[at] = pulse * (
+                    0.78 * Math.sin(phase)
+                    + 0.18 * Math.sin(phase * 0.5)
+                );
+            }
+            const sourceStart = start + index * 0.025;
+            const sourceEnd = sourceStart + duration;
+
+            envelope.gain.setValueAtTime(0, sourceStart);
+            envelope.gain.linearRampToValueAtTime(0.12, sourceStart + 0.025);
+            envelope.gain.setValueAtTime(0.12, sourceEnd - 0.045);
+            envelope.gain.linearRampToValueAtTime(0, sourceEnd);
+            source.buffer = buffer;
+            source.connect(envelope);
+            envelope.connect(destination);
+            source.onended = () =>
+            {
+                source.disconnect();
+                envelope.disconnect();
+                this.#sources.delete(source);
+            };
+            this.#sources.add(source);
+            source.start(sourceStart);
+            source.stop(sourceEnd);
+        }
+        const label = routed
+            ? count > 1
+                ? "playing two rising sweeps through one shared Meter → EQ Bus"
+                : "playing a rising sweep through the 620 Hz low-pass Bus route"
+            : "playing the full-band dry rising sweep";
+
+        document.getElementById("busGraphPlayback").textContent = label;
+        this.#status.title = label;
+    }
+
+    #FeedbackMeterIsRejected(context)
+    {
+        const sink = context.createGain();
+        const runtime = new CjsBusGraphRuntime(
+            CreateBusGraphLabCatalog({ gameParameterId: 42 }),
+        );
+        const mixer = new CjsSharedBusMixer({
+            context,
+            runtime,
+            destination: sink,
+        });
+        try
+        {
+            return mixer.GetInput(
+                runtime.ResolveSfxRoute("100"),
+                "sfx",
+            ) === null;
+        }
+        finally
+        {
+            mixer.Dispose();
+            runtime.Dispose();
+            sink.disconnect();
+        }
+    }
+
+    #AuditInstalledGraph(context)
+    {
+        const catalog = this.#app.library.raw.busGraph;
+
+        if (!catalog) return null;
+        const sink = context.createGain();
+        const runtime = new CjsBusGraphRuntime(catalog);
+        const mixer = new CjsSharedBusMixer({
+            context,
+            runtime,
+            destination: sink,
+        });
+        try
+        {
+            let qualifiedSfx = 0;
+            let qualifiedMusic = 0;
+
+            for (const nodeId of Object.keys(catalog.sfxRoutes))
+            {
+                if (mixer.GetInput(runtime.ResolveSfxRoute(nodeId), "sfx"))
+                {
+                    qualifiedSfx++;
+                }
+            }
+            for (const trackId of Object.keys(catalog.musicRoutes))
+            {
+                if (mixer.GetInput(runtime.ResolveMusicRoute(trackId), "music"))
+                {
+                    qualifiedMusic++;
+                }
+            }
+            const effects = Object.values(catalog.effects ?? {});
+
+            return {
+                routes: catalog.routes.length,
+                sfxRefs: Object.keys(catalog.sfxRoutes).length,
+                musicRefs: Object.keys(catalog.musicRoutes).length,
+                qualifiedSfx,
+                qualifiedMusic,
+                eqEffects: effects.filter(effect =>
+                    effect.pluginId === 0x00690003).length,
+                meterEffects: effects.filter(effect =>
+                    effect.pluginId === 0x00810003).length,
+            };
+        }
+        finally
+        {
+            mixer.Dispose();
+            runtime.Dispose();
+            sink.disconnect();
+        }
+    }
+
+    #SetButtonsEnabled(enabled)
+    {
+        for (const id of [ "busGraphDry", "busGraphRouted", "busGraphShared" ])
+        {
+            document.getElementById(id).disabled = !enabled;
+        }
+    }
+
+    #SetStatus(state, text)
+    {
+        this.#status.dataset.state = state;
+        this.#status.textContent = text;
+    }
+
+}
+
+
 /**
  * Authored SFX laboratory: posts real HIRC graphs repeatedly on the same
  * object and exposes authored setters, branch controls, live RTPC playback,
@@ -2933,6 +3348,9 @@ class EffectListPanel
     {
         const library = this.#app.library;
         const matches = library.effectStems.filter(stem => stem.toLowerCase().includes(filter.toLowerCase())).slice(0, 60);
+        const count = document.getElementById("eventCount");
+
+        count.textContent = `${matches.length} / ${library.effectStems.length}`;
         this.#list.innerHTML = "";
         for (const stem of matches)
         {
@@ -2946,10 +3364,21 @@ class EffectListPanel
             }
             const kind = stages.size > 1 ? `${stages.size} stages` : (anyLoop ? "loop" : "one-shot");
             item.innerHTML = `<span>${stem}</span><span class="kind">${kind}</span><span class="radius">r${radius}</span>`;
-            item.onclick = () =>
+            item.tabIndex = 0;
+            item.role = "button";
+            const play = () =>
             {
                 if (stages.size > 1) this.#app.scene.SpawnSequence(stem);
                 else this.#app.scene.Spawn([ ...stages.values() ][0], stem);
+            };
+            item.onclick = play;
+            item.onkeydown = event =>
+            {
+                if (event.key === "Enter" || event.key === " ")
+                {
+                    event.preventDefault();
+                    play();
+                }
             };
             this.#list.appendChild(item);
         }
@@ -2995,6 +3424,9 @@ class DemoApp
     /** @type {SfxUi} */
     sfxUi = null;
 
+    /** @type {BusGraphLabUi} */
+    busGraphLab = null;
+
     /** @type {Showcase} */
     showcase = null;
 
@@ -3016,6 +3448,7 @@ class DemoApp
         this.stage = new Stage(this);
         this.musicUi = new MusicUi(this);
         this.jukeboxUi = new JukeboxUi(this);
+        this.busGraphLab = new BusGraphLabUi(this);
         this.sfxUi = new SfxUi(this);
         this.showcase = new Showcase(this);
         this.effectList = new EffectListPanel(this);
@@ -3071,6 +3504,7 @@ class DemoApp
             return;
         }
         this.media.ResumeContext();
+        this.busGraphLab.Initialize();
         if (this.library.music) this.musicUi.Initialize();
         this.jukeboxUi.Initialize();
         if (this.library.sfx) this.sfxUi.Initialize();
@@ -3091,6 +3525,7 @@ class DemoApp
             library: this.library.raw,
             jukebox: this.audio.jukebox,
             musicLibrary: this.jukeboxLibrary,
+            busGraphLab: this.busGraphLab,
         };
         if (!this.#frameStarted)
         {
@@ -3127,6 +3562,7 @@ class DemoApp
         this.StopAll();
         this.sfxUi.Reset();
         if (this.musicUi.musicPlayer) this.musicUi.SetEnabled(false);
+        this.busGraphLab.Dispose();
         this.audio.Disable();
     }
 
