@@ -92,11 +92,10 @@ The package does not emulate:
 - operating-system device selection; or
 - Wwise middleware rendering.
 
-Bus Volume is currently an audible per-voice adaptation for exact retained
-bus identities. Full bus ancestry, authored base Bus Volume, music output
-routing, Output Bus Volume, Make-Up Gain, effects, auxiliary sends, ducking,
-meters, and virtual-voice behavior require the deferred typed BNK reader seam
-and subsequent audio integration described in the
+Bus Volume is an audible routed adaptation with complete dry-output ancestry,
+authored base Bus Volume, bus Make-Up Gain, and independent SFX/music
+realization. Output Bus Volume, effects, auxiliary sends, ducking, meters, and
+virtual-voice behavior remain deferred as described in the
 [Wwise routing requirements](wwise-resource-routing-handoff.md).
 
 Unsupported Carbon methods remain visible with explicit implementation
@@ -116,4 +115,4 @@ CarbonEngineJS is an independent project and is not affiliated with CCP Games.
 - [Architecture and boundaries](../architecture.md)
 - [Current API reference](api.md)
 - [Class-purpose catalog](classes/README.md)
-- [Deferred Wwise routing reader requirements](wwise-resource-routing-handoff.md)
+- [Wwise routing support and remaining work](wwise-resource-routing-handoff.md)

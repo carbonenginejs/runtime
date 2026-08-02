@@ -80,6 +80,69 @@ function ScheduleFade(param, from, to, when, duration, curve, progress = 0) {
   param.setValueCurveAtTime(values, when, duration);
   return startValue;
 }
+function EvaluateBusVolumeState(state, at) {
+  if (!state) return 0;
+  const duration = Number(state.duration) || 0;
+  const progress = duration <= 0 ? 1 : Math.max(0, Math.min(1, ((Number(at) || 0) - state.startTime) / duration));
+  if (progress <= 0) return state.fromDb;
+  if (progress >= 1) return state.toDb;
+  const from = 10 ** (state.fromDb / 20);
+  const to = 10 ** (state.toDb / 20);
+  const gain = from + (to - from) * evaluateWwiseInterpolation(state.curve, progress);
+  return 20 * Math.log10(Math.max(1e-10, gain));
+}
+function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, context) {
+  if (!param) return;
+  const now = Number(context?.currentTime) || 0;
+  const path = Array.isArray(busPathIds) ? busPathIds.map(String) : [];
+  const baseDb = (Number(authoredBusVolumeDb) || 0) + (Number(authoredBusMakeUpGainDb) || 0);
+  const evaluate = at => {
+    let db = baseDb;
+    const seen = new Set();
+    if (states instanceof Map) {
+      for (const busId of path) {
+        if (seen.has(busId)) continue;
+        seen.add(busId);
+        db += EvaluateBusVolumeState(states.get(busId), at);
+      }
+    }
+    return 10 ** (db / 20);
+  };
+  const boundaries = [];
+  if (states instanceof Map) {
+    for (const busId of new Set(path)) {
+      const state = states.get(busId);
+      const start = Number(state?.startTime);
+      const end = start + Math.max(0, Number(state?.duration) || 0);
+      if (Number.isFinite(start) && start > now) boundaries.push(start);
+      if (Number.isFinite(end) && end > now) boundaries.push(end);
+    }
+  }
+  boundaries.sort((left, right) => left - right);
+  const uniqueBoundaries = [...new Set(boundaries)];
+  const startValue = evaluate(now);
+  if (typeof param.cancelAndHoldAtTime === "function") {
+    param.cancelAndHoldAtTime(now);
+  } else {
+    param.cancelScheduledValues?.(0);
+  }
+  param.setValueAtTime?.(startValue, now);
+  if ("value" in param) param.value = startValue;
+  let segmentStart = now;
+  for (const segmentEnd of uniqueBoundaries) {
+    if (typeof param.setValueCurveAtTime === "function") {
+      const values = new Float32Array(FADE_CURVE_SAMPLES);
+      for (let index = 0; index < values.length; index++) {
+        const ratio = index / (values.length - 1);
+        values[index] = evaluate(segmentStart + (segmentEnd - segmentStart) * ratio);
+      }
+      param.setValueCurveAtTime(values, segmentStart, segmentEnd - segmentStart);
+    } else {
+      param.linearRampToValueAtTime?.(evaluate(segmentEnd), segmentEnd);
+    }
+    segmentStart = segmentEnd;
+  }
+}
 function segmentCues(segment) {
   const positions = segment.markers.map(marker => marker.position).sort((a, b) => a - b);
   const entry = positions.length ? positions[0] : 0;
@@ -333,11 +396,13 @@ class MusicInstance {
   constructor({
     playingID,
     rootId,
-    group
+    group,
+    busVolumeStates
   }) {
     this.playingID = playingID;
     this.rootId = rootId;
     this.group = group;
+    this.busVolumeStates = busVolumeStates ?? null;
     this.key = Symbol(`music:${playingID}:${rootId}`);
     this.gain = null;
     this.resolvedTargetId = null;
@@ -483,7 +548,9 @@ class CjsMusicEngine {
    * Setter events apply their switch/state values and finish immediately;
    * play events start graph playback. Returns true when the id stays live.
    */
-  PostEvent(eventName, playingID, onFinished) {
+  PostEvent(eventName, playingID, onFinished, {
+    busVolumeStates = null
+  } = {}) {
     const setters = this.#graph.switchSetters?.[eventName];
     if (setters) {
       for (const setter of setters) {
@@ -522,7 +589,8 @@ class CjsMusicEngine {
       const instance = new MusicInstance({
         playingID,
         rootId,
-        group
+        group,
+        busVolumeStates
       });
       instance.gain = this.#context.createGain();
       instance.gain.connect(this.#musicGain ?? this.#destination);
@@ -1023,6 +1091,19 @@ class CjsMusicEngine {
     return true;
   }
 
+  /**
+   * Reapplies live authored Bus Volume state to every scheduled route.
+   */
+  RefreshBusVolumeGains() {
+    for (const instance of this.#instances.values()) {
+      for (const scheduled of instance.active) {
+        for (const route of scheduled.routeGains?.values?.() ?? []) {
+          ScheduleMusicBusGain(route.gain.gain, instance.busVolumeStates, route.busPathIds, route.authoredBusVolumeDb, route.authoredBusMakeUpGainDb, this.#context);
+        }
+      }
+    }
+  }
+
   /** Atomically applies draft sequence advances after successful prepare. */
   #CommitSelectionTransaction(instance, transaction) {
     for (const [trackId, advances] of transaction?.sequenceAdvances ?? []) {
@@ -1360,6 +1441,7 @@ class CjsMusicEngine {
     gain.connect(instance.gain);
     const scheduled = {
       sources: [],
+      routeGains: new Map(),
       segmentId,
       scheduleId: this.#nextScheduleId++,
       targetId,
@@ -1474,7 +1556,8 @@ class CjsMusicEngine {
       scheduled.audibleEndCtx = Math.max(scheduled.audibleEndCtx, resolvedWhen + resolvedDurationMs / 1000);
       const source = context.createBufferSource();
       source.buffer = buffer;
-      source.connect(scheduled.gain);
+      const routeGain = this.#GetRouteGain(instance, scheduled, track);
+      source.connect(routeGain ?? scheduled.gain);
       source.onended = () => {
         entry.ended = true;
         source.onended = null;
@@ -1497,6 +1580,31 @@ class CjsMusicEngine {
       entry.cancelled = true;
       entry.failed = true;
     });
+  }
+
+  /** Gets or creates the gain node for one scheduled music bus route. */
+  #GetRouteGain(instance, scheduled, track) {
+    if (!Array.isArray(track.busPathIds) || !track.busPathIds.length) {
+      return null;
+    }
+    const authoredBusVolumeDb = Number(track.authoredBusVolumeDb ?? 0);
+    const authoredBusMakeUpGainDb = Number(track.authoredBusMakeUpGainDb ?? 0);
+    const busPathIds = track.busPathIds.map(String);
+    const key = `${authoredBusVolumeDb}:${authoredBusMakeUpGainDb}:` + busPathIds.join("/");
+    if (scheduled.routeGains.has(key)) {
+      return scheduled.routeGains.get(key).gain;
+    }
+    const gain = this.#context.createGain();
+    const route = {
+      gain,
+      busPathIds,
+      authoredBusVolumeDb,
+      authoredBusMakeUpGainDb
+    };
+    gain.connect(scheduled.gain);
+    ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, this.#context);
+    scheduled.routeGains.set(key, route);
+    return gain;
   }
 
   /** Loads and retains one decoded music source, evicting failed results. */
@@ -1621,6 +1729,10 @@ class CjsMusicEngine {
         entry.source.disconnect?.();
       }
     }
+    for (const route of scheduled.routeGains?.values?.() ?? []) {
+      route.gain?.disconnect?.();
+    }
+    scheduled.routeGains?.clear?.();
     scheduled.gain?.disconnect?.();
   }
 

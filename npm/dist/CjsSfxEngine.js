@@ -596,7 +596,13 @@ class CjsSfxEngine {
         mediaID: String(node.mediaId),
         matchIds,
         ...(node.outputBusId === undefined ? {} : {
-          busPathIds: Object.freeze(node.busPathIds.map(String))
+          busPathIds: Object.freeze(node.busPathIds.map(String)),
+          ...(node.authoredBusVolumeDb === undefined ? {} : {
+            authoredBusVolumeDb: Number(node.authoredBusVolumeDb)
+          }),
+          ...(node.authoredBusMakeUpGainDb === undefined ? {} : {
+            authoredBusMakeUpGainDb: Number(node.authoredBusMakeUpGainDb)
+          })
         }),
         loop: node.loop,
         ...(node.playCount === undefined ? {} : {

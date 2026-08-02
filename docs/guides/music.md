@@ -48,6 +48,13 @@ those children are themselves switch containers. Wwise `Nothing`
 associations use explicit ID zero and do not match `Any`; their rules also
 apply when playback first enters a target from silence.
 
+Builder-produced music tracks retain their effective v150 dry-output route as
+an ordered bus ancestry. Each scheduled track owns a route gain upstream of
+segment transitions and downstream of source playback. Authored base Bus
+Volume, any bus Make-Up Gain on that dry ancestry, and live Set/Reset Bus
+Volume contributions add there, while the
+application music slider remains an independent downstream control.
+
 The library builder identifies authored music by typed Play/Stop targets and
 music argument groups across every selected bank. Event names do not need a
 `music_` prefix and event actions do not need to live in `common.bnk`. When one

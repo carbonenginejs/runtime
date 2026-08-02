@@ -209,12 +209,15 @@ emitter gain, or spatial attenuation.
 Set Bus Volume stores a dB property state for the target Wwise bus on the
 affected emitter generation. Absolute mode replaces the current value;
 relative mode adds to its interpolated value; Reset returns it to `0 dB`.
-Builder-produced sounds retain their nearest inherited NodeBase
-`overrideBusId`, and resolved selections expose that identity separately from
-the object hierarchy. A dedicated gain stage applies the state only to live
-and future voices whose retained bus route contains the target, without
-changing application master, SFX, or music controls. Reset All and All-Except
-use qualified exact stored bus identities; EVE currently exercises Element.
+Builder-produced sounds retain their inherited NodeBase `overrideBusId`, its
+ordered dry Audio/Auxiliary Bus ancestry, and the summed authored base Bus
+Volume. The route also retains summed bus Make-Up Gain when it occurs in that
+dry ancestry; it is applied after voice volume evaluation. A dedicated bus
+gain stage applies both authored gains plus live state only to voices whose
+route contains the target, without changing voice gain or the application
+master, SFX, or music controls. Reset
+All and All-Except use qualified exact stored bus identities; EVE currently
+exercises Element.
 
 Set Voice Pitch stores one cents contribution for the target HIRC element.
 `valueMode: "absolute"` replaces that contribution; `"relative"` adds to its
@@ -257,11 +260,13 @@ generation keeps its independent filter map and is not changed by later
 global filter actions.
 Bus Volume uses the same per-generation isolation, while global actions also
 update a persistent template for emitters registered later and continue to
-affect live voices on retired generations. This is an audible exact-route
-adaptation, not full Wwise bus processing. Bus ancestry, authored base bus
-gain, and music output routing remain follow-up work after the typed
-resource-reader seam described in the
-[routing requirements](../reference/wwise-resource-routing-handoff.md).
+affect live voices on retired generations. SFX and music routes include full
+dry-output bus ancestry, authored base Bus Volume, and any bus Make-Up Gain on
+that ancestry. This remains a focused audible adaptation rather than full
+Wwise bus processing; Output Bus Volume, effects, auxiliary sends, and ducking
+remain deferred as
+described in the
+[routing reference](../reference/wwise-resource-routing-handoff.md).
 Delay is measured from the action post. Value randomizers are signed offsets
 sampled once, and transitions use the decoded Wwise curve from the authored
 action time. Web Audio automation keeps those transitions continuous between

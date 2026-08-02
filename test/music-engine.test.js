@@ -2487,3 +2487,70 @@ test("graph replacement cancels stale pending media and reuses source ids with t
   engine.Dispose();
   assert.deepEqual(finished, [ 701, 702 ]);
 });
+
+test("music track routes combine authored base gain with live ancestor Bus Volume", async () =>
+{
+  const { context, engine } = Harness(graph =>
+  {
+    Object.assign(graph.nodes[TRACK_A], {
+      outputBusId: "928",
+      busPathIds: [ "928", "500", "1" ],
+      authoredBusVolumeDb: -6,
+      authoredBusMakeUpGainDb: 2,
+    });
+  });
+  const states = new Map([
+    [ "500", {
+      fromDb: -6,
+      toDb: -12,
+      startTime: 0,
+      duration: 4,
+      curve: 4,
+    } ],
+  ]);
+
+  engine.PostEvent(
+    "music_test_play",
+    703,
+    () => {},
+    { busVolumeStates: states },
+  );
+  await tick();
+
+  const segmentGain = context.gains[2];
+  const routeGain = context.gains.find(gain =>
+    gain !== segmentGain && gain.connectedTo === segmentGain);
+
+  assert.ok(routeGain, "the routed track owns a separate gain stage");
+  assert.equal(context.sources[0].connectedTo, routeGain);
+  assert.ok(Math.abs(routeGain.gain.value - 10 ** (-10 / 20)) < 1e-6);
+  assert.equal(routeGain.gain.curves.length, 1);
+  assert.equal(routeGain.gain.curves[0][1], 0);
+  assert.equal(routeGain.gain.curves[0][2], 4);
+  assert.ok(
+    Math.abs(routeGain.gain.curves[0][0].at(-1) - 10 ** (-16 / 20))
+      < 1e-6,
+    "the live transition ends after the authored base remains applied",
+  );
+
+  states.set("500", {
+    fromDb: 0,
+    toDb: 0,
+    startTime: 0,
+    duration: 0,
+    curve: 4,
+  });
+  engine.RefreshBusVolumeGains();
+  assert.ok(
+    Math.abs(routeGain.gain.value - 10 ** (-4 / 20)) < 1e-6,
+    "Reset preserves authored Bus Volume and Make-Up Gain",
+  );
+
+  engine.SetMusicVolume(0.25);
+  assert.equal(context.gains[0].gain.value, 0.25);
+  assert.ok(Math.abs(routeGain.gain.value - 10 ** (-4 / 20)) < 1e-6);
+
+  engine.ExecuteAction("stop", 703, 0);
+  engine.Process();
+  assert.equal(routeGain.disconnected, true);
+});

@@ -372,6 +372,8 @@ class CjsAudioBackend {
           actionTime: selectionMetadata.actionTime,
           matchIds: selectionMetadata.matchIds,
           busPathIds: selectionMetadata.busPathIds,
+          authoredBusVolumeDb: selectionMetadata.authoredBusVolumeDb,
+          authoredBusMakeUpGainDb: selectionMetadata.authoredBusMakeUpGainDb,
           switchPath: selectionMetadata.switchPath,
           switchFadeInMs: selectionMetadata.switchFadeInMs,
           ...(slot?.advanceMode === "crossfade" ? {
@@ -1112,6 +1114,7 @@ class CjsAudioBackend {
     const record = {
       gameObjID,
       emitter,
+      emitterNodes: this.#emitterNodes.get(gameObjID) ?? null,
       eventName: String(eventName),
       source: null,
       sourceGain: null,
@@ -1143,7 +1146,9 @@ class CjsAudioBackend {
       this.#FinishMusicPlaying(playingID);
     };
     try {
-      record.musicEngine.PostEvent(record.eventName, playingID, complete);
+      record.musicEngine.PostEvent(record.eventName, playingID, complete, {
+        busVolumeStates: record.emitterNodes?.busVolumes ?? this.#globalBusVolumes
+      });
     } catch {
       finished = true;
     } finally {
@@ -1393,6 +1398,7 @@ class CjsAudioBackend {
         ApplyBusVolumeAction(nodes.busVolumes, action);
       }
       this.#RefreshSfxBusVolumes();
+      this.#musicEngine?.RefreshBusVolumeGains?.();
       return;
     }
     if (this.#emitterNodes.get(action.gameObjID) !== action.emitterNodes) {
@@ -1400,6 +1406,7 @@ class CjsAudioBackend {
     }
     ApplyBusVolumeAction(action.emitterNodes.busVolumes, action);
     this.#RefreshSfxBusVolumes(action.gameObjID);
+    this.#musicEngine?.RefreshBusVolumeGains?.();
   }
 
   /** Applies one persistent Voice Pitch property mutation. */
@@ -1923,6 +1930,8 @@ class CjsAudioBackend {
           actionTime: selection.actionTime,
           matchIds: selection.matchIds,
           busPathIds: selection.busPathIds,
+          authoredBusVolumeDb: selection.authoredBusVolumeDb,
+          authoredBusMakeUpGainDb: selection.authoredBusMakeUpGainDb,
           switchPath: selection.switchPath,
           switchFadeInMs: selection.switchFadeInMs,
           switchGeneration
@@ -2333,6 +2342,8 @@ class CjsAudioBackend {
       voiceLowPassStates: emitterNodes.voiceLowPasses,
       voiceHighPassStates: emitterNodes.voiceHighPasses,
       busVolumeStates: emitterNodes.busVolumes,
+      authoredBusVolumeDb: descriptor.authoredBusVolumeDb,
+      authoredBusMakeUpGainDb: descriptor.authoredBusMakeUpGainDb,
       rtpcTransitionEnd: this.#RtpcTransitionEndForRecord({
         gameObjID,
         emitterNodes
@@ -2657,7 +2668,9 @@ class CjsAudioBackend {
           leafIndex: selection.leafIndex,
           actionTime: selection.actionTime,
           matchIds: selection.matchIds,
-          busPathIds: selection.busPathIds
+          busPathIds: selection.busPathIds,
+          authoredBusVolumeDb: selection.authoredBusVolumeDb,
+          authoredBusMakeUpGainDb: selection.authoredBusMakeUpGainDb
         } : descriptor, record.emitterNodes, record.gameObjID);
       });
       slot.voices.clear();
@@ -2771,7 +2784,9 @@ class CjsAudioBackend {
           leafIndex: selection.leafIndex,
           actionTime: selection.actionTime,
           matchIds: selection.matchIds,
-          busPathIds: selection.busPathIds
+          busPathIds: selection.busPathIds,
+          authoredBusVolumeDb: selection.authoredBusVolumeDb,
+          authoredBusMakeUpGainDb: selection.authoredBusMakeUpGainDb
         } : descriptor, record.emitterNodes, record.gameObjID);
       });
       for (const voice of voices) {
@@ -2912,6 +2927,8 @@ class CjsAudioBackend {
         actionTime,
         matchIds: selection.matchIds,
         busPathIds: selection.busPathIds,
+        authoredBusVolumeDb: selection.authoredBusVolumeDb,
+        authoredBusMakeUpGainDb: selection.authoredBusMakeUpGainDb,
         crossfadeMode: continuation.crossfadeMode
       }, record.emitterNodes, record.gameObjID);
       voice.programSlotId = slot.id;
@@ -3754,6 +3771,12 @@ function CreateProgramSelectionMetadata(selection, baseContextTime) {
     actionTime: Number(baseContextTime) + Math.max(0, Number(selection.delayMs) || 0) / 1000,
     matchIds: Object.freeze((selection.matchIds ?? []).map(String)),
     busPathIds: Object.freeze((selection.busPathIds ?? []).map(String)),
+    ...(selection.authoredBusVolumeDb === undefined ? {} : {
+      authoredBusVolumeDb: Number(selection.authoredBusVolumeDb)
+    }),
+    ...(selection.authoredBusMakeUpGainDb === undefined ? {} : {
+      authoredBusMakeUpGainDb: Number(selection.authoredBusMakeUpGainDb)
+    }),
     switchPath: NormalizeSwitchPath(selection.switchPath),
     switchFadeInMs: Math.max(0, Number(selection.switchFadeInMs) || 0)
   });
@@ -3900,6 +3923,16 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
       throw new TypeError(`Audio voice ${index} busPathIds must be a non-empty array of positive ids`);
     }
     const busPathIds = (value.busPathIds ?? []).map(busID => String(Number(busID) >>> 0));
+    const hasAuthoredBusVolume = value.authoredBusVolumeDb !== undefined;
+    const authoredBusVolumeDb = Number(value.authoredBusVolumeDb);
+    const hasAuthoredBusMakeUpGain = value.authoredBusMakeUpGainDb !== undefined;
+    const authoredBusMakeUpGainDb = Number(value.authoredBusMakeUpGainDb);
+    if (hasAuthoredBusVolume && (!busPathIds.length || !Number.isFinite(authoredBusVolumeDb))) {
+      throw new TypeError(`Audio voice ${index} authoredBusVolumeDb requires a bus route and must be finite`);
+    }
+    if (hasAuthoredBusMakeUpGain && (!busPathIds.length || !Number.isFinite(authoredBusMakeUpGainDb))) {
+      throw new TypeError(`Audio voice ${index} authoredBusMakeUpGainDb requires a bus route and must be finite`);
+    }
     if (new Set(busPathIds).size !== busPathIds.length) {
       throw new TypeError(`Audio voice ${index} busPathIds must not contain duplicates`);
     }
@@ -3918,6 +3951,12 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
       leafIndex,
       matchIds: Object.freeze((value.matchIds ?? []).map(String)),
       busPathIds: Object.freeze(busPathIds),
+      ...(hasAuthoredBusVolume ? {
+        authoredBusVolumeDb
+      } : {}),
+      ...(hasAuthoredBusMakeUpGain ? {
+        authoredBusMakeUpGainDb
+      } : {}),
       ...(value.programSlotId === undefined ? {} : {
         programSlotId: value.programSlotId
       }),
@@ -4097,7 +4136,9 @@ function ScheduleBusVolumeGain(param, voice, context) {
   const states = voice.busVolumeStates;
   const busPathIds = Array.isArray(voice.busPathIds) ? voice.busPathIds : [];
   const boundaries = VoiceTargetTransitionBoundaries(states, busPathIds, now);
-  const evaluate = at => 10 ** (EvaluateVoiceVolumeTargets(states, busPathIds, at) / 20);
+  const authoredBusVolumeDb = Number(voice.authoredBusVolumeDb) || 0;
+  const authoredBusMakeUpGainDb = Number(voice.authoredBusMakeUpGainDb) || 0;
+  const evaluate = at => 10 ** ((authoredBusVolumeDb + authoredBusMakeUpGainDb + EvaluateVoiceVolumeTargets(states, busPathIds, at)) / 20);
   const startValue = evaluate(now);
   if (typeof param.cancelAndHoldAtTime === "function") {
     param.cancelAndHoldAtTime(now);

@@ -1308,6 +1308,10 @@ export class CjsAudioMan
                             leafIndex: selection.leafIndex,
                             matchIds: selection.matchIds,
                             busPathIds: selection.busPathIds,
+                            authoredBusVolumeDb:
+                                selection.authoredBusVolumeDb,
+                            authoredBusMakeUpGainDb:
+                                selection.authoredBusMakeUpGainDb,
                             getPlaybackRate: (at = undefined) =>
                                 engine.EvaluatePlaybackRate(
                                     selection,

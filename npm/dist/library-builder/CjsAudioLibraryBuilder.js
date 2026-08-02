@@ -178,7 +178,8 @@ class CjsAudioLibraryBuilder {
     soundbanksInfo = null,
     enrichment = null,
     media = {},
-    embeddedMedia = {}
+    embeddedMedia = {},
+    buses = null
   } = {}) {
     if (!Array.isArray(inspections)) {
       throw new TypeError("Audio SFX construction requires bank inspections");
@@ -190,6 +191,7 @@ class CjsAudioLibraryBuilder {
     }
     return LowerSfxGraph({
       parsed,
+      buses,
       eventNames,
       musicNodeIds: new Set(inspections.flatMap(inspection => (inspection.hirc ?? []).filter(entry => MUSIC_HIRC_TYPES.has(entry.type)).map(entry => Number(entry.id) >>> 0))),
       names: CreateSfxNameCatalog(soundbanksInfo, enrichment, inspections),
@@ -211,7 +213,8 @@ class CjsAudioLibraryBuilder {
     metadata,
     media = {},
     embeddedMedia = {},
-    musicBankNames = MUSIC_BANK_NAMES
+    musicBankNames = MUSIC_BANK_NAMES,
+    buses = null
   } = {}) {
     if (!Array.isArray(inspections)) {
       throw new TypeError("Audio music construction requires bank inspections");
@@ -262,12 +265,17 @@ class CjsAudioLibraryBuilder {
     for (const [id, value] of [...parsed.nodes.entries()].sort(([left], [right]) => left - right)) {
       const {
         id: parsedID,
+        nodeBase,
         ...node
       } = value;
       if (parsedID >>> 0 !== id >>> 0) {
         throw new Error(`Music-node identity mismatch: ${parsedID} !== ${id}`);
       }
-      nodes[id] = node;
+      const routing = node.type === "music-track" ? CreateMusicBusRouting(parsed.nodes, id, buses) : null;
+      nodes[id] = routing ? {
+        ...node,
+        ...routing
+      } : node;
     }
     validateMusicNodeReferences(nodes, media, embeddedMedia);
     const eventProjection = this.createMusicEventProjection({
@@ -429,6 +437,7 @@ class CjsAudioLibraryBuilder {
       }
     }
     const graphInspections = SelectLanguageInspections(inspections, eventMediaLanguage);
+    const busCatalog = includeSfx || includeMusic ? CreateTypedBusCatalog(graphInspections) : null;
     let eventMedia = {};
     if (!includeSfx) {
       const merged = this.createEventMediaGraphs(graphInspections, {
@@ -454,7 +463,8 @@ class CjsAudioLibraryBuilder {
         soundbanksInfo: options.soundbanksInfo,
         enrichment: options.enrichment,
         media: library.media,
-        embeddedMedia: library.embeddedMedia ?? {}
+        embeddedMedia: library.embeddedMedia ?? {},
+        buses: busCatalog
       });
       options.onSfxDiagnostics?.(sfx.diagnostics);
       if (Object.keys(sfx.events).length || Object.keys(sfx.programs).length) {
@@ -473,7 +483,8 @@ class CjsAudioLibraryBuilder {
         eventInspections: graphInspections,
         metadata: library.metadata,
         media: library.media,
-        embeddedMedia: library.embeddedMedia ?? {}
+        embeddedMedia: library.embeddedMedia ?? {},
+        buses: busCatalog
       });
       assembledOptions = {
         ...assembledOptions,
@@ -576,6 +587,7 @@ class CjsAudioLibraryBuilder {
 }
 function LowerSfxGraph({
   parsed,
+  buses,
   eventNames,
   musicNodeIds,
   names,
@@ -703,7 +715,7 @@ function LowerSfxGraph({
         const mediaID = String(source.sourceId >>> 0);
         const loopCount = parsed.nodeBases?.get(Number(id))?.loopCount;
         const matchIds = CreateSfxMatchIds(parsed, id);
-        const outputBusId = CreateSfxOutputBusId(parsed, id);
+        const routing = CreateSfxBusRouting(parsed, id, buses);
         if (source.pluginType !== 1) {
           throw new Error(`source plug-in sound ${id}`);
         }
@@ -716,10 +728,7 @@ function LowerSfxGraph({
           ...(matchIds.length > 1 ? {
             matchIds
           } : {}),
-          ...(outputBusId === null ? {} : {
-            outputBusId,
-            busPathIds: [outputBusId]
-          }),
+          ...(routing ?? {}),
           ...(loopCount === 0 ? {
             loop: true
           } : Number.isSafeInteger(loopCount) && loopCount > 0 ? {
@@ -1725,7 +1734,15 @@ function CreateSfxMatchIds(parsed, rawID) {
   }
   return result;
 }
-function CreateSfxOutputBusId(parsed, rawID) {
+function CreateTypedBusCatalog(inspections) {
+  const result = CjsBnkFormat.wwise.busNodesFromBanks(inspections);
+  if (result.diagnostics.failed.length) {
+    const details = result.diagnostics.failed.map(failure => `${failure.bank}:${failure.type}:${failure.id}`).join(", ");
+    throw new Error(`Audio bus parsing failed: ${details}`);
+  }
+  return result.buses;
+}
+function CreateSfxBusRouting(parsed, rawID, buses) {
   const active = new Set();
   let current = Number(rawID) >>> 0;
   while (current && !active.has(current)) {
@@ -1736,11 +1753,78 @@ function CreateSfxOutputBusId(parsed, rawID) {
     }
     const outputBusId = Number(nodeBase.overrideBusId) >>> 0;
     if (outputBusId) {
-      return String(outputBusId);
+      return CreateBusRouting(outputBusId, buses);
     }
     current = Number(nodeBase.directParentId) >>> 0;
   }
   return null;
+}
+function CreateMusicBusRouting(nodes, rawID, buses) {
+  const active = new Set();
+  let current = Number(rawID) >>> 0;
+  while (current && !active.has(current)) {
+    active.add(current);
+    const nodeBase = nodes.get(current)?.nodeBase;
+    if (!nodeBase) {
+      return null;
+    }
+    const outputBusId = Number(nodeBase.overrideBusId) >>> 0;
+    if (outputBusId) {
+      return CreateBusRouting(outputBusId, buses);
+    }
+    current = Number(nodeBase.directParentId) >>> 0;
+  }
+  return null;
+}
+function CreateBusRouting(rawOutputBusId, buses) {
+  const outputBusId = String(Number(rawOutputBusId) >>> 0);
+  if (!(buses instanceof Map)) {
+    return {
+      outputBusId,
+      busPathIds: [outputBusId]
+    };
+  }
+  const busPathIds = [];
+  const active = new Set();
+  let current = Number(rawOutputBusId) >>> 0;
+  let authoredBusVolumeDb = 0;
+  let authoredBusMakeUpGainDb = 0;
+  while (current) {
+    if (active.has(current)) {
+      throw new Error(`Audio bus ancestry cycle at ${current}`);
+    }
+    active.add(current);
+    const bus = buses.get(current);
+    if (!bus) {
+      throw new Error(`Audio bus ancestry is missing ${current}`);
+    }
+    busPathIds.push(String(current));
+    if (bus.busVolume !== null && bus.busVolume !== undefined) {
+      const value = Number(bus.busVolume);
+      if (!Number.isFinite(value)) {
+        throw new Error(`Audio bus ${current} has invalid Bus Volume`);
+      }
+      authoredBusVolumeDb += value;
+    }
+    if (bus.makeUpGain !== null && bus.makeUpGain !== undefined) {
+      const value = Number(bus.makeUpGain);
+      if (!Number.isFinite(value)) {
+        throw new Error(`Audio bus ${current} has invalid Make-Up Gain`);
+      }
+      authoredBusMakeUpGainDb += value;
+    }
+    current = Number(bus.overrideBusId) >>> 0;
+  }
+  return {
+    outputBusId,
+    busPathIds,
+    ...(authoredBusVolumeDb === 0 ? {} : {
+      authoredBusVolumeDb
+    }),
+    ...(authoredBusMakeUpGainDb === 0 ? {} : {
+      authoredBusMakeUpGainDb
+    })
+  };
 }
 function CreateSfxStopRelationships(parsed, leavesByEvent, stopTargetsByEvent) {
   const events = {};
@@ -3254,6 +3338,7 @@ function validateMusicGraph(music, media, embeddedMedia) {
     if (!bankNames.includes(bankSourceName(node.bank))) {
       throw new TypeError(`Audio library music node ${id} references unknown bank: ${node.bank}`);
     }
+    ValidateMusicBusRouting(node, id);
   }
   validateMusicNodeReferences(music.nodes, media, embeddedMedia);
   for (const field of ["eventTargets", "eventStops"]) {
@@ -3303,6 +3388,38 @@ function normalizeMusicGraph(music) {
     eventStops: normalizeTargetTable(music.eventStops),
     switchSetters: normalizeSetterTable(music.switchSetters)
   };
+}
+function ValidateMusicBusRouting(node, id) {
+  const hasOutput = node.outputBusId !== undefined;
+  const hasPath = node.busPathIds !== undefined;
+  const hasAuthored = node.authoredBusVolumeDb !== undefined;
+  const hasMakeUp = node.authoredBusMakeUpGainDb !== undefined;
+  if (node.type !== "music-track" && (hasOutput || hasPath || hasAuthored || hasMakeUp)) {
+    throw new TypeError(`Audio library music node ${id} bus routing is track-only`);
+  }
+  if (!hasOutput) {
+    if (hasPath || hasAuthored || hasMakeUp) {
+      throw new TypeError(`Audio library music node ${id} bus routing requires outputBusId`);
+    }
+    return;
+  }
+  const outputBusId = Number(node.outputBusId);
+  if (!Number.isSafeInteger(outputBusId) || outputBusId <= 0) {
+    throw new TypeError(`Audio library music node ${id} outputBusId must be a positive id`);
+  }
+  if (!Array.isArray(node.busPathIds) || !node.busPathIds.length) {
+    throw new TypeError(`Audio library music node ${id} busPathIds must be non-empty`);
+  }
+  const path = node.busPathIds.map(Number);
+  if (path.some(value => !Number.isSafeInteger(value) || value <= 0) || String(path[0]) !== String(outputBusId) || new Set(path).size !== path.length) {
+    throw new TypeError(`Audio library music node ${id} has invalid busPathIds`);
+  }
+  if (hasAuthored && !Number.isFinite(Number(node.authoredBusVolumeDb))) {
+    throw new TypeError(`Audio library music node ${id} authoredBusVolumeDb must be finite`);
+  }
+  if (hasMakeUp && !Number.isFinite(Number(node.authoredBusMakeUpGainDb))) {
+    throw new TypeError(`Audio library music node ${id} authoredBusMakeUpGainDb must be finite`);
+  }
 }
 function normalizeSourceIdentity({
   target,

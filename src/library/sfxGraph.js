@@ -199,11 +199,27 @@ export function validateSfxGraph(
                         `Audio library SFX sound ${id} busPathIds`,
                     );
                 }
+                if (node.authoredBusVolumeDb !== undefined)
+                {
+                    NormalizeFiniteNumber(
+                        node.authoredBusVolumeDb,
+                        `Audio library SFX sound ${id} authoredBusVolumeDb`,
+                    );
+                }
+                if (node.authoredBusMakeUpGainDb !== undefined)
+                {
+                    NormalizeFiniteNumber(
+                        node.authoredBusMakeUpGainDb,
+                        `Audio library SFX sound ${id} authoredBusMakeUpGainDb`,
+                    );
+                }
             }
-            else if (node.busPathIds !== undefined)
+            else if (node.busPathIds !== undefined
+                || node.authoredBusVolumeDb !== undefined
+                || node.authoredBusMakeUpGainDb !== undefined)
             {
                 throw new TypeError(
-                    `Audio library SFX sound ${id} busPathIds require outputBusId`,
+                    `Audio library SFX sound ${id} bus routing requires outputBusId`,
                 );
             }
             continue;
@@ -581,6 +597,18 @@ function NormalizeNode(node)
             result.busPathIds = (node.busPathIds
                 ?? [ node.outputBusId ]).map(value =>
                 String(Number(value) >>> 0));
+            if (node.authoredBusVolumeDb !== undefined)
+            {
+                result.authoredBusVolumeDb = Number(
+                    node.authoredBusVolumeDb,
+                );
+            }
+            if (node.authoredBusMakeUpGainDb !== undefined)
+            {
+                result.authoredBusMakeUpGainDb = Number(
+                    node.authoredBusMakeUpGainDb,
+                );
+            }
         }
         return result;
     }

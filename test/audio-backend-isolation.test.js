@@ -5801,6 +5801,114 @@ test("Bus Volume targets routed live and future voices without touching other bu
   assert.equal(music.value, 1);
 });
 
+test("authored Bus Volume remains on the bus stage below the voice silence threshold", async () =>
+{
+  const play = {
+    kind: "play",
+    actionIndex: 0,
+    selections: [ {
+      actionIndex: 0,
+      leafIndex: 0,
+      matchIds: [ "200" ],
+      busPathIds: [ "928" ],
+      authoredBusVolumeDb: -100,
+      authoredBusMakeUpGainDb: 3,
+    } ],
+  };
+  const lower = {
+    kind: "set-bus-volume",
+    actionIndex: 0,
+    targetId: "928",
+    targetFlags: 1,
+    scope: "game-object",
+    mode: "element",
+    valueMode: "absolute",
+    busVolumeDb: -6,
+    delayMs: 0,
+    transitionMs: 0,
+    curve: 4,
+    exceptions: [],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) =>
+      eventName === "play" ? [ play ] : [ lower ],
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program[0].selections.map(selection => ({
+        buffer: { duration: 2 },
+        loop: true,
+        programSlotId: "0:0",
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: selection.matchIds,
+        busPathIds: selection.busPathIds,
+        authoredBusVolumeDb: selection.authoredBusVolumeDb,
+        authoredBusMakeUpGainDb: selection.authoredBusMakeUpGainDb,
+        getGain: () => 1,
+      })),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+
+  const voiceGain = context.sources[0].connectedTo.gain;
+  const busGain = context.sources[0].connectedTo.connectedTo.gain;
+
+  assert.equal(voiceGain.value, 1);
+  assert.ok(Math.abs(busGain.value - 10 ** (-97 / 20)) < 1e-12);
+
+  backend.PostEvent(2, 1, 0, emitter, "lower");
+  assert.equal(voiceGain.value, 1);
+  assert.ok(Math.abs(busGain.value - 10 ** (-103 / 20)) < 1e-12);
+});
+
+test("music receives its emitter Bus Volume state map and refresh notifications", () =>
+{
+  let receivedStates = null;
+  let refreshes = 0;
+  const musicEngine = {
+    HandlesEvent: eventName => eventName === "music_play",
+    PostEvent(_eventName, _playingID, _complete, options)
+    {
+      receivedStates = options.busVolumeStates;
+      return true;
+    },
+    ExecuteAction() {},
+    RefreshBusVolumeGains()
+    {
+      refreshes++;
+    },
+  };
+  const action = {
+    kind: "set-bus-volume",
+    actionIndex: 0,
+    targetId: "928",
+    targetFlags: 1,
+    scope: "game-object",
+    mode: "element",
+    valueMode: "absolute",
+    busVolumeDb: -6,
+    delayMs: 0,
+    transitionMs: 0,
+    curve: 4,
+    exceptions: [],
+  };
+  const { backend, emitter } = Harness({
+    musicEngine,
+    hasSfxEvent: eventName => eventName === "set_bus",
+    resolveSfxProgram: (_eventID, eventName) =>
+      eventName === "set_bus" ? [ action ] : null,
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "music_play");
+  assert.ok(receivedStates instanceof Map);
+  assert.equal(receivedStates.size, 0);
+
+  backend.PostEvent(2, 1, 0, emitter, "set_bus");
+  assert.equal(refreshes, 1);
+  assert.equal(receivedStates.get("928").toDb, -6);
+});
+
 test("Bus Volume transitions rebase from authored linear-gain time", async () =>
 {
   const programs = {

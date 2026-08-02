@@ -365,6 +365,8 @@ function ValidateMusic(music, media, embeddedMedia)
             );
         }
 
+        ValidateMusicBusRouting(node, id);
+
         for (const childID of node.children ?? [])
         {
             if (!nodes[NormalizePositiveID(
@@ -434,6 +436,70 @@ function ValidateMusic(music, media, embeddedMedia)
         music.switchSetters,
         "Audio library music switchSetters",
     );
+}
+
+function ValidateMusicBusRouting(node, id)
+{
+    const hasOutput = node.outputBusId !== undefined;
+    const hasPath = node.busPathIds !== undefined;
+    const hasAuthored = node.authoredBusVolumeDb !== undefined;
+    const hasMakeUp = node.authoredBusMakeUpGainDb !== undefined;
+
+    if (node.type !== "music-track"
+        && (hasOutput || hasPath || hasAuthored || hasMakeUp))
+    {
+        throw new TypeError(
+            `Audio library music node ${id} bus routing is track-only`,
+        );
+    }
+
+    if (!hasOutput)
+    {
+        if (hasPath || hasAuthored || hasMakeUp)
+        {
+            throw new TypeError(
+                `Audio library music node ${id} bus routing requires outputBusId`,
+            );
+        }
+        return;
+    }
+
+    const outputBusId = NormalizePositiveID(
+        node.outputBusId,
+        `Audio library music node ${id} outputBusId`,
+    );
+
+    if (!Array.isArray(node.busPathIds) || !node.busPathIds.length)
+    {
+        throw new TypeError(
+            `Audio library music node ${id} busPathIds must be non-empty`,
+        );
+    }
+
+    const path = node.busPathIds.map((value, index) =>
+        NormalizePositiveID(
+            value,
+            `Audio library music node ${id} busPathIds ${index}`,
+        ));
+
+    if (path[0] !== outputBusId || new Set(path).size !== path.length)
+    {
+        throw new TypeError(
+            `Audio library music node ${id} has invalid busPathIds`,
+        );
+    }
+    if (hasAuthored && !Number.isFinite(Number(node.authoredBusVolumeDb)))
+    {
+        throw new TypeError(
+            `Audio library music node ${id} authoredBusVolumeDb must be finite`,
+        );
+    }
+    if (hasMakeUp && !Number.isFinite(Number(node.authoredBusMakeUpGainDb)))
+    {
+        throw new TypeError(
+            `Audio library music node ${id} authoredBusMakeUpGainDb must be finite`,
+        );
+    }
 }
 
 function RequireRecord(value, label)

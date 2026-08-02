@@ -127,6 +127,68 @@ test("rejects invalid spatial event metadata", () =>
     );
 });
 
+test("validates and installs routed music-track bus metadata", () =>
+{
+    const source = CreateDocument();
+
+    source.music = {
+        schemaVersion: 1,
+        banks: [ "music.bnk" ],
+        nodes: {
+            "100": {
+                type: "music-segment",
+                bank: "music.bnk",
+                children: [ 101 ],
+            },
+            "101": {
+                type: "music-track",
+                bank: "music.bnk",
+                children: [],
+                sources: [ { sourceId: 777 } ],
+                outputBusId: "928",
+                busPathIds: [ "928", "500", "1" ],
+                authoredBusVolumeDb: -9,
+                authoredBusMakeUpGainDb: 3,
+            },
+        },
+        eventTargets: {},
+        eventStops: {},
+        switchSetters: {},
+    };
+
+    const installed = installAudioLibraryDocument(source);
+
+    assert.equal(
+        installed.music.nodes["101"].authoredBusVolumeDb,
+        -9,
+    );
+    assert.equal(
+        installed.music.nodes["101"].authoredBusMakeUpGainDb,
+        3,
+    );
+    assert.equal(Object.isFrozen(installed.music.nodes["101"].busPathIds), true);
+
+    for (const mutate of [
+        node => { node.busPathIds = [ "500", "928" ]; },
+        node => { node.busPathIds = [ "928", "928" ]; },
+        node => { node.authoredBusVolumeDb = Number.NaN; },
+        node => { node.authoredBusMakeUpGainDb = Number.NaN; },
+        node => { delete node.outputBusId; },
+    ])
+    {
+        const invalid = structuredClone(source);
+
+        mutate(invalid.music.nodes["101"]);
+        assert.throws(() => validateAudioLibraryDocument(invalid));
+    }
+
+    const routedSegment = structuredClone(source);
+
+    routedSegment.music.nodes["100"].outputBusId = "928";
+    routedSegment.music.nodes["100"].busPathIds = [ "928" ];
+    assert.throws(() => validateAudioLibraryDocument(routedSegment));
+});
+
 test("Continuous container scheduling is normalized and validated", () =>
 {
     const graph = {

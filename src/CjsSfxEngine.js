@@ -1072,6 +1072,20 @@ export class CjsSfxEngine
                         busPathIds: Object.freeze(
                             node.busPathIds.map(String),
                         ),
+                        ...(node.authoredBusVolumeDb === undefined
+                            ? {}
+                            : {
+                                authoredBusVolumeDb: Number(
+                                    node.authoredBusVolumeDb,
+                                ),
+                            }),
+                        ...(node.authoredBusMakeUpGainDb === undefined
+                            ? {}
+                            : {
+                                authoredBusMakeUpGainDb: Number(
+                                    node.authoredBusMakeUpGainDb,
+                                ),
+                            }),
                     }),
                 loop: node.loop,
                 ...(node.playCount === undefined

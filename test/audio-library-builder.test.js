@@ -393,6 +393,61 @@ test("music:false leaves complete construction without a music graph", async () 
     assert.equal(library.music, undefined);
 });
 
+test("music tracks inherit typed bus routes without leaking NodeBase", () =>
+{
+    const segmentID = 4001;
+    const trackID = 4101;
+    const segment = new TestWriter()
+        .u8(0)
+        .append(nodeBasePayload({ overrideBusId: 928 }))
+        .u32(1).u32(trackID)
+        .f64(1000).f64(0).f32(120).u8(4).u8(4)
+        .u8(1)
+        .u32(0)
+        .f64(4000)
+        .u32(0)
+        .bytes();
+    const track = new TestWriter()
+        .u8(0)
+        .u32(0)
+        .u32(0)
+        .u32(0)
+        .append(nodeBasePayload({ directParentId: segmentID }))
+        .u8(0)
+        .s32(-100)
+        .bytes();
+    const graph = CjsAudioLibraryBuilder.createMusicGraph({
+        inspections: [ {
+            source: "synthetic.bnk",
+            hirc: [
+                { type: 10, id: segmentID, payload: segment },
+                { type: 11, id: trackID, payload: track },
+            ],
+        } ],
+        metadata: { Events: {} },
+        musicBankNames: [ "synthetic.bnk" ],
+        buses: new Map([
+            [ 928, {
+                overrideBusId: 500,
+                busVolume: -6,
+                makeUpGain: 3,
+            } ],
+            [ 500, {
+                overrideBusId: 0,
+                busVolume: -3,
+                makeUpGain: 2,
+            } ],
+        ]),
+    });
+
+    assert.equal(graph.nodes[segmentID].nodeBase, undefined);
+    assert.equal(graph.nodes[trackID].nodeBase, undefined);
+    assert.equal(graph.nodes[trackID].outputBusId, "928");
+    assert.deepEqual(graph.nodes[trackID].busPathIds, [ "928", "500" ]);
+    assert.equal(graph.nodes[trackID].authoredBusVolumeDb, -9);
+    assert.equal(graph.nodes[trackID].authoredBusMakeUpGainDb, 5);
+});
+
 test("music event projection follows typed targets across every bank", () =>
 {
     const result = CjsAudioLibraryBuilder.createMusicEventProjection({
@@ -3702,10 +3757,24 @@ test("SFX Bus Volume preserves every valid v150 form and output routing", () =>
         media: {
             "9001": { resPath: "res:/audio/9001.wem" },
         },
+        buses: new Map([
+            [ 928, {
+                overrideBusId: 500,
+                busVolume: -6,
+                makeUpGain: 3,
+            } ],
+            [ 500, { overrideBusId: 1, busVolume: null } ],
+            [ 1, { overrideBusId: 0, busVolume: -3 } ],
+        ]),
     });
 
     assert.equal(result.nodes["200"].outputBusId, "928");
-    assert.deepEqual(result.nodes["200"].busPathIds, [ "928" ]);
+    assert.deepEqual(
+        result.nodes["200"].busPathIds,
+        [ "928", "500", "1" ],
+    );
+    assert.equal(result.nodes["200"].authoredBusVolumeDb, -9);
+    assert.equal(result.nodes["200"].authoredBusMakeUpGainDb, 3);
     assert.deepEqual(
         result.programs.bus_forms.map(action => action.kind),
         [
@@ -5846,6 +5915,11 @@ class TestWriter
     f32(value)
     {
         return this.#number(4, view => view.setFloat32(0, value, true));
+    }
+
+    f64(value)
+    {
+        return this.#number(8, view => view.setFloat64(0, value, true));
     }
 
     variable(value)
