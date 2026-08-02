@@ -9,6 +9,15 @@ import '../character/appearance/CjsCharacterColorSelection.js';
 import '../character/appearance/CjsCharacterSculptingLocation.js';
 import '../character/appearance/CjsCharacterSculptSelection.js';
 import '../character/behavior/CjsCharacterAvatarBehavior.js';
+import '../character/catalog/CjsCharacterColorValue.js';
+import '../character/catalog/CjsCharacterMaterialProfile.js';
+import '../character/catalog/CjsCharacterPartMetadata.js';
+import '../character/catalog/CjsCharacterPartSource.js';
+import '../character/catalog/CjsCharacterPartSourceVersion.js';
+import '../character/catalog/CjsCharacterPartType.js';
+import '../character/catalog/CjsCharacterProjectionProfile.js';
+import '../character/catalog/CjsCharacterRecipeEntry.js';
+import '../character/catalog/CjsCharacterRecipeProfile.js';
 import '../character/composition/CjsCharacterModifierLocation.js';
 import '../character/composition/CjsCharacterModifierSelection.js';
 import '../character/creation/CjsCharacterPaperdoll.js';
@@ -32,23 +41,38 @@ import '../character/planning/CjsCharacterTextureChannel.js';
 import '../character/resources/CjsCharacterPortraitResource.js';
 import '../character/resources/CjsCharacterResource.js';
 
-let _initClass, _init_ancestries, _init_extra_ancestries, _init_archetypes, _init_extra_archetypes, _init_bloodlines, _init_extra_bloodlines, _init_characterAvatarBehaviors, _init_extra_characterAvatarBehaviors, _init_characterColorLocations, _init_extra_characterColorLocations, _init_characterColorNames, _init_extra_characterColorNames, _init_characterModifierLocations, _init_extra_characterModifierLocations, _init_characterPortraitResources, _init_extra_characterPortraitResources, _init_characterResources, _init_extra_characterResources, _init_characterSculptingLocations, _init_extra_characterSculptingLocations, _init_paperdolls, _init_extra_paperdolls, _init_races, _init_extra_races;
+let _initClass, _init_ancestries, _init_extra_ancestries, _init_archetypes, _init_extra_archetypes, _init_bloodlines, _init_extra_bloodlines, _init_characterAvatarBehaviors, _init_extra_characterAvatarBehaviors, _init_characterColorLocations, _init_extra_characterColorLocations, _init_characterColorNames, _init_extra_characterColorNames, _init_characterModifierLocations, _init_extra_characterModifierLocations, _init_characterPortraitResources, _init_extra_characterPortraitResources, _init_characterResources, _init_extra_characterResources, _init_characterSculptingLocations, _init_extra_characterSculptingLocations, _init_paperdolls, _init_extra_paperdolls, _init_races, _init_extra_races, _init_characterPartTypes, _init_extra_characterPartTypes, _init_characterPartSources, _init_extra_characterPartSources, _init_characterPartMetadata, _init_extra_characterPartMetadata, _init_characterMaterialProfiles, _init_extra_characterMaterialProfiles, _init_characterProjectionProfiles, _init_extra_characterProjectionProfiles, _init_characterRecipeProfiles, _init_extra_characterRecipeProfiles;
+const DOCUMENT_DEFINITIONS = [["ancestries", "CjsCharacterAncestry", true], ["archetypes", "CjsCharacterArchetype", true], ["bloodlines", "CjsCharacterBloodline", true], ["characterAvatarBehaviors", "CjsCharacterAvatarBehavior", true], ["characterColorLocations", "CjsCharacterColorLocation", true], ["characterColorNames", "CjsCharacterColorName", true], ["characterModifierLocations", "CjsCharacterModifierLocation", true], ["characterPortraitResources", "CjsCharacterPortraitResource", true], ["characterResources", "CjsCharacterResource", true], ["characterSculptingLocations", "CjsCharacterSculptingLocation", true], ["paperdolls", "CjsCharacterPaperdoll", true], ["races", "CjsCharacterRace", true], ["characterPartTypes", "CjsCharacterPartType", false], ["characterPartSources", "CjsCharacterPartSource", false], ["characterPartMetadata", "CjsCharacterPartMetadata", false], ["characterMaterialProfiles", "CjsCharacterMaterialProfile", false], ["characterProjectionProfiles", "CjsCharacterProjectionProfile", false], ["characterRecipeProfiles", "CjsCharacterRecipeProfile", false]];
 
 /** Typed document collections contained by one character library. */
 let _CjsCharacterLibraryD;
 class CjsCharacterLibraryDocuments extends CjsModel {
   static {
     ({
-      e: [_init_ancestries, _init_extra_ancestries, _init_archetypes, _init_extra_archetypes, _init_bloodlines, _init_extra_bloodlines, _init_characterAvatarBehaviors, _init_extra_characterAvatarBehaviors, _init_characterColorLocations, _init_extra_characterColorLocations, _init_characterColorNames, _init_extra_characterColorNames, _init_characterModifierLocations, _init_extra_characterModifierLocations, _init_characterPortraitResources, _init_extra_characterPortraitResources, _init_characterResources, _init_extra_characterResources, _init_characterSculptingLocations, _init_extra_characterSculptingLocations, _init_paperdolls, _init_extra_paperdolls, _init_races, _init_extra_races],
+      e: [_init_ancestries, _init_extra_ancestries, _init_archetypes, _init_extra_archetypes, _init_bloodlines, _init_extra_bloodlines, _init_characterAvatarBehaviors, _init_extra_characterAvatarBehaviors, _init_characterColorLocations, _init_extra_characterColorLocations, _init_characterColorNames, _init_extra_characterColorNames, _init_characterModifierLocations, _init_extra_characterModifierLocations, _init_characterPortraitResources, _init_extra_characterPortraitResources, _init_characterResources, _init_extra_characterResources, _init_characterSculptingLocations, _init_extra_characterSculptingLocations, _init_paperdolls, _init_extra_paperdolls, _init_races, _init_extra_races, _init_characterPartTypes, _init_extra_characterPartTypes, _init_characterPartSources, _init_extra_characterPartSources, _init_characterPartMetadata, _init_extra_characterPartMetadata, _init_characterMaterialProfiles, _init_extra_characterMaterialProfiles, _init_characterProjectionProfiles, _init_extra_characterProjectionProfiles, _init_characterRecipeProfiles, _init_extra_characterRecipeProfiles],
       c: [_CjsCharacterLibraryD, _initClass]
     } = _applyDecs2311(this, [type.define({
       className: "CjsCharacterLibraryDocuments",
       family: "character"
-    })], [[[io, io.readwrite, void 0, type.list("CjsCharacterAncestry")], 16, "ancestries"], [[io, io.readwrite, void 0, type.list("CjsCharacterArchetype")], 16, "archetypes"], [[io, io.readwrite, void 0, type.list("CjsCharacterBloodline")], 16, "bloodlines"], [[io, io.readwrite, void 0, type.list("CjsCharacterAvatarBehavior")], 16, "characterAvatarBehaviors"], [[io, io.readwrite, void 0, type.list("CjsCharacterColorLocation")], 16, "characterColorLocations"], [[io, io.readwrite, void 0, type.list("CjsCharacterColorName")], 16, "characterColorNames"], [[io, io.readwrite, void 0, type.list("CjsCharacterModifierLocation")], 16, "characterModifierLocations"], [[io, io.readwrite, void 0, type.list("CjsCharacterPortraitResource")], 16, "characterPortraitResources"], [[io, io.readwrite, void 0, type.list("CjsCharacterResource")], 16, "characterResources"], [[io, io.readwrite, void 0, type.list("CjsCharacterSculptingLocation")], 16, "characterSculptingLocations"], [[io, io.readwrite, void 0, type.list("CjsCharacterPaperdoll")], 16, "paperdolls"], [[io, io.readwrite, void 0, type.list("CjsCharacterRace")], 16, "races"]], 0, void 0, CjsModel));
+    })], [[[io, io.readwrite, void 0, type.list("CjsCharacterAncestry")], 16, "ancestries"], [[io, io.readwrite, void 0, type.list("CjsCharacterArchetype")], 16, "archetypes"], [[io, io.readwrite, void 0, type.list("CjsCharacterBloodline")], 16, "bloodlines"], [[io, io.readwrite, void 0, type.list("CjsCharacterAvatarBehavior")], 16, "characterAvatarBehaviors"], [[io, io.readwrite, void 0, type.list("CjsCharacterColorLocation")], 16, "characterColorLocations"], [[io, io.readwrite, void 0, type.list("CjsCharacterColorName")], 16, "characterColorNames"], [[io, io.readwrite, void 0, type.list("CjsCharacterModifierLocation")], 16, "characterModifierLocations"], [[io, io.readwrite, void 0, type.list("CjsCharacterPortraitResource")], 16, "characterPortraitResources"], [[io, io.readwrite, void 0, type.list("CjsCharacterResource")], 16, "characterResources"], [[io, io.readwrite, void 0, type.list("CjsCharacterSculptingLocation")], 16, "characterSculptingLocations"], [[io, io.readwrite, void 0, type.list("CjsCharacterPaperdoll")], 16, "paperdolls"], [[io, io.readwrite, void 0, type.list("CjsCharacterRace")], 16, "races"], [[io, io.readwrite, void 0, type.list("CjsCharacterPartType")], 16, "characterPartTypes"], [[io, io.readwrite, void 0, type.list("CjsCharacterPartSource")], 16, "characterPartSources"], [[io, io.readwrite, void 0, type.list("CjsCharacterPartMetadata")], 16, "characterPartMetadata"], [[io, io.readwrite, void 0, type.list("CjsCharacterMaterialProfile")], 16, "characterMaterialProfiles"], [[io, io.readwrite, void 0, type.list("CjsCharacterProjectionProfile")], 16, "characterProjectionProfiles"], [[io, io.readwrite, void 0, type.list("CjsCharacterRecipeProfile")], 16, "characterRecipeProfiles"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);
-    _init_extra_races(this);
+    _init_extra_characterRecipeProfiles(this);
+  }
+  /** Returns the canonical ordered combined-library document names. */
+  static listDocumentNames() {
+    return DOCUMENT_DEFINITIONS.map(([name]) => name);
+  }
+
+  /** Returns the registered model name for one combined-library document. */
+  static getDocumentType(name) {
+    return DOCUMENT_DEFINITIONS.find(([candidate]) => candidate === name)?.[1] ?? null;
+  }
+
+  /** Returns whether a source-document input is required for every build. */
+  static isRequiredDocument(name) {
+    return DOCUMENT_DEFINITIONS.find(([candidate]) => candidate === name)?.[2] === true;
   }
   ancestries = _init_ancestries(this, []);
   archetypes = (_init_extra_ancestries(this), _init_archetypes(this, []));
@@ -62,6 +86,12 @@ class CjsCharacterLibraryDocuments extends CjsModel {
   characterSculptingLocations = (_init_extra_characterResources(this), _init_characterSculptingLocations(this, []));
   paperdolls = (_init_extra_characterSculptingLocations(this), _init_paperdolls(this, []));
   races = (_init_extra_paperdolls(this), _init_races(this, []));
+  characterPartTypes = (_init_extra_races(this), _init_characterPartTypes(this, []));
+  characterPartSources = (_init_extra_characterPartTypes(this), _init_characterPartSources(this, []));
+  characterPartMetadata = (_init_extra_characterPartSources(this), _init_characterPartMetadata(this, []));
+  characterMaterialProfiles = (_init_extra_characterPartMetadata(this), _init_characterMaterialProfiles(this, []));
+  characterProjectionProfiles = (_init_extra_characterMaterialProfiles(this), _init_characterProjectionProfiles(this, []));
+  characterRecipeProfiles = (_init_extra_characterProjectionProfiles(this), _init_characterRecipeProfiles(this, []));
   static {
     _initClass();
   }

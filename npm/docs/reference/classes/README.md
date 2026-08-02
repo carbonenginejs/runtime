@@ -140,6 +140,16 @@ One authored paper-doll color selection with resolved catalog references.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsCharacterColorValue -->
+## `CjsCharacterColorValue`
+
+One authored RGBA character color value.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterColorValue.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCharacterCompositionInput -->
 ## `CjsCharacterCompositionInput`
 
@@ -193,7 +203,7 @@ Hydrated character library whose public fields have the same shape as its JSON v
 <!-- class:CjsCharacterLibraryBuilder -->
 ## `CjsCharacterLibraryBuilder`
 
-Builds model-shaped character-library JSON from source-document records.
+Builds schema-v5 model-shaped JSON from source documents and prepared catalogs.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/library-builder/CjsCharacterLibraryBuilder.js`
@@ -207,6 +217,26 @@ Typed document collections contained by one character library.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/library/CjsCharacterLibraryDocuments.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterLibraryManager -->
+## `CjsCharacterLibraryManager`
+
+Installs, loads, and queries one combined hydrated character library.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/library/CjsCharacterLibraryManager.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterMaterialProfile -->
+## `CjsCharacterMaterialProfile`
+
+Authored character color, pattern, and specular profile.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterMaterialProfile.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -250,6 +280,46 @@ Source-backed paper-doll appearance, portrait pose, and expression record.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsCharacterPartMetadata -->
+## `CjsCharacterPartMetadata`
+
+Authored metadata associated with one character part source.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterPartMetadata.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterPartSource -->
+## `CjsCharacterPartSource`
+
+One character source folder with exact external resource candidates.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterPartSource.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterPartSourceVersion -->
+## `CjsCharacterPartSourceVersion`
+
+One authored resource-version inventory with unresolved external candidates.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterPartSourceVersion.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterPartType -->
+## `CjsCharacterPartType`
+
+One published character type definition folded into the combined catalog.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterPartType.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCharacterPortraitResource -->
 ## `CjsCharacterPortraitResource`
 
@@ -260,6 +330,16 @@ Authored portrait resource classified by its source category and optional type i
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsCharacterProjectionProfile -->
+## `CjsCharacterProjectionProfile`
+
+Authored character projection profile with external texture references.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterProjectionProfile.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCharacterRace -->
 ## `CjsCharacterRace`
 
@@ -267,6 +347,26 @@ Character-creation race record with authored localization and starting-skill ide
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/character/demographics/CjsCharacterRace.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterRecipeEntry -->
+## `CjsCharacterRecipeEntry`
+
+One authored character recipe selection and its material values.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterRecipeEntry.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterRecipeProfile -->
+## `CjsCharacterRecipeProfile`
+
+One authored character recipe folded into the combined catalog.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterRecipeProfile.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 

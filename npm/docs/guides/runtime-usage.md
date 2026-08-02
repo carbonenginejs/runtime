@@ -26,13 +26,56 @@ const library = CjsCharacterLibrary.from(values);
 ```
 
 The builder is deterministic when caller metadata is deterministic. It does
-not fetch, decode, or identify a source format. Each source record-map key is
-copied into the named `recordID` field. Existing fields such as `typeID` remain
-ordinary domain data.
+not fetch, decode, or identify a source format. Each non-empty source
+record-map key is copied into the named `recordID` field. Existing fields such
+as `typeID` remain ordinary domain data. Unknown fields and incompatible nested
+model shapes are rejected so a successful build cannot silently lose values
+during hydration.
 
 The builder projects proven relationships using native `_id` and `_ref`
 metadata. Those tokens are local to the serialized graph and may be renumbered.
 They are not record, type, race, resource, or other domain identities.
+
+## Add hydrated editor items
+
+An editor can add an already-hydrated item without converting it back through
+plain values:
+
+```js
+const resource = new CjsCharacterResource();
+resource.SetValues(resourceValues);
+
+library.Add("characterResources", resource);
+```
+
+The exact object is retained. `Add` rejects the wrong model class or a duplicate
+`recordID`. It also invalidates the affected private lookup index. Call
+`library.Reindex()` after directly replacing entries in a public document
+array.
+
+## Install one combined runtime library
+
+The manager accepts either the hydrated combined library or its same-shaped
+plain values:
+
+```js
+import { CjsCharacterLibraryManager } from "@carbonenginejs/runtime-character";
+
+const manager = new CjsCharacterLibraryManager(library);
+```
+
+An outer runtime can supply a structural loader for the combined document:
+
+```js
+manager.SetResourceLoader(path => runtime.FetchObject(path));
+await manager.LoadLibraryAsync("res:/character/character-library.json");
+```
+
+The loader owns acquisition and decoding. It returns an object, not bytes.
+Runtime-character deduplicates equivalent in-flight loads but does not become a
+persistent resource cache. Starting a distinct asynchronous library request
+supersedes older pending requests, even when the newer loader returns no value;
+an older result never installs after a newer request has started.
 
 ## Read records and relationships
 
@@ -97,6 +140,7 @@ is responsible for deciding operations, ordering, and policy before producing
 
 ## Runtime boundary
 
-The library and appearance plan are GPU-free and I/O-free. They may contain
-resource paths, but resource discovery, fetching, decoding, caching, and
-render realization remain outside `runtime-character`.
+The library and appearance plan are GPU-free. They may contain resource paths,
+but resource discovery, byte fetching, decoding, caching, and render
+realization remain outside `runtime-character`. The library manager only
+orchestrates a caller-provided object loader for the one combined document.

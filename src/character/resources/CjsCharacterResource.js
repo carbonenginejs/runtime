@@ -15,6 +15,10 @@ export class CjsCharacterResource extends CjsCharacterRecord
     resPath = "";
 
     @io.readwrite
+    @type.model("CjsCharacterPartType")
+    partType = null;
+
+    @io.readwrite
     @type.model("CjsCharacterModifierLocation")
     clothingAlsoCoversCategory = null;
 

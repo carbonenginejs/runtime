@@ -1,6 +1,7 @@
 export { CjsCharacterLibraryBuilder } from './library-builder/CjsCharacterLibraryBuilder.js';
 export { CjsCharacterLibrary } from './library/CjsCharacterLibrary.js';
 export { CjsCharacterLibraryDocuments } from './library/CjsCharacterLibraryDocuments.js';
+export { CjsCharacterLibraryManager } from './library/CjsCharacterLibraryManager.js';
 export { CjsCharacterRecord } from './character/CjsCharacterRecord.js';
 export { CjsCharacterArchetype } from './character/activity/CjsCharacterArchetype.js';
 export { CjsCharacterColorLocation } from './character/appearance/CjsCharacterColorLocation.js';
@@ -9,6 +10,15 @@ export { CjsCharacterColorSelection } from './character/appearance/CjsCharacterC
 export { CjsCharacterSculptingLocation } from './character/appearance/CjsCharacterSculptingLocation.js';
 export { CjsCharacterSculptSelection } from './character/appearance/CjsCharacterSculptSelection.js';
 export { CjsCharacterAvatarBehavior } from './character/behavior/CjsCharacterAvatarBehavior.js';
+export { CjsCharacterColorValue } from './character/catalog/CjsCharacterColorValue.js';
+export { CjsCharacterMaterialProfile } from './character/catalog/CjsCharacterMaterialProfile.js';
+export { CjsCharacterPartMetadata } from './character/catalog/CjsCharacterPartMetadata.js';
+export { CjsCharacterPartSource } from './character/catalog/CjsCharacterPartSource.js';
+export { CjsCharacterPartSourceVersion } from './character/catalog/CjsCharacterPartSourceVersion.js';
+export { CjsCharacterPartType } from './character/catalog/CjsCharacterPartType.js';
+export { CjsCharacterProjectionProfile } from './character/catalog/CjsCharacterProjectionProfile.js';
+export { CjsCharacterRecipeEntry } from './character/catalog/CjsCharacterRecipeEntry.js';
+export { CjsCharacterRecipeProfile } from './character/catalog/CjsCharacterRecipeProfile.js';
 export { CjsCharacterModifierLocation } from './character/composition/CjsCharacterModifierLocation.js';
 export { CjsCharacterModifierSelection } from './character/composition/CjsCharacterModifierSelection.js';
 export { CjsCharacterPaperdoll } from './character/creation/CjsCharacterPaperdoll.js';

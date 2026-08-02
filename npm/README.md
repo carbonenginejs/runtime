@@ -1,12 +1,13 @@
 # @carbonenginejs/runtime-character
 
-GPU-free, I/O-free character source documents and native Trinity character
-classes for CarbonEngineJS.
+GPU-free character source documents, combined-library loading, and native
+Trinity character classes for CarbonEngineJS. Acquisition remains
+caller-owned through structural loaders.
 
 The package has four independent surfaces:
 
-- a source-neutral model-shaped JSON library built from caller-supplied
-  record-map documents;
+- a source-neutral schema-v5 model-shaped JSON library built from
+  caller-supplied record-map documents and prepared profile catalogs;
 - source-backed character record models under `src/character`, hydrated as one
   connected library graph;
 - a standalone, renderer-neutral appearance-plan JSON/model graph under
@@ -16,8 +17,8 @@ The package has four independent surfaces:
 
 The former schema-v1/v2 `CjsCharacter*` graph, recipe, part, material, face,
 control, and deformation models were based on superseded inputs and have been
-removed. Schema-v4 records hydrate directly into the new source-backed classes;
-they are not projected into the old shapes.
+removed. The twelve direct source-document families hydrate into the current
+source-backed classes; they are not projected into the old shapes.
 
 ## Install
 
@@ -49,8 +50,10 @@ own named fields. Proven relationships use native document-local `_id` and
 `_id`; missing positive targets remain visible as their named identifier value.
 
 `CjsCharacterLibrary.from(bigJSON)` and `new CjsCharacterLibrary().SetValues(bigJSON)`
-hydrate the same twelve document collections into `CjsModel` records. The
-library does not retain or translate a second JSON representation. Its normal
+hydrate the same eighteen document collections into `CjsModel` records. Twelve
+direct source documents are required; six folded profile/resource catalogs are
+optional builder inputs. The library does not retain or translate a second
+JSON representation. Its normal
 `GetValues({ refs: true })` output can be serialized and hydrated again.
 
 `CjsCharacterAppearancePlan.from(bigJSON)` hydrates a separate schema-v1 plan
@@ -58,9 +61,8 @@ through the inherited `CjsModel` contract. Its `_id`/`_ref` graph closes within
 the document. It records resolved ownership,
 contributors, textures, reusable coverage, ordered logical composition, final
 bindings, and provenance. The package does not yet resolve a source library
-into that plan or execute it. The working GLES demo is evidence for those
-adapters, but its hardcoded bake order and filename heuristics are not source
-record fields.
+into that plan or execute it. Prototype bake order and filename heuristics are
+not source-record fields.
 
 ## Native and historical classes
 
@@ -74,13 +76,15 @@ different current Carbon curve layouts.
 
 Character asset fetching, decoding, caching, and lifecycle remain with
 `runtime-resource` and outer application adapters. This package stores paths
-and relationships, not downloaded asset bytes.
+and relationships, not downloaded asset bytes. Its library manager can invoke
+one caller-supplied object loader for the combined catalog.
 
 ## Documentation
 
 - [Package documentation](docs/README.md)
 - [Architecture and ownership](docs/architecture.md)
 - [Runtime usage](docs/guides/runtime-usage.md)
+- [Combined library pipeline](docs/guides/combined-library-pipeline.md)
 - [Character document contract](docs/reference/prepared-libraries.md)
 - [Character appearance plans](docs/reference/character-appearance-plans.md)
 - [Class catalog](docs/reference/classes/README.md)

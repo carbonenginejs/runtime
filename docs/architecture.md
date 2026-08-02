@@ -11,11 +11,15 @@ Summary: Separates source-neutral character documents, current Carbon classes, a
 caller JSON
     |
     v
-CjsCharacterLibraryBuilder -> schema-v4 plain JSON
+CjsCharacterLibraryBuilder -> schema-v5 plain JSON
     |
     v
 CjsCharacterLibrary.from / instance.SetValues
     -> same-shaped hydrated source records in src/character
+    |
+    +-> CjsCharacterLibraryManager
+        -> direct combined-library installation or injected object loading
+        -> private lookup indexes
     |
     v
 future source-to-plan resolver
@@ -42,12 +46,14 @@ relationship; relationships are `{ "_ref": id }`. `_id` is not a domain
 identity: `recordID`, `typeID`, `raceID`, and other named fields carry those
 meanings.
 
-`CjsCharacterLibrary.from(bigJSON)` hydrates the twelve established document
+`CjsCharacterLibrary.from(bigJSON)` hydrates eighteen established document
 families into direct source-record classes under `src/character` without
-changing the public field layout. Applying the same values with `SetValues`
-produces the same model graph. `GetValues({ refs: true })` returns serializable
-model-shaped values; graph tokens may be renumbered without changing identity
-relationships.
+changing the public field layout. Twelve direct source documents are required;
+six optional catalogs fold published part types, exact resource candidates,
+metadata, materials, projections, and recipes into the same document. Applying
+the same values with `SetValues` produces the same model graph.
+`GetValues({ refs: true })` returns serializable model-shaped values; graph
+tokens may be renumbered without changing identity relationships.
 
 Zero relationship sentinels become `null`. A positive missing target remains
 its named identifier value rather than becoming an unresolved `_ref` or an
@@ -55,13 +61,13 @@ invented placeholder model.
 
 The hydrated source records do not create render parts, material plans, LOD
 bundles, or atlas passes. Those belong to a later resolver layer whose output
-is the separate backend-neutral appearance-plan contract. The working GLES
-demo is supporting evidence, not the source-record schema.
+is the separate backend-neutral appearance-plan contract. Prototype rendering
+is supporting evidence, not the source-record schema.
 
 ## Appearance-plan boundary
 
 The schema-v1 appearance plan is a standalone JSON graph, not an extension of
-the schema-v4 source library. Its selections, resolved parts, layers, textures,
+the schema-v5 source library. Its selections, resolved parts, layers, textures,
 coverages, composition targets, and bindings close over document-local `_id`
 and `_ref` identities. Source-document identity is retained only as provenance.
 
@@ -116,10 +122,15 @@ download or embed asset bytes. Resource acquisition, decoding, caching,
 preparation, and lifecycle belong to `runtime-resource` and outer adapters;
 render realization belongs to an engine.
 
+Separately published definition records are build inputs, while the runtime
+consumes one combined catalog. `CjsCharacterLibraryManager` may call one
+injected object-loader function to obtain that combined document, but it does
+not discover its source items or load the runtime assets referenced by them.
+
 ## Removed compatibility surface
 
 The schema-v1/v2 `CjsCharacter*` graph, recipes, parts, materials, controls,
 visemes, deformation records, and library hydrator were based on superseded
 data structures. They were removed rather than treated as authority for the
-new document corpus. Consumers must migrate to the schema-v4 builder and the
+new document corpus. Consumers must migrate to the schema-v5 builder and the
 new direct source-record library.

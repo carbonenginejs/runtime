@@ -1,19 +1,18 @@
 # Character appearance plans
 
 Status: Evolving
-Scope: `src/character/planning` selection, coverage, composition, and binding data
+Scope: `@carbonenginejs/runtime-character`
 Audience: Character-runtime and renderer maintainers
-Summary: Defines the standalone JSON and hydrated model boundary used to replace the working GLES demo's implicit character policy with an explicit backend-neutral plan.
+Summary: Defines a standalone JSON and hydrated model boundary for explicit backend-neutral character planning.
 
 ## Evidence boundary
 
-The working GLES character demo and its shared `character-common` modules are
-the current behavioral evidence for this design.
+Prototype character rendering provides behavioral evidence for this design.
 
-The demo mixes three different kinds of information:
+The prototype mixes three different kinds of information:
 
 - decoded or authored facts, such as resource identities, paths, explicit
-  cover/remove category fields, material parameters, sampler bindings, and PNG
+  cover/remove category fields, material parameters, sampler bindings, and image
   placement metadata;
 - derived facts, such as a selected same-LOD configuration/geometry bundle or
   a material binding recovered from a resource; and
@@ -102,7 +101,7 @@ two-document graph and could not hydrate independently.
 
 ## Ordering and layer normalization
 
-The GLES implementation currently loads foundation geometry and configuration,
+The prototype implementation loads foundation geometry and configuration,
 binds base textures, loads configured parts, then bakes shared head/body
 atlases. A fallback helper bakes at a different point. The new plan must contain
 one authoritative pass-array order and both the runtime adapter and tests must
@@ -173,7 +172,7 @@ different placement metadata.
   express category replacement or compatibility instead.
 - Dependency ownership and contribution are different relationships; tuck is
   the clearest current example.
-- FSD byte offsets end at JSON decoding. They are not runtime atlas offsets.
+- Source byte offsets end at JSON decoding. They are not runtime atlas offsets.
 - Paperdoll background identity is an exact portrait-resource relationship;
   light and light-color identities are separate opaque identifiers.
 - A present zero relationship identity is a `null` sentinel, while a positive

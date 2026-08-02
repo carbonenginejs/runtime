@@ -1,11 +1,14 @@
-const DOCUMENT_NAMES = ["ancestries", "archetypes", "bloodlines", "characterAvatarBehaviors", "characterColorLocations", "characterColorNames", "characterModifierLocations", "characterPortraitResources", "characterResources", "characterSculptingLocations", "paperdolls", "races"];
-const RELATIONSHIPS = [["ancestries", ["bloodlineID"], "bloodlines"], ["bloodlines", ["raceID"], "races"], ["characterResources", ["clothingAlsoCoversCategory"], "characterModifierLocations"], ["characterResources", ["clothingAlsoCoversCategory2"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory2"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "modifierLocationID"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "paperdollResourceID"], "characterResources"], ["paperdolls", ["colorSelections", "*", "colorID"], "characterColorLocations"], ["paperdolls", ["colorSelections", "*", "colorNameA"], "characterColorNames"], ["paperdolls", ["colorSelections", "*", "colorNameBC"], "characterColorNames"], ["paperdolls", ["sculptWeights", "*", "sculptLocationID"], "characterSculptingLocations"], ["paperdolls", ["backgroundID"], "characterPortraitResources"]];
+import { CjsCharacterLibrary as _CjsCharacterLibrary } from '../library/CjsCharacterLibrary.js';
+import { CjsCharacterLibraryDocuments as _CjsCharacterLibraryD } from '../library/CjsCharacterLibraryDocuments.js';
+
+const DOCUMENT_NAMES = _CjsCharacterLibraryD.listDocumentNames();
+const RELATIONSHIPS = [["ancestries", ["bloodlineID"], "bloodlines"], ["bloodlines", ["raceID"], "races"], ["characterResources", ["clothingAlsoCoversCategory"], "characterModifierLocations"], ["characterResources", ["clothingAlsoCoversCategory2"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory2"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "modifierLocationID"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "paperdollResourceID"], "characterResources"], ["paperdolls", ["colorSelections", "*", "colorID"], "characterColorLocations"], ["paperdolls", ["colorSelections", "*", "colorNameA"], "characterColorNames"], ["paperdolls", ["colorSelections", "*", "colorNameBC"], "characterColorNames"], ["paperdolls", ["sculptWeights", "*", "sculptLocationID"], "characterSculptingLocations"], ["paperdolls", ["backgroundID"], "characterPortraitResources"], ["characterPartTypes", ["partSource"], "characterPartSources"], ["characterPartSources", ["metadata"], "characterPartMetadata"]];
 const METADATA_FIELDS = ["sourceTarget", "sourceGame", "sourceProvider", "sourceBuild", "generatedAt"];
 
-/** Builds model-shaped character-library JSON from source-document records. */
+/** Builds schema-v5 model-shaped JSON from source documents and prepared catalogs. */
 class CjsCharacterLibraryBuilder {
   static schema = "carbonenginejs.characterLibrary";
-  static schemaVersion = 4;
+  static schemaVersion = 5;
 
   /** Builds one deterministic library value from keyed or named JSON documents. */
   static build(documents = {}, options = {}) {
@@ -21,7 +24,7 @@ class CjsCharacterLibraryBuilder {
         result[field] = RequireNonEmptyString(options[field], `Character library ${field}`);
       }
     }
-    return result;
+    return _CjsCharacterLibrary.validateValues(result);
   }
 
   /** Builds from the single plain input object used by acquisition adapters. */
@@ -51,7 +54,7 @@ function NormalizeDocuments(input) {
       AddDocument(source, name, data);
     }
   }
-  const missing = DOCUMENT_NAMES.filter(name => !source.has(name));
+  const missing = DOCUMENT_NAMES.filter(name => _CjsCharacterLibraryD.isRequiredDocument(name) && !source.has(name));
   const extra = [...source.keys()].filter(name => !DOCUMENT_NAMES.includes(name));
   if (missing.length) {
     throw new Error(`Character library is missing documents: ${missing.join(", ")}`);
@@ -59,7 +62,7 @@ function NormalizeDocuments(input) {
   if (extra.length) {
     throw new Error(`Character library has unsupported documents: ${extra.sort(CompareText).join(", ")}`);
   }
-  return Object.fromEntries(DOCUMENT_NAMES.map(name => [name, source.get(name)]));
+  return Object.fromEntries(DOCUMENT_NAMES.map(name => [name, source.get(name) ?? []]));
 }
 function AddDocument(documents, value, data) {
   const name = String(value ?? "").trim();
@@ -72,6 +75,9 @@ function AddDocument(documents, value, data) {
   RequirePlainObject(data, `Character document ${name}`);
   const records = [];
   for (const recordID of Object.keys(data).sort(CompareIdentities)) {
+    if (!recordID.trim()) {
+      throw new TypeError(`Character document ${name} recordID must be a non-empty string`);
+    }
     const record = data[recordID];
     RequirePlainObject(record, `Character document ${name} record ${recordID}`);
     if (Object.hasOwn(record, "recordID")) {
@@ -91,6 +97,18 @@ function ApplyRelationships(documents) {
   const recordsByDocument = new Map(DOCUMENT_NAMES.map(name => [name, new Map(documents[name].map(record => [record.recordID, record]))]));
   const graphIDs = new Map();
   let nextGraphID = 1;
+  const CreateReference = (targetName, targetID, target) => {
+    const graphKey = `${targetName}:${targetID}`;
+    let graphID = graphIDs.get(graphKey);
+    if (graphID === undefined) {
+      graphID = nextGraphID++;
+      graphIDs.set(graphKey, graphID);
+      target._id = graphID;
+    }
+    return {
+      _ref: graphID
+    };
+  };
   for (const [sourceName, path, targetName] of RELATIONSHIPS) {
     for (const source of documents[sourceName]) {
       VisitRelationshipField(source, path, 0, `${sourceName}.${source.recordID}`, (owner, field, label) => {
@@ -107,17 +125,23 @@ function ApplyRelationships(documents) {
           owner[field] = targetID;
           return;
         }
-        const graphKey = `${targetName}:${targetID}`;
-        let graphID = graphIDs.get(graphKey);
-        if (graphID === undefined) {
-          graphID = nextGraphID++;
-          graphIDs.set(graphKey, graphID);
-          target._id = graphID;
-        }
-        owner[field] = {
-          _ref: graphID
-        };
+        owner[field] = CreateReference(targetName, targetID, target);
       });
+    }
+  }
+  const partTypes = recordsByDocument.get("characterPartTypes");
+  for (const resource of documents.characterResources) {
+    if (Object.hasOwn(resource, "partType")) {
+      throw new TypeError(`Character document characterResources record ${resource.recordID} contains reserved derived relationship partType`);
+    }
+    const sourcePath = resource.resPath;
+    if (sourcePath === null || sourcePath === undefined) {
+      continue;
+    }
+    const targetID = NormalizeIdentity(sourcePath, `characterResources.${resource.recordID}.resPath`);
+    const target = partTypes.get(targetID);
+    if (target) {
+      resource.partType = CreateReference("characterPartTypes", targetID, target);
     }
   }
 }
@@ -151,7 +175,7 @@ function VisitRelationshipField(value, path, index, label, visit) {
   VisitRelationshipField(value[field], path, index + 1, `${label}.${field}`, visit);
 }
 function NormalizeIdentity(value, label) {
-  if (typeof value === "string" && value) {
+  if (typeof value === "string" && value.trim()) {
     return value;
   }
   if (Number.isSafeInteger(value)) {

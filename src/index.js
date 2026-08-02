@@ -1,6 +1,7 @@
 export { CjsCharacterLibraryBuilder } from "./library-builder/CjsCharacterLibraryBuilder.js";
 export { CjsCharacterLibrary } from "./library/CjsCharacterLibrary.js";
 export { CjsCharacterLibraryDocuments } from "./library/CjsCharacterLibraryDocuments.js";
+export { CjsCharacterLibraryManager } from "./library/CjsCharacterLibraryManager.js";
 export * from "./character/index.js";
 export { CjsCharacterRigBinding } from "./controls/CjsCharacterRigBinding.js";
 export * from "./incarna/index.js";
