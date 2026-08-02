@@ -80,6 +80,8 @@ const BUS_VOLUME_RTPC_PROPERTY = 4;
 const BUS_VOLUME_STATE_PROPERTY = 4;
 const DUCK_VOICE_VOLUME_PROPERTY = 0;
 const DUCK_BUS_VOLUME_PROPERTY = 4;
+const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
+const PARAMETRIC_EQ_FILTER_TYPES = Object.freeze(["lowpass", "highpass", "bandpass", "notch", "lowshelf", "highshelf", "peaking"]);
 const SFX_INITIAL_DELAY_PROPERTY = 34;
 const WWISE_OUTPUT_BUS_VOLUME_PROPERTY = 0x0d;
 const SFX_ADDITIVE_ACCUMULATION = 2;
@@ -446,8 +448,11 @@ class CjsAudioLibraryBuilder {
     const busNames = busCatalog ? CreateSfxNameCatalog(options.soundbanksInfo, options.enrichment, graphInspections) : null;
     const busRtpcs = busCatalog ? CreateBusRtpcCatalog(busCatalog, busNames) : null;
     const musicBusIds = includeMusic && busCatalog ? CreateMusicRouteBusIds(inspections.filter(inspection => MUSIC_BANK_NAMES.includes(bankSourceName(inspection.source))), busCatalog) : new Set();
+    const sfxBusIds = includeSfx && busCatalog ? CreateSfxRouteBusIds(graphInspections, busCatalog) : new Set();
+    const routedBusIds = new Set([...sfxBusIds, ...musicBusIds]);
     const busStates = busCatalog ? CreateBusStateCatalog(busCatalog, busNames, musicBusIds) : null;
     const busDucking = busCatalog ? CreateBusDuckingCatalog(busCatalog) : null;
+    const busEffects = busCatalog ? CreateBusEffectCatalog(graphInspections, busCatalog, routedBusIds) : null;
     let eventMedia = {};
     if (!includeSfx) {
       const merged = this.createEventMediaGraphs(graphInspections, {
@@ -465,7 +470,8 @@ class CjsAudioLibraryBuilder {
       embeddedMedia,
       busRtpcs,
       busStates,
-      busDucking
+      busDucking,
+      busEffects
     };
     let assembledOptions = completeOptions;
     library = this.build(assembledOptions);
@@ -525,6 +531,7 @@ class CjsAudioLibraryBuilder {
       busRtpcs = null,
       busStates = null,
       busDucking = null,
+      busEffects = null,
       sourceTarget = null,
       sourceGame = null,
       sourceProvider = null,
@@ -596,6 +603,9 @@ class CjsAudioLibraryBuilder {
     }
     if (busDucking !== null && Object.keys(busDucking.sources ?? {}).length) {
       library.busDucking = NormalizeBusDuckingCatalog(busDucking);
+    }
+    if (busEffects !== null && Object.keys(busEffects.buses ?? {}).length) {
+      library.busEffects = NormalizeBusEffectCatalog(busEffects);
     }
     if (source) {
       library.sourceTarget = source.target;
@@ -2042,6 +2052,97 @@ function CreateBusDuckingCatalog(buses) {
     sources
   };
 }
+function CreateBusEffectCatalog(inspections, buses, routedBusIds) {
+  if (!routedBusIds.size) {
+    return {
+      schemaVersion: 1,
+      buses: {}
+    };
+  }
+  const parsed = CjsBnkFormat.wwise.effectNodesFromBanks(inspections);
+  if (parsed.diagnostics.failed.length || parsed.diagnostics.unsupportedVersions.length) {
+    throw new Error("Audio Bus effect qualification failed");
+  }
+  const result = {};
+  for (const rawBusId of [...routedBusIds].map(Number).sort((left, right) => left - right)) {
+    const bus = buses.get(rawBusId);
+    if (!bus || bus.fx?.bypassAll) continue;
+    const effects = [];
+    for (const slot of [...(bus.fx?.slots ?? [])].sort((left, right) => left.index - right.index)) {
+      if (slot.bypass) continue;
+      if ((Number(slot.flags) & -4) !== 0) {
+        throw new Error(`Audio Bus ${rawBusId} effect ${slot.fxId} has unsupported slot flags`);
+      }
+      const effect = parsed.effects.get(slot.fxId);
+      if (!effect) {
+        throw new Error(`Audio Bus ${rawBusId} effect ${slot.fxId} is missing`);
+      }
+      const expectsShareSet = effect.type === "effect-share-set";
+      if (slot.shareSet !== expectsShareSet) {
+        throw new Error(`Audio Bus ${rawBusId} effect ${slot.fxId} has a mismatched ShareSet flag`);
+      }
+      if (effect.pluginId !== PARAMETRIC_EQ_PLUGIN_ID) continue;
+      effects.push(ParseStaticParametricEq(rawBusId, slot, effect));
+    }
+    if (effects.length) {
+      result[String(rawBusId)] = effects;
+    }
+  }
+  return {
+    schemaVersion: 1,
+    buses: result
+  };
+}
+function ParseStaticParametricEq(busId, slot, effect) {
+  if (effect.parameterBlock?.byteLength !== 56) {
+    throw new Error(`Wwise Parametric EQ ${effect.id} on bus ${busId} has an unsupported parameter block`);
+  }
+  if (effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
+    throw new Error(`Wwise Parametric EQ ${effect.id} on bus ${busId} is not static`);
+  }
+  const bytes = effect.parameterBlock;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const bands = [];
+  let at = 0;
+  for (let index = 0; index < 3; index++) {
+    const filterTypeId = view.getUint32(at, true);
+    const gainDb = view.getFloat32(at + 4, true);
+    const frequencyHz = view.getFloat32(at + 8, true);
+    const q = view.getFloat32(at + 12, true);
+    const enabledRaw = view.getUint8(at + 16);
+    const enabled = enabledRaw !== 0;
+    const filterType = PARAMETRIC_EQ_FILTER_TYPES[filterTypeId];
+    if (!filterType || !Number.isFinite(gainDb) || !Number.isFinite(frequencyHz) || frequencyHz <= 0 || !Number.isFinite(q) || q <= 0 || enabledRaw > 1) {
+      throw new Error(`Wwise Parametric EQ ${effect.id} on bus ${busId} has invalid band ${index}`);
+    }
+    if (enabled) {
+      bands.push({
+        index,
+        filterType,
+        gainDb,
+        frequencyHz,
+        q
+      });
+    }
+    at += 17;
+  }
+  const outputGainDb = view.getFloat32(at, true);
+  if (!Number.isFinite(outputGainDb)) {
+    throw new Error(`Wwise Parametric EQ ${effect.id} on bus ${busId} has invalid output gain`);
+  }
+  const processLfeRaw = view.getUint8(at + 4);
+  if (processLfeRaw !== 1) {
+    throw new Error(`Wwise Parametric EQ ${effect.id} on bus ${busId} requires unsupported independent LFE routing`);
+  }
+  return {
+    effectId: String(effect.id),
+    slotIndex: Number(slot.index),
+    type: "parametric-eq",
+    bands,
+    outputGainDb,
+    processLfe: true
+  };
+}
 function NormalizeBusDuckingCatalog(value) {
   const sources = {};
   for (const sourceBusId of Object.keys(value.sources ?? {}).sort((left, right) => Number(left) - Number(right))) {
@@ -2062,6 +2163,29 @@ function NormalizeBusDuckingCatalog(value) {
   return {
     schemaVersion: 1,
     sources
+  };
+}
+function NormalizeBusEffectCatalog(value) {
+  const buses = {};
+  for (const busId of Object.keys(value.buses ?? {}).sort((left, right) => Number(left) - Number(right))) {
+    buses[String(busId)] = value.buses[busId].map(effect => ({
+      effectId: String(effect.effectId),
+      slotIndex: Number(effect.slotIndex),
+      type: String(effect.type),
+      bands: effect.bands.map(band => ({
+        index: Number(band.index),
+        filterType: String(band.filterType),
+        gainDb: Number(band.gainDb),
+        frequencyHz: Number(band.frequencyHz),
+        q: Number(band.q)
+      })),
+      outputGainDb: Number(effect.outputGainDb),
+      processLfe: effect.processLfe === true
+    }));
+  }
+  return {
+    schemaVersion: 1,
+    buses
   };
 }
 function CreateSfxBusRouting(parsed, rawID, buses) {
@@ -2108,6 +2232,22 @@ function CreateMusicRouteBusIds(inspections, buses) {
   for (const [id, node] of parsed.nodes) {
     if (node.type !== "music-track") continue;
     const routing = CreateMusicBusRouting(parsed.nodes, id, buses);
+    for (const busId of routing?.busPathIds ?? []) {
+      result.add(String(busId));
+    }
+  }
+  return result;
+}
+function CreateSfxRouteBusIds(inspections, buses) {
+  if (!inspections.length) return new Set();
+  const parsed = CjsBnkFormat.wwise.sfxNodesFromBanks(inspections);
+  if (parsed.diagnostics.failed.length) {
+    throw new Error("SFX bus-route qualification failed");
+  }
+  const result = new Set();
+  for (const [id, node] of parsed.nodes) {
+    if (node.type !== "sound") continue;
+    const routing = CreateSfxBusRouting(parsed, id, buses);
     for (const busId of routing?.busPathIds ?? []) {
       result.add(String(busId));
     }

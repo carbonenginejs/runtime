@@ -87,6 +87,7 @@ function FakeContext()
         type: "",
         frequency: FakeParam(0),
         Q: FakeParam(1),
+        gain: FakeParam(0),
         connectedTo: null,
         disconnected: false,
         connect(target)
@@ -157,6 +158,7 @@ function Harness({
   busRtpcs,
   busStates,
   busDuckingController,
+  busEffects,
 } = {})
 {
   const context = FakeContext();
@@ -184,6 +186,7 @@ function Harness({
     busRtpcs,
     busStates,
     busDuckingController,
+    busEffects,
   });
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
@@ -5928,6 +5931,74 @@ test("authored Bus Volume remains on the bus stage below the voice silence thres
   backend.PostEvent(2, 1, 0, emitter, "lower");
   assert.equal(voiceGain.value, 1);
   assert.ok(Math.abs(busGain.value - 10 ** (-101 / 20)) < 1e-12);
+});
+
+test("routed SFX voices realize static Wwise Parametric EQ in the dry route", async () =>
+{
+  const busEffects = {
+    schemaVersion: 1,
+    buses: {
+      "500": [ {
+        effectId: "900",
+        slotIndex: 1,
+        type: "parametric-eq",
+        bands: [
+          {
+            index: 1,
+            filterType: "peaking",
+            gainDb: -13,
+            frequencyHz: 120,
+            q: 5,
+          },
+          {
+            index: 2,
+            filterType: "highshelf",
+            gainDb: 0,
+            frequencyHz: 12000,
+            q: 1,
+          },
+        ],
+        outputGainDb: 0,
+        processLfe: true,
+      } ],
+    },
+  };
+  const { backend, emitter, context } = Harness({
+    busEffects,
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 2 },
+        loop: false,
+        programSlotId: "0:0",
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: [ "500" ],
+        busPathIds: [ "500" ],
+        getGain: () => 1,
+      } ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+
+  const [ peaking, shelf ] = context.filters;
+  const voiceGain = context.sources[0].connectedTo;
+  const busGain = voiceGain.connectedTo;
+
+  assert.equal(context.filters.length, 2);
+  assert.equal(peaking.type, "peaking");
+  assert.equal(peaking.frequency.value, 120);
+  assert.equal(peaking.Q.value, 5);
+  assert.equal(peaking.gain.value, -13);
+  assert.equal(shelf.type, "highshelf");
+  assert.equal(busGain.connectedTo, peaking);
+  assert.equal(peaking.connectedTo, shelf);
+  assert.equal(shelf.connectedTo.gain.value, 1, "EQ feeds the stop envelope");
+
+  context.sources[0].onended();
+  assert.equal(peaking.disconnected, true);
+  assert.equal(shelf.disconnected, true);
 });
 
 test("routed SFX activity ducks future target voices and releases on source end", async () =>

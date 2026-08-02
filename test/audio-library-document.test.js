@@ -281,6 +281,56 @@ test("validates and freezes the optional Audio Bus ducking catalog", () =>
     }
 });
 
+test("validates and freezes the optional static Audio Bus effect catalog", () =>
+{
+    const source = CreateDocument();
+
+    source.busEffects = {
+        schemaVersion: 1,
+        buses: {
+            "500": [ {
+                effectId: "900",
+                slotIndex: 1,
+                type: "parametric-eq",
+                bands: [ {
+                    index: 1,
+                    filterType: "peaking",
+                    gainDb: -13,
+                    frequencyHz: 120,
+                    q: 5,
+                } ],
+                outputGainDb: 0,
+                processLfe: true,
+            } ],
+        },
+    };
+
+    const installed = installAudioLibraryDocument(source);
+
+    assert.equal(installed.busEffects.buses["500"][0].bands[0].q, 5);
+    assert.notEqual(installed.busEffects, source.busEffects);
+    assert.equal(Object.isFrozen(installed.busEffects.buses["500"]), true);
+    assert.equal(
+        Object.isFrozen(installed.busEffects.buses["500"][0].bands),
+        true,
+    );
+
+    for (const mutate of [
+        value => { value.schemaVersion = 2; },
+        value => { value.buses["0500"] = value.buses["500"]; },
+        value => { value.buses["500"][0].type = "compressor"; },
+        value => { value.buses["500"][0].bands[0].filterType = "allpass"; },
+        value => { value.buses["500"][0].bands[0].frequencyHz = 0; },
+        value => { value.buses["500"][0].processLfe = false; },
+    ])
+    {
+        const invalid = structuredClone(source);
+
+        mutate(invalid.busEffects);
+        assert.throws(() => validateAudioLibraryDocument(invalid));
+    }
+});
+
 test("validates and installs routed music-track bus metadata", () =>
 {
     const source = CreateDocument();

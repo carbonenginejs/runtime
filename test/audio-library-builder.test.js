@@ -3256,6 +3256,189 @@ test("complete construction projects typed Audio Bus ducking once per source", a
     });
 });
 
+test("complete construction projects routed static Wwise Parametric EQ", async () =>
+{
+    const library = await CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {},
+            SoundBanks: {
+                "init.bnk": {
+                    name: "init",
+                    path: "\\SoundBanks\\init.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/init.bnk",
+            storagePath: "banks/init.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({ overrideBusId: 500 }),
+                        },
+                        {
+                            type: 8,
+                            id: 500,
+                            payload: busPayload({
+                                effects: [ {
+                                    slotIndex: 1,
+                                    effectId: 900,
+                                    flags: 2,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: 16,
+                            id: 900,
+                            payload: parametricEqEffectPayload({
+                                bands: [
+                                    {
+                                        filterTypeId: 4,
+                                        gainDb: 0,
+                                        frequencyHz: 120,
+                                        q: 1,
+                                        enabled: false,
+                                    },
+                                    {
+                                        filterTypeId: 6,
+                                        gainDb: -13,
+                                        frequencyHz: 120,
+                                        q: 5,
+                                        enabled: true,
+                                    },
+                                    {
+                                        filterTypeId: 5,
+                                        gainDb: 0,
+                                        frequencyHz: 12000,
+                                        q: 1,
+                                        enabled: true,
+                                    },
+                                ],
+                                outputGainDb: -3,
+                                processLfe: true,
+                            }),
+                        },
+                    ],
+                    media: [],
+                },
+            };
+        },
+    });
+
+    assert.deepEqual(library.busEffects, {
+        schemaVersion: 1,
+        buses: {
+            "500": [ {
+                effectId: "900",
+                slotIndex: 1,
+                type: "parametric-eq",
+                bands: [
+                    {
+                        index: 1,
+                        filterType: "peaking",
+                        gainDb: -13,
+                        frequencyHz: 120,
+                        q: 5,
+                    },
+                    {
+                        index: 2,
+                        filterType: "highshelf",
+                        gainDb: 0,
+                        frequencyHz: 12000,
+                        q: 1,
+                    },
+                ],
+                outputGainDb: -3,
+                processLfe: true,
+            } ],
+        },
+    });
+});
+
+test("routed Parametric EQ qualification rejects unsupported static forms", async () =>
+{
+    const bands = [
+        {
+            filterTypeId: 4,
+            gainDb: 0,
+            frequencyHz: 120,
+            q: 1,
+            enabled: false,
+        },
+        {
+            filterTypeId: 6,
+            gainDb: -13,
+            frequencyHz: 120,
+            q: 5,
+            enabled: true,
+        },
+        {
+            filterTypeId: 5,
+            gainDb: 0,
+            frequencyHz: 12000,
+            q: 1,
+            enabled: true,
+        },
+    ];
+    const customLibrary = await BuildRoutedEffectLibrary({
+        effectType: 17,
+        effectFlags: 0,
+    });
+
+    assert.equal(customLibrary.busEffects.buses["500"][0].effectId, "900");
+
+    await assert.rejects(
+        BuildRoutedEffectLibrary({
+            effectPayload: parametricEqEffectPayload({
+                bands,
+                processLfe: false,
+            }),
+        }),
+        /independent LFE routing/,
+    );
+    await assert.rejects(
+        BuildRoutedEffectLibrary({
+            effectPayload: parametricEqEffectPayload({
+                bands: bands.map((band, index) => index === 1
+                    ? { ...band, enabledRaw: 2 }
+                    : band),
+            }),
+        }),
+        /invalid band 1/,
+    );
+    await assert.rejects(
+        BuildRoutedEffectLibrary({ effectFlags: 0 }),
+        /mismatched ShareSet flag/,
+    );
+    await assert.rejects(
+        BuildRoutedEffectLibrary({
+            effectPayload: parametricEqEffectPayload({
+                bands,
+                propertyValues: [ { propertyId: 1, value: 2 } ],
+            }),
+        }),
+        /is not static/,
+    );
+});
+
 test("complete construction projects effective-Immediate Bus Volume States", async () =>
 {
     const library = await CjsAudioLibraryBuilder.buildFromBanks({
@@ -6077,6 +6260,120 @@ function soundPayload({
         .bytes();
 }
 
+function parametricEqEffectPayload({
+    bands,
+    outputGainDb = 0,
+    processLfe = true,
+    propertyValues = [],
+} = {})
+{
+    const parameters = new TestWriter();
+
+    for (const band of bands)
+    {
+        parameters
+            .u32(band.filterTypeId)
+            .f32(band.gainDb)
+            .f32(band.frequencyHz)
+            .f32(band.q)
+            .u8(band.enabledRaw ?? (band.enabled ? 1 : 0));
+    }
+    parameters.f32(outputGainDb).u8(processLfe ? 1 : 0);
+    const parameterBlock = parameters.bytes();
+    const writer = new TestWriter()
+        .u32(0x00690003)
+        .u32(parameterBlock.byteLength)
+        .append(parameterBlock)
+        .u8(0)
+        .u16(0)
+        .u8(0)
+        .u8(0)
+        .u16(propertyValues.length);
+
+    for (const property of propertyValues)
+    {
+        writer
+            .variable(property.propertyId)
+            .u8(property.accumulation ?? 0)
+            .f32(property.value);
+    }
+    return writer.bytes();
+}
+
+function BuildRoutedEffectLibrary({
+    effectType = 16,
+    effectFlags = 2,
+    effectPayload = null,
+} = {})
+{
+    const defaultBands = [
+        { filterTypeId: 4, gainDb: 0, frequencyHz: 120, q: 1, enabled: false },
+        { filterTypeId: 6, gainDb: -13, frequencyHz: 120, q: 5, enabled: true },
+        { filterTypeId: 5, gainDb: 0, frequencyHz: 12000, q: 1, enabled: true },
+    ];
+
+    return CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {},
+            SoundBanks: {
+                "init.bnk": {
+                    name: "init",
+                    path: "\\SoundBanks\\init.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/init.bnk",
+            storagePath: "banks/init.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({ overrideBusId: 500 }),
+                        },
+                        {
+                            type: 8,
+                            id: 500,
+                            payload: busPayload({
+                                effects: [ {
+                                    slotIndex: 1,
+                                    effectId: 900,
+                                    flags: effectFlags,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: effectType,
+                            id: 900,
+                            payload: effectPayload ?? parametricEqEffectPayload({
+                                bands: defaultBands,
+                            }),
+                        },
+                    ],
+                    media: [],
+                },
+            };
+        },
+    });
+}
+
 function BuildSpatialPrecedenceLibrary(overrides = {})
 {
     return CjsAudioLibraryBuilder.buildFromBanks({
@@ -6204,6 +6501,8 @@ function busPayload({
     recoveryTime = 0,
     maxDuckVolume = 0,
     ducks = [],
+    effects = [],
+    bypassAllEffects = false,
     rtpcs = [],
     stateProperties = [],
     stateGroups = [],
@@ -6231,9 +6530,19 @@ function busPayload({
             .u8(duck.targetPropertyId);
     }
 
-    writer
-        .u8(0).u8(0)
-        .u16(rtpcs.length);
+    writer.u8(effects.length);
+    if (effects.length)
+    {
+        writer.u8(bypassAllEffects ? 1 : 0);
+        for (const effect of effects)
+        {
+            writer
+                .u8(effect.slotIndex)
+                .u32(effect.effectId)
+                .u8(effect.flags ?? 0);
+        }
+    }
+    writer.u8(0).u16(rtpcs.length);
 
     for (const rtpc of rtpcs)
     {

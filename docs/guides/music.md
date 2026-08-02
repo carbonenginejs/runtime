@@ -57,6 +57,12 @@ bus also contributes its separate Output Bus Volume; values on descendants
 without an output-bus override do not apply. The
 application music slider remains an independent downstream control.
 
+When the library contains a qualified static `busEffects` catalog, the
+built-in music engine also inserts its routed Parametric EQ bands between the
+track route gain and segment gain. EVE build 3444265 currently has no music
+track whose dry ancestry reaches either qualified EQ instance; this support is
+the generic portable contract, not a claim of additional EVE music coverage.
+
 The library builder identifies authored music by typed Play/Stop targets and
 music argument groups across every selected bank. Event names do not need a
 `music_` prefix and event actions do not need to live in `common.bnk`. When one

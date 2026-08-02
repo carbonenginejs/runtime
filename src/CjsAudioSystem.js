@@ -87,6 +87,8 @@ export class CjsAudioSystem
 
     #busDucking = null;
 
+    #busEffects = null;
+
     #busDuckingController = null;
 
     #providedUpdateContext = null;
@@ -117,6 +119,7 @@ export class CjsAudioSystem
         busRtpcs,
         busStates,
         busDucking,
+        busEffects,
     } = {})
     {
         this.#createContext = createContext ?? null;
@@ -151,6 +154,7 @@ export class CjsAudioSystem
         this.#busRtpcs = busRtpcs ?? null;
         this.#busStates = busStates ?? null;
         this.#busDucking = busDucking ?? null;
+        this.#busEffects = busEffects ?? null;
         this.#providedUpdateContext = updateContext ?? null;
         if (audioMetadata)
         {
@@ -212,6 +216,7 @@ export class CjsAudioSystem
                     busRtpcs: this.#busRtpcs,
                     busStates: this.#busStates,
                     busDuckingController: this.#busDuckingController,
+                    busEffects: this.#busEffects,
                 });
                 if (!this.musicEngine)
                 {
@@ -230,6 +235,7 @@ export class CjsAudioSystem
                             busRtpcs: this.#busRtpcs,
                             busStates: this.#busStates,
                             busDuckingController: this.#busDuckingController,
+                            busEffects: this.#busEffects,
                             getGlobalRTPC: (name, at) =>
                                 this.backend.GetGlobalRTPCValue(name, at),
                             getGlobalRTPCTransitionBoundaries: from =>
@@ -257,6 +263,7 @@ export class CjsAudioSystem
                             busRtpcs: this.#busRtpcs,
                             busStates: this.#busStates,
                             busDuckingController: this.#busDuckingController,
+                            busEffects: this.#busEffects,
                             getGlobalRTPC: (name, at) =>
                                 this.backend.GetGlobalRTPCValue(name, at),
                             getGlobalRTPCTransitionBoundaries: from =>

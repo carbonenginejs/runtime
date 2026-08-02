@@ -108,8 +108,10 @@ function FakeContext()
 {
   const context = {
     currentTime: 0,
+    sampleRate: 48000,
     destination: { name: "destination" },
     gains: [],
+    filters: [],
     sources: [],
     createGain()
     {
@@ -143,6 +145,21 @@ function FakeContext()
         disconnect() { node.disconnected = true; }
       };
       context.gains.push(node);
+      return node;
+    },
+    createBiquadFilter()
+    {
+      const node = {
+        type: "",
+        frequency: { value: 0 },
+        Q: { value: 1 },
+        gain: { value: 0 },
+        connectedTo: null,
+        disconnected: false,
+        connect(target) { node.connectedTo = target; },
+        disconnect() { node.disconnected = true; },
+      };
+      context.filters.push(node);
       return node;
     },
     createBufferSource()
@@ -2556,6 +2573,65 @@ test("music track routes combine authored base gain with live ancestor Bus Volum
   engine.ExecuteAction("stop", 703, 0);
   engine.Process();
   assert.equal(routeGain.disconnected, true);
+});
+
+test("music track dry routes realize static Wwise Parametric EQ", async () =>
+{
+  const busEffects = {
+    schemaVersion: 1,
+    buses: {
+      "500": [ {
+        effectId: "900",
+        slotIndex: 1,
+        type: "parametric-eq",
+        bands: [
+          {
+            index: 1,
+            filterType: "peaking",
+            gainDb: -13,
+            frequencyHz: 120,
+            q: 5,
+          },
+          {
+            index: 2,
+            filterType: "highshelf",
+            gainDb: 0,
+            frequencyHz: 12000,
+            q: 1,
+          },
+        ],
+        outputGainDb: 0,
+        processLfe: true,
+      } ],
+    },
+  };
+  const { context, engine } = Harness(graph =>
+  {
+    Object.assign(graph.nodes[TRACK_A], {
+      outputBusId: "500",
+      busPathIds: [ "500" ],
+    });
+  }, { busEffects });
+
+  engine.PostEvent("music_test_play", 704, () => {});
+  await tick();
+
+  const [ peaking, shelf ] = context.filters;
+  const routeGain = context.sources[0].connectedTo;
+
+  assert.equal(context.filters.length, 2);
+  assert.equal(peaking.type, "peaking");
+  assert.equal(peaking.frequency.value, 120);
+  assert.equal(peaking.Q.value, 5);
+  assert.equal(peaking.gain.value, -13);
+  assert.equal(routeGain.connectedTo, peaking);
+  assert.equal(peaking.connectedTo, shelf);
+  assert.equal(shelf.connectedTo, context.gains[2]);
+
+  engine.ExecuteAction("stop", 704, 0);
+  engine.Process();
+  assert.equal(peaking.disconnected, true);
+  assert.equal(shelf.disconnected, true);
 });
 
 test("music routes apply dynamic ancestor Bus Volume RTPC scaling", async () =>

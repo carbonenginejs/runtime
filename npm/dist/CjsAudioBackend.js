@@ -1,6 +1,7 @@
 import { evaluateWwiseInterpolation } from './internal/wwiseCurve.js';
 import { indexBusRtpcCatalog, busRtpcCatalogUsesControl, evaluateBusRtpcGainDb } from './internal/busRtpc.js';
 import { indexBusStateCatalog, evaluateBusStateGainDb } from './internal/busState.js';
+import { indexBusEffectCatalog, createBusEffectChain } from './internal/busEffects.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
@@ -53,6 +54,7 @@ class CjsAudioBackend {
   #busRtpcCatalog = new Map();
   #busStateCatalog = new Map();
   #busDuckingController = null;
+  #busEffectCatalog = new Map();
   #unsubscribeBusDucking = null;
   #nextPlayingID = 1;
 
@@ -81,7 +83,8 @@ class CjsAudioBackend {
     applyRTPC,
     busRtpcs,
     busStates,
-    busDuckingController
+    busDuckingController,
+    busEffects
   } = {}) {
     this.#context = context ?? null;
     this.#loadBuffer = loadBuffer ?? null;
@@ -97,6 +100,7 @@ class CjsAudioBackend {
     this.#busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
     this.#busStateCatalog = indexBusStateCatalog(busStates);
     this.#busDuckingController = busDuckingController ?? null;
+    this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
     this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(() => this.#RefreshBusDucking()) ?? null;
     if (this.#context) {
       this.#masterGain = this.#context.createGain();
@@ -2343,6 +2347,7 @@ class CjsAudioBackend {
     const stopGain = this.#context.createGain();
     const lowPassFilter = descriptor.getLowPass ? this.#context.createBiquadFilter?.() ?? null : null;
     const highPassFilter = descriptor.getHighPass ? this.#context.createBiquadFilter?.() ?? null : null;
+    const busEffectChain = createBusEffectChain(this.#context, this.#busEffectCatalog, descriptor.busPathIds);
     if (lowPassFilter) {
       lowPassFilter.type = "lowpass";
       SetAudioParam(lowPassFilter.frequency, WWISE_FILTER_CUTOFF_HZ[0], this.#context);
@@ -2375,9 +2380,11 @@ class CjsAudioBackend {
       }
       stopGain.connect(emitterNodes.flatGain);
     }
-    gain.connect(transitionGain ?? busGain ?? stopGain);
-    transitionGain?.connect(busGain ?? stopGain);
-    busGain?.connect(stopGain);
+    const busEffectInput = busEffectChain?.input ?? stopGain;
+    gain.connect(transitionGain ?? busGain ?? busEffectInput);
+    transitionGain?.connect(busGain ?? busEffectInput);
+    busGain?.connect(busEffectInput);
+    busEffectChain?.output?.connect(stopGain);
     if (transitionGain && descriptor.switchFadeInMs > 0) {
       SetAudioParam(transitionGain.gain, 0, this.#context);
     }
@@ -2440,6 +2447,7 @@ class CjsAudioBackend {
       stopGain,
       lowPassFilter,
       highPassFilter,
+      busEffectNodes: busEffectChain?.nodes ?? [],
       fadeScheduled: false,
       fadeStartContextTime: null,
       transitionFadeScheduled: false,
@@ -3140,6 +3148,9 @@ class CjsAudioBackend {
       voice.fadeGain?.disconnect?.();
       voice.transitionGain?.disconnect?.();
       voice.busGain?.disconnect?.();
+      for (const node of voice.busEffectNodes ?? []) {
+        node.disconnect?.();
+      }
       voice.stopGain?.disconnect?.();
       slot.voices.delete(voice);
       const index = record.voices.indexOf(voice);
@@ -3498,6 +3509,9 @@ class CjsAudioBackend {
         voice.fadeGain?.disconnect?.();
         voice.transitionGain?.disconnect?.();
         voice.busGain?.disconnect?.();
+        for (const node of voice.busEffectNodes ?? []) {
+          node.disconnect?.();
+        }
         voice.stopGain?.disconnect?.();
       }
       if (record.source) {

@@ -18,6 +18,8 @@ Bus Volume action state, global Bus Volume RTPC curves, and global Bus Volume
 State contributions without changing the application SFX or music sliders.
 It also projects v150 Audio Bus auto-ducking and coordinates actual scheduled
 SFX and built-in music source activity through one shared clock.
+Routed static Wwise Parametric EQ slots are projected into one portable catalog
+and realized on the corresponding collapsed dry routes.
 
 ## Music NodeBase contract
 
@@ -117,12 +119,33 @@ route. The builder keeps raw graph values because Wwise interpolates them
 before converting `-1` to `-96.3 dB` and other values with
 `20 * log10(value + 1)`. Keeping these contributions distinct preserves their
 future placement when real bus and effect stages replace the collapsed gain.
-Effects, auxiliary sends and chaining, wet-path duck placement, effect-tail bus
-activity, meters, virtual-voice behavior, and spatial diffraction remain
-separate runtime slices. Those
+Static v150 Parametric EQ is the one implemented effect adapter. Auxiliary
+sends and complete ordered effect chaining, dynamic effect controls, nonlinear
+effects, wet-path duck placement, effect-tail bus activity, meters,
+virtual-voice behavior, and spatial diffraction remain separate runtime
+slices. Those
 features need their complete effective send/property projection, qualified
 plug-in adapters, and signal semantics; the typed catalogs do not imply that
 playback is implemented.
+
+EVE build 3444265 has 104 Parametric EQ definitions. Exactly two static Custom
+instances occur on realized dry routes: one reaches 3,717 SFX leaves and
+applies a peaking band at `-13 dB`, `120 Hz`, `Q=5` plus an authored-neutral
+high shelf; the other reaches 172 SFX leaves and is entirely neutral. Their
+combined reach is 3,889 SFX leaves and zero music tracks. Neither routed
+instance has RTPC, State, property-value, or media controls. Eleven EQ
+definitions outside the qualified Audio Bus slots do have controls and are not
+silently promoted; their SFX NodeBase effect slots remain unsupported.
+
+The builder follows pinned wwiser's version-150 56-byte parameter layout,
+validates exact boolean bytes and ShareSet/Custom slot identity, preserves bus,
+slot, and band order, and rejects routed `processLfe:false` until an independent
+browser LFE branch exists. The current Web Audio realization distributes each
+static EQ across source routes as an audible adaptation. It is not exact
+shared-bus placement under downstream gain automation, moving spatialization,
+or nonlinear stages. The audible EVE EQ follows an active Compressor in Wwise
+slot order, so adding Compressor or Peak Limiter requires migration to a shared
+ordered bus graph rather than stacking a nonlinear stage per voice.
 
 EVE build 3444265 authors 60 Bus Volume RTPC curves on 56 buses, driven by 18
 Game Parameters. Every one of the 16,263 serialized SFX leaves and 2,484 music
@@ -160,8 +183,9 @@ Authoring fixture remains desirable because older documentation used
 target-oriented wording.
 
 Voice Volume and Bus Volume remain separate typed target properties. The
-present engine has no auxiliary send or effect graph, so both contributions
-are audibly combined only on its collapsed dry-route gain. This does not claim
+present engine has no auxiliary-send or complete shared effect graph, so both
+contributions are audibly combined only on its collapsed dry-route gain. This
+does not claim
 future wet-path equivalence: Voice Volume must also affect sends, Bus Volume
 targets final bus volume, and source-side effect tails may extend activity.
 See Audiokinetic's

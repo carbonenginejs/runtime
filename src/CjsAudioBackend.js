@@ -23,6 +23,10 @@ import {
     evaluateBusStateGainDb,
     indexBusStateCatalog,
 } from "./internal/busState.js";
+import {
+    createBusEffectChain,
+    indexBusEffectCatalog,
+} from "./internal/busEffects.js";
 
 const DEFAULT_FADE_SECONDS = 1;
 const DEFAULT_RENDER_QUANTUM_SECONDS = 128 / 48000;
@@ -100,6 +104,8 @@ export class CjsAudioBackend
 
     #busDuckingController = null;
 
+    #busEffectCatalog = new Map();
+
     #unsubscribeBusDucking = null;
 
     #nextPlayingID = 1;
@@ -130,6 +136,7 @@ export class CjsAudioBackend
         busRtpcs,
         busStates,
         busDuckingController,
+        busEffects,
     } = {})
     {
         this.#context = context ?? null;
@@ -158,6 +165,7 @@ export class CjsAudioBackend
         this.#busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
         this.#busStateCatalog = indexBusStateCatalog(busStates);
         this.#busDuckingController = busDuckingController ?? null;
+        this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
         this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(
             () => this.#RefreshBusDucking(),
         ) ?? null;
@@ -4064,6 +4072,11 @@ export class CjsAudioBackend
         const highPassFilter = descriptor.getHighPass
             ? this.#context.createBiquadFilter?.() ?? null
             : null;
+        const busEffectChain = createBusEffectChain(
+            this.#context,
+            this.#busEffectCatalog,
+            descriptor.busPathIds,
+        );
 
         if (lowPassFilter)
         {
@@ -4126,9 +4139,12 @@ export class CjsAudioBackend
             }
             stopGain.connect(emitterNodes.flatGain);
         }
-        gain.connect(transitionGain ?? busGain ?? stopGain);
-        transitionGain?.connect(busGain ?? stopGain);
-        busGain?.connect(stopGain);
+        const busEffectInput = busEffectChain?.input ?? stopGain;
+
+        gain.connect(transitionGain ?? busGain ?? busEffectInput);
+        transitionGain?.connect(busGain ?? busEffectInput);
+        busGain?.connect(busEffectInput);
+        busEffectChain?.output?.connect(stopGain);
         if (transitionGain && descriptor.switchFadeInMs > 0)
         {
             SetAudioParam(
@@ -4208,6 +4224,7 @@ export class CjsAudioBackend
             stopGain,
             lowPassFilter,
             highPassFilter,
+            busEffectNodes: busEffectChain?.nodes ?? [],
             fadeScheduled: false,
             fadeStartContextTime: null,
             transitionFadeScheduled: false,
@@ -5582,6 +5599,10 @@ export class CjsAudioBackend
             voice.fadeGain?.disconnect?.();
             voice.transitionGain?.disconnect?.();
             voice.busGain?.disconnect?.();
+            for (const node of voice.busEffectNodes ?? [])
+            {
+                node.disconnect?.();
+            }
             voice.stopGain?.disconnect?.();
             slot.voices.delete(voice);
             const index = record.voices.indexOf(voice);
@@ -6213,6 +6234,10 @@ export class CjsAudioBackend
                 voice.fadeGain?.disconnect?.();
                 voice.transitionGain?.disconnect?.();
                 voice.busGain?.disconnect?.();
+                for (const node of voice.busEffectNodes ?? [])
+                {
+                    node.disconnect?.();
+                }
                 voice.stopGain?.disconnect?.();
             }
 

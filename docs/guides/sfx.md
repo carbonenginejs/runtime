@@ -288,13 +288,14 @@ source begins each target's Fade Out, overlapping sources on the same bus hold
 one duck, and the last end starts Recovery followed by Fade In. Different
 source buses add in decibels, and nonlinear fades interpolate in linear gain
 with the authored Wwise curve. Voice Volume and Bus Volume targets remain
-distinct in the portable catalog, although the current effect-free dry route
+distinct in the portable catalog, although the current collapsed dry route
 sums both into its per-route bus gain.
 
 This remains a focused audible adaptation rather than full Wwise bus
 processing. Voice Volume must move before a future dry/wet send split, while
-Bus Volume belongs at the final bus stage; effects, auxiliary sends, meters,
-and effect-tail-driven bus activity remain deferred as described in the
+Bus Volume belongs at the final bus stage. Static Parametric EQ is the only
+qualified effect adapter; auxiliary sends, nonlinear effects, meters, and
+effect-tail-driven bus activity remain deferred as described in the
 [routing reference](../reference/wwise-resource-routing-handoff.md).
 Delay is measured from the action post. Value randomizers are signed offsets
 sampled once, and transitions use the decoded Wwise curve from the authored
@@ -437,6 +438,45 @@ target properties 0 (Voice Volume) and 4 (Bus Volume), supported curves 0-9,
 finite nonpositive dB values, nonnegative integer timings, and cycle-safe
 non-parent targets. Auxiliary Bus sources and malformed or ambiguous rules
 fail closed.
+
+The optional library-level `busEffects` catalog stores routed static Wwise
+Parametric EQ slots once per bus:
+
+```js
+busEffects: {
+    schemaVersion: 1,
+    buses: {
+        "500": [ {
+            effectId: "900",
+            slotIndex: 1,
+            type: "parametric-eq",
+            bands: [ {
+                index: 1,
+                filterType: "peaking",
+                gainDb: -13,
+                frequencyHz: 120,
+                q: 5,
+            } ],
+            outputGainDb: 0,
+            processLfe: true,
+        } ],
+    },
+}
+```
+
+The v150 adapter follows wwiser's 56-byte Parametric EQ layout, retains slot
+and band order, and realizes enabled bands with Web Audio biquads on SFX and
+built-in music dry routes. Routed EQs with RTPC, State, property, or media
+controls fail closed. `processLfe` must be true until the browser runtime owns
+an independent LFE branch. Authored-neutral EQs remain in the catalog but do
+not allocate browser nodes.
+
+The current realization distributes each static EQ onto source routes as an
+audible browser adaptation. It is not exact shared-bus placement when
+downstream gain automation or moving spatialization varies between voices, or
+when the authored Wwise slot sits before or after a Compressor, Peak Limiter,
+or another nonlinear stage. Full placement requires a shared ordered bus graph
+rather than per-source distribution.
 
 The bank builder projects only named, Immediate Volume, Pitch, and filter
 state tables with their exact supported accumulation modes. A group containing

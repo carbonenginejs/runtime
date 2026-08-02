@@ -13,6 +13,10 @@ import {
     evaluateBusStateGainDb,
     indexBusStateCatalog,
 } from "./internal/busState.js";
+import {
+    createBusEffectChain,
+    indexBusEffectCatalog,
+} from "./internal/busEffects.js";
 
 // v1 semantics (documented simplifications):
 // - Segments chain at their exit cue; pre-entry clip audio plays when the
@@ -700,6 +704,8 @@ export class CjsMusicEngine
 
     #busDuckingController = null;
 
+    #busEffectCatalog = new Map();
+
     #unsubscribeBusDucking = null;
 
     /** Creates a scheduler over an optional authored graph and Web Audio context. */
@@ -716,6 +722,7 @@ export class CjsMusicEngine
         getGlobalStatePropertyWeights,
         getGlobalStateTransitionBoundaries,
         busDuckingController,
+        busEffects,
     } = {})
     {
         this.#graph = graph ?? null;
@@ -740,6 +747,7 @@ export class CjsMusicEngine
                 ? getGlobalStateTransitionBoundaries
                 : null;
         this.#busDuckingController = busDuckingController ?? null;
+        this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
         this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(
             () => this.RefreshBusDucking(),
         ) ?? null;
@@ -2503,15 +2511,22 @@ export class CjsMusicEngine
         }
 
         const gain = this.#context.createGain();
+        const busEffectChain = createBusEffectChain(
+            this.#context,
+            this.#busEffectCatalog,
+            busPathIds,
+        );
         const route = {
             gain,
             busPathIds,
             authoredBusVolumeDb,
             authoredBusMakeUpGainDb,
             authoredOutputBusVolumeDb,
+            busEffectNodes: busEffectChain?.nodes ?? [],
         };
 
-        gain.connect(scheduled.gain);
+        gain.connect(busEffectChain?.input ?? scheduled.gain);
+        busEffectChain?.output?.connect(scheduled.gain);
         ScheduleMusicBusGain(
             gain.gain,
             instance.busVolumeStates,
@@ -2773,6 +2788,10 @@ export class CjsMusicEngine
         for (const route of scheduled.routeGains?.values?.() ?? [])
         {
             route.gain?.disconnect?.();
+            for (const node of route.busEffectNodes ?? [])
+            {
+                node.disconnect?.();
+            }
         }
         scheduled.routeGains?.clear?.();
         scheduled.gain?.disconnect?.();

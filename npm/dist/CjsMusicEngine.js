@@ -1,6 +1,7 @@
 import { evaluateWwiseInterpolation } from './internal/wwiseCurve.js';
 import { indexBusRtpcCatalog, evaluateBusRtpcGainDb } from './internal/busRtpc.js';
 import { indexBusStateCatalog, evaluateBusStateGainDb } from './internal/busState.js';
+import { indexBusEffectCatalog, createBusEffectChain } from './internal/busEffects.js';
 
 // CarbonEngineJS original (no Carbon counterpart). Interactive-music engine:
 // interprets the authored Wwise music graph produced in tools-core's complete
@@ -464,6 +465,7 @@ class CjsMusicEngine {
   #readGlobalStateWeights = null;
   #readGlobalStateTransitionBoundaries = null;
   #busDuckingController = null;
+  #busEffectCatalog = new Map();
   #unsubscribeBusDucking = null;
 
   /** Creates a scheduler over an optional authored graph and Web Audio context. */
@@ -479,7 +481,8 @@ class CjsMusicEngine {
     busStates,
     getGlobalStatePropertyWeights,
     getGlobalStateTransitionBoundaries,
-    busDuckingController
+    busDuckingController,
+    busEffects
   } = {}) {
     this.#graph = graph ?? null;
     this.#context = context ?? null;
@@ -492,6 +495,7 @@ class CjsMusicEngine {
     this.#readGlobalStateWeights = typeof getGlobalStatePropertyWeights === "function" ? getGlobalStatePropertyWeights : null;
     this.#readGlobalStateTransitionBoundaries = typeof getGlobalStateTransitionBoundaries === "function" ? getGlobalStateTransitionBoundaries : null;
     this.#busDuckingController = busDuckingController ?? null;
+    this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
     this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(() => this.RefreshBusDucking()) ?? null;
     if (random) this.#random = random;
     if (this.#context && this.#destination) {
@@ -1658,14 +1662,17 @@ class CjsMusicEngine {
       return scheduled.routeGains.get(key).gain;
     }
     const gain = this.#context.createGain();
+    const busEffectChain = createBusEffectChain(this.#context, this.#busEffectCatalog, busPathIds);
     const route = {
       gain,
       busPathIds,
       authoredBusVolumeDb,
       authoredBusMakeUpGainDb,
-      authoredOutputBusVolumeDb
+      authoredOutputBusVolumeDb,
+      busEffectNodes: busEffectChain?.nodes ?? []
     };
-    gain.connect(scheduled.gain);
+    gain.connect(busEffectChain?.input ?? scheduled.gain);
+    busEffectChain?.output?.connect(scheduled.gain);
     ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries, this.#busDuckingController);
     scheduled.routeGains.set(key, route);
     return gain;
@@ -1809,6 +1816,9 @@ class CjsMusicEngine {
     }
     for (const route of scheduled.routeGains?.values?.() ?? []) {
       route.gain?.disconnect?.();
+      for (const node of route.busEffectNodes ?? []) {
+        node.disconnect?.();
+      }
     }
     scheduled.routeGains?.clear?.();
     scheduled.gain?.disconnect?.();

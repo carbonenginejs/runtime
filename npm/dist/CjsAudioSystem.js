@@ -58,6 +58,7 @@ class CjsAudioSystem {
   #busRtpcs = null;
   #busStates = null;
   #busDucking = null;
+  #busEffects = null;
   #busDuckingController = null;
   #providedUpdateContext = null;
   #adoptedEmitters = new Set();
@@ -84,7 +85,8 @@ class CjsAudioSystem {
     updateContext,
     busRtpcs,
     busStates,
-    busDucking
+    busDucking,
+    busEffects
   } = {}) {
     this.#createContext = createContext ?? null;
     this.#loadBuffer = loadBuffer ?? null;
@@ -104,6 +106,7 @@ class CjsAudioSystem {
     this.#busRtpcs = busRtpcs ?? null;
     this.#busStates = busStates ?? null;
     this.#busDucking = busDucking ?? null;
+    this.#busEffects = busEffects ?? null;
     this.#providedUpdateContext = updateContext ?? null;
     if (audioMetadata) {
       this.repository.Initialize(audioMetadata);
@@ -155,7 +158,8 @@ class CjsAudioSystem {
           applyRTPC: this.#applyRTPC,
           busRtpcs: this.#busRtpcs,
           busStates: this.#busStates,
-          busDuckingController: this.#busDuckingController
+          busDuckingController: this.#busDuckingController,
+          busEffects: this.#busEffects
         });
         if (!this.musicEngine) {
           const destination = this.backend.masterGain ?? context.destination;
@@ -170,6 +174,7 @@ class CjsAudioSystem {
               busRtpcs: this.#busRtpcs,
               busStates: this.#busStates,
               busDuckingController: this.#busDuckingController,
+              busEffects: this.#busEffects,
               getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
               getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
               getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
@@ -184,6 +189,7 @@ class CjsAudioSystem {
               busRtpcs: this.#busRtpcs,
               busStates: this.#busStates,
               busDuckingController: this.#busDuckingController,
+              busEffects: this.#busEffects,
               getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
               getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
               getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
