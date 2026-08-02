@@ -84,6 +84,8 @@ class CjsBusDuckingController {
   #listeners = new Set();
   #nextTokenId = 1;
   #disposed = false;
+
+  /** Installs one validated portable ducking catalog. */
   constructor(catalog) {
     this.#catalog = indexBusDuckingCatalog(catalog);
     for (const sourceBusId of this.#catalog.keys()) {
@@ -218,6 +220,8 @@ class CjsBusDuckingController {
     this.#Notify();
     this.#listeners.clear();
   }
+
+  /** Evaluates one source-to-target duck envelope at a context time. */
   #EvaluateTarget(source, target, at) {
     const events = [];
     for (const record of this.#activities.get(source.sourceBusId).values()) {
@@ -279,6 +283,8 @@ class CjsBusDuckingController {
     }
     return GainToDb(EvaluateSegment(segment, time));
   }
+
+  /** Ends or cancels one scheduled activity record exactly once. */
   #Settle(record, rawAt, cancel) {
     if (record.cancelled || this.#disposed) return false;
     const at = Number(rawAt);
@@ -307,6 +313,8 @@ class CjsBusDuckingController {
     this.#Notify();
     return true;
   }
+
+  /** Notifies every live route scheduler that duck timing changed. */
   #Notify() {
     for (const listener of [...this.#listeners]) listener();
   }

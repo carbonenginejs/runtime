@@ -18,6 +18,8 @@ class CjsSharedBusMixer {
   #busEffects = new Map();
   #categoryVolumes = new Map([["sfx", 1], ["music", 1]]);
   #disposed = false;
+
+  /** Creates a generation-scoped mixer for one validated Bus graph. */
   constructor({
     context,
     runtime,
@@ -102,6 +104,8 @@ class CjsSharedBusMixer {
     this.#destination = null;
     this.#context = null;
   }
+
+  /** Qualifies a complete dry route before allocating any audio nodes. */
   #IsRouteQualified(handle) {
     if (this.#qualification.has(handle)) {
       return this.#qualification.get(handle);
@@ -123,6 +127,8 @@ class CjsSharedBusMixer {
     this.#qualification.set(handle, qualified);
     return qualified;
   }
+
+  /** Decodes one Bus's complete active effect sequence, or returns null. */
   #GetQualifiedBusEffects(busId, bus) {
     const id = String(busId);
     if (this.#busEffects.has(id)) {
@@ -159,6 +165,8 @@ class CjsSharedBusMixer {
     this.#busEffects.set(id, effects);
     return effects;
   }
+
+  /** Lazily realizes and returns one shared physical Bus input. */
   #GetBusInput(busId) {
     const id = String(busId);
     let realized = this.#buses.get(id);

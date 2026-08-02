@@ -35,6 +35,7 @@ export class CjsSharedBusMixer
 
     #disposed = false;
 
+    /** Creates a generation-scoped mixer for one validated Bus graph. */
     constructor({ context, runtime, destination } = {})
     {
         if (!context || typeof context.createGain !== "function")
@@ -139,6 +140,7 @@ export class CjsSharedBusMixer
         this.#context = null;
     }
 
+    /** Qualifies a complete dry route before allocating any audio nodes. */
     #IsRouteQualified(handle)
     {
         if (this.#qualification.has(handle))
@@ -182,6 +184,7 @@ export class CjsSharedBusMixer
         return qualified;
     }
 
+    /** Decodes one Bus's complete active effect sequence, or returns null. */
     #GetQualifiedBusEffects(busId, bus)
     {
         const id = String(busId);
@@ -248,6 +251,7 @@ export class CjsSharedBusMixer
         return effects;
     }
 
+    /** Lazily realizes and returns one shared physical Bus input. */
     #GetBusInput(busId)
     {
         const id = String(busId);

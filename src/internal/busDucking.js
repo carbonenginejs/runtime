@@ -142,6 +142,7 @@ export class CjsBusDuckingController
 
     #disposed = false;
 
+    /** Installs one validated portable ducking catalog. */
     constructor(catalog)
     {
         this.#catalog = indexBusDuckingCatalog(catalog);
@@ -328,6 +329,7 @@ export class CjsBusDuckingController
         this.#listeners.clear();
     }
 
+    /** Evaluates one source-to-target duck envelope at a context time. */
     #EvaluateTarget(source, target, at)
     {
         const events = [];
@@ -407,6 +409,7 @@ export class CjsBusDuckingController
         return GainToDb(EvaluateSegment(segment, time));
     }
 
+    /** Ends or cancels one scheduled activity record exactly once. */
     #Settle(record, rawAt, cancel)
     {
         if (record.cancelled || this.#disposed) return false;
@@ -449,6 +452,7 @@ export class CjsBusDuckingController
         return true;
     }
 
+    /** Notifies every live route scheduler that duck timing changed. */
     #Notify()
     {
         for (const listener of [ ...this.#listeners ]) listener();

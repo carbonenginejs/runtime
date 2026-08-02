@@ -10,6 +10,8 @@ class CjsBusGraphRuntime {
   #sfxRoutes = new Map();
   #musicRoutes = new Map();
   #disposed = false;
+
+  /** Installs one validated portable Bus graph generation. */
   constructor(catalog) {
     const value = RequireRecord(catalog, "Audio Bus graph runtime catalog");
     if (value.schemaVersion !== 1 || !Array.isArray(value.routes)) {
@@ -53,6 +55,8 @@ class CjsBusGraphRuntime {
     this.#sfxRoutes.clear();
     this.#musicRoutes.clear();
   }
+
+  /** Resolves and optionally verifies one exact route projection. */
   #Resolve(index, rawId, projection, kind) {
     if (this.#disposed || rawId === null || rawId === undefined) {
       return null;

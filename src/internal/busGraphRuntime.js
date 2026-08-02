@@ -16,6 +16,7 @@ export class CjsBusGraphRuntime
 
     #disposed = false;
 
+    /** Installs one validated portable Bus graph generation. */
     constructor(catalog)
     {
         const value = RequireRecord(catalog, "Audio Bus graph runtime catalog");
@@ -76,6 +77,7 @@ export class CjsBusGraphRuntime
         this.#musicRoutes.clear();
     }
 
+    /** Resolves and optionally verifies one exact route projection. */
     #Resolve(index, rawId, projection, kind)
     {
         if (this.#disposed || rawId === null || rawId === undefined)
