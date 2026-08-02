@@ -50,6 +50,9 @@ The maintained graph includes:
 - typed v150 static Wwise Parametric EQ catalogs with ordered slots and bands,
   Web Audio dry-route realization for SFX and built-in music, and fail-closed
   dynamic-control and independent-LFE qualification;
+- source-proven v150 Wwise Meter decoding with fail-closed omission limited to
+  audio-transparent records that cannot write a Game Parameter or apply
+  downstream volume; Meter telemetry itself remains unsupported;
 - exact STMG State Group defaults and directed overrides, with immediate
   logical routing plus interruptible live Volume, Pitch, low-pass, and
   high-pass property interpolation;
@@ -114,9 +117,11 @@ music; Bus LPF/HPF are distributed dry-route filters for both engines. Static
 Parametric EQ uses source-proven v150 field decoding and one ordered shared
 Web Audio chain per Bus when the complete graph route qualifies. Blocked or
 missing graph routes retain the distributed source-route fallback. Neither
-path claims native Wwise DSP equivalence. Voice-target placement across future
-auxiliary sends, other effect processing and tails, meters, and virtual-voice
-behavior remain deferred as described in the
+path claims native Wwise DSP equivalence. The shared path may omit a decoded
+feedback-free Meter without changing audio, but does not implement its
+telemetry. Voice-target placement across future auxiliary sends, other effect
+processing and tails, feedback-capable meters, and virtual-voice behavior
+remain deferred as described in the
 [Wwise routing requirements](wwise-resource-routing-handoff.md).
 
 Unsupported Carbon methods remain visible with explicit implementation

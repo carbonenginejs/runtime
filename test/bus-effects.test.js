@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
     createBusEffectChain,
     indexBusEffectCatalog,
+    parseGraphFeedbackFreeMeter,
     parseGraphStaticParametricEq,
     parseStaticParametricEqBytes,
 } from "../src/internal/busEffects.js";
@@ -114,6 +115,43 @@ function GraphEffect(bytes = ParametricEqBytes())
             propertyValueCount: 0,
         },
     };
+}
+
+function MeterBytes({
+    attack = 0,
+    release = 0.3,
+    minimum = -48,
+    maximum = 0,
+    hold = 0,
+    infiniteHold = 0,
+    mode = 0,
+    scope = 0,
+    applyDownstreamVolume = 0,
+    gameParameterId = 0,
+} = {})
+{
+    const bytes = new Uint8Array(28);
+    const view = new DataView(bytes.buffer);
+
+    view.setFloat32(0, attack, true);
+    view.setFloat32(4, release, true);
+    view.setFloat32(8, minimum, true);
+    view.setFloat32(12, maximum, true);
+    view.setFloat32(16, hold, true);
+    view.setUint8(20, infiniteHold);
+    view.setUint8(21, mode);
+    view.setUint8(22, scope);
+    view.setUint8(23, applyDownstreamVolume);
+    view.setUint32(24, gameParameterId, true);
+    return bytes;
+}
+
+function GraphMeter(bytes = MeterBytes())
+{
+    const effect = GraphEffect(bytes);
+
+    effect.pluginId = 0x00810003;
+    return effect;
 }
 
 test("indexes canonical static Parametric EQ catalogs in slot and band order", () =>
@@ -241,7 +279,7 @@ test("skips authored-neutral Parametric EQ without allocating Web Audio nodes", 
 
     assert.equal(createBusEffectChain(context, indexed, [ "500" ]), null);
     assert.equal(context.filters.length, 0);
-  assert.equal(context.gains.length, 0);
+    assert.equal(context.gains.length, 0);
 });
 
 test("decodes the source-proven v150 static Parametric EQ parameter layout", () =>
@@ -308,5 +346,95 @@ test("rejects malformed or dynamic portable-graph Parametric EQ effects", () =>
         mutate(effect);
         assert.throws(() =>
             parseGraphStaticParametricEq(effect, "900", 0));
+    }
+});
+
+test("decodes only feedback-free v150 Wwise Meters as audio-transparent omissions", () =>
+{
+    const effect = parseGraphFeedbackFreeMeter(GraphMeter(), "910", 3);
+    const floor = parseGraphFeedbackFreeMeter(GraphMeter(MeterBytes({
+        minimum: -96.3,
+        maximum: -96.3,
+    })), "911", 0);
+
+    assert.deepEqual(effect, {
+        effectId: "910",
+        slotIndex: 3,
+        type: "meter-omission",
+        attack: 0,
+        release: Math.fround(0.3),
+        minimum: -48,
+        maximum: 0,
+        hold: 0,
+        infiniteHold: false,
+        mode: "peak",
+        scope: "global",
+        applyDownstreamVolume: false,
+        gameParameterId: 0,
+    });
+    assert.equal(floor.minimum, Math.fround(-96.3));
+    assert.equal(floor.maximum, Math.fround(-96.3));
+});
+
+test("rejects dynamic, feedback-capable, or malformed Wwise Meters", () =>
+{
+    const mutations = [
+        effect => { effect.type = "unknown-effect"; },
+        effect => { effect.parameterByteLength = 27; },
+        effect =>
+        {
+            const bytes = new Uint8Array(29);
+
+            bytes.set(MeterBytes());
+            effect.parametersBase64 = Buffer.from(bytes).toString("base64");
+        },
+        effect => { effect.media.push({ index: 0, sourceId: "10" }); },
+        effect => { effect.controls.rtpcCount = 1; },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(MeterBytes({
+                applyDownstreamVolume: 1,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(MeterBytes({
+                gameParameterId: 1312763804,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(MeterBytes({ mode: 2 }))
+                .toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(MeterBytes({ scope: 2 }))
+                .toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(MeterBytes({ attack: 10.1 }))
+                .toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(MeterBytes({ minimum: -97 }))
+                .toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(MeterBytes({ maximum: 13 }))
+                .toString("base64");
+        },
+    ];
+
+    for (const mutate of mutations)
+    {
+        const effect = GraphMeter();
+
+        mutate(effect);
+        assert.throws(() =>
+            parseGraphFeedbackFreeMeter(effect, "910", 0));
     }
 });

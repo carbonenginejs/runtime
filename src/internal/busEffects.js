@@ -1,4 +1,5 @@
 export const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
+export const WWISE_METER_PLUGIN_ID = 0x00810003;
 
 const FILTER_TYPE_NAMES = Object.freeze([
     "lowpass",
@@ -14,6 +15,11 @@ const FILTER_TYPES = Object.freeze(new Set(FILTER_TYPE_NAMES));
 
 const MIN_GAIN_DB = -200;
 const MAX_GAIN_DB = 200;
+const METER_MAX_TIME = 10;
+const METER_MINIMUM_MIN = Math.fround(-96.3);
+const METER_MINIMUM_MAX = 0;
+const METER_MAXIMUM_MIN = Math.fround(-96.3);
+const METER_MAXIMUM_MAX = 12;
 
 /** Validates and indexes one portable static Wwise bus-effect catalog. */
 export function indexBusEffectCatalog(value)
@@ -163,6 +169,11 @@ export function createBusEffectChain(context, indexedCatalog, busPathIds)
 
     for (const effect of effects)
     {
+        if (effect.type === "meter-omission") continue;
+        if (effect.type !== "parametric-eq")
+        {
+            throw new TypeError(`Unsupported shared Bus effect ${effect.type}`);
+        }
         for (const band of effect.bands)
         {
             if (typeof context?.createBiquadFilter !== "function")
@@ -280,13 +291,115 @@ export function parseStaticParametricEqBytes(
 export function parseGraphStaticParametricEq(effect, effectId, slotIndex)
 {
     const label = `Audio Bus graph effect ${effectId}`;
+    return parseStaticParametricEqBytes(
+        RequireStaticGraphEffect(
+            effect,
+            PARAMETRIC_EQ_PLUGIN_ID,
+            56,
+            label,
+            "Wwise Parametric EQ",
+        ),
+        { effectId, slotIndex, label },
+    );
+}
+
+/**
+ * Decodes a v150 Wwise Meter whose omitted telemetry cannot feed back into the
+ * authored graph. The Meter remains behaviorally unsupported but audio-neutral.
+ */
+export function parseGraphFeedbackFreeMeter(effect, effectId, slotIndex)
+{
+    const label = `Audio Bus graph effect ${effectId}`;
+    const bytes = RequireStaticGraphEffect(
+        effect,
+        WWISE_METER_PLUGIN_ID,
+        28,
+        label,
+        "Wwise Meter",
+    );
+    const view = new DataView(
+        bytes.buffer,
+        bytes.byteOffset,
+        bytes.byteLength,
+    );
+    const attack = view.getFloat32(0, true);
+    const release = view.getFloat32(4, true);
+    const minimum = view.getFloat32(8, true);
+    const maximum = view.getFloat32(12, true);
+    const hold = view.getFloat32(16, true);
+    const infiniteHoldRaw = view.getUint8(20);
+    const modeRaw = view.getUint8(21);
+    const scopeRaw = view.getUint8(22);
+    const applyDownstreamVolumeRaw = view.getUint8(23);
+    const gameParameterId = view.getUint32(24, true);
+
+    if (!Number.isFinite(attack)
+        || attack < 0
+        || attack > METER_MAX_TIME
+        || !Number.isFinite(release)
+        || release < 0
+        || release > METER_MAX_TIME
+        || !Number.isFinite(minimum)
+        || minimum < METER_MINIMUM_MIN
+        || minimum > METER_MINIMUM_MAX
+        || !Number.isFinite(maximum)
+        || maximum < METER_MAXIMUM_MIN
+        || maximum > METER_MAXIMUM_MAX
+        || minimum > maximum
+        || !Number.isFinite(hold)
+        || hold < 0
+        || hold > METER_MAX_TIME
+        || infiniteHoldRaw > 1
+        || modeRaw > 1
+        || scopeRaw > 1
+        || applyDownstreamVolumeRaw > 1)
+    {
+        throw new TypeError(`${label} has invalid Wwise Meter parameters`);
+    }
+    if (applyDownstreamVolumeRaw !== 0 || gameParameterId !== 0)
+    {
+        throw new TypeError(`${label} has observable Wwise Meter feedback`);
+    }
+    return {
+        effectId: String(effectId),
+        slotIndex: Number(slotIndex),
+        type: "meter-omission",
+        attack,
+        release,
+        minimum,
+        maximum,
+        hold,
+        infiniteHold: infiniteHoldRaw === 1,
+        mode: modeRaw === 0 ? "peak" : "rms",
+        scope: scopeRaw === 0 ? "global" : "game-object",
+        applyDownstreamVolume: false,
+        gameParameterId: 0,
+    };
+}
+
+/** Decodes one effect admitted by the strict shared Bus mixer. */
+export function parseGraphSharedBusEffect(effect, effectId, slotIndex)
+{
+    switch (effect?.pluginId)
+    {
+        case PARAMETRIC_EQ_PLUGIN_ID:
+            return parseGraphStaticParametricEq(effect, effectId, slotIndex);
+        case WWISE_METER_PLUGIN_ID:
+            return parseGraphFeedbackFreeMeter(effect, effectId, slotIndex);
+        default:
+            throw new TypeError(`Audio Bus graph effect ${effectId} is unsupported`);
+    }
+}
+
+function RequireStaticGraphEffect(effect, pluginId, byteLength, label, kind)
+{
     const controls = effect?.controls;
 
     if (!effect
         || (effect.type !== "effect-custom"
             && effect.type !== "effect-share-set")
-        || effect.pluginId !== PARAMETRIC_EQ_PLUGIN_ID
-        || effect.parameterByteLength !== 56
+        || effect.pluginId !== pluginId
+        || effect.parameterByteLength !== byteLength
         || !Array.isArray(effect.media)
         || effect.media.length !== 0
         || !controls
@@ -295,18 +408,28 @@ export function parseGraphStaticParametricEq(effect, effectId, slotIndex)
         || controls.stateGroupCount !== 0
         || controls.propertyValueCount !== 0)
     {
-        throw new TypeError(`${label} is not a static Wwise Parametric EQ`);
+        throw new TypeError(`${label} is not a static ${kind}`);
     }
-    return parseStaticParametricEqBytes(
-        DecodeBase64(effect.parametersBase64, label),
-        { effectId, slotIndex, label },
-    );
+    const bytes = DecodeBase64(effect.parametersBase64, label);
+
+    if (bytes.byteLength !== byteLength)
+    {
+        throw new TypeError(`${label} parameter length does not match`);
+    }
+    return bytes;
 }
 
 function DecodeBase64(value, label)
 {
     const text = String(value ?? "");
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    if (text.length % 4 !== 0
+        || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u
+            .test(text))
+    {
+        throw new TypeError(`${label} parametersBase64 is invalid`);
+    }
     const cleanLength = text.endsWith("==")
         ? text.length - 2
         : text.endsWith("=") ? text.length - 1 : text.length;
@@ -330,6 +453,13 @@ function DecodeBase64(value, label)
             bits -= 8;
             result[offset++] = (accumulator >>> bits) & 0xff;
         }
+    }
+    if ((text.endsWith("==")
+            && (alphabet.indexOf(text[cleanLength - 1]) & 0x0f) !== 0)
+        || (text.endsWith("=")
+            && (alphabet.indexOf(text[cleanLength - 1]) & 0x03) !== 0))
+    {
+        throw new TypeError(`${label} parametersBase64 is not canonical`);
     }
     return result;
 }

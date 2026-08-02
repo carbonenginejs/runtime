@@ -78,6 +78,12 @@ remain a browser adaptation rather than native Wwise DSP. EVE build 3444265
 still qualifies no music route, so this generic contract changes no EVE music
 signal path.
 
+A source-proven v150 Wwise Meter may coexist in that sequence only when it
+writes no Game Parameter, does not apply downstream volume, and has no dynamic
+controls or media. The mixer omits this audio-transparent telemetry stage;
+faithful Meter reporting remains unsupported and every feedback-capable Meter
+still blocks the route.
+
 Version-2 `busStates` also provisions routed LPF and HPF stages for built-in
 music. Signed State offsets accumulate across the bus ancestry under the
 project's qualified additive filter behavior, blend with the shared STMG

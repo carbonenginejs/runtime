@@ -19,7 +19,9 @@ State contributions without changing the application SFX or music sliders.
 It also projects v150 Audio Bus auto-ducking and coordinates actual scheduled
 SFX and built-in music source activity through one shared clock.
 Routed static Wwise Parametric EQ slots are projected into one portable catalog
-and realized on the corresponding collapsed dry routes.
+and realized on the corresponding collapsed dry routes. The strict shared
+mixer also decodes source-proven v150 Wwise Meter records and may omit only
+audio-transparent instances that cannot feed telemetry back into the graph.
 
 ## Music NodeBase contract
 
@@ -119,9 +121,11 @@ route. The builder keeps raw graph values because Wwise interpolates them
 before converting `-1` to `-96.3 dB` and other values with
 `20 * log10(value + 1)`. Keeping these contributions distinct preserves their
 future placement when real bus and effect stages replace the collapsed gain.
-Static v150 Parametric EQ is the one implemented effect adapter. Auxiliary
+Static v150 Parametric EQ is the one implemented DSP adapter. Feedback-free
+v150 Meter records have a qualified audio-transparent omission contract, but
+Meter telemetry is not implemented. Auxiliary
 sends and complete ordered effect chaining, dynamic effect controls, nonlinear
-effects, wet-path duck placement, effect-tail bus activity, meters,
+effects, wet-path duck placement, effect-tail bus activity, Meter telemetry,
 virtual-voice behavior, and spatial diffraction remain separate runtime
 slices. Those
 features need their complete effective send/property projection, qualified
@@ -281,7 +285,8 @@ blocked tracks retain the legacy music path.
 The system now owns the first fail-closed shared mixer contract. It can allocate
 stable SFX/music category entries and one shared unity node per common ancestor,
 but only for strict dry audio-bus paths with default channel layout and no
-authored processing except a complete static Parametric EQ slot sequence.
+authored processing except a complete static Parametric EQ slot sequence plus
+feedback-free Meter omissions.
 Effect records are decoded from the authoritative graph bytes before any node
 is allocated. Dynamic controls, media, rendered slots, mixed/unknown effects,
 and other processing reasons remain barriers. On the real EVE catalog every
@@ -298,6 +303,18 @@ lanes; their category volume is applied by the shared mixer rather than the
 legacy music output. The audited EVE catalog qualifies no routed SFX or music
 reference across its 262 dry routes, so this integration changes no EVE signal
 path.
+
+Pinned wwiser proves the v150 Wwise Meter's 28-byte layout: five float32 attack,
+release, minimum, maximum, and hold values; four one-byte infinite-hold, mode,
+scope, and downstream-volume fields; and one uint32 Game Parameter ID. The
+shared mixer accepts exact boolean and Peak/RMS plus Global/GameObject enum
+values, but omits the telemetry stage only when downstream-volume application
+and the Game Parameter ID are both zero and the effect has no other controls or
+media. EVE's main feedback-free Meter `651869473` reaches 12,678 SFX dry paths,
+but those routes retain a Bus State barrier; Meter `902247780` reaches 1,179 and
+retains a ducking barrier. Other reachable EVE Meters write nonzero Game
+Parameters and remain hard barriers. No EVE route is newly qualified by this
+omission.
 
 EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and

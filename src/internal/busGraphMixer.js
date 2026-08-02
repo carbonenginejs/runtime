@@ -1,13 +1,14 @@
 import {
     createBusEffectChain,
-    parseGraphStaticParametricEq,
+    parseGraphSharedBusEffect,
 } from "./busEffects.js";
 
 const KINDS = new Set([ "sfx", "music" ]);
 
 /**
  * Owns the shared Web Audio node topology for strictly qualified Bus routes.
- * Accepts strict dry paths plus source-proven static Parametric EQ stages.
+ * Accepts strict dry paths, source-proven static Parametric EQ stages, and
+ * explicitly feedback-free Wwise Meter telemetry omissions.
  */
 export class CjsSharedBusMixer
 {
@@ -225,13 +226,14 @@ export class CjsSharedBusMixer
                 {
                     throw new TypeError("Audio Bus effect ShareSet identity disagrees");
                 }
-                return parseGraphStaticParametricEq(
+                return parseGraphSharedBusEffect(
                     graphEffect,
                     slot.effectId,
                     slot.slotIndex,
                 );
             });
-            if (effects.some(effect => effect.bands.length)
+            if (effects.some(effect =>
+                effect.type === "parametric-eq" && effect.bands.length)
                 && typeof this.#context.createBiquadFilter !== "function")
             {
                 throw new TypeError("Static Parametric EQ requires BiquadFilter support");

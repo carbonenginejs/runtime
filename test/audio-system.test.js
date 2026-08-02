@@ -156,11 +156,53 @@ function GraphParametricEq(bytes = ParametricEqParameters())
   };
 }
 
+function MeterParameters({
+  applyDownstreamVolume = 0,
+  gameParameterId = 0,
+} = {})
+{
+  const bytes = new Uint8Array(28);
+  const view = new DataView(bytes.buffer);
+
+  view.setFloat32(0, 0, true);
+  view.setFloat32(4, 0.3, true);
+  view.setFloat32(8, -48, true);
+  view.setFloat32(12, 0, true);
+  view.setFloat32(16, 0, true);
+  view.setUint8(20, 0);
+  view.setUint8(21, 0);
+  view.setUint8(22, 0);
+  view.setUint8(23, applyDownstreamVolume);
+  view.setUint32(24, gameParameterId, true);
+  return bytes;
+}
+
+function GraphMeter(bytes = MeterParameters())
+{
+  return {
+    ...GraphParametricEq(bytes),
+    pluginId: 0x00810003,
+  };
+}
+
 function AddGraphEffect(catalog, busId, effectId, slotIndex, bytes)
 {
   catalog.effects[effectId] = GraphParametricEq(bytes);
   catalog.buses[busId].effects.push({
     slotIndex,
+    effectId,
+    bypass: false,
+    shareSet: true,
+    rendered: false,
+  });
+  catalog.buses[busId].requiresProcessing = [ "effects" ];
+}
+
+function AddGraphMeter(catalog, busId, effectId, bytes = MeterParameters())
+{
+  catalog.effects[effectId] = GraphMeter(bytes);
+  catalog.buses[busId].effects.push({
+    slotIndex: 0,
     effectId,
     bypass: false,
     shareSet: true,
@@ -313,6 +355,7 @@ test("strict shared Bus mixer realizes one ordered Parametric EQ chain per Bus",
     outputGainDb: 0,
   });
 
+  AddGraphMeter(catalog, "500", "910");
   AddGraphEffect(catalog, "500", "900", 1, ParametricEqParameters());
   AddGraphEffect(catalog, "1", "901", 0, rootBytes);
   const runtime = new CjsBusGraphRuntime(catalog);
@@ -382,6 +425,54 @@ test("strict shared Bus EQ qualification fails before allocating partial nodes",
     assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
     assert.equal(context.gains.length, 0);
     assert.equal(context.filters.length, 0);
+  }
+});
+
+test("strict shared Bus mixer omits only feedback-free Wwise Meter telemetry", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+
+  AddGraphMeter(catalog, "500", "910");
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+
+  assert.ok(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"));
+  assert.equal(context.filters.length, 0, "Meter telemetry allocates no DSP node");
+
+  for (const bytes of [
+    MeterParameters({ applyDownstreamVolume: 1 }),
+    MeterParameters({ gameParameterId: 1312763804 }),
+    (() =>
+    {
+      const value = new Uint8Array(29);
+
+      value.set(MeterParameters());
+      return value;
+    })(),
+  ])
+  {
+    const blockedContext = MixerContext();
+    const blockedCatalog = MixerCatalog();
+
+    AddGraphMeter(blockedCatalog, "500", "910", bytes);
+    const blockedRuntime = new CjsBusGraphRuntime(blockedCatalog);
+    const blockedMixer = new CjsSharedBusMixer({
+      context: blockedContext,
+      runtime: blockedRuntime,
+      destination: blockedContext.destination,
+    });
+
+    assert.equal(
+      blockedMixer.GetInput(blockedRuntime.ResolveSfxRoute("100"), "sfx"),
+      null,
+    );
+    assert.equal(blockedContext.gains.length, 0);
+    assert.equal(blockedContext.filters.length, 0);
   }
 });
 
