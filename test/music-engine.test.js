@@ -162,7 +162,7 @@ function FakeContext()
   return context;
 }
 
-function Harness(mutate = null)
+function Harness(mutate = null, engineOptions = {})
 {
   const context = FakeContext();
   const loaded = [];
@@ -174,7 +174,8 @@ function Harness(mutate = null)
     context,
     loadMedia: async sourceId => (loaded.push(sourceId), { fake: sourceId }),
     destination: context.destination,
-    random: () => 0.5
+    random: () => 0.5,
+    ...engineOptions,
   });
   return { context, engine, loaded, finished };
 }
@@ -2554,4 +2555,52 @@ test("music track routes combine authored base gain with live ancestor Bus Volum
   engine.ExecuteAction("stop", 703, 0);
   engine.Process();
   assert.equal(routeGain.disconnected, true);
+});
+
+test("music routes apply dynamic ancestor Bus Volume RTPC scaling", async () =>
+{
+  let control = 1;
+  const busRtpcs = {
+    schemaVersion: 1,
+    buses: {
+      "500": [ {
+        curveId: 77,
+        rtpc: "menu_main_music_level",
+        defaultValue: 1,
+        scaling: 2,
+        points: [
+          { x: 0, value: -1, interpolation: 4 },
+          { x: 1, value: 0, interpolation: 4 },
+        ],
+      } ],
+    },
+  };
+  const { context, engine } = Harness(graph =>
+  {
+    Object.assign(graph.nodes[TRACK_A], {
+      outputBusId: "928",
+      busPathIds: [ "928", "500", "1" ],
+      authoredBusVolumeDb: -3,
+    });
+  }, {
+    busRtpcs,
+    getGlobalRTPC: () => control,
+  });
+
+  engine.PostEvent("music_test_play", 704, () => {});
+  await tick();
+
+  const segmentGain = context.gains[2];
+  const routeGain = context.gains.find(gain =>
+    gain !== segmentGain && gain.connectedTo === segmentGain);
+
+  assert.ok(Math.abs(routeGain.gain.value - 10 ** (-3 / 20)) < 1e-6);
+
+  control = 0.5;
+  engine.RefreshBusRtpcs();
+  const scaledDb = -3 + 20 * Math.log10(0.5);
+
+  assert.ok(
+    Math.abs(routeGain.gain.value - 10 ** (scaledDb / 20)) < 1e-6,
+  );
 });

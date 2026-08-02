@@ -5,6 +5,10 @@
 // the game only posts events and sets switches/states, so this engine's fidelity
 // target is the bank data, not Carbon code.
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
+import {
+    evaluateBusRtpcGainDb,
+    indexBusRtpcCatalog,
+} from "./internal/busRtpc.js";
 
 // v1 semantics (documented simplifications):
 // - Segments chain at their exit cue; pre-entry clip audio plays when the
@@ -147,6 +151,9 @@ function ScheduleMusicBusGain(
     authoredBusMakeUpGainDb,
     authoredOutputBusVolumeDb,
     context,
+    busRtpcCatalog,
+    readGlobalRtpc,
+    readGlobalRtpcTransitionBoundaries,
 )
 {
     if (!param) return;
@@ -169,6 +176,12 @@ function ScheduleMusicBusGain(
                 db += EvaluateBusVolumeState(states.get(busId), at);
             }
         }
+        db += evaluateBusRtpcGainDb(
+            busRtpcCatalog,
+            path,
+            readGlobalRtpc,
+            at,
+        );
         return 10 ** (db / 20);
     };
     const boundaries = [];
@@ -184,6 +197,12 @@ function ScheduleMusicBusGain(
             if (Number.isFinite(start) && start > now) boundaries.push(start);
             if (Number.isFinite(end) && end > now) boundaries.push(end);
         }
+    }
+    if (typeof readGlobalRtpcTransitionBoundaries === "function")
+    {
+        boundaries.push(
+            ...readGlobalRtpcTransitionBoundaries(now),
+        );
     }
     boundaries.sort((left, right) => left - right);
 
@@ -643,13 +662,36 @@ export class CjsMusicEngine
 
     #epoch = 0;
 
+    #busRtpcCatalog = new Map();
+
+    #readGlobalRtpc = null;
+
+    #readGlobalRtpcTransitionBoundaries = null;
+
     /** Creates a scheduler over an optional authored graph and Web Audio context. */
-    constructor({ graph, context, loadMedia, destination, random } = {})
+    constructor({
+        graph,
+        context,
+        loadMedia,
+        destination,
+        random,
+        busRtpcs,
+        getGlobalRTPC,
+        getGlobalRTPCTransitionBoundaries,
+    } = {})
     {
         this.#graph = graph ?? null;
         this.#context = context ?? null;
         this.#loadMedia = loadMedia ?? null;
         this.#destination = destination ?? context?.destination ?? null;
+        this.#busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
+        this.#readGlobalRtpc = typeof getGlobalRTPC === "function"
+            ? getGlobalRTPC
+            : null;
+        this.#readGlobalRtpcTransitionBoundaries =
+            typeof getGlobalRTPCTransitionBoundaries === "function"
+                ? getGlobalRTPCTransitionBoundaries
+                : null;
         if (random) this.#random = random;
         if (this.#context && this.#destination)
         {
@@ -1563,10 +1605,19 @@ export class CjsMusicEngine
                         route.authoredBusMakeUpGainDb,
                         route.authoredOutputBusVolumeDb,
                         this.#context,
+                        this.#busRtpcCatalog,
+                        this.#readGlobalRtpc,
+                        this.#readGlobalRtpcTransitionBoundaries,
                     );
                 }
             }
         }
+    }
+
+    /** Reapplies dynamic Bus Volume RTPCs to every scheduled route. */
+    RefreshBusRtpcs()
+    {
+        this.RefreshBusVolumeGains();
     }
 
     /** Atomically applies draft sequence advances after successful prepare. */
@@ -2381,6 +2432,9 @@ export class CjsMusicEngine
             authoredBusMakeUpGainDb,
             authoredOutputBusVolumeDb,
             this.#context,
+            this.#busRtpcCatalog,
+            this.#readGlobalRtpc,
+            this.#readGlobalRtpcTransitionBoundaries,
         );
         scheduled.routeGains.set(key, route);
         return gain;

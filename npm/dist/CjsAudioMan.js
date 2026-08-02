@@ -204,6 +204,7 @@ class CjsAudioMan {
       },
       audioMetadata: installed.metadata,
       musicGraph: installed.music ?? null,
+      busRtpcs: installed.busRtpcs ?? null,
       loadBuffer: (eventID, eventName, controls, resolvedProgram) => this.#LoadEventBuffer(eventID, eventName, controls, resolvedProgram),
       resolveSfxProgram: (_eventID, eventName, controls) => this.#sfxEngine?.HandlesEvent(eventName) ? this.#sfxEngine.ResolveProgram(eventName, controls) ?? [] : null,
       continueSfxProgram: (token, controls) => this.#sfxEngine?.ContinueProgram(token, controls) ?? [],

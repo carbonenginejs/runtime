@@ -275,6 +275,7 @@ export class CjsAudioMan
             },
             audioMetadata: installed.metadata,
             musicGraph: installed.music ?? null,
+            busRtpcs: installed.busRtpcs ?? null,
             loadBuffer: (
                 eventID,
                 eventName,

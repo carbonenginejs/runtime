@@ -127,6 +127,49 @@ test("rejects invalid spatial event metadata", () =>
     );
 });
 
+test("validates, detaches, and freezes the optional Bus Volume RTPC catalog", () =>
+{
+    const source = CreateDocument();
+
+    source.busRtpcs = {
+        schemaVersion: 1,
+        buses: {
+            "500": [ {
+                curveId: 77,
+                rtpc: "menu_advanced_world_level",
+                defaultValue: 0.5,
+                scaling: 2,
+                points: [
+                    { x: 0, value: -1, interpolation: 4 },
+                    { x: 1, value: 0.4988127648830414, interpolation: 8 },
+                ],
+            } ],
+        },
+    };
+
+    const installed = installAudioLibraryDocument(source);
+
+    assert.equal(installed.busRtpcs.buses["500"][0].curveId, 77);
+    assert.notEqual(installed.busRtpcs, source.busRtpcs);
+    assert.equal(Object.isFrozen(installed.busRtpcs.buses["500"]), true);
+
+    for (const mutate of [
+        value => { value.schemaVersion = 2; },
+        value => { value.buses["0500"] = value.buses["500"]; },
+        value => { value.buses["500"][0].defaultValue = Number.NaN; },
+        value => { value.buses["500"][0].scaling = 0; },
+        value => { value.buses["500"][0].points[0].value = -1.1; },
+        value => { value.buses["500"][0].points[0].interpolation = 10; },
+        value => { value.buses["500"][0].points.reverse(); },
+    ])
+    {
+        const invalid = structuredClone(source);
+
+        mutate(invalid.busRtpcs);
+        assert.throws(() => validateAudioLibraryDocument(invalid));
+    }
+});
+
 test("validates and installs routed music-track bus metadata", () =>
 {
     const source = CreateDocument();

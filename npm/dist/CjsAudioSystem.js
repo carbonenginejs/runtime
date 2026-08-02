@@ -54,6 +54,7 @@ class CjsAudioSystem {
   #providedMusicEngine = null;
   #applyRTPC = null;
   #releaseGameObj = null;
+  #busRtpcs = null;
   #providedUpdateContext = null;
   #adoptedEmitters = new Set();
   #adoptedCurveSetDrivers = new Set();
@@ -76,7 +77,8 @@ class CjsAudioSystem {
     createMusicEngine,
     applyRTPC,
     releaseGameObj,
-    updateContext
+    updateContext,
+    busRtpcs
   } = {}) {
     this.#createContext = createContext ?? null;
     this.#loadBuffer = loadBuffer ?? null;
@@ -93,6 +95,7 @@ class CjsAudioSystem {
     this.#createMusicEngine = typeof createMusicEngine === "function" ? createMusicEngine : null;
     this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
     this.#releaseGameObj = typeof releaseGameObj === "function" ? releaseGameObj : null;
+    this.#busRtpcs = busRtpcs ?? null;
     this.#providedUpdateContext = updateContext ?? null;
     if (audioMetadata) {
       this.repository.Initialize(audioMetadata);
@@ -140,7 +143,8 @@ class CjsAudioSystem {
           prepareSfxProgram: this.#prepareSfxProgram,
           stateTransitions: this.#stateTransitions,
           distanceScale: this.#distanceScale,
-          applyRTPC: this.#applyRTPC
+          applyRTPC: this.#applyRTPC,
+          busRtpcs: this.#busRtpcs
         });
         if (!this.musicEngine) {
           const destination = this.backend.masterGain ?? context.destination;
@@ -151,14 +155,20 @@ class CjsAudioSystem {
               context,
               destination,
               graph: this.#musicGraph,
-              loadMedia: this.#loadMedia
+              loadMedia: this.#loadMedia,
+              busRtpcs: this.#busRtpcs,
+              getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
+              getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from)
             }));
           } else if (this.#musicGraph) {
             this.musicEngine = new CjsMusicEngine({
               graph: this.#musicGraph,
               context,
               loadMedia: this.#loadMedia,
-              destination
+              destination,
+              busRtpcs: this.#busRtpcs,
+              getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
+              getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from)
             });
           }
         }

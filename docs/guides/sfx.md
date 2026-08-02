@@ -265,9 +265,12 @@ update a persistent template for emitters registered later and continue to
 affect live voices on retired generations. SFX and music routes include full
 dry-output bus ancestry, authored base Bus Volume, and any bus Make-Up Gain on
 that ancestry. The effective NodeBase Output Bus Volume remains a separate
-authored contribution on the same collapsed route. This remains a focused
-audible adaptation rather than full Wwise bus processing; effects, auxiliary
-sends, and ducking remain deferred as
+authored contribution on the same collapsed route. Typed Bus Volume RTPCs are
+stored once per bus and add their global Game Parameter result across that
+same ancestry for both SFX and built-in music. Scaling-2 curve outputs remain
+raw: runtime-audio interpolates first, then applies Wwise's nonlinear dB
+conversion. This remains a focused audible adaptation rather than full Wwise
+bus processing; effects, auxiliary sends, and ducking remain deferred as
 described in the
 [routing reference](../reference/wwise-resource-routing-handoff.md).
 Delay is measured from the action post. Value randomizers are signed offsets

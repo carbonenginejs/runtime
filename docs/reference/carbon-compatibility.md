@@ -37,6 +37,9 @@ The maintained graph includes:
 - ordered Bus Volume Set and Reset actions across the complete v150 alias
   family, with exact output-bus identities, persistent object/global state,
   interruptible linear-gain curves, and isolated live/future SFX routing;
+- typed v150 Bus Volume RTPC catalogs with STMG defaults, raw Wwise
+  interpolation-before-scaling behavior, and live dry-route realization across
+  SFX and built-in music bus ancestry;
 - exact STMG State Group defaults and directed overrides, with immediate
   logical routing plus interruptible live Volume, Pitch, low-pass, and
   high-pass property interpolation;

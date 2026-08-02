@@ -153,6 +153,7 @@ function Harness({
   continueSfxProgram,
   prepareSfxProgram,
   stateTransitions,
+  busRtpcs,
 } = {})
 {
   const context = FakeContext();
@@ -177,6 +178,7 @@ function Harness({
         : undefined
     ),
     stateTransitions,
+    busRtpcs,
   });
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
@@ -5862,6 +5864,124 @@ test("authored Bus Volume remains on the bus stage below the voice silence thres
   backend.PostEvent(2, 1, 0, emitter, "lower");
   assert.equal(voiceGain.value, 1);
   assert.ok(Math.abs(busGain.value - 10 ** (-101 / 20)) < 1e-12);
+});
+
+test("Bus Volume RTPCs scale ancestor routes for live and future SFX voices", async () =>
+{
+  const programs = {
+    routed: [ {
+      kind: "play",
+      actionIndex: 0,
+      selections: [ {
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: [ "200" ],
+        busPathIds: [ "928", "500", "1" ],
+        authoredBusVolumeDb: -3,
+      } ],
+    } ],
+    unrelated: [ {
+      kind: "play",
+      actionIndex: 0,
+      selections: [ {
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: [ "201" ],
+        busPathIds: [ "399", "1" ],
+      } ],
+    } ],
+  };
+  const busRtpcs = {
+    schemaVersion: 1,
+    buses: {
+      "500": [ {
+        curveId: 77,
+        rtpc: "menu_advanced_world_level",
+        defaultValue: 1,
+        scaling: 2,
+        points: [
+          { x: 0, value: -1, interpolation: 4 },
+          { x: 1, value: 0, interpolation: 4 },
+        ],
+      } ],
+    },
+  };
+  const { backend, emitter, context } = Harness({
+    busRtpcs,
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program[0].selections.map(selection => ({
+        buffer: { duration: 20 },
+        loop: true,
+        programSlotId: "0:0",
+        matchIds: selection.matchIds,
+        busPathIds: selection.busPathIds,
+        authoredBusVolumeDb: selection.authoredBusVolumeDb,
+        getGain: () => 1,
+      })),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "routed");
+  backend.PostEvent(2, 1, 0, emitter, "unrelated");
+  await tick();
+
+  const routed = context.sources[0].connectedTo.connectedTo.gain;
+  const unrelated = context.sources[1].connectedTo.connectedTo.gain;
+
+  assert.ok(Math.abs(routed.value - 10 ** (-3 / 20)) < 1e-12);
+  assert.equal(unrelated.value, 1);
+
+  backend.SetGlobalRTPCValue("menu_advanced_world_level", 0.5);
+  const scaledDb = -3 + 20 * Math.log10(0.5);
+
+  assert.ok(Math.abs(routed.value - 10 ** (scaledDb / 20)) < 1e-12);
+  assert.equal(unrelated.value, 1);
+
+  backend.PostEvent(3, 1, 0, emitter, "routed");
+  await tick();
+  const future = context.sources[2].connectedTo.connectedTo.gain;
+
+  assert.ok(Math.abs(future.value - 10 ** (scaledDb / 20)) < 1e-12);
+});
+
+test("authored bus controls supersede legacy hard-coded music volume mapping", () =>
+{
+  let legacyWrites = 0;
+  let rtpcRefreshes = 0;
+  const musicEngine = {
+    SetMusicVolume()
+    {
+      legacyWrites++;
+    },
+    RefreshBusRtpcs()
+    {
+      rtpcRefreshes++;
+    },
+  };
+  const { backend } = Harness({
+    musicEngine,
+    busRtpcs: {
+      schemaVersion: 1,
+      buses: {
+        "500": [ {
+          curveId: 77,
+          rtpc: "menu_main_music_level",
+          defaultValue: 1,
+          scaling: 2,
+          points: [
+            { x: 0, value: -1, interpolation: 4 },
+            { x: 1, value: 0, interpolation: 4 },
+          ],
+        } ],
+      },
+    },
+  });
+
+  backend.SetGlobalRTPCValue("menu_main_music_level", 0.5);
+
+  assert.equal(legacyWrites, 0);
+  assert.equal(rtpcRefreshes, 1);
 });
 
 test("music receives its emitter Bus Volume state map and refresh notifications", () =>

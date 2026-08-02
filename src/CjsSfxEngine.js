@@ -3,6 +3,10 @@
 // It selects media identities only; CjsAudioMan retains ownership of delivery
 // and decode, while CjsAudioBackend owns Web Audio voices.
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
+import {
+    evaluateWwiseRtpcCurve,
+    wwiseDbRtpcValueToDb,
+} from "./internal/wwiseRtpc.js";
 
 const MIN_AUDIBLE_GAIN_DB = -96;
 const MIN_RELATIVE_GAIN_DB = -200;
@@ -2523,11 +2527,7 @@ function EvaluateRtpcProperties(curves, controls, at = undefined)
 
         if (curve.property === "volume")
         {
-            const raw = Clamp(output, -1, 1);
-
-            gainDb += raw === -1
-                ? -96.3
-                : 20 * Math.log10(raw + 1);
+            gainDb += wwiseDbRtpcValueToDb(output);
         }
         else if (curve.property === "pitch")
         {
@@ -2621,38 +2621,7 @@ function EvaluateValueCurve(points, value)
 
 function EvaluateCurveField(points, value, field)
 {
-    if (value < points[0].x)
-    {
-        return points[0][field];
-    }
-
-    const last = points.at(-1);
-
-    if (value >= last.x)
-    {
-        return last[field];
-    }
-
-    for (let index = 1; index < points.length; index++)
-    {
-        const right = points[index];
-
-        if (value < right.x)
-        {
-            const left = points[index - 1];
-            const span = right.x - left.x;
-            const ratio = span > 0
-                ? evaluateWwiseInterpolation(
-                    left.interpolation ?? 4,
-                    (value - left.x) / span,
-                )
-                : 1;
-
-            return left[field] + (right[field] - left[field]) * ratio;
-        }
-    }
-
-    return last[field];
+    return evaluateWwiseRtpcCurve(points, value, field);
 }
 
 function FindCase(cases, value)

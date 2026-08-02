@@ -52,7 +52,8 @@ Only `schemaVersion: 2` is accepted:
     eventMedia: {},
     eventMediaLanguage: "",
     sfx: undefined,
-    music: undefined
+    music: undefined,
+    busRtpcs: undefined
 }
 ```
 
@@ -61,6 +62,11 @@ Only `schemaVersion: 2` is accepted:
 Every bank key and `sourceID` is its `bankID:languageID` identity.
 When present, `sfx` selects and layers those media identities using the
 version-2 portable SFX graph.
+When present, `busRtpcs` is a version-1 catalog keyed by bus ID. Each entry
+retains named global Game Parameter curves for Bus Volume as raw Wwise
+scaling-2 values, including the authored parameter default and ordered graph
+points. SFX and built-in music routes evaluate curves for every bus in their
+dry ancestry; interpolation occurs before Wwise's nonlinear dB conversion.
 
 ## Delivery
 

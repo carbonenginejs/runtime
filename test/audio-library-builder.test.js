@@ -3059,6 +3059,104 @@ test("complete construction carries STMG defaults into Game Parameter actions", 
     } ]);
 });
 
+test("complete construction projects typed Bus Volume RTPC curves once per bus", async () =>
+{
+    const library = await CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {},
+            SoundBanks: {
+                "init.bnk": {
+                    name: "init",
+                    path: "\\SoundBanks\\init.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "200",
+                    ShortName: "init",
+                    GameParameters: [ {
+                        Id: "800",
+                        Name: "menu_advanced_world_level",
+                    } ],
+                } ],
+            },
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/init.bnk",
+            storagePath: "banks/init.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    globalSettings: {
+                        filterBehavior: 1,
+                        stateGroups: [],
+                        switchGroups: [],
+                        rtpcParameters: [ {
+                            id: 800,
+                            defaultValue: 0.5,
+                            rampType: 0,
+                            rampUp: 0,
+                            rampDown: 0,
+                            builtInParameter: 0,
+                        } ],
+                        acousticTextures: [],
+                    },
+                    hirc: [ {
+                        type: 8,
+                        id: 500,
+                        payload: busPayload({
+                            rtpcs: [ {
+                                controlId: 800,
+                                controlType: 0,
+                                accumulation: 2,
+                                parameterId: 4,
+                                curveId: 77,
+                                scaling: 2,
+                                points: [
+                                    [ 0, -1, 4 ],
+                                    [ 1, 0.4988127648830414, 8 ],
+                                ],
+                            } ],
+                        }),
+                    } ],
+                    media: [],
+                },
+            };
+        },
+    });
+
+    assert.deepEqual(library.busRtpcs, {
+        schemaVersion: 1,
+        buses: {
+            "500": [ {
+                curveId: 77,
+                rtpc: "menu_advanced_world_level",
+                defaultValue: 0.5,
+                scaling: 2,
+                points: [
+                    { x: 0, value: -1, interpolation: 4 },
+                    {
+                        x: 1,
+                        value: 0.4988127648830414,
+                        interpolation: 8,
+                    },
+                ],
+            } ],
+        },
+    });
+});
+
 test("SFX State catalogs fail closed on malformed or conflicting names", () =>
 {
     const inspection = {
@@ -5744,6 +5842,41 @@ function actorMixerPayload({
     }
 
     return writer.bytes();
+}
+
+function busPayload({ parentId = 0, rtpcs = [] } = {})
+{
+    const writer = new TestWriter().u32(parentId);
+
+    if (parentId === 0) writer.u32(0);
+
+    writer
+        .u8(0)
+        .u8(0)
+        .u8(0).u32(0)
+        .u8(0).u16(0).u32(0).u8(0)
+        .u32(0).f32(0).u32(0)
+        .u8(0).u8(0)
+        .u16(rtpcs.length);
+
+    for (const rtpc of rtpcs)
+    {
+        writer
+            .u32(rtpc.controlId)
+            .u8(rtpc.controlType)
+            .u8(rtpc.accumulation)
+            .variable(rtpc.parameterId)
+            .u32(rtpc.curveId)
+            .u8(rtpc.scaling)
+            .u16(rtpc.points.length);
+
+        for (const [ from, to, interpolation ] of rtpc.points)
+        {
+            writer.f32(from).f32(to).u32(interpolation);
+        }
+    }
+
+    return writer.variable(0).variable(0).bytes();
 }
 
 function concatBytes(...values)

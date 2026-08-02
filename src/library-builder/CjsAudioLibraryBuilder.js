@@ -48,6 +48,7 @@ const SFX_VOLUME_PROPERTY = 0;
 const SFX_PITCH_PROPERTY = 1;
 const SFX_LOW_PASS_PROPERTY = 2;
 const SFX_HIGH_PASS_PROPERTY = 3;
+const BUS_VOLUME_RTPC_PROPERTY = 4;
 const SFX_INITIAL_DELAY_PROPERTY = 34;
 const WWISE_OUTPUT_BUS_VOLUME_PROPERTY = 0x0d;
 const SFX_ADDITIVE_ACCUMULATION = 2;
@@ -586,6 +587,16 @@ export class CjsAudioLibraryBuilder
         const busCatalog = includeSfx || includeMusic
             ? CreateTypedBusCatalog(graphInspections)
             : null;
+        const busRtpcs = busCatalog
+            ? CreateBusRtpcCatalog(
+                busCatalog,
+                CreateSfxNameCatalog(
+                    options.soundbanksInfo,
+                    options.enrichment,
+                    graphInspections,
+                ),
+            )
+            : null;
         let eventMedia = {};
 
         if (!includeSfx)
@@ -609,6 +620,7 @@ export class CjsAudioLibraryBuilder
             eventMedia,
             eventMediaLanguage,
             embeddedMedia,
+            busRtpcs,
         };
         let assembledOptions = completeOptions;
 
@@ -680,6 +692,7 @@ export class CjsAudioLibraryBuilder
             bankIdentities = null,
             sfx: sfxInput = null,
             music = null,
+            busRtpcs = null,
             sourceTarget = null,
             sourceGame = null,
             sourceProvider = null,
@@ -777,6 +790,12 @@ export class CjsAudioLibraryBuilder
                 library.embeddedMedia ?? {},
             );
             library.music = normalizeMusicGraph(music);
+        }
+
+        if (busRtpcs !== null
+            && Object.keys(busRtpcs.buses ?? {}).length)
+        {
+            library.busRtpcs = NormalizeBusRtpcCatalog(busRtpcs);
         }
 
         if (source)
@@ -2775,6 +2794,146 @@ function CreateTypedBusCatalog(inspections)
         throw new Error(`Audio bus parsing failed: ${details}`);
     }
     return result.buses;
+}
+
+function CreateBusRtpcCatalog(buses, names)
+{
+    const result = {};
+
+    for (const [ rawBusId, bus ] of [ ...buses.entries() ]
+        .sort(([ left ], [ right ]) => left - right))
+    {
+        const curves = (bus.rtpcs ?? [])
+            .filter(rtpc => Number(rtpc.parameterId)
+                === BUS_VOLUME_RTPC_PROPERTY)
+            .map(rtpc => CreateBusRtpcCurve(rtpc, names))
+            .sort((left, right) => left.curveId - right.curveId);
+
+        if (curves.length)
+        {
+            result[String(Number(rawBusId) >>> 0)] = curves;
+        }
+    }
+
+    return {
+        schemaVersion: 1,
+        buses: result,
+    };
+}
+
+function CreateBusRtpcCurve(rtpc, names)
+{
+    const curveId = NormalizeWwiseUint32(
+        rtpc.curveId,
+        "Audio Bus Volume RTPC curve id",
+    );
+    const controlId = NormalizeWwiseUint32(
+        rtpc.controlId,
+        `Audio Bus Volume RTPC ${curveId} control id`,
+    );
+    const rtpcName = names.parameters.get(controlId);
+    const defaultValue = names.parameterDefaults.get(controlId);
+
+    if (Number(rtpc.controlType) !== 0)
+    {
+        throw new Error(
+            `unsupported Bus Volume RTPC control type ${rtpc.controlType}`,
+        );
+    }
+    if (Number(rtpc.accumulation) !== SFX_ADDITIVE_ACCUMULATION)
+    {
+        throw new Error(
+            `unsupported Bus Volume RTPC accumulation ${rtpc.accumulation}`,
+        );
+    }
+    if (Number(rtpc.scaling) !== 2)
+    {
+        throw new Error(
+            `unsupported Bus Volume RTPC scaling ${rtpc.scaling}`,
+        );
+    }
+    if (!rtpcName)
+    {
+        throw new Error(`unnamed Bus Volume game parameter ${controlId}`);
+    }
+    if (!Number.isFinite(defaultValue))
+    {
+        throw new Error(
+            `missing Bus Volume game parameter default ${controlId}`,
+        );
+    }
+    if (!rtpc.points?.length)
+    {
+        throw new Error(`empty Bus Volume RTPC curve ${curveId}`);
+    }
+
+    let previous = -Infinity;
+    const points = rtpc.points.map((point, index) =>
+    {
+        const x = Number(point.from);
+        const value = Number(point.to);
+        const interpolation = Number(point.interpolation);
+
+        if (!Number.isFinite(x) || !Number.isFinite(value))
+        {
+            throw new Error(`non-finite Bus Volume RTPC curve ${curveId}`);
+        }
+        if (value < -1 || value > 1)
+        {
+            throw new Error(
+                `out-of-range Bus Volume RTPC curve ${curveId} point ${index}`,
+            );
+        }
+        if (!Number.isSafeInteger(interpolation)
+            || interpolation < 0
+            || interpolation > 9)
+        {
+            throw new Error(
+                `invalid Bus Volume RTPC interpolation ${curveId}`,
+            );
+        }
+        if (x < previous)
+        {
+            throw new Error(`unsorted Bus Volume RTPC curve ${curveId}`);
+        }
+        previous = x;
+
+        return { x, value, interpolation };
+    });
+
+    return {
+        curveId,
+        rtpc: String(rtpcName),
+        defaultValue,
+        scaling: 2,
+        points,
+    };
+}
+
+function NormalizeBusRtpcCatalog(value)
+{
+    const buses = {};
+
+    for (const busId of Object.keys(value.buses ?? {})
+        .sort((left, right) => Number(left) - Number(right)))
+    {
+        buses[String(busId)] = value.buses[busId].map(curve => ({
+            curveId: Number(curve.curveId),
+            rtpc: String(curve.rtpc),
+            defaultValue: Number(curve.defaultValue),
+            scaling: Number(curve.scaling),
+            points: curve.points.map(point => ({
+                x: Number(point.x),
+                value: Number(point.value),
+                interpolation: Number(point.interpolation),
+            })),
+        }));
+    }
+
+    return {
+        schemaVersion: 1,
+        buses,
+    };
 }
 
 function CreateSfxBusRouting(parsed, rawID, buses)

@@ -1,4 +1,5 @@
 import { evaluateWwiseInterpolation } from './internal/wwiseCurve.js';
+import { indexBusRtpcCatalog, evaluateBusRtpcGainDb } from './internal/busRtpc.js';
 
 // CarbonEngineJS original (no Carbon counterpart). Interactive-music engine:
 // interprets the authored Wwise music graph produced in tools-core's complete
@@ -91,7 +92,7 @@ function EvaluateBusVolumeState(state, at) {
   const gain = from + (to - from) * evaluateWwiseInterpolation(state.curve, progress);
   return 20 * Math.log10(Math.max(1e-10, gain));
 }
-function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, context) {
+function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, context, busRtpcCatalog, readGlobalRtpc, readGlobalRtpcTransitionBoundaries) {
   if (!param) return;
   const now = Number(context?.currentTime) || 0;
   const path = Array.isArray(busPathIds) ? busPathIds.map(String) : [];
@@ -106,6 +107,7 @@ function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, au
         db += EvaluateBusVolumeState(states.get(busId), at);
       }
     }
+    db += evaluateBusRtpcGainDb(busRtpcCatalog, path, readGlobalRtpc, at);
     return 10 ** (db / 20);
   };
   const boundaries = [];
@@ -117,6 +119,9 @@ function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, au
       if (Number.isFinite(start) && start > now) boundaries.push(start);
       if (Number.isFinite(end) && end > now) boundaries.push(end);
     }
+  }
+  if (typeof readGlobalRtpcTransitionBoundaries === "function") {
+    boundaries.push(...readGlobalRtpcTransitionBoundaries(now));
   }
   boundaries.sort((left, right) => left - right);
   const uniqueBoundaries = [...new Set(boundaries)];
@@ -445,6 +450,9 @@ class CjsMusicEngine {
   #buffers = new Map();
   #nextScheduleId = 1;
   #epoch = 0;
+  #busRtpcCatalog = new Map();
+  #readGlobalRtpc = null;
+  #readGlobalRtpcTransitionBoundaries = null;
 
   /** Creates a scheduler over an optional authored graph and Web Audio context. */
   constructor({
@@ -452,12 +460,18 @@ class CjsMusicEngine {
     context,
     loadMedia,
     destination,
-    random
+    random,
+    busRtpcs,
+    getGlobalRTPC,
+    getGlobalRTPCTransitionBoundaries
   } = {}) {
     this.#graph = graph ?? null;
     this.#context = context ?? null;
     this.#loadMedia = loadMedia ?? null;
     this.#destination = destination ?? context?.destination ?? null;
+    this.#busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
+    this.#readGlobalRtpc = typeof getGlobalRTPC === "function" ? getGlobalRTPC : null;
+    this.#readGlobalRtpcTransitionBoundaries = typeof getGlobalRTPCTransitionBoundaries === "function" ? getGlobalRTPCTransitionBoundaries : null;
     if (random) this.#random = random;
     if (this.#context && this.#destination) {
       // Music output bus: every instance routes through it so music
@@ -1098,10 +1112,15 @@ class CjsMusicEngine {
     for (const instance of this.#instances.values()) {
       for (const scheduled of instance.active) {
         for (const route of scheduled.routeGains?.values?.() ?? []) {
-          ScheduleMusicBusGain(route.gain.gain, instance.busVolumeStates, route.busPathIds, route.authoredBusVolumeDb, route.authoredBusMakeUpGainDb, route.authoredOutputBusVolumeDb, this.#context);
+          ScheduleMusicBusGain(route.gain.gain, instance.busVolumeStates, route.busPathIds, route.authoredBusVolumeDb, route.authoredBusMakeUpGainDb, route.authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries);
         }
       }
     }
+  }
+
+  /** Reapplies dynamic Bus Volume RTPCs to every scheduled route. */
+  RefreshBusRtpcs() {
+    this.RefreshBusVolumeGains();
   }
 
   /** Atomically applies draft sequence advances after successful prepare. */
@@ -1604,7 +1623,7 @@ class CjsMusicEngine {
       authoredOutputBusVolumeDb
     };
     gain.connect(scheduled.gain);
-    ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, this.#context);
+    ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries);
     scheduled.routeGains.set(key, route);
     return gain;
   }

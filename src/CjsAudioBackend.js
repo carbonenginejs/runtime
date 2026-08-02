@@ -14,6 +14,11 @@
 //   - the app wires runtime-resource's wem->ogg->decode chain behind this.
 // - isLoop(eventName) - loop flag source (usually the static data repository).
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
+import {
+    busRtpcCatalogUsesControl,
+    evaluateBusRtpcGainDb,
+    indexBusRtpcCatalog,
+} from "./internal/busRtpc.js";
 
 const DEFAULT_FADE_SECONDS = 1;
 const DEFAULT_RENDER_QUANTUM_SECONDS = 128 / 48000;
@@ -85,6 +90,8 @@ export class CjsAudioBackend
 
     #applyRTPC = null;
 
+    #busRtpcCatalog = new Map();
+
     #nextPlayingID = 1;
 
     // Wwise-scale world units -> WebAudio panner units. EVE positions run to
@@ -110,6 +117,7 @@ export class CjsAudioBackend
         distanceScale,
         musicEngine,
         applyRTPC,
+        busRtpcs,
     } = {})
     {
         this.#context = context ?? null;
@@ -135,6 +143,7 @@ export class CjsAudioBackend
         );
         this.#distanceScale = Number(distanceScale) || 1;
         this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
+        this.#busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
 
         if (this.#context)
         {
@@ -1163,8 +1172,8 @@ export class CjsAudioBackend
      * Global RTPC store (feeds GetGlobalRTPCValue / monitored parameters).
      * Carbon's volume control groups are RTPCs (menu_main_master_level,
      * menu_main_music_level, ... - all 0..1 user settings); the known volume
-     * levels are applied audibly to the matching bus. Category levels
-     * (menu_advanced_*) are stored but not yet mapped.
+     * levels are applied through authored Bus Volume curves when present,
+     * with legacy master/music fallbacks for older library documents.
      */
     SetGlobalRTPCValue(rtpcName, value)
     {
@@ -1334,7 +1343,7 @@ export class CjsAudioBackend
     }
 
     /** Monitored-parameter query source. */
-    GetGlobalRTPCValue(rtpcName)
+    GetGlobalRTPCValue(rtpcName, at = undefined)
     {
         const name = String(rtpcName);
 
@@ -1342,8 +1351,31 @@ export class CjsAudioBackend
             "global",
             name,
             undefined,
-            Number(this.#context?.currentTime) || 0,
+            at === undefined
+                ? Number(this.#context?.currentTime) || 0
+                : Number(at) || 0,
         );
+    }
+
+    /** Returns future global Game Parameter transition boundaries. */
+    GetGlobalRTPCTransitionBoundaries(from = undefined)
+    {
+        const now = from === undefined
+            ? Number(this.#context?.currentTime) || 0
+            : Number(from) || 0;
+        const result = [];
+
+        for (const transition of this.#rtpcTransitions.values())
+        {
+            if (transition.scope !== "global") continue;
+
+            const start = Number(transition.startTime);
+            const end = start + Math.max(0, Number(transition.duration) || 0);
+
+            if (Number.isFinite(start) && start > now) result.push(start);
+            if (Number.isFinite(end) && end > now) result.push(end);
+        }
+        return [ ...new Set(result) ].sort((left, right) => left - right);
     }
 
     /** Banks are virtual on the catalog route: media resolves per event, so loads complete immediately. */
@@ -2395,6 +2427,10 @@ export class CjsAudioBackend
             scope === "game-object" ? gameObjID : null,
             at + transitionMs / 1000,
         );
+        if (scope === "global")
+        {
+            this.#musicEngine?.RefreshBusRtpcs?.();
+        }
         return true;
     }
 
@@ -2619,7 +2655,12 @@ export class CjsAudioBackend
     {
         this.#globalRtpcValues.set(name, value);
         this.#RefreshSfxControls();
-        if (name === "menu_main_master_level")
+        const authoredBusControl = busRtpcCatalogUsesControl(
+            this.#busRtpcCatalog,
+            name,
+        );
+
+        if (!authoredBusControl && name === "menu_main_master_level")
         {
             SetAudioParam(
                 this.#masterGain?.gain,
@@ -2627,10 +2668,11 @@ export class CjsAudioBackend
                 this.#context,
             );
         }
-        else if (name === "menu_main_music_level")
+        else if (!authoredBusControl && name === "menu_main_music_level")
         {
             this.#musicEngine?.SetMusicVolume(value);
         }
+        this.#musicEngine?.RefreshBusRtpcs?.();
         return true;
     }
 
@@ -5498,6 +5540,7 @@ export class CjsAudioBackend
                     voice.rtpcTransitionEnd =
                         voice.controlTransitionBoundaries.at(-1) ?? now;
                     this.#ApplyVoiceGain(voice);
+                    this.#ApplyVoiceBusGain(voice);
                     this.#ApplyVoiceFilters(voice);
                     this.#ApplyVoicePlaybackRate(voice);
                 }
@@ -5654,6 +5697,13 @@ export class CjsAudioBackend
             voice.busGain.gain,
             voice,
             this.#context,
+            this.#busRtpcCatalog,
+            (name, at) => this.#ReadRtpcValue(
+                "global",
+                name,
+                undefined,
+                at,
+            ),
         );
     }
 
@@ -7441,7 +7491,13 @@ function ScheduleVoiceVolumeGain(param, voice, context)
     }
 }
 
-function ScheduleBusVolumeGain(param, voice, context)
+function ScheduleBusVolumeGain(
+    param,
+    voice,
+    context,
+    busRtpcCatalog,
+    readGlobalRtpc,
+)
 {
     if (!param)
     {
@@ -7452,11 +7508,16 @@ function ScheduleBusVolumeGain(param, voice, context)
     const busPathIds = Array.isArray(voice.busPathIds)
         ? voice.busPathIds
         : [];
-    const boundaries = VoiceTargetTransitionBoundaries(
-        states,
-        busPathIds,
-        now,
-    );
+    const boundaries = [ ...new Set([
+        ...VoiceTargetTransitionBoundaries(
+            states,
+            busPathIds,
+            now,
+        ),
+        ...(voice.controlTransitionBoundaries ?? [])
+            .map(Number)
+            .filter(value => Number.isFinite(value) && value > now),
+    ]) ].sort((left, right) => left - right);
     const authoredBusVolumeDb = Number(voice.authoredBusVolumeDb) || 0;
     const authoredBusMakeUpGainDb =
         Number(voice.authoredBusMakeUpGainDb) || 0;
@@ -7467,6 +7528,12 @@ function ScheduleBusVolumeGain(param, voice, context)
         + authoredBusMakeUpGainDb
         + authoredOutputBusVolumeDb
         + EvaluateVoiceVolumeTargets(states, busPathIds, at)
+        + evaluateBusRtpcGainDb(
+            busRtpcCatalog,
+            busPathIds,
+            readGlobalRtpc,
+            at,
+        )
     ) / 20);
     const startValue = evaluate(now);
 

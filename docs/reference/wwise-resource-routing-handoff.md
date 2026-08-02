@@ -14,7 +14,8 @@ builder. Portable SFX sounds and music tracks
 carry their effective output bus, ordered cycle-safe ancestry, summed authored
 base Bus Volume, summed Make-Up Gain, and the Output Bus Volume authored by the
 NodeBase that supplies the effective output-bus override. Playback adds live
-Bus Volume action state without changing the application SFX or music sliders.
+Bus Volume action state and global Bus Volume RTPC curves without changing the
+application SFX or music sliders.
 
 ## Music NodeBase contract
 
@@ -109,13 +110,23 @@ media rather than WEM audio.
 
 The dry-output route applies Bus Volume and Make-Up Gain when those properties
 occur in the selected dry ancestry. It separately applies the effective
-NodeBase Output Bus Volume at the collapsed route gain. Keeping the three
-authored contributions distinct preserves their future placement when real bus
-and effect stages replace the collapsed gain. Effects, auxiliary sends and
-chaining, formal ducking, meters, virtual-voice behavior, and spatial
-diffraction remain separate runtime slices. Those features need their complete
-effective send/property projection, qualified plug-in adapters, and signal
-semantics; the typed catalogs do not imply that playback is implemented.
+NodeBase Output Bus Volume and evaluates every scaling-2 Bus Volume RTPC on the
+route. The builder keeps raw graph values because Wwise interpolates them
+before converting `-1` to `-96.3 dB` and other values with
+`20 * log10(value + 1)`. Keeping these contributions distinct preserves their
+future placement when real bus and effect stages replace the collapsed gain.
+Effects, auxiliary sends and chaining, formal ducking, meters, virtual-voice
+behavior, and spatial diffraction remain separate runtime slices. Those
+features need their complete effective send/property projection, qualified
+plug-in adapters, and signal semantics; the typed catalogs do not imply that
+playback is implemented.
+
+EVE build 3444265 authors 60 Bus Volume RTPC curves on 56 buses, driven by 18
+Game Parameters. Every one of the 16,263 serialized SFX leaves and 2,484 music
+tracks reaches at least one affected bus through its dry ancestry. All 60
+curves use Game Parameter control type 0, additive accumulation 2, and dB
+scaling 2, so the current per-route scalar is signal-equivalent on the dry
+path. The catalog is stored once per bus rather than duplicated on every leaf.
 
 EVE build 3444265 contains three sounds with an effective nonzero Output Bus
 Volume: `1030460440` (`+3 dB`), `315857869` (`+8 dB`), and `577594853`

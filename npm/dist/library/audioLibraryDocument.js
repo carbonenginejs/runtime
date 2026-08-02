@@ -31,7 +31,66 @@ function validateAudioLibraryDocument(value) {
     }
   }
   ValidateMusic(value.music, value.media, value.embeddedMedia ?? {});
+  ValidateBusRtpcs(value.busRtpcs);
   return true;
+}
+function ValidateBusRtpcs(value) {
+  if (value === undefined) {
+    return;
+  }
+  const catalog = RequireRecord(value, "Audio library busRtpcs");
+  if (catalog.schemaVersion !== 1) {
+    throw new TypeError(`Unsupported audio bus RTPC schema version: ${catalog.schemaVersion}`);
+  }
+  const buses = RequireRecord(catalog.buses, "Audio library busRtpcs buses");
+  for (const [rawBusId, curves] of Object.entries(buses)) {
+    const busId = NormalizePositiveID(rawBusId, `Audio library busRtpcs bus ${rawBusId}`);
+    if (String(busId) !== String(rawBusId)) {
+      throw new TypeError(`Audio library busRtpcs has non-canonical bus id ${rawBusId}`);
+    }
+    if (!Array.isArray(curves) || !curves.length) {
+      throw new TypeError(`Audio library busRtpcs bus ${rawBusId} must have curves`);
+    }
+    const curveIds = new Set();
+    for (const [index, curveValue] of curves.entries()) {
+      const label = `Audio library busRtpcs bus ${rawBusId}` + ` curve ${index}`;
+      const curve = RequireRecord(curveValue, label);
+      const curveId = NormalizePositiveID(curve.curveId, `${label} id`);
+      if (curveIds.has(curveId)) {
+        throw new TypeError(`${label} duplicates curve ${curveId}`);
+      }
+      curveIds.add(curveId);
+      if (typeof curve.rtpc !== "string" || !curve.rtpc.trim()) {
+        throw new TypeError(`${label} rtpc must be a name`);
+      }
+      if (!Number.isFinite(Number(curve.defaultValue))) {
+        throw new TypeError(`${label} defaultValue must be finite`);
+      }
+      if (Number(curve.scaling) !== 2) {
+        throw new TypeError(`${label} scaling must be 2`);
+      }
+      if (!Array.isArray(curve.points) || !curve.points.length) {
+        throw new TypeError(`${label} must have points`);
+      }
+      let previous = -Infinity;
+      for (const [pointIndex, pointValue] of curve.points.entries()) {
+        const point = RequireRecord(pointValue, `${label} point ${pointIndex}`);
+        const x = Number(point.x);
+        const output = Number(point.value);
+        const interpolation = Number(point.interpolation);
+        if (!Number.isFinite(x) || !Number.isFinite(output) || output < -1 || output > 1) {
+          throw new TypeError(`${label} point ${pointIndex} must have finite x` + " and a value from -1 to 1");
+        }
+        if (x < previous) {
+          throw new TypeError(`${label} points must be ordered`);
+        }
+        if (!Number.isSafeInteger(interpolation) || interpolation < 0 || interpolation > 9) {
+          throw new TypeError(`${label} point ${pointIndex} interpolation must be` + " a Wwise curve value from 0 to 9");
+        }
+        previous = x;
+      }
+    }
+  }
 }
 function ValidateEventMetadata(events) {
   for (const [name, event] of Object.entries(events)) {
