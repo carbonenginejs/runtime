@@ -1,5 +1,6 @@
 import { evaluateWwiseInterpolation } from './internal/wwiseCurve.js';
 import { indexBusRtpcCatalog, busRtpcCatalogUsesControl, evaluateBusRtpcGainDb } from './internal/busRtpc.js';
+import { indexBusStateCatalog, evaluateBusStateGainDb } from './internal/busState.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
@@ -50,6 +51,7 @@ class CjsAudioBackend {
   #deferSfxControlRefresh = false;
   #applyRTPC = null;
   #busRtpcCatalog = new Map();
+  #busStateCatalog = new Map();
   #nextPlayingID = 1;
 
   // Wwise-scale world units -> WebAudio panner units. EVE positions run to
@@ -75,7 +77,8 @@ class CjsAudioBackend {
     distanceScale,
     musicEngine,
     applyRTPC,
-    busRtpcs
+    busRtpcs,
+    busStates
   } = {}) {
     this.#context = context ?? null;
     this.#loadBuffer = loadBuffer ?? null;
@@ -89,6 +92,7 @@ class CjsAudioBackend {
     this.#distanceScale = Number(distanceScale) || 1;
     this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
     this.#busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
+    this.#busStateCatalog = indexBusStateCatalog(busStates);
     if (this.#context) {
       this.#masterGain = this.#context.createGain();
       // Safety limiter: many concurrent one-shots (weapon volleys) sum
@@ -830,12 +834,31 @@ class CjsAudioBackend {
       this.#AdvanceContinuousSwitchSlots("state", group);
     }
     this.#musicEngine?.SetState(stateGroup, stateName);
+    this.#musicEngine?.RefreshBusStates?.();
   }
 
   /** Global state query for authored SFX selection. */
   GetGlobalState(stateGroup) {
     const catalogGroup = this.#stateTransitionCatalog.get(NormalizeStateIdentity(stateGroup));
     return this.#globalStateValues.get(CanonicalStateGroup(catalogGroup, stateGroup));
+  }
+
+  /** Returns the current weighted property mix for one global State group. */
+  GetGlobalStatePropertyWeights(stateGroup, at = undefined) {
+    return this.#ReadStatePropertyWeights(stateGroup, at === undefined ? Number(this.#context?.currentTime) || 0 : Number(at) || 0);
+  }
+
+  /** Returns future global State-property transition boundaries. */
+  GetGlobalStateTransitionBoundaries(from = undefined) {
+    const now = from === undefined ? Number(this.#context?.currentTime) || 0 : Number(from) || 0;
+    const result = [];
+    for (const transition of this.#statePropertyTransitions.values()) {
+      const start = Number(transition.startTime);
+      const end = start + Math.max(0, Number(transition.duration) || 0);
+      if (Number.isFinite(start) && start > now) result.push(start);
+      if (Number.isFinite(end) && end > now) result.push(end);
+    }
+    return [...new Set(result)].sort((left, right) => left - right);
   }
 
   /** Returns the current weighted State-property mix for one State group. */
@@ -3227,7 +3250,7 @@ class CjsAudioBackend {
     if (!voice.busGain) {
       return;
     }
-    ScheduleBusVolumeGain(voice.busGain.gain, voice, this.#context, this.#busRtpcCatalog, (name, at) => this.#ReadRtpcValue("global", name, undefined, at));
+    ScheduleBusVolumeGain(voice.busGain.gain, voice, this.#context, this.#busRtpcCatalog, (name, at) => this.#ReadRtpcValue("global", name, undefined, at), this.#busStateCatalog, (group, at) => this.#ReadStatePropertyWeights(group, at));
   }
 
   /** Applies live Wwise LPF/HPF percentages to per-voice WebAudio filters. */
@@ -4169,7 +4192,7 @@ function ScheduleVoiceVolumeGain(param, voice, context) {
     segmentStart = segmentEnd;
   }
 }
-function ScheduleBusVolumeGain(param, voice, context, busRtpcCatalog, readGlobalRtpc) {
+function ScheduleBusVolumeGain(param, voice, context, busRtpcCatalog, readGlobalRtpc, busStateCatalog, readGlobalStateWeights) {
   if (!param) {
     return;
   }
@@ -4180,7 +4203,7 @@ function ScheduleBusVolumeGain(param, voice, context, busRtpcCatalog, readGlobal
   const authoredBusVolumeDb = Number(voice.authoredBusVolumeDb) || 0;
   const authoredBusMakeUpGainDb = Number(voice.authoredBusMakeUpGainDb) || 0;
   const authoredOutputBusVolumeDb = Number(voice.authoredOutputBusVolumeDb) || 0;
-  const evaluate = at => 10 ** ((authoredBusVolumeDb + authoredBusMakeUpGainDb + authoredOutputBusVolumeDb + EvaluateVoiceVolumeTargets(states, busPathIds, at) + evaluateBusRtpcGainDb(busRtpcCatalog, busPathIds, readGlobalRtpc, at)) / 20);
+  const evaluate = at => 10 ** ((authoredBusVolumeDb + authoredBusMakeUpGainDb + authoredOutputBusVolumeDb + EvaluateVoiceVolumeTargets(states, busPathIds, at) + evaluateBusRtpcGainDb(busRtpcCatalog, busPathIds, readGlobalRtpc, at) + evaluateBusStateGainDb(busStateCatalog, busPathIds, readGlobalStateWeights, at)) / 20);
   const startValue = evaluate(now);
   if (typeof param.cancelAndHoldAtTime === "function") {
     param.cancelAndHoldAtTime(now);

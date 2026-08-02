@@ -14,8 +14,8 @@ builder. Portable SFX sounds and music tracks
 carry their effective output bus, ordered cycle-safe ancestry, summed authored
 base Bus Volume, summed Make-Up Gain, and the Output Bus Volume authored by the
 NodeBase that supplies the effective output-bus override. Playback adds live
-Bus Volume action state and global Bus Volume RTPC curves without changing the
-application SFX or music sliders.
+Bus Volume action state, global Bus Volume RTPC curves, and global Bus Volume
+State contributions without changing the application SFX or music sliders.
 
 ## Music NodeBase contract
 
@@ -127,6 +127,31 @@ tracks reaches at least one affected bus through its dry ancestry. All 60
 curves use Game Parameter control type 0, additive accumulation 2, and dB
 scaling 2, so the current per-route scalar is signal-equivalent on the dry
 path. The catalog is stored once per bus rather than duplicated on every leaf.
+
+The same build authors 117 additive in-dB Bus Volume State values across 113
+bus/State-Group occurrences on 60 buses and 42 distinct State Groups. Of those
+buses, 49 occur on current dry routes; all 16,263 SFX leaves and all 2,484 music
+tracks reach at least one affected bus. Matching groups and distinct buses add
+their decibel contributions, while a missing State case remains neutral. The
+portable catalog embeds the exact STMG default and directed transition rules so
+runtime blending is interruptible and independent of the optional SFX graph.
+
+All but one occurrence author Immediate synchronization. The exception is
+State Group `video_overlay` (`2603658559`) on Audio Bus `2609808943`: State
+`on` (`1651971902`) contributes `-96 dB` and authors Next Grid. That bus reaches
+12,678 SFX leaves and no music tracks. Wwise documents that a bus containing
+only Actor-Mixer Hierarchy sound objects ignores the authored music
+synchronization point and applies the State immediately. The catalog therefore
+preserves `syncType: 1` while recording `effectiveSyncType: 0`. The builder
+rejects any future non-immediate bus State on a music route until a qualified
+music-grid scheduler exists. See Audiokinetic's
+[State-change synchronization rules](https://www.audiokinetic.com/en/public-library/2024.1.7_8863/?id=defining_points_within_music_objects_for_state_changes&source=Help).
+
+The pinned wwiser source remains the binary-format guide for State property,
+accumulation, and synchronization enums. Its report layer explicitly does not
+model dynamic State synchronization timing, so the route-dependent effective
+behavior above follows Audiokinetic's runtime semantics rather than a report
+inference.
 
 EVE build 3444265 contains three sounds with an effective nonzero Output Bus
 Volume: `1030460440` (`+3 dB`), `315857869` (`+8 dB`), and `577594853`

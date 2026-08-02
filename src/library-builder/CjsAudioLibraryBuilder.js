@@ -3,7 +3,10 @@
 // bank-byte/inspection capabilities without discovering files or services.
 import { audioMetadataFromSoundbanksInfo } from "../audioMetadata.js";
 import { validateAudioLibraryDocument } from "../library/audioLibraryDocument.js";
-import { normalizeSfxGraph } from "../library/sfxGraph.js";
+import {
+    normalizeSfxGraph,
+    NormalizeStateTransitions,
+} from "../library/sfxGraph.js";
 import { CjsBnkFormat } from "@carbonenginejs/runtime-resource/formats/bnk";
 
 const MUSIC_BANK_NAMES = Object.freeze([ "music.bnk", "music_essential.bnk" ]);
@@ -49,6 +52,7 @@ const SFX_PITCH_PROPERTY = 1;
 const SFX_LOW_PASS_PROPERTY = 2;
 const SFX_HIGH_PASS_PROPERTY = 3;
 const BUS_VOLUME_RTPC_PROPERTY = 4;
+const BUS_VOLUME_STATE_PROPERTY = 4;
 const SFX_INITIAL_DELAY_PROPERTY = 34;
 const WWISE_OUTPUT_BUS_VOLUME_PROPERTY = 0x0d;
 const SFX_ADDITIVE_ACCUMULATION = 2;
@@ -587,15 +591,27 @@ export class CjsAudioLibraryBuilder
         const busCatalog = includeSfx || includeMusic
             ? CreateTypedBusCatalog(graphInspections)
             : null;
-        const busRtpcs = busCatalog
-            ? CreateBusRtpcCatalog(
-                busCatalog,
-                CreateSfxNameCatalog(
-                    options.soundbanksInfo,
-                    options.enrichment,
-                    graphInspections,
-                ),
+        const busNames = busCatalog
+            ? CreateSfxNameCatalog(
+                options.soundbanksInfo,
+                options.enrichment,
+                graphInspections,
             )
+            : null;
+        const busRtpcs = busCatalog
+            ? CreateBusRtpcCatalog(busCatalog, busNames)
+            : null;
+        const musicBusIds = includeMusic && busCatalog
+            ? CreateMusicRouteBusIds(
+                inspections.filter(inspection =>
+                    MUSIC_BANK_NAMES.includes(
+                        bankSourceName(inspection.source),
+                    )),
+                busCatalog,
+            )
+            : new Set();
+        const busStates = busCatalog
+            ? CreateBusStateCatalog(busCatalog, busNames, musicBusIds)
             : null;
         let eventMedia = {};
 
@@ -621,6 +637,7 @@ export class CjsAudioLibraryBuilder
             eventMediaLanguage,
             embeddedMedia,
             busRtpcs,
+            busStates,
         };
         let assembledOptions = completeOptions;
 
@@ -693,6 +710,7 @@ export class CjsAudioLibraryBuilder
             sfx: sfxInput = null,
             music = null,
             busRtpcs = null,
+            busStates = null,
             sourceTarget = null,
             sourceGame = null,
             sourceProvider = null,
@@ -796,6 +814,12 @@ export class CjsAudioLibraryBuilder
             && Object.keys(busRtpcs.buses ?? {}).length)
         {
             library.busRtpcs = NormalizeBusRtpcCatalog(busRtpcs);
+        }
+
+        if (busStates !== null
+            && Object.keys(busStates.buses ?? {}).length)
+        {
+            library.busStates = NormalizeBusStateCatalog(busStates);
         }
 
         if (source)
@@ -2936,6 +2960,186 @@ function NormalizeBusRtpcCatalog(value)
     };
 }
 
+function CreateBusStateCatalog(buses, names, musicBusIds)
+{
+    const result = {};
+    const usedGroupIds = new Set();
+
+    for (const [ rawBusId, bus ] of [ ...buses.entries() ]
+        .sort(([ left ], [ right ]) => left - right))
+    {
+        const definitions = new Map();
+
+        for (const definition of bus.state?.properties ?? [])
+        {
+            const propertyId = Number(definition.propertyId);
+
+            if (definitions.has(propertyId))
+            {
+                throw new Error(
+                    `duplicate Audio Bus state property ${propertyId}`,
+                );
+            }
+            definitions.set(propertyId, definition);
+        }
+
+        const groups = (bus.state?.groups ?? [])
+            .map(group => CreateBusStateGroup(
+                group,
+                definitions,
+                names,
+                musicBusIds.has(String(Number(rawBusId) >>> 0)),
+            ))
+            .filter(Boolean)
+            .sort((left, right) => Number(left.groupId) - Number(right.groupId));
+
+        if (groups.length)
+        {
+            result[String(Number(rawBusId) >>> 0)] = groups;
+            for (const group of groups) usedGroupIds.add(group.groupId);
+        }
+    }
+
+    const stateTransitions = names.stateTransitions.filter(group =>
+        usedGroupIds.has(String(group.groupId)));
+
+    if (stateTransitions.length !== usedGroupIds.size)
+    {
+        throw new Error("Audio Bus State group is missing STMG transition data");
+    }
+
+    return {
+        schemaVersion: 1,
+        property: "bus-volume",
+        accumulation: "additive",
+        unit: "db",
+        stateTransitions,
+        buses: result,
+    };
+}
+
+function CreateBusStateGroup(group, definitions, names, musicRouted)
+{
+    const groupId = NormalizeWwiseUint32(
+        group.groupId,
+        "Audio Bus state group id",
+    );
+    const syncType = Number(group.syncType);
+    const namedGroup = names.groups.get(`state:${groupId}`);
+    const states = [];
+    const authoredStates = (group.states ?? []).filter(state =>
+        (state.values ?? []).some(value =>
+            Number(value.propertyId) === BUS_VOLUME_STATE_PROPERTY));
+
+    if (!authoredStates.length) return null;
+
+    if (!Number.isSafeInteger(syncType) || syncType < 0 || syncType > 9)
+    {
+        throw new Error(`invalid Audio Bus state sync type ${syncType}`);
+    }
+    if (!namedGroup?.name)
+    {
+        throw new Error(`unnamed Audio Bus state group ${groupId}`);
+    }
+    if (syncType !== 0 && musicRouted)
+    {
+        throw new Error(
+            `unsupported music-synchronized Audio Bus state group ${groupId}`,
+        );
+    }
+
+    for (const state of authoredStates)
+    {
+        const values = (state.values ?? []).filter(value =>
+            Number(value.propertyId) === BUS_VOLUME_STATE_PROPERTY);
+
+        if (!values.length) continue;
+        if (values.length > 1)
+        {
+            throw new Error(
+                `duplicate Bus Volume state value in group ${groupId}`,
+            );
+        }
+
+        const definition = definitions.get(BUS_VOLUME_STATE_PROPERTY);
+
+        if (!definition
+            || Number(definition.accumulation) !== SFX_ADDITIVE_ACCUMULATION
+            || definition.inDb !== true)
+        {
+            throw new Error(
+                `unsupported Bus Volume state definition in group ${groupId}`,
+            );
+        }
+
+        const stateId = NormalizeWwiseUint32(
+            state.stateId,
+            `Audio Bus state group ${groupId} state id`,
+        );
+        const stateName = namedGroup.values.get(stateId);
+        const gainDb = Number(values[0].value);
+
+        if (!stateName)
+        {
+            throw new Error(
+                `unnamed Audio Bus state ${stateId} in group ${groupId}`,
+            );
+        }
+        if (!Number.isFinite(gainDb))
+        {
+            throw new Error(
+                `non-finite Bus Volume state ${stateId} in group ${groupId}`,
+            );
+        }
+        states.push({
+            stateId: String(stateId),
+            state: stateName,
+            gainDb,
+        });
+    }
+
+    if (!states.length) return null;
+    states.sort((left, right) => Number(left.stateId) - Number(right.stateId));
+
+    return {
+        groupId: String(groupId),
+        group: namedGroup.name,
+        syncType,
+        effectiveSyncType: 0,
+        states,
+    };
+}
+
+function NormalizeBusStateCatalog(value)
+{
+    const buses = {};
+
+    for (const busId of Object.keys(value.buses ?? {})
+        .sort((left, right) => Number(left) - Number(right)))
+    {
+        buses[String(busId)] = value.buses[busId].map(group => ({
+            groupId: String(group.groupId),
+            group: String(group.group),
+            syncType: Number(group.syncType),
+            effectiveSyncType: Number(group.effectiveSyncType),
+            states: group.states.map(state => ({
+                stateId: String(state.stateId),
+                state: String(state.state),
+                gainDb: Number(state.gainDb),
+            })),
+        }));
+    }
+
+    return {
+        schemaVersion: 1,
+        property: "bus-volume",
+        accumulation: "additive",
+        unit: "db",
+        stateTransitions: NormalizeStateTransitions(value.stateTransitions),
+        buses,
+    };
+}
+
 function CreateSfxBusRouting(parsed, rawID, buses)
 {
     const active = new Set();
@@ -2993,6 +3197,33 @@ function CreateMusicBusRouting(nodes, rawID, buses)
         current = Number(nodeBase.directParentId) >>> 0;
     }
     return null;
+}
+
+function CreateMusicRouteBusIds(inspections, buses)
+{
+    if (!inspections.length) return new Set();
+
+    const parsed = CjsBnkFormat.wwise.musicNodesFromBanks(inspections);
+
+    if (parsed.diagnostics.failed.length)
+    {
+        throw new Error("Music bus-route qualification failed");
+    }
+
+    const result = new Set();
+
+    for (const [ id, node ] of parsed.nodes)
+    {
+        if (node.type !== "music-track") continue;
+
+        const routing = CreateMusicBusRouting(parsed.nodes, id, buses);
+
+        for (const busId of routing?.busPathIds ?? [])
+        {
+            result.add(String(busId));
+        }
+    }
+    return result;
 }
 
 function ReadOutputBusVolume(nodeBase, nodeID)

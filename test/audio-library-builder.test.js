@@ -3157,6 +3157,262 @@ test("complete construction projects typed Bus Volume RTPC curves once per bus",
     });
 });
 
+test("complete construction projects effective-Immediate Bus Volume States", async () =>
+{
+    const library = await CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {},
+            SoundBanks: {
+                "init.bnk": {
+                    name: "init",
+                    path: "\\SoundBanks\\init.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "200",
+                    ShortName: "init",
+                    StateGroups: [ {
+                        Id: "600",
+                        Name: "video_overlay",
+                        States: [
+                            { Id: "601", Name: "off" },
+                            { Id: "602", Name: "on" },
+                        ],
+                    } ],
+                } ],
+            },
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/init.bnk",
+            storagePath: "banks/init.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    globalSettings: {
+                        filterBehavior: 1,
+                        stateGroups: [ {
+                            id: 600,
+                            defaultTransitionTimeMs: 1000,
+                            transitions: [ {
+                                fromId: 601,
+                                toId: 602,
+                                transitionTimeMs: 5000,
+                            } ],
+                        } ],
+                        switchGroups: [],
+                        rtpcParameters: [],
+                        acousticTextures: [],
+                    },
+                    hirc: [ {
+                        type: 8,
+                        id: 500,
+                        payload: busPayload({
+                            stateProperties: [ {
+                                propertyId: 4,
+                                accumulation: 2,
+                                inDb: true,
+                            } ],
+                            stateGroups: [ {
+                                groupId: 600,
+                                syncType: 1,
+                                states: [ {
+                                    stateId: 602,
+                                    values: [ {
+                                        propertyId: 4,
+                                        value: -96,
+                                    } ],
+                                } ],
+                            } ],
+                        }),
+                    } ],
+                    media: [],
+                },
+            };
+        },
+    });
+
+    assert.deepEqual(library.busStates, {
+        schemaVersion: 1,
+        property: "bus-volume",
+        accumulation: "additive",
+        unit: "db",
+        stateTransitions: [ {
+            groupId: "600",
+            group: "video_overlay",
+            defaultTransitionMs: 1000,
+            states: [
+                { stateId: "601", state: "off" },
+                { stateId: "602", state: "on" },
+            ],
+            transitions: [ {
+                fromId: "601",
+                from: "off",
+                toId: "602",
+                to: "on",
+                transitionMs: 5000,
+            } ],
+        } ],
+        buses: {
+            "500": [ {
+                groupId: "600",
+                group: "video_overlay",
+                syncType: 1,
+                effectiveSyncType: 0,
+                states: [ {
+                    stateId: "602",
+                    state: "on",
+                    gainDb: -96,
+                } ],
+            } ],
+        },
+    });
+});
+
+test("non-Immediate Bus States fail closed when music shares the bus", async () =>
+{
+    const segmentID = 4001;
+    const trackID = 4101;
+    const segment = new TestWriter()
+        .u8(0)
+        .append(nodeBasePayload({ overrideBusId: 500 }))
+        .u32(1).u32(trackID)
+        .f64(1000).f64(0).f32(120).u8(4).u8(4)
+        .u8(1)
+        .u32(0)
+        .f64(4000)
+        .u32(0)
+        .bytes();
+    const track = new TestWriter()
+        .u8(0)
+        .u32(0)
+        .u32(0)
+        .u32(0)
+        .append(nodeBasePayload({ directParentId: segmentID }))
+        .u8(0)
+        .s32(-100)
+        .bytes();
+    const metadata = {
+        Events: {},
+        SoundBanks: Object.fromEntries([
+            [ "init.bnk", 200 ],
+            [ "music.bnk", 201 ],
+            [ "music_essential.bnk", 202 ],
+        ].map(([ name, shortId ]) => [ name, {
+            name: name.slice(0, -4),
+            path: `\\SoundBanks\\${name}`,
+            shortId,
+        } ])),
+        WemFileIDs: {},
+    };
+    const indexEntries = Object.keys(metadata.SoundBanks).map((name, index) => ({
+        logicalPath: `res:/audio/${name}`,
+        storagePath: `banks/${name}`,
+        byteLength: 256 + index,
+    }));
+
+    await assert.rejects(CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        music: true,
+        metadata,
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "200",
+                        ShortName: "init",
+                        StateGroups: [ {
+                            Id: "600",
+                            Name: "video_overlay",
+                            States: [
+                                { Id: "601", Name: "off" },
+                                { Id: "602", Name: "on" },
+                            ],
+                        } ],
+                    },
+                    { Id: "201", ShortName: "music" },
+                    { Id: "202", ShortName: "music_essential" },
+                ],
+            },
+        },
+        indexEntries,
+        loadBank(bank)
+        {
+            const source = bank.resPath.split("/").at(-1);
+
+            if (source === "init.bnk")
+            {
+                return {
+                    inspection: {
+                        bankId: 200,
+                        languageId: 0,
+                        bankVersion: 150,
+                        globalSettings: {
+                            filterBehavior: 1,
+                            stateGroups: [ {
+                                id: 600,
+                                defaultTransitionTimeMs: 1000,
+                                transitions: [],
+                            } ],
+                            switchGroups: [],
+                            rtpcParameters: [],
+                            acousticTextures: [],
+                        },
+                        hirc: [ {
+                            type: 8,
+                            id: 500,
+                            payload: busPayload({
+                                stateProperties: [ {
+                                    propertyId: 4,
+                                    accumulation: 2,
+                                    inDb: true,
+                                } ],
+                                stateGroups: [ {
+                                    groupId: 600,
+                                    syncType: 1,
+                                    states: [ {
+                                        stateId: 602,
+                                        values: [ {
+                                            propertyId: 4,
+                                            value: -96,
+                                        } ],
+                                    } ],
+                                } ],
+                            }),
+                        } ],
+                        media: [],
+                    },
+                };
+            }
+            return {
+                inspection: {
+                    bankId: source === "music.bnk" ? 201 : 202,
+                    languageId: 0,
+                    bankVersion: 150,
+                    hirc: source === "music.bnk"
+                        ? [
+                            { type: 10, id: segmentID, payload: segment },
+                            { type: 11, id: trackID, payload: track },
+                        ]
+                        : [],
+                    media: [],
+                },
+            };
+        },
+    }), /unsupported music-synchronized Audio Bus state group 600/u);
+});
+
 test("SFX State catalogs fail closed on malformed or conflicting names", () =>
 {
     const inspection = {
@@ -5844,7 +6100,12 @@ function actorMixerPayload({
     return writer.bytes();
 }
 
-function busPayload({ parentId = 0, rtpcs = [] } = {})
+function busPayload({
+    parentId = 0,
+    rtpcs = [],
+    stateProperties = [],
+    stateGroups = [],
+} = {})
 {
     const writer = new TestWriter().u32(parentId);
 
@@ -5876,7 +6137,29 @@ function busPayload({ parentId = 0, rtpcs = [] } = {})
         }
     }
 
-    return writer.variable(0).variable(0).bytes();
+    writer.variable(stateProperties.length);
+    for (const property of stateProperties)
+    {
+        writer
+            .variable(property.propertyId)
+            .u8(property.accumulation)
+            .u8(property.inDb ? 1 : 0);
+    }
+    writer.variable(stateGroups.length);
+    for (const group of stateGroups)
+    {
+        writer
+            .u32(group.groupId)
+            .u8(group.syncType)
+            .variable(group.states.length);
+        for (const state of group.states)
+        {
+            writer.u32(state.stateId).u16(state.values.length);
+            for (const value of state.values) writer.u16(value.propertyId);
+            for (const value of state.values) writer.f32(value.value);
+        }
+    }
+    return writer.bytes();
 }
 
 function concatBytes(...values)

@@ -2604,3 +2604,48 @@ test("music routes apply dynamic ancestor Bus Volume RTPC scaling", async () =>
     Math.abs(routeGain.gain.value - 10 ** (scaledDb / 20)) < 1e-6,
   );
 });
+
+test("music routes apply Immediate ancestor Bus Volume State gain", async () =>
+{
+  let state = "off";
+  const busStates = {
+    schemaVersion: 1,
+    buses: {
+      "500": [ {
+        groupId: "600",
+        group: "mix_state",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ {
+          stateId: "602",
+          state: "on",
+          gainDb: -6,
+        } ],
+      } ],
+    },
+  };
+  const { context, engine } = Harness(graph =>
+  {
+    Object.assign(graph.nodes[TRACK_A], {
+      outputBusId: "928",
+      busPathIds: [ "928", "500", "1" ],
+      authoredBusVolumeDb: -3,
+    });
+  }, {
+    busStates,
+    getGlobalStatePropertyWeights: () => [ { state, weight: 1 } ],
+  });
+
+  engine.PostEvent("music_test_play", 704, () => {});
+  await tick();
+
+  const segmentGain = context.gains[2];
+  const routeGain = context.gains.find(gain =>
+    gain !== segmentGain && gain.connectedTo === segmentGain);
+
+  assert.ok(Math.abs(routeGain.gain.value - 10 ** (-3 / 20)) < 1e-6);
+
+  state = "on";
+  engine.RefreshBusStates();
+  assert.ok(Math.abs(routeGain.gain.value - 10 ** (-9 / 20)) < 1e-6);
+});

@@ -53,7 +53,8 @@ Only `schemaVersion: 2` is accepted:
     eventMediaLanguage: "",
     sfx: undefined,
     music: undefined,
-    busRtpcs: undefined
+    busRtpcs: undefined,
+    busStates: undefined
 }
 ```
 
@@ -67,6 +68,13 @@ retains named global Game Parameter curves for Bus Volume as raw Wwise
 scaling-2 values, including the authored parameter default and ordered graph
 points. SFX and built-in music routes evaluate curves for every bus in their
 dry ancestry; interpolation occurs before Wwise's nonlinear dB conversion.
+When present, `busStates` is a version-1 additive Bus Volume catalog keyed by
+bus ID. Each subscribed State Group retains its authored synchronization type,
+the route-qualified effective type, named State values in decibels, and the
+self-contained STMG transition table needed to blend directed or default State
+changes. SFX and built-in music add every matching group on every unique bus in
+their dry ancestry. An unset group or State without an authored value is
+neutral.
 
 ## Delivery
 

@@ -40,6 +40,9 @@ The maintained graph includes:
 - typed v150 Bus Volume RTPC catalogs with STMG defaults, raw Wwise
   interpolation-before-scaling behavior, and live dry-route realization across
   SFX and built-in music bus ancestry;
+- typed v150 additive Bus Volume State catalogs with named values, self-contained
+  STMG transitions, route-qualified synchronization, and interruptible live
+  realization across SFX and built-in music bus ancestry;
 - exact STMG State Group defaults and directed overrides, with immediate
   logical routing plus interruptible live Volume, Pitch, low-pass, and
   high-pass property interpolation;
@@ -97,8 +100,9 @@ The package does not emulate:
 
 Bus Volume is an audible routed adaptation with complete dry-output ancestry,
 authored base Bus Volume, bus Make-Up Gain, effective NodeBase Output Bus
-Volume, and independent SFX/music realization. Effects, auxiliary sends,
-ducking, meters, and virtual-voice behavior remain deferred as described in the
+Volume, global RTPC and State contributions, and independent SFX/music
+realization. Effects, auxiliary sends, ducking, meters, and virtual-voice
+behavior remain deferred as described in the
 [Wwise routing requirements](wwise-resource-routing-handoff.md).
 
 Unsupported Carbon methods remain visible with explicit implementation

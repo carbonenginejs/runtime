@@ -214,6 +214,167 @@ test("CjsAudioMan installs State ID/name aliases through its backend", () =>
     man.Dispose();
 });
 
+test("CjsAudioMan installs self-contained Bus State transition aliases", () =>
+{
+    const library = CreateDocument();
+    const context = PlaybackContext([]);
+
+    library.busStates = {
+        schemaVersion: 1,
+        property: "bus-volume",
+        accumulation: "additive",
+        unit: "db",
+        stateTransitions: [ {
+            groupId: "10",
+            group: "video_overlay",
+            defaultTransitionMs: 1000,
+            states: [
+                { stateId: "11", state: "off" },
+                { stateId: "12", state: "on" },
+            ],
+            transitions: [],
+        } ],
+        buses: {
+            "500": [ {
+                groupId: "10",
+                group: "video_overlay",
+                syncType: 1,
+                effectiveSyncType: 0,
+                states: [ {
+                    stateId: "12",
+                    state: "on",
+                    gainDb: -96,
+                } ],
+            } ],
+        },
+    };
+    const man = new CjsAudioMan(library, {
+        createContext: () => context,
+    });
+
+    assert.equal(man.Enable(), true);
+    man.system.backend.SetGlobalState("10", "12");
+    assert.equal(man.system.backend.GetGlobalState("video_overlay"), "on");
+    man.Dispose();
+});
+
+test("conflicting Bus State transitions preserve the installed system", () =>
+{
+    const original = CreateDocument();
+    const replacement = CreateDocument();
+    const man = new CjsAudioMan(original);
+    const installed = man.library;
+    const system = man.system;
+
+    replacement.sfx = {
+        schemaVersion: 2,
+        events: {},
+        nodes: {},
+        stateTransitions: [ {
+            groupId: "10",
+            group: "combat",
+            defaultTransitionMs: 1000,
+            states: [
+                { stateId: "11", state: "off" },
+                { stateId: "12", state: "on" },
+            ],
+            transitions: [],
+        } ],
+    };
+    replacement.busStates = {
+        schemaVersion: 1,
+        property: "bus-volume",
+        accumulation: "additive",
+        unit: "db",
+        stateTransitions: [ {
+            groupId: "10",
+            group: "video_overlay",
+            defaultTransitionMs: 1000,
+            states: [
+                { stateId: "11", state: "off" },
+                { stateId: "12", state: "on" },
+            ],
+            transitions: [],
+        } ],
+        buses: {
+            "500": [ {
+                groupId: "10",
+                group: "video_overlay",
+                syncType: 0,
+                effectiveSyncType: 0,
+                states: [ {
+                    stateId: "12",
+                    state: "on",
+                    gainDb: -6,
+                } ],
+            } ],
+        },
+    };
+
+    assert.throws(
+        () => man.InstallLibrary(replacement),
+        /Conflicting audio State transition group 10/u,
+    );
+    assert.equal(man.library, installed);
+    assert.equal(man.system, system);
+    man.Dispose();
+});
+
+test("State transition catalog aliases merge case-insensitively", () =>
+{
+    const library = CreateDocument();
+
+    library.sfx = {
+        schemaVersion: 2,
+        events: {},
+        nodes: {},
+        stateTransitions: [ {
+            groupId: "10",
+            group: "video_overlay",
+            defaultTransitionMs: 1000,
+            states: [
+                { stateId: "11", state: "off" },
+                { stateId: "12", state: "on" },
+            ],
+            transitions: [],
+        } ],
+    };
+    library.busStates = {
+        schemaVersion: 1,
+        property: "bus-volume",
+        accumulation: "additive",
+        unit: "db",
+        stateTransitions: [ {
+            groupId: "10",
+            group: "Video_Overlay",
+            defaultTransitionMs: 1000,
+            states: [
+                { stateId: "11", state: "OFF" },
+                { stateId: "12", state: "ON" },
+            ],
+            transitions: [],
+        } ],
+        buses: {
+            "500": [ {
+                groupId: "10",
+                group: "Video_Overlay",
+                syncType: 0,
+                effectiveSyncType: 0,
+                states: [ {
+                    stateId: "12",
+                    state: "ON",
+                    gainDb: -6,
+                } ],
+            } ],
+        },
+    };
+
+    const man = new CjsAudioMan(library);
+
+    assert.ok(man.system);
+    man.Dispose();
+});
+
 test("CjsAudioMan installs one immutable document and reads individual media", async () =>
 {
     const log = [];

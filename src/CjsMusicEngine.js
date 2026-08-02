@@ -9,6 +9,10 @@ import {
     evaluateBusRtpcGainDb,
     indexBusRtpcCatalog,
 } from "./internal/busRtpc.js";
+import {
+    evaluateBusStateGainDb,
+    indexBusStateCatalog,
+} from "./internal/busState.js";
 
 // v1 semantics (documented simplifications):
 // - Segments chain at their exit cue; pre-entry clip audio plays when the
@@ -154,6 +158,9 @@ function ScheduleMusicBusGain(
     busRtpcCatalog,
     readGlobalRtpc,
     readGlobalRtpcTransitionBoundaries,
+    busStateCatalog,
+    readGlobalStateWeights,
+    readGlobalStateTransitionBoundaries,
 )
 {
     if (!param) return;
@@ -182,6 +189,12 @@ function ScheduleMusicBusGain(
             readGlobalRtpc,
             at,
         );
+        db += evaluateBusStateGainDb(
+            busStateCatalog,
+            path,
+            readGlobalStateWeights,
+            at,
+        );
         return 10 ** (db / 20);
     };
     const boundaries = [];
@@ -202,6 +215,12 @@ function ScheduleMusicBusGain(
     {
         boundaries.push(
             ...readGlobalRtpcTransitionBoundaries(now),
+        );
+    }
+    if (typeof readGlobalStateTransitionBoundaries === "function")
+    {
+        boundaries.push(
+            ...readGlobalStateTransitionBoundaries(now),
         );
     }
     boundaries.sort((left, right) => left - right);
@@ -668,6 +687,12 @@ export class CjsMusicEngine
 
     #readGlobalRtpcTransitionBoundaries = null;
 
+    #busStateCatalog = new Map();
+
+    #readGlobalStateWeights = null;
+
+    #readGlobalStateTransitionBoundaries = null;
+
     /** Creates a scheduler over an optional authored graph and Web Audio context. */
     constructor({
         graph,
@@ -678,6 +703,9 @@ export class CjsMusicEngine
         busRtpcs,
         getGlobalRTPC,
         getGlobalRTPCTransitionBoundaries,
+        busStates,
+        getGlobalStatePropertyWeights,
+        getGlobalStateTransitionBoundaries,
     } = {})
     {
         this.#graph = graph ?? null;
@@ -691,6 +719,15 @@ export class CjsMusicEngine
         this.#readGlobalRtpcTransitionBoundaries =
             typeof getGlobalRTPCTransitionBoundaries === "function"
                 ? getGlobalRTPCTransitionBoundaries
+                : null;
+        this.#busStateCatalog = indexBusStateCatalog(busStates);
+        this.#readGlobalStateWeights =
+            typeof getGlobalStatePropertyWeights === "function"
+                ? getGlobalStatePropertyWeights
+                : null;
+        this.#readGlobalStateTransitionBoundaries =
+            typeof getGlobalStateTransitionBoundaries === "function"
+                ? getGlobalStateTransitionBoundaries
                 : null;
         if (random) this.#random = random;
         if (this.#context && this.#destination)
@@ -1608,6 +1645,9 @@ export class CjsMusicEngine
                         this.#busRtpcCatalog,
                         this.#readGlobalRtpc,
                         this.#readGlobalRtpcTransitionBoundaries,
+                        this.#busStateCatalog,
+                        this.#readGlobalStateWeights,
+                        this.#readGlobalStateTransitionBoundaries,
                     );
                 }
             }
@@ -1616,6 +1656,12 @@ export class CjsMusicEngine
 
     /** Reapplies dynamic Bus Volume RTPCs to every scheduled route. */
     RefreshBusRtpcs()
+    {
+        this.RefreshBusVolumeGains();
+    }
+
+    /** Reapplies dynamic Immediate Bus Volume States to scheduled routes. */
+    RefreshBusStates()
     {
         this.RefreshBusVolumeGains();
     }
@@ -2435,6 +2481,9 @@ export class CjsMusicEngine
             this.#busRtpcCatalog,
             this.#readGlobalRtpc,
             this.#readGlobalRtpcTransitionBoundaries,
+            this.#busStateCatalog,
+            this.#readGlobalStateWeights,
+            this.#readGlobalStateTransitionBoundaries,
         );
         scheduled.routeGains.set(key, route);
         return gain;

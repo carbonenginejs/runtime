@@ -55,6 +55,7 @@ class CjsAudioSystem {
   #applyRTPC = null;
   #releaseGameObj = null;
   #busRtpcs = null;
+  #busStates = null;
   #providedUpdateContext = null;
   #adoptedEmitters = new Set();
   #adoptedCurveSetDrivers = new Set();
@@ -78,7 +79,8 @@ class CjsAudioSystem {
     applyRTPC,
     releaseGameObj,
     updateContext,
-    busRtpcs
+    busRtpcs,
+    busStates
   } = {}) {
     this.#createContext = createContext ?? null;
     this.#loadBuffer = loadBuffer ?? null;
@@ -96,6 +98,7 @@ class CjsAudioSystem {
     this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
     this.#releaseGameObj = typeof releaseGameObj === "function" ? releaseGameObj : null;
     this.#busRtpcs = busRtpcs ?? null;
+    this.#busStates = busStates ?? null;
     this.#providedUpdateContext = updateContext ?? null;
     if (audioMetadata) {
       this.repository.Initialize(audioMetadata);
@@ -144,7 +147,8 @@ class CjsAudioSystem {
           stateTransitions: this.#stateTransitions,
           distanceScale: this.#distanceScale,
           applyRTPC: this.#applyRTPC,
-          busRtpcs: this.#busRtpcs
+          busRtpcs: this.#busRtpcs,
+          busStates: this.#busStates
         });
         if (!this.musicEngine) {
           const destination = this.backend.masterGain ?? context.destination;
@@ -157,8 +161,11 @@ class CjsAudioSystem {
               graph: this.#musicGraph,
               loadMedia: this.#loadMedia,
               busRtpcs: this.#busRtpcs,
+              busStates: this.#busStates,
               getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
-              getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from)
+              getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
+              getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
+              getGlobalStateTransitionBoundaries: from => this.backend.GetGlobalStateTransitionBoundaries(from)
             }));
           } else if (this.#musicGraph) {
             this.musicEngine = new CjsMusicEngine({
@@ -167,8 +174,11 @@ class CjsAudioSystem {
               loadMedia: this.#loadMedia,
               destination,
               busRtpcs: this.#busRtpcs,
+              busStates: this.#busStates,
               getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
-              getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from)
+              getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
+              getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
+              getGlobalStateTransitionBoundaries: from => this.backend.GetGlobalStateTransitionBoundaries(from)
             });
           }
         }

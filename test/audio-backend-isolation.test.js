@@ -154,6 +154,7 @@ function Harness({
   prepareSfxProgram,
   stateTransitions,
   busRtpcs,
+  busStates,
 } = {})
 {
   const context = FakeContext();
@@ -179,6 +180,7 @@ function Harness({
     ),
     stateTransitions,
     busRtpcs,
+    busStates,
   });
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
@@ -5943,6 +5945,170 @@ test("Bus Volume RTPCs scale ancestor routes for live and future SFX voices", as
   const future = context.sources[2].connectedTo.connectedTo.gain;
 
   assert.ok(Math.abs(future.value - 10 ** (scaledDb / 20)) < 1e-12);
+});
+
+test("Bus Volume States stack across SFX ancestry and preserve missing cases", async () =>
+{
+  const busStates = {
+    schemaVersion: 1,
+    buses: {
+      "928": [ {
+        groupId: "700",
+        group: "environment",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ {
+          stateId: "701",
+          state: "inside",
+          gainDb: -4,
+        } ],
+      } ],
+      "500": [
+        {
+          groupId: "600",
+          group: "video_overlay",
+          syncType: 1,
+          effectiveSyncType: 0,
+          states: [ {
+            stateId: "602",
+            state: "on",
+            gainDb: -6,
+          } ],
+        },
+        {
+          groupId: "800",
+          group: "mix",
+          syncType: 0,
+          effectiveSyncType: 0,
+          states: [ {
+            stateId: "801",
+            state: "boost",
+            gainDb: 2,
+          } ],
+        },
+      ],
+    },
+  };
+  const { backend, emitter, context } = Harness({
+    busStates,
+    resolveSfxProgram: () => [ {
+      kind: "play",
+      actionIndex: 0,
+      selections: [ {
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: [ "200" ],
+        busPathIds: [ "928", "500", "1" ],
+        authoredBusVolumeDb: -3,
+      } ],
+    } ],
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 20 },
+        loop: true,
+        programSlotId: "0:0",
+        matchIds: [ "200" ],
+        busPathIds: [ "928", "500", "1" ],
+        authoredBusVolumeDb: -3,
+        getGain: () => 1,
+      } ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "routed");
+  await tick();
+  const live = context.sources[0].connectedTo.connectedTo.gain;
+
+  assert.ok(Math.abs(live.value - 10 ** (-3 / 20)) < 1e-12);
+
+  backend.SetGlobalState("video_overlay", "on");
+  backend.SetGlobalState("mix", "boost");
+  backend.SetGlobalState("environment", "inside");
+  assert.ok(Math.abs(live.value - 10 ** (-11 / 20)) < 1e-12);
+
+  backend.PostEvent(2, 1, 0, emitter, "routed");
+  await tick();
+  const future = context.sources[1].connectedTo.connectedTo.gain;
+
+  assert.ok(Math.abs(future.value - 10 ** (-11 / 20)) < 1e-12);
+
+  backend.SetGlobalState("video_overlay", "off");
+  assert.ok(Math.abs(live.value - 10 ** (-5 / 20)) < 1e-12);
+  assert.ok(Math.abs(future.value - 10 ** (-5 / 20)) < 1e-12);
+});
+
+test("Bus Volume States reuse directed, default, and interrupted STMG blends", async () =>
+{
+  const stateTransitions = [ {
+    groupId: "600",
+    group: "video_overlay",
+    defaultTransitionMs: 1000,
+    states: [
+      { stateId: "601", state: "off" },
+      { stateId: "602", state: "on" },
+    ],
+    transitions: [ {
+      fromId: "601",
+      from: "off",
+      toId: "602",
+      to: "on",
+      transitionMs: 5000,
+    } ],
+  } ];
+  const { backend, emitter, context } = Harness({
+    stateTransitions,
+    busStates: {
+      schemaVersion: 1,
+      buses: {
+        "500": [ {
+          groupId: "600",
+          group: "video_overlay",
+          syncType: 1,
+          effectiveSyncType: 0,
+          states: [ {
+            stateId: "602",
+            state: "on",
+            gainDb: -10,
+          } ],
+        } ],
+      },
+    },
+    resolveSfxProgram: () => [ {
+      kind: "play",
+      actionIndex: 0,
+      selections: [ {
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: [ "200" ],
+        busPathIds: [ "500" ],
+      } ],
+    } ],
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 20 },
+        loop: true,
+        programSlotId: "0:0",
+        matchIds: [ "200" ],
+        busPathIds: [ "500" ],
+        getGain: () => 1,
+      } ],
+    }),
+  });
+
+  backend.SetGlobalState("video_overlay", "off");
+  backend.PostEvent(1, 1, 0, emitter, "routed");
+  await tick();
+  const gain = context.sources[0].connectedTo.connectedTo.gain;
+
+  backend.SetGlobalState("video_overlay", "on");
+  assert.equal(gain.curves.at(-1)[2], 5);
+  assert.ok(Math.abs(gain.curves.at(-1)[0].at(-1) - 10 ** (-10 / 20)) < 1e-6);
+
+  context.currentTime = 2;
+  backend.SetGlobalState("video_overlay", "off");
+  assert.ok(Math.abs(gain.value - 10 ** (-4 / 20)) < 1e-12);
+  assert.equal(gain.curves.at(-1)[2], 1);
+  assert.ok(Math.abs(gain.curves.at(-1)[0].at(-1) - 1) < 1e-12);
 });
 
 test("authored bus controls supersede legacy hard-coded music volume mapping", () =>

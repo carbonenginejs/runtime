@@ -269,8 +269,19 @@ authored contribution on the same collapsed route. Typed Bus Volume RTPCs are
 stored once per bus and add their global Game Parameter result across that
 same ancestry for both SFX and built-in music. Scaling-2 curve outputs remain
 raw: runtime-audio interpolates first, then applies Wwise's nonlinear dB
-conversion. This remains a focused audible adaptation rather than full Wwise
-bus processing; effects, auxiliary sends, and ducking remain deferred as
+conversion. Typed Bus Volume State tables use the same route ancestry. Their
+matching global State values add in decibels across subscribed groups and
+buses, using the catalog's STMG default or directed transition duration. State
+transitions remain interruptible and new voices join the current blend.
+
+The catalog keeps both the authored bus synchronization type and the
+route-qualified effective type. Wwise applies a bus State immediately when
+only Actor-Mixer Hierarchy sounds use that bus, even if authoring selected a
+music synchronization point. The builder records that qualification as
+`effectiveSyncType: 0` and rejects a non-immediate subscription on a route used
+by music, because runtime-audio does not yet own a music-grid scheduler for bus
+States. This remains a focused audible adaptation rather than full Wwise bus
+processing; effects, auxiliary sends, and ducking remain deferred as
 described in the
 [routing reference](../reference/wwise-resource-routing-handoff.md).
 Delay is measured from the action post. Value randomizers are signed offsets
@@ -379,6 +390,12 @@ default duration, and every directed custom route. From/to numeric IDs remain
 present when SoundBanksInfo cannot name an endpoint, so future tooling does not
 lose the authored rule. Named and numeric group/State setters share one
 canonical runtime value whenever the catalog supplies that alias.
+
+The optional library-level `busStates` catalog carries its own normalized
+`stateTransitions` subset. Installing a library merges that subset with the
+SFX graph transition table by canonical State Group identity and rejects
+conflicting definitions. This lets a library with music or bus data but no SFX
+graph still realize the authored transition timeline.
 
 The bank builder projects only named, Immediate Volume, Pitch, and filter
 state tables with their exact supported accumulation modes. A group containing

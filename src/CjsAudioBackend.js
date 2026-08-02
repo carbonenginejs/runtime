@@ -19,6 +19,10 @@ import {
     evaluateBusRtpcGainDb,
     indexBusRtpcCatalog,
 } from "./internal/busRtpc.js";
+import {
+    evaluateBusStateGainDb,
+    indexBusStateCatalog,
+} from "./internal/busState.js";
 
 const DEFAULT_FADE_SECONDS = 1;
 const DEFAULT_RENDER_QUANTUM_SECONDS = 128 / 48000;
@@ -92,6 +96,8 @@ export class CjsAudioBackend
 
     #busRtpcCatalog = new Map();
 
+    #busStateCatalog = new Map();
+
     #nextPlayingID = 1;
 
     // Wwise-scale world units -> WebAudio panner units. EVE positions run to
@@ -118,6 +124,7 @@ export class CjsAudioBackend
         musicEngine,
         applyRTPC,
         busRtpcs,
+        busStates,
     } = {})
     {
         this.#context = context ?? null;
@@ -144,6 +151,7 @@ export class CjsAudioBackend
         this.#distanceScale = Number(distanceScale) || 1;
         this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
         this.#busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
+        this.#busStateCatalog = indexBusStateCatalog(busStates);
 
         if (this.#context)
         {
@@ -1266,6 +1274,7 @@ export class CjsAudioBackend
             this.#AdvanceContinuousSwitchSlots("state", group);
         }
         this.#musicEngine?.SetState(stateGroup, stateName);
+        this.#musicEngine?.RefreshBusStates?.();
     }
 
     /** Global state query for authored SFX selection. */
@@ -1278,6 +1287,36 @@ export class CjsAudioBackend
         return this.#globalStateValues.get(
             CanonicalStateGroup(catalogGroup, stateGroup),
         );
+    }
+
+    /** Returns the current weighted property mix for one global State group. */
+    GetGlobalStatePropertyWeights(stateGroup, at = undefined)
+    {
+        return this.#ReadStatePropertyWeights(
+            stateGroup,
+            at === undefined
+                ? Number(this.#context?.currentTime) || 0
+                : Number(at) || 0,
+        );
+    }
+
+    /** Returns future global State-property transition boundaries. */
+    GetGlobalStateTransitionBoundaries(from = undefined)
+    {
+        const now = from === undefined
+            ? Number(this.#context?.currentTime) || 0
+            : Number(from) || 0;
+        const result = [];
+
+        for (const transition of this.#statePropertyTransitions.values())
+        {
+            const start = Number(transition.startTime);
+            const end = start + Math.max(0, Number(transition.duration) || 0);
+
+            if (Number.isFinite(start) && start > now) result.push(start);
+            if (Number.isFinite(end) && end > now) result.push(end);
+        }
+        return [ ...new Set(result) ].sort((left, right) => left - right);
     }
 
     /** Returns the current weighted State-property mix for one State group. */
@@ -5704,6 +5743,8 @@ export class CjsAudioBackend
                 undefined,
                 at,
             ),
+            this.#busStateCatalog,
+            (group, at) => this.#ReadStatePropertyWeights(group, at),
         );
     }
 
@@ -7497,6 +7538,8 @@ function ScheduleBusVolumeGain(
     context,
     busRtpcCatalog,
     readGlobalRtpc,
+    busStateCatalog,
+    readGlobalStateWeights,
 )
 {
     if (!param)
@@ -7532,6 +7575,12 @@ function ScheduleBusVolumeGain(
             busRtpcCatalog,
             busPathIds,
             readGlobalRtpc,
+            at,
+        )
+        + evaluateBusStateGainDb(
+            busStateCatalog,
+            busPathIds,
+            readGlobalStateWeights,
             at,
         )
     ) / 20);

@@ -1075,7 +1075,8 @@ function NormalizeStateProperties(value)
     };
 }
 
-function NormalizeStateTransitions(value)
+/** Normalizes one validated portable Wwise State-transition catalog. */
+export function NormalizeStateTransitions(value)
 {
     return [ ...value ]
         .sort((left, right) =>
@@ -2768,7 +2769,8 @@ function ValidateStateProperties(value, label)
     }
 }
 
-function ValidateStateTransitions(value, label)
+/** Validates one optional portable Wwise State-transition catalog. */
+export function ValidateStateTransitions(value, label)
 {
     if (value === undefined)
     {

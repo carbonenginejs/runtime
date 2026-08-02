@@ -170,6 +170,68 @@ test("validates, detaches, and freezes the optional Bus Volume RTPC catalog", ()
     }
 });
 
+test("validates and freezes the optional Bus Volume State catalog", () =>
+{
+    const source = CreateDocument();
+
+    source.busStates = {
+        schemaVersion: 1,
+        property: "bus-volume",
+        accumulation: "additive",
+        unit: "db",
+        stateTransitions: [ {
+            groupId: "600",
+            group: "video_overlay",
+            defaultTransitionMs: 1000,
+            states: [
+                { stateId: "601", state: "off" },
+                { stateId: "602", state: "on" },
+            ],
+            transitions: [ {
+                fromId: "601",
+                from: "off",
+                toId: "602",
+                to: "on",
+                transitionMs: 5000,
+            } ],
+        } ],
+        buses: {
+            "500": [ {
+                groupId: "600",
+                group: "video_overlay",
+                syncType: 1,
+                effectiveSyncType: 0,
+                states: [ {
+                    stateId: "602",
+                    state: "on",
+                    gainDb: -96,
+                } ],
+            } ],
+        },
+    };
+
+    const installed = installAudioLibraryDocument(source);
+
+    assert.equal(installed.busStates.buses["500"][0].syncType, 1);
+    assert.notEqual(installed.busStates, source.busStates);
+    assert.equal(Object.isFrozen(installed.busStates.buses["500"]), true);
+
+    for (const mutate of [
+        value => { value.property = "voice-volume"; },
+        value => { value.buses["500"][0].effectiveSyncType = 1; },
+        value => { value.buses["500"][0].states[0].gainDb = -201; },
+        value => { value.buses["500"][0].states[0].state = "missing"; },
+        value => { value.stateTransitions = []; },
+        value => { value.stateTransitions[0].group = "other"; },
+    ])
+    {
+        const invalid = structuredClone(source);
+
+        mutate(invalid.busStates);
+        assert.throws(() => validateAudioLibraryDocument(invalid));
+    }
+});
+
 test("validates and installs routed music-track bus metadata", () =>
 {
     const source = CreateDocument();

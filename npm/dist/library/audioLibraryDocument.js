@@ -1,4 +1,4 @@
-import { normalizeSfxGraph, validateSfxGraph } from './sfxGraph.js';
+import { normalizeSfxGraph, validateSfxGraph, ValidateStateTransitions } from './sfxGraph.js';
 
 const AUDIO_LIBRARY_SCHEMA = "carbonenginejs.audioLibrary";
 const AUDIO_LIBRARY_VERSION = 2;
@@ -32,7 +32,99 @@ function validateAudioLibraryDocument(value) {
   }
   ValidateMusic(value.music, value.media, value.embeddedMedia ?? {});
   ValidateBusRtpcs(value.busRtpcs);
+  ValidateBusStates(value.busStates);
   return true;
+}
+function ValidateBusStates(value) {
+  if (value === undefined) {
+    return;
+  }
+  const catalog = RequireRecord(value, "Audio library busStates");
+  if (catalog.schemaVersion !== 1) {
+    throw new TypeError(`Unsupported audio bus State schema version: ${catalog.schemaVersion}`);
+  }
+  if (catalog.property !== "bus-volume" || catalog.accumulation !== "additive" || catalog.unit !== "db") {
+    throw new TypeError("Audio library busStates must contain additive Bus Volume dB values");
+  }
+  if (!Array.isArray(catalog.stateTransitions) || !catalog.stateTransitions.length) {
+    throw new TypeError("Audio library busStates must have State transitions");
+  }
+  ValidateStateTransitions(catalog.stateTransitions, "Audio library busStates stateTransitions");
+  const transitionGroups = new Map(catalog.stateTransitions.map(group => [String(group.groupId), group]));
+  const referencedTransitionGroups = new Set();
+  const buses = RequireRecord(catalog.buses, "Audio library busStates buses");
+  for (const [rawBusId, groups] of Object.entries(buses)) {
+    const busId = NormalizePositiveID(rawBusId, `Audio library busStates bus ${rawBusId}`);
+    if (String(busId) !== String(rawBusId)) {
+      throw new TypeError(`Audio library busStates has non-canonical bus id ${rawBusId}`);
+    }
+    if (!Array.isArray(groups) || !groups.length) {
+      throw new TypeError(`Audio library busStates bus ${rawBusId} must have groups`);
+    }
+    const groupIds = new Set();
+    const groupNames = new Set();
+    for (const [index, groupValue] of groups.entries()) {
+      const label = `Audio library busStates bus ${rawBusId}` + ` group ${index}`;
+      const group = RequireRecord(groupValue, label);
+      const groupId = NormalizePositiveID(group.groupId, `${label} id`);
+      const groupName = String(group.group ?? "").trim();
+      const normalizedGroupName = groupName.toLowerCase();
+      const syncType = Number(group.syncType);
+      const effectiveSyncType = Number(group.effectiveSyncType);
+      if (String(groupId) !== String(group.groupId) || groupIds.has(groupId)) {
+        throw new TypeError(`${label} has an invalid or duplicate id`);
+      }
+      groupIds.add(groupId);
+      if (!groupName || groupNames.has(normalizedGroupName)) {
+        throw new TypeError(`${label} has an invalid or duplicate name`);
+      }
+      groupNames.add(normalizedGroupName);
+      if (!Number.isSafeInteger(syncType) || syncType < 0 || syncType > 9) {
+        throw new TypeError(`${label} syncType must be from 0 to 9`);
+      }
+      if (effectiveSyncType !== 0) {
+        throw new TypeError(`${label} effectiveSyncType must be 0`);
+      }
+      const transitionGroup = transitionGroups.get(String(groupId));
+      if (!transitionGroup || String(transitionGroup.group ?? "").trim().toLowerCase() !== normalizedGroupName) {
+        throw new TypeError(`${label} must match its State transition group`);
+      }
+      referencedTransitionGroups.add(String(groupId));
+      if (!Array.isArray(group.states) || !group.states.length) {
+        throw new TypeError(`${label} must have states`);
+      }
+      const stateIds = new Set();
+      const stateNames = new Set();
+      for (const [stateIndex, stateValue] of group.states.entries()) {
+        const stateLabel = `${label} state ${stateIndex}`;
+        const state = RequireRecord(stateValue, stateLabel);
+        const stateId = NormalizePositiveID(state.stateId, `${stateLabel} id`);
+        const stateName = String(state.state ?? "").trim();
+        const normalizedStateName = stateName.toLowerCase();
+        if (String(stateId) !== String(state.stateId) || stateIds.has(stateId)) {
+          throw new TypeError(`${stateLabel} has an invalid or duplicate id`);
+        }
+        stateIds.add(stateId);
+        if (!stateName || stateNames.has(normalizedStateName)) {
+          throw new TypeError(`${stateLabel} has an invalid or duplicate name`);
+        }
+        stateNames.add(normalizedStateName);
+        if (!Number.isFinite(Number(state.gainDb))) {
+          throw new TypeError(`${stateLabel} gainDb must be finite`);
+        }
+        if (Number(state.gainDb) < -200 || Number(state.gainDb) > 200) {
+          throw new TypeError(`${stateLabel} gainDb must be from -200 to 200`);
+        }
+        const transitionState = transitionGroup.states?.find(entry => String(entry.stateId) === String(stateId));
+        if (!transitionState || String(transitionState.state).trim().toLowerCase() !== normalizedStateName) {
+          throw new TypeError(`${stateLabel} must match its State transition value`);
+        }
+      }
+    }
+  }
+  if (referencedTransitionGroups.size !== transitionGroups.size) {
+    throw new TypeError("Audio library busStates has unreferenced State transitions");
+  }
 }
 function ValidateBusRtpcs(value) {
   if (value === undefined) {

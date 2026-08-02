@@ -248,6 +248,10 @@ export class CjsAudioMan
         }
 
         const installed = installAudioLibraryDocument(library);
+        const stateTransitions = MergeStateTransitions(
+            installed.sfx?.stateTransitions,
+            installed.busStates?.stateTransitions,
+        );
 
         this.#jukebox?.Detach();
         this.#system?.Dispose();
@@ -276,6 +280,7 @@ export class CjsAudioMan
             audioMetadata: installed.metadata,
             musicGraph: installed.music ?? null,
             busRtpcs: installed.busRtpcs ?? null,
+            busStates: installed.busStates ?? null,
             loadBuffer: (
                 eventID,
                 eventName,
@@ -309,7 +314,7 @@ export class CjsAudioMan
                     commit() {},
                     rollback() {},
                 },
-            stateTransitions: installed.sfx?.stateTransitions ?? null,
+            stateTransitions,
             hasEventStops: eventName =>
                 this.#sfxEngine?.HasStopAction(eventName) === true,
             hasSfxEvent: eventName =>
@@ -1834,6 +1839,64 @@ function IsAudioBufferLike(value)
         && typeof value === "object"
         && typeof value.getChannelData === "function"
         && Number.isFinite(Number(value.sampleRate)));
+}
+
+function MergeStateTransitions(...catalogs)
+{
+    const result = new Map();
+
+    for (const catalog of catalogs)
+    {
+        for (const group of catalog ?? [])
+        {
+            const key = String(group.groupId);
+            const signature = StateTransitionSignature(group);
+            const existing = result.get(key);
+
+            if (existing && existing.signature !== signature)
+            {
+                throw new TypeError(
+                    `Conflicting audio State transition group ${key}`,
+                );
+            }
+            result.set(key, { group, signature });
+        }
+    }
+    const values = [ ...result.values() ]
+        .map(entry => entry.group)
+        .sort((left, right) => Number(left.groupId) - Number(right.groupId));
+
+    return values.length ? values : null;
+}
+
+function StateTransitionSignature(group)
+{
+    const normalizeName = value => value === undefined
+        ? null
+        : String(value).trim().toLowerCase();
+
+    return JSON.stringify({
+        groupId: String(group.groupId),
+        group: normalizeName(group.group),
+        defaultTransitionMs: Number(group.defaultTransitionMs),
+        states: [ ...(group.states ?? []) ]
+            .map(state => ({
+                stateId: String(state.stateId),
+                state: normalizeName(state.state),
+            }))
+            .sort((left, right) => Number(left.stateId) - Number(right.stateId)),
+        transitions: [ ...(group.transitions ?? []) ]
+            .map(transition => ({
+                fromId: String(transition.fromId),
+                from: normalizeName(transition.from),
+                toId: String(transition.toId),
+                to: normalizeName(transition.to),
+                transitionMs: Number(transition.transitionMs),
+            }))
+            .sort((left, right) =>
+                Number(left.fromId) - Number(right.fromId)
+                || Number(left.toId) - Number(right.toId)),
+    });
 }
 
 function CreatePcmAudioBuffer(context, payload)

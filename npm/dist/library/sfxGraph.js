@@ -545,6 +545,8 @@ function NormalizeStateProperties(value) {
     }))
   };
 }
+
+/** Normalizes one validated portable Wwise State-transition catalog. */
 function NormalizeStateTransitions(value) {
   return [...value].sort((left, right) => Number(left.groupId) - Number(right.groupId)).map(group => ({
     groupId: NormalizeUnsignedID(group.groupId, "Audio library SFX State groupId"),
@@ -1409,6 +1411,8 @@ function ValidateStateProperties(value, label) {
     }
   }
 }
+
+/** Validates one optional portable Wwise State-transition catalog. */
 function ValidateStateTransitions(value, label) {
   if (value === undefined) {
     return;
@@ -1686,5 +1690,5 @@ function NormalizePositiveInteger(value, label) {
   return number;
 }
 
-export { normalizeSfxGraph, validateSfxGraph };
+export { NormalizeStateTransitions, ValidateStateTransitions, normalizeSfxGraph, validateSfxGraph };
 //# sourceMappingURL=sfxGraph.js.map
