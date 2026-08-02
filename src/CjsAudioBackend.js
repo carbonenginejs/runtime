@@ -100,6 +100,8 @@ export class CjsAudioBackend
 
     #busGraphRuntime = null;
 
+    #busMixer = null;
+
     #unsubscribeBusDucking = null;
 
     #nextPlayingID = 1;
@@ -132,6 +134,7 @@ export class CjsAudioBackend
         busDuckingController,
         busEffects,
         busGraphRuntime,
+        busMixer,
     } = {})
     {
         this.#context = context ?? null;
@@ -162,6 +165,7 @@ export class CjsAudioBackend
         this.#busDuckingController = busDuckingController ?? null;
         this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
         this.#busGraphRuntime = busGraphRuntime ?? null;
+        this.#busMixer = busMixer ?? null;
         this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(
             () => this.#RefreshBusDucking(),
         ) ?? null;
@@ -211,7 +215,16 @@ export class CjsAudioBackend
     /** Effect-bus volume (0..1); music is unaffected. */
     SetSfxVolume(value)
     {
-        SetAudioParam(this.#sfxGain?.gain, Math.max(0, Math.min(1, Number(value) || 0)), this.#context);
+        const volume = Math.max(0, Math.min(1, Number(value) || 0));
+
+        SetAudioParam(this.#sfxGain?.gain, volume, this.#context);
+        this.#busMixer?.SetCategoryVolume?.("sfx", volume);
+    }
+
+    /** Attaches the system-owned shared Bus mixer before any voices realize. */
+    SetBusMixer(mixer)
+    {
+        this.#busMixer = mixer ?? null;
     }
 
     /** Returns the currently attached built-in or application music engine. */
@@ -1776,6 +1789,7 @@ export class CjsAudioBackend
         this.#unsubscribeBusDucking = null;
         this.#busDuckingController = null;
         this.#busGraphRuntime = null;
+        this.#busMixer = null;
         this.#sfxGain?.disconnect?.();
         this.#masterGain?.disconnect?.();
         this.#sfxGain = null;

@@ -785,6 +785,8 @@ export class CjsMusicEngine
 
     #busGraphRuntime = null;
 
+    #busMixer = null;
+
     #unsubscribeBusDucking = null;
 
     /** Creates a scheduler over an optional authored graph and Web Audio context. */
@@ -803,6 +805,7 @@ export class CjsMusicEngine
         busDuckingController,
         busEffects,
         busGraphRuntime,
+        busMixer,
     } = {})
     {
         this.#graph = graph ?? null;
@@ -829,6 +832,7 @@ export class CjsMusicEngine
         this.#busDuckingController = busDuckingController ?? null;
         this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
         this.#busGraphRuntime = busGraphRuntime ?? null;
+        this.#busMixer = busMixer ?? null;
         this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(
             () => this.RefreshBusDucking(),
         ) ?? null;
@@ -852,10 +856,13 @@ export class CjsMusicEngine
     SetMusicVolume(value)
     {
         const gain = this.#musicGain?.gain;
+        const volume = Math.max(0, Math.min(1, Number(value) || 0));
+
         if (gain && typeof gain === "object" && "value" in gain)
         {
-            gain.value = Math.max(0, Math.min(1, Number(value) || 0));
+            gain.value = volume;
         }
+        this.#busMixer?.SetCategoryVolume?.("music", volume);
     }
 
     /**
@@ -916,6 +923,7 @@ export class CjsMusicEngine
         this.#unsubscribeBusDucking = null;
         this.#busDuckingController = null;
         this.#busGraphRuntime = null;
+        this.#busMixer = null;
         this.#musicGain?.disconnect?.();
         this.#musicGain = null;
         this.#graph = null;

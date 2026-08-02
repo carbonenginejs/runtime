@@ -10,6 +10,7 @@ import {
   createAudioUpdateContext,
 } from "../npm/dist/index.js";
 import { CjsBusGraphRuntime } from "../src/internal/busGraphRuntime.js";
+import { CjsSharedBusMixer } from "../src/internal/busGraphMixer.js";
 
 
 function FakeParam()
@@ -29,7 +30,14 @@ function FakeContext(log)
     },
     createGain()
     {
-      return { gain: { value: 1, linearRampToValueAtTime: () => log.push("fade") }, connect: () => {}, disconnect: () => {} };
+      const node = {
+        gain: { value: 1, linearRampToValueAtTime: () => log.push("fade") },
+        disconnected: false,
+        connect: () => {},
+        disconnect: () => { node.disconnected = true; },
+      };
+
+      return node;
     },
     createPanner()
     {
@@ -58,6 +66,77 @@ function FakeContext(log)
       return source;
     }
   };
+  return context;
+}
+
+function MixerBus(overrides = {})
+{
+  return {
+    type: "audio-bus",
+    channelConfig: { raw: 0 },
+    positioning: { flags: 0 },
+    hdr: { flags: 0 },
+    bypassAllEffects: false,
+    userAuxSends: [],
+    effects: [],
+    requiresProcessing: [],
+    ...overrides,
+  };
+}
+
+function MixerCatalog()
+{
+  return {
+    schemaVersion: 1,
+    effects: {},
+    buses: {
+      "1": MixerBus(),
+      "500": MixerBus({ parentBusId: "1" }),
+      "600": MixerBus({ parentBusId: "1" }),
+    },
+    routes: [
+      {
+        outputBusId: "500",
+        busPathIds: [ "500", "1" ],
+        userAuxSends: [],
+      },
+      {
+        outputBusId: "600",
+        busPathIds: [ "600", "1" ],
+        userAuxSends: [],
+      },
+    ],
+    sfxRoutes: { "100": 0, "101": 1 },
+    musicRoutes: { "200": 0 },
+  };
+}
+
+function MixerContext()
+{
+  const context = {
+    destination: { name: "destination" },
+    gains: [],
+    createGain()
+    {
+      const node = {
+        gain: { value: 1 },
+        connectedTo: null,
+        disconnected: false,
+        connect(target)
+        {
+          node.connectedTo = target;
+        },
+        disconnect()
+        {
+          node.disconnected = true;
+        },
+      };
+
+      context.gains.push(node);
+      return node;
+    },
+  };
+
   return context;
 }
 
@@ -100,25 +179,112 @@ test("shared Bus graph runtime resolves stable SFX and music route handles", () 
   assert.equal(runtime.ResolveSfxRoute("100", projection), null);
 });
 
+test("strict shared Bus mixer shares effect-free ancestry without merging categories", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+  const routeA = runtime.ResolveSfxRoute("100");
+  const routeAMusic = runtime.ResolveMusicRoute("200");
+  const routeB = runtime.ResolveSfxRoute("101");
+  const sfxA = mixer.GetInput(routeA, "sfx");
+  const musicA = mixer.GetInput(routeAMusic, "music");
+  const sfxB = mixer.GetInput(routeB, "sfx");
+
+  assert.equal(routeAMusic, routeA);
+  assert.equal(mixer.GetInput(routeA, "sfx"), sfxA);
+  assert.notEqual(sfxA, musicA, "category sliders remain before the shared mix");
+  assert.notEqual(sfxA, sfxB, "distinct routes retain distinct entry nodes");
+  assert.equal(sfxA.connectedTo, musicA.connectedTo);
+  assert.notEqual(sfxA.connectedTo, sfxB.connectedTo);
+  assert.equal(sfxA.connectedTo.connectedTo, sfxB.connectedTo.connectedTo);
+  assert.equal(sfxA.connectedTo.connectedTo.connectedTo, context.destination);
+
+  mixer.SetCategoryVolume("sfx", 0.25);
+  assert.equal(sfxA.gain.value, 0.25);
+  assert.equal(sfxB.gain.value, 0.25);
+  assert.equal(musicA.gain.value, 1);
+
+  const nodes = [ ...context.gains ];
+
+  mixer.Dispose();
+  mixer.Dispose();
+  assert.ok(nodes.every(node => node.disconnected));
+  assert.equal(mixer.GetInput(routeA, "sfx"), null);
+});
+
+test("strict shared Bus mixer allocates nothing across authored processing barriers", () =>
+{
+  const barriers = [
+    catalog => { catalog.routes[0].userAuxSends = [ { targetBusId: "700" } ]; },
+    catalog => { catalog.routes[0].outputBusId = "600"; },
+    catalog => { catalog.buses["500"].parentBusId = "600"; },
+    catalog => { catalog.buses["1"].parentBusId = "600"; },
+    catalog => { catalog.buses["500"].type = "auxiliary-bus"; },
+    catalog => { catalog.buses["500"].channelConfig.raw = 1; },
+    catalog => { catalog.buses["500"].positioning.flags = 2; },
+    catalog => { catalog.buses["500"].hdr.flags = 1; },
+    catalog => { catalog.buses["500"].requiresProcessing = [ "state" ]; },
+    catalog =>
+    {
+      catalog.buses["500"].effects = [ { effectId: "900", bypass: false } ];
+      catalog.buses["500"].requiresProcessing = [ "effects" ];
+    },
+    catalog =>
+    {
+      catalog.buses["500"].userAuxSends = [ { targetBusId: "700" } ];
+      catalog.buses["500"].requiresProcessing = [ "aux-sends" ];
+    },
+  ];
+
+  for (const mutate of barriers)
+  {
+    const context = MixerContext();
+    const catalog = MixerCatalog();
+
+    mutate(catalog);
+    const runtime = new CjsBusGraphRuntime(catalog);
+    const mixer = new CjsSharedBusMixer({
+      context,
+      runtime,
+      destination: context.destination,
+    });
+
+    assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+    assert.equal(context.gains.length, 0, "a blocked route cannot allocate a partial graph");
+  }
+
+  const context = MixerContext();
+  const bypassed = MixerCatalog();
+
+  bypassed.buses["500"].effects = [ { effectId: "900", bypass: true } ];
+  const runtime = new CjsBusGraphRuntime(bypassed);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+
+  assert.ok(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"));
+});
+
 test("CjsAudioSystem owns one Bus graph runtime for a library generation", () =>
 {
   let captured = null;
+  let capturedMixer = null;
   let disposed = false;
   const system = new CjsAudioSystem({
     createContext: () => FakeContext([]),
-    busGraph: {
-      schemaVersion: 1,
-      routes: [ {
-        outputBusId: "500",
-        busPathIds: [ "500" ],
-        userAuxSends: [],
-      } ],
-      sfxRoutes: { "100": 0 },
-      musicRoutes: { "200": 0 },
-    },
+    busGraph: MixerCatalog(),
     createMusicEngine(options)
     {
       captured = options.busGraphRuntime;
+      capturedMixer = options.busMixer;
       return {
         HandlesEvent: () => false,
         PostEvent: () => false,
@@ -131,9 +297,18 @@ test("CjsAudioSystem owns one Bus graph runtime for a library generation", () =>
 
   system.Enable();
   assert.ok(captured);
+  assert.ok(capturedMixer);
   assert.equal(captured.ResolveSfxRoute("100").index, 0);
+  const mixerInput = capturedMixer.GetInput(
+    captured.ResolveSfxRoute("100"),
+    "sfx",
+  );
+
+  assert.ok(mixerInput);
   system.Dispose();
   assert.equal(disposed, true);
+  assert.equal(mixerInput.disconnected, true);
+  assert.equal(capturedMixer.GetInput(captured.ResolveSfxRoute("100"), "sfx"), null);
   assert.equal(captured.ResolveSfxRoute("100"), null);
 });
 

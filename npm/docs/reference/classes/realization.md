@@ -35,6 +35,16 @@ Owns stable generation-scoped route handles for one installed Wwise Audio Bus gr
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:CjsSharedBusMixer -->
+## `CjsSharedBusMixer`
+
+Owns fail-closed shared Web Audio topology for qualified Wwise Audio Bus routes.
+
+- Export: None
+- Source: `src/internal/busGraphMixer.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsAudioMan -->
 ## `CjsAudioMan`
 

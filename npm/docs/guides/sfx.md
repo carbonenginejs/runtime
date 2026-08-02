@@ -537,6 +537,16 @@ also receives one update per graph-backed route branch. Branch updates include
 `busGraphRoute`; exactly one of `gain` or `flatGain` is populated according to
 the route's spatial mode, and spatial branches include their exact `panner`.
 
+The audio-system generation also owns a strict shared-Bus mixer. Its initial
+qualification accepts only dry audio-bus ancestry with default channel layout,
+no Bus positioning or HDR, no sends, no active effects, and an empty
+`requiresProcessing` set. Qualified synthetic/library routes receive stable
+SFX and music category entries and share one node per common Bus ancestor;
+category entries remain separate so application volume controls cannot merge
+unrelated routes prematurely. A blocked route returns no mixer input and
+allocates no partial graph. SFX and music are not connected to this mixer yet,
+so current playback topology remains the route-branch behavior described above.
+
 The bank builder projects only named, Immediate Volume, Pitch, and filter
 state tables with their exact supported accumulation modes. A group containing
 another property or accumulation mode is omitted whole, rather than partially

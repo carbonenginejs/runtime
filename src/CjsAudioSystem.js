@@ -16,6 +16,7 @@ import { CjsMusicEngine } from "./CjsMusicEngine.js";
 import { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";
 import { CjsBusDuckingController } from "./internal/busDucking.js";
 import { CjsBusGraphRuntime } from "./internal/busGraphRuntime.js";
+import { CjsSharedBusMixer } from "./internal/busGraphMixer.js";
 
 /** Audio system composition root: repository + manager + backend, attached to the graph seams. */
 export class CjsAudioSystem
@@ -95,6 +96,8 @@ export class CjsAudioSystem
     #busDuckingController = null;
 
     #busGraphRuntime = null;
+
+    #busMixer = null;
 
     #providedUpdateContext = null;
 
@@ -229,6 +232,14 @@ export class CjsAudioSystem
                     busEffects: this.#busEffects,
                     busGraphRuntime: this.#busGraphRuntime,
                 });
+                this.#busMixer = this.#busGraphRuntime
+                    ? new CjsSharedBusMixer({
+                        context,
+                        runtime: this.#busGraphRuntime,
+                        destination: this.backend.masterGain,
+                    })
+                    : null;
+                this.backend.SetBusMixer(this.#busMixer);
                 if (!this.musicEngine)
                 {
                     const destination = this.backend.masterGain ?? context.destination;
@@ -248,6 +259,7 @@ export class CjsAudioSystem
                             busDuckingController: this.#busDuckingController,
                             busEffects: this.#busEffects,
                             busGraphRuntime: this.#busGraphRuntime,
+                            busMixer: this.#busMixer,
                             getGlobalRTPC: (name, at) =>
                                 this.backend.GetGlobalRTPCValue(name, at),
                             getGlobalRTPCTransitionBoundaries: from =>
@@ -277,6 +289,7 @@ export class CjsAudioSystem
                             busDuckingController: this.#busDuckingController,
                             busEffects: this.#busEffects,
                             busGraphRuntime: this.#busGraphRuntime,
+                            busMixer: this.#busMixer,
                             getGlobalRTPC: (name, at) =>
                                 this.backend.GetGlobalRTPCValue(name, at),
                             getGlobalRTPCTransitionBoundaries: from =>
@@ -571,10 +584,12 @@ export class CjsAudioSystem
         this.musicEngine?.Dispose?.();
         this.musicEngine = null;
         this.#providedMusicEngine = null;
-        this.#busGraphRuntime?.Dispose?.();
-        this.#busGraphRuntime = null;
         this.backend?.Dispose?.();
         this.backend = null;
+        this.#busMixer?.Dispose?.();
+        this.#busMixer = null;
+        this.#busGraphRuntime?.Dispose?.();
+        this.#busGraphRuntime = null;
         this.#busDuckingController?.Dispose?.();
         this.#busDuckingController = null;
         this.Detach();

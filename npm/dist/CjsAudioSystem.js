@@ -8,6 +8,7 @@ import { CjsMusicEngine } from './CjsMusicEngine.js';
 import { createAudioUpdateContext } from './CjsAudioUpdateContext.js';
 import { CjsBusDuckingController } from './internal/busDucking.js';
 import { CjsBusGraphRuntime } from './internal/busGraphRuntime.js';
+import { CjsSharedBusMixer } from './internal/busGraphMixer.js';
 
 // CarbonEngineJS original (no Carbon counterpart). The audio system
 // composition root: owns the AudManager + AudStaticDataRepository + WebAudio
@@ -63,6 +64,7 @@ class CjsAudioSystem {
   #busGraph = null;
   #busDuckingController = null;
   #busGraphRuntime = null;
+  #busMixer = null;
   #providedUpdateContext = null;
   #adoptedEmitters = new Set();
   #adoptedCurveSetDrivers = new Set();
@@ -168,6 +170,12 @@ class CjsAudioSystem {
           busEffects: this.#busEffects,
           busGraphRuntime: this.#busGraphRuntime
         });
+        this.#busMixer = this.#busGraphRuntime ? new CjsSharedBusMixer({
+          context,
+          runtime: this.#busGraphRuntime,
+          destination: this.backend.masterGain
+        }) : null;
+        this.backend.SetBusMixer(this.#busMixer);
         if (!this.musicEngine) {
           const destination = this.backend.masterGain ?? context.destination;
           if (this.#providedMusicEngine) {
@@ -183,6 +191,7 @@ class CjsAudioSystem {
               busDuckingController: this.#busDuckingController,
               busEffects: this.#busEffects,
               busGraphRuntime: this.#busGraphRuntime,
+              busMixer: this.#busMixer,
               getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
               getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
               getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
@@ -199,6 +208,7 @@ class CjsAudioSystem {
               busDuckingController: this.#busDuckingController,
               busEffects: this.#busEffects,
               busGraphRuntime: this.#busGraphRuntime,
+              busMixer: this.#busMixer,
               getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
               getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
               getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
@@ -425,10 +435,12 @@ class CjsAudioSystem {
     this.musicEngine?.Dispose?.();
     this.musicEngine = null;
     this.#providedMusicEngine = null;
-    this.#busGraphRuntime?.Dispose?.();
-    this.#busGraphRuntime = null;
     this.backend?.Dispose?.();
     this.backend = null;
+    this.#busMixer?.Dispose?.();
+    this.#busMixer = null;
+    this.#busGraphRuntime?.Dispose?.();
+    this.#busGraphRuntime = null;
     this.#busDuckingController?.Dispose?.();
     this.#busDuckingController = null;
     this.Detach();

@@ -53,6 +53,18 @@ export class CjsBusGraphRuntime
         return this.#Resolve(this.#musicRoutes, trackId, projection, "music track");
     }
 
+    /** Returns the immutable installed catalog while this generation is live. */
+    GetCatalog()
+    {
+        return this.#disposed ? null : this.#catalog;
+    }
+
+    /** Returns whether a route handle belongs to this live generation. */
+    OwnsRouteHandle(handle)
+    {
+        return !this.#disposed && this.#routes.includes(handle);
+    }
+
     /** Invalidates this library generation. Safe to call more than once. */
     Dispose()
     {

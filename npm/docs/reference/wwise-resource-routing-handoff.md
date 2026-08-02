@@ -274,6 +274,14 @@ only after that generation drains. They currently feed the same SFX destination
 without shared DSP; the next runtime step is to replace each branch output with
 the ordered shared Bus graph, then attach the already-separated music routes.
 
+The system now owns the first fail-closed shared mixer contract. It can allocate
+stable SFX/music category entries and one shared unity node per common ancestor,
+but only for effect-free dry audio-bus paths with default channel layout and no
+authored processing reason. Barrier routes return `null` before allocating any
+partial graph. Consumer outputs are deliberately not connected yet. On the real
+EVE catalog every normal route remains blocked by dynamic controls and the
+active root Peak Limiter, so this checkpoint changes no EVE signal path.
+
 EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and
 configured to process LFE. The root limiter is ShareSet `3134687450` on bus
