@@ -7,29 +7,37 @@ Summary: Tracks evidence-backed work after replacing the speculative v1/v2 chara
 
 ## Current baseline
 
-- schema-v3 transparent JSON construction and validation;
-- proven `_id`/`_ref` relationship projection;
-- document-only lookup without legacy model hydration;
+- schema-v4 model-shaped JSON construction;
+- proven native `_id`/`_ref` relationship projection;
+- one connected source-record model with named `recordID` values;
+- direct `CjsModel` records for all twelve known source documents and the
+  nested paperdoll selection records;
+- a standalone schema-v1 appearance-plan data contract with local graph
+  identity, provenance, reusable coverage, ordered composition, and bindings;
 - current source-backed native character/interior classes under `src/trinity`;
 - exact-name CPU rig binding used by `Tr2SkinnedObject`; and
-- an explicit empty `src/incarna` home for historical-only identities.
+- a bounded `src/incarna` tranche for recovered historical-only identities.
 
 The old schema-v1/v2 `CjsCharacter*` graph and model family is removed.
 
-## Next semantic models
+## Next source-to-plan resolver
 
-Add a semantic `CjsCharacter*` class only when current document evidence and a
-real consumer establish its fields and behavior. New models should extend
-`CjsModel`, carry schema decorators, and hydrate directly through
-`CjsCharacterThing.from(jsonRecord)`.
+Keep source models direct and source-neutral. The next implementation should
+resolve
+selection, dependency, category coverage, atomic resource/LOD bindings,
+material inputs, and ordered atlas operations into the implemented
+backend-neutral character appearance-plan contract.
 
-A document-name-to-constructor registry may be added when the first such
-consumer exists. Current document names already provide the type scope, so no
-record-level `_type` is planned.
+The working GLES demo establishes useful operation shapes and PNG placement
+metadata, but its global layer ranks, filename classifiers, inferred material
+defaults, footwear exception, tuck/brow rules, and custom-decal ordering are
+policy or guesses. Do not promote them as authored library facts. Each future
+resolved field needs a source fact, resource inspection, or an explicit
+labelled policy decision.
 
 ## Document-to-native adapters
 
-Do not connect schema-v3 records to `Tr2*` objects by filename or old v1/v2
+Do not connect schema-v4 records to `Tr2*` objects by filename or old v1/v2
 assumptions. Each adapter requires a proven source relationship, focused
 synthetic tests, and a clear resource-owner boundary.
 

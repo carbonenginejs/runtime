@@ -3,85 +3,100 @@
 Status: Evolving
 Scope: `@carbonenginejs/runtime-character`
 Audience: Runtime and application integrators
-Summary: Builds and reads character JSON without reviving the removed v1/v2 model.
+Summary: Builds model-shaped character JSON and hydrates its source-backed record graph.
 
-## Build a document library
+## Build and hydrate a character library
 
 The builder takes either an object keyed by document name or an array of
 `{ name, data }` descriptors:
 
 ```js
 import {
-    CjsCharacterDocumentLibrary,
+    CjsCharacterLibrary,
     CjsCharacterLibraryBuilder
 } from "@carbonenginejs/runtime-character";
 
-const document = CjsCharacterLibraryBuilder.buildFromInputs({
+const values = CjsCharacterLibraryBuilder.buildFromInputs({
     documents,
     sourceTarget: "example",
     sourceBuild: "1"
 });
-const library = new CjsCharacterDocumentLibrary(document);
+
+const library = CjsCharacterLibrary.from(values);
 ```
 
 The builder is deterministic when caller metadata is deterministic. It does
-not fetch, decode, identify a source format, or mutate its input.
+not fetch, decode, or identify a source format. Each source record-map key is
+copied into the named `recordID` field. Existing fields such as `typeID` remain
+ordinary domain data.
+
+The builder projects proven relationships using native `_id` and `_ref`
+metadata. Those tokens are local to the serialized graph and may be renumbered.
+They are not record, type, race, resource, or other domain identities.
 
 ## Read records and relationships
 
 ```js
 const ancestry = library.Get("ancestries", ancestryID);
-const bloodline = library.ResolveReference(
-    "bloodlines",
-    ancestry.bloodlineID
-);
-const race = library.ResolveReference("races", bloodline.raceID);
+const bloodline = ancestry.bloodlineID;
+const race = bloodline.raceID;
 ```
 
-`Get()` returns the preserved plain record or `null`. `ResolveReference()`
-requires an exact `{ _ref }` relationship and returns `null` for an absent
-target. This keeps authored sentinel and stale references visible.
+Known relationship fields point directly at hydrated target models. Zero
+sentinels become `null`. When a positive target is absent, the original named
+identifier remains on that field rather than becoming an unresolved `_ref`.
 
-## Hydrate future semantic records
-
-The JSON record is the construction input. A future evidence-backed semantic
-class should use the normal `CjsModel` path:
+Collections are also available through the JSON-shaped `documents` model:
 
 ```js
-const race = CjsCharacterRace.from(
-    library.Get("races", raceID)
-);
+const races = library.documents.races;
+const sameRaces = library.GetDocument("races");
 ```
 
-The document name supplies the constructor registry key, so records do not
-currently need `_type`. A registry may map `races` to `CjsCharacterRace` when
-that class exists and is proven. Do not infer a class merely from a field name
-or path.
+## Equivalent model hydration
 
-## Use current native classes
-
-Current Carbon character/interior identities are exported from the package
-root:
+`from` and `SetValues` consume the same shape:
 
 ```js
-import {
-    Tr2InteriorScene,
-    Tr2SkinnedObject,
-    WodBakingScene
-} from "@carbonenginejs/runtime-character";
+const from = CjsCharacterLibrary.from(values);
+
+const assigned = new CjsCharacterLibrary();
+assigned.SetValues(values);
 ```
 
-Their source lives under `src/trinity`. They do not automatically consume a
-schema-v3 character document. Any adapter between a document record and a
-native object must be separately evidenced and tested.
+The two instances contain equivalent model graphs. There is no retained
+alternate document or identity conversion layer.
 
-`CjsCharacterRigBinding` remains available for the current
-`Tr2SkinnedObject` CPU skinning path. It maps exact animation-bone names to
-render joints and packs the native Float4x3 palette layout; it is not a
-character-library model.
+## Serialize a model graph
 
-## Incarna-only identities
+Use the inherited `CjsModel` export contract when relationships must survive a
+JSON round trip:
 
-Historical identities absent from current Carbon are not native Trinity
-classes. When required by pinned Incarna evidence, they belong under
-`src/incarna`. No such class is currently exported.
+```js
+const json = JSON.stringify(library.GetValues({ refs: true }));
+const roundTrip = CjsCharacterLibrary.from(JSON.parse(json));
+```
+
+`refs: true` emits `_id` only for shared models and emits later occurrences as
+`{ _ref }`. Identifier labels are not stable domain data; graph equivalence is
+the contract.
+
+The same rule applies to a standalone appearance plan:
+
+```js
+import { CjsCharacterAppearancePlan } from "@carbonenginejs/runtime-character";
+
+const plan = CjsCharacterAppearancePlan.from(planValues);
+const planJSON = JSON.stringify(plan.GetValues({ refs: true }));
+```
+
+`CjsCharacterAppearancePlan` does not override model lifecycle methods. It uses
+inherited `from`, `SetValues`, `GetValues`, and `Clone`. A resolver or builder
+is responsible for deciding operations, ordering, and policy before producing
+`planValues`; model hydration does not invent or police those decisions.
+
+## Runtime boundary
+
+The library and appearance plan are GPU-free and I/O-free. They may contain
+resource paths, but resource discovery, fetching, decoding, caching, and
+render realization remain outside `runtime-character`.

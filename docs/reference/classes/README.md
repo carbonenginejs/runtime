@@ -10,23 +10,293 @@ Generated from reviewed class-level JSDoc and explicit export metadata in
 `scripts/generate_class_catalog.js`.
 Update source purposes and regenerate; do not edit catalog entries directly.
 
-<!-- class:CjsCharacterDocumentLibrary -->
-## `CjsCharacterDocumentLibrary`
+<!-- class:CjsCharacterAncestry -->
+## `CjsCharacterAncestry`
 
-Indexes schema-v3 source documents without hydrating legacy character models.
+Character-creation ancestry record linked to its owning bloodline.
 
 - Export: `@carbonenginejs/runtime-character`
-- Source: `src/library/CjsCharacterDocumentLibrary.js`
+- Source: `src/character/demographics/CjsCharacterAncestry.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterAppearanceBinding -->
+## `CjsCharacterAppearanceBinding`
+
+Final consumer/sampler binding to a resolved texture or composition target.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterAppearanceBinding.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterAppearanceDiagnostic -->
+## `CjsCharacterAppearanceDiagnostic`
+
+Serializable diagnostic emitted while resolving a character appearance plan.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterAppearanceDiagnostic.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterAppearanceLayer -->
+## `CjsCharacterAppearanceLayer`
+
+Ordered appearance layer separating selection ownership from asset contribution.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterAppearanceLayer.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterAppearancePlan -->
+## `CjsCharacterAppearancePlan`
+
+Renderer-neutral character appearance plan hydrated directly from model-shaped JSON.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterAppearancePlan.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterAppearanceSelection -->
+## `CjsCharacterAppearanceSelection`
+
+Plan-local resolved character choice with explicit selection-group ownership.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterAppearanceSelection.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterArchetype -->
+## `CjsCharacterArchetype`
+
+Transparent activity-archetype record retained by the character source document.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/activity/CjsCharacterArchetype.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterAvatarBehavior -->
+## `CjsCharacterAvatarBehavior`
+
+Named avatar-behavior resource record with its authored gender selector.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/behavior/CjsCharacterAvatarBehavior.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterBindingAlpha -->
+## `CjsCharacterBindingAlpha`
+
+Logical alpha policy for one final character texture binding.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterBindingAlpha.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterBloodline -->
+## `CjsCharacterBloodline`
+
+Character-creation bloodline record linked to its owning race.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/demographics/CjsCharacterBloodline.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterColorLocation -->
+## `CjsCharacterColorLocation`
+
+Authored color-control location and its supported scalar controls.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/appearance/CjsCharacterColorLocation.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterColorName -->
+## `CjsCharacterColorName`
+
+Authored appearance-color name and hair-color classification.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/appearance/CjsCharacterColorName.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterColorSelection -->
+## `CjsCharacterColorSelection`
+
+One authored paper-doll color selection with resolved catalog references.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/appearance/CjsCharacterColorSelection.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterCompositionInput -->
+## `CjsCharacterCompositionInput`
+
+Named logical input to one character texture-composition pass.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterCompositionInput.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterCompositionPass -->
+## `CjsCharacterCompositionPass`
+
+One ordered logical operation in a character texture-composition target.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterCompositionPass.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterCompositionTarget -->
+## `CjsCharacterCompositionTarget`
+
+Logical output texture and its authoritative ordered composition passes.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterCompositionTarget.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterCoverage -->
+## `CjsCharacterCoverage`
+
+Reusable appearance coverage expression shared across logical composition passes.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterCoverage.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterLibrary -->
+## `CjsCharacterLibrary`
+
+Hydrated character library whose public fields have the same shape as its JSON values.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/library/CjsCharacterLibrary.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
 <!-- class:CjsCharacterLibraryBuilder -->
 ## `CjsCharacterLibraryBuilder`
 
-Builds a deterministic character-library document from caller-supplied JSON.
+Builds model-shaped character-library JSON from source-document records.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/library-builder/CjsCharacterLibraryBuilder.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterLibraryDocuments -->
+## `CjsCharacterLibraryDocuments`
+
+Typed document collections contained by one character library.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/library/CjsCharacterLibraryDocuments.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterModifierLocation -->
+## `CjsCharacterModifierLocation`
+
+Authored modifier location naming one category and variation.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/composition/CjsCharacterModifierLocation.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterModifierSelection -->
+## `CjsCharacterModifierSelection`
+
+One authored paper-doll resource selection at a resolved modifier location.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/composition/CjsCharacterModifierSelection.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterOrigin -->
+## `CjsCharacterOrigin`
+
+Provenance record classifying one appearance-plan fact or decision.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterOrigin.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterPaperdoll -->
+## `CjsCharacterPaperdoll`
+
+Source-backed paper-doll appearance, portrait pose, and expression record.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/creation/CjsCharacterPaperdoll.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterPortraitResource -->
+## `CjsCharacterPortraitResource`
+
+Authored portrait resource classified by its source category and optional type identity.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/resources/CjsCharacterPortraitResource.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterRace -->
+## `CjsCharacterRace`
+
+Character-creation race record with authored localization and starting-skill identities.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/demographics/CjsCharacterRace.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterRecord -->
+## `CjsCharacterRecord`
+
+Base for one record whose identity is the key from its source document.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/CjsCharacterRecord.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterResolvedPart -->
+## `CjsCharacterResolvedPart`
+
+Plan-local part contributor with one atomic configuration and geometry choice.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterResolvedPart.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterResource -->
+## `CjsCharacterResource`
+
+Authored character resource with explicit gender, type, and clothing-category rules.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/resources/CjsCharacterResource.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -37,6 +307,46 @@ CPU-only mapping from animation-rig world transforms to a render-rig skinning pa
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/controls/CjsCharacterRigBinding.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterSculptingLocation -->
+## `CjsCharacterSculptingLocation`
+
+Authored sculpt-control location naming its weight category and prefix.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/appearance/CjsCharacterSculptingLocation.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterSculptSelection -->
+## `CjsCharacterSculptSelection`
+
+One authored three-axis paper-doll sculpt selection.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/appearance/CjsCharacterSculptSelection.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterTextureAsset -->
+## `CjsCharacterTextureAsset`
+
+Resolved texture asset with independent decoded placement and semantic role.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterTextureAsset.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterTextureChannel -->
+## `CjsCharacterTextureChannel`
+
+Reference to one logical channel of a resolved character texture.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterTextureChannel.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 

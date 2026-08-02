@@ -3,17 +3,21 @@
 GPU-free, I/O-free character source documents and native Trinity character
 classes for CarbonEngineJS.
 
-The package has two independent surfaces:
+The package has four independent surfaces:
 
-- a transparent JSON character-library format built from caller-supplied
-  record-map documents; and
+- a source-neutral model-shaped JSON library built from caller-supplied
+  record-map documents;
+- source-backed character record models under `src/character`, hydrated as one
+  connected library graph;
+- a standalone, renderer-neutral appearance-plan JSON/model graph under
+  `src/character/planning`; and
 - current Carbon `Tr2*`, `Tri*`, and `Wod*` character/interior classes under
   `src/trinity`.
 
 The former schema-v1/v2 `CjsCharacter*` graph, recipe, part, material, face,
 control, and deformation models were based on superseded inputs and have been
-removed. The schema-v3 document library does not hydrate or project records
-into those old shapes.
+removed. Schema-v4 records hydrate directly into the new source-backed classes;
+they are not projected into the old shapes.
 
 ## Install
 
@@ -25,30 +29,38 @@ npm install @carbonenginejs/runtime-character
 
 ```js
 import {
-    CjsCharacterDocumentLibrary,
+    CjsCharacterLibrary,
     CjsCharacterLibraryBuilder
 } from "@carbonenginejs/runtime-character";
 
 const document = CjsCharacterLibraryBuilder.build(
     callerSuppliedCharacterDocuments
 );
-const library = new CjsCharacterDocumentLibrary(document);
+const library = CjsCharacterLibrary.from(document);
 const ancestry = library.Get("ancestries", ancestryID);
-const bloodline = library.ResolveReference(
-    "bloodlines",
-    ancestry.bloodlineID
-);
+const bloodline = ancestry.bloodlineID;
+const race = bloodline.raceID;
 ```
 
-Inputs and output are ordinary JSON. Document names provide the record-type
-scope, so records do not need an invented `_type`. Proven relationships use
-`{ "_ref": id }`; only existing records targeted by a relationship receive
-`_id`.
+Inputs and output are ordinary model-shaped JSON. Each source map key becomes
+the named `recordID` field; authored identities such as `typeID` remain their
+own named fields. Proven relationships use native document-local `_id` and
+`_ref` graph metadata. Only existing records targeted by a relationship need
+`_id`; missing positive targets remain visible as their named identifier value.
 
-Future semantic records may extend `CjsModel`. Such classes must be backed by
-current evidence and hydrate directly with
-`CjsCharacterThing.from(jsonRecord)`. The package will not add an intermediate
-normalized data structure.
+`CjsCharacterLibrary.from(bigJSON)` and `new CjsCharacterLibrary().SetValues(bigJSON)`
+hydrate the same twelve document collections into `CjsModel` records. The
+library does not retain or translate a second JSON representation. Its normal
+`GetValues({ refs: true })` output can be serialized and hydrated again.
+
+`CjsCharacterAppearancePlan.from(bigJSON)` hydrates a separate schema-v1 plan
+through the inherited `CjsModel` contract. Its `_id`/`_ref` graph closes within
+the document. It records resolved ownership,
+contributors, textures, reusable coverage, ordered logical composition, final
+bindings, and provenance. The package does not yet resolve a source library
+into that plan or execute it. The working GLES demo is evidence for those
+adapters, but its hardcoded bake order and filename heuristics are not source
+record fields.
 
 ## Native and historical classes
 
@@ -70,6 +82,7 @@ and relationships, not downloaded asset bytes.
 - [Architecture and ownership](docs/architecture.md)
 - [Runtime usage](docs/guides/runtime-usage.md)
 - [Character document contract](docs/reference/prepared-libraries.md)
+- [Character appearance plans](docs/reference/character-appearance-plans.md)
 - [Class catalog](docs/reference/classes/README.md)
 - [Roadmap](docs/roadmap.md)
 

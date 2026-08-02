@@ -1,9 +1,40 @@
 const publicExport = "`@carbonenginejs/runtime-character`";
 
 const carbonEngineJs = [
-    ["CjsCharacterDocumentLibrary", "src/library/CjsCharacterDocumentLibrary.js"],
+    ["CjsCharacterAncestry", "src/character/demographics/CjsCharacterAncestry.js"],
+    ["CjsCharacterAppearanceBinding", "src/character/planning/CjsCharacterAppearanceBinding.js"],
+    ["CjsCharacterAppearanceDiagnostic", "src/character/planning/CjsCharacterAppearanceDiagnostic.js"],
+    ["CjsCharacterAppearanceLayer", "src/character/planning/CjsCharacterAppearanceLayer.js"],
+    ["CjsCharacterAppearancePlan", "src/character/planning/CjsCharacterAppearancePlan.js"],
+    ["CjsCharacterAppearanceSelection", "src/character/planning/CjsCharacterAppearanceSelection.js"],
+    ["CjsCharacterArchetype", "src/character/activity/CjsCharacterArchetype.js"],
+    ["CjsCharacterAvatarBehavior", "src/character/behavior/CjsCharacterAvatarBehavior.js"],
+    ["CjsCharacterBindingAlpha", "src/character/planning/CjsCharacterBindingAlpha.js"],
+    ["CjsCharacterBloodline", "src/character/demographics/CjsCharacterBloodline.js"],
+    ["CjsCharacterColorLocation", "src/character/appearance/CjsCharacterColorLocation.js"],
+    ["CjsCharacterColorName", "src/character/appearance/CjsCharacterColorName.js"],
+    ["CjsCharacterColorSelection", "src/character/appearance/CjsCharacterColorSelection.js"],
+    ["CjsCharacterCompositionInput", "src/character/planning/CjsCharacterCompositionInput.js"],
+    ["CjsCharacterCompositionPass", "src/character/planning/CjsCharacterCompositionPass.js"],
+    ["CjsCharacterCompositionTarget", "src/character/planning/CjsCharacterCompositionTarget.js"],
+    ["CjsCharacterCoverage", "src/character/planning/CjsCharacterCoverage.js"],
+    ["CjsCharacterLibrary", "src/library/CjsCharacterLibrary.js"],
     ["CjsCharacterLibraryBuilder", "src/library-builder/CjsCharacterLibraryBuilder.js"],
-    ["CjsCharacterRigBinding", "src/controls/CjsCharacterRigBinding.js"]
+    ["CjsCharacterLibraryDocuments", "src/library/CjsCharacterLibraryDocuments.js"],
+    ["CjsCharacterModifierLocation", "src/character/composition/CjsCharacterModifierLocation.js"],
+    ["CjsCharacterModifierSelection", "src/character/composition/CjsCharacterModifierSelection.js"],
+    ["CjsCharacterPaperdoll", "src/character/creation/CjsCharacterPaperdoll.js"],
+    ["CjsCharacterPortraitResource", "src/character/resources/CjsCharacterPortraitResource.js"],
+    ["CjsCharacterRace", "src/character/demographics/CjsCharacterRace.js"],
+    ["CjsCharacterRecord", "src/character/CjsCharacterRecord.js"],
+    ["CjsCharacterResolvedPart", "src/character/planning/CjsCharacterResolvedPart.js"],
+    ["CjsCharacterResource", "src/character/resources/CjsCharacterResource.js"],
+    ["CjsCharacterRigBinding", "src/controls/CjsCharacterRigBinding.js"],
+    ["CjsCharacterSculptingLocation", "src/character/appearance/CjsCharacterSculptingLocation.js"],
+    ["CjsCharacterSculptSelection", "src/character/appearance/CjsCharacterSculptSelection.js"],
+    ["CjsCharacterTextureAsset", "src/character/planning/CjsCharacterTextureAsset.js"],
+    ["CjsCharacterTextureChannel", "src/character/planning/CjsCharacterTextureChannel.js"],
+    ["CjsCharacterOrigin", "src/character/planning/CjsCharacterOrigin.js"]
 ];
 
 const adaptedCarbon = [

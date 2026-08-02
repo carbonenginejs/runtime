@@ -3,7 +3,7 @@
 Status: Evolving
 Scope: `@carbonenginejs/runtime-character`
 Audience: Maintainers and runtime integrators
-Summary: Separates transparent character documents, current Carbon classes, and historical Incarna contracts.
+Summary: Separates source-neutral character documents, current Carbon classes, and historical Incarna contracts.
 
 ## Source states
 
@@ -11,10 +11,17 @@ Summary: Separates transparent character documents, current Carbon classes, and 
 caller JSON
     |
     v
-CjsCharacterLibraryBuilder -> schema-v3 plain JSON
+CjsCharacterLibraryBuilder -> schema-v4 plain JSON
     |
     v
-CjsCharacterDocumentLibrary -> document lookup and explicit reference resolution
+CjsCharacterLibrary.from / instance.SetValues
+    -> same-shaped hydrated source records in src/character
+    |
+    v
+future source-to-plan resolver
+    |
+    v
+CjsCharacterAppearancePlan.from -> hydrated plan records in src/character/planning
 
 current Carbon source ----------> src/trinity
 historical Incarna evidence ----> src/incarna
@@ -24,19 +31,50 @@ These lanes do not imply conversion between one another.
 
 ## Character document boundary
 
-The builder accepts named plain-JSON record maps. It copies unknown fields and
-projects only established identifier relationships. The document wrapper
-validates and indexes the resulting JSON without creating part, recipe,
-material, face, deformation, LOD, or control objects.
+The builder accepts named plain-JSON record maps. It copies source fields,
+materializes each source map key as the named `recordID` field, and projects
+only established identifier relationships.
 
 Document names are the type scope. A record therefore does not receive `_type`
 unless a future document is proven to contain multiple semantic types. `_id`
-is added only to existing records targeted by a relationship; relationships
-are `{ "_ref": id }`. Missing targets remain dangling references.
+is document-local graph metadata added only to existing records targeted by a
+relationship; relationships are `{ "_ref": id }`. `_id` is not a domain
+identity: `recordID`, `typeID`, `raceID`, and other named fields carry those
+meanings.
 
-When evidence supports a semantic record class, it may extend `CjsModel` and
-hydrate directly with `CjsCharacterThing.from(record)`. The runtime must not
-reintroduce a guessed normalization layer between JSON and those models.
+`CjsCharacterLibrary.from(bigJSON)` hydrates the twelve established document
+families into direct source-record classes under `src/character` without
+changing the public field layout. Applying the same values with `SetValues`
+produces the same model graph. `GetValues({ refs: true })` returns serializable
+model-shaped values; graph tokens may be renumbered without changing identity
+relationships.
+
+Zero relationship sentinels become `null`. A positive missing target remains
+its named identifier value rather than becoming an unresolved `_ref` or an
+invented placeholder model.
+
+The hydrated source records do not create render parts, material plans, LOD
+bundles, or atlas passes. Those belong to a later resolver layer whose output
+is the separate backend-neutral appearance-plan contract. The working GLES
+demo is supporting evidence, not the source-record schema.
+
+## Appearance-plan boundary
+
+The schema-v1 appearance plan is a standalone JSON graph, not an extension of
+the schema-v4 source library. Its selections, resolved parts, layers, textures,
+coverages, composition targets, and bindings close over document-local `_id`
+and `_ref` identities. Source-document identity is retained only as provenance.
+
+`CjsCharacterAppearancePlan` is an ordinary `CjsModel` under
+`src/character/planning`: inherited `from`, `SetValues`, `GetValues`, and
+`Clone` own hydration and serialization. Pass-array position is authoritative
+composition order. Logical operations, blends, and write masks cross the
+boundary; shader paths, render targets, live textures, decoded bytes, GPU
+constants, and cache objects do not.
+
+There is not yet a source-to-plan resolver or a plan execution adapter. The
+contract makes those future responsibilities explicit without promoting the
+working demo's heuristics into source data.
 
 ## Current Carbon boundary
 
@@ -83,5 +121,5 @@ render realization belongs to an engine.
 The schema-v1/v2 `CjsCharacter*` graph, recipes, parts, materials, controls,
 visemes, deformation records, and library hydrator were based on superseded
 data structures. They were removed rather than treated as authority for the
-new document corpus. Node tooling that consumed those types must migrate to
-the schema-v3 builder and document wrapper.
+new document corpus. Consumers must migrate to the schema-v4 builder and the
+new direct source-record library.

@@ -1,229 +1,264 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-    CjsCharacterDocumentLibrary
+    CjsCharacterAncestry,
+    CjsCharacterBloodline,
+    CjsCharacterLibrary,
+    CjsCharacterPaperdoll,
+    CjsCharacterRace,
+    CjsCharacterResource
 } from "../npm/dist/index.js";
 import { CjsCharacterLibraryBuilder } from "../npm/dist/library-builder/index.js";
 
-test("builds a transparent character library and links proven relationships", () =>
+test("builds model-shaped character JSON with separate domain and graph identities", () =>
 {
-    const documents = EmptyDocuments();
-
-    documents.ancestries = {
-        100: {
-            bloodlineID: "10",
-            label: "Explorer"
-        }
-    };
-    documents.bloodlines = {
-        10: {
-            raceID: "1",
-            label: "First"
-        },
-        20: {
-            raceID: "2",
-            label: "Unselected"
-        }
-    };
-    documents.races = {
-        1: { label: "One" },
-        2: { label: "Two" },
-        3: { label: "Unreferenced" }
-    };
-    documents.characterModifierLocations = {
-        5: { modifierKey: "hair" },
-        6: { modifierKey: "unreferenced" }
-    };
-    documents.characterResources = {
-        7: { path: "res:/synthetic.type" },
-        8: { path: "res:/unused.type" }
-    };
-    documents.characterColorLocations = {
-        9: { colorKey: "primary" }
-    };
-    documents.characterColorNames = {
-        11: { colorName: "dark" },
-        12: { colorName: "light" }
-    };
-    documents.characterSculptingLocations = {
-        13: { weightKeyPrefix: "jaw" }
-    };
-    documents.paperdolls = {
-        200: {
-            modifiers: [ {
-                modifierLocationID: "5",
-                paperdollResourceID: "7",
-                variation: 0
-            }, {
-                modifierLocationID: "5",
-                paperdollResourceID: "999",
-                variation: 1
-            } ],
-            colorSelections: [ {
-                colorID: "9",
-                colorNameA: "11",
-                colorNameBC: "12"
-            }, {
-                colorID: "0",
-                colorNameA: "0",
-                colorNameBC: "0"
-            } ],
-            sculptWeights: [ {
-                sculptLocationID: "13",
-                forwardBack: 0.25
-            } ]
-        }
-    };
-
-    const document = CjsCharacterLibraryBuilder.build(documents, {
-        sourceTarget: "example",
-        sourceBuild: "1"
+    const documents = CreateDocuments();
+    const value = CjsCharacterLibraryBuilder.build(documents, {
+        sourceTarget: "tranquility",
+        sourceBuild: "synthetic-build"
     });
 
-    assert.equal(CjsCharacterDocumentLibrary.schema, "carbonenginejs.characterLibrary");
-    assert.equal(CjsCharacterDocumentLibrary.schemaVersion, 3);
-    assert.equal(CjsCharacterDocumentLibrary.isDocument(document), true);
-    assert.equal(CjsCharacterDocumentLibrary.validate(document), document);
-    assert.equal(document.schema, "carbonenginejs.characterLibrary");
-    assert.equal(document.schemaVersion, 3);
-    assert.equal(document.sourceTarget, "example");
-    assert.deepEqual(document.documents.ancestries[100].bloodlineID, { _ref: "10" });
-    assert.equal(document.documents.bloodlines[10]._id, "10");
-    assert.equal(Object.hasOwn(document.documents.bloodlines[20], "_id"), false);
-    assert.equal(document.documents.races[1]._id, "1");
-    assert.equal(document.documents.races[2]._id, "2");
-    assert.equal(Object.hasOwn(document.documents.races[3], "_id"), false);
-    assert.equal(document.documents.characterModifierLocations[5]._id, "5");
-    assert.equal(Object.hasOwn(document.documents.characterModifierLocations[6], "_id"), false);
-    assert.deepEqual(
-        document.documents.paperdolls[200].modifiers[1].paperdollResourceID,
-        { _ref: "999" },
-        "dangling authored relationships remain visible"
-    );
-    assert.deepEqual(document.documents.paperdolls[200].colorSelections[1].colorID, {
-        _ref: "0"
+    assert.equal(value.schema, "carbonenginejs.characterLibrary");
+    assert.equal(value.schemaVersion, 4);
+    assert.equal(value.sourceTarget, "tranquility");
+    assert.ok(Array.isArray(value.documents.ancestries));
+    assert.equal(value.documents.ancestries[0].recordID, "1");
+    assert.equal(value.documents.characterResources[0].typeID, "9001");
+    assert.deepEqual(value.documents.ancestries[0].bloodlineID, {
+        _ref: value.documents.bloodlines[0]._id
     });
-    assert.equal(Object.hasOwn(document.documents.paperdolls[200], "_id"), false);
-    assert.deepEqual(documents.ancestries[100].bloodlineID, "10", "input is not mutated");
-    assert.deepEqual(JSON.parse(JSON.stringify(document)), document);
-});
-
-test("accepts named JSON documents from independent adapters", () =>
-{
-    const input = Object.entries(EmptyDocuments()).map(([ name, data ]) => ({
-        name,
-        data
-    }));
-    const ancestry = input.find(value => value.name === "ancestries");
-    const bloodlines = input.find(value => value.name === "bloodlines");
-    const races = input.find(value => value.name === "races");
-
-    ancestry.data[1] = { bloodlineID: 2, extraSourceField: true };
-    bloodlines.data[2] = { raceID: 3, _key: "2" };
-    races.data[3] = { _key: "3", name: { en: "Example" } };
-
-    const document = CjsCharacterLibraryBuilder.buildFromInputs({
-        documents: input,
-        sourceGame: "example",
-        sourceProvider: "mixed"
+    assert.deepEqual(value.documents.bloodlines[0].raceID, {
+        _ref: value.documents.races[0]._id
     });
-
-    assert.deepEqual(document.documents.ancestries[1], {
-        bloodlineID: { _ref: "2" },
-        extraSourceField: true
-    });
-    assert.deepEqual(document.documents.bloodlines[2], {
-        _id: "2",
-        raceID: { _ref: "3" },
-        _key: "2"
-    });
-    assert.deepEqual(document.documents.races[3], {
-        _id: "3",
-        _key: "3",
-        name: { en: "Example" }
-    });
-    assert.equal(CjsCharacterLibraryBuilder.validate(document), document);
+    assert.equal(value.documents.races[0].recordID, "3");
+    assert.equal(value.documents.races[1]._id, undefined);
+    assert.equal(value.documents.characterResources[0].clothingRemovesCategory, null);
     assert.equal(
-        CjsCharacterLibraryBuilder.stringify(document),
-        JSON.stringify(document, null, 2)
+        value.documents.paperdolls[0].modifiers[1].paperdollResourceID,
+        "404",
+        "a dangling domain identity remains visible instead of becoming an invalid _ref"
     );
+
 });
 
-test("indexes source documents without hydrating legacy character models", () =>
+test("from and SetValues hydrate the same character-library model shape", () =>
 {
-    const documents = EmptyDocuments();
+    const value = CjsCharacterLibraryBuilder.build(CreateDocuments(), {
+        sourceProvider: "synthetic"
+    });
+    const from = CjsCharacterLibrary.from(value);
+    const assigned = new CjsCharacterLibrary();
 
-    documents.ancestries[1] = { bloodlineID: "2" };
-    documents.bloodlines[2] = { raceID: "3" };
-    documents.races[3] = { name: "Example" };
+    assigned.SetValues(value);
 
-    const built = CjsCharacterLibraryBuilder.build(documents);
-    const library = new CjsCharacterDocumentLibrary(built);
-    const copy = CjsCharacterDocumentLibrary.copy(built);
-    const ancestry = library.Get("ancestries", 1);
-    const bloodline = library.ResolveReference("bloodlines", ancestry.bloodlineID);
-    const race = library.ResolveReference("races", bloodline.raceID);
+    for (const library of [ from, assigned ])
+    {
+        const ancestry = library.Get("ancestries", 1);
+        const bloodline = library.Get("bloodlines", 2);
+        const race = library.Get("races", 3);
+        const resource = library.Get("characterResources", 21);
+        const paperdoll = library.Get("paperdolls", 30);
 
-    assert.equal(library.ListDocuments().length, 12);
-    assert.notEqual(copy, built);
-    assert.deepEqual(copy, built);
-    assert.equal(library.GetDocument("races"), library.GetDocumentData().documents.races);
-    assert.equal(bloodline._id, "2");
-    assert.equal(race.name, "Example");
-    assert.equal(library.ResolveReference("races", { _ref: "404" }), null);
-    assert.throws(
-        () => library.ResolveReference("races", 3),
-        /must be a \{_ref\} object/u
+        assert.ok(ancestry instanceof CjsCharacterAncestry);
+        assert.ok(bloodline instanceof CjsCharacterBloodline);
+        assert.ok(race instanceof CjsCharacterRace);
+        assert.ok(resource instanceof CjsCharacterResource);
+        assert.ok(paperdoll instanceof CjsCharacterPaperdoll);
+        assert.strictEqual(ancestry.bloodlineID, bloodline);
+        assert.strictEqual(bloodline.raceID, race);
+        assert.strictEqual(paperdoll.modifiers[0].paperdollResourceID, resource);
+        assert.equal(paperdoll.modifiers[1].paperdollResourceID, "404");
+        assert.equal(resource.typeID, "9001");
+        assert.equal(library.sourceProvider, "synthetic");
+        assert.equal(library.GetDocument("races"), library.documents.races);
+        assert.equal(library.Has("races", 3), true);
+        assert.equal(library.Get("races", 404), null);
+    }
+
+    assert.deepEqual(assigned.GetValues(), from.GetValues());
+    assert.equal(typeof CjsCharacterLibrary.schema.getSchema, "function");
+});
+
+test("CjsModel graph export round-trips a hydrated library", () =>
+{
+    const library = CjsCharacterLibrary.from(
+        CjsCharacterLibraryBuilder.build(CreateDocuments())
+    );
+    const values = JSON.parse(JSON.stringify(library.GetValues({ refs: true })));
+    const roundTrip = CjsCharacterLibrary.from(values);
+    const clone = library.Clone({ refs: true });
+
+    assert.equal(values.documents.characterResources[0].typeID, "9001");
+    assert.ok(JSON.stringify(values).includes("_id"));
+    assert.ok(JSON.stringify(values).includes("_ref"));
+    assert.strictEqual(
+        roundTrip.Get("ancestries", 1).bloodlineID,
+        roundTrip.Get("bloodlines", 2)
+    );
+    assert.strictEqual(
+        roundTrip.Get("paperdolls", 30).modifiers[0].paperdollResourceID,
+        roundTrip.Get("characterResources", 21)
+    );
+    assert.notStrictEqual(clone, library);
+    assert.strictEqual(
+        clone.Get("bloodlines", 2).raceID,
+        clone.Get("races", 3)
     );
 });
 
-test("rejects incomplete, non-JSON, and malformed document inputs", () =>
+test("accepts independently named document inputs", () =>
+{
+    const documents = CreateDocuments();
+    const descriptors = Object.entries(documents).map(([ name, data ]) => ({ name, data }));
+    const value = CjsCharacterLibraryBuilder.buildFromInputs({
+        documents: descriptors,
+        sourceGame: "synthetic-game"
+    });
+
+    assert.equal(value.sourceGame, "synthetic-game");
+    assert.equal(value.documents.races[0].recordID, "3");
+});
+
+test("rejects malformed source-document inputs at the builder boundary", () =>
 {
     assert.throws(
         () => CjsCharacterLibraryBuilder.build({}),
         /missing documents/u
     );
 
-    const cyclic = EmptyDocuments();
-    cyclic.races[1] = {};
-    cyclic.races[1].cycle = cyclic.races[1];
+    const extra = CreateDocuments();
+    extra.unmodelledFacts = {};
+    assert.throws(
+        () => CjsCharacterLibraryBuilder.build(extra),
+        /unsupported documents/u
+    );
 
+    const reserved = CreateDocuments();
+    reserved.races[3]._id = 99;
+    assert.throws(
+        () => CjsCharacterLibraryBuilder.build(reserved),
+        /reserved model metadata _id/u
+    );
+
+    const collision = CreateDocuments();
+    collision.races[3].recordID = "source-owned";
+    assert.throws(
+        () => CjsCharacterLibraryBuilder.build(collision),
+        /already defines reserved recordID/u
+    );
+
+    const cyclic = CreateDocuments();
+    cyclic.races[3].cycle = cyclic.races[3];
     assert.throws(
         () => CjsCharacterLibraryBuilder.build(cyclic),
         /contains a cycle/u
     );
-
-    const malformed = EmptyDocuments();
-    malformed.paperdolls[1] = { modifiers: {} };
-
-    assert.throws(
-        () => CjsCharacterLibraryBuilder.build(malformed),
-        /modifiers must be an array/u
-    );
-
-    const reserved = EmptyDocuments();
-    reserved.races[1] = { _id: "1" };
-
-    assert.throws(
-        () => CjsCharacterLibraryBuilder.build(reserved),
-        /reserved _id/u
-    );
 });
 
-function EmptyDocuments()
+function CreateDocuments()
 {
     return {
-        ancestries: {},
-        archetypes: {},
-        bloodlines: {},
-        characterAvatarBehaviors: {},
-        characterColorLocations: {},
-        characterColorNames: {},
-        characterModifierLocations: {},
-        characterPortraitResources: {},
-        characterResources: {},
-        characterSculptingLocations: {},
-        paperdolls: {},
-        races: {}
+        ancestries: {
+            1: {
+                bloodlineID: "2",
+                nameID: "1001"
+            }
+        },
+        archetypes: {
+            1: {
+                contentTags: [ "career" ],
+                location: "station"
+            }
+        },
+        bloodlines: {
+            2: {
+                raceID: "3",
+                nameID: "1002"
+            }
+        },
+        characterAvatarBehaviors: {
+            1: {
+                name: "idle",
+                resPathList: [ "res:/example/idle.black" ],
+                resGender: 1
+            }
+        },
+        characterColorLocations: {
+            10: {
+                colorKey: "primary",
+                hasGloss: 1,
+                hasWeight: 1
+            }
+        },
+        characterColorNames: {
+            11: {
+                colorName: "dark",
+                hairColor: 0
+            }
+        },
+        characterModifierLocations: {
+            20: {
+                modifierKey: "topinner",
+                variationKey: "default"
+            }
+        },
+        characterPortraitResources: {
+            40: {
+                resPath: "res:/example/background.png",
+                resourceCategory: "background"
+            }
+        },
+        characterResources: {
+            21: {
+                resPath: "res:/example/topinner.type",
+                clothingAlsoCoversCategory: "20",
+                clothingRemovesCategory: "0",
+                typeID: "9001",
+                resGender: 1
+            }
+        },
+        characterSculptingLocations: {
+            30: {
+                weightKeyCategory: "face",
+                weightKeyPrefix: "jaw"
+            }
+        },
+        paperdolls: {
+            30: {
+                modifiers: [ {
+                    modifierLocationID: "20",
+                    paperdollResourceID: "21",
+                    paperdollResourceVariation: 2
+                }, {
+                    modifierLocationID: "20",
+                    paperdollResourceID: "404",
+                    paperdollResourceVariation: 0
+                } ],
+                colorSelections: [ {
+                    gloss: 0.25,
+                    weight: 0.75,
+                    colorID: "10",
+                    colorNameA: "11",
+                    colorNameBC: "0"
+                } ],
+                sculptWeights: [ {
+                    weightForwardBack: 0.1,
+                    weightLeftRight: 0.2,
+                    weightUpDown: 0.3,
+                    sculptLocationID: "30"
+                } ],
+                backgroundID: "40",
+                headTilt: 0.5
+            }
+        },
+        races: {
+            3: {
+                nameID: "1003",
+                skills: { 3300: 4 }
+            },
+            4: {
+                nameID: "1004"
+            }
+        }
     };
 }
