@@ -50,6 +50,9 @@ The maintained graph includes:
 - typed v150 static Wwise Parametric EQ catalogs with ordered slots and bands,
   Web Audio dry-route realization for SFX and built-in music, and fail-closed
   dynamic-control and independent-LFE qualification;
+- source-proven static v150 Wwise Delay decoding with one shared Web Audio
+  dry/wet split, optional feedback loop, output gain, ordered Bus placement,
+  and fail-closed dynamic-control and independent-LFE qualification;
 - source-proven v150 Wwise Meter decoding with fail-closed omission limited to
   audio-transparent records that cannot write a Game Parameter or apply
   downstream volume; Meter telemetry itself remains unsupported;
@@ -120,7 +123,11 @@ music; Bus LPF/HPF are distributed dry-route filters for both engines. Static
 Parametric EQ uses source-proven v150 field decoding and one ordered shared
 Web Audio chain per Bus when the complete graph route qualifies. Blocked or
 missing graph routes retain the distributed source-route fallback. Neither
-path claims native Wwise DSP equivalence. A complete Voice/Bus Volume RTPC, State,
+path claims native Wwise DSP equivalence. Static Wwise Delay likewise uses
+source-proven v150 fields and one shared Web Audio delay/feedback stage; it has
+no distributed per-source fallback. Bus ancestries targeted by retained Set or
+Reset Bus Volume actions stay blocked across audible effects until the shared
+runtime owns exact Bus-fader placement. A complete Voice/Bus Volume RTPC, State,
 or ducking path may enter the shared unity topology only when every declared
 control has its matching installed runtime catalog and the route is effect-free
 or contains only decoded feedback-free Meters. The existing dry-route stages

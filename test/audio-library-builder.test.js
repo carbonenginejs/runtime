@@ -89,7 +89,7 @@ test("optional library builder accepts supplied data and optional enrichment", (
     );
 });
 
-test("library builder marks buses that authored actions can amplify", () =>
+test("library builder marks buses that authored actions control or can amplify", () =>
 {
     const bus = overrides => ({
         type: "audio-bus",
@@ -173,7 +173,24 @@ test("library builder marks buses that authored actions can amplify", () =>
     options.sfx.programs.engine_loop[0].targetId = "500";
     const amplified = CjsAudioLibraryBuilder.build(options);
 
+    assert.equal(
+        amplified.busGraph.buses["500"].busVolumeActionControlled,
+        true,
+    );
     assert.equal(amplified.busGraph.buses["500"].busVolumeMayIncrease, true);
+
+    options.sfx.programs.engine_loop[0].busVolumeDb = -5;
+    options.sfx.programs.engine_loop[0].busVolumeRangeDb = { min: 0, max: 0 };
+    const attenuated = CjsAudioLibraryBuilder.build(options);
+
+    assert.equal(
+        attenuated.busGraph.buses["500"].busVolumeActionControlled,
+        true,
+    );
+    assert.equal(
+        attenuated.busGraph.buses["500"].busVolumeMayIncrease,
+        undefined,
+    );
 
     options.sfx.programs.engine_loop[0].valueMode = "absolute";
     options.sfx.programs.engine_loop[0].busVolumeDb = -50;
@@ -184,6 +201,23 @@ test("library builder marks buses that authored actions can amplify", () =>
         absolute.busGraph.buses["500"].busVolumeMayIncrease,
         true,
         "an absolute negative value can still replace a quieter authored Bus",
+    );
+
+    const resetOptions = structuredClone(options);
+    const resetAction = resetOptions.sfx.programs.engine_loop[0];
+
+    resetAction.kind = "reset-bus-volume";
+    resetAction.targetId = "0";
+    resetAction.mode = "all";
+    delete resetAction.valueMode;
+    delete resetAction.busVolumeDb;
+    delete resetAction.busVolumeRangeDb;
+    const reset = CjsAudioLibraryBuilder.build(resetOptions);
+
+    assert.equal(
+        reset.busGraph.buses["500"].busVolumeActionControlled,
+        true,
+        "Reset All marks every reachable Bus as action-controlled",
     );
 });
 

@@ -894,7 +894,7 @@ export class CjsAudioLibraryBuilder
             && Object.keys(busGraph.buses ?? {}).length)
         {
             library.busGraph = normalizeBusGraphCatalog(
-                MarkBusGraphVolumeIncreaseRisk(busGraph, library.sfx),
+                MarkBusGraphVolumeActionControls(busGraph, library.sfx),
                 library.embeddedMedia ?? {},
             );
         }
@@ -918,7 +918,7 @@ export class CjsAudioLibraryBuilder
 
 }
 
-function MarkBusGraphVolumeIncreaseRisk(busGraph, sfx)
+function MarkBusGraphVolumeActionControls(busGraph, sfx)
 {
     const buses = Object.fromEntries(Object.entries(busGraph.buses ?? {})
         .map(([ busId, bus ]) => [ busId, { ...bus } ]));
@@ -928,14 +928,11 @@ function MarkBusGraphVolumeIncreaseRisk(busGraph, sfx)
     {
         for (const action of actions)
         {
-            if (action?.kind !== "set-bus-volume") continue;
-            const maximum = Number(action.busVolumeDb)
-                + Number(action.busVolumeRangeDb?.max ?? 0);
-            const mayIncrease = action.valueMode === "absolute"
-                || !Number.isFinite(maximum)
-                || maximum > 0;
-
-            if (!mayIncrease) continue;
+            if (action?.kind !== "set-bus-volume"
+                && action?.kind !== "reset-bus-volume")
+            {
+                continue;
+            }
             const excluded = new Set(
                 (action.exceptions ?? []).map(value => String(value.targetId)),
             );
@@ -946,7 +943,16 @@ function MarkBusGraphVolumeIncreaseRisk(busGraph, sfx)
 
             for (const busId of targets)
             {
-                if (buses[busId]) buses[busId].busVolumeMayIncrease = true;
+                if (!buses[busId]) continue;
+                buses[busId].busVolumeActionControlled = true;
+                if (action.kind !== "set-bus-volume") continue;
+                const maximum = Number(action.busVolumeDb)
+                    + Number(action.busVolumeRangeDb?.max ?? 0);
+                const mayIncrease = action.valueMode === "absolute"
+                    || !Number.isFinite(maximum)
+                    || maximum > 0;
+
+                if (mayIncrease) buses[busId].busVolumeMayIncrease = true;
             }
         }
     }

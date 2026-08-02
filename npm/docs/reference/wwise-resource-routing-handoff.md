@@ -20,7 +20,9 @@ sliders.
 It also projects v150 Audio Bus auto-ducking and coordinates actual scheduled
 SFX and built-in music source activity through one shared clock.
 Routed static Wwise Parametric EQ slots are projected into one portable catalog
-and realized on the corresponding collapsed dry routes. The strict shared
+and realized on the corresponding collapsed dry routes. Static Wwise Delay is
+decoded directly from the portable graph and realized only at its shared Bus.
+The strict shared
 mixer also decodes source-proven v150 Wwise Meter records and may omit only
 audio-transparent instances that cannot feed telemetry back into the graph.
 It may likewise omit a static user-aux send only when the complete return is
@@ -126,7 +128,7 @@ only. The builder keeps raw graph values because Wwise interpolates them
 before converting `-1` to `-96.3 dB` and other values with
 `20 * log10(value + 1)`. Keeping these contributions distinct preserves their
 future placement when real bus and effect stages replace the collapsed gain.
-Static v150 Parametric EQ is the one implemented DSP adapter. Feedback-free
+Static v150 Parametric EQ and Wwise Delay are the implemented DSP adapters. Feedback-free
 v150 Meter records have a qualified audio-transparent omission contract, but
 Meter telemetry is not implemented. Audible auxiliary
 sends and complete ordered effect chaining, dynamic effect controls, nonlinear
@@ -146,16 +148,36 @@ instance has RTPC, State, property-value, or media controls. Eleven EQ
 definitions outside the qualified Audio Bus slots do have controls and are not
 silently promoted; their SFX NodeBase effect slots remain unsupported.
 
-The builder and shared mixer follow pinned wwiser's version-150 56-byte parameter layout,
-validate exact boolean bytes and ShareSet/Custom slot identity, preserve bus,
-slot, and band order, and rejects routed `processLfe:false` until an independent
-browser LFE branch exists. A fully qualified graph route now realizes one
-ordered Web Audio EQ chain per Bus after SFX spatialization or music route
-envelopes. Blocked and graphless paths retain the distributed source-route
-fallback. The field decoding and graph placement are exact, but Web Audio
-biquads are not claimed to be native Wwise DSP. EVE's reachable EQ follows an
-active Compressor in Wwise slot order, so its chain remains blocked rather
-than stacking a nonlinear stage per voice.
+The builder and shared mixer follow pinned wwiser's version-150 56-byte
+parameter layout, validate exact boolean bytes and ShareSet/Custom slot
+identity, preserve bus, slot, and band order, and reject routed
+`processLfe:false` until an independent browser LFE branch exists. A fully
+qualified graph route now realizes one ordered Web Audio EQ chain per Bus after
+SFX spatialization or music route envelopes. Blocked and graphless paths retain
+the distributed source-route fallback. The field decoding and graph placement
+are exact, but Web Audio biquads are not claimed to be native Wwise DSP. EVE's
+reachable EQ follows an active Compressor in Wwise slot order, so its chain
+remains blocked rather than stacking a nonlinear stage per voice.
+
+Pinned wwiser proves the v150 Wwise Delay's 18-byte layout: float32 Delay Time,
+Feedback, Wet/Dry Mix, and Output Level followed by one-byte Enable Feedback
+and Process LFE booleans. The shared adapter validates the ranges documented by
+the [official Wwise Delay reference][wwise-delay], requires Process LFE until an
+independent browser LFE branch exists, and rejects every dynamic, media, or
+malformed record before allocating nodes. It realizes one shared Web Audio
+dry/wet split, optional feedback loop, and output gain in authored Bus/slot
+order. This is an explicit browser DSP adaptation, not a native Wwise claim.
+
+[wwise-delay]: https://www.audiokinetic.com/en/public-library/2025.1.3_9039/?id=wwise_delay_plug_in&source=Help
+
+EVE build 3444265 contains seven active, static, control-free Delay Custom
+instances on two buses and 14 SFX leaves. Every instance authors a one-second,
+100-percent-wet delay with `processLfe:true`; six disable feedback while one
+enables 45-percent feedback. Every affected dry route later crosses the
+unsupported root Peak Limiter, and ten also cross audible auxiliary routing,
+Compressor, and Parametric EQ stages. Delay support therefore unlocks no EVE
+route by itself: the strict mixer retains all 14 barriers until the complete
+ordered chain is qualified.
 
 EVE build 3444265 authors 60 Bus Volume RTPC curves on 56 buses, driven by 18
 Game Parameters. Every one of the 16,263 serialized SFX leaves and 2,484 music
@@ -277,7 +299,11 @@ only those provably silent paths and allocates no wet nodes for them. This adds
 of 16,255 SFX and 2,349 of 2,484 music, across 50 SFX and seven music route
 records. Absolute and positive-relative Bus Volume Set actions are projected as
 `busVolumeMayIncrease` barriers so a future authored action cannot invalidate
-the proof.
+the proof. Every Set or Reset Bus Volume target also carries the separate
+`busVolumeActionControlled` marker. The strict mixer rejects that marker on an
+audible effect ancestry until the Bus fader has exact post-effect placement;
+otherwise an action could attenuate only new Delay input while an existing
+feedback tail continued at the old gain.
 
 `1912148245` cascades to `518379211`; their audible paths contain ordered
 Compressor, Parametric EQ, Convolution Reverb, and Peak Limiter stages. The
@@ -314,7 +340,7 @@ and HDR are both inactive; unknown flags and active behavior remain barriers.
 Effect records are decoded from the authoritative graph bytes before any node
 is allocated.
 
-One qualified path may contain a complete static Parametric EQ sequence plus
+One qualified path may contain a complete static Parametric EQ/Delay sequence plus
 feedback-free Meter omissions and no distributed controls. The other may carry
 Bus Volume RTPC, State, and ducking reasons only when their matching runtime
 catalog entries are installed and every active effect is an audio-transparent,

@@ -114,14 +114,11 @@ function ValidateBusGraphVolumeActionRisk(busGraph, sfx)
     {
         for (const action of actions)
         {
-            if (action?.kind !== "set-bus-volume") continue;
-            const maximum = Number(action.busVolumeDb)
-                + Number(action.busVolumeRangeDb?.max ?? 0);
-            const mayIncrease = action.valueMode === "absolute"
-                || !Number.isFinite(maximum)
-                || maximum > 0;
-
-            if (!mayIncrease) continue;
+            if (action?.kind !== "set-bus-volume"
+                && action?.kind !== "reset-bus-volume")
+            {
+                continue;
+            }
             const excluded = new Set(
                 (action.exceptions ?? []).map(value => String(value.targetId)),
             );
@@ -132,8 +129,21 @@ function ValidateBusGraphVolumeActionRisk(busGraph, sfx)
 
             for (const busId of targets)
             {
-                if (buses[busId]
-                    && buses[busId].busVolumeMayIncrease !== true)
+                if (!buses[busId]) continue;
+                if (buses[busId].busVolumeActionControlled !== true)
+                {
+                    throw new TypeError(
+                        `Audio Bus graph omits Bus Volume action control for bus ${busId}`,
+                    );
+                }
+                if (action.kind !== "set-bus-volume") continue;
+                const maximum = Number(action.busVolumeDb)
+                    + Number(action.busVolumeRangeDb?.max ?? 0);
+                const mayIncrease = action.valueMode === "absolute"
+                    || !Number.isFinite(maximum)
+                    || maximum > 0;
+
+                if (mayIncrease && buses[busId].busVolumeMayIncrease !== true)
                 {
                     throw new TypeError(
                         `Audio Bus graph omits volume-increase risk for bus ${busId}`,

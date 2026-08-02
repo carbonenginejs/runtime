@@ -94,9 +94,15 @@ Dynamic send slots are marked explicitly as realization barriers.
 positive-relative Bus Volume Set action can amplify. The strict mixer combines
 that action risk with the installed RTPC/State catalogs when proving that a
 static Auxiliary Bus return can be omitted below Wwise's silence threshold.
+`busVolumeActionControlled` separately marks every reachable Bus targeted by a
+retained Set or Reset Bus Volume action. Audible shared effects remain blocked
+on any such ancestry until the Bus fader moves to its exact physical stage, so
+an action cannot affect only new input while leaving an existing effect tail at
+the wrong gain.
 The catalog is descriptive until a route is accepted by a qualified shared-bus
-runtime; its presence does not make unsupported auxiliary or nonlinear effect
-paths audible.
+runtime. That runtime can decode qualified static Parametric EQ and Wwise Delay
+records into ordered shared Web Audio stages, but the catalog's presence alone
+does not make unsupported auxiliary, dynamic, or nonlinear effect paths audible.
 
 ## Delivery
 

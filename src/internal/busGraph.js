@@ -234,6 +234,14 @@ export function normalizeBusGraphCatalog(value, embeddedMedia = {})
                         `Audio Bus graph bus ${busId} busVolumeMayIncrease`,
                     ),
                 }),
+            ...(raw.busVolumeActionControlled === undefined
+                ? {}
+                : {
+                    busVolumeActionControlled: BooleanValue(
+                        raw.busVolumeActionControlled,
+                        `Audio Bus graph bus ${busId} busVolumeActionControlled`,
+                    ),
+                }),
         };
 
         if (bus.channelConfig.raw !== (

@@ -83,6 +83,9 @@ function normalizeBusGraphCatalog(value, embeddedMedia = {}) {
       requiresProcessing: NormalizeProcessingReasons(raw.requiresProcessing ?? [], busId),
       ...(raw.busVolumeMayIncrease === undefined ? {} : {
         busVolumeMayIncrease: BooleanValue(raw.busVolumeMayIncrease, `Audio Bus graph bus ${busId} busVolumeMayIncrease`)
+      }),
+      ...(raw.busVolumeActionControlled === undefined ? {} : {
+        busVolumeActionControlled: BooleanValue(raw.busVolumeActionControlled, `Audio Bus graph bus ${busId} busVolumeActionControlled`)
       })
     };
     if (bus.channelConfig.raw !== (bus.channelConfig.channelCount | bus.channelConfig.configType << 8 | bus.channelConfig.channelMask << 12) >>> 0) {

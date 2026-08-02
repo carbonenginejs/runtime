@@ -68,14 +68,16 @@ receive the application music volume exactly once. Route lanes are established
 before asynchronous clip loading, so a late decoded buffer cannot bypass an
 already scheduled fade.
 
-If that shared route contains only qualified static Parametric EQ slots and no
-distributed Bus controls, its
-instance lane enters one ordered EQ chain per physical Bus after all route and
-transition envelopes. Multiple music instances and SFX entries therefore share
-the same Bus effect nodes. A blocked or missing graph keeps the legacy
-`busEffects` fallback between the track route gain and segment gain. The
-source-proven v150 fields and placement are exact, while Web Audio biquads
-remain a browser adaptation rather than native Wwise DSP.
+If that shared route contains only qualified static Parametric EQ and Wwise
+Delay slots and no distributed Bus controls, its instance lane enters one
+ordered effect chain per physical Bus after all route and transition envelopes.
+Multiple music instances and SFX entries therefore share the same Bus effect
+nodes, including one shared delay line and feedback tail. A blocked or missing
+graph keeps the legacy Parametric EQ `busEffects` fallback between the track
+route gain and segment gain. The source-proven v150 fields and placement are
+exact, while Web Audio biquads and delay primitives remain browser adaptations
+rather than native Wwise DSP. EVE build 3444265 has no music route through its
+seven static Delay instances.
 
 An effect-free or feedback-free-Meter route may instead enter the shared unity
 path while its complete Bus Volume RTPC, State, and ducking controls remain on

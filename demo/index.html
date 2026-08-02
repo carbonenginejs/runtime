@@ -386,14 +386,15 @@
     <section class="card" id="busGraphLab">
       <div class="sectionHeader">
         <div>
-          <div class="sectionTitle"><h2>Wwise Bus graph lab</h2><button class="infoButton" type="button" aria-label="About the Wwise Bus graph lab" data-tip="Exercises the strict shared mixer with an exact synthetic v150 Meter → Parametric EQ graph. The dry probe rises from 180 Hz to 5.2 kHz; the routed probe loses the upper sweep through the authored 620 Hz low-pass. Shared pair sends two simultaneous sweeps through the same physical Bus chain. The diagnostic also proves that a Meter which writes a Game Parameter is rejected before allocation.">i</button></div>
-          <p class="sectionNote">Shared EQ placement and Meter qualification</p>
+          <div class="sectionTitle"><h2>Wwise Bus graph lab</h2><button class="infoButton" type="button" aria-label="About the Wwise Bus graph lab" data-tip="Exercises the strict shared mixer with exact synthetic v150 Meter, Parametric EQ, and Delay records. The dry probe rises from 180 Hz to 5.2 kHz; the EQ probe loses the upper sweep through the authored 620 Hz low-pass. The Delay probe adds a 220 ms feedback echo, and shared pair sends two simultaneous sweeps through one physical Meter → EQ chain. The diagnostic also proves that a Meter which writes a Game Parameter is rejected before allocation.">i</button></div>
+          <p class="sectionNote">Shared EQ, Delay, and Meter qualification</p>
         </div>
       </div>
       <p id="busGraphStatus" class="labStatus" data-state="idle">enable audio to initialize the Bus graph lab</p>
       <div class="buttonRow labButtons">
         <button id="busGraphDry" type="button" disabled>dry sweep</button>
         <button id="busGraphRouted" class="primary" type="button" disabled>Meter → EQ</button>
+        <button id="busGraphDelay" type="button" disabled>220 ms Delay</button>
         <button id="busGraphShared" type="button" disabled>shared pair</button>
       </div>
       <p id="busGraphPlayback" class="labPlayback" aria-live="polite"></p>

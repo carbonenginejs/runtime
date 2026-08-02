@@ -5,6 +5,7 @@ import {
     indexBusEffectCatalog,
     parseGraphFeedbackFreeMeter,
     parseGraphStaticParametricEq,
+    parseGraphStaticWwiseDelay,
     parseStaticParametricEqBytes,
 } from "../src/internal/busEffects.js";
 
@@ -39,8 +40,18 @@ function Context()
 {
     const context = {
         sampleRate: 48000,
+        delays: [],
         filters: [],
         gains: [],
+        createDelay(maxDelayTime)
+        {
+            const node = Node({
+                delayTime: { value: 0 },
+                maxDelayTime,
+            });
+            context.delays.push(node);
+            return node;
+        },
         createBiquadFilter()
         {
             const node = Node({
@@ -67,7 +78,12 @@ function Node(fields)
     const node = {
         ...fields,
         connectedTo: null,
-        connect(target) { node.connectedTo = target; },
+        connections: [],
+        connect(target)
+        {
+            node.connections.push(target);
+            node.connectedTo ??= target;
+        },
     };
     return node;
 }
@@ -151,6 +167,36 @@ function GraphMeter(bytes = MeterBytes())
     const effect = GraphEffect(bytes);
 
     effect.pluginId = 0x00810003;
+    return effect;
+}
+
+function DelayBytes({
+    delayTimeSeconds = 0.5,
+    feedbackPercent = 15,
+    wetDryMixPercent = 25,
+    outputGainDb = 0,
+    feedbackEnabled = 1,
+    processLfe = 1,
+} = {})
+{
+    const bytes = new Uint8Array(18);
+    const view = new DataView(bytes.buffer);
+
+    view.setFloat32(0, delayTimeSeconds, true);
+    view.setFloat32(4, feedbackPercent, true);
+    view.setFloat32(8, wetDryMixPercent, true);
+    view.setFloat32(12, outputGainDb, true);
+    view.setUint8(16, feedbackEnabled);
+    view.setUint8(17, processLfe);
+    return bytes;
+}
+
+function GraphDelay(bytes = DelayBytes())
+{
+    const effect = GraphEffect(bytes);
+
+    effect.type = "effect-custom";
+    effect.pluginId = 0x006a0003;
     return effect;
 }
 
@@ -282,6 +328,62 @@ test("skips authored-neutral Parametric EQ without allocating Web Audio nodes", 
     assert.equal(context.gains.length, 0);
 });
 
+test("builds one static Wwise Delay split and feedback loop", () =>
+{
+    const context = Context();
+    const delay = parseGraphStaticWwiseDelay(GraphDelay(DelayBytes({
+        delayTimeSeconds: 1,
+        feedbackPercent: 45,
+        wetDryMixPercent: 75,
+        outputGainDb: -6,
+    })), "920", 3);
+    const chain = createBusEffectChain(
+        context,
+        new Map([ [ "500", [ delay ] ] ]),
+        [ "500" ],
+    );
+    const [ input, dry, wet, output, feedback ] = context.gains;
+    const [ delayNode ] = context.delays;
+
+    assert.equal(chain.input, input);
+    assert.equal(chain.output, output);
+    assert.equal(chain.nodes.length, 6);
+    assert.equal(delayNode.maxDelayTime, 1);
+    assert.equal(delayNode.delayTime.value, 1);
+    assert.equal(dry.gain.value, 0.25);
+    assert.equal(wet.gain.value, 0.75);
+    assert.ok(Math.abs(output.gain.value - 10 ** (-6 / 20)) < 1e-12);
+    assert.equal(feedback.gain.value, 0.45);
+    assert.deepEqual(input.connections, [ dry, delayNode ]);
+    assert.deepEqual(delayNode.connections, [ wet, feedback ]);
+    assert.deepEqual(feedback.connections, [ delayNode ]);
+    assert.deepEqual(dry.connections, [ output ]);
+    assert.deepEqual(wet.connections, [ output ]);
+});
+
+test("keeps Meter, Wwise Delay, and Parametric EQ in authored order", () =>
+{
+    const context = Context();
+    const meter = parseGraphFeedbackFreeMeter(GraphMeter(), "910", 0);
+    const delay = parseGraphStaticWwiseDelay(GraphDelay(), "920", 1);
+    const eq = Effect({ slotIndex: 2 });
+    const chain = createBusEffectChain(
+        context,
+        new Map([ [ "500", [ meter, delay, eq ] ] ]),
+        [ "500" ],
+    );
+    const delayInput = context.gains[0];
+    const delayOutput = context.gains[3];
+
+    assert.equal(chain.input, delayInput, "the omitted Meter allocates no node");
+    assert.deepEqual(
+        delayInput.connections,
+        [ context.gains[1], context.delays[0] ],
+    );
+    assert.equal(delayOutput.connectedTo, context.filters[0]);
+    assert.equal(chain.output, context.filters[0]);
+});
+
 test("decodes the source-proven v150 static Parametric EQ parameter layout", () =>
 {
     const effect = parseStaticParametricEqBytes(ParametricEqBytes(), {
@@ -346,6 +448,96 @@ test("rejects malformed or dynamic portable-graph Parametric EQ effects", () =>
         mutate(effect);
         assert.throws(() =>
             parseGraphStaticParametricEq(effect, "900", 0));
+    }
+});
+
+test("decodes only static source-proven v150 Wwise Delay parameters", () =>
+{
+    const effect = parseGraphStaticWwiseDelay(GraphDelay(DelayBytes({
+        delayTimeSeconds: 1,
+        feedbackPercent: 60,
+        wetDryMixPercent: 100,
+        feedbackEnabled: 0,
+    })), "920", 2);
+
+    assert.deepEqual(effect, {
+        effectId: "920",
+        slotIndex: 2,
+        type: "delay",
+        delayTimeSeconds: 1,
+        feedbackPercent: 60,
+        wetDryMixPercent: 100,
+        outputGainDb: 0,
+        feedbackEnabled: false,
+        processLfe: true,
+    });
+    const context = Context();
+    const chain = createBusEffectChain(
+        context,
+        new Map([ [ "500", [ effect ] ] ]),
+        [ "500" ],
+    );
+
+    assert.equal(chain.nodes.length, 5, "disabled feedback allocates no loop gain");
+    assert.equal(context.gains.length, 4);
+    assert.deepEqual(context.delays[0].connections, [ context.gains[2] ]);
+});
+
+test("rejects dynamic, malformed, or independently routed Wwise Delays", () =>
+{
+    const mutations = [
+        effect => { effect.pluginId = 0x006b0003; },
+        effect => { effect.parameterByteLength = 17; },
+        effect => { effect.media.push({ index: 0, sourceId: "10" }); },
+        effect => { effect.controls.rtpcCount = 1; },
+        effect => { effect.controls.statePropertyCount = 1; },
+        effect => { effect.controls.stateGroupCount = 1; },
+        effect => { effect.controls.propertyValueCount = 1; },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(DelayBytes({
+                delayTimeSeconds: 0,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(DelayBytes({
+                feedbackPercent: 101,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(DelayBytes({
+                wetDryMixPercent: -1,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(DelayBytes({
+                outputGainDb: 0.1,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(DelayBytes({
+                feedbackEnabled: 2,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(DelayBytes({
+                processLfe: 0,
+            })).toString("base64");
+        },
+    ];
+
+    for (const mutate of mutations)
+    {
+        const effect = GraphDelay();
+
+        mutate(effect);
+        assert.throws(() =>
+            parseGraphStaticWwiseDelay(effect, "920", 0));
     }
 });
 

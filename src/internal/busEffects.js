@@ -1,4 +1,5 @@
 export const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
+export const WWISE_DELAY_PLUGIN_ID = 0x006a0003;
 export const WWISE_METER_PLUGIN_ID = 0x00810003;
 
 const FILTER_TYPE_NAMES = Object.freeze([
@@ -15,6 +16,12 @@ const FILTER_TYPES = Object.freeze(new Set(FILTER_TYPE_NAMES));
 
 const MIN_GAIN_DB = -200;
 const MAX_GAIN_DB = 200;
+const DELAY_TIME_MIN = 0.001;
+const DELAY_TIME_MAX = 1;
+const DELAY_PERCENT_MIN = 0;
+const DELAY_PERCENT_MAX = 100;
+const DELAY_OUTPUT_GAIN_MIN = Math.fround(-96.3);
+const DELAY_OUTPUT_GAIN_MAX = 0;
 const METER_MAX_TIME = 10;
 const METER_MINIMUM_MIN = Math.fround(-96.3);
 const METER_MINIMUM_MAX = 0;
@@ -170,6 +177,16 @@ export function createBusEffectChain(context, indexedCatalog, busPathIds)
     for (const effect of effects)
     {
         if (effect.type === "meter-omission") continue;
+        if (effect.type === "delay")
+        {
+            const stage = CreateWwiseDelayStage(context, effect);
+
+            if (output) output.connect(stage.input);
+            else input = stage.input;
+            output = stage.output;
+            nodes.push(...stage.nodes);
+            continue;
+        }
         if (effect.type !== "parametric-eq")
         {
             throw new TypeError(`Unsupported shared Bus effect ${effect.type}`);
@@ -208,6 +225,45 @@ export function createBusEffectChain(context, indexedCatalog, busPathIds)
         }
     }
     return input ? { input, output, nodes } : null;
+}
+
+/** Creates one static Wwise Delay adaptation from Web Audio primitives. */
+function CreateWwiseDelayStage(context, effect)
+{
+    if (typeof context?.createDelay !== "function"
+        || typeof context?.createGain !== "function")
+    {
+        throw new TypeError(
+            "AudioContext DelayNode and GainNode support is required for Wwise Delay",
+        );
+    }
+    const input = context.createGain();
+    const delay = context.createDelay(effect.delayTimeSeconds);
+    const dry = context.createGain();
+    const wet = context.createGain();
+    const output = context.createGain();
+    const mix = effect.wetDryMixPercent / 100;
+    const nodes = [ input, delay, dry, wet, output ];
+
+    SetParam(delay.delayTime, effect.delayTimeSeconds);
+    SetParam(dry.gain, 1 - mix);
+    SetParam(wet.gain, mix);
+    SetParam(output.gain, 10 ** (effect.outputGainDb / 20));
+    input.connect(dry);
+    dry.connect(output);
+    input.connect(delay);
+    delay.connect(wet);
+    wet.connect(output);
+    if (effect.feedbackEnabled)
+    {
+        const feedback = context.createGain();
+
+        SetParam(feedback.gain, effect.feedbackPercent / 100);
+        delay.connect(feedback);
+        feedback.connect(delay);
+        nodes.push(feedback);
+    }
+    return { input, output, nodes };
 }
 
 /** Decodes one source-proven v150 Wwise Parametric EQ parameter block. */
@@ -303,6 +359,65 @@ export function parseGraphStaticParametricEq(effect, effectId, slotIndex)
     );
 }
 
+/** Decodes one source-proven static v150 Wwise Delay parameter block. */
+export function parseGraphStaticWwiseDelay(effect, effectId, slotIndex)
+{
+    const label = `Audio Bus graph effect ${effectId}`;
+    const bytes = RequireStaticGraphEffect(
+        effect,
+        WWISE_DELAY_PLUGIN_ID,
+        18,
+        label,
+        "Wwise Delay",
+    );
+    const view = new DataView(
+        bytes.buffer,
+        bytes.byteOffset,
+        bytes.byteLength,
+    );
+    const delayTimeSeconds = view.getFloat32(0, true);
+    const feedbackPercent = view.getFloat32(4, true);
+    const wetDryMixPercent = view.getFloat32(8, true);
+    const outputGainDb = view.getFloat32(12, true);
+    const feedbackEnabledRaw = view.getUint8(16);
+    const processLfeRaw = view.getUint8(17);
+
+    if (!Number.isFinite(delayTimeSeconds)
+        || delayTimeSeconds < DELAY_TIME_MIN
+        || delayTimeSeconds > DELAY_TIME_MAX
+        || !Number.isFinite(feedbackPercent)
+        || feedbackPercent < DELAY_PERCENT_MIN
+        || feedbackPercent > DELAY_PERCENT_MAX
+        || !Number.isFinite(wetDryMixPercent)
+        || wetDryMixPercent < DELAY_PERCENT_MIN
+        || wetDryMixPercent > DELAY_PERCENT_MAX
+        || !Number.isFinite(outputGainDb)
+        || outputGainDb < DELAY_OUTPUT_GAIN_MIN
+        || outputGainDb > DELAY_OUTPUT_GAIN_MAX
+        || feedbackEnabledRaw > 1
+        || processLfeRaw > 1)
+    {
+        throw new TypeError(`${label} has invalid Wwise Delay parameters`);
+    }
+    if (processLfeRaw !== 1)
+    {
+        throw new TypeError(
+            `${label} requires unsupported independent LFE routing`,
+        );
+    }
+    return {
+        effectId: String(effectId),
+        slotIndex: Number(slotIndex),
+        type: "delay",
+        delayTimeSeconds,
+        feedbackPercent,
+        wetDryMixPercent,
+        outputGainDb,
+        feedbackEnabled: feedbackEnabledRaw === 1,
+        processLfe: true,
+    };
+}
+
 /**
  * Decodes a v150 Wwise Meter whose omitted telemetry cannot feed back into the
  * authored graph. The Meter remains behaviorally unsupported but audio-neutral.
@@ -384,6 +499,8 @@ export function parseGraphSharedBusEffect(effect, effectId, slotIndex)
     {
         case PARAMETRIC_EQ_PLUGIN_ID:
             return parseGraphStaticParametricEq(effect, effectId, slotIndex);
+        case WWISE_DELAY_PLUGIN_ID:
+            return parseGraphStaticWwiseDelay(effect, effectId, slotIndex);
         case WWISE_METER_PLUGIN_ID:
             return parseGraphFeedbackFreeMeter(effect, effectId, slotIndex);
         default:

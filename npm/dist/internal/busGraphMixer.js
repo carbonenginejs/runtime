@@ -10,8 +10,8 @@ const SILENT_AUX_REASONS = new Set(["auxiliary-bus", "rtpc", "state"]);
 
 /**
  * Owns the shared Web Audio node topology for strictly qualified Bus routes.
- * Accepts strict dry paths, source-proven static Parametric EQ stages, and
- * explicitly feedback-free Wwise Meter telemetry omissions.
+ * Accepts strict dry paths, source-proven static Parametric EQ and Delay
+ * stages, and explicitly feedback-free Wwise Meter telemetry omissions.
  */
 class CjsSharedBusMixer {
   #context = null;
@@ -151,7 +151,7 @@ class CjsSharedBusMixer {
         break;
       }
       pathIds.add(busId);
-      hasDistributedControls ||= this.#busRtpcs.has(String(busId)) || this.#busStates.has(String(busId)) || bus.requiresProcessing.some(reason => DISTRIBUTED_CONTROL_REASONS.has(reason));
+      hasDistributedControls ||= this.#busRtpcs.has(String(busId)) || this.#busStates.has(String(busId)) || bus.busVolumeActionControlled === true || bus.requiresProcessing.some(reason => DISTRIBUTED_CONTROL_REASONS.has(reason));
       hasAudibleEffect ||= effects.some(effect => effect.type !== "meter-omission");
     }
     // Existing dry-route controllers realize these controls before the
@@ -198,6 +198,9 @@ class CjsSharedBusMixer {
       });
       if (effects.some(effect => effect.type === "parametric-eq" && effect.bands.length) && typeof this.#context.createBiquadFilter !== "function") {
         throw new TypeError("Static Parametric EQ requires BiquadFilter support");
+      }
+      if (effects.some(effect => effect.type === "delay") && typeof this.#context.createDelay !== "function") {
+        throw new TypeError("Static Wwise Delay requires DelayNode support");
       }
       if (reasonSet.has("rtpc") && !this.#busRtpcs.has(id) || reasonSet.has("state") && !this.#busStates.has(id) || reasonSet.has("ducking") && !this.#busDuckingController?.HasSource?.(id)) {
         throw new TypeError("Audio Bus distributed control catalog is incomplete");

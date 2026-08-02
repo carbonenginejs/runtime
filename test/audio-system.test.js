@@ -196,6 +196,36 @@ function GraphMeter(bytes = MeterParameters())
   };
 }
 
+function DelayParameters({
+  delayTimeSeconds = 1,
+  feedbackPercent = 45,
+  wetDryMixPercent = 75,
+  outputGainDb = -6,
+  feedbackEnabled = 1,
+  processLfe = 1,
+} = {})
+{
+  const bytes = new Uint8Array(18);
+  const view = new DataView(bytes.buffer);
+
+  view.setFloat32(0, delayTimeSeconds, true);
+  view.setFloat32(4, feedbackPercent, true);
+  view.setFloat32(8, wetDryMixPercent, true);
+  view.setFloat32(12, outputGainDb, true);
+  view.setUint8(16, feedbackEnabled);
+  view.setUint8(17, processLfe);
+  return bytes;
+}
+
+function GraphDelay(bytes = DelayParameters())
+{
+  return {
+    ...GraphParametricEq(bytes),
+    type: "effect-custom",
+    pluginId: 0x006a0003,
+  };
+}
+
 function AddGraphEffect(catalog, busId, effectId, slotIndex, bytes)
 {
   catalog.effects[effectId] = GraphParametricEq(bytes);
@@ -217,6 +247,19 @@ function AddGraphMeter(catalog, busId, effectId, bytes = MeterParameters())
     effectId,
     bypass: false,
     shareSet: true,
+    rendered: false,
+  });
+  catalog.buses[busId].requiresProcessing = [ "effects" ];
+}
+
+function AddGraphDelay(catalog, busId, effectId, bytes = DelayParameters())
+{
+  catalog.effects[effectId] = GraphDelay(bytes);
+  catalog.buses[busId].effects.push({
+    slotIndex: 0,
+    effectId,
+    bypass: false,
+    shareSet: false,
     rendered: false,
   });
   catalog.buses[busId].requiresProcessing = [ "effects" ];
@@ -308,6 +351,7 @@ function MixerContext()
   const context = {
     sampleRate: 48000,
     destination: { name: "destination" },
+    delays: [],
     gains: [],
     filters: [],
     createGain()
@@ -319,6 +363,7 @@ function MixerContext()
         connect(target)
         {
           node.connectedTo = target;
+          node.connections.push(target);
         },
         disconnect()
         {
@@ -326,7 +371,30 @@ function MixerContext()
         },
       };
 
+      node.connections = [];
       context.gains.push(node);
+      return node;
+    },
+    createDelay(maxDelayTime)
+    {
+      const node = {
+        maxDelayTime,
+        delayTime: { value: 0 },
+        connectedTo: null,
+        connections: [],
+        disconnected: false,
+        connect(target)
+        {
+          node.connectedTo = target;
+          node.connections.push(target);
+        },
+        disconnect()
+        {
+          node.disconnected = true;
+        },
+      };
+
+      context.delays.push(node);
       return node;
     },
     createBiquadFilter()
@@ -341,6 +409,7 @@ function MixerContext()
         connect(target)
         {
           node.connectedTo = target;
+          node.connections.push(target);
         },
         disconnect()
         {
@@ -348,6 +417,7 @@ function MixerContext()
         },
       };
 
+      node.connections = [];
       context.filters.push(node);
       return node;
     },
@@ -755,6 +825,92 @@ test("strict shared Bus EQ qualification fails before allocating partial nodes",
 
     assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
     assert.equal(context.gains.length, 0);
+    assert.equal(context.filters.length, 0);
+  }
+});
+
+test("strict shared Bus mixer realizes one static Wwise Delay per Bus", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+
+  AddGraphDelay(catalog, "500", "920");
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+  const sfx = mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx");
+  const music = mixer.GetInput(runtime.ResolveMusicRoute("200"), "music");
+  const busInput = sfx.connectedTo;
+  const delayInput = busInput.connectedTo;
+  const delay = context.delays[0];
+  const [ dry, wet, output, feedback ] = context.gains.slice(3, 7);
+
+  assert.equal(music.connectedTo, busInput, "the physical Delay is shared");
+  assert.equal(delay.maxDelayTime, 1);
+  assert.equal(delay.delayTime.value, 1);
+  assert.deepEqual(delayInput.connections, [ dry, delay ]);
+  assert.equal(dry.gain.value, 0.25);
+  assert.equal(wet.gain.value, 0.75);
+  assert.deepEqual(delay.connections, [ wet, feedback ]);
+  assert.equal(feedback.gain.value, 0.45);
+  assert.ok(Math.abs(output.gain.value - 10 ** (-6 / 20)) < 1e-12);
+  assert.equal(output.connectedTo.connectedTo, context.destination);
+
+  mixer.Dispose();
+  assert.equal(delay.disconnected, true);
+  assert.ok(context.gains.every(gain => gain.disconnected));
+});
+
+test("strict shared Bus Delay qualification allocates nothing without DelayNode", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+
+  delete context.createDelay;
+  AddGraphDelay(catalog, "500", "920");
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+
+  assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+  assert.equal(context.gains.length, 0);
+  assert.equal(context.delays.length, 0);
+  assert.equal(context.filters.length, 0);
+});
+
+test("strict shared Bus Delay rejects action-controlled and malformed paths atomically", () =>
+{
+  for (const mutate of [
+    value => { value.buses["500"].busVolumeActionControlled = true; },
+    value =>
+    {
+      value.effects["920"].parametersBase64 = Buffer.from(
+        DelayParameters({ wetDryMixPercent: 101 }),
+      ).toString("base64");
+    },
+  ])
+  {
+    const context = MixerContext();
+    const catalog = MixerCatalog();
+
+    AddGraphDelay(catalog, "500", "920");
+    mutate(catalog);
+    const runtime = new CjsBusGraphRuntime(catalog);
+    const mixer = new CjsSharedBusMixer({
+      context,
+      runtime,
+      destination: context.destination,
+    });
+
+    assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+    assert.equal(context.gains.length, 0);
+    assert.equal(context.delays.length, 0);
     assert.equal(context.filters.length, 0);
   }
 });

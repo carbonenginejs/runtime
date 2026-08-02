@@ -24,8 +24,8 @@ const SILENT_AUX_REASONS = new Set([
 
 /**
  * Owns the shared Web Audio node topology for strictly qualified Bus routes.
- * Accepts strict dry paths, source-proven static Parametric EQ stages, and
- * explicitly feedback-free Wwise Meter telemetry omissions.
+ * Accepts strict dry paths, source-proven static Parametric EQ and Delay
+ * stages, and explicitly feedback-free Wwise Meter telemetry omissions.
  */
 export class CjsSharedBusMixer
 {
@@ -234,6 +234,7 @@ export class CjsSharedBusMixer
             pathIds.add(busId);
             hasDistributedControls ||= this.#busRtpcs.has(String(busId))
                 || this.#busStates.has(String(busId))
+                || bus.busVolumeActionControlled === true
                 || bus.requiresProcessing.some(reason =>
                     DISTRIBUTED_CONTROL_REASONS.has(reason));
             hasAudibleEffect ||= effects.some(effect =>
@@ -315,6 +316,11 @@ export class CjsSharedBusMixer
                 && typeof this.#context.createBiquadFilter !== "function")
             {
                 throw new TypeError("Static Parametric EQ requires BiquadFilter support");
+            }
+            if (effects.some(effect => effect.type === "delay")
+                && typeof this.#context.createDelay !== "function")
+            {
+                throw new TypeError("Static Wwise Delay requires DelayNode support");
             }
             if ((reasonSet.has("rtpc") && !this.#busRtpcs.has(id))
                 || (reasonSet.has("state") && !this.#busStates.has(id))

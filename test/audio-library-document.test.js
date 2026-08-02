@@ -678,7 +678,7 @@ test("validates and freezes the portable ordered Audio Bus graph", () =>
     );
 });
 
-test("Bus graphs declare every bus that an authored action can amplify", () =>
+test("Bus graphs declare every bus that an authored action controls or can amplify", () =>
 {
     const source = CreateDocument();
 
@@ -727,6 +727,12 @@ test("Bus graphs declare every bus that an authored action can amplify", () =>
 
     assert.throws(
         () => validateAudioLibraryDocument(source),
+        /omits Bus Volume action control for bus 500/u,
+    );
+
+    source.busGraph.buses["500"].busVolumeActionControlled = true;
+    assert.throws(
+        () => validateAudioLibraryDocument(source),
         /omits volume-increase risk for bus 500/u,
     );
 
@@ -734,11 +740,22 @@ test("Bus graphs declare every bus that an authored action can amplify", () =>
     const installed = installAudioLibraryDocument(source);
 
     assert.equal(installed.busGraph.buses["500"].busVolumeMayIncrease, true);
+    assert.equal(
+        installed.busGraph.buses["500"].busVolumeActionControlled,
+        true,
+    );
 
     source.busGraph.buses["500"].busVolumeMayIncrease = "yes";
     assert.throws(
         () => validateAudioLibraryDocument(source),
         /busVolumeMayIncrease must be boolean/u,
+    );
+
+    source.busGraph.buses["500"].busVolumeMayIncrease = true;
+    source.busGraph.buses["500"].busVolumeActionControlled = "yes";
+    assert.throws(
+        () => validateAudioLibraryDocument(source),
+        /busVolumeActionControlled must be boolean/u,
     );
 });
 

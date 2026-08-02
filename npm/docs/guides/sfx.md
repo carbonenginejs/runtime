@@ -302,9 +302,10 @@ sums both into its per-route bus gain.
 
 This remains a focused audible adaptation rather than full Wwise bus
 processing. Voice Volume must move before a future dry/wet send split, while
-Bus Volume belongs at the final bus stage. Static Parametric EQ is the only
-qualified effect adapter; auxiliary sends, nonlinear effects, meters, and
-effect-tail-driven bus activity remain deferred as described in the
+Bus Volume belongs at the final bus stage. Static Parametric EQ and static
+Wwise Delay have qualified shared-Bus adapters; auxiliary sends, nonlinear
+effects, meters, and effect-tail-driven bus activity remain deferred as
+described in the
 [routing reference](../reference/wwise-resource-routing-handoff.md).
 Delay is measured from the action post. Value randomizers are signed offsets
 sampled once, and transitions use the decoded Wwise curve from the authored
@@ -492,13 +493,18 @@ plug-in suppresses every distributed effect on that route so authored ordering
 cannot be partially realized.
 
 When the strict `busGraph` mixer qualifies the complete route, it decodes the
-authoritative 56-byte graph effect record and creates one ordered EQ chain per
+authoritative graph effect records and creates one ordered effect chain per
 physical Bus, after SFX spatialization and music route envelopes. Common
-ancestors and their EQ nodes are shared across SFX/music category entries and
-voices. This is exact field decoding and graph placement for the Web Audio
-adaptation, not a claim that `BiquadFilterNode` is bit-equivalent to Wwise DSP.
-A blocked or missing graph retains the distributed per-source `busEffects`
-fallback. Nonlinear, dynamic, mixed, or media-backed effect sequences remain
+ancestors and their effect nodes are shared across SFX/music category entries
+and voices. Parametric EQ uses the source-proven 56-byte layout above. Static
+Wwise Delay uses wwiser's 18-byte v150 layout: seconds, Feedback percent,
+Wet/Dry percent, Output Level dB, Enable Feedback, and Process LFE. Its Web
+Audio adapter owns one parallel dry/delayed split, an optional feedback loop,
+and one output gain; `processLfe:false` remains blocked. The exact fields,
+ordering, and shared lifetime are preserved, but neither `BiquadFilterNode`
+nor `DelayNode` is claimed to be bit-equivalent to Wwise DSP. A blocked or
+missing graph retains the distributed per-source Parametric EQ fallback.
+Dynamic, mixed, media-backed, or otherwise unsupported effect sequences remain
 barriers rather than being partially realized.
 
 The shared mixer also decodes wwiser's exact 28-byte v150 Wwise Meter layout.
@@ -533,14 +539,17 @@ effective even when its override bit is clear, because it has no parent. A
 non-root node with a clear override bit inherits, while the first overriding
 descendant replaces the inherited list. The catalog is the shared-runtime
 foundation, not an audible approximation. Current playback can share a
-complete static Parametric EQ sequence without distributed controls, or an
+complete static Parametric EQ/Delay sequence without distributed controls, or an
 effect-free/feedback-free-Meter path whose supported Voice/Bus Volume RTPC,
 State, and ducking records all have matching installed runtime catalogs. Those
 controls remain on the existing dry-route stages upstream of the shared unity
-path. The only auxiliary exception is the proven static-silence omission above.
-Audible or dynamic sends, reflections sends, unsupported RTPC bindings, audible
-effects combined with those controls, and every other incomplete ordered effect
-path remain blocked until their complete reachable path has adapters.
+path. `busVolumeActionControlled` likewise marks every Bus targeted by a
+retained Set or Reset Bus Volume action. Audible effects combined with any
+distributed or action control remain blocked so gain/filter placement and an
+effect tail cannot silently cross the authored Bus fader. The only auxiliary
+exception is the proven static-silence omission above. Audible or dynamic sends,
+reflections sends, unsupported RTPC bindings, and every other incomplete ordered
+effect path remain blocked until their complete reachable path has adapters.
 
 Installation cross-checks every playable routed SFX Sound and music track
 against its `busGraph` route, including dry ancestry and all three authored
@@ -569,7 +578,7 @@ qualification accepts only dry audio-bus ancestry with default channel layout,
 no active Bus positioning or HDR, and no audible sends. Authored positioning/HDR
 override flags are allowed only when their decoded values prove both features
 inactive. Processing may be either a complete source-proven static Parametric
-EQ/Meter sequence without distributed controls, or complete Bus Volume RTPC,
+EQ/Delay/Meter sequence without distributed controls, or complete Bus Volume RTPC,
 State, and ducking controls on an effect-free or feedback-free-Meter path. The
 matching RTPC/State catalog entry and live ducking source must be installed for
 each declared control. An incoming duck target also counts as a route control,
