@@ -7,6 +7,7 @@ export { CjsHlslFormat } from './hlsl/CjsHlslFormat.js';
 import '../format/CjsByteReader.js';
 import '@carbonenginejs/runtime-utils/bytes';
 import './hlsl/core/tr2/shader/HlslEffectResource.js';
+import '../format/compareUtf8.js';
 export { CjsWebglFormat } from './webgl/CjsWebglFormat.js';
 export { CjsWebgpuFormat } from './webgpu/CjsWebgpuFormat.js';
 export { CjsFbxFormat } from './fbx/CjsFbxFormat.js';
