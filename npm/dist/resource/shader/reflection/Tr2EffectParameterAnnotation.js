@@ -2,7 +2,7 @@ import { CjsSchema, type, impl, schema } from '@carbonenginejs/runtime-utils/sch
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { dwordToFloat } from '@carbonenginejs/runtime-utils/math/num';
 import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
-import { recordText, recordRawValue } from './carbonRecordFields.js';
+import { recordText, recordRawValue, toRecordText, toRecordRawValue } from './carbonRecordFields.js';
 
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 
@@ -68,6 +68,31 @@ class Tr2EffectParameterAnnotation extends CjsModel {
         throw new Error(`Carbon effect annotation type ${annotation.type} is unsupported`);
     }
     return annotation;
+  }
+
+  /**
+   * Emit this annotation as a Carbon v15 record.
+   *
+   * The type byte decides which branch the writer takes, and every non-string
+   * type travels as the raw bits rather than the typed member.
+   *
+   * @returns {object} Carbon annotation record.
+   */
+  toCarbonBinary() {
+    if (this.type === Tr2EffectParameterAnnotation.Type.STRING) {
+      return {
+        name: toRecordText(this.name),
+        type: this.type,
+        stringValue: toRecordText(this.stringValue),
+        rawValue: null
+      };
+    }
+    return {
+      name: toRecordText(this.name),
+      type: this.type,
+      stringValue: null,
+      rawValue: toRecordRawValue(this.rawValue)
+    };
   }
   static Type = Object.freeze({
     BOOL: 0,

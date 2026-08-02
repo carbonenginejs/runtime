@@ -3,7 +3,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
 import { copyBytes } from '@carbonenginejs/runtime-utils/bytes';
 import { Tr2EffectStageInput } from './Tr2EffectStageInput.js';
-import { recordText, recordBytes } from './carbonRecordFields.js';
+import { recordText, recordBytes, toRecordText, toRecordBlob } from './carbonRecordFields.js';
 
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 
@@ -111,6 +111,29 @@ class Tr2EffectLibrary extends CjsModel {
     library.globalInput = Tr2EffectStageInput.fromCarbonBinaryInput(record.globalInputs);
     library.localInput = Tr2EffectStageInput.fromCarbonBinaryInput(record.localInputs);
     return library;
+  }
+
+  /**
+   * Emit this library as a Carbon v15 record.
+   *
+   * `exports` is authoritative; the named entry-point fields are a view onto it
+   * and are not written separately.
+   *
+   * @returns {object} Carbon library record.
+   */
+  toCarbonBinary() {
+    const program = this.sourceProgram ?? {};
+    return {
+      payloadSize: this.payloadSize >>> 0,
+      shaderData: toRecordBlob(program.bytes, program.shaderSize),
+      exports: this.exports.map(entry => ({
+        type: entry.type,
+        name: toRecordText(entry.name)
+      })),
+      hitGroupName: toRecordText(this.hitGroupName),
+      globalInputs: this.globalInput.toCarbonBinaryInput(),
+      localInputs: this.localInput.toCarbonBinaryInput()
+    };
   }
 }
 

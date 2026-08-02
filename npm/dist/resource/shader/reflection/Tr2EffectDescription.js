@@ -3,7 +3,8 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
 import { Tr2EffectParameterAnnotation } from './Tr2EffectParameterAnnotation.js';
 import { Tr2EffectTechnique } from './Tr2EffectTechnique.js';
-import { recordText } from './carbonRecordFields.js';
+import { recordText, toRecordText } from './carbonRecordFields.js';
+import { compareUtf8 } from '../../../format/compareUtf8.js';
 
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
@@ -73,6 +74,25 @@ class Tr2EffectDescription extends CjsModel {
     }
     effect.techniques = record.techniques.map(entry => Tr2EffectTechnique.fromCarbonBinary(entry));
     return effect;
+  }
+
+  /**
+   * Emit this description as a Carbon v15 record tree.
+   *
+   * Effect-level annotation groups are sorted by parameter name, and each
+   * group's annotations by their own name, because Carbon sorts both by `strcmp`
+   * before writing.
+   *
+   * @returns {object} Carbon effect description record.
+   */
+  toCarbonBinary() {
+    return {
+      techniques: this.techniques.map(technique => technique.toCarbonBinary()),
+      annotations: Array.from(this.annotations, ([name, annotations]) => ({
+        name: toRecordText(name),
+        annotations: annotations.map(entry => entry.toCarbonBinary()).sort((left, right) => compareUtf8(left.name.value, right.name.value))
+      })).sort((left, right) => compareUtf8(left.name.value, right.name.value))
+    };
   }
 }
 

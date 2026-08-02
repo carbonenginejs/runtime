@@ -3,7 +3,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
 import { Tr2EffectLibrary } from './Tr2EffectLibrary.js';
 import { Tr2Pass } from './Tr2Pass.js';
-import { recordText } from './carbonRecordFields.js';
+import { recordText, toRecordText } from './carbonRecordFields.js';
 
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 
@@ -40,6 +40,21 @@ class Tr2EffectTechnique extends CjsModel {
     technique.libraries = record.libraries.map(entry => Tr2EffectLibrary.fromCarbonBinary(entry));
     technique.shaderTypeMask = technique.passes.reduce((mask, pass) => mask | pass.shaderTypeMask, 0) >>> 0;
     return technique;
+  }
+
+  /**
+   * Emit this technique as a Carbon v15 record.
+   *
+   * `shaderTypeMask` is not written: Carbon recomputes it from the passes.
+   *
+   * @returns {object} Carbon technique record.
+   */
+  toCarbonBinary() {
+    return {
+      name: toRecordText(this.name),
+      passes: this.passes.map(pass => pass.toCarbonBinary()),
+      libraries: this.libraries.map(library => library.toCarbonBinary())
+    };
   }
 }
 
