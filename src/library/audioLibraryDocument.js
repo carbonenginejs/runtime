@@ -87,15 +87,18 @@ function ValidateBusStates(value)
 
     const catalog = RequireRecord(value, "Audio library busStates");
 
-    if (catalog.schemaVersion !== 1)
+    if (catalog.schemaVersion !== 1 && catalog.schemaVersion !== 2)
     {
         throw new TypeError(
             `Unsupported audio bus State schema version: ${catalog.schemaVersion}`,
         );
     }
-    if (catalog.property !== "bus-volume"
-        || catalog.accumulation !== "additive"
-        || catalog.unit !== "db")
+    const legacy = catalog.schemaVersion === 1;
+
+    if (legacy
+        && (catalog.property !== "bus-volume"
+            || catalog.accumulation !== "additive"
+            || catalog.unit !== "db"))
     {
         throw new TypeError(
             "Audio library busStates must contain additive Bus Volume dB values",
@@ -118,6 +121,7 @@ function ValidateBusStates(value)
         group,
     ]));
     const referencedTransitionGroups = new Set();
+    let usesFilters = false;
 
     const buses = RequireRecord(
         catalog.buses,
@@ -227,16 +231,40 @@ function ValidateBusStates(value)
                     );
                 }
                 stateNames.add(normalizedStateName);
-                if (!Number.isFinite(Number(state.gainDb)))
-                {
-                    throw new TypeError(`${stateLabel} gainDb must be finite`);
-                }
-                if (Number(state.gainDb) < -200
-                    || Number(state.gainDb) > 200)
+                const fields = [
+                    [ "gainDb", -200, 200 ],
+                    [ "pitchCents", -2400, 2400 ],
+                    [ "lowPass", -100, 100 ],
+                    [ "highPass", -100, 100 ],
+                ].filter(([ field ]) => state[field] !== undefined);
+
+                if (legacy && (fields.length !== 1 || fields[0][0] !== "gainDb"))
                 {
                     throw new TypeError(
-                        `${stateLabel} gainDb must be from -200 to 200`,
+                        `${stateLabel} must contain one Bus Volume value`,
                     );
+                }
+                if (!legacy && !fields.length)
+                {
+                    throw new TypeError(
+                        `${stateLabel} must contain a Bus State property`,
+                    );
+                }
+                for (const [ field, minimum, maximum ] of fields)
+                {
+                    const number = Number(state[field]);
+
+                    if (!Number.isFinite(number))
+                    {
+                        throw new TypeError(`${stateLabel} ${field} must be finite`);
+                    }
+                    if (number < minimum || number > maximum)
+                    {
+                        throw new TypeError(
+                            `${stateLabel} ${field} must be from ${minimum} to ${maximum}`,
+                        );
+                    }
+                    usesFilters ||= field === "lowPass" || field === "highPass";
                 }
 
                 const transitionState = transitionGroup.states?.find(entry =>
@@ -257,6 +285,20 @@ function ValidateBusStates(value)
     {
         throw new TypeError(
             "Audio library busStates has unreferenced State transitions",
+        );
+    }
+    if (!legacy
+        && catalog.filterBehavior !== undefined
+        && catalog.filterBehavior !== "additive")
+    {
+        throw new TypeError(
+            "Audio library busStates has unsupported filter behavior",
+        );
+    }
+    if (!legacy && usesFilters && catalog.filterBehavior !== "additive")
+    {
+        throw new TypeError(
+            "Audio library busStates filters must use additive behavior",
         );
     }
 }

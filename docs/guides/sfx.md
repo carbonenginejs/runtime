@@ -269,9 +269,12 @@ authored contribution on the same collapsed route. Typed Bus Volume RTPCs are
 stored once per bus and add their global Game Parameter result across that
 same ancestry for both SFX and built-in music. Scaling-2 curve outputs remain
 raw: runtime-audio interpolates first, then applies Wwise's nonlinear dB
-conversion. Typed Bus Volume State tables use the same route ancestry. Their
-matching global State values add in decibels across subscribed groups and
-buses, using the catalog's STMG default or directed transition duration. State
+conversion. Typed Audio Bus State tables use the same route ancestry. Their
+matching global State values atomically add Bus Volume in decibels, Pitch in
+cents, and signed LPF/HPF offsets across subscribed groups and buses, using the
+catalog's STMG default or directed transition duration. Filters sum before one
+final 0-100 clamp, so authored negative offsets remain meaningful. Pitch joins
+the transport-aware playback-rate path and final +/-2400-cent clamp. State
 transitions remain interruptible and new voices join the current blend.
 
 The catalog keeps both the authored bus synchronization type and the
@@ -279,8 +282,10 @@ route-qualified effective type. Wwise applies a bus State immediately when
 only Actor-Mixer Hierarchy sounds use that bus, even if authoring selected a
 music synchronization point. The builder records that qualification as
 `effectiveSyncType: 0` and rejects a non-immediate subscription on a route used
-by music, because runtime-audio does not yet own a music-grid scheduler for bus
-States. Typed Audio Bus auto-ducking uses the same ancestry and one shared SFX
+by music when the State changes a music-relevant property, because
+runtime-audio does not yet own a music-grid scheduler for bus States. Wwise Bus
+Pitch is excluded from music by definition. Typed Audio Bus auto-ducking uses
+the same ancestry and one shared SFX
 and music activity clock. A physical source activates every authored source
 bus in its route at its scheduled Web Audio start, including silent samples;
 pending media and authored graph silence do not activate it. The first active
@@ -409,6 +414,13 @@ The optional library-level `busStates` catalog carries its own normalized
 SFX graph transition table by canonical State Group identity and rejects
 conflicting definitions. This lets a library with music or bus data but no SFX
 graph still realize the authored transition timeline.
+
+Builder-produced version-2 cases unify Bus Volume, Pitch, LPF, and HPF values
+under one State weight. Definitions must match wwiser's v150 accumulation and
+dB flags, and filter-bearing builds must declare STMG additive behavior. An
+active unsupported Bus State property fails the bus catalog closed instead of
+silently projecting only part of an atomic State selection. Strict version-1
+Bus Volume-only catalogs remain accepted when supplied by a caller.
 
 The optional library-level `busDucking` catalog stores each source Audio Bus
 once with its Recovery Time, Maximum Ducking Volume, and ordered target rules:

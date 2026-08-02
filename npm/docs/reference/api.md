@@ -68,13 +68,16 @@ retains named global Game Parameter curves for Bus Volume as raw Wwise
 scaling-2 values, including the authored parameter default and ordered graph
 points. SFX and built-in music routes evaluate curves for every bus in their
 dry ancestry; interpolation occurs before Wwise's nonlinear dB conversion.
-When present, `busStates` is a version-1 additive Bus Volume catalog keyed by
-bus ID. Each subscribed State Group retains its authored synchronization type,
-the route-qualified effective type, named State values in decibels, and the
-self-contained STMG transition table needed to blend directed or default State
-changes. SFX and built-in music add every matching group on every unique bus in
-their dry ancestry. An unset group or State without an authored value is
-neutral.
+When present, `busStates` is a version-2 multi-property catalog keyed by bus
+ID. A named State case may carry `gainDb`, `pitchCents`, `lowPass`, and
+`highPass` offsets under one atomic transition weight. The catalog retains the
+authored synchronization type, route-qualified effective type, additive filter
+behavior, and self-contained STMG directed/default transition table. SFX uses
+all four properties; built-in music uses Bus Volume and filters because Wwise
+Audio Bus Pitch deliberately does not affect Music objects. Matching groups on
+unique dry-ancestry buses accumulate before final pitch/filter clamps. An unset
+group or missing State case is neutral. Strict version-1 Bus Volume-only
+catalogs remain accepted for installed-library compatibility.
 
 ## Delivery
 

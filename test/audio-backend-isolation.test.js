@@ -6309,6 +6309,87 @@ test("Bus Volume States reuse directed, default, and interrupted STMG blends", a
   assert.ok(Math.abs(gain.curves.at(-1)[0].at(-1) - 1) < 1e-12);
 });
 
+test("multi-property Bus States realize SFX pitch and additive route filters", async () =>
+{
+  const busStates = {
+    schemaVersion: 2,
+    filterBehavior: "additive",
+    buses: {
+      "500": [ {
+        groupId: "600",
+        group: "mix_state",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ {
+          stateId: "602",
+          state: "on",
+          pitchCents: -100,
+          lowPass: -70,
+          highPass: 45,
+        } ],
+      } ],
+    },
+  };
+  const descriptor = localFilters => ({
+    buffer: { duration: 20 },
+    loop: true,
+    programSlotId: `0:${localFilters ? 0 : 1}`,
+    matchIds: [ "200" ],
+    busPathIds: [ "500" ],
+    getGain: () => 1,
+    getPlaybackRate: () => 1,
+    getPlaybackRateAtVoicePitchCents: cents => 2 ** (cents / 1200),
+    ...(localFilters ? {
+      getLowPass: () => 80,
+      getHighPass: () => 10,
+      getLowPassAtAdditionalPercent: additional => Math.max(
+        0,
+        Math.min(100, 80 + additional),
+      ),
+      getHighPassAtAdditionalPercent: additional => Math.max(
+        0,
+        Math.min(100, 10 + additional),
+      ),
+    } : {}),
+  });
+  const { backend, emitter, context } = Harness({
+    busStates,
+    resolveSfxProgram: () => [ {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        { actionIndex: 0, leafIndex: 0, matchIds: [ "200" ], busPathIds: [ "500" ] },
+        { actionIndex: 0, leafIndex: 1, matchIds: [ "201" ], busPathIds: [ "500" ] },
+      ],
+    } ],
+    loadBuffer: async () => ({
+      voices: [ descriptor(true), descriptor(false) ],
+    }),
+  });
+
+  backend.SetGlobalState("mix_state", "off");
+  backend.PostEvent(1, 1, 0, emitter, "routed");
+  await tick();
+
+  assert.equal(context.filters.length, 4);
+  assert.equal(context.filters[0].frequency.value, 94);
+  assert.equal(context.filters[1].frequency.value, 40);
+  assert.equal(context.filters[2].frequency.value, 20000);
+  assert.equal(context.filters[3].frequency.value, 17);
+
+  backend.SetGlobalState("mix_state", "on");
+  assert.equal(context.filters[0].frequency.value, 15667);
+  assert.equal(context.filters[1].frequency.value, 1922);
+  assert.equal(context.filters[2].frequency.value, 20000);
+  assert.equal(context.filters[3].frequency.value, 812);
+  assert.ok(Math.abs(
+    context.sources[0].playbackRate.value - 2 ** (-100 / 1200),
+  ) < 1e-12);
+  assert.ok(Math.abs(
+    context.sources[1].playbackRate.value - 2 ** (-100 / 1200),
+  ) < 1e-12);
+});
+
 test("authored bus controls supersede legacy hard-coded music volume mapping", () =>
 {
   let legacyWrites = 0;

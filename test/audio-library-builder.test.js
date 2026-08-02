@@ -3439,7 +3439,7 @@ test("routed Parametric EQ qualification rejects unsupported static forms", asyn
     );
 });
 
-test("complete construction projects effective-Immediate Bus Volume States", async () =>
+test("complete construction projects multi-property effective-Immediate Bus States", async () =>
 {
     const library = await CjsAudioLibraryBuilder.buildFromBanks({
         includeSfx: true,
@@ -3483,7 +3483,7 @@ test("complete construction projects effective-Immediate Bus Volume States", asy
                     languageId: 0,
                     bankVersion: 150,
                     globalSettings: {
-                        filterBehavior: 1,
+                        filterBehavior: 0,
                         stateGroups: [ {
                             id: 600,
                             defaultTransitionTimeMs: 1000,
@@ -3501,20 +3501,39 @@ test("complete construction projects effective-Immediate Bus Volume States", asy
                         type: 8,
                         id: 500,
                         payload: busPayload({
-                            stateProperties: [ {
-                                propertyId: 4,
-                                accumulation: 2,
-                                inDb: true,
-                            } ],
+                            stateProperties: [
+                                {
+                                    propertyId: 1,
+                                    accumulation: 2,
+                                    inDb: false,
+                                },
+                                {
+                                    propertyId: 2,
+                                    accumulation: 6,
+                                    inDb: false,
+                                },
+                                {
+                                    propertyId: 3,
+                                    accumulation: 6,
+                                    inDb: false,
+                                },
+                                {
+                                    propertyId: 4,
+                                    accumulation: 2,
+                                    inDb: true,
+                                },
+                            ],
                             stateGroups: [ {
                                 groupId: 600,
                                 syncType: 1,
                                 states: [ {
                                     stateId: 602,
-                                    values: [ {
-                                        propertyId: 4,
-                                        value: -96,
-                                    } ],
+                                    values: [
+                                        { propertyId: 1, value: -100 },
+                                        { propertyId: 2, value: -70 },
+                                        { propertyId: 3, value: 45 },
+                                        { propertyId: 4, value: -96 },
+                                    ],
                                 } ],
                             } ],
                         }),
@@ -3526,10 +3545,8 @@ test("complete construction projects effective-Immediate Bus Volume States", asy
     });
 
     assert.deepEqual(library.busStates, {
-        schemaVersion: 1,
-        property: "bus-volume",
-        accumulation: "additive",
-        unit: "db",
+        schemaVersion: 2,
+        filterBehavior: "additive",
         stateTransitions: [ {
             groupId: "600",
             group: "video_overlay",
@@ -3556,6 +3573,9 @@ test("complete construction projects effective-Immediate Bus Volume States", asy
                     stateId: "602",
                     state: "on",
                     gainDb: -96,
+                    pitchCents: -100,
+                    lowPass: -70,
+                    highPass: 45,
                 } ],
             } ],
         },

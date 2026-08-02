@@ -1380,6 +1380,16 @@ export class CjsAudioMan
                                             controls,
                                             at,
                                         ),
+                                    getLowPassAtAdditionalPercent: (
+                                        additionalPercent = 0,
+                                        at = undefined,
+                                    ) =>
+                                        engine.EvaluateLowPass(
+                                            selection,
+                                            controls,
+                                            at,
+                                            additionalPercent,
+                                        ),
                                 }),
                             ...(selection.highPass === undefined
                                 ? {}
@@ -1389,6 +1399,16 @@ export class CjsAudioMan
                                             selection,
                                             controls,
                                             at,
+                                        ),
+                                    getHighPassAtAdditionalPercent: (
+                                        additionalPercent = 0,
+                                        at = undefined,
+                                    ) =>
+                                        engine.EvaluateHighPass(
+                                            selection,
+                                            controls,
+                                            at,
+                                            additionalPercent,
                                         ),
                                 }),
                         } ]

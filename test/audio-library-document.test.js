@@ -232,6 +232,64 @@ test("validates and freezes the optional Bus Volume State catalog", () =>
     }
 });
 
+test("validates and freezes multi-property Audio Bus States", () =>
+{
+    const source = CreateDocument();
+
+    source.busStates = {
+        schemaVersion: 2,
+        filterBehavior: "additive",
+        stateTransitions: [ {
+            groupId: "600",
+            group: "camera_state",
+            defaultTransitionMs: 1000,
+            states: [
+                { stateId: "601", state: "None" },
+                { stateId: "602", state: "active" },
+            ],
+            transitions: [],
+        } ],
+        buses: {
+            "500": [ {
+                groupId: "600",
+                group: "camera_state",
+                syncType: 0,
+                effectiveSyncType: 0,
+                states: [ {
+                    stateId: "602",
+                    state: "active",
+                    gainDb: -6,
+                    pitchCents: -100,
+                    lowPass: -70,
+                    highPass: 45,
+                } ],
+            } ],
+        },
+    };
+
+    const installed = installAudioLibraryDocument(source);
+
+    assert.equal(installed.busStates.buses["500"][0].states[0].lowPass, -70);
+    assert.equal(Object.isFrozen(installed.busStates.buses["500"]), true);
+
+    for (const mutate of [
+        value => { value.filterBehavior = "maximum"; },
+        value => { delete value.filterBehavior; },
+        value => { value.buses["500"][0].states[0].pitchCents = -2401; },
+        value => { value.buses["500"][0].states[0].lowPass = -101; },
+        value => { value.buses["500"][0].states[0] = {
+            stateId: "602",
+            state: "active",
+        }; },
+    ])
+    {
+        const invalid = structuredClone(source);
+
+        mutate(invalid.busStates);
+        assert.throws(() => validateAudioLibraryDocument(invalid));
+    }
+});
+
 test("validates and freezes the optional Audio Bus ducking catalog", () =>
 {
     const source = CreateDocument();

@@ -52,7 +52,16 @@ const SFX_PITCH_PROPERTY = 1;
 const SFX_LOW_PASS_PROPERTY = 2;
 const SFX_HIGH_PASS_PROPERTY = 3;
 const BUS_VOLUME_RTPC_PROPERTY = 4;
+const BUS_PITCH_STATE_PROPERTY = 1;
+const BUS_LOW_PASS_STATE_PROPERTY = 2;
+const BUS_HIGH_PASS_STATE_PROPERTY = 3;
 const BUS_VOLUME_STATE_PROPERTY = 4;
+const BUS_STATE_FIELDS = new Map([
+    [ BUS_PITCH_STATE_PROPERTY, "pitchCents" ],
+    [ BUS_LOW_PASS_STATE_PROPERTY, "lowPass" ],
+    [ BUS_HIGH_PASS_STATE_PROPERTY, "highPass" ],
+    [ BUS_VOLUME_STATE_PROPERTY, "gainDb" ],
+]);
 const DUCK_VOICE_VOLUME_PROPERTY = 0;
 const DUCK_BUS_VOLUME_PROPERTY = 4;
 const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
@@ -3006,6 +3015,7 @@ function CreateBusStateCatalog(buses, names, musicBusIds)
 {
     const result = {};
     const usedGroupIds = new Set();
+    let usesFilters = false;
 
     for (const [ rawBusId, bus ] of [ ...buses.entries() ]
         .sort(([ left ], [ right ]) => left - right))
@@ -3038,7 +3048,13 @@ function CreateBusStateCatalog(buses, names, musicBusIds)
         if (groups.length)
         {
             result[String(Number(rawBusId) >>> 0)] = groups;
-            for (const group of groups) usedGroupIds.add(group.groupId);
+            for (const group of groups)
+            {
+                usedGroupIds.add(group.groupId);
+                usesFilters ||= group.states.some(state =>
+                    state.lowPass !== undefined
+                    || state.highPass !== undefined);
+            }
         }
     }
 
@@ -3050,11 +3066,16 @@ function CreateBusStateCatalog(buses, names, musicBusIds)
         throw new Error("Audio Bus State group is missing STMG transition data");
     }
 
+    if (usesFilters && names.stateFilterBehavior !== 0)
+    {
+        throw new Error(
+            `unsupported Audio Bus State filter behavior ${names.stateFilterBehavior}`,
+        );
+    }
+
     return {
-        schemaVersion: 1,
-        property: "bus-volume",
-        accumulation: "additive",
-        unit: "db",
+        schemaVersion: 2,
+        ...(usesFilters ? { filterBehavior: "additive" } : {}),
         stateTransitions,
         buses: result,
     };
@@ -3069,9 +3090,20 @@ function CreateBusStateGroup(group, definitions, names, musicRouted)
     const syncType = Number(group.syncType);
     const namedGroup = names.groups.get(`state:${groupId}`);
     const states = [];
+    const unsupportedValue = (group.states ?? [])
+        .flatMap(state => state.values ?? [])
+        .find(value => !BUS_STATE_FIELDS.has(Number(value.propertyId)));
+
+    if (unsupportedValue)
+    {
+        throw new Error(
+            `unsupported Audio Bus state property ${unsupportedValue.propertyId}`
+            + ` in group ${groupId}`,
+        );
+    }
     const authoredStates = (group.states ?? []).filter(state =>
         (state.values ?? []).some(value =>
-            Number(value.propertyId) === BUS_VOLUME_STATE_PROPERTY));
+            BUS_STATE_FIELDS.has(Number(value.propertyId))));
 
     if (!authoredStates.length) return null;
 
@@ -3083,7 +3115,11 @@ function CreateBusStateGroup(group, definitions, names, musicRouted)
     {
         throw new Error(`unnamed Audio Bus state group ${groupId}`);
     }
-    if (syncType !== 0 && musicRouted)
+    const affectsMusic = authoredStates.some(state =>
+        (state.values ?? []).some(value =>
+            Number(value.propertyId) !== BUS_PITCH_STATE_PROPERTY));
+
+    if (syncType !== 0 && musicRouted && affectsMusic)
     {
         throw new Error(
             `unsupported music-synchronized Audio Bus state group ${groupId}`,
@@ -3093,33 +3129,15 @@ function CreateBusStateGroup(group, definitions, names, musicRouted)
     for (const state of authoredStates)
     {
         const values = (state.values ?? []).filter(value =>
-            Number(value.propertyId) === BUS_VOLUME_STATE_PROPERTY);
+            BUS_STATE_FIELDS.has(Number(value.propertyId)));
 
         if (!values.length) continue;
-        if (values.length > 1)
-        {
-            throw new Error(
-                `duplicate Bus Volume state value in group ${groupId}`,
-            );
-        }
-
-        const definition = definitions.get(BUS_VOLUME_STATE_PROPERTY);
-
-        if (!definition
-            || Number(definition.accumulation) !== SFX_ADDITIVE_ACCUMULATION
-            || definition.inDb !== true)
-        {
-            throw new Error(
-                `unsupported Bus Volume state definition in group ${groupId}`,
-            );
-        }
 
         const stateId = NormalizeWwiseUint32(
             state.stateId,
             `Audio Bus state group ${groupId} state id`,
         );
         const stateName = namedGroup.values.get(stateId);
-        const gainDb = Number(values[0].value);
 
         if (!stateName)
         {
@@ -3127,17 +3145,50 @@ function CreateBusStateGroup(group, definitions, names, musicRouted)
                 `unnamed Audio Bus state ${stateId} in group ${groupId}`,
             );
         }
-        if (!Number.isFinite(gainDb))
-        {
-            throw new Error(
-                `non-finite Bus Volume state ${stateId} in group ${groupId}`,
-            );
-        }
-        states.push({
+        const normalized = {
             stateId: String(stateId),
             state: stateName,
-            gainDb,
-        });
+        };
+        const seenProperties = new Set();
+
+        for (const value of values)
+        {
+            const propertyId = Number(value.propertyId);
+            const field = BUS_STATE_FIELDS.get(propertyId);
+            const definition = definitions.get(propertyId);
+            const filter = propertyId === BUS_LOW_PASS_STATE_PROPERTY
+                || propertyId === BUS_HIGH_PASS_STATE_PROPERTY;
+            const expectedAccumulation = filter
+                ? SFX_FILTER_ACCUMULATION
+                : SFX_ADDITIVE_ACCUMULATION;
+            const expectedInDb = propertyId === BUS_VOLUME_STATE_PROPERTY;
+
+            if (seenProperties.has(propertyId))
+            {
+                throw new Error(
+                    `duplicate Audio Bus ${field} state value in group ${groupId}`,
+                );
+            }
+            seenProperties.add(propertyId);
+            if (!definition
+                || Number(definition.accumulation) !== expectedAccumulation
+                || definition.inDb !== expectedInDb)
+            {
+                throw new Error(
+                    `unsupported Audio Bus ${field} state definition in group ${groupId}`,
+                );
+            }
+            const number = Number(value.value);
+
+            if (!Number.isFinite(number))
+            {
+                throw new Error(
+                    `non-finite Audio Bus ${field} state ${stateId} in group ${groupId}`,
+                );
+            }
+            normalized[field] = number;
+        }
+        states.push(normalized);
     }
 
     if (!states.length) return null;
@@ -3167,16 +3218,27 @@ function NormalizeBusStateCatalog(value)
             states: group.states.map(state => ({
                 stateId: String(state.stateId),
                 state: String(state.state),
-                gainDb: Number(state.gainDb),
+                ...Object.fromEntries(
+                    [ "gainDb", "pitchCents", "lowPass", "highPass" ]
+                        .filter(field => state[field] !== undefined)
+                        .map(field => [ field, Number(state[field]) ]),
+                ),
             })),
         }));
     }
 
     return {
-        schemaVersion: 1,
-        property: "bus-volume",
-        accumulation: "additive",
-        unit: "db",
+        schemaVersion: Number(value.schemaVersion),
+        ...(Number(value.schemaVersion) === 1
+            ? {
+                property: String(value.property),
+                accumulation: String(value.accumulation),
+                unit: String(value.unit),
+            }
+            : {}),
+        ...(value.filterBehavior === undefined
+            ? {}
+            : { filterBehavior: String(value.filterBehavior) }),
         stateTransitions: NormalizeStateTransitions(value.stateTransitions),
         buses,
     };
@@ -4530,6 +4592,7 @@ function CreateSfxNameCatalog(soundbanksInfo, enrichment, inspections)
     const parameters = new Map();
     const parameterDefaults = new Map();
     const stateTransitionSettings = new Map();
+    let stateFilterBehavior;
 
     if (soundbanksInfo)
     {
@@ -4627,6 +4690,31 @@ function CreateSfxNameCatalog(soundbanksInfo, enrichment, inspections)
         }
 
         const stateGroups = globalSettings.stateGroups;
+        const filterBehavior = globalSettings.filterBehavior === undefined
+            ? undefined
+            : Number(globalSettings.filterBehavior);
+
+        if (filterBehavior !== undefined
+            && (!Number.isSafeInteger(filterBehavior)
+                || filterBehavior < 0
+                || filterBehavior > 1))
+        {
+            throw new TypeError(
+                `Audio STMG filterBehavior ${globalSettings.filterBehavior} is invalid`,
+            );
+        }
+        if (filterBehavior !== undefined
+            && stateFilterBehavior !== undefined
+            && stateFilterBehavior !== filterBehavior)
+        {
+            throw new TypeError(
+                "Audio STMG filterBehavior conflicts between banks",
+            );
+        }
+        if (filterBehavior !== undefined)
+        {
+            stateFilterBehavior = filterBehavior;
+        }
         for (const rawGroup of stateGroups)
         {
             if (!rawGroup
@@ -4844,6 +4932,7 @@ function CreateSfxNameCatalog(soundbanksInfo, enrichment, inspections)
         parameters,
         parameterDefaults,
         stateTransitions,
+        stateFilterBehavior,
     };
 }
 

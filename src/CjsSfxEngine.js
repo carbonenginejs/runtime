@@ -920,23 +920,35 @@ export class CjsSfxEngine
     }
 
     /** Evaluates one resolved leaf's current Wwise low-pass percentage. */
-    EvaluateLowPass(selection, controls = {}, at = undefined)
+    EvaluateLowPass(
+        selection,
+        controls = {},
+        at = undefined,
+        additionalPercent = 0,
+    )
     {
         return EvaluateFilterProperty(
             "lowPass",
             selection,
             controls,
+            additionalPercent,
             at,
         );
     }
 
     /** Evaluates one resolved leaf's current Wwise high-pass percentage. */
-    EvaluateHighPass(selection, controls = {}, at = undefined)
+    EvaluateHighPass(
+        selection,
+        controls = {},
+        at = undefined,
+        additionalPercent = 0,
+    )
     {
         return EvaluateFilterProperty(
             "highPass",
             selection,
             controls,
+            additionalPercent,
             at,
         );
     }
@@ -2556,7 +2568,13 @@ function EvaluateRtpcProperties(curves, controls, at = undefined)
     };
 }
 
-function EvaluateFilterProperty(property, selection, controls, at = undefined)
+function EvaluateFilterProperty(
+    property,
+    selection,
+    controls,
+    additionalPercent,
+    at = undefined,
+)
 {
     const state = EvaluateStateProperties(
         selection?.stateProperties,
@@ -2578,7 +2596,8 @@ function EvaluateFilterProperty(property, selection, controls, at = undefined)
         (Number(selection?.[property]) || 0)
             + state[property]
             + rtpc[property]
-            + action,
+            + action
+            + (Number(additionalPercent) || 0),
         MIN_FILTER_PERCENT,
         MAX_FILTER_PERCENT,
     );

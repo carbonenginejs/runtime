@@ -40,8 +40,9 @@ The maintained graph includes:
 - typed v150 Bus Volume RTPC catalogs with STMG defaults, raw Wwise
   interpolation-before-scaling behavior, and live dry-route realization across
   SFX and built-in music bus ancestry;
-- typed v150 additive Bus Volume State catalogs with named values, self-contained
-  STMG transitions, route-qualified synchronization, and interruptible live
+- typed v150 multi-property Audio Bus State catalogs with named Volume, Pitch,
+  LPF, and HPF values, self-contained STMG transitions, qualified additive
+  filter behavior, route-qualified synchronization, and interruptible live
   realization across SFX and built-in music bus ancestry;
 - typed v150 Audio Bus auto-ducking catalogs with activity-based SFX/music
   coordination, source overlap union, Recovery Time, linear-gain Wwise fades,
@@ -108,7 +109,9 @@ Bus Volume is an audible routed adaptation with complete dry-output ancestry,
 authored base Bus Volume, bus Make-Up Gain, effective NodeBase Output Bus
 Volume, global RTPC and State contributions, and shared SFX/music auto-ducking
 activity. The current ducking gain is exact for the realized collapsed dry
-route. Static Parametric EQ is an audible distributed source-route adaptation,
+route. Bus Pitch is transport-aware on SFX and follows Wwise's exclusion for
+music; Bus LPF/HPF are distributed dry-route filters for both engines. Static
+Parametric EQ is an audible distributed source-route adaptation,
 not exact shared-bus placement under downstream automation, moving
 spatialization, or future nonlinear effect stages. Voice-target placement across future
 auxiliary sends, other effect processing and tails, meters, and virtual-voice

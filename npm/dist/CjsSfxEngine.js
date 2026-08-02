@@ -519,13 +519,13 @@ class CjsSfxEngine {
   }
 
   /** Evaluates one resolved leaf's current Wwise low-pass percentage. */
-  EvaluateLowPass(selection, controls = {}, at = undefined) {
-    return EvaluateFilterProperty("lowPass", selection, controls, at);
+  EvaluateLowPass(selection, controls = {}, at = undefined, additionalPercent = 0) {
+    return EvaluateFilterProperty("lowPass", selection, controls, additionalPercent, at);
   }
 
   /** Evaluates one resolved leaf's current Wwise high-pass percentage. */
-  EvaluateHighPass(selection, controls = {}, at = undefined) {
-    return EvaluateFilterProperty("highPass", selection, controls, at);
+  EvaluateHighPass(selection, controls = {}, at = undefined, additionalPercent = 0) {
+    return EvaluateFilterProperty("highPass", selection, controls, additionalPercent, at);
   }
 
   /** Clears random history and step-sequence positions. */
@@ -1414,11 +1414,11 @@ function EvaluateRtpcProperties(curves, controls, at = undefined) {
     initialDelayMs
   };
 }
-function EvaluateFilterProperty(property, selection, controls, at = undefined) {
+function EvaluateFilterProperty(property, selection, controls, additionalPercent, at = undefined) {
   const state = EvaluateStateProperties(selection?.stateProperties, controls, at);
   const rtpc = EvaluateRtpcProperties(selection?.rtpcCurves, controls, at);
   const action = Number(property === "lowPass" ? controls.getVoiceLowPass?.(selection?.matchIds, at) : controls.getVoiceHighPass?.(selection?.matchIds, at)) || 0;
-  return Clamp((Number(selection?.[property]) || 0) + state[property] + rtpc[property] + action, MIN_FILTER_PERCENT, MAX_FILTER_PERCENT);
+  return Clamp((Number(selection?.[property]) || 0) + state[property] + rtpc[property] + action + (Number(additionalPercent) || 0), MIN_FILTER_PERCENT, MAX_FILTER_PERCENT);
 }
 function HasStateCaseField(properties, field) {
   return properties.some(property => Object.values(property.cases ?? {}).some(stateCase => stateCase?.[field] !== undefined));

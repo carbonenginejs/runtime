@@ -1,6 +1,7 @@
 import { evaluateWwiseInterpolation } from './internal/wwiseCurve.js';
 import { indexBusRtpcCatalog, evaluateBusRtpcGainDb } from './internal/busRtpc.js';
-import { indexBusStateCatalog, evaluateBusStateGainDb } from './internal/busState.js';
+import { indexBusStateCatalog, busStatePathUses, evaluateBusStateGainDb, evaluateBusStateProperties } from './internal/busState.js';
+import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
 import { indexBusEffectCatalog, createBusEffectChain } from './internal/busEffects.js';
 
 // CarbonEngineJS original (no Carbon counterpart). Interactive-music engine:
@@ -152,6 +153,35 @@ function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, au
       param.setValueCurveAtTime(values, segmentStart, segmentEnd - segmentStart);
     } else {
       param.linearRampToValueAtTime?.(evaluate(segmentEnd), segmentEnd);
+    }
+    segmentStart = segmentEnd;
+  }
+}
+function ScheduleMusicBusFilter(node, busPathIds, property, highPass, context, busStateCatalog, readGlobalStateWeights, readGlobalStateTransitionBoundaries) {
+  if (!node) return;
+  const now = Number(context?.currentTime) || 0;
+  const evaluate = at => wwiseFilterPercentToHz(evaluateBusStateProperties(busStateCatalog, busPathIds, readGlobalStateWeights, at)[property], highPass);
+  const boundaries = typeof readGlobalStateTransitionBoundaries === "function" ? [...new Set(readGlobalStateTransitionBoundaries(now))].map(Number).filter(value => Number.isFinite(value) && value > now).sort((left, right) => left - right) : [];
+  const param = node.frequency;
+  const startValue = evaluate(now);
+  if (typeof param?.cancelAndHoldAtTime === "function") {
+    param.cancelAndHoldAtTime(now);
+  } else {
+    param?.cancelScheduledValues?.(0);
+  }
+  param?.setValueAtTime?.(startValue, now);
+  if (param && "value" in param) param.value = startValue;
+  let segmentStart = now;
+  for (const segmentEnd of boundaries) {
+    if (typeof param?.setValueCurveAtTime === "function") {
+      const values = new Float32Array(FADE_CURVE_SAMPLES);
+      for (let index = 0; index < values.length; index++) {
+        const ratio = index / (values.length - 1);
+        values[index] = evaluate(segmentStart + (segmentEnd - segmentStart) * ratio);
+      }
+      param.setValueCurveAtTime(values, segmentStart, segmentEnd - segmentStart);
+    } else {
+      param?.linearRampToValueAtTime?.(evaluate(segmentEnd), segmentEnd);
     }
     segmentStart = segmentEnd;
   }
@@ -1133,14 +1163,14 @@ class CjsMusicEngine {
     return true;
   }
 
-  /**
-   * Reapplies live authored Bus Volume state to every scheduled route.
-   */
+  /** Reapplies live Bus Volume and filter state to scheduled routes. */
   RefreshBusVolumeGains() {
     for (const instance of this.#instances.values()) {
       for (const scheduled of instance.active) {
         for (const route of scheduled.routeGains?.values?.() ?? []) {
           ScheduleMusicBusGain(route.gain.gain, instance.busVolumeStates, route.busPathIds, route.authoredBusVolumeDb, route.authoredBusMakeUpGainDb, route.authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries, this.#busDuckingController);
+          ScheduleMusicBusFilter(route.lowPassFilter, route.busPathIds, "lowPass", false, this.#context, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries);
+          ScheduleMusicBusFilter(route.highPassFilter, route.busPathIds, "highPass", true, this.#context, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries);
         }
       }
     }
@@ -1151,7 +1181,7 @@ class CjsMusicEngine {
     this.RefreshBusVolumeGains();
   }
 
-  /** Reapplies dynamic Immediate Bus Volume States to scheduled routes. */
+  /** Reapplies dynamic Immediate Audio Bus States to scheduled routes. */
   RefreshBusStates() {
     this.RefreshBusVolumeGains();
   }
@@ -1659,23 +1689,40 @@ class CjsMusicEngine {
     const busPathIds = track.busPathIds.map(String);
     const key = `${authoredBusVolumeDb}:${authoredBusMakeUpGainDb}:` + `${authoredOutputBusVolumeDb}:` + busPathIds.join("/");
     if (scheduled.routeGains.has(key)) {
-      return scheduled.routeGains.get(key).gain;
+      return scheduled.routeGains.get(key).input;
     }
     const gain = this.#context.createGain();
+    const lowPassFilter = busStatePathUses(this.#busStateCatalog, busPathIds, "lowPass") ? this.#context.createBiquadFilter?.() ?? null : null;
+    const highPassFilter = busStatePathUses(this.#busStateCatalog, busPathIds, "highPass") ? this.#context.createBiquadFilter?.() ?? null : null;
     const busEffectChain = createBusEffectChain(this.#context, this.#busEffectCatalog, busPathIds);
     const route = {
+      input: lowPassFilter ?? highPassFilter ?? gain,
       gain,
       busPathIds,
       authoredBusVolumeDb,
       authoredBusMakeUpGainDb,
       authoredOutputBusVolumeDb,
-      busEffectNodes: busEffectChain?.nodes ?? []
+      busEffectNodes: busEffectChain?.nodes ?? [],
+      lowPassFilter,
+      highPassFilter
     };
+    if (lowPassFilter) {
+      lowPassFilter.type = "lowpass";
+      lowPassFilter.Q.value = Math.SQRT1_2;
+      lowPassFilter.connect(highPassFilter ?? gain);
+    }
+    if (highPassFilter) {
+      highPassFilter.type = "highpass";
+      highPassFilter.Q.value = Math.SQRT1_2;
+      highPassFilter.connect(gain);
+    }
     gain.connect(busEffectChain?.input ?? scheduled.gain);
     busEffectChain?.output?.connect(scheduled.gain);
     ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries, this.#busDuckingController);
+    ScheduleMusicBusFilter(lowPassFilter, busPathIds, "lowPass", false, this.#context, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries);
+    ScheduleMusicBusFilter(highPassFilter, busPathIds, "highPass", true, this.#context, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries);
     scheduled.routeGains.set(key, route);
-    return gain;
+    return route.input;
   }
 
   /** Loads and retains one decoded music source, evicting failed results. */
@@ -1815,6 +1862,8 @@ class CjsMusicEngine {
       }
     }
     for (const route of scheduled.routeGains?.values?.() ?? []) {
+      route.lowPassFilter?.disconnect?.();
+      route.highPassFilter?.disconnect?.();
       route.gain?.disconnect?.();
       for (const node of route.busEffectNodes ?? []) {
         node.disconnect?.();

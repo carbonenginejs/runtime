@@ -162,6 +162,16 @@ their decibel contributions, while a missing State case remains neutral. The
 portable catalog embeds the exact STMG default and directed transition rules so
 runtime blending is interruptible and independent of the optional SFX graph.
 
+That unified version-2 catalog also retains one Bus Pitch value (`-100` cents),
+24 LPF values (`-70..100`) on 18 buses, and six HPF values (`20..45`) on four
+buses. Pitch reaches 12,678 SFX leaves and no music tracks. LPF reaches 12,909
+SFX leaves and 2,482 music tracks; routed HPF ancestry reaches 13,707 SFX leaves
+and 2,482 music tracks. EVE's STMG filter behavior is additive. Runtime sums
+signed weighted values across groups and buses before the final clamp, so the
+negative LPF cases are not discarded early. SFX Pitch uses the existing
+transport integration; built-in music deliberately ignores Audio Bus Pitch as
+required by Wwise while applying LPF/HPF on its dry routes.
+
 The same build authors 14 auto-ducking source buses and 36 links to 20 unique
 target buses. Nine source buses occur on SFX dry routes, three occur on music
 routes, and two are currently unreachable; 33 links can therefore activate.

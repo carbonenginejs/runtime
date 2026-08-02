@@ -63,6 +63,13 @@ track route gain and segment gain. EVE build 3444265 currently has no music
 track whose dry ancestry reaches either qualified EQ instance; this support is
 the generic portable contract, not a claim of additional EVE music coverage.
 
+Version-2 `busStates` also provisions routed LPF and HPF stages for built-in
+music. Signed State offsets accumulate across the bus ancestry under the
+project's qualified additive filter behavior, blend with the shared STMG
+timeline, and clamp once before Wwise cutoff conversion. Audio Bus Pitch is
+intentionally ignored for music, matching Wwise; it does not alter clip rate,
+cue timing, or the interactive-music schedule.
+
 The library builder identifies authored music by typed Play/Stop targets and
 music argument groups across every selected bank. Event names do not need a
 `music_` prefix and event actions do not need to live in `common.bnk`. When one

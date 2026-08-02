@@ -1,11 +1,13 @@
 import { evaluateWwiseInterpolation } from './internal/wwiseCurve.js';
 import { indexBusRtpcCatalog, busRtpcCatalogUsesControl, evaluateBusRtpcGainDb } from './internal/busRtpc.js';
-import { indexBusStateCatalog, evaluateBusStateGainDb } from './internal/busState.js';
+import { indexBusStateCatalog, busStatePathUses, evaluateBusStateProperties, evaluateBusStateGainDb } from './internal/busState.js';
+import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
 import { indexBusEffectCatalog, createBusEffectChain } from './internal/busEffects.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
-// source -> authored voice filters -> source gain -> emitter gain
+// source -> authored voice/bus filters -> source and bus gain -> bus effects
+// -> emitter gain
 // -> PannerNode(HRTF, inverse distance)
 // -> master gain -> destination. Each playing source owns the source gain so
 // stop-fades and replays cannot bleed across concurrent events on one emitter.
@@ -22,7 +24,6 @@ const DEFAULT_FADE_SECONDS = 1;
 const DEFAULT_RENDER_QUANTUM_SECONDS = 128 / 48000;
 const LINEAR_FADE_CURVE = 4;
 const FADE_CURVE_SAMPLES = 65;
-const WWISE_FILTER_CUTOFF_HZ = Object.freeze([20000, 19567, 19133, 18700, 18267, 17833, 17400, 16967, 16533, 16100, 15667, 15233, 14800, 14367, 13933, 13500, 13067, 12633, 12200, 11767, 11333, 10900, 10467, 10033, 9600, 9167, 8733, 8300, 7867, 7433, 7000, 6422, 5892, 5405, 4959, 4550, 4174, 3829, 3513, 3223, 2957, 2713, 2489, 2283, 2095, 1922, 1763, 1618, 1484, 1361, 1249, 1146, 1051, 964, 885, 812, 745, 683, 627, 575, 528, 484, 444, 407, 374, 343, 315, 289, 265, 243, 223, 204, 188, 172, 158, 145, 133, 122, 112, 103, 94, 86, 79, 73, 67, 61, 56, 51, 47, 43, 40, 36, 33, 31, 28, 26, 24, 22, 20, 18, 17]);
 
 /** WebAudio backend for the audio graph: emitter nodes, playing sources, listener pose. */
 class CjsAudioBackend {
@@ -2345,17 +2346,20 @@ class CjsAudioBackend {
     const fadeGain = descriptor.fadeInMs > 0 ? this.#context.createGain() : null;
     const transitionGain = descriptor.crossfadeMode || descriptor.switchFadeInMs > 0 ? this.#context.createGain() : null;
     const stopGain = this.#context.createGain();
-    const lowPassFilter = descriptor.getLowPass ? this.#context.createBiquadFilter?.() ?? null : null;
-    const highPassFilter = descriptor.getHighPass ? this.#context.createBiquadFilter?.() ?? null : null;
+    const usesBusPitch = busStatePathUses(this.#busStateCatalog, descriptor.busPathIds, "pitchCents");
+    const usesBusLowPass = busStatePathUses(this.#busStateCatalog, descriptor.busPathIds, "lowPass");
+    const usesBusHighPass = busStatePathUses(this.#busStateCatalog, descriptor.busPathIds, "highPass");
+    const lowPassFilter = descriptor.getLowPass || descriptor.getLowPassAtAdditionalPercent || usesBusLowPass ? this.#context.createBiquadFilter?.() ?? null : null;
+    const highPassFilter = descriptor.getHighPass || descriptor.getHighPassAtAdditionalPercent || usesBusHighPass ? this.#context.createBiquadFilter?.() ?? null : null;
     const busEffectChain = createBusEffectChain(this.#context, this.#busEffectCatalog, descriptor.busPathIds);
     if (lowPassFilter) {
       lowPassFilter.type = "lowpass";
-      SetAudioParam(lowPassFilter.frequency, WWISE_FILTER_CUTOFF_HZ[0], this.#context);
+      SetAudioParam(lowPassFilter.frequency, wwiseFilterPercentToHz(0), this.#context);
       SetAudioParam(lowPassFilter.Q, Math.SQRT1_2, this.#context);
     }
     if (highPassFilter) {
       highPassFilter.type = "highpass";
-      SetAudioParam(highPassFilter.frequency, WWISE_FILTER_CUTOFF_HZ[100], this.#context);
+      SetAudioParam(highPassFilter.frequency, wwiseFilterPercentToHz(0, true), this.#context);
       SetAudioParam(highPassFilter.Q, Math.SQRT1_2, this.#context);
     }
     if (descriptor.spatial) {
@@ -2414,6 +2418,8 @@ class CjsAudioBackend {
       voiceLowPassStates: emitterNodes.voiceLowPasses,
       voiceHighPassStates: emitterNodes.voiceHighPasses,
       busVolumeStates: emitterNodes.busVolumes,
+      usesBusPitch,
+      getBusStateProperties: at => evaluateBusStateProperties(this.#busStateCatalog, descriptor.busPathIds, (group, time) => this.#ReadStatePropertyWeights(group, time), at),
       authoredBusVolumeDb: descriptor.authoredBusVolumeDb,
       authoredBusMakeUpGainDb: descriptor.authoredBusMakeUpGainDb,
       authoredOutputBusVolumeDb: descriptor.authoredOutputBusVolumeDb,
@@ -2427,6 +2433,8 @@ class CjsAudioBackend {
       }, Number(this.#context?.currentTime) || 0),
       getLowPass: descriptor.getLowPass,
       getHighPass: descriptor.getHighPass,
+      getLowPassAtAdditionalPercent: descriptor.getLowPassAtAdditionalPercent,
+      getHighPassAtAdditionalPercent: descriptor.getHighPassAtAdditionalPercent,
       delayMs: descriptor.delayMs,
       fadeInMs: descriptor.fadeInMs,
       switchFadeInMs: descriptor.switchFadeInMs,
@@ -3309,8 +3317,12 @@ class CjsAudioBackend {
   /** Applies live Wwise LPF/HPF percentages to per-voice WebAudio filters. */
   #ApplyVoiceFilters(voice) {
     const now = Number(this.#context?.currentTime) || 0;
-    ApplyVoiceFilter(voice.lowPassFilter, voice.getLowPass, false, this.#context, [...(voice.controlTransitionBoundaries ?? []), ...VoiceTargetTransitionBoundaries(voice.voiceLowPassStates, voice.matchIds, now)]);
-    ApplyVoiceFilter(voice.highPassFilter, voice.getHighPass, true, this.#context, [...(voice.controlTransitionBoundaries ?? []), ...VoiceTargetTransitionBoundaries(voice.voiceHighPassStates, voice.matchIds, now)]);
+    const evaluateBus = at => voice.getBusStateProperties?.(at) ?? {
+      lowPass: 0,
+      highPass: 0
+    };
+    ApplyVoiceFilter(voice.lowPassFilter, (additional, at) => voice.getLowPassAtAdditionalPercent?.(additional, at) ?? (Number(voice.getLowPass?.(at)) || 0) + additional, at => evaluateBus(at).lowPass, false, this.#context, [...(voice.controlTransitionBoundaries ?? []), ...VoiceTargetTransitionBoundaries(voice.voiceLowPassStates, voice.matchIds, now)]);
+    ApplyVoiceFilter(voice.highPassFilter, (additional, at) => voice.getHighPassAtAdditionalPercent?.(additional, at) ?? (Number(voice.getHighPass?.(at)) || 0) + additional, at => evaluateBus(at).highPass, true, this.#context, [...(voice.controlTransitionBoundaries ?? []), ...VoiceTargetTransitionBoundaries(voice.voiceHighPassStates, voice.matchIds, now)]);
   }
 
   /** Advances one live voice's media and finite-repeat clocks to a context time. */
@@ -3710,23 +3722,18 @@ function ReadRetiredRtpcValue(nodes, name, at) {
   const transition = nodes.retiredRtpcTransitions?.get(name);
   return transition ? EvaluateRtpcTransition(transition, at) : nodes.retiredRtpcValues?.get(name);
 }
-function ApplyVoiceFilter(node, readPercent, highPass, context, transitionBoundaries = []) {
+function ApplyVoiceFilter(node, readPercent, readAdditionalPercent, highPass, context, transitionBoundaries = []) {
   if (!node || typeof readPercent !== "function") {
     return;
   }
   const now = Number(context?.currentTime) || 0;
   const cutoffAt = at => {
-    const value = Number(readPercent(at));
+    const additional = Number(readAdditionalPercent?.(at)) || 0;
+    const value = Number(readPercent(additional, at));
     if (!Number.isFinite(value)) {
       return null;
     }
-    const percent = Math.max(0, Math.min(100, value));
-    const tableValue = highPass ? 100 - percent : percent;
-    const leftIndex = Math.floor(tableValue);
-    const rightIndex = Math.ceil(tableValue);
-    const left = WWISE_FILTER_CUTOFF_HZ[leftIndex];
-    const right = WWISE_FILTER_CUTOFF_HZ[rightIndex];
-    return left + (right - left) * (tableValue - leftIndex);
+    return wwiseFilterPercentToHz(value, highPass);
   };
   let cutoff;
   try {
@@ -4333,7 +4340,7 @@ function ApplyVoicePitchAction(states, targetId, action) {
   });
 }
 function UsesVoicePitchAutomation(voice) {
-  return typeof voice?.getPlaybackRateAtVoicePitchCents === "function" && voice.voicePitchStates instanceof Map;
+  return typeof voice?.getPlaybackRateAtVoicePitchCents === "function" && (voice.voicePitchStates instanceof Map || voice.usesBusPitch);
 }
 function EvaluateVoicePitchTargets(states, matchIds, at) {
   if (!(states instanceof Map) || !Array.isArray(matchIds)) {
@@ -4382,7 +4389,8 @@ function VoicePitchTransitionBoundaries(voice, from) {
 function EvaluateVoicePitchPlaybackRate(voice, at) {
   let value = 1;
   try {
-    value = voice.getPlaybackRateAtVoicePitchCents(EvaluateVoicePitchTargets(voice.voicePitchStates, voice.matchIds, at), at);
+    const busPitchCents = Number(voice.getBusStateProperties?.(at)?.pitchCents) || 0;
+    value = voice.getPlaybackRateAtVoicePitchCents(EvaluateVoicePitchTargets(voice.voicePitchStates, voice.matchIds, at) + busPitchCents, at);
   } catch {
     value = 1;
   }

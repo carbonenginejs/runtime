@@ -33,21 +33,45 @@ export function indexBusStateCatalog(catalog)
     return result;
 }
 
-/** Evaluates additive Immediate Bus Volume state across one dry bus ancestry. */
-export function evaluateBusStateGainDb(
+/** Returns whether one dry bus ancestry authors a given Bus State property. */
+export function busStatePathUses(catalog, busPathIds, property)
+{
+    if (!(catalog instanceof Map)) return false;
+
+    for (const rawBusId of busPathIds ?? [])
+    {
+        for (const group of catalog.get(String(rawBusId)) ?? [])
+        {
+            for (const state of group.states.values())
+            {
+                if (Number.isFinite(Number(state?.[property]))) return true;
+            }
+        }
+    }
+    return false;
+}
+
+/** Evaluates additive Immediate Bus State properties across a dry ancestry. */
+export function evaluateBusStateProperties(
     catalog,
     busPathIds,
     readGlobalStateWeights,
     at = undefined,
 )
 {
+    const result = {
+        gainDb: 0,
+        pitchCents: 0,
+        lowPass: 0,
+        highPass: 0,
+    };
+
     if (!(catalog instanceof Map)
         || typeof readGlobalStateWeights !== "function")
     {
-        return 0;
+        return result;
     }
 
-    let gainDb = 0;
     const seen = new Set();
 
     for (const rawBusId of busPathIds ?? [])
@@ -68,12 +92,32 @@ export function evaluateBusStateGainDb(
                 const weight = Number(entry?.weight);
                 const state = group.states.get(NormalizeIdentity(entry?.state));
 
-                if (state && Number.isFinite(weight) && weight > 0)
+                if (!state || !Number.isFinite(weight) || weight <= 0)
                 {
-                    gainDb += (Number(state.gainDb) || 0) * weight;
+                    continue;
+                }
+                for (const property of Object.keys(result))
+                {
+                    result[property] += (Number(state[property]) || 0) * weight;
                 }
             }
         }
     }
-    return gainDb;
+    return result;
+}
+
+/** Evaluates additive Immediate Bus Volume state across one dry bus ancestry. */
+export function evaluateBusStateGainDb(
+    catalog,
+    busPathIds,
+    readGlobalStateWeights,
+    at = undefined,
+)
+{
+    return evaluateBusStateProperties(
+        catalog,
+        busPathIds,
+        readGlobalStateWeights,
+        at,
+    ).gainDb;
 }

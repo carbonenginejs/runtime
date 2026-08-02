@@ -2727,6 +2727,60 @@ test("music routes apply Immediate ancestor Bus Volume State gain", async () =>
   assert.ok(Math.abs(routeGain.gain.value - 10 ** (-9 / 20)) < 1e-6);
 });
 
+test("music routes apply Bus State filters while Bus Pitch leaves timing unchanged", async () =>
+{
+  let state = "off";
+  const busStates = {
+    schemaVersion: 2,
+    filterBehavior: "additive",
+    buses: {
+      "500": [ {
+        groupId: "600",
+        group: "mix_state",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ {
+          stateId: "602",
+          state: "on",
+          pitchCents: -100,
+          lowPass: 60,
+          highPass: 25,
+        } ],
+      } ],
+    },
+  };
+  const { context, engine } = Harness(graph =>
+  {
+    Object.assign(graph.nodes[TRACK_A], {
+      outputBusId: "928",
+      busPathIds: [ "928", "500", "1" ],
+    });
+  }, {
+    busStates,
+    getGlobalStatePropertyWeights: () => [ { state, weight: 1 } ],
+  });
+
+  engine.PostEvent("music_test_play", 704, () => {});
+  await tick();
+
+  assert.equal(context.filters.length, 2);
+  assert.equal(context.filters[0].type, "lowpass");
+  assert.equal(context.filters[1].type, "highpass");
+  assert.equal(context.filters[0].frequency.value, 20000);
+  assert.equal(context.filters[1].frequency.value, 17);
+  assert.equal(context.sources[0].playbackRate, undefined);
+
+  state = "on";
+  engine.RefreshBusStates();
+  assert.equal(context.filters[0].frequency.value, 528);
+  assert.equal(context.filters[1].frequency.value, 145);
+  assert.equal(context.sources[0].playbackRate, undefined);
+
+  engine.Dispose();
+  assert.equal(context.filters[0].disconnected, true);
+  assert.equal(context.filters[1].disconnected, true);
+});
+
 test("music routes share Audio Bus ducking activity with SFX", async () =>
 {
   const busDuckingController = new CjsBusDuckingController({

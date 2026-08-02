@@ -894,10 +894,12 @@ class CjsAudioMan {
           getGain: (at = undefined) => engine.EvaluateGain(selection, controls, undefined, at),
           getGainAtVoiceVolumeDb: (voiceVolumeDb, at = undefined) => engine.EvaluateGain(selection, controls, voiceVolumeDb, at),
           ...(selection.lowPass === undefined ? {} : {
-            getLowPass: (at = undefined) => engine.EvaluateLowPass(selection, controls, at)
+            getLowPass: (at = undefined) => engine.EvaluateLowPass(selection, controls, at),
+            getLowPassAtAdditionalPercent: (additionalPercent = 0, at = undefined) => engine.EvaluateLowPass(selection, controls, at, additionalPercent)
           }),
           ...(selection.highPass === undefined ? {} : {
-            getHighPass: (at = undefined) => engine.EvaluateHighPass(selection, controls, at)
+            getHighPass: (at = undefined) => engine.EvaluateHighPass(selection, controls, at),
+            getHighPassAtAdditionalPercent: (additionalPercent = 0, at = undefined) => engine.EvaluateHighPass(selection, controls, at, additionalPercent)
           })
         }] : [])
       };
