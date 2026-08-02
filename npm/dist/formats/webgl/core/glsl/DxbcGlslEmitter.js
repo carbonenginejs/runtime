@@ -46,7 +46,7 @@ const NON_COMPARISON_TEXTURE_OPCODES = new Set(["sample", "sample_l", "sample_b"
  * (HLSLcc `TranslateTexCoord`, toGLSLInstruction.cpp:985-1031).
  */
 /** GLSL symbol for the merged detail-map array. */
-const DETAIL_MAP_ARRAY_SYMBOL = "sDetailMapArray";
+const DETAIL_MAP_ARRAY_SYMBOL = "sDetailArrayMap";
 const COORD_MASK_BY_DIMENSION = {
   2: "x",
   3: "xy",
@@ -761,7 +761,7 @@ class DxbcGlslEmitter {
             });
           }
           if (state.detailMapArrayLayers.has(register)) {
-            this._declareDetailMapArray(state, register, declaration, comparisonSamplers);
+            this._declareDetailArrayMap(state, register, declaration, comparisonSamplers);
             break;
           }
           const name = this.profile.samplerName(register, state.stageName);
@@ -1720,7 +1720,7 @@ class DxbcGlslEmitter {
    * @param {Set<number>|null} comparisonSamplers Comparison samplers, when any.
    * @private
    */
-  _declareDetailMapArray(state, register, declaration, comparisonSamplers) {
+  _declareDetailArrayMap(state, register, declaration, comparisonSamplers) {
     // A comparison-sampled or non-2D detail map is not the family the
     // recogniser promised, so refuse rather than emit a wrong declaration.
     if (comparisonSamplers || declaration.resourceDimension !== 3) {
@@ -1772,7 +1772,7 @@ class DxbcGlslEmitter {
    * @param {object} texOperand Texture resource operand.
    * @private
    */
-  _rejectDetailMapArrayUse(state, instruction, texOperand) {
+  _rejectDetailArrayMapUse(state, instruction, texOperand) {
     if (!state.detailMapArrayLayers.has(texOperand.registerIndex)) return;
     throw new WebglReadError(`Detail map merged into an array is used by ${instruction.opcodeName}, ` + "which this emitter cannot redirect at an array layer", {
       source: state.sourceName,
@@ -1928,7 +1928,7 @@ class DxbcGlslEmitter {
     } = this._destMask(state, instruction);
     const coordOperand = instruction.operands[1];
     const texOperand = instruction.operands[2];
-    this._rejectDetailMapArrayUse(state, instruction, texOperand);
+    this._rejectDetailArrayMapUse(state, instruction, texOperand);
     const dimension = this._resourceDimension(state, instruction, texOperand);
     const texName = state.formatter.registerReference(texOperand);
     const returnSwizzle = [...mask].map(component => texOperand.swizzle ? texOperand.swizzle["xyzw".indexOf(component)] : component).join("");
@@ -2632,7 +2632,7 @@ DxbcGlslEmitter.prototype._resinfo = function _resinfo(state, instruction) {
     as: "int"
   });
   const texOperand = instruction.operands[2];
-  this._rejectDetailMapArrayUse(state, instruction, texOperand);
+  this._rejectDetailArrayMapUse(state, instruction, texOperand);
   const dimension = this._resourceDimension(state, instruction, texOperand);
   const axisCount = dimension === 5 || dimension === 8 ? 3 : 2;
   const returnType = instruction.resinfoReturnTypeName || "float";
