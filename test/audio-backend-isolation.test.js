@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsAudioBackend, CjsSfxEngine } from "../npm/dist/index.js";
 import { CjsBusDuckingController } from "../src/internal/busDucking.js";
+import { CjsBusGraphRuntime } from "../src/internal/busGraphRuntime.js";
 
 const START_QUANTUM = 128 / 48000;
 
@@ -38,7 +39,7 @@ function FakeParam(initial)
   return param;
 }
 
-function FakeContext()
+function FakeContext({ withAnalyser = false } = {})
 {
   const context = {
     currentTime: 0,
@@ -47,6 +48,7 @@ function FakeContext()
     gains: [],
     filters: [],
     panners: [],
+    analysers: [],
     sources: [],
     createGain()
     {
@@ -71,8 +73,12 @@ function FakeContext()
       const node = {
         panningModel: "", distanceModel: "", refDistance: 1,
         positionX: FakeParam(0), positionY: FakeParam(0), positionZ: FakeParam(0),
+        connectedTo: null,
         disconnected: false,
-        connect: () => {},
+        connect(target)
+        {
+          node.connectedTo = target;
+        },
         disconnect: () =>
         {
           node.disconnected = true;
@@ -127,6 +133,32 @@ function FakeContext()
       return source;
     }
   };
+  if (withAnalyser)
+  {
+    context.createAnalyser = () =>
+    {
+      const analyser = {
+        fftSize: 0,
+        connectedTo: null,
+        disconnected: false,
+        connect(target)
+        {
+          analyser.connectedTo = target;
+        },
+        disconnect()
+        {
+          analyser.disconnected = true;
+        },
+        getFloatTimeDomainData(samples)
+        {
+          samples.fill(0.25);
+        },
+      };
+
+      context.analysers.push(analyser);
+      return analyser;
+    };
+  }
   return context;
 }
 
@@ -159,9 +191,12 @@ function Harness({
   busStates,
   busDuckingController,
   busEffects,
+  busGraphRuntime,
+  distanceScale,
+  withAnalyser,
 } = {})
 {
-  const context = FakeContext();
+  const context = FakeContext({ withAnalyser });
   const finished = [];
   const emitter = { EventFinishedCallback: playingID => finished.push(playingID) };
   const backend = new CjsAudioBackend({
@@ -187,10 +222,270 @@ function Harness({
     busStates,
     busDuckingController,
     busEffects,
+    busGraphRuntime,
+    distanceScale,
   });
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
 }
+
+function RouteRuntime()
+{
+  return new CjsBusGraphRuntime({
+    schemaVersion: 1,
+    routes: [
+      {
+        outputBusId: "900",
+        busPathIds: [ "900" ],
+        userAuxSends: [],
+      },
+      {
+        outputBusId: "901",
+        busPathIds: [ "901" ],
+        userAuxSends: [],
+      },
+    ],
+    sfxRoutes: {
+      "100": 0,
+      "101": 1,
+    },
+    musicRoutes: {},
+  });
+}
+
+function RoutedVoice(nodeId, spatial = true)
+{
+  const outputBusId = nodeId === "100" ? "900" : "901";
+
+  return {
+    buffer: { duration: 2 },
+    spatial,
+    busRouteNodeId: nodeId,
+    busPathIds: [ outputBusId ],
+  };
+}
+
+function RouteBranchForSource(source)
+{
+  return source.connectedTo?.connectedTo?.connectedTo?.connectedTo ?? null;
+}
+
+test("graph-backed SFX routes separate exact route and spatial branches", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    busGraphRuntime: RouteRuntime(),
+    distanceScale: 2,
+    loadBuffer: async eventID => ({
+      voices: [
+        eventID === 3
+          ? RoutedVoice("101")
+          : RoutedVoice("100", eventID !== 4),
+      ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "route_a_first");
+  backend.PostEvent(2, 1, 0, emitter, "route_a_second");
+  backend.PostEvent(3, 1, 0, emitter, "route_b");
+  backend.PostEvent(4, 1, 0, emitter, "route_a_flat");
+  await tick();
+
+  const routeA = RouteBranchForSource(context.sources[0]);
+  const routeASecond = RouteBranchForSource(context.sources[1]);
+  const routeB = RouteBranchForSource(context.sources[2]);
+  const routeAFlat = RouteBranchForSource(context.sources[3]);
+
+  assert.equal(routeASecond, routeA, "one route and mode share one branch");
+  assert.notEqual(routeB, routeA, "different authored routes stay separate");
+  assert.notEqual(
+    routeAFlat,
+    routeA,
+    "one route keeps spatial and non-spatial signals separate",
+  );
+  assert.ok(context.panners.includes(routeA.connectedTo));
+  assert.ok(context.panners.includes(routeB.connectedTo));
+  assert.equal(routeAFlat.connectedTo, context.gains[1]);
+
+  backend.SetPosition(1, [ 1, 0, 0 ], [ 0, 1, 0 ], [ 2, 3, 4 ]);
+  assert.equal(backend.SetScalingFactor(1, 3), true);
+  for (const panner of [ context.panners[0], routeA.connectedTo, routeB.connectedTo ])
+  {
+    assert.deepEqual(
+      [ panner.positionX.value, panner.positionY.value, panner.positionZ.value ],
+      [ 4, 6, 8 ],
+    );
+    assert.equal(panner.refDistance, 3);
+  }
+
+  backend.Dispose();
+  assert.equal(routeA.disconnected, true);
+  assert.equal(routeB.disconnected, true);
+  assert.equal(routeAFlat.disconnected, true);
+  assert.equal(routeA.connectedTo.disconnected, true);
+  assert.equal(routeB.connectedTo.disconnected, true);
+  backend.Dispose();
+});
+
+test("object RTPC adapters replay and update every graph-backed emitter route", async () =>
+{
+  const applied = [];
+  const { emitter, backend } = Harness({
+    busGraphRuntime: RouteRuntime(),
+    applyRTPC: value => applied.push(value),
+    loadBuffer: async eventID => ({
+      voices: [
+        eventID === 3
+          ? RoutedVoice("101")
+          : RoutedVoice("100", eventID !== 2),
+      ],
+    }),
+  });
+
+  backend.SetRTPCValue("route_mix", 0.25, 1);
+  assert.equal(applied.length, 1, "the legacy adapter target remains intact");
+
+  backend.PostEvent(1, 1, 0, emitter, "route_a");
+  backend.PostEvent(1, 1, 0, emitter, "route_a_again");
+  backend.PostEvent(2, 1, 0, emitter, "route_a_flat");
+  backend.PostEvent(3, 1, 0, emitter, "route_b");
+  await tick();
+
+  const replays = applied.filter(value => value.busGraphRoute);
+
+  assert.equal(replays.length, 3, "each lazy route/mode branch replays once");
+  assert.equal(replays.filter(value => value.gain).length, 2);
+  assert.equal(replays.filter(value => value.flatGain).length, 1);
+  assert.equal(new Set(replays.map(value => value.busGraphRoute)).size, 2);
+
+  const before = applied.length;
+
+  backend.SetRTPCValue("route_mix", 0.75, 1);
+  const updates = applied.slice(before);
+
+  assert.equal(updates.length, 4, "legacy plus three graph branches update");
+  assert.equal(updates.filter(value => value.busGraphRoute).length, 3);
+  assert.ok(updates.every(value => value.value === 0.75));
+});
+
+test("graph-backed route branches retire with their emitter generation", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    busGraphRuntime: RouteRuntime(),
+    loadBuffer: async eventID => ({
+      voices: [ RoutedVoice(eventID === 2 ? "101" : "100") ],
+    }),
+  });
+
+  backend.SetPosition(1, [ 0, 0, -1 ], [ 0, 1, 0 ], [ 1, 2, 3 ]);
+  backend.SetScalingFactor(1, 4);
+  backend.PostEvent(1, 1, 0, emitter, "old_route_a");
+  backend.PostEvent(2, 1, 0, emitter, "old_route_b");
+  await tick();
+
+  const oldRouteA = RouteBranchForSource(context.sources[0]);
+  const oldRouteB = RouteBranchForSource(context.sources[1]);
+  const oldPannerA = oldRouteA.connectedTo;
+  const oldPannerB = oldRouteB.connectedTo;
+
+  backend.UnregisterGameObj(1);
+  backend.RegisterGameObj(1);
+  backend.SetPosition(1, [ 1, 0, 0 ], [ 0, 1, 0 ], [ 7, 8, 9 ]);
+  backend.PostEvent(1, 1, 0, emitter, "new_route_a");
+  await tick();
+
+  const newRouteA = RouteBranchForSource(context.sources[2]);
+
+  assert.notEqual(newRouteA, oldRouteA);
+  assert.deepEqual(
+    [ oldPannerA.positionX.value, oldPannerA.positionY.value, oldPannerA.positionZ.value ],
+    [ 1, 2, 3 ],
+  );
+  assert.equal(oldPannerA.refDistance, 4);
+  assert.deepEqual(
+    [
+      newRouteA.connectedTo.positionX.value,
+      newRouteA.connectedTo.positionY.value,
+      newRouteA.connectedTo.positionZ.value,
+    ],
+    [ 7, 8, 9 ],
+  );
+
+  context.sources[0].onended();
+  assert.equal(oldPannerA.disconnected, false);
+  assert.equal(oldPannerB.disconnected, false);
+
+  context.sources[1].onended();
+  assert.equal(oldPannerA.disconnected, true);
+  assert.equal(oldPannerB.disconnected, true);
+  assert.equal(newRouteA.connectedTo.disconnected, false);
+
+  backend.ReleaseGameObj(1);
+  assert.equal(newRouteA.connectedTo.disconnected, true);
+});
+
+test("a deferred graph route realizes with its retired generation transform", async () =>
+{
+  const pending = Deferred();
+  const { context, emitter, backend } = Harness({
+    busGraphRuntime: RouteRuntime(),
+    distanceScale: 2,
+    loadBuffer: () => pending.promise,
+  });
+
+  backend.SetPosition(1, [ 0, 0, -1 ], [ 0, 1, 0 ], [ 2, 3, 4 ]);
+  backend.SetScalingFactor(1, 5);
+  backend.PostEvent(1, 1, 0, emitter, "late_old_route");
+  await tick();
+
+  backend.UnregisterGameObj(1);
+  backend.RegisterGameObj(1);
+  backend.SetPosition(1, [ 1, 0, 0 ], [ 0, 1, 0 ], [ 7, 8, 9 ]);
+  backend.SetScalingFactor(1, 9);
+  pending.resolve({ voices: [ RoutedVoice("100") ] });
+  await tick();
+
+  const retiredRoute = RouteBranchForSource(context.sources[0]);
+  const retiredPanner = retiredRoute.connectedTo;
+
+  assert.deepEqual(
+    [
+      retiredPanner.positionX.value,
+      retiredPanner.positionY.value,
+      retiredPanner.positionZ.value,
+    ],
+    [ 4, 6, 8 ],
+  );
+  assert.equal(retiredPanner.refDistance, 5);
+  assert.equal(retiredPanner.disconnected, false);
+
+  context.sources[0].onended();
+  assert.equal(retiredPanner.disconnected, true);
+  assert.equal(context.panners[1].disconnected, false);
+});
+
+test("graph route branches retain aggregate emitter analyser output", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    busGraphRuntime: RouteRuntime(),
+    withAnalyser: true,
+    loadBuffer: async eventID => ({
+      voices: [ RoutedVoice("100", eventID !== 2) ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "metered_spatial_route");
+  backend.PostEvent(2, 1, 0, emitter, "metered_flat_route");
+  await tick();
+
+  const analyser = context.analysers[0];
+  const spatialRoute = RouteBranchForSource(context.sources[0]);
+  const flatRoute = RouteBranchForSource(context.sources[1]);
+
+  assert.equal(spatialRoute.connectedTo.connectedTo, analyser);
+  assert.equal(flatRoute.connectedTo, analyser);
+  assert.equal(analyser.connectedTo, context.gains[1]);
+  assert.equal(backend.GetGameObjLevel(1), 0.25);
+});
 
 function ContinuousSwitchGraph()
 {

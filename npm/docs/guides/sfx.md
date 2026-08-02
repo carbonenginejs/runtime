@@ -523,11 +523,19 @@ gain fields. At browser-gesture enable time the audio system creates one
 generation-scoped route controller and shares its stable route handles between
 the SFX backend and built-in music engine. Sound selections retain their exact
 leaf ID and music scheduling retains its exact track ID, so later realization
-does not have to infer topology from a coincidentally equal dry path. This
-controller is intentionally data-only: it creates no shared DSP nodes and adds
-no audible processing. Route identity can keep distinct authored routes from
-sharing an otherwise equivalent existing dry gain. Disposal invalidates the
-complete generation before backend graph teardown.
+does not have to infer topology from a coincidentally equal dry path. The SFX
+backend uses those handles to allocate one lazy branch per exact route and
+spatial mode within an emitter generation. Voices on the same route and mode
+share that branch; different routes never merge before it, and a 2D voice never
+enters a 3D route panner. Placement, scaling, RTPC replay, retirement, and
+disposal remain generation-scoped. Branch outputs still feed the existing SFX
+destination: this establishes the placement seam but does not yet make shared
+Bus effects or auxiliary sends audible.
+
+A custom `applyRTPC` adapter continues to receive the legacy emitter target and
+also receives one update per graph-backed route branch. Branch updates include
+`busGraphRoute`; exactly one of `gain` or `flatGain` is populated according to
+the route's spatial mode, and spatial branches include their exact `panner`.
 
 The bank builder projects only named, Immediate Volume, Pitch, and filter
 state tables with their exact supported accumulation modes. A group containing

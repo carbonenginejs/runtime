@@ -256,7 +256,7 @@ export class CjsAudioBackend
         return !!this.#context;
     }
 
-    /** Registers an emitter's node chain (gain -> panner -> [analyser] -> master). */
+    /** Registers the legacy emitter chain and storage for lazy exact-route branches. */
     RegisterGameObj(gameObjID)
     {
         if (!this.#context || this.#emitterNodes.has(gameObjID))
@@ -287,6 +287,9 @@ export class CjsAudioBackend
             flatGain: null,
             panner,
             analyser,
+            routeBranches: new Map(),
+            front: null,
+            position: null,
             scalingFactor: 1,
             voiceHighPasses: new Map(this.#globalVoiceHighPasses),
             voiceLowPasses: new Map(this.#globalVoiceLowPasses),
@@ -977,21 +980,33 @@ export class CjsAudioBackend
     /** Emitter placement -> panner. WebAudio is right-handed like Carbon's scene; Wwise's RH->LH flip does not apply. */
     SetPosition(gameObjID, front, top, position)
     {
-        const panner = this.#emitterNodes.get(gameObjID)?.panner;
-        if (panner)
+        const nodes = this.#emitterNodes.get(gameObjID);
+
+        if (nodes)
         {
-            SetAudioParam(panner.positionX, position[0] * this.#distanceScale, this.#context);
-            SetAudioParam(panner.positionY, position[1] * this.#distanceScale, this.#context);
-            SetAudioParam(panner.positionZ, position[2] * this.#distanceScale, this.#context);
-            if (panner.orientationX)
+            nodes.front = [ ...front ];
+            nodes.position = [ ...position ];
+            SetPannerPose(
+                nodes.panner,
+                nodes.front,
+                nodes.position,
+                this.#distanceScale,
+                this.#context,
+            );
+            for (const modes of nodes.routeBranches.values())
             {
-                SetAudioParam(panner.orientationX, front[0], this.#context);
-                SetAudioParam(panner.orientationY, front[1], this.#context);
-                SetAudioParam(panner.orientationZ, front[2], this.#context);
-            }
-            else
-            {
-                panner.setOrientation?.(front[0], front[1], front[2]);
+                const branch = modes.get(true);
+
+                if (branch)
+                {
+                    SetPannerPose(
+                        branch.panner,
+                        nodes.front,
+                        nodes.position,
+                        this.#distanceScale,
+                        this.#context,
+                    );
+                }
             }
         }
     }
@@ -1094,9 +1109,10 @@ export class CjsAudioBackend
             return false;
         }
         nodes.scalingFactor = numeric;
-        if (nodes.panner.refDistance !== undefined)
+        SetPannerScalingFactor(nodes.panner, numeric);
+        for (const modes of nodes.routeBranches.values())
         {
-            nodes.panner.refDistance = numeric;
+            SetPannerScalingFactor(modes.get(true)?.panner, numeric);
         }
         return true;
     }
@@ -2702,15 +2718,7 @@ export class CjsAudioBackend
         this.#RefreshSfxControls(gameObjID);
         const nodes = this.#emitterNodes.get(gameObjID) ?? null;
 
-        this.#applyRTPC?.({
-            gameObjID,
-            rtpcName: name,
-            value,
-            context: this.#context,
-            gain: nodes?.gain?.gain ?? null,
-            flatGain: nodes?.flatGain?.gain ?? null,
-            panner: nodes?.panner ?? null,
-        });
+        this.#ApplyRTPCToEmitterNodes(nodes, gameObjID, name, value);
         return true;
     }
 
@@ -4051,6 +4059,143 @@ export class CjsAudioBackend
         });
     }
 
+    /** Gets or creates one graph-backed route branch within an emitter generation. */
+    #GetEmitterRouteBranch(
+        emitterNodes,
+        gameObjID,
+        spatial,
+        busGraphRoute,
+    )
+    {
+        if (!busGraphRoute)
+        {
+            return null;
+        }
+        let modes = emitterNodes.routeBranches.get(busGraphRoute);
+
+        if (!modes)
+        {
+            modes = new Map();
+            emitterNodes.routeBranches.set(busGraphRoute, modes);
+        }
+        const mode = Boolean(spatial);
+        let branch = modes.get(mode);
+
+        if (branch)
+        {
+            return branch;
+        }
+        if (mode)
+        {
+            const gain = this.#context.createGain();
+            const panner = this.#context.createPanner();
+
+            panner.panningModel = "HRTF";
+            panner.distanceModel = "inverse";
+            SetPannerScalingFactor(panner, emitterNodes.scalingFactor);
+            if (emitterNodes.front && emitterNodes.position)
+            {
+                SetPannerPose(
+                    panner,
+                    emitterNodes.front,
+                    emitterNodes.position,
+                    this.#distanceScale,
+                    this.#context,
+                );
+            }
+            gain.connect(panner);
+            panner.connect(emitterNodes.analyser ?? this.#sfxGain);
+            branch = {
+                busGraphRoute,
+                gain,
+                flatGain: null,
+                panner,
+            };
+        }
+        else
+        {
+            const flatGain = this.#context.createGain();
+
+            flatGain.connect(emitterNodes.analyser ?? this.#sfxGain);
+            branch = {
+                busGraphRoute,
+                gain: null,
+                flatGain,
+                panner: null,
+            };
+        }
+        modes.set(mode, branch);
+        for (const [ rtpcName, value ] of
+            emitterNodes.retiredRtpcValues
+                ?? this.#objectRtpcValues.get(gameObjID)
+                ?? [])
+        {
+            this.#ApplyRTPCToRouteBranch(
+                branch,
+                gameObjID,
+                rtpcName,
+                value,
+            );
+        }
+        return branch;
+    }
+
+    /** Applies one host RTPC adapter update to the legacy and graph-backed routes. */
+    #ApplyRTPCToEmitterNodes(nodes, gameObjID, rtpcName, value)
+    {
+        if (!nodes)
+        {
+            return;
+        }
+        this.#ApplyRTPCToLegacyEmitterNodes(
+            nodes,
+            gameObjID,
+            rtpcName,
+            value,
+        );
+        for (const modes of nodes.routeBranches.values())
+        {
+            for (const branch of modes.values())
+            {
+                this.#ApplyRTPCToRouteBranch(
+                    branch,
+                    gameObjID,
+                    rtpcName,
+                    value,
+                );
+            }
+        }
+    }
+
+    /** Applies one host RTPC adapter update to the legacy emitter route. */
+    #ApplyRTPCToLegacyEmitterNodes(nodes, gameObjID, rtpcName, value)
+    {
+        this.#applyRTPC?.({
+            gameObjID,
+            rtpcName,
+            value,
+            context: this.#context,
+            gain: nodes.gain?.gain ?? null,
+            flatGain: nodes.flatGain?.gain ?? null,
+            panner: nodes.panner ?? null,
+        });
+    }
+
+    /** Applies one host RTPC adapter update to one exact graph route branch. */
+    #ApplyRTPCToRouteBranch(branch, gameObjID, rtpcName, value)
+    {
+        this.#applyRTPC?.({
+            gameObjID,
+            rtpcName,
+            value,
+            context: this.#context,
+            gain: branch.gain?.gain ?? null,
+            flatGain: branch.flatGain?.gain ?? null,
+            panner: branch.panner,
+            busGraphRoute: branch.busGraphRoute,
+        });
+    }
+
     /** Creates one decoded SFX voice and its independent gain stage. */
     #CreateVoice(descriptor, emitterNodes, gameObjID)
     {
@@ -4061,6 +4206,12 @@ export class CjsAudioBackend
                 outputBusId: descriptor.busPathIds[0],
             },
         ) ?? null;
+        const emitterRouteBranch = this.#GetEmitterRouteBranch(
+            emitterNodes,
+            gameObjID,
+            descriptor.spatial,
+            busGraphRoute,
+        );
         const gain = this.#context.createGain();
         const busGain = descriptor.busPathIds.length
             ? this.#context.createGain()
@@ -4133,7 +4284,14 @@ export class CjsAudioBackend
             );
         }
 
-        if (descriptor.spatial)
+        if (emitterRouteBranch)
+        {
+            stopGain.connect(
+                emitterRouteBranch.gain
+                    ?? emitterRouteBranch.flatGain,
+            );
+        }
+        else if (descriptor.spatial)
         {
             stopGain.connect(emitterNodes.gain);
         }
@@ -4152,15 +4310,12 @@ export class CjsAudioBackend
                         ?? this.#objectRtpcValues.get(gameObjID)
                         ?? [])
                 {
-                    this.#applyRTPC?.({
+                    this.#ApplyRTPCToLegacyEmitterNodes(
+                        emitterNodes,
                         gameObjID,
                         rtpcName,
                         value,
-                        context: this.#context,
-                        gain: emitterNodes.gain?.gain ?? null,
-                        flatGain: emitterNodes.flatGain.gain ?? null,
-                        panner: emitterNodes.panner ?? null,
-                    });
+                    );
                 }
             }
             stopGain.connect(emitterNodes.flatGain);
@@ -4196,6 +4351,7 @@ export class CjsAudioBackend
         const voice = {
             gameObjID,
             busGraphRoute,
+            emitterRouteBranch,
             buffer: descriptor.buffer,
             loop: descriptor.loop,
             playCount: descriptor.playCount,
@@ -6323,10 +6479,50 @@ export class CjsAudioBackend
     /** Disconnects a no-longer-used emitter node generation. */
     #DisconnectEmitterNodes(nodes)
     {
+        for (const modes of nodes.routeBranches?.values?.() ?? [])
+        {
+            for (const branch of modes.values())
+            {
+                branch.gain?.disconnect?.();
+                branch.flatGain?.disconnect?.();
+                branch.panner?.disconnect?.();
+            }
+            modes.clear();
+        }
+        nodes.routeBranches?.clear?.();
         nodes.gain.disconnect?.();
         nodes.flatGain?.disconnect?.();
         nodes.panner.disconnect?.();
         nodes.analyser?.disconnect?.();
+    }
+}
+
+function SetPannerPose(panner, front, position, distanceScale, context)
+{
+    if (!panner)
+    {
+        return;
+    }
+    SetAudioParam(panner.positionX, position[0] * distanceScale, context);
+    SetAudioParam(panner.positionY, position[1] * distanceScale, context);
+    SetAudioParam(panner.positionZ, position[2] * distanceScale, context);
+    if (panner.orientationX)
+    {
+        SetAudioParam(panner.orientationX, front[0], context);
+        SetAudioParam(panner.orientationY, front[1], context);
+        SetAudioParam(panner.orientationZ, front[2], context);
+    }
+    else
+    {
+        panner.setOrientation?.(front[0], front[1], front[2]);
+    }
+}
+
+function SetPannerScalingFactor(panner, value)
+{
+    if (panner && panner.refDistance !== undefined)
+    {
+        panner.refDistance = value;
     }
 }
 

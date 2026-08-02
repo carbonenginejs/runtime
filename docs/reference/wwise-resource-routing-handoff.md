@@ -258,14 +258,21 @@ Convolution ShareSet `3019852427` references embedded source `154360724`, a
 cross-bank media identity and opaque parameter block. Shared DSP placement and
 a qualified PLUG decoder remain prerequisites for audible parity.
 
-The first shared-runtime seam now resolves immutable route handles without
-making the catalog audible. One controller belongs to each enabled audio-system
-generation and is shared by SFX and music; install-time checks require every
-playable routed Sound/track to agree with its catalog dry projection. Exact
-leaf and track IDs survive scheduling, while library disposal invalidates the
-controller before the backend nodes are disconnected. The controller adds no
-audible processing; route identity can separate otherwise equivalent existing
-dry gain routes while preserving the same per-voice processing and destination.
+The shared-runtime seam resolves immutable route handles. One controller belongs
+to each enabled audio-system generation and is shared by SFX and music;
+install-time checks require every playable routed Sound/track to agree with its
+catalog dry projection. Exact leaf and track IDs survive scheduling, while
+library disposal invalidates the controller before the backend nodes are
+disconnected.
+
+SFX realization now keeps one lazy branch per exact route handle and spatial
+mode inside each emitter generation. Same-route 3D voices share a synchronized
+panner, different authored routes use different panners, and 2D signals remain
+on a distinct flat branch. Branches retain the old generation's placement,
+scaling, and object-RTPC snapshot across unregister/re-register and disconnect
+only after that generation drains. They currently feed the same SFX destination
+without shared DSP; the next runtime step is to replace each branch output with
+the ordered shared Bus graph, then attach the already-separated music routes.
 
 EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and
