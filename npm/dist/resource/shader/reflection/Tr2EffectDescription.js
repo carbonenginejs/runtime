@@ -1,8 +1,9 @@
 import { CjsSchema, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { isPlainObject, isArray } from '@carbonenginejs/runtime-utils/is';
+import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
 import { Tr2EffectParameterAnnotation } from './Tr2EffectParameterAnnotation.js';
 import { Tr2EffectTechnique } from './Tr2EffectTechnique.js';
+import { recordText } from './carbonRecordFields.js';
 
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
@@ -47,47 +48,31 @@ class Tr2EffectDescription extends CjsModel {
   }
 
   /**
-   * Build one complete effect description from its portable JSON record.
+   * Build one complete effect description from its Carbon v15 record tree.
    *
-   * @param {object} value Portable effect-description record.
+   * This is the whole body: every technique, and the effect-level annotation
+   * groups keyed by the parameter they annotate. Carbon sorts those keys by
+   * `strcmp` on the way out, and the map preserves whatever order the file used,
+   * so nothing here depends on the ordering being meaningful.
+   *
+   * @param {object} record Carbon effect description record.
    * @returns {Tr2EffectDescription} Reflected description.
    */
-  static fromPortable(value) {
-    if (!isPlainObject(value)) {
-      throw new TypeError("Portable effect description must be an object");
-    }
-    if (!isArray(value.annotations)) {
-      throw new TypeError("Portable effect annotation groups must be an array");
-    }
-    if (!isArray(value.techniques)) {
-      throw new TypeError("Portable effect techniques must be an array");
-    }
-    if (value.annotationGroupCount !== value.annotations.length || value.techniqueCount !== value.techniques.length) {
-      throw new Error("Portable effect description counts disagree with its collections");
+  static fromCarbonBinary(record) {
+    if (!isPlainObject(record)) {
+      throw new TypeError("Carbon effect description record must be an object");
     }
     const effect = new this();
-    effect.annotations = this.readPortableAnnotationGroups(value.annotations);
-    effect.techniques = value.techniques.map(entry => Tr2EffectTechnique.fromPortable(entry));
-    return effect;
-  }
-
-  /** Build parameter-name-indexed annotation groups. */
-  static readPortableAnnotationGroups(values) {
-    const result = new Map();
-    for (const value of values) {
-      if (!isPlainObject(value)) {
-        throw new TypeError("Portable effect annotation group must be an object");
+    effect.annotations = new Map();
+    for (const group of record.annotations) {
+      const parameterName = recordText(group.name);
+      if (effect.annotations.has(parameterName)) {
+        throw new Error(`Carbon effect annotation group "${parameterName}" is duplicated`);
       }
-      const parameterName = String(value.parameterName ?? "");
-      if (!isArray(value.annotations)) {
-        throw new TypeError(`Portable annotations for parameter "${parameterName}" must be an array`);
-      }
-      if (result.has(parameterName)) {
-        throw new Error(`Portable effect annotation group "${parameterName}" is duplicated`);
-      }
-      result.set(parameterName, value.annotations.map(entry => Tr2EffectParameterAnnotation.fromPortable(entry)));
+      effect.annotations.set(parameterName, group.annotations.map(entry => Tr2EffectParameterAnnotation.fromCarbonBinary(entry)));
     }
-    return result;
+    effect.techniques = record.techniques.map(entry => Tr2EffectTechnique.fromCarbonBinary(entry));
+    return effect;
   }
 }
 

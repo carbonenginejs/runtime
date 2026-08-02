@@ -1,8 +1,9 @@
 import { CjsSchema, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { isPlainObject, isArray } from '@carbonenginejs/runtime-utils/is';
+import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
 import { Tr2EffectLibrary } from './Tr2EffectLibrary.js';
 import { Tr2Pass } from './Tr2Pass.js';
+import { recordText } from './carbonRecordFields.js';
 
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 
@@ -21,28 +22,22 @@ class Tr2EffectTechnique extends CjsModel {
   shaderTypeMask = 0;
 
   /**
-   * Build one technique from its portable JSON reflection record.
+   * Build one technique from its Carbon v15 description record.
    *
-   * @param {object} value Portable technique record.
+   * The technique's shader-type mask is not stored; it is the union of its
+   * passes' masks, so it is recomputed here exactly as the portable path does.
+   *
+   * @param {object} record Carbon technique record.
    * @returns {Tr2EffectTechnique} Reflected technique.
    */
-  static fromPortable(value) {
-    if (!isPlainObject(value)) {
-      throw new TypeError("Portable effect technique must be an object");
-    }
-    if (!isArray(value.passes)) {
-      throw new TypeError("Portable effect technique passes must be an array");
-    }
-    if (!isArray(value.libraries)) {
-      throw new TypeError("Portable effect technique libraries must be an array");
-    }
-    if (value.passCount !== value.passes.length || value.libraryCount !== value.libraries.length) {
-      throw new Error("Portable effect technique counts disagree with its collections");
+  static fromCarbonBinary(record) {
+    if (!isPlainObject(record)) {
+      throw new TypeError("Carbon effect technique record must be an object");
     }
     const technique = new this();
-    technique.name = String(value.name ?? "");
-    technique.passes = value.passes.map(entry => Tr2Pass.fromPortable(entry));
-    technique.libraries = value.libraries.map(entry => Tr2EffectLibrary.fromPortable(entry));
+    technique.name = recordText(record.name);
+    technique.passes = record.passes.map(entry => Tr2Pass.fromCarbonBinary(entry));
+    technique.libraries = record.libraries.map(entry => Tr2EffectLibrary.fromCarbonBinary(entry));
     technique.shaderTypeMask = technique.passes.reduce((mask, pass) => mask | pass.shaderTypeMask, 0) >>> 0;
     return technique;
   }

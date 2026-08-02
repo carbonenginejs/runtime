@@ -1,6 +1,7 @@
 import { CjsSchema, type, schema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { isPlainObject, isUint32 } from '@carbonenginejs/runtime-utils/is';
+import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
+import { recordText } from './carbonRecordFields.js';
 
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 
@@ -22,27 +23,28 @@ class Tr2EffectResource extends CjsModel {
   arrayElements = 0;
 
   /**
-   * Build one SRV or UAV from its portable JSON reflection record.
+   * Build one SRV or UAV from its Carbon v15 description record.
    *
-   * @param {object} value Portable resource record.
+   * Both a texture record and a UAV record land here, and they are not the same
+   * shape: a UAV record carries no `isSRGB` at all. Carbon's reader hardcodes
+   * `isSRGB = false` for UAVs rather than reading a byte, and `Uav::Save` omits
+   * it, so the field being absent is correct rather than missing — reading
+   * `undefined` through `!!` reproduces Carbon exactly. The array size is spelled
+   * `count` in the record and `arrayElements` on the class.
+   *
+   * @param {object} record Carbon texture or UAV record.
    * @returns {Tr2EffectResource} Reflected resource.
    */
-  static fromPortable(value) {
-    if (!isPlainObject(value)) {
-      throw new TypeError("Portable effect resource must be an object");
-    }
-    if (!isUint32(value.type)) {
-      throw new RangeError("Portable resource type must fit uint32");
-    }
-    if (!isUint32(value.arrayElements)) {
-      throw new RangeError("Portable resource array element count must fit uint32");
+  static fromCarbonBinary(record) {
+    if (!isPlainObject(record)) {
+      throw new TypeError("Carbon effect resource record must be an object");
     }
     const resource = new this();
-    resource.name = String(value.name ?? "");
-    resource.type = value.type;
-    resource.arrayElements = value.arrayElements;
-    resource.isSRGB = !!value.isSRGB;
-    resource.isAutoregister = !!value.isAutoregister;
+    resource.name = recordText(record.name);
+    resource.type = record.type;
+    resource.arrayElements = record.count;
+    resource.isSRGB = !!record.isSRGB;
+    resource.isAutoregister = !!record.isAutoregister;
     return resource;
   }
   static BINDLESS_SAMPLER = 100;

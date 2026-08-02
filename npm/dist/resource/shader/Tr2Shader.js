@@ -1,6 +1,5 @@
 import { impl, CjsSchema, carbon, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { validateEffectBodyReflection, isEffectBodyReflection } from '../../formats/hlsl/core/portableReflection.js';
 import { Tr2EffectDescription } from './reflection/Tr2EffectDescription.js';
 
 // Source: trinity/trinity/Shader/Tr2Shader.h
@@ -142,31 +141,45 @@ class Tr2Shader extends CjsModel {
   }
 
   /**
-   * Build one canonical GPU-free shader from complete portable reflection.
-   * Each child reflection class owns conversion of its own portable record.
+   * Build one GPU-free shader from one body of a Carbon effect container.
    *
-   * @param {object} portable Portable effect-body reflection.
+   * `reader` is the container reader the resource opened and retains; this method
+   * never opens anything of its own. A body is not independently readable — its
+   * strings are offsets into the container's shared arena, and its layout depends
+   * on the container's version — so handing each body its own reader would mean
+   * re-parsing the header per permutation and losing the arena.
+   *
+   * Carbon passes exactly that bundle, as loose arguments
+   * (`Tr2EffectRes.cpp:126-134`):
+   *
+   * ```cpp
+   * auto offset = m_offsets[index];
+   * auto buffer = ...m_data.get() + offset.offset;
+   * shader->GetEffect().Read( buffer, offset.size, m_version,
+   *                           m_stringTable, m_stringTableSize, path );
+   * shader->ProcessEffect();
+   * ```
+   *
+   * The resource owns `m_data`, `m_offsets`, `m_version` and the string table,
+   * and hands the body a pointer plus the version and arena. Here that same state
+   * is held by the reader the resource retains, so passing the reader passes the
+   * whole bundle and the resource itself adds nothing a body needs.
+   *
+   * Reading is backend-agnostic. A dx11 body reads exactly as a webgl one does;
+   * they differ only in what the optional per-pass block carries, and this method
+   * retains that block without interpreting it. What can be *realized* from the
+   * result is the engine's question, not the reader's.
+   *
+   * @param {object} reader Container reader owned by the resource.
+   * @param {number} index Permutation index within the container.
    * @returns {Tr2Shader} Canonical selected shader.
    */
-  static fromPortable(portable) {
-    validateEffectBodyReflection(portable);
+  static fromCarbonBinary(reader, index) {
     const shader = new this();
-    shader.effect = Tr2EffectDescription.fromPortable(portable.effect);
+    shader.effect = Tr2EffectDescription.fromCarbonBinary(reader.readDescription(index));
     shader.ProcessEffect();
     return shader;
   }
-
-  /**
-   * Whether a value has the supported complete portable-reflection envelope.
-   *
-   * @param {*} value Candidate value.
-   * @returns {boolean} Whether the portable envelope is supported.
-   */
-  static isPortableReflection(value) {
-    return isEffectBodyReflection(value);
-  }
-
-  /** Find one named reflection entry across every stage. */
   static findStageValue(effect, name, key) {
     for (const stage of Tr2Shader.iterateStages(effect)) {
       const found = Tr2Shader.findNamedCollectionValue(stage?.[key], name);

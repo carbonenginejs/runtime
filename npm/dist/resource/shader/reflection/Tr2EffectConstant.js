@@ -1,6 +1,7 @@
 import { CjsSchema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { isPlainObject, isUint32 } from '@carbonenginejs/runtime-utils/is';
+import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
+import { recordText } from './carbonRecordFields.js';
 
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 
@@ -31,39 +32,28 @@ class Tr2EffectConstant extends CjsModel {
   isAutoregister = false;
 
   /**
-   * Build one constant from its portable JSON reflection record.
+   * Build one constant from its Carbon v15 description record.
    *
-   * @param {object} value Portable constant record.
+   * The record's numeric fields are already the widths Carbon declares, so this
+   * is a rename plus the two byte-to-bool conversions; only `name` needs
+   * dereferencing, because strings live in the container's arena.
+   *
+   * @param {object} record Carbon constant record.
    * @returns {Tr2EffectConstant} Reflected constant.
    */
-  static fromPortable(value) {
-    if (!isPlainObject(value)) {
-      throw new TypeError("Portable effect constant must be an object");
-    }
-    if (!isUint32(value.offset)) {
-      throw new RangeError("Portable constant offset must fit uint32");
-    }
-    if (!isUint32(value.size)) {
-      throw new RangeError("Portable constant size must fit uint32");
-    }
-    if (!isUint32(value.type)) {
-      throw new RangeError("Portable constant type must fit uint32");
-    }
-    if (!isUint32(value.dimension)) {
-      throw new RangeError("Portable constant dimension must fit uint32");
-    }
-    if (!isUint32(value.elements)) {
-      throw new RangeError("Portable constant element count must fit uint32");
+  static fromCarbonBinary(record) {
+    if (!isPlainObject(record)) {
+      throw new TypeError("Carbon effect constant record must be an object");
     }
     const constant = new this();
-    constant.name = String(value.name ?? "");
-    constant.offset = value.offset;
-    constant.size = value.size;
-    constant.type = value.type;
-    constant.dimension = value.dimension;
-    constant.elements = value.elements;
-    constant.isSRGB = !!value.isSRGB;
-    constant.isAutoregister = !!value.isAutoregister;
+    constant.name = recordText(record.name);
+    constant.offset = record.offset;
+    constant.size = record.size;
+    constant.type = record.type;
+    constant.dimension = record.dimension;
+    constant.elements = record.elements;
+    constant.isSRGB = !!record.isSRGB;
+    constant.isAutoregister = !!record.isAutoregister;
     return constant;
   }
   static Type = Object.freeze({

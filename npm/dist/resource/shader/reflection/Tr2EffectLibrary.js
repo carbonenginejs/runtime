@@ -1,8 +1,9 @@
 import { CjsSchema, impl, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { isPlainObject, isArray, isUint32 } from '@carbonenginejs/runtime-utils/is';
-import { clonePortableSourceProgram } from '../portable.js';
+import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
+import { copyBytes } from '@carbonenginejs/runtime-utils/bytes';
 import { Tr2EffectStageInput } from './Tr2EffectStageInput.js';
+import { recordText, recordBytes } from './carbonRecordFields.js';
 
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 
@@ -74,36 +75,27 @@ class Tr2EffectLibrary extends CjsModel {
   }
 
   /**
-   * Build one shader library from its portable JSON reflection record.
+   * Build one raytracing library from its Carbon v15 description record.
    *
-   * @param {object} value Portable library record.
+   * A library carries two `StageData` blocks of its own — a global and a local
+   * input — which are the same block a stage carries, minus the stage wrapper.
+   *
+   * @param {object} record Carbon library record.
    * @returns {Tr2EffectLibrary} Reflected library.
    */
-  static fromPortable(value) {
-    if (!isPlainObject(value)) {
-      throw new TypeError("Portable effect library must be an object");
-    }
-    if (!isArray(value.exports)) {
-      throw new TypeError("Portable effect library exports must be an array");
-    }
-    if (value.exportCount !== value.exports.length) {
-      throw new Error("Portable effect library export count disagrees with its collection");
+  static fromCarbonBinary(record) {
+    if (!isPlainObject(record)) {
+      throw new TypeError("Carbon effect library record must be an object");
     }
     const library = new this();
-    if (!isUint32(value.payloadSize)) {
-      throw new RangeError("Portable effect library payload size must fit uint32");
-    }
-    library.payloadSize = value.payloadSize;
-    library.hitGroupName = String(value.hitGroupName ?? "");
-    library.exports = value.exports.map(entry => {
-      if (!isUint32(entry?.type)) {
-        throw new RangeError("Portable effect library export type must fit uint32");
-      }
-      return {
-        type: entry.type,
-        name: String(entry?.name ?? "")
-      };
-    });
+    library.payloadSize = record.payloadSize;
+    library.hitGroupName = recordText(record.hitGroupName);
+    library.exports = record.exports.map(entry => ({
+      type: entry.type,
+      name: recordText(entry.name)
+    }));
+    // The export type is the only thing that names an entry point; the record
+    // stores a flat list and the named fields are a view onto it.
     for (const entry of library.exports) {
       if (entry.type === 0) library.rayGenName = entry.name;
       if (entry.type === 1) library.missName = entry.name;
@@ -111,9 +103,13 @@ class Tr2EffectLibrary extends CjsModel {
       if (entry.type === 3) library.anyHitName = entry.name;
       if (entry.type === 4) library.intersectionName = entry.name;
     }
-    library.sourceProgram = clonePortableSourceProgram(value.sourceProgram, "library");
-    library.globalInput = Tr2EffectStageInput.fromPortableInput(value.globalInput);
-    library.localInput = Tr2EffectStageInput.fromPortableInput(value.localInput);
+    library.sourceProgram = {
+      kind: "library",
+      bytes: copyBytes(recordBytes(record.shaderData)),
+      shaderSize: record.shaderData.size
+    };
+    library.globalInput = Tr2EffectStageInput.fromCarbonBinaryInput(record.globalInputs);
+    library.localInput = Tr2EffectStageInput.fromCarbonBinaryInput(record.localInputs);
     return library;
   }
 }
