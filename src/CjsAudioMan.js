@@ -283,6 +283,7 @@ export class CjsAudioMan
             busStates: installed.busStates ?? null,
             busDucking: installed.busDucking ?? null,
             busEffects: installed.busEffects ?? null,
+            busGraph: installed.busGraph ?? null,
             loadBuffer: (
                 eventID,
                 eventName,
@@ -1314,6 +1315,7 @@ export class CjsAudioMan
                                 }),
                             actionIndex: selection.actionIndex,
                             leafIndex: selection.leafIndex,
+                            busRouteNodeId: selection.busRouteNodeId,
                             matchIds: selection.matchIds,
                             busPathIds: selection.busPathIds,
                             authoredBusVolumeDb:

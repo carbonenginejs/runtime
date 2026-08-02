@@ -490,6 +490,19 @@ test("validates and freezes the portable ordered Audio Bus graph", () =>
         sfxRoutes: { "100": 0 },
         musicRoutes: {},
     };
+    source.sfx = {
+        schemaVersion: 2,
+        events: {},
+        nodes: {
+            "100": {
+                type: "sound",
+                mediaId: "777",
+                loop: false,
+                outputBusId: "500",
+                busPathIds: [ "500", "1" ],
+            },
+        },
+    };
     source.busGraph.buses["1"].properties = [
         { id: 2, rawValue: 2 },
         { id: 1, rawValue: "1" },
@@ -547,6 +560,14 @@ test("validates and freezes the portable ordered Audio Bus graph", () =>
         mutate(invalid.busGraph);
         assert.throws(() => validateAudioLibraryDocument(invalid));
     }
+
+    const consumerMismatch = structuredClone(source);
+
+    consumerMismatch.sfx.nodes["100"].authoredBusVolumeDb = 1;
+    assert.throws(
+        () => validateAudioLibraryDocument(consumerMismatch),
+        /authoredBusVolumeDb disagrees/u,
+    );
 });
 
 test("validates and installs routed music-track bus metadata", () =>
@@ -615,6 +636,16 @@ test("validates and installs routed music-track bus metadata", () =>
     routedSegment.music.nodes["100"].outputBusId = "928";
     routedSegment.music.nodes["100"].busPathIds = [ "928" ];
     assert.throws(() => validateAudioLibraryDocument(routedSegment));
+
+    const noncanonicalNode = structuredClone(source);
+
+    noncanonicalNode.music.nodes = {
+        "0101": noncanonicalNode.music.nodes["101"],
+    };
+    assert.throws(
+        () => validateAudioLibraryDocument(noncanonicalNode),
+        /must use canonical ID 101/u,
+    );
 });
 
 test("Continuous container scheduling is normalized and validated", () =>

@@ -25,6 +25,16 @@ Coordinates transport-driven Wwise Audio Bus ducking activity shared by SFX and 
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:CjsBusGraphRuntime -->
+## `CjsBusGraphRuntime`
+
+Owns stable generation-scoped route handles for one installed Wwise Audio Bus graph.
+
+- Export: None
+- Source: `src/internal/busGraphRuntime.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsAudioMan -->
 ## `CjsAudioMan`
 

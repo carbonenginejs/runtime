@@ -1372,6 +1372,7 @@ test("authored finite Sound play counts reach the backend selection", () =>
         [
             {
                 mediaID: "100",
+                busRouteNodeId: "1",
                 loop: undefined,
                 playCount: 3,
                 playbackRate: 1,
@@ -2535,6 +2536,7 @@ test("Play actions preserve probability, randomized delay, and fade-in", () =>
         [
             {
                 mediaID: "100",
+                busRouteNodeId: "1",
                 loop: undefined,
                 playbackRate: 1,
                 gainDb: 0,

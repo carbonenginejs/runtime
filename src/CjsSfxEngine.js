@@ -1081,6 +1081,7 @@ export class CjsSfxEngine
             );
             const selection = {
                 mediaID: String(node.mediaId),
+                busRouteNodeId: String(edge.nodeId),
                 matchIds,
                 ...(node.outputBusId === undefined
                     ? {}

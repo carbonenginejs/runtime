@@ -496,6 +496,7 @@ class CjsMusicEngine {
   #readGlobalStateTransitionBoundaries = null;
   #busDuckingController = null;
   #busEffectCatalog = new Map();
+  #busGraphRuntime = null;
   #unsubscribeBusDucking = null;
 
   /** Creates a scheduler over an optional authored graph and Web Audio context. */
@@ -512,7 +513,8 @@ class CjsMusicEngine {
     getGlobalStatePropertyWeights,
     getGlobalStateTransitionBoundaries,
     busDuckingController,
-    busEffects
+    busEffects,
+    busGraphRuntime
   } = {}) {
     this.#graph = graph ?? null;
     this.#context = context ?? null;
@@ -526,6 +528,7 @@ class CjsMusicEngine {
     this.#readGlobalStateTransitionBoundaries = typeof getGlobalStateTransitionBoundaries === "function" ? getGlobalStateTransitionBoundaries : null;
     this.#busDuckingController = busDuckingController ?? null;
     this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
+    this.#busGraphRuntime = busGraphRuntime ?? null;
     this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(() => this.RefreshBusDucking()) ?? null;
     if (random) this.#random = random;
     if (this.#context && this.#destination) {
@@ -601,6 +604,7 @@ class CjsMusicEngine {
     this.#unsubscribeBusDucking?.();
     this.#unsubscribeBusDucking = null;
     this.#busDuckingController = null;
+    this.#busGraphRuntime = null;
     this.#musicGain?.disconnect?.();
     this.#musicGain = null;
     this.#graph = null;
@@ -1550,7 +1554,7 @@ class CjsMusicEngine {
       const subTrack = subTracks?.get(trackId) ?? this.#SelectSubTrack(trackId, track, instance.trackSequencePositions);
       for (const clip of track.clips) {
         if ((clip.trackId ?? 0) !== subTrack) continue;
-        this.#ScheduleClip(instance, scheduled, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit, preparedBuffers);
+        this.#ScheduleClip(instance, scheduled, trackId, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit, preparedBuffers);
       }
     }
     return scheduled;
@@ -1585,7 +1589,7 @@ class CjsMusicEngine {
   }
 
   /** Loads and schedules one clip within its allowed pre/post-entry window. */
-  #ScheduleClip(instance, scheduled, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit, preparedBuffers) {
+  #ScheduleClip(instance, scheduled, trackId, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit, preparedBuffers) {
     const context = this.#context;
     const clipStartMs = clip.playAt + clip.beginTrimOffset;
     const clipEndMs = clip.playAt + clip.srcDuration + clip.endTrimOffset;
@@ -1644,7 +1648,7 @@ class CjsMusicEngine {
       scheduled.audibleEndCtx = Math.max(scheduled.audibleEndCtx, resolvedWhen + resolvedDurationMs / 1000);
       const source = context.createBufferSource();
       source.buffer = buffer;
-      const routeGain = this.#GetRouteGain(instance, scheduled, track);
+      const routeGain = this.#GetRouteGain(instance, scheduled, trackId, track);
       source.connect(routeGain ?? scheduled.gain);
       source.onended = () => {
         const endedAt = Number(context.currentTime) || entry.endCtx;
@@ -1679,7 +1683,7 @@ class CjsMusicEngine {
   }
 
   /** Gets or creates the gain node for one scheduled music bus route. */
-  #GetRouteGain(instance, scheduled, track) {
+  #GetRouteGain(instance, scheduled, trackId, track) {
     if (!Array.isArray(track.busPathIds) || !track.busPathIds.length) {
       return null;
     }
@@ -1687,7 +1691,20 @@ class CjsMusicEngine {
     const authoredBusMakeUpGainDb = Number(track.authoredBusMakeUpGainDb ?? 0);
     const authoredOutputBusVolumeDb = Number(track.authoredOutputBusVolumeDb ?? 0);
     const busPathIds = track.busPathIds.map(String);
-    const key = `${authoredBusVolumeDb}:${authoredBusMakeUpGainDb}:` + `${authoredOutputBusVolumeDb}:` + busPathIds.join("/");
+    const busGraphRoute = this.#busGraphRuntime?.ResolveMusicRoute(trackId, {
+      outputBusId: busPathIds[0],
+      busPathIds,
+      ...(track.authoredBusVolumeDb === undefined ? {} : {
+        authoredBusVolumeDb
+      }),
+      ...(track.authoredBusMakeUpGainDb === undefined ? {} : {
+        authoredBusMakeUpGainDb
+      }),
+      ...(track.authoredOutputBusVolumeDb === undefined ? {} : {
+        authoredOutputBusVolumeDb
+      })
+    }) ?? null;
+    const key = `${busGraphRoute?.index ?? "legacy"}:` + `${authoredBusVolumeDb}:${authoredBusMakeUpGainDb}:` + `${authoredOutputBusVolumeDb}:` + busPathIds.join("/");
     if (scheduled.routeGains.has(key)) {
       return scheduled.routeGains.get(key).input;
     }
@@ -1698,6 +1715,7 @@ class CjsMusicEngine {
     const route = {
       input: lowPassFilter ?? highPassFilter ?? gain,
       gain,
+      busGraphRoute,
       busPathIds,
       authoredBusVolumeDb,
       authoredBusMakeUpGainDb,

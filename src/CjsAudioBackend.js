@@ -98,6 +98,8 @@ export class CjsAudioBackend
 
     #busEffectCatalog = new Map();
 
+    #busGraphRuntime = null;
+
     #unsubscribeBusDucking = null;
 
     #nextPlayingID = 1;
@@ -129,6 +131,7 @@ export class CjsAudioBackend
         busStates,
         busDuckingController,
         busEffects,
+        busGraphRuntime,
     } = {})
     {
         this.#context = context ?? null;
@@ -158,6 +161,7 @@ export class CjsAudioBackend
         this.#busStateCatalog = indexBusStateCatalog(busStates);
         this.#busDuckingController = busDuckingController ?? null;
         this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
+        this.#busGraphRuntime = busGraphRuntime ?? null;
         this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(
             () => this.#RefreshBusDucking(),
         ) ?? null;
@@ -571,6 +575,8 @@ export class CjsAudioBackend
                             actionIndex: selectionMetadata.actionIndex,
                             leafIndex: selectionMetadata.leafIndex,
                             actionTime: selectionMetadata.actionTime,
+                            busRouteNodeId:
+                                selectionMetadata.busRouteNodeId,
                             matchIds: selectionMetadata.matchIds,
                             busPathIds: selectionMetadata.busPathIds,
                             authoredBusVolumeDb:
@@ -1753,6 +1759,7 @@ export class CjsAudioBackend
         this.#unsubscribeBusDucking?.();
         this.#unsubscribeBusDucking = null;
         this.#busDuckingController = null;
+        this.#busGraphRuntime = null;
         this.#sfxGain?.disconnect?.();
         this.#masterGain?.disconnect?.();
         this.#sfxGain = null;
@@ -3312,6 +3319,7 @@ export class CjsAudioBackend
                         actionIndex: selection.actionIndex,
                         leafIndex: selection.leafIndex,
                         actionTime: selection.actionTime,
+                        busRouteNodeId: selection.busRouteNodeId,
                         matchIds: selection.matchIds,
                         busPathIds: selection.busPathIds,
                         authoredBusVolumeDb:
@@ -4046,6 +4054,13 @@ export class CjsAudioBackend
     /** Creates one decoded SFX voice and its independent gain stage. */
     #CreateVoice(descriptor, emitterNodes, gameObjID)
     {
+        const busGraphRoute = this.#busGraphRuntime?.ResolveSfxRoute(
+            descriptor.busRouteNodeId,
+            {
+                ...descriptor,
+                outputBusId: descriptor.busPathIds[0],
+            },
+        ) ?? null;
         const gain = this.#context.createGain();
         const busGain = descriptor.busPathIds.length
             ? this.#context.createGain()
@@ -4180,6 +4195,7 @@ export class CjsAudioBackend
 
         const voice = {
             gameObjID,
+            busGraphRoute,
             buffer: descriptor.buffer,
             loop: descriptor.loop,
             playCount: descriptor.playCount,
@@ -4841,6 +4857,7 @@ export class CjsAudioBackend
                             actionIndex: selection.actionIndex,
                             leafIndex: selection.leafIndex,
                             actionTime: selection.actionTime,
+                            busRouteNodeId: selection.busRouteNodeId,
                             matchIds: selection.matchIds,
                             busPathIds: selection.busPathIds,
                             authoredBusVolumeDb:
@@ -5064,6 +5081,7 @@ export class CjsAudioBackend
                             actionIndex: selection.actionIndex,
                             leafIndex: selection.leafIndex,
                             actionTime: selection.actionTime,
+                            busRouteNodeId: selection.busRouteNodeId,
                             matchIds: selection.matchIds,
                             busPathIds: selection.busPathIds,
                             authoredBusVolumeDb:
@@ -5346,6 +5364,7 @@ export class CjsAudioBackend
                     actionIndex: selection.actionIndex,
                     leafIndex: selection.leafIndex,
                     actionTime,
+                    busRouteNodeId: selection.busRouteNodeId,
                     matchIds: selection.matchIds,
                     busPathIds: selection.busPathIds,
                     authoredBusVolumeDb:
@@ -6962,6 +6981,9 @@ function CreateProgramSelectionMetadata(selection, baseContextTime)
         matchIds: Object.freeze(
             (selection.matchIds ?? []).map(String),
         ),
+        ...(selection.busRouteNodeId === undefined
+            ? {}
+            : { busRouteNodeId: String(selection.busRouteNodeId) }),
         busPathIds: Object.freeze(
             (selection.busPathIds ?? []).map(String),
         ),
@@ -7244,6 +7266,20 @@ function NormalizeVoiceDescriptors(result, eventLoop)
                 `Audio voice ${index} matchIds must be an array of ids`,
             );
         }
+        const busRouteNodeId = value.busRouteNodeId === undefined
+            ? undefined
+            : String(value.busRouteNodeId);
+
+        if (busRouteNodeId !== undefined
+            && (!Number.isSafeInteger(Number(busRouteNodeId))
+                || Number(busRouteNodeId) <= 0
+                || Number(busRouteNodeId) > 0xffffffff
+                || String(Number(busRouteNodeId)) !== busRouteNodeId))
+        {
+            throw new TypeError(
+                `Audio voice ${index} busRouteNodeId must be a canonical positive id`,
+            );
+        }
         if (value.busPathIds !== undefined
             && (!Array.isArray(value.busPathIds)
                 || !value.busPathIds.length
@@ -7329,6 +7365,7 @@ function NormalizeVoiceDescriptors(result, eventLoop)
             matchIds: Object.freeze(
                 (value.matchIds ?? []).map(String),
             ),
+            ...(busRouteNodeId === undefined ? {} : { busRouteNodeId }),
             busPathIds: Object.freeze(busPathIds),
             ...(hasAuthoredBusVolume ? { authoredBusVolumeDb } : {}),
             ...(hasAuthoredBusMakeUpGain

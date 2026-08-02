@@ -56,6 +56,7 @@ class CjsAudioBackend {
   #busStateCatalog = new Map();
   #busDuckingController = null;
   #busEffectCatalog = new Map();
+  #busGraphRuntime = null;
   #unsubscribeBusDucking = null;
   #nextPlayingID = 1;
 
@@ -85,7 +86,8 @@ class CjsAudioBackend {
     busRtpcs,
     busStates,
     busDuckingController,
-    busEffects
+    busEffects,
+    busGraphRuntime
   } = {}) {
     this.#context = context ?? null;
     this.#loadBuffer = loadBuffer ?? null;
@@ -102,6 +104,7 @@ class CjsAudioBackend {
     this.#busStateCatalog = indexBusStateCatalog(busStates);
     this.#busDuckingController = busDuckingController ?? null;
     this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
+    this.#busGraphRuntime = busGraphRuntime ?? null;
     this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(() => this.#RefreshBusDucking()) ?? null;
     if (this.#context) {
       this.#masterGain = this.#context.createGain();
@@ -388,6 +391,7 @@ class CjsAudioBackend {
           actionIndex: selectionMetadata.actionIndex,
           leafIndex: selectionMetadata.leafIndex,
           actionTime: selectionMetadata.actionTime,
+          busRouteNodeId: selectionMetadata.busRouteNodeId,
           matchIds: selectionMetadata.matchIds,
           busPathIds: selectionMetadata.busPathIds,
           authoredBusVolumeDb: selectionMetadata.authoredBusVolumeDb,
@@ -1135,6 +1139,7 @@ class CjsAudioBackend {
     this.#unsubscribeBusDucking?.();
     this.#unsubscribeBusDucking = null;
     this.#busDuckingController = null;
+    this.#busGraphRuntime = null;
     this.#sfxGain?.disconnect?.();
     this.#masterGain?.disconnect?.();
     this.#sfxGain = null;
@@ -1994,6 +1999,7 @@ class CjsAudioBackend {
           actionIndex: selection.actionIndex,
           leafIndex: selection.leafIndex,
           actionTime: selection.actionTime,
+          busRouteNodeId: selection.busRouteNodeId,
           matchIds: selection.matchIds,
           busPathIds: selection.busPathIds,
           authoredBusVolumeDb: selection.authoredBusVolumeDb,
@@ -2341,6 +2347,10 @@ class CjsAudioBackend {
 
   /** Creates one decoded SFX voice and its independent gain stage. */
   #CreateVoice(descriptor, emitterNodes, gameObjID) {
+    const busGraphRoute = this.#busGraphRuntime?.ResolveSfxRoute(descriptor.busRouteNodeId, {
+      ...descriptor,
+      outputBusId: descriptor.busPathIds[0]
+    }) ?? null;
     const gain = this.#context.createGain();
     const busGain = descriptor.busPathIds.length ? this.#context.createGain() : null;
     const fadeGain = descriptor.fadeInMs > 0 ? this.#context.createGain() : null;
@@ -2404,6 +2414,7 @@ class CjsAudioBackend {
     }
     const voice = {
       gameObjID,
+      busGraphRoute,
       buffer: descriptor.buffer,
       loop: descriptor.loop,
       playCount: descriptor.playCount,
@@ -2753,6 +2764,7 @@ class CjsAudioBackend {
           actionIndex: selection.actionIndex,
           leafIndex: selection.leafIndex,
           actionTime: selection.actionTime,
+          busRouteNodeId: selection.busRouteNodeId,
           matchIds: selection.matchIds,
           busPathIds: selection.busPathIds,
           authoredBusVolumeDb: selection.authoredBusVolumeDb,
@@ -2870,6 +2882,7 @@ class CjsAudioBackend {
           actionIndex: selection.actionIndex,
           leafIndex: selection.leafIndex,
           actionTime: selection.actionTime,
+          busRouteNodeId: selection.busRouteNodeId,
           matchIds: selection.matchIds,
           busPathIds: selection.busPathIds,
           authoredBusVolumeDb: selection.authoredBusVolumeDb,
@@ -3013,6 +3026,7 @@ class CjsAudioBackend {
         actionIndex: selection.actionIndex,
         leafIndex: selection.leafIndex,
         actionTime,
+        busRouteNodeId: selection.busRouteNodeId,
         matchIds: selection.matchIds,
         busPathIds: selection.busPathIds,
         authoredBusVolumeDb: selection.authoredBusVolumeDb,
@@ -3888,6 +3902,9 @@ function CreateProgramSelectionMetadata(selection, baseContextTime) {
     }),
     actionTime: Number(baseContextTime) + Math.max(0, Number(selection.delayMs) || 0) / 1000,
     matchIds: Object.freeze((selection.matchIds ?? []).map(String)),
+    ...(selection.busRouteNodeId === undefined ? {} : {
+      busRouteNodeId: String(selection.busRouteNodeId)
+    }),
     busPathIds: Object.freeze((selection.busPathIds ?? []).map(String)),
     ...(selection.authoredBusVolumeDb === undefined ? {} : {
       authoredBusVolumeDb: Number(selection.authoredBusVolumeDb)
@@ -4037,6 +4054,10 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
     if (value.matchIds !== undefined && (!Array.isArray(value.matchIds) || value.matchIds.some(matchID => typeof matchID !== "string" && typeof matchID !== "number"))) {
       throw new TypeError(`Audio voice ${index} matchIds must be an array of ids`);
     }
+    const busRouteNodeId = value.busRouteNodeId === undefined ? undefined : String(value.busRouteNodeId);
+    if (busRouteNodeId !== undefined && (!Number.isSafeInteger(Number(busRouteNodeId)) || Number(busRouteNodeId) <= 0 || Number(busRouteNodeId) > 0xffffffff || String(Number(busRouteNodeId)) !== busRouteNodeId)) {
+      throw new TypeError(`Audio voice ${index} busRouteNodeId must be a canonical positive id`);
+    }
     if (value.busPathIds !== undefined && (!Array.isArray(value.busPathIds) || !value.busPathIds.length || value.busPathIds.some(busID => {
       const normalized = Number(busID);
       return !Number.isSafeInteger(normalized) || normalized <= 0 || normalized > 0xffffffff;
@@ -4076,6 +4097,9 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
       actionIndex,
       leafIndex,
       matchIds: Object.freeze((value.matchIds ?? []).map(String)),
+      ...(busRouteNodeId === undefined ? {} : {
+        busRouteNodeId
+      }),
       busPathIds: Object.freeze(busPathIds),
       ...(hasAuthoredBusVolume ? {
         authoredBusVolumeDb

@@ -9,6 +9,7 @@ import {
   CjsSfxEngine,
   createAudioUpdateContext,
 } from "../npm/dist/index.js";
+import { CjsBusGraphRuntime } from "../src/internal/busGraphRuntime.js";
 
 
 function FakeParam()
@@ -59,6 +60,82 @@ function FakeContext(log)
   };
   return context;
 }
+
+test("shared Bus graph runtime resolves stable SFX and music route handles", () =>
+{
+  const route = Object.freeze({
+    outputBusId: "500",
+    busPathIds: Object.freeze([ "500", "1" ]),
+    userAuxSends: Object.freeze([]),
+    authoredBusVolumeDb: -6,
+  });
+  const runtime = new CjsBusGraphRuntime({
+    schemaVersion: 1,
+    routes: Object.freeze([ route ]),
+    sfxRoutes: Object.freeze({ "100": 0 }),
+    musicRoutes: Object.freeze({ "200": 0 }),
+  });
+  const projection = {
+    outputBusId: "500",
+    busPathIds: [ "500", "1" ],
+    authoredBusVolumeDb: -6,
+  };
+  const sfx = runtime.ResolveSfxRoute("100", projection);
+  const music = runtime.ResolveMusicRoute("200", projection);
+
+  assert.equal(sfx, music);
+  assert.equal(sfx.index, 0);
+  assert.equal(sfx.route, route);
+  assert.equal(Object.isFrozen(sfx), true);
+  assert.equal(runtime.ResolveSfxRoute("101"), null);
+  assert.throws(
+    () => runtime.ResolveMusicRoute("200", {
+      ...projection,
+      busPathIds: [ "500" ],
+    }),
+    /dry route disagrees/u,
+  );
+  runtime.Dispose();
+  runtime.Dispose();
+  assert.equal(runtime.ResolveSfxRoute("100", projection), null);
+});
+
+test("CjsAudioSystem owns one Bus graph runtime for a library generation", () =>
+{
+  let captured = null;
+  let disposed = false;
+  const system = new CjsAudioSystem({
+    createContext: () => FakeContext([]),
+    busGraph: {
+      schemaVersion: 1,
+      routes: [ {
+        outputBusId: "500",
+        busPathIds: [ "500" ],
+        userAuxSends: [],
+      } ],
+      sfxRoutes: { "100": 0 },
+      musicRoutes: { "200": 0 },
+    },
+    createMusicEngine(options)
+    {
+      captured = options.busGraphRuntime;
+      return {
+        HandlesEvent: () => false,
+        PostEvent: () => false,
+        ExecuteAction() {},
+        Process() {},
+        Dispose() { disposed = true; },
+      };
+    },
+  });
+
+  system.Enable();
+  assert.ok(captured);
+  assert.equal(captured.ResolveSfxRoute("100").index, 0);
+  system.Dispose();
+  assert.equal(disposed, true);
+  assert.equal(captured.ResolveSfxRoute("100"), null);
+});
 
 test("audio update context normalizes host timing without owning playback time", () =>
 {

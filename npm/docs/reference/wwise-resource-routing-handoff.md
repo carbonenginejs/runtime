@@ -257,3 +257,25 @@ Convolution ShareSet `3019852427` references embedded source `154360724`, a
 3,179,376-byte `PLUG` payload in `hangar.bnk`, not WEM. The catalog retains that
 cross-bank media identity and opaque parameter block. Shared DSP placement and
 a qualified PLUG decoder remain prerequisites for audible parity.
+
+The first shared-runtime seam now resolves immutable route handles without
+making the catalog audible. One controller belongs to each enabled audio-system
+generation and is shared by SFX and music; install-time checks require every
+playable routed Sound/track to agree with its catalog dry projection. Exact
+leaf and track IDs survive scheduling, while library disposal invalidates the
+controller before the backend nodes are disconnected. The controller adds no
+audible processing; route identity can separate otherwise equivalent existing
+dry gain routes while preserving the same per-voice processing and destination.
+
+EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
+and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and
+configured to process LFE. The root limiter is ShareSet `3134687450` on bus
+`4085017428`: threshold `-1 dB`, ratio `10`, lookahead `0.01 s`, release
+`0.1 s`, and `0 dB` output. Pinned wwiser proves the limiter layout but has no
+Compressor parameter parser; the coherent Compressor field order therefore
+remains an empirical v150 corpus interpretation rather than a source-proven
+adapter contract. Web Audio's `DynamicsCompressorNode` has a fixed 6 ms
+lookahead, automatic makeup and different detector/envelope behavior, and a
+maximum ratio of 20 while one EVE Compressor authors 20.1. Exact mode keeps all
+six stages as barriers. The backend's independent safety compressor is not an
+authored Wwise limiter and must never be reused as one.

@@ -594,6 +594,7 @@ class CjsSfxEngine {
       const initialDelayMs = Math.max(0, terms.initialDelayMs + rtpcInitialDelayMs);
       const selection = {
         mediaID: String(node.mediaId),
+        busRouteNodeId: String(edge.nodeId),
         matchIds,
         ...(node.outputBusId === undefined ? {} : {
           busPathIds: Object.freeze(node.busPathIds.map(String)),

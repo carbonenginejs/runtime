@@ -1,7 +1,7 @@
 import { normalizeSfxGraph, validateSfxGraph, ValidateStateTransitions } from './sfxGraph.js';
 import { indexBusDuckingCatalog } from '../internal/busDucking.js';
 import { indexBusEffectCatalog } from '../internal/busEffects.js';
-import { normalizeBusGraphCatalog } from '../internal/busGraph.js';
+import { normalizeBusGraphCatalog, assertBusGraphRouteProjection } from '../internal/busGraph.js';
 
 const AUDIO_LIBRARY_SCHEMA = "carbonenginejs.audioLibrary";
 const AUDIO_LIBRARY_VERSION = 2;
@@ -25,8 +25,10 @@ function validateAudioLibraryDocument(value) {
   ValidateBanks(value.banks);
   ValidateEmbeddedMedia(value.embeddedMedia, value.banks);
   ValidateEventMedia(value.eventMedia, value.eventMediaLanguage, value.media, value.embeddedMedia ?? {});
+  let normalizedSfx = null;
   if (value.sfx !== undefined) {
     validateSfxGraph(value.sfx, value.media, value.embeddedMedia ?? {});
+    normalizedSfx = normalizeSfxGraph(value.sfx, value.media, value.embeddedMedia ?? {});
     for (const eventName of SfxEventNames(value.sfx)) {
       if (!metadata.Events[eventName]) {
         throw new TypeError(`Audio library SFX event ${eventName} has no metadata event`);
@@ -39,9 +41,48 @@ function validateAudioLibraryDocument(value) {
   indexBusDuckingCatalog(value.busDucking);
   indexBusEffectCatalog(value.busEffects);
   if (value.busGraph !== undefined) {
-    normalizeBusGraphCatalog(value.busGraph, value.embeddedMedia ?? {});
+    const busGraph = normalizeBusGraphCatalog(value.busGraph, value.embeddedMedia ?? {});
+    ValidateBusGraphConsumers(busGraph, normalizedSfx, value.music);
   }
   return true;
+}
+function ValidateBusGraphConsumers(busGraph, sfx, music) {
+  if (sfx) {
+    for (const [nodeId, node] of Object.entries(sfx.nodes ?? {})) {
+      if (node?.type !== "sound" || node.outputBusId === undefined) {
+        continue;
+      }
+      const routeIndex = busGraph.sfxRoutes[nodeId];
+      if (routeIndex === undefined) {
+        throw new TypeError(`Audio Bus graph omits routed SFX Sound ${nodeId}`);
+      }
+      assertBusGraphRouteProjection(busGraph.routes[routeIndex], node, `Audio Bus graph SFX route ${nodeId}`);
+    }
+  }
+  if (music) {
+    for (const [nodeId, node] of Object.entries(music.nodes ?? {})) {
+      if (node?.type !== "music-track" || node.outputBusId === undefined) {
+        continue;
+      }
+      const routeIndex = busGraph.musicRoutes[nodeId];
+      if (routeIndex === undefined) {
+        throw new TypeError(`Audio Bus graph omits routed music track ${nodeId}`);
+      }
+      assertBusGraphRouteProjection(busGraph.routes[routeIndex], {
+        outputBusId: node.outputBusId,
+        busPathIds: (node.busPathIds ?? []).map(id => String(Number(id) >>> 0)),
+        ...(node.authoredBusVolumeDb === undefined ? {} : {
+          authoredBusVolumeDb: Number(node.authoredBusVolumeDb)
+        }),
+        ...(node.authoredBusMakeUpGainDb === undefined ? {} : {
+          authoredBusMakeUpGainDb: Number(node.authoredBusMakeUpGainDb)
+        }),
+        ...(node.authoredOutputBusVolumeDb === undefined ? {} : {
+          authoredOutputBusVolumeDb: Number(node.authoredOutputBusVolumeDb)
+        })
+      }, `Audio Bus graph music route ${nodeId}`);
+    }
+  }
 }
 function ValidateBusStates(value) {
   if (value === undefined) {
@@ -359,7 +400,10 @@ function ValidateMusic(music, media, embeddedMedia) {
     throw new TypeError("Audio library music banks must be unique");
   }
   for (const [id, node] of Object.entries(nodes)) {
-    NormalizePositiveID(id, `Audio library music node ${id}`);
+    const canonicalID = NormalizePositiveID(id, `Audio library music node ${id}`);
+    if (id !== canonicalID) {
+      throw new TypeError(`Audio library music node ${id} must use canonical ID ${canonicalID}`);
+    }
     RequireRecord(node, `Audio library music node ${id}`);
     if (!bankNames.includes(NormalizeBankName(node.bank))) {
       throw new TypeError(`Audio library music node ${id} references unknown bank ${node.bank}`);

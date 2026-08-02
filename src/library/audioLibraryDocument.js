@@ -5,7 +5,10 @@ import {
 } from "./sfxGraph.js";
 import { indexBusDuckingCatalog } from "../internal/busDucking.js";
 import { indexBusEffectCatalog } from "../internal/busEffects.js";
-import { normalizeBusGraphCatalog } from "../internal/busGraph.js";
+import {
+    assertBusGraphRouteProjection,
+    normalizeBusGraphCatalog,
+} from "../internal/busGraph.js";
 
 const AUDIO_LIBRARY_SCHEMA = "carbonenginejs.audioLibrary";
 const AUDIO_LIBRARY_VERSION = 2;
@@ -49,9 +52,16 @@ export function validateAudioLibraryDocument(value)
         value.media,
         value.embeddedMedia ?? {},
     );
+    let normalizedSfx = null;
+
     if (value.sfx !== undefined)
     {
         validateSfxGraph(
+            value.sfx,
+            value.media,
+            value.embeddedMedia ?? {},
+        );
+        normalizedSfx = normalizeSfxGraph(
             value.sfx,
             value.media,
             value.embeddedMedia ?? {},
@@ -77,13 +87,74 @@ export function validateAudioLibraryDocument(value)
     indexBusEffectCatalog(value.busEffects);
     if (value.busGraph !== undefined)
     {
-        normalizeBusGraphCatalog(
+        const busGraph = normalizeBusGraphCatalog(
             value.busGraph,
             value.embeddedMedia ?? {},
         );
+
+        ValidateBusGraphConsumers(busGraph, normalizedSfx, value.music);
     }
 
     return true;
+}
+
+function ValidateBusGraphConsumers(busGraph, sfx, music)
+{
+    if (sfx)
+    {
+        for (const [ nodeId, node ] of Object.entries(sfx.nodes ?? {}))
+        {
+            if (node?.type !== "sound" || node.outputBusId === undefined)
+            {
+                continue;
+            }
+            const routeIndex = busGraph.sfxRoutes[nodeId];
+
+            if (routeIndex === undefined)
+            {
+                throw new TypeError(`Audio Bus graph omits routed SFX Sound ${nodeId}`);
+            }
+            assertBusGraphRouteProjection(
+                busGraph.routes[routeIndex],
+                node,
+                `Audio Bus graph SFX route ${nodeId}`,
+            );
+        }
+    }
+    if (music)
+    {
+        for (const [ nodeId, node ] of Object.entries(music.nodes ?? {}))
+        {
+            if (node?.type !== "music-track" || node.outputBusId === undefined)
+            {
+                continue;
+            }
+            const routeIndex = busGraph.musicRoutes[nodeId];
+
+            if (routeIndex === undefined)
+            {
+                throw new TypeError(`Audio Bus graph omits routed music track ${nodeId}`);
+            }
+            assertBusGraphRouteProjection(
+                busGraph.routes[routeIndex],
+                {
+                    outputBusId: node.outputBusId,
+                    busPathIds: (node.busPathIds ?? []).map(id =>
+                        String(Number(id) >>> 0)),
+                    ...(node.authoredBusVolumeDb === undefined
+                        ? {}
+                        : { authoredBusVolumeDb: Number(node.authoredBusVolumeDb) }),
+                    ...(node.authoredBusMakeUpGainDb === undefined
+                        ? {}
+                        : { authoredBusMakeUpGainDb: Number(node.authoredBusMakeUpGainDb) }),
+                    ...(node.authoredOutputBusVolumeDb === undefined
+                        ? {}
+                        : { authoredOutputBusVolumeDb: Number(node.authoredOutputBusVolumeDb) }),
+                },
+                `Audio Bus graph music route ${nodeId}`,
+            );
+        }
+    }
 }
 
 function ValidateBusStates(value)
@@ -715,7 +786,17 @@ function ValidateMusic(music, media, embeddedMedia)
 
     for (const [ id, node ] of Object.entries(nodes))
     {
-        NormalizePositiveID(id, `Audio library music node ${id}`);
+        const canonicalID = NormalizePositiveID(
+            id,
+            `Audio library music node ${id}`,
+        );
+
+        if (id !== canonicalID)
+        {
+            throw new TypeError(
+                `Audio library music node ${id} must use canonical ID ${canonicalID}`,
+            );
+        }
         RequireRecord(node, `Audio library music node ${id}`);
 
         if (!bankNames.includes(NormalizeBankName(node.bank)))

@@ -318,6 +318,43 @@ export function normalizeBusGraphCatalog(value, embeddedMedia = {})
     };
 }
 
+/** Rejects a consumer's dry-route projection when it disagrees with one catalog route. */
+export function assertBusGraphRouteProjection(route, projection, label)
+{
+    const expected = RequireRecord(route, `${label} route`);
+    const actual = RequireRecord(projection, `${label} projection`);
+    const outputBusId = actual.outputBusId === undefined
+        ? undefined
+        : CanonicalPositiveId(actual.outputBusId, `${label} outputBusId`);
+    const busPathIds = Array.isArray(actual.busPathIds)
+        ? actual.busPathIds.map((id, index) =>
+            CanonicalPositiveId(id, `${label} busPathIds ${index}`))
+        : [];
+
+    if (outputBusId !== expected.outputBusId
+        || busPathIds.length !== expected.busPathIds.length
+        || busPathIds.some((id, index) => id !== expected.busPathIds[index]))
+    {
+        throw new TypeError(`${label} dry route disagrees with the Audio Bus graph`);
+    }
+    for (const field of [
+        "authoredBusVolumeDb",
+        "authoredBusMakeUpGainDb",
+        "authoredOutputBusVolumeDb",
+    ])
+    {
+        const expectedHas = Object.hasOwn(expected, field);
+        const actualHas = actual[field] !== undefined;
+
+        if (expectedHas !== actualHas
+            || (expectedHas && expected[field] !== Number(actual[field])))
+        {
+            throw new TypeError(`${label} ${field} disagrees with the Audio Bus graph`);
+        }
+    }
+    return true;
+}
+
 function ValidateGainProperties(bus, busId)
 {
     for (const [ propertyId, field ] of GAIN_PROPERTY_FIELDS)

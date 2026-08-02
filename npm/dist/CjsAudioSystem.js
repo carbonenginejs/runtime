@@ -7,6 +7,7 @@ import { CjsAudioBackend } from './CjsAudioBackend.js';
 import { CjsMusicEngine } from './CjsMusicEngine.js';
 import { createAudioUpdateContext } from './CjsAudioUpdateContext.js';
 import { CjsBusDuckingController } from './internal/busDucking.js';
+import { CjsBusGraphRuntime } from './internal/busGraphRuntime.js';
 
 // CarbonEngineJS original (no Carbon counterpart). The audio system
 // composition root: owns the AudManager + AudStaticDataRepository + WebAudio
@@ -59,7 +60,9 @@ class CjsAudioSystem {
   #busStates = null;
   #busDucking = null;
   #busEffects = null;
+  #busGraph = null;
   #busDuckingController = null;
+  #busGraphRuntime = null;
   #providedUpdateContext = null;
   #adoptedEmitters = new Set();
   #adoptedCurveSetDrivers = new Set();
@@ -86,7 +89,8 @@ class CjsAudioSystem {
     busRtpcs,
     busStates,
     busDucking,
-    busEffects
+    busEffects,
+    busGraph
   } = {}) {
     this.#createContext = createContext ?? null;
     this.#loadBuffer = loadBuffer ?? null;
@@ -107,6 +111,7 @@ class CjsAudioSystem {
     this.#busStates = busStates ?? null;
     this.#busDucking = busDucking ?? null;
     this.#busEffects = busEffects ?? null;
+    this.#busGraph = busGraph ?? null;
     this.#providedUpdateContext = updateContext ?? null;
     if (audioMetadata) {
       this.repository.Initialize(audioMetadata);
@@ -143,6 +148,7 @@ class CjsAudioSystem {
     if (!this.backend && this.#createContext) {
       const context = this.#createContext();
       if (context) {
+        this.#busGraphRuntime = this.#busGraph ? new CjsBusGraphRuntime(this.#busGraph) : null;
         this.#busDuckingController = new CjsBusDuckingController(this.#busDucking);
         this.backend = new CjsAudioBackend({
           context,
@@ -159,7 +165,8 @@ class CjsAudioSystem {
           busRtpcs: this.#busRtpcs,
           busStates: this.#busStates,
           busDuckingController: this.#busDuckingController,
-          busEffects: this.#busEffects
+          busEffects: this.#busEffects,
+          busGraphRuntime: this.#busGraphRuntime
         });
         if (!this.musicEngine) {
           const destination = this.backend.masterGain ?? context.destination;
@@ -175,6 +182,7 @@ class CjsAudioSystem {
               busStates: this.#busStates,
               busDuckingController: this.#busDuckingController,
               busEffects: this.#busEffects,
+              busGraphRuntime: this.#busGraphRuntime,
               getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
               getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
               getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
@@ -190,6 +198,7 @@ class CjsAudioSystem {
               busStates: this.#busStates,
               busDuckingController: this.#busDuckingController,
               busEffects: this.#busEffects,
+              busGraphRuntime: this.#busGraphRuntime,
               getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
               getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
               getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
@@ -416,6 +425,8 @@ class CjsAudioSystem {
     this.musicEngine?.Dispose?.();
     this.musicEngine = null;
     this.#providedMusicEngine = null;
+    this.#busGraphRuntime?.Dispose?.();
+    this.#busGraphRuntime = null;
     this.backend?.Dispose?.();
     this.backend = null;
     this.#busDuckingController?.Dispose?.();

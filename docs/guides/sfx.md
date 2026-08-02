@@ -517,6 +517,18 @@ foundation, not an audible approximation. Current playback still uses only
 fully qualified distributed dry EQ routes; auxiliary sends and ordered shared
 effects remain silent until their complete reachable path has adapters.
 
+Installation cross-checks every playable routed SFX Sound and music track
+against its `busGraph` route, including dry ancestry and all three authored
+gain fields. At browser-gesture enable time the audio system creates one
+generation-scoped route controller and shares its stable route handles between
+the SFX backend and built-in music engine. Sound selections retain their exact
+leaf ID and music scheduling retains its exact track ID, so later realization
+does not have to infer topology from a coincidentally equal dry path. This
+controller is intentionally data-only: it creates no shared DSP nodes and adds
+no audible processing. Route identity can keep distinct authored routes from
+sharing an otherwise equivalent existing dry gain. Disposal invalidates the
+complete generation before backend graph teardown.
+
 The bank builder projects only named, Immediate Volume, Pitch, and filter
 state tables with their exact supported accumulation modes. A group containing
 another property or accumulation mode is omitted whole, rather than partially
