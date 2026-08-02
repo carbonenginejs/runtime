@@ -121,20 +121,24 @@ function toRecordFloat(bits) {
 /**
  * Wraps bytes as the record codec's sized blob reference.
  *
- * A zero-length blob keeps Carbon's null offset: the writer leaves the reference
- * unset and the reader consumes the word without dereferencing it, so an empty
- * payload and an absent one are not the same thing.
+ * A zero-length blob keeps the offset word the file carried, because the writer
+ * passes it straight through rather than interning anything. That word is
+ * usually `0xffffffff`, but not always — measured across the shipped corpus,
+ * 150 of 4833 files carry a live-looking offset behind a zero size, and
+ * normalizing it changes the bytes and can make two distinct bodies collapse
+ * into one. An empty payload and an absent one are not the same thing.
  *
  * @param {Uint8Array} bytes Payload bytes.
  * @param {number} [declaredSize] Size to declare when tracked separately.
+ * @param {number} [unsetOffset] Offset word to keep when the size is zero.
  * @returns {{size:number,offset:number,bytes:Uint8Array}} Blob reference.
  */
-function toRecordBlob(bytes, declaredSize) {
+function toRecordBlob(bytes, declaredSize, unsetOffset = 0xffffffff) {
   const owned = bytes instanceof Uint8Array ? bytes : new Uint8Array(0);
   const size = declaredSize ?? owned.byteLength;
   return {
     size,
-    offset: size === 0 ? 0xffffffff : 0,
+    offset: size === 0 ? unsetOffset >>> 0 : 0,
     bytes: owned
   };
 }
