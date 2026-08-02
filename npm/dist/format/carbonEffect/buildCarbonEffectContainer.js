@@ -1,7 +1,8 @@
 import { CjsCarbonEffectWriter } from './CjsCarbonEffectWriter.js';
-import { carbonDescriptionFromPortable } from './carbonDescriptionFromPortable.js';
+import { CjsCarbonEffectReader } from './CjsCarbonEffectReader.js';
+import { HlslShaderStageNames } from '../../formats/hlsl/core/tr2/HlslRenderContextEnum.js';
+import { Tr2EffectDescription } from '../../resource/shader/reflection/Tr2EffectDescription.js';
 import { CjsFormatWriteError } from '../CjsFormatError.js';
-import { buildEffectBodyReflection } from '../../formats/hlsl/core/portableReflection.js';
 
 /**
  * Assembles a backend effect container: Carbon's v15 record layout carrying our
@@ -77,35 +78,39 @@ function unitsByPassKey(body, unitsByKey) {
  * @param {object} backend Backend encoders.
  * @returns {object} Description record tree.
  */
-function describeBody(effectRes, permutationIndex, passUnits, backend) {
-  const reflection = buildEffectBodyReflection(effectRes, permutationIndex);
-  if (!passUnits) {
-    return carbonDescriptionFromPortable(reflection, {
-      programFor: () => ({
-        bytes: new Uint8Array(0),
-        size: 0
-      })
-    });
-  }
-  return carbonDescriptionFromPortable(reflection, {
-    programFor: (stage, context) => {
-      const unit = passUnits.get(context.passKey);
-      const shader = unit?.shaders.find(entry => entry.key === `${context.passKey}.${stage.stageName}`);
-      if (!shader) return {
-        bytes: new Uint8Array(0),
-        size: 0
-      };
-      const bytes = backend.encodeProgram(shader, stage, context);
-      return {
-        bytes,
-        size: bytes.byteLength
-      };
-    },
-    backendBlockFor: context => {
-      const unit = passUnits.get(context.passKey);
-      return unit ? backend.encodeBackendBlock(unit, context.passKey) : null;
+function describeBody(reader, permutationIndex, passUnits, backend) {
+  // Read the source body once, as the resource layer reads any Carbon body,
+  // then substitute on the resulting graph and emit it. The substitution is
+  // two edits - a stage's program and a pass's trailing block - so there is
+  // nothing here that wants a bespoke mapping of its own.
+  const effect = Tr2EffectDescription.fromCarbonBinary(reader.readDescription(permutationIndex));
+  for (const technique of effect.techniques) {
+    for (const [passIndex, pass] of technique.passes.entries()) {
+      const passKey = `${technique.name}.pass${passIndex}`;
+      const unit = passUnits ? passUnits.get(passKey) : null;
+      for (const stage of pass.stageInputs) {
+        if (!stage.exists) continue;
+        const stageName = HlslShaderStageNames[stage.stageType];
+        const shader = unit?.shaders.find(entry => entry.key === `${passKey}.${stageName}`);
+        // A body the translator could not lower keeps its describable
+        // fields and carries a zero-length program: the wire then says
+        // exactly what is known, which is that no backend program was
+        // stored. The source DXBC is never re-emitted.
+        const bytes = shader ? backend.encodeProgram(shader) : new Uint8Array(0);
+        stage.sourceProgram = {
+          ...stage.sourceProgram,
+          bytes,
+          shaderSize: bytes.byteLength
+        };
+      }
+      const block = unit ? backend.encodeBackendBlock(unit, passKey) : null;
+      pass.backendBlock = block ? {
+        bytes: block,
+        size: block.byteLength
+      } : null;
     }
-  });
+  }
+  return effect.toCarbonBinary();
 }
 
 /**
@@ -126,6 +131,13 @@ function buildCarbonEffectContainer(effectRes, permutationGraph, backendBodySet,
   if (typeof backend?.encodeProgram !== "function" || typeof backend?.encodeBackendBlock !== "function") {
     throw new CjsFormatWriteError("buildCarbonEffectContainer requires a backend with encodeProgram and encodeBackendBlock");
   }
+
+  // One reader over the source file, shared by every body: the arena and the
+  // offset table are read once, and a body is a seek into them. A dx11 effect
+  // is a Carbon v15 container, so the same reader serves here and at load.
+  const reader = new CjsCarbonEffectReader(effectRes.m_data, {
+    source: effectRes.sourcePath || "effect source"
+  });
   const unitsByKey = new Map(backendBodySet.passUnits.map(unit => [unit.key, unit]));
   const bodyByKey = new Map(backendBodySet.bodies.map(body => [body.bodyKey, body]));
   const writer = new CjsCarbonEffectWriter({
@@ -154,7 +166,7 @@ function buildCarbonEffectContainer(effectRes, permutationGraph, backendBodySet,
     let description = describedByBodyKey.get(variant.bodyKey);
     if (!description) {
       const body = bodyByKey.get(variant.bodyKey);
-      description = describeBody(effectRes, body?.representativePermutationIndex ?? permutationIndex, body?.status === "translated" ? unitsByPassKey(body, unitsByKey) : null, backend);
+      description = describeBody(reader, body?.representativePermutationIndex ?? permutationIndex, body?.status === "translated" ? unitsByPassKey(body, unitsByKey) : null, backend);
       describedByBodyKey.set(variant.bodyKey, description);
     }
     writer.addBody(permutationIndex, description);
