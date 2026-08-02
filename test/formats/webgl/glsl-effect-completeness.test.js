@@ -506,3 +506,130 @@ test("an ordinary undeclared resource is not reported", () =>
         []
     );
 });
+
+/** A stage carrying a three-layer detail-map transform. */
+function transformStage(overrides = {})
+{
+    return stage("pixel", "ps", "body_1", {
+        transforms: [ {
+            id: "Main.pass0:detail-map-array:sampled-resource:0:11",
+            family: "detail-map-array",
+            stage: "fragment",
+            inputs: [
+                { parameter: "Detail1Map", layer: 0, registerSpace: 0, registerIndex: 11 },
+                { parameter: "Detail2Map", layer: 1, registerSpace: 0, registerIndex: 12 },
+                { parameter: "Detail3Map", layer: 2, registerSpace: 0, registerIndex: 13 }
+            ]
+        } ],
+        ...overrides
+    });
+}
+
+test("a declared transform must agree with the bindings it rewrote", () =>
+{
+    // The carrier is declared and the merged-away inputs are not: the shader
+    // agrees that eleven, twelve and thirteen became one array at eleven.
+    const agreed = inspectGlslContainerIntegrity(containerGraph(
+        [ transformStage() ],
+        [ shader("ps", { bindings: [
+            { name: "sDetailArrayMap", registerIndex: 11, samplerType: "sampler2DArray" }
+        ] }) ]
+    ));
+    assert.deepEqual(
+        agreed.errors.filter((entry) => entry.code?.startsWith("resource_transform")),
+        []
+    );
+
+    // A merged-away input the shader still declares means the merge did not
+    // happen, whatever the transform says.
+    const stillBound = inspectGlslContainerIntegrity(containerGraph(
+        [ transformStage() ],
+        [ shader("ps", { bindings: [
+            { name: "sDetailArrayMap", registerIndex: 11 },
+            { name: "sDetail2", registerIndex: 12 }
+        ] }) ]
+    ));
+    const bound = stillBound.errors.find(
+        (entry) => entry.code === "resource_transform_input_still_bound"
+    );
+    assert.ok(bound, "a still-bound merged input must be reported");
+    assert.equal(bound.register, 12);
+
+    // A carrier the shader never declares cannot be bound at all.
+    const noCarrier = inspectGlslContainerIntegrity(containerGraph(
+        [ transformStage() ],
+        [ shader("ps", { bindings: [ { name: "sOther", registerIndex: 2 } ] }) ]
+    ));
+    assert.ok(noCarrier.errors.some(
+        (entry) => entry.code === "resource_transform_carrier_undeclared"
+    ));
+});
+
+test("a transform's layers must be a contiguous range from zero", () =>
+{
+    const result = inspectGlslContainerIntegrity(containerGraph(
+        [ transformStage({
+            transforms: [ {
+                id: "gap",
+                family: "detail-map-array",
+                stage: "fragment",
+                inputs: [
+                    { parameter: "Detail1Map", layer: 0, registerSpace: 0, registerIndex: 11 },
+                    { parameter: "Detail3Map", layer: 2, registerSpace: 0, registerIndex: 13 }
+                ]
+            } ]
+        }) ],
+        [ shader("ps", { bindings: [ { name: "sDetailArrayMap", registerIndex: 11 } ] }) ]
+    ));
+
+    assert.ok(result.errors.some(
+        (entry) => entry.code === "resource_transform_layer_gap"
+    ));
+});
+
+test("a transform with fewer than two inputs merged nothing", () =>
+{
+    const result = inspectGlslContainerIntegrity(containerGraph(
+        [ transformStage({
+            transforms: [ {
+                id: "single",
+                family: "detail-map-array",
+                stage: "fragment",
+                inputs: [
+                    { parameter: "Detail1Map", layer: 0, registerSpace: 0, registerIndex: 11 }
+                ]
+            } ]
+        }) ],
+        [ shader("ps", { bindings: [ { name: "sDetailArrayMap", registerIndex: 11 } ] }) ]
+    ));
+
+    assert.ok(result.errors.some(
+        (entry) => entry.code === "resource_transform_underfilled"
+    ));
+});
+
+test("a transform is checked only against the stage it rewrites", () =>
+{
+    // The transform belongs to the pass but names a fragment stage. Held against
+    // the vertex stage of the same pass it would report a missing carrier on a
+    // container with nothing wrong with it.
+    const result = inspectGlslContainerIntegrity(containerGraph(
+        [ stage("vertex", "vs", "body_1", {
+            transforms: [ {
+                id: "Main.pass0:detail-map-array:sampled-resource:0:11",
+                family: "detail-map-array",
+                stage: "fragment",
+                inputs: [
+                    { parameter: "Detail1Map", layer: 0, registerSpace: 0, registerIndex: 11 },
+                    { parameter: "Detail2Map", layer: 1, registerSpace: 0, registerIndex: 12 }
+                ]
+            } ]
+        }) ],
+        [ shader("vs", { bindings: [] }) ]
+    ));
+
+    assert.deepEqual(
+        result.errors.filter((entry) => entry.code?.startsWith("resource_transform")),
+        []
+    );
+});

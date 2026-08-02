@@ -23,7 +23,6 @@
     "./formats/dds": "./dist/formats/dds/index.js",
     "./formats/dxbc": "./dist/formats/dxbc/index.js",
     "./formats/hlsl": "./dist/formats/hlsl/index.js",
-    "./formats/hlsl/portable": "./dist/formats/hlsl/portable.js",
     "./formats/webgl": "./dist/formats/webgl/index.js",
     "./formats/webgpu": "./dist/formats/webgpu/index.js",
     "./formats/fbx": "./dist/formats/fbx/index.js",

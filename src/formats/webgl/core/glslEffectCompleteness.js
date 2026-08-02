@@ -6,6 +6,13 @@ import { LOCAL_LIGHT_RESOURCE_NAMES } from "../../hlsl/core/localLightFamily.js"
  * A lowered family declares one synthesised uniform, so its own `registerIndex`
  * covers only one of the sources; the record carries the rest.
  */
+/** Transform stage names, in the shared codec's vocabulary, as WebGL names them. */
+const TRANSFORM_STAGE_NAMES = Object.freeze({
+  vertex: "vertex",
+  fragment: "pixel",
+  compute: "compute"
+});
+
 const LOCAL_LIGHT_RECORD_REGISTERS = Object.freeze([
   "lightIndexRegister",
   "lightDataRegister",
@@ -156,6 +163,108 @@ export function isComputeFragmentContract(value)
         routes.add(route);
     }
     return true;
+}
+
+/**
+ * Checks a declared resource transform against the bindings it claims to have
+ * rewritten.
+ *
+ * A transform says N described resources became one array binding. That claim is
+ * only meaningful if the shader agrees: the carrier - layer 0's register, whose
+ * slot the array occupies - must be declared, and every merged-away input must
+ * not be. A transform naming registers the shader still binds separately has not
+ * happened; a carrier the shader never declares cannot be bound.
+ *
+ * engine-webgpu makes equivalent checks when it realizes a package, and they are
+ * mostly about the emitted artefacts rather than the device. WebGL has no engine
+ * to make them, so a container can currently ship a transform nothing agrees
+ * with. Checking here covers both, and covers WebGL at the only point that
+ * exists.
+ *
+ * @param {object} stage Decoded stage record.
+ * @param {object} shader Decoded shader record.
+ * @param {object[]} errors Collected integrity errors.
+ */
+function checkResourceTransforms(stage, shader, errors)
+{
+    const all = Array.isArray(stage.transforms) ? stage.transforms : [];
+    // A transform belongs to a pass but rewrites one stage. The record names that
+    // stage in WGSL's vocabulary, where WebGL's is "pixel" - the block codec is
+    // shared between the backends and restores the field from one set of
+    // defaults. Checking a vertex stage against a fragment transform reports
+    // every pass twice and says nothing: measured on a shipped effect, that was
+    // 48 carrier-undeclared reports on a container with nothing wrong with it.
+    const transforms = all.filter(
+        (transform) => TRANSFORM_STAGE_NAMES[transform?.stage] === stage.stageName
+    );
+    if (!transforms.length) return;
+
+    const declared = new Set(
+        (Array.isArray(shader.bindings) ? shader.bindings : [])
+            .filter((binding) => Number.isSafeInteger(binding?.registerIndex))
+            .map((binding) => binding.registerIndex)
+    );
+
+    for (const transform of transforms)
+    {
+        const inputs = Array.isArray(transform?.inputs) ? transform.inputs : [];
+        if (inputs.length < 2)
+        {
+            addIntegrityError(
+                errors,
+                "resource_transform_underfilled",
+                `Stage ${stage.key} declares transform ${transform?.id || "<missing>"} with ${inputs.length} input(s); a merge needs at least two`,
+                { stageKey: stage.key, transformId: transform?.id || null }
+            );
+            continue;
+        }
+
+        // Layers address array slices, so they must be the whole range 0..n-1.
+        const layers = inputs.map((input) => input.layer);
+        if (layers.some((layer, index) => layer !== index))
+        {
+            addIntegrityError(
+                errors,
+                "resource_transform_layer_gap",
+                `Stage ${stage.key} transform ${transform.id} has layers ${layers.join(", ")} rather than a contiguous range`,
+                { stageKey: stage.key, transformId: transform.id, layers }
+            );
+            continue;
+        }
+
+        const [ carrier, ...merged ] = inputs;
+        if (Number.isSafeInteger(carrier.registerIndex)
+            && !declared.has(carrier.registerIndex))
+        {
+            addIntegrityError(
+                errors,
+                "resource_transform_carrier_undeclared",
+                `Stage ${stage.key} transform ${transform.id} names carrier register ${carrier.registerIndex}, which the shader does not declare`,
+                {
+                    stageKey: stage.key,
+                    transformId: transform.id,
+                    register: carrier.registerIndex
+                }
+            );
+        }
+
+        for (const input of merged)
+        {
+            if (!Number.isSafeInteger(input.registerIndex)) continue;
+            if (!declared.has(input.registerIndex)) continue;
+
+            addIntegrityError(
+                errors,
+                "resource_transform_input_still_bound",
+                `Stage ${stage.key} transform ${transform.id} merged register ${input.registerIndex} away, but the shader still declares it`,
+                {
+                    stageKey: stage.key,
+                    transformId: transform.id,
+                    register: input.registerIndex
+                }
+            );
+        }
+    }
 }
 
 /**
@@ -465,6 +574,7 @@ function validateShaderRuntimeContract(shader, stage, manifestStage, errors)
     }
 
     checkLocalLightFamilyAccounted(stage, shader, errors);
+    checkResourceTransforms(stage, shader, errors);
 
     if (!Array.isArray(shader.bindings)) return;
     const manifestBindings = Array.isArray(manifestStage.bindings) ? manifestStage.bindings : [];
