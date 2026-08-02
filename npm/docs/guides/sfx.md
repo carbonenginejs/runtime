@@ -548,8 +548,11 @@ category entries remain separate so application volume controls cannot merge
 unrelated routes prematurely. A blocked route returns no mixer input and
 allocates no partial graph. Qualified SFX route branches now consume these
 entries, including per-branch analyser stages that preserve aggregate emitter
-metering without merging route identity. Music remains on its existing route
-until its per-route transition lanes are separated.
+metering without merging route identity. Qualified music tracks use one
+transition lane per scheduled route and one Play-instance lane per exact route
+before the stable music category input. Segment crossfades and instance stop
+fades therefore remain route-local. Blocked music routes retain the legacy
+segment, instance, and music-output path.
 
 The bank builder projects only named, Immediate Volume, Pitch, and filter
 state tables with their exact supported accumulation modes. A group containing

@@ -714,6 +714,7 @@ class MusicInstance
         this.busVolumeStates = busVolumeStates ?? null;
         this.key = Symbol(`music:${playingID}:${rootId}`);
         this.gain = null;
+        this.routeMixerGains = new Map();
         this.resolvedTargetId = null;
         this.resolvedRoute = null;
         this.pendingTargetId = null;
@@ -2489,6 +2490,15 @@ export class CjsMusicEngine
             duckActivity: null,
         };
         scheduled.sources.push(entry);
+        // Resolve the route before loading starts. Qualified routes own
+        // segment-local fade lanes, which must exist before the caller can
+        // schedule an authored transition on this segment.
+        const routeGain = this.#GetRouteGain(
+            instance,
+            scheduled,
+            trackId,
+            track,
+        );
         const epoch = this.#epoch;
         const prepared = preparedBuffers?.has(clip.sourceId)
             ? preparedBuffers.get(clip.sourceId)
@@ -2534,13 +2544,6 @@ export class CjsMusicEngine
             );
             const source = context.createBufferSource();
             source.buffer = buffer;
-            const routeGain = this.#GetRouteGain(
-                instance,
-                scheduled,
-                trackId,
-                track,
-            );
-
             source.connect(routeGain ?? scheduled.gain);
             source.onended = () =>
             {
@@ -2654,6 +2657,19 @@ export class CjsMusicEngine
             this.#busEffectCatalog,
             busPathIds,
         );
+        const mixerInput = busGraphRoute
+            ? this.#busMixer?.GetInput?.(busGraphRoute, "music") ?? null
+            : null;
+        const transitionGain = mixerInput
+            ? this.#context.createGain()
+            : null;
+        const instanceRouteGain = mixerInput
+            ? this.#GetInstanceRouteGain(
+                instance,
+                busGraphRoute,
+                mixerInput,
+            )
+            : null;
         const route = {
             input: lowPassFilter ?? highPassFilter ?? gain,
             gain,
@@ -2665,6 +2681,7 @@ export class CjsMusicEngine
             busEffectNodes: busEffectChain?.nodes ?? [],
             lowPassFilter,
             highPassFilter,
+            transitionGain,
         };
 
         if (lowPassFilter)
@@ -2679,8 +2696,11 @@ export class CjsMusicEngine
             highPassFilter.Q.value = Math.SQRT1_2;
             highPassFilter.connect(gain);
         }
-        gain.connect(busEffectChain?.input ?? scheduled.gain);
-        busEffectChain?.output?.connect(scheduled.gain);
+        const routeDestination = transitionGain ?? scheduled.gain;
+
+        transitionGain?.connect(instanceRouteGain);
+        gain.connect(busEffectChain?.input ?? routeDestination);
+        busEffectChain?.output?.connect(routeDestination);
         ScheduleMusicBusGain(
             gain.gain,
             instance.busVolumeStates,
@@ -2721,6 +2741,41 @@ export class CjsMusicEngine
         return route.input;
     }
 
+    /** Gets one instance-local lane before a qualified shared music route. */
+    #GetInstanceRouteGain(instance, busGraphRoute, mixerInput)
+    {
+        let gain = instance.routeMixerGains.get(busGraphRoute);
+
+        if (gain)
+        {
+            return gain;
+        }
+        gain = this.#context.createGain();
+        if (instance.stopped && gain.gain && "value" in gain.gain)
+        {
+            gain.gain.value = 0;
+        }
+        gain.connect(mixerInput);
+        instance.routeMixerGains.set(busGraphRoute, gain);
+        return gain;
+    }
+
+    /** Returns every synchronized transition parameter for one segment. */
+    #GetSegmentGainParams(scheduledSegment)
+    {
+        const params = [];
+        const legacy = scheduledSegment?.gain?.gain;
+
+        if (legacy) params.push(legacy);
+        for (const route of scheduledSegment?.routeGains?.values?.() ?? [])
+        {
+            const param = route.transitionGain?.gain;
+
+            if (param) params.push(param);
+        }
+        return params;
+    }
+
     /** Loads and retains one decoded music source, evicting failed results. */
     #LoadBuffer(sourceId, track)
     {
@@ -2743,9 +2798,9 @@ export class CjsMusicEngine
     #ApplyFadeIn(scheduledSegment, entryTime, fade)
     {
         const duration = FadeDuration(fade);
-        const param = scheduledSegment?.gain?.gain;
+        const params = this.#GetSegmentGainParams(scheduledSegment);
 
-        if (!(duration > 0) || !param)
+        if (!(duration > 0) || !params.length)
         {
             return;
         }
@@ -2756,7 +2811,10 @@ export class CjsMusicEngine
 
         if (end <= now)
         {
-            if ("value" in param) param.value = 1;
+            for (const param of params)
+            {
+                if ("value" in param) param.value = 1;
+            }
             return;
         }
 
@@ -2766,15 +2824,18 @@ export class CjsMusicEngine
             Math.min(1, (effectiveStart - start) / duration),
         );
 
-        ScheduleFade(
-            param,
-            0,
-            1,
-            effectiveStart,
-            end - effectiveStart,
-            fade?.fadeCurve,
-            progress,
-        );
+        for (const param of params)
+        {
+            ScheduleFade(
+                param,
+                0,
+                1,
+                effectiveStart,
+                end - effectiveStart,
+                fade?.fadeCurve,
+                progress,
+            );
+        }
     }
 
     /** Applies an authored fade-out whose offset is relative to an exit cue. */
@@ -2851,20 +2912,22 @@ export class CjsMusicEngine
         if (scheduledSegment.fading) return;
         scheduledSegment.fading = true;
         scheduledSegment.fadeEndCtx = when + fadeSeconds;
-        if (fadeSeconds > 0 && scheduledSegment.gain?.gain)
+        if (fadeSeconds > 0)
         {
-            const param = scheduledSegment.gain.gain;
-            const authored = startValue !== null;
+            for (const param of this.#GetSegmentGainParams(scheduledSegment))
+            {
+                const authored = startValue !== null;
 
-            ScheduleFade(
-                param,
-                authored ? 1 : (param.value ?? 1),
-                0,
-                when,
-                fadeSeconds,
-                authored ? fadeCurve : LINEAR_FADE_CURVE,
-                authored ? progress : 0,
-            );
+                ScheduleFade(
+                    param,
+                    authored ? 1 : (param.value ?? 1),
+                    0,
+                    when,
+                    fadeSeconds,
+                    authored ? fadeCurve : LINEAR_FADE_CURVE,
+                    authored ? progress : 0,
+                );
+            }
         }
         for (const entry of scheduledSegment.sources)
         {
@@ -2906,10 +2969,21 @@ export class CjsMusicEngine
         if (fadeSeconds > 0)
         {
             instance.gain?.gain?.linearRampToValueAtTime?.(0, now + fadeSeconds);
+            for (const gain of instance.routeMixerGains.values())
+            {
+                gain.gain?.linearRampToValueAtTime?.(0, now + fadeSeconds);
+            }
         }
         else if (instance.gain?.gain && "value" in instance.gain.gain)
         {
             instance.gain.gain.value = 0;
+            for (const gain of instance.routeMixerGains.values())
+            {
+                if (gain.gain && "value" in gain.gain)
+                {
+                    gain.gain.value = 0;
+                }
+            }
         }
         for (const active of instance.active)
         {
@@ -2964,6 +3038,7 @@ export class CjsMusicEngine
             route.lowPassFilter?.disconnect?.();
             route.highPassFilter?.disconnect?.();
             route.gain?.disconnect?.();
+            route.transitionGain?.disconnect?.();
             for (const node of route.busEffectNodes ?? [])
             {
                 node.disconnect?.();
@@ -2985,6 +3060,11 @@ export class CjsMusicEngine
         }
         instance.active = [];
         instance.gain?.disconnect?.();
+        for (const gain of instance.routeMixerGains.values())
+        {
+            gain.disconnect?.();
+        }
+        instance.routeMixerGains.clear();
         const group = instance.group;
 
         group?.instances.delete(instance);

@@ -272,7 +272,10 @@ on a distinct flat branch. Branches retain the old generation's placement,
 scaling, and object-RTPC snapshot across unregister/re-register and disconnect
 only after that generation drains. They currently feed the same SFX destination
 unless the strict mixer qualifies the complete path; no shared DSP is enabled.
-Music still needs per-route transition lanes before it can attach safely.
+Qualified music tracks now attach through separate per-segment transition
+lanes and per-instance exact-route lanes. Those stages mirror authored
+crossfades and Play/Stop fades before the shared music category input, while
+blocked tracks retain the legacy music path.
 
 The system now owns the first fail-closed shared mixer contract. It can allocate
 stable SFX/music category entries and one shared unity node per common ancestor,
@@ -285,7 +288,10 @@ Qualified SFX branches now connect after their flat/spatial route stage to the
 shared SFX category input. When analyser support exists, each qualified branch
 uses its own analyser before that input and `GetGameObjLevel()` sums their sample
 frames with the legacy emitter analyser. Blocked paths still connect to the
-legacy SFX destination and allocate no partial mixer graph. The current EVE
+legacy SFX destination and allocate no partial mixer graph. Qualified music
+routes likewise retain route identity through segment and instance envelope
+lanes; their category volume is applied by the shared mixer rather than the
+legacy music output. The current EVE
 catalog qualifies zero of 16,255 SFX references and zero of 2,484 music
 references across 262 routes, so this integration changes no EVE signal path.
 

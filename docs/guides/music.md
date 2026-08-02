@@ -57,6 +57,17 @@ bus also contributes its separate Output Bus Volume; values on descendants
 without an output-bus override do not apply. The
 application music slider remains an independent downstream control.
 
+When the installed `busGraph` route passes the strict shared-mixer
+qualification, music keeps two route-local envelope stages before entering its
+stable music category input. Each exact route in a scheduled segment owns its
+own transition lane, while overlapping segments on the same route share only an
+instance lane for Play/Stop fades. This preserves switch, playlist, and
+transition-segment crossfades without merging different Bus routes. A blocked
+track stays on the legacy segment, instance, and music-output gains; both paths
+receive the application music volume exactly once. Route lanes are established
+before asynchronous clip loading, so a late decoded buffer cannot bypass an
+already scheduled fade.
+
 When the library contains a qualified static `busEffects` catalog, the
 built-in music engine also inserts its routed Parametric EQ bands between the
 track route gain and segment gain. EVE build 3444265 currently has no music

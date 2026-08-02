@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsMusicEngine, wwiseIdFromName } from "../npm/dist/index.js";
 import { CjsBusDuckingController } from "../src/internal/busDucking.js";
+import { CjsBusGraphRuntime } from "../src/internal/busGraphRuntime.js";
+import { CjsSharedBusMixer } from "../src/internal/busGraphMixer.js";
 
 
 // Synthetic music graph in the extractor's emitted shape: a switch container
@@ -205,6 +207,63 @@ function Deferred()
   let resolve;
   const promise = new Promise(next => { resolve = next; });
   return { promise, resolve };
+}
+
+function MixerBus(overrides = {})
+{
+  return {
+    type: "audio-bus",
+    channelConfig: { raw: 0 },
+    positioning: { flags: 0 },
+    hdr: { flags: 0 },
+    bypassAllEffects: false,
+    userAuxSends: [],
+    effects: [],
+    requiresProcessing: [],
+    ...overrides,
+  };
+}
+
+function MusicMixerCatalog()
+{
+  return {
+    schemaVersion: 1,
+    effects: {},
+    buses: {
+      "1": MixerBus(),
+      "500": MixerBus({ parentBusId: "1" }),
+      "600": MixerBus({ parentBusId: "1" }),
+      "700": MixerBus({
+        parentBusId: "1",
+        requiresProcessing: [ "state" ],
+      }),
+    },
+    routes: [
+      {
+        outputBusId: "500",
+        busPathIds: [ "500", "1" ],
+        userAuxSends: [],
+      },
+      {
+        outputBusId: "600",
+        busPathIds: [ "600", "1" ],
+        userAuxSends: [],
+      },
+      {
+        outputBusId: "700",
+        busPathIds: [ "700", "1" ],
+        userAuxSends: [],
+      },
+    ],
+    sfxRoutes: {},
+    musicRoutes: {
+      [TRACK_A]: 0,
+      [TRACK_B]: 1,
+      [TRANSITION_TRACK]: 2,
+      "911": 0,
+      "921": 1,
+    },
+  };
 }
 
 function PlaylistModeGraph({
@@ -2505,6 +2564,264 @@ test("graph replacement cancels stale pending media and reuses source ids with t
   assert.deepEqual(context.sources[0].buffer, { replacement: 111 });
   engine.Dispose();
   assert.deepEqual(finished, [ 701, 702 ]);
+});
+
+test("qualified music routes keep segment and instance fades before the shared mixer", async () =>
+{
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const catalog = MusicMixerCatalog();
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+
+  Object.assign(graph.nodes[TRACK_A], {
+    outputBusId: "500",
+    busPathIds: [ "500", "1" ],
+  });
+  graph.nodes[TRANSITION_TRACK] = {
+    type: "music-track",
+    trackType: 0,
+    subTrackCount: 1,
+    switchParams: null,
+    outputBusId: "700",
+    busPathIds: [ "700", "1" ],
+    clips: [ {
+      trackId: 0,
+      sourceId: 333,
+      eventId: 0,
+      playAt: 0,
+      beginTrimOffset: 0,
+      endTrimOffset: 0,
+      srcDuration: 10000,
+    } ],
+  };
+  graph.nodes[SEGMENT_A].children.push(TRANSITION_TRACK);
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+    random: () => 0.5,
+    busGraphRuntime: runtime,
+    busMixer: mixer,
+  });
+
+  engine.PostEvent("music_test_play", 702, () => {});
+  await tick();
+
+  const qualifiedSource = context.sources.find(source => source.buffer.fake === 111);
+  const blockedSource = context.sources.find(source => source.buffer.fake === 333);
+  const routeGain = qualifiedSource.connectedTo;
+  const segmentRouteGain = routeGain.connectedTo;
+  const instanceRouteGain = segmentRouteGain.connectedTo;
+  const qualifiedInput = mixer.GetInput(
+    runtime.ResolveMusicRoute(String(TRACK_A)),
+    "music",
+  );
+  const blockedRouteGain = blockedSource.connectedTo;
+  const legacySegmentGain = blockedRouteGain.connectedTo;
+  const legacyInstanceGain = legacySegmentGain.connectedTo;
+
+  assert.equal(instanceRouteGain.connectedTo, qualifiedInput);
+  assert.equal(
+    mixer.GetInput(runtime.ResolveMusicRoute(String(TRANSITION_TRACK)), "music"),
+    null,
+    "an authored processing barrier remains on the legacy music lane",
+  );
+  assert.equal(legacyInstanceGain.connectedTo, engine.musicGain);
+
+  engine.SetMusicVolume(0.4);
+  assert.equal(qualifiedInput.gain.value, 0.4);
+  assert.equal(engine.musicGain.gain.value, 0.4);
+
+  context.currentTime = 2;
+  engine.ExecuteAction("stop", 702, 1000);
+  assert.deepEqual(segmentRouteGain.gain.ramps, [ [ 0, 3 ] ]);
+  assert.deepEqual(instanceRouteGain.gain.ramps, [ [ 0, 3 ] ]);
+  assert.deepEqual(legacySegmentGain.gain.ramps, [ [ 0, 3 ] ]);
+  assert.deepEqual(legacyInstanceGain.gain.ramps, [ [ 0, 3 ] ]);
+
+  context.currentTime = 3;
+  engine.Process();
+  assert.equal(segmentRouteGain.disconnected, true);
+  assert.equal(instanceRouteGain.disconnected, true);
+  assert.equal(qualifiedInput.disconnected, false, "the system-owned mixer survives music disposal");
+  assert.equal(
+    mixer.GetInput(runtime.ResolveMusicRoute(String(TRACK_A)), "music"),
+    qualifiedInput,
+  );
+  mixer.Dispose();
+  runtime.Dispose();
+});
+
+test("qualified music crossfades retain distinct segment lanes on one route", async () =>
+{
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const catalog = MusicMixerCatalog();
+
+  catalog.musicRoutes[TRACK_B] = 0;
+  Object.assign(graph.nodes[TRACK_A], {
+    outputBusId: "500",
+    busPathIds: [ "500", "1" ],
+  });
+  Object.assign(graph.nodes[TRACK_B], {
+    outputBusId: "500",
+    busPathIds: [ "500", "1" ],
+  });
+  graph.nodes[SWITCH].rules[0].src.syncType = 2;
+  graph.nodes[SWITCH].rules[0].src.transitionTime = 500;
+  graph.nodes[SWITCH].rules[0].dst.transitionTime = 500;
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+    random: () => 0.5,
+    busGraphRuntime: runtime,
+    busMixer: mixer,
+  });
+
+  engine.PostEvent("music_test_play", 703, () => {});
+  await tick();
+  context.currentTime = 2.3;
+  engine.PostEvent("music_switch_combat", 704, () => {});
+  await tick();
+
+  const source = context.sources.find(node => node.buffer.fake === 111);
+  const destination = context.sources.find(node => node.buffer.fake === 222);
+  const sourceSegmentLane = source.connectedTo.connectedTo;
+  const destinationSegmentLane = destination.connectedTo.connectedTo;
+
+  assert.notEqual(sourceSegmentLane, destinationSegmentLane);
+  assert.equal(
+    sourceSegmentLane.connectedTo,
+    destinationSegmentLane.connectedTo,
+    "overlapping segments share only the instance lane for one exact route",
+  );
+  assert.deepEqual(sourceSegmentLane.gain.ramps, [ [ 0, 3 ] ]);
+  assert.ok(
+    destinationSegmentLane.gain.ramps.some(([ value ]) => value === 1),
+    "the incoming route lane receives the authored fade-in",
+  );
+
+  engine.Dispose();
+  assert.equal(sourceSegmentLane.disconnected, true);
+  assert.equal(destinationSegmentLane.disconnected, true);
+  assert.equal(mixer.GetInput(runtime.ResolveMusicRoute(String(TRACK_A)), "music").disconnected, false);
+  mixer.Dispose();
+  runtime.Dispose();
+});
+
+test("deferred qualified music keeps pre-scheduled fades on distinct routes", async () =>
+{
+  const graph = PlaylistModeGraph({
+    rsType: 0,
+    loop: 1,
+    segments: [ 910, 920 ],
+  });
+  const context = FakeContext();
+  const pending = Deferred();
+  const catalog = MusicMixerCatalog();
+
+  Object.assign(graph.nodes[911], {
+    outputBusId: "500",
+    busPathIds: [ "500", "1" ],
+  });
+  Object.assign(graph.nodes[921], {
+    outputBusId: "600",
+    busPathIds: [ "600", "1" ],
+  });
+  graph.nodes[900].rules = [ {
+    srcIds: [ -1 ],
+    dstIds: [ -1 ],
+    src: {
+      transitionTime: 500,
+      fadeCurve: 4,
+      fadeOffset: 0,
+      syncType: 7,
+      playPostExit: false,
+    },
+    dst: {
+      transitionTime: 500,
+      fadeCurve: 4,
+      fadeOffset: 0,
+      playPreEntry: false,
+    },
+    transitionSegment: null,
+  } ];
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: sourceId => sourceId === 1001
+      ? pending.promise
+      : Promise.resolve({ fake: sourceId }),
+    busGraphRuntime: runtime,
+    busMixer: mixer,
+  });
+
+  engine.PostEvent("play", 705, () => {});
+  await tick();
+
+  const sourceInput = mixer.GetInput(
+    runtime.ResolveMusicRoute("911"),
+    "music",
+  );
+  const destinationInput = mixer.GetInput(
+    runtime.ResolveMusicRoute("921"),
+    "music",
+  );
+  const source = context.sources.find(node => node.buffer.fake === 1000);
+  const sourceSegmentLane = source.connectedTo.connectedTo;
+  const sourceInstanceLane = sourceSegmentLane.connectedTo;
+  const destinationInstanceLane = context.gains.find(gain =>
+    gain.connectedTo === destinationInput);
+  const destinationSegmentLane = context.gains.find(gain =>
+    gain.connectedTo === destinationInstanceLane);
+
+  assert.equal(sourceInstanceLane.connectedTo, sourceInput);
+  assert.notEqual(sourceInstanceLane, destinationInstanceLane);
+  assert.notEqual(sourceInput, destinationInput);
+  assert.deepEqual(destinationSegmentLane.gain.sets, [ [ 0, 1 ] ]);
+  assert.deepEqual(destinationSegmentLane.gain.ramps, [ [ 1, 1.5 ] ]);
+  assert.equal(
+    context.sources.some(node => node.buffer.fake === 1001),
+    false,
+    "the destination route lane exists before its media resolves",
+  );
+
+  context.currentTime = 0.25;
+  pending.resolve({ fake: 1001 });
+  await tick();
+  const destination = context.sources.find(node => node.buffer.fake === 1001);
+
+  assert.equal(destination.connectedTo.connectedTo, destinationSegmentLane);
+  assert.deepEqual(
+    destinationSegmentLane.gain.ramps,
+    [ [ 1, 1.5 ] ],
+    "late media enters the already-authored destination fade",
+  );
+
+  engine.Dispose();
+  mixer.Dispose();
+  runtime.Dispose();
 });
 
 test("music track routes combine authored base gain with live ancestor Bus Volume", async () =>
