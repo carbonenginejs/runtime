@@ -7,7 +7,6 @@ import { buildWgsl } from './wgsl/emitWgsl.js';
 import { buildWgslSet } from './wgsl/buildWgslSet.js';
 import { buildResourceTransformPlan } from './wgsl/buildResourceTransformPlan.js';
 import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_PERMUTATION_GRAPH_FORMAT, EFFECT_PERMUTATION_GRAPH_CHUNK } from '../../../format/effect/effectPermutationGraph.js';
-import { buildCompleteEffectReflection } from '../../../format/effect/effectReflectionPackage.js';
 import { buildEffectBackendBodySet, EFFECT_BACKEND_BODY_SET_VERSION, EFFECT_BACKEND_BODY_SET_FORMAT, EFFECT_BACKEND_BODY_SET_CHUNK } from './effectBackendBodySet.js';
 import { DXBC_WGSL_TRANSLATOR_VERSION, DXBC_WGSL_TRANSLATOR_NAME, FORMAT_WEBGPU_PACKAGE_VERSION, FORMAT_WEBGPU_PACKAGE_NAME, WEBGPU_BACKEND_NAME, EFFECT_INFO_VERSION } from './packageMetadata.js';
 import { sha256Utf8, sha256Bytes } from '../../../format/effect/sha256.js';
@@ -118,12 +117,12 @@ function buildEffectPackage(input, options = {}) {
   const wgsl = buildWgslSet(shaderEntries);
   const wgslSelection = buildWgslSelectionMetadata(selection, selectedStages);
   const permutationGraph = buildEffectPermutationGraph(resolved.effectRes);
-  const effectReflection = resolved.effectRes.m_version === 15 ? buildCompleteEffectReflection(resolved.effectRes, permutationGraph, {
-    sourceIdentity,
-    sourcePath: source
-  }) : null;
-  if (mode === "all" && !effectReflection) {
-    throw new Error("Effect package mode all requires complete version-15 source reflection");
+  // The source is complete when it is a version-15 container. This used to be
+  // read off a built reflection document, which made the document look load
+  // bearing when it was only ever a consequence of the same version check.
+  const sourceComplete = resolved.effectRes.m_version === 15;
+  if (mode === "all" && !sourceComplete) {
+    throw new Error("Effect package mode all requires a complete version-15 source");
   }
   const backendBodySet = mode === "all" ? buildEffectBackendBodySet(resolved.effectRes, permutationGraph, {
     source,
@@ -132,7 +131,7 @@ function buildEffectPackage(input, options = {}) {
   }) : null;
   const completeness = Object.freeze({
     packageValid: true,
-    sourceComplete: effectReflection !== null,
+    sourceComplete,
     backendComplete: false,
     runtimeComplete: false
   });
@@ -156,8 +155,7 @@ function buildEffectPackage(input, options = {}) {
       permutationCount: permutationGraph.variants.length,
       uniqueBodyCount: permutationGraph.bodies.length
     }),
-    ...(effectReflection ? {
-      effectReflection: effectReflection.pointer,
+    ...(sourceComplete ? {
       sourceBodyCoverage: "all-unique",
       backendBodyCoverage: backendBodySet ? backendBodySet.coverage.bodies : "selected"
     } : {}),
@@ -228,8 +226,6 @@ function buildEffectPackage(input, options = {}) {
     info: Object.freeze(info),
     metadata: Object.freeze(metadata),
     permutationGraph,
-    reflection: effectReflection?.reflection ?? null,
-    reflectionBlobs: effectReflection?.blobBytes ?? null,
     analysis,
     wgsl,
     backendBodySet,
