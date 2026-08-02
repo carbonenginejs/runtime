@@ -57,6 +57,38 @@ function CreateDocument()
     };
 }
 
+function BusGraphBus(overrides = {})
+{
+    return {
+        type: "audio-bus",
+        channelConfig: {
+            raw: 0,
+            channelCount: 0,
+            configType: 0,
+            channelMask: 0,
+        },
+        properties: [],
+        positioning: {
+            flags: 0,
+            overrideParent: false,
+            listenerRelative: false,
+            pannerType: 0,
+            positionType: 0,
+        },
+        hdr: {
+            flags: 0,
+            enabled: false,
+            exponentialRelease: false,
+        },
+        auxFlags: 21,
+        bypassAllEffects: false,
+        userAuxSends: [],
+        effects: [],
+        requiresProcessing: [],
+        ...overrides,
+    };
+}
+
 test("validates and installs one detached immutable audio-library document", () =>
 {
     const source = CreateDocument();
@@ -385,6 +417,134 @@ test("validates and freezes the optional static Audio Bus effect catalog", () =>
         const invalid = structuredClone(source);
 
         mutate(invalid.busEffects);
+        assert.throws(() => validateAudioLibraryDocument(invalid));
+    }
+});
+
+test("validates and freezes the portable ordered Audio Bus graph", () =>
+{
+    const source = CreateDocument();
+
+    source.embeddedMedia = {
+        "999": {
+            sourceID: "embedded:999:524:0",
+            bank: "524:0",
+            offset: 12,
+            byteLength: 3,
+            mediaType: "plugin",
+        },
+    };
+    source.busGraph = {
+        schemaVersion: 1,
+        effects: {
+            "900": {
+                type: "effect-share-set",
+                pluginId: 0x007f0003,
+                pluginType: 3,
+                companyId: 0,
+                pluginClassId: 0x007f,
+                parameterByteLength: 3,
+                parametersBase64: "AQID",
+                media: [ { index: 0, sourceId: "999" } ],
+                controls: {
+                    rtpcCount: 0,
+                    statePropertyCount: 0,
+                    stateGroupCount: 0,
+                    propertyValueCount: 0,
+                },
+            },
+        },
+        buses: {
+            "1": BusGraphBus(),
+            "500": BusGraphBus({
+                parentBusId: "1",
+                auxFlags: 29,
+                userAuxSends: [ {
+                    slotIndex: 0,
+                    targetBusId: "600",
+                    gainDb: -20,
+                    lowPass: 0,
+                    highPass: 0,
+                    dynamic: false,
+                } ],
+                requiresProcessing: [ "aux-sends" ],
+            }),
+            "600": BusGraphBus({
+                type: "auxiliary-bus",
+                parentBusId: "1",
+                effects: [ {
+                    slotIndex: 0,
+                    effectId: "900",
+                    bypass: false,
+                    shareSet: true,
+                    rendered: false,
+                } ],
+                requiresProcessing: [ "auxiliary-bus", "effects" ],
+            }),
+        },
+        routes: [ {
+            outputBusId: "500",
+            busPathIds: [ "500", "1" ],
+            userAuxSends: [],
+        } ],
+        sfxRoutes: { "100": 0 },
+        musicRoutes: {},
+    };
+    source.busGraph.buses["1"].properties = [
+        { id: 2, rawValue: 2 },
+        { id: 1, rawValue: "1" },
+    ];
+    source.busGraph.buses["1"].channelConfig.raw = "0";
+    delete source.busGraph.routes[0].userAuxSends;
+
+    const installed = installAudioLibraryDocument(source);
+
+    assert.equal(installed.busGraph.buses["500"].userAuxSends[0].gainDb, -20);
+    assert.equal(installed.busGraph.effects["900"].media[0].sourceId, "999");
+    assert.equal(Object.isFrozen(installed.busGraph.routes), true);
+    assert.equal(installed.busGraph.buses["1"].channelConfig.raw, 0);
+    assert.deepEqual(installed.busGraph.buses["1"].properties, [
+        { id: 1, rawValue: 1 },
+        { id: 2, rawValue: 2 },
+    ]);
+    assert.deepEqual(installed.busGraph.routes[0].userAuxSends, []);
+
+    const recursiveAux = structuredClone(source);
+
+    recursiveAux.busGraph.buses["600"].parentBusId = "500";
+    assert.equal(validateAudioLibraryDocument(recursiveAux), true);
+
+    const boundary = structuredClone(source);
+
+    Object.assign(boundary.busGraph.effects["900"], {
+        pluginId: 0xffffffff,
+        pluginType: 0x0f,
+        companyId: 0x0fff,
+        pluginClassId: 0xffff,
+    });
+    assert.equal(validateAudioLibraryDocument(boundary), true);
+
+    for (const mutate of [
+        value => { value.schemaVersion = 2; },
+        value => { value.effects["900"].parameterByteLength = 4; },
+        value => { value.effects["900"].pluginClassId = 0x0080; },
+        value => { value.effects["900"].parametersBase64 = "AB=="; value.effects["900"].parameterByteLength = 1; },
+        value => { value.effects["900"].media[0].sourceId = "998"; },
+        value => { value.buses["500"].userAuxSends[0].targetBusId = "601"; },
+        value => { value.buses["1"].parentBusId = "600"; },
+        value => { value.buses["1"].channelConfig.raw = 1; },
+        value => { value.buses["1"].positioning.flags = 2; },
+        value => { value.buses["1"].hdr.flags = 1; },
+        value => { value.buses["1"].busVolumeDb = 0; },
+        value => { value.buses["600"].type = "audio-bus"; },
+        value => { value.routes[0].busPathIds = [ "500" ]; },
+        value => { value.buses["700"] = BusGraphBus(); },
+        value => { value.sfxRoutes["100"] = 1; },
+    ])
+    {
+        const invalid = structuredClone(source);
+
+        mutate(invalid.busGraph);
         assert.throws(() => validateAudioLibraryDocument(invalid));
     }
 });

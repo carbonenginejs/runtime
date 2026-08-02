@@ -493,6 +493,30 @@ when downstream gain automation or moving spatialization varies between
 voices. Routes containing nonlinear or otherwise unsupported active stages are
 reserved for a shared ordered bus graph rather than partially adapted.
 
+`buildFromBanks()` also emits a version-1 `busGraph` topology for every routed
+SFX Sound and music track. Route records deduplicate dry ancestry plus effective
+NodeBase user/reflections sends. Bus records retain their parent, exact v150
+channel configuration and properties, authored auxiliary edges, processing
+reasons, and every ordered effect slot including bypassed and unsupported
+plug-ins. Effect records retain plug-in identity, parameter bytes as canonical
+base64, control counts, and embedded plug-in media source IDs. The validator
+rejects missing targets/effects/media, malformed ancestry, dry-parent cycles,
+unreachable records, and out-of-range route references.
+
+Each user/reflections send also carries a `dynamic` barrier flag when its
+active slot has an authored randomizer, RTPC, or State property. The topology
+keeps the static base value and refuses to imply that the dynamic contribution
+is already realizable; a later adapter must project that control table before
+the route can sound.
+
+Aux inheritance follows wwiser's root rule: a root NodeBase's authored list is
+effective even when its override bit is clear, because it has no parent. A
+non-root node with a clear override bit inherits, while the first overriding
+descendant replaces the inherited list. The catalog is the shared-runtime
+foundation, not an audible approximation. Current playback still uses only
+fully qualified distributed dry EQ routes; auxiliary sends and ordered shared
+effects remain silent until their complete reachable path has adapters.
+
 The bank builder projects only named, Immediate Volume, Pitch, and filter
 state tables with their exact supported accumulation modes. A group containing
 another property or accumulation mode is omitted whole, rather than partially

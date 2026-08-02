@@ -3371,6 +3371,21 @@ test("complete construction projects routed static Wwise Parametric EQ", async (
             } ],
         },
     });
+    assert.deepEqual(library.busGraph.routes, [ {
+        outputBusId: "500",
+        busPathIds: [ "500" ],
+        userAuxSends: [],
+    } ]);
+    assert.equal(library.busGraph.sfxRoutes["300"], 0);
+    assert.equal(library.busGraph.buses["500"].effects[0].effectId, "900");
+    assert.equal(
+        library.busGraph.effects["900"].parametersBase64.length,
+        76,
+    );
+    assert.deepEqual(
+        library.busGraph.buses["500"].requiresProcessing,
+        [ "effects" ],
+    );
 });
 
 test("routed Parametric EQ qualification rejects unsupported static forms", async () =>
@@ -3455,6 +3470,177 @@ test("routed Parametric EQ qualification rejects unsupported static forms", asyn
         "900",
         "a bypassed unsupported slot is not an audible ordering barrier",
     );
+});
+
+test("portable Bus graph resolves NodeBase inheritance and authored bus sends", async () =>
+{
+    const library = await CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {},
+            SoundBanks: {
+                "init.bnk": {
+                    name: "init",
+                    path: "\\SoundBanks\\init.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/init.bnk",
+            storagePath: "banks/init.bnk",
+            byteLength: 512,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideBusId: 500,
+                                directParentId: 400,
+                                properties: [ { id: 0x08, value: -12 } ],
+                                auxIds: [ 999 ],
+                                overrideUserAux: false,
+                            }),
+                        },
+                        {
+                            type: 2,
+                            id: 301,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideBusId: 500,
+                                directParentId: 401,
+                            }),
+                        },
+                        {
+                            type: 7,
+                            id: 400,
+                            payload: actorMixerPayload({
+                                properties: [ { id: 0x08, value: -6 } ],
+                                auxIds: [ 600 ],
+                                overrideUserAux: false,
+                                stateProperties: [ {
+                                    propertyId: 0x27,
+                                    accumulation: 0,
+                                } ],
+                                children: [ 300 ],
+                            }),
+                        },
+                        {
+                            type: 7,
+                            id: 401,
+                            payload: actorMixerPayload({
+                                properties: [ { id: 0x08, value: -6 } ],
+                                auxIds: [ 600 ],
+                                overrideUserAux: false,
+                                stateProperties: [ {
+                                    propertyId: 0x08,
+                                    accumulation: 0,
+                                } ],
+                                children: [ 301 ],
+                            }),
+                        },
+                        {
+                            type: 8,
+                            id: 1,
+                            payload: busPayload({
+                                reflectionsAuxBusId: 800,
+                            }),
+                        },
+                        {
+                            type: 8,
+                            id: 500,
+                            payload: busPayload({
+                                parentId: 1,
+                                properties: [ { id: 0x08, value: -20 } ],
+                                auxIds: [ 700 ],
+                                overrideUserAux: true,
+                            }),
+                        },
+                        {
+                            type: 18,
+                            id: 600,
+                            payload: busPayload({ parentId: 1 }),
+                        },
+                        {
+                            type: 18,
+                            id: 700,
+                            payload: busPayload({ parentId: 1 }),
+                        },
+                        {
+                            type: 18,
+                            id: 800,
+                            payload: busPayload({ parentId: 1 }),
+                        },
+                    ],
+                    media: [],
+                },
+            };
+        },
+    });
+
+    assert.deepEqual(library.busGraph.routes, [ {
+        outputBusId: "500",
+        busPathIds: [ "500", "1" ],
+        userAuxSends: [ {
+            slotIndex: 0,
+            targetBusId: "600",
+            gainDb: -6,
+            lowPass: 0,
+            highPass: 0,
+            dynamic: false,
+        } ],
+    }, {
+        outputBusId: "500",
+        busPathIds: [ "500", "1" ],
+        userAuxSends: [ {
+            slotIndex: 0,
+            targetBusId: "600",
+            gainDb: -6,
+            lowPass: 0,
+            highPass: 0,
+            dynamic: true,
+        } ],
+    } ]);
+    assert.equal(library.busGraph.sfxRoutes["300"], 0);
+    assert.equal(library.busGraph.sfxRoutes["301"], 1);
+    assert.deepEqual(library.busGraph.buses["500"].userAuxSends, [ {
+        slotIndex: 0,
+        targetBusId: "700",
+        gainDb: -20,
+        lowPass: 0,
+        highPass: 0,
+        dynamic: false,
+    } ]);
+    assert.deepEqual(library.busGraph.buses["1"].reflectionsAuxSend, {
+        targetBusId: "800",
+        gainDb: 0,
+        dynamic: false,
+    });
+    assert.deepEqual(Object.keys(library.busGraph.buses), [
+        "1",
+        "500",
+        "600",
+        "700",
+        "800",
+    ]);
 });
 
 test("complete construction projects multi-property effective-Immediate Bus States", async () =>
@@ -6274,6 +6460,10 @@ function soundPayload({
     rtpcs = [],
     stateProperties = [],
     stateGroups = [],
+    auxIds = [],
+    overrideUserAux = false,
+    overrideReflectionsAux = false,
+    reflectionsAuxBusId = 0,
 } = {})
 {
     return new TestWriter()
@@ -6294,6 +6484,10 @@ function soundPayload({
             rtpcs,
             stateProperties,
             stateGroups,
+            auxIds,
+            overrideUserAux,
+            overrideReflectionsAux,
+            reflectionsAuxBusId,
         }))
         .bytes();
 }
@@ -6530,6 +6724,10 @@ function actorMixerPayload({
     stateProperties = [],
     stateGroups = [],
     children = [],
+    auxIds = [],
+    overrideUserAux = false,
+    overrideReflectionsAux = false,
+    reflectionsAuxBusId = 0,
 } = {})
 {
     const writer = new TestWriter()
@@ -6544,6 +6742,10 @@ function actorMixerPayload({
             rtpcs,
             stateProperties,
             stateGroups,
+            auxIds,
+            overrideUserAux,
+            overrideReflectionsAux,
+            reflectionsAuxBusId,
         }))
         .u32(children.length);
 
@@ -6565,16 +6767,34 @@ function busPayload({
     rtpcs = [],
     stateProperties = [],
     stateGroups = [],
+    properties = [],
+    auxIds = [],
+    overrideUserAux = false,
+    overrideReflectionsAux = false,
+    reflectionsAuxBusId = 0,
 } = {})
 {
     const writer = new TestWriter().u32(parentId);
 
     if (parentId === 0) writer.u32(0);
 
+    writer.u8(properties.length);
+    for (const property of properties) writer.u8(property.id);
+    for (const property of properties) writer.f32(property.value);
+
+    const auxFlags = (overrideUserAux ? 0x04 : 0)
+        | (auxIds.length ? 0x08 : 0)
+        | (overrideReflectionsAux ? 0x10 : 0);
+
     writer
         .u8(0)
-        .u8(0)
-        .u8(0).u32(0)
+        .u8(auxFlags);
+    if (auxIds.length)
+    {
+        for (let index = 0; index < 4; index++) writer.u32(auxIds[index] ?? 0);
+    }
+    writer
+        .u32(reflectionsAuxBusId)
         .u8(0).u16(0).u32(0).u8(0)
         .u32(recoveryTime).f32(maxDuckVolume).u32(ducks.length);
 
@@ -6669,6 +6889,10 @@ function nodeBasePayload({
     rtpcs = [],
     stateProperties = [],
     stateGroups = [],
+    auxIds = [],
+    overrideUserAux = false,
+    overrideReflectionsAux = false,
+    reflectionsAuxBusId = 0,
 } = {})
 {
     const writer = new TestWriter()
@@ -6734,8 +6958,17 @@ function nodeBasePayload({
         writer.u8(spatialFlags);
     }
 
+    const auxFlags = (overrideUserAux ? 0x04 : 0)
+        | (auxIds.length ? 0x08 : 0)
+        | (overrideReflectionsAux ? 0x10 : 0);
+
+    writer.u8(auxFlags);
+    if (auxIds.length)
+    {
+        for (let index = 0; index < 4; index++) writer.u32(auxIds[index] ?? 0);
+    }
     writer
-        .u8(0).u32(0)
+        .u32(reflectionsAuxBusId)
         .u8(0).u8(0).u16(0).u8(0).u8(0)
         .u8(stateProperties.length);
 

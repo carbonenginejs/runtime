@@ -54,7 +54,10 @@ Only `schemaVersion: 2` is accepted:
     sfx: undefined,
     music: undefined,
     busRtpcs: undefined,
-    busStates: undefined
+    busStates: undefined,
+    busDucking: undefined,
+    busEffects: undefined,
+    busGraph: undefined
 }
 ```
 
@@ -78,6 +81,15 @@ Audio Bus Pitch deliberately does not affect Music objects. Matching groups on
 unique dry-ancestry buses accumulate before final pitch/filter clamps. An unset
 group or missing State case is neutral. Strict version-1 Bus Volume-only
 catalogs remain accepted for installed-library compatibility.
+When present, `busGraph` is the version-1 portable Wwise topology catalog. It
+deduplicates dry and effective NodeBase auxiliary route signatures, maps SFX
+Sound and music-track IDs to those routes, preserves reachable bus ancestry,
+authored user/reflections sends, exact channel configuration, ordered effect
+slots and bypass state, opaque parameter blocks, and plug-in media identities.
+Dynamic send slots are marked explicitly as realization barriers.
+The catalog is descriptive until a route is accepted by a qualified shared-bus
+runtime; its presence does not make unsupported auxiliary or nonlinear effect
+paths audible.
 
 ## Delivery
 

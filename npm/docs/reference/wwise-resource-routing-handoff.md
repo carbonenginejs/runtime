@@ -237,3 +237,23 @@ separate Make-Up Gain contract but does not yet make those EVE values audible.
 The next aux/effect slice must realize the effective auxiliary routing together
 with its ordered qualified effect chains; routing those sends as dry parallel
 copies would not be a parity implementation.
+
+The portable `busGraph` checkpoint now preserves the complete reachable
+topology without making it audible. EVE 3444265 projects 14 authored bus aux
+links from ten source buses to five targets. A wwiser-correct NodeBase walk
+finds 3,645 SFX Sounds with effective direct user sends (4,288 send references);
+root Actor-Mixer `513700882` is the important inheritance edge because its
+clear override bit is still effective at the root. Eight descendants replace
+that list, leaving 80 Sounds feeding Auxiliary Bus `2266223546`, whose authored
+send to `518379211` is the fourteenth bus link. Music authors no direct NodeBase
+send, though 2,482 tracks traverse bus `3991942870` and therefore its bus-level
+send to `1475559705`.
+
+The five wet targets divide cleanly. `3845478417`, `3243121821`, and
+`1475559705` return through a `-96 dB` parent and have only bypassed EQ/Meter
+slots. `1912148245` cascades to `518379211`; their audible paths contain ordered
+Compressor, Parametric EQ, Convolution Reverb, and Peak Limiter stages. The
+Convolution ShareSet `3019852427` references embedded source `154360724`, a
+3,179,376-byte `PLUG` payload in `hangar.bnk`, not WEM. The catalog retains that
+cross-bank media identity and opaque parameter block. Shared DSP placement and
+a qualified PLUG decoder remain prerequisites for audible parity.

@@ -2,6 +2,7 @@ import { audioMetadataFromSoundbanksInfo } from '../audioMetadata.js';
 import { validateAudioLibraryDocument } from '../library/audioLibraryDocument.js';
 import { normalizeSfxGraph, NormalizeStateTransitions } from '../library/sfxGraph.js';
 import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
+import { normalizeBusGraphCatalog } from '../internal/busGraph.js';
 
 // Browser-safe audio-library construction. Acquisition remains caller-owned:
 // the builder accepts index values, metadata values, and optional injected
@@ -88,6 +89,10 @@ const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
 const PARAMETRIC_EQ_FILTER_TYPES = Object.freeze(["lowpass", "highpass", "bandpass", "notch", "lowshelf", "highshelf", "peaking"]);
 const SFX_INITIAL_DELAY_PROPERTY = 34;
 const WWISE_OUTPUT_BUS_VOLUME_PROPERTY = 0x0d;
+const WWISE_USER_AUX_VOLUME_PROPERTY = 0x08;
+const WWISE_USER_AUX_LOW_PASS_PROPERTY = 0x10;
+const WWISE_USER_AUX_HIGH_PASS_PROPERTY = 0x14;
+const WWISE_REFLECTIONS_VOLUME_PROPERTY = 0x1a;
 const SFX_ADDITIVE_ACCUMULATION = 2;
 const SFX_FILTER_ACCUMULATION = 6;
 const SFX_IMMEDIATE_STATE_SYNC = 0;
@@ -457,6 +462,7 @@ class CjsAudioLibraryBuilder {
     const busStates = busCatalog ? CreateBusStateCatalog(busCatalog, busNames, musicBusIds) : null;
     const busDucking = busCatalog ? CreateBusDuckingCatalog(busCatalog) : null;
     const busEffects = busCatalog ? CreateBusEffectCatalog(graphInspections, busCatalog, routedBusIds) : null;
+    const busGraph = busCatalog && routedBusIds.size ? CreateBusGraphCatalog(graphInspections, includeMusic ? inspections.filter(inspection => MUSIC_BANK_NAMES.includes(bankSourceName(inspection.source))) : [], busCatalog) : null;
     let eventMedia = {};
     if (!includeSfx) {
       const merged = this.createEventMediaGraphs(graphInspections, {
@@ -475,7 +481,8 @@ class CjsAudioLibraryBuilder {
       busRtpcs,
       busStates,
       busDucking,
-      busEffects
+      busEffects,
+      busGraph
     };
     let assembledOptions = completeOptions;
     library = this.build(assembledOptions);
@@ -536,6 +543,7 @@ class CjsAudioLibraryBuilder {
       busStates = null,
       busDucking = null,
       busEffects = null,
+      busGraph = null,
       sourceTarget = null,
       sourceGame = null,
       sourceProvider = null,
@@ -610,6 +618,9 @@ class CjsAudioLibraryBuilder {
     }
     if (busEffects !== null && Object.keys(busEffects.buses ?? {}).length) {
       library.busEffects = NormalizeBusEffectCatalog(busEffects);
+    }
+    if (busGraph !== null && Object.keys(busGraph.buses ?? {}).length) {
+      library.busGraph = normalizeBusGraphCatalog(busGraph, library.embeddedMedia ?? {});
     }
     if (source) {
       library.sourceTarget = source.target;
@@ -2168,6 +2179,304 @@ function CreateBusEffectCatalog(inspections, buses, routedBusIds) {
     schemaVersion: 1,
     buses: result
   };
+}
+function CreateBusGraphCatalog(inspections, musicInspections, buses) {
+  const effectsResult = CjsBnkFormat.wwise.effectNodesFromBanks(inspections);
+  const sfxResult = CjsBnkFormat.wwise.sfxNodesFromBanks(inspections);
+  const musicResult = musicInspections.length ? CjsBnkFormat.wwise.musicNodesFromBanks(musicInspections) : {
+    nodes: new Map(),
+    diagnostics: {
+      failed: [],
+      unsupportedVersions: []
+    }
+  };
+  if (effectsResult.diagnostics.failed.length || effectsResult.diagnostics.unsupportedVersions.length || sfxResult.diagnostics.failed.length || sfxResult.diagnostics.unsupportedVersions?.length || musicResult.diagnostics.failed.length || musicResult.diagnostics.unsupportedVersions?.length) {
+    throw new Error("Audio Bus graph qualification failed");
+  }
+  const candidates = [];
+  for (const [id, node] of sfxResult.nodes) {
+    if (node.type !== "sound") continue;
+    const routing = CreateSfxBusRouting(sfxResult, id, buses);
+    if (!routing) continue;
+    candidates.push({
+      kind: "sfx",
+      nodeId: String(id),
+      route: {
+        ...routing,
+        ...CreateEffectiveNodeAuxRouting(id, current => sfxResult.nodeBases.get(current))
+      }
+    });
+  }
+  for (const [id, node] of musicResult.nodes) {
+    if (node.type !== "music-track") continue;
+    const routing = CreateMusicBusRouting(musicResult.nodes, id, buses);
+    if (!routing) continue;
+    candidates.push({
+      kind: "music",
+      nodeId: String(id),
+      route: {
+        ...routing,
+        ...CreateEffectiveNodeAuxRouting(id, current => musicResult.nodes.get(current)?.nodeBase)
+      }
+    });
+  }
+  const routesBySignature = new Map();
+  for (const candidate of candidates) {
+    const signature = JSON.stringify(candidate.route);
+    if (!routesBySignature.has(signature)) {
+      routesBySignature.set(signature, candidate.route);
+    }
+    candidate.signature = signature;
+  }
+  const signatures = [...routesBySignature.keys()].sort();
+  const routeIndices = new Map(signatures.map((signature, index) => [signature, index]));
+  const routes = signatures.map(signature => routesBySignature.get(signature));
+  const sfxRoutes = {};
+  const musicRoutes = {};
+  for (const candidate of candidates.sort((left, right) => Number(left.nodeId) - Number(right.nodeId))) {
+    const target = candidate.kind === "sfx" ? sfxRoutes : musicRoutes;
+    target[candidate.nodeId] = routeIndices.get(candidate.signature);
+  }
+  const reachable = new Set();
+  const pending = routes.flatMap(route => [...route.busPathIds, ...(route.userAuxSends ?? []).map(send => send.targetBusId), route.reflectionsAuxSend?.targetBusId].filter(Boolean).map(Number));
+  while (pending.length) {
+    const busId = Number(pending.pop()) >>> 0;
+    if (!busId || reachable.has(busId)) continue;
+    const bus = buses.get(busId);
+    if (!bus) {
+      throw new Error(`Audio Bus graph references missing bus ${busId}`);
+    }
+    reachable.add(busId);
+    const busAux = CreateAuthoredAuxRouting(bus, `Audio Bus ${busId}`);
+    pending.push(Number(bus.overrideBusId) >>> 0, ...(busAux.userAuxSends ?? []).map(send => Number(send.targetBusId)), Number(busAux.reflectionsAuxSend?.targetBusId) >>> 0);
+  }
+  const graphBuses = {};
+  const graphEffects = {};
+  for (const busId of [...reachable].sort((left, right) => left - right)) {
+    const bus = buses.get(busId);
+    const aux = CreateAuthoredAuxRouting(bus, `Audio Bus ${busId}`);
+    const slots = [...(bus.fx?.slots ?? [])].sort((left, right) => left.index - right.index).map(slot => {
+      if ((Number(slot.flags) & -8) !== 0) {
+        throw new Error(`Audio Bus ${busId} effect ${slot.fxId} has unsupported slot flags`);
+      }
+      const effect = effectsResult.effects.get(slot.fxId);
+      if (!effect) {
+        throw new Error(`Audio Bus ${busId} effect ${slot.fxId} is missing`);
+      }
+      const expectsShareSet = effect.type === "effect-share-set";
+      if (slot.shareSet !== expectsShareSet) {
+        throw new Error(`Audio Bus ${busId} effect ${slot.fxId} has a mismatched ShareSet flag`);
+      }
+      graphEffects[String(effect.id)] = CreatePortableEffect(effect);
+      return {
+        slotIndex: Number(slot.index),
+        effectId: String(effect.id),
+        bypass: Boolean(slot.bypass),
+        shareSet: Boolean(slot.shareSet),
+        rendered: Boolean(slot.rendered)
+      };
+    });
+    const reasons = [];
+    if (bus.type === "auxiliary-bus") reasons.push("auxiliary-bus");
+    if (aux.userAuxSends?.length || aux.reflectionsAuxSend) {
+      reasons.push("aux-sends");
+    }
+    if (aux.userAuxSends?.some(send => send.dynamic) || aux.reflectionsAuxSend?.dynamic) {
+      reasons.push("dynamic-aux");
+    }
+    if (!bus.fx?.bypassAll && slots.some(slot => !slot.bypass)) {
+      reasons.push("effects");
+    }
+    if (bus.positioning?.listenerRelative) reasons.push("positioning");
+    if (bus.hdr?.enabled) reasons.push("hdr");
+    if (bus.rtpcs?.length) reasons.push("rtpc");
+    if (bus.state?.properties?.length || bus.state?.groups?.length) {
+      reasons.push("state");
+    }
+    if (bus.ducks?.length) reasons.push("ducking");
+    graphBuses[String(busId)] = {
+      type: bus.type,
+      ...(Number(bus.overrideBusId) >>> 0 ? {
+        parentBusId: String(Number(bus.overrideBusId) >>> 0)
+      } : {}),
+      channelConfig: {
+        ...bus.channelConfig
+      },
+      properties: [...(bus.properties ?? [])].map(property => ({
+        id: Number(property.id),
+        rawValue: Number(property.rawValue) >>> 0
+      })).sort((left, right) => left.id - right.id),
+      positioning: {
+        flags: Number(bus.positioning?.flags) || 0,
+        overrideParent: Boolean(bus.positioning?.overrideParent),
+        listenerRelative: Boolean(bus.positioning?.listenerRelative),
+        pannerType: Number(bus.positioning?.pannerType) || 0,
+        positionType: Number(bus.positioning?.positionType) || 0
+      },
+      hdr: {
+        flags: Number(bus.hdr?.flags) || 0,
+        enabled: Boolean(bus.hdr?.enabled),
+        exponentialRelease: Boolean(bus.hdr?.exponentialRelease)
+      },
+      auxFlags: Number(bus.aux?.flags) || 0,
+      bypassAllEffects: Boolean(bus.fx?.bypassAll),
+      ...(bus.busVolume === null || bus.busVolume === undefined ? {} : {
+        busVolumeDb: Number(bus.busVolume)
+      }),
+      ...(bus.makeUpGain === null || bus.makeUpGain === undefined ? {} : {
+        makeUpGainDb: Number(bus.makeUpGain)
+      }),
+      ...(bus.outputBusVolume === null || bus.outputBusVolume === undefined ? {} : {
+        outputBusVolumeDb: Number(bus.outputBusVolume)
+      }),
+      ...aux,
+      effects: slots,
+      requiresProcessing: reasons.sort()
+    };
+  }
+  return {
+    schemaVersion: 1,
+    buses: graphBuses,
+    effects: Object.fromEntries(Object.entries(graphEffects).sort(([left], [right]) => Number(left) - Number(right))),
+    routes,
+    sfxRoutes,
+    musicRoutes
+  };
+}
+function CreateEffectiveNodeAuxRouting(rawId, getNodeBase) {
+  const active = new Set();
+  let current = Number(rawId) >>> 0;
+  let userAuxSends;
+  let reflectionsAuxSend;
+  let userResolved = false;
+  let reflectionsResolved = false;
+  while (current) {
+    if (active.has(current)) {
+      throw new Error(`Wwise NodeBase aux ancestry cycle at ${current}`);
+    }
+    active.add(current);
+    const nodeBase = getNodeBase(current);
+    if (!nodeBase) break;
+    const parentId = Number(nodeBase.directParentId) >>> 0;
+    const root = parentId === 0;
+
+    // wwiser's AkAuxList applies a root object's authored list even when
+    // the override bit is clear: there is no parent to inherit from. Only
+    // a non-root child with override=0 defers to its parent.
+    if (!userResolved && (nodeBase.aux?.overrideUserAux || root)) {
+      userAuxSends = CreateAuxSends(nodeBase, `Wwise NodeBase ${current}`);
+      userResolved = true;
+    }
+    if (!reflectionsResolved && (nodeBase.aux?.overrideReflectionsAux || root)) {
+      reflectionsAuxSend = CreateReflectionsAuxSend(nodeBase, `Wwise NodeBase ${current}`);
+      reflectionsResolved = true;
+    }
+    if (userResolved && reflectionsResolved) break;
+    current = parentId;
+  }
+  return {
+    ...(userAuxSends?.length ? {
+      userAuxSends
+    } : {}),
+    ...(reflectionsAuxSend ? {
+      reflectionsAuxSend
+    } : {})
+  };
+}
+function CreateAuthoredAuxRouting(value, label) {
+  const root = Number(value.overrideBusId) >>> 0 === 0;
+  const result = {
+    ...(value.aux?.overrideUserAux || root ? {
+      userAuxSends: CreateAuxSends(value, label)
+    } : {}),
+    ...(value.aux?.overrideReflectionsAux || root ? {
+      reflectionsAuxSend: CreateReflectionsAuxSend(value, label)
+    } : {})
+  };
+  return result;
+}
+function CreateAuxSends(value, label) {
+  if (!value.aux?.hasAux) return [];
+  const result = [];
+  for (let slotIndex = 0; slotIndex < 4; slotIndex++) {
+    const targetBusId = Number(value.aux.auxIds?.[slotIndex]) >>> 0;
+    if (!targetBusId) continue;
+    result.push({
+      slotIndex,
+      targetBusId: String(targetBusId),
+      gainDb: ReadAuxProperty(value.properties, WWISE_USER_AUX_VOLUME_PROPERTY + slotIndex, 0, `${label} User Aux Send ${slotIndex} Volume`),
+      lowPass: ReadAuxProperty(value.properties, WWISE_USER_AUX_LOW_PASS_PROPERTY + slotIndex, 0, `${label} User Aux Send ${slotIndex} LPF`, 0, 100),
+      highPass: ReadAuxProperty(value.properties, WWISE_USER_AUX_HIGH_PASS_PROPERTY + slotIndex, 0, `${label} User Aux Send ${slotIndex} HPF`, 0, 100),
+      dynamic: AuxSlotHasDynamicControls(value, slotIndex)
+    });
+  }
+  return result;
+}
+function CreateReflectionsAuxSend(value, label) {
+  const targetBusId = Number(value.aux?.reflectionsAuxBusId) >>> 0;
+  if (!targetBusId) return undefined;
+  return {
+    targetBusId: String(targetBusId),
+    gainDb: ReadAuxProperty(value.properties, WWISE_REFLECTIONS_VOLUME_PROPERTY, 0, `${label} Reflections Volume`),
+    dynamic: ReflectionsHaveDynamicControls(value)
+  };
+}
+function AuxSlotHasDynamicControls(value, slotIndex) {
+  const propertyIds = new Set([0x08 + slotIndex, 0x10 + slotIndex, 0x14 + slotIndex]);
+  const parameterIds = new Set([0x27 + slotIndex, 0x30 + slotIndex, 0x34 + slotIndex]);
+  return (value.ranges ?? []).some(range => propertyIds.has(Number(range.id))) || (value.rtpcs ?? []).some(control => parameterIds.has(Number(control.parameterId))) || (value.state?.properties ?? []).some(property => propertyIds.has(Number(property.propertyId)));
+}
+function ReflectionsHaveDynamicControls(value) {
+  return (value.ranges ?? []).some(range => Number(range.id) === 0x1a) || (value.rtpcs ?? []).some(control => Number(control.parameterId) === 0x2f) || (value.state?.properties ?? []).some(property => Number(property.propertyId) === 0x1a);
+}
+function ReadAuxProperty(properties, propertyId, fallback, label, minimum = -200, maximum = 200) {
+  const matches = (properties ?? []).filter(property => Number(property.id) === propertyId);
+  if (matches.length > 1) throw new Error(`${label} is duplicated`);
+  if (!matches.length) return fallback;
+  const value = Number(matches[0].floatValue);
+  if (!Number.isFinite(value) || value < minimum || value > maximum) {
+    throw new Error(`${label} is invalid`);
+  }
+  return value;
+}
+function CreatePortableEffect(effect) {
+  const parameterBlock = effect.parameterBlock ?? new Uint8Array();
+  return {
+    type: effect.type,
+    pluginId: Number(effect.pluginId) >>> 0,
+    pluginType: Number(effect.pluginType),
+    companyId: Number(effect.companyId),
+    pluginClassId: Number(effect.pluginClassId),
+    parameterByteLength: parameterBlock.byteLength,
+    parametersBase64: BytesToBase64(parameterBlock),
+    media: [...(effect.media ?? [])].map(media => ({
+      index: Number(media.index),
+      sourceId: String(Number(media.sourceId) >>> 0)
+    })).sort((left, right) => left.index - right.index),
+    controls: {
+      rtpcCount: effect.rtpcs?.length ?? 0,
+      statePropertyCount: effect.state?.properties?.length ?? 0,
+      stateGroupCount: effect.state?.groups?.length ?? 0,
+      propertyValueCount: effect.propertyValues?.length ?? 0
+    }
+  };
+}
+function BytesToBase64(bytes) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let result = "";
+  for (let at = 0; at < bytes.byteLength; at += 3) {
+    const first = bytes[at];
+    const hasSecond = at + 1 < bytes.byteLength;
+    const hasThird = at + 2 < bytes.byteLength;
+    const second = hasSecond ? bytes[at + 1] : 0;
+    const third = hasThird ? bytes[at + 2] : 0;
+    const value = first << 16 | second << 8 | third;
+    result += alphabet[value >>> 18 & 0x3f];
+    result += alphabet[value >>> 12 & 0x3f];
+    result += hasSecond ? alphabet[value >>> 6 & 0x3f] : "=";
+    result += hasThird ? alphabet[value & 0x3f] : "=";
+  }
+  return result;
 }
 function ParseStaticParametricEq(busId, slot, effect) {
   if (effect.parameterBlock?.byteLength !== 56) {

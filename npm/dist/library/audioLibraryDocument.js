@@ -1,6 +1,7 @@
 import { normalizeSfxGraph, validateSfxGraph, ValidateStateTransitions } from './sfxGraph.js';
 import { indexBusDuckingCatalog } from '../internal/busDucking.js';
 import { indexBusEffectCatalog } from '../internal/busEffects.js';
+import { normalizeBusGraphCatalog } from '../internal/busGraph.js';
 
 const AUDIO_LIBRARY_SCHEMA = "carbonenginejs.audioLibrary";
 const AUDIO_LIBRARY_VERSION = 2;
@@ -37,6 +38,9 @@ function validateAudioLibraryDocument(value) {
   ValidateBusStates(value.busStates);
   indexBusDuckingCatalog(value.busDucking);
   indexBusEffectCatalog(value.busEffects);
+  if (value.busGraph !== undefined) {
+    normalizeBusGraphCatalog(value.busGraph, value.embeddedMedia ?? {});
+  }
   return true;
 }
 function ValidateBusStates(value) {
@@ -231,9 +235,14 @@ function SfxEventNames(sfx) {
  */
 function installAudioLibraryDocument(value) {
   validateAudioLibraryDocument(value);
-  const normalized = value.sfx === undefined ? value : {
+  const normalized = {
     ...value,
-    sfx: normalizeSfxGraph(value.sfx, value.media, value.embeddedMedia ?? {})
+    ...(value.sfx === undefined ? {} : {
+      sfx: normalizeSfxGraph(value.sfx, value.media, value.embeddedMedia ?? {})
+    }),
+    ...(value.busGraph === undefined ? {} : {
+      busGraph: normalizeBusGraphCatalog(value.busGraph, value.embeddedMedia ?? {})
+    })
   };
   if (normalized.sfx) {
     normalized.metadata = NormalizeSfxLoopMetadata(value.metadata, normalized.sfx);
