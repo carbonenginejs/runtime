@@ -161,6 +161,7 @@ function ScheduleMusicBusGain(
     busStateCatalog,
     readGlobalStateWeights,
     readGlobalStateTransitionBoundaries,
+    busDuckingController,
 )
 {
     if (!param) return;
@@ -195,6 +196,7 @@ function ScheduleMusicBusGain(
             readGlobalStateWeights,
             at,
         );
+        db += busDuckingController?.EvaluateGainDb?.(path, at) ?? 0;
         return 10 ** (db / 20);
     };
     const boundaries = [];
@@ -223,6 +225,9 @@ function ScheduleMusicBusGain(
             ...readGlobalStateTransitionBoundaries(now),
         );
     }
+    boundaries.push(
+        ...(busDuckingController?.TransitionBoundaries?.(path, now) ?? []),
+    );
     boundaries.sort((left, right) => left - right);
 
     const uniqueBoundaries = [ ...new Set(boundaries) ];
@@ -693,6 +698,10 @@ export class CjsMusicEngine
 
     #readGlobalStateTransitionBoundaries = null;
 
+    #busDuckingController = null;
+
+    #unsubscribeBusDucking = null;
+
     /** Creates a scheduler over an optional authored graph and Web Audio context. */
     constructor({
         graph,
@@ -706,6 +715,7 @@ export class CjsMusicEngine
         busStates,
         getGlobalStatePropertyWeights,
         getGlobalStateTransitionBoundaries,
+        busDuckingController,
     } = {})
     {
         this.#graph = graph ?? null;
@@ -729,6 +739,10 @@ export class CjsMusicEngine
             typeof getGlobalStateTransitionBoundaries === "function"
                 ? getGlobalStateTransitionBoundaries
                 : null;
+        this.#busDuckingController = busDuckingController ?? null;
+        this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(
+            () => this.RefreshBusDucking(),
+        ) ?? null;
         if (random) this.#random = random;
         if (this.#context && this.#destination)
         {
@@ -809,6 +823,9 @@ export class CjsMusicEngine
         this.#epoch++;
         this.ClearMedia();
         this.#switchValues.clear();
+        this.#unsubscribeBusDucking?.();
+        this.#unsubscribeBusDucking = null;
+        this.#busDuckingController = null;
         this.#musicGain?.disconnect?.();
         this.#musicGain = null;
         this.#graph = null;
@@ -1648,6 +1665,7 @@ export class CjsMusicEngine
                         this.#busStateCatalog,
                         this.#readGlobalStateWeights,
                         this.#readGlobalStateTransitionBoundaries,
+                        this.#busDuckingController,
                     );
                 }
             }
@@ -1662,6 +1680,12 @@ export class CjsMusicEngine
 
     /** Reapplies dynamic Immediate Bus Volume States to scheduled routes. */
     RefreshBusStates()
+    {
+        this.RefreshBusVolumeGains();
+    }
+
+    /** Reapplies the shared SFX/music Audio Bus ducking envelopes. */
+    RefreshBusDucking()
     {
         this.RefreshBusVolumeGains();
     }
@@ -2344,6 +2368,7 @@ export class CjsMusicEngine
             failed: false,
             missed: false,
             ended: false,
+            duckActivity: null,
         };
         scheduled.sources.push(entry);
         const epoch = this.#epoch;
@@ -2400,6 +2425,17 @@ export class CjsMusicEngine
             source.connect(routeGain ?? scheduled.gain);
             source.onended = () =>
             {
+                const endedAt = Number(context.currentTime) || entry.endCtx;
+
+                if (endedAt <= entry.startCtx)
+                {
+                    entry.duckActivity?.Cancel?.(endedAt);
+                }
+                else
+                {
+                    entry.duckActivity?.End?.(endedAt);
+                }
+                entry.duckActivity = null;
                 entry.ended = true;
                 source.onended = null;
                 source.disconnect?.();
@@ -2421,6 +2457,12 @@ export class CjsMusicEngine
             entry.source = source;
             entry.startCtx = resolvedWhen;
             entry.endCtx = resolvedWhen + resolvedDurationMs / 1000;
+            entry.duckActivity = this.#busDuckingController
+                ?.ScheduleActivity?.(
+                    track.busPathIds,
+                    entry.startCtx,
+                    entry.endCtx,
+                ) ?? null;
             if (scheduled.fading)
             {
                 source.stop(scheduled.fadeEndCtx);
@@ -2484,6 +2526,7 @@ export class CjsMusicEngine
             this.#busStateCatalog,
             this.#readGlobalStateWeights,
             this.#readGlobalStateTransitionBoundaries,
+            this.#busDuckingController,
         );
         scheduled.routeGains.set(key, route);
         return gain;
@@ -2638,9 +2681,20 @@ export class CjsMusicEngine
         {
             if (entry.source)
             {
+                const stopAt = when + fadeSeconds;
+
+                if (stopAt <= entry.startCtx)
+                {
+                    entry.duckActivity?.Cancel?.(stopAt);
+                    entry.duckActivity = null;
+                }
+                else
+                {
+                    entry.duckActivity?.End?.(stopAt);
+                }
                 try
                 {
-                    entry.source.stop(when + fadeSeconds);
+                    entry.source.stop(stopAt);
                 }
                 catch
                 {
@@ -2699,6 +2753,17 @@ export class CjsMusicEngine
         for (const entry of scheduled.sources)
         {
             entry.cancelled = true;
+            const now = Number(this.#context?.currentTime) || 0;
+
+            if (now <= entry.startCtx)
+            {
+                entry.duckActivity?.Cancel?.(now);
+            }
+            else
+            {
+                entry.duckActivity?.End?.(now);
+            }
+            entry.duckActivity = null;
             if (entry.source)
             {
                 entry.source.onended = null;

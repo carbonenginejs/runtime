@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsAudioBackend, CjsSfxEngine } from "../npm/dist/index.js";
+import { CjsBusDuckingController } from "../src/internal/busDucking.js";
 
 const START_QUANTUM = 128 / 48000;
 
@@ -155,6 +156,7 @@ function Harness({
   stateTransitions,
   busRtpcs,
   busStates,
+  busDuckingController,
 } = {})
 {
   const context = FakeContext();
@@ -181,6 +183,7 @@ function Harness({
     stateTransitions,
     busRtpcs,
     busStates,
+    busDuckingController,
   });
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
@@ -3748,12 +3751,31 @@ test("a seek queued before media resolves preserves the authored delay", async (
 
 test("stopping before an authored delayed start cancels and finishes once", async () =>
 {
+  const busDuckingController = new CjsBusDuckingController({
+    schemaVersion: 1,
+    sources: {
+      "100": {
+        recoveryMs: 2000,
+        maxDuckVolumeDb: -12,
+        targets: [ {
+          targetBusId: "200",
+          volumeDb: -6,
+          fadeOutMs: 0,
+          fadeInMs: 0,
+          curve: 4,
+          targetProperty: "bus-volume",
+        } ],
+      },
+    },
+  });
   const { context, finished, emitter, backend } = Harness({
+    busDuckingController,
     loadBuffer: async () => ({
       voices: [
         {
           buffer: { duration: 1 },
           delayMs: 500,
+          busPathIds: [ "100" ],
         },
       ],
     }),
@@ -3765,9 +3787,49 @@ test("stopping before an authored delayed start cancels and finishes once", asyn
 
   assert.equal(context.sources[0].stoppedAt, 0);
   assert.deepEqual(context.gains[3].gain.ramps, []);
+  assert.equal(busDuckingController.EvaluateGainDb([ "200" ], 1), 0);
   context.sources[0].onended?.();
   context.sources[0].onended?.();
   assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
+test("StopAll cancels future SFX ducking activity before delayed playback", async () =>
+{
+  const busDuckingController = new CjsBusDuckingController({
+    schemaVersion: 1,
+    sources: {
+      "100": {
+        recoveryMs: 2000,
+        maxDuckVolumeDb: -12,
+        targets: [ {
+          targetBusId: "200",
+          volumeDb: -6,
+          fadeOutMs: 0,
+          fadeInMs: 0,
+          curve: 4,
+          targetProperty: "bus-volume",
+        } ],
+      },
+    },
+  });
+  const { context, emitter, backend } = Harness({
+    busDuckingController,
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 1 },
+        delayMs: 500,
+        busPathIds: [ "100" ],
+      } ],
+    }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "delayed_hit");
+  await tick();
+  assert.equal(context.sources[0].startedAt, 0.5);
+
+  backend.StopAll();
+  assert.equal(busDuckingController.EvaluateGainDb([ "200" ], 1), 0);
   assert.equal(backend.GetPlayingCount(), 0);
 });
 
@@ -5866,6 +5928,71 @@ test("authored Bus Volume remains on the bus stage below the voice silence thres
   backend.PostEvent(2, 1, 0, emitter, "lower");
   assert.equal(voiceGain.value, 1);
   assert.ok(Math.abs(busGain.value - 10 ** (-101 / 20)) < 1e-12);
+});
+
+test("routed SFX activity ducks future target voices and releases on source end", async () =>
+{
+  const busDuckingController = new CjsBusDuckingController({
+    schemaVersion: 1,
+    sources: {
+      "100": {
+        recoveryMs: 0,
+        maxDuckVolumeDb: -12,
+        targets: [ {
+          targetBusId: "200",
+          volumeDb: -6,
+          fadeOutMs: 0,
+          fadeInMs: 0,
+          curve: 4,
+          targetProperty: "bus-volume",
+        } ],
+      },
+    },
+  });
+  const program = busPathIds => [ {
+    kind: "play",
+    actionIndex: 0,
+    selections: [ {
+      actionIndex: 0,
+      leafIndex: 0,
+      matchIds: [ "300" ],
+      busPathIds,
+    } ],
+  } ];
+  const { backend, emitter, context } = Harness({
+    busDuckingController,
+    resolveSfxProgram: (_eventID, eventName) =>
+      eventName === "source" ? program([ "100" ]) : program([ "200" ]),
+    loadBuffer: async (_eventID, _eventName, _controls, resolved) => ({
+      voices: resolved[0].selections.map(selection => ({
+        buffer: { duration: 20 },
+        loop: true,
+        programSlotId: "0:0",
+        matchIds: selection.matchIds,
+        busPathIds: selection.busPathIds,
+        getGain: () => 1,
+      })),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "source");
+  await tick();
+  context.currentTime = 1;
+  backend.PostEvent(2, 1, 0, emitter, "target");
+  await tick();
+
+  const ducked = context.sources[1].connectedTo.connectedTo.gain;
+
+  assert.ok(Math.abs(ducked.value - 10 ** (-6 / 20)) < 1e-12);
+
+  context.sources[0].onended();
+  context.currentTime = 2;
+  backend.PostEvent(3, 1, 0, emitter, "target");
+  await tick();
+
+  const released = context.sources[2].connectedTo.connectedTo.gain;
+
+  assert.equal(released.value, 1);
 });
 
 test("Bus Volume RTPCs scale ancestor routes for live and future SFX voices", async () =>

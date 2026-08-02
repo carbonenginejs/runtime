@@ -93,7 +93,7 @@ function EvaluateBusVolumeState(state, at) {
   const gain = from + (to - from) * evaluateWwiseInterpolation(state.curve, progress);
   return 20 * Math.log10(Math.max(1e-10, gain));
 }
-function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, context, busRtpcCatalog, readGlobalRtpc, readGlobalRtpcTransitionBoundaries, busStateCatalog, readGlobalStateWeights, readGlobalStateTransitionBoundaries) {
+function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, context, busRtpcCatalog, readGlobalRtpc, readGlobalRtpcTransitionBoundaries, busStateCatalog, readGlobalStateWeights, readGlobalStateTransitionBoundaries, busDuckingController) {
   if (!param) return;
   const now = Number(context?.currentTime) || 0;
   const path = Array.isArray(busPathIds) ? busPathIds.map(String) : [];
@@ -110,6 +110,7 @@ function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, au
     }
     db += evaluateBusRtpcGainDb(busRtpcCatalog, path, readGlobalRtpc, at);
     db += evaluateBusStateGainDb(busStateCatalog, path, readGlobalStateWeights, at);
+    db += busDuckingController?.EvaluateGainDb?.(path, at) ?? 0;
     return 10 ** (db / 20);
   };
   const boundaries = [];
@@ -128,6 +129,7 @@ function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, au
   if (typeof readGlobalStateTransitionBoundaries === "function") {
     boundaries.push(...readGlobalStateTransitionBoundaries(now));
   }
+  boundaries.push(...(busDuckingController?.TransitionBoundaries?.(path, now) ?? []));
   boundaries.sort((left, right) => left - right);
   const uniqueBoundaries = [...new Set(boundaries)];
   const startValue = evaluate(now);
@@ -461,6 +463,8 @@ class CjsMusicEngine {
   #busStateCatalog = new Map();
   #readGlobalStateWeights = null;
   #readGlobalStateTransitionBoundaries = null;
+  #busDuckingController = null;
+  #unsubscribeBusDucking = null;
 
   /** Creates a scheduler over an optional authored graph and Web Audio context. */
   constructor({
@@ -474,7 +478,8 @@ class CjsMusicEngine {
     getGlobalRTPCTransitionBoundaries,
     busStates,
     getGlobalStatePropertyWeights,
-    getGlobalStateTransitionBoundaries
+    getGlobalStateTransitionBoundaries,
+    busDuckingController
   } = {}) {
     this.#graph = graph ?? null;
     this.#context = context ?? null;
@@ -486,6 +491,8 @@ class CjsMusicEngine {
     this.#busStateCatalog = indexBusStateCatalog(busStates);
     this.#readGlobalStateWeights = typeof getGlobalStatePropertyWeights === "function" ? getGlobalStatePropertyWeights : null;
     this.#readGlobalStateTransitionBoundaries = typeof getGlobalStateTransitionBoundaries === "function" ? getGlobalStateTransitionBoundaries : null;
+    this.#busDuckingController = busDuckingController ?? null;
+    this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(() => this.RefreshBusDucking()) ?? null;
     if (random) this.#random = random;
     if (this.#context && this.#destination) {
       // Music output bus: every instance routes through it so music
@@ -557,6 +564,9 @@ class CjsMusicEngine {
     this.#epoch++;
     this.ClearMedia();
     this.#switchValues.clear();
+    this.#unsubscribeBusDucking?.();
+    this.#unsubscribeBusDucking = null;
+    this.#busDuckingController = null;
     this.#musicGain?.disconnect?.();
     this.#musicGain = null;
     this.#graph = null;
@@ -1126,7 +1136,7 @@ class CjsMusicEngine {
     for (const instance of this.#instances.values()) {
       for (const scheduled of instance.active) {
         for (const route of scheduled.routeGains?.values?.() ?? []) {
-          ScheduleMusicBusGain(route.gain.gain, instance.busVolumeStates, route.busPathIds, route.authoredBusVolumeDb, route.authoredBusMakeUpGainDb, route.authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries);
+          ScheduleMusicBusGain(route.gain.gain, instance.busVolumeStates, route.busPathIds, route.authoredBusVolumeDb, route.authoredBusMakeUpGainDb, route.authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries, this.#busDuckingController);
         }
       }
     }
@@ -1139,6 +1149,11 @@ class CjsMusicEngine {
 
   /** Reapplies dynamic Immediate Bus Volume States to scheduled routes. */
   RefreshBusStates() {
+    this.RefreshBusVolumeGains();
+  }
+
+  /** Reapplies the shared SFX/music Audio Bus ducking envelopes. */
+  RefreshBusDucking() {
     this.RefreshBusVolumeGains();
   }
 
@@ -1561,7 +1576,8 @@ class CjsMusicEngine {
       cancelled: false,
       failed: false,
       missed: false,
-      ended: false
+      ended: false,
+      duckActivity: null
     };
     scheduled.sources.push(entry);
     const epoch = this.#epoch;
@@ -1597,6 +1613,13 @@ class CjsMusicEngine {
       const routeGain = this.#GetRouteGain(instance, scheduled, track);
       source.connect(routeGain ?? scheduled.gain);
       source.onended = () => {
+        const endedAt = Number(context.currentTime) || entry.endCtx;
+        if (endedAt <= entry.startCtx) {
+          entry.duckActivity?.Cancel?.(endedAt);
+        } else {
+          entry.duckActivity?.End?.(endedAt);
+        }
+        entry.duckActivity = null;
         entry.ended = true;
         source.onended = null;
         source.disconnect?.();
@@ -1611,6 +1634,7 @@ class CjsMusicEngine {
       entry.source = source;
       entry.startCtx = resolvedWhen;
       entry.endCtx = resolvedWhen + resolvedDurationMs / 1000;
+      entry.duckActivity = this.#busDuckingController?.ScheduleActivity?.(track.busPathIds, entry.startCtx, entry.endCtx) ?? null;
       if (scheduled.fading) {
         source.stop(scheduled.fadeEndCtx);
       }
@@ -1642,7 +1666,7 @@ class CjsMusicEngine {
       authoredOutputBusVolumeDb
     };
     gain.connect(scheduled.gain);
-    ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries);
+    ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries, this.#busDuckingController);
     scheduled.routeGains.set(key, route);
     return gain;
   }
@@ -1719,8 +1743,15 @@ class CjsMusicEngine {
     }
     for (const entry of scheduledSegment.sources) {
       if (entry.source) {
+        const stopAt = when + fadeSeconds;
+        if (stopAt <= entry.startCtx) {
+          entry.duckActivity?.Cancel?.(stopAt);
+          entry.duckActivity = null;
+        } else {
+          entry.duckActivity?.End?.(stopAt);
+        }
         try {
-          entry.source.stop(when + fadeSeconds);
+          entry.source.stop(stopAt);
         } catch {
           // already stopped
         }
@@ -1764,6 +1795,13 @@ class CjsMusicEngine {
     scheduled.disposed = true;
     for (const entry of scheduled.sources) {
       entry.cancelled = true;
+      const now = Number(this.#context?.currentTime) || 0;
+      if (now <= entry.startCtx) {
+        entry.duckActivity?.Cancel?.(now);
+      } else {
+        entry.duckActivity?.End?.(now);
+      }
+      entry.duckActivity = null;
       if (entry.source) {
         entry.source.onended = null;
         entry.source.disconnect?.();

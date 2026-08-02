@@ -1,4 +1,5 @@
 import { normalizeSfxGraph, validateSfxGraph, ValidateStateTransitions } from './sfxGraph.js';
+import { indexBusDuckingCatalog } from '../internal/busDucking.js';
 
 const AUDIO_LIBRARY_SCHEMA = "carbonenginejs.audioLibrary";
 const AUDIO_LIBRARY_VERSION = 2;
@@ -33,6 +34,7 @@ function validateAudioLibraryDocument(value) {
   ValidateMusic(value.music, value.media, value.embeddedMedia ?? {});
   ValidateBusRtpcs(value.busRtpcs);
   ValidateBusStates(value.busStates);
+  indexBusDuckingCatalog(value.busDucking);
   return true;
 }
 function ValidateBusStates(value) {

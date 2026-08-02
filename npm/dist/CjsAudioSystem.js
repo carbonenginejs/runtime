@@ -6,6 +6,7 @@ import { AudioCurveSetDriver as _AudioCurveSetDriver } from './trinity/audio/Aud
 import { CjsAudioBackend } from './CjsAudioBackend.js';
 import { CjsMusicEngine } from './CjsMusicEngine.js';
 import { createAudioUpdateContext } from './CjsAudioUpdateContext.js';
+import { CjsBusDuckingController } from './internal/busDucking.js';
 
 // CarbonEngineJS original (no Carbon counterpart). The audio system
 // composition root: owns the AudManager + AudStaticDataRepository + WebAudio
@@ -56,6 +57,8 @@ class CjsAudioSystem {
   #releaseGameObj = null;
   #busRtpcs = null;
   #busStates = null;
+  #busDucking = null;
+  #busDuckingController = null;
   #providedUpdateContext = null;
   #adoptedEmitters = new Set();
   #adoptedCurveSetDrivers = new Set();
@@ -80,7 +83,8 @@ class CjsAudioSystem {
     releaseGameObj,
     updateContext,
     busRtpcs,
-    busStates
+    busStates,
+    busDucking
   } = {}) {
     this.#createContext = createContext ?? null;
     this.#loadBuffer = loadBuffer ?? null;
@@ -99,6 +103,7 @@ class CjsAudioSystem {
     this.#releaseGameObj = typeof releaseGameObj === "function" ? releaseGameObj : null;
     this.#busRtpcs = busRtpcs ?? null;
     this.#busStates = busStates ?? null;
+    this.#busDucking = busDucking ?? null;
     this.#providedUpdateContext = updateContext ?? null;
     if (audioMetadata) {
       this.repository.Initialize(audioMetadata);
@@ -135,6 +140,7 @@ class CjsAudioSystem {
     if (!this.backend && this.#createContext) {
       const context = this.#createContext();
       if (context) {
+        this.#busDuckingController = new CjsBusDuckingController(this.#busDucking);
         this.backend = new CjsAudioBackend({
           context,
           loadBuffer: this.#loadBuffer,
@@ -148,7 +154,8 @@ class CjsAudioSystem {
           distanceScale: this.#distanceScale,
           applyRTPC: this.#applyRTPC,
           busRtpcs: this.#busRtpcs,
-          busStates: this.#busStates
+          busStates: this.#busStates,
+          busDuckingController: this.#busDuckingController
         });
         if (!this.musicEngine) {
           const destination = this.backend.masterGain ?? context.destination;
@@ -162,6 +169,7 @@ class CjsAudioSystem {
               loadMedia: this.#loadMedia,
               busRtpcs: this.#busRtpcs,
               busStates: this.#busStates,
+              busDuckingController: this.#busDuckingController,
               getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
               getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
               getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
@@ -175,6 +183,7 @@ class CjsAudioSystem {
               destination,
               busRtpcs: this.#busRtpcs,
               busStates: this.#busStates,
+              busDuckingController: this.#busDuckingController,
               getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
               getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
               getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
@@ -403,6 +412,8 @@ class CjsAudioSystem {
     this.#providedMusicEngine = null;
     this.backend?.Dispose?.();
     this.backend = null;
+    this.#busDuckingController?.Dispose?.();
+    this.#busDuckingController = null;
     this.Detach();
   }
 }

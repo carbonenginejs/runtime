@@ -16,6 +16,8 @@ base Bus Volume, summed Make-Up Gain, and the Output Bus Volume authored by the
 NodeBase that supplies the effective output-bus override. Playback adds live
 Bus Volume action state, global Bus Volume RTPC curves, and global Bus Volume
 State contributions without changing the application SFX or music sliders.
+It also projects v150 Audio Bus auto-ducking and coordinates actual scheduled
+SFX and built-in music source activity through one shared clock.
 
 ## Music NodeBase contract
 
@@ -115,8 +117,9 @@ route. The builder keeps raw graph values because Wwise interpolates them
 before converting `-1` to `-96.3 dB` and other values with
 `20 * log10(value + 1)`. Keeping these contributions distinct preserves their
 future placement when real bus and effect stages replace the collapsed gain.
-Effects, auxiliary sends and chaining, formal ducking, meters, virtual-voice
-behavior, and spatial diffraction remain separate runtime slices. Those
+Effects, auxiliary sends and chaining, wet-path duck placement, effect-tail bus
+activity, meters, virtual-voice behavior, and spatial diffraction remain
+separate runtime slices. Those
 features need their complete effective send/property projection, qualified
 plug-in adapters, and signal semantics; the typed catalogs do not imply that
 playback is implemented.
@@ -135,6 +138,35 @@ tracks reach at least one affected bus. Matching groups and distinct buses add
 their decibel contributions, while a missing State case remains neutral. The
 portable catalog embeds the exact STMG default and directed transition rules so
 runtime blending is interruptible and independent of the optional SFX graph.
+
+The same build authors 14 auto-ducking source buses and 36 links to 20 unique
+target buses. Nine source buses occur on SFX dry routes, three occur on music
+routes, and two are currently unreachable; 33 links can therefore activate.
+All 20 targets occur on a realized SFX or music route. The target-property
+split is 24 Voice Volume and 12 Bus Volume rules, with curves 1, 2, 4, 6, 7,
+and 8, Recovery Times of 0, 1000, or 2000 ms, and fade pairs ranging from
+100/5000 through 5000/3000 ms. The portable catalog preserves all 36 rules
+rather than duplicating them onto 16,263 SFX leaves or 2,484 music tracks.
+
+Runtime activity begins at the physical source's scheduled `start()` time,
+not at event post or media acquisition. It is binary per source bus: overlaps
+hold one duck and do not stack, while different source buses add. The last
+source end starts Recovery and then the authored Fade In; reactivation during
+Recovery cancels release, and reactivation during Fade In rebases into Fade
+Out. Curves are evaluated with the shared Wwise interpolation table in linear
+gain. The current Audiokinetic definition treats Maximum Ducking Volume as the
+collective source-bus floor across its listed targets; a v150 differential
+Authoring fixture remains desirable because older documentation used
+target-oriented wording.
+
+Voice Volume and Bus Volume remain separate typed target properties. The
+present engine has no auxiliary send or effect graph, so both contributions
+are audibly combined only on its collapsed dry-route gain. This does not claim
+future wet-path equivalence: Voice Volume must also affect sends, Bus Volume
+targets final bus volume, and source-side effect tails may extend activity.
+See Audiokinetic's
+[Auto-Ducking reference](https://www.audiokinetic.com/en/public-library/2025.1.3_9037/?id=auto_ducking_tab&source=Help)
+and [voice pipeline](https://www.audiokinetic.com/en/library/edge/?id=understanding_voice_pipeline&source=Help).
 
 All but one occurrence author Immediate synchronization. The exception is
 State Group `video_overlay` (`2603658559`) on Audio Bus `2609808943`: State

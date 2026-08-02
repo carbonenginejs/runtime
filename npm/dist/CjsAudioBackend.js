@@ -52,6 +52,8 @@ class CjsAudioBackend {
   #applyRTPC = null;
   #busRtpcCatalog = new Map();
   #busStateCatalog = new Map();
+  #busDuckingController = null;
+  #unsubscribeBusDucking = null;
   #nextPlayingID = 1;
 
   // Wwise-scale world units -> WebAudio panner units. EVE positions run to
@@ -78,7 +80,8 @@ class CjsAudioBackend {
     musicEngine,
     applyRTPC,
     busRtpcs,
-    busStates
+    busStates,
+    busDuckingController
   } = {}) {
     this.#context = context ?? null;
     this.#loadBuffer = loadBuffer ?? null;
@@ -93,6 +96,8 @@ class CjsAudioBackend {
     this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
     this.#busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
     this.#busStateCatalog = indexBusStateCatalog(busStates);
+    this.#busDuckingController = busDuckingController ?? null;
+    this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(() => this.#RefreshBusDucking()) ?? null;
     if (this.#context) {
       this.#masterGain = this.#context.createGain();
       // Safety limiter: many concurrent one-shots (weapon volleys) sum
@@ -583,6 +588,7 @@ class CjsAudioBackend {
         voice.pauseSource = null;
         if (voice.startContextTime > actionTime) {
           voice.cancelledBeforeStart = true;
+          this.#EndVoiceDucking(voice, actionTime, true);
           SetAudioParam(voice.stopGain.gain, 0, this.#context);
           voice.source.stop(actionTime);
           continue;
@@ -933,6 +939,7 @@ class CjsAudioBackend {
 
   /** WebAudio renders continuously; the tick drives music-engine lookahead scheduling. */
   RenderAudio() {
+    this.#busDuckingController?.Prune?.(Number(this.#context?.currentTime) || 0);
     this.#ProcessScheduledSfxActions();
     this.#ProcessRtpcTransitions();
     this.#ProcessStatePropertyTransitions();
@@ -1060,6 +1067,8 @@ class CjsAudioBackend {
         if (!voice.ended && voice.startContextTime > currentBoundary) {
           voice.ended = true;
           voice.stopping = true;
+          voice.cancelledBeforeStart = true;
+          this.#EndVoiceDucking(voice, now, true);
           if (voice.source) {
             voice.source.onended = null;
             try {
@@ -1118,6 +1127,9 @@ class CjsAudioBackend {
     this.#globalVoiceHighPasses.clear();
     this.#globalVoiceLowPasses.clear();
     this.#globalBusVolumes.clear();
+    this.#unsubscribeBusDucking?.();
+    this.#unsubscribeBusDucking = null;
+    this.#busDuckingController = null;
     this.#sfxGain?.disconnect?.();
     this.#masterGain?.disconnect?.();
     this.#sfxGain = null;
@@ -1794,6 +1806,7 @@ class CjsAudioBackend {
     this.#AdvanceSfxVoiceTransport(voice, Number.isFinite(Number(pauseTime)) ? Number(pauseTime) : now);
     const source = voice.source;
     if (source) {
+      this.#EndVoiceDucking(voice, pauseTime, pauseTime <= voice.startContextTime);
       source.onended = null;
       try {
         source.stop(now);
@@ -1822,6 +1835,7 @@ class CjsAudioBackend {
     if (voice.pausing && voice.source) {
       this.#AdvanceSfxVoiceTransport(voice, currentTime);
       const source = voice.source;
+      this.#EndVoiceDucking(voice, currentTime);
       source.onended = null;
       try {
         source.stop(currentTime);
@@ -1999,11 +2013,13 @@ class CjsAudioBackend {
         try {
           this.#StartVoices(playingID, record, voices, now);
         } catch {
+          const failureTime = Number(this.#context.currentTime) || 0;
           for (const voice of voices) {
+            this.#EndVoiceDucking(voice, failureTime, voice.sourceStarted !== true || voice.startContextTime > failureTime);
             if (voice.source) {
               voice.source.onended = null;
               try {
-                voice.source.stop?.(Number(this.#context.currentTime) || 0);
+                voice.source.stop?.(failureTime);
               } catch {
                 // already stopped
               }
@@ -2240,6 +2256,7 @@ class CjsAudioBackend {
     if (voice.startContextTime > authoredActionTime || authoredStopTime <= currentTime) {
       if (voice.startContextTime > currentTime) {
         voice.cancelledBeforeStart = true;
+        this.#EndVoiceDucking(voice, currentTime, true);
       }
       SilenceAudioParamAt(voice.stopGain.gain, currentTime, this.#context);
       voice.source.stop(currentTime);
@@ -2448,6 +2465,7 @@ class CjsAudioBackend {
       repeatRemainingSeconds: null,
       repeatAnchorContextTime: null,
       stopContextTime: null,
+      duckActivity: null,
       offsetSeconds: 0
     };
     this.#ApplyVoiceGain(voice);
@@ -2539,6 +2557,7 @@ class CjsAudioBackend {
     }
     const previous = voice.source;
     if (previous) {
+      this.#EndVoiceDucking(voice, startContextTime, startContextTime <= voice.startContextTime);
       previous.onended = null;
       try {
         previous.stop(startContextTime);
@@ -2601,10 +2620,12 @@ class CjsAudioBackend {
       source.stop(voice.scheduledEndContextTime);
     }
     this.#ApplyVoicePlaybackRate(voice);
+    voice.duckActivity = this.#busDuckingController?.ScheduleActivity?.(voice.busPathIds, startContextTime) ?? null;
   }
 
   /** Marks one physical voice complete and closes its logical event at zero. */
   #VoiceEnded(playingID, record, voice) {
+    this.#EndVoiceDucking(voice, Number(this.#context?.currentTime) || 0, voice.cancelledBeforeStart === true);
     voice.ended = true;
     voice.source?.disconnect?.();
     if (record.sfxProgram) {
@@ -3024,6 +3045,7 @@ class CjsAudioBackend {
   #DiscardTriggerRateBatch(record, slot, batch) {
     const now = Number(this.#context.currentTime) || 0;
     for (const voice of batch.voices) {
+      this.#EndVoiceDucking(voice, now, voice.sourceStarted !== true || voice.startContextTime > now || voice.cancelledBeforeStart === true);
       if (voice.source && !voice.ended) {
         voice.source.onended = null;
         try {
@@ -3109,6 +3131,8 @@ class CjsAudioBackend {
       if (!voice.ended) {
         continue;
       }
+      const now = Number(this.#context.currentTime) || 0;
+      this.#EndVoiceDucking(voice, now, voice.sourceStarted !== true || voice.startContextTime > now || voice.cancelledBeforeStart === true);
       voice.source?.disconnect?.();
       voice.lowPassFilter?.disconnect?.();
       voice.highPassFilter?.disconnect?.();
@@ -3250,7 +3274,25 @@ class CjsAudioBackend {
     if (!voice.busGain) {
       return;
     }
-    ScheduleBusVolumeGain(voice.busGain.gain, voice, this.#context, this.#busRtpcCatalog, (name, at) => this.#ReadRtpcValue("global", name, undefined, at), this.#busStateCatalog, (group, at) => this.#ReadStatePropertyWeights(group, at));
+    ScheduleBusVolumeGain(voice.busGain.gain, voice, this.#context, this.#busRtpcCatalog, (name, at) => this.#ReadRtpcValue("global", name, undefined, at), this.#busStateCatalog, (group, at) => this.#ReadStatePropertyWeights(group, at), this.#busDuckingController);
+  }
+
+  /** Reapplies duck envelopes after either engine changes bus activity. */
+  #RefreshBusDucking() {
+    for (const record of this.#playing.values()) {
+      for (const voice of record.voices ?? []) {
+        if (!voice.ended) this.#ApplyVoiceBusGain(voice);
+      }
+    }
+    this.#musicEngine?.RefreshBusDucking?.();
+  }
+
+  /** Settles one disposable source's bus activity exactly once. */
+  #EndVoiceDucking(voice, at, cancel = false) {
+    const activity = voice?.duckActivity;
+    if (!activity) return false;
+    voice.duckActivity = null;
+    return cancel ? activity.Cancel(at) : activity.End(at);
   }
 
   /** Applies live Wwise LPF/HPF percentages to per-voice WebAudio filters. */
@@ -3436,13 +3478,15 @@ class CjsAudioBackend {
           AbortTriggerRateBatch(batch);
         }
       }
+      const now = Number(this.#context?.currentTime) || 0;
       for (const voice of record.voices ?? []) {
+        this.#EndVoiceDucking(voice, now, voice.sourceStarted !== true || voice.startContextTime > now || voice.cancelledBeforeStart === true);
         if (voice.source) {
           voice.source.onended = null;
         }
         if (voice.source && !voice.ended) {
           try {
-            voice.source.stop?.(this.#context.currentTime);
+            voice.source.stop?.(now);
           } catch {
             // already stopped
           }
@@ -4192,18 +4236,18 @@ function ScheduleVoiceVolumeGain(param, voice, context) {
     segmentStart = segmentEnd;
   }
 }
-function ScheduleBusVolumeGain(param, voice, context, busRtpcCatalog, readGlobalRtpc, busStateCatalog, readGlobalStateWeights) {
+function ScheduleBusVolumeGain(param, voice, context, busRtpcCatalog, readGlobalRtpc, busStateCatalog, readGlobalStateWeights, busDuckingController) {
   if (!param) {
     return;
   }
   const now = Number(context?.currentTime) || 0;
   const states = voice.busVolumeStates;
   const busPathIds = Array.isArray(voice.busPathIds) ? voice.busPathIds : [];
-  const boundaries = [...new Set([...VoiceTargetTransitionBoundaries(states, busPathIds, now), ...(voice.controlTransitionBoundaries ?? []).map(Number).filter(value => Number.isFinite(value) && value > now)])].sort((left, right) => left - right);
+  const boundaries = [...new Set([...VoiceTargetTransitionBoundaries(states, busPathIds, now), ...(voice.controlTransitionBoundaries ?? []).map(Number).filter(value => Number.isFinite(value) && value > now), ...(busDuckingController?.TransitionBoundaries?.(busPathIds, now) ?? [])])].sort((left, right) => left - right);
   const authoredBusVolumeDb = Number(voice.authoredBusVolumeDb) || 0;
   const authoredBusMakeUpGainDb = Number(voice.authoredBusMakeUpGainDb) || 0;
   const authoredOutputBusVolumeDb = Number(voice.authoredOutputBusVolumeDb) || 0;
-  const evaluate = at => 10 ** ((authoredBusVolumeDb + authoredBusMakeUpGainDb + authoredOutputBusVolumeDb + EvaluateVoiceVolumeTargets(states, busPathIds, at) + evaluateBusRtpcGainDb(busRtpcCatalog, busPathIds, readGlobalRtpc, at) + evaluateBusStateGainDb(busStateCatalog, busPathIds, readGlobalStateWeights, at)) / 20);
+  const evaluate = at => 10 ** ((authoredBusVolumeDb + authoredBusMakeUpGainDb + authoredOutputBusVolumeDb + EvaluateVoiceVolumeTargets(states, busPathIds, at) + evaluateBusRtpcGainDb(busRtpcCatalog, busPathIds, readGlobalRtpc, at) + evaluateBusStateGainDb(busStateCatalog, busPathIds, readGlobalStateWeights, at) + (busDuckingController?.EvaluateGainDb?.(busPathIds, at) ?? 0)) / 20);
   const startValue = evaluate(now);
   if (typeof param.cancelAndHoldAtTime === "function") {
     param.cancelAndHoldAtTime(now);

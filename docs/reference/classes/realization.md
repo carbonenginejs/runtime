@@ -15,6 +15,16 @@ Realizes Carbon audio graph operations as Web Audio nodes and active playback so
 - Visibility: Public
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsBusDuckingController -->
+## `CjsBusDuckingController`
+
+Coordinates transport-driven Wwise Audio Bus ducking activity shared by SFX and music routes.
+
+- Export: None
+- Source: `src/internal/busDucking.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsAudioMan -->
 ## `CjsAudioMan`
 

@@ -232,6 +232,55 @@ test("validates and freezes the optional Bus Volume State catalog", () =>
     }
 });
 
+test("validates and freezes the optional Audio Bus ducking catalog", () =>
+{
+    const source = CreateDocument();
+
+    source.busDucking = {
+        schemaVersion: 1,
+        sources: {
+            "500": {
+                recoveryMs: 1000,
+                maxDuckVolumeDb: -18,
+                targets: [ {
+                    targetBusId: "600",
+                    volumeDb: -12,
+                    fadeOutMs: 250,
+                    fadeInMs: 750,
+                    curve: 8,
+                    targetProperty: "voice-volume",
+                } ],
+            },
+        },
+    };
+
+    const installed = installAudioLibraryDocument(source);
+
+    assert.equal(installed.busDucking.sources["500"].recoveryMs, 1000);
+    assert.notEqual(installed.busDucking, source.busDucking);
+    assert.equal(
+        Object.isFrozen(installed.busDucking.sources["500"].targets),
+        true,
+    );
+
+    for (const mutate of [
+        value => { value.schemaVersion = 2; },
+        value => { value.sources["0500"] = value.sources["500"]; },
+        value => { value.sources["500"].recoveryMs = -1; },
+        value => { value.sources["500"].maxDuckVolumeDb = 1; },
+        value => { value.sources["500"].targets[0].volumeDb = -19; },
+        value => { value.sources["500"].targets[0].fadeOutMs = 0.5; },
+        value => { value.sources["500"].targets[0].curve = 10; },
+        value => { value.sources["500"].targets[0].targetProperty = "pitch"; },
+    ])
+    {
+        const invalid = structuredClone(source);
+
+        mutate(invalid.busDucking);
+        assert.throws(() => validateAudioLibraryDocument(invalid));
+    }
+});
+
 test("validates and installs routed music-track bus metadata", () =>
 {
     const source = CreateDocument();

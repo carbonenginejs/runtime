@@ -3157,6 +3157,105 @@ test("complete construction projects typed Bus Volume RTPC curves once per bus",
     });
 });
 
+test("complete construction projects typed Audio Bus ducking once per source", async () =>
+{
+    const library = await CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {},
+            SoundBanks: {
+                "init.bnk": {
+                    name: "init",
+                    path: "\\SoundBanks\\init.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/init.bnk",
+            storagePath: "banks/init.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    globalSettings: {
+                        filterBehavior: 1,
+                        stateGroups: [],
+                        switchGroups: [],
+                        rtpcParameters: [],
+                        acousticTextures: [],
+                    },
+                    hirc: [
+                        {
+                            type: 8,
+                            id: 500,
+                            payload: busPayload({
+                                recoveryTime: 1500,
+                                maxDuckVolume: -18,
+                                ducks: [
+                                    {
+                                        busId: 600,
+                                        volume: -12,
+                                        fadeOutTime: 250,
+                                        fadeInTime: 750,
+                                        curve: 8,
+                                        targetPropertyId: 0,
+                                    },
+                                    {
+                                        busId: 700,
+                                        volume: -6,
+                                        fadeOutTime: 100,
+                                        fadeInTime: 200,
+                                        curve: 4,
+                                        targetPropertyId: 4,
+                                    },
+                                ],
+                            }),
+                        },
+                        { type: 8, id: 600, payload: busPayload() },
+                        { type: 8, id: 700, payload: busPayload() },
+                    ],
+                    media: [],
+                },
+            };
+        },
+    });
+
+    assert.deepEqual(library.busDucking, {
+        schemaVersion: 1,
+        sources: {
+            "500": {
+                recoveryMs: 1500,
+                maxDuckVolumeDb: -18,
+                targets: [
+                    {
+                        targetBusId: "600",
+                        volumeDb: -12,
+                        fadeOutMs: 250,
+                        fadeInMs: 750,
+                        curve: 8,
+                        targetProperty: "voice-volume",
+                    },
+                    {
+                        targetBusId: "700",
+                        volumeDb: -6,
+                        fadeOutMs: 100,
+                        fadeInMs: 200,
+                        curve: 4,
+                        targetProperty: "bus-volume",
+                    },
+                ],
+            },
+        },
+    });
+});
+
 test("complete construction projects effective-Immediate Bus Volume States", async () =>
 {
     const library = await CjsAudioLibraryBuilder.buildFromBanks({
@@ -6102,6 +6201,9 @@ function actorMixerPayload({
 
 function busPayload({
     parentId = 0,
+    recoveryTime = 0,
+    maxDuckVolume = 0,
+    ducks = [],
     rtpcs = [],
     stateProperties = [],
     stateGroups = [],
@@ -6116,7 +6218,20 @@ function busPayload({
         .u8(0)
         .u8(0).u32(0)
         .u8(0).u16(0).u32(0).u8(0)
-        .u32(0).f32(0).u32(0)
+        .u32(recoveryTime).f32(maxDuckVolume).u32(ducks.length);
+
+    for (const duck of ducks)
+    {
+        writer
+            .u32(duck.busId)
+            .f32(duck.volume)
+            .u32(duck.fadeOutTime)
+            .u32(duck.fadeInTime)
+            .u8(duck.curve)
+            .u8(duck.targetPropertyId);
+    }
+
+    writer
         .u8(0).u8(0)
         .u16(rtpcs.length);
 

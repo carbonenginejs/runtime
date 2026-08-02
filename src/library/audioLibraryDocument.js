@@ -3,6 +3,7 @@ import {
     ValidateStateTransitions,
     validateSfxGraph,
 } from "./sfxGraph.js";
+import { indexBusDuckingCatalog } from "../internal/busDucking.js";
 
 const AUDIO_LIBRARY_SCHEMA = "carbonenginejs.audioLibrary";
 const AUDIO_LIBRARY_VERSION = 2;
@@ -70,6 +71,7 @@ export function validateAudioLibraryDocument(value)
     );
     ValidateBusRtpcs(value.busRtpcs);
     ValidateBusStates(value.busStates);
+    indexBusDuckingCatalog(value.busDucking);
 
     return true;
 }

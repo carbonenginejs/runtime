@@ -281,6 +281,7 @@ export class CjsAudioMan
             musicGraph: installed.music ?? null,
             busRtpcs: installed.busRtpcs ?? null,
             busStates: installed.busStates ?? null,
+            busDucking: installed.busDucking ?? null,
             loadBuffer: (
                 eventID,
                 eventName,

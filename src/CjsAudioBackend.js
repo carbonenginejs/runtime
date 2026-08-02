@@ -98,6 +98,10 @@ export class CjsAudioBackend
 
     #busStateCatalog = new Map();
 
+    #busDuckingController = null;
+
+    #unsubscribeBusDucking = null;
+
     #nextPlayingID = 1;
 
     // Wwise-scale world units -> WebAudio panner units. EVE positions run to
@@ -125,6 +129,7 @@ export class CjsAudioBackend
         applyRTPC,
         busRtpcs,
         busStates,
+        busDuckingController,
     } = {})
     {
         this.#context = context ?? null;
@@ -152,6 +157,10 @@ export class CjsAudioBackend
         this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
         this.#busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
         this.#busStateCatalog = indexBusStateCatalog(busStates);
+        this.#busDuckingController = busDuckingController ?? null;
+        this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(
+            () => this.#RefreshBusDucking(),
+        ) ?? null;
 
         if (this.#context)
         {
@@ -899,6 +908,7 @@ export class CjsAudioBackend
                 if (voice.startContextTime > actionTime)
                 {
                     voice.cancelledBeforeStart = true;
+                    this.#EndVoiceDucking(voice, actionTime, true);
                     SetAudioParam(
                         voice.stopGain.gain,
                         0,
@@ -1437,6 +1447,9 @@ export class CjsAudioBackend
     /** WebAudio renders continuously; the tick drives music-engine lookahead scheduling. */
     RenderAudio()
     {
+        this.#busDuckingController?.Prune?.(
+            Number(this.#context?.currentTime) || 0,
+        );
         this.#ProcessScheduledSfxActions();
         this.#ProcessRtpcTransitions();
         this.#ProcessStatePropertyTransitions();
@@ -1651,6 +1664,8 @@ export class CjsAudioBackend
                 {
                     voice.ended = true;
                     voice.stopping = true;
+                    voice.cancelledBeforeStart = true;
+                    this.#EndVoiceDucking(voice, now, true);
                     if (voice.source)
                     {
                         voice.source.onended = null;
@@ -1735,6 +1750,9 @@ export class CjsAudioBackend
         this.#globalVoiceHighPasses.clear();
         this.#globalVoiceLowPasses.clear();
         this.#globalBusVolumes.clear();
+        this.#unsubscribeBusDucking?.();
+        this.#unsubscribeBusDucking = null;
+        this.#busDuckingController = null;
         this.#sfxGain?.disconnect?.();
         this.#masterGain?.disconnect?.();
         this.#sfxGain = null;
@@ -2945,6 +2963,11 @@ export class CjsAudioBackend
 
         if (source)
         {
+            this.#EndVoiceDucking(
+                voice,
+                pauseTime,
+                pauseTime <= voice.startContextTime,
+            );
             source.onended = null;
             try
             {
@@ -2982,6 +3005,7 @@ export class CjsAudioBackend
             this.#AdvanceSfxVoiceTransport(voice, currentTime);
             const source = voice.source;
 
+            this.#EndVoiceDucking(voice, currentTime);
             source.onended = null;
             try
             {
@@ -3331,15 +3355,25 @@ export class CjsAudioBackend
                 }
                 catch
                 {
+                    const failureTime = Number(
+                        this.#context.currentTime,
+                    ) || 0;
+
                     for (const voice of voices)
                     {
+                        this.#EndVoiceDucking(
+                            voice,
+                            failureTime,
+                            voice.sourceStarted !== true
+                                || voice.startContextTime > failureTime,
+                        );
                         if (voice.source)
                         {
                             voice.source.onended = null;
                             try
                             {
                                 voice.source.stop?.(
-                                    Number(this.#context.currentTime) || 0,
+                                    failureTime,
                                 );
                             }
                             catch
@@ -3808,6 +3842,7 @@ export class CjsAudioBackend
             if (voice.startContextTime > currentTime)
             {
                 voice.cancelledBeforeStart = true;
+                this.#EndVoiceDucking(voice, currentTime, true);
             }
             SilenceAudioParamAt(
                 voice.stopGain.gain,
@@ -4198,6 +4233,7 @@ export class CjsAudioBackend
             repeatRemainingSeconds: null,
             repeatAnchorContextTime: null,
             stopContextTime: null,
+            duckActivity: null,
             offsetSeconds: 0,
         };
 
@@ -4387,6 +4423,11 @@ export class CjsAudioBackend
         const previous = voice.source;
         if (previous)
         {
+            this.#EndVoiceDucking(
+                voice,
+                startContextTime,
+                startContextTime <= voice.startContextTime,
+            );
             previous.onended = null;
             try
             {
@@ -4503,11 +4544,20 @@ export class CjsAudioBackend
             source.stop(voice.scheduledEndContextTime);
         }
         this.#ApplyVoicePlaybackRate(voice);
+        voice.duckActivity = this.#busDuckingController?.ScheduleActivity?.(
+            voice.busPathIds,
+            startContextTime,
+        ) ?? null;
     }
 
     /** Marks one physical voice complete and closes its logical event at zero. */
     #VoiceEnded(playingID, record, voice)
     {
+        this.#EndVoiceDucking(
+            voice,
+            Number(this.#context?.currentTime) || 0,
+            voice.cancelledBeforeStart === true,
+        );
         voice.ended = true;
         voice.source?.disconnect?.();
 
@@ -5370,6 +5420,13 @@ export class CjsAudioBackend
 
         for (const voice of batch.voices)
         {
+            this.#EndVoiceDucking(
+                voice,
+                now,
+                voice.sourceStarted !== true
+                    || voice.startContextTime > now
+                    || voice.cancelledBeforeStart === true,
+            );
             if (voice.source && !voice.ended)
             {
                 voice.source.onended = null;
@@ -5509,6 +5566,15 @@ export class CjsAudioBackend
             {
                 continue;
             }
+            const now = Number(this.#context.currentTime) || 0;
+
+            this.#EndVoiceDucking(
+                voice,
+                now,
+                voice.sourceStarted !== true
+                    || voice.startContextTime > now
+                    || voice.cancelledBeforeStart === true,
+            );
             voice.source?.disconnect?.();
             voice.lowPassFilter?.disconnect?.();
             voice.highPassFilter?.disconnect?.();
@@ -5745,7 +5811,31 @@ export class CjsAudioBackend
             ),
             this.#busStateCatalog,
             (group, at) => this.#ReadStatePropertyWeights(group, at),
+            this.#busDuckingController,
         );
+    }
+
+    /** Reapplies duck envelopes after either engine changes bus activity. */
+    #RefreshBusDucking()
+    {
+        for (const record of this.#playing.values())
+        {
+            for (const voice of record.voices ?? [])
+            {
+                if (!voice.ended) this.#ApplyVoiceBusGain(voice);
+            }
+        }
+        this.#musicEngine?.RefreshBusDucking?.();
+    }
+
+    /** Settles one disposable source's bus activity exactly once. */
+    #EndVoiceDucking(voice, at, cancel = false)
+    {
+        const activity = voice?.duckActivity;
+
+        if (!activity) return false;
+        voice.duckActivity = null;
+        return cancel ? activity.Cancel(at) : activity.End(at);
     }
 
     /** Applies live Wwise LPF/HPF percentages to per-voice WebAudio filters. */
@@ -6090,8 +6180,17 @@ export class CjsAudioBackend
                 }
             }
 
+            const now = Number(this.#context?.currentTime) || 0;
+
             for (const voice of record.voices ?? [])
             {
+                this.#EndVoiceDucking(
+                    voice,
+                    now,
+                    voice.sourceStarted !== true
+                        || voice.startContextTime > now
+                        || voice.cancelledBeforeStart === true,
+                );
                 if (voice.source)
                 {
                     voice.source.onended = null;
@@ -6100,7 +6199,7 @@ export class CjsAudioBackend
                 {
                     try
                     {
-                        voice.source.stop?.(this.#context.currentTime);
+                        voice.source.stop?.(now);
                     }
                     catch
                     {
@@ -7540,6 +7639,7 @@ function ScheduleBusVolumeGain(
     readGlobalRtpc,
     busStateCatalog,
     readGlobalStateWeights,
+    busDuckingController,
 )
 {
     if (!param)
@@ -7560,6 +7660,10 @@ function ScheduleBusVolumeGain(
         ...(voice.controlTransitionBoundaries ?? [])
             .map(Number)
             .filter(value => Number.isFinite(value) && value > now),
+        ...(busDuckingController?.TransitionBoundaries?.(
+            busPathIds,
+            now,
+        ) ?? []),
     ]) ].sort((left, right) => left - right);
     const authoredBusVolumeDb = Number(voice.authoredBusVolumeDb) || 0;
     const authoredBusMakeUpGainDb =
@@ -7583,6 +7687,10 @@ function ScheduleBusVolumeGain(
             readGlobalStateWeights,
             at,
         )
+        + (busDuckingController?.EvaluateGainDb?.(
+            busPathIds,
+            at,
+        ) ?? 0)
     ) / 20);
     const startValue = evaluate(now);
 

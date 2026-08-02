@@ -280,9 +280,21 @@ only Actor-Mixer Hierarchy sounds use that bus, even if authoring selected a
 music synchronization point. The builder records that qualification as
 `effectiveSyncType: 0` and rejects a non-immediate subscription on a route used
 by music, because runtime-audio does not yet own a music-grid scheduler for bus
-States. This remains a focused audible adaptation rather than full Wwise bus
-processing; effects, auxiliary sends, and ducking remain deferred as
-described in the
+States. Typed Audio Bus auto-ducking uses the same ancestry and one shared SFX
+and music activity clock. A physical source activates every authored source
+bus in its route at its scheduled Web Audio start, including silent samples;
+pending media and authored graph silence do not activate it. The first active
+source begins each target's Fade Out, overlapping sources on the same bus hold
+one duck, and the last end starts Recovery followed by Fade In. Different
+source buses add in decibels, and nonlinear fades interpolate in linear gain
+with the authored Wwise curve. Voice Volume and Bus Volume targets remain
+distinct in the portable catalog, although the current effect-free dry route
+sums both into its per-route bus gain.
+
+This remains a focused audible adaptation rather than full Wwise bus
+processing. Voice Volume must move before a future dry/wet send split, while
+Bus Volume belongs at the final bus stage; effects, auxiliary sends, meters,
+and effect-tail-driven bus activity remain deferred as described in the
 [routing reference](../reference/wwise-resource-routing-handoff.md).
 Delay is measured from the action post. Value randomizers are signed offsets
 sampled once, and transitions use the decoded Wwise curve from the authored
@@ -396,6 +408,35 @@ The optional library-level `busStates` catalog carries its own normalized
 SFX graph transition table by canonical State Group identity and rejects
 conflicting definitions. This lets a library with music or bus data but no SFX
 graph still realize the authored transition timeline.
+
+The optional library-level `busDucking` catalog stores each source Audio Bus
+once with its Recovery Time, Maximum Ducking Volume, and ordered target rules:
+
+```js
+busDucking: {
+    schemaVersion: 1,
+    sources: {
+        "100": {
+            recoveryMs: 1000,
+            maxDuckVolumeDb: -96,
+            targets: [{
+                targetBusId: "200",
+                volumeDb: -6,
+                fadeOutMs: 250,
+                fadeInMs: 500,
+                curve: 4,
+                targetProperty: "voice-volume"
+            }]
+        }
+    }
+}
+```
+
+The builder accepts only v150 Audio Bus sources and Audio Bus targets, exact
+target properties 0 (Voice Volume) and 4 (Bus Volume), supported curves 0-9,
+finite nonpositive dB values, nonnegative integer timings, and cycle-safe
+non-parent targets. Auxiliary Bus sources and malformed or ambiguous rules
+fail closed.
 
 The bank builder projects only named, Immediate Volume, Pitch, and filter
 state tables with their exact supported accumulation modes. A group containing

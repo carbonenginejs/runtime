@@ -53,6 +53,8 @@ const SFX_LOW_PASS_PROPERTY = 2;
 const SFX_HIGH_PASS_PROPERTY = 3;
 const BUS_VOLUME_RTPC_PROPERTY = 4;
 const BUS_VOLUME_STATE_PROPERTY = 4;
+const DUCK_VOICE_VOLUME_PROPERTY = 0;
+const DUCK_BUS_VOLUME_PROPERTY = 4;
 const SFX_INITIAL_DELAY_PROPERTY = 34;
 const WWISE_OUTPUT_BUS_VOLUME_PROPERTY = 0x0d;
 const SFX_ADDITIVE_ACCUMULATION = 2;
@@ -613,6 +615,9 @@ export class CjsAudioLibraryBuilder
         const busStates = busCatalog
             ? CreateBusStateCatalog(busCatalog, busNames, musicBusIds)
             : null;
+        const busDucking = busCatalog
+            ? CreateBusDuckingCatalog(busCatalog)
+            : null;
         let eventMedia = {};
 
         if (!includeSfx)
@@ -638,6 +643,7 @@ export class CjsAudioLibraryBuilder
             embeddedMedia,
             busRtpcs,
             busStates,
+            busDucking,
         };
         let assembledOptions = completeOptions;
 
@@ -711,6 +717,7 @@ export class CjsAudioLibraryBuilder
             music = null,
             busRtpcs = null,
             busStates = null,
+            busDucking = null,
             sourceTarget = null,
             sourceGame = null,
             sourceProvider = null,
@@ -820,6 +827,12 @@ export class CjsAudioLibraryBuilder
             && Object.keys(busStates.buses ?? {}).length)
         {
             library.busStates = NormalizeBusStateCatalog(busStates);
+        }
+
+        if (busDucking !== null
+            && Object.keys(busDucking.sources ?? {}).length)
+        {
+            library.busDucking = NormalizeBusDuckingCatalog(busDucking);
         }
 
         if (source)
@@ -3138,6 +3151,172 @@ function NormalizeBusStateCatalog(value)
         stateTransitions: NormalizeStateTransitions(value.stateTransitions),
         buses,
     };
+}
+
+function CreateBusDuckingCatalog(buses)
+{
+    const sources = {};
+
+    for (const [ rawSourceBusId, bus ] of [ ...buses.entries() ]
+        .sort(([ left ], [ right ]) => left - right))
+    {
+        if (!bus.ducks?.length) continue;
+        const sourceBusId = NormalizeWwiseUint32(
+            rawSourceBusId,
+            "Audio Bus ducking source id",
+        );
+
+        if (bus.type !== "audio-bus")
+        {
+            throw new Error(
+                `unsupported Auxiliary Bus ducking source ${sourceBusId}`,
+            );
+        }
+        const recoveryMs = Number(bus.recoveryTime);
+        const maxDuckVolumeDb = Number(bus.maxDuckVolume);
+
+        if (!Number.isSafeInteger(recoveryMs) || recoveryMs < 0)
+        {
+            throw new Error(
+                `invalid Audio Bus ducking recovery ${sourceBusId}`,
+            );
+        }
+        if (!Number.isFinite(maxDuckVolumeDb)
+            || maxDuckVolumeDb < -200
+            || maxDuckVolumeDb > 0)
+        {
+            throw new Error(
+                `invalid Audio Bus maximum duck volume ${sourceBusId}`,
+            );
+        }
+        const ancestors = new Set();
+        let ancestor = Number(bus.overrideBusId) >>> 0;
+
+        while (ancestor)
+        {
+            if (ancestors.has(ancestor))
+            {
+                throw new Error(`Audio bus ancestry cycle at ${ancestor}`);
+            }
+            ancestors.add(ancestor);
+            const parent = buses.get(ancestor);
+
+            if (!parent)
+            {
+                throw new Error(`Audio bus ancestry is missing ${ancestor}`);
+            }
+            ancestor = Number(parent.overrideBusId) >>> 0;
+        }
+        const targetIds = new Set();
+        const targets = bus.ducks.map((duck, index) =>
+        {
+            const targetBusId = NormalizeWwiseUint32(
+                duck.busId,
+                `Audio Bus ducking source ${sourceBusId} target ${index}`,
+            );
+            const targetBus = buses.get(Number(targetBusId));
+            const volumeDb = Number(duck.volume);
+            const fadeOutMs = Number(duck.fadeOutTime);
+            const fadeInMs = Number(duck.fadeInTime);
+            const curve = Number(duck.curve);
+            const targetPropertyId = Number(duck.targetPropertyId);
+
+            if (!targetBus || targetBus.type !== "audio-bus")
+            {
+                throw new Error(
+                    `Audio Bus ducking target ${targetBusId} is not an Audio Bus`,
+                );
+            }
+            if (targetBusId === sourceBusId || ancestors.has(Number(targetBusId)))
+            {
+                throw new Error(
+                    `Audio Bus ${sourceBusId} cannot duck itself or parent ${targetBusId}`,
+                );
+            }
+            if (targetIds.has(targetBusId))
+            {
+                throw new Error(
+                    `Audio Bus ${sourceBusId} has duplicate duck target ${targetBusId}`,
+                );
+            }
+            targetIds.add(targetBusId);
+            if (!Number.isFinite(volumeDb)
+                || volumeDb < maxDuckVolumeDb
+                || volumeDb > 0)
+            {
+                throw new Error(
+                    `invalid Audio Bus duck volume ${sourceBusId}:${targetBusId}`,
+                );
+            }
+            if (!Number.isSafeInteger(fadeOutMs) || fadeOutMs < 0
+                || !Number.isSafeInteger(fadeInMs) || fadeInMs < 0)
+            {
+                throw new Error(
+                    `invalid Audio Bus duck fade ${sourceBusId}:${targetBusId}`,
+                );
+            }
+            if (!Number.isSafeInteger(curve) || curve < 0 || curve > 9)
+            {
+                throw new Error(
+                    `invalid Audio Bus duck curve ${sourceBusId}:${targetBusId}`,
+                );
+            }
+            const targetProperty = targetPropertyId
+                === DUCK_VOICE_VOLUME_PROPERTY
+                ? "voice-volume"
+                : targetPropertyId === DUCK_BUS_VOLUME_PROPERTY
+                    ? "bus-volume"
+                    : null;
+
+            if (!targetProperty)
+            {
+                throw new Error(
+                    `unsupported Audio Bus duck target property ${targetPropertyId}`,
+                );
+            }
+            return {
+                targetBusId,
+                volumeDb,
+                fadeOutMs,
+                fadeInMs,
+                curve,
+                targetProperty,
+            };
+        }).sort((left, right) => Number(left.targetBusId)
+            - Number(right.targetBusId));
+
+        sources[sourceBusId] = {
+            recoveryMs,
+            maxDuckVolumeDb,
+            targets,
+        };
+    }
+    return { schemaVersion: 1, sources };
+}
+
+function NormalizeBusDuckingCatalog(value)
+{
+    const sources = {};
+
+    for (const sourceBusId of Object.keys(value.sources ?? {})
+        .sort((left, right) => Number(left) - Number(right)))
+    {
+        const source = value.sources[sourceBusId];
+
+        sources[String(sourceBusId)] = {
+            recoveryMs: Number(source.recoveryMs),
+            maxDuckVolumeDb: Number(source.maxDuckVolumeDb),
+            targets: source.targets.map(target => ({
+                targetBusId: String(target.targetBusId),
+                volumeDb: Number(target.volumeDb),
+                fadeOutMs: Number(target.fadeOutMs),
+                fadeInMs: Number(target.fadeInMs),
+                curve: Number(target.curve),
+                targetProperty: String(target.targetProperty),
+            })),
+        };
+    }
+    return { schemaVersion: 1, sources };
 }
 
 function CreateSfxBusRouting(parsed, rawID, buses)

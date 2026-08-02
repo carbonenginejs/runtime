@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsMusicEngine, wwiseIdFromName } from "../npm/dist/index.js";
+import { CjsBusDuckingController } from "../src/internal/busDucking.js";
 
 
 // Synthetic music graph in the extractor's emitted shape: a switch container
@@ -2648,4 +2649,146 @@ test("music routes apply Immediate ancestor Bus Volume State gain", async () =>
   state = "on";
   engine.RefreshBusStates();
   assert.ok(Math.abs(routeGain.gain.value - 10 ** (-9 / 20)) < 1e-6);
+});
+
+test("music routes share Audio Bus ducking activity with SFX", async () =>
+{
+  const busDuckingController = new CjsBusDuckingController({
+    schemaVersion: 1,
+    sources: {
+      "100": {
+        recoveryMs: 0,
+        maxDuckVolumeDb: -12,
+        targets: [ {
+          targetBusId: "200",
+          volumeDb: -6,
+          fadeOutMs: 0,
+          fadeInMs: 0,
+          curve: 4,
+          targetProperty: "bus-volume",
+        } ],
+      },
+    },
+  });
+  const sourceMusic = Harness(graph =>
+  {
+    Object.assign(graph.nodes[TRACK_A], {
+      outputBusId: "100",
+      busPathIds: [ "100" ],
+    });
+  }, { busDuckingController });
+
+  sourceMusic.engine.PostEvent("music_test_play", 705, () => {});
+  await tick();
+  sourceMusic.context.currentTime = 1;
+  assert.ok(Math.abs(
+    busDuckingController.EvaluateGainDb([ "200" ], 1) + 6,
+  ) < 1e-9);
+
+  sourceMusic.context.sources[0].onended();
+  assert.equal(busDuckingController.EvaluateGainDb([ "200" ], 1), 0);
+  sourceMusic.engine.Dispose();
+
+  const sfxActivity = busDuckingController.ScheduleActivity([ "100" ], 0, 10);
+  const targetMusic = Harness(graph =>
+  {
+    Object.assign(graph.nodes[TRACK_A], {
+      outputBusId: "200",
+      busPathIds: [ "200" ],
+    });
+  }, { busDuckingController });
+
+  targetMusic.context.currentTime = 1;
+  targetMusic.engine.PostEvent("music_test_play", 706, () => {});
+  await tick();
+  const segmentGain = targetMusic.context.gains[2];
+  const routeGain = targetMusic.context.gains.find(gain =>
+    gain !== segmentGain && gain.connectedTo === segmentGain);
+
+  assert.ok(Math.abs(routeGain.gain.value - 10 ** (-6 / 20)) < 1e-6);
+  sfxActivity.End(1);
+  targetMusic.engine.Dispose();
+});
+
+test("disposing music before a future clip start cancels its ducking activity", async () =>
+{
+  const busDuckingController = new CjsBusDuckingController({
+    schemaVersion: 1,
+    sources: {
+      "100": {
+        recoveryMs: 2000,
+        maxDuckVolumeDb: -12,
+        targets: [ {
+          targetBusId: "200",
+          volumeDb: -6,
+          fadeOutMs: 0,
+          fadeInMs: 0,
+          curve: 4,
+          targetProperty: "bus-volume",
+        } ],
+      },
+    },
+  });
+  const { context, engine } = Harness(graph =>
+  {
+    Object.assign(graph.nodes[TRACK_A], {
+      outputBusId: "100",
+      busPathIds: [ "100" ],
+      clips: [ {
+        trackId: 0,
+        sourceId: 111,
+        eventId: 0,
+        playAt: 5000,
+        beginTrimOffset: 0,
+        endTrimOffset: 0,
+        srcDuration: 1000,
+      } ],
+    });
+  }, { busDuckingController });
+
+  engine.PostEvent("music_test_play", 707, () => {});
+  await tick();
+  assert.equal(context.sources[0].startedAt, 4);
+
+  engine.Dispose();
+  assert.equal(busDuckingController.EvaluateGainDb([ "200" ], 5), 0);
+});
+
+test("an early music end shortens a later requested fade-stop activity", async () =>
+{
+  const busDuckingController = new CjsBusDuckingController({
+    schemaVersion: 1,
+    sources: {
+      "100": {
+        recoveryMs: 2000,
+        maxDuckVolumeDb: -12,
+        targets: [ {
+          targetBusId: "200",
+          volumeDb: -6,
+          fadeOutMs: 0,
+          fadeInMs: 0,
+          curve: 4,
+          targetProperty: "bus-volume",
+        } ],
+      },
+    },
+  });
+  const { context, engine } = Harness(graph =>
+  {
+    Object.assign(graph.nodes[TRACK_A], {
+      outputBusId: "100",
+      busPathIds: [ "100" ],
+    });
+  }, { busDuckingController });
+
+  engine.PostEvent("music_test_play", 708, () => {});
+  await tick();
+  context.currentTime = 2;
+  engine.ExecuteAction("stop", 708, 6000);
+  assert.equal(context.sources[0].stoppedAt, 8);
+
+  context.currentTime = 5;
+  context.sources[0].onended();
+  assert.equal(busDuckingController.EvaluateGainDb([ "200" ], 7.5), 0);
+  engine.Dispose();
 });
