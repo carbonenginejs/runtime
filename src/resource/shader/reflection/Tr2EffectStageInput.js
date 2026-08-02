@@ -21,6 +21,17 @@ import {
 import { compareUtf8 } from "../../../format/compareUtf8.js";
 import { requireShaderStageType } from "./shaderStage.js";
 
+/**
+ * The offset word a zero-size blob carries, or the null sentinel.
+ *
+ * @param {{size:number,offset:number}} ref Blob reference.
+ * @returns {number} Offset word worth retaining.
+ */
+function unsetOffsetOf(ref)
+{
+  return ref.size === 0 ? ref.offset : 0xffffffff;
+}
+
 /** Complete device-free reflection for one shader stage input. */
 export class Tr2EffectStageInput extends CjsModel
 {
@@ -123,7 +134,11 @@ export class Tr2EffectStageInput extends CjsModel
     input.sourceProgram = {
       kind: "stage",
       bytes: copyBytes(recordBytes(record.shaderData)),
-      shaderSize: record.shaderData.size
+      shaderSize: record.shaderData.size,
+      // Meaningful only at size zero, where the writer passes the word through
+      // rather than interning. At any other size it is a live arena offset that
+      // belongs to the container it was read from, so it is not retained.
+      unsetOffset: unsetOffsetOf(record.shaderData)
     };
     return input;
   }
@@ -165,6 +180,7 @@ export class Tr2EffectStageInput extends CjsModel
     input.samplers = this.readCarbonBinarySamplerMap(record.samplers);
     input.constantValueSize = constantValues.byteLength;
     input.constantValues = constantValues;
+    input.constantValuesUnsetOffset = unsetOffsetOf(record.defaultValues);
     input.annotation = record.annotations.map(
       entry => Tr2EffectParameterAnnotation.fromCarbonBinary(entry)
     );
@@ -223,7 +239,11 @@ export class Tr2EffectStageInput extends CjsModel
     const program = this.sourceProgram ?? {};
     return {
       type: this.stageType,
-      shaderData: toRecordBlob(program.bytes, program.shaderSize),
+      shaderData: toRecordBlob(
+        program.bytes,
+        program.shaderSize,
+        program.unsetOffset
+      ),
       threadGroupSize: [
         signature.threadGroupSize?.x ?? 0,
         signature.threadGroupSize?.y ?? 0,
@@ -287,7 +307,11 @@ export class Tr2EffectStageInput extends CjsModel
         };
       }),
       constants: this.constants.map(constant => constant.toCarbonBinary()),
-      defaultValues: toRecordBlob(this.constantValues, this.constantValueSize),
+      defaultValues: toRecordBlob(
+        this.constantValues,
+        this.constantValueSize,
+        this.constantValuesUnsetOffset
+      ),
       textures: Array.from(this.resources, ([ register, resource ]) =>
         resource.toCarbonBinary(register)).sort(byRegister),
       samplers: Array.from(this.samplers, ([ register, sampler ]) =>
@@ -404,6 +428,7 @@ CjsSchema.define(Tr2EffectStageInput, {
     constants: type.list("Tr2EffectConstant"),
     constantValueSize: type.uint32,
     constantValues: type.typedArray("Uint8Array"),
+    constantValuesUnsetOffset: [ impl.custom, impl.reason("A zero-size blob's offset word is passed through rather than interned, and the shipped corpus does not always set it to the null sentinel; the graph retains it so a body re-emits as the file that produced it."), type.uint32 ],
     signature: type.rawStruct("Tr2ShaderSignatureAL"),
     annotation: type.list("Tr2EffectParameterAnnotation"),
     sourceProgram: [ impl.adapted, impl.reason("Carbon replaces source program data with renderer handles while reading; the device-free resource graph must retain the portable source program for later engine realization."), type.rawStruct("CjsEffectSourceProgram") ]

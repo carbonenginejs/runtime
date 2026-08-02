@@ -124,7 +124,11 @@ export class Tr2EffectLibrary extends CjsModel
     library.sourceProgram = {
       kind: "library",
       bytes: copyBytes(recordBytes(record.shaderData)),
-      shaderSize: record.shaderData.size
+      shaderSize: record.shaderData.size,
+      // See Tr2EffectStageInput: only a zero-size blob's word is portable.
+      unsetOffset: record.shaderData.size === 0
+        ? record.shaderData.offset
+        : 0xffffffff
     };
     library.globalInput = Tr2EffectStageInput.fromCarbonBinaryInput(
       record.globalInputs
@@ -149,7 +153,11 @@ export class Tr2EffectLibrary extends CjsModel
     const program = this.sourceProgram ?? {};
     return {
       payloadSize: this.payloadSize >>> 0,
-      shaderData: toRecordBlob(program.bytes, program.shaderSize),
+      shaderData: toRecordBlob(
+        program.bytes,
+        program.shaderSize,
+        program.unsetOffset
+      ),
       exports: this.exports.map(entry => ({
         type: entry.type,
         name: toRecordText(entry.name)

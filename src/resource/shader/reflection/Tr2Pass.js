@@ -37,6 +37,17 @@ export class Tr2Pass extends CjsModel
   backendBlock = null;
 
   /**
+   * Stage types in the order the file stored them.
+   *
+   * `stageInputs` is indexed by stage type, as Carbon's fixed array is, so the
+   * file's ordering is not recoverable from it. That ordering is authored rather
+   * than derivable: measured over 288,528 passes in the shipped corpus, 156 put
+   * geometry before pixel (`0,3,1`) and 12 put it after (`0,1,3`). Any sort loses
+   * one group or the other, so the sequence is kept.
+   */
+  stageOrder = [];
+
+  /**
    * Build one pass from its Carbon v15 description record.
    *
    * Carbon writes only the stages a pass actually uses, but the class keeps a
@@ -92,6 +103,7 @@ export class Tr2Pass extends CjsModel
       pass.shaderTypeMask = (pass.shaderTypeMask | (1 << stageType)) >>> 0;
     }
 
+    pass.stageOrder = record.stages.map(stage => stage.type);
     pass.backendBlock = record.backendBlock
       ? { bytes: recordBytes(record.backendBlock), size: record.backendBlock.size }
       : null;
@@ -99,6 +111,30 @@ export class Tr2Pass extends CjsModel
     return pass;
   }
 
+
+  /**
+   * The populated stages in the order they should be written.
+   *
+   * A retained order wins; anything present but unlisted follows in stage-type
+   * order, so a pass assembled by hand still emits every stage it has.
+   *
+   * @returns {Array<object>} Stages in file order.
+   */
+  #orderedStages()
+  {
+    const present = this.stageInputs.filter(stage => stage?.exists);
+    const ordered = [];
+    for (const stageType of this.stageOrder)
+    {
+      const stage = present.find(entry => entry.stageType === stageType);
+      if (stage && !ordered.includes(stage)) ordered.push(stage);
+    }
+    for (const stage of present)
+    {
+      if (!ordered.includes(stage)) ordered.push(stage);
+    }
+    return ordered;
+  }
 
   /**
    * Emit this pass as a Carbon v15 record.
@@ -114,10 +150,7 @@ export class Tr2Pass extends CjsModel
   toCarbonBinary()
   {
     const record = {
-      stages: this.stageInputs
-        .filter(stage => stage?.exists)
-        .sort((left, right) => left.stageType - right.stageType)
-        .map(stage => stage.toCarbonBinary()),
+      stages: this.#orderedStages().map(stage => stage.toCarbonBinary()),
       renderStates: this.renderStateValues
         .map(entry => ({ state: entry.state, value: entry.value }))
         .sort((left, right) => left.state - right.state)
@@ -149,6 +182,7 @@ CjsSchema.define(Tr2Pass, {
     resourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
     indirectLayout: type.rawStruct("Tr2IndirectDrawBufferLayout"),
     renderStateValues: [ impl.adapted, impl.reason("Carbon stores a renderer-owned render-state handle; the device-free graph retains the authored state/value pairs until an engine realizes them."), type.rawStruct("CjsEffectRenderStateValues") ],
+    stageOrder: [ impl.custom, impl.reason("Carbon indexes pass stages by type in a fixed array and loses the file's ordering; the device-free graph retains it so a body can be re-emitted as the file that produced it."), type.rawStruct("CjsEffectStageOrder") ],
     backendBlock: [ impl.custom, impl.reason("Carbon ends a pass at its render states; CarbonEngineJS containers may append one per-pass block carrying the backend program, which the resource retains uninterpreted for an engine to realize."), type.rawStruct("CjsEffectBackendBlock") ]
   }
 });

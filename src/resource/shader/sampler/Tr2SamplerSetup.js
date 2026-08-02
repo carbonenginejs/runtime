@@ -50,11 +50,15 @@ export class Tr2SamplerSetup extends CjsModel
   /**
    * Build one dynamic sampler from its Carbon v15 description record.
    *
-   * A name is meaningful only on a dynamic sampler. Carbon nulls the name of a
-   * non-dynamic one while reading (`Tr2EffectDescription.cpp:430-433`), and the
-   * arena still holds whatever text the compiler emitted, so `isDynamic` — not
-   * the presence of a string — is what decides `hasName`. Deriving it from the
-   * string instead would resurrect names Carbon discards.
+   * The name is kept whatever `isDynamic` says. Carbon nulls a non-dynamic
+   * sampler's name while reading (`Tr2EffectDescription.cpp:430-433`), but that
+   * is a runtime decision made on the way to a device — the file still carries
+   * the string, and this graph has to be able to re-emit the file it came from.
+   * Dropping it loses arena content: measured across the shipped corpus, this
+   * single rule accounted for every non-byte-identical re-emission.
+   *
+   * A consumer that wants Carbon's runtime view asks for it: the name is
+   * meaningful only when `isDynamic`.
    *
    * @param {object} record Carbon sampler record.
    * @returns {Tr2SamplerSetup} Reflected sampler.
@@ -68,8 +72,8 @@ export class Tr2SamplerSetup extends CjsModel
 
     const sampler = new this();
     sampler.isDynamic = !!record.isDynamic;
-    sampler.hasName = sampler.isDynamic;
-    sampler.name = sampler.hasName ? recordText(record.name) : "";
+    sampler.name = recordText(record.name);
+    sampler.hasName = sampler.name !== "";
     sampler.sampler = {
       comparison: !!record.comparison,
       minFilter: record.minFilter,
@@ -92,10 +96,9 @@ export class Tr2SamplerSetup extends CjsModel
   /**
    * Emit this sampler as a Carbon v15 record.
    *
-   * The name is written whether or not it is meaningful — Carbon's writer always
-   * emits the field and its reader discards it when the sampler is not dynamic,
-   * so a non-dynamic sampler round-trips as the empty string rather than losing
-   * its slot.
+   * The name is written whether or not it is meaningful: Carbon's writer always
+   * emits the field, and the string it emits is the one the compiler authored,
+   * not the one Carbon's reader keeps.
    *
    * @param {number} registerIndex Register this sampler is bound at.
    * @returns {object} Carbon sampler record.
@@ -105,7 +108,7 @@ export class Tr2SamplerSetup extends CjsModel
     const descriptor = this.sampler ?? {};
     return {
       registerIndex,
-      name: toRecordText(this.hasName ? this.name : ""),
+      name: toRecordText(this.name),
       comparison: descriptor.comparison ? 1 : 0,
       minFilter: descriptor.minFilter,
       magFilter: descriptor.magFilter,

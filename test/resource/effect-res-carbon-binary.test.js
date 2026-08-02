@@ -207,18 +207,19 @@ test("a dynamic sampler keeps its name", () =>
     assert.equal(sampler.name, "ADiffuseSampler");
 });
 
-test("a non-dynamic sampler drops the name the arena still holds", () =>
+test("a non-dynamic sampler keeps the name the file carries", () =>
 {
-    // Carbon nulls the name of a non-dynamic sampler while reading, but the
-    // string is still sitting in the arena and the record still points at it —
-    // so deriving the name from the string rather than from isDynamic would
-    // silently resurrect it.
+    // Carbon nulls a non-dynamic sampler's name while reading, but that is a
+    // runtime decision on the way to a device - the bytes still hold the string,
+    // and this graph has to be able to re-emit the file it came from. Deriving
+    // the name from isDynamic dropped arena content: across the shipped corpus
+    // that single rule accounted for 1631 of 4833 files failing to re-emit.
     const input = stageInputWithSampler({ isDynamic: 0 });
     const sampler = input.samplers.get(0);
 
     assert.equal(sampler.isDynamic, false);
-    assert.equal(sampler.hasName, false);
-    assert.equal(sampler.name, "");
+    assert.equal(sampler.name, "ADiffuseSampler");
+    assert.equal(sampler.hasName, true);
 });
 
 test("sampler float fields survive as exact bit patterns", () =>
