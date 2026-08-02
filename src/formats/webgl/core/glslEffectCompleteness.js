@@ -1,3 +1,17 @@
+import { LOCAL_LIGHT_RESOURCE_NAMES } from "../../hlsl/core/localLightFamily.js";
+
+/**
+ * Light-record fields naming the Carbon registers a lowering replaced.
+ *
+ * A lowered family declares one synthesised uniform, so its own `registerIndex`
+ * covers only one of the sources; the record carries the rest.
+ */
+const LOCAL_LIGHT_RECORD_REGISTERS = Object.freeze([
+  "lightIndexRegister",
+  "lightDataRegister",
+  "lightProfileRegister"
+]);
+
 /**
  * Inspects CEWG stage records for complete WebGL2 raster passes.
  *
@@ -142,6 +156,82 @@ export function isComputeFragmentContract(value)
         routes.add(route);
     }
     return true;
+}
+
+/**
+ * Reports a local-light family that the shipped GLSL neither binds nor explains.
+ *
+ * The container deliberately says two things at once. The Carbon description
+ * records are the authored name and register authority and are never rewritten
+ * by a lowering; the GLSL declares whatever the lowering actually produced; and
+ * the per-pass backend block is the delta that ties one to the other. That only
+ * holds while the delta is complete.
+ *
+ * This cannot be a general "every described resource is declared" rule. Carbon
+ * describes resources a shader may simply not use, and the emitter only declares
+ * what it samples, so an undeclared resource is ordinary. Measured on a shipped
+ * effect, the general form reported 96 such resources on a perfectly good build.
+ *
+ * What is checkable is a family the packager is known to rewrite. Local lights
+ * are two structured buffers plus an optional profile texture; WebGL2 has no
+ * structured buffers, so the shader either lowers them - leaving a light record
+ * naming the source registers - or it cannot bind lights at all. A described
+ * family with no declaration and no record is the one case that is definitely
+ * wrong rather than merely unused.
+ *
+ * `localLights: "drop"` produces exactly that: the emitter removes the
+ * declarations *and* their binding records, so nothing reaches the block while
+ * the description still lists all three. That mode is a diagnostic aid, not a
+ * shipping mode, and this is what says so instead of writing a container that
+ * quietly disagrees with itself.
+ *
+ * @param {object} stage Decoded stage record.
+ * @param {object} shader Decoded shader record.
+ * @param {object[]} errors Collected integrity errors.
+ */
+function checkLocalLightFamilyAccounted(stage, shader, errors)
+{
+    const manifestBindings = Array.isArray(stage.manifest?.bindings)
+        ? stage.manifest.bindings
+        : [];
+    const family = manifestBindings.filter((entry) => entry?.kind === "resource"
+        && LOCAL_LIGHT_RESOURCE_NAMES.includes(entry.name));
+    if (family.length < 2) return;
+
+    const bindings = Array.isArray(shader.bindings) ? shader.bindings : [];
+    const accounted = new Set();
+    for (const binding of bindings)
+    {
+        if (Number.isSafeInteger(binding?.registerIndex))
+        {
+            accounted.add(binding.registerIndex);
+        }
+        for (const key of LOCAL_LIGHT_RECORD_REGISTERS)
+        {
+            if (Number.isSafeInteger(binding?.[key])) accounted.add(binding[key]);
+        }
+    }
+
+    // Any orphan is a fault, not only a wholly missing family. A lowering that
+    // declares its synthesised uniform but forgets to record the other source
+    // registers loses them just as completely, and only the record can say where
+    // they went.
+    const orphans = family
+        .filter((entry) => Number.isSafeInteger(entry.registerIndex)
+            && !accounted.has(entry.registerIndex))
+        .map((entry) => entry.registerIndex);
+    if (!orphans.length) return;
+
+    addIntegrityError(
+        errors,
+        "unlowered_local_light_family",
+        `Stage ${stage.key} describes a local-light family at registers ${orphans.join(", ")} that the shader neither declares nor lowers`,
+        {
+            stageKey: stage.key,
+            shaderKey: stage.shaderKey || null,
+            registers: orphans
+        }
+    );
 }
 
 /**
@@ -373,6 +463,8 @@ function validateShaderRuntimeContract(shader, stage, manifestStage, errors)
             }
         }
     }
+
+    checkLocalLightFamilyAccounted(stage, shader, errors);
 
     if (!Array.isArray(shader.bindings)) return;
     const manifestBindings = Array.isArray(manifestStage.bindings) ? manifestStage.bindings : [];

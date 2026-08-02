@@ -412,3 +412,97 @@ test("the rules run on a real container decoded from bytes", () =>
     const completeness = inspectRasterCompleteness(decoded.stages, decoded.shaders);
     assert.equal(completeness.completePassCount, 0);
 });
+
+/**
+ * A stage whose Carbon description declares the local-light family.
+ *
+ * `LightProfileArray` is optional in the family, so two entries is the minimum
+ * that counts as one.
+ */
+function lightStage(overrides = {})
+{
+    return stage("pixel", "ps", "body_1", {
+        manifest: {
+            pipelineInputs: [],
+            bindings: [
+                { kind: "resource", registerIndex: 13, name: "LightIndexBuffer" },
+                { kind: "resource", registerIndex: 14, name: "LightBuffer" },
+                { kind: "resource", registerIndex: 15, name: "LightProfileArray" },
+                { kind: "resource", registerIndex: 2, name: "DiffuseMap" }
+            ]
+        },
+        ...overrides
+    });
+}
+
+test("a described local-light family must be declared or lowered", () =>
+{
+    // Not lowered: the shader declares the family at its own registers, which is
+    // what `localLights: "none"` emits.
+    const declared = inspectGlslContainerIntegrity(containerGraph(
+        [ lightStage() ],
+        [ shader("ps", { bindings: [
+            { name: "sb13", registerIndex: 13 },
+            { name: "sb14", registerIndex: 14 },
+            { name: "t15", registerIndex: 15 }
+        ] }) ]
+    ));
+    assert.equal(
+        declared.errors.some((entry) => entry.code === "unlowered_local_light_family"),
+        false
+    );
+
+    // Lowered: one synthesised uniform whose record names the sources it
+    // replaced. Its own registerIndex covers only the first of the three.
+    const lowered = inspectGlslContainerIntegrity(containerGraph(
+        [ lightStage() ],
+        [ shader("ps", { bindings: [ {
+            name: "cewgLocalLightTexture",
+            registerIndex: 13,
+            localLightRole: "packedLocalLights",
+            lightIndexRegister: 13,
+            lightDataRegister: 14,
+            lightProfileRegister: 15
+        } ] }) ]
+    ));
+    assert.equal(
+        lowered.errors.some((entry) => entry.code === "unlowered_local_light_family"),
+        false
+    );
+
+    // Dropped: the declarations and their records both go, so the description
+    // lists a family with nothing to bind it to and nothing saying why.
+    const dropped = inspectGlslContainerIntegrity(containerGraph(
+        [ lightStage() ],
+        [ shader("ps", { bindings: [ { name: "sDiffuse", registerIndex: 2 } ] }) ]
+    ));
+    const error = dropped.errors.find(
+        (entry) => entry.code === "unlowered_local_light_family"
+    );
+    assert.ok(error, "a dropped family must be reported");
+    assert.deepEqual(error.registers, [ 13, 14, 15 ]);
+});
+
+test("an ordinary undeclared resource is not reported", () =>
+{
+    // Carbon describes resources a shader may simply not use, and the emitter
+    // only declares what it samples. The rule must stay narrow enough that an
+    // unused texture is not mistaken for a lowering that went missing.
+    const result = inspectGlslContainerIntegrity(containerGraph(
+        [ stage("pixel", "ps", "body_1", {
+            manifest: {
+                pipelineInputs: [],
+                bindings: [
+                    { kind: "resource", registerIndex: 2, name: "DiffuseMap" },
+                    { kind: "resource", registerIndex: 7, name: "UnusedMap" }
+                ]
+            }
+        }) ],
+        [ shader("ps", { bindings: [ { name: "sDiffuse", registerIndex: 2 } ] }) ]
+    ));
+
+    assert.deepEqual(
+        result.errors.filter((entry) => entry.code === "unlowered_local_light_family"),
+        []
+    );
+});
