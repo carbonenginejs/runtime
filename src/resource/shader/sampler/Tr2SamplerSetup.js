@@ -3,6 +3,7 @@ import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { isPlainObject } from "@carbonenginejs/runtime-utils/is";
 import { cloneCarbonValue } from "@carbonenginejs/runtime-utils/types";
+import { recordRawBits, recordText } from "../reflection/carbonRecordFields.js";
 
 /** Reflected sampler name and complete device-free sampler descriptor. */
 export class Tr2SamplerSetup extends CjsModel
@@ -40,6 +41,47 @@ export class Tr2SamplerSetup extends CjsModel
       };
     }
     return super.from(normalized, options);
+  }
+
+  /**
+   * Build one dynamic sampler from its Carbon v15 description record.
+   *
+   * A name is meaningful only on a dynamic sampler. Carbon nulls the name of a
+   * non-dynamic one while reading (`Tr2EffectDescription.cpp:430-433`), and the
+   * arena still holds whatever text the compiler emitted, so `isDynamic` — not
+   * the presence of a string — is what decides `hasName`. Deriving it from the
+   * string instead would resurrect names Carbon discards.
+   *
+   * @param {object} record Carbon sampler record.
+   * @returns {Tr2SamplerSetup} Reflected sampler.
+   */
+  static fromCarbonBinary(record)
+  {
+    if (!isPlainObject(record))
+    {
+      throw new TypeError("Carbon effect sampler record must be an object");
+    }
+
+    const sampler = new this();
+    sampler.isDynamic = !!record.isDynamic;
+    sampler.hasName = sampler.isDynamic;
+    sampler.name = sampler.hasName ? recordText(record.name) : "";
+    sampler.sampler = {
+      comparison: !!record.comparison,
+      minFilter: record.minFilter,
+      magFilter: record.magFilter,
+      mipFilter: record.mipFilter,
+      addressU: record.addressU,
+      addressV: record.addressV,
+      addressW: record.addressW,
+      mipLODBiasRaw: recordRawBits(record.mipLODBias),
+      maxAnisotropy: record.maxAnisotropy,
+      comparisonFunc: record.comparisonFunc,
+      borderColorRaw: (record.borderColor ?? []).map(recordRawBits),
+      minLODRaw: recordRawBits(record.minLOD),
+      maxLODRaw: recordRawBits(record.maxLOD)
+    };
+    return sampler;
   }
 
   /**

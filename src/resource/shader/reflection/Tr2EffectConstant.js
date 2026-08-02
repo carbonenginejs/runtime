@@ -5,6 +5,7 @@ import {
   isPlainObject,
   isUint32
 } from "@carbonenginejs/runtime-utils/is";
+import { recordText } from "./carbonRecordFields.js";
 
 /** Reflected shader constant metadata. */
 export class Tr2EffectConstant extends CjsModel
@@ -33,6 +34,35 @@ export class Tr2EffectConstant extends CjsModel
 
   /** isAutoregister (bool) */
   isAutoregister = false;
+
+  /**
+   * Build one constant from its Carbon v15 description record.
+   *
+   * The record's numeric fields are already the widths Carbon declares, so this
+   * is a rename plus the two byte-to-bool conversions; only `name` needs
+   * dereferencing, because strings live in the container's arena.
+   *
+   * @param {object} record Carbon constant record.
+   * @returns {Tr2EffectConstant} Reflected constant.
+   */
+  static fromCarbonBinary(record)
+  {
+    if (!isPlainObject(record))
+    {
+      throw new TypeError("Carbon effect constant record must be an object");
+    }
+
+    const constant = new this();
+    constant.name = recordText(record.name);
+    constant.offset = record.offset;
+    constant.size = record.size;
+    constant.type = record.type;
+    constant.dimension = record.dimension;
+    constant.elements = record.elements;
+    constant.isSRGB = !!record.isSRGB;
+    constant.isAutoregister = !!record.isAutoregister;
+    return constant;
+  }
 
   /**
    * Build one constant from its portable JSON reflection record.

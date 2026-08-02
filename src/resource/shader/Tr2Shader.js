@@ -187,6 +187,39 @@ export class Tr2Shader extends CjsModel
   }
 
   /**
+   * Build one GPU-free shader from one body of a Carbon effect container.
+   *
+   * `reader` is the container reader the resource opened and retains; this method
+   * never opens anything of its own. A body is not independently readable — its
+   * strings are offsets into the container's shared arena, and its layout depends
+   * on the container's version — so handing each body its own reader would mean
+   * re-parsing the header per permutation and losing the arena.
+   *
+   * ccpwgl passes the owning resource alongside the reader for exactly that
+   * reason: there, the arena and version live on the resource. Here they live on
+   * the reader itself, which the resource retains, so the resource adds nothing a
+   * body needs and is deliberately not a parameter.
+   *
+   * Reading is backend-agnostic. A dx11 body reads exactly as a webgl one does;
+   * they differ only in what the optional per-pass block carries, and this method
+   * retains that block without interpreting it. What can be *realized* from the
+   * result is the engine's question, not the reader's.
+   *
+   * @param {object} reader Container reader owned by the resource.
+   * @param {number} index Permutation index within the container.
+   * @returns {Tr2Shader} Canonical selected shader.
+   */
+  static fromCarbonBinary(reader, index)
+  {
+    const shader = new this();
+    shader.effect = Tr2EffectDescription.fromCarbonBinary(
+      reader.readDescription(index)
+    );
+    shader.ProcessEffect();
+    return shader;
+  }
+
+  /**
    * Build one canonical GPU-free shader from complete portable reflection.
    * Each child reflection class owns conversion of its own portable record.
    *

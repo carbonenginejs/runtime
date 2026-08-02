@@ -6,6 +6,7 @@ import {
   isPlainObject,
   isUint32
 } from "@carbonenginejs/runtime-utils/is";
+import { recordRawValue, recordText } from "./carbonRecordFields.js";
 
 /** Typed annotation attached to a reflected effect parameter. */
 export class Tr2EffectParameterAnnotation extends CjsModel
@@ -31,6 +32,59 @@ export class Tr2EffectParameterAnnotation extends CjsModel
 
   /** stringValue (const char*) */
   stringValue = "";
+
+  /**
+   * Build one typed annotation from its Carbon v15 description record.
+   *
+   * The type byte decides which member is meaningful, and every non-string type
+   * arrives as four untyped bytes rather than a number — Carbon writes the value
+   * through one member of a `{float,int32_t}` union and reads it back through
+   * another, so the bit pattern is the only faithful carrier. `rawValue` keeps
+   * those bits and the typed accessor is derived from them, never the reverse.
+   *
+   * @param {object} record Carbon annotation record.
+   * @returns {Tr2EffectParameterAnnotation} Reflected annotation.
+   */
+  static fromCarbonBinary(record)
+  {
+    if (!isPlainObject(record))
+    {
+      throw new TypeError("Carbon effect annotation record must be an object");
+    }
+
+    const annotation = new this();
+    annotation.name = recordText(record.name);
+    annotation.type = record.type;
+
+    switch (annotation.type)
+    {
+      case this.Type.BOOL:
+        annotation.rawValue = recordRawValue(record.rawValue);
+        annotation.boolValue = annotation.rawValue !== 0;
+        break;
+
+      case this.Type.INT:
+        annotation.rawValue = recordRawValue(record.rawValue);
+        annotation.intValue = annotation.rawValue | 0;
+        break;
+
+      case this.Type.FLOAT:
+        annotation.rawValue = recordRawValue(record.rawValue);
+        annotation.floatValue = dwordToFloat(annotation.rawValue);
+        break;
+
+      case this.Type.STRING:
+        annotation.stringValue = recordText(record.stringValue);
+        break;
+
+      default:
+        throw new Error(
+          `Carbon effect annotation type ${annotation.type} is unsupported`
+        );
+    }
+
+    return annotation;
+  }
 
   /**
    * Build one typed annotation from its portable JSON reflection record.

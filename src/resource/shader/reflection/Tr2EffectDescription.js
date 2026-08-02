@@ -8,6 +8,7 @@ import {
 } from "@carbonenginejs/runtime-utils/is";
 import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js";
 import { Tr2EffectTechnique } from "./Tr2EffectTechnique.js";
+import { recordText } from "./carbonRecordFields.js";
 
 /** Complete device-free effect description for one selected shader body. */
 export class Tr2EffectDescription extends CjsModel
@@ -62,9 +63,51 @@ export class Tr2EffectDescription extends CjsModel
   }
 
   /**
-   * Build one complete effect description from its portable JSON record.
+   * Build one complete effect description from its Carbon v15 record tree.
    *
-   * @param {object} value Portable effect-description record.
+   * This is the whole body: every technique, and the effect-level annotation
+   * groups keyed by the parameter they annotate. Carbon sorts those keys by
+   * `strcmp` on the way out, and the map preserves whatever order the file used,
+   * so nothing here depends on the ordering being meaningful.
+   *
+   * @param {object} record Carbon effect description record.
+   * @returns {Tr2EffectDescription} Reflected description.
+   */
+  static fromCarbonBinary(record)
+  {
+    if (!isPlainObject(record))
+    {
+      throw new TypeError("Carbon effect description record must be an object");
+    }
+
+    const effect = new this();
+    effect.annotations = new Map();
+    for (const group of record.annotations)
+    {
+      const parameterName = recordText(group.name);
+      if (effect.annotations.has(parameterName))
+      {
+        throw new Error(
+          `Carbon effect annotation group "${parameterName}" is duplicated`
+        );
+      }
+      effect.annotations.set(
+        parameterName,
+        group.annotations.map(
+          entry => Tr2EffectParameterAnnotation.fromCarbonBinary(entry)
+        )
+      );
+    }
+    effect.techniques = record.techniques.map(
+      entry => Tr2EffectTechnique.fromCarbonBinary(entry)
+    );
+    return effect;
+  }
+
+  /**
+   * Build one complete effect description from portable reflection.
+   *
+   * @param {object} value Portable effect description.
    * @returns {Tr2EffectDescription} Reflected description.
    */
   static fromPortable(value)

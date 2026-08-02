@@ -7,6 +7,7 @@ import {
 } from "@carbonenginejs/runtime-utils/is";
 import { Tr2EffectLibrary } from "./Tr2EffectLibrary.js";
 import { Tr2Pass } from "./Tr2Pass.js";
+import { recordText } from "./carbonRecordFields.js";
 
 /** Reflected effect technique and its passes and libraries. */
 export class Tr2EffectTechnique extends CjsModel
@@ -23,6 +24,37 @@ export class Tr2EffectTechnique extends CjsModel
 
   /** shaderTypeMask (unsigned int) */
   shaderTypeMask = 0;
+
+  /**
+   * Build one technique from its Carbon v15 description record.
+   *
+   * The technique's shader-type mask is not stored; it is the union of its
+   * passes' masks, so it is recomputed here exactly as the portable path does.
+   *
+   * @param {object} record Carbon technique record.
+   * @returns {Tr2EffectTechnique} Reflected technique.
+   */
+  static fromCarbonBinary(record)
+  {
+    if (!isPlainObject(record))
+    {
+      throw new TypeError("Carbon effect technique record must be an object");
+    }
+
+    const technique = new this();
+    technique.name = recordText(record.name);
+    technique.passes = record.passes.map(
+      entry => Tr2Pass.fromCarbonBinary(entry)
+    );
+    technique.libraries = record.libraries.map(
+      entry => Tr2EffectLibrary.fromCarbonBinary(entry)
+    );
+    technique.shaderTypeMask = technique.passes.reduce(
+      (mask, pass) => mask | pass.shaderTypeMask,
+      0
+    ) >>> 0;
+    return technique;
+  }
 
   /**
    * Build one technique from its portable JSON reflection record.

@@ -5,6 +5,7 @@ import {
   isPlainObject,
   isUint32
 } from "@carbonenginejs/runtime-utils/is";
+import { recordText } from "./carbonRecordFields.js";
 
 /** Reflected SRV or UAV resource metadata. */
 export class Tr2EffectResource extends CjsModel
@@ -24,6 +25,35 @@ export class Tr2EffectResource extends CjsModel
 
   /** arrayElements (uint32_t) */
   arrayElements = 0;
+
+  /**
+   * Build one SRV or UAV from its Carbon v15 description record.
+   *
+   * Both a texture record and a UAV record land here, and they are not the same
+   * shape: a UAV record carries no `isSRGB` at all. Carbon's reader hardcodes
+   * `isSRGB = false` for UAVs rather than reading a byte, and `Uav::Save` omits
+   * it, so the field being absent is correct rather than missing — reading
+   * `undefined` through `!!` reproduces Carbon exactly. The array size is spelled
+   * `count` in the record and `arrayElements` on the class.
+   *
+   * @param {object} record Carbon texture or UAV record.
+   * @returns {Tr2EffectResource} Reflected resource.
+   */
+  static fromCarbonBinary(record)
+  {
+    if (!isPlainObject(record))
+    {
+      throw new TypeError("Carbon effect resource record must be an object");
+    }
+
+    const resource = new this();
+    resource.name = recordText(record.name);
+    resource.type = record.type;
+    resource.arrayElements = record.count;
+    resource.isSRGB = !!record.isSRGB;
+    resource.isAutoregister = !!record.isAutoregister;
+    return resource;
+  }
 
   /**
    * Build one SRV or UAV from its portable JSON reflection record.

@@ -18,6 +18,7 @@ import { Tr2SamplerSetup } from "../sampler/Tr2SamplerSetup.js";
 import { Tr2EffectConstant } from "./Tr2EffectConstant.js";
 import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js";
 import { Tr2EffectResource } from "./Tr2EffectResource.js";
+import { recordBytes, recordRawBits } from "./carbonRecordFields.js";
 
 /** Complete device-free reflection for one shader stage input. */
 export class Tr2EffectStageInput extends CjsModel
@@ -194,6 +195,170 @@ export class Tr2EffectStageInput extends CjsModel
       ? clonePortableSourceProgram(sourceProgram, "stage")
       : null;
     return input;
+  }
+
+  /**
+   * Build one stage input from a Carbon v15 stage record.
+   *
+   * The record already carries the stage's own type byte, so the caller does not
+   * supply one — unlike the portable path, where the index came from the position
+   * in a fixed-width array.
+   *
+   * @param {object} record Carbon stage record.
+   * @returns {Tr2EffectStageInput} Reflected stage input.
+   */
+  static fromCarbonBinary(record)
+  {
+    if (!isPlainObject(record))
+    {
+      throw new TypeError("Carbon effect stage record must be an object");
+    }
+
+    const input = this.fromCarbonBinaryInput(record, record.type);
+    input.signature.pipelineInputCount = record.pipelineInputs.length;
+    input.signature.pipelineInputs = record.pipelineInputs.map(entry => ({
+      usage: entry.usage,
+      registerIndex: entry.registerIndex,
+      usageIndex: entry.usageIndex,
+      usedMask: entry.usedMask,
+      type: entry.type,
+      dimension: entry.dimension
+    }));
+    input.signature.threadGroupSize = {
+      x: record.threadGroupSize[0],
+      y: record.threadGroupSize[1],
+      z: record.threadGroupSize[2]
+    };
+    input.sourceProgram = {
+      kind: "stage",
+      bytes: copyBytes(recordBytes(record.shaderData)),
+      shaderSize: record.shaderData.size
+    };
+    return input;
+  }
+
+  /**
+   * Build one stage input from a Carbon v15 `StageData` block.
+   *
+   * A raytracing library's global and local inputs are the same block without a
+   * stage wrapper — no stage type, no pipeline inputs, no thread group, no
+   * program of their own — so this is the half both callers share and
+   * `fromCarbonBinary` is the stage-only remainder layered on top.
+   *
+   * Carbon writes textures, samplers and UAVs in ascending register order because
+   * they are `std::map`s, and they are re-keyed by register here rather than by
+   * position, so the map is authoritative and the record's order is not load
+   * bearing.
+   *
+   * @param {object} record Carbon stage-data record.
+   * @param {number} [stageType] Stage index, or -1 for a library input.
+   * @returns {Tr2EffectStageInput} Reflected stage input.
+   */
+  static fromCarbonBinaryInput(record, stageType = -1)
+  {
+    if (!isPlainObject(record))
+    {
+      throw new TypeError("Carbon effect stage-data record must be an object");
+    }
+
+    const constantValues = copyBytes(recordBytes(record.defaultValues));
+
+    const input = new this();
+    input.stageType = stageType;
+    input.exists = true;
+    input.constants = record.constants.map(
+      entry => Tr2EffectConstant.fromCarbonBinary(entry)
+    );
+    input.resources = this.readCarbonBinaryResourceMap(record.textures);
+    input.uavs = this.readCarbonBinaryResourceMap(record.uavs);
+    input.samplers = this.readCarbonBinarySamplerMap(record.samplers);
+    input.constantValueSize = constantValues.byteLength;
+    input.constantValues = constantValues;
+    input.annotation = record.annotations.map(
+      entry => Tr2EffectParameterAnnotation.fromCarbonBinary(entry)
+    );
+    input.signature = {
+      pipelineInputCount: 0,
+      pipelineInputs: [],
+      registerCount: record.registers.length,
+      // Carbon stores one field its reader calls `arrayCount` and its writer
+      // calls `registerCount`. Both names are carried forward from the single
+      // stored value, because the write direction refuses to emit a record whose
+      // two names disagree.
+      registers: record.registers.map(entry => ({
+        registerType: entry.registerType,
+        registerIndex: entry.registerIndex,
+        arrayCount: entry.registerCount,
+        registerCount: entry.registerCount,
+        registerSpace: entry.registerSpace
+      })),
+      staticSamplerCount: record.staticSamplers.length,
+      staticSamplers: record.staticSamplers.map(entry => ({
+        registerIndex: entry.registerIndex,
+        registerSpace: entry.registerSpace,
+        descriptor: {
+          comparison: !!entry.comparison,
+          minFilter: entry.minFilter,
+          magFilter: entry.magFilter,
+          mipFilter: entry.mipFilter,
+          addressU: entry.addressU,
+          addressV: entry.addressV,
+          addressW: entry.addressW,
+          mipLODBiasRaw: recordRawBits(entry.mipLODBias),
+          maxAnisotropy: entry.maxAnisotropy,
+          comparisonFunc: entry.comparisonFunc,
+          // A static sampler's border colour is a one-byte enum, not four
+          // floats. Sharing the dynamic sampler's mapping here would silently
+          // reinterpret it.
+          borderColor: entry.borderColor,
+          minLODRaw: recordRawBits(entry.minLOD),
+          maxLODRaw: recordRawBits(entry.maxLOD)
+        }
+      })),
+      threadGroupSize: { x: 0, y: 0, z: 0 }
+    };
+    input.sourceProgram = null;
+    return input;
+  }
+
+  /** Build one register-indexed resource map from Carbon texture or UAV records. */
+  static readCarbonBinaryResourceMap(records)
+  {
+    const result = new Map();
+    for (const record of records)
+    {
+      if (result.has(record.registerIndex))
+      {
+        throw new Error(
+          `Carbon effect resource register ${record.registerIndex} is duplicated`
+        );
+      }
+      result.set(
+        record.registerIndex,
+        Tr2EffectResource.fromCarbonBinary(record)
+      );
+    }
+    return result;
+  }
+
+  /** Build one register-indexed sampler map from Carbon sampler records. */
+  static readCarbonBinarySamplerMap(records)
+  {
+    const result = new Map();
+    for (const record of records)
+    {
+      if (result.has(record.registerIndex))
+      {
+        throw new Error(
+          `Carbon effect sampler register ${record.registerIndex} is duplicated`
+        );
+      }
+      result.set(
+        record.registerIndex,
+        Tr2SamplerSetup.fromCarbonBinary(record)
+      );
+    }
+    return result;
   }
 
   /**

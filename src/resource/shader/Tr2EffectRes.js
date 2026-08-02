@@ -4,6 +4,7 @@
 import { CjsSchema, carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../CjsResource.js";
 import { validateResourcePayload } from "../resourceBoundary.js";
+import { CjsCarbonEffectReader } from "../../format/carbonEffect/CjsCarbonEffectReader.js";
 import { Tr2Shader } from "./Tr2Shader.js";
 
 const globalEffectOptions = [];
@@ -22,6 +23,42 @@ export class Tr2EffectRes extends CjsResource
 {
 
   #shaders = new Map();
+
+  #reader = null;
+
+  /**
+   * Read a Carbon effect container and take ownership of its reader.
+   *
+   * The container is parsed once, here: version, arena, permutation axes and
+   * offset table. Bodies are not. Each one is decoded on first request and
+   * memoised, by seeking the retained reader rather than re-reading the header —
+   * a container with 512 permutations that renders two of them parses two bodies.
+   *
+   * The reader is retained rather than discarded because a body cannot be read
+   * without it: strings are offsets into the container's arena, which lives in
+   * the header this method consumed.
+   *
+   * @param {ArrayBuffer|ArrayBufferView|Uint8Array} data Container bytes.
+   * @param {object|null} options Model values applied after the read.
+   * @returns {Tr2EffectRes}
+   */
+  PrepareCarbonBinary(data, options = null)
+  {
+    const reader = new CjsCarbonEffectReader(data);
+    this.#shaders.clear();
+    this.#reader = reader;
+    super.SetPayload({
+      permutations: reader.permutations.map(axis => ({
+        name: axis.name.value,
+        options: axis.options.map(option => option.value),
+        defaultOption: axis.defaultOption,
+        description: axis.description.value,
+        type: axis.type
+      }))
+    });
+    this.SetValues(options || {});
+    return this;
+  }
 
   /** Creates a Tr2EffectRes with caller-provided initial state. */
   constructor(values = null)
@@ -46,6 +83,7 @@ export class Tr2EffectRes extends CjsResource
     if (payload === null)
     {
       this.#shaders.clear();
+      this.#reader = null;
       super.SetPayload(null);
       return this;
     }
@@ -55,6 +93,7 @@ export class Tr2EffectRes extends CjsResource
       validateEffectPayload
     );
     this.#shaders.clear();
+    this.#reader = null;
     super.SetPayload(payload);
     this.SetValues(options || {});
     return this;
@@ -153,6 +192,13 @@ export class Tr2EffectRes extends CjsResource
       return null;
     }
 
+    if (this.#reader)
+    {
+      const shader = Tr2Shader.fromCarbonBinary(this.#reader, index);
+      this.#shaders.set(index, shader);
+      return shader;
+    }
+
     const portable = getPortableReflection(payload, index);
     if (!portable)
     {
@@ -204,6 +250,7 @@ export class Tr2EffectRes extends CjsResource
   ReleasePayload()
   {
     this.#shaders.clear();
+    this.#reader = null;
     return super.ReleasePayload();
   }
 

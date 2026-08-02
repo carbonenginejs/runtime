@@ -6,8 +6,10 @@ import {
   isPlainObject,
   isUint32
 } from "@carbonenginejs/runtime-utils/is";
+import { copyBytes } from "@carbonenginejs/runtime-utils/bytes";
 import { clonePortableSourceProgram } from "../portable.js";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";
+import { recordBytes, recordText } from "./carbonRecordFields.js";
 
 /** Reflected shader-library metadata. */
 export class Tr2EffectLibrary extends CjsModel
@@ -85,7 +87,54 @@ export class Tr2EffectLibrary extends CjsModel
   }
 
   /**
-   * Build one shader library from its portable JSON reflection record.
+   * Build one raytracing library from its Carbon v15 description record.
+   *
+   * A library carries two `StageData` blocks of its own — a global and a local
+   * input — which are the same block a stage carries, minus the stage wrapper.
+   *
+   * @param {object} record Carbon library record.
+   * @returns {Tr2EffectLibrary} Reflected library.
+   */
+  static fromCarbonBinary(record)
+  {
+    if (!isPlainObject(record))
+    {
+      throw new TypeError("Carbon effect library record must be an object");
+    }
+
+    const library = new this();
+    library.payloadSize = record.payloadSize;
+    library.hitGroupName = recordText(record.hitGroupName);
+    library.exports = record.exports.map(entry => ({
+      type: entry.type,
+      name: recordText(entry.name)
+    }));
+    // The export type is the only thing that names an entry point; the record
+    // stores a flat list and the named fields are a view onto it.
+    for (const entry of library.exports)
+    {
+      if (entry.type === 0) library.rayGenName = entry.name;
+      if (entry.type === 1) library.missName = entry.name;
+      if (entry.type === 2) library.closestHitName = entry.name;
+      if (entry.type === 3) library.anyHitName = entry.name;
+      if (entry.type === 4) library.intersectionName = entry.name;
+    }
+    library.sourceProgram = {
+      kind: "library",
+      bytes: copyBytes(recordBytes(record.shaderData)),
+      shaderSize: record.shaderData.size
+    };
+    library.globalInput = Tr2EffectStageInput.fromCarbonBinaryInput(
+      record.globalInputs
+    );
+    library.localInput = Tr2EffectStageInput.fromCarbonBinaryInput(
+      record.localInputs
+    );
+    return library;
+  }
+
+  /**
+   * Build one raytracing library from its portable JSON reflection record.
    *
    * @param {object} value Portable library record.
    * @returns {Tr2EffectLibrary} Reflected library.
