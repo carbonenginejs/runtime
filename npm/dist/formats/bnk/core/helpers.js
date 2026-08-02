@@ -43,6 +43,18 @@ const HIRC_TYPE_NAMES = Object.freeze({
   22: "audio-device"
 });
 
+/** Version-qualified HIRC names for Wwise bank versions 128 through 154. */
+const HIRC_V150_TYPE_NAMES = Object.freeze({
+  ...HIRC_TYPE_NAMES,
+  16: "fx-share-set",
+  17: "fx-custom",
+  18: "auxiliary-bus",
+  19: "lfo",
+  20: "envelope",
+  21: "audio-device",
+  22: "time-modulator"
+});
+
 /**
  * Normalizes reader options against their supported defaults for the BNK format
  * reader.
@@ -210,7 +222,7 @@ function readHircListing(bytes, dataOffset, size, bankVersion) {
     if (entrySize < 4 || payloadOffset + entrySize > end) break;
     const entry = {
       type,
-      typeName: HIRC_TYPE_NAMES[type] || `hirc-type-${type}`,
+      typeName: hircTypeName(type, bankVersion),
       id: readU32(bytes, payloadOffset),
       offset: payloadOffset,
       size: entrySize,
@@ -222,6 +234,10 @@ function readHircListing(bytes, dataOffset, size, bankVersion) {
     offset = payloadOffset + entrySize;
   }
   return entries;
+}
+function hircTypeName(type, bankVersion) {
+  const names = bankVersion >= 128 && bankVersion <= 154 ? HIRC_V150_TYPE_NAMES : HIRC_TYPE_NAMES;
+  return names[type] || `hirc-type-${type}`;
 }
 
 /**
@@ -492,5 +508,5 @@ function readU32(bytes, offset) {
   return (bytes[offset] | bytes[offset + 1] << 8 | bytes[offset + 2] << 16 | bytes[offset + 3] * 0x1000000) >>> 0;
 }
 
-export { DEFAULT_VALUES, HIRC_TYPE_NAMES, OUTPUT_BNK_JSON, OUTPUT_JSON, OUTPUT_MEDIA, OUTPUT_RAW, extractMedia, inspectBNK, inspectWithValues, isBNK, isSupportedWithValues, normalizeEmit, normalizeValues, readWithValues, readWwiseVar, toBytes, toJsonValue };
+export { DEFAULT_VALUES, HIRC_TYPE_NAMES, HIRC_V150_TYPE_NAMES, OUTPUT_BNK_JSON, OUTPUT_JSON, OUTPUT_MEDIA, OUTPUT_RAW, extractMedia, inspectBNK, inspectWithValues, isBNK, isSupportedWithValues, normalizeEmit, normalizeValues, readWithValues, readWwiseVar, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

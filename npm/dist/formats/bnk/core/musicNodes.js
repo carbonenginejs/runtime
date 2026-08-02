@@ -1,3 +1,5 @@
+import { parseNodeBaseRange } from './nodeBase.js';
+
 // Wwise interactive-music node decoding: typed payloads for music-segment
 // (10), music-track (11), music-switch-container (12), and
 // music-playlist-container (13) HIRC entries. Exposed through
@@ -17,6 +19,7 @@
 // when it consumes the payload EXACTLY to its end. Track clips live at the
 // head (before NodeBaseParams) and the track's type block is tail-validated
 // the same way.
+
 
 /**
  * Little-endian byte cursor over HIRC payload bytes used to decode Wwise
@@ -238,11 +241,14 @@ function readTransRules(cursor) {
  *
  * @param {Uint8Array} bytes Entry payload view from `inspect()`.
  * @param {Set<number>} knownIds Every HIRC object id in the same bank.
+ * @param {object} [options] Bank-version qualification for the NodeBase prefix.
  * @returns {object|null} Decoded segment, or null when no anchored parse consumes the payload exactly.
  */
-function parseMusicSegment(bytes, knownIds) {
+function parseMusicSegment(bytes, knownIds, options = {}) {
   for (const anchor of findAnchors(bytes, knownIds)) {
     try {
+      const nodeBase = parseNodeBaseRange(bytes, 1, anchor, options);
+      if (!nodeBase) continue;
       const cursor = new MusicCursor(bytes, anchor);
       const node = readMusicNodeTail(cursor);
       const duration = cursor.f64();
@@ -260,6 +266,7 @@ function parseMusicSegment(bytes, knownIds) {
       if (cursor.at !== bytes.byteLength) continue;
       if (markers.some(marker => !Number.isFinite(marker.position) || marker.position < 0)) continue;
       return {
+        nodeBase,
         ...node,
         duration,
         markers
@@ -276,9 +283,10 @@ function parseMusicSegment(bytes, knownIds) {
  * trims per subtrack), track type, and switch parameters for switch tracks.
  *
  * @param {Uint8Array} bytes Entry payload view from `inspect()`.
+ * @param {object} [options] Bank-version qualification for the NodeBase prefix.
  * @returns {object|null} Decoded track, or null when neither tail layout validates.
  */
-function parseMusicTrack(bytes) {
+function parseMusicTrack(bytes, options = {}) {
   const cursor = new MusicCursor(bytes, 0);
   cursor.u8(); // uFlags (midi/override bits)
   const sourceCount = cursor.u32();
@@ -329,7 +337,7 @@ function parseMusicTrack(bytes) {
   const headEnd = cursor.at;
 
   // Tail: [NodeBaseParams...] u8 trackType, [switch+trans params when the
-  // type is 3], f32 lookAheadTime. The switch layout is tried FIRST because
+  // type is 3], signed s32 iLookAheadTime. The switch layout is tried FIRST because
   // it validates every field to the exact payload end - the simple layout
   // only checks one byte, and a switch tail ending in zero bytes would
   // satisfy it falsely.
@@ -339,6 +347,8 @@ function parseMusicTrack(bytes) {
     if (view.getUint8(typeAt) !== 3) continue;
     const tail = new MusicCursor(bytes, typeAt + 1);
     try {
+      const nodeBase = parseNodeBaseRange(bytes, headEnd, typeAt, options);
+      if (!nodeBase) continue;
       const groupType = tail.u8();
       if (groupType > 1) continue;
       const groupId = tail.u32();
@@ -357,12 +367,13 @@ function parseMusicTrack(bytes) {
         dstFadeCurve: tail.u32(),
         dstFadeOffset: tail.s32()
       };
-      const lookAheadTime = tail.f32();
+      const lookAheadTime = tail.s32();
       if (tail.at !== end) continue;
       return {
         sources,
         clips,
         subTrackCount,
+        nodeBase,
         trackType: 3,
         lookAheadTime,
         switchParams: {
@@ -381,12 +392,15 @@ function parseMusicTrack(bytes) {
   if (simpleAt >= headEnd) {
     const type = view.getUint8(simpleAt);
     if (type <= 2) {
+      const nodeBase = parseNodeBaseRange(bytes, headEnd, simpleAt, options);
+      if (!nodeBase) return null;
       return {
         sources,
         clips,
         subTrackCount,
+        nodeBase,
         trackType: type,
-        lookAheadTime: view.getFloat32(end - 4, true),
+        lookAheadTime: view.getInt32(end - 4, true),
         switchParams: null
       };
     }
@@ -400,11 +414,14 @@ function parseMusicTrack(bytes) {
  *
  * @param {Uint8Array} bytes Entry payload view from `inspect()`.
  * @param {Set<number>} knownIds Every HIRC object id in the same bank.
+ * @param {object} [options] Bank-version qualification for the NodeBase prefix.
  * @returns {object|null} Decoded playlist container, or null when no anchored parse validates.
  */
-function parseMusicPlaylist(bytes, knownIds) {
+function parseMusicPlaylist(bytes, knownIds, options = {}) {
   for (const anchor of findAnchors(bytes, knownIds)) {
     try {
+      const nodeBase = parseNodeBaseRange(bytes, 1, anchor, options);
+      if (!nodeBase) continue;
       const cursor = new MusicCursor(bytes, anchor);
       const node = readMusicNodeTail(cursor);
       const rules = readTransRules(cursor);
@@ -429,6 +446,7 @@ function parseMusicPlaylist(bytes, knownIds) {
       }
       if (cursor.at !== bytes.byteLength) continue;
       return {
+        nodeBase,
         ...node,
         rules,
         playlist: items
@@ -446,11 +464,14 @@ function parseMusicPlaylist(bytes, knownIds) {
  *
  * @param {Uint8Array} bytes Entry payload view from `inspect()`.
  * @param {Set<number>} knownIds Every HIRC object id in the same bank.
+ * @param {object} [options] Bank-version qualification for the NodeBase prefix.
  * @returns {object|null} Decoded switch container, or null when no anchored parse validates.
  */
-function parseMusicSwitch(bytes, knownIds) {
+function parseMusicSwitch(bytes, knownIds, options = {}) {
   for (const anchor of findAnchors(bytes, knownIds)) {
     try {
+      const nodeBase = parseNodeBaseRange(bytes, 1, anchor, options);
+      if (!nodeBase) continue;
       const cursor = new MusicCursor(bytes, anchor);
       const node = readMusicNodeTail(cursor);
       const rules = readTransRules(cursor);
@@ -487,6 +508,7 @@ function parseMusicSwitch(bytes, knownIds) {
       }
       if (cursor.at !== bytes.byteLength) continue;
       return {
+        nodeBase,
         ...node,
         rules,
         continuePlayback,
@@ -501,10 +523,10 @@ function parseMusicSwitch(bytes, knownIds) {
   return null;
 }
 const MUSIC_PARSERS = Object.freeze({
-  10: (payload, knownIds) => parseMusicSegment(payload, knownIds),
-  11: payload => parseMusicTrack(payload),
-  12: (payload, knownIds) => parseMusicSwitch(payload, knownIds),
-  13: (payload, knownIds) => parseMusicPlaylist(payload, knownIds)
+  10: (payload, knownIds, options) => parseMusicSegment(payload, knownIds, options),
+  11: (payload, knownIds, options) => parseMusicTrack(payload, options),
+  12: (payload, knownIds, options) => parseMusicSwitch(payload, knownIds, options),
+  13: (payload, knownIds, options) => parseMusicPlaylist(payload, knownIds, options)
 });
 const MUSIC_TYPE_NAMES = Object.freeze({
   10: "music-segment",
@@ -531,7 +553,9 @@ function musicNodesFromBanks(inspections) {
       const parser = MUSIC_PARSERS[entry.type];
       if (!parser) continue;
       const payload = entry.payload instanceof Uint8Array ? entry.payload : null;
-      const decoded = payload ? parser(payload, knownIds) : null;
+      const decoded = payload ? parser(payload, knownIds, {
+        bankVersion: inspection.bankVersion
+      }) : null;
       if (!decoded) {
         failed.push({
           bank: inspection.source || "",

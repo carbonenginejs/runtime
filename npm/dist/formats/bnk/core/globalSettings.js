@@ -133,20 +133,42 @@ function ReadEnum(value, allowed, label) {
   }
   return value;
 }
+
+/** Bounds-aware little-endian cursor over one Wwise Global Settings payload. */
 class GlobalSettingsCursor {
+  /**
+   * Creates a cursor over the complete payload.
+   *
+   * @param {Uint8Array} bytes Global Settings payload bytes.
+   */
   constructor(bytes) {
     this.bytes = bytes;
     this.view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     this.at = 0;
   }
+
+  /** Gets the number of unread bytes. */
   get remaining() {
     return this.bytes.byteLength - this.at;
   }
+
+  /**
+   * Requires a bounded number of bytes to remain.
+   *
+   * @param {number} size Required byte count.
+   */
   require(size) {
     if (!Number.isSafeInteger(size) || size < 0 || this.at + size > this.bytes.byteLength) {
       throw new RangeError("Global Settings payload is truncated");
     }
   }
+
+  /**
+   * Reads a table count and validates its minimum encoded size.
+   *
+   * @param {number} minimumStride Minimum bytes required per record.
+   * @returns {number} Validated record count.
+   */
   boundedCount(minimumStride) {
     const count = this.u32();
     if (count > Math.floor(this.remaining / minimumStride)) {
@@ -154,22 +176,30 @@ class GlobalSettingsCursor {
     }
     return count;
   }
+
+  /** Reads an unsigned 8-bit integer. */
   u8() {
     this.require(1);
     return this.bytes[this.at++];
   }
+
+  /** Reads a little-endian unsigned 16-bit integer. */
   u16() {
     this.require(2);
     const value = this.view.getUint16(this.at, true);
     this.at += 2;
     return value;
   }
+
+  /** Reads a little-endian unsigned 32-bit integer. */
   u32() {
     this.require(4);
     const value = this.view.getUint32(this.at, true);
     this.at += 4;
     return value;
   }
+
+  /** Reads a finite little-endian 32-bit floating-point value. */
   finiteF32() {
     this.require(4);
     const value = this.view.getFloat32(this.at, true);

@@ -89,6 +89,16 @@ Bounds-aware little-endian cursor used for exact Wwise v150 NodeBase, authored-S
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:GlobalSettingsCursor -->
+## `GlobalSettingsCursor`
+
+Bounds-aware little-endian cursor over one Wwise Global Settings payload.
+
+- Export: `None`
+- Source: `src/formats/bnk/core/globalSettings.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:ActionCursor -->
 ## `ActionCursor`
 
@@ -770,36 +780,6 @@ WebGL shader format profile that translates compiled Carbon effects into CEWG pa
 - Source: `src/formats/webgl/CjsWebglFormat.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
-
-<!-- class:CewgPackage -->
-## `CewgPackage`
-
-Reader for the flat CEWG container: chunk lookup, cached JSON decoding, and validated portable reflection access.
-
-- Export: `None`
-- Source: `src/formats/webgl/core/cewg/CewgPackage.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CewgPackageBuilder -->
-## `CewgPackageBuilder`
-
-Builds a CEWG container from ordered, uniquely tagged chunks.
-
-- Export: `None`
-- Source: `src/formats/webgl/core/cewg/CewgPackageBuilder.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:WebglReader -->
-## `WebglReader`
-
-Bounded little-endian byte cursor over CEWG container bytes.
-
-- Export: `None`
-- Source: `src/formats/webgl/core/cewg/binary.js`
-- Visibility: Internal
-- Kind: Internal implementation class
 
 <!-- class:WebglReadError -->
 ## `WebglReadError`

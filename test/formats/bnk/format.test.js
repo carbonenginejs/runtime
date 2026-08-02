@@ -69,6 +69,27 @@ test("decodes typed HIRC fields for events, actions, sounds, and music tracks", 
             inMemoryMediaSize: 16
         }
     ]);
+    assert.equal(byId.get(0x8001).typeName, "fx-share-set");
+});
+
+test("qualifies shifted HIRC names by bank-version range", () =>
+{
+    for (const [ version, expected ] of [
+        [ 127, "motion-bus" ],
+        [ 128, "fx-share-set" ],
+        [ 154, "fx-share-set" ],
+        [ 155, "motion-bus" ],
+    ])
+    {
+        const bytes = makeGraphBnk();
+
+        writeU32LE(bytes, 8, version);
+        const entry = CjsBnkFormat.inspect(bytes).hirc.find(
+            item => item.id === 0x8001,
+        );
+
+        assert.equal(entry.typeName, expected, `bank version ${version}`);
+    }
 });
 
 test("attaches exact typed setters to HIRC entries", () =>
@@ -467,6 +488,7 @@ function makeGraphBnk()
     writeU32LE(track, 10, 902);
     writeU32LE(track, 14, 16);
     pushObject(11, 0x7001, track);
+    pushObject(16, 0x8001, new Uint8Array());
 
     const hircBody = objects.reduce((sum, entry) => sum + entry.length, 4);
     const bytes = new Uint8Array(8 + 20 + 8 + hircBody);

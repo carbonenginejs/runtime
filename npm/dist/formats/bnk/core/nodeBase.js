@@ -117,10 +117,10 @@ function readNodeBase(cursor) {
     attenuationId,
     loopCount
   } = ReadInitialProperties(cursor);
-  const positioning = ReadPositioning(cursor);
-  const aux = ReadAux(cursor);
+  const positioning = readPositioning(cursor);
+  const aux = readAux(cursor);
   const advanced = ReadAdvanced(cursor);
-  const state = ReadStateChunk(cursor);
+  const state = readStateChunk(cursor);
   const rtpcs = readInitialRtpcs(cursor);
   return {
     fx,
@@ -352,7 +352,14 @@ function ReadInitialProperties(cursor) {
     loopCount
   };
 }
-function ReadPositioning(cursor) {
+
+/**
+ * Reads the v150 positioning block shared by NodeBase and bus records.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor.
+ * @returns {object} Exact positioning flags and optional automation.
+ */
+function readPositioning(cursor) {
   const flags = cursor.u8();
   const overrideParent = Boolean(flags & 0x01);
   const listenerRelative = Boolean(flags & 0x02);
@@ -424,7 +431,14 @@ function ReadAutomation(cursor) {
     ranges
   };
 }
-function ReadAux(cursor) {
+
+/**
+ * Reads the v150 auxiliary-send block shared by NodeBase and bus records.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor.
+ * @returns {object} Exact auxiliary flags and target identities.
+ */
+function readAux(cursor) {
   const flags = cursor.u8();
   const hasAux = Boolean(flags & 0x08);
   const auxIds = [];
@@ -467,7 +481,14 @@ function ReadAdvanced(cursor) {
     enableEnvelope: Boolean(hdrFlags & 0x08)
   };
 }
-function ReadStateChunk(cursor) {
+
+/**
+ * Reads one v150 state-aware property and group chunk.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor.
+ * @returns {object} Exact state property declarations and values.
+ */
+function readStateChunk(cursor) {
   const propertyCount = boundedCount(cursor.variable(), cursor.remaining, 3, 4096);
   const properties = [];
   for (let index = 0; index < propertyCount; index++) {
@@ -528,5 +549,5 @@ function FloatFromBits(value) {
   return view.getFloat32(0, true);
 }
 
-export { WWISE_NODE_BASE_VERSION, WwiseCursor, boundedCount, finite, parseNodeBaseRange, readCurvePoints, readInitialRtpc, readInitialRtpcs, readNodeBase };
+export { WWISE_NODE_BASE_VERSION, WwiseCursor, boundedCount, finite, parseNodeBaseRange, readAux, readCurvePoints, readInitialRtpc, readInitialRtpcs, readNodeBase, readPositioning, readStateChunk };
 //# sourceMappingURL=nodeBase.js.map

@@ -8,6 +8,7 @@ import {
 import {
     DEFAULT_VALUES,
     HIRC_TYPE_NAMES,
+    HIRC_V150_TYPE_NAMES,
     OUTPUT_BNK_JSON,
     OUTPUT_JSON,
     OUTPUT_MEDIA,
@@ -24,6 +25,14 @@ import {
 import { eventMediaFromBanks } from "./core/graph.js";
 import { parseEventAction } from "./core/eventAction.js";
 import { parseGlobalSettings } from "./core/globalSettings.js";
+import {
+    busNodesFromBanks,
+    parseBusNode
+} from "./core/busNodes.js";
+import {
+    effectNodesFromBanks,
+    parseEffectNode
+} from "./core/effectNodes.js";
 import {
     musicNodesFromBanks,
     parseMusicPlaylist,
@@ -274,6 +283,15 @@ export class CjsBnkFormat
      * preserve raw Wwise semantics for runtime-audio's optional builder.
      * NodeBase facts, hierarchy-only Actor-Mixers, and attenuation objects
      * remain distinct from playable container behavior.
+     *
+     * `busNodesFromBanks` and `parseBusNode` expose qualified complete v150
+     * Audio Bus and Auxiliary Bus bodies: ancestry, root output device,
+     * properties, aux topology, policy, ducking, effect/metadata references,
+     * RTPCs, and state values.
+     *
+     * `effectNodesFromBanks` and `parseEffectNode` expose complete generic
+     * v150 Fx ShareSet and Fx Custom bodies while leaving plug-in parameter
+     * blocks opaque for separately qualified DSP adapters.
      */
     static wwise = Object.freeze({
         isSoundbanksInfo,
@@ -289,6 +307,10 @@ export class CjsBnkFormat
         parseMusicTrack,
         parseMusicPlaylist,
         parseMusicSwitch,
+        busNodesFromBanks,
+        parseBusNode,
+        effectNodesFromBanks,
+        parseEffectNode,
         sfxNodesFromBanks,
         parseSfxActorMixer,
         parseSfxAttenuation,
@@ -308,6 +330,8 @@ export class CjsBnkFormat
     });
 
     static HIRC_TYPE_NAMES = HIRC_TYPE_NAMES;
+
+    static HIRC_V150_TYPE_NAMES = HIRC_V150_TYPE_NAMES;
 
     static type = Object.freeze([ "audio" ]);
 

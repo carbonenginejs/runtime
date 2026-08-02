@@ -44,6 +44,18 @@ export const HIRC_TYPE_NAMES = Object.freeze({
     22: "audio-device"
 });
 
+/** Version-qualified HIRC names for Wwise bank versions 128 through 154. */
+export const HIRC_V150_TYPE_NAMES = Object.freeze({
+    ...HIRC_TYPE_NAMES,
+    16: "fx-share-set",
+    17: "fx-custom",
+    18: "auxiliary-bus",
+    19: "lfo",
+    20: "envelope",
+    21: "audio-device",
+    22: "time-modulator"
+});
+
 /**
  * Normalizes reader options against their supported defaults for the BNK format
  * reader.
@@ -239,7 +251,7 @@ function readHircListing(bytes, dataOffset, size, bankVersion)
         if (entrySize < 4 || payloadOffset + entrySize > end) break;
         const entry = {
             type,
-            typeName: HIRC_TYPE_NAMES[type] || `hirc-type-${type}`,
+            typeName: hircTypeName(type, bankVersion),
             id: readU32(bytes, payloadOffset),
             offset: payloadOffset,
             size: entrySize,
@@ -252,6 +264,15 @@ function readHircListing(bytes, dataOffset, size, bankVersion)
     }
 
     return entries;
+}
+
+function hircTypeName(type, bankVersion)
+{
+    const names = bankVersion >= 128 && bankVersion <= 154
+        ? HIRC_V150_TYPE_NAMES
+        : HIRC_TYPE_NAMES;
+
+    return names[type] || `hirc-type-${type}`;
 }
 
 /**

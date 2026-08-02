@@ -4,8 +4,7 @@ import CjsBnkFormat from "../../../src/formats/bnk/index.js";
 
 // Synthetic music-hierarchy payloads (bank generator version 150 layouts,
 // field order hand-verified against EVE's music banks 2026-07-19). The bytes
-// before the children+meter anchor simulate the undecoded NodeBaseParams
-// block; 0xAA filler cannot form a valid anchor or track-type tail.
+// before the children+meter anchor carry an exact minimal v150 NodeBase.
 
 const TRACK_ID = 4101;
 const SEGMENT_ID = 4001;
@@ -23,9 +22,38 @@ function writer()
         f32(value) { scratch.setFloat32(0, value, true); for (let i = 0; i < 4; i++) bytes.push(scratch.getUint8(i)); return this; },
         f64(value) { scratch.setFloat64(0, value, true); for (let i = 0; i < 8; i++) bytes.push(scratch.getUint8(i)); return this; },
         fill(count) { for (let i = 0; i < count; i++) bytes.push(0xaa); return this; },
+        variable(value) {
+            const groups = [ value & 0x7f ];
+            let remaining = Math.floor(value / 128);
+            while (remaining)
+            {
+                groups.unshift((remaining & 0x7f) | 0x80);
+                remaining = Math.floor(remaining / 128);
+            }
+            bytes.push(...groups);
+            return this;
+        },
+        append(value) { bytes.push(...value); return this; },
         stringZ(text) { for (const char of text) bytes.push(char.charCodeAt(0)); bytes.push(0); return this; },
         bytes() { return new Uint8Array(bytes); }
     };
+}
+
+function writeNodeBase({ overrideBusId = 0, directParentId = 0 } = {})
+{
+    return writer()
+        .u8(0).u8(0) // effects
+        .u8(0).u8(0) // metadata
+        .u32(overrideBusId)
+        .u32(directParentId)
+        .u8(0) // priority
+        .u8(0).u8(0) // properties and ranges
+        .u8(0) // positioning
+        .u8(0).u32(0) // aux
+        .u8(0).u8(0).u16(0).u8(0).u8(0) // advanced
+        .variable(0).variable(0) // state chunk
+        .u16(0) // RTPCs
+        .bytes();
 }
 
 function writeNodeTail(w, children)
@@ -50,7 +78,8 @@ function writeRule(w)
 test("parseMusicSegment decodes children, meter, duration, and cue markers exactly", () =>
 {
     const w = writer();
-    w.fill(7); // NodeBaseParams stand-in
+    w.u8(0); // uFlags
+    w.append(writeNodeBase({ overrideBusId: 77 }));
     writeNodeTail(w, [ TRACK_ID ]);
     w.f64(270000);      // duration
     w.u32(2);           // markers
@@ -61,6 +90,7 @@ test("parseMusicSegment decodes children, meter, duration, and cue markers exact
     assert.deepEqual(segment.children, [ TRACK_ID ]);
     assert.equal(segment.meter.tempo, 120);
     assert.equal(segment.meter.beatsPerBar, 4);
+    assert.equal(segment.nodeBase.overrideBusId, 77);
     assert.equal(segment.duration, 270000);
     assert.deepEqual(segment.markers.map(m => [ m.position, m.name ]), [ [ 1000, "" ], [ 265000, "exit" ] ]);
 
@@ -78,12 +108,14 @@ test("parseMusicTrack decodes sources, clips, and both tail layouts", () =>
     simple.u32(0).u32(900001).u32(0).f64(0).f64(500).f64(-250).f64(180000);
     simple.u32(1);  // subtracks
     simple.u32(0);  // clip automation
-    simple.fill(9); // NodeBaseParams stand-in
+    simple.append(writeNodeBase({ directParentId: SEGMENT_ID }));
     simple.u8(0);   // trackType normal
-    simple.f32(0.1);
+    simple.s32(-100);
     const track = CjsBnkFormat.wwise.parseMusicTrack(simple.bytes());
     assert.ok(track, "normal track parses");
     assert.equal(track.trackType, 0);
+    assert.equal(track.lookAheadTime, -100);
+    assert.equal(track.nodeBase.directParentId, SEGMENT_ID);
     assert.equal(track.sources[0].sourceId, 900001);
     assert.deepEqual(
         [ track.clips[0].playAt, track.clips[0].beginTrimOffset, track.clips[0].endTrimOffset, track.clips[0].srcDuration ],
@@ -93,15 +125,17 @@ test("parseMusicTrack decodes sources, clips, and both tail layouts", () =>
     switched.u8(0).u32(0); // no sources
     switched.u32(0);       // no clips (no subtrack count when zero)
     switched.u32(0);       // no automation
-    switched.fill(9);
+    switched.append(writeNodeBase({ overrideBusId: 88 }));
     switched.u8(3);        // trackType switch
     switched.u8(0).u32(777).u32(888); // groupType/groupId/defaultSwitch
     switched.u32(2).u32(888).u32(999);
     switched.s32(600).u32(4).s32(0).u32(2).u32(0).s32(400).u32(4).s32(0); // trans params
-    switched.f32(0.25);
+    switched.s32(-200);
     const switchTrack = CjsBnkFormat.wwise.parseMusicTrack(switched.bytes());
     assert.ok(switchTrack, "switch track parses");
     assert.equal(switchTrack.trackType, 3);
+    assert.equal(switchTrack.lookAheadTime, -200);
+    assert.equal(switchTrack.nodeBase.overrideBusId, 88);
     assert.equal(switchTrack.switchParams.groupId, 777);
     assert.deepEqual(switchTrack.switchParams.assoc, [ 888, 999 ]);
 });
@@ -109,7 +143,8 @@ test("parseMusicTrack decodes sources, clips, and both tail layouts", () =>
 test("parseMusicPlaylist decodes transition rules and the pre-order tree", () =>
 {
     const w = writer();
-    w.fill(5);
+    w.u8(0); // uFlags
+    w.append(writeNodeBase({ directParentId: 44 }));
     writeNodeTail(w, [ SEGMENT_ID ]);
     writeRule(w);
     w.u32(2); // two playlist items: sequence root + one leaf
@@ -118,6 +153,7 @@ test("parseMusicPlaylist decodes transition rules and the pre-order tree", () =>
     const playlist = CjsBnkFormat.wwise.parseMusicPlaylist(w.bytes(), KNOWN_IDS);
     assert.ok(playlist, "playlist parses");
     assert.equal(playlist.rules[0].src.syncType, 2, "NextBar rule survives");
+    assert.equal(playlist.nodeBase.directParentId, 44);
     assert.equal(playlist.playlist.length, 2);
     assert.equal(playlist.playlist[0].childCount, 1);
     assert.equal(playlist.playlist[1].segmentId, SEGMENT_ID);
@@ -127,7 +163,8 @@ test("parseMusicPlaylist decodes transition rules and the pre-order tree", () =>
 test("parseMusicSwitch decodes argument groups and the decision tree; musicNodesFromBanks aggregates", () =>
 {
     const w = writer();
-    w.fill(5);
+    w.u8(0); // uFlags
+    w.append(writeNodeBase({ overrideBusId: 99 }));
     writeNodeTail(w, [ SEGMENT_ID ]);
     writeRule(w);
     w.u8(1);        // continuePlayback
@@ -141,6 +178,7 @@ test("parseMusicSwitch decodes argument groups and the decision tree; musicNodes
     const switchNode = CjsBnkFormat.wwise.parseMusicSwitch(bytes, KNOWN_IDS);
     assert.ok(switchNode, "switch container parses");
     assert.equal(switchNode.argumentGroups[0].groupId, 31337);
+    assert.equal(switchNode.nodeBase.overrideBusId, 99);
     assert.equal(switchNode.treeNodes.length, 2);
     assert.equal(switchNode.treeNodes[1].key, 555);
     assert.equal(switchNode.treeNodes[1].audioNodeId, SEGMENT_ID);

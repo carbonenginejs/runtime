@@ -154,10 +154,10 @@ export function readNodeBase(cursor)
         attenuationId,
         loopCount,
     } = ReadInitialProperties(cursor);
-    const positioning = ReadPositioning(cursor);
-    const aux = ReadAux(cursor);
+    const positioning = readPositioning(cursor);
+    const aux = readAux(cursor);
     const advanced = ReadAdvanced(cursor);
-    const state = ReadStateChunk(cursor);
+    const state = readStateChunk(cursor);
     const rtpcs = readInitialRtpcs(cursor);
 
     return {
@@ -482,7 +482,13 @@ function ReadInitialProperties(cursor)
     };
 }
 
-function ReadPositioning(cursor)
+/**
+ * Reads the v150 positioning block shared by NodeBase and bus records.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor.
+ * @returns {object} Exact positioning flags and optional automation.
+ */
+export function readPositioning(cursor)
 {
     const flags = cursor.u8();
     const overrideParent = Boolean(flags & 0x01);
@@ -585,7 +591,13 @@ function ReadAutomation(cursor)
     };
 }
 
-function ReadAux(cursor)
+/**
+ * Reads the v150 auxiliary-send block shared by NodeBase and bus records.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor.
+ * @returns {object} Exact auxiliary flags and target identities.
+ */
+export function readAux(cursor)
 {
     const flags = cursor.u8();
     const hasAux = Boolean(flags & 0x08);
@@ -639,7 +651,13 @@ function ReadAdvanced(cursor)
     };
 }
 
-function ReadStateChunk(cursor)
+/**
+ * Reads one v150 state-aware property and group chunk.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor.
+ * @returns {object} Exact state property declarations and values.
+ */
+export function readStateChunk(cursor)
 {
     const propertyCount = boundedCount(
         cursor.variable(),

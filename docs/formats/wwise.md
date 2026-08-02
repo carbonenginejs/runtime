@@ -58,6 +58,20 @@ const {
     diagnostics
 } = CjsBnkFormat.wwise.sfxNodesFromBanks(inspections);
 
+const { nodes: musicNodes } =
+    CjsBnkFormat.wwise.musicNodesFromBanks(inspections);
+// Every v150 music node retains its common NodeBase routing and property
+// data. Track lookAheadTime is the authored signed millisecond value.
+
+const { buses } = CjsBnkFormat.wwise.busNodesFromBanks(inspections);
+// buses: Map<busId, { type, overrideBusId, outputDeviceId, properties,
+//                     busVolume, makeUpGain, outputBusVolume, aux, ducks,
+//                     fx, metadata, rtpcs, state }>
+
+const { effects } = CjsBnkFormat.wwise.effectNodesFromBanks(inspections);
+// effects: Map<effectId, { type, pluginId, parameterBlock, media,
+//                         rtpcs, state, propertyValues }>
+
 const ogg = CjsWemFormat.toOgg(wemBytes);   // Wwise Vorbis -> Ogg (lossless)
 const pcm = CjsWemFormat.toPcm(wemBytes);   // PTADPCM / 16-bit PCM -> float32
 ```
@@ -110,6 +124,21 @@ runtime-specific metadata from these raw facts. In particular, this format
 layer does not infer a numeric maximum radius from an attenuation curve. Like
 `eventMediaFromBanks`, `sfxNodesFromBanks` is consumer-facing graph
 interpretation; the resource lifecycle never calls it.
+
+`busNodesFromBanks` recognizes only v150 HIRC 8 Audio Bus and HIRC 18
+Auxiliary Bus records. It preserves the complete qualified body: ancestry and
+root output device, the initial property bundle (including absent versus
+authored-zero gain values), positioning and auxiliary targets, bus policy and
+channel configuration, HDR settings, duck rules, ordered effect and metadata
+references, RTPC curves, and state values. HIRC 19 is an LFO in this version
+and is not treated as a bus. The typed records preserve authored facts; they do
+not claim runtime mixing, ducking, or plug-in realization.
+
+`effectNodesFromBanks` recognizes v150 HIRC 16 Fx ShareSet and HIRC 17 Fx
+Custom records. It preserves the plug-in identity and opaque parameter block,
+media index-to-source mappings, RTPC curves, state values, and initial plug-in
+property values. Opaque parameter bytes are intentional: a consumer must
+qualify each plug-in's DSP behavior before interpreting them.
 
 ## Related documentation
 
