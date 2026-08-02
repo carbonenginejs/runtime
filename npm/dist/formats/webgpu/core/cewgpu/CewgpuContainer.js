@@ -328,22 +328,6 @@ class CewgpuContainer {
   }
 
   /**
-   * Returns the Carbon description currently exposed through the legacy
-   * portable-reflection accessor.
-   *
-   * This is not a `CJS_EFFECT_BODY_REFLECTION` envelope. Direct
-   * `Tr2EffectRes` hydration requires an adapter and remains an open
-   * integration boundary.
-   *
-   * @param {number} [permutationIndex] Permutation index.
-   * @returns {object|null} Raw Carbon description record tree.
-   */
-  GetPortableEffectReflection(permutationIndex = 0) {
-    if (!this.IsGood()) return null;
-    return this.GetDescription(permutationIndex);
-  }
-
-  /**
    * Summarises the container without materialising every body.
    *
    * @returns {object} Container summary.

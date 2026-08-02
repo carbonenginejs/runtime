@@ -112,7 +112,7 @@ test("version 15 packaging reports its permutation and body accounting", () =>
 
     // What used to be here: every permutation's portable reflection written into
     // the package's RFLX/RBLB chunks and read back through
-    // `GetPortableEffectReflection`, plus a check that the accessor handed out a
+    // a now-deleted accessor, plus a check that it handed out a
     // defensive copy.
     //
     // That was a property of the chunk format. A Carbon container carries
