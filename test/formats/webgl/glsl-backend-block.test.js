@@ -151,7 +151,7 @@ test("the shared detail-map-array transform decodes with its derived fields", ()
     const [ transform ] = block.transforms;
     assert.equal(transform.family, "detail-map-array");
     assert.equal(transform.layoutKey, "Main.pass0");
-    assert.equal(transform.output.name, "DetailMapArray");
+    assert.equal(transform.output.name, "DetailArrayMap");
     assert.equal(transform.output.layerCount, 3);
     assert.deepEqual(transform.inputs.map((input) => input.parameter), [
         "Detail1Map", "Detail2Map", "Detail3Map"

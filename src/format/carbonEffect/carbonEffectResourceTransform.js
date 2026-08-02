@@ -32,7 +32,7 @@ export const DETAIL_MAP_ARRAY_DEFAULTS = Object.freeze({
     representation: "native-or-rgba8",
     missingLayer: "reject",
     viewDimension: "2d-array",
-    outputName: "DetailMapArray"
+    outputName: "DetailArrayMap"
 });
 
 /**

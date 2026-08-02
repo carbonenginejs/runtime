@@ -134,7 +134,7 @@ test("a transform restores every derived field from the family discriminator", (
     assert.equal(transform.stage, "fragment");
     assert.equal(transform.representation, "native-or-rgba8");
     assert.equal(transform.missingLayer, "reject");
-    assert.equal(transform.output.name, "DetailMapArray");
+    assert.equal(transform.output.name, "DetailArrayMap");
     assert.equal(transform.output.viewDimension, "2d-array");
 
     // Restored from position and count.

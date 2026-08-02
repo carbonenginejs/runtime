@@ -50,7 +50,7 @@ const NON_COMPARISON_TEXTURE_OPCODES = new Set([
  * (HLSLcc `TranslateTexCoord`, toGLSLInstruction.cpp:985-1031).
  */
 /** GLSL symbol for the merged detail-map array. */
-const DETAIL_MAP_ARRAY_SYMBOL = "sDetailMapArray";
+const DETAIL_MAP_ARRAY_SYMBOL = "sDetailArrayMap";
 
 const COORD_MASK_BY_DIMENSION = {
     2: "x",
@@ -946,7 +946,7 @@ export class DxbcGlslEmitter
                 }
                 if (state.detailMapArrayLayers.has(register))
                 {
-                    this._declareDetailMapArray(state, register, declaration, comparisonSamplers);
+                    this._declareDetailArrayMap(state, register, declaration, comparisonSamplers);
                     break;
                 }
 
@@ -1936,7 +1936,7 @@ export class DxbcGlslEmitter
      * @param {Set<number>|null} comparisonSamplers Comparison samplers, when any.
      * @private
      */
-    _declareDetailMapArray(state, register, declaration, comparisonSamplers)
+    _declareDetailArrayMap(state, register, declaration, comparisonSamplers)
     {
         // A comparison-sampled or non-2D detail map is not the family the
         // recogniser promised, so refuse rather than emit a wrong declaration.
@@ -1997,7 +1997,7 @@ export class DxbcGlslEmitter
      * @param {object} texOperand Texture resource operand.
      * @private
      */
-    _rejectDetailMapArrayUse(state, instruction, texOperand)
+    _rejectDetailArrayMapUse(state, instruction, texOperand)
     {
         if (!state.detailMapArrayLayers.has(texOperand.registerIndex)) return;
 
@@ -2182,7 +2182,7 @@ export class DxbcGlslEmitter
         const { mask } = this._destMask(state, instruction);
         const coordOperand = instruction.operands[1];
         const texOperand = instruction.operands[2];
-        this._rejectDetailMapArrayUse(state, instruction, texOperand);
+        this._rejectDetailArrayMapUse(state, instruction, texOperand);
         const dimension = this._resourceDimension(state, instruction, texOperand);
         const texName = state.formatter.registerReference(texOperand);
         const returnSwizzle = [ ...mask ]
@@ -2690,7 +2690,7 @@ DxbcGlslEmitter.prototype._resinfo = function _resinfo(state, instruction)
     if (!target) return;
     const mipExpression = state.formatter.sourceExpression(instruction.operands[1], { destMask: "x", as: "int" });
     const texOperand = instruction.operands[2];
-    this._rejectDetailMapArrayUse(state, instruction, texOperand);
+    this._rejectDetailArrayMapUse(state, instruction, texOperand);
     const dimension = this._resourceDimension(state, instruction, texOperand);
     const axisCount = dimension === 5 || dimension === 8 ? 3 : 2;
     const returnType = instruction.resinfoReturnTypeName || "float";

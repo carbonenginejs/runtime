@@ -18,13 +18,13 @@ test("three detail maps become one array sampled at three literal layers", () =>
         detailMapArrayRegisters: [ 3, 4, 5 ]
     });
 
-    assert.match(result.source, /uniform mediump sampler2DArray sDetailMapArray;/u);
+    assert.match(result.source, /uniform mediump sampler2DArray sDetailArrayMap;/u);
     assert.doesNotMatch(result.source, /uniform mediump sampler2D s[345];/u);
 
     // The register a sample came from is what selects its layer.
-    assert.match(result.source, /texture\(sDetailMapArray, vec3\(vec2\(r0\.xy\), 0\.0\)\)/u);
-    assert.match(result.source, /texture\(sDetailMapArray, vec3\(vec2\(r0\.xy\), 1\.0\)\)/u);
-    assert.match(result.source, /texture\(sDetailMapArray, vec3\(vec2\(r0\.xy\), 2\.0\)\)/u);
+    assert.match(result.source, /texture\(sDetailArrayMap, vec3\(vec2\(r0\.xy\), 0\.0\)\)/u);
+    assert.match(result.source, /texture\(sDetailArrayMap, vec3\(vec2\(r0\.xy\), 1\.0\)\)/u);
+    assert.match(result.source, /texture\(sDetailArrayMap, vec3\(vec2\(r0\.xy\), 2\.0\)\)/u);
 });
 
 test("the merge frees texture units: three bindings become one", () =>
@@ -56,7 +56,7 @@ test("the array binding reports its layers and where they came from", () =>
     assert.deepEqual(bindings[0], {
         kind: "resource",
         registerIndex: 3,
-        name: "sDetailMapArray",
+        name: "sDetailArrayMap",
         samplerType: "sampler2DArray",
         dimensionName: "texture2darray",
         arrayLayerCount: 3,
@@ -71,7 +71,7 @@ test("two detail maps merge too, because heat+detail shaders ship that way", () 
         detailMapArrayRegisters: [ 3, 4 ]
     });
 
-    assert.match(result.source, /uniform mediump sampler2DArray sDetailMapArray;/u);
+    assert.match(result.source, /uniform mediump sampler2DArray sDetailArrayMap;/u);
     assert.match(result.source, /vec3\(vec2\(r0\.xy\), 1\.0\)/u);
     assert.doesNotMatch(result.source, /vec3\(vec2\(r0\.xy\), 2\.0\)/u);
 });

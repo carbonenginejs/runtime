@@ -27,7 +27,7 @@ const DETAIL_PARAMETERS = Object.freeze([ "Detail1Map", "Detail2Map", "Detail3Ma
 const CARBON_TEXTURE_2D = 2;
 
 /** The merged array's name, and the transform family it belongs to. */
-export const DETAIL_MAP_ARRAY_NAME = "DetailMapArray";
+export const DETAIL_MAP_ARRAY_NAME = "DetailArrayMap";
 export const DETAIL_MAP_ARRAY_FAMILY = "detail-map-array";
 
 /**
