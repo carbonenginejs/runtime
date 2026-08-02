@@ -114,11 +114,10 @@ DXBC instructions and compiler IR.
 
 `BuildEffect` is narrower: current packaging requires the version-15 record
 layout. The wire retains every permutation row and non-program description
-field that the mapping can represent; non-dynamic sampler names are
-unrecoverable and stage order is canonicalized. Source-stage DXBC and the
-caller's source hash are not retained in the wire. The build result retains
-full portable source reflection, including source program bytes. Compiler IR
-is transient and is neither stored in the wire nor returned by `BuildEffect`.
+field that the mapping can represent, including non-dynamic sampler names and
+the file's authored pass-stage order. Source-stage DXBC and the caller's source
+hash are not retained in the wire. Compiler IR is transient and is neither
+stored in the wire nor returned by `BuildEffect`.
 
 Unknown, duplicate, or unresolved permutation assertions fail closed.
 
@@ -148,7 +147,7 @@ consumer's resource path.
 
 - `bytes`;
 - build-time `info` and `metadata`;
-- `permutationGraph`, portable `reflection`, and `reflectionBlobs`;
+- `permutationGraph`;
 - selected `analysis` and `wgsl`;
 - `backendBodySet` for all mode;
 - an `inspection` obtained by rereading the emitted bytes; and

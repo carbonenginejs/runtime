@@ -759,22 +759,12 @@ WAV audio format profile that inspects RIFF chunk metadata and reads supported W
 
 ### shared effect layer
 
-<!-- class:ReflectionBlobStore -->
-## `ReflectionBlobStore`
-
-Content-addressed arena that deduplicates every exact byte payload referenced by portable effect reflection.
-
-- Export: `None`
-- Source: `src/format/effect/effectReflectionPackage.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
 ### webgl
 
 <!-- class:CjsWebglFormat -->
 ## `CjsWebglFormat`
 
-WebGL shader format profile that translates compiled Carbon effects into CEWG packages carrying GLSL programs and portable source reflection.
+WebGL shader format profile that translates compiled Carbon effects into Carbon v15 containers carrying GLSL programs and a per-pass backend block.
 
 - Export: `@carbonenginejs/runtime-resource/formats/webgl`
 - Source: `src/formats/webgl/CjsWebglFormat.js`
@@ -784,7 +774,7 @@ WebGL shader format profile that translates compiled Carbon effects into CEWG pa
 <!-- class:WebglReadError -->
 ## `WebglReadError`
 
-Error raised when CEWG bytes or package documents are malformed or inconsistent.
+Error raised when container bytes or their backend blocks are malformed or inconsistent.
 
 - Export: `None`
 - Source: `src/formats/webgl/core/errors.js`
@@ -826,7 +816,7 @@ Formats DXBC operands, swizzles, and modifiers as GLSL expressions.
 <!-- class:CjsWebgpuFormat -->
 ## `CjsWebgpuFormat`
 
-WebGPU shader format profile that translates compiled Carbon effects into CEWGPU packages carrying WGSL programs, bind-group layouts, and portable source reflection.
+WebGPU shader format profile that translates compiled Carbon effects into CEWGPU containers carrying WGSL programs and bind-group layouts.
 
 - Export: `@carbonenginejs/runtime-resource/formats/webgpu`
 - Source: `src/formats/webgpu/CjsWebgpuFormat.js`

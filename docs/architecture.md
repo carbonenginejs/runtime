@@ -22,7 +22,7 @@ LOADED -> PREPARING -> PREPARED
 The package selects and runs registered readers, hydrates or returns the
 promised CPU outcome, and stores lifecycle state, cache entries, and loaded
 payloads. For compiled effects it independently validates complete permutation
-topology and the format package's plain portable reflection, selects a
+topology and the Carbon v15 container records it read itself, selects a
 permutation, and hydrates a canonical device-free `Tr2Shader` graph. It never
 creates WebGL/WebGPU textures, buffers, shader modules, pipelines, or bind
 groups, and it never inspects backend capability.
@@ -63,7 +63,7 @@ historical mapping.
   `TriGrannyRes`, `Tr2GrannyStateRes`, and `Tr2LightProfileRes`.
 - Canonical device-free shader/reflection classes: `Tr2Shader`, its effect,
   technique, pass, stage, constant, resource, sampler, annotation, and library
-  records; portable hydration; permutation selection; and per-index caching.
+  records; Carbon-binary hydration; permutation selection; and per-index caching.
 - `Tr2TexturePipeline` CPU-only texture steps and `Tr2TextureLodManager`
   membership.
 - Opaque engine-owned subobject slots for backend adapters.

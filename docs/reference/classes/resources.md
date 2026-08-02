@@ -48,7 +48,7 @@ Data record mirroring Carbon's per-LOD decal range, holding the start index and 
 <!-- class:Tr2EffectRes -->
 ## `Tr2EffectRes`
 
-Resource record that owns an effect package, resolves global and local permutation options, hydrates exact portable reflection into canonical shaders, and caches them by body index.
+Resource record that owns an effect package, resolves global and local permutation options, reads a Carbon v15 container through `DoLoad(bytes)`, hydrates canonical shaders through `Tr2Shader.fromCarbonBinary(reader, index)`, and caches them by body index.
 
 - Export: `@carbonenginejs/runtime-resource`
 - Source: `src/resource/shader/Tr2EffectRes.js`
@@ -158,7 +158,7 @@ Canonical device-free sampler reflection record preserving static/dynamic setup 
 <!-- class:Tr2Shader -->
 ## `Tr2Shader`
 
-Canonical device-free hydrated shader graph and top-level portable-reflection orchestrator.
+Canonical device-free shader graph, built from one Carbon description record by `fromCarbonBinary(reader, index)`.
 
 - Export: `@carbonenginejs/runtime-resource/resource/shader`
 - Source: `src/resource/shader/Tr2Shader.js`

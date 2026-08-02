@@ -45,7 +45,7 @@ file rather than loading another file.
 | shader map keyed by permutation index | private `#shaders` map |
 | `GetShader(options, count)` | option resolution followed by `GetShaderByIndex` |
 | permutation records | `permutationGraph.axes` and `variants` |
-| offset-table body lookup | portable reflection lookup; Carbon-record adapter pending |
+| offset-table body lookup | `CjsCarbonEffectReader` retained by `DoLoad`, read per index |
 | retained file bytes | `GetPayload()` |
 
 `runtime-trinity`'s `Tr2Effect.RebuildCachedDataInternal` clears and
@@ -65,10 +65,10 @@ count are different:
 | `effect.gles2/.../textureviewer.sm_hi` | 18 | 3 |
 
 Current `.cewgpu` bytes use Carbon's version-15 record layout and retain every
-permutation row and representable non-program description fields. Non-dynamic
-sampler names are unrecoverable and stage order is canonicalized. Emitted body
-dedupe follows exact emitted bytes, so it need not preserve the original source
-alias partition. `mode: "selected"` narrows which body receives translated
+permutation row and representable non-program description fields, including
+non-dynamic sampler names and the file's authored pass-stage order — Carbon's
+runtime discards both, the file does not. Emitted body dedupe follows exact
+emitted bytes, so it need not preserve the original source alias partition. `mode: "selected"` narrows which body receives translated
 WGSL; it does not discard source permutations. `mode: "all"` attempts every
 distinct body after the resolved selection passes the initial translation gate.
 
@@ -82,16 +82,13 @@ when some bodies have no translated backend program.
 
 ## Current integration boundaries
 
-The wire topology is complete, but two adapters still require focused
-regression proof:
+The read path is direct: `Tr2EffectRes.DoLoad` retains a
+`CjsCarbonEffectReader` over the container bytes, and
+`Tr2Shader.fromCarbonBinary(reader, index)` builds the device-free graph from
+one description record. No intermediate document sits between them.
 
-- the raw CEWGPU container's Carbon description must be converted to the
-  portable envelope expected by `Tr2Shader.fromPortable`; and
-- the engine's derived body-program view must agree on stable pass-unit
-  identity.
-
-Until those adapters are reconciled, the presence of every permutation proves
-source preservation, not successful runtime hydration or execution.
+What remains unproven is execution, not construction. The presence of every
+permutation proves source preservation; it does not prove a rendered result.
 
 ## Reading the model without inventing gaps
 

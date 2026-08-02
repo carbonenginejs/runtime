@@ -72,12 +72,11 @@ There is no `chunks` array and no generic `Build(chunks)` API.
 
 `BuildEffect` accepts version-15 compiled-effect bytes only. It parses the
 complete input, resolves the requested permutation, lowers selected programs,
-and writes a new Carbon v15 container. Full portable source reflection exists
-in the in-memory build result; source-stage program bytes and the caller's
-source hash are not retained in the emitted wire.
+and writes a new Carbon v15 container. Source-stage program bytes and the
+caller's source hash are not retained in the emitted wire.
 
 The returned build record is richer than the bytes. Its `info`, `metadata`,
-`permutationGraph`, `reflection`, `analysis`, `wgsl`, `backendBodySet`, and
+`permutationGraph`, `analysis`, `wgsl`, `backendBodySet`, `inspection`, and
 `qualification` fields are build-time evidence for callers. They must not be
 interpreted as separate records stored in the container.
 

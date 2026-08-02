@@ -12,8 +12,8 @@ CarbonEngineJS: resource identity and state, the MotherLode cache, semantic
 resource classes, registered format readers, fetch providers, and the queued
 CPU load/publication pipeline. It stops at a published CPU payload; engine
 packages realize that payload into backend objects. It also owns the canonical
-device-free `Tr2EffectRes`/`Tr2Shader` reflection graph and portable-reflection
-hydration boundary.
+device-free `Tr2EffectRes`/`Tr2Shader` reflection graph, built by reading the
+compiled Carbon container directly.
 
 ## Use this package when
 

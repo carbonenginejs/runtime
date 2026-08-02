@@ -74,7 +74,7 @@ Ground truth: `toGLSLOperand.cpp:1738-1882` (`ResourceName`, `TextureSamplerName
   `ResourceName`, when `useCombinedTextureSamplers` is true — `toGLSLInstruction.cpp:1332-1336`).
   This is deliberate register-identity preservation per `CARBONENGINEJS-FORK.md`
   ("emitting deterministic register-stable GLSL symbols such as `cb3`, `t0`, and `s0`" /
-  "preserving enough register identity for `Tr2EffectBindingManifest`... and eventual
+  "preserving enough register identity for `HlslEffectBindingManifest`... and eventual
   trinityjs binding work"): the emitter must keep declaring the bare `t#` uniform even
   though the sampling calls use the combined name, so downstream tooling can still find a
   `t#`-named uniform to correlate against Carbon metadata.

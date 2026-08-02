@@ -58,7 +58,7 @@ The emitted bytes are a stock Carbon v15 effect container:
   and resource transforms.
 
 Source-stage DXBC and the original source hash are not stored in CEWGPU bytes.
-Full portable source reflection remains available only in the in-memory
+The build result no longer carries any source-reflection document; it was removed with the intermediate format. What remains in memory is
 `BuildEffect` result.
 
 There are no stored `INFO`, `META`, `PGRF`, `RFLX`, `ANLS`, `WGSL`, or `WGSB`
@@ -100,8 +100,6 @@ The returned record contains build-time evidence in addition to `bytes`:
 | `info` | Producer, source, translation-scope, and completeness evidence. |
 | `metadata` | Resolved selection and caller provenance. |
 | `permutationGraph` | Complete source permutation and body-alias view. |
-| `reflection` | Complete portable source reflection used while building. |
-| `reflectionBlobs` | Exact portable-reflection payload bytes. |
 | `analysis` | Selected-body diagnostic analysis. |
 | `wgsl` | Emitted shaders, layouts, and transforms. |
 | `backendBodySet` | All-body translation result, or `null` in selected mode. |

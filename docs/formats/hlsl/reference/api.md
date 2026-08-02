@@ -18,11 +18,6 @@ import { CjsHlslFormat as NamedReader } from "@carbonenginejs/runtime-resource/f
 Additional named exports intended for advanced tooling are documented
 separately in [advanced-analysis.md](advanced-analysis.md).
 
-The versioned `@carbonenginejs/runtime-resource/formats/hlsl/portable` subpath exposes exact
-version-15 body-index reflection plus first-seen exact-byte unique-body
-enumeration for backend packagers. See
-[portable-reflection.md](portable-reflection.md).
-
 ## Constructor
 
 ```js
@@ -94,5 +89,4 @@ current working directory.
 - [Reading effects](../guides/reading-effects.md)
 - [Hydrating JSON output](../guides/hydrating-json-output.md)
 - [Advanced analysis exports](advanced-analysis.md)
-- [Portable body reflection](portable-reflection.md)
 - [Class catalog](classes/README.md)

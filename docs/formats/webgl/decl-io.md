@@ -543,7 +543,7 @@ target lowering is "emit nothing" — worth flagging clearly to the implementing
 engineer so they don't go looking for a `s0` GLSL symbol; the register-stable name
 `s0` only shows up in Carbon binding-manifest metadata (`CARBONENGINEJS-FORK.md`:
 "`s0`" is one of the register-stable symbols this fork preserves for
-`Tr2EffectBindingManifest`), not in the GLSL source text itself.
+`HlslEffectBindingManifest`), not in the GLSL source text itself.
 
 **Confidence: high** — the Vulkan/non-Vulkan branch is unconditional and
 unambiguous; the only judgment call is confirming this project always wants
