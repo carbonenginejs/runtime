@@ -253,9 +253,25 @@ class DxbcGlslOperandFormatter {
         return this.names.resource(this._immediateIndex(operand, 0));
       case 8:
         {
+          // A constant-buffer operand is indexed either 2D or 3D, and both
+          // appear in the shipped corpus - 1,660 two-dimensional against
+          // 1,747 three-dimensional across 152 shaders.
+          //
+          //   2D: (register, row)              - shader model 5.0
+          //   3D: (range id, register, row)    - shader model 5.1
+          //
+          // Reading a 3D operand as if it were 2D takes the range id for
+          // the register and the register for the row. The range id is the
+          // ordinal of the `dcl_constant_buffer` that introduced the
+          // binding, so it equals the register only while a shader declares
+          // its buffers contiguously from zero. A shader declaring b0, b1,
+          // b3 emits `cb2` for every b3 reference - a slot it never
+          // declared, which fails to compile - and every shader that does
+          // compile reads its rows from the register number.
+          const dimension = operand.indices.length >= 3 ? 1 : 0;
           const member = this.names.constantBufferMember;
-          const base = this.names.constantBuffer(this._immediateIndex(operand, 0));
-          return `${base}${member ? `.${member}` : ""}[${this._indexExpression(operand, 1)}]`;
+          const base = this.names.constantBuffer(this._immediateIndex(operand, dimension));
+          return `${base}${member ? `.${member}` : ""}[${this._indexExpression(operand, dimension + 1)}]`;
         }
       case 9:
         return `${this.names.immediateConstantBuffer}[${this._indexExpression(operand, 0)}]`;
