@@ -111,9 +111,10 @@ Volume, global RTPC and State contributions, and shared SFX/music auto-ducking
 activity. The current ducking gain is exact for the realized collapsed dry
 route. Bus Pitch is transport-aware on SFX and follows Wwise's exclusion for
 music; Bus LPF/HPF are distributed dry-route filters for both engines. Static
-Parametric EQ is an audible distributed source-route adaptation,
-not exact shared-bus placement under downstream automation, moving
-spatialization, or future nonlinear effect stages. Voice-target placement across future
+Parametric EQ uses source-proven v150 field decoding and one ordered shared
+Web Audio chain per Bus when the complete graph route qualifies. Blocked or
+missing graph routes retain the distributed source-route fallback. Neither
+path claims native Wwise DSP equivalence. Voice-target placement across future
 auxiliary sends, other effect processing and tails, meters, and virtual-voice
 behavior remain deferred as described in the
 [Wwise routing requirements](wwise-resource-routing-handoff.md).

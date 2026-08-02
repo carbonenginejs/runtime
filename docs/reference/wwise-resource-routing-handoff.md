@@ -137,15 +137,16 @@ instance has RTPC, State, property-value, or media controls. Eleven EQ
 definitions outside the qualified Audio Bus slots do have controls and are not
 silently promoted; their SFX NodeBase effect slots remain unsupported.
 
-The builder follows pinned wwiser's version-150 56-byte parameter layout,
-validates exact boolean bytes and ShareSet/Custom slot identity, preserves bus,
+The builder and shared mixer follow pinned wwiser's version-150 56-byte parameter layout,
+validate exact boolean bytes and ShareSet/Custom slot identity, preserve bus,
 slot, and band order, and rejects routed `processLfe:false` until an independent
-browser LFE branch exists. The current Web Audio realization distributes each
-static EQ across source routes as an audible adaptation. It is not exact
-shared-bus placement under downstream gain automation, moving spatialization,
-or nonlinear stages. The audible EVE EQ follows an active Compressor in Wwise
-slot order, so adding Compressor or Peak Limiter requires migration to a shared
-ordered bus graph rather than stacking a nonlinear stage per voice.
+browser LFE branch exists. A fully qualified graph route now realizes one
+ordered Web Audio EQ chain per Bus after SFX spatialization or music route
+envelopes. Blocked and graphless paths retain the distributed source-route
+fallback. The field decoding and graph placement are exact, but Web Audio
+biquads are not claimed to be native Wwise DSP. EVE's reachable EQ follows an
+active Compressor in Wwise slot order, so its chain remains blocked rather
+than stacking a nonlinear stage per voice.
 
 EVE build 3444265 authors 60 Bus Volume RTPC curves on 56 buses, driven by 18
 Game Parameters. Every one of the 16,263 serialized SFX leaves and 2,484 music
@@ -279,10 +280,13 @@ blocked tracks retain the legacy music path.
 
 The system now owns the first fail-closed shared mixer contract. It can allocate
 stable SFX/music category entries and one shared unity node per common ancestor,
-but only for effect-free dry audio-bus paths with default channel layout and no
-authored processing reason. Barrier routes return `null` before allocating any
-partial graph. On the real EVE catalog every normal route remains blocked by
-dynamic controls and the active root Peak Limiter.
+but only for strict dry audio-bus paths with default channel layout and no
+authored processing except a complete static Parametric EQ slot sequence.
+Effect records are decoded from the authoritative graph bytes before any node
+is allocated. Dynamic controls, media, rendered slots, mixed/unknown effects,
+and other processing reasons remain barriers. On the real EVE catalog every
+normal route remains blocked by dynamic controls and the active root Peak
+Limiter.
 
 Qualified SFX branches now connect after their flat/spatial route stage to the
 shared SFX category input. When analyser support exists, each qualified branch
@@ -291,9 +295,9 @@ frames with the legacy emitter analyser. Blocked paths still connect to the
 legacy SFX destination and allocate no partial mixer graph. Qualified music
 routes likewise retain route identity through segment and instance envelope
 lanes; their category volume is applied by the shared mixer rather than the
-legacy music output. The current EVE
-catalog qualifies zero of 16,255 SFX references and zero of 2,484 music
-references across 262 routes, so this integration changes no EVE signal path.
+legacy music output. The audited EVE catalog qualifies no routed SFX or music
+reference across its 262 dry routes, so this integration changes no EVE signal
+path.
 
 EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and

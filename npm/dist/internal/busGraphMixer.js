@@ -1,8 +1,10 @@
+import { parseGraphStaticParametricEq, createBusEffectChain } from './busEffects.js';
+
 const KINDS = new Set(["sfx", "music"]);
 
 /**
  * Owns the shared Web Audio node topology for strictly qualified Bus routes.
- * The first mixer contract accepts only effect-free, zero-processing dry paths.
+ * Accepts strict dry paths plus source-proven static Parametric EQ stages.
  */
 class CjsSharedBusMixer {
   #context = null;
@@ -12,6 +14,7 @@ class CjsSharedBusMixer {
   #buses = new Map();
   #entries = new Map();
   #qualification = new Map();
+  #busEffects = new Map();
   #categoryVolumes = new Map([["sfx", 1], ["music", 1]]);
   #disposed = false;
   constructor({
@@ -84,10 +87,14 @@ class CjsSharedBusMixer {
     if (this.#disposed) return;
     this.#disposed = true;
     for (const entry of this.#entries.values()) entry.disconnect?.();
-    for (const bus of this.#buses.values()) bus.input.disconnect?.();
+    for (const bus of this.#buses.values()) {
+      bus.input.disconnect?.();
+      for (const node of bus.effectNodes) node.disconnect?.();
+    }
     this.#entries.clear();
     this.#buses.clear();
     this.#qualification.clear();
+    this.#busEffects.clear();
     this.#categoryVolumes.clear();
     this.#catalog = null;
     this.#runtime = null;
@@ -105,8 +112,8 @@ class CjsSharedBusMixer {
       const busId = route.busPathIds[index];
       const bus = this.#catalog.buses?.[busId];
       const parentBusId = index + 1 < route.busPathIds.length ? route.busPathIds[index + 1] : undefined;
-      const activeEffects = bus?.bypassAllEffects ? [] : (bus?.effects ?? []).filter(slot => !slot.bypass);
-      if (pathIds.has(busId) || !bus || bus.parentBusId !== parentBusId || bus.type !== "audio-bus" || bus.channelConfig?.raw !== 0 || bus.positioning?.flags !== 0 || bus.hdr?.flags !== 0 || bus.userAuxSends?.length !== 0 || bus.reflectionsAuxSend !== undefined || bus.requiresProcessing?.length !== 0 || activeEffects.length !== 0) {
+      const effects = this.#GetQualifiedBusEffects(busId, bus);
+      if (pathIds.has(busId) || !bus || bus.parentBusId !== parentBusId || bus.type !== "audio-bus" || bus.channelConfig?.raw !== 0 || bus.positioning?.flags !== 0 || bus.hdr?.flags !== 0 || bus.userAuxSends?.length !== 0 || bus.reflectionsAuxSend !== undefined || effects === null) {
         qualified = false;
         break;
       }
@@ -114,6 +121,42 @@ class CjsSharedBusMixer {
     }
     this.#qualification.set(handle, qualified);
     return qualified;
+  }
+  #GetQualifiedBusEffects(busId, bus) {
+    const id = String(busId);
+    if (this.#busEffects.has(id)) {
+      return this.#busEffects.get(id);
+    }
+    let effects = null;
+    try {
+      const activeSlots = bus?.bypassAllEffects ? [] : [...(bus?.effects ?? [])].filter(slot => !slot.bypass).sort((left, right) => left.slotIndex - right.slotIndex);
+      const reasons = bus?.requiresProcessing ?? [];
+      const expectedReasons = activeSlots.length ? ["effects"] : [];
+      const slotIndices = new Set();
+      if (reasons.length !== expectedReasons.length || reasons.some((reason, index) => reason !== expectedReasons[index])) {
+        throw new TypeError("Audio Bus has unsupported processing");
+      }
+      effects = activeSlots.map(slot => {
+        if (!Number.isSafeInteger(slot.slotIndex) || slot.slotIndex < 0 || slot.slotIndex > 3 || slotIndices.has(slot.slotIndex) || slot.rendered !== false) {
+          throw new TypeError("Audio Bus effect slot is unsupported");
+        }
+        slotIndices.add(slot.slotIndex);
+        const graphEffect = this.#catalog.effects?.[slot.effectId];
+        const shareSet = graphEffect?.type === "effect-share-set";
+        if (slot.shareSet !== shareSet) {
+          throw new TypeError("Audio Bus effect ShareSet identity disagrees");
+        }
+        return parseGraphStaticParametricEq(graphEffect, slot.effectId, slot.slotIndex);
+      });
+      if (effects.some(effect => effect.bands.length) && typeof this.#context.createBiquadFilter !== "function") {
+        throw new TypeError("Static Parametric EQ requires BiquadFilter support");
+      }
+      effects = Object.freeze(effects);
+    } catch {
+      effects = null;
+    }
+    this.#busEffects.set(id, effects);
+    return effects;
   }
   #GetBusInput(busId) {
     const id = String(busId);
@@ -123,11 +166,15 @@ class CjsSharedBusMixer {
     }
     const bus = this.#catalog.buses[id];
     const input = this.#context.createGain();
+    const effectChain = createBusEffectChain(this.#context, this.#busEffects, [id]);
     realized = {
-      input
+      input,
+      effectNodes: effectChain?.nodes ?? []
     };
     this.#buses.set(id, realized);
-    input.connect(bus.parentBusId ? this.#GetBusInput(bus.parentBusId) : this.#destination);
+    const destination = bus.parentBusId ? this.#GetBusInput(bus.parentBusId) : this.#destination;
+    input.connect(effectChain?.input ?? destination);
+    effectChain?.output?.connect(destination);
     return input;
   }
 }

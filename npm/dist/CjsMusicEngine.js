@@ -1721,8 +1721,8 @@ class CjsMusicEngine {
     const gain = this.#context.createGain();
     const lowPassFilter = busStatePathUses(this.#busStateCatalog, busPathIds, "lowPass") ? this.#context.createBiquadFilter?.() ?? null : null;
     const highPassFilter = busStatePathUses(this.#busStateCatalog, busPathIds, "highPass") ? this.#context.createBiquadFilter?.() ?? null : null;
-    const busEffectChain = createBusEffectChain(this.#context, this.#busEffectCatalog, busPathIds);
     const mixerInput = busGraphRoute ? this.#busMixer?.GetInput?.(busGraphRoute, "music") ?? null : null;
+    const busEffectChain = mixerInput ? null : createBusEffectChain(this.#context, this.#busEffectCatalog, busPathIds);
     const transitionGain = mixerInput ? this.#context.createGain() : null;
     const instanceRouteGain = mixerInput ? this.#GetInstanceRouteGain(instance, busGraphRoute, mixerInput) : null;
     const route = {

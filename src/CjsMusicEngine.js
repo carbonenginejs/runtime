@@ -2652,14 +2652,16 @@ export class CjsMusicEngine
             busPathIds,
             "highPass",
         ) ? this.#context.createBiquadFilter?.() ?? null : null;
-        const busEffectChain = createBusEffectChain(
-            this.#context,
-            this.#busEffectCatalog,
-            busPathIds,
-        );
         const mixerInput = busGraphRoute
             ? this.#busMixer?.GetInput?.(busGraphRoute, "music") ?? null
             : null;
+        const busEffectChain = mixerInput
+            ? null
+            : createBusEffectChain(
+                this.#context,
+                this.#busEffectCatalog,
+                busPathIds,
+            );
         const transitionGain = mixerInput
             ? this.#context.createGain()
             : null;

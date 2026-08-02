@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
     createBusEffectChain,
     indexBusEffectCatalog,
+    parseGraphStaticParametricEq,
+    parseStaticParametricEqBytes,
 } from "../src/internal/busEffects.js";
 
 function Effect(overrides = {})
@@ -67,6 +69,51 @@ function Node(fields)
         connect(target) { node.connectedTo = target; },
     };
     return node;
+}
+
+function ParametricEqBytes({
+    enabled = [ true, false, true ],
+    processLfe = 1,
+} = {})
+{
+    const bytes = new Uint8Array(56);
+    const view = new DataView(bytes.buffer);
+    const bands = [
+        [ 6, -13, 120, 5 ],
+        [ 0, 0, 8000, 0.707 ],
+        [ 5, 3, 12000, 1 ],
+    ];
+    let at = 0;
+
+    for (const [ index, values ] of bands.entries())
+    {
+        view.setUint32(at, values[0], true);
+        view.setFloat32(at + 4, values[1], true);
+        view.setFloat32(at + 8, values[2], true);
+        view.setFloat32(at + 12, values[3], true);
+        view.setUint8(at + 16, enabled[index] ? 1 : 0);
+        at += 17;
+    }
+    view.setFloat32(at, -6, true);
+    view.setUint8(at + 4, processLfe);
+    return bytes;
+}
+
+function GraphEffect(bytes = ParametricEqBytes())
+{
+    return {
+        type: "effect-share-set",
+        pluginId: 0x00690003,
+        parameterByteLength: bytes.byteLength,
+        parametersBase64: Buffer.from(bytes).toString("base64"),
+        media: [],
+        controls: {
+            rtpcCount: 0,
+            statePropertyCount: 0,
+            stateGroupCount: 0,
+            propertyValueCount: 0,
+        },
+    };
 }
 
 test("indexes canonical static Parametric EQ catalogs in slot and band order", () =>
@@ -194,5 +241,72 @@ test("skips authored-neutral Parametric EQ without allocating Web Audio nodes", 
 
     assert.equal(createBusEffectChain(context, indexed, [ "500" ]), null);
     assert.equal(context.filters.length, 0);
-    assert.equal(context.gains.length, 0);
+  assert.equal(context.gains.length, 0);
+});
+
+test("decodes the source-proven v150 static Parametric EQ parameter layout", () =>
+{
+    const effect = parseStaticParametricEqBytes(ParametricEqBytes(), {
+        effectId: "900",
+        slotIndex: 2,
+    });
+
+    assert.equal(effect.effectId, "900");
+    assert.equal(effect.slotIndex, 2);
+    assert.deepEqual(effect.bands.map(band => [
+        band.index,
+        band.filterType,
+        band.gainDb,
+        band.frequencyHz,
+        band.q,
+    ]), [
+        [ 0, "peaking", -13, 120, 5 ],
+        [ 2, "highshelf", 3, 12000, 1 ],
+    ]);
+    assert.equal(effect.outputGainDb, -6);
+    assert.equal(effect.processLfe, true);
+
+    assert.deepEqual(
+        parseGraphStaticParametricEq(GraphEffect(), "900", 2),
+        effect,
+    );
+});
+
+test("rejects malformed or dynamic portable-graph Parametric EQ effects", () =>
+{
+    const mutations = [
+        effect => { effect.pluginId = 0x006c0003; },
+        effect => { effect.parameterByteLength = 55; },
+        effect => { effect.media.push({ index: 0, sourceId: "10" }); },
+        effect => { effect.controls.rtpcCount = 1; },
+        effect => { effect.controls.statePropertyCount = 1; },
+        effect => { effect.controls.stateGroupCount = 1; },
+        effect => { effect.controls.propertyValueCount = 1; },
+        effect =>
+        {
+            const bytes = ParametricEqBytes({ processLfe: 0 });
+            effect.parametersBase64 = Buffer.from(bytes).toString("base64");
+        },
+        effect =>
+        {
+            const bytes = ParametricEqBytes();
+            bytes[16] = 2;
+            effect.parametersBase64 = Buffer.from(bytes).toString("base64");
+        },
+        effect =>
+        {
+            const bytes = ParametricEqBytes();
+            new DataView(bytes.buffer).setUint32(0, 7, true);
+            effect.parametersBase64 = Buffer.from(bytes).toString("base64");
+        },
+    ];
+
+    for (const mutate of mutations)
+    {
+        const effect = GraphEffect();
+
+        mutate(effect);
+        assert.throws(() =>
+            parseGraphStaticParametricEq(effect, "900", 0));
+    }
 });

@@ -6,10 +6,11 @@ import { indexBusEffectCatalog, createBusEffectChain } from './internal/busEffec
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
-// source -> authored voice/bus filters -> source and bus gain -> bus effects
-// -> emitter gain
-// -> PannerNode(HRTF, inverse distance)
-// -> master gain -> destination. Each playing source owns the source gain so
+// source -> authored voice/bus filters -> source and bus gain -> emitter gain
+// -> PannerNode(HRTF, inverse distance) -> qualified shared Bus effects
+// -> master gain -> destination. Blocked/graphless routes retain their legacy
+// distributed Bus-effect chain before the emitter. Each playing source owns
+// the source gain so
 // stop-fades and replays cannot bleed across concurrent events on one emitter.
 //
 // Injectables keep this node-testable and decode-agnostic:
@@ -2479,7 +2480,7 @@ class CjsAudioBackend {
     const usesBusHighPass = busStatePathUses(this.#busStateCatalog, descriptor.busPathIds, "highPass");
     const lowPassFilter = descriptor.getLowPass || descriptor.getLowPassAtAdditionalPercent || usesBusLowPass ? this.#context.createBiquadFilter?.() ?? null : null;
     const highPassFilter = descriptor.getHighPass || descriptor.getHighPassAtAdditionalPercent || usesBusHighPass ? this.#context.createBiquadFilter?.() ?? null : null;
-    const busEffectChain = createBusEffectChain(this.#context, this.#busEffectCatalog, descriptor.busPathIds);
+    const busEffectChain = emitterRouteBranch?.mixerInput ? null : createBusEffectChain(this.#context, this.#busEffectCatalog, descriptor.busPathIds);
     if (lowPassFilter) {
       lowPassFilter.type = "lowpass";
       SetAudioParam(lowPassFilter.frequency, wwiseFilterPercentToHz(0), this.#context);

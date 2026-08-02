@@ -235,9 +235,62 @@ function Harness({
   return { context, finished, emitter, backend };
 }
 
-function RouteRuntime({ blockedRouteB = false } = {})
+function RouteEqFixture()
 {
-  return new CjsBusGraphRuntime({
+  const bytes = new Uint8Array(56);
+  const view = new DataView(bytes.buffer);
+  let at = 0;
+
+  for (let index = 0; index < 3; index++)
+  {
+    view.setUint32(at, index === 0 ? 6 : 0, true);
+    view.setFloat32(at + 4, index === 0 ? -13 : 0, true);
+    view.setFloat32(at + 8, index === 0 ? 120 : 8000, true);
+    view.setFloat32(at + 12, index === 0 ? 5 : 1, true);
+    view.setUint8(at + 16, index === 0 ? 1 : 0);
+    at += 17;
+  }
+  view.setFloat32(at, 0, true);
+  view.setUint8(at + 4, 1);
+  return {
+    graphEffect: {
+      type: "effect-share-set",
+      pluginId: 0x00690003,
+      parameterByteLength: bytes.byteLength,
+      parametersBase64: Buffer.from(bytes).toString("base64"),
+      media: [],
+      controls: {
+        rtpcCount: 0,
+        statePropertyCount: 0,
+        stateGroupCount: 0,
+        propertyValueCount: 0,
+      },
+    },
+    busEffects: {
+      schemaVersion: 1,
+      buses: {
+        "900": [ {
+          effectId: "990",
+          slotIndex: 0,
+          type: "parametric-eq",
+          bands: [ {
+            index: 0,
+            filterType: "peaking",
+            gainDb: -13,
+            frequencyHz: 120,
+            q: 5,
+          } ],
+          outputGainDb: 0,
+          processLfe: true,
+        } ],
+      },
+    },
+  };
+}
+
+function RouteRuntime({ blockedRouteB = false, withEq = false } = {})
+{
+  const catalog = {
     schemaVersion: 1,
     effects: {},
     buses: {
@@ -291,7 +344,21 @@ function RouteRuntime({ blockedRouteB = false } = {})
       "101": 1,
     },
     musicRoutes: {},
-  });
+  };
+
+  if (withEq)
+  {
+    catalog.effects["990"] = RouteEqFixture().graphEffect;
+    catalog.buses["900"].effects = [ {
+      slotIndex: 0,
+      effectId: "990",
+      bypass: false,
+      shareSet: true,
+      rendered: false,
+    } ];
+    catalog.buses["900"].requiresProcessing = [ "effects" ];
+  }
+  return new CjsBusGraphRuntime(catalog);
 }
 
 function RoutedVoice(nodeId, spatial = true)
@@ -569,6 +636,53 @@ test("strict shared mixer consumes only qualified SFX route branches", async () 
   assert.equal(mixerInput.disconnected, false, "the system-owned mixer outlives the backend");
   mixer.Dispose();
   assert.equal(mixerInput.disconnected, true);
+});
+
+test("qualified SFX routes realize static EQ once after spatialization", async () =>
+{
+  const runtime = RouteRuntime({ withEq: true });
+  const { busEffects } = RouteEqFixture();
+  let mixer = null;
+  const { context, emitter, backend } = Harness({
+    busEffects,
+    busGraphRuntime: runtime,
+    busMixerFactory: audioContext =>
+    {
+      mixer = new CjsSharedBusMixer({
+        context: audioContext,
+        runtime,
+        destination: audioContext.destination,
+      });
+      return mixer;
+    },
+    loadBuffer: async () => ({ voices: [ RoutedVoice("100") ] }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "shared_eq_a");
+  backend.PostEvent(2, 1, 0, emitter, "shared_eq_b");
+  await tick();
+
+  const firstBranch = RouteBranchForSource(context.sources[0]);
+  const secondBranch = RouteBranchForSource(context.sources[1]);
+  const panner = firstBranch.connectedTo;
+  const mixerInput = panner.connectedTo;
+  const busInput = mixerInput.connectedTo;
+  const eq = busInput.connectedTo;
+
+  assert.equal(secondBranch, firstBranch);
+  assert.equal(context.filters.length, 1, "voices do not duplicate the shared EQ");
+  assert.equal(eq.type, "peaking");
+  assert.equal(eq.frequency.value, 120);
+  assert.equal(eq.gain.value, -13);
+  assert.equal(eq.disconnected, false);
+
+  context.sources[0].onended();
+  context.sources[1].onended();
+  assert.equal(eq.disconnected, false, "voice lifetime does not own shared Bus effects");
+  backend.Dispose();
+  assert.equal(eq.disconnected, false);
+  mixer.Dispose();
+  assert.equal(eq.disconnected, true);
 });
 
 test("blocked SFX routes retain the legacy destination without partial mixer use", async () =>

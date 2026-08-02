@@ -477,8 +477,8 @@ busEffects: {
 ```
 
 The v150 adapter follows wwiser's 56-byte Parametric EQ layout, retains slot
-and band order, and realizes enabled bands with Web Audio biquads on SFX and
-built-in music dry routes. Routed EQs with RTPC, State, property, or media
+and band order, and realizes enabled bands with Web Audio biquads. Routed EQs
+with RTPC, State, property, or media
 controls fail closed. `processLfe` must be true until the browser runtime owns
 an independent LFE branch. Authored-neutral EQs remain in the catalog but do
 not allocate browser nodes. A distributed EQ is emitted only when the complete
@@ -487,11 +487,15 @@ not block it; an active Compressor, Peak Limiter, reverb, meter, or unknown
 plug-in suppresses every distributed effect on that route so authored ordering
 cannot be partially realized.
 
-The current realization distributes each fully qualified static EQ onto source
-routes as an audible browser adaptation. It is not exact shared-bus placement
-when downstream gain automation or moving spatialization varies between
-voices. Routes containing nonlinear or otherwise unsupported active stages are
-reserved for a shared ordered bus graph rather than partially adapted.
+When the strict `busGraph` mixer qualifies the complete route, it decodes the
+authoritative 56-byte graph effect record and creates one ordered EQ chain per
+physical Bus, after SFX spatialization and music route envelopes. Common
+ancestors and their EQ nodes are shared across SFX/music category entries and
+voices. This is exact field decoding and graph placement for the Web Audio
+adaptation, not a claim that `BiquadFilterNode` is bit-equivalent to Wwise DSP.
+A blocked or missing graph retains the distributed per-source `busEffects`
+fallback. Nonlinear, dynamic, mixed, or media-backed effect sequences remain
+barriers rather than being partially realized.
 
 `buildFromBanks()` also emits a version-1 `busGraph` topology for every routed
 SFX Sound and music track. Route records deduplicate dry ancestry plus effective
@@ -513,9 +517,9 @@ Aux inheritance follows wwiser's root rule: a root NodeBase's authored list is
 effective even when its override bit is clear, because it has no parent. A
 non-root node with a clear override bit inherits, while the first overriding
 descendant replaces the inherited list. The catalog is the shared-runtime
-foundation, not an audible approximation. Current playback still uses only
-fully qualified distributed dry EQ routes; auxiliary sends and ordered shared
-effects remain silent until their complete reachable path has adapters.
+foundation, not an audible approximation. Current playback can share only a
+complete static Parametric EQ sequence; auxiliary sends and every other ordered
+effect path remain silent until their complete reachable path has adapters.
 
 Installation cross-checks every playable routed SFX Sound and music track
 against its `busGraph` route, including dry ancestry and all three authored
@@ -532,17 +536,17 @@ disposal remain generation-scoped. Branch outputs still feed the existing SFX
 destination unless the strict shared mixer qualifies their complete dry path.
 Qualified branches feed the stable SFX category input after spatialization;
 blocked branches retain the existing destination. This does not yet make shared
-Bus effects or auxiliary sends audible.
+nonlinear effects or auxiliary sends audible.
 
 A custom `applyRTPC` adapter continues to receive the legacy emitter target and
 also receives one update per graph-backed route branch. Branch updates include
 `busGraphRoute`; exactly one of `gain` or `flatGain` is populated according to
 the route's spatial mode, and spatial branches include their exact `panner`.
 
-The audio-system generation also owns a strict shared-Bus mixer. Its initial
+The audio-system generation also owns a strict shared-Bus mixer. Its
 qualification accepts only dry audio-bus ancestry with default channel layout,
-no Bus positioning or HDR, no sends, no active effects, and an empty
-`requiresProcessing` set. Qualified synthetic/library routes receive stable
+no Bus positioning or HDR, no sends, and no processing except a complete
+source-proven sequence of static Parametric EQ slots. Qualified routes receive stable
 SFX and music category entries and share one node per common Bus ancestor;
 category entries remain separate so application volume controls cannot merge
 unrelated routes prematurely. A blocked route returns no mixer input and

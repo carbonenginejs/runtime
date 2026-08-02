@@ -3,6 +3,7 @@ import { validateAudioLibraryDocument } from '../library/audioLibraryDocument.js
 import { normalizeSfxGraph, NormalizeStateTransitions } from '../library/sfxGraph.js';
 import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
 import { normalizeBusGraphCatalog } from '../internal/busGraph.js';
+import { PARAMETRIC_EQ_PLUGIN_ID, parseStaticParametricEqBytes } from '../internal/busEffects.js';
 
 // Browser-safe audio-library construction. Acquisition remains caller-owned:
 // the builder accepts index values, metadata values, and optional injected
@@ -85,8 +86,6 @@ const BUS_VOLUME_STATE_PROPERTY = 4;
 const BUS_STATE_FIELDS = new Map([[BUS_PITCH_STATE_PROPERTY, "pitchCents"], [BUS_LOW_PASS_STATE_PROPERTY, "lowPass"], [BUS_HIGH_PASS_STATE_PROPERTY, "highPass"], [BUS_VOLUME_STATE_PROPERTY, "gainDb"]]);
 const DUCK_VOICE_VOLUME_PROPERTY = 0;
 const DUCK_BUS_VOLUME_PROPERTY = 4;
-const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
-const PARAMETRIC_EQ_FILTER_TYPES = Object.freeze(["lowpass", "highpass", "bandpass", "notch", "lowshelf", "highshelf", "peaking"]);
 const SFX_INITIAL_DELAY_PROPERTY = 34;
 const WWISE_OUTPUT_BUS_VOLUME_PROPERTY = 0x0d;
 const WWISE_USER_AUX_VOLUME_PROPERTY = 0x08;
@@ -2479,54 +2478,14 @@ function BytesToBase64(bytes) {
   return result;
 }
 function ParseStaticParametricEq(busId, slot, effect) {
-  if (effect.parameterBlock?.byteLength !== 56) {
-    throw new Error(`Wwise Parametric EQ ${effect.id} on bus ${busId} has an unsupported parameter block`);
-  }
   if (effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
     throw new Error(`Wwise Parametric EQ ${effect.id} on bus ${busId} is not static`);
   }
-  const bytes = effect.parameterBlock;
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const bands = [];
-  let at = 0;
-  for (let index = 0; index < 3; index++) {
-    const filterTypeId = view.getUint32(at, true);
-    const gainDb = view.getFloat32(at + 4, true);
-    const frequencyHz = view.getFloat32(at + 8, true);
-    const q = view.getFloat32(at + 12, true);
-    const enabledRaw = view.getUint8(at + 16);
-    const enabled = enabledRaw !== 0;
-    const filterType = PARAMETRIC_EQ_FILTER_TYPES[filterTypeId];
-    if (!filterType || !Number.isFinite(gainDb) || !Number.isFinite(frequencyHz) || frequencyHz <= 0 || !Number.isFinite(q) || q <= 0 || enabledRaw > 1) {
-      throw new Error(`Wwise Parametric EQ ${effect.id} on bus ${busId} has invalid band ${index}`);
-    }
-    if (enabled) {
-      bands.push({
-        index,
-        filterType,
-        gainDb,
-        frequencyHz,
-        q
-      });
-    }
-    at += 17;
-  }
-  const outputGainDb = view.getFloat32(at, true);
-  if (!Number.isFinite(outputGainDb)) {
-    throw new Error(`Wwise Parametric EQ ${effect.id} on bus ${busId} has invalid output gain`);
-  }
-  const processLfeRaw = view.getUint8(at + 4);
-  if (processLfeRaw !== 1) {
-    throw new Error(`Wwise Parametric EQ ${effect.id} on bus ${busId} requires unsupported independent LFE routing`);
-  }
-  return {
-    effectId: String(effect.id),
-    slotIndex: Number(slot.index),
-    type: "parametric-eq",
-    bands,
-    outputGainDb,
-    processLfe: true
-  };
+  return parseStaticParametricEqBytes(effect.parameterBlock, {
+    effectId: effect.id,
+    slotIndex: slot.index,
+    label: `Wwise Parametric EQ ${effect.id} on bus ${busId}`
+  });
 }
 function NormalizeBusDuckingCatalog(value) {
   const sources = {};

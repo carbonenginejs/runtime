@@ -1,4 +1,6 @@
-const FILTER_TYPES = Object.freeze(new Set([
+export const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
+
+const FILTER_TYPE_NAMES = Object.freeze([
     "lowpass",
     "highpass",
     "bandpass",
@@ -6,7 +8,9 @@ const FILTER_TYPES = Object.freeze(new Set([
     "lowshelf",
     "highshelf",
     "peaking",
-]));
+]);
+
+const FILTER_TYPES = Object.freeze(new Set(FILTER_TYPE_NAMES));
 
 const MIN_GAIN_DB = -200;
 const MAX_GAIN_DB = 200;
@@ -193,6 +197,141 @@ export function createBusEffectChain(context, indexedCatalog, busPathIds)
         }
     }
     return input ? { input, output, nodes } : null;
+}
+
+/** Decodes one source-proven v150 Wwise Parametric EQ parameter block. */
+export function parseStaticParametricEqBytes(
+    bytes,
+    {
+        effectId,
+        slotIndex,
+        label = `Wwise Parametric EQ ${effectId}`,
+    } = {},
+)
+{
+    if (!(bytes instanceof Uint8Array) || bytes.byteLength !== 56)
+    {
+        throw new TypeError(`${label} has an unsupported parameter block`);
+    }
+    const view = new DataView(
+        bytes.buffer,
+        bytes.byteOffset,
+        bytes.byteLength,
+    );
+    const bands = [];
+    let at = 0;
+
+    for (let index = 0; index < 3; index++)
+    {
+        const filterTypeId = view.getUint32(at, true);
+        const gainDb = view.getFloat32(at + 4, true);
+        const frequencyHz = view.getFloat32(at + 8, true);
+        const q = view.getFloat32(at + 12, true);
+        const enabledRaw = view.getUint8(at + 16);
+        const filterType = FILTER_TYPE_NAMES[filterTypeId];
+
+        if (!filterType
+            || !Number.isFinite(gainDb)
+            || gainDb < MIN_GAIN_DB
+            || gainDb > MAX_GAIN_DB
+            || !Number.isFinite(frequencyHz)
+            || frequencyHz <= 0
+            || !Number.isFinite(q)
+            || q <= 0
+            || enabledRaw > 1)
+        {
+            throw new TypeError(`${label} has invalid band ${index}`);
+        }
+        if (enabledRaw === 1)
+        {
+            bands.push({
+                index,
+                filterType,
+                gainDb,
+                frequencyHz,
+                q,
+            });
+        }
+        at += 17;
+    }
+    const outputGainDb = view.getFloat32(at, true);
+
+    if (!Number.isFinite(outputGainDb)
+        || outputGainDb < MIN_GAIN_DB
+        || outputGainDb > MAX_GAIN_DB)
+    {
+        throw new TypeError(`${label} has invalid output gain`);
+    }
+    if (view.getUint8(at + 4) !== 1)
+    {
+        throw new TypeError(`${label} requires unsupported independent LFE routing`);
+    }
+    return {
+        effectId: String(effectId),
+        slotIndex: Number(slotIndex),
+        type: "parametric-eq",
+        bands,
+        outputGainDb,
+        processLfe: true,
+    };
+}
+
+/** Qualifies and decodes one static Parametric EQ from a portable Bus graph. */
+export function parseGraphStaticParametricEq(effect, effectId, slotIndex)
+{
+    const label = `Audio Bus graph effect ${effectId}`;
+    const controls = effect?.controls;
+
+    if (!effect
+        || (effect.type !== "effect-custom"
+            && effect.type !== "effect-share-set")
+        || effect.pluginId !== PARAMETRIC_EQ_PLUGIN_ID
+        || effect.parameterByteLength !== 56
+        || !Array.isArray(effect.media)
+        || effect.media.length !== 0
+        || !controls
+        || controls.rtpcCount !== 0
+        || controls.statePropertyCount !== 0
+        || controls.stateGroupCount !== 0
+        || controls.propertyValueCount !== 0)
+    {
+        throw new TypeError(`${label} is not a static Wwise Parametric EQ`);
+    }
+    return parseStaticParametricEqBytes(
+        DecodeBase64(effect.parametersBase64, label),
+        { effectId, slotIndex, label },
+    );
+}
+
+function DecodeBase64(value, label)
+{
+    const text = String(value ?? "");
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const cleanLength = text.endsWith("==")
+        ? text.length - 2
+        : text.endsWith("=") ? text.length - 1 : text.length;
+    const result = new Uint8Array(Math.floor(cleanLength * 6 / 8));
+    let accumulator = 0;
+    let bits = 0;
+    let offset = 0;
+
+    for (let index = 0; index < cleanLength; index++)
+    {
+        const valueIndex = alphabet.indexOf(text[index]);
+
+        if (valueIndex < 0)
+        {
+            throw new TypeError(`${label} parametersBase64 is invalid`);
+        }
+        accumulator = (accumulator << 6) | valueIndex;
+        bits += 6;
+        if (bits >= 8)
+        {
+            bits -= 8;
+            result[offset++] = (accumulator >>> bits) & 0xff;
+        }
+    }
+    return result;
 }
 
 function SetParam(param, value)

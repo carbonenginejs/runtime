@@ -111,11 +111,71 @@ function MixerCatalog()
   };
 }
 
+function ParametricEqParameters({
+  bands = [
+    { type: 6, gain: -13, frequency: 120, q: 5, enabled: true },
+    { type: 0, gain: 0, frequency: 8000, q: 0.707, enabled: false },
+    { type: 5, gain: 3, frequency: 12000, q: 1, enabled: true },
+  ],
+  outputGainDb = -6,
+  processLfe = 1,
+} = {})
+{
+  const bytes = new Uint8Array(56);
+  const view = new DataView(bytes.buffer);
+  let at = 0;
+
+  for (const band of bands)
+  {
+    view.setUint32(at, band.type, true);
+    view.setFloat32(at + 4, band.gain, true);
+    view.setFloat32(at + 8, band.frequency, true);
+    view.setFloat32(at + 12, band.q, true);
+    view.setUint8(at + 16, band.enabled ? 1 : 0);
+    at += 17;
+  }
+  view.setFloat32(at, outputGainDb, true);
+  view.setUint8(at + 4, processLfe);
+  return bytes;
+}
+
+function GraphParametricEq(bytes = ParametricEqParameters())
+{
+  return {
+    type: "effect-share-set",
+    pluginId: 0x00690003,
+    parameterByteLength: bytes.byteLength,
+    parametersBase64: Buffer.from(bytes).toString("base64"),
+    media: [],
+    controls: {
+      rtpcCount: 0,
+      statePropertyCount: 0,
+      stateGroupCount: 0,
+      propertyValueCount: 0,
+    },
+  };
+}
+
+function AddGraphEffect(catalog, busId, effectId, slotIndex, bytes)
+{
+  catalog.effects[effectId] = GraphParametricEq(bytes);
+  catalog.buses[busId].effects.push({
+    slotIndex,
+    effectId,
+    bypass: false,
+    shareSet: true,
+    rendered: false,
+  });
+  catalog.buses[busId].requiresProcessing = [ "effects" ];
+}
+
 function MixerContext()
 {
   const context = {
+    sampleRate: 48000,
     destination: { name: "destination" },
     gains: [],
+    filters: [],
     createGain()
     {
       const node = {
@@ -133,6 +193,28 @@ function MixerContext()
       };
 
       context.gains.push(node);
+      return node;
+    },
+    createBiquadFilter()
+    {
+      const node = {
+        type: "",
+        frequency: { value: 0 },
+        Q: { value: 1 },
+        gain: { value: 0 },
+        connectedTo: null,
+        disconnected: false,
+        connect(target)
+        {
+          node.connectedTo = target;
+        },
+        disconnect()
+        {
+          node.disconnected = true;
+        },
+      };
+
+      context.filters.push(node);
       return node;
     },
   };
@@ -216,6 +298,91 @@ test("strict shared Bus mixer shares effect-free ancestry without merging catego
   mixer.Dispose();
   assert.ok(nodes.every(node => node.disconnected));
   assert.equal(mixer.GetInput(routeA, "sfx"), null);
+});
+
+test("strict shared Bus mixer realizes one ordered Parametric EQ chain per Bus", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+  const rootBytes = ParametricEqParameters({
+    bands: [
+      { type: 1, gain: 0, frequency: 60, q: 0.5, enabled: true },
+      { type: 0, gain: 0, frequency: 8000, q: 1, enabled: false },
+      { type: 0, gain: 0, frequency: 8000, q: 1, enabled: false },
+    ],
+    outputGainDb: 0,
+  });
+
+  AddGraphEffect(catalog, "500", "900", 1, ParametricEqParameters());
+  AddGraphEffect(catalog, "1", "901", 0, rootBytes);
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+  const routeA = runtime.ResolveSfxRoute("100");
+  const routeAMusic = runtime.ResolveMusicRoute("200");
+  const routeB = runtime.ResolveSfxRoute("101");
+  const sfxA = mixer.GetInput(routeA, "sfx");
+  const musicA = mixer.GetInput(routeAMusic, "music");
+  const sfxB = mixer.GetInput(routeB, "sfx");
+  const bus500 = sfxA.connectedTo;
+  const firstBand = bus500.connectedTo;
+  const secondBand = firstBand.connectedTo;
+  const outputGain = secondBand.connectedTo;
+  const rootBus = outputGain.connectedTo;
+  const rootBand = rootBus.connectedTo;
+
+  assert.equal(musicA.connectedTo, bus500);
+  assert.notEqual(sfxB.connectedTo, bus500);
+  assert.equal(sfxB.connectedTo.connectedTo, rootBus);
+  assert.equal(firstBand.type, "peaking");
+  assert.equal(secondBand.type, "highshelf");
+  assert.ok(Math.abs(outputGain.gain.value - 10 ** (-6 / 20)) < 1e-12);
+  assert.equal(rootBand.type, "highpass");
+  assert.equal(rootBand.connectedTo, context.destination);
+  assert.equal(context.filters.length, 3, "each shared Bus EQ is allocated once");
+
+  mixer.Dispose();
+  assert.ok(context.filters.every(filter => filter.disconnected));
+  assert.equal(outputGain.disconnected, true);
+});
+
+test("strict shared Bus EQ qualification fails before allocating partial nodes", () =>
+{
+  const mutations = [
+    catalog => { catalog.effects["900"].type = "unsupported-effect"; },
+    catalog => { catalog.effects["900"].pluginId = 0x006c0003; },
+    catalog => { catalog.effects["900"].controls.rtpcCount = 1; },
+    catalog => { catalog.effects["900"].media.push({ index: 0, sourceId: "10" }); },
+    catalog => { catalog.buses["500"].effects[0].rendered = true; },
+    catalog => { catalog.buses["500"].requiresProcessing.push("state"); },
+    catalog =>
+    {
+      const bytes = ParametricEqParameters({ processLfe: 0 });
+      catalog.effects["900"].parametersBase64 = Buffer.from(bytes).toString("base64");
+    },
+  ];
+
+  for (const mutate of mutations)
+  {
+    const context = MixerContext();
+    const catalog = MixerCatalog();
+
+    AddGraphEffect(catalog, "500", "900", 0, ParametricEqParameters());
+    mutate(catalog);
+    const runtime = new CjsBusGraphRuntime(catalog);
+    const mixer = new CjsSharedBusMixer({
+      context,
+      runtime,
+      destination: context.destination,
+    });
+
+    assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+    assert.equal(context.gains.length, 0);
+    assert.equal(context.filters.length, 0);
+  }
 });
 
 test("strict shared Bus mixer allocates nothing across authored processing barriers", () =>

@@ -68,11 +68,15 @@ receive the application music volume exactly once. Route lanes are established
 before asynchronous clip loading, so a late decoded buffer cannot bypass an
 already scheduled fade.
 
-When the library contains a qualified static `busEffects` catalog, the
-built-in music engine also inserts its routed Parametric EQ bands between the
-track route gain and segment gain. EVE build 3444265 currently has no music
-track whose dry ancestry reaches either qualified EQ instance; this support is
-the generic portable contract, not a claim of additional EVE music coverage.
+If that shared route contains only qualified static Parametric EQ slots, its
+instance lane enters one ordered EQ chain per physical Bus after all route and
+transition envelopes. Multiple music instances and SFX entries therefore share
+the same Bus effect nodes. A blocked or missing graph keeps the legacy
+`busEffects` fallback between the track route gain and segment gain. The
+source-proven v150 fields and placement are exact, while Web Audio biquads
+remain a browser adaptation rather than native Wwise DSP. EVE build 3444265
+still qualifies no music route, so this generic contract changes no EVE music
+signal path.
 
 Version-2 `busStates` also provisions routed LPF and HPF stages for built-in
 music. Signed State offsets accumulate across the bus ancestry under the

@@ -266,6 +266,59 @@ function MusicMixerCatalog()
   };
 }
 
+function MusicEqFixture()
+{
+  const bytes = new Uint8Array(56);
+  const view = new DataView(bytes.buffer);
+  let at = 0;
+
+  for (let index = 0; index < 3; index++)
+  {
+    view.setUint32(at, index === 0 ? 6 : 0, true);
+    view.setFloat32(at + 4, index === 0 ? -13 : 0, true);
+    view.setFloat32(at + 8, index === 0 ? 120 : 8000, true);
+    view.setFloat32(at + 12, index === 0 ? 5 : 1, true);
+    view.setUint8(at + 16, index === 0 ? 1 : 0);
+    at += 17;
+  }
+  view.setFloat32(at, 0, true);
+  view.setUint8(at + 4, 1);
+  return {
+    graphEffect: {
+      type: "effect-share-set",
+      pluginId: 0x00690003,
+      parameterByteLength: bytes.byteLength,
+      parametersBase64: Buffer.from(bytes).toString("base64"),
+      media: [],
+      controls: {
+        rtpcCount: 0,
+        statePropertyCount: 0,
+        stateGroupCount: 0,
+        propertyValueCount: 0,
+      },
+    },
+    busEffects: {
+      schemaVersion: 1,
+      buses: {
+        "500": [ {
+          effectId: "990",
+          slotIndex: 0,
+          type: "parametric-eq",
+          bands: [ {
+            index: 0,
+            filterType: "peaking",
+            gainDb: -13,
+            frequencyHz: 120,
+            q: 5,
+          } ],
+          outputGainDb: 0,
+          processLfe: true,
+        } ],
+      },
+    },
+  };
+}
+
 function PlaylistModeGraph({
   rsType,
   loop,
@@ -2655,6 +2708,68 @@ test("qualified music routes keep segment and instance fades before the shared m
     qualifiedInput,
   );
   mixer.Dispose();
+  runtime.Dispose();
+});
+
+test("qualified music routes share static EQ after their route-local fades", async () =>
+{
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const catalog = MusicMixerCatalog();
+  const { graphEffect, busEffects } = MusicEqFixture();
+
+  catalog.effects["990"] = graphEffect;
+  catalog.buses["500"].effects = [ {
+    slotIndex: 0,
+    effectId: "990",
+    bypass: false,
+    shareSet: true,
+    rendered: false,
+  } ];
+  catalog.buses["500"].requiresProcessing = [ "effects" ];
+  Object.assign(graph.nodes[TRACK_A], {
+    outputBusId: "500",
+    busPathIds: [ "500", "1" ],
+  });
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+    random: () => 0.5,
+    busEffects,
+    busGraphRuntime: runtime,
+    busMixer: mixer,
+  });
+
+  engine.PostEvent("music_test_play", 706, () => {});
+  engine.PostEvent("music_test_play", 707, () => {});
+  await tick();
+
+  const mixerInput = mixer.GetInput(
+    runtime.ResolveMusicRoute(String(TRACK_A)),
+    "music",
+  );
+  const busInput = mixerInput.connectedTo;
+  const eq = busInput.connectedTo;
+
+  assert.equal(context.sources.length, 2);
+  assert.equal(context.filters.length, 1, "music instances do not duplicate shared EQ");
+  assert.ok(context.sources.every(source =>
+    source.connectedTo.connectedTo.connectedTo.connectedTo === mixerInput));
+  assert.equal(eq.type, "peaking");
+  assert.equal(eq.gain.value, -13);
+
+  engine.Dispose();
+  assert.equal(eq.disconnected, false, "music lifetime does not own shared Bus effects");
+  mixer.Dispose();
+  assert.equal(eq.disconnected, true);
   runtime.Dispose();
 });
 
