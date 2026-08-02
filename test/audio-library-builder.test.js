@@ -3059,7 +3059,7 @@ test("complete construction carries STMG defaults into Game Parameter actions", 
     } ]);
 });
 
-test("complete construction projects typed Bus Volume RTPC curves once per bus", async () =>
+test("complete construction keeps Bus Voice and Bus Volume RTPCs distinct", async () =>
 {
     const library = await CjsAudioLibraryBuilder.buildFromBanks({
         includeSfx: true,
@@ -3112,24 +3112,50 @@ test("complete construction projects typed Bus Volume RTPC curves once per bus",
                         } ],
                         acousticTextures: [],
                     },
-                    hirc: [ {
-                        type: 8,
-                        id: 500,
-                        payload: busPayload({
-                            rtpcs: [ {
-                                controlId: 800,
-                                controlType: 0,
-                                accumulation: 2,
-                                parameterId: 4,
-                                curveId: 77,
-                                scaling: 2,
-                                points: [
-                                    [ 0, -1, 4 ],
-                                    [ 1, 0.4988127648830414, 8 ],
-                                ],
-                            } ],
-                        }),
-                    } ],
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({ overrideBusId: 500 }),
+                        },
+                        {
+                            type: 8,
+                            id: 500,
+                            payload: busPayload({
+                            rtpcs: [
+                                {
+                                    controlId: 800,
+                                    controlType: 0,
+                                    accumulation: 2,
+                                    parameterId: 4,
+                                    curveId: 77,
+                                    scaling: 2,
+                                    points: [
+                                        [ 0, -1, 4 ],
+                                        [ 1, 0.4988127648830414, 8 ],
+                                    ],
+                                },
+                                {
+                                    controlId: 800,
+                                    controlType: 0,
+                                    accumulation: 2,
+                                    parameterId: 0,
+                                    curveId: 78,
+                                    scaling: 2,
+                                    points: [
+                                        [ 0, -1, 4 ],
+                                        [ 1, 0, 4 ],
+                                    ],
+                                },
+                            ],
+                            }),
+                        },
+                    ],
                     media: [],
                 },
             };
@@ -3137,24 +3163,42 @@ test("complete construction projects typed Bus Volume RTPC curves once per bus",
     });
 
     assert.deepEqual(library.busRtpcs, {
-        schemaVersion: 1,
+        schemaVersion: 2,
         buses: {
-            "500": [ {
-                curveId: 77,
-                rtpc: "menu_advanced_world_level",
-                defaultValue: 0.5,
-                scaling: 2,
-                points: [
-                    { x: 0, value: -1, interpolation: 4 },
-                    {
-                        x: 1,
-                        value: 0.4988127648830414,
-                        interpolation: 8,
-                    },
-                ],
-            } ],
+            "500": [
+                {
+                    curveId: 77,
+                    property: "bus-volume",
+                    rtpc: "menu_advanced_world_level",
+                    defaultValue: 0.5,
+                    scaling: 2,
+                    points: [
+                        { x: 0, value: -1, interpolation: 4 },
+                        {
+                            x: 1,
+                            value: 0.4988127648830414,
+                            interpolation: 8,
+                        },
+                    ],
+                },
+                {
+                    curveId: 78,
+                    property: "voice-volume",
+                    rtpc: "menu_advanced_world_level",
+                    defaultValue: 0.5,
+                    scaling: 2,
+                    points: [
+                        { x: 0, value: -1, interpolation: 4 },
+                        { x: 1, value: 0, interpolation: 4 },
+                    ],
+                },
+            ],
         },
     });
+    assert.deepEqual(
+        library.busGraph.buses["500"].requiresProcessing,
+        [ "rtpc" ],
+    );
 });
 
 test("complete construction projects typed Audio Bus ducking once per source", async () =>

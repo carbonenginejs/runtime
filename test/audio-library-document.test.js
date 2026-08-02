@@ -159,15 +159,16 @@ test("rejects invalid spatial event metadata", () =>
     );
 });
 
-test("validates, detaches, and freezes the optional Bus Volume RTPC catalog", () =>
+test("validates, detaches, and freezes property-tagged Bus RTPC catalogs", () =>
 {
     const source = CreateDocument();
 
     source.busRtpcs = {
-        schemaVersion: 1,
+        schemaVersion: 2,
         buses: {
             "500": [ {
                 curveId: 77,
+                property: "voice-volume",
                 rtpc: "menu_advanced_world_level",
                 defaultValue: 0.5,
                 scaling: 2,
@@ -186,8 +187,9 @@ test("validates, detaches, and freezes the optional Bus Volume RTPC catalog", ()
     assert.equal(Object.isFrozen(installed.busRtpcs.buses["500"]), true);
 
     for (const mutate of [
-        value => { value.schemaVersion = 2; },
+        value => { value.schemaVersion = 3; },
         value => { value.buses["0500"] = value.buses["500"]; },
+        value => { value.buses["500"][0].property = "volume"; },
         value => { value.buses["500"][0].defaultValue = Number.NaN; },
         value => { value.buses["500"][0].scaling = 0; },
         value => { value.buses["500"][0].points[0].value = -1.1; },
@@ -200,6 +202,12 @@ test("validates, detaches, and freezes the optional Bus Volume RTPC catalog", ()
         mutate(invalid.busRtpcs);
         assert.throws(() => validateAudioLibraryDocument(invalid));
     }
+
+    const legacy = structuredClone(source);
+
+    legacy.busRtpcs.schemaVersion = 1;
+    delete legacy.busRtpcs.buses["500"][0].property;
+    assert.equal(validateAudioLibraryDocument(legacy), true);
 });
 
 test("validates and freezes the optional Bus Volume State catalog", () =>

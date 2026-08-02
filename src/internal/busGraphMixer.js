@@ -2,7 +2,10 @@ import {
     createBusEffectChain,
     parseGraphSharedBusEffect,
 } from "./busEffects.js";
-import { indexBusRtpcCatalog } from "./busRtpc.js";
+import {
+    busRtpcPathUses,
+    indexBusRtpcCatalog,
+} from "./busRtpc.js";
 import { indexBusStateCatalog } from "./busState.js";
 
 const KINDS = new Set([ "sfx", "music" ]);
@@ -102,6 +105,18 @@ export class CjsSharedBusMixer
         if (!KINDS.has(category))
         {
             throw new TypeError(`Unsupported shared Audio Bus category ${category}`);
+        }
+        // Audio Bus Voice Volume is a per-voice stage. The SFX backend owns
+        // that placement; built-in music must not silently treat it as Bus
+        // Volume merely because a future bank routes music through the Bus.
+        if (category === "music"
+            && busRtpcPathUses(
+                this.#busRtpcs,
+                handle.route?.busPathIds,
+                "voice-volume",
+            ))
+        {
+            return null;
         }
         if (!this.#IsRouteQualified(handle))
         {

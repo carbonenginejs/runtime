@@ -66,11 +66,14 @@ Only `schemaVersion: 2` is accepted:
 Every bank key and `sourceID` is its `bankID:languageID` identity.
 When present, `sfx` selects and layers those media identities using the
 version-2 portable SFX graph.
-When present, `busRtpcs` is a version-1 catalog keyed by bus ID. Each entry
-retains named global Game Parameter curves for Bus Volume as raw Wwise
-scaling-2 values, including the authored parameter default and ordered graph
-points. SFX and built-in music routes evaluate curves for every bus in their
-dry ancestry; interpolation occurs before Wwise's nonlinear dB conversion.
+When present, `busRtpcs` is a version-2 catalog keyed by bus ID. Each entry
+retains named global Game Parameter curves for Voice Volume or Bus Volume as
+raw Wwise scaling-2 values, including the authored parameter default, a
+`property` tag, and ordered graph points. SFX evaluates both properties for
+every bus in its dry ancestry, with Voice Volume on a distinct pre-bus gain;
+built-in music evaluates Bus Volume only. Interpolation occurs before Wwise's
+nonlinear dB conversion. Strict version-1 catalogs remain accepted as implicit
+Bus Volume for installed-library compatibility.
 When present, `busStates` is a version-2 multi-property catalog keyed by bus
 ID. A named State case may carry `gainDb`, `pitchCents`, `lowPass`, and
 `highPass` offsets under one atomic transition weight. The catalog retains the

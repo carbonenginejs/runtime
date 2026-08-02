@@ -265,11 +265,15 @@ update a persistent template for emitters registered later and continue to
 affect live voices on retired generations. SFX and music routes include full
 dry-output bus ancestry, authored base Bus Volume, and any bus Make-Up Gain on
 that ancestry. The effective NodeBase Output Bus Volume remains a separate
-authored contribution on the same collapsed route. Typed Bus Volume RTPCs are
-stored once per bus and add their global Game Parameter result across that
-same ancestry for both SFX and built-in music. Scaling-2 curve outputs remain
-raw: runtime-audio interpolates first, then applies Wwise's nonlinear dB
-conversion. Typed Audio Bus State tables use the same route ancestry. Their
+authored contribution on the same collapsed route. Typed version-2 Bus RTPCs
+are stored once per bus and distinguish `voice-volume` from `bus-volume`.
+SFX adds Voice Volume on its own gain before the Bus Volume/effect stages;
+both properties follow the complete dry ancestry. Built-in music evaluates
+only Bus Volume and shared-mixer qualification rejects a music route that
+would require the unimplemented music Voice Volume stage. Scaling-2 curve
+outputs remain raw: runtime-audio interpolates first, then applies Wwise's
+nonlinear dB conversion. Version-1 catalogs remain implicit Bus Volume.
+Typed Audio Bus State tables use the same route ancestry. Their
 matching global State values atomically add Bus Volume in decibels, Pitch in
 cents, and signed LPF/HPF offsets across subscribed groups and buses, using the
 catalog's STMG default or directed transition duration. Filters sum before one
@@ -526,9 +530,10 @@ non-root node with a clear override bit inherits, while the first overriding
 descendant replaces the inherited list. The catalog is the shared-runtime
 foundation, not an audible approximation. Current playback can share a
 complete static Parametric EQ sequence without distributed controls, or an
-effect-free/feedback-free-Meter path whose Bus Volume RTPC, State, and ducking
-records all have matching installed runtime catalogs. Those controls remain on
-the existing dry-route stages upstream of the shared unity path. Auxiliary
+effect-free/feedback-free-Meter path whose supported Voice/Bus Volume RTPC,
+State, and ducking records all have matching installed runtime catalogs. Those
+controls remain on the existing dry-route stages upstream of the shared unity
+path. Auxiliary
 sends, unsupported RTPC bindings, audible effects combined with those controls,
 and every other incomplete ordered effect path remain blocked until their
 complete reachable path has adapters.

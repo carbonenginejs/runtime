@@ -219,7 +219,7 @@ function ValidateBusRtpcs(value) {
     return;
   }
   const catalog = RequireRecord(value, "Audio library busRtpcs");
-  if (catalog.schemaVersion !== 1) {
+  if (catalog.schemaVersion !== 1 && catalog.schemaVersion !== 2) {
     throw new TypeError(`Unsupported audio bus RTPC schema version: ${catalog.schemaVersion}`);
   }
   const buses = RequireRecord(catalog.buses, "Audio library busRtpcs buses");
@@ -240,6 +240,12 @@ function ValidateBusRtpcs(value) {
         throw new TypeError(`${label} duplicates curve ${curveId}`);
       }
       curveIds.add(curveId);
+      if (catalog.schemaVersion === 1 && curve.property !== undefined) {
+        throw new TypeError(`${label} version 1 cannot declare a property`);
+      }
+      if (catalog.schemaVersion === 2 && curve.property !== "voice-volume" && curve.property !== "bus-volume") {
+        throw new TypeError(`${label} property must be voice-volume or bus-volume`);
+      }
       if (typeof curve.rtpc !== "string" || !curve.rtpc.trim()) {
         throw new TypeError(`${label} rtpc must be a name`);
       }

@@ -3,6 +3,9 @@ import {
     wwiseDbRtpcValueToDb,
 } from "./wwiseRtpc.js";
 
+const BUS_VOLUME_PROPERTY = "bus-volume";
+const VOICE_VOLUME_PROPERTY = "voice-volume";
+
 /** Indexes an installed bus-RTPC catalog by authored bus id. */
 export function indexBusRtpcCatalog(catalog)
 {
@@ -29,12 +32,68 @@ export function busRtpcCatalogUsesControl(catalog, name)
     return false;
 }
 
+/** Returns whether one bus ancestry uses the selected RTPC gain property. */
+export function busRtpcPathUses(catalog, busPathIds, property)
+{
+    if (!(catalog instanceof Map)) return false;
+    const selected = String(property);
+    const seen = new Set();
+
+    for (const rawBusId of busPathIds ?? [])
+    {
+        const busId = String(rawBusId);
+
+        if (seen.has(busId)) continue;
+        seen.add(busId);
+        if ((catalog.get(busId) ?? []).some(curve =>
+            CurveProperty(curve) === selected))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 /** Evaluates additive Bus Volume RTPC gain across one dry bus ancestry. */
 export function evaluateBusRtpcGainDb(
     catalog,
     busPathIds,
     readGlobalRtpc,
     at = undefined,
+)
+{
+    return EvaluateBusRtpcPropertyGainDb(
+        catalog,
+        busPathIds,
+        readGlobalRtpc,
+        BUS_VOLUME_PROPERTY,
+        at,
+    );
+}
+
+/** Evaluates additive Voice Volume RTPC gain across one bus ancestry. */
+export function evaluateBusVoiceRtpcGainDb(
+    catalog,
+    busPathIds,
+    readGlobalRtpc,
+    at = undefined,
+)
+{
+    return EvaluateBusRtpcPropertyGainDb(
+        catalog,
+        busPathIds,
+        readGlobalRtpc,
+        VOICE_VOLUME_PROPERTY,
+        at,
+    );
+}
+
+function EvaluateBusRtpcPropertyGainDb(
+    catalog,
+    busPathIds,
+    readGlobalRtpc,
+    property,
+    at,
 )
 {
     if (!(catalog instanceof Map) || typeof readGlobalRtpc !== "function")
@@ -54,6 +113,7 @@ export function evaluateBusRtpcGainDb(
 
         for (const curve of catalog.get(busId) ?? [])
         {
+            if (CurveProperty(curve) !== property) continue;
             const current = readGlobalRtpc(curve.rtpc, at);
             const input = current === undefined || current === null
                 ? curve.defaultValue
@@ -67,4 +127,12 @@ export function evaluateBusRtpcGainDb(
         }
     }
     return gainDb;
+}
+
+function CurveProperty(curve)
+{
+    // Version 1 catalogs predate property tagging and contain only Bus Volume.
+    return curve?.property === undefined
+        ? BUS_VOLUME_PROPERTY
+        : String(curve.property);
 }

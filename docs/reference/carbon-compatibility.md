@@ -117,13 +117,14 @@ music; Bus LPF/HPF are distributed dry-route filters for both engines. Static
 Parametric EQ uses source-proven v150 field decoding and one ordered shared
 Web Audio chain per Bus when the complete graph route qualifies. Blocked or
 missing graph routes retain the distributed source-route fallback. Neither
-path claims native Wwise DSP equivalence. A complete Bus Volume RTPC, State,
+path claims native Wwise DSP equivalence. A complete Voice/Bus Volume RTPC, State,
 or ducking path may enter the shared unity topology only when every declared
 control has its matching installed runtime catalog and the route is effect-free
 or contains only decoded feedback-free Meters. The existing dry-route stages
 continue to realize those controls upstream, so this exception preserves
 placement rather than adding Wwise DSP. Meter telemetry remains unsupported.
-Unsupported RTPC bindings, controls crossing an audible shared effect,
+Voice Volume RTPCs use a distinct pre-bus SFX gain on qualified transparent
+paths. Unsupported RTPC bindings, controls crossing an audible shared effect,
 Voice-target placement across future auxiliary sends, other effect processing
 and tails, feedback-capable meters, and virtual-voice behavior remain deferred
 as described in the

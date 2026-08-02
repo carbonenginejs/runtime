@@ -6727,6 +6727,100 @@ test("Bus Volume RTPCs scale ancestor routes for live and future SFX voices", as
   assert.ok(Math.abs(future.value - 10 ** (scaledDb / 20)) < 1e-12);
 });
 
+test("Audio Bus Voice Volume RTPCs own a distinct pre-bus SFX gain", async () =>
+{
+  const programs = {
+    routed: [ {
+      kind: "play",
+      actionIndex: 0,
+      selections: [ {
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: [ "200" ],
+        busPathIds: [ "928", "500", "1" ],
+        authoredBusVolumeDb: -3,
+      } ],
+    } ],
+    unrelated: [ {
+      kind: "play",
+      actionIndex: 0,
+      selections: [ {
+        actionIndex: 0,
+        leafIndex: 0,
+        matchIds: [ "201" ],
+        busPathIds: [ "399", "1" ],
+      } ],
+    } ],
+  };
+  const busRtpcs = {
+    schemaVersion: 2,
+    buses: {
+      "500": [ {
+        curveId: 78,
+        property: "voice-volume",
+        rtpc: "advanced_settings_atmosphere",
+        defaultValue: 1,
+        scaling: 2,
+        points: [
+          { x: 0, value: -1, interpolation: 4 },
+          { x: 1, value: 0, interpolation: 4 },
+        ],
+      } ],
+    },
+  };
+  const external = [];
+  const { backend, emitter, context } = Harness({
+    busRtpcs,
+    applyRTPC: value => external.push(value),
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program[0].selections.map(selection => ({
+        buffer: { duration: 20 },
+        loop: true,
+        programSlotId: "0:0",
+        matchIds: selection.matchIds,
+        busPathIds: selection.busPathIds,
+        authoredBusVolumeDb: selection.authoredBusVolumeDb,
+        getGain: () => 1,
+      })),
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "routed");
+  backend.PostEvent(2, 1, 0, emitter, "unrelated");
+  await tick();
+
+  const sourceGain = context.sources[0].connectedTo.gain;
+  const voiceRtpcGain = context.sources[0].connectedTo.connectedTo.gain;
+  const busGain = context.sources[0].connectedTo.connectedTo.connectedTo.gain;
+
+  assert.equal(sourceGain.value, 1);
+  assert.equal(voiceRtpcGain.value, 1);
+  assert.ok(Math.abs(busGain.value - 10 ** (-3 / 20)) < 1e-12);
+  assert.equal(
+    context.sources[1].connectedTo.connectedTo.gain.value,
+    1,
+    "an unrelated route allocates no Voice Volume RTPC stage",
+  );
+
+  backend.SetGlobalRTPCValue("advanced_settings_atmosphere", 0.5);
+
+  assert.ok(Math.abs(voiceRtpcGain.value - 0.5) < 1e-12);
+  assert.ok(Math.abs(busGain.value - 10 ** (-3 / 20)) < 1e-12);
+  assert.equal(external.length, 0, "authored Bus controls bypass host adapters");
+
+  backend.PostEvent(3, 1, 0, emitter, "routed");
+  await tick();
+  const futureVoiceRtpc = context.sources[2].connectedTo.connectedTo.gain;
+
+  assert.ok(Math.abs(futureVoiceRtpc.value - 0.5) < 1e-12);
+
+  backend.SetGlobalRTPCValue("advanced_settings_atmosphere", 0);
+  assert.ok(Math.abs(
+    voiceRtpcGain.value - 10 ** (-96.3 / 20),
+  ) < 1e-12);
+});
+
 test("Bus Volume States stack across SFX ancestry and preserve missing cases", async () =>
 {
   const busStates = {

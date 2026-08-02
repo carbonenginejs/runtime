@@ -80,9 +80,11 @@ remain a browser adaptation rather than native Wwise DSP.
 An effect-free or feedback-free-Meter route may instead enter the shared unity
 path while its complete Bus Volume RTPC, State, and ducking controls remain on
 the existing route stages upstream. Qualification requires matching installed
-catalog entries for every declared control. EVE build 3444265 qualifies exactly
-two effect-free music tracks under this rule; routes that cross an audible
-effect with those controls remain blocked.
+catalog entries for every declared control. A property-0 Voice Volume RTPC
+keeps a music route out of the shared mixer until music owns the corresponding
+per-voice stage; it is never reinterpreted as Bus Volume. EVE build 3444265
+qualifies exactly two effect-free music tracks under this rule; routes that
+cross an audible effect with those controls remain blocked.
 
 A source-proven v150 Wwise Meter may coexist in that sequence only when it
 writes no Game Parameter, does not apply downstream volume, and has no dynamic

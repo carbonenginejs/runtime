@@ -1,12 +1,12 @@
 import { evaluateWwiseInterpolation } from './internal/wwiseCurve.js';
-import { indexBusRtpcCatalog, busRtpcCatalogUsesControl, evaluateBusRtpcGainDb } from './internal/busRtpc.js';
+import { indexBusRtpcCatalog, busRtpcCatalogUsesControl, busRtpcPathUses, evaluateBusRtpcGainDb, evaluateBusVoiceRtpcGainDb } from './internal/busRtpc.js';
 import { indexBusStateCatalog, busStatePathUses, evaluateBusStateProperties, evaluateBusStateGainDb } from './internal/busState.js';
 import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
 import { indexBusEffectCatalog, createBusEffectChain } from './internal/busEffects.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
-// source -> authored voice/bus filters -> source and bus gain -> emitter gain
+// source -> authored voice/bus filters -> source/Bus-Voice/Bus gains -> emitter gain
 // -> PannerNode(HRTF, inverse distance) -> qualified shared Bus effects
 // -> master gain -> destination. Blocked/graphless routes retain their legacy
 // distributed Bus-effect chain before the emitter. Each playing source owns
@@ -2471,6 +2471,7 @@ class CjsAudioBackend {
     }) ?? null;
     const emitterRouteBranch = this.#GetEmitterRouteBranch(emitterNodes, gameObjID, descriptor.spatial, busGraphRoute);
     const gain = this.#context.createGain();
+    const busVoiceGain = busRtpcPathUses(this.#busRtpcCatalog, descriptor.busPathIds, "voice-volume") ? this.#context.createGain() : null;
     const busGain = descriptor.busPathIds.length ? this.#context.createGain() : null;
     const fadeGain = descriptor.fadeInMs > 0 ? this.#context.createGain() : null;
     const transitionGain = descriptor.crossfadeMode || descriptor.switchFadeInMs > 0 ? this.#context.createGain() : null;
@@ -2508,7 +2509,8 @@ class CjsAudioBackend {
       stopGain.connect(emitterNodes.flatGain);
     }
     const busEffectInput = busEffectChain?.input ?? stopGain;
-    gain.connect(transitionGain ?? busGain ?? busEffectInput);
+    gain.connect(busVoiceGain ?? transitionGain ?? busGain ?? busEffectInput);
+    busVoiceGain?.connect(transitionGain ?? busGain ?? busEffectInput);
     transitionGain?.connect(busGain ?? busEffectInput);
     busGain?.connect(busEffectInput);
     busEffectChain?.output?.connect(stopGain);
@@ -2574,6 +2576,7 @@ class CjsAudioBackend {
       programBatchId: descriptor.programBatchId,
       crossfadeMode: descriptor.crossfadeMode ?? null,
       gain,
+      busVoiceGain,
       busGain,
       fadeGain,
       transitionGain,
@@ -2610,6 +2613,7 @@ class CjsAudioBackend {
       offsetSeconds: 0
     };
     this.#ApplyVoiceGain(voice);
+    this.#ApplyVoiceBusRtpcGain(voice);
     this.#ApplyVoiceBusGain(voice);
     this.#ApplyVoiceFilters(voice);
     this.#ApplyVoicePlaybackRate(voice);
@@ -3281,6 +3285,7 @@ class CjsAudioBackend {
       voice.lowPassFilter?.disconnect?.();
       voice.highPassFilter?.disconnect?.();
       voice.gain?.disconnect?.();
+      voice.busVoiceGain?.disconnect?.();
       voice.fadeGain?.disconnect?.();
       voice.transitionGain?.disconnect?.();
       voice.busGain?.disconnect?.();
@@ -3322,6 +3327,7 @@ class CjsAudioBackend {
           voice.controlTransitionBoundaries = [...new Set(boundaries)];
           voice.rtpcTransitionEnd = voice.controlTransitionBoundaries.at(-1) ?? now;
           this.#ApplyVoiceGain(voice);
+          this.#ApplyVoiceBusRtpcGain(voice);
           this.#ApplyVoiceBusGain(voice);
           this.#ApplyVoiceFilters(voice);
           this.#ApplyVoicePlaybackRate(voice);
@@ -3422,6 +3428,14 @@ class CjsAudioBackend {
       return;
     }
     ScheduleBusVolumeGain(voice.busGain.gain, voice, this.#context, this.#busRtpcCatalog, (name, at) => this.#ReadRtpcValue("global", name, undefined, at), this.#busStateCatalog, (group, at) => this.#ReadStatePropertyWeights(group, at), this.#busDuckingController);
+  }
+
+  /** Applies Audio Bus Voice Volume RTPCs before Bus Volume/effects. */
+  #ApplyVoiceBusRtpcGain(voice) {
+    if (!voice.busVoiceGain) {
+      return;
+    }
+    ScheduleBusVoiceRtpcGain(voice.busVoiceGain.gain, voice, this.#context, this.#busRtpcCatalog, (name, at) => this.#ReadRtpcValue("global", name, undefined, at));
   }
 
   /** Reapplies duck envelopes after either engine changes bus activity. */
@@ -3646,6 +3660,7 @@ class CjsAudioBackend {
         voice.lowPassFilter?.disconnect?.();
         voice.highPassFilter?.disconnect?.();
         voice.gain?.disconnect?.();
+        voice.busVoiceGain?.disconnect?.();
         voice.fadeGain?.disconnect?.();
         voice.transitionGain?.disconnect?.();
         voice.busGain?.disconnect?.();
@@ -4404,6 +4419,39 @@ function ScheduleVoiceVolumeGain(param, voice, context) {
     // from `now` cannot remove a curve that is already in progress.
     // This gain stage owns no unrelated automation; clear its timeline
     // and immediately restore the evaluated current value instead.
+    param.cancelScheduledValues?.(0);
+  }
+  param.setValueAtTime?.(startValue, now);
+  if ("value" in param) {
+    param.value = startValue;
+  }
+  let segmentStart = now;
+  for (const segmentEnd of boundaries) {
+    if (typeof param.setValueCurveAtTime === "function") {
+      const values = new Float32Array(FADE_CURVE_SAMPLES);
+      for (let index = 0; index < values.length; index++) {
+        const ratio = index / (values.length - 1);
+        values[index] = evaluate(segmentStart + (segmentEnd - segmentStart) * ratio);
+      }
+      param.setValueCurveAtTime(values, segmentStart, segmentEnd - segmentStart);
+    } else {
+      param.linearRampToValueAtTime?.(evaluate(segmentEnd), segmentEnd);
+    }
+    segmentStart = segmentEnd;
+  }
+}
+function ScheduleBusVoiceRtpcGain(param, voice, context, busRtpcCatalog, readGlobalRtpc) {
+  if (!param) {
+    return;
+  }
+  const now = Number(context?.currentTime) || 0;
+  const busPathIds = Array.isArray(voice.busPathIds) ? voice.busPathIds : [];
+  const boundaries = [...new Set((voice.controlTransitionBoundaries ?? []).map(Number).filter(value => Number.isFinite(value) && value > now))].sort((left, right) => left - right);
+  const evaluate = at => 10 ** (evaluateBusVoiceRtpcGainDb(busRtpcCatalog, busPathIds, readGlobalRtpc, at) / 20);
+  const startValue = evaluate(now);
+  if (typeof param.cancelAndHoldAtTime === "function") {
+    param.cancelAndHoldAtTime(now);
+  } else {
     param.cancelScheduledValues?.(0);
   }
   param.setValueAtTime?.(startValue, now);

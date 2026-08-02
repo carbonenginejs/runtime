@@ -57,6 +57,10 @@ const SFX_PITCH_PROPERTY = 1;
 const SFX_LOW_PASS_PROPERTY = 2;
 const SFX_HIGH_PASS_PROPERTY = 3;
 const BUS_VOLUME_RTPC_PROPERTY = 4;
+const BUS_RTPC_PROPERTIES = new Map([
+    [ SFX_VOLUME_PROPERTY, "voice-volume" ],
+    [ BUS_VOLUME_RTPC_PROPERTY, "bus-volume" ],
+]);
 const BUS_PITCH_STATE_PROPERTY = 1;
 const BUS_LOW_PASS_STATE_PROPERTY = 2;
 const BUS_HIGH_PASS_STATE_PROPERTY = 3;
@@ -2901,9 +2905,14 @@ function CreateBusRtpcCatalog(buses, names)
         .sort(([ left ], [ right ]) => left - right))
     {
         const curves = (bus.rtpcs ?? [])
-            .filter(rtpc => Number(rtpc.parameterId)
-                === BUS_VOLUME_RTPC_PROPERTY)
-            .map(rtpc => CreateBusRtpcCurve(rtpc, names))
+            .filter(rtpc => BUS_RTPC_PROPERTIES.has(
+                Number(rtpc.parameterId),
+            ))
+            .map(rtpc => CreateBusRtpcCurve(
+                rtpc,
+                names,
+                BUS_RTPC_PROPERTIES.get(Number(rtpc.parameterId)),
+            ))
             .sort((left, right) => left.curveId - right.curveId);
 
         if (curves.length)
@@ -2913,20 +2922,23 @@ function CreateBusRtpcCatalog(buses, names)
     }
 
     return {
-        schemaVersion: 1,
+        schemaVersion: 2,
         buses: result,
     };
 }
 
-function CreateBusRtpcCurve(rtpc, names)
+function CreateBusRtpcCurve(rtpc, names, property)
 {
+    const label = property === "voice-volume"
+        ? "Audio Bus Voice Volume"
+        : "Audio Bus Volume";
     const curveId = NormalizeWwiseUint32(
         rtpc.curveId,
-        "Audio Bus Volume RTPC curve id",
+        `${label} RTPC curve id`,
     );
     const controlId = NormalizeWwiseUint32(
         rtpc.controlId,
-        `Audio Bus Volume RTPC ${curveId} control id`,
+        `${label} RTPC ${curveId} control id`,
     );
     const rtpcName = names.parameters.get(controlId);
     const defaultValue = names.parameterDefaults.get(controlId);
@@ -2934,34 +2946,34 @@ function CreateBusRtpcCurve(rtpc, names)
     if (Number(rtpc.controlType) !== 0)
     {
         throw new Error(
-            `unsupported Bus Volume RTPC control type ${rtpc.controlType}`,
+            `unsupported ${label} RTPC control type ${rtpc.controlType}`,
         );
     }
     if (Number(rtpc.accumulation) !== SFX_ADDITIVE_ACCUMULATION)
     {
         throw new Error(
-            `unsupported Bus Volume RTPC accumulation ${rtpc.accumulation}`,
+            `unsupported ${label} RTPC accumulation ${rtpc.accumulation}`,
         );
     }
     if (Number(rtpc.scaling) !== 2)
     {
         throw new Error(
-            `unsupported Bus Volume RTPC scaling ${rtpc.scaling}`,
+            `unsupported ${label} RTPC scaling ${rtpc.scaling}`,
         );
     }
     if (!rtpcName)
     {
-        throw new Error(`unnamed Bus Volume game parameter ${controlId}`);
+        throw new Error(`unnamed ${label} game parameter ${controlId}`);
     }
     if (!Number.isFinite(defaultValue))
     {
         throw new Error(
-            `missing Bus Volume game parameter default ${controlId}`,
+            `missing ${label} game parameter default ${controlId}`,
         );
     }
     if (!rtpc.points?.length)
     {
-        throw new Error(`empty Bus Volume RTPC curve ${curveId}`);
+        throw new Error(`empty ${label} RTPC curve ${curveId}`);
     }
 
     let previous = -Infinity;
@@ -2973,12 +2985,12 @@ function CreateBusRtpcCurve(rtpc, names)
 
         if (!Number.isFinite(x) || !Number.isFinite(value))
         {
-            throw new Error(`non-finite Bus Volume RTPC curve ${curveId}`);
+            throw new Error(`non-finite ${label} RTPC curve ${curveId}`);
         }
         if (value < -1 || value > 1)
         {
             throw new Error(
-                `out-of-range Bus Volume RTPC curve ${curveId} point ${index}`,
+                `out-of-range ${label} RTPC curve ${curveId} point ${index}`,
             );
         }
         if (!Number.isSafeInteger(interpolation)
@@ -2986,12 +2998,12 @@ function CreateBusRtpcCurve(rtpc, names)
             || interpolation > 9)
         {
             throw new Error(
-                `invalid Bus Volume RTPC interpolation ${curveId}`,
+                `invalid ${label} RTPC interpolation ${curveId}`,
             );
         }
         if (x < previous)
         {
-            throw new Error(`unsorted Bus Volume RTPC curve ${curveId}`);
+            throw new Error(`unsorted ${label} RTPC curve ${curveId}`);
         }
         previous = x;
 
@@ -3000,6 +3012,7 @@ function CreateBusRtpcCurve(rtpc, names)
 
     return {
         curveId,
+        property,
         rtpc: String(rtpcName),
         defaultValue,
         scaling: 2,
@@ -3016,6 +3029,9 @@ function NormalizeBusRtpcCatalog(value)
     {
         buses[String(busId)] = value.buses[busId].map(curve => ({
             curveId: Number(curve.curveId),
+            property: curve.property === undefined
+                ? "bus-volume"
+                : String(curve.property),
             rtpc: String(curve.rtpc),
             defaultValue: Number(curve.defaultValue),
             scaling: Number(curve.scaling),
@@ -3028,7 +3044,7 @@ function NormalizeBusRtpcCatalog(value)
     }
 
     return {
-        schemaVersion: 1,
+        schemaVersion: 2,
         buses,
     };
 }
@@ -3695,7 +3711,7 @@ function CreateBusGraphCatalog(inspections, musicInspections, buses)
         if (bus.rtpcs?.length)
         {
             reasons.push(bus.rtpcs.every(rtpc =>
-                Number(rtpc.parameterId) === BUS_VOLUME_RTPC_PROPERTY)
+                BUS_RTPC_PROPERTIES.has(Number(rtpc.parameterId)))
                 ? "rtpc"
                 : "unsupported-rtpc");
         }

@@ -14,8 +14,9 @@ builder. Portable SFX sounds and music tracks
 carry their effective output bus, ordered cycle-safe ancestry, summed authored
 base Bus Volume, summed Make-Up Gain, and the Output Bus Volume authored by the
 NodeBase that supplies the effective output-bus override. Playback adds live
-Bus Volume action state, global Bus Volume RTPC curves, and global Bus Volume
-State contributions without changing the application SFX or music sliders.
+Bus Volume action state, global Voice/Bus Volume RTPC curves, and global Bus
+Volume State contributions without changing the application SFX or music
+sliders.
 It also projects v150 Audio Bus auto-ducking and coordinates actual scheduled
 SFX and built-in music source activity through one shared clock.
 Routed static Wwise Parametric EQ slots are projected into one portable catalog
@@ -116,8 +117,10 @@ media rather than WEM audio.
 
 The dry-output route applies Bus Volume and Make-Up Gain when those properties
 occur in the selected dry ancestry. It separately applies the effective
-NodeBase Output Bus Volume and evaluates every scaling-2 Bus Volume RTPC on the
-route. The builder keeps raw graph values because Wwise interpolates them
+NodeBase Output Bus Volume and evaluates every qualified scaling-2 Voice
+Volume and Bus Volume RTPC on the route. SFX Voice Volume owns a distinct gain
+before Bus Volume and effects; built-in music continues to consume Bus Volume
+only. The builder keeps raw graph values because Wwise interpolates them
 before converting `-1` to `-96.3 dB` and other values with
 `20 * log10(value + 1)`. Keeping these contributions distinct preserves their
 future placement when real bus and effect stages replace the collapsed gain.
@@ -158,6 +161,15 @@ tracks reaches at least one affected bus through its dry ancestry. All 60
 curves use Game Parameter control type 0, additive accumulation 2, and dB
 scaling 2, so the current per-route scalar is signal-equivalent on the dry
 path. The catalog is stored once per bus rather than duplicated on every leaf.
+
+The same build authors seven property-0 Voice Volume RTPC curves on seven
+buses, all driven by `advanced_settings_atmosphere` (`3045458040`). They use
+Game Parameter control type 0, additive accumulation 2, dB scaling 2, and
+linear interpolation. Their raw reach is 2,797 SFX references and no music
+references. Exactly 963 SFX references have no auxiliary send or other barrier
+and cross only feedback-free Meter effects; those routes now realize the
+control on a separate pre-bus gain. The remaining 1,834 stay blocked by
+feedback-capable Meter, auxiliary, unsupported-RTPC, or ordered effect barriers.
 
 The same build authors 117 additive in-dB Bus Volume State values across 113
 bus/State-Group occurrences on 60 buses and 42 distinct State Groups. Of those
@@ -311,12 +323,13 @@ legacy SFX destination and allocate no partial mixer graph. Qualified music
 routes likewise retain route identity through segment and instance envelope
 lanes; their category volume is applied by the shared mixer rather than the
 legacy music output. A full build-and-realize audit of EVE 3444265 qualifies
-3,456 of 16,255 SFX references and two of 2,484 music references across its 262
+4,419 of 16,255 SFX references and two of 2,484 music references across its 262
 dry-route records. The SFX total comprises 1,050 effect-free RTPC/State
 references, 976 RTPC/State references with only feedback-free Meter stages, 76
 effect-free RTPC/State/ducking references, and 1,354 RTPC/State/ducking
-references with only feedback-free Meter stages. Both music references are
-effect-free RTPC/State/ducking paths.
+references with only feedback-free Meter stages, plus 963 Voice Volume RTPC
+references whose effects are only feedback-free Meters. Both music references
+are effect-free RTPC/State/ducking paths.
 
 Pinned wwiser proves the v150 Wwise Meter's 28-byte layout: five float32 attack,
 release, minimum, maximum, and hold values; four one-byte infinite-hold, mode,
@@ -325,11 +338,14 @@ shared mixer accepts exact boolean and Peak/RMS plus Global/GameObject enum
 values, but omits the telemetry stage only when downstream-volume application
 and the Game Parameter ID are both zero and the effect has no other controls or
 media. EVE's main feedback-free Meter `651869473` reaches 12,678 SFX dry paths,
-but only the subset with fully projected Bus Volume RTPC/State controls and no
-other barrier qualifies. Meter `902247780` similarly qualifies only the subset
-whose RTPC/State/ducking catalogs are complete. Other reachable EVE Meters write
-nonzero Game Parameters and remain hard barriers. Meter telemetry itself is not
-implemented.
+but only the subset with fully projected Voice/Bus Volume RTPC/State controls
+and no other barrier qualifies. Meter `902247780` similarly qualifies only the
+subset whose RTPC/State/ducking catalogs are complete. Other reachable EVE Meters write
+nonzero Game Parameters and remain hard barriers. All active reachable nonzero
+Meter targets feed audio-observable RTPCs: 34 unique dry-route records and
+1,243 SFX references cross those feedback paths. The only globally unconsumed
+nonzero target belongs to an unreachable bypassed slot and unlocks no route.
+Meter telemetry itself is not implemented.
 
 EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and

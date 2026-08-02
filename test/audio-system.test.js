@@ -473,6 +473,45 @@ test("strict shared Bus mixer admits complete distributed controls only on trans
   assert.equal(eqContext.filters.length, 0);
 });
 
+test("shared Bus Voice Volume RTPC routes qualify only for SFX", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+
+  AddGraphMeter(catalog, "500", "910");
+  catalog.buses["500"].requiresProcessing = [ "effects", "rtpc" ];
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    busRtpcs: {
+      schemaVersion: 2,
+      buses: {
+        "500": [ {
+          curveId: 78,
+          property: "voice-volume",
+          rtpc: "advanced_settings_atmosphere",
+          defaultValue: 1,
+          scaling: 2,
+          points: [
+            { x: 0, value: -1, interpolation: 4 },
+            { x: 1, value: 0, interpolation: 4 },
+          ],
+        } ],
+      },
+    },
+  });
+
+  assert.equal(
+    mixer.GetInput(runtime.ResolveMusicRoute("200"), "music"),
+    null,
+  );
+  assert.equal(context.gains.length, 0, "music rejection allocates nothing");
+  assert.ok(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"));
+  assert.equal(context.filters.length, 0, "feedback-free Meter is omitted");
+});
+
 test("strict shared Bus controls cannot cross an audible effect on another Bus", () =>
 {
   for (const [ controlBusId, effectBusId ] of [
