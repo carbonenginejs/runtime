@@ -29,3 +29,6 @@ resource-kb.md
 # extract real EVE stages locally, and their own comment already promised this
 # rule existed. It did not, so a materialised fixture was committable.
 test/formats/webgl/fixtures/
+
+# Generated CLI output: the effect packagers' default --out directory
+scripts/formats/artifacts/
