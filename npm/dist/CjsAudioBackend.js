@@ -1161,21 +1161,32 @@ class CjsAudioBackend {
   }
 
   /**
-   * Current output level (RMS, 0..~0.7) of one emitter's post-panner signal.
+   * Current output level (RMS, 0..~0.7) across one emitter's route signals.
    * 0 when the context has no analyser support or the emitter is unknown.
    */
   GetGameObjLevel(gameObjID) {
-    const analyser = this.#emitterNodes.get(gameObjID)?.analyser;
-    if (!analyser?.getFloatTimeDomainData) {
+    const nodes = this.#emitterNodes.get(gameObjID);
+    const analysers = [nodes?.analyser, ...[...(nodes?.routeBranches?.values?.() ?? [])].flatMap(modes => [...modes.values()]).map(branch => branch.analyser)].filter(analyser => analyser?.getFloatTimeDomainData);
+    if (!analysers.length) {
       return 0;
     }
-    const samples = new Float32Array(analyser.fftSize);
-    analyser.getFloatTimeDomainData(samples);
-    let sum = 0;
-    for (let i = 0; i < samples.length; i++) {
-      sum += samples[i] * samples[i];
+    const sampleCount = Math.max(...analysers.map(analyser => Number(analyser.fftSize) || 0));
+    if (sampleCount <= 0) {
+      return 0;
     }
-    return Math.sqrt(sum / samples.length);
+    const mixed = new Float32Array(sampleCount);
+    for (const analyser of analysers) {
+      const samples = new Float32Array(analyser.fftSize);
+      analyser.getFloatTimeDomainData(samples);
+      for (let index = 0; index < samples.length; index++) {
+        mixed[index] += samples[index];
+      }
+    }
+    let sum = 0;
+    for (let index = 0; index < mixed.length; index++) {
+      sum += mixed[index] * mixed[index];
+    }
+    return Math.sqrt(sum / mixed.length);
   }
 
   /** Allocates and posts one event owned by the active music engine. */
@@ -2366,6 +2377,13 @@ class CjsAudioBackend {
     if (branch) {
       return branch;
     }
+    const mixerInput = this.#busMixer?.GetInput?.(busGraphRoute, "sfx") ?? null;
+    const analyser = mixerInput ? this.#context.createAnalyser?.() ?? null : null;
+    if (analyser) {
+      analyser.fftSize = 256;
+      analyser.connect(mixerInput);
+    }
+    const destination = analyser ?? mixerInput ?? emitterNodes.analyser ?? this.#sfxGain;
     if (mode) {
       const gain = this.#context.createGain();
       const panner = this.#context.createPanner();
@@ -2376,21 +2394,25 @@ class CjsAudioBackend {
         SetPannerPose(panner, emitterNodes.front, emitterNodes.position, this.#distanceScale, this.#context);
       }
       gain.connect(panner);
-      panner.connect(emitterNodes.analyser ?? this.#sfxGain);
+      panner.connect(destination);
       branch = {
         busGraphRoute,
         gain,
         flatGain: null,
-        panner
+        panner,
+        analyser,
+        mixerInput
       };
     } else {
       const flatGain = this.#context.createGain();
-      flatGain.connect(emitterNodes.analyser ?? this.#sfxGain);
+      flatGain.connect(destination);
       branch = {
         busGraphRoute,
         gain: null,
         flatGain,
-        panner: null
+        panner: null,
+        analyser,
+        mixerInput
       };
     }
     modes.set(mode, branch);
@@ -3657,6 +3679,7 @@ class CjsAudioBackend {
         branch.gain?.disconnect?.();
         branch.flatGain?.disconnect?.();
         branch.panner?.disconnect?.();
+        branch.analyser?.disconnect?.();
       }
       modes.clear();
     }

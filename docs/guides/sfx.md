@@ -529,7 +529,9 @@ spatial mode within an emitter generation. Voices on the same route and mode
 share that branch; different routes never merge before it, and a 2D voice never
 enters a 3D route panner. Placement, scaling, RTPC replay, retirement, and
 disposal remain generation-scoped. Branch outputs still feed the existing SFX
-destination: this establishes the placement seam but does not yet make shared
+destination unless the strict shared mixer qualifies their complete dry path.
+Qualified branches feed the stable SFX category input after spatialization;
+blocked branches retain the existing destination. This does not yet make shared
 Bus effects or auxiliary sends audible.
 
 A custom `applyRTPC` adapter continues to receive the legacy emitter target and
@@ -544,8 +546,10 @@ no Bus positioning or HDR, no sends, no active effects, and an empty
 SFX and music category entries and share one node per common Bus ancestor;
 category entries remain separate so application volume controls cannot merge
 unrelated routes prematurely. A blocked route returns no mixer input and
-allocates no partial graph. SFX and music are not connected to this mixer yet,
-so current playback topology remains the route-branch behavior described above.
+allocates no partial graph. Qualified SFX route branches now consume these
+entries, including per-branch analyser stages that preserve aggregate emitter
+metering without merging route identity. Music remains on its existing route
+until its per-route transition lanes are separated.
 
 The bank builder projects only named, Immediate Volume, Pitch, and filter
 state tables with their exact supported accumulation modes. A group containing

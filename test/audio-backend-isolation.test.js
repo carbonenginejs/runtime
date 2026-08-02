@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { CjsAudioBackend, CjsSfxEngine } from "../npm/dist/index.js";
 import { CjsBusDuckingController } from "../src/internal/busDucking.js";
 import { CjsBusGraphRuntime } from "../src/internal/busGraphRuntime.js";
+import { CjsSharedBusMixer } from "../src/internal/busGraphMixer.js";
 
 const START_QUANTUM = 128 / 48000;
 
@@ -141,6 +142,7 @@ function FakeContext({ withAnalyser = false } = {})
         fftSize: 0,
         connectedTo: null,
         disconnected: false,
+        sampleValue: 0.25,
         connect(target)
         {
           analyser.connectedTo = target;
@@ -151,7 +153,7 @@ function FakeContext({ withAnalyser = false } = {})
         },
         getFloatTimeDomainData(samples)
         {
-          samples.fill(0.25);
+          samples.fill(analyser.sampleValue);
         },
       };
 
@@ -192,11 +194,14 @@ function Harness({
   busDuckingController,
   busEffects,
   busGraphRuntime,
+  busMixer,
+  busMixerFactory,
   distanceScale,
   withAnalyser,
 } = {})
 {
   const context = FakeContext({ withAnalyser });
+  const resolvedBusMixer = busMixerFactory?.(context) ?? busMixer;
   const finished = [];
   const emitter = { EventFinishedCallback: playingID => finished.push(playingID) };
   const backend = new CjsAudioBackend({
@@ -223,25 +228,61 @@ function Harness({
     busDuckingController,
     busEffects,
     busGraphRuntime,
+    busMixer: resolvedBusMixer,
     distanceScale,
   });
   backend.RegisterGameObj(1);
   return { context, finished, emitter, backend };
 }
 
-function RouteRuntime()
+function RouteRuntime({ blockedRouteB = false } = {})
 {
   return new CjsBusGraphRuntime({
     schemaVersion: 1,
+    effects: {},
+    buses: {
+      "1": {
+        type: "audio-bus",
+        channelConfig: { raw: 0 },
+        positioning: { flags: 0 },
+        hdr: { flags: 0 },
+        bypassAllEffects: false,
+        userAuxSends: [],
+        effects: [],
+        requiresProcessing: [],
+      },
+      "900": {
+        type: "audio-bus",
+        parentBusId: "1",
+        channelConfig: { raw: 0 },
+        positioning: { flags: 0 },
+        hdr: { flags: 0 },
+        bypassAllEffects: false,
+        userAuxSends: [],
+        effects: [],
+        requiresProcessing: [],
+      },
+      "901": {
+        type: "audio-bus",
+        parentBusId: "1",
+        channelConfig: { raw: 0 },
+        positioning: { flags: 0 },
+        hdr: { flags: 0 },
+        bypassAllEffects: false,
+        userAuxSends: [],
+        effects: [],
+        requiresProcessing: blockedRouteB ? [ "state" ] : [],
+      },
+    },
     routes: [
       {
         outputBusId: "900",
-        busPathIds: [ "900" ],
+        busPathIds: [ "900", "1" ],
         userAuxSends: [],
       },
       {
         outputBusId: "901",
-        busPathIds: [ "901" ],
+        busPathIds: [ "901", "1" ],
         userAuxSends: [],
       },
     ],
@@ -261,7 +302,7 @@ function RoutedVoice(nodeId, spatial = true)
     buffer: { duration: 2 },
     spatial,
     busRouteNodeId: nodeId,
-    busPathIds: [ outputBusId ],
+    busPathIds: [ outputBusId, "1" ],
   };
 }
 
@@ -485,6 +526,108 @@ test("graph route branches retain aggregate emitter analyser output", async () =
   assert.equal(flatRoute.connectedTo, analyser);
   assert.equal(analyser.connectedTo, context.gains[1]);
   assert.equal(backend.GetGameObjLevel(1), 0.25);
+});
+
+test("strict shared mixer consumes only qualified SFX route branches", async () =>
+{
+  const runtime = RouteRuntime();
+  let mixer = null;
+  const { context, emitter, backend } = Harness({
+    busGraphRuntime: runtime,
+    busMixerFactory: audioContext =>
+    {
+      mixer = new CjsSharedBusMixer({
+        context: audioContext,
+        runtime,
+        destination: audioContext.destination,
+      });
+      return mixer;
+    },
+    loadBuffer: async eventID => ({
+      voices: [ RoutedVoice("100", eventID !== 2) ],
+    }),
+  });
+
+  backend.RegisterGameObj(2);
+  backend.PostEvent(1, 1, 0, emitter, "spatial_route_a");
+  backend.PostEvent(2, 1, 0, emitter, "flat_route_a");
+  backend.PostEvent(1, 2, 0, emitter, "other_emitter_route_a");
+  await tick();
+
+  const spatialA = RouteBranchForSource(context.sources[0]);
+  const flatA = RouteBranchForSource(context.sources[1]);
+  const otherEmitterA = RouteBranchForSource(context.sources[2]);
+  const mixerInput = spatialA.connectedTo.connectedTo;
+
+  assert.equal(flatA.connectedTo, mixerInput);
+  assert.equal(otherEmitterA.connectedTo.connectedTo, mixerInput);
+  assert.notEqual(mixerInput, context.gains[1]);
+  backend.SetSfxVolume(0.4);
+  assert.equal(mixerInput.gain.value, 0.4);
+
+  backend.Dispose();
+  assert.equal(mixerInput.disconnected, false, "the system-owned mixer outlives the backend");
+  mixer.Dispose();
+  assert.equal(mixerInput.disconnected, true);
+});
+
+test("blocked SFX routes retain the legacy destination without partial mixer use", async () =>
+{
+  const runtime = RouteRuntime({ blockedRouteB: true });
+  let mixer = null;
+  const { context, emitter, backend } = Harness({
+    busGraphRuntime: runtime,
+    busMixerFactory: audioContext =>
+    {
+      mixer = new CjsSharedBusMixer({
+        context: audioContext,
+        runtime,
+        destination: audioContext.destination,
+      });
+      return mixer;
+    },
+    loadBuffer: async () => ({ voices: [ RoutedVoice("101") ] }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "blocked_route_b");
+  await tick();
+
+  const branch = RouteBranchForSource(context.sources[0]);
+
+  assert.equal(branch.connectedTo.connectedTo, context.gains[1]);
+  assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("101"), "sfx"), null);
+});
+
+test("qualified SFX mixer branches preserve aggregate emitter metering", async () =>
+{
+  const runtime = RouteRuntime();
+  const { context, emitter, backend } = Harness({
+    busGraphRuntime: runtime,
+    withAnalyser: true,
+    busMixerFactory: audioContext => new CjsSharedBusMixer({
+      context: audioContext,
+      runtime,
+      destination: audioContext.destination,
+    }),
+    loadBuffer: async eventID => ({
+      voices: [ RoutedVoice("100", eventID !== 2) ],
+    }),
+  });
+
+  context.analysers[0].sampleValue = 0;
+  backend.PostEvent(1, 1, 0, emitter, "metered_spatial_mixer_route");
+  backend.PostEvent(2, 1, 0, emitter, "metered_flat_mixer_route");
+  await tick();
+
+  const spatial = RouteBranchForSource(context.sources[0]);
+  const flat = RouteBranchForSource(context.sources[1]);
+  const spatialAnalyser = spatial.connectedTo.connectedTo;
+  const flatAnalyser = flat.connectedTo;
+
+  assert.equal(spatialAnalyser, context.analysers[1]);
+  assert.equal(flatAnalyser, context.analysers[2]);
+  assert.equal(spatialAnalyser.connectedTo, flatAnalyser.connectedTo);
+  assert.equal(backend.GetGameObjLevel(1), 0.5);
 });
 
 function ContinuousSwitchGraph()

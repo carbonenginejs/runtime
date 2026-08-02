@@ -271,16 +271,23 @@ panner, different authored routes use different panners, and 2D signals remain
 on a distinct flat branch. Branches retain the old generation's placement,
 scaling, and object-RTPC snapshot across unregister/re-register and disconnect
 only after that generation drains. They currently feed the same SFX destination
-without shared DSP; the next runtime step is to replace each branch output with
-the ordered shared Bus graph, then attach the already-separated music routes.
+unless the strict mixer qualifies the complete path; no shared DSP is enabled.
+Music still needs per-route transition lanes before it can attach safely.
 
 The system now owns the first fail-closed shared mixer contract. It can allocate
 stable SFX/music category entries and one shared unity node per common ancestor,
 but only for effect-free dry audio-bus paths with default channel layout and no
 authored processing reason. Barrier routes return `null` before allocating any
-partial graph. Consumer outputs are deliberately not connected yet. On the real
-EVE catalog every normal route remains blocked by dynamic controls and the
-active root Peak Limiter, so this checkpoint changes no EVE signal path.
+partial graph. On the real EVE catalog every normal route remains blocked by
+dynamic controls and the active root Peak Limiter.
+
+Qualified SFX branches now connect after their flat/spatial route stage to the
+shared SFX category input. When analyser support exists, each qualified branch
+uses its own analyser before that input and `GetGameObjLevel()` sums their sample
+frames with the legacy emitter analyser. Blocked paths still connect to the
+legacy SFX destination and allocate no partial mixer graph. The current EVE
+catalog qualifies zero of 16,255 SFX references and zero of 2,484 music
+references across 262 routes, so this integration changes no EVE signal path.
 
 EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and
