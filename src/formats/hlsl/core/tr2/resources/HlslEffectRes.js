@@ -77,11 +77,10 @@ export class HlslEffectRes
                 //
                 // `m_compilerVersionBytes` is the truthful reading and is what new
                 // code should use. `m_compilerVersion` keeps the dword form because
-                // it is republished as `source.compilerVersion` in the portable
-                // reflection, where it is asserted to be an unsigned integer
-                // (portableReflection.js:645) and covered by a package digest —
-                // changing its shape changes package bytes, which belongs with the
-                // format rewrite rather than here.
+                // the metadata and JSON views still republish it under that name;
+                // it no longer travels in any emitted artifact, so changing its
+                // shape is now a question for those views rather than a format
+                // change.
                 const compilerVersionBytes = stream.readRaw(4);
                 this.m_compilerVersionBytes = Array.from(compilerVersionBytes);
                 this.m_compilerVersion = new DataView(

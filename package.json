@@ -24,7 +24,6 @@
     "./formats/dds": "./src/formats/dds/index.js",
     "./formats/dxbc": "./src/formats/dxbc/index.js",
     "./formats/hlsl": "./src/formats/hlsl/index.js",
-    "./formats/hlsl/portable": "./src/formats/hlsl/portable.js",
     "./formats/webgl": "./src/formats/webgl/index.js",
     "./formats/webgpu": "./src/formats/webgpu/index.js",
     "./formats/fbx": "./src/formats/fbx/index.js",

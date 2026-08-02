@@ -1,5 +1,5 @@
 import { HlslEffectBindingManifest } from "../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
-import { enumerateUniqueEffectBodies } from "../../hlsl/portable.js";
+import { enumerateUniqueEffectBodies } from "../../../format/effect/effectBodyInventory.js";
 import { buildEffectAnalysis } from "./helpers.js";
 import { normalizeBytecodeBytes } from "./effectAnalysis.js";
 import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";

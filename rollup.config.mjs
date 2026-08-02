@@ -28,7 +28,6 @@ export default {
     "src/formats/dds/index.js",
     "src/formats/dxbc/index.js",
     "src/formats/hlsl/index.js",
-    "src/formats/hlsl/portable.js",
     "src/formats/webgl/index.js",
     "src/formats/webgpu/index.js",
     "src/formats/fbx/index.js",

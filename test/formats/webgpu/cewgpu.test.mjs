@@ -2,7 +2,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 
-import { buildEffectBodyReflection } from "../../../src/formats/hlsl/portable.js";
 
 import CjsWebgpuFormat from "../../../src/formats/webgpu/index.js";
 import { readEffectAnalysis } from "../../../src/formats/webgpu/core/effectAnalysis.js";

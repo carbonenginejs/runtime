@@ -12,7 +12,6 @@ import "./formats/dxbc/compute-declarations.test.js";
 import "./formats/dxbc/corpus.test.js";
 import "./formats/hlsl/binary-reader.test.js";
 import "./formats/hlsl/reader.test.js";
-import "./formats/hlsl/portable-reflection.test.js";
 import "./formats/hlsl/corpus.test.js";
 import "./formats/fbx/format.test.js";
 import "./formats/flac/format.test.js";
