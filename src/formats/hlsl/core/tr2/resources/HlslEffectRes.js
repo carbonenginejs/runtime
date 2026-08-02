@@ -4,6 +4,8 @@ import { HlslEffectStateManager } from "../../HlslEffectStateManager.js";
 import { HlslShader } from "../shader/HlslShader.js";
 import { HlslShaderOption } from "../shader/HlslShaderOption.js";
 import { HlslShaderPermutation } from "./HlslShaderPermutation.js";
+import { CjsCarbonEffectReader } from "../../../../../format/carbonEffect/CjsCarbonEffectReader.js";
+import { CARBON_EFFECT_DATA_VERSION } from "../../../../../format/carbonEffect/carbonEffectRecords.js";
 
 const MIN_SUPPORTED_EFFECT_VERSION = 8;
 const MAX_SUPPORTED_EFFECT_VERSION = 15;
@@ -65,80 +67,13 @@ export class HlslEffectRes
                 throw new Error(`Unsupported HlslEffectRes version ${this.m_version}; expected ${MIN_SUPPORTED_EFFECT_VERSION}..${MAX_SUPPORTED_EFFECT_VERSION}`);
             }
 
-            if (this.m_version >= 15)
+            if (this.m_version === CARBON_EFFECT_DATA_VERSION)
             {
-                // The header slot is four bytes, not a u32:
-                // `constexpr uint8_t ShaderCompilerVersion[4]` = {major, minor,
-                // patch, tweak} (ShaderCompilerConfig.h.in:5), of which Carbon's
-                // rebuild check compares only the first three
-                // (ModifiedTime.cpp:77). A shipped v15 header reads `01 02 06 00`
-                // — compiler 1.2.6.0, matching the ShaderCompiler project
-                // version. As a u32 that is 0x00060201, which means nothing.
-                //
-                // `m_compilerVersionBytes` is the truthful reading and is what new
-                // code should use. `m_compilerVersion` keeps the dword form because
-                // the metadata and JSON views still republish it under that name;
-                // it no longer travels in any emitted artifact, so changing its
-                // shape is now a question for those views rather than a format
-                // change.
-                const compilerVersionBytes = stream.readRaw(4);
-                this.m_compilerVersionBytes = Array.from(compilerVersionBytes);
-                this.m_compilerVersion = new DataView(
-                    compilerVersionBytes.buffer,
-                    compilerVersionBytes.byteOffset,
-                    4
-                ).getUint32(0, true);
-                this.m_hash = stream.readRaw(32);
+                this.#readCurrentHeader();
+                return true;
             }
 
-            this.m_stringTableSize = stream.readUint32();
-            if (this.m_stringTableSize > this.m_data.length || stream.offset + this.m_stringTableSize > this.m_data.length)
-            {
-                throw new Error("Invalid effect string table size");
-            }
-            this.m_stringTable = this.m_data.subarray(stream.offset, stream.offset + this.m_stringTableSize);
-            stream.skip(this.m_stringTableSize);
-            stream.setStringTable(this.m_stringTable, this.m_stringTableSize);
-
-            const permutationCount = stream.readUint8();
-            for (let index = 0; index < permutationCount; index += 1)
-            {
-                const permutation = new HlslShaderPermutation();
-                permutation.name = stream.readString();
-                permutation.defaultOption = stream.readUint8();
-                permutation.description = stream.readString();
-                permutation.type = this.m_version > 5 ? stream.readUint8() : 0;
-
-                const optionCount = stream.readUint8();
-                for (let optionIndex = 0; optionIndex < optionCount; optionIndex += 1)
-                {
-                    permutation.options.push(stream.readString());
-                }
-                this.m_permutations.push(permutation);
-            }
-
-            const headerSize = stream.readUint32();
-            if (headerSize === 0)
-            {
-                throw new Error("Effect contains no compiled shader bodies");
-            }
-
-            this.m_offsetCount = headerSize;
-            for (let index = 0; index < headerSize; index += 1)
-            {
-                const record = {
-                    index: stream.readUint32(),
-                    offset: stream.readUint32(),
-                    size: stream.readUint32()
-                };
-                record.end = record.offset + record.size;
-                if (record.end > this.m_data.length)
-                {
-                    throw new Error(`Invalid effect body record ${index}`);
-                }
-                this.m_offsets.push(record);
-            }
-
+            this.#readLegacyHeader(stream);
             return true;
         }
         catch (error)
@@ -146,6 +81,119 @@ export class HlslEffectRes
             this.loadError = error;
             this.m_shaders.clear();
             return false;
+        }
+    }
+
+
+    /**
+     * Reads the current v15 header through the shared Carbon reader.
+     *
+     * This header - version, compiler version, source hash, arena, permutation
+     * axes, offset table - is the same one `CjsCarbonEffectReader` parses, and
+     * two hand-written copies of one layout are two chances to disagree. Reading
+     * it there also brings three checks this walk never had: the offset table
+     * must be dense and positionally indexed, and the body region must begin
+     * exactly where the header ends. Carbon indexes that table positionally
+     * without ever reading the stored index, so a sparse or misordered table does
+     * not fail there - it silently returns the wrong shader body, which is the
+     * failure class the container port exists to close.
+     */
+    #readCurrentHeader()
+    {
+        const reader = new CjsCarbonEffectReader(this.m_data, {
+            source: this.sourcePath || "HlslEffectRes"
+        });
+
+        this.m_compilerVersionBytes = reader.compilerVersion;
+        this.m_compilerVersion = new DataView(
+            Uint8Array.from(reader.compilerVersion).buffer
+        ).getUint32(0, true);
+        this.m_hash = reader.sourceHash;
+        this.m_stringTableSize = reader.stringTableSize;
+        this.m_stringTable = reader.stringTableBytes;
+
+        for (const axis of reader.permutations)
+        {
+            const permutation = new HlslShaderPermutation();
+            permutation.name = axis.name.value;
+            permutation.defaultOption = axis.defaultOption;
+            permutation.description = axis.description.value;
+            permutation.type = axis.type;
+            for (const option of axis.options) permutation.options.push(option.value);
+            this.m_permutations.push(permutation);
+        }
+
+        this.m_offsetCount = reader.records.length;
+        for (const record of reader.records)
+        {
+            this.m_offsets.push({
+                index: record.index,
+                offset: record.offset,
+                size: record.size,
+                end: record.offset + record.size
+            });
+        }
+    }
+
+    /**
+     * Reads a pre-v15 header.
+     *
+     * Versions 8..14 carry no compiler version or source hash, and a permutation
+     * has no type byte before version 6. No such file has been examined here -
+     * the shipped corpus is entirely v15 - so this walk is retained as written
+     * rather than folded into the shared reader, which is deliberately single
+     * version.
+     *
+     * @param {object} stream Reader positioned after the version dword.
+     */
+    #readLegacyHeader(stream)
+    {
+        this.m_stringTableSize = stream.readUint32();
+        if (this.m_stringTableSize > this.m_data.length || stream.offset + this.m_stringTableSize > this.m_data.length)
+        {
+            throw new Error("Invalid effect string table size");
+        }
+        this.m_stringTable = this.m_data.subarray(stream.offset, stream.offset + this.m_stringTableSize);
+        stream.skip(this.m_stringTableSize);
+        stream.setStringTable(this.m_stringTable, this.m_stringTableSize);
+
+        const permutationCount = stream.readUint8();
+        for (let index = 0; index < permutationCount; index += 1)
+        {
+            const permutation = new HlslShaderPermutation();
+            permutation.name = stream.readString();
+            permutation.defaultOption = stream.readUint8();
+            permutation.description = stream.readString();
+            permutation.type = this.m_version > 5 ? stream.readUint8() : 0;
+
+            const optionCount = stream.readUint8();
+            for (let optionIndex = 0; optionIndex < optionCount; optionIndex += 1)
+            {
+                permutation.options.push(stream.readString());
+            }
+            this.m_permutations.push(permutation);
+        }
+
+        const headerSize = stream.readUint32();
+        if (headerSize === 0)
+        {
+            throw new Error("Effect contains no compiled shader bodies");
+        }
+
+        this.m_offsetCount = headerSize;
+        for (let index = 0; index < headerSize; index += 1)
+        {
+            const record = {
+                index: stream.readUint32(),
+                offset: stream.readUint32(),
+                size: stream.readUint32()
+            };
+            record.end = record.offset + record.size;
+            if (record.end > this.m_data.length)
+            {
+                throw new Error(`Invalid effect body record ${index}`);
+            }
+            this.m_offsets.push(record);
         }
     }
 
