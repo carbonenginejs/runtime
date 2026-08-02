@@ -7,7 +7,6 @@ import {
   isUint32
 } from "@carbonenginejs/runtime-utils/is";
 import { copyBytes } from "@carbonenginejs/runtime-utils/bytes";
-import { clonePortableSourceProgram } from "../portable.js";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";
 import { recordBytes, recordText } from "./carbonRecordFields.js";
 
@@ -129,74 +128,6 @@ export class Tr2EffectLibrary extends CjsModel
     );
     library.localInput = Tr2EffectStageInput.fromCarbonBinaryInput(
       record.localInputs
-    );
-    return library;
-  }
-
-  /**
-   * Build one raytracing library from its portable JSON reflection record.
-   *
-   * @param {object} value Portable library record.
-   * @returns {Tr2EffectLibrary} Reflected library.
-   */
-  static fromPortable(value)
-  {
-    if (!isPlainObject(value))
-    {
-      throw new TypeError("Portable effect library must be an object");
-    }
-    if (!isArray(value.exports))
-    {
-      throw new TypeError(
-        "Portable effect library exports must be an array"
-      );
-    }
-    if (value.exportCount !== value.exports.length)
-    {
-      throw new Error(
-        "Portable effect library export count disagrees with its collection"
-      );
-    }
-
-    const library = new this();
-    if (!isUint32(value.payloadSize))
-    {
-      throw new RangeError(
-        "Portable effect library payload size must fit uint32"
-      );
-    }
-    library.payloadSize = value.payloadSize;
-    library.hitGroupName = String(value.hitGroupName ?? "");
-    library.exports = value.exports.map(entry =>
-    {
-      if (!isUint32(entry?.type))
-      {
-        throw new RangeError(
-          "Portable effect library export type must fit uint32"
-        );
-      }
-      return {
-        type: entry.type,
-        name: String(entry?.name ?? "")
-      };
-    });
-    for (const entry of library.exports)
-    {
-      if (entry.type === 0) library.rayGenName = entry.name;
-      if (entry.type === 1) library.missName = entry.name;
-      if (entry.type === 2) library.closestHitName = entry.name;
-      if (entry.type === 3) library.anyHitName = entry.name;
-      if (entry.type === 4) library.intersectionName = entry.name;
-    }
-    library.sourceProgram = clonePortableSourceProgram(
-      value.sourceProgram,
-      "library"
-    );
-    library.globalInput = Tr2EffectStageInput.fromPortableInput(
-      value.globalInput
-    );
-    library.localInput = Tr2EffectStageInput.fromPortableInput(
-      value.localInput
     );
     return library;
   }

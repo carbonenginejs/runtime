@@ -55,38 +55,6 @@ export class Tr2EffectResource extends CjsModel
     return resource;
   }
 
-  /**
-   * Build one SRV or UAV from its portable JSON reflection record.
-   *
-   * @param {object} value Portable resource record.
-   * @returns {Tr2EffectResource} Reflected resource.
-   */
-  static fromPortable(value)
-  {
-    if (!isPlainObject(value))
-    {
-      throw new TypeError("Portable effect resource must be an object");
-    }
-    if (!isUint32(value.type))
-    {
-      throw new RangeError("Portable resource type must fit uint32");
-    }
-    if (!isUint32(value.arrayElements))
-    {
-      throw new RangeError(
-        "Portable resource array element count must fit uint32"
-      );
-    }
-
-    const resource = new this();
-    resource.name = String(value.name ?? "");
-    resource.type = value.type;
-    resource.arrayElements = value.arrayElements;
-    resource.isSRGB = !!value.isSRGB;
-    resource.isAutoregister = !!value.isAutoregister;
-    return resource;
-  }
-
   static BINDLESS_SAMPLER = 100;
 
   static Type = Object.freeze({

@@ -6,11 +6,9 @@ import {
   isPlainObject,
   isUint32
 } from "@carbonenginejs/runtime-utils/is";
-import { requirePortableStageType } from "../portable.js";
+import { requireShaderStageType, SHADER_STAGE_COUNT } from "./shaderStage.js";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";
 import { recordBytes } from "./carbonRecordFields.js";
-
-const SHADER_TYPE_COUNT = 6;
 
 /** Reflected effect pass; backend program and state handles remain engine-owned. */
 export class Tr2Pass extends CjsModel
@@ -77,7 +75,7 @@ export class Tr2Pass extends CjsModel
     });
 
     pass.stageInputs = Array.from(
-      { length: SHADER_TYPE_COUNT },
+      { length: SHADER_STAGE_COUNT },
       (_, stageType) => Tr2EffectStageInput.createEmpty(stageType)
     );
     pass.shaderTypeMask = 0;
@@ -85,7 +83,7 @@ export class Tr2Pass extends CjsModel
     for (const stageRecord of record.stages)
     {
       const stage = Tr2EffectStageInput.fromCarbonBinary(stageRecord);
-      const stageType = requirePortableStageType(stage.stageType);
+      const stageType = requireShaderStageType(stage.stageType);
       if ((pass.shaderTypeMask & (1 << stageType)) !== 0)
       {
         throw new Error(
@@ -99,93 +97,6 @@ export class Tr2Pass extends CjsModel
     pass.backendBlock = record.backendBlock
       ? { bytes: recordBytes(record.backendBlock), size: record.backendBlock.size }
       : null;
-
-    return pass;
-  }
-
-  /**
-   * Build one pass from its portable JSON reflection record.
-   *
-   * @param {object} value Portable pass record.
-   * @returns {Tr2Pass} Reflected pass.
-   */
-  static fromPortable(value)
-  {
-    if (!isPlainObject(value))
-    {
-      throw new TypeError("Portable effect pass must be an object");
-    }
-    if (!isArray(value.renderStates))
-    {
-      throw new TypeError(
-        "Portable effect render states must be an array"
-      );
-    }
-    if (!isArray(value.stages))
-    {
-      throw new TypeError("Portable effect stages must be an array");
-    }
-    if (value.renderStateCount !== value.renderStates.length
-      || value.stageCount !== value.stages.length)
-    {
-      throw new Error(
-        "Portable effect pass counts disagree with its collections"
-      );
-    }
-
-    const pass = new this();
-    const renderStateIds = new Set();
-    pass.renderStateValues = value.renderStates.map(entry =>
-    {
-      if (!isUint32(entry?.state))
-      {
-        throw new RangeError("Portable render-state id must fit uint32");
-      }
-      if (!isUint32(entry?.value))
-      {
-        throw new RangeError(
-          "Portable render-state value must fit uint32"
-        );
-      }
-      if (renderStateIds.has(entry.state))
-      {
-        throw new Error(
-          `Portable render-state id ${entry.state} is duplicated`
-        );
-      }
-      renderStateIds.add(entry.state);
-      return {
-        state: entry.state,
-        value: entry.value
-      };
-    });
-
-    const stageTypes = new Set();
-    value.stages.forEach(stage =>
-    {
-      const stageType = requirePortableStageType(stage?.stageType);
-      if (stageTypes.has(stageType))
-      {
-        throw new Error(
-          `Portable effect stage type ${stageType} is duplicated`
-        );
-      }
-      stageTypes.add(stageType);
-    });
-    pass.stageInputs = Array.from(
-      { length: SHADER_TYPE_COUNT },
-      (_, stageType) => Tr2EffectStageInput.createEmpty(stageType)
-    );
-    pass.shaderTypeMask = 0;
-
-    for (const stageValue of value.stages)
-    {
-      const stage = Tr2EffectStageInput.fromPortable(stageValue);
-      pass.stageInputs[stage.stageType] = stage;
-      pass.shaderTypeMask = (
-        pass.shaderTypeMask | (1 << stage.stageType)
-      ) >>> 0;
-    }
 
     return pass;
   }

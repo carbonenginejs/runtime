@@ -56,53 +56,6 @@ export class Tr2EffectTechnique extends CjsModel
     return technique;
   }
 
-  /**
-   * Build one technique from its portable JSON reflection record.
-   *
-   * @param {object} value Portable technique record.
-   * @returns {Tr2EffectTechnique} Reflected technique.
-   */
-  static fromPortable(value)
-  {
-    if (!isPlainObject(value))
-    {
-      throw new TypeError("Portable effect technique must be an object");
-    }
-    if (!isArray(value.passes))
-    {
-      throw new TypeError(
-        "Portable effect technique passes must be an array"
-      );
-    }
-    if (!isArray(value.libraries))
-    {
-      throw new TypeError(
-        "Portable effect technique libraries must be an array"
-      );
-    }
-    if (value.passCount !== value.passes.length
-      || value.libraryCount !== value.libraries.length)
-    {
-      throw new Error(
-        "Portable effect technique counts disagree with its collections"
-      );
-    }
-
-    const technique = new this();
-    technique.name = String(value.name ?? "");
-    technique.passes = value.passes.map(
-      entry => Tr2Pass.fromPortable(entry)
-    );
-    technique.libraries = value.libraries.map(
-      entry => Tr2EffectLibrary.fromPortable(entry)
-    );
-    technique.shaderTypeMask = technique.passes.reduce(
-      (mask, pass) => mask | pass.shaderTypeMask,
-      0
-    ) >>> 0;
-    return technique;
-  }
-
 }
 
 // Declared imperatively rather than with decorators, so this module stays

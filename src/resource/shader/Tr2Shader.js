@@ -2,10 +2,6 @@
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
 import { CjsSchema, carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import {
-  isEffectBodyReflection,
-  validateEffectBodyReflection
-} from "../../formats/hlsl/portable.js";
 import { Tr2EffectDescription } from "./reflection/Tr2EffectDescription.js";
 
 /** GPU-free selected shader and its complete source reflection graph. */
@@ -230,35 +226,6 @@ export class Tr2Shader extends CjsModel
     return shader;
   }
 
-  /**
-   * Build one canonical GPU-free shader from complete portable reflection.
-   * Each child reflection class owns conversion of its own portable record.
-   *
-   * @param {object} portable Portable effect-body reflection.
-   * @returns {Tr2Shader} Canonical selected shader.
-   */
-  static fromPortable(portable)
-  {
-    validateEffectBodyReflection(portable);
-
-    const shader = new this();
-    shader.effect = Tr2EffectDescription.fromPortable(portable.effect);
-    shader.ProcessEffect();
-    return shader;
-  }
-
-  /**
-   * Whether a value has the supported complete portable-reflection envelope.
-   *
-   * @param {*} value Candidate value.
-   * @returns {boolean} Whether the portable envelope is supported.
-   */
-  static isPortableReflection(value)
-  {
-    return isEffectBodyReflection(value);
-  }
-
-  /** Find one named reflection entry across every stage. */
   static findStageValue(effect, name, key)
   {
     for (const stage of Tr2Shader.iterateStages(effect))

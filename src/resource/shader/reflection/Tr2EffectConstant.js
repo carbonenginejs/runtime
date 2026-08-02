@@ -64,53 +64,6 @@ export class Tr2EffectConstant extends CjsModel
     return constant;
   }
 
-  /**
-   * Build one constant from its portable JSON reflection record.
-   *
-   * @param {object} value Portable constant record.
-   * @returns {Tr2EffectConstant} Reflected constant.
-   */
-  static fromPortable(value)
-  {
-    if (!isPlainObject(value))
-    {
-      throw new TypeError("Portable effect constant must be an object");
-    }
-    if (!isUint32(value.offset))
-    {
-      throw new RangeError("Portable constant offset must fit uint32");
-    }
-    if (!isUint32(value.size))
-    {
-      throw new RangeError("Portable constant size must fit uint32");
-    }
-    if (!isUint32(value.type))
-    {
-      throw new RangeError("Portable constant type must fit uint32");
-    }
-    if (!isUint32(value.dimension))
-    {
-      throw new RangeError("Portable constant dimension must fit uint32");
-    }
-    if (!isUint32(value.elements))
-    {
-      throw new RangeError(
-        "Portable constant element count must fit uint32"
-      );
-    }
-
-    const constant = new this();
-    constant.name = String(value.name ?? "");
-    constant.offset = value.offset;
-    constant.size = value.size;
-    constant.type = value.type;
-    constant.dimension = value.dimension;
-    constant.elements = value.elements;
-    constant.isSRGB = !!value.isSRGB;
-    constant.isAutoregister = !!value.isAutoregister;
-    return constant;
-  }
-
   static Type = Object.freeze({
     FLOAT: 0,
     INT: 1,

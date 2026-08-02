@@ -84,26 +84,6 @@ export class Tr2SamplerSetup extends CjsModel
     return sampler;
   }
 
-  /**
-   * Build one sampler from its portable JSON reflection record.
-   *
-   * @param {object} value Portable sampler record.
-   * @returns {Tr2SamplerSetup} Reflected sampler.
-   */
-  static fromPortable(value)
-  {
-    if (!isPlainObject(value))
-    {
-      throw new TypeError("Portable effect sampler must be an object");
-    }
-    const sampler = new this();
-    sampler.hasName = value.name !== null;
-    sampler.name = sampler.hasName ? String(value.name ?? "") : "";
-    sampler.sampler = cloneCarbonValue(value.descriptor);
-    sampler.isDynamic = !!value.isDynamic;
-    return sampler;
-  }
-
 }
 
 // Declared imperatively rather than with decorators, so this module stays

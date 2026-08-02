@@ -9,16 +9,12 @@ import {
   isUint32
 } from "@carbonenginejs/runtime-utils/is";
 import { cloneCarbonValue } from "@carbonenginejs/runtime-utils/types";
-import {
-  clonePortableSourceProgram,
-  requirePortableStageType
-} from "../portable.js";
-import { validateEffectBodyInput } from "../../../formats/hlsl/portable.js";
 import { Tr2SamplerSetup } from "../sampler/Tr2SamplerSetup.js";
 import { Tr2EffectConstant } from "./Tr2EffectConstant.js";
 import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js";
 import { Tr2EffectResource } from "./Tr2EffectResource.js";
 import { recordBytes, recordRawBits } from "./carbonRecordFields.js";
+import { requireShaderStageType } from "./shaderStage.js";
 
 /** Complete device-free reflection for one shader stage input. */
 export class Tr2EffectStageInput extends CjsModel
@@ -97,116 +93,6 @@ export class Tr2EffectStageInput extends CjsModel
     return stage;
   }
 
-  /**
-   * Build one stage input from its complete portable JSON stage record.
-   *
-   * @param {object} value Portable stage record.
-   * @returns {Tr2EffectStageInput} Reflected stage input.
-   */
-  static fromPortable(value)
-  {
-    if (!isPlainObject(value))
-    {
-      throw new TypeError("Portable effect stage must be an object");
-    }
-    const stageType = requirePortableStageType(value.stageType);
-    return this.fromPortableInput(
-      value.input,
-      stageType,
-      value.sourceProgram
-    );
-  }
-
-  /**
-   * Build one input record used by a render stage or shader library.
-   *
-   * @param {object} value Portable input record.
-   * @param {number} stageType Stage index, or -1 for a library input.
-   * @param {object|null} sourceProgram Optional stage source program.
-   * @returns {Tr2EffectStageInput} Reflected input.
-   */
-  static fromPortableInput(value, stageType = -1, sourceProgram = null)
-  {
-    if (!isPlainObject(value))
-    {
-      throw new TypeError("Portable effect stage input must be an object");
-    }
-    validateEffectBodyInput(value);
-    if (!isArray(value.constants))
-    {
-      throw new TypeError("Portable effect constants must be an array");
-    }
-    if (!isArray(value.resources))
-    {
-      throw new TypeError("Portable effect resources must be an array");
-    }
-    if (!isArray(value.uavs))
-    {
-      throw new TypeError("Portable effect UAVs must be an array");
-    }
-    if (!isArray(value.samplers))
-    {
-      throw new TypeError("Portable effect samplers must be an array");
-    }
-    if (!isArray(value.annotations))
-    {
-      throw new TypeError(
-        "Portable effect stage annotations must be an array"
-      );
-    }
-    if (!isPlainObject(value.constantDefaults))
-    {
-      throw new TypeError(
-        "Portable effect constant defaults must be an object"
-      );
-    }
-    if (!(value.constantDefaults.bytes instanceof Uint8Array))
-    {
-      throw new TypeError(
-        "Portable effect constant defaults must be Uint8Array bytes"
-      );
-    }
-
-    const defaults = value.constantDefaults;
-    const constantValues = copyBytes(defaults.bytes);
-    if (defaults.declaredByteLength !== constantValues.byteLength)
-    {
-      throw new Error(
-        "Portable effect constant defaults disagree with their declared byte length"
-      );
-    }
-
-    const input = new this();
-    input.stageType = stageType;
-    input.exists = true;
-    input.constants = value.constants.map(
-      entry => Tr2EffectConstant.fromPortable(entry)
-    );
-    input.resources = this.readPortableResourceMap(value.resources);
-    input.uavs = this.readPortableResourceMap(value.uavs);
-    input.samplers = this.readPortableSamplerMap(value.samplers);
-    input.constantValueSize = constantValues.byteLength;
-    input.constantValues = constantValues;
-    input.signature = cloneCarbonValue(value.signature);
-    input.annotation = value.annotations.map(
-      entry => Tr2EffectParameterAnnotation.fromPortable(entry)
-    );
-    input.sourceProgram = sourceProgram
-      ? clonePortableSourceProgram(sourceProgram, "stage")
-      : null;
-    return input;
-  }
-
-  /**
-   * Build one stage input from a Carbon v15 stage record.
-   *
-   * The record already carries the stage's own type byte, so the caller does not
-   * supply one — unlike the portable path, where the index came from the position
-   * in a fixed-width array.
-   *
-   * @param {object} record Carbon stage record.
-   * @returns {Tr2EffectStageInput} Reflected stage input.
-   */
   static fromCarbonBinary(record)
   {
     if (!isPlainObject(record))
@@ -370,73 +256,10 @@ export class Tr2EffectStageInput extends CjsModel
   static createEmpty(stageType)
   {
     const stage = new this();
-    stage.stageType = requirePortableStageType(stageType);
+    stage.stageType = requireShaderStageType(stageType);
     return stage;
   }
 
-  /** Build one register-indexed portable resource map. */
-  static readPortableResourceMap(values)
-  {
-    const result = new Map();
-    for (const value of values)
-    {
-      if (!isPlainObject(value))
-      {
-        throw new TypeError("Portable effect resource must be an object");
-      }
-      if (!isUint32(value.registerIndex))
-      {
-        throw new RangeError(
-          "Portable resource register index must fit uint32"
-        );
-      }
-      const registerIndex = value.registerIndex;
-      if (result.has(registerIndex))
-      {
-        throw new Error(
-          `Portable effect resource register ${registerIndex} is duplicated`
-        );
-      }
-      result.set(
-        registerIndex,
-        Tr2EffectResource.fromPortable(value)
-      );
-    }
-    return result;
-  }
-
-  /** Build one register-indexed portable sampler map. */
-  static readPortableSamplerMap(values)
-  {
-    const result = new Map();
-    for (const value of values)
-    {
-      if (!isPlainObject(value))
-      {
-        throw new TypeError("Portable effect sampler must be an object");
-      }
-      if (!isUint32(value.registerIndex))
-      {
-        throw new RangeError(
-          "Portable sampler register index must fit uint32"
-        );
-      }
-      const registerIndex = value.registerIndex;
-      if (result.has(registerIndex))
-      {
-        throw new Error(
-          `Portable effect sampler register ${registerIndex} is duplicated`
-        );
-      }
-      result.set(
-        registerIndex,
-        Tr2SamplerSetup.fromPortable(value)
-      );
-    }
-    return result;
-  }
-
-  /** Hydrate one numeric-register map from canonical JS/JSON values. */
   static readCanonicalRegisterMap(values, Constructor, options, field)
   {
     const entries = values instanceof Map
