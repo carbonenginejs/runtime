@@ -229,7 +229,6 @@ async function main() {
     uniqueBodyCount: result.info.uniqueBodyCount,
     sourcePermutationCount: result.info.sourcePermutationCount,
     sourceUniqueBodyCount: result.info.sourceUniqueBodyCount,
-    reflectedBodyCount: result.info.effectReflection?.bodyCount ?? 0,
     translatedShaderCount: result.info.translatedShaderCount,
     excludedShaderCount: result.info.excludedShaderCount,
     failedShaderCount: result.info.failedShaderCount,

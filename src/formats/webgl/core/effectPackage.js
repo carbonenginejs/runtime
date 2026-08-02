@@ -8,7 +8,6 @@ import {
     EFFECT_PERMUTATION_GRAPH_FORMAT,
     EFFECT_PERMUTATION_GRAPH_VERSION
 } from "../../../format/effect/effectPermutationGraph.js";
-import { buildCompleteEffectReflection } from "../../../format/effect/effectReflectionPackage.js";
 import { emitGlslWithOptions } from "./helpers.js";
 import { inspectGlslEffectContainer } from "./inspectGlslEffectContainer.js";
 import { inspectRasterCompleteness } from "./glslEffectCompleteness.js";
@@ -68,16 +67,6 @@ export function buildEffectPackage(input, options = {})
     }
 
     const permutationGraph = buildEffectPermutationGraph(effectRes);
-    const reflectionPackage = effectRes.m_version === 15
-        ? buildCompleteEffectReflection(
-            effectRes,
-            permutationGraph,
-            {
-                sourceIdentity,
-                sourcePath: values.source
-            }
-        )
-        : null;
     const variants = buildExportVariants(effectRes, values.allPermutations);
     const bodyMap = new Map();
     const stageMap = new Map();
@@ -215,13 +204,11 @@ export function buildEffectPackage(input, options = {})
         permutationMode: values.allPermutations ? "all" : "selected",
         defaultPermutationIndex: defaultPermutationIndex(effectRes.m_permutations),
         sourceEffectVersion: effectRes.m_version,
-        ...(reflectionPackage ? {
-            sourceBodyCoverage: "all-unique",
-            backendBodyCoverage: values.allPermutations ? "all" : "selected",
-            backendProgramCoverage: selectionCoversWholeEffect(values.selection)
-                ? "all-stages"
-                : "filtered"
-        } : {}),
+        sourceBodyCoverage: "all-unique",
+        backendBodyCoverage: values.allPermutations ? "all" : "selected",
+        backendProgramCoverage: selectionCoversWholeEffect(values.selection)
+            ? "all-stages"
+            : "filtered",
         permutationCount: variants.length,
         uniqueBodyCount: bodies.length,
         sourcePermutationCount: permutationGraph.variants.length,
@@ -234,9 +221,6 @@ export function buildEffectPackage(input, options = {})
             permutationCount: permutationGraph.variants.length,
             uniqueBodyCount: permutationGraph.bodies.length
         },
-        ...(reflectionPackage
-            ? { effectReflection: reflectionPackage.pointer }
-            : {}),
         bodyStageCount: stages.length,
         uniqueShaderCount: translatedShaders.length,
         translatedShaderCount: translatedShaders.length - failedShaders.length - excludedShaders.length,
@@ -250,7 +234,7 @@ export function buildEffectPackage(input, options = {})
         allowFailures: values.allowFailures,
         completeness: {
             packageValid: true,
-            sourceComplete: reflectionPackage !== null,
+            sourceComplete: effectRes.m_version === 15,
             backendComplete: false,
             runtimeComplete: false
         }
@@ -342,8 +326,6 @@ export function buildEffectPackage(input, options = {})
         info: Object.freeze(info),
         metadata: Object.freeze(metadata),
         permutationGraph,
-        reflection: reflectionPackage?.reflection ?? null,
-        reflectionBlobs: reflectionPackage?.blobBytes ?? null,
         glsl: Object.freeze(glsl),
         inspection: Object.freeze(inspection),
         qualification: Object.freeze(qualification)

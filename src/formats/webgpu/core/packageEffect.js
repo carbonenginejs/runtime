@@ -13,11 +13,6 @@ import {
     EFFECT_PERMUTATION_GRAPH_VERSION
 } from "../../../format/effect/effectPermutationGraph.js";
 import {
-    buildCompleteEffectReflection,
-    EFFECT_REFLECTION_BLOB_CHUNK,
-    EFFECT_REFLECTION_CHUNK
-} from "../../../format/effect/effectReflectionPackage.js";
-import {
     buildEffectBackendBodySet,
     EFFECT_BACKEND_BODY_SET_CHUNK,
     EFFECT_BACKEND_BODY_SET_FORMAT,
@@ -183,17 +178,14 @@ export function buildEffectPackage(input, options = {})
     const wgsl = buildWgslSet(shaderEntries);
     const wgslSelection = buildWgslSelectionMetadata(selection, selectedStages);
     const permutationGraph = buildEffectPermutationGraph(resolved.effectRes);
-    const effectReflection = resolved.effectRes.m_version === 15
-        ? buildCompleteEffectReflection(
-            resolved.effectRes,
-            permutationGraph,
-            { sourceIdentity, sourcePath: source }
-        )
-        : null;
-    if (mode === "all" && !effectReflection)
+    // The source is complete when it is a version-15 container. This used to be
+    // read off a built reflection document, which made the document look load
+    // bearing when it was only ever a consequence of the same version check.
+    const sourceComplete = resolved.effectRes.m_version === 15;
+    if (mode === "all" && !sourceComplete)
     {
         throw new Error(
-            "Effect package mode all requires complete version-15 source reflection"
+            "Effect package mode all requires a complete version-15 source"
         );
     }
 
@@ -206,7 +198,7 @@ export function buildEffectPackage(input, options = {})
         : null;
     const completeness = Object.freeze({
         packageValid: true,
-        sourceComplete: effectReflection !== null,
+        sourceComplete,
         backendComplete: false,
         runtimeComplete: false
     });
@@ -230,9 +222,8 @@ export function buildEffectPackage(input, options = {})
             permutationCount: permutationGraph.variants.length,
             uniqueBodyCount: permutationGraph.bodies.length
         }),
-        ...(effectReflection
+        ...(sourceComplete
             ? {
-                effectReflection: effectReflection.pointer,
                 sourceBodyCoverage: "all-unique",
                 backendBodyCoverage: backendBodySet
                     ? backendBodySet.coverage.bodies
@@ -313,8 +304,6 @@ export function buildEffectPackage(input, options = {})
         info: Object.freeze(info),
         metadata: Object.freeze(metadata),
         permutationGraph,
-        reflection: effectReflection?.reflection ?? null,
-        reflectionBlobs: effectReflection?.blobBytes ?? null,
         analysis,
         wgsl,
         backendBodySet,

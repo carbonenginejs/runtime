@@ -308,11 +308,11 @@ test("version 15 buildEffect exposes source-complete selected-backend coverage",
     assert.equal(result.qualification.sourceComplete, true);
     assert.equal(result.qualification.backendComplete, false);
     assert.equal(result.qualification.runtimeComplete, false);
-    assert.equal(result.reflection.formatVersion, 2);
-    assert.equal(result.reflection.coverage.bodies, "all-unique");
-    assert.equal(result.info.effectReflection.bodyCount, 1);
+    // sourceBodyCoverage and completeness.sourceComplete used to be read off a
+    // built reflection document; they now stand on the version check that
+    // document was only ever a consequence of.
+    assert.equal(result.permutationGraph.bodies.length, 1);
     assert.match(result.info.permutationGraph.sha256, /^[0-9a-f]{64}$/u);
-    assert.match(result.info.effectReflection.sha256, /^[0-9a-f]{64}$/u);
 });
 
 test("buildEffect rejects a caller source hash that disagrees with its exact bytes", () =>

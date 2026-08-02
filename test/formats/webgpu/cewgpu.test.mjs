@@ -13,9 +13,6 @@ import {
     validateEffectPermutationGraph
 } from "../../../src/format/effect/effectPermutationGraph.js";
 import {
-    buildSelectedEffectReflection
-} from "../../../src/format/effect/effectReflectionPackage.js";
-import {
     buildCewgpuPackage,
     buildEffectBytes,
     buildMinimalStagedEffectBytes,
@@ -99,11 +96,7 @@ function canonicalV15EffectChunks()
     ]);
 }
 
-function mutateCanonicalV15Effect(
-    mutations = {},
-    omitted = [],
-    rehashReflection = false
-)
+function mutateCanonicalV15Effect(mutations = {}, omitted = [])
 {
     const chunks = canonicalV15EffectChunks()
         .filter(([ tag ]) => !omitted.includes(tag))
@@ -121,14 +114,6 @@ function mutateCanonicalV15Effect(
             return [ tag, copy ];
         });
 
-    if (rehashReflection)
-    {
-        const info = chunks.find(([ tag ]) => tag === "INFO")?.[1];
-        const reflection = chunks.find(([ tag ]) => tag === "RFLX")?.[1];
-        info.effectReflection.sha256 = createHash("sha256")
-            .update(`${JSON.stringify(reflection)}\n`)
-            .digest("hex");
-    }
     return CjsWebgpuFormat.build(chunks);
 }
 

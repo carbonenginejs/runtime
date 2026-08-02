@@ -47,7 +47,7 @@ test("buildEffect fails closed unless a diagnostic package is explicit", () =>
     );
 });
 
-test("version 15 CEWG preserves every permutation's portable reflection", () =>
+test("version 15 packaging reports its permutation and body accounting", () =>
 {
     const source = buildMinimalStagedEffectBytes({
         version: 15,
@@ -104,9 +104,11 @@ test("version 15 CEWG preserves every permutation's portable reflection", () =>
     assert.equal(result.permutationGraph.variants.length, 4);
     assert.equal(result.permutationGraph.bodies.length, 2);
     assert.equal(result.metadata.bodies.length, 4);
-    assert.equal(result.reflection.bodies.length, 2);
-    assert.equal(result.info.effectReflection.formatVersion, 2);
-    assert.match(result.info.effectReflection.sha256, /^[0-9a-f]{64}$/u);
+    // These coverage fields used to be gated on a built reflection document.
+    // They describe the source and the emitted bodies, so they now stand on the
+    // version check that document was only ever a consequence of.
+    assert.equal(result.info.sourceBodyCoverage, "all-unique");
+    assert.equal(result.info.backendBodyCoverage, "all");
 
     // What used to be here: every permutation's portable reflection written into
     // the package's RFLX/RBLB chunks and read back through
