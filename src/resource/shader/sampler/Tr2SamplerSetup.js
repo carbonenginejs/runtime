@@ -2,7 +2,6 @@
 import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { isPlainObject } from "@carbonenginejs/runtime-utils/is";
-import { cloneCarbonValue } from "@carbonenginejs/runtime-utils/types";
 import { recordRawBits, recordText } from "../reflection/carbonRecordFields.js";
 
 /** Reflected sampler name and complete device-free sampler descriptor. */

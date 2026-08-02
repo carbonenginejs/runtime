@@ -2,10 +2,7 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
 import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import {
-  isArray,
-  isPlainObject
-} from "@carbonenginejs/runtime-utils/is";
+import { isPlainObject } from "@carbonenginejs/runtime-utils/is";
 import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js";
 import { Tr2EffectTechnique } from "./Tr2EffectTechnique.js";
 import { recordText } from "./carbonRecordFields.js";

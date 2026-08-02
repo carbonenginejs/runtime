@@ -4,11 +4,9 @@ import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { copyBytes } from "@carbonenginejs/runtime-utils/bytes";
 import {
-  isArray,
   isPlainObject,
   isUint32
 } from "@carbonenginejs/runtime-utils/is";
-import { cloneCarbonValue } from "@carbonenginejs/runtime-utils/types";
 import { Tr2SamplerSetup } from "../sampler/Tr2SamplerSetup.js";
 import { Tr2EffectConstant } from "./Tr2EffectConstant.js";
 import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js";

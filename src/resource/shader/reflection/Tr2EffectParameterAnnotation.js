@@ -3,8 +3,7 @@ import { CjsSchema, impl, schema, type } from "@carbonenginejs/runtime-utils/sch
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { dwordToFloat } from "@carbonenginejs/runtime-utils/math/num";
 import {
-  isPlainObject,
-  isUint32
+  isPlainObject
 } from "@carbonenginejs/runtime-utils/is";
 import { recordRawValue, recordText } from "./carbonRecordFields.js";
 

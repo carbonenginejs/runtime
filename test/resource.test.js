@@ -1793,7 +1793,11 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
     sourceFormat: "cewgpu",
     techniques: [ "Main" ],
     passes: [ "Forward" ],
-    permutations: [ { name: "QUALITY", value: "HIGH" } ]
+    // Axes, not selections. A permutation entry declares the options an effect
+    // was compiled for; which one is wanted is an argument to GetShader.
+    permutations: [
+      { name: "QUALITY", options: [ "HIGH", "LOW" ], defaultOption: 0 }
+    ]
   };
   effect.SetPayload(shaderPayload);
 
@@ -1813,7 +1817,13 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
   image.SetPayload(imagePayload);
 
   assert.equal(effect.HasPayload(), true);
-  assert.deepEqual(effect.GetPermutationDescription(), [ { name: "QUALITY", value: "HIGH" } ]);
+  assert.deepEqual(effect.GetPermutationDescription(), [ {
+    name: "QUALITY",
+    options: [ "HIGH", "LOW" ],
+    defaultOption: 0,
+    description: "",
+    type: 0
+  } ]);
   assert.equal(Tr2EffectRes.payload, "shader");
   assert.equal(CjsSchema.GetConstructor("Tr2EffectRes"), Tr2EffectRes);
   assert.equal(CjsSchema.getField(Tr2EffectRes, "permutations"), null);

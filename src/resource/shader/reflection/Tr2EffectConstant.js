@@ -2,8 +2,7 @@
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
-  isPlainObject,
-  isUint32
+  isPlainObject
 } from "@carbonenginejs/runtime-utils/is";
 import { recordText } from "./carbonRecordFields.js";
 

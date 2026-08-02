@@ -2,9 +2,7 @@
 import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
-  isArray,
-  isPlainObject,
-  isUint32
+  isPlainObject
 } from "@carbonenginejs/runtime-utils/is";
 import { requireShaderStageType, SHADER_STAGE_COUNT } from "./shaderStage.js";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";

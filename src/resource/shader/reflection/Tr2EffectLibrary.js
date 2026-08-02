@@ -2,9 +2,7 @@
 import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
-  isArray,
-  isPlainObject,
-  isUint32
+  isPlainObject
 } from "@carbonenginejs/runtime-utils/is";
 import { copyBytes } from "@carbonenginejs/runtime-utils/bytes";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";

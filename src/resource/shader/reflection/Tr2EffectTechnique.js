@@ -2,7 +2,6 @@
 import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
-  isArray,
   isPlainObject
 } from "@carbonenginejs/runtime-utils/is";
 import { Tr2EffectLibrary } from "./Tr2EffectLibrary.js";
