@@ -508,6 +508,7 @@ test("validates and freezes the portable ordered Audio Bus graph", () =>
         { id: 1, rawValue: "1" },
     ];
     source.busGraph.buses["1"].channelConfig.raw = "0";
+    source.busGraph.buses["1"].requiresProcessing = [ "unsupported-rtpc" ];
     delete source.busGraph.routes[0].userAuxSends;
 
     const installed = installAudioLibraryDocument(source);
@@ -521,6 +522,105 @@ test("validates and freezes the portable ordered Audio Bus graph", () =>
         { id: 2, rawValue: 2 },
     ]);
     assert.deepEqual(installed.busGraph.routes[0].userAuxSends, []);
+    assert.deepEqual(
+        installed.busGraph.buses["1"].requiresProcessing,
+        [ "unsupported-rtpc" ],
+    );
+
+    const controlCatalogs = [
+        {
+            reason: "rtpc",
+            property: "busRtpcs",
+            value: {
+                schemaVersion: 1,
+                buses: {
+                    "1": [ {
+                        curveId: 77,
+                        rtpc: "volume",
+                        defaultValue: 0,
+                        scaling: 2,
+                        points: [ { x: 0, value: 0, interpolation: 4 } ],
+                    } ],
+                },
+            },
+        },
+        {
+            reason: "state",
+            property: "busStates",
+            value: {
+                schemaVersion: 1,
+                property: "bus-volume",
+                accumulation: "additive",
+                unit: "db",
+                stateTransitions: [ {
+                    groupId: "10",
+                    group: "mode",
+                    defaultTransitionMs: 0,
+                    states: [ { stateId: "20", state: "on" } ],
+                    transitions: [],
+                } ],
+                buses: {
+                    "1": [ {
+                        groupId: "10",
+                        group: "mode",
+                        syncType: 0,
+                        effectiveSyncType: 0,
+                        states: [ {
+                            stateId: "20",
+                            state: "on",
+                            gainDb: -6,
+                        } ],
+                    } ],
+                },
+            },
+        },
+        {
+            reason: "ducking",
+            property: "busDucking",
+            value: {
+                schemaVersion: 1,
+                sources: {
+                    "1": {
+                        recoveryMs: 0,
+                        maxDuckVolumeDb: -12,
+                        targets: [ {
+                            targetBusId: "500",
+                            volumeDb: -6,
+                            fadeOutMs: 0,
+                            fadeInMs: 0,
+                            curve: 4,
+                            targetProperty: "bus-volume",
+                        } ],
+                    },
+                },
+            },
+        },
+    ];
+
+    for (const { reason, property, value } of controlCatalogs)
+    {
+        const missingCatalog = structuredClone(source);
+
+        missingCatalog.busGraph.buses["1"].requiresProcessing = [ reason ];
+        assert.throws(
+            () => validateAudioLibraryDocument(missingCatalog),
+            /catalog disagrees/u,
+        );
+
+        const missingReason = structuredClone(source);
+
+        missingReason.busGraph.buses["1"].requiresProcessing = [];
+        missingReason[property] = value;
+        assert.throws(
+            () => validateAudioLibraryDocument(missingReason),
+            /catalog disagrees/u,
+        );
+
+        const aligned = structuredClone(missingReason);
+
+        aligned.busGraph.buses["1"].requiresProcessing = [ reason ];
+        assert.equal(validateAudioLibraryDocument(aligned), true);
+    }
 
     const recursiveAux = structuredClone(source);
 

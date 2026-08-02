@@ -75,6 +75,12 @@ test("Audio Bus ducking fades in linear gain and honors recovery", () =>
     const token = controller.ScheduleActivity([ "1" ], 1, 4);
     const halfGain = (1 + 10 ** (-6 / 20)) / 2;
 
+    assert.equal(controller.HasSource("1"), true);
+    assert.equal(controller.HasSource("2"), false);
+    assert.equal(controller.HasTarget("1"), false);
+    assert.equal(controller.HasTarget("2"), true);
+    assert.equal(controller.PathHasTarget([ "3", "2" ]), true);
+    assert.equal(controller.PathHasTarget([ "3", "4" ]), false);
     assert.equal(controller.EvaluateGainDb([ "2" ], 0), 0);
     assert.equal(controller.EvaluateGainDb([ "2" ], 1), 0);
     assert.ok(Math.abs(
@@ -91,6 +97,10 @@ test("Audio Bus ducking fades in linear gain and honors recovery", () =>
     assert.equal(token.End(3), true);
     assert.equal(token.End(2), true);
     assert.equal(token.End(2), false);
+    controller.Dispose();
+    assert.equal(controller.HasSource("1"), false);
+    assert.equal(controller.HasTarget("2"), false);
+    assert.equal(controller.PathHasTarget([ "2" ]), false);
 });
 
 test("activity settlement only shortens known intervals and cancellation removes them", () =>

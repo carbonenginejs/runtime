@@ -237,6 +237,9 @@ export class CjsAudioSystem
                         context,
                         runtime: this.#busGraphRuntime,
                         destination: this.backend.masterGain,
+                        busRtpcs: this.#busRtpcs,
+                        busStates: this.#busStates,
+                        busDuckingController: this.#busDuckingController,
                     })
                     : null;
                 this.backend.SetBusMixer(this.#busMixer);

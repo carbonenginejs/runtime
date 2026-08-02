@@ -38,7 +38,7 @@ Owns stable generation-scoped route handles for one installed Wwise Audio Bus gr
 <!-- class:CjsSharedBusMixer -->
 ## `CjsSharedBusMixer`
 
-Owns fail-closed shared Web Audio topology, static Parametric EQ placement, and feedback-free Meter omissions for qualified Wwise Audio Bus routes.
+Owns fail-closed shared Web Audio topology, static Parametric EQ placement, feedback-free Meter omissions, and transparent-path admission of complete distributed Bus controls.
 
 - Export: None
 - Source: `src/internal/busGraphMixer.js`

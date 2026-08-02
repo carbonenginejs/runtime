@@ -83,7 +83,7 @@ export function validateAudioLibraryDocument(value)
     );
     ValidateBusRtpcs(value.busRtpcs);
     ValidateBusStates(value.busStates);
-    indexBusDuckingCatalog(value.busDucking);
+    const busDucking = indexBusDuckingCatalog(value.busDucking);
     indexBusEffectCatalog(value.busEffects);
     if (value.busGraph !== undefined)
     {
@@ -92,10 +92,57 @@ export function validateAudioLibraryDocument(value)
             value.embeddedMedia ?? {},
         );
 
+        ValidateBusGraphControlCatalogs(
+            busGraph,
+            value.busRtpcs,
+            value.busStates,
+            busDucking,
+        );
         ValidateBusGraphConsumers(busGraph, normalizedSfx, value.music);
     }
 
     return true;
+}
+
+function ValidateBusGraphControlCatalogs(
+    busGraph,
+    busRtpcs,
+    busStates,
+    busDucking,
+)
+{
+    const rtpcBuses = busRtpcs?.buses ?? {};
+    const stateBuses = busStates?.buses ?? {};
+
+    for (const [ busId, bus ] of Object.entries(busGraph.buses ?? {}))
+    {
+        const reasons = new Set(bus.requiresProcessing ?? []);
+        const hasRtpcs = Object.hasOwn(rtpcBuses, busId);
+        const hasStates = Object.hasOwn(stateBuses, busId);
+        const hasDucking = busDucking.has(busId);
+
+        if ((reasons.has("rtpc") && !hasRtpcs)
+            || (hasRtpcs
+                && !reasons.has("rtpc")
+                && !reasons.has("unsupported-rtpc")))
+        {
+            throw new TypeError(
+                `Audio Bus graph RTPC catalog disagrees for bus ${busId}`,
+            );
+        }
+        if (reasons.has("state") !== hasStates)
+        {
+            throw new TypeError(
+                `Audio Bus graph State catalog disagrees for bus ${busId}`,
+            );
+        }
+        if (reasons.has("ducking") !== hasDucking)
+        {
+            throw new TypeError(
+                `Audio Bus graph ducking catalog disagrees for bus ${busId}`,
+            );
+        }
+    }
 }
 
 function ValidateBusGraphConsumers(busGraph, sfx, music)

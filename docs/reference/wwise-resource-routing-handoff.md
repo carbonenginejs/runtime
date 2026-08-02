@@ -275,23 +275,33 @@ mode inside each emitter generation. Same-route 3D voices share a synchronized
 panner, different authored routes use different panners, and 2D signals remain
 on a distinct flat branch. Branches retain the old generation's placement,
 scaling, and object-RTPC snapshot across unregister/re-register and disconnect
-only after that generation drains. They currently feed the same SFX destination
-unless the strict mixer qualifies the complete path; no shared DSP is enabled.
+only after that generation drains. A branch enters shared Bus topology only
+when the strict mixer qualifies its complete path; every other branch retains
+the legacy SFX destination.
 Qualified music tracks now attach through separate per-segment transition
 lanes and per-instance exact-route lanes. Those stages mirror authored
 crossfades and Play/Stop fades before the shared music category input, while
 blocked tracks retain the legacy music path.
 
-The system now owns the first fail-closed shared mixer contract. It can allocate
-stable SFX/music category entries and one shared unity node per common ancestor,
-but only for strict dry audio-bus paths with default channel layout and no
-authored processing except a complete static Parametric EQ slot sequence plus
-feedback-free Meter omissions.
+The system owns a fail-closed shared mixer contract. It allocates stable
+SFX/music category entries and one shared unity node per common ancestor only
+for strict dry audio-bus paths with default channel layout and no sends.
+Decoded positioning and HDR override metadata is neutral only when positioning
+and HDR are both inactive; unknown flags and active behavior remain barriers.
 Effect records are decoded from the authoritative graph bytes before any node
-is allocated. Dynamic controls, media, rendered slots, mixed/unknown effects,
-and other processing reasons remain barriers. On the real EVE catalog every
-normal route remains blocked by dynamic controls and the active root Peak
-Limiter.
+is allocated.
+
+One qualified path may contain a complete static Parametric EQ sequence plus
+feedback-free Meter omissions and no distributed controls. The other may carry
+Bus Volume RTPC, State, and ducking reasons only when their matching runtime
+catalog entries are installed and every active effect is an audio-transparent,
+feedback-free Meter. The controls remain realized by the existing per-voice or
+per-track dry-route stages before the shared unity topology; they have not
+moved into shared Bus nodes. Incoming duck targets also count as route controls
+even though the portable graph declares each duck on its source Bus. Unsupported
+RTPC bindings, dynamic effect controls, media, rendered slots, auxiliary sends,
+mixed/unknown effects, and any control path crossing an audible shared effect
+remain barriers.
 
 Qualified SFX branches now connect after their flat/spatial route stage to the
 shared SFX category input. When analyser support exists, each qualified branch
@@ -300,9 +310,13 @@ frames with the legacy emitter analyser. Blocked paths still connect to the
 legacy SFX destination and allocate no partial mixer graph. Qualified music
 routes likewise retain route identity through segment and instance envelope
 lanes; their category volume is applied by the shared mixer rather than the
-legacy music output. The audited EVE catalog qualifies no routed SFX or music
-reference across its 262 dry routes, so this integration changes no EVE signal
-path.
+legacy music output. A full build-and-realize audit of EVE 3444265 qualifies
+3,456 of 16,255 SFX references and two of 2,484 music references across its 262
+dry-route records. The SFX total comprises 1,050 effect-free RTPC/State
+references, 976 RTPC/State references with only feedback-free Meter stages, 76
+effect-free RTPC/State/ducking references, and 1,354 RTPC/State/ducking
+references with only feedback-free Meter stages. Both music references are
+effect-free RTPC/State/ducking paths.
 
 Pinned wwiser proves the v150 Wwise Meter's 28-byte layout: five float32 attack,
 release, minimum, maximum, and hold values; four one-byte infinite-hold, mode,
@@ -311,10 +325,11 @@ shared mixer accepts exact boolean and Peak/RMS plus Global/GameObject enum
 values, but omits the telemetry stage only when downstream-volume application
 and the Game Parameter ID are both zero and the effect has no other controls or
 media. EVE's main feedback-free Meter `651869473` reaches 12,678 SFX dry paths,
-but those routes retain a Bus State barrier; Meter `902247780` reaches 1,179 and
-retains a ducking barrier. Other reachable EVE Meters write nonzero Game
-Parameters and remain hard barriers. No EVE route is newly qualified by this
-omission.
+but only the subset with fully projected Bus Volume RTPC/State controls and no
+other barrier qualifies. Meter `902247780` similarly qualifies only the subset
+whose RTPC/State/ducking catalogs are complete. Other reachable EVE Meters write
+nonzero Game Parameters and remain hard barriers. Meter telemetry itself is not
+implemented.
 
 EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and

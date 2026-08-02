@@ -524,10 +524,14 @@ Aux inheritance follows wwiser's root rule: a root NodeBase's authored list is
 effective even when its override bit is clear, because it has no parent. A
 non-root node with a clear override bit inherits, while the first overriding
 descendant replaces the inherited list. The catalog is the shared-runtime
-foundation, not an audible approximation. Current playback can share only a
-complete static Parametric EQ sequence plus explicitly feedback-free Meter
-omissions; auxiliary sends and every other ordered effect path remain silent
-until their complete reachable path has adapters.
+foundation, not an audible approximation. Current playback can share a
+complete static Parametric EQ sequence without distributed controls, or an
+effect-free/feedback-free-Meter path whose Bus Volume RTPC, State, and ducking
+records all have matching installed runtime catalogs. Those controls remain on
+the existing dry-route stages upstream of the shared unity path. Auxiliary
+sends, unsupported RTPC bindings, audible effects combined with those controls,
+and every other incomplete ordered effect path remain blocked until their
+complete reachable path has adapters.
 
 Installation cross-checks every playable routed SFX Sound and music track
 against its `busGraph` route, including dry ancestry and all three authored
@@ -553,10 +557,16 @@ the route's spatial mode, and spatial branches include their exact `panner`.
 
 The audio-system generation also owns a strict shared-Bus mixer. Its
 qualification accepts only dry audio-bus ancestry with default channel layout,
-no Bus positioning or HDR, no sends, and no processing except a complete
-source-proven sequence of static Parametric EQ slots and feedback-free Meter
-omissions. Qualified routes receive stable SFX and music category entries and
-share one node per common Bus ancestor;
+no active Bus positioning or HDR, and no sends. Authored positioning/HDR
+override flags are allowed only when their decoded values prove both features
+inactive. Processing may be either a complete source-proven static Parametric
+EQ/Meter sequence without distributed controls, or complete Bus Volume RTPC,
+State, and ducking controls on an effect-free or feedback-free-Meter path. The
+matching RTPC/State catalog entry and live ducking source must be installed for
+each declared control. An incoming duck target also counts as a route control,
+even though Wwise declares that rule on its separate source Bus. Qualified
+routes receive stable SFX and music category entries and share one node per
+common Bus ancestor;
 category entries remain separate so application volume controls cannot merge
 unrelated routes prematurely. A blocked route returns no mixer input and
 allocates no partial graph. Qualified SFX route branches now consume these

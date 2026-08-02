@@ -3692,7 +3692,13 @@ function CreateBusGraphCatalog(inspections, musicInspections, buses)
         }
         if (bus.positioning?.listenerRelative) reasons.push("positioning");
         if (bus.hdr?.enabled) reasons.push("hdr");
-        if (bus.rtpcs?.length) reasons.push("rtpc");
+        if (bus.rtpcs?.length)
+        {
+            reasons.push(bus.rtpcs.every(rtpc =>
+                Number(rtpc.parameterId) === BUS_VOLUME_RTPC_PROPERTY)
+                ? "rtpc"
+                : "unsupported-rtpc");
+        }
         if (bus.state?.properties?.length || bus.state?.groups?.length)
         {
             reasons.push("state");

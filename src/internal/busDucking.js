@@ -136,6 +136,8 @@ export class CjsBusDuckingController
 
     #activities = new Map();
 
+    #targetBusIds = new Set();
+
     #listeners = new Set();
 
     #nextTokenId = 1;
@@ -150,12 +152,38 @@ export class CjsBusDuckingController
         {
             this.#activities.set(sourceBusId, new Map());
         }
+        for (const source of this.#catalog.values())
+        {
+            for (const target of source.targets)
+            {
+                this.#targetBusIds.add(target.targetBusId);
+            }
+        }
     }
 
     /** True when the installed catalog has at least one authored source. */
     get active()
     {
         return this.#catalog.size > 0 && !this.#disposed;
+    }
+
+    /** Returns whether the live catalog owns one authored ducking source. */
+    HasSource(busId)
+    {
+        return !this.#disposed && this.#catalog.has(String(busId));
+    }
+
+    /** Returns whether one Bus receives an authored ducking rule. */
+    HasTarget(busId)
+    {
+        return !this.#disposed && this.#targetBusIds.has(String(busId));
+    }
+
+    /** Returns whether one dry ancestry receives authored ducking. */
+    PathHasTarget(busPathIds)
+    {
+        return !this.#disposed && (busPathIds ?? [])
+            .some(busId => this.#targetBusIds.has(String(busId)));
     }
 
     /** Subscribes a route scheduler to activity/timing changes. */
@@ -326,6 +354,7 @@ export class CjsBusDuckingController
         this.#disposed = true;
         for (const records of this.#activities.values()) records.clear();
         this.#Notify();
+        this.#targetBusIds.clear();
         this.#listeners.clear();
     }
 

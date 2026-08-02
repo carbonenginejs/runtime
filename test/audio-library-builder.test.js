@@ -3572,6 +3572,15 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
                                 properties: [ { id: 0x08, value: -20 } ],
                                 auxIds: [ 700 ],
                                 overrideUserAux: true,
+                                rtpcs: [ {
+                                    controlId: 800,
+                                    controlType: 0,
+                                    accumulation: 2,
+                                    parameterId: 5,
+                                    curveId: 78,
+                                    scaling: 2,
+                                    points: [ [ 0, 0, 4 ] ],
+                                } ],
                             }),
                         },
                         {
@@ -3629,6 +3638,10 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
         highPass: 0,
         dynamic: false,
     } ]);
+    assert.deepEqual(
+        library.busGraph.buses["500"].requiresProcessing,
+        [ "aux-sends", "unsupported-rtpc" ],
+    );
     assert.deepEqual(library.busGraph.buses["1"].reflectionsAuxSend, {
         targetBusId: "800",
         gainDb: 0,

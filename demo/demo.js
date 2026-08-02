@@ -2292,8 +2292,18 @@ function CreateBusGraphLabCatalog({ gameParameterId = 0 } = {})
     const bus = overrides => ({
         type: "audio-bus",
         channelConfig: { raw: 0 },
-        positioning: { flags: 0 },
-        hdr: { flags: 0 },
+        positioning: {
+            flags: 0,
+            overrideParent: false,
+            listenerRelative: false,
+            pannerType: 0,
+            positionType: 0,
+        },
+        hdr: {
+            flags: 0,
+            enabled: false,
+            exponentialRelease: false,
+        },
         bypassAllEffects: false,
         userAuxSends: [],
         effects: [],

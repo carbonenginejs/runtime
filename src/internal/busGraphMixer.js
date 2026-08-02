@@ -2,8 +2,15 @@ import {
     createBusEffectChain,
     parseGraphSharedBusEffect,
 } from "./busEffects.js";
+import { indexBusRtpcCatalog } from "./busRtpc.js";
+import { indexBusStateCatalog } from "./busState.js";
 
 const KINDS = new Set([ "sfx", "music" ]);
+const DISTRIBUTED_CONTROL_REASONS = new Set([
+    "ducking",
+    "rtpc",
+    "state",
+]);
 
 /**
  * Owns the shared Web Audio node topology for strictly qualified Bus routes.
@@ -28,6 +35,12 @@ export class CjsSharedBusMixer
 
     #busEffects = new Map();
 
+    #busRtpcs = new Map();
+
+    #busStates = new Map();
+
+    #busDuckingController = null;
+
     #categoryVolumes = new Map([
         [ "sfx", 1 ],
         [ "music", 1 ],
@@ -36,7 +49,14 @@ export class CjsSharedBusMixer
     #disposed = false;
 
     /** Creates a generation-scoped mixer for one validated Bus graph. */
-    constructor({ context, runtime, destination } = {})
+    constructor({
+        context,
+        runtime,
+        destination,
+        busRtpcs,
+        busStates,
+        busDuckingController,
+    } = {})
     {
         if (!context || typeof context.createGain !== "function")
         {
@@ -62,6 +82,9 @@ export class CjsSharedBusMixer
         this.#runtime = runtime;
         this.#catalog = catalog;
         this.#destination = destination;
+        this.#busRtpcs = indexBusRtpcCatalog(busRtpcs);
+        this.#busStates = indexBusStateCatalog(busStates);
+        this.#busDuckingController = busDuckingController ?? null;
     }
 
     /**
@@ -133,6 +156,9 @@ export class CjsSharedBusMixer
         this.#buses.clear();
         this.#qualification.clear();
         this.#busEffects.clear();
+        this.#busRtpcs.clear();
+        this.#busStates.clear();
+        this.#busDuckingController = null;
         this.#categoryVolumes.clear();
         this.#catalog = null;
         this.#runtime = null;
@@ -154,6 +180,10 @@ export class CjsSharedBusMixer
             && route.userAuxSends?.length === 0
             && route.reflectionsAuxSend === undefined;
         const pathIds = new Set();
+        let hasDistributedControls = Boolean(
+            this.#busDuckingController?.PathHasTarget?.(route.busPathIds),
+        );
+        let hasAudibleEffect = false;
 
         for (let index = 0; qualified && index < route.busPathIds.length; index++)
         {
@@ -169,8 +199,8 @@ export class CjsSharedBusMixer
                 || bus.parentBusId !== parentBusId
                 || bus.type !== "audio-bus"
                 || bus.channelConfig?.raw !== 0
-                || bus.positioning?.flags !== 0
-                || bus.hdr?.flags !== 0
+                || !IsNeutralPositioning(bus.positioning)
+                || !IsDisabledHdr(bus.hdr)
                 || bus.userAuxSends?.length !== 0
                 || bus.reflectionsAuxSend !== undefined
                 || effects === null)
@@ -179,6 +209,19 @@ export class CjsSharedBusMixer
                 break;
             }
             pathIds.add(busId);
+            hasDistributedControls ||= this.#busRtpcs.has(String(busId))
+                || this.#busStates.has(String(busId))
+                || bus.requiresProcessing.some(reason =>
+                    DISTRIBUTED_CONTROL_REASONS.has(reason));
+            hasAudibleEffect ||= effects.some(effect =>
+                effect.type !== "meter-omission");
+        }
+        // Existing dry-route controllers realize these controls before the
+        // shared topology. Preserve that ordering across the complete ancestry,
+        // not merely within the Bus that declares each stage.
+        if (qualified && hasDistributedControls && hasAudibleEffect)
+        {
+            qualified = false;
         }
         this.#qualification.set(handle, qualified);
         return qualified;
@@ -203,11 +246,15 @@ export class CjsSharedBusMixer
                     .filter(slot => !slot.bypass)
                     .sort((left, right) => left.slotIndex - right.slotIndex);
             const reasons = bus?.requiresProcessing ?? [];
-            const expectedReasons = activeSlots.length ? [ "effects" ] : [];
             const slotIndices = new Set();
+            const reasonSet = new Set(reasons);
+            const allowedReasons = new Set(DISTRIBUTED_CONTROL_REASONS);
 
-            if (reasons.length !== expectedReasons.length
-                || reasons.some((reason, index) => reason !== expectedReasons[index]))
+            if (activeSlots.length) allowedReasons.add("effects");
+
+            if (reasonSet.size !== reasons.length
+                || reasonSet.has("effects") !== Boolean(activeSlots.length)
+                || reasons.some(reason => !allowedReasons.has(reason)))
             {
                 throw new TypeError("Audio Bus has unsupported processing");
             }
@@ -240,6 +287,15 @@ export class CjsSharedBusMixer
                 && typeof this.#context.createBiquadFilter !== "function")
             {
                 throw new TypeError("Static Parametric EQ requires BiquadFilter support");
+            }
+            if ((reasonSet.has("rtpc") && !this.#busRtpcs.has(id))
+                || (reasonSet.has("state") && !this.#busStates.has(id))
+                || (reasonSet.has("ducking")
+                    && !this.#busDuckingController?.HasSource?.(id)))
+            {
+                throw new TypeError(
+                    "Audio Bus distributed control catalog is incomplete",
+                );
             }
             effects = Object.freeze(effects);
         }
@@ -290,4 +346,24 @@ function SetParam(param, value)
     {
         param.value = value;
     }
+}
+
+function IsNeutralPositioning(value)
+{
+    const flags = Number(value?.flags);
+    const overrideParent = Boolean(value?.overrideParent);
+
+    return flags === (overrideParent ? 1 : 0)
+        && value?.listenerRelative === false
+        && Number(value?.pannerType) === 0
+        && Number(value?.positionType) === 0;
+}
+
+function IsDisabledHdr(value)
+{
+    const flags = Number(value?.flags);
+    const exponentialRelease = Boolean(value?.exponentialRelease);
+
+    return flags === (exponentialRelease ? 2 : 0)
+        && value?.enabled === false;
 }

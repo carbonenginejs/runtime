@@ -11,6 +11,7 @@ import {
 } from "../npm/dist/index.js";
 import { CjsBusGraphRuntime } from "../src/internal/busGraphRuntime.js";
 import { CjsSharedBusMixer } from "../src/internal/busGraphMixer.js";
+import { CjsBusDuckingController } from "../src/internal/busDucking.js";
 
 
 function FakeParam()
@@ -74,8 +75,18 @@ function MixerBus(overrides = {})
   return {
     type: "audio-bus",
     channelConfig: { raw: 0 },
-    positioning: { flags: 0 },
-    hdr: { flags: 0 },
+    positioning: {
+      flags: 0,
+      overrideParent: false,
+      listenerRelative: false,
+      pannerType: 0,
+      positionType: 0,
+    },
+    hdr: {
+      flags: 0,
+      enabled: false,
+      exponentialRelease: false,
+    },
     bypassAllEffects: false,
     userAuxSends: [],
     effects: [],
@@ -342,6 +353,206 @@ test("strict shared Bus mixer shares effect-free ancestry without merging catego
   assert.equal(mixer.GetInput(routeA, "sfx"), null);
 });
 
+test("strict shared Bus mixer admits complete distributed controls only on transparent paths", () =>
+{
+  const catalog = MixerCatalog();
+
+  AddGraphMeter(catalog, "500", "910");
+  catalog.buses["500"].positioning = {
+    flags: 1,
+    overrideParent: true,
+    listenerRelative: false,
+    pannerType: 0,
+    positionType: 0,
+  };
+  catalog.buses["500"].hdr = {
+    flags: 2,
+    enabled: false,
+    exponentialRelease: true,
+  };
+  catalog.buses["500"].requiresProcessing = [
+    "ducking",
+    "effects",
+    "rtpc",
+    "state",
+  ];
+  const busRtpcs = {
+    schemaVersion: 1,
+    buses: { "500": [ { rtpc: "volume", points: [] } ] },
+  };
+  const busStates = {
+    schemaVersion: 2,
+    buses: {
+      "500": [ {
+        group: "mode",
+        groupId: "10",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ { stateId: "20", state: "on", gainDb: -6 } ],
+      } ],
+    },
+  };
+  const busDuckingController = new CjsBusDuckingController({
+    schemaVersion: 1,
+    sources: {
+      "500": {
+        recoveryMs: 0,
+        maxDuckVolumeDb: -12,
+        targets: [ {
+          targetBusId: "1",
+          volumeDb: -6,
+          fadeOutMs: 0,
+          fadeInMs: 0,
+          curve: 4,
+          targetProperty: "bus-volume",
+        } ],
+      },
+    },
+  });
+  const runtime = new CjsBusGraphRuntime(catalog);
+  for (const controls of [
+    { busRtpcs, busStates },
+    { busRtpcs, busDuckingController },
+    { busStates, busDuckingController },
+  ])
+  {
+    const incompleteContext = MixerContext();
+    const missingControls = new CjsSharedBusMixer({
+      context: incompleteContext,
+      runtime,
+      destination: incompleteContext.destination,
+      ...controls,
+    });
+
+    assert.equal(missingControls.GetInput(
+      runtime.ResolveSfxRoute("100"),
+      "sfx",
+    ), null);
+    assert.equal(
+      incompleteContext.gains.length,
+      0,
+      "each incomplete control catalog allocates nothing",
+    );
+  }
+  const context = MixerContext();
+
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    busRtpcs,
+    busStates,
+    busDuckingController,
+  });
+
+  assert.ok(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"));
+  assert.equal(context.filters.length, 0, "Meter remains audio-transparent");
+
+  const eqContext = MixerContext();
+  const eqCatalog = structuredClone(catalog);
+
+  AddGraphEffect(eqCatalog, "500", "900", 1, ParametricEqParameters());
+  eqCatalog.buses["500"].requiresProcessing = [
+    "ducking",
+    "effects",
+    "rtpc",
+    "state",
+  ];
+  const eqRuntime = new CjsBusGraphRuntime(eqCatalog);
+  const blockedEq = new CjsSharedBusMixer({
+    context: eqContext,
+    runtime: eqRuntime,
+    destination: eqContext.destination,
+    busRtpcs,
+    busStates,
+    busDuckingController,
+  });
+
+  assert.equal(blockedEq.GetInput(eqRuntime.ResolveSfxRoute("100"), "sfx"), null);
+  assert.equal(eqContext.gains.length, 0);
+  assert.equal(eqContext.filters.length, 0);
+});
+
+test("strict shared Bus controls cannot cross an audible effect on another Bus", () =>
+{
+  for (const [ controlBusId, effectBusId ] of [
+    [ "500", "1" ],
+    [ "1", "500" ],
+  ])
+  {
+    const context = MixerContext();
+    const catalog = MixerCatalog();
+
+    catalog.buses[controlBusId].requiresProcessing = [ "state" ];
+    AddGraphEffect(
+      catalog,
+      effectBusId,
+      "900",
+      0,
+      ParametricEqParameters(),
+    );
+    const runtime = new CjsBusGraphRuntime(catalog);
+    const mixer = new CjsSharedBusMixer({
+      context,
+      runtime,
+      destination: context.destination,
+      busStates: {
+        schemaVersion: 2,
+        buses: {
+          [controlBusId]: [ {
+            group: "mode",
+            groupId: "10",
+            syncType: 0,
+            effectiveSyncType: 0,
+            states: [ { stateId: "20", state: "on", gainDb: -6 } ],
+          } ],
+        },
+      },
+    });
+
+    assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+    assert.equal(context.gains.length, 0);
+    assert.equal(context.filters.length, 0);
+  }
+});
+
+test("strict shared Bus mixer treats duck targets as route controls", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+
+  AddGraphEffect(catalog, "500", "900", 0, ParametricEqParameters());
+  catalog.buses["600"].requiresProcessing = [ "ducking" ];
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const busDuckingController = new CjsBusDuckingController({
+    schemaVersion: 1,
+    sources: {
+      "600": {
+        recoveryMs: 0,
+        maxDuckVolumeDb: -12,
+        targets: [ {
+          targetBusId: "500",
+          volumeDb: -6,
+          fadeOutMs: 0,
+          fadeInMs: 0,
+          curve: 4,
+          targetProperty: "bus-volume",
+        } ],
+      },
+    },
+  });
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    busDuckingController,
+  });
+
+  assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+  assert.equal(context.gains.length, 0);
+  assert.equal(context.filters.length, 0);
+});
+
 test("strict shared Bus mixer realizes one ordered Parametric EQ chain per Bus", () =>
 {
   const context = MixerContext();
@@ -485,9 +696,17 @@ test("strict shared Bus mixer allocates nothing across authored processing barri
     catalog => { catalog.buses["1"].parentBusId = "600"; },
     catalog => { catalog.buses["500"].type = "auxiliary-bus"; },
     catalog => { catalog.buses["500"].channelConfig.raw = 1; },
-    catalog => { catalog.buses["500"].positioning.flags = 2; },
-    catalog => { catalog.buses["500"].hdr.flags = 1; },
-    catalog => { catalog.buses["500"].requiresProcessing = [ "state" ]; },
+    catalog =>
+    {
+      catalog.buses["500"].positioning.flags = 2;
+      catalog.buses["500"].positioning.listenerRelative = true;
+    },
+    catalog =>
+    {
+      catalog.buses["500"].hdr.flags = 1;
+      catalog.buses["500"].hdr.enabled = true;
+    },
+    catalog => { catalog.buses["500"].requiresProcessing = [ "unsupported-rtpc" ]; },
     catalog =>
     {
       catalog.buses["500"].effects = [ { effectId: "900", bypass: false } ];
@@ -536,9 +755,25 @@ test("CjsAudioSystem owns one Bus graph runtime for a library generation", () =>
   let captured = null;
   let capturedMixer = null;
   let disposed = false;
+  const catalog = MixerCatalog();
+  const busStates = {
+    schemaVersion: 2,
+    buses: {
+      "500": [ {
+        group: "mode",
+        groupId: "10",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ { stateId: "20", state: "on", gainDb: -6 } ],
+      } ],
+    },
+  };
+
+  catalog.buses["500"].requiresProcessing = [ "state" ];
   const system = new CjsAudioSystem({
     createContext: () => FakeContext([]),
-    busGraph: MixerCatalog(),
+    busGraph: catalog,
+    busStates,
     createMusicEngine(options)
     {
       captured = options.busGraphRuntime;

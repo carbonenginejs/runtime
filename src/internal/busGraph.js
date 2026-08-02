@@ -10,6 +10,7 @@ const PROCESSING_REASONS = new Set([
     "positioning",
     "rtpc",
     "state",
+    "unsupported-rtpc",
 ]);
 const GAIN_PROPERTY_FIELDS = new Map([
     [ 0x04, "busVolumeDb" ],

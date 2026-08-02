@@ -173,7 +173,10 @@ class CjsAudioSystem {
         this.#busMixer = this.#busGraphRuntime ? new CjsSharedBusMixer({
           context,
           runtime: this.#busGraphRuntime,
-          destination: this.backend.masterGain
+          destination: this.backend.masterGain,
+          busRtpcs: this.#busRtpcs,
+          busStates: this.#busStates,
+          busDuckingController: this.#busDuckingController
         }) : null;
         this.backend.SetBusMixer(this.#busMixer);
         if (!this.musicEngine) {
