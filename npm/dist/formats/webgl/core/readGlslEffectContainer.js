@@ -58,7 +58,10 @@ function stageManifest(stage) {
     })),
     bindings: [...(stage.textures ?? []).map(texture => ({
       kind: "resource",
-      registerIndex: texture.registerIndex
+      registerIndex: texture.registerIndex,
+      // Named so a rule can ask whether a described resource belongs
+      // to a family the packager is known to lower away.
+      name: texture.name.value
     })), ...(stage.samplers ?? []).map(sampler => ({
       kind: "sampler",
       registerIndex: sampler.registerIndex,
@@ -83,12 +86,18 @@ function stageManifest(stage) {
  * @returns {object} Per-stage backend data, keyed by stage name.
  */
 function backendStages(pass, passKey, source) {
-  if (!pass.backendBlock?.size) return {};
+  if (!pass.backendBlock?.size) return {
+    stages: {},
+    transforms: []
+  };
   const block = readGlslBackendBlock(pass.backendBlock.bytes, {
     layoutKey: passKey,
     source
   });
-  return block.stages ?? {};
+  return {
+    stages: block.stages ?? {},
+    transforms: block.transforms ?? []
+  };
 }
 
 /**
@@ -141,7 +150,10 @@ function readGlslEffectContainer(input, values = {}) {
       const techniqueName = technique.name.value;
       for (const [passIndex, pass] of technique.passes.entries()) {
         const passKey = `${techniqueName}.pass${passIndex}`;
-        const backend = backendStages(pass, passKey, source);
+        const {
+          stages: backend,
+          transforms
+        } = backendStages(pass, passKey, source);
         for (const stage of pass.stages) {
           const name = hlslShaderStageName(stage.type);
           const stageKey = `${bodyKey}.${passKey}.${name}`;
@@ -192,7 +204,10 @@ function readGlslEffectContainer(input, values = {}) {
             stageName: name,
             stageType: stage.type,
             shaderKey,
-            manifest: stageManifest(stage)
+            manifest: stageManifest(stage),
+            // The pass's transforms, so a rule can ask whether a
+            // description resource was merged away rather than lost.
+            transforms
           });
         }
       }
