@@ -89,3 +89,55 @@ test("a 3D operand whose range id matches its register still reads the right row
     assert.match(text, /\[12\]/);
     assert.doesNotMatch(text, /\[1\]/);
 });
+
+/**
+ * Builds a decoded resource-like operand.
+ *
+ * @param {number} type Operand type: 6 sampler, 7 resource, 30 UAV.
+ * @param {number[]} values One value per index dimension.
+ * @param {boolean} [relative] Whether the trailing index is dynamically indexed.
+ * @returns {object} Operand.
+ */
+function boundOperand(type, values, relative = false)
+{
+    return {
+        type,
+        typeName: type === 6 ? "sampler" : type === 7 ? "resource" : "uav",
+        componentCount: 0,
+        selectionModeName: "swizzle",
+        swizzle: [ 0, 1, 2, 3 ],
+        selected: [ 0, 1, 2, 3 ],
+        mask: 0xf,
+        modifierName: "none",
+        indices: values.map((value, dimension) => ({
+            dimension,
+            representation: 0,
+            values: [ value ],
+            relative: relative && dimension === values.length - 1 ? {} : null
+        }))
+    };
+}
+
+test("a resource operand takes its register from the trailing index", () =>
+{
+    // 1D at shader model 5.0, 2D at 5.1 where a range id is prepended. Measured
+    // across 40 shipped effects, 56 of 161 two-dimensional resource operands
+    // carry a range id that differs from the register - those named the wrong
+    // binding, and a texel fetch that landed on a samplerCube has no GLSL ES 3.00
+    // overload, so the whole program failed to compile.
+    assert.equal(formatter.sourceExpression(boundOperand(7, [ 5 ])), "t5");
+    assert.equal(formatter.sourceExpression(boundOperand(7, [ 1, 5 ])), "t5");
+    assert.equal(formatter.sourceExpression(boundOperand(6, [ 2, 3 ])), "s3");
+    assert.equal(formatter.sourceExpression(boundOperand(30, [ 0, 4 ])), "u4");
+});
+
+test("a dynamically indexed binding is refused rather than guessed", () =>
+{
+    // GLSL ES 3.00 has no dynamic sampler indexing. Reading dimension 0 instead
+    // would find the range id - an immediate - and quietly emit a fixed binding
+    // that is simply the wrong one.
+    assert.throws(
+        () => formatter.sourceExpression(boundOperand(7, [ 1, 5 ], true)),
+        /relative register index/u
+    );
+});

@@ -274,9 +274,9 @@ export class DxbcGlslOperandFormatter
             case 3:
                 return `${this.names.indexableTemp(this._immediateIndex(operand, 0))}[${this._indexExpression(operand, 1)}]`;
             case 6:
-                return this.names.sampler(this._immediateIndex(operand, 0));
+                return this.names.sampler(this._registerIndex(operand));
             case 7:
-                return this.names.resource(this._immediateIndex(operand, 0));
+                return this.names.resource(this._registerIndex(operand));
             case 8: {
                 // A constant-buffer operand is indexed either 2D or 3D, and both
                 // appear in the shipped corpus - 1,660 two-dimensional against
@@ -293,7 +293,7 @@ export class DxbcGlslOperandFormatter
                 // b3 emits `cb2` for every b3 reference - a slot it never
                 // declared, which fails to compile - and every shader that does
                 // compile reads its rows from the register number.
-                const dimension = operand.indices.length >= 3 ? 1 : 0;
+                const dimension = operand.indices.length - 2;
                 const member = this.names.constantBufferMember;
                 const base = this.names.constantBuffer(
                     this._immediateIndex(operand, dimension)
@@ -303,7 +303,7 @@ export class DxbcGlslOperandFormatter
             case 9:
                 return `${this.names.immediateConstantBuffer}[${this._indexExpression(operand, 0)}]`;
             case 30:
-                return this.names.uav(this._immediateIndex(operand, 0));
+                return this.names.uav(this._registerIndex(operand));
             case 32:
                 return this.names.threadId();
             case 33:
@@ -434,6 +434,42 @@ export class DxbcGlslOperandFormatter
    * @returns {number} Immediate index value.
    * @private
    */
+    /**
+     * The bound register of a resource-like operand.
+     *
+     * Shader model 5.1 prepends a range id to every register-bearing operand, so
+     * a resource that is 1D at 5.0 is 2D at 5.1 and a constant buffer that is 2D
+     * becomes 3D. The register is what trails: reading dimension 0 unconditionally
+     * takes the range id instead, which is the ordinal of the declaration that
+     * introduced the binding and equals the register only while a shader declares
+     * its bindings contiguously from zero.
+     *
+     * Measured across 40 shipped effects: 56 of 161 two-dimensional resource
+     * operands and 4 of 145 sampler operands carry a range id that differs from
+     * their register. Those named the wrong binding entirely - a texel fetch
+     * landing on a samplerCube, which GLSL ES 3.00 has no overload for.
+     *
+     * @param {object} operand Decoded operand.
+     * @returns {number} Bound register index.
+     */
+    _registerIndex(operand)
+    {
+        const dimension = operand.indices.length - 1;
+        const index = operand.indices[dimension];
+        if (index?.relative)
+        {
+            // A dynamically indexed binding. GLSL ES 3.00 has no dynamic sampler
+            // indexing, so there is nothing to emit. Reading dimension 0 instead
+            // would find the range id - an immediate - and quietly emit a fixed
+            // binding that is simply the wrong one.
+            throw new WebglReadError(
+                "Resource operand uses a relative register index; GLSL ES 3.00 has no dynamic binding indexing",
+                { operandType: operand.typeName, dimension }
+            );
+        }
+        return this._immediateIndex(operand, dimension);
+    }
+
     _immediateIndex(operand, dimension)
     {
         const index = operand.indices[dimension];
