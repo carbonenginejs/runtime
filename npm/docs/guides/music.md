@@ -68,9 +68,12 @@ receive the application music volume exactly once. Route lanes are established
 before asynchronous clip loading, so a late decoded buffer cannot bypass an
 already scheduled fade.
 
-If that shared route contains only qualified static Parametric EQ and Wwise
-Delay slots and no distributed Bus controls, its instance lane enters one
-ordered effect chain per physical Bus after all route and transition envelopes.
+If that shared route contains qualified static Parametric EQ and Wwise Delay
+slots, its instance lane enters one ordered effect chain per physical Bus after
+all route and transition envelopes. One fader after each Bus's effects combines
+that Bus's static Bus Volume, global Bus Volume RTPC, and Immediate State gain.
+Make-Up Gain, effective NodeBase Output Bus Volume, ducking, and live Bus Volume
+actions stay on the route-local gain, so per-instance controls are not merged.
 Multiple music instances and SFX entries therefore share the same Bus effect
 nodes, including one shared delay line and feedback tail. A blocked or missing
 graph keeps the legacy Parametric EQ `busEffects` fallback between the track
@@ -79,16 +82,16 @@ exact, while Web Audio biquads and delay primitives remain browser adaptations
 rather than native Wwise DSP. EVE build 3444265 has no music route through its
 seven static Delay instances.
 
-An effect-free or feedback-free-Meter route may instead enter the shared unity
-path while its complete Bus Volume RTPC, State, and ducking controls remain on
-the existing route stages upstream. Qualification requires matching installed
-catalog entries for every declared control. A property-0 Voice Volume RTPC
+An effect-free or feedback-free-Meter route may likewise enter the shared path.
+Qualification requires matching installed catalogs and live readers for every
+dynamic Bus-fader contribution. A property-0 Voice Volume RTPC
 keeps a music route out of the shared mixer until music owns the corresponding
 per-voice stage; it is never reinterpreted as Bus Volume. EVE build 3444265
 qualifies 2,349 music-track references: two effect-free tracks plus 2,347 whose
 only additional barrier was the static send to a return proven silenced at
 `-96 dB`. The mixer allocates no wet nodes for that omission. Routes that cross
-an audible effect with those controls remain blocked.
+an audible effect with Voice Volume, State filter/pitch, ducking, or action
+controls remain blocked.
 
 A source-proven v150 Wwise Meter may coexist in that sequence only when it
 writes no Game Parameter, does not apply downstream volume, and has no dynamic

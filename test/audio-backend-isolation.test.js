@@ -288,7 +288,13 @@ function RouteEqFixture()
   };
 }
 
-function RouteRuntime({ blockedRouteB = false, withEq = false } = {})
+function RouteRuntime({
+  blockedRouteB = false,
+  withEq = false,
+  busVolumeDb = 0,
+  authoredBusMakeUpGainDb = 0,
+  authoredOutputBusVolumeDb = 0,
+} = {})
 {
   const catalog = {
     schemaVersion: 1,
@@ -334,6 +340,7 @@ function RouteRuntime({ blockedRouteB = false, withEq = false } = {})
         userAuxSends: [],
         effects: [],
         requiresProcessing: [],
+        ...(busVolumeDb === 0 ? {} : { busVolumeDb }),
       },
       "901": {
         type: "audio-bus",
@@ -362,6 +369,13 @@ function RouteRuntime({ blockedRouteB = false, withEq = false } = {})
         outputBusId: "900",
         busPathIds: [ "900", "1" ],
         userAuxSends: [],
+        ...(busVolumeDb === 0 ? {} : { authoredBusVolumeDb: busVolumeDb }),
+        ...(authoredBusMakeUpGainDb === 0
+          ? {}
+          : { authoredBusMakeUpGainDb }),
+        ...(authoredOutputBusVolumeDb === 0
+          ? {}
+          : { authoredOutputBusVolumeDb }),
       },
       {
         outputBusId: "901",
@@ -391,7 +405,7 @@ function RouteRuntime({ blockedRouteB = false, withEq = false } = {})
   return new CjsBusGraphRuntime(catalog);
 }
 
-function RoutedVoice(nodeId, spatial = true)
+function RoutedVoice(nodeId, spatial = true, overrides = {})
 {
   const outputBusId = nodeId === "100" ? "900" : "901";
 
@@ -400,6 +414,7 @@ function RoutedVoice(nodeId, spatial = true)
     spatial,
     busRouteNodeId: nodeId,
     busPathIds: [ outputBusId, "1" ],
+    ...overrides,
   };
 }
 
@@ -713,6 +728,60 @@ test("qualified SFX routes realize static EQ once after spatialization", async (
   assert.equal(eq.disconnected, false);
   mixer.Dispose();
   assert.equal(eq.disconnected, true);
+});
+
+test("qualified SFX keeps local gain while the shared Bus owns post-effect volume", async () =>
+{
+  const route = {
+    authoredBusVolumeDb: -6,
+    authoredBusMakeUpGainDb: 2,
+    authoredOutputBusVolumeDb: 3,
+  };
+  const runtime = RouteRuntime({
+    withEq: true,
+    busVolumeDb: route.authoredBusVolumeDb,
+    authoredBusMakeUpGainDb: route.authoredBusMakeUpGainDb,
+    authoredOutputBusVolumeDb: route.authoredOutputBusVolumeDb,
+  });
+  const { busEffects } = RouteEqFixture();
+  let mixer = null;
+  const { context, emitter, backend } = Harness({
+    busEffects,
+    busGraphRuntime: runtime,
+    busMixerFactory: audioContext =>
+    {
+      mixer = new CjsSharedBusMixer({
+        context: audioContext,
+        runtime,
+        destination: audioContext.destination,
+      });
+      return mixer;
+    },
+    loadBuffer: async () => ({
+      voices: [ RoutedVoice("100", true, route) ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "shared_bus_fader");
+  await tick();
+
+  const source = context.sources[0];
+  const localBusGain = source.connectedTo.connectedTo;
+  const branch = RouteBranchForSource(source);
+  const mixerInput = branch.connectedTo.connectedTo;
+  const busInput = mixerInput.connectedTo;
+  const effect = busInput.connectedTo;
+  const sharedFader = effect.connectedTo;
+
+  assert.ok(Math.abs(localBusGain.gain.value - 10 ** (5 / 20)) < 1e-12);
+  assert.equal(effect.type, "peaking");
+  assert.ok(Math.abs(sharedFader.gain.value - 10 ** (-6 / 20)) < 1e-12);
+  assert.equal(sharedFader.connectedTo.connectedTo, context.destination);
+
+  backend.Dispose();
+  assert.equal(sharedFader.disconnected, false);
+  mixer.Dispose();
+  assert.equal(sharedFader.disconnected, true);
 });
 
 test("blocked SFX routes retain the legacy destination without partial mixer use", async () =>

@@ -126,19 +126,21 @@ missing graph routes retain the distributed source-route fallback. Neither
 path claims native Wwise DSP equivalence. Static Wwise Delay likewise uses
 source-proven v150 fields and one shared Web Audio delay/feedback stage; it has
 no distributed per-source fallback. Bus ancestries targeted by retained Set or
-Reset Bus Volume actions stay blocked across audible effects until the shared
-runtime owns exact Bus-fader placement. A complete Voice/Bus Volume RTPC, State,
-or ducking path may enter the shared unity topology only when every declared
-control has its matching installed runtime catalog and the route is effect-free
-or contains only decoded feedback-free Meters. The existing dry-route stages
-continue to realize those controls upstream, so this exception preserves
-placement rather than adding Wwise DSP. A static user-aux send may also be
+Reset Bus Volume actions stay blocked across audible effects because their
+instance/object scope cannot drive a fader shared by unrelated signals. Each
+qualified physical Bus now owns an exact post-effect fader for static Bus
+Volume, global Bus Volume RTPC, and Immediate State gain. The existing
+dry-route stages retain Make-Up Gain, effective NodeBase Output Bus Volume,
+ducking, Bus Volume actions, Voice Volume, and State pitch/filter properties.
+Those route-/voice-local controls still block audible shared effects, while
+gain-only Bus RTPC/State paths may cross a qualified static effect sequence.
+A static user-aux send may also be
 omitted when the complete return is provably silent; absolute or
 positive-relative action risk, amplifying controls, active effects, filters,
 dynamic sends, reflections, and wet-path escapes all retain the barrier. Meter
 telemetry remains unsupported.
 Voice Volume RTPCs use a distinct pre-bus SFX gain on qualified transparent
-paths. Unsupported RTPC bindings, controls crossing an audible shared effect,
+paths. Unsupported RTPC bindings, route-local controls crossing an audible shared effect,
 Voice-target placement across audible auxiliary sends, other effect processing
 and tails, feedback-capable meters, and virtual-voice behavior remain deferred
 as described in the

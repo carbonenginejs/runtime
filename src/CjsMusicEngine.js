@@ -169,12 +169,13 @@ function ScheduleMusicBusGain(
     readGlobalStateWeights,
     readGlobalStateTransitionBoundaries,
     busDuckingController,
+    sharedBusFaders = false,
 )
 {
     if (!param) return;
     const now = Number(context?.currentTime) || 0;
     const path = Array.isArray(busPathIds) ? busPathIds.map(String) : [];
-    const baseDb = (Number(authoredBusVolumeDb) || 0)
+    const baseDb = (sharedBusFaders ? 0 : Number(authoredBusVolumeDb) || 0)
         + (Number(authoredBusMakeUpGainDb) || 0)
         + (Number(authoredOutputBusVolumeDb) || 0);
     const evaluate = at =>
@@ -191,13 +192,13 @@ function ScheduleMusicBusGain(
                 db += EvaluateBusVolumeState(states.get(busId), at);
             }
         }
-        db += evaluateBusRtpcGainDb(
+        db += sharedBusFaders ? 0 : evaluateBusRtpcGainDb(
             busRtpcCatalog,
             path,
             readGlobalRtpc,
             at,
         );
-        db += evaluateBusStateGainDb(
+        db += sharedBusFaders ? 0 : evaluateBusStateGainDb(
             busStateCatalog,
             path,
             readGlobalStateWeights,
@@ -1763,6 +1764,7 @@ export class CjsMusicEngine
                         this.#readGlobalStateWeights,
                         this.#readGlobalStateTransitionBoundaries,
                         this.#busDuckingController,
+                        route.sharedBusFaders,
                     );
                     ScheduleMusicBusFilter(
                         route.lowPassFilter,
@@ -2684,6 +2686,7 @@ export class CjsMusicEngine
             lowPassFilter,
             highPassFilter,
             transitionGain,
+            sharedBusFaders: Boolean(mixerInput),
         };
 
         if (lowPassFilter)
@@ -2718,6 +2721,7 @@ export class CjsMusicEngine
             this.#readGlobalStateWeights,
             this.#readGlobalStateTransitionBoundaries,
             this.#busDuckingController,
+            Boolean(mixerInput),
         );
         ScheduleMusicBusFilter(
             lowPassFilter,

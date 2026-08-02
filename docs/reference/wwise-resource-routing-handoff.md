@@ -17,6 +17,11 @@ NodeBase that supplies the effective output-bus override. Playback adds live
 Bus Volume action state, global Voice/Bus Volume RTPC curves, and global Bus
 Volume State contributions without changing the application SFX or music
 sliders.
+Qualified graph routes apply static Bus Volume, global Bus Volume RTPC, and
+Immediate State gain at one shared post-effect fader per physical Bus. The
+route-local stage retains Make-Up Gain, effective NodeBase Output Bus Volume,
+ducking, and Bus Volume actions; SFX Voice Volume remains a separate pre-Bus
+stage.
 It also projects v150 Audio Bus auto-ducking and coordinates actual scheduled
 SFX and built-in music source activity through one shared clock.
 Routed static Wwise Parametric EQ slots are projected into one portable catalog
@@ -119,8 +124,9 @@ media rather than WEM audio.
 
 ## Remaining work
 
-The dry-output route applies Bus Volume and Make-Up Gain when those properties
-occur in the selected dry ancestry. It separately applies the effective
+The dry-output route retains Bus Volume and Make-Up Gain when those properties
+occur in the selected dry ancestry. A qualified shared graph moves only Bus
+Volume to exact per-Bus post-effect faders. It separately applies the effective
 NodeBase Output Bus Volume and evaluates every qualified scaling-2 Voice
 Volume and Bus Volume RTPC on the route. SFX Voice Volume owns a distinct gain
 before Bus Volume and effects; built-in music continues to consume Bus Volume
@@ -301,9 +307,11 @@ records. Absolute and positive-relative Bus Volume Set actions are projected as
 `busVolumeMayIncrease` barriers so a future authored action cannot invalidate
 the proof. Every Set or Reset Bus Volume target also carries the separate
 `busVolumeActionControlled` marker. The strict mixer rejects that marker on an
-audible effect ancestry until the Bus fader has exact post-effect placement;
-otherwise an action could attenuate only new Delay input while an existing
-feedback tail continued at the old gain.
+audible effect ancestry even though static/global Bus gain now has exact
+post-effect placement: Bus Volume actions are scoped to a playing instance or
+game object and therefore cannot safely drive one physical fader shared by
+unrelated voices and music. Otherwise an action could attenuate only new Delay
+input while an existing feedback tail continued at the old gain.
 
 `1912148245` cascades to `518379211`; their audible paths contain ordered
 Compressor, Parametric EQ, Convolution Reverb, and Peak Limiter stages. The
@@ -333,24 +341,26 @@ crossfades and Play/Stop fades before the shared music category input, while
 blocked tracks retain the legacy music path.
 
 The system owns a fail-closed shared mixer contract. It allocates stable
-SFX/music category entries and one shared unity node per common ancestor only
+SFX/music category entries and one shared input node per common ancestor only
 for strict dry audio-bus paths with default channel layout and no sends.
 Decoded positioning and HDR override metadata is neutral only when positioning
 and HDR are both inactive; unknown flags and active behavior remain barriers.
 Effect records are decoded from the authoritative graph bytes before any node
 is allocated.
 
-One qualified path may contain a complete static Parametric EQ/Delay sequence plus
-feedback-free Meter omissions and no distributed controls. The other may carry
-Bus Volume RTPC, State, and ducking reasons only when their matching runtime
-catalog entries are installed and every active effect is an audio-transparent,
-feedback-free Meter. The controls remain realized by the existing per-voice or
-per-track dry-route stages before the shared unity topology; they have not
-moved into shared Bus nodes. Incoming duck targets also count as route controls
-even though the portable graph declares each duck on its source Bus. Unsupported
-RTPC bindings, dynamic effect controls, media, rendered slots, auxiliary sends,
-mixed/unknown effects, and any control path crossing an audible shared effect
-remain barriers.
+A qualified path may contain a complete static Parametric EQ/Delay sequence plus
+feedback-free Meter omissions. Each physical Bus realizes one fader after its
+ordered effects and before its parent; that fader owns its static Bus Volume,
+global Bus Volume RTPC, and Immediate State gain. Qualification requires the
+route's authored Bus-volume aggregate to exactly equal the sum of the physical
+Bus values and requires live RTPC/State readers whenever those catalogs are
+used. Make-Up Gain, effective NodeBase Output Bus Volume, ducking, and Bus
+Volume actions stay on the existing per-voice or per-track stage. Voice Volume
+stays pre-Bus, and State pitch/filter properties stay route-local. Incoming
+duck targets count as route controls even though the portable graph declares
+each duck on its source Bus. Unsupported RTPC bindings, dynamic effect controls,
+media, rendered slots, auxiliary sends, mixed/unknown effects, and any
+voice-/route-local control crossing an audible shared effect remain barriers.
 
 Qualified SFX branches now connect after their flat/spatial route stage to the
 shared SFX category input. When analyser support exists, each qualified branch

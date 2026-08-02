@@ -4171,6 +4171,7 @@ export class CjsAudioBackend
                 panner,
                 analyser,
                 mixerInput,
+                sharedBusFaders: Boolean(mixerInput),
             };
         }
         else
@@ -4185,6 +4186,7 @@ export class CjsAudioBackend
                 panner: null,
                 analyser,
                 mixerInput,
+                sharedBusFaders: Boolean(mixerInput),
             };
         }
         modes.set(mode, branch);
@@ -4423,6 +4425,7 @@ export class CjsAudioBackend
             gameObjID,
             busGraphRoute,
             emitterRouteBranch,
+            sharedBusFaders: emitterRouteBranch?.sharedBusFaders === true,
             buffer: descriptor.buffer,
             loop: descriptor.loop,
             playCount: descriptor.playCount,
@@ -5944,6 +5947,7 @@ export class CjsAudioBackend
                 }
             }
         }
+        this.#busMixer?.RefreshBusFaders?.();
     }
 
     /** Re-evaluates the live Voice Volume contribution during transitions. */
@@ -8132,22 +8136,22 @@ function ScheduleBusVolumeGain(
     const authoredOutputBusVolumeDb =
         Number(voice.authoredOutputBusVolumeDb) || 0;
     const evaluate = at => 10 ** ((
-        authoredBusVolumeDb
+        (voice.sharedBusFaders ? 0 : authoredBusVolumeDb)
         + authoredBusMakeUpGainDb
         + authoredOutputBusVolumeDb
         + EvaluateVoiceVolumeTargets(states, busPathIds, at)
-        + evaluateBusRtpcGainDb(
+        + (voice.sharedBusFaders ? 0 : evaluateBusRtpcGainDb(
             busRtpcCatalog,
             busPathIds,
             readGlobalRtpc,
             at,
-        )
-        + evaluateBusStateGainDb(
+        ))
+        + (voice.sharedBusFaders ? 0 : evaluateBusStateGainDb(
             busStateCatalog,
             busPathIds,
             readGlobalStateWeights,
             at,
-        )
+        ))
         + (busDuckingController?.EvaluateGainDb?.(
             busPathIds,
             at,

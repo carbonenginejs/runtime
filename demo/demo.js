@@ -19,6 +19,7 @@ import {
 } from "/runtime-audio/npm/dist/index.js";
 import { CjsSharedBusMixer } from "/runtime-audio/npm/dist/internal/busGraphMixer.js";
 import { CjsBusGraphRuntime } from "/runtime-audio/npm/dist/internal/busGraphRuntime.js";
+import { CjsBusDuckingController } from "/runtime-audio/npm/dist/internal/busDucking.js";
 
 // One acoustic scale everywhere: world units -> panner units.
 const ACOUSTIC_SCALE = 1 / 150;
@@ -2359,6 +2360,7 @@ function CreateBusGraphLabCatalog({ gameParameterId = 0 } = {})
             }),
             "501": bus({
                 parentBusId: "1",
+                busVolumeDb: -3,
                 effects: [ {
                     slotIndex: 0,
                     effectId: "902",
@@ -2379,6 +2381,7 @@ function CreateBusGraphLabCatalog({ gameParameterId = 0 } = {})
                 outputBusId: "501",
                 busPathIds: [ "501", "1" ],
                 userAuxSends: [],
+                authoredBusVolumeDb: -3,
             },
         ],
         sfxRoutes: { "100": 0, "101": 1 },
@@ -2606,7 +2609,7 @@ class BusGraphLabUi
                 ? "playing two rising sweeps through one shared Meter → EQ Bus"
                 : "playing a rising sweep through the 620 Hz low-pass Bus route"
             : route === "delay"
-                ? "playing a rising sweep through the 220 ms feedback Delay Bus"
+                ? "playing a rising sweep through the 220 ms Delay and -3 dB Bus fader"
                 : "playing the full-band dry rising sweep";
 
         document.getElementById("busGraphPlayback").textContent = label;
@@ -2682,7 +2685,17 @@ class BusGraphLabUi
         {
             const input = mixer.GetInput(runtime.ResolveSfxRoute("101"), "sfx");
             const delay = delays[0];
-            const [ entry, busInput, delayInput, dry, wet, output, feedback, root ] = gains;
+            const [
+                entry,
+                busInput,
+                delayInput,
+                dry,
+                wet,
+                output,
+                feedback,
+                fader,
+                root,
+            ] = gains;
 
             return Boolean(
                 input === entry
@@ -2695,14 +2708,16 @@ class BusGraphLabUi
                 && feedback?.connections[0] === delay
                 && dry?.connections[0] === output
                 && wet?.connections[0] === output
-                && output?.connections[0] === root
+                && output?.connections[0] === fader
+                && fader?.connections[0] === root
                 && root?.connections[0] === destination
                 && delay.maxDelayTime === Math.fround(0.22)
                 && delay.delayTime.value === Math.fround(0.22)
                 && dry.gain.value === 0.35
                 && wet.gain.value === 0.65
                 && feedback.gain.value === 0.45
-                && output.gain.value === 10 ** (-3 / 20),
+                && output.gain.value === 10 ** (-3 / 20)
+                && fader.gain.value === 10 ** (-3 / 20),
             );
         }
         finally
@@ -2719,10 +2734,25 @@ class BusGraphLabUi
         if (!catalog) return null;
         const sink = context.createGain();
         const runtime = new CjsBusGraphRuntime(catalog);
+        const backend = this.#app.audio?.backend;
+        const busDuckingController = new CjsBusDuckingController(
+            this.#app.library.raw.busDucking,
+        );
         const mixer = new CjsSharedBusMixer({
             context,
             runtime,
             destination: sink,
+            busRtpcs: this.#app.library.raw.busRtpcs,
+            busStates: this.#app.library.raw.busStates,
+            busDuckingController,
+            getGlobalRTPC: (name, at) =>
+                backend?.GetGlobalRTPCValue(name, at),
+            getGlobalRTPCTransitionBoundaries: from =>
+                backend?.GetGlobalRTPCTransitionBoundaries(from) ?? [],
+            getGlobalStatePropertyWeights: (group, at) =>
+                backend?.GetGlobalStatePropertyWeights(group, at) ?? [],
+            getGlobalStateTransitionBoundaries: from =>
+                backend?.GetGlobalStateTransitionBoundaries(from) ?? [],
         });
         try
         {
@@ -2762,6 +2792,7 @@ class BusGraphLabUi
         finally
         {
             mixer.Dispose();
+            busDuckingController.Dispose();
             runtime.Dispose();
             sink.disconnect();
         }

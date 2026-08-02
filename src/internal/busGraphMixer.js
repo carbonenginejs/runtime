@@ -6,7 +6,11 @@ import {
     busRtpcPathUses,
     indexBusRtpcCatalog,
 } from "./busRtpc.js";
-import { indexBusStateCatalog } from "./busState.js";
+import {
+    busStatePathUses,
+    indexBusStateCatalog,
+} from "./busState.js";
+import { scheduleSharedBusFader } from "./busFader.js";
 import { wwiseDbRtpcValueToDb } from "./wwiseRtpc.js";
 
 const KINDS = new Set([ "sfx", "music" ]);
@@ -25,7 +29,8 @@ const SILENT_AUX_REASONS = new Set([
 /**
  * Owns the shared Web Audio node topology for strictly qualified Bus routes.
  * Accepts strict dry paths, source-proven static Parametric EQ and Delay
- * stages, and explicitly feedback-free Wwise Meter telemetry omissions.
+ * stages, explicitly feedback-free Wwise Meter telemetry omissions, and exact
+ * post-effect faders for the globally shared Bus gain contributions.
  */
 export class CjsSharedBusMixer
 {
@@ -53,6 +58,14 @@ export class CjsSharedBusMixer
 
     #busDuckingController = null;
 
+    #readGlobalRtpc = null;
+
+    #readGlobalRtpcTransitionBoundaries = null;
+
+    #readGlobalStateWeights = null;
+
+    #readGlobalStateTransitionBoundaries = null;
+
     #categoryVolumes = new Map([
         [ "sfx", 1 ],
         [ "music", 1 ],
@@ -68,6 +81,10 @@ export class CjsSharedBusMixer
         busRtpcs,
         busStates,
         busDuckingController,
+        getGlobalRTPC,
+        getGlobalRTPCTransitionBoundaries,
+        getGlobalStatePropertyWeights,
+        getGlobalStateTransitionBoundaries,
     } = {})
     {
         if (!context || typeof context.createGain !== "function")
@@ -97,6 +114,21 @@ export class CjsSharedBusMixer
         this.#busRtpcs = indexBusRtpcCatalog(busRtpcs);
         this.#busStates = indexBusStateCatalog(busStates);
         this.#busDuckingController = busDuckingController ?? null;
+        this.#readGlobalRtpc = typeof getGlobalRTPC === "function"
+            ? getGlobalRTPC
+            : null;
+        this.#readGlobalRtpcTransitionBoundaries =
+            typeof getGlobalRTPCTransitionBoundaries === "function"
+                ? getGlobalRTPCTransitionBoundaries
+                : null;
+        this.#readGlobalStateWeights =
+            typeof getGlobalStatePropertyWeights === "function"
+                ? getGlobalStatePropertyWeights
+                : null;
+        this.#readGlobalStateTransitionBoundaries =
+            typeof getGlobalStateTransitionBoundaries === "function"
+                ? getGlobalStateTransitionBoundaries
+                : null;
     }
 
     /**
@@ -165,6 +197,19 @@ export class CjsSharedBusMixer
         }
     }
 
+    /** Re-evaluates every allocated physical Bus fader. */
+    RefreshBusFaders()
+    {
+        if (this.#disposed) return;
+        for (const [ busId, realized ] of this.#buses)
+        {
+            if (realized.busGain)
+            {
+                this.#ScheduleBusFader(busId, realized.busGain.gain);
+            }
+        }
+    }
+
     /** Disconnects every entry and shared Bus node. Safe to call repeatedly. */
     Dispose()
     {
@@ -174,6 +219,7 @@ export class CjsSharedBusMixer
         for (const bus of this.#buses.values())
         {
             bus.input.disconnect?.();
+            bus.busGain?.disconnect?.();
             for (const node of bus.effectNodes) node.disconnect?.();
         }
         this.#entries.clear();
@@ -184,6 +230,10 @@ export class CjsSharedBusMixer
         this.#busStates.clear();
         this.#silentAuxReturnGains.clear();
         this.#busDuckingController = null;
+        this.#readGlobalRtpc = null;
+        this.#readGlobalRtpcTransitionBoundaries = null;
+        this.#readGlobalStateWeights = null;
+        this.#readGlobalStateTransitionBoundaries = null;
         this.#categoryVolumes.clear();
         this.#catalog = null;
         this.#runtime = null;
@@ -208,6 +258,7 @@ export class CjsSharedBusMixer
             this.#busDuckingController?.PathHasTarget?.(route.busPathIds),
         );
         let hasAudibleEffect = false;
+        let authoredBusVolumeDb = 0;
 
         for (let index = 0; qualified && index < route.busPathIds.length; index++)
         {
@@ -226,19 +277,33 @@ export class CjsSharedBusMixer
                 || !IsNeutralPositioning(bus.positioning)
                 || !IsDisabledHdr(bus.hdr)
                 || !this.#HasOnlySilentUserAuxSends(bus)
+                || !this.#CanRealizeBusFader(busId, bus)
                 || effects === null)
             {
                 qualified = false;
                 break;
             }
             pathIds.add(busId);
-            hasDistributedControls ||= this.#busRtpcs.has(String(busId))
-                || this.#busStates.has(String(busId))
+            authoredBusVolumeDb += Number(bus.busVolumeDb ?? 0);
+            const busPath = [ String(busId) ];
+
+            hasDistributedControls ||= busRtpcPathUses(
+                this.#busRtpcs,
+                busPath,
+                "voice-volume",
+            )
+                || busStatePathUses(this.#busStates, busPath, "pitchCents")
+                || busStatePathUses(this.#busStates, busPath, "lowPass")
+                || busStatePathUses(this.#busStates, busPath, "highPass")
                 || bus.busVolumeActionControlled === true
-                || bus.requiresProcessing.some(reason =>
-                    DISTRIBUTED_CONTROL_REASONS.has(reason));
+                || bus.requiresProcessing.includes("ducking");
             hasAudibleEffect ||= effects.some(effect =>
                 effect.type !== "meter-omission");
+        }
+        if (qualified
+            && authoredBusVolumeDb !== Number(route.authoredBusVolumeDb ?? 0))
+        {
+            qualified = false;
         }
         // Existing dry-route controllers realize these controls before the
         // shared topology. Preserve that ordering across the complete ancestry,
@@ -249,6 +314,29 @@ export class CjsSharedBusMixer
         }
         this.#qualification.set(handle, qualified);
         return qualified;
+    }
+
+    #CanRealizeBusFader(busId, bus)
+    {
+        const path = [ String(busId) ];
+        const usesRtpc = busRtpcPathUses(
+            this.#busRtpcs,
+            path,
+            "bus-volume",
+        );
+        const usesState = busStatePathUses(
+            this.#busStates,
+            path,
+            "gainDb",
+        );
+
+        return (!usesRtpc
+                || (this.#readGlobalRtpc
+                    && this.#readGlobalRtpcTransitionBoundaries))
+            && (!usesState
+                || (this.#readGlobalStateWeights
+                    && this.#readGlobalStateTransitionBoundaries))
+            && Number.isFinite(Number(bus?.busVolumeDb ?? 0));
     }
 
     /** Decodes one Bus's complete active effect sequence, or returns null. */
@@ -554,19 +642,52 @@ export class CjsSharedBusMixer
             this.#busEffects,
             [ id ],
         );
+        const busGain = this.#BusNeedsFader(id, bus)
+            ? this.#context.createGain()
+            : null;
 
         realized = {
             input,
             effectNodes: effectChain?.nodes ?? [],
+            busGain,
         };
         this.#buses.set(id, realized);
         const destination = bus.parentBusId
             ? this.#GetBusInput(bus.parentBusId)
             : this.#destination;
 
-        input.connect(effectChain?.input ?? destination);
-        effectChain?.output?.connect(destination);
+        input.connect(effectChain?.input ?? busGain ?? destination);
+        effectChain?.output?.connect(busGain ?? destination);
+        busGain?.connect(destination);
+        if (busGain) this.#ScheduleBusFader(id, busGain.gain);
         return input;
+    }
+
+    #BusNeedsFader(busId, bus)
+    {
+        const path = [ String(busId) ];
+
+        return (Number(bus?.busVolumeDb) || 0) !== 0
+            || busRtpcPathUses(this.#busRtpcs, path, "bus-volume")
+            || busStatePathUses(this.#busStates, path, "gainDb");
+    }
+
+    #ScheduleBusFader(busId, param)
+    {
+        scheduleSharedBusFader({
+            param,
+            busId,
+            staticGainDb: this.#catalog.buses?.[busId]?.busVolumeDb,
+            context: this.#context,
+            busRtpcs: this.#busRtpcs,
+            readGlobalRtpc: this.#readGlobalRtpc,
+            readGlobalRtpcTransitionBoundaries:
+                this.#readGlobalRtpcTransitionBoundaries,
+            busStates: this.#busStates,
+            readGlobalStateWeights: this.#readGlobalStateWeights,
+            readGlobalStateTransitionBoundaries:
+                this.#readGlobalStateTransitionBoundaries,
+        });
     }
 }
 

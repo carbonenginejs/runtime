@@ -539,14 +539,18 @@ effective even when its override bit is clear, because it has no parent. A
 non-root node with a clear override bit inherits, while the first overriding
 descendant replaces the inherited list. The catalog is the shared-runtime
 foundation, not an audible approximation. Current playback can share a
-complete static Parametric EQ/Delay sequence without distributed controls, or an
-effect-free/feedback-free-Meter path whose supported Voice/Bus Volume RTPC,
-State, and ducking records all have matching installed runtime catalogs. Those
-controls remain on the existing dry-route stages upstream of the shared unity
-path. `busVolumeActionControlled` likewise marks every Bus targeted by a
-retained Set or Reset Bus Volume action. Audible effects combined with any
-distributed or action control remain blocked so gain/filter placement and an
-effect tail cannot silently cross the authored Bus fader. The only auxiliary
+complete static Parametric EQ/Delay sequence with Bus Volume RTPC and Immediate
+State gain. Each physical Bus owns one post-effect fader that combines its
+static Bus Volume with only that Bus's matching global RTPC and State gain;
+the route aggregate is admitted only when it exactly equals the sum of those
+physical Bus values. Voice Volume remains before the Bus, while Make-Up Gain,
+effective NodeBase Output Bus Volume, ducking, and live Set/Reset Bus Volume
+actions remain on the route-local stage. State Pitch/LPF/HPF also remain local.
+`busVolumeActionControlled` likewise marks every Bus targeted by a retained Set
+or Reset Bus Volume action. An audible effect combined with Voice Volume,
+filtering or pitch, ducking, or action control remains blocked so per-voice
+state and an effect tail cannot silently cross the shared Bus fader. The only
+auxiliary
 exception is the proven static-silence omission above. Audible or dynamic sends,
 reflections sends, unsupported RTPC bindings, and every other incomplete ordered
 effect path remain blocked until their complete reachable path has adapters.
@@ -577,17 +581,20 @@ The audio-system generation also owns a strict shared-Bus mixer. Its
 qualification accepts only dry audio-bus ancestry with default channel layout,
 no active Bus positioning or HDR, and no audible sends. Authored positioning/HDR
 override flags are allowed only when their decoded values prove both features
-inactive. Processing may be either a complete source-proven static Parametric
-EQ/Delay/Meter sequence without distributed controls, or complete Bus Volume RTPC,
-State, and ducking controls on an effect-free or feedback-free-Meter path. The
+inactive. Processing may include a complete source-proven static Parametric
+EQ/Delay/Meter sequence with static Bus Volume, Bus Volume RTPC, and Immediate
+State gain at exact per-Bus post-effect faders. The
 matching RTPC/State catalog entry and live ducking source must be installed for
 each declared control. An incoming duck target also counts as a route control,
 even though Wwise declares that rule on its separate source Bus. Qualified
 routes receive stable SFX and music category entries and share one node per
 common Bus ancestor. Provably silenced static user sends allocate no wet nodes;
-all other auxiliary routes remain blocked.
-category entries remain separate so application volume controls cannot merge
-unrelated routes prematurely. A blocked route returns no mixer input and
+all other auxiliary routes remain blocked. SFX and music category entries
+remain separate so application volume controls cannot merge unrelated routes
+prematurely. Audible effects still reject Voice
+Volume RTPCs, State pitch/filter properties, ducking, and Bus Volume action
+targets because those controls remain route- or voice-local.
+A blocked route returns no mixer input and
 allocates no partial graph. Qualified SFX route branches now consume these
 entries, including per-branch analyser stages that preserve aggregate emitter
 metering without merging route identity. Qualified music tracks use one

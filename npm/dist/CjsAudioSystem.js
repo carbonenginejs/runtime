@@ -176,7 +176,11 @@ class CjsAudioSystem {
           destination: this.backend.masterGain,
           busRtpcs: this.#busRtpcs,
           busStates: this.#busStates,
-          busDuckingController: this.#busDuckingController
+          busDuckingController: this.#busDuckingController,
+          getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
+          getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
+          getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
+          getGlobalStateTransitionBoundaries: from => this.backend.GetGlobalStateTransitionBoundaries(from)
         }) : null;
         this.backend.SetBusMixer(this.#busMixer);
         if (!this.musicEngine) {

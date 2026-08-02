@@ -2402,7 +2402,8 @@ class CjsAudioBackend {
         flatGain: null,
         panner,
         analyser,
-        mixerInput
+        mixerInput,
+        sharedBusFaders: Boolean(mixerInput)
       };
     } else {
       const flatGain = this.#context.createGain();
@@ -2413,7 +2414,8 @@ class CjsAudioBackend {
         flatGain,
         panner: null,
         analyser,
-        mixerInput
+        mixerInput,
+        sharedBusFaders: Boolean(mixerInput)
       };
     }
     modes.set(mode, branch);
@@ -2531,6 +2533,7 @@ class CjsAudioBackend {
       gameObjID,
       busGraphRoute,
       emitterRouteBranch,
+      sharedBusFaders: emitterRouteBranch?.sharedBusFaders === true,
       buffer: descriptor.buffer,
       loop: descriptor.loop,
       playCount: descriptor.playCount,
@@ -3334,6 +3337,7 @@ class CjsAudioBackend {
         }
       }
     }
+    this.#busMixer?.RefreshBusFaders?.();
   }
 
   /** Re-evaluates the live Voice Volume contribution during transitions. */
@@ -4484,7 +4488,7 @@ function ScheduleBusVolumeGain(param, voice, context, busRtpcCatalog, readGlobal
   const authoredBusVolumeDb = Number(voice.authoredBusVolumeDb) || 0;
   const authoredBusMakeUpGainDb = Number(voice.authoredBusMakeUpGainDb) || 0;
   const authoredOutputBusVolumeDb = Number(voice.authoredOutputBusVolumeDb) || 0;
-  const evaluate = at => 10 ** ((authoredBusVolumeDb + authoredBusMakeUpGainDb + authoredOutputBusVolumeDb + EvaluateVoiceVolumeTargets(states, busPathIds, at) + evaluateBusRtpcGainDb(busRtpcCatalog, busPathIds, readGlobalRtpc, at) + evaluateBusStateGainDb(busStateCatalog, busPathIds, readGlobalStateWeights, at) + (busDuckingController?.EvaluateGainDb?.(busPathIds, at) ?? 0)) / 20);
+  const evaluate = at => 10 ** (((voice.sharedBusFaders ? 0 : authoredBusVolumeDb) + authoredBusMakeUpGainDb + authoredOutputBusVolumeDb + EvaluateVoiceVolumeTargets(states, busPathIds, at) + (voice.sharedBusFaders ? 0 : evaluateBusRtpcGainDb(busRtpcCatalog, busPathIds, readGlobalRtpc, at)) + (voice.sharedBusFaders ? 0 : evaluateBusStateGainDb(busStateCatalog, busPathIds, readGlobalStateWeights, at)) + (busDuckingController?.EvaluateGainDb?.(busPathIds, at) ?? 0)) / 20);
   const startValue = evaluate(now);
   if (typeof param.cancelAndHoldAtTime === "function") {
     param.cancelAndHoldAtTime(now);

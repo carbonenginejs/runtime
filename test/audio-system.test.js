@@ -346,6 +346,18 @@ function AddSilentAuxReturn(catalog)
   };
 }
 
+function SharedControlReaders({ rtpc, state } = {})
+{
+  return {
+    getGlobalRTPC: () => rtpc,
+    getGlobalRTPCTransitionBoundaries: () => [],
+    getGlobalStatePropertyWeights: () => state === undefined
+      ? []
+      : [ { state, weight: 1 } ],
+    getGlobalStateTransitionBoundaries: () => [],
+  };
+}
+
 function MixerContext()
 {
   const context = {
@@ -356,8 +368,27 @@ function MixerContext()
     filters: [],
     createGain()
     {
+      const gain = {
+        value: 1,
+        holds: [],
+        sets: [],
+        curves: [],
+        cancelAndHoldAtTime(time)
+        {
+          gain.holds.push(time);
+        },
+        setValueAtTime(value, time)
+        {
+          gain.sets.push([ value, time ]);
+          gain.value = value;
+        },
+        setValueCurveAtTime(values, time, duration)
+        {
+          gain.curves.push([ Array.from(values), time, duration ]);
+        },
+      };
       const node = {
-        gain: { value: 1 },
+        gain,
         connectedTo: null,
         disconnected: false,
         connect(target)
@@ -529,7 +560,13 @@ test("strict shared Bus mixer admits complete distributed controls only on trans
   ];
   const busRtpcs = {
     schemaVersion: 1,
-    buses: { "500": [ { rtpc: "volume", points: [] } ] },
+    buses: {
+      "500": [ {
+        rtpc: "volume",
+        defaultValue: 1,
+        points: [ { x: 0, value: 0, interpolation: 4 } ],
+      } ],
+    },
   };
   const busStates = {
     schemaVersion: 2,
@@ -594,6 +631,7 @@ test("strict shared Bus mixer admits complete distributed controls only on trans
     busRtpcs,
     busStates,
     busDuckingController,
+    ...SharedControlReaders(),
   });
 
   assert.ok(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"));
@@ -622,6 +660,126 @@ test("strict shared Bus mixer admits complete distributed controls only on trans
   assert.equal(blockedEq.GetInput(eqRuntime.ResolveSfxRoute("100"), "sfx"), null);
   assert.equal(eqContext.gains.length, 0);
   assert.equal(eqContext.filters.length, 0);
+});
+
+test("shared Bus faders own exact post-effect static, RTPC, and State gain", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+
+  AddGraphEffect(catalog, "500", "900", 0, ParametricEqParameters({
+    bands: [
+      { type: 6, gain: -13, frequency: 120, q: 5, enabled: true },
+      { type: 0, gain: 0, frequency: 8000, q: 1, enabled: false },
+      { type: 0, gain: 0, frequency: 8000, q: 1, enabled: false },
+    ],
+    outputGainDb: 0,
+  }));
+  catalog.buses["500"].busVolumeDb = -6;
+  catalog.buses["500"].requiresProcessing = [ "effects", "rtpc", "state" ];
+  catalog.routes[0].authoredBusVolumeDb = -6;
+  const busRtpcs = {
+    schemaVersion: 2,
+    buses: {
+      "500": [ {
+        curveId: 78,
+        property: "bus-volume",
+        rtpc: "mix",
+        defaultValue: 1,
+        scaling: 2,
+        points: [
+          { x: 0, value: -1, interpolation: 4 },
+          { x: 1, value: 0, interpolation: 4 },
+        ],
+      } ],
+    },
+  };
+  const busStates = {
+    schemaVersion: 2,
+    buses: {
+      "500": [ {
+        group: "mode",
+        groupId: "10",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ { stateId: "20", state: "on", gainDb: -3 } ],
+      } ],
+    },
+  };
+  let rtpc = 0.5;
+  let state = "on";
+  const readers = {
+    getGlobalRTPC: () => rtpc,
+    getGlobalRTPCTransitionBoundaries: () => [ 2 ],
+    getGlobalStatePropertyWeights: () => [ { state, weight: 1 } ],
+    getGlobalStateTransitionBoundaries: () => [],
+  };
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const missingContext = MixerContext();
+  const missingReaders = new CjsSharedBusMixer({
+    context: missingContext,
+    runtime,
+    destination: missingContext.destination,
+    busRtpcs,
+    busStates,
+  });
+
+  assert.equal(missingReaders.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+  assert.equal(missingContext.gains.length, 0);
+
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    busRtpcs,
+    busStates,
+    ...readers,
+  });
+  const sfxEntry = mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx");
+  const musicEntry = mixer.GetInput(runtime.ResolveMusicRoute("200"), "music");
+  const busInput = sfxEntry.connectedTo;
+  const effect = busInput.connectedTo;
+  const fader = effect.connectedTo;
+  const rootInput = fader.connectedTo;
+  const expectedDb = -6 + 20 * Math.log10(0.5) - 3;
+
+  assert.equal(musicEntry.connectedTo, busInput, "SFX and music share one physical Bus");
+  assert.equal(context.filters.length, 1);
+  assert.equal(effect.type, "peaking");
+  assert.ok(Math.abs(fader.gain.value - 10 ** (expectedDb / 20)) < 1e-12);
+  assert.equal(fader.gain.curves.length, 1);
+  assert.deepEqual(fader.gain.curves[0].slice(1), [ 0, 2 ]);
+  assert.equal(rootInput.connectedTo, context.destination);
+
+  context.currentTime = 0.5;
+  rtpc = 1;
+  state = "off";
+  mixer.RefreshBusFaders();
+  assert.ok(Math.abs(fader.gain.value - 10 ** (-6 / 20)) < 1e-12);
+  assert.equal(fader.gain.holds.at(-1), 0.5);
+
+  const nodes = [ ...context.gains ];
+
+  mixer.Dispose();
+  assert.ok(nodes.every(node => node.disconnected));
+});
+
+test("shared Bus faders reject route aggregate disagreement before allocation", () =>
+{
+  const context = MixerContext();
+  const catalog = MixerCatalog();
+
+  catalog.buses["500"].busVolumeDb = -6;
+  catalog.routes[0].authoredBusVolumeDb = -5;
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+
+  assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+  assert.equal(context.gains.length, 0);
 });
 
 test("shared Bus Voice Volume RTPC routes qualify only for SFX", () =>
@@ -694,7 +852,7 @@ test("strict shared Bus controls cannot cross an audible effect on another Bus",
             groupId: "10",
             syncType: 0,
             effectiveSyncType: 0,
-            states: [ { stateId: "20", state: "on", gainDb: -6 } ],
+            states: [ { stateId: "20", state: "on", lowPass: 50 } ],
           } ],
         },
       },
@@ -979,12 +1137,20 @@ test("strict shared Bus mixer omits only provably silenced static Aux returns", 
     runtime,
     destination: context.destination,
     ...controls,
+    ...SharedControlReaders(),
   });
   const input = mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx");
 
   assert.ok(input);
-  assert.equal(context.gains.length, 3, "the omitted wet return allocates no nodes");
-  assert.equal(input.connectedTo.connectedTo.connectedTo, context.destination);
+  assert.equal(
+    context.gains.length,
+    4,
+    "the omitted wet return allocates only the root's shared fader",
+  );
+  assert.equal(
+    input.connectedTo.connectedTo.connectedTo.connectedTo,
+    context.destination,
+  );
 
   const mutations = [
     value => { value.routes[0].userAuxSends[0].dynamic = true; },
@@ -1018,6 +1184,7 @@ test("strict shared Bus mixer omits only provably silenced static Aux returns", 
       runtime: blockedRuntime,
       destination: blockedContext.destination,
       ...blockedControls,
+      ...SharedControlReaders(),
     });
 
     assert.equal(
@@ -1061,6 +1228,7 @@ test("strict shared Bus mixer omits only provably silenced static Aux returns", 
       runtime: blockedRuntime,
       destination: blockedContext.destination,
       ...blockedControls,
+      ...SharedControlReaders(),
     });
 
     assert.equal(

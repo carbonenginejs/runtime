@@ -234,14 +234,21 @@ function MixerBus(overrides = {})
   };
 }
 
-function MusicMixerCatalog()
+function MusicMixerCatalog({
+  busVolumeDb = 0,
+  authoredBusMakeUpGainDb = 0,
+  authoredOutputBusVolumeDb = 0,
+} = {})
 {
   return {
     schemaVersion: 1,
     effects: {},
     buses: {
       "1": MixerBus(),
-      "500": MixerBus({ parentBusId: "1" }),
+      "500": MixerBus({
+        parentBusId: "1",
+        ...(busVolumeDb === 0 ? {} : { busVolumeDb }),
+      }),
       "600": MixerBus({ parentBusId: "1" }),
       "700": MixerBus({
         parentBusId: "1",
@@ -253,6 +260,13 @@ function MusicMixerCatalog()
         outputBusId: "500",
         busPathIds: [ "500", "1" ],
         userAuxSends: [],
+        ...(busVolumeDb === 0 ? {} : { authoredBusVolumeDb: busVolumeDb }),
+        ...(authoredBusMakeUpGainDb === 0
+          ? {}
+          : { authoredBusMakeUpGainDb }),
+        ...(authoredOutputBusVolumeDb === 0
+          ? {}
+          : { authoredOutputBusVolumeDb }),
       },
       {
         outputBusId: "600",
@@ -2780,6 +2794,76 @@ test("qualified music routes share static EQ after their route-local fades", asy
   assert.equal(eq.disconnected, false, "music lifetime does not own shared Bus effects");
   mixer.Dispose();
   assert.equal(eq.disconnected, true);
+  runtime.Dispose();
+});
+
+test("qualified music keeps local gain while the shared Bus owns post-effect volume", async () =>
+{
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const route = {
+    authoredBusVolumeDb: -6,
+    authoredBusMakeUpGainDb: 2,
+    authoredOutputBusVolumeDb: 3,
+  };
+  const catalog = MusicMixerCatalog({
+    busVolumeDb: route.authoredBusVolumeDb,
+    authoredBusMakeUpGainDb: route.authoredBusMakeUpGainDb,
+    authoredOutputBusVolumeDb: route.authoredOutputBusVolumeDb,
+  });
+  const { graphEffect, busEffects } = MusicEqFixture();
+
+  catalog.effects["990"] = graphEffect;
+  catalog.buses["500"].effects = [ {
+    slotIndex: 0,
+    effectId: "990",
+    bypass: false,
+    shareSet: true,
+    rendered: false,
+  } ];
+  catalog.buses["500"].requiresProcessing = [ "effects" ];
+  Object.assign(graph.nodes[TRACK_A], {
+    outputBusId: "500",
+    busPathIds: [ "500", "1" ],
+    ...route,
+  });
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+  });
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+    random: () => 0.5,
+    busEffects,
+    busGraphRuntime: runtime,
+    busMixer: mixer,
+  });
+
+  engine.PostEvent("music_test_play", 708, () => {});
+  await tick();
+
+  const routeGain = context.sources[0].connectedTo;
+  const mixerInput = mixer.GetInput(
+    runtime.ResolveMusicRoute(String(TRACK_A)),
+    "music",
+  );
+  const effect = mixerInput.connectedTo.connectedTo;
+  const sharedFader = effect.connectedTo;
+
+  assert.ok(Math.abs(routeGain.gain.value - 10 ** (5 / 20)) < 1e-6);
+  assert.equal(effect.type, "peaking");
+  assert.ok(Math.abs(sharedFader.gain.value - 10 ** (-6 / 20)) < 1e-12);
+  assert.equal(sharedFader.connectedTo.connectedTo, context.destination);
+
+  engine.Dispose();
+  assert.equal(sharedFader.disconnected, false);
+  mixer.Dispose();
+  assert.equal(sharedFader.disconnected, true);
   runtime.Dispose();
 });
 
