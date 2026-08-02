@@ -120,6 +120,12 @@ function readTransformSection(reader, layoutKey) {
       inputs.push({
         parameter,
         layer,
+        // Kept alongside the identity they compose: a consumer checking
+        // the transform against a binding set compares registers, and
+        // re-parsing them back out of the identity string is a second
+        // place for the format of that string to matter.
+        registerSpace,
+        registerIndex,
         identity,
         scopeIdentity: `${identity}@${DETAIL_MAP_ARRAY_DEFAULTS.stage}`
       });
