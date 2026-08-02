@@ -3437,6 +3437,24 @@ test("routed Parametric EQ qualification rejects unsupported static forms", asyn
         }),
         /is not static/,
     );
+
+    const blocked = await BuildRoutedEffectLibrary({
+        unsupportedEffectFlags: 0,
+    });
+    const bypassed = await BuildRoutedEffectLibrary({
+        unsupportedEffectFlags: 1,
+    });
+
+    assert.equal(
+        blocked.busEffects,
+        undefined,
+        "an active unsupported slot blocks distributed EQ on the whole route",
+    );
+    assert.equal(
+        bypassed.busEffects.buses["500"][0].effectId,
+        "900",
+        "a bypassed unsupported slot is not an audible ordering barrier",
+    );
 });
 
 test("complete construction projects multi-property effective-Immediate Bus States", async () =>
@@ -6285,6 +6303,7 @@ function parametricEqEffectPayload({
     outputGainDb = 0,
     processLfe = true,
     propertyValues = [],
+    pluginId = 0x00690003,
 } = {})
 {
     const parameters = new TestWriter();
@@ -6301,7 +6320,7 @@ function parametricEqEffectPayload({
     parameters.f32(outputGainDb).u8(processLfe ? 1 : 0);
     const parameterBlock = parameters.bytes();
     const writer = new TestWriter()
-        .u32(0x00690003)
+        .u32(pluginId)
         .u32(parameterBlock.byteLength)
         .append(parameterBlock)
         .u8(0)
@@ -6324,6 +6343,7 @@ function BuildRoutedEffectLibrary({
     effectType = 16,
     effectFlags = 2,
     effectPayload = null,
+    unsupportedEffectFlags = null,
 } = {})
 {
     const defaultBands = [
@@ -6372,13 +6392,32 @@ function BuildRoutedEffectLibrary({
                             type: 8,
                             id: 500,
                             payload: busPayload({
-                                effects: [ {
-                                    slotIndex: 1,
-                                    effectId: 900,
-                                    flags: effectFlags,
-                                } ],
+                                effects: [
+                                    ...(unsupportedEffectFlags === null
+                                        ? []
+                                        : [ {
+                                            slotIndex: 0,
+                                            effectId: 901,
+                                            flags: unsupportedEffectFlags,
+                                        } ]),
+                                    {
+                                        slotIndex: 1,
+                                        effectId: 900,
+                                        flags: effectFlags,
+                                    },
+                                ],
                             }),
                         },
+                        ...(unsupportedEffectFlags === null
+                            ? []
+                            : [ {
+                                type: 17,
+                                id: 901,
+                                payload: parametricEqEffectPayload({
+                                    bands: defaultBands,
+                                    pluginId: 0x006c0003,
+                                }),
+                            } ]),
                         {
                             type: effectType,
                             id: 900,

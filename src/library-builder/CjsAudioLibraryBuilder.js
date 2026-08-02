@@ -3399,6 +3399,8 @@ function CreateBusEffectCatalog(inspections, buses, routedBusIds)
         throw new Error("Audio Bus effect qualification failed");
     }
     const result = {};
+    const activeEffectsByBus = new Map();
+    const unsupportedBusIds = new Set();
 
     for (const rawBusId of [ ...routedBusIds ]
         .map(Number)
@@ -3407,7 +3409,7 @@ function CreateBusEffectCatalog(inspections, buses, routedBusIds)
         const bus = buses.get(rawBusId);
 
         if (!bus || bus.fx?.bypassAll) continue;
-        const effects = [];
+        const activeEffects = [];
 
         for (const slot of [ ...(bus.fx?.slots ?? []) ]
             .sort((left, right) => left.index - right.index))
@@ -3435,13 +3437,63 @@ function CreateBusEffectCatalog(inspections, buses, routedBusIds)
                     `Audio Bus ${rawBusId} effect ${slot.fxId} has a mismatched ShareSet flag`,
                 );
             }
-            if (effect.pluginId !== PARAMETRIC_EQ_PLUGIN_ID) continue;
-            effects.push(ParseStaticParametricEq(rawBusId, slot, effect));
+            activeEffects.push({ slot, effect });
+            if (effect.pluginId !== PARAMETRIC_EQ_PLUGIN_ID)
+            {
+                unsupportedBusIds.add(rawBusId);
+            }
         }
-        if (effects.length)
+        if (activeEffects.length)
         {
-            result[String(rawBusId)] = effects;
+            activeEffectsByBus.set(rawBusId, activeEffects);
         }
+    }
+
+    // A distributed linear adapter may only cross a route whose complete
+    // active slot sequence is understood. Skipping an unsupported Compressor,
+    // limiter, reverb, or other slot and applying a later EQ changes authored
+    // order and, for nonlinear stages, cross-voice behavior. Conservatively
+    // suppress every catalog entry on any routed ancestry that crosses such a
+    // barrier. A future shared bus graph can qualify and realize those paths.
+    const unsafeBusIds = new Set();
+
+    for (const rawBusId of [ ...routedBusIds ].map(Number))
+    {
+        const path = [];
+        const active = new Set();
+        let current = rawBusId;
+        let unsupported = false;
+
+        while (current)
+        {
+            if (active.has(current))
+            {
+                throw new Error(`Audio bus ancestry cycle at ${current}`);
+            }
+            active.add(current);
+            path.push(current);
+            unsupported ||= unsupportedBusIds.has(current);
+            const bus = buses.get(current);
+
+            if (!bus)
+            {
+                throw new Error(`Audio bus ancestry is missing ${current}`);
+            }
+            current = Number(bus.overrideBusId) >>> 0;
+        }
+        if (unsupported)
+        {
+            for (const busId of path) unsafeBusIds.add(busId);
+        }
+    }
+
+    for (const [ rawBusId, activeEffects ] of activeEffectsByBus)
+    {
+        if (unsafeBusIds.has(rawBusId)) continue;
+        const effects = activeEffects.map(({ slot, effect }) =>
+            ParseStaticParametricEq(rawBusId, slot, effect));
+
+        if (effects.length) result[String(rawBusId)] = effects;
     }
     return { schemaVersion: 1, buses: result };
 }

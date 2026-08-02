@@ -481,14 +481,17 @@ and band order, and realizes enabled bands with Web Audio biquads on SFX and
 built-in music dry routes. Routed EQs with RTPC, State, property, or media
 controls fail closed. `processLfe` must be true until the browser runtime owns
 an independent LFE branch. Authored-neutral EQs remain in the catalog but do
-not allocate browser nodes.
+not allocate browser nodes. A distributed EQ is emitted only when the complete
+routed ancestry contains no active unsupported effect slot. Bypassed slots do
+not block it; an active Compressor, Peak Limiter, reverb, meter, or unknown
+plug-in suppresses every distributed effect on that route so authored ordering
+cannot be partially realized.
 
-The current realization distributes each static EQ onto source routes as an
-audible browser adaptation. It is not exact shared-bus placement when
-downstream gain automation or moving spatialization varies between voices, or
-when the authored Wwise slot sits before or after a Compressor, Peak Limiter,
-or another nonlinear stage. Full placement requires a shared ordered bus graph
-rather than per-source distribution.
+The current realization distributes each fully qualified static EQ onto source
+routes as an audible browser adaptation. It is not exact shared-bus placement
+when downstream gain automation or moving spatialization varies between
+voices. Routes containing nonlinear or otherwise unsupported active stages are
+reserved for a shared ordered bus graph rather than partially adapted.
 
 The bank builder projects only named, Immediate Volume, Pitch, and filter
 state tables with their exact supported accumulation modes. A group containing
