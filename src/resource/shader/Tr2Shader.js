@@ -195,10 +195,21 @@ export class Tr2Shader extends CjsModel
    * on the container's version — so handing each body its own reader would mean
    * re-parsing the header per permutation and losing the arena.
    *
-   * ccpwgl passes the owning resource alongside the reader for exactly that
-   * reason: there, the arena and version live on the resource. Here they live on
-   * the reader itself, which the resource retains, so the resource adds nothing a
-   * body needs and is deliberately not a parameter.
+   * Carbon passes exactly that bundle, as loose arguments
+   * (`Tr2EffectRes.cpp:126-134`):
+   *
+   * ```cpp
+   * auto offset = m_offsets[index];
+   * auto buffer = ...m_data.get() + offset.offset;
+   * shader->GetEffect().Read( buffer, offset.size, m_version,
+   *                           m_stringTable, m_stringTableSize, path );
+   * shader->ProcessEffect();
+   * ```
+   *
+   * The resource owns `m_data`, `m_offsets`, `m_version` and the string table,
+   * and hands the body a pointer plus the version and arena. Here that same state
+   * is held by the reader the resource retains, so passing the reader passes the
+   * whole bundle and the resource itself adds nothing a body needs.
    *
    * Reading is backend-agnostic. A dx11 body reads exactly as a webgl one does;
    * they differ only in what the optional per-pass block carries, and this method
