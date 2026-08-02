@@ -6,7 +6,12 @@ import {
 } from "@carbonenginejs/runtime-utils/is";
 import { copyBytes } from "@carbonenginejs/runtime-utils/bytes";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";
-import { recordBytes, recordText } from "./carbonRecordFields.js";
+import {
+  recordBytes,
+  recordText,
+  toRecordBlob,
+  toRecordText
+} from "./carbonRecordFields.js";
 
 /** Reflected shader-library metadata. */
 export class Tr2EffectLibrary extends CjsModel
@@ -130,6 +135,30 @@ export class Tr2EffectLibrary extends CjsModel
     return library;
   }
 
+
+  /**
+   * Emit this library as a Carbon v15 record.
+   *
+   * `exports` is authoritative; the named entry-point fields are a view onto it
+   * and are not written separately.
+   *
+   * @returns {object} Carbon library record.
+   */
+  toCarbonBinary()
+  {
+    const program = this.sourceProgram ?? {};
+    return {
+      payloadSize: this.payloadSize >>> 0,
+      shaderData: toRecordBlob(program.bytes, program.shaderSize),
+      exports: this.exports.map(entry => ({
+        type: entry.type,
+        name: toRecordText(entry.name)
+      })),
+      hitGroupName: toRecordText(this.hitGroupName),
+      globalInputs: this.globalInput.toCarbonBinaryInput(),
+      localInputs: this.localInput.toCarbonBinaryInput()
+    };
+  }
 }
 
 // Declared imperatively rather than with decorators, so this module stays

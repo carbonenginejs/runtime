@@ -6,7 +6,7 @@ import {
 } from "@carbonenginejs/runtime-utils/is";
 import { requireShaderStageType, SHADER_STAGE_COUNT } from "./shaderStage.js";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";
-import { recordBytes } from "./carbonRecordFields.js";
+import { recordBytes, toRecordBlob } from "./carbonRecordFields.js";
 
 /** Reflected effect pass; backend program and state handles remain engine-owned. */
 export class Tr2Pass extends CjsModel
@@ -99,6 +99,38 @@ export class Tr2Pass extends CjsModel
     return pass;
   }
 
+
+  /**
+   * Emit this pass as a Carbon v15 record.
+   *
+   * Only stages that exist are written, in ascending stage type. The class keeps
+   * six slots because Carbon addresses them positionally in memory; the file
+   * stores a count and only the populated ones.
+   *
+   * Render states are sorted by id because Carbon holds them in a `std::map`.
+   *
+   * @returns {object} Carbon pass record.
+   */
+  toCarbonBinary()
+  {
+    const record = {
+      stages: this.stageInputs
+        .filter(stage => stage?.exists)
+        .sort((left, right) => left.stageType - right.stageType)
+        .map(stage => stage.toCarbonBinary()),
+      renderStates: this.renderStateValues
+        .map(entry => ({ state: entry.state, value: entry.value }))
+        .sort((left, right) => left.state - right.state)
+    };
+    if (this.backendBlock)
+    {
+      record.backendBlock = toRecordBlob(
+        this.backendBlock.bytes,
+        this.backendBlock.size
+      );
+    }
+    return record;
+  }
 }
 
 // Declared imperatively rather than with decorators, so this module stays

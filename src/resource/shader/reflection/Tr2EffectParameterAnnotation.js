@@ -5,7 +5,7 @@ import { dwordToFloat } from "@carbonenginejs/runtime-utils/math/num";
 import {
   isPlainObject
 } from "@carbonenginejs/runtime-utils/is";
-import { recordRawValue, recordText } from "./carbonRecordFields.js";
+import { recordRawValue, recordText, toRecordRawValue, toRecordText } from "./carbonRecordFields.js";
 
 /** Typed annotation attached to a reflected effect parameter. */
 export class Tr2EffectParameterAnnotation extends CjsModel
@@ -83,6 +83,33 @@ export class Tr2EffectParameterAnnotation extends CjsModel
     }
 
     return annotation;
+  }
+
+  /**
+   * Emit this annotation as a Carbon v15 record.
+   *
+   * The type byte decides which branch the writer takes, and every non-string
+   * type travels as the raw bits rather than the typed member.
+   *
+   * @returns {object} Carbon annotation record.
+   */
+  toCarbonBinary()
+  {
+    if (this.type === Tr2EffectParameterAnnotation.Type.STRING)
+    {
+      return {
+        name: toRecordText(this.name),
+        type: this.type,
+        stringValue: toRecordText(this.stringValue),
+        rawValue: null
+      };
+    }
+    return {
+      name: toRecordText(this.name),
+      type: this.type,
+      stringValue: null,
+      rawValue: toRecordRawValue(this.rawValue)
+    };
   }
 
   static Type = Object.freeze({

@@ -4,7 +4,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
   isPlainObject
 } from "@carbonenginejs/runtime-utils/is";
-import { recordText } from "./carbonRecordFields.js";
+import { recordText, toRecordText } from "./carbonRecordFields.js";
 
 /** Reflected SRV or UAV resource metadata. */
 export class Tr2EffectResource extends CjsModel
@@ -52,6 +52,40 @@ export class Tr2EffectResource extends CjsModel
     resource.isSRGB = !!record.isSRGB;
     resource.isAutoregister = !!record.isAutoregister;
     return resource;
+  }
+
+  /**
+   * Emit this resource as a Carbon v15 texture or UAV record.
+   *
+   * A UAV record is one byte shorter: it carries no `isSRGB`, because Carbon's
+   * reader hardcodes it false and `Uav::Save` omits it. Emitting the field
+   * anyway would desynchronise every following field in the stage.
+   *
+   * @param {number} registerIndex Register this resource is bound at.
+   * @param {boolean} [uav] Whether to emit the UAV shape.
+   * @returns {object} Carbon texture or UAV record.
+   */
+  toCarbonBinary(registerIndex, uav = false)
+  {
+    const record = {
+      registerIndex,
+      name: toRecordText(this.name),
+      type: this.type,
+      count: this.arrayElements,
+      isAutoregister: this.isAutoregister ? 1 : 0
+    };
+    if (uav)
+    {
+      return record;
+    }
+    return {
+      registerIndex,
+      name: record.name,
+      type: record.type,
+      count: record.count,
+      isSRGB: this.isSRGB ? 1 : 0,
+      isAutoregister: record.isAutoregister
+    };
   }
 
   static BINDLESS_SAMPLER = 100;

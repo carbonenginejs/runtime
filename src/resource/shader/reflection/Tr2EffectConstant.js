@@ -4,7 +4,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
   isPlainObject
 } from "@carbonenginejs/runtime-utils/is";
-import { recordText } from "./carbonRecordFields.js";
+import { recordText, toRecordText } from "./carbonRecordFields.js";
 
 /** Reflected shader constant metadata. */
 export class Tr2EffectConstant extends CjsModel
@@ -61,6 +61,25 @@ export class Tr2EffectConstant extends CjsModel
     constant.isSRGB = !!record.isSRGB;
     constant.isAutoregister = !!record.isAutoregister;
     return constant;
+  }
+
+  /**
+   * Emit this constant as a Carbon v15 description record.
+   *
+   * @returns {object} Carbon constant record.
+   */
+  toCarbonBinary()
+  {
+    return {
+      name: toRecordText(this.name),
+      offset: this.offset,
+      size: this.size,
+      type: this.type,
+      dimension: this.dimension,
+      elements: this.elements,
+      isSRGB: this.isSRGB ? 1 : 0,
+      isAutoregister: this.isAutoregister ? 1 : 0
+    };
   }
 
   static Type = Object.freeze({

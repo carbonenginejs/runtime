@@ -71,6 +71,76 @@ export function recordRawBits(value)
 }
 
 /**
+ * Wraps text as the arena string reference the writer interns.
+ *
+ * The offset is always 0: the writer assigns real offsets while building the
+ * arena, and any value here would be discarded. Carrying the text is the whole
+ * job.
+ *
+ * @param {string} value Text value.
+ * @returns {{offset:number,value:string}} String reference.
+ */
+export function toRecordText(value)
+{
+  return { offset: 0, value: String(value ?? "") };
+}
+
+/**
+ * Encodes a `u32` bit pattern as an annotation record's four raw bytes.
+ *
+ * The inverse of {@link recordRawValue}, and raw for the same reason: the value
+ * is written through one union member and read through another, so no numeric
+ * conversion may happen on the way out either.
+ *
+ * @param {number} rawValue Unsigned 32-bit pattern.
+ * @returns {Uint8Array} Four little-endian bytes.
+ */
+export function toRecordRawValue(rawValue)
+{
+  const bytes = new Uint8Array(4);
+  rawValueBuffer.setUint32(0, rawValue >>> 0, true);
+  for (let index = 0; index < 4; index += 1)
+  {
+    bytes[index] = rawValueBuffer.getUint8(index);
+  }
+  return bytes;
+}
+
+/**
+ * Decodes a `*Raw` sampler field back to the float the record stores.
+ *
+ * The inverse of {@link recordRawBits}. Assigning the raw `u32` straight across
+ * would write `4286578687.0` where the file says `-3.4028235e38`, and every
+ * structural check in the container would accept it.
+ *
+ * @param {number} bits Raw 32-bit pattern.
+ * @returns {number} The float those bits encode.
+ */
+export function toRecordFloat(bits)
+{
+  rawValueBuffer.setUint32(0, (bits ?? 0) >>> 0, true);
+  return rawValueBuffer.getFloat32(0, true);
+}
+
+/**
+ * Wraps bytes as the record codec's sized blob reference.
+ *
+ * A zero-length blob keeps Carbon's null offset: the writer leaves the reference
+ * unset and the reader consumes the word without dereferencing it, so an empty
+ * payload and an absent one are not the same thing.
+ *
+ * @param {Uint8Array} bytes Payload bytes.
+ * @param {number} [declaredSize] Size to declare when tracked separately.
+ * @returns {{size:number,offset:number,bytes:Uint8Array}} Blob reference.
+ */
+export function toRecordBlob(bytes, declaredSize)
+{
+  const owned = bytes instanceof Uint8Array ? bytes : new Uint8Array(0);
+  const size = declaredSize ?? owned.byteLength;
+  return { size, offset: size === 0 ? 0xffffffff : 0, bytes: owned };
+}
+
+/**
  * Returns a blob reference's payload bytes, or an empty view when the reference
  * was never set.
  *

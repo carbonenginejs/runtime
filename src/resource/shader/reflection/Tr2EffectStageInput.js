@@ -11,7 +11,14 @@ import { Tr2SamplerSetup } from "../sampler/Tr2SamplerSetup.js";
 import { Tr2EffectConstant } from "./Tr2EffectConstant.js";
 import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js";
 import { Tr2EffectResource } from "./Tr2EffectResource.js";
-import { recordBytes, recordRawBits } from "./carbonRecordFields.js";
+import {
+  recordBytes,
+  recordRawBits,
+  toRecordBlob,
+  toRecordFloat,
+  toRecordText
+} from "./carbonRecordFields.js";
+import { compareUtf8 } from "../../../format/compareUtf8.js";
 import { requireShaderStageType } from "./shaderStage.js";
 
 /** Complete device-free reflection for one shader stage input. */
@@ -203,6 +210,94 @@ export class Tr2EffectStageInput extends CjsModel
     };
     input.sourceProgram = null;
     return input;
+  }
+
+  /**
+   * Emit this stage as a Carbon v15 stage record.
+   *
+   * @returns {object} Carbon stage record.
+   */
+  toCarbonBinary()
+  {
+    const signature = this.signature ?? {};
+    const program = this.sourceProgram ?? {};
+    return {
+      type: this.stageType,
+      shaderData: toRecordBlob(program.bytes, program.shaderSize),
+      threadGroupSize: [
+        signature.threadGroupSize?.x ?? 0,
+        signature.threadGroupSize?.y ?? 0,
+        signature.threadGroupSize?.z ?? 0
+      ],
+      pipelineInputs: (signature.pipelineInputs ?? []).map(entry => ({
+        usage: entry.usage,
+        registerIndex: entry.registerIndex,
+        usageIndex: entry.usageIndex,
+        usedMask: entry.usedMask,
+        type: entry.type,
+        dimension: entry.dimension
+      })),
+      ...this.toCarbonBinaryInput()
+    };
+  }
+
+  /**
+   * Emit this input as a Carbon v15 `StageData` block.
+   *
+   * Carbon holds textures, samplers, UAVs and render states in `std::map`s and
+   * writes them in key order, and it sorts annotation names by `strcmp` before
+   * writing. Our maps are keyed but not ordered, so every collection is sorted
+   * explicitly here rather than trusting insertion order — the reader is
+   * indifferent, but the bytes are not, and a container that disagrees with
+   * Carbon's ordering is not the file Carbon would have written.
+   *
+   * @returns {object} Carbon stage-data record.
+   */
+  toCarbonBinaryInput()
+  {
+    const byRegister = (left, right) => left.registerIndex - right.registerIndex;
+    const signature = this.signature ?? {};
+    return {
+      registers: (signature.registers ?? []).map(entry => ({
+        registerType: entry.registerType,
+        registerIndex: entry.registerIndex,
+        registerCount: entry.registerCount,
+        registerSpace: entry.registerSpace
+      })),
+      staticSamplers: (signature.staticSamplers ?? []).map(entry =>
+      {
+        const descriptor = entry.descriptor ?? {};
+        return {
+          registerIndex: entry.registerIndex,
+          registerSpace: entry.registerSpace,
+          comparison: descriptor.comparison ? 1 : 0,
+          minFilter: descriptor.minFilter,
+          magFilter: descriptor.magFilter,
+          mipFilter: descriptor.mipFilter,
+          addressU: descriptor.addressU,
+          addressV: descriptor.addressV,
+          addressW: descriptor.addressW,
+          mipLODBias: toRecordFloat(descriptor.mipLODBiasRaw),
+          maxAnisotropy: descriptor.maxAnisotropy,
+          comparisonFunc: descriptor.comparisonFunc,
+          // One byte here, four floats on a dynamic sampler.
+          borderColor: descriptor.borderColor,
+          minLOD: toRecordFloat(descriptor.minLODRaw),
+          maxLOD: toRecordFloat(descriptor.maxLODRaw)
+        };
+      }),
+      constants: this.constants.map(constant => constant.toCarbonBinary()),
+      defaultValues: toRecordBlob(this.constantValues, this.constantValueSize),
+      textures: Array.from(this.resources, ([ register, resource ]) =>
+        resource.toCarbonBinary(register)).sort(byRegister),
+      samplers: Array.from(this.samplers, ([ register, sampler ]) =>
+        sampler.toCarbonBinary(register)).sort(byRegister),
+      uavs: Array.from(this.uavs, ([ register, uav ]) =>
+        uav.toCarbonBinary(register, true)).sort(byRegister),
+      annotations: this.annotation
+        .map(entry => entry.toCarbonBinary())
+        .sort((left, right) => compareUtf8(left.name.value, right.name.value))
+    };
   }
 
   /** Build one register-indexed resource map from Carbon texture or UAV records. */

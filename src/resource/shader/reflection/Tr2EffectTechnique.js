@@ -6,7 +6,7 @@ import {
 } from "@carbonenginejs/runtime-utils/is";
 import { Tr2EffectLibrary } from "./Tr2EffectLibrary.js";
 import { Tr2Pass } from "./Tr2Pass.js";
-import { recordText } from "./carbonRecordFields.js";
+import { recordText, toRecordText } from "./carbonRecordFields.js";
 
 /** Reflected effect technique and its passes and libraries. */
 export class Tr2EffectTechnique extends CjsModel
@@ -55,6 +55,22 @@ export class Tr2EffectTechnique extends CjsModel
     return technique;
   }
 
+
+  /**
+   * Emit this technique as a Carbon v15 record.
+   *
+   * `shaderTypeMask` is not written: Carbon recomputes it from the passes.
+   *
+   * @returns {object} Carbon technique record.
+   */
+  toCarbonBinary()
+  {
+    return {
+      name: toRecordText(this.name),
+      passes: this.passes.map(pass => pass.toCarbonBinary()),
+      libraries: this.libraries.map(library => library.toCarbonBinary())
+    };
+  }
 }
 
 // Declared imperatively rather than with decorators, so this module stays

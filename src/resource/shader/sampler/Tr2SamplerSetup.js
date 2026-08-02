@@ -2,7 +2,12 @@
 import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { isPlainObject } from "@carbonenginejs/runtime-utils/is";
-import { recordRawBits, recordText } from "../reflection/carbonRecordFields.js";
+import {
+  recordRawBits,
+  recordText,
+  toRecordFloat,
+  toRecordText
+} from "../reflection/carbonRecordFields.js";
 
 /** Reflected sampler name and complete device-free sampler descriptor. */
 export class Tr2SamplerSetup extends CjsModel
@@ -81,6 +86,42 @@ export class Tr2SamplerSetup extends CjsModel
       maxLODRaw: recordRawBits(record.maxLOD)
     };
     return sampler;
+  }
+
+
+  /**
+   * Emit this sampler as a Carbon v15 record.
+   *
+   * The name is written whether or not it is meaningful — Carbon's writer always
+   * emits the field and its reader discards it when the sampler is not dynamic,
+   * so a non-dynamic sampler round-trips as the empty string rather than losing
+   * its slot.
+   *
+   * @param {number} registerIndex Register this sampler is bound at.
+   * @returns {object} Carbon sampler record.
+   */
+  toCarbonBinary(registerIndex)
+  {
+    const descriptor = this.sampler ?? {};
+    return {
+      registerIndex,
+      name: toRecordText(this.hasName ? this.name : ""),
+      comparison: descriptor.comparison ? 1 : 0,
+      minFilter: descriptor.minFilter,
+      magFilter: descriptor.magFilter,
+      mipFilter: descriptor.mipFilter,
+      addressU: descriptor.addressU,
+      addressV: descriptor.addressV,
+      addressW: descriptor.addressW,
+      mipLODBias: toRecordFloat(descriptor.mipLODBiasRaw),
+      maxAnisotropy: descriptor.maxAnisotropy,
+      comparisonFunc: descriptor.comparisonFunc,
+      borderColor: (descriptor.borderColorRaw ?? [ 0, 0, 0, 0 ])
+        .slice(0, 4).map(toRecordFloat),
+      minLOD: toRecordFloat(descriptor.minLODRaw),
+      maxLOD: toRecordFloat(descriptor.maxLODRaw),
+      isDynamic: this.isDynamic ? 1 : 0
+    };
   }
 
 }
