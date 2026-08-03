@@ -329,7 +329,9 @@ duck contribution before entering the physical buses and sharing the common
 suffix. Voice Volume and Voice-target ducking remain before the split. This raises the qualified SFX
 total to 7,607. Route 68 remains blocked: only its wet branch crosses Bus
 `2609808943`, whose active State authors `-100` cents of Pitch, and one source
-playback rate cannot pitch only the wet copy.
+playback rate cannot pitch only the wet copy. It is exactly one SFX reference,
+leaf `602217068`; supporting it requires synchronized dry and wet source lanes,
+not merely relaxing the mixer gate.
 
 The admitted EVE leaves are `308284283` on route 83 and `32756389`,
 `179741258`, `180881900`, `311848135`, `552000032`, `746615656`, `859755539`,
@@ -442,6 +444,15 @@ Meter targets feed audio-observable RTPCs: 34 unique dry-route records and
 1,243 SFX references cross those feedback paths. The only globally unconsumed
 nonzero target belongs to an unreachable bypassed slot and unlocks no route.
 Meter telemetry itself is not implemented.
+
+The 1,243 feedback-Meter references are an overlapping upper ceiling, not an
+immediate-unlock count. All reachable EVE Meters use Global scope, but both Peak
+and RMS modes occur and one active record applies downstream volume. An exact
+adapter therefore needs render-thread metering, an audio-rate Meter-to-Game-
+Parameter feedback path, and downstream-aware topology; main-thread
+`AnalyserNode` polling cannot preserve its timing. Pinned wwiser proves the
+record layout, not the detector window or envelope law, so Wwise golden vectors
+remain required before these stages can leave fail-closed qualification.
 
 EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and
