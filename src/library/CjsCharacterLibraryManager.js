@@ -199,9 +199,9 @@ function PrepareLibrary(value)
         throw new TypeError("Character library must be an object");
     }
 
-    if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 5)
+    if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 6)
     {
-        throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 5");
+        throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 6");
     }
 
     const installed = value instanceof CjsCharacterLibrary

@@ -7,7 +7,7 @@ Summary: Tracks evidence-backed work after replacing the speculative v1/v2 chara
 
 ## Current baseline
 
-- schema-v5 model-shaped JSON construction;
+- schema-v6 model-shaped JSON construction;
 - proven native `_id`/`_ref` relationship projection;
 - one connected source-record model with named `recordID` values;
 - exact insertion of already-hydrated editor items and private indexed lookup;
@@ -16,6 +16,8 @@ Summary: Tracks evidence-backed work after replacing the speculative v1/v2 chara
   optional folded profile/resource catalogs, and nested selection records;
 - a standalone schema-v1 appearance-plan data contract with local graph
   identity, provenance, reusable coverage, ordered composition, and bindings;
+- an initial source-to-plan resolver for exact paper-doll selections and
+  uniquely determined configuration/geometry candidates;
 - current source-backed native character/interior classes under `src/trinity`;
 - exact-name CPU rig binding used by `Tr2SkinnedObject`; and
 - a bounded `src/incarna` tranche for recovered historical-only identities.
@@ -35,13 +37,19 @@ configurations, geometry, textures, animations, and effects external as
 canonical resource paths. Do not restore the retired schema-v2 part graph as a
 compatibility format.
 
-## Next source-to-plan resolver
+## Continue the source-to-plan resolver
 
-Keep source models direct and source-neutral. The next implementation should
-resolve
-selection, dependency, category coverage, atomic resource/LOD bindings,
-material inputs, and ordered atlas operations into the implemented
+Keep source models direct and source-neutral. The implemented first tranche
+resolves selections and only degenerate one-configuration/one-geometry source
+versions. Continue with dependency ownership, category coverage, decoded atomic
+resource/LOD bindings, material inputs, and ordered atlas operations in the
 backend-neutral character appearance-plan contract.
+
+Before wider source resolution, require the final-library producer to
+materialize each version's effective metadata plus configuration, geometry,
+and texture candidate arrays. The retired compact format distinguished absent
+overrides from explicit empty arrays; schema v6 runtime records deliberately do
+not guess that distinction.
 
 Prototype rendering establishes useful operation shapes and image placement
 metadata, but its global layer ranks, filename classifiers, inferred material
@@ -52,7 +60,7 @@ labelled policy decision.
 
 ## Document-to-native adapters
 
-Do not connect schema-v5 records to `Tr2*` objects by filename or old v1/v2
+Do not connect schema-v6 records to `Tr2*` objects by filename or old v1/v2
 assumptions. Each adapter requires a proven source relationship, focused
 synthetic tests, and a clear resource-owner boundary.
 

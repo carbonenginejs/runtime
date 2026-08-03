@@ -1,7 +1,7 @@
 # Character library document contract
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-character` schema-v5 input and lookup
+Scope: `@carbonenginejs/runtime-character` schema-v6 input and lookup
 Audience: Library producers and runtime consumers
 Summary: Defines the model-shaped JSON document accepted by the character-library builder and runtime model.
 
@@ -14,7 +14,7 @@ maps plus six optional prepared profile catalogs into JSON whose fields match
 ```json
 {
   "schema": "carbonenginejs.characterLibrary",
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "sourceBuild": "example-build",
   "documents": {
     "ancestries": [
@@ -86,7 +86,8 @@ The builder currently projects these proven relationships:
 - paperdoll sculpting locations; and
 - paperdoll `backgroundID` to portrait resources;
 - part-type `partSource` to an exact prepared source record;
-- part-source `metadata` to an exact authored metadata record; and
+- part-source `metadata` to an exact authored metadata record;
+- part-source version `metadata` to its effective authored metadata record; and
 - character-resource `resPath` to `partType` only when an exact type-profile
   record exists. The authored `resPath` remains unchanged.
 
@@ -162,11 +163,17 @@ exact model-shaped fields are:
 | Collection | Record fields | Nested value shape |
 | --- | --- | --- |
 | `characterPartTypes` | `sourcePath`, `sex`, `partPath`, `resourceVersion`, `colorVariant`, `partSource` | `partSource` is an exact relationship or unresolved named identity. |
-| `characterPartSources` | `sourcePath`, `sex`, `partPath`, `versions`, `metadata` | Each version has `resourceVersion`, `configurationCandidates`, `geometryCandidates`, and `textureCandidates`; `metadata` is an exact relationship or unresolved named identity. |
+| `characterPartSources` | `sourcePath`, `sex`, `partPath`, `versions`, `metadata` | Each version has `resourceVersion`, effective `metadata`, `configurationCandidates`, `geometryCandidates`, and `textureCandidates`; metadata fields are exact relationships or unresolved named identities. Version candidate arrays are a self-contained effective inventory, not implicit overrides of the unversioned record. |
 | `characterPartMetadata` | `sourcePath`, `alternativeTextureSourcePath`, `forcesLooseTop`, `hidesBootShin`, `lod1Replacement`, `lod2Replacement`, `numColorAreas`, `dependentModifiers`, `occludesModifiers`, `soundTag`, `swapTops`, `swapBottom`, `swapSocks`, `wap` | Dependency and occlusion fields are string arrays. |
 | `characterMaterialProfiles` | `sourcePath`, `colors`, `pattern`, `patternColors`, `patternTransform`, `patternRotation`, `specularColors` | Every color entry is `{ "value": [r, g, b, a] }`. |
 | `characterProjectionProfiles` | `sourcePath`, `label`, `mode`, `angleRotation`, `aspectRatio`, `azimuth`, `texturePath`, `maskPath`, `headEnabled`, `bodyEnabled`, `flipX`, `flipY`, `height`, `incline`, `layer`, `maskPathEnabled`, `offset`, `pitch`, `planarBeta`, `planarScale`, `position`, `radius`, `roll`, `scale`, `yaw` | `offset` is a two-value vector and `position` is a three-value vector. |
 | `characterRecipeProfiles` | `sourcePath`, `sex`, `entries` | Each entry has `category`, `path`, `weight`, `colorVariation`, `colors`, `specularColors`, `pattern`, `patternColors`, `patternTransform`, and `patternRotation`; color entries use the same `{ "value": [...] }` shape. |
+
+Schema v6 has no runtime fallback relationship. A producer that reads sparse
+baseline-plus-override authoring data must materialize effective candidate
+arrays and metadata for every published version before building the combined
+library. Empty arrays mean no candidates; the runtime resolver never merges
+version records.
 
 Candidate arrays do not assert semantic selection. The combined library does
 not contain inferred model families, filename-derived texture roles, compiled

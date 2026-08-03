@@ -4,7 +4,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_owner, _init_extra_owner, _init_contributor, _init_extra_contributor, _init_origin, _init_extra_origin;
 
-/** Ordered appearance layer separating selection ownership from asset contribution. */
+/** Appearance contribution separating selection ownership from the asset that supplies it. */
 let _CjsCharacterAppearan;
 class CjsCharacterAppearanceLayer extends CjsModel {
   static {

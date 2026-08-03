@@ -6,6 +6,7 @@ const carbonEngineJs = [
     ["CjsCharacterAppearanceDiagnostic", "src/character/planning/CjsCharacterAppearanceDiagnostic.js"],
     ["CjsCharacterAppearanceLayer", "src/character/planning/CjsCharacterAppearanceLayer.js"],
     ["CjsCharacterAppearancePlan", "src/character/planning/CjsCharacterAppearancePlan.js"],
+    ["CjsCharacterAppearanceResolver", "src/character/resolution/CjsCharacterAppearanceResolver.js"],
     ["CjsCharacterAppearanceSelection", "src/character/planning/CjsCharacterAppearanceSelection.js"],
     ["CjsCharacterArchetype", "src/character/activity/CjsCharacterArchetype.js"],
     ["CjsCharacterAvatarBehavior", "src/character/behavior/CjsCharacterAvatarBehavior.js"],

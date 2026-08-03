@@ -7,7 +7,7 @@ Summary: Documents model-shaped character JSON and current native character/inte
 
 ## Purpose
 
-`runtime-character` owns a source-neutral schema-v5 character document format,
+`runtime-character` owns a source-neutral schema-v6 character document format,
 a separate schema-v1 resolved appearance-plan format, and the current Carbon
 character/interior identities assigned to this package. It is GPU-free;
 acquisition remains caller-owned through structural loaders.
@@ -21,10 +21,12 @@ native classes live under `src/trinity`. Historical Incarna-only identities
 belong under `src/incarna` when pinned evidence proves they are required.
 
 The removed character-library schema-v1/v2 `CjsCharacter*` model family is not
-a compatibility surface. The new appearance-plan schema-v1 is a distinct
-standalone model graph under `src/character/planning`; source-to-plan
-resolution and rendering remain future work. They must not inherit a prototype
-renderer's unproven filename heuristics.
+a compatibility surface. The appearance-plan schema-v1 is a distinct
+standalone model graph under `src/character/planning`. Its initial resolver
+projects exact paper-doll selections and uniquely determined part candidates;
+dependency, LOD, material, texture-role, coverage, pass ordering, and rendering
+remain unresolved. They must not inherit a prototype renderer's unproven
+filename heuristics.
 
 ## Documentation map
 

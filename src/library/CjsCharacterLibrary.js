@@ -15,7 +15,7 @@ export class CjsCharacterLibrary extends CjsModel
 
     @io.readwrite
     @type.uint32
-    schemaVersion = 5;
+    schemaVersion = 6;
 
     @io.readwrite
     @type.string
@@ -46,10 +46,10 @@ export class CjsCharacterLibrary extends CjsModel
     {
         RequirePlainObject(value, "Character library");
 
-        if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 5)
+        if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 6)
         {
             throw new TypeError(
-                "Character library must use carbonenginejs.characterLibrary schema version 5"
+                "Character library must use carbonenginejs.characterLibrary schema version 6"
             );
         }
 

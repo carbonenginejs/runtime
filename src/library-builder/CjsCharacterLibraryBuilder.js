@@ -18,7 +18,8 @@ const RELATIONSHIPS = [
     [ "paperdolls", [ "sculptWeights", "*", "sculptLocationID" ], "characterSculptingLocations" ],
     [ "paperdolls", [ "backgroundID" ], "characterPortraitResources" ],
     [ "characterPartTypes", [ "partSource" ], "characterPartSources" ],
-    [ "characterPartSources", [ "metadata" ], "characterPartMetadata" ]
+    [ "characterPartSources", [ "metadata" ], "characterPartMetadata" ],
+    [ "characterPartSources", [ "versions", "*", "metadata" ], "characterPartMetadata" ]
 ];
 
 const METADATA_FIELDS = [
@@ -29,13 +30,13 @@ const METADATA_FIELDS = [
     "generatedAt"
 ];
 
-/** Builds schema-v5 model-shaped JSON from source documents and prepared catalogs. */
+/** Builds schema-v6 model-shaped JSON from source documents and prepared catalogs. */
 export class CjsCharacterLibraryBuilder
 {
 
     static schema = "carbonenginejs.characterLibrary";
 
-    static schemaVersion = 5;
+    static schemaVersion = 6;
 
     /** Builds one deterministic library value from keyed or named JSON documents. */
     static build(documents = {}, options = {})

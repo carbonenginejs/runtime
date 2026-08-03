@@ -39,6 +39,7 @@ export { CjsCharacterOrigin } from './character/planning/CjsCharacterOrigin.js';
 export { CjsCharacterResolvedPart } from './character/planning/CjsCharacterResolvedPart.js';
 export { CjsCharacterTextureAsset } from './character/planning/CjsCharacterTextureAsset.js';
 export { CjsCharacterTextureChannel } from './character/planning/CjsCharacterTextureChannel.js';
+export { CjsCharacterAppearanceResolver } from './character/resolution/CjsCharacterAppearanceResolver.js';
 export { CjsCharacterPortraitResource } from './character/resources/CjsCharacterPortraitResource.js';
 export { CjsCharacterResource } from './character/resources/CjsCharacterResource.js';
 export { CjsCharacterRigBinding } from './controls/CjsCharacterRigBinding.js';

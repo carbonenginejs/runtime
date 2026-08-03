@@ -138,6 +138,27 @@ inherited `from`, `SetValues`, `GetValues`, and `Clone`. A resolver or builder
 is responsible for deciding operations, ordering, and policy before producing
 `planValues`; model hydration does not invent or police those decisions.
 
+The current resolver can produce the exact first-stage plan directly from one
+hydrated paper doll:
+
+```js
+import {
+    CjsCharacterAppearanceResolver,
+    CjsCharacterLibrary
+} from "@carbonenginejs/runtime-character";
+
+const library = CjsCharacterLibrary.from(libraryValues);
+const paperdoll = library.Get("paperdolls", paperdollID);
+const resolved = CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperdoll);
+```
+
+This stage preserves modifier selections and emits a part only for a strict
+version containing exactly one configuration and one geometry candidate. Its
+`layers` collection records owner/contributor relationships, not atlas order.
+Until later stages supply decoded resource facts or explicit policy, textures,
+coverage, targets, passes, and bindings remain empty and diagnostics explain
+the unresolved work.
+
 ## Runtime boundary
 
 The library and appearance plan are GPU-free. They may contain resource paths,

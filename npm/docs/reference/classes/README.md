@@ -43,7 +43,7 @@ Serializable diagnostic emitted while resolving a character appearance plan.
 <!-- class:CjsCharacterAppearanceLayer -->
 ## `CjsCharacterAppearanceLayer`
 
-Ordered appearance layer separating selection ownership from asset contribution.
+Appearance contribution separating selection ownership from the asset that supplies it.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/character/planning/CjsCharacterAppearanceLayer.js`
@@ -57,6 +57,16 @@ Renderer-neutral character appearance plan hydrated directly from model-shaped J
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/character/planning/CjsCharacterAppearancePlan.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterAppearanceResolver -->
+## `CjsCharacterAppearanceResolver`
+
+Resolves source-backed paper-doll selections without inventing character rendering policy.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/resolution/CjsCharacterAppearanceResolver.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -203,7 +213,7 @@ Hydrated character library whose public fields have the same shape as its JSON v
 <!-- class:CjsCharacterLibraryBuilder -->
 ## `CjsCharacterLibraryBuilder`
 
-Builds schema-v5 model-shaped JSON from source documents and prepared catalogs.
+Builds schema-v6 model-shaped JSON from source documents and prepared catalogs.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/library-builder/CjsCharacterLibraryBuilder.js`
@@ -303,7 +313,7 @@ One character source folder with exact external resource candidates.
 <!-- class:CjsCharacterPartSourceVersion -->
 ## `CjsCharacterPartSourceVersion`
 
-One authored resource-version inventory with unresolved external candidates.
+One self-contained resource-version inventory with effective metadata and exact candidates.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/character/catalog/CjsCharacterPartSourceVersion.js`

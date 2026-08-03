@@ -6,12 +6,12 @@ caller-owned through structural loaders.
 
 The package has four independent surfaces:
 
-- a source-neutral schema-v5 model-shaped JSON library built from
+- a source-neutral schema-v6 model-shaped JSON library built from
   caller-supplied record-map documents and prepared profile catalogs;
 - source-backed character record models under `src/character`, hydrated as one
   connected library graph;
-- a standalone, renderer-neutral appearance-plan JSON/model graph under
-  `src/character/planning`; and
+- a standalone, renderer-neutral appearance-plan JSON/model graph plus an
+  exact first-stage paper-doll resolver under `src/character`; and
 - current Carbon `Tr2*`, `Tri*`, and `Wod*` character/interior classes under
   `src/trinity`.
 
@@ -58,11 +58,14 @@ JSON representation. Its normal
 
 `CjsCharacterAppearancePlan.from(bigJSON)` hydrates a separate schema-v1 plan
 through the inherited `CjsModel` contract. Its `_id`/`_ref` graph closes within
-the document. It records resolved ownership,
-contributors, textures, reusable coverage, ordered logical composition, final
-bindings, and provenance. The package does not yet resolve a source library
-into that plan or execute it. Prototype bake order and filename heuristics are
-not source-record fields.
+the document. It records resolved ownership, contributors, textures, reusable
+coverage, ordered logical composition, final bindings, and provenance.
+`CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperdoll)` resolves
+only exact source relationships and uniquely determined configuration/geometry
+candidates. It emits diagnostics and leaves composition empty when dependency,
+LOD, material, texture-role, coverage, or pass-order policy is not proven. The
+package does not execute the plan. Prototype bake order and filename heuristics
+are not source-record fields.
 
 ## Native and historical classes
 

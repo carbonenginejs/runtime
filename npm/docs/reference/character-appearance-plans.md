@@ -54,26 +54,36 @@ those inputs but must remain GPU-free and serializable.
 `GetValues({ refs: true })` emits serializable `_id`/`_ref` graph metadata.
 There is no alternate wire format or retained document copy.
 
-The resolver that produces plan values is responsible for selection,
-dependency, LOD, material, texture-role, placement, and bake-order decisions.
-Hydration applies declared model fields and resolves graph identity; it does
-not validate or invent resolver policy.
+The complete resolver pipeline is responsible for selection, dependency, LOD,
+material, texture-role, placement, and bake-order decisions. Hydration applies
+declared model fields and resolves graph identity; it does not validate or
+invent resolver policy.
 
-This package does not yet resolve a source library into a plan or execute a
-plan. Selection policy, dependency resolution, filename-derived texture-role
-fallbacks, image decoding, and renderer realization remain outside this first
-data-only contract.
+`CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperdoll)` implements
+the first exact stage. It follows hydrated paper-doll modifier, character
+resource, part-type, and part-source relationships. It emits a part only when
+one strict resource-version match contains exactly one configuration candidate
+and one geometry candidate. It parses no filenames and assigns no LOD or model
+family. It also does not infer candidate or metadata inheritance from an
+unversioned inventory: schema v6 version records are self-contained, so any
+authoring-time baseline/override merge belongs in the final-library producer. Dependency
+resolution, material selection, texture roles, placement,
+coverage, targets, passes, bindings, image decoding, execution, and renderer
+realization remain future stages; diagnostics make those omissions explicit.
 
 ## Implemented records
 
 - `CjsCharacterAppearancePlan`: selections, parts, layers, textures, reusable
   coverages, ordered targets, final bindings, origins, and diagnostics for one
   resolved character state.
+- `CjsCharacterAppearanceResolver`: exact first-stage paper-doll selection and
+  unique-candidate resolution without resource or render policy.
 - `CjsCharacterAppearanceSelection`: one plan-local resolved choice and its
   explicit selection-group ownership.
-- `CjsCharacterAppearanceLayer`: stable layer identity with separate `owner`
-  and `contributor` references. A dependency can be owned by one selection
-  while another source supplies its mesh, material, or visible alpha.
+- `CjsCharacterAppearanceLayer`: contribution identity with separate `owner`
+  and `contributor` references. Its collection order is inventory order, not
+  bake order. A dependency can be owned by one selection while another source
+  supplies its mesh, material, or visible alpha.
 - `CjsCharacterResolvedPart`: one atomic configuration/geometry LOD binding
   and its provenance.
 - `CjsCharacterTextureAsset` and `CjsCharacterTextureChannel`: a semantic role,
@@ -106,6 +116,11 @@ binds base textures, loads configured parts, then bakes shared head/body
 atlases. A fallback helper bakes at a different point. The new plan must contain
 one authoritative pass-array order and both the runtime adapter and tests must
 consume that order.
+
+Recipe/group enumeration, dependency traversal, contribution inventory, target
+inventory, and composition-pass order are separate. Neither paper-doll modifier
+order nor `plan.layers` order is an atlas-order contract. The initial resolver
+therefore creates no targets or passes.
 
 Within an atlas, the current implementation copies the base and applies sorted
 layers. Body diffuse can restore through a cut mask before overlay; body normal
@@ -195,7 +210,7 @@ filename.
 
 ## Current contract tests
 
-The data-only contract tests prove:
+The data-only contract and first-stage resolver tests prove:
 
 - equivalent hydration through inherited `from` and `SetValues`;
 - JSON graph round-trip through inherited `GetValues({ refs: true })`;
@@ -206,4 +221,14 @@ The data-only contract tests prove:
 - replacement normal before independent additive normal detail;
 - independent diffuse, normal, and specular sample bounds;
 - native rejection of unresolved or duplicate graph identities; and
-- resolver-owned operation strings remaining ordinary model data.
+- resolver-owned operation strings remaining ordinary model data;
+- exact paper-doll selection and source-record relationship traversal;
+- strict resource-version identity and unique configuration/geometry
+  resolution without filename parsing;
+- refusal to infer baseline candidate or metadata inheritance, or choose among
+  duplicate exact resource-version inventories;
+- explicit diagnostics for dangling effective version-metadata relationships;
+- contribution relationships without inferred pass order;
+- deterministic diagnostics for dangling, ambiguous, and policy-dependent
+  inputs; and
+- source-library immutability and standalone plan graph round trips.

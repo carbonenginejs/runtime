@@ -27,7 +27,7 @@ test("builds model-shaped character JSON with separate domain and graph identiti
     });
 
     assert.equal(value.schema, "carbonenginejs.characterLibrary");
-    assert.equal(value.schemaVersion, 5);
+    assert.equal(value.schemaVersion, 6);
     assert.equal(value.sourceTarget, "example-target");
     assert.ok(Array.isArray(value.documents.ancestries));
     assert.equal(value.documents.ancestries[0].recordID, "1");
@@ -168,6 +168,7 @@ test("folds source-backed profiles and exact external resource candidates into o
             metadata: metadataPath,
             versions: [ {
                 resourceVersion: "v2",
+                metadata: metadataPath,
                 configurationCandidates: [ "res:/example/topinner/configuration.asset" ],
                 geometryCandidates: [ "res:/example/topinner/geometry.asset" ],
                 textureCandidates: [ "res:/example/topinner/texture.asset" ]
@@ -232,6 +233,9 @@ test("folds source-backed profiles and exact external resource candidates into o
     assert.deepEqual(sourceValue.metadata, {
         _ref: values.documents.characterPartMetadata[0]._id
     });
+    assert.deepEqual(sourceValue.versions[0].metadata, {
+        _ref: values.documents.characterPartMetadata[0]._id
+    });
 
     const library = CjsCharacterLibrary.from(values);
     const resource = library.Get("characterResources", 21);
@@ -260,6 +264,7 @@ test("folds source-backed profiles and exact external resource candidates into o
     assert.strictEqual(resource.partType, partType);
     assert.strictEqual(partType.partSource, source);
     assert.strictEqual(source.metadata, metadata);
+    assert.strictEqual(source.versions[0].metadata, metadata);
     assert.equal(metadata.forcesLooseTop, true);
     assert.deepEqual(metadata.dependentModifiers, [ "dependants/tuck/basic" ]);
     assert.ok(Array.from(material.colors[0].value).every(
@@ -398,15 +403,24 @@ test("combined character library installation is atomic", () =>
     assert.strictEqual(manager.GetLibrary(), installed);
 
     assert.throws(
-        () => manager.InstallLibrary({ schema: "wrong", schemaVersion: 5 }),
-        /schema version 5/u
+        () => manager.InstallLibrary({ schema: "wrong", schemaVersion: 6 }),
+        /schema version 6/u
+    );
+    assert.strictEqual(manager.GetLibrary(), installed);
+
+    const retired = CjsCharacterLibraryBuilder.build(CreateDocuments());
+
+    retired.schemaVersion = 5;
+    assert.throws(
+        () => manager.InstallLibrary(retired),
+        /schema version 6/u
     );
     assert.strictEqual(manager.GetLibrary(), installed);
 
     assert.throws(
         () => manager.InstallLibrary({
             schema: "carbonenginejs.characterLibrary",
-            schemaVersion: 5
+            schemaVersion: 6
         }),
         /documents must be a plain object/u
     );

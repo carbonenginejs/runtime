@@ -1,7 +1,7 @@
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
-/** One authored resource-version inventory with unresolved external candidates. */
+/** One self-contained resource-version inventory with effective metadata and exact candidates. */
 @type.define({ className: "CjsCharacterPartSourceVersion", family: "character" })
 export class CjsCharacterPartSourceVersion extends CjsModel
 {
@@ -9,6 +9,10 @@ export class CjsCharacterPartSourceVersion extends CjsModel
     @io.readwrite
     @type.string
     resourceVersion = null;
+
+    @io.readwrite
+    @type.model("CjsCharacterPartMetadata")
+    metadata = null;
 
     @io.readwrite
     @type.list("string")

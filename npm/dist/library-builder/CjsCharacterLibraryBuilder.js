@@ -2,13 +2,13 @@ import { CjsCharacterLibrary as _CjsCharacterLibrary } from '../library/CjsChara
 import { CjsCharacterLibraryDocuments as _CjsCharacterLibraryD } from '../library/CjsCharacterLibraryDocuments.js';
 
 const DOCUMENT_NAMES = _CjsCharacterLibraryD.listDocumentNames();
-const RELATIONSHIPS = [["ancestries", ["bloodlineID"], "bloodlines"], ["bloodlines", ["raceID"], "races"], ["characterResources", ["clothingAlsoCoversCategory"], "characterModifierLocations"], ["characterResources", ["clothingAlsoCoversCategory2"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory2"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "modifierLocationID"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "paperdollResourceID"], "characterResources"], ["paperdolls", ["colorSelections", "*", "colorID"], "characterColorLocations"], ["paperdolls", ["colorSelections", "*", "colorNameA"], "characterColorNames"], ["paperdolls", ["colorSelections", "*", "colorNameBC"], "characterColorNames"], ["paperdolls", ["sculptWeights", "*", "sculptLocationID"], "characterSculptingLocations"], ["paperdolls", ["backgroundID"], "characterPortraitResources"], ["characterPartTypes", ["partSource"], "characterPartSources"], ["characterPartSources", ["metadata"], "characterPartMetadata"]];
+const RELATIONSHIPS = [["ancestries", ["bloodlineID"], "bloodlines"], ["bloodlines", ["raceID"], "races"], ["characterResources", ["clothingAlsoCoversCategory"], "characterModifierLocations"], ["characterResources", ["clothingAlsoCoversCategory2"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory2"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "modifierLocationID"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "paperdollResourceID"], "characterResources"], ["paperdolls", ["colorSelections", "*", "colorID"], "characterColorLocations"], ["paperdolls", ["colorSelections", "*", "colorNameA"], "characterColorNames"], ["paperdolls", ["colorSelections", "*", "colorNameBC"], "characterColorNames"], ["paperdolls", ["sculptWeights", "*", "sculptLocationID"], "characterSculptingLocations"], ["paperdolls", ["backgroundID"], "characterPortraitResources"], ["characterPartTypes", ["partSource"], "characterPartSources"], ["characterPartSources", ["metadata"], "characterPartMetadata"], ["characterPartSources", ["versions", "*", "metadata"], "characterPartMetadata"]];
 const METADATA_FIELDS = ["sourceTarget", "sourceGame", "sourceProvider", "sourceBuild", "generatedAt"];
 
-/** Builds schema-v5 model-shaped JSON from source documents and prepared catalogs. */
+/** Builds schema-v6 model-shaped JSON from source documents and prepared catalogs. */
 class CjsCharacterLibraryBuilder {
   static schema = "carbonenginejs.characterLibrary";
-  static schemaVersion = 5;
+  static schemaVersion = 6;
 
   /** Builds one deterministic library value from keyed or named JSON documents. */
   static build(documents = {}, options = {}) {
