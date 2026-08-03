@@ -22,7 +22,7 @@ import { inspectGlslEffectContainer } from "./core/inspectGlslEffectContainer.js
 const FORMAT_NAME = "CjsWebglFormat";
 
 /**
- * CarbonEngineJS-facing format surface for `.cewg` WebGL shader packages, and
+ * CarbonEngineJS-facing format surface for `.carbonwebgl` WebGL shader packages, and
  * a DXBC -> GLSL ES 3.00 emitter for the WebGL2 vertex/pixel/map-style-compute
  * stages ccpwgl targets.
  *
@@ -216,7 +216,7 @@ export class CjsWebglFormat
     static OUTPUT_JSON = OUTPUT_JSON;
     static type = Object.freeze([ "shader" ]);
     static mediaTypes = Object.freeze([ "shader" ]);
-    static inputTypes = Object.freeze([ "cewg" ]);
+    static inputTypes = Object.freeze([ "carbonwebgl" ]);
     static outputTypes = Object.freeze([ OUTPUT_JSON ]);
     static packageVersion = "0.2.0";
 

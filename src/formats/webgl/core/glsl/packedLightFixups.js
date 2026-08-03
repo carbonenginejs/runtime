@@ -30,7 +30,7 @@
  */
 export function fixPackedLightFlagMask(source, record)
 {
-  if (record?.stageName !== "pixel" || !source.includes("cewgLocalLightTexture")) return source;
+  if (record?.stageName !== "pixel" || !source.includes("cjsLocalLightTexture")) return source;
 
   return source.replace(
     /(\s*)([A-Za-z_][A-Za-z0-9_]*(?:\.[xyzw])?) = uintBitsToFloat\(floatBitsToUint\(([^;\r\n]+?)\) & 65536u\);\r?\n\s*\2 = uintBitsToFloat\(\(floatBitsToInt\(\2\) != 0\) \? 0xFFFFFFFFu : 0u\);/g,
@@ -53,7 +53,7 @@ export function fixPackedLightFlagMask(source, record)
  */
 export function fixPackedLightAcceptedMask(source, record)
 {
-  if (record?.stageName !== "pixel" || !source.includes("cewgLocalLightTexture")) return source;
+  if (record?.stageName !== "pixel" || !source.includes("cjsLocalLightTexture")) return source;
 
   const directAccepted = source.replace(
     /(\s*)[A-Za-z_][A-Za-z0-9_]*(?:\.[xyzw])? = uintBitsToFloat\(\(([^;\r\n]+?)\) \? (?:0xFFFFFFFFu|1u) : 0u\);\r?\n\s*[A-Za-z_][A-Za-z0-9_]*(?:\.[xyzw])? = uintBitsToFloat\(\(floatBitsToUint\(([^;\r\n]+?)\) & 65536u\) != 0u\) \? (?:0xFFFFFFFFu|1u) : 0u\);\r?\n\s*[A-Za-z_][A-Za-z0-9_]*(?:\.[xyzw])? = uintBitsToFloat\(floatBitsToUint\([^)]+\) & floatBitsToUint\([^)]+\)\);\r?\n\s*if \(floatBitsToUint\([^)]+\) != 0u\) \{/g,
@@ -88,7 +88,7 @@ export function fixPackedLightAcceptedMask(source, record)
 function buildPackedLightFlagUintTest(source, flagsSource)
 {
   const escaped = flagsSource.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const assignPattern = new RegExp(`${escaped}\\s*=\\s*uintBitsToFloat\\((texelFetch\\(cewgLocalLightTexture,[^;\\r\\n]+\\[[^;\\r\\n]+\\])\\);`);
+  const assignPattern = new RegExp(`${escaped}\\s*=\\s*uintBitsToFloat\\((texelFetch\\(cjsLocalLightTexture,[^;\\r\\n]+\\[[^;\\r\\n]+\\])\\);`);
   const match = assignPattern.exec(source);
   return match
     ? `((${match[1]}) & 65536u) != 0u`

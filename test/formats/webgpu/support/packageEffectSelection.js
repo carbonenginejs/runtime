@@ -96,7 +96,7 @@ export function parsePackageEffectArguments(args)
     }
     if (positionals.length !== 2)
     {
-        throw new Error("Usage: node scripts/package-effect.js <input.sm_*> <output.cewgpu> [--overwrite|--force] [--permutation NAME=VALUE ...] [--technique <name> [--pass <index> [--stage vertex --stage pixel|compute]]]");
+        throw new Error("Usage: node scripts/package-effect.js <input.sm_*> <output.carbonwebgpu> [--overwrite|--force] [--permutation NAME=VALUE ...] [--technique <name> [--pass <index> [--stage vertex --stage pixel|compute]]]");
     }
     if (passIndex !== null && techniqueName === null) throw new Error("--pass requires --technique");
     if (stageNames.length && (techniqueName === null || passIndex === null))
@@ -143,7 +143,7 @@ export function validatePackageEffectPaths(inputPath, outputPath, platform = pro
  * Prove that ANLS metadata and the separately resolved bytecode body use the
  * same mixed-radix selection before any shader bytes are packaged.
  *
- * @param {object} analysis Selected-body CEWGPU diagnostic analysis.
+ * @param {object} analysis Selected-body Carbon WebGPU diagnostic analysis.
  * @param {object} selection Bytecode reader selection.
  * @returns {true} True when both resolutions are identical.
  */

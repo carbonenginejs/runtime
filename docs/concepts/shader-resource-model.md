@@ -64,7 +64,7 @@ count are different:
 | `effect.gles2/.../geometryviewer.sm_hi` | 80 | 27 |
 | `effect.gles2/.../textureviewer.sm_hi` | 18 | 3 |
 
-Current `.cewgpu` bytes use Carbon's version-15 record layout and retain every
+Current `.carbonwebgpu` bytes use Carbon's version-15 record layout and retain every
 permutation row and representable non-program description fields, including
 non-dynamic sampler names and the file's authored pass-stage order — Carbon's
 runtime discards both, the file does not. Emitted body dedupe follows exact
@@ -72,7 +72,7 @@ emitted bytes, so it need not preserve the original source alias partition. `mod
 WGSL; it does not discard source permutations. `mode: "all"` attempts every
 distinct body after the resolved selection passes the initial translation gate.
 
-`.cewg` remains its own CEWG chunk format. Its current package contract also
+`.carbonwebgl` remains its own Carbon WebGL chunk format. Its current package contract also
 preserves complete source permutation topology and supports selected versus
 all backend coverage.
 
@@ -106,6 +106,6 @@ classes, and record indirection before treating the absence as a design gap.
 
 ## Related documentation
 
-- [CEWGPU effect container](../formats/webgpu/formats/cewgpu.md)
+- [Carbon WebGPU effect container](../formats/webgpu/formats/carbon-webgpu.md)
 - [Carbon compiled-effect container](../formats/carbon-effect-container.md)
 - [WebGPU effect packaging](../formats/webgpu/guides/effect-packaging.md)

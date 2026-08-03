@@ -223,7 +223,7 @@ runnable WebGL2 GLSL for, restricted to the `BoneTransforms` skinning case
       place** (`packageTr2WebglEffect.js:886,890,895,898` all `return match`) —
       this is a silent-failure edge case the implementing engineer must guard
       against (add a diagnostic) rather than trust to fail loudly.
-   8. If any rewrite happened, inject a `// CEWG: BoneTransforms lowered to cb3
+   8. If any rewrite happened, inject a `// Carbon WebGL: BoneTransforms lowered to cb3
       JointMat rows.` marker comment after `#version 300 es`
       (`packageTr2WebglEffect.js:859-861`).
 
@@ -248,7 +248,7 @@ available as `--stub-light-resources` for isolating a lighting problem, but it i
 no longer the answer to the budget. The paragraph below describes that opt-in
 path and remains accurate.
 
-**Earlier resolution (2026-07-08) — stub, not rewrite.** Since CEWG does not
+**Earlier resolution (2026-07-08) — stub, not rewrite.** Since Carbon WebGL does not
 support this tiled lighting, the packager can DROP it instead of lowering it. Run
 `packageTr2WebglEffect.js --stub-light-resources`: it resolves the light resource
 names (`LightBuffer`, `LightIndexBuffer`, `LightProfileArray`) to `t#` registers
@@ -258,7 +258,7 @@ sb11/sb12/s13) and passes them to `emitGlsl` as `stubResourceRegisters`. The
 emitter then drops their decl+binding and lowers reads to `uintBitsToFloat(0u)`
 (structured) / `vec4(0.0)` (sampled) — zeroing the per-tile light count makes the
 light loop dead. The packager also strips those `resource` bindings from the
-manifest JSON (`stripLightResourcesFromManifest`) so the CEWG runtime does not
+manifest JSON (`stripLightResourcesFromManifest`) so the Carbon WebGL runtime does not
 synthesize a texture def (glType 0 → "Invalid shader texture definition") for the
 now-undeclared light buffers. Opt-in, default off; every other package is
 unchanged. A functional light constant-buffer path remains possible but was not

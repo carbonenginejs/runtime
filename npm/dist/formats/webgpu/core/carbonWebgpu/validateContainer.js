@@ -35,7 +35,7 @@ const WEBGPU_STAGE_TYPES = new Set([0, 1, 2]);
 /**
  * Validates a loaded container for WebGPU consumption.
  *
- * @param {object} container Loaded `CewgpuContainer`.
+ * @param {object} container Loaded `CarbonWebgpuContainer`.
  * @param {object} [options] Validation options.
  * @param {string} [options.source] Source label for diagnostics.
  * @throws {WebgpuReadError} When the container cannot serve WebGPU.
@@ -43,13 +43,13 @@ const WEBGPU_STAGE_TYPES = new Set([0, 1, 2]);
 function validateEffectContainer(container, options = {}) {
   const source = options.source || container.sourcePath || "memory";
   if (!container?.IsGood()) {
-    throw new WebgpuReadError("CEWGPU container is not readable", {
+    throw new WebgpuReadError("Carbon WebGPU container is not readable", {
       source,
       cause: container?.readError ?? null
     });
   }
   if (!container.carbon.records.length) {
-    throw new WebgpuReadError("CEWGPU container declares no permutation bodies", {
+    throw new WebgpuReadError("Carbon WebGPU container declares no permutation bodies", {
       source
     });
   }
@@ -73,7 +73,7 @@ function validateEffectContainer(container, options = {}) {
           // is about stages with a program, not about stages.
           if (stage.shaderData.size === 0) continue;
           if (!WEBGPU_STAGE_TYPES.has(stage.type)) {
-            throw new WebgpuReadError(`CEWGPU container carries a program for stage type ${stage.type}, ` + "which WebGPU cannot express", {
+            throw new WebgpuReadError(`Carbon WebGPU container carries a program for stage type ${stage.type}, ` + "which WebGPU cannot express", {
               source,
               permutationIndex: index,
               pass: `${technique.name.value}.pass${passIndex}`,

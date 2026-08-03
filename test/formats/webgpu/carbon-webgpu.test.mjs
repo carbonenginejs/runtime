@@ -5,14 +5,14 @@ import { createHash } from "node:crypto";
 
 import CjsWebgpuFormat from "../../../src/formats/webgpu/index.js";
 import { readEffectAnalysis } from "../../../src/formats/webgpu/core/effectAnalysis.js";
-import { validateEffectContainer } from "../../../src/formats/webgpu/core/cewgpu/validateContainer.js";
+import { validateEffectContainer } from "../../../src/formats/webgpu/core/carbonWebgpu/validateContainer.js";
 import { buildEffectAnalysis } from "../../../src/formats/webgpu/core/helpers.js";
 import {
     buildEffectPermutationGraph,
     validateEffectPermutationGraph
 } from "../../../src/format/effect/effectPermutationGraph.js";
 import {
-    buildCewgpuPackage,
+    buildCarbonWebgpuPackage,
     buildEffectBytes,
     buildMinimalStagedEffectBytes,
     buildMinimalVertexDxbc
@@ -538,7 +538,7 @@ test("effect permutation graph preserves mixed-radix variants and body aliases",
  *
  * - byte-level soundness -- caps, arena containment, offset-table density,
  *   Rule 1 exhaustiveness -- is phase 1's, in carbon-effect.test.js;
- * - the emitter/reader oracle over real effects is in cewgpu-container.test.js;
+ * - the emitter/reader oracle over real effects is in carbon-webgpu-container.test.js;
  * - the derived analysis view is diffed against the source-derived analysis in
  *   carbon-analysis-adapter.test.mjs, and over every shipped permutation in
  *   carbon-analysis-adapter-corpus.test.mjs;
@@ -561,9 +561,9 @@ test("buildEffect emits a container that reads back through the derived views", 
     assert.equal(new DataView(result.bytes.buffer, result.bytes.byteOffset).getUint32(0, true), 15);
 
     const read = CjsWebgpuFormat.read(result.bytes, { source: "synthetic.sm_hi" });
-    assert.equal(read.format, "CEWGPU");
+    assert.equal(read.format, "CARBON_WEBGPU");
     assert.equal(read.version, 15);
-    assert.equal(read.analysis.format, "CEWGPU_ANALYSIS");
+    assert.equal(read.analysis.format, "CARBON_WEBGPU_ANALYSIS");
     assert.deepEqual(
         read.shaders.map((shader) => shader.key),
         result.wgsl.shaders.map((shader) => shader.key),
@@ -656,7 +656,7 @@ test("AnalyzeEffect resolves exact permutation assertions even when the body can
         permutation: [ { name: "QUALITY", value: "HIGH" } ]
     });
 
-    assert.equal(analysis.format, "CEWGPU_ANALYSIS");
+    assert.equal(analysis.format, "CARBON_WEBGPU_ANALYSIS");
     assert.equal(analysis.source, "synthetic.sm_hi");
     assert.equal(analysis.bodyIndex, 1);
     assert.deepEqual(analysis.selectedOptions.map((entry) => [ entry.name, entry.value, entry.source ]), [
@@ -765,7 +765,7 @@ test("buildEffectAnalysis normalizes manifest stages and decodes DXBC", () =>
         decodeInstructions: false
     });
 
-    assert.equal(analysis.format, "CEWGPU_ANALYSIS");
+    assert.equal(analysis.format, "CARBON_WEBGPU_ANALYSIS");
     assert.equal(analysis.effectName, "fixture");
     assert.equal(analysis.passes.length, 1);
     assert.equal(analysis.stages.length, 1);

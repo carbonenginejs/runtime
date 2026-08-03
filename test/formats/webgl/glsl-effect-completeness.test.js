@@ -136,9 +136,9 @@ test("the compute-fragment host contract is checked in full, not by a marker", (
 {
     const contract = {
         threadGroup: [ 8, 8, 1 ],
-        dispatchOriginUniform: "cewgDispatchOrigin",
+        dispatchOriginUniform: "cjsDispatchOrigin",
         uavOutputs: [
-            { register: 0, slice: null, location: 0, glslName: "cewgUav0" }
+            { register: 0, slice: null, location: 0, glslName: "cjsUav0" }
         ]
     };
     assert.equal(isComputeFragmentContract(contract), true);
@@ -149,21 +149,21 @@ test("the compute-fragment host contract is checked in full, not by a marker", (
         ...contract,
         uavOutputs: [
             ...contract.uavOutputs,
-            { register: 1, slice: 0, location: 0, glslName: "cewgUav1" }
+            { register: 1, slice: 0, location: 0, glslName: "cjsUav1" }
         ]
     }), false);
 
     const computeShader = shader("cs", {
         computeFragment: contract,
         bindings: [
-            { kind: "dispatchUniform", name: "cewgDispatchOrigin" },
-            { kind: "uavTexture", registerIndex: 0, slice: null, location: 0, name: "cewgUav0" }
+            { kind: "dispatchUniform", name: "cjsDispatchOrigin" },
+            { kind: "uavTexture", registerIndex: 0, slice: null, location: 0, name: "cjsUav0" }
         ],
         source: [
             "#version 300 es",
-            "uniform ivec3 cewgDispatchOrigin;",
-            "layout(location = 0) out highp vec4 cewgUav0;",
-            "void main() { cewgUav0 = vec4(1.0); }"
+            "uniform ivec3 cjsDispatchOrigin;",
+            "layout(location = 0) out highp vec4 cjsUav0;",
+            "void main() { cjsUav0 = vec4(1.0); }"
         ].join("\n")
     });
 
@@ -457,7 +457,7 @@ test("a described local-light family must be declared or lowered", () =>
     const lowered = inspectGlslContainerIntegrity(containerGraph(
         [ lightStage() ],
         [ shader("ps", { bindings: [ {
-            name: "cewgLocalLightTexture",
+            name: "cjsLocalLightTexture",
             registerIndex: 13,
             localLightRole: "packedLocalLights",
             lightIndexRegister: 13,

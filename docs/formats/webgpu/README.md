@@ -3,7 +3,7 @@
 Status: Evolving
 Scope: `@carbonenginejs/runtime-resource/formats/webgpu`
 Audience: Shader-tool authors, engine integrators, and maintainers
-Summary: Explains the Carbon-record CEWGPU format, compiled-effect conversion API, and bounded DXBC-to-WGSL compiler.
+Summary: Explains the Carbon-record Carbon WebGPU format, compiled-effect conversion API, and bounded DXBC-to-WGSL compiler.
 
 ## Purpose
 
@@ -26,7 +26,7 @@ translation gate. Backend and runtime completeness remain broader gates.
 
 Use the WebGPU format subpath when you need to:
 
-- inspect or build a `.cewgpu` package;
+- inspect or build a `.carbonwebgpu` package;
 - analyze caller-supplied compiled effect bytes;
 - lower supported DXBC vertex and fragment programs to WGSL;
 - build one collision-free WebGPU binding layout across a complete pass; or
@@ -79,6 +79,6 @@ For compiled-effect conversion, continue with the
 - [Architecture and boundaries](architecture.md)
 - [Effect packaging guide](guides/effect-packaging.md)
 - [Public API reference](reference/api.md)
-- [CEWGPU package format](formats/cewgpu.md)
+- [Carbon WebGPU package format](formats/carbon-webgpu.md)
 - [WGSL compatibility](reference/wgsl-compatibility.md)
 - [Class-purpose catalog](reference/classes/README.md)

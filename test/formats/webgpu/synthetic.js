@@ -1,9 +1,9 @@
 /**
- * Synthetic CEWGPU and DXBC builders for self-contained tests.
+ * Synthetic Carbon WebGPU and DXBC builders for self-contained tests.
  */
 
-const CEWGPU_MAGIC = "CWGP";
-const CEWGPU_VERSION = 1;
+const CARBON_WEBGPU_MAGIC = "CWGP";
+const CARBON_WEBGPU_VERSION = 1;
 const DXBC_MAGIC = [ 0x44, 0x58, 0x42, 0x43 ];
 const DXBC_HEADER_SIZE = 32;
 const textEncoder = new TextEncoder();
@@ -64,25 +64,25 @@ class ByteWriter
 }
 
 /**
- * Builds a CEWGPU package from ordered chunk payloads.
+ * Builds a Carbon WebGPU package from ordered chunk payloads.
  *
  * @param {Array<[string, string|object|Uint8Array|ArrayBuffer|ArrayBufferView]>} chunks Ordered package chunks.
  * @returns {Uint8Array} Package bytes.
  */
-export function buildCewgpuPackage(chunks)
+export function buildCarbonWebgpuPackage(chunks)
 {
     const encodedChunks = chunks.map(([ tag, value ]) => ({
         tag,
         bytes: normalizeChunkValue(value)
     }));
 
-    const size = CEWGPU_MAGIC.length + 8 + encodedChunks.reduce((sum, chunk) => sum + 8 + chunk.bytes.length, 0);
+    const size = CARBON_WEBGPU_MAGIC.length + 8 + encodedChunks.reduce((sum, chunk) => sum + 8 + chunk.bytes.length, 0);
     const out = new Uint8Array(size);
     const view = new DataView(out.buffer, out.byteOffset, out.byteLength);
     let offset = 0;
 
-    offset = writeAscii(out, offset, CEWGPU_MAGIC);
-    view.setUint32(offset, CEWGPU_VERSION, true);
+    offset = writeAscii(out, offset, CARBON_WEBGPU_MAGIC);
+    view.setUint32(offset, CARBON_WEBGPU_VERSION, true);
     offset += 4;
     view.setUint32(offset, encodedChunks.length, true);
     offset += 4;
@@ -519,7 +519,7 @@ function normalizeChunkValue(value)
     {
         return textEncoder.encode(`${JSON.stringify(value)}\n`);
     }
-    throw new Error("Unsupported CEWGPU chunk value");
+    throw new Error("Unsupported Carbon WebGPU chunk value");
 }
 
 function writeAscii(out, offset, value)

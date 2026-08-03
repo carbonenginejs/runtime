@@ -61,7 +61,7 @@ const WEBGPU_STAGE = Object.freeze({
  * @param {Uint8Array} bytes Candidate bytes.
  * @returns {boolean} True when the first dword is Carbon's v15 version.
  */
-function looksLikeCewgpuContainer(bytes) {
+function looksLikeCarbonWebgpuContainer(bytes) {
   // Delegates rather than repeating the version dword. WebGL needs the same
   // check, and a second hand-written copy of one constant is a second chance
   // to disagree with it.
@@ -92,7 +92,7 @@ function optionIndicesFor(axes, permutationIndex) {
 /**
  * Reader over one WebGPU effect container.
  */
-class CewgpuContainer {
+class CarbonWebgpuContainer {
   /**
    * Creates an empty container reader.
    */
@@ -123,7 +123,7 @@ class CewgpuContainer {
       const bytes = source instanceof Uint8Array ? source : source instanceof ArrayBuffer ? new Uint8Array(source) : new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
       this.bytes = bytes;
       this.carbon = new CjsCarbonEffectReader(bytes, {
-        source: this.sourcePath || "CEWGPU"
+        source: this.sourcePath || "CARBON_WEBGPU"
       });
       this.containerVersion = this.carbon.version;
       return true;
@@ -154,7 +154,7 @@ class CewgpuContainer {
   GetDescription(permutationIndex) {
     const record = this.carbon.records[permutationIndex];
     if (!record) {
-      throw new Error(`CEWGPU container has no body at permutation ${permutationIndex}`);
+      throw new Error(`Carbon WebGPU container has no body at permutation ${permutationIndex}`);
     }
     if (!this._descriptions.has(record.offset)) {
       this._descriptions.set(record.offset, this.carbon.readDescription(permutationIndex, {
@@ -288,7 +288,7 @@ class CewgpuContainer {
         if (!shaders.length) continue;
         const block = pass.backendBlock && pass.backendBlock.size !== 0 ? readBackendBlock(pass.backendBlock.bytes, {
           layoutKey: passKey,
-          source: this.sourcePath || "CEWGPU"
+          source: this.sourcePath || "CARBON_WEBGPU"
         }) : null;
         passes.push(Object.freeze({
           passKey,
@@ -335,7 +335,7 @@ class CewgpuContainer {
   get info() {
     const bodyKeys = this.bodyKeyByOffset;
     return Object.freeze({
-      format: "CEWGPU",
+      format: "CARBON_WEBGPU",
       // Carbon's own version dword, always 15. There is no container
       // version of ours: see buildCarbonEffectContainer for why nothing
       // announces the payload, and why identity comes from the path.
@@ -350,5 +350,5 @@ class CewgpuContainer {
   }
 }
 
-export { CewgpuContainer, looksLikeCewgpuContainer };
-//# sourceMappingURL=CewgpuContainer.js.map
+export { CarbonWebgpuContainer, looksLikeCarbonWebgpuContainer };
+//# sourceMappingURL=CarbonWebgpuContainer.js.map

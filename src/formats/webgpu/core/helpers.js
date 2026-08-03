@@ -1,8 +1,8 @@
 import CjsDxbcFormat from "../../dxbc/index.js";
 import { normalizeBytecodeBytes, readEffectAnalysis } from "./effectAnalysis.js";
 
-import { CewgpuContainer, looksLikeCewgpuContainer } from "./cewgpu/CewgpuContainer.js";
-import { validateEffectContainer } from "./cewgpu/validateContainer.js";
+import { CarbonWebgpuContainer, looksLikeCarbonWebgpuContainer } from "./carbonWebgpu/CarbonWebgpuContainer.js";
+import { validateEffectContainer } from "./carbonWebgpu/validateContainer.js";
 import {
     deriveAnalysis,
     deriveBackendBodySet,
@@ -10,7 +10,7 @@ import {
     deriveMetadata,
     deriveWgsl,
     resolvedPermutationIndex
-} from "./cewgpu/containerViews.js";
+} from "./carbonWebgpu/containerViews.js";
 import { WebgpuReadError } from "./errors.js";
 import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
 import {
@@ -20,9 +20,9 @@ import {
 
 export const OUTPUT_JSON = "json";
 export const OUTPUT_RAW = "raw";
-export const CEWGPU_FORMAT = "CEWGPU";
-export const CEWGPU_ANALYSIS_FORMAT = "CEWGPU_ANALYSIS";
-export const CEWGPU_ANALYSIS_VERSION = 1;
+export const CARBON_WEBGPU_FORMAT = "CARBON_WEBGPU";
+export const CARBON_WEBGPU_ANALYSIS_FORMAT = "CARBON_WEBGPU_ANALYSIS";
+export const CARBON_WEBGPU_ANALYSIS_VERSION = 1;
 
 export const DEFAULT_VALUES = Object.freeze({
     emit: OUTPUT_JSON,
@@ -163,7 +163,7 @@ export function toBytes(input)
     if (input instanceof Uint8Array) return input;
     if (typeof ArrayBuffer !== "undefined" && input instanceof ArrayBuffer) return new Uint8Array(input);
     if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("CjsWebgpuFormat: input must be CEWGPU package bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
+    throw new TypeError("CjsWebgpuFormat: input must be Carbon WebGPU package bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
 }
 
 /**
@@ -178,11 +178,11 @@ export function toBytes(input)
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate payload.
  * @returns {boolean} True when the payload opens on Carbon's v15 version dword.
  */
-export function isCewgpu(input)
+export function isCarbonWebgpu(input)
 {
     try
     {
-        return looksLikeCewgpuContainer(toBytes(input));
+        return looksLikeCarbonWebgpuContainer(toBytes(input));
     }
     catch
     {
@@ -193,20 +193,20 @@ export function isCewgpu(input)
 /**
  * The shared read path used by the instance Read/Inspect and static one-shots.
  *
- * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU container payload.
+ * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU container payload.
  * @param {object} values Normalized format values.
- * @returns {CewgpuContainer} The loaded container.
+ * @returns {CarbonWebgpuContainer} The loaded container.
  */
 export function readRaw(input, values)
 {
     const bytes = toBytes(input);
-    const container = new CewgpuContainer();
+    const container = new CarbonWebgpuContainer();
     const ok = container.Read(bytes, { sourcePath: values.source });
 
     if (!ok)
     {
         throw new WebgpuReadError(
-            container.readError ? container.readError.message : "Failed to read CEWGPU container",
+            container.readError ? container.readError.message : "Failed to read Carbon WebGPU container",
             {
                 source: values.source,
                 cause: container.readError || null
@@ -241,7 +241,7 @@ export function readRaw(input, values)
  * `chunks` is gone. It described a container that no longer exists, and a record
  * layout has no chunk table to translate it into.
  *
- * @param {CewgpuContainer} container Loaded container.
+ * @param {CarbonWebgpuContainer} container Loaded container.
  * @param {object} [options] View options.
  * @returns {object} Plain JSON data.
  */
@@ -253,7 +253,7 @@ export function packageToJson(container, options = {})
     const wgsl = deriveWgsl(container, { permutationIndex });
 
     return toJsonValue({
-        format: CEWGPU_FORMAT,
+        format: CARBON_WEBGPU_FORMAT,
         version: container.carbon.version,
         sourcePath: source,
         info: deriveInfo(container, { source }),
@@ -271,9 +271,9 @@ export function packageToJson(container, options = {})
 /**
  * Shared read entry honouring the emit mode.
  *
- * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU container payload.
+ * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU container payload.
  * @param {object} values Normalized format values.
- * @returns {CewgpuContainer|object} Raw container or plain JSON data.
+ * @returns {CarbonWebgpuContainer|object} Raw container or plain JSON data.
  */
 export function readWithValues(input, values)
 {
@@ -287,7 +287,7 @@ export function readWithValues(input, values)
  * Compact inspection: Carbon version and compiler bytes, body counts, and the
  * resolved analysis/WGSL counts without building the full JSON package shape.
  *
- * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU container payload.
+ * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU container payload.
  * @param {object} values Normalized format values.
  * @returns {object} Plain summary data.
  */
@@ -301,7 +301,7 @@ export function inspectWithValues(input, values)
 
     return {
         source: values.source,
-        isCewgpu: true,
+        isCarbonWebgpu: true,
         version: container.carbon.version,
         compilerVersion: [ ...container.carbon.compilerVersion ],
         permutationCount: graph.variants.length,
@@ -471,8 +471,8 @@ export function buildEffectAnalysis(resolved, options = {})
     });
 
     return toJsonValue({
-        format: CEWGPU_ANALYSIS_FORMAT,
-        formatVersion: CEWGPU_ANALYSIS_VERSION,
+        format: CARBON_WEBGPU_ANALYSIS_FORMAT,
+        formatVersion: CARBON_WEBGPU_ANALYSIS_VERSION,
         source,
         effectVersion: resolved.effectDescription?.version ?? manifest?.version ?? resolved.effectRes?.m_version ?? null,
         compilerVersion: resolved.effectRes?.m_compilerVersion ?? null,

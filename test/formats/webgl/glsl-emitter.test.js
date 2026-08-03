@@ -170,13 +170,13 @@ test("lightConstantBuffer lowers light data structured loads to cb6 rows", () =>
     });
 
     assert.match(result.source, /uniform vec4 cb6\[121\];/);
-    assert.match(result.source, /vec4 cewgLocalLightRow/);
-    assert.match(result.source, /r0\.x = cewgLocalLightRow\(1, 0\)\.x;/);
+    assert.match(result.source, /vec4 cjsLocalLightRow/);
+    assert.match(result.source, /r0\.x = cjsLocalLightRow\(1, 0\)\.x;/);
     assert.doesNotMatch(result.source, /usampler2D sb12/);
     assert.ok(result.bindings.some((b) =>
         b.kind === "constantBuffer" &&
         b.registerIndex === 6 &&
-        b.cewgSemantic === "localLights" &&
+        b.cjsSemantic === "localLights" &&
         b.capacityLights === 40
     ));
     assert.ok(!result.bindings.some((b) => b.kind === "structuredTexture" && b.registerIndex === 12));
@@ -195,8 +195,8 @@ test("lightConstantBuffer lowers light index structured loads to a cb-backed lin
     });
 
     assert.match(result.source, /uniform vec4 cb6\[13\];/);
-    assert.match(result.source, /uint cewgLocalLightIndexLoad\(int element\)/);
-    assert.match(result.source, /r0\.x = uintBitsToFloat\(cewgLocalLightIndexLoad\(7\)\);/);
+    assert.match(result.source, /uint cjsLocalLightIndexLoad\(int element\)/);
+    assert.match(result.source, /r0\.x = uintBitsToFloat\(cjsLocalLightIndexLoad\(7\)\);/);
     assert.doesNotMatch(result.source, /usampler2D sb11/);
     assert.ok(result.bindings.some((b) =>
         b.kind === "constantBuffer" &&
@@ -219,13 +219,13 @@ test("lightPackedTexture lowers light data structured loads to one packed textur
         }
     });
 
-    assert.match(result.source, /uniform highp usampler2D cewgLocalLightTexture;/);
+    assert.match(result.source, /uniform highp usampler2D cjsLocalLightTexture;/);
     assert.match(result.source, /8192 \+ \(\(\(1\) \* 12 \+ 0\) >> 2\)/);
     assert.doesNotMatch(result.source, /usampler2D sb14/);
     assert.ok(result.bindings.some((b) =>
         b.kind === "structuredTexture" &&
-        b.name === "cewgLocalLightTexture" &&
-        b.cewgSemantic === "packedLocalLights" &&
+        b.name === "cjsLocalLightTexture" &&
+        b.cjsSemantic === "packedLocalLights" &&
         b.lightIndexRegister === 13 &&
         b.lightDataRegister === 14 &&
         b.dataTexelBase === 8192
@@ -244,9 +244,9 @@ test("lightPackedTexture drops the light profile sampler declaration", () =>
         }
     });
 
-    assert.match(result.source, /uniform highp usampler2D cewgLocalLightTexture;/);
+    assert.match(result.source, /uniform highp usampler2D cjsLocalLightTexture;/);
     assert.doesNotMatch(result.source, /sampler2DArray s15/);
-    assert.ok(result.bindings.some((b) => b.cewgSemantic === "packedLocalLights"));
+    assert.ok(result.bindings.some((b) => b.cjsSemantic === "packedLocalLights"));
     assert.ok(!result.bindings.some((b) => b.kind === "resource" && b.registerIndex === 15));
 });
 

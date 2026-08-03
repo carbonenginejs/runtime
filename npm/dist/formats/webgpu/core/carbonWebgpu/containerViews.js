@@ -341,7 +341,7 @@ function deriveInfo(container, options = {}) {
   const source = options.source || container.sourcePath || "memory";
   const graph = container.permutationGraph;
   return {
-    format: "CEWGPU",
+    format: "CARBON_WEBGPU",
     packageKind: "tr2-effect-webgpu",
     sourcePath: source,
     effectVersion: container.carbon.version,

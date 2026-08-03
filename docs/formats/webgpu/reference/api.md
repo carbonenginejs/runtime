@@ -39,10 +39,10 @@ const reader = new WebgpuFormat({
 | `SetClass(type, Class)` | Registers or removes one constructor. |
 | `GetClass(type)` | Returns one registered constructor. |
 | `HasClass(type)` | Reports whether a constructor is registered. |
-| `Read(bytes, options?)` | Reads Carbon-record CEWGPU bytes. |
+| `Read(bytes, options?)` | Reads Carbon-record Carbon WebGPU bytes. |
 | `Inspect(bytes, options?)` | Returns a compact container summary. |
 | `AnalyzeEffect(bytes, options?)` | Analyzes compiled-effect bytes without packaging. |
-| `BuildEffect(bytes, options?)` | Translates a version-15 effect to CEWGPU bytes. |
+| `BuildEffect(bytes, options?)` | Translates a version-15 effect to Carbon WebGPU bytes. |
 | `BuildShaderIr(input, options?)` | Builds validated shader IR from DXBC or decoded input. |
 | `BuildWgsl(input, options?)` | Emits supported shader IR as WGSL. |
 | `BuildWgslBindingPlan(programs, options?)` | Allocates one binding layout across a pass. |
@@ -56,18 +56,18 @@ not a generic chunk container.
 
 | Static helper | Purpose |
 | --- | --- |
-| `isCewgpu(bytes)` | Reports whether bytes have the Carbon-v15 shape. |
+| `isCarbonWebgpu(bytes)` | Reports whether bytes have the Carbon-v15 shape. |
 | `read(bytes, options?)` | Reads one container. |
 | `inspect(bytes, options?)` | Inspects one container. |
 | `analyzeEffect(bytes, options?)` | Analyzes one compiled effect. |
-| `buildEffect(bytes, options?)` | Builds CEWGPU bytes from a version-15 effect. |
+| `buildEffect(bytes, options?)` | Builds Carbon WebGPU bytes from a version-15 effect. |
 | `buildShaderIr(input, options?)` | Builds shader IR. |
 | `buildWgsl(input, options?)` | Emits WGSL. |
 | `buildWgslBindingPlan(programs, options?)` | Allocates a pass binding plan. |
 | `buildWgslSet(entries)` | Builds a portable WGSL set. |
 | `toJSON(value)` | Converts output to JSON-compatible data. |
 
-`isCewgpu` checks the first dword for Carbon version 15. CEWGPU has no private
+`isCarbonWebgpu` checks the first dword for Carbon version 15. Carbon WebGPU has no private
 magic or payload tag, so this is a shape check rather than backend identity.
 Callers establish identity through the resource path that supplied the bytes.
 
@@ -191,6 +191,6 @@ points, and malformed backend blocks.
 ## Related documentation
 
 - [Effect packaging guide](../guides/effect-packaging.md)
-- [CEWGPU effect container](../formats/cewgpu.md)
+- [Carbon WebGPU effect container](../formats/carbon-webgpu.md)
 - [WGSL compatibility](wgsl-compatibility.md)
 - [Class-purpose catalog](classes/README.md)

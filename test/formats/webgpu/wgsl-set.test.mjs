@@ -88,7 +88,7 @@ test("BuildWgslSet freezes deterministic copyblit shaders and layouts", () =>
     // because the WGSL set is a *view* over description records rather than a
     // stored chunk. The property it asserted -- shaders and layouts survive the
     // wire unchanged -- is now proven where it actually lives, against real
-    // effects, in cewgpu-container.test.js's emitter/reader oracle.
+    // effects, in carbon-webgpu-container.test.js's emitter/reader oracle.
 });
 
 test("BuildWgslSet unions compatible cross-stage visibility", () =>

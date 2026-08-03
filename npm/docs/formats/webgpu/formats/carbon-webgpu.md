@@ -1,4 +1,4 @@
-# CEWGPU effect container
+# Carbon WebGPU effect container
 
 Status: Evolving
 Scope: `@carbonenginejs/runtime-resource/formats/webgpu`
@@ -7,7 +7,7 @@ Summary: Defines the Carbon v15 record container used for WebGPU effects, its ba
 
 ## Purpose
 
-A `.cewgpu` file is a stock Carbon version-15 compiled-effect container whose
+A `.carbonwebgpu` file is a stock Carbon version-15 compiled-effect container whose
 program slots carry WGSL instead of DXBC. It preserves every permutation row
 and representable non-program description/reflection fields. Non-dynamic
 sampler names are unrecoverable and stage order is canonicalized. Source-stage
@@ -15,10 +15,10 @@ programs are not stored: a translated slot contains WGSL and an untranslated slo
 Each translated pass may also carry one WebGPU backend block containing
 bind-group layouts and resource transforms.
 
-There is no CEWGPU-specific magic, envelope, payload tag, or container version.
+There is no Carbon WebGPU-specific magic, envelope, payload tag, or container version.
 Backend identity comes from the resource path, such as `effect.webgpu/`, just
 as Carbon selects `effect.dx11/`, `effect.dx12/`, or `effect.metal/`.
-`isCewgpu(bytes)` is therefore only a Carbon-v15 shape check. It cannot prove
+`isCarbonWebgpu(bytes)` is therefore only a Carbon-v15 shape check. It cannot prove
 that arbitrary version-15 bytes contain WGSL.
 
 ## Wire layout
@@ -34,7 +34,7 @@ outline, the file contains:
   emitted-description-byte aliases sharing that body; and
 - one optional backend block after each pass's render states.
 
-The Carbon region is backend-invariant. CEWGPU substitutes:
+The Carbon region is backend-invariant. Carbon WebGPU substitutes:
 
 - UTF-8 WGSL in each translated stage's `shaderData`;
 - the fixed entry point `main`, which is omitted from the wire because every
@@ -48,7 +48,7 @@ remain represented without pretending WebGPU can execute them.
 
 ## No stored chunks
 
-The former flat CEWGPU format stored `INFO`, `META`, `PGRF`, `RFLX`, `RBLB`,
+The former flat Carbon WebGPU format stored `INFO`, `META`, `PGRF`, `RFLX`, `RBLB`,
 `ANLS`, `WGSL`, and `WGSB` chunks. The current wire stores none of them.
 
 Equivalent read surfaces are derived from the one Carbon record tree:
@@ -65,7 +65,7 @@ Equivalent read surfaces are derived from the one Carbon record tree:
 
 `Read(..., { emit: "json" })` returns these compatibility views as plain data.
 They are not independent stored documents and carry no cross-document digests.
-`Read(..., { emit: "raw" })` returns the internal `CewgpuContainer` reader.
+`Read(..., { emit: "raw" })` returns the internal `CarbonWebgpuContainer` reader.
 There is no `chunks` array and no generic `Build(chunks)` API.
 
 ## Building

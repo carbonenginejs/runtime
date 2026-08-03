@@ -3,7 +3,7 @@
 Status: Stable
 Visibility: Public
 Scope: `@carbonenginejs/runtime-resource` — `src/format/carbonEffect/`, `src/format/CjsByteReader.js`, `src/format/CjsByteWriter.js`, `src/format/CjsStringTable.js`
-Audience: Anyone reading or writing compiled shader effect bytes, or extending `.cewgpu`
+Audience: Anyone reading or writing compiled shader effect bytes, or extending `.carbonwebgpu`
 Summary: The v15 binary layout of Carbon's compiled effect files, the shared byte reader and writer that implement it, and the arena offset policy a byte-exact re-emit depends on.
 
 ## What this is
@@ -14,8 +14,10 @@ a deduplicated blob arena ("string table"), one dense offset-table row per
 permutation, and one stored description blob per distinct encoded body.
 
 This package implements it as a shared reader and writer, verified byte-exact against
-CCP's own shipped files. It is the wire foundation for `.cewgpu`. The `.cewg`
-WebGL package retains its separate `CEWG` magic and chunk layout.
+CCP's own shipped files. It is the wire foundation for **both** browser backends:
+`.carbonwebgpu` and `.carbonwebgl` are the same Carbon v15 container, differing
+only in the program text occupying each stage's slot and in the optional
+per-pass backend block. Neither carries a private magic or chunk layout.
 
 | module | role |
 |---|---|
@@ -431,12 +433,12 @@ close.
 layout. Current packaging emits no such prefix and the former helper is no
 longer part of the package.
 
-**Current WebGPU wire.** CEWGPU bytes have no envelope, magic, `payloadKind`,
+**Current WebGPU wire.** Carbon WebGPU bytes have no envelope, magic, `payloadKind`,
 or independent container version. They are bare Carbon v15 records resolved
-from `effect.webgpu/`, with one optional per-pass backend block. `.cewg`
-remains a separate CEWG chunk format rather than this Carbon-record wire.
+from `effect.webgpu/`, with one optional per-pass backend block. `.carbonwebgl`
+remains a separate Carbon WebGL chunk format rather than this Carbon-record wire.
 
-`CewgpuContainer` reads the optional blocks, and the shared record reader can
+`CarbonWebgpuContainer` reads the optional blocks, and the shared record reader can
 auto-detect them from a description's declared size. There is no adapter
 boundary left between them and the runtime: `Tr2EffectRes.DoLoad` retains a
 `CjsCarbonEffectReader` over the same bytes and `Tr2Shader.fromCarbonBinary`
@@ -477,9 +479,9 @@ filters on. Two nearby directories look like corpora and are not:
   nothing and fails as `no compiled effect files found` — the walker is
   extension-driven, so an unextracted cache silently yields zero files;
 - a directory of **our own translated output** keeps the `.sm_*` names but
-  holds `CEWG`/`CEWGPU` containers, and fails with
+  holds `Carbon WebGL`/`Carbon WebGPU` containers, and fails with
   `Unsupported Carbon effect version 1196901699` — that number is the ASCII
-  `CEWG` magic read as a version dword.
+  `Carbon WebGL` magic read as a version dword.
 
 Both failures are loud, which is the intended behaviour; neither is a defect.
 The test re-emits each file three ways:

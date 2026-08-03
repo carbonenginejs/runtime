@@ -19,7 +19,7 @@ const defaultInput = path.join(
   "fixtures",
   "quadv5.sm_hi"
 );
-const defaultOutput = path.join(projectRoot, "artifacts", "quadv5.webgl.cewg");
+const defaultOutput = path.join(projectRoot, "artifacts", "quadv5.webgl.carbonwebgl");
 
 /**
  * Flags that only ever fed the removed native comparison harness.
@@ -119,7 +119,7 @@ function printUsage() {
     "Usage: node scripts/packageTr2WebglEffect.js [effect-file] [options]",
     "",
     "Options:",
-    "  --out <path>              Output .cewg path. Defaults to artifacts/quadv5.webgl.cewg.",
+    "  --out <path>              Output .carbonwebgl path. Defaults to artifacts/quadv5.webgl.carbonwebgl.",
     "  --source-game <name>      Source game identity (for example Frontier).",
     "  --source-client <name>    Source client identity (for example stillness).",
     "  --source-build <id>       Immutable source build identity.",
@@ -169,7 +169,7 @@ async function main() {
   const outputPath = path.resolve(args.output);
   // The native hlsl2webgl path is gone. It ran a second DXBC-to-GLSL
   // implementation to compare against the JS emitter, and its executable was
-  // never part of this repository, so it could not succeed here. The .cewg
+  // never part of this repository, so it could not succeed here. The .carbonwebgl
   // baselines and the corpus tests serve that role without needing a Windows
   // binary to exist.
   if (args.removedNativeFlags.length)

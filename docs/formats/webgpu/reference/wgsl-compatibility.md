@@ -1273,10 +1273,10 @@ used before the Carbon-container switchover. Their corpus counts remain
 compiler and provenance evidence; `INFO`, `META`, `PGRF`, `RFLX`, `RBLB`,
 `ANLS`, and `WGSL` are no longer stored chunks. Current bytes are Carbon
 version-15 records with derived compatibility views. See
-[CEWGPU effect container](../formats/cewgpu.md).
+[Carbon WebGPU effect container](../formats/carbon-webgpu.md).
 
 At the 0.4.2 checkpoint, `BuildEffect` emitted selected-effect INFO schema
-version 2 while the binary CEWGPU container remained version 1. INFO v2
+version 2 while the binary Carbon WebGPU container remained version 1. INFO v2
 recorded the WebGPU target,
 backend-package and translator semantic versions, and a lower-case SHA-256
 digest computed over the exact compiled-effect input byte view. A conflicting
@@ -1334,7 +1334,7 @@ qualified packages:
 A packed-package Chrome smoke builds and reads a real version-15 effect in the
 browser, resolves all reflected byte references, structured-clones the JSON
 view, and fails closed after raw blob corruption with no console errors. The
-engine prepares a newly generated real `quads.sm_hi` CEWGPU package with 10
+engine prepares a newly generated real `quads.sm_hi` Carbon WebGPU package with 10
 canonical bindings and zero WGSL warnings. The high-tier
 `unpacked_quadv5.sm_depth` DX11 self-pair remains exhaustively qualified across
 480 bodies, 4,480 emitted stage occurrences, and 2,240 ready pass occurrences;

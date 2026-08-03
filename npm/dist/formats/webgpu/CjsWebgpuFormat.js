@@ -5,12 +5,12 @@ import { buildWgslBindingPlan } from './core/wgsl/buildWgslBindingPlan.js';
 import { buildWgslSet } from './core/wgsl/buildWgslSet.js';
 import { buildEffectPackage } from './core/packageEffect.js';
 import { FORMAT_WEBGPU_PACKAGE_VERSION } from './core/packageMetadata.js';
-import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, analyzeEffectWithValues, toJsonValue, isCewgpu, OUTPUT_JSON, OUTPUT_RAW, CEWGPU_FORMAT, CEWGPU_ANALYSIS_FORMAT } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, analyzeEffectWithValues, toJsonValue, isCarbonWebgpu, OUTPUT_JSON, OUTPUT_RAW, CARBON_WEBGPU_FORMAT, CARBON_WEBGPU_ANALYSIS_FORMAT } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsWebgpuFormat";
 
 /**
- * CarbonEngineJS-facing format surface for `.cewgpu` WebGPU packages, plus an
+ * CarbonEngineJS-facing format surface for `.carbonwebgpu` WebGPU packages, plus an
  * offline effect-analysis helper built on the runtime-resource HLSL and DXBC
  * format subpaths.
  *
@@ -124,9 +124,9 @@ class CjsWebgpuFormat {
   }
 
   /**
-   * Read a CEWGPU package with this profile's values.
+   * Read a Carbon WebGPU package with this profile's values.
    *
-   * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU package bytes.
+   * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU package bytes.
    * @param {object} [options] Per-call value overrides.
    * @returns {object} Plain JSON data, or the raw package instance when emit is "raw".
    */
@@ -135,9 +135,9 @@ class CjsWebgpuFormat {
   }
 
   /**
-   * Inspect a CEWGPU package without building the full JSON shape.
+   * Inspect a Carbon WebGPU package without building the full JSON shape.
    *
-   * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU package bytes.
+   * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU package bytes.
    * @param {object} [options] Per-call value overrides.
    * @returns {object} Plain summary data.
    */
@@ -158,7 +158,7 @@ class CjsWebgpuFormat {
   }
 
   /**
-   * Builds a CEWGPU package with complete version-15 source reflection and
+   * Builds a Carbon WebGPU package with complete version-15 source reflection and
    * selected-body WebGPU output from compiled Tr2 effect bytes.
    *
    * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Compiled effect bytes.
@@ -236,14 +236,14 @@ class CjsWebgpuFormat {
    * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate bytes.
    * @returns {boolean} True when the payload has Carbon's version-15 shape.
    */
-  static isCewgpu(input) {
-    return isCewgpu(input);
+  static isCarbonWebgpu(input) {
+    return isCarbonWebgpu(input);
   }
 
   /**
    * Static one-shot read.
    *
-   * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU package bytes.
+   * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU package bytes.
    * @param {object} [options] Format values.
    * @returns {object} Plain JSON data, or the raw package instance when emit is "raw".
    */
@@ -254,7 +254,7 @@ class CjsWebgpuFormat {
   /**
    * Static one-shot inspection.
    *
-   * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input CEWGPU package bytes.
+   * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU package bytes.
    * @param {object} [options] Format values.
    * @returns {object} Plain summary data.
    */
@@ -274,7 +274,7 @@ class CjsWebgpuFormat {
   }
 
   /**
-   * Static selected-body CEWGPU builder.
+   * Static selected-body Carbon WebGPU builder.
    *
    * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Compiled effect bytes.
    * @param {object} [options] Source, body-mode, permutation, and stage-selection policy.
@@ -344,12 +344,12 @@ class CjsWebgpuFormat {
   static CLASS_KEYS = CLASS_KEYS;
   static type = Object.freeze(["shader"]);
   static mediaTypes = Object.freeze(["shader"]);
-  static inputTypes = Object.freeze(["cewgpu"]);
+  static inputTypes = Object.freeze(["carbonwebgpu"]);
   static outputTypes = Object.freeze([OUTPUT_JSON]);
   static debugOutputTypes = Object.freeze([OUTPUT_RAW]);
   static implementationStatus = "partial";
-  static format = CEWGPU_FORMAT;
-  static analysisFormat = CEWGPU_ANALYSIS_FORMAT;
+  static format = CARBON_WEBGPU_FORMAT;
+  static analysisFormat = CARBON_WEBGPU_ANALYSIS_FORMAT;
   static packageVersion = FORMAT_WEBGPU_PACKAGE_VERSION;
 }
 

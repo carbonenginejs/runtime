@@ -19,7 +19,7 @@ const BLOCK = {
         vertex: {
             bindings: [
                 { kind: "constantBuffer", registerIndex: 3, name: "cb3", sizeInVec4: 20, style: "array" },
-                { kind: "structuredUbo", registerIndex: 0, name: "CewgSb0", strideBytes: 48, capacityElements: 69 },
+                { kind: "structuredUbo", registerIndex: 0, name: "CjsSb0", strideBytes: 48, capacityElements: 69 },
                 {
                     kind: "bufferTexture",
                     registerIndex: 5,
@@ -74,11 +74,11 @@ const BLOCK = {
         },
         compute: {
             bindings: [
-                { kind: "dispatchUniform", name: "cewgDispatchOrigin" },
+                { kind: "dispatchUniform", name: "cjsDispatchOrigin" },
                 {
                     kind: "uavTexture",
                     registerIndex: 1,
-                    name: "cewgUav1_s2",
+                    name: "cjsUav1_s2",
                     slice: 2,
                     location: 0,
                     returnTypes: [ "float" ]
@@ -86,7 +86,7 @@ const BLOCK = {
                 {
                     kind: "uavTexture",
                     registerIndex: 2,
-                    name: "cewgUav2",
+                    name: "cjsUav2",
                     slice: null,
                     location: 1,
                     returnTypes: null
@@ -95,10 +95,10 @@ const BLOCK = {
             stageInputs: [],
             computeFragment: {
                 threadGroup: [ 8, 8, 1 ],
-                dispatchOriginUniform: "cewgDispatchOrigin",
+                dispatchOriginUniform: "cjsDispatchOrigin",
                 uavOutputs: [
-                    { register: 1, slice: 2, location: 0, glslName: "cewgUav1_s2" },
-                    { register: 2, slice: null, location: 1, glslName: "cewgUav2" }
+                    { register: 1, slice: 2, location: 0, glslName: "cjsUav1_s2" },
+                    { register: 2, slice: null, location: 1, glslName: "cjsUav2" }
                 ]
             }
         }
@@ -188,7 +188,7 @@ test("the packed-texture local-light lowering survives a round trip", () =>
         strideBytes: 0,
         format: "RGBA32UI",
         width: 2048,
-        cewgSemantic: "packedLocalLights",
+        cjsSemantic: "packedLocalLights",
         lightIndexRegister: 13,
         lightDataRegister: 14,
         lightProfileRegister: 15,
@@ -216,7 +216,7 @@ test("the constant-buffer local-light lowering survives a round trip", () =>
         name: "cb6",
         sizeInVec4: 121,
         style: "array",
-        cewgSemantic: "localLights",
+        cjsSemantic: "localLights",
         capacityLights: 40,
         lightIndexRegister: 13,
         lightDataRegister: 14,
@@ -259,7 +259,7 @@ test("an unknown local-light role fails the build rather than being dropped", ()
                     name: "cb11",
                     sizeInVec4: 64,
                     style: "array",
-                    cewgSemantic: "somethingElse"
+                    cjsSemantic: "somethingElse"
                 } ],
                 stageInputs: []
             }

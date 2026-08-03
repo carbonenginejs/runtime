@@ -5,7 +5,7 @@ Scope: Carbon/Trinity constant-buffer layouts used by `@carbonenginejs/runtime-r
 Audience: Shader translators, runtime packers, and engine integrators
 Summary: Maps Carbon constant-buffer registers and field layouts for WebGL integration.
 
-> Produced 2026-07-05 from ../carbonengine source (authoritative) for the CEWG
+> Produced 2026-07-05 from ../carbonengine source (authoritative) for the Carbon WebGL
 > per-frame/per-object packer in ccpwgl. All register offsets are in float4
 > (vec4) units. File references are relative to
 > `../carbonengine/trinity/trinity/`.
@@ -271,8 +271,8 @@ cascaded-shadow + froxel tail (95 regs) is absent in ccpwgl.
 In Carbon DX11, cb3[26]=boneOffsets, cb3[27]=morph, cb3[28]=customData, and
 joints live in the separate `BoneTransforms` structured buffer (69 max,
 Float4x3). ccpwgl WebGL2 splices 58 joints inline at cb3[26..199] instead.
-The CEWG path keeps Carbon's shape: cb3 stays 29 regs, joints go to the
-dedicated CewgSb UBO (capacity 69). Bone-count note: Carbon
+The Carbon WebGL path keeps Carbon's shape: cb3 stays 29 regs, joints go to the
+dedicated CjsSb UBO (capacity 69). Bone-count note: Carbon
 TR2_MAX_BONES_PER_MESHAREA=69 vs ccpwgl inline 58 (likely a WebGL uniform
 budget choice, not a Carbon constant).
 

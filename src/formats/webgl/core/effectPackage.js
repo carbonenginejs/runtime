@@ -32,7 +32,7 @@ const EFFECT_INFO_VERSION = 3;
 const PACKAGE_VERSION = "0.11.1";
 
 /**
- * Builds a complete CEWG package from compiled Tr2 effect bytes.
+ * Builds a complete Carbon WebGL package from compiled Tr2 effect bytes.
  *
  * This browser-safe path owns whole-effect selection, stage translation,
  * package assembly, and structural qualification. Filesystem and native-tool
@@ -181,7 +181,7 @@ export function buildEffectPackage(input, options = {})
     const availableShaderCount = translatedShaders.filter((record) =>
         record.hlsl2webgl?.ok && record.source).length;
     const info = {
-        format: "CEWG",
+        format: "CARBON_WEBGL",
         formatVersion: EFFECT_INFO_VERSION,
         packageKind: values.allPermutations
             ? "tr2-effect-webgl-permutations"
@@ -255,7 +255,7 @@ export function buildEffectPackage(input, options = {})
         }))
     };
     const glsl = {
-        format: "CEWG_GLSL_SET",
+        format: "CARBON_WEBGL_GLSL_SET",
         formatVersion: 1,
         language: "es300",
         permutationMode: info.permutationMode,
@@ -286,7 +286,7 @@ export function buildEffectPackage(input, options = {})
     if (!qualification.ok && !values.allowFailures)
     {
         throw new Error(
-            `CEWG target is incomplete; output was not built. ${qualification.errors.join("; ")}`
+            `Carbon WebGL target is incomplete; output was not built. ${qualification.errors.join("; ")}`
         );
     }
 
@@ -336,7 +336,7 @@ function normalizeOptions(input, options)
 {
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
-        throw new TypeError("CEWG effect options must be an object");
+        throw new TypeError("Carbon WebGL effect options must be an object");
     }
 
     const sourceBytes = toBytes(input);
@@ -354,26 +354,26 @@ function normalizeOptions(input, options)
     if (selection.pass !== null
         && (!Number.isSafeInteger(selection.pass) || selection.pass < 0))
     {
-        throw new TypeError("CEWG effect pass must be a non-negative integer or null");
+        throw new TypeError("Carbon WebGL effect pass must be a non-negative integer or null");
     }
 
     if (selection.stage !== null
         && ![ "vertex", "pixel", "compute" ].includes(selection.stage))
     {
-        throw new TypeError(`Unsupported CEWG effect stage: ${selection.stage}`);
+        throw new TypeError(`Unsupported Carbon WebGL effect stage: ${selection.stage}`);
     }
 
     if (options.emitterOptions !== undefined
         && (!options.emitterOptions || typeof options.emitterOptions !== "object"
             || Array.isArray(options.emitterOptions)))
     {
-        throw new TypeError("CEWG emitterOptions must be an object");
+        throw new TypeError("Carbon WebGL emitterOptions must be an object");
     }
 
     return {
         sourceBytes,
         source,
-        outputPath: normalizeOptionalString(options.outputPath, "CEWG outputPath"),
+        outputPath: normalizeOptionalString(options.outputPath, "Carbon WebGL outputPath"),
         sourceIdentity: options.sourceIdentity ?? null,
         generatedAt: options.generatedAt === undefined || options.generatedAt === null
             ? null
@@ -430,7 +430,7 @@ function toBytes(input)
         return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
     }
 
-    throw new TypeError("CEWG effect input must be Uint8Array, ArrayBuffer, or ArrayBufferView bytes");
+    throw new TypeError("Carbon WebGL effect input must be Uint8Array, ArrayBuffer, or ArrayBufferView bytes");
 }
 
 function defaultPermutationIndex(permutations)
@@ -632,7 +632,7 @@ function normalizeLocalLightMode(value)
     if (!LOCAL_LIGHT_MODES.includes(mode))
     {
         throw new TypeError(
-            `CEWG localLights must be one of ${LOCAL_LIGHT_MODES.join(", ")}; got "${mode}"`
+            `Carbon WebGL localLights must be one of ${LOCAL_LIGHT_MODES.join(", ")}; got "${mode}"`
         );
     }
     return mode;
@@ -675,7 +675,7 @@ function localLightEmitterOptions(plan, mode)
                 dataRegister: plan.dataRegister,
                 profileRegister: plan.profileRegister,
                 registerIndex: plan.indexRegister,
-                name: "cewgLocalLightTexture",
+                name: "cjsLocalLightTexture",
                 dataTexelBase: 131072
             }
         };
@@ -1016,9 +1016,9 @@ function validateStageSourceShape(record)
         return "pixel stage source looks like vertex GLSL";
     }
 
-    if (record.stageName === "compute" && !/\bcewgUav\d+(_s\d+)?\b/u.test(source))
+    if (record.stageName === "compute" && !/\bcjsUav\d+(_s\d+)?\b/u.test(source))
     {
-        return "compute stage source does not write any cewgUav output";
+        return "compute stage source does not write any cjsUav output";
     }
 
     return null;
@@ -1031,7 +1031,7 @@ function normalizeSourceIdentity(values)
     if (identity !== null
         && (!identity || typeof identity !== "object" || Array.isArray(identity)))
     {
-        throw new TypeError("CEWG sourceIdentity must be an object");
+        throw new TypeError("Carbon WebGL sourceIdentity must be an object");
     }
 
     const sha256 = sha256Bytes(values.sourceBytes);
@@ -1039,7 +1039,7 @@ function normalizeSourceIdentity(values)
         && identity.sha256 !== sha256)
     {
         throw new Error(
-            "CEWG sourceIdentity.sha256 does not match the exact effect input bytes"
+            "Carbon WebGL sourceIdentity.sha256 does not match the exact effect input bytes"
         );
     }
 
@@ -1070,14 +1070,14 @@ function qualifyEffectPackage({
 {
     const errors = [];
 
-    if (info.format !== "CEWG" || glsl.format !== "CEWG_GLSL_SET")
+    if (info.format !== "CARBON_WEBGL" || glsl.format !== "CARBON_WEBGL_GLSL_SET")
     {
-        errors.push("invalid CEWG package envelope");
+        errors.push("invalid Carbon WebGL package envelope");
     }
 
     if (!Array.isArray(metadata.variants) || !Array.isArray(glsl.shaders))
     {
-        errors.push("missing CEWG graph arrays");
+        errors.push("missing Carbon WebGL graph arrays");
     }
 
     if (failedShaders.length)

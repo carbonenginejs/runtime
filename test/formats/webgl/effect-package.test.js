@@ -43,7 +43,7 @@ test("buildEffect fails closed unless a diagnostic package is explicit", () =>
             source: "res:/graphics/effect.dx11/synthetic.sm_hi",
             allPermutations: false
         }),
-        /CEWG target is incomplete/u
+        /Carbon WebGL target is incomplete/u
     );
 });
 
@@ -148,7 +148,7 @@ test("version 15 packaging reports its permutation and body accounting", () =>
     );
 });
 
-test("filtered version 15 CEWG cannot overclaim backend completeness", () =>
+test("filtered version 15 Carbon WebGL cannot overclaim backend completeness", () =>
 {
     const result = CjsWebglFormat.buildEffect(
         buildMinimalStagedEffectBytes({ version: 15 }),
@@ -170,7 +170,7 @@ test("filtered version 15 CEWG cannot overclaim backend completeness", () =>
     assert.doesNotThrow(() => inspectGlslEffectContainer(result.bytes));
 });
 
-test("CEWG source SHA-256 is an assertion, not caller-authored metadata", () =>
+test("Carbon WebGL source SHA-256 is an assertion, not caller-authored metadata", () =>
 {
     assert.throws(
         () => CjsWebglFormat.buildEffect(

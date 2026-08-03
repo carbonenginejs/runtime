@@ -46,7 +46,7 @@ them.
   belong to `format-hlsl`.
 - GLSL ES generation and WebGL-specific register/storage policy belong to
   `format-webgl`.
-- WGSL generation, pass-global WebGPU binding allocation, and CEWGPU assembly
+- WGSL generation, pass-global WebGPU binding allocation, and Carbon WebGPU assembly
   belong to `format-webgpu`.
 - GPU shader-module and pipeline realization belongs to engine packages.
 

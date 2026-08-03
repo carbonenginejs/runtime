@@ -40,7 +40,7 @@ import {
 } from "./packageEffectSelection.js";
 
 /**
- * Build one structurally valid CEWGPU package from compiled Tr2 effect bytes.
+ * Build one structurally valid Carbon WebGPU package from compiled Tr2 effect bytes.
  *
  * The version-15 build result retains every unique body's portable source
  * reflection as in-memory evidence while the emitted Carbon wire stores WGSL
@@ -203,7 +203,7 @@ export function buildEffectPackage(input, options = {})
         runtimeComplete: false
     });
     const info = {
-        format: "CEWGPU",
+        format: "CARBON_WEBGPU",
         formatVersion: EFFECT_INFO_VERSION,
         packageKind: "tr2-effect-webgpu",
         sourcePath: source,
@@ -283,7 +283,7 @@ export function buildEffectPackage(input, options = {})
     const qualification = Object.freeze({
         ok: true,
         level: "structural",
-        validator: "cewgpu-structural",
+        validator: "carbon-webgpu-structural",
         mode,
         ...completeness,
         selectedStageCount: selectedStages.length,

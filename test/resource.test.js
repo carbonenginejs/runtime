@@ -2140,7 +2140,7 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
   const effect = new Tr2EffectRes().Initialize("res:/shader/ship.sm_hi");
   const shaderPayload = {
     payloadType: "shader",
-    sourceFormat: "cewgpu",
+    sourceFormat: "carbonwebgpu",
     techniques: [ "Main" ],
     passes: [ "Forward" ],
     // Axes, not selections. A permutation entry declares the options an effect

@@ -23,7 +23,7 @@ creating live GPU objects.
 @carbonenginejs/runtime-resource/formats/webgpu <---- @carbonenginejs/runtime-resource/formats/dxbc
           |                              decoded DXBC
           |
-          +---- CEWGPU bytes, analysis, WGSL, canonical layouts
+          +---- Carbon WebGPU bytes, analysis, WGSL, canonical layouts
           |
           v
 @carbonenginejs/engine-webgpu
@@ -35,7 +35,7 @@ then package data to the engine.
 
 ## Owned responsibilities
 
-- Reading, inspecting, and building Carbon-record CEWGPU containers.
+- Reading, inspecting, and building Carbon-record Carbon WebGPU containers.
 - Resolving one compiled-effect permutation and complete pass.
 - Preserving every source permutation row and representable non-program
   description field; non-dynamic sampler names are unrecoverable and stage
@@ -70,7 +70,7 @@ then package data to the engine.
 
 The public class accepts `ArrayBuffer`, typed-array, and compatible byte views.
 Its source does not read files, inspect processes, or invoke native programs.
-This allows applications to fetch or select bytes and build CEWGPU data in a
+This allows applications to fetch or select bytes and build Carbon WebGPU data in a
 browser.
 
 The repository's command-line scripts are development adapters over the same
@@ -91,5 +91,5 @@ listed in [WGSL compatibility](reference/wgsl-compatibility.md).
 ## Related documentation
 
 - [Package documentation](README.md)
-- [CEWGPU package format](formats/cewgpu.md)
+- [Carbon WebGPU package format](formats/carbon-webgpu.md)
 - [Public API reference](reference/api.md)

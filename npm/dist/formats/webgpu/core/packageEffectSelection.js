@@ -139,7 +139,7 @@ function selectEffectStages(stages, selection) {
 }
 
 /**
- * Build explicit selection provenance for CEWGPU metadata.
+ * Build explicit selection provenance for Carbon WebGPU metadata.
  *
  * @param {object|null} selection Optional technique/pass/stage assertion.
  * @param {object[]} selectedStages Selected analysis stage records.

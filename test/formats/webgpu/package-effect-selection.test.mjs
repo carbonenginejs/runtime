@@ -19,7 +19,7 @@ const STAGES = Object.freeze([
 
 test("package-effect keeps legacy all-stage selection when no flags are present", () =>
 {
-    const parsed = parsePackageEffectArguments([ "input.sm_lo", "output.cewgpu" ]);
+    const parsed = parsePackageEffectArguments([ "input.sm_lo", "output.carbonwebgpu" ]);
 
     assert.deepEqual(parsed.permutation, []);
     assert.equal(parsed.selection, null);
@@ -31,10 +31,10 @@ test("package-effect keeps legacy all-stage selection when no flags are present"
 test("package-effect requires an explicit overwrite alias for existing output", () =>
 {
     assert.equal(parsePackageEffectArguments([
-        "input.sm_lo", "output.cewgpu", "--overwrite"
+        "input.sm_lo", "output.carbonwebgpu", "--overwrite"
     ]).overwrite, true);
     assert.equal(parsePackageEffectArguments([
-        "input.sm_lo", "output.cewgpu", "--force"
+        "input.sm_lo", "output.carbonwebgpu", "--force"
     ]).overwrite, true);
 });
 
@@ -42,7 +42,7 @@ test("package-effect parses exact repeatable permutation assertions", () =>
 {
     const parsed = parsePackageEffectArguments([
         "input.sm_lo",
-        "output.cewgpu",
+        "output.carbonwebgpu",
         "--permutation", "BINDLESS_RENDERING=BINDLESS_RENDERING_DISABLED",
         "--permutation", "SPACE_OBJECT_PPT_ENABLED=SOPPT_ENABLED",
         "--technique", "Main",
@@ -61,7 +61,7 @@ test("package-effect selects one explicitly asserted complete pass in ANLS order
 {
     const parsed = parsePackageEffectArguments([
         "input.sm_lo",
-        "output.cewgpu",
+        "output.carbonwebgpu",
         "--technique", "Main",
         "--pass", "0",
         "--stage", "pixel",
@@ -86,7 +86,7 @@ test("package-effect accepts an explicitly asserted compute-only pass", () =>
         { key: "Compute.pass0.compute", techniqueName: "Compute", passIndex: 0, stageName: "compute" }
     ];
     const parsed = parsePackageEffectArguments([
-        "input.sm_hi", "output.cewgpu",
+        "input.sm_hi", "output.carbonwebgpu",
         "--technique", "Compute", "--pass", "0", "--stage", "compute"
     ]);
 
@@ -195,7 +195,7 @@ test("package-effect requires requested permutations to resolve exactly", () =>
 
 test("package-effect rejects input overwrite and mismatched bytecode resolution", () =>
 {
-    assert.equal(validatePackageEffectPaths("input.sm_lo", "output.cewgpu"), true);
+    assert.equal(validatePackageEffectPaths("input.sm_lo", "output.carbonwebgpu"), true);
     assert.throws(
         () => validatePackageEffectPaths("E:/Effects/Quad.sm_lo", "e:/effects/quad.sm_lo", "win32"),
         /must not overwrite/u

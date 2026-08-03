@@ -622,7 +622,7 @@ attribute channels, including blend indices, as float vertex attributes via
 `gl.vertexAttribPointer` (not `vertexAttribIPointer`)** — a real `uvec4 in_...`
 declaration either fails to link against that float-typed buffer binding, or links
 but silently produces garbage/invisible geometry
-(`028-cewg-skinned-blend-index-abi-lowering.md`: "Raw CEWG validation can link
+(`028-cewg-skinned-blend-index-abi-lowering.md`: "Raw Carbon WebGL validation can link
 integer attributes, but ccpwgl runtime binding can still fail or produce invisible
 geometry if the source reaches compile as `uvec4`."). The proven, validated fix
 (`028-...md`; `TRANSPILING-GAPS.md` "Ranked helper action plan" documents the general
@@ -635,7 +635,7 @@ and bitcast at every *use* site instead: any instruction reading `in_BLENDINDICE
 as an index wraps it in `floatBitsToUint(in_BLENDINDICES0)` (or, if the actual buffer
 data was uploaded as plain float index values rather than bit-pattern-encoded uints —
 verify per-attribute — a plain `uint(in_BLENDINDICES0.x)` truncating conversion
-instead of a bitcast; the CEWG lowering evidence describes casting at use sites but
+instead of a bitcast; the Carbon WebGL lowering evidence describes casting at use sites but
 does not pin down which of these two forms every producer used, see Confidence
 below). This is the **general form** of the family-level "every register is a float
 vec4" convention applied specifically to `dcl_input`: unlike the `r#` temp file

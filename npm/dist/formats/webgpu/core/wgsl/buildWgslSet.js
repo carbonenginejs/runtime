@@ -279,7 +279,7 @@ function buildResourceTransforms(entries, layouts) {
 }
 
 /**
- * Builds the portable JSON document stored in a CEWGPU `WGSL` chunk.
+ * Builds the portable JSON document stored in a Carbon WebGPU `WGSL` chunk.
  * Existing numeric bindings are validated and never reassigned.
  *
  * @param {Array<object>} input Wrapped emitted shader descriptors.

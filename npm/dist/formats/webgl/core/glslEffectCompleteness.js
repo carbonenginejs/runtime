@@ -1,5 +1,5 @@
 /**
- * Inspects CEWG stage records for complete WebGL2 raster passes.
+ * Inspects Carbon WebGL stage records for complete WebGL2 raster passes.
  *
  * Geometry and compute stages are not raster-pair members. A raster pass is
  * complete only when both its vertex and pixel records exist and their shared

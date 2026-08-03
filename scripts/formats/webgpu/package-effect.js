@@ -18,7 +18,7 @@ if (!overwrite)
     try
     {
         await access(outputPath);
-        throw new Error(`CEWGPU output already exists; pass --overwrite to replace it: ${outputPath}`);
+        throw new Error(`Carbon WebGPU output already exists; pass --overwrite to replace it: ${outputPath}`);
     }
     catch (error)
     {

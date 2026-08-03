@@ -80,12 +80,12 @@ test("reader manages values and classes", () =>
 test("implemented metadata advertises the package surface", () =>
 {
     assert.deepEqual(CjsWebgpuFormat.mediaTypes, [ "shader" ]);
-    assert.deepEqual(CjsWebgpuFormat.inputTypes, [ "cewgpu" ]);
+    assert.deepEqual(CjsWebgpuFormat.inputTypes, [ "carbonwebgpu" ]);
     assert.deepEqual(CjsWebgpuFormat.outputTypes, [ "json" ]);
     assert.deepEqual(CjsWebgpuFormat.debugOutputTypes, [ "raw" ]);
     assert.equal(CjsWebgpuFormat.implementationStatus, "partial");
-    assert.equal(CjsWebgpuFormat.format, "CEWGPU");
-    assert.equal(CjsWebgpuFormat.analysisFormat, "CEWGPU_ANALYSIS");
+    assert.equal(CjsWebgpuFormat.format, "CARBON_WEBGPU");
+    assert.equal(CjsWebgpuFormat.analysisFormat, "CARBON_WEBGPU_ANALYSIS");
     assert.equal(CjsWebgpuFormat.packageVersion, FORMAT_VERSION);
     assert.equal(CjsWebgpuFormat.packageVersion, FORMAT_VERSION);
 });
@@ -102,26 +102,26 @@ test("json emit exposes the derived info, analysis and stage records", () =>
 {
     const result = CjsWebgpuFormat.read(sampleBytes(), { source: "synthetic" });
 
-    assert.equal(result.format, "CEWGPU");
+    assert.equal(result.format, "CARBON_WEBGPU");
     // Carbon's own version dword. There is no container version of ours: the
     // envelope was removed and a "v16" rejected, because CCP owns that space.
     assert.equal(result.version, 15);
     // `chunks` is gone rather than translated -- a record layout has no chunk
     // table, and inventing one would describe a container that does not exist.
     assert.equal("chunks" in result, false);
-    assert.equal(result.info.format, "CEWGPU");
+    assert.equal(result.info.format, "CARBON_WEBGPU");
     assert.ok(result.permutationGraph.variants.length > 0);
-    assert.equal(result.analysis.format, "CEWGPU_ANALYSIS");
+    assert.equal(result.analysis.format, "CARBON_WEBGPU_ANALYSIS");
     assert.ok(result.stages.length > 0);
     assert.equal(result.stages[0].key, "Main.pass0.vertex");
     assert.equal(typeof JSON.stringify(result), "string");
 });
 
-test("raw emit exposes the CewgpuContainer instance", () =>
+test("raw emit exposes the CarbonWebgpuContainer instance", () =>
 {
     const container = CjsWebgpuFormat.read(sampleBytes(), { emit: CjsWebgpuFormat.OUTPUT_RAW });
 
-    assert.equal(container.constructor.name, "CewgpuContainer");
+    assert.equal(container.constructor.name, "CarbonWebgpuContainer");
     assert.equal(container.IsGood(), true);
     assert.equal(container.carbon.version, 15);
     assert.ok(container.GetBackendBodyPrograms(0));
@@ -131,7 +131,7 @@ test("inspect summarizes without building the full JSON shape", () =>
 {
     const summary = CjsWebgpuFormat.inspect(sampleBytes());
 
-    assert.equal(summary.isCewgpu, true);
+    assert.equal(summary.isCarbonWebgpu, true);
     assert.equal(summary.version, 15);
     assert.equal("chunks" in summary, false);
     assert.ok(summary.stageCount > 0);
@@ -139,18 +139,18 @@ test("inspect summarizes without building the full JSON shape", () =>
     assert.equal("info" in summary, false);
 });
 
-test("isCewgpu reports the Carbon v15 shape and rejects junk", () =>
+test("isCarbonWebgpu reports the Carbon v15 shape and rejects junk", () =>
 {
     // A shape check, not an identity check. Our containers are stock Carbon v15
     // files, so nothing in the bytes separates one from a shipped effect.dx11
     // file -- identity comes from the resource path, exactly as it does for
     // Carbon's own three backend trees.
-    assert.equal(CjsWebgpuFormat.isCewgpu(sampleBytes()), true);
-    assert.equal(CjsWebgpuFormat.isCewgpu(new Uint8Array([ 1, 2, 3 ])), false);
-    assert.equal(CjsWebgpuFormat.isCewgpu(new TextEncoder().encode("GARBAGE!")), false);
+    assert.equal(CjsWebgpuFormat.isCarbonWebgpu(sampleBytes()), true);
+    assert.equal(CjsWebgpuFormat.isCarbonWebgpu(new Uint8Array([ 1, 2, 3 ])), false);
+    assert.equal(CjsWebgpuFormat.isCarbonWebgpu(new TextEncoder().encode("GARBAGE!")), false);
 
     // The old magic is now just junk: nothing prepends it any more.
-    assert.equal(CjsWebgpuFormat.isCewgpu(new TextEncoder().encode("CWGP\u0002\u0000\u0000\u0000")), false);
+    assert.equal(CjsWebgpuFormat.isCarbonWebgpu(new TextEncoder().encode("CWGP\u0002\u0000\u0000\u0000")), false);
 });
 
 test("Read rejects a payload that is not a Carbon container", () =>
@@ -181,7 +181,7 @@ test("analyzeEffect decodes real parser stage bytes without embedding them", () 
     assert.equal(stage.ir.format, "CJS_SHADER_IR");
 });
 
-test("buildEffect exposes structurally qualified selected-body CEWGPU packaging", () =>
+test("buildEffect exposes structurally qualified selected-body Carbon WebGPU packaging", () =>
 {
     const source = buildMinimalStagedEffectBytes({ version: 15 });
     const result = CjsWebgpuFormat.buildEffect(source, {
@@ -195,7 +195,7 @@ test("buildEffect exposes structurally qualified selected-body CEWGPU packaging"
         }
     });
 
-    assert.equal(CjsWebgpuFormat.isCewgpu(result.bytes), true);
+    assert.equal(CjsWebgpuFormat.isCarbonWebgpu(result.bytes), true);
     assert.equal(result.info.formatVersion, 3);
     assert.equal(result.info.targetBackend, "webgpu");
     assert.equal(result.info.backendPackage, "@carbonenginejs/runtime-resource/formats/webgpu");
@@ -221,7 +221,7 @@ test("buildEffect exposes structurally qualified selected-body CEWGPU packaging"
     );
     assert.equal(result.qualification.ok, true);
     assert.equal(result.qualification.level, "structural");
-    assert.equal(result.qualification.validator, "cewgpu-structural");
+    assert.equal(result.qualification.validator, "carbon-webgpu-structural");
     assert.equal(result.qualification.mode, "selected");
     assert.equal(result.qualification.packageValid, true);
     assert.equal(result.qualification.sourceComplete, true);
@@ -264,7 +264,7 @@ test("buildEffect exposes structurally qualified selected-body CEWGPU packaging"
     //
     // What a reader does get back is the format itself.
     const packaged = CjsWebgpuFormat.read(result.bytes);
-    assert.equal(packaged.info.format, "CEWGPU");
+    assert.equal(packaged.info.format, "CARBON_WEBGPU");
     assert.equal(packaged.version, 15);
     assert.equal(packaged.permutationGraph.variants.length, 1);
     assert.equal(packaged.stages[0].key, "Main.pass0.vertex");

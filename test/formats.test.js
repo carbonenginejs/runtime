@@ -45,7 +45,7 @@ import "./formats/webgl/reader.test.js";
 import "./formats/webgl/stub-light-resources.test.js";
 import "./formats/webgl/corpus.test.js";
 import "./formats/webgpu/public-api.test.mjs";
-import "./formats/webgpu/cewgpu.test.mjs";
+import "./formats/webgpu/carbon-webgpu.test.mjs";
 import "./formats/webgpu/binding-layout.test.mjs";
 import "./formats/webgpu/compute-wgsl.test.mjs";
 import "./formats/webgpu/effect-backend-body-set.test.mjs";

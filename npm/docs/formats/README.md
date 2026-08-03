@@ -43,8 +43,8 @@ metadata. Worker eligibility never changes the format's direct API; see
 | DDS (`.dds`) | `CjsDdsFormat` | `@carbonenginejs/runtime-resource/formats/dds` |
 | DXBC (shader bytecode) | `CjsDxbcFormat` | `@carbonenginejs/runtime-resource/formats/dxbc` |
 | Compiled effect (`.sm_hi`, `.sm_lo`, `.sm_depth`) | `CjsHlslFormat` | `@carbonenginejs/runtime-resource/formats/hlsl` |
-| CEWG WebGL effect package | `CjsWebglFormat` | `@carbonenginejs/runtime-resource/formats/webgl` |
-| CEWGPU WebGPU effect package | `CjsWebgpuFormat` | `@carbonenginejs/runtime-resource/formats/webgpu` |
+| Carbon WebGL WebGL effect package | `CjsWebglFormat` | `@carbonenginejs/runtime-resource/formats/webgl` |
+| Carbon WebGPU WebGPU effect package | `CjsWebgpuFormat` | `@carbonenginejs/runtime-resource/formats/webgpu` |
 | FBX (`.fbx`) | `CjsFbxFormat` | `@carbonenginejs/runtime-resource/formats/fbx` |
 | FLAC (`.flac`) | `CjsFlacFormat` | `@carbonenginejs/runtime-resource/formats/flac` |
 | GIF (`.gif`) | `CjsGifFormat` | `@carbonenginejs/runtime-resource/formats/gif` |

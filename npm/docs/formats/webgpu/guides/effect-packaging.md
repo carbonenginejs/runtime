@@ -1,9 +1,9 @@
-# Build a CEWGPU package from compiled effect bytes
+# Build a Carbon WebGPU package from compiled effect bytes
 
 Status: Evolving
 Scope: `@carbonenginejs/runtime-resource/formats/webgpu`
 Audience: Shader-tool authors and engine integrators
-Summary: Shows how to translate version-15 compiled effects into Carbon-record CEWGPU bytes.
+Summary: Shows how to translate version-15 compiled effects into Carbon-record Carbon WebGPU bytes.
 
 ## Purpose
 
@@ -57,7 +57,7 @@ The emitted bytes are a stock Carbon v15 effect container:
 - translated passes may carry a WebGPU backend block with bind-group layouts
   and resource transforms.
 
-Source-stage DXBC and the original source hash are not stored in CEWGPU bytes.
+Source-stage DXBC and the original source hash are not stored in Carbon WebGPU bytes.
 The build result no longer carries any source-reflection document; it was removed with the intermediate format. What remains in memory is
 `BuildEffect` result.
 
@@ -96,7 +96,7 @@ The returned record contains build-time evidence in addition to `bytes`:
 
 | Field | Purpose |
 | --- | --- |
-| `bytes` | Carbon v15 CEWGPU bytes. |
+| `bytes` | Carbon v15 Carbon WebGPU bytes. |
 | `info` | Producer, source, translation-scope, and completeness evidence. |
 | `metadata` | Resolved selection and caller provenance. |
 | `permutationGraph` | Complete source permutation and body-alias view. |
@@ -183,7 +183,7 @@ in-memory derived status.
 
 ## Related documentation
 
-- [CEWGPU effect container](../formats/cewgpu.md)
+- [Carbon WebGPU effect container](../formats/carbon-webgpu.md)
 - [Public API reference](../reference/api.md)
 - [WGSL compatibility](../reference/wgsl-compatibility.md)
 - [Carbon compiled-effect container](../../carbon-effect-container.md)

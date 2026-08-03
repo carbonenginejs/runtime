@@ -35,7 +35,7 @@ const WEBGPU_STAGE_TYPES = new Set([ 0, 1, 2 ]);
 /**
  * Validates a loaded container for WebGPU consumption.
  *
- * @param {object} container Loaded `CewgpuContainer`.
+ * @param {object} container Loaded `CarbonWebgpuContainer`.
  * @param {object} [options] Validation options.
  * @param {string} [options.source] Source label for diagnostics.
  * @throws {WebgpuReadError} When the container cannot serve WebGPU.
@@ -46,7 +46,7 @@ export function validateEffectContainer(container, options = {})
 
     if (!container?.IsGood())
     {
-        throw new WebgpuReadError("CEWGPU container is not readable", {
+        throw new WebgpuReadError("Carbon WebGPU container is not readable", {
             source,
             cause: container?.readError ?? null
         });
@@ -54,7 +54,7 @@ export function validateEffectContainer(container, options = {})
 
     if (!container.carbon.records.length)
     {
-        throw new WebgpuReadError("CEWGPU container declares no permutation bodies", { source });
+        throw new WebgpuReadError("Carbon WebGPU container declares no permutation bodies", { source });
     }
 
     // One check per distinct stored body. Aliased rows share a blob, so checking
@@ -86,7 +86,7 @@ export function validateEffectContainer(container, options = {})
                     if (!WEBGPU_STAGE_TYPES.has(stage.type))
                     {
                         throw new WebgpuReadError(
-                            `CEWGPU container carries a program for stage type ${stage.type}, `
+                            `Carbon WebGPU container carries a program for stage type ${stage.type}, `
                             + "which WebGPU cannot express",
                             {
                                 source,

@@ -353,7 +353,7 @@ export class DxbcGlslEmitter
                 constantBuffer: (slot) => state.constantBufferNames.get(slot) || `cb${slot}`,
                 constantBufferMember: this.profile.constantBufferStyle === "std140" ? "data" : "",
                 resource: (index) => state.resourceNames.get(index) || `t${index}`,
-                uav: (index) => state.uavNames.get(index) || `cewgUav${index}`,
+                uav: (index) => state.uavNames.get(index) || `cjsUav${index}`,
                 immediateConstantBuffer: state.icbName
             }
         });
@@ -519,7 +519,7 @@ export class DxbcGlslEmitter
             dataRegister,
             profileRegister: Number.isInteger(Number(profile.profileRegister)) ? Number(profile.profileRegister) : null,
             registerIndex: Number.isInteger(Number(profile.registerIndex)) ? Number(profile.registerIndex) : indexRegister,
-            name: profile.name || "cewgLocalLightTexture",
+            name: profile.name || "cjsLocalLightTexture",
             dataTexelBase: Number.isInteger(Number(profile.dataTexelBase)) ? Number(profile.dataTexelBase) : 131072
         };
     }
@@ -545,7 +545,7 @@ export class DxbcGlslEmitter
             strideBytes: 0,
             format: "RGBA32UI",
             width: this.profile.dataTextureWidth,
-            cewgSemantic: "packedLocalLights",
+            cjsSemantic: "packedLocalLights",
             lightIndexRegister: profile.indexRegister,
             lightDataRegister: profile.dataRegister,
             lightProfileRegister: profile.profileRegister,
@@ -569,9 +569,9 @@ export class DxbcGlslEmitter
         state.constantBufferNames.set(profile.registerIndex, profile.name);
         state.declarationLines.push(
             `uniform vec4 ${profile.name}[${rows}];`,
-            `uint cewgLocalLightCount() { return floatBitsToUint(${profile.name}[0].x); }`,
-            "uint cewgLocalLightIndexLoad(int element) {",
-            "    uint count = cewgLocalLightCount();",
+            `uint cjsLocalLightCount() { return floatBitsToUint(${profile.name}[0].x); }`,
+            "uint cjsLocalLightIndexLoad(int element) {",
+            "    uint count = cjsLocalLightCount();",
             "    if (count == 0u) return 0u;",
             `    const int listBase = ${profile.listBase};`,
             "    if (element < listBase) return uint(listBase);",
@@ -582,9 +582,9 @@ export class DxbcGlslEmitter
             "    uint next = uint(node + 1);",
             "    return next < count ? uint(listBase + int(next) * 2) : 0u;",
             "}",
-            "vec4 cewgLocalLightRow(int lightIndex, int row) {",
+            "vec4 cjsLocalLightRow(int lightIndex, int row) {",
             "    int i = lightIndex - 1;",
-            "    if (i < 0 || uint(i) >= cewgLocalLightCount() || row < 0 || row >= 3) return vec4(0.0);",
+            "    if (i < 0 || uint(i) >= cjsLocalLightCount() || row < 0 || row >= 3) return vec4(0.0);",
             `    return ${profile.name}[1 + i * 3 + row];`,
             "}"
         );
@@ -594,7 +594,7 @@ export class DxbcGlslEmitter
             name: profile.name,
             sizeInVec4: rows,
             style: "array",
-            cewgSemantic: "localLights",
+            cjsSemantic: "localLights",
             capacityLights: profile.capacity,
             lightIndexRegister: profile.indexRegister,
             lightDataRegister: profile.dataRegister,
@@ -1029,7 +1029,7 @@ export class DxbcGlslEmitter
                 {
                     // Vertex-stage structured buffers (BoneTransforms) become dedicated
                     // std140 UBOs sized to the profile capacity (Carbon max 69 joints).
-                    const name = `CewgSb${register}`;
+                    const name = `CjsSb${register}`;
                     const capacity = this.profile.vertexStructuredCapacity;
                     const rows = capacity * Math.ceil(strideDwords / 4);
                     state.structuredBuffers.set(register, { kind: "ubo", name, strideDwords });
@@ -1075,7 +1075,7 @@ export class DxbcGlslEmitter
                     const sliceNames = new Map();
                     for (const slice of plan.slices)
                     {
-                        const name = `cewgUav${register}_s${slice}`;
+                        const name = `cjsUav${register}_s${slice}`;
                         const location = this._allocateUavOutputLocation(state, register);
                         sliceNames.set(slice, name);
                         state.declarationLines.push(`layout(location = ${location}) out highp vec4 ${name};`);
@@ -1091,7 +1091,7 @@ export class DxbcGlslEmitter
                     state.uavSliceNames.set(register, sliceNames);
                     break;
                 }
-                const name = `cewgUav${register}`;
+                const name = `cjsUav${register}`;
                 const location = this._allocateUavOutputLocation(state, register);
                 state.uavNames.set(register, name);
                 state.declarationLines.push(`layout(location = ${location}) out highp vec4 ${name};`);
@@ -1314,7 +1314,7 @@ export class DxbcGlslEmitter
 
     /**
    * Emits the shared `gl_FragCoord`-derived thread-id prelude for map-style
-   * compute shaders: a `cewgDispatchOrigin` uniform (so a dispatch can be
+   * compute shaders: a `cjsDispatchOrigin` uniform (so a dispatch can be
    * tiled across more than one draw/viewport), then only the intermediate
    * and final locals this shader actually declared inputs for.
    *
@@ -1327,33 +1327,33 @@ export class DxbcGlslEmitter
         {
             return;
         }
-        state.dispatchOriginUniform = "cewgDispatchOrigin";
-        state.declarationLines.push("uniform ivec3 cewgDispatchOrigin;");
-        state.bindings.push({ kind: "dispatchUniform", name: "cewgDispatchOrigin" });
-        state.earlyMainLines.push("ivec3 cewgThreadId = ivec3(ivec2(gl_FragCoord.xy), 0) + cewgDispatchOrigin;");
+        state.dispatchOriginUniform = "cjsDispatchOrigin";
+        state.declarationLines.push("uniform ivec3 cjsDispatchOrigin;");
+        state.bindings.push({ kind: "dispatchUniform", name: "cjsDispatchOrigin" });
+        state.earlyMainLines.push("ivec3 cjsThreadId = ivec3(ivec2(gl_FragCoord.xy), 0) + cjsDispatchOrigin;");
         if (used.threadId)
         {
-            state.earlyMainLines.push("vec4 vThreadID = intBitsToFloat(ivec4(cewgThreadId, 0));");
+            state.earlyMainLines.push("vec4 vThreadID = intBitsToFloat(ivec4(cjsThreadId, 0));");
         }
         if (used.groupId || used.tig || used.flattened)
         {
             const [ nx, ny, nz ] = this._threadGroupSizeOrThrow(state);
-            state.earlyMainLines.push(`ivec3 cewgGroupId = cewgThreadId / ivec3(${nx}, ${ny}, ${nz});`);
+            state.earlyMainLines.push(`ivec3 cjsGroupId = cjsThreadId / ivec3(${nx}, ${ny}, ${nz});`);
             if (used.groupId)
             {
-                state.earlyMainLines.push("vec4 vThreadGroupID = intBitsToFloat(ivec4(cewgGroupId, 0));");
+                state.earlyMainLines.push("vec4 vThreadGroupID = intBitsToFloat(ivec4(cjsGroupId, 0));");
             }
             if (used.tig || used.flattened)
             {
-                state.earlyMainLines.push(`ivec3 cewgTig = cewgThreadId - cewgGroupId * ivec3(${nx}, ${ny}, ${nz});`);
+                state.earlyMainLines.push(`ivec3 cjsTig = cjsThreadId - cjsGroupId * ivec3(${nx}, ${ny}, ${nz});`);
                 if (used.tig)
                 {
-                    state.earlyMainLines.push("vec4 vThreadIDInGroup = intBitsToFloat(ivec4(cewgTig, 0));");
+                    state.earlyMainLines.push("vec4 vThreadIDInGroup = intBitsToFloat(ivec4(cjsTig, 0));");
                 }
                 if (used.flattened)
                 {
                     state.earlyMainLines.push(
-                        `vec4 vThreadIDInGroupFlattened = intBitsToFloat(ivec4(cewgTig.z*${nx}*${ny} + cewgTig.y*${nx} + cewgTig.x, 0, 0, 0));`
+                        `vec4 vThreadIDInGroupFlattened = intBitsToFloat(ivec4(cjsTig.z*${nx}*${ny} + cjsTig.y*${nx} + cjsTig.x, 0, 0, 0));`
                     );
                 }
             }
@@ -2639,7 +2639,7 @@ DxbcGlslEmitter.prototype._ldStructured = function _ldStructured(state, instruct
         }
         else if (info.kind === "lightIndexCb")
         {
-            value = `uintBitsToFloat(cewgLocalLightIndexLoad(${element}))`;
+            value = `uintBitsToFloat(cjsLocalLightIndexLoad(${element}))`;
         }
         else if (info.kind === "lightDataCb")
         {
@@ -2650,7 +2650,7 @@ DxbcGlslEmitter.prototype._ldStructured = function _ldStructured(state, instruct
                     offset: instruction.offset
                 });
             }
-            value = `cewgLocalLightRow(${element}, ${offsetDwords / 4}).${channel}`;
+            value = `cjsLocalLightRow(${element}, ${offsetDwords / 4}).${channel}`;
         }
         else if (info.kind === "ubo")
         {

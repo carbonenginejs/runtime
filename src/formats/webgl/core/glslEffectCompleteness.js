@@ -20,7 +20,7 @@ const LOCAL_LIGHT_RECORD_REGISTERS = Object.freeze([
 ]);
 
 /**
- * Inspects CEWG stage records for complete WebGL2 raster passes.
+ * Inspects Carbon WebGL stage records for complete WebGL2 raster passes.
  *
  * Geometry and compute stages are not raster-pair members. A raster pass is
  * complete only when both its vertex and pixel records exist and their shared
@@ -351,8 +351,8 @@ function checkLocalLightFamilyAccounted(stage, shader, errors)
  * chunk format rather than about the effect, and it is not carried across:
  *
  * - **Envelope and kind checks** (`invalid_package_envelope`,
- *   `unsupported_package_kind`) asserted the magic strings `CEWG` /
- *   `CEWG_GLSL_SET` and a `packageKind` naming the chunk layout. They described
+ *   `unsupported_package_kind`) asserted the magic strings `Carbon WebGL` /
+ *   `CARBON_WEBGL_GLSL_SET` and a `packageKind` naming the chunk layout. They described
  *   the container they were written in, and that container is gone.
  * - **Declared-count checks** (`invalid_declared_count`, `declared_count_mismatch`,
  *   `declared_partial_package` — twelve fields) compared a header counter against

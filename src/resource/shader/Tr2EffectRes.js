@@ -104,7 +104,7 @@ export class Tr2EffectRes extends CjsResource
 
   /**
    * Select and hydrate one canonical shader from the complete permutation
-   * graph exposed by a CEWG/CEWGPU raw package.
+   * graph exposed by a Carbon WebGL/Carbon WebGPU raw package.
    *
    * Global options have Carbon-compatible precedence over caller options.
    * Unknown option values retain the authored default.

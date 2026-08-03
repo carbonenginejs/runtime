@@ -41,26 +41,26 @@ fixtureTest("routes constant-slice UAV stores to per-slice fragment outputs (Pre
     {
         assert.match(
             result.source,
-            new RegExp(`layout\\(location = ${slice}\\) out highp vec4 cewgUav0_s${slice};`)
+            new RegExp(`layout\\(location = ${slice}\\) out highp vec4 cjsUav0_s${slice};`)
         );
     }
-    assert.doesNotMatch(result.source, /out highp vec4 cewgUav0;/);
+    assert.doesNotMatch(result.source, /out highp vec4 cjsUav0;/);
 
     // Distinct value routing per slice — the old single-output lowering
     // clobbered slices 0..2 with the last store's value.
-    assert.match(result.source, /cewgUav0_s0\.xyzw = vec4\(r0\.wwww\);/);
-    assert.match(result.source, /cewgUav0_s1\.xyzw = vec4\(r0\.zzzz\);/);
-    assert.match(result.source, /cewgUav0_s2\.xyzw = vec4\(r0\.xxxx\);/);
-    assert.match(result.source, /cewgUav0_s3\.xyzw = vec4\(r0\.yyyy\);/);
+    assert.match(result.source, /cjsUav0_s0\.xyzw = vec4\(r0\.wwww\);/);
+    assert.match(result.source, /cjsUav0_s1\.xyzw = vec4\(r0\.zzzz\);/);
+    assert.match(result.source, /cjsUav0_s2\.xyzw = vec4\(r0\.xxxx\);/);
+    assert.match(result.source, /cjsUav0_s3\.xyzw = vec4\(r0\.yyyy\);/);
 
     assert.deepEqual(result.computeFragment, {
         threadGroup: [ 8, 8, 1 ],
-        dispatchOriginUniform: "cewgDispatchOrigin",
+        dispatchOriginUniform: "cjsDispatchOrigin",
         uavOutputs: [
-            { register: 0, slice: 0, location: 0, glslName: "cewgUav0_s0" },
-            { register: 0, slice: 1, location: 1, glslName: "cewgUav0_s1" },
-            { register: 0, slice: 2, location: 2, glslName: "cewgUav0_s2" },
-            { register: 0, slice: 3, location: 3, glslName: "cewgUav0_s3" }
+            { register: 0, slice: 0, location: 0, glslName: "cjsUav0_s0" },
+            { register: 0, slice: 1, location: 1, glslName: "cjsUav0_s1" },
+            { register: 0, slice: 2, location: 2, glslName: "cjsUav0_s2" },
+            { register: 0, slice: 3, location: 3, glslName: "cjsUav0_s3" }
         ]
     });
 });
@@ -79,9 +79,9 @@ fixtureTest("emits the texture2darray gather4 emulation (GenerateQ2)", () =>
 
     // Single store with a cb-sourced (dynamic) slice keeps the single-output
     // shape: the slice coordinate is dropped and the host attaches the layer.
-    assert.match(result.source, /layout\(location = 0\) out highp vec4 cewgUav0;/);
+    assert.match(result.source, /layout\(location = 0\) out highp vec4 cjsUav0;/);
     assert.deepEqual(result.computeFragment.uavOutputs, [
-        { register: 0, slice: null, location: 0, glslName: "cewgUav0" }
+        { register: 0, slice: null, location: 0, glslName: "cjsUav0" }
     ]);
 });
 
@@ -91,13 +91,13 @@ fixtureTest("keeps single-store UAVs on the single-output lowering (NonSmartHalf
         source: "ssao.NonSmartHalfApply"
     });
 
-    assert.match(result.source, /layout\(location = 0\) out highp vec4 cewgUav0;/);
-    assert.match(result.source, /cewgUav0\.xyzw = /);
-    assert.doesNotMatch(result.source, /cewgUav0_s/);
+    assert.match(result.source, /layout\(location = 0\) out highp vec4 cjsUav0;/);
+    assert.match(result.source, /cjsUav0\.xyzw = /);
+    assert.doesNotMatch(result.source, /cjsUav0_s/);
     assert.deepEqual(result.computeFragment, {
         threadGroup: [ 8, 8, 1 ],
-        dispatchOriginUniform: "cewgDispatchOrigin",
-        uavOutputs: [ { register: 0, slice: null, location: 0, glslName: "cewgUav0" } ]
+        dispatchOriginUniform: "cjsDispatchOrigin",
+        uavOutputs: [ { register: 0, slice: null, location: 0, glslName: "cjsUav0" } ]
     });
 });
 

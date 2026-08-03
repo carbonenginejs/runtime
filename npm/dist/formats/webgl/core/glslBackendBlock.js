@@ -107,13 +107,13 @@ const ABSENT_U8 = 0xff;
  * this is a *storage* change, not a shading one, and without it the affected
  * shaders cannot bind their lights.
  *
- * The emitter still spells the role `cewgSemantic` on its binding records. That
+ * The emitter still spells the role `cjsSemantic` on its binding records. That
  * name is not carried onto the wire: it names a defunct package format rather
  * than the thing it describes. Renaming it at the emitter is a separate change.
  */
 const GLSL_LOCAL_LIGHT_ROLE = Object.freeze(["packed-texture", "constant-buffer"]);
 
-/** Emitter `cewgSemantic` values, in the same order as the roles above. */
+/** Emitter `cjsSemantic` values, in the same order as the roles above. */
 const EMITTER_LIGHT_SEMANTIC = Object.freeze(["packedLocalLights", "localLights"]);
 
 /**
@@ -127,15 +127,15 @@ const EMITTER_LIGHT_SEMANTIC = Object.freeze(["packedLocalLights", "localLights"
  * @param {object} binding Emitter binding record.
  */
 function writeLocalLightRecord(writer, binding) {
-  const role = EMITTER_LIGHT_SEMANTIC.indexOf(binding.cewgSemantic);
-  if (!binding.cewgSemantic) {
+  const role = EMITTER_LIGHT_SEMANTIC.indexOf(binding.cjsSemantic);
+  if (!binding.cjsSemantic) {
     writer.u8(0);
     return;
   }
   if (role < 0) {
-    throw new CjsFormatWriteError(`Binding "${binding.name}" carries unknown local-light role "${binding.cewgSemantic}"`, {
+    throw new CjsFormatWriteError(`Binding "${binding.name}" carries unknown local-light role "${binding.cjsSemantic}"`, {
       name: binding.name,
-      semantic: binding.cewgSemantic
+      semantic: binding.cjsSemantic
     });
   }
   writer.u8(1);

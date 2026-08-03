@@ -6,7 +6,7 @@ import { readFile, stat } from "node:fs/promises";
 import { buildEffectPackage } from "../../../src/formats/webgpu/core/packageEffect.js";
 import { buildCarbonEffectContainer } from "../../../src/formats/webgpu/core/buildCarbonEffectContainer.js";
 import { readEffectAnalysis } from "../../../src/formats/webgpu/core/effectAnalysis.js";
-import { CewgpuContainer } from "../../../src/formats/webgpu/core/cewgpu/CewgpuContainer.js";
+import { CarbonWebgpuContainer } from "../../../src/formats/webgpu/core/carbonWebgpu/CarbonWebgpuContainer.js";
 import {
     readBackendBlock,
     writeBackendBlock
@@ -181,7 +181,7 @@ test(
                 built.backendBodySet
             );
 
-            const reader = new CewgpuContainer();
+            const reader = new CarbonWebgpuContainer();
             assert.ok(reader.Read(container.bytes, { sourcePath: file }), `failed to read ${target}`);
 
             const graph = reader.permutationGraph;
@@ -244,7 +244,7 @@ test(
             }
         }
 
-        console.log(`cewgpu container: ${comparedPasses} passes compared across ${TARGETS.length} effects`);
+        console.log(`carbon webgpu container: ${comparedPasses} passes compared across ${TARGETS.length} effects`);
         if (differences.length)
         {
             for (const entry of differences.slice(0, 20)) console.log(`  ${entry}`);
@@ -272,7 +272,7 @@ test("a container is a stock Carbon v15 file, with nothing prepended", () =>
     prefixed.u32(2);
     prefixed.u32(0);
 
-    const reader = new CewgpuContainer();
+    const reader = new CarbonWebgpuContainer();
     assert.equal(reader.Read(prefixed.toBytes(), { sourcePath: "prefixed" }), false);
     assert.ok(reader.readError, "a prefixed header must fail to read as a container");
 });
@@ -285,7 +285,7 @@ test("the per-pass block is detected without being told, and without a version o
     // -- three things that were carried or proposed and none of which anything
     // required.
     const built = buildFixtureContainer();
-    const container = new CewgpuContainer();
+    const container = new CarbonWebgpuContainer();
     assert.ok(container.Read(built.bytes, { sourcePath: "auto-detect" }));
 
     for (let index = 0; index < container.carbon.records.length; index += 1)

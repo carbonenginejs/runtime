@@ -1,7 +1,7 @@
 /**
  * Tiled-lighting resource stubbing helpers for `--stub-light-resources`.
  *
- * Lighting is unsupported on the CEWG WebGL2 path, and its pixel-stage
+ * Lighting is unsupported on the Carbon WebGL WebGL2 path, and its pixel-stage
  * resources (two structured light buffers + a light-profile sampler array) push
  * some `_depth` permutations past `MAX_TEXTURE_IMAGE_UNITS`. These helpers let
  * the packager DROP those resources instead of lowering them: it resolves their
@@ -72,7 +72,7 @@ export function resolveStubLightRegisters(record)
 // drift in the first place. See formats/hlsl/core/localLightFamily.js.
 
 /**
- * Drops the tiled-lighting `resource` bindings from a manifest JSON so the CEWG
+ * Drops the tiled-lighting `resource` bindings from a manifest JSON so the Carbon WebGL
  * runtime (`Tw2CewgReader.buildTexturesAndSamplers`) does not synthesize texture
  * definitions for the light buffers the emitter no longer declares. Without this
  * the runtime tries to build a sampler for LightBuffer/LightIndexBuffer and

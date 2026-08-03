@@ -139,7 +139,7 @@ export function validateEffectPermutationGraph(graph, options = {})
         || graph.coverage.bodies !== "identity-only"
         || graph.coverage.reflection !== "absent")
     {
-        throw new Error("CEWGPU PGRF schema or coverage is unsupported");
+        throw new Error("PGRF schema or coverage is unsupported");
     }
 
     const axes = validateGraphAxes(graph.axes);
@@ -148,14 +148,14 @@ export function validateEffectPermutationGraph(graph, options = {})
         || graph.variants.length !== permutationCount)
     {
         throw new Error(
-            "CEWGPU PGRF must contain one variant per Cartesian permutation"
+            "PGRF must contain one variant per Cartesian permutation"
         );
     }
     if (!Array.isArray(graph.bodies)
         || !graph.bodies.length
         || graph.bodies.length > graph.variants.length)
     {
-        throw new Error("CEWGPU PGRF bodies are malformed");
+        throw new Error("PGRF bodies are malformed");
     }
 
     const bodies = new Map();
@@ -171,7 +171,7 @@ export function validateEffectPermutationGraph(graph, options = {})
             || bodies.has(body.key)
             || bodyDigests.has(body.sha256))
         {
-            throw new Error(`CEWGPU PGRF body ${bodyIndex} is malformed or duplicated`);
+            throw new Error(`PGRF body ${bodyIndex} is malformed or duplicated`);
         }
         bodyDigests.add(body.sha256);
         bodies.set(body.key, {
@@ -194,7 +194,7 @@ export function validateEffectPermutationGraph(graph, options = {})
             || typeof variant.bodyKey !== "string"
             || !bodies.has(variant.bodyKey))
         {
-            throw new Error(`CEWGPU PGRF variant ${permutationIndex} is malformed`);
+            throw new Error(`PGRF variant ${permutationIndex} is malformed`);
         }
 
         const sourceRecord = validateGraphSourceRecord(
@@ -206,7 +206,7 @@ export function validateEffectPermutationGraph(graph, options = {})
         if (sourceRecord.byteLength !== body.byteLength)
         {
             throw new Error(
-                `CEWGPU PGRF variant ${permutationIndex} body length disagrees`
+                `PGRF variant ${permutationIndex} body length disagrees`
             );
         }
 
@@ -215,7 +215,7 @@ export function validateEffectPermutationGraph(graph, options = {})
         if (existingBodyKey && existingBodyKey !== variant.bodyKey)
         {
             throw new Error(
-                `CEWGPU PGRF source record ${recordKey} maps to multiple bodies`
+                `PGRF source record ${recordKey} maps to multiple bodies`
             );
         }
         bodyKeyBySourceRecord.set(recordKey, variant.bodyKey);
@@ -225,14 +225,14 @@ export function validateEffectPermutationGraph(graph, options = {})
 
     validateDisjointSourceRecords(
         sourceRecords,
-        "CEWGPU PGRF source body records partially overlap"
+        "PGRF source body records partially overlap"
     );
 
     for (const [ bodyKey, body ] of bodies)
     {
         if (!body.references)
         {
-            throw new Error(`CEWGPU PGRF body ${bodyKey} is unreferenced`);
+            throw new Error(`PGRF body ${bodyKey} is unreferenced`);
         }
     }
 
@@ -297,7 +297,7 @@ function validateGraphAxes(value)
 {
     if (!Array.isArray(value) || value.length > UINT8_MAX)
     {
-        throw new Error("CEWGPU PGRF axes must be an array");
+        throw new Error("PGRF axes must be an array");
     }
 
     const names = new Set();
@@ -316,7 +316,7 @@ function validateGraphAxes(value)
             || !Number.isSafeInteger(axis.type)
             || axis.type < 0 || axis.type > UINT8_MAX)
         {
-            throw new Error(`CEWGPU PGRF axis ${index} is malformed or duplicated`);
+            throw new Error(`PGRF axis ${index} is malformed or duplicated`);
         }
         names.add(axis.name);
 
@@ -326,7 +326,7 @@ function validateGraphAxes(value)
             if (typeof option !== "string" || !option
                 || option !== option.trim() || options.has(option))
             {
-                throw new Error(`CEWGPU PGRF axis ${index} options are malformed`);
+                throw new Error(`PGRF axis ${index} options are malformed`);
             }
             options.add(option);
         }
@@ -402,7 +402,7 @@ function validateGraphSourceRecord(record, permutationIndex, sourceByteLength)
                 || end > sourceByteLength)))
     {
         throw new Error(
-            `CEWGPU PGRF variant ${permutationIndex} source record is malformed`
+            `PGRF variant ${permutationIndex} source record is malformed`
         );
     }
     return record;

@@ -1,5 +1,5 @@
 /**
- * Error raised when a CEWGPU package or WebGPU analysis pass cannot be
+ * Error raised when a Carbon WebGPU package or WebGPU analysis pass cannot be
  * completed safely.
  */
 export class WebgpuReadError extends Error

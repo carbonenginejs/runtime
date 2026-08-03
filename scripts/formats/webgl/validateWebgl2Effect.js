@@ -13,7 +13,7 @@ import { writeFileAtomic } from "./atomicWrite.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "..");
-const defaultPackage = path.join(projectRoot, "artifacts", "quadv5.webgl.cewg");
+const defaultPackage = path.join(projectRoot, "artifacts", "quadv5.webgl.carbonwebgl");
 const defaultOutput = path.join(projectRoot, "artifacts", "quadv5.webgl.validation.json");
 const defaultMarkdown = path.join(projectRoot, "artifacts", "quadv5.webgl.validation.md");
 
@@ -67,7 +67,7 @@ function parseArgs(argv) {
  */
 function printUsage() {
   console.log([
-    "Usage: node scripts/formats/webgl/validateWebgl2Effect.js [effect.cewg] [options]",
+    "Usage: node scripts/formats/webgl/validateWebgl2Effect.js [effect.carbonwebgl] [options]",
     "",
     "Options:",
     "  --out <path>              Output JSON path.",
@@ -129,9 +129,9 @@ function computeFragmentPrograms(glsl) {
       bodyKey: stage.bodyKey,
       techniqueName: stage.techniqueName,
       passIndex: stage.passIndex,
-      vertexStageKey: "cewg_fixed_vs",
+      vertexStageKey: "cjs_fixed_vs",
       pixelStageKey: stage.key,
-      vertexShaderKey: "cewg_fixed_vs",
+      vertexShaderKey: "cjs_fixed_vs",
       pixelShaderKey: stage.shaderKey,
       vertexSource: COMPUTE_FRAGMENT_VERTEX_SOURCE,
       pixelSource: shader.source,
@@ -144,7 +144,7 @@ function computeFragmentPrograms(glsl) {
 }
 
 /**
- * Builds programs from the all-permutation CEWG graph.
+ * Builds programs from the all-permutation Carbon WebGL graph.
  *
  * @param {object} glsl GLSL stage set.
  * @returns {object[]} Program records.

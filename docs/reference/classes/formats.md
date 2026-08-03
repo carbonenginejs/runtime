@@ -838,27 +838,27 @@ Formats DXBC operands, swizzles, and modifiers as GLSL expressions.
 <!-- class:CjsWebgpuFormat -->
 ## `CjsWebgpuFormat`
 
-WebGPU shader format profile that translates compiled Carbon effects into CEWGPU containers carrying WGSL programs and bind-group layouts.
+WebGPU shader format profile that translates compiled Carbon effects into Carbon WebGPU containers carrying WGSL programs and bind-group layouts.
 
 - Export: `@carbonenginejs/runtime-resource/formats/webgpu`
 - Source: `src/formats/webgpu/CjsWebgpuFormat.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
-<!-- class:CewgpuContainer -->
-## `CewgpuContainer`
+<!-- class:CarbonWebgpuContainer -->
+## `CarbonWebgpuContainer`
 
 Reader over one WebGPU effect container.
 
 - Export: `None`
-- Source: `src/formats/webgpu/core/cewgpu/CewgpuContainer.js`
+- Source: `src/formats/webgpu/core/carbonWebgpu/CarbonWebgpuContainer.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
 <!-- class:WebgpuReadError -->
 ## `WebgpuReadError`
 
-Error raised when CEWGPU bytes or package documents are malformed or inconsistent.
+Error raised when Carbon WebGPU bytes or package documents are malformed or inconsistent.
 
 - Export: `None`
 - Source: `src/formats/webgpu/core/errors.js`

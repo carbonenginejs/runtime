@@ -1,5 +1,5 @@
 /**
- * Error raised when a CEWG package or a DXBC-to-GLSL emission cannot be
+ * Error raised when a Carbon WebGL package or a DXBC-to-GLSL emission cannot be
  * completed safely.
  *
  * This format has no dependency on the sibling `formats/dxbc` internal

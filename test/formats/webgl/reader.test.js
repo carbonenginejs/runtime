@@ -9,7 +9,7 @@ import { buildMinimalStagedEffectBytes } from "./synthetic.js";
  *
  * The fixture is a real container rather than hand-forged bytes, because there
  * is no longer a hand-forgeable chunk layout to mirror: the old `SAMPLE_CHUNKS`
- * plus `buildCewgPackage` existed to build INFO/META/GLSL by hand, and both are
+ * plus `buildCarbonWebglPackage` existed to build INFO/META/GLSL by hand, and both are
  * gone with the format they described.
  */
 
@@ -94,7 +94,7 @@ test("profiles hold values and reject invalid emits/unknown options", () =>
     assert.throws(() => new CjsWebglFormat({ emit: "nonsense" }), /emit must be/u);
     assert.throws(() => new CjsWebglFormat({ bogus: true }), /unknown option/u);
 
-    // "raw" used to select the live CewgPackage instance. There is no second
+    // "raw" used to select the live CarbonWebglPackage instance. There is no second
     // output any more, so it is not silently accepted as if there were.
     assert.throws(() => new CjsWebglFormat({ emit: "raw" }), /emit must be/u);
 });
