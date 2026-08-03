@@ -107,3 +107,52 @@ test("toJSON converts typed arrays and nested structures", () =>
     });
     assert.deepEqual(converted, { tokens: [ 1, 2 ], nested: [ { mask: [ 3 ] } ] });
 });
+
+/**
+ * The permutation index is the only sound bridge between the container reader
+ * and the permutation graph.
+ *
+ * `read()` mints `body_${N}` and dedupes by source-record offset; the graph
+ * mints `body${N}` and dedupes by content. Those partitions coincide only
+ * because the writer aliases byte-identical bodies onto one offset, so mapping
+ * between the two spellings — or assuming the two ordinal sequences agree — is
+ * relying on a property of the writer rather than a contract.
+ *
+ * This is the regression for the fix. It failed against a real ccpwgl
+ * integration in a way nothing catches by itself: every permutation resolved to
+ * a body that did not exist, and the effect loaded without error and drew
+ * nothing.
+ */
+test("every permutation index resolves to exactly one body", () =>
+{
+    const result = CjsWebglFormat.read(sampleBytes(), { source: "synthetic" });
+
+    assert.ok(Array.isArray(result.bodies), "read must expose a bodies index");
+    assert.equal(result.bodies.length, result.bodyCount);
+
+    const owners = new Map();
+    for (const body of result.bodies)
+    {
+        assert.ok(body.permutationIndices.length > 0, `${body.key} owns no permutation`);
+        for (const index of body.permutationIndices)
+        {
+            assert.equal(owners.has(index), false, `permutation ${index} claimed twice`);
+            owners.set(index, body.key);
+        }
+    }
+
+    // Total coverage: no permutation row is left without a body, which is the
+    // exact failure this test exists to catch.
+    assert.equal(owners.size, result.recordCount);
+    for (let index = 0; index < result.recordCount; index += 1)
+    {
+        assert.ok(owners.has(index), `permutation ${index} resolves to no body`);
+    }
+
+    // And the body a permutation names actually has stages.
+    const stageBodies = new Set(result.stages.map((stage) => stage.bodyKey));
+    for (const key of owners.values())
+    {
+        assert.ok(stageBodies.has(key), `${key} has no stages`);
+    }
+});

@@ -117,6 +117,30 @@ export function readGlslEffectContainer(input, values = {})
     const shaders = [];
     const bodyKeyByOffset = new Map();
 
+    // Every permutation index that resolves to each body.
+    //
+    // This is the bridge a caller actually needs, and the only one that is
+    // sound. `bodyKey` here is this reader's own ordinal spelling; the
+    // permutation graph mints `body${N}` for the same body, and the two are not
+    // merely spelled differently — the graph dedupes by content (SHA-256 plus
+    // byte equality) while this reader dedupes by source-record offset. Those
+    // partitions coincide only because the container writer aliases
+    // byte-identical bodies onto one offset, which is a property of the writer
+    // rather than a contract.
+    //
+    // So a consumer must never map between the two by string surgery on either
+    // spelling, and must not assume the two ordinal sequences agree. It holds a
+    // permutation index; this gives it the body directly.
+    const permutationIndicesByOffset = new Map();
+
+    for (let index = 0; index < reader.records.length; index += 1)
+    {
+        const { offset } = reader.records[index];
+        const seen = permutationIndicesByOffset.get(offset);
+        if (seen) seen.push(index);
+        else permutationIndicesByOffset.set(offset, [ index ]);
+    }
+
     // Distinct program texts share one shader record, so `shaders` counts unique
     // translations the way the chunk package's shader table did. Empty stages are
     // deliberately *not* pooled: each keeps its own record so a report can name
@@ -222,9 +246,20 @@ export function readGlslEffectContainer(input, values = {})
         }
     }
 
+    // Ordered by first appearance, matching `bodyKey`'s ordinal.
+    const bodies = [];
+    for (const [ offset, key ] of bodyKeyByOffset)
+    {
+        bodies.push({
+            key,
+            permutationIndices: Object.freeze(permutationIndicesByOffset.get(offset) ?? [])
+        });
+    }
+
     return {
         stages,
         shaders,
+        bodies,
         recordCount: reader.records.length,
         bodyCount: bodyKeyByOffset.size
     };
