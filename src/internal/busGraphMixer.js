@@ -1,5 +1,6 @@
 import {
     createBusEffectChain,
+    normalizeWwiseDynamicsMode,
     parseGraphSharedBusEffect,
 } from "./busEffects.js";
 import {
@@ -76,6 +77,8 @@ export class CjsSharedBusMixer
 
     #readGlobalStateTransitionBoundaries = null;
 
+    #wwiseDynamics = "strict";
+
     #categoryVolumes = new Map([
         [ "sfx", 1 ],
         [ "music", 1 ],
@@ -95,6 +98,7 @@ export class CjsSharedBusMixer
         getGlobalRTPCTransitionBoundaries,
         getGlobalStatePropertyWeights,
         getGlobalStateTransitionBoundaries,
+        wwiseDynamics = "strict",
     } = {})
     {
         if (!context || typeof context.createGain !== "function")
@@ -121,6 +125,7 @@ export class CjsSharedBusMixer
         this.#runtime = runtime;
         this.#catalog = catalog;
         this.#destination = destination;
+        this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
         this.#busRtpcs = indexBusRtpcCatalog(busRtpcs);
         this.#busStates = indexBusStateCatalog(busStates);
         this.#busDuckingController = busDuckingController ?? null;
@@ -507,6 +512,7 @@ export class CjsSharedBusMixer
                     graphEffect,
                     slot.effectId,
                     slot.slotIndex,
+                    { wwiseDynamics: this.#wwiseDynamics },
                 );
             });
             if (effects.some(effect =>
@@ -519,6 +525,24 @@ export class CjsSharedBusMixer
                 && typeof this.#context.createDelay !== "function")
             {
                 throw new TypeError("Static Wwise Delay requires DelayNode support");
+            }
+            if (effects.some(effect =>
+                effect.type === "compressor-approximation"
+                    || effect.type === "peak-limiter-approximation")
+                && typeof this.#context.createDynamicsCompressor !== "function")
+            {
+                throw new TypeError(
+                    "Approximate Wwise dynamics requires DynamicsCompressorNode support",
+                );
+            }
+            if (effects.some(effect =>
+                effect.type === "peak-limiter-approximation"
+                    && effect.lookaheadSeconds > 0.006)
+                && typeof this.#context.createDelay !== "function")
+            {
+                throw new TypeError(
+                    "Approximate Wwise Peak Limiter lookahead requires DelayNode support",
+                );
             }
             if ((reasonSet.has("rtpc") && !this.#busRtpcs.has(id))
                 || (reasonSet.has("state") && !this.#busStates.has(id))

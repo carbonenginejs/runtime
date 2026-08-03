@@ -145,6 +145,20 @@ loaded/in-flight set, and `SwapSoundBanks()` reconciles non-default bank
 intent without acquiring bytes. `SetGlobalRTPC()`, `SetState()`, and
 `StopAllPlayingSounds()` keep a thin browser integration on `CjsAudioMan`.
 
+Constructor option `wwiseDynamics` controls authored Wwise Compressor and Peak
+Limiter admission to the shared-bus mixer:
+
+- `"strict"` (default) rejects those effects from shared routing. The voice
+  normally remains audible through the legacy route with the authored dynamics
+  omitted.
+- `"approximate-web-audio"` admits the documented static, linked subset through
+  `DynamicsCompressorNode` plus compensation gain and optional limiter latency
+  padding. It preserves topology, not Wwise DSP equivalence.
+
+Any other value throws synchronously. `CjsAudioSystem` accepts the same option
+for lower-level composition. The mode is host runtime policy and is not stored
+in the portable audio-library document.
+
 Constructor options `musicLibrary`, `loadMusicTrack`, and
 `isMusicTrackAvailable` opt into `audio.jukebox`. Runtime-audio never fetches
 song `url` or `path` hints itself. `RefreshAvailability()` plus

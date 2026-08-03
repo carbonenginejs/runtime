@@ -82,6 +82,14 @@ exact, while Web Audio biquads and delay primitives remain browser adaptations
 rather than native Wwise DSP. EVE build 3444265 has no music route through its
 seven static Delay instances.
 
+With `wwiseDynamics: "approximate-web-audio"`, eligible static Wwise
+Compressor and Peak Limiter slots may also enter the shared path. Their bus
+placement and order are retained, while Web Audio detector, envelope,
+lookahead, channel, ratio, and automatic-makeup behavior are documented
+approximations. The default `"strict"` policy leaves them blocked from shared
+routing; the music track still uses its audible legacy path with those authored
+dynamics omitted.
+
 An effect-free or feedback-free-Meter route may likewise enter the shared path.
 Qualification requires matching installed catalogs and live readers for every
 dynamic Bus-fader contribution. A property-0 Voice Volume RTPC

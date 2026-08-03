@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 import {
     createBusEffectChain,
     indexBusEffectCatalog,
+    normalizeWwiseDynamicsMode,
     parseGraphFeedbackFreeMeter,
     parseGraphSharedBusEffect,
+    parseGraphStaticWwiseCompressor,
     parseGraphStaticParametricEq,
     parseGraphStaticWwiseDelay,
     parseGraphStaticWwisePeakLimiter,
@@ -43,6 +45,7 @@ function Context()
     const context = {
         sampleRate: 48000,
         delays: [],
+        compressors: [],
         filters: [],
         gains: [],
         createDelay(maxDelayTime)
@@ -63,6 +66,18 @@ function Context()
                 gain: { value: 0 },
             });
             context.filters.push(node);
+            return node;
+        },
+        createDynamicsCompressor()
+        {
+            const node = Node({
+                threshold: { value: 0 },
+                knee: { value: 30 },
+                ratio: { value: 12 },
+                attack: { value: 0.003 },
+                release: { value: 0.25 },
+            });
+            context.compressors.push(node);
             return node;
         },
         createGain()
@@ -230,6 +245,37 @@ function GraphPeakLimiter(bytes = PeakLimiterBytes())
     const effect = GraphEffect(bytes);
 
     effect.pluginId = 0x006e0003;
+    return effect;
+}
+
+function CompressorBytes({
+    thresholdDb = -18,
+    ratio = 20.1,
+    attackSeconds = 0.03,
+    releaseSeconds = 0.25,
+    outputGainDb = 3,
+    processLfe = 1,
+    channelLink = 1,
+} = {})
+{
+    const bytes = new Uint8Array(22);
+    const view = new DataView(bytes.buffer);
+
+    view.setFloat32(0, thresholdDb, true);
+    view.setFloat32(4, ratio, true);
+    view.setFloat32(8, attackSeconds, true);
+    view.setFloat32(12, releaseSeconds, true);
+    view.setFloat32(16, outputGainDb, true);
+    view.setUint8(20, processLfe);
+    view.setUint8(21, channelLink);
+    return bytes;
+}
+
+function GraphCompressor(bytes = CompressorBytes())
+{
+    const effect = GraphEffect(bytes);
+
+    effect.pluginId = 0x006c0003;
     return effect;
 }
 
@@ -628,6 +674,153 @@ test("decodes the source-proven v150 static Wwise Peak Limiter layout", () =>
     );
 });
 
+test("keeps Wwise dynamics strict by default and validates the opt-in mode", () =>
+{
+    assert.equal(normalizeWwiseDynamicsMode(), "strict");
+    assert.equal(
+        normalizeWwiseDynamicsMode("approximate-web-audio"),
+        "approximate-web-audio",
+    );
+    assert.throws(
+        () => normalizeWwiseDynamicsMode("web-audio"),
+        /Unsupported Wwise dynamics realization mode/u,
+    );
+    assert.throws(
+        () => parseGraphSharedBusEffect(GraphCompressor(), "940", 0),
+        /unsupported/u,
+    );
+    assert.throws(
+        () => parseGraphSharedBusEffect(GraphPeakLimiter(), "930", 1),
+        /unsupported/u,
+    );
+});
+
+test("decodes only eligible static Wwise Compressors for browser approximation", () =>
+{
+    const decoded = parseGraphStaticWwiseCompressor(
+        GraphCompressor(),
+        "940",
+        2,
+    );
+
+    assert.deepEqual(decoded, {
+        effectId: "940",
+        slotIndex: 2,
+        type: "compressor",
+        thresholdDb: -18,
+        ratio: Math.fround(20.1),
+        attackSeconds: Math.fround(0.03),
+        releaseSeconds: 0.25,
+        outputGainDb: 3,
+        processLfe: true,
+        channelLink: true,
+    });
+    assert.deepEqual(
+        parseGraphSharedBusEffect(GraphCompressor(), "940", 2, {
+            wwiseDynamics: "approximate-web-audio",
+        }),
+        { ...decoded, type: "compressor-approximation" },
+    );
+    for (const parameters of [
+        { attackSeconds: 0 },
+        { attackSeconds: 1.01 },
+        { releaseSeconds: 1.01 },
+        { processLfe: 0 },
+        { channelLink: 0 },
+    ])
+    {
+        assert.throws(() => parseGraphSharedBusEffect(
+            GraphCompressor(CompressorBytes(parameters)),
+            "940",
+            0,
+            { wwiseDynamics: "approximate-web-audio" },
+        ));
+    }
+    assert.throws(() => parseGraphSharedBusEffect(
+        GraphPeakLimiter(PeakLimiterBytes({ releaseSeconds: 1.01 })),
+        "930",
+        0,
+        { wwiseDynamics: "approximate-web-audio" },
+    ));
+});
+
+test("builds approximate Compressor and Peak Limiter stages in authored order", () =>
+{
+    const context = Context();
+    const compressor = parseGraphSharedBusEffect(
+        GraphCompressor(),
+        "940",
+        0,
+        { wwiseDynamics: "approximate-web-audio" },
+    );
+    const limiter = parseGraphSharedBusEffect(
+        GraphPeakLimiter(),
+        "930",
+        2,
+        { wwiseDynamics: "approximate-web-audio" },
+    );
+    const chain = createBusEffectChain(
+        context,
+        new Map([ [ "500", [ compressor, Effect({ slotIndex: 1 }), limiter ] ] ]),
+        [ "500" ],
+    );
+    const [ compressorNode, limiterNode ] = context.compressors;
+    const [ compressorGain, limiterGain ] = context.gains;
+    const [ limiterDelay ] = context.delays;
+    const compressorMakeupDb = -0.6 * -18 * (1 - 1 / 20);
+    const limiterMakeupDb = -0.6 * -1 * (1 - 1 / 10);
+
+    assert.equal(chain.input, compressorNode);
+    assert.equal(compressorNode.threshold.value, -18);
+    assert.equal(compressorNode.knee.value, 0);
+    assert.equal(compressorNode.ratio.value, 20, "Web Audio ratio clamps at 20:1");
+    assert.equal(compressorNode.attack.value, Math.fround(0.03));
+    assert.equal(compressorNode.release.value, 0.25);
+    assert.ok(Math.abs(
+        compressorGain.gain.value - 10 ** ((3 - compressorMakeupDb) / 20),
+    ) < 1e-12);
+    assert.equal(compressorGain.connectedTo, context.filters[0]);
+    assert.equal(context.filters[0].connectedTo, limiterNode);
+    assert.equal(limiterNode.attack.value, 0);
+    assert.equal(limiterNode.release.value, Math.fround(0.1));
+    assert.ok(Math.abs(
+        limiterGain.gain.value - 10 ** (-limiterMakeupDb / 20),
+    ) < 1e-12);
+    assert.equal(limiterGain.connectedTo, limiterDelay);
+    assert.ok(Math.abs(limiterDelay.delayTime.value - 0.004) < 1e-9);
+    assert.equal(chain.output, limiterDelay);
+});
+
+test("rejects malformed or dynamic Wwise Compressor records", () =>
+{
+    const mutations = [
+        effect => { effect.parameterByteLength = 21; },
+        effect => { effect.media.push({ index: 0, sourceId: "10" }); },
+        effect => { effect.controls.rtpcCount = 1; },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(CompressorBytes({
+                ratio: 51,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(CompressorBytes({
+                releaseSeconds: 2.01,
+            })).toString("base64");
+        },
+    ];
+
+    for (const mutate of mutations)
+    {
+        const effect = GraphCompressor();
+
+        mutate(effect);
+        assert.throws(() =>
+            parseGraphStaticWwiseCompressor(effect, "940", 0));
+    }
+});
+
 test("rejects dynamic or malformed Wwise Peak Limiter parameter blocks", () =>
 {
     const mutations = [
@@ -659,7 +852,7 @@ test("rejects dynamic or malformed Wwise Peak Limiter parameter blocks", () =>
         effect =>
         {
             effect.parametersBase64 = Buffer.from(PeakLimiterBytes({
-                releaseSeconds: 0.501,
+                releaseSeconds: 5.001,
             })).toString("base64");
         },
         effect =>

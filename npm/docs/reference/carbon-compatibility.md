@@ -1,7 +1,7 @@
 # Carbon audio compatibility
 
 Status: Evolving  
-Scope: `@carbonenginejs/runtime-audio/trinity`  
+Scope: `@carbonenginejs/runtime-audio`
 Audience: Runtime authors, content integrators, and maintainers  
 Summary: Defines the maintained Carbon audio surface, adaptations, and intentionally unsupported native behavior.
 
@@ -14,6 +14,50 @@ field names, schema families, persistence metadata, and method provenance.
 Portable behavior is implemented where it can be expressed without Wwise,
 Python, an operating-system device manager, or a renderer. Browser realization
 is supplied by the root package.
+
+## Compatibility ledger
+
+This table is the public index of intentional deviations. “Qualified route”
+means a route admitted to faithful shared-bus topology; it does **not** mean the
+media voice is otherwise silent. A rejected shared route normally remains
+audible through the legacy SFX or music destination with the blocked authored
+bus processing omitted.
+
+| Area | Classification | Runtime contract |
+| --- | --- | --- |
+| Carbon audio graph and manager lifecycle | Exact portable behavior | Field, persistence, event, bank, RTPC, State, emitter, and listener contracts are maintained where they do not require native middleware. |
+| Authored SFX and music scheduling | Browser adaptation | Web Audio scheduling preserves authored graph decisions; non-linear Wwise curves are sampled approximations and documented unsupported object families remain barriers. |
+| Parametric EQ and Wwise Delay | Browser adaptation | Source-proven parameters, bus placement, and slot order are retained; Web Audio biquad/delay DSP is not bit-equivalent to Wwise. |
+| Wwise Compressor and Peak Limiter | Opt-in approximation | `wwiseDynamics: "approximate-web-audio"` admits only static, linked, all-channel records. The default `"strict"` policy keeps them out of the shared mixer and uses the legacy audible fallback. |
+| Feedback-free Wwise Meter | Proven omission | Telemetry with no Game Parameter output or downstream-volume observation is audio-transparent and allocates no node. Feedback-capable Meter remains unsupported. |
+| Proven-silent Aux return | Proven omission | A complete return at or below `-96 dB` is omitted; a narrowly qualified static SFX Aux shape is exact topology, and other wet paths remain barriers. |
+| Rejected shared route | Fallback | SFX remains on its existing emitter/SFX destination and music remains on its legacy segment/instance/output path; authored blocked bus stages are omitted. |
+| Master safety compressor | Browser workaround | A separate fixed Web Audio compressor (`-6 dB`, knee `6 dB`, `12:1`, `3 ms`, `250 ms`) limits all output when supported. It is not an authored Wwise effect; without the node capability output connects directly. |
+| Spatial playback | Browser adaptation | `PannerNode` uses HRTF and inverse distance. `distanceScale` converts application world units and emitter attenuation scaling supplies `refDistance`. |
+| Emitter level reporting | UI/debug approximation | `GetGameObjLevel()` samples 256-bin main-thread analyser frames and returns zero when analyser support is unavailable. It is not Wwise Meter telemetry. |
+| Legacy library controls | Compatibility fallback | Older documents may use master/music RTPC gain fallbacks; current typed bus catalogs take precedence. |
+| Missing optional Web Audio primitives | Capability fallback | Legacy LPF/HPF may be omitted without biquad support, level reporting becomes zero without an analyser, and the master safety compressor is absent without dynamics support. Shared graph qualification remains atomic. |
+| Native device, input, profiler, and spatial geometry rendering | Unsupported barrier | Portable contracts may remain, but native device work, capture, input plug-ins, diffraction, occlusion, and middleware rendering are not emulated. |
+
+### Approximate Wwise dynamics
+
+The opt-in policy preserves the authored bus, effect slot, threshold, release,
+and output-gain placement, but it is intentionally not Wwise-equivalent.
+Eligible Compressors also preserve authored attack; eligible Peak Limiters use
+zero Web Audio attack and add output delay only when needed to bring total
+latency above Web Audio's fixed 6 ms. Ratio is capped at Web Audio's `20:1`
+maximum, knee is fixed at zero, and a post gain compensates Web Audio's
+mandatory automatic makeup before applying the authored output gain.
+
+The detector, envelope/time law, peak-limiter behavior, channel/LFE handling,
+and lookahead detector window still differ. A limiter delay pad changes output
+latency; it does not extend the native compressor detector's 6 ms anticipation.
+Compressor field order is empirically corroborated for the audited v150 corpus;
+the Peak Limiter layout is source-proven. Dynamic controls, media, independent
+channels, Compressor attack `0`, dynamics timing above one second, and missing
+browser primitives retain the legacy fallback. The independent master safety
+compressor remains downstream, so an admitted authored dynamics route may pass
+through both stages.
 
 ## Implemented behavior
 
@@ -152,7 +196,7 @@ paths. Unsupported RTPC bindings, route-local controls crossing an audible share
 other audible auxiliary sends, other effect processing
 and tails, feedback-capable meters, and virtual-voice behavior remain deferred
 as described in the
-[Wwise routing requirements](wwise-resource-routing-handoff.md).
+[Wwise routing requirements](wwise-resource-routing.md).
 
 Unsupported Carbon methods remain visible with explicit implementation
 metadata where their schema surface is maintained.
@@ -171,4 +215,4 @@ CarbonEngineJS is an independent project and is not affiliated with CCP Games.
 - [Architecture and boundaries](../architecture.md)
 - [Current API reference](api.md)
 - [Class-purpose catalog](classes/README.md)
-- [Wwise routing support and remaining work](wwise-resource-routing-handoff.md)
+- [Wwise routing support and remaining work](wwise-resource-routing.md)

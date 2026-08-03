@@ -459,22 +459,28 @@ and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and
 configured to process LFE. The root limiter is ShareSet `3134687450` on bus
 `4085017428`: threshold `-1 dB`, ratio `10`, lookahead `0.01 s`, release
 `0.1 s`, and `0 dB` output. Pinned wwiser proves the limiter layout, and an
-internal runtime decoder now validates that static 22-byte record for future
-adapter use. Production graph dispatch does not invoke it or admit the stage to
-the shared mixer. Pinned wwiser has no Compressor parameter parser; the coherent
+internal runtime decoder validates that static 22-byte record. Pinned wwiser
+has no Compressor parameter parser; the coherent
 Compressor field order therefore remains an empirical v150 corpus interpretation
-rather than a source-proven adapter contract. Web Audio's
-`DynamicsCompressorNode` has a fixed 6 ms
+rather than a source-proven adapter contract. The default `wwiseDynamics:
+"strict"` policy keeps all six stages outside shared routing. The affected media
+still uses the legacy audible route with authored dynamics omitted.
+
+The explicit `"approximate-web-audio"` policy admits the static, linked,
+Process-LFE subset. Web Audio's `DynamicsCompressorNode` has a fixed 6 ms
 lookahead, automatic makeup and different detector/envelope behavior, and a
-maximum ratio of 20 while one EVE Compressor authors 20.1. Exact mode keeps all
-six stages as barriers. The backend's independent safety compressor is not an
-authored Wwise limiter and must never be reused as one.
+maximum ratio of 20 while one EVE Compressor authors 20.1. The adapter uses a
+hard knee, compensates the mandatory makeup before authored output gain, and
+pads limiter output latency above 6 ms where possible; it cannot extend the
+native detector window. This is adapted route qualification, not exact Wwise
+DSP. The backend's independent safety compressor is not an authored Wwise
+limiter and is never reused as one.
 
 A fail-closed qualification simulation that treats only these dynamics stages
 as supported, while leaving every other route gate intact, bounds their EVE
 build 3444265 payoff. Compressor support alone adds all 135 remaining music
 references and no SFX. Peak Limiter support alone adds 36 SFX references.
-Supporting both adds 144 SFX and 135 music references, moving combined exact
+Supporting both adds 144 SFX and 135 music references, moving combined adapted
 qualification from 9,956/18,739 (53.1%) to 10,235/18,739 (54.6%) and bringing
 built-in music to 100%. Of the Compressor-reachable SFX, most still cross
 independent Aux or convolution barriers, so the raw reach of 3,889 SFX is not

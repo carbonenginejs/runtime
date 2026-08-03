@@ -227,6 +227,50 @@ function GraphDelay(bytes = DelayParameters())
   };
 }
 
+function DynamicsParameters({
+  thresholdDb = -18,
+  ratio = 20.1,
+  attackOrLookaheadSeconds = 0.03,
+  releaseSeconds = 0.25,
+  outputGainDb = 3,
+  processLfe = 1,
+  channelLink = 1,
+} = {})
+{
+  const bytes = new Uint8Array(22);
+  const view = new DataView(bytes.buffer);
+
+  view.setFloat32(0, thresholdDb, true);
+  view.setFloat32(4, ratio, true);
+  view.setFloat32(8, attackOrLookaheadSeconds, true);
+  view.setFloat32(12, releaseSeconds, true);
+  view.setFloat32(16, outputGainDb, true);
+  view.setUint8(20, processLfe);
+  view.setUint8(21, channelLink);
+  return bytes;
+}
+
+function GraphDynamics(pluginId, bytes = DynamicsParameters())
+{
+  return {
+    ...GraphParametricEq(bytes),
+    pluginId,
+  };
+}
+
+function AddGraphDynamics(catalog, busId, effectId, slotIndex, pluginId, bytes)
+{
+  catalog.effects[effectId] = GraphDynamics(pluginId, bytes);
+  catalog.buses[busId].effects.push({
+    slotIndex,
+    effectId,
+    bypass: false,
+    shareSet: true,
+    rendered: false,
+  });
+  catalog.buses[busId].requiresProcessing = [ "effects" ];
+}
+
 function AddGraphEffect(catalog, busId, effectId, slotIndex, bytes)
 {
   catalog.effects[effectId] = GraphParametricEq(bytes);
@@ -377,6 +421,7 @@ function MixerContext()
     delays: [],
     gains: [],
     filters: [],
+    compressors: [],
     createGain()
     {
       const gain = {
@@ -482,6 +527,31 @@ function MixerContext()
       context.filters.push(node);
       return node;
     },
+    createDynamicsCompressor()
+    {
+      const node = {
+        threshold: { value: 0 },
+        knee: { value: 30 },
+        ratio: { value: 12 },
+        attack: { value: 0.003 },
+        release: { value: 0.25 },
+        connectedTo: null,
+        connections: [],
+        disconnected: false,
+        connect(target)
+        {
+          node.connectedTo = target;
+          node.connections.push(target);
+        },
+        disconnect()
+        {
+          node.disconnected = true;
+        },
+      };
+
+      context.compressors.push(node);
+      return node;
+    },
   };
 
   return context;
@@ -563,6 +633,82 @@ test("strict shared Bus mixer shares effect-free ancestry without merging catego
   mixer.Dispose();
   assert.ok(nodes.every(node => node.disconnected));
   assert.equal(mixer.GetInput(routeA, "sfx"), null);
+});
+
+test("shared Bus dynamics remain strict unless Web Audio approximation is explicit", () =>
+{
+  const catalog = MixerCatalog();
+
+  AddGraphDynamics(catalog, "500", "940", 0, 0x006c0003);
+  AddGraphDynamics(
+    catalog,
+    "500",
+    "930",
+    1,
+    0x006e0003,
+    DynamicsParameters({
+      thresholdDb: -1,
+      ratio: 10,
+      attackOrLookaheadSeconds: 0.01,
+      releaseSeconds: 0.1,
+      outputGainDb: 0,
+    }),
+  );
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const strictContext = MixerContext();
+  const strict = new CjsSharedBusMixer({
+    context: strictContext,
+    runtime,
+    destination: strictContext.destination,
+  });
+
+  assert.equal(strict.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+  assert.equal(strictContext.gains.length, 0);
+  assert.equal(strictContext.compressors.length, 0);
+
+  const context = MixerContext();
+  const approximate = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    wwiseDynamics: "approximate-web-audio",
+  });
+  const input = approximate.GetInput(
+    runtime.ResolveSfxRoute("100"),
+    "sfx",
+  );
+
+  assert.ok(input);
+  assert.equal(context.compressors.length, 2);
+  assert.equal(context.delays.length, 1);
+  assert.equal(context.compressors[0].ratio.value, 20);
+  assert.equal(context.compressors[0].connectedTo, context.gains[2]);
+  assert.equal(context.gains[2].connectedTo, context.compressors[1]);
+  assert.equal(context.compressors[1].connectedTo, context.gains[3]);
+  assert.equal(context.gains[3].connectedTo, context.delays[0]);
+
+  const unavailableContext = MixerContext();
+
+  delete unavailableContext.createDynamicsCompressor;
+  const unavailable = new CjsSharedBusMixer({
+    context: unavailableContext,
+    runtime,
+    destination: unavailableContext.destination,
+    wwiseDynamics: "approximate-web-audio",
+  });
+
+  assert.equal(
+    unavailable.GetInput(runtime.ResolveSfxRoute("100"), "sfx"),
+    null,
+  );
+  assert.equal(unavailableContext.gains.length, 0);
+  assert.equal(unavailableContext.delays.length, 0);
+  assert.throws(() => new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    wwiseDynamics: "approximate",
+  }), /Unsupported Wwise dynamics realization mode/u);
 });
 
 test("strict shared Bus mixer admits complete distributed controls only on transparent paths", () =>

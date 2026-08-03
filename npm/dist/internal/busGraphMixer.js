@@ -1,4 +1,4 @@
-import { parseGraphSharedBusEffect, createBusEffectChain } from './busEffects.js';
+import { normalizeWwiseDynamicsMode, parseGraphSharedBusEffect, createBusEffectChain } from './busEffects.js';
 import { indexBusRtpcCatalog, busRtpcPathUses } from './busRtpc.js';
 import { indexBusStateCatalog, busStatePathUses } from './busState.js';
 import { scheduleSharedBusFilter } from './busFilter.js';
@@ -38,6 +38,7 @@ class CjsSharedBusMixer {
   #readGlobalRtpcTransitionBoundaries = null;
   #readGlobalStateWeights = null;
   #readGlobalStateTransitionBoundaries = null;
+  #wwiseDynamics = "strict";
   #categoryVolumes = new Map([["sfx", 1], ["music", 1]]);
   #disposed = false;
 
@@ -52,7 +53,8 @@ class CjsSharedBusMixer {
     getGlobalRTPC,
     getGlobalRTPCTransitionBoundaries,
     getGlobalStatePropertyWeights,
-    getGlobalStateTransitionBoundaries
+    getGlobalStateTransitionBoundaries,
+    wwiseDynamics = "strict"
   } = {}) {
     if (!context || typeof context.createGain !== "function") {
       throw new TypeError("Shared Audio Bus mixer requires an AudioContext with createGain");
@@ -71,6 +73,7 @@ class CjsSharedBusMixer {
     this.#runtime = runtime;
     this.#catalog = catalog;
     this.#destination = destination;
+    this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
     this.#busRtpcs = indexBusRtpcCatalog(busRtpcs);
     this.#busStates = indexBusStateCatalog(busStates);
     this.#busDuckingController = busDuckingController ?? null;
@@ -318,13 +321,21 @@ class CjsSharedBusMixer {
         if (slot.shareSet !== shareSet) {
           throw new TypeError("Audio Bus effect ShareSet identity disagrees");
         }
-        return parseGraphSharedBusEffect(graphEffect, slot.effectId, slot.slotIndex);
+        return parseGraphSharedBusEffect(graphEffect, slot.effectId, slot.slotIndex, {
+          wwiseDynamics: this.#wwiseDynamics
+        });
       });
       if (effects.some(effect => effect.type === "parametric-eq" && effect.bands.length) && typeof this.#context.createBiquadFilter !== "function") {
         throw new TypeError("Static Parametric EQ requires BiquadFilter support");
       }
       if (effects.some(effect => effect.type === "delay") && typeof this.#context.createDelay !== "function") {
         throw new TypeError("Static Wwise Delay requires DelayNode support");
+      }
+      if (effects.some(effect => effect.type === "compressor-approximation" || effect.type === "peak-limiter-approximation") && typeof this.#context.createDynamicsCompressor !== "function") {
+        throw new TypeError("Approximate Wwise dynamics requires DynamicsCompressorNode support");
+      }
+      if (effects.some(effect => effect.type === "peak-limiter-approximation" && effect.lookaheadSeconds > 0.006) && typeof this.#context.createDelay !== "function") {
+        throw new TypeError("Approximate Wwise Peak Limiter lookahead requires DelayNode support");
       }
       if (reasonSet.has("rtpc") && !this.#busRtpcs.has(id) || reasonSet.has("state") && !this.#busStates.has(id) || reasonSet.has("ducking") && !this.#busDuckingController?.HasSource?.(id)) {
         throw new TypeError("Audio Bus distributed control catalog is incomplete");

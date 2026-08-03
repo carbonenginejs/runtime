@@ -9,6 +9,7 @@ import { AudMusicPlayer } from "./trinity/audio/AudMusicPlayer.js";
 import {
     installAudioLibraryDocument,
 } from "./library/audioLibraryDocument.js";
+import { normalizeWwiseDynamicsMode } from "./internal/busEffects.js";
 
 const DELIVERY_MODES = new Set([ "auto", "individual", "whole", "range" ]);
 const ORIGINAL_MEDIA_TYPES = new Set([
@@ -90,6 +91,7 @@ export class CjsAudioMan
         loadMusicTrack = null,
         isMusicTrackAvailable = null,
         updateContext = null,
+        wwiseDynamics = "strict",
     } = {})
     {
         if (typeof createContext !== "function")
@@ -125,6 +127,7 @@ export class CjsAudioMan
             createMusicEngine,
             applyRTPC,
             updateContext,
+            wwiseDynamics: normalizeWwiseDynamicsMode(wwiseDynamics),
         };
 
         if (musicLibrary !== null

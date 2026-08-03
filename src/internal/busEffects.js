@@ -1,7 +1,13 @@
 export const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
 export const WWISE_DELAY_PLUGIN_ID = 0x006a0003;
+export const WWISE_COMPRESSOR_PLUGIN_ID = 0x006c0003;
 export const WWISE_PEAK_LIMITER_PLUGIN_ID = 0x006e0003;
 export const WWISE_METER_PLUGIN_ID = 0x00810003;
+
+const WWISE_DYNAMICS_MODES = new Set([
+    "strict",
+    "approximate-web-audio",
+]);
 
 const FILTER_TYPE_NAMES = Object.freeze([
     "lowpass",
@@ -27,10 +33,15 @@ const DYNAMICS_THRESHOLD_MIN = Math.fround(-96.3);
 const DYNAMICS_THRESHOLD_MAX = 0;
 const DYNAMICS_RATIO_MIN = 1;
 const DYNAMICS_RATIO_MAX = 50;
+const COMPRESSOR_TIME_MIN = 0;
+const COMPRESSOR_TIME_MAX = 2;
+const WEB_AUDIO_DYNAMICS_TIME_MAX = 1;
+const WEB_AUDIO_DYNAMICS_RATIO_MAX = 20;
+const WEB_AUDIO_DYNAMICS_LOOKAHEAD = 0.006;
 const PEAK_LIMITER_LOOKAHEAD_MIN = 0.001;
 const PEAK_LIMITER_LOOKAHEAD_MAX = 0.02;
 const PEAK_LIMITER_RELEASE_MIN = 0.001;
-const PEAK_LIMITER_RELEASE_MAX = 0.5;
+const PEAK_LIMITER_RELEASE_MAX = 5;
 const DYNAMICS_OUTPUT_GAIN_MIN = -24;
 const DYNAMICS_OUTPUT_GAIN_MAX = 24;
 const METER_MAX_TIME = 10;
@@ -38,6 +49,20 @@ const METER_MINIMUM_MIN = Math.fround(-96.3);
 const METER_MINIMUM_MAX = 0;
 const METER_MAXIMUM_MIN = Math.fround(-96.3);
 const METER_MAXIMUM_MAX = 12;
+
+/** Validates the host policy for authored Wwise dynamics realization. */
+export function normalizeWwiseDynamicsMode(value = "strict")
+{
+    const mode = String(value);
+
+    if (!WWISE_DYNAMICS_MODES.has(mode))
+    {
+        throw new TypeError(
+            `Unsupported Wwise dynamics realization mode: ${mode}`,
+        );
+    }
+    return mode;
+}
 
 /** Validates and indexes one portable static Wwise bus-effect catalog. */
 export function indexBusEffectCatalog(value)
@@ -188,6 +213,17 @@ export function createBusEffectChain(context, indexedCatalog, busPathIds)
     for (const effect of effects)
     {
         if (effect.type === "meter-omission") continue;
+        if (effect.type === "compressor-approximation"
+            || effect.type === "peak-limiter-approximation")
+        {
+            const stage = CreateWwiseDynamicsApproximation(context, effect);
+
+            if (output) output.connect(stage.input);
+            else input = stage.input;
+            output = stage.output;
+            nodes.push(...stage.nodes);
+            continue;
+        }
         if (effect.type === "delay")
         {
             const stage = CreateWwiseDelayStage(context, effect);
@@ -236,6 +272,66 @@ export function createBusEffectChain(context, indexedCatalog, busPathIds)
         }
     }
     return input ? { input, output, nodes } : null;
+}
+
+/**
+ * Creates an explicitly approximate browser dynamics stage.
+ *
+ * DynamicsCompressorNode has a fixed 6 ms lookahead, a 20:1 ratio ceiling,
+ * mandatory automatic makeup, and browser-defined detector/envelope behavior.
+ * The post gain cancels the specified hard-knee makeup before applying Wwise's
+ * authored output gain. A Peak Limiter receives only the additional delay
+ * needed to reach an authored lookahead longer than Web Audio's fixed delay.
+ */
+function CreateWwiseDynamicsApproximation(context, effect)
+{
+    if (typeof context?.createDynamicsCompressor !== "function"
+        || typeof context?.createGain !== "function")
+    {
+        throw new TypeError(
+            "DynamicsCompressorNode and GainNode support is required for approximate Wwise dynamics",
+        );
+    }
+    const dynamics = context.createDynamicsCompressor();
+    const ratio = Math.min(effect.ratio, WEB_AUDIO_DYNAMICS_RATIO_MAX);
+    const makeupDb = -0.6 * effect.thresholdDb * (1 - 1 / ratio);
+    const gain = context.createGain();
+    const nodes = [ dynamics ];
+
+    SetParam(dynamics.threshold, effect.thresholdDb);
+    SetParam(dynamics.knee, 0);
+    SetParam(dynamics.ratio, ratio);
+    SetParam(
+        dynamics.attack,
+        effect.type === "peak-limiter-approximation"
+            ? 0
+            : effect.attackSeconds,
+    );
+    SetParam(dynamics.release, effect.releaseSeconds);
+    dynamics.connect(gain);
+    SetParam(gain.gain, 10 ** ((effect.outputGainDb - makeupDb) / 20));
+    nodes.push(gain);
+    let output = gain;
+
+    if (effect.type === "peak-limiter-approximation"
+        && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD)
+    {
+        if (typeof context?.createDelay !== "function")
+        {
+            throw new TypeError(
+                "DelayNode support is required to approximate Wwise Peak Limiter lookahead",
+            );
+        }
+        const delaySeconds = effect.lookaheadSeconds
+            - WEB_AUDIO_DYNAMICS_LOOKAHEAD;
+        const delay = context.createDelay(delaySeconds);
+
+        SetParam(delay.delayTime, delaySeconds);
+        gain.connect(delay);
+        output = delay;
+        nodes.push(delay);
+    }
+    return { input: dynamics, output, nodes };
 }
 
 /** Creates one static Wwise Delay adaptation from Web Audio primitives. */
@@ -497,6 +593,72 @@ export function parseGraphStaticWwisePeakLimiter(effect, effectId, slotIndex)
 }
 
 /**
+ * Decodes the empirically corroborated static v150 Wwise Compressor layout.
+ *
+ * Unlike the Peak Limiter layout, this field order is not yet source-proven by
+ * the pinned wwiser tree. It is retained only to drive the explicit Web Audio
+ * approximation and remains outside strict shared-bus admission.
+ */
+export function parseGraphStaticWwiseCompressor(effect, effectId, slotIndex)
+{
+    const label = `Audio Bus graph effect ${effectId}`;
+    const bytes = RequireStaticGraphEffect(
+        effect,
+        WWISE_COMPRESSOR_PLUGIN_ID,
+        22,
+        label,
+        "Wwise Compressor",
+    );
+    const view = new DataView(
+        bytes.buffer,
+        bytes.byteOffset,
+        bytes.byteLength,
+    );
+    const thresholdDb = view.getFloat32(0, true);
+    const ratio = view.getFloat32(4, true);
+    const attackSeconds = view.getFloat32(8, true);
+    const releaseSeconds = view.getFloat32(12, true);
+    const outputGainDb = view.getFloat32(16, true);
+    const processLfeRaw = view.getUint8(20);
+    const channelLinkRaw = view.getUint8(21);
+
+    if (!Number.isFinite(thresholdDb)
+        || thresholdDb < DYNAMICS_THRESHOLD_MIN
+        || thresholdDb > DYNAMICS_THRESHOLD_MAX
+        || !Number.isFinite(ratio)
+        || ratio < DYNAMICS_RATIO_MIN
+        || ratio > DYNAMICS_RATIO_MAX
+        || !Number.isFinite(attackSeconds)
+        || attackSeconds < COMPRESSOR_TIME_MIN
+        || attackSeconds > COMPRESSOR_TIME_MAX
+        || !Number.isFinite(releaseSeconds)
+        || releaseSeconds < COMPRESSOR_TIME_MIN
+        || releaseSeconds > COMPRESSOR_TIME_MAX
+        || !Number.isFinite(outputGainDb)
+        || outputGainDb < DYNAMICS_OUTPUT_GAIN_MIN
+        || outputGainDb > DYNAMICS_OUTPUT_GAIN_MAX
+        || processLfeRaw > 1
+        || channelLinkRaw > 1)
+    {
+        throw new TypeError(
+            `${label} has invalid Wwise Compressor parameters`,
+        );
+    }
+    return {
+        effectId: String(effectId),
+        slotIndex: Number(slotIndex),
+        type: "compressor",
+        thresholdDb,
+        ratio,
+        attackSeconds,
+        releaseSeconds,
+        outputGainDb,
+        processLfe: processLfeRaw === 1,
+        channelLink: channelLinkRaw === 1,
+    };
+}
+
+/**
  * Decodes a v150 Wwise Meter whose omitted telemetry cannot feed back into the
  * authored graph. The Meter remains behaviorally unsupported but audio-neutral.
  */
@@ -570,9 +732,16 @@ export function parseGraphFeedbackFreeMeter(effect, effectId, slotIndex)
     };
 }
 
-/** Decodes one effect admitted by the strict shared Bus mixer. */
-export function parseGraphSharedBusEffect(effect, effectId, slotIndex)
+/** Decodes one effect admitted by the selected shared Bus realization policy. */
+export function parseGraphSharedBusEffect(
+    effect,
+    effectId,
+    slotIndex,
+    { wwiseDynamics = "strict" } = {},
+)
 {
+    const dynamicsMode = normalizeWwiseDynamicsMode(wwiseDynamics);
+
     switch (effect?.pluginId)
     {
         case PARAMETRIC_EQ_PLUGIN_ID:
@@ -581,9 +750,56 @@ export function parseGraphSharedBusEffect(effect, effectId, slotIndex)
             return parseGraphStaticWwiseDelay(effect, effectId, slotIndex);
         case WWISE_METER_PLUGIN_ID:
             return parseGraphFeedbackFreeMeter(effect, effectId, slotIndex);
+        case WWISE_COMPRESSOR_PLUGIN_ID:
+            if (dynamicsMode === "approximate-web-audio")
+            {
+                return RequireApproximateDynamics(
+                    parseGraphStaticWwiseCompressor(
+                        effect,
+                        effectId,
+                        slotIndex,
+                    ),
+                    "compressor-approximation",
+                );
+            }
+            break;
+        case WWISE_PEAK_LIMITER_PLUGIN_ID:
+            if (dynamicsMode === "approximate-web-audio")
+            {
+                return RequireApproximateDynamics(
+                    parseGraphStaticWwisePeakLimiter(
+                        effect,
+                        effectId,
+                        slotIndex,
+                    ),
+                    "peak-limiter-approximation",
+                );
+            }
+            break;
         default:
-            throw new TypeError(`Audio Bus graph effect ${effectId} is unsupported`);
+            break;
     }
+    throw new TypeError(`Audio Bus graph effect ${effectId} is unsupported`);
+}
+
+function RequireApproximateDynamics(effect, type)
+{
+    if (effect.processLfe !== true || effect.channelLink !== true)
+    {
+        throw new TypeError(
+            `Audio Bus graph effect ${effect.effectId} requires unsupported independent dynamics channels`,
+        );
+    }
+    if ((type === "compressor-approximation"
+            && (effect.attackSeconds === 0
+                || effect.attackSeconds > WEB_AUDIO_DYNAMICS_TIME_MAX))
+        || effect.releaseSeconds > WEB_AUDIO_DYNAMICS_TIME_MAX)
+    {
+        throw new TypeError(
+            `Audio Bus graph effect ${effect.effectId} exceeds Web Audio dynamics timing limits`,
+        );
+    }
+    return { ...effect, type };
 }
 
 function RequireStaticGraphEffect(effect, pluginId, byteLength, label, kind)

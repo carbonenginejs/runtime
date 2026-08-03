@@ -9,6 +9,7 @@ import { createAudioUpdateContext } from './CjsAudioUpdateContext.js';
 import { CjsBusDuckingController } from './internal/busDucking.js';
 import { CjsBusGraphRuntime } from './internal/busGraphRuntime.js';
 import { CjsSharedBusMixer } from './internal/busGraphMixer.js';
+import { normalizeWwiseDynamicsMode } from './internal/busEffects.js';
 
 // CarbonEngineJS original (no Carbon counterpart). The audio system
 // composition root: owns the AudManager + AudStaticDataRepository + WebAudio
@@ -66,6 +67,7 @@ class CjsAudioSystem {
   #busGraphRuntime = null;
   #busMixer = null;
   #providedUpdateContext = null;
+  #wwiseDynamics = "strict";
   #adoptedEmitters = new Set();
   #adoptedCurveSetDrivers = new Set();
 
@@ -92,7 +94,8 @@ class CjsAudioSystem {
     busStates,
     busDucking,
     busEffects,
-    busGraph
+    busGraph,
+    wwiseDynamics = "strict"
   } = {}) {
     this.#createContext = createContext ?? null;
     this.#loadBuffer = loadBuffer ?? null;
@@ -114,6 +117,7 @@ class CjsAudioSystem {
     this.#busDucking = busDucking ?? null;
     this.#busEffects = busEffects ?? null;
     this.#busGraph = busGraph ?? null;
+    this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
     this.#providedUpdateContext = updateContext ?? null;
     if (audioMetadata) {
       this.repository.Initialize(audioMetadata);
@@ -180,7 +184,8 @@ class CjsAudioSystem {
           getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
           getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
           getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
-          getGlobalStateTransitionBoundaries: from => this.backend.GetGlobalStateTransitionBoundaries(from)
+          getGlobalStateTransitionBoundaries: from => this.backend.GetGlobalStateTransitionBoundaries(from),
+          wwiseDynamics: this.#wwiseDynamics
         }) : null;
         this.backend.SetBusMixer(this.#busMixer);
         if (!this.musicEngine) {

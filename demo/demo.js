@@ -2293,6 +2293,26 @@ function CreateBusGraphLabCatalog({ gameParameterId = 0 } = {})
     delay.setFloat32(12, -3, true);
     delay.setUint8(16, 1);
     delay.setUint8(17, 1);
+    const compressorBytes = new Uint8Array(22);
+    const compressor = new DataView(compressorBytes.buffer);
+
+    compressor.setFloat32(0, -24, true);
+    compressor.setFloat32(4, 4, true);
+    compressor.setFloat32(8, 0.01, true);
+    compressor.setFloat32(12, 0.2, true);
+    compressor.setFloat32(16, 0, true);
+    compressor.setUint8(20, 1);
+    compressor.setUint8(21, 1);
+    const limiterBytes = new Uint8Array(22);
+    const limiter = new DataView(limiterBytes.buffer);
+
+    limiter.setFloat32(0, -6, true);
+    limiter.setFloat32(4, 20, true);
+    limiter.setFloat32(8, 0.01, true);
+    limiter.setFloat32(12, 0.1, true);
+    limiter.setFloat32(16, 0, true);
+    limiter.setUint8(20, 1);
+    limiter.setUint8(21, 1);
     const controls = {
         rtpcCount: 0,
         statePropertyCount: 0,
@@ -2335,6 +2355,8 @@ function CreateBusGraphLabCatalog({ gameParameterId = 0 } = {})
             "900": effect("effect-share-set", 0x00810003, meterBytes),
             "901": effect("effect-share-set", 0x00690003, eqBytes),
             "902": effect("effect-share-set", 0x006a0003, delayBytes),
+            "903": effect("effect-share-set", 0x006c0003, compressorBytes),
+            "904": effect("effect-share-set", 0x006e0003, limiterBytes),
         },
         buses: {
             "1": bus(),
@@ -2371,6 +2393,26 @@ function CreateBusGraphLabCatalog({ gameParameterId = 0 } = {})
                 requiresProcessing: [ "effects" ],
             }),
             "502": bus({ parentBusId: "1" }),
+            "503": bus({
+                parentBusId: "1",
+                effects: [
+                    {
+                        slotIndex: 0,
+                        effectId: "903",
+                        bypass: false,
+                        shareSet: true,
+                        rendered: false,
+                    },
+                    {
+                        slotIndex: 1,
+                        effectId: "904",
+                        bypass: false,
+                        shareSet: true,
+                        rendered: false,
+                    },
+                ],
+                requiresProcessing: [ "effects" ],
+            }),
             "700": bus({
                 type: "auxiliary-bus",
                 parentBusId: "1",
@@ -2401,8 +2443,13 @@ function CreateBusGraphLabCatalog({ gameParameterId = 0 } = {})
                     dynamic: false,
                 } ],
             },
+            {
+                outputBusId: "503",
+                busPathIds: [ "503", "1" ],
+                userAuxSends: [],
+            },
         ],
-        sfxRoutes: { "100": 0, "101": 1, "102": 2 },
+        sfxRoutes: { "100": 0, "101": 1, "102": 2, "103": 3 },
         musicRoutes: { "200": 0 },
     };
 }
@@ -2417,9 +2464,9 @@ function BytesToBase64(bytes)
 
 
 /**
- * Audible synthetic coverage for the strict shared Wwise Bus mixer. The lab
- * uses exact portable v150 effect records so it exercises the same raw-graph
- * decoder as an installed library without acquiring or bundling game media.
+ * Audible synthetic coverage for the shared Wwise Bus mixer. The lab uses
+ * exact portable v150 records, enabling approximate dynamics explicitly, so
+ * it exercises installed-library decoding without bundling game media.
  */
 class BusGraphLabUi
 {
@@ -2432,6 +2479,8 @@ class BusGraphLabUi
     #delayInput = null;
 
     #auxInput = null;
+
+    #dynamicsInput = null;
 
     #mixer = null;
 
@@ -2453,6 +2502,8 @@ class BusGraphLabUi
             this.#Play("delay", 1);
         document.getElementById("busGraphAux").onclick = () =>
             this.#Play("aux", 1);
+        document.getElementById("busGraphDynamics").onclick = () =>
+            this.#Play("dynamics", 1);
         document.getElementById("busGraphShared").onclick = () =>
             this.#Play("eq", 2);
     }
@@ -2479,14 +2530,20 @@ class BusGraphLabUi
                 context,
                 runtime: this.#runtime,
                 destination,
+                wwiseDynamics: "approximate-web-audio",
             });
             const sfxHandle = this.#runtime.ResolveSfxRoute("100");
             const delayHandle = this.#runtime.ResolveSfxRoute("101");
             const auxHandle = this.#runtime.ResolveSfxRoute("102");
+            const dynamicsHandle = this.#runtime.ResolveSfxRoute("103");
             const musicHandle = this.#runtime.ResolveMusicRoute("200");
             const sfxInput = this.#mixer.GetInput(sfxHandle, "sfx");
             const delayInput = this.#mixer.GetInput(delayHandle, "sfx");
             const auxInput = this.#mixer.GetInput(auxHandle, "sfx");
+            const dynamicsInput = this.#mixer.GetInput(
+                dynamicsHandle,
+                "sfx",
+            );
             const musicInput = this.#mixer.GetInput(musicHandle, "music");
             const stableInput = sfxInput
                 && this.#mixer.GetInput(sfxHandle, "sfx") === sfxInput;
@@ -2499,12 +2556,14 @@ class BusGraphLabUi
             this.#eqInput = sfxInput;
             this.#delayInput = delayInput;
             this.#auxInput = auxInput;
+            this.#dynamicsInput = dynamicsInput;
             const installed = this.#AuditInstalledGraph(context);
             const syntheticPass = Boolean(
                 stableInput
                 && categoriesSeparated
                 && delayInput
                 && auxInput
+                && dynamicsInput
                 && delayInput !== sfxInput
                 && delayTopologyPass
                 && auxTopologyPass
@@ -2514,7 +2573,9 @@ class BusGraphLabUi
                 ? `EVE ${installed.qualifiedSfx}/${installed.sfxRefs} SFX, `
                     + `${installed.qualifiedMusic}/${installed.musicRefs} music; `
                     + `${installed.eqEffects} EQ / ${installed.delayEffects} Delay / `
-                    + `${installed.meterEffects} Meter definitions`
+                    + `${installed.meterEffects} Meter / `
+                    + `${installed.compressorEffects} Compressor / `
+                    + `${installed.limiterEffects} Limiter definitions`
                 : "installed library has no Bus graph";
 
             this.#SetStatus(
@@ -2559,6 +2620,7 @@ class BusGraphLabUi
         this.#eqInput = null;
         this.#delayInput = null;
         this.#auxInput = null;
+        this.#dynamicsInput = null;
         this.#SetButtonsEnabled(false);
         if (showDisabled)
         {
@@ -2573,6 +2635,8 @@ class BusGraphLabUi
             ? this.#delayInput
             : route === "aux"
                 ? this.#auxInput
+                : route === "dynamics"
+                    ? this.#dynamicsInput
                 : this.#eqInput;
 
         if (!this.#app.IsAudioEnabled() || (route !== "dry" && !routedInput))
@@ -2645,7 +2709,9 @@ class BusGraphLabUi
                 ? "playing a rising sweep through the 220 ms Delay and -3 dB Bus fader"
                 : route === "aux"
                     ? "playing equal dry and 0 dB Aux branches (+6 dB at their merge)"
-                : "playing the full-band dry rising sweep";
+                    : route === "dynamics"
+                        ? "playing through approximate Web Audio Compressor → Peak Limiter"
+                        : "playing the full-band dry rising sweep";
 
         document.getElementById("busGraphPlayback").textContent = label;
         this.#status.title = label;
@@ -2838,6 +2904,7 @@ class BusGraphLabUi
                 backend?.GetGlobalStatePropertyWeights(group, at) ?? [],
             getGlobalStateTransitionBoundaries: from =>
                 backend?.GetGlobalStateTransitionBoundaries(from) ?? [],
+            wwiseDynamics: "approximate-web-audio",
         });
         try
         {
@@ -2872,6 +2939,10 @@ class BusGraphLabUi
                     effect.pluginId === 0x006a0003).length,
                 meterEffects: effects.filter(effect =>
                     effect.pluginId === 0x00810003).length,
+                compressorEffects: effects.filter(effect =>
+                    effect.pluginId === 0x006c0003).length,
+                limiterEffects: effects.filter(effect =>
+                    effect.pluginId === 0x006e0003).length,
             };
         }
         finally
@@ -2890,6 +2961,7 @@ class BusGraphLabUi
             "busGraphRouted",
             "busGraphDelay",
             "busGraphAux",
+            "busGraphDynamics",
             "busGraphShared",
         ])
         {
@@ -3723,6 +3795,7 @@ class DemoApp
         {
             this.audio = new CjsAudioMan(this.library.raw, {
                 distanceScale: ACOUSTIC_SCALE,
+                wwiseDynamics: "approximate-web-audio",
                 createContext: () => this.media.CreateContext(),
                 mediaProvider: this.media,
                 // Keep the authored music graph deterministic in this demo so

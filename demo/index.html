@@ -386,8 +386,8 @@
     <section class="card" id="busGraphLab">
       <div class="sectionHeader">
         <div>
-          <div class="sectionTitle"><h2>Wwise Bus graph lab</h2><button class="infoButton" type="button" aria-label="About the Wwise Bus graph lab" data-tip="Exercises the strict shared mixer with exact synthetic v150 Meter, Parametric EQ, Delay, and user-Aux records. The dry probe rises from 180 Hz to 5.2 kHz; the EQ probe loses the upper sweep through the authored 620 Hz low-pass. The Delay probe adds a 220 ms feedback echo, the Aux probe combines equal dry and wet branches for a 6 dB lift, and shared pair sends two simultaneous sweeps through one physical Meter → EQ chain. The diagnostic also proves exact Delay/Aux topology and rejects a Meter which writes a Game Parameter.">i</button></div>
-          <p class="sectionNote">Shared EQ, Delay, and Meter qualification</p>
+          <div class="sectionTitle"><h2>Wwise Bus graph lab</h2><button class="infoButton" type="button" aria-label="About the Wwise Bus graph lab" data-tip="Exercises the shared mixer with exact synthetic v150 Meter, Parametric EQ, Delay, and user-Aux records plus the explicit approximate Web Audio dynamics policy. Compressor and Peak Limiter preserve authored bus placement and slot order, but their DSP is not Wwise-equivalent. The diagnostic also proves exact Delay/Aux topology and rejects a Meter which writes a Game Parameter.">i</button></div>
+          <p class="sectionNote">Exact routing plus opt-in approximate dynamics</p>
         </div>
       </div>
       <p id="busGraphStatus" class="labStatus" data-state="idle">enable audio to initialize the Bus graph lab</p>
@@ -396,6 +396,7 @@
         <button id="busGraphRouted" class="primary" type="button" disabled>Meter → EQ</button>
         <button id="busGraphDelay" type="button" disabled>220 ms Delay</button>
         <button id="busGraphAux" type="button" disabled>0 dB Aux (+6 dB)</button>
+        <button id="busGraphDynamics" type="button" disabled>approx dynamics</button>
         <button id="busGraphShared" type="button" disabled>shared pair</button>
       </div>
       <p id="busGraphPlayback" class="labPlayback" aria-live="polite"></p>

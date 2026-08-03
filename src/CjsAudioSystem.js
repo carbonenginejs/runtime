@@ -17,6 +17,7 @@ import { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";
 import { CjsBusDuckingController } from "./internal/busDucking.js";
 import { CjsBusGraphRuntime } from "./internal/busGraphRuntime.js";
 import { CjsSharedBusMixer } from "./internal/busGraphMixer.js";
+import { normalizeWwiseDynamicsMode } from "./internal/busEffects.js";
 
 /** Audio system composition root: repository + manager + backend, attached to the graph seams. */
 export class CjsAudioSystem
@@ -101,6 +102,8 @@ export class CjsAudioSystem
 
     #providedUpdateContext = null;
 
+    #wwiseDynamics = "strict";
+
     #adoptedEmitters = new Set();
 
     #adoptedCurveSetDrivers = new Set();
@@ -129,6 +132,7 @@ export class CjsAudioSystem
         busDucking,
         busEffects,
         busGraph,
+        wwiseDynamics = "strict",
     } = {})
     {
         this.#createContext = createContext ?? null;
@@ -165,6 +169,7 @@ export class CjsAudioSystem
         this.#busDucking = busDucking ?? null;
         this.#busEffects = busEffects ?? null;
         this.#busGraph = busGraph ?? null;
+        this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
         this.#providedUpdateContext = updateContext ?? null;
         if (audioMetadata)
         {
@@ -248,6 +253,7 @@ export class CjsAudioSystem
                             this.backend.GetGlobalStatePropertyWeights(group, at),
                         getGlobalStateTransitionBoundaries: from =>
                             this.backend.GetGlobalStateTransitionBoundaries(from),
+                        wwiseDynamics: this.#wwiseDynamics,
                     })
                     : null;
                 this.backend.SetBusMixer(this.#busMixer);

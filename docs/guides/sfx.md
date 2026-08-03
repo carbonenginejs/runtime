@@ -308,7 +308,7 @@ Volume ducking is after each leg's additive State filters. Static Parametric EQ
 and static Wwise Delay have qualified shared-Bus adapters; general auxiliary
 sends, nonlinear effects, meters, and effect-tail-driven bus activity remain deferred as
 described in the
-[routing reference](../reference/wwise-resource-routing-handoff.md).
+[routing reference](../reference/wwise-resource-routing.md).
 Delay is measured from the action post. Value randomizers are signed offsets
 sampled once, and transitions use the decoded Wwise curve from the authored
 action time. Web Audio automation keeps those transitions continuous between
@@ -509,13 +509,24 @@ missing graph retains the distributed per-source Parametric EQ fallback.
 Dynamic, mixed, media-backed, or otherwise unsupported effect sequences remain
 barriers rather than being partially realized.
 
-An internal decoder validates wwiser's source-proven static 22-byte Wwise Peak
-Limiter record so its threshold, ratio, lookahead, release, output gain,
-Process LFE, and Channel Link controls are available to a future DSP adapter.
-Production graph dispatch deliberately does not invoke that decoder yet: Web
-Audio's native compressor cannot reproduce Wwise's variable lookahead, peak
-detection, linked channels, and release behavior, so exact routes containing
-it still fail closed.
+The default `wwiseDynamics: "strict"` policy keeps Wwise Compressor and Peak
+Limiter out of shared routing. The source still plays through the existing SFX
+destination, but the complete authored shared-bus path is omitted; qualified
+coverage measures faithful bus admission rather than basic media audibility.
+
+`wwiseDynamics: "approximate-web-audio"` admits only static, control-free,
+channel-linked, Process-LFE records. It realizes each authored slot with a hard-
+knee `DynamicsCompressorNode`, caps ratio at `20:1`, cancels Web Audio's
+mandatory automatic makeup with a post gain, then applies authored output gain.
+Dynamics attack/release must be within the browser's one-second limit and
+Compressor attack zero remains a barrier. Peak Limiter uses zero attack and may add output
+delay above Web Audio's fixed 6 ms latency. That delay does not extend the
+detector lookahead. Detector, envelope, peak limiting, channel/LFE behavior,
+ratio, and timing remain approximations; the independent master safety
+compressor still follows the whole mix. The Peak Limiter layout is
+source-proven, while the v150 Compressor field order is empirically
+corroborated for the audited corpus rather than proven by the pinned wwiser
+parser.
 
 The shared mixer also decodes wwiser's exact 28-byte v150 Wwise Meter layout.
 It may omit that telemetry stage only when the effect has no dynamic controls or
@@ -589,7 +600,8 @@ spatial mode within an emitter generation. Voices on the same route and mode
 share that branch; different routes never merge before it, and a 2D voice never
 enters a 3D route panner. Placement, scaling, RTPC replay, retirement, and
 disposal remain generation-scoped. Branch outputs still feed the existing SFX
-destination unless the strict shared mixer qualifies their complete dry path.
+destination unless the selected shared-mixer policy qualifies their complete
+dry path.
 Qualified branches feed the stable SFX category input after spatialization;
 blocked branches retain the existing destination. The qualified static SFX Aux
 shape is the only audible wet-path exception; it does not imply shared nonlinear
