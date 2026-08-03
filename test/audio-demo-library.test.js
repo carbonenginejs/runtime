@@ -5,6 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
+import { CjsSfxEngine } from "../src/CjsSfxEngine.js";
 import { validateAudioLibraryDocument } from "../src/library/index.js";
 
 const root = path.resolve(
@@ -559,6 +560,50 @@ test("committed demo library carries authored SFX and music semantics", () =>
         }
         return result;
     };
+
+    const amarrStationRoots = graph.events.worldobject_station_amarr_play;
+    const trappedRandom = graph.nodes["149816507"];
+
+    assert.equal(amarrStationRoots.length, 3);
+    assert.deepEqual(trappedRandom, {
+        type: "random",
+        children: [
+            { nodeId: "744357257" },
+            { nodeId: "568102745" },
+        ],
+        mode: "random",
+        scope: "object",
+        avoidRepeat: 1,
+    });
+    assert.equal(graph.nodes["568102745"].loop, true);
+    assert.deepEqual(graph.nodes["744357257"].continuous, {
+        loopCount: 0,
+        transition: "delay",
+        transitionMs: 3000,
+        transitionRangeMs: { min: 0, max: 2000 },
+    });
+    const trappedEngine = new CjsSfxEngine({
+        graph,
+        random: () => 0,
+    });
+    const nestedChoice = trappedEngine.ResolveProgram(
+        "worldobject_station_amarr_play",
+        { gameObjID: 9 },
+    )[0];
+    const loopChoice = trappedEngine.ResolveProgram(
+        "worldobject_station_amarr_play",
+        { gameObjID: 9 },
+    )[0];
+
+    assert.equal(
+        nestedChoice.continuations[0].containerId,
+        "744357257",
+    );
+    assert.ok(nestedChoice.selections[0].matchIds.includes("149816507"));
+    assert.ok(nestedChoice.selections[0].matchIds.includes("744357257"));
+    assert.equal(loopChoice.continuations, undefined);
+    assert.equal(loopChoice.selections[0].mediaID, "881023812");
+    assert.ok(loopChoice.selections[0].matchIds.includes("149816507"));
 
     assert.ok(
         continuousNodes("space_cathedral_play").some(node =>

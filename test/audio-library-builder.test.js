@@ -2434,6 +2434,127 @@ test("transitively nested Continuous containers are omitted per event", () =>
     );
 });
 
+test("Continuous Random parents absorb all-infinite child clocks", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9200,
+                        inMemoryMediaSize: 64,
+                        sourceBits: 0,
+                        payload: soundPayload({
+                            sourceId: 9200,
+                            loopCount: 0,
+                        }),
+                    },
+                    {
+                        type: 2,
+                        id: 201,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9201,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 5,
+                        id: 203,
+                        payload: randomSequencePayload({
+                            childID: 201,
+                            loopCount: 0,
+                            flags: 0x08,
+                        }),
+                    },
+                    {
+                        type: 5,
+                        id: 204,
+                        payload: randomSequencePayload({
+                            childIDs: [ 200, 203 ],
+                            loopCount: 0,
+                            transitionMode: 0,
+                            avoidRepeatCount: 1,
+                            flags: 0x08,
+                        }),
+                    },
+                    {
+                        type: 5,
+                        id: 205,
+                        payload: randomSequencePayload({
+                            childIDs: [ 203, 201 ],
+                            loopCount: 0,
+                            transitionMode: 0,
+                            flags: 0x08,
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 204,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x0403,
+                        targetId: 205,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                trapped_random_play: { eventID: 100 },
+                mixed_random_play: { eventID: 101 },
+            },
+        },
+        media: {
+            "9200": { resPath: "res:/audio/9200.wem" },
+            "9201": { resPath: "res:/audio/9201.wem" },
+        },
+    });
+
+    assert.equal(result.nodes["204"].continuous, undefined);
+    assert.equal(result.nodes["204"].scope, "object");
+    assert.equal(result.nodes["204"].avoidRepeat, 1);
+    assert.equal(result.nodes["200"].loop, true);
+    assert.equal(result.nodes["203"].continuous.loopCount, 0);
+    assert.deepEqual(result.events.trapped_random_play, [
+        { nodeId: "204" },
+    ]);
+    assert.equal(result.events.mixed_random_play, undefined);
+    assert.deepEqual(result.diagnostics.omittedEvents, [
+        {
+            id: 101,
+            name: "mixed_random_play",
+            reason: "nested continuous container 205",
+        },
+    ]);
+});
+
 test("trackless non-continuous Layer containers lower to parallel playback", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -7229,6 +7350,7 @@ function randomSequencePayload({
     transitionTimeModMin = 0,
     transitionTimeModMax = 0,
     transitionMode = 0,
+    avoidRepeatCount = 0,
     randomMode = 0,
     containerMode = 0,
     flags = 0,
@@ -7270,7 +7392,7 @@ function randomSequencePayload({
     f32(transitionTime);
     f32(transitionTimeModMin);
     f32(transitionTimeModMax);
-    u16(0);
+    u16(avoidRepeatCount);
     u8(transitionMode);
     u8(randomMode);
     u8(containerMode);

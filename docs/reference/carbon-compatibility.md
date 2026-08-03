@@ -193,6 +193,13 @@ Continuous Layer with any authored child association remains fail-closed:
 Web Audio gain automation alone cannot reproduce Wwise's RTPC-driven child
 start/stop boundaries, dormant sessions, and stale-load cancellation.
 
+An infinite Disabled-transition Continuous Random is reduced to its first
+object-scoped Random choice when every direct candidate is a proven looping
+Sound or an already qualified infinite Continuous Random/Sequence. The
+selected child can never return control to the outer scheduler, so omitting
+that unreachable outer clock preserves authored behavior and Stop ancestry.
+Other nested non-Switch Continuous clocks remain unsupported.
+
 ## Unsupported native behavior
 
 The package does not emulate:

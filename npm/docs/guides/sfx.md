@@ -137,13 +137,18 @@ exact parameter-name catalog match.
 
 A Voice Volume action whose target flag names an Audio Bus is not Bus Volume.
 Wwise applies it to voices feeding that Bus before Bus effects, while Bus
-Volume controls the Bus stage itself. The builder therefore keeps this form
-fail-closed rather than relabeling `0x0A03` as `0x0C03`. EVE build 3453885 has
-two such CSI actions (`cinematic_ship_intro_begin` at `-30 dB` and
-`cinematic_ship_intro_climax` at `0 dB`) targeting a Bus with three active
-Wwise Delay effects. Both events are already blocked by an unnamed State group,
-so a future distinct pre-effect bus-voice action is required before either can
-be retained.
+Volume controls the Bus stage itself; `0x0A03` must not be relabeled
+`0x0C03`. EVE build 3453885 contains two game-object Bus-target Voice Volume
+actions on Bus `3810872320` (`Cinematic_Ship_Intro_Transition_Delay`), whose
+dry route has no Aux sends and has three active Wwise Delay effects:
+`cinematic_ship_intro_begin` sets `-30 dB` immediately, while
+`cinematic_ship_intro_climax` schedules `0 dB` after `6000 ms` with a
+`2000 ms` transition. Neither event is currently an exact consumer: begin
+contains an untyped Set State payload with a `1000 ms` delay that
+runtime-audio cannot safely infer, and climax is blocked earlier by untyped
+Set Game Parameter action `112052750`. Both events therefore remain
+fail-closed; Bus-target Voice Volume should land only after those earlier
+bodies are typed.
 
 ## Node behavior
 
@@ -885,6 +890,16 @@ next one from current audio time instead of replaying a burst of missed
 triggers. Silent selected branches still consume their interval; a selected
 media leaf that cannot be acquired ends that traversal fail-closed.
 
+An infinite Disabled-transition Continuous Random whose every playable direct
+child is provably infinite cannot reach a second outer selection. The builder
+therefore retains its one object-scoped Random choice without an outer
+Continuous clock and lets the selected infinite child own playback.
+Qualification accepts only direct looping Sounds or already-qualified infinite
+Continuous Random/Sequence children and does not infer duration from media.
+This is the same trapped-child reduction used by wwiser and restores the first
+Play branch of EVE build 3453885's `worldobject_station_amarr_play`; the outer
+container identity stays in every selected leaf's Stop ancestry.
+
 Crossfade prepares the next single-voice child before its boundary and fails
 closed if transactional preparation or media acquisition is unavailable. The
 independently sampled authored duration is clamped to half the outgoing source
@@ -929,9 +944,9 @@ approximated.
 
 The remaining EVE 3453885 runtime scheduling barriers are named explicitly:
 `upwell_hangar_armor_warning_play`, `upwell_hangar_hull_warning_play`,
-`jita_sfx_incidentals_level3_play`, and `worldobject_station_amarr_play`
-require nested non-Switch Continuous clocks; the two XXL microwarpdrive events
-require associated Continuous Layer child admission. The
+and `jita_sfx_incidentals_level3_play` require nested non-Switch Continuous
+clocks; the two XXL microwarpdrive events require associated Continuous Layer
+child admission. The
 `ship_module_shield_drain_play` Random/Sequence Crossfade reaches a parallel
 Layer/Blend child; Wwise itself documents that Xfade does not support a Blend
 Container child, so runtime-audio keeps that authored branch fail-closed rather

@@ -890,6 +890,16 @@ next one from current audio time instead of replaying a burst of missed
 triggers. Silent selected branches still consume their interval; a selected
 media leaf that cannot be acquired ends that traversal fail-closed.
 
+An infinite Disabled-transition Continuous Random whose every playable direct
+child is provably infinite cannot reach a second outer selection. The builder
+therefore retains its one object-scoped Random choice without an outer
+Continuous clock and lets the selected infinite child own playback.
+Qualification accepts only direct looping Sounds or already-qualified infinite
+Continuous Random/Sequence children and does not infer duration from media.
+This is the same trapped-child reduction used by wwiser and restores the first
+Play branch of EVE build 3453885's `worldobject_station_amarr_play`; the outer
+container identity stays in every selected leaf's Stop ancestry.
+
 Crossfade prepares the next single-voice child before its boundary and fails
 closed if transactional preparation or media acquisition is unavailable. The
 independently sampled authored duration is clamped to half the outgoing source
@@ -934,9 +944,9 @@ approximated.
 
 The remaining EVE 3453885 runtime scheduling barriers are named explicitly:
 `upwell_hangar_armor_warning_play`, `upwell_hangar_hull_warning_play`,
-`jita_sfx_incidentals_level3_play`, and `worldobject_station_amarr_play`
-require nested non-Switch Continuous clocks; the two XXL microwarpdrive events
-require associated Continuous Layer child admission. The
+and `jita_sfx_incidentals_level3_play` require nested non-Switch Continuous
+clocks; the two XXL microwarpdrive events require associated Continuous Layer
+child admission. The
 `ship_module_shield_drain_play` Random/Sequence Crossfade reaches a parallel
 Layer/Blend child; Wwise itself documents that Xfade does not support a Blend
 Container child, so runtime-audio keeps that authored branch fail-closed rather

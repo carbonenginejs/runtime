@@ -694,6 +694,7 @@ function LowerSfxGraph({
   const leavesByNode = new Map();
   const containsContinuousByNode = new Map();
   const containsNonSwitchContinuousByNode = new Map();
+  const neverCompletesByNode = new Map();
   const leavesByEvent = new Map();
   const stopTargetsByEvent = new Map();
   const active = new Set();
@@ -793,6 +794,7 @@ function LowerSfxGraph({
     active.add(id);
     try {
       let node;
+      let neverCompletes = false;
       const leaves = new Set();
       let childContainsContinuous = false;
       let childContainsNonSwitchContinuous = false;
@@ -833,6 +835,7 @@ function LowerSfxGraph({
               loop: false
             } : {})
           };
+          neverCompletes = node.loop === true;
         } else if (source.pluginType === 2 && source.pluginId === WWISE_SILENCE_SOURCE_PLUGIN_ID) {
           if (loopCount !== null && loopCount !== undefined) {
             throw new Error(`looping silence source ${id}`);
@@ -884,9 +887,16 @@ function LowerSfxGraph({
         if (!children.length) {
           throw new Error(`empty ${source.type} ${id}`);
         }
-        if (source.continuous && childContainsContinuous) {
+        // A Continuous Random cannot reach another selection when
+        // every candidate is infinite. Wwiser applies the same
+        // all-looping-children reduction: retain the one authored
+        // Random choice and let its selected child own the only live
+        // Continuous clock.
+        const absorbsInfiniteChildren = source.type === "random" && source.continuous && source.loopCount === 0 && source.transitionMode === 0 && childContainsContinuous && children.every(child => neverCompletesByNode.get(String(child.nodeId)) === true);
+        if (source.continuous && childContainsContinuous && !absorbsInfiniteChildren) {
           throw new Error(`nested continuous container ${id}`);
         }
+        neverCompletes = absorbsInfiniteChildren || source.continuous && source.loopCount === 0;
         node = {
           type: source.type,
           // Wwise applies Continuous playback per game object even
@@ -897,7 +907,7 @@ function LowerSfxGraph({
             mode: source.randomMode === 1 ? "shuffle" : "random",
             avoidRepeat: source.avoidRepeatCount
           } : {}),
-          ...(source.continuous ? {
+          ...(source.continuous && !absorbsInfiniteChildren ? {
             continuous: {
               loopCount: source.loopCount,
               transition: source.transitionMode === 1 ? "crossfade-amplitude" : source.transitionMode === 2 ? "crossfade-power" : source.transitionMode === 3 ? "delay" : source.transitionMode === 5 ? "trigger-rate" : "disabled",
@@ -1060,6 +1070,7 @@ function LowerSfxGraph({
       leavesByNode.set(id, leaves);
       containsContinuousByNode.set(id, childContainsContinuous || node.continuous !== undefined);
       containsNonSwitchContinuousByNode.set(id, childContainsNonSwitchContinuous || node.continuous !== undefined && node.type !== "switch");
+      neverCompletesByNode.set(id, neverCompletes);
       return id;
     } finally {
       active.delete(id);
