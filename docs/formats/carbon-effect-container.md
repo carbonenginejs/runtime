@@ -381,11 +381,13 @@ body. It inspects source records and bytes only, and returns
 first-occurrence-ordered groups, each holding one canonical
 `permutationIndex`/`sourceRecord` plus every byte-identical alias. Exact range
 aliases are the fast path; distinct ranges are fingerprinted and then compared
-byte for byte. It caps the Cartesian body table at 65,536 records, rejects
-partial overlaps, and leaves the effect cache and state-manager registries
-untouched — so a backend packager can inventory an effect without disturbing
-anything a later read depends on. It is internal (`src/format/effect/`), not a
-published export; the backend body set is its one consumer.
+byte for byte. It caps the Cartesian body table at 65,536 records
+(`EFFECT_BODY_COUNT_MAX`) and rejects partial overlaps, because a partial
+overlap means two bodies claim the same bytes. It decodes nothing: it reads
+`m_offsets` and slices `m_data` directly, so a backend packager can inventory an
+effect without disturbing anything a later read depends on. It is internal
+(`src/format/effect/`), not a published export; the backend body set is its one
+consumer.
 
 ## Offset-table density
 
@@ -464,8 +466,23 @@ disjointness.
 
 **Env-gated real-file proof.** `test/format/carbon-effect-corpus.test.js`, enabled
 with `CARBON_EFFECT_CORPUS_DIR`. Game bytes are never committed. Supply a
-separately acquired corpus at pinned build 3444265. The test re-emits each file
-three ways:
+separately acquired corpus at pinned build 3444265.
+
+`CARBON_EFFECT_CORPUS_DIR` must point at a **materialised tree of source
+effects** — real `.sm_hi` / `.sm_lo` / `.sm_depth` filenames under
+`effect.dx11`, `effect.dx12`, or `effect.gles2`, which is what the walker
+filters on. Two nearby directories look like corpora and are not:
+
+- a content-addressed resource store (hash-named files, no extensions) matches
+  nothing and fails as `no compiled effect files found` — the walker is
+  extension-driven, so an unextracted cache silently yields zero files;
+- a directory of **our own translated output** keeps the `.sm_*` names but
+  holds `CEWG`/`CEWGPU` containers, and fails with
+  `Unsupported Carbon effect version 1196901699` — that number is the ASCII
+  `CEWG` magic read as a version dword.
+
+Both failures are loud, which is the intended behaviour; neither is a defect.
+The test re-emits each file three ways:
 
 1. every description blob through the file's own arena — proves the field order;
 2. the whole container from raw bodies and the source arena — proves the header
