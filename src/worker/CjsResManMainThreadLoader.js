@@ -36,11 +36,12 @@ export class CjsResManMainThreadLoader
    * @param {object} descriptor Registered format descriptor.
    * @param {*} input Reader input.
    * @param {object} [formatOptions={}] Normalized format options.
+   * @param {object|null} [context=null] Normalized resource path context.
    * @returns {Promise<*>} Format result.
    */
-  ReadFormat(descriptor, input, formatOptions = {})
+  ReadFormat(descriptor, input, formatOptions = {}, context = null)
   {
-    return readFormatOnCurrentThread(descriptor, input, formatOptions);
+    return readFormatOnCurrentThread(descriptor, input, formatOptions, context);
   }
 
   /**
@@ -60,12 +61,14 @@ export class CjsResManMainThreadLoader
  * @param {object} descriptor Registered format descriptor.
  * @param {*} input Reader input.
  * @param {object} formatOptions Normalized format options.
+ * @param {object|null} context Normalized resource path context.
  * @returns {Promise<*>} Reader result.
  */
 function readFormatOnCurrentThread(
   descriptor,
   input,
-  formatOptions = {}
+  formatOptions = {},
+  context = null
 )
 {
   const Format = descriptor?.Format;
@@ -76,22 +79,22 @@ function readFormatOnCurrentThread(
   }
   if (typeof Format.readAsync === "function")
   {
-    return Format.readAsync(input, formatOptions);
+    return Format.readAsync(input, formatOptions, context);
   }
   if (typeof Format.read === "function")
   {
-    return Format.read(input, formatOptions);
+    return Format.read(input, formatOptions, context);
   }
 
   const reader = new Format(formatOptions);
 
   if (typeof reader.ReadAsync === "function")
   {
-    return reader.ReadAsync(input, formatOptions);
+    return reader.ReadAsync(input, formatOptions, context);
   }
   if (typeof reader.Read === "function")
   {
-    return reader.Read(input, formatOptions);
+    return reader.Read(input, formatOptions, context);
   }
 
   throw new TypeError(`${Format.name} does not expose a read operation.`);

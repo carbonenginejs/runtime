@@ -78,10 +78,94 @@ and urgent-membership semantics.
 
 ## Registration
 
-Format classes own input extensions. Resource classes are registered by a
-semantic requirement, never by file extension:
+The Carbon-shaped primary route binds an extension to a resource-compatible
+handler and a format. The handler declares whether the public result is a
+stable resource or a constructed object:
 
 ```js
+import {
+  CjsLoadingObject,
+  CjsResMan
+} from "@carbonenginejs/runtime-resource";
+import { CjsBlackFormat } from "@carbonenginejs/runtime-resource/formats/black";
+import { CjsRedFormat } from "@carbonenginejs/runtime-resource/formats/red";
+
+const resMan = new CjsResMan({ source });
+
+resMan.RegisterExtension(".red", CjsLoadingObject, [
+  CjsBlackFormat,
+  CjsRedFormat
+]);
+resMan.RegisterExtension(".black", CjsLoadingObject, [
+  CjsBlackFormat,
+  CjsRedFormat
+]);
+```
+
+Ordered arrays apply request output/media filters first, then evaluate support
+probes in order. The first supported format wins. One format without a probe
+may be the final fallback; it cannot precede another entry. After selection,
+reader failure is final and does not advance to the fallback. Both `.red` and
+`.black` therefore use Black magic first and Red/YAML otherwise, independent
+of the suffix.
+
+A fixed `Target` may hydrate parsed values through its static `from` or
+`fromYAML` method. `Identify(values, context)` may instead return a target
+constructor, `true` to accept the reader result unchanged, or false/null to
+fail. `Target` and `Identify` are mutually exclusive and only valid for object
+handlers. These functions remain on the main thread even when the selected
+format is worker-safe.
+
+The normalized context supplied to formats as the third
+`read(input, options, context)` argument, direct object loaders, `Identify`,
+and `fromYAML` contains the same resource identity fields:
+
+- `ext`: normalized lowercase extension without a leading dot;
+- `resFilePath`: normalized lowercase logical resource path;
+- `fileName`: normalized lowercase final path component; and
+- `url`: the exact translated URL used by a URL-backed source, or `null` for
+  sources that read logical resource paths directly.
+
+`path` remains a compatibility alias for `resFilePath`. URL text is not
+lowercased independently: paths translated from `res:/` already use the
+normalized resource path, while configured URL-base or resolver casing is
+preserved.
+
+The single-format short form:
+
+```js
+import { TriTextureRes } from "@carbonenginejs/runtime-resource/resource/texture";
+import { CjsDdsFormat } from "@carbonenginejs/runtime-resource/formats/dds";
+
+resMan.RegisterExtension("dds", TriTextureRes, CjsDdsFormat);
+```
+
+is equivalent to:
+
+```js
+resMan.RegisterExtension("dds", TriTextureRes, {
+  Format: CjsDdsFormat
+});
+```
+
+`Register({ extensions })` accepts the same route objects keyed by extension.
+Re-registration replaces the route for future uncached handles; an existing
+canonical handle retains the complete route it captured.
+
+The older registries remain independent compatibility and specialization
+seams. `RegisterFormat` adds a format under its self-declared input extensions.
+`RegisterResourceType` selects a resource class from a semantic requirement or
+payload and takes precedence over the extension handler:
+
+```js
+import { CjsResMan } from "@carbonenginejs/runtime-resource";
+import {
+  Tr2ImageRes,
+  TriTextureRes
+} from "@carbonenginejs/runtime-resource/resource/texture";
+import { CjsDdsFormat } from "@carbonenginejs/runtime-resource/formats/dds";
+import { CjsPngFormat } from "@carbonenginejs/runtime-resource/formats/png";
+
 const resMan = new CjsResMan().Register({
   source,
   formats: [ CjsDdsFormat, CjsPngFormat ],
@@ -99,8 +183,8 @@ const image = resMan.GetResource("res:/image/ship.png", {
 ```
 
 Those are distinct resource identities but share the normalized source-byte
-operation. The manager does not expose an extension-to-resource compatibility
-registry.
+operation. `RegisterObjectLoader` remains the direct legacy byte-to-value
+registration for an extension without an explicit route.
 
 ## Related documentation
 

@@ -25,6 +25,7 @@ import "./formats/mp3/format.test.js";
 import "./formats/mp4/format.test.js";
 import "./formats/obj/format.test.js";
 import "./formats/ogg/format.test.js";
+import "./formats/pickle/public-api.test.mjs";
 import "./formats/png/format.test.js";
 import "./formats/red/public-api.test.mjs";
 import "./formats/shared-reader.test.mjs";

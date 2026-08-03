@@ -677,6 +677,28 @@ LSB-first bit reader over one Vorbis packet's bytes for the pure-JS Vorbis decod
 - Visibility: Internal
 - Kind: Internal implementation class
 
+### pickle
+
+<!-- class:CjsPickleFormat -->
+## `CjsPickleFormat`
+
+Data-only Python pickle format facade that currently decodes protocol 0 into JSON-compatible values or identity-preserving payload graphs while rejecting callable and object-construction opcodes.
+
+- Export: `@carbonenginejs/runtime-resource/formats/pickle`
+- Source: `src/formats/pickle/CjsPickleFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsPickleProtocol0Reader -->
+## `CjsPickleProtocol0Reader`
+
+Construction-bound decoder for the inert data subset of Python pickle protocol 0.
+
+- Export: `None`
+- Source: `src/formats/pickle/core/CjsPickleProtocol0Reader.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 ### png
 
 <!-- class:CjsPngFormat -->
@@ -904,7 +926,7 @@ LSB-first bit writer that assembles repacked Wwise Vorbis packets into standard 
 <!-- class:CjsYamlFormat -->
 ## `CjsYamlFormat`
 
-YAML format profile that parses YAML text into payload, JSON-graph, raw, or document output with configurable tag policies, alias limits, and identity/reference markers.
+YAML format profile that parses YAML text or strict UTF-8 bytes into payload, JSON-graph, raw, or document output with configurable tag policies, alias limits, and identity/reference markers.
 
 - Export: `@carbonenginejs/runtime-resource/formats/yaml`
 - Source: `src/formats/yaml/CjsYamlFormat.js`

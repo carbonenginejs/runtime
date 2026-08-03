@@ -35,6 +35,7 @@
     "./formats/mp4": "./dist/formats/mp4/index.js",
     "./formats/obj": "./dist/formats/obj/index.js",
     "./formats/ogg": "./dist/formats/ogg/index.js",
+    "./formats/pickle": "./dist/formats/pickle/index.js",
     "./formats/png": "./dist/formats/png/index.js",
     "./formats/red": "./dist/formats/red/index.js",
     "./formats/red/schema": "./dist/formats/red/core/blackDefinitions.js",

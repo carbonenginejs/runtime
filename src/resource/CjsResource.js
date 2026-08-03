@@ -5,6 +5,7 @@ import {
   normalizeResourcePath
 } from "@carbonenginejs/runtime-utils/path";
 import { CjsSchema, carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
+import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
 
 /**
  * Deterministic activity values accepted by resource-facing lease methods.
@@ -67,6 +68,9 @@ export class CjsResource extends CjsEventEmitter
    * declaration alone is enough, resolved through `CjsSchema.GetConstructor`.
    */
   static isResource = true;
+
+  /** Declares that extension routes using this handler publish the resource. */
+  static handlerMode = ResourceHandlerMode.RESOURCE;
 
   /** Identifies this handle as a runtime resource. */
   get isResource() {

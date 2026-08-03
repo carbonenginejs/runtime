@@ -81,9 +81,7 @@ serialization-safe schema.
 
 Raw stage and library inputs retain authored `sourceConstantValueSize` /
 `sourceConstantValues` separately from Carbon-compatible mutable constant
-buffers. Libraries retain their source `cjsShaderBytecode` directly. Use
-`@carbonenginejs/runtime-resource/formats/hlsl/portable` to copy those facts into a validated
-handle-free contract.
+buffers. Libraries retain their source `cjsShaderBytecode` directly.
 
 ## Compatibility and failures
 
@@ -96,5 +94,4 @@ rather than being filled with guessed values.
 
 - [API reference](api.md)
 - [Advanced analysis exports](advanced-analysis.md)
-- [Portable body reflection](portable-reflection.md)
 - [Reading effects](../guides/reading-effects.md)

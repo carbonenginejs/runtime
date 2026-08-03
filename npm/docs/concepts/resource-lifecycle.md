@@ -88,6 +88,7 @@ Application / runtime object
 |                                               |
 | - normalize source path and extension         |
 | - resolve the promised output tag             |
+| - capture the registered extension route      |
 +-----------------------------------------------+
         |
         v
@@ -102,7 +103,7 @@ Application / runtime object
         |                                             |
         `--- cache miss -----------------------------+
               |                                       |
-              | resolve class from requirement        |
+              | semantic class or extension Handler   |
               | construct + Initialize()              |
               | insert into CjsMotherLode              |
               v                                       |
@@ -132,10 +133,10 @@ Application / runtime object
 +-----------------------------------------------+
 | Read stage                                    |
 |                                               |
-| current object loader for extension?          |
-|   yes -> call it                              |
-|   no  -> resolve registered formats by        |
-|          bytes + request options               |
+| explicit extension route?                     |
+|   yes -> ordered Formats/content probes        |
+|   no  -> direct loader or legacy formats       |
+| target/identify -> hydrate on caller thread   |
 +-----------------------------------------------+
         |
         | plain payload / hydrated object
@@ -143,9 +144,9 @@ Application / runtime object
 +-----------------------------------------------+
 | Publish stage                                 |
 |                                               |
-| semantic resource -> SetPayload(payload)      |
-| generic resource  -> SetPayload(value)        |
-|                      object aliases payload   |
+| RESOURCE handler -> SetPayload + return handle|
+| OBJECT handler   -> SetPayload + return object|
+| legacy path      -> preserve current behavior |
 +-----------------------------------------------+
         |
         +--- validation failure --------------------+

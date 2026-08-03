@@ -1,4 +1,5 @@
 import { CjsYamlFormat } from '../../yaml/CjsYamlFormat.js';
+import { isYamlSourceInput, toYamlSourceText } from '../../yaml/core/helpers.js';
 
 /**
  * Keys added by authoring tools are prefixed with a double underscore and are
@@ -14,24 +15,26 @@ function isStrippedKey(key) {
 /**
  * Parses Red input into a plain object graph.
  *
- * Accepts an already-parsed object (returned as-is) or a YAML string. YAML
- * anchors/aliases resolve to shared object identities, which the reader uses
- * to rebuild the Red reference graph.
+ * Accepts an already-parsed object (returned as-is), a YAML string, or strict
+ * UTF-8 bytes. YAML anchors/aliases resolve to shared object identities, which
+ * the reader uses to rebuild the Red reference graph.
  *
- * @param {unknown} input parsed Red object or YAML string
+ * @param {unknown} input Parsed Red object, YAML string, or UTF-8 bytes.
  * @param {object} [options] `options.parse(text)` overrides the built-in parser
  * @param {string} [readerName]
  * @returns {object} parsed Red object graph
  */
 function parseRed(input, options = {}, readerName = "CjsRedFormat") {
-  if (input && typeof input === "object") return input;
-  if (typeof input === "string") {
-    if (typeof options.parse === "function") return options.parse(input);
+  if (isYamlSourceInput(input)) {
+    if (typeof options.parse === "function") {
+      return options.parse(toYamlSourceText(input, readerName));
+    }
     return CjsYamlFormat.readRaw(input, {
       tagPolicy: "reject"
     });
   }
-  throw new TypeError(`${readerName}: input must be a parsed Red object or a YAML string.`);
+  if (input && typeof input === "object") return input;
+  throw new TypeError(`${readerName}: input must be a parsed Red object, YAML string, or byte buffer.`);
 }
 
 /**

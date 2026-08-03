@@ -45,6 +45,16 @@ Base runtime resource handle that carries normalized path/extension/requirement 
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
+<!-- class:CjsLoadingObject -->
+## `CjsLoadingObject`
+
+Resource-compatible handler whose public loading result is the constructed object produced by an extension route.
+
+- Export: `@carbonenginejs/runtime-resource`
+- Source: `src/resource/CjsLoadingObject.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
 <!-- class:CjsResManMainThreadLoader -->
 ## `CjsResManMainThreadLoader`
 

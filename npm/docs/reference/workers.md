@@ -95,6 +95,13 @@ Black `json` and `payload` outputs are worker-enabled; Black document/runtime
 outputs remain on the caller thread because structured cloning would discard
 their class identity.
 
+Resource-backed format methods receive `(input, options, context)`. The
+clone-safe context crosses the worker boundary with its normalized lowercase
+`resFilePath`, `ext`, and `fileName`, its compatible `path` alias, and the
+exact translated `url` used by a URL-backed source (or `null` for structural
+sources). Direct descriptor reads that are not attached to a resource receive
+`null` for the third argument.
+
 A declaration may restrict clone-safe outputs:
 
 ```js

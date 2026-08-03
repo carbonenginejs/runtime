@@ -470,6 +470,14 @@ export class DxbcGlslOperandFormatter
         return this._immediateIndex(operand, dimension);
     }
 
+    /**
+     * Return one required immediate operand index.
+     *
+     * @param {object} operand Decoded operand.
+     * @param {number} dimension Index dimension.
+     * @returns {number} Immediate index value.
+     * @private
+     */
     _immediateIndex(operand, dimension)
     {
         const index = operand.indices[dimension];

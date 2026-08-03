@@ -40,7 +40,8 @@ historical mapping.
 - `CjsResource` state and Carbon-style resource methods.
 - `CjsMotherLode` canonical identity, explicit replacement results, activity
   and lock metadata, deterministic payload/adapter cleanup, and cache stats.
-- `CjsResMan` semantic resource construction, registered-format selection,
+- `CjsResMan` extension-selected resource/object handlers, semantic resource
+  overrides, ordered and legacy registered-format selection,
   concurrency-limited source loading, staged prepare queues, layered
   source/read/resource deduplication, object loader dispatch, and prefetch.
 - Main-thread and browser-worker resource execution strategies, including
@@ -96,6 +97,14 @@ Concrete formats are not imported or registered by the package root; see
 [formats/README.md](formats/README.md) for the import rule and map.
 Worker-safe formats provide their own exact module declaration and remain
 explicit registrations; see [browser worker execution](reference/workers.md).
+
+Extension routes are manager-local configuration. They bind an extension to a
+handler plus one format or an ordered format chain. The handler's
+`ResourceHandlerMode` declaration determines whether path-only `Fetch()`
+returns the stable resource or the constructed object. The route snapshot is
+captured by the canonical handle, so later registration changes affect only a
+new identity after explicit deletion or clearing. Target construction and
+dynamic identification run after any worker decode on the main thread.
 
 ## Source layout
 

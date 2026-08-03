@@ -257,8 +257,8 @@ function buildEffectPackage(input, options = {}) {
   // artifact — the chunk package this function used to build alongside it is
   // gone, along with the chunk assembly that produced it.
   //
-  // `info`, `metadata`, `glsl`, `permutationGraph` and the reflection are
-  // still returned. They are the in-memory build result, which is richer than
+  // `info`, `metadata`, `glsl` and `permutationGraph` are still returned.
+  // They are the in-memory build result, which is richer than
   // anything the wire carries: the reasons a translation failed live there and
   // nowhere else. What changed is that they are no longer *also* serialised
   // into tagged chunks beside the container.

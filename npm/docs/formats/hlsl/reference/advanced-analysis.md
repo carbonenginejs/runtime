@@ -31,36 +31,31 @@ an effect description is available.
 
 The returned internal parser-DTO effect resource also has
 `GetShaderByIndex(index)`. It decodes one exact permutation-table slot without
-applying global or local option overrides; it is distinct from the canonical
-runtime-resource method that hydrates and caches `Tr2Shader`. Use the versioned
-portable subpath when the result must cross a package or serialization
-boundary. Its `enumerateUniqueEffectBodies(effectRes)` helper inventories
-first-seen raw body identities without populating the parser's mutable shader
-cache.
+applying global or local option overrides, so a body-table index stays stable
+even when an application has set global effect options. It is distinct from the
+canonical `Tr2EffectRes.GetShaderByIndex`, which resolves options, hydrates a
+`Tr2Shader`, and caches it per index.
 
-## `Tr2EffectBindingManifest`
+## Binding manifest
 
-`Tr2EffectBindingManifest` is an exported advanced class that derives
-register-named constant, resource, sampler, and UAV bindings from an internal
-effect description.
+`analysis.bindingManifest` derives register-named constant, resource, sampler,
+and UAV bindings from an internal effect description. Its class is internal to
+the format and is not a published export; treat the manifest as data.
 
-```js
-import {
-    readEffectAnalysis,
-    Tr2EffectBindingManifest
-} from "@carbonenginejs/runtime-resource/formats/hlsl";
+## Source truth and realization
 
-const analysis = readEffectAnalysis(bytes);
-analysis.bindingManifest instanceof Tr2EffectBindingManifest;
-```
+Nothing this subpath returns carries a renderer handle: no shader, program,
+render-state, sampler, or library handles, and no resource sets, heap-view
+arrays, backend layouts, masks, sort values, or caches. Engines own all of
+that. Two consequences are easy to trip over:
 
-## Render-context helpers
-
-`Tr2RenderContextEnum` contains the format's stage and render-context numeric
-constants. `tr2ShaderStageName(value)` maps a known stage value to its
-readable name. Both are advanced compatibility helpers rather than a stable
-cross-package enumeration contract.
+- Register dynamic classification is not persisted. It follows per-frame
+  reader and engine policy, and is not an authored binary field.
+- Authored constant defaults are separate from the raw model's mutable
+  `constantValues`. Carbon-compatible sampler-heap realization may zero-extend
+  the latter; it cannot change the authored source prefix.
 
 ## Related documentation
 
-- [Portable body reflection](portable-reflection.md)
+- [JSON and metadata graphs](json-graph.md)
+- [Carbon compiled-effect container](../../carbon-effect-container.md)

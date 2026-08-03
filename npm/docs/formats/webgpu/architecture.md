@@ -55,8 +55,7 @@ then package data to the engine.
 ## Ownership elsewhere
 
 - `@carbonenginejs/runtime-resource/formats/hlsl` owns compiled-effect parsing, permutation resolution,
-  unique-body enumeration, binding-manifest interpretation, and the shared
-  body-local portable reflection schema/validator.
+  unique-body enumeration, and binding-manifest interpretation.
 - `@carbonenginejs/runtime-resource/formats/dxbc` owns DXBC container and instruction decoding.
 - `@carbonenginejs/engine-webgpu` owns `GPUDevice`, shader-module compilation, bind groups,
   pipelines, resource realization, device loss, and draw execution.

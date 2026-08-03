@@ -20,6 +20,32 @@ const DEFAULT_VALUES = Object.freeze({
   valueField: "$yamlValue"
 });
 const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
+
+/** Returns true when a value can be decoded as YAML source text. */
+function isYamlSourceInput(value) {
+  return typeof value === "string" || value instanceof ArrayBuffer || ArrayBuffer.isView(value);
+}
+
+/**
+ * Converts string or byte input into strict UTF-8 YAML source text while
+ * respecting typed-array/DataView bounds.
+ */
+function toYamlSourceText(value, readerName = "CjsYamlFormat") {
+  if (typeof value === "string") return value;
+  if (!isYamlSourceInput(value)) {
+    throw new TypeError(`${readerName} input must be a YAML string or byte buffer`);
+  }
+  const bytes = value instanceof ArrayBuffer ? new Uint8Array(value) : new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+  try {
+    return new TextDecoder("utf-8", {
+      fatal: true
+    }).decode(bytes);
+  } catch (error) {
+    throw new TypeError(`${readerName} input must contain valid UTF-8 YAML`, {
+      cause: error
+    });
+  }
+}
 function hasOwn(value, key) {
   return Object.prototype.hasOwnProperty.call(value, key);
 }
@@ -166,5 +192,5 @@ function toJsonGraph(value, options) {
   return encode(value);
 }
 
-export { DEFAULT_VALUES, OUTPUT_DOCUMENT, OUTPUT_JSON, OUTPUT_PAYLOAD, OUTPUT_RAW, TAG_HANDLE, TAG_PRESERVE, TAG_REJECT, normalizeValues, toJsonGraph };
+export { DEFAULT_VALUES, OUTPUT_DOCUMENT, OUTPUT_JSON, OUTPUT_PAYLOAD, OUTPUT_RAW, TAG_HANDLE, TAG_PRESERVE, TAG_REJECT, isYamlSourceInput, normalizeValues, toJsonGraph, toYamlSourceText };
 //# sourceMappingURL=helpers.js.map

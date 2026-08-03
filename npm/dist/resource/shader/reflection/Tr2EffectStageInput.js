@@ -86,6 +86,13 @@ class Tr2EffectStageInput extends CjsModel {
     }
     return stage;
   }
+
+  /**
+   * Hydrate one canonical stage input from a decoded Carbon binary record.
+   *
+   * @param {object} record Decoded Carbon stage record.
+   * @returns {Tr2EffectStageInput} Hydrated canonical stage input.
+   */
   static fromCarbonBinary(record) {
     if (!isPlainObject(record)) {
       throw new TypeError("Carbon effect stage record must be an object");
@@ -309,6 +316,16 @@ class Tr2EffectStageInput extends CjsModel {
     stage.stageType = requireShaderStageType(stageType);
     return stage;
   }
+
+  /**
+   * Normalize one register-indexed collection into its canonical typed map.
+   *
+   * @param {Map|object} values Register-indexed source values.
+   * @param {Function} Constructor Entry constructor exposing `from`.
+   * @param {object} options Hydration options passed to entry construction.
+   * @param {string} field Diagnostic field name.
+   * @returns {Map<number, *>} Canonical register map.
+   */
   static readCanonicalRegisterMap(values, Constructor, options, field) {
     const entries = values instanceof Map ? values : Object.entries(values ?? {});
     const result = new Map();

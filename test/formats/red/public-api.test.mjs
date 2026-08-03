@@ -205,6 +205,15 @@ test("YAML strings use format-yaml with anchor identity intact", () =>
     });
 });
 
+test("reader accepts UTF-8 bytes from the resource pipeline", () =>
+{
+    const source = new TextEncoder().encode("type: TestRoot\nname: byte-source\n");
+    const payload = CjsRedFormat.readPayload(source);
+
+    assert.equal(payload.object._type, "TestRoot");
+    assert.equal(payload.object.name, "byte-source");
+});
+
 test("Red uses the runtime-resource-owned YAML format", async () =>
 {
     const redGraph = await readFile(new URL("../../../npm/dist/formats/red/core/redGraph.js", import.meta.url), "utf8");

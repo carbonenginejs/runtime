@@ -4,9 +4,9 @@ import { DEFAULT_VALUES, normalizeValues, toJsonGraph, OUTPUT_RAW, OUTPUT_DOCUME
 const FORMAT_NAME = "CjsYamlFormat";
 
 /**
- * YAML format profile that parses YAML text into payload, JSON-graph, raw,
- * or document output with configurable tag policies, alias limits, and
- * identity/reference markers.
+ * YAML format profile that parses YAML text or strict UTF-8 bytes into payload,
+ * JSON-graph, raw, or document output with configurable tag policies, alias
+ * limits, and identity/reference markers.
  */
 class CjsYamlFormat {
   #values = DEFAULT_VALUES;

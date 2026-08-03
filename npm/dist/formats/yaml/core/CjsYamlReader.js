@@ -1,6 +1,6 @@
 import { LineCounter, parseDocument, isMap, isSeq, isScalar, isAlias, visit } from 'yaml';
 import { CjsReader } from '../../../format/CjsReader.js';
-import { toJsonGraph, TAG_REJECT, TAG_HANDLE, TAG_PRESERVE } from './helpers.js';
+import { toYamlSourceText, toJsonGraph, TAG_REJECT, TAG_HANDLE, TAG_PRESERVE } from './helpers.js';
 
 const TAG_PREFIX = "tag:yaml.org,2002:";
 const PYTHON_TUPLE = `${TAG_PREFIX}python/tuple`;
@@ -37,12 +37,10 @@ class CjsYamlReader extends CjsReader {
    */
   constructor(input, options = {}) {
     super(options);
-    if (typeof input !== "string") {
-      throw new TypeError("CjsYamlFormat input must be a YAML string");
-    }
-    this.source = input;
+    const source = toYamlSourceText(input, "CjsYamlFormat");
+    this.source = source;
     this.lineCounter = new LineCounter();
-    this.document = parseDocument(input, {
+    this.document = parseDocument(source, {
       keepSourceTokens: true,
       lineCounter: this.lineCounter,
       prettyErrors: true,

@@ -1311,9 +1311,8 @@ are unchanged; old readers tolerate the additive chunk.
 
 The 0.4.4 selected-reflection checkpoint adds complete version-15 reflection
 for the selected body in `RFLX`, with every exact byte vector externalized into
-canonical deduplicated `RBLB` records. The upstream
-`@carbonenginejs/runtime-resource/formats/hlsl/portable` v1 validator is rerun after
-reconstruction; package validation also reconciles INFO source identity,
+canonical deduplicated `RBLB` records. A body-reflection validator was rerun
+after reconstruction; package validation also reconciles INFO source identity,
 META/PGRF body identity, and every ANLS pass/stage source record. Earlier
 effect versions retain the legacy package surface. All-body reflection remains
 unsupported, so source/backend/runtime completeness remain false.
@@ -1347,8 +1346,12 @@ reflection for every unique version-15 source body while ANLS/WGSL remain
 selected-backend data. `GetPortableEffectReflection(permutationIndex)` exposes
 any package permutation as a fresh, format-hlsl-validated document with owned
 byte payloads. `runtime-resource` owns `Tr2EffectRes` selection, canonical
-`Tr2Shader` hydration, and the per-index cache; renderer-owned handles remain
-an engine concern.
+`Tr2Shader` construction, and the per-index cache; renderer-owned handles
+remain an engine concern.
+
+That RFLX/RBLB apparatus and its accessor were removed after this checkpoint.
+`Tr2EffectRes` now reads the Carbon container directly; the entries above are
+retained as the record of what the format did at the time.
 
 An exhaustive build-3444265 oracle retains 507 qualified, 30 unsupported, and
 zero failed/unqualified results. For all 507 emitted packages, `META`, `PGRF`,

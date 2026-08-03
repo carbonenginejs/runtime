@@ -9,7 +9,13 @@ import {
 } from "yaml";
 
 import { CjsReader } from "../../../format/CjsReader.js";
-import { TAG_HANDLE, TAG_PRESERVE, TAG_REJECT, toJsonGraph } from "./helpers.js";
+import {
+    TAG_HANDLE,
+    TAG_PRESERVE,
+    TAG_REJECT,
+    toJsonGraph,
+    toYamlSourceText
+} from "./helpers.js";
 
 const TAG_PREFIX = "tag:yaml.org,2002:";
 const PYTHON_TUPLE = `${TAG_PREFIX}python/tuple`;
@@ -59,14 +65,10 @@ export class CjsYamlReader extends CjsReader
     {
         super(options);
 
-        if (typeof input !== "string")
-        {
-            throw new TypeError("CjsYamlFormat input must be a YAML string");
-        }
-
-        this.source = input;
+        const source = toYamlSourceText(input, "CjsYamlFormat");
+        this.source = source;
         this.lineCounter = new LineCounter();
-        this.document = parseDocument(input, {
+        this.document = parseDocument(source, {
             keepSourceTokens: true,
             lineCounter: this.lineCounter,
             prettyErrors: true,

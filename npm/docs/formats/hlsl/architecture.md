@@ -27,8 +27,9 @@ caller bytes
     -> json | metadata | raw output
 ```
 
-`src/CjsHlslFormat.js` is the supported reader boundary. Binary utilities and
-format-shaped compatibility models live below `src/core` and `src/carbon`.
+`src/formats/hlsl/CjsHlslFormat.js` is the supported reader boundary. Binary
+utilities and format-shaped compatibility models live below
+`src/formats/hlsl/core` and `src/formats/hlsl/core/tr2`.
 Their same-named `Tr2*` classes are internal parser DTOs, not canonical runtime
 model identity, and are not independent package entry points.
 
@@ -40,12 +41,9 @@ model identity, and are not independent package entry points.
   planning.
 - `raw` exposes internal effect-model instances for advanced tooling and is
   not a stable schema.
-- `@carbonenginejs/runtime-resource/formats/hlsl/portable` copies one exact body into a versioned,
-  runtime-neutral source-reflection contract. Authored defaults and programs stay
-  separate from mutable renderer realization.
 
-`runtime-resource` owns canonical `Tr2EffectRes`/`Tr2Shader` hydration,
-permutation selection, and caching. `runtime-trinity` owns the mutable
+`runtime-resource` owns canonical `Tr2EffectRes`/`Tr2Shader` construction,
+permutation selection, and caching, reading the compiled container directly. `runtime-trinity` owns the mutable
 effect/material facade, parameters, authored options, and sampler overrides.
 Engines own GPU realization.
 

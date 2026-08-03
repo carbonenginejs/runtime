@@ -173,14 +173,16 @@ export class CjsResManWorkerLoader
    *
    * @param {object} descriptor Registered format descriptor.
    * @param {object} [formatOptions={}] Normalized format options.
+   * @param {object|null} [context=null] Clone-safe normalized resource path context.
    * @returns {boolean}
    */
-  CanReadFormat(descriptor, formatOptions = {}) {
+  CanReadFormat(descriptor, formatOptions = {}, context = null) {
     const declaration = normalizeFormatWorkerDeclaration(descriptor);
     return Boolean(
       declaration
       && isWorkerFormatOutputSupported(declaration, formatOptions)
       && canCloneWorkerValue(formatOptions)
+      && canCloneWorkerValue(context)
       && this.IsAvailable()
     );
   }
@@ -195,15 +197,17 @@ export class CjsResManWorkerLoader
    * @param {object} descriptor Registered format descriptor.
    * @param {*} input Reader input.
    * @param {object} [formatOptions={}] Normalized format options.
+   * @param {object|null} [context=null] Clone-safe normalized resource path context.
    * @returns {Promise<*>} Format result.
    */
-  ReadFormat(descriptor, input, formatOptions = {}) {
+  ReadFormat(descriptor, input, formatOptions = {}, context = null) {
     const declaration = normalizeFormatWorkerDeclaration(descriptor);
     if (!declaration
       || !isWorkerFormatOutputSupported(declaration, formatOptions)
       || !canCloneWorkerValue(formatOptions)
+      || !canCloneWorkerValue(context)
       || !this.IsAvailable()) {
-      return this.fallback.ReadFormat(descriptor, input, formatOptions);
+      return this.fallback.ReadFormat(descriptor, input, formatOptions, context);
     }
 
     const transfer = declaration.transferInput
@@ -213,7 +217,8 @@ export class CjsResManWorkerLoader
       module: declaration.module,
       exportName: declaration.exportName,
       input,
-      options: formatOptions
+      options: formatOptions,
+      context
     }, { transfer });
   }
 

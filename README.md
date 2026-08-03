@@ -40,6 +40,27 @@ const resource = resMan.GetResource("res:/video/intro.mp4");
 const video = await resource.Ready();
 ```
 
+Extensions can also choose the resource/object handler and an ordered reader
+route explicitly. This is useful for Carbon object streams, where either file
+suffix may contain Black bytes or Red/YAML text:
+
+```js
+import { CjsLoadingObject } from "@carbonenginejs/runtime-resource";
+import { CjsBlackFormat } from "@carbonenginejs/runtime-resource/formats/black";
+import { CjsRedFormat } from "@carbonenginejs/runtime-resource/formats/red";
+
+resMan.RegisterExtension("red", CjsLoadingObject, [
+  CjsBlackFormat,
+  CjsRedFormat
+]);
+resMan.RegisterExtension("black", CjsLoadingObject, [
+  CjsBlackFormat,
+  CjsRedFormat
+]);
+
+const object = await resMan.Fetch("res:/definition/example.red");
+```
+
 Browser consumers use worker-backed fetch and declared worker-safe format
 readers by default, with deterministic main-thread fallback; see
 [browser worker execution](docs/reference/workers.md).

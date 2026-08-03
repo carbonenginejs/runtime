@@ -677,6 +677,28 @@ LSB-first bit reader over one Vorbis packet's bytes for the pure-JS Vorbis decod
 - Visibility: Internal
 - Kind: Internal implementation class
 
+### pickle
+
+<!-- class:CjsPickleFormat -->
+## `CjsPickleFormat`
+
+Data-only Python pickle format facade that currently decodes protocol 0 into JSON-compatible values or identity-preserving payload graphs while rejecting callable and object-construction opcodes.
+
+- Export: `@carbonenginejs/runtime-resource/formats/pickle`
+- Source: `src/formats/pickle/CjsPickleFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsPickleProtocol0Reader -->
+## `CjsPickleProtocol0Reader`
+
+Construction-bound decoder for the inert data subset of Python pickle protocol 0.
+
+- Export: `None`
+- Source: `src/formats/pickle/core/CjsPickleProtocol0Reader.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 ### png
 
 <!-- class:CjsPngFormat -->
@@ -759,22 +781,12 @@ WAV audio format profile that inspects RIFF chunk metadata and reads supported W
 
 ### shared effect layer
 
-<!-- class:ReflectionBlobStore -->
-## `ReflectionBlobStore`
-
-Content-addressed arena that deduplicates every exact byte payload referenced by portable effect reflection.
-
-- Export: `None`
-- Source: `src/format/effect/effectReflectionPackage.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
 ### webgl
 
 <!-- class:CjsWebglFormat -->
 ## `CjsWebglFormat`
 
-WebGL shader format profile that translates compiled Carbon effects into CEWG packages carrying GLSL programs and portable source reflection.
+WebGL shader format profile that translates compiled Carbon effects into Carbon v15 containers carrying GLSL programs and a per-pass backend block.
 
 - Export: `@carbonenginejs/runtime-resource/formats/webgl`
 - Source: `src/formats/webgl/CjsWebglFormat.js`
@@ -784,7 +796,7 @@ WebGL shader format profile that translates compiled Carbon effects into CEWG pa
 <!-- class:WebglReadError -->
 ## `WebglReadError`
 
-Error raised when CEWG bytes or package documents are malformed or inconsistent.
+Error raised when container bytes or their backend blocks are malformed or inconsistent.
 
 - Export: `None`
 - Source: `src/formats/webgl/core/errors.js`
@@ -826,7 +838,7 @@ Formats DXBC operands, swizzles, and modifiers as GLSL expressions.
 <!-- class:CjsWebgpuFormat -->
 ## `CjsWebgpuFormat`
 
-WebGPU shader format profile that translates compiled Carbon effects into CEWGPU packages carrying WGSL programs, bind-group layouts, and portable source reflection.
+WebGPU shader format profile that translates compiled Carbon effects into CEWGPU containers carrying WGSL programs and bind-group layouts.
 
 - Export: `@carbonenginejs/runtime-resource/formats/webgpu`
 - Source: `src/formats/webgpu/CjsWebgpuFormat.js`
@@ -914,7 +926,7 @@ LSB-first bit writer that assembles repacked Wwise Vorbis packets into standard 
 <!-- class:CjsYamlFormat -->
 ## `CjsYamlFormat`
 
-YAML format profile that parses YAML text into payload, JSON-graph, raw, or document output with configurable tag policies, alias limits, and identity/reference markers.
+YAML format profile that parses YAML text or strict UTF-8 bytes into payload, JSON-graph, raw, or document output with configurable tag policies, alias limits, and identity/reference markers.
 
 - Export: `@carbonenginejs/runtime-resource/formats/yaml`
 - Source: `src/formats/yaml/CjsYamlFormat.js`

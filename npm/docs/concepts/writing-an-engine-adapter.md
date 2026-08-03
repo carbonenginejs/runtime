@@ -52,7 +52,7 @@ shader is one permutation, and many effects share them — see
 [shader-resource-model.md](shader-resource-model.md). The surface is
 `GetConstant(name)`, `GetResource(name)`, `GetParameterAnnotations(parameterName)`,
 `GetEffectDescription()` and `iterateStages()`, reachable through
-`GetPortableEffectReflection` -> `Tr2Shader.fromPortable`.
+`Tr2EffectRes.DoLoad(bytes)` -> `Tr2Shader.fromCarbonBinary(reader, index)`.
 
 **Backend binding topology belongs to the package**, because it has no Carbon
 counterpart — it comes from the lowered IR, not from Carbon's D3D-era reflection.

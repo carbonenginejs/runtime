@@ -300,11 +300,25 @@ test("worker operation host executes fetch and dynamic format modules", async ()
       module: workerFormatUrl,
       exportName: "CjsTestWorkerFormat",
       input: bytes,
-      options: { emit: "test" }
+      options: { emit: "test" },
+      context: {
+        ext: "yaml",
+        fileName: "metadata.yaml",
+        path: "res:/character/metadata.yaml",
+        resFilePath: "res:/character/metadata.yaml",
+        url: null
+      }
     }
   );
   assert.deepEqual(formatted, {
     bytes: [ 3, 4, 5 ],
+    context: {
+      ext: "yaml",
+      fileName: "metadata.yaml",
+      path: "res:/character/metadata.yaml",
+      resFilePath: "res:/character/metadata.yaml",
+      url: null
+    },
     options: { emit: "test" },
     worker: true
   });
@@ -388,12 +402,12 @@ test("CjsResMan sends worker-safe reads off the main queue and publishes on it",
     CanReadFormat() {
       return true;
     },
-    ReadFormat(descriptor, input, options) {
+    ReadFormat(descriptor, input, options, context) {
       pendingWorkers += 1;
       return new Promise(resolve => {
         resolveFormat = () => {
           pendingWorkers -= 1;
-          resolve({ input, options, format: descriptor.Format.name });
+          resolve({ context, input, options, format: descriptor.Format.name });
         };
       });
     },
@@ -432,6 +446,13 @@ test("CjsResMan sends worker-safe reads off the main queue and publishes on it",
   );
 
   const result = await operation;
+  assert.deepEqual(result.context, {
+    path: "res:/worker/queue.workerqueue",
+    resFilePath: "res:/worker/queue.workerqueue",
+    ext: "workerqueue",
+    fileName: "queue.workerqueue",
+    url: null
+  });
   assert.deepEqual(result.input, new Uint8Array([ 8 ]));
   assert.equal(result.options.emit, "raw");
   assert.equal(result.format, "CjsWorkerQueueFormat");

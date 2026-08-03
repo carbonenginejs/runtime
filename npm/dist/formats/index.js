@@ -20,6 +20,7 @@ export { CjsMp3Format } from './mp3/CjsMp3Format.js';
 export { CjsMp4Format } from './mp4/CjsMp4Format.js';
 export { CjsObjFormat } from './obj/CjsObjFormat.js';
 export { CjsOggFormat } from './ogg/CjsOggFormat.js';
+export { CjsPickleFormat } from './pickle/CjsPickleFormat.js';
 export { CjsPngFormat } from './png/CjsPngFormat.js';
 export { CjsRedFormat } from './red/CjsRedFormat.js';
 export { CjsStlFormat } from './stl/CjsStlFormat.js';

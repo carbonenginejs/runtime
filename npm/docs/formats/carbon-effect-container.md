@@ -122,10 +122,7 @@ compares only the first three. A shipped v15 header reads `01 02 06 00` —
 compiler 1.2.6.0, matching the ShaderCompiler project version. As a `u32` those
 bytes are `0x00060201`, which means nothing. `HlslEffectRes` historically read
 the field as a dword; it now also exposes `m_compilerVersionBytes`, which is the
-truthful reading and what new code should use. The dword form survives only
-because it is republished as `source.compilerVersion` in the portable
-reflection, where it is asserted to be an unsigned integer and covered by a
-package digest.
+truthful reading and what new code should use.
 
 The compiler's rebuild check reads the 32-byte hash, while the runtime skips it.
 It is provenance, not integrity.
@@ -379,6 +376,17 @@ surviving twin. The row is **kept**, so the offset table stays dense while the
 file stores each distinct body once. Across the shipped corpus 22% of files
 alias, at roughly 2.1 rows per distinct body.
 
+`enumerateUniqueEffectBodies` recovers that grouping without decoding a single
+body. It inspects source records and bytes only, and returns
+first-occurrence-ordered groups, each holding one canonical
+`permutationIndex`/`sourceRecord` plus every byte-identical alias. Exact range
+aliases are the fast path; distinct ranges are fingerprinted and then compared
+byte for byte. It caps the Cartesian body table at 65,536 records, rejects
+partial overlaps, and leaves the effect cache and state-manager registries
+untouched — so a backend packager can inventory an effect without disturbing
+anything a later read depends on. It is internal (`src/format/effect/`), not a
+published export; the backend body set is its one consumer.
+
 ## Offset-table density
 
 Carbon indexes the offset table **positionally** and never reads each row's
@@ -427,9 +435,10 @@ from `effect.webgpu/`, with one optional per-pass backend block. `.cewg`
 remains a separate CEWG chunk format rather than this Carbon-record wire.
 
 `CewgpuContainer` reads the optional blocks, and the shared record reader can
-auto-detect them from a description's declared size. Direct conversion from
-those descriptions into the portable reflection envelope consumed by
-`Tr2EffectRes` remains an adapter boundary.
+auto-detect them from a description's declared size. There is no adapter
+boundary left between them and the runtime: `Tr2EffectRes.DoLoad` retains a
+`CjsCarbonEffectReader` over the same bytes and `Tr2Shader.fromCarbonBinary`
+builds the device-free graph from one description record.
 
 Versioning remains local to what it versions: Carbon's version dword governs
 the Carbon region, while `blobVersion` governs the optional backend block. An
@@ -477,6 +486,18 @@ tables and zero misordered tables.** Not one shipped file retains an unreference
 arena blob, so the sorted-offset policy reproduces CCP's arena exactly.
 Supply a separately acquired corpus and set `CARBON_EFFECT_CORPUS_DIR`; no
 corpus data ships with the package.
+
+**The same proof, one level up.** `test/resource/effect-res-corpus.test.js`
+closes the loop through the resource classes rather than the records: bytes →
+`Tr2EffectRes.DoLoad` → `Tr2Shader.fromCarbonBinary` → the device-free graph →
+`toCarbonBinary()` → records → bytes. Running the record-level round trip on the
+same files with no classes involved is the negative control; when the two
+disagree, the difference is the class layer's, and that is how the three
+fidelity losses it once had were found and closed — non-dynamic sampler names
+(1,631 files), authored pass-stage order (21 files), and the offset word of a
+zero-size blob (150 files), which is not always the `0xffffffff` sentinel.
+Carbon's *runtime* discards the first two; the file does not, so re-emitting the
+file it came from means keeping them.
 
 That result is the container port's central evidence. The same reader and the same
 writer reproduce, byte for byte, files whose program payloads are DXBC in two

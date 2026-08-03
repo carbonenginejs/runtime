@@ -16,6 +16,7 @@ export { CjsMp3Format } from "./mp3/index.js";
 export { CjsMp4Format } from "./mp4/index.js";
 export { CjsObjFormat } from "./obj/index.js";
 export { CjsOggFormat } from "./ogg/index.js";
+export { CjsPickleFormat } from "./pickle/index.js";
 export { CjsPngFormat } from "./png/index.js";
 export { CjsRedFormat } from "./red/index.js";
 export { CjsStlFormat } from "./stl/index.js";

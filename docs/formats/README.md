@@ -55,6 +55,7 @@ metadata. Worker eligibility never changes the format's direct API; see
 | MP4 (`.mp4`) | `CjsMp4Format` | `@carbonenginejs/runtime-resource/formats/mp4` |
 | OBJ (`.obj`) | `CjsObjFormat` | `@carbonenginejs/runtime-resource/formats/obj` |
 | Ogg (`.ogg`) | `CjsOggFormat` | `@carbonenginejs/runtime-resource/formats/ogg` |
+| Python pickle (`.pickle`, protocol 0 data subset) | `CjsPickleFormat` | `@carbonenginejs/runtime-resource/formats/pickle` |
 | PNG (`.png`) | `CjsPngFormat` | `@carbonenginejs/runtime-resource/formats/png` |
 | Red (`.red`) | `CjsRedFormat` | `@carbonenginejs/runtime-resource/formats/red` |
 | STL (`.stl`) | `CjsStlFormat` | `@carbonenginejs/runtime-resource/formats/stl` |
@@ -66,6 +67,7 @@ metadata. Worker eligibility never changes the format's direct API; see
 | YAML (`.yaml`/`.yml`) | `CjsYamlFormat` | `@carbonenginejs/runtime-resource/formats/yaml` |
 
 Detailed pages: [Granny GR2 and GSF](gr2.md),
+[data-only pickle protocol 0](pickle.md),
 [Wwise soundbanks and media](wwise.md), and [STL export](stl.md). Ownership
 history, retained snapshots, and donor licensing are recorded in
 [provenance.md](provenance.md).

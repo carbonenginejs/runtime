@@ -180,6 +180,15 @@ class Tr2Shader extends CjsModel {
     shader.ProcessEffect();
     return shader;
   }
+
+  /**
+   * Find a named value across stage collections in Carbon lookup order.
+   *
+   * @param {Tr2EffectDescription} effect Effect description to search.
+   * @param {string} name Entry name.
+   * @param {string} key Stage collection key.
+   * @returns {*|null} Matching value, or `null`.
+   */
   static findStageValue(effect, name, key) {
     for (const stage of Tr2Shader.iterateStages(effect)) {
       const found = Tr2Shader.findNamedCollectionValue(stage?.[key], name);

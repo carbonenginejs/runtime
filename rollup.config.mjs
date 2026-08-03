@@ -40,6 +40,7 @@ export default {
     "src/formats/mp4/index.js",
     "src/formats/obj/index.js",
     "src/formats/ogg/index.js",
+    "src/formats/pickle/index.js",
     "src/formats/png/index.js",
     "src/formats/red/index.js",
     "src/formats/red/core/blackDefinitions.js",

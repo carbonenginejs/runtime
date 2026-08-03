@@ -8,6 +8,7 @@ import {
   normalizeResourcePath
 } from "@carbonenginejs/runtime-utils/path";
 import { CjsResource } from "./resource/CjsResource.js";
+import { ResourceHandlerMode } from "./resource/ResourceHandlerMode.js";
 import {
   CjsResManQueue,
   CjsResManWorkQueue
@@ -62,6 +63,10 @@ let nextLocalValueIdentity = 1;
  * @property {CjsResMan} resMan Owning manager.
  * @property {object|Function} source Selected source implementation.
  * @property {string} path Normalized Carbon-style source path.
+ * @property {string} resFilePath Normalized lowercase Carbon-style source path.
+ * @property {string} ext Normalized lowercase resource extension.
+ * @property {string} fileName Normalized lowercase final path component.
+ * @property {string|null} url Exact URL passed to a URL-backed source, otherwise `null`.
  * @property {string} sourcePath Resource path or URL passed to the selected source.
  * @property {string|number|undefined} sourceRevision Caller content token.
  * @property {string} revisionKey Type-stable internal form of the content token.
@@ -196,6 +201,9 @@ export class CjsResMan extends CjsEventEmitter
   #reloadCandidates = new WeakMap();
   #reloadGenerations = new Map();
   #reloadOperations = new WeakMap();
+  #extensionRoutes = new Map();
+  #resourceExtensionRoutes = new WeakMap();
+  #resourceHandlerModes = new WeakMap();
 
   /**
    * Create a GPU-free resource manager and apply its initial registration.
@@ -258,6 +266,7 @@ export class CjsResMan extends CjsEventEmitter
    * @param {object} [options.cacheCleanup] Cleanup policy used if a smaller configured budget evicts cached identities.
    * @param {object} [options.mainThreadLoader] Direct execution strategy.
    * @param {object|Map<string,string>} [options.paths] Resource-prefix URL bases.
+   * @param {object|Map|object[]} [options.extensions] Extension route registrations.
    * @param {Function|null} [options.pathResolver] Optional complete resource-path-to-URL resolver.
    * @param {object} [options.workerLoader] Worker loader instance or construction options.
    * @param {boolean} [options.useWorkerLoading=true] Whether worker-backed execution is selected.
@@ -347,6 +356,11 @@ export class CjsResMan extends CjsEventEmitter
     for (const [ ext, loader ] of Object.entries(options.objectLoaders || {}))
     {
       this.RegisterObjectLoader(ext, loader);
+    }
+    for (const [ ext, registration ] of normalizeExtensionRegistrationEntries(options.extensions))
+    {
+      const { Handler, handler, ...routeOptions } = registration;
+      this.RegisterExtension(ext, Handler || handler, routeOptions);
     }
     return this;
   }
@@ -944,10 +958,7 @@ export class CjsResMan extends CjsEventEmitter
       throw new TypeError(`${Format.name || "Format"} must declare non-empty inputTypes.`);
     }
 
-    const descriptor = Object.freeze({
-      Format,
-      defaults: snapshotFormatDefaults(defaults)
-    });
+    const descriptor = createFormatDescriptor(Format, defaults);
     for (const inputType of Format.inputTypes)
     {
       const key = normalizeResourceExtension(inputType);
@@ -958,6 +969,113 @@ export class CjsResMan extends CjsEventEmitter
       this.formats.set(key, next);
     }
     return this;
+  }
+
+  /**
+   * Register one extension-selected resource or object handler and its reader
+   * route. A format constructor and an ordered format array are short forms
+   * for `{ Format }` and `{ Formats }` respectively.
+   *
+   * Re-registration replaces the complete route for future uncached handles.
+   * Existing handles retain the route snapshot captured at construction.
+   *
+   * @param {string} extension Input extension with or without a leading dot.
+   * @param {Function} Handler CjsResource-compatible handler constructor.
+   * @param {Function|Function[]|object} [formatOrFormatsOrOptions={}] Reader and optional target configuration.
+   * @returns {CjsResMan} This resource manager.
+   * @throws {TypeError} If the extension, handler, formats, or target policy is invalid.
+   */
+  RegisterExtension(extension, Handler, formatOrFormatsOrOptions = {})
+  {
+    const ext = normalizeResourceExtension(extension);
+    if (!ext)
+    {
+      throw new TypeError("CjsResMan.RegisterExtension requires an extension.");
+    }
+    if (typeof Handler !== "function"
+      || typeof Handler.prototype?.Initialize !== "function")
+    {
+      throw new TypeError("CjsResMan.RegisterExtension requires a CjsResource-compatible handler constructor.");
+    }
+
+    const handlerMode = Handler.handlerMode;
+    if (!Object.values(ResourceHandlerMode).includes(handlerMode))
+    {
+      throw new TypeError(
+        "CjsResMan.RegisterExtension Handler.handlerMode must be ResourceHandlerMode.RESOURCE or ResourceHandlerMode.OBJECT."
+      );
+    }
+
+    const options = normalizeExtensionRouteOptions(formatOrFormatsOrOptions);
+    const hasFormat = options.Format !== undefined || options.format !== undefined;
+    const hasFormats = options.Formats !== undefined || options.formats !== undefined;
+    if (hasFormat && hasFormats)
+    {
+      throw new TypeError("CjsResMan.RegisterExtension accepts either Format or Formats, not both.");
+    }
+
+    const Target = options.Target || options.target || null;
+    const Identify = options.Identify || options.identify || null;
+    if (Target && Identify)
+    {
+      throw new TypeError("CjsResMan.RegisterExtension accepts either Target or Identify, not both.");
+    }
+    if ((Target || Identify) && handlerMode !== ResourceHandlerMode.OBJECT)
+    {
+      throw new TypeError("CjsResMan extension Target and Identify are valid only for object handlers.");
+    }
+    if (Target) assertExtensionTarget(Target, "Target");
+    if (Identify && typeof Identify !== "function")
+    {
+      throw new TypeError("CjsResMan extension Identify must be a function.");
+    }
+
+    const explicitFormats = hasFormat
+      ? [ options.Format || options.format ]
+      : hasFormats
+        ? options.Formats || options.formats
+        : null;
+    if (explicitFormats !== null && !Array.isArray(explicitFormats))
+    {
+      throw new TypeError("CjsResMan extension Formats must be an array.");
+    }
+
+    const loader = explicitFormats === null ? this.GetObjectLoader(ext) : null;
+    const formats = explicitFormats === null
+      ? loader ? [] : this.GetFormatDescriptors(ext)
+      : explicitFormats.map((entry, index) => createExtensionFormatDescriptor(
+        entry,
+        options.defaults || {},
+        `Formats[${index}]`
+      ));
+    if (!loader && formats.length === 0)
+    {
+      throw new TypeError(`CjsResMan extension .${ext} requires a Format, Formats, or registered reader.`);
+    }
+    validateOrderedExtensionFormats(formats, ext);
+
+    const route = Object.freeze({
+      extension: ext,
+      Handler,
+      handlerMode,
+      loader,
+      formats: Object.freeze([ ...formats ]),
+      Target,
+      Identify
+    });
+    this.#extensionRoutes.set(ext, route);
+    return this;
+  }
+
+  /**
+   * Return the current immutable explicit route for one extension.
+   *
+   * @param {string} extension Input extension with or without a leading dot.
+   * @returns {object|null} Captured route descriptor, or `null`.
+   */
+  GetExtensionRoute(extension)
+  {
+    return this.#extensionRoutes.get(normalizeResourceExtension(extension)) || null;
   }
 
   /**
@@ -1007,16 +1125,23 @@ export class CjsResMan extends CjsEventEmitter
     const key = normalizeResourcePath(path);
     const variant = this.GetResourceVariant(options);
     const ext = normalizeResourceExtension(options.ext || getResourceExtension(key));
+    const cacheKey = getMotherLodeKey(key, variant);
+    const existing = this.motherLode.Lookup(cacheKey);
+    const extensionRoute = existing
+      ? this.#resourceExtensionRoutes.get(existing) || null
+      : this.GetExtensionRoute(ext);
     if (options.emit !== undefined)
     {
-      const objectLoader = this.GetObjectLoader(ext);
+      const objectLoader = extensionRoute?.loader || (!extensionRoute && this.GetObjectLoader(ext));
       if (objectLoader)
       {
         throw createObjectLoaderOutputMissingError(ext, options.emit);
       }
       else
       {
-        const descriptors = this.GetFormatDescriptors(ext);
+        const descriptors = extensionRoute
+          ? extensionRoute.formats
+          : this.GetFormatDescriptors(ext);
         const candidates = filterFormatDescriptors(descriptors, options);
         if (descriptors.length > 0 && candidates.length === 0)
         {
@@ -1024,8 +1149,6 @@ export class CjsResMan extends CjsEventEmitter
         }
       }
     }
-    const cacheKey = getMotherLodeKey(key, variant);
-    const existing = this.motherLode.Lookup(cacheKey);
     if (existing && options.reload !== true)
     {
       this.#BindResourceLifecycle(cacheKey, existing);
@@ -1037,13 +1160,14 @@ export class CjsResMan extends CjsEventEmitter
       this.InvalidateReadCache(key, { source: options.source || this.source });
     }
 
-    const Constructor = this.ResolveResourceConstructor(options);
+    const Constructor = this.ResolveResourceConstructor(options, extensionRoute);
     const resource = this.CreateResource(
       Constructor,
       key,
       ext,
       options,
-      existing && options.reload === true ? existing : null
+      existing && options.reload === true ? existing : null,
+      extensionRoute
     );
     if (existing && options.reload === true)
     {
@@ -1133,7 +1257,11 @@ export class CjsResMan extends CjsEventEmitter
     if (resource.HasPayload?.())
     {
       resource.KeepPayloadAlive?.();
-      return Promise.resolve(getPublishedResourceObject(resource));
+      return Promise.resolve(getPublishedResourceObject(
+        resource,
+        this.#resourceExtensionRoutes.get(resource) || null,
+        this.#resourceHandlerModes.get(resource) || null
+      ));
     }
 
     const promise = this.QueueResourceObject(resource, operationOptions);
@@ -1523,7 +1651,24 @@ export class CjsResMan extends CjsEventEmitter
    */
   Fetch(path, options = {})
   {
-    return options.resource === true || options.requirement !== undefined || options.payload !== undefined
+    if (options.resource === true
+      || options.requirement !== undefined
+      || options.payload !== undefined)
+    {
+      return this.FetchResource(path, options);
+    }
+
+    const normalizedPath = normalizeResourcePath(path);
+    const variant = this.GetResourceVariant(options);
+    const cacheKey = getMotherLodeKey(normalizedPath, variant);
+    const existing = this.motherLode.Lookup(cacheKey);
+    const ext = normalizeResourceExtension(
+      options.ext || getResourceExtension(normalizedPath)
+    );
+    const route = existing
+      ? this.#resourceExtensionRoutes.get(existing) || null
+      : this.GetExtensionRoute(ext);
+    return route?.handlerMode === ResourceHandlerMode.RESOURCE
       ? this.FetchResource(path, options)
       : this.FetchObject(path, options);
   }
@@ -1708,7 +1853,14 @@ export class CjsResMan extends CjsEventEmitter
    */
   async #PrepareResourceObject(resource, bytes, options, ownership) {
     this.#AssertOptionalResourceOwnership(ownership, "prepare:read");
-    const object = await this.ReadResourceObjectPayload(resource, bytes, options);
+    const resolved = this.#ResolveResourceObjectRead(resource, bytes, options);
+    const decoded = await this.#ReadResolvedResourceObjectPayload(
+      resource,
+      bytes,
+      options,
+      resolved
+    );
+    const object = this.#HydrateExtensionObject(resource, decoded, options, resolved);
     this.#AssertOptionalResourceOwnership(ownership, "prepare:read-settled");
     return this.#PublishResourceObject(ownership, resource, object, options);
   }
@@ -1730,10 +1882,17 @@ export class CjsResMan extends CjsEventEmitter
     const formatOptions = resolved.descriptor
       ? createFormatReadOptions(resolved.descriptor, options)
       : null;
+    const formatContext = resolved.descriptor
+      ? createResourcePathContext(resource.GetPath(), READ_CONTEXTS.get(options))
+      : null;
     const runInWorker = Boolean(
       resolved.descriptor
       && typeof this.resourceLoader?.CanReadFormat === "function"
-      && this.resourceLoader.CanReadFormat(resolved.descriptor, formatOptions)
+      && this.resourceLoader.CanReadFormat(
+        resolved.descriptor,
+        formatOptions,
+        formatContext
+      )
     );
 
     let read;
@@ -1773,7 +1932,8 @@ export class CjsResMan extends CjsEventEmitter
     const publishTask = this.QueueTask(CjsResManQueue.MAIN, () =>
     {
       this.#AssertOptionalResourceOwnership(ownership, "queue-stage:publish:run");
-      return this.#PublishResourceObject(ownership, resource, object, options);
+      const hydrated = this.#HydrateExtensionObject(resource, object, options, resolved);
+      return this.#PublishResourceObject(ownership, resource, hydrated, options);
     }, resource, {
       kind: "prepare",
       stage: "publish",
@@ -1812,22 +1972,30 @@ export class CjsResMan extends CjsEventEmitter
    * @param {CjsResource} resource Resource whose CPU outcome is requested.
    * @param {*} bytes Source input.
    * @param {object} options Requested output options.
-   * @returns {{loader: Function|null, descriptor: object|null}} Resolved reader.
+   * @returns {{loader: Function|null, descriptor: object|null, route: object|null}} Resolved reader.
    */
   #ResolveResourceObjectRead(resource, bytes, options) {
-    const explicitLoader = this.GetObjectLoader(resource.GetExt());
+    const route = this.#resourceExtensionRoutes.get(resource) || null;
+    const explicitLoader = route?.loader || (!route && this.GetObjectLoader(resource.GetExt()));
     if (explicitLoader)
     {
       if (options.emit !== undefined)
       {
         throw createObjectLoaderOutputMissingError(resource.GetExt(), options.emit);
       }
-      return { loader: explicitLoader, descriptor: null };
+      return { loader: explicitLoader, descriptor: null, route };
     }
 
     return {
       loader: null,
-      descriptor: this.ResolveFormatDescriptor(resource.GetExt(), { ...options, bytes })
+      descriptor: route
+        ? resolveOrderedExtensionFormatDescriptor(
+          route.formats,
+          resource.GetExt(),
+          { ...options, bytes }
+        )
+        : this.ResolveFormatDescriptor(resource.GetExt(), { ...options, bytes }),
+      route
     };
   }
 
@@ -1849,6 +2017,74 @@ export class CjsResMan extends CjsEventEmitter
       );
     }
     return this.ReadFormatOnce(resource, resolved.descriptor, bytes, options);
+  }
+
+  /**
+   * Apply a fixed target or dynamic identification policy after format reading
+   * and before payload publication. Worker decoding has settled by this point,
+   * so constructors and Identify functions remain on the caller thread.
+   *
+   * @param {CjsResource} resource Route handler receiving the decoded value.
+   * @param {*} values Decoded format result.
+   * @param {object} options Request options.
+   * @param {{descriptor: object|null, route: object|null}} resolved Captured reader route.
+   * @returns {*} Original or hydrated object value.
+   */
+  #HydrateExtensionObject(resource, values, options, resolved)
+  {
+    const route = resolved.route;
+    if (!route || (!route.Target && !route.Identify)) return values;
+
+    const Format = resolved.descriptor?.Format || null;
+    const context = Object.freeze({
+      ...createResourcePathContext(resource.GetPath(), READ_CONTEXTS.get(options)),
+      Format,
+      format: Format?.id || Format?.name || "",
+      options,
+      resMan: this
+    });
+
+    let Target = route.Target;
+    if (route.Identify)
+    {
+      try
+      {
+        Target = route.Identify(values, context);
+      }
+      catch (error)
+      {
+        throw createExtensionTargetError(resource, "Identify threw an error.", error);
+      }
+      if (Target === true) return values;
+      if (Target === false || Target === null || Target === undefined)
+      {
+        throw createExtensionTargetError(resource, "Identify did not resolve a target constructor.");
+      }
+      try
+      {
+        assertExtensionTarget(Target, "Identify result");
+      }
+      catch (error)
+      {
+        throw createExtensionTargetError(resource, "Identify returned an invalid target constructor.", error);
+      }
+    }
+
+    try
+    {
+      const hydrated = typeof Target.fromYAML === "function"
+        ? Target.fromYAML(values, context)
+        : Target.from(values);
+      if (hydrated && typeof hydrated.then === "function")
+      {
+        throw new TypeError("Extension target hydration must be synchronous.");
+      }
+      return hydrated;
+    }
+    catch (error)
+    {
+      throw createExtensionTargetError(resource, "Target hydration failed.", error);
+    }
   }
 
   /**
@@ -1912,7 +2148,18 @@ export class CjsResMan extends CjsEventEmitter
    */
   #PublishResourceObjectValue(resource, object, options) {
     let result = object;
-    if (resource.constructor !== CjsResource && typeof resource.SetPayload === "function") {
+    const route = this.#resourceExtensionRoutes.get(resource) || null;
+    const handlerMode = route ? this.#resourceHandlerModes.get(resource) : null;
+    if (handlerMode === ResourceHandlerMode.RESOURCE) {
+      resource.SetPayload?.(object, options);
+      resource.object = resource;
+      result = resource;
+    }
+    else if (handlerMode === ResourceHandlerMode.OBJECT) {
+      resource.SetPayload?.(object, options);
+      resource.object = object;
+    }
+    else if (resource.constructor !== CjsResource && typeof resource.SetPayload === "function") {
       resource.SetPayload(object, options);
       resource.object = resource;
       result = resource;
@@ -1992,13 +2239,21 @@ export class CjsResMan extends CjsEventEmitter
    * @param {object} [options={}] Output, class, and `formatOptions` overrides.
    * @returns {Promise<*>} Parsed format outcome.
    * @throws {TypeError|Error} If the facade lacks a reader or reading fails.
+   * @remarks Resource-backed calls pass normalized path context as the
+   * reader's third argument; direct descriptor reads without a resource pass
+   * `null`.
    */
   async ReadFormat(descriptor, bytes, options = {})
   {
+    const readContext = READ_CONTEXTS.get(options);
+    const context = readContext
+      ? createResourcePathContext(readContext.path, readContext)
+      : null;
     return this.resourceLoader.ReadFormat(
       descriptor,
       bytes,
-      createFormatReadOptions(descriptor, options)
+      createFormatReadOptions(descriptor, options),
+      context
     );
   }
 
@@ -2304,13 +2559,21 @@ export class CjsResMan extends CjsEventEmitter
     normalizeCachePolicy(options.cacheFormat, "cacheFormat");
 
     const operationOptions = { ...options };
+    const ext = normalizeResourceExtension(
+      options.ext || getResourceExtension(normalizedPath)
+    );
+    const fileName = getResourceFileName(normalizedPath);
+    const requiresUrl = sourceRequiresUrl(source);
+    const url = requiresUrl ? this.BuildUrl(normalizedPath) : null;
     const context = Object.freeze({
       resMan: this,
       source,
       path: normalizedPath,
-      sourcePath: sourceRequiresUrl(source)
-        ? this.BuildUrl(normalizedPath)
-        : normalizedPath,
+      resFilePath: normalizedPath,
+      ext,
+      fileName,
+      url,
+      sourcePath: url || normalizedPath,
       sourceRevision,
       revisionKey
     });
@@ -2498,10 +2761,11 @@ export class CjsResMan extends CjsEventEmitter
    * @param {string} ext Normalized resource extension.
    * @param {object} [options={}] Constructor values, requested output, semantic requirement, and source provenance.
    * @param {object|Function|null} [disallowedAlias=null] Existing owner that a staged candidate must not reuse.
+   * @param {object|null} [extensionRoute=null] Immutable explicit extension route captured for this handle.
    * @returns {CjsResource} Initialized resource-compatible handle.
    * @throws {TypeError|Error} If construction, candidate identity, or initialization is invalid.
    */
-  CreateResource(Constructor, path, ext, options = {}, disallowedAlias = null) {
+  CreateResource(Constructor, path, ext, options = {}, disallowedAlias = null, extensionRoute = null) {
     const resource = new Constructor(options.values);
     if (!resource || typeof resource.Initialize !== "function") {
       throw new TypeError("Resource constructor must create a CjsResource-compatible object.");
@@ -2509,6 +2773,16 @@ export class CjsResMan extends CjsEventEmitter
     if (disallowedAlias && resource === disallowedAlias)
     {
       throw reloadCandidateAliasError(path, resource);
+    }
+    if (extensionRoute)
+    {
+      this.#resourceExtensionRoutes.set(resource, extensionRoute);
+      const handlerMode = Constructor === extensionRoute.Handler
+        ? extensionRoute.handlerMode
+        : Object.values(ResourceHandlerMode).includes(Constructor.handlerMode)
+          ? Constructor.handlerMode
+          : ResourceHandlerMode.RESOURCE;
+      this.#resourceHandlerModes.set(resource, handlerMode);
     }
     resource.Initialize(path, ext, normalizeRequirement(options.requirement || options.payload || ""));
     if (typeof resource.SetObjectLoader === "function")
@@ -2531,9 +2805,10 @@ export class CjsResMan extends CjsEventEmitter
    * otherwise the generic `CjsResource` handle is used.
    *
    * @param {object} [options={}] Semantic requirement, payload, and emit request.
+   * @param {object|null} [extensionRoute=null] Captured extension-selected default handler.
    * @returns {Function} Registered resource constructor or `CjsResource`.
    */
-  ResolveResourceConstructor(options = {})
+  ResolveResourceConstructor(options = {}, extensionRoute = null)
   {
     const requested = normalizeRequirement(options.requirement || options.payload);
     if (requested && this.resourceTypes.has(requested)) return this.resourceTypes.get(requested);
@@ -2541,6 +2816,7 @@ export class CjsResMan extends CjsEventEmitter
     const emitted = normalizeRequirement(options.emit);
     if (emitted && this.resourceTypes.has(emitted)) return this.resourceTypes.get(emitted);
 
+    if (extensionRoute) return extensionRoute.Handler;
     return CjsResource;
   }
 
@@ -3484,6 +3760,60 @@ function filterFormatDescriptors(descriptors, options)
 }
 
 /**
+ * Resolve an ordered explicit extension route. Probes are evaluated in route
+ * order and the sole unprobed final descriptor is the fallback. Selection is
+ * final: reader failures are never interpreted as a reason to try another
+ * format.
+ *
+ * @param {readonly object[]} descriptors Captured ordered route descriptors.
+ * @param {string} ext Normalized resource extension.
+ * @param {object} options Output filters and source bytes.
+ * @returns {object} Selected immutable format descriptor.
+ */
+function resolveOrderedExtensionFormatDescriptor(descriptors, ext, options)
+{
+  const candidates = filterFormatDescriptors(descriptors, options);
+  if (descriptors.length > 0 && candidates.length === 0 && options.emit !== undefined)
+  {
+    throw createFormatOutputMissingError(ext, options.emit, descriptors);
+  }
+  if (candidates.length === 0)
+  {
+    const error = new Error(`No format registered for .${ext}`);
+    error.code = "CJS_RESOURCE_FORMAT_MISSING";
+    error.ext = ext;
+    throw error;
+  }
+
+  for (const descriptor of candidates)
+  {
+    const { Format, defaults } = descriptor;
+    if (typeof Format.isSupported !== "function") return descriptor;
+    const report = Format.isSupported(options.bytes, {
+      ...defaults,
+      ...(options.formatOptions || {})
+    });
+    if (isPositiveFormatProbe(report)) return descriptor;
+  }
+
+  const error = new Error(`No registered format supports the content for .${ext}`);
+  error.code = "CJS_RESOURCE_FORMAT_UNSUPPORTED";
+  error.ext = ext;
+  error.formats = candidates.map(({ Format }) => Format.name);
+  throw error;
+}
+
+/** Tests the supported forms returned by current format probes. */
+function isPositiveFormatProbe(report)
+{
+  if (report === true) return true;
+  if (!report || report === false || typeof report !== "object") return false;
+  return report.supported === true
+    || report.supported === "full"
+    || report.supported === "partial";
+}
+
+/**
  * Return one format facade's normal and diagnostic output declarations.
  *
  * @param {Function} Format Registered format facade.
@@ -3580,7 +3910,7 @@ function resolveFormatDescriptorCandidates(descriptors, ext, options)
         ...defaults,
         ...(options.formatOptions || {})
       });
-      return report && report.supported !== false;
+      return isPositiveFormatProbe(report);
     });
     if (supported.length === 1) candidates = supported;
   }
@@ -3636,13 +3966,48 @@ function createPrepareContext(resMan, resource, bytes, options, stage)
 {
   return Object.freeze({
     ...options,
+    ...createResourcePathContext(resource.GetPath(), READ_CONTEXTS.get(options)),
     stage,
     bytes,
-    path: resource.GetPath(),
-    ext: resource.GetExt(),
     resource,
     resMan
   });
+}
+
+/**
+ * Create the immutable, source-neutral path context shared by format readers,
+ * direct object loaders, target identification, and target hydration.
+ *
+ * @param {string} path Normalized or caller-supplied resource path.
+ * @param {CjsResourceReadContext|null|undefined} [readContext] Active source read context.
+ * @returns {Readonly<{path: string, resFilePath: string, ext: string, fileName: string, url: string|null}>}
+ */
+function createResourcePathContext(path, readContext = null)
+{
+  const resFilePath = normalizeResourcePath(path);
+  return Object.freeze({
+    path: resFilePath,
+    resFilePath,
+    ext: readContext?.ext ?? getResourceExtension(resFilePath),
+    fileName: getResourceFileName(resFilePath),
+    url: readContext?.url ?? null
+  });
+}
+
+/**
+ * Return the normalized final component of a resource path without query or
+ * fragment material.
+ *
+ * @param {string} path Resource path.
+ * @returns {string} Lowercase normalized filename, or an empty string.
+ */
+function getResourceFileName(path)
+{
+  const normalized = normalizeResourcePath(path);
+  const queryIndex = normalized.search(/[?#]/u);
+  const cleanPath = queryIndex === -1 ? normalized : normalized.slice(0, queryIndex);
+  const slashIndex = cleanPath.lastIndexOf("/");
+  return cleanPath.slice(slashIndex + 1);
 }
 
 /**
@@ -3651,10 +4016,14 @@ function createPrepareContext(resMan, resource, bytes, options, stage)
  * handle and base resources as their plain payload.
  *
  * @param {CjsResource} resource Resource with an attached CPU payload.
+ * @param {object|null} route Captured explicit extension route.
+ * @param {string|null} handlerMode Captured effective handler mode.
  * @returns {*} Resident public object outcome.
  */
-function getPublishedResourceObject(resource)
+function getPublishedResourceObject(resource, route = null, handlerMode = null)
 {
+  if (route && handlerMode === ResourceHandlerMode.RESOURCE) return resource;
+  if (route && handlerMode === ResourceHandlerMode.OBJECT) return resource.GetPayload();
   return resource.constructor !== CjsResource
     ? resource
     : resource.GetPayload();
@@ -4092,4 +4461,124 @@ function normalizeRegistrationEntries(value, keyed = false)
       ? { key, requirement: key, Constructor: entry }
       : { ...entry, key, requirement: entry.requirement || entry.payload || key };
   });
+}
+
+/** Normalize `Register({ extensions })` into extension/registration pairs. */
+function normalizeExtensionRegistrationEntries(value)
+{
+  if (value === null || value === undefined) return [];
+  if (value instanceof Map)
+  {
+    return [ ...value.entries() ].map(([ ext, registration ]) => [
+      ext,
+      normalizeExtensionRegistration(registration)
+    ]);
+  }
+  if (Array.isArray(value))
+  {
+    return value.map((registration, index) =>
+    {
+      if (!registration || typeof registration !== "object" || Array.isArray(registration))
+      {
+        throw new TypeError(`CjsResMan extensions[${index}] must be an object.`);
+      }
+      const ext = registration.extension || registration.ext;
+      if (!ext)
+      {
+        throw new TypeError(`CjsResMan extensions[${index}] requires extension or ext.`);
+      }
+      return [ ext, normalizeExtensionRegistration(registration) ];
+    });
+  }
+  if (!value || typeof value !== "object")
+  {
+    throw new TypeError("CjsResMan extensions must be an object, Map, or array.");
+  }
+  return Object.entries(value).map(([ ext, registration ]) => [
+    ext,
+    normalizeExtensionRegistration(registration)
+  ]);
+}
+
+function normalizeExtensionRegistration(registration)
+{
+  if (typeof registration === "function") return { Handler: registration };
+  if (!registration || typeof registration !== "object" || Array.isArray(registration))
+  {
+    throw new TypeError("CjsResMan extension registration must be a handler or object.");
+  }
+  return registration;
+}
+
+function normalizeExtensionRouteOptions(value)
+{
+  if (typeof value === "function") return { Format: value };
+  if (Array.isArray(value)) return { Formats: value };
+  if (value === null || value === undefined) return {};
+  if (!value || typeof value !== "object")
+  {
+    throw new TypeError("CjsResMan extension route must be a format, format array, or object.");
+  }
+  return value;
+}
+
+function createFormatDescriptor(Format, defaults = {})
+{
+  if (typeof Format !== "function")
+  {
+    throw new TypeError("CjsResMan format descriptor requires a format class.");
+  }
+  return Object.freeze({
+    Format,
+    defaults: snapshotFormatDefaults(defaults)
+  });
+}
+
+function createExtensionFormatDescriptor(entry, defaults, label)
+{
+  if (typeof entry === "function") return createFormatDescriptor(entry, defaults);
+  if (!entry || typeof entry !== "object" || Array.isArray(entry))
+  {
+    throw new TypeError(`CjsResMan extension ${label} must be a format class or descriptor.`);
+  }
+  const Format = entry.Format || entry.format;
+  return createFormatDescriptor(
+    Format,
+    entry.defaults === undefined ? defaults : entry.defaults
+  );
+}
+
+function validateOrderedExtensionFormats(descriptors, ext)
+{
+  for (let index = 0; index < descriptors.length - 1; index++)
+  {
+    const Format = descriptors[index].Format;
+    if (typeof Format.isSupported !== "function")
+    {
+      throw new TypeError(
+        `CjsResMan extension .${ext} format ${Format.name || index} has no support probe and must be last.`
+      );
+    }
+  }
+}
+
+function assertExtensionTarget(Target, label)
+{
+  if (typeof Target !== "function"
+    || (typeof Target.from !== "function" && typeof Target.fromYAML !== "function"))
+  {
+    throw new TypeError(
+      `CjsResMan extension ${label} must provide static from(values) or fromYAML(values, context).`
+    );
+  }
+}
+
+function createExtensionTargetError(resource, message, cause = null)
+{
+  const path = getResourceDiagnosticPath(resource);
+  const error = new Error(`CjsResMan extension target failed for ${path}: ${message}`, cause ? { cause } : undefined);
+  error.code = "CJS_RESOURCE_EXTENSION_TARGET_FAILED";
+  error.path = path;
+  if (cause) error.cause = cause;
+  return error;
 }

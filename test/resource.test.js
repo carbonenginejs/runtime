@@ -6,6 +6,8 @@ import {
 } from "@carbonenginejs/runtime-utils/path";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import * as runtimeResource from "../npm/dist/index.js";
+import { CjsBlackFormat } from "../npm/dist/formats/black/index.js";
+import { CjsRedFormat } from "../npm/dist/formats/red/index.js";
 import {
   CjsEventEmitter,
   Tr2EffectRes,
@@ -13,9 +15,11 @@ import {
   TriGeometryRes,
   TriTextureRes,
   CjsMotherLode,
+  CjsLoadingObject,
   CjsResMan,
   CjsResource,
   CjsResourceProbe,
+  ResourceHandlerMode,
   ResourcePayloadType,
   validateRgbaPayload,
   validateTexturePayload,
@@ -252,6 +256,352 @@ test("CjsResMan.Register adds formats and semantic resource types", async () => 
     }),
     error => error.code === "CJS_RESOURCE_FORMAT_OUTPUT_MISSING"
   );
+});
+
+test("CjsResMan registers immutable extension handlers through every short form", async () =>
+{
+  class CjsRouteResource extends CjsResource {}
+  class CjsRouteFormat
+  {
+    static outputTypes = [ "payload" ];
+    static read(bytes) { return { byte: bytes[0] }; }
+  }
+
+  const source = { Read() { return new Uint8Array([ 7 ]); } };
+  const resMan = new CjsResMan({ source });
+
+  assert.equal(CjsResource.handlerMode, ResourceHandlerMode.RESOURCE);
+  assert.equal(CjsLoadingObject.handlerMode, ResourceHandlerMode.OBJECT);
+  assert.equal(new CjsLoadingObject().isResource, false);
+  assert.equal(resMan.RegisterExtension(".RoUtE", CjsRouteResource, CjsRouteFormat), resMan);
+  const shortRoute = resMan.GetExtensionRoute("route");
+  assert.equal(shortRoute.Handler, CjsRouteResource);
+  assert.equal(shortRoute.formats[0].Format, CjsRouteFormat);
+  assert.equal(Object.isFrozen(shortRoute), true);
+
+  resMan.RegisterExtension("route", CjsRouteResource, { Format: CjsRouteFormat });
+  const longRoute = resMan.GetExtensionRoute(".ROUTE");
+  assert.notEqual(longRoute, shortRoute);
+  assert.equal(longRoute.formats[0].Format, CjsRouteFormat);
+
+  const resource = await resMan.Fetch("res:/data/one.route");
+  assert.equal(resource instanceof CjsRouteResource, true);
+  assert.deepEqual(resource.GetPayload(), { byte: 7 });
+  assert.equal(await resMan.GetObject("res:/data/one.route"), resource);
+
+  assert.throws(
+    () => resMan.RegisterExtension("bad", class {}, CjsRouteFormat),
+    /CjsResource-compatible handler/u
+  );
+  class MissingMode extends CjsResource {}
+  MissingMode.handlerMode = "other";
+  assert.throws(
+    () => resMan.RegisterExtension("bad", MissingMode, CjsRouteFormat),
+    /Handler\.handlerMode/u
+  );
+});
+
+test("CjsResMan object extension routes hydrate targets and retain captured routes", async () =>
+{
+  class CjsFirstFormat
+  {
+    static read(bytes) { return { value: bytes[0], source: "first" }; }
+  }
+  class CjsSecondFormat
+  {
+    static read(bytes) { return { value: bytes[0], source: "second" }; }
+  }
+  class CjsTarget
+  {
+    constructor(values) { Object.assign(this, values); }
+    static from(values) { return new CjsTarget(values); }
+  }
+  class CjsSemanticResource extends CjsResource {}
+
+  let reads = 0;
+  const path = "res:/data/model.typed";
+  const resMan = new CjsResMan({
+    source: { Read() { reads += 1; return new Uint8Array([ reads ]); } }
+  });
+  resMan.RegisterExtension("typed", CjsLoadingObject, {
+    Format: CjsFirstFormat,
+    Target: CjsTarget
+  });
+  resMan.RegisterResourceType("semantic", CjsSemanticResource);
+
+  const first = await resMan.Fetch(path);
+  assert.equal(first instanceof CjsTarget, true);
+  assert.deepEqual({ ...first }, { value: 1, source: "first" });
+  const handler = resMan.GetResource(path);
+  assert.equal(handler instanceof CjsLoadingObject, true);
+  assert.equal(handler.GetPayload(), first);
+  assert.equal(await resMan.Fetch(path), first);
+  assert.equal(reads, 1);
+
+  resMan.RegisterExtension("typed", CjsLoadingObject, {
+    Format: CjsSecondFormat,
+    Target: CjsTarget
+  });
+  assert.equal(await resMan.Fetch(path), first);
+
+  assert.equal(resMan.Delete(path), true);
+  const second = await resMan.Fetch(path);
+  assert.equal(second instanceof CjsTarget, true);
+  assert.deepEqual({ ...second }, { value: 2, source: "second" });
+
+  const semantic = await resMan.Fetch("res:/data/semantic.typed", {
+    requirement: "semantic"
+  });
+  assert.equal(semantic instanceof CjsSemanticResource, true);
+  assert.equal(semantic.GetPayload() instanceof CjsTarget, true);
+  assert.equal(
+    await resMan.GetObject("res:/data/semantic.typed", { requirement: "semantic" }),
+    semantic
+  );
+
+  assert.throws(
+    () => resMan.RegisterExtension("invalid", CjsLoadingObject, {
+      Format: CjsFirstFormat,
+      Target: CjsTarget,
+      Identify() { return true; }
+    }),
+    /either Target or Identify/u
+  );
+});
+
+test("CjsResMan ordered extension formats probe once and use only a final fallback", async () =>
+{
+  const calls = [];
+  class CjsRejectingFormat
+  {
+    static inputTypes = [ "legacyprobe" ];
+    static isSupported() { calls.push("probe:reject"); return { supported: "none" }; }
+    static read() { calls.push("read:reject"); throw new Error("must not read"); }
+  }
+  class CjsAcceptedFormat
+  {
+    static inputTypes = [ "legacyprobe" ];
+    static isSupported() { calls.push("probe:accept"); return true; }
+    static read() { calls.push("read:accept"); return { accepted: true }; }
+  }
+  class CjsFallbackFormat
+  {
+    static read() { calls.push("read:fallback"); return { fallback: true }; }
+  }
+
+  const source = { Read() { return new Uint8Array([ 1 ]); } };
+  const resMan = new CjsResMan({ source });
+  resMan.RegisterExtension("ordered", CjsLoadingObject, [
+    CjsRejectingFormat,
+    CjsAcceptedFormat,
+    CjsFallbackFormat
+  ]);
+  assert.deepEqual(await resMan.Fetch("res:/data/value.ordered"), { accepted: true });
+  assert.deepEqual(calls, [ "probe:reject", "probe:accept", "read:accept" ]);
+
+  calls.length = 0;
+  const legacy = new CjsResMan()
+    .RegisterFormat(CjsRejectingFormat)
+    .RegisterFormat(CjsAcceptedFormat);
+  assert.equal(
+    legacy.ResolveFormat("legacyprobe", { bytes: new Uint8Array([ 1 ]) }),
+    CjsAcceptedFormat
+  );
+  assert.deepEqual(calls, [ "probe:reject", "probe:accept" ]);
+
+  assert.throws(
+    () => resMan.RegisterExtension("invalid", CjsLoadingObject, [
+      CjsFallbackFormat,
+      CjsAcceptedFormat
+    ]),
+    /has no support probe and must be last/u
+  );
+});
+
+test("CjsResMan uses Black-first content routing for both red and black suffixes", async () =>
+{
+  const encoded = new TextEncoder().encode("type: TestRoot\nname: yaml-content\n");
+  const source = { Read() { return encoded; } };
+  const resMan = new CjsResMan({ source });
+  resMan.RegisterExtension("red", CjsLoadingObject, [ CjsBlackFormat, CjsRedFormat ]);
+  resMan.RegisterExtension("black", CjsLoadingObject, [ CjsBlackFormat, CjsRedFormat ]);
+
+  const fromRed = await resMan.Fetch("res:/data/value.red");
+  const fromBlack = await resMan.Fetch("res:/data/value.black");
+  assert.equal(fromRed.object._type, "TestRoot");
+  assert.equal(fromRed.object.name, "yaml-content");
+  assert.deepEqual(fromBlack, fromRed);
+});
+
+test("CjsResMan never falls through after an ordered format is selected", async () =>
+{
+  let fallbackReads = 0;
+  class CjsSelectedFormat
+  {
+    static isSupported() { return true; }
+    static read() { throw new Error("selected reader failure"); }
+  }
+  class CjsUnselectedFallback
+  {
+    static read()
+    {
+      fallbackReads += 1;
+      return {};
+    }
+  }
+
+  const resMan = new CjsResMan({
+    source: { Read() { return new Uint8Array([ 1 ]); } }
+  });
+  resMan.RegisterExtension("once", CjsLoadingObject, [
+    CjsSelectedFormat,
+    CjsUnselectedFallback
+  ]);
+
+  await assert.rejects(
+    resMan.Fetch("res:/data/value.once"),
+    /selected reader failure/u
+  );
+  assert.equal(fallbackReads, 0);
+});
+
+test("CjsResMan Register accepts composed extension route objects", async () =>
+{
+  class CjsValueFormat
+  {
+    static read() { return { type: "known", value: 4 }; }
+  }
+  class CjsKnownTarget
+  {
+    constructor(values) { Object.assign(this, values); }
+    static from(values) { return new CjsKnownTarget(values); }
+  }
+  class CjsYamlTarget
+  {
+    static from() { throw new Error("fromYAML must win"); }
+    static fromYAML(values, context)
+    {
+      return { ...values, hydratedBy: context.format };
+    }
+  }
+
+  const resMan = new CjsResMan({
+    source: { Read() { return new Uint8Array([ 4 ]); } },
+    extensions: {
+      shape: {
+        Handler: CjsLoadingObject,
+        Format: CjsValueFormat,
+        Identify(values)
+        {
+          return values.type === "known" ? CjsKnownTarget : false;
+        }
+      }
+    }
+  });
+
+  const known = await resMan.Fetch("res:/data/value.shape");
+  assert.equal(known instanceof CjsKnownTarget, true);
+  assert.equal(known.value, 4);
+
+  resMan.RegisterExtension("yamlshape", CjsLoadingObject, {
+    Format: CjsValueFormat,
+    Target: CjsYamlTarget
+  });
+  assert.deepEqual(
+    await resMan.Fetch("res:/data/value.yamlshape"),
+    { type: "known", value: 4, hydratedBy: "CjsValueFormat" }
+  );
+
+  resMan.RegisterExtension("rawshape", CjsLoadingObject, {
+    Format: CjsValueFormat,
+    Identify() { return true; }
+  });
+  assert.deepEqual(
+    await resMan.Fetch("res:/data/value.rawshape"),
+    { type: "known", value: 4 }
+  );
+
+  resMan.RegisterExtension("unknownshape", CjsLoadingObject, {
+    Format: CjsValueFormat,
+    Identify() { return false; }
+  });
+  await assert.rejects(
+    resMan.Fetch("res:/data/value.unknownshape"),
+    error => error.code === "CJS_RESOURCE_EXTENSION_TARGET_FAILED"
+      && error.path === "res:/data/value.unknownshape"
+  );
+});
+
+test("CjsResMan exposes normalized resource paths and exact translated URLs to formats and targets", async () =>
+{
+  let formatContext = null;
+  let identifyContext = null;
+  let sourceUrl = null;
+
+  class CjsContextFormat
+  {
+    static read(_bytes, _options, context)
+    {
+      formatContext = context;
+      return { type: "context" };
+    }
+  }
+
+  const source = {
+    requiresUrl: true,
+    Read(url)
+    {
+      sourceUrl = url;
+      return new Uint8Array([ 1 ]);
+    }
+  };
+  const resMan = new CjsResMan({
+    paths: {
+      res: "https://CDN.Example.invalid/Assets/"
+    },
+    source,
+    extensions: {
+      yaml: {
+        Handler: CjsLoadingObject,
+        Format: CjsContextFormat,
+        Identify(values, context)
+        {
+          assert.deepEqual(values, { type: "context" });
+          identifyContext = context;
+          return true;
+        }
+      }
+    }
+  });
+
+  assert.deepEqual(
+    await resMan.Fetch(" RES:\\Character\\Folder\\Metadata.YAML "),
+    { type: "context" }
+  );
+
+  const expected = {
+    path: "res:/character/folder/metadata.yaml",
+    resFilePath: "res:/character/folder/metadata.yaml",
+    ext: "yaml",
+    fileName: "metadata.yaml",
+    url: "https://CDN.Example.invalid/Assets/character/folder/metadata.yaml"
+  };
+
+  assert.equal(sourceUrl, expected.url);
+  assert.deepEqual(formatContext, expected);
+  assert.equal(Object.isFrozen(formatContext), true);
+  assert.equal(identifyContext.path, expected.path);
+  assert.equal(identifyContext.resFilePath, expected.resFilePath);
+  assert.equal(identifyContext.ext, expected.ext);
+  assert.equal(identifyContext.fileName, expected.fileName);
+  assert.equal(identifyContext.url, expected.url);
+  assert.equal(Object.isFrozen(identifyContext), true);
+
+  await resMan.Fetch("res:/character/folder/metadata", { ext: ".YAML" });
+  assert.equal(formatContext.resFilePath, "res:/character/folder/metadata");
+  assert.equal(formatContext.fileName, "metadata");
+  assert.equal(formatContext.ext, "yaml");
+  assert.equal(identifyContext.ext, "yaml");
 });
 
 test("CjsResource exposes Carbon-style lifecycle methods and schema", () => {
@@ -1844,6 +2194,7 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
 });
 
 test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource prepared", async () => {
+  let loaderContext = null;
   const records = new Map([
     [ "res:/data/example.json", "{\"name\":\"example\"}" ]
   ]);
@@ -1855,7 +2206,10 @@ test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource 
   };
   const resMan = new CjsResMan({ source });
 
-  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  resMan.RegisterObjectLoader("json", (value, context) => {
+    loaderContext = context;
+    return JSON.parse(value);
+  });
 
   const object = await resMan.LoadObject("RES:/data/example.JSON");
   const resource = resMan.Lookup("res:/data/example.json");
@@ -1868,6 +2222,12 @@ test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource 
   assert.equal(resource.IsPrepared(), true);
   assert.equal(resource.IsGood(), true);
   assert.equal(resource.object, object);
+  assert.equal(loaderContext.path, "res:/data/example.json");
+  assert.equal(loaderContext.resFilePath, "res:/data/example.json");
+  assert.equal(loaderContext.ext, "json");
+  assert.equal(loaderContext.fileName, "example.json");
+  assert.equal(loaderContext.url, null);
+  assert.equal(Object.isFrozen(loaderContext), true);
 });
 
 test("registered formats and resource readiness share one object operation", async () =>

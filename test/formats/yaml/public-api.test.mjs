@@ -230,3 +230,19 @@ test("invalid inputs, options, keys, and tag shapes fail closed", () =>
         /has no explicit handler/
     );
 });
+
+test("reader accepts bounded UTF-8 byte views and rejects invalid UTF-8", () =>
+{
+    const source = new TextEncoder().encode("value: 7\n");
+    const padded = new Uint8Array(source.length + 4);
+    padded.set(source, 2);
+
+    assert.deepEqual(
+        CjsYamlFormat.readRaw(new DataView(padded.buffer, 2, source.length)),
+        { value: 7 }
+    );
+    assert.throws(
+        () => CjsYamlFormat.readRaw(new Uint8Array([ 0xC3, 0x28 ])),
+        /valid UTF-8 YAML/u
+    );
+});

@@ -195,18 +195,19 @@ async function readFormat(payload) {
     throw new TypeError(`Worker format export was not found: ${payload.exportName || "default"}`);
   }
   const options = payload.options || {};
+  const context = payload.context || null;
   if (typeof Format.readAsync === "function") {
-    return Format.readAsync(payload.input, options);
+    return Format.readAsync(payload.input, options, context);
   }
   if (typeof Format.read === "function") {
-    return Format.read(payload.input, options);
+    return Format.read(payload.input, options, context);
   }
   const reader = new Format(options);
   if (typeof reader.ReadAsync === "function") {
-    return reader.ReadAsync(payload.input, options);
+    return reader.ReadAsync(payload.input, options, context);
   }
   if (typeof reader.Read === "function") {
-    return reader.Read(payload.input, options);
+    return reader.Read(payload.input, options, context);
   }
   throw new TypeError(`${Format.name} does not expose a read operation.`);
 }

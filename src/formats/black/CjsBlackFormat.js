@@ -290,6 +290,24 @@ export class CjsBlackFormat
     }
 
     /**
+     * Performs the bounded Black content discriminator used by ordered object
+     * routes. Magic selects the Black reader; version and body failures remain
+     * that reader's errors and are never reinterpreted as Red/YAML.
+     *
+     * @param {ArrayBuffer|ArrayBufferView} input Candidate source bytes.
+     * @returns {boolean} True when the little-endian Black magic is present.
+     */
+    static isSupported(input)
+    {
+        const view = getBlackProbeView(input);
+        return Boolean(
+            view
+            && view.byteLength >= 4
+            && view.getUint32(0, true) === CJS_BLACK_FOURCC
+        );
+    }
+
+    /**
      * Emit targets for this format (canonical frozen enum).
      */
     static Output = Object.freeze({
@@ -322,6 +340,13 @@ export class CjsBlackFormat
         return readerOptions;
     }
 
+}
+
+function getBlackProbeView(input)
+{
+    if (input instanceof ArrayBuffer) return new DataView(input);
+    if (!ArrayBuffer.isView(input)) return null;
+    return new DataView(input.buffer, input.byteOffset, input.byteLength);
 }
 
 export default CjsBlackFormat;
