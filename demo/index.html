@@ -269,6 +269,11 @@
   .buttonRow button { flex: 1; padding: 6px 7px; font-size: 11px; }
   .buttonRow .primary { border-color: rgba(119, 216, 197, 0.48); background: var(--accent-deep); color: #c8fff4; }
   .transport button { min-width: 0; padding-inline: 5px; color: #b8c1c0; }
+  .transport button:disabled {
+    border-color: rgba(83, 96, 99, 0.28);
+    background: rgba(20, 26, 28, 0.42);
+    color: rgba(184, 193, 192, 0.24);
+  }
   #musicExampleDetail {
     height: 44px;
     overflow-y: auto;
@@ -410,7 +415,7 @@
     <section class="card" id="music" style="display:none">
       <div class="sectionHeader">
         <div>
-          <div class="sectionTitle"><h2>Authored music</h2><button class="infoButton" type="button" aria-label="About authored music" data-tip="Plays verified examples from the real EVE music graph: direct segments, all four playlist modes, switch/state routing, random and sequence tracks, and a transition-segment bridge. MIDI, Synth One, and stingers remain unsupported and are not offered.">i</button></div>
+          <div class="sectionTitle"><h2>Authored music</h2><button class="infoButton" type="button" aria-label="About authored music" data-tip="Plays verified examples from the real EVE music graph and SoundBank WEM media: direct segments, all four playlist modes, switch/state routing, random and sequence tracks, and a transition-segment bridge. A bank recording may also exist in the external classic jukebox catalog; the playback paths remain separate. MIDI, Synth One, and stingers remain unsupported and are not offered.">i</button></div>
           <p class="sectionNote">Real EVE graph and track families</p>
         </div>
         <label class="powerControl" for="musicToggle">Dynamic <input id="musicToggle" type="checkbox"><span class="toggleTrack" aria-hidden="true"></span></label>
@@ -420,10 +425,11 @@
       </label>
       <p id="musicExampleDetail" class="hint"></p>
       <div class="buttonRow transport" role="group" aria-label="Authored music transport">
-        <button id="musicExamplePrevious" type="button" title="previous authored example" disabled>previous</button>
+        <button id="musicExamplePrevious" type="button" title="previous audio inside this authored example" disabled>previous</button>
         <button id="musicExamplePlay" class="primary" type="button" title="play the selected authored example">play</button>
         <button id="musicExamplePause" type="button" title="pause authored music" disabled>pause</button>
-        <button id="musicExampleNext" type="button" title="next authored example" disabled>next</button>
+        <button id="musicExampleNext" type="button" title="next audio inside this authored example" disabled>next</button>
+        <button id="musicExampleRandom" type="button" title="random audio inside this authored example" disabled>random</button>
       </div>
       <label class="sfxControl" for="moods">Dynamic mood
         <select id="moods" title="dynamic mood"></select>
@@ -433,7 +439,7 @@
     <section class="card" id="jukebox">
       <div class="sectionHeader">
         <div>
-          <div class="sectionTitle"><h2>Classic jukebox</h2><button class="infoButton" type="button" aria-label="About the classic jukebox" data-tip="Plays 75 titled tracks supplied as a separate, optional music library. Download the demo tracks with npm run demo:music before starting this demo. Unavailable tracks are not offered for playback.">i</button></div>
+          <div class="sectionTitle"><h2>Classic jukebox</h2><button class="infoButton" type="button" aria-label="About the classic jukebox" data-tip="Plays 75 external standalone tracks supplied as a separate, optional music library. A recording may duplicate music embedded in a SoundBank, but this control never supplies authored Wwise playback. Download the demo tracks with npm run demo:music before starting this demo. Unavailable tracks are not offered.">i</button></div>
           <p class="sectionNote">Optional titled-track library</p>
         </div>
       </div>

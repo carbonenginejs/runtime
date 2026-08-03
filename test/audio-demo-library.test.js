@@ -34,15 +34,19 @@ test("authored music demo exposes a stable contextual transport", () =>
         "musicExamplePlay",
         "musicExamplePause",
         "musicExampleNext",
+        "musicExampleRandom",
     ])
     {
         assert.match(html, new RegExp(`id="${id}"`));
     }
     assert.match(html, /#musicExampleDetail\s*\{[^}]*height:\s*44px/s);
+    assert.match(html, /\.transport button:disabled\s*\{[^}]*color:\s*rgba\([^)]*,\s*0\.24\)/s);
     assert.match(script, /#transportState = "idle"/);
-    assert.match(script, /this\.#transportState !== "playing"/);
-    assert.match(script, /this\.#transportState === "idle"/);
-    assert.match(guide, /soft\s+pause restarts the selected example/s);
+    assert.match(script, /\.StepTransport\(/);
+    assert.match(script, /\.RandomTransport\(/);
+    assert.match(script, /\.PauseTransport\(/);
+    assert.doesNotMatch(script, /#StepExample/);
+    assert.match(guide, /inside the\s+currently selected example/s);
 });
 
 test("committed demo library carries authored SFX and music semantics", () =>

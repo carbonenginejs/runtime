@@ -16,7 +16,9 @@ Runtime-audio exposes two deliberately independent music paths:
 
 The jukebox does not route synthetic Wwise events and does not replace the
 authored engine. An application may mix both or make them mutually exclusive
-in its UI.
+in its UI. A standalone catalog entry may contain the same recording as a WEM
+referenced by an authored SoundBank; that content overlap does not merge the
+delivery paths, and the jukebox is never used to satisfy an authored event.
 
 ## Catalog
 

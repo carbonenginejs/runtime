@@ -41,8 +41,15 @@ function wwiseIdFromName(name) {
 const DEFAULT_FADE_SECONDS = 1;
 const SCHEDULE_HORIZON_SECONDS = 1.5;
 const MAX_SCHEDULE_HORIZON_SECONDS = 60;
+const DEFAULT_RENDER_QUANTUM_SECONDS = 128 / 48000;
 const LINEAR_FADE_CURVE = 4;
 const FADE_CURVE_SAMPLES = 65;
+
+/** One Web Audio render quantum, used for coordinated future starts. */
+function RenderQuantumSeconds(context) {
+  const sampleRate = Number(context?.sampleRate);
+  return Number.isFinite(sampleRate) && sampleRate > 0 ? 128 / sampleRate : DEFAULT_RENDER_QUANTUM_SECONDS;
+}
 function FadeDuration(fade) {
   return Math.max(0, Number(fade?.transitionTime) || 0) / 1000;
 }
@@ -472,6 +479,13 @@ class MusicInstance {
     this.targetMeter = null;
     this.playlistPreviousSegmentId = null;
     this.playlistPreviousScheduled = null;
+    // Browser transport state is deliberately separate from authored
+    // Wwise play/stop actions. Web Audio cannot resume a stopped buffer,
+    // so transport resumes by replaying this authored item.
+    this.transportPaused = false;
+    this.transportChoice = null;
+    this.transportPendingChoice = null;
+    this.transportGeneration = 0;
   }
 }
 
@@ -487,6 +501,7 @@ class CjsMusicEngine {
   #instances = new Map();
   #groups = new Map();
   #buffers = new Map();
+  #transportChoices = new Map();
   #nextScheduleId = 1;
   #epoch = 0;
   #busRtpcCatalog = new Map();
@@ -571,6 +586,7 @@ class CjsMusicEngine {
     this.#graph = graph ?? null;
     this.#loadMedia = loadMedia ?? null;
     this.#switchValues.clear();
+    this.#transportChoices.clear();
     this.ClearMedia();
     return this;
   }
@@ -607,6 +623,7 @@ class CjsMusicEngine {
     this.#epoch++;
     this.ClearMedia();
     this.#switchValues.clear();
+    this.#transportChoices.clear();
     this.#unsubscribeBusDucking?.();
     this.#unsubscribeBusDucking = null;
     this.#busDuckingController = null;
@@ -640,7 +657,7 @@ class CjsMusicEngine {
         this.#switchValues.set(setter.groupId >>> 0, setter.targetId >>> 0);
       }
       for (const instance of this.#instances.values()) {
-        if (!instance.stopped) {
+        if (!instance.stopped && !instance.transportPaused) {
           this.#ReevaluateInstance(instance);
         }
       }
@@ -701,6 +718,130 @@ class CjsMusicEngine {
     }
   }
 
+  /** Capabilities for the browser transport over one live playing id. */
+  GetTransportCapabilities(playingID) {
+    const group = this.#groups.get(playingID);
+    const states = [...(group?.instances ?? [])].filter(instance => !instance.stopped).map(instance => this.#GetTransportState(instance));
+    const active = states.length > 0;
+    const choiceCount = states.reduce((count, state) => Math.max(count, state.choices.length), 0);
+    const preparing = active && states.some(state => state.instance.transportPendingChoice !== null);
+    const canSelect = active && states.every(state => state.instance.pendingTargetId === null && !(state.instance.transportPaused && state.instance.transportPendingChoice !== null));
+    return {
+      active,
+      preparing,
+      paused: active && states.every(state => state.instance.transportPaused),
+      canPause: active && states.some(state => !state.instance.transportPaused && state.choice),
+      canResume: active && states.some(state => state.instance.transportPaused && state.choice) && !preparing,
+      canPrevious: canSelect && states.some(state => state.choices.length > 1),
+      canNext: canSelect && states.some(state => state.choices.length > 1),
+      canRandom: canSelect && states.some(state => state.choices.length > 1),
+      choiceCount
+    };
+  }
+
+  /** Soft-pauses one playing id while retaining its authored item. */
+  PauseTransport(playingID, fadeOutDuration = 30) {
+    const group = this.#groups.get(playingID);
+    const ms = Number(fadeOutDuration);
+    const seconds = Number.isFinite(ms) ? Math.max(0, ms) / 1000 : 0.03;
+    let changed = false;
+    for (const instance of group?.instances ?? []) {
+      if (instance.stopped || instance.transportPaused) continue;
+      instance.transportGeneration++;
+      instance.transportPendingChoice = null;
+      instance.pendingGeneration++;
+      instance.pendingTargetId = null;
+      instance.pendingRoute = null;
+      const state = this.#GetTransportState(instance);
+      if (!state.choice) continue;
+      instance.transportChoice = state.choice;
+      instance.transportPaused = true;
+      for (const scheduled of instance.active) {
+        this.#FadeOutSources(scheduled, this.#context.currentTime, seconds, null, LINEAR_FADE_CURVE, 0, true);
+      }
+      changed = true;
+    }
+    return changed;
+  }
+
+  /** Resumes a soft-paused playing id at its retained authored item. */
+  ResumeTransport(playingID) {
+    const group = this.#groups.get(playingID);
+    const queued = [];
+    for (const instance of group?.instances ?? []) {
+      if (instance.stopped || !instance.transportPaused) continue;
+      const state = this.#GetTransportState(instance);
+      const choice = instance.transportChoice ?? state.choice;
+      if (!choice) continue;
+      instance.transportPendingChoice = choice;
+      queued.push({
+        instance,
+        choice
+      });
+    }
+    this.#QueueTransportGroup(queued, {
+      resume: true
+    });
+    return queued.length > 0;
+  }
+
+  /** Moves within the current authored playlist/track selection. */
+  StepTransport(playingID, direction) {
+    const group = this.#groups.get(playingID);
+    if ([...(group?.instances ?? [])].some(instance => !instance.stopped && (instance.pendingTargetId !== null || instance.transportPaused && instance.transportPendingChoice !== null))) {
+      return false;
+    }
+    const delta = Number(direction) < 0 ? -1 : 1;
+    const queued = [];
+    let changed = false;
+    for (const instance of group?.instances ?? []) {
+      if (instance.stopped || instance.pendingTargetId !== null) continue;
+      const state = this.#GetTransportState(instance);
+      if (state.choices.length < 2) continue;
+      const index = (state.index + delta + state.choices.length) % state.choices.length;
+      const choice = state.choices[index];
+      instance.transportChoice = choice;
+      if (!instance.transportPaused) {
+        instance.transportPendingChoice = choice;
+        queued.push({
+          instance,
+          choice
+        });
+      }
+      changed = true;
+    }
+    this.#QueueTransportGroup(queued);
+    return changed;
+  }
+
+  /** Chooses another item inside the current authored playlist/track. */
+  RandomTransport(playingID) {
+    const group = this.#groups.get(playingID);
+    if ([...(group?.instances ?? [])].some(instance => !instance.stopped && (instance.pendingTargetId !== null || instance.transportPaused && instance.transportPendingChoice !== null))) {
+      return false;
+    }
+    const queued = [];
+    let changed = false;
+    for (const instance of group?.instances ?? []) {
+      if (instance.stopped || instance.pendingTargetId !== null) continue;
+      const state = this.#GetTransportState(instance);
+      if (state.choices.length < 2) continue;
+      const offset = 1 + Math.floor(this.#random() * (state.choices.length - 1));
+      const choice = state.choices[(state.index + offset) % state.choices.length];
+      instance.transportChoice = choice;
+      if (!instance.transportPaused) {
+        instance.transportPendingChoice = choice;
+        queued.push({
+          instance,
+          choice
+        });
+      }
+      changed = true;
+    }
+    this.#QueueTransportGroup(queued);
+    return changed;
+  }
+
   /** Switch/state input by name or id; music treats both as tree arguments. */
   SetSwitch(group, value) {
     this.#SetValue(wwiseIdFromName(group), wwiseIdFromName(value));
@@ -737,6 +878,9 @@ class CjsMusicEngine {
         continue;
       }
       this.#PruneScheduledSegments(instance, now);
+      if (instance.transportPaused) {
+        continue;
+      }
       if (instance.iterator === null) {
         // Silent state (target resolves to nothing): stay alive and
         // idle until a switch/state change resumes the music.
@@ -842,6 +986,8 @@ class CjsMusicEngine {
       let state = "scheduled";
       if (instance.stopped) {
         state = "stopping";
+      } else if (instance.transportPaused) {
+        state = "paused";
       } else if (totals.audible) {
         state = totals.failed || totals.missed ? "degraded" : "playing";
       } else if (instance.pendingTargetId !== null || totals.pending) {
@@ -858,6 +1004,7 @@ class CjsMusicEngine {
         rootId: instance.rootId,
         now,
         state,
+        paused: instance.transportPaused,
         stopped: instance.stopped,
         stopAt: instance.stopAt,
         resolvedTargetId: instance.resolvedTargetId,
@@ -882,6 +1029,14 @@ class CjsMusicEngine {
     this.#switchValues.set(groupId >>> 0, valueId >>> 0);
     for (const instance of this.#instances.values()) {
       if (instance.stopped) continue;
+      if (instance.transportPaused) {
+        instance.transportGeneration++;
+        instance.transportPendingChoice = null;
+        instance.pendingGeneration++;
+        instance.pendingTargetId = null;
+        instance.pendingRoute = null;
+        continue;
+      }
       this.#ReevaluateInstance(instance);
     }
   }
@@ -1030,6 +1185,10 @@ class CjsMusicEngine {
    * transition is computed only once the destination can actually sound.
    */
   #ReevaluateInstance(instance) {
+    // A newly authored switch/state decision supersedes any browser
+    // transport choice that is still waiting on media.
+    instance.transportGeneration++;
+    instance.transportPendingChoice = null;
     const resolution = this.#ResolveTarget(instance.rootId);
     const target = resolution.targetId;
     const route = resolution.route;
@@ -1312,6 +1471,195 @@ class CjsMusicEngine {
     });
   }
 
+  /** Enumerates authored segment and random/sequence subtrack choices. */
+  #GetTransportChoices(instance) {
+    const cached = this.#transportChoices.get(instance.resolvedTargetId);
+    if (cached) return cached;
+    const target = this.#graph?.nodes?.[instance.resolvedTargetId];
+    const segmentIds = target?.type === "music-segment" ? [instance.resolvedTargetId] : target?.type === "music-playlist-container" ? (target.playlist ?? []).map(item => item.segmentId) : [];
+    const choices = [];
+    const seen = new Set();
+    for (const segmentId of segmentIds) {
+      const segment = this.#graph.nodes[segmentId];
+      if (segment?.type !== "music-segment") continue;
+      const selectableTracks = [];
+      for (const trackId of segment.children ?? []) {
+        const track = this.#graph.nodes[trackId];
+        const count = Math.max(1, track?.subTrackCount || 1);
+        if (track?.type !== "music-track" || ![1, 2].includes(track.trackType) || count < 2) {
+          continue;
+        }
+        selectableTracks.push({
+          trackId,
+          count
+        });
+      }
+      // Do not construct the Cartesian product. Real segments may layer
+      // thousands of valid random-track combinations; the transport
+      // only needs a bounded path that visits every individual track's
+      // authored subtracks. Automatic playback keeps full Wwise choice.
+      const variantCount = selectableTracks.reduce((count, track) => Math.max(count, track.count), 1);
+      const variants = Array.from({
+        length: variantCount
+      }, (_, variant) => new Map(selectableTracks.map(track => [track.trackId, variant % track.count])));
+      for (const subTracks of variants) {
+        const choice = {
+          segmentId,
+          subTracks
+        };
+        const key = this.#TransportChoiceKey(choice);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        choices.push(choice);
+      }
+    }
+    this.#transportChoices.set(instance.resolvedTargetId, choices);
+    return choices;
+  }
+
+  /** Stable comparison key for one internal authored transport choice. */
+  #TransportChoiceKey(choice) {
+    return [choice?.segmentId, ...[...(choice?.subTracks ?? [])].map(([trackId, subTrack]) => `${trackId}=${subTrack}`)].join("|");
+  }
+
+  /** Locates the audible/current scheduled item in the enumerated choices. */
+  #GetTransportState(instance) {
+    const choices = this.#GetTransportChoices(instance);
+    let choice = instance.transportPendingChoice ?? (instance.transportPaused ? instance.transportChoice : null);
+    if (!choice) {
+      const now = this.#context?.currentTime ?? 0;
+      const candidates = instance.active.filter(value => !value.disposed).sort((left, right) => left.startCtx - right.startCtx).filter(value => now < (value.fading ? Math.min(value.fadeEndCtx ?? value.audibleEndCtx ?? value.endCtx, value.audibleEndCtx ?? value.endCtx) : value.audibleEndCtx ?? value.endCtx));
+      const scheduled = candidates.filter(value => value.startCtx <= now).at(-1) ?? candidates.find(value => value.startCtx > now) ?? null;
+      if (scheduled) {
+        const subTracks = new Map([...scheduled.subTracks].filter(([trackId]) => {
+          const track = this.#graph.nodes[trackId];
+          return track?.type === "music-track" && [1, 2].includes(track.trackType) && Math.max(1, track.subTrackCount || 1) > 1;
+        }));
+        choice = {
+          segmentId: scheduled.segmentId,
+          subTracks
+        };
+      }
+    }
+    let index = choices.findIndex(value => this.#TransportChoiceKey(value) === this.#TransportChoiceKey(choice));
+    if (index < 0) index = 0;
+    return {
+      instance,
+      choices,
+      // Pause/resume retains the exact independently authored selection
+      // even when it is outside the bounded UI traversal path.
+      choice: choice ?? choices[index] ?? null,
+      index
+    };
+  }
+
+  /** Preloads every changed layer, then commits them at one context time. */
+  #QueueTransportGroup(selections, {
+    resume = false
+  } = {}) {
+    if (!selections.length) return;
+    const entries = selections.map(({
+      instance,
+      choice
+    }) => ({
+      instance,
+      choice,
+      generation: ++instance.transportGeneration,
+      pendingGeneration: instance.pendingGeneration,
+      targetId: instance.resolvedTargetId,
+      plan: this.#CreateTransportPlan(instance, choice)
+    }));
+    if (entries.some(entry => !entry.plan)) {
+      for (const entry of entries) {
+        entry.instance.transportPendingChoice = null;
+      }
+      return;
+    }
+    const current = entry => !entry.instance.stopped && entry.instance.transportPaused === resume && entry.instance.transportGeneration === entry.generation && entry.instance.pendingGeneration === entry.pendingGeneration && entry.instance.resolvedTargetId === entry.targetId;
+    const clearPending = () => {
+      for (const entry of entries) {
+        if (current(entry)) {
+          entry.instance.transportPendingChoice = null;
+        }
+      }
+    };
+    Promise.all(entries.map(entry => this.#PreparePlaybackPlan(entry.plan))).then(results => {
+      const valid = entries.every((entry, index) => results[index] && current(entry));
+      if (!valid) {
+        clearPending();
+        return;
+      }
+      const now = (this.#context?.currentTime ?? 0) + RenderQuantumSeconds(this.#context);
+      for (const entry of entries) {
+        if (resume) entry.instance.transportPaused = false;
+        entry.instance.transportPendingChoice = null;
+        entry.plan.scheduleFloor = now;
+        this.#RestartTransportChoice(entry.instance, entry.choice, entry.plan, now, false);
+      }
+      this.Process();
+      if (resume) {
+        for (const entry of entries) {
+          this.#ReevaluateInstance(entry.instance);
+        }
+      }
+    }).catch(clearPending);
+  }
+
+  /** Creates the pinned segment/subtrack plan for a transport selection. */
+  #CreateTransportPlan(instance, choice) {
+    const targetId = instance.resolvedTargetId;
+    const target = this.#graph?.nodes?.[targetId];
+    const segment = this.#graph?.nodes?.[choice.segmentId];
+    if (!target || segment?.type !== "music-segment") return null;
+    const targetMeter = EffectiveMeter(null, target);
+    const subTracks = new Map(choice.subTracks);
+    for (const trackId of segment.children ?? []) {
+      const track = this.#graph.nodes[trackId];
+      if (track?.type !== "music-track" || subTracks.has(trackId)) {
+        continue;
+      }
+      subTracks.set(trackId, track.trackType === 3 ? this.#SelectSubTrack(trackId, track, new Map(instance.trackSequencePositions)) : 0);
+    }
+    return {
+      targetId,
+      segmentId: choice.segmentId,
+      targetMeter,
+      segmentMeter: EffectiveMeter(targetMeter, segment),
+      subTracks,
+      preparedBuffers: new Map()
+    };
+  }
+
+  /** Restarts one live instance at an explicitly selected authored item. */
+  #RestartTransportChoice(instance, choice, plan = this.#CreateTransportPlan(instance, choice), now = this.#context?.currentTime ?? 0, runProcess = true) {
+    const targetId = instance.resolvedTargetId;
+    const target = this.#graph?.nodes?.[targetId];
+    if (!target || !plan) return false;
+    instance.pendingGeneration++;
+    instance.pendingTargetId = null;
+    instance.pendingRoute = null;
+    instance.unavailableTargetId = null;
+    for (const scheduled of instance.active) {
+      this.#FadeOutSources(scheduled, now, 0.03, null, LINEAR_FADE_CURVE, 0, true);
+    }
+    this.#ResolveInstanceTo(instance, targetId, now);
+    if (target.type === "music-segment") {
+      instance.iterator = () => null;
+    }
+    for (const [trackId, subTrack] of choice.subTracks) {
+      const track = this.#graph.nodes[trackId];
+      if (track?.type === "music-track" && track.trackType === 2) {
+        instance.trackSequencePositions.set(trackId, subTrack + 1);
+      }
+    }
+    instance.nextSegmentPlan = plan;
+    instance.transportChoice = choice;
+    instance.transportPendingChoice = null;
+    this.#ScheduleNextSegment(instance);
+    if (runProcess) this.Process();
+    return true;
+  }
+
   /**
    * Context time for a rule's transition sync point, quantized on the
    * current segment's musical timeline. AkSyncType: 0 Immediate,
@@ -1467,12 +1815,14 @@ class CjsMusicEngine {
     let segmentId;
     let subTracks = null;
     let preparedBuffers = null;
+    let scheduleFloor = null;
     let meter = null;
     let playPreEntry = instance.nextSegmentPlayPreEntry ?? true;
     if (instance.nextSegmentPlan) {
       segmentId = instance.nextSegmentPlan.segmentId;
       subTracks = instance.nextSegmentPlan.subTracks;
       preparedBuffers = instance.nextSegmentPlan.preparedBuffers;
+      scheduleFloor = instance.nextSegmentPlan.scheduleFloor ?? null;
       meter = instance.nextSegmentPlan.segmentMeter;
       instance.nextSegmentPlan = null;
     } else {
@@ -1507,7 +1857,8 @@ class CjsMusicEngine {
       meter,
       playPreEntry,
       subTracks,
-      preparedBuffers
+      preparedBuffers,
+      scheduleFloor
     });
     if (instance.nextSegmentFadeIn) {
       this.#ApplyFadeIn(scheduled, boundary, instance.nextSegmentFadeIn);
@@ -1531,7 +1882,8 @@ class CjsMusicEngine {
     playPostExit = true,
     meter = segment.meter,
     subTracks = null,
-    preparedBuffers = null
+    preparedBuffers = null,
+    scheduleFloor = null
   } = {}) {
     // Each scheduled segment owns a gain so transitions can crossfade it
     // out without touching the incoming segment on the same instance.
@@ -1540,6 +1892,7 @@ class CjsMusicEngine {
     const scheduled = {
       sources: [],
       routeGains: new Map(),
+      subTracks: new Map(),
       segmentId,
       scheduleId: this.#nextScheduleId++,
       targetId,
@@ -1559,9 +1912,10 @@ class CjsMusicEngine {
       const track = this.#graph.nodes[trackId];
       if (!track || track.type !== "music-track" || !track.clips.length) continue;
       const subTrack = subTracks?.get(trackId) ?? this.#SelectSubTrack(trackId, track, instance.trackSequencePositions);
+      scheduled.subTracks.set(trackId, subTrack);
       for (const clip of track.clips) {
         if ((clip.trackId ?? 0) !== subTrack) continue;
-        this.#ScheduleClip(instance, scheduled, trackId, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit, preparedBuffers);
+        this.#ScheduleClip(instance, scheduled, trackId, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit, preparedBuffers, scheduleFloor);
       }
     }
     return scheduled;
@@ -1596,7 +1950,7 @@ class CjsMusicEngine {
   }
 
   /** Loads and schedules one clip within its allowed pre/post-entry window. */
-  #ScheduleClip(instance, scheduled, trackId, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit, preparedBuffers) {
+  #ScheduleClip(instance, scheduled, trackId, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit, preparedBuffers, scheduleFloor) {
     const context = this.#context;
     const clipStartMs = clip.playAt + clip.beginTrimOffset;
     const clipEndMs = clip.playAt + clip.srcDuration + clip.endTrimOffset;
@@ -1606,7 +1960,8 @@ class CjsMusicEngine {
     let when = boundary + (audibleStartMs - entryCueMs) / 1000;
     const initialOffsetMs = clip.beginTrimOffset + audibleStartMs - clipStartMs;
     let offsetMs = initialOffsetMs;
-    const now = context.currentTime;
+    const isPrepared = preparedBuffers?.has(clip.sourceId) === true;
+    const now = scheduleFloor ?? context.currentTime;
     if (when < now) {
       offsetMs += (now - when) * 1000;
       when = now;
@@ -1630,8 +1985,8 @@ class CjsMusicEngine {
     // schedule an authored transition on this segment.
     const routeGain = this.#GetRouteGain(instance, scheduled, trackId, track);
     const epoch = this.#epoch;
-    const prepared = preparedBuffers?.has(clip.sourceId) ? preparedBuffers.get(clip.sourceId) : this.#LoadBuffer(clip.sourceId, track);
-    Promise.resolve(prepared).then(buffer => {
+    const prepared = isPrepared ? preparedBuffers.get(clip.sourceId) : this.#LoadBuffer(clip.sourceId, track);
+    const scheduleBuffer = buffer => {
       if (!buffer) {
         entry.cancelled = true;
         entry.failed = true;
@@ -1642,9 +1997,10 @@ class CjsMusicEngine {
       }
       let resolvedWhen = when;
       let resolvedOffsetMs = offsetMs;
-      if (resolvedWhen < context.currentTime) {
-        resolvedOffsetMs += (context.currentTime - resolvedWhen) * 1000;
-        resolvedWhen = context.currentTime;
+      if (!isPrepared && resolvedWhen < context.currentTime) {
+        const loadedAt = context.currentTime;
+        resolvedOffsetMs += (loadedAt - resolvedWhen) * 1000;
+        resolvedWhen = loadedAt;
       }
       const resolvedDurationMs = audibleEndMs - audibleStartMs - (resolvedOffsetMs - initialOffsetMs);
       if (resolvedDurationMs <= 0) {
@@ -1674,10 +2030,12 @@ class CjsMusicEngine {
       };
       try {
         source.start(resolvedWhen, Math.max(0, resolvedOffsetMs) / 1000, resolvedDurationMs / 1000);
-      } catch (error) {
+      } catch {
         source.onended = null;
         source.disconnect?.();
-        throw error;
+        entry.cancelled = true;
+        entry.failed = true;
+        return;
       }
       entry.source = source;
       entry.startCtx = resolvedWhen;
@@ -1686,10 +2044,16 @@ class CjsMusicEngine {
       if (scheduled.fading) {
         source.stop(scheduled.fadeEndCtx);
       }
-    }).catch(() => {
+    };
+    const failed = () => {
       entry.cancelled = true;
       entry.failed = true;
-    });
+    };
+    if (isPrepared) {
+      scheduleBuffer(prepared);
+    } else {
+      Promise.resolve(prepared).then(scheduleBuffer).catch(failed);
+    }
   }
 
   /** Gets or creates the gain node for one scheduled music bus route. */
@@ -1850,10 +2214,21 @@ class CjsMusicEngine {
   }
 
   /** Fades a scheduled segment gain and stops loaded or future sources. */
-  #FadeOutSources(scheduledSegment, when, fadeSeconds, startValue = null, fadeCurve = LINEAR_FADE_CURVE, progress = 0) {
-    // First fade wins: an already-fading segment keeps its earlier
-    // schedule (its sources already have stops queued).
-    if (scheduledSegment.fading) return;
+  #FadeOutSources(scheduledSegment, when, fadeSeconds, startValue = null, fadeCurve = LINEAR_FADE_CURVE, progress = 0, override = false) {
+    // Authored fades are first-wins. Explicit browser transport may only
+    // shorten one, never extend its already scheduled audible lifetime.
+    if (scheduledSegment.fading && !override) return;
+    if (override && scheduledSegment.fadeEndCtx !== null) {
+      fadeSeconds = Math.max(0, Math.min(when + fadeSeconds, scheduledSegment.fadeEndCtx) - when);
+      for (const param of this.#GetSegmentGainParams(scheduledSegment)) {
+        if (typeof param.cancelAndHoldAtTime === "function") {
+          param.cancelAndHoldAtTime(when);
+        } else {
+          param.cancelScheduledValues?.(0);
+          param.setValueAtTime?.(param.value ?? 1, when);
+        }
+      }
+    }
     scheduledSegment.fading = true;
     scheduledSegment.fadeEndCtx = when + fadeSeconds;
     if (fadeSeconds > 0) {

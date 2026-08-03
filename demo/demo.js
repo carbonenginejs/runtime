@@ -2101,7 +2101,11 @@ class MusicUi
 
     #nextButton = null;
 
+    #randomButton = null;
+
     #transportState = "idle";
+
+    #playingID = 0;
 
     #retryButton = null;
 
@@ -2133,6 +2137,7 @@ class MusicUi
         this.#playButton = document.getElementById("musicExamplePlay");
         this.#pauseButton = document.getElementById("musicExamplePause");
         this.#nextButton = document.getElementById("musicExampleNext");
+        this.#randomButton = document.getElementById("musicExampleRandom");
         for (const example of MusicUi.examples)
         {
             const roots = musicGraph.eventTargets[example.eventName] ?? [];
@@ -2146,10 +2151,11 @@ class MusicUi
             this.#exampleSelect.appendChild(option);
         }
         this.#exampleSelect.onchange = () => this.#RefreshExampleDetail();
-        this.#previousButton.onclick = () => this.#StepExample(-1);
+        this.#previousButton.onclick = () => this.#StepAuthoredAudio(-1);
         this.#playButton.onclick = () => this.PlaySelectedExample();
         this.#pauseButton.onclick = () => this.Pause();
-        this.#nextButton.onclick = () => this.#StepExample(1);
+        this.#nextButton.onclick = () => this.#StepAuthoredAudio(1);
+        this.#randomButton.onclick = () => this.#RandomAuthoredAudio();
         this.#RefreshExampleDetail();
         this.#moodEvents = Object.keys(musicGraph.switchSetters).filter(n => n.startsWith("music_switch_")).sort();
         this.#select.onchange = () => this.#SteerTo(this.#select.value);
@@ -2167,6 +2173,7 @@ class MusicUi
         if (!enabled)
         {
             this.musicPlayer.SendEvent("music_eve_dynamic_stop");
+            this.#playingID = 0;
             this.#SetTransportState("idle");
             return;
         }
@@ -2203,7 +2210,7 @@ class MusicUi
         }
         const target = engine.PreviewSwitchEvent("", this.#dynamicRoot);
         if (target !== null && !this.moodLabelByTarget.has(target)) this.moodLabelByTarget.set(target, "default");
-        this.musicPlayer.SendEvent("music_eve_dynamic_play");
+        this.#playingID = this.musicPlayer.SendEvent("music_eve_dynamic_play");
         this.#SetTransportState("playing");
         this.RefreshMoodAvailability();
     }
@@ -2222,6 +2229,14 @@ class MusicUi
         {
             return false;
         }
+        if (this.#transportState === "paused"
+            && example.eventName === this.#activeExample?.eventName
+            && this.#app.audio.musicEngine.ResumeTransport(this.#playingID))
+        {
+            this.#hudElement.textContent = "music: preparing the retained authored itemâ€¦";
+            this.#RefreshTransport();
+            return true;
+        }
         this.#app.jukeboxUi.Stop();
         this.#app.audio.musicEngine.StopAll(0.2);
         if (example.dynamic)
@@ -2232,16 +2247,15 @@ class MusicUi
         {
             document.getElementById("musicToggle").checked = false;
             this.#SetActiveExample(example);
-            this.musicPlayer.SendEvent(example.eventName);
+            this.#playingID = this.musicPlayer.SendEvent(example.eventName);
             this.#SetTransportState("playing");
         }
         return true;
     }
 
     /**
-     * Soft-pauses the demo's authored transport. Web Audio cannot suspend the
-     * music engine's scheduled buffer sources individually, so Play restarts
-     * the selected example instead of resuming its exact media position.
+     * Soft-pauses the current authored item. Web Audio cannot suspend an
+     * AudioBufferSourceNode, so Resume replays that item from its entry cue.
      */
     Pause()
     {
@@ -2249,10 +2263,12 @@ class MusicUi
         {
             return false;
         }
-        document.getElementById("musicToggle").checked = false;
-        this.#app.audio?.musicEngine?.StopAll(0.12);
+        if (!this.#app.audio?.musicEngine?.PauseTransport(this.#playingID, 30))
+        {
+            return false;
+        }
         this.#SetTransportState("paused");
-        this.#hudElement.textContent = "music: paused (play restarts this example)";
+        this.#hudElement.textContent = "music: paused (play resumes this authored item)";
         return true;
     }
 
@@ -2261,6 +2277,7 @@ class MusicUi
     {
         document.getElementById("musicToggle").checked = false;
         this.#app.audio?.musicEngine?.StopAll(0.5);
+        this.#playingID = 0;
         this.#SetTransportState("idle");
     }
 
@@ -2344,9 +2361,21 @@ class MusicUi
         this.#RefreshTransport();
         if (this.#transportState === "paused")
         {
-            this.#hudElement.textContent = "music: paused (play restarts this example)";
-            if (this.#retryButton) this.#retryButton.hidden = true;
-            return;
+            const capabilities = this.#app.audio?.musicEngine
+                ?.GetTransportCapabilities(this.#playingID) ?? {};
+
+            if (capabilities.active && !capabilities.paused)
+            {
+                this.#SetTransportState("playing");
+            }
+            else
+            {
+                this.#hudElement.textContent = capabilities.preparing
+                    ? "music: preparing the retained authored itemâ€¦"
+                    : "music: paused (play resumes this authored item)";
+                if (this.#retryButton) this.#retryButton.hidden = true;
+                return;
+            }
         }
         const statuses = this.#app.audio?.musicEngine?.GetStatus() ?? [];
         const candidates = statuses.filter(status =>
@@ -2361,6 +2390,7 @@ class MusicUi
             if (this.#retryButton) this.#retryButton.hidden = true;
             if (this.#transportState === "playing")
             {
+                this.#playingID = 0;
                 this.#SetTransportState("idle");
             }
             return;
@@ -2499,25 +2529,32 @@ class MusicUi
         if (this.#exampleDetail)
         {
             this.#exampleDetail.textContent = example
-                ? `${example.detail}. EVE event: ${example.eventName}`
+                ? `${example.detail}. Press play to activate the controls supported by this authored content. EVE event: ${example.eventName}`
                 : "No playable example is available in this library.";
         }
     }
 
-    /** Selects and immediately plays an adjacent verified authored example. */
-    #StepExample(delta)
+    /** Moves through the audio inside the selected authored example. */
+    #StepAuthoredAudio(delta)
     {
-        if (this.#transportState === "idle"
-            || !this.#exampleSelect?.options.length)
-        {
-            return false;
-        }
-        const count = this.#exampleSelect.options.length;
-        const current = Math.max(0, this.#exampleSelect.selectedIndex);
+        const changed = this.#app.audio?.musicEngine?.StepTransport(
+            this.#playingID,
+            delta,
+        ) === true;
 
-        this.#exampleSelect.selectedIndex = (current + delta + count) % count;
-        this.#RefreshExampleDetail();
-        return this.PlaySelectedExample();
+        this.#RefreshTransport();
+        return changed;
+    }
+
+    /** Chooses another authored segment/subtrack inside this example. */
+    #RandomAuthoredAudio()
+    {
+        const changed = this.#app.audio?.musicEngine?.RandomTransport(
+            this.#playingID,
+        ) === true;
+
+        this.#RefreshTransport();
+        return changed;
     }
 
     #SetTransportState(state)
@@ -2534,21 +2571,28 @@ class MusicUi
         }
         const audioEnabled = this.#app.IsAudioEnabled();
         const hasExamples = Boolean(this.#exampleSelect?.options.length);
-        const authoredActive = this.#transportState !== "idle";
+        const capabilities = this.#app.audio?.musicEngine
+            ?.GetTransportCapabilities(this.#playingID) ?? {};
 
-        this.#playButton.disabled = !audioEnabled || !hasExamples;
+        this.#playButton.disabled = !audioEnabled
+            || !hasExamples
+            || (this.#transportState === "paused" && capabilities.preparing);
         this.#previousButton.disabled = !audioEnabled
-            || !authoredActive
-            || this.#exampleSelect.options.length < 2;
-        this.#nextButton.disabled = this.#previousButton.disabled;
+            || !capabilities.canPrevious;
+        this.#nextButton.disabled = !audioEnabled
+            || !capabilities.canNext;
+        this.#randomButton.disabled = !audioEnabled
+            || !capabilities.canRandom;
         this.#pauseButton.disabled = !audioEnabled
-            || this.#transportState !== "playing";
-        this.#playButton.title = this.#transportState === "paused"
-            ? "restart the selected authored example (exact position resume is unavailable)"
+            || !capabilities.canPause;
+        this.#playButton.title = capabilities.preparing
+            ? "preparing the retained authored item"
+            : this.#transportState === "paused"
+                ? "resume the current authored item from its entry cue"
             : "play the selected authored example";
         this.#pauseButton.title = this.#transportState === "paused"
-            ? "authored music is soft-paused; press play to restart it"
-            : "fade-stop authored music; play restarts the example";
+            ? "authored music is paused"
+            : "soft-pause the current authored item";
     }
 
 }

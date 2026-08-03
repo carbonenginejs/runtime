@@ -145,13 +145,29 @@ Example** to play one verified EVE event for each browser-playable behavior:
 - a transition-segment bridge.
 
 Choose an example and press **play**. While authored music owns the demo
-transport, **previous** and **next** select and post the adjacent verified
-example; they do not seek within a Wwise playlist. **Pause** performs a short
-fade-stop because Web Audio buffer sources cannot be suspended individually
-after the music engine has scheduled them. Pressing **play** after that soft
-pause restarts the selected example from its beginning rather than resuming its
-exact media position. The transport greys actions that are not currently
+transport, **previous**, **next**, and **random** choose audio inside the
+currently selected example: a leaf Music Segment or one of a Random/Sequence
+Music Track's authored subtracks. The Example selector does not move. A direct
+segment or fixed one-item playlist therefore greys all three selection actions.
+
+These controls are an explicit browser transport extension, not Wwise event
+actions. Selecting an item applies a short crossfade, restarts that item at its
+entry cue, and then starts a fresh traversal of the authored playlist. Playlist
+random/shuffle history therefore restarts; an explicitly selected Sequence
+Music Track continues from the following subtrack. The controls do not seek
+within decoded media. When one segment layers several selectable
+tracks, the controls advance them along a bounded coordinated path rather than
+materializing the potentially enormous Cartesian product; automatic playback
+still makes each authored Wwise choice independently. **Pause** similarly fades the current scheduled
+item because Web Audio buffer sources cannot be suspended individually;
+pressing **play** replays the retained item from its entry cue rather than its
+exact sample position. The transport greys actions that are not currently
 applicable.
+
+The authored panel always obtains its audio from the SoundBank graph and WEM
+delivery path. A bank WEM can contain the same recording as an external classic
+soundtrack file, so the two panels may sound identical without sharing a
+runtime source or substituting one delivery path for the other.
 
 The Dynamic switch graph also
 enables the **Dynamic mood** selector, which posts EVE's authored setter events

@@ -182,6 +182,34 @@ song `url` or `path` hints itself. `RefreshAvailability()` plus
 `GetPlaylistSongs({ includeUnavailable })` lets a UI hide or disable
 unreachable songs.
 
+### Authored-music browser transport
+
+`CjsMusicEngine` exposes an optional integration transport over an active
+playing ID:
+
+- `GetTransportCapabilities(playingID)` reports pause/resume and whether the
+  resolved graph has multiple Music Segments or Random/Sequence subtracks;
+  its `preparing` flag covers a retained item being loaded for resume;
+- `PauseTransport(playingID, fadeOutDuration)` soft-fades over the optional
+  duration in milliseconds, and `ResumeTransport(playingID)` retains the
+  current authored item;
+- `StepTransport(playingID, direction)` chooses the adjacent internal item;
+  and
+- `RandomTransport(playingID)` chooses another internal item.
+
+The mutation methods return `true` when the playing ID accepted the requested
+operation and `false` when it had no applicable live authored item.
+
+This is a CarbonEngineJS browser extension for applications and the package
+demo, not an authored Wwise action contract. Web Audio buffer sources cannot
+resume after stopping, so pause and item selection use a short fade and replay
+the selected item from its entry cue. Exact decoded-media position is not
+retained. Layered selectable tracks use a bounded coordinated traversal instead
+of enumerating their Cartesian product. Normal automatic playlist traversal
+and independent Wwise track selection remain authored, but manual selection
+starts a fresh playlist traversal and therefore resets playlist random/shuffle
+history. A selected Sequence Music Track continues at its following subtrack.
+
 ## Builder
 
 `CjsAudioLibraryBuilder` accepts caller-supplied `indexEntries`,

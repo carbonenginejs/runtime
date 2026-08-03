@@ -981,6 +981,7 @@ test("initial music waits for media before anchoring its timeline", async () =>
   await tick();
 
   assert.equal(engine.GetStatus()[0].preparingTargetId, PLAYLIST);
+  assert.equal(engine.GetTransportCapabilities(600).canPause, false);
   assert.equal(context.sources.length, 0);
 
   context.currentTime = 20;
@@ -1126,6 +1127,29 @@ test("finite music remains live through authored post-exit clip audio", async ()
   engine.Process();
   assert.equal(engine.GetPlayingCount(), 0);
   assert.deepEqual(finished, [ 606 ]);
+});
+
+test("browser pause remains available during an audible post-exit tail", async () =>
+{
+  const context = FakeContext();
+  const graph = fixtureGraph();
+
+  graph.eventTargets.direct_play = [ SEGMENT_A ];
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+  });
+
+  engine.PostEvent("direct_play", 1209, () => {});
+  await tick();
+  context.currentTime = 8;
+  engine.Process();
+
+  assert.equal(engine.GetTransportCapabilities(1209).canPause, true);
+  assert.equal(engine.PauseTransport(1209), true);
+  assert.equal(context.sources[0].stoppedAt, 8.03);
 });
 
 test("failed scheduled music media does not remain permanently pending", async () =>
@@ -1431,6 +1455,53 @@ test("playlist transition matrices apply authored source and destination fades",
   );
 });
 
+test("browser pause overrides a future authored fade and retains the audible item", async () =>
+{
+  const context = FakeContext();
+  const graph = PlaylistModeGraph({ rsType: 0, loop: 1 });
+
+  graph.nodes[900].rules = [ {
+    srcIds: [ -1 ],
+    dstIds: [ -1 ],
+    src: {
+      transitionTime: 500,
+      fadeCurve: 4,
+      fadeOffset: 0,
+      syncType: 7,
+      playPostExit: false,
+    },
+    dst: {
+      transitionTime: 0,
+      fadeCurve: 4,
+      fadeOffset: 0,
+      playPreEntry: false,
+    },
+    transitionSegment: null,
+  } ];
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+  });
+
+  engine.PostEvent("play", 1204, () => {});
+  await tick();
+  assert.equal(context.sources[0].stoppedAt, 1);
+
+  assert.equal(engine.PauseTransport(1204), true);
+  assert.equal(context.sources[0].stoppedAt, 0.03);
+  const beforeResume = context.sources.length;
+  assert.equal(engine.ResumeTransport(1204), true);
+  await tick();
+  assert.equal(
+    context.sources.slice(beforeResume)
+      .find(source => source.buffer.fake === 1000).buffer.fake,
+    1000,
+    "resume restarts the item audible at pause, not the lookahead successor",
+  );
+});
+
 test("playlist scheduling expands its lookahead for long authored fades", async () =>
 {
   const context = FakeContext();
@@ -1541,6 +1612,458 @@ test("playlist traversal preserves all four authored Wwise play modes", async ()
     [ 1001, 1000 ],
     "Random Step makes one random choice per authored loop",
   );
+});
+
+test("browser transport steps and randomizes audio inside one authored playlist", async () =>
+{
+  const context = FakeContext();
+  const graph = PlaylistModeGraph({ rsType: 0, loop: 0 });
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+    random: () => 0,
+  });
+
+  engine.PostEvent("play", 1200, () => {});
+  await tick();
+
+  assert.deepEqual(engine.GetTransportCapabilities(1200), {
+    active: true,
+    preparing: false,
+    paused: false,
+    canPause: true,
+    canResume: false,
+    canPrevious: true,
+    canNext: true,
+    canRandom: true,
+    choiceCount: 2,
+  });
+
+  const beforeNext = context.sources.length;
+  assert.equal(engine.StepTransport(1200, 1), true);
+  await tick();
+  assert.equal(context.sources[beforeNext].buffer.fake, 1001);
+  assert.equal(engine.GetPlayingCount(), 1, "the posted event remains live");
+
+  const beforePrevious = context.sources.length;
+  assert.equal(engine.StepTransport(1200, -1), true);
+  await tick();
+  assert.equal(
+    context.sources.slice(beforePrevious)
+      .find(source => source.buffer.fake === 1000).buffer.fake,
+    1000,
+  );
+
+  const beforeRandom = context.sources.length;
+  assert.equal(engine.RandomTransport(1200), true);
+  await tick();
+  assert.equal(
+    context.sources.slice(beforeRandom)
+      .find(source => source.buffer.fake === 1001).buffer.fake,
+    1001,
+  );
+});
+
+test("browser transport pauses and resumes the current authored item", async () =>
+{
+  const { context, engine } = Harness();
+
+  engine.PostEvent("music_test_play", 1201, () => {});
+  await tick();
+
+  const fixedCapabilities = engine.GetTransportCapabilities(1201);
+  assert.equal(fixedCapabilities.choiceCount, 1);
+  assert.equal(fixedCapabilities.canPrevious, false);
+  assert.equal(fixedCapabilities.canNext, false);
+  assert.equal(fixedCapabilities.canRandom, false);
+
+  assert.equal(engine.PauseTransport(1201), true);
+  assert.equal(engine.GetStatus()[0].state, "paused");
+  assert.equal(engine.GetTransportCapabilities(1201).canResume, true);
+  assert.equal(context.sources[0].stoppedAt, 0.03);
+
+  const beforeResume = context.sources.length;
+  assert.equal(engine.ResumeTransport(1201), true);
+  await tick();
+  assert.equal(context.sources[beforeResume].buffer.fake, 111);
+  assert.equal(engine.GetStatus()[0].paused, false);
+  assert.equal(engine.GetPlayingCount(), 1);
+});
+
+test("browser transport exposes authored random and sequence subtracks", async () =>
+{
+  const context = FakeContext();
+  const graph = PlaylistModeGraph({
+    rsType: 0,
+    loop: 1,
+    segments: [ 910 ],
+  });
+  const track = graph.nodes[911];
+
+  track.trackType = 1;
+  track.subTrackCount = 3;
+  track.clips = [ 0, 1, 2 ].map(subTrack => ({
+    ...track.clips[0],
+    trackId: subTrack,
+    sourceId: 1000 + subTrack,
+  }));
+  graph.nodes[910].children.push(912);
+  graph.nodes[912] = {
+    ...track,
+    subTrackCount: 2,
+    clips: [ 0, 1 ].map(subTrack => ({
+      ...track.clips[0],
+      trackId: subTrack,
+      sourceId: 2000 + subTrack,
+    })),
+  };
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+    random: () => 0,
+  });
+
+  engine.PostEvent("play", 1202, () => {});
+  await tick();
+  assert.equal(
+    engine.GetTransportCapabilities(1202).choiceCount,
+    3,
+    "layered random tracks use a bounded traversal, not a Cartesian product",
+  );
+
+  const beforeStep = context.sources.length;
+  assert.equal(engine.StepTransport(1202, 1), true);
+  await tick();
+  const stepped = context.sources.slice(beforeStep);
+  const steppedAt = Math.min(...stepped.map(source => source.startedAt));
+  assert.deepEqual(
+    stepped.filter(source => source.startedAt === steppedAt)
+      .map(source => source.buffer.fake)
+      .sort((left, right) => left - right),
+    [ 1001, 2001 ],
+  );
+});
+
+test("browser transport keeps current audio when a selected item cannot load", async () =>
+{
+  const context = FakeContext();
+  const graph = PlaylistModeGraph({
+    rsType: 0,
+    loop: 1,
+    segments: [ 910 ],
+  });
+  const track = graph.nodes[911];
+
+  track.trackType = 1;
+  track.subTrackCount = 2;
+  track.clips = [ 0, 1 ].map(subTrack => ({
+    ...track.clips[0],
+    trackId: subTrack,
+    sourceId: 1000 + subTrack,
+  }));
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => sourceId === 1000
+      ? { fake: sourceId }
+      : null,
+    random: () => 0,
+  });
+
+  engine.PostEvent("play", 1205, () => {});
+  await tick();
+  assert.equal(engine.StepTransport(1205, 1), true);
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].stoppedAt, null);
+});
+
+test("rapid browser transport steps accumulate while media is preparing", async () =>
+{
+  const context = FakeContext();
+  const graph = PlaylistModeGraph({
+    rsType: 0,
+    loop: 1,
+    segments: [ 910 ],
+  });
+  const track = graph.nodes[911];
+  const middle = Deferred();
+
+  track.trackType = 1;
+  track.subTrackCount = 3;
+  track.clips = [ 0, 1, 2 ].map(subTrack => ({
+    ...track.clips[0],
+    trackId: subTrack,
+    sourceId: 1000 + subTrack,
+  }));
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: sourceId => sourceId === 1001
+      ? middle.promise
+      : Promise.resolve({ fake: sourceId }),
+    random: () => 0,
+  });
+
+  engine.PostEvent("play", 1207, () => {});
+  await tick();
+  assert.equal(engine.StepTransport(1207, 1), true);
+  assert.equal(engine.StepTransport(1207, 1), true);
+  await tick();
+  await tick();
+  assert.equal(
+    context.sources.some(source => source.buffer?.fake === 1002),
+    true,
+  );
+
+  middle.resolve({ fake: 1001 });
+  await tick();
+  await tick();
+  assert.equal(
+    context.sources.some(source => source.buffer?.fake === 1001),
+    false,
+    "the superseded pending selection never commits",
+  );
+});
+
+test("multi-root transport commits only after every selected layer is ready", async () =>
+{
+  const context = FakeContext();
+  const delayed = Deferred();
+  const nodes = {};
+
+  for (const [ segmentId, trackId, sourceBase ] of [
+    [ 100, 101, 1000 ],
+    [ 200, 201, 2000 ],
+  ])
+  {
+    nodes[segmentId] = {
+      type: "music-segment",
+      duration: 1000,
+      markers: [ { position: 0 }, { position: 1000 } ],
+      children: [ trackId ],
+    };
+    nodes[trackId] = {
+      type: "music-track",
+      trackType: 1,
+      subTrackCount: 2,
+      clips: [ 0, 1 ].map(subTrack => ({
+        trackId: subTrack,
+        sourceId: sourceBase + subTrack,
+        playAt: 0,
+        beginTrimOffset: 0,
+        endTrimOffset: 0,
+        srcDuration: 1000,
+      })),
+    };
+  }
+  const engine = new CjsMusicEngine({
+    graph: {
+      nodes,
+      eventTargets: { play: [ 100, 200 ] },
+      eventStops: {},
+      switchSetters: {},
+    },
+    context,
+    destination: context.destination,
+    loadMedia: sourceId => sourceId === 2001
+      ? delayed.promise
+      : Promise.resolve({ fake: sourceId }),
+    random: () => 0,
+  });
+
+  engine.PostEvent("play", 1208, () => {});
+  await tick();
+  assert.equal(engine.StepTransport(1208, 1), true);
+  await tick();
+  assert.deepEqual(
+    context.sources.map(source => source.buffer.fake).sort(),
+    [ 1000, 2000 ],
+    "no layer changes while a sibling selection is loading",
+  );
+  assert.equal(context.sources[0].stoppedAt, null);
+  assert.equal(context.sources[1].stoppedAt, null);
+
+  let commitClock = 4;
+  Object.defineProperty(context, "currentTime", {
+    configurable: true,
+    get: () => (commitClock += 0.001),
+  });
+  delayed.resolve({ fake: 2001 });
+  await tick();
+  await tick();
+  assert.deepEqual(
+    context.sources.slice(2)
+      .map(source => source.buffer.fake)
+      .sort(),
+    [ 1001, 2001 ],
+  );
+  assert.equal(context.sources[2].startedAt, context.sources[3].startedAt);
+  assert.ok(context.sources[2].startedAt > 4);
+});
+
+test("browser pause cancels a pending switch transition until resume", async () =>
+{
+  const context = FakeContext();
+  const graph = fixtureGraph();
+  const destination = Deferred();
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: sourceId => sourceId === 222
+      ? destination.promise
+      : Promise.resolve({ fake: sourceId }),
+  });
+
+  engine.PostEvent("music_test_play", 1206, () => {});
+  await tick();
+  engine.SetSwitch(GROUP, COMBAT);
+  assert.equal(engine.GetStatus()[0].preparingTargetId, SEGMENT_B);
+  assert.equal(engine.PauseTransport(1206), true);
+
+  destination.resolve({ fake: 222 });
+  await tick();
+  await tick();
+  assert.equal(engine.GetStatus()[0].state, "paused");
+  assert.equal(
+    context.sources.some(source => source.buffer?.fake === 222),
+    false,
+  );
+
+  assert.equal(engine.ResumeTransport(1206), true);
+  await tick();
+  await tick();
+  assert.equal(
+    context.sources.some(source => source.buffer?.fake === 222),
+    true,
+    "resume reevaluates the latest switch value",
+  );
+});
+
+test("browser pause retains an independently selected layered-track combination", async () =>
+{
+  const context = FakeContext();
+  const delayed = Deferred();
+  const graph = PlaylistModeGraph({
+    rsType: 0,
+    loop: 1,
+    segments: [ 910 ],
+  });
+  const track = graph.nodes[911];
+
+  track.trackType = 1;
+  track.subTrackCount = 3;
+  track.clips = [ 0, 1, 2 ].map(subTrack => ({
+    ...track.clips[0],
+    trackId: subTrack,
+    sourceId: 1000 + subTrack,
+  }));
+  graph.nodes[910].children.push(912);
+  graph.nodes[912] = {
+    ...track,
+    subTrackCount: 2,
+    clips: [ 0, 1 ].map(subTrack => ({
+      ...track.clips[0],
+      trackId: subTrack,
+      sourceId: 2000 + subTrack,
+    })),
+  };
+  const samples = [ 0, 0 ];
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: sourceId => sourceId === 2001
+      ? delayed.promise
+      : Promise.resolve({ fake: sourceId }),
+    random: () => samples.shift() ?? 0,
+  });
+
+  engine.PostEvent("play", 1203, () => {});
+  await tick();
+  await tick();
+  assert.deepEqual(
+    context.sources.map(source => source.buffer.fake).sort(),
+    [ 1000, 2000 ],
+  );
+  assert.equal(engine.PauseTransport(1203), true);
+  assert.equal(engine.StepTransport(1203, 1), true);
+  const beforeResume = context.sources.length;
+  assert.equal(engine.ResumeTransport(1203), true);
+  await tick();
+  assert.equal(engine.GetTransportCapabilities(1203).preparing, true);
+  assert.equal(engine.GetTransportCapabilities(1203).canResume, false);
+  assert.equal(engine.StepTransport(1203, 1), false);
+  assert.equal(engine.RandomTransport(1203), false);
+  assert.equal(
+    context.sources.length,
+    beforeResume,
+    "a resumed layer waits for every selected sibling buffer",
+  );
+  assert.equal(engine.GetStatus()[0].state, "paused");
+
+  delayed.resolve({ fake: 2001 });
+  await tick();
+  await tick();
+  const resumed = context.sources.slice(beforeResume);
+  const resumedAt = Math.min(...resumed.map(source => source.startedAt));
+  const immediate = resumed.filter(source => source.startedAt === resumedAt);
+  assert.deepEqual(
+    immediate.map(source => source.buffer.fake)
+      .sort((left, right) => left - right),
+    [ 1001, 2001 ],
+  );
+  assert.equal(immediate[0].startedAt, immediate[1].startedAt);
+  assert.equal(engine.GetTransportCapabilities(1203).preparing, false);
+  assert.equal(engine.GetStatus()[0].state, "playing");
+});
+
+test("switch input cancels a pending browser resume without leaving it stuck", async () =>
+{
+  const context = FakeContext();
+  const graph = fixtureGraph();
+  const resumedMedia = Deferred();
+  let sourceALoads = 0;
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: sourceId =>
+    {
+      if (sourceId !== 111) return Promise.resolve({ fake: sourceId });
+      sourceALoads++;
+      return sourceALoads === 1
+        ? Promise.resolve({ fake: sourceId })
+        : resumedMedia.promise;
+    },
+  });
+
+  engine.PostEvent("music_test_play", 1209, () => {});
+  await tick();
+  await tick();
+  assert.equal(engine.PauseTransport(1209), true);
+  engine.ClearMedia();
+  assert.equal(engine.ResumeTransport(1209), true);
+  await tick();
+  assert.equal(engine.GetTransportCapabilities(1209).preparing, true);
+
+  engine.SetSwitch(GROUP, COMBAT);
+  assert.equal(engine.GetTransportCapabilities(1209).preparing, false);
+  assert.equal(engine.GetTransportCapabilities(1209).canResume, true);
+
+  resumedMedia.resolve({ fake: 111 });
+  await tick();
+  await tick();
+  assert.equal(engine.GetStatus()[0].state, "paused");
 });
 
 test("playlist shuffle exhausts its pool and loop-count randomization is bounded", async () =>
