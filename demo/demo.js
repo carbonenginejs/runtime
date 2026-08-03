@@ -2093,6 +2093,16 @@ class MusicUi
 
     #exampleDetail = null;
 
+    #previousButton = null;
+
+    #playButton = null;
+
+    #pauseButton = null;
+
+    #nextButton = null;
+
+    #transportState = "idle";
+
     #retryButton = null;
 
     #moodEvents = [];
@@ -2119,6 +2129,10 @@ class MusicUi
         this.#dynamicRoot = musicGraph.eventTargets["music_eve_dynamic_play"]?.[0];
         this.#exampleSelect = document.getElementById("musicExamples");
         this.#exampleDetail = document.getElementById("musicExampleDetail");
+        this.#previousButton = document.getElementById("musicExamplePrevious");
+        this.#playButton = document.getElementById("musicExamplePlay");
+        this.#pauseButton = document.getElementById("musicExamplePause");
+        this.#nextButton = document.getElementById("musicExampleNext");
         for (const example of MusicUi.examples)
         {
             const roots = musicGraph.eventTargets[example.eventName] ?? [];
@@ -2132,14 +2146,17 @@ class MusicUi
             this.#exampleSelect.appendChild(option);
         }
         this.#exampleSelect.onchange = () => this.#RefreshExampleDetail();
-        document.getElementById("musicExamplePlay").onclick = () => this.PlaySelectedExample();
-        document.getElementById("musicExampleStop").onclick = () => this.StopAll();
+        this.#previousButton.onclick = () => this.#StepExample(-1);
+        this.#playButton.onclick = () => this.PlaySelectedExample();
+        this.#pauseButton.onclick = () => this.Pause();
+        this.#nextButton.onclick = () => this.#StepExample(1);
         this.#RefreshExampleDetail();
         this.#moodEvents = Object.keys(musicGraph.switchSetters).filter(n => n.startsWith("music_switch_")).sort();
         this.#select.onchange = () => this.#SteerTo(this.#select.value);
         this.#retryButton.onclick = () => this.#Retry();
         this.RefreshMoodAvailability();
         document.getElementById("musicToggle").onchange = event => this.SetEnabled(event.target.checked);
+        this.#RefreshTransport();
     }
 
     /** The enabled checkbox: checked starts the music graph, unchecked stops it */
@@ -2150,6 +2167,7 @@ class MusicUi
         if (!enabled)
         {
             this.musicPlayer.SendEvent("music_eve_dynamic_stop");
+            this.#SetTransportState("idle");
             return;
         }
         if (!this.#app.IsAudioEnabled())
@@ -2186,6 +2204,7 @@ class MusicUi
         const target = engine.PreviewSwitchEvent("", this.#dynamicRoot);
         if (target !== null && !this.moodLabelByTarget.has(target)) this.moodLabelByTarget.set(target, "default");
         this.musicPlayer.SendEvent("music_eve_dynamic_play");
+        this.#SetTransportState("playing");
         this.RefreshMoodAvailability();
     }
 
@@ -2214,7 +2233,26 @@ class MusicUi
             document.getElementById("musicToggle").checked = false;
             this.#SetActiveExample(example);
             this.musicPlayer.SendEvent(example.eventName);
+            this.#SetTransportState("playing");
         }
+        return true;
+    }
+
+    /**
+     * Soft-pauses the demo's authored transport. Web Audio cannot suspend the
+     * music engine's scheduled buffer sources individually, so Play restarts
+     * the selected example instead of resuming its exact media position.
+     */
+    Pause()
+    {
+        if (this.#transportState !== "playing")
+        {
+            return false;
+        }
+        document.getElementById("musicToggle").checked = false;
+        this.#app.audio?.musicEngine?.StopAll(0.12);
+        this.#SetTransportState("paused");
+        this.#hudElement.textContent = "music: paused (play restarts this example)";
         return true;
     }
 
@@ -2223,6 +2261,7 @@ class MusicUi
     {
         document.getElementById("musicToggle").checked = false;
         this.#app.audio?.musicEngine?.StopAll(0.5);
+        this.#SetTransportState("idle");
     }
 
     /**
@@ -2302,6 +2341,13 @@ class MusicUi
      */
     UpdateHud()
     {
+        this.#RefreshTransport();
+        if (this.#transportState === "paused")
+        {
+            this.#hudElement.textContent = "music: paused (play restarts this example)";
+            if (this.#retryButton) this.#retryButton.hidden = true;
+            return;
+        }
         const statuses = this.#app.audio?.musicEngine?.GetStatus() ?? [];
         const candidates = statuses.filter(status =>
             this.#activeRoots.includes(status.rootId));
@@ -2313,6 +2359,10 @@ class MusicUi
         {
             this.#hudElement.textContent = this.#app.library.music ? "music: stopped" : "";
             if (this.#retryButton) this.#retryButton.hidden = true;
+            if (this.#transportState === "playing")
+            {
+                this.#SetTransportState("idle");
+            }
             return;
         }
         const now = status.now;
@@ -2452,6 +2502,53 @@ class MusicUi
                 ? `${example.detail}. EVE event: ${example.eventName}`
                 : "No playable example is available in this library.";
         }
+    }
+
+    /** Selects and immediately plays an adjacent verified authored example. */
+    #StepExample(delta)
+    {
+        if (this.#transportState === "idle"
+            || !this.#exampleSelect?.options.length)
+        {
+            return false;
+        }
+        const count = this.#exampleSelect.options.length;
+        const current = Math.max(0, this.#exampleSelect.selectedIndex);
+
+        this.#exampleSelect.selectedIndex = (current + delta + count) % count;
+        this.#RefreshExampleDetail();
+        return this.PlaySelectedExample();
+    }
+
+    #SetTransportState(state)
+    {
+        this.#transportState = state;
+        this.#RefreshTransport();
+    }
+
+    #RefreshTransport()
+    {
+        if (!this.#playButton)
+        {
+            return;
+        }
+        const audioEnabled = this.#app.IsAudioEnabled();
+        const hasExamples = Boolean(this.#exampleSelect?.options.length);
+        const authoredActive = this.#transportState !== "idle";
+
+        this.#playButton.disabled = !audioEnabled || !hasExamples;
+        this.#previousButton.disabled = !audioEnabled
+            || !authoredActive
+            || this.#exampleSelect.options.length < 2;
+        this.#nextButton.disabled = this.#previousButton.disabled;
+        this.#pauseButton.disabled = !audioEnabled
+            || this.#transportState !== "playing";
+        this.#playButton.title = this.#transportState === "paused"
+            ? "restart the selected authored example (exact position resume is unavailable)"
+            : "play the selected authored example";
+        this.#pauseButton.title = this.#transportState === "paused"
+            ? "authored music is soft-paused; press play to restart it"
+            : "fade-stop authored music; play restarts the example";
     }
 
 }

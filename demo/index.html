@@ -269,6 +269,12 @@
   .buttonRow button { flex: 1; padding: 6px 7px; font-size: 11px; }
   .buttonRow .primary { border-color: rgba(119, 216, 197, 0.48); background: var(--accent-deep); color: #c8fff4; }
   .transport button { min-width: 0; padding-inline: 5px; color: #b8c1c0; }
+  #musicExampleDetail {
+    height: 44px;
+    overflow-y: auto;
+    scrollbar-color: #415052 transparent;
+    scrollbar-width: thin;
+  }
   #musicRetry { width: 100%; margin-top: 8px; font-size: 11px; }
   .hint { margin: 0; color: var(--dim); font-size: 10px; }
   #jukeboxStatus { margin-top: 7px; }
@@ -413,9 +419,11 @@
         <select id="musicExamples" title="authored music example"></select>
       </label>
       <p id="musicExampleDetail" class="hint"></p>
-      <div class="buttonRow">
-        <button id="musicExamplePlay" class="primary" type="button">play example</button>
-        <button id="musicExampleStop" type="button">stop</button>
+      <div class="buttonRow transport" role="group" aria-label="Authored music transport">
+        <button id="musicExamplePrevious" type="button" title="previous authored example" disabled>previous</button>
+        <button id="musicExamplePlay" class="primary" type="button" title="play the selected authored example">play</button>
+        <button id="musicExamplePause" type="button" title="pause authored music" disabled>pause</button>
+        <button id="musicExampleNext" type="button" title="next authored example" disabled>next</button>
       </div>
       <label class="sfxControl" for="moods">Dynamic mood
         <select id="moods" title="dynamic mood"></select>

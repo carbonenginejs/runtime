@@ -144,7 +144,16 @@ Example** to play one verified EVE event for each browser-playable behavior:
 - the nested dynamic switch/state graph; and
 - a transition-segment bridge.
 
-Choose an example and press **play example**. The Dynamic switch graph also
+Choose an example and press **play**. While authored music owns the demo
+transport, **previous** and **next** select and post the adjacent verified
+example; they do not seek within a Wwise playlist. **Pause** performs a short
+fade-stop because Web Audio buffer sources cannot be suspended individually
+after the music engine has scheduled them. Pressing **play** after that soft
+pause restarts the selected example from its beginning rather than resuming its
+exact media position. The transport greys actions that are not currently
+applicable.
+
+The Dynamic switch graph also
 enables the **Dynamic mood** selector, which posts EVE's authored setter events
 while the graph is running. The demo deliberately omits MIDI, Synth One,
 stingers, and destinations without WEM media records because the built-in

@@ -14,6 +14,37 @@ const root = path.resolve(
 const jsonPath = path.join(root, "demo", "audio-library.json");
 const gzipPath = `${jsonPath}.gz`;
 
+test("authored music demo exposes a stable contextual transport", () =>
+{
+    const html = fs.readFileSync(
+        path.join(root, "demo", "index.html"),
+        "utf8",
+    );
+    const script = fs.readFileSync(
+        path.join(root, "demo", "demo.js"),
+        "utf8",
+    );
+    const guide = fs.readFileSync(
+        path.join(root, "docs", "guides", "music.md"),
+        "utf8",
+    );
+
+    for (const id of [
+        "musicExamplePrevious",
+        "musicExamplePlay",
+        "musicExamplePause",
+        "musicExampleNext",
+    ])
+    {
+        assert.match(html, new RegExp(`id="${id}"`));
+    }
+    assert.match(html, /#musicExampleDetail\s*\{[^}]*height:\s*44px/s);
+    assert.match(script, /#transportState = "idle"/);
+    assert.match(script, /this\.#transportState !== "playing"/);
+    assert.match(script, /this\.#transportState === "idle"/);
+    assert.match(guide, /soft\s+pause restarts the selected example/s);
+});
+
 test("committed demo library carries authored SFX and music semantics", () =>
 {
     const json = fs.readFileSync(jsonPath);
