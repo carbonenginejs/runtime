@@ -137,13 +137,18 @@ exact parameter-name catalog match.
 
 A Voice Volume action whose target flag names an Audio Bus is not Bus Volume.
 Wwise applies it to voices feeding that Bus before Bus effects, while Bus
-Volume controls the Bus stage itself. The builder therefore keeps this form
-fail-closed rather than relabeling `0x0A03` as `0x0C03`. EVE build 3453885 has
-two such CSI actions (`cinematic_ship_intro_begin` at `-30 dB` and
-`cinematic_ship_intro_climax` at `0 dB`) targeting a Bus with three active
-Wwise Delay effects. Both events are already blocked by an unnamed State group,
-so a future distinct pre-effect bus-voice action is required before either can
-be retained.
+Volume controls the Bus stage itself; `0x0A03` must not be relabeled
+`0x0C03`. EVE build 3453885 contains two game-object Bus-target Voice Volume
+actions on Bus `3810872320` (`Cinematic_Ship_Intro_Transition_Delay`), whose
+dry route has no Aux sends and has three active Wwise Delay effects:
+`cinematic_ship_intro_begin` sets `-30 dB` immediately, while
+`cinematic_ship_intro_climax` schedules `0 dB` after `6000 ms` with a
+`2000 ms` transition. Neither event is currently an exact consumer: begin
+contains an untyped Set State payload with a `1000 ms` delay that
+runtime-audio cannot safely infer, and climax is blocked earlier by untyped
+Set Game Parameter action `112052750`. Both events therefore remain
+fail-closed; Bus-target Voice Volume should land only after those earlier
+bodies are typed.
 
 ## Node behavior
 
