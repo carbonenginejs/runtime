@@ -229,6 +229,8 @@ class CjsAudioLibraryBuilder {
     inspections,
     eventInspections = inspections,
     metadata,
+    soundbanksInfo = null,
+    enrichment = null,
     media = {},
     embeddedMedia = {},
     musicBankNames = MUSIC_BANK_NAMES,
@@ -279,6 +281,7 @@ class CjsAudioLibraryBuilder {
     if (parsed.diagnostics.parsed !== musicEntryCount || parsed.nodes.size !== uniqueMusicEntryCount) {
       throw new Error("Music-node parsing did not preserve every authored entry");
     }
+    const names = CreateSfxNameCatalog(soundbanksInfo, enrichment, eventInspections);
     const nodes = {};
     for (const [id, value] of [...parsed.nodes.entries()].sort(([left], [right]) => left - right)) {
       const {
@@ -290,10 +293,14 @@ class CjsAudioLibraryBuilder {
         throw new Error(`Music-node identity mismatch: ${parsedID} !== ${id}`);
       }
       const routing = node.type === "music-track" ? CreateMusicBusRouting(parsed.nodes, id, buses) : null;
-      nodes[id] = routing ? {
+      const rtpcCurves = node.type === "music-track" ? CreateMusicRtpcCurves(nodeBase, names) : [];
+      nodes[id] = {
         ...node,
-        ...routing
-      } : node;
+        ...(routing ?? {}),
+        ...(rtpcCurves.length ? {
+          rtpcCurves
+        } : {})
+      };
     }
     validateMusicNodeReferences(nodes, media, embeddedMedia);
     const eventProjection = this.createMusicEventProjection({
@@ -514,6 +521,8 @@ class CjsAudioLibraryBuilder {
         inspections: inspections.filter(inspection => MUSIC_BANK_NAMES.includes(bankSourceName(inspection.source))),
         eventInspections: graphInspections,
         metadata: library.metadata,
+        soundbanksInfo: options.soundbanksInfo,
+        enrichment: options.enrichment,
         media: library.media,
         embeddedMedia: library.embeddedMedia ?? {},
         buses: busCatalog
@@ -3256,6 +3265,20 @@ function CreateSfxRtpcCurve(rtpc, names) {
     }),
     points
   };
+}
+function CreateMusicRtpcCurves(nodeBase, names) {
+  return (nodeBase?.rtpcs ?? []).filter(rtpc => Number(rtpc.parameterId) === SFX_VOLUME_PROPERTY).map(rtpc => {
+    const curve = CreateSfxRtpcCurve(rtpc, names);
+    if (!curve) {
+      throw new Error(`unsupported Music Track volume RTPC ${rtpc.curveId}`);
+    }
+    return {
+      ...curve,
+      // Built-in music consumes the global Game Parameter lane;
+      // it has no per-emitter game-object identity in this runtime.
+      scope: "global"
+    };
+  });
 }
 function CreateSfxNameCatalog(soundbanksInfo, enrichment, inspections) {
   const groups = new Map();

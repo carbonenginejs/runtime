@@ -92,9 +92,9 @@ dynamics omitted.
 
 An effect-free or feedback-free-Meter route may likewise enter the shared path.
 Qualification requires matching installed catalogs and live readers for every
-dynamic Bus-fader contribution. A property-0 Voice Volume RTPC
-keeps a music route out of the shared mixer until music owns the corresponding
-per-voice stage; it is never reinterpreted as Bus Volume. EVE build 3444265
+dynamic Bus-fader contribution. An Audio Bus Voice Volume RTPC keeps a music
+route out of the shared mixer because the bus-level per-voice stage is not
+realized for music; it is never reinterpreted as Bus Volume. EVE build 3444265
 qualifies 2,349 music-track references: two effect-free tracks plus 2,347 whose
 only additional barrier was the static send to a return proven silenced at
 `-96 dB`. The mixer allocates no wet nodes for that omission. Routes that cross
@@ -128,9 +128,23 @@ music argument groups across every selected bank. Event names do not need a
 authored Wwise event contains both SFX and music actions, runtime-audio starts
 both sides under one playing ID and reports completion after both have ended.
 
+Music Track property-0 Voice Volume RTPCs are preserved when the v150 record
+uses a Game Parameter control, additive accumulation, and Wwise dB scaling.
+Each track owns a pre-bus gain stage, so different tracks on one output route
+remain independent. The stage reads the global Game Parameter lane, falls back
+to the authored STMG default when present, evaluates the serialized Wwise
+interpolation, and follows scheduled global RTPC transitions on the audio
+clock. It is a track-local browser realization rather than a Bus Volume
+reinterpretation. As with other authored automation, non-linear Wwise
+interpolation is sampled
+into browser-safe value curves. EVE build 3453885 contains five such tracks;
+they are reached by `music_eve_dynamic_play` and
+`music_switch_zarzakh_zone_damage`.
+
 The source graph may preserve data that the current scheduler does not play.
 Stingers, Musical Instrument Digital Interface (MIDI) tracks, Synth One
-tracks, and RTPC volume curves remain unsupported.
+tracks, and Music Track RTPC properties outside the qualified Voice Volume
+shape remain unsupported.
 
 ## Demo examples
 

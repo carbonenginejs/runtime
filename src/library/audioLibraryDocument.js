@@ -936,6 +936,7 @@ function ValidateMusic(music, media, embeddedMedia)
 
         if (node.type === "music-track")
         {
+            ValidateMusicTrackRtpcCurves(node.rtpcCurves, id);
             for (const source of node.sources ?? [])
             {
                 const sourceID = NormalizePositiveID(
@@ -950,6 +951,12 @@ function ValidateMusic(music, media, embeddedMedia)
                     );
                 }
             }
+        }
+        else if (node.rtpcCurves !== undefined)
+        {
+            throw new TypeError(
+                `Audio library music node ${id} RTPC curves are track-only`,
+            );
         }
     }
 
@@ -1061,6 +1068,87 @@ function ValidateMusicBusRouting(node, id)
         throw new TypeError(
             `Audio library music node ${id} authoredOutputBusVolumeDb must be finite`,
         );
+    }
+}
+
+function ValidateMusicTrackRtpcCurves(curves, id)
+{
+    if (curves === undefined)
+    {
+        return;
+    }
+    if (!Array.isArray(curves) || !curves.length)
+    {
+        throw new TypeError(
+            `Audio library music track ${id} rtpcCurves must be non-empty`,
+        );
+    }
+
+    for (let index = 0; index < curves.length; index++)
+    {
+        const label = `Audio library music track ${id} rtpcCurves ${index}`;
+        const curve = RequireRecord(curves[index], label);
+
+        if (curve.property !== "volume")
+        {
+            throw new TypeError(`${label} property must be volume`);
+        }
+        if (typeof curve.rtpc !== "string" || !curve.rtpc.trim())
+        {
+            throw new TypeError(`${label} rtpc must be a name`);
+        }
+        if (curve.scope !== "global")
+        {
+            throw new TypeError(`${label} scope must be global`);
+        }
+        if (Number(curve.scaling) !== 2)
+        {
+            throw new TypeError(`${label} scaling must be 2`);
+        }
+        if (curve.defaultValue !== undefined
+            && !Number.isFinite(Number(curve.defaultValue)))
+        {
+            throw new TypeError(`${label} defaultValue must be finite`);
+        }
+        if (!Array.isArray(curve.points) || !curve.points.length)
+        {
+            throw new TypeError(`${label} must have points`);
+        }
+
+        let previous = -Infinity;
+
+        for (let pointIndex = 0;
+            pointIndex < curve.points.length;
+            pointIndex++)
+        {
+            const pointLabel = `${label} point ${pointIndex}`;
+            const point = RequireRecord(curve.points[pointIndex], pointLabel);
+            const x = Number(point.x);
+            const value = Number(point.value);
+            const interpolation = Number(point.interpolation ?? 4);
+
+            if (!Number.isFinite(x) || x < previous)
+            {
+                throw new TypeError(
+                    `${pointLabel} x must be finite and non-decreasing`,
+                );
+            }
+            if (!Number.isFinite(value) || value < -1 || value > 1)
+            {
+                throw new TypeError(
+                    `${pointLabel} value must be between -1 and 1`,
+                );
+            }
+            if (!Number.isSafeInteger(interpolation)
+                || interpolation < 0
+                || interpolation > 9)
+            {
+                throw new TypeError(
+                    `${pointLabel} interpolation must be from 0 to 9`,
+                );
+            }
+            previous = x;
+        }
     }
 }
 

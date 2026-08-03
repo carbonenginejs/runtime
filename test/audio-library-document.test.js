@@ -785,6 +785,17 @@ test("validates and installs routed music-track bus metadata", () =>
                 authoredBusVolumeDb: -9,
                 authoredBusMakeUpGainDb: 3,
                 authoredOutputBusVolumeDb: 4,
+                rtpcCurves: [ {
+                    property: "volume",
+                    rtpc: "music_intensity",
+                    scope: "global",
+                    scaling: 2,
+                    defaultValue: 0.5,
+                    points: [
+                        { x: 0, value: -1, interpolation: 4 },
+                        { x: 1, value: 0, interpolation: 4 },
+                    ],
+                } ],
             },
         },
         eventTargets: {},
@@ -807,6 +818,10 @@ test("validates and installs routed music-track bus metadata", () =>
         4,
     );
     assert.equal(Object.isFrozen(installed.music.nodes["101"].busPathIds), true);
+    assert.equal(
+        Object.isFrozen(installed.music.nodes["101"].rtpcCurves[0].points),
+        true,
+    );
 
     for (const mutate of [
         node => { node.busPathIds = [ "500", "928" ]; },
@@ -815,6 +830,12 @@ test("validates and installs routed music-track bus metadata", () =>
         node => { node.authoredBusMakeUpGainDb = Number.NaN; },
         node => { node.authoredOutputBusVolumeDb = Number.NaN; },
         node => { delete node.outputBusId; },
+        node => { node.rtpcCurves = []; },
+        node => { node.rtpcCurves[0].property = "pitch"; },
+        node => { node.rtpcCurves[0].scope = "object"; },
+        node => { node.rtpcCurves[0].scaling = 0; },
+        node => { node.rtpcCurves[0].points[0].value = -1.1; },
+        node => { node.rtpcCurves[0].points.reverse(); },
     ])
     {
         const invalid = structuredClone(source);
@@ -828,6 +849,17 @@ test("validates and installs routed music-track bus metadata", () =>
     routedSegment.music.nodes["100"].outputBusId = "928";
     routedSegment.music.nodes["100"].busPathIds = [ "928" ];
     assert.throws(() => validateAudioLibraryDocument(routedSegment));
+
+    const curvedSegment = structuredClone(source);
+
+    curvedSegment.music.nodes["100"].rtpcCurves = [ {
+        property: "volume",
+        rtpc: "music_intensity",
+        scope: "global",
+        scaling: 2,
+        points: [ { x: 0, value: 0 } ],
+    } ];
+    assert.throws(() => validateAudioLibraryDocument(curvedSegment));
 
     const noncanonicalNode = structuredClone(source);
 

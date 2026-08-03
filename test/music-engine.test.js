@@ -3731,6 +3731,82 @@ test("music routes apply dynamic ancestor Bus Volume RTPC scaling", async () =>
   );
 });
 
+test("music tracks apply authored global Voice Volume RTPC curves", async () =>
+{
+  let control;
+  const { context, engine } = Harness(graph =>
+  {
+    graph.nodes[TRACK_A].rtpcCurves = [ {
+      property: "volume",
+      rtpc: "music_intensity",
+      scope: "global",
+      scaling: 2,
+      defaultValue: 0.5,
+      points: [
+        { x: 0, value: -1, interpolation: 4 },
+        { x: 1, value: 0, interpolation: 4 },
+      ],
+    } ];
+  }, {
+    getGlobalRTPC: () => control,
+  });
+
+  engine.PostEvent("music_test_play", 705, () => {});
+  await tick();
+
+  const trackGain = context.sources[0].connectedTo;
+
+  assert.equal(trackGain.connectedTo, context.gains[2]);
+  assert.ok(Math.abs(trackGain.gain.value - 0.5) < 1e-6);
+
+  control = 0.25;
+  engine.RefreshBusRtpcs();
+  assert.ok(Math.abs(trackGain.gain.value - 0.25) < 1e-6);
+});
+
+test("shared legacy Bus effects retain independent track Voice Volume RTPC gains", async () =>
+{
+  const { busEffects } = MusicEqFixture();
+  const { context, engine } = Harness(graph =>
+  {
+    graph.nodes[SEGMENT_A].children.push(TRACK_B);
+    graph.nodes[TRACK_A].busPathIds = [ "500", "1" ];
+    graph.nodes[TRACK_B].busPathIds = [ "500", "1" ];
+    graph.nodes[TRACK_A].rtpcCurves = [ {
+      property: "volume",
+      rtpc: "music_track_a",
+      scope: "global",
+      scaling: 2,
+      defaultValue: 0,
+      points: [ { x: 0, value: -0.5, interpolation: 4 } ],
+    } ];
+    graph.nodes[TRACK_B].rtpcCurves = [ {
+      property: "volume",
+      rtpc: "music_track_b",
+      scope: "global",
+      scaling: 2,
+      defaultValue: 0,
+      points: [ { x: 0, value: 0, interpolation: 4 } ],
+    } ];
+  }, { busEffects });
+
+  engine.PostEvent("music_test_play", 706, () => {});
+  await tick();
+
+  assert.equal(context.sources.length, 2);
+  const sourceA = context.sources.find(source => source.buffer.fake === 111);
+  const sourceB = context.sources.find(source => source.buffer.fake === 222);
+
+  assert.notEqual(sourceA.connectedTo, sourceB.connectedTo);
+  assert.equal(sourceA.connectedTo.connectedTo, sourceB.connectedTo.connectedTo);
+  assert.equal(context.filters.length, 1);
+  assert.ok(
+    Math.abs(sourceA.connectedTo.gain.value - 0.5) < 1e-6,
+    `track A gain was ${sourceA.connectedTo.gain.value}`,
+  );
+  assert.equal(sourceB.connectedTo.gain.value, 1);
+});
+
 test("music routes apply Immediate ancestor Bus Volume State gain", async () =>
 {
   let state = "off";

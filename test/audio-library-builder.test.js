@@ -525,7 +525,7 @@ test("music:false leaves complete construction without a music graph", async () 
     assert.equal(library.music, undefined);
 });
 
-test("music tracks inherit typed bus routes without leaking NodeBase", () =>
+test("music tracks inherit bus routes and Voice Volume RTPCs without leaking NodeBase", () =>
 {
     const segmentID = 4001;
     const trackID = 4101;
@@ -550,6 +550,15 @@ test("music tracks inherit typed bus routes without leaking NodeBase", () =>
         .append(nodeBasePayload({
             directParentId: segmentID,
             properties: [ { id: 0x0d, value: -12 } ],
+            rtpcs: [ {
+                controlId: 700,
+                parameterId: 0,
+                scaling: 2,
+                points: [
+                    [ 0, -1, 4 ],
+                    [ 1, 0, 4 ],
+                ],
+            } ],
         }))
         .u8(0)
         .s32(-100)
@@ -557,12 +566,28 @@ test("music tracks inherit typed bus routes without leaking NodeBase", () =>
     const graph = CjsAudioLibraryBuilder.createMusicGraph({
         inspections: [ {
             source: "synthetic.bnk",
+            globalSettings: {
+                rtpcParameters: [ { id: 700, defaultValue: 0.25 } ],
+                stateGroups: [],
+            },
             hirc: [
                 { type: 10, id: segmentID, payload: segment },
                 { type: 11, id: trackID, payload: track },
             ],
         } ],
         metadata: { Events: {} },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "1",
+                    Path: "synthetic.bnk",
+                    GameParameters: [ {
+                        Id: "700",
+                        Name: "music_intensity",
+                    } ],
+                } ],
+            },
+        },
         musicBankNames: [ "synthetic.bnk" ],
         buses: new Map([
             [ 928, {
@@ -585,6 +610,17 @@ test("music tracks inherit typed bus routes without leaking NodeBase", () =>
     assert.equal(graph.nodes[trackID].authoredBusVolumeDb, -9);
     assert.equal(graph.nodes[trackID].authoredBusMakeUpGainDb, 5);
     assert.equal(graph.nodes[trackID].authoredOutputBusVolumeDb, 4);
+    assert.deepEqual(graph.nodes[trackID].rtpcCurves, [ {
+        rtpc: "music_intensity",
+        scope: "global",
+        property: "volume",
+        scaling: 2,
+        defaultValue: 0.25,
+        points: [
+            { x: 0, value: -1, interpolation: 4 },
+            { x: 1, value: 0, interpolation: 4 },
+        ],
+    } ]);
 });
 
 test("music event projection follows typed targets across every bank", () =>

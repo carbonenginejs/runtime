@@ -1,4 +1,5 @@
 import { evaluateWwiseInterpolation } from './internal/wwiseCurve.js';
+import { evaluateWwiseRtpcCurve, wwiseDbRtpcValueToDb } from './internal/wwiseRtpc.js';
 import { indexBusRtpcCatalog, evaluateBusRtpcGainDb } from './internal/busRtpc.js';
 import { indexBusStateCatalog, busStatePathUses, evaluateBusStateGainDb, evaluateBusStateProperties } from './internal/busState.js';
 import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
@@ -102,7 +103,7 @@ function EvaluateBusVolumeState(state, at) {
   const gain = from + (to - from) * evaluateWwiseInterpolation(state.curve, progress);
   return 20 * Math.log10(Math.max(1e-10, gain));
 }
-function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, context, busRtpcCatalog, readGlobalRtpc, readGlobalRtpcTransitionBoundaries, busStateCatalog, readGlobalStateWeights, readGlobalStateTransitionBoundaries, busDuckingController, sharedBusFaders = false) {
+function ScheduleMusicBusGain(param, states, busPathIds, trackRtpcCurves, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, context, busRtpcCatalog, readGlobalRtpc, readGlobalRtpcTransitionBoundaries, busStateCatalog, readGlobalStateWeights, readGlobalStateTransitionBoundaries, busDuckingController, sharedBusFaders = false) {
   if (!param) return;
   const now = Number(context?.currentTime) || 0;
   const path = Array.isArray(busPathIds) ? busPathIds.map(String) : [];
@@ -119,6 +120,7 @@ function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, au
     }
     db += sharedBusFaders ? 0 : evaluateBusRtpcGainDb(busRtpcCatalog, path, readGlobalRtpc, at);
     db += sharedBusFaders ? 0 : evaluateBusStateGainDb(busStateCatalog, path, readGlobalStateWeights, at);
+    db += EvaluateMusicTrackRtpcGainDb(trackRtpcCurves, readGlobalRtpc, at);
     db += busDuckingController?.EvaluateGainDb?.(path, at) ?? 0;
     return 10 ** (db / 20);
   };
@@ -163,6 +165,19 @@ function ScheduleMusicBusGain(param, states, busPathIds, authoredBusVolumeDb, au
     }
     segmentStart = segmentEnd;
   }
+}
+function EvaluateMusicTrackRtpcGainDb(curves, readGlobalRtpc, at) {
+  if (!Array.isArray(curves)) {
+    return 0;
+  }
+  let gainDb = 0;
+  for (const curve of curves) {
+    const current = typeof readGlobalRtpc === "function" ? readGlobalRtpc(curve.rtpc, at) : undefined;
+    const input = current === undefined || current === null ? curve.defaultValue : Number(current);
+    const output = evaluateWwiseRtpcCurve(curve.points, Number.isFinite(input) ? input : curve.points[0].x);
+    gainDb += wwiseDbRtpcValueToDb(output);
+  }
+  return gainDb;
 }
 function ScheduleMusicBusFilter(node, busPathIds, property, highPass, context, busStateCatalog, readGlobalStateWeights, readGlobalStateTransitionBoundaries) {
   if (!node) return;
@@ -1338,7 +1353,7 @@ class CjsMusicEngine {
     for (const instance of this.#instances.values()) {
       for (const scheduled of instance.active) {
         for (const route of scheduled.routeGains?.values?.() ?? []) {
-          ScheduleMusicBusGain(route.gain.gain, instance.busVolumeStates, route.busPathIds, route.authoredBusVolumeDb, route.authoredBusMakeUpGainDb, route.authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries, this.#busDuckingController, route.sharedBusFaders);
+          ScheduleMusicBusGain(route.gain.gain, instance.busVolumeStates, route.busPathIds, route.trackRtpcCurves, route.authoredBusVolumeDb, route.authoredBusMakeUpGainDb, route.authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries, this.#busDuckingController, route.sharedBusFaders);
           ScheduleMusicBusFilter(route.lowPassFilter, route.busPathIds, "lowPass", false, this.#context, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries);
           ScheduleMusicBusFilter(route.highPassFilter, route.busPathIds, "highPass", true, this.#context, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries);
         }
@@ -2056,15 +2071,49 @@ class CjsMusicEngine {
     }
   }
 
-  /** Gets or creates the gain node for one scheduled music bus route. */
+  /** Gets or creates one scheduled track's pre-bus gain route. */
   #GetRouteGain(instance, scheduled, trackId, track) {
-    if (!Array.isArray(track.busPathIds) || !track.busPathIds.length) {
+    const trackRtpcCurves = Array.isArray(track.rtpcCurves) ? track.rtpcCurves : [];
+    const hasBusPath = Array.isArray(track.busPathIds) && track.busPathIds.length;
+    if (!hasBusPath && !trackRtpcCurves.length) {
       return null;
     }
+    const routeInput = hasBusPath ? this.#GetBusRouteGain(instance, scheduled, trackId, track) : scheduled.gain;
+    if (!trackRtpcCurves.length) {
+      return routeInput;
+    }
+    const key = `track:${trackId}`;
+    if (scheduled.routeGains.has(key)) {
+      return scheduled.routeGains.get(key).input;
+    }
+    const gain = this.#context.createGain();
+    const route = {
+      input: gain,
+      gain,
+      busGraphRoute: null,
+      busPathIds: [],
+      trackRtpcCurves,
+      authoredBusVolumeDb: 0,
+      authoredBusMakeUpGainDb: 0,
+      authoredOutputBusVolumeDb: 0,
+      busEffectNodes: [],
+      lowPassFilter: null,
+      highPassFilter: null,
+      transitionGain: null,
+      sharedBusFaders: false
+    };
+    gain.connect(routeInput);
+    ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, [], trackRtpcCurves, 0, 0, 0, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries, this.#busDuckingController);
+    scheduled.routeGains.set(key, route);
+    return route.input;
+  }
+
+  /** Gets or creates one scheduled segment's shared Bus processing route. */
+  #GetBusRouteGain(instance, scheduled, trackId, track) {
+    const busPathIds = track.busPathIds.map(String);
     const authoredBusVolumeDb = Number(track.authoredBusVolumeDb ?? 0);
     const authoredBusMakeUpGainDb = Number(track.authoredBusMakeUpGainDb ?? 0);
     const authoredOutputBusVolumeDb = Number(track.authoredOutputBusVolumeDb ?? 0);
-    const busPathIds = track.busPathIds.map(String);
     const busGraphRoute = this.#busGraphRuntime?.ResolveMusicRoute(trackId, {
       outputBusId: busPathIds[0],
       busPathIds,
@@ -2094,6 +2143,7 @@ class CjsMusicEngine {
       gain,
       busGraphRoute,
       busPathIds,
+      trackRtpcCurves: [],
       authoredBusVolumeDb,
       authoredBusMakeUpGainDb,
       authoredOutputBusVolumeDb,
@@ -2117,7 +2167,7 @@ class CjsMusicEngine {
     transitionGain?.connect(instanceRouteGain);
     gain.connect(busEffectChain?.input ?? routeDestination);
     busEffectChain?.output?.connect(routeDestination);
-    ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, busPathIds, authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries, this.#busDuckingController, Boolean(mixerInput));
+    ScheduleMusicBusGain(gain.gain, instance.busVolumeStates, busPathIds, [], authoredBusVolumeDb, authoredBusMakeUpGainDb, authoredOutputBusVolumeDb, this.#context, this.#busRtpcCatalog, this.#readGlobalRtpc, this.#readGlobalRtpcTransitionBoundaries, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries, this.#busDuckingController, Boolean(mixerInput));
     ScheduleMusicBusFilter(lowPassFilter, busPathIds, "lowPass", false, this.#context, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries);
     ScheduleMusicBusFilter(highPassFilter, busPathIds, "highPass", true, this.#context, this.#busStateCatalog, this.#readGlobalStateWeights, this.#readGlobalStateTransitionBoundaries);
     scheduled.routeGains.set(key, route);

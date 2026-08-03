@@ -71,7 +71,9 @@ retains named global Game Parameter curves for Voice Volume or Bus Volume as
 raw Wwise scaling-2 values, including the authored parameter default, a
 `property` tag, and ordered graph points. SFX evaluates both properties for
 every bus in its dry ancestry, with Voice Volume on a distinct pre-bus gain;
-built-in music evaluates Bus Volume only. Interpolation occurs before Wwise's
+built-in music evaluates Bus Volume only from this Audio Bus catalog. A Music
+Track's own qualified Voice Volume RTPC instead uses the independent pre-bus
+track stage described in the music guide. Interpolation occurs before Wwise's
 nonlinear dB conversion. Strict version-1 catalogs remain accepted as implicit
 Bus Volume for installed-library compatibility.
 When present, `busStates` is a version-2 multi-property catalog keyed by bus

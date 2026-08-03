@@ -6,6 +6,10 @@
 // target is the bank data, not Carbon code.
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
 import {
+    evaluateWwiseRtpcCurve,
+    wwiseDbRtpcValueToDb,
+} from "./internal/wwiseRtpc.js";
+import {
     evaluateBusRtpcGainDb,
     indexBusRtpcCatalog,
 } from "./internal/busRtpc.js";
@@ -169,6 +173,7 @@ function ScheduleMusicBusGain(
     param,
     states,
     busPathIds,
+    trackRtpcCurves,
     authoredBusVolumeDb,
     authoredBusMakeUpGainDb,
     authoredOutputBusVolumeDb,
@@ -213,6 +218,11 @@ function ScheduleMusicBusGain(
             busStateCatalog,
             path,
             readGlobalStateWeights,
+            at,
+        );
+        db += EvaluateMusicTrackRtpcGainDb(
+            trackRtpcCurves,
+            readGlobalRtpc,
             at,
         );
         db += busDuckingController?.EvaluateGainDb?.(path, at) ?? 0;
@@ -294,6 +304,33 @@ function ScheduleMusicBusGain(
         }
         segmentStart = segmentEnd;
     }
+}
+
+function EvaluateMusicTrackRtpcGainDb(curves, readGlobalRtpc, at)
+{
+    if (!Array.isArray(curves))
+    {
+        return 0;
+    }
+
+    let gainDb = 0;
+
+    for (const curve of curves)
+    {
+        const current = typeof readGlobalRtpc === "function"
+            ? readGlobalRtpc(curve.rtpc, at)
+            : undefined;
+        const input = current === undefined || current === null
+            ? curve.defaultValue
+            : Number(current);
+        const output = evaluateWwiseRtpcCurve(
+            curve.points,
+            Number.isFinite(input) ? input : curve.points[0].x,
+        );
+
+        gainDb += wwiseDbRtpcValueToDb(output);
+    }
+    return gainDb;
 }
 
 function ScheduleMusicBusFilter(
@@ -1971,6 +2008,7 @@ export class CjsMusicEngine
                         route.gain.gain,
                         instance.busVolumeStates,
                         route.busPathIds,
+                        route.trackRtpcCurves,
                         route.authoredBusVolumeDb,
                         route.authoredBusMakeUpGainDb,
                         route.authoredOutputBusVolumeDb,
@@ -3140,14 +3178,77 @@ export class CjsMusicEngine
         }
     }
 
-    /** Gets or creates the gain node for one scheduled music bus route. */
+    /** Gets or creates one scheduled track's pre-bus gain route. */
     #GetRouteGain(instance, scheduled, trackId, track)
     {
-        if (!Array.isArray(track.busPathIds)
-            || !track.busPathIds.length)
+        const trackRtpcCurves = Array.isArray(track.rtpcCurves)
+            ? track.rtpcCurves
+            : [];
+        const hasBusPath = Array.isArray(track.busPathIds)
+            && track.busPathIds.length;
+
+        if (!hasBusPath && !trackRtpcCurves.length)
         {
             return null;
         }
+        const routeInput = hasBusPath
+            ? this.#GetBusRouteGain(instance, scheduled, trackId, track)
+            : scheduled.gain;
+
+        if (!trackRtpcCurves.length)
+        {
+            return routeInput;
+        }
+
+        const key = `track:${trackId}`;
+
+        if (scheduled.routeGains.has(key))
+        {
+            return scheduled.routeGains.get(key).input;
+        }
+        const gain = this.#context.createGain();
+        const route = {
+            input: gain,
+            gain,
+            busGraphRoute: null,
+            busPathIds: [],
+            trackRtpcCurves,
+            authoredBusVolumeDb: 0,
+            authoredBusMakeUpGainDb: 0,
+            authoredOutputBusVolumeDb: 0,
+            busEffectNodes: [],
+            lowPassFilter: null,
+            highPassFilter: null,
+            transitionGain: null,
+            sharedBusFaders: false,
+        };
+
+        gain.connect(routeInput);
+        ScheduleMusicBusGain(
+            gain.gain,
+            instance.busVolumeStates,
+            [],
+            trackRtpcCurves,
+            0,
+            0,
+            0,
+            this.#context,
+            this.#busRtpcCatalog,
+            this.#readGlobalRtpc,
+            this.#readGlobalRtpcTransitionBoundaries,
+            this.#busStateCatalog,
+            this.#readGlobalStateWeights,
+            this.#readGlobalStateTransitionBoundaries,
+            this.#busDuckingController,
+        );
+        scheduled.routeGains.set(key, route);
+        return route.input;
+    }
+
+    /** Gets or creates one scheduled segment's shared Bus processing route. */
+    #GetBusRouteGain(instance, scheduled, trackId, track)
+    {
+        const busPathIds = track.busPathIds.map(String);
 
         const authoredBusVolumeDb = Number(
             track.authoredBusVolumeDb ?? 0,
@@ -3158,7 +3259,6 @@ export class CjsMusicEngine
         const authoredOutputBusVolumeDb = Number(
             track.authoredOutputBusVolumeDb ?? 0,
         );
-        const busPathIds = track.busPathIds.map(String);
         const busGraphRoute = this.#busGraphRuntime?.ResolveMusicRoute(
             trackId,
             {
@@ -3221,6 +3321,7 @@ export class CjsMusicEngine
             gain,
             busGraphRoute,
             busPathIds,
+            trackRtpcCurves: [],
             authoredBusVolumeDb,
             authoredBusMakeUpGainDb,
             authoredOutputBusVolumeDb,
@@ -3252,6 +3353,7 @@ export class CjsMusicEngine
             gain.gain,
             instance.busVolumeStates,
             busPathIds,
+            [],
             authoredBusVolumeDb,
             authoredBusMakeUpGainDb,
             authoredOutputBusVolumeDb,
