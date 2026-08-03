@@ -7068,6 +7068,53 @@ test("routed SFX voices realize static Wwise Parametric EQ in the dry route", as
   assert.equal(shelf.disconnected, true);
 });
 
+test("Sound-local Parametric EQ precedes live Voice filters and survives as one voice chain", async () =>
+{
+  const sourceEffects = [ {
+    effectId: "901",
+    slotIndex: 0,
+    type: "parametric-eq",
+    bands: [ {
+      index: 0,
+      filterType: "notch",
+      gainDb: -24,
+      frequencyHz: 240,
+      q: 8,
+    } ],
+    outputGainDb: 0,
+    processLfe: true,
+  } ];
+  const { backend, emitter, context } = Harness({
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 2 },
+        loop: false,
+        sourceEffects,
+        lowPass: 20,
+        getGain: () => 1,
+      } ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+
+  const sourceEq = context.filters.find(filter => filter.type === "notch");
+  const voiceLowPass = context.filters.find(filter => filter.type === "lowpass");
+
+  assert.equal(context.filters.length, 2);
+  assert.equal(context.sources[0].connectedTo, sourceEq);
+  assert.equal(sourceEq.type, "notch");
+  assert.equal(sourceEq.frequency.value, 240);
+  assert.equal(sourceEq.gain.value, -24);
+  assert.equal(sourceEq.connectedTo, voiceLowPass);
+  assert.equal(voiceLowPass.type, "lowpass");
+
+  context.sources[0].onended();
+  assert.equal(sourceEq.disconnected, true);
+  assert.equal(voiceLowPass.disconnected, true);
+});
+
 test("routed SFX activity ducks future target voices and releases on source end", async () =>
 {
   const busDuckingController = new CjsBusDuckingController({

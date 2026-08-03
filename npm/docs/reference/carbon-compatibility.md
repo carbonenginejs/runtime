@@ -211,7 +211,11 @@ music; Bus LPF/HPF are distributed dry-route filters for both engines. Static
 Parametric EQ uses source-proven v150 field decoding and one ordered shared
 Web Audio chain per Bus when the complete graph route qualifies. Blocked or
 missing graph routes retain the distributed source-route fallback. Neither
-path claims native Wwise DSP equivalence. Static Wwise Delay likewise uses
+path claims native Wwise DSP equivalence. A complete direct Sound-local,
+static, control-free Parametric EQ override is also adapted into one
+voice-owned Web Audio chain before Voice filters and spatial/auxiliary
+splitting. Mixed, dynamic, inherited, and independent-LFE Sound effects remain
+documented dry-playback approximations. Static Wwise Delay likewise uses
 source-proven v150 fields and one shared Web Audio delay/feedback stage; it has
 no distributed per-source fallback. Bus ancestries targeted by retained Set or
 Reset Bus Volume actions stay blocked across audible effects because their

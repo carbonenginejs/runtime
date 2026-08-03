@@ -135,11 +135,21 @@ Parameter action carries its catalog default so unset relative values and
 transition start points never guess zero; the library builder also requires an
 exact parameter-name catalog match.
 
+A Voice Volume action whose target flag names an Audio Bus is not Bus Volume.
+Wwise applies it to voices feeding that Bus before Bus effects, while Bus
+Volume controls the Bus stage itself. The builder therefore keeps this form
+fail-closed rather than relabeling `0x0A03` as `0x0C03`. EVE build 3453885 has
+two such CSI actions (`cinematic_ship_intro_begin` at `-30 dB` and
+`cinematic_ship_intro_climax` at `0 dB`) targeting a Bus with three active
+Wwise Delay effects. Both events are already blocked by an unnamed State group,
+so a future distinct pre-effect bus-voice action is required before either can
+be retained.
+
 ## Node behavior
 
 | Type | Behavior |
 | --- | --- |
-| `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, `spatial` selects the panner (`true`) or flat SFX route (`false`), `dryVolumeCurve` retains the leaf's Wwise distance gain, and the qualified `voiceLimit` shape reserves a cap-one per-game-object instance before media acquisition. |
+| `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, `spatial` selects the panner (`true`) or flat SFX route (`false`), `dryVolumeCurve` retains the leaf's Wwise distance gain, `sourceEffects` retains a complete qualified direct static Parametric EQ chain, and the qualified `voiceLimit` shape reserves a cap-one per-game-object instance before media acquisition. |
 | `silence` | Produces no voice. This preserves authored empty switch/state cases without falling through to the default. |
 | `random` | Chooses one weighted child. `mode: "shuffle"` exhausts a pool before refilling it; `avoidRepeat` excludes recent choices. |
 | `sequence` | Chooses the next child for each post; `loop: false` produces no further leaves after the final child. |
@@ -220,6 +230,23 @@ voices whose route contains the target, without changing voice gain or the
 application master, SFX, or music controls. Reset
 All and All-Except use qualified exact stored bus identities; EVE currently
 exercises Element.
+
+A portable `sound` node may also carry `sourceEffects`, an ordered list of
+static Parametric EQ records. The builder emits this list only for a direct
+Sound NodeBase effect override whose complete active slot sequence is
+control-free Parametric EQ with ordinary LFE processing. Playback creates one
+Web Audio biquad chain per physical voice before the authored Voice LPF/HPF,
+gain, spatial/auxiliary split, and Audio Bus effects. Pause, seek, and finite
+repeat source replacement reuse that voice-owned chain.
+
+This is a browser DSP adaptation, not a native Wwise filter claim. Bypassed or
+rendered slots need no live stage. Mixed plug-in sequences, EQ with RTPC,
+State, property-value, or media controls, `processLfe:false`, and inherited
+Actor-Mixer effect lists retain the previous dry-playback approximation rather
+than applying part of an authored chain. EVE build 3453885 installs 20 such
+qualified Sound leaves across 39 retained events; 19 chains are non-neutral.
+Five mixed Tremolo/EQ chains and five dynamic EQ leaves remain intentionally
+unrealized.
 
 Set Voice Pitch stores one cents contribution for the target HIRC element.
 `valueMode: "absolute"` replaces that contribution; `"relative"` adds to its

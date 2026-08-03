@@ -1,3 +1,5 @@
+import { normalizeStaticParametricEqChain } from "../internal/busEffects.js";
+
 const SFX_SCHEMA_VERSION = 2;
 const NODE_TYPES = new Set([
     "blend",
@@ -127,6 +129,12 @@ export function validateSfxGraph(
             node.stateProperties,
             `Audio library SFX node ${id} stateProperties`,
         );
+        if (node.type !== "sound" && node.sourceEffects !== undefined)
+        {
+            throw new TypeError(
+                `Audio library SFX node ${id} sourceEffects require a sound node`,
+            );
+        }
 
         if (node.type === "sound" || node.type === "silence")
         {
@@ -182,6 +190,13 @@ export function validateSfxGraph(
                 node.dryVolumeCurve,
                 `Audio library SFX sound ${id} dryVolumeCurve`,
             );
+            if (node.sourceEffects !== undefined)
+            {
+                normalizeStaticParametricEqChain(
+                    node.sourceEffects,
+                    `Audio library SFX sound ${id} sourceEffects`,
+                );
+            }
             if (node.matchIds !== undefined)
             {
                 ValidateMatchIds(
@@ -615,6 +630,16 @@ function NormalizeNode(node)
                         }),
                 })),
             };
+        }
+        if (node.sourceEffects !== undefined)
+        {
+            result.sourceEffects = normalizeStaticParametricEqChain(
+                node.sourceEffects,
+                `Audio library SFX sound ${node.mediaId} sourceEffects`,
+            ).map(effect => ({
+                ...effect,
+                bands: effect.bands.map(band => ({ ...band })),
+            }));
         }
         if (node.matchIds !== undefined)
         {

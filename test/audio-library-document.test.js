@@ -1380,6 +1380,20 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
                         { x: 100, value: -1, interpolation: 8 },
                     ],
                 },
+                sourceEffects: [ {
+                    effectId: "900",
+                    slotIndex: 1,
+                    type: "parametric-eq",
+                    bands: [ {
+                        index: 0,
+                        filterType: "notch",
+                        gainDb: -24,
+                        frequencyHz: 240,
+                        q: 8,
+                    } ],
+                    outputGainDb: 0,
+                    processLfe: true,
+                } ],
                 rtpcCurves: [
                     {
                         rtpc: "speed",
@@ -1400,6 +1414,27 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     assert.deepEqual(
         installAudioLibraryDocument(valid).sfx.nodes["2"].dryVolumeCurve,
         valid.sfx.nodes["2"].dryVolumeCurve,
+    );
+    assert.deepEqual(
+        installAudioLibraryDocument(valid).sfx.nodes["2"].sourceEffects,
+        valid.sfx.nodes["2"].sourceEffects,
+    );
+
+    const misplacedSourceEffects = structuredClone(valid);
+
+    misplacedSourceEffects.sfx.nodes["1"].sourceEffects =
+        misplacedSourceEffects.sfx.nodes["2"].sourceEffects;
+    assert.throws(
+        () => validateAudioLibraryDocument(misplacedSourceEffects),
+        /sourceEffects require a sound node/u,
+    );
+
+    const malformedSourceEffects = structuredClone(valid);
+
+    malformedSourceEffects.sfx.nodes["2"].sourceEffects[0].processLfe = false;
+    assert.throws(
+        () => validateAudioLibraryDocument(malformedSourceEffects),
+        /processLfe must be true/u,
     );
 
     const legacySfx = structuredClone(valid);

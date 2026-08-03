@@ -79,6 +79,9 @@ retains named global Game Parameter curves for Voice Volume or Bus Volume as
 raw Wwise scaling-2 values, including the authored parameter default, a
 `property` tag, and ordered graph points. SFX evaluates both properties for
 every bus in its dry ancestry, with Voice Volume on a distinct pre-bus gain;
+built SFX `sound` nodes may additionally retain an ordered `sourceEffects`
+array for a complete direct static Parametric EQ override. Those effects are
+voice-owned and precede Voice LPF/HPF and route splitting;
 built-in music evaluates Bus Volume only from this Audio Bus catalog. A Music
 Track's own qualified Voice Volume RTPC instead uses the independent pre-bus
 track stage described in the music guide. Interpolation occurs before Wwise's

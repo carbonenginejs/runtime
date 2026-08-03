@@ -1,3 +1,5 @@
+import { normalizeStaticParametricEqChain } from '../internal/busEffects.js';
+
 const SFX_SCHEMA_VERSION = 2;
 const NODE_TYPES = new Set(["blend", "parallel", "random", "sequence", "silence", "sound", "switch"]);
 const SWITCH_SCOPES = new Set(["state", "switch"]);
@@ -40,6 +42,9 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
     ValidateVoiceLimit(node.voiceLimit, node.type, `Audio library SFX node ${id} voiceLimit`);
     ValidateRtpcCurves(node.rtpcCurves, `Audio library SFX node ${id} rtpcCurves`);
     ValidateStateProperties(node.stateProperties, `Audio library SFX node ${id} stateProperties`);
+    if (node.type !== "sound" && node.sourceEffects !== undefined) {
+      throw new TypeError(`Audio library SFX node ${id} sourceEffects require a sound node`);
+    }
     if (node.type === "sound" || node.type === "silence") {
       if (node.type === "silence") {
         continue;
@@ -64,6 +69,9 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
         throw new TypeError(`Audio library SFX sound ${id} spatial must be boolean`);
       }
       ValidateDryVolumeCurve(node.dryVolumeCurve, `Audio library SFX sound ${id} dryVolumeCurve`);
+      if (node.sourceEffects !== undefined) {
+        normalizeStaticParametricEqChain(node.sourceEffects, `Audio library SFX sound ${id} sourceEffects`);
+      }
       if (node.matchIds !== undefined) {
         ValidateMatchIds(node.matchIds, id, `Audio library SFX sound ${id} matchIds`);
       }
@@ -295,6 +303,14 @@ function NormalizeNode(node) {
           })
         }))
       };
+    }
+    if (node.sourceEffects !== undefined) {
+      result.sourceEffects = normalizeStaticParametricEqChain(node.sourceEffects, `Audio library SFX sound ${node.mediaId} sourceEffects`).map(effect => ({
+        ...effect,
+        bands: effect.bands.map(band => ({
+          ...band
+        }))
+      }));
     }
     if (node.matchIds !== undefined) {
       result.matchIds = node.matchIds.map(value => String(Number(value) >>> 0));

@@ -133,94 +133,109 @@ export function indexBusEffectCatalog(value)
                 `Audio Bus effect bus ${busId} must have effects`,
             );
         }
-        const slots = new Set();
-        const effects = rawEffects.map((rawEffect, effectIndex) =>
+        const effects = normalizeStaticParametricEqChain(
+            rawEffects,
+            `Audio Bus effect bus ${busId}`,
+        );
+
+        result.set(busId, effects);
+    }
+    return result;
+}
+
+/** Validates one ordered, static Parametric-EQ-only effect chain. */
+export function normalizeStaticParametricEqChain(value, ownerLabel)
+{
+    if (!Array.isArray(value) || !value.length)
+    {
+        throw new TypeError(`${ownerLabel} must have effects`);
+    }
+    const slots = new Set();
+    const effects = value.map((rawEffect, effectIndex) =>
+    {
+        const label = `${ownerLabel} effect ${effectIndex}`;
+        const effect = RequireRecord(rawEffect, label);
+        const effectId = CanonicalPositiveId(
+            effect.effectId,
+            `${label} id`,
+        );
+        const slotIndex = BoundedInteger(
+            effect.slotIndex,
+            0,
+            3,
+            `${label} slotIndex`,
+        );
+
+        if (slots.has(slotIndex))
         {
-            const label = `Audio Bus effect bus ${busId} effect ${effectIndex}`;
-            const effect = RequireRecord(rawEffect, label);
-            const effectId = CanonicalPositiveId(
-                effect.effectId,
-                `${label} id`,
-            );
-            const slotIndex = BoundedInteger(
-                effect.slotIndex,
+            throw new TypeError(`${label} duplicates slot ${slotIndex}`);
+        }
+        slots.add(slotIndex);
+        if (effect.type !== "parametric-eq")
+        {
+            throw new TypeError(`${label} has unsupported type ${effect.type}`);
+        }
+        if (!Array.isArray(effect.bands) || effect.bands.length > 3)
+        {
+            throw new TypeError(`${label} bands must contain at most 3 entries`);
+        }
+        const bandIndices = new Set();
+        const bands = effect.bands.map((rawBand, bandOffset) =>
+        {
+            const bandLabel = `${label} band ${bandOffset}`;
+            const band = RequireRecord(rawBand, bandLabel);
+            const index = BoundedInteger(
+                band.index,
                 0,
-                3,
-                `${label} slotIndex`,
+                2,
+                `${bandLabel} index`,
             );
 
-            if (slots.has(slotIndex))
+            if (bandIndices.has(index))
             {
-                throw new TypeError(`${label} duplicates slot ${slotIndex}`);
+                throw new TypeError(`${bandLabel} duplicates index ${index}`);
             }
-            slots.add(slotIndex);
-            if (effect.type !== "parametric-eq")
-            {
-                throw new TypeError(`${label} has unsupported type ${effect.type}`);
-            }
-            if (!Array.isArray(effect.bands) || effect.bands.length > 3)
-            {
-                throw new TypeError(`${label} bands must contain at most 3 entries`);
-            }
-            const bandIndices = new Set();
-            const bands = effect.bands.map((rawBand, bandOffset) =>
-            {
-                const bandLabel = `${label} band ${bandOffset}`;
-                const band = RequireRecord(rawBand, bandLabel);
-                const index = BoundedInteger(
-                    band.index,
-                    0,
-                    2,
-                    `${bandLabel} index`,
-                );
+            bandIndices.add(index);
+            const filterType = String(band.filterType ?? "");
 
-                if (bandIndices.has(index))
-                {
-                    throw new TypeError(`${bandLabel} duplicates index ${index}`);
-                }
-                bandIndices.add(index);
-                const filterType = String(band.filterType ?? "");
-
-                if (!FILTER_TYPES.has(filterType))
-                {
-                    throw new TypeError(
-                        `${bandLabel} has unsupported filterType ${filterType}`,
-                    );
-                }
-                return Object.freeze({
-                    index,
-                    filterType,
-                    gainDb: FiniteGain(band.gainDb, `${bandLabel} gainDb`),
-                    frequencyHz: PositiveFinite(
-                        band.frequencyHz,
-                        `${bandLabel} frequencyHz`,
-                    ),
-                    q: PositiveFinite(band.q, `${bandLabel} q`),
-                });
-            }).sort((left, right) => left.index - right.index);
-
-            if (effect.processLfe !== true)
+            if (!FILTER_TYPES.has(filterType))
             {
                 throw new TypeError(
-                    `${label} processLfe must be true until independent LFE routing is supported`,
+                    `${bandLabel} has unsupported filterType ${filterType}`,
                 );
             }
             return Object.freeze({
-                effectId,
-                slotIndex,
-                type: "parametric-eq",
-                bands: Object.freeze(bands),
-                outputGainDb: FiniteGain(
-                    effect.outputGainDb,
-                    `${label} outputGainDb`,
+                index,
+                filterType,
+                gainDb: FiniteGain(band.gainDb, `${bandLabel} gainDb`),
+                frequencyHz: PositiveFinite(
+                    band.frequencyHz,
+                    `${bandLabel} frequencyHz`,
                 ),
-                processLfe: true,
+                q: PositiveFinite(band.q, `${bandLabel} q`),
             });
-        }).sort((left, right) => left.slotIndex - right.slotIndex);
+        }).sort((left, right) => left.index - right.index);
 
-        result.set(busId, Object.freeze(effects));
-    }
-    return result;
+        if (effect.processLfe !== true)
+        {
+            throw new TypeError(
+                `${label} processLfe must be true until independent LFE routing is supported`,
+            );
+        }
+        return Object.freeze({
+            effectId,
+            slotIndex,
+            type: "parametric-eq",
+            bands: Object.freeze(bands),
+            outputGainDb: FiniteGain(
+                effect.outputGainDb,
+                `${label} outputGainDb`,
+            ),
+            processLfe: true,
+        });
+    }).sort((left, right) => left.slotIndex - right.slotIndex);
+
+    return Object.freeze(effects);
 }
 
 /** Creates a distributable static effect chain for one collapsed dry route. */
@@ -233,7 +248,13 @@ export function createBusEffectChain(context, indexedCatalog, busPathIds)
     const effects = (busPathIds ?? []).flatMap(busId =>
         indexedCatalog.get(String(busId)) ?? []);
 
-    if (!effects.length) return null;
+    return createWwiseEffectChain(context, effects);
+}
+
+/** Creates one ordered browser effect chain from normalized portable records. */
+export function createWwiseEffectChain(context, effects)
+{
+    if (!Array.isArray(effects) || !effects.length) return null;
     const nodes = [];
     let input = null;
     let output = null;

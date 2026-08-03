@@ -45,7 +45,7 @@ test("authored music demo exposes a stable contextual transport", () =>
     assert.match(html, /id="musicExamples"[^>]*disabled/);
     assert.match(html, /id="sfxExamples"[^>]*disabled/);
     assert.match(html, /#music \.sfxControl select\s*\{[^}]*padding:\s*9px 36px 9px 12px/s);
-    assert.match(html, /id="musicVol"[^>]*value="30"/);
+    assert.match(html, /id="musicVol"[^>]*value="20"/);
     assert.match(html, /#musicExampleDetail\s*\{[^}]*height:\s*44px/s);
     assert.match(html, /\.transport button:disabled\s*\{[^}]*color:\s*rgba\([^)]*,\s*0\.24\)/s);
     assert.match(script, /#transportState = "idle"/);
@@ -562,6 +562,35 @@ test("committed demo library carries authored SFX and music semantics", () =>
         node.matchIds[0] === id));
 
     const nodes = Object.values(graph.nodes);
+    const sourceEqSounds = nodes.filter(node =>
+        Array.isArray(node.sourceEffects));
+
+    assert.equal(sourceEqSounds.length, 20);
+    assert.equal(
+        sourceEqSounds.filter(node => node.sourceEffects.some(effect =>
+            effect.outputGainDb !== 0
+            || effect.bands.some(band => band.gainDb !== 0))).length,
+        19,
+        "the exact demo retains every qualified non-neutral Sound-local EQ",
+    );
+    assert.deepEqual(
+        graph.nodes["793161597"].sourceEffects[0],
+        {
+            effectId: "544416638",
+            slotIndex: 0,
+            type: "parametric-eq",
+            bands: [ {
+                index: 1,
+                filterType: "peaking",
+                gainDb: -3.5,
+                frequencyHz: 361,
+                q: 1,
+            } ],
+            outputGainDb: 0,
+            processLfe: true,
+        },
+        "Jita hangar carries its exact qualified Sound-local EQ",
+    );
 
     assert.ok(nodes.filter(node => node.gainDb !== undefined).length > 3000);
     assert.ok(

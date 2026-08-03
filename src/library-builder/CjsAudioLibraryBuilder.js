@@ -220,6 +220,9 @@ export class CjsAudioLibraryBuilder
         }
 
         const parsed = CjsBnkFormat.wwise.sfxNodesFromBanks(inspections);
+        const parsedEffects = CjsBnkFormat.wwise.effectNodesFromBanks(
+            inspections,
+        );
         const eventNames = new Map();
 
         for (const [ name, record ] of metadataEntries(
@@ -232,6 +235,7 @@ export class CjsAudioLibraryBuilder
 
         return LowerSfxGraph({
             parsed,
+            effects: parsedEffects.effects,
             buses,
             eventNames,
             musicNodeIds: new Set(inspections.flatMap(inspection =>
@@ -980,6 +984,7 @@ function MarkBusGraphVolumeActionControls(busGraph, sfx)
 
 function LowerSfxGraph({
     parsed,
+    effects,
     buses,
     eventNames,
     musicNodeIds,
@@ -1189,6 +1194,11 @@ function LowerSfxGraph({
                         ? { matchIds }
                         : {}),
                     ...(routing ?? {}),
+                    ...CreateSfxSoundEffectProjection(
+                        parsed,
+                        effects,
+                        id,
+                    ),
                     ...(loopCount === 0
                         ? { loop: true }
                         : Number.isSafeInteger(loopCount) && loopCount > 0
@@ -3701,7 +3711,7 @@ function CreateBusEffectCatalog(inspections, buses, routedBusIds)
     {
         if (unsafeBusIds.has(rawBusId)) continue;
         const effects = activeEffects.map(({ slot, effect }) =>
-            ParseStaticParametricEq(rawBusId, slot, effect));
+            ParseStaticParametricEq(`Bus ${rawBusId}`, slot, effect));
 
         if (effects.length) result[String(rawBusId)] = effects;
     }
@@ -4183,7 +4193,7 @@ function BytesToBase64(bytes)
     return result;
 }
 
-function ParseStaticParametricEq(busId, slot, effect)
+function ParseStaticParametricEq(ownerLabel, slot, effect)
 {
     if (effect.media?.length
         || effect.rtpcs?.length
@@ -4192,14 +4202,76 @@ function ParseStaticParametricEq(busId, slot, effect)
         || effect.propertyValues?.length)
     {
         throw new Error(
-            `Wwise Parametric EQ ${effect.id} on bus ${busId} is not static`,
+            `Wwise Parametric EQ ${effect.id} on ${ownerLabel} is not static`,
         );
     }
     return parseStaticParametricEqBytes(effect.parameterBlock, {
         effectId: effect.id,
         slotIndex: slot.index,
-        label: `Wwise Parametric EQ ${effect.id} on bus ${busId}`,
+        label: `Wwise Parametric EQ ${effect.id} on ${ownerLabel}`,
     });
+}
+
+/**
+ * Projects only a Sound's complete direct static EQ override. Parent effects,
+ * dynamic controls, mixed chains, and independent LFE routing keep the
+ * existing documented dry-playback approximation.
+ */
+function CreateSfxSoundEffectProjection(parsed, effects, rawId)
+{
+    const soundId = Number(rawId) >>> 0;
+    const fx = parsed.nodeBases.get(soundId)?.fx;
+
+    if (!fx
+        || fx.overrideParentRaw !== 1
+        || (fx.bypassAllRaw !== 0 && fx.bypassAllRaw !== 1)
+        || fx.bypassAll)
+    {
+        return {};
+    }
+    const slots = [ ...(fx.slots ?? []) ]
+        .sort((left, right) => left.index - right.index);
+    const seen = new Set();
+    const chain = [];
+
+    try
+    {
+        for (const slot of slots)
+        {
+            const slotIndex = Number(slot.index);
+            const flags = Number(slot.flags);
+
+            if (!Number.isSafeInteger(slotIndex)
+                || slotIndex < 0
+                || slotIndex > 3
+                || seen.has(slotIndex)
+                || !Number.isSafeInteger(flags)
+                || (flags & ~0x07) !== 0)
+            {
+                return {};
+            }
+            seen.add(slotIndex);
+            if (slot.bypass || slot.rendered) continue;
+            const effect = effects?.get(slot.fxId);
+
+            if (!effect
+                || effect.pluginId !== PARAMETRIC_EQ_PLUGIN_ID
+                || slot.shareSet !== (effect.type === "effect-share-set"))
+            {
+                return {};
+            }
+            chain.push(ParseStaticParametricEq(
+                `Sound ${soundId}`,
+                slot,
+                effect,
+            ));
+        }
+    }
+    catch
+    {
+        return {};
+    }
+    return chain.length ? { sourceEffects: chain } : {};
 }
 
 function NormalizeBusDuckingCatalog(value)

@@ -618,6 +618,9 @@ class CjsSfxEngine {
         ...(node.dryVolumeCurve === undefined ? {} : {
           dryVolumeCurve: node.dryVolumeCurve
         }),
+        ...(node.sourceEffects === undefined ? {} : {
+          sourceEffects: node.sourceEffects
+        }),
         ...(node.voiceLimit === undefined ? {} : {
           voiceLimit: node.voiceLimit
         }),

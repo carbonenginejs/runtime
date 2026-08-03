@@ -4000,6 +4000,108 @@ test("complete construction projects typed Audio Bus ducking once per source", a
     });
 });
 
+test("SFX construction projects complete static Sound-local Parametric EQ", async () =>
+{
+    const bands = [
+        { filterTypeId: 3, gainDb: -24, frequencyHz: 240, q: 8, enabled: true },
+        { filterTypeId: 4, gainDb: 0, frequencyHz: 120, q: 1, enabled: false },
+        { filterTypeId: 5, gainDb: 0, frequencyHz: 12000, q: 1, enabled: false },
+    ];
+    const library = await CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                weapon_fire: {
+                    eventID: 100,
+                    soundbanks: [ "common.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "common.bnk": {
+                    name: "common",
+                    path: "\\SoundBanks\\common.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/common.bnk",
+            storagePath: "banks/common.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideEffects: true,
+                                effects: [ {
+                                    slotIndex: 1,
+                                    effectId: 900,
+                                    flags: 2,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 400,
+                            actionType: 0x0403,
+                            targetId: 300,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 400 ],
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 16,
+                            id: 900,
+                            payload: parametricEqEffectPayload({ bands }),
+                        },
+                    ],
+                    media: [ {
+                        id: 9001,
+                        available: true,
+                        absoluteOffset: 32,
+                        length: 64,
+                        mediaType: "wem",
+                    } ],
+                },
+            };
+        },
+    });
+
+    assert.deepEqual(library.sfx.nodes["300"].sourceEffects, [ {
+        effectId: "900",
+        slotIndex: 1,
+        type: "parametric-eq",
+        bands: [ {
+            index: 0,
+            filterType: "notch",
+            gainDb: -24,
+            frequencyHz: 240,
+            q: 8,
+        } ],
+        outputGainDb: 0,
+        processLfe: true,
+    } ]);
+});
+
 test("complete construction projects routed static Wwise Parametric EQ", async () =>
 {
     const library = await CjsAudioLibraryBuilder.buildFromBanks({
@@ -7288,6 +7390,9 @@ function soundPayload({
     maxInstances = 0,
     belowThresholdBehavior = 0,
     hdrFlags = 0,
+    effects = [],
+    overrideEffects = false,
+    bypassAllEffects = false,
 } = {})
 {
     return new TestWriter()
@@ -7318,6 +7423,9 @@ function soundPayload({
             maxInstances,
             belowThresholdBehavior,
             hdrFlags,
+            effects,
+            overrideEffects,
+            bypassAllEffects,
         }))
         .bytes();
 }
@@ -7741,10 +7849,27 @@ function nodeBasePayload({
     maxInstances = 0,
     belowThresholdBehavior = 0,
     hdrFlags = 0,
+    effects = [],
+    overrideEffects = false,
+    bypassAllEffects = false,
 } = {})
 {
     const writer = new TestWriter()
-        .u8(0).u8(0)
+        .u8(overrideEffects ? 1 : 0)
+        .u8(effects.length);
+
+    if (effects.length)
+    {
+        writer.u8(bypassAllEffects ? 1 : 0);
+        for (const effect of effects)
+        {
+            writer
+                .u8(effect.slotIndex)
+                .u32(effect.effectId)
+                .u8(effect.flags ?? 0);
+        }
+    }
+    writer
         .u8(0).u8(0)
         .u32(overrideBusId)
         .u32(directParentId)

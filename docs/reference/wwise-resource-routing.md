@@ -159,6 +159,18 @@ instance has RTPC, State, property-value, or media controls. Eleven EQ
 definitions outside the qualified Audio Bus slots do have controls and are not
 silently promoted; their SFX NodeBase effect slots remain unsupported.
 
+The later EVE build 3453885 source-local audit separates direct Sound effects
+from those Bus results. Of 33 direct active Sound chains containing Parametric
+EQ, 23 complete static EQ-only chains qualify. Twenty of those Sound leaves
+are installed and reachable from 39 retained events, and 19 are acoustically
+non-neutral. They run once per voice before Voice LPF/HPF and before the
+emitter/auxiliary split. Five chains mixed with Wwise Tremolo and five EQ
+leaves with live RTPC controls remain dry-playback approximations; overlapping
+property-value and independent-LFE barriers are not partially applied.
+Inherited NodeBase effect lists remain a separate slice because their empty
+override and parent-replacement semantics have not yet been projected into the
+portable graph.
+
 The builder and shared mixer follow pinned wwiser's version-150 56-byte
 parameter layout, validate exact boolean bytes and ShareSet/Custom slot
 identity, preserve bus, slot, and band order, and reject routed

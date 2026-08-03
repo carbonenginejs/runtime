@@ -1529,7 +1529,7 @@ test("SFX selections preserve authored and metadata infinite-loop fallbacks", ()
     assert.equal(Object.hasOwn(metadata, "playCount"), false);
 });
 
-test("SFX selections retain each Sound leaf's independent distance curve", () =>
+test("SFX selections retain each Sound leaf's distance curve and source EQ", () =>
 {
     const curve = {
         scaling: 2,
@@ -1538,6 +1538,20 @@ test("SFX selections retain each Sound leaf's independent distance curve", () =>
             { x: 20000, value: -1, interpolation: 8 },
         ],
     };
+    const sourceEffects = [ {
+        effectId: "900",
+        slotIndex: 0,
+        type: "parametric-eq",
+        bands: [ {
+            index: 0,
+            filterType: "notch",
+            gainDb: -24,
+            frequencyHz: 240,
+            q: 8,
+        } ],
+        outputGainDb: 0,
+        processLfe: true,
+    } ];
     const engine = new CjsSfxEngine({
         graph: Graph(
             { spatial_event: [ { nodeId: "1" } ] },
@@ -1547,6 +1561,7 @@ test("SFX selections retain each Sound leaf's independent distance curve", () =>
                     mediaId: "100",
                     spatial: true,
                     dryVolumeCurve: curve,
+                    sourceEffects,
                 },
             },
         ),
@@ -1555,6 +1570,7 @@ test("SFX selections retain each Sound leaf's independent distance curve", () =>
 
     assert.equal(selection.spatial, true);
     assert.deepEqual(selection.dryVolumeCurve, curve);
+    assert.deepEqual(selection.sourceEffects, sourceEffects);
 });
 
 test("switch/state selection and parallel RTPC gains resolve without acquisition", () =>

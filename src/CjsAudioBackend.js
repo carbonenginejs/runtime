@@ -1,6 +1,6 @@
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
-// source -> authored voice/bus filters -> combined source/distance and Bus gains
+// source -> authored source EQ -> voice/bus filters -> source/distance and Bus gains
 // -> emitter gain -> PannerNode(HRTF direction only) -> qualified shared Bus effects
 // -> master gain -> destination. Blocked/graphless routes retain their legacy
 // distributed Bus-effect chain before the emitter. Each playing source owns
@@ -36,7 +36,9 @@ import {
 import { wwiseFilterPercentToHz } from "./internal/wwiseFilter.js";
 import {
     createBusEffectChain,
+    createWwiseEffectChain,
     indexBusEffectCatalog,
+    normalizeStaticParametricEqChain,
 } from "./internal/busEffects.js";
 
 const DEFAULT_FADE_SECONDS = 1;
@@ -3661,6 +3663,7 @@ export class CjsAudioBackend
                         busRouteNodeId: selection.busRouteNodeId,
                         matchIds: selection.matchIds,
                         busPathIds: selection.busPathIds,
+                        sourceEffects: selection.sourceEffects,
                         authoredBusVolumeDb:
                             selection.authoredBusVolumeDb,
                         authoredBusMakeUpGainDb:
@@ -4650,6 +4653,10 @@ export class CjsAudioBackend
                 this.#busEffectCatalog,
                 descriptor.busPathIds,
             );
+        const sourceEffectChain = createWwiseEffectChain(
+            this.#context,
+            descriptor.sourceEffects ?? [],
+        );
 
         if (lowPassFilter)
         {
@@ -4744,6 +4751,9 @@ export class CjsAudioBackend
         {
             lowPassFilter.connect(highPassFilter ?? fadeGain ?? gain);
         }
+        sourceEffectChain?.output?.connect(
+            lowPassFilter ?? highPassFilter ?? fadeGain ?? gain,
+        );
 
         const voice = {
             gameObjID,
@@ -4824,6 +4834,8 @@ export class CjsAudioBackend
             stopGain,
             lowPassFilter,
             highPassFilter,
+            sourceEffectInput: sourceEffectChain?.input ?? null,
+            sourceEffectNodes: sourceEffectChain?.nodes ?? [],
             busEffectNodes: busEffectChain?.nodes ?? [],
             fadeScheduled: false,
             fadeStartContextTime: null,
@@ -5082,7 +5094,8 @@ export class CjsAudioBackend
             source.playbackRate.value = voice.playbackRate;
         }
         source.connect(
-            voice.lowPassFilter
+            voice.sourceEffectInput
+                ?? voice.lowPassFilter
                 ?? voice.highPassFilter
                 ?? voice.fadeGain
                 ?? voice.gain,
@@ -5460,6 +5473,7 @@ export class CjsAudioBackend
                             busRouteNodeId: selection.busRouteNodeId,
                             matchIds: selection.matchIds,
                             busPathIds: selection.busPathIds,
+                            sourceEffects: selection.sourceEffects,
                             authoredBusVolumeDb:
                                 selection.authoredBusVolumeDb,
                             authoredBusMakeUpGainDb:
@@ -5710,6 +5724,7 @@ export class CjsAudioBackend
                             busRouteNodeId: selection.busRouteNodeId,
                             matchIds: selection.matchIds,
                             busPathIds: selection.busPathIds,
+                            sourceEffects: selection.sourceEffects,
                             authoredBusVolumeDb:
                                 selection.authoredBusVolumeDb,
                             authoredBusMakeUpGainDb:
@@ -6021,6 +6036,7 @@ export class CjsAudioBackend
                     busRouteNodeId: selection.busRouteNodeId,
                     matchIds: selection.matchIds,
                     busPathIds: selection.busPathIds,
+                    sourceEffects: selection.sourceEffects,
                     authoredBusVolumeDb:
                         selection.authoredBusVolumeDb,
                     authoredBusMakeUpGainDb:
@@ -6310,6 +6326,10 @@ export class CjsAudioBackend
                 voice.voiceLimitReservationId,
             );
             voice.source?.disconnect?.();
+            for (const node of voice.sourceEffectNodes ?? [])
+            {
+                node.disconnect?.();
+            }
             voice.lowPassFilter?.disconnect?.();
             voice.highPassFilter?.disconnect?.();
             voice.gain?.disconnect?.();
@@ -7062,6 +7082,10 @@ export class CjsAudioBackend
                     }
                 }
                 voice.source?.disconnect?.();
+                for (const node of voice.sourceEffectNodes ?? [])
+                {
+                    node.disconnect?.();
+                }
                 voice.lowPassFilter?.disconnect?.();
                 voice.highPassFilter?.disconnect?.();
                 voice.gain?.disconnect?.();
@@ -7949,6 +7973,9 @@ function CreateProgramSelectionMetadata(selection, baseContextTime)
         busPathIds: Object.freeze(
             (selection.busPathIds ?? []).map(String),
         ),
+        ...(selection.sourceEffects === undefined
+            ? {}
+            : { sourceEffects: selection.sourceEffects }),
         ...(selection.authoredBusVolumeDb === undefined
             ? {}
             : {
@@ -8158,6 +8185,12 @@ function NormalizeVoiceDescriptors(result, eventLoop)
             value.dryVolumeCurve,
             index,
         );
+        const sourceEffects = value.sourceEffects === undefined
+            ? undefined
+            : normalizeStaticParametricEqChain(
+                value.sourceEffects,
+                `Audio voice ${index} sourceEffects`,
+            );
 
         if (!Number.isSafeInteger(playCount) || playCount <= 0)
         {
@@ -8342,6 +8375,7 @@ function NormalizeVoiceDescriptors(result, eventLoop)
                 ? true
                 : Boolean(value.spatial),
             ...(dryVolumeCurve === undefined ? {} : { dryVolumeCurve }),
+            ...(sourceEffects === undefined ? {} : { sourceEffects }),
             delayMs,
             fadeInMs,
             switchFadeInMs,

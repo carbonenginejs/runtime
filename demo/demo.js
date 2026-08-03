@@ -4461,9 +4461,10 @@ class DemoApp
         if (this.library.music) this.musicUi.Initialize();
         this.jukeboxUi.Initialize();
         if (this.library.sfx) this.sfxUi.Initialize();
-        // Volume controls. Music rides Carbon's authored volume RTPC (a 0..1
-        // user setting, authored initial 0.75); SFX uses the CarbonEngineJS
-        // sfx bus (Carbon has master + per-category levels, no single sfx
+        // Volume controls. This EVE library has no authored
+        // menu_main_music_level Bus RTPC, so the backend maps that Carbon
+        // setting onto its music category. SFX uses the CarbonEngineJS SFX
+        // category (Carbon has master + per-category levels, no single SFX
         // knob).
         document.getElementById("musicVol").oninput = () => this.ApplyVolumes();
         document.getElementById("sfxVol").oninput = () => this.ApplyVolumes();
