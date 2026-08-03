@@ -676,7 +676,48 @@ test("committed demo library carries authored SFX and music semantics", () =>
         );
         assert.equal(graph.nodes[innerID].continuous.transitionMs, 2000);
     }
-    assert.equal(graph.events.jita_sfx_incidentals_level3_play, undefined);
+    assert.deepEqual(
+        graph.events.jita_sfx_incidentals_level3_play,
+        [
+            { nodeId: "982470804" },
+            { nodeId: "889017459" },
+            { nodeId: "183292688" },
+            { nodeId: "450083713" },
+            { nodeId: "692150381" },
+        ],
+        "the demo carries all five authored Jita Play actions",
+    );
+    const jitaOuter = graph.nodes["450083713"];
+    const jitaInner = graph.nodes["472660510"];
+
+    assert.equal(jitaOuter.type, "random");
+    assert.equal(jitaOuter.continuous.transition, "delay");
+    assert.equal(jitaOuter.continuous.transitionMs, 15000);
+    assert.deepEqual(
+        jitaOuter.continuous.transitionRangeMs,
+        { min: 0, max: 30000 },
+    );
+    assert.deepEqual(jitaOuter.children, [ { nodeId: "472660510" } ]);
+    assert.equal(jitaInner.type, "sequence");
+    assert.equal(jitaInner.initialDelayMs, 2000);
+    assert.deepEqual(
+        jitaInner.children,
+        [ { nodeId: "211583824" }, { nodeId: "186518405" } ],
+    );
+    assert.equal(
+        jitaInner.continuous.transition,
+        "crossfade-amplitude",
+    );
+    assert.equal(jitaInner.continuous.transitionMs, 2000);
+    assert.deepEqual(
+        jitaInner.continuous.transitionRangeMs,
+        { min: 0, max: 20000 },
+    );
+    assert.equal(jitaInner.continuous.resetPlaylistEachPlay, false);
+    assert.equal(
+        library.eventMedia.jita_sfx_incidentals_level3_play.length,
+        48,
+    );
 
     const warningEngine = new CjsSfxEngine({ graph });
     const warningFirst = warningEngine.ResolveProgram(

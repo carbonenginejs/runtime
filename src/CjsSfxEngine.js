@@ -238,8 +238,7 @@ export class CjsSfxEngine
             {
                 const branch = continuousBranches[index];
                 const switchSession = branch.token.kind === "switch";
-                const nestedSession = branch.token.kind
-                    === "nested-trigger-rate-delay";
+                const nestedSession = IsNestedDelayToken(branch.token);
                 const programSlotId = `${actionIndex}:c${index}`;
                 const programBatchId =
                     `${programSlotId}:b${branch.token.batchIndex++}`;
@@ -289,6 +288,12 @@ export class CjsSfxEngine
                         : {}),
                     ...(continuation?.completionBarrier
                         ? { completionBarrier: true }
+                        : {}),
+                    ...(continuation?.crossfadeMode
+                        ? {
+                            crossfadeMode:
+                                continuation.crossfadeMode,
+                        }
                         : {}),
                     ...(switchSession
                         ? {
@@ -490,12 +495,15 @@ export class CjsSfxEngine
         {
             return this.#ContinueSwitchProgram(token, controls);
         }
-        if (token.kind === "nested-trigger-rate-delay"
+        let nestedRestartTerms = null;
+
+        if (IsNestedDelayToken(token)
             && token.restartPending)
         {
-            token.continuationTerms = {
-                ...token.continuationTerms,
-                delayMs: SampleRandomizedValue(
+            nestedRestartTerms = {
+                ...token.restartInitialTerms,
+                delayMs: token.restartInitialTerms.delayMs
+                    + SampleRandomizedValue(
                     token.parentNode.continuous.transitionMs,
                     token.parentNode.continuous.transitionRangeMs,
                     () => this.#SampleUnit(),
@@ -503,14 +511,22 @@ export class CjsSfxEngine
             };
             token.passCount = 0;
             token.remainingInPass = 0;
-            token.sequencePosition = 0;
+            token.sequencePosition = token.node.type === "sequence"
+                ? this.#InitialContinuousSequencePosition(
+                    token.nodeID,
+                    token.node,
+                    token.gameObjID,
+                )
+                : 0;
+            token.done = false;
             token.restartPending = false;
         }
 
         const selections = this.#ResolveContinuousBatch(
             token,
             controls,
-            false,
+            nestedRestartTerms !== null,
+            nestedRestartTerms,
         );
 
         if (selections === null)
@@ -529,8 +545,7 @@ export class CjsSfxEngine
         const programBatchId =
             `${token.programSlotId}:b${token.batchIndex++}`;
         const hasMore = this.#ContinuousHasMore(token);
-        const nestedContinuation = token.kind
-            === "nested-trigger-rate-delay"
+        const nestedContinuation = IsNestedDelayToken(token)
             ? this.#DescribeNestedContinuation(token, hasMore)
             : null;
         const delayMs = nestedContinuation?.delayMs
@@ -582,6 +597,12 @@ export class CjsSfxEngine
                             : {}),
                         ...(nestedContinuation?.completionBarrier
                             ? { completionBarrier: true }
+                            : {}),
+                        ...(nestedContinuation?.crossfadeMode
+                            ? {
+                                crossfadeMode:
+                                    nestedContinuation.crossfadeMode,
+                            }
                             : {}),
                     }),
                 ]),
@@ -1633,7 +1654,9 @@ export class CjsSfxEngine
             );
         }
 
-        if (this.#IsNestedTriggerRateDelay(node))
+        const nestedKind = this.#NestedContinuousDelayKind(node);
+
+        if (nestedKind)
         {
             const nestedBranches = [];
             const unexpectedSelections = [];
@@ -1656,9 +1679,25 @@ export class CjsSfxEngine
             }
             const branch = nestedBranches[0];
 
-            branch.token.kind = "nested-trigger-rate-delay";
+            branch.token.kind = nestedKind;
             branch.token.parentNodeID = nodeID;
             branch.token.parentNode = node;
+            const innerEdge = NormalizeChild(node.children[0]);
+            const innerNode = this.#graph.nodes?.[innerEdge.nodeId];
+            const parentContinuationTerms = {
+                ...terms,
+                initialDelayMs: 0,
+                delayMs: 0,
+                fadeInMs: 0,
+            };
+
+            branch.token.restartInitialTerms = this.#AddNodeTerms(
+                this.#AddNodeTerms(
+                    parentContinuationTerms,
+                    innerEdge,
+                ),
+                innerNode,
+            );
             branch.token.restartPending = false;
             continuousBranches.push(branch);
             return;
@@ -1708,15 +1747,16 @@ export class CjsSfxEngine
         });
     }
 
-    /** Returns whether one outer container is the exact supported nested clock. */
-    #IsNestedTriggerRateDelay(node)
+    /** Identifies one qualified outer completion-Delay scheduler. */
+    #NestedContinuousDelayKind(node)
     {
         const edge = node.children?.[0];
         const edgeIsRecord = edge !== null
             && typeof edge === "object"
             && !Array.isArray(edge);
 
-        if (node.type !== "sequence"
+        if ((node.type !== "sequence"
+                && node.type !== "random")
             || node.children.length !== 1
             || (edgeIsRecord
                 && (Object.keys(edge).length !== 1
@@ -1724,14 +1764,20 @@ export class CjsSfxEngine
             || node.continuous.loopCount !== 0
             || node.continuous.transition !== "delay")
         {
-            return false;
+            return null;
         }
         const childID = String(
             edge?.nodeId ?? edge,
         );
         const child = this.#graph.nodes?.[childID];
 
-        return child?.type === "sequence"
+        const noDeeperClock = child?.children?.every(childEdge =>
+            !this.#NodeContainsContinuous(
+                String(childEdge?.nodeId ?? childEdge),
+                new Set(),
+            )) === true;
+        const triggerRate = node.type === "sequence"
+            && child?.type === "sequence"
             && Object.keys(child).every(key => [
                 "type",
                 "scope",
@@ -1742,11 +1788,33 @@ export class CjsSfxEngine
             && child.continuous?.loopCount === 1
             && child.continuous.transition === "trigger-rate"
             && child.continuous.resetPlaylistEachPlay !== false
-            && child.children.every(edge =>
-                !this.#NodeContainsContinuous(
-                    String(edge?.nodeId ?? edge),
-                    new Set(),
-                ));
+            && noDeeperClock;
+
+        if (triggerRate)
+        {
+            return "nested-trigger-rate-delay";
+        }
+        const crossfade = node.type === "random"
+            && node.mode === "random"
+            && child?.type === "sequence"
+            && Object.keys(child).every(key => [
+                "type",
+                "scope",
+                "children",
+                "continuous",
+                "gainDb",
+                "pitchCents",
+                "lowPass",
+                "highPass",
+                "initialDelayMs",
+            ].includes(key))
+            && child.children.length === 2
+            && child.continuous?.loopCount === 1
+            && child.continuous.transition === "crossfade-amplitude"
+            && child.continuous.resetPlaylistEachPlay === false
+            && noDeeperClock;
+
+        return crossfade ? "nested-crossfade-delay" : null;
     }
 
     /** Detects deeper Continuous descendants for the narrow nested gate. */
@@ -1777,24 +1845,34 @@ export class CjsSfxEngine
     /** Describes the inner cadence or the outer physical-completion delay. */
     #DescribeNestedContinuation(token, hasMore)
     {
+        const transition = token.node.continuous.transition;
+        const crossfade = transition === "crossfade-amplitude";
+
         if (hasMore)
         {
             return {
-                advance: "trigger-rate",
+                advance: crossfade ? "crossfade" : "trigger-rate",
                 delayMs: this.#SampleContinuousTransition(token),
+                ...(crossfade ? { crossfadeMode: transition } : {}),
             };
         }
 
         token.restartPending = true;
         return {
-            advance: "trigger-rate",
+            advance: crossfade ? "crossfade" : "trigger-rate",
             delayMs: 0,
             completionBarrier: true,
+            ...(crossfade ? { crossfadeMode: transition } : {}),
         };
     }
 
     /** Selects and resolves one child batch from an active traversal. */
-    #ResolveContinuousBatch(token, controls, initial)
+    #ResolveContinuousBatch(
+        token,
+        controls,
+        initial,
+        overrideTerms = null,
+    )
     {
         const index = this.#SelectContinuousChild(token);
 
@@ -1810,7 +1888,8 @@ export class CjsSfxEngine
         this.#ResolveChild(
             token.node.children[index],
             controls,
-            initial ? token.initialTerms : token.continuationTerms,
+            overrideTerms
+                ?? (initial ? token.initialTerms : token.continuationTerms),
             token.active,
             selections,
             nested,
@@ -2423,6 +2502,12 @@ function IsCrossfadeTransition(value)
         || value === "crossfade-power";
 }
 
+function IsNestedDelayToken(token)
+{
+    return token?.kind === "nested-trigger-rate-delay"
+        || token?.kind === "nested-crossfade-delay";
+}
+
 function CaptureContinuationToken(token)
 {
     return {
@@ -2431,6 +2516,7 @@ function CaptureContinuationToken(token)
         sequencePosition: token.sequencePosition,
         batchIndex: token.batchIndex,
         done: token.done,
+        restartPending: token.restartPending,
     };
 }
 
@@ -2485,6 +2571,7 @@ function CommitContinuationToken(token, before, after)
         after.batchIndex - before.batchIndex,
     );
     token.done ||= after.done;
+    token.restartPending ||= after.restartPending;
 }
 
 /** Returns the number of selected children represented by a token snapshot. */

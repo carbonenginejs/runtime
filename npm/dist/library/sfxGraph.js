@@ -1661,7 +1661,7 @@ function ValidateContinuousNesting(nodes) {
   const visit = (rawID, continuousParent) => {
     const id = String(Number(IsRecord(rawID) ? rawID.nodeId : rawID) >>> 0);
     const node = nodes[id];
-    if (continuousParent !== null && node.continuous !== undefined && !IsNestedTriggerRateDelayPair(nodes[continuousParent], id, node) && (nodes[continuousParent]?.type !== "switch" || node.type !== "switch")) {
+    if (continuousParent !== null && node.continuous !== undefined && !IsNestedContinuousDelayPair(nodes[continuousParent], id, node) && (nodes[continuousParent]?.type !== "switch" || node.type !== "switch")) {
       throw new TypeError(`Audio library SFX Continuous container ${continuousParent}` + ` cannot contain Continuous container ${id}`);
     }
     const parent = node.continuous === undefined ? continuousParent : id;
@@ -1679,9 +1679,14 @@ function ValidateContinuousNesting(nodes) {
 }
 
 /** Recognizes the one bounded nested scheduler represented by schema v2. */
-function IsNestedTriggerRateDelayPair(parent, childID, child) {
+function IsNestedContinuousDelayPair(parent, childID, child) {
   const edge = parent?.children?.[0];
-  return parent?.type === "sequence" && parent.children.length === 1 && (!IsRecord(edge) || Object.keys(edge).length === 1 && edge.nodeId !== undefined) && String(edge?.nodeId ?? edge) === childID && parent.continuous?.loopCount === 0 && parent.continuous.transition === "delay" && child?.type === "sequence" && Object.keys(child).every(key => ["type", "scope", "children", "continuous"].includes(key)) && child.children.length > 0 && child.continuous?.loopCount === 1 && child.continuous.transition === "trigger-rate" && child.continuous.resetPlaylistEachPlay !== false;
+  const common = (parent?.type === "sequence" || parent?.type === "random") && parent.children.length === 1 && (!IsRecord(edge) || Object.keys(edge).length === 1 && edge.nodeId !== undefined) && String(edge?.nodeId ?? edge) === childID && parent.continuous?.loopCount === 0 && parent.continuous.transition === "delay" && child?.type === "sequence";
+  const triggerRate = common && parent.type === "sequence" && Object.keys(child).every(key => ["type", "scope", "children", "continuous"].includes(key)) && child.children.length > 0 && child.continuous?.loopCount === 1 && child.continuous.transition === "trigger-rate" && child.continuous.resetPlaylistEachPlay !== false;
+  if (triggerRate) {
+    return true;
+  }
+  return common && parent.type === "random" && parent.mode === "random" && Object.keys(child).every(key => ["type", "scope", "children", "continuous", "gainDb", "pitchCents", "lowPass", "highPass", "initialDelayMs"].includes(key)) && child.children.length === 2 && child.continuous?.loopCount === 1 && child.continuous.transition === "crossfade-amplitude" && child.continuous.resetPlaylistEachPlay === false;
 }
 function ValidateCrossfadeDescendants(nodes) {
   const visit = (rawID, containerID) => {

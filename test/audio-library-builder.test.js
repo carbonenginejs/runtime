@@ -2535,6 +2535,125 @@ test("one-pass Trigger Rate bursts under an infinite Delay are retained", () =>
     );
 });
 
+test("one-pass amplitude Crossfades under a Random Delay are retained narrowly", () =>
+{
+    const build = ({ dynamicInner = false } = {}) =>
+        CjsAudioLibraryBuilder.createSfxGraph({
+            inspections: [ {
+                source: "stations.bnk",
+                bankVersion: 150,
+                hirc: [
+                    ...[ 200, 201 ].map((id, index) => ({
+                        type: 2,
+                        id,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001 + index,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    })),
+                    {
+                        type: 5,
+                        id: 230,
+                        payload: randomSequencePayload({
+                            childID: 200,
+                            containerMode: 0,
+                            flags: 0x10,
+                        }),
+                    },
+                    {
+                        type: 5,
+                        id: 240,
+                        payload: randomSequencePayload({
+                            nodeBase: nodeBasePayload({
+                                properties: [ { id: 34, value: 2 } ],
+                            }),
+                            childID: 201,
+                            containerMode: 0,
+                            flags: 0x10,
+                        }),
+                    },
+                    {
+                        type: 5,
+                        id: 210,
+                        payload: randomSequencePayload({
+                            nodeBase: nodeBasePayload({
+                                properties: [
+                                    { id: 0, value: -1 },
+                                    { id: 34, value: 2 },
+                                ],
+                                ranges: dynamicInner
+                                    ? [ { id: 0, min: -1, max: 1 } ]
+                                    : [],
+                            }),
+                            childIDs: [ 230, 240 ],
+                            loopCount: 1,
+                            transitionTime: 2000,
+                            transitionTimeModMax: 20000,
+                            transitionMode: 1,
+                            containerMode: 1,
+                            flags: 0x18,
+                        }),
+                    },
+                    {
+                        type: 5,
+                        id: 220,
+                        payload: randomSequencePayload({
+                            childID: 210,
+                            loopCount: 0,
+                            transitionTime: 15000,
+                            transitionTimeModMax: 30000,
+                            transitionMode: 3,
+                            containerMode: 0,
+                            flags: 0x1a,
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 220,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            } ],
+            metadata: {
+                Events: { incidentals_play: { eventID: 100 } },
+            },
+            media: {
+                "9001": { resPath: "res:/audio/9001.wem" },
+                "9002": { resPath: "res:/audio/9002.wem" },
+            },
+        });
+    const result = build();
+
+    assert.deepEqual(result.events.incidentals_play, [ { nodeId: "220" } ]);
+    assert.equal(result.nodes["210"].gainDb, -1);
+    assert.equal(result.nodes["210"].initialDelayMs, 2000);
+    assert.deepEqual(result.nodes["210"].continuous, {
+        loopCount: 1,
+        transition: "crossfade-amplitude",
+        transitionMs: 2000,
+        transitionRangeMs: { min: 0, max: 20000 },
+        resetPlaylistEachPlay: false,
+    });
+
+    const dynamic = build({ dynamicInner: true });
+
+    assert.equal(dynamic.events.incidentals_play, undefined);
+    assert.match(
+        dynamic.diagnostics.omittedEvents[0].reason,
+        /nested continuous container 220/u,
+    );
+});
+
 test("Continuous Random parents absorb all-infinite child clocks", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({

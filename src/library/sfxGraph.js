@@ -3297,7 +3297,7 @@ function ValidateContinuousNesting(nodes)
 
         if (continuousParent !== null
             && node.continuous !== undefined
-            && !IsNestedTriggerRateDelayPair(
+            && !IsNestedContinuousDelayPair(
                 nodes[continuousParent],
                 id,
                 node,
@@ -3334,11 +3334,12 @@ function ValidateContinuousNesting(nodes)
 }
 
 /** Recognizes the one bounded nested scheduler represented by schema v2. */
-function IsNestedTriggerRateDelayPair(parent, childID, child)
+function IsNestedContinuousDelayPair(parent, childID, child)
 {
     const edge = parent?.children?.[0];
 
-    return parent?.type === "sequence"
+    const common = (parent?.type === "sequence"
+            || parent?.type === "random")
         && parent.children.length === 1
         && (!IsRecord(edge)
             || (Object.keys(edge).length === 1
@@ -3346,7 +3347,9 @@ function IsNestedTriggerRateDelayPair(parent, childID, child)
         && String(edge?.nodeId ?? edge) === childID
         && parent.continuous?.loopCount === 0
         && parent.continuous.transition === "delay"
-        && child?.type === "sequence"
+        && child?.type === "sequence";
+    const triggerRate = common
+        && parent.type === "sequence"
         && Object.keys(child).every(key => [
             "type",
             "scope",
@@ -3357,6 +3360,29 @@ function IsNestedTriggerRateDelayPair(parent, childID, child)
         && child.continuous?.loopCount === 1
         && child.continuous.transition === "trigger-rate"
         && child.continuous.resetPlaylistEachPlay !== false;
+
+    if (triggerRate)
+    {
+        return true;
+    }
+    return common
+        && parent.type === "random"
+        && parent.mode === "random"
+        && Object.keys(child).every(key => [
+            "type",
+            "scope",
+            "children",
+            "continuous",
+            "gainDb",
+            "pitchCents",
+            "lowPass",
+            "highPass",
+            "initialDelayMs",
+        ].includes(key))
+        && child.children.length === 2
+        && child.continuous?.loopCount === 1
+        && child.continuous.transition === "crossfade-amplitude"
+        && child.continuous.resetPlaylistEachPlay === false;
 }
 
 function ValidateCrossfadeDescendants(nodes)

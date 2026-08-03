@@ -1046,6 +1046,58 @@ test("Continuous container scheduling is normalized and validated", () =>
         ),
         /cannot contain Continuous container 3/u,
     );
+
+    const crossfadeGraph = {
+        schemaVersion: 2,
+        events: { incidentals: [ 1 ] },
+        nodes: {
+            1: {
+                type: "random",
+                mode: "random",
+                scope: "object",
+                children: [ 3 ],
+                continuous: {
+                    loopCount: 0,
+                    transition: "delay",
+                    transitionMs: 15000,
+                    transitionRangeMs: { min: 0, max: 30000 },
+                },
+            },
+            2: { type: "sound", mediaId: 777, loop: false },
+            3: {
+                type: "sequence",
+                scope: "object",
+                gainDb: -1,
+                initialDelayMs: 2000,
+                children: [ 2, 4 ],
+                continuous: {
+                    loopCount: 1,
+                    transition: "crossfade-amplitude",
+                    transitionMs: 2000,
+                    transitionRangeMs: { min: 0, max: 20000 },
+                    resetPlaylistEachPlay: false,
+                },
+            },
+            4: { type: "sound", mediaId: 778, loop: false },
+        },
+    };
+    const crossfadeMedia = {
+        777: { sourceID: "loose:777" },
+        778: { sourceID: "loose:778" },
+    };
+
+    assert.equal(
+        normalizeSfxGraph(
+            crossfadeGraph,
+            crossfadeMedia,
+        ).nodes[3].initialDelayMs,
+        2000,
+    );
+    crossfadeGraph.nodes[3].gainDbRanges = [ { min: -1, max: 1 } ];
+    assert.throws(
+        () => normalizeSfxGraph(crossfadeGraph, crossfadeMedia),
+        /cannot contain Continuous container 3/u,
+    );
 });
 
 test("timed silence remains distinct from an empty authored branch", () =>

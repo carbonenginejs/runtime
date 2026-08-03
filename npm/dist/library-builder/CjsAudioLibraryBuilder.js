@@ -900,7 +900,13 @@ function LowerSfxGraph({
         // qualification structural prevents deeper or mixed nested
         // schedulers from entering the runtime accidentally.
         const supportsNestedTriggerRateDelay = source.type === "sequence" && source.continuous && source.loopCount === 0 && source.transitionMode === 3 && Object.keys(children[0]).length === 1 && nestedChild?.type === "sequence" && Object.keys(nestedChild).every(key => ["type", "scope", "children", "continuous"].includes(key)) && nestedChild.continuous?.loopCount === 1 && nestedChild.continuous.transition === "trigger-rate" && nestedChild.continuous.resetPlaylistEachPlay !== false && nestedChild.children.every(child => !containsContinuousByNode.get(String(child.nodeId)));
-        if (source.continuous && childContainsContinuous && !absorbsInfiniteChildren && !supportsNestedTriggerRateDelay) {
+        // Jita's level-three incidental branch uses the second
+        // bounded form: an infinite single-child Random/Delay around
+        // a two-choice amplitude-Crossfade Sequence. Admit only its
+        // static inner playback terms; dynamic terms would need to be
+        // resampled each time the parent replays the child.
+        const supportsNestedCrossfadeDelay = source.type === "random" && source.continuous && source.loopCount === 0 && source.transitionMode === 3 && source.randomMode === 0 && source.resetPlaylistEachPlay && Object.keys(children[0]).length === 1 && nestedChild?.type === "sequence" && Object.keys(nestedChild).every(key => ["type", "scope", "children", "continuous", "gainDb", "pitchCents", "lowPass", "highPass", "initialDelayMs"].includes(key)) && nestedChild.children.length === 2 && nestedChild.continuous?.loopCount === 1 && nestedChild.continuous.transition === "crossfade-amplitude" && nestedChild.continuous.resetPlaylistEachPlay === false && nestedChild.children.every(child => !containsContinuousByNode.get(String(child.nodeId)));
+        if (source.continuous && childContainsContinuous && !absorbsInfiniteChildren && !supportsNestedTriggerRateDelay && !supportsNestedCrossfadeDelay) {
           throw new Error(`nested continuous container ${id}`);
         }
         neverCompletes = absorbsInfiniteChildren || source.continuous && source.loopCount === 0;

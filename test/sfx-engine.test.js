@@ -1043,6 +1043,102 @@ test("nested Trigger Rate bursts wait on outer completion Delay", () =>
     );
 });
 
+test("nested Crossfade passes reapply inner and outer delays", () =>
+{
+    const graph = Graph(
+        { incidentals: [ 1 ] },
+        {
+            1: {
+                type: "random",
+                mode: "random",
+                scope: "object",
+                children: [ 2 ],
+                continuous: {
+                    loopCount: 0,
+                    transition: "delay",
+                    transitionMs: 15000,
+                    transitionRangeMs: { min: 0, max: 30000 },
+                },
+            },
+            2: {
+                type: "sequence",
+                scope: "object",
+                gainDb: -1,
+                initialDelayMs: 2000,
+                children: [ 3, 4 ],
+                continuous: {
+                    loopCount: 1,
+                    transition: "crossfade-amplitude",
+                    transitionMs: 2000,
+                    transitionRangeMs: { min: 0, max: 20000 },
+                    resetPlaylistEachPlay: false,
+                },
+            },
+            3: {
+                type: "random",
+                mode: "random",
+                scope: "object",
+                children: [ 10 ],
+            },
+            4: {
+                type: "random",
+                mode: "random",
+                scope: "object",
+                initialDelayMs: 2000,
+                children: [ 11 ],
+            },
+            10: { type: "sound", mediaId: 100 },
+            11: { type: "sound", mediaId: 200 },
+        },
+    );
+    const engine = new CjsSfxEngine({
+        graph,
+        random: () => 0.5,
+    });
+    const first = engine.ResolveProgram(
+        "incidentals",
+        { gameObjID: 7 },
+    )[0];
+    const token = first.continuations[0].token;
+
+    assert.equal(first.selections[0].mediaID, "100");
+    assert.equal(first.selections[0].gainDb, -1);
+    assert.equal(first.selections[0].delayMs, 2000);
+    assert.equal(first.continuations[0].advance, "crossfade");
+    assert.equal(first.continuations[0].delayMs, 12000);
+
+    const rolledBack = engine.PrepareProgram(
+        token,
+        { gameObjID: 7 },
+    );
+
+    assert.equal(rolledBack.program[0].selections[0].mediaID, "200");
+    assert.equal(rolledBack.program[0].selections[0].delayMs, 2000);
+    assert.equal(
+        rolledBack.program[0].continuations[0].completionBarrier,
+        true,
+    );
+    rolledBack.rollback();
+
+    const prepared = engine.PrepareProgram(
+        token,
+        { gameObjID: 7 },
+    );
+
+    assert.equal(prepared.program[0].selections[0].mediaID, "200");
+    prepared.commit();
+
+    const restarted = engine.ContinueProgram(
+        token,
+        { gameObjID: 7 },
+    )[0];
+
+    assert.equal(restarted.selections[0].mediaID, "100");
+    assert.equal(restarted.selections[0].delayMs, 32000);
+    assert.equal(restarted.continuations[0].advance, "crossfade");
+    assert.equal(restarted.continuations[0].delayMs, 12000);
+});
+
 test("Continuous Crossfade samples only overlaps with a successor", () =>
 {
     const samples = [ 0.25, 0.75 ];

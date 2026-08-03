@@ -2226,6 +2226,207 @@ test("Continuous amplitude Crossfade prefetches and clamps overlap to half the o
   assert.equal(backend.GetPlayingCount(), 0);
 });
 
+test("nested Crossfade waits for its final dry tail before the outer Delay", async () =>
+{
+  const token = {};
+  const slot = "0:c0";
+  let continues = 0;
+  let prepares = 0;
+  const play = (batch, {
+    delayMs,
+    selectionDelayMs = 0,
+    completionBarrier = false,
+  }) => [ {
+    kind: "play",
+    actionIndex: 0,
+    selections: [ {
+      actionIndex: 0,
+      leafIndex: 0,
+      programSlotId: slot,
+      programBatchId: `${slot}:b${batch}`,
+      matchIds: [ "10", String(batch) ],
+      ...(selectionDelayMs ? { delayMs: selectionDelayMs } : {}),
+    } ],
+    continuations: [ {
+      programSlotId: slot,
+      programBatchId: `${slot}:b${batch}`,
+      token,
+      containerId: "1",
+      advance: "crossfade",
+      crossfadeMode: "crossfade-amplitude",
+      delayMs,
+      doneAfterBatch: false,
+      ...(completionBarrier ? { completionBarrier: true } : {}),
+    } ],
+  } ];
+  const { backend, context, emitter, finished } = Harness({
+    resolveSfxProgram: () => play(0, { delayMs: 1000 }),
+    continueSfxProgram: () =>
+    {
+      continues++;
+      return play(2, {
+        delayMs: 1000,
+        selectionDelayMs: 15000,
+      });
+    },
+    prepareSfxProgram: () =>
+    {
+      prepares++;
+      const batch = prepares === 1 ? 1 : 3;
+
+      return {
+        program: play(batch, {
+          delayMs: 0,
+          completionBarrier: true,
+        }),
+        commit() {},
+        rollback() {},
+      };
+    },
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.selections.map(selection => ({
+          buffer: { duration: 4 },
+          programSlotId: selection.programSlotId,
+          programBatchId: selection.programBatchId,
+          delayMs: selection.delayMs,
+        }))),
+    }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "nested_crossfade",
+  );
+
+  await tick();
+  await tick();
+  await tick();
+
+  const firstBoundary = START_QUANTUM + 3;
+
+  assert.equal(prepares, 1);
+  assert.equal(continues, 0);
+  context.currentTime = firstBoundary;
+  backend.RenderAudio();
+
+  context.currentTime = START_QUANTUM + 4;
+  context.sources[0].onended();
+  assert.equal(continues, 0);
+
+  context.currentTime = START_QUANTUM + 7;
+  context.sources[1].onended();
+  await tick();
+  await tick();
+  await tick();
+
+  assert.equal(continues, 1);
+  assert.equal(prepares, 2);
+  assert.ok(
+    Math.abs(
+      context.sources[2].startedAt - (START_QUANTUM + 22)
+    ) < 1e-9,
+    `restart began at ${context.sources[2].startedAt}`,
+  );
+  assert.deepEqual(finished, []);
+  assert.equal(backend.GetPlayingCount(), 1);
+  backend.StopAll();
+});
+
+test("stalled nested Crossfade promotes its ended final barrier and restarts", async () =>
+{
+  const token = {};
+  const slot = "0:c0";
+  let continues = 0;
+  let prepares = 0;
+  const play = (batch, {
+    delayMs = 1000,
+    selectionDelayMs = 0,
+    completionBarrier = false,
+  } = {}) => [ {
+    kind: "play",
+    actionIndex: 0,
+    selections: [ {
+      actionIndex: 0,
+      leafIndex: 0,
+      programSlotId: slot,
+      programBatchId: `${slot}:b${batch}`,
+      matchIds: [ "10", String(batch) ],
+      ...(selectionDelayMs ? { delayMs: selectionDelayMs } : {}),
+    } ],
+    continuations: [ {
+      programSlotId: slot,
+      programBatchId: `${slot}:b${batch}`,
+      token,
+      containerId: "1",
+      advance: "crossfade",
+      crossfadeMode: "crossfade-amplitude",
+      delayMs,
+      doneAfterBatch: false,
+      ...(completionBarrier ? { completionBarrier: true } : {}),
+    } ],
+  } ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: () => play(0),
+    continueSfxProgram: () =>
+    {
+      continues++;
+      return play(2, { selectionDelayMs: 15000 });
+    },
+    prepareSfxProgram: () =>
+    {
+      prepares++;
+      return {
+        program: play(prepares === 1 ? 1 : 3, {
+          delayMs: 0,
+          completionBarrier: true,
+        }),
+        commit() {},
+        rollback() {},
+      };
+    },
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation =>
+        operation.selections.map(selection => ({
+          buffer: { duration: 1 },
+          programSlotId: selection.programSlotId,
+          programBatchId: selection.programBatchId,
+          delayMs: selection.delayMs,
+        }))),
+    }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "nested_crossfade_stall");
+  await tick();
+  await tick();
+  await tick();
+  assert.equal(context.sources.length, 2);
+
+  context.currentTime = START_QUANTUM + 3;
+  context.sources[0].onended();
+  context.sources[1].onended();
+  assert.equal(continues, 0);
+  assert.equal(backend.GetPlayingCount(), 1);
+
+  backend.RenderAudio();
+  await tick();
+  await tick();
+  await tick();
+
+  assert.equal(continues, 1);
+  assert.equal(prepares, 2);
+  assert.equal(context.sources.length, 4);
+  assert.ok(
+    Math.abs(
+      context.sources[2].startedAt
+        - (context.currentTime + 15)
+    ) < 1e-9,
+  );
+  backend.StopAll();
+});
+
 test("Crossfade fails closed when no transactional preparation provider exists", async () =>
 {
   const token = {};

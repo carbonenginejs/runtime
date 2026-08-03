@@ -1672,12 +1672,23 @@ export class CjsAudioBackend
                 slot.nextTriggerContextTime = null;
                 slot.continuation = batch.continuation;
                 slot.exhausted = batch.exhausted;
+                slot.completionBarrier = batch.completionBarrier;
                 slot.transitionDelayMs = batch.transitionDelayMs;
                 slot.crossfadeMode = batch.crossfadeMode;
                 this.#UpdateOverlappingSlotState(slot);
+                if (this.#MaybeAdvanceNestedCompletionBarrier(
+                    playingID,
+                    record,
+                    slot,
+                ))
+                {
+                    this.#MaybeFinishSfxProgram(playingID, record);
+                    continue;
+                }
 
                 if (!slot.exhausted
                     && slot.continuation
+                    && !slot.completionBarrier
                     && batch.state !== "cancelled")
                 {
                     this.#PrepareCrossfadeSuccessor(
@@ -2411,6 +2422,8 @@ export class CjsAudioBackend
                                 continuation: continuation.token,
                                 exhausted:
                                     continuation.doneAfterBatch === true,
+                                completionBarrier:
+                                    continuation.completionBarrier === true,
                                 transitionDelayMs:
                                     slot.transitionDelayMs,
                                 crossfadeMode:
@@ -5319,7 +5332,7 @@ export class CjsAudioBackend
                     !value.ended);
 
                 slot.voice = active[0] ?? null;
-                if (this.#MaybeAdvanceTriggerRateCompletionBarrier(
+                if (this.#MaybeAdvanceNestedCompletionBarrier(
                     playingID,
                     record,
                     slot,
@@ -5363,11 +5376,12 @@ export class CjsAudioBackend
         record,
         slot,
         boundaryContextTime,
+        forceCompletionDelay = false,
     )
     {
         const triggerRate = slot.advanceMode === "trigger-rate";
 
-        if (triggerRate)
+        if (triggerRate && !forceCompletionDelay)
         {
             this.#AdvanceTriggerRateSlot(
                 playingID,
@@ -5377,7 +5391,7 @@ export class CjsAudioBackend
             );
             return;
         }
-        if (slot.advanceMode === "crossfade")
+        if (slot.advanceMode === "crossfade" && !forceCompletionDelay)
         {
             this.#PrepareCrossfadeSuccessor(
                 playingID,
@@ -5426,10 +5440,13 @@ export class CjsAudioBackend
             this.#ExhaustSfxProgramSlot(slot);
             return;
         }
-        const pendingTransitionDelayMs = Math.max(
+        const continuationDelayMs = Math.max(
             0,
             Number(continuation.delayMs) || 0,
         );
+        const pendingTransitionDelayMs = forceCompletionDelay
+            ? 0
+            : continuationDelayMs;
         const pendingSelections = (play.selections ?? [])
             .filter(selection =>
                 selection.programSlotId === slot.id);
@@ -5460,12 +5477,20 @@ export class CjsAudioBackend
         slot.controller = new AbortController();
         slot.continuation = continuation.token;
         slot.exhausted = continuation.doneAfterBatch === true;
-        slot.transitionDelayMs = pendingTransitionDelayMs;
+        slot.completionBarrier =
+            continuation.completionBarrier === true;
+        slot.advanceMode = continuation.advance === "trigger-rate"
+            ? "trigger-rate"
+            : continuation.advance === "crossfade"
+                ? "crossfade"
+                : "completion";
+        slot.crossfadeMode = continuation.crossfadeMode ?? null;
+        slot.transitionDelayMs = continuationDelayMs;
         const batchSelections = (play.selections ?? [])
             .filter(selection =>
                 selection.programSlotId === slot.id);
         const batchStartContextTime = boundaryContextTime
-            + slot.transitionDelayMs / 1000;
+            + pendingTransitionDelayMs / 1000;
         const selectionMetadata = batchSelections.map(selection =>
             CreateProgramSelectionMetadata(
                 selection,
@@ -5491,6 +5516,34 @@ export class CjsAudioBackend
                 selection.matchIds)) ],
         );
         this.#DisposeEndedSlotVoices(record, slot);
+        const overlappingBatch = IsOverlappingAdvanceMode(
+            slot.advanceMode,
+        ) ? CreateTriggerRateBatch(slot, {
+                id: continuation.programBatchId,
+                actionTime: slot.actionTime,
+                selections: slot.selections,
+                selectionControllers: slot.selectionControllers,
+                cancelledSelectionKeys: slot.cancelledSelectionKeys,
+                controller: slot.controller,
+                state: "loading",
+                continuation: slot.continuation,
+                exhausted: slot.exhausted,
+                completionBarrier: slot.completionBarrier,
+                transitionDelayMs: slot.transitionDelayMs,
+                crossfadeMode: slot.crossfadeMode,
+            }) : null;
+
+        if (overlappingBatch)
+        {
+            slot.batches ??= new Map();
+            if (slot.batches.has(overlappingBatch.id))
+            {
+                this.#FailOverlappingSlot(slot);
+                return;
+            }
+            slot.batches.set(overlappingBatch.id, overlappingBatch);
+            slot.currentBatch = overlappingBatch;
+        }
 
         Promise.resolve().then(() => this.#loadBuffer(
                 record.eventID,
@@ -5560,7 +5613,14 @@ export class CjsAudioBackend
                     voice.loop = false;
                 }
                 slot.voices.add(voice);
+                overlappingBatch?.voices.add(voice);
                 record.voices.push(voice);
+            }
+            if (overlappingBatch)
+            {
+                overlappingBatch.state = voices.length
+                    ? "voice"
+                    : "ended";
             }
             slot.voice = voices[0] ?? null;
 
@@ -5571,6 +5631,7 @@ export class CjsAudioBackend
                 slot.continuation = null;
                 slot.exhausted = true;
                 slot.nextTriggerContextTime = null;
+                slot.completionBarrier = false;
                 slot.state = [ ...slot.voices ]
                     .some(voice => !voice.ended)
                     ? "voice"
@@ -5586,6 +5647,17 @@ export class CjsAudioBackend
                 voices,
                 batchStartContextTime,
             );
+            if (slot.advanceMode === "crossfade"
+                && !slot.exhausted
+                && !slot.completionBarrier
+                && slot.continuation)
+            {
+                this.#PrepareCrossfadeSuccessor(
+                    playingID,
+                    record,
+                    slot,
+                );
+            }
         }).catch(() =>
         {
             if (generation === slot.generation
@@ -5593,7 +5665,12 @@ export class CjsAudioBackend
             {
                 slot.continuation = null;
                 slot.exhausted = true;
+                slot.completionBarrier = false;
                 slot.nextTriggerContextTime = null;
+                if (overlappingBatch)
+                {
+                    overlappingBatch.state = "ended";
+                }
                 slot.state = [ ...slot.voices ]
                     .some(voice => !voice.ended)
                     ? "voice"
@@ -5742,7 +5819,7 @@ export class CjsAudioBackend
             );
             batch.state = "ended";
             this.#UpdateOverlappingSlotState(slot);
-            this.#MaybeAdvanceTriggerRateCompletionBarrier(
+            this.#MaybeAdvanceNestedCompletionBarrier(
                 playingID,
                 record,
                 slot,
@@ -5839,7 +5916,7 @@ export class CjsAudioBackend
                 else
                 {
                     this.#UpdateOverlappingSlotState(slot);
-                    this.#MaybeAdvanceTriggerRateCompletionBarrier(
+                    this.#MaybeAdvanceNestedCompletionBarrier(
                         playingID,
                         record,
                         slot,
@@ -5887,6 +5964,7 @@ export class CjsAudioBackend
         if (slot.advanceMode !== "crossfade"
             || slot.preparingCrossfade
             || slot.preparedBatch
+            || slot.completionBarrier
             || !slot.continuation
             || slot.broken
             || slot.exhausted
@@ -6034,6 +6112,8 @@ export class CjsAudioBackend
             state: "loading",
             continuation: continuation.token,
             exhausted: continuation.doneAfterBatch === true,
+            completionBarrier:
+                continuation.completionBarrier === true,
             transitionDelayMs: Math.max(
                 0,
                 Number(continuation.delayMs) || 0,
@@ -6313,10 +6393,10 @@ export class CjsAudioBackend
             : "ended";
     }
 
-    /** Restarts one nested Trigger Rate burst after every physical tail. */
-    #MaybeAdvanceTriggerRateCompletionBarrier(playingID, record, slot)
+    /** Restarts one qualified nested scheduler after every dry voice tail. */
+    #MaybeAdvanceNestedCompletionBarrier(playingID, record, slot)
     {
-        if (slot.advanceMode !== "trigger-rate"
+        if (!IsOverlappingAdvanceMode(slot.advanceMode)
             || !slot.completionBarrier
             || !slot.continuation
             || slot.broken
@@ -6330,12 +6410,15 @@ export class CjsAudioBackend
             return false;
         }
 
+        const forceCompletionDelay = slot.advanceMode === "crossfade";
+
         slot.completionBarrier = false;
         this.#AdvanceSfxProgramSlot(
             playingID,
             record,
             slot,
             Number(this.#context.currentTime) || 0,
+            forceCompletionDelay,
         );
         return true;
     }
@@ -8181,6 +8264,8 @@ function CreateTriggerRateBatch(slot, overrides = {})
             overrides.continuation ?? slot.continuation,
         exhausted:
             overrides.exhausted ?? slot.exhausted,
+        completionBarrier:
+            overrides.completionBarrier ?? slot.completionBarrier,
         transitionDelayMs:
             overrides.transitionDelayMs
             ?? slot.transitionDelayMs,

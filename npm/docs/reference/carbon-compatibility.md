@@ -207,8 +207,17 @@ then samples the parent Delay and starts a fresh inner pass. This covers the
 two EVE 3453885 Upwell armor/hull hangar warnings. Trigger Rate Pause remains a
 browser adaptation: it does not freeze cadence or propagate pause depth to
 future child keys, and the qualified Upwell consumers require only Play and
-outer-container Stop. Other nested non-Switch Continuous clocks remain
-unsupported, including Jita's randomized-Delay/amplitude-Crossfade topology.
+outer-container Stop.
+
+A third, deliberately approximate bounded form admits EVE build 3453885's
+`jita_sfx_incidentals_level3_play`: an infinite one-child Continuous Random
+with randomized Delay around a static, two-child, one-pass amplitude Crossfade
+Sequence. The backend preserves its retained playlist cursor, inner Initial
+Delay, sampled Crossfade duration, dry-tail completion barrier, and randomized
+outer Delay. Random step `211583824` inherits Wwise Delay ShareSet
+`2464647643`; runtime-audio does not realize that inherited Delay or feedback
+tail, so completion follows decoded dry voices rather than the native effect
+tail. Other nested non-Switch Continuous clocks remain unsupported.
 
 ## Unsupported native behavior
 
