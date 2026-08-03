@@ -345,6 +345,24 @@ Convolution ShareSet `3019852427` references embedded source `154360724`, a
 cross-bank media identity and opaque parameter block. Shared DSP placement and
 a qualified PLUG decoder remain prerequisites for audible parity.
 
+Pinned wwiser decodes the v150 Convolution Reverb's 57-byte parameter envelope,
+but still labels its final float32 and byte unknown and does not decode `PLUG`
+media. The EVE payload contains `hash`, `junk`, and `data` chunks; the apparent
+48 kHz field inside `data` is not sufficient evidence for a PCM layout. Raw
+effect media already survives library construction, install, tools-core range
+acquisition, and HTTP delivery as `application/octet-stream`, so transport is
+not the blocker. Complete built-in support first needs an independently
+qualified PLUG-to-impulse decoder in runtime-resource, then a cancellation-safe
+effect-media preparation seam in runtime-audio before the shared Bus graph is
+realized. Passing the opaque payload to `decodeAudioData` or treating its data
+chunk as PCM would be guesswork.
+
+The ShareSet affects 508 SFX references on routes 53, 54, and 250. A strict
+qualification simulation gives Convolution support zero immediate unlocks,
+both alone and together with hypothetical Compressor and Peak Limiter support,
+because all three routes still require the general audible auxiliary-return
+topology and its complete wet-side gain/State placement.
+
 The shared-runtime seam resolves immutable route handles. One controller belongs
 to each enabled audio-system generation and is shared by SFX and music;
 install-time checks require every playable routed Sound/track to agree with its
