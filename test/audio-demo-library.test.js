@@ -45,6 +45,7 @@ test("authored music demo exposes a stable contextual transport", () =>
     assert.match(html, /id="musicExamples"[^>]*disabled/);
     assert.match(html, /id="sfxExamples"[^>]*disabled/);
     assert.match(html, /#music \.sfxControl select\s*\{[^}]*padding:\s*9px 36px 9px 12px/s);
+    assert.match(html, /id="musicVol"[^>]*value="30"/);
     assert.match(html, /#musicExampleDetail\s*\{[^}]*height:\s*44px/s);
     assert.match(html, /\.transport button:disabled\s*\{[^}]*color:\s*rgba\([^)]*,\s*0\.24\)/s);
     assert.match(script, /#transportState = "idle"/);
@@ -55,6 +56,8 @@ test("authored music demo exposes a stable contextual transport", () =>
     assert.match(script, /toggle\.disabled = !audioEnabled \|\| !applicable/);
     assert.match(script, /this\.#select\.hidden = !applicable/);
     assert.match(script, /SetAudioEnabled\(enabled\)/);
+    assert.match(script, /function FaderPercentToGain\(value\)/);
+    assert.match(script, /return normalized \* normalized/);
     assert.doesNotMatch(script, /#StepExample/);
     assert.match(guide, /inside the\s+currently selected example/s);
 });

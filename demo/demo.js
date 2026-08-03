@@ -26,6 +26,14 @@ const ACOUSTIC_SCALE = 1 / 150;
 // Inverse-distance gain floor that still reads as audible in practice.
 const AUDIBLE_GAIN_FLOOR = 0.05;
 
+/** Maps a percentage fader to a useful perceptual gain range. */
+function FaderPercentToGain(value)
+{
+    const normalized = Math.max(0, Math.min(1, Number(value) / 100));
+
+    return normalized * normalized;
+}
+
 // EVE names events <stem>_<stage>. Dominant family: play(loop)+stop; state
 // machines add on/off/idle/active/activate/deactivate/fire/powerdown/etc.
 const STAGE_PATTERN = /^(.+)_(on|off|idle|active|activate|deactivate|fire|begin|end|start|powerdown|play|stop|pause|resume)$/i;
@@ -4535,8 +4543,13 @@ class DemoApp
 
     ApplyVolumes()
     {
-        this.audio.SetGlobalRTPC("menu_main_music_level", Number(document.getElementById("musicVol").value) / 100);
-        this.audio.backend?.SetSfxVolume(Number(document.getElementById("sfxVol").value) / 100);
+        this.audio.SetGlobalRTPC(
+            "menu_main_music_level",
+            FaderPercentToGain(document.getElementById("musicVol").value),
+        );
+        this.audio.backend?.SetSfxVolume(
+            FaderPercentToGain(document.getElementById("sfxVol").value),
+        );
     }
 
     #Tick(now)
