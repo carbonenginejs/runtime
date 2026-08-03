@@ -151,6 +151,7 @@ be retained.
 | --- | --- |
 | `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, `spatial` selects the panner (`true`) or flat SFX route (`false`), `dryVolumeCurve` retains the leaf's Wwise distance gain, `sourceEffects` retains a complete qualified direct static Parametric EQ chain, and the qualified `voiceLimit` shape reserves a cap-one per-game-object instance before media acquisition. |
 | `silence` | Produces no voice. This preserves authored empty switch/state cases without falling through to the default. |
+| `timed-silence` | Produces one finite silent voice with authored `durationMs`. It owns lifecycle, routing, Stop matching, Continuous completion, and qualified voice-limit admission without acquiring media. |
 | `random` | Chooses one weighted child. `mode: "shuffle"` exhausts a pool before refilling it; `avoidRepeat` excludes recent choices. |
 | `sequence` | Chooses the next child for each post; `loop: false` produces no further leaves after the final child. |
 | `switch` | Chooses a named case from a per-object switch or global state, with an optional `default`. Matching is case-insensitive. |
@@ -810,7 +811,8 @@ SoundbanksInfo metadata and before caller `metadata` and `enrichment`, so
 explicit caller data remains authoritative.
 
 Automatic construction currently accepts Wwise generator-version-150 codec
-sounds, Play, Stop, Pause, Resume, Set/Reset Voice Volume, Set/Reset Bus
+sounds, the qualified static Wwise Silence source shape, Play, Stop, Pause,
+Resume, Set/Reset Voice Volume, Set/Reset Bus
 Volume, Set/Reset Voice Pitch, Set/Reset Voice LPF/HPF, Play-Event,
 SetSwitch, and SetState actions,
 Random/Sequence containers without reverse restart, and named Step
@@ -833,6 +835,24 @@ in decibels, Pitch becomes a Web Audio playback-rate ratio, and InitialDelay is
 added to the Play action delay.
 Hierarchy-only Actor-Mixer values are folded into the nearest playable node
 without turning the mixer into a playable container.
+
+A qualified Wwise Silence Sound follows its source ID to a v150
+`CAkFxCustom` record with plug-in ID `0x00650002`, exactly 12 parameter bytes,
+a positive fixed duration, and no random length, media, RTPC, State, or
+property controls. It lowers to `timed-silence`; the browser loops one cached
+one-frame zero buffer and schedules its physical stop at the logical authored
+end. This keeps even EVE's 304.5-second pillar interval constant-memory while
+preserving pause, seek, pitch/rate changes, Stop, Continuous advancement, and
+completion. The empty inline source block is never treated as a default
+one-second Silence when the referenced effect record exists. Randomized or
+dynamic Silence remains fail-closed.
+
+EVE build 3453885 uses eleven such leaves to restore the otherwise-audible
+`worldobject_pillars_active_play`, five `jumpgate_suppressed_lvl_*` events,
+`solar_array_outburst_play`, `solar_array_impact_play`, and
+`solar_array_beam_play`. `in_game_video_stream_play` instead uses Wwise Audio
+Input (`0x00C80002`): it has no bank media or authored duration and remains a
+host-input barrier rather than receiving fabricated audio.
 Layer/Blend containers with no Layer records, or only Layer records with no
 child associations, lower to parallel playback. A Continuous validation flag
 then has no child-admission region to evaluate. This covers the five
@@ -906,6 +926,16 @@ Layers with child-association records, Layer
 property RTPC semantics outside the supported Volume, Pitch, low-pass, and
 high-pass set, and other unqualified HIRC semantics are never silently
 approximated.
+
+The remaining EVE 3453885 runtime scheduling barriers are named explicitly:
+`upwell_hangar_armor_warning_play`, `upwell_hangar_hull_warning_play`,
+`jita_sfx_incidentals_level3_play`, and `worldobject_station_amarr_play`
+require nested non-Switch Continuous clocks; the two XXL microwarpdrive events
+require associated Continuous Layer child admission. The
+`ship_module_shield_drain_play` Random/Sequence Crossfade reaches a parallel
+Layer/Blend child; Wwise itself documents that Xfade does not support a Blend
+Container child, so runtime-audio keeps that authored branch fail-closed rather
+than inventing a multi-voice crossfade extension.
 
 For events that do lower, the builder walks every possible typed graph branch
 and emits the exact set of reachable media IDs into `eventMedia`. This keeps

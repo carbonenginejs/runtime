@@ -200,6 +200,75 @@ test("CjsAudioMan validates shared Bus approximation policies", () =>
     }));
 });
 
+test("CjsAudioMan realizes timed silence without media I/O or long PCM", async () =>
+{
+    const context = PlaybackContext([]);
+    const createBuffer = context.createBuffer.bind(context);
+    let createdBuffers = 0;
+    let reads = 0;
+
+    context.createBuffer = (...args) =>
+    {
+        createdBuffers++;
+        return createBuffer(...args);
+    };
+    const library = CreateDocument();
+
+    library.metadata.Events.authored_wait = {
+        eventID: 42,
+        eventsStoppedBy: [],
+        is2D: 1,
+        isLoop: 0,
+        isVital: 0,
+        maxRadiusAttenuation: 0,
+        soundbanks: [ "ships.bnk" ],
+    };
+    library.metadata.SoundBanks["ships.bnk"] = {
+        EssentialSoundBank: 0,
+    };
+    library.sfx = {
+        schemaVersion: 2,
+        events: {
+            authored_wait: [ { nodeId: "1" } ],
+        },
+        nodes: {
+            "1": {
+                type: "timed-silence",
+                durationMs: 6500,
+            },
+        },
+    };
+    const man = new CjsAudioMan(library, {
+        createContext: () => context,
+        mediaProvider: {
+            Read()
+            {
+                reads++;
+                throw new Error("timed silence must not acquire media");
+            },
+        },
+    });
+
+    assert.equal(man.Enable([ "ships.bnk" ]), true);
+    const emitter = man.CreateEmitter();
+
+    emitter.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
+    emitter.Wake();
+    assert.ok(emitter.SendEvent("authored_wait") > 0);
+    assert.ok(emitter.SendEvent("authored_wait") > 0);
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(reads, 0);
+    assert.equal(createdBuffers, 1, "one one-frame carrier is cached");
+    assert.equal(context.sources.length, 2);
+    assert.equal(context.sources[0].buffer, context.sources[1].buffer);
+    assert.equal(context.sources.every(source => source.loop), true);
+    assert.equal(context.sources[0].buffer.sampleCount, 1);
+    assert.equal(context.sources[0].stoppedAt, 6500 / 1000 + 128 / 48000);
+    man.Dispose();
+});
+
 test("CjsAudioMan installs State ID/name aliases through its backend", () =>
 {
     const library = CreateDocument();

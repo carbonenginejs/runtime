@@ -63,6 +63,53 @@ test("authored NodeBase properties and randomizers resolve once per post", () =>
     assert.deepEqual(samples, []);
 });
 
+test("timed silence resolves as a finite physical selection", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            {
+                wait: [ {
+                    nodeId: "1",
+                    delayMs: 3000,
+                } ],
+            },
+            {
+                "1": {
+                    type: "parallel",
+                    children: [ 2, 3 ],
+                },
+                "2": {
+                    type: "timed-silence",
+                    durationMs: 8000,
+                    initialDelayMs: 7500,
+                    voiceLimit: {
+                        counterId: "2",
+                        scope: "game-object",
+                        maxInstances: 1,
+                        behavior: "reject-newest",
+                    },
+                },
+                "3": { type: "silence" },
+            },
+        ),
+    });
+    const selection = engine.ResolveProgram("wait", {
+        gameObjID: "ship",
+    })[0].selections[0];
+
+    assert.equal(selection.silenceDurationMs, 8000);
+    assert.equal(selection.delayMs, 10500);
+    assert.equal(selection.loop, false);
+    assert.deepEqual(selection.matchIds, [ "1", "2" ]);
+    assert.deepEqual(selection.voiceLimit, {
+        counterId: "2",
+        scope: "game-object",
+        maxInstances: 1,
+        behavior: "reject-newest",
+    });
+    assert.equal(selection.mediaID, undefined);
+});
+
 test("Sound voice-limit policy reaches every resolved physical selection", () =>
 {
     const voiceLimit = {

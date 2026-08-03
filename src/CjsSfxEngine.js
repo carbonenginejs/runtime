@@ -1041,7 +1041,7 @@ export class CjsSfxEngine
 
         nextActive.add(edge.nodeId);
 
-        if (node.type === "sound")
+        if (node.type === "sound" || node.type === "timed-silence")
         {
             const rtpcCurves = Object.freeze([
                 ...terms.rtpcCurves,
@@ -1080,7 +1080,11 @@ export class CjsSfxEngine
                 terms.initialDelayMs + rtpcInitialDelayMs,
             );
             const selection = {
-                mediaID: String(node.mediaId),
+                ...(node.type === "sound"
+                    ? { mediaID: String(node.mediaId) }
+                    : {
+                        silenceDurationMs: Number(node.durationMs),
+                    }),
                 busRouteNodeId: String(edge.nodeId),
                 matchIds,
                 ...(node.outputBusId === undefined
@@ -1111,7 +1115,7 @@ export class CjsSfxEngine
                                 ),
                             }),
                     }),
-                loop: node.loop,
+                loop: node.type === "timed-silence" ? false : node.loop,
                 ...(node.playCount === undefined
                     ? {}
                     : { playCount: node.playCount }),

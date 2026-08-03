@@ -1082,6 +1082,36 @@ export class CjsAudioBackend
         {
             return 0;
         }
+        const silenceDuration = Number(voice.silenceDurationSeconds);
+        if (Number.isFinite(silenceDuration)
+            && silenceDuration > 0
+            && voice.repeatRemainingSeconds !== null)
+        {
+            let remaining = Math.max(
+                0,
+                Number(voice.repeatRemainingSeconds) || 0,
+            );
+
+            if (!voice.paused
+                && voice.repeatAnchorContextTime !== null)
+            {
+                const from = Number(voice.repeatAnchorContextTime);
+                const to = Number(this.#context.currentTime);
+                const elapsed = to > from
+                    ? UsesVoicePitchAutomation(voice)
+                        ? IntegrateVoicePitchPlaybackRate(voice, from, to)
+                        : (to - from) * voice.playbackRate
+                    : 0;
+
+                remaining = Math.max(0, remaining - elapsed);
+            }
+            return Math.max(0, Math.round(
+                Math.min(
+                    silenceDuration,
+                    silenceDuration - remaining,
+                ) * 1000,
+            ));
+        }
         let seconds = voice.offsetSeconds;
 
         if (!voice.paused
@@ -4764,6 +4794,7 @@ export class CjsAudioBackend
             sharedBusDucking:
                 emitterRouteBranch?.sharedBusDucking === true,
             buffer: descriptor.buffer,
+            silenceDurationSeconds: descriptor.silenceDurationSeconds,
             loop: descriptor.loop,
             playCount: descriptor.playCount,
             playbackRate: descriptor.playbackRate,
@@ -5024,35 +5055,55 @@ export class CjsAudioBackend
     )
     {
         const duration = Number(voice.buffer.duration);
-        let offsetSeconds = 0;
+        const silenceDuration = Number(voice.silenceDurationSeconds);
+        // Timed Silence is a finite logical voice over one physically looping
+        // zero sample. Keep its authored clock separate from buffer duration
+        // so long gaps consume constant memory and transport remains seekable.
+        const timedSilence = Number.isFinite(silenceDuration)
+            && silenceDuration > 0;
+        const effectiveDuration = timedSilence
+            ? silenceDuration
+            : duration;
+        let logicalOffsetSeconds = 0;
         const resumed = seek?.kind === "resume";
+        const resumeRepeatRemaining = resumed
+            && Number.isFinite(seek.repeatRemainingSeconds)
+                ? Math.max(0, Number(seek.repeatRemainingSeconds))
+                : null;
 
         if (resumed)
         {
-            offsetSeconds = Number(seek.offsetSeconds) || 0;
+            logicalOffsetSeconds = Number(seek.offsetSeconds) || 0;
         }
         else if (seek?.kind === "ms")
         {
-            offsetSeconds = seek.value / 1000;
+            logicalOffsetSeconds = seek.value / 1000;
         }
-        else if (seek?.kind === "percent" && Number.isFinite(duration))
+        else if (seek?.kind === "percent"
+            && Number.isFinite(effectiveDuration))
         {
-            offsetSeconds = seek.value * duration;
+            logicalOffsetSeconds = seek.value * effectiveDuration;
         }
 
         const loops = voice.loop;
-        if (Number.isFinite(duration) && duration > 0)
+        if (Number.isFinite(effectiveDuration) && effectiveDuration > 0)
         {
             if (loops)
             {
-                offsetSeconds %= duration;
+                logicalOffsetSeconds %= effectiveDuration;
             }
-            else if (offsetSeconds >= duration)
+            else if (resumeRepeatRemaining === null
+                && logicalOffsetSeconds >= effectiveDuration)
             {
                 voice.ended = true;
                 return;
             }
         }
+        const offsetSeconds = timedSilence
+            && Number.isFinite(duration)
+            && duration > 0
+                ? logicalOffsetSeconds % duration
+                : logicalOffsetSeconds;
 
         const previous = voice.source;
         if (previous)
@@ -5076,12 +5127,9 @@ export class CjsAudioBackend
 
         const source = this.#context.createBufferSource();
         source.buffer = voice.buffer;
-        const resumeRepeatRemaining = resumed
-            && Number.isFinite(seek.repeatRemainingSeconds)
-                ? Math.max(0, Number(seek.repeatRemainingSeconds))
-                : null;
         const finiteRepeats = !loops
-            && (resumeRepeatRemaining !== null
+            && (timedSilence
+                || resumeRepeatRemaining !== null
                 || voice.playCount > 1)
             && Number.isFinite(duration)
             && duration > 0;
@@ -5169,8 +5217,10 @@ export class CjsAudioBackend
         if (finiteRepeats)
         {
             const remaining = resumeRepeatRemaining
-                ?? (duration - voice.offsetSeconds
-                    + duration * (voice.playCount - 1));
+                ?? (timedSilence
+                    ? effectiveDuration - logicalOffsetSeconds
+                    : duration - voice.offsetSeconds
+                        + duration * (voice.playCount - 1));
 
             voice.repeatRemainingSeconds = remaining;
             voice.repeatAnchorContextTime = startContextTime;
@@ -8191,11 +8241,23 @@ function NormalizeVoiceDescriptors(result, eventLoop)
                 value.sourceEffects,
                 `Audio voice ${index} sourceEffects`,
             );
+        const silenceDurationSeconds =
+            value.silenceDurationSeconds === undefined
+                ? undefined
+                : Number(value.silenceDurationSeconds);
 
         if (!Number.isSafeInteger(playCount) || playCount <= 0)
         {
             throw new TypeError(
                 `Audio voice ${index} playCount must be a positive integer`,
+            );
+        }
+        if (silenceDurationSeconds !== undefined
+            && (!Number.isFinite(silenceDurationSeconds)
+                || silenceDurationSeconds <= 0))
+        {
+            throw new TypeError(
+                `Audio voice ${index} silenceDurationSeconds must be positive`,
             );
         }
         if (value.loop === true && value.playCount !== undefined)
@@ -8368,6 +8430,9 @@ function NormalizeVoiceDescriptors(result, eventLoop)
 
         return {
             buffer: value.buffer,
+            ...(silenceDurationSeconds === undefined
+                ? {}
+                : { silenceDurationSeconds }),
             loop,
             playCount,
             playbackRate,

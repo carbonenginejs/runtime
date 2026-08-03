@@ -583,7 +583,7 @@ class CjsSfxEngine {
     Object.assign(terms, actionTiming);
     const nextActive = new Set(active);
     nextActive.add(edge.nodeId);
-    if (node.type === "sound") {
+    if (node.type === "sound" || node.type === "timed-silence") {
       const rtpcCurves = Object.freeze([...terms.rtpcCurves]);
       const stateProperties = Object.freeze([...terms.stateProperties]);
       const dynamicPitch = HasStateCaseField(stateProperties, "pitchCents") || rtpcCurves.some(curve => curve.property === "pitch");
@@ -593,7 +593,11 @@ class CjsSfxEngine {
       const rtpcInitialDelayMs = EvaluateRtpcProperties(rtpcCurves, controls).initialDelayMs;
       const initialDelayMs = Math.max(0, terms.initialDelayMs + rtpcInitialDelayMs);
       const selection = {
-        mediaID: String(node.mediaId),
+        ...(node.type === "sound" ? {
+          mediaID: String(node.mediaId)
+        } : {
+          silenceDurationMs: Number(node.durationMs)
+        }),
         busRouteNodeId: String(edge.nodeId),
         matchIds,
         ...(node.outputBusId === undefined ? {} : {
@@ -608,7 +612,7 @@ class CjsSfxEngine {
             authoredOutputBusVolumeDb: Number(node.authoredOutputBusVolumeDb)
           })
         }),
-        loop: node.loop,
+        loop: node.type === "timed-silence" ? false : node.loop,
         ...(node.playCount === undefined ? {} : {
           playCount: node.playCount
         }),

@@ -1,7 +1,7 @@
 import { normalizeStaticParametricEqChain } from '../internal/busEffects.js';
 
 const SFX_SCHEMA_VERSION = 2;
-const NODE_TYPES = new Set(["blend", "parallel", "random", "sequence", "silence", "sound", "switch"]);
+const NODE_TYPES = new Set(["blend", "parallel", "random", "sequence", "silence", "timed-silence", "sound", "switch"]);
 const SWITCH_SCOPES = new Set(["state", "switch"]);
 const RTPC_SCOPES = new Set(["global", "object"]);
 const RTPC_PROPERTY_SCALING = new Map([["highPass", 0], ["initialDelay", 0], ["lowPass", 0], ["pitch", 0], ["volume", 2]]);
@@ -39,14 +39,19 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
     }
     ValidateGain(node, `Audio library SFX node ${id}`);
     ValidateNodePlaybackProperties(node, `Audio library SFX node ${id}`);
-    ValidateVoiceLimit(node.voiceLimit, node.type, `Audio library SFX node ${id} voiceLimit`);
+    ValidateVoiceLimit(node.voiceLimit, node, `Audio library SFX node ${id} voiceLimit`);
     ValidateRtpcCurves(node.rtpcCurves, `Audio library SFX node ${id} rtpcCurves`);
     ValidateStateProperties(node.stateProperties, `Audio library SFX node ${id} stateProperties`);
     if (node.type !== "sound" && node.sourceEffects !== undefined) {
       throw new TypeError(`Audio library SFX node ${id} sourceEffects require a sound node`);
     }
-    if (node.type === "sound" || node.type === "silence") {
+    if (node.type === "sound" || node.type === "silence" || node.type === "timed-silence") {
       if (node.type === "silence") {
+        continue;
+      }
+      if (node.type === "timed-silence") {
+        ValidateTimedSilence(node, `Audio library SFX timed silence ${id}`);
+        ValidatePhysicalLeafIdentity(node, id, `Audio library SFX timed silence ${id}`);
         continue;
       }
       const mediaID = NormalizePositiveID(node.mediaId, `Audio library SFX sound ${id} mediaId`);
@@ -72,26 +77,7 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
       if (node.sourceEffects !== undefined) {
         normalizeStaticParametricEqChain(node.sourceEffects, `Audio library SFX sound ${id} sourceEffects`);
       }
-      if (node.matchIds !== undefined) {
-        ValidateMatchIds(node.matchIds, id, `Audio library SFX sound ${id} matchIds`);
-      }
-      if (node.outputBusId !== undefined) {
-        const outputBusId = NormalizePositiveID(node.outputBusId, `Audio library SFX sound ${id} outputBusId`);
-        if (node.busPathIds !== undefined) {
-          ValidateBusPathIds(node.busPathIds, outputBusId, `Audio library SFX sound ${id} busPathIds`);
-        }
-        if (node.authoredBusVolumeDb !== undefined) {
-          NormalizeFiniteNumber(node.authoredBusVolumeDb, `Audio library SFX sound ${id} authoredBusVolumeDb`);
-        }
-        if (node.authoredBusMakeUpGainDb !== undefined) {
-          NormalizeFiniteNumber(node.authoredBusMakeUpGainDb, `Audio library SFX sound ${id} authoredBusMakeUpGainDb`);
-        }
-        if (node.authoredOutputBusVolumeDb !== undefined) {
-          NormalizeFiniteNumber(node.authoredOutputBusVolumeDb, `Audio library SFX sound ${id} authoredOutputBusVolumeDb`);
-        }
-      } else if (node.busPathIds !== undefined || node.authoredBusVolumeDb !== undefined || node.authoredBusMakeUpGainDb !== undefined || node.authoredOutputBusVolumeDb !== undefined) {
-        throw new TypeError(`Audio library SFX sound ${id} bus routing requires outputBusId`);
-      }
+      ValidatePhysicalLeafIdentity(node, id, `Audio library SFX sound ${id}`);
       continue;
     }
     if (node.type === "switch") {
@@ -275,8 +261,13 @@ function NormalizeNode(node) {
     ...NormalizeRtpcCurves(node),
     ...NormalizeStateProperties(node)
   };
-  if (node.type === "sound" || node.type === "silence") {
+  if (node.type === "sound" || node.type === "silence" || node.type === "timed-silence") {
     if (node.type === "silence") {
+      return result;
+    }
+    if (node.type === "timed-silence") {
+      result.durationMs = Number(node.durationMs);
+      NormalizePhysicalLeafIdentity(result, node);
       return result;
     }
     result.mediaId = String(Number(node.mediaId) >>> 0);
@@ -312,22 +303,7 @@ function NormalizeNode(node) {
         }))
       }));
     }
-    if (node.matchIds !== undefined) {
-      result.matchIds = node.matchIds.map(value => String(Number(value) >>> 0));
-    }
-    if (node.outputBusId !== undefined) {
-      result.outputBusId = String(Number(node.outputBusId) >>> 0);
-      result.busPathIds = (node.busPathIds ?? [node.outputBusId]).map(value => String(Number(value) >>> 0));
-      if (node.authoredBusVolumeDb !== undefined) {
-        result.authoredBusVolumeDb = Number(node.authoredBusVolumeDb);
-      }
-      if (node.authoredBusMakeUpGainDb !== undefined) {
-        result.authoredBusMakeUpGainDb = Number(node.authoredBusMakeUpGainDb);
-      }
-      if (node.authoredOutputBusVolumeDb !== undefined) {
-        result.authoredOutputBusVolumeDb = Number(node.authoredOutputBusVolumeDb);
-      }
-    }
+    NormalizePhysicalLeafIdentity(result, node);
     return result;
   }
   if (node.type === "switch") {
@@ -363,6 +339,24 @@ function NormalizeNode(node) {
     result.continuous = NormalizeContinuousContainer(node.continuous, node.type);
   }
   return result;
+}
+function NormalizePhysicalLeafIdentity(result, node) {
+  if (node.matchIds !== undefined) {
+    result.matchIds = node.matchIds.map(value => String(Number(value) >>> 0));
+  }
+  if (node.outputBusId !== undefined) {
+    result.outputBusId = String(Number(node.outputBusId) >>> 0);
+    result.busPathIds = (node.busPathIds ?? [node.outputBusId]).map(value => String(Number(value) >>> 0));
+    if (node.authoredBusVolumeDb !== undefined) {
+      result.authoredBusVolumeDb = Number(node.authoredBusVolumeDb);
+    }
+    if (node.authoredBusMakeUpGainDb !== undefined) {
+      result.authoredBusMakeUpGainDb = Number(node.authoredBusMakeUpGainDb);
+    }
+    if (node.authoredOutputBusVolumeDb !== undefined) {
+      result.authoredOutputBusVolumeDb = Number(node.authoredOutputBusVolumeDb);
+    }
+  }
 }
 function NormalizeContinuousContainer(value, type) {
   const result = {
@@ -1369,13 +1363,44 @@ function ValidateNodePlaybackProperties(value, label) {
   ValidateRandomRanges(value.highPassRanges, `${label} highPassRanges`);
   ValidateRandomRanges(value.initialDelayRangesMs, `${label} initialDelayRangesMs`);
 }
-function ValidateVoiceLimit(value, nodeType, label) {
+function ValidateTimedSilence(node, label) {
+  if (node.durationMs === undefined) {
+    throw new TypeError(`${label} durationMs is required`);
+  }
+  NormalizePositiveNumber(node.durationMs, `${label} durationMs`);
+  if (node.durationRangeMs !== undefined) {
+    throw new TypeError(`${label} durationRangeMs is not supported`);
+  }
+}
+function ValidatePhysicalLeafIdentity(node, id, label) {
+  if (node.matchIds !== undefined) {
+    ValidateMatchIds(node.matchIds, id, `${label} matchIds`);
+  }
+  if (node.outputBusId !== undefined) {
+    const outputBusId = NormalizePositiveID(node.outputBusId, `${label} outputBusId`);
+    if (node.busPathIds !== undefined) {
+      ValidateBusPathIds(node.busPathIds, outputBusId, `${label} busPathIds`);
+    }
+    if (node.authoredBusVolumeDb !== undefined) {
+      NormalizeFiniteNumber(node.authoredBusVolumeDb, `${label} authoredBusVolumeDb`);
+    }
+    if (node.authoredBusMakeUpGainDb !== undefined) {
+      NormalizeFiniteNumber(node.authoredBusMakeUpGainDb, `${label} authoredBusMakeUpGainDb`);
+    }
+    if (node.authoredOutputBusVolumeDb !== undefined) {
+      NormalizeFiniteNumber(node.authoredOutputBusVolumeDb, `${label} authoredOutputBusVolumeDb`);
+    }
+  } else if (node.busPathIds !== undefined || node.authoredBusVolumeDb !== undefined || node.authoredBusMakeUpGainDb !== undefined || node.authoredOutputBusVolumeDb !== undefined) {
+    throw new TypeError(`${label} bus routing requires outputBusId`);
+  }
+}
+function ValidateVoiceLimit(value, node, label) {
   if (value === undefined) {
     return;
   }
   const limit = RequireRecord(value, label);
-  if (nodeType !== "sound") {
-    throw new TypeError(`${label} is supported only on sound nodes`);
+  if (node.type !== "sound" && node.type !== "timed-silence") {
+    throw new TypeError(`${label} is supported only on sound or timed-silence nodes`);
   }
   NormalizePositiveID(limit.counterId, `${label} counterId`);
   if (limit.scope !== "game-object" || Number(limit.maxInstances) !== 1 || limit.behavior !== "reject-newest") {
@@ -1668,7 +1693,7 @@ function ValidateCrossfadeDescendants(nodes) {
       }
       return;
     }
-    if (node.type === "silence" || node.type === "switch" || node.type === "blend" || node.type === "parallel") {
+    if (node.type === "silence" || node.type === "timed-silence" || node.type === "switch" || node.type === "blend" || node.type === "parallel") {
       throw new TypeError(`Audio library SFX Crossfade container ${containerID}` + ` requires one voice per child; node ${id} is ${node.type}`);
     }
     if (node.type === "sequence" && node.loop === false) {
@@ -1688,7 +1713,7 @@ function ValidateCrossfadeDescendants(nodes) {
   }
 }
 function NodeChildren(node) {
-  if (node.type === "sound" || node.type === "silence") {
+  if (node.type === "sound" || node.type === "silence" || node.type === "timed-silence") {
     return [];
   }
   if (node.type === "switch") {

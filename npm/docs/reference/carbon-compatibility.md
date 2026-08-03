@@ -27,6 +27,7 @@ bus processing omitted.
 | --- | --- | --- |
 | Carbon audio graph and manager lifecycle | Exact portable behavior | Field, persistence, event, bank, RTPC, State, emitter, and listener contracts are maintained where they do not require native middleware. |
 | Authored SFX and music scheduling | Browser adaptation | Web Audio scheduling preserves authored graph decisions; non-linear Wwise curves are sampled approximations and documented unsupported object families remain barriers. |
+| Wwise Silence source | Exact timing with browser carrier adaptation | A qualified static v150 `0x00650002` source retains its referenced fixed duration as a finite routed voice. One cached one-frame zero buffer loops until an authored sample-clock stop, so long silence allocates constant memory. Randomized or dynamic Silence remains unsupported. |
 | Music Track Voice Volume RTPC | Browser adaptation | v150 property-0 Game Parameter curves using additive accumulation and Wwise dB scaling run on an independent pre-bus track gain from the global RTPC lane. Non-linear automation uses the documented sampled interpolation; other Music Track RTPC properties remain unsupported. |
 | Authored-music UI transport | CarbonEngineJS extension | Previous, next, and random enumerate Music Segments plus a bounded coordinated path through Random/Sequence subtracks inside one live playing ID; layered-track Cartesian products are not materialized. Pause and selection fade then replay an item from its entry cue because Web Audio buffer sources cannot resume or seek. Manual selection starts a fresh playlist traversal (resetting random/shuffle history), while an explicitly selected Sequence Music Track continues at its following subtrack. These controls are not Wwise event actions; automatic playback otherwise retains independent authored selection. |
 | Parametric EQ and Wwise Delay | Browser adaptation | Source-proven parameters, bus placement, and slot order are retained; Web Audio biquad/delay DSP is not bit-equivalent to Wwise. |
@@ -75,6 +76,9 @@ The maintained graph includes:
   transitions, Step Switch/State, the qualified Continuous Switch/State subset
   with per-child fades and nested switch sessions, parallel/blend, per-leaf
   spatial routing, gain, and linear RTPC-curve data;
+- static v150 Wwise Silence sources as finite constant-memory voices whose
+  authored duration participates in Stop, pause/resume, seek, Continuous
+  completion, routing, and qualified instance admission;
 - immediate Play-boundary per-game-object admission for the qualified v150
   Sound cap-one/reject-newest subset, including pending media, immediate
   Continuous completion, and Continuous Switch reroutes, with deterministic
@@ -198,7 +202,8 @@ The package does not emulate:
 - Web Audio realization of spatial-audio geometry, occlusion, or diffraction
   (the portable data/settings/refcount contract is implemented for injected
   backends);
-- native audio-input plugins;
+- native audio-input plugins, including EVE's bank-media-free
+  `in_game_video_stream_play` Wwise Audio Input source;
 - operating-system device selection; or
 - Wwise middleware rendering.
 

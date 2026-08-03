@@ -563,6 +563,101 @@ test("graph-backed SFX routes separate exact route and spatial branches", async 
   backend.Dispose();
 });
 
+test("timed silence loops one carrier and stops at its logical duration", async () =>
+{
+  const carrier = { duration: 1 / 48000 };
+  const { context, emitter, backend } = Harness({
+    isLoop: () => false,
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: carrier,
+        silenceDurationSeconds: 304.5,
+        loop: false,
+        spatial: false,
+      } ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "pillars_wait");
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].buffer, carrier);
+  assert.equal(context.sources[0].loop, true);
+  assert.equal(context.sources[0].offset, 0);
+  assert.equal(
+    context.sources[0].stoppedAt,
+    START_QUANTUM + 304.5,
+  );
+});
+
+test("timed silence reports and preserves logical seek and pause position", async () =>
+{
+  const targetId = "546252031";
+  const control = kind => [ {
+    kind,
+    actionIndex: 0,
+    targetId,
+    targetFlags: 0,
+    scope: "game-object",
+    mode: "element",
+    delayMs: 0,
+    transitionMs: 0,
+    curve: 4,
+    actionFlags: kind === "pause" ? 7 : 6,
+    exceptions: [],
+  } ];
+  const { context, emitter, backend } = Harness({
+    resolveSfxProgram: (_eventID, eventName) =>
+      eventName === "wait_play"
+        ? [ {
+            kind: "play",
+            actionIndex: 0,
+            selections: [ {
+              actionIndex: 0,
+              leafIndex: 0,
+              matchIds: [ targetId, "402653371" ],
+            } ],
+          } ]
+        : control(eventName === "wait_pause" ? "pause" : "resume"),
+    loadBuffer: async (_eventID, eventName) =>
+      eventName === "wait_play"
+        ? {
+            voices: [ {
+              buffer: { duration: 1 / 48000 },
+              silenceDurationSeconds: 304.5,
+              loop: false,
+              programSlotId: "0:0",
+            } ],
+          }
+        : { voices: [] },
+  });
+  const playingID = backend.PostEvent(1, 1, 0, emitter, "wait_play");
+
+  await tick();
+  context.currentTime = 10;
+  const beforePause = backend.GetSourcePlayPosition(playingID);
+
+  assert.ok(beforePause > 9990 && beforePause < 10000);
+  backend.PostEvent(2, 1, 0, emitter, "wait_pause");
+  const pausedAt = backend.GetSourcePlayPosition(playingID);
+
+  context.currentTime = 20;
+  assert.equal(backend.GetSourcePlayPosition(playingID), pausedAt);
+  backend.PostEvent(3, 1, 0, emitter, "wait_resume");
+  assert.equal(context.sources.length, 2);
+
+  context.currentTime = 21;
+  assert.ok(backend.GetSourcePlayPosition(playingID) > pausedAt + 990);
+  assert.equal(backend.SeekOnEventMs(playingID, 200000), true);
+  assert.equal(context.sources.length, 3);
+  assert.equal(backend.GetSourcePlayPosition(playingID), 200000);
+  assert.equal(
+    context.sources[2].stoppedAt,
+    21 + START_QUANTUM + 104.5,
+  );
+});
+
 test("object RTPC adapters replay and update every graph-backed emitter route", async () =>
 {
   const applied = [];

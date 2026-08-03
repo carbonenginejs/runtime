@@ -1009,6 +1009,64 @@ test("Continuous container scheduling is normalized and validated", () =>
     );
 });
 
+test("timed silence remains distinct from an empty authored branch", () =>
+{
+    const graph = {
+        schemaVersion: 2,
+        events: { wait: [ { nodeId: "1" } ] },
+        nodes: {
+            "1": {
+                type: "parallel",
+                children: [ 2, 3 ],
+            },
+            "2": { type: "silence" },
+            "3": {
+                type: "timed-silence",
+                durationMs: "6500",
+                matchIds: [ 3, 5 ],
+                outputBusId: 10,
+                busPathIds: [ 10, 11 ],
+                authoredBusVolumeDb: -3,
+                authoredBusMakeUpGainDb: 2,
+                authoredOutputBusVolumeDb: -1,
+                voiceLimit: {
+                    counterId: 3,
+                    scope: "game-object",
+                    maxInstances: 1,
+                    behavior: "reject-newest",
+                },
+            },
+        },
+    };
+    const normalized = normalizeSfxGraph(graph);
+
+    assert.deepEqual(normalized.nodes["2"], { type: "silence" });
+    assert.deepEqual(normalized.nodes["3"], {
+        type: "timed-silence",
+        durationMs: 6500,
+        matchIds: [ "3", "5" ],
+        outputBusId: "10",
+        busPathIds: [ "10", "11" ],
+        authoredBusVolumeDb: -3,
+        authoredBusMakeUpGainDb: 2,
+        authoredOutputBusVolumeDb: -1,
+        voiceLimit: {
+            counterId: "3",
+            scope: "game-object",
+            maxInstances: 1,
+            behavior: "reject-newest",
+        },
+    });
+
+    for (const durationMs of [ undefined, 0, -1, Infinity ])
+    {
+        const invalid = structuredClone(graph);
+
+        invalid.nodes["3"].durationMs = durationMs;
+        assert.throws(() => normalizeSfxGraph(invalid));
+    }
+});
+
 test("Sound cap-one reject-newest policy is normalized and constrained", () =>
 {
     const media = { "100": { resPath: "res:/audio/100.wem" } };

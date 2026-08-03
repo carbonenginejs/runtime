@@ -827,6 +827,94 @@ test("typed runtime-resource SFX nodes lower into the portable builder graph", (
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("static Wwise Silence sources lower to exact timed-silence leaves", () =>
+{
+    const build = ({
+        pluginId = 0x00650002,
+        durationSeconds = 6.5,
+        randomizedPlus = 0,
+    } = {}) => CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "effects.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId,
+                        pluginType: 2,
+                        streamType: 0,
+                        sourceId: 900,
+                        inMemoryMediaSize: 0,
+                        payload: soundPayload({
+                            pluginId,
+                            sourceId: 900,
+                            inMemoryMediaSize: 0,
+                            properties: [ { id: 34, value: 7.5 } ],
+                        }),
+                    },
+                    {
+                        type: 17,
+                        id: 900,
+                        payload: silenceSourceEffectPayload({
+                            pluginId,
+                            durationSeconds,
+                            randomizedPlus,
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 200,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                authored_wait: { eventID: 100 },
+            },
+        },
+        media: {},
+    });
+    const result = build();
+
+    assert.deepEqual(result.events.authored_wait, [
+        { nodeId: "200" },
+    ]);
+    assert.deepEqual(result.nodes["200"], {
+        type: "timed-silence",
+        durationMs: 6500,
+        initialDelayMs: 7500,
+    });
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+
+    const randomized = build({ randomizedPlus: 1 });
+
+    assert.equal(randomized.events.authored_wait, undefined);
+    assert.match(
+        randomized.diagnostics.omittedEvents[0].reason,
+        /not a static positive duration/u,
+    );
+
+    const audioInput = build({ pluginId: 0x00c80002 });
+
+    assert.equal(audioInput.events.authored_wait, undefined);
+    assert.match(
+        audioInput.diagnostics.omittedEvents[0].reason,
+        /source plug-in sound 200/u,
+    );
+});
+
 test("typed Wwise Play action timing survives SFX lowering", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -7369,6 +7457,10 @@ function attenuationPayload(maximumDistance)
 }
 
 function soundPayload({
+    pluginId = 0x00040001,
+    sourceId = 9001,
+    inMemoryMediaSize = 64,
+    sourceParameterBlock = null,
     overrideBusId = 0,
     directParentId = 0,
     positioningFlags = 0,
@@ -7395,13 +7487,21 @@ function soundPayload({
     bypassAllEffects = false,
 } = {})
 {
-    return new TestWriter()
-        .u32(0x00040001)
+    const writer = new TestWriter()
+        .u32(pluginId)
         .u8(0)
-        .u32(9001)
-        .u32(64)
-        .u8(0)
-        .append(nodeBasePayload({
+        .u32(sourceId)
+        .u32(inMemoryMediaSize)
+        .u8(0);
+
+    if ((pluginId & 0x0f) === 2)
+    {
+        const parameters = sourceParameterBlock ?? new Uint8Array();
+
+        writer.u32(parameters.byteLength).append(parameters);
+    }
+
+    return writer.append(nodeBasePayload({
             overrideBusId,
             directParentId,
             positioningFlags,
@@ -7427,6 +7527,31 @@ function soundPayload({
             overrideEffects,
             bypassAllEffects,
         }))
+        .bytes();
+}
+
+function silenceSourceEffectPayload({
+    durationSeconds,
+    randomizedMinus = 0,
+    randomizedPlus = 0,
+    pluginId = 0x00650002,
+} = {})
+{
+    const parameterBlock = new TestWriter()
+        .f32(durationSeconds)
+        .f32(randomizedMinus)
+        .f32(randomizedPlus)
+        .bytes();
+
+    return new TestWriter()
+        .u32(pluginId)
+        .u32(parameterBlock.byteLength)
+        .append(parameterBlock)
+        .u8(0)
+        .u16(0)
+        .u8(0)
+        .u8(0)
+        .u16(0)
         .bytes();
 }
 

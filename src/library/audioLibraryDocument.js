@@ -725,7 +725,7 @@ function ChildMayLoop(child, nodes, fallback, active)
         }
         return node.loop === undefined ? fallback : node.loop;
     }
-    if (node.type === "silence")
+    if (node.type === "silence" || node.type === "timed-silence")
     {
         return false;
     }

@@ -67,6 +67,8 @@ export class CjsAudioMan
 
     #systemOptions = null;
 
+    #timedSilenceBuffer = null;
+
     #wholeBanks = new Map();
 
     #random = null;
@@ -1088,6 +1090,7 @@ export class CjsAudioMan
         this.#sfxEngine?.Reset();
         this.#sfxEngine = null;
         this.#context = null;
+        this.#timedSilenceBuffer = null;
         this.#banksWaitingToLoad.clear();
         this.#InvalidateAcquisitions(
             "Audio manager disposed during media acquisition",
@@ -1241,6 +1244,14 @@ export class CjsAudioMan
         return candidates;
     }
 
+    /** Returns one constant-memory silent carrier for this audio context. */
+    #GetTimedSilenceAudioBuffer()
+    {
+        this.#timedSilenceBuffer ??=
+            CreateTimedSilenceAudioBuffer(this.#context);
+        return this.#timedSilenceBuffer;
+    }
+
     /** Selects and loads one media buffer for an event. */
     async #LoadEventBuffer(
         eventID,
@@ -1298,6 +1309,13 @@ export class CjsAudioMan
                         return Promise.resolve(null);
                     }
 
+                    if (selection.silenceDurationMs !== undefined)
+                    {
+                        return Promise.resolve(
+                            this.#GetTimedSilenceAudioBuffer(),
+                        );
+                    }
+
                     return this.LoadMedia(selection.mediaID, {
                         signal: selectionSignal,
                     }).catch(error =>
@@ -1324,6 +1342,12 @@ export class CjsAudioMan
                     buffers[index]
                         ? [ {
                             buffer: buffers[index],
+                            ...(selection.silenceDurationMs === undefined
+                                ? {}
+                                : {
+                                    silenceDurationSeconds:
+                                        selection.silenceDurationMs / 1000,
+                                }),
                             loop: selection.loop,
                             ...(selection.playCount === undefined
                                 ? {}
@@ -1985,6 +2009,33 @@ function CreatePcmAudioBuffer(context, payload)
         }
     }
 
+    return buffer;
+}
+
+/**
+ * Creates a one-frame silent carrier for an authored timed-silence voice.
+ * The backend loops this frame and owns the exact logical stop time, avoiding
+ * a duration-sized PCM allocation for long Wwise Silence sources.
+ */
+function CreateTimedSilenceAudioBuffer(context)
+{
+    if (!context || typeof context.createBuffer !== "function")
+    {
+        throw new TypeError(
+            "AudioContext.createBuffer is required for timed silence",
+        );
+    }
+    const sampleRate = Number(context.sampleRate) > 0
+        ? Number(context.sampleRate)
+        : 48000;
+    const buffer = context.createBuffer(1, 1, sampleRate);
+
+    if (!Number.isFinite(Number(buffer.duration)))
+    {
+        Object.defineProperty(buffer, "duration", {
+            value: 1 / sampleRate,
+        });
+    }
     return buffer;
 }
 

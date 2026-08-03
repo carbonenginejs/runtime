@@ -689,6 +689,17 @@ class CjsAudioBackend {
     if (!voice || voice.startContextTime === null) {
       return 0;
     }
+    const silenceDuration = Number(voice.silenceDurationSeconds);
+    if (Number.isFinite(silenceDuration) && silenceDuration > 0 && voice.repeatRemainingSeconds !== null) {
+      let remaining = Math.max(0, Number(voice.repeatRemainingSeconds) || 0);
+      if (!voice.paused && voice.repeatAnchorContextTime !== null) {
+        const from = Number(voice.repeatAnchorContextTime);
+        const to = Number(this.#context.currentTime);
+        const elapsed = to > from ? UsesVoicePitchAutomation(voice) ? IntegrateVoicePitchPlaybackRate(voice, from, to) : (to - from) * voice.playbackRate : 0;
+        remaining = Math.max(0, remaining - elapsed);
+      }
+      return Math.max(0, Math.round(Math.min(silenceDuration, silenceDuration - remaining) * 1000));
+    }
     let seconds = voice.offsetSeconds;
     if (!voice.paused && voice.positionAnchorContextTime !== null) {
       const from = Number(voice.positionAnchorContextTime);
@@ -2719,6 +2730,7 @@ class CjsAudioBackend {
       sharedBusFilters,
       sharedBusDucking: emitterRouteBranch?.sharedBusDucking === true,
       buffer: descriptor.buffer,
+      silenceDurationSeconds: descriptor.silenceDurationSeconds,
       loop: descriptor.loop,
       playCount: descriptor.playCount,
       playbackRate: descriptor.playbackRate,
@@ -2875,24 +2887,32 @@ class CjsAudioBackend {
   /** Creates or replaces one Web Audio buffer source. */
   #StartVoice(playingID, record, voice, seek, startContextTime) {
     const duration = Number(voice.buffer.duration);
-    let offsetSeconds = 0;
+    const silenceDuration = Number(voice.silenceDurationSeconds);
+    // Timed Silence is a finite logical voice over one physically looping
+    // zero sample. Keep its authored clock separate from buffer duration
+    // so long gaps consume constant memory and transport remains seekable.
+    const timedSilence = Number.isFinite(silenceDuration) && silenceDuration > 0;
+    const effectiveDuration = timedSilence ? silenceDuration : duration;
+    let logicalOffsetSeconds = 0;
     const resumed = seek?.kind === "resume";
+    const resumeRepeatRemaining = resumed && Number.isFinite(seek.repeatRemainingSeconds) ? Math.max(0, Number(seek.repeatRemainingSeconds)) : null;
     if (resumed) {
-      offsetSeconds = Number(seek.offsetSeconds) || 0;
+      logicalOffsetSeconds = Number(seek.offsetSeconds) || 0;
     } else if (seek?.kind === "ms") {
-      offsetSeconds = seek.value / 1000;
-    } else if (seek?.kind === "percent" && Number.isFinite(duration)) {
-      offsetSeconds = seek.value * duration;
+      logicalOffsetSeconds = seek.value / 1000;
+    } else if (seek?.kind === "percent" && Number.isFinite(effectiveDuration)) {
+      logicalOffsetSeconds = seek.value * effectiveDuration;
     }
     const loops = voice.loop;
-    if (Number.isFinite(duration) && duration > 0) {
+    if (Number.isFinite(effectiveDuration) && effectiveDuration > 0) {
       if (loops) {
-        offsetSeconds %= duration;
-      } else if (offsetSeconds >= duration) {
+        logicalOffsetSeconds %= effectiveDuration;
+      } else if (resumeRepeatRemaining === null && logicalOffsetSeconds >= effectiveDuration) {
         voice.ended = true;
         return;
       }
     }
+    const offsetSeconds = timedSilence && Number.isFinite(duration) && duration > 0 ? logicalOffsetSeconds % duration : logicalOffsetSeconds;
     const previous = voice.source;
     if (previous) {
       this.#EndVoiceDucking(voice, startContextTime, startContextTime <= voice.startContextTime);
@@ -2906,8 +2926,7 @@ class CjsAudioBackend {
     }
     const source = this.#context.createBufferSource();
     source.buffer = voice.buffer;
-    const resumeRepeatRemaining = resumed && Number.isFinite(seek.repeatRemainingSeconds) ? Math.max(0, Number(seek.repeatRemainingSeconds)) : null;
-    const finiteRepeats = !loops && (resumeRepeatRemaining !== null || voice.playCount > 1) && Number.isFinite(duration) && duration > 0;
+    const finiteRepeats = !loops && (timedSilence || resumeRepeatRemaining !== null || voice.playCount > 1) && Number.isFinite(duration) && duration > 0;
     source.loop = loops || finiteRepeats;
     if (source.playbackRate && typeof source.playbackRate === "object" && "value" in source.playbackRate) {
       source.playbackRate.value = voice.playbackRate;
@@ -2951,7 +2970,7 @@ class CjsAudioBackend {
     source.start(startContextTime, voice.offsetSeconds);
     voice.sourceStarted = true;
     if (finiteRepeats) {
-      const remaining = resumeRepeatRemaining ?? duration - voice.offsetSeconds + duration * (voice.playCount - 1);
+      const remaining = resumeRepeatRemaining ?? (timedSilence ? effectiveDuration - logicalOffsetSeconds : duration - voice.offsetSeconds + duration * (voice.playCount - 1));
       voice.repeatRemainingSeconds = remaining;
       voice.repeatAnchorContextTime = startContextTime;
       voice.scheduledEndContextTime = startContextTime + remaining / voice.playbackRate;
@@ -4563,8 +4582,12 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
     const fadeCurve = Number(value.fadeCurve ?? LINEAR_FADE_CURVE);
     const dryVolumeCurve = NormalizeVoiceDryVolumeCurve(value.dryVolumeCurve, index);
     const sourceEffects = value.sourceEffects === undefined ? undefined : normalizeStaticParametricEqChain(value.sourceEffects, `Audio voice ${index} sourceEffects`);
+    const silenceDurationSeconds = value.silenceDurationSeconds === undefined ? undefined : Number(value.silenceDurationSeconds);
     if (!Number.isSafeInteger(playCount) || playCount <= 0) {
       throw new TypeError(`Audio voice ${index} playCount must be a positive integer`);
+    }
+    if (silenceDurationSeconds !== undefined && (!Number.isFinite(silenceDurationSeconds) || silenceDurationSeconds <= 0)) {
+      throw new TypeError(`Audio voice ${index} silenceDurationSeconds must be positive`);
     }
     if (value.loop === true && value.playCount !== undefined) {
       throw new TypeError(`Audio voice ${index} cannot combine loop and playCount`);
@@ -4634,6 +4657,9 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
     const loop = value.loop === undefined ? value.playCount === undefined && Boolean(eventLoop()) : Boolean(value.loop);
     return {
       buffer: value.buffer,
+      ...(silenceDurationSeconds === undefined ? {} : {
+        silenceDurationSeconds
+      }),
       loop,
       playCount,
       playbackRate,

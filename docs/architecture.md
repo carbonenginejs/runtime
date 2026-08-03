@@ -43,7 +43,10 @@ When asked to construct authored SFX from banks, the builder resolves raw
 version-150 NodeBase and Actor-Mixer inheritance supplied by
 `runtime-resource` and projects qualified per-leaf positioning, dry-volume
 distance curves, event culling metadata, and complete direct static
-Sound-local Parametric EQ overrides into the final document.
+Sound-local Parametric EQ overrides into the final document. It also follows
+qualified static Wwise Silence sources to their referenced effect parameters;
+the browser realizes their finite lifecycle with one constant-memory silent
+carrier rather than treating them as media or empty graph branches.
 
 ## Owned responsibilities
 

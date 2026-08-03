@@ -96,6 +96,7 @@ const WWISE_USER_AUX_VOLUME_PROPERTY = 0x08;
 const WWISE_USER_AUX_LOW_PASS_PROPERTY = 0x10;
 const WWISE_USER_AUX_HIGH_PASS_PROPERTY = 0x14;
 const WWISE_REFLECTIONS_VOLUME_PROPERTY = 0x1a;
+const WWISE_SILENCE_SOURCE_PLUGIN_ID = 0x00650002;
 const SFX_ADDITIVE_ACCUMULATION = 2;
 const SFX_FILTER_ACCUMULATION = 6;
 const SFX_IMMEDIATE_STATE_SYNC = 0;
@@ -808,29 +809,42 @@ function LowerSfxGraph({
         const loopCount = parsed.nodeBases?.get(Number(id))?.loopCount;
         const matchIds = CreateSfxMatchIds(parsed, id);
         const routing = CreateSfxBusRouting(parsed, id, buses);
-        if (source.pluginType !== 1) {
-          throw new Error(`source plug-in sound ${id}`);
-        }
-        if (!media[mediaID] && !embeddedMedia[mediaID]) {
+        if (source.pluginType === 1 && !media[mediaID] && !embeddedMedia[mediaID]) {
           throw new Error(`sound ${id} references unavailable media ${mediaID}`);
         }
-        node = {
-          type: "sound",
-          mediaId: mediaID,
+        const identity = {
           ...(matchIds.length > 1 ? {
             matchIds
           } : {}),
-          ...(routing ?? {}),
-          ...CreateSfxSoundEffectProjection(parsed, effects, id),
-          ...(loopCount === 0 ? {
-            loop: true
-          } : Number.isSafeInteger(loopCount) && loopCount > 0 ? {
-            loop: false,
-            playCount: loopCount
-          } : crossfadeFiniteSounds.has(id) ? {
-            loop: false
-          } : {})
+          ...(routing ?? {})
         };
+        if (source.pluginType === 1) {
+          node = {
+            type: "sound",
+            mediaId: mediaID,
+            ...identity,
+            ...CreateSfxSoundEffectProjection(parsed, effects, id),
+            ...(loopCount === 0 ? {
+              loop: true
+            } : Number.isSafeInteger(loopCount) && loopCount > 0 ? {
+              loop: false,
+              playCount: loopCount
+            } : crossfadeFiniteSounds.has(id) ? {
+              loop: false
+            } : {})
+          };
+        } else if (source.pluginType === 2 && source.pluginId === WWISE_SILENCE_SOURCE_PLUGIN_ID) {
+          if (loopCount !== null && loopCount !== undefined) {
+            throw new Error(`looping silence source ${id}`);
+          }
+          node = {
+            type: "timed-silence",
+            durationMs: ParseStaticWwiseSilenceDuration(effects, source, id),
+            ...identity
+          };
+        } else {
+          throw new Error(`source plug-in sound ${id}`);
+        }
         leaves.add(Number(id) >>> 0);
       } else if (source.type === "random" || source.type === "sequence") {
         if (source.restartBackward) {
@@ -2610,6 +2624,31 @@ function ParseStaticParametricEq(ownerLabel, slot, effect) {
     slotIndex: slot.index,
     label: `Wwise Parametric EQ ${effect.id} on ${ownerLabel}`
   });
+}
+
+/**
+ * Reads the exact static v150 Wwise Silence source shape used by EVE. The
+ * Sound's source ID references a CAkFxCustom object; its empty inline source
+ * block is not permission to substitute the plug-in's default duration.
+ */
+function ParseStaticWwiseSilenceDuration(effects, source, rawId) {
+  const soundId = Number(rawId) >>> 0;
+  const effect = effects?.get(Number(source.sourceId) >>> 0);
+  if (!effect || effect.type !== "effect-custom" || effect.pluginId !== WWISE_SILENCE_SOURCE_PLUGIN_ID || effect.pluginId !== source.pluginId || effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
+    throw new Error(`unsupported Wwise Silence source ${soundId}`);
+  }
+  const bytes = effect.parameterBlock;
+  if (!(bytes instanceof Uint8Array) || bytes.byteLength !== 12) {
+    throw new Error(`Wwise Silence source ${soundId} requires 12 static parameter bytes`);
+  }
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const durationSeconds = view.getFloat32(0, true);
+  const randomizedMinus = view.getFloat32(4, true);
+  const randomizedPlus = view.getFloat32(8, true);
+  if (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || randomizedMinus !== 0 || randomizedPlus !== 0) {
+    throw new Error(`Wwise Silence source ${soundId} is not a static positive duration`);
+  }
+  return durationSeconds * 1000;
 }
 
 /**

@@ -104,6 +104,109 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "the committed demo routes real EVE music through the bus graph",
     );
 
+    const collectTimedSilenceNodes = eventName =>
+    {
+        const timedNodes = [];
+        const visit = (nodeId, ancestors = new Set()) =>
+        {
+            const id = String(nodeId);
+            const node = graph.nodes[id];
+
+            if (!node || ancestors.has(id))
+            {
+                return;
+            }
+            if (node.type === "timed-silence")
+            {
+                timedNodes.push(node);
+            }
+            const nextAncestors = new Set(ancestors).add(id);
+
+            for (const child of node.children ?? [])
+            {
+                visit(child.nodeId, nextAncestors);
+            }
+        };
+
+        for (const root of graph.events[eventName] ?? [])
+        {
+            visit(root.nodeId);
+        }
+        return timedNodes;
+    };
+    const timedSilenceEvents = new Map([
+        [ "worldobject_pillars_active_play", [ 304500, 6500 ] ],
+        [ "jumpgate_suppressed_lvl_1", [ 8000 ] ],
+        [ "jumpgate_suppressed_lvl_2", [ 8000 ] ],
+        [ "jumpgate_suppressed_lvl_3", [ 8000 ] ],
+        [ "jumpgate_suppressed_lvl_4", [ 8000 ] ],
+        [ "jumpgate_suppressed_lvl_5", [ 8000 ] ],
+        [ "solar_array_outburst_play", [ 6500 ] ],
+        [ "solar_array_impact_play", [ 2000, 5000 ] ],
+        [ "solar_array_beam_play", [ 2000 ] ],
+    ]);
+
+    for (const [ eventName, durations ] of timedSilenceEvents)
+    {
+        assert.deepEqual(
+            collectTimedSilenceNodes(eventName).map(node =>
+                node.durationMs),
+            durations,
+            `${eventName} retains its authored Wwise Silence timing`,
+        );
+    }
+    for (const eventName of [
+        "jumpgate_suppressed_lvl_1",
+        "jumpgate_suppressed_lvl_2",
+        "jumpgate_suppressed_lvl_3",
+        "jumpgate_suppressed_lvl_4",
+        "jumpgate_suppressed_lvl_5",
+    ])
+    {
+        for (const node of collectTimedSilenceNodes(eventName))
+        {
+            assert.ok(
+                node.matchIds.includes("546252031"),
+                `${eventName} remains stoppable through its Actor-Mixer`,
+            );
+            assert.equal(node.outputBusId, "2354433251");
+            assert.equal(node.busPathIds[0], "2354433251");
+        }
+    }
+    assert.deepEqual(
+        graph.programs.jumpgate_suppressed_stop,
+        [ {
+            kind: "stop",
+            targetId: "546252031",
+            scope: "game-object",
+            mode: "element",
+            curve: 4,
+            exceptions: [],
+            targetFlags: 0,
+            actionFlags: 6,
+            transitionMs: 100,
+        } ],
+        "the authored jumpgate Stop targets every retained Silence ancestry",
+    );
+    for (const eventName of [
+        "worldobject_pillars_active_play",
+        "solar_array_outburst_play",
+        "solar_array_impact_play",
+        "solar_array_beam_play",
+    ])
+    {
+        for (const node of collectTimedSilenceNodes(eventName))
+        {
+            assert.equal(node.outputBusId, "4152719228");
+            assert.equal(node.busPathIds[0], "4152719228");
+        }
+    }
+    assert.equal(
+        graph.events.in_game_video_stream_play,
+        undefined,
+        "host-fed Wwise Audio Input remains fail-closed",
+    );
+
     for (const [ eventName, branchId, layerId ] of [
         [ "jita_hangar_play", "154203244", "147683999" ],
         [ "Ambience_Hangar_Caldari_Play", "235104118", "879550926" ],
