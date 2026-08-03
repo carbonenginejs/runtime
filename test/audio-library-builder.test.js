@@ -1135,6 +1135,180 @@ test("SFX lowering projects only route-qualified cap-one Sound limits", () =>
         "inherited Initial Delay randomizers combine before qualification");
 });
 
+test("Sound limit qualification follows priority, bus, and future scheduling", () =>
+{
+    const openBus = {
+        overrideBusId: 0,
+        policy: { maxInstances: 0 },
+        rtpcs: [],
+        busVolume: null,
+        makeUpGain: null,
+    };
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 7,
+                    id: 150,
+                    payload: actorMixerPayload({
+                        advancedFlags: 0x10,
+                        belowThresholdBehavior: 2,
+                        children: [ 151 ],
+                    }),
+                },
+                {
+                    type: 7,
+                    id: 151,
+                    payload: actorMixerPayload({
+                        directParentId: 150,
+                        advancedFlags: 0x10,
+                        belowThresholdBehavior: 0,
+                        children: [ 200 ],
+                    }),
+                },
+                ...[
+                    {
+                        id: 200,
+                        directParentId: 151,
+                    },
+                    {
+                        id: 201,
+                        rtpcs: [ {
+                            controlId: 700,
+                            parameterId: 6,
+                            scaling: 0,
+                            points: [ [ 0, 0, 4 ] ],
+                        } ],
+                    },
+                    {
+                        id: 202,
+                        stateProperties: [ {
+                            propertyId: 6,
+                            accumulation: 2,
+                            inDb: false,
+                        } ],
+                        stateGroups: [ {
+                            groupId: 600,
+                            states: [ {
+                                stateId: 601,
+                                values: [ {
+                                    propertyId: 6,
+                                    value: 1,
+                                } ],
+                            } ],
+                        } ],
+                    },
+                    { id: 203, overrideBusId: 511 },
+                    { id: 204, overrideBusId: 520 },
+                    { id: 205 },
+                    { id: 206 },
+                ].map(options => ({
+                    type: 2,
+                    id: options.id,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    payload: soundPayload({
+                        overrideBusId: options.overrideBusId ?? 500,
+                        directParentId: options.directParentId ?? 0,
+                        rtpcs: options.rtpcs ?? [],
+                        stateProperties: options.stateProperties ?? [],
+                        stateGroups: options.stateGroups ?? [],
+                        advancedFlags: 0x09,
+                        maxInstances: 1,
+                    }),
+                })),
+                {
+                    type: 5,
+                    id: 220,
+                    payload: randomSequencePayload({
+                        childID: 205,
+                        transitionTime: 100,
+                        transitionMode: 3,
+                        flags: 0x08,
+                    }),
+                },
+                {
+                    type: 5,
+                    id: 221,
+                    payload: randomSequencePayload({
+                        childID: 206,
+                        transitionTime: 100,
+                        transitionMode: 1,
+                        flags: 0x08,
+                    }),
+                },
+                ...[ 200, 201, 202, 203, 204, 220, 221 ]
+                    .map((targetId, index) => ({
+                        type: 3,
+                        id: 300 + index,
+                        actionType: 0x0403,
+                        targetId,
+                        payload: new Uint8Array(),
+                    })),
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 300, 301, 302, 303, 304, 305, 306 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: { capped_sounds: { eventID: 100 } },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "1",
+                    ShortName: "common",
+                    GameParameters: [ { Id: "700", Name: "priority" } ],
+                    StateGroups: [ {
+                        Id: "600",
+                        Name: "priority_state",
+                        States: [ { Id: "601", Name: "active" } ],
+                    } ],
+                } ],
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+        buses: new Map([
+            [ 500, openBus ],
+            [ 510, { ...openBus, policy: { maxInstances: 2 } } ],
+            [ 511, { ...openBus, overrideBusId: 510 } ],
+            [ 520, {
+                ...openBus,
+                rtpcs: [ { parameterId: 53 } ],
+            } ],
+        ]),
+    });
+
+    assert.deepEqual(result.nodes["200"].voiceLimit, {
+        counterId: "200",
+        scope: "game-object",
+        maxInstances: 1,
+        behavior: "reject-newest",
+    }, "the nearest virtual override wins over a more distant ancestor");
+    assert.equal(result.nodes["201"].voiceLimit, undefined,
+        "Priority RTPCs keep reject-newest arbitration unresolved");
+    assert.equal(result.nodes["202"].voiceLimit, undefined,
+        "Priority State mutations keep reject-newest arbitration unresolved");
+    assert.equal(result.nodes["203"].voiceLimit, undefined,
+        "an ancestor Audio Bus cap keeps Sound admission unresolved");
+    assert.equal(result.nodes["204"].voiceLimit, undefined,
+        "a MaxNumInstances RTPC keeps Sound admission unresolved");
+    assert.equal(result.nodes["205"].voiceLimit, undefined,
+        "Continuous Delay admits the Sound at a future boundary");
+    assert.equal(result.nodes["206"].voiceLimit, undefined,
+        "Continuous Crossfade prefetches before Sound admission");
+});
+
 test("SFX lowering projects only wholly supported Immediate state properties", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({

@@ -76,6 +76,31 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(graph.schemaVersion, 2);
     assert.ok(Object.keys(graph.programs).length > 0);
 
+    for (const [ eventName, branchId, layerId ] of [
+        [ "jita_hangar_play", "154203244", "147683999" ],
+        [ "Ambience_Hangar_Caldari_Play", "235104118", "879550926" ],
+        [ "Ambience_Hangar_Minmatar_Play", "334557450", "94549541" ],
+    ])
+    {
+        assert.ok(
+            graph.events[eventName].some(root =>
+                String(root.nodeId) === branchId),
+            `${eventName} retains its directly posted Hangar branch`,
+        );
+        assert.ok(
+            graph.nodes[branchId].children.some(child =>
+                String(child.nodeId) === layerId),
+            `${eventName} reaches its zero-record Continuous Layer`,
+        );
+        assert.equal(graph.nodes[layerId].type, "parallel");
+        assert.ok(
+            graph.nodes[layerId].children.every(child =>
+                graph.nodes[String(child.nodeId)].continuous?.transition
+                    === "delay"),
+            `${eventName} keeps each child Continuous scheduler independent`,
+        );
+    }
+
     assert.deepEqual(graph.programs.charge_abyssal_switch, [
         {
             kind: "switch",
@@ -479,6 +504,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
                 scope: "object",
                 property: "volume",
                 scaling: 2,
+                defaultValue: 1,
                 points: [
                     {
                         x: 0,
@@ -497,6 +523,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
                 scope: "object",
                 property: "lowPass",
                 scaling: 0,
+                defaultValue: 1,
                 points: [
                     {
                         x: 0,
@@ -515,6 +542,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
                 scope: "object",
                 property: "pitch",
                 scaling: 0,
+                defaultValue: 1,
                 points: [
                     {
                         x: 0,
@@ -533,6 +561,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
                 scope: "object",
                 property: "highPass",
                 scaling: 0,
+                defaultValue: 1,
                 points: [
                     {
                         x: 0,
