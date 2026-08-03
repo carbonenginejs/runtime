@@ -39,7 +39,9 @@ const DEFAULT_FADE_SECONDS = 1;
 const DEFAULT_RENDER_QUANTUM_SECONDS = 128 / 48000;
 const LINEAR_FADE_CURVE = 4;
 const FADE_CURVE_SAMPLES = 65;
-const SPATIAL_POSE_RAMP_SECONDS = 0.015;
+// Reaches 95% of a new pose in about 15 ms without repeatedly cancelling an
+// in-flight automation ramp during high-rate pointer or scene updates.
+const SPATIAL_POSE_TIME_CONSTANT_SECONDS = 0.005;
 
 /** WebAudio backend for the audio graph: emitter nodes, playing sources, listener pose. */
 export class CjsAudioBackend
@@ -6698,10 +6700,13 @@ function SetAudioParam(param, value, context)
 }
 
 /**
- * Smooths live HRTF pose changes so an emitter crossing the listener does not
- * turn a pointer-event coordinate jump into an audible discontinuity. The
- * first pose remains immediate so a newly posted source never ramps out from
- * Web Audio's default origin.
+ * Smooths live HRTF pose changes so pointer or scene updates do not become
+ * audible discontinuities. Web Audio explicitly recommends a low-time-
+ * constant target for de-zippering AudioParams. Unlike cancelling and
+ * replacing a short linear ramp on every input event, consecutive target
+ * events continue from the computed value of the preceding event. The first
+ * pose remains immediate so a newly posted source never approaches from Web
+ * Audio's default origin.
  */
 function SetSpatialAudioParam(param, value, context, smooth)
 {
@@ -6712,8 +6717,21 @@ function SetSpatialAudioParam(param, value, context, smooth)
     const now = Number(context?.currentTime);
 
     if (!smooth
-        || !Number.isFinite(now)
-        || typeof param.linearRampToValueAtTime !== "function")
+        || !Number.isFinite(now))
+    {
+        param.value = value;
+        return;
+    }
+    if (typeof param.setTargetAtTime === "function")
+    {
+        param.setTargetAtTime(
+            value,
+            now,
+            SPATIAL_POSE_TIME_CONSTANT_SECONDS,
+        );
+        return;
+    }
+    if (typeof param.linearRampToValueAtTime !== "function")
     {
         param.value = value;
         return;
@@ -6727,7 +6745,10 @@ function SetSpatialAudioParam(param, value, context, smooth)
         param.cancelScheduledValues?.(now);
         param.setValueAtTime?.(param.value, now);
     }
-    param.linearRampToValueAtTime(value, now + SPATIAL_POSE_RAMP_SECONDS);
+    param.linearRampToValueAtTime(
+        value,
+        now + SPATIAL_POSE_TIME_CONSTANT_SECONDS * 3,
+    );
 }
 
 function IndexStateTransitionCatalog(value)

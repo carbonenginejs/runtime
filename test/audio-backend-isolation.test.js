@@ -19,6 +19,7 @@ function FakeParam(initial)
     curves: [],
     cancellations: [],
     sets: [],
+    targets: [],
     cancelScheduledValues(time)
     {
       param.cancellations.push(time);
@@ -31,6 +32,10 @@ function FakeParam(initial)
     linearRampToValueAtTime(value, time)
     {
       param.ramps.push([value, time]);
+    },
+    setTargetAtTime(value, time, timeConstant)
+    {
+      param.targets.push([value, time, timeConstant]);
     },
     setValueCurveAtTime(values, time, duration)
     {
@@ -454,7 +459,7 @@ function RouteBranchForSource(source)
   return source.connectedTo?.connectedTo?.connectedTo?.connectedTo ?? null;
 }
 
-test("live spatial pose changes ramp after immediate initialization", () =>
+test("live spatial pose changes use continuous targets after initialization", () =>
 {
   const { context, backend } = Harness({ distanceScale: 2 });
   const panner = context.panners[0];
@@ -469,11 +474,18 @@ test("live spatial pose changes ramp after immediate initialization", () =>
   context.currentTime = 0.25;
   backend.SetPosition(1, [ 1, 0, 0 ], [ 0, 1, 0 ], [ 4, 5, 6 ]);
 
-  assert.deepEqual(panner.positionX.cancellations, [ 0.25 ]);
-  assert.deepEqual(panner.positionX.sets, [ [ 2, 0.25 ] ]);
-  assert.deepEqual(panner.positionX.ramps, [ [ 8, 0.265 ] ]);
-  assert.deepEqual(panner.positionY.ramps, [ [ 10, 0.265 ] ]);
-  assert.deepEqual(panner.positionZ.ramps, [ [ 12, 0.265 ] ]);
+  assert.deepEqual(panner.positionX.cancellations, []);
+  assert.deepEqual(panner.positionX.ramps, []);
+  assert.deepEqual(panner.positionX.targets, [ [ 8, 0.25, 0.005 ] ]);
+  assert.deepEqual(panner.positionY.targets, [ [ 10, 0.25, 0.005 ] ]);
+  assert.deepEqual(panner.positionZ.targets, [ [ 12, 0.25, 0.005 ] ]);
+
+  backend.SetPosition(1, [ 0, 0, 1 ], [ 0, 1, 0 ], [ 7, 8, 9 ]);
+  assert.deepEqual(
+    panner.positionX.targets,
+    [ [ 8, 0.25, 0.005 ], [ 14, 0.25, 0.005 ] ],
+    "same-quantum input updates append continuous targets without cancellation",
+  );
 
   backend.SetListenerPosition(
     2,
@@ -488,9 +500,11 @@ test("live spatial pose changes ramp after immediate initialization", () =>
     [ 0, 1, 0 ],
     [ 5, 0, 0 ],
   );
-  assert.deepEqual(context.listener.positionX.cancellations, [ 0.5 ]);
-  assert.deepEqual(context.listener.positionX.sets, [ [ 2, 0.5 ] ]);
-  assert.deepEqual(context.listener.positionX.ramps, [ [ 10, 0.515 ] ]);
+  assert.deepEqual(context.listener.positionX.cancellations, []);
+  assert.deepEqual(
+    context.listener.positionX.targets,
+    [ [ 10, 0.5, 0.005 ] ],
+  );
 });
 
 test("graph-backed SFX routes separate exact route and spatial branches", async () =>

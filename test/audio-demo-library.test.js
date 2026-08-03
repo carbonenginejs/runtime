@@ -140,6 +140,42 @@ test("committed demo library carries authored SFX and music semantics", () =>
         ],
         "the demo includes one exact authored Set Voice Volume example",
     );
+
+    const warpRoot = graph.events.ship_engine_M_warpdrive_3rd_blast[0].nodeId;
+    const warpOff = graph.programs.ship_engine_M_warpdrive_3rd_off;
+    const warpStop = warpOff.find(action => action.kind === "stop");
+    const warpOutro = warpOff.filter(action => action.kind === "play");
+    const warpPending = [ String(warpRoot) ];
+    const warpVisited = new Set();
+    const warpMatchIds = new Set();
+
+    while (warpPending.length)
+    {
+        const id = warpPending.pop();
+
+        if (warpVisited.has(id))
+        {
+            continue;
+        }
+        warpVisited.add(id);
+        warpMatchIds.add(id);
+        const node = graph.nodes[id];
+
+        for (const matchId of node.matchIds ?? [])
+        {
+            warpMatchIds.add(String(matchId));
+        }
+        for (const child of node.children ?? [])
+        {
+            warpPending.push(String(child.nodeId));
+        }
+    }
+    assert.equal(warpStop.transitionMs, 2000);
+    assert.equal(warpOutro.length, 2);
+    assert.ok(
+        warpMatchIds.has(String(warpStop.targetId)),
+        "the warpdrive loop proves its authored Stop/outro relationship",
+    );
     assert.deepEqual(
         graph.programs.voc_Aura_2850_1_play_01,
         [

@@ -318,11 +318,16 @@ class AudioLibrary
                 min: Math.min(...xs),
                 max: Math.max(...xs),
                 properties: new Set(),
+                defaultValues: new Set(),
             };
 
             current.min = Math.min(current.min, ...xs);
             current.max = Math.max(current.max, ...xs);
             current.properties.add(property);
+            if (Number.isFinite(Number(curve.defaultValue)))
+            {
+                current.defaultValues.add(Number(curve.defaultValue));
+            }
             rtpcs.set(key, current);
         };
         const collectCurves = value =>
@@ -404,10 +409,18 @@ class AudioLibrary
                 ...control,
                 values: [ ...control.values ],
             })),
-            rtpcs: [ ...rtpcs.values() ].map(control => ({
-                ...control,
-                properties: [ ...control.properties ],
-            })),
+            rtpcs: [ ...rtpcs.values() ].map(control =>
+            {
+                const { defaultValues, ...result } = control;
+
+                return {
+                    ...result,
+                    properties: [ ...control.properties ],
+                    ...(defaultValues.size === 1
+                        ? { defaultValue: [ ...defaultValues ][0] }
+                        : {}),
+                };
+            }),
         };
     }
 
@@ -518,7 +531,7 @@ class AudioLibrary
                 .map(FormatRtpcProperty)
                 .join(" and ") || "playback properties";
 
-            return `Uses the authored ${control?.scope ?? "object"} Game Parameter ${control?.name ?? ""} from ${FormatControlValue(control?.min ?? 0)} to ${FormatControlValue(control?.max ?? 0)} to change ${properties}. The slider starts at the curve minimum, which may be deliberately quiet. Volume and pitch stay live; initial delay is captured when you post.`;
+            return `Uses the authored ${control?.scope ?? "object"} Game Parameter ${control?.name ?? ""} from ${FormatControlValue(control?.min ?? 0)} to ${FormatControlValue(control?.max ?? 0)} to change ${properties}. The slider starts at the authored Game Parameter default when known, otherwise at the curve minimum. Volume and pitch stay live; initial delay is captured when you post.`;
         }
 
         return "Posts the selected authored SFX graph on one retained emitter.";
@@ -651,6 +664,12 @@ class AudioLibrary
             {
                 type: "NodeBase RTPC",
                 preferred: [ "Cyno_lightning_play" ],
+                // Build 3453885 Init.bnk STMG authors lightning_intensity at 1.
+                // The compact demo artifact predates default-value projection,
+                // so retain that verified default until it is regenerated.
+                initialRtpcs: {
+                    "object:lightning_intensity": 1,
+                },
                 matches: name => this.SfxControls(name).rtpcs
                     .some(control => control.properties
                         .some(property => property !== "layerGain")),
@@ -681,6 +700,9 @@ class AudioLibrary
                     ...(definition.resumeEvent
                         ? { resumeEvent: definition.resumeEvent }
                         : {}),
+                    ...(definition.initialRtpcs
+                        ? { initialRtpcs: definition.initialRtpcs }
+                        : {}),
                     nodeTypes: this.SfxNodeTypes(eventName),
                     description: this.SfxDescription(
                         definition.type,
@@ -703,6 +725,76 @@ class AudioLibrary
                 isLoop: this.EventMayLoop(eventName) ? 1 : 0,
             }
             : undefined;
+    }
+
+    /** Describes the resolved positioning of reachable authored Sound leaves. */
+    EventDimensionality(eventName)
+    {
+        const graph = this.sfx;
+        const roots = graph?.events?.[eventName] ?? [];
+        const pending = roots.map(root => String(root.nodeId));
+        const visited = new Set();
+        let sounds = 0;
+        let known = 0;
+        let has2D = false;
+        let has3D = false;
+
+        while (pending.length)
+        {
+            const id = pending.pop();
+
+            if (visited.has(id))
+            {
+                continue;
+            }
+            visited.add(id);
+
+            const node = graph?.nodes?.[id];
+
+            if (!node)
+            {
+                continue;
+            }
+            if (node.type === "sound")
+            {
+                sounds++;
+                if (typeof node.spatial === "boolean")
+                {
+                    known++;
+                    has3D ||= node.spatial;
+                    has2D ||= !node.spatial;
+                }
+                continue;
+            }
+            for (const child of node.children ?? [])
+            {
+                pending.push(String(child.nodeId));
+            }
+            for (const child of Object.values(node.cases ?? {}))
+            {
+                pending.push(String(child.nodeId));
+            }
+            if (node.default)
+            {
+                pending.push(String(node.default.nodeId));
+            }
+        }
+
+        if (known === sounds && sounds > 0)
+        {
+            return has2D && has3D
+                ? "mixed 2D/3D"
+                : has3D
+                    ? "3D"
+                    : "2D";
+        }
+        const is2D = this.raw.metadata.Events[eventName]?.is2D;
+
+        return is2D === 1
+            ? "2D"
+            : is2D === 0
+                ? "contains 3D"
+                : "positioning unknown";
     }
 
     /**
@@ -883,6 +975,93 @@ class AudioLibrary
         }
 
         return [ ...media ];
+    }
+
+    /**
+     * Returns the best same-family event that authors a Stop for this event.
+     * Sound matchIds retain the Wwise ancestry needed when a Stop targets an
+     * Actor-Mixer rather than the emitted render node itself.
+     */
+    AuthoredStopEvent(eventName)
+    {
+        const graph = this.sfx;
+        const roots = graph?.events?.[eventName] ?? [];
+        const pending = roots.map(root => String(root.nodeId));
+        const visited = new Set();
+        const matchIds = new Set();
+
+        while (pending.length)
+        {
+            const id = pending.pop();
+
+            if (visited.has(id))
+            {
+                continue;
+            }
+            visited.add(id);
+            matchIds.add(id);
+
+            const node = graph?.nodes?.[id];
+
+            if (!node)
+            {
+                continue;
+            }
+            for (const matchId of node.matchIds ?? [])
+            {
+                matchIds.add(String(matchId));
+            }
+            for (const child of node.children ?? [])
+            {
+                pending.push(String(child.nodeId));
+            }
+            for (const child of Object.values(node.cases ?? {}))
+            {
+                pending.push(String(child.nodeId));
+            }
+            if (node.default)
+            {
+                pending.push(String(node.default.nodeId));
+            }
+        }
+
+        const lifecycleSuffix = /_(?:activate|deactivate|powerdown|active|begin|blast|start|idle|fire|play|loop|slow|stop|off|end)$/iu;
+        const family = value =>
+        {
+            let result = String(value);
+            let previous;
+
+            do
+            {
+                previous = result;
+                result = result.replace(lifecycleSuffix, "");
+            }
+            while (result !== previous);
+            return result;
+        };
+        const sourceFamily = family(eventName);
+        const suffixes = [ "_off", "_stop", "_deactivate", "_powerdown", "_end", "_slow" ];
+        const rank = name =>
+        {
+            const lower = name.toLowerCase();
+            const index = suffixes.findIndex(suffix => lower.endsWith(suffix));
+
+            return index === -1 ? suffixes.length : index;
+        };
+        const candidates = Object.entries(graph?.programs ?? {})
+            .filter(([ name, program ]) =>
+                name !== eventName
+                && family(name) === sourceFamily
+                && program.some(action =>
+                    action.kind === "stop"
+                    && action.scope === "game-object"
+                    && action.mode === "element"
+                    && matchIds.has(String(action.targetId))))
+            .map(([ name ]) => name)
+            .sort((left, right) =>
+                rank(left) - rank(right) || left.localeCompare(right));
+
+        return candidates[0] ?? null;
     }
 
     /**
@@ -1300,6 +1479,7 @@ class Scene
         {
             const item = this.emitters[i];
             if (item === this.#app.stage.draggingEmitter || now - item.born < 1000) continue;
+            if (item.removing) continue;
             if (item.persistent) continue;
             if (item.sequence && !item.sequenceDone) continue;   // sequence still running
             if (item.isLoop && !item.sequence) continue;         // manual loops persist
@@ -1321,16 +1501,32 @@ class Scene
     {
         const index = this.emitters.indexOf(item);
         if (index === -1) return;
-        this.emitters.splice(index, 1);
+        if (item.removing)
+        {
+            if (fadeMs <= 0) this.#FinalizeRemoval(item);
+            return;
+        }
         if (item === this.#app.stage.draggingEmitter)
         {
             this.#app.stage.draggingEmitter = null;
             this.#app.stage.UpdateTip(null);
         }
-        item.onRemove?.();
         if (fadeMs <= 0)
         {
-            this.#app.audio?.ReleaseEmitter(item.emitter);
+            this.#FinalizeRemoval(item);
+            return;
+        }
+        item.removing = true;
+        const activeEvent = item.currentName ?? item.eventName;
+        const authoredStop = (item.currentIsLoop || item.isLoop)
+            ? this.#app.library.AuthoredStopEvent(activeEvent)
+            : null;
+
+        if (authoredStop)
+        {
+            item.emitter.SendEvent(authoredStop);
+            this.#app.system.manager.UnregisterGameObject(item.emitter.ID);
+            this.#ReleaseWhenFinished(item);
             return;
         }
         for (const playingID of [ ...item.emitter.GetPlayingEvents().keys() ])
@@ -1339,9 +1535,34 @@ class Scene
         }
         this.#app.system.manager.UnregisterGameObject(item.emitter.ID);
         setTimeout(
-            () => this.#app.audio?.ReleaseEmitter(item.emitter),
+            () => this.#FinalizeRemoval(item),
             fadeMs + 300,
         );
+    }
+
+    /** Lets an authored outro finish, with a hard cap for malformed loops. */
+    #ReleaseWhenFinished(item, startedAt = performance.now())
+    {
+        if (!IsEmitterBusy(item.emitter)
+            || performance.now() - startedAt >= 30000)
+        {
+            this.#FinalizeRemoval(item);
+            return;
+        }
+        setTimeout(() => this.#ReleaseWhenFinished(item, startedAt), 250);
+    }
+
+    /** Removes the marker and releases its graph object at one boundary. */
+    #FinalizeRemoval(item)
+    {
+        const index = this.emitters.indexOf(item);
+
+        if (index !== -1)
+        {
+            this.emitters.splice(index, 1);
+        }
+        item.onRemove?.();
+        this.#app.audio?.ReleaseEmitter(item.emitter);
     }
 
     /**
@@ -1354,7 +1575,7 @@ class Scene
         for (const item of [ ...this.emitters ])
         {
             if (staggerMs) setTimeout(() => this.Remove(item, 500 + Math.random() * 2000), Math.random() * staggerMs);
-            else this.Remove(item);
+            else this.Remove(item, 0);
         }
     }
 
@@ -1531,11 +1752,16 @@ class Stage
         const title = item.sequence
             ? `${PrettyName(item.effectStem)}  ▶ ${PrettyName(activeName ?? "…")} (${item.sequenceIndex + 1}/${item.sequence.length})`
             : PrettyName(item.eventName);
-        const flags = [ record.isLoop ? "loop" : "one-shot", record.isVital && "vital", record.is2D && "2D" ].filter(Boolean).join(" · ");
+        const dimensionality = this.#app.library.EventDimensionality(activeName);
+        const flags = [
+            record.isLoop ? "loop" : "one-shot",
+            record.isVital && "vital",
+            dimensionality,
+        ].filter(Boolean).join(" · ");
         const scalingText = item.scaling && Math.abs(item.scaling - 1) > 0.01 ? ` ×${item.scaling.toFixed(1)}` : "";
         this.#tip.textContent = [
             title,
-            `${emitter.IsCulled() ? "culled" : IsEmitterBusy(emitter) ? "active" : "idle"} · playing ${emitter.GetPlayingEvents().size} · level ${level.toFixed(2)}`,
+            `${item.removing ? "ending" : emitter.IsCulled() ? "culled" : IsEmitterBusy(emitter) ? "active" : "idle"} · playing ${emitter.GetPlayingEvents().size} · level ${level.toFixed(2)}`,
             flags,
             `distance ${Math.round(distance)} / hearing ~${Math.round((Math.max(1e-4, item.scaling ?? 1) / AUDIBLE_GAIN_FLOOR) / ACOUSTIC_SCALE)} / cull ${Math.round(item.radius)}${scalingText}`,
             `front ${Array.from(emitter.front, value => Math.abs(value) < 1e-3 ? 0 : value).map(value => value.toFixed(2)).join(", ")}${item.authoredYaw ? ` · authored yaw ${Math.round(item.authoredYaw * 180 / Math.PI)}°` : ""}`,
@@ -3176,6 +3402,8 @@ class SfxUi
         this.#controls.replaceChildren();
         this.#controlValues.clear();
         this.#details = this.#app.library.SfxControls(this.#select.value);
+        const example = this.#examples.find(value =>
+            value.eventName === this.#select.value);
 
         for (const control of this.#details.switches)
         {
@@ -3213,7 +3441,10 @@ class SfxUi
             const input = document.createElement("input");
             const key = `rtpc:${control.scope}:${control.name}`;
             const span = control.max - control.min;
-            const value = control.min;
+            const initial = example?.initialRtpcs?.[
+                `${control.scope}:${control.name}`
+            ] ?? control.defaultValue ?? control.min;
+            const value = Math.min(control.max, Math.max(control.min, initial));
 
             row.className = "sfxControl";
             line.textContent = `${control.scope} RTPC ${control.name}`;
