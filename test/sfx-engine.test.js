@@ -746,6 +746,82 @@ test("Continuous Sequence advances whole child batches with authored Delay", () 
     );
 });
 
+test("parallel Continuous children advance as independent sessions", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { hangar: [ { nodeId: "1" } ] },
+            {
+                "1": {
+                    type: "parallel",
+                    children: [
+                        { nodeId: "10" },
+                        { nodeId: "20" },
+                    ],
+                },
+                "10": {
+                    type: "sequence",
+                    children: [
+                        { nodeId: "11" },
+                        { nodeId: "12" },
+                    ],
+                    continuous: {
+                        loopCount: 0,
+                        transition: "delay",
+                        transitionMs: 100,
+                        resetPlaylistEachPlay: true,
+                    },
+                },
+                "20": {
+                    type: "sequence",
+                    children: [
+                        { nodeId: "21" },
+                        { nodeId: "22" },
+                    ],
+                    continuous: {
+                        loopCount: 0,
+                        transition: "delay",
+                        transitionMs: 200,
+                        resetPlaylistEachPlay: true,
+                    },
+                },
+                "11": { type: "sound", mediaId: "101" },
+                "12": { type: "sound", mediaId: "102" },
+                "21": { type: "sound", mediaId: "201" },
+                "22": { type: "sound", mediaId: "202" },
+            },
+        ),
+    });
+    const first = engine.ResolveProgram(
+        "hangar",
+        { gameObjID: 7 },
+    )[0];
+    const [ firstBranch, secondBranch ] = first.continuations;
+
+    assert.deepEqual(
+        first.selections.map(value => value.mediaID),
+        [ "101", "201" ],
+    );
+    assert.notEqual(
+        firstBranch.programSlotId,
+        secondBranch.programSlotId,
+    );
+    assert.deepEqual(
+        engine.ContinueProgram(
+            firstBranch.token,
+            { gameObjID: 7 },
+        )[0].selections.map(value => value.mediaID),
+        [ "102" ],
+    );
+    assert.deepEqual(
+        engine.ContinueProgram(
+            secondBranch.token,
+            { gameObjID: 7 },
+        )[0].selections.map(value => value.mediaID),
+        [ "202" ],
+    );
+});
+
 test("Continuous Trigger Rate samples only intervals with a next child", () =>
 {
     const samples = [ 0.25, 0.75 ];

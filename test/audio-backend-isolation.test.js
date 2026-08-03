@@ -4461,6 +4461,94 @@ test("selective Stops isolate leaves inside a Continuous parallel batch", async 
   }
 });
 
+test("Layer and structural State Stops terminate parallel Continuous sessions", async () =>
+{
+  for (const targetId of [ "500", "600" ])
+  {
+    let advances = 0;
+    const play = [
+      {
+        kind: "play",
+        actionIndex: 0,
+        selections: [
+          {
+            actionIndex: 0,
+            leafIndex: 0,
+            programSlotId: "0:c0",
+            matchIds: [ "600", "500", "10", "100" ],
+          },
+          {
+            actionIndex: 0,
+            leafIndex: 1,
+            programSlotId: "0:c1",
+            matchIds: [ "600", "500", "20", "200" ],
+          },
+        ],
+        continuations: [
+          {
+            programSlotId: "0:c0",
+            token: {},
+            delayMs: 0,
+          },
+          {
+            programSlotId: "0:c1",
+            token: {},
+            delayMs: 0,
+          },
+        ],
+      },
+    ];
+    const stop = [
+      {
+        kind: "stop",
+        actionIndex: 0,
+        targetId,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+        exceptions: [],
+      },
+    ];
+    const { backend, context, emitter } = Harness({
+      resolveSfxProgram: (_eventID, eventName) =>
+        eventName === "stop_hangar" ? stop : play,
+      continueSfxProgram: () =>
+      {
+        advances++;
+        return play;
+      },
+      loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+        voices: program.flatMap(operation =>
+          (operation.selections ?? []).map(selection => ({
+            buffer: { duration: 1 },
+            programSlotId: selection.programSlotId,
+          }))),
+      }),
+    });
+
+    backend.PostEvent(7, 1, 0, emitter, "hangar");
+    await tick();
+    backend.PostEvent(8, 1, 0, emitter, "stop_hangar");
+    await tick();
+
+    assert.equal(context.sources.length, 2);
+    assert.ok(context.sources.every(source => source.stoppedAt === 0));
+
+    context.sources.forEach(source => source.onended());
+    await tick();
+    await tick();
+
+    assert.equal(
+      advances,
+      0,
+      `Stop target ${targetId} suppresses both Continuous branches`,
+    );
+    assert.equal(context.sources.length, 2);
+  }
+});
+
 test("synchronous custom music completion is deferred past id retention", async () =>
 {
   const musicEngine = {

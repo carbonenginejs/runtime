@@ -1466,7 +1466,12 @@ function LowerSfxGraph({
             }
             else if (source.type === "layer")
             {
-                if (source.continuousValidation)
+                // With no Layer records there is no live controller to
+                // validate. Wwise's observable behavior is then the ordinary
+                // parallel lifetime of the children. Keep authored
+                // RTPC-driven Continuous Layers fail-closed until their child
+                // admission and boundary semantics are implemented.
+                if (source.continuousValidation && source.layers.length)
                 {
                     throw new Error(`continuous layer ${id}`);
                 }

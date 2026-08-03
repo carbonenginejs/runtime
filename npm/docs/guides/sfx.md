@@ -762,7 +762,13 @@ in decibels, Pitch becomes a Web Audio playback-rate ratio, and InitialDelay is
 added to the Play action delay.
 Hierarchy-only Actor-Mixer values are folded into the nearest playable node
 without turning the mixer into a playable container.
-Trackless, non-continuous Layer/Blend containers lower to parallel playback.
+Layer/Blend containers with no Layer records lower to parallel
+playback, including Continuous Layers whose validation flag has no controller
+to evaluate. This is exact for the five such records in EVE build 3453885:
+each owns parallel child lifetimes while its children retain their independent
+Continuous Random/Delay schedulers. The affected Jita, Caldari, and Minmatar
+Hangar Play branches target those layers directly; their structural State
+ancestors remain available as Stop-match identities.
 Non-continuous Layer crossfade tracks lower to live normalized-gain curves
 when their controller is a named Game Parameter. Supported Layer property
 RTPCs lower to live Volume, Pitch, low-pass, and high-pass curves on each
@@ -800,9 +806,10 @@ session through authored silence, natural completion, or temporarily missing
 media so a later value can resume it. Nested Continuous Switch/State
 containers are supported, including values that select the same final child;
 the complete decision path determines whether playback restarts. Routes that
-reach a non-switch Continuous container or a Continuous Layer are rejected.
-The two known cached Hangar switch roots that reach Continuous Layers therefore
-remain outside this supported subset.
+reach a non-switch Continuous container are rejected. This gate still applies
+to a live Switch/State root whose branch reaches a zero-record
+Continuous Layer containing Continuous Random/Sequence children; EVE's Hangar
+Play actions target the qualifying branch nodes directly instead.
 
 Continuous playback is object-scoped. Finite pass counts complete after every
 overlapping tail ends, without waiting through a nonexistent final interval.
@@ -820,7 +827,7 @@ unsupported actions or reaches an unsupported playable node; the optional
 diagnostics callback explains each omission. Sample Accurate Continuous
 transitions, `1st only`, `Continue to play`, Play-to-End switch changes,
 Play-and-Continue, playable Actor-Mixer approximation, authored Continuous
-Layers, Layer
+Layers with child-association records, Layer
 property RTPC semantics outside the supported Volume, Pitch, low-pass, and
 high-pass set, and other unqualified HIRC semantics are never silently
 approximated.

@@ -172,6 +172,16 @@ rather than a sample-exact Wwise envelope. Cone attenuation, distance-driven
 LPF/HPF and spread/focus curves, obstruction, occlusion, diffraction, and
 transmission remain unsupported.
 
+A Wwise Continuous Layer with no Layer records is represented by the portable
+parallel node because it has no live Layer controller or child-admission curve
+to evaluate. Its children retain independent lifetime and Continuous
+Random/Sequence scheduling, and ancestor Layer/State identities remain in
+leaf matching so authored Stops terminate the complete group. This exact
+bounded form covers the five Continuous Layers in EVE build 3453885. A
+Continuous Layer with any authored child association remains fail-closed:
+Web Audio gain automation alone cannot reproduce Wwise's RTPC-driven child
+start/stop boundaries, dormant sessions, and stale-load cancellation.
+
 ## Unsupported native behavior
 
 The package does not emulate:

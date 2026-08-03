@@ -2118,6 +2118,159 @@ test("trackless non-continuous Layer containers lower to parallel playback", () 
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("zero-record Continuous Layers lower to parallel playback", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "hangar.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 2,
+                        id: 202,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9002,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 9,
+                        id: 201,
+                        payload: layerPayload([ 200, 202 ], true),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                hangar_play: { eventID: 100 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+            "9002": { resPath: "res:/audio/9002.wem" },
+        },
+    });
+
+    assert.deepEqual(result.nodes["201"], {
+        type: "parallel",
+        children: [
+            { nodeId: "200" },
+            { nodeId: "202" },
+        ],
+    });
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("associated Continuous Layers remain fail-closed", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "hangar.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 9,
+                        id: 201,
+                        payload: trackedLayerPayload({
+                            children: [ 200 ],
+                            controlId: 800,
+                            continuousValidation: true,
+                            associations: [
+                                {
+                                    childId: 200,
+                                    points: [
+                                        [ 0, 0, 4 ],
+                                        [ 1, 1, 4 ],
+                                    ],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                hangar_play: { eventID: 100 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "1",
+                        ShortName: "hangar",
+                        GameParameters: [
+                            { Id: "800", Name: "hangar_intensity" },
+                        ],
+                    },
+                ],
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.equal(result.events.hangar_play, undefined);
+    assert.equal(result.programs.hangar_play, undefined);
+    assert.match(
+        result.diagnostics.omittedEvents[0].reason,
+        /continuous layer 201/u,
+    );
+});
+
 test("Continuous Crossfade fails closed when a child reaches a Layer", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -6617,7 +6770,7 @@ function switchPayload({
     return writer.bytes();
 }
 
-function layerPayload(children)
+function layerPayload(children, continuousValidation = false)
 {
     const bytes = new Uint8Array(9 + children.length * 4);
     const view = new DataView(bytes.buffer);
@@ -6628,7 +6781,10 @@ function layerPayload(children)
         view.setUint32(4 + index * 4, children[index], true);
     }
     view.setUint32(4 + children.length * 4, 0, true);
-    view.setUint8(8 + children.length * 4, 0);
+    view.setUint8(
+        8 + children.length * 4,
+        continuousValidation ? 1 : 0,
+    );
     return bytes;
 }
 
@@ -6637,6 +6793,7 @@ function trackedLayerPayload({
     controlId,
     associations,
     rtpcs = [],
+    continuousValidation = false,
 })
 {
     const writer = new TestWriter()
@@ -6694,7 +6851,7 @@ function trackedLayerPayload({
         }
     }
 
-    return writer.u8(0).bytes();
+    return writer.u8(continuousValidation ? 1 : 0).bytes();
 }
 
 function setterPayload(groupID, valueID)
