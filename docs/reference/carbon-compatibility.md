@@ -34,7 +34,7 @@ bus processing omitted.
 | Proven-silent Aux return | Proven omission | A complete return at or below `-96 dB` is omitted; a narrowly qualified static SFX Aux shape is exact topology, and other wet paths remain barriers. |
 | Rejected shared route | Fallback | SFX remains on its existing emitter/SFX destination and music remains on its legacy segment/instance/output path; authored blocked bus stages are omitted. |
 | Master safety compressor | Browser workaround | A separate fixed Web Audio compressor (`-6 dB`, knee `6 dB`, `12:1`, `3 ms`, `250 ms`) limits all output when supported. It is not an authored Wwise effect; without the node capability output connects directly. |
-| Spatial playback | Browser adaptation | `PannerNode` uses HRTF and inverse distance. `distanceScale` converts application world units and emitter attenuation scaling supplies `refDistance`. The first pose is immediate; later emitter/listener poses use Web Audio target automation with a 5 ms time constant when available (about 95% settled in 15 ms), preventing zipper noise without repeatedly cancelling ramps during interactive movement. Legacy spatial setters and older AudioParam fallbacks remain immediate or use a short linear ramp. |
+| Spatial playback | Browser adaptation | `PannerNode` supplies HRTF direction with its native distance rolloff disabled. A retained Wwise dry-volume curve supplies each Sound leaf's distance gain in authored world units; emitter attenuation scaling evaluates that curve at `worldDistance / scalingFactor`. Old/custom graphs without a retained curve use the previous `distanceScale` inverse-gain fallback. The first pose is immediate; later pose and distance-gain changes use Web Audio target automation with a 5 ms time constant when available (about 95% settled in 15 ms). Legacy spatial setters and older AudioParam fallbacks remain immediate or use a short linear ramp. |
 | Emitter level reporting | UI/debug approximation | `GetGameObjLevel()` samples 256-bin main-thread analyser frames and returns zero when analyser support is unavailable. It is not Wwise Meter telemetry. |
 | Legacy library controls | Compatibility fallback | Older documents may use master/music RTPC gain fallbacks; current typed bus catalogs take precedence. |
 | Missing optional Web Audio primitives | Capability fallback | Legacy LPF/HPF may be omitted without biquad support, level reporting becomes zero without an analyser, and the master safety compressor is absent without dynamics support. Shared graph qualification remains atomic. |
@@ -140,11 +140,35 @@ The principal example is emitter position and authored rotation.
 Browser callbacks run on the JavaScript event loop. UI completion callbacks are
 tracked per playing ID so overlapping events complete independently.
 
-Carbon receives complete authored attenuation data. A portable schema-v2
-library may omit the optional per-event culling enrichment; in that case a
-nonpositive attenuation radius is treated as unknown/unbounded so the event
-remains playable. Positive authored radii retain Carbon's squared-distance
-culling behavior.
+The v150 builder retains each resolved Sound leaf's Wwise dry-volume distance
+curve and also projects its last distance into the event-wide culling radius.
+The browser evaluates Wwise interpolation in raw curve space, converts Wwise
+scaling type 2 to decibels, clamps at the curve endpoints, and then converts to
+linear gain. This lets parallel leaves on one emitter retain different curves.
+`SetAttenuationScalingFactor()` follows the Wwise/Carbon range convention:
+`0.5` halves the playback curve range and `2` doubles it.
+
+A portable schema-v2 library may omit the optional per-event culling
+enrichment; in that case a nonpositive attenuation radius is treated as
+unknown/unbounded so the event remains playable. Positive authored radii
+retain Carbon's squared-distance culling behavior. Carbon multiplies its
+squared radius by the emitter factor, so the effective culling radius is
+`authoredRadius * sqrt(scalingFactor)`, even though Wwise playback range scales
+linearly. This preserved Carbon quirk can cull a scaled voice before its Wwise
+curve reaches the endpoint when the factor is greater than `1`. A missing
+dry-volume curve, including an unresolved Wwise `Use Project` assignment,
+remains audible via the historical Web Audio inverse-gain fallback because the
+portable document does not contain the project default. That fallback is not
+Wwise-equivalent.
+
+Distance gain shares the voice gain `AudioParam` with authored Voice Volume,
+State, and RTPC automation to preserve the established browser graph topology.
+Moving a source while one of those gain transitions is active reschedules the
+remaining transition with the new distance multiplier. The result is smooth
+and close, but the continuously varying product is a browser approximation
+rather than a sample-exact Wwise envelope. Cone attenuation, distance-driven
+LPF/HPF and spread/focus curves, obstruction, occlusion, diffraction, and
+transmission remain unsupported.
 
 ## Unsupported native behavior
 

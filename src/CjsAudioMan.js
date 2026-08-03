@@ -1357,6 +1357,12 @@ export class CjsAudioMan
                                     at,
                                 ),
                             spatial: selection.spatial ?? eventSpatial,
+                            ...(selection.dryVolumeCurve === undefined
+                                ? {}
+                                : {
+                                    dryVolumeCurve:
+                                        selection.dryVolumeCurve,
+                                }),
                             ...(selection.delayMs === undefined
                                 ? {}
                                 : { delayMs: selection.delayMs }),

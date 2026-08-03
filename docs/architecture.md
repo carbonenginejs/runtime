@@ -41,8 +41,8 @@ construction code is absent from ordinary runtime bundles. Playback keeps its
 WEM format import lazy until original WEM bytes actually need preparation.
 When asked to construct authored SFX from banks, the builder resolves raw
 version-150 NodeBase and Actor-Mixer inheritance supplied by
-`runtime-resource` and projects only qualified spatial metadata into the final
-document.
+`runtime-resource` and projects qualified per-leaf positioning, dry-volume
+distance curves, and event culling metadata into the final document.
 
 ## Owned responsibilities
 
@@ -62,7 +62,8 @@ The package owns:
 - WEM preparation, browser decoding, pending-work deduplication, and explicit
   decoded/source-byte cache release;
 - graph adoption and release through the composed `CjsAudioSystem`; and
-- Web Audio playback, positioning, gain, seek, fades, and completion.
+- Web Audio playback, HRTF positioning, authored dry-volume distance curves,
+  gain, seek, fades, and completion.
 
 `CjsAudioMan` is the public composition root. It receives one complete
 document and one structural media provider. `CjsAudioSystem` remains available

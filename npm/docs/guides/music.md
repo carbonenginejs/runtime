@@ -132,6 +132,24 @@ The source graph may preserve data that the current scheduler does not play.
 Stingers, Musical Instrument Digital Interface (MIDI) tracks, Synth One
 tracks, and RTPC volume curves remain unsupported.
 
+## Demo examples
+
+After starting the package demo and enabling Audio, use **Authored music >
+Example** to play one verified EVE event for each browser-playable behavior:
+
+- a direct Music Segment;
+- Sequence Continuous, Sequence Step, Random Continuous, and Random Step
+  playlists;
+- Random and Sequence Music Tracks;
+- the nested dynamic switch/state graph; and
+- a transition-segment bridge.
+
+Choose an example and press **play example**. The Dynamic switch graph also
+enables the **Dynamic mood** selector, which posts EVE's authored setter events
+while the graph is running. The demo deliberately omits MIDI, Synth One,
+stingers, and destinations without WEM media records because the built-in
+browser scheduler cannot currently render them.
+
 ## Custom engine
 
 For streaming, arbitrary user music, or another playback model, provide a

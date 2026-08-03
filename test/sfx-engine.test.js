@@ -1426,6 +1426,34 @@ test("SFX selections preserve authored and metadata infinite-loop fallbacks", ()
     assert.equal(Object.hasOwn(metadata, "playCount"), false);
 });
 
+test("SFX selections retain each Sound leaf's independent distance curve", () =>
+{
+    const curve = {
+        scaling: 2,
+        points: [
+            { x: 0, value: 0, interpolation: 4 },
+            { x: 20000, value: -1, interpolation: 8 },
+        ],
+    };
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { spatial_event: [ { nodeId: "1" } ] },
+            {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    spatial: true,
+                    dryVolumeCurve: curve,
+                },
+            },
+        ),
+    });
+    const selection = engine.ResolveEvent("spatial_event")[0];
+
+    assert.equal(selection.spatial, true);
+    assert.deepEqual(selection.dryVolumeCurve, curve);
+});
+
 test("switch/state selection and parallel RTPC gains resolve without acquisition", () =>
 {
     let speed = 50;

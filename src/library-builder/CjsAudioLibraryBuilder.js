@@ -4599,8 +4599,8 @@ function CreateSfxSpatialProjection(parsed, leavesByEvent, nodes)
                 const attenuationId = Number(
                     nodeBase.attenuationId,
                 ) >>> 0;
-                const maxRadiusAttenuation = attenuationId
-                    ? GetSfxAttenuationMaxRadius(parsed, attenuationId)
+                const attenuationProjection = attenuationId
+                    ? GetSfxAttenuationProjection(parsed, attenuationId)
                     : null;
 
                 result = {
@@ -4611,9 +4611,9 @@ function CreateSfxSpatialProjection(parsed, leavesByEvent, nodes)
                     // Common+Effects+Modules corpus comparison matched the
                     // source audio metadata for every fully lowered event.
                     is2D: attenuationId === 0,
-                    ...(maxRadiusAttenuation === null
+                    ...(attenuationProjection === null
                         ? {}
-                        : { maxRadiusAttenuation }),
+                        : attenuationProjection),
                 };
             }
             else
@@ -4653,6 +4653,10 @@ function CreateSfxSpatialProjection(parsed, leavesByEvent, nodes)
             if (result.known && node?.type === "sound")
             {
                 node.spatial = !result.is2D;
+                if (result.dryVolumeCurve)
+                {
+                    node.dryVolumeCurve = result.dryVolumeCurve;
+                }
             }
         }
 
@@ -4703,8 +4707,8 @@ function CreateSfxSpatialProjection(parsed, leavesByEvent, nodes)
     };
 }
 
-/** Returns the authored dry-volume curve's maximum distance when complete. */
-function GetSfxAttenuationMaxRadius(parsed, attenuationId)
+/** Returns one complete authored dry-volume distance curve and its radius. */
+function GetSfxAttenuationProjection(parsed, attenuationId)
 {
     const attenuation = parsed.attenuations?.get(attenuationId);
     const curveIndex = Number(attenuation?.curveToUse?.[0]);
@@ -4714,27 +4718,54 @@ function GetSfxAttenuationMaxRadius(parsed, attenuationId)
         return null;
     }
 
-    const points = attenuation.curves?.[curveIndex]?.points;
+    const curve = attenuation.curves?.[curveIndex];
+    const points = curve?.points;
 
-    if (!Array.isArray(points) || !points.length)
+    if (Number(curve?.scaling) !== 2
+        || !Array.isArray(points)
+        || !points.length)
     {
         return null;
     }
 
     let maximum = -Infinity;
+    let previous = -Infinity;
+    const projectedPoints = [];
 
     for (const point of points)
     {
         const distance = Number(point.from);
+        const value = Number(point.to);
+        const interpolation = Number(point.interpolation ?? 4);
 
-        if (!Number.isFinite(distance) || distance < 0)
+        if (!Number.isFinite(distance)
+            || distance < 0
+            || distance < previous
+            || !Number.isFinite(value)
+            || !Number.isSafeInteger(interpolation)
+            || interpolation < 0
+            || interpolation > 9)
         {
             return null;
         }
+        previous = distance;
         maximum = Math.max(maximum, distance);
+        projectedPoints.push({
+            x: distance,
+            value,
+            interpolation,
+        });
     }
 
-    return Number.isFinite(maximum) ? maximum : null;
+    return Number.isFinite(maximum)
+        ? {
+            maxRadiusAttenuation: maximum,
+            dryVolumeCurve: {
+                scaling: 2,
+                points: projectedPoints,
+            },
+        }
+        : null;
 }
 
 function AddSet(target, source)

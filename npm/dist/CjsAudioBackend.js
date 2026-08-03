@@ -1,4 +1,5 @@
 import { evaluateWwiseInterpolation } from './internal/wwiseCurve.js';
+import { evaluateWwiseRtpcCurve, wwiseDbRtpcValueToDb } from './internal/wwiseRtpc.js';
 import { indexBusRtpcCatalog, busRtpcCatalogUsesControl, busRtpcPathUses, evaluateBusRtpcGainDb, evaluateBusVoiceRtpcGainDb } from './internal/busRtpc.js';
 import { indexBusStateCatalog, busStatePathUses, evaluateBusStateProperties, evaluateBusStateGainDb } from './internal/busState.js';
 import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
@@ -6,8 +7,8 @@ import { indexBusEffectCatalog, createBusEffectChain } from './internal/busEffec
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
-// source -> authored voice/bus filters -> source/Bus-Voice/Bus gains -> emitter gain
-// -> PannerNode(HRTF, inverse distance) -> qualified shared Bus effects
+// source -> authored voice/bus filters -> combined source/distance and Bus gains
+// -> emitter gain -> PannerNode(HRTF direction only) -> qualified shared Bus effects
 // -> master gain -> destination. Blocked/graphless routes retain their legacy
 // distributed Bus-effect chain before the emitter. Each playing source owns
 // the source gain so
@@ -65,11 +66,12 @@ class CjsAudioBackend {
   #unsubscribeBusDucking = null;
   #nextPlayingID = 1;
 
-  // Wwise-scale world units -> WebAudio panner units. EVE positions run to
-  // thousands of meters; the inverse distance model with refDistance 1 makes
-  // that inaudible. Scale is the app's acoustic choice.
+  // Application world units -> WebAudio HRTF position units. Authored Wwise
+  // curves remain in unscaled world units; this scale is used only by the
+  // compatibility inverse fallback when a graph has no retained curve.
   #distanceScale = 1;
   #listenerPoseInitialized = false;
+  #listenerPosition = null;
 
   // Optional interactive-music engine (CjsMusicEngine); owns events found
   // in its graph and plays through its own gain into the master gain.
@@ -205,6 +207,7 @@ class CjsAudioBackend {
     const panner = this.#context.createPanner();
     panner.panningModel = "HRTF";
     panner.distanceModel = "inverse";
+    panner.rolloffFactor = 0;
     const gain = this.#context.createGain();
     gain.connect(panner);
     // Optional per-emitter level tap (post-panner, so it reflects what is
@@ -661,6 +664,7 @@ class CjsAudioBackend {
           SetPannerPose(branch.panner, nodes.front, nodes.position, this.#distanceScale, this.#context, smooth);
         }
       }
+      this.#RefreshDistanceGains(nodes, smooth);
     }
   }
 
@@ -719,6 +723,7 @@ class CjsAudioBackend {
     const listener = this.#context?.listener;
     if (listener) {
       const smooth = this.#listenerPoseInitialized;
+      this.#listenerPosition = [...position];
       const set = (param, value) => SetSpatialAudioParam(param, value, this.#context, smooth);
       set(listener.positionX, position[0] * this.#distanceScale);
       set(listener.positionY, position[1] * this.#distanceScale);
@@ -730,6 +735,7 @@ class CjsAudioBackend {
       set(listener.upY, top[1]);
       set(listener.upZ, top[2]);
       this.#listenerPoseInitialized = true;
+      this.#RefreshDistanceGains(null, smooth);
     }
   }
 
@@ -748,6 +754,7 @@ class CjsAudioBackend {
     for (const modes of nodes.routeBranches.values()) {
       SetPannerScalingFactor(modes.get(true)?.panner, numeric);
     }
+    this.#RefreshDistanceGains(nodes, true);
     return true;
   }
 
@@ -2400,6 +2407,7 @@ class CjsAudioBackend {
       const panner = this.#context.createPanner();
       panner.panningModel = "HRTF";
       panner.distanceModel = "inverse";
+      panner.rolloffFactor = 0;
       SetPannerScalingFactor(panner, emitterNodes.scalingFactor);
       if (emitterNodes.front && emitterNodes.position) {
         SetPannerPose(panner, emitterNodes.front, emitterNodes.position, this.#distanceScale, this.#context);
@@ -2560,6 +2568,8 @@ class CjsAudioBackend {
       getPlaybackRate: descriptor.getPlaybackRate,
       getPlaybackRateAtVoicePitchCents: descriptor.getPlaybackRateAtVoicePitchCents,
       spatial: descriptor.spatial,
+      dryVolumeCurve: descriptor.dryVolumeCurve,
+      distanceGainValue: 1,
       getGain: descriptor.getGain,
       getGainAtVoiceVolumeDb: descriptor.getGainAtVoiceVolumeDb,
       voiceVolumeStates: emitterNodes.voiceVolumes,
@@ -2634,7 +2644,7 @@ class CjsAudioBackend {
       duckActivity: null,
       offsetSeconds: 0
     };
-    this.#ApplyVoiceGain(voice);
+    this.#ApplyVoiceDistanceGain(voice, emitterNodes);
     this.#ApplyVoiceBusRtpcGain(voice);
     this.#ApplyVoiceBusGain(voice);
     this.#ApplyVoiceFilters(voice);
@@ -3428,10 +3438,10 @@ class CjsAudioBackend {
   }
 
   /** Applies one voice descriptor's current safe linear gain. */
-  #ApplyVoiceGain(voice) {
+  #ApplyVoiceGain(voice, smoothDistance = false) {
     const param = voice.gain?.gain;
     if (typeof voice.getGainAtVoiceVolumeDb === "function" && voice.voiceVolumeStates instanceof Map) {
-      ScheduleVoiceVolumeGain(param, voice, this.#context);
+      ScheduleVoiceVolumeGain(param, voice, this.#context, smoothDistance);
       return;
     }
     let value = 1;
@@ -3441,8 +3451,42 @@ class CjsAudioBackend {
       value = 1;
     }
     const gain = Number(value);
-    const target = Number.isFinite(gain) ? Math.max(0, gain) : 1;
-    SetAudioParam(param, target, this.#context);
+    const authored = Number.isFinite(gain) ? Math.max(0, gain) : 1;
+    const target = authored * (Number.isFinite(voice.distanceGainValue) ? Math.max(0, voice.distanceGainValue) : 1);
+    if (smoothDistance) {
+      SetSpatialAudioParam(param, target, this.#context, true);
+    } else {
+      SetAudioParam(param, target, this.#context);
+    }
+  }
+
+  /** Re-evaluates per-voice distance gains after listener/emitter changes. */
+  #RefreshDistanceGains(emitterNodes = null, smooth = true) {
+    for (const record of this.#playing.values()) {
+      if (!record.sfx || emitterNodes !== null && record.emitterNodes !== emitterNodes) {
+        continue;
+      }
+      for (const voice of record.voices ?? []) {
+        if (!voice.ended) {
+          this.#ApplyVoiceDistanceGain(voice, record.emitterNodes, smooth);
+        }
+      }
+    }
+  }
+
+  /** Applies one spatial voice's authored or compatibility distance gain. */
+  #ApplyVoiceDistanceGain(voice, emitterNodes, smooth = false) {
+    if (!voice.spatial) {
+      return;
+    }
+    voice.distanceGainValue = EvaluateSfxDistanceGain({
+      curve: voice.dryVolumeCurve,
+      emitterPosition: emitterNodes?.position,
+      listenerPosition: this.#listenerPosition,
+      scalingFactor: emitterNodes?.scalingFactor,
+      distanceScale: this.#distanceScale
+    });
+    this.#ApplyVoiceGain(voice, smooth);
   }
 
   /** Applies the current authored Wwise bus contribution to one voice. */
@@ -3752,6 +3796,38 @@ function SetPannerScalingFactor(panner, value) {
   if (panner && panner.refDistance !== undefined) {
     panner.refDistance = value;
   }
+}
+
+/**
+ * Resolves Wwise distance attenuation in authored world units. Older/custom
+ * graphs without a retained curve preserve the prior Web Audio inverse model.
+ */
+function EvaluateSfxDistanceGain({
+  curve,
+  emitterPosition,
+  listenerPosition,
+  scalingFactor,
+  distanceScale
+}) {
+  if (!Array.isArray(emitterPosition) || !Array.isArray(listenerPosition)) {
+    return 1;
+  }
+  const distance = Math.hypot(Number(emitterPosition[0]) - Number(listenerPosition[0]), Number(emitterPosition[1]) - Number(listenerPosition[1]), Number(emitterPosition[2]) - Number(listenerPosition[2]));
+  if (!Number.isFinite(distance)) {
+    return 1;
+  }
+  const scale = Number(scalingFactor);
+  const factor = Number.isFinite(scale) && scale > 0 ? scale : 1;
+  if (curve?.scaling === 2 && Array.isArray(curve.points) && curve.points.length) {
+    // Wwise playback scales the authored range linearly. Carbon's separate
+    // culling path intentionally remains its shipped radius² * factor
+    // calculation, whose effective radius is radius * sqrt(factor).
+    const raw = evaluateWwiseRtpcCurve(curve.points, distance / factor);
+    const gainDb = wwiseDbRtpcValueToDb(raw);
+    return 10 ** (gainDb / 20);
+  }
+  const acousticDistance = distance * Math.abs(Number(distanceScale) || 1);
+  return acousticDistance <= factor ? 1 : factor / acousticDistance;
 }
 function SetAudioParam(param, value, context) {
   if (param && typeof param === "object" && "value" in param) {
@@ -4240,6 +4316,7 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
     const fadeInMs = Number(value.fadeInMs ?? 0);
     const switchFadeInMs = Number(value.switchFadeInMs ?? 0);
     const fadeCurve = Number(value.fadeCurve ?? LINEAR_FADE_CURVE);
+    const dryVolumeCurve = NormalizeVoiceDryVolumeCurve(value.dryVolumeCurve, index);
     if (!Number.isSafeInteger(playCount) || playCount <= 0) {
       throw new TypeError(`Audio voice ${index} playCount must be a positive integer`);
     }
@@ -4311,6 +4388,9 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
       playCount,
       playbackRate,
       spatial: value.spatial === undefined ? true : Boolean(value.spatial),
+      ...(dryVolumeCurve === undefined ? {} : {
+        dryVolumeCurve
+      }),
       delayMs,
       fadeInMs,
       switchFadeInMs,
@@ -4344,6 +4424,33 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
       getLowPass: typeof value.getLowPass === "function" ? value.getLowPass : value.lowPass === undefined ? null : () => constantLowPass,
       getHighPass: typeof value.getHighPass === "function" ? value.getHighPass : value.highPass === undefined ? null : () => constantHighPass
     };
+  });
+}
+function NormalizeVoiceDryVolumeCurve(value, index) {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!value || Number(value.scaling) !== 2 || !Array.isArray(value.points) || !value.points.length) {
+    throw new TypeError(`Audio voice ${index} dryVolumeCurve must be a non-empty Wwise scaling-2 curve`);
+  }
+  let previous = -Infinity;
+  const points = value.points.map((point, pointIndex) => {
+    const x = Number(point?.x);
+    const curveValue = Number(point?.value);
+    const interpolation = Number(point?.interpolation ?? 4);
+    if (!Number.isFinite(x) || x < 0 || x < previous || !Number.isFinite(curveValue) || !Number.isSafeInteger(interpolation) || interpolation < 0 || interpolation > 9) {
+      throw new TypeError(`Audio voice ${index} dryVolumeCurve point ${pointIndex} is invalid`);
+    }
+    previous = x;
+    return Object.freeze({
+      x,
+      value: curveValue,
+      interpolation
+    });
+  });
+  return Object.freeze({
+    scaling: 2,
+    points: Object.freeze(points)
   });
 }
 function ApplyVoiceVolumeAction(states, targetId, action) {
@@ -4448,7 +4555,7 @@ function VoiceTargetTransitionBoundaries(states, matchIds, from) {
   }
   return FutureAutomationBoundaries(boundaries, from);
 }
-function ScheduleVoiceVolumeGain(param, voice, context) {
+function ScheduleVoiceVolumeGain(param, voice, context, smoothDistance = false) {
   if (!param) {
     return;
   }
@@ -4471,9 +4578,20 @@ function ScheduleVoiceVolumeGain(param, voice, context) {
       value = 1;
     }
     const gain = Number(value);
-    return Number.isFinite(gain) ? Math.max(0, gain) : 1;
+    const authored = Number.isFinite(gain) ? Math.max(0, gain) : 1;
+    const distance = Number(voice.distanceGainValue);
+    return authored * (Number.isFinite(distance) ? Math.max(0, distance) : 1);
   };
   const startValue = evaluate(now);
+  if (smoothDistance && !boundaries.length) {
+    if (typeof param.cancelAndHoldAtTime === "function") {
+      param.cancelAndHoldAtTime(now);
+    } else {
+      param.cancelScheduledValues?.(now);
+    }
+    SetSpatialAudioParam(param, startValue, context, true);
+    return;
+  }
   if (typeof param.cancelAndHoldAtTime === "function") {
     param.cancelAndHoldAtTime(now);
   } else {

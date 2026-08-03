@@ -615,6 +615,9 @@ class CjsSfxEngine {
         ...(node.spatial === undefined ? {} : {
           spatial: node.spatial
         }),
+        ...(node.dryVolumeCurve === undefined ? {} : {
+          dryVolumeCurve: node.dryVolumeCurve
+        }),
         gainDb: terms.gainDb,
         gainCurves: Object.freeze([...terms.gainCurves]),
         ...(rtpcCurves.length ? {

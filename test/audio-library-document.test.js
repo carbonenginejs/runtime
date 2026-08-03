@@ -1298,6 +1298,13 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
                 mediaId: "777",
                 loop: true,
                 spatial: false,
+                dryVolumeCurve: {
+                    scaling: 2,
+                    points: [
+                        { x: 0, value: 0, interpolation: 4 },
+                        { x: 100, value: -1, interpolation: 8 },
+                    ],
+                },
                 rtpcCurves: [
                     {
                         rtpc: "speed",
@@ -1315,6 +1322,10 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     };
 
     assert.equal(validateAudioLibraryDocument(valid), true);
+    assert.deepEqual(
+        installAudioLibraryDocument(valid).sfx.nodes["2"].dryVolumeCurve,
+        valid.sfx.nodes["2"].dryVolumeCurve,
+    );
 
     const legacySfx = structuredClone(valid);
 
@@ -1400,6 +1411,30 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     assert.throws(
         () => validateAudioLibraryDocument(invalidSpatial),
         /spatial must be boolean/u,
+    );
+
+    const invalidDistanceScaling = structuredClone(valid);
+
+    invalidDistanceScaling.sfx.nodes["2"].dryVolumeCurve.scaling = 0;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidDistanceScaling),
+        /dryVolumeCurve scaling must be 2/u,
+    );
+
+    const invalidDistanceOrder = structuredClone(valid);
+
+    invalidDistanceOrder.sfx.nodes["2"].dryVolumeCurve.points.reverse();
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidDistanceOrder),
+        /dryVolumeCurve points must have non-decreasing x/u,
+    );
+
+    const invalidDistance = structuredClone(valid);
+
+    invalidDistance.sfx.nodes["2"].dryVolumeCurve.points[0].x = -1;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidDistance),
+        /dryVolumeCurve point 0 x must be non-negative/u,
     );
 
     const finiteRepeat = structuredClone(valid);

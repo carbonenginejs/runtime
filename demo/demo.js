@@ -2013,13 +2013,63 @@ class Stage
 
 
 /**
- * Dynamic music: an enabled checkbox, a mood dropdown steering the real EVE
- * switch container, and the one-line status hud. Dropdown entries are
- * deduplicated per DESTINATION so every offered mood is guaranteed to
- * change the music.
+ * Authored music: an enabled checkbox and mood dropdown steering the real EVE
+ * dynamic switch container, plus verified EVE examples for each supported
+ * graph/track family. Dropdown entries are deduplicated per DESTINATION so
+ * every offered mood is guaranteed to change the dynamic music.
  */
 class MusicUi
 {
+
+    /** Real EVE events selected to exercise distinct supported music behavior. */
+    static examples = [
+        {
+            label: "Dynamic switch graph",
+            detail: "nested switch/state routing, playlists, transitions, and sequence tracks",
+            eventName: "music_eve_dynamic_play",
+            dynamic: true,
+        },
+        {
+            label: "Direct segment",
+            detail: "one authored Music Segment with its cue timeline",
+            eventName: "music_ambient001_play",
+        },
+        {
+            label: "Sequence playlist - continuous",
+            detail: "plays every child in authored order",
+            eventName: "dungeon_music_cap_day_pirate_combat_r1",
+        },
+        {
+            label: "Sequence playlist - step",
+            detail: "advances one authored child per playlist iteration",
+            eventName: "zarzakh_swells_3_test",
+        },
+        {
+            label: "Random playlist - continuous",
+            detail: "weighted random traversal across the complete group",
+            eventName: "music_eve_classic_play",
+        },
+        {
+            label: "Random playlist - step",
+            detail: "one weighted choice per authored playlist iteration",
+            eventName: "dungeon_music_default_combat",
+        },
+        {
+            label: "Random music track",
+            detail: "a track selects one of its authored subtracks",
+            eventName: "music_havoc_insurgency_combat_play",
+        },
+        {
+            label: "Sequence music track",
+            detail: "a track advances through its authored subtracks",
+            eventName: "npe_music_scene04_02_02_00_orbit",
+        },
+        {
+            label: "Transition-segment bridge",
+            detail: "authored bridge segment, cue boundary, fades, and offsets",
+            eventName: "music_abyssal_deadspace_play",
+        },
+    ];
 
     /** Label of the mood currently steering the music */
     currentMood = "default";
@@ -2035,7 +2085,13 @@ class MusicUi
 
     #hudElement = null;
     #dynamicRoot = null;
+    #activeRoots = [];
+    #activeExample = null;
     #select = null;
+
+    #exampleSelect = null;
+
+    #exampleDetail = null;
 
     #retryButton = null;
 
@@ -2061,6 +2117,24 @@ class MusicUi
         this.#select = document.getElementById("moods");
         this.#retryButton = document.getElementById("musicRetry");
         this.#dynamicRoot = musicGraph.eventTargets["music_eve_dynamic_play"]?.[0];
+        this.#exampleSelect = document.getElementById("musicExamples");
+        this.#exampleDetail = document.getElementById("musicExampleDetail");
+        for (const example of MusicUi.examples)
+        {
+            const roots = musicGraph.eventTargets[example.eventName] ?? [];
+            if (!roots.some(root => this.#app.library.MusicTargetHasPlayableMedia(root)))
+            {
+                continue;
+            }
+            const option = document.createElement("option");
+            option.value = example.eventName;
+            option.textContent = example.label;
+            this.#exampleSelect.appendChild(option);
+        }
+        this.#exampleSelect.onchange = () => this.#RefreshExampleDetail();
+        document.getElementById("musicExamplePlay").onclick = () => this.PlaySelectedExample();
+        document.getElementById("musicExampleStop").onclick = () => this.StopAll();
+        this.#RefreshExampleDetail();
         this.#moodEvents = Object.keys(musicGraph.switchSetters).filter(n => n.startsWith("music_switch_")).sort();
         this.#select.onchange = () => this.#SteerTo(this.#select.value);
         this.#retryButton.onclick = () => this.#Retry();
@@ -2083,6 +2157,7 @@ class MusicUi
             toggle.checked = false;
             return;
         }
+        this.#SetActiveExample(MusicUi.examples[0]);
         this.#app.jukeboxUi.Stop();
         const engine = this.#app.audio.musicEngine;
         // Seed the standalone demo with an essential-media branch so its first
@@ -2112,6 +2187,42 @@ class MusicUi
         if (target !== null && !this.moodLabelByTarget.has(target)) this.moodLabelByTarget.set(target, "default");
         this.musicPlayer.SendEvent("music_eve_dynamic_play");
         this.RefreshMoodAvailability();
+    }
+
+    /** Plays the selected real-EVE example through Carbon's music emitter. */
+    PlaySelectedExample()
+    {
+        if (!this.#app.IsAudioEnabled())
+        {
+            this.#hudElement.textContent = "music: enable audio to play an example";
+            return false;
+        }
+        const example = MusicUi.examples.find(value =>
+            value.eventName === this.#exampleSelect?.value);
+        if (!example)
+        {
+            return false;
+        }
+        this.#app.jukeboxUi.Stop();
+        this.#app.audio.musicEngine.StopAll(0.2);
+        if (example.dynamic)
+        {
+            this.SetEnabled(true);
+        }
+        else
+        {
+            document.getElementById("musicToggle").checked = false;
+            this.#SetActiveExample(example);
+            this.musicPlayer.SendEvent(example.eventName);
+        }
+        return true;
+    }
+
+    /** Stops every authored example without affecting the neutral jukebox. */
+    StopAll()
+    {
+        document.getElementById("musicToggle").checked = false;
+        this.#app.audio?.musicEngine?.StopAll(0.5);
     }
 
     /**
@@ -2193,7 +2304,7 @@ class MusicUi
     {
         const statuses = this.#app.audio?.musicEngine?.GetStatus() ?? [];
         const candidates = statuses.filter(status =>
-            status.rootId === this.#dynamicRoot);
+            this.#activeRoots.includes(status.rootId));
         const status = [ ...candidates ].reverse().find(value =>
             !value.stopped)
             ?? candidates.at(-1);
@@ -2205,7 +2316,9 @@ class MusicUi
             return;
         }
         const now = status.now;
-        const label = segment => PrettyName(this.moodLabelByTarget.get(segment.targetId) ?? `seg ${segment.segmentId}`);
+        const label = segment => this.#activeExample?.dynamic
+            ? PrettyName(this.moodLabelByTarget.get(segment.targetId) ?? `seg ${segment.segmentId}`)
+            : this.#activeExample?.label ?? PrettyName(`seg ${segment.segmentId}`);
         const visible = status.segments
             .filter(s => now < (s.fading ? Math.min(s.fadeEndCtx ?? s.endCtx, s.endCtx) : s.endCtx));
         const playing = visible.find(s =>
@@ -2312,6 +2425,35 @@ class MusicUi
         this.RefreshMoodAvailability();
     }
 
+    #SetActiveExample(example)
+    {
+        this.#activeExample = example;
+        this.#activeRoots = [ ...(
+            this.#app.library.music.eventTargets[example.eventName] ?? []
+        ) ];
+        if (this.#select)
+        {
+            this.#select.disabled = !example.dynamic;
+        }
+        if (this.#exampleSelect)
+        {
+            this.#exampleSelect.value = example.eventName;
+            this.#RefreshExampleDetail();
+        }
+    }
+
+    #RefreshExampleDetail()
+    {
+        const example = MusicUi.examples.find(value =>
+            value.eventName === this.#exampleSelect?.value);
+        if (this.#exampleDetail)
+        {
+            this.#exampleDetail.textContent = example
+                ? `${example.detail}. EVE event: ${example.eventName}`
+                : "No playable example is available in this library.";
+        }
+    }
+
 }
 
 /**
@@ -2393,10 +2535,7 @@ class JukeboxUi
             this.#status.textContent = "selected track is unavailable";
             return Promise.resolve(null);
         }
-        if (document.getElementById("musicToggle").checked)
-        {
-            this.#app.musicUi.SetEnabled(false);
-        }
+        this.#app.musicUi.StopAll();
 
         return this.#Run(() => this.#app.audio.jukebox.PlaySong(
             this.#select.value,

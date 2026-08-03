@@ -6007,6 +6007,17 @@ test("SFX spatial projection resolves inherited and mixed playable leaves", () =
         true,
         "the inherited 3D leaf retains its own panner route",
     );
+    assert.deepEqual(
+        result.nodes["200"].dryVolumeCurve,
+        {
+            scaling: 2,
+            points: [
+                { x: 0, value: 0, interpolation: 4 },
+                { x: 500, value: -1, interpolation: 4 },
+            ],
+        },
+        "the inherited positioning owner retains its raw Wwise dry-volume curve",
+    );
     assert.equal(
         result.nodes["201"].spatial,
         false,

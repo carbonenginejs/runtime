@@ -10122,6 +10122,89 @@ test("a non-spatial voice bypasses the emitter panner but keeps voice and SFX ga
   assert.notEqual(context.gains[3].connectedTo, context.gains[2]);
 });
 
+test("spatial voices evaluate independent Wwise distance curves and inverse fallback", async () =>
+{
+  const curve = {
+    scaling: 2,
+    points: [
+      { x: 0, value: 0, interpolation: 4 },
+      { x: 100, value: -1, interpolation: 4 },
+    ],
+  };
+  const { context, emitter, backend } = Harness({
+    distanceScale: 0.1,
+    loadBuffer: async () => ({
+      voices: [
+        {
+          buffer: { duration: 2 },
+          spatial: true,
+          dryVolumeCurve: curve,
+        },
+        {
+          buffer: { duration: 2 },
+          spatial: true,
+          dryVolumeCurve: {
+            scaling: 2,
+            points: [ { x: 0, value: 0, interpolation: 4 } ],
+          },
+        },
+        {
+          buffer: { duration: 2 },
+          spatial: true,
+        },
+      ],
+    }),
+  });
+
+  backend.SetListenerPosition(
+    0,
+    [ 0, 0, -1 ],
+    [ 0, 1, 0 ],
+    [ 0, 0, 0 ],
+  );
+  backend.SetPosition(
+    1,
+    [ 0, 0, -1 ],
+    [ 0, 1, 0 ],
+    [ 50, 0, 0 ],
+  );
+  backend.PostEvent(7, 1, 0, emitter, "three_spatial_voices");
+  await tick();
+
+  assert.equal(context.panners[0].rolloffFactor, 0);
+  assert.ok(Math.abs(context.gains[3].gain.value - 0.5) < 1e-12);
+  assert.equal(context.gains[5].gain.value, 1);
+  assert.ok(
+    Math.abs(context.gains[7].gain.value - 0.2) < 1e-12,
+    "a graph without an authored curve preserves the old inverse-distance gain",
+  );
+
+  backend.SetPosition(
+    1,
+    [ 0, 0, -1 ],
+    [ 0, 1, 0 ],
+    [ 100, 0, 0 ],
+  );
+  assert.ok(
+    Math.abs(context.gains[3].gain.targets.at(-1)[0] - 10 ** (-96.3 / 20))
+      < 1e-12,
+    "the serialized -1 floor becomes Wwise -96.3 dB",
+  );
+  assert.equal(context.gains[5].gain.targets.at(-1)[0], 1);
+  assert.ok(
+    Math.abs(context.gains[7].gain.targets.at(-1)[0] - 0.1) < 1e-12,
+  );
+
+  assert.equal(backend.SetScalingFactor(1, 2), true);
+  assert.ok(
+    Math.abs(context.gains[3].gain.targets.at(-1)[0] - 0.5) < 1e-12,
+    "factor two evaluates the authored curve at half physical distance",
+  );
+  assert.ok(
+    Math.abs(context.gains[7].gain.targets.at(-1)[0] - 0.2) < 1e-12,
+  );
+});
+
 test("stored object RTPCs replay when the lazy non-spatial route is created", async () =>
 {
   const applied = [];

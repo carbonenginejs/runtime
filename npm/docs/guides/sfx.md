@@ -139,7 +139,7 @@ exact parameter-name catalog match.
 
 | Type | Behavior |
 | --- | --- |
-| `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, and `spatial` selects the panner (`true`) or flat SFX route (`false`). |
+| `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, `spatial` selects the panner (`true`) or flat SFX route (`false`), and `dryVolumeCurve` retains the leaf's Wwise distance gain. |
 | `silence` | Produces no voice. This preserves authored empty switch/state cases without falling through to the default. |
 | `random` | Chooses one weighted child. `mode: "shuffle"` exhausts a pool before refilling it; `avoidRepeat` excludes recent choices. |
 | `sequence` | Chooses the next child for each post; `loop: false` produces no further leaves after the final child. |
@@ -719,16 +719,24 @@ route. A missing leaf value falls back to event `is2D`. Caller event metadata
 still overrides the derived event-wide fallback; to override a known leaf,
 provide or enrich the `sfx` graph itself.
 
+Each resolved v150 attenuation also retains its scaling-type-2 dry-volume
+curve as `{ scaling, points: [{ x, value, interpolation }] }` on that Sound
+leaf. Distances stay in authored world units and values stay in Wwise's raw
+decibel-curve representation so the runtime can perform interpolation before
+scaling. The curve endpoint also supplies the conservative event culling
+radius. Parallel leaves may therefore share an emitter and still attenuate
+differently.
+
 Missing parents, parent cycles, unsupported non-renderable NodeBase RTPC
 controls or properties, and incomplete positioning data do not block otherwise
 valid sound playback. Missing spatial data omits only the derived spatial patch
 and adds diagnostics; non-renderable RTPC modifiers are ignored while supported
-Volume, Pitch, filter, and InitialDelay curves remain exact. A resolved v150
-attenuation projects the dry-volume curve's authored maximum distance into
-`maxRadiusAttenuation`; mixed spatial events use the largest complete leaf
-radius. Automatic bank projection is applied after SoundbanksInfo metadata and
-before caller `metadata` and `enrichment`, so explicit caller data remains
-authoritative.
+Volume, Pitch, filter, and InitialDelay curves remain exact. Missing,
+unsupported, or Wwise `Use Project` dry-volume curves omit the leaf curve and
+use the documented browser inverse-gain fallback. Mixed spatial events use the
+largest complete leaf radius. Automatic bank projection is applied after
+SoundbanksInfo metadata and before caller `metadata` and `enrichment`, so
+explicit caller data remains authoritative.
 
 Automatic construction currently accepts Wwise generator-version-150 codec
 sounds, Play, Stop, Pause, Resume, Set/Reset Voice Volume, Set/Reset Bus

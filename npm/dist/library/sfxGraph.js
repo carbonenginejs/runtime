@@ -62,6 +62,7 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
       if (node.spatial !== undefined && typeof node.spatial !== "boolean") {
         throw new TypeError(`Audio library SFX sound ${id} spatial must be boolean`);
       }
+      ValidateDryVolumeCurve(node.dryVolumeCurve, `Audio library SFX sound ${id} dryVolumeCurve`);
       if (node.matchIds !== undefined) {
         ValidateMatchIds(node.matchIds, id, `Audio library SFX sound ${id} matchIds`);
       }
@@ -280,6 +281,18 @@ function NormalizeNode(node) {
     }
     if (node.spatial !== undefined) {
       result.spatial = node.spatial;
+    }
+    if (node.dryVolumeCurve !== undefined) {
+      result.dryVolumeCurve = {
+        scaling: Number(node.dryVolumeCurve.scaling),
+        points: node.dryVolumeCurve.points.map(point => ({
+          x: Number(point.x),
+          value: Number(point.value),
+          ...(point.interpolation === undefined ? {} : {
+            interpolation: Number(point.interpolation)
+          })
+        }))
+      };
     }
     if (node.matchIds !== undefined) {
       result.matchIds = node.matchIds.map(value => String(Number(value) >>> 0));
@@ -1365,6 +1378,34 @@ function ValidateRtpcCurves(value, label) {
       }
       previous = x;
     }
+  }
+}
+function ValidateDryVolumeCurve(value, label) {
+  if (value === undefined) {
+    return;
+  }
+  const curve = RequireRecord(value, label);
+  if (Number(curve.scaling) !== 2) {
+    throw new TypeError(`${label} scaling must be 2 for dry volume`);
+  }
+  if (!Array.isArray(curve.points) || !curve.points.length) {
+    throw new TypeError(`${label} must have points`);
+  }
+  let previous = -Infinity;
+  for (let index = 0; index < curve.points.length; index++) {
+    const point = RequireRecord(curve.points[index], `${label} point ${index}`);
+    const x = NormalizeFiniteNumber(point.x, `${label} point ${index} x`);
+    if (x < 0) {
+      throw new TypeError(`${label} point ${index} x must be non-negative`);
+    }
+    if (x < previous) {
+      throw new TypeError(`${label} points must have non-decreasing x`);
+    }
+    NormalizeFiniteNumber(point.value, `${label} point ${index} value`);
+    if (point.interpolation !== undefined && (!Number.isSafeInteger(Number(point.interpolation)) || Number(point.interpolation) < 0 || Number(point.interpolation) > 9)) {
+      throw new TypeError(`${label} point ${index}` + " interpolation must be a Wwise curve value from 0 to 9");
+    }
+    previous = x;
   }
 }
 function ValidateStateProperties(value, label) {

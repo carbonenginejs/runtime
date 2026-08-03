@@ -560,6 +560,34 @@ test("committed demo library carries authored SFX and music semantics", () =>
             pluginId === 0x00040001),
         "Danger is a WEM-backed mood whose availability depends on delivery",
     );
+
+    const musicExamples = new Map([
+        [ "music_eve_dynamic_play", "music-switch-container" ],
+        [ "music_ambient001_play", "music-segment" ],
+        [ "dungeon_music_cap_day_pirate_combat_r1", "music-playlist-container" ],
+        [ "zarzakh_swells_3_test", "music-playlist-container" ],
+        [ "music_eve_classic_play", "music-playlist-container" ],
+        [ "dungeon_music_default_combat", "music-playlist-container" ],
+        [ "music_havoc_insurgency_combat_play", "music-playlist-container" ],
+        [ "npe_music_scene04_02_02_00_orbit", "music-playlist-container" ],
+        [ "music_abyssal_deadspace_play", "music-switch-container" ],
+    ]);
+
+    for (const [ eventName, rootType ] of musicExamples)
+    {
+        const roots = library.music.eventTargets[eventName] ?? [];
+
+        assert.ok(roots.length > 0, `${eventName} remains a playable demo event`);
+        assert.equal(
+            library.music.nodes[String(roots[0])]?.type,
+            rootType,
+            `${eventName} retains its demonstrated root type`,
+        );
+        assert.ok(
+            roots.some(rootId => musicSourcePlugins(rootId).includes(0x00040001)),
+            `${eventName} reaches browser-playable WEM media`,
+        );
+    }
 });
 
 test("committed demo library contains no optional enrichment payload", () =>

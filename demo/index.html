@@ -404,12 +404,22 @@
     <section class="card" id="music" style="display:none">
       <div class="sectionHeader">
         <div>
-          <div class="sectionTitle"><h2>Dynamic music</h2><button class="infoButton" type="button" aria-label="About dynamic music" data-tip="Plays the real EVE music graph. Changing mood steers its authored switch container; runtime-audio chooses and schedules the resulting music nodes.">i</button></div>
-          <p class="sectionNote">Authored switch-container playback</p>
+          <div class="sectionTitle"><h2>Authored music</h2><button class="infoButton" type="button" aria-label="About authored music" data-tip="Plays verified examples from the real EVE music graph: direct segments, all four playlist modes, switch/state routing, random and sequence tracks, and a transition-segment bridge. MIDI, Synth One, and stingers remain unsupported and are not offered.">i</button></div>
+          <p class="sectionNote">Real EVE graph and track families</p>
         </div>
-        <label class="powerControl" for="musicToggle">Play <input id="musicToggle" type="checkbox"><span class="toggleTrack" aria-hidden="true"></span></label>
+        <label class="powerControl" for="musicToggle">Dynamic <input id="musicToggle" type="checkbox"><span class="toggleTrack" aria-hidden="true"></span></label>
       </div>
-      <select id="moods" title="mood"></select>
+      <label class="sfxControl" for="musicExamples">Example
+        <select id="musicExamples" title="authored music example"></select>
+      </label>
+      <p id="musicExampleDetail" class="hint"></p>
+      <div class="buttonRow">
+        <button id="musicExamplePlay" class="primary" type="button">play example</button>
+        <button id="musicExampleStop" type="button">stop</button>
+      </div>
+      <label class="sfxControl" for="moods">Dynamic mood
+        <select id="moods" title="dynamic mood"></select>
+      </label>
       <button id="musicRetry" type="button" hidden>retry music</button>
     </section>
     <section class="card" id="jukebox">

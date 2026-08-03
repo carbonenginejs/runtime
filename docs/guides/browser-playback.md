@@ -137,6 +137,31 @@ include the optional `sfx` program described in
 [Authored SFX programs](sfx.md). Its sound leaves still use these same
 provider routes.
 
+## Spatial attenuation
+
+Builder-produced spatial Sound leaves may carry a Wwise `dryVolumeCurve`.
+The browser keeps Web Audio's HRTF panning but disables `PannerNode` distance
+rolloff, then evaluates each leaf's authored curve from the raw distance
+between listener and emitter. `SetAttenuationScalingFactor()` changes its
+range: `0.5` evaluates the curve at twice the physical distance, while `2`
+evaluates it at half the physical distance.
+
+Emitter culling remains Carbon-compatible and is a separate calculation:
+its effective radius is `authoredRadius * sqrt(scalingFactor)`. It therefore
+does not exactly match Wwise's linear playback-range scaling for factors other
+than `1`; a factor above `1` can cull a voice before its scaled playback curve
+ends.
+
+Older or hand-authored graphs without a retained curve stay audible through
+the historical `distanceScale` inverse-gain fallback. This also covers a Wwise
+`Use Project` attenuation curve whose project default is unavailable in the
+portable document. It is deliberately a compatibility fallback, not a claim
+of Wwise equivalence. Simultaneous movement and an active Voice Volume, State,
+or RTPC gain transition are smoothly rescheduled on their shared Web Audio
+gain parameter; their continuously varying product is approximate. Cone,
+distance-filter and spread/focus curves, obstruction, occlusion, diffraction,
+and transmission are not currently rendered.
+
 For named soundtrack playback independent of authored Wwise music events,
 pass an optional neutral catalog, loader, and availability probe as described
 in [Optional jukebox](jukebox.md).
