@@ -2434,6 +2434,107 @@ test("transitively nested Continuous containers are omitted per event", () =>
     );
 });
 
+test("one-pass Trigger Rate bursts under an infinite Delay are retained", () =>
+{
+    const build = ({ innerNodeBase = null } = {}) =>
+        CjsAudioLibraryBuilder.createSfxGraph({
+            inspections: [
+                {
+                    source: "common.bnk",
+                    bankVersion: 150,
+                    hirc: [
+                        ...[ 200, 201, 202 ].map((id, index) => ({
+                            type: 2,
+                            id,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001 + index,
+                            inMemoryMediaSize: 64,
+                            payload: new Uint8Array(),
+                        })),
+                        {
+                            type: 5,
+                            id: 210,
+                            payload: randomSequencePayload({
+                                nodeBase: innerNodeBase,
+                                childIDs: [ 200, 201, 202 ],
+                                loopCount: 1,
+                                transitionTime: 2000,
+                                transitionMode: 5,
+                                containerMode: 1,
+                                flags: 0x1a,
+                            }),
+                        },
+                        {
+                            type: 5,
+                            id: 220,
+                            payload: randomSequencePayload({
+                                childID: 210,
+                                loopCount: 0,
+                                transitionTime: 60000,
+                                transitionMode: 3,
+                                containerMode: 1,
+                                flags: 0x0a,
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 300,
+                            actionType: 0x0403,
+                            targetId: 220,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 300 ],
+                            payload: new Uint8Array(),
+                        },
+                    ],
+                },
+            ],
+            metadata: {
+                Events: {
+                    warning_play: { eventID: 100 },
+                },
+            },
+            media: {
+                "9001": { resPath: "res:/audio/9001.wem" },
+                "9002": { resPath: "res:/audio/9002.wem" },
+                "9003": { resPath: "res:/audio/9003.wem" },
+            },
+        });
+    const result = build();
+
+    assert.deepEqual(result.events.warning_play, [ { nodeId: "220" } ]);
+    assert.deepEqual(result.nodes["220"].continuous, {
+        loopCount: 0,
+        transition: "delay",
+        transitionMs: 60000,
+        resetPlaylistEachPlay: true,
+    });
+    assert.deepEqual(result.nodes["210"].continuous, {
+        loopCount: 1,
+        transition: "trigger-rate",
+        transitionMs: 2000,
+        resetPlaylistEachPlay: true,
+    });
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+
+    const modified = build({
+        innerNodeBase: nodeBasePayload({
+            properties: [ { id: 34, value: 5 } ],
+        }),
+    });
+
+    assert.equal(modified.events.warning_play, undefined);
+    assert.match(
+        modified.diagnostics.omittedEvents[0].reason,
+        /nested continuous container 220/u,
+    );
+});
+
 test("Continuous Random parents absorb all-infinite child clocks", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -7341,6 +7442,7 @@ function uint32Bytes(value)
 }
 
 function randomSequencePayload({
+    nodeBase = null,
     childID,
     childIDs,
     loopCount = 1,
@@ -7409,7 +7511,7 @@ function randomSequencePayload({
         s32(1);
     }
 
-    return bytes;
+    return nodeBase ? concatBytes(nodeBase, bytes) : bytes;
 }
 
 function switchPayload({

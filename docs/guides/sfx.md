@@ -932,6 +932,24 @@ Duration RTPC modulation is not projected. Graphs whose minimum randomized
 Trigger Rate interval is below 21 ms are rejected to avoid unbounded browser
 voice production.
 
+One bounded nested clock is supported: an infinite one-child Continuous
+Sequence with a Delay may wrap a reset-on-play, one-pass Continuous Sequence
+with a Trigger Rate. The parent-to-child edge must be plain, and the inner
+scheduler container must carry no playback modifiers beyond its scope,
+children, and Continuous settings. The inner voices keep their authored
+overlapping cadence;
+after the final selection, the runtime waits for every overlap tail and pending
+load, then samples the outer Delay and begins a fresh inner pass. The outer
+Initial Delay applies only to the first pass. Stop and Break retain the normal
+Trigger Rate contracts, and the outer container ID remains the Stop target.
+This exact shape restores EVE build 3453885's
+`upwell_hangar_armor_warning_play` and
+`upwell_hangar_hull_warning_play`. General nested non-Switch Continuous clocks
+remain fail-closed. Trigger Rate Pause does not freeze the cadence or carry a
+pause depth into future child keys; the two qualified EVE consumers use Play
+and outer-container Stop actions, so that broader behavior is not claimed as
+Wwise parity.
+
 The builder omits an entire playable event when that event mixes other
 unsupported actions or reaches an unsupported playable node; the optional
 diagnostics callback explains each omission. Sample Accurate Continuous
@@ -943,10 +961,10 @@ high-pass set, and other unqualified HIRC semantics are never silently
 approximated.
 
 The remaining EVE 3453885 runtime scheduling barriers are named explicitly:
-`upwell_hangar_armor_warning_play`, `upwell_hangar_hull_warning_play`,
-and `jita_sfx_incidentals_level3_play` require nested non-Switch Continuous
-clocks; the two XXL microwarpdrive events require associated Continuous Layer
-child admission. The
+`jita_sfx_incidentals_level3_play` requires an outer randomized Delay around a
+finite amplitude Crossfade, and therefore remains outside the bounded nested
+clock above. The two XXL microwarpdrive events require associated Continuous
+Layer child admission. The
 `ship_module_shield_drain_play` Random/Sequence Crossfade reaches a parallel
 Layer/Blend child; Wwise itself documents that Xfade does not support a Blend
 Container child, so runtime-audio keeps that authored branch fail-closed rather

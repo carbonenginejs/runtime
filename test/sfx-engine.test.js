@@ -757,6 +757,7 @@ test("Continuous Sequence advances whole child batches with authored Delay", () 
             {
                 1: {
                     type: "sequence",
+                    delayMs: 10000,
                     children: [ 10, 11 ],
                     continuous: {
                         loopCount: 2,
@@ -955,6 +956,90 @@ test("Continuous Trigger Rate samples only intervals with a next child", () =>
             { gameObjID: 7 },
         ),
         [],
+    );
+});
+
+test("nested Trigger Rate bursts wait on outer completion Delay", () =>
+{
+    const graph = Graph(
+        { warning: [ 1 ] },
+        {
+            1: {
+                type: "sequence",
+                initialDelayMs: 10000,
+                children: [ 2 ],
+                continuous: {
+                    loopCount: 0,
+                    transition: "delay",
+                    transitionMs: 60000,
+                    resetPlaylistEachPlay: true,
+                },
+            },
+            2: {
+                type: "sequence",
+                children: [ 10, 11, 12 ],
+                continuous: {
+                    loopCount: 1,
+                    transition: "trigger-rate",
+                    transitionMs: 2000,
+                    resetPlaylistEachPlay: true,
+                },
+            },
+            10: { type: "sound", mediaId: 100 },
+            11: { type: "sound", mediaId: 200 },
+            12: { type: "sound", mediaId: 300 },
+        },
+    );
+    const engine = new CjsSfxEngine({ graph });
+    const first = engine.ResolveProgram(
+        "warning",
+        { gameObjID: 7 },
+    )[0];
+    const token = first.continuations[0].token;
+
+    assert.equal(first.selections[0].mediaID, "100");
+    assert.equal(first.selections[0].delayMs, 10000);
+    assert.deepEqual(first.selections[0].matchIds, [ "1", "2", "10" ]);
+    assert.equal(
+        first.continuations[0].advance,
+        "trigger-rate",
+    );
+    assert.equal(first.continuations[0].delayMs, 2000);
+    assert.throws(
+        () => engine.PrepareProgram(token, { gameObjID: 7 }),
+        /nested Trigger Rate sessions cannot be prepared/u,
+    );
+
+    const second = engine.ContinueProgram(token, { gameObjID: 7 })[0];
+    const third = engine.ContinueProgram(token, { gameObjID: 7 })[0];
+
+    assert.equal(second.selections[0].mediaID, "200");
+    assert.equal(second.continuations[0].advance, "trigger-rate");
+    assert.equal(third.selections[0].mediaID, "300");
+    assert.equal(third.continuations[0].advance, "trigger-rate");
+    assert.equal(third.continuations[0].delayMs, 0);
+    assert.equal(third.continuations[0].completionBarrier, true);
+    assert.equal(third.continuations[0].doneAfterBatch, false);
+
+    const restarted = engine.ContinueProgram(token, { gameObjID: 7 })[0];
+
+    assert.equal(restarted.selections[0].mediaID, "100");
+    assert.equal(restarted.selections[0].delayMs, 60000);
+    assert.equal(
+        restarted.continuations[0].advance,
+        "trigger-rate",
+    );
+    assert.equal(restarted.continuations[0].programBatchId, "0:c0:b3");
+
+    const modified = structuredClone(graph);
+
+    modified.nodes["2"].initialDelayMs = 5000;
+    assert.throws(
+        () => new CjsSfxEngine({ graph: modified }).ResolveProgram(
+            "warning",
+            { gameObjID: 7 },
+        ),
+        /Nested Continuous container 2 is unsupported/u,
     );
 });
 

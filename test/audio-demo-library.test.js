@@ -653,6 +653,56 @@ test("committed demo library carries authored SFX and music semantics", () =>
             && node.continuous.transitionMs === 2300),
         "the demo carries an exact object-scoped Trigger Rate example",
     );
+    for (const [ eventName, outerID, innerID ] of [
+        [
+            "upwell_hangar_armor_warning_play",
+            "801912365",
+            "291209419",
+        ],
+        [
+            "upwell_hangar_hull_warning_play",
+            "494273191",
+            "653971843",
+        ],
+    ])
+    {
+        assert.deepEqual(graph.events[eventName], [ { nodeId: outerID } ]);
+        assert.equal(graph.nodes[outerID].continuous.transition, "delay");
+        assert.equal(graph.nodes[outerID].continuous.transitionMs, 60000);
+        assert.equal(graph.nodes[outerID].children[0].nodeId, innerID);
+        assert.equal(
+            graph.nodes[innerID].continuous.transition,
+            "trigger-rate",
+        );
+        assert.equal(graph.nodes[innerID].continuous.transitionMs, 2000);
+    }
+    assert.equal(graph.events.jita_sfx_incidentals_level3_play, undefined);
+
+    const warningEngine = new CjsSfxEngine({ graph });
+    const warningFirst = warningEngine.ResolveProgram(
+        "upwell_hangar_armor_warning_play",
+        { gameObjID: 12 },
+    )[0];
+    const warningToken = warningFirst.continuations[0].token;
+
+    assert.equal(warningFirst.selections[0].delayMs, 10000);
+    assert.equal(warningFirst.continuations[0].containerId, "801912365");
+    assert.equal(warningFirst.continuations[0].delayMs, 2000);
+    warningEngine.ContinueProgram(warningToken, { gameObjID: 12 });
+    const warningFinal = warningEngine.ContinueProgram(
+        warningToken,
+        { gameObjID: 12 },
+    )[0];
+
+    assert.equal(warningFinal.continuations[0].completionBarrier, true);
+    assert.equal(warningFinal.continuations[0].delayMs, 0);
+    assert.equal(
+        warningEngine.ContinueProgram(
+            warningToken,
+            { gameObjID: 12 },
+        )[0].selections[0].delayMs,
+        60000,
+    );
     const crossfadeNodes = continuousNodes(
         "drone_grown_infested_structure_large_play",
     ).filter(node =>

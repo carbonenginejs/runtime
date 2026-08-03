@@ -198,7 +198,17 @@ object-scoped Random choice when every direct candidate is a proven looping
 Sound or an already qualified infinite Continuous Random/Sequence. The
 selected child can never return control to the outer scheduler, so omitting
 that unreachable outer clock preserves authored behavior and Stop ancestry.
-Other nested non-Switch Continuous clocks remain unsupported.
+A second exact bounded form admits an infinite one-child Sequence with a Delay
+around a reset-on-play, one-pass Trigger Rate Sequence. Its parent edge is
+plain and its inner scheduler has no playback modifiers beyond scope,
+children, and Continuous settings. The backend holds a
+completion barrier until all overlapping inner tails and pending loads settle,
+then samples the parent Delay and starts a fresh inner pass. This covers the
+two EVE 3453885 Upwell armor/hull hangar warnings. Trigger Rate Pause remains a
+browser adaptation: it does not freeze cadence or propagate pause depth to
+future child keys, and the qualified Upwell consumers require only Play and
+outer-container Stop. Other nested non-Switch Continuous clocks remain
+unsupported, including Jita's randomized-Delay/amplitude-Crossfade topology.
 
 ## Unsupported native behavior
 

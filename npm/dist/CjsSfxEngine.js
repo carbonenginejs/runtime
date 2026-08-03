@@ -154,6 +154,7 @@ class CjsSfxEngine {
       for (let index = 0; index < continuousBranches.length; index++) {
         const branch = continuousBranches[index];
         const switchSession = branch.token.kind === "switch";
+        const nestedSession = branch.token.kind === "nested-trigger-rate-delay";
         const programSlotId = `${actionIndex}:c${index}`;
         const programBatchId = `${programSlotId}:b${branch.token.batchIndex++}`;
         const hasMore = switchSession || this.#ContinuousHasMore(branch.token);
@@ -164,18 +165,25 @@ class CjsSfxEngine {
           programSlotId,
           programBatchId
         })));
+        const continuation = nestedSession ? this.#DescribeNestedContinuation(branch.token, hasMore) : null;
         continuations.push(Object.freeze({
           programSlotId,
           programBatchId,
           token: branch.token,
-          containerId: branch.token.nodeID,
-          delayMs: !switchSession && branch.token.node.continuous.transition === "trigger-rate" && hasMore || IsCrossfadeTransition(branch.token.node.continuous.transition) && hasMore ? this.#SampleContinuousTransition(branch.token) : 0,
-          doneAfterBatch: !hasMore,
+          containerId: nestedSession ? branch.token.parentNodeID : branch.token.nodeID,
+          delayMs: continuation?.delayMs ?? (!switchSession && branch.token.node.continuous.transition === "trigger-rate" && hasMore || IsCrossfadeTransition(branch.token.node.continuous.transition) && hasMore ? this.#SampleContinuousTransition(branch.token) : 0),
+          doneAfterBatch: continuation ? false : !hasMore,
+          ...(continuation?.advance ? {
+            advance: continuation.advance
+          } : {}),
+          ...(continuation?.completionBarrier ? {
+            completionBarrier: true
+          } : {}),
           ...(switchSession ? {
             advance: "switch",
             matchIds: Object.freeze([...branch.token.active]),
             switchGroups: ContinuousSwitchGroups(branch.token.route)
-          } : branch.token.node.continuous.transition === "trigger-rate" ? {
+          } : nestedSession ? {} : branch.token.node.continuous.transition === "trigger-rate" ? {
             advance: "trigger-rate"
           } : IsCrossfadeTransition(branch.token.node.continuous.transition) ? {
             advance: "crossfade",
@@ -260,14 +268,31 @@ class CjsSfxEngine {
     if (token.kind === "switch") {
       return this.#ContinueSwitchProgram(token, controls);
     }
+    if (token.kind === "nested-trigger-rate-delay" && token.restartPending) {
+      token.continuationTerms = {
+        ...token.continuationTerms,
+        delayMs: SampleRandomizedValue(token.parentNode.continuous.transitionMs, token.parentNode.continuous.transitionRangeMs, () => this.#SampleUnit())
+      };
+      token.passCount = 0;
+      token.remainingInPass = 0;
+      token.sequencePosition = 0;
+      token.restartPending = false;
+    }
     const selections = this.#ResolveContinuousBatch(token, controls, false);
     if (selections === null) {
       return Object.freeze([]);
     }
+    if (token.kind === "nested-trigger-rate-delay" && token.continuationTerms.delayMs !== 0) {
+      token.continuationTerms = {
+        ...token.continuationTerms,
+        delayMs: 0
+      };
+    }
     const transition = token.node.continuous.transition;
     const programBatchId = `${token.programSlotId}:b${token.batchIndex++}`;
     const hasMore = this.#ContinuousHasMore(token);
-    const delayMs = transition === "delay" || hasMore && transition === "trigger-rate" || hasMore && IsCrossfadeTransition(transition) ? SampleRandomizedValue(token.node.continuous.transitionMs, token.node.continuous.transitionRangeMs, () => this.#SampleUnit()) : 0;
+    const nestedContinuation = token.kind === "nested-trigger-rate-delay" ? this.#DescribeNestedContinuation(token, hasMore) : null;
+    const delayMs = nestedContinuation?.delayMs ?? (transition === "delay" || hasMore && transition === "trigger-rate" || hasMore && IsCrossfadeTransition(transition) ? SampleRandomizedValue(token.node.continuous.transitionMs, token.node.continuous.transitionRangeMs, () => this.#SampleUnit()) : 0);
     return Object.freeze([Object.freeze({
       kind: "play",
       actionIndex: token.actionIndex,
@@ -282,14 +307,19 @@ class CjsSfxEngine {
         programSlotId: token.programSlotId,
         programBatchId,
         token,
-        containerId: token.nodeID,
+        containerId: nestedContinuation ? token.parentNodeID : token.nodeID,
         delayMs,
-        doneAfterBatch: !hasMore,
-        ...(transition === "trigger-rate" ? {
+        doneAfterBatch: nestedContinuation ? false : !hasMore,
+        ...(nestedContinuation?.advance ? {
+          advance: nestedContinuation.advance
+        } : transition === "trigger-rate" ? {
           advance: "trigger-rate"
         } : IsCrossfadeTransition(transition) ? {
           advance: "crossfade",
           crossfadeMode: transition
+        } : {}),
+        ...(nestedContinuation?.completionBarrier ? {
+          completionBarrier: true
         } : {})
       })])
     })]);
@@ -312,6 +342,9 @@ class CjsSfxEngine {
     }
     if (token.kind === "switch") {
       throw new TypeError("CjsSfxEngine Continuous Switch sessions cannot be prepared");
+    }
+    if (token.kind === "nested-trigger-rate-delay") {
+      throw new TypeError("CjsSfxEngine nested Trigger Rate sessions cannot be prepared");
     }
     const beforeToken = CaptureContinuationToken(token);
     const transaction = {
@@ -852,6 +885,21 @@ class CjsSfxEngine {
     if (!allowContinuous) {
       throw new Error(`Nested Continuous container ${nodeID} is unsupported`);
     }
+    if (this.#IsNestedTriggerRateDelay(node)) {
+      const nestedBranches = [];
+      const unexpectedSelections = [];
+      this.#ResolveChild(node.children[0], controls, terms, active, unexpectedSelections, nestedBranches, true);
+      if (unexpectedSelections.length !== 0 || nestedBranches.length !== 1) {
+        throw new Error(`Nested Continuous container ${nodeID} is unsupported`);
+      }
+      const branch = nestedBranches[0];
+      branch.token.kind = "nested-trigger-rate-delay";
+      branch.token.parentNodeID = nodeID;
+      branch.token.parentNode = node;
+      branch.token.restartPending = false;
+      continuousBranches.push(branch);
+      return;
+    }
     const token = {
       nodeID,
       node,
@@ -881,6 +929,50 @@ class CjsSfxEngine {
       token,
       selections: this.#ResolveContinuousBatch(token, controls, true) ?? []
     });
+  }
+
+  /** Returns whether one outer container is the exact supported nested clock. */
+  #IsNestedTriggerRateDelay(node) {
+    const edge = node.children?.[0];
+    const edgeIsRecord = edge !== null && typeof edge === "object" && !Array.isArray(edge);
+    if (node.type !== "sequence" || node.children.length !== 1 || edgeIsRecord && (Object.keys(edge).length !== 1 || edge.nodeId === undefined) || node.continuous.loopCount !== 0 || node.continuous.transition !== "delay") {
+      return false;
+    }
+    const childID = String(edge?.nodeId ?? edge);
+    const child = this.#graph.nodes?.[childID];
+    return child?.type === "sequence" && Object.keys(child).every(key => ["type", "scope", "children", "continuous"].includes(key)) && child.children.length > 0 && child.continuous?.loopCount === 1 && child.continuous.transition === "trigger-rate" && child.continuous.resetPlaylistEachPlay !== false && child.children.every(edge => !this.#NodeContainsContinuous(String(edge?.nodeId ?? edge), new Set()));
+  }
+
+  /** Detects deeper Continuous descendants for the narrow nested gate. */
+  #NodeContainsContinuous(nodeID, visited) {
+    if (visited.has(nodeID)) {
+      return false;
+    }
+    visited.add(nodeID);
+    const node = this.#graph.nodes?.[nodeID];
+    if (!node) {
+      return false;
+    }
+    if (node.continuous) {
+      return true;
+    }
+    return (node.children ?? []).some(edge => this.#NodeContainsContinuous(String(edge?.nodeId ?? edge), visited));
+  }
+
+  /** Describes the inner cadence or the outer physical-completion delay. */
+  #DescribeNestedContinuation(token, hasMore) {
+    if (hasMore) {
+      return {
+        advance: "trigger-rate",
+        delayMs: this.#SampleContinuousTransition(token)
+      };
+    }
+    token.restartPending = true;
+    return {
+      advance: "trigger-rate",
+      delayMs: 0,
+      completionBarrier: true
+    };
   }
 
   /** Selects and resolves one child batch from an active traversal. */

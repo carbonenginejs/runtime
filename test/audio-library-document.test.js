@@ -1007,6 +1007,45 @@ test("Continuous container scheduling is normalized and validated", () =>
         ),
         /cannot contain Continuous container 3/u,
     );
+
+    graph.nodes[1].continuous = {
+        loopCount: 0,
+        transition: "delay",
+        transitionMs: 60000,
+        resetPlaylistEachPlay: true,
+    };
+    graph.nodes[3].continuous = {
+        loopCount: 1,
+        transition: "trigger-rate",
+        transitionMs: 2000,
+        resetPlaylistEachPlay: true,
+    };
+    assert.equal(
+        normalizeSfxGraph(
+            graph,
+            { 777: { sourceID: "loose:777" } },
+        ).nodes[3].continuous.transition,
+        "trigger-rate",
+    );
+
+    graph.nodes[3].initialDelayMs = 5000;
+    assert.throws(
+        () => normalizeSfxGraph(
+            graph,
+            { 777: { sourceID: "loose:777" } },
+        ),
+        /cannot contain Continuous container 3/u,
+    );
+    delete graph.nodes[3].initialDelayMs;
+
+    graph.nodes[1].children = [ { nodeId: 3, delayMs: 1000 } ];
+    assert.throws(
+        () => normalizeSfxGraph(
+            graph,
+            { 777: { sourceID: "loose:777" } },
+        ),
+        /cannot contain Continuous container 3/u,
+    );
 });
 
 test("timed silence remains distinct from an empty authored branch", () =>

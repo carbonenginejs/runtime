@@ -893,7 +893,14 @@ function LowerSfxGraph({
         // Random choice and let its selected child own the only live
         // Continuous clock.
         const absorbsInfiniteChildren = source.type === "random" && source.continuous && source.loopCount === 0 && source.transitionMode === 0 && childContainsContinuous && children.every(child => neverCompletesByNode.get(String(child.nodeId)) === true);
-        if (source.continuous && childContainsContinuous && !absorbsInfiniteChildren) {
+        const nestedChild = children.length === 1 ? nodes[String(children[0].nodeId)] : null;
+        // Wwise hangar warnings use one bounded nested clock: an
+        // infinite outer Sequence waits after physical completion of
+        // a finite, reset-on-play Trigger Rate Sequence. Keeping this
+        // qualification structural prevents deeper or mixed nested
+        // schedulers from entering the runtime accidentally.
+        const supportsNestedTriggerRateDelay = source.type === "sequence" && source.continuous && source.loopCount === 0 && source.transitionMode === 3 && Object.keys(children[0]).length === 1 && nestedChild?.type === "sequence" && Object.keys(nestedChild).every(key => ["type", "scope", "children", "continuous"].includes(key)) && nestedChild.continuous?.loopCount === 1 && nestedChild.continuous.transition === "trigger-rate" && nestedChild.continuous.resetPlaylistEachPlay !== false && nestedChild.children.every(child => !containsContinuousByNode.get(String(child.nodeId)));
+        if (source.continuous && childContainsContinuous && !absorbsInfiniteChildren && !supportsNestedTriggerRateDelay) {
           throw new Error(`nested continuous container ${id}`);
         }
         neverCompletes = absorbsInfiniteChildren || source.continuous && source.loopCount === 0;

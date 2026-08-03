@@ -1622,6 +1622,7 @@ export class CjsAudioBackend
     {
         if (slot.advanceMode !== "trigger-rate"
             || !slot.continuation
+            || slot.completionBarrier
             || slot.broken
             || slot.exhausted)
         {
@@ -2384,6 +2385,8 @@ export class CjsAudioBackend
                             switchGeneration: 0,
                             crossfadeMode:
                                 continuation.crossfadeMode ?? null,
+                            completionBarrier:
+                                continuation.completionBarrier === true,
                             transitionDelayMs: Math.max(
                                 0,
                                 Number(continuation.delayMs) || 0,
@@ -5316,6 +5319,14 @@ export class CjsAudioBackend
                     !value.ended);
 
                 slot.voice = active[0] ?? null;
+                if (this.#MaybeAdvanceTriggerRateCompletionBarrier(
+                    playingID,
+                    record,
+                    slot,
+                ))
+                {
+                    return;
+                }
                 this.#UpdateOverlappingSlotState(slot);
                 return;
             }
@@ -5713,6 +5724,8 @@ export class CjsAudioBackend
         slot.continuation = continuation?.token ?? null;
         slot.exhausted = !continuation
             || continuation.doneAfterBatch === true;
+        slot.completionBarrier =
+            continuation?.completionBarrier === true;
         slot.transitionDelayMs = Math.max(
             0,
             Number(continuation?.delayMs) || 0,
@@ -5729,6 +5742,11 @@ export class CjsAudioBackend
             );
             batch.state = "ended";
             this.#UpdateOverlappingSlotState(slot);
+            this.#MaybeAdvanceTriggerRateCompletionBarrier(
+                playingID,
+                record,
+                slot,
+            );
             this.#MaybeFinishSfxProgram(playingID, record);
             return;
         }
@@ -5821,6 +5839,11 @@ export class CjsAudioBackend
                 else
                 {
                     this.#UpdateOverlappingSlotState(slot);
+                    this.#MaybeAdvanceTriggerRateCompletionBarrier(
+                        playingID,
+                        record,
+                        slot,
+                    );
                 }
                 this.#MaybeFinishSfxProgram(playingID, record);
                 return;
@@ -6240,6 +6263,7 @@ export class CjsAudioBackend
 
         slot.continuation = null;
         slot.exhausted = true;
+        slot.completionBarrier = false;
         slot.nextTriggerContextTime = null;
         slot.preparingCrossfade = false;
         this.#SettleCrossfadeBatchTransaction(
@@ -6279,13 +6303,41 @@ export class CjsAudioBackend
             slot.continuation
             && !slot.broken
             && !slot.exhausted
-            && Number.isFinite(slot.nextTriggerContextTime),
+            && (Number.isFinite(slot.nextTriggerContextTime)
+                || slot.completionBarrier),
         );
 
         slot.voice = activeVoices[0] ?? null;
         slot.state = activeVoices.length || acquiring || scheduled
             ? "active"
             : "ended";
+    }
+
+    /** Restarts one nested Trigger Rate burst after every physical tail. */
+    #MaybeAdvanceTriggerRateCompletionBarrier(playingID, record, slot)
+    {
+        if (slot.advanceMode !== "trigger-rate"
+            || !slot.completionBarrier
+            || !slot.continuation
+            || slot.broken
+            || slot.exhausted
+            || record.stopped
+            || this.#playing.get(playingID) !== record
+            || [ ...slot.voices ].some(voice => !voice.ended)
+            || [ ...slot.batches?.values?.() ?? [] ].some(batch =>
+                batch.state === "loading" || batch.state === "pending"))
+        {
+            return false;
+        }
+
+        slot.completionBarrier = false;
+        this.#AdvanceSfxProgramSlot(
+            playingID,
+            record,
+            slot,
+            Number(this.#context.currentTime) || 0,
+        );
+        return true;
     }
 
     /** Commits prefetched choices already heard by the Web Audio clock. */
@@ -6340,6 +6392,7 @@ export class CjsAudioBackend
     {
         slot.continuation = null;
         slot.exhausted = true;
+        slot.completionBarrier = false;
         slot.nextTriggerContextTime = null;
         if (IsOverlappingAdvanceMode(slot.advanceMode))
         {

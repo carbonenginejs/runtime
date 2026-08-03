@@ -3019,6 +3019,105 @@ test("finite Trigger Rate finishes with its final tail, not another interval", a
   assert.equal(backend.GetPlayingCount(), 0);
 });
 
+test("nested Trigger Rate restarts sixty seconds after its last overlap tail", async () =>
+{
+  const token = {};
+  const play = (
+    batch,
+    { barrier = false, selectionDelayMs = 0 } = {},
+  ) => [
+    {
+      kind: "play",
+      actionIndex: 0,
+      selections: [
+        {
+          actionIndex: 0,
+          leafIndex: 0,
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${batch}`,
+          matchIds: [ "10", String(100 + batch) ],
+          ...(selectionDelayMs ? { delayMs: selectionDelayMs } : {}),
+        },
+      ],
+      continuations: [
+        {
+          programSlotId: "0:c0",
+          programBatchId: `0:c0:b${batch}`,
+          token,
+          containerId: "10",
+          advance: "trigger-rate",
+          delayMs: barrier ? 0 : 2000,
+          doneAfterBatch: false,
+          ...(barrier ? { completionBarrier: true } : {}),
+        },
+      ],
+    },
+  ];
+  let advances = 0;
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: () => play(0),
+    continueSfxProgram: () =>
+    {
+      advances++;
+      if (advances === 1) return play(1);
+      if (advances === 2) return play(2, { barrier: true });
+      return play(advances, {
+        selectionDelayMs: advances === 3 ? 60000 : 0,
+      });
+    },
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: [
+        {
+          buffer: { duration: 20 },
+          programSlotId: "0:c0",
+          programBatchId:
+            program[0].selections[0].programBatchId,
+          delayMs: program[0].selections[0].delayMs,
+        },
+      ],
+    }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "nested_trigger_rate");
+  await tick();
+
+  context.currentTime = START_QUANTUM + 2;
+  backend.RenderAudio();
+  await tick();
+  context.currentTime = START_QUANTUM + 4;
+  backend.RenderAudio();
+  await tick();
+  assert.equal(advances, 2);
+
+  context.currentTime = 5;
+  context.sources[2].onended();
+  context.currentTime = 10;
+  context.sources[0].onended();
+  assert.equal(
+    advances,
+    2,
+    "the final selection does not release the parent while an older tail lives",
+  );
+
+  context.currentTime = 11;
+  context.sources[1].onended();
+  await tick();
+
+  assert.equal(advances, 3);
+  assert.equal(context.sources[3].startedAt, 71);
+
+  context.currentTime = 71;
+  backend.RenderAudio();
+  assert.equal(advances, 3);
+  context.currentTime = 73;
+  backend.RenderAudio();
+  assert.equal(
+    advances,
+    4,
+    "the inner cadence resumes from the delayed first action",
+  );
+});
+
 test("Trigger Rate cadence continues while earlier media is still loading", async () =>
 {
   const token = {};
