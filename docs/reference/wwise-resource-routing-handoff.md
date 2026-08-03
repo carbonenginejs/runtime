@@ -429,11 +429,12 @@ EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and
 configured to process LFE. The root limiter is ShareSet `3134687450` on bus
 `4085017428`: threshold `-1 dB`, ratio `10`, lookahead `0.01 s`, release
-`0.1 s`, and `0 dB` output. Pinned wwiser proves the limiter layout, and the
-runtime now validates and decodes that static 22-byte record without admitting
-it to the shared mixer. Pinned wwiser has no Compressor parameter parser; the
-coherent Compressor field order therefore remains an empirical v150 corpus
-interpretation rather than a source-proven adapter contract. Web Audio's
+`0.1 s`, and `0 dB` output. Pinned wwiser proves the limiter layout, and an
+internal runtime decoder now validates that static 22-byte record for future
+adapter use. Production graph dispatch does not invoke it or admit the stage to
+the shared mixer. Pinned wwiser has no Compressor parameter parser; the coherent
+Compressor field order therefore remains an empirical v150 corpus interpretation
+rather than a source-proven adapter contract. Web Audio's
 `DynamicsCompressorNode` has a fixed 6 ms
 lookahead, automatic makeup and different detector/envelope behavior, and a
 maximum ratio of 20 while one EVE Compressor authors 20.1. Exact mode keeps all
