@@ -159,6 +159,23 @@ Any other value throws synchronously. `CjsAudioSystem` accepts the same option
 for lower-level composition. The mode is host runtime policy and is not stored
 in the portable audio-library document.
 
+Two further host policies control shared-route admission through explicit
+omissions:
+
+- `wwiseMeterFeedback: "omit-telemetry"` admits a static v150 Meter with a
+  Game Parameter target only when downstream-volume application is disabled.
+  The signal path is transparent, but the Meter value is not produced and any
+  authored feedback through that Game Parameter is absent. The default is
+  `"strict"`.
+- `wwiseVoiceLimits: "ignore"` admits a route whose only separately classified
+  scheduling barrier is a dynamic Audio Bus `MaxNumInstances` RTPC. The browser
+  does not enforce its changing voice-count limit or eviction behavior. The
+  default is `"strict"`.
+
+These policies are independent of `wwiseDynamics`, are validated
+synchronously, and are passed through by both `CjsAudioMan` and
+`CjsAudioSystem`.
+
 Constructor options `musicLibrary`, `loadMusicTrack`, and
 `isMusicTrackAvailable` opt into `audio.jukebox`. Runtime-audio never fetches
 song `url` or `path` hints itself. `RefreshAvailability()` plus

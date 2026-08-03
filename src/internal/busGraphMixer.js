@@ -1,6 +1,8 @@
 import {
     createBusEffectChain,
     normalizeWwiseDynamicsMode,
+    normalizeWwiseMeterFeedbackMode,
+    normalizeWwiseVoiceLimitMode,
     parseGraphSharedBusEffect,
 } from "./busEffects.js";
 import {
@@ -32,8 +34,8 @@ const SILENT_AUX_REASONS = new Set([
 /**
  * Owns the shared Web Audio node topology for strictly qualified Bus routes.
  * Accepts strict dry paths, source-proven static Parametric EQ and Delay
- * stages, explicitly feedback-free Wwise Meter telemetry omissions, and exact
- * post-effect faders for the globally shared Bus gain contributions.
+ * stages, explicit Wwise Meter telemetry omissions, and exact post-effect
+ * faders for the globally shared Bus gain contributions.
  */
 export class CjsSharedBusMixer
 {
@@ -79,6 +81,10 @@ export class CjsSharedBusMixer
 
     #wwiseDynamics = "strict";
 
+    #wwiseMeterFeedback = "strict";
+
+    #wwiseVoiceLimits = "strict";
+
     #categoryVolumes = new Map([
         [ "sfx", 1 ],
         [ "music", 1 ],
@@ -99,6 +105,8 @@ export class CjsSharedBusMixer
         getGlobalStatePropertyWeights,
         getGlobalStateTransitionBoundaries,
         wwiseDynamics = "strict",
+        wwiseMeterFeedback = "strict",
+        wwiseVoiceLimits = "strict",
     } = {})
     {
         if (!context || typeof context.createGain !== "function")
@@ -126,6 +134,12 @@ export class CjsSharedBusMixer
         this.#catalog = catalog;
         this.#destination = destination;
         this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+        this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(
+            wwiseMeterFeedback,
+        );
+        this.#wwiseVoiceLimits = normalizeWwiseVoiceLimitMode(
+            wwiseVoiceLimits,
+        );
         this.#busRtpcs = indexBusRtpcCatalog(busRtpcs);
         this.#busStates = indexBusStateCatalog(busStates);
         this.#busDuckingController = busDuckingController ?? null;
@@ -473,6 +487,11 @@ export class CjsSharedBusMixer
             const reasonSet = new Set(reasons);
             const allowedReasons = new Set(DISTRIBUTED_CONTROL_REASONS);
 
+            if (this.#wwiseVoiceLimits === "ignore")
+            {
+                allowedReasons.add("voice-limits");
+            }
+
             if (activeSlots.length) allowedReasons.add("effects");
             if (bus?.type === "auxiliary-bus")
             {
@@ -512,7 +531,10 @@ export class CjsSharedBusMixer
                     graphEffect,
                     slot.effectId,
                     slot.slotIndex,
-                    { wwiseDynamics: this.#wwiseDynamics },
+                    {
+                        wwiseDynamics: this.#wwiseDynamics,
+                        wwiseMeterFeedback: this.#wwiseMeterFeedback,
+                    },
                 );
             });
             if (effects.some(effect =>

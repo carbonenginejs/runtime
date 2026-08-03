@@ -516,7 +516,10 @@ test("validates and freezes the portable ordered Audio Bus graph", () =>
         { id: 1, rawValue: "1" },
     ];
     source.busGraph.buses["1"].channelConfig.raw = "0";
-    source.busGraph.buses["1"].requiresProcessing = [ "unsupported-rtpc" ];
+    source.busGraph.buses["1"].requiresProcessing = [
+        "voice-limits",
+        "unsupported-rtpc",
+    ];
     delete source.busGraph.routes[0].userAuxSends;
 
     const installed = installAudioLibraryDocument(source);
@@ -532,7 +535,7 @@ test("validates and freezes the portable ordered Audio Bus graph", () =>
     assert.deepEqual(installed.busGraph.routes[0].userAuxSends, []);
     assert.deepEqual(
         installed.busGraph.buses["1"].requiresProcessing,
-        [ "unsupported-rtpc" ],
+        [ "unsupported-rtpc", "voice-limits" ],
     );
 
     const controlCatalogs = [

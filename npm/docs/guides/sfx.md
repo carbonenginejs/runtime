@@ -529,11 +529,24 @@ corroborated for the audited corpus rather than proven by the pinned wwiser
 parser.
 
 The shared mixer also decodes wwiser's exact 28-byte v150 Wwise Meter layout.
-It may omit that telemetry stage only when the effect has no dynamic controls or
-media, does not apply downstream volume, and writes no Game Parameter. Such a
-Meter is audio-transparent but its monitoring behavior is still unsupported;
-feedback-capable Meters remain barriers and are never approximated with
-`AnalyserNode` polling.
+It always omits a static, media-free, control-free Meter when downstream-volume
+application is disabled and no Game Parameter is written. Such a Meter is
+audio-transparent, though its monitoring behavior remains unsupported. The
+default `wwiseMeterFeedback: "strict"` keeps a Meter with a Game Parameter
+target as a route barrier. Explicit `"omit-telemetry"` admits that Meter only
+when downstream-volume application is disabled: audio crosses the slot, but no
+Meter value is produced and authored feedback through the target Game
+Parameter is absent. Downstream-volume Meter records remain barriers.
+
+The builder separately identifies the v150 Audio Bus `MaxNumInstances` RTPC as
+the `"voice-limits"` processing reason. `wwiseVoiceLimits: "strict"` keeps that
+route blocked. Explicit `"ignore"` admits it when every other reason qualifies,
+without applying the dynamic voice count or Wwise eviction policy. Libraries
+built before this reason was introduced retain their generic
+`"unsupported-rtpc"` barrier and must be rebuilt to use the opt-in.
+Static Audio Bus maximum-instance, stealing, and virtual-voice policy is also
+not enforced by the browser voice engine; this option changes only shared-route
+admission for the separately classified dynamic RTPC barrier.
 
 `buildFromBanks()` also emits a version-1 `busGraph` topology for every routed
 SFX Sound and music track. Route records deduplicate dry ancestry plus effective

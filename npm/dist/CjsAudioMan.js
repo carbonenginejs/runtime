@@ -4,7 +4,7 @@ import { CjsSfxEngine } from './CjsSfxEngine.js';
 import { AudListener as _AudListener } from './trinity/audio/AudListener.js';
 import { AudMusicPlayer as _AudMusicPlayer } from './trinity/audio/AudMusicPlayer.js';
 import { installAudioLibraryDocument } from './library/audioLibraryDocument.js';
-import { normalizeWwiseDynamicsMode } from './internal/busEffects.js';
+import { normalizeWwiseVoiceLimitMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseDynamicsMode } from './internal/busEffects.js';
 
 // CarbonEngineJS original (no Carbon counterpart). Browser-only audio
 // composition root that installs one complete semantic library and owns
@@ -63,7 +63,9 @@ class CjsAudioMan {
     loadMusicTrack = null,
     isMusicTrackAvailable = null,
     updateContext = null,
-    wwiseDynamics = "strict"
+    wwiseDynamics = "strict",
+    wwiseMeterFeedback = "strict",
+    wwiseVoiceLimits = "strict"
   } = {}) {
     if (typeof createContext !== "function") {
       throw new TypeError("CjsAudioMan createContext must be a function");
@@ -89,7 +91,9 @@ class CjsAudioMan {
       createMusicEngine,
       applyRTPC,
       updateContext,
-      wwiseDynamics: normalizeWwiseDynamicsMode(wwiseDynamics)
+      wwiseDynamics: normalizeWwiseDynamicsMode(wwiseDynamics),
+      wwiseMeterFeedback: normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback),
+      wwiseVoiceLimits: normalizeWwiseVoiceLimitMode(wwiseVoiceLimits)
     };
     if (musicLibrary !== null || loadMusicTrack !== null || isMusicTrackAvailable !== null) {
       this.#jukebox = new CjsJukebox({

@@ -101,11 +101,19 @@ only additional barrier was the static send to a return proven silenced at
 an audible effect with Voice Volume, State filter/pitch, ducking, or action
 controls remain blocked.
 
-A source-proven v150 Wwise Meter may coexist in that sequence only when it
-writes no Game Parameter, does not apply downstream volume, and has no dynamic
-controls or media. The mixer omits this audio-transparent telemetry stage;
-faithful Meter reporting remains unsupported and every feedback-capable Meter
-still blocks the route.
+A source-proven v150 Wwise Meter may coexist in that sequence by default only
+when it writes no Game Parameter, does not apply downstream volume, and has no
+dynamic controls or media. The mixer omits this audio-transparent telemetry
+stage. Explicit `wwiseMeterFeedback: "omit-telemetry"` also admits the static
+signal-transparent subset with a Game Parameter target, but produces no Meter
+value and therefore omits any authored audio feedback through that parameter.
+Downstream-volume Meter remains blocked.
+
+Dynamic Audio Bus `MaxNumInstances` RTPC paths remain blocked by default.
+`wwiseVoiceLimits: "ignore"` may admit an otherwise qualified music route, but
+does not enforce the changing voice count, stealing, or virtual-voice policy.
+Both policies affect shared-route qualification; the legacy music path remains
+the audible fallback when a route is rejected.
 
 Version-2 `busStates` also provisions routed LPF and HPF stages for built-in
 music. Signed State offsets accumulate across the bus ancestry under the

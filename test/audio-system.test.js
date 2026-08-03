@@ -711,6 +711,65 @@ test("shared Bus dynamics remain strict unless Web Audio approximation is explic
   }), /Unsupported Wwise dynamics realization mode/u);
 });
 
+test("shared Bus Meter telemetry and voice limits require independent opt-ins", () =>
+{
+  const catalog = MixerCatalog();
+
+  AddGraphMeter(
+    catalog,
+    "500",
+    "910",
+    MeterParameters({ gameParameterId: 1312763804 }),
+  );
+  catalog.buses["500"].requiresProcessing.push("voice-limits");
+  const runtime = new CjsBusGraphRuntime(catalog);
+
+  for (const options of [
+    {},
+    { wwiseMeterFeedback: "omit-telemetry" },
+    { wwiseVoiceLimits: "ignore" },
+  ])
+  {
+    const context = MixerContext();
+    const mixer = new CjsSharedBusMixer({
+      context,
+      runtime,
+      destination: context.destination,
+      ...options,
+    });
+
+    assert.equal(
+      mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"),
+      null,
+    );
+    assert.equal(context.gains.length, 0);
+  }
+
+  const context = MixerContext();
+  const mixer = new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    wwiseMeterFeedback: "omit-telemetry",
+    wwiseVoiceLimits: "ignore",
+  });
+
+  assert.ok(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"));
+  assert.equal(context.gains.length, 3, "omitted Meter allocates no DSP node");
+  assert.throws(() => new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    wwiseMeterFeedback: "omit",
+  }), /Unsupported Wwise Meter feedback mode/u);
+  assert.throws(() => new CjsSharedBusMixer({
+    context,
+    runtime,
+    destination: context.destination,
+    wwiseVoiceLimits: "approximate",
+  }), /Unsupported Wwise voice-limit mode/u);
+});
+
 test("strict shared Bus mixer admits complete distributed controls only on transparent paths", () =>
 {
   const catalog = MixerCatalog();
@@ -1997,6 +2056,43 @@ test("CjsAudioSystem owns one Bus graph runtime for a library generation", () =>
   assert.equal(mixerInput.disconnected, true);
   assert.equal(capturedMixer.GetInput(captured.ResolveSfxRoute("100"), "sfx"), null);
   assert.equal(captured.ResolveSfxRoute("100"), null);
+});
+
+test("CjsAudioSystem forwards explicit Meter and voice-limit policies", () =>
+{
+  let runtime = null;
+  let mixer = null;
+  const catalog = MixerCatalog();
+
+  AddGraphMeter(
+    catalog,
+    "500",
+    "910",
+    MeterParameters({ gameParameterId: 1312763804 }),
+  );
+  catalog.buses["500"].requiresProcessing.push("voice-limits");
+  const system = new CjsAudioSystem({
+    createContext: () => FakeContext([]),
+    busGraph: catalog,
+    wwiseMeterFeedback: "omit-telemetry",
+    wwiseVoiceLimits: "ignore",
+    createMusicEngine(options)
+    {
+      runtime = options.busGraphRuntime;
+      mixer = options.busMixer;
+      return {
+        HandlesEvent: () => false,
+        PostEvent: () => false,
+        ExecuteAction() {},
+        Process() {},
+        Dispose() {},
+      };
+    },
+  });
+
+  system.Enable();
+  assert.ok(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"));
+  system.Dispose();
 });
 
 test("audio update context normalizes host timing without owning playback time", () =>

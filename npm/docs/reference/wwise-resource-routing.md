@@ -433,17 +433,18 @@ Pinned wwiser proves the v150 Wwise Meter's 28-byte layout: five float32 attack,
 release, minimum, maximum, and hold values; four one-byte infinite-hold, mode,
 scope, and downstream-volume fields; and one uint32 Game Parameter ID. The
 shared mixer accepts exact boolean and Peak/RMS plus Global/GameObject enum
-values, but omits the telemetry stage only when downstream-volume application
-and the Game Parameter ID are both zero and the effect has no other controls or
-media. EVE's main feedback-free Meter `651869473` reaches 12,678 SFX dry paths,
+values. By default it omits the telemetry stage only when downstream-volume
+application and the Game Parameter ID are both zero and the effect has no other
+controls or media. EVE's main feedback-free Meter `651869473` reaches 12,678 SFX dry paths,
 but only the subset with fully projected Voice/Bus Volume RTPC/State controls
 and no other barrier qualifies. Meter `902247780` similarly qualifies only the
-subset whose RTPC/State/ducking catalogs are complete. Other reachable EVE Meters write
-nonzero Game Parameters and remain hard barriers. All active reachable nonzero
-Meter targets feed audio-observable RTPCs: 34 unique dry-route records and
-1,243 SFX references cross those feedback paths. The only globally unconsumed
-nonzero target belongs to an unreachable bypassed slot and unlocks no route.
-Meter telemetry itself is not implemented.
+subset whose RTPC/State/ducking catalogs are complete. Other reachable EVE
+Meters write nonzero Game Parameters and remain barriers under the default
+`wwiseMeterFeedback: "strict"` policy. All active reachable nonzero Meter
+targets feed audio-observable RTPCs: 34 unique dry-route records and 1,243 SFX
+references cross those feedback paths. The only globally unconsumed nonzero
+target belongs to an unreachable bypassed slot and unlocks no route. Meter
+telemetry itself is not implemented.
 
 The 1,243 feedback-Meter references are an overlapping upper ceiling, not an
 immediate-unlock count. All reachable EVE Meters use Global scope, but both Peak
@@ -453,6 +454,24 @@ Parameter feedback path, and downstream-aware topology; main-thread
 `AnalyserNode` polling cannot preserve its timing. Pinned wwiser proves the
 record layout, not the detector window or envelope law, so Wwise golden vectors
 remain required before these stages can leave fail-closed qualification.
+
+`wwiseMeterFeedback: "omit-telemetry"` is the explicit audible approximation
+for the signal-transparent subset: it accepts a static Meter with a nonzero
+Game Parameter target only when downstream-volume application is false, passes
+the audio through the slot, and does not produce the target value. It adds 858
+SFX references in the audited build while preserving every other qualification
+gate. The one active downstream-volume Meter remains blocked.
+
+Pinned wwiser's v150 property table identifies decimal Audio Bus RTPC parameter
+`53` (`0x35`) as `MaxNumInstances`. EVE build 3444265 contains one such curve,
+on bus `3168327127`, mapping control `3108463768` from `0 -> 1` and `100 ->
+280`. The bus reaches 328 SFX references and also has a supported Bus Volume
+RTPC. The builder therefore emits both `"rtpc"` and `"voice-limits"` reasons.
+`wwiseVoiceLimits: "ignore"` omits the dynamic voice-count/eviction policy; it
+adds no routes by itself because all 328 paths also cross a feedback Meter, but
+adds the full 328 when combined with Meter telemetry omission. Together the
+two explicit policies add 1,186 SFX references in the audited qualification
+simulation. These are route-admission gains, not newly audible media voices.
 
 EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and

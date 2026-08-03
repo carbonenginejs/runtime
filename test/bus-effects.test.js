@@ -4,6 +4,8 @@ import {
     createBusEffectChain,
     indexBusEffectCatalog,
     normalizeWwiseDynamicsMode,
+    normalizeWwiseMeterFeedbackMode,
+    normalizeWwiseVoiceLimitMode,
     parseGraphFeedbackFreeMeter,
     parseGraphSharedBusEffect,
     parseGraphStaticWwiseCompressor,
@@ -907,6 +909,7 @@ test("decodes only feedback-free v150 Wwise Meters as audio-transparent omission
         scope: "global",
         applyDownstreamVolume: false,
         gameParameterId: 0,
+        telemetryOmitted: false,
     });
     assert.equal(floor.minimum, Math.fround(-96.3));
     assert.equal(floor.maximum, Math.fround(-96.3));
@@ -973,4 +976,64 @@ test("rejects dynamic, feedback-capable, or malformed Wwise Meters", () =>
         assert.throws(() =>
             parseGraphFeedbackFreeMeter(effect, "910", 0));
     }
+});
+
+test("omits signal-transparent Meter telemetry only through explicit policy", () =>
+{
+    const graph = GraphMeter(MeterBytes({
+        gameParameterId: 1312763804,
+    }));
+
+    assert.equal(normalizeWwiseMeterFeedbackMode(), "strict");
+    assert.equal(
+        normalizeWwiseMeterFeedbackMode("omit-telemetry"),
+        "omit-telemetry",
+    );
+    assert.throws(
+        () => normalizeWwiseMeterFeedbackMode("ignore"),
+        /Unsupported Wwise Meter feedback mode/u,
+    );
+    assert.deepEqual(
+        parseGraphSharedBusEffect(graph, "910", 2, {
+            wwiseMeterFeedback: "omit-telemetry",
+        }),
+        {
+            effectId: "910",
+            slotIndex: 2,
+            type: "meter-omission",
+            attack: 0,
+            release: Math.fround(0.3),
+            minimum: -48,
+            maximum: 0,
+            hold: 0,
+            infiniteHold: false,
+            mode: "peak",
+            scope: "global",
+            applyDownstreamVolume: false,
+            gameParameterId: 1312763804,
+            telemetryOmitted: true,
+        },
+    );
+    assert.throws(
+        () => parseGraphSharedBusEffect(
+            GraphMeter(MeterBytes({
+                applyDownstreamVolume: 1,
+                gameParameterId: 1312763804,
+            })),
+            "910",
+            0,
+            { wwiseMeterFeedback: "omit-telemetry" },
+        ),
+        /observable Wwise Meter feedback/u,
+    );
+});
+
+test("validates explicit Wwise voice-limit policy", () =>
+{
+    assert.equal(normalizeWwiseVoiceLimitMode(), "strict");
+    assert.equal(normalizeWwiseVoiceLimitMode("ignore"), "ignore");
+    assert.throws(
+        () => normalizeWwiseVoiceLimitMode("omit"),
+        /Unsupported Wwise voice-limit mode/u,
+    );
 });

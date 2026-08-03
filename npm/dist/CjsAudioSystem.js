@@ -9,7 +9,7 @@ import { createAudioUpdateContext } from './CjsAudioUpdateContext.js';
 import { CjsBusDuckingController } from './internal/busDucking.js';
 import { CjsBusGraphRuntime } from './internal/busGraphRuntime.js';
 import { CjsSharedBusMixer } from './internal/busGraphMixer.js';
-import { normalizeWwiseDynamicsMode } from './internal/busEffects.js';
+import { normalizeWwiseDynamicsMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode } from './internal/busEffects.js';
 
 // CarbonEngineJS original (no Carbon counterpart). The audio system
 // composition root: owns the AudManager + AudStaticDataRepository + WebAudio
@@ -68,6 +68,8 @@ class CjsAudioSystem {
   #busMixer = null;
   #providedUpdateContext = null;
   #wwiseDynamics = "strict";
+  #wwiseMeterFeedback = "strict";
+  #wwiseVoiceLimits = "strict";
   #adoptedEmitters = new Set();
   #adoptedCurveSetDrivers = new Set();
 
@@ -95,7 +97,9 @@ class CjsAudioSystem {
     busDucking,
     busEffects,
     busGraph,
-    wwiseDynamics = "strict"
+    wwiseDynamics = "strict",
+    wwiseMeterFeedback = "strict",
+    wwiseVoiceLimits = "strict"
   } = {}) {
     this.#createContext = createContext ?? null;
     this.#loadBuffer = loadBuffer ?? null;
@@ -118,6 +122,8 @@ class CjsAudioSystem {
     this.#busEffects = busEffects ?? null;
     this.#busGraph = busGraph ?? null;
     this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+    this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
+    this.#wwiseVoiceLimits = normalizeWwiseVoiceLimitMode(wwiseVoiceLimits);
     this.#providedUpdateContext = updateContext ?? null;
     if (audioMetadata) {
       this.repository.Initialize(audioMetadata);
@@ -185,7 +191,9 @@ class CjsAudioSystem {
           getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
           getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
           getGlobalStateTransitionBoundaries: from => this.backend.GetGlobalStateTransitionBoundaries(from),
-          wwiseDynamics: this.#wwiseDynamics
+          wwiseDynamics: this.#wwiseDynamics,
+          wwiseMeterFeedback: this.#wwiseMeterFeedback,
+          wwiseVoiceLimits: this.#wwiseVoiceLimits
         }) : null;
         this.backend.SetBusMixer(this.#busMixer);
         if (!this.musicEngine) {

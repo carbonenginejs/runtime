@@ -2249,7 +2249,10 @@ class JukeboxUi
 }
 
 
-function CreateBusGraphLabCatalog({ gameParameterId = 0 } = {})
+function CreateBusGraphLabCatalog({
+    gameParameterId = 0,
+    voiceLimits = false,
+} = {})
 {
     const meterBytes = new Uint8Array(28);
     const meter = new DataView(meterBytes.buffer);
@@ -2378,7 +2381,10 @@ function CreateBusGraphLabCatalog({ gameParameterId = 0 } = {})
                         rendered: false,
                     },
                 ],
-                requiresProcessing: [ "effects" ],
+                requiresProcessing: [
+                    "effects",
+                    ...(voiceLimits ? [ "voice-limits" ] : []),
+                ],
             }),
             "501": bus({
                 parentBusId: "1",
@@ -2523,7 +2529,10 @@ class BusGraphLabUi
         }
         try
         {
-            const catalog = CreateBusGraphLabCatalog();
+            const catalog = CreateBusGraphLabCatalog({
+                gameParameterId: 42,
+                voiceLimits: true,
+            });
 
             this.#runtime = new CjsBusGraphRuntime(catalog);
             this.#mixer = new CjsSharedBusMixer({
@@ -2531,6 +2540,8 @@ class BusGraphLabUi
                 runtime: this.#runtime,
                 destination,
                 wwiseDynamics: "approximate-web-audio",
+                wwiseMeterFeedback: "omit-telemetry",
+                wwiseVoiceLimits: "ignore",
             });
             const sfxHandle = this.#runtime.ResolveSfxRoute("100");
             const delayHandle = this.#runtime.ResolveSfxRoute("101");
@@ -2549,7 +2560,8 @@ class BusGraphLabUi
                 && this.#mixer.GetInput(sfxHandle, "sfx") === sfxInput;
             const categoriesSeparated = sfxInput && musicInput
                 && sfxInput !== musicInput;
-            const feedbackRejected = this.#FeedbackMeterIsRejected(context);
+            const approximationsExplicit =
+                this.#ApproximatePoliciesAreExplicit(context);
             const delayTopologyPass = this.#DelayTopologyIsExact();
             const auxTopologyPass = this.#AuxTopologyIsExact();
 
@@ -2567,7 +2579,7 @@ class BusGraphLabUi
                 && delayInput !== sfxInput
                 && delayTopologyPass
                 && auxTopologyPass
-                && feedbackRejected,
+                && approximationsExplicit,
             );
             const installedText = installed
                 ? `EVE ${installed.qualifiedSfx}/${installed.sfxRefs} SFX, `
@@ -2717,27 +2729,41 @@ class BusGraphLabUi
         this.#status.title = label;
     }
 
-    #FeedbackMeterIsRejected(context)
+    #ApproximatePoliciesAreExplicit(context)
     {
         const sink = context.createGain();
         const runtime = new CjsBusGraphRuntime(
-            CreateBusGraphLabCatalog({ gameParameterId: 42 }),
+            CreateBusGraphLabCatalog({
+                gameParameterId: 42,
+                voiceLimits: true,
+            }),
         );
-        const mixer = new CjsSharedBusMixer({
+        const strict = new CjsSharedBusMixer({
             context,
             runtime,
             destination: sink,
         });
+        const approximate = new CjsSharedBusMixer({
+            context,
+            runtime,
+            destination: sink,
+            wwiseMeterFeedback: "omit-telemetry",
+            wwiseVoiceLimits: "ignore",
+        });
         try
         {
-            return mixer.GetInput(
+            return strict.GetInput(
                 runtime.ResolveSfxRoute("100"),
                 "sfx",
-            ) === null;
+            ) === null && approximate.GetInput(
+                runtime.ResolveSfxRoute("100"),
+                "sfx",
+            ) !== null;
         }
         finally
         {
-            mixer.Dispose();
+            strict.Dispose();
+            approximate.Dispose();
             runtime.Dispose();
             sink.disconnect();
         }
@@ -2905,6 +2931,8 @@ class BusGraphLabUi
             getGlobalStateTransitionBoundaries: from =>
                 backend?.GetGlobalStateTransitionBoundaries(from) ?? [],
             wwiseDynamics: "approximate-web-audio",
+            wwiseMeterFeedback: "omit-telemetry",
+            wwiseVoiceLimits: "ignore",
         });
         try
         {
@@ -3796,6 +3824,8 @@ class DemoApp
             this.audio = new CjsAudioMan(this.library.raw, {
                 distanceScale: ACOUSTIC_SCALE,
                 wwiseDynamics: "approximate-web-audio",
+                wwiseMeterFeedback: "omit-telemetry",
+                wwiseVoiceLimits: "ignore",
                 createContext: () => this.media.CreateContext(),
                 mediaProvider: this.media,
                 // Keep the authored music graph deterministic in this demo so

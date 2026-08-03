@@ -57,6 +57,8 @@ const SFX_PITCH_PROPERTY = 1;
 const SFX_LOW_PASS_PROPERTY = 2;
 const SFX_HIGH_PASS_PROPERTY = 3;
 const BUS_VOLUME_RTPC_PROPERTY = 4;
+// Wwise v150 AkPropID::MaxNumInstances. This is scheduling policy, not DSP.
+const BUS_MAX_NUM_INSTANCES_RTPC_PROPERTY = 53;
 const BUS_RTPC_PROPERTIES = new Map([
     [ SFX_VOLUME_PROPERTY, "voice-volume" ],
     [ BUS_VOLUME_RTPC_PROPERTY, "bus-volume" ],
@@ -3751,10 +3753,23 @@ function CreateBusGraphCatalog(inspections, musicInspections, buses)
         if (bus.hdr?.enabled) reasons.push("hdr");
         if (bus.rtpcs?.length)
         {
-            reasons.push(bus.rtpcs.every(rtpc =>
-                BUS_RTPC_PROPERTIES.has(Number(rtpc.parameterId)))
-                ? "rtpc"
-                : "unsupported-rtpc");
+            const parameterIds = bus.rtpcs.map(rtpc =>
+                Number(rtpc.parameterId));
+
+            if (parameterIds.some(id => BUS_RTPC_PROPERTIES.has(id)))
+            {
+                reasons.push("rtpc");
+            }
+            if (parameterIds.includes(BUS_MAX_NUM_INSTANCES_RTPC_PROPERTY))
+            {
+                reasons.push("voice-limits");
+            }
+            if (parameterIds.some(id =>
+                !BUS_RTPC_PROPERTIES.has(id)
+                    && id !== BUS_MAX_NUM_INSTANCES_RTPC_PROPERTY))
+            {
+                reasons.push("unsupported-rtpc");
+            }
         }
         if (bus.state?.properties?.length || bus.state?.groups?.length)
         {

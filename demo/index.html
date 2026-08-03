@@ -386,8 +386,8 @@
     <section class="card" id="busGraphLab">
       <div class="sectionHeader">
         <div>
-          <div class="sectionTitle"><h2>Wwise Bus graph lab</h2><button class="infoButton" type="button" aria-label="About the Wwise Bus graph lab" data-tip="Exercises the shared mixer with exact synthetic v150 Meter, Parametric EQ, Delay, and user-Aux records plus the explicit approximate Web Audio dynamics policy. Compressor and Peak Limiter preserve authored bus placement and slot order, but their DSP is not Wwise-equivalent. The diagnostic also proves exact Delay/Aux topology and rejects a Meter which writes a Game Parameter.">i</button></div>
-          <p class="sectionNote">Exact routing plus opt-in approximate dynamics</p>
+          <div class="sectionTitle"><h2>Wwise Bus graph lab</h2><button class="infoButton" type="button" aria-label="About the Wwise Bus graph lab" data-tip="Exercises the shared mixer with exact synthetic v150 Meter, Parametric EQ, Delay, and user-Aux records plus explicit browser approximation policies. Compressor and Peak Limiter preserve authored bus placement and slot order, Meter signal flow omits Game Parameter telemetry, and voice-count scheduling is ignored. Strict defaults reject both omissions.">i</button></div>
+          <p class="sectionNote">Exact routing plus explicit browser approximations</p>
         </div>
       </div>
       <p id="busGraphStatus" class="labStatus" data-state="idle">enable audio to initialize the Bus graph lab</p>

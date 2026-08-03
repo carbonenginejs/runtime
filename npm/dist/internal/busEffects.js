@@ -4,6 +4,8 @@ const WWISE_COMPRESSOR_PLUGIN_ID = 0x006c0003;
 const WWISE_PEAK_LIMITER_PLUGIN_ID = 0x006e0003;
 const WWISE_METER_PLUGIN_ID = 0x00810003;
 const WWISE_DYNAMICS_MODES = new Set(["strict", "approximate-web-audio"]);
+const WWISE_METER_FEEDBACK_MODES = new Set(["strict", "omit-telemetry"]);
+const WWISE_VOICE_LIMIT_MODES = new Set(["strict", "ignore"]);
 const FILTER_TYPE_NAMES = Object.freeze(["lowpass", "highpass", "bandpass", "notch", "lowshelf", "highshelf", "peaking"]);
 const FILTER_TYPES = Object.freeze(new Set(FILTER_TYPE_NAMES));
 const MIN_GAIN_DB = -200;
@@ -40,6 +42,24 @@ function normalizeWwiseDynamicsMode(value = "strict") {
   const mode = String(value);
   if (!WWISE_DYNAMICS_MODES.has(mode)) {
     throw new TypeError(`Unsupported Wwise dynamics realization mode: ${mode}`);
+  }
+  return mode;
+}
+
+/** Validates the host policy for observable Wwise Meter telemetry. */
+function normalizeWwiseMeterFeedbackMode(value = "strict") {
+  const mode = String(value);
+  if (!WWISE_METER_FEEDBACK_MODES.has(mode)) {
+    throw new TypeError(`Unsupported Wwise Meter feedback mode: ${mode}`);
+  }
+  return mode;
+}
+
+/** Validates host policy for the dynamic MaxNumInstances RTPC barrier. */
+function normalizeWwiseVoiceLimitMode(value = "strict") {
+  const mode = String(value);
+  if (!WWISE_VOICE_LIMIT_MODES.has(mode)) {
+    throw new TypeError(`Unsupported Wwise voice-limit mode: ${mode}`);
   }
   return mode;
 }
@@ -420,10 +440,12 @@ function parseGraphStaticWwiseCompressor(effect, effectId, slotIndex) {
 }
 
 /**
- * Decodes a v150 Wwise Meter whose omitted telemetry cannot feed back into the
- * authored graph. The Meter remains behaviorally unsupported but audio-neutral.
+ * Decodes a v150 Wwise Meter whose signal path is transparent. Telemetry may
+ * be omitted only through explicit policy when it could feed the authored graph.
  */
-function parseGraphFeedbackFreeMeter(effect, effectId, slotIndex) {
+function parseGraphFeedbackFreeMeter(effect, effectId, slotIndex, {
+  wwiseMeterFeedback = "strict"
+} = {}) {
   const label = `Audio Bus graph effect ${effectId}`;
   const bytes = RequireStaticGraphEffect(effect, WWISE_METER_PLUGIN_ID, 28, label, "Wwise Meter");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -437,10 +459,11 @@ function parseGraphFeedbackFreeMeter(effect, effectId, slotIndex) {
   const scopeRaw = view.getUint8(22);
   const applyDownstreamVolumeRaw = view.getUint8(23);
   const gameParameterId = view.getUint32(24, true);
+  const feedbackMode = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
   if (!Number.isFinite(attack) || attack < 0 || attack > METER_MAX_TIME || !Number.isFinite(release) || release < 0 || release > METER_MAX_TIME || !Number.isFinite(minimum) || minimum < METER_MINIMUM_MIN || minimum > METER_MINIMUM_MAX || !Number.isFinite(maximum) || maximum < METER_MAXIMUM_MIN || maximum > METER_MAXIMUM_MAX || minimum > maximum || !Number.isFinite(hold) || hold < 0 || hold > METER_MAX_TIME || infiniteHoldRaw > 1 || modeRaw > 1 || scopeRaw > 1 || applyDownstreamVolumeRaw > 1) {
     throw new TypeError(`${label} has invalid Wwise Meter parameters`);
   }
-  if (applyDownstreamVolumeRaw !== 0 || gameParameterId !== 0) {
+  if (applyDownstreamVolumeRaw !== 0 || gameParameterId !== 0 && feedbackMode !== "omit-telemetry") {
     throw new TypeError(`${label} has observable Wwise Meter feedback`);
   }
   return {
@@ -456,22 +479,27 @@ function parseGraphFeedbackFreeMeter(effect, effectId, slotIndex) {
     mode: modeRaw === 0 ? "peak" : "rms",
     scope: scopeRaw === 0 ? "global" : "game-object",
     applyDownstreamVolume: false,
-    gameParameterId: 0
+    gameParameterId,
+    telemetryOmitted: gameParameterId !== 0
   };
 }
 
 /** Decodes one effect admitted by the selected shared Bus realization policy. */
 function parseGraphSharedBusEffect(effect, effectId, slotIndex, {
-  wwiseDynamics = "strict"
+  wwiseDynamics = "strict",
+  wwiseMeterFeedback = "strict"
 } = {}) {
   const dynamicsMode = normalizeWwiseDynamicsMode(wwiseDynamics);
+  const meterFeedbackMode = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
   switch (effect?.pluginId) {
     case PARAMETRIC_EQ_PLUGIN_ID:
       return parseGraphStaticParametricEq(effect, effectId, slotIndex);
     case WWISE_DELAY_PLUGIN_ID:
       return parseGraphStaticWwiseDelay(effect, effectId, slotIndex);
     case WWISE_METER_PLUGIN_ID:
-      return parseGraphFeedbackFreeMeter(effect, effectId, slotIndex);
+      return parseGraphFeedbackFreeMeter(effect, effectId, slotIndex, {
+        wwiseMeterFeedback: meterFeedbackMode
+      });
     case WWISE_COMPRESSOR_PLUGIN_ID:
       if (dynamicsMode === "approximate-web-audio") {
         return RequireApproximateDynamics(parseGraphStaticWwiseCompressor(effect, effectId, slotIndex), "compressor-approximation");
@@ -577,5 +605,5 @@ function PositiveFinite(value, label) {
   return number;
 }
 
-export { PARAMETRIC_EQ_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_DELAY_PLUGIN_ID, WWISE_METER_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, createBusEffectChain, indexBusEffectCatalog, normalizeWwiseDynamicsMode, parseGraphFeedbackFreeMeter, parseGraphSharedBusEffect, parseGraphStaticParametricEq, parseGraphStaticWwiseCompressor, parseGraphStaticWwiseDelay, parseGraphStaticWwisePeakLimiter, parseStaticParametricEqBytes };
+export { PARAMETRIC_EQ_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_DELAY_PLUGIN_ID, WWISE_METER_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, createBusEffectChain, indexBusEffectCatalog, normalizeWwiseDynamicsMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode, parseGraphFeedbackFreeMeter, parseGraphSharedBusEffect, parseGraphStaticParametricEq, parseGraphStaticWwiseCompressor, parseGraphStaticWwiseDelay, parseGraphStaticWwisePeakLimiter, parseStaticParametricEqBytes };
 //# sourceMappingURL=busEffects.js.map

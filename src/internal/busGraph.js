@@ -11,6 +11,7 @@ const PROCESSING_REASONS = new Set([
     "rtpc",
     "state",
     "unsupported-rtpc",
+    "voice-limits",
 ]);
 const GAIN_PROPERTY_FIELDS = new Map([
     [ 0x04, "busVolumeDb" ],

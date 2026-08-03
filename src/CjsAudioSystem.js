@@ -17,7 +17,11 @@ import { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";
 import { CjsBusDuckingController } from "./internal/busDucking.js";
 import { CjsBusGraphRuntime } from "./internal/busGraphRuntime.js";
 import { CjsSharedBusMixer } from "./internal/busGraphMixer.js";
-import { normalizeWwiseDynamicsMode } from "./internal/busEffects.js";
+import {
+    normalizeWwiseDynamicsMode,
+    normalizeWwiseMeterFeedbackMode,
+    normalizeWwiseVoiceLimitMode,
+} from "./internal/busEffects.js";
 
 /** Audio system composition root: repository + manager + backend, attached to the graph seams. */
 export class CjsAudioSystem
@@ -104,6 +108,10 @@ export class CjsAudioSystem
 
     #wwiseDynamics = "strict";
 
+    #wwiseMeterFeedback = "strict";
+
+    #wwiseVoiceLimits = "strict";
+
     #adoptedEmitters = new Set();
 
     #adoptedCurveSetDrivers = new Set();
@@ -133,6 +141,8 @@ export class CjsAudioSystem
         busEffects,
         busGraph,
         wwiseDynamics = "strict",
+        wwiseMeterFeedback = "strict",
+        wwiseVoiceLimits = "strict",
     } = {})
     {
         this.#createContext = createContext ?? null;
@@ -170,6 +180,12 @@ export class CjsAudioSystem
         this.#busEffects = busEffects ?? null;
         this.#busGraph = busGraph ?? null;
         this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+        this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(
+            wwiseMeterFeedback,
+        );
+        this.#wwiseVoiceLimits = normalizeWwiseVoiceLimitMode(
+            wwiseVoiceLimits,
+        );
         this.#providedUpdateContext = updateContext ?? null;
         if (audioMetadata)
         {
@@ -254,6 +270,8 @@ export class CjsAudioSystem
                         getGlobalStateTransitionBoundaries: from =>
                             this.backend.GetGlobalStateTransitionBoundaries(from),
                         wwiseDynamics: this.#wwiseDynamics,
+                        wwiseMeterFeedback: this.#wwiseMeterFeedback,
+                        wwiseVoiceLimits: this.#wwiseVoiceLimits,
                     })
                     : null;
                 this.backend.SetBusMixer(this.#busMixer);

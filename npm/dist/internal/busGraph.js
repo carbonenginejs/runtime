@@ -1,6 +1,6 @@
 const BUS_TYPES = new Set(["audio-bus", "auxiliary-bus"]);
 const EFFECT_TYPES = new Set(["effect-custom", "effect-share-set"]);
-const PROCESSING_REASONS = new Set(["auxiliary-bus", "aux-sends", "ducking", "dynamic-aux", "effects", "hdr", "positioning", "rtpc", "state", "unsupported-rtpc"]);
+const PROCESSING_REASONS = new Set(["auxiliary-bus", "aux-sends", "ducking", "dynamic-aux", "effects", "hdr", "positioning", "rtpc", "state", "unsupported-rtpc", "voice-limits"]);
 const GAIN_PROPERTY_FIELDS = new Map([[0x04, "busVolumeDb"], [0x05, "makeUpGainDb"], [0x0d, "outputBusVolumeDb"]]);
 
 /** Validates and normalizes one portable Wwise bus-topology catalog. */

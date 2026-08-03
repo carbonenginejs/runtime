@@ -184,6 +184,22 @@ function Deferred()
     return { promise, reject, resolve };
 }
 
+test("CjsAudioMan validates shared Bus approximation policies", () =>
+{
+    assert.throws(
+        () => new CjsAudioMan(null, { wwiseMeterFeedback: "omit" }),
+        /Unsupported Wwise Meter feedback mode/u,
+    );
+    assert.throws(
+        () => new CjsAudioMan(null, { wwiseVoiceLimits: "approximate" }),
+        /Unsupported Wwise voice-limit mode/u,
+    );
+    assert.doesNotThrow(() => new CjsAudioMan(null, {
+        wwiseMeterFeedback: "omit-telemetry",
+        wwiseVoiceLimits: "ignore",
+    }));
+});
+
 test("CjsAudioMan installs State ID/name aliases through its backend", () =>
 {
     const library = CreateDocument();

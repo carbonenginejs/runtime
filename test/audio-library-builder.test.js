@@ -3663,6 +3663,18 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
             },
             WemFileIDs: {},
         },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "200",
+                    ShortName: "init",
+                    GameParameters: [
+                        { Id: "800", Name: "bus_volume" },
+                        { Id: "801", Name: "voice_limit" },
+                    ],
+                } ],
+            },
+        },
         indexEntries: [ {
             logicalPath: "res:/audio/init.bnk",
             storagePath: "banks/init.bnk",
@@ -3675,6 +3687,20 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
                     bankId: 200,
                     languageId: 0,
                     bankVersion: 150,
+                    globalSettings: {
+                        filterBehavior: 1,
+                        stateGroups: [],
+                        switchGroups: [],
+                        rtpcParameters: [ {
+                            id: 800,
+                            defaultValue: 0,
+                            rampType: 0,
+                            rampUp: 0,
+                            rampDown: 0,
+                            builtInParameter: 0,
+                        } ],
+                        acousticTextures: [],
+                    },
                     hirc: [
                         {
                             type: 2,
@@ -3752,6 +3778,22 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
                                     controlId: 800,
                                     controlType: 0,
                                     accumulation: 2,
+                                    parameterId: 4,
+                                    curveId: 76,
+                                    scaling: 2,
+                                    points: [ [ 0, 0, 4 ] ],
+                                }, {
+                                    controlId: 801,
+                                    controlType: 0,
+                                    accumulation: 1,
+                                    parameterId: 53,
+                                    curveId: 77,
+                                    scaling: 0,
+                                    points: [ [ 0, 1, 4 ], [ 100, 280, 4 ] ],
+                                }, {
+                                    controlId: 800,
+                                    controlType: 0,
+                                    accumulation: 2,
                                     parameterId: 5,
                                     curveId: 78,
                                     scaling: 2,
@@ -3816,7 +3858,11 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
     } ]);
     assert.deepEqual(
         library.busGraph.buses["500"].requiresProcessing,
-        [ "aux-sends", "unsupported-rtpc" ],
+        [ "aux-sends", "rtpc", "unsupported-rtpc", "voice-limits" ],
+    );
+    assert.deepEqual(
+        library.busRtpcs.buses["500"].map(curve => curve.property),
+        [ "bus-volume" ],
     );
     assert.deepEqual(library.busGraph.buses["1"].reflectionsAuxSend, {
         targetBusId: "800",
