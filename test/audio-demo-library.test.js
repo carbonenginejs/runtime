@@ -75,6 +75,34 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(validateAudioLibraryDocument(library), true);
     assert.equal(graph.schemaVersion, 2);
     assert.ok(Object.keys(graph.programs).length > 0);
+    assert.ok(
+        Object.keys(library.busRtpcs?.buses ?? {}).length > 0,
+        "the committed demo retains authored Audio Bus RTPCs",
+    );
+    assert.ok(
+        Object.keys(library.busStates?.buses ?? {}).length > 0,
+        "the committed demo retains authored Audio Bus States",
+    );
+    assert.ok(
+        Object.keys(library.busDucking?.sources ?? {}).length > 0,
+        "the committed demo retains authored Audio Bus ducking",
+    );
+    assert.ok(
+        Object.keys(library.busGraph?.buses ?? {}).length > 0,
+        "the committed demo retains the authored Audio Bus graph",
+    );
+    assert.ok(
+        Object.keys(library.busGraph?.effects ?? {}).length > 0,
+        "the committed demo retains qualified Audio Bus effects",
+    );
+    assert.ok(
+        Object.keys(library.busGraph?.sfxRoutes ?? {}).length > 0,
+        "the committed demo routes real EVE SFX through the bus graph",
+    );
+    assert.ok(
+        Object.keys(library.busGraph?.musicRoutes ?? {}).length > 0,
+        "the committed demo routes real EVE music through the bus graph",
+    );
 
     for (const [ eventName, branchId, layerId ] of [
         [ "jita_hangar_play", "154203244", "147683999" ],

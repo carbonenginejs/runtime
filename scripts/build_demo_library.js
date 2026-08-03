@@ -60,7 +60,15 @@ const demoLibrary = {
   eventMediaLanguage: library.eventMediaLanguage,
   embeddedMedia: library.embeddedMedia,
   sfx: library.sfx,
-  music: library.music
+  music: library.music,
+  // These catalogs are part of authored playback, not optional enrichment.
+  // Omitting them leaves ordinary demo events on the legacy dry path and
+  // makes only the synthetic Bus Graph lab exercise routing/effects.
+  busRtpcs: library.busRtpcs,
+  busStates: library.busStates,
+  busDucking: library.busDucking,
+  busEffects: library.busEffects,
+  busGraph: library.busGraph
 };
 
 const outPath = path.resolve(ReadOption("--out") ?? path.join(root, "demo", "audio-library.json"));
