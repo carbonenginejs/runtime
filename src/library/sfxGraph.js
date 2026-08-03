@@ -117,6 +117,8 @@ export function validateSfxGraph(
             node,
             `Audio library SFX node ${id}`,
         );
+        ValidateVoiceLimit(node.voiceLimit, node.type,
+            `Audio library SFX node ${id} voiceLimit`);
         ValidateRtpcCurves(
             node.rtpcCurves,
             `Audio library SFX node ${id} rtpcCurves`,
@@ -569,6 +571,7 @@ function NormalizeNode(node)
         type: node.type,
         ...NormalizeGain(node),
         ...NormalizeNodePlaybackProperties(node),
+        ...NormalizeVoiceLimit(node.voiceLimit),
         ...NormalizeRtpcCurves(node),
         ...NormalizeStateProperties(node),
     };
@@ -1014,6 +1017,22 @@ function NormalizeNodePlaybackProperties(value)
     }
 
     return result;
+}
+
+function NormalizeVoiceLimit(value)
+{
+    if (value === undefined)
+    {
+        return {};
+    }
+    return {
+        voiceLimit: {
+            counterId: String(Number(value.counterId) >>> 0),
+            scope: value.scope,
+            maxInstances: Number(value.maxInstances),
+            behavior: value.behavior,
+        },
+    };
 }
 
 function NormalizeRtpcCurves(value)
@@ -2601,6 +2620,29 @@ function ValidateNodePlaybackProperties(value, label)
         value.initialDelayRangesMs,
         `${label} initialDelayRangesMs`,
     );
+}
+
+function ValidateVoiceLimit(value, nodeType, label)
+{
+    if (value === undefined)
+    {
+        return;
+    }
+    const limit = RequireRecord(value, label);
+
+    if (nodeType !== "sound")
+    {
+        throw new TypeError(`${label} is supported only on sound nodes`);
+    }
+    NormalizePositiveID(limit.counterId, `${label} counterId`);
+    if (limit.scope !== "game-object"
+        || Number(limit.maxInstances) !== 1
+        || limit.behavior !== "reject-newest")
+    {
+        throw new TypeError(
+            `${label} must be the supported game-object cap-one reject-newest policy`,
+        );
+    }
 }
 
 function ValidateRtpcCurves(value, label)

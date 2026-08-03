@@ -65,7 +65,15 @@ Only `schemaVersion: 2` is accepted:
 `embeddedMedia` identifies an original bank plus `offset` and `byteLength`.
 Every bank key and `sourceID` is its `bankID:languageID` identity.
 When present, `sfx` selects and layers those media identities using the
-version-2 portable SFX graph.
+version-2 portable SFX graph. A Sound may carry the sole supported scheduling
+policy `voiceLimit: { counterId, scope: "game-object", maxInstances: 1,
+behavior: "reject-newest" }`. The backend reserves it synchronously at an
+immediate Play boundary, before media delivery, so pending acquisition counts.
+Future Play/Initial Delay, Continuous Delay, and Crossfade-prefetch shapes are
+omitted because Wwise admits them at their later playback boundary. The builder emits
+the field only after qualifying inherited virtual behavior, effective
+priority, and the complete bus route; arbitrary policies are rejected by
+document validation rather than approximated.
 When present, `busRtpcs` is a version-2 catalog keyed by bus ID. Each entry
 retains named global Game Parameter curves for Voice Volume or Bus Volume as
 raw Wwise scaling-2 values, including the authored parameter default, a

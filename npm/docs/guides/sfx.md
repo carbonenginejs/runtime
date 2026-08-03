@@ -139,7 +139,7 @@ exact parameter-name catalog match.
 
 | Type | Behavior |
 | --- | --- |
-| `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, `spatial` selects the panner (`true`) or flat SFX route (`false`), and `dryVolumeCurve` retains the leaf's Wwise distance gain. |
+| `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, `spatial` selects the panner (`true`) or flat SFX route (`false`), `dryVolumeCurve` retains the leaf's Wwise distance gain, and the qualified `voiceLimit` shape reserves a cap-one per-game-object instance before media acquisition. |
 | `silence` | Produces no voice. This preserves authored empty switch/state cases without falling through to the default. |
 | `random` | Chooses one weighted child. `mode: "shuffle"` exhausts a pool before refilling it; `avoidRepeat` excludes recent choices. |
 | `sequence` | Chooses the next child for each post; `loop: false` produces no further leaves after the final child. |
@@ -545,8 +545,52 @@ without applying the dynamic voice count or Wwise eviction policy. Libraries
 built before this reason was introduced retain their generic
 `"unsupported-rtpc"` barrier and must be rebuilt to use the opt-in.
 Static Audio Bus maximum-instance, stealing, and virtual-voice policy is also
-not enforced by the browser voice engine; this option changes only shared-route
-admission for the separately classified dynamic RTPC barrier.
+not enforced; this option changes only shared-route admission for the
+separately classified dynamic RTPC barrier.
+
+One independent v150 Sound policy is enforced before media acquisition:
+
+```js
+voiceLimit: {
+    counterId: "602217068",
+    scope: "game-object",
+    maxInstances: 1,
+    behavior: "reject-newest"
+}
+```
+
+The builder emits this only for a Sound whose packed Advanced Settings are the
+EVE `0x09` form (cap one, kill-newest tie break, local scope, ignore parent
+limit, and no over-limit virtualization), whose effective inherited
+below-threshold behavior is Continue, and whose effective priority path has no
+randomizer, RTPC, or State mutation. The complete output-bus ancestry must
+also have no static cap or `MaxNumInstances` RTPC. The per-object scope bit is
+corroborated by wwiser's older explicit `bIsGlobalLimit` field and the paired
+v150 `0x09`/`0x0d` corpus forms; a controlled Wwise golden pair is still the
+remaining format-level proof.
+
+Reservations count still-loading selections after their Play boundary. A
+duplicate Sound on the same game object is rejected in deterministic selection
+order without loading its media; another game object remains independent.
+Cancellation, failed acquisition, Stop, and physical completion release the
+reservation.
+Continuous completion releases before selecting its successor; Trigger Rate
+keeps its authored cadence while a duplicate choice is rejected, Continuous
+Switch replaces an obsolete pending reservation before rerouting the same
+Sound and stays dormant until its next control change.
+
+Future admission is deliberately excluded: the builder omits `voiceLimit` from
+Sounds reachable through a positive Play/Initial Delay, a positive Continuous
+Delay, or Continuous Crossfade prefetch. The backend also rejects a custom
+delayed limit, and fails a custom capped Crossfade traversal closed, instead of
+reserving either too early. Wwise evaluates the
+limit at the future playback boundary; prefetching media is not itself an
+instance. Exact authored-time admission for those shapes remains unsupported.
+
+This is not a general Wwise voice arbiter. Global Sound limits, caps above one,
+priority-based stealing, project-wide maximum voices and volume threshold,
+parent/container and Audio Bus limits, dynamic limit RTPCs, virtual queues,
+below-threshold Kill/Virtual behavior, and virtual re-entry remain unsupported.
 
 `buildFromBanks()` also emits a version-1 `busGraph` topology for every routed
 SFX Sound and music track. Route records deduplicate dry ancestry plus effective

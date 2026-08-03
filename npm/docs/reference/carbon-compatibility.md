@@ -32,7 +32,8 @@ bus processing omitted.
 | Parametric EQ and Wwise Delay | Browser adaptation | Source-proven parameters, bus placement, and slot order are retained; Web Audio biquad/delay DSP is not bit-equivalent to Wwise. |
 | Wwise Compressor and Peak Limiter | Opt-in approximation | `wwiseDynamics: "approximate-web-audio"` admits only static, linked, all-channel records. The default `"strict"` policy keeps them out of the shared mixer and uses the legacy audible fallback. |
 | Wwise Meter | Proven omission or opt-in approximation | Feedback-free telemetry is audio-transparent and allocates no node. `wwiseMeterFeedback: "omit-telemetry"` may also pass static Meter signal flow while omitting a Game Parameter output; downstream-volume Meter remains unsupported. |
-| Dynamic Audio Bus `MaxNumInstances` RTPC | Unsupported behavior with opt-in route admission | Static bus limits, stealing, and virtual-voice policy are not enforced. `wwiseVoiceLimits: "ignore"` additionally admits separately classified dynamic RTPC paths without enforcing their changing count or eviction behavior; the default `"strict"` keeps those paths outside shared routing. |
+| Qualified Sound `MaxNumInstances` | Corroborated browser adaptation | A v150 local-scope cap-one, reject-newest Sound subset reserves at an immediate Play boundary before media acquisition and releases at physical completion. Qualification requires effective Continue virtual behavior and excludes dynamic/random Priority, capped bus routes, delayed admission, and Crossfade prefetch. The packed local/global scope bit is corpus-corroborated pending a controlled golden pair; general Wwise arbitration remains unsupported. |
+| Dynamic Audio Bus `MaxNumInstances` RTPC | Unsupported behavior with opt-in route admission | Static and dynamic bus limits, priority stealing, and virtual-voice policy are not enforced. `wwiseVoiceLimits: "ignore"` additionally admits separately classified dynamic RTPC paths without enforcing their changing count or eviction behavior; the default `"strict"` keeps those paths outside shared routing. |
 | Proven-silent Aux return | Proven omission | A complete return at or below `-96 dB` is omitted; a narrowly qualified static SFX Aux shape is exact topology, and other wet paths remain barriers. |
 | Rejected shared route | Fallback | SFX remains on its existing emitter/SFX destination and music remains on its legacy segment/instance/output path; authored blocked bus stages are omitted. |
 | Master safety compressor | Browser workaround | A separate fixed Web Audio compressor (`-6 dB`, knee `6 dB`, `12:1`, `3 ms`, `250 ms`) limits all output when supported. It is not an authored Wwise effect; without the node capability output connects directly. |
@@ -74,6 +75,10 @@ The maintained graph includes:
   transitions, Step Switch/State, the qualified Continuous Switch/State subset
   with per-child fades and nested switch sessions, parallel/blend, per-leaf
   spatial routing, gain, and linear RTPC-curve data;
+- immediate Play-boundary per-game-object admission for the qualified v150
+  Sound cap-one/reject-newest subset, including pending media, immediate
+  Continuous completion, and Continuous Switch reroutes, with deterministic
+  cancellation and lifetime release;
 - ordered object/global Set and Reset Game Parameter actions with absolute or
   relative values, randomized delays, Wwise transition curves, persistent
   timelines, capture-time ordering, and live gain, pitch, and filter updates;
@@ -231,7 +236,8 @@ telemetry remains unsupported.
 Voice Volume RTPCs use a distinct pre-bus SFX gain on qualified transparent
 paths. Unsupported RTPC bindings, route-local controls crossing an audible shared effect,
 other audible auxiliary sends, other effect processing
-and tails, feedback-capable meters, and virtual-voice behavior remain deferred
+and tails, feedback-capable meters, general priority/instance arbitration,
+project and bus voice limits, and virtual-voice behavior remain deferred
 as described in the
 [Wwise routing requirements](wwise-resource-routing.md).
 

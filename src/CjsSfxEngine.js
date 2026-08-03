@@ -1121,6 +1121,9 @@ export class CjsSfxEngine
                 ...(node.dryVolumeCurve === undefined
                     ? {}
                     : { dryVolumeCurve: node.dryVolumeCurve }),
+                ...(node.voiceLimit === undefined
+                    ? {}
+                    : { voiceLimit: node.voiceLimit }),
                 gainDb: terms.gainDb,
                 gainCurves: Object.freeze([ ...terms.gainCurves ]),
                 ...(rtpcCurves.length ? { rtpcCurves } : {}),

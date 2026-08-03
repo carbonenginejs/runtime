@@ -37,6 +37,7 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
     }
     ValidateGain(node, `Audio library SFX node ${id}`);
     ValidateNodePlaybackProperties(node, `Audio library SFX node ${id}`);
+    ValidateVoiceLimit(node.voiceLimit, node.type, `Audio library SFX node ${id} voiceLimit`);
     ValidateRtpcCurves(node.rtpcCurves, `Audio library SFX node ${id} rtpcCurves`);
     ValidateStateProperties(node.stateProperties, `Audio library SFX node ${id} stateProperties`);
     if (node.type === "sound" || node.type === "silence") {
@@ -262,6 +263,7 @@ function NormalizeNode(node) {
     type: node.type,
     ...NormalizeGain(node),
     ...NormalizeNodePlaybackProperties(node),
+    ...NormalizeVoiceLimit(node.voiceLimit),
     ...NormalizeRtpcCurves(node),
     ...NormalizeStateProperties(node)
   };
@@ -510,6 +512,19 @@ function NormalizeNodePlaybackProperties(value) {
     }
   }
   return result;
+}
+function NormalizeVoiceLimit(value) {
+  if (value === undefined) {
+    return {};
+  }
+  return {
+    voiceLimit: {
+      counterId: String(Number(value.counterId) >>> 0),
+      scope: value.scope,
+      maxInstances: Number(value.maxInstances),
+      behavior: value.behavior
+    }
+  };
 }
 function NormalizeRtpcCurves(value) {
   if (value.rtpcCurves === undefined) {
@@ -1337,6 +1352,19 @@ function ValidateNodePlaybackProperties(value, label) {
   ValidateRandomRanges(value.lowPassRanges, `${label} lowPassRanges`);
   ValidateRandomRanges(value.highPassRanges, `${label} highPassRanges`);
   ValidateRandomRanges(value.initialDelayRangesMs, `${label} initialDelayRangesMs`);
+}
+function ValidateVoiceLimit(value, nodeType, label) {
+  if (value === undefined) {
+    return;
+  }
+  const limit = RequireRecord(value, label);
+  if (nodeType !== "sound") {
+    throw new TypeError(`${label} is supported only on sound nodes`);
+  }
+  NormalizePositiveID(limit.counterId, `${label} counterId`);
+  if (limit.scope !== "game-object" || Number(limit.maxInstances) !== 1 || limit.behavior !== "reject-newest") {
+    throw new TypeError(`${label} must be the supported game-object cap-one reject-newest policy`);
+  }
 }
 function ValidateRtpcCurves(value, label) {
   if (value === undefined) {

@@ -1009,6 +1009,49 @@ test("Continuous container scheduling is normalized and validated", () =>
     );
 });
 
+test("Sound cap-one reject-newest policy is normalized and constrained", () =>
+{
+    const media = { "100": { resPath: "res:/audio/100.wem" } };
+    const graph = {
+        schemaVersion: 2,
+        events: { capped: [ { nodeId: "1" } ] },
+        nodes: {
+            "1": {
+                type: "sound",
+                mediaId: "100",
+                voiceLimit: {
+                    counterId: 77,
+                    scope: "game-object",
+                    maxInstances: 1,
+                    behavior: "reject-newest",
+                },
+            },
+        },
+    };
+    const normalized = normalizeSfxGraph(graph, media);
+
+    assert.deepEqual(normalized.nodes["1"].voiceLimit, {
+        counterId: "77",
+        scope: "game-object",
+        maxInstances: 1,
+        behavior: "reject-newest",
+    });
+
+    for (const mutate of [
+        value => { value.nodes["1"].voiceLimit.scope = "global"; },
+        value => { value.nodes["1"].voiceLimit.maxInstances = 2; },
+        value => { value.nodes["1"].voiceLimit.behavior = "kill-oldest"; },
+        value => { value.nodes["1"].voiceLimit.counterId = 0; },
+        value => { value.nodes["1"].type = "parallel"; },
+    ])
+    {
+        const invalid = structuredClone(graph);
+
+        mutate(invalid);
+        assert.throws(() => normalizeSfxGraph(invalid, media));
+    }
+});
+
 test("Continuous Switch transitions are normalized and validated", () =>
 {
     const graph = {

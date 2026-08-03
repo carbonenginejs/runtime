@@ -76,6 +76,7 @@ const BUS_STATE_FIELDS = new Map([
 const DUCK_VOICE_VOLUME_PROPERTY = 0;
 const DUCK_BUS_VOLUME_PROPERTY = 4;
 const SFX_INITIAL_DELAY_PROPERTY = 34;
+const WWISE_PRIORITY_PROPERTY = 0x06;
 const WWISE_OUTPUT_BUS_VOLUME_PROPERTY = 0x0d;
 const WWISE_USER_AUX_VOLUME_PROPERTY = 0x08;
 const WWISE_USER_AUX_LOW_PASS_PROPERTY = 0x10;
@@ -1594,6 +1595,13 @@ function LowerSfxGraph({
             Object.assign(
                 node,
                 CreateSfxNodeBasePlaybackProjection(parsed, id, names),
+                source.type === "sound"
+                    ? CreateSfxSoundVoiceLimitProjection(
+                        parsed,
+                        id,
+                        buses,
+                    )
+                    : {},
             );
             nodes[id] = node;
             lowered.set(id, id);
@@ -1946,6 +1954,7 @@ function LowerSfxGraph({
         leavesByEvent,
         stopTargetsByEvent,
     );
+    OmitFutureScheduledVoiceLimits(events, programs, nodes);
     const pruned = PruneSfxNodes(events, nodes);
 
     return {
@@ -1982,6 +1991,103 @@ function HasSfxPlayActionTiming(action, includeFade)
         || (includeFade
             && (details.transitionTimeMs !== undefined
                 || details.transitionRangeMs !== undefined));
+}
+
+// Playback limiting is evaluated when Wwise starts the pending Sound, not when
+// an earlier delayed action or Crossfade prefetch first selects its media. The
+// browser arbiter currently admits at selection time, so keep those future
+// scheduling shapes out of the otherwise exact cap-one projection.
+function OmitFutureScheduledVoiceLimits(events, programs, nodes)
+{
+    const visited = new Set();
+    const delayed = value =>
+    {
+        const base = Number(value?.delayMs) || 0;
+        const maximum = Number(value?.delayRangeMs?.max) || 0;
+
+        return base + maximum > 0;
+    };
+    const visit = (child, future) =>
+    {
+        const rawID = child && typeof child === "object"
+            ? child.nodeId
+            : child;
+
+        if (rawID === undefined || rawID === null || rawID === "")
+        {
+            return;
+        }
+        const id = String(rawID);
+        const risk = future
+            || (child && typeof child === "object" && delayed(child));
+        const key = `${id}\0${risk ? 1 : 0}`;
+
+        if (visited.has(key))
+        {
+            return;
+        }
+        visited.add(key);
+        const node = nodes[id];
+
+        if (!node)
+        {
+            return;
+        }
+        if (node.type === "sound")
+        {
+            const maximumRandomDelay = (node.initialDelayRangesMs ?? [])
+                .reduce((sum, range) =>
+                    sum + (Number(range.max) || 0), 0);
+            const ownDelay = (Number(node.initialDelayMs) || 0)
+                    + maximumRandomDelay > 0
+                || (node.rtpcCurves ?? []).some(curve =>
+                    curve.property === "initialDelay");
+
+            if (risk || ownDelay)
+            {
+                delete node.voiceLimit;
+            }
+            return;
+        }
+
+        const continuousFuture = node.continuous !== undefined
+            && (node.continuous.transition === "crossfade-amplitude"
+                || node.continuous.transition === "crossfade-power"
+                || (node.continuous.transition === "delay"
+                    && (Number(node.continuous.transitionMs) || 0)
+                        + (Number(
+                            node.continuous.transitionRangeMs?.max,
+                        ) || 0) > 0));
+        const childFuture = risk || continuousFuture;
+
+        for (const nested of node.children ?? [])
+        {
+            visit(nested, childFuture);
+        }
+        for (const nested of Object.values(node.cases ?? {}))
+        {
+            visit(nested, childFuture);
+        }
+        visit(node.default, childFuture);
+    };
+
+    for (const roots of Object.values(events))
+    {
+        for (const root of roots)
+        {
+            visit(root, false);
+        }
+    }
+    for (const program of Object.values(programs))
+    {
+        for (const operation of program)
+        {
+            if (operation.kind === "play")
+            {
+                visit(operation.child, false);
+            }
+        }
+    }
 }
 
 function ReadSfxPlayActionChild(child, action, includeFade)
@@ -4795,6 +4901,108 @@ function AddSet(target, source)
     {
         target.add(value);
     }
+}
+
+// Wwise's complete voice arbiter combines hierarchy, bus, project, priority,
+// and virtual-voice policy. Project only the one EVE Sound shape whose local
+// reject-newest result remains determinate after resolving those authored
+// ancestors. Everything broader stays absent from the portable graph.
+function CreateSfxSoundVoiceLimitProjection(parsed, rawID, buses)
+{
+    const id = Number(rawID) >>> 0;
+    const nodeBase = parsed.nodeBases?.get(id);
+    const advanced = nodeBase?.advanced;
+
+    if (!nodeBase
+        || advanced?.flags !== 0x09
+        || advanced.maxInstances !== 1
+        || !(buses instanceof Map))
+    {
+        return {};
+    }
+
+    const chain = [];
+    const visited = new Set();
+    let currentID = id;
+
+    while (currentID)
+    {
+        if (visited.has(currentID))
+        {
+            return {};
+        }
+        visited.add(currentID);
+        const current = parsed.nodeBases?.get(currentID);
+
+        if (!current)
+        {
+            return {};
+        }
+        chain.push(current);
+        if (!Number(current.directParentId))
+        {
+            break;
+        }
+        currentID = Number(current.directParentId) >>> 0;
+    }
+
+    const virtualOwner = chain.find(value =>
+        value.advanced?.overrideVirtualVoiceBehavior)
+        ?? chain.at(-1);
+
+    if (virtualOwner?.advanced?.belowThresholdBehavior !== 0)
+    {
+        return {};
+    }
+
+    const priorityPath = [];
+
+    for (const current of chain)
+    {
+        priorityPath.push(current);
+        if (current.priority?.overrideParent)
+        {
+            break;
+        }
+    }
+    if (priorityPath.some(current =>
+        (current.ranges ?? []).some(range =>
+            Number(range.id) === WWISE_PRIORITY_PROPERTY)
+        || (current.rtpcs ?? []).some(rtpc =>
+            Number(rtpc.parameterId) === WWISE_PRIORITY_PROPERTY)
+        || (current.state?.groups ?? []).some(group =>
+            (group.states ?? []).some(state =>
+                (state.values ?? []).some(value =>
+                    Number(value.propertyId) === WWISE_PRIORITY_PROPERTY)))))
+    {
+        return {};
+    }
+
+    const routing = CreateSfxBusRouting(parsed, id, buses);
+
+    if (!routing?.busPathIds?.length
+        || routing.busPathIds.some(rawBusID =>
+        {
+            const bus = buses.get(Number(rawBusID) >>> 0);
+
+            return !bus
+                || Number(bus.policy?.maxInstances) > 0
+                || (bus.rtpcs ?? []).some(rtpc =>
+                    Number(rtpc.parameterId)
+                        === BUS_MAX_NUM_INSTANCES_RTPC_PROPERTY);
+        }))
+    {
+        return {};
+    }
+
+    return {
+        voiceLimit: {
+            counterId: String(id),
+            scope: "game-object",
+            maxInstances: 1,
+            behavior: "reject-newest",
+        },
+    };
 }
 
 function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)

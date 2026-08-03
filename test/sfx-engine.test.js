@@ -63,6 +63,33 @@ test("authored NodeBase properties and randomizers resolve once per post", () =>
     assert.deepEqual(samples, []);
 });
 
+test("Sound voice-limit policy reaches every resolved physical selection", () =>
+{
+    const voiceLimit = {
+        counterId: "77",
+        scope: "game-object",
+        maxInstances: 1,
+        behavior: "reject-newest",
+    };
+    const engine = new CjsSfxEngine({
+        graph: Graph(
+            { capped: [ { nodeId: "1" } ] },
+            {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    voiceLimit,
+                },
+            },
+        ),
+    });
+
+    assert.deepEqual(
+        engine.ResolveEvent("capped")[0].voiceLimit,
+        voiceLimit,
+    );
+});
+
 test("authored relative volume and pitch clamp after hierarchy accumulation", () =>
 {
     const engine = new CjsSfxEngine({

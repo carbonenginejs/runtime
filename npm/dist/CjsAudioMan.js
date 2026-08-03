@@ -839,9 +839,9 @@ class CjsAudioMan {
     const eventSpatial = !Boolean(this.#library?.metadata?.Events?.[eventName]?.is2D);
     if (this.#sfxEngine?.HandlesEvent(eventName)) {
       const engine = this.#sfxEngine;
-      const program = Array.isArray(resolvedProgram) ? resolvedProgram : engine.ResolveProgram(eventName, controls) ?? [];
+      let program = Array.isArray(resolvedProgram) ? resolvedProgram : engine.ResolveProgram(eventName, controls) ?? [];
       if (!Array.isArray(resolvedProgram)) {
-        controls.installSfxProgram?.(program);
+        program = controls.installSfxProgram?.(program) ?? program;
       }
       const selections = program.flatMap(operation => operation.kind === "play" ? operation.selections : []);
       if (!selections.length) {
@@ -850,8 +850,14 @@ class CjsAudioMan {
         };
       }
       const buffers = await Promise.all(selections.map(selection => {
+        if (selection.voiceLimitRejected === true) {
+          return Promise.resolve(null);
+        }
         const programSlotId = selection.programSlotId ?? `${selection.actionIndex}:${selection.leafIndex}`;
         const selectionSignal = controls.getSfxProgramSignal?.(programSlotId, selection.actionIndex, selection.leafIndex, selection.programBatchId) ?? controls.signal;
+        if (selectionSignal?.aborted) {
+          return Promise.resolve(null);
+        }
         return this.LoadMedia(selection.mediaID, {
           signal: selectionSignal
         }).catch(error => {
@@ -887,6 +893,7 @@ class CjsAudioMan {
           authoredBusVolumeDb: selection.authoredBusVolumeDb,
           authoredBusMakeUpGainDb: selection.authoredBusMakeUpGainDb,
           authoredOutputBusVolumeDb: selection.authoredOutputBusVolumeDb,
+          voiceLimitReservationId: selection.voiceLimitReservationId,
           getPlaybackRate: (at = undefined) => engine.EvaluatePlaybackRate(selection, controls, undefined, at),
           getPlaybackRateAtVoicePitchCents: (value, at = undefined) => engine.EvaluatePlaybackRate(selection, controls, value, at),
           spatial: selection.spatial ?? eventSpatial,

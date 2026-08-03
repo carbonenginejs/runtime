@@ -74,6 +74,12 @@ export class CjsAudioBackend
 
     #playing = new Map();
 
+    #voiceLimitReservations = new Map();
+
+    #voiceLimitReservationKeys = new Map();
+
+    #nextVoiceLimitReservationID = 1;
+
     #scheduledSfxActions = [];
 
     #globalRtpcValues = new Map();
@@ -427,6 +433,7 @@ export class CjsAudioBackend
         const playingID = this.#nextPlayingID++;
         const controller = new AbortController();
         const record = {
+            playingID,
             eventID,
             gameObjID,
             emitter,
@@ -451,6 +458,7 @@ export class CjsAudioBackend
             loading: false,
             posting: true,
             sfxControls: null,
+            voiceLimitReservations: new Set(),
         };
         this.#playing.set(playingID, record);
 
@@ -481,7 +489,7 @@ export class CjsAudioBackend
                 if (resolvedProgram !== null
                     && resolvedProgram !== undefined)
                 {
-                    this.#InstallSfxProgram(
+                    resolvedProgram = this.#InstallSfxProgram(
                         playingID,
                         record,
                         resolvedProgram,
@@ -616,6 +624,8 @@ export class CjsAudioBackend
                                 selectionMetadata.authoredBusMakeUpGainDb,
                             authoredOutputBusVolumeDb:
                                 selectionMetadata.authoredOutputBusVolumeDb,
+                            voiceLimitReservationId:
+                                selectionMetadata.voiceLimitReservationId,
                             switchPath: selectionMetadata.switchPath,
                             switchFadeInMs:
                                 selectionMetadata.switchFadeInMs,
@@ -781,6 +791,12 @@ export class CjsAudioBackend
                 return;
             }
             this.#FinishSfxPlaying(playingID);
+        }).finally(() =>
+        {
+            this.#ReleasePendingSfxVoiceLimitReservations(
+                record,
+                resolvedProgram,
+            );
         });
 
         return playingID;
@@ -858,14 +874,14 @@ export class CjsAudioBackend
                 slot.continuation = null;
                 slot.broken = true;
                 slot.generation++;
-                AbortProgramSlot(slot);
+                this.#AbortSfxProgramSlot(record, slot);
                 for (const batch of slot.batches?.values?.() ?? [])
                 {
                     if (batch.state === "loading"
                         || batch.state === "pending")
                     {
                         batch.state = "cancelled";
-                        AbortTriggerRateBatch(batch);
+                        this.#AbortSfxProgramBatch(record, batch);
                     }
                 }
                 if (slot.state === "pending"
@@ -1717,13 +1733,13 @@ export class CjsAudioBackend
                     || batch.state === "pending")
                 {
                     batch.state = "cancelled";
-                    AbortTriggerRateBatch(batch);
+                    this.#AbortSfxProgramBatch(record, batch);
                 }
             }
             if (slot.state === "loading")
             {
                 slot.generation++;
-                AbortProgramSlot(slot);
+                this.#AbortSfxProgramSlot(record, slot);
             }
 
             for (const voice of slot.voices)
@@ -1735,6 +1751,10 @@ export class CjsAudioBackend
                     voice.stopping = true;
                     voice.cancelledBeforeStart = true;
                     this.#EndVoiceDucking(voice, now, true);
+                    this.#ReleaseSfxVoiceLimitReservation(
+                        record,
+                        voice.voiceLimitReservationId,
+                    );
                     if (voice.source)
                     {
                         voice.source.onended = null;
@@ -2014,6 +2034,206 @@ export class CjsAudioBackend
         return true;
     }
 
+    /** Reserves supported Sound caps before any asynchronous media request. */
+    #ReserveSfxProgram(record, program)
+    {
+        if (!Array.isArray(program))
+        {
+            throw new TypeError("Resolved SFX program is invalid");
+        }
+        const created = [];
+
+        try
+        {
+            return program.map(operation =>
+            {
+                if (operation.kind !== "play")
+                {
+                    return operation;
+                }
+                const originalSelections = operation.selections ?? [];
+                const selections = [];
+
+                for (const selection of originalSelections)
+                {
+                    const limit = selection.voiceLimit;
+
+                    if (limit === undefined)
+                    {
+                        selections.push(selection);
+                        continue;
+                    }
+                    const counterNumber = Number(limit?.counterId);
+
+                    if (!limit
+                        || typeof limit !== "object"
+                        || Array.isArray(limit)
+                        || limit.scope !== "game-object"
+                        || Number(limit.maxInstances) !== 1
+                        || limit.behavior !== "reject-newest"
+                        || !Number.isSafeInteger(counterNumber)
+                        || counterNumber <= 0
+                        || counterNumber > 0xffffffff
+                        || String(counterNumber) !== String(limit.counterId)
+                        || Number(selection.delayMs) > 0)
+                    {
+                        throw new TypeError(
+                            "Resolved SFX voice limit is unsupported",
+                        );
+                    }
+
+                    const counterId = String(counterNumber);
+                    const key = `o:${String(record.gameObjID)}\0${counterId}`;
+
+                    if (this.#voiceLimitReservationKeys.has(key))
+                    {
+                        selections.push({
+                            ...selection,
+                            voiceLimitRejected: true,
+                        });
+                        continue;
+                    }
+                    const reservationID = this.#nextVoiceLimitReservationID++;
+                    const reservation = {
+                        id: reservationID,
+                        key,
+                        owner: record,
+                        voice: null,
+                    };
+
+                    this.#voiceLimitReservations.set(
+                        reservationID,
+                        reservation,
+                    );
+                    this.#voiceLimitReservationKeys.set(key, reservationID);
+                    record.voiceLimitReservations.add(reservationID);
+                    created.push(reservationID);
+                    selections.push({
+                        ...selection,
+                        voiceLimitReservationId: reservationID,
+                    });
+                }
+
+                return {
+                    ...operation,
+                    selections: Object.freeze(selections),
+                };
+            });
+        }
+        catch (error)
+        {
+            for (const reservationID of created)
+            {
+                this.#ReleaseSfxVoiceLimitReservation(
+                    record,
+                    reservationID,
+                );
+            }
+            throw error;
+        }
+    }
+
+    /** Binds a pending admission token to its realized physical voice. */
+    #BindSfxVoiceLimitReservation(voice, reservationID)
+    {
+        if (reservationID === undefined)
+        {
+            return;
+        }
+        const reservation = this.#voiceLimitReservations.get(
+            Number(reservationID),
+        );
+
+        if (!reservation
+            || reservation.voice
+            || reservation.owner.gameObjID !== voice.gameObjID
+            || this.#playing.get(reservation.owner.playingID)
+                !== reservation.owner)
+        {
+            throw new Error("SFX voice-limit reservation is no longer active");
+        }
+        reservation.voice = voice;
+    }
+
+    /** Releases one admission token owned by the expected playing record. */
+    #ReleaseSfxVoiceLimitReservation(record, reservationID)
+    {
+        const id = Number(reservationID);
+        const reservation = this.#voiceLimitReservations.get(id);
+
+        if (!reservation || reservation.owner !== record)
+        {
+            return;
+        }
+        this.#voiceLimitReservations.delete(id);
+        if (this.#voiceLimitReservationKeys.get(reservation.key) === id)
+        {
+            this.#voiceLimitReservationKeys.delete(reservation.key);
+        }
+        record.voiceLimitReservations.delete(id);
+    }
+
+    /** Releases reservations whose selected media never became a voice. */
+    #ReleasePendingSfxVoiceLimitReservations(record, program)
+    {
+        for (const operation of Array.isArray(program) ? program : [])
+        {
+            for (const selection of operation.kind === "play"
+                ? operation.selections ?? []
+                : [])
+            {
+                this.#ReleasePendingSfxVoiceLimitSelections(
+                    record,
+                    [ selection ],
+                );
+            }
+        }
+    }
+
+    /** Releases unclaimed tokens attached to selected program metadata. */
+    #ReleasePendingSfxVoiceLimitSelections(record, selections)
+    {
+        for (const selection of selections ?? [])
+        {
+            const id = selection.voiceLimitReservationId;
+            const reservation = this.#voiceLimitReservations.get(Number(id));
+
+            if (id !== undefined
+                && reservation?.owner === record
+                && !reservation.voice)
+            {
+                this.#ReleaseSfxVoiceLimitReservation(record, id);
+            }
+        }
+    }
+
+    /** Aborts one slot and releases only tokens not yet bound to a voice. */
+    #AbortSfxProgramSlot(record, slot)
+    {
+        this.#ReleasePendingSfxVoiceLimitSelections(
+            record,
+            slot?.selections,
+        );
+        for (const batch of slot?.batches?.values?.() ?? [])
+        {
+            this.#ReleasePendingSfxVoiceLimitSelections(
+                record,
+                batch.selections,
+            );
+        }
+        AbortProgramSlot(slot);
+    }
+
+    /** Aborts one overlapping batch without retaining an unclaimed cap. */
+    #AbortSfxProgramBatch(record, batch)
+    {
+        this.#ReleasePendingSfxVoiceLimitSelections(
+            record,
+            batch?.selections,
+        );
+        AbortTriggerRateBatch(batch);
+    }
+
     /** Installs one synchronously resolved authored SFX program. */
     #InstallSfxProgram(playingID, record, program)
     {
@@ -2031,11 +2251,20 @@ export class CjsAudioBackend
         record.sfxProgram = true;
         record.programSlots = new Map();
         record.planningProgram = true;
+        const installedProgram = [];
 
         try
         {
-            for (const operation of program)
+            for (const rawOperation of program)
             {
+                const operation = rawOperation.kind === "play"
+                    ? this.#ReserveSfxProgram(
+                        record,
+                        [ rawOperation ],
+                    )[0]
+                    : rawOperation;
+
+                installedProgram.push(operation);
                 if (operation.kind === "play")
                 {
                     const continuations = new Map();
@@ -2092,7 +2321,10 @@ export class CjsAudioBackend
                             ),
                             matchIds,
                             selections: Object.freeze(selectionMetadata),
-                            cancelledSelectionKeys: new Set(),
+                            cancelledSelectionKeys:
+                                CreateProgramCancelledSelectionKeys(
+                                    selectionMetadata,
+                                ),
                             pauseDepths: new Map(),
                             selectionControllers:
                                 CreateProgramSelectionControllers(
@@ -2209,7 +2441,10 @@ export class CjsAudioBackend
                             selections: Object.freeze([
                                 selectionMetadata,
                             ]),
-                            cancelledSelectionKeys: new Set(),
+                            cancelledSelectionKeys:
+                                CreateProgramCancelledSelectionKeys([
+                                    selectionMetadata,
+                                ]),
                             pauseDepths: new Map(),
                             selectionControllers:
                                 CreateProgramSelectionControllers([
@@ -2279,6 +2514,7 @@ export class CjsAudioBackend
             record.planningProgram = false;
         }
         this.#MaybeFinishSfxProgram(playingID, record);
+        return installedProgram;
     }
 
     /** Executes every authored SFX action whose absolute time has arrived. */
@@ -3271,8 +3507,8 @@ export class CjsAudioBackend
             return;
         }
 
-        const play = program.find(operation => operation.kind === "play");
-        const continuation = play?.continuations?.find(value =>
+        let play = program.find(operation => operation.kind === "play");
+        let continuation = play?.continuations?.find(value =>
             value.programSlotId === slot.id);
 
         if (!play
@@ -3288,6 +3524,28 @@ export class CjsAudioBackend
             this.#MaybeFinishSfxProgram(playingID, record);
             return;
         }
+        try
+        {
+            this.#ReleasePendingSfxVoiceLimitSelections(
+                record,
+                slot.selections,
+            );
+            program = this.#ReserveSfxProgram(record, program);
+        }
+        catch
+        {
+            slot.continuation = null;
+            slot.broken = true;
+            slot.exhausted = true;
+            slot.state = [ ...slot.voices ].some(voice => !voice.ended)
+                ? "voice"
+                : "ended";
+            this.#MaybeFinishSfxProgram(playingID, record);
+            return;
+        }
+        play = program.find(operation => operation.kind === "play");
+        continuation = play.continuations.find(value =>
+            value.programSlotId === slot.id);
 
         const now = Number(this.#context.currentTime) || 0;
         const previousSwitchGeneration = slot.switchGeneration;
@@ -3301,7 +3559,7 @@ export class CjsAudioBackend
         const selectionMetadata = selections.map(selection =>
             CreateProgramSelectionMetadata(selection, now));
 
-        AbortProgramSlot(slot);
+        this.#AbortSfxProgramSlot(record, slot);
         slot.controller = new AbortController();
         slot.continuation = continuation.token;
         slot.exhausted = false;
@@ -3309,7 +3567,8 @@ export class CjsAudioBackend
             continuation.switchGroups,
         );
         slot.selections = Object.freeze(selectionMetadata);
-        slot.cancelledSelectionKeys = new Set();
+        slot.cancelledSelectionKeys =
+            CreateProgramCancelledSelectionKeys(selectionMetadata);
         slot.selectionControllers = CreateProgramSelectionControllers(
             selectionMetadata,
         );
@@ -3408,6 +3667,8 @@ export class CjsAudioBackend
                             selection.authoredBusMakeUpGainDb,
                         authoredOutputBusVolumeDb:
                             selection.authoredOutputBusVolumeDb,
+                        voiceLimitReservationId:
+                            selection.voiceLimitReservationId,
                         switchPath: selection.switchPath,
                         switchFadeInMs: selection.switchFadeInMs,
                         switchGeneration,
@@ -3489,6 +3750,9 @@ export class CjsAudioBackend
                 slot.state = "active";
                 this.#DisposeEndedSlotVoices(record, slot);
             }
+        }).finally(() =>
+        {
+            this.#ReleasePendingSfxVoiceLimitReservations(record, program);
         });
     }
 
@@ -3590,6 +3854,10 @@ export class CjsAudioBackend
 
                     slot.cancelledSelectionKeys?.add(key);
                     slot.selectionControllers?.get(key)?.abort();
+                    this.#ReleasePendingSfxVoiceLimitSelections(
+                        record,
+                        [ selection ],
+                    );
                 }
 
                 if (slot.state === "pending"
@@ -3602,7 +3870,7 @@ export class CjsAudioBackend
                         slot.exhausted = true;
                         slot.nextTriggerContextTime = null;
                         slot.generation++;
-                        AbortProgramSlot(slot);
+                        this.#AbortSfxProgramSlot(record, slot);
                         if (slot.currentBatch)
                         {
                             slot.currentBatch.state = "cancelled";
@@ -3641,7 +3909,7 @@ export class CjsAudioBackend
                     slot.exhausted = true;
                     slot.nextTriggerContextTime = null;
                     slot.generation++;
-                    AbortProgramSlot(slot);
+                    this.#AbortSfxProgramSlot(record, slot);
                 }
             }
 
@@ -3700,7 +3968,7 @@ export class CjsAudioBackend
             slot.exhausted = true;
             slot.generation++;
             slot.switchGeneration++;
-            AbortProgramSlot(slot);
+            this.#AbortSfxProgramSlot(record, slot);
         }
         else
         {
@@ -3710,6 +3978,10 @@ export class CjsAudioBackend
 
                 slot.cancelledSelectionKeys.add(key);
                 slot.selectionControllers?.get(key)?.abort();
+                this.#ReleasePendingSfxVoiceLimitSelections(
+                    record,
+                    [ selection ],
+                );
             }
         }
 
@@ -3802,6 +4074,10 @@ export class CjsAudioBackend
 
             batch.cancelledSelectionKeys.add(key);
             batch.selectionControllers?.get(key)?.abort();
+            this.#ReleasePendingSfxVoiceLimitSelections(
+                record,
+                [ selection ],
+            );
         }
         for (const batch of batches)
         {
@@ -3814,7 +4090,7 @@ export class CjsAudioBackend
                     )))
             {
                 batch.state = "cancelled";
-                AbortTriggerRateBatch(batch);
+                this.#AbortSfxProgramBatch(record, batch);
             }
         }
         for (const voice of matchingVoices)
@@ -3857,7 +4133,7 @@ export class CjsAudioBackend
                     || batch.state === "pending")
                 {
                     batch.state = "cancelled";
-                    AbortTriggerRateBatch(batch);
+                    this.#AbortSfxProgramBatch(record, batch);
                 }
             }
         }
@@ -4537,6 +4813,8 @@ export class CjsAudioBackend
                 Number(descriptor.switchGeneration) || 0,
             ),
             programBatchId: descriptor.programBatchId,
+            voiceLimitReservationId:
+                descriptor.voiceLimitReservationId,
             crossfadeMode: descriptor.crossfadeMode ?? null,
             gain,
             busVoiceGain,
@@ -4581,6 +4859,10 @@ export class CjsAudioBackend
         this.#ApplyVoiceBusGain(voice);
         this.#ApplyVoiceFilters(voice);
         this.#ApplyVoicePlaybackRate(voice);
+        this.#BindSfxVoiceLimitReservation(
+            voice,
+            descriptor.voiceLimitReservationId,
+        );
         return voice;
     }
 
@@ -4900,6 +5182,10 @@ export class CjsAudioBackend
         );
         voice.ended = true;
         voice.source?.disconnect?.();
+        this.#ReleaseSfxVoiceLimitReservation(
+            record,
+            voice.voiceLimitReservationId,
+        );
 
         if (record.sfxProgram)
         {
@@ -4919,6 +5205,10 @@ export class CjsAudioBackend
     /** Marks the logical slot behind one realized program voice complete. */
     #SetSfxProgramSlotEnded(playingID, record, voice)
     {
+        this.#ReleaseSfxVoiceLimitReservation(
+            record,
+            voice.voiceLimitReservationId,
+        );
         if (!record.sfxProgram)
         {
             return;
@@ -5052,9 +5342,9 @@ export class CjsAudioBackend
             return;
         }
 
-        const play = program.find(operation =>
+        let play = program.find(operation =>
             operation.kind === "play");
-        const continuation = play?.continuations?.find(value =>
+        let continuation = play?.continuations?.find(value =>
             value.programSlotId === slot.id);
 
         if (!play || !continuation)
@@ -5062,17 +5352,41 @@ export class CjsAudioBackend
             this.#ExhaustSfxProgramSlot(slot);
             return;
         }
-        const generation = ++slot.generation;
-
-        slot.state = "loading";
-        AbortProgramSlot(slot);
-        slot.controller = new AbortController();
-        slot.continuation = continuation.token;
-        slot.exhausted = continuation.doneAfterBatch === true;
-        slot.transitionDelayMs = Math.max(
+        const pendingTransitionDelayMs = Math.max(
             0,
             Number(continuation.delayMs) || 0,
         );
+        const pendingSelections = (play.selections ?? [])
+            .filter(selection =>
+                selection.programSlotId === slot.id);
+
+        if (pendingTransitionDelayMs > 0
+            && pendingSelections.some(selection =>
+                selection.voiceLimit !== undefined))
+        {
+            this.#ExhaustSfxProgramSlot(slot);
+            return;
+        }
+        try
+        {
+            program = this.#ReserveSfxProgram(record, program);
+        }
+        catch
+        {
+            this.#ExhaustSfxProgramSlot(slot);
+            return;
+        }
+        play = program.find(operation => operation.kind === "play");
+        continuation = play.continuations.find(value =>
+            value.programSlotId === slot.id);
+        const generation = ++slot.generation;
+
+        slot.state = "loading";
+        this.#AbortSfxProgramSlot(record, slot);
+        slot.controller = new AbortController();
+        slot.continuation = continuation.token;
+        slot.exhausted = continuation.doneAfterBatch === true;
+        slot.transitionDelayMs = pendingTransitionDelayMs;
         const batchSelections = (play.selections ?? [])
             .filter(selection =>
                 selection.programSlotId === slot.id);
@@ -5085,7 +5399,8 @@ export class CjsAudioBackend
             ));
 
         slot.selections = Object.freeze(selectionMetadata);
-        slot.cancelledSelectionKeys = new Set();
+        slot.cancelledSelectionKeys =
+            CreateProgramCancelledSelectionKeys(selectionMetadata);
         slot.selectionControllers = CreateProgramSelectionControllers(
             selectionMetadata,
         );
@@ -5151,6 +5466,8 @@ export class CjsAudioBackend
                                 selection.authoredBusMakeUpGainDb,
                             authoredOutputBusVolumeDb:
                                 selection.authoredOutputBusVolumeDb,
+                            voiceLimitReservationId:
+                                selection.voiceLimitReservationId,
                         }
                         : descriptor,
                     record.emitterNodes,
@@ -5208,6 +5525,9 @@ export class CjsAudioBackend
                     : "ended";
                 this.#MaybeFinishSfxProgram(playingID, record);
             }
+        }).finally(() =>
+        {
+            this.#ReleasePendingSfxVoiceLimitReservations(record, program);
         });
     }
 
@@ -5250,9 +5570,9 @@ export class CjsAudioBackend
             return;
         }
 
-        const play = program.find(operation =>
+        let play = program.find(operation =>
             operation.kind === "play");
-        const continuation = play?.continuations?.find(value =>
+        let continuation = play?.continuations?.find(value =>
             value.programSlotId === slot.id);
 
         if (!play
@@ -5262,6 +5582,18 @@ export class CjsAudioBackend
             this.#FailOverlappingSlot(slot);
             return;
         }
+        try
+        {
+            program = this.#ReserveSfxProgram(record, program);
+        }
+        catch
+        {
+            this.#FailOverlappingSlot(slot);
+            return;
+        }
+        play = program.find(operation => operation.kind === "play");
+        continuation = play?.continuations?.find(value =>
+            value.programSlotId === slot.id);
 
         const batchStartContextTime = Number(boundaryContextTime) || 0;
         const batchSelections = (play.selections ?? [])
@@ -5274,7 +5606,8 @@ export class CjsAudioBackend
             ));
         const selectionControllers =
             CreateProgramSelectionControllers(selectionMetadata);
-        const cancelledSelectionKeys = new Set();
+        const cancelledSelectionKeys =
+            CreateProgramCancelledSelectionKeys(selectionMetadata);
         const controller = new AbortController();
         const batch = CreateTriggerRateBatch(slot, {
             id: continuation?.programBatchId,
@@ -5291,6 +5624,10 @@ export class CjsAudioBackend
 
         if (slot.batches.has(batch.id))
         {
+            this.#ReleasePendingSfxVoiceLimitReservations(
+                record,
+                program,
+            );
             this.#FailOverlappingSlot(slot);
             return;
         }
@@ -5322,6 +5659,10 @@ export class CjsAudioBackend
 
         if (!selectionMetadata.length)
         {
+            this.#ReleasePendingSfxVoiceLimitReservations(
+                record,
+                program,
+            );
             batch.state = "ended";
             this.#UpdateOverlappingSlotState(slot);
             this.#MaybeFinishSfxProgram(playingID, record);
@@ -5375,6 +5716,8 @@ export class CjsAudioBackend
                                 selection.authoredBusMakeUpGainDb,
                             authoredOutputBusVolumeDb:
                                 selection.authoredOutputBusVolumeDb,
+                            voiceLimitReservationId:
+                                selection.voiceLimitReservationId,
                         }
                         : descriptor,
                     record.emitterNodes,
@@ -5440,6 +5783,9 @@ export class CjsAudioBackend
                 this.#FailOverlappingSlot(slot);
                 this.#MaybeFinishSfxProgram(playingID, record);
             }
+        }).finally(() =>
+        {
+            this.#ReleasePendingSfxVoiceLimitReservations(record, program);
         });
     }
 
@@ -5531,9 +5877,9 @@ export class CjsAudioBackend
             return;
         }
 
-        const play = program.find(operation =>
+        let play = program.find(operation =>
             operation.kind === "play");
-        const continuation = play?.continuations?.find(value =>
+        let continuation = play?.continuations?.find(value =>
             value.programSlotId === slot.id);
 
         if (!play
@@ -5547,7 +5893,7 @@ export class CjsAudioBackend
             return;
         }
 
-        const batchSelections = (play.selections ?? [])
+        let batchSelections = (play.selections ?? [])
             .filter(selection =>
                 selection.programSlotId === slot.id);
 
@@ -5557,6 +5903,28 @@ export class CjsAudioBackend
             this.#FailOverlappingSlot(slot);
             return;
         }
+        if (batchSelections[0].voiceLimit !== undefined)
+        {
+            transaction?.rollback?.();
+            this.#FailOverlappingSlot(slot);
+            return;
+        }
+
+        try
+        {
+            program = this.#ReserveSfxProgram(record, program);
+        }
+        catch
+        {
+            transaction?.rollback?.();
+            this.#FailOverlappingSlot(slot);
+            return;
+        }
+        play = program.find(operation => operation.kind === "play");
+        continuation = play.continuations.find(value =>
+            value.programSlotId === slot.id);
+        batchSelections = (play.selections ?? []).filter(selection =>
+            selection.programSlotId === slot.id);
 
         const selectionMetadata = batchSelections.map(selection =>
             CreateProgramSelectionMetadata(
@@ -5565,7 +5933,8 @@ export class CjsAudioBackend
             ));
         const selectionControllers =
             CreateProgramSelectionControllers(selectionMetadata);
-        const cancelledSelectionKeys = new Set();
+        const cancelledSelectionKeys =
+            CreateProgramCancelledSelectionKeys(selectionMetadata);
         const controller = new AbortController();
         const batch = CreateTriggerRateBatch(slot, {
             id: continuation.programBatchId,
@@ -5658,6 +6027,8 @@ export class CjsAudioBackend
                         selection.authoredBusMakeUpGainDb,
                     authoredOutputBusVolumeDb:
                         selection.authoredOutputBusVolumeDb,
+                    voiceLimitReservationId:
+                        selection.voiceLimitReservationId,
                     crossfadeMode:
                         continuation.crossfadeMode,
                 },
@@ -5753,6 +6124,9 @@ export class CjsAudioBackend
                 this.#FailOverlappingSlot(slot);
                 this.#MaybeFinishSfxProgram(playingID, record);
             }
+        }).finally(() =>
+        {
+            this.#ReleasePendingSfxVoiceLimitReservations(record, program);
         });
     }
 
@@ -5769,6 +6143,10 @@ export class CjsAudioBackend
                 voice.sourceStarted !== true
                     || voice.startContextTime > now
                     || voice.cancelledBeforeStart === true,
+            );
+            this.#ReleaseSfxVoiceLimitReservation(
+                record,
+                voice.voiceLimitReservationId,
             );
             if (voice.source && !voice.ended)
             {
@@ -5792,6 +6170,8 @@ export class CjsAudioBackend
     /** Cancels one Trigger Rate traversal after an acquisition failure. */
     #FailOverlappingSlot(slot)
     {
+        const record = this.#playing.get(slot.playingID);
+
         slot.continuation = null;
         slot.exhausted = true;
         slot.nextTriggerContextTime = null;
@@ -5807,7 +6187,14 @@ export class CjsAudioBackend
                 || batch.state === "pending")
             {
                 batch.state = "cancelled";
-                AbortTriggerRateBatch(batch);
+                if (record)
+                {
+                    this.#AbortSfxProgramBatch(record, batch);
+                }
+                else
+                {
+                    AbortTriggerRateBatch(batch);
+                }
             }
         }
         this.#UpdateOverlappingSlotState(slot);
@@ -5917,6 +6304,10 @@ export class CjsAudioBackend
                 voice.sourceStarted !== true
                     || voice.startContextTime > now
                     || voice.cancelledBeforeStart === true,
+            );
+            this.#ReleaseSfxVoiceLimitReservation(
+                record,
+                voice.voiceLimitReservationId,
             );
             voice.source?.disconnect?.();
             voice.lowPassFilter?.disconnect?.();
@@ -6582,6 +6973,15 @@ export class CjsAudioBackend
         {
             return;
         }
+        for (const reservationID of [
+            ...(record.voiceLimitReservations ?? []),
+        ])
+        {
+            this.#ReleaseSfxVoiceLimitReservation(
+                record,
+                reservationID,
+            );
+        }
         record.sfxFinished = true;
         if (!record.music || record.musicFinished)
         {
@@ -6611,6 +7011,15 @@ export class CjsAudioBackend
         const record = this.#playing.get(playingID);
         if (record)
         {
+            for (const reservationID of [
+                ...(record.voiceLimitReservations ?? []),
+            ])
+            {
+                this.#ReleaseSfxVoiceLimitReservation(
+                    record,
+                    reservationID,
+                );
+            }
             this.#playing.delete(playingID);
             this.#scheduledSfxActions = this.#scheduledSfxActions
                 .filter(value => value.ownerPlayingID !== playingID);
@@ -7516,6 +7925,16 @@ function CreateProgramSelectionMetadata(selection, baseContextTime)
         ...(selection.programBatchId === undefined
             ? {}
             : { programBatchId: String(selection.programBatchId) }),
+        ...(selection.voiceLimitReservationId === undefined
+            ? {}
+            : {
+                voiceLimitReservationId: Number(
+                    selection.voiceLimitReservationId,
+                ),
+            }),
+        ...(selection.voiceLimitRejected === true
+            ? { voiceLimitRejected: true }
+            : {}),
         actionTime: Number(baseContextTime)
             + Math.max(
                 0,
@@ -7594,6 +8013,13 @@ function CreateProgramSelectionControllers(selections)
         ProgramSelectionKey(selection),
         new AbortController(),
     ]));
+}
+
+function CreateProgramCancelledSelectionKeys(selections)
+{
+    return new Set(selections
+        .filter(selection => selection.voiceLimitRejected === true)
+        .map(ProgramSelectionKey));
 }
 
 function CreateTriggerRateBatch(slot, overrides = {})
@@ -7790,6 +8216,10 @@ function NormalizeVoiceDescriptors(result, eventLoop)
         }
         const actionIndex = Number(value.actionIndex ?? 0);
         const leafIndex = Number(value.leafIndex ?? index);
+        const voiceLimitReservationId =
+            value.voiceLimitReservationId === undefined
+                ? undefined
+                : Number(value.voiceLimitReservationId);
 
         if (!Number.isSafeInteger(actionIndex) || actionIndex < 0)
         {
@@ -7801,6 +8231,14 @@ function NormalizeVoiceDescriptors(result, eventLoop)
         {
             throw new TypeError(
                 `Audio voice ${index} leafIndex must be a non-negative integer`,
+            );
+        }
+        if (voiceLimitReservationId !== undefined
+            && (!Number.isSafeInteger(voiceLimitReservationId)
+                || voiceLimitReservationId <= 0))
+        {
+            throw new TypeError(
+                `Audio voice ${index} voiceLimitReservationId must be a positive integer`,
             );
         }
         if (value.matchIds !== undefined
@@ -7928,6 +8366,9 @@ function NormalizeVoiceDescriptors(result, eventLoop)
             ...(value.programBatchId === undefined
                 ? {}
                 : { programBatchId: value.programBatchId }),
+            ...(voiceLimitReservationId === undefined
+                ? {}
+                : { voiceLimitReservationId }),
             getGain: typeof value.getGain === "function"
                 ? value.getGain
                 : () => (

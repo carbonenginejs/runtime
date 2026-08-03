@@ -1005,6 +1005,136 @@ test("SFX lowering preserves inherited NodeBase playback properties", () =>
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("SFX lowering projects only route-qualified cap-one Sound limits", () =>
+{
+    const openBus = {
+        overrideBusId: 0,
+        policy: { maxInstances: 0 },
+        rtpcs: [],
+        busVolume: null,
+        makeUpGain: null,
+    };
+    const cappedBus = {
+        ...openBus,
+        policy: { maxInstances: 2 },
+    };
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 7,
+                    id: 150,
+                    payload: actorMixerPayload({
+                        advancedFlags: 0x10,
+                        belowThresholdBehavior: 2,
+                        children: [ 201 ],
+                    }),
+                },
+                {
+                    type: 7,
+                    id: 151,
+                    payload: actorMixerPayload({
+                        directParentId: 206,
+                        overrideBusId: 500,
+                    }),
+                },
+                {
+                    type: 7,
+                    id: 152,
+                    payload: actorMixerPayload({
+                        overrideBusId: 500,
+                        ranges: [ { id: 34, min: 0, max: 0.005 } ],
+                        children: [ 207 ],
+                    }),
+                },
+                ...[
+                    [ 200, 0, 500, [] ],
+                    [ 201, 150, 500, [] ],
+                    [ 202, 0, 501, [] ],
+                    [ 203, 0, 500, [ { id: 6, min: 0, max: 1 } ] ],
+                    [ 204, 0, 500, [] ],
+                    [ 205, 0, 500, [] ],
+                    [ 206, 151, 500, [] ],
+                    [ 207, 152, 500,
+                        [ { id: 34, min: 0, max: 0.005 } ] ],
+                ].map(([ id, directParentId, overrideBusId, ranges ]) => ({
+                    type: 2,
+                    id,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    payload: soundPayload({
+                        directParentId,
+                        overrideBusId,
+                        properties: id === 204
+                            ? [ { id: 34, value: 0.01 } ]
+                            : id === 207
+                                ? [ { id: 34, value: -0.007 } ]
+                                : [],
+                        ranges,
+                        advancedFlags: 0x09,
+                        maxInstances: 1,
+                    }),
+                })),
+                ...[ 200, 201, 202, 203, 204, 205, 206, 207 ]
+                    .map((targetId, index) => ({
+                        type: 3,
+                        id: 300 + index,
+                        actionType: 0x0403,
+                        targetId,
+                        ...(targetId === 205
+                            ? { action: { delayTimeMs: 10 } }
+                            : {}),
+                        payload: new Uint8Array(),
+                    })),
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [
+                        300, 301, 302, 303, 304, 305, 306, 307,
+                    ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: { capped_sounds: { eventID: 100 } },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+        buses: new Map([
+            [ 500, openBus ],
+            [ 501, cappedBus ],
+        ]),
+    });
+
+    assert.deepEqual(result.nodes["200"].voiceLimit, {
+        counterId: "200",
+        scope: "game-object",
+        maxInstances: 1,
+        behavior: "reject-newest",
+    });
+    assert.equal(result.nodes["201"].voiceLimit, undefined,
+        "inherited virtual behavior is not approximated");
+    assert.equal(result.nodes["202"].voiceLimit, undefined,
+        "an independent bus cap keeps the Sound policy unresolved");
+    assert.equal(result.nodes["203"].voiceLimit, undefined,
+        "randomized Priority keeps the kill-newest choice unresolved");
+    assert.equal(result.nodes["204"].voiceLimit, undefined,
+        "positive Initial Delay is admitted later than selection time");
+    assert.equal(result.nodes["205"].voiceLimit, undefined,
+        "positive Play-action delay is admitted later than selection time");
+    assert.equal(result.nodes["206"].voiceLimit, undefined,
+        "cyclic NodeBase ancestry cannot qualify an effective policy");
+    assert.equal(result.nodes["207"].voiceLimit, undefined,
+        "inherited Initial Delay randomizers combine before qualification");
+});
+
 test("SFX lowering projects only wholly supported Immediate state properties", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
@@ -6903,6 +7033,12 @@ function soundPayload({
     overrideUserAux = false,
     overrideReflectionsAux = false,
     reflectionsAuxBusId = 0,
+    priorityFlags = 0,
+    advancedFlags = 0,
+    virtualQueueBehavior = 0,
+    maxInstances = 0,
+    belowThresholdBehavior = 0,
+    hdrFlags = 0,
 } = {})
 {
     return new TestWriter()
@@ -6927,6 +7063,12 @@ function soundPayload({
             overrideUserAux,
             overrideReflectionsAux,
             reflectionsAuxBusId,
+            priorityFlags,
+            advancedFlags,
+            virtualQueueBehavior,
+            maxInstances,
+            belowThresholdBehavior,
+            hdrFlags,
         }))
         .bytes();
 }
@@ -7167,6 +7309,12 @@ function actorMixerPayload({
     overrideUserAux = false,
     overrideReflectionsAux = false,
     reflectionsAuxBusId = 0,
+    priorityFlags = 0,
+    advancedFlags = 0,
+    virtualQueueBehavior = 0,
+    maxInstances = 0,
+    belowThresholdBehavior = 0,
+    hdrFlags = 0,
 } = {})
 {
     const writer = new TestWriter()
@@ -7185,6 +7333,12 @@ function actorMixerPayload({
             overrideUserAux,
             overrideReflectionsAux,
             reflectionsAuxBusId,
+            priorityFlags,
+            advancedFlags,
+            virtualQueueBehavior,
+            maxInstances,
+            belowThresholdBehavior,
+            hdrFlags,
         }))
         .u32(children.length);
 
@@ -7332,6 +7486,12 @@ function nodeBasePayload({
     overrideUserAux = false,
     overrideReflectionsAux = false,
     reflectionsAuxBusId = 0,
+    priorityFlags = 0,
+    advancedFlags = 0,
+    virtualQueueBehavior = 0,
+    maxInstances = 0,
+    belowThresholdBehavior = 0,
+    hdrFlags = 0,
 } = {})
 {
     const writer = new TestWriter()
@@ -7339,7 +7499,7 @@ function nodeBasePayload({
         .u8(0).u8(0)
         .u32(overrideBusId)
         .u32(directParentId)
-        .u8(0);
+        .u8(priorityFlags);
 
     const properties = propertyValues.map(property => ({
         ...property,
@@ -7408,7 +7568,11 @@ function nodeBasePayload({
     }
     writer
         .u32(reflectionsAuxBusId)
-        .u8(0).u8(0).u16(0).u8(0).u8(0)
+        .u8(advancedFlags)
+        .u8(virtualQueueBehavior)
+        .u16(maxInstances)
+        .u8(belowThresholdBehavior)
+        .u8(hdrFlags)
         .u8(stateProperties.length);
 
     for (const property of stateProperties)

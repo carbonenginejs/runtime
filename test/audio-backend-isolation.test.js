@@ -1292,6 +1292,128 @@ test("Continuous slots wait for the whole batch and schedule authored Delay", as
   assert.equal(backend.GetPlayingCount(), 0);
 });
 
+test("Continuous completion releases a capped Sound before its successor", async () =>
+{
+  const token = {};
+  const slot = "0:capped";
+  let advances = 0;
+  let acquisitions = 0;
+  const play = () => [ {
+    kind: "play",
+    actionIndex: 0,
+    selections: [ {
+      mediaID: "100",
+      actionIndex: 0,
+      leafIndex: 0,
+      programSlotId: slot,
+      voiceLimit: {
+        counterId: "100",
+        scope: "game-object",
+        maxInstances: 1,
+        behavior: "reject-newest",
+      },
+    } ],
+    continuations: [ { programSlotId: slot, token } ],
+  } ];
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: play,
+    continueSfxProgram: () => ++advances === 1 ? play() : [],
+    loadBuffer: async (_eventID, _eventName, _controls, value) =>
+    {
+      const selection = value[0].selections[0];
+
+      if (selection.voiceLimitRejected)
+      {
+        return { voices: [] };
+      }
+      acquisitions++;
+      return {
+        voices: [ {
+          buffer: { duration: 1 },
+          programSlotId: slot,
+          actionIndex: 0,
+          leafIndex: 0,
+        } ],
+      };
+    },
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "capped_continuous");
+  await tick();
+  context.sources[0].onended();
+  await tick();
+  await tick();
+
+  assert.equal(acquisitions, 2);
+  assert.equal(context.sources.length, 2,
+    "the successor is admitted after physical completion releases the cap");
+});
+
+test("Continuous Switch replaces a pending reservation for the same capped Sound", async () =>
+{
+  const graph = ContinuousSwitchGraph();
+  const initial = Deferred();
+  let acquisitions = 0;
+  let initialSignal;
+  let replacementRejected = null;
+
+  graph.nodes["10"].cases.b = { nodeId: "11" };
+  graph.nodes["11"].voiceLimit = {
+    counterId: "11",
+    scope: "game-object",
+    maxInstances: 1,
+    behavior: "reject-newest",
+  };
+  const engine = new CjsSfxEngine({ graph });
+  const { backend, context, emitter } = Harness({
+    resolveSfxProgram: (_eventID, eventName, controls) =>
+      engine.ResolveProgram(eventName, controls),
+    continueSfxProgram: (token, controls) =>
+      engine.ContinueProgram(token, controls),
+    loadBuffer: (_eventID, _eventName, controls, program) =>
+    {
+      const selection = program[0].selections[0];
+
+      acquisitions++;
+      if (acquisitions === 1)
+      {
+        initialSignal = controls.getSfxProgramSignal(
+          selection.programSlotId,
+          selection.actionIndex,
+          selection.leafIndex,
+          selection.programBatchId,
+        );
+        return initial.promise;
+      }
+      replacementRejected = selection.voiceLimitRejected === true;
+      return Promise.resolve(
+        selection.voiceLimitRejected
+          ? { voices: [] }
+          : ProgramVoiceResult(program),
+      );
+    },
+  });
+
+  backend.SetSwitch("mode", "a", 1);
+  backend.PostEvent(7, 1, 0, emitter, "continuous_switch");
+  await tick();
+  backend.SetSwitch("mode", "b", 1);
+  await tick();
+  await tick();
+
+  assert.equal(acquisitions, 2);
+  assert.equal(initialSignal.aborted, true);
+  assert.equal(replacementRejected, false);
+  assert.equal(context.sources.length, 1,
+    "the replacement route claims the released pending cap");
+
+  initial.resolve({ voices: [] });
+  await tick();
+  await tick();
+  assert.equal(context.sources.length, 1,
+    "the obsolete pending route cannot revive");
+});
+
 test("Continuous Switch survives natural completion and authored silence", async () =>
 {
   const { backend, context, emitter, finished } =
@@ -10321,4 +10443,234 @@ test("stored object RTPCs replay when the lazy non-spatial route is created", as
     context.gains[5].gain,
     "the adapter receives the newly created flat emitter gain",
   );
+});
+
+test("Sound cap reservations cover pending loads and release per game object", async () =>
+{
+  const pending = Deferred();
+  let acquisitions = 0;
+  const voiceLimit = {
+    counterId: "77",
+    scope: "game-object",
+    maxInstances: 1,
+    behavior: "reject-newest",
+  };
+  const program = () => [ {
+    kind: "play",
+    actionIndex: 0,
+    selections: [ {
+      mediaID: "100",
+      actionIndex: 0,
+      leafIndex: 0,
+      voiceLimit,
+    } ],
+  } ];
+  const resultFor = value => ({
+    voices: value.flatMap(operation => operation.selections ?? [])
+      .filter(selection => selection.voiceLimitRejected !== true)
+      .map(selection => ({
+        buffer: { duration: 1 },
+        programSlotId: "0:0",
+        actionIndex: selection.actionIndex,
+        leafIndex: selection.leafIndex,
+      })),
+  });
+  const { context, emitter, backend } = Harness({
+    resolveSfxProgram: program,
+    loadBuffer: (_eventID, _eventName, _controls, value) =>
+    {
+      const accepted = value.flatMap(operation => operation.selections ?? [])
+        .some(selection => selection.voiceLimitRejected !== true);
+
+      if (!accepted)
+      {
+        return Promise.resolve({ voices: [] });
+      }
+      acquisitions++;
+      return acquisitions === 1
+        ? pending.promise
+        : Promise.resolve(resultFor(value));
+    },
+  });
+  backend.RegisterGameObj(2);
+
+  backend.PostEvent(7, 1, 0, emitter, "capped_pending");
+  backend.PostEvent(7, 1, 0, emitter, "capped_duplicate");
+  backend.PostEvent(7, 2, 0, emitter, "capped_other_object");
+  await tick();
+
+  assert.equal(acquisitions, 2,
+    "the duplicate is rejected while another object remains independent");
+  assert.equal(context.sources.length, 1);
+
+  pending.resolve(resultFor(program()));
+  await tick();
+  assert.equal(context.sources.length, 2);
+
+  context.sources[1].onended();
+  await tick();
+  backend.PostEvent(7, 1, 0, emitter, "capped_after_end");
+  await tick();
+
+  assert.equal(acquisitions, 3,
+    "natural completion releases the object-scoped reservation");
+  assert.equal(context.sources.length, 3);
+});
+
+test("an immediate authored Stop releases a cap before the next Play action", async () =>
+{
+  const voiceLimit = {
+    counterId: "77",
+    scope: "game-object",
+    maxInstances: 1,
+    behavior: "reject-newest",
+  };
+  const selection = actionIndex => ({
+    mediaID: "100",
+    actionIndex,
+    leafIndex: 0,
+    matchIds: [ "77" ],
+    voiceLimit,
+  });
+  const program = [
+    { kind: "play", actionIndex: 0, selections: [ selection(0) ] },
+    {
+      kind: "stop",
+      actionIndex: 1,
+      targetId: "77",
+      targetFlags: 0,
+      scope: "game-object",
+      mode: "element",
+      delayMs: 0,
+      transitionMs: 0,
+      curve: 4,
+      exceptions: [],
+    },
+    { kind: "play", actionIndex: 2, selections: [ selection(2) ] },
+  ];
+  let acquisitions = 0;
+  const { context, emitter, backend } = Harness({
+    resolveSfxProgram: () => program,
+    loadBuffer: async (_eventID, _eventName, controls, value) => ({
+      voices: value.flatMap(operation => operation.selections ?? [])
+        .flatMap(item =>
+        {
+          const slot = `${item.actionIndex}:${item.leafIndex}`;
+          const signal = controls.getSfxProgramSignal(
+            slot,
+            item.actionIndex,
+            item.leafIndex,
+          );
+
+          if (signal.aborted || item.voiceLimitRejected)
+          {
+            return [];
+          }
+          acquisitions++;
+          return [ {
+            buffer: { duration: 1 },
+            programSlotId: slot,
+            actionIndex: item.actionIndex,
+            leafIndex: item.leafIndex,
+          } ];
+        }),
+    }),
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "capped_stop_play");
+  await tick();
+
+  assert.equal(acquisitions, 1);
+  assert.equal(context.sources.length, 1);
+});
+
+test("failed and stopped capped loads release their pending reservations", async () =>
+{
+  const deferred = [ Deferred(), Deferred(), Deferred() ];
+  let acquisitions = 0;
+  const makeProgram = () => [ {
+    kind: "play",
+    actionIndex: 0,
+    selections: [ {
+      mediaID: "100",
+      actionIndex: 0,
+      leafIndex: 0,
+      voiceLimit: {
+        counterId: "88",
+        scope: "game-object",
+        maxInstances: 1,
+        behavior: "reject-newest",
+      },
+    } ],
+  } ];
+  const { emitter, backend } = Harness({
+    resolveSfxProgram: makeProgram,
+    loadBuffer: (_eventID, _eventName, _controls, value) =>
+    {
+      if (value[0].selections[0].voiceLimitRejected)
+      {
+        return Promise.resolve({ voices: [] });
+      }
+      return deferred[acquisitions++].promise;
+    },
+  });
+
+  backend.PostEvent(7, 1, 0, emitter, "capped_failure");
+  await tick();
+  deferred[0].resolve(null);
+  await tick();
+
+  backend.PostEvent(7, 1, 0, emitter, "capped_after_failure");
+  await tick();
+  assert.equal(acquisitions, 2);
+
+  backend.StopAll();
+  await tick();
+  backend.PostEvent(7, 1, 0, emitter, "capped_after_stop");
+  await tick();
+  assert.equal(acquisitions, 3);
+  backend.StopAll();
+  deferred[2].resolve(null);
+  await tick();
+});
+
+test("custom future-scheduled Sound limits fail closed before acquisition", async () =>
+{
+  let acquisitions = 0;
+  const { emitter, backend, finished } = Harness({
+    resolveSfxProgram: () => [ {
+      kind: "play",
+      actionIndex: 0,
+      selections: [ {
+        mediaID: "100",
+        actionIndex: 0,
+        leafIndex: 0,
+        delayMs: 10,
+        voiceLimit: {
+          counterId: "99",
+          scope: "game-object",
+          maxInstances: 1,
+          behavior: "reject-newest",
+        },
+      } ],
+    } ],
+    loadBuffer: async () =>
+    {
+      acquisitions++;
+      return { voices: [] };
+    },
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "unsupported_delayed_cap",
+  );
+
+  await tick();
+
+  assert.equal(acquisitions, 0);
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
 });

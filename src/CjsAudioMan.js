@@ -1256,13 +1256,13 @@ export class CjsAudioMan
         if (this.#sfxEngine?.HandlesEvent(eventName))
         {
             const engine = this.#sfxEngine;
-            const program = Array.isArray(resolvedProgram)
+            let program = Array.isArray(resolvedProgram)
                 ? resolvedProgram
                 : engine.ResolveProgram(eventName, controls) ?? [];
 
             if (!Array.isArray(resolvedProgram))
             {
-                controls.installSfxProgram?.(program);
+                program = controls.installSfxProgram?.(program) ?? program;
             }
 
             const selections = program.flatMap(operation =>
@@ -1278,6 +1278,10 @@ export class CjsAudioMan
             const buffers = await Promise.all(
                 selections.map(selection =>
                 {
+                    if (selection.voiceLimitRejected === true)
+                    {
+                        return Promise.resolve(null);
+                    }
                     const programSlotId = selection.programSlotId
                         ?? `${selection.actionIndex}:${selection.leafIndex}`;
                     const selectionSignal =
@@ -1288,6 +1292,11 @@ export class CjsAudioMan
                             selection.programBatchId,
                         )
                         ?? controls.signal;
+
+                    if (selectionSignal?.aborted)
+                    {
+                        return Promise.resolve(null);
+                    }
 
                     return this.LoadMedia(selection.mediaID, {
                         signal: selectionSignal,
@@ -1339,6 +1348,8 @@ export class CjsAudioMan
                                 selection.authoredBusMakeUpGainDb,
                             authoredOutputBusVolumeDb:
                                 selection.authoredOutputBusVolumeDb,
+                            voiceLimitReservationId:
+                                selection.voiceLimitReservationId,
                             getPlaybackRate: (at = undefined) =>
                                 engine.EvaluatePlaybackRate(
                                     selection,
