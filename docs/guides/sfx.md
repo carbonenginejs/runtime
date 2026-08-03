@@ -509,6 +509,14 @@ missing graph retains the distributed per-source Parametric EQ fallback.
 Dynamic, mixed, media-backed, or otherwise unsupported effect sequences remain
 barriers rather than being partially realized.
 
+The graph decoder also validates wwiser's source-proven static 22-byte Wwise
+Peak Limiter record so its threshold, ratio, lookahead, release, output gain,
+Process LFE, and Channel Link controls are available to a future DSP adapter.
+Decoding does not qualify that stage for playback: Web Audio's native
+compressor cannot reproduce Wwise's variable lookahead, peak detection, linked
+channels, and release behavior, so exact routes containing it still fail
+closed.
+
 The shared mixer also decodes wwiser's exact 28-byte v150 Wwise Meter layout.
 It may omit that telemetry stage only when the effect has no dynamic controls or
 media, does not apply downstream volume, and writes no Game Parameter. Such a

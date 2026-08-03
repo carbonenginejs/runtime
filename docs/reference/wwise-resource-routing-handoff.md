@@ -429,11 +429,23 @@ EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and
 configured to process LFE. The root limiter is ShareSet `3134687450` on bus
 `4085017428`: threshold `-1 dB`, ratio `10`, lookahead `0.01 s`, release
-`0.1 s`, and `0 dB` output. Pinned wwiser proves the limiter layout but has no
-Compressor parameter parser; the coherent Compressor field order therefore
-remains an empirical v150 corpus interpretation rather than a source-proven
-adapter contract. Web Audio's `DynamicsCompressorNode` has a fixed 6 ms
+`0.1 s`, and `0 dB` output. Pinned wwiser proves the limiter layout, and the
+runtime now validates and decodes that static 22-byte record without admitting
+it to the shared mixer. Pinned wwiser has no Compressor parameter parser; the
+coherent Compressor field order therefore remains an empirical v150 corpus
+interpretation rather than a source-proven adapter contract. Web Audio's
+`DynamicsCompressorNode` has a fixed 6 ms
 lookahead, automatic makeup and different detector/envelope behavior, and a
 maximum ratio of 20 while one EVE Compressor authors 20.1. Exact mode keeps all
 six stages as barriers. The backend's independent safety compressor is not an
 authored Wwise limiter and must never be reused as one.
+
+A fail-closed qualification simulation that treats only these dynamics stages
+as supported, while leaving every other route gate intact, bounds their EVE
+build 3444265 payoff. Compressor support alone adds all 135 remaining music
+references and no SFX. Peak Limiter support alone adds 36 SFX references.
+Supporting both adds 144 SFX and 135 music references, moving combined exact
+qualification from 9,956/18,739 (53.1%) to 10,235/18,739 (54.6%) and bringing
+built-in music to 100%. Of the Compressor-reachable SFX, most still cross
+independent Aux or convolution barriers, so the raw reach of 3,889 SFX is not
+an attainable dynamics-only gain.

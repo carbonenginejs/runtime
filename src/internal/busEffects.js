@@ -1,5 +1,6 @@
 export const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
 export const WWISE_DELAY_PLUGIN_ID = 0x006a0003;
+export const WWISE_PEAK_LIMITER_PLUGIN_ID = 0x006e0003;
 export const WWISE_METER_PLUGIN_ID = 0x00810003;
 
 const FILTER_TYPE_NAMES = Object.freeze([
@@ -22,6 +23,16 @@ const DELAY_PERCENT_MIN = 0;
 const DELAY_PERCENT_MAX = 100;
 const DELAY_OUTPUT_GAIN_MIN = Math.fround(-96.3);
 const DELAY_OUTPUT_GAIN_MAX = 0;
+const DYNAMICS_THRESHOLD_MIN = Math.fround(-96.3);
+const DYNAMICS_THRESHOLD_MAX = 0;
+const DYNAMICS_RATIO_MIN = 1;
+const DYNAMICS_RATIO_MAX = 50;
+const PEAK_LIMITER_LOOKAHEAD_MIN = 0.001;
+const PEAK_LIMITER_LOOKAHEAD_MAX = 0.02;
+const PEAK_LIMITER_RELEASE_MIN = 0.001;
+const PEAK_LIMITER_RELEASE_MAX = 0.5;
+const DYNAMICS_OUTPUT_GAIN_MIN = -24;
+const DYNAMICS_OUTPUT_GAIN_MAX = 24;
 const METER_MAX_TIME = 10;
 const METER_MINIMUM_MIN = Math.fround(-96.3);
 const METER_MINIMUM_MAX = 0;
@@ -415,6 +426,73 @@ export function parseGraphStaticWwiseDelay(effect, effectId, slotIndex)
         outputGainDb,
         feedbackEnabled: feedbackEnabledRaw === 1,
         processLfe: true,
+    };
+}
+
+/**
+ * Decodes one source-proven static v150 Wwise Peak Limiter parameter block.
+ *
+ * This proves the authored controls and preserves them for a future DSP
+ * adapter. It is deliberately not admitted by parseGraphSharedBusEffect:
+ * Web Audio's native DynamicsCompressorNode cannot reproduce Wwise's variable
+ * lookahead, peak detector, channel linking, or release behavior.
+ */
+export function parseGraphStaticWwisePeakLimiter(effect, effectId, slotIndex)
+{
+    const label = `Audio Bus graph effect ${effectId}`;
+    const bytes = RequireStaticGraphEffect(
+        effect,
+        WWISE_PEAK_LIMITER_PLUGIN_ID,
+        22,
+        label,
+        "Wwise Peak Limiter",
+    );
+    const view = new DataView(
+        bytes.buffer,
+        bytes.byteOffset,
+        bytes.byteLength,
+    );
+    const thresholdDb = view.getFloat32(0, true);
+    const ratio = view.getFloat32(4, true);
+    const lookaheadSeconds = view.getFloat32(8, true);
+    const releaseSeconds = view.getFloat32(12, true);
+    const outputGainDb = view.getFloat32(16, true);
+    const processLfeRaw = view.getUint8(20);
+    const channelLinkRaw = view.getUint8(21);
+
+    if (!Number.isFinite(thresholdDb)
+        || thresholdDb < DYNAMICS_THRESHOLD_MIN
+        || thresholdDb > DYNAMICS_THRESHOLD_MAX
+        || !Number.isFinite(ratio)
+        || ratio < DYNAMICS_RATIO_MIN
+        || ratio > DYNAMICS_RATIO_MAX
+        || !Number.isFinite(lookaheadSeconds)
+        || lookaheadSeconds < PEAK_LIMITER_LOOKAHEAD_MIN
+        || lookaheadSeconds > PEAK_LIMITER_LOOKAHEAD_MAX
+        || !Number.isFinite(releaseSeconds)
+        || releaseSeconds < PEAK_LIMITER_RELEASE_MIN
+        || releaseSeconds > PEAK_LIMITER_RELEASE_MAX
+        || !Number.isFinite(outputGainDb)
+        || outputGainDb < DYNAMICS_OUTPUT_GAIN_MIN
+        || outputGainDb > DYNAMICS_OUTPUT_GAIN_MAX
+        || processLfeRaw > 1
+        || channelLinkRaw > 1)
+    {
+        throw new TypeError(
+            `${label} has invalid Wwise Peak Limiter parameters`,
+        );
+    }
+    return {
+        effectId: String(effectId),
+        slotIndex: Number(slotIndex),
+        type: "peak-limiter",
+        thresholdDb,
+        ratio,
+        lookaheadSeconds,
+        releaseSeconds,
+        outputGainDb,
+        processLfe: processLfeRaw === 1,
+        channelLink: channelLinkRaw === 1,
     };
 }
 

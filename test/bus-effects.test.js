@@ -4,8 +4,10 @@ import {
     createBusEffectChain,
     indexBusEffectCatalog,
     parseGraphFeedbackFreeMeter,
+    parseGraphSharedBusEffect,
     parseGraphStaticParametricEq,
     parseGraphStaticWwiseDelay,
+    parseGraphStaticWwisePeakLimiter,
     parseStaticParametricEqBytes,
 } from "../src/internal/busEffects.js";
 
@@ -197,6 +199,37 @@ function GraphDelay(bytes = DelayBytes())
 
     effect.type = "effect-custom";
     effect.pluginId = 0x006a0003;
+    return effect;
+}
+
+function PeakLimiterBytes({
+    thresholdDb = -1,
+    ratio = 10,
+    lookaheadSeconds = 0.01,
+    releaseSeconds = 0.1,
+    outputGainDb = 0,
+    processLfe = 1,
+    channelLink = 1,
+} = {})
+{
+    const bytes = new Uint8Array(22);
+    const view = new DataView(bytes.buffer);
+
+    view.setFloat32(0, thresholdDb, true);
+    view.setFloat32(4, ratio, true);
+    view.setFloat32(8, lookaheadSeconds, true);
+    view.setFloat32(12, releaseSeconds, true);
+    view.setFloat32(16, outputGainDb, true);
+    view.setUint8(20, processLfe);
+    view.setUint8(21, channelLink);
+    return bytes;
+}
+
+function GraphPeakLimiter(bytes = PeakLimiterBytes())
+{
+    const effect = GraphEffect(bytes);
+
+    effect.pluginId = 0x006e0003;
     return effect;
 }
 
@@ -538,6 +571,124 @@ test("rejects dynamic, malformed, or independently routed Wwise Delays", () =>
         mutate(effect);
         assert.throws(() =>
             parseGraphStaticWwiseDelay(effect, "920", 0));
+    }
+});
+
+test("decodes the source-proven v150 static Wwise Peak Limiter layout", () =>
+{
+    const effect = parseGraphStaticWwisePeakLimiter(
+        GraphPeakLimiter(),
+        "3134687450",
+        3,
+    );
+
+    assert.deepEqual(effect, {
+        effectId: "3134687450",
+        slotIndex: 3,
+        type: "peak-limiter",
+        thresholdDb: -1,
+        ratio: 10,
+        lookaheadSeconds: Math.fround(0.01),
+        releaseSeconds: Math.fround(0.1),
+        outputGainDb: 0,
+        processLfe: true,
+        channelLink: true,
+    });
+    assert.throws(
+        () => parseGraphSharedBusEffect(
+            GraphPeakLimiter(),
+            "3134687450",
+            3,
+        ),
+        /unsupported/u,
+        "decoding must not admit a Peak Limiter to exact playback",
+    );
+    assert.deepEqual(
+        parseGraphStaticWwisePeakLimiter(GraphPeakLimiter(PeakLimiterBytes({
+            thresholdDb: -96.3,
+            ratio: 50,
+            lookaheadSeconds: 0.001,
+            releaseSeconds: 0.5,
+            outputGainDb: 24,
+            processLfe: 0,
+            channelLink: 0,
+        })), "930", 0),
+        {
+            effectId: "930",
+            slotIndex: 0,
+            type: "peak-limiter",
+            thresholdDb: Math.fround(-96.3),
+            ratio: 50,
+            lookaheadSeconds: Math.fround(0.001),
+            releaseSeconds: 0.5,
+            outputGainDb: 24,
+            processLfe: false,
+            channelLink: false,
+        },
+    );
+});
+
+test("rejects dynamic or malformed Wwise Peak Limiter parameter blocks", () =>
+{
+    const mutations = [
+        effect => { effect.pluginId = 0x006c0003; },
+        effect => { effect.parameterByteLength = 21; },
+        effect => { effect.media.push({ index: 0, sourceId: "10" }); },
+        effect => { effect.controls.rtpcCount = 1; },
+        effect => { effect.controls.statePropertyCount = 1; },
+        effect => { effect.controls.stateGroupCount = 1; },
+        effect => { effect.controls.propertyValueCount = 1; },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(PeakLimiterBytes({
+                thresholdDb: -97,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(PeakLimiterBytes({
+                ratio: 50.1,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(PeakLimiterBytes({
+                lookaheadSeconds: 0,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(PeakLimiterBytes({
+                releaseSeconds: 0.501,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(PeakLimiterBytes({
+                outputGainDb: -24.1,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(PeakLimiterBytes({
+                processLfe: 2,
+            })).toString("base64");
+        },
+        effect =>
+        {
+            effect.parametersBase64 = Buffer.from(PeakLimiterBytes({
+                channelLink: 2,
+            })).toString("base64");
+        },
+    ];
+
+    for (const mutate of mutations)
+    {
+        const effect = GraphPeakLimiter();
+
+        mutate(effect);
+        assert.throws(() =>
+            parseGraphStaticWwisePeakLimiter(effect, "930", 0));
     }
 });
 
