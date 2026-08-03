@@ -293,6 +293,21 @@
   .sfxControl { display: block; margin-top: 8px; color: var(--muted); font-size: 10px; }
   .sfxControl select, .sfxControl input[type=range] { width: 100%; }
   .sfxControl output { float: right; color: var(--accent); }
+  #music .sfxControl select { margin-top: 5px; padding: 9px 36px 9px 12px; }
+  #music .unavailableField { margin-top: 5px; padding-inline: 12px; }
+  .unavailableField {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 7px 10px;
+    border: 1px solid rgba(64, 76, 79, 0.45);
+    border-radius: 7px;
+    background: rgba(20, 26, 28, 0.42);
+    color: rgba(184, 193, 192, 0.34);
+  }
+  .unavailableField[hidden] { display: none; }
+  .powerControl:has(input:disabled) { color: rgba(184, 193, 192, 0.34); cursor: default; }
+  .powerControl input:disabled + .toggleTrack { opacity: 0.35; }
   .deliveryLabel { justify-content: space-between; margin: 12px 0 6px; color: var(--muted); font-size: 10px; }
   .navigationCard { padding-block: 13px; background: rgba(119, 216, 197, 0.025); }
   .navigationCard .sectionHeader { align-items: center; margin: 0; }
@@ -412,27 +427,28 @@
       </div>
       <p id="busGraphPlayback" class="labPlayback" aria-live="polite"></p>
     </section>
-    <section class="card" id="music" style="display:none">
+    <section class="card" id="music">
       <div class="sectionHeader">
         <div>
           <div class="sectionTitle"><h2>Authored music</h2><button class="infoButton" type="button" aria-label="About authored music" data-tip="Plays verified examples from the real EVE music graph and SoundBank WEM media: direct segments, all four playlist modes, switch/state routing, random and sequence tracks, and a transition-segment bridge. A bank recording may also exist in the external classic jukebox catalog; the playback paths remain separate. MIDI, Synth One, and stingers remain unsupported and are not offered.">i</button></div>
           <p class="sectionNote">Real EVE graph and track families</p>
         </div>
-        <label class="powerControl" for="musicToggle">Dynamic <input id="musicToggle" type="checkbox"><span class="toggleTrack" aria-hidden="true"></span></label>
+        <label class="powerControl" for="musicToggle">Dynamic <input id="musicToggle" type="checkbox" disabled><span class="toggleTrack" aria-hidden="true"></span></label>
       </div>
       <label class="sfxControl" for="musicExamples">Example
-        <select id="musicExamples" title="authored music example"></select>
+        <select id="musicExamples" title="authored music example" disabled><option>enable audio to load examples</option></select>
       </label>
-      <p id="musicExampleDetail" class="hint"></p>
+      <p id="musicExampleDetail" class="hint">enable audio to inspect authored music</p>
       <div class="buttonRow transport" role="group" aria-label="Authored music transport">
         <button id="musicExamplePrevious" type="button" title="previous audio inside this authored example" disabled>previous</button>
-        <button id="musicExamplePlay" class="primary" type="button" title="play the selected authored example">play</button>
+        <button id="musicExamplePlay" class="primary" type="button" title="play the selected authored example" disabled>play</button>
         <button id="musicExamplePause" type="button" title="pause authored music" disabled>pause</button>
         <button id="musicExampleNext" type="button" title="next audio inside this authored example" disabled>next</button>
         <button id="musicExampleRandom" type="button" title="random audio inside this authored example" disabled>random</button>
       </div>
       <label class="sfxControl" for="moods">Dynamic mood
-        <select id="moods" title="dynamic mood"></select>
+        <select id="moods" title="dynamic mood" disabled><option>enable audio to load moods</option></select>
+        <span id="moodNotApplicable" class="unavailableField" hidden>not applicable</span>
       </label>
       <button id="musicRetry" type="button" hidden>retry music</button>
     </section>
@@ -443,16 +459,16 @@
           <p class="sectionNote">Optional titled-track library</p>
         </div>
       </div>
-      <select id="jukeboxTracks" title="classic EVE track"></select>
+      <select id="jukeboxTracks" title="classic EVE track" disabled></select>
       <div class="buttonRow transport">
-        <button id="jukeboxPrevious" type="button" title="previous track">previous</button>
-        <button id="jukeboxPlay" class="primary" type="button">play</button>
-        <button id="jukeboxPause" type="button">pause</button>
-        <button id="jukeboxNext" type="button" title="next track">next</button>
+        <button id="jukeboxPrevious" type="button" title="previous track" disabled>previous</button>
+        <button id="jukeboxPlay" class="primary" type="button" disabled>play</button>
+        <button id="jukeboxPause" type="button" disabled>pause</button>
+        <button id="jukeboxNext" type="button" title="next track" disabled>next</button>
       </div>
       <div id="jukeboxStatus" class="hint">enable audio to use the jukebox</div>
     </section>
-    <section class="card" id="sfx" style="display:none">
+    <section class="card" id="sfx">
       <div class="sectionHeader">
         <div>
           <h2>Authored SFX</h2>
@@ -460,27 +476,27 @@
         </div>
       </div>
       <div class="fieldRow">
-        <select id="sfxExamples" title="authored SFX example"></select>
+        <select id="sfxExamples" title="authored SFX example" disabled><option>enable audio to load examples</option></select>
         <button id="sfxInfo" class="infoButton" type="button" aria-label="About the selected authored SFX example" data-tip="">i</button>
       </div>
       <div id="sfxControls"></div>
       <div class="buttonRow">
-        <button id="sfxPost" class="primary" type="button">post again</button>
+        <button id="sfxPost" class="primary" type="button" disabled>post again</button>
         <button id="sfxPause" type="button" hidden>pause voice</button>
         <button id="sfxResume" type="button" hidden>resume voice</button>
-        <button id="sfxReset" type="button">reset object</button>
+        <button id="sfxReset" type="button" disabled>reset object</button>
       </div>
       <div class="fieldRow deliveryLabel">
         <label for="delivery">media delivery</label>
         <button class="infoButton tipUp" type="button" aria-label="About media delivery" data-tip="Chooses how runtime-audio receives WEM bytes: automatic selection, an individual file, an exact byte range from the original bank, or the whole original bank with a local slice.">i</button>
       </div>
-      <select id="delivery" title="CjsAudioMan media delivery">
+      <select id="delivery" title="CjsAudioMan media delivery" disabled>
         <option value="auto">auto</option>
         <option value="individual">individual file</option>
         <option value="range">exact bank range</option>
         <option value="whole">whole bank + local slice</option>
       </select>
-      <div id="sfxStatus"></div>
+      <div id="sfxStatus">enable audio to inspect authored SFX</div>
     </section>
     <section class="card navigationCard">
       <div class="sectionHeader">

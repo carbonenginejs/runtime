@@ -2138,6 +2138,7 @@ class MusicUi
         this.#pauseButton = document.getElementById("musicExamplePause");
         this.#nextButton = document.getElementById("musicExampleNext");
         this.#randomButton = document.getElementById("musicExampleRandom");
+        this.#exampleSelect.replaceChildren();
         for (const example of MusicUi.examples)
         {
             const roots = musicGraph.eventTargets[example.eventName] ?? [];
@@ -2150,7 +2151,11 @@ class MusicUi
             option.textContent = example.label;
             this.#exampleSelect.appendChild(option);
         }
-        this.#exampleSelect.onchange = () => this.#RefreshExampleDetail();
+        this.#exampleSelect.onchange = () =>
+        {
+            this.#RefreshExampleDetail();
+            this.#RefreshMoodApplicability();
+        };
         this.#previousButton.onclick = () => this.#StepAuthoredAudio(-1);
         this.#playButton.onclick = () => this.PlaySelectedExample();
         this.#pauseButton.onclick = () => this.Pause();
@@ -2160,8 +2165,25 @@ class MusicUi
         this.#moodEvents = Object.keys(musicGraph.switchSetters).filter(n => n.startsWith("music_switch_")).sort();
         this.#select.onchange = () => this.#SteerTo(this.#select.value);
         this.#retryButton.onclick = () => this.#Retry();
-        this.RefreshMoodAvailability();
+        this.#RefreshMoodApplicability();
         document.getElementById("musicToggle").onchange = event => this.SetEnabled(event.target.checked);
+        this.#RefreshTransport();
+    }
+
+    /** Enables or disables the authored-music controls with browser audio. */
+    SetAudioEnabled(enabled)
+    {
+        if (!this.#exampleSelect)
+        {
+            return;
+        }
+
+        this.#exampleSelect.disabled = !enabled;
+        if (!enabled)
+        {
+            document.getElementById("musicToggle").checked = false;
+        }
+        this.#RefreshMoodApplicability();
         this.#RefreshTransport();
     }
 
@@ -2511,15 +2533,34 @@ class MusicUi
         this.#activeRoots = [ ...(
             this.#app.library.music.eventTargets[example.eventName] ?? []
         ) ];
-        if (this.#select)
-        {
-            this.#select.disabled = !example.dynamic;
-        }
         if (this.#exampleSelect)
         {
             this.#exampleSelect.value = example.eventName;
             this.#RefreshExampleDetail();
         }
+        this.#RefreshMoodApplicability(example);
+    }
+
+    /** Shows dynamic controls only for examples that author a mood graph. */
+    #RefreshMoodApplicability(example = null)
+    {
+        example ??= MusicUi.examples.find(value =>
+            value.eventName === this.#exampleSelect?.value);
+        const applicable = example?.dynamic === true;
+        const audioEnabled = this.#app.IsAudioEnabled();
+        const toggle = document.getElementById("musicToggle");
+        const unavailable = document.getElementById("moodNotApplicable");
+
+        toggle.disabled = !audioEnabled || !applicable;
+        this.#select.hidden = !applicable;
+        this.#select.disabled = !audioEnabled || !applicable;
+        unavailable.hidden = applicable;
+        if (!applicable)
+        {
+            toggle.checked = false;
+            return;
+        }
+        this.RefreshMoodAvailability();
     }
 
     #RefreshExampleDetail()
@@ -2661,6 +2702,25 @@ class JukeboxUi
         this.#select.onchange = () => void this.PlaySelected();
         this.#Refresh(jukebox.GetStatus());
         void this.#RefreshAvailability();
+    }
+
+    /** Enables or disables the jukebox controls with browser audio. */
+    SetAudioEnabled(enabled)
+    {
+        for (const id of [
+            "jukeboxTracks",
+            "jukeboxPrevious",
+            "jukeboxPlay",
+            "jukeboxPause",
+            "jukeboxNext",
+        ])
+        {
+            document.getElementById(id).disabled = !enabled;
+        }
+        if (!enabled)
+        {
+            this.#status.textContent = "enable audio to use the jukebox";
+        }
     }
 
     /** Plays the selected titled track and stops the authored demo music. */
@@ -3559,13 +3619,13 @@ class SfxUi
             return;
         }
 
-        document.getElementById("sfx").style.display = "";
         this.#select = document.getElementById("sfxExamples");
         this.#controls = document.getElementById("sfxControls");
         this.#info = document.getElementById("sfxInfo");
         this.#pause = document.getElementById("sfxPause");
         this.#resume = document.getElementById("sfxResume");
         this.#status = document.getElementById("sfxStatus");
+        this.#select.replaceChildren();
 
         for (const example of this.#examples)
         {
@@ -3593,6 +3653,25 @@ class SfxUi
         };
         this.#BuildControls();
         this.#Refresh();
+    }
+
+    /** Enables or disables the authored-SFX controls with browser audio. */
+    SetAudioEnabled(enabled)
+    {
+        for (const control of document.querySelectorAll(
+            "#sfx input, #sfx select, #sfx button:not(.infoButton)",
+        ))
+        {
+            control.disabled = !enabled;
+        }
+        if (enabled)
+        {
+            this.#Refresh();
+        }
+        else
+        {
+            this.#status.textContent = "enable audio to inspect authored SFX";
+        }
     }
 
     /**
@@ -4381,6 +4460,9 @@ class DemoApp
         document.getElementById("musicVol").oninput = () => this.ApplyVolumes();
         document.getElementById("sfxVol").oninput = () => this.ApplyVolumes();
         this.ApplyVolumes();
+        this.musicUi.SetAudioEnabled(Boolean(this.library.music));
+        this.jukeboxUi.SetAudioEnabled(true);
+        this.sfxUi.SetAudioEnabled(Boolean(this.library.sfx));
         // Reflect auto-enable paths (Load demo) in the checkbox.
         document.getElementById("enable").checked = true;
         // Dev/debug handle (console + automated checks).
@@ -4430,6 +4512,9 @@ class DemoApp
         if (this.musicUi.musicPlayer) this.musicUi.SetEnabled(false);
         this.busGraphLab.Dispose();
         this.audio.Disable();
+        this.musicUi.SetAudioEnabled(false);
+        this.jukeboxUi.SetAudioEnabled(false);
+        this.sfxUi.SetAudioEnabled(false);
     }
 
     /** Demo checkbox off: the scene winds down piece by piece over ~3s */

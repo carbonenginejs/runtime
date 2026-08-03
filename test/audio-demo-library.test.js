@@ -39,12 +39,22 @@ test("authored music demo exposes a stable contextual transport", () =>
     {
         assert.match(html, new RegExp(`id="${id}"`));
     }
+    assert.match(html, /id="moodNotApplicable"[^>]*>not applicable</);
+    assert.doesNotMatch(html, /id="music"[^>]*display\s*:\s*none/);
+    assert.doesNotMatch(html, /id="sfx"[^>]*display\s*:\s*none/);
+    assert.match(html, /id="musicExamples"[^>]*disabled/);
+    assert.match(html, /id="sfxExamples"[^>]*disabled/);
+    assert.match(html, /#music \.sfxControl select\s*\{[^}]*padding:\s*9px 36px 9px 12px/s);
     assert.match(html, /#musicExampleDetail\s*\{[^}]*height:\s*44px/s);
     assert.match(html, /\.transport button:disabled\s*\{[^}]*color:\s*rgba\([^)]*,\s*0\.24\)/s);
     assert.match(script, /#transportState = "idle"/);
     assert.match(script, /\.StepTransport\(/);
     assert.match(script, /\.RandomTransport\(/);
     assert.match(script, /\.PauseTransport\(/);
+    assert.match(script, /#RefreshMoodApplicability\(/);
+    assert.match(script, /toggle\.disabled = !audioEnabled \|\| !applicable/);
+    assert.match(script, /this\.#select\.hidden = !applicable/);
+    assert.match(script, /SetAudioEnabled\(enabled\)/);
     assert.doesNotMatch(script, /#StepExample/);
     assert.match(guide, /inside the\s+currently selected example/s);
 });
