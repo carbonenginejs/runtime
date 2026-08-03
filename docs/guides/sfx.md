@@ -806,14 +806,18 @@ in decibels, Pitch becomes a Web Audio playback-rate ratio, and InitialDelay is
 added to the Play action delay.
 Hierarchy-only Actor-Mixer values are folded into the nearest playable node
 without turning the mixer into a playable container.
-Layer/Blend containers with no Layer records lower to parallel
-playback, including Continuous Layers whose validation flag has no controller
-to evaluate. This is exact for the five such records in EVE build 3453885:
+Layer/Blend containers with no Layer records, or only Layer records with no
+child associations, lower to parallel playback. A Continuous validation flag
+then has no child-admission region to evaluate. This covers the five
+zero-record Hangar Layers and 22 association-free ship-engine Layers in EVE
+build 3453885:
 each owns parallel child lifetimes while its children retain their independent
 Continuous Random/Delay schedulers. The affected Jita, Caldari, and Minmatar
 Hangar Play branches target those layers directly; their structural State
 ancestors remain available as Stop-match identities.
-Non-continuous Layer crossfade tracks lower to live normalized-gain curves
+Associated Continuous Layers remain fail-closed because their controller must
+start and stop child sessions at live RTPC boundaries. Non-continuous Layer
+crossfade tracks lower to live normalized-gain curves
 when their controller is a named Game Parameter. Supported Layer property
 RTPCs lower to live Volume, Pitch, low-pass, and high-pass curves on each
 affected child.

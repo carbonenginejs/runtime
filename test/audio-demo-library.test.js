@@ -129,6 +129,56 @@ test("committed demo library carries authored SFX and music semantics", () =>
         );
     }
 
+    const associationFreeShipEngines = [
+        "ship_engine_XS_booster_3rd_on",
+        "ship_engine_M_microwarpdrive_1st_on",
+        "ship_engine_S_microwarpdrive_3rd_on",
+        "ship_engine_M_afterburner_1st_on",
+        "ship_engine_XL_booster_3rd_on",
+        "ship_engine_L_afterburner_3rd_on",
+        "ship_engine_XS_afterburner_3rd_on",
+        "ship_engine_XL_afterburner_1st_on",
+        "ship_engine_S_booster_1st_on",
+        "ship_engine_M_microwarpdrive_3rd_on",
+        "ship_engine_L_afterburner_1st_on",
+        "ship_engine_XS_microwarpdrive_3rd_on",
+        "ship_engine_XL_booster_1st_on",
+        "ship_engine_L_booster_1st_on",
+        "ship_engine_M_afterburner_3rd_on",
+        "ship_engine_S_booster_3rd_on",
+        "ship_engine_XS_microwarpdrive_1st_on",
+        "ship_engine_XS_booster_1st_on",
+        "ship_engine_XS_afterburner_1st_on",
+        "ship_engine_L_booster_3rd_on",
+        "ship_engine_XL_afterburner_3rd_on",
+        "ship_engine_S_microwarpdrive_1st_on",
+    ];
+
+    for (const eventName of associationFreeShipEngines)
+    {
+        assert.ok(
+            graph.events[eventName]?.length,
+            `${eventName} retains its association-free Continuous Layer`,
+        );
+    }
+    const shipEngineMedia = new Set(
+        associationFreeShipEngines.flatMap(eventName =>
+            library.eventMedia[eventName] ?? []),
+    );
+
+    assert.equal(shipEngineMedia.size, 63);
+    for (const eventName of [
+        "ship_engine_XXL_microwarpdrive_1st_on",
+        "ship_engine_XXL_microwarpdrive_3rd_on",
+    ])
+    {
+        assert.equal(
+            graph.events[eventName],
+            undefined,
+            `${eventName} keeps its associated Continuous Layers fail-closed`,
+        );
+    }
+
     assert.deepEqual(graph.programs.charge_abyssal_switch, [
         {
             kind: "switch",

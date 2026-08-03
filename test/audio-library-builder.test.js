@@ -2492,6 +2492,81 @@ test("zero-record Continuous Layers lower to parallel playback", () =>
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("zero-association Continuous Layer records lower to parallel playback", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "boosters.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 2,
+                        id: 202,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9002,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 9,
+                        id: 201,
+                        payload: trackedLayerPayload({
+                            children: [ 200, 202 ],
+                            controlId: 3779431979,
+                            continuousValidation: true,
+                            associations: [],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                ship_engine_on: { eventID: 100 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+            "9002": { resPath: "res:/audio/9002.wem" },
+        },
+    });
+
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+    assert.deepEqual(result.nodes["201"], {
+        type: "parallel",
+        children: [
+            { nodeId: "200" },
+            { nodeId: "202" },
+        ],
+    });
+});
+
 test("associated Continuous Layers remain fail-closed", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
