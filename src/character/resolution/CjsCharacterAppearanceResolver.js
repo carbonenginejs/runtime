@@ -4,12 +4,7 @@ import { CjsCharacterPartSourceVersion } from "../catalog/CjsCharacterPartSource
 import { CjsCharacterPartType } from "../catalog/CjsCharacterPartType.js";
 import { CjsCharacterModifierLocation } from "../composition/CjsCharacterModifierLocation.js";
 import { CjsCharacterPaperdoll } from "../creation/CjsCharacterPaperdoll.js";
-import { CjsCharacterAppearanceDiagnostic } from "../planning/CjsCharacterAppearanceDiagnostic.js";
-import { CjsCharacterAppearanceLayer } from "../planning/CjsCharacterAppearanceLayer.js";
 import { CjsCharacterAppearancePlan } from "../planning/CjsCharacterAppearancePlan.js";
-import { CjsCharacterAppearanceSelection } from "../planning/CjsCharacterAppearanceSelection.js";
-import { CjsCharacterOrigin } from "../planning/CjsCharacterOrigin.js";
-import { CjsCharacterResolvedPart } from "../planning/CjsCharacterResolvedPart.js";
 import { CjsCharacterResource } from "../resources/CjsCharacterResource.js";
 
 /** Resolves source-backed paper-doll selections without inventing character rendering policy. */
@@ -89,11 +84,10 @@ function ResolveModifier(plan, paperdoll, modifier, modifierIndex, groupIDs)
         return;
     }
 
-    const selection = new CjsCharacterAppearanceSelection();
-
-    selection.groupID = location.modifierKey;
-    selection.origin = selectionOrigin;
-    plan.selections.push(selection);
+    const selection = plan.CreateSelection({
+        groupID: location.modifierKey,
+        origin: selectionOrigin
+    });
 
     if (groupIDs.has(selection.groupID))
     {
@@ -225,12 +219,11 @@ function ResolveModifier(plan, paperdoll, modifier, modifierIndex, groupIDs)
         jsonPointer: `/versions/${versionIndex}`,
         rule: "unique-version-candidates"
     });
-    const part = new CjsCharacterResolvedPart();
-
-    part.configurationPath = version.configurationCandidates[0];
-    part.geometryPath = version.geometryCandidates[0];
-    part.origin = partOrigin;
-    plan.parts.push(part);
+    const part = plan.CreatePart({
+        configurationPath: version.configurationCandidates[0],
+        geometryPath: version.geometryCandidates[0],
+        origin: partOrigin
+    });
 
     const layerOrigin = AddOrigin(plan, {
         kind: "derived",
@@ -239,12 +232,11 @@ function ResolveModifier(plan, paperdoll, modifier, modifierIndex, groupIDs)
         jsonPointer: `/modifiers/${modifierIndex}`,
         rule: "exact-selection-part-chain"
     });
-    const layer = new CjsCharacterAppearanceLayer();
-
-    layer.owner = selection;
-    layer.contributor = part;
-    layer.origin = layerOrigin;
-    plan.layers.push(layer);
+    plan.CreateLayer({
+        owner: selection,
+        contributor: part,
+        origin: layerOrigin
+    });
 
     if (version.textureCandidates.length)
     {
@@ -323,26 +315,12 @@ function DiagnosePartMetadata(plan, metadata, partSource, origin)
 
 function AddOrigin(plan, values)
 {
-    const origin = new CjsCharacterOrigin();
-
-    for (const [ key, value ] of Object.entries(values))
-    {
-        origin[key] = value;
-    }
-    plan.origins.push(origin);
-    return origin;
+    return plan.CreateOrigin(values);
 }
 
 function AddDiagnostic(plan, code, message, severity, origin = null)
 {
-    const diagnostic = new CjsCharacterAppearanceDiagnostic();
-
-    diagnostic.code = code;
-    diagnostic.message = message;
-    diagnostic.severity = severity;
-    diagnostic.origin = origin;
-    plan.diagnostics.push(diagnostic);
-    return diagnostic;
+    return plan.CreateDiagnostic({ code, message, severity, origin });
 }
 
 export default CjsCharacterAppearanceResolver;

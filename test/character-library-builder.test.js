@@ -331,6 +331,72 @@ test("adds already-hydrated editor records without cloning or rehydrating them",
     assert.equal(roundTrip.Get("characterResources", 22).resPath, resource.resPath);
 });
 
+test("creates, removes, deletes, and clears records through observable library methods", () =>
+{
+    const library = CjsCharacterLibrary.from(
+        CjsCharacterLibraryBuilder.build(CreateDocuments())
+    );
+    const events = [];
+    let deleted = null;
+
+    for (const eventName of [ "recordadded", "recordremoved", "recorddeleted", "documentcleared" ])
+    {
+        library.OnEvent(eventName, (_owner, payload) => events.push([ eventName, payload ]));
+    }
+
+    const created = library.Create("characterResources", {
+        recordID: "22",
+        resPath: "res:/example/topouter/created",
+        typeID: "9002",
+        resGender: 1
+    });
+
+    assert.ok(created instanceof CjsCharacterResource);
+    assert.strictEqual(library.Get("characterResources", 22), created);
+    assert.equal(library.documents.__state.flags.has("index:characterResources"), false);
+    assert.equal(events[0][0], "recordadded");
+    assert.equal(events[0][1].documentName, "characterResources");
+    assert.strictEqual(events[0][1].record, created);
+
+    assert.equal(library.Remove("characterResources", created), true);
+    assert.equal(library.Get("characterResources", 22), null);
+    assert.equal(events[1][0], "recordremoved");
+
+    const existing = library.Get("characterResources", 21);
+    assert.equal(library.Delete("characterResources", existing, {
+        delete(record)
+        {
+            deleted = record;
+        }
+    }), true);
+    assert.strictEqual(deleted, existing);
+    assert.equal(library.Get("characterResources", 21), null);
+    assert.deepEqual(events.slice(2, 4).map(([ name ]) => name), [
+        "recordremoved",
+        "recorddeleted"
+    ]);
+
+    const count = library.GetDocument("races").length;
+    assert.equal(library.Clear("races"), true);
+    assert.deepEqual(library.GetDocument("races"), []);
+    assert.equal(library.Get("races", 3), null);
+    assert.equal(events.at(-1)[0], "documentcleared");
+    assert.equal(events.at(-1)[1].count, count);
+
+    const quiet = library.Create("characterResources", {
+        recordID: "23",
+        resPath: "res:/example/topouter/quiet",
+        typeID: "9003",
+        resGender: 1
+    }, {
+        notify: false,
+        skipEvents: true
+    });
+
+    assert.strictEqual(library.Get("characterResources", 23), quiet);
+    assert.equal(events.at(-1)[0], "documentcleared");
+});
+
 test("rebuilds private record indexes after direct editor mutation", () =>
 {
     const library = CjsCharacterLibrary.from(

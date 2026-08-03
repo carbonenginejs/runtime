@@ -3,9 +3,37 @@ import assert from "node:assert/strict";
 import {
     CjsCharacterAppearancePlan,
     CjsCharacterAppearanceSelection,
+    CjsCharacterOrigin,
     CjsCharacterResolvedPart,
     CjsCharacterTextureAsset
 } from "../npm/dist/index.js";
+
+test("mutates appearance-plan child collections through named model methods", () =>
+{
+    const plan = new CjsCharacterAppearancePlan();
+    const origin = plan.CreateOrigin({
+        kind: "derived",
+        rule: "test"
+    });
+    const selection = new CjsCharacterAppearanceSelection();
+    let deleted = null;
+
+    selection.groupID = "topinner";
+    assert.ok(origin instanceof CjsCharacterOrigin);
+    assert.strictEqual(plan.AddSelection(selection), selection);
+    assert.deepEqual(plan.origins, [ origin ]);
+    assert.deepEqual(plan.selections, [ selection ]);
+    assert.equal(plan.RemoveOrigin(origin), true);
+    assert.equal(plan.DeleteSelection(selection, {
+        delete(value)
+        {
+            deleted = value;
+        }
+    }), true);
+    assert.strictEqual(deleted, selection);
+    assert.deepEqual(plan.origins, []);
+    assert.deepEqual(plan.selections, []);
+});
 
 test("hydrates model-shaped appearance JSON through from and SetValues", () =>
 {

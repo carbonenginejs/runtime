@@ -102,6 +102,12 @@ realization remain future stages; diagnostics make those omissions explicit.
   `policy`), and the rule that produced the value. Other records reference one
   shared origin instead of duplicating provenance fields.
 
+The plan exposes named `Create*`, `Add*`, `Remove*`, and `Delete*` methods for
+each top-level child collection. Resolvers and editors use those methods rather
+than writing the arrays directly, so model events and any future property-owned
+flags remain on one mutation path. The methods do not assign bake order or
+interpret child-owned work tokens.
+
 A resolver should give a document-local `_id` only to collection records that
 are referenced. The model importer requires every `_ref` to close inside the
 same import operation and rejects duplicate `_id` values; it does not reject an

@@ -187,10 +187,20 @@ The eighteen collections form one combined runtime catalog. Individually
 published definition files are producer inputs; a runtime frontend does not
 reconstruct this catalog from them.
 
-An editor may add an already-hydrated record with
-`library.Add(documentName, record)`. The library preserves that exact instance
-and relies on normal object references plus inherited graph serialization.
-Private lookup indexes are runtime state and are excluded from the JSON shape.
+An editor may hydrate and insert same-shaped values with
+`library.Create(documentName, values)`, or add an already-hydrated record with
+`library.Add(documentName, record)`. The latter preserves that exact instance.
+`Remove` detaches a record, `Delete` additionally runs an optional explicit
+domain teardown callback, and `Clear` empties one document without guessing
+record destruction.
+
+These operations apply the document property's normal flag/update contract.
+Each collection has a lazy private-index invalidation flag, consumed when that
+document is next queried. The library emits `recordadded`, `recordremoved`,
+`recorddeleted`, and `documentcleared` so an editor can react to incremental
+changes. Private indexes and flags are runtime state and are excluded from the
+JSON shape. Direct array mutation remains possible because the arrays are the
+model fields; call `Reindex()` after bypassing the named methods.
 
 `CjsCharacterLibraryManager` can install the combined model directly or obtain
 its decoded object through one injected loader. Plain installed values must

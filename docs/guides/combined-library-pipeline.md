@@ -65,22 +65,26 @@ storage paths must not be stored in it.
 
 ## Editor authoring
 
-An editor may create or load an individual typed item, hydrate it through its
-own `CjsModel` class, and add that exact object to a library:
+An editor may add same-shaped values through the document's declared model
+type, or add an individual item it already hydrated:
 
 ```js
+const created = library.Create("characterResources", values);
 library.Add("characterResources", resource);
 ```
 
-`Add` preserves the supplied object. It does not clone, normalize, or hydrate
-it again. Direct object relationships remain ordinary references until
+`Create` returns the hydrated record. `Add` preserves the supplied object; it
+does not clone or hydrate it again. `Remove`, `Delete`, and `Clear` provide the
+matching editor mutations. Direct object relationships remain ordinary references until
 `GetValues({ refs: true })` projects the combined `_id` and `_ref` graph for
 publication.
 
 Collections stay visible as the model-shaped `library.documents` fields. An
 editor that directly replaces or reorders array entries calls `Reindex()`
-before relying on indexed lookups. `Add` invalidates the affected index
-automatically.
+before relying on indexed lookups. Named mutations add the collection field's
+lazy index-invalidation flag automatically, and lookup consumes that flag only
+for the affected document. The library emits incremental record/document
+events for editor views.
 
 ## Runtime installation
 

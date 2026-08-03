@@ -56,6 +56,10 @@ optional builder inputs. The library does not retain or translate a second
 JSON representation. Its normal
 `GetValues({ refs: true })` output can be serialized and hydrated again.
 
+Editors can incrementally call `Create`, `Add`, `Remove`, `Delete`, or `Clear`
+without changing that JSON shape. The library lazily invalidates the affected
+document index and emits record/document events for UI synchronization.
+
 `CjsCharacterAppearancePlan.from(bigJSON)` hydrates a separate schema-v1 plan
 through the inherited `CjsModel` contract. Its `_id`/`_ref` graph closes within
 the document. It records resolved ownership, contributors, textures, reusable

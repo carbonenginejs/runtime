@@ -19,7 +19,8 @@ CjsCharacterLibrary.from / instance.SetValues
     |
     +-> CjsCharacterLibraryManager
         -> direct combined-library installation or injected object loading
-        -> private lookup indexes
+        -> observable named record mutation
+        -> lazy per-document private lookup indexes
     |
     v
 CjsCharacterAppearanceResolver
@@ -55,6 +56,12 @@ metadata, materials, projections, and recipes into the same document. Applying
 the same values with `SetValues` produces the same model graph.
 `GetValues({ refs: true })` returns serializable model-shaped values; graph
 tokens may be renumbered without changing identity relationships.
+
+Named `Create`, `Add`, `Remove`, `Delete`, and `Clear` operations mutate the
+same visible document arrays. Collection properties carry their own lazy index
+flags, while child-owned work tokens remain for the active domain context to
+interpret. The library does not assume that nested traversal contexts are one
+global context.
 
 Zero relationship sentinels become `null`. A positive missing target remains
 its named identifier value rather than becoming an unresolved `_ref` or an

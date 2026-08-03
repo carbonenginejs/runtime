@@ -58,25 +58,70 @@ class CjsCharacterLibrary extends CjsModel {
     return _CjsCharacterLibraryD.getDocumentType(key) ? this.documents[key] : null;
   }
 
+  /** Hydrates and adds one source record while preserving the library's JSON shape. */
+  Create(documentName, values = {}, options = {}) {
+    const key = RequireDocumentName(documentName);
+    const recordID = NormalizeStoredRecordID(values?.recordID);
+    if (this.Get(key, recordID)) {
+      ThrowDuplicateRecord(key, recordID);
+    }
+    const record = this.documents.Create(key, values, options);
+    this.#documentIndexes.delete(key);
+    EmitRecordEvent(this, "recordadded", key, record, options);
+    return record;
+  }
+
   /** Adds one already-hydrated source record without cloning or rehydrating it. */
-  Add(documentName, record) {
-    const key = String(documentName);
-    const document = this.GetDocument(key);
-    const typeName = _CjsCharacterLibraryD.getDocumentType(key);
-    if (!document || !typeName) {
-      throw new Error(`Unknown character library document ${JSON.stringify(key)}`);
-    }
-    const Constructor = CjsSchema.GetConstructor(typeName);
-    if (!Constructor || !(record instanceof Constructor)) {
-      throw new TypeError(`Character library document ${JSON.stringify(key)} requires ${typeName}`);
-    }
+  Add(documentName, record, options = {}) {
+    const key = RequireDocumentName(documentName);
+    RequireDocumentRecord(key, record);
     const recordID = NormalizeStoredRecordID(record.recordID);
     if (this.Get(key, recordID)) {
-      throw new Error(`Character library document ${JSON.stringify(key)} already contains record ${JSON.stringify(recordID)}`);
+      ThrowDuplicateRecord(key, recordID);
     }
-    document.push(record);
+    this.documents.Add(key, record, options);
     this.#documentIndexes.delete(key);
+    EmitRecordEvent(this, "recordadded", key, record, options);
     return record;
+  }
+
+  /** Detaches one source record without deleting it. */
+  Remove(documentName, record, options = {}) {
+    const key = RequireDocumentName(documentName);
+    RequireDocumentRecord(key, record);
+    const removed = this.documents.Remove(key, record, options);
+    if (removed) {
+      this.#documentIndexes.delete(key);
+      EmitRecordEvent(this, "recordremoved", key, record, options);
+    }
+    return removed;
+  }
+
+  /** Deletes one source record through an optional domain teardown hook. */
+  Delete(documentName, record, options = {}) {
+    const key = RequireDocumentName(documentName);
+    RequireDocumentRecord(key, record);
+    const deleted = this.documents.Delete(key, record, options);
+    if (deleted) {
+      this.#documentIndexes.delete(key);
+      EmitRecordEvent(this, "recordremoved", key, record, options);
+      EmitRecordEvent(this, "recorddeleted", key, record, options);
+    }
+    return deleted;
+  }
+
+  /** Clears one source-document collection without deleting its records. */
+  Clear(documentName, options = {}) {
+    const key = RequireDocumentName(documentName);
+    const count = this.documents[key].length;
+    const cleared = this.documents.Clear(key, options);
+    if (cleared) {
+      this.#documentIndexes.delete(key);
+      EmitRecordEvent(this, "documentcleared", key, null, options, {
+        count
+      });
+    }
+    return cleared;
   }
 
   /** Clears one or every private record lookup index after direct editor mutation. */
@@ -85,6 +130,7 @@ class CjsCharacterLibrary extends CjsModel {
       const indexes = new Map();
       for (const name of this.ListDocuments()) {
         indexes.set(name, CreateDocumentIndex(name, this.GetDocument(name), _CjsCharacterLibraryD.getDocumentType(name)));
+        this.documents.__state.flags.delete(GetDocumentIndexFlag(name));
       }
       this.#documentIndexes = indexes;
       return this;
@@ -95,6 +141,7 @@ class CjsCharacterLibrary extends CjsModel {
     }
     const entry = CreateDocumentIndex(key, this.GetDocument(key), _CjsCharacterLibraryD.getDocumentType(key));
     this.#documentIndexes.set(key, entry);
+    this.documents.__state.flags.delete(GetDocumentIndexFlag(key));
     return this;
   }
 
@@ -111,6 +158,9 @@ class CjsCharacterLibrary extends CjsModel {
       return null;
     }
     const identity = NormalizeLookupRecordID(recordID);
+    if (this.documents.__state.flags.delete(GetDocumentIndexFlag(key))) {
+      this.#documentIndexes.delete(key);
+    }
     let entry = this.#documentIndexes.get(key);
     if (!entry || entry.document !== document || entry.length !== document.length) {
       entry = CreateDocumentIndex(key, document, _CjsCharacterLibraryD.getDocumentType(key));
@@ -131,6 +181,36 @@ class CjsCharacterLibrary extends CjsModel {
   static {
     _initClass();
   }
+}
+function RequireDocumentName(value) {
+  const key = String(value);
+  if (!_CjsCharacterLibraryD.getDocumentType(key)) {
+    throw new Error(`Unknown character library document ${JSON.stringify(key)}`);
+  }
+  return key;
+}
+function RequireDocumentRecord(documentName, record) {
+  const typeName = _CjsCharacterLibraryD.getDocumentType(documentName);
+  const Constructor = CjsSchema.GetConstructor(typeName);
+  if (!Constructor || !(record instanceof Constructor)) {
+    throw new TypeError(`Character library document ${JSON.stringify(documentName)} requires ${typeName}`);
+  }
+  return record;
+}
+function ThrowDuplicateRecord(documentName, recordID) {
+  throw new Error(`Character library document ${JSON.stringify(documentName)} already contains record ${JSON.stringify(recordID)}`);
+}
+function GetDocumentIndexFlag(documentName) {
+  return `index:${documentName}`;
+}
+function EmitRecordEvent(library, eventName, documentName, record, options, extra = {}) {
+  if (options.skipEvents === true || library.__state.suppressEvents !== 0) return;
+  library.EmitEvent(eventName, library, {
+    documentName,
+    record,
+    source: options.source ?? library,
+    ...extra
+  });
 }
 function CreateDocumentIndex(name, document, typeName) {
   const records = new Map();

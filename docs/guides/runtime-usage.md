@@ -36,7 +36,14 @@ The builder projects proven relationships using native `_id` and `_ref`
 metadata. Those tokens are local to the serialized graph and may be renumbered.
 They are not record, type, race, resource, or other domain identities.
 
-## Add hydrated editor items
+## Mutate editor items
+
+Same-shaped JSON values can be hydrated directly into their declared document
+type and added in one operation:
+
+```js
+const resource = library.Create("characterResources", resourceValues);
+```
 
 An editor can add an already-hydrated item without converting it back through
 plain values:
@@ -48,10 +55,16 @@ resource.SetValues(resourceValues);
 library.Add("characterResources", resource);
 ```
 
-The exact object is retained. `Add` rejects the wrong model class or a duplicate
-`recordID`. It also invalidates the affected private lookup index. Call
+The exact object is retained. `Create` and `Add` reject a duplicate `recordID`;
+`Add` also rejects the wrong model class. `Remove` detaches, `Delete` accepts an
+optional explicit `delete` teardown callback, and `Clear` empties a named
+document. These methods lazily invalidate only the affected private lookup
+index.
+
+Listen for `recordadded`, `recordremoved`, `recorddeleted`, or
+`documentcleared` on the library to update an editor incrementally. Call
 `library.Reindex()` after directly replacing entries in a public document
-array.
+array, because direct array writes deliberately bypass model mutation helpers.
 
 ## Install one combined runtime library
 

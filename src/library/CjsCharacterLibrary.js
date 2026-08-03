@@ -82,39 +82,85 @@ export class CjsCharacterLibrary extends CjsModel
         return CjsCharacterLibraryDocuments.getDocumentType(key) ? this.documents[key] : null;
     }
 
-    /** Adds one already-hydrated source record without cloning or rehydrating it. */
-    Add(documentName, record)
+    /** Hydrates and adds one source record while preserving the library's JSON shape. */
+    Create(documentName, values = {}, options = {})
     {
-        const key = String(documentName);
-        const document = this.GetDocument(key);
-        const typeName = CjsCharacterLibraryDocuments.getDocumentType(key);
+        const key = RequireDocumentName(documentName);
+        const recordID = NormalizeStoredRecordID(values?.recordID);
 
-        if (!document || !typeName)
+        if (this.Get(key, recordID))
         {
-            throw new Error(`Unknown character library document ${JSON.stringify(key)}`);
+            ThrowDuplicateRecord(key, recordID);
         }
 
-        const Constructor = CjsSchema.GetConstructor(typeName);
+        const record = this.documents.Create(key, values, options);
+        this.#documentIndexes.delete(key);
+        EmitRecordEvent(this, "recordadded", key, record, options);
+        return record;
+    }
 
-        if (!Constructor || !(record instanceof Constructor))
-        {
-            throw new TypeError(
-                `Character library document ${JSON.stringify(key)} requires ${typeName}`
-            );
-        }
-
+    /** Adds one already-hydrated source record without cloning or rehydrating it. */
+    Add(documentName, record, options = {})
+    {
+        const key = RequireDocumentName(documentName);
+        RequireDocumentRecord(key, record);
         const recordID = NormalizeStoredRecordID(record.recordID);
 
         if (this.Get(key, recordID))
         {
-            throw new Error(
-                `Character library document ${JSON.stringify(key)} already contains record ${JSON.stringify(recordID)}`
-            );
+            ThrowDuplicateRecord(key, recordID);
         }
 
-        document.push(record);
+        this.documents.Add(key, record, options);
         this.#documentIndexes.delete(key);
+        EmitRecordEvent(this, "recordadded", key, record, options);
         return record;
+    }
+
+    /** Detaches one source record without deleting it. */
+    Remove(documentName, record, options = {})
+    {
+        const key = RequireDocumentName(documentName);
+        RequireDocumentRecord(key, record);
+        const removed = this.documents.Remove(key, record, options);
+
+        if (removed)
+        {
+            this.#documentIndexes.delete(key);
+            EmitRecordEvent(this, "recordremoved", key, record, options);
+        }
+        return removed;
+    }
+
+    /** Deletes one source record through an optional domain teardown hook. */
+    Delete(documentName, record, options = {})
+    {
+        const key = RequireDocumentName(documentName);
+        RequireDocumentRecord(key, record);
+        const deleted = this.documents.Delete(key, record, options);
+
+        if (deleted)
+        {
+            this.#documentIndexes.delete(key);
+            EmitRecordEvent(this, "recordremoved", key, record, options);
+            EmitRecordEvent(this, "recorddeleted", key, record, options);
+        }
+        return deleted;
+    }
+
+    /** Clears one source-document collection without deleting its records. */
+    Clear(documentName, options = {})
+    {
+        const key = RequireDocumentName(documentName);
+        const count = this.documents[key].length;
+        const cleared = this.documents.Clear(key, options);
+
+        if (cleared)
+        {
+            this.#documentIndexes.delete(key);
+            EmitRecordEvent(this, "documentcleared", key, null, options, { count });
+        }
+        return cleared;
     }
 
     /** Clears one or every private record lookup index after direct editor mutation. */
@@ -131,6 +177,7 @@ export class CjsCharacterLibrary extends CjsModel
                     this.GetDocument(name),
                     CjsCharacterLibraryDocuments.getDocumentType(name)
                 ));
+                this.documents.__state.flags.delete(GetDocumentIndexFlag(name));
             }
 
             this.#documentIndexes = indexes;
@@ -150,6 +197,7 @@ export class CjsCharacterLibrary extends CjsModel
             CjsCharacterLibraryDocuments.getDocumentType(key)
         );
         this.#documentIndexes.set(key, entry);
+        this.documents.__state.flags.delete(GetDocumentIndexFlag(key));
         return this;
     }
 
@@ -171,6 +219,11 @@ export class CjsCharacterLibrary extends CjsModel
         }
 
         const identity = NormalizeLookupRecordID(recordID);
+
+        if (this.documents.__state.flags.delete(GetDocumentIndexFlag(key)))
+        {
+            this.#documentIndexes.delete(key);
+        }
 
         let entry = this.#documentIndexes.get(key);
 
@@ -206,6 +259,53 @@ export class CjsCharacterLibrary extends CjsModel
         return record && record.recordID === identity ? record : null;
     }
 
+}
+
+function RequireDocumentName(value)
+{
+    const key = String(value);
+    if (!CjsCharacterLibraryDocuments.getDocumentType(key))
+    {
+        throw new Error(`Unknown character library document ${JSON.stringify(key)}`);
+    }
+    return key;
+}
+
+function RequireDocumentRecord(documentName, record)
+{
+    const typeName = CjsCharacterLibraryDocuments.getDocumentType(documentName);
+    const Constructor = CjsSchema.GetConstructor(typeName);
+
+    if (!Constructor || !(record instanceof Constructor))
+    {
+        throw new TypeError(
+            `Character library document ${JSON.stringify(documentName)} requires ${typeName}`
+        );
+    }
+    return record;
+}
+
+function ThrowDuplicateRecord(documentName, recordID)
+{
+    throw new Error(
+        `Character library document ${JSON.stringify(documentName)} already contains record ${JSON.stringify(recordID)}`
+    );
+}
+
+function GetDocumentIndexFlag(documentName)
+{
+    return `index:${documentName}`;
+}
+
+function EmitRecordEvent(library, eventName, documentName, record, options, extra = {})
+{
+    if (options.skipEvents === true || library.__state.suppressEvents !== 0) return;
+    library.EmitEvent(eventName, library, {
+        documentName,
+        record,
+        source: options.source ?? library,
+        ...extra
+    });
 }
 
 function CreateDocumentIndex(name, document, typeName)

@@ -10,7 +10,8 @@ Summary: Tracks evidence-backed work after replacing the speculative v1/v2 chara
 - schema-v6 model-shaped JSON construction;
 - proven native `_id`/`_ref` relationship projection;
 - one connected source-record model with named `recordID` values;
-- exact insertion of already-hydrated editor items and private indexed lookup;
+- observable create/add/remove/delete/clear editor mutation with lazy
+  per-document private indexed lookup;
 - direct or injected-loader installation of one combined runtime catalog;
 - direct `CjsModel` records for all twelve required source documents, six
   optional folded profile/resource catalogs, and nested selection records;

@@ -93,9 +93,29 @@ class CjsCharacterLibraryManager {
     return operation;
   }
 
+  /** Hydrates and adds one item to the installed editor library. */
+  Create(documentName, values = {}, options = {}) {
+    return this.#library.Create(documentName, values, options);
+  }
+
   /** Adds one already-hydrated item to the installed editor library. */
-  Add(documentName, record) {
-    return this.#library.Add(documentName, record);
+  Add(documentName, record, options = {}) {
+    return this.#library.Add(documentName, record, options);
+  }
+
+  /** Detaches one item from the installed editor library. */
+  Remove(documentName, record, options = {}) {
+    return this.#library.Remove(documentName, record, options);
+  }
+
+  /** Deletes one item from the installed editor library. */
+  Delete(documentName, record, options = {}) {
+    return this.#library.Delete(documentName, record, options);
+  }
+
+  /** Clears one document in the installed editor library. */
+  Clear(documentName, options = {}) {
+    return this.#library.Clear(documentName, options);
   }
 
   /** Returns one installed library document collection. */

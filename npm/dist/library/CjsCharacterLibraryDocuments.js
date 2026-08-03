@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, CjsSchema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import '../character/CjsCharacterRecord.js';
 import '../character/activity/CjsCharacterArchetype.js';
@@ -54,7 +54,7 @@ class CjsCharacterLibraryDocuments extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "CjsCharacterLibraryDocuments",
       family: "character"
-    })], [[[io, io.readwrite, void 0, type.list("CjsCharacterAncestry")], 16, "ancestries"], [[io, io.readwrite, void 0, type.list("CjsCharacterArchetype")], 16, "archetypes"], [[io, io.readwrite, void 0, type.list("CjsCharacterBloodline")], 16, "bloodlines"], [[io, io.readwrite, void 0, type.list("CjsCharacterAvatarBehavior")], 16, "characterAvatarBehaviors"], [[io, io.readwrite, void 0, type.list("CjsCharacterColorLocation")], 16, "characterColorLocations"], [[io, io.readwrite, void 0, type.list("CjsCharacterColorName")], 16, "characterColorNames"], [[io, io.readwrite, void 0, type.list("CjsCharacterModifierLocation")], 16, "characterModifierLocations"], [[io, io.readwrite, void 0, type.list("CjsCharacterPortraitResource")], 16, "characterPortraitResources"], [[io, io.readwrite, void 0, type.list("CjsCharacterResource")], 16, "characterResources"], [[io, io.readwrite, void 0, type.list("CjsCharacterSculptingLocation")], 16, "characterSculptingLocations"], [[io, io.readwrite, void 0, type.list("CjsCharacterPaperdoll")], 16, "paperdolls"], [[io, io.readwrite, void 0, type.list("CjsCharacterRace")], 16, "races"], [[io, io.readwrite, void 0, type.list("CjsCharacterPartType")], 16, "characterPartTypes"], [[io, io.readwrite, void 0, type.list("CjsCharacterPartSource")], 16, "characterPartSources"], [[io, io.readwrite, void 0, type.list("CjsCharacterPartMetadata")], 16, "characterPartMetadata"], [[io, io.readwrite, void 0, type.list("CjsCharacterMaterialProfile")], 16, "characterMaterialProfiles"], [[io, io.readwrite, void 0, type.list("CjsCharacterProjectionProfile")], 16, "characterProjectionProfiles"], [[io, io.readwrite, void 0, type.list("CjsCharacterRecipeProfile")], 16, "characterRecipeProfiles"]], 0, void 0, CjsModel));
+    })], [[[io, io.readwrite, void 0, io.flag("index:ancestries"), void 0, type.list("CjsCharacterAncestry")], 16, "ancestries"], [[io, io.readwrite, void 0, io.flag("index:archetypes"), void 0, type.list("CjsCharacterArchetype")], 16, "archetypes"], [[io, io.readwrite, void 0, io.flag("index:bloodlines"), void 0, type.list("CjsCharacterBloodline")], 16, "bloodlines"], [[io, io.readwrite, void 0, io.flag("index:characterAvatarBehaviors"), void 0, type.list("CjsCharacterAvatarBehavior")], 16, "characterAvatarBehaviors"], [[io, io.readwrite, void 0, io.flag("index:characterColorLocations"), void 0, type.list("CjsCharacterColorLocation")], 16, "characterColorLocations"], [[io, io.readwrite, void 0, io.flag("index:characterColorNames"), void 0, type.list("CjsCharacterColorName")], 16, "characterColorNames"], [[io, io.readwrite, void 0, io.flag("index:characterModifierLocations"), void 0, type.list("CjsCharacterModifierLocation")], 16, "characterModifierLocations"], [[io, io.readwrite, void 0, io.flag("index:characterPortraitResources"), void 0, type.list("CjsCharacterPortraitResource")], 16, "characterPortraitResources"], [[io, io.readwrite, void 0, io.flag("index:characterResources"), void 0, type.list("CjsCharacterResource")], 16, "characterResources"], [[io, io.readwrite, void 0, io.flag("index:characterSculptingLocations"), void 0, type.list("CjsCharacterSculptingLocation")], 16, "characterSculptingLocations"], [[io, io.readwrite, void 0, io.flag("index:paperdolls"), void 0, type.list("CjsCharacterPaperdoll")], 16, "paperdolls"], [[io, io.readwrite, void 0, io.flag("index:races"), void 0, type.list("CjsCharacterRace")], 16, "races"], [[io, io.readwrite, void 0, io.flag("index:characterPartTypes"), void 0, type.list("CjsCharacterPartType")], 16, "characterPartTypes"], [[io, io.readwrite, void 0, io.flag("index:characterPartSources"), void 0, type.list("CjsCharacterPartSource")], 16, "characterPartSources"], [[io, io.readwrite, void 0, io.flag("index:characterPartMetadata"), void 0, type.list("CjsCharacterPartMetadata")], 16, "characterPartMetadata"], [[io, io.readwrite, void 0, io.flag("index:characterMaterialProfiles"), void 0, type.list("CjsCharacterMaterialProfile")], 16, "characterMaterialProfiles"], [[io, io.readwrite, void 0, io.flag("index:characterProjectionProfiles"), void 0, type.list("CjsCharacterProjectionProfile")], 16, "characterProjectionProfiles"], [[io, io.readwrite, void 0, io.flag("index:characterRecipeProfiles"), void 0, type.list("CjsCharacterRecipeProfile")], 16, "characterRecipeProfiles"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);
@@ -73,6 +73,37 @@ class CjsCharacterLibraryDocuments extends CjsModel {
   /** Returns whether a source-document input is required for every build. */
   static isRequiredDocument(name) {
     return DOCUMENT_DEFINITIONS.find(([candidate]) => candidate === name)?.[2] === true;
+  }
+
+  /** Hydrates and adds one record to a named document collection. */
+  Create(documentName, values = {}, options = {}) {
+    return CjsModel.createChild(this, RequireDocumentName(documentName), values, options);
+  }
+
+  /** Adds one existing record to a named document collection. */
+  Add(documentName, record, options = {}) {
+    const name = RequireDocumentName(documentName);
+    RequireDocumentRecord(name, record);
+    return CjsModel.addChild(this, name, record, options);
+  }
+
+  /** Detaches one existing record from a named document collection. */
+  Remove(documentName, record, options = {}) {
+    const name = RequireDocumentName(documentName);
+    RequireDocumentRecord(name, record);
+    return CjsModel.removeChild(this, name, record, options);
+  }
+
+  /** Deletes one existing record through an optional domain teardown hook. */
+  Delete(documentName, record, options = {}) {
+    const name = RequireDocumentName(documentName);
+    RequireDocumentRecord(name, record);
+    return CjsModel.deleteChild(this, name, record, options);
+  }
+
+  /** Clears one named document collection without deleting its records. */
+  Clear(documentName, options = {}) {
+    return CjsModel.clearChildren(this, RequireDocumentName(documentName), options);
   }
   ancestries = _init_ancestries(this, []);
   archetypes = (_init_extra_ancestries(this), _init_archetypes(this, []));
@@ -95,6 +126,21 @@ class CjsCharacterLibraryDocuments extends CjsModel {
   static {
     _initClass();
   }
+}
+function RequireDocumentName(value) {
+  const name = String(value);
+  if (!_CjsCharacterLibraryD.getDocumentType(name)) {
+    throw new Error(`Unknown character library document ${JSON.stringify(name)}`);
+  }
+  return name;
+}
+function RequireDocumentRecord(documentName, record) {
+  const typeName = _CjsCharacterLibraryD.getDocumentType(documentName);
+  const Constructor = CjsSchema.GetConstructor(typeName);
+  if (!Constructor || !(record instanceof Constructor)) {
+    throw new TypeError(`Character library document ${JSON.stringify(documentName)} requires ${typeName}`);
+  }
+  return record;
 }
 
 export { _CjsCharacterLibraryD as CjsCharacterLibraryDocuments };

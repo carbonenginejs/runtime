@@ -4,12 +4,7 @@ import { CjsCharacterPartSourceVersion as _CjsCharacterPartSour$1 } from '../cat
 import { CjsCharacterPartType as _CjsCharacterPartType } from '../catalog/CjsCharacterPartType.js';
 import { CjsCharacterModifierLocation as _CjsCharacterModifier } from '../composition/CjsCharacterModifierLocation.js';
 import { CjsCharacterPaperdoll as _CjsCharacterPaperdol } from '../creation/CjsCharacterPaperdoll.js';
-import { CjsCharacterAppearanceDiagnostic as _CjsCharacterAppearan$3 } from '../planning/CjsCharacterAppearanceDiagnostic.js';
-import { CjsCharacterAppearanceLayer as _CjsCharacterAppearan$2 } from '../planning/CjsCharacterAppearanceLayer.js';
 import { CjsCharacterAppearancePlan as _CjsCharacterAppearan } from '../planning/CjsCharacterAppearancePlan.js';
-import { CjsCharacterAppearanceSelection as _CjsCharacterAppearan$1 } from '../planning/CjsCharacterAppearanceSelection.js';
-import { CjsCharacterOrigin as _CjsCharacterOrigin } from '../planning/CjsCharacterOrigin.js';
-import { CjsCharacterResolvedPart as _CjsCharacterResolved } from '../planning/CjsCharacterResolvedPart.js';
 import { CjsCharacterResource as _CjsCharacterResource } from '../resources/CjsCharacterResource.js';
 
 /** Resolves source-backed paper-doll selections without inventing character rendering policy. */
@@ -49,10 +44,10 @@ function ResolveModifier(plan, paperdoll, modifier, modifierIndex, groupIDs) {
     AddDiagnostic(plan, "MODIFIER_LOCATION_UNRESOLVED", `Paper-doll modifier ${modifierIndex} has no resolved modifier location.`, "warning", selectionOrigin);
     return;
   }
-  const selection = new _CjsCharacterAppearan$1();
-  selection.groupID = location.modifierKey;
-  selection.origin = selectionOrigin;
-  plan.selections.push(selection);
+  const selection = plan.CreateSelection({
+    groupID: location.modifierKey,
+    origin: selectionOrigin
+  });
   if (groupIDs.has(selection.groupID)) {
     AddDiagnostic(plan, "DUPLICATE_SELECTION_GROUP", `Paper doll contains more than one selection for ${JSON.stringify(selection.groupID)}.`, "warning", selectionOrigin);
   }
@@ -109,11 +104,11 @@ function ResolveModifier(plan, paperdoll, modifier, modifierIndex, groupIDs) {
     jsonPointer: `/versions/${versionIndex}`,
     rule: "unique-version-candidates"
   });
-  const part = new _CjsCharacterResolved();
-  part.configurationPath = version.configurationCandidates[0];
-  part.geometryPath = version.geometryCandidates[0];
-  part.origin = partOrigin;
-  plan.parts.push(part);
+  const part = plan.CreatePart({
+    configurationPath: version.configurationCandidates[0],
+    geometryPath: version.geometryCandidates[0],
+    origin: partOrigin
+  });
   const layerOrigin = AddOrigin(plan, {
     kind: "derived",
     document: "paperdolls",
@@ -121,11 +116,11 @@ function ResolveModifier(plan, paperdoll, modifier, modifierIndex, groupIDs) {
     jsonPointer: `/modifiers/${modifierIndex}`,
     rule: "exact-selection-part-chain"
   });
-  const layer = new _CjsCharacterAppearan$2();
-  layer.owner = selection;
-  layer.contributor = part;
-  layer.origin = layerOrigin;
-  plan.layers.push(layer);
+  plan.CreateLayer({
+    owner: selection,
+    contributor: part,
+    origin: layerOrigin
+  });
   if (version.textureCandidates.length) {
     AddDiagnostic(plan, "TEXTURE_ROLES_UNRESOLVED", `Part source ${JSON.stringify(partSource.recordID)} has texture candidates without decoded roles or placement.`, "info", partOrigin);
   }
@@ -150,21 +145,15 @@ function DiagnosePartMetadata(plan, metadata, partSource, origin) {
   }
 }
 function AddOrigin(plan, values) {
-  const origin = new _CjsCharacterOrigin();
-  for (const [key, value] of Object.entries(values)) {
-    origin[key] = value;
-  }
-  plan.origins.push(origin);
-  return origin;
+  return plan.CreateOrigin(values);
 }
 function AddDiagnostic(plan, code, message, severity, origin = null) {
-  const diagnostic = new _CjsCharacterAppearan$3();
-  diagnostic.code = code;
-  diagnostic.message = message;
-  diagnostic.severity = severity;
-  diagnostic.origin = origin;
-  plan.diagnostics.push(diagnostic);
-  return diagnostic;
+  return plan.CreateDiagnostic({
+    code,
+    message,
+    severity,
+    origin
+  });
 }
 
 export { CjsCharacterAppearanceResolver };

@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/runtime-character",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "GPU-free character source documents, combined-library hydration, and native Trinity character classes for CarbonEngineJS.",
   "type": "module",
   "exports": {
@@ -11,7 +11,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@carbonenginejs/runtime-utils": "^0.1.0"
+    "@carbonenginejs/runtime-utils": "^0.1.4"
   },
   "license": "MIT",
   "publishConfig": {
