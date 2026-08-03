@@ -44,6 +44,49 @@ the ordinary settled event. Callers that need changed names use the
 may emit an immediate payload containing `properties`; that is not the normal
 settled-event shape.
 
+## Schema-backed child collections
+
+Domain containers expose named methods such as `CreateAttachment`,
+`AddAttachment`, `RemoveAttachment`, and `DeleteAttachment`. Those methods may
+delegate to the programmatic static helpers `CjsModel.createChild(owner, ...)`,
+`addChild`, `removeChild`, `deleteChild`, and `clearChildren`. Model instances do
+not inherit generic property-string child methods; the named methods explicitly
+defined by their domain class are their child-mutation API.
+
+The helpers accept only schema `array` and `list` fields backed by ordinary
+JavaScript arrays. They do not operate on typed arrays, maps, sets, or
+undeclared properties. `createChild` hydrates one value using the collection's
+declared item type before adding it.
+
+A collection mutation follows the same state rules as `SetValues`:
+
+- it marks the parent dirty unless `markDirty: false`;
+- it adds that collection field's declared `@io.flag(...)` and
+  `@io.rebuild(...)` tokens unless `notify: false`;
+- it settles the parent unless `skipUpdate: true`; and
+- it suppresses child and modified events when `skipEvents: true`.
+
+When the parent implements Carbon-shaped `OnListModified`, insertion and
+removal callbacks receive the mutated list. Clearing sends unload-start while
+the list is still populated, then empties it. Generic `childadded`,
+`childremoved`, `childdeleted`, and `childrencleared` events carry the property
+and affected child or count; named wrappers may also supply `onAdded`,
+`onRemoved`, `onDeleted`, or `onCleared` callbacks.
+
+Remove only detaches. Delete also emits the deletion event and may run an
+explicit domain-owned `delete` callback; it never guesses a generic `Destroy`
+operation. JavaScript lifetime management remains ordinary garbage collection
+when no teardown callback is supplied.
+
+Child-owned flags and rebuild tokens are deliberately not interpreted by these
+helpers. A child property may declare a token such as a deferred deletion
+request, but the current runtime context decides whether and when to consume
+it and which named parent method to call. That context must retain the exact
+relationship it owns: the same child may be reached through multiple parents,
+properties, or nested contexts, and graph traversal does not make those
+contexts interchangeable. No global deletion queue or child-management
+decorator is implied.
+
 ## Initialization
 
 `CjsModel.from()` constructs or imports the graph, resolves references, then

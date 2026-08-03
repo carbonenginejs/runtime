@@ -187,6 +187,18 @@ They return the same changed-set, boolean, or `false` result as `SetValues`.
 `Copy`/`copy` instead require an instantiated
 `CjsModel` source and forward the supplied `SetValues` options.
 
+Schema-backed containers expose domain-named child methods and delegate their
+ordinary `array` or `list` mutations to the programmatic static
+`CjsModel.createChild(owner, ...)`, `addChild`, `removeChild`, `deleteChild`, and
+`clearChildren` helpers. Instances expose only child methods explicitly defined
+by their domain class. The static helpers hydrate declared item types, preserve
+Carbon `OnListModified` notifications, and apply the collection field's normal
+flag/rebuild tokens. They do not manage typed arrays or interpret tokens owned
+by a child; the active domain context remains responsible for consuming child
+work requests.
+See [Model lifecycle](../concepts/model-lifecycle.md#schema-backed-child-collections)
+for removal, deletion, event, and nested-context rules.
+
 ### Enum-backed fields
 
 Enum metadata resolves lazily from the concrete model constructor's PascalCase

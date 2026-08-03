@@ -5,6 +5,12 @@ import { CjsModelState } from "./CjsModelState.js";
 import { CjsEventEmitter } from "./CjsEventEmitter.js";
 
 const MAX_UPDATE_PASSES = 32;
+const CHILD_COLLECTION_KINDS = new Set([ "array", "list" ]);
+const CHILD_LIST_EVENT = {
+    UNLOAD_START: 0x07,
+    INSERTED: 0x08,
+    REMOVED: 0x09
+};
 
 /**
  * Shared base for schema-backed CarbonEngineJS runtime classes.
@@ -95,6 +101,173 @@ export class CjsModel extends CjsEventEmitter
     Merge(values = [], options = {})
     {
         return CjsModel.merge(this, values, options);
+    }
+
+    /**
+     * Constructs one item from a schema-backed child collection's declared
+     * item type, then adds it through the ordinary child-mutation path.
+     *
+     * Domain classes expose named factories such as `CreateAttachment`; this
+     * programmatic helper keeps property-string mutation out of their instance
+     * API.
+     *
+     * @param {CjsModel} target Owning model instance.
+     * @param {string} property Schema `array` or `list` field name.
+     * @param {object} [values={}] Plain child values.
+     * @param {object} [options={}] Hydration and mutation options.
+     * @returns {*} The constructed and added child.
+     */
+    static createChild(target, property, values = {}, options = {})
+    {
+        const { field } = getChildCollection(target, property);
+        const imported = importSourceValue([ values ], field, {
+            ...options,
+            ownerConstructor: target.constructor
+        });
+        const child = imported[0];
+
+        assertChildObject(child, field.name);
+        CjsModel.addChild(target, field.name, child, options);
+        return child;
+    }
+
+    /**
+     * Appends an existing object to a schema-backed child collection.
+     *
+     * The mutation invokes Carbon-shaped `OnListModified` when present,
+     * records the field's declared flag/rebuild consequences, emits one
+     * `childadded` event, and settles the parent unless suppressed by options.
+     *
+     * @param {CjsModel} target Owning model instance.
+     * @param {string} property Schema `array` or `list` field name.
+     * @param {object} child Existing child object.
+     * @param {object} [options={}]
+     * @returns {object} The appended child.
+     */
+    static addChild(target, property, child, options = {})
+    {
+        const { field, collection } = getChildCollection(target, property);
+
+        assertChildObject(child, field.name);
+        assertChildCallback(options.onAdded, "onAdded");
+
+        const index = collection.length;
+        collection.push(child);
+        recordChildMutation(target, field, options);
+        notifyListModified(target, CHILD_LIST_EVENT.INSERTED, index, 0, child, collection);
+
+        const payload = createChildEventPayload(target, field.name, child, index, options);
+        invokeChildCallback(options.onAdded, target, payload, "onAdded");
+        emitChildEvent(target, "childadded", payload, options);
+        settleChildMutation(target, field, options);
+        return child;
+    }
+
+    /**
+     * Detaches the first matching object from a schema-backed child collection.
+     * Removal never destroys the child.
+     *
+     * @param {CjsModel} target Owning model instance.
+     * @param {string} property Schema `array` or `list` field name.
+     * @param {object} child Existing child object.
+     * @param {object} [options={}]
+     * @returns {boolean} Whether the child was present and removed.
+     */
+    static removeChild(target, property, child, options = {})
+    {
+        const { field, collection } = getChildCollection(target, property);
+        const index = collection.indexOf(child);
+
+        if (index === -1) return false;
+        assertChildCallback(options.onRemoved, "onRemoved");
+
+        collection.splice(index, 1);
+        recordChildMutation(target, field, options);
+        notifyListModified(target, CHILD_LIST_EVENT.REMOVED, index, 0, child, collection);
+
+        const payload = createChildEventPayload(target, field.name, child, index, options);
+        invokeChildCallback(options.onRemoved, target, payload, "onRemoved");
+        emitChildEvent(target, "childremoved", payload, options);
+        settleChildMutation(target, field, options);
+        return true;
+    }
+
+    /**
+     * Removes a child and then performs an explicit deletion action.
+     *
+     * `options.delete` owns domain-specific teardown when supplied. Without
+     * that explicit hook the child is detached and left to ordinary
+     * JavaScript lifetime management. Deletion emits both `childremoved` and
+     * `childdeleted`.
+     *
+     * @param {CjsModel} target Owning model instance.
+     * @param {string} property Schema `array` or `list` field name.
+     * @param {object} child Existing child object.
+     * @param {object} [options={}]
+     * @param {Function} [options.delete] Explicit child teardown callback.
+     * @returns {boolean} Whether the child was present and deleted.
+     */
+    static deleteChild(target, property, child, options = {})
+    {
+        const { field, collection } = getChildCollection(target, property);
+        const index = collection.indexOf(child);
+
+        if (index === -1) return false;
+
+        if (options.delete !== undefined && typeof options.delete !== "function")
+        {
+            throw new TypeError("CjsModel child delete option must be a function.");
+        }
+        assertChildCallback(options.onDeleted, "onDeleted");
+
+        CjsModel.removeChild(target, field.name, child, { ...options, skipUpdate: true });
+
+        if (typeof options.delete === "function")
+        {
+            options.delete.call(target, child, options);
+        }
+
+        const payload = createChildEventPayload(target, field.name, child, index, options);
+        invokeChildCallback(options.onDeleted, target, payload, "onDeleted");
+        emitChildEvent(target, "childdeleted", payload, options);
+        settleChildMutation(target, field, options);
+        return true;
+    }
+
+    /**
+     * Detaches every object from a schema-backed child collection without
+     * destroying the children.
+     *
+     * Carbon-shaped `OnListModified` receives its unload-start callback while
+     * the collection is still populated. The public domain method decides
+     * whether clearing or per-child deletion is appropriate.
+     *
+     * @param {CjsModel} target Owning model instance.
+     * @param {string} property Schema `array` or `list` field name.
+     * @param {object} [options={}]
+     * @returns {boolean} Whether any children were cleared.
+     */
+    static clearChildren(target, property, options = {})
+    {
+        const { field, collection } = getChildCollection(target, property);
+        const count = collection.length;
+
+        if (!count) return false;
+        assertChildCallback(options.onCleared, "onCleared");
+
+        recordChildMutation(target, field, options);
+        notifyListModified(target, CHILD_LIST_EVENT.UNLOAD_START, 0, 0, null, collection);
+        collection.length = 0;
+
+        const payload = {
+            property: field.name,
+            count,
+            source: options.source ?? target
+        };
+        invokeChildCallback(options.onCleared, target, payload, "onCleared");
+        emitChildEvent(target, "childrencleared", payload, options);
+        settleChildMutation(target, field, options);
+        return true;
     }
 
     /**
@@ -868,6 +1041,114 @@ function incomingKeyCandidates(field)
         ? field.alias === undefined ? [] : [field.alias]
         : Array.isArray(field.aliases) ? field.aliases : [field.aliases];
     return [field.name, ...aliases].filter(value => typeof value === "string" && value.length);
+}
+
+function getChildCollection(target, property)
+{
+    if (!(target instanceof CjsModel))
+    {
+        throw new TypeError("CjsModel child collection target must be a CjsModel instance.");
+    }
+
+    if (typeof property !== "string" || !property)
+    {
+        throw new TypeError("CjsModel child collection property must be a non-empty string.");
+    }
+
+    const field = CjsSchema.getField(target.constructor, property);
+    if (!field)
+    {
+        throw new TypeError(`${CjsSchema.getClassName(target.constructor)} has no schema field named ${JSON.stringify(property)}.`);
+    }
+
+    const fieldType = field.type || field.jsType;
+    if (!CHILD_COLLECTION_KINDS.has(fieldType?.kind))
+    {
+        throw new TypeError(`${field.name} must be a schema array or list child collection.`);
+    }
+
+    const collection = target[field.name];
+    if (!Array.isArray(collection))
+    {
+        throw new TypeError(`${field.name} must contain an ordinary JavaScript Array.`);
+    }
+
+    return { field, collection };
+}
+
+function assertChildObject(child, property)
+{
+    if (!child || typeof child !== "object" || Array.isArray(child) || ArrayBuffer.isView(child))
+    {
+        throw new TypeError(`${property} requires a non-null child object.`);
+    }
+}
+
+function assertChildCallback(callback, optionName)
+{
+    if (callback !== undefined && callback !== null && typeof callback !== "function")
+    {
+        throw new TypeError(`CjsModel child ${optionName} option must be a function.`);
+    }
+}
+
+function recordChildMutation(target, field, options)
+{
+    if (options.markDirty === false) return;
+    target.__state.dirty = true;
+    if (options.notify !== false) addDeclaredFieldTokens(target, field);
+}
+
+function notifyListModified(target, event, index, secondIndex, child, collection)
+{
+    if (typeof target.OnListModified === "function")
+    {
+        target.OnListModified(event, index, secondIndex, child, collection);
+    }
+}
+
+function createChildEventPayload(target, property, child, index, options)
+{
+    return {
+        property,
+        child,
+        index,
+        source: options.source ?? target
+    };
+}
+
+function invokeChildCallback(callback, target, payload, optionName)
+{
+    if (callback === undefined || callback === null) return;
+    assertChildCallback(callback, optionName);
+    callback.call(target, payload);
+}
+
+function emitChildEvent(target, eventName, payload, options)
+{
+    if (options.skipEvents !== true && target.__state.suppressEvents === 0)
+    {
+        target.EmitEvent(eventName, target, payload);
+    }
+}
+
+function settleChildMutation(target, field, options)
+{
+    if (options.skipUpdate === true) return;
+
+    if (options.markDirty === false)
+    {
+        if (options.skipEvents !== true && target.__state.suppressEvents === 0)
+        {
+            target.EmitEvent("modified", target, createModifiedPayload(
+                new Set([ field.name ]),
+                options.source ?? target
+            ));
+        }
+        return;
+    }
+
+    if (!target.__state.updating) target.UpdateValues(options);
 }
 
 // Adds one field's declared @io.flag / @io.rebuild tokens to their stores.
