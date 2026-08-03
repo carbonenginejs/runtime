@@ -46,6 +46,11 @@ function FakeContext({ withAnalyser = false } = {})
     currentTime: 0,
     sampleRate: 48000,
     destination: { name: "destination" },
+    listener: {
+      positionX: FakeParam(0), positionY: FakeParam(0), positionZ: FakeParam(0),
+      forwardX: FakeParam(0), forwardY: FakeParam(0), forwardZ: FakeParam(-1),
+      upX: FakeParam(0), upY: FakeParam(1), upZ: FakeParam(0),
+    },
     gains: [],
     filters: [],
     panners: [],
@@ -448,6 +453,45 @@ function RouteBranchForSource(source)
 {
   return source.connectedTo?.connectedTo?.connectedTo?.connectedTo ?? null;
 }
+
+test("live spatial pose changes ramp after immediate initialization", () =>
+{
+  const { context, backend } = Harness({ distanceScale: 2 });
+  const panner = context.panners[0];
+
+  backend.SetPosition(1, [ 0, 0, -1 ], [ 0, 1, 0 ], [ 1, 2, 3 ]);
+  assert.deepEqual(
+    [ panner.positionX.value, panner.positionY.value, panner.positionZ.value ],
+    [ 2, 4, 6 ],
+    "the initial pose cannot ramp from Web Audio's origin",
+  );
+
+  context.currentTime = 0.25;
+  backend.SetPosition(1, [ 1, 0, 0 ], [ 0, 1, 0 ], [ 4, 5, 6 ]);
+
+  assert.deepEqual(panner.positionX.cancellations, [ 0.25 ]);
+  assert.deepEqual(panner.positionX.sets, [ [ 2, 0.25 ] ]);
+  assert.deepEqual(panner.positionX.ramps, [ [ 8, 0.265 ] ]);
+  assert.deepEqual(panner.positionY.ramps, [ [ 10, 0.265 ] ]);
+  assert.deepEqual(panner.positionZ.ramps, [ [ 12, 0.265 ] ]);
+
+  backend.SetListenerPosition(
+    2,
+    [ 0, 0, -1 ],
+    [ 0, 1, 0 ],
+    [ 1, 0, 0 ],
+  );
+  context.currentTime = 0.5;
+  backend.SetListenerPosition(
+    2,
+    [ 0, 0, -1 ],
+    [ 0, 1, 0 ],
+    [ 5, 0, 0 ],
+  );
+  assert.deepEqual(context.listener.positionX.cancellations, [ 0.5 ]);
+  assert.deepEqual(context.listener.positionX.sets, [ [ 2, 0.5 ] ]);
+  assert.deepEqual(context.listener.positionX.ramps, [ [ 10, 0.515 ] ]);
+});
 
 test("graph-backed SFX routes separate exact route and spatial branches", async () =>
 {

@@ -518,7 +518,7 @@ class AudioLibrary
                 .map(FormatRtpcProperty)
                 .join(" and ") || "playback properties";
 
-            return `Uses the authored ${control?.scope ?? "object"} Game Parameter ${control?.name ?? ""} from ${FormatControlValue(control?.min ?? 0)} to ${FormatControlValue(control?.max ?? 0)} to change ${properties}. Volume and pitch stay live; initial delay is captured when you post.`;
+            return `Uses the authored ${control?.scope ?? "object"} Game Parameter ${control?.name ?? ""} from ${FormatControlValue(control?.min ?? 0)} to ${FormatControlValue(control?.max ?? 0)} to change ${properties}. The slider starts at the curve minimum, which may be deliberately quiet. Volume and pitch stay live; initial delay is captured when you post.`;
         }
 
         return "Posts the selected authored SFX graph on one retained emitter.";

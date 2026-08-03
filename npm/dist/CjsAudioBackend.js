@@ -25,6 +25,7 @@ const DEFAULT_FADE_SECONDS = 1;
 const DEFAULT_RENDER_QUANTUM_SECONDS = 128 / 48000;
 const LINEAR_FADE_CURVE = 4;
 const FADE_CURVE_SAMPLES = 65;
+const SPATIAL_POSE_RAMP_SECONDS = 0.015;
 
 /** WebAudio backend for the audio graph: emitter nodes, playing sources, listener pose. */
 class CjsAudioBackend {
@@ -66,6 +67,7 @@ class CjsAudioBackend {
   // thousands of meters; the inverse distance model with refDistance 1 makes
   // that inaudible. Scale is the app's acoustic choice.
   #distanceScale = 1;
+  #listenerPoseInitialized = false;
 
   // Optional interactive-music engine (CjsMusicEngine); owns events found
   // in its graph and plays through its own gain into the master gain.
@@ -647,13 +649,14 @@ class CjsAudioBackend {
   SetPosition(gameObjID, front, top, position) {
     const nodes = this.#emitterNodes.get(gameObjID);
     if (nodes) {
+      const smooth = nodes.position !== null;
       nodes.front = [...front];
       nodes.position = [...position];
-      SetPannerPose(nodes.panner, nodes.front, nodes.position, this.#distanceScale, this.#context);
+      SetPannerPose(nodes.panner, nodes.front, nodes.position, this.#distanceScale, this.#context, smooth);
       for (const modes of nodes.routeBranches.values()) {
         const branch = modes.get(true);
         if (branch) {
-          SetPannerPose(branch.panner, nodes.front, nodes.position, this.#distanceScale, this.#context);
+          SetPannerPose(branch.panner, nodes.front, nodes.position, this.#distanceScale, this.#context, smooth);
         }
       }
     }
@@ -713,15 +716,18 @@ class CjsAudioBackend {
   SetListenerPosition(gameObjID, front, top, position) {
     const listener = this.#context?.listener;
     if (listener) {
-      SetAudioParam(listener.positionX, position[0] * this.#distanceScale, this.#context);
-      SetAudioParam(listener.positionY, position[1] * this.#distanceScale, this.#context);
-      SetAudioParam(listener.positionZ, position[2] * this.#distanceScale, this.#context);
-      SetAudioParam(listener.forwardX, front[0], this.#context);
-      SetAudioParam(listener.forwardY, front[1], this.#context);
-      SetAudioParam(listener.forwardZ, front[2], this.#context);
-      SetAudioParam(listener.upX, top[0], this.#context);
-      SetAudioParam(listener.upY, top[1], this.#context);
-      SetAudioParam(listener.upZ, top[2], this.#context);
+      const smooth = this.#listenerPoseInitialized;
+      const set = (param, value) => SetSpatialAudioParam(param, value, this.#context, smooth);
+      set(listener.positionX, position[0] * this.#distanceScale);
+      set(listener.positionY, position[1] * this.#distanceScale);
+      set(listener.positionZ, position[2] * this.#distanceScale);
+      set(listener.forwardX, front[0]);
+      set(listener.forwardY, front[1]);
+      set(listener.forwardZ, front[2]);
+      set(listener.upX, top[0]);
+      set(listener.upY, top[1]);
+      set(listener.upZ, top[2]);
+      this.#listenerPoseInitialized = true;
     }
   }
 
@@ -3725,17 +3731,17 @@ class CjsAudioBackend {
     nodes.analyser?.disconnect?.();
   }
 }
-function SetPannerPose(panner, front, position, distanceScale, context) {
+function SetPannerPose(panner, front, position, distanceScale, context, smooth = false) {
   if (!panner) {
     return;
   }
-  SetAudioParam(panner.positionX, position[0] * distanceScale);
-  SetAudioParam(panner.positionY, position[1] * distanceScale);
-  SetAudioParam(panner.positionZ, position[2] * distanceScale);
+  SetSpatialAudioParam(panner.positionX, position[0] * distanceScale, context, smooth);
+  SetSpatialAudioParam(panner.positionY, position[1] * distanceScale, context, smooth);
+  SetSpatialAudioParam(panner.positionZ, position[2] * distanceScale, context, smooth);
   if (panner.orientationX) {
-    SetAudioParam(panner.orientationX, front[0]);
-    SetAudioParam(panner.orientationY, front[1]);
-    SetAudioParam(panner.orientationZ, front[2]);
+    SetSpatialAudioParam(panner.orientationX, front[0], context, smooth);
+    SetSpatialAudioParam(panner.orientationY, front[1], context, smooth);
+    SetSpatialAudioParam(panner.orientationZ, front[2], context, smooth);
   } else {
     panner.setOrientation?.(front[0], front[1], front[2]);
   }
@@ -3749,6 +3755,30 @@ function SetAudioParam(param, value, context) {
   if (param && typeof param === "object" && "value" in param) {
     param.value = value;
   }
+}
+
+/**
+ * Smooths live HRTF pose changes so an emitter crossing the listener does not
+ * turn a pointer-event coordinate jump into an audible discontinuity. The
+ * first pose remains immediate so a newly posted source never ramps out from
+ * Web Audio's default origin.
+ */
+function SetSpatialAudioParam(param, value, context, smooth) {
+  if (!param || typeof param !== "object" || !("value" in param)) {
+    return;
+  }
+  const now = Number(context?.currentTime);
+  if (!smooth || !Number.isFinite(now) || typeof param.linearRampToValueAtTime !== "function") {
+    param.value = value;
+    return;
+  }
+  if (typeof param.cancelAndHoldAtTime === "function") {
+    param.cancelAndHoldAtTime(now);
+  } else {
+    param.cancelScheduledValues?.(now);
+    param.setValueAtTime?.(param.value, now);
+  }
+  param.linearRampToValueAtTime(value, now + SPATIAL_POSE_RAMP_SECONDS);
 }
 function IndexStateTransitionCatalog(value) {
   const result = new Map();
