@@ -174,6 +174,19 @@ but the rejected shared Delay and Peak Limiter character is omitted.
 | `parallel` | Resolves every child into simultaneous voices. |
 | `blend` | Resolves every child into simultaneous voices, normally with child gain curves for live crossfades. |
 
+A stripped Step Switch Container whose group and default IDs are zero and whose
+Children and Switch assignment lists are both empty lowers to `silence`. Wwise
+builds no playable game-sync map for that shape. EVE banks may still retain
+stale per-child switch parameters, but those records cannot select audio
+without either list and are therefore inert. Preserving the silent action,
+rather than rejecting the whole event, retains its delay metadata and keeps
+its audible sibling actions intact. A silent node does not allocate a pending
+browser selection, so its delay alone does not extend the playing ID lifetime
+and cannot be paused or stopped while pending. This bounded graph rule restores
+five jump-drive and cynosural events in EVE build 3453885 across empty nodes
+`980357672`, `140917810`, `455538153`, and `394178349`. Other empty forms
+remain fail-closed.
+
 An event may have several roots; roots are parallel.
 
 Play-action edges may carry `delayMs`, an optional randomized offset in

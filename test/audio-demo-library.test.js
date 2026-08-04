@@ -76,8 +76,8 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(validateAudioLibraryDocument(library), true);
     assert.equal(graph.schemaVersion, 2);
     assert.equal(Object.keys(library.metadata.Events).length, 10766);
-    assert.equal(Object.keys(graph.events).length, 4883);
-    assert.equal(Object.keys(graph.programs).length, 9109);
+    assert.equal(Object.keys(graph.events).length, 4888);
+    assert.equal(Object.keys(graph.programs).length, 9114);
     assert.ok(
         Object.keys(library.busRtpcs?.buses ?? {}).length > 0,
         "the committed demo retains authored Audio Bus RTPCs",
@@ -106,6 +106,47 @@ test("committed demo library carries authored SFX and music semantics", () =>
         Object.keys(library.busGraph?.musicRoutes ?? {}).length > 0,
         "the committed demo routes real EVE music through the bus graph",
     );
+
+    const strippedSwitches = {
+        ship_effect_jumpdrive_in_bo_play: {
+            audible: [ "29345318", "1065473789" ],
+            silent: [ [ "980357672", 0 ], [ "140917810", 1600 ] ],
+        },
+        ship_effect_cyno_jumpdrive_out_play: {
+            audible: [ "29345318", "1065473789" ],
+            silent: [ [ "980357672", 0 ], [ "140917810", 1600 ] ],
+        },
+        ship_effect_cyno_jump_in_play: {
+            audible: [ "599072537", "1006917402" ],
+            silent: [ [ "455538153", 0 ], [ "394178349", 2000 ] ],
+        },
+        ship_effect_jumpdrive_out_bo_play: {
+            audible: [ "6474842", "161952510" ],
+            silent: [ [ "980357672", 0 ], [ "140917810", 1600 ] ],
+        },
+        ship_effect_cyno_jump_out_play: {
+            audible: [ "846611767", "336481180" ],
+            silent: [ [ "980357672", 0 ], [ "140917810", 0 ] ],
+        },
+    };
+
+    for (const [ eventName, expected ] of Object.entries(strippedSwitches))
+    {
+        const actions = graph.programs[eventName];
+        const [ audibleNodeId, audibleMediaId ] = expected.audible;
+
+        assert.equal(graph.nodes[audibleNodeId].type, "sound");
+        assert.equal(graph.nodes[audibleNodeId].mediaId, audibleMediaId);
+        assert.ok(actions.some(action => action.kind === "play"
+            && action.child.nodeId === audibleNodeId));
+        for (const [ nodeId, delayMs ] of expected.silent)
+        {
+            assert.equal(graph.nodes[nodeId].type, "silence");
+            assert.ok(actions.some(action => action.kind === "play"
+                && action.child.nodeId === nodeId
+                && (action.child.delayMs ?? 0) === delayMs));
+        }
+    }
 
     const collectTimedSilenceNodes = eventName =>
     {

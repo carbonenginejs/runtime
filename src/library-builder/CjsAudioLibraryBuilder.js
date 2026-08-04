@@ -1476,7 +1476,22 @@ function LowerSfxGraph({
             }
             else if (source.type === "switch")
             {
-                if (source.continuousValidation
+                const empty = source.groupType === 0
+                    && source.groupId === 0
+                    && source.defaultValueId === 0
+                    && !source.continuousValidation
+                    && !source.children.length
+                    && !source.assignments.length;
+
+                if (empty)
+                {
+                    // Wwise builds no playable gvalue map when the authored
+                    // Children and SwitchList are both empty. Some EVE banks
+                    // retain stale AkSwitchNodeParams after stripping those
+                    // lists; the parameter records alone never select audio.
+                    node = { type: "silence" };
+                }
+                else if (source.continuousValidation
                     && source.parameters.some(parameter =>
                         parameter.firstOnly
                         || parameter.continuePlayback
@@ -1487,7 +1502,7 @@ function LowerSfxGraph({
                 // Step switches choose once per post, so their default Stop
                 // mode is dormant; only live-continuation flags or fades
                 // require the unsupported continuous-switch scheduler.
-                if (!source.continuousValidation
+                else if (!source.continuousValidation
                     && source.parameters.some(parameter =>
                     parameter.firstOnly
                     || parameter.continuePlayback
@@ -1496,97 +1511,99 @@ function LowerSfxGraph({
                 {
                     throw new Error(`transitioned switch ${id}`);
                 }
-
-                const scope = source.groupType === 1 ? "state" : "switch";
-                const group = names.groups.get(
-                    `${scope}:${source.groupId}`,
-                );
-
-                if (!group?.name)
+                else
                 {
-                    throw new Error(
-                        `unnamed ${scope} group ${source.groupId}`,
+                    const scope = source.groupType === 1 ? "state" : "switch";
+                    const group = names.groups.get(
+                        `${scope}:${source.groupId}`,
                     );
-                }
 
-                const cases = {};
-                let defaultChild = null;
-                const transitions = {};
-                const parameters = new Map(source.parameters.map(
-                    parameter => [
-                        Number(parameter.childId) >>> 0,
-                        parameter,
-                    ],
-                ));
-
-                for (const assignment of source.assignments)
-                {
-                    const valueName = group.values.get(assignment.valueId);
-
-                    if (!valueName)
+                    if (!group?.name)
                     {
                         throw new Error(
-                            `unnamed ${scope} value ${assignment.valueId}`,
+                            `unnamed ${scope} group ${source.groupId}`,
                         );
                     }
-                    const childIDs = assignment.childIds.map(childID =>
-                    {
-                        const child = lowerChild(childID);
 
-                        if (source.continuousValidation)
+                    const cases = {};
+                    let defaultChild = null;
+                    const transitions = {};
+                    const parameters = new Map(source.parameters.map(
+                        parameter => [
+                            Number(parameter.childId) >>> 0,
+                            parameter,
+                        ],
+                    ));
+
+                    for (const assignment of source.assignments)
+                    {
+                        const valueName = group.values.get(assignment.valueId);
+
+                        if (!valueName)
                         {
-                            const parameter = parameters.get(
-                                Number(childID) >>> 0,
+                            throw new Error(
+                                `unnamed ${scope} value ${assignment.valueId}`,
                             );
-
-                            if (!parameter)
-                            {
-                                throw new Error(
-                                    `missing continuous switch parameter ${childID} at ${id}`,
-                                );
-                            }
-                            transitions[child] = {
-                                fadeOutMs: parameter.fadeOutMs,
-                                fadeInMs: parameter.fadeInMs,
-                            };
                         }
-                        return child;
-                    });
-                    const child = aggregate(childIDs);
+                        const childIDs = assignment.childIds.map(childID =>
+                        {
+                            const child = lowerChild(childID);
 
-                    cases[valueName] = { nodeId: child };
-                    if (assignment.valueId === source.defaultValueId)
-                    {
-                        defaultChild = child;
+                            if (source.continuousValidation)
+                            {
+                                const parameter = parameters.get(
+                                    Number(childID) >>> 0,
+                                );
+
+                                if (!parameter)
+                                {
+                                    throw new Error(
+                                        `missing continuous switch parameter ${childID} at ${id}`,
+                                    );
+                                }
+                                transitions[child] = {
+                                    fadeOutMs: parameter.fadeOutMs,
+                                    fadeInMs: parameter.fadeInMs,
+                                };
+                            }
+                            return child;
+                        });
+                        const child = aggregate(childIDs);
+
+                        cases[valueName] = { nodeId: child };
+                        if (assignment.valueId === source.defaultValueId)
+                        {
+                            defaultChild = child;
+                        }
                     }
-                }
 
-                if (!Object.keys(cases).length)
-                {
-                    throw new Error(`empty switch ${id}`);
-                }
-                if (defaultChild === null)
-                {
-                    defaultChild = aggregate([]);
-                }
-                if (source.continuousValidation
-                    && childContainsNonSwitchContinuous)
-                {
-                    throw new Error(
-                        `nested non-switch continuous container ${id}`,
-                    );
-                }
+                    if (!Object.keys(cases).length)
+                    {
+                        throw new Error(`empty switch ${id}`);
+                    }
+                    if (defaultChild === null)
+                    {
+                        defaultChild = aggregate([]);
+                    }
+                    if (source.continuousValidation
+                        && childContainsNonSwitchContinuous)
+                    {
+                        throw new Error(
+                            `nested non-switch continuous container ${id}`,
+                        );
+                    }
 
-                node = {
-                    type: "switch",
-                    scope,
-                    group: group.name,
-                    cases,
-                    default: { nodeId: defaultChild },
-                    ...(source.continuousValidation
-                        ? { continuous: { transitions } }
-                        : {}),
-                };
+                    node = {
+                        type: "switch",
+                        scope,
+                        group: group.name,
+                        cases,
+                        default: { nodeId: defaultChild },
+                        ...(source.continuousValidation
+                            ? { continuous: { transitions } }
+                            : {}),
+                    };
+                }
             }
             else if (source.type === "layer")
             {

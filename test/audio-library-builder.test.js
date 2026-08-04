@@ -3427,6 +3427,60 @@ test("non-continuous Step switches ignore dormant default Stop policies", () =>
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("bounded stripped empty Switch Containers preserve their silent branch", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "modules.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 6,
+                    id: 201,
+                    payload: switchPayload({
+                        groupId: 0,
+                        defaultValueId: 0,
+                        children: [],
+                        assignments: [],
+                        parameters: [ {
+                            childId: 999,
+                            onSwitchMode: 1,
+                        } ],
+                    }),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0403,
+                    targetId: 201,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 300 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: {
+                jump_effect: { eventID: 100 },
+            },
+        },
+    });
+
+    assert.deepEqual(
+        result.diagnostics.omittedEvents,
+        [],
+        JSON.stringify(result.diagnostics.omittedEvents),
+    );
+    assert.deepEqual(result.nodes["201"], { type: "silence" });
+    assert.deepEqual(result.programs.jump_effect, [
+        { kind: "play", child: { nodeId: "201" } },
+    ]);
+});
+
 test("Continuous Switches preserve supported child transitions", () =>
 {
     const build = (payload) => CjsAudioLibraryBuilder.createSfxGraph({
