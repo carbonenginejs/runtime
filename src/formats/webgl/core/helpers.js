@@ -107,6 +107,7 @@ const EMIT_GLSL_OPTION_KEYS = new Set([
     "vertexStructuredCapacity",
     "dataTextureWidth",
     "stubResourceRegisters",
+    "neutralResourceRegisters",
     "detailMapArrayRegisters",
     "lightConstantBuffer",
     "lightPackedTexture",
@@ -121,6 +122,7 @@ const EMIT_GLSL_PROFILE_KEYS = new Set([
     "vertexStructuredCapacity",
     "dataTextureWidth",
     "stubResourceRegisters",
+    "neutralResourceRegisters",
     "detailMapArrayRegisters",
     "lightConstantBuffer",
     "lightPackedTexture"

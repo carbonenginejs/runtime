@@ -208,6 +208,42 @@ function checkResourceTransforms(stage, shader, errors)
     for (const transform of transforms)
     {
         const inputs = Array.isArray(transform?.inputs) ? transform.inputs : [];
+
+        // Not every transform is a merge. `local-light-profile-neutral` records
+        // one resource replaced by a constant, so it has exactly one input and
+        // no carrier - the checks below would read that as an underfilled merge
+        // whose carrier went missing, which is the opposite of what happened.
+        if (transform?.family === "local-light-profile-neutral")
+        {
+            if (inputs.length !== 1)
+            {
+                addIntegrityError(
+                    errors,
+                    "resource_transform_neutral_arity",
+                    `Stage ${stage.key} transform ${transform?.id || "<missing>"} neutralises ${inputs.length} resource(s); exactly one is expected`,
+                    { stageKey: stage.key, transformId: transform?.id || null }
+                );
+                continue;
+            }
+
+            const [ neutralised ] = inputs;
+            if (Number.isSafeInteger(neutralised.registerIndex)
+                && declared.has(neutralised.registerIndex))
+            {
+                addIntegrityError(
+                    errors,
+                    "resource_transform_neutral_still_bound",
+                    `Stage ${stage.key} transform ${transform.id} neutralised register ${neutralised.registerIndex}, but the shader still declares it`,
+                    {
+                        stageKey: stage.key,
+                        transformId: transform.id,
+                        register: neutralised.registerIndex
+                    }
+                );
+            }
+            continue;
+        }
+
         if (inputs.length < 2)
         {
             addIntegrityError(
@@ -318,6 +354,19 @@ function checkLocalLightFamilyAccounted(stage, shader, errors)
         for (const key of LOCAL_LIGHT_RECORD_REGISTERS)
         {
             if (Number.isSafeInteger(binding?.[key])) accounted.add(binding[key]);
+        }
+    }
+
+    // A resource transform accounts for a register just as a binding record
+    // does. `local-light-profile-neutral` names a resource replaced by a
+    // constant: nothing is bound, so no binding can carry it, and the transform
+    // is the only place the decision is written down.
+    for (const transform of Array.isArray(stage.transforms) ? stage.transforms : [])
+    {
+        if (transform?.family !== "local-light-profile-neutral") continue;
+        for (const input of Array.isArray(transform.inputs) ? transform.inputs : [])
+        {
+            if (Number.isSafeInteger(input?.registerIndex)) accounted.add(input.registerIndex);
         }
     }
 

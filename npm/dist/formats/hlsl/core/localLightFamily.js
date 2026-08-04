@@ -94,5 +94,40 @@ function stripLocalLightBindings(manifestJson) {
   return manifestJson;
 }
 
-export { LOCAL_LIGHT_RESOURCE_NAMES, recogniseLocalLightFamily, stripLocalLightBindings };
+/** Transform family recording a profile array replaced by a constant. */
+const LOCAL_LIGHT_PROFILE_NEUTRAL_FAMILY = "local-light-profile-neutral";
+
+/**
+ * Builds the resource transform recording that `LightProfileArray` was replaced
+ * by a constant one.
+ *
+ * A transform rather than a binding because nothing is bound: the resource is
+ * gone and its samples are a literal. What has to survive is the *statement*
+ * that it was dropped deliberately, since a described Carbon resource with no
+ * declaration and no record is exactly what the integrity rules treat as lost.
+ *
+ * The single input is the profile register itself. `detail-map-array` lists
+ * several inputs because it merges them into one output; this family has no
+ * output at all, so its input list names only the resource that went away.
+ *
+ * @param {object} plan Recognised local-light family.
+ * @param {string} layoutKey Enclosing pass key.
+ * @returns {object|null} Transform record, or null when there is no profile.
+ */
+function localLightProfileNeutralTransformFor(plan, layoutKey) {
+  if (!Number.isInteger(plan?.profileRegister)) return null;
+  const registerSpace = plan.registerSpace ?? 0;
+  return {
+    id: `${layoutKey}:${LOCAL_LIGHT_PROFILE_NEUTRAL_FAMILY}:sampled-resource:${registerSpace}:${plan.profileRegister}`,
+    family: LOCAL_LIGHT_PROFILE_NEUTRAL_FAMILY,
+    layoutKey,
+    inputs: [{
+      registerSpace,
+      registerIndex: plan.profileRegister,
+      parameter: LIGHT_PROFILE_ARRAY
+    }]
+  };
+}
+
+export { LOCAL_LIGHT_PROFILE_NEUTRAL_FAMILY, LOCAL_LIGHT_RESOURCE_NAMES, localLightProfileNeutralTransformFor, recogniseLocalLightFamily, stripLocalLightBindings };
 //# sourceMappingURL=localLightFamily.js.map

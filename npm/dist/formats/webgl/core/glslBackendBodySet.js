@@ -1,4 +1,5 @@
 import { detailMapTransformFor } from '../../hlsl/core/detailMapFamily.js';
+import { localLightProfileNeutralTransformFor } from '../../hlsl/core/localLightFamily.js';
 
 /**
  * Reshapes translated GLSL into the backend body set the Carbon container
@@ -169,8 +170,20 @@ function buildGlslBackendBodySet(input) {
       // transform section says how to build the array the GLSL samples.
       // Built here rather than at translation time because the transform's
       // identity includes the pass key, which the translator does not know.
-      if (shader.detailMapArray && !entry.transforms.length) {
+      if (shader.detailMapArray && !entry.hasDetailMapTransform) {
+        entry.hasDetailMapTransform = true;
         entry.transforms.push(detailMapTransformFor(shader.detailMapArray, key));
+      }
+
+      // Same reasoning, different statement: this one records that the
+      // light profile array was dropped for a constant, so the resource
+      // the description still lists is accounted for rather than missing.
+      if (shader.lightProfileNeutral && !entry.hasLightProfileTransform) {
+        const transform = localLightProfileNeutralTransformFor(shader.lightProfileNeutral, key);
+        if (transform) {
+          entry.hasLightProfileTransform = true;
+          entry.transforms.push(transform);
+        }
       }
       entry.shaders.push({
         key: `${key}.${stage.stageName}`,

@@ -102,6 +102,16 @@ class DxbcGlslEmitter {
       // LightProfileArray) when `--stub-light-resources` is set, so the
       // fragment sampler count drops under MAX_TEXTURE_IMAGE_UNITS.
       stubResourceRegisters: [],
+      // Resource (t#) registers whose declaration is dropped and whose
+      // samples lower to `vec4(1.0)` rather than `vec4(0.0)`.
+      //
+      // Separate from `stubResourceRegisters` because the two are not
+      // interchangeable: a stubbed sampler reads as zero, which is right
+      // for a term that is added and wrong for one that is multiplied.
+      // `LightProfileArray` is multiplied into a light's attenuation, so
+      // stubbing it would drive every profiled light to black, whereas
+      // 1.0 is exactly what the shader's own no-profile path yields.
+      neutralResourceRegisters: [],
       lightConstantBuffer: null,
       lightPackedTexture: null,
       // Resource (t#) registers to merge into one `sampler2DArray`, in
@@ -215,6 +225,11 @@ class DxbcGlslEmitter {
       // declarations/bindings are dropped and every read of them lowers
       // to `uintBitsToFloat(0u)` (structured) / `vec4(0.0)` (sampled).
       stubbedResources: new Set(this.profile.stubResourceRegisters || []),
+      // Resource (t#) registers dropped to a compile-time *one*: same
+      // declaration handling as `stubbedResources`, but reads lower to
+      // `vec4(1.0)` so a multiplied term degrades to neutral instead of
+      // to black. See `neutralResourceRegisters` on the profile.
+      neutralResources: new Set(this.profile.neutralResourceRegisters || []),
       // Resource register -> array layer for the merged detail maps, and
       // whether the one shared array declaration has been emitted yet.
       detailMapArrayLayers: new Map((this.profile.detailMapArrayRegisters || []).map((register, layer) => [register, layer])),
@@ -733,6 +748,18 @@ class DxbcGlslEmitter {
             // Stubbed tiled-lighting sampler (e.g. LightProfileArray):
             // drop the declaration + binding entirely; every sample of
             // this register lowers to vec4(0.0) in _textureSample.
+            break;
+          }
+          if (state.neutralResources.has(register)) {
+            // Same as the stub above, but its samples lower to
+            // vec4(1.0). Dropping the declaration is what frees the
+            // sampler unit; the substitution is what keeps the result
+            // correct for a multiplied term.
+            //
+            // Nothing is recorded as a binding, because nothing is
+            // bound. The pass's resource-transform section carries the
+            // statement that this resource was dropped deliberately;
+            // see `localLightProfileNeutralTransformFor`.
             break;
           }
           if (declaration.resourceDimension === 1) {
@@ -1851,6 +1878,17 @@ class DxbcGlslEmitter {
       // destination width instead of referencing the missing sampler.
       const zeroSwizzle = [...mask].map(component => texOperand.swizzle ? texOperand.swizzle["xyzw".indexOf(component)] : component).join("");
       this._assign(state, instruction, `vec4(0.0).${zeroSwizzle}`, {
+        saturate: instruction.saturate
+      });
+      return;
+    }
+    if (state.neutralResources.has(texOperand.registerIndex)) {
+      // Neutralised sampler (LightProfileArray): its declaration was
+      // dropped, and the value it fed is a multiplier, so lower to one.
+      // The shader's own no-profile path leaves attenuation untouched,
+      // which is what multiplying by 1.0 reproduces exactly.
+      const oneSwizzle = [...mask].map(component => texOperand.swizzle ? texOperand.swizzle["xyzw".indexOf(component)] : component).join("");
+      this._assign(state, instruction, `vec4(1.0).${oneSwizzle}`, {
         saturate: instruction.saturate
       });
       return;

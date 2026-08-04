@@ -322,6 +322,15 @@ function normalizeOptions(input, options) {
     // alone, so a caller that does not ask gets the shader's own resources
     // and the honest texture count.
     localLights: normalizeLocalLightMode(options.localLights),
+    // Whether to keep `LightProfileArray`. Defaults to dropping it, because
+    // it costs a fragment sampler unit that the quad family does not have
+    // to spare, and because nothing currently selects a profile: the index
+    // lives in flags bits 4-15 and every `GetCarbonLightData()` writes only
+    // bit 0, so the shader's own guard skips the lookup for every light. A
+    // dropped profile is therefore observationally identical today and a
+    // real loss only once profile indices are written.
+    // See /docs/contracts/carbon-light-data.md.
+    lightProfile: normalizeLightProfileMode(options.lightProfile),
     emitterOptions: {
       ...(options.emitterOptions ?? {})
     }
@@ -483,6 +492,43 @@ function collectStages(effectDescription, selection) {
 /** Local-light lowering modes this packager accepts. */
 const LOCAL_LIGHT_MODES = Object.freeze(["none", "packed-texture", "constant-buffer", "drop"]);
 
+/** How `LightProfileArray` is treated. */
+const LIGHT_PROFILE_MODES = Object.freeze(["drop", "keep"]);
+
+/**
+ * Normalizes the light-profile mode.
+ *
+ * @param {string|undefined|null} value Requested mode.
+ * @returns {string} Normalized mode.
+ */
+function normalizeLightProfileMode(value) {
+  const mode = value === undefined || value === null ? "drop" : String(value);
+  if (!LIGHT_PROFILE_MODES.includes(mode)) {
+    throw new TypeError(`Carbon WebGL lightProfile must be one of ${LIGHT_PROFILE_MODES.join(", ")}; got "${mode}"`);
+  }
+  return mode;
+}
+
+/**
+ * Emitter options that drop `LightProfileArray` and neutralise its samples.
+ *
+ * Only applies when the local-light family is left alone. `packed-texture`,
+ * `constant-buffer` and `drop` each already decide what happens to the profile
+ * register, and asking for it twice would either be redundant or fight them.
+ *
+ * @param {object|null} plan Recognised local-light family, if any.
+ * @param {string} localLightMode Normalized local-light mode.
+ * @param {string} profileMode Normalized light-profile mode.
+ * @returns {object|null} Emitter options, or null when nothing to do.
+ */
+function lightProfileEmitterOptions(plan, localLightMode, profileMode) {
+  if (profileMode !== "drop" || localLightMode !== "none") return null;
+  if (!Number.isInteger(plan?.profileRegister)) return null;
+  return {
+    neutralResourceRegisters: [plan.profileRegister]
+  };
+}
+
 /**
  * Normalizes the local-light lowering mode.
  *
@@ -557,6 +603,11 @@ function localLightEmitterOptions(plan, mode) {
 function translateStages(shaderMap, stageMap, values) {
   const emitInto = (record, pairVaryings) => {
     try {
+      const profileNeutral = lightProfileEmitterOptions(record.localLights, values.localLights, values.lightProfile);
+      // Remembered on the record so the body set can emit the resource
+      // transform that accounts for the dropped resource. The transform's
+      // identity includes the pass key, which is not known here.
+      if (profileNeutral) record.lightProfileNeutral = record.localLights;
       const result = emitGlslWithOptions(record.bytes, {
         ...values.emitterOptions,
         source: `${values.source}#${record.firstStageKey}`,
@@ -566,7 +617,8 @@ function translateStages(shaderMap, stageMap, values) {
         ...(record.detailMapArray ? {
           detailMapArrayRegisters: record.detailMapArray.registers
         } : {}),
-        ...(localLightEmitterOptions(record.localLights, values.localLights) ?? {})
+        ...(localLightEmitterOptions(record.localLights, values.localLights) ?? {}),
+        ...(profileNeutral ?? {})
       });
       const stageInterface = normalizeBitangentStageInterface(result, record);
       record.emit = {

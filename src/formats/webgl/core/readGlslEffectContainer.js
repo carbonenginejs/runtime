@@ -61,12 +61,57 @@ function stageManifest(stage)
             usedMask: input.usedMask
         })),
         bindings: [
+            // The stage-local constant buffer, carrying the named constants an
+            // engine binds its material parameters to. Register 0 is this
+            // stage's own buffer in per-stage numbering; a consumer maps it to
+            // the slot its backend uses (vertex b0, pixel b7 by the GL
+            // convention).
+            //
+            // This is not optional detail. Without it an engine has no names to
+            // bind parameters to, uploads nothing, and every material value the
+            // shader reads is zero — which draws, links and binds correctly and
+            // renders pure black. It was missing because the completeness rules
+            // this reader was written for only needed inputs, resources and
+            // samplers, so nothing noticed the constants were dropped.
+            {
+                kind: "constantBuffer",
+                registerIndex: 0,
+                carbon: {
+                    // Authored defaults live in the stage's blob; its declared
+                    // size is what a consumer allocates against.
+                    constantValueSize: stage.defaultValues?.size ?? 0,
+                    constants: (stage.constants ?? []).map((constant) => ({
+                        // String refs decode as `{offset, value}` records.
+                        name: constant.name?.value ?? constant.name,
+                        offset: constant.offset,
+                        size: constant.size,
+                        type: constant.type,
+                        dimension: constant.dimension,
+                        elements: constant.elements,
+                        isSRGB: constant.isSRGB,
+                        isAutoregister: constant.isAutoregister
+                    }))
+                }
+            },
             ...(stage.textures ?? []).map((texture) => ({
                 kind: "resource",
                 registerIndex: texture.registerIndex,
                 // Named so a rule can ask whether a described resource belongs
                 // to a family the packager is known to lower away.
-                name: texture.name.value
+                name: texture.name.value,
+                // Carbon's own flags, nested like the sampler's, because that
+                // is where the consumer already looks for them.
+                //
+                // `isAutoregister` is not cosmetic: such a resource is bound
+                // automatically from the engine's global variable store rather
+                // than set by a material. Dropping it makes every resource look
+                // user-settable, so a consumer builds an ordinary texture
+                // parameter that nothing ever assigns and the global never
+                // reaches the shader.
+                carbon: {
+                    isSRGB: texture.isSRGB === 1,
+                    isAutoregister: texture.isAutoregister === 1
+                }
             })),
             ...(stage.samplers ?? []).map((sampler) => ({
                 kind: "sampler",

@@ -1,4 +1,4 @@
-import { CjsFormatWriteError } from "../CjsFormatError.js";
+import { CjsFormatWriteError, CjsFormatReadError } from "../CjsFormatError.js";
 
 /**
  * The resource-transform section, shared by every backend's per-pass block.
@@ -22,7 +22,10 @@ import { CjsFormatWriteError } from "../CjsFormatError.js";
  * pinning the format to one recognizer: a second family costs an enum value
  * rather than a format version bump.
  */
-export const CARBON_BACKEND_TRANSFORM_FAMILY = Object.freeze([ "detail-map-array" ]);
+export const CARBON_BACKEND_TRANSFORM_FAMILY = Object.freeze([
+    "detail-map-array",
+    "local-light-profile-neutral"
+]);
 
 /** Constants a `detail-map-array` transform restores rather than storing. */
 export const DETAIL_MAP_ARRAY_DEFAULTS = Object.freeze({
@@ -33,6 +36,41 @@ export const DETAIL_MAP_ARRAY_DEFAULTS = Object.freeze({
     missingLayer: "reject",
     viewDimension: "2d-array",
     outputName: "DetailArrayMap"
+});
+
+/**
+ * Constants a `local-light-profile-neutral` transform restores rather than
+ * storing.
+ *
+ * Unlike `detail-map-array` this transform has no output resource: its whole
+ * content is that an input resource was replaced by a constant. It exists so a
+ * described Carbon resource that the backend deliberately dropped is still
+ * accounted for - a resource that simply disappears is indistinguishable from
+ * one that was lost, and the integrity rules reject that on purpose.
+ *
+ * `LightProfileArray` is multiplied into a light's attenuation, so the constant
+ * is one, not zero. That is the same value the shader's own no-profile path
+ * produces, which is why dropping it is neutral rather than dark.
+ */
+export const LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS = Object.freeze({
+    version: 1,
+    kind: "constant",
+    stage: "fragment",
+    representation: "constant-one",
+    missingLayer: "ignore",
+    viewDimension: null,
+    outputName: null
+});
+
+/**
+ * Per-family constant sets, keyed by family name.
+ *
+ * The reader restores these rather than storing them, so a family that omitted
+ * its entry here would silently inherit another family's constants.
+ */
+const TRANSFORM_DEFAULTS_BY_FAMILY = Object.freeze({
+    "detail-map-array": DETAIL_MAP_ARRAY_DEFAULTS,
+    "local-light-profile-neutral": LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS
 });
 
 /**
@@ -118,6 +156,13 @@ export function readTransformSection(reader, layoutKey)
     for (let index = 0; index < transformCount; index += 1)
     {
         const family = CARBON_BACKEND_TRANSFORM_FAMILY[reader.readUint8()];
+        const defaults = TRANSFORM_DEFAULTS_BY_FAMILY[family];
+        if (!defaults)
+        {
+            throw new CjsFormatReadError(`Transform family "${family}" has no restored constants`, {
+                family
+            });
+        }
         const id = readInlineString(reader);
         const inputs = [];
         const inputCount = reader.readUint8();
@@ -137,23 +182,23 @@ export function readTransformSection(reader, layoutKey)
                 registerSpace,
                 registerIndex,
                 identity,
-                scopeIdentity: `${identity}@${DETAIL_MAP_ARRAY_DEFAULTS.stage}`
+                scopeIdentity: `${identity}@${defaults.stage}`
             });
         }
 
         transforms.push({
             id,
             family,
-            version: DETAIL_MAP_ARRAY_DEFAULTS.version,
-            kind: DETAIL_MAP_ARRAY_DEFAULTS.kind,
-            stage: DETAIL_MAP_ARRAY_DEFAULTS.stage,
-            representation: DETAIL_MAP_ARRAY_DEFAULTS.representation,
-            missingLayer: DETAIL_MAP_ARRAY_DEFAULTS.missingLayer,
+            version: defaults.version,
+            kind: defaults.kind,
+            stage: defaults.stage,
+            representation: defaults.representation,
+            missingLayer: defaults.missingLayer,
             layoutKey,
             inputs,
             output: {
-                name: DETAIL_MAP_ARRAY_DEFAULTS.outputName,
-                viewDimension: DETAIL_MAP_ARRAY_DEFAULTS.viewDimension,
+                name: defaults.outputName,
+                viewDimension: defaults.viewDimension,
                 layerCount: inputs.length,
                 identity: inputs[0]?.identity ?? null,
                 scopeIdentity: inputs[0]?.scopeIdentity ?? null
