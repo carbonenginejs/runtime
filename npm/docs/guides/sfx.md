@@ -120,8 +120,9 @@ SFX schema version 2 makes `programs` the ordered authoring source. When an
 event has a program, its `events` entry must be exactly the projection of that
 program's `play` actions. This keeps legacy root lookup available without
 allowing the static roots and the executable program to disagree. Supplied
-Stop, Pause, Resume, Voice Volume, Bus Volume, Voice Pitch, Voice LPF/HPF,
-and Set/Reset Game Parameter actions are also qualified at validation time.
+Stop, Pause, Resume, Voice Volume, bounded Bus-target Voice Volume, Bus
+Volume, Voice Pitch, Voice LPF/HPF, and Set/Reset Game Parameter actions are
+also qualified at validation time.
 playback controls reject unsupported action flags, nonzero All targets, and
 element-target exceptions. Voice Volume and Voice Pitch accept only exact
 element targets and their decoded value contracts. Voice LPF/HPF Set accepts
@@ -143,11 +144,22 @@ actions on Bus `3810872320` (`Cinematic_Ship_Intro_Transition_Delay`), whose
 dry route has no Aux sends and has three active Wwise Delay effects:
 `cinematic_ship_intro_begin` sets `-30 dB` immediately, while
 `cinematic_ship_intro_climax` schedules `0 dB` after `6000 ms` with a
-`2000 ms` transition. The updated v150 action reader exposes their earlier
-Set State and Set Game Parameter bodies, including the fixed State delay, but
-both events still remain fail-closed at their Bus-target Voice Volume actions.
-That separate pre-effect voice route must land as a complete contract rather
-than being relabeled as Bus Volume.
+`2000 ms` transition. The portable `set-bus-voice-volume` action and browser
+backend preserve this cross-event sequence on the posting game object. The
+begin event stores `-30 dB`; later voices whose output Bus is `3810872320`
+inherit it, and the climax action schedules the return to `0 dB`. The gain is
+voice-owned and precedes the target Bus stage, so it is not shared with
+unrelated emitters or routes.
+
+This is deliberately bounded support: only absolute, non-randomized Set on an
+exact game-object Element target is admitted, and the target must be every
+affected Sound's first/output Bus with no NodeBase or Bus Aux send. Reset,
+relative/randomized values, randomized timing, global scope, exceptions,
+music targets, ancestor-Bus targets, and wet routes remain fail-closed. The
+cinematic route still cannot enter the strict shared mixer because a parent
+Voice Volume RTPC would cross the target Bus's three Delay effects. Its media
+therefore uses the audible legacy fallback: the action envelope is retained,
+but the rejected shared Delay and Peak Limiter character is omitted.
 
 ## Node behavior
 
@@ -172,8 +184,9 @@ and inherited by every sound leaf it selects. Delay is measured from the
 event post, and the fade begins when the delayed source starts.
 
 `programs` preserves the authored order of Play, Stop, Pause, Resume,
-SetSwitch, SetState, Set/Reset Voice Volume, Set/Reset Bus Volume, Set/Reset
-Voice Pitch, Set/Reset Voice LPF/HPF, and Set/Reset Game Parameter actions.
+SetSwitch, SetState, Set/Reset Voice Volume, bounded Set Bus-target Voice
+Volume, Set/Reset Bus Volume, Set/Reset Voice Pitch, Set/Reset Voice LPF/HPF,
+and Set/Reset Game Parameter actions.
 Switches update the posting game object; states update the global state table.
 A switch or state setter therefore affects only later Play actions in the same
 post when it is immediate. A fixed-delay setter instead enters the same

@@ -904,6 +904,7 @@ class CjsAudioMan {
           busRouteNodeId: selection.busRouteNodeId,
           matchIds: selection.matchIds,
           busPathIds: selection.busPathIds,
+          busVoiceVolumeActionControlled: selection.busVoiceVolumeActionControlled,
           sourceEffects: selection.sourceEffects,
           authoredBusVolumeDb: selection.authoredBusVolumeDb,
           authoredBusMakeUpGainDb: selection.authoredBusMakeUpGainDb,

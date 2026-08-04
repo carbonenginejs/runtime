@@ -11,6 +11,7 @@ const CONTINUOUS_TRANSITIONS = new Set(["crossfade-amplitude", "crossfade-power"
 const MIN_TRIGGER_RATE_MS = 21;
 const EVENT_ACTION_KINDS = new Set(["state", "switch"]);
 const VOICE_VOLUME_ACTION_KINDS = new Set(["reset-voice-volume", "set-voice-volume"]);
+const BUS_VOICE_VOLUME_ACTION_KINDS = new Set(["set-bus-voice-volume"]);
 const BUS_VOLUME_ACTION_KINDS = new Set(["reset-bus-volume", "set-bus-volume"]);
 const VOICE_PITCH_ACTION_KINDS = new Set(["reset-voice-pitch", "set-voice-pitch"]);
 const VOICE_FILTER_ACTION_KINDS = new Set(["reset-voice-high-pass", "reset-voice-low-pass", "set-voice-high-pass", "set-voice-low-pass"]);
@@ -159,6 +160,10 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
         ValidateVoiceVolumeAction(action, label);
         continue;
       }
+      if (BUS_VOICE_VOLUME_ACTION_KINDS.has(action.kind)) {
+        ValidateBusVoiceVolumeAction(action, label);
+        continue;
+      }
       if (BUS_VOLUME_ACTION_KINDS.has(action.kind)) {
         ValidateBusVolumeAction(action, label);
         continue;
@@ -183,10 +188,29 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
       throw new TypeError(`Audio library SFX event ${eventName} roots must equal its ordered Play projection`);
     }
   }
+  ValidateBusVoiceVolumeTargets(programs, nodes);
   ValidateAcyclic(events, nodes);
   ValidateContinuousNesting(nodes);
   ValidateCrossfadeDescendants(nodes);
   return true;
+}
+function ValidateBusVoiceVolumeTargets(programs, nodes) {
+  const targets = new Set(Object.values(programs).flatMap(actions => actions.filter(action => action.kind === "set-bus-voice-volume").map(action => String(action.targetId))));
+  for (const targetId of targets) {
+    let used = false;
+    for (const node of Object.values(nodes)) {
+      if (node.type !== "sound" || !Array.isArray(node.busPathIds) || !node.busPathIds.map(String).includes(targetId)) {
+        continue;
+      }
+      used = true;
+      if (String(node.busPathIds[0]) !== targetId) {
+        throw new TypeError(`Audio library SFX Bus-target Voice Volume ${targetId} must be every affected Sound's output Bus`);
+      }
+    }
+    if (!used) {
+      throw new TypeError(`Audio library SFX Bus-target Voice Volume ${targetId} has no affected Sound`);
+    }
+  }
 }
 
 /**
@@ -225,6 +249,9 @@ function normalizeSfxGraph(graph, media = {}, embeddedMedia = {}) {
           return NormalizePlaybackControlAction(action);
         }
         if (VOICE_VOLUME_ACTION_KINDS.has(action.kind)) {
+          return NormalizeVoiceVolumeAction(action);
+        }
+        if (BUS_VOICE_VOLUME_ACTION_KINDS.has(action.kind)) {
           return NormalizeVoiceVolumeAction(action);
         }
         if (BUS_VOLUME_ACTION_KINDS.has(action.kind)) {
@@ -721,6 +748,46 @@ function ValidateVoiceVolumeAction(value, label) {
   }, label);
   ValidateTransitionTiming(action, label);
 }
+function ValidateBusVoiceVolumeAction(value, label) {
+  const action = RequireRecord(value, label);
+  if (!BUS_VOICE_VOLUME_ACTION_KINDS.has(action.kind)) {
+    throw new TypeError(`${label} kind must be set-bus-voice-volume`);
+  }
+  if (action.scope !== "game-object") {
+    throw new TypeError(`${label} scope must be game-object`);
+  }
+  if (action.mode !== "element") {
+    throw new TypeError(`${label} mode must be element`);
+  }
+  NormalizePositiveID(action.targetId, `${label} targetId`);
+  if (NormalizeByte(action.targetFlags, `${label} targetFlags`) !== 1) {
+    throw new TypeError(`${label} targetFlags must be 1`);
+  }
+  if (action.valueMode !== "absolute") {
+    throw new TypeError(`${label} valueMode must be absolute`);
+  }
+  ValidateVoiceVolumeDb(action.volumeDb, `${label} volumeDb`);
+  if (action.volumeRangeDb !== undefined) {
+    const range = RequireRecord(action.volumeRangeDb, `${label} volumeRangeDb`);
+    if (Number(range.min) !== 0 || Number(range.max) !== 0) {
+      throw new TypeError(`${label} volumeRangeDb must be zero`);
+    }
+  }
+  if (action.probability !== undefined) {
+    throw new TypeError(`${label} probability is unsupported`);
+  }
+  if (action.delayRangeMs !== undefined || action.transitionRangeMs !== undefined) {
+    throw new TypeError(`${label} randomized timing is unsupported`);
+  }
+  if (action.exceptions !== undefined) {
+    throw new TypeError(`${label} exceptions are unsupported`);
+  }
+  ValidateActionTiming({
+    delayMs: action.delayMs,
+    delayRangeMs: action.delayRangeMs
+  }, label);
+  ValidateTransitionTiming(action, label);
+}
 function ValidateBusVolumeAction(value, label) {
   const action = RequireRecord(value, label);
   if (!BUS_VOLUME_ACTION_KINDS.has(action.kind)) {
@@ -1116,7 +1183,7 @@ function NormalizeVoiceVolumeAction(action) {
       };
     }
   }
-  if (action.kind === "set-voice-volume") {
+  if (action.kind === "set-voice-volume" || action.kind === "set-bus-voice-volume") {
     result.valueMode = action.valueMode;
     result.volumeDb = Number(action.volumeDb);
     if (action.volumeRangeDb !== undefined) {

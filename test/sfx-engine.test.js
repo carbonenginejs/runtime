@@ -2444,6 +2444,91 @@ test("event programs preserve Set and Reset Voice Volume operations", () =>
     );
 });
 
+test("Bus-target Voice Volume marks routed future voices", () =>
+{
+    const engine = new CjsSfxEngine({
+        graph: {
+            schemaVersion: 2,
+            events: {
+                begin: [],
+                climax: [ { nodeId: "1" } ],
+                unrelated: [ { nodeId: "2" } ],
+            },
+            programs: {
+                begin: [ {
+                    kind: "set-bus-voice-volume",
+                    targetId: "928",
+                    targetFlags: 1,
+                    scope: "game-object",
+                    mode: "element",
+                    valueMode: "absolute",
+                    volumeDb: -30,
+                    curve: 4,
+                } ],
+                climax: [
+                    { kind: "play", child: { nodeId: "1" } },
+                    {
+                        kind: "set-bus-voice-volume",
+                        targetId: "928",
+                        targetFlags: 1,
+                        scope: "game-object",
+                        mode: "element",
+                        valueMode: "absolute",
+                        volumeDb: 0,
+                        delayMs: 6000,
+                        transitionMs: 2000,
+                        curve: 4,
+                    },
+                ],
+                unrelated: [
+                    { kind: "play", child: { nodeId: "2" } },
+                ],
+            },
+            nodes: {
+                "1": {
+                    type: "sound",
+                    mediaId: "100",
+                    outputBusId: "928",
+                    busPathIds: [ "928", "1" ],
+                },
+                "2": {
+                    type: "sound",
+                    mediaId: "101",
+                    outputBusId: "500",
+                    busPathIds: [ "500", "1" ],
+                },
+            },
+        },
+    });
+
+    assert.deepEqual(engine.ResolveProgram("begin"), [ {
+        kind: "set-bus-voice-volume",
+        actionIndex: 0,
+        targetId: "928",
+        targetFlags: 1,
+        scope: "game-object",
+        mode: "element",
+        delayMs: 0,
+        transitionMs: 0,
+        curve: 4,
+        valueMode: "absolute",
+        volumeDb: -30,
+    } ]);
+    const climax = engine.ResolveProgram("climax");
+
+    assert.equal(
+        climax[0].selections[0].busVoiceVolumeActionControlled,
+        true,
+    );
+    assert.equal(climax[1].delayMs, 6000);
+    assert.equal(climax[1].transitionMs, 2000);
+    assert.equal(
+        engine.ResolveProgram("unrelated")[0].selections[0]
+            .busVoiceVolumeActionControlled,
+        undefined,
+    );
+});
+
 test("event programs preserve Bus Volume forms and bus routing", () =>
 {
     const engine = new CjsSfxEngine({

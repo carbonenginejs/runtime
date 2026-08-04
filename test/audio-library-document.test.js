@@ -1189,6 +1189,165 @@ test("timed silence remains distinct from an empty authored branch", () =>
     }
 });
 
+test("Bus-target Voice Volume Set requires an affected output Bus", () =>
+{
+    const media = { "100": { resPath: "res:/audio/100.wem" } };
+    const graph = {
+        schemaVersion: 2,
+        events: { climax: [ { nodeId: "1" } ] },
+        programs: {
+            begin: [ {
+                kind: "set-bus-voice-volume",
+                targetId: "928",
+                targetFlags: 1,
+                scope: "game-object",
+                mode: "element",
+                valueMode: "absolute",
+                volumeDb: -30,
+                volumeRangeDb: { min: 0, max: 0 },
+                curve: 4,
+            } ],
+            climax: [ { kind: "play", child: { nodeId: "1" } } ],
+        },
+        nodes: {
+            "1": {
+                type: "sound",
+                mediaId: "100",
+                outputBusId: "928",
+                busPathIds: [ "928", "1" ],
+            },
+        },
+    };
+
+    assert.doesNotThrow(() => normalizeSfxGraph(graph, media));
+    const ancestor = structuredClone(graph);
+
+    ancestor.programs.begin[0].targetId = "1";
+    assert.throws(
+        () => normalizeSfxGraph(ancestor, media),
+        /must be every affected Sound's output Bus/u,
+    );
+    const missing = structuredClone(graph);
+
+    missing.programs.begin[0].targetId = "500";
+    assert.throws(
+        () => normalizeSfxGraph(missing, media),
+        /has no affected Sound/u,
+    );
+});
+
+test("complete documents bound Bus-target Voice Volume to dry SFX routes", () =>
+{
+    const source = CreateDocument();
+
+    source.sfx = {
+        schemaVersion: 2,
+        events: { engine_loop: [ { nodeId: "100" } ] },
+        programs: {
+            engine_loop: [
+                {
+                    kind: "set-bus-voice-volume",
+                    targetId: "500",
+                    targetFlags: 1,
+                    scope: "game-object",
+                    mode: "element",
+                    valueMode: "absolute",
+                    volumeDb: -30,
+                    volumeRangeDb: { min: 0, max: 0 },
+                    curve: 4,
+                },
+                { kind: "play", child: { nodeId: "100" } },
+            ],
+        },
+        nodes: {
+            "100": {
+                type: "sound",
+                mediaId: "777",
+                loop: false,
+                outputBusId: "500",
+                busPathIds: [ "500" ],
+            },
+        },
+    };
+    assert.throws(
+        () => validateAudioLibraryDocument(source),
+        /requires a Bus graph/u,
+    );
+
+    source.busGraph = {
+        schemaVersion: 1,
+        effects: {},
+        buses: { "500": BusGraphBus() },
+        routes: [ {
+            outputBusId: "500",
+            busPathIds: [ "500" ],
+            userAuxSends: [],
+        } ],
+        sfxRoutes: { "100": 0 },
+        musicRoutes: {},
+    };
+    assert.equal(validateAudioLibraryDocument(source), true);
+
+    const send = {
+        slotIndex: 0,
+        targetBusId: "600",
+        gainDb: -20,
+        lowPass: 0,
+        highPass: 0,
+        dynamic: false,
+    };
+    const routeAux = structuredClone(source);
+
+    routeAux.busGraph.buses["600"] = BusGraphBus({
+        type: "auxiliary-bus",
+        requiresProcessing: [ "auxiliary-bus" ],
+    });
+    routeAux.busGraph.routes[0].userAuxSends = [ send ];
+    assert.throws(
+        () => validateAudioLibraryDocument(routeAux),
+        /cannot use an Aux route/u,
+    );
+
+    const busAux = structuredClone(source);
+
+    busAux.busGraph.buses["500"].auxFlags = 29;
+    busAux.busGraph.buses["500"].userAuxSends = [ send ];
+    busAux.busGraph.buses["500"].requiresProcessing = [ "aux-sends" ];
+    busAux.busGraph.buses["600"] = BusGraphBus({
+        type: "auxiliary-bus",
+        requiresProcessing: [ "auxiliary-bus" ],
+    });
+    assert.throws(
+        () => validateAudioLibraryDocument(busAux),
+        /cannot use an Aux route/u,
+    );
+
+    const music = structuredClone(source);
+
+    music.music = {
+        schemaVersion: 1,
+        banks: [ "ships.bnk" ],
+        nodes: {
+            "200": {
+                type: "music-track",
+                bank: "ships.bnk",
+                children: [],
+                sources: [ { sourceId: 777 } ],
+                outputBusId: "500",
+                busPathIds: [ "500" ],
+            },
+        },
+        eventTargets: {},
+        eventStops: {},
+        switchSetters: {},
+    };
+    music.busGraph.musicRoutes["200"] = 0;
+    assert.throws(
+        () => validateAudioLibraryDocument(music),
+        /cannot affect music/u,
+    );
+});
+
 test("Sound cap-one reject-newest policy is normalized and constrained", () =>
 {
     const media = { "100": { resPath: "res:/audio/100.wem" } };

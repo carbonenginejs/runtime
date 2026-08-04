@@ -76,8 +76,8 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(validateAudioLibraryDocument(library), true);
     assert.equal(graph.schemaVersion, 2);
     assert.equal(Object.keys(library.metadata.Events).length, 10766);
-    assert.equal(Object.keys(graph.events).length, 4881);
-    assert.equal(Object.keys(graph.programs).length, 9107);
+    assert.equal(Object.keys(graph.events).length, 4883);
+    assert.equal(Object.keys(graph.programs).length, 9109);
     assert.ok(
         Object.keys(library.busRtpcs?.buses ?? {}).length > 0,
         "the committed demo retains authored Audio Bus RTPCs",
@@ -454,10 +454,47 @@ test("committed demo library carries authored SFX and music semantics", () =>
         ],
         "equal-time Play and State actions retain authored order",
     );
-    assert.equal(
-        graph.programs.cinematic_ship_intro_begin,
-        undefined,
-        "unsupported Bus Voice Volume keeps the cinematic fail-closed",
+    assert.deepEqual(
+        graph.programs.cinematic_ship_intro_begin.map(action => action.kind),
+        [
+            "state",
+            "play",
+            "reset-voice-volume",
+            "play",
+            "set-bus-voice-volume",
+        ],
+        "the cinematic begin retains its cross-event Bus Voice Volume Set",
+    );
+    assert.deepEqual(
+        graph.programs.cinematic_ship_intro_begin.at(-1),
+        {
+            kind: "set-bus-voice-volume",
+            targetId: "3810872320",
+            scope: "game-object",
+            mode: "element",
+            curve: 4,
+            targetFlags: 1,
+            valueMode: "absolute",
+            volumeDb: -30,
+            volumeRangeDb: { min: 0, max: 0 },
+        },
+    );
+    assert.deepEqual(
+        graph.programs.cinematic_ship_intro_climax[5],
+        {
+            kind: "set-bus-voice-volume",
+            targetId: "3810872320",
+            scope: "game-object",
+            mode: "element",
+            curve: 4,
+            targetFlags: 1,
+            delayMs: 6000,
+            transitionMs: 2000,
+            valueMode: "absolute",
+            volumeDb: 0,
+            volumeRangeDb: { min: 0, max: 0 },
+        },
+        "the climax restores the same Bus voice state on the authored clock",
     );
 
     assert.deepEqual(

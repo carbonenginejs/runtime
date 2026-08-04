@@ -237,6 +237,7 @@ class CjsAudioBackend {
       voiceLowPasses: new Map(this.#globalVoiceLowPasses),
       voicePitches: new Map(),
       voiceVolumes: new Map(),
+      busVoiceVolumes: new Map(),
       busVolumes: new Map(this.#globalBusVolumes)
     });
   }
@@ -1562,7 +1563,7 @@ class CjsAudioBackend {
           }
           continue;
         }
-        if (operation.kind !== "stop" && operation.kind !== "pause" && operation.kind !== "resume" && operation.kind !== "set-voice-pitch" && operation.kind !== "reset-voice-pitch" && operation.kind !== "set-voice-volume" && operation.kind !== "reset-voice-volume" && operation.kind !== "set-bus-volume" && operation.kind !== "reset-bus-volume" && operation.kind !== "set-voice-low-pass" && operation.kind !== "reset-voice-low-pass" && operation.kind !== "set-voice-high-pass" && operation.kind !== "reset-voice-high-pass" && operation.kind !== "set-game-parameter" && operation.kind !== "reset-game-parameter" && operation.kind !== "switch" && operation.kind !== "state") {
+        if (operation.kind !== "stop" && operation.kind !== "pause" && operation.kind !== "resume" && operation.kind !== "set-voice-pitch" && operation.kind !== "reset-voice-pitch" && operation.kind !== "set-voice-volume" && operation.kind !== "reset-voice-volume" && operation.kind !== "set-bus-voice-volume" && operation.kind !== "set-bus-volume" && operation.kind !== "reset-bus-volume" && operation.kind !== "set-voice-low-pass" && operation.kind !== "reset-voice-low-pass" && operation.kind !== "set-voice-high-pass" && operation.kind !== "reset-voice-high-pass" && operation.kind !== "set-game-parameter" && operation.kind !== "reset-game-parameter" && operation.kind !== "switch" && operation.kind !== "state") {
           throw new TypeError(`Unsupported resolved SFX operation ${operation.kind}`);
         }
         const action = {
@@ -1621,6 +1622,8 @@ class CjsAudioBackend {
       this.#ApplySfxVoiceFilter(action);
     } else if (action.kind === "set-bus-volume" || action.kind === "reset-bus-volume") {
       this.#ApplySfxBusVolume(action);
+    } else if (action.kind === "set-bus-voice-volume") {
+      this.#ApplySfxBusVoiceVolume(action);
     } else {
       this.#ApplySfxVoiceVolume(action, now);
     }
@@ -1669,6 +1672,15 @@ class CjsAudioBackend {
     ApplyBusVolumeAction(action.emitterNodes.busVolumes, action);
     this.#RefreshSfxBusVolumes(action.gameObjID);
     this.#musicEngine?.RefreshBusVolumeGains?.();
+  }
+
+  /** Applies one game-object Bus-target Voice Volume mutation. */
+  #ApplySfxBusVoiceVolume(action) {
+    if (action.scope !== "game-object" || this.#emitterNodes.get(action.gameObjID) !== action.emitterNodes) {
+      return;
+    }
+    ApplyVoiceVolumeAction(action.emitterNodes.busVoiceVolumes, String(action.targetId), action);
+    this.#RefreshSfxBusVoiceVolumes(action.gameObjID);
   }
 
   /** Applies one persistent Voice Pitch property mutation. */
@@ -2674,6 +2686,7 @@ class CjsAudioBackend {
     const mixerOwnsRouteFilters = this.#busMixer?.OwnsRouteStateFilters?.(busGraphRoute) === true;
     const emitterRouteBranch = mixerOwnsRouteFilters && !allowAudibleAux ? null : this.#GetEmitterRouteBranch(emitterNodes, gameObjID, descriptor.spatial, busGraphRoute);
     const gain = this.#context.createGain();
+    const busVoiceActionGain = descriptor.busVoiceVolumeActionControlled ? this.#context.createGain() : null;
     const busVoiceGain = busRtpcPathUses(this.#busRtpcCatalog, descriptor.busPathIds, "voice-volume") ? this.#context.createGain() : null;
     const busGain = descriptor.busPathIds.length ? this.#context.createGain() : null;
     const fadeGain = descriptor.fadeInMs > 0 ? this.#context.createGain() : null;
@@ -2714,7 +2727,8 @@ class CjsAudioBackend {
       stopGain.connect(emitterNodes.flatGain);
     }
     const busEffectInput = busEffectChain?.input ?? stopGain;
-    gain.connect(busVoiceGain ?? transitionGain ?? busGain ?? busEffectInput);
+    gain.connect(busVoiceActionGain ?? busVoiceGain ?? transitionGain ?? busGain ?? busEffectInput);
+    busVoiceActionGain?.connect(busVoiceGain ?? transitionGain ?? busGain ?? busEffectInput);
     busVoiceGain?.connect(transitionGain ?? busGain ?? busEffectInput);
     transitionGain?.connect(busGain ?? busEffectInput);
     busGain?.connect(busEffectInput);
@@ -2753,6 +2767,7 @@ class CjsAudioBackend {
       getGain: descriptor.getGain,
       getGainAtVoiceVolumeDb: descriptor.getGainAtVoiceVolumeDb,
       voiceVolumeStates: emitterNodes.voiceVolumes,
+      busVoiceVolumeStates: emitterNodes.busVoiceVolumes,
       voicePitchStates: emitterNodes.voicePitches,
       voiceLowPassStates: emitterNodes.voiceLowPasses,
       voiceHighPassStates: emitterNodes.voiceHighPasses,
@@ -2789,6 +2804,7 @@ class CjsAudioBackend {
       voiceLimitReservationId: descriptor.voiceLimitReservationId,
       crossfadeMode: descriptor.crossfadeMode ?? null,
       gain,
+      busVoiceActionGain,
       busVoiceGain,
       busGain,
       fadeGain,
@@ -2828,6 +2844,7 @@ class CjsAudioBackend {
       offsetSeconds: 0
     };
     this.#ApplyVoiceDistanceGain(voice, emitterNodes);
+    this.#ApplyVoiceBusActionGain(voice);
     this.#ApplyVoiceBusRtpcGain(voice);
     this.#ApplyVoiceBusGain(voice);
     this.#ApplyVoiceFilters(voice);
@@ -3630,6 +3647,7 @@ class CjsAudioBackend {
       voice.lowPassFilter?.disconnect?.();
       voice.highPassFilter?.disconnect?.();
       voice.gain?.disconnect?.();
+      voice.busVoiceActionGain?.disconnect?.();
       voice.busVoiceGain?.disconnect?.();
       voice.fadeGain?.disconnect?.();
       voice.transitionGain?.disconnect?.();
@@ -3694,6 +3712,23 @@ class CjsAudioBackend {
       for (const voice of record.voices ?? []) {
         if (!voice.ended) {
           this.#ApplyVoiceGain(voice);
+        }
+      }
+    }
+  }
+
+  /** Re-evaluates Bus-target Voice Volume before shared Bus processing. */
+  #RefreshSfxBusVoiceVolumes(gameObjID = null) {
+    if (this.#deferSfxControlRefresh) {
+      return;
+    }
+    for (const record of this.#playing.values()) {
+      if (!record.sfx || gameObjID !== null && record.gameObjID !== gameObjID) {
+        continue;
+      }
+      for (const voice of record.voices ?? []) {
+        if (!voice.ended) {
+          this.#ApplyVoiceBusActionGain(voice);
         }
       }
     }
@@ -3808,6 +3843,14 @@ class CjsAudioBackend {
       return;
     }
     ScheduleBusVolumeGain(voice.busGain.gain, voice, this.#context, this.#busRtpcCatalog, (name, at) => this.#ReadRtpcValue("global", name, undefined, at), this.#busStateCatalog, (group, at) => this.#ReadStatePropertyWeights(group, at), this.#busDuckingController);
+  }
+
+  /** Applies Bus-target Voice Volume before Bus effects and faders. */
+  #ApplyVoiceBusActionGain(voice) {
+    if (!voice.busVoiceActionGain) {
+      return;
+    }
+    ScheduleBusVoiceActionGain(voice.busVoiceActionGain.gain, voice, this.#context);
   }
 
   /** Applies Audio Bus Voice Volume RTPCs before Bus Volume/effects. */
@@ -4053,6 +4096,7 @@ class CjsAudioBackend {
         voice.lowPassFilter?.disconnect?.();
         voice.highPassFilter?.disconnect?.();
         voice.gain?.disconnect?.();
+        voice.busVoiceActionGain?.disconnect?.();
         voice.busVoiceGain?.disconnect?.();
         voice.fadeGain?.disconnect?.();
         voice.transitionGain?.disconnect?.();
@@ -4707,6 +4751,12 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
       throw new TypeError(`Audio voice ${index} busPathIds must be a non-empty array of positive ids`);
     }
     const busPathIds = (value.busPathIds ?? []).map(busID => String(Number(busID) >>> 0));
+    if (value.busVoiceVolumeActionControlled !== undefined && typeof value.busVoiceVolumeActionControlled !== "boolean") {
+      throw new TypeError(`Audio voice ${index} busVoiceVolumeActionControlled must be boolean`);
+    }
+    if (value.busVoiceVolumeActionControlled === true && !busPathIds.length) {
+      throw new TypeError(`Audio voice ${index} busVoiceVolumeActionControlled requires a bus route`);
+    }
     const hasAuthoredBusVolume = value.authoredBusVolumeDb !== undefined;
     const authoredBusVolumeDb = Number(value.authoredBusVolumeDb);
     const hasAuthoredBusMakeUpGain = value.authoredBusMakeUpGainDb !== undefined;
@@ -4752,6 +4802,9 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
         busRouteNodeId
       }),
       busPathIds: Object.freeze(busPathIds),
+      ...(value.busVoiceVolumeActionControlled === true ? {
+        busVoiceVolumeActionControlled: true
+      } : {}),
       ...(hasAuthoredBusVolume ? {
         authoredBusVolumeDb
       } : {}),
@@ -4981,6 +5034,40 @@ function ScheduleBusVoiceRtpcGain(param, voice, context, busRtpcCatalog, readGlo
   const busPathIds = Array.isArray(voice.busPathIds) ? voice.busPathIds : [];
   const boundaries = [...new Set((voice.controlTransitionBoundaries ?? []).map(Number).filter(value => Number.isFinite(value) && value > now))].sort((left, right) => left - right);
   const evaluate = at => 10 ** (evaluateBusVoiceRtpcGainDb(busRtpcCatalog, busPathIds, readGlobalRtpc, at) / 20);
+  const startValue = evaluate(now);
+  if (typeof param.cancelAndHoldAtTime === "function") {
+    param.cancelAndHoldAtTime(now);
+  } else {
+    param.cancelScheduledValues?.(0);
+  }
+  param.setValueAtTime?.(startValue, now);
+  if ("value" in param) {
+    param.value = startValue;
+  }
+  let segmentStart = now;
+  for (const segmentEnd of boundaries) {
+    if (typeof param.setValueCurveAtTime === "function") {
+      const values = new Float32Array(FADE_CURVE_SAMPLES);
+      for (let index = 0; index < values.length; index++) {
+        const ratio = index / (values.length - 1);
+        values[index] = evaluate(segmentStart + (segmentEnd - segmentStart) * ratio);
+      }
+      param.setValueCurveAtTime(values, segmentStart, segmentEnd - segmentStart);
+    } else {
+      param.linearRampToValueAtTime?.(evaluate(segmentEnd), segmentEnd);
+    }
+    segmentStart = segmentEnd;
+  }
+}
+function ScheduleBusVoiceActionGain(param, voice, context) {
+  if (!param) {
+    return;
+  }
+  const now = Number(context?.currentTime) || 0;
+  const states = voice.busVoiceVolumeStates;
+  const busPathIds = Array.isArray(voice.busPathIds) ? voice.busPathIds : [];
+  const boundaries = VoiceTargetTransitionBoundaries(states, busPathIds, now);
+  const evaluate = at => 10 ** (EvaluateVoiceVolumeTargets(states, busPathIds, at) / 20);
   const startValue = evaluate(now);
   if (typeof param.cancelAndHoldAtTime === "function") {
     param.cancelAndHoldAtTime(now);

@@ -76,6 +76,8 @@ export class CjsSfxEngine
 
     #voiceHighPassTargets = new Set();
 
+    #busVoiceVolumeTargets = new Set();
+
     /**
      * Creates an interpreter for an installed, validated SFX graph.
      */
@@ -103,6 +105,12 @@ export class CjsSfxEngine
                 else if (action.kind === "set-voice-high-pass")
                 {
                     this.#voiceHighPassTargets.add(String(action.targetId));
+                }
+                else if (action.kind === "set-bus-voice-volume")
+                {
+                    this.#busVoiceVolumeTargets.add(
+                        String(action.targetId),
+                    );
                 }
             }
         }
@@ -371,7 +379,8 @@ export class CjsSfxEngine
                     }
                 }
                 else if (action.kind === "set-voice-volume"
-                    || action.kind === "reset-voice-volume")
+                    || action.kind === "reset-voice-volume"
+                    || action.kind === "set-bus-voice-volume")
                 {
                     const volume = this.#ResolveVoiceVolumeAction(
                         action,
@@ -1196,6 +1205,10 @@ export class CjsSfxEngine
                         busPathIds: Object.freeze(
                             node.busPathIds.map(String),
                         ),
+                        ...(node.busPathIds.some(value =>
+                            this.#busVoiceVolumeTargets.has(String(value)))
+                            ? { busVoiceVolumeActionControlled: true }
+                            : {}),
                         ...(node.authoredBusVolumeDb === undefined
                             ? {}
                             : {
@@ -2147,7 +2160,8 @@ export class CjsSfxEngine
     /** Samples one authored Voice Volume action once for this post. */
     #ResolveVoiceVolumeAction(action, actionIndex)
     {
-        const setting = action.kind === "set-voice-volume";
+        const setting = action.kind === "set-voice-volume"
+            || action.kind === "set-bus-voice-volume";
         const volumeDb = setting
             ? Math.max(-200, Math.min(200,
                 SampleSignedRandomizedValue(

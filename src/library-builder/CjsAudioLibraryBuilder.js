@@ -1976,6 +1976,7 @@ function LowerSfxGraph({
                     const voiceVolume = ReadSfxVoiceVolumeAction(
                         action,
                         parsed,
+                        buses,
                     );
 
                     if (voiceVolume)
@@ -2034,6 +2035,13 @@ function LowerSfxGraph({
 
             if (IsMusicEventName(eventNames.get(eventID)))
             {
+                if (result.program.some(value =>
+                    value.kind === "set-bus-voice-volume"))
+                {
+                    throw new Error(
+                        `music Bus Voice Volume event ${eventID}`,
+                    );
+                }
                 result.program = result.program.filter(value =>
                     value.kind === "set-bus-volume"
                     || value.kind === "reset-bus-volume");
@@ -2310,7 +2318,7 @@ function ReadSfxPlayActionChild(child, action, includeFade)
     return result;
 }
 
-function ReadSfxVoiceVolumeAction(action, parsed)
+function ReadSfxVoiceVolumeAction(action, parsed, buses)
 {
     const details = action.action;
     const actionType = Number(action.actionType) >>> 0;
@@ -2340,26 +2348,48 @@ function ReadSfxVoiceVolumeAction(action, parsed)
             `unresolved Voice Volume target ${targetId}`,
         );
     }
-    if (details.targetIsBus || (targetFlags & 0x01))
+    const targetsBus = details.targetIsBus || (targetFlags & 0x01);
+
+    if (targetsBus
+        && (details.actionScope !== "game-object"
+            || targetFlags !== 1
+            || details.targetIsBus !== true
+            || buses?.get(targetId)?.type !== "audio-bus"))
     {
-        throw new Error(`bus Voice Volume action ${action.id}`);
+        throw new Error(`unsupported bus Voice Volume action ${action.id}`);
     }
-    if (targetFlags !== 0)
+    if (!targetsBus && targetFlags !== 0)
     {
         throw new Error(
             `unsupported Voice Volume target flags ${targetFlags}`,
         );
     }
-    if (!parsed.nodeBases?.has(targetId))
+    if (!targetsBus && !parsed.nodeBases?.has(targetId))
     {
         return null;
     }
 
     const resetting = family === SFX_RESET_VOICE_VOLUME_ACTION_FAMILY;
+
+    if (targetsBus
+        && (resetting
+            || details.valueMode !== "absolute"
+            || Number(details.volumeRangeDb?.min ?? 0) !== 0
+            || Number(details.volumeRangeDb?.max ?? 0) !== 0
+            || details.delayRangeMs !== undefined
+            || details.transitionRangeMs !== undefined
+            || details.probability !== undefined
+            || (details.exceptions?.length ?? 0) !== 0
+            || !BusVoiceTargetIsOutputOnly(parsed, buses, targetId)))
+    {
+        throw new Error(`unsupported bus Voice Volume action ${action.id}`);
+    }
     const result = {
-        kind: resetting
-            ? "reset-voice-volume"
-            : "set-voice-volume",
+        kind: targetsBus
+            ? "set-bus-voice-volume"
+            : resetting
+                ? "reset-voice-volume"
+                : "set-voice-volume",
         targetId: String(targetId),
         targetFlags,
         scope: details.actionScope,
@@ -2408,6 +2438,46 @@ function ReadSfxVoiceVolumeAction(action, parsed)
     }
 
     return result;
+}
+
+function BusVoiceTargetIsOutputOnly(parsed, buses, targetId)
+{
+    let used = false;
+
+    for (const [ nodeId, node ] of parsed.nodes ?? [])
+    {
+        if (node.type !== "sound") continue;
+        const path = CreateSfxBusRouting(
+            parsed,
+            nodeId,
+            buses,
+        )?.busPathIds ?? [];
+
+        if (!path.includes(String(targetId))) continue;
+        used = true;
+        if (path[0] !== String(targetId)) return false;
+        const nodeAux = CreateEffectiveNodeAuxRouting(
+            nodeId,
+            id => parsed.nodeBases?.get(id),
+        );
+
+        if (nodeAux.userAuxSends?.length || nodeAux.reflectionsAuxSend)
+        {
+            return false;
+        }
+        for (const busId of path)
+        {
+            const aux = buses.get(Number(busId))?.aux;
+
+            if (aux?.hasAux
+                || aux?.auxIds?.some(id => Number(id) !== 0)
+                || Number(aux?.reflectionsAuxBusId ?? 0) !== 0)
+            {
+                return false;
+            }
+        }
+    }
+    return used;
 }
 
 function ReadSfxVoicePitchAction(action, parsed)

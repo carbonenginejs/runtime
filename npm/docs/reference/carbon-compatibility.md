@@ -30,6 +30,7 @@ bus processing omitted.
 | Infinite-child Continuous Layer | Browser approximation | A layer whose every child has an explicit region and proven-infinite lifetime pre-starts all children, applies authored gain/property RTPC curves live, and remains active until Stop. Wwise instead starts and stops children at region boundaries; phase, Continuous Random timing, voice count, acquisition cost, and unsupported inherited effects can differ. Finite children remain fail-closed. |
 | Wwise Silence source | Exact timing with browser carrier adaptation | A qualified static v150 `0x00650002` source retains its referenced fixed duration as a finite routed voice. One cached one-frame zero buffer loops until an authored sample-clock stop, so long silence allocates constant memory. Randomized or dynamic Silence remains unsupported. |
 | Music Track Voice Volume RTPC | Browser adaptation | v150 property-0 Game Parameter curves using additive accumulation and Wwise dB scaling run on an independent pre-bus track gain from the global RTPC lane. Non-linear automation uses the documented sampled interpolation; other Music Track RTPC properties remain unsupported. |
+| Bus-target Voice Volume Set | Bounded browser adaptation with audible fallback | An absolute, non-randomized game-object Set targeting the first/output Audio Bus persists per emitter and drives existing and future routed voices before that Bus stage. Reset, relative/randomized/global/ancestor/wet/music forms remain fail-closed. A route rejected by the shared mixer still plays with its action envelope, but rejected Bus effects and tails are omitted. |
 | Authored-music UI transport | CarbonEngineJS extension | Previous, next, and random enumerate Music Segments plus a bounded coordinated path through Random/Sequence subtracks inside one live playing ID; layered-track Cartesian products are not materialized. Pause and selection fade then replay an item from its entry cue because Web Audio buffer sources cannot resume or seek. Manual selection starts a fresh playlist traversal (resetting random/shuffle history), while an explicitly selected Sequence Music Track continues at its following subtrack. These controls are not Wwise event actions; automatic playback otherwise retains independent authored selection. |
 | Parametric EQ and Wwise Delay | Browser adaptation | Source-proven parameters, bus placement, and slot order are retained; Web Audio biquad/delay DSP is not bit-equivalent to Wwise. |
 | Wwise Compressor and Peak Limiter | Opt-in approximation | `wwiseDynamics: "approximate-web-audio"` admits only static, linked, all-channel records. The default `"strict"` policy keeps them out of the shared mixer and uses the legacy audible fallback. |
@@ -291,7 +292,14 @@ Absolute or positive-relative action risk, unsupported filters, dynamic sends,
 reflections, and wet-path escapes all retain the barrier. Meter
 telemetry remains unsupported.
 Voice Volume RTPCs use a distinct pre-bus SFX gain on qualified transparent
-paths. Unsupported RTPC bindings, route-local controls crossing an audible shared effect,
+paths. A bounded Bus-target Voice Volume Set uses a second voice-owned pre-Bus
+gain only when its target is the route's first/output Bus. It persists on the
+posting emitter generation and affects future posts; fixed delay and
+transition timing use the authored AudioContext clock. The EVE 3453885
+cinematic begin/climax pair is audible through the legacy fallback, so its
+`-30 dB` to `0 dB` envelope is retained while its rejected shared Delay and
+Peak Limiter processing is omitted. Unsupported RTPC bindings, route-local
+controls crossing an audible shared effect,
 other audible auxiliary sends, other effect processing
 and tails, feedback-capable meters, general priority/instance arbitration,
 project and bus voice limits, and virtual-voice behavior remain deferred

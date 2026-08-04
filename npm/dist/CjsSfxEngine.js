@@ -49,6 +49,7 @@ class CjsSfxEngine {
   #selectionReservations = new Map();
   #voiceLowPassTargets = new Set();
   #voiceHighPassTargets = new Set();
+  #busVoiceVolumeTargets = new Set();
 
   /**
    * Creates an interpreter for an installed, validated SFX graph.
@@ -71,6 +72,8 @@ class CjsSfxEngine {
           this.#voiceLowPassTargets.add(String(action.targetId));
         } else if (action.kind === "set-voice-high-pass") {
           this.#voiceHighPassTargets.add(String(action.targetId));
+        } else if (action.kind === "set-bus-voice-volume") {
+          this.#busVoiceVolumeTargets.add(String(action.targetId));
         }
       }
     }
@@ -217,7 +220,7 @@ class CjsSfxEngine {
           if (playbackControl) {
             operations.push(playbackControl);
           }
-        } else if (action.kind === "set-voice-volume" || action.kind === "reset-voice-volume") {
+        } else if (action.kind === "set-voice-volume" || action.kind === "reset-voice-volume" || action.kind === "set-bus-voice-volume") {
           const volume = this.#ResolveVoiceVolumeAction(action, actionIndex);
           if (volume) {
             operations.push(volume);
@@ -652,6 +655,9 @@ class CjsSfxEngine {
         matchIds,
         ...(node.outputBusId === undefined ? {} : {
           busPathIds: Object.freeze(node.busPathIds.map(String)),
+          ...(node.busPathIds.some(value => this.#busVoiceVolumeTargets.has(String(value))) ? {
+            busVoiceVolumeActionControlled: true
+          } : {}),
           ...(node.authoredBusVolumeDb === undefined ? {} : {
             authoredBusVolumeDb: Number(node.authoredBusVolumeDb)
           }),
@@ -1140,7 +1146,7 @@ class CjsSfxEngine {
 
   /** Samples one authored Voice Volume action once for this post. */
   #ResolveVoiceVolumeAction(action, actionIndex) {
-    const setting = action.kind === "set-voice-volume";
+    const setting = action.kind === "set-voice-volume" || action.kind === "set-bus-voice-volume";
     const volumeDb = setting ? Math.max(-200, Math.min(200, SampleSignedRandomizedValue(action.volumeDb, action.volumeRangeDb, () => this.#SampleUnit()))) : 0;
     return Object.freeze({
       kind: action.kind,

@@ -150,6 +150,16 @@ features need their complete effective send/property projection, qualified
 plug-in adapters, and signal semantics; the typed catalogs do not imply that
 playback is implemented.
 
+Bus-target Voice Volume actions remain Voice Volume, not Bus Volume. The
+bounded runtime form admits only an absolute, non-randomized game-object Set
+whose target is the first/output Bus of every affected Sound and whose route
+has no NodeBase or Bus Aux sends. One per-voice gain stores the posting
+emitter's Bus-keyed state and sits before the route's Bus processing, including
+for voices posted by a later event. Fixed delay and transition timing are
+retained. Reset, global, relative/randomized, ancestor-Bus, wet, and music
+forms remain barriers because they need broader target enumeration or
+stage-aware insertion inside the Bus ancestry.
+
 EVE build 3444265 has 104 Parametric EQ definitions. Exactly two static Custom
 instances occur on realized dry routes: one reaches 3,717 SFX leaves and
 applies a peaking band at `-13 dB`, `120 Hz`, `Q=5` plus an authored-neutral

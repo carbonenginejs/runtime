@@ -7258,6 +7258,89 @@ test("Voice Volume persists across posts, isolates objects, and applies globally
   assert.ok(Math.abs(secondGain.value - 10 ** (-12 / 20)) < 1e-12);
 });
 
+test("Bus-target Voice Volume provisions later routed voices per game object", async () =>
+{
+  const volume = (volumeDb, delayMs = 0, transitionMs = 0) => ({
+    kind: "set-bus-voice-volume",
+    actionIndex: 0,
+    targetId: "928",
+    targetFlags: 1,
+    scope: "game-object",
+    mode: "element",
+    valueMode: "absolute",
+    volumeDb,
+    delayMs,
+    transitionMs,
+    curve: 4,
+  });
+  const play = busPathIds => ({
+    kind: "play",
+    actionIndex: 0,
+    selections: [ {
+      actionIndex: 0,
+      leafIndex: 0,
+      matchIds: [ "200" ],
+      busPathIds,
+      busVoiceVolumeActionControlled: busPathIds[0] === "928",
+    } ],
+  });
+  const programs = {
+    begin: [ volume(-30) ],
+    climax: [ play([ "928", "1" ]) ],
+    restore: [ volume(0, 6000, 2000) ],
+    unrelated: [ play([ "500", "1" ]) ],
+  };
+  const { backend, emitter, context } = Harness({
+    resolveSfxProgram: (_eventID, eventName) => programs[eventName],
+    loadBuffer: async (_eventID, _eventName, _controls, program) => ({
+      voices: program.flatMap(operation => operation.kind === "play"
+        ? operation.selections.map(selection => ({
+            buffer: { duration: 10 },
+            loop: true,
+            programSlotId: "0:0",
+            actionIndex: selection.actionIndex,
+            leafIndex: selection.leafIndex,
+            matchIds: selection.matchIds,
+            busPathIds: selection.busPathIds,
+            busVoiceVolumeActionControlled:
+              selection.busVoiceVolumeActionControlled,
+            getGain: () => 1,
+          }))
+        : []),
+    }),
+  });
+  backend.RegisterGameObj(2);
+
+  backend.PostEvent(1, 1, 0, emitter, "begin");
+  backend.PostEvent(2, 1, 0, emitter, "climax");
+  await tick();
+  backend.PostEvent(3, 2, 0, emitter, "climax");
+  await tick();
+  backend.PostEvent(4, 1, 0, emitter, "unrelated");
+  await tick();
+  backend.PostEvent(5, 1, 0, emitter, "restore");
+
+  assert.equal(context.sources.length, 3);
+  const firstActionGain = context.sources[0].connectedTo.connectedTo.gain;
+  const secondActionGain = context.sources[1].connectedTo.connectedTo.gain;
+  const unrelatedBusGain = context.sources[2].connectedTo.connectedTo.gain;
+
+  assert.ok(Math.abs(firstActionGain.value - 10 ** (-30 / 20)) < 1e-12);
+  assert.equal(secondActionGain.value, 1);
+  assert.equal(unrelatedBusGain.value, 1);
+
+  context.currentTime = 6;
+  backend.RenderAudio();
+
+  const transition = firstActionGain.curves.at(-1);
+
+  assert.equal(transition[1], 6);
+  assert.equal(transition[2], 2);
+  assert.equal(transition[0].length, 65);
+  assert.ok(Math.abs(transition[0][0] - 10 ** (-30 / 20)) < 1e-6);
+  assert.ok(Math.abs(transition[0].at(-1) - 1) < 1e-6);
+});
+
 test("Bus Volume targets routed live and future voices without touching other buses", async () =>
 {
   const bus = (scope, valueMode, busVolumeDb) => ({

@@ -85,6 +85,17 @@ export function validateAudioLibraryDocument(value)
     ValidateBusStates(value.busStates);
     const busDucking = indexBusDuckingCatalog(value.busDucking);
     indexBusEffectCatalog(value.busEffects);
+    const usesBusVoiceVolume = Object.values(
+        normalizedSfx?.programs ?? {},
+    ).some(actions => actions.some(action =>
+        action.kind === "set-bus-voice-volume"));
+
+    if (usesBusVoiceVolume && value.busGraph === undefined)
+    {
+        throw new TypeError(
+            "Audio library Bus-target Voice Volume requires a Bus graph",
+        );
+    }
     if (value.busGraph !== undefined)
     {
         const busGraph = normalizeBusGraphCatalog(
@@ -99,10 +110,67 @@ export function validateAudioLibraryDocument(value)
             busDucking,
         );
         ValidateBusGraphConsumers(busGraph, normalizedSfx, value.music);
+        ValidateBusGraphVoiceVolumeActionRoutes(
+            busGraph,
+            normalizedSfx,
+        );
         ValidateBusGraphVolumeActionRisk(busGraph, normalizedSfx);
     }
 
     return true;
+}
+
+function ValidateBusGraphVoiceVolumeActionRoutes(busGraph, sfx)
+{
+    const targets = new Set(
+        Object.values(sfx?.programs ?? {}).flatMap(actions => actions
+            .filter(action => action.kind === "set-bus-voice-volume")
+            .map(action => String(action.targetId))),
+    );
+
+    for (const targetId of targets)
+    {
+        if (busGraph.buses[targetId]?.type !== "audio-bus")
+        {
+            throw new TypeError(
+                `Audio library Bus-target Voice Volume ${targetId} must target an Audio Bus`,
+            );
+        }
+        for (const [ nodeId, node ] of Object.entries(sfx?.nodes ?? {}))
+        {
+            if (node?.type !== "sound"
+                || !node.busPathIds?.map(String).includes(targetId))
+            {
+                continue;
+            }
+            const route = busGraph.routes[busGraph.sfxRoutes[nodeId]];
+            const wetRoute = route.userAuxSends.length
+                || route.reflectionsAuxSend
+                || route.busPathIds.some(busId =>
+                {
+                    const bus = busGraph.buses[busId];
+
+                    return bus.userAuxSends.length
+                        || bus.reflectionsAuxSend;
+                });
+
+            if (wetRoute)
+            {
+                throw new TypeError(
+                    `Audio library Bus-target Voice Volume ${targetId} cannot use an Aux route`,
+                );
+            }
+        }
+        for (const routeIndex of Object.values(busGraph.musicRoutes))
+        {
+            if (busGraph.routes[routeIndex].busPathIds.includes(targetId))
+            {
+                throw new TypeError(
+                    `Audio library Bus-target Voice Volume ${targetId} cannot affect music`,
+                );
+            }
+        }
+    }
 }
 
 function ValidateBusGraphVolumeActionRisk(busGraph, sfx)
