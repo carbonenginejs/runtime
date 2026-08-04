@@ -271,16 +271,131 @@ test("committed demo library carries authored SFX and music semantics", () =>
     );
 
     assert.equal(shipEngineMedia.size, 63);
-    for (const eventName of [
-        "ship_engine_XXL_microwarpdrive_1st_on",
-        "ship_engine_XXL_microwarpdrive_3rd_on",
+    const xxlProgramKinds = [
+        "reset-voice-volume",
+        "reset-voice-volume",
+        "play",
+        "play",
+        "play",
+        "play",
+        "play",
+        "set-voice-volume",
+        "set-voice-volume",
+        "set-voice-volume",
+        "set-voice-volume",
+    ];
+    for (const [
+        eventName,
+        layerId,
+        steppedLayerId,
+        stopEvent,
+        stopTarget,
+        rootIds,
+        actionTargets,
+    ] of [
+        [
+            "ship_engine_XXL_microwarpdrive_1st_on",
+            "725601076",
+            "359204478",
+            "ship_engine_XXL_microwarpdrive_1st_off",
+            "514297817",
+            [
+                "852380605",
+                "686243306",
+                "435611758",
+                "725601076",
+                "641303300",
+            ],
+            [
+                "852380605",
+                "725601076",
+                "852380605",
+                "686243306",
+                "435611758",
+                "725601076",
+                "641303300",
+                "1005951228",
+                "749662878",
+                "725601076",
+                "852380605",
+            ],
+        ],
+        [
+            "ship_engine_XXL_microwarpdrive_3rd_on",
+            "520277715",
+            "880712148",
+            "ship_engine_XXL_microwarpdrive_3rd_off",
+            "531507805",
+            [
+                "130508512",
+                "897524406",
+                "453013189",
+                "520277715",
+                "920078200",
+            ],
+            [
+                "130508512",
+                "520277715",
+                "130508512",
+                "897524406",
+                "453013189",
+                "520277715",
+                "920078200",
+                "1017090445",
+                "1037864269",
+                "520277715",
+                "130508512",
+            ],
+        ],
     ])
     {
-        assert.equal(
-            graph.events[eventName],
-            undefined,
-            `${eventName} keeps its associated Continuous Layers fail-closed`,
+        assert.deepEqual(
+            graph.events[eventName].map(root => String(root.nodeId)),
+            rootIds,
+            `${eventName} retains all five authored Play roots in order`,
         );
+        assert.deepEqual(
+            graph.programs[eventName].map(action => action.kind),
+            xxlProgramKinds,
+        );
+        assert.deepEqual(
+            graph.programs[eventName].map(action => String(
+                action.targetId ?? action.child?.nodeId,
+            )),
+            actionTargets,
+        );
+        assert.equal(graph.nodes[layerId].type, "blend");
+        assert.equal(graph.nodes[layerId].children.length, 4);
+        assert.deepEqual(
+            [ ...new Set(graph.nodes[layerId].children.flatMap(child =>
+                (child.rtpcCurves ?? []).map(curve => curve.property))) ]
+                .sort(),
+            [ "highPass", "lowPass", "pitch", "volume" ],
+        );
+        assert.deepEqual(
+            graph.nodes[steppedLayerId]
+                .children[0].gainCurves[0].points.map(point => point.x),
+            [
+                0.30000001192092896,
+                0.30000001192092896,
+                1.5800000429153442,
+                1.5800000429153442,
+            ],
+        );
+        assert.equal(library.eventMedia[eventName].length, 14);
+        assert.deepEqual(graph.programs[stopEvent], [
+            {
+                kind: "stop",
+                targetId: stopTarget,
+                scope: "game-object",
+                mode: "element",
+                curve: 4,
+                exceptions: [],
+                targetFlags: 0,
+                actionFlags: 6,
+                transitionMs: 3000,
+            },
+        ]);
     }
 
     assert.deepEqual(graph.programs.charge_abyssal_switch, [

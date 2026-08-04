@@ -867,12 +867,23 @@ each owns parallel child lifetimes while its children retain their independent
 Continuous Random/Delay schedulers. The affected Jita, Caldari, and Minmatar
 Hangar Play branches target those layers directly; their structural State
 ancestors remain available as Stop-match identities.
-Associated Continuous Layers remain fail-closed because their controller must
-start and stop child sessions at live RTPC boundaries. Non-continuous Layer
-crossfade tracks lower to live normalized-gain curves
+An associated Continuous Layer may lower to a pre-started browser blend only
+when every direct child has an explicit non-empty region and is proven
+infinite. All of those child sessions begin
+with the Play action and remain alive until an authored Stop; the browser then
+applies the authored normalized-gain and supported property RTPC curves live.
+This preserves a dormant, RTPC-responsive container and prevents muted content
+from exhausting, but it is deliberately approximate: Wwise starts and stops
+children at each crossfade-region boundary, while runtime-audio keeps them
+running at zero gain outside that region. Loop phase, Continuous Random timing,
+voice count, and acquisition cost can therefore differ. A finite direct child
+keeps the complete event fail-closed. Non-continuous Layer crossfade tracks
+lower to live normalized-gain curves
 when their controller is a named Game Parameter. Supported Layer property
 RTPCs lower to live Volume, Pitch, low-pass, and high-pass curves on each
-affected child.
+affected child. Initial Delay is rejected for the pre-started Continuous form
+because later parameter changes cannot recreate Wwise's boundary-time delay
+evaluation.
 Transition and reset-after-stop policies authored on a Step Random/Sequence
 container are Continuous-only and therefore do not alter its
 one-child-per-post behavior.
@@ -894,8 +905,9 @@ An infinite Disabled-transition Continuous Random whose every playable direct
 child is provably infinite cannot reach a second outer selection. The builder
 therefore retains its one object-scoped Random choice without an outer
 Continuous clock and lets the selected infinite child own playback.
-Qualification accepts only direct looping Sounds or already-qualified infinite
-Continuous Random/Sequence children and does not infer duration from media.
+Qualification accepts only direct looping Sounds, already-qualified infinite
+Continuous Random/Sequence children, or a qualified pre-started Continuous
+Layer and does not infer duration from media.
 This is the same trapped-child reduction used by wwiser and restores the first
 Play branch of EVE build 3453885's `worldobject_station_amarr_play`; the outer
 container identity stays in every selected leaf's Stop ancestry.
@@ -967,15 +979,24 @@ The builder omits an entire playable event when that event mixes other
 unsupported actions or reaches an unsupported playable node; the optional
 diagnostics callback explains each omission. Sample Accurate Continuous
 transitions, `1st only`, `Continue to play`, Play-to-End switch changes,
-Play-and-Continue, playable Actor-Mixer approximation, authored Continuous
-Layers with child-association records, Layer
+Play-and-Continue, playable Actor-Mixer approximation, associated Continuous
+Layers with a finite direct child, Layer
 property RTPC semantics outside the supported Volume, Pitch, low-pass, and
 high-pass set, and other unqualified HIRC semantics are never silently
 approximated.
 
-The remaining EVE 3453885 runtime scheduling barriers are named explicitly.
-The two XXL microwarpdrive events require associated Continuous Layer child
-admission. The
+The two EVE 3453885 XXL microwarpdrive `on` events use the qualified
+pre-started form. Each outer thrust blend has three looping Sounds and one
+infinite Trigger Rate Random child; its nested speed/direction blends also
+reach only infinite children. Their live gain, Volume, Pitch, LPF, HPF, delayed
+Voice Volume actions, and matching three-second `off` Stop fade are preserved.
+Their inherited container effect chains are not: the bank assigns dynamic
+Parametric EQ `1730584540`, Flanger `2328072489`, and Tremolo `1286274856`
+ShareSets, while runtime-audio only
+projects a qualified direct static Parametric EQ on a Sound. The browser
+result is consequently drier and less modulated as well as pre-started.
+
+The remaining EVE 3453885 runtime scheduling barrier is named explicitly. The
 `ship_module_shield_drain_play` Random/Sequence Crossfade reaches a parallel
 Layer/Blend child; Wwise itself documents that Xfade does not support a Blend
 Container child, so runtime-audio keeps that authored branch fail-closed rather

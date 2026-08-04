@@ -1012,15 +1012,24 @@ function LowerSfxGraph({
         // A Layer record only controls children named by its explicit
         // association list. With no associations there is no live
         // child-admission region to validate, so the children retain
-        // their ordinary parallel lifetime. Keep associated
-        // RTPC-driven Continuous Layers fail-closed until their child
-        // admission and boundary semantics are implemented.
-        if (source.continuousValidation && source.layers.some(layer => layer.associations.length)) {
-          throw new Error(`continuous layer ${id}`);
-        }
+        // their ordinary parallel lifetime. An associated Continuous
+        // Layer may use the browser's pre-started approximation only
+        // when every direct child is proven infinite. Finite children
+        // still require Wwise's live RTPC admission scheduler: merely
+        // muting them would consume or exhaust content before its
+        // authored region became active.
+        const associatedContinuous = source.continuousValidation && source.layers.some(layer => layer.associations.length);
         const children = source.children.map(nodeId => ({
           nodeId: lowerChild(nodeId)
         }));
+        const associatedChildIDs = new Set(source.layers.flatMap(layer => layer.associations.filter(association => association.points.length).map(association => Number(association.childId) >>> 0)));
+        if (associatedContinuous && (source.layers.some(layer => layer.associations.some(association => !association.points.length)) || source.children.some(childID => !associatedChildIDs.has(Number(childID) >>> 0)))) {
+          throw new Error(`continuous layer ${id} has incomplete associations`);
+        }
+        const finiteChildren = associatedContinuous ? source.children.filter(childID => neverCompletesByNode.get(String(Number(childID) >>> 0)) !== true) : [];
+        if (finiteChildren.length) {
+          throw new Error(`continuous layer ${id} has finite child ` + finiteChildren.map(value => Number(value) >>> 0).join(","));
+        }
         const childByID = new Map(source.children.map((childID, index) => [Number(childID) >>> 0, children[index]]));
         let curveCount = 0;
         for (const layer of source.layers) {
@@ -1059,6 +1068,9 @@ function LowerSfxGraph({
               curveCount++;
             }
             for (const rtpc of layer.initialRtpcs) {
+              if (associatedContinuous && Number(rtpc.parameterId) === SFX_INITIAL_DELAY_PROPERTY) {
+                throw new Error("continuous layer InitialDelay RTPC");
+              }
               const curve = CreateSfxRtpcCurve(rtpc, names);
               if (!curve) {
                 throw new Error("unsupported layer RTPC property " + `${rtpc.parameterId}`);
@@ -1074,6 +1086,11 @@ function LowerSfxGraph({
           type: curveCount ? "blend" : "parallel",
           children
         };
+        // The approximation owns a persistent object-scoped session
+        // and is stopped through ordinary ancestor match identities.
+        // Keeping this true also permits another qualified Continuous
+        // Layer to use it as an indefinitely running direct child.
+        neverCompletes = associatedContinuous;
       } else {
         throw new Error(`unsupported node type ${source.type}`);
       }
@@ -1081,8 +1098,8 @@ function LowerSfxGraph({
       nodes[id] = node;
       lowered.set(id, id);
       leavesByNode.set(id, leaves);
-      containsContinuousByNode.set(id, childContainsContinuous || node.continuous !== undefined);
-      containsNonSwitchContinuousByNode.set(id, childContainsNonSwitchContinuous || node.continuous !== undefined && node.type !== "switch");
+      containsContinuousByNode.set(id, childContainsContinuous || node.continuous !== undefined || source.type === "layer" && source.continuousValidation && neverCompletes);
+      containsNonSwitchContinuousByNode.set(id, childContainsNonSwitchContinuous || node.continuous !== undefined && node.type !== "switch" || source.type === "layer" && source.continuousValidation && neverCompletes);
       neverCompletesByNode.set(id, neverCompletes);
       return id;
     } finally {

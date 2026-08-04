@@ -27,6 +27,7 @@ bus processing omitted.
 | --- | --- | --- |
 | Carbon audio graph and manager lifecycle | Exact portable behavior | Field, persistence, event, bank, RTPC, State, emitter, and listener contracts are maintained where they do not require native middleware. |
 | Authored SFX and music scheduling | Browser adaptation | Web Audio scheduling preserves authored graph decisions; non-linear Wwise curves are sampled approximations and documented unsupported object families remain barriers. |
+| Infinite-child Continuous Layer | Browser approximation | A layer whose every child has an explicit region and proven-infinite lifetime pre-starts all children, applies authored gain/property RTPC curves live, and remains active until Stop. Wwise instead starts and stops children at region boundaries; phase, Continuous Random timing, voice count, acquisition cost, and unsupported inherited effects can differ. Finite children remain fail-closed. |
 | Wwise Silence source | Exact timing with browser carrier adaptation | A qualified static v150 `0x00650002` source retains its referenced fixed duration as a finite routed voice. One cached one-frame zero buffer loops until an authored sample-clock stop, so long silence allocates constant memory. Randomized or dynamic Silence remains unsupported. |
 | Music Track Voice Volume RTPC | Browser adaptation | v150 property-0 Game Parameter curves using additive accumulation and Wwise dB scaling run on an independent pre-bus track gain from the global RTPC lane. Non-linear automation uses the documented sampled interpolation; other Music Track RTPC properties remain unsupported. |
 | Authored-music UI transport | CarbonEngineJS extension | Previous, next, and random enumerate Music Segments plus a bounded coordinated path through Random/Sequence subtracks inside one live playing ID; layered-track Cartesian products are not materialized. Pause and selection fade then replay an item from its entry cue because Web Audio buffer sources cannot resume or seek. Manual selection starts a fresh playlist traversal (resetting random/shuffle history), while an explicitly selected Sequence Music Track continues at its following subtrack. These controls are not Wwise event actions; automatic playback otherwise retains independent authored selection. |
@@ -188,14 +189,29 @@ lifetime and Continuous Random/Sequence scheduling, and ancestor Layer/State
 identities remain in leaf matching so authored Stops terminate the complete
 group. This exact
 bounded form covers five zero-record Hangar Layers and 22 association-free
-ship-engine Layers in EVE build 3453885. A
-Continuous Layer with any authored child association remains fail-closed:
-Web Audio gain automation alone cannot reproduce Wwise's RTPC-driven child
-start/stop boundaries, dormant sessions, and stale-load cancellation.
+ship-engine Layers in EVE build 3453885.
+
+An associated Continuous Layer is admitted only when every direct child has an
+explicit non-empty region and is proven infinite. Runtime-audio pre-starts
+those children, keeps the container
+alive until an authored Stop, and applies its gain plus supported property RTPC
+curves live. This is a browser approximation, not Wwise child admission:
+children continue silently outside their authored region instead of starting
+and stopping at its boundaries, so loop phase, Continuous Random timing, voice
+count, and acquisition cost may differ. Finite children remain fail-closed.
+Volume, Pitch, LPF, and HPF track RTPCs remain live; Initial Delay is rejected
+because a pre-started child cannot reevaluate it at a later Wwise admission
+boundary.
+The bounded form restores EVE build 3453885's two XXL microwarpdrive `on`
+events and their matching three-second `off` Stop behavior. Those graphs also
+inherit dynamic Parametric EQ `1730584540`, Flanger `2328072489`, and Tremolo
+`1286274856` container ShareSets that the browser does not realize, so their
+output is drier and less modulated than Wwise.
 
 An infinite Disabled-transition Continuous Random is reduced to its first
 object-scoped Random choice when every direct candidate is a proven looping
-Sound or an already qualified infinite Continuous Random/Sequence. The
+Sound, an already qualified infinite Continuous Random/Sequence, or a
+qualified pre-started Continuous Layer. The
 selected child can never return control to the outer scheduler, so omitting
 that unreachable outer clock preserves authored behavior and Stop ancestry.
 A second exact bounded form admits an infinite one-child Sequence with a Delay

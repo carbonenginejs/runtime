@@ -3079,6 +3079,136 @@ test("associated Continuous Layers remain fail-closed", () =>
     );
 });
 
+test("associated Continuous Layers pre-start only proven infinite children", () =>
+{
+    const build = (rtpcs = []) => CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "boosters.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 2,
+                        id: 200,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9001,
+                        inMemoryMediaSize: 64,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 5,
+                        id: 202,
+                        payload: randomSequencePayload({
+                            childID: 200,
+                            loopCount: 0,
+                            transitionTime: 1000,
+                            transitionMode: 3,
+                            flags: 0x18,
+                        }),
+                    },
+                    {
+                        type: 9,
+                        id: 201,
+                        payload: trackedLayerPayload({
+                            children: [ 202 ],
+                            controlId: 800,
+                            continuousValidation: true,
+                            rtpcs,
+                            associations: [
+                                {
+                                    childId: 202,
+                                    points: [
+                                        [ 0, 0, 5 ],
+                                        [ 0.25, 1, 9 ],
+                                        [ 1, 1, 5 ],
+                                    ],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x0403,
+                        targetId: 201,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                ship_engine_on: { eventID: 100 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "1",
+                        ShortName: "boosters",
+                        GameParameters: [
+                            { Id: "800", Name: "ship_thrust" },
+                        ],
+                    },
+                ],
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+    const result = build();
+
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+    assert.equal(result.nodes["202"].continuous.loopCount, 0);
+    assert.deepEqual(result.nodes["201"], {
+        type: "blend",
+        children: [
+            {
+                nodeId: "202",
+                gainCurves: [
+                    {
+                        rtpc: "ship_thrust",
+                        scope: "object",
+                        points: [
+                            { x: 0, gain: 0, interpolation: 5 },
+                            { x: 0.25, gain: 1, interpolation: 9 },
+                            { x: 1, gain: 1, interpolation: 5 },
+                        ],
+                    },
+                ],
+            },
+        ],
+    });
+
+    const delayed = build([
+        {
+            controlId: 800,
+            parameterId: 34,
+            scaling: 0,
+            points: [
+                [ 0, 0, 4 ],
+                [ 1, 100, 4 ],
+            ],
+        },
+    ]);
+
+    assert.equal(delayed.events.ship_engine_on, undefined);
+    assert.match(
+        delayed.diagnostics.omittedEvents[0].reason,
+        /continuous layer InitialDelay RTPC/u,
+    );
+});
+
 test("Continuous Crossfade fails closed when a child reaches a Layer", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
