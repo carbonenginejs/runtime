@@ -492,7 +492,34 @@ function ValidateMusic(music, media, embeddedMedia) {
       }
     }
   }
-  RequireRecord(music.switchSetters, "Audio library music switchSetters");
+  const switchSetters = RequireRecord(music.switchSetters, "Audio library music switchSetters");
+  for (const [name, setters] of Object.entries(switchSetters)) {
+    if (!Array.isArray(setters)) {
+      throw new TypeError(`Audio library music switchSetters.${name} must be an array`);
+    }
+    const keys = setters.map((value, index) => {
+      const label = `Audio library music switchSetters.${name}[${index}]`;
+      const setter = RequireRecord(value, label);
+      if (setter.kind !== "switch" && setter.kind !== "state") {
+        throw new TypeError(`${label} kind must be switch or state`);
+      }
+      for (const field of ["delayRangeMs", "probability", "transitionMs", "transitionTimeMs", "transitionRangeMs", "properties", "ranges"]) {
+        if (setter[field] !== undefined) {
+          throw new TypeError(`${label} ${field} is unsupported`);
+        }
+      }
+      const groupId = NormalizeNonNegativeInteger(setter.groupId, `${label} groupId`);
+      const targetId = NormalizeNonNegativeInteger(setter.targetId, `${label} targetId`);
+      const delayMs = Number(setter.delayMs ?? 0);
+      if (!Number.isFinite(delayMs) || delayMs < 0) {
+        throw new TypeError(`${label} delayMs must be a non-negative finite number`);
+      }
+      return `${setter.kind}:${groupId}:${targetId}:${delayMs}`;
+    });
+    if (new Set(keys).size !== keys.length) {
+      throw new TypeError(`Audio library music switchSetters.${name} has duplicate setters`);
+    }
+  }
 }
 function ValidateMusicBusRouting(node, id) {
   const hasOutput = node.outputBusId !== undefined;

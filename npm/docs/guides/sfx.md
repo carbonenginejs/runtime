@@ -143,12 +143,11 @@ actions on Bus `3810872320` (`Cinematic_Ship_Intro_Transition_Delay`), whose
 dry route has no Aux sends and has three active Wwise Delay effects:
 `cinematic_ship_intro_begin` sets `-30 dB` immediately, while
 `cinematic_ship_intro_climax` schedules `0 dB` after `6000 ms` with a
-`2000 ms` transition. Neither event is currently an exact consumer: begin
-contains an untyped Set State payload with a `1000 ms` delay that
-runtime-audio cannot safely infer, and climax is blocked earlier by untyped
-Set Game Parameter action `112052750`. Both events therefore remain
-fail-closed; Bus-target Voice Volume should land only after those earlier
-bodies are typed.
+`2000 ms` transition. The updated v150 action reader exposes their earlier
+Set State and Set Game Parameter bodies, including the fixed State delay, but
+both events still remain fail-closed at their Bus-target Voice Volume actions.
+That separate pre-effect voice route must land as a complete contract rather
+than being relabeled as Bus Volume.
 
 ## Node behavior
 
@@ -177,10 +176,15 @@ SetSwitch, SetState, Set/Reset Voice Volume, Set/Reset Bus Volume, Set/Reset
 Voice Pitch, Set/Reset Voice LPF/HPF, and Set/Reset Game Parameter actions.
 Switches update the posting game object; states update the global state table.
 A switch or state setter therefore affects only later Play actions in the same
-post. The `events` table remains the static playable-root projection used for
-media discovery. An action-only program is valid and completes without
-creating a media voice. Directly scheduled switch/state setters are omitted
-instead of being executed early.
+post when it is immediate. A fixed-delay setter instead enters the same
+AudioContext-clock action queue as delayed Stop and Game Parameter actions. It
+does not alter later Play selection early; when due, it updates the posting
+game object's Switch or the global State and therefore also wakes any live
+Continuous Switch/State session. An action-only program remains alive until
+its last delayed setter executes and completes without creating a media voice.
+Stop of that playing ID cancels its pending setters. Randomized delay,
+probability, transition-bearing setters, and extra setter properties remain
+fail-closed.
 
 A Stop action has `scope: "game-object"` or `"global"`. `mode: "element"`
 matches the target HIRC identity, while `"all"` and `"all-except"` apply to
@@ -819,7 +823,7 @@ Automatic construction currently accepts Wwise generator-version-150 codec
 sounds, the qualified static Wwise Silence source shape, Play, Stop, Pause,
 Resume, Set/Reset Voice Volume, Set/Reset Bus
 Volume, Set/Reset Voice Pitch, Set/Reset Voice LPF/HPF, Play-Event,
-SetSwitch, and SetState actions,
+SetSwitch and SetState actions, including their qualified fixed delays,
 Random/Sequence containers without reverse restart, and named Step
 Switch/State containers. Play actions retain
 their authored delay, delay randomizer, probability, fade-in duration,

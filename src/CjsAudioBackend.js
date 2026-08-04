@@ -2524,7 +2524,9 @@ export class CjsAudioBackend
                     && operation.kind !== "set-voice-high-pass"
                     && operation.kind !== "reset-voice-high-pass"
                     && operation.kind !== "set-game-parameter"
-                    && operation.kind !== "reset-game-parameter")
+                    && operation.kind !== "reset-game-parameter"
+                    && operation.kind !== "switch"
+                    && operation.kind !== "state")
                 {
                     throw new TypeError(
                         `Unsupported resolved SFX operation ${operation.kind}`,
@@ -2614,6 +2616,14 @@ export class CjsAudioBackend
             || action.kind === "reset-game-parameter")
         {
             this.#ApplySfxGameParameter(action, now);
+        }
+        else if (action.kind === "switch")
+        {
+            this.SetSwitch(action.group, action.value, action.gameObjID);
+        }
+        else if (action.kind === "state")
+        {
+            this.SetGlobalState(action.group, action.value);
         }
         else if (action.kind === "set-voice-low-pass"
             || action.kind === "reset-voice-low-pass"

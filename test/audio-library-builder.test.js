@@ -650,17 +650,37 @@ test("music event projection follows typed targets across every bank", () =>
                         typeName: "event-action",
                         id: 12,
                         actionType: 0x1901,
-                        targetId: 0,
-                        action: { groupId: 55, valueId: 66 },
+                        targetId: 66,
+                        action: {
+                            actionType: 0x1901,
+                            actionName: "set-switch",
+                            actionFamily: 0x19,
+                            targetId: 66,
+                            groupId: 55,
+                            valueId: 66,
+                            delayTimeMs: 200,
+                            properties: [ {
+                                id: 0x39,
+                                value: 200,
+                                rawValue: 200,
+                            } ],
+                            ranges: [],
+                        },
                         payload: setterPayload(55, 66),
                     },
                     {
                         typeName: "event-action",
                         id: 13,
                         actionType: 0x1901,
-                        targetId: 0,
-                        action: { groupId: 77, valueId: 88 },
-                        payload: new Uint8Array(),
+                        targetId: 88,
+                        action: {
+                            groupId: 77,
+                            valueId: 88,
+                            delayTimeMs: 100,
+                            delayRangeMs: { min: 0, max: 50 },
+                            probability: 50,
+                        },
+                        payload: setterPayload(77, 88),
                     },
                     {
                         typeName: "event",
@@ -716,6 +736,7 @@ test("music event projection follows typed targets across every bank", () =>
                     kind: "switch",
                     groupId: 55,
                     targetId: 66,
+                    delayMs: 200,
                 },
             ],
         },
@@ -3846,7 +3867,7 @@ test("SFX Play-Event actions inline the referenced event program", () =>
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
-test("scheduled Play-Event setters fail closed until actions are ordered", () =>
+test("fixed-delay setters lower while scheduled Play-Event setters fail closed", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
         inspections: [
@@ -3875,9 +3896,21 @@ test("scheduled Play-Event setters fail closed until actions are ordered", () =>
                         type: 3,
                         id: 302,
                         actionType: 0x1901,
-                        targetId: 0,
+                        targetId: 501,
                         action: {
+                            actionType: 0x1901,
+                            actionName: "set-switch",
+                            actionFamily: 0x19,
+                            targetId: 501,
+                            groupId: 500,
+                            valueId: 501,
                             delayTimeMs: 10000,
+                            properties: [ {
+                                id: 0x39,
+                                value: 10000,
+                                rawValue: 10000,
+                            } ],
+                            ranges: [],
                         },
                         payload: setterPayload(500, 501),
                     },
@@ -3931,6 +3964,14 @@ test("scheduled Play-Event setters fail closed until actions are ordered", () =>
     });
 
     assert.deepEqual(result.programs, {
+        delayed_direct: [
+            {
+                kind: "switch",
+                group: "ship_size",
+                value: "large",
+                delayMs: 10000,
+            },
+        ],
         select_large: [
             { kind: "switch", group: "ship_size", value: "large" },
         ],
@@ -3941,10 +3982,171 @@ test("scheduled Play-Event setters fail closed until actions are ordered", () =>
             name: "delayed_select",
             reason: "scheduled Play-Event 300 targets non-play actions",
         },
+    ]);
+});
+
+test("non-exact setter scheduling remains fail closed", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [
+            {
+                source: "common.bnk",
+                bankVersion: 150,
+                hirc: [
+                    {
+                        type: 3,
+                        id: 300,
+                        actionType: 0x1901,
+                        targetId: 0,
+                        action: {
+                            delayTimeMs: 1000,
+                            delayRangeMs: { min: 0, max: 500 },
+                            properties: [ { id: 0x39 } ],
+                            ranges: [ { id: 0x39 } ],
+                        },
+                        payload: setterPayload(500, 501),
+                    },
+                    {
+                        type: 3,
+                        id: 301,
+                        actionType: 0x1204,
+                        targetId: 0,
+                        action: {
+                            transitionTimeMs: 1000,
+                            properties: [ { id: 0x3a } ],
+                            ranges: [],
+                        },
+                        payload: setterPayload(600, 601),
+                    },
+                    {
+                        type: 3,
+                        id: 302,
+                        actionType: 0x1901,
+                        targetId: 501,
+                        action: {
+                            actionType: 0x1901,
+                            actionName: "set-switch",
+                            actionFamily: 0x19,
+                            targetId: 501,
+                            groupId: 500,
+                            valueId: 501,
+                            properties: [ {
+                                id: 0x39,
+                                value: 1000,
+                                rawValue: 1000,
+                            } ],
+                            ranges: [],
+                        },
+                        payload: setterPayload(500, 501),
+                    },
+                    {
+                        type: 3,
+                        id: 303,
+                        actionType: 0x1901,
+                        targetId: 501,
+                        action: {
+                            actionType: 0x1901,
+                            actionName: "set-switch",
+                            actionFamily: 0x19,
+                            targetId: 501,
+                            groupId: 500,
+                            valueId: 501,
+                            delayTimeMs: 1000,
+                            properties: [ {
+                                id: 0x39,
+                                value: 900,
+                                rawValue: 900,
+                            } ],
+                            ranges: [],
+                        },
+                        payload: setterPayload(500, 501),
+                    },
+                    {
+                        type: 4,
+                        id: 100,
+                        actionIds: [ 300 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 101,
+                        actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 102,
+                        actionIds: [ 302 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 103,
+                        actionIds: [ 303 ],
+                        payload: new Uint8Array(),
+                    },
+                ],
+            },
+        ],
+        metadata: {
+            Events: {
+                randomized_switch: { eventID: 100 },
+                transitioning_state: { eventID: 101 },
+                incomplete_switch: { eventID: 102 },
+                mismatched_switch: { eventID: 103 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "1",
+                        ShortName: "common",
+                        SwitchGroups: [
+                            {
+                                Id: "500",
+                                Name: "ship_size",
+                                Switches: [
+                                    { Id: "501", Name: "large" },
+                                ],
+                            },
+                        ],
+                        StateGroups: [
+                            {
+                                Id: "600",
+                                Name: "weather",
+                                States: [
+                                    { Id: "601", Name: "storm" },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+    });
+
+    assert.deepEqual(result.programs, {});
+    assert.deepEqual(result.diagnostics.omittedEvents, [
+        {
+            id: 100,
+            name: "randomized_switch",
+            reason: "unsupported scheduled setter action 300",
+        },
+        {
+            id: 101,
+            name: "transitioning_state",
+            reason: "unsupported scheduled setter action 301",
+        },
         {
             id: 102,
-            name: "delayed_direct",
-            reason: "scheduled setter action 302",
+            name: "incomplete_switch",
+            reason: "incomplete scheduled setter action 302",
+        },
+        {
+            id: 103,
+            name: "mismatched_switch",
+            reason: "invalid scheduled setter action 303",
         },
     ]);
 });

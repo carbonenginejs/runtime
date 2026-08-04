@@ -2087,6 +2087,7 @@ test("event setters update controls before resolving the same post", () =>
             schemaVersion: 2,
             events: {
                 select_large: [ { nodeId: "1" } ],
+                delayed_select: [ { nodeId: "1" } ],
             },
             programs: {
                 select_large: [
@@ -2105,6 +2106,18 @@ test("event setters update controls before resolving the same post", () =>
                         kind: "state",
                         group: "weather",
                         value: "storm",
+                    },
+                ],
+                delayed_select: [
+                    {
+                        kind: "switch",
+                        group: "ship_size",
+                        value: "large",
+                        delayMs: 1000,
+                    },
+                    {
+                        kind: "play",
+                        child: { nodeId: "1" },
                     },
                 ],
             },
@@ -2137,6 +2150,23 @@ test("event setters update controls before resolving the same post", () =>
         "100",
     );
     assert.equal(switches.get("ship_size"), "large");
+
+    switches.clear();
+    const delayed = engine.ResolveProgram("delayed_select", controls);
+
+    assert.deepEqual(delayed[0], {
+        kind: "switch",
+        group: "ship_size",
+        value: "large",
+        delayMs: 1000,
+        actionIndex: 0,
+    });
+    assert.equal(
+        delayed[1].selections[0].mediaID,
+        "200",
+        "a delayed setter does not change a same-post Play selection early",
+    );
+    assert.equal(switches.get("ship_size"), undefined);
 });
 
 test("event programs preserve authored Play and setter interleaving", () =>

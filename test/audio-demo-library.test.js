@@ -75,7 +75,9 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(library.hasOptionalEnrichment, false);
     assert.equal(validateAudioLibraryDocument(library), true);
     assert.equal(graph.schemaVersion, 2);
-    assert.ok(Object.keys(graph.programs).length > 0);
+    assert.equal(Object.keys(library.metadata.Events).length, 10766);
+    assert.equal(Object.keys(graph.events).length, 4881);
+    assert.equal(Object.keys(graph.programs).length, 9107);
     assert.ok(
         Object.keys(library.busRtpcs?.buses ?? {}).length > 0,
         "the committed demo retains authored Audio Bus RTPCs",
@@ -409,6 +411,53 @@ test("committed demo library carries authored SFX and music semantics", () =>
         graph.events.charge_abyssal_switch,
         undefined,
         "the committed artifact retains a real setter-only event",
+    );
+    assert.deepEqual(
+        graph.programs.ui_state_stack,
+        [
+            {
+                kind: "state",
+                group: "DragDrop",
+                value: "stack",
+            },
+            {
+                kind: "state",
+                group: "DragDrop",
+                value: "normal",
+                delayMs: 1000,
+            },
+        ],
+        "a delayed setter keeps an action-only post alive",
+    );
+    assert.deepEqual(
+        graph.programs.ship_engine_S_warpdrive_1st_blast.at(-1),
+        {
+            kind: "state",
+            group: "Ship_State",
+            value: "Warp_TopSpeed",
+            delayMs: 15000,
+        },
+        "the warp program retains its authored 15-second State",
+    );
+    assert.deepEqual(
+        graph.programs.worldobject_wormhole_travel_play
+            .slice(3, 6)
+            .map(action => [
+                action.kind,
+                action.delayMs ?? action.child?.delayMs,
+                action.child?.nodeId ?? action.value,
+            ]),
+        [
+            [ "play", 1000, "774425223" ],
+            [ "play", 8000, "206054671" ],
+            [ "state", 8000, "no" ],
+        ],
+        "equal-time Play and State actions retain authored order",
+    );
+    assert.equal(
+        graph.programs.cinematic_ship_intro_begin,
+        undefined,
+        "unsupported Bus Voice Volume keeps the cinematic fail-closed",
     );
 
     assert.deepEqual(
@@ -919,12 +968,12 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceEqSounds = nodes.filter(node =>
         Array.isArray(node.sourceEffects));
 
-    assert.equal(sourceEqSounds.length, 20);
+    assert.equal(sourceEqSounds.length, 21);
     assert.equal(
         sourceEqSounds.filter(node => node.sourceEffects.some(effect =>
             effect.outputGainDb !== 0
             || effect.bands.some(band => band.gainDb !== 0))).length,
-        19,
+        20,
         "the exact demo retains every qualified non-neutral Sound-local EQ",
     );
     assert.deepEqual(
@@ -1050,6 +1099,34 @@ test("committed demo library carries authored SFX and music semantics", () =>
         library.music.eventStops.character_select_character,
         [ 289339910 ],
         "one authored event may contain both SFX and music actions",
+    );
+    assert.deepEqual(
+        library.music.switchSetters.music_abyssal_deadspace_tier5_room1_play,
+        [
+            {
+                kind: "state",
+                groupId: 1759824668,
+                targetId: 3434871818,
+            },
+            {
+                kind: "state",
+                groupId: 1666524385,
+                targetId: 1359360137,
+            },
+            {
+                kind: "switch",
+                groupId: 2573765124,
+                targetId: 39390933,
+                delayMs: 100,
+            },
+            {
+                kind: "switch",
+                groupId: 209172049,
+                targetId: 608898761,
+                delayMs: 200,
+            },
+        ],
+        "music retains immediate and delayed setters in authored order",
     );
 
     const musicSourcePlugins = rootId =>

@@ -87,6 +87,10 @@ The maintained graph includes:
 - ordered object/global Set and Reset Game Parameter actions with absolute or
   relative values, randomized delays, Wwise transition curves, persistent
   timelines, capture-time ordering, and live gain, pitch, and filter updates;
+- ordered SetSwitch and SetState actions with exact deterministic fixed delays;
+  delayed setters use the audio action clock, do not alter later same-post Play
+  selection early, and update live Continuous decisions when due, while
+  randomized/probabilistic or transition-bearing setters remain unsupported;
 - ordered Voice LPF/HPF Set and Reset actions with signed randomizers,
   interruptible Wwise curves, hierarchy accumulation, action-aware filter
   provisioning, persistent global templates, and qualified Reset All/Except

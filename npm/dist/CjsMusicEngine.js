@@ -515,6 +515,7 @@ class CjsMusicEngine {
   #switchValues = new Map();
   #instances = new Map();
   #groups = new Map();
+  #scheduledSetters = [];
   #buffers = new Map();
   #transportChoices = new Map();
   #nextScheduleId = 1;
@@ -613,6 +614,10 @@ class CjsMusicEngine {
     for (const instance of [...this.#instances.values()]) {
       this.#StopInstance(instance, seconds);
     }
+    for (const group of [...this.#groups.values()]) {
+      this.#CancelScheduledSetters(group);
+      this.#MaybeFinishGroup(group);
+    }
   }
 
   /** Releases one decoded-buffer promise from the source cache. */
@@ -660,21 +665,28 @@ class CjsMusicEngine {
 
   /**
    * Posts a music event under an externally allocated playing id.
-   * Setter events apply their switch/state values and finish immediately;
-   * play events start graph playback. Returns true when the id stays live.
+   * Immediate setter events apply their values during the post. Fixed-delay
+   * setters stay live on the AudioContext clock; play events start graph
+   * playback. Returns true when the id stays live.
    */
   PostEvent(eventName, playingID, onFinished, {
     busVolumeStates = null
   } = {}) {
     const setters = this.#graph.switchSetters?.[eventName];
+    const delayedSetters = [];
     if (setters) {
-      for (const setter of setters) {
-        this.#switchValues.set(setter.groupId >>> 0, setter.targetId >>> 0);
-      }
-      for (const instance of this.#instances.values()) {
-        if (!instance.stopped && !instance.transportPaused) {
-          this.#ReevaluateInstance(instance);
+      const immediate = setters.filter((setter, actionIndex) => {
+        if (Number(setter.delayMs) > 0) {
+          delayedSetters.push({
+            setter,
+            actionIndex
+          });
+          return false;
         }
+        return true;
+      });
+      if (immediate.length) {
+        this.#ApplySetterBatch(immediate);
       }
     }
     const stops = this.#graph.eventStops?.[eventName];
@@ -687,9 +699,9 @@ class CjsMusicEngine {
       }
     }
     const targets = this.#graph.eventTargets?.[eventName];
-    if (!targets || !targets.length || !this.#context) {
+    if ((!targets || !targets.length) && !delayedSetters.length || !this.#context) {
       // Deferred so the caller can record the playing id before the
-      // finished callback clears it (setter events finish immediately).
+      // finished callback clears an immediate setter-only event.
       queueMicrotask(() => onFinished?.());
       return false;
     }
@@ -697,10 +709,24 @@ class CjsMusicEngine {
       playingID,
       onFinished,
       instances: new Set(),
+      pendingSetters: delayedSetters.length,
       finished: false
     };
     this.#groups.set(playingID, group);
-    for (const rootId of targets) {
+    const postTime = Number(this.#context.currentTime) || 0;
+    for (const {
+      setter,
+      actionIndex
+    } of delayedSetters) {
+      this.#scheduledSetters.push({
+        playingID,
+        actionIndex,
+        actionTime: postTime + Number(setter.delayMs) / 1000,
+        setter
+      });
+    }
+    this.#scheduledSetters.sort((left, right) => left.actionTime - right.actionTime || left.playingID - right.playingID || left.actionIndex - right.actionIndex);
+    for (const rootId of targets ?? []) {
       const instance = new MusicInstance({
         playingID,
         rootId,
@@ -728,9 +754,11 @@ class CjsMusicEngine {
     }
     const ms = Number(fadeOutDuration);
     const seconds = Number.isFinite(ms) ? Math.max(0, ms) / 1000 : DEFAULT_FADE_SECONDS;
+    this.#CancelScheduledSetters(group);
     for (const instance of [...group.instances]) {
       this.#StopInstance(instance, seconds);
     }
+    this.#MaybeFinishGroup(group);
   }
 
   /** Capabilities for the browser transport over one live playing id. */
@@ -885,6 +913,7 @@ class CjsMusicEngine {
   Process() {
     if (!this.#context) return;
     const now = this.#context.currentTime;
+    this.#ProcessScheduledSetters(now);
     for (const instance of [...this.#instances.values()]) {
       if (instance.stopped) {
         if (instance.stopAt === null || now >= instance.stopAt) {
@@ -914,6 +943,58 @@ class CjsMusicEngine {
         continue;
       }
     }
+  }
+
+  /** Applies all due fixed-delay music setters in stable authored order. */
+  #ProcessScheduledSetters(now) {
+    while (this.#scheduledSetters.length && this.#scheduledSetters[0].actionTime <= now) {
+      const actionTime = this.#scheduledSetters[0].actionTime;
+      const due = [];
+      const touched = new Set();
+      while (this.#scheduledSetters.length && this.#scheduledSetters[0].actionTime === actionTime) {
+        const action = this.#scheduledSetters.shift();
+        const group = this.#groups.get(action.playingID);
+        if (!group || group.finished) continue;
+        group.pendingSetters = Math.max(0, group.pendingSetters - 1);
+        due.push(action.setter);
+        touched.add(group);
+      }
+      if (due.length) {
+        this.#ApplySetterBatch(due);
+      }
+      for (const group of touched) {
+        this.#MaybeFinishGroup(group);
+      }
+    }
+  }
+
+  /** Applies one setter batch and reevaluates each live instance once. */
+  #ApplySetterBatch(setters) {
+    for (const setter of setters) {
+      this.#switchValues.set(setter.groupId >>> 0, setter.targetId >>> 0);
+    }
+    for (const instance of this.#instances.values()) {
+      if (!instance.stopped && !instance.transportPaused) {
+        this.#ReevaluateInstance(instance);
+      }
+    }
+  }
+
+  /** Cancels every pending setter owned by one playing id. */
+  #CancelScheduledSetters(group) {
+    if (!group || group.pendingSetters <= 0) return;
+    this.#scheduledSetters = this.#scheduledSetters.filter(action => action.playingID !== group.playingID);
+    group.pendingSetters = 0;
+  }
+
+  /** Completes a music post after both instances and setters settle. */
+  #MaybeFinishGroup(group) {
+    if (!group || group.finished || group.instances.size || group.pendingSetters > 0) {
+      return;
+    }
+    group.finished = true;
+    this.#groups.delete(group.playingID);
+    group.onFinished?.();
   }
 
   /**
@@ -2390,11 +2471,7 @@ class CjsMusicEngine {
     instance.routeMixerGains.clear();
     const group = instance.group;
     group?.instances.delete(instance);
-    if (group && !group.instances.size && !group.finished) {
-      group.finished = true;
-      this.#groups.delete(group.playingID);
-      group.onFinished?.();
-    }
+    this.#MaybeFinishGroup(group);
   }
 }
 

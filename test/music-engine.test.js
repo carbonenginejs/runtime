@@ -2570,6 +2570,106 @@ test("a switch setter event transitions to segment B at the exit-cue boundary wi
   assert.equal(segmentBSource.startedAt, 8, "segment B enters at the boundary");
 });
 
+test("fixed-delay music setters remain live and reevaluate only when due", async () =>
+{
+  const { context, engine, finished } = Harness(graph =>
+  {
+    graph.switchSetters.music_switch_delayed = [ {
+      kind: "switch",
+      groupId: GROUP,
+      targetId: COMBAT,
+      delayMs: 1000,
+    } ];
+    graph.switchSetters.music_switch_cancelled = [ {
+      kind: "switch",
+      groupId: GROUP,
+      targetId: wwiseIdFromName("peace"),
+      delayMs: 1000,
+    } ];
+  });
+
+  engine.PostEvent("music_test_play", 513, () => finished.push(513));
+  await tick();
+  const retained = engine.PostEvent(
+    "music_switch_delayed",
+    514,
+    () => finished.push(514),
+  );
+
+  assert.equal(retained, true);
+  assert.equal(engine.GetPlayingCount(), 2);
+  assert.equal(engine.GetResolvedTarget(513), PLAYLIST);
+  assert.deepEqual(finished, []);
+
+  context.currentTime = 0.999;
+  engine.Process();
+  await tick();
+  assert.equal(engine.GetResolvedTarget(513), PLAYLIST);
+  assert.deepEqual(finished, []);
+
+  context.currentTime = 1;
+  engine.Process();
+  await tick();
+  await tick();
+  assert.equal(engine.GetResolvedTarget(513), SEGMENT_B);
+  assert.deepEqual(finished, [ 514 ]);
+  assert.equal(engine.GetPlayingCount(), 1);
+
+  engine.PostEvent(
+    "music_switch_cancelled",
+    515,
+    () => finished.push(515),
+  );
+  engine.ExecuteAction("stop", 515, 0);
+  context.currentTime = 2;
+  engine.Process();
+  await tick();
+
+  assert.deepEqual(finished, [ 514, 515 ]);
+  assert.equal(engine.GetResolvedTarget(513), SEGMENT_B);
+});
+
+test("overdue music setters preserve distinct authored deadlines", async () =>
+{
+  const { context, engine, loaded, finished } = Harness(graph =>
+  {
+    graph.switchSetters.music_switch_overdue = [
+      {
+        kind: "switch",
+        groupId: GROUP,
+        targetId: COMBAT,
+        delayMs: 100,
+      },
+      {
+        kind: "switch",
+        groupId: GROUP,
+        targetId: CALM,
+        delayMs: 200,
+      },
+    ];
+  });
+
+  engine.PostEvent("music_test_play", 516, () => finished.push(516));
+  await tick();
+  engine.PostEvent(
+    "music_switch_overdue",
+    517,
+    () => finished.push(517),
+  );
+
+  context.currentTime = 0.2;
+  engine.Process();
+  await tick();
+  await tick();
+
+  assert.ok(
+    loaded.includes(222),
+    "the 100 ms combat decision is observed before the 200 ms calm decision",
+  );
+  assert.equal(engine.GetResolvedTarget(516), PLAYLIST);
+  assert.deepEqual(finished, [ 517 ]);
+});
+
 test("transition pre-entry and post-exit flags control the source windows", async () =>
 {
   const transition = async ({ playPreEntry, playPostExit }) =>

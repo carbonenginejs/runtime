@@ -435,9 +435,26 @@ export class CjsSfxEngine
                     );
                     operations.push(gameParameter);
                 }
+                else if (action.kind === "switch"
+                    || action.kind === "state")
+                {
+                    if (Number(action.delayMs) > 0)
+                    {
+                        operations.push(Object.freeze({
+                            ...action,
+                            actionIndex,
+                        }));
+                    }
+                    else
+                    {
+                        ApplySetter(action, resolvedControls);
+                    }
+                }
                 else
                 {
-                    ApplySetter(action, resolvedControls);
+                    throw new TypeError(
+                        `Unsupported SFX program action ${action.kind}`,
+                    );
                 }
             }
             return Object.freeze(operations);

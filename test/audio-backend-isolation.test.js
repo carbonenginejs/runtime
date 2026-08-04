@@ -6756,6 +6756,54 @@ test("setter-only authored events update controls and complete without a voice",
   assert.equal(backend.GetPlayingCount(), 0);
 });
 
+test("fixed-delay Switch and State actions use the authored action clock", async () =>
+{
+  const program = [
+    {
+      kind: "switch",
+      actionIndex: 0,
+      group: "ship_size",
+      value: "large",
+      delayMs: 500,
+    },
+    {
+      kind: "state",
+      actionIndex: 1,
+      group: "ship_state",
+      value: "warp_top_speed",
+      delayMs: 1000,
+    },
+  ];
+  const { backend, emitter, context, finished } = Harness({
+    resolveSfxProgram: () => program,
+    loadBuffer: async () => ({ voices: [] }),
+  });
+  const playingID = backend.PostEvent(
+    7,
+    1,
+    0,
+    emitter,
+    "delayed_setters",
+  );
+
+  await tick();
+  assert.equal(backend.GetSwitchValue("ship_size", 1), undefined);
+  assert.equal(backend.GetGlobalState("ship_state"), undefined);
+  assert.equal(backend.GetPlayingCount(), 1);
+
+  context.currentTime = 0.5;
+  backend.RenderAudio();
+  assert.equal(backend.GetSwitchValue("ship_size", 1), "large");
+  assert.equal(backend.GetGlobalState("ship_state"), undefined);
+  assert.equal(backend.GetPlayingCount(), 1);
+
+  context.currentTime = 1;
+  backend.RenderAudio();
+  assert.equal(backend.GetGlobalState("ship_state"), "warp_top_speed");
+  assert.deepEqual(finished, [ playingID ]);
+  assert.equal(backend.GetPlayingCount(), 0);
+});
+
 test("Game Parameter actions persist, transition, rebase, reset, and cancel externally", async () =>
 {
   const programs = {

@@ -249,7 +249,10 @@ function NormalizeSetterAction(action) {
   return {
     kind: action.kind,
     group: String(action.group),
-    value: String(action.value)
+    value: String(action.value),
+    ...(action.delayMs === undefined ? {} : {
+      delayMs: Number(action.delayMs)
+    })
   };
 }
 function NormalizeNode(node) {
@@ -661,6 +664,17 @@ function ValidateSetterAction(value, label) {
   }
   NormalizeName(action.group, `${label} group`);
   NormalizeName(action.value, `${label} value`);
+  RejectUnsupportedSetterScheduling(action, label);
+  ValidateActionTiming({
+    delayMs: action.delayMs
+  }, label);
+}
+function RejectUnsupportedSetterScheduling(action, label) {
+  for (const field of ["delayRangeMs", "probability", "transitionMs", "transitionTimeMs", "transitionRangeMs", "properties", "ranges"]) {
+    if (action[field] !== undefined) {
+      throw new TypeError(`${label} ${field} is unsupported for switch/state setters`);
+    }
+  }
 }
 function ValidateVoiceVolumeAction(value, label) {
   const action = RequireRecord(value, label);

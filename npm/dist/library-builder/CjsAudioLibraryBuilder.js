@@ -1203,9 +1203,6 @@ function LowerSfxGraph({
         } else if ((action.actionType >> 8 & 0xff) === SFX_SET_GAME_PARAMETER_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_GAME_PARAMETER_ACTION_FAMILY) {
           result.program.push(ReadSfxGameParameterAction(action, names));
         } else if ((action.actionType >> 8 & 0xff) === SFX_SET_SWITCH_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_SET_STATE_ACTION_FAMILY) {
-          if (HasSfxPlayActionTiming(action, false)) {
-            throw new Error(`scheduled setter action ${action.id}`);
-          }
           const setter = ReadSfxSetterAction(action, names);
           result.setters.push(setter);
           result.program.push(setter);
@@ -1835,10 +1832,11 @@ function HasExactSfxGameParameterProperties(values) {
 function ReadSfxSetterAction(action, names) {
   const family = Number(action.actionType) >> 8 & 0xff;
   const scope = family === SFX_SET_SWITCH_ACTION_FAMILY ? "switch" : "state";
+  const details = action.action ?? {};
   const {
     groupID,
     valueID
-  } = ReadSetterActionIDs(action.action, action.payload, `${scope} setter action ${action.id}`);
+  } = ReadSetterActionIDs(details, action.payload, `${scope} setter action ${action.id}`);
   const group = names.groups.get(`${scope}:${groupID}`);
   const value = group?.values.get(valueID);
   if (!group?.name) {
@@ -1847,11 +1845,52 @@ function ReadSfxSetterAction(action, names) {
   if (!value) {
     throw new Error(`unnamed ${scope} value ${valueID}`);
   }
-  return {
+  const delayMs = ReadExactSetterDelay(details, {
+    actionID: action.id,
+    actionType: action.actionType,
+    family,
+    targetID: action.targetId ?? action.target,
+    label: "setter action"
+  });
+  const result = {
     kind: scope,
     group: group.name,
     value
   };
+  if (delayMs !== undefined) {
+    result.delayMs = delayMs;
+  }
+  return result;
+}
+function ReadExactSetterDelay(details, {
+  actionID,
+  actionType,
+  family,
+  targetID,
+  label
+}) {
+  const properties = details.properties;
+  const ranges = details.ranges;
+  const delayDefined = details.delayTimeMs !== undefined;
+  const expectedName = family === SFX_SET_SWITCH_ACTION_FAMILY ? "set-switch" : "set-state";
+  const unsupported = details.delayRangeMs !== undefined || details.probability !== undefined || details.transitionTimeMs !== undefined || details.transitionRangeMs !== undefined || ranges !== undefined && (!Array.isArray(ranges) || ranges.length !== 0) || properties !== undefined && !Array.isArray(properties) || Array.isArray(properties) && properties.some(property => Number(property?.id) !== 0x39);
+  if (unsupported) {
+    throw new Error(`unsupported scheduled ${label} ${actionID}`);
+  }
+  if (!delayDefined) {
+    if (properties?.length) {
+      throw new Error(`incomplete scheduled ${label} ${actionID}`);
+    }
+    return undefined;
+  }
+  const delayMs = Number(details.delayTimeMs);
+  const property = properties?.[0];
+  const propertyValue = Number(property?.value);
+  const rawPropertyValue = Number(property?.rawValue);
+  if (!Number.isFinite(delayMs) || delayMs < 0 || properties?.length !== 1 || !Number.isFinite(propertyValue) || !Number.isFinite(rawPropertyValue) || propertyValue !== delayMs || rawPropertyValue !== delayMs || Number(details.actionType) >>> 0 !== Number(actionType) >>> 0 || details.actionName !== expectedName || Number(details.actionFamily) !== family || details.groupId === undefined || details.valueId === undefined || details.targetId === undefined || targetID === undefined || Number(details.targetId) >>> 0 !== Number(targetID) >>> 0) {
+    throw new Error(`invalid scheduled ${label} ${actionID}`);
+  }
+  return delayMs;
 }
 function ReadSfxPlaybackControlAction(action, kind) {
   const details = action.action ?? action;
@@ -4395,11 +4434,13 @@ function createMusicEventProjection(inspections, metadata, nodes) {
         } else if (family === 0x01 && nodes[fields.targetID]) {
           addEventTarget(eventStops, name, fields.targetID);
         } else if (family === 0x19 || family === 0x12) {
-          const setter = ReadMusicSetterAction(fields, actionID, family);
-          if (musicGroups.has(setter.groupId)) {
-            const values = switchSetters[name] ?? (switchSetters[name] = []);
-            values.push(setter);
+          const identity = ReadSetterActionIDs(fields.action, fields.payload, `Music setter action ${actionID}`);
+          if (!musicGroups.has(identity.groupID)) {
+            continue;
           }
+          const setter = ReadMusicSetterAction(fields, actionID, family, identity);
+          const values = switchSetters[name] ?? (switchSetters[name] = []);
+          values.push(setter);
         }
       }
     }
@@ -4422,16 +4463,28 @@ function MusicArgumentGroups(nodes) {
   }
   return result;
 }
-function ReadMusicSetterAction(fields, actionID, family) {
+function ReadMusicSetterAction(fields, actionID, family, identity) {
+  const details = fields.action ?? {};
   const {
     groupID,
     valueID
-  } = ReadSetterActionIDs(fields.action, fields.payload, `Music setter action ${actionID}`);
-  return {
+  } = identity;
+  const delayMs = ReadExactSetterDelay(details, {
+    actionID,
+    actionType: fields.actionType,
+    family,
+    targetID: fields.targetID,
+    label: "Music setter action"
+  });
+  const result = {
     kind: family === 0x19 ? "switch" : "state",
     groupId: groupID,
     targetId: valueID
   };
+  if (delayMs !== undefined) {
+    result.delayMs = delayMs;
+  }
+  return result;
 }
 function ReadSetterActionIDs(action, rawPayload, label) {
   const hasTypedGroup = action?.groupId !== undefined;
@@ -4499,9 +4552,22 @@ function normalizeSetterTable(table) {
   for (const name of Object.keys(table).sort()) {
     const unique = new Map();
     for (const setter of table[name]) {
-      unique.set(`${setter.kind}:${setter.groupId}:${setter.targetId}`, setter);
+      for (const field of ["delayRangeMs", "probability", "transitionMs", "transitionTimeMs", "transitionRangeMs", "properties", "ranges"]) {
+        if (setter[field] !== undefined) {
+          throw new TypeError(`Music setter ${name} has unsupported ${field}`);
+        }
+      }
+      const normalized = {
+        kind: setter.kind,
+        groupId: Number(setter.groupId) >>> 0,
+        targetId: Number(setter.targetId) >>> 0,
+        ...(setter.delayMs === undefined ? {} : {
+          delayMs: Number(setter.delayMs)
+        })
+      };
+      unique.set(`${normalized.kind}:${normalized.groupId}:` + `${normalized.targetId}:` + `${Number(normalized.delayMs) || 0}`, normalized);
     }
-    result[name] = [...unique.values()].sort((left, right) => left.kind.localeCompare(right.kind, "en") || left.groupId - right.groupId || left.targetId - right.targetId);
+    result[name] = [...unique.values()];
   }
   return result;
 }
@@ -4562,7 +4628,11 @@ function validateMusicGraph(music, media, embeddedMedia) {
       if (!setter || !["switch", "state"].includes(setter.kind)) {
         throw new TypeError(`Audio library music switchSetters.${name} has an invalid setter`);
       }
-      return `${setter.kind}:${setter.groupId}:${setter.targetId}`;
+      const delayMs = Number(setter.delayMs ?? 0);
+      if (!Number.isFinite(delayMs) || delayMs < 0) {
+        throw new TypeError(`Audio library music switchSetters.${name} has an invalid delay`);
+      }
+      return `${setter.kind}:${setter.groupId}:${setter.targetId}:${delayMs}`;
     });
     if (new Set(keys).size !== keys.length) {
       throw new TypeError(`Audio library music switchSetters.${name} has duplicate setters`);

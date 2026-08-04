@@ -48,6 +48,15 @@ those children are themselves switch containers. Wwise `Nothing`
 associations use explicit ID zero and do not match `Any`; their rules also
 apply when playback first enters a target from silence.
 
+Authored SetSwitch and SetState events retain deterministic fixed delays. An
+immediate setter still updates the music decision before a same-post Play;
+a delayed setter stays live on the AudioContext clock, leaves the initial
+selection unchanged, and reevaluates every live music instance only when due.
+Setter-only posts complete after their last action, and stopping their playing
+ID cancels pending changes. The qualified v150 EVE shape has no delay
+randomizer, probability, transition time, or extra setter property; those
+broader forms remain fail-closed.
+
 Builder-produced music tracks retain their effective v150 dry-output route as
 an ordered bus ancestry. Each scheduled track owns a route gain upstream of
 segment transitions and downstream of source playback. Authored base Bus

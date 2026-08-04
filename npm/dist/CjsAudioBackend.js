@@ -1562,7 +1562,7 @@ class CjsAudioBackend {
           }
           continue;
         }
-        if (operation.kind !== "stop" && operation.kind !== "pause" && operation.kind !== "resume" && operation.kind !== "set-voice-pitch" && operation.kind !== "reset-voice-pitch" && operation.kind !== "set-voice-volume" && operation.kind !== "reset-voice-volume" && operation.kind !== "set-bus-volume" && operation.kind !== "reset-bus-volume" && operation.kind !== "set-voice-low-pass" && operation.kind !== "reset-voice-low-pass" && operation.kind !== "set-voice-high-pass" && operation.kind !== "reset-voice-high-pass" && operation.kind !== "set-game-parameter" && operation.kind !== "reset-game-parameter") {
+        if (operation.kind !== "stop" && operation.kind !== "pause" && operation.kind !== "resume" && operation.kind !== "set-voice-pitch" && operation.kind !== "reset-voice-pitch" && operation.kind !== "set-voice-volume" && operation.kind !== "reset-voice-volume" && operation.kind !== "set-bus-volume" && operation.kind !== "reset-bus-volume" && operation.kind !== "set-voice-low-pass" && operation.kind !== "reset-voice-low-pass" && operation.kind !== "set-voice-high-pass" && operation.kind !== "reset-voice-high-pass" && operation.kind !== "set-game-parameter" && operation.kind !== "reset-game-parameter" && operation.kind !== "switch" && operation.kind !== "state") {
           throw new TypeError(`Unsupported resolved SFX operation ${operation.kind}`);
         }
         const action = {
@@ -1613,6 +1613,10 @@ class CjsAudioBackend {
       this.#ApplySfxVoicePitch(action, now);
     } else if (action.kind === "set-game-parameter" || action.kind === "reset-game-parameter") {
       this.#ApplySfxGameParameter(action, now);
+    } else if (action.kind === "switch") {
+      this.SetSwitch(action.group, action.value, action.gameObjID);
+    } else if (action.kind === "state") {
+      this.SetGlobalState(action.group, action.value);
     } else if (action.kind === "set-voice-low-pass" || action.kind === "reset-voice-low-pass" || action.kind === "set-voice-high-pass" || action.kind === "reset-voice-high-pass") {
       this.#ApplySfxVoiceFilter(action);
     } else if (action.kind === "set-bus-volume" || action.kind === "reset-bus-volume") {

@@ -800,7 +800,14 @@ test("validates and installs routed music-track bus metadata", () =>
         },
         eventTargets: {},
         eventStops: {},
-        switchSetters: {},
+        switchSetters: {
+            music_state: [ {
+                kind: "state",
+                groupId: "1000",
+                targetId: "1001",
+                delayMs: "200",
+            } ],
+        },
     };
 
     const installed = installAudioLibraryDocument(source);
@@ -821,6 +828,30 @@ test("validates and installs routed music-track bus metadata", () =>
     assert.equal(
         Object.isFrozen(installed.music.nodes["101"].rtpcCurves[0].points),
         true,
+    );
+    assert.equal(
+        installed.music.switchSetters.music_state[0].delayMs,
+        "200",
+        "music setter validation does not mutate caller-owned documents",
+    );
+
+    const invalidSetterDelay = structuredClone(source);
+
+    invalidSetterDelay.music.switchSetters.music_state[0].delayMs = -1;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidSetterDelay),
+        /delayMs must be a non-negative finite number/u,
+    );
+
+    const randomizedMusicSetter = structuredClone(source);
+
+    randomizedMusicSetter.music.switchSetters.music_state[0].delayRangeMs = {
+        min: 0,
+        max: 100,
+    };
+    assert.throws(
+        () => validateAudioLibraryDocument(randomizedMusicSetter),
+        /delayRangeMs is unsupported/u,
     );
 
     for (const mutate of [
@@ -1481,7 +1512,12 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
         },
         programs: {
             engine_loop: [
-                { kind: "switch", group: "engine_mode", value: "combat" },
+                {
+                    kind: "switch",
+                    group: "engine_mode",
+                    value: "combat",
+                    delayMs: "1000",
+                },
                 { kind: "play", child: { nodeId: "1" } },
                 {
                     kind: "stop",
@@ -1567,6 +1603,11 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     assert.deepEqual(
         installAudioLibraryDocument(valid).sfx.nodes["2"].sourceEffects,
         valid.sfx.nodes["2"].sourceEffects,
+    );
+    assert.equal(
+        installAudioLibraryDocument(valid)
+            .sfx.programs.engine_loop[0].delayMs,
+        1000,
     );
 
     const misplacedSourceEffects = structuredClone(valid);
@@ -1662,6 +1703,25 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     assert.throws(
         () => validateAudioLibraryDocument(invalidSetter),
         /kind must be switch or state/u,
+    );
+
+    const invalidSetterDelay = structuredClone(valid);
+
+    invalidSetterDelay.sfx.programs.engine_loop[0].delayMs = -1;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidSetterDelay),
+        /delayMs must be non-negative/u,
+    );
+
+    const randomizedSetter = structuredClone(valid);
+
+    randomizedSetter.sfx.programs.engine_loop[0].delayRangeMs = {
+        min: 0,
+        max: 100,
+    };
+    assert.throws(
+        () => validateAudioLibraryDocument(randomizedSetter),
+        /delayRangeMs is unsupported for switch\/state setters/u,
     );
 
     const invalidSpatial = structuredClone(valid);
