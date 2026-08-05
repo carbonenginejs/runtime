@@ -3,7 +3,11 @@
 
 import { CjsByteReader } from "../CjsByteReader.js";
 import { CjsFormatReadError } from "../CjsFormatError.js";
-import { CARBON_EFFECT_DATA_VERSION, readEffectDescription } from "./carbonEffectRecords.js";
+import {
+    CARBON_EFFECT_DATA_VERSION,
+    CARBON_EFFECT_MIN_DATA_VERSION,
+    readEffectDescription
+} from "./carbonEffectRecords.js";
 
 /** Byte count of the ASCII-hex MD5 source hash in the v15 header. */
 export const CARBON_EFFECT_SOURCE_HASH_BYTES = 32;
@@ -26,9 +30,9 @@ export class CjsCarbonEffectBodyReader extends CjsByteReader
 }
 
 /**
- * Reader for Carbon's compiled-effect container at version 15.
+ * Reader for Carbon's compiled-effect container, versions 8 through 15.
  *
- * The header is (`ShaderCompiler.cpp:822-831`):
+ * The v15 header is (`ShaderCompiler.cpp:822-831`):
  *
  * ```
  * u32      version = 15
@@ -40,26 +44,28 @@ export class CjsCarbonEffectBodyReader extends CjsByteReader
  * description blobs
  * ```
  *
- * Only version 15 is accepted, and every earlier version is rejected outright.
+ * Versions 8..14 differ in the header by exactly one thing: the compiler
+ * version and source hash are absent, so `compilerVersion` and `sourceHash`
+ * are null for them. Everything else — arena, permutation records, offset
+ * table — is byte-identical across the accepted range.
  *
  * Carbon validates the version at 2..15 (`Tr2EffectRes.cpp:209`), then threads
- * it through parsing rather than gating on it again. Its own container reader
- * branches on it, and it forwards the version into the description reader
- * (`Tr2EffectRes.cpp:128`), where `Tr2EffectDescription.cpp` branches at 22
- * conditional sites using 16 distinct comparisons, from `< 4` to `>= 14`. The
- * version decides the byte layout at nearly every level - whether a stage
- * carries a register signature at all (`> 8`), where pipeline inputs are read
- * (`< 14`), how a constant's type byte is decoded (`< 11`), and whether a
- * resource carries `arrayElements` at all (`>= 13`).
+ * it through parsing rather than gating on it again: it forwards the version
+ * into the description reader (`Tr2EffectRes.cpp:128`), where
+ * `Tr2EffectDescription.cpp` branches at 22 conditional sites. The version
+ * decides the byte layout at nearly every level - whether a stage carries a
+ * register signature at all (`> 8`), where pipeline inputs are read (`< 14`),
+ * how a constant's type byte is decoded (`< 11`), and whether a resource
+ * carries `arrayElements` at all (`>= 13`).
  *
- * This reader has no such parameter: it is constant-folded to 15, which every
- * file in the shipped dx11/dx12 corpus is. Supporting an older version means
- * restoring the parameter Carbon always had, not adding a second reader - and
- * it is deliberately not done here. Rejecting is honest: applying v15 rules to
- * an older layout can misalign fields, since the comparisons above change which
- * fields are present and how their bytes are interpreted. How such a read would
- * fail in practice is not recorded, because no legacy container has been
- * examined to establish it.
+ * This reader carries the same parameter, restored per the 2026-08-02
+ * maintainer decision with 8 as the floor (see
+ * `CARBON_EFFECT_MIN_DATA_VERSION`). Reading a version is not supporting it:
+ * the reader's job ends at a correct record tree, normalized to the v15
+ * record shape, and what an engine can do with an old body is a separate
+ * question. Versions below 8 are still rejected outright — those branches
+ * have no examined file and no writer to check against, and applying newer
+ * rules to an older layout misaligns fields silently.
  */
 export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
 {
@@ -81,16 +87,26 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
         super(bytes, options);
 
         this.version = this.readUint32();
-        if (this.version !== CARBON_EFFECT_DATA_VERSION)
+        if (this.version < CARBON_EFFECT_MIN_DATA_VERSION || this.version > CARBON_EFFECT_DATA_VERSION)
         {
             throw this._error(
-                `Unsupported Carbon effect version ${this.version}; expected ${CARBON_EFFECT_DATA_VERSION}`,
+                `Unsupported Carbon effect version ${this.version}; expected ${CARBON_EFFECT_MIN_DATA_VERSION}..${CARBON_EFFECT_DATA_VERSION}`,
                 { version: this.version }
             );
         }
 
-        this.compilerVersion = Array.from(this.readRaw(4));
-        this.sourceHash = Uint8Array.from(this.readRaw(CARBON_EFFECT_SOURCE_HASH_BYTES));
+        // The compiler version and source hash are the v15 header additions;
+        // an older header goes straight from the version to the arena.
+        if (this.version === CARBON_EFFECT_DATA_VERSION)
+        {
+            this.compilerVersion = Array.from(this.readRaw(4));
+            this.sourceHash = Uint8Array.from(this.readRaw(CARBON_EFFECT_SOURCE_HASH_BYTES));
+        }
+        else
+        {
+            this.compilerVersion = null;
+            this.sourceHash = null;
+        }
 
         this.stringTableSize = this.readUint32();
         if (this.offset + this.stringTableSize > this.bytes.length)
@@ -251,7 +267,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
             stringTable: this.stringTableBytes,
             stringTableSize: this.stringTableSize
         });
-        return readEffectDescription(reader, { backend });
+        return readEffectDescription(reader, { backend, version: this.version });
     }
 
     /**

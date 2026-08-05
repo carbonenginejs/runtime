@@ -91,6 +91,12 @@ function buildStringTable(strings)
  * Builds a synthetic Tr2 effect container: header, string table, optional
  * permutation axes, and one or more compiled-body offset records.
  *
+ * The default body is one garbage byte rather than zero bytes: the shared
+ * container reader rejects a zero-size offset-table row (no shipped file has
+ * one), while a one-byte body loads at the header level and then fails body
+ * decode — which is exactly the "header good, body undecodable" state these
+ * fixtures exist to produce.
+ *
  * @param {object} [options] Effect shape.
  * @param {number} [options.version] Effect data version (8..15 supported).
  * @param {Array<object>} [options.permutations] Permutation axis descriptions.
@@ -101,7 +107,7 @@ export function buildEffectBytes(options = {})
 {
     const version = Number.isInteger(options.version) ? options.version : 8;
     const permutations = options.permutations || [];
-    const bodies = options.bodies || [ { size: 0 } ];
+    const bodies = options.bodies || [ { size: 1 } ];
 
     const strings = [];
     for (const permutation of permutations)

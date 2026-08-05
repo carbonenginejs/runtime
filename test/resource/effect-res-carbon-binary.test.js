@@ -335,10 +335,16 @@ test("attaching a plain payload drops the retained reader", () =>
     assert.equal(res.GetShaderByIndex(0), null);
 });
 
-test("DoLoad rejects bytes that are not a v15 container", () =>
+test("DoLoad rejects bytes outside the accepted container versions", () =>
 {
+    // Below the version-8 floor the gate itself rejects; inside the accepted
+    // range a truncated header still fails, just past the gate.
+    assert.throws(
+        () => new Tr2EffectRes().DoLoad(Uint8Array.of(7, 0, 0, 0)),
+        /Unsupported Carbon effect version/u
+    );
     assert.throws(
         () => new Tr2EffectRes().DoLoad(Uint8Array.of(9, 0, 0, 0)),
-        /Unsupported Carbon effect version/u
+        /Unexpected end of Carbon effect data/u
     );
 });

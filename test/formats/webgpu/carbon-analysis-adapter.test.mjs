@@ -460,15 +460,15 @@ test("the constant value size is re-clamped rather than copied", () =>
     assert.deepEqual(differences, [], `analysis documents diverge:\n${differences.join("\n")}`);
 });
 
-test("raytracing libraries are dropped, and the drop is invisible to the analysis", () =>
+test("raytracing libraries are rebuilt, and stay invisible to the analysis", () =>
 {
-    // This asserted a refusal. The refusal was wrong -- every dx12 body of
-    // unpacked_quadv5.sm_hi carries an RtShadow library with a ClosestHit
-    // export, so it blocked every dx12 package for a section nothing reads.
-    //
-    // Dropping is safe for a checked reason, and this is the check: the same
-    // effect with and without libraries must produce a byte-identical analysis.
-    // If the analysis ever grows a library section, this goes red.
+    // The adapter once dropped libraries deliberately, when it served only the
+    // analysis view — which reaches libraries through no path. Since the
+    // runtime read path converged on this adapter, libraries are rebuilt
+    // (metadata/json emit them and the effect-resource contract requires
+    // them), but the original invariant still holds and is still checked: the
+    // same effect with and without libraries must produce an identical
+    // analysis. If the analysis ever grows a library section, this goes red.
     const withLibraries = writeEffectFile(() => buildSyntheticDescription());
     const withoutLibraries = writeEffectFile();
 
@@ -478,15 +478,34 @@ test("raytracing libraries are dropped, and the drop is invisible to the analysi
 
     // The fixture must actually carry a library, or this proves nothing.
     const description = new CjsCarbonEffectReader(withLibraries, { source: SOURCE }).readDescription(0);
+    const wireLibraries = description.techniques.flatMap((technique) => technique.libraries);
     assert.ok(
-        description.techniques.some((technique) => technique.libraries.length),
+        wireLibraries.length,
         "the fixture must carry a raytracing library for this to mean anything"
     );
 
-    // The library-bearing technique still exists as a technique; only its
-    // libraries are absent from the rebuilt description.
+    // Every wire library is rebuilt with its exports, inputs and registered
+    // bytecode; the library registry is a separate counter, so shader and
+    // program handles are untouched by the rebuild.
     const rebuilt = runtimeDescriptionFromCarbon(description, { effectName: SOURCE });
-    assert.deepEqual(rebuilt.techniques.map((technique) => technique.libraries), [ [], [] ]);
+    const rebuiltLibraries = rebuilt.techniques.flatMap((technique) => technique.libraries);
+    assert.equal(rebuiltLibraries.length, wireLibraries.length);
+    for (const [ index, library ] of rebuiltLibraries.entries())
+    {
+        const wire = wireLibraries[index];
+        assert.equal(library.payloadSize, wire.payloadSize);
+        assert.equal(library.hitGroupName, wire.hitGroupName.value);
+        assert.deepEqual(
+            library.exports.map((entry) => [ entry.type, entry.name ]),
+            wire.exports.map((entry) => [ entry.type, entry.name.value ])
+        );
+        assert.deepEqual(
+            Array.from(library.cjsShaderBytecode.bytes),
+            Array.from(wire.shaderData.bytes)
+        );
+        assert.ok(library.libraryHandle, "the library bytecode must be registered");
+        assert.ok(library.globalResourceSetDesc, "the global resource-set description is derived");
+    }
 
     assert.deepEqual(
         analysisWith.stages.map((stage) => stage.key),

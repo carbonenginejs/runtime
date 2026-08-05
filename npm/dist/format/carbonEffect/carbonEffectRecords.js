@@ -6,7 +6,7 @@ import { compareUtf8 } from '../compareUtf8.js';
 
 
 /**
- * The only description-blob version this module reads or writes.
+ * The current description-blob version, and the only one this module writes.
  *
  * `DATA_VERSION` in `EffectData.h:10`. Carbon's reader accepts 2..15
  * (`Tr2EffectRes.cpp:209`) but annotates the v13/v14 field-order boundaries as
@@ -17,6 +17,18 @@ import { compareUtf8 } from '../compareUtf8.js';
  * the body — v15 differs from v14 only by the 36 outer header bytes.
  */
 const CARBON_EFFECT_DATA_VERSION = 15;
+
+/**
+ * The oldest description-blob version this module reads.
+ *
+ * Carbon threads the version through parsing rather than gating on it twice,
+ * and its branches reach back to version 2. Maintainer decision, 2026-08-02:
+ * **8 is the lowest version worth reading** — the branches below 8 have no
+ * examined file, no writer, and no consumer, so restoring them would be code
+ * with no evidence. Reading a version is not supporting it: the reader's job
+ * ends at a correct record tree, normalized to the v15 record shape.
+ */
+const CARBON_EFFECT_MIN_DATA_VERSION = 8;
 
 /**
  * Annotation type codes (`EffectData.h:35-41`). Only `STRING` changes the wire
@@ -349,18 +361,39 @@ function writeAnnotations(writer, arena, annotations) {
 }
 
 /**
+ * Maps a pre-v11 constant type byte onto the current enum
+ * (`Tr2EffectDescription.cpp:141-158`). The old wire knew FLOAT/INT/BOOL;
+ * the current numbering is FLOAT 0, INT 1, UINT 2, BOOL 3, OTHER 4.
+ *
+ * @param {number} value Pre-v11 type byte.
+ * @returns {number} Current constant type value.
+ */
+function mapOldConstantType(value) {
+  if (value === 0) return 0;
+  if (value === 1) return 1;
+  if (value === 2) return 3;
+  return 4;
+}
+
+/**
  * Reads one `Constant` (`EffectData.h:283-294`, `ReadConstant`
- * `Tr2EffectDescription.cpp:136-170`).
+ * `Tr2EffectDescription.cpp:136-170`). The byte layout is identical across
+ * versions 8..15; only the type byte's numbering changed at v11.
  *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
+ * @param {number} version Container data version.
  * @returns {object} Constant record.
  */
-function readConstant(reader) {
+function readConstant(reader, version) {
+  const name = readStringRef(reader);
+  const offset = reader.readUint32();
+  const size = reader.readUint32();
+  const rawType = reader.readUint8();
   return {
-    name: readStringRef(reader),
-    offset: reader.readUint32(),
-    size: reader.readUint32(),
-    type: reader.readUint8(),
+    name,
+    offset,
+    size,
+    type: version < 11 ? mapOldConstantType(rawType) : rawType,
     dimension: reader.readUint8(),
     elements: reader.readUint32(),
     isSRGB: reader.readUint8(),
@@ -389,16 +422,18 @@ function writeConstant(writer, arena, constant) {
 /**
  * Reads one `Texture` (`EffectData.h:320-328`, `ReadResource`
  * `Tr2EffectDescription.cpp:172-190`). `count` is the reader's
- * `arrayElements`.
+ * `arrayElements`; before v13 the field is not on the wire and Carbon
+ * defaults it to one element.
  *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
+ * @param {number} version Container data version.
  * @returns {object} Texture record.
  */
-function readTexture(reader) {
+function readTexture(reader, version) {
   return {
     name: readStringRef(reader),
     type: reader.readUint8(),
-    count: reader.readUint32(),
+    count: version >= 13 ? reader.readUint32() : 1,
     isSRGB: reader.readUint8(),
     isAutoregister: reader.readUint8()
   };
@@ -430,13 +465,14 @@ function writeTexture(writer, arena, texture) {
  * comment exists to prevent.
  *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
+ * @param {number} version Container data version.
  * @returns {object} UAV record.
  */
-function readUav(reader) {
+function readUav(reader, version) {
   return {
     name: readStringRef(reader),
     type: reader.readUint8(),
-    count: reader.readUint32(),
+    count: version >= 13 ? reader.readUint32() : 1,
     isAutoregister: reader.readUint8()
   };
 }
@@ -461,11 +497,17 @@ function writeUav(writer, arena, uav) {
  * at `:429`). Border colour here is four floats — unlike a static sampler,
  * where it is a one-byte enum.
  *
+ * `isDynamic` joined the wire at v13. For older versions the key is OMITTED
+ * from the record rather than synthesised: the concept did not exist, so any
+ * invented value would either lie or (via the v15 rule that a non-dynamic
+ * sampler's name is cleared) silently erase names a legacy file does carry.
+ *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
+ * @param {number} version Container data version.
  * @returns {object} Sampler record.
  */
-function readSampler(reader) {
-  return {
+function readSampler(reader, version) {
+  const record = {
     name: readStringRef(reader),
     comparison: reader.readUint8(),
     minFilter: reader.readUint8(),
@@ -479,9 +521,12 @@ function readSampler(reader) {
     comparisonFunc: reader.readUint8(),
     borderColor: [reader.readFloat32(), reader.readFloat32(), reader.readFloat32(), reader.readFloat32()],
     minLOD: reader.readFloat32(),
-    maxLOD: reader.readFloat32(),
-    isDynamic: reader.readUint8()
+    maxLOD: reader.readFloat32()
   };
+  if (version > 12) {
+    record.isDynamic = reader.readUint8();
+  }
+  return record;
 }
 
 /**
@@ -565,39 +610,85 @@ function writeStaticSampler(writer, sampler) {
 }
 
 /**
- * Reads the `StageData` block: registers, static samplers, constants, default
- * constant values, textures, samplers, UAVs, annotations
- * (`StageData::Save` `EffectData.h:631-676`).
+ * Maps a pre-v10 register type byte onto the current register-type values
+ * (`Tr2EffectDescription.cpp:262-276`).
  *
- * Carbon's reader splits this single contiguous run across two functions —
- * `ReadRegisters` takes the first two sub-records
- * (`Tr2EffectDescription.cpp:258-367`) and `ReadInput` the remaining six
- * (`:369-472`). Keeping them adjacent here is what makes the split invisible.
+ * @param {number} value Pre-v10 register type byte.
+ * @returns {number} Current register type value.
+ */
+function mapOldRegisterType(value) {
+  if (value === 0) return 0;
+  if (value === 1) return 36;
+  if (value === 2) return 68;
+  if (value === 3) return 1;
+  return 36;
+}
+
+/**
+ * Reads the register signature and (v13+) static-sampler table
+ * (`ReadRegisters`, `Tr2EffectDescription.cpp:258-367`).
+ *
+ * Before v13 a register carries only its type and index; Carbon defaults the
+ * count to one and the space to the stage type (`:340-343`), and the record is
+ * normalized here so consumers see one shape.
  *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
- * @param {Function} makeError Error factory.
- * @returns {object} Stage data record.
+ * @param {number} version Container data version.
+ * @param {number} stageType Stage type owning the signature; only consulted
+ *     for the pre-v13 register-space default.
+ * @returns {{registers:object[], staticSamplers:object[]}} Signature records.
  */
-function readStageData(reader, makeError) {
+function readSignature(reader, version, stageType) {
   const registers = [];
   const registerCount = reader.readUint8();
   for (let index = 0; index < registerCount; index += 1) {
-    registers.push({
-      registerType: reader.readUint8(),
-      registerIndex: reader.readUint32(),
-      registerCount: reader.readUint32(),
-      registerSpace: reader.readUint8()
-    });
+    const rawType = reader.readUint8();
+    const registerType = version > 9 ? rawType : mapOldRegisterType(rawType);
+    const registerIndex = reader.readUint32();
+    if (version > 12) {
+      registers.push({
+        registerType,
+        registerIndex,
+        registerCount: reader.readUint32(),
+        registerSpace: reader.readUint8()
+      });
+    } else {
+      registers.push({
+        registerType,
+        registerIndex,
+        registerCount: 1,
+        registerSpace: stageType
+      });
+    }
   }
   const staticSamplers = [];
-  const staticSamplerCount = reader.readUint8();
-  for (let index = 0; index < staticSamplerCount; index += 1) {
-    staticSamplers.push(readStaticSampler(reader));
+  if (version > 12) {
+    const staticSamplerCount = reader.readUint8();
+    for (let index = 0; index < staticSamplerCount; index += 1) {
+      staticSamplers.push(readStaticSampler(reader));
+    }
   }
+  return {
+    registers,
+    staticSamplers
+  };
+}
+
+/**
+ * Reads the resource half of a `StageData` block: constants, default constant
+ * values, textures, samplers, UAVs, annotations (`ReadInput`,
+ * `Tr2EffectDescription.cpp:369-472`).
+ *
+ * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
+ * @param {number} version Container data version.
+ * @param {Function} makeError Error factory.
+ * @returns {object} Stage resource records.
+ */
+function readStageResources(reader, version, makeError) {
   const constants = [];
   const constantCount = reader.readUint32();
   for (let index = 0; index < constantCount; index += 1) {
-    constants.push(readConstant(reader));
+    constants.push(readConstant(reader, version));
   }
   const defaultValues = readBlobRef(reader);
   const textures = [];
@@ -606,7 +697,7 @@ function readStageData(reader, makeError) {
     const registerIndex = reader.readUint8();
     textures.push({
       registerIndex,
-      ...readTexture(reader)
+      ...readTexture(reader, version)
     });
   }
   const samplers = [];
@@ -615,7 +706,7 @@ function readStageData(reader, makeError) {
     const registerIndex = reader.readUint8();
     samplers.push({
       registerIndex,
-      ...readSampler(reader)
+      ...readSampler(reader, version)
     });
   }
   const uavs = [];
@@ -624,18 +715,41 @@ function readStageData(reader, makeError) {
     const registerIndex = reader.readUint8();
     uavs.push({
       registerIndex,
-      ...readUav(reader)
+      ...readUav(reader, version)
     });
   }
   return {
-    registers,
-    staticSamplers,
     constants,
     defaultValues,
     textures,
     samplers,
     uavs,
     annotations: readAnnotations(reader)
+  };
+}
+
+/**
+ * Reads a whole `StageData` block: registers, static samplers, then the
+ * resource half (`StageData::Save` `EffectData.h:631-676`).
+ *
+ * Carbon's reader splits this single contiguous run across two functions —
+ * `ReadRegisters` takes the first two sub-records
+ * (`Tr2EffectDescription.cpp:258-367`) and `ReadInput` the remaining six
+ * (`:369-472`). The split exists here too, because before v14 the two halves
+ * are not adjacent on the wire — the signature precedes the program blob
+ * while the resources follow the thread-group size — and `readStage` places
+ * each half where its version put it.
+ *
+ * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
+ * @param {number} version Container data version.
+ * @param {Function} makeError Error factory.
+ * @param {number} stageType Stage type owning the signature.
+ * @returns {object} Stage data record.
+ */
+function readStageData(reader, version, makeError, stageType) {
+  return {
+    ...readSignature(reader, version, stageType),
+    ...readStageResources(reader, version, makeError)
   };
 }
 
@@ -689,41 +803,98 @@ function writeStageData(writer, arena, stageData) {
 }
 
 /**
+ * Reads the pipeline-input list (`Tr2EffectDescription.cpp:234-256`).
+ *
+ * The `type`/`dimension` bytes joined the wire at v11; before that Carbon
+ * derives them — UINT for the blend-index usage, FLOAT otherwise, always four
+ * components (`:247-252`) — and the record is normalized here the same way.
+ *
+ * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
+ * @param {number} version Container data version.
+ * @param {Function} makeError Error factory.
+ * @returns {object[]} Pipeline-input records.
+ */
+function readPipelineInputs(reader, version, makeError) {
+  const pipelineInputs = [];
+  const pipelineInputCount = sanityCheck(reader.readUint8(), "pipelineInputs", makeError);
+  for (let index = 0; index < pipelineInputCount; index += 1) {
+    const usage = reader.readUint8();
+    const registerIndex = reader.readUint8();
+    const usageIndex = reader.readUint8();
+    const usedMask = reader.readUint8();
+    if (version > 10) {
+      pipelineInputs.push({
+        usage,
+        registerIndex,
+        usageIndex,
+        usedMask,
+        type: reader.readUint8(),
+        dimension: reader.readUint8()
+      });
+    } else {
+      pipelineInputs.push({
+        usage,
+        registerIndex,
+        usageIndex,
+        usedMask,
+        // Constant-type values: 2 is UINT, 0 is FLOAT; usage 6 is the
+        // blend-index semantic.
+        type: usage === 6 ? 2 : 0,
+        dimension: 4
+      });
+    }
+  }
+  return pipelineInputs;
+}
+
+/**
  * Reads one stage (`StageInput::Save` `EffectData.h:691-709`,
  * `Tr2EffectDescription.cpp:532-585`).
  *
  * At v15 the program payload comes first and the signature tables follow.
  * Before v14 it was the other way round; the reorder is the v14 change, and
  * Carbon marks its own v14 branch `// CHECK` (`:578`). Verified against the
- * writer: `type`, `shaderSize`, `shaderData`, `threadGroupSize[0..2]`,
- * `pipelineInputs`, then `StageData`.
+ * writer for v15: `type`, `shaderSize`, `shaderData`,
+ * `threadGroupSize[0..2]`, `pipelineInputs`, then `StageData`. Two further
+ * legacy wrinkles, both from Carbon's reader: a stage carries no register
+ * signature at all before v9 (`:544`), and two legacy dwords follow the
+ * program reference before v12, read and discarded (`:559-563`).
  *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
+ * @param {number} version Container data version.
  * @param {Function} makeError Error factory.
  * @returns {object} Stage record.
  */
-function readStage(reader, makeError) {
+function readStage(reader, version, makeError) {
   const type = reader.readUint8();
+  let pipelineInputs = [];
+  let signature = {
+    registers: [],
+    staticSamplers: []
+  };
+  if (version < 14) {
+    pipelineInputs = readPipelineInputs(reader, version, makeError);
+    if (version > 8) {
+      signature = readSignature(reader, version, type);
+    }
+  }
   const shaderData = readBlobRef(reader);
+  if (version < 12) {
+    reader.readUint32();
+    reader.readUint32();
+  }
   const threadGroupSize = [reader.readUint32(), reader.readUint32(), reader.readUint32()];
-  const pipelineInputs = [];
-  const pipelineInputCount = sanityCheck(reader.readUint8(), "pipelineInputs", makeError);
-  for (let index = 0; index < pipelineInputCount; index += 1) {
-    pipelineInputs.push({
-      usage: reader.readUint8(),
-      registerIndex: reader.readUint8(),
-      usageIndex: reader.readUint8(),
-      usedMask: reader.readUint8(),
-      type: reader.readUint8(),
-      dimension: reader.readUint8()
-    });
+  if (version >= 14) {
+    pipelineInputs = readPipelineInputs(reader, version, makeError);
+    signature = readSignature(reader, version, type);
   }
   return {
     type,
     shaderData,
     threadGroupSize,
     pipelineInputs,
-    ...readStageData(reader, makeError)
+    ...signature,
+    ...readStageResources(reader, version, makeError)
   };
 }
 
@@ -757,15 +928,16 @@ function writeStage(writer, arena, stage) {
  * Reads one pass (`Pass::Save` `EffectData.h:724-738`).
  *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
+ * @param {number} version Container data version.
  * @param {Function} makeError Error factory.
  * @param {boolean} backend Whether the optional trailing block is present.
  * @returns {object} Pass record.
  */
-function readPass(reader, makeError, backend) {
+function readPass(reader, version, makeError, backend) {
   const stages = [];
   const stageCount = sanityCheck(reader.readUint8(), "stages", makeError);
   for (let index = 0; index < stageCount; index += 1) {
-    stages.push(readStage(reader, makeError));
+    stages.push(readStage(reader, version, makeError));
   }
   const renderStates = [];
   const stateCount = sanityCheck(reader.readUint8(), "renderStates", makeError);
@@ -818,10 +990,11 @@ function writePass(writer, arena, pass, backend) {
  * blocks and no pipeline inputs, thread group size, or stage type.
  *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
+ * @param {number} version Container data version.
  * @param {Function} makeError Error factory.
  * @returns {object} Library record.
  */
-function readLibrary(reader, makeError) {
+function readLibrary(reader, version, makeError) {
   const payloadSize = reader.readUint32();
   const shaderData = readBlobRef(reader);
   const exports = [];
@@ -832,13 +1005,17 @@ function readLibrary(reader, makeError) {
       name: readStringRef(reader)
     });
   }
+
+  // Libraries exist only from v14, so the pre-v13 register-space default in
+  // the signature reader is unreachable here; the stage type it would need
+  // is passed as zero.
   return {
     payloadSize,
     shaderData,
     exports,
     hitGroupName: readStringRef(reader),
-    globalInputs: readStageData(reader, makeError),
-    localInputs: readStageData(reader, makeError)
+    globalInputs: readStageData(reader, version, makeError, 0),
+    localInputs: readStageData(reader, version, makeError, 0)
   };
 }
 
@@ -870,6 +1047,10 @@ function writeLibrary(writer, arena, library) {
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Reader positioned at the blob.
  * @param {object} [options] Read options.
  * @param {Function} [options.makeError] Error factory taking a message and details.
+ * @param {number} [options.version] Container data version; defaults to the
+ *     current version. Accepted range is `CARBON_EFFECT_MIN_DATA_VERSION` to
+ *     `CARBON_EFFECT_DATA_VERSION`; the record tree comes out normalized to
+ *     the v15 shape whatever the wire carried.
  * @param {boolean} [options.backend] Expect our optional per-pass trailing block.
  *     Leave false for a Carbon file, which ends each pass at the render states.
  * @returns {object} Description record tree.
@@ -877,6 +1058,12 @@ function writeLibrary(writer, arena, library) {
 function readEffectDescription(reader, options = {}) {
   const makeError = options.makeError ?? ((message, details) => reader._error(message, details));
   const backend = options.backend === true;
+  const version = Number.isInteger(options.version) ? options.version : CARBON_EFFECT_DATA_VERSION;
+  if (version < CARBON_EFFECT_MIN_DATA_VERSION || version > CARBON_EFFECT_DATA_VERSION) {
+    throw makeError(`Unsupported Carbon effect version ${version}; expected ${CARBON_EFFECT_MIN_DATA_VERSION}..${CARBON_EFFECT_DATA_VERSION}`, {
+      version
+    });
+  }
   const techniques = [];
   const techniqueCount = reader.readUint8();
   for (let techniqueIndex = 0; techniqueIndex < techniqueCount; techniqueIndex += 1) {
@@ -884,12 +1071,17 @@ function readEffectDescription(reader, options = {}) {
     const passes = [];
     const passCount = sanityCheck(reader.readUint8(), "passes", makeError);
     for (let passIndex = 0; passIndex < passCount; passIndex += 1) {
-      passes.push(readPass(reader, makeError, backend));
+      passes.push(readPass(reader, version, makeError, backend));
     }
+
+    // The library table joined the wire at v14; older files end the
+    // technique at its passes.
     const libraries = [];
-    const libraryCount = reader.readUint8();
-    for (let libraryIndex = 0; libraryIndex < libraryCount; libraryIndex += 1) {
-      libraries.push(readLibrary(reader, makeError));
+    if (version > 13) {
+      const libraryCount = reader.readUint8();
+      for (let libraryIndex = 0; libraryIndex < libraryCount; libraryIndex += 1) {
+        libraries.push(readLibrary(reader, version, makeError));
+      }
     }
     techniques.push({
       name,
@@ -951,5 +1143,5 @@ function writeEffectDescription(writer, description, options = {}) {
   return writer;
 }
 
-export { CARBON_ANNOTATION_TYPE, CARBON_EFFECT_COUNT_CAPS, CARBON_EFFECT_DATA_VERSION, CARBON_SHADER_CONSTANTS_MAX, collectArena, compareAnnotationNames, internArena, passthroughArena, readEffectDescription, writeEffectDescription };
+export { CARBON_ANNOTATION_TYPE, CARBON_EFFECT_COUNT_CAPS, CARBON_EFFECT_DATA_VERSION, CARBON_EFFECT_MIN_DATA_VERSION, CARBON_SHADER_CONSTANTS_MAX, collectArena, compareAnnotationNames, internArena, passthroughArena, readEffectDescription, writeEffectDescription };
 //# sourceMappingURL=carbonEffectRecords.js.map

@@ -648,7 +648,7 @@ test("AnalyzeEffect resolves exact permutation assertions even when the body can
                 options: [ "LOW", "HIGH" ]
             }
         ],
-        bodies: [ { size: 0 }, { size: 0 } ]
+        bodies: [ { size: 1 }, { size: 1 } ]
     });
 
     const analysis = CjsWebgpuFormat.analyzeEffect(bytes, {

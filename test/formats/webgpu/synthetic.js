@@ -221,9 +221,12 @@ function buildStringTable(strings)
  */
 export function buildEffectBytes(options = {})
 {
+    // One garbage byte, not zero: the shared container reader rejects a
+    // zero-size offset-table row, while a one-byte body loads at the header
+    // level and then fails body decode.
     const version = Number.isInteger(options.version) ? options.version : 8;
     const permutations = options.permutations || [];
-    const bodies = options.bodies || [ { size: 0 } ];
+    const bodies = options.bodies || [ { size: 1 } ];
 
     const strings = [];
     for (const permutation of permutations)

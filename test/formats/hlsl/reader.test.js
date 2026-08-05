@@ -27,17 +27,21 @@ test("json emit is the documented plain effect graph", () =>
             description: "Blend mode selector",
             defaultOption: 0,
             options: [ "OPAQUE", "TRANSPARENT" ]
-        } ]
+        } ],
+        // One row per permutation: the shared reader enforces the dense,
+        // positionally indexed offset table every shipped file has.
+        bodies: [ { size: 1 }, { size: 1 } ]
     });
     const result = CjsHlslFormat.read(bytes, { source: "synthetic" });
 
     assert.equal(result.version, 8);
-    assert.equal(result.bodyCount, 1);
+    assert.equal(result.bodyCount, 2);
     assert.equal(result.loadError, null);
     assert.deepEqual(result.permutations.map((entry) => entry.name), [ "BLEND_MODE" ]);
     assert.deepEqual(result.permutations[0].options, [ "OPAQUE", "TRANSPARENT" ]);
-    // The synthetic body is zero-length, so the default permutation cannot
-    // be decoded into an effect description; the graph reports that plainly.
+    // The synthetic body is one garbage byte, so the default permutation
+    // cannot be decoded into an effect description; the graph reports that
+    // plainly.
     assert.equal(result.effect, null);
     // JSON-compatible end to end
     assert.equal(typeof JSON.stringify(result), "string");
@@ -60,8 +64,8 @@ test("Inspect summarizes the default permutation without a full JSON conversion"
     assert.equal(summary.isGood, true);
     assert.equal(summary.permutationCount, 0);
     assert.equal(summary.bodyCount, 1);
-    // The synthetic body is zero-length, so the default permutation cannot
-    // be decoded into a HlslShader; Inspect reports that gracefully.
+    // The synthetic body is one garbage byte, so the default permutation
+    // cannot be decoded into a HlslShader; Inspect reports that gracefully.
     assert.deepEqual(summary.techniques, []);
     assert.equal(summary.effectName, null);
 });
@@ -83,7 +87,7 @@ test("metadata emit reports selected permutation options without shader bytecode
                 options: [ "LOW", "HIGH" ]
             }
         ],
-        bodies: [ { size: 0 }, { size: 0 }, { size: 0 }, { size: 0 } ]
+        bodies: [ { size: 1 }, { size: 1 }, { size: 1 }, { size: 1 } ]
     });
 
     const defaults = CjsHlslFormat.read(bytes, {
@@ -131,7 +135,7 @@ test("readEffectAnalysis resolves one permutation without changing stable emits"
                 options: [ "LOW", "HIGH" ]
             }
         ],
-        bodies: [ { size: 0 }, { size: 0 }, { size: 0 }, { size: 0 } ]
+        bodies: [ { size: 1 }, { size: 1 }, { size: 1 }, { size: 1 } ]
     });
 
     const analysis = readEffectAnalysis(bytes, {
@@ -512,7 +516,7 @@ test("isSupported accepts a well-formed header and rejects garbage or truncated 
 
 test("out-of-range version is rejected with a read error", () =>
 {
-    assert.throws(() => CjsHlslFormat.read(buildEffectBytes({ version: 99 })), /HlslEffectRes/);
+    assert.throws(() => CjsHlslFormat.read(buildEffectBytes({ version: 99 })), /Unsupported Carbon effect version 99/);
 });
 
 test("truncated header is rejected with a read error", () =>

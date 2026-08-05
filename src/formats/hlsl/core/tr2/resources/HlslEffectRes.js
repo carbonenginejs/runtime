@@ -1,14 +1,13 @@
-import { HlslReader } from "../../HlslReader.js";
 import { asUint8Array } from "@carbonenginejs/runtime-utils/bytes";
 import { HlslEffectStateManager } from "../../HlslEffectStateManager.js";
 import { HlslShader } from "../shader/HlslShader.js";
+import { HlslShaderBytecode } from "../../HlslShaderBytecode.js";
 import { HlslShaderOption } from "../shader/HlslShaderOption.js";
 import { HlslShaderPermutation } from "./HlslShaderPermutation.js";
+import { hlslShaderStageName } from "../HlslRenderContextEnum.js";
+import { runtimeDescriptionFromCarbon } from "../../carbonDescriptionToRuntime.js";
 import { CjsCarbonEffectReader } from "../../../../../format/carbonEffect/CjsCarbonEffectReader.js";
-import { CARBON_EFFECT_DATA_VERSION } from "../../../../../format/carbonEffect/carbonEffectRecords.js";
-
-const MIN_SUPPORTED_EFFECT_VERSION = 8;
-const MAX_SUPPORTED_EFFECT_VERSION = 15;
+import { CARBON_EFFECT_MIN_DATA_VERSION } from "../../../../../format/carbonEffect/carbonEffectRecords.js";
 
 /**
  * Carbon/Trinity effect resource reader for compiled shader metadata.
@@ -23,6 +22,7 @@ export class HlslEffectRes
     constructor()
     {
         this.m_data = new Uint8Array(0);
+        this.m_reader = null;
         this.m_version = 0;
         this.m_stringTable = new Uint8Array(0);
         this.m_stringTableSize = 0;
@@ -59,21 +59,58 @@ export class HlslEffectRes
             // Carbon owns a memcpy of the loaded resource. Keep the JS graph
             // equally isolated from later caller mutation.
             this.m_data = Uint8Array.from(asUint8Array(source));
-            const stream = new HlslReader(this.m_data, { source: this.sourcePath || "HlslEffectRes" });
-            this.m_version = stream.readUint32();
 
-            if (this.m_version < MIN_SUPPORTED_EFFECT_VERSION || this.m_version > MAX_SUPPORTED_EFFECT_VERSION)
+            // One header walk, for every accepted version. This header -
+            // version, compiler version and source hash where present, arena,
+            // permutation axes, offset table - is the layout
+            // `CjsCarbonEffectReader` parses, and two hand-written copies of
+            // one layout are two chances to disagree. Reading it there also
+            // brings three checks a local walk never had: the offset table
+            // must be dense and positionally indexed, and the body region must
+            // begin exactly where the header ends. Carbon indexes that table
+            // positionally without ever reading the stored index, so a sparse
+            // or misordered table does not fail there - it silently returns
+            // the wrong shader body, which is the failure class the container
+            // port exists to close.
+            const reader = new CjsCarbonEffectReader(this.m_data, {
+                source: this.sourcePath || "HlslEffectRes"
+            });
+            this.m_reader = reader;
+            this.m_version = reader.version;
+
+            if (reader.compilerVersion)
             {
-                throw new Error(`Unsupported HlslEffectRes version ${this.m_version}; expected ${MIN_SUPPORTED_EFFECT_VERSION}..${MAX_SUPPORTED_EFFECT_VERSION}`);
+                this.m_compilerVersionBytes = reader.compilerVersion;
+                this.m_compilerVersion = new DataView(
+                    Uint8Array.from(reader.compilerVersion).buffer
+                ).getUint32(0, true);
+            }
+            this.m_hash = reader.sourceHash ?? new Uint8Array(0);
+            this.m_stringTableSize = reader.stringTableSize;
+            this.m_stringTable = reader.stringTableBytes;
+
+            for (const axis of reader.permutations)
+            {
+                const permutation = new HlslShaderPermutation();
+                permutation.name = axis.name.value;
+                permutation.defaultOption = axis.defaultOption;
+                permutation.description = axis.description.value;
+                permutation.type = axis.type;
+                for (const option of axis.options) permutation.options.push(option.value);
+                this.m_permutations.push(permutation);
             }
 
-            if (this.m_version === CARBON_EFFECT_DATA_VERSION)
+            this.m_offsetCount = reader.records.length;
+            for (const record of reader.records)
             {
-                this.#readCurrentHeader();
-                return true;
+                this.m_offsets.push({
+                    index: record.index,
+                    offset: record.offset,
+                    size: record.size,
+                    end: record.offset + record.size
+                });
             }
 
-            this.#readLegacyHeader(stream);
             return true;
         }
         catch (error)
@@ -81,119 +118,6 @@ export class HlslEffectRes
             this.loadError = error;
             this.m_shaders.clear();
             return false;
-        }
-    }
-
-
-    /**
-     * Reads the current v15 header through the shared Carbon reader.
-     *
-     * This header - version, compiler version, source hash, arena, permutation
-     * axes, offset table - is the same one `CjsCarbonEffectReader` parses, and
-     * two hand-written copies of one layout are two chances to disagree. Reading
-     * it there also brings three checks this walk never had: the offset table
-     * must be dense and positionally indexed, and the body region must begin
-     * exactly where the header ends. Carbon indexes that table positionally
-     * without ever reading the stored index, so a sparse or misordered table does
-     * not fail there - it silently returns the wrong shader body, which is the
-     * failure class the container port exists to close.
-     */
-    #readCurrentHeader()
-    {
-        const reader = new CjsCarbonEffectReader(this.m_data, {
-            source: this.sourcePath || "HlslEffectRes"
-        });
-
-        this.m_compilerVersionBytes = reader.compilerVersion;
-        this.m_compilerVersion = new DataView(
-            Uint8Array.from(reader.compilerVersion).buffer
-        ).getUint32(0, true);
-        this.m_hash = reader.sourceHash;
-        this.m_stringTableSize = reader.stringTableSize;
-        this.m_stringTable = reader.stringTableBytes;
-
-        for (const axis of reader.permutations)
-        {
-            const permutation = new HlslShaderPermutation();
-            permutation.name = axis.name.value;
-            permutation.defaultOption = axis.defaultOption;
-            permutation.description = axis.description.value;
-            permutation.type = axis.type;
-            for (const option of axis.options) permutation.options.push(option.value);
-            this.m_permutations.push(permutation);
-        }
-
-        this.m_offsetCount = reader.records.length;
-        for (const record of reader.records)
-        {
-            this.m_offsets.push({
-                index: record.index,
-                offset: record.offset,
-                size: record.size,
-                end: record.offset + record.size
-            });
-        }
-    }
-
-    /**
-     * Reads a pre-v15 header.
-     *
-     * Versions 8..14 carry no compiler version or source hash, and a permutation
-     * has no type byte before version 6. No such file has been examined here -
-     * the shipped corpus is entirely v15 - so this walk is retained as written
-     * rather than folded into the shared reader, which is deliberately single
-     * version.
-     *
-     * @param {object} stream Reader positioned after the version dword.
-     */
-    #readLegacyHeader(stream)
-    {
-        this.m_stringTableSize = stream.readUint32();
-        if (this.m_stringTableSize > this.m_data.length || stream.offset + this.m_stringTableSize > this.m_data.length)
-        {
-            throw new Error("Invalid effect string table size");
-        }
-        this.m_stringTable = this.m_data.subarray(stream.offset, stream.offset + this.m_stringTableSize);
-        stream.skip(this.m_stringTableSize);
-        stream.setStringTable(this.m_stringTable, this.m_stringTableSize);
-
-        const permutationCount = stream.readUint8();
-        for (let index = 0; index < permutationCount; index += 1)
-        {
-            const permutation = new HlslShaderPermutation();
-            permutation.name = stream.readString();
-            permutation.defaultOption = stream.readUint8();
-            permutation.description = stream.readString();
-            permutation.type = this.m_version > 5 ? stream.readUint8() : 0;
-
-            const optionCount = stream.readUint8();
-            for (let optionIndex = 0; optionIndex < optionCount; optionIndex += 1)
-            {
-                permutation.options.push(stream.readString());
-            }
-            this.m_permutations.push(permutation);
-        }
-
-        const headerSize = stream.readUint32();
-        if (headerSize === 0)
-        {
-            throw new Error("Effect contains no compiled shader bodies");
-        }
-
-        this.m_offsetCount = headerSize;
-        for (let index = 0; index < headerSize; index += 1)
-        {
-            const record = {
-                index: stream.readUint32(),
-                offset: stream.readUint32(),
-                size: stream.readUint32()
-            };
-            record.end = record.offset + record.size;
-            if (record.end > this.m_data.length)
-            {
-                throw new Error(`Invalid effect body record ${index}`);
-            }
-            this.m_offsets.push(record);
         }
     }
 
@@ -273,30 +197,51 @@ export class HlslEffectRes
         }
 
         const offset = this.m_offsets[index];
-        if (!offset)
+        if (!offset || !this.m_reader)
         {
             return null;
         }
 
-        const shader = new HlslShader();
-        const buffer = this.m_data.subarray(offset.offset, offset.end);
-        const ok = shader.GetEffect().Read(
-            buffer,
-            offset.size,
-            this.m_version,
-            this.m_stringTable,
-            this.m_stringTableSize,
-            this.sourcePath,
-            { effectStateManager: this.effectStateManager }
-        );
-        if (!ok)
+        // The retained container reader decodes the body's record tree - the
+        // single byte-reading implementation - and the corpus-proven adapter
+        // maps those records onto the runtime shape. The record tree is a
+        // transient internal handoff, never exposed or persisted.
+        try
         {
+            const records = this.m_reader.readDescription(index);
+            const built = runtimeDescriptionFromCarbon(records, {
+                effectName: this.sourcePath,
+                version: this.m_version,
+                effectStateManager: this.effectStateManager,
+                bytecodeFor: (stage, stageType) => new HlslShaderBytecode({
+                    stageType,
+                    stageName: hlslShaderStageName(stageType),
+                    bytes: stage.shaderData.bytes,
+                    shaderSize: stage.shaderData.size,
+                    stringTableOffset: stage.shaderData.offset,
+                    effectName: this.sourcePath
+                })
+            });
+
+            const shader = new HlslShader();
+            const description = shader.GetEffect();
+            description.version = this.m_version;
+            description.effectName = this.sourcePath;
+            description.effectStateManager = built.effectStateManager;
+            description.techniques = built.techniques;
+            description.annotations = built.annotations;
+
+            shader.ProcessEffect();
+            this.m_shaders.set(index, shader);
+            return shader;
+        }
+        catch
+        {
+            // Mirrors the historical reader contract: an undecodable body is
+            // reported as absent rather than thrown, and is not cached so a
+            // later caller sees the same result.
             return null;
         }
-
-        shader.ProcessEffect();
-        this.m_shaders.set(index, shader);
-        return shader;
     }
 
     /**
@@ -306,7 +251,7 @@ export class HlslEffectRes
    */
     IsGood()
     {
-        return !this.loadError && this.m_data.length > 0 && this.m_version >= MIN_SUPPORTED_EFFECT_VERSION;
+        return !this.loadError && this.m_data.length > 0 && this.m_version >= CARBON_EFFECT_MIN_DATA_VERSION;
     }
 
     /**
@@ -378,6 +323,7 @@ export class HlslEffectRes
     _reset()
     {
         this.m_data = new Uint8Array(0);
+        this.m_reader = null;
         this.m_version = 0;
         this.m_stringTable = new Uint8Array(0);
         this.m_stringTableSize = 0;

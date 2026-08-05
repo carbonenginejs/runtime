@@ -1,11 +1,13 @@
 import { CjsFormatReadError } from "../../../format/CjsFormatError.js";
 import { HlslEffectConstant } from "./tr2/shader/HlslEffectConstant.js";
+import { HlslEffectLibrary } from "./tr2/shader/HlslEffectLibrary.js";
 import { HlslEffectParameterAnnotation } from "./tr2/shader/HlslEffectParameterAnnotation.js";
 import { HlslEffectResource } from "./tr2/shader/HlslEffectResource.js";
 import { HlslEffectStageInput } from "./tr2/shader/HlslEffectStageInput.js";
 import { HlslEffectStateManager } from "./HlslEffectStateManager.js";
 import { HlslEffectTechnique } from "./tr2/shader/HlslEffectTechnique.js";
 import { HlslPass } from "./tr2/shader/HlslPass.js";
+import { HlslShaderBytecode } from "./HlslShaderBytecode.js";
 import { HlslRenderContextEnum, HlslUsageCodeNames } from "./tr2/HlslRenderContextEnum.js";
 import { HlslRenderStateSetup } from "./HlslRenderStateSetup.js";
 import { HlslResourceSetDescription } from "./HlslResourceSetDescription.js";
@@ -250,9 +252,8 @@ const REGISTER_RULES = Object.freeze({
  * Pipeline input rules.
  *
  * `usageName` is derived from the `usage` byte rather than carried: it is a
- * display name looked up from a table (`HlslEffectDescription.js:592`), exactly
- * as Carbon derives it through `GetStringForUsageCode` (`EffectData.h:86`).
- * Nothing goes on the wire for it.
+ * display name looked up from a table, exactly as Carbon derives it through
+ * `GetStringForUsageCode` (`EffectData.h:86`). Nothing goes on the wire for it.
  */
 const PIPELINE_INPUT_RULES = Object.freeze({
     usage: (target, value) =>
@@ -274,8 +275,8 @@ const ANNOTATION_RULES = Object.freeze({
     stringValue: (target, value) => { if (value) target.stringValue = text(value); },
     // A non-string annotation value is four raw bytes: Carbon writes it through a
     // float union and reads it through a different one, so the bytes are the only
-    // faithful form. The three typed views are derived from them exactly as the
-    // source reader derives them (`HlslEffectDescription.js:480-483`).
+    // faithful form. The three typed views are derived from those bytes, one per
+    // union member Carbon reads back through.
     rawValue: (target, value, record) =>
     {
         if (record.type === ANNOTATION_TYPE_STRING) return;
@@ -303,7 +304,7 @@ function mapTextureRecord(record)
  *
  * A UAV record is one byte shorter than a texture record: it carries no
  * `isSRGB`. Carbon's reader hardcodes it false (`Tr2EffectDescription.cpp:450`),
- * and so does ours (`HlslEffectDescription.js:434`), so the runtime object's
+ * so the runtime object's
  * constructor default is restored explicitly rather than left to chance —
  * `metadata.toJSON()` emits the key for a UAV even though the wire never carries
  * it, because both kinds share `HlslEffectResource`.
@@ -324,9 +325,11 @@ function mapUavRecord(record)
  * Two conversions beyond the flat-to-nested reshape:
  *
  * - Carbon nulls a sampler's name when it is not dynamic
- *   (`Tr2EffectDescription.cpp:430-433`, mirrored at
- *   `HlslEffectDescription.js:414-417`), so the wire's empty string must become
- *   `null` again. Like `isSRGB`, this is *accidentally correct* if left alone —
+ *   (`Tr2EffectDescription.cpp:430-433`), so the wire's empty string must become
+ *   `null` again. A pre-v13 record carries no `isDynamic` at all; the class
+ *   default (dynamic) then keeps the name, matching the legacy reader, which
+ *   never assigned the flag for those versions. Like `isSRGB`, the nulling is
+ *   *accidentally correct* if left alone —
  *   `""` and `null` are both falsy, so `metadataName` and the heap-view lookup
  *   behave identically — and only a structural diff catches it.
  * - `comparison` and `isDynamic` are `u8` on the wire and boolean at runtime.
@@ -346,9 +349,8 @@ function mapSamplerRecord(record)
 /**
  * Maps one static sampler record onto its runtime signature entry.
  *
- * The runtime shape keeps the `*Raw` companions non-enumerable, matching
- * `readStaticSampler`, so a `cloneJson` of the descriptor sees the value form
- * only.
+ * The runtime shape keeps the `*Raw` companions non-enumerable, so a
+ * `cloneJson` of the descriptor sees the value form only.
  *
  * @param {object} record Wire static sampler record.
  * @returns {object} Runtime static sampler entry.
@@ -406,7 +408,7 @@ function mapAnnotationRecord(record)
  *
  * Reproduced rather than stored: it is a function of the register type, the
  * stage type and the caller's per-frame start registers, none of which the
- * container needs to carry (`HlslEffectDescription.js:750-765`).
+ * container needs to carry.
  *
  * @param {object} register Runtime register declaration.
  * @param {number} stageType Stage enum value.
@@ -444,12 +446,13 @@ function applyStageData(input, data, stageType, context)
     input.constants = (data.constants ?? []).map(mapConstantRecord);
 
     // The declared size is the unclamped one; the runtime clamps it to
-    // SHADER_CONSTANTS_MAX and slices the payload to match
-    // (`HlslEffectDescription.js:381-385`). `packMaterial` allocates an
+    // SHADER_CONSTANTS_MAX and slices the payload to match, as Carbon does
+    // (`Tr2EffectDescription.h:160`). `packMaterial` allocates an
     // ArrayBuffer of exactly this size, so restoring the unclamped value would
     // write past the layout the shader expects — on any effect above 4096 bytes
     // of constants, which is precisely the size a small fixture never reaches.
     const declaredSize = data.defaultValues?.size ?? 0;
+    input.sourceConstantValueSize = declaredSize;
     input.sourceConstantValues = Uint8Array.from(data.defaultValues?.bytes ?? new Uint8Array(0));
     input.m_constantValueSize = Math.min(declaredSize, HlslEffectStageInput.SHADER_CONSTANTS_MAX);
     input.constantValues = input.sourceConstantValues.slice(0, input.m_constantValueSize);
@@ -471,11 +474,10 @@ function applyStageData(input, data, stageType, context)
 /**
  * Grows the constant block to cover a sampler heap-index constant.
  *
- * Reproduces `HlslEffectDescription.js:773-791`, which the source reader applies
- * to every constant once samplers are known: a `UINT`/dimension-1 constant whose
- * name matches a sampler is a heap index, and the declared constant-value size
- * can be smaller than the offset it sits at. The reader extends the block rather
- * than reading out of bounds.
+ * Applied to every constant once samplers are known, as Carbon's reader does:
+ * a `UINT`/dimension-1 constant whose name matches a sampler is a heap index,
+ * and the declared constant-value size can be smaller than the offset it sits
+ * at. The block is extended rather than read out of bounds.
  *
  * **This is derived, not stored, and missing it is not cosmetic.** `packMaterial`
  * allocates `new ArrayBuffer(constantValueSize)`, so an unpatched size
@@ -604,12 +606,89 @@ function buildPass(record, context)
     return pass;
 }
 
+/** Names an export slot per Carbon's raytracing export type codes. */
+const LIBRARY_EXPORT_NAME_FIELDS = Object.freeze([
+    "rayGenName",
+    "missName",
+    "closestHitName",
+    "anyHitName",
+    "intersectionName"
+]);
+
+/** Library record rules; the nested pieces are handled by `buildLibrary`. */
+const LIBRARY_RULES = Object.freeze({
+    payloadSize: (target, value) => { target.payloadSize = value; },
+    hitGroupName: (target, value) => { target.hitGroupName = text(value); },
+    // Consumed by buildLibrary: the blob becomes the registered bytecode.
+    shaderData: consumed,
+    // Consumed by buildLibrary: exports carry per-type name routing.
+    exports: consumed,
+    globalInputs: consumed,
+    localInputs: consumed
+});
+
+/**
+ * Rebuilds one runtime shader library from a wire library record.
+ *
+ * The two stage-data blocks reuse `applyStageData`, so a library's constants,
+ * defaults, resources, samplers and UAVs go through exactly the rules a pass
+ * stage goes through. The library bytecode is registered the way the runtime
+ * registers it: a compute-typed `HlslShaderBytecode` under the state manager's
+ * library registry, whose handles are a separate monotonic counter — adding
+ * libraries does not shift any shader or program handle.
+ *
+ * @param {object} record Wire library record.
+ * @param {object} context Adapter context.
+ * @returns {HlslEffectLibrary} Runtime library.
+ */
+function buildLibrary(record, context)
+{
+    const library = mapClosed(record, LIBRARY_RULES, new HlslEffectLibrary(), "library");
+    const shaderType = HlslRenderContextEnum.COMPUTE_SHADER;
+
+    library.cjsShaderBytecode = new HlslShaderBytecode({
+        stageType: shaderType,
+        stageName: "library",
+        bytes: record.shaderData?.bytes ?? new Uint8Array(0),
+        shaderSize: record.shaderData?.size ?? 0,
+        stringTableOffset: record.shaderData?.offset ?? null
+    });
+    library.libraryHandle = context.effectStateManager.RegisterShaderLibrary(
+        library.cjsShaderBytecode
+    );
+
+    for (const entry of record.exports ?? [])
+    {
+        const name = text(entry.name);
+        library.exports.push({ type: entry.type, name });
+        const field = LIBRARY_EXPORT_NAME_FIELDS[entry.type];
+        if (field) library[field] = name;
+    }
+
+    applyStageData(library.globalInput, record.globalInputs ?? {}, shaderType, context);
+    library.globalResourceSetDesc = new HlslResourceSetDescription(
+        [ shaderType ],
+        [ library.globalInput.signature ]
+    );
+    for (const [ registerIndex, sampler ] of library.globalInput.samplers.entries())
+    {
+        library.globalResourceSetDesc.SetSampler(shaderType, registerIndex, sampler.sampler);
+    }
+
+    applyStageData(library.localInput, record.localInputs ?? {}, shaderType, context);
+
+    return library;
+}
+
 /**
  * Applies the `IsHeapView` annotations to the rebuilt resource-set descriptions.
  *
- * Derived exactly as the source reader derives it
- * (`HlslEffectDescription.js:799-851`), over the annotations the container
- * carries.
+ * Derived rather than carried, over the annotations the container holds,
+ * exactly as Carbon derives it after reading
+ * (`Tr2EffectDescription.cpp:474-530`): a parameter whose top-level
+ * annotations contain a true BOOL `IsHeapView` marks its register as a heap
+ * view in the owning resource-set description, for library global inputs as
+ * well as pass stages.
  *
  * @param {object} effectDescription Rebuilt effect description.
  */
@@ -627,6 +706,23 @@ function applyHeapViewAnnotations(effectDescription)
 
     for (const technique of effectDescription.techniques)
     {
+        for (const library of technique.libraries ?? [])
+        {
+            const shaderType = HlslRenderContextEnum.COMPUTE_SHADER;
+            for (const [ registerIndex, resource ] of library.globalInput.resources.entries())
+            {
+                if (isHeapView(resource.name)) library.globalResourceSetDesc?.SetSrvHeapView(shaderType, registerIndex);
+            }
+            for (const [ registerIndex, resource ] of library.globalInput.uavs.entries())
+            {
+                if (isHeapView(resource.name)) library.globalResourceSetDesc?.SetUavHeapView(shaderType, registerIndex);
+            }
+            for (const [ registerIndex, sampler ] of library.globalInput.samplers.entries())
+            {
+                if (isHeapView(sampler.name)) library.globalResourceSetDesc?.SetSamplerHeapView(shaderType, registerIndex);
+            }
+        }
+
         for (const pass of technique.passes)
         {
             for (let stageType = 0; stageType < pass.stageInputs.length; stageType += 1)
@@ -694,40 +790,32 @@ export function runtimeDescriptionFromCarbon(description, options = {})
     {
         const technique = new HlslEffectTechnique();
         technique.name = text(record.name);
-        // Raytracing libraries are carried on the wire and are deliberately NOT
-        // rebuilt here. `libraries` stays empty.
-        //
-        // This began as a throw, on the reasoning that a silent drop hides a
-        // whole missing section and that no shipped effect declared one. The
-        // first half still stands; the second half was wrong, and the way it was
-        // wrong is the useful part. The dx11 corpus has no libraries at all —
-        // 1611 files, zero — so the refusal never fired. **Every dx12 body of
-        // `unpacked_quadv5.sm_hi` carries one**: technique `RtShadow`, a
-        // `ClosestHit` export, DXR raytracing shadows that dx11 has no analogue
-        // for. All 288 distinct bodies. So the refusal blocked every dx12
-        // package for a section nothing downstream reads.
-        //
-        // Dropping them is safe for a *specific, checked* reason rather than a
-        // hopeful one: `buildEffectAnalysis` reaches libraries through no path.
-        // `buildPasses` walks `technique.passes`; `buildStages` walks
-        // `pass.stageInputs`; neither touches `technique.libraries`. The source
-        // reader's heap-view pass does visit libraries, but only to populate
-        // `library.globalResourceSetDesc`, which the manifest never reads.
-        //
-        // That claim is measured, not argued: the corpus analysis diff compares
-        // source-derived against container-derived analysis over dx12 as well as
-        // dx11, so every one of those library-bearing bodies is proof that the
-        // drop is invisible to this view. If the analysis ever grows a library
-        // section, that test goes red rather than this comment going stale.
         technique.passes = (record.passes ?? []).map((pass) => buildPass(pass, context));
         for (const pass of technique.passes) technique.shaderTypeMask |= pass.shaderTypeMask;
+        // Raytracing libraries were once deliberately dropped here, when this
+        // adapter served only `buildEffectAnalysis` — which reaches libraries
+        // through no path, a claim the dx12 corpus diff measured (every body
+        // of `unpacked_quadv5.sm_hi` carries an `RtShadow` library, and the
+        // diff stayed green). Since the runtime read path converged on this
+        // adapter, that scope no longer holds: `metadata.js` and `json.js`
+        // emit `technique.libraries`, and the effect-resource contract
+        // requires every library's exports, inputs and payload preserved.
+        technique.libraries = (record.libraries ?? []).map((library) => buildLibrary(library, context));
         effectDescription.techniques.push(technique);
     }
 
     for (const group of description.annotations ?? [])
     {
+        const name = text(group.name);
+        if (effectDescription.annotations.has(name))
+        {
+            throw new CjsFormatReadError(
+                `Duplicate effect parameter annotation group ${name}`,
+                { name }
+            );
+        }
         effectDescription.annotations.set(
-            text(group.name),
+            name,
             (group.annotations ?? []).map(mapAnnotationRecord)
         );
     }

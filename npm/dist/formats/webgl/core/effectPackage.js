@@ -1,8 +1,8 @@
 import { CjsHlslFormat } from '../../hlsl/CjsHlslFormat.js';
 import { HlslRenderContextEnum, hlslShaderStageName } from '../../hlsl/core/tr2/HlslRenderContextEnum.js';
-import '../../../format/CjsByteReader.js';
 import '@carbonenginejs/runtime-utils/bytes';
-import '../../hlsl/core/tr2/shader/HlslEffectResource.js';
+import '../../hlsl/core/carbonDescriptionToRuntime.js';
+import '../../../format/CjsByteReader.js';
 import '../../../format/compareUtf8.js';
 import { HlslEffectBindingManifest } from '../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js';
 import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_PERMUTATION_GRAPH_FORMAT, EFFECT_PERMUTATION_GRAPH_CHUNK } from '../../../format/effect/effectPermutationGraph.js';

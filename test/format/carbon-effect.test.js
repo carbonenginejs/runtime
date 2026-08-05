@@ -495,9 +495,11 @@ test("the reader rejects a body region that does not start where the header ends
     );
 });
 
-test("the reader rejects a version it has no authoritative writer for", () =>
+test("the reader rejects versions outside 8..15", () =>
 {
-    for (const version of [ 8, 13, 14, 16 ])
+    // Maintainer decision 2026-08-02: 8 is the lowest version worth reading.
+    // Anything below the floor or above the current version fails at the gate.
+    for (const version of [ 2, 7, 16 ])
     {
         const bytes = Uint8Array.from(buildSyntheticContainer());
         new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).setUint32(0, version, true);
@@ -506,6 +508,127 @@ test("the reader rejects a version it has no authoritative writer for", () =>
             new RegExp(`Unsupported Carbon effect version ${version}`)
         );
     }
+});
+
+/**
+ * Builds a hand-written version-8 container: the legacy header (no compiler
+ * version, no source hash) and one body in the v8 layout — pipeline inputs
+ * without type/dimension, no register signature, two discarded dwords after
+ * the program reference, old constant-type numbering, no texture/UAV array
+ * counts, no sampler `isDynamic`, no static samplers, no libraries.
+ *
+ * @returns {Uint8Array} Container bytes.
+ */
+function buildLegacyV8Container()
+{
+    // Arena: strings then blobs, offsets fixed by construction.
+    const arena = new CjsByteWriter();
+    const encoder = new TextEncoder();
+    const strings = { Main: 0, Const: 5, Tex: 11, Samp: 15, Uav: 20 };
+    for (const value of Object.keys(strings))
+    {
+        arena.bytes(encoder.encode(value));
+        arena.u8(0);
+    }
+    const SHADER_OFFSET = 24;
+    arena.bytes(Uint8Array.of(0xde, 0xad, 0xbe, 0xef));
+    const DEFAULTS_OFFSET = 28;
+    arena.bytes(Uint8Array.of(1, 2, 3, 4));
+    const arenaBytes = arena.toBytes();
+
+    const body = new CjsByteWriter();
+    const emit = (writer, values) => { for (const [ kind, value ] of values) writer[kind](value); };
+    emit(body, [
+        [ "u8", 1 ],                       // technique count
+        [ "u32", strings.Main ],           // technique name
+        [ "u8", 1 ],                       // pass count
+        [ "u8", 1 ],                       // stage count
+        [ "u8", 0 ],                       // stage type: vertex
+        [ "u8", 1 ],                       // pipeline input count
+        // usage/register/usageIndex/mask, no type/dimension bytes at v8
+        [ "u8", 6 ], [ "u8", 1 ], [ "u8", 2 ], [ "u8", 0x0f ],
+        [ "u32", 4 ], [ "u32", SHADER_OFFSET ],  // program blob reference
+        [ "u32", 7 ], [ "u32", 9 ],              // pre-v12 discarded dwords
+        [ "u32", 1 ], [ "u32", 2 ], [ "u32", 3 ], // thread group size
+        [ "u32", 1 ],                      // constant count
+        [ "u32", strings.Const ], [ "u32", 0 ], [ "u32", 4 ], // name/offset/size
+        [ "u8", 2 ],                       // old type byte: BOOL
+        [ "u8", 1 ], [ "u32", 1 ], [ "u8", 0 ], [ "u8", 1 ], // dim/elements/isSRGB/isAutoregister
+        [ "u32", 4 ], [ "u32", DEFAULTS_OFFSET ], // default-value blob reference
+        [ "u8", 1 ],                       // texture count
+        // register/name/type/isSRGB/isAutoregister, no array count at v8
+        [ "u8", 0 ], [ "u32", strings.Tex ], [ "u8", 2 ], [ "u8", 1 ], [ "u8", 0 ],
+        [ "u8", 1 ],                       // sampler count
+        [ "u8", 0 ], [ "u32", strings.Samp ], // register/name
+        // comparison/filters/addresses
+        [ "u8", 0 ], [ "u8", 1 ], [ "u8", 1 ], [ "u8", 1 ], [ "u8", 1 ], [ "u8", 1 ], [ "u8", 1 ],
+        [ "f32", 0.5 ], [ "u8", 4 ], [ "u8", 2 ], // mipLODBias/maxAnisotropy/comparisonFunc
+        [ "f32", 0 ], [ "f32", 0 ], [ "f32", 0 ], [ "f32", 1 ], // border colour
+        [ "f32", 0 ], [ "f32", 8 ],        // minLOD/maxLOD, no isDynamic byte at v8
+        [ "u8", 1 ],                       // uav count
+        // register/name/type/isAutoregister, no array count at v8
+        [ "u8", 1 ], [ "u32", strings.Uav ], [ "u8", 5 ], [ "u8", 1 ],
+        [ "u8", 0 ],                       // stage annotations
+        [ "u8", 1 ], [ "u32", 22 ], [ "u32", 3 ], // render states
+        [ "u16", 0 ]                       // effect annotations
+    ]);
+    const bodyBytes = body.toBytes();
+
+    const writer = new CjsByteWriter();
+    writer.u32(8);                         // version — and no compiler version or hash
+    writer.u32(arenaBytes.length);
+    writer.bytes(arenaBytes);
+    writer.u8(1);                          // one permutation axis, one option
+    emit(writer, [
+        [ "u32", strings.Main ], [ "u8", 0 ], [ "u32", strings.Main ],
+        [ "u8", 1 ], [ "u8", 1 ], [ "u32", strings.Main ]
+    ]);
+    const HEADER_END = 4 + 4 + arenaBytes.length + 16 + 4 + 12;
+    writer.u32(1);                         // one offset-table row
+    writer.u32(0);
+    writer.u32(HEADER_END);
+    writer.u32(bodyBytes.length);
+    writer.bytes(bodyBytes);
+    return writer.toBytes();
+}
+
+test("a version-8 container reads through the restored version parameter", () =>
+{
+    const reader = new CjsCarbonEffectReader(buildLegacyV8Container(), { source: "legacy-v8" });
+
+    assert.equal(reader.version, 8);
+    assert.equal(reader.compilerVersion, null);
+    assert.equal(reader.sourceHash, null);
+    assert.equal(reader.permutations.length, 1);
+    assert.equal(reader.records.length, 1);
+
+    const description = reader.readDescription(0);
+    assert.equal(description.techniques[0].name.value, "Main");
+    assert.deepEqual(description.techniques[0].libraries, []);
+
+    const stage = description.techniques[0].passes[0].stages[0];
+    // Normalized to the v15 record shape: derived pipeline-input type (UINT for
+    // usage 6) and dimension, empty signature (no registers before v9), array
+    // counts defaulted to one, old constant-type byte remapped (BOOL 2 -> 3).
+    assert.deepEqual(stage.pipelineInputs, [
+        { usage: 6, registerIndex: 1, usageIndex: 2, usedMask: 0x0f, type: 2, dimension: 4 }
+    ]);
+    assert.deepEqual(stage.registers, []);
+    assert.deepEqual(stage.staticSamplers, []);
+    assert.deepEqual(stage.threadGroupSize, [ 1, 2, 3 ]);
+    assert.deepEqual(Array.from(stage.shaderData.bytes), [ 0xde, 0xad, 0xbe, 0xef ]);
+    assert.deepEqual(Array.from(stage.defaultValues.bytes), [ 1, 2, 3, 4 ]);
+    assert.equal(stage.constants[0].name.value, "Const");
+    assert.equal(stage.constants[0].type, 3);
+    assert.equal(stage.textures[0].count, 1);
+    assert.equal(stage.uavs[0].count, 1);
+    assert.equal(stage.samplers[0].name.value, "Samp");
+    // The concept did not exist at v8, so the record must not claim a value.
+    assert.equal("isDynamic" in stage.samplers[0], false);
+    assert.deepEqual(
+        description.techniques[0].passes[0].renderStates,
+        [ { state: 22, value: 3 } ]
+    );
 });
 
 test("the reader rejects a truncated arena and an empty offset table", () =>
