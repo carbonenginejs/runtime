@@ -14,7 +14,6 @@ import {
     OUTPUT_GR2,
     OUTPUT_JSON,
     OUTPUT_SHARED,
-    importNodeModule,
     inspectWithValues,
     isGlb,
     normalizeValues,
@@ -225,48 +224,6 @@ export class CjsGltfFormat
     static toJSON(value)
     {
         return toJsonValue(value);
-    }
-
-    /**
-     * Node-only convenience: reads a glTF or GLB file from disk.
-     *
-     * External `.bin` buffers referenced by relative URI are loaded beside the
-     * `.gltf` file. GLB binary chunks are handled directly.
-     *
-     * @param {string} path Path to a `.gltf` or `.glb` file.
-     * @param {object} [options] Format values.
-     * @returns {Promise<object>} The shared CarbonEngineJS JSON geometry schema.
-     */
-    static async readFile(path, options = {})
-    {
-        if (typeof path !== "string" || !path)
-        {
-            throw new TypeError(`${FORMAT_NAME}: readFile path must be a non-empty string`);
-        }
-
-        const
-            fs = await importNodeModule("node:fs/promises"),
-            pathModule = await importNodeModule("node:path"),
-            input = await fs.readFile(path);
-
-        if (isGlb(input))
-        {
-            return CjsGltfFormat.read(input, { source: path, ...options });
-        }
-
-        const
-            text = new TextDecoder().decode(input),
-            gltf = JSON.parse(text),
-            buffers = {};
-
-        for (const buffer of gltf.buffers || [])
-        {
-            if (!buffer.uri || buffer.uri.startsWith("data:")) continue;
-            const uri = decodeURIComponent(buffer.uri);
-            buffers[buffer.uri] = await fs.readFile(pathModule.resolve(pathModule.dirname(path), uri));
-        }
-
-        return CjsGltfFormat.read(gltf, { source: path, buffers, ...options });
     }
 
     /**

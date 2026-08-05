@@ -1,8 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import path from "node:path";
 
 import { CjsHlslFormat } from "../../../src/formats/hlsl/index.js";
 import { readEffectAnalysis } from "../../../src/formats/hlsl/core/analysis.js";
@@ -523,30 +520,6 @@ test("truncated header is rejected with a read error", () =>
 {
     const bytes = buildEffectBytes().subarray(0, 2);
     assert.throws(() => CjsHlslFormat.read(bytes));
-});
-
-test("readFile validates its path argument", async () =>
-{
-    await assert.rejects(() => CjsHlslFormat.readFile(123), TypeError);
-    await assert.rejects(() => CjsHlslFormat.readFile(""), TypeError);
-    await assert.rejects(() => CjsHlslFormat.readFile("does-not-exist.sm_hi"));
-});
-
-test("readFile reads and parses a compiled effect file from disk", async () =>
-{
-    const dir = await mkdtemp(path.join(tmpdir(), "format-hlsl-"));
-    const filePath = path.join(dir, "synthetic.sm_hi");
-    try
-    {
-        await writeFile(filePath, buildEffectBytes());
-        const result = await CjsHlslFormat.readFile(filePath);
-        assert.equal(result.version, 8);
-        assert.equal(result.bodyCount, 1);
-    }
-    finally
-    {
-        await rm(dir, { recursive: true, force: true });
-    }
 });
 
 test("CLASS_KEYS lists the hydratable node kinds", () =>

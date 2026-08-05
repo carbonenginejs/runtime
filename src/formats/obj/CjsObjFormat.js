@@ -13,7 +13,6 @@ import {
     OUTPUT_JSON,
     OUTPUT_OBJ_JSON,
     OUTPUT_SHARED,
-    importNodeModule,
     inspectWithValues,
     normalizeValues,
     readWithValues,
@@ -220,25 +219,6 @@ export class CjsObjFormat
     static toJSON(value)
     {
         return toJsonValue(value);
-    }
-
-    /**
-     * Node-only convenience: reads an OBJ file from disk.
-     *
-     * @param {string} path Path to a Wavefront OBJ file.
-     * @param {object} [options] Format values.
-     * @returns {Promise<object>} The shared CarbonEngineJS JSON mesh schema.
-     */
-    static async readFile(path, options = {})
-    {
-        if (typeof path !== "string" || !path)
-        {
-            throw new TypeError(`${FORMAT_NAME}: readFile path must be a non-empty string`);
-        }
-
-        const { readFile } = await importNodeModule("node:fs/promises");
-        const input = await readFile(path);
-        return CjsObjFormat.read(input, { source: path, ...options });
     }
 
     /**

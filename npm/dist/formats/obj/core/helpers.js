@@ -549,25 +549,5 @@ function toJsonValue(value) {
   return out;
 }
 
-/**
- * Imports a Node built-in module without exposing the specifier to any
- * bundler's static import graph.
- *
- * `await import("node:fs/promises")` written as a literal is resolved
- * eagerly by webpack/Rollup/esbuild alike when they walk the module
- * graph, breaking browser builds even though this path only ever runs
- * under Node (readFile is a Node-only convenience). Building the
- * specifier inside a `Function` body hides it from every bundler's
- * static analysis - it only exists at runtime, in the Node process that
- * actually calls readFile.
- *
- * @param {string} specifier Node built-in module specifier, e.g. "node:fs/promises".
- * @returns {Promise<any>} The imported module namespace.
- */
-function importNodeModule(specifier) {
-  // eslint-disable-next-line no-new-func
-  return new Function("s", "return import(s)")(specifier);
-}
-
-export { CLASS_KEYS, CMF_CLASS_KEYS, DEFAULT_VALUES, GR2_CLASS_KEYS, OUTPUT_CMF, OUTPUT_GR2, OUTPUT_JSON, OUTPUT_OBJ_JSON, OUTPUT_SHARED, importNodeModule, inspectWithValues, normalizeValues, readWithValues, toJsonValue, toText, validateClass, validateClassKey };
+export { CLASS_KEYS, CMF_CLASS_KEYS, DEFAULT_VALUES, GR2_CLASS_KEYS, OUTPUT_CMF, OUTPUT_GR2, OUTPUT_JSON, OUTPUT_OBJ_JSON, OUTPUT_SHARED, inspectWithValues, normalizeValues, readWithValues, toJsonValue, toText, validateClass, validateClassKey };
 //# sourceMappingURL=helpers.js.map

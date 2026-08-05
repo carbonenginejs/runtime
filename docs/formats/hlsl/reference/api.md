@@ -53,7 +53,6 @@ Options are reusable on an instance and can be overridden per call:
 - `CjsHlslFormat.read(input, options)` performs a one-shot read.
 - `CjsHlslFormat.inspect(input, options)` performs a one-shot inspection.
 - `CjsHlslFormat.toJSON(value)` converts output to JSON-compatible data.
-- `CjsHlslFormat.readFile(path, options)` reads and parses a file in Node.
 
 Inputs may be `Uint8Array`, `ArrayBuffer`, `Buffer`, or `DataView` values.
 Supported container versions are 8 through 15.

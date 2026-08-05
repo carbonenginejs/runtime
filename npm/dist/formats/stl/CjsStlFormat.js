@@ -1,4 +1,4 @@
-import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, writeWithValues, inspectWithValues, toJsonValue, importNodeModule, OUTPUT_CMF, OUTPUT_GR2, OUTPUT_SHARED, OUTPUT_STL_JSON, OUTPUT_JSON, CLASS_KEYS } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, writeWithValues, inspectWithValues, toJsonValue, OUTPUT_CMF, OUTPUT_GR2, OUTPUT_SHARED, OUTPUT_STL_JSON, OUTPUT_JSON, CLASS_KEYS } from './core/helpers.js';
 import { isStl, isBinaryStl } from './core/stl.js';
 
 /**
@@ -276,51 +276,6 @@ class CjsStlFormat {
    */
   static toJSON(value) {
     return toJsonValue(value);
-  }
-
-  /**
-   * Node-only convenience: reads an STL file from disk.
-   *
-   * @param {string} path Path to an STL file.
-   * @param {object} [options] Format values.
-   * @returns {Promise<object>} The shared CarbonEngineJS JSON mesh schema.
-   */
-  static async readFile(path, options = {}) {
-    if (typeof path !== "string" || !path) {
-      throw new TypeError(`${FORMAT_NAME}: readFile path must be a non-empty string`);
-    }
-    const {
-      readFile
-    } = await importNodeModule("node:fs/promises");
-    const input = await readFile(path);
-    return CjsStlFormat.read(input, {
-      source: path,
-      ...options
-    });
-  }
-
-  /**
-   * Node-only convenience: writes an STL file to disk.
-   *
-   * The file is encoded entirely in memory before the Node-only filesystem
-   * write starts. Browser bundles do not include the filesystem module.
-   *
-   * @param {string} path Path to write.
-   * @param {CjsStlSharedRoot|CjsStlSharedMesh} input Shared JSON root or mesh.
-   * @param {CjsStlFormatOptions} [options={}] Writer values.
-   * @returns {Promise<string>} The written path.
-   * @throws {TypeError|RangeError|Error} If the path, geometry, topology, or options are invalid, or writing fails.
-   */
-  static async writeFile(path, input, options = {}) {
-    if (typeof path !== "string" || !path) {
-      throw new TypeError(`${FORMAT_NAME}: writeFile path must be a non-empty string`);
-    }
-    const {
-      writeFile
-    } = await importNodeModule("node:fs/promises");
-    const output = CjsStlFormat.write(input, options);
-    await writeFile(path, output);
-    return path;
   }
 
   /**

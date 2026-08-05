@@ -53,8 +53,12 @@ render-state records needed for inspection and pipeline planning.
 
 ## Read a file in Node
 
+The package itself is browser-only; Node callers supply the bytes:
+
 ```js
-const effect = await CjsHlslFormat.readFile("effect.sm_hi");
+import { readFile } from "node:fs/promises";
+
+const effect = CjsHlslFormat.read(await readFile("effect.sm_hi"), { source: "effect.sm_hi" });
 ```
 
 The CLI provides the same metadata workflow:

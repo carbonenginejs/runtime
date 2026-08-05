@@ -244,26 +244,6 @@ export class CjsHlslFormat
         return toJsonValue(value);
     }
 
-    /**
-     * Node-only convenience: reads a compiled Tr2 effect file from disk.
-     *
-     * @param {string} path Path to a compiled Carbon effect file (`.sm_hi` etc.).
-     * @param {object} [options] Format values.
-     * @returns {Promise<HlslEffectRes|object>} The raw HlslEffectRes instance, compact metadata, or the documented JSON graph.
-     */
-    static async readFile(path, options = {})
-    {
-        if (typeof path !== "string" || !path)
-        {
-            throw new TypeError(`${FORMAT_NAME}: readFile path must be a non-empty string`);
-        }
-
-        const { readFile } = await import("node:fs/promises");
-        const input = await readFile(path);
-
-        return readWithValues(input, normalizeValues(DEFAULT_VALUES, { source: path, ...options }, FORMAT_NAME));
-    }
-
     static OUTPUT_JSON = OUTPUT_JSON;
     static OUTPUT_METADATA = OUTPUT_METADATA;
     static OUTPUT_RAW = OUTPUT_RAW;

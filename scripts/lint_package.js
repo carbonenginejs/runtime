@@ -77,6 +77,11 @@ async function CheckJavaScript(file, errors)
     errors.push(`${relativeFile}: generated Carbon source requires an exact source header`);
   }
 
+  if (relativeFile.startsWith("src/"))
+  {
+    CheckBrowserOnly(relativeFile, source, errors);
+  }
+
   try
   {
     await transformAsync(source, {
@@ -94,6 +99,56 @@ async function CheckJavaScript(file, errors)
   catch (error)
   {
     errors.push(`${relativeFile}:${error.loc?.line ?? 1}: ${error.message}`);
+  }
+}
+
+/**
+ * Rejects Node reach in published source (hard rule, 2026-08-06): only tests
+ * and scripts may use Node — everything under src/ is browser-only. Static
+ * builtin imports break browser bundles outright; a literal dynamic
+ * `import("node:...")` forces code-splitting on downstream bundlers (rollup
+ * refuses UMD builds once it sees one); and the `new Function` specifier
+ * trick, while bundler-invisible, is still Node reach hiding in published
+ * code, so it is banned rather than grandfathered.
+ */
+function CheckBrowserOnly(relativeFile, source, errors)
+{
+  // Strip comments so documentation may name the banned constructs.
+  const code = source
+    .replace(/\/\*[\s\S]*?\*\//gu, "")
+    .replace(/^[ \t]*\/\/.*$/gmu, "");
+
+  const rules = [
+    [ /from\s+["']node:/u, "imports a node: builtin" ],
+    [ /import\s*\(\s*["'`]node:/u, "dynamically imports a node: builtin" ],
+    [ /require\s*\(\s*["']node:/u, "requires a node: builtin" ],
+    [ /from\s+["'](?:fs|path|os|url|crypto|http|https|net|stream|zlib|child_process|worker_threads|module)["']/u, "imports a bare Node builtin" ],
+    [ /new\s+Function\s*\([^)]*import\s*\(/u, "hides a dynamic import inside new Function" ],
+    [ /__dirname|__filename/u, "uses a Node path global" ],
+    [ /\bprocess\.(?:env|argv|platform|cwd|exit|versions)\b/u, "reads the Node process global" ]
+  ];
+
+  for (const [ pattern, reason ] of rules)
+  {
+    if (pattern.test(code))
+    {
+      errors.push(`${relativeFile}: ${reason}; src/ is browser-only (tests and scripts may use Node)`);
+    }
+  }
+
+  // Node's Buffer global is tolerated only behind an explicit feature detect
+  // on the same line (the gltf base64 fast path); any other call site is Node
+  // reach. Only real usage is matched - the word "Buffer" alone is GPU-domain
+  // vocabulary (structured buffers, constant buffers) all over the shader
+  // formats.
+  for (const line of code.split("\n"))
+  {
+    if (/\bnew\s+Buffer\b|\bBuffer\s*\.\s*(?:from|alloc|allocUnsafe|concat|isBuffer)\b/u.test(line)
+      && !/typeof\s+Buffer/u.test(line))
+    {
+      errors.push(`${relativeFile}: calls Node's Buffer without a typeof feature detect; src/ is browser-only`);
+      break;
+    }
   }
 }
 
