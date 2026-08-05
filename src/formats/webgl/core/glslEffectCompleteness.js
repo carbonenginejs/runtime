@@ -339,8 +339,13 @@ function checkLocalLightFamilyAccounted(stage, shader, errors)
     const manifestBindings = Array.isArray(stage.manifest?.bindings)
         ? stage.manifest.bindings
         : [];
+    // The manifest spells a resource's Carbon name as `metadataName` with the
+    // metadata record nested under `carbon`; plain `name` survives as a
+    // fallback for hand-written fixture records.
     const family = manifestBindings.filter((entry) => entry?.kind === "resource"
-        && LOCAL_LIGHT_RESOURCE_NAMES.includes(entry.name));
+        && LOCAL_LIGHT_RESOURCE_NAMES.includes(
+            entry.metadataName ?? entry.carbon?.name ?? entry.name
+        ));
     if (family.length < 2) return;
 
     const bindings = Array.isArray(shader.bindings) ? shader.bindings : [];

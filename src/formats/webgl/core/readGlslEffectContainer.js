@@ -1,9 +1,8 @@
 import { CjsCarbonEffectReader } from "../../../format/carbonEffect/CjsCarbonEffectReader.js";
 import { readGlslBackendBlock } from "./glslBackendBlock.js";
-import {
-    hlslShaderStageName,
-    HlslUsageCodeNames
-} from "../../hlsl/core/tr2/HlslRenderContextEnum.js";
+import { hlslShaderStageName } from "../../hlsl/core/tr2/HlslRenderContextEnum.js";
+import { runtimeDescriptionFromCarbon } from "../../hlsl/core/carbonDescriptionToRuntime.js";
+import { HlslEffectBindingManifest } from "../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
 
 /**
  * Decodes a WebGL effect container into the stage/shader records the
@@ -35,94 +34,41 @@ import {
 const NO_PROGRAM_REASON = "no program was stored";
 
 /**
- * Reshapes one Carbon stage's own reflection into the manifest vocabulary the
- * runtime-ABI rules read.
+ * Derives the per-stage binding manifests for one body through the one
+ * manifest builder the source path uses.
  *
- * The chunk package carried this as a separate META manifest, which is why the
- * old rules cross-checked two chunks against each other. The container needs no
- * such cross-check: `pipelineInputs`, `textures` and `samplers` are Carbon's own
- * per-stage reflection, read straight out of the description. There is only one
- * copy, so there is nothing for a second copy to disagree with — the class of
- * bug those cross-chunk rules existed to catch cannot occur here.
+ * This replaces a hand-built reshape of the wire records into the manifest
+ * vocabulary. That copy had already diverged from the real manifest once —
+ * `isAutoregister` was silently dropped, making every resource look
+ * user-settable — which is the whole argument against a second producer: two
+ * hand-maintained spellings of one reflection drift, and the drift is exactly
+ * the kind of bug that draws, links and renders black without an error. The
+ * record tree now flows through `runtimeDescriptionFromCarbon` — the
+ * corpus-proven adapter the runtime read path uses — and
+ * `HlslEffectBindingManifest`, so the container read and the build-time
+ * package derive their manifests from the same code.
  *
- * `usageName` is derived from the `usage` byte rather than carried, the same way
- * `carbonDescriptionToRuntime.js:261` derives it.
+ * No `bytecodeFor` is supplied: program text lives in the shader records this
+ * reader emits, so the manifest's `shaderBytecode` stays null rather than
+ * duplicating every program into the reflection.
  *
- * @param {object} stage Decoded Carbon stage record.
- * @returns {{pipelineInputs:object[], bindings:object[]}} Manifest-shaped reflection.
+ * @param {object} description Decoded Carbon description record tree.
+ * @param {number} version Container data version.
+ * @param {string} source Source name for diagnostics.
+ * @returns {Map<string, object>} Manifest stage records keyed by
+ *     `technique.passN.stageName`.
  */
-function stageManifest(stage)
+function bodyManifestStages(description, version, source)
 {
-    return {
-        pipelineInputs: (stage.pipelineInputs ?? []).map((input) => ({
-            registerIndex: input.registerIndex,
-            usageName: HlslUsageCodeNames[input.usage] || `USAGE_${input.usage}`,
-            usageIndex: input.usageIndex,
-            usedMask: input.usedMask
-        })),
-        bindings: [
-            // The stage-local constant buffer, carrying the named constants an
-            // engine binds its material parameters to. Register 0 is this
-            // stage's own buffer in per-stage numbering; a consumer maps it to
-            // the slot its backend uses (vertex b0, pixel b7 by the GL
-            // convention).
-            //
-            // This is not optional detail. Without it an engine has no names to
-            // bind parameters to, uploads nothing, and every material value the
-            // shader reads is zero — which draws, links and binds correctly and
-            // renders pure black. It was missing because the completeness rules
-            // this reader was written for only needed inputs, resources and
-            // samplers, so nothing noticed the constants were dropped.
-            {
-                kind: "constantBuffer",
-                registerIndex: 0,
-                carbon: {
-                    // Authored defaults live in the stage's blob; its declared
-                    // size is what a consumer allocates against.
-                    constantValueSize: stage.defaultValues?.size ?? 0,
-                    constants: (stage.constants ?? []).map((constant) => ({
-                        // String refs decode as `{offset, value}` records.
-                        name: constant.name?.value ?? constant.name,
-                        offset: constant.offset,
-                        size: constant.size,
-                        type: constant.type,
-                        dimension: constant.dimension,
-                        elements: constant.elements,
-                        isSRGB: constant.isSRGB,
-                        isAutoregister: constant.isAutoregister
-                    }))
-                }
-            },
-            ...(stage.textures ?? []).map((texture) => ({
-                kind: "resource",
-                registerIndex: texture.registerIndex,
-                // Named so a rule can ask whether a described resource belongs
-                // to a family the packager is known to lower away.
-                name: texture.name.value,
-                // Carbon's own flags, nested like the sampler's, because that
-                // is where the consumer already looks for them.
-                //
-                // `isAutoregister` is not cosmetic: such a resource is bound
-                // automatically from the engine's global variable store rather
-                // than set by a material. Dropping it makes every resource look
-                // user-settable, so a consumer builds an ordinary texture
-                // parameter that nothing ever assigns and the global never
-                // reaches the shader.
-                carbon: {
-                    isSRGB: texture.isSRGB === 1,
-                    isAutoregister: texture.isAutoregister === 1
-                }
-            })),
-            ...(stage.samplers ?? []).map((sampler) => ({
-                kind: "sampler",
-                registerIndex: sampler.registerIndex,
-                // Carbon stores the flag as a byte; the rule compares against
-                // `=== true`, so the conversion has to happen here rather than
-                // letting a truthy 1 pass a strict check by accident.
-                carbon: { sampler: { comparison: sampler.comparison !== 0 } }
-            }))
-        ]
-    };
+    const runtime = runtimeDescriptionFromCarbon(description, {
+        effectName: source,
+        version
+    });
+    const manifest = HlslEffectBindingManifest.fromEffectDescription(runtime).toJSON();
+    return new Map(manifest.stages.map((stage) => [
+        `${stage.techniqueName}.pass${stage.passIndex}.${stage.stageName}`,
+        stage
+    ]));
 }
 
 /**
@@ -210,6 +156,7 @@ export function readGlslEffectContainer(input, values = {})
         bodyKeyByOffset.set(offset, bodyKey);
 
         const description = reader.readDescription(index, { backend: true });
+        const manifestStages = bodyManifestStages(description, reader.version, source);
 
         for (const technique of description.techniques)
         {
@@ -281,7 +228,7 @@ export function readGlslEffectContainer(input, values = {})
                         stageName: name,
                         stageType: stage.type,
                         shaderKey,
-                        manifest: stageManifest(stage),
+                        manifest: manifestStages.get(`${passKey}.${name}`) ?? null,
                         // The pass's transforms, so a rule can ask whether a
                         // description resource was merged away rather than lost.
                         transforms
