@@ -364,7 +364,14 @@ function carbonPayload(kind, metadata, stage, registerIndex) {
     return {
       hasLocalConstants,
       constantValueSize: hasLocalConstants ? stage.m_constantValueSize : 0,
-      constants: hasLocalConstants ? stage.constants.map(entry => entry?.toJSON?.() ?? entry) : []
+      constants: hasLocalConstants ? stage.constants.map(entry => entry?.toJSON?.() ?? entry) : [],
+      // The exact authored default bytes for the stage's local constant
+      // buffer. A consumer that zero-fills instead of using these
+      // changes every authored default the scene does not override -
+      // the effect-resource contract calls the bytes mandatory, and a
+      // background effect whose Tint and intensity read zero renders
+      // pure black while drawing "correctly".
+      constantValues: hasLocalConstants && stage.constantValues ? Array.from(stage.constantValues) : []
     };
   }
   return metadata?.toJSON?.() ?? cloneJson(metadata);
