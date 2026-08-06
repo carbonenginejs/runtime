@@ -1134,8 +1134,15 @@ function getDdsPixelFormat(format)
             format.gBitMask === 0x0000ff00 &&
             format.bBitMask === 0x000000ff) return "bgr8unorm";
     }
-    // D3DFMT_L8 / D3DFMT_A8L8: one channel replicated across RGB, which is
-    // not the same as r8unorm (that samples as red only).
+    // Single-channel masks are authored both ways: some declare DDPF_LUMINANCE,
+    // others DDPF_RGB with only a red mask. Both mean one channel replicated
+    // across RGB, which is not the same as r8unorm (that samples as red only).
+    if ((format.pfFlags & DDS_RGB) &&
+        format.rgbBitCount === 8 &&
+        format.rBitMask === 0x000000ff &&
+        !format.gBitMask &&
+        !format.bBitMask &&
+        !format.aBitMask) return "l8unorm";
     if (format.pfFlags & DDS_LUMINANCE)
     {
         if (format.rgbBitCount === 8 && !(format.pfFlags & DDS_ALPHAPIXELS)) return "l8unorm";
