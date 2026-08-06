@@ -526,6 +526,7 @@ function canDecodeDdsToRgba(metadata)
         "bgra8unorm-srgb",
         "bgrx8unorm",
         "bgrx8unorm-srgb",
+        "rgbx8unorm",
         "bgr8unorm",
         "rg8unorm",
         "r8unorm",
@@ -695,6 +696,7 @@ function getDdsLevelLayout(pixelFormat, width, height, depth)
         "bgra8unorm-srgb": 4,
         "bgrx8unorm": 4,
         "bgrx8unorm-srgb": 4,
+        "rgbx8unorm": 4,
         "bgr8unorm": 3,
         "rg8unorm": 2,
         "r8unorm": 1
@@ -732,6 +734,14 @@ function decodeUncompressed(source, metadata)
             rgba[outputOffset] = source[sourceOffset + 2];
             rgba[outputOffset + 1] = source[sourceOffset + 1];
             rgba[outputOffset + 2] = source[sourceOffset];
+            rgba[outputOffset + 3] = 255;
+        }
+        else if (metadata.pixelFormat.startsWith("rgbx"))
+        {
+            // Fourth byte is padding, not alpha.
+            rgba[outputOffset] = source[sourceOffset];
+            rgba[outputOffset + 1] = source[sourceOffset + 1];
+            rgba[outputOffset + 2] = source[sourceOffset + 2];
             rgba[outputOffset + 3] = 255;
         }
         else if (metadata.pixelFormat === "rg8unorm")
@@ -1082,6 +1092,19 @@ function getDdsPixelFormat(format)
             format.gBitMask === 0x0000ff00 &&
             format.bBitMask === 0x000000ff &&
             format.aBitMask === 0xff000000) return "bgra8unorm";
+        // D3DFMT_X8R8G8B8 / D3DFMT_X8B8G8R8: 32bpp with no alpha channel.
+        // DDPF_ALPHAPIXELS is clear and the alpha mask is zero, so the fourth
+        // byte is padding and reads as opaque.
+        if (format.rgbBitCount === 32 &&
+            format.rBitMask === 0x00ff0000 &&
+            format.gBitMask === 0x0000ff00 &&
+            format.bBitMask === 0x000000ff &&
+            !format.aBitMask) return "bgrx8unorm";
+        if (format.rgbBitCount === 32 &&
+            format.rBitMask === 0x000000ff &&
+            format.gBitMask === 0x0000ff00 &&
+            format.bBitMask === 0x00ff0000 &&
+            !format.aBitMask) return "rgbx8unorm";
         if (format.rgbBitCount === 24 &&
             format.rBitMask === 0x00ff0000 &&
             format.gBitMask === 0x0000ff00 &&

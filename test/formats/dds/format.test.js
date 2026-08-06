@@ -465,3 +465,54 @@ function writeU16LE(bytes, offset, value)
     bytes[offset] = value & 0xff;
     bytes[offset + 1] = (value >>> 8) & 0xff;
 }
+
+test("reads legacy uncompressed DDS with no alpha channel", () =>
+{
+    // D3DFMT_X8R8G8B8: DDPF_RGB, no DDPF_ALPHAPIXELS, zero alpha mask. The
+    // fourth byte is padding, so it must decode as opaque rather than as
+    // alpha (EVE's planet preset textures are authored this way).
+    const bgrx = makeLegacyRgbDdsHeader(1, 1, {
+        rBitMask: 0x00ff0000,
+        gBitMask: 0x0000ff00,
+        bBitMask: 0x000000ff,
+        aBitMask: 0
+    }, [ 0x30, 0x20, 0x10, 0x00 ]);   // stored B, G, R, X
+
+    assert.equal(CjsDdsFormat.inspect(bgrx).pixelFormat, "bgrx8unorm");
+    assert.deepEqual(
+        Array.from(CjsDdsFormat.read(bgrx, { emit: "rgba" }).data),
+        [ 0x10, 0x20, 0x30, 0xff ]
+    );
+
+    const rgbx = makeLegacyRgbDdsHeader(1, 1, {
+        rBitMask: 0x000000ff,
+        gBitMask: 0x0000ff00,
+        bBitMask: 0x00ff0000,
+        aBitMask: 0
+    }, [ 0x10, 0x20, 0x30, 0x00 ]);
+
+    assert.equal(CjsDdsFormat.inspect(rgbx).pixelFormat, "rgbx8unorm");
+    assert.deepEqual(
+        Array.from(CjsDdsFormat.read(rgbx, { emit: "rgba" }).data),
+        [ 0x10, 0x20, 0x30, 0xff ]
+    );
+});
+
+function makeLegacyRgbDdsHeader(width, height, masks, payload = [])
+{
+    const bytes = new Uint8Array(128 + payload.length);
+    bytes.set([ 0x44, 0x44, 0x53, 0x20 ]);
+    writeU32LE(bytes, 4, 124);
+    writeU32LE(bytes, 12, height);
+    writeU32LE(bytes, 16, width);
+    writeU32LE(bytes, 28, 1);
+    writeU32LE(bytes, 76, 32);
+    writeU32LE(bytes, 80, 0x40);        // DDPF_RGB, no DDPF_ALPHAPIXELS
+    writeU32LE(bytes, 88, 32);          // bits per pixel
+    writeU32LE(bytes, 92, masks.rBitMask);
+    writeU32LE(bytes, 96, masks.gBitMask);
+    writeU32LE(bytes, 100, masks.bBitMask);
+    writeU32LE(bytes, 104, masks.aBitMask);
+    bytes.set(payload, 128);
+    return bytes;
+}

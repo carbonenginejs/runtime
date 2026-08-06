@@ -458,7 +458,7 @@ function readDdsTexture(bytes, metadata) {
   };
 }
 function canDecodeDdsToRgba(metadata) {
-  return ["rgba32float", "rgb32float", "rgba16float", "rg32float", "r32float", "r16float", "rgba8unorm", "rgba8unorm-srgb", "bgra8unorm", "bgra8unorm-srgb", "bgrx8unorm", "bgrx8unorm-srgb", "bgr8unorm", "rg8unorm", "r8unorm", "bc1-rgba-unorm", "bc1-rgba-unorm-srgb", "bc2-rgba-unorm", "bc2-rgba-unorm-srgb", "bc3-rgba-unorm", "bc3-rgba-unorm-srgb", "bc4-r-unorm", "bc4-r-snorm", "bc5-rg-unorm", "bc5-rg-snorm", "bc6h-rgb-ufloat", "bc6h-rgb-float", "bc7-rgba-unorm", "bc7-rgba-unorm-srgb"].includes(metadata.pixelFormat);
+  return ["rgba32float", "rgb32float", "rgba16float", "rg32float", "r32float", "r16float", "rgba8unorm", "rgba8unorm-srgb", "bgra8unorm", "bgra8unorm-srgb", "bgrx8unorm", "bgrx8unorm-srgb", "rgbx8unorm", "bgr8unorm", "rg8unorm", "r8unorm", "bc1-rgba-unorm", "bc1-rgba-unorm-srgb", "bc2-rgba-unorm", "bc2-rgba-unorm-srgb", "bc3-rgba-unorm", "bc3-rgba-unorm-srgb", "bc4-r-unorm", "bc4-r-snorm", "bc5-rg-unorm", "bc5-rg-snorm", "bc6h-rgb-ufloat", "bc6h-rgb-float", "bc7-rgba-unorm", "bc7-rgba-unorm-srgb"].includes(metadata.pixelFormat);
 }
 function readDdsToRgba(bytes, metadata) {
   if (!canDecodeDdsToRgba(metadata)) {
@@ -569,6 +569,7 @@ function getDdsLevelLayout(pixelFormat, width, height, depth) {
     "bgra8unorm-srgb": 4,
     "bgrx8unorm": 4,
     "bgrx8unorm-srgb": 4,
+    "rgbx8unorm": 4,
     "bgr8unorm": 3,
     "rg8unorm": 2,
     "r8unorm": 1
@@ -601,6 +602,12 @@ function decodeUncompressed(source, metadata) {
       rgba[outputOffset] = source[sourceOffset + 2];
       rgba[outputOffset + 1] = source[sourceOffset + 1];
       rgba[outputOffset + 2] = source[sourceOffset];
+      rgba[outputOffset + 3] = 255;
+    } else if (metadata.pixelFormat.startsWith("rgbx")) {
+      // Fourth byte is padding, not alpha.
+      rgba[outputOffset] = source[sourceOffset];
+      rgba[outputOffset + 1] = source[sourceOffset + 1];
+      rgba[outputOffset + 2] = source[sourceOffset + 2];
       rgba[outputOffset + 3] = 255;
     } else if (metadata.pixelFormat === "rg8unorm") {
       rgba[outputOffset] = source[sourceOffset];
@@ -819,6 +826,11 @@ function getDdsPixelFormat(format) {
   if (format.pfFlags & DDS_RGB) {
     if (format.rgbBitCount === 32 && format.rBitMask === 0x000000ff && format.gBitMask === 0x0000ff00 && format.bBitMask === 0x00ff0000 && format.aBitMask === 0xff000000) return "rgba8unorm";
     if (format.rgbBitCount === 32 && format.rBitMask === 0x00ff0000 && format.gBitMask === 0x0000ff00 && format.bBitMask === 0x000000ff && format.aBitMask === 0xff000000) return "bgra8unorm";
+    // D3DFMT_X8R8G8B8 / D3DFMT_X8B8G8R8: 32bpp with no alpha channel.
+    // DDPF_ALPHAPIXELS is clear and the alpha mask is zero, so the fourth
+    // byte is padding and reads as opaque.
+    if (format.rgbBitCount === 32 && format.rBitMask === 0x00ff0000 && format.gBitMask === 0x0000ff00 && format.bBitMask === 0x000000ff && !format.aBitMask) return "bgrx8unorm";
+    if (format.rgbBitCount === 32 && format.rBitMask === 0x000000ff && format.gBitMask === 0x0000ff00 && format.bBitMask === 0x00ff0000 && !format.aBitMask) return "rgbx8unorm";
     if (format.rgbBitCount === 24 && format.rBitMask === 0x00ff0000 && format.gBitMask === 0x0000ff00 && format.bBitMask === 0x000000ff) return "bgr8unorm";
   }
   return "";
