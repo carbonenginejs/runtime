@@ -18,6 +18,8 @@ const DDS_PIXELFORMAT_OFFSET = 76;
 const DDS_FOURCC = 0x00000004;
 const DDS_RGB = 0x00000040;
 const DDS_ALPHAPIXELS = 0x00000001;
+const DDS_ALPHA = 0x00000002;
+const DDS_LUMINANCE = 0x00020000;
 const DDSCAPS2_CUBEMAP = 0x00000200;
 const DDSCAPS2_VOLUME = 0x00200000;
 
@@ -528,6 +530,9 @@ function canDecodeDdsToRgba(metadata)
         "bgrx8unorm-srgb",
         "rgbx8unorm",
         "bgr8unorm",
+        "l8unorm",
+        "l8a8unorm",
+        "a8unorm",
         "rg8unorm",
         "r8unorm",
         "bc1-rgba-unorm",
@@ -698,6 +703,9 @@ function getDdsLevelLayout(pixelFormat, width, height, depth)
         "bgrx8unorm-srgb": 4,
         "rgbx8unorm": 4,
         "bgr8unorm": 3,
+        "l8a8unorm": 2,
+        "l8unorm": 1,
+        "a8unorm": 1,
         "rg8unorm": 2,
         "r8unorm": 1
     }[pixelFormat];
@@ -743,6 +751,22 @@ function decodeUncompressed(source, metadata)
             rgba[outputOffset + 1] = source[sourceOffset + 1];
             rgba[outputOffset + 2] = source[sourceOffset + 2];
             rgba[outputOffset + 3] = 255;
+        }
+        else if (metadata.pixelFormat === "l8unorm" || metadata.pixelFormat === "l8a8unorm")
+        {
+            // Luminance replicates its one channel across RGB.
+            const luminance = source[sourceOffset];
+            rgba[outputOffset] = luminance;
+            rgba[outputOffset + 1] = luminance;
+            rgba[outputOffset + 2] = luminance;
+            rgba[outputOffset + 3] = metadata.pixelFormat === "l8a8unorm" ? source[sourceOffset + 1] : 255;
+        }
+        else if (metadata.pixelFormat === "a8unorm")
+        {
+            rgba[outputOffset] = 0;
+            rgba[outputOffset + 1] = 0;
+            rgba[outputOffset + 2] = 0;
+            rgba[outputOffset + 3] = source[sourceOffset];
         }
         else if (metadata.pixelFormat === "rg8unorm")
         {
@@ -1110,6 +1134,15 @@ function getDdsPixelFormat(format)
             format.gBitMask === 0x0000ff00 &&
             format.bBitMask === 0x000000ff) return "bgr8unorm";
     }
+    // D3DFMT_L8 / D3DFMT_A8L8: one channel replicated across RGB, which is
+    // not the same as r8unorm (that samples as red only).
+    if (format.pfFlags & DDS_LUMINANCE)
+    {
+        if (format.rgbBitCount === 8 && !(format.pfFlags & DDS_ALPHAPIXELS)) return "l8unorm";
+        if (format.rgbBitCount === 16 && (format.pfFlags & DDS_ALPHAPIXELS)) return "l8a8unorm";
+    }
+    // D3DFMT_A8: alpha only.
+    if ((format.pfFlags & DDS_ALPHA) && format.rgbBitCount === 8) return "a8unorm";
     return "";
 }
 

@@ -516,3 +516,47 @@ function makeLegacyRgbDdsHeader(width, height, masks, payload = [])
     bytes.set(payload, 128);
     return bytes;
 }
+
+test("reads legacy luminance and alpha-only DDS", () =>
+{
+    // D3DFMT_L8: one channel that replicates across RGB — not r8unorm, which
+    // samples as red only. EVE's planet city-light masks are authored L8.
+    const l8 = makeLegacyChannelDdsHeader(1, 1, 0x00020000, 8, [ 0x40 ]);
+    assert.equal(CjsDdsFormat.inspect(l8).pixelFormat, "l8unorm");
+    assert.deepEqual(
+        Array.from(CjsDdsFormat.read(l8, { emit: "rgba" }).data),
+        [ 0x40, 0x40, 0x40, 0xff ]
+    );
+
+    // D3DFMT_A8L8
+    const l8a8 = makeLegacyChannelDdsHeader(1, 1, 0x00020000 | 0x1, 16, [ 0x40, 0x80 ]);
+    assert.equal(CjsDdsFormat.inspect(l8a8).pixelFormat, "l8a8unorm");
+    assert.deepEqual(
+        Array.from(CjsDdsFormat.read(l8a8, { emit: "rgba" }).data),
+        [ 0x40, 0x40, 0x40, 0x80 ]
+    );
+
+    // D3DFMT_A8
+    const a8 = makeLegacyChannelDdsHeader(1, 1, 0x2, 8, [ 0x90 ]);
+    assert.equal(CjsDdsFormat.inspect(a8).pixelFormat, "a8unorm");
+    assert.deepEqual(
+        Array.from(CjsDdsFormat.read(a8, { emit: "rgba" }).data),
+        [ 0, 0, 0, 0x90 ]
+    );
+});
+
+function makeLegacyChannelDdsHeader(width, height, pfFlags, bitCount, payload = [])
+{
+    const bytes = new Uint8Array(128 + payload.length);
+    bytes.set([ 0x44, 0x44, 0x53, 0x20 ]);
+    writeU32LE(bytes, 4, 124);
+    writeU32LE(bytes, 12, height);
+    writeU32LE(bytes, 16, width);
+    writeU32LE(bytes, 28, 1);
+    writeU32LE(bytes, 76, 32);
+    writeU32LE(bytes, 80, pfFlags);
+    writeU32LE(bytes, 88, bitCount);
+    writeU32LE(bytes, 92, bitCount === 8 && pfFlags === 0x2 ? 0 : 0xff);
+    bytes.set(payload, 128);
+    return bytes;
+}
