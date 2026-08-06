@@ -45,6 +45,7 @@ const summary = reader.Inspect(shaderBytes);
 | `isDxbc(bytes)` | Returns `true` when input starts with the DXBC magic; invalid input returns `false`. |
 | `read(bytes, options?)` | Reads one DXBC payload. |
 | `inspect(bytes, options?)` | Inspects one payload without instruction decoding. |
+| `disassemble(input, options?)` | Returns an assembly listing of the decoded instruction stream. |
 | `toJSON(value)` | Deep-converts supported values to JSON-compatible data. |
 
 The class also exposes `OUTPUT_JSON`, `OUTPUT_RAW`, input/output media metadata,
@@ -60,6 +61,33 @@ and the format's supported input type.
 
 Inputs may be `Uint8Array`, `ArrayBuffer`, Node `Buffer`, `DataView`, or another
 array-buffer view.
+
+## Disassembly
+
+`disassemble` renders decoded instructions as assembly text. It exists so a
+translated shader can be checked against the bytecode it was translated from:
+comparing emitted GLSL or WGSL against the original HLSL proves nothing, because
+the compiler that produced the bytecode already rewrote the program, and an
+emitter cannot be its own oracle.
+
+```js
+const listing = CjsDxbcFormat.disassemble(stageBytes);
+```
+
+Bytes, a previous `read` result, and a decoder record are all accepted, so a
+caller that already decoded the payload does not decode it twice.
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `declarations` | `true` | Include declaration instructions. |
+| `numbers` | `true` | Prefix executable instructions with their index. Declarations are not numbered, so the numbering matches the order a backend walks. |
+| `indent` | `true` | Indent control-flow bodies. |
+
+Component selection prints exactly as encoded rather than normalized. A
+destination mask selects source components by position, so `mad r[2].xyw,
+r[2].xxxx, v[3].xyxz, r[5].xyxz` writes `x`, `y`, and `w` from source components
+0, 1, and 3. Normalizing that away would hide the most common class of
+translation mistake.
 
 ## Errors
 

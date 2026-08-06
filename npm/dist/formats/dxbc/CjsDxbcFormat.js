@@ -1,4 +1,5 @@
 import { DxbcContainer } from './core/container.js';
+import { disassembleInstructions } from './core/disassemble.js';
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, toJsonValue, OUTPUT_JSON, OUTPUT_RAW } from './core/helpers.js';
 
 /**
@@ -10,6 +11,33 @@ import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, toJ
  */
 
 const FORMAT_NAME = "CjsDxbcFormat";
+
+/**
+ * Resolves whatever the caller has to the decoder record a listing needs.
+ *
+ * Callers reach disassembly from three places: raw bytes, the result of a
+ * previous read they do not want to repeat, and a decoder they already hold
+ * from an emitter. All three are accepted so the listing never costs a second
+ * decode.
+ *
+ * @param {Uint8Array|ArrayBuffer|Buffer|DataView|object} input Bytes or record.
+ * @param {object} options Format values for the byte path.
+ * @returns {object} Record carrying an `instructions` array.
+ */
+function resolveDecoderRecord(input, options) {
+  if (input && typeof input === "object" && Array.isArray(input.instructions)) {
+    return input;
+  }
+  if (input && typeof input === "object" && input.decoder) {
+    return input.decoder;
+  }
+  const result = readWithValues(input, normalizeValues(DEFAULT_VALUES, {
+    ...options,
+    emit: OUTPUT_RAW,
+    decodeInstructions: true
+  }, FORMAT_NAME));
+  return result.decoder;
+}
 
 /**
  * CarbonEngineJS-facing DXBC (Direct3D shader bytecode) reader.
@@ -118,6 +146,23 @@ class CjsDxbcFormat {
    */
   static inspect(input, options = {}) {
     return inspectWithValues(input, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
+  }
+
+  /**
+   * Static one-shot disassembly.
+   *
+   * A translated shader can only be judged against the bytecode it was
+   * translated from, so the listing exists to be read beside emitted GLSL or
+   * WGSL. Accepts DXBC bytes or an already-decoded result from `read`.
+   *
+   * @param {Uint8Array|ArrayBuffer|Buffer|DataView|object} input DXBC bytes,
+   *     a read result, or a decoder record.
+   * @param {object} [options] Listing options plus format values.
+   * @returns {string} Assembly listing.
+   */
+  static disassemble(input, options = {}) {
+    const decoder = resolveDecoderRecord(input, options);
+    return disassembleInstructions(decoder, options);
   }
 
   /**
