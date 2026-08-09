@@ -11,7 +11,9 @@ export { CjsCharacterSculptingLocation } from './character/appearance/CjsCharact
 export { CjsCharacterSculptSelection } from './character/appearance/CjsCharacterSculptSelection.js';
 export { CjsCharacterAvatarBehavior } from './character/behavior/CjsCharacterAvatarBehavior.js';
 export { CjsCharacterColorValue } from './character/catalog/CjsCharacterColorValue.js';
+export { CjsCharacterDefinition } from './character/catalog/CjsCharacterDefinition.js';
 export { CjsCharacterMaterialProfile } from './character/catalog/CjsCharacterMaterialProfile.js';
+export { CjsCharacterModifierReference } from './character/catalog/CjsCharacterModifierReference.js';
 export { CjsCharacterPartMetadata } from './character/catalog/CjsCharacterPartMetadata.js';
 export { CjsCharacterPartSource } from './character/catalog/CjsCharacterPartSource.js';
 export { CjsCharacterPartSourceVersion } from './character/catalog/CjsCharacterPartSourceVersion.js';
@@ -19,7 +21,9 @@ export { CjsCharacterPartType } from './character/catalog/CjsCharacterPartType.j
 export { CjsCharacterProjectionProfile } from './character/catalog/CjsCharacterProjectionProfile.js';
 export { CjsCharacterRecipeEntry } from './character/catalog/CjsCharacterRecipeEntry.js';
 export { CjsCharacterRecipeProfile } from './character/catalog/CjsCharacterRecipeProfile.js';
+export { CjsCharacterAtlasLayout } from './character/composition/CjsCharacterAtlasLayout.js';
 export { CjsCharacterModifierLocation } from './character/composition/CjsCharacterModifierLocation.js';
+export { CjsCharacterModifierOrder } from './character/composition/CjsCharacterModifierOrder.js';
 export { CjsCharacterModifierSelection } from './character/composition/CjsCharacterModifierSelection.js';
 export { CjsCharacterPaperdoll } from './character/creation/CjsCharacterPaperdoll.js';
 export { CjsCharacterAncestry } from './character/demographics/CjsCharacterAncestry.js';

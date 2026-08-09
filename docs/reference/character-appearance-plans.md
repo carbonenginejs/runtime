@@ -16,7 +16,7 @@ The prototype mixes three different kinds of information:
   placement metadata;
 - derived facts, such as a selected same-LOD configuration/geometry bundle or
   a material binding recovered from a resource; and
-- application policy, such as the global bake-order table, inferred default
+- application policy, such as the native modifier-order table, inferred default
   lipstick, filename-derived texture roles, footwear exceptions, and custom
   decal ordering.
 
@@ -50,7 +50,7 @@ those inputs but must remain GPU-free and serializable.
 
 `CjsCharacterAppearancePlan` is an ordinary schema-backed model. Inherited
 `CjsModel.from(values)` and instance `SetValues(values)` consume the same
-`carbonenginejs.characterAppearancePlan` schema-v1 shape. Inherited
+`carbonenginejs.characterAppearancePlan` schema-v2 shape. Inherited
 `GetValues({ refs: true })` emits serializable `_id`/`_ref` graph metadata.
 There is no alternate wire format or retained document copy.
 
@@ -61,31 +61,40 @@ invent resolver policy.
 
 `CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperdoll)` implements
 the first exact stage. It follows hydrated paper-doll modifier, character
-resource, part-type, and part-source relationships. It emits a part only when
-one strict resource-version match contains exactly one configuration candidate
-and one geometry candidate. It parses no filenames and assigns no LOD or model
-family. It also does not infer candidate or metadata inheritance from an
-unversioned inventory: schema v6 version records are self-contained, so any
-authoring-time baseline/override merge belongs in the final-library producer. Dependency
-resolution, material selection, texture roles, placement,
-coverage, targets, passes, bindings, image decoding, execution, and renderer
-realization remain future stages; diagnostics make those omissions explicit.
+resource, part-type, and part-source relationships. Every strict selected
+source-version match remains a plan part and layer; configuration and geometry
+paths are filled only when each candidate is unique, while every exact texture
+candidate remains in `texturePaths`. It parses no filenames and assigns no LOD
+or model family. It also does not infer candidate or metadata inheritance from
+an unversioned inventory: schema v8 version records are self-contained, so any
+authoring-time baseline/override merge belongs in the final-library producer.
 
-## Implemented records
+Schema-v8 metadata carries ordered typed references beside the unchanged raw
+dependency strings. When such a reference names an exact part source with one
+published version, the resolver adds that source as a requester-owned
+contribution. Configuration/geometry support and texture-only masks therefore
+remain distinct contributors. Coordination sources with no unique resource
+version remain diagnostics; suffixed raw values remain opaque. Recursive
+dependency policy, material ownership, texture roles, placement, coverage,
+targets, passes, bindings, image decoding, execution, and renderer realization
+remain future stages.
+
+## Implemented records and policy utilities
 
 - `CjsCharacterAppearancePlan`: selections, parts, layers, textures, reusable
   coverages, ordered targets, final bindings, origins, and diagnostics for one
   resolved character state.
-- `CjsCharacterAppearanceResolver`: exact first-stage paper-doll selection and
-  unique-candidate resolution without resource or render policy.
+- `CjsCharacterAppearanceResolver`: exact paper-doll selection plus bounded
+  typed dependency contribution projection without resource or render policy.
 - `CjsCharacterAppearanceSelection`: one plan-local resolved choice and its
   explicit selection-group ownership.
 - `CjsCharacterAppearanceLayer`: contribution identity with separate `owner`
   and `contributor` references. Its collection order is inventory order, not
   bake order. A dependency can be owned by one selection while another source
   supplies its mesh, material, or visible alpha.
-- `CjsCharacterResolvedPart`: one atomic configuration/geometry LOD binding
-  and its provenance.
+- `CjsCharacterResolvedPart`: one source-version contribution with optional
+  exact configuration/geometry choices, every retained texture path, and its
+  provenance.
 - `CjsCharacterTextureAsset` and `CjsCharacterTextureChannel`: a semantic role,
   region, resource URI, optional placement metadata, and a channel selection.
 - `CjsCharacterAppearanceBinding`: an opaque consumer identity, sampler name,
@@ -97,6 +106,11 @@ realization remain future stages; diagnostics make those omissions explicit.
   authoritative ordered passes.
 - `CjsCharacterCompositionPass`: layer, operation, inputs, destination,
   coverage, strength, logical blend contract, and logical write mask.
+- `CjsCharacterModifierOrder`: the verified stable category/makeup ordering
+  calculation and its five metadata-controlled endpoint swaps. It is resolver
+  policy, not an authored source-library record.
+- `CjsCharacterAtlasLayout`: the verified default atlas size and normalized
+  body, head, hair, and accessories rectangles.
 - `CjsCharacterOrigin`: source document and identity or resource path,
   optional JSON pointer, evidence status (`authored`, `decoded`, `derived`, or
   `policy`), and the rule that produced the value. Other records reference one
@@ -117,18 +131,38 @@ two-document graph and could not hydrate independently.
 
 ## Ordering and layer normalization
 
-The prototype implementation loads foundation geometry and configuration,
-binds base textures, loads configured parts, then bakes shared head/body
-atlases. A fallback helper bakes at a different point. The new plan must contain
-one authoritative pass-array order and both the runtime adapter and tests must
-consume that order.
+The reviewed native update resolves rules, loads changed meshes, determines
+affected atlas outputs, composes each output, realizes shaders and mesh changes,
+and only then binds the composed maps. Resource waits, shader realization,
+mesh replacement, finalization, and animation rebinding remain renderer-owned.
+The plan carries one authoritative pass-array order for each logical output;
+adapters and tests consume that order without serializing the renderer
+transaction.
 
 Recipe/group enumeration, dependency traversal, contribution inventory, target
 inventory, and composition-pass order are separate. Neither paper-doll modifier
 order nor `plan.layers` order is an atlas-order contract. The initial resolver
 therefore creates no targets or passes.
 
-Within an atlas, the current implementation copies the base and applies sorted
+The native modifier policy starts with 33 categories and stable-sorts by
+`categoryIndex * 1000 + groupIndex`. Only `makeup` has a recognized group
+table; other known categories and unknown makeup groups use group index 999.
+An unknown category uses the complete key -1. Equal keys retain their input
+inventory order. Five metadata flags can swap the endpoint slots for feet,
+loose bottoms, tight/middle tops, tucked/untucked top underwear, and
+tucked/untucked socks. Metadata values are ORed across the active modifiers;
+missing values are false. `CjsCharacterModifierOrder` exposes that calculation
+without mutating source arrays and returns caller-owned order arrays.
+
+The shared atlas defaults to 2048 by 1024. Its normalized rectangles are body
+`[0, 0, 0.5, 1]`, head `[0.5, 0, 1, 0.5]`, hair
+`[0.5, 0.5, 0.75, 1]`, and accessories `[0.75, 0.5, 1, 1]`.
+Composition processes those logical regions in body, head, hair, accessories
+order, but each output map owns its own authoritative pass array. Accessory UV
+packing is dynamic; no stable semantic suborder for accessory entries is
+claimed by `CjsCharacterAtlasLayout`.
+
+Within an atlas, reviewed behavior copies the base and applies sorted
 layers. Body diffuse can restore through a cut mask before overlay; body normal
 and specular can neutralize through owner coverage before their overlay. Normal
 replacement (`mn` or `n`) and additive detail (`tn`) are distinct operations.
@@ -172,13 +206,51 @@ Three different transforms must remain separate:
   belong to the projection contract.
 
 An adapter may combine them into a final sampling transform, but the source
-records must not overwrite one with another. Cropped placement is applied once;
-the known double-application failure is closed and must remain a regression
-case.
+records must not overwrite one with another. Cropped placement is applied once.
+The known double-application cause is closed at the policy and structural-test
+level and must remain a regression case; the complete visual fixture matrix is
+still open.
 
 Diffuse, normal, and specular inputs retain independent sample bounds. A
 material-global UV transform is insufficient because the three assets can have
 different placement metadata.
+
+Evidence status is deliberately consumer-specific:
+
+| Transform rule | Status |
+| --- | --- |
+| `TransformUV0` is rectangle bounds `[uMin, vMin, uMax, vMax]`, with identity `[0,0,1,1]`. | **Proven for the reviewed avatar effects.** |
+| PNG placement and effect sampling bounds remain separate values. | **Proven format and data-contract requirement.** |
+| A direct cropped source uses its authored placement once; a full-atlas intermediate is sampled with identity rather than the cropped placement a second time. | **Cause proven and correction structurally tested; complete visual proof remains open.** |
+| The nude foundation retains its loaded transform, while a configured proof fallback reading the reconstructed full atlas currently uses identity. Ordinary private-map garment consumers retain their loaded transform. | **Implemented experimental demo policy; correctness is not yet proved.** |
+| A qualified configured body-atlas consumer copies authored RGBA, applies explicitly assigned ordered cut masks to alpha only, replaces RGB from the shared body atlas, and samples the resulting full target with identity. | **Pass states, CPU pixel behavior, grouping, ambiguity deferral, and atomic rollback are structurally tested; target resolution and live visual proof remain open.** Dependency ownership alone is explicitly insufficient to choose the cut consumer, and the currently checked female and male fixtures use proof fallbacks rather than this branch. |
+| Correct transforms for every body, head, hair, accessory, and diffuse/normal/specular/cut-mask binding. | **Not yet proven.** The isolated demo executes a bounded body-diffuse restore-base pass through exact typed masks and structurally tests one qualified diffuse-consumer contract, but the complete consumer and visual fixture matrix remains open. |
+
+The renderer must choose from the resource actually bound at that stage. It
+must not force identity globally, copy PNG placement into `TransformUV0`, or
+assume one transform covers every object and mask.
+
+## Waist and tuck evidence status
+
+The reviewed standard tuck case closes the distinction between dependency
+ownership and visible contribution. It does not prove every waist seam, mask,
+or channel registration result.
+
+| Relationship | Evidence status | Appearance-plan meaning |
+| --- | --- | --- |
+| A lower-body selection that authors a standard tuck requests waist coordination, tuck support, tuck-mask, and fitting-shape dependencies. | **Proven authored relationship.** Decoded modifier metadata names the dependency and occlusion edges. | The requesting lower-body selection is the dependency owner. |
+| Waist-coordination records suppress or orient tuck, drape, mask, and fitting-shape behavior without supplying visible material. | **Proven for the reviewed decoded records.** Their retained metadata carries coordination and occlusion meaning without a renderable contribution. | Represent coordination separately from a visible layer. |
+| The basic tuck dependency supplies support configuration and geometry, while the authored mask dependency resolves to texture candidates. | **Proven decoded resource inventory.** Treating the resolved mask texture as cut coverage is implemented and structurally tested adapter policy, not yet visual proof. | The support mesh is a decoded contributor. Retain the mask candidate with its lower-body owner and label the eventual cut operation as policy until stronger proof is available. |
+| The selected top supplies the visible material and alpha for the tuck support mesh. | **Derived policy only; not yet realized or visually proved in the isolated demo.** The relationship is not an authored field in the current source document, and current plan instances do not populate the corresponding final binding or coverage record. | Record the top as contributor and the lower-body selection as owner, with a `policy` origin until stronger evidence is available. |
+| Standard and middle-only coordination across both sexes, top-only, bottom-only, paired garments, cut coverage, and independent diffuse/normal/specular registration all produce correct pixels. | **Not yet proven.** | Keep the full realization matrix and its visual fixtures open without reopening the ownership split. |
+
+The schema-v8 resolver preserves every dependency and occlusion string and
+follows only an adjacent exact typed `partSource` relationship. A dependency
+source with one version becomes a requester-owned layer; all of that version's
+texture paths remain on its contributor. Coordination sources with no unique
+resource version, modifier-location occlusions, suffixed strings, selected-top
+material transfer, and mask-cut realization remain diagnosed or deferred. The
+resolver does not recover those roles by parsing a resource name.
 
 ## Decisions that are closed
 
@@ -191,8 +263,11 @@ different placement metadata.
   own proven rule.
 - A dependency is not necessarily another renderable part. Some records may
   express category replacement or compatibility instead.
-- Dependency ownership and contribution are different relationships; tuck is
-  the clearest current example.
+- Dependency ownership and contribution are different relationships. In the
+  reviewed standard tuck case, the lower-body selection owns the dependency,
+  the tuck configuration/geometry is a decoded support contribution, the mask
+  is a policy-labelled coverage candidate, and the selected top is the derived
+  visible-material contributor.
 - Source byte offsets end at JSON decoding. They are not runtime atlas offsets.
 - Paperdoll background identity is an exact portrait-resource relationship;
   light and light-color identities are separate opaque identifiers.
@@ -202,10 +277,12 @@ different placement metadata.
 ## Questions that remain open
 
 - whether plain `n` and masked `mn` have fully distinct authored roles;
-- the exact waist/tuck ownership rules;
+- the complete standard/middle-only, male/female, selection-state, cut-mask,
+  and texture-channel realization matrix for the closed waist/tuck ownership
+  split;
 - complete category-removal semantics and `clothingRuleException` behavior;
-- which source establishes layer priority rather than merely recording current
-  demo policy;
+- whether authored inputs can override the native category priority rather
+  than merely contributing metadata-controlled swaps;
 - whether native PaperDoll always applies both replacement and additive normal
   inputs when both exist; and
 - several remaining diffuse/normal/specular registration failures.
@@ -234,7 +311,14 @@ The data-only contract and first-stage resolver tests prove:
 - refusal to infer baseline candidate or metadata inheritance, or choose among
   duplicate exact resource-version inventories;
 - explicit diagnostics for dangling effective version-metadata relationships;
+- exact preservation of raw dependency and occlusion strings beside typed
+  references, requester-owned projection of a unique exact dependency source,
+  and per-value diagnostics for unresolved references without fabricated
+  targets;
+- retention and diagnosis of categories absent from the native modifier order;
 - contribution relationships without inferred pass order;
 - deterministic diagnostics for dangling, ambiguous, and policy-dependent
   inputs; and
-- source-library immutability and standalone plan graph round trips.
+- source-library immutability and standalone plan graph round trips;
+- exact modifier sort keys, stable equal-key order, metadata endpoint swaps,
+  and caller-owned atlas-layout values.

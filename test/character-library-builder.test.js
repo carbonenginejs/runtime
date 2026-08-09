@@ -3,10 +3,13 @@ import assert from "node:assert/strict";
 import {
     CjsCharacterAncestry,
     CjsCharacterBloodline,
+    CjsCharacterDefinition,
     CjsCharacterMaterialProfile,
     CjsCharacterLibrary,
     CjsCharacterLibraryDocuments,
     CjsCharacterLibraryManager,
+    CjsCharacterModifierLocation,
+    CjsCharacterModifierReference,
     CjsCharacterPartMetadata,
     CjsCharacterPartSource,
     CjsCharacterPartType,
@@ -27,7 +30,7 @@ test("builds model-shaped character JSON with separate domain and graph identiti
     });
 
     assert.equal(value.schema, "carbonenginejs.characterLibrary");
-    assert.equal(value.schemaVersion, 6);
+    assert.equal(value.schemaVersion, 8);
     assert.equal(value.sourceTarget, "example-target");
     assert.ok(Array.isArray(value.documents.ancestries));
     assert.equal(value.documents.ancestries[0].recordID, "1");
@@ -114,6 +117,7 @@ test("lists document names without exporting the complete library graph", () =>
         "characterSculptingLocations",
         "paperdolls",
         "races",
+        "characterDefinitions",
         "characterPartTypes",
         "characterPartSources",
         "characterPartMetadata",
@@ -153,16 +157,35 @@ test("folds source-backed profiles and exact external resource candidates into o
     documents.characterPartTypes = {
         [typePath]: {
             sourcePath: typePath,
+            sourcePaths: [ typePath ],
             sex: "male",
             partPath: "topinner/example",
             resourceVersion: "v2",
             colorVariant: "blue",
-            partSource: sourceID
+            bloodlineIDs: [ "1", "2" ],
+            partSource: sourceID,
+            partSources: [ sourceID ]
+        }
+    };
+    documents.characterDefinitions = {
+        [typePath]: {
+            sourcePath: typePath,
+            extension: ".type",
+            values: [ "topinner/example", "v2", "blue", [ 1, 2 ] ]
+        },
+        "res:/example/topinner/materials/blue.color": {
+            sourcePath: "res:/example/topinner/materials/blue.color",
+            extension: ".color",
+            values: {
+                colors: [ [ 0.1, 0.2, 0.3, 1 ] ],
+                authoredExtra: { retained: true }
+            }
         }
     };
     documents.characterPartSources = {
         [sourceID]: {
             sourcePath: "res:/example/topinner",
+            sourcePaths: [ "res:/example/topinner" ],
             sex: "male",
             partPath: "topinner/example",
             metadata: metadataPath,
@@ -180,7 +203,17 @@ test("folds source-backed profiles and exact external resource candidates into o
             sourcePath: metadataPath,
             forcesLooseTop: true,
             dependentModifiers: [ "dependants/tuck/basic" ],
-            occludesModifiers: [ "topouter" ]
+            occludesModifiers: [ "topinner" ],
+            dependencies: [ {
+                authoredValue: "dependants/tuck/basic",
+                modifierPath: "dependants/tuck/basic",
+                partSource: sourceID
+            } ],
+            occlusions: [ {
+                authoredValue: "topinner",
+                modifierPath: "topinner",
+                modifierLocation: "20"
+            } ]
         }
     };
     documents.characterMaterialProfiles = {
@@ -230,15 +263,25 @@ test("folds source-backed profiles and exact external resource candidates into o
     assert.equal(resourceValue.resPath, typePath, "the authored resource path remains visible");
     assert.deepEqual(resourceValue.partType, { _ref: typeValue._id });
     assert.deepEqual(typeValue.partSource, { _ref: sourceValue._id });
+    assert.deepEqual(typeValue.partSources, [ { _ref: sourceValue._id } ]);
     assert.deepEqual(sourceValue.metadata, {
         _ref: values.documents.characterPartMetadata[0]._id
     });
     assert.deepEqual(sourceValue.versions[0].metadata, {
         _ref: values.documents.characterPartMetadata[0]._id
     });
+    assert.deepEqual(
+        values.documents.characterPartMetadata[0].dependencies[0].partSource,
+        { _ref: sourceValue._id }
+    );
+    assert.deepEqual(
+        values.documents.characterPartMetadata[0].occlusions[0].modifierLocation,
+        { _ref: values.documents.characterModifierLocations[0]._id }
+    );
 
     const library = CjsCharacterLibrary.from(values);
     const resource = library.Get("characterResources", 21);
+    const definition = library.Get("characterDefinitions", typePath);
     const partType = library.Get("characterPartTypes", typePath);
     const source = library.Get("characterPartSources", sourceID);
     const metadata = library.Get("characterPartMetadata", metadataPath);
@@ -256,17 +299,36 @@ test("folds source-backed profiles and exact external resource candidates into o
     );
 
     assert.ok(partType instanceof CjsCharacterPartType);
+    assert.ok(definition instanceof CjsCharacterDefinition);
     assert.ok(source instanceof CjsCharacterPartSource);
     assert.ok(source.metadata instanceof CjsCharacterPartMetadata);
     assert.ok(material instanceof CjsCharacterMaterialProfile);
     assert.ok(projection instanceof CjsCharacterProjectionProfile);
     assert.ok(recipe instanceof CjsCharacterRecipeProfile);
     assert.strictEqual(resource.partType, partType);
+    assert.deepEqual(definition.values, [ "topinner/example", "v2", "blue", [ 1, 2 ] ]);
+    assert.equal(
+        library.Get(
+            "characterDefinitions",
+            "res:/example/topinner/materials/blue.color"
+        ).values.authoredExtra.retained,
+        true
+    );
     assert.strictEqual(partType.partSource, source);
+    assert.strictEqual(partType.partSources[0], source);
+    assert.deepEqual(partType.sourcePaths, [ typePath ]);
+    assert.deepEqual(partType.bloodlineIDs, [ "1", "2" ]);
+    assert.deepEqual(source.sourcePaths, [ "res:/example/topinner" ]);
     assert.strictEqual(source.metadata, metadata);
     assert.strictEqual(source.versions[0].metadata, metadata);
     assert.equal(metadata.forcesLooseTop, true);
     assert.deepEqual(metadata.dependentModifiers, [ "dependants/tuck/basic" ]);
+    assert.ok(metadata.dependencies[0] instanceof CjsCharacterModifierReference);
+    assert.strictEqual(metadata.dependencies[0].partSource, source);
+    assert.strictEqual(
+        metadata.occlusions[0].modifierLocation,
+        library.Get("characterModifierLocations", 20)
+    );
     assert.ok(Array.from(material.colors[0].value).every(
         (value, index) => Math.abs(value - [ 0.1, 0.2, 0.3, 1 ][index]) < 1e-6
     ));
@@ -287,6 +349,60 @@ test("folds source-backed profiles and exact external resource candidates into o
     assert.deepEqual(source.versions[0].textureCandidates, [
         "res:/example/topinner/texture.asset"
     ]);
+});
+
+test("hydrates direct lists of sex-specific part-source relationships", () =>
+{
+    const documents = CreateDocuments();
+    const typePath = "res:/example/shared/definition";
+
+    documents.characterResources[21].resPath = typePath;
+    documents.characterPartTypes = {
+        [typePath]: {
+            sourcePath: "res:/example/female/shared/definition",
+            sourcePaths: [
+                "res:/example/female/shared/definition",
+                "res:/example/male/shared/definition"
+            ],
+            sex: "",
+            partPath: "hair/shared",
+            resourceVersion: null,
+            colorVariant: null,
+            bloodlineIDs: [],
+            partSource: null,
+            partSources: [ "female/hair/shared", "male/hair/shared" ]
+        }
+    };
+    documents.characterPartSources = Object.fromEntries([ "female", "male" ].map(sex => [
+        `${sex}/hair/shared`,
+        {
+            sourcePath: `res:/example/${sex}/shared`,
+            sourcePaths: [ `res:/example/${sex}/shared` ],
+            sex,
+            partPath: "hair/shared",
+            versions: [ {
+                resourceVersion: null,
+                configurationCandidates: [],
+                geometryCandidates: [],
+                textureCandidates: []
+            } ],
+            metadata: null
+        }
+    ]));
+
+    const values = CjsCharacterLibraryBuilder.build(documents);
+    const typeValue = values.documents.characterPartTypes[0];
+
+    assert.deepEqual(typeValue.partSources, values.documents.characterPartSources.map(
+        source => ({ _ref: source._id })
+    ));
+
+    const library = CjsCharacterLibrary.from(values);
+    const partType = library.Get("characterPartTypes", typePath);
+
+    assert.equal(partType.partSources.length, 2);
+    assert.equal(partType.partSources[0].sex, "female");
+    assert.equal(partType.partSources[1].sex, "male");
 });
 
 test("adds already-hydrated editor records without cloning or rehydrating them", () =>
@@ -469,8 +585,8 @@ test("combined character library installation is atomic", () =>
     assert.strictEqual(manager.GetLibrary(), installed);
 
     assert.throws(
-        () => manager.InstallLibrary({ schema: "wrong", schemaVersion: 6 }),
-        /schema version 6/u
+        () => manager.InstallLibrary({ schema: "wrong", schemaVersion: 7 }),
+        /schema version 7 or 8/u
     );
     assert.strictEqual(manager.GetLibrary(), installed);
 
@@ -479,14 +595,14 @@ test("combined character library installation is atomic", () =>
     retired.schemaVersion = 5;
     assert.throws(
         () => manager.InstallLibrary(retired),
-        /schema version 6/u
+        /schema version 7 or 8/u
     );
     assert.strictEqual(manager.GetLibrary(), installed);
 
     assert.throws(
         () => manager.InstallLibrary({
             schema: "carbonenginejs.characterLibrary",
-            schemaVersion: 6
+            schemaVersion: 7
         }),
         /documents must be a plain object/u
     );
@@ -664,6 +780,61 @@ test("accepts independently named document inputs", () =>
     assert.equal(value.documents.races[0].recordID, "3");
 });
 
+test("preserves graph hydration metadata without confusing it with domain identity", () =>
+{
+    const documents = CreateDocuments();
+
+    documents.races[3]._id = 1;
+    documents.characterDefinitions = {
+        "res:/character/a.yaml": {
+            sourcePath: "res:/character/a.yaml",
+            extension: ".yaml",
+            values: {
+                _type: "CjsCharacterModifierLocation",
+                _id: "definition-location",
+                modifierKey: "topmiddle",
+                variationKey: ""
+            }
+        },
+        "res:/character/b.yaml": {
+            sourcePath: "res:/character/b.yaml",
+            extension: ".yaml",
+            values: { _ref: "definition-location" }
+        }
+    };
+
+    const values = CjsCharacterLibraryBuilder.build(documents);
+    const hydrated = CjsCharacterLibrary.from(values);
+    const first = hydrated.Get("characterDefinitions", "res:/character/a.yaml");
+    const second = hydrated.Get("characterDefinitions", "res:/character/b.yaml");
+
+    assert.equal(values.documents.races.find(value => value.recordID === "3")._id, 1);
+    assert.notEqual(values.documents.bloodlines[0]._id, 1);
+    assert.equal(first.recordID, "res:/character/a.yaml");
+    assert.ok(first.values instanceof CjsCharacterModifierLocation);
+    assert.equal(first.values.modifierKey, "topmiddle");
+    assert.strictEqual(second.values, first.values);
+});
+
+test("never lets generated relationship ids satisfy an unresolved supplied graph reference", () =>
+{
+    const documents = CreateDocuments();
+
+    documents.races[3]._id = 1;
+    documents.characterDefinitions = {
+        "res:/character/unresolved.yaml": {
+            sourcePath: "res:/character/unresolved.yaml",
+            extension: ".yaml",
+            values: { _ref: 2 }
+        }
+    };
+
+    assert.throws(
+        () => CjsCharacterLibraryBuilder.build(documents),
+        /Unresolved character graph _ref ids: 2/u
+    );
+});
+
 test("rejects malformed source-document inputs at the builder boundary", () =>
 {
     assert.throws(
@@ -676,13 +847,6 @@ test("rejects malformed source-document inputs at the builder boundary", () =>
     assert.throws(
         () => CjsCharacterLibraryBuilder.build(extra),
         /unsupported documents/u
-    );
-
-    const reserved = CreateDocuments();
-    reserved.races[3]._id = 99;
-    assert.throws(
-        () => CjsCharacterLibraryBuilder.build(reserved),
-        /reserved model metadata _id/u
     );
 
     const collision = CreateDocuments();

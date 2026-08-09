@@ -43,6 +43,14 @@ export class CjsCharacterPartMetadata extends CjsCharacterRecord
     occludesModifiers = [];
 
     @io.readwrite
+    @type.list("CjsCharacterModifierReference")
+    dependencies = [];
+
+    @io.readwrite
+    @type.list("CjsCharacterModifierReference")
+    occlusions = [];
+
+    @io.readwrite
     @type.int32
     soundTag = null;
 

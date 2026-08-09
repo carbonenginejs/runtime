@@ -23,7 +23,7 @@ class CjsCharacterLibrary extends CjsModel {
   }
   #documentIndexes = new Map();
   schema = _init_schema(this, "carbonenginejs.characterLibrary");
-  schemaVersion = (_init_extra_schema(this), _init_schemaVersion(this, 6));
+  schemaVersion = (_init_extra_schema(this), _init_schemaVersion(this, 8));
   sourceTarget = (_init_extra_schemaVersion(this), _init_sourceTarget(this, null));
   sourceGame = (_init_extra_sourceTarget(this), _init_sourceGame(this, null));
   sourceProvider = (_init_extra_sourceGame(this), _init_sourceProvider(this, null));
@@ -34,8 +34,8 @@ class CjsCharacterLibrary extends CjsModel {
   /** Rejects combined plain values that cannot hydrate without losing fields or structure. */
   static validateValues(value) {
     RequirePlainObject(value, "Character library");
-    if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 6) {
-      throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 6");
+    if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 7 && value.schemaVersion !== 8) {
+      throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 7 or 8");
     }
     RequirePlainObject(value.documents, "Character library documents");
     for (const name of _CjsCharacterLibraryD.listDocumentNames()) {

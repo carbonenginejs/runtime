@@ -11,6 +11,10 @@ export class CjsCharacterPartType extends CjsCharacterRecord
     sourcePath = "";
 
     @io.readwrite
+    @type.list("string")
+    sourcePaths = [];
+
+    @io.readwrite
     @type.string
     sex = "";
 
@@ -27,8 +31,16 @@ export class CjsCharacterPartType extends CjsCharacterRecord
     colorVariant = null;
 
     @io.readwrite
+    @type.list("string")
+    bloodlineIDs = [];
+
+    @io.readwrite
     @type.model("CjsCharacterPartSource")
     partSource = null;
+
+    @io.readwrite
+    @type.list("CjsCharacterPartSource")
+    partSources = [];
 
 }
 

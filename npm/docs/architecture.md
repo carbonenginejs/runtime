@@ -11,7 +11,7 @@ Summary: Separates source-neutral character documents, current Carbon classes, a
 caller JSON
     |
     v
-CjsCharacterLibraryBuilder -> schema-v6 plain JSON
+CjsCharacterLibraryBuilder -> schema-v8 plain JSON
     |
     v
 CjsCharacterLibrary.from / instance.SetValues
@@ -48,12 +48,14 @@ relationship; relationships are `{ "_ref": id }`. `_id` is not a domain
 identity: `recordID`, `typeID`, `raceID`, and other named fields carry those
 meanings.
 
-`CjsCharacterLibrary.from(bigJSON)` hydrates eighteen established document
+`CjsCharacterLibrary.from(bigJSON)` hydrates nineteen established document
 families into direct source-record classes under `src/character` without
-changing the public field layout. Twelve direct source documents are required;
-six optional catalogs fold published part types, exact resource candidates,
-metadata, materials, projections, and recipes into the same document. Applying
-the same values with `SetValues` produces the same model graph.
+changing the public field layout. Twelve direct source documents are required.
+One optional catalog retains every supplied decoded authoring definition as
+plain JSON, and six optional catalogs add typed part, resource, metadata,
+material, projection, and recipe indexes. A typed projection never replaces
+its retained definition. Applying the same values with `SetValues` produces
+the same model graph.
 `GetValues({ refs: true })` returns serializable model-shaped values; graph
 tokens may be renumbered without changing identity relationships.
 
@@ -68,18 +70,19 @@ its named identifier value rather than becoming an unresolved `_ref` or an
 invented placeholder model.
 
 The hydrated source records do not create render parts, material plans, LOD
-bundles, or atlas passes. `CjsCharacterAppearanceResolver` can project exact
-paper-doll selections and a part only when one strict resource version contains
-effective metadata plus one configuration and one geometry candidate. It never
-merges version records. All remaining decisions belong
+bundles, or atlas passes. `CjsCharacterAppearanceResolver` projects exact
+paper-doll selections and retains one plan contribution for every exact source
+version. It fills configuration and geometry only when that same version has
+one candidate for each; otherwise the fields remain null with diagnostics. It
+never merges version records. All remaining decisions belong
 to later resolver stages whose output is the separate backend-neutral
 appearance-plan contract. Prototype rendering is supporting evidence, not the
 source-record schema.
 
 ## Appearance-plan boundary
 
-The schema-v1 appearance plan is a standalone JSON graph, not an extension of
-the schema-v6 source library. Its selections, resolved parts, layers, textures,
+The schema-v2 appearance plan is a standalone JSON graph, not an extension of
+the schema-v8 source library. Its selections, resolved parts, layers, textures,
 coverages, composition targets, and bindings close over document-local `_id`
 and `_ref` identities. Source-document identity is retained only as provenance.
 
@@ -145,5 +148,5 @@ not discover its source items or load the runtime assets referenced by them.
 The schema-v1/v2 `CjsCharacter*` graph, recipes, parts, materials, controls,
 visemes, deformation records, and library hydrator were based on superseded
 data structures. They were removed rather than treated as authority for the
-new document corpus. Consumers must migrate to the schema-v6 builder and the
+new document corpus. Consumers must migrate to the schema-v8 builder and the
 new direct source-record library.

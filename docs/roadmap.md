@@ -7,18 +7,22 @@ Summary: Tracks evidence-backed work after replacing the speculative v1/v2 chara
 
 ## Current baseline
 
-- schema-v6 model-shaped JSON construction;
+- schema-v8 model-shaped JSON construction, with schema-v7 migration loading;
 - proven native `_id`/`_ref` relationship projection;
 - one connected source-record model with named `recordID` values;
 - observable create/add/remove/delete/clear editor mutation with lazy
   per-document private indexed lookup;
 - direct or injected-loader installation of one combined runtime catalog;
-- direct `CjsModel` records for all twelve required source documents, six
-  optional folded profile/resource catalogs, and nested selection records;
-- a standalone schema-v1 appearance-plan data contract with local graph
+- direct `CjsModel` records for all twelve required source documents, one
+  lossless decoded-definition catalog, six additive typed profile/resource
+  catalogs, and nested selection records;
+- a standalone schema-v2 appearance-plan data contract with local graph
   identity, provenance, reusable coverage, ordered composition, and bindings;
-- an initial source-to-plan resolver for exact paper-doll selections and
-  uniquely determined configuration/geometry candidates;
+- a source-to-plan resolver that preserves exact paper-doll source-version
+  contributions, all exact texture candidates, uniquely determined
+  configuration/geometry candidates, and bounded exact typed dependency
+  contributions;
+- verified GPU-free modifier-order and shared-atlas layout policy;
 - current source-backed native character/interior classes under `src/trinity`;
 - exact-name CPU rig binding used by `Tr2SkinnedObject`; and
 - a bounded `src/incarna` tranche for recovered historical-only identities.
@@ -27,11 +31,12 @@ The old schema-v1/v2 `CjsCharacter*` graph and model family is removed.
 
 ## Combined-library producer
 
-The combined runtime contract is now explicit. The remaining producer work is
-to gather individually published character definitions, exact resource
-candidates, and optional identity enrichment before calling the
-runtime-character builder. Enrichment must not invent a resource relationship
-when an exact join is absent.
+The combined runtime contract is now explicit. Producers retain every decoded
+character definition in the combined library before adding typed projections,
+exact resource candidates, and optional identity enrichment. A definition that
+is not yet understood remains available as JSON; it is not a reason to omit
+the source. Enrichment must not invent a resource relationship when an exact
+join is absent.
 
 Add new folded definition families only from decoded evidence. Keep referenced
 configurations, geometry, textures, animations, and effects external as
@@ -41,27 +46,46 @@ compatibility format.
 ## Continue the source-to-plan resolver
 
 Keep source models direct and source-neutral. The implemented first tranche
-resolves selections and only degenerate one-configuration/one-geometry source
-versions. Continue with dependency ownership, category coverage, decoded atomic
-resource/LOD bindings, material inputs, and ordered atlas operations in the
-backend-neutral character appearance-plan contract.
+resolves selections and degenerate one-configuration/one-geometry source
+versions. It also follows a direct exact typed dependency to one unique source
+version while leaving recursive traversal and policy-only relationships
+unresolved. Continue with category coverage, decoded atomic resource/LOD
+bindings, material inputs, recursive dependency policy, and ordered atlas
+operations in the backend-neutral character appearance-plan contract. The
+reviewed standard tuck case now projects its lower-body dependency owner,
+support geometry, and exact mask candidate. The derived top-material transfer
+and complete pixel matrix remain open.
 
-Before wider source resolution, require the final-library producer to
-materialize each version's effective metadata plus configuration, geometry,
-and texture candidate arrays. The retired compact format distinguished absent
-overrides from explicit empty arrays; schema v6 runtime records deliberately do
-not guess that distinction.
+The final-library producer now materializes exact decoded baseline and version
+metadata plus configuration, geometry, and texture candidate arrays. The
+retired compact format distinguished absent overrides from explicit empty
+arrays; schema v8 runtime records deliberately do not guess that distinction.
+The producer now supplies an additive typed relation beside each retained raw
+dependency or occlusion string. Exact unsuffixed targets can resolve to part
+sources or modifier locations; suffixed values stay opaque and are not parsed
+by the runtime.
 
-Prototype rendering establishes useful operation shapes and image placement
-metadata, but its global layer ranks, filename classifiers, inferred material
-defaults, footwear exception, tuck/brow rules, and custom-decal ordering are
-policy or guesses. Do not promote them as authored library facts. Each future
-resolved field needs a source fact, resource inspection, or an explicit
-labelled policy decision.
+Native behavior now establishes the default category/makeup sort and five
+metadata-controlled endpoint swaps as explicit resolver policy. It also
+establishes the normalized body/head/hair/accessories atlas rectangles. These
+are implemented as GPU-free helpers, not authored library facts. Filename
+classifiers, inferred material defaults, complete coverage and waist/tuck
+realization, brow rules, accessory subordering, and custom-decal ordering
+remain unresolved. Waist/tuck realization means the standard/middle-only,
+male/female, selection-state, cut-mask, and texture-channel fixture matrix; it
+does not reopen the established owner/contributor split.
+Each future resolved field needs a source fact, resource inspection, or an
+explicit labelled policy decision.
+
+Authored dependency and occlusion values remain unchanged strings beside the
+typed relation list. The resolver follows only a producer-supplied exact typed
+part-source relationship and diagnoses everything else. It must not parse
+suffixes, infer a target version, recursively expand a category, or fabricate a
+contribution.
 
 ## Document-to-native adapters
 
-Do not connect schema-v6 records to `Tr2*` objects by filename or old v1/v2
+Do not connect schema-v8 records to `Tr2*` objects by filename or old v1/v2
 assumptions. Each adapter requires a proven source relationship, focused
 synthetic tests, and a clear resource-owner boundary.
 

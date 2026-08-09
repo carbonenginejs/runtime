@@ -2,13 +2,13 @@ import { CjsCharacterLibrary as _CjsCharacterLibrary } from '../library/CjsChara
 import { CjsCharacterLibraryDocuments as _CjsCharacterLibraryD } from '../library/CjsCharacterLibraryDocuments.js';
 
 const DOCUMENT_NAMES = _CjsCharacterLibraryD.listDocumentNames();
-const RELATIONSHIPS = [["ancestries", ["bloodlineID"], "bloodlines"], ["bloodlines", ["raceID"], "races"], ["characterResources", ["clothingAlsoCoversCategory"], "characterModifierLocations"], ["characterResources", ["clothingAlsoCoversCategory2"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory2"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "modifierLocationID"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "paperdollResourceID"], "characterResources"], ["paperdolls", ["colorSelections", "*", "colorID"], "characterColorLocations"], ["paperdolls", ["colorSelections", "*", "colorNameA"], "characterColorNames"], ["paperdolls", ["colorSelections", "*", "colorNameBC"], "characterColorNames"], ["paperdolls", ["sculptWeights", "*", "sculptLocationID"], "characterSculptingLocations"], ["paperdolls", ["backgroundID"], "characterPortraitResources"], ["characterPartTypes", ["partSource"], "characterPartSources"], ["characterPartSources", ["metadata"], "characterPartMetadata"], ["characterPartSources", ["versions", "*", "metadata"], "characterPartMetadata"]];
+const RELATIONSHIPS = [["ancestries", ["bloodlineID"], "bloodlines"], ["bloodlines", ["raceID"], "races"], ["characterResources", ["clothingAlsoCoversCategory"], "characterModifierLocations"], ["characterResources", ["clothingAlsoCoversCategory2"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory2"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "modifierLocationID"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "paperdollResourceID"], "characterResources"], ["paperdolls", ["colorSelections", "*", "colorID"], "characterColorLocations"], ["paperdolls", ["colorSelections", "*", "colorNameA"], "characterColorNames"], ["paperdolls", ["colorSelections", "*", "colorNameBC"], "characterColorNames"], ["paperdolls", ["sculptWeights", "*", "sculptLocationID"], "characterSculptingLocations"], ["paperdolls", ["backgroundID"], "characterPortraitResources"], ["characterPartTypes", ["partSource"], "characterPartSources"], ["characterPartTypes", ["partSources", "*"], "characterPartSources"], ["characterPartSources", ["metadata"], "characterPartMetadata"], ["characterPartSources", ["versions", "*", "metadata"], "characterPartMetadata"], ["characterPartMetadata", ["dependencies", "*", "partSource"], "characterPartSources"], ["characterPartMetadata", ["dependencies", "*", "modifierLocation"], "characterModifierLocations"], ["characterPartMetadata", ["occlusions", "*", "partSource"], "characterPartSources"], ["characterPartMetadata", ["occlusions", "*", "modifierLocation"], "characterModifierLocations"]];
 const METADATA_FIELDS = ["sourceTarget", "sourceGame", "sourceProvider", "sourceBuild", "generatedAt"];
 
-/** Builds schema-v6 model-shaped JSON from source documents and prepared catalogs. */
+/** Builds schema-v8 model-shaped JSON from source documents and lossless definition catalogs. */
 class CjsCharacterLibraryBuilder {
   static schema = "carbonenginejs.characterLibrary";
-  static schemaVersion = 6;
+  static schemaVersion = 8;
 
   /** Builds one deterministic library value from keyed or named JSON documents. */
   static build(documents = {}, options = {}) {
@@ -95,15 +95,22 @@ function AddDocument(documents, value, data) {
 }
 function ApplyRelationships(documents) {
   const recordsByDocument = new Map(DOCUMENT_NAMES.map(name => [name, new Map(documents[name].map(record => [record.recordID, record]))]));
-  const graphIDs = new Map();
+  const reservedGraphIDs = CollectGraphIDs(documents);
+  const relationshipGraphIDs = new Map();
   let nextGraphID = 1;
+  const AllocateGraphID = () => {
+    while (reservedGraphIDs.has(nextGraphID)) nextGraphID++;
+    const graphID = nextGraphID++;
+    reservedGraphIDs.add(graphID);
+    return graphID;
+  };
   const CreateReference = (targetName, targetID, target) => {
     const graphKey = `${targetName}:${targetID}`;
-    let graphID = graphIDs.get(graphKey);
+    let graphID = relationshipGraphIDs.get(graphKey);
     if (graphID === undefined) {
-      graphID = nextGraphID++;
-      graphIDs.set(graphKey, graphID);
-      target._id = graphID;
+      graphID = target._id ?? AllocateGraphID();
+      relationshipGraphIDs.set(graphKey, graphID);
+      if (target._id === undefined || target._id === null) target._id = graphID;
     }
     return {
       _ref: graphID
@@ -167,6 +174,12 @@ function VisitRelationshipField(value, path, index, label, visit) {
     if (!Array.isArray(value[field])) {
       throw new TypeError(`${label}.${field} must be an array`);
     }
+    if (index + 2 === path.length) {
+      for (let itemIndex = 0; itemIndex < value[field].length; itemIndex++) {
+        visit(value[field], itemIndex, `${label}.${field}[${itemIndex}]`);
+      }
+      return;
+    }
     for (let itemIndex = 0; itemIndex < value[field].length; itemIndex++) {
       VisitRelationshipField(value[field][itemIndex], path, index + 2, `${label}.${field}[${itemIndex}]`, visit);
     }
@@ -207,14 +220,58 @@ function CloneJSON(value, label, active) {
     RequirePlainObject(value, label);
     result = {};
     for (const [key, child] of Object.entries(value)) {
-      if (key === "_id" || key === "_ref" || key === "_type") {
-        throw new TypeError(`${label} contains reserved model metadata ${key}`);
-      }
       DefineValue(result, key, CloneJSON(child, `${label}.${key}`, active));
     }
   }
   active.delete(value);
   return result;
+}
+function CollectGraphIDs(documents) {
+  const reservedGraphIDs = new Set();
+  const definedGraphIDs = new Set();
+  const referencedGraphIDs = new Set();
+  for (const [documentName, records] of Object.entries(documents)) {
+    for (let index = 0; index < records.length; index++) {
+      VisitGraphMetadata(records[index], `${documentName}[${index}]`, reservedGraphIDs, definedGraphIDs, referencedGraphIDs);
+    }
+  }
+  const unresolved = [...referencedGraphIDs].filter(value => !definedGraphIDs.has(value));
+  if (unresolved.length) {
+    throw new TypeError(`Unresolved character graph _ref ids: ${unresolved.map(JSON.stringify).join(", ")}`);
+  }
+  return reservedGraphIDs;
+}
+function VisitGraphMetadata(value, label, reservedGraphIDs, definedGraphIDs, referencedGraphIDs) {
+  if (Array.isArray(value)) {
+    for (let index = 0; index < value.length; index++) {
+      VisitGraphMetadata(value[index], `${label}[${index}]`, reservedGraphIDs, definedGraphIDs, referencedGraphIDs);
+    }
+    return;
+  }
+  if (!IsPlainObject(value)) return;
+  if (value._id !== undefined && value._id !== null) {
+    const graphID = RequireGraphID(value._id, `${label}._id`);
+    if (definedGraphIDs.has(graphID)) {
+      throw new TypeError(`Duplicate character graph _id ${JSON.stringify(graphID)}`);
+    }
+    definedGraphIDs.add(graphID);
+    reservedGraphIDs.add(graphID);
+  }
+  if (value._ref !== undefined && value._ref !== null) {
+    const graphID = RequireGraphID(value._ref, `${label}._ref`);
+    referencedGraphIDs.add(graphID);
+    reservedGraphIDs.add(graphID);
+  }
+  for (const [key, child] of Object.entries(value)) {
+    if (key === "_id" || key === "_ref") continue;
+    VisitGraphMetadata(child, `${label}.${key}`, reservedGraphIDs, definedGraphIDs, referencedGraphIDs);
+  }
+}
+function RequireGraphID(value, label) {
+  if (typeof value === "string" && value.length || typeof value === "number" && Number.isSafeInteger(value)) {
+    return value;
+  }
+  throw new TypeError(`${label} must be a non-empty string or safe integer graph identity`);
 }
 function RequirePlainObject(value, label) {
   if (!IsPlainObject(value)) {

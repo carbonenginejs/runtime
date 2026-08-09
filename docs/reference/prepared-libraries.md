@@ -1,20 +1,20 @@
 # Character library document contract
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-character` schema-v6 input and lookup
+Scope: `@carbonenginejs/runtime-character` schema-v8 input and lookup
 Audience: Library producers and runtime consumers
 Summary: Defines the model-shaped JSON document accepted by the character-library builder and runtime model.
 
 ## Shape
 
 `CjsCharacterLibraryBuilder` converts twelve required caller-supplied record
-maps plus six optional prepared profile catalogs into JSON whose fields match
-`CjsCharacterLibrary`:
+maps plus one optional lossless decoded-definition catalog and six optional
+derived profile catalogs into JSON whose fields match `CjsCharacterLibrary`:
 
 ```json
 {
   "schema": "carbonenginejs.characterLibrary",
-  "schemaVersion": 6,
+  "schemaVersion": 8,
   "sourceBuild": "example-build",
   "documents": {
     "ancestries": [
@@ -55,6 +55,7 @@ The complete value contains these document arrays:
 - `characterSculptingLocations`;
 - `paperdolls`;
 - `races`;
+- `characterDefinitions`;
 - `characterPartTypes`;
 - `characterPartSources`;
 - `characterPartMetadata`;
@@ -62,9 +63,11 @@ The complete value contains these document arrays:
 - `characterProjectionProfiles`; and
 - `characterRecipeProfiles`.
 
-The first twelve arrays are required source-document inputs. The final six are
-optional and default to empty arrays. They fold published definition facts and
-exact external resource candidates into the same runtime catalog.
+The first twelve arrays are required source-document inputs. The final seven
+are optional and default to empty arrays. `characterDefinitions` retains each
+supplied decoded authoring definition. The other six arrays are additive typed
+projections and exact external resource inventories; they never replace the
+retained definition records.
 
 Each source record-map key becomes `recordID`. That is the source document
 record identity. Other identities keep their authored names: for example,
@@ -85,9 +88,12 @@ The builder currently projects these proven relationships:
 - paperdoll color locations and color names;
 - paperdoll sculpting locations; and
 - paperdoll `backgroundID` to portrait resources;
-- part-type `partSource` to an exact prepared source record;
+- part-type `partSource` and `partSources` to exact prepared source records;
 - part-source `metadata` to an exact authored metadata record;
-- part-source version `metadata` to its effective authored metadata record; and
+- part-source version `metadata` to its effective authored metadata record;
+- metadata dependency/occlusion `partSource` to an exact part source;
+- metadata dependency/occlusion `modifierLocation` to an exact modifier
+  location; and
 - character-resource `resPath` to `partType` only when an exact type-profile
   record exists. The authored `resPath` remains unchanged.
 
@@ -137,17 +143,26 @@ relationships must remain equivalent.
 
 The builder accepts plain JSON values, rejects missing or unmodelled document
 families, blank source record keys, unknown model fields, and incompatible
-nested model shapes. It reserves `_id`, `_ref`, `_type`, and `recordID` in raw
-source records. It performs no acquisition, byte decoding, resource loading,
-policy resolution, or rendering. Successful builder output therefore hydrates
-without silently discarding input fields.
+nested model shapes. `recordID` remains reserved for the source-map key.
+`_type`, `_id`, and `_ref` retain their Carbon graph-hydration meaning: existing
+graph IDs are validated and reserved, and relationship projection generates
+non-colliding IDs only for referenced targets that still need one. They never
+replace `recordID`, `typeID`, or another named domain identity. The builder
+performs no acquisition, byte decoding, resource loading, policy resolution,
+or rendering. Successful builder output therefore hydrates without silently
+discarding input fields.
 
 The prepared catalogs contain only source-backed values:
 
-- `characterPartTypes`: logical source path, sex, part path, optional resource
-  version, optional color variant, and an optional exact source relationship;
-- `characterPartSources`: source folder identity and ordinary version records
-  containing exact configuration, geometry, and texture candidate paths;
+- `characterDefinitions`: exact indexed source path, source extension, and the
+  decoder's losslessly retained JSON value;
+
+- `characterPartTypes`: exact definition paths, logical part path, optional
+  resource version and color variant, retained bloodline identities, and exact
+  source relationships;
+- `characterPartSources`: logical source identity, every exact authored source
+  folder, and ordinary version records containing exact configuration,
+  geometry, and texture candidate paths;
 - `characterPartMetadata`: authored dependency, occlusion, replacement, swap,
   loose-top, boot-shin, sound, and color-area fields;
 - `characterMaterialProfiles`: authored colors, pattern values, transforms,
@@ -162,18 +177,30 @@ exact model-shaped fields are:
 
 | Collection | Record fields | Nested value shape |
 | --- | --- | --- |
-| `characterPartTypes` | `sourcePath`, `sex`, `partPath`, `resourceVersion`, `colorVariant`, `partSource` | `partSource` is an exact relationship or unresolved named identity. |
-| `characterPartSources` | `sourcePath`, `sex`, `partPath`, `versions`, `metadata` | Each version has `resourceVersion`, effective `metadata`, `configurationCandidates`, `geometryCandidates`, and `textureCandidates`; metadata fields are exact relationships or unresolved named identities. Version candidate arrays are a self-contained effective inventory, not implicit overrides of the unversioned record. |
-| `characterPartMetadata` | `sourcePath`, `alternativeTextureSourcePath`, `forcesLooseTop`, `hidesBootShin`, `lod1Replacement`, `lod2Replacement`, `numColorAreas`, `dependentModifiers`, `occludesModifiers`, `soundTag`, `swapTops`, `swapBottom`, `swapSocks`, `wap` | Dependency and occlusion fields are string arrays. |
+| `characterDefinitions` | `sourcePath`, `extension`, `values` | `values` is any JSON scalar, array, object, or `null` emitted by the source decoder. It is authoritative source evidence even when no typed catalog projection exists. |
+| `characterPartTypes` | `sourcePath`, `sourcePaths`, `sex`, `partPath`, `resourceVersion`, `colorVariant`, `bloodlineIDs`, `partSource`, `partSources` | `sourcePaths` retains every exact definition path. `partSources` retains every exact sex-specific source relationship; `partSource` is present only when that relationship is unique. `bloodlineIDs` retains authored bloodline identities but does not assert availability, allow-list, or deny-list semantics. |
+| `characterPartSources` | `sourcePath`, `sourcePaths`, `sex`, `partPath`, `versions`, `metadata` | `sourcePaths` is the complete authored folder list; `sourcePath` is its deterministic first entry for single-path consumers. Each version has `resourceVersion`, effective `metadata`, `configurationCandidates`, `geometryCandidates`, and `textureCandidates`; metadata fields are exact relationships or unresolved named identities. Version candidate arrays are a self-contained effective inventory, not implicit overrides of the unversioned record. |
+| `characterPartMetadata` | `sourcePath`, `alternativeTextureSourcePath`, `forcesLooseTop`, `hidesBootShin`, `lod1Replacement`, `lod2Replacement`, `numColorAreas`, `dependentModifiers`, `occludesModifiers`, `dependencies`, `occlusions`, `soundTag`, `swapTops`, `swapBottom`, `swapSocks`, `wap` | Raw dependency and occlusion fields remain string arrays. Each ordered `CjsCharacterModifierReference` retains `authoredValue`, an optional normalized unsuffixed `modifierPath`, and optional exact `partSource` and `modifierLocation` relationships. |
 | `characterMaterialProfiles` | `sourcePath`, `colors`, `pattern`, `patternColors`, `patternTransform`, `patternRotation`, `specularColors` | Every color entry is `{ "value": [r, g, b, a] }`. |
 | `characterProjectionProfiles` | `sourcePath`, `label`, `mode`, `angleRotation`, `aspectRatio`, `azimuth`, `texturePath`, `maskPath`, `headEnabled`, `bodyEnabled`, `flipX`, `flipY`, `height`, `incline`, `layer`, `maskPathEnabled`, `offset`, `pitch`, `planarBeta`, `planarScale`, `position`, `radius`, `roll`, `scale`, `yaw` | `offset` is a two-value vector and `position` is a three-value vector. |
 | `characterRecipeProfiles` | `sourcePath`, `sex`, `entries` | Each entry has `category`, `path`, `weight`, `colorVariation`, `colors`, `specularColors`, `pattern`, `patternColors`, `patternTransform`, and `patternRotation`; color entries use the same `{ "value": [...] }` shape. |
 
-Schema v6 has no runtime fallback relationship. A producer that reads sparse
+Schema v8 has no runtime fallback relationship. A producer that reads sparse
 baseline-plus-override authoring data must materialize effective candidate
 arrays and metadata for every published version before building the combined
 library. Empty arrays mean no candidates; the runtime resolver never merges
 version records.
+
+The tools-core producer projects an exact decoded `metadata.yaml` object into
+`characterPartMetadata` and links it to its baseline or ordinary
+`v<number>` source folder. The authoritative `characterDefinitions` value is
+retained unchanged; only the additive typed record maps the authored
+`dependantModifiers` spelling to `dependentModifiers`. Metadata folders with
+no selectable `.type` remain available as metadata-only part sources with
+their exact indexed candidates. An ordered modifier reference sits beside each
+unchanged raw dependency or occlusion value. The producer resolves only a safe
+unsuffixed path with an exact source/index or modifier-location join. Optional
+suffixes remain opaque; neither hydration nor the runtime resolver parses them.
 
 Candidate arrays do not assert semantic selection. The combined library does
 not contain inferred model families, filename-derived texture roles, compiled
@@ -181,11 +208,18 @@ recipe links, material fallbacks, or LOD/configuration/geometry pairings.
 External configuration graphs, geometry data, images, animations, and effects
 remain resource-manager inputs rather than embedded library objects.
 
+One published character resource can use the same definition identity for
+more than one sex. The appearance resolver selects an exact source from
+`partSources` through the resource's authored `resGender`. Missing or multiple
+matches remain diagnostics. It never selects the deterministic `sourcePath`
+representative as rendering policy.
+
 ## Combined catalog and editor mutation
 
-The eighteen collections form one combined runtime catalog. Individually
-published definition files are producer inputs; a runtime frontend does not
-reconstruct this catalog from them.
+The nineteen collections form one combined runtime catalog. Individually
+published definition files are producer inputs; their decoded values survive
+inside `characterDefinitions`, so a runtime frontend does not reconstruct the
+catalog from the publication files.
 
 An editor may hydrate and insert same-shaped values with
 `library.Create(documentName, values)`, or add an already-hydrated record with
@@ -204,6 +238,6 @@ model fields; call `Reindex()` after bypassing the named methods.
 
 `CjsCharacterLibraryManager` can install the combined model directly or obtain
 its decoded object through one injected loader. Plain installed values must
-contain all eighteen document arrays and must pass the same no-loss shape
+contain all nineteen document arrays and must pass the same no-loss shape
 check. The loader is not part of the library document and does not load the
 external assets named by its records.

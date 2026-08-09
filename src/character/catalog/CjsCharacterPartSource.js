@@ -1,7 +1,7 @@
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
-/** One character source folder with exact external resource candidates. */
+/** One logical character source with its exact authored resource folders and candidates. */
 @type.define({ className: "CjsCharacterPartSource", family: "character" })
 export class CjsCharacterPartSource extends CjsCharacterRecord
 {
@@ -9,6 +9,10 @@ export class CjsCharacterPartSource extends CjsCharacterRecord
     @io.readwrite
     @type.path
     sourcePath = "";
+
+    @io.readwrite
+    @type.list("string")
+    sourcePaths = [];
 
     @io.readwrite
     @type.string

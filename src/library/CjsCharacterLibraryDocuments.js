@@ -15,6 +15,7 @@ const DOCUMENT_DEFINITIONS = [
     [ "characterSculptingLocations", "CjsCharacterSculptingLocation", true ],
     [ "paperdolls", "CjsCharacterPaperdoll", true ],
     [ "races", "CjsCharacterRace", true ],
+    [ "characterDefinitions", "CjsCharacterDefinition", false ],
     [ "characterPartTypes", "CjsCharacterPartType", false ],
     [ "characterPartSources", "CjsCharacterPartSource", false ],
     [ "characterPartMetadata", "CjsCharacterPartMetadata", false ],
@@ -141,6 +142,11 @@ export class CjsCharacterLibraryDocuments extends CjsModel
     @io.flag("index:races")
     @type.list("CjsCharacterRace")
     races = [];
+
+    @io.readwrite
+    @io.flag("index:characterDefinitions")
+    @type.list("CjsCharacterDefinition")
+    characterDefinitions = [];
 
     @io.readwrite
     @io.flag("index:characterPartTypes")

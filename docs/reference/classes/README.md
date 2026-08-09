@@ -90,6 +90,16 @@ Transparent activity-archetype record retained by the character source document.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsCharacterAtlasLayout -->
+## `CjsCharacterAtlasLayout`
+
+Provides the verified logical regions of the shared character atlas.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/composition/CjsCharacterAtlasLayout.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCharacterAvatarBehavior -->
 ## `CjsCharacterAvatarBehavior`
 
@@ -200,6 +210,16 @@ Reusable appearance coverage expression shared across logical composition passes
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsCharacterDefinition -->
+## `CjsCharacterDefinition`
+
+Lossless JSON value decoded from one indexed character definition file.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterDefinition.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCharacterLibrary -->
 ## `CjsCharacterLibrary`
 
@@ -213,7 +233,7 @@ Hydrated character library whose public fields have the same shape as its JSON v
 <!-- class:CjsCharacterLibraryBuilder -->
 ## `CjsCharacterLibraryBuilder`
 
-Builds schema-v6 model-shaped JSON from source documents and prepared catalogs.
+Builds schema-v8 model-shaped JSON from source documents and lossless definition catalogs.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/library-builder/CjsCharacterLibraryBuilder.js`
@@ -260,6 +280,26 @@ Authored modifier location naming one category and variation.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsCharacterModifierOrder -->
+## `CjsCharacterModifierOrder`
+
+Resolves and applies the verified stable character-modifier order policy.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/composition/CjsCharacterModifierOrder.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterModifierReference -->
+## `CjsCharacterModifierReference`
+
+Additive typed projection beside one losslessly retained authored modifier string.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterModifierReference.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCharacterModifierSelection -->
 ## `CjsCharacterModifierSelection`
 
@@ -303,7 +343,7 @@ Authored metadata associated with one character part source.
 <!-- class:CjsCharacterPartSource -->
 ## `CjsCharacterPartSource`
 
-One character source folder with exact external resource candidates.
+One logical character source with its exact authored resource folders and candidates.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/character/catalog/CjsCharacterPartSource.js`
@@ -393,7 +433,7 @@ Base for one record whose identity is the key from its source document.
 <!-- class:CjsCharacterResolvedPart -->
 ## `CjsCharacterResolvedPart`
 
-Plan-local part contributor with one atomic configuration and geometry choice.
+Plan-local source-version contributor with optional exact configuration and geometry choices.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/character/planning/CjsCharacterResolvedPart.js`

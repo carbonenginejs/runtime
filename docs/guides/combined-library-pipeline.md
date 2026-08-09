@@ -52,14 +52,18 @@ it must not invent a resource relationship when an exact join is absent.
 
 The compiler must distinguish two kinds of input:
 
-- Library definitions are folded into the combined JSON as typed character
-  items. The frontend needs their final values, not their publication files.
+- Every decoded library definition is folded into the combined JSON as a
+  lossless `characterDefinitions` record. Typed character items are additive
+  indexes over definitions whose relationships are understood. The frontend
+  needs the decoded values, not the original publication files.
 - Runtime assets remain canonical `res:/` references. Configurations, geometry,
   textures, animations, and effects are acquired by the caller's
   resource manager when a selected character needs them.
 
-Decoded or derived resource facts needed for deterministic selection may be
-stored in the combined catalog. Downloaded bytes, resource handles, cache
+Decoded definition values and derived resource facts needed for deterministic
+selection may be stored in the combined catalog. A producer must fail instead
+of silently dropping a supplied decoded definition. Downloaded bytes, resource
+handles, cache
 locations, acquisition settings, enrichment datasets, and producer index
 storage paths must not be stored in it.
 

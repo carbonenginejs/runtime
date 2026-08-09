@@ -32,9 +32,17 @@ as `typeID` remain ordinary domain data. Unknown fields and incompatible nested
 model shapes are rejected so a successful build cannot silently lose values
 during hydration.
 
+Supplied `characterDefinitions` records preserve the decoder's JSON in their
+`values` field. Their typed profile catalogs are additional lookup structures;
+consumers can still inspect an exact decoded definition when no typed
+projection exists yet.
+
 The builder projects proven relationships using native `_id` and `_ref`
-metadata. Those tokens are local to the serialized graph and may be renumbered.
-They are not record, type, race, resource, or other domain identities.
+metadata. Supplied graph metadata is preserved and reserved against generated
+relationship IDs; a later `GetValues({ refs: true })` export may assign a new
+equivalent set of graph-local tokens. They are not record, type, race,
+resource, or other domain identities. `_type` remains the registered Carbon
+model selector.
 
 ## Mutate editor items
 
@@ -165,9 +173,16 @@ const paperdoll = library.Get("paperdolls", paperdollID);
 const resolved = CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperdoll);
 ```
 
-This stage preserves modifier selections and emits a part only for a strict
-version containing exactly one configuration and one geometry candidate. Its
+This stage preserves modifier selections and emits a plan contribution for
+every strict source-version match. It fills configuration and geometry only
+when that version contains exactly one candidate of each. Its
 `layers` collection records owner/contributor relationships, not atlas order.
+Effective version metadata contributes the five verified modifier-order flags,
+but this policy normalization does not reorder `plan.layers`. Raw dependency
+and occlusion strings remain untouched and produce one precise diagnostic per
+value; they do not create, remove, or redirect parts. Unknown modifier
+categories are retained and diagnosed rather than dropped.
+
 Until later stages supply decoded resource facts or explicit policy, textures,
 coverage, targets, passes, and bindings remain empty and diagnostics explain
 the unresolved work.

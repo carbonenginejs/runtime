@@ -241,7 +241,7 @@ export class CjsCharacterAppearancePlan extends CjsModel
 
     @io.readwrite
     @type.uint32
-    schemaVersion = 1;
+    schemaVersion = 2;
 
     @io.readwrite
     @type.string

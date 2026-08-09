@@ -4,14 +4,20 @@ GPU-free character source documents, combined-library loading, and native
 Trinity character classes for CarbonEngineJS. Acquisition remains
 caller-owned through structural loaders.
 
-The package has four independent surfaces:
+The root export also provides source-neutral modifier-order and shared-atlas
+layout helpers for resolvers. Resource loading, shader realization, mesh
+replacement, and animation rebinding remain renderer responsibilities.
 
-- a source-neutral schema-v6 model-shaped JSON library built from
-  caller-supplied record-map documents and prepared profile catalogs;
+The package has five independent surfaces:
+
+- a source-neutral schema-v8 model-shaped JSON library built from
+  caller-supplied record-map documents, losslessly retained decoded
+  definitions, and additive prepared profile catalogs;
 - source-backed character record models under `src/character`, hydrated as one
   connected library graph;
 - a standalone, renderer-neutral appearance-plan JSON/model graph plus an
-  exact first-stage paper-doll resolver under `src/character`; and
+  exact first-stage paper-doll resolver under `src/character`;
+- verified source-neutral modifier-order and shared-atlas policy utilities; and
 - current Carbon `Tr2*`, `Tri*`, and `Wod*` character/interior classes under
   `src/trinity`.
 
@@ -50,23 +56,25 @@ own named fields. Proven relationships use native document-local `_id` and
 `_id`; missing positive targets remain visible as their named identifier value.
 
 `CjsCharacterLibrary.from(bigJSON)` and `new CjsCharacterLibrary().SetValues(bigJSON)`
-hydrate the same eighteen document collections into `CjsModel` records. Twelve
-direct source documents are required; six folded profile/resource catalogs are
-optional builder inputs. The library does not retain or translate a second
-JSON representation. Its normal
+hydrate the same nineteen document collections into `CjsModel` records. Twelve
+direct source documents are required; the lossless decoded-definition document
+and six derived profile/resource catalogs are optional builder inputs. A
+derived catalog never replaces its source definition. The library does not
+retain or translate a second JSON representation. Its normal
 `GetValues({ refs: true })` output can be serialized and hydrated again.
 
 Editors can incrementally call `Create`, `Add`, `Remove`, `Delete`, or `Clear`
 without changing that JSON shape. The library lazily invalidates the affected
 document index and emits record/document events for UI synchronization.
 
-`CjsCharacterAppearancePlan.from(bigJSON)` hydrates a separate schema-v1 plan
+`CjsCharacterAppearancePlan.from(bigJSON)` hydrates a separate schema-v2 plan
 through the inherited `CjsModel` contract. Its `_id`/`_ref` graph closes within
 the document. It records resolved ownership, contributors, textures, reusable
 coverage, ordered logical composition, final bindings, and provenance.
 `CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperdoll)` resolves
-only exact source relationships and uniquely determined configuration/geometry
-candidates. It emits diagnostics and leaves composition empty when dependency,
+only exact source relationships. Every exact source version remains a plan
+contribution; configuration and geometry fields are filled only when their
+candidates are unique. It emits diagnostics and leaves composition empty when dependency,
 LOD, material, texture-role, coverage, or pass-order policy is not proven. The
 package does not execute the plan. Prototype bake order and filename heuristics
 are not source-record fields.

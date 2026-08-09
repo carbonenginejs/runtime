@@ -213,7 +213,7 @@ class CjsCharacterAppearancePlan extends CjsModel {
     return CjsModel.deleteChild(this, "diagnostics", value, options);
   }
   schema = _init_schema(this, "carbonenginejs.characterAppearancePlan");
-  schemaVersion = (_init_extra_schema(this), _init_schemaVersion(this, 1));
+  schemaVersion = (_init_extra_schema(this), _init_schemaVersion(this, 2));
   sourceBuild = (_init_extra_schemaVersion(this), _init_sourceBuild(this, null));
   origins = (_init_extra_sourceBuild(this), _init_origins(this, []));
   selections = (_init_extra_origins(this), _init_selections(this, []));
