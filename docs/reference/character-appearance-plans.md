@@ -147,6 +147,9 @@ therefore creates no targets or passes.
 The native modifier policy starts with 33 categories and stable-sorts by
 `categoryIndex * 1000 + groupIndex`. Only `makeup` has a recognized group
 table; other known categories and unknown makeup groups use group index 999.
+Authored modifier-location keys retain their complete value as the selection
+`groupID`; only the verified `makeup/<group>` prefix is projected into the
+`makeup` category and its named suborder for sorting.
 An unknown category uses the complete key -1. Equal keys retain their input
 inventory order. Five metadata flags can swap the endpoint slots for feet,
 loose bottoms, tight/middle tops, tucked/untucked top underwear, and

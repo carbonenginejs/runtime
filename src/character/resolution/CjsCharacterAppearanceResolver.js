@@ -94,8 +94,10 @@ function ResolveModifier(plan, paperdoll, modifier, modifierIndex, groupIDs, mod
         groupID: location.modifierKey,
         origin: selectionOrigin
     });
+    const modifierOrderIdentity = ResolveModifierOrderIdentity(selection.groupID);
     const modifierPolicy = {
-        category: selection.groupID,
+        category: modifierOrderIdentity.category,
+        group: modifierOrderIdentity.group,
         metadata: null,
         origin: selectionOrigin
     };
@@ -510,7 +512,7 @@ function ResolveModifierPolicy(plan, modifierPolicies)
     const ordered = CjsCharacterModifierOrder.sort(modifierPolicies, {
         categories,
         getCategory: value => value.category,
-        getGroup: () => ""
+        getGroup: value => value.group
     });
 
     for (const value of ordered)
@@ -528,6 +530,22 @@ function ResolveModifierPolicy(plan, modifierPolicies)
             value.origin
         );
     }
+}
+
+function ResolveModifierOrderIdentity(groupID)
+{
+    const value = String(groupID ?? "");
+    const makeupPrefix = "makeup/";
+
+    if (value.startsWith(makeupPrefix))
+    {
+        return {
+            category: "makeup",
+            group: value.slice(makeupPrefix.length)
+        };
+    }
+
+    return { category: value, group: "" };
 }
 
 function AddOrigin(plan, values)

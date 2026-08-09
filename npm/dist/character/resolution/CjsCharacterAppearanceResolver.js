@@ -52,8 +52,10 @@ function ResolveModifier(plan, paperdoll, modifier, modifierIndex, groupIDs, mod
     groupID: location.modifierKey,
     origin: selectionOrigin
   });
+  const modifierOrderIdentity = ResolveModifierOrderIdentity(selection.groupID);
   const modifierPolicy = {
-    category: selection.groupID,
+    category: modifierOrderIdentity.category,
+    group: modifierOrderIdentity.group,
     metadata: null,
     origin: selectionOrigin
   };
@@ -241,7 +243,7 @@ function ResolveModifierPolicy(plan, modifierPolicies) {
   const ordered = CjsCharacterModifierOrder.sort(modifierPolicies, {
     categories,
     getCategory: value => value.category,
-    getGroup: () => ""
+    getGroup: value => value.group
   });
   for (const value of ordered) {
     if (CjsCharacterModifierOrder.getSortKey(value.category, "", categories) !== -1) {
@@ -249,6 +251,20 @@ function ResolveModifierPolicy(plan, modifierPolicies) {
     }
     AddDiagnostic(plan, "MODIFIER_CATEGORY_UNKNOWN", `Selection category ${JSON.stringify(value.category)} is absent from the native modifier order.`, "info", value.origin);
   }
+}
+function ResolveModifierOrderIdentity(groupID) {
+  const value = String(groupID ?? "");
+  const makeupPrefix = "makeup/";
+  if (value.startsWith(makeupPrefix)) {
+    return {
+      category: "makeup",
+      group: value.slice(makeupPrefix.length)
+    };
+  }
+  return {
+    category: value,
+    group: ""
+  };
 }
 function AddOrigin(plan, values) {
   return plan.CreateOrigin(values);

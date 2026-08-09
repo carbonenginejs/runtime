@@ -513,6 +513,25 @@ test("reports unknown modifier categories without suppressing exact parts", () =
     ]);
 });
 
+test("maps authored makeup modifier keys into the verified makeup suborder", () =>
+{
+    const documents = CreateDocuments();
+
+    documents.characterModifierLocations[10].modifierKey = "makeup/eyes";
+
+    const library = CreateLibrary(documents);
+    const plan = CjsCharacterAppearanceResolver.resolvePaperdoll(
+        library,
+        library.Get("paperdolls", "30")
+    );
+
+    assert.equal(plan.selections[0].groupID, "makeup/eyes");
+    assert.deepEqual(plan.diagnostics.map(value => value.code), [
+        "TEXTURE_ROLES_UNRESOLVED",
+        "PASS_ORDER_UNRESOLVED"
+    ]);
+});
+
 test("requires the hydrated paper doll to belong to the supplied library", () =>
 {
     const library = CreateLibrary();
