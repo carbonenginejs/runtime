@@ -26,7 +26,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.8.0",
+  "version": "0.9.0",
   "files": [
     "dist",
     "docs",
@@ -35,7 +35,7 @@
     "NOTICE"
   ],
   "dependencies": {
-    "@carbonenginejs/runtime-resource": "^0.11.1",
+    "@carbonenginejs/runtime-resource": "^0.15.0",
     "@carbonenginejs/runtime-utils": "^0.1.2"
   },
   "type": "module",
