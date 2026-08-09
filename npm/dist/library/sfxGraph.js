@@ -1,4 +1,4 @@
-import { normalizeStaticParametricEqChain } from '../internal/busEffects.js';
+import { normalizeStaticSourceEffectChain } from '../internal/busEffects.js';
 
 const SFX_SCHEMA_VERSION = 2;
 const NODE_TYPES = new Set(["blend", "parallel", "random", "sequence", "silence", "timed-silence", "sound", "switch"]);
@@ -76,7 +76,7 @@ function validateSfxGraph(graph, media = {}, embeddedMedia = {}) {
       }
       ValidateDryVolumeCurve(node.dryVolumeCurve, `Audio library SFX sound ${id} dryVolumeCurve`);
       if (node.sourceEffects !== undefined) {
-        normalizeStaticParametricEqChain(node.sourceEffects, `Audio library SFX sound ${id} sourceEffects`);
+        normalizeStaticSourceEffectChain(node.sourceEffects, `Audio library SFX sound ${id} sourceEffects`);
       }
       ValidatePhysicalLeafIdentity(node, id, `Audio library SFX sound ${id}`);
       continue;
@@ -326,11 +326,13 @@ function NormalizeNode(node) {
       };
     }
     if (node.sourceEffects !== undefined) {
-      result.sourceEffects = normalizeStaticParametricEqChain(node.sourceEffects, `Audio library SFX sound ${node.mediaId} sourceEffects`).map(effect => ({
+      result.sourceEffects = normalizeStaticSourceEffectChain(node.sourceEffects, `Audio library SFX sound ${node.mediaId} sourceEffects`).map(effect => ({
         ...effect,
-        bands: effect.bands.map(band => ({
-          ...band
-        }))
+        ...(effect.type === "parametric-eq" ? {
+          bands: effect.bands.map(band => ({
+            ...band
+          }))
+        } : {})
       }));
     }
     NormalizePhysicalLeafIdentity(result, node);

@@ -1,6 +1,6 @@
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
-// source -> authored source EQ -> voice/bus filters -> source/distance and Bus gains
+// source -> authored source effects -> voice/bus filters -> source/distance and Bus gains
 // -> emitter gain -> PannerNode(HRTF direction only) -> qualified shared Bus effects
 // -> master gain -> destination. Blocked/graphless routes retain their legacy
 // distributed Bus-effect chain before the emitter. Each playing source owns
@@ -38,7 +38,7 @@ import {
     createBusEffectChain,
     createWwiseEffectChain,
     indexBusEffectCatalog,
-    normalizeStaticParametricEqChain,
+    normalizeStaticSourceEffectChain,
 } from "./internal/busEffects.js";
 
 const DEFAULT_FADE_SECONDS = 1;
@@ -5303,6 +5303,10 @@ export class CjsAudioBackend
     /** Marks one physical voice complete and closes its logical event at zero. */
     #VoiceEnded(playingID, record, voice)
     {
+        // Source-owned effects share the disposable voice lifetime. In
+        // particular, Web Audio's DelayNode exposes no Wwise tail-completion
+        // signal, so natural completion remains the decoded dry-source
+        // boundary and #FinishPlaying disconnects any residual feedback.
         this.#EndVoiceDucking(
             voice,
             Number(this.#context?.currentTime) || 0,
@@ -8465,7 +8469,7 @@ function NormalizeVoiceDescriptors(result, eventLoop)
         );
         const sourceEffects = value.sourceEffects === undefined
             ? undefined
-            : normalizeStaticParametricEqChain(
+            : normalizeStaticSourceEffectChain(
                 value.sourceEffects,
                 `Audio voice ${index} sourceEffects`,
             );

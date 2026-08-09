@@ -7641,6 +7641,68 @@ test("Sound-local Parametric EQ precedes live Voice filters and survives as one 
   assert.equal(voiceLowPass.disconnected, true);
 });
 
+test("Sound-local Wwise Delay realizes before live Voice filters", async () =>
+{
+  const sourceEffects = [ {
+    effectId: "920",
+    slotIndex: 0,
+    type: "delay",
+    delayTimeSeconds: 0.28,
+    feedbackPercent: 32,
+    wetDryMixPercent: 30.5,
+    outputGainDb: 0,
+    feedbackEnabled: true,
+    processLfe: true,
+  } ];
+  const { backend, emitter, context } = Harness({
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 2 },
+        loop: false,
+        sourceEffects,
+        lowPass: 20,
+        getGain: () => 1,
+      } ],
+    }),
+  });
+  context.delays = [];
+  context.createDelay = maxDelayTime =>
+  {
+    const delay = {
+      maxDelayTime,
+      delayTime: FakeParam(0),
+      connections: [],
+      disconnected: false,
+      connect(target) { delay.connections.push(target); },
+      disconnect() { delay.disconnected = true; },
+    };
+
+    context.delays.push(delay);
+    return delay;
+  };
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+
+  const [ input, dry, wet, output, feedback ] = context.gains.slice(-5);
+  const [ delay ] = context.delays;
+  const lowPass = context.filters[0];
+
+  assert.equal(context.sources[0].connectedTo, input);
+  assert.equal(delay.maxDelayTime, 0.28);
+  assert.equal(delay.delayTime.value, 0.28);
+  assert.ok(Math.abs(dry.gain.value - 0.695) < 1e-12);
+  assert.ok(Math.abs(wet.gain.value - 0.305) < 1e-12);
+  assert.equal(feedback.gain.value, 0.32);
+  assert.deepEqual(input.connections, [ dry, delay ]);
+  assert.deepEqual(delay.connections, [ wet, feedback ]);
+  assert.equal(output.connectedTo, lowPass);
+
+  context.sources[0].onended();
+  assert.equal(delay.disconnected, true);
+  assert.equal(lowPass.disconnected, true);
+});
+
 test("routed SFX activity ducks future target voices and releases on source end", async () =>
 {
   const busDuckingController = new CjsBusDuckingController({

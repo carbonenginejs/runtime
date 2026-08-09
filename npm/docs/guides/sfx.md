@@ -165,7 +165,7 @@ but the rejected shared Delay and Peak Limiter character is omitted.
 
 | Type | Behavior |
 | --- | --- |
-| `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, `spatial` selects the panner (`true`) or flat SFX route (`false`), `dryVolumeCurve` retains the leaf's Wwise distance gain, `sourceEffects` retains a complete qualified direct static Parametric EQ chain, and the qualified `voiceLimit` shape reserves a cap-one per-game-object instance before media acquisition. |
+| `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, `spatial` selects the panner (`true`) or flat SFX route (`false`), `dryVolumeCurve` retains the leaf's Wwise distance gain, `sourceEffects` retains a complete qualified effective static Parametric EQ/Wwise Delay chain, and the qualified `voiceLimit` shape reserves a cap-one per-game-object instance before media acquisition. |
 | `silence` | Produces no voice. This preserves authored empty switch/state cases without falling through to the default. |
 | `timed-silence` | Produces one finite silent voice with authored `durationMs`. It owns lifecycle, routing, Stop matching, Continuous completion, and qualified voice-limit admission without acquiring media. |
 | `random` | Chooses one weighted child. `mode: "shuffle"` exhausts a pool before refilling it; `avoidRepeat` excludes recent choices. |
@@ -268,21 +268,26 @@ All and All-Except use qualified exact stored bus identities; EVE currently
 exercises Element.
 
 A portable `sound` node may also carry `sourceEffects`, an ordered list of
-static Parametric EQ records. The builder emits this list only for a direct
-Sound NodeBase effect override whose complete active slot sequence is
-control-free Parametric EQ with ordinary LFE processing. Playback creates one
-Web Audio biquad chain per physical voice before the authored Voice LPF/HPF,
-gain, spatial/auxiliary split, and Audio Bus effects. Pause, seek, and finite
-repeat source replacement reuse that voice-owned chain.
+static Parametric EQ and Wwise Delay records. The builder walks the Sound's
+NodeBase ancestry to the first effect override, treating a root list as
+effective and an explicit empty override as a replacement that clears the
+parent list. It emits the chain only when every active slot is a control-free
+Parametric EQ or Wwise Delay with ordinary LFE processing. Playback creates
+one Web Audio chain per physical voice before the authored Voice LPF/HPF,
+gain, spatial/auxiliary split, and Audio Bus effects.
 
-This is a browser DSP adaptation, not a native Wwise filter claim. Bypassed or
-rendered slots need no live stage. Mixed plug-in sequences, EQ with RTPC,
-State, property-value, or media controls, `processLfe:false`, and inherited
-Actor-Mixer effect lists retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 20 such
-qualified Sound leaves across 39 retained events; 19 chains are non-neutral.
-Five mixed Tremolo/EQ chains and five dynamic EQ leaves remain intentionally
-unrealized.
+This is a browser DSP adaptation, not a native Wwise filter or Delay claim.
+Bypassed or rendered slots need no live stage. Pause and seek reuse the
+voice-owned browser nodes instead of freezing or reconstructing native Wwise
+plug-in state. Natural completion still follows the decoded dry source;
+`DelayNode` has no Wwise tail-completion callback, so residual feedback is cut
+when the voice is disposed. Mixed plug-in sequences, EQ/Delay with RTPC,
+State, property-value, or media controls, `processLfe:false`, and unsupported
+plug-ins retain the previous dry-playback approximation rather than applying
+part of an authored chain. EVE build 3453885 installs 317 qualified Sound
+leaves across 127 retained events: 238 use Parametric EQ, 79 use Wwise Delay,
+and 150 EQ chains are non-neutral. Five mixed Tremolo/EQ chains and five
+dynamic EQ leaves remain intentionally unrealized.
 
 Set Voice Pitch stores one cents contribution for the target HIRC element.
 `valueMode: "absolute"` replaces that contribution; `"relative"` adds to its
@@ -998,9 +1003,11 @@ because Reset Playlist at Each Play is disabled.
 
 This makes EVE build 3453885's `jita_sfx_incidentals_level3_play` playable, but
 it is deliberately not DSP- or tail-exact. Random step `211583824` inherits
-Wwise Delay ShareSet `2464647643`; runtime-audio does not realize that inherited
-effect or its feedback tail. The completion boundary therefore follows decoded
-dry voices. General nested non-Switch Continuous clocks remain fail-closed.
+static Wwise Delay ShareSet `2464647643`; its nine Sound children now receive
+the authored 280 ms delay, 32.5-percent feedback, and 30.5-percent wet mix
+through the browser Delay adaptation. The completion boundary still follows
+decoded dry voices and therefore cuts the residual feedback tail. General
+nested non-Switch Continuous clocks remain fail-closed.
 Trigger Rate Pause does not freeze the cadence or carry a pause depth into
 future child keys; the qualified Upwell consumers use Play and outer-container
 Stop actions, so that broader behavior is not claimed as Wwise parity.
@@ -1022,10 +1029,10 @@ pre-started form. Each outer thrust blend has three looping Sounds and one
 infinite Trigger Rate Random child; its nested speed/direction blends also
 reach only infinite children. Their live gain, Volume, Pitch, LPF, HPF, delayed
 Voice Volume actions, and matching three-second `off` Stop fade are preserved.
-Their inherited container effect chains are not: the bank assigns dynamic
+Their inherited container effect chains remain unsupported: the bank assigns dynamic
 Parametric EQ `1730584540`, Flanger `2328072489`, and Tremolo `1286274856`
-ShareSets, while runtime-audio only
-projects a qualified direct static Parametric EQ on a Sound. The browser
+ShareSets, while runtime-audio only projects complete static Parametric EQ and
+Wwise Delay overrides. The browser
 result is consequently drier and less modulated as well as pre-started.
 
 EVE build 3453885's `ship_module_shield_drain_play` mixes two Play actions.

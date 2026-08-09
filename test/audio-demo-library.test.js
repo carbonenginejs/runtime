@@ -979,6 +979,21 @@ test("committed demo library carries authored SFX and music semantics", () =>
         { min: 0, max: 20000 },
     );
     assert.equal(jitaInner.continuous.resetPlaylistEachPlay, false);
+    assert.deepEqual(
+        graph.nodes["140944680"].sourceEffects,
+        [ {
+            effectId: "2464647643",
+            slotIndex: 0,
+            type: "delay",
+            delayTimeSeconds: Math.fround(0.28),
+            feedbackPercent: 32.5,
+            wetDryMixPercent: 30.5,
+            outputGainDb: 0,
+            feedbackEnabled: true,
+            processLfe: true,
+        } ],
+        "the Jita incidental leaf inherits its authored static Delay",
+    );
     assert.equal(
         library.eventMedia.jita_sfx_incidentals_level3_play.length,
         48,
@@ -1066,15 +1081,23 @@ test("committed demo library carries authored SFX and music semantics", () =>
         node.matchIds[0] === id));
 
     const nodes = Object.values(graph.nodes);
-    const sourceEqSounds = nodes.filter(node =>
+    const sourceEffectSounds = nodes.filter(node =>
         Array.isArray(node.sourceEffects));
+    const sourceEqSounds = sourceEffectSounds.filter(node =>
+        node.sourceEffects.some(effect =>
+            effect.type === "parametric-eq"));
+    const sourceDelaySounds = sourceEffectSounds.filter(node =>
+        node.sourceEffects.some(effect => effect.type === "delay"));
 
-    assert.equal(sourceEqSounds.length, 21);
+    assert.equal(sourceEffectSounds.length, 317);
+    assert.equal(sourceEqSounds.length, 238);
+    assert.equal(sourceDelaySounds.length, 79);
     assert.equal(
         sourceEqSounds.filter(node => node.sourceEffects.some(effect =>
-            effect.outputGainDb !== 0
-            || effect.bands.some(band => band.gainDb !== 0))).length,
-        20,
+            effect.type === "parametric-eq"
+            && (effect.outputGainDb !== 0
+                || effect.bands.some(band => band.gainDb !== 0)))).length,
+        150,
         "the exact demo retains every qualified non-neutral Sound-local EQ",
     );
     assert.deepEqual(

@@ -169,17 +169,18 @@ instance has RTPC, State, property-value, or media controls. Eleven EQ
 definitions outside the qualified Audio Bus slots do have controls and are not
 silently promoted; their SFX NodeBase effect slots remain unsupported.
 
-The later EVE build 3453885 source-local audit separates direct Sound effects
-from those Bus results. Of 33 direct active Sound chains containing Parametric
-EQ, 23 complete static EQ-only chains qualify. Twenty of those Sound leaves
-are installed and reachable from 39 retained events, and 19 are acoustically
-non-neutral. They run once per voice before Voice LPF/HPF and before the
-emitter/auxiliary split. Five chains mixed with Wwise Tremolo and five EQ
-leaves with live RTPC controls remain dry-playback approximations; overlapping
-property-value and independent-LFE barriers are not partially applied.
-Inherited NodeBase effect lists remain a separate slice because their empty
-override and parent-replacement semantics have not yet been projected into the
-portable graph.
+The later EVE build 3453885 source-local path resolves the first effective
+NodeBase effect override for every retained Sound. A descendant override
+replaces its parent list, an explicit empty override clears it, and a root list
+is effective even when its override bit is clear. Complete static,
+control-free Parametric EQ/Wwise Delay chains are projected once per voice
+before Voice LPF/HPF and the emitter/auxiliary split. The exact demo now
+installs 317 qualified Sound leaves across 127 retained events: 238 EQ leaves
+across 120 events and 79 Delay leaves across eight events. Of the EQ leaves,
+150 are acoustically non-neutral. Five chains mixed with Wwise Tremolo and
+five EQ leaves with live RTPC controls remain dry-playback approximations;
+overlapping property-value, unsupported-plug-in, and independent-LFE barriers
+are not partially applied.
 
 The builder and shared mixer follow pinned wwiser's version-150 56-byte
 parameter layout, validate exact boolean bytes and ShareSet/Custom slot
@@ -200,6 +201,11 @@ independent browser LFE branch exists, and rejects every dynamic, media, or
 malformed record before allocating nodes. It realizes one shared Web Audio
 dry/wet split, optional feedback loop, and output gain in authored Bus/slot
 order. This is an explicit browser DSP adaptation, not a native Wwise claim.
+The same stage may be voice-owned for a qualified source override. Its
+post-source feedback tail is deliberately not a lifecycle clock: Web Audio
+does not expose Wwise's plug-in tail completion, so disposal at decoded
+dry-source completion cuts residual feedback. Pause and seek likewise reuse
+browser node state rather than claiming native plug-in-state parity.
 
 [wwise-delay]: https://www.audiokinetic.com/en/public-library/2025.1.3_9039/?id=wwise_delay_plug_in&source=Help
 
@@ -310,7 +316,7 @@ Both routes contain effect processing. The Convolution Reverb also consumes an
 opaque `PLUG` payload rather than WEM audio, and the complete paths include a
 Wwise Peak Limiter. Consequently, the implemented dry route retains the correct
 separate Make-Up Gain contract but does not yet make those EVE values audible.
-The next aux/effect slice must realize the effective auxiliary routing together
+The remaining general aux/effect slice must realize the effective auxiliary routing together
 with its ordered qualified effect chains; routing those sends as dry parallel
 copies would not be a parity implementation.
 

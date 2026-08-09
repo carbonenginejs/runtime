@@ -3,11 +3,11 @@ import { evaluateWwiseRtpcCurve, wwiseDbRtpcValueToDb } from './internal/wwiseRt
 import { indexBusRtpcCatalog, busRtpcCatalogUsesControl, busRtpcPathUses, evaluateBusRtpcGainDb, evaluateBusVoiceRtpcGainDb } from './internal/busRtpc.js';
 import { indexBusStateCatalog, busStatePathUses, evaluateBusStateProperties, evaluateBusStateGainDb } from './internal/busState.js';
 import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
-import { indexBusEffectCatalog, createBusEffectChain, createWwiseEffectChain, normalizeStaticParametricEqChain } from './internal/busEffects.js';
+import { indexBusEffectCatalog, createBusEffectChain, createWwiseEffectChain, normalizeStaticSourceEffectChain } from './internal/busEffects.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
-// source -> authored source EQ -> voice/bus filters -> source/distance and Bus gains
+// source -> authored source effects -> voice/bus filters -> source/distance and Bus gains
 // -> emitter gain -> PannerNode(HRTF direction only) -> qualified shared Bus effects
 // -> master gain -> destination. Blocked/graphless routes retain their legacy
 // distributed Bus-effect chain before the emitter. Each playing source owns
@@ -3010,6 +3010,10 @@ class CjsAudioBackend {
 
   /** Marks one physical voice complete and closes its logical event at zero. */
   #VoiceEnded(playingID, record, voice) {
+    // Source-owned effects share the disposable voice lifetime. In
+    // particular, Web Audio's DelayNode exposes no Wwise tail-completion
+    // signal, so natural completion remains the decoded dry-source
+    // boundary and #FinishPlaying disconnects any residual feedback.
     this.#EndVoiceDucking(voice, Number(this.#context?.currentTime) || 0, voice.cancelledBeforeStart === true);
     voice.ended = true;
     voice.source?.disconnect?.();
@@ -4696,7 +4700,7 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
     const switchFadeInMs = Number(value.switchFadeInMs ?? 0);
     const fadeCurve = Number(value.fadeCurve ?? LINEAR_FADE_CURVE);
     const dryVolumeCurve = NormalizeVoiceDryVolumeCurve(value.dryVolumeCurve, index);
-    const sourceEffects = value.sourceEffects === undefined ? undefined : normalizeStaticParametricEqChain(value.sourceEffects, `Audio voice ${index} sourceEffects`);
+    const sourceEffects = value.sourceEffects === undefined ? undefined : normalizeStaticSourceEffectChain(value.sourceEffects, `Audio voice ${index} sourceEffects`);
     const silenceDurationSeconds = value.silenceDurationSeconds === undefined ? undefined : Number(value.silenceDurationSeconds);
     if (!Number.isSafeInteger(playCount) || playCount <= 0) {
       throw new TypeError(`Audio voice ${index} playCount must be a positive integer`);

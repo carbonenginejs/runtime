@@ -90,6 +90,14 @@ function indexBusEffectCatalog(value) {
 
 /** Validates one ordered, static Parametric-EQ-only effect chain. */
 function normalizeStaticParametricEqChain(value, ownerLabel) {
+  return NormalizeStaticWwiseEffectChain(value, ownerLabel, false);
+}
+
+/** Validates one ordered static effect chain supported on a source voice. */
+function normalizeStaticSourceEffectChain(value, ownerLabel) {
+  return NormalizeStaticWwiseEffectChain(value, ownerLabel, true);
+}
+function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay) {
   if (!Array.isArray(value) || !value.length) {
     throw new TypeError(`${ownerLabel} must have effects`);
   }
@@ -103,6 +111,25 @@ function normalizeStaticParametricEqChain(value, ownerLabel) {
       throw new TypeError(`${label} duplicates slot ${slotIndex}`);
     }
     slots.add(slotIndex);
+    if (allowDelay && effect.type === "delay") {
+      if (effect.processLfe !== true) {
+        throw new TypeError(`${label} processLfe must be true until independent LFE routing is supported`);
+      }
+      if (typeof effect.feedbackEnabled !== "boolean") {
+        throw new TypeError(`${label} feedbackEnabled must be boolean`);
+      }
+      return Object.freeze({
+        effectId,
+        slotIndex,
+        type: "delay",
+        delayTimeSeconds: BoundedFinite(effect.delayTimeSeconds, DELAY_TIME_MIN, DELAY_TIME_MAX, `${label} delayTimeSeconds`),
+        feedbackPercent: BoundedFinite(effect.feedbackPercent, DELAY_PERCENT_MIN, DELAY_PERCENT_MAX, `${label} feedbackPercent`),
+        wetDryMixPercent: BoundedFinite(effect.wetDryMixPercent, DELAY_PERCENT_MIN, DELAY_PERCENT_MAX, `${label} wetDryMixPercent`),
+        outputGainDb: BoundedFinite(effect.outputGainDb, DELAY_OUTPUT_GAIN_MIN, DELAY_OUTPUT_GAIN_MAX, `${label} outputGainDb`),
+        feedbackEnabled: effect.feedbackEnabled,
+        processLfe: true
+      });
+    }
     if (effect.type !== "parametric-eq") {
       throw new TypeError(`${label} has unsupported type ${effect.type}`);
     }
@@ -355,7 +382,22 @@ function parseGraphStaticParametricEq(effect, effectId, slotIndex) {
 /** Decodes one source-proven static v150 Wwise Delay parameter block. */
 function parseGraphStaticWwiseDelay(effect, effectId, slotIndex) {
   const label = `Audio Bus graph effect ${effectId}`;
-  const bytes = RequireStaticGraphEffect(effect, WWISE_DELAY_PLUGIN_ID, 18, label, "Wwise Delay");
+  return parseStaticWwiseDelayBytes(RequireStaticGraphEffect(effect, WWISE_DELAY_PLUGIN_ID, 18, label, "Wwise Delay"), {
+    effectId,
+    slotIndex,
+    label
+  });
+}
+
+/** Decodes one source-proven static v150 Wwise Delay parameter block. */
+function parseStaticWwiseDelayBytes(bytes, {
+  effectId,
+  slotIndex,
+  label = `Wwise Delay ${effectId}`
+} = {}) {
+  if (!(bytes instanceof Uint8Array) || bytes.byteLength !== 18) {
+    throw new TypeError(`${label} has an unsupported parameter block`);
+  }
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const delayTimeSeconds = view.getFloat32(0, true);
   const feedbackPercent = view.getFloat32(4, true);
@@ -618,6 +660,13 @@ function PositiveFinite(value, label) {
   }
   return number;
 }
+function BoundedFinite(value, min, max, label) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < min || number > max) {
+    throw new TypeError(`${label} must be from ${min} to ${max}`);
+  }
+  return number;
+}
 
-export { PARAMETRIC_EQ_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_DELAY_PLUGIN_ID, WWISE_METER_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, createBusEffectChain, createWwiseEffectChain, indexBusEffectCatalog, normalizeStaticParametricEqChain, normalizeWwiseDynamicsMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode, parseGraphFeedbackFreeMeter, parseGraphSharedBusEffect, parseGraphStaticParametricEq, parseGraphStaticWwiseCompressor, parseGraphStaticWwiseDelay, parseGraphStaticWwisePeakLimiter, parseStaticParametricEqBytes };
+export { PARAMETRIC_EQ_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_DELAY_PLUGIN_ID, WWISE_METER_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, createBusEffectChain, createWwiseEffectChain, indexBusEffectCatalog, normalizeStaticParametricEqChain, normalizeStaticSourceEffectChain, normalizeWwiseDynamicsMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode, parseGraphFeedbackFreeMeter, parseGraphSharedBusEffect, parseGraphStaticParametricEq, parseGraphStaticWwiseCompressor, parseGraphStaticWwiseDelay, parseGraphStaticWwisePeakLimiter, parseStaticParametricEqBytes, parseStaticWwiseDelayBytes };
 //# sourceMappingURL=busEffects.js.map

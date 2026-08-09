@@ -34,7 +34,7 @@ bus processing omitted.
 | Music Track Voice Volume RTPC | Browser adaptation | v150 property-0 Game Parameter curves using additive accumulation and Wwise dB scaling run on an independent pre-bus track gain from the global RTPC lane. Non-linear automation uses the documented sampled interpolation; other Music Track RTPC properties remain unsupported. |
 | Bus-target Voice Volume Set | Bounded browser adaptation with audible fallback | An absolute, non-randomized game-object Set targeting the first/output Audio Bus persists per emitter and drives existing and future routed voices before that Bus stage. Reset, relative/randomized/global/ancestor/wet/music forms remain fail-closed. A route rejected by the shared mixer still plays with its action envelope, but rejected Bus effects and tails are omitted. |
 | Authored-music UI transport | CarbonEngineJS extension | Previous, next, and random enumerate Music Segments plus a bounded coordinated path through Random/Sequence subtracks inside one live playing ID; layered-track Cartesian products are not materialized. Pause and selection fade then replay an item from its entry cue because Web Audio buffer sources cannot resume or seek. Manual selection starts a fresh playlist traversal (resetting random/shuffle history), while an explicitly selected Sequence Music Track continues at its following subtrack. These controls are not Wwise event actions; automatic playback otherwise retains independent authored selection. |
-| Parametric EQ and Wwise Delay | Browser adaptation | Source-proven parameters, bus placement, and slot order are retained; Web Audio biquad/delay DSP is not bit-equivalent to Wwise. |
+| Parametric EQ and Wwise Delay | Browser adaptation | Source-proven parameters, slot order, qualified shared-Bus placement, and complete effective static source overrides are retained. Source inheritance follows first-override replacement and explicit empty clears. Web Audio biquad/delay DSP is not bit-equivalent to Wwise; source Delay feedback is cut at decoded dry-source completion, and pause/seek do not preserve native plug-in state. |
 | Wwise Compressor and Peak Limiter | Opt-in approximation | `wwiseDynamics: "approximate-web-audio"` admits only static, linked, all-channel records. The default `"strict"` policy keeps them out of the shared mixer and uses the legacy audible fallback. |
 | Wwise Meter | Proven omission or opt-in approximation | Feedback-free telemetry is audio-transparent and allocates no node. `wwiseMeterFeedback: "omit-telemetry"` may also pass static Meter signal flow while omitting a Game Parameter output; downstream-volume Meter remains unsupported. |
 | Qualified Sound `MaxNumInstances` | Corroborated browser adaptation | A v150 local-scope cap-one, reject-newest Sound subset reserves at an immediate Play boundary before media acquisition and releases at physical completion. Qualification requires effective Continue virtual behavior and excludes dynamic/random Priority, capped bus routes, delayed admission, and Crossfade prefetch. The packed local/global scope bit is corpus-corroborated pending a controlled golden pair; general Wwise arbitration remains unsupported. |
@@ -272,14 +272,18 @@ music; Bus LPF/HPF are distributed dry-route filters for both engines. Static
 Parametric EQ uses source-proven v150 field decoding and one ordered shared
 Web Audio chain per Bus when the complete graph route qualifies. Blocked or
 missing graph routes retain the distributed source-route fallback. Neither
-path claims native Wwise DSP equivalence. A complete direct Sound-local,
-static, control-free Parametric EQ override is also adapted into one
-voice-owned Web Audio chain before Voice filters and spatial/auxiliary
-splitting. Mixed, dynamic, inherited, and independent-LFE Sound effects remain
-documented dry-playback approximations. Static Wwise Delay likewise uses
-source-proven v150 fields and one shared Web Audio delay/feedback stage; it has
-no distributed per-source fallback. Bus ancestries targeted by retained Set or
-Reset Bus Volume actions stay blocked across audible effects because their
+path claims native Wwise DSP equivalence. A complete effective Sound-local,
+static, control-free Parametric EQ/Wwise Delay override is also adapted into
+one voice-owned Web Audio chain before Voice filters and spatial/auxiliary
+splitting. The first NodeBase override replaces inherited effects, including
+an explicit empty clear. Mixed, dynamic, unsupported-plug-in, and
+independent-LFE Sound effects remain documented dry-playback approximations.
+Source Delay lifecycle follows the decoded dry voice and cuts residual
+feedback; pause/seek reuse browser state rather than matching native plug-in
+state. Static Wwise Delay likewise uses
+source-proven v150 fields and one shared Web Audio delay/feedback stage. For
+Audio Bus routes it has no distributed per-source fallback. Bus ancestries
+targeted by retained Set or Reset Bus Volume actions stay blocked across audible effects because their
 instance/object scope cannot drive a fader shared by unrelated signals. Each
 qualified physical Bus now owns an exact post-effect fader for static Bus
 Volume, global Bus Volume RTPC, and Immediate State gain. The existing

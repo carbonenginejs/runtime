@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
     createBusEffectChain,
     indexBusEffectCatalog,
+    normalizeStaticSourceEffectChain,
     normalizeWwiseDynamicsMode,
     normalizeWwiseMeterFeedbackMode,
     normalizeWwiseVoiceLimitMode,
@@ -13,6 +14,7 @@ import {
     parseGraphStaticWwiseDelay,
     parseGraphStaticWwisePeakLimiter,
     parseStaticParametricEqBytes,
+    parseStaticWwiseDelayBytes,
 } from "../src/internal/busEffects.js";
 
 function Effect(overrides = {})
@@ -562,6 +564,29 @@ test("decodes only static source-proven v150 Wwise Delay parameters", () =>
     assert.equal(chain.nodes.length, 5, "disabled feedback allocates no loop gain");
     assert.equal(context.gains.length, 4);
     assert.deepEqual(context.delays[0].connections, [ context.gains[2] ]);
+});
+
+test("normalizes static Wwise Delay only for source effect chains", () =>
+{
+    const delay = parseStaticWwiseDelayBytes(DelayBytes({
+        delayTimeSeconds: 0.28,
+        feedbackPercent: 32,
+        wetDryMixPercent: 30.5,
+    }), {
+        effectId: "2464647643",
+        slotIndex: 0,
+    });
+    const normalized = normalizeStaticSourceEffectChain(
+        [ delay ],
+        "Audio source",
+    );
+
+    assert.deepEqual(normalized, [ delay ]);
+    assert.throws(
+        () => indexBusEffectCatalog(Catalog([ delay ])),
+        /unsupported type delay/u,
+        "legacy distributed Bus catalogs remain EQ-only",
+    );
 });
 
 test("rejects dynamic, malformed, or independently routed Wwise Delays", () =>

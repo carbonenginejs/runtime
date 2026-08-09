@@ -1,4 +1,4 @@
-import { normalizeStaticParametricEqChain } from "../internal/busEffects.js";
+import { normalizeStaticSourceEffectChain } from "../internal/busEffects.js";
 
 const SFX_SCHEMA_VERSION = 2;
 const NODE_TYPES = new Set([
@@ -211,7 +211,7 @@ export function validateSfxGraph(
             );
             if (node.sourceEffects !== undefined)
             {
-                normalizeStaticParametricEqChain(
+                normalizeStaticSourceEffectChain(
                     node.sourceEffects,
                     `Audio library SFX sound ${id} sourceEffects`,
                 );
@@ -662,12 +662,14 @@ function NormalizeNode(node)
         }
         if (node.sourceEffects !== undefined)
         {
-            result.sourceEffects = normalizeStaticParametricEqChain(
+            result.sourceEffects = normalizeStaticSourceEffectChain(
                 node.sourceEffects,
                 `Audio library SFX sound ${node.mediaId} sourceEffects`,
             ).map(effect => ({
                 ...effect,
-                bands: effect.bands.map(band => ({ ...band })),
+                ...(effect.type === "parametric-eq"
+                    ? { bands: effect.bands.map(band => ({ ...band })) }
+                    : {}),
             }));
         }
         NormalizePhysicalLeafIdentity(result, node);

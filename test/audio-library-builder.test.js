@@ -5114,6 +5114,148 @@ test("SFX construction projects complete static Sound-local Parametric EQ", asyn
     } ]);
 });
 
+test("SFX construction inherits a complete static Wwise Delay override", async () =>
+{
+    const library = await CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                station_incidental: {
+                    eventID: 100,
+                    soundbanks: [ "stations.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "stations.bnk": {
+                    name: "stations",
+                    path: "\\SoundBanks\\stations.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/stations.bnk",
+            storagePath: "banks/stations.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                directParentId: 310,
+                                sourceId: 9001,
+                            }),
+                        },
+                        {
+                            type: 2,
+                            id: 301,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9002,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                directParentId: 310,
+                                sourceId: 9002,
+                                overrideEffects: true,
+                            }),
+                        },
+                        {
+                            type: 7,
+                            id: 310,
+                            payload: actorMixerPayload({
+                                children: [ 300, 301 ],
+                                effects: [ {
+                                    slotIndex: 0,
+                                    effectId: 920,
+                                    flags: 2,
+                                } ],
+                                overrideEffects: true,
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 400,
+                            actionType: 0x0403,
+                            targetId: 300,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 3,
+                            id: 401,
+                            actionType: 0x0403,
+                            targetId: 301,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 400, 401 ],
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 16,
+                            id: 920,
+                            payload: wwiseDelayEffectPayload({
+                                delayTimeSeconds: 0.28,
+                                feedbackPercent: 32,
+                                wetDryMixPercent: 30.5,
+                            }),
+                        },
+                    ],
+                    media: [
+                        {
+                            id: 9001,
+                            available: true,
+                            absoluteOffset: 32,
+                            length: 64,
+                            mediaType: "wem",
+                        },
+                        {
+                            id: 9002,
+                            available: true,
+                            absoluteOffset: 96,
+                            length: 64,
+                            mediaType: "wem",
+                        },
+                    ],
+                },
+            };
+        },
+    });
+
+    assert.deepEqual(library.sfx.nodes["300"].sourceEffects, [ {
+        effectId: "920",
+        slotIndex: 0,
+        type: "delay",
+        delayTimeSeconds: Math.fround(0.28),
+        feedbackPercent: 32,
+        wetDryMixPercent: 30.5,
+        outputGainDb: 0,
+        feedbackEnabled: true,
+        processLfe: true,
+    } ]);
+    assert.equal(
+        library.sfx.nodes["301"].sourceEffects,
+        undefined,
+        "the child's explicit empty override clears its parent's Delay",
+    );
+});
+
 test("complete construction projects routed static Wwise Parametric EQ", async () =>
 {
     const library = await CjsAudioLibraryBuilder.buildFromBanks({
@@ -8687,6 +8829,36 @@ function parametricEqEffectPayload({
     return writer.bytes();
 }
 
+function wwiseDelayEffectPayload({
+    delayTimeSeconds,
+    feedbackPercent,
+    wetDryMixPercent,
+    outputGainDb = 0,
+    feedbackEnabled = true,
+    processLfe = true,
+} = {})
+{
+    const parameterBlock = new TestWriter()
+        .f32(delayTimeSeconds)
+        .f32(feedbackPercent)
+        .f32(wetDryMixPercent)
+        .f32(outputGainDb)
+        .u8(feedbackEnabled ? 1 : 0)
+        .u8(processLfe ? 1 : 0)
+        .bytes();
+
+    return new TestWriter()
+        .u32(0x006a0003)
+        .u32(parameterBlock.byteLength)
+        .append(parameterBlock)
+        .u8(0)
+        .u16(0)
+        .u8(0)
+        .u8(0)
+        .u16(0)
+        .bytes();
+}
+
 function BuildRoutedEffectLibrary({
     effectType = 16,
     effectFlags = 2,
@@ -8888,6 +9060,9 @@ function actorMixerPayload({
     maxInstances = 0,
     belowThresholdBehavior = 0,
     hdrFlags = 0,
+    effects = [],
+    overrideEffects = false,
+    bypassAllEffects = false,
 } = {})
 {
     const writer = new TestWriter()
@@ -8912,6 +9087,9 @@ function actorMixerPayload({
             maxInstances,
             belowThresholdBehavior,
             hdrFlags,
+            effects,
+            overrideEffects,
+            bypassAllEffects,
         }))
         .u32(children.length);
 

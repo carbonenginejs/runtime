@@ -11,7 +11,9 @@ import { CjsBnkFormat } from "@carbonenginejs/runtime-resource/formats/bnk";
 import { normalizeBusGraphCatalog } from "../internal/busGraph.js";
 import {
     PARAMETRIC_EQ_PLUGIN_ID,
+    WWISE_DELAY_PLUGIN_ID,
     parseStaticParametricEqBytes,
+    parseStaticWwiseDelayBytes,
 } from "../internal/busEffects.js";
 
 const MUSIC_BANK_NAMES = Object.freeze([ "music.bnk", "music_essential.bnk" ]);
@@ -4663,6 +4665,25 @@ function ParseStaticParametricEq(ownerLabel, slot, effect)
     });
 }
 
+function ParseStaticWwiseDelay(ownerLabel, slot, effect)
+{
+    if (effect.media?.length
+        || effect.rtpcs?.length
+        || effect.state?.properties?.length
+        || effect.state?.groups?.length
+        || effect.propertyValues?.length)
+    {
+        throw new Error(
+            `Wwise Delay ${effect.id} on ${ownerLabel} is not static`,
+        );
+    }
+    return parseStaticWwiseDelayBytes(effect.parameterBlock, {
+        effectId: effect.id,
+        slotIndex: slot.index,
+        label: `Wwise Delay ${effect.id} on ${ownerLabel}`,
+    });
+}
+
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
  * Sound's source ID references a CAkFxCustom object; its empty inline source
@@ -4715,22 +4736,48 @@ function ParseStaticWwiseSilenceDuration(effects, source, rawId)
 }
 
 /**
- * Projects only a Sound's complete direct static EQ override. Parent effects,
- * dynamic controls, mixed chains, and independent LFE routing keep the
- * existing documented dry-playback approximation.
+ * Projects the first complete static EQ/Delay override in a Sound's NodeBase
+ * ancestry. Wwise's FX override replaces the inherited list, so an explicit
+ * empty override clears the chain. Dynamic controls, unsupported plug-ins,
+ * and independent LFE routing keep the documented dry-playback approximation.
  */
 function CreateSfxSoundEffectProjection(parsed, effects, rawId)
 {
     const soundId = Number(rawId) >>> 0;
-    const fx = parsed.nodeBases.get(soundId)?.fx;
+    const visited = new Set();
+    let currentId = soundId;
+    let ownerId = 0;
+    let fx = null;
 
-    if (!fx
-        || fx.overrideParentRaw !== 1
-        || (fx.bypassAllRaw !== 0 && fx.bypassAllRaw !== 1)
-        || fx.bypassAll)
+    while (currentId)
     {
-        return {};
+        if (visited.has(currentId)) return {};
+        visited.add(currentId);
+        const nodeBase = parsed.nodeBases.get(currentId);
+
+        if (!nodeBase) return {};
+        const candidate = nodeBase.fx;
+
+        if (!candidate
+            || (candidate.overrideParentRaw !== 0
+                && candidate.overrideParentRaw !== 1)
+            || (candidate.bypassAllRaw !== 0
+                && candidate.bypassAllRaw !== 1)
+            || candidate.bypassAll)
+        {
+            return {};
+        }
+        const parentId = Number(nodeBase.directParentId) >>> 0;
+
+        if (candidate.overrideParentRaw === 1 || parentId === 0)
+        {
+            ownerId = currentId;
+            fx = candidate;
+            break;
+        }
+        currentId = parentId;
     }
+    if (!fx) return {};
     const slots = [ ...(fx.slots ?? []) ]
         .sort((left, right) => left.index - right.index);
     const seen = new Set();
@@ -4757,16 +4804,30 @@ function CreateSfxSoundEffectProjection(parsed, effects, rawId)
             const effect = effects?.get(slot.fxId);
 
             if (!effect
-                || effect.pluginId !== PARAMETRIC_EQ_PLUGIN_ID
                 || slot.shareSet !== (effect.type === "effect-share-set"))
             {
                 return {};
             }
-            chain.push(ParseStaticParametricEq(
-                `Sound ${soundId}`,
-                slot,
-                effect,
-            ));
+            if (effect.pluginId === PARAMETRIC_EQ_PLUGIN_ID)
+            {
+                chain.push(ParseStaticParametricEq(
+                    `NodeBase ${ownerId} inherited by Sound ${soundId}`,
+                    slot,
+                    effect,
+                ));
+            }
+            else if (effect.pluginId === WWISE_DELAY_PLUGIN_ID)
+            {
+                chain.push(ParseStaticWwiseDelay(
+                    `NodeBase ${ownerId} inherited by Sound ${soundId}`,
+                    slot,
+                    effect,
+                ));
+            }
+            else
+            {
+                return {};
+            }
         }
     }
     catch
