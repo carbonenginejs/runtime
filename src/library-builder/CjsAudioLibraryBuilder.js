@@ -197,11 +197,12 @@ export class CjsAudioLibraryBuilder
      *
      * runtime-resource owns HIRC decoding. This method only names and lowers
      * codec sounds, Step Random/Sequence, Step Switch/State containers, and
-     * supported non-continuous Layer containers and crossfades. It also returns a sparse
-     * event-metadata projection after resolving NodeBase positioning through
-     * hierarchy-only Actor-Mixers. Unsupported events are omitted whole and
-     * described in diagnostics; unresolved spatial inheritance omits only
-     * that metadata projection.
+     * supported non-continuous Layer containers and crossfades. It also
+     * returns a sparse event-metadata projection after resolving NodeBase
+     * positioning through hierarchy-only Actor-Mixers. Unsupported events
+     * are normally omitted whole and described in diagnostics; one documented
+     * Crossfade-to-Layer shape retains an independent finite Sound action.
+     * Unresolved spatial inheritance omits only that metadata projection.
      */
     static createSfxGraph({
         inspections,
@@ -1007,6 +1008,7 @@ function LowerSfxGraph({
     const active = new Set();
     const crossfadeFiniteSounds = new Set();
     const omittedEvents = [];
+    const approximatedEvents = [];
     const usedIDs = new Set(
         [ ...parsed.nodes.keys() ].map(value => String(value >>> 0)),
     );
@@ -1125,6 +1127,99 @@ function LowerSfxGraph({
                 nodes[key].loop = false;
             }
         }
+    };
+
+    const isPlainPlayAction = (action) =>
+    {
+        const details = action?.action ?? action;
+
+        return action?.actionType === SFX_PLAY_ACTION
+            && details?.targetIsBus !== true
+            && (details?.targetFlags ?? 0) === 0
+            && !(details?.properties?.length)
+            && !(details?.ranges?.length)
+            && !HasSfxPlayActionTiming(action, true);
+    };
+
+    // EVE contains one invalid Wwise topology: an infinite, single-child
+    // amplitude Crossfade whose only child is a trackless Layer. Wwise does
+    // not support Blend children under Xfade. When that action has one wholly
+    // independent codec-Sound sibling, retain only the sibling rather than
+    // dropping the complete event or inventing multi-voice crossfade rules.
+    const isBoundedCrossfadeLayerSiblingFallback = (
+        event,
+        blockedActionID,
+        action,
+    ) =>
+    {
+        if (event.actionIds.length !== 2 || !isPlainPlayAction(action))
+        {
+            return false;
+        }
+
+        const source = parsed.nodes.get(Number(action.targetId) >>> 0);
+        const children = source?.children ?? [];
+        const playlist = source?.playlist ?? [];
+        const layer = children.length === 1
+            ? parsed.nodes.get(Number(children[0]) >>> 0)
+            : null;
+
+        if (source?.type !== "random"
+            || !source.continuous
+            || !source.global
+            || source.loopCount !== 0
+            || source.loopModMin !== 0
+            || source.loopModMax !== 0
+            || source.transitionMode !== 1
+            || source.transitionTime !== 7000
+            || source.transitionTimeModMin !== 0
+            || source.transitionTimeModMax !== 0
+            || source.avoidRepeatCount !== 1
+            || source.randomMode !== 0
+            || source.usingWeight
+            || !source.resetPlaylistEachPlay
+            || children.length !== 1
+            || playlist.length !== 1
+            || (Number(playlist[0]?.playId) >>> 0)
+                !== (Number(children[0]) >>> 0)
+            || layer?.type !== "layer"
+            || layer.continuousValidation
+            || layer.layers.length
+            || !layer.children.length
+            || !layer.children.every(childID =>
+            {
+                const childID32 = Number(childID) >>> 0;
+                const child = parsed.nodes.get(childID32);
+                const childNodeBase = parsed.nodeBases?.get(childID32);
+
+                return child?.type === "sound"
+                    && child.pluginType === 1
+                    && childNodeBase
+                    && childNodeBase.loopCount !== 0;
+            }))
+        {
+            return false;
+        }
+
+        const siblingActionID = event.actionIds.find(candidateID =>
+            (Number(candidateID) >>> 0)
+                !== (Number(blockedActionID) >>> 0));
+        const sibling = parsed.actions.get(Number(siblingActionID) >>> 0);
+        const siblingSource = parsed.nodes.get(
+            Number(sibling?.targetId) >>> 0,
+        );
+        const siblingNodeBase = parsed.nodeBases?.get(
+            Number(sibling?.targetId) >>> 0,
+        );
+
+        return isPlainPlayAction(sibling)
+            && siblingSource?.type === "sound"
+            && siblingSource.pluginType === 1
+            && siblingNodeBase
+            && siblingNodeBase.loopCount !== 0
+            && !layer.children.some(childID =>
+                (Number(childID) >>> 0)
+                    === (Number(sibling.targetId) >>> 0));
     };
 
     const lower = (rawID) =>
@@ -1851,6 +1946,7 @@ function LowerSfxGraph({
             setters: [],
             program: [],
             unsupportedActions: [],
+            approximatedActions: [],
         };
 
         activeEvents.add(eventID);
@@ -1875,6 +1971,18 @@ function LowerSfxGraph({
                 {
                     if (musicNodeIds.has(Number(action.targetId) >>> 0))
                     {
+                        continue;
+                    }
+                    if (isBoundedCrossfadeLayerSiblingFallback(
+                        event,
+                        actionID,
+                        action,
+                    ))
+                    {
+                        result.approximatedActions.push({
+                            actionId: Number(actionID) >>> 0,
+                            targetId: Number(action.targetId) >>> 0,
+                        });
                         continue;
                     }
                     const child = ReadSfxPlayActionChild(
@@ -1942,6 +2050,9 @@ function LowerSfxGraph({
                     result.setters.push(...nested.setters);
                     result.unsupportedActions.push(
                         ...nested.unsupportedActions,
+                    );
+                    result.approximatedActions.push(
+                        ...nested.approximatedActions,
                     );
                 }
                 else if ([
@@ -2066,6 +2177,7 @@ function LowerSfxGraph({
                 result.stopTargets.clear();
                 result.setters.length = 0;
                 result.unsupportedActions.length = 0;
+                result.approximatedActions.length = 0;
             }
             result.roots = result.program
                 .filter(action => action.kind === "play")
@@ -2098,6 +2210,7 @@ function LowerSfxGraph({
                 setters,
                 program,
                 unsupportedActions,
+                approximatedActions,
             } = lowerEvent(eventID);
 
             if (stopTargets.size)
@@ -2131,6 +2244,15 @@ function LowerSfxGraph({
                     leavesByEvent.set(name, leaves);
                 }
                 programs[name] = retainedProgram;
+                if (approximatedActions.length)
+                {
+                    approximatedEvents.push({
+                        id: eventID,
+                        name,
+                        reason: "retained independent Play actions while omitting an unsupported Crossfade-to-Layer action",
+                        actions: approximatedActions,
+                    });
+                }
             }
         }
         catch (error)
@@ -2174,6 +2296,7 @@ function LowerSfxGraph({
         diagnostics: {
             parser: parsed.diagnostics,
             omittedEvents,
+            approximatedEvents,
             stopRelationships: stopRelationships.diagnostics,
             spatial: spatial.diagnostics,
         },

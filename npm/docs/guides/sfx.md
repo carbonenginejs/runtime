@@ -1005,9 +1005,11 @@ Trigger Rate Pause does not freeze the cadence or carry a pause depth into
 future child keys; the qualified Upwell consumers use Play and outer-container
 Stop actions, so that broader behavior is not claimed as Wwise parity.
 
-The builder omits an entire playable event when that event mixes other
-unsupported actions or reaches an unsupported playable node; the optional
-diagnostics callback explains each omission. Sample Accurate Continuous
+The builder normally omits an entire playable event when that event mixes
+other unsupported actions or reaches an unsupported playable node; the
+optional diagnostics callback explains each omission. Its
+`approximatedEvents` list separately records the bounded partial-recovery
+exception below. Sample Accurate Continuous
 transitions, `1st only`, `Continue to play`, Play-to-End switch changes,
 Play-and-Continue, playable Actor-Mixer approximation, associated Continuous
 Layers with a finite direct child, Layer
@@ -1026,11 +1028,23 @@ ShareSets, while runtime-audio only
 projects a qualified direct static Parametric EQ on a Sound. The browser
 result is consequently drier and less modulated as well as pre-started.
 
-The remaining EVE 3453885 runtime scheduling barrier is named explicitly. The
-`ship_module_shield_drain_play` Random/Sequence Crossfade reaches a parallel
-Layer/Blend child; Wwise itself documents that Xfade does not support a Blend
-Container child, so runtime-audio keeps that authored branch fail-closed rather
-than inventing a multi-voice crossfade extension.
+EVE build 3453885's `ship_module_shield_drain_play` mixes two Play actions.
+Action `960667829` reaches infinite Random `974515202`, whose 7000 ms amplitude
+Crossfade has trackless Layer/Blend `211616663` as its only child. Wwise
+[documents that Xfade fails when a Blend or Switch child plays](https://www.audiokinetic.com/en/public-library/2025.1.4_9062/?id=random_sequence_container_property_editor&source=Help).
+Runtime-audio therefore omits that invalid action instead of inventing a
+multi-voice crossfade. Its finite media `927964773` and `69501700`, infinite
+replay, and Crossfade envelope do not run.
+
+The same event's independent action `673588669` targets finite Sound
+`603165888`, so the builder retains that action as a bounded audible fallback.
+Media `278513022` plays once with its authored `-6 dB` and spatial properties.
+The Sound's direct Wwise RoomVerb `402798902` remains unsupported and follows
+the existing dry-playback fallback, so its reverb character and tail are
+omitted. This exception requires exactly two plain Play actions, the audited
+single-child infinite amplitude-Crossfade and trackless finite Layer shape,
+and one independent finite codec Sound. An infinite or modified sibling and
+all other Crossfade-to-Blend forms remain fail-closed.
 
 For events that do lower, the builder walks every possible typed graph branch
 and emits the exact set of reachable media IDs into `eventMedia`. This keeps

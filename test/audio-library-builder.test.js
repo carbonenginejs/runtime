@@ -3246,7 +3246,27 @@ test("Continuous Crossfade fails closed when a child reaches a Layer", () =>
                         streamType: 0,
                         sourceId: 9001,
                         inMemoryMediaSize: 64,
-                        payload: new Uint8Array(),
+                        payload: soundPayload({ sourceId: 9001 }),
+                    },
+                    {
+                        type: 2,
+                        id: 203,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9002,
+                        inMemoryMediaSize: 64,
+                        payload: soundPayload({ sourceId: 9002 }),
+                    },
+                    {
+                        type: 2,
+                        id: 204,
+                        pluginId: 0x00040001,
+                        pluginType: 1,
+                        streamType: 0,
+                        sourceId: 9003,
+                        inMemoryMediaSize: 64,
+                        payload: soundPayload({ loopCount: 0 }),
                     },
                     {
                         type: 9,
@@ -3257,10 +3277,59 @@ test("Continuous Crossfade fails closed when a child reaches a Layer", () =>
                         type: 5,
                         id: 202,
                         payload: randomSequencePayload({
-                            childIDs: [ 201, 200 ],
-                            transitionTime: 1000,
+                            childID: 201,
+                            loopCount: 0,
+                            transitionTime: 7000,
                             transitionMode: 1,
-                            flags: 0x08,
+                            avoidRepeatCount: 1,
+                            flags: 0x1a,
+                        }),
+                    },
+                    {
+                        type: 5,
+                        id: 205,
+                        payload: randomSequencePayload({
+                            childID: 201,
+                            loopCount: 0,
+                            transitionTime: 6000,
+                            transitionMode: 1,
+                            avoidRepeatCount: 1,
+                            flags: 0x1a,
+                        }),
+                    },
+                    {
+                        type: 5,
+                        id: 206,
+                        payload: randomSequencePayload({
+                            childID: 201,
+                            loopCount: 0,
+                            transitionTime: 7000,
+                            transitionMode: 1,
+                            flags: 0x1a,
+                        }),
+                    },
+                    {
+                        type: 5,
+                        id: 207,
+                        payload: randomSequencePayload({
+                            childID: 201,
+                            loopCount: 0,
+                            transitionTime: 7000,
+                            transitionMode: 1,
+                            avoidRepeatCount: 1,
+                            flags: 0x0a,
+                        }),
+                    },
+                    {
+                        type: 5,
+                        id: 208,
+                        payload: randomSequencePayload({
+                            childIDs: [ 201, 200 ],
+                            loopCount: 0,
+                            transitionTime: 7000,
+                            transitionMode: 1,
+                            avoidRepeatCount: 1,
+                            flags: 0x1a,
                         }),
                     },
                     {
@@ -3278,6 +3347,48 @@ test("Continuous Crossfade fails closed when a child reaches a Layer", () =>
                         payload: new Uint8Array(),
                     },
                     {
+                        type: 3,
+                        id: 302,
+                        actionType: 0x0403,
+                        targetId: 203,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 303,
+                        actionType: 0x0403,
+                        targetId: 204,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 304,
+                        actionType: 0x0403,
+                        targetId: 205,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 305,
+                        actionType: 0x0403,
+                        targetId: 206,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 306,
+                        actionType: 0x0403,
+                        targetId: 207,
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 3,
+                        id: 307,
+                        actionType: 0x0403,
+                        targetId: 208,
+                        payload: new Uint8Array(),
+                    },
+                    {
                         type: 4,
                         id: 100,
                         actionIds: [ 300 ],
@@ -3287,6 +3398,42 @@ test("Continuous Crossfade fails closed when a child reaches a Layer", () =>
                         type: 4,
                         id: 101,
                         actionIds: [ 301 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 102,
+                        actionIds: [ 300, 302 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 103,
+                        actionIds: [ 300, 303 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 104,
+                        actionIds: [ 304, 302 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 105,
+                        actionIds: [ 305, 302 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 106,
+                        actionIds: [ 306, 302 ],
+                        payload: new Uint8Array(),
+                    },
+                    {
+                        type: 4,
+                        id: 107,
+                        actionIds: [ 307, 302 ],
                         payload: new Uint8Array(),
                     },
                 ],
@@ -3300,11 +3447,35 @@ test("Continuous Crossfade fails closed when a child reaches a Layer", () =>
                 ordinary_play: {
                     eventID: 101,
                 },
+                shield_drain_play: {
+                    eventID: 102,
+                },
+                looping_sibling_play: {
+                    eventID: 103,
+                },
+                transition_variant_play: {
+                    eventID: 104,
+                },
+                avoid_repeat_variant_play: {
+                    eventID: 105,
+                },
+                local_variant_play: {
+                    eventID: 106,
+                },
+                multiple_branch_variant_play: {
+                    eventID: 107,
+                },
             },
         },
         media: {
             "9001": {
                 resPath: "res:/audio/9001.wem",
+            },
+            "9002": {
+                resPath: "res:/audio/9002.wem",
+            },
+            "9003": {
+                resPath: "res:/audio/9003.wem",
             },
         },
     });
@@ -3322,6 +3493,32 @@ test("Continuous Crossfade fails closed when a child reaches a Layer", () =>
         undefined,
         "a rejected Crossfade cannot mark a shared ordinary sound finite",
     );
+    assert.deepEqual(
+        result.diagnostics.omittedEvents.map(entry => entry.name),
+        [
+            "ambience_play",
+            "looping_sibling_play",
+            "transition_variant_play",
+            "avoid_repeat_variant_play",
+            "local_variant_play",
+            "multiple_branch_variant_play",
+        ],
+        JSON.stringify(result.diagnostics.omittedEvents),
+    );
+    assert.deepEqual(result.events.shield_drain_play, [
+        { nodeId: "203" },
+    ]);
+    assert.deepEqual(result.programs.shield_drain_play, [
+        { kind: "play", child: { nodeId: "203" } },
+    ]);
+    assert.deepEqual(result.diagnostics.approximatedEvents, [
+        {
+            id: 102,
+            name: "shield_drain_play",
+            reason: "retained independent Play actions while omitting an unsupported Crossfade-to-Layer action",
+            actions: [ { actionId: 300, targetId: 202 } ],
+        },
+    ]);
 });
 
 test("non-continuous Step switches ignore dormant default Stop policies", () =>

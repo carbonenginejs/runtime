@@ -508,6 +508,10 @@ class AudioLibrary
 
             return `Runs this ordered authored program: ${programText}. Set Voice Volume persists on the target hierarchy element, Relative values accumulate, Reset returns its contribution to 0 dB, and authored delays and fades use the audio clock.`;
         }
+        if (type === "bounded audible fallback")
+        {
+            return "Retains the event's independent finite Sound while omitting its invalid Wwise Crossfade-to-Blend action. The retained Sound plays dry because its authored RoomVerb is not realized.";
+        }
         if (type === "switch container")
         {
             const control = controls.switches[0];
@@ -552,6 +556,12 @@ class AudioLibrary
     SfxExamples()
     {
         const definitions = [
+            {
+                type: "bounded audible fallback",
+                preferred: [ "ship_module_shield_drain_play" ],
+                matches: name => name === "ship_module_shield_drain_play"
+                    && Boolean(this.sfx?.events?.[name]),
+            },
             {
                 type: "sound",
                 preferred: [ "dungeon_particle_accelerator_play" ],

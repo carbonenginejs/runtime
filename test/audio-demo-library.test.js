@@ -45,6 +45,7 @@ test("authored music demo exposes a stable contextual transport", () =>
     assert.doesNotMatch(html, /id="sfx"[^>]*display\s*:\s*none/);
     assert.match(html, /id="musicExamples"[^>]*disabled/);
     assert.match(html, /id="sfxExamples"[^>]*disabled/);
+    assert.match(html, /Authored Wwise programs and bounded fallbacks/);
     assert.match(html, /#music \.sfxControl select\s*\{[^}]*padding:\s*9px 36px 9px 12px/s);
     assert.match(html, /id="musicVol"[^>]*value="20"/);
     assert.match(html, /#musicExampleDetail\s*\{[^}]*height:\s*44px/s);
@@ -58,6 +59,7 @@ test("authored music demo exposes a stable contextual transport", () =>
     assert.match(script, /this\.#select\.hidden = !applicable/);
     assert.match(script, /SetAudioEnabled\(enabled\)/);
     assert.match(script, /function FaderPercentToGain\(value\)/);
+    assert.match(script, /ship_module_shield_drain_play/);
     assert.match(script, /return normalized \* normalized/);
     assert.doesNotMatch(script, /#StepExample/);
     assert.match(guide, /inside the\s+currently selected example/s);
@@ -76,8 +78,8 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(validateAudioLibraryDocument(library), true);
     assert.equal(graph.schemaVersion, 2);
     assert.equal(Object.keys(library.metadata.Events).length, 10766);
-    assert.equal(Object.keys(graph.events).length, 4888);
-    assert.equal(Object.keys(graph.programs).length, 9114);
+    assert.equal(Object.keys(graph.events).length, 4889);
+    assert.equal(Object.keys(graph.programs).length, 9115);
     assert.ok(
         Object.keys(library.busRtpcs?.buses ?? {}).length > 0,
         "the committed demo retains authored Audio Bus RTPCs",
@@ -146,6 +148,27 @@ test("committed demo library carries authored SFX and music semantics", () =>
                 && action.child.nodeId === nodeId
                 && (action.child.delayMs ?? 0) === delayMs));
         }
+    }
+
+    assert.deepEqual(graph.events.ship_module_shield_drain_play, [
+        { nodeId: "603165888" },
+    ]);
+    assert.deepEqual(graph.programs.ship_module_shield_drain_play, [
+        { kind: "play", child: { nodeId: "603165888" } },
+    ]);
+    assert.equal(graph.nodes["603165888"].type, "sound");
+    assert.equal(graph.nodes["603165888"].mediaId, "278513022");
+    assert.deepEqual(library.eventMedia.ship_module_shield_drain_play, [
+        "278513022",
+    ]);
+    for (const omittedNodeId of [
+        "974515202",
+        "211616663",
+        "488729513",
+        "810168985",
+    ])
+    {
+        assert.equal(graph.nodes[omittedNodeId], undefined);
     }
 
     const collectTimedSilenceNodes = eventName =>
